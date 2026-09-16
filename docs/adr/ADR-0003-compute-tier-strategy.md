@@ -2,38 +2,37 @@
 
 ## Status
 
-Proposed — M0 design direction; no board benchmark or deployment has run.
+Proposed — M0 설계 방향이며, 보드 benchmark나 배포는 아직 실행하지 않았다.
 
 ## Context
 
-The goal is to understand which vehicle feature configuration satisfies requirements
-under a compute budget. A two-board distributed vehicle would confound this with
-partitioning, extra transport and inter-board fault behavior.
+목표는 주어진 compute budget에서 어떤 차량 feature 구성이 요구사항을 만족하는지
+이해하는 것이다. 두 보드로 분산 차량을 구성하면 partitioning, 추가 통신, 보드 간
+fault 동작이 함께 개입해 compute budget의 영향을 구분하기 어려워진다.
 
 ## Decision
 
-Treat **Jetson AGX Thor as the Premium target** and **Jetson Orin NX as the Mainstream
-target** for the same Vehicle SW Architecture, deployed independently to one board
-at a time. Do not connect the boards to form one vehicle.
+동일한 Vehicle SW Architecture의 **Premium Target은 Jetson AGX Thor**,
+**Mainstream Target은 Jetson Orin NX**로 정의한다. 한 번에 한 보드에 독립 배포하며,
+두 보드를 연결해 하나의 차량을 구성하지 않는다.
 
-Freeze and run the same Reference Config, scenario and requirements on both first.
-Then measure and explore tier-specific changes, retaining separate reference and
-optimized results. Record AI and camera-to-trajectory latency, FPS, CPU/GPU usage,
-RAM, power, temperature, control jitter and deadline misses.
+먼저 동일한 Reference Config, scenario, 요구사항을 고정하고 두 보드에서 각각 실행한다.
+이후 tier별 변경을 측정하고 탐색하며 reference 결과와 최적화 결과를 구분해 보관한다.
+AI latency, camera-to-trajectory latency, FPS, CPU/GPU 사용률, RAM, power, temperature,
+control jitter, deadline miss를 기록한다.
 
 ## Alternatives Considered
 
-- Thor + Orin as connected compute nodes: answers a different architecture question.
-- One target only: simpler, but cannot explore the requested tier trade-offs.
-- Optimizing each board before measuring reference: useful later, but loses the
-  common starting point needed to interpret workload differences.
+- Thor + Orin을 연결된 compute node로 사용: 다른 architecture 질문을 다루게 된다.
+- Target 하나만 사용: 단순하지만 요청한 tier별 trade-off를 탐색할 수 없다.
+- Reference 측정 전에 각 보드 최적화: 나중에는 유용하지만 workload 차이를 해석할
+  공통 출발점을 잃는다.
 
 ## Consequences
 
-Reference model/input/features and requirement acceptance must be shared, while
-board-specific software compatibility, power modes and cooling must be disclosed.
-Do not assume identical binaries or TensorRT engines are portable between boards.
-Premium feature expansion and Mainstream FP16→INT8/model/input/rate/feature reductions
-need accuracy and closed-loop revalidation. No board performance ranking is claimed.
-Reference workload, budgets and exact board variants remain TBD. See
-[deployment protocol](../architecture/deployment_architecture.md).
+Reference model/input/feature와 requirement acceptance는 공통으로 유지하고, 보드별
+software 호환성, power mode, cooling 조건은 공개해야 한다. 동일한 binary나 TensorRT
+engine을 두 보드에서 그대로 사용할 수 있다고 가정하지 않는다. Premium feature 확장과
+Mainstream의 FP16→INT8/model/input/rate/feature 축소는 정확도와 closed-loop 재검증이
+필요하다. 보드 성능 순위를 주장하지 않는다. Reference workload, budget, 정확한 보드
+variant는 TBD다. [배포 protocol](../architecture/deployment_architecture.md)을 참조한다.

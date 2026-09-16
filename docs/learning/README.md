@@ -14,7 +14,7 @@ architecture를 내가 직접 이해하는 것을 우선한다. 현재 M0는 문
 6. 직접 실행
 7. fault/edge case test
 8. 학습 내용 기록
-9. acceptance criteria 확인
+9. Acceptance 기준 확인
 10. 다음 milestone
 
 **Codex가 작성한 코드를 내가 설명할 수 없다면 완료로 간주하지 않는다.**
@@ -33,7 +33,7 @@ M1 이후 구현은 별도의 milestone 작업으로 진행한다.
 - 직접 실행한 명령 / 환경 / 결과 경로: TBD (미실행은 NOT_RUN)
 - fault / edge case와 예상 및 관측 결과: TBD
 - 해결하지 못한 질문 / 다음 실험: TBD
-- acceptance criteria 확인 / 학습자 검토: PENDING
+- Acceptance 기준 확인 / 학습자 검토: PENDING
 
 기록은 필요한 시점에 작은 Markdown 파일로 추가한다. 모델 답변을 그대로
 붙여넣는 대신 이해한 내용, 재현 조건과 틀렸던 가정을 함께 남긴다.

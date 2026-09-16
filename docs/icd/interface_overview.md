@@ -2,34 +2,34 @@
 
 Status: **DRAFT / TBD**. Interface ID부터 관리하며 wire schema/DBC/IDL은 미구현이다.
 
-| Interface ID | Logical content | Source → Destination | Transport / schema |
+| Interface ID | 논리적 내용 | Source → Destination | Transport / schema |
 | --- | --- | --- | --- |
-| IF-HOST-SENSOR | Camera/IMU/GNSS + ego vehicle state | Host sensor bridge → Central vehicle_state/perception | physical Ethernet; protocol TBD |
-| IF-CENTRAL-TRAJECTORY | candidate/validated trajectory, target speed, risk | Planner → Safety → Controller | in-process/IPC TBD; validation 경계 유지 |
-| IF-DDS-VEHICLE-CMD | vehicle-level command | Central → Zone | DDS over virtual Ethernet; DDS ICD |
-| IF-DDS-ZONE-STATUS | actuator availability, aggregate feedback, health | Zone → Central | DDS over virtual Ethernet; DDS ICD |
-| IF-CAN-STEERING | steering command / actual steering feedback | Zone ↔ Steering vECU | SocketCAN/vCAN; CAN FD application contract |
-| IF-CAN-BRAKE | brake command / actual pressure feedback | Zone ↔ Brake vECU | 同上 |
-| IF-CAN-DRIVE | torque command / actual torque, speed/RPM feedback | Zone ↔ Drive vECU | 同上 |
-| IF-HOST-ACTUATOR | actual actuator state with source freshness | vECU → CAN → Zone/target bridge → Host Plant Adapter | feedback aggregation + physical Ethernet; protocol TBD |
+| IF-HOST-SENSOR | Camera/IMU/GNSS + ego vehicle state | Host sensor bridge → Central Vehicle Compute vehicle_state/perception | 실제 Ethernet; protocol TBD |
+| IF-CENTRAL-TRAJECTORY | candidate/validated trajectory, target speed, risk | Planner → Safety Supervisor → Classical Controller | in-process/IPC TBD; validation 경계 유지 |
+| IF-DDS-VEHICLE-CMD | vehicle-level command | Central Vehicle Compute → Zone Controller | Virtual Ethernet 기반 DDS; DDS ICD |
+| IF-DDS-ZONE-STATUS | actuator availability, aggregate feedback, health | Zone Controller → Central Vehicle Compute | Virtual Ethernet 기반 DDS; DDS ICD |
+| IF-CAN-STEERING | steering command / actual steering feedback | Zone Controller ↔ Steering vECU | SocketCAN/vCAN; CAN FD application contract |
+| IF-CAN-BRAKE | brake command / actual pressure feedback | Zone Controller ↔ Brake vECU | 위와 동일 |
+| IF-CAN-DRIVE | torque command / actual torque, speed/RPM feedback | Zone Controller ↔ Drive vECU | 위와 동일 |
+| IF-HOST-ACTUATOR | source freshness를 포함한 actual actuator state | vECU → CAN → Zone Controller/target bridge → Host Plant Adapter | feedback 집계 + 실제 Ethernet; protocol TBD |
 | IF-FAULT-EVENT | fault occurrence, evidence, local action/state | local monitors → Diagnostics Manager → Host logging | local IPC/DDS/telemetry mapping TBD |
 
 양방향 CAN interface ID는 logical family를 뜻한다. Command와 feedback의 wire
-frame ID는 각각 할당할 예정이다. Host telemetry와 Central–Zone DDS가 같은
+frame ID는 각각 할당할 예정이다. Host telemetry와 Central Vehicle Compute–Zone Controller DDS가 같은
 프로토콜이라고 가정하지 않는다. System state를 command/status에 전달하는 방법도
 schema 확정 시 정의한다.
 
 ## Common metadata and semantics template
 
-- Interface ID / schema version / owner / requirement IDs: TBD
-- Source / destination / authority / direction / message vs service: TBD
-- Payload fields / type / valid range / unit / coordinate frame / sign convention: TBD
-- Timestamp unit / clock domain / source acquisition or production semantics: TBD
-- Simulation frame / run ID / correlation ID / sequence width and restart/wrap: TBD
-- Validity, age limit, timeout clock / reset/pause handling: TBD
-- Queue depth / overflow / loss / duplicate / out-of-order behavior: TBD
-- Initialization / shutdown / reconnect / compatibility policy: TBD
-- Failure behavior / diagnostics / recovery contract: TBD
+- Interface ID / schema version / 담당자 / Requirement ID: TBD
+- Source / destination / 권한 / 방향 / message 또는 service 구분: TBD
+- Payload field / type / 유효 범위 / unit / coordinate frame / 부호 규칙: TBD
+- Timestamp unit / clock domain / source 수집 또는 생성 시점의 의미: TBD
+- Simulation frame / run ID / correlation ID / sequence 폭과 restart/wrap: TBD
+- Validity, age limit, timeout clock / reset/pause 처리: TBD
+- Queue depth / overflow / 손실 / 중복 / 순서 오류 시 동작: TBD
+- 초기화 / 종료 / 재연결 / 호환성 정책: TBD
+- Fault 시 동작 / diagnostics / 복구 계약: TBD
 
 Source timestamp와 bridge receive timestamp는 의미가 다르다. Bridge가 오래된
 feedback을 전달하면서 새로 생성된 것처럼 timestamp를 바꾸면 안 된다. Actuator별

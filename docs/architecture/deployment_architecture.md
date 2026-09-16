@@ -7,8 +7,8 @@ Status: **Planned**, 실행 가능한 container/systemd/network 설정은 M0에 
 | Node | 역할 | 미결정 사항 |
 | --- | --- | --- |
 | Host PC | x86 Ubuntu, CARLA, road/traffic/pedestrian/vehicle plant, simulated Camera/IMU/GNSS, ScenarioRunner/OpenSCENARIO, fault/test orchestration, logging/PASS-FAIL | Ubuntu/Python/CARLA client/server/ScenarioRunner 호환 버전, GPU 사양 TBD |
-| Target alternative A | Jetson AGX Thor, 전체 Central → Zone → Leaf stack, Premium Compute Profile | board variant, OS/JetPack/CUDA/TensorRT, power/thermal setup TBD |
-| Target alternative B | Jetson Orin NX, 동일 Vehicle SW Architecture, Mainstream Compute Profile | board RAM variant, board-specific software stack, power/thermal setup TBD |
+| Target 대안 A | Jetson AGX Thor, 전체 Central Vehicle Compute → Zone Controller → Leaf ECU stack, Premium Compute Profile | 보드 variant, OS/JetPack/CUDA/TensorRT, power/thermal 설정 TBD |
+| Target 대안 B | Jetson Orin NX, 동일 Vehicle SW Architecture, Mainstream Compute Profile | 보드 RAM variant, 보드별 software stack, power/thermal 설정 TBD |
 
 Host와 선택한 Jetson 사이에 실제 Ethernet을 사용한다. Thor와 Orin은 함께 차량을
 구성하지 않는다. 보드별 독립 실험과 동일 scenario replay로 비교한다. 같은
@@ -20,12 +20,12 @@ architecture/source revision을 목표로 하되 서로 다른 보드에 동일 
 Central Vehicle Compute → Virtual Ethernet / DDS → Virtual Zone Controller
 → SocketCAN / vCAN → Steering / Brake / Drive vECU.
 
-Central/Zone을 Docker network 또는 Linux network namespace + veth pair로 별도
+Central Vehicle Compute/Zone Controller를 Docker network 또는 Linux network namespace + veth pair로 별도
 Ethernet node처럼 구성할 계획이다. DDS discovery/QoS, multicast/routing, namespace
 안의 CAN 접근성, feedback bridge 배치, least-privilege device/capability와 observability는
 선택 후 검증한다. 단순 localhost function call로 Ethernet 경계를 대체하지 않는다.
 
-vCAN은 CAN frame 기반 application contract 시험용이다. CAN FD electrical behavior,
+vCAN은 CAN frame 기반 application contract 시험용이다. CAN FD의 전기적 동작,
 실제 arbitration 지연, bus load/bitrate, transceiver/error confinement를 물리적으로
 검증하지 않는다. 필요 지연/손실은 명시적 fault model로만 주입하고 실측 bus evidence와
 혼동하지 않는다. [Linux SocketCAN 문서](https://docs.kernel.org/networking/can.html)를 참조한다.
@@ -40,13 +40,13 @@ vCAN은 CAN frame 기반 application contract 시험용이다. CAN FD electrical
 4. Reference 결과를 수집한 뒤 Premium/Mainstream 변경을 각각 명시적으로 적용한다.
 5. 최적화된 결과는 reference와 별도 표시하고 모든 공통 requirement와 정확도를 재검증한다.
 
-Metric: AI latency, Camera-to-trajectory latency, FPS, CPU/GPU utilization, RAM,
-power, temperature, control jitter, deadline miss. 수집 도구, sampling rate와
+측정 항목은 AI latency, camera-to-trajectory latency, FPS, CPU/GPU utilization, RAM,
+power, temperature, control jitter, deadline miss다. 수집 도구, sampling rate와
 pass threshold는 TBD이며 unavailable sensor는 0 대신 N/A + 이유로 기록한다.
 
 Thor에서는 Premium feature 확장, Orin에서는 Mainstream resource optimization을
-탐색한다. FP16 → INT8, Medium → Small, 1080p → 720p, 30 FPS → 20 FPS, segmentation
-optional disable, temporal hidden size reduction, optional feature gating은 **후보**다.
+탐색한다. FP16 → INT8, Medium → Small, 1080p → 720p, 30 FPS → 20 FPS, optional segmentation
+비활성화, temporal hidden size 축소, optional feature gating은 **후보**다.
 정확도/closed-loop behavior 비용 없이 공짜 성능 개선이라고 가정하지 않는다.
 목표는 순위가 아니라 각 compute budget에서 requirement를 만족하는 feature configuration이다.
 

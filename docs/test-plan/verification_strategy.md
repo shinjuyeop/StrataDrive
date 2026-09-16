@@ -5,14 +5,14 @@ Status: **Planned**. M0의 문서/구조 검토를 vehicle/SIL 시험 통과로 
 
 ## Verification layers
 
-| Layer / directory | Planned checks | Evidence boundary |
+| 검증 계층 / directory | 계획된 검사 | 증거 범위 |
 | --- | --- | --- |
-| Document review / M0 | architecture boundary, requirements, ICD fields, traceability, TBD ownership | 설계 검토일 뿐 runtime verification 아님 |
-| Unit / tests/unit | CRC/counter golden vectors, state transitions, bounds, dynamics invariants | Linux software logic |
-| Integration / tests/integration | vCAN and DDS contracts, timeout/reconnect, process isolation | application communication; real CAN electrical evidence 아님 |
+| Document review / M0 | architecture 경계, 요구사항, ICD field, 추적성, TBD 담당자 | 설계 검토일 뿐 runtime verification 아님 |
+| Unit / tests/unit | CRC/counter golden vectors, 상태 전환, 한계값, dynamics 불변 조건 | Linux software 로직 |
+| Integration / tests/integration | vCAN/DDS 계약, timeout/재연결, process isolation | application 통신; 실제 CAN의 전기적 동작에 대한 증거 아님 |
 | SIL / tests/sil | Simple Plant 이후 CARLA actual-feedback loop, route tracking | 정해진 scenario/ODD 안의 simulator behavior |
-| Fault / tests/fault | loss/corruption/delay/jam/AI invalid/overrun injection and recovery | detection, local reaction, DTC, state, plant response 관측 |
-| Performance / tests/performance | task timing tails, overload, reference and tier comparisons | 지정한 환경의 observed statistics; static WCET proof 아님 |
+| Fault / tests/fault | loss/corruption/delay/jam/AI invalid/overrun 주입과 복구 | detection, local reaction, DTC, state, plant response 관측 |
+| Performance / tests/performance | task timing tail, overload, reference와 tier별 비교 | 지정한 환경의 observed statistics; static WCET proof 아님 |
 
 GoogleTest/pytest는 첫 구현과 함께 도입 예정이다. M0에서 설치하거나 빈 테스트를
 PASS 처리하지 않는다. Regression은 scenario/seed/config/commit을 고정하고 이후
@@ -20,30 +20,30 @@ interface/schema/parameter 변경 시 영향 requirement와 baseline 재검토�
 
 ## Candidate cases
 
-| Test ID | Proposed setup / action | Observable acceptance candidate | Stage |
+| Test ID | 설정 / 동작 후보 | 관측 가능한 acceptance 후보 | 단계 |
 | --- | --- | --- | --- |
-| TC-ARCH-001 | 각 보드에 동일 architecture/reference를 독립 배포; topology 검토 | Central–Zone logical Ethernet, Zone–Leaf vCAN 및 타 보드 의존성 부재; versions recorded | M0 review; M5/M12 runtime |
-| TC-COM-001 | 정상 steering feedback 후 송신 중단; last valid RX/loss onset 기록 | Zone 검출 latency가 검토된 threshold 이내; 현재 100 ms 예시는 TBD | M4 fault; M9 integration |
+| TC-ARCH-001 | 각 보드에 동일 architecture/reference를 독립 배포; topology 검토 | Central Vehicle Compute–Zone Controller logical Ethernet, Zone Controller–Leaf ECU vCAN 및 타 보드 의존성 부재; 버전 기록 | M0 review; M5/M12 runtime |
+| TC-COM-001 | 정상 steering feedback 후 송신 중단; last valid RX/loss onset 기록 | Zone Controller 검출 latency가 검토된 threshold 이내; 현재 100 ms 예시는 TBD | M4 fault; M9 integration |
 | TC-COM-002 | CRC 오류/duplicate/out-of-order/stale command 주입, restart/wrap case | reject 기록, valid-age 미갱신, 정책에 따른 timeout/rejoin | M1/M2/M4 |
-| TC-CTRL-001 | 동일 demand에서 steering delay/jam 또는 brake response 변화 | actual feedback이 달라지면 adapter input/plant motion도 계약대로 변함; direct controller CARLA writer 없음 | M6/M7 |
+| TC-CTRL-001 | 동일 demand에서 steering delay/jam 또는 brake response 변화 | actual feedback이 달라지면 Plant Adapter input/plant motion도 계약대로 변함; Classical Controller의 직접 CARLA actuation 적용 없음 | M6/M7 |
 | TC-AI-001 | inference timeout, NaN, stale history, infeasible trajectory; fallback 입력도 손실 | AI rejection → valid classical fallback 또는 안전 정책; AI raw actuator output 없음 | M11 |
-| TC-SAFE-001 | actuator별/복합 interface loss와 fault-clear 재연결 | 가용 actuator에 맞춘 state/action, bounded reaction, RECOVERY gate; numerical limits TBD | M9 |
+| TC-SAFE-001 | actuator별/복합 interface loss와 fault-clear 재연결 | 가용 actuator에 맞춘 state/action, bounded reaction, RECOVERY gate; 수치 한계값 TBD | M9 |
 | TC-DIAG-001 | named fault를 onset/duration 지정하여 주입하고 clear | event→DTC→state correlation 및 local action, debounce/persistence/recovery policy 일치 | M9 |
-| TC-PERF-001 | fixed reference workload, warm-up 후 반복 및 overload runs | E2E Mean/P95/P99/Max, sample/drop/miss count, jitter, environment/clock uncertainty 기록; threshold TBD | M3 instrumentation; M7/M12 E2E |
+| TC-PERF-001 | 고정된 reference workload, warm-up 후 반복 및 overload 실행 | E2E Mean/P95/P99/Max, sample/drop/miss count, jitter, environment/clock uncertainty 기록; threshold TBD | M3 instrumentation; M7/M12 E2E |
 
 초기 unit/vector/integration 결과와 end-to-end 결과는 다른 Result ID로 연결한다.
 일부 단계만 통과해 requirement 전체를 verified로 바꾸지 않는다.
 
 ## Test case template
 
-- Test ID / version / requirement IDs / component / interface IDs: TBD
-- Purpose / verification method / prerequisites: TBD
-- Scenario ID / ODD / seed / initial state / input and model/profile hashes: TBD
-- Environment / build / board / clock / simulator mode / tool versions: TBD
-- Steps and injection target / onset / duration / recovery: TBD
-- Observable oracle / numerical threshold / tolerance / measurement endpoints: TBD
-- Required artifacts / run duration / repetition / invalid-run rules: TBD
-- Expected normal, fault and edge-case behavior: TBD
+- Test ID / version / Requirement ID / Component / Interface ID: TBD
+- 목적 / 검증 방법 / 사전 조건: TBD
+- Scenario ID / ODD / seed / 초기 상태 / 입력 및 model/profile hash: TBD
+- 환경 / build / 보드 / clock / simulator mode / 도구 버전: TBD
+- 절차와 주입 대상 / 시작 시점 / 지속 시간 / 복구: TBD
+- 관측 가능한 판정 기준 / 수치 threshold / 허용 오차 / 측정 endpoint: TBD
+- 필요한 artifact / 실행 시간 / 반복 횟수 / 무효 실행 판정 규칙: TBD
+- 정상, fault, edge case의 예상 동작: TBD
 
 ## Result template
 

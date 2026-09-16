@@ -19,22 +19,22 @@ Status: **DRAFT / TBD**. SYS-PERF-001, SYS-COM-001, SYS-SAFE-001을 구체화하
 
 ## Stage budget / observation table
 
-단위는 ms 후보다. Period, deadline, latency budget은 서로 다른 값이다. Safety 뒤
-Controller 구간 및 feedback/adapter 경로도 end-to-end 합계에 포함한다.
+단위는 ms 후보다. Period, deadline, latency budget은 서로 다른 값이다. Safety Supervisor 뒤
+Classical Controller 구간 및 feedback/Plant Adapter 경로도 end-to-end 합계에 포함한다.
 
-| Stage / measurement endpoints | Period | Deadline | Budget | Mean | P95 | P99 | Max observed | Jitter | Miss count / jobs | Samples |
+| 단계 / 측정 endpoint | Period | Deadline | Budget | Mean | P95 | P99 | Max observed | Jitter | Miss count / jobs | Samples |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Sensor ingress: acquisition → Central usable input | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| Perception: input accepted → observation ready | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| Planner: snapshot accepted → trajectory candidate | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| Safety: candidate received → validated trajectory | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| Controller: validated input → vehicle command | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| Central-Zone Ethernet: publish → valid receive | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| Zone processing: receive → CAN command queued | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| CAN/vECU: command queued → accepted by control task | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| Actuator response: demand accepted → defined response criterion | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| Feedback/adapter: response feedback → applied plant input | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
-| End-to-end: sensor acquisition → corresponding plant input applied | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| Sensor ingress: 수집 → Central Vehicle Compute에서 사용 가능한 입력 | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| Perception: 입력 수용 → observation 준비 | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| Planner: snapshot 수용 → trajectory 후보 | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| Safety Supervisor: 후보 수신 → 검증된 trajectory | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| Classical Controller: 검증된 입력 → vehicle command | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| Central Vehicle Compute–Zone Controller Ethernet: publish → 유효 수신 | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| Zone Controller 처리: 수신 → CAN command queue 등록 | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| CAN/vECU: command queue 등록 → control task에서 수용 | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| Actuator response: demand 수용 → 정의된 응답 기준 도달 | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| Feedback/Plant Adapter: 응답 feedback → plant 입력 적용 | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
+| End-to-end: sensor 수집 → 해당 plant 입력 적용 | TBD | TBD | TBD | NOT_MEASURED | — | — | — | — | — | — |
 
 각 queue의 대기, sensor age, pre/post-processing, copy/transport를 어느 구간에
 포함할지 중복과 누락 없이 정의한다. 위 표는 일대일 pipeline을 가정한 template이다.
@@ -46,10 +46,10 @@ ID로 source frame과 적용 command/actual feedback을 연결하고 stale/missi
 
 ## Fault timing template
 
-| Fault / requirement | Injection or loss origin | Detected at | Local action at | System state at | Actual response at | Detection budget | Reaction budget | Result |
+| Fault / Requirement | 주입 또는 상실 기점 | 검출 시점 | Local action 시점 | System state 변경 시점 | 실제 응답 시점 | 검출 budget | 반응 budget | Result |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| STEERING_ECU_LOSS / SYS-COM-001 | TBD; last valid RX와 loss onset을 모두 기록 | NOT_MEASURED | NOT_MEASURED | NOT_MEASURED | NOT_MEASURED | 100 ms example, TBD | TBD | NOT_RUN |
-| Safety-critical interface loss / SYS-SAFE-001 | TBD | NOT_MEASURED | NOT_MEASURED | NOT_MEASURED | NOT_MEASURED | TBD | TBD | NOT_RUN |
+| STEERING_ECU_LOSS / SYS-COM-001 | TBD; last valid RX와 loss onset을 모두 기록 | NOT_MEASURED | NOT_MEASURED | NOT_MEASURED | NOT_MEASURED | 100 ms 예시, TBD | TBD | NOT_RUN |
+| Safety-critical interface 상실 / SYS-SAFE-001 | TBD | NOT_MEASURED | NOT_MEASURED | NOT_MEASURED | NOT_MEASURED | TBD | TBD | NOT_RUN |
 
 Fault detection latency = detection − defined fault onset, fail-safe reaction latency
 = protective action − fault onset을 후보로 하고 detection→action도 별도 측정한다.
@@ -62,7 +62,7 @@ Fault detection latency = detection − defined fault onset, fail-safe reaction 
 Run ID, requirement/test IDs, commit/profile hash, board/OS/kernel/toolchain,
 scenario/seed, simulator mode/step, build/instrumentation, model hash/precision,
 power/clocks/cooling, background load, warm-up, duration/repetitions, sample/drop count,
-percentile estimator, trace overhead and clock uncertainty를 기록한다.
+percentile estimator, trace overhead와 clock uncertainty를 기록한다.
 Outlier를 숨기지 않고 miss count, total eligible jobs와 miss rate를 함께 보고한다.
 AI latency의 pre/inference/post 범위, Camera-to-trajectory의 acquisition→validated
 trajectory 등 endpoint를 확정한다. FPS는 유효 처리 출력 수/elapsed time으로 정의한다.

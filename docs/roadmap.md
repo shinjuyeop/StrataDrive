@@ -1,10 +1,10 @@
 # Milestone roadmap
 
-Status: **M0 — Architecture & Requirement Baseline**, bootstrap/design draft.
+Status: **M0 — Architecture & Requirement Baseline**, bootstrap/설계 초안이다.
 M1–M13은 모두 Planned이며 이번 요청에서 착수하지 않는다. 아래 acceptance는 후보로,
 각 milestone 시작 전에 학습자가 requirement/contract와 함께 확정한다.
 
-| Milestone | Planned focus | Proposed acceptance evidence |
+| Milestone | 계획 범위 | Acceptance 증거 후보 |
 | --- | --- | --- |
 | M0 | Architecture / Requirement / ICD Baseline | 문서/구조/traceability 검토, 주요 TBD 결정, 학습자의 설명과 baseline 승인 |
 | M1 | DBC + vCAN | Frame/signal 계약, CRC/counter golden vectors, vCAN encoding/decoding |
@@ -12,12 +12,12 @@ M1–M13은 모두 Planned이며 이번 요청에서 착수하지 않는다. 아
 | M3 | Real-Time Timing & Scheduling Measurement | execution/period/jitter/tails/miss 측정, clock/overhead 조건 기록 |
 | M4 | Virtual Zone Controller | validation/allocation/local safety, CAN feedback loss와 rejoin |
 | M5 | Central Compute + DDS | 논리 Ethernet 분리, DDS command/status, QoS/freshness 시험 |
-| M6 | Simple Vehicle Plant | Zone/vECU actual response를 통과한 closed-loop와 mapping 검증 |
+| M6 | Simple Vehicle Plant | Zone Controller/vECU actual response를 통과한 closed-loop와 mapping 검증 |
 | M7 | CARLA Integration | Host–Target 실제 Ethernet, single ego writer, feedback-driven CARLA motion |
 | M8 | Classical Autonomous Driving | route/waypoint, Pure Pursuit 또는 Stanley, longitudinal PID의 기준 scenario |
 | M9 | Fault / Diagnostics / DTC | Fault Event/DTC/state/local action/plant response를 연결한 fault regression |
 | M10 | Physical AI Perception | pretrained detection/segmentation/tracking, TensorRT 통합과 accuracy/latency 기준 |
-| M11 | Learned Temporal Planner | 0.5–1초 history, trajectory/speed/risk 출력, Safety/Classical fallback 시험 |
+| M11 | Learned Temporal Planner | 0.5–1초 history, trajectory/speed/risk 출력, Safety Supervisor/Classical Planner fallback 시험 |
 | M12 | Thor vs Orin Compute-Tier Optimization | 동일 Reference 비교 후 tier별 구성 최적화, 공통 requirement 재검증 |
 | M13 | Final SIL / V&V / Regression | scenario/fault/performance regression, traceability 결과와 한계 공개 |
 
@@ -30,7 +30,7 @@ Fault architecture는 M0부터 다루며 local fault behavior는 M2/M4 등의 co
 모든 항목의 owner는 학습자(project owner), 상태는 OPEN / TBD다. 파일 생성만으로
 이 설계 값이 승인된 것으로 간주하지 않는다.
 
-| Priority | Decision | Needed before / how to decide |
+| 우선순위 | 결정 사항 | 결정 시점 / 방법 |
 | --- | --- | --- |
 | 1 | 초기 ODD, 최소 scenario, speed/accuracy/deviation acceptance | Requirement baseline; 간단한 route와 fault scenario를 문장으로 정의 |
 | 2 | Vehicle command / actuator feedback 물리량, unit, frame, CARLA mapping | M1/M2 contract; steering/brake/drive 책임과 dynamics 중복 검토 |

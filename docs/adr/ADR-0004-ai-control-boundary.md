@@ -2,38 +2,38 @@
 
 ## Status
 
-Proposed — M0 design direction; AI and control implementations are Planned.
+Proposed — M0 설계 방향이며 AI와 control 구현은 Planned다.
 
 ## Context
 
-Learned temporal planning may produce late, invalid or infeasible outputs. The
-project needs observable failure behavior and a classical baseline before adding AI.
-Keeping an interface boundary helps study these effects but does not prove safety.
+Learned Temporal Planner는 늦거나 유효하지 않거나 실행 불가능한 출력을 만들 수 있다.
+AI 도입 전에 fault 동작을 관측할 수 있어야 하며 classical baseline이 필요하다.
+Interface 경계를 유지하면 이러한 영향을 살펴보기 쉽지만 안전성이 증명되지는 않는다.
 
 ## Decision
 
-Build classical route/waypoint driving first, with Pure Pursuit or Stanley and
-Longitudinal PID through Zone/vECU. Add pretrained perception next. Later evaluate
-a GRU or small Temporal Transformer using 0.5–1 second state/object history.
+먼저 Zone Controller/vECU를 거치는 classical route/waypoint 주행을 구현한다.
+Lateral control에는 Pure Pursuit 또는 Stanley, longitudinal control에는 Longitudinal PID를
+사용한다. 그다음 pretrained perception을 추가한다. 이후 0.5–1초의 state/object history를
+사용하는 GRU 또는 작은 Temporal Transformer를 평가한다.
 
-AI outputs Future Waypoints / Suggested Trajectory, Target Speed and Risk Score.
-It does not directly generate actuator commands. Route its output through Safety
-Supervisor → Classical Controller → Vehicle Command, keeping a Classical Planner
-fallback for timeout or invalid AI output. If fallback inputs are also unusable,
-follow the defined degraded/fail-safe policy instead of assuming fallback is valid.
+AI는 Future Waypoints / Suggested Trajectory, Target Speed, Risk Score를 출력한다.
+Actuator command를 직접 생성하지 않는다. 출력은 Safety Supervisor → Classical Controller
+→ Vehicle Command 경로를 거친다. AI timeout이나 유효하지 않은 출력에 대비해
+Classical Planner fallback을 유지한다. Fallback 입력도 사용할 수 없으면 유효한 fallback으로
+간주하지 않고 정의된 degraded/fail-safe 정책을 따른다.
 
 ## Alternatives Considered
 
-- End-to-end learned actuator control: reduces explicit boundaries but makes the
-  intended contract, timing and fault studies harder to isolate.
-- Classical autonomy only: the correct first phase, but omits later Physical AI learning.
-- Learned outputs without a safety validator: insufficient validation/recovery boundary.
+- End-to-end learned actuator control: 명시적인 경계는 줄지만 계약, timing, fault를
+  구분해 살펴보기 어려워진다.
+- Classical autonomy만 사용: 첫 단계에 적합하지만 이후 Physical AI 학습이 빠진다.
+- Safety validator 없이 learned 출력 사용: 검증과 복구 경계가 부족하다.
 
 ## Consequences
 
-Validation, mode switching, trajectory continuity and fallback timing need explicit
-tests. A classical controller or deterministic rule does not itself establish
-hard real-time guarantees or safety certification. Risk semantics/calibration,
-validation limits, training/evaluation split and recovery thresholds remain TBD.
-See [software architecture](../architecture/software_architecture.md) and
-[safety contracts](../requirements/safety_requirements.md).
+검증, mode 전환, trajectory 연속성, fallback timing을 명시적으로 시험해야 한다.
+Classical Controller나 deterministic 규칙만으로 hard real-time 보장이나 안전 인증이
+성립하지 않는다. Risk 의미/calibration, 검증 한계값, training/evaluation 분리,
+recovery threshold는 TBD다. [software architecture](../architecture/software_architecture.md)와
+[안전 계약](../requirements/safety_requirements.md)을 참조한다.

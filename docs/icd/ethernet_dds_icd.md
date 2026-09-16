@@ -1,31 +1,31 @@
 # Ethernet / DDS ICD template
 
 Status: **DRAFT / TBD**. DDS vendor, direct DDS/ROS 2, IDL, domain/topic 이름은
-미결정이다. Logical DDS link는 Target 내부 Central–Zone virtual Ethernet이다.
+미결정이다. Logical DDS link는 Target 내부 Central Vehicle Compute–Zone Controller Virtual Ethernet이다.
 Host physical Ethernet interface에도 공통 metadata 계약을 적용할 예정이지만
 Host transport로 DDS를 사용할지는 미결정이다.
 
 ## Message / service definition
 
-| Field | IF-DDS-VEHICLE-CMD draft | IF-DDS-ZONE-STATUS draft |
+| Field | IF-DDS-VEHICLE-CMD 초안 | IF-DDS-ZONE-STATUS 초안 |
 | --- | --- | --- |
-| Message/service name | VehicleCommand (logical name, TBD) | ZoneStatus (logical name, TBD) |
-| Kind / schema version | periodic message / TBD | periodic message / TBD |
-| Source | Central Controller + output guard | Zone gateway |
-| Destination | Zone command_validation | Central vehicle_state/health/safety |
+| Message/service name | VehicleCommand (논리적 이름, TBD) | ZoneStatus (논리적 이름, TBD) |
+| Kind / schema version | 주기적 message / TBD | 주기적 message / TBD |
+| Source | Central Vehicle Compute의 Classical Controller + output guard | Zone Controller gateway |
+| Destination | Zone Controller command_validation | Central Vehicle Compute vehicle_state/health/safety |
 | Period | TBD | TBD |
-| QoS reliability | TBD; loss vs retransmit/staleness trade-off | TBD |
+| QoS reliability | TBD; 손실과 재전송/staleness의 trade-off | TBD |
 | QoS history/depth/resource limits | TBD | TBD |
 | QoS deadline/lifespan/liveliness/durability | TBD | TBD |
-| Timestamp | source production time + clock domain, encoding TBD | source/per-actuator time preserved, encoding TBD |
-| Sequence | width/wrap/restart/correlation TBD | width/wrap/restart/correlation TBD |
+| Timestamp | source 생성 시각 + clock domain, encoding TBD | source/actuator별 시각 보존, encoding TBD |
+| Sequence | 폭/wrap/restart/correlation TBD | 폭/wrap/restart/correlation TBD |
 | Timeout | valid-command age threshold + clock TBD | valid-status age threshold + clock TBD |
-| Failure behavior | reject stale/invalid; Zone local safety policy TBD | flag unavailable/degraded; reaction TBD |
+| Failure behavior | stale/invalid 거부; Zone Controller의 local safety 정책 TBD | unavailable/degraded 표시; 대응 TBD |
 | Requirement / test | SYS-CTRL-001, SYS-COM-002 / TC-CTRL-001, TC-COM-002 | SYS-SAFE-001 / TC-SAFE-001 |
 
 ## Payload template
 
-| Field name | Type | Unit/frame | Range / validity | Source meaning | Failure value/policy |
+| Field name | Type | Unit/frame | 범위 / validity | Source 의미 | Fault 시 값/정책 |
 | --- | --- | --- | --- | --- | --- |
 | TBD | TBD | TBD | TBD | TBD | TBD |
 

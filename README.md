@@ -6,38 +6,36 @@
 
 **M0 — Architecture & Requirement Baseline**
 
-This repository is at the bootstrap / architecture design stage. Documents, draft
-contracts, profile placeholders and a configure-only CMake skeleton exist. Runtime
-components, DBC/IDL definitions, control, AI, deployment and vehicle tests are
-**Planned / TBD**, with no measured vehicle or compute results. M0 acceptance still
-requires the learner's design review and resolution of the baseline questions.
+현재 repository는 bootstrap / architecture 설계 단계다. 문서, 계약 초안,
+profile placeholder와 configure-only CMake 골격을 갖추고 있다. Runtime component,
+DBC/IDL 정의, control, AI, 배포와 차량 시험은 **Planned / TBD**이며 차량 동작이나
+compute 성능을 측정한 결과는 없다. M0 acceptance를 위해서는 학습자의 설계 검토와
+baseline 관련 질문의 해결이 필요하다.
 
 ## Project Overview
 
-StrataDrive is a learning and verification project for a Central Compute → Zone
-Controller → Leaf ECU vehicle software architecture in a planned CARLA closed-loop
-software-in-the-loop (SIL) environment. It connects vehicle control, distributed
-communication, virtual ECUs, timing, diagnostics and Physical AI with deployment
-under different compute budgets.
+StrataDrive는 CARLA 기반 closed-loop software-in-the-loop (SIL) 환경에서
+Central Vehicle Compute → Zone Controller → Leaf ECU 차량 software architecture를
+학습하고 검증하기 위한 프로젝트다. 차량 제어, 분산 통신, vECU, timing, diagnostics,
+Physical AI를 서로 다른 compute budget에 맞춘 배포와 함께 다룰 계획이다.
 
 ## Motivation
 
-The project goes beyond a simulator driving demo or an inference benchmark: the
-engineering focus is whether a complete vehicle feature configuration can meet
-explicit requirements on each compute tier. Understanding the architecture and
-explaining each implementation take priority over generating code quickly.
+Simulator 주행 데모나 inference benchmark를 넘어, 각 compute tier에서 차량의
+전체 feature 구성이 명시된 요구사항을 만족하는지 살펴본다. 빠른 코드 생성보다
+architecture를 이해하고 각 구현을 직접 설명할 수 있는 것을 우선한다.
 
 ## Key Engineering Questions
 
-- How should vehicle commands, zone allocation and actuator response be separated?
-- How do stale messages, ECU loss and actuator faults affect closed-loop behavior?
-- Which timing tails and deadline misses matter beyond average AI latency?
-- How can a learned planner assist a bounded classical control path?
-- Which features satisfy the same requirements within each board's resource budget?
+- Vehicle command, Zone Controller의 allocation, actuator response를 어떻게 분리할 것인가?
+- Stale message, ECU 통신 상실, actuator fault는 closed-loop 동작에 어떤 영향을 주는가?
+- 평균 AI latency 외에 어떤 timing tail과 deadline miss를 살펴봐야 하는가?
+- Learned Planner는 제한이 정의된 Classical Controller 경로를 어떻게 보조할 수 있는가?
+- 각 보드의 resource budget 안에서 어떤 feature가 동일한 요구사항을 만족하는가?
 
 ## System Architecture
 
-The diagram is a **planned topology**, not an implemented deployment.
+아래 그림은 **Planned topology**이며 아직 구현된 배포 구성이 아니다.
 
 ```mermaid
 flowchart LR
@@ -52,7 +50,7 @@ flowchart LR
     ADAPTER --> CARLA
   end
   subgraph TARGET[One independent Jetson target: AGX Thor OR Orin NX]
-    CENTRAL[Central: state / perception / world model / planner]
+    CENTRAL[Central Vehicle Compute: state / perception / world model / planner]
     SAFETY[Safety Supervisor]
     CONTROL[Classical Controller: vehicle-level command]
     ETH[Virtual Ethernet / DDS]
@@ -66,95 +64,95 @@ flowchart LR
     ETH --> CENTRAL
   end
   SENS -->|physical Ethernet| CENTRAL
-  ECU -->|actual actuator state via zone / target bridge and physical Ethernet| ADAPTER
+  ECU -->|actual actuator state via Zone Controller / target bridge and physical Ethernet| ADAPTER
   TEST -. planned fault injection .-> ZONE
   ZONE -. health and fault telemetry .-> LOG
   ADAPTER --> LOG
 ```
 
-Thor and Orin are **independent alternative targets**. They are never combined into
-one vehicle. Central and Zone are planned as distinct logical Ethernet nodes on
-one Linux target using Docker networking or network namespaces plus veth pairs.
-The Host–Jetson link uses real Ethernet. Zone–Leaf communication uses SocketCAN/vCAN;
-vCAN does not reproduce CAN FD electrical behavior, physical arbitration or bus timing.
+Thor와 Orin은 **서로 독립적인 대체 Target**이며, 두 보드를 결합해 하나의 차량을
+구성하지 않는다. Central Vehicle Compute와 Zone Controller는 하나의 Linux Target에서
+Docker network 또는 network namespace + veth pair로 논리적으로 별도인 Ethernet node를
+구성할 계획이다. Host–Jetson은 실제 Ethernet, Zone Controller–Leaf ECU는 SocketCAN/vCAN을
+사용한다. vCAN은 CAN FD의 전기적 동작, 물리적 arbitration, bus timing을 재현하지 않는다.
 
-The controller must never move the vehicle by calling CARLA directly. The required
-loop is: CARLA sensor/state → Central → Planner → Safety Supervisor → Controller
-→ Vehicle Command → virtual Ethernet → Zone → CAN FD command → vECU → **actual
-actuator state** → Plant Adapter → vehicle motion → next sensor frame. The adapter
-is the sole planned ego actuation writer; translating feedback to CARLA inputs
-and avoiding double-counted actuator dynamics remain design work.
+Classical Controller가 CARLA를 직접 호출해 차량을 움직여서는 안 된다. 반드시
+CARLA sensor/state → Central Vehicle Compute → Planner → Safety Supervisor → Classical Controller
+→ Vehicle Command → Virtual Ethernet → Zone Controller → CAN FD command → vECU → **actual
+actuator state** → Plant Adapter → 차량 움직임 → 다음 sensor frame의 흐름을 유지한다.
+Plant Adapter만 ego 차량의 actuation을 적용하도록 설계할 계획이다. Feedback을 CARLA
+입력으로 변환하는 방법과 actuator dynamics의 중복 적용 방지는 아직 설계할 사항이다.
 
-See [system architecture](docs/architecture/system_architecture.md),
-[software contracts](docs/architecture/software_architecture.md) and
-[deployment architecture](docs/architecture/deployment_architecture.md).
+상세 내용은 [system architecture](docs/architecture/system_architecture.md),
+[software 계약](docs/architecture/software_architecture.md),
+[배포 architecture](docs/architecture/deployment_architecture.md)를 참조한다.
 
 ## Compute Tier Strategy
 
-Run the same **Reference Config** independently on both boards first, with the same
-scenario, requirements, model/input settings and measurement protocol. Then explore
-**AGX Thor: Premium Compute Profile** and **Orin NX: Mainstream Compute Profile**.
-Compare AI and camera-to-trajectory latency, FPS, CPU/GPU utilization, RAM, power,
-temperature, control jitter and deadline misses. No performance numbers are claimed.
+먼저 동일한 scenario, 요구사항, model/input 설정, 측정 protocol을 사용하는
+**Reference Config**를 두 보드에 각각 독립 실행한다. 이후 **AGX Thor: Premium Compute
+Profile**과 **Orin NX: Mainstream Compute Profile**을 탐색한다. AI latency,
+camera-to-trajectory latency, FPS, CPU/GPU utilization, RAM, power, temperature,
+control jitter, deadline miss를 비교할 계획이며 현재 주장하는 성능 수치는 없다.
 
-Candidate changes include FP16 → INT8, Medium → Small model, 1080p → 720p,
-30 → 20 FPS, optional segmentation disable, smaller temporal hidden size and feature
-gating. Quantization and feature removal require accuracy and vehicle behavior
-revalidation; configuration details are TBD. See [profiles](profiles/README.md).
+최적화 후보는 FP16 → INT8, Medium → Small model, 1080p → 720p, 30 → 20 FPS,
+optional segmentation 비활성화, temporal hidden size 축소, feature gating이다.
+Quantization과 feature 제거 후에는 정확도와 차량 동작을 다시 검증해야 한다.
+상세 설정은 TBD이며 [profile 설명](profiles/README.md)에 정리한다.
 
 ## Scope / Non-Scope
 
-M0 covers requirements, architecture, ICD templates, ADRs, verification planning and
-learning workflow. Later milestones plan classical driving before AI, actuator
-models, faults and fair compute comparisons.
+M0에서는 요구사항, architecture, ICD template, ADR, 검증 계획, 학습 절차를 다룬다.
+이후 milestone에서는 AI보다 classical driving을 먼저 구현하고, actuator model,
+fault, 공정한 compute 비교를 다룰 계획이다.
 
-M0 does not install CARLA, download models, implement production software or run
-vehicle tests. QNX, AUTOSAR, hardware-in-the-loop (HIL), certified functional safety
-and ISO 26262 compliance are not implemented or claimed. The Linux vECU model is
-an educational MCU/RTOS approximation. CARLA is not asserted equivalent to
-CarMaker, CANoe or dSPACE, and this project is not evidence of road readiness.
+M0에서는 CARLA 설치, model 다운로드, production software 구현, 차량 시험을
+수행하지 않는다. QNX, AUTOSAR, hardware-in-the-loop (HIL)의 적용이나 functional safety
+인증, ISO 26262 준수를 주장하지 않는다. Linux vECU model은 MCU/RTOS 학습을 위한
+근사 모델이다. CARLA가 CarMaker, CANoe, dSPACE와 동등하다고 주장하지 않으며,
+이 프로젝트가 실제 도로 운행 준비를 입증하는 것은 아니다.
 
 ## Planned Tech Stack
 
-| Area | Planned choice / unresolved selection |
+| 영역 | 계획된 선택 / 미결정 사항 |
 | --- | --- |
-| Host simulation | x86 Ubuntu, CARLA 0.9.16 family initial candidate; exact compatible versions TBD |
-| Core software | C++ and CMake; language standard and compiler versions TBD |
-| Orchestration / analysis | Python, pytest; versions TBD |
-| Communication | DDS over virtual Ethernet; vendor, direct DDS vs ROS 2 TBD; SocketCAN/vCAN |
-| Isolation | Docker network or Linux network namespaces + veth; selection TBD |
-| Target | One Jetson AGX Thor or one Jetson Orin NX; board-specific platform stack TBD |
-| Physical AI | Pretrained perception, TensorRT export/inference; GRU or small Temporal Transformer later |
-| Quality | GoogleTest, clang-tidy, cppcheck, ASan, UBSan and regression suites, all Planned |
+| Host simulation | x86 Ubuntu, CARLA 0.9.16 계열 초기 후보; 정확한 호환 버전 TBD |
+| Core software | C++와 CMake; 언어 표준과 compiler 버전 TBD |
+| Orchestration / analysis | Python, pytest; 버전 TBD |
+| Communication | Virtual Ethernet 기반 DDS; vendor, direct DDS vs ROS 2 TBD; SocketCAN/vCAN |
+| Isolation | Docker network 또는 Linux network namespace + veth; 선택 TBD |
+| Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD |
+| Physical AI | Pretrained perception, TensorRT export/inference; 이후 GRU 또는 작은 Temporal Transformer |
+| Quality | GoogleTest, clang-tidy, cppcheck, ASan, UBSan과 regression suite; 모두 Planned |
 
-Configure the M0 scaffold with an existing CMake installation:
+기존에 설치된 CMake로 M0 골격을 configure할 수 있다.
 
 ```sh
 cmake -S . -B build
 ```
 
-This only configures an empty project; it does not compile, fetch or execute any
-vehicle software. No application run command exists at M0.
+이 명령은 빈 프로젝트의 configure만 수행한다. 차량 software를 컴파일하거나
+다운로드·실행하지 않으며, M0에는 application 실행 명령이 없다.
 
 ## Development Principles
 
-1. Define requirements and interfaces before code; keep undecided values as TBD.
-2. Preserve the Central → Zone → vECU → Plant boundary in every closed-loop test.
-3. Keep AI outputs at trajectory/target-speed/risk level, with safety checks,
-   a classical controller and classical planner fallback.
-4. Measure execution, jitter, tails, deadlines and fault response with explicit clocks.
-5. Maintain Requirement → Component → Interface → Test → Result traceability.
-6. Review a small change, run it personally and explain it before accepting it.
+1. 코드보다 요구사항과 interface를 먼저 정의하고, 미결정 값은 TBD로 남긴다.
+2. 모든 closed-loop 시험에서 Central Vehicle Compute → Zone Controller → vECU → Plant 경계를 유지한다.
+3. AI 출력은 trajectory/target speed/risk로 제한하고, safety 검사와 Classical Controller,
+   Classical Planner fallback을 거친다.
+4. Clock 기준을 명시하고 execution, jitter, tail, deadline, fault response를 측정한다.
+5. Requirement → Component → Interface → Test → Result의 추적성을 유지한다.
+6. 작은 변경을 검토하고 직접 실행한 뒤, 내용을 설명할 수 있을 때 수용한다.
 
-See [learning principles](docs/learning/README.md),
-[quality policy](docs/quality_policy.md) and
-[verification strategy](docs/test-plan/verification_strategy.md).
+상세 내용은 [학습 원칙](docs/learning/README.md),
+[품질 정책](docs/quality_policy.md),
+[검증 전략](docs/test-plan/verification_strategy.md)을 참조한다.
 
 ## Milestone Roadmap
 
-| Milestone | Planned focus |
+| Milestone | 계획 범위 |
 | --- | --- |
-| M0 | Architecture / Requirement / ICD Baseline — current draft |
+| M0 | Architecture / Requirement / ICD Baseline — 현재 초안 |
 | M1 | DBC + vCAN |
 | M2 | Steering / Brake / Drive vECU |
 | M3 | Real-Time Timing & Scheduling Measurement |
@@ -169,9 +167,9 @@ See [learning principles](docs/learning/README.md),
 | M12 | Thor vs Orin Compute-Tier Optimization |
 | M13 | Final SIL / V&V / Regression |
 
-Detailed proposed acceptance evidence is in [the roadmap](docs/roadmap.md).
-Fault contracts start at M0 and local fault behavior is planned with the relevant
-components; M9 integrates diagnostics and DTCs across the full system.
+Acceptance 증거의 상세 후보는 [로드맵](docs/roadmap.md)에 정리한다.
+Fault 계약은 M0부터 정의하며, local fault 동작은 관련 component와 함께 설계할 계획이다.
+M9에서는 전체 시스템의 diagnostics와 DTC를 통합한다.
 
 ## Repository Structure
 
@@ -179,27 +177,27 @@ components; M9 integrates diagnostics and DTCs across the full system.
 StrataDrive/
 ├── README.md, .gitignore, .gitattributes, CMakeLists.txt
 ├── docs/
-│   ├── requirements/      # System, timing and safety drafts
-│   ├── architecture/      # System, software, deployment and fault contracts
-│   ├── icd/               # Interface inventory, DDS and CAN templates
-│   ├── adr/               # Four design decisions
-│   ├── test-plan/         # Verification strategy and traceability
-│   ├── learning/          # Learner-led workflow
+│   ├── requirements/      # System, timing, safety 초안
+│   ├── architecture/      # System, software, 배포, fault 계약
+│   ├── icd/               # Interface 목록, DDS/CAN template
+│   ├── adr/               # 설계 결정 네 개
+│   ├── test-plan/         # 검증 전략과 추적성
+│   ├── learning/          # 학습자 중심 절차
 │   ├── roadmap.md
 │   └── quality_policy.md
-├── interfaces/            # dbc/, dds/, common/ — placeholders
+├── interfaces/            # dbc/, dds/, common/ — 배치용 placeholder
 ├── central/               # State, perception, world model, planning, control, safety, health, diagnostics
 ├── zone/                  # Gateway, validation, allocation, local safety
 ├── vecu/                  # Common task model, steering, brake, drive
-├── simulation/            # Simple plant, CARLA, adapter, scenarios, fault injection
+├── simulation/            # Simple plant, CARLA, Plant Adapter, scenarios, fault injection
 ├── physical_ai/           # Perception, learned planner, export, inference
-├── profiles/              # Reference / Thor Premium / Orin Mainstream design data
-├── tests/                 # Unit, integration, SIL, fault, performance — placeholders
-├── benchmark/             # Timing, compute, reviewed results
-├── deploy/                # Docker, systemd, scripts — placeholders
-├── models/README.md       # Large artifact policy and small sample exceptions
-└── tools/                 # Placeholder
+├── profiles/              # Reference / Thor Premium / Orin Mainstream 설계 data
+├── tests/                 # Unit, integration, SIL, fault, performance — 배치용 placeholder
+├── benchmark/             # Timing, compute, 검토된 결과
+├── deploy/                # Docker, systemd, scripts — 배치용 placeholder
+├── models/README.md       # 대용량 artifact 정책과 작은 sample 예외
+└── tools/                 # 배치용 placeholder
 ```
 
-Start reading with [system requirements](docs/requirements/system_requirements.md)
-and [open M0 decisions](docs/roadmap.md#open-m0-decisions).
+[시스템 요구사항](docs/requirements/system_requirements.md)과
+[M0 미결정 사항](docs/roadmap.md#open-m0-decisions)부터 읽으면 된다.
