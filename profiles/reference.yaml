@@ -1,0 +1,45 @@
+# M0 design data only. null = TBD; no loader or executable defaults exist.
+profile_id: reference
+status: planned
+purpose: identical_workload_on_each_independent_target
+eligible_targets:
+  - jetson_agx_thor
+  - jetson_orin_nx
+scenario_id: null
+scenario_seed: null
+requirement_baseline: null
+software_revision: null
+workload:
+  perception_model: null
+  model_checksum: null
+  precision: null
+  camera_resolution: null
+  camera_fps: null
+  segmentation_enabled: null
+  tracking_enabled: null
+  temporal_model: null
+  temporal_history_seconds: null
+  temporal_hidden_size: null
+control:
+  lateral_algorithm: null
+  period_ms: null
+  deadline_ms: null
+measurement:
+  simulator_mode: null
+  clock_sync_method: null
+  warmup_seconds: null
+  duration_seconds: null
+  repetitions: null
+  power_mode: null
+  cooling_condition: null
+  metrics:
+    - ai_latency
+    - camera_to_trajectory_latency
+    - fps
+    - cpu_utilization
+    - gpu_utilization
+    - ram
+    - power
+    - temperature
+    - control_jitter
+    - deadline_miss

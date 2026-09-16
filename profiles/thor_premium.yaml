@@ -1,0 +1,19 @@
+# M0 design data; baseline_profile is documentary, not implemented inheritance.
+profile_id: thor_premium
+status: planned
+target: jetson_agx_thor
+compute_tier: premium
+baseline_profile: reference.yaml
+prerequisite: measure_identical_reference_on_both_targets_first
+objective: expand_features_within_reviewed_requirement_and_compute_budgets
+selected_overrides: null
+feature_expansion_candidates:
+  - larger_perception_model
+  - higher_camera_resolution_or_rate
+  - optional_segmentation
+  - larger_temporal_context_or_model
+board_variant: null
+platform_stack: null
+power_mode: null
+thermal_limits: null
+acceptance_thresholds: null

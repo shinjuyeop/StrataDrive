@@ -1,0 +1,57 @@
+# Build / language caches
+build/
+cmake-build-*/
+.cache/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Runtime output
+logs/
+*.log
+*.bag
+*.mcap
+*.core
+core.*
+
+# Large data and AI artifacts (see models/README.md for reviewed exceptions)
+datasets/
+data/
+checkpoints/
+weights/
+models/*
+!models/README.md
+!models/.gitkeep
+*.pt
+*.pth
+*.onnx
+*.engine
+*.plan
+benchmark/results/raw/
+
+# CARLA installations, assets, recordings and package archives
+simulation/carla/assets/
+simulation/carla/recordings/
+simulation/carla/CARLA*/
+CarlaUE4/
+UnrealEngine/
+*.pak
+CARLA*.tar.gz
+CARLA*.zip
+
+# Local container volumes and runtime files
+deploy/docker/volumes/
+deploy/docker/.local/
+.docker-local/
+*.pid
+*.sock

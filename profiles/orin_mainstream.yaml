@@ -1,0 +1,22 @@
+# M0 design data; candidate changes are not active settings.
+profile_id: orin_mainstream
+status: planned
+target: jetson_orin_nx
+compute_tier: mainstream
+baseline_profile: reference.yaml
+prerequisite: measure_identical_reference_on_both_targets_first
+objective: satisfy_common_requirements_with_resource_optimization
+selected_overrides: null
+optimization_candidates:
+  - fp16_to_int8_with_accuracy_revalidation
+  - medium_to_small_model
+  - 1080p_to_720p
+  - 30fps_to_20fps
+  - optional_segmentation_disable
+  - temporal_hidden_size_reduction
+  - optional_feature_gating
+board_variant: null
+platform_stack: null
+power_mode: null
+thermal_limits: null
+acceptance_thresholds: null
