@@ -1,8 +1,10 @@
 # 학습 원칙
 
 이 프로젝트에서는 Codex가 코드를 빠르게 생성하는 것보다 작성된 코드와
-architecture를 내가 직접 이해하는 것을 우선한다. 현재 M0는 문서/설계 초안이며,
-생성된 파일이 있다는 이유만으로 설계 이해나 milestone 완료를 선언하지 않는다.
+architecture를 내가 직접 이해하는 것을 우선한다. M0 문서 baseline과 개인의 이해 기록은 구분한다.
+생성된 파일이나 문서 review PASS만으로 내가 설계를 설명할 수 있다고 간주하지 않는다.
+이번 M0 계약은 사용자 요청의 범위/판정 기준을 반영하며 종료 검토는
+[M0 baseline summary](../m0_baseline.md)에 기록한다.
 
 각 milestone은 다음 순서로 진행한다.
 
@@ -30,7 +32,7 @@ M1 이후 구현은 별도의 milestone 작업으로 진행한다.
 - Requirement / Component / Interface / Test ID: TBD
 - 내 말로 설명한 설계와 대안의 trade-off: TBD
 - 작은 변경의 diff와 내가 설명하지 못한 부분: TBD
-- 직접 실행한 명령 / 환경 / 결과 경로: TBD (미실행은 NOT_RUN)
+- 직접 실행한 명령 / 환경 / 결과 경로: TBD (미실행은 NOT RUN)
 - fault / edge case와 예상 및 관측 결과: TBD
 - 해결하지 못한 질문 / 다음 실험: TBD
 - Acceptance 기준 확인 / 학습자 검토: PENDING

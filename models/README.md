@@ -22,3 +22,6 @@ models/samples/*
 크기 기준과 외부 저장소/Git LFS 정책은 TBD다. Model directory 전체의 제외를 해제하거나
 `git add -f`를 관행적으로 사용하지 않는다. 제외된 dataset directory에 나중에 README를
 추적하려면 상위 directory에도 명시적인 예외가 필요하다.
+
+미결정 size/license/storage policy의 owner는 project owner이며 TBD-11(M10 첫 model
+fixture 전)이다. 보류 이유와 gate는 [TBD register](../docs/roadmap.md#open-m0-decisions)에 있다.

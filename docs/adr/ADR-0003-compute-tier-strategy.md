@@ -2,7 +2,8 @@
 
 ## Status
 
-Proposed — M0 설계 방향이며, 보드 benchmark나 배포는 아직 실행하지 않았다.
+Accepted for **StrataDrive Reference Baseline v0.1** (2026-09-22).
+설계 경계의 수용이며 runtime 구현/호환성/성능 검증은 **PLANNED / NOT RUN**이다.
 
 ## Context
 
@@ -36,3 +37,8 @@ engine을 두 보드에서 그대로 사용할 수 있다고 가정하지 않는
 Mainstream의 FP16→INT8/model/input/rate/feature 축소는 정확도와 closed-loop 재검증이
 필요하다. 보드 성능 순위를 주장하지 않는다. Reference workload, budget, 정확한 보드
 variant는 TBD다. [배포 protocol](../architecture/deployment_architecture.md)을 참조한다.
+
+보드 stack/workload/budget TBD의 owner는 project owner이며 TBD-09(M5/M10/M12)에
+귀속된다. M0 rate/ODD/acceptance를 board별로 조용히 완화하지 않는다.
+
+미결정 항목의 owner/rationale은 [TBD register](../roadmap.md#open-m0-decisions)를 따른다.

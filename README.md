@@ -4,13 +4,16 @@
 
 ## Current Status
 
-**M0 — Architecture & Requirement Baseline**
+**M0 — Architecture / Requirement / ICD Baseline: BASELINED**
 
-현재 repository는 bootstrap / architecture 설계 단계다. 문서, 계약 초안,
-profile placeholder와 configure-only CMake 골격을 갖추고 있다. Runtime component,
-DBC/IDL 정의, control, AI, 배포와 차량 시험은 **Planned / TBD**이며 차량 동작이나
-compute 성능을 측정한 결과는 없다. M0 acceptance를 위해서는 학습자의 설계 검토와
-baseline 관련 질문의 해결이 필요하다.
+**StrataDrive Reference Baseline v0.1**의 system contract와 verification baseline을 정의했다.
+[종료 검토](docs/m0_baseline.md)의 15개 항목을 모두 통과했다. ODD, 정상 3개/
+fault 4개 scenario, command/actual 책임, logical rates, timeout/state, traceability가 문서 범위다.
+숫자는 engineering starting point이며 양산차 기준이나 실측 결과가 아니다.
+
+현재 실제 repository에는 문서, 설계용 YAML, directory placeholder, configure-only CMake
+골격이 있다. DBC/vCAN/vECU/CARLA/ROS 2·DDS/control/AI/deployment runtime은
+**PLANNED**, 모든 차량/성능 시험은 **NOT RUN**이다. M1 이후 구현은 시작하지 않았다.
 
 ## Project Overview
 
@@ -56,7 +59,7 @@ flowchart LR
     ETH[Virtual Ethernet / DDS]
     ZONE[Virtual Zone Controller]
     CAN[SocketCAN / vCAN: CAN FD application contract]
-    ECU[Steering / Brake / Drive vECU: actual actuator response]
+    ECU[Steering / Brake / Drive vECU: actual actuator feedback]
     CENTRAL --> SAFETY --> CONTROL --> ETH --> ZONE --> CAN --> ECU
     ECU -->|feedback| CAN
     CAN --> ZONE
@@ -64,7 +67,7 @@ flowchart LR
     ETH --> CENTRAL
   end
   SENS -->|physical Ethernet| CENTRAL
-  ECU -->|actual actuator state via Zone Controller / target bridge and physical Ethernet| ADAPTER
+  ECU -->|actual actuator feedback via Zone / target bridge and physical Ethernet| ADAPTER
   TEST -. planned fault injection .-> ZONE
   ZONE -. health and fault telemetry .-> LOG
   ADAPTER --> LOG
@@ -76,16 +79,40 @@ Docker network 또는 network namespace + veth pair로 논리적으로 별도인
 구성할 계획이다. Host–Jetson은 실제 Ethernet, Zone Controller–Leaf ECU는 SocketCAN/vCAN을
 사용한다. vCAN은 CAN FD의 전기적 동작, 물리적 arbitration, bus timing을 재현하지 않는다.
 
-Classical Controller가 CARLA를 직접 호출해 차량을 움직여서는 안 된다. 반드시
-CARLA sensor/state → Central Vehicle Compute → Planner → Safety Supervisor → Classical Controller
-→ Vehicle Command → Virtual Ethernet → Zone Controller → CAN FD command → vECU → **actual
-actuator state** → Plant Adapter → 차량 움직임 → 다음 sensor frame의 흐름을 유지한다.
-Plant Adapter만 ego 차량의 actuation을 적용하도록 설계할 계획이다. Feedback을 CARLA
-입력으로 변환하는 방법과 actuator dynamics의 중복 적용 방지는 아직 설계할 사항이다.
+**Vehicle-level command != actuator command != actual actuator feedback**이다.
+Central Classical Controller는 target speed와 acceleration/curvature/braking demand를 생성하고, Zone은
+Steering/Drive/Brake command로 allocation하며, vECU는 task/delay/saturation/dynamics/fault를
+거친 actual actuator feedback을 생성한다. Controller/Zone의 request는 actual state가 아니다.
+
+필수 closed-loop는 CARLA Sensor / Vehicle State → Central Vehicle Compute → Planner →
+Safety Supervisor → Classical Controller → Vehicle-level Command → logical Ethernet / DDS →
+Zone Controller → CAN application contract → Steering/Brake/Drive vECU → Actual Actuator
+Feedback → Zone/Target feedback bridge → Physical Ethernet → Host Plant Adapter → CARLA
+Vehicle Motion → next sensor frame이다.
+
+Planner/Controller/Zone의 CARLA direct actuation, vECU command의 actual 간주,
+actual loss 시 raw command fallback은 금지한다. **Plant Adapter만 ego actuation single writer**다.
+Host orchestrator는 tick을 소유한다. Actual이 invalid/stale/missing이면 다음 apply/tick을
+보류한다. 이는 simulation containment이며 물리적 안전 정지의 검증이 아니다.
 
 상세 내용은 [system architecture](docs/architecture/system_architecture.md),
 [software 계약](docs/architecture/software_architecture.md),
 [배포 architecture](docs/architecture/deployment_architecture.md)를 참조한다.
+
+## Reference Baseline v0.1
+
+| 항목 | M0 정의 |
+| --- | --- |
+| ODD | 맑은 낮, 포장도로, 단일 ego, 신호등 없는 직선/완만한 곡선, 0–40 km/h; 복잡한 교차로/traffic interaction 제외 |
+| 정상 scenario | S01 직선 30 km/h, S02 곡선 30 km/h, S03 직선→곡선→직선 및 30→20 km/h request |
+| 주행 acceptance | steady speed max absolute error <=1 km/h; lateral absolute P95 <=0.3 m; heading absolute P95 <=3 deg; positive validated target 대비 overspeed <=10% |
+| 통신 | critical command/actual loss는 마지막 valid RX부터 <=100 ms에 검출; invalid/stale command는 valid age 갱신 금지 |
+| Logical rates | simulation/sensor·Planner 20 Hz, Controller 50 Hz, Zone·Steering/Brake/Drive vECU 100 Hz |
+| State | INIT → NORMAL → DEGRADED → FAIL_SAFE; critical loss는 FAIL_SAFE 직행, recovery는 explicit INIT 재검증 |
+
+수치와 평가 window는 [scenario baseline](docs/test-plan/scenario_baseline.md), 시간 정의는
+[timing contract](docs/requirements/timing_requirements.md)에 있다. M3/M6/M7/M8 측정·tuning으로
+변경할 때 requirement revision/rationale과 profile/test를 함께 갱신한다.
 
 ## Compute Tier Strategy
 
@@ -102,7 +129,7 @@ Quantization과 feature 제거 후에는 정확도와 차량 동작을 다시 �
 
 ## Scope / Non-Scope
 
-M0에서는 요구사항, architecture, ICD template, ADR, 검증 계획, 학습 절차를 다룬다.
+M0에서는 요구사항, architecture, semantic ICD baseline, ADR, 검증 계획, 학습 절차를 다룬다.
 이후 milestone에서는 AI보다 classical driving을 먼저 구현하고, actuator model,
 fault, 공정한 compute 비교를 다룰 계획이다.
 
@@ -116,12 +143,12 @@ M0에서는 CARLA 설치, model 다운로드, production software 구현, 차량
 
 | 영역 | 계획된 선택 / 미결정 사항 |
 | --- | --- |
-| Host simulation | x86 Ubuntu, CARLA 0.9.16 계열 초기 후보; 정확한 호환 버전 TBD |
-| Core software | C++와 CMake; 언어 표준과 compiler 버전 TBD |
-| Orchestration / analysis | Python, pytest; 버전 TBD |
-| Communication | Virtual Ethernet 기반 DDS; vendor, direct DDS vs ROS 2 TBD; SocketCAN/vCAN |
-| Isolation | Docker network 또는 Linux network namespace + veth; 선택 TBD |
-| Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD |
+| Host simulation | x86 Ubuntu, CARLA 0.9.16 계열 초기 후보; 정확한 호환 버전 TBD-07 (M7) |
+| Core software | C++와 CMake; 언어 표준과 compiler 버전 TBD-11 (M1) |
+| Orchestration / analysis | Python, pytest; 버전 TBD-11 (M1) |
+| Communication | Virtual Ethernet 기반 DDS; vendor, direct DDS vs ROS 2 TBD-05 (M5); SocketCAN/vCAN |
+| Isolation | Docker network 또는 Linux network namespace + veth; 선택 TBD-05 (M4/M5) |
+| Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD-09 (M5) |
 | Physical AI | Pretrained perception, TensorRT export/inference; 이후 GRU 또는 작은 Temporal Transformer |
 | Quality | GoogleTest, clang-tidy, cppcheck, ASan, UBSan과 regression suite; 모두 Planned |
 
@@ -152,7 +179,7 @@ cmake -S . -B build
 
 | Milestone | 계획 범위 |
 | --- | --- |
-| M0 | Architecture / Requirement / ICD Baseline — 현재 초안 |
+| M0 | Architecture / Requirement / ICD Baseline — BASELINED |
 | M1 | DBC + vCAN |
 | M2 | Steering / Brake / Drive vECU |
 | M3 | Real-Time Timing & Scheduling Measurement |
@@ -177,12 +204,13 @@ M9에서는 전체 시스템의 diagnostics와 DTC를 통합한다.
 StrataDrive/
 ├── README.md, .gitignore, .gitattributes, CMakeLists.txt
 ├── docs/
-│   ├── requirements/      # System, timing, safety 초안
+│   ├── requirements/      # System, timing, safety baseline
 │   ├── architecture/      # System, software, 배포, fault 계약
-│   ├── icd/               # Interface 목록, DDS/CAN template
+│   ├── icd/               # Interface 의미, DDS/CAN 계약; wire layout은 후속 단계
 │   ├── adr/               # 설계 결정 네 개
-│   ├── test-plan/         # 검증 전략과 추적성
+│   ├── test-plan/         # 검증 전략, scenario baseline, 추적성
 │   ├── learning/          # 학습자 중심 절차
+│   ├── m0_baseline.md     # Exit checklist와 문서 검토 증거
 │   ├── roadmap.md
 │   └── quality_policy.md
 ├── interfaces/            # dbc/, dds/, common/ — 배치용 placeholder
@@ -200,4 +228,5 @@ StrataDrive/
 ```
 
 [시스템 요구사항](docs/requirements/system_requirements.md)과
-[M0 미결정 사항](docs/roadmap.md#open-m0-decisions)부터 읽으면 된다.
+[M0 baseline summary](docs/m0_baseline.md)를 먼저 읽고,
+[후속 단계의 TBD](docs/roadmap.md#open-m0-decisions)에서 owner/결정 milestone을 확인하면 된다.

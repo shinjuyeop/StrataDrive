@@ -1,44 +1,54 @@
-# Ethernet / DDS ICD template
+# Ethernet / DDS ICD baseline
 
-Status: **DRAFT / TBD**. DDS vendor, direct DDS/ROS 2, IDL, domain/topic 이름은
-미결정이다. Logical DDS link는 Target 내부 Central Vehicle Compute–Zone Controller Virtual Ethernet이다.
-Host physical Ethernet interface에도 공통 metadata 계약을 적용할 예정이지만
-Host transport로 DDS를 사용할지는 미결정이다.
+Status: semantic contract **DEFINED**. Vendor, ROS 2 vs direct DDS, IDL/topic/binary schema와
+runtime은 **TBD-05 / PLANNED**. Target 내부 Central–Zone은 logical Ethernet + DDS 계열,
+Host–Target은 Physical Ethernet이다. Host bridge transport에 DDS를 강제하지 않는다.
 
-## Message / service definition
+## Logical messages
 
-| Field | IF-DDS-VEHICLE-CMD 초안 | IF-DDS-ZONE-STATUS 초안 |
+| 항목 | IF-DDS-VEHICLE-CMD | IF-DDS-ZONE-STATUS |
 | --- | --- | --- |
-| Message/service name | VehicleCommand (논리적 이름, TBD) | ZoneStatus (논리적 이름, TBD) |
-| Kind / schema version | 주기적 message / TBD | 주기적 message / TBD |
-| Source | Central Vehicle Compute의 Classical Controller + output guard | Zone Controller gateway |
-| Destination | Zone Controller command_validation | Central Vehicle Compute vehicle_state/health/safety |
-| Period | TBD | TBD |
-| QoS reliability | TBD; 손실과 재전송/staleness의 trade-off | TBD |
-| QoS history/depth/resource limits | TBD | TBD |
-| QoS deadline/lifespan/liveliness/durability | TBD | TBD |
-| Timestamp | source 생성 시각 + clock domain, encoding TBD | source/actuator별 시각 보존, encoding TBD |
-| Sequence | 폭/wrap/restart/correlation TBD | 폭/wrap/restart/correlation TBD |
-| Timeout | valid-command age threshold + clock TBD | valid-status age threshold + clock TBD |
-| Failure behavior | stale/invalid 거부; Zone Controller의 local safety 정책 TBD | unavailable/degraded 표시; 대응 TBD |
-| Requirement / test | SYS-CTRL-001, SYS-COM-002 / TC-CTRL-001, TC-COM-002 | SYS-SAFE-001 / TC-SAFE-001 |
+| Name | VehicleCommand | ZoneStatus |
+| Source → Destination | Central Classical Controller → Zone command validation | Zone gateway → Central state/health/safety |
+| Payload 의미 | target speed, longitudinal acceleration demand, target curvature, braking demand | per-actuator actual sample/validity/age, availability, local state/fault |
+| Generation/publication | Controller 50 Hz / 20 ms | Zone 100 Hz / 10 ms starting point |
+| Metadata | source timestamp/clock, sequence/run epoch, source sensor/trajectory identity | 각 vECU 원천 time/sequence/validity/accepted-command identity 보존 |
+| Validation | finite/range/mode, sequence/epoch, source freshness/integrity | actuator별 원천 validity/freshness; aggregate heartbeat는 actual health가 아님 |
+| Timeout / failure | Zone last-valid-command RX부터 <=100 ms 검출; local FAIL_SAFE, F04 | unavailable 표시/보호 상태; Host actual path는 독립 monitor |
+| Recovery | explicit reinitialize → INIT gate | 원천 상태 재검증 후 복구; 새 aggregate만으로 정상화 금지 |
+| Wire/QoS | M5 TBD-05 | M5 TBD-05 |
 
-## Payload template
+Vehicle-level target speed는 차량 속도 reference이고 longitudinal acceleration demand는
+Central PID의 제어 출력이다. 둘 다 Drive torque나 Drive Actual이 아니다.
+Target curvature는 lateral demand이지 Steering Actual이 아니다. Braking demand는
+Brake Actual pressure가 아니다. 정확한 semantic units/frame은
+[common contract](interface_overview.md)를 적용한다.
 
-| Field name | Type | Unit/frame | 범위 / validity | Source 의미 | Fault 시 값/정책 |
-| --- | --- | --- | --- | --- | --- |
-| TBD | TBD | TBD | TBD | TBD | TBD |
+## Host bridge contracts
 
-Vehicle command의 steering/acceleration/torque 등 정확한 물리량은 control allocation
-설계에서 결정한다. Actual actuator feedback과 requested command는 서로 다른
-필드/타입으로 구분한다. Service를 추가하면 request/response correlation,
-idempotency, deadline, retry와 partial failure behavior를 명시한다.
+IF-HOST-SENSOR는 sensor timestamp/frame ID, source clock, ego state validity를 전달한다.
+IF-HOST-ACTUATOR는 각 vECU actual sample을 Zone/Target bridge에서 Host Plant Adapter로
+전달한다. Bridge가 actual을 생성하거나 command로 보충하지 않는다. Host는 actual
+stream별 loss를 <=100 ms에 검출하고 valid source가 없으면 tick을 gate한다.
+Protocol, serialization, source time sync/uncertainty, snapshot skew, Host acknowledgement는
+M5에 설계하고 M6/M7에 검증한다(TBD-02/04/05/07).
 
-## Transport and integrity review
+## Middleware decision criteria and timing
 
-Network namespace/container topology, DDS discovery peers/domain, multicast/routing,
-queue backpressure, ownership/arbitration, reconnect와 schema compatibility는 TBD다.
-DDS deadline/liveliness만으로 application command freshness가 검증됐다고 간주하지
-않는다. Application CRC를 DDS에도 쓸지, 어떤 metadata를 보호할지는 TBD이며 CAN
-CRC 정책을 그대로 복제하지 않는다. Source age, invalid frame, sequence 재시작의
-의미를 [common contract](interface_overview.md)와 일치시킨다.
+M4에서 후보를 비교하고 **M5 runtime 착수 전** ROS 2 integration 또는 direct DDS,
+vendor, isolation(Docker network vs netns/veth), Host bridge transport를 결정한다.
+판단 기준은 두 Jetson stack 호환성, dependency/학습 비용, discovery 재현성,
+QoS와 bounded queue/freshness 제어, tracing/clock 접근성, reconnect 시험 가능성이다.
+새 middleware 선택이 Central/Zone/vECU 책임을 바꾸는 이유가 되어서는 안 된다.
+
+결정할 QoS는 reliability, history/depth/resource limit, deadline/lifespan/liveliness,
+durability/ownership이다. Reliable delivery가 오래된 command의 적용을 정당화하지 않는다.
+DDS deadline/liveliness는 application freshness/timeout 검사를 대체하지 않는다.
+Application integrity 방식을 DDS에도 CRC로 할지 여부는 CAN의 정책을 무조건 복제하지
+않고 M5에 정한다. Sequence width/wrap/restart, schema compatibility, multicast/routing,
+queue backpressure도 함께 고정한다. Service를 추가하면 request/response correlation,
+idempotency/deadline/retry/partial failure 계약을 별도로 정의한다.
+
+관련 요구: SYS-ARCH-001/002, SYS-COM-002/003/004, SYS-SAFE-003, SYS-CTRL-001/002.
+[Deployment](../architecture/deployment_architecture.md),
+[TBD register](../roadmap.md#open-m0-decisions).

@@ -20,3 +20,6 @@ Linux 측정만으로 hard real-time 인증을 주장하지 않는다.
 실행한다. Edge/fault 동작도 확인하고 결과를 요구사항에 연결한다. 미실행 test를
 PASS로 표시하지 않는다. 의존성을 추가하기 전에 버전과 license를 검토하며,
 M0에서는 대형 의존성을 설치하지 않는다.
+
+Toolchain/compiler/CI/test 버전은 TBD-11(M1), board 지원/측정 환경은 TBD-09(M5/M12)로
+관리한다. Owner와 rationale은 [TBD register](roadmap.md#open-m0-decisions)를 따른다.

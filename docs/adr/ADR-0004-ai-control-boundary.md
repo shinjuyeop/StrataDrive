@@ -2,7 +2,8 @@
 
 ## Status
 
-Proposed — M0 설계 방향이며 AI와 control 구현은 Planned다.
+Accepted for **StrataDrive Reference Baseline v0.1** (2026-09-22).
+설계 경계의 수용이며 runtime 구현/호환성/성능 검증은 **PLANNED / NOT RUN**이다.
 
 ## Context
 
@@ -37,3 +38,8 @@ Classical Controller나 deterministic 규칙만으로 hard real-time 보장이�
 성립하지 않는다. Risk 의미/calibration, 검증 한계값, training/evaluation 분리,
 recovery threshold는 TBD다. [software architecture](../architecture/software_architecture.md)와
 [안전 계약](../requirements/safety_requirements.md)을 참조한다.
+
+Algorithm/tuning은 TBD-11(M8), AI model/feature는 TBD-09(M10), history/risk/fallback은
+TBD-10(M10/M11)이다. v0.1 AI 계약 수용은 AI 구현/모델 선택의 완료를 뜻하지 않는다.
+
+미결정 항목의 owner/rationale은 [TBD register](../roadmap.md#open-m0-decisions)를 따른다.

@@ -1,7 +1,8 @@
 # Verification strategy
 
-Status: **Planned**. M0의 문서/구조 검토를 vehicle/SIL 시험 통과로 표현하지 않는다.
-실행 test source와 test result는 아직 없다. 아래 TC ID는 향후 case 후보이며 NOT_RUN이다.
+Status: case contract **DEFINED**, runtime implementation **PLANNED**, 모든 runtime result는
+**NOT RUN**이다. M0 document review 결과와 vehicle/SIL verification을 구분한다.
+TC ID의 유일한 정의 목록은 아래 표, S/F ID 정의는 [scenario baseline](scenario_baseline.md)이다.
 
 ## Verification layers
 
@@ -18,21 +19,39 @@ GoogleTest/pytest는 첫 구현과 함께 도입 예정이다. M0에서 설치�
 PASS 처리하지 않는다. Regression은 scenario/seed/config/commit을 고정하고 이후
 interface/schema/parameter 변경 시 영향 requirement와 baseline 재검토를 포함한다.
 
-## Candidate cases
+## Defined test cases
 
-| Test ID | 설정 / 동작 후보 | 관측 가능한 acceptance 후보 | 단계 |
+각 case의 requirement/component/interface는 [traceability](traceability.md)에 있다.
+수치와 상세 입력/window는 scenario/timing/safety 계약을 적용한다. 아래 milestone은
+구현/실행 계획이며 부분 시험과 end-to-end 결과는 별도 Result ID로 남긴다.
+
+| Test ID | 설정 / 동작 | 관측 가능한 acceptance | Future milestone |
 | --- | --- | --- | --- |
-| TC-ARCH-001 | 각 보드에 동일 architecture/reference를 독립 배포; topology 검토 | Central Vehicle Compute–Zone Controller logical Ethernet, Zone Controller–Leaf ECU vCAN 및 타 보드 의존성 부재; 버전 기록 | M0 review; M5/M12 runtime |
-| TC-COM-001 | 정상 steering feedback 후 송신 중단; last valid RX/loss onset 기록 | Zone Controller 검출 latency가 검토된 threshold 이내; 현재 100 ms 예시는 TBD | M4 fault; M9 integration |
-| TC-COM-002 | CRC 오류/duplicate/out-of-order/stale command 주입, restart/wrap case | reject 기록, valid-age 미갱신, 정책에 따른 timeout/rejoin | M1/M2/M4 |
-| TC-CTRL-001 | 동일 demand에서 steering delay/jam 또는 brake response 변화 | actual feedback이 달라지면 Plant Adapter input/plant motion도 계약대로 변함; Classical Controller의 직접 CARLA actuation 적용 없음 | M6/M7 |
-| TC-AI-001 | inference timeout, NaN, stale history, infeasible trajectory; fallback 입력도 손실 | AI rejection → valid classical fallback 또는 안전 정책; AI raw actuator output 없음 | M11 |
-| TC-SAFE-001 | actuator별/복합 interface loss와 fault-clear 재연결 | 가용 actuator에 맞춘 state/action, bounded reaction, RECOVERY gate; 수치 한계값 TBD | M9 |
-| TC-DIAG-001 | named fault를 onset/duration 지정하여 주입하고 clear | event→DTC→state correlation 및 local action, debounce/persistence/recovery policy 일치 | M9 |
-| TC-PERF-001 | 고정된 reference workload, warm-up 후 반복 및 overload 실행 | E2E Mean/P95/P99/Max, sample/drop/miss count, jitter, environment/clock uncertainty 기록; threshold TBD | M3 instrumentation; M7/M12 E2E |
+| TC-ARCH-001 | 두 보드에 동일 architecture/reference 독립 배포 | Central–Zone logical Ethernet, Zone–vECU vCAN, Host physical Ethernet; 다른 보드 의존 없음 | M0 topology review; M5/M12 runtime |
+| TC-COM-001 | F01 정상 후 Steering Actual 중단 | last-valid RX부터 Zone loss <=100 ms, FAIL_SAFE/Host gate, command fallback 부재 | M2/M4; M6/M7/M9 통합 |
+| TC-COM-002 | F02 CRC/duplicate/out-of-order/stale/epoch/restart/wrap | reject/accepted snapshot 유지, valid age 미갱신; 지속 invalid 시 timeout | M1/M2/M4/M5 |
+| TC-COM-003 | F03 Drive command만 상실, 다른 task/feedback 정상 | <=100 ms local detection, old demand 무효/zero-propulsive target, M2에서 고정할 torque 감소 envelope | M1/M2/M4/M6/M9 |
+| TC-COM-004 | F04 Central command/diagnostics 단절; 하위 loss 추가 variant | <=100 ms Zone local timeout, Central 승인 없는 보호, 하위 단절 시 vECU 보호 | M4/M5/M6/M7/M9 |
+| TC-COM-005 | actual cached replay/aggregate heartbeat; steering/brake/drive 각 missing/invalid/stale variant | 원천 time/sequence/validity 보존; 각 stream <=100 ms loss 검출, raw fallback 없음, 다음 tick gate | M1 metadata; M4/M5/M6/M7 |
+| TC-CTRL-001 | 같은 demand에 steering delay/jam/brake response 변화; writer/topology audit | Vehicle/actuator command와 actual 분리, actual 변화가 plant input에 반영; CARLA writer는 Plant Adapter 하나 | M2/M6/M7 |
+| TC-CTRL-002 | S01 직선 30 km/h | 정상 공통 metric/ODD/route completion/loop invariant | M6 precursor; M7/M8 acceptance |
+| TC-CTRL-003 | S02 완만한 곡선 30 km/h | 정상 공통 metric/ODD/route completion/loop invariant | M6 precursor; M7/M8 acceptance |
+| TC-CTRL-004 | S03 직선→곡선→직선, 30→20 request | 두 plateau speed, route lateral/heading, continuous target 대비 overspeed, 감속 반영 | M6 precursor; M7/M8 acceptance |
+| TC-AI-001 | inference timeout/NaN/stale/infeasible; fallback input 상실 | AI reject→유효 classical fallback 또는 보호 상태; raw actuator 출력 없음; 전환 budget TBD-10 | M11 |
+| TC-SAFE-001 | F01–F04 및 Brake/Drive actual loss/복합 loss/clear | 가용 actuator에 맞춘 FAIL_SAFE/local action, Central 기록과 독립; 물리 세부값 TBD-03/06 | M2/M4 local; M6/M7/M9 integration |
+| TC-SAFE-002 | startup missing stream, epoch mismatch, fault clear/new frame/reinitialize | INIT 정상 출력 억제; startup 100 ms unavailable 검출; FAIL_SAFE→NORMAL 자동 복귀 없음; 명시적 INIT gate | M1 handshake; M2/M4/M6/M7 |
+| TC-DIAG-001 | fault onset/duration 지정 후 clear/reconnect | fault→event/DTC/state correlation, local action, debounce/persistence 규칙 TBD-08 | M9 |
+| TC-PERF-001 | timing trace, 고정 workload/overload | endpoint/clock/causal lineage, Mean/P95/P99/Max/sample/drop/miss/uncertainty 보고; deadline TBD-04 | M3 부분; M5/M7/M12 E2E |
+| TC-PERF-002 | logical multirate trace; simulation pause/reset/slow Target | 20/50/100 Hz logical 설정, source frame 재사용 식별; clock별 age, epoch reset, wall-time miss 숨김 없음 | M3/M6/M7 |
 
-초기 unit/vector/integration 결과와 end-to-end 결과는 다른 Result ID로 연결한다.
-일부 단계만 통과해 requirement 전체를 verified로 바꾸지 않는다.
+SYS-COM-003 coverage는 Steering/Brake/Drive command RX, 세 actual RX, Central→Zone,
+각 Host actual stream을 모두 포함한다. TC-SAFE-001에서 actuator별 command/feedback loss를
+parameterize하며 F01–F04의 대표 사례만 실행하고 전체 stream이 검증됐다고 선언하지 않는다.
+유효하지 않은 actual 자체는 즉시 거부하며 stream loss는 last-valid RX부터 <=100 ms에 검출한다.
+
+일부 단계만 통과해 전체 requirement를 VERIFIED로 바꾸지 않는다. 미구현은 PLANNED,
+실행 결과는 NOT RUN, 실행 시 필수 TBD 미해결은 BLOCKED다. 반복 횟수/실행 환경과
+window를 실행 전에 고정한다(TBD-04/07/11). 실제 run에만 PASS/FAIL을 부여한다.
 
 ## Test case template
 
@@ -52,20 +71,14 @@ commit, resolved profile hash, board/environment, scenario/seed, command/procedu
 metric units/clock uncertainty, log/trace/checksum locations, observed vs expected,
 verdict와 reviewer를 기록한다.
 
-Verdict는 PASS / FAIL / BLOCKED / NOT_RUN이다. Threshold나 환경이 부족하면 BLOCKED,
-미실행이면 NOT_RUN이다. TBD인 numeric acceptance를 PASS로 표시하지 않는다. Raw data는
+Verdict는 PASS / FAIL / BLOCKED / NOT RUN이다. Threshold나 환경이 부족하면 BLOCKED,
+미실행이면 NOT RUN이다. TBD인 numeric acceptance를 PASS로 표시하지 않는다. Raw data는
 `benchmark/results/raw/` 등 Git 대상 외부에 보관하고, 향후 검토된 summary는
 `benchmark/results/`에 둔다. 현재 실측 결과 파일은 만들지 않는다.
 
-## M0 review checklist
+## M0 review and results boundary
 
-- 지정된 모든 directory와 README, requirement/architecture/ICD/ADR/learning 문서가 있다.
-- Planned/TBD와 implemented/measured를 구분하며 M1 이후 구현을 포함하지 않는다.
-- Thor/Orin 독립성, actual-feedback closed-loop, AI/control 경계가 일관된다.
-- 요구 → component → interface → case 연결과 미실행 Result 칸이 있다.
-- Safe behavior, time base, units, QoS/CRC 등의 open questions와 owner가 있다.
-- .gitignore가 large artifact를 제외하고 small-model exception 정책이 있다.
-- CMake는 의존성 다운로드나 컴파일 없이 configure된다. 학습자가 설계를 설명할 수 있다.
-
-기술적 checklist 확인과 학습자의 이해/설계 승인은 별개다. M0 baseline 승인은
-[roadmap](../roadmap.md)의 미결정 사항을 학습자가 검토한 뒤 진행한다.
+[M0 baseline summary](../m0_baseline.md)에 exit checklist, 문서 점검 증거와 범위를 기록한다.
+M0 review PASS는 runtime TC의 PASS가 아니다. Result ID는 실제 시험 이후에만 부여하고,
+현재 traceability의 Future Result는 모두 NOT RUN으로 유지한다. 학습자의 이해 기록은
+[학습 원칙](../learning/README.md)에 따라 별도로 남긴다.

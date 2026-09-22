@@ -2,8 +2,8 @@
 
 ## Status
 
-Proposed — M0 설계 방향이며, 호환성 검증과 학습자 승인은 대기 중이다.
-이 baseline에서는 simulator를 설치하지 않는다.
+Accepted for **StrataDrive Reference Baseline v0.1** (2026-09-22).
+설계 경계의 수용이며 runtime 구현/호환성/성능 검증은 **PLANNED / NOT RUN**이다.
 
 ## Context
 
@@ -37,3 +37,8 @@ CARLA는 자율주행 중심의 sensor/traffic/scenario 생태계를 갖춰 개�
 simulator 시험은 HIL이나 실차 검증이 아니다. Plant Adapter 경계로 CARLA API와
 control을 분리해야 한다. Mapping 충실도, 동기화, 필요한 scenario 기능의 지원 여부는
 미결정이다. [system architecture](../architecture/system_architecture.md)를 참조한다.
+
+미결정 build/호환성/route는 TBD-07(M7), plant mapping은 TBD-02/07(M6/M7)이다.
+M0에서는 CARLA를 설치하거나 release 호환성을 검증하지 않았다.
+
+미결정 항목의 owner/rationale은 [TBD register](../roadmap.md#open-m0-decisions)를 따른다.

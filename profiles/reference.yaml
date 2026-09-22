@@ -1,38 +1,112 @@
-# M0 design data only. null = TBD; no loader or executable defaults exist.
+# StrataDrive Reference Baseline v0.1: design data only, no runtime loader.
+# Engineering starting points, not production requirements or measured results.
+# null = TBD, never zero/default/disabled. Decision owners are in docs/roadmap.md.
 profile_id: reference
-status: planned
+status: defined
+baseline_name: StrataDrive Reference Baseline v0.1
+requirement_baseline: v0.1
+implementation_status: planned
+verification_status: not_run
 purpose: identical_workload_on_each_independent_target
 eligible_targets:
   - jetson_agx_thor
   - jetson_orin_nx
-scenario_id: null
-scenario_seed: null
-requirement_baseline: null
-software_revision: null
-workload:
-  perception_model: null
-  model_checksum: null
-  precision: null
-  camera_resolution: null
-  camera_fps: null
-  segmentation_enabled: null
-  tracking_enabled: null
-  temporal_model: null
-  temporal_history_seconds: null
-  temporal_hidden_size: null
+deployment: one_independent_target_per_vehicle_run
+odd:
+  weather: clear_daylight
+  road: paved_straight_and_gentle_curves
+  ego_vehicle_count: 1
+  traffic_lights: false
+  complex_intersections: false
+  complex_traffic_interaction: false
+  normal_scenario_other_traffic: false
+  speed_range_kmh: [0, 40]
+scenarios:
+  normal: [S01, S02, S03]
+  fault: [F01, F02, F03, F04]
+  s01_target_speed_kmh: 30
+  s02_target_speed_kmh: 30
+  s03_speed_requests_kmh: [30, 20]
+  route_map_seed: null # TBD-07 / M7
+  speed_transition_profile: null # TBD-11 / M8; fixed before test
+acceptance:
+  steady_state_speed_max_abs_error_kmh: 1
+  lateral_cross_track_abs_p95_m: 0.3
+  heading_abs_p95_deg: 3
+  overspeed_fraction_of_positive_validated_target: 0.10
+  critical_stream_loss_detection_max_ms: 100
+  loss_detection_origin: last_valid_rx
+  invalid_command_refreshes_valid_age: false
+  raw_command_fallback_on_actual_loss: false
+  carla_ego_actuation_writer: plant_adapter_only
+  percentile_method: nearest_rank
+  speed_plateau_settling_sim_seconds: 5
+  speed_plateau_min_evaluation_sim_seconds: 10
+logical_timing:
+  simulation_sensor: {rate_hz: 20, period_ms: 50}
+  planner: {rate_hz: 20, period_ms: 50}
+  vehicle_controller: {rate_hz: 50, period_ms: 20}
+  zone_controller: {rate_hz: 100, period_ms: 10}
+  steering_vecu: {rate_hz: 100, period_ms: 10}
+  brake_vecu: {rate_hz: 100, period_ms: 10}
+  drive_vecu: {rate_hz: 100, period_ms: 10}
+  zone_status_feedback_bridge: {rate_hz: 100, period_ms: 10}
+  functional_scheduling_quantum_ms: 10
+  task_deadlines_ms: null # TBD-04 / M3
+  e2e_deadline_ms: null # TBD-04 / M5/M7
+  timeout_thresholds_ms: null # TBD-01/04 / M1; allow monitor + jitter margin
+clock_policy:
+  local_timeout_clock: receiver_monotonic_wall_time
+  functional_replay_timeout_clock: simulation_time_separate_results
+  pause_resets_valid_age: false
+  run_reset: new_epoch_and_init_gate
+  cross_node_sync: null # TBD-04/05 / M3/M5
+plant_policy:
+  simulator_mode: synchronous_fixed_step
+  tick_owner: host_orchestrator
+  actuation_source: vecu_actual_feedback_only
+  missing_invalid_stale_actual: gate_next_apply_and_tick
+  coordinate_frame: x_forward_y_left_z_up_yaw_left_positive
+  ego_reference_point: rear_axle_center
+  carla_mapping_calibration: null # TBD-02/07 / M6/M7
+state_policy:
+  states: [INIT, NORMAL, DEGRADED, FAIL_SAFE]
+  critical_stream_loss: FAIL_SAFE
+  recovery: explicit_reinitialize_then_init_checks
+  drive_command_timeout_target: zero_propulsive_torque
+  actuator_physical_reaction_parameters: null # TBD-03 / M2
 control:
-  lateral_algorithm: null
-  period_ms: null
-  deadline_ms: null
+  lateral_algorithm: null # TBD-11 / M8; Pure Pursuit or Stanley
+  longitudinal_algorithm: longitudinal_pid_planned
+  allocation_parameters: null # TBD-02/06 / M2/M4
+# Future AI comparison workload; classical M8 scenarios do not require an AI model.
+workload:
+  perception_model: null # TBD-09 / M10
+  model_checksum: null # TBD-09 / M10
+  precision: null # TBD-09 / M10
+  camera_resolution: null # TBD-09 / M10
+  camera_fps: 20 # Reference sensor starting point, not measured throughput
+  segmentation_enabled: null # TBD-09 / M10
+  tracking_enabled: null # TBD-09 / M10
+  temporal_model: null # TBD-10 / M11
+  temporal_history_seconds: null # TBD-10 / M11
+  temporal_hidden_size: null # TBD-10 / M11
+software_revision: null # resolved at each future run, not an unresolved design choice
 measurement:
-  simulator_mode: null
-  clock_sync_method: null
-  warmup_seconds: null
-  duration_seconds: null
-  repetitions: null
-  power_mode: null
-  cooling_condition: null
+  timing_warmup_seconds: null # TBD-04 / M3
+  timing_duration_seconds: null # TBD-04 / M3
+  repetitions: null # TBD-04/11 / M3/M8, TBD-09 / M12
+  power_mode: null # TBD-09 / M12
+  cooling_condition: null # TBD-09 / M12
   metrics:
+    - speed_tracking_error
+    - lateral_cross_track_error
+    - heading_error
+    - overspeed
+    - critical_stream_loss_detection
+    - end_to_end_control_latency
+    - control_jitter
+    - deadline_miss
     - ai_latency
     - camera_to_trajectory_latency
     - fps
@@ -41,5 +115,3 @@ measurement:
     - ram
     - power
     - temperature
-    - control_jitter
-    - deadline_miss

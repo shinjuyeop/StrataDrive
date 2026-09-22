@@ -1,6 +1,6 @@
 # Deployment and compute-tier architecture
 
-Status: **Planned**, 실행 가능한 container/systemd/network 설정은 M0에 없다.
+Status: 배포 경계 **DEFINED**, runtime **PLANNED**. 실행 가능한 container/systemd/network 설정은 M0에 없다.
 
 ## Physical deployment
 
@@ -28,11 +28,12 @@ Ethernet node처럼 구성할 계획이다. DDS discovery/QoS, multicast/routing
 vCAN은 CAN frame 기반 application contract 시험용이다. CAN FD의 전기적 동작,
 실제 arbitration 지연, bus load/bitrate, transceiver/error confinement를 물리적으로
 검증하지 않는다. 필요 지연/손실은 명시적 fault model로만 주입하고 실측 bus evidence와
-혼동하지 않는다. [Linux SocketCAN 문서](https://docs.kernel.org/networking/can.html)를 참조한다.
+혼동하지 않는다. 실제 bus가 필요한 검증은 별도 후속 범위다.
 
 ## Fair comparison protocol
 
-1. [Reference Config](../../profiles/reference.yaml)의 TBD를 먼저 고정한다.
+1. [Reference Config](../../profiles/reference.yaml)의 M0 ODD/rate/acceptance를 유지하고
+   해당 비교 단계의 workload/보드 조건 TBD-09를 먼저 고정한다.
 2. 동일 scenario/seed/requirements, sensor input, model/checksum/precision, feature set,
    input resolution/rate, SW revision을 각 보드에 각각 적용한다.
 3. Platform versions, board/RAM, power mode, clocks, cooling, ambient condition,
@@ -42,7 +43,7 @@ vCAN은 CAN frame 기반 application contract 시험용이다. CAN FD의 전기�
 
 측정 항목은 AI latency, camera-to-trajectory latency, FPS, CPU/GPU utilization, RAM,
 power, temperature, control jitter, deadline miss다. 수집 도구, sampling rate와
-pass threshold는 TBD이며 unavailable sensor는 0 대신 N/A + 이유로 기록한다.
+pass threshold는 TBD-09 (M10/M12)이며 unavailable sensor는 0 대신 N/A + 이유로 기록한다.
 
 Thor에서는 Premium feature 확장, Orin에서는 Mainstream resource optimization을
 탐색한다. FP16 → INT8, Medium → Small, 1080p → 720p, 30 FPS → 20 FPS, optional segmentation
@@ -59,3 +60,9 @@ Thor에서는 Premium feature 확장, Orin에서는 Mainstream resource optimiza
 - CI는 Host부터 시작할지, hardware runner/배포 복구 절차를 언제 추가할지
 
 결정 근거: [ADR-0003](../adr/ADR-0003-compute-tier-strategy.md).
+
+미결정 배포 항목의 owner/milestone/rationale은 [TBD register](../roadmap.md#open-m0-decisions)의
+TBD-04(clock/timing), TBD-05(middleware/network), TBD-07(Host/CARLA), TBD-09(board/workload),
+TBD-11(toolchain/CI)에 있다. Middleware 선택 기준과 M4 비교/M5 결정 gate는
+[DDS ICD](../icd/ethernet_dds_icd.md)에 정의한다. Premium/Mainstream은 같은 architecture의
+각 독립 실험 profile이며 Reference config를 먼저 공통으로 측정한다.
