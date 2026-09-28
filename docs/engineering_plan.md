@@ -15,6 +15,11 @@ Zone Controller, Leaf ECU의 책임을 이해하고 통신·제어·timing·faul
 설정 또는 코드, 정상·fault 시험, 결과와 변경 근거를 연결한다. 진도는 파일 수보다
 학습자가 설계를 설명하고 시험을 재현할 수 있는지로 확인한다.
 
+사용자가 선택한 방향은 **제한된 ODD에서 운전자 개입에 의존하지 않는 자동 주행 SIL**이다.
+운전자 인계를 정상 주행이나 fault 대응의 전제에 넣지 않는다. 기존 Reference ODD와
+M0 계약을 유지하며, 시스템이 수행할 물리적 보호 동작과 검증 범위는 후속 분석으로 정한다.
+[운전자 역할 가정](safety/concept_study.md#driver-role-assumption)은 반영했으며 상세 안전 평가는 미완료다.
+
 ## Architecture baseline
 
 - Host x86 Ubuntu는 CARLA, sensor/plant, scenario, fault orchestration과 결과 평가를 맡는다.
@@ -121,7 +126,8 @@ ISO 자료는 공개 개요를 바탕으로 학습 범위를 정하는 데 참�
 기존 M0 종료 결과와 M1–M13 milestone을 유지한다. 단계별 연결은
 [roadmap](roadmap.md#engineering-activities)에 정리한다. 다음 작은 작업의 순서는 다음과 같다.
 
-1. Concept study의 Item 경계와 운전자·환경 가정을 학습자가 검토한다.
+1. 선택한 운전자 개입 비의존 방향을 기준으로 Concept study의 Item 경계와 남은 환경·피해
+   가정을 검토한다. 방향 선택과 학습자의 상세 설계 이해 확인은 구분한다.
 2. 곡선 주행에서 의도한 조향을 유지하지 못하는 사례 하나를 분석하고, feedback loss와
    실제 조향 기능 상실의 차이를 설명한다. 미결정 평가값은 그대로 남긴다.
 3. Steering Command/Actual의 의미와 AUTOSAR SWC/Port/Runnable/Task 대응 초안을 그린다.

@@ -41,6 +41,11 @@ Item 경계와 차량 수준 위험을 먼저 이해한 뒤 interface와 AUTOSAR
 AUTOSAR OS 예제 실행은 RTE/BSW 통합 완료가 아니며 HARA 초안 작성은 ASIL 평가나
 안전 요구사항 도출 완료가 아니다. 설명하지 못한 개념은 다음 학습 항목으로 남긴다.
 
+첫 실습 자료는 [조향 fault 비교](../safety/concept_study.md#first-exercise-steering-fault-comparison)다.
+Command loss, feedback loss, actuator jam의 관측값과 검출 주체를 각각 설명한다.
+특히 fresh feedback이 계속 도착해도 actuator가 고장일 수 있는 이유를 자신의 말로 남긴다.
+이 자료는 Codex가 준비한 분석 메모이며 학습자가 작성한 이해 기록을 대신하지 않는다.
+
 ## 학습 기록 template
 
 - 날짜 / milestone / 관련 commit: TBD
