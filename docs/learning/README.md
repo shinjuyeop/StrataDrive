@@ -25,12 +25,30 @@ M0에서는 4~7단계의 실행 기능 작업을 시작하지 않는다. 대신 
 계약의 정상/오류 경로를 검토하고 configure-only 확인의 한계를 기록한다.
 M1 이후 구현은 별도의 milestone 작업으로 진행한다.
 
+## Standards learning cycle
+
+[개발·학습 계획](../engineering_plan.md)에 따라 한 번에 작은 기능이나 fault 하나를
+다룬다. 첫 대상은 Steering 경로이며, [concept study](../safety/concept_study.md)의
+Item 경계와 차량 수준 위험을 먼저 이해한 뒤 interface와 AUTOSAR 개념에 연결한다.
+
+- 개념: Item/HARA, SWC/Port/Runnable/Task 중 이번 작업에 필요한 용어와 책임을 설명한다.
+- 대입: 기존 Requirement/ICD/Component에 연결하고 현재 가정과 미결정 사항을 표시한다.
+- 실습: 작게 설정·생성·구현하고 diff를 검토한 뒤 직접 실행한다. 문서 작업에는 해당하지
+  않는 runtime 단계를 완료했다고 표시하지 않는다.
+- 해석: 예상과 실제 결과의 차이, 검증하지 못한 범위와 다음 질문을 기록한다.
+
+표준 개념을 참고한 설계, 실제 구현체를 사용한 실행, SIL에서 관측한 결과를 구분한다.
+AUTOSAR OS 예제 실행은 RTE/BSW 통합 완료가 아니며 HARA 초안 작성은 ASIL 평가나
+안전 요구사항 도출 완료가 아니다. 설명하지 못한 개념은 다음 학습 항목으로 남긴다.
+
 ## 학습 기록 template
 
 - 날짜 / milestone / 관련 commit: TBD
 - 공부한 개념과 직접 확인한 공식 자료: TBD
 - Requirement / Component / Interface / Test ID: TBD
 - 내 말로 설명한 설계와 대안의 trade-off: TBD
+- 참고 표준/판과 프로젝트 적용 범위, 확인하지 못한 가정: TBD
+- AUTOSAR 실습 시 입력 설정 / generator·toolchain 버전 / 생성 결과: 해당 시 기록
 - 작은 변경의 diff와 내가 설명하지 못한 부분: TBD
 - 직접 실행한 명령 / 환경 / 결과 경로: TBD (미실행은 NOT RUN)
 - fault / edge case와 예상 및 관측 결과: TBD

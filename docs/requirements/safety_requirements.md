@@ -4,6 +4,9 @@ Status: **DEFINED / Reference Baseline v0.1**; runtime **PLANNED / NOT RUN**.
 SYS-SAFE-001/002/003/004와 SYS-CTRL-002를 구체화한다. 학습용 SIL 보호 계약이며
 ISO 26262 준수, ASIL 할당, 인증, 실차 안전성이나 QNX/AUTOSAR 사용을 주장하지 않는다.
 
+후속 기능 안전 학습은 [concept study](../safety/concept_study.md)에서 시작한다.
+이 학습 초안은 아래 M0 보호 계약을 변경하거나 승인된 HARA/FSC로 대체하지 않는다.
+
 ## Responsibility and startup
 
 Safety Supervisor는 trajectory의 freshness, finite values, range, feasibility와

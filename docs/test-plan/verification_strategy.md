@@ -53,6 +53,19 @@ parameterize하며 F01–F04의 대표 사례만 실행하고 전체 stream이 �
 실행 결과는 NOT RUN, 실행 시 필수 TBD 미해결은 BLOCKED다. 반복 횟수/실행 환경과
 window를 실행 전에 고정한다(TBD-04/07/11). 실제 run에만 PASS/FAIL을 부여한다.
 
+## Safety analysis and AUTOSAR evidence
+
+[Concept study](../safety/concept_study.md)의 hazardous event 후보와 기존 TC의 연결은
+coverage 검토용이다. 승인된 Safety Goal에서 도출된 검증 관계가 아니다. 검출 시험,
+local reaction 시험, actual actuator response와 차량 거동 시험의 결과를 구분한다.
+Feedback loss 검출이나 simulator tick gate 성공만으로 물리적 위험 회피를 입증하지 않는다.
+추가 요구사항·시험이 필요하면 ID/revision과 traceability를 함께 검토한다.
+
+AUTOSAR pilot의 OS 예제, RTE 생성, BSW 통신과 기존 closed-loop 통합은 각각 수행한
+범위만 기록한다. 실제 사용한 release, 설정, generator, build/runtime 환경을 결과에
+연결한다. Virtual driver/Host 실습의 결과를 MCU/Jetson runtime 또는 실제 CAN timing의
+검증으로 확대하지 않는다. 이 문서 정리에서는 기존 TC/Scenario/Result 목록을 바꾸지 않는다.
+
 ## Test case template
 
 - Test ID / version / Requirement ID / Component / Interface ID: TBD

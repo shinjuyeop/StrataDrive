@@ -26,6 +26,25 @@ Fault architecture는 M0부터 다루며 local fault behavior는 M2/M4 등의 co
 함께 설계한다. Fault handling을 M9까지 미룬다는 뜻이 아니다. 각 단계에서
 [학습 절차](learning/README.md)와 [quality policy](quality_policy.md)를 적용한다.
 
+## Engineering activities
+
+[개발·학습 계획](engineering_plan.md)을 기존 milestone에 연결한다. 아래 표는 학습과
+검토 활동의 배치이며 위 milestone의 번호·구현 범위·기존 acceptance를 변경하지 않는다.
+추가 안전 분석과 AUTOSAR 실습은 **PLANNED**다. M0 exit review의 PASS에 포함하지 않는다.
+
+| 관련 단계 | 함께 수행할 학습·검토 | 남길 근거 |
+| --- | --- | --- |
+| M1 준비 / M1 | Item Definition 초안과 첫 HARA 사례 검토; Steering interface와 AUTOSAR 개념 대응; toolchain 타당성 조사 | 가정·열린 질문, SWC/Port/Runnable/Task 대응, toolchain 지원·제약과 wire 계약 영향 |
+| M2–M4 | local protection의 위험·반응 근거 검토; 작은 AUTOSAR pilot의 실행 및 채택 여부 검토 | actuator response/fault/timing 증거, 설정·생성·실행 기록, 채택·보류 ADR |
+| M5–M8 | 선택한 배포 환경과 closed-loop에서 계약 검증; 차량 거동으로 안전 분석의 가정 재검토 | clock/통신/plant 한계와 실제 관측 구간, 변경된 가정 및 requirement revision |
+| M9 | local protection과 diagnostics를 연결하고 분석한 fault의 coverage 검토 | fault→검출→보호→actual response→DTC 연결과 미검증 경로 |
+| M10–M11 | SOTIF 관점의 인식·판단 한계, triggering condition, fallback 검토 | scenario/ODD 범위, AI 출력 검증과 fallback의 실제 결과 |
+| M12–M13 | compute profile 변경의 timing·보호 동작 영향과 최종 추적성 검토 | profile별 regression, 검증된 범위와 남은 위험·제약 |
+
+AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 보류 근거를 기록한다.
+기존 Linux vECU 개발을 AUTOSAR 적용 완료로 표시하지 않는다. 안전 분석에서 새로운
+요구사항이나 architecture 변경이 필요하면 기존 revision 절차로 검토한다.
+
 ## Open M0 Decisions
 
 모든 owner의 최종 책임은 **학습자(project owner)**다. 아래 역할 표시는 별도 인력/위임을

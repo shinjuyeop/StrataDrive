@@ -22,6 +22,11 @@ Central Vehicle Compute → Zone Controller → Leaf ECU 차량 software archite
 학습하고 검증하기 위한 프로젝트다. 차량 제어, 분산 통신, vECU, timing, diagnostics,
 Physical AI를 서로 다른 compute budget에 맞춘 배포와 함께 다룰 계획이다.
 
+현업의 기술과 개발 산출물을 단계적으로 학습한다. AUTOSAR Classic / Methodology의
+설계·설정·생성·통합, ISO 26262의 기능 안전 활동, Automotive SPICE의 추적성과 변경
+관리를 참고하며 AI 단계에서는 ISO 21448 / SOTIF 관점을 연결한다. 구체적인 범위와
+첫 학습 순서는 [개발·학습 계획](docs/engineering_plan.md)에 정리한다.
+
 ## Motivation
 
 Simulator 주행 데모나 inference benchmark를 넘어, 각 compute tier에서 차량의
@@ -139,6 +144,11 @@ M0에서는 CARLA 설치, model 다운로드, production software 구현, 차량
 근사 모델이다. CARLA가 CarMaker, CANoe, dSPACE와 동등하다고 주장하지 않으며,
 이 프로젝트가 실제 도로 운행 준비를 입증하는 것은 아니다.
 
+후속 학습에는 Steering vECU의 실제 AUTOSAR OS/RTE/BSW 적용 가능성 검토와
+[Item Definition / HARA 초안 검토](docs/safety/concept_study.md)를 포함한다.
+AUTOSAR stack/toolchain은 미선정이며 ASIL과 safety concept은 미확정이다.
+기존 M0 baseline과 milestone은 유지하고 기술 채택은 근거를 검토한 뒤 결정한다.
+
 ## Planned Tech Stack
 
 | 영역 | 계획된 선택 / 미결정 사항 |
@@ -151,6 +161,7 @@ M0에서는 CARLA 설치, model 다운로드, production software 구현, 차량
 | Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD-09 (M5) |
 | Physical AI | Pretrained perception, TensorRT export/inference; 이후 GRU 또는 작은 Temporal Transformer |
 | Quality | GoogleTest, clang-tidy, cppcheck, ASan, UBSan과 regression suite; 모두 Planned |
+| AUTOSAR pilot | Steering vECU의 Classic OS/RTE/BSW toolchain 타당성 검토; release/구현체/Target 지원 미선정, NOT RUN |
 
 기존에 설치된 CMake로 M0 골격을 configure할 수 있다.
 
@@ -171,7 +182,7 @@ cmake -S . -B build
 5. Requirement → Component → Interface → Test → Result의 추적성을 유지한다.
 6. 작은 변경을 검토하고 직접 실행한 뒤, 내용을 설명할 수 있을 때 수용한다.
 
-상세 내용은 [학습 원칙](docs/learning/README.md),
+상세 내용은 [개발·학습 계획](docs/engineering_plan.md), [학습 원칙](docs/learning/README.md),
 [품질 정책](docs/quality_policy.md),
 [검증 전략](docs/test-plan/verification_strategy.md)을 참조한다.
 
@@ -210,6 +221,8 @@ StrataDrive/
 │   ├── adr/               # 설계 결정 네 개
 │   ├── test-plan/         # 검증 전략, scenario baseline, 추적성
 │   ├── learning/          # 학습자 중심 절차
+│   ├── safety/            # Item Definition / HARA 학습 초안; 평가·승인 전
+│   ├── engineering_plan.md # 표준 참고 범위와 단계별 적용·학습 계획
 │   ├── m0_baseline.md     # Exit checklist와 문서 검토 증거
 │   ├── roadmap.md
 │   └── quality_policy.md

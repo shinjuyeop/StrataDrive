@@ -23,3 +23,20 @@ M0에서는 대형 의존성을 설치하지 않는다.
 
 Toolchain/compiler/CI/test 버전은 TBD-11(M1), board 지원/측정 환경은 TBD-09(M5/M12)로
 관리한다. Owner와 rationale은 [TBD register](roadmap.md#open-m0-decisions)를 따른다.
+
+## Design and evidence review
+
+[개발·학습 계획](engineering_plan.md)의 표준 참고 활동에도 기존 review와 변경 관리를
+적용한다. Automotive SPICE의 추적성과 일관성 관점을 참고하며 평가 등급을 주장하지 않는다.
+안전 분석의 가정·Goal 후보와 기존 requirement의 검토 연결은
+[concept study](safety/concept_study.md)에 남긴다. 분석 초안을 승인된 safety concept이나
+기존 requirement의 도출 근거로 소급해서 표시하지 않는다.
+
+AUTOSAR pilot은 입력 ARXML/설정, schema/release, generator/compiler 버전, 실행 명령과
+결과를 기록한다. 직접 작성한 코드와 생성·third-party 코드를 구분하고 재생성 가능성을
+검토한다. 도구 채택 전에 license와 지원 환경을 확인한다. 정적 분석이나 단위 시험의
+성공만으로 AUTOSAR 적합성, ISO 26262 준수, 실차 안전성 검증을 선언하지 않는다.
+
+분석 또는 실험에서 baseline 변경이 필요하면 이유, 영향 requirement/ICD/profile/test,
+재검증 범위를 기록한다. ASIL, FTTI, safe state와 같은 미결정 값을 임의로 확정하지 않는다.
+학습자의 review와 자동 문서 검사는 별도 기록이며 한쪽 결과가 다른 쪽을 대신하지 않는다.
