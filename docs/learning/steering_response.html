@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StrataDrive · Steering 응답 학습</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; color: #172b3a; background: #f2f5f7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 1180px; margin: auto; padding: 36px 24px; }
+    a { color: #165ba8; }
+    h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); margin: 12px 0; }
+    h2 { font-size: 1.1rem; margin-top: 0; }
+    p, li { line-height: 1.7; }
+    .eyebrow { color: #526879; font-size: .85rem; letter-spacing: .08em; }
+    .scope { background: #e4eef7; border-left: 4px solid #2870ae; padding: 12px 16px; }
+    .layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 20px; margin: 24px 0; }
+    .card { background: white; border: 1px solid #d7e0e5; border-radius: 12px; padding: 22px; min-width: 0; }
+    .control { margin-bottom: 24px; }
+    label { display: flex; justify-content: space-between; gap: 12px; font-weight: 650; }
+    output { color: #125d98; white-space: nowrap; }
+    input[type=range] { width: 100%; margin: 14px 0 4px; accent-color: #1765a5; }
+    .hint { color: #536775; font-size: .86rem; }
+    button { background: #edf3f7; color: #173f5b; border: 1px solid #b6cad8; border-radius: 6px; padding: 9px 12px; cursor: pointer; font: inherit; }
+    button:hover { background: #dceaf3; }
+    button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #8d45ca; outline-offset: 4px; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+    figure { margin: 0; }
+    svg { width: 100%; height: auto; display: block; }
+    figcaption { color: #536775; font-size: .87rem; line-height: 1.6; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 10px 0 20px; font-size: .85rem; }
+    .legend span::before { content: ''; display: inline-block; width: 23px; margin-right: 7px; vertical-align: middle; border-top: 3px solid; }
+    .legend .request::before { border-color: #2468c9; border-top-style: dashed; }
+    .legend .limited::before { border-color: #a15b03; border-top-style: dotted; }
+    .legend .actual::before { border-color: #008467; }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .metric { background: #f4f7f9; padding: 12px; border-radius: 6px; }
+    .metric strong { display: block; font-size: 1.1rem; margin-top: 6px; }
+    #interpretation { background: #edf6f2; padding: 12px; border-radius: 6px; }
+    footer { margin-top: 20px; color: #536775; font-size: .85rem; line-height: 1.7; }
+    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } main { padding: 24px 12px; } .card { padding: 16px; } }
+    @media (max-width: 420px) { .metrics { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">STRATADRIVE / LEARNING</div>
+    <h1>조향 명령을 따라가는 데 걸리는 시간</h1>
+    <p>Dead time은 시작 시각을, Rate limit은 움직이는 속도를, Angle limit은 도달 가능한 각도를 바꿉니다.</p>
+    <p class="scope"><strong>교육용 계산 예제</strong> · 모든 수치는 설명용 가정입니다. 실차 사양, vECU parameter, 고장 판정 기준으로 채택한 값이 아닙니다.</p>
+  </header>
+  <div class="layout">
+    <section class="card" aria-labelledby="controls-title">
+      <h2 id="controls-title">한 번에 한 값씩 바꿔보세요</h2>
+      <div class="control">
+        <label for="request">Step 입력 <output id="request-value" for="request"></output></label>
+        <input id="request" type="range" min="-35" max="35" step="1" value="10">
+        <div class="hint">앞바퀴의 등가 조향각 · 좌회전 + / 우회전 −</div>
+      </div>
+      <div class="control">
+        <label for="delay">Dead time <output id="delay-value" for="delay"></output></label>
+        <input id="delay" type="range" min="0" max="300" step="10" value="50">
+        <div class="hint">움직임이 시작되기 전 대기 시간</div>
+      </div>
+      <div class="control">
+        <label for="rate">Rate limit <output id="rate-value" for="rate"></output></label>
+        <input id="rate" type="range" min="5" max="60" step="1" value="20">
+        <div class="hint">이 예제는 대기 후 최대 변화율로 움직입니다.</div>
+      </div>
+      <div class="control">
+        <label for="limit">Angle limit <output id="limit-value" for="limit"></output></label>
+        <input id="limit" type="range" min="5" max="30" step="1" value="15">
+        <div class="hint">상·하한을 대칭으로 단순화했습니다.</div>
+      </div>
+      <div class="buttons">
+        <button id="reset" type="button">기본 예제</button>
+        <button id="saturation" type="button">Saturation 예제</button>
+        <button id="negative" type="button">우회전 예제</button>
+      </div>
+    </section>
+    <section class="card" aria-labelledby="graph-title">
+      <h2 id="graph-title">Step 입력과 모델 응답</h2>
+      <figure>
+        <svg id="chart" viewBox="0 0 820 370" role="img" aria-labelledby="chart-title chart-description">
+          <title id="chart-title">시간에 따른 조향각</title>
+          <desc id="chart-description">JavaScript를 활성화하면 응답 곡선을 확인할 수 있습니다.</desc>
+        </svg>
+        <figcaption>가로축은 입력 변경 후 시간, 세로축은 조향각입니다. 표시 단위는 deg, 내부 계산은 rad입니다. 회색 점선은 각도 한계입니다.</figcaption>
+      </figure>
+      <div class="legend" aria-label="곡선 범례">
+        <span class="request">Step 입력</span><span class="limited">제한 후 목표</span><span class="actual">모델 Actual</span>
+      </div>
+      <div class="metrics" aria-live="polite" aria-atomic="true">
+        <div class="metric"><span class="hint">제한 후 목표</span><strong id="target"></strong></div>
+        <div class="metric"><span class="hint">모델의 목표 도달 시간</span><strong id="arrival"></strong></div>
+        <div class="metric"><span class="hint">10 ms당 최대 변화</span><strong id="per-tick"></strong></div>
+      </div>
+      <p id="interpretation" aria-live="polite"></p>
+      <p class="hint">도달 시간은 이 교육용 모델의 계산 결과입니다. 실제 actuator가 이 시간 안에 도달한다는 보장이나 jam 판정 deadline이 아닙니다.</p>
+    </section>
+  </div>
+  <section class="card">
+    <h2>그래프를 읽을 때 구분할 것</h2>
+    <ul>
+      <li>Dead time 동안의 대기와 Rate limit에 따른 이동 시간을 합쳐서 봅니다. 마찰·관성·부하·noise는 이 단순 모델에 들어 있지 않습니다.</li>
+      <li>Angle limit을 넘긴 Step 입력은 도달할 수 없는 목표를 보여주는 수학적 예제입니다. 실제 CAN 수신의 범위 검사·거부 정책은 기존 계약을 따릅니다.</li>
+      <li>이 그래프는 통신과 task를 실행하지 않습니다. 10 ms는 변화량 계산에만 사용하며, 기존 100 ms 통신 손실 검출 기준과 actuator 응답 시간을 구분합니다.</li>
+    </ul>
+    <a href="steering_response.md">학습 문서와 계산식 보기</a>
+    <noscript><p>슬라이더 그래프에는 JavaScript가 필요합니다. 학습 문서에서 같은 계산 예제를 읽을 수 있습니다.</p></noscript>
+  </section>
+  <footer>
+    개념 참고:
+    <a href="https://www.mathworks.com/help/simulink/slref/transportdelay.html">Transport Delay</a> ·
+    <a href="https://www.mathworks.com/help/simulink/slref/ratelimiter.html">Rate Limiter</a> ·
+    <a href="https://www.mathworks.com/help/simulink/slref/saturation.html">Saturation</a>
+  </footer>
+</main>
+<script>
+'use strict';
+const controls = Object.fromEntries(['request', 'delay', 'rate', 'limit'].map(id => [id, document.getElementById(id)]));
+const rad = degrees => degrees * Math.PI / 180;
+const deg = radians => radians * 180 / Math.PI;
+const format = (value, digits = 2) => Number(value.toFixed(digits)).toString();
+
+function readState() {
+  const requestRad = rad(Number(controls.request.value));
+  const limitRad = rad(Number(controls.limit.value));
+  const targetRad = Math.max(-limitRad, Math.min(limitRad, requestRad));
+  const rateRad = rad(Number(controls.rate.value));
+  const delaySeconds = Number(controls.delay.value) / 1000;
+  return {requestRad, limitRad, targetRad, rateRad, delaySeconds,
+    arrivalSeconds: targetRad === 0 ? 0 : delaySeconds + Math.abs(targetRad) / rateRad};
+}
+
+function modelAt(time, state) {
+  return Math.sign(state.targetRad) * Math.min(Math.abs(state.targetRad),
+    state.rateRad * Math.max(0, time - state.delaySeconds));
+}
+
+function render() {
+  const state = readState();
+  const units = {request: '°', delay: ' ms', rate: '°/s', limit: '°'};
+  for (const [id, input] of Object.entries(controls)) {
+    const label = (id === 'limit' ? '±' : '') + input.value + units[id];
+    document.getElementById(id + '-value').textContent = label;
+    input.setAttribute('aria-valuetext', label);
+  }
+  document.getElementById('target').textContent = `${format(deg(state.targetRad))}° (${format(state.targetRad, 3)} rad)`;
+  document.getElementById('arrival').textContent = state.targetRad === 0 ? '0 s · 이미 목표각' : `${format(state.arrivalSeconds, 3)} s`;
+  document.getElementById('per-tick').textContent = `${format(deg(state.rateRad) * 0.010)}°`;
+  const residual = Math.abs(deg(state.requestRad - state.targetRad));
+  document.getElementById('interpretation').textContent = residual > 1e-9
+    ? `Angle saturation으로 원래 입력과 ${format(residual)}° 차이가 남습니다. 이 모델에서는 고장 없이도 지속적인 추종 오차가 생깁니다.`
+    : state.targetRad === 0 ? '초기각과 목표각이 모두 0°입니다. 움직일 필요가 없으므로 Dead time이 있어도 이미 목표에 도달한 상태입니다.'
+    : `처음 ${format(state.delaySeconds * 1000)} ms 대기한 뒤 ${format(deg(state.rateRad))}°/s로 움직입니다. 정상적인 모델 응답 중에도 입력과 Actual은 다를 수 있습니다.`;
+
+  const chart = document.getElementById('chart');
+  const chartWidth = Math.max(280, chart.clientWidth || 820);
+  chart.setAttribute('viewBox', `0 0 ${chartWidth} 370`);
+  const left = 54, right = chartWidth - 12, top = 30, bottom = 315;
+  const end = Math.max(1.1, state.arrivalSeconds * 1.2 + 0.2);
+  const start = -end * 0.07;
+  const extent = Math.ceil(Math.max(5, Math.abs(deg(state.requestRad)), deg(state.limitRad)) / 5) * 5 + 5;
+  const x = time => left + (time - start) / (end - start) * (right - left);
+  const y = value => bottom - (value + extent) / (2 * extent) * (bottom - top);
+  const line = (x1, y1, x2, y2, color, extra = '') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" ${extra}/>`;
+  const label = (xx, yy, text, extra = '') => `<text x="${xx}" y="${yy}" fill="#536775" font-size="13" ${extra}>${text}</text>`;
+  const description = `입력 ${format(deg(state.requestRad))}도, 제한 후 목표 ${format(deg(state.targetRad))}도, 대기 ${format(state.delaySeconds * 1000)}밀리초, 변화율 ${format(deg(state.rateRad))}도 매초. 모델 목표 도달 시간 ${format(state.arrivalSeconds, 3)}초.`;
+  const parts = [`<title id="chart-title">시간에 따른 조향각</title><desc id="chart-description">${description}</desc>`];
+  for (let i = 0; i <= 4; i++) {
+    const value = -extent + 2 * extent * i / 4;
+    parts.push(line(left, y(value), right, y(value), '#e3e9ed'));
+    parts.push(label(left - 10, y(value) + 4, format(value, 1), 'text-anchor="end"'));
+    const time = end * i / 4;
+    parts.push(line(x(time), top, x(time), bottom, '#e3e9ed'));
+    parts.push(label(x(time), bottom + 24, format(time, 2), 'text-anchor="middle"'));
+  }
+  for (const bound of [-deg(state.limitRad), deg(state.limitRad)]) {
+    parts.push(line(left, y(bound), right, y(bound), '#8194a1', 'stroke-dasharray="4 5"'));
+  }
+  parts.push(line(left, y(0), right, y(0), '#a4b3bd'));
+  parts.push(label(left, 18, '조향각 (deg)'));
+  parts.push(label((left + right) / 2, 362, '입력 변경 후 시간 (s)', 'text-anchor="middle"'));
+  const path = (points, color, extra = '') => `<path d="${points.map(([t, value], index) => `${index ? 'L' : 'M'}${x(t).toFixed(2)},${y(value).toFixed(2)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="3" ${extra}/>`;
+  parts.push(path([[start, 0], [0, 0], [0, deg(state.requestRad)], [end, deg(state.requestRad)]], '#2468c9', 'stroke-dasharray="10 5"'));
+  parts.push(path([[start, 0], [0, 0], [0, deg(state.targetRad)], [end, deg(state.targetRad)]], '#a15b03', 'stroke-dasharray="2 5"'));
+  parts.push(path([[start, 0], [0, 0], [state.delaySeconds, 0],
+    [state.targetRad === 0 ? state.delaySeconds : state.arrivalSeconds, deg(state.targetRad)],
+    [end, deg(modelAt(end, state))]], '#008467'));
+  chart.innerHTML = parts.join('');
+}
+
+function preset(request) {
+  const values = {request, delay: 50, rate: 20, limit: 15};
+  for (const [id, value] of Object.entries(values)) controls[id].value = value;
+  render();
+}
+for (const input of Object.values(controls)) input.addEventListener('input', render);
+document.getElementById('reset').addEventListener('click', () => preset(10));
+document.getElementById('saturation').addEventListener('click', () => preset(25));
+document.getElementById('negative').addEventListener('click', () => preset(-10));
+window.addEventListener('resize', render);
+render();
+</script>
+</body>
+</html>

@@ -46,6 +46,11 @@ Command loss, feedback loss, actuator jam의 관측값과 검출 주체를 각�
 특히 fresh feedback이 계속 도착해도 actuator가 고장일 수 있는 이유를 자신의 말로 남긴다.
 이 자료는 Codex가 준비한 분석 메모이며 학습자가 작성한 이해 기록을 대신하지 않는다.
 
+다음 자료는 [정상 Steering 응답](steering_response.md)과
+[Interactive graph](steering_response.html)다. Dead time, Rate limit, Angle saturation을
+구분하고 한 번에 한 parameter만 바꿔 설명한다. 그래프의 설명용 값은 실제 vECU
+parameter가 아니며 M1/M2 runtime 구현이나 차량 시험의 완료로 표시하지 않는다.
+
 ## 학습 기록 template
 
 - 날짜 / milestone / 관련 commit: TBD

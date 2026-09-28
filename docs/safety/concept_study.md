@@ -111,6 +111,10 @@ Steering actuator jam 사례를 차량 위험과 연결하면 다음 순서로 �
 [보호 계약](../requirements/safety_requirements.md),
 [기존 TC](../test-plan/verification_strategy.md)다. 분석 메모는 작성했지만 실행 결과는 NOT RUN이다.
 
+다음 학습은 [정상 Steering 응답](../learning/steering_response.md)이다. 사용자가 설명한
+정상 지연의 오검출 가능성을 출발점으로 Dead time, Rate limit, Angle saturation을 구분한다.
+상세 이해 확인과 runtime 검증 상태는 별도로 유지한다.
+
 ## From analysis to safety concept
 
 | 다음 산출물 | 검토할 질문 | 현재 상태 |
