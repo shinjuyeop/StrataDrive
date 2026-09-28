@@ -1,6 +1,8 @@
 # CAN / CAN FD application ICD baseline
 
-Status: semantic/failure contract **DEFINED**, CAN ID/DBC/codec/vCAN runtime **PLANNED**.
+Status: semantic/failure contract **DEFINED**, CAN ID/DBC/전체 frame codec은 **PLANNED**.
+[Steering angle field 초안](steering_angle_encoding.md)의 C++ codec과 Host 단위 시험을 추가했다.
+Host vCAN fixture 송수신은 실행했으며, 차량 application frame 송수신은 아직 NOT RUN이다.
 Zone–vECU는 SocketCAN/vCAN을 사용하고 CAN FD application contract를 학습한다.
 vCAN은 전기적 동작, bit timing, 실제 arbitration/bus load 검증이 아니다.
 

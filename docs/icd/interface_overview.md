@@ -1,7 +1,8 @@
 # Interface inventory and common contract
 
 Status: semantic contract **DEFINED / Reference Baseline v0.1**.
-Wire schema/DBC/IDL/codec/transport runtime은 **PLANNED**, binary layout은 미확정이다.
+Wire schema/DBC/IDL/전체 frame codec은 **PLANNED**이며 frame layout은 미확정이다.
+[Steering angle field 초안](steering_angle_encoding.md)의 독립 codec만 Host에서 시험했다.
 
 | Interface ID | 논리적 내용 | Source → Destination | Transport / schema |
 | --- | --- | --- | --- |
@@ -69,6 +70,6 @@ metadata의 대응을 명시하고 replay/restart rejection을 검증한다. App
 CRC, timestamp encoding과 queue 정책은 [CAN ICD](can_icd.md)에서 결정한다.
 Timeout clock, reset/pause는 [timing](../requirements/timing_requirements.md)를 따른다.
 
-`interfaces/common/`, `interfaces/dds/`, `interfaces/dbc/`는 향후 구현 경로이며 현재
-.gitkeep만 있다. [DDS ICD](ethernet_dds_icd.md),
+`interfaces/common/`에는 Steering angle field codec 초안이 있다.
+`interfaces/dds/`, `interfaces/dbc/`는 아직 .gitkeep만 있다. [DDS ICD](ethernet_dds_icd.md),
 [traceability](../test-plan/traceability.md)를 참조한다.

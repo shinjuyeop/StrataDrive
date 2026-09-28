@@ -1,7 +1,40 @@
 cmake_minimum_required(VERSION 3.20)
 
-# M0 documentation scaffold: intentionally no compiler, dependency or targets.
-project(StrataDrive LANGUAGES NONE)
+project(StrataDrive LANGUAGES CXX)
 
-message(STATUS "StrataDrive M0: architecture and requirement baseline; no build targets")
-# Introduce languages and per-target quality settings with the first reviewed code.
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+option(STRATADRIVE_SANITIZERS "Host 개발 검사에 ASan/UBSan 사용" OFF)
+
+function(stratadrive_quality target)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Werror)
+        if(STRATADRIVE_SANITIZERS)
+            target_compile_options(${target} PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+            target_link_options(${target} PRIVATE -fsanitize=address,undefined)
+        endif()
+    elseif(STRATADRIVE_SANITIZERS)
+        message(FATAL_ERROR "STRATADRIVE_SANITIZERS requires GCC or Clang")
+    endif()
+endfunction()
+
+add_library(steering_angle_codec STATIC interfaces/common/steering_angle_codec.cpp)
+target_include_directories(steering_angle_codec PUBLIC interfaces/common)
+stratadrive_quality(steering_angle_codec)
+
+add_executable(steering_angle_demo tools/steering_angle_demo.cpp)
+target_link_libraries(steering_angle_demo PRIVATE steering_angle_codec)
+stratadrive_quality(steering_angle_demo)
+
+include(CTest)
+if(BUILD_TESTING)
+    # 현재 Host에 설치된 버전 사용. 자동 다운로드/설치하지 않는다.
+    find_package(GTest 1.11.0 EXACT CONFIG REQUIRED)
+    add_executable(steering_angle_codec_test tests/unit/steering_angle_codec_test.cpp)
+    target_link_libraries(steering_angle_codec_test PRIVATE steering_angle_codec GTest::gtest_main)
+    stratadrive_quality(steering_angle_codec_test)
+    include(GoogleTest)
+    gtest_discover_tests(steering_angle_codec_test)
+endif()

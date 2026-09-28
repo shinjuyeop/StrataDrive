@@ -3,7 +3,8 @@
 Status: **M0 — Architecture / Requirement / ICD Baseline: BASELINED**.
 기준 이름은 **StrataDrive Reference Baseline v0.1**이며 [exit review](m0_baseline.md)를
 모두 통과했다. M1은 **IN PROGRESS**이며 [Host vCAN transport smoke](learning/m1_vcan_start.md)를
-실행했다. Six-frame DBC/codec과 M1 acceptance는 미완료다. M2–M13은 **PLANNED**다.
+실행했다. 이어서 [Steering angle field codec 초안](learning/m1_steering_codec.md)을 Host에서
+build/test했다. Six-frame DBC/전체 codec과 M1 acceptance는 미완료다. M2–M13은 **PLANNED**다.
 M0 완료는 system contract의 고정이며 runtime/vehicle verification 완료가 아니다.
 
 | Milestone | 계획 범위 | Acceptance 증거 후보 |
@@ -71,6 +72,10 @@ AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 �
 추가 TBD는 owner / 결정 milestone / rationale을 이 표에 등록한다. M3/M6/M7/M8 evidence로
 수치 변경 시 [requirement revision](requirements/system_requirements.md)에 이전/새 값과
 rationale/Result/영향 test를 기록하고 profile/ICD/scenario를 함께 갱신한다.
+
+M1 부분 진행: TBD-01/02의 [Steering field 표현 초안](icd/steering_angle_encoding.md)과
+TBD-11의 [첫 Host C++ 실험 도구 선택](adr/ADR-0005-first-cpp-codec.md)을 기록했다.
+전체 wire/물리 범위/Target·CI 선택이 남아 있으므로 위 TBD를 CLOSED로 바꾸지 않는다.
 
 ## M1 entry and first work
 

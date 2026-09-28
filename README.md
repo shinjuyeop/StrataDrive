@@ -13,8 +13,9 @@ fault 4개 scenario, command/actual 책임, logical rates, timeout/state, tracea
 
 **M1 — DBC + vCAN: IN PROGRESS**. [첫 SocketCAN 실행](docs/learning/m1_vcan_start.md)에서
 Host의 임시 vCAN을 통해 CAN FD fixture 송수신을 확인했다. 학습자 review/재현은 PENDING이다.
-문서, 설계용 YAML, configure-only CMake 골격과 transport smoke script가 있으며,
-six-frame DBC/codec, vECU/CARLA/ROS 2·DDS/control/AI/deployment runtime은 **PLANNED**다.
+이어서 [첫 C++ Steering angle field codec](docs/learning/m1_steering_codec.md)의
+build·단위 시험을 수행했다. 표현 형식은 검토 초안이며 실제 조향 한계는 미확정이다.
+Six-frame DBC/전체 frame codec, vECU/CARLA/ROS 2·DDS/control/AI/deployment runtime은 **PLANNED**다.
 기존 차량/성능 TC는 모두 **NOT RUN**, M1 acceptance도 미완료다.
 
 ## Project Overview
@@ -161,23 +162,26 @@ AUTOSAR stack/toolchain은 미선정이며 ASIL과 safety concept은 미확정�
 | 영역 | 계획된 선택 / 미결정 사항 |
 | --- | --- |
 | Host simulation | x86 Ubuntu, CARLA 0.9.16 계열 초기 후보; 정확한 호환 버전 TBD-07 (M7) |
-| Core software | C++와 CMake; 언어 표준과 compiler 버전 TBD-11 (M1) |
+| Core software | 첫 Host field codec은 C++17 / GCC 11.4.0 / CMake 4.3.2; Target·CI 선택은 TBD-11/09 |
 | Orchestration / analysis | Python, pytest; 버전 TBD-11 (M1) |
 | Communication | Virtual Ethernet 기반 DDS; vendor, direct DDS vs ROS 2 TBD-05 (M5); SocketCAN/vCAN |
 | Isolation | Docker network 또는 Linux network namespace + veth; 선택 TBD-05 (M4/M5) |
 | Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD-09 (M5) |
 | Physical AI | Pretrained perception, TensorRT export/inference; 이후 GRU 또는 작은 Temporal Transformer |
-| Quality | GoogleTest, clang-tidy, cppcheck, ASan, UBSan과 regression suite; 모두 Planned |
+| Quality | 첫 field codec에 GoogleTest 1.11.0, clang-tidy, cppcheck, ASan/UBSan 실행; 차량 regression은 Planned |
 | AUTOSAR pilot | Steering vECU의 Classic OS/RTE/BSW toolchain 타당성 검토; release/구현체/Target 지원 미선정, NOT RUN |
 
-기존에 설치된 CMake로 M0 골격을 configure할 수 있다.
+첫 C++ field codec을 build하고 실행한다. 현재 Host에 설치된 도구를 사용하며 자동 설치하지 않는다.
 
 ```sh
-cmake -S . -B build
+cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/m1-angle --parallel 2
+ctest --test-dir build/m1-angle --output-on-failure
+./build/m1-angle/steering_angle_demo 0.1
 ```
 
-이 명령은 빈 프로젝트의 configure만 수행한다. 차량 software를 컴파일하거나
-다운로드·실행하지 않으며, M0에는 application 실행 명령이 없다.
+이 명령은 조향각의 byte 표현을 시험한다. 차량 제어 loop나 Target 배포는 아직 구현하지 않았다.
+검사 범위와 예상 결과는 [codec 실행 안내](docs/learning/m1_steering_codec.md)에 있다.
 
 M1의 첫 개발 환경 확인은 Linux terminal에서 다음과 같이 실행한다.
 

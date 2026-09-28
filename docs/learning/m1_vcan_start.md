@@ -48,7 +48,7 @@ PASS: vCAN transport smoke (차량 command/actual 검증 아님)
 `0x5A0`와 `StrataDrive!`는 transport fixture다. Steering Command/Actual의 CAN ID나
 signal 정의가 아니며 TBD-01/02를 해소하지 않는다. Linux socket ABI의 native endian은
 향후 DBC signal endian 선택과 별개다. 이 도구의 Python 선택은 Host 개발 실험에 한정하며
-C++ application의 표준/compiler/test toolchain(TBD-11)은 이후 첫 codec 구현 전에 검토한다.
+C++ field codec의 첫 도구 선택(TBD-11)은 후속 [ADR-0005](../adr/ADR-0005-first-cpp-codec.md)에 기록했다.
 
 Socket API와 vCAN 동작은 [Linux SocketCAN 문서](https://docs.kernel.org/networking/can.html),
 Python binding은 [Python socket 문서](https://docs.python.org/3.10/library/socket.html)를 따른다.

@@ -1,6 +1,7 @@
 # Software quality policy
 
-Status: **Planned**. M0에는 컴파일된 application이나 자동화된 차량 시험이 없다.
+Status: **M1 field codec에 부분 적용**. [첫 C++ 실험](adr/ADR-0005-first-cpp-codec.md)에
+compiler 경고, GoogleTest, static analysis와 sanitizer를 적용했다. 차량 시험은 NOT RUN이다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |

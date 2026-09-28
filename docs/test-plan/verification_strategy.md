@@ -1,7 +1,8 @@
 # Verification strategy
 
-Status: case contract **DEFINED**, runtime implementation **PLANNED**, 모든 runtime result는
-**NOT RUN**이다. M0 document review 결과와 vehicle/SIL verification을 구분한다.
+Status: case contract **DEFINED**, 아래 system TC의 runtime result는 **NOT RUN**이다.
+[Steering angle field codec](../learning/m1_steering_codec.md)의 Host 단위 시험은 실행했다.
+Field 단위 결과, M0 document review와 vehicle/SIL verification을 구분한다.
 TC ID의 유일한 정의 목록은 아래 표, S/F ID 정의는 [scenario baseline](scenario_baseline.md)이다.
 
 ## Verification layers
@@ -15,8 +16,8 @@ TC ID의 유일한 정의 목록은 아래 표, S/F ID 정의는 [scenario basel
 | Fault / tests/fault | loss/corruption/delay/jam/AI invalid/overrun 주입과 복구 | detection, local reaction, DTC, state, plant response 관측 |
 | Performance / tests/performance | task timing tail, overload, reference와 tier별 비교 | 지정한 환경의 observed statistics; static WCET proof 아님 |
 
-GoogleTest/pytest는 첫 구현과 함께 도입 예정이다. M0에서 설치하거나 빈 테스트를
-PASS 처리하지 않는다. Regression은 scenario/seed/config/commit을 고정하고 이후
+첫 C++ field codec에 설치된 GoogleTest 1.11.0을 사용했다. Python 단위 시험의 pytest 적용은
+PLANNED다. 빈 테스트를 PASS 처리하지 않는다. Regression은 scenario/seed/config/commit을 고정하고 이후
 interface/schema/parameter 변경 시 영향 requirement와 baseline 재검토를 포함한다.
 
 ## Defined test cases
