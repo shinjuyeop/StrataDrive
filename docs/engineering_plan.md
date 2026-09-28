@@ -1,8 +1,9 @@
 # Engineering and learning plan
 
-Status: **계획 정의 / 실행 PLANNED**. 기존 **StrataDrive Reference Baseline v0.1**을
+Status: **계획 정의 / M1 개발 환경 실험 착수 / 표준 실습 PLANNED**. 기존 **StrataDrive Reference Baseline v0.1**을
 유지한다. 이 문서는 개발·학습 방향이며 AUTOSAR 도입 완료, 안전 분석 완료 또는
-표준 준수의 증거가 아니다. 학습자 검토는 **PENDING**, runtime 결과는 **NOT RUN**이다.
+표준 준수의 증거가 아니다. 학습자 검토는 **PENDING**, 기존 차량 runtime TC는 **NOT RUN**이다.
+Host transport smoke 결과는 [M1 실행 기록](learning/m1_vcan_start.md)에 한정한다.
 
 ## Project objective
 
@@ -124,16 +125,14 @@ ISO 자료는 공개 개요를 바탕으로 학습 범위를 정하는 데 참�
 ## Next learning cycle
 
 기존 M0 종료 결과와 M1–M13 milestone을 유지한다. 단계별 연결은
-[roadmap](roadmap.md#engineering-activities)에 정리한다. 다음 작은 작업의 순서는 다음과 같다.
+[roadmap](roadmap.md#engineering-activities)에 정리한다. 현재는 M1을 시작했으며
+[첫 SocketCAN/vCAN 실행](learning/m1_vcan_start.md)을 학습자가 재현할 차례다.
 
-1. 선택한 운전자 개입 비의존 방향을 기준으로 Concept study의 Item 경계와 남은 환경·피해
-   가정을 검토한다. 방향 선택과 학습자의 상세 설계 이해 확인은 구분한다.
-2. 곡선 주행에서 의도한 조향을 유지하지 못하는 사례 하나를 분석하고, feedback loss와
-   실제 조향 기능 상실의 차이를 설명한다. 미결정 평가값은 그대로 남긴다.
-3. Steering Command/Actual의 의미와 AUTOSAR SWC/Port/Runnable/Task 대응 초안을 그린다.
-4. 사용 가능한 toolchain을 조사하고 작은 실행 예제의 범위·환경·예상 결과를 정한다.
-5. M1의 기존 six-frame wire 계약, golden vectors, codec, vCAN 시험 순서로 진행한다.
-   Pilot에서 발견한 제약은 구현 전에 ICD와 도구 선택 검토에 반영한다.
+다음 구현은 기존 six-frame wire 계약 → golden vectors → codec → vCAN application 시험
+순서다. Steering Command/Actual부터 검토하되 Brake/Drive와 공통 metadata의 일관성을 유지한다.
+첫 codec 전에 관련 TBD-01/02/04/11을 검토한다. 개념 설명은 해당 작업에 필요한 만큼만
+진행하고 작은 변경·review·직접 실행·결과 해석으로 이어간다.
 
-각 작업은 **개념 설명 → 프로젝트에 대입 → 작은 변경 → review → 직접 실행 → 결과 해석**으로
-진행한다. 이번 문서 정리로 runtime 구현이나 위 학습 과정이 완료된 것은 아니다.
+Concept study의 남은 가정, 정상 응답 범위/jam 검출과 AUTOSAR 대응·pilot은 관련 구현과
+함께 이어간다. 전체 이론 학습이나 pilot 완료를 M1 시작 조건으로 두지 않는다.
+Pilot에서 발견한 제약은 해당 구현의 ICD와 도구 선택 검토에 반영하며, 변경 영향은 기록한다.

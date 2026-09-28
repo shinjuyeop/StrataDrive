@@ -2,7 +2,8 @@
 
 Status: **M0 — Architecture / Requirement / ICD Baseline: BASELINED**.
 기준 이름은 **StrataDrive Reference Baseline v0.1**이며 [exit review](m0_baseline.md)를
-모두 통과했다. M1–M13은 **PLANNED**, 착수/구현하지 않았다.
+모두 통과했다. M1은 **IN PROGRESS**이며 [Host vCAN transport smoke](learning/m1_vcan_start.md)를
+실행했다. Six-frame DBC/codec과 M1 acceptance는 미완료다. M2–M13은 **PLANNED**다.
 M0 완료는 system contract의 고정이며 runtime/vehicle verification 완료가 아니다.
 
 | Milestone | 계획 범위 | Acceptance 증거 후보 |
@@ -73,7 +74,8 @@ rationale/Result/영향 test를 기록하고 profile/ICD/scenario를 함께 갱�
 
 ## M1 entry and first work
 
-M0 exit checklist 확인 후 **M1 시작 가능**, 실행 착수는 별도 작업이다.
+M0 exit checklist를 기준으로 **M1 착수**했다. Host의 fixture 송수신으로 개발 환경을
+확인했으며, 아래 application 계약/검증 작업은 아직 PLANNED다.
 
 1. 위 CAN semantic/failure 계약으로 6개 command/actual frame의 DBC wire 정의를 작성한다.
 2. CRC/sequence/wrap/restart/freshness, timeout threshold+monitor margin을 확정하고 golden vectors를 만든다.

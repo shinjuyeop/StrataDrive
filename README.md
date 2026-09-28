@@ -11,9 +11,11 @@
 fault 4개 scenario, command/actual 책임, logical rates, timeout/state, traceability가 문서 범위다.
 숫자는 engineering starting point이며 양산차 기준이나 실측 결과가 아니다.
 
-현재 실제 repository에는 문서, 설계용 YAML, directory placeholder, configure-only CMake
-골격이 있다. DBC/vCAN/vECU/CARLA/ROS 2·DDS/control/AI/deployment runtime은
-**PLANNED**, 모든 차량/성능 시험은 **NOT RUN**이다. M1 이후 구현은 시작하지 않았다.
+**M1 — DBC + vCAN: IN PROGRESS**. [첫 SocketCAN 실행](docs/learning/m1_vcan_start.md)에서
+Host의 임시 vCAN을 통해 CAN FD fixture 송수신을 확인했다. 학습자 review/재현은 PENDING이다.
+문서, 설계용 YAML, configure-only CMake 골격과 transport smoke script가 있으며,
+six-frame DBC/codec, vECU/CARLA/ROS 2·DDS/control/AI/deployment runtime은 **PLANNED**다.
+기존 차량/성능 TC는 모두 **NOT RUN**, M1 acceptance도 미완료다.
 
 ## Project Overview
 
@@ -177,6 +179,14 @@ cmake -S . -B build
 이 명령은 빈 프로젝트의 configure만 수행한다. 차량 software를 컴파일하거나
 다운로드·실행하지 않으며, M0에는 application 실행 명령이 없다.
 
+M1의 첫 개발 환경 확인은 Linux terminal에서 다음과 같이 실행한다.
+
+```sh
+unshare --user --map-root-user --net python3 tools/vcan_smoke.py
+```
+
+예상 출력과 확인 범위는 [M1 실행 안내](docs/learning/m1_vcan_start.md)에 기록한다.
+
 ## Development Principles
 
 1. 코드보다 요구사항과 interface를 먼저 정의하고, 미결정 값은 TBD로 남긴다.
@@ -196,7 +206,7 @@ cmake -S . -B build
 | Milestone | 계획 범위 |
 | --- | --- |
 | M0 | Architecture / Requirement / ICD Baseline — BASELINED |
-| M1 | DBC + vCAN |
+| M1 | DBC + vCAN — IN PROGRESS |
 | M2 | Steering / Brake / Drive vECU |
 | M3 | Real-Time Timing & Scheduling Measurement |
 | M4 | Virtual Zone Controller |
