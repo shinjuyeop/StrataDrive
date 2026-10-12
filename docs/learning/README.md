@@ -27,7 +27,8 @@ AUTOSAR 실습은 관련 설계·구현과 함께 진행한다. 전체 이론 �
 첫 실행은 [M1 SocketCAN/vCAN 송수신](m1_vcan_start.md)이며,
 첫 C++은 [Steering angle field codec](m1_steering_codec.md)이며,
 [Steering frame codec·DBC parser 검증](m1_steering_frame_codec.md)을 거쳐
-현재 작업은 [AUTOSAR E2E Profile 5 Protect/Check](m1_autosar_e2e_profile5.md)다.
+[AUTOSAR E2E Profile 5 Protect/Check](m1_autosar_e2e_profile5.md)를 적용했다.
+현재 작업은 [Steering 수신부의 수용/시간/Epoch/timeout](m1_steering_receiver.md)이다.
 
 M0에서는 4~7단계의 실행 기능 작업을 시작하지 않는다. 대신 문서 diff, 구조,
 계약의 정상/오류 경로를 검토하고 configure-only 확인의 한계를 기록한다.

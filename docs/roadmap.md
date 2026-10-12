@@ -7,7 +7,8 @@ Status: **M0 — Architecture / Requirement / ICD Baseline: BASELINED**.
 build/test했다. Six-frame DBC/전체 codec과 M1 acceptance는 미완료다. M2–M13은 **PLANNED**다.
 2026-10-12 [Steering Command/Actual의 frame·DBC 초안](icd/steering_frame_draft.md)을
 작성하고 [Host frame codec·DBC parser 교차 검증](learning/m1_steering_frame_codec.md)을 수행했다.
-Receiver 규칙은 제안이며 receiver/vCAN application 시험은 NOT RUN, 학습자 review는 PENDING이다.
+Receiver 규칙은 제안이며 [로컬 수신부](learning/m1_steering_receiver.md)를 제어 가능한 시계로
+Host에서 시험했다. vCAN application/queue/coordinator 통합은 NOT RUN, 학습자 review는 PENDING이다.
 M0 완료는 system contract의 고정이며 runtime/vehicle verification 완료가 아니다.
 
 | Milestone | 계획 범위 | Acceptance 증거 후보 |
@@ -82,7 +83,9 @@ M1 부분 진행: TBD-01/02의 [Steering field 표현 초안](icd/steering_angle
 TBD-11의 [첫 Host C++ 실험 도구 선택](adr/ADR-0005-first-cpp-codec.md)을 기록했다.
 이어서 [Steering frame·DBC 제안](icd/steering_frame_draft.md)과
 [Host frame codec·parser 도구 선택](adr/ADR-0006-steering-frame-codec.md)을 구현·검증했다.
-전체 wire/물리 범위/Target·CI 선택과 receiver 구현·검증이 남아 있으므로 위 TBD를 CLOSED로 바꾸지 않는다.
+로컬 Receiver 정책은 [ADR-0008](adr/ADR-0008-steering-receiver.md)에 기록했다.
+전체 wire/물리 범위/Target·CI 선택과 socket/queue/coordinator 및 measured timeout 검증이
+남아 있으므로 위 TBD를 CLOSED로 바꾸지 않는다.
 
 ## M1 entry and first work
 

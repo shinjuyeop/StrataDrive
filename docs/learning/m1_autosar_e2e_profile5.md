@@ -2,8 +2,8 @@
 
 Status: **2026-10-12 Host Protect/Check·Steering 연결 구현/시험 완료 / 학습자 review PENDING**.
 기준 판은 AUTOSAR R25-11이고 결정은 [ADR-0007](../adr/ADR-0007-autosar-e2e-profile5.md)에 있다.
-Application command 수용/freshness/timeout, E2E State Machine, vCAN application,
-Brake/Drive 및 M1 acceptance는 미완료다.
+[Application 수신부의 수용/freshness/timeout](m1_steering_receiver.md)은 후속 Host 실험에서 시험했다.
+E2E State Machine, vCAN application/queue/coordinator, Brake/Drive 및 M1 acceptance는 미완료다.
 
 ## 직접 실행
 
@@ -106,7 +106,7 @@ E2E OK여도 Validity=0, old Epoch, stale time, 물리 한계/상태 위반이�
 Cached sample을 다시 포장하면 E2E Counter가 증가할 수 있어도 sample 자체가 새로 생긴 것은 아니다.
 SourceTimeNs/trace Sequence를 보존해 source age를 따로 검사해야 한다.
 Counter 순환과 32-bit trace Sequence의 wrap/restart 정책도 구분한다.
-이 application 수용 검사는 다음 receiver 작업이다.
+이 application 수용 검사는 [후속 receiver 작업](m1_steering_receiver.md)에서 별도로 구현했다.
 
 ## 검증 기록
 

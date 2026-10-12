@@ -77,4 +77,5 @@ cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17
 값의 의미 → ID/길이 → field 배치 → receiver 검증 → golden vectors 순서로 검토한다.
 Brake/Drive와의 일관성을 검토한 뒤 전체 codec과 vCAN 송수신에 연결한다.
 [Frame codec과 DBC parser 교차 검증](m1_steering_frame_codec.md)을 Host에서 수행했다.
-Receiver/application 송수신은 아직 PLANNED / NOT RUN이다.
+이어서 [로컬 수신부](m1_steering_receiver.md)를 제어 가능한 시계로 Host에서 시험했다.
+Application socket/queue/coordinator 통합은 아직 PLANNED / NOT RUN이다.

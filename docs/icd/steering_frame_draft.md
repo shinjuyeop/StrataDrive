@@ -6,7 +6,8 @@ Status: **2026-10-12 설계 제안 / 학습자 review PENDING**.
 이 문서와 [DBC](../../interfaces/dbc/steering_m1_draft.dbc)는 두 Steering frame의
 배치 초안이다. [두 frame의 Host codec/DBC parser 검증](../learning/m1_steering_frame_codec.md)은
 구현·실행했고 [P05 Protect/Check](../learning/m1_autosar_e2e_profile5.md)도 Host에서 시험했다.
-Application Receiver/vCAN 구현은 **PLANNED / NOT RUN**이다.
+[로컬 Application Receiver](../learning/m1_steering_receiver.md)는 제어 가능한 시계로 Host에서 시험했다.
+Application socket/queue/coordinator 및 measured timeout 통합은 **PLANNED / NOT RUN**이다.
 Six-frame baseline 채택이나 M1 acceptance 완료로 처리하지 않는다.
 
 ## 1. 먼저 값의 의미와 생성 책임을 정한다
@@ -93,7 +94,8 @@ Producer는 bus/ID/송신 책임으로 대응한다. CAN ID나 CRC가 송신자 
 기준 판은 **AUTOSAR R25-11**이며 [FO Protocol §6.8](https://www.autosar.org/fileadmin/standards/R25-11/FO/AUTOSAR_FO_PRS_E2EProtocol.pdf)과
 [CP E2E Library §8.2.5/8.3.5](https://www.autosar.org/fileadmin/standards/R25-11/CP/AUTOSAR_CP_SWS_E2ELibrary.pdf)을 따른다.
 직접 작성한 C++17 Protect/Check와 초기화 구현이다. C ABI/vendor BSW/ARXML 설정을 가져온 것은 아니다.
-Profile-independent E2E State Machine과 전체 application receiver는 미구현이다.
+Profile-independent E2E State Machine과 application socket/queue/coordinator 통합은 미구현이다.
+로컬 application 수신부의 적용 범위는 [ADR-0008](../adr/ADR-0008-steering-receiver.md)에 있다.
 
 | 설정 | Command | Actual |
 | --- | --- | --- |
@@ -140,7 +142,8 @@ MaxDeltaCounter=10은 기존 rate에 맞춘 실험 후보이며 측정으로 확
 - Coordinator가 INIT에서 각 participant에 Epoch, clock mode, monitoring enable 시각을
   신뢰된 설정으로 전달하고 ready를 확인한다. RX frame에서 Epoch를 자동 학습하지 않는다.
   Epoch는 저장된 카운터로 실행마다 증가시키고 재사용/overflow 시 시작을 거부하는 후보다.
-  실제 coordinator/handshake는 미구현이다.
+  실제 coordinator/handshake는 미구현이다. 로컬 수신부는 신뢰된 호출자의
+  `start_session(epoch, monitoring_enable_ns)`를 사용하며 같은 인스턴스에서 Epoch 재사용/감소를 거부한다.
 - Stream마다 Sequence는 0부터 새 발행마다 증가한다. 첫 수용은 startup window 내 번호
   0…9 중 하나를 허용한다(초기 packet loss 허용). 이후 `1 <= new − last <= 10`이면 진행,
   동일 번호는 duplicate, 감소/더 큰 jump는 reject한다. 계산은 unsigned wrap에 의존하지 않는다.
@@ -176,6 +179,14 @@ Valid age가 80 ms 이상이면 loss를 검출한다. 첫 valid RX가 없으면 
 마지막 valid RX 이후 100 ms 내 **실제 검출 완료** 여부는 별도 실행으로 측정해야 한다.
 Timeout 이후 late frame으로 자동 복귀하지 않고 explicit INIT gate를 요구한다.
 Physical protection output과 실제 actuator response는 M2/M4 범위다.
+
+이 로컬 수용/시간/timeout 정책은 [SteeringReceiver](../../interfaces/common/steering_receiver.hpp)에
+구현했다. `receive`는 timeout을 먼저 검사하므로 deadline 이후 도착한 frame이 fault를 해제하지 않는다.
+`poll`은 입력이 없는 cycle에도 호출해야 한다. `current_sample(now_ns)`는 last-valid RX age뿐 아니라
+원천 source age도 검사한다. 진단용 `last_accepted()` 이력은 제어 입력으로 직접 사용하지 않는다.
+Clock 감소도 fault로 유지하며 새로운 Epoch의 explicit INIT만 수신 상태를 재설정한다.
+Actual의 유효 sample은 sender health/주행 가능 판정이 아니다. Actual invalid 시 Plant Adapter의
+apply/tick gate와 actuator별 availability 정책은 상위 통합에서 별도로 적용해야 한다.
 
 ## 5. 구현 전에 기대 bytes를 만든다
 
@@ -215,9 +226,9 @@ SourceTimeNs는 raw uint64로 다루고 float64 변환으로 ns 정밀도를 잃
 
 - C++ frame codec과 기존 angle codec의 연결, 위 golden vectors 및
   CRC/ID/length/flags/version/reserved/sentinel의 표현 검사는 [Host에서 실행했다](../learning/m1_steering_frame_codec.md).
-- P05 Counter의 duplicate/loss/jump/resync/wrap은 Host에서 시험했다. Application receiver에서
+- P05 Counter의 duplicate/loss/jump/resync/wrap은 Host에서 시험했다. 이어서 로컬 Application receiver에서
   제어 가능한 clock으로 trace Sequence/old epoch/restart/wrap,
-  stale/future/cached replay, timeout과 explicit INIT를 검사한다.
+  stale/future/cached replay, timeout과 explicit INIT를 [시험했다](../learning/m1_steering_receiver.md).
 - vCAN에서 독립 socket 사이 Command/Actual fixture를 송수신한다. Actual fixture를
   command echo나 actuator dynamics의 증거로 사용하지 않는다.
 - Brake/Drive의 units/ranges/scaling과 공통 metadata를 검토해 six-frame으로 확장한다.
@@ -228,6 +239,7 @@ SourceTimeNs는 raw uint64로 다루고 float64 변환으로 ns 정밀도를 잃
 
 2026-10-12 초안 작성 시 문서/DBC의 byte·bit 배치와 위 vector를 산술 검사했다.
 이어서 cantools parser와 C++ wire codec을 구현·검증했고 P05/schema 2로 개정해 다시 시험했다. 자세한 범위는 [실행 기록](../learning/m1_steering_frame_codec.md)에 있다.
-Receiver/vCAN application 실행은 **NOT RUN**이다.
+로컬 Receiver는 제어 가능한 시계로 Host에서 시험했다. Socket/queue/coordinator/vCAN application
+및 실제 wall-time 검출 지연 시험은 **NOT RUN**이다.
 기존 field codec의 검증 결과와 별개의 범위이며 학습자의 이해 확인도 **PENDING**이다.
 이 제안은 Requirement의 shall이나 Reference v0.1을 변경하지 않고 TBD를 CLOSED로 처리하지 않는다.

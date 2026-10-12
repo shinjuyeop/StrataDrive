@@ -20,6 +20,9 @@ TC ID의 유일한 정의 목록은 아래 표, S/F ID 정의는 [scenario basel
 Steering의 [R25-11 P05 Protect/Check](../learning/m1_autosar_e2e_profile5.md)와 DBC를
 공식 예제/Counter 경계/fault/independent CRC로 Host에서 시험했다.
 이 범위는 command 수용/timeout이나 TC-COM-002 전체 acceptance가 아니다.
+[Steering 수신부](../learning/m1_steering_receiver.md)의 수용/시간/Epoch/timeout은
+제어 가능한 clock으로 Host에서 시험했다. 실제 wall-time 검출 지연이나 기존 system TC의
+전체 acceptance 결과로 확대하지 않는다.
 
 첫 C++ field codec에 설치된 GoogleTest 1.11.0을 사용했다. Python 단위 시험의 pytest 적용은
 PLANNED다. 빈 테스트를 PASS 처리하지 않는다. Regression은 scenario/seed/config/commit을 고정하고 이후

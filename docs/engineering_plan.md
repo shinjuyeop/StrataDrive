@@ -6,7 +6,8 @@ Status: **계획 정의 / M1 개발 환경 실험 착수 / 표준 실습 PLANNED
 Host transport smoke는 [M1 첫 실행 기록](learning/m1_vcan_start.md),
 field codec 검증은 [C++ 실행 기록](learning/m1_steering_codec.md)에 범위와 결과를 남긴다.
 [Steering frame codec·DBC parser 검증](learning/m1_steering_frame_codec.md)도 Host에서 수행했다.
-Receiver/sequence 진행/freshness/timeout/application 송수신은 아직 미구현이다.
+[Steering 수신부의 수용/sequence/freshness/timeout](learning/m1_steering_receiver.md)을
+제어 가능한 시계로 Host에서 시험했다. Application socket/queue/coordinator 통합은 미구현이다.
 
 ## Project objective
 
@@ -132,8 +133,9 @@ ISO 자료는 공개 개요를 바탕으로 학습 범위를 정하는 데 참�
 [첫 SocketCAN/vCAN 실행](learning/m1_vcan_start.md)과
 [Steering angle field codec](learning/m1_steering_codec.md)을 학습자가 재현할 수 있다.
 Steering frame/DBC에 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e_profile5.md)를
-직접 구현해 Host에서 시험했다. OS/RTE/BSW pilot과 별개의 적용 범위이며
-application receiver/통합 및 학습자 review는 남아 있다.
+직접 구현해 Host에서 시험했다. OS/RTE/BSW pilot과 별개의 적용 범위다.
+이어서 [로컬 application 수신부](learning/m1_steering_receiver.md)를 구현·시험했다.
+Socket/queue/coordinator/차량 통합 및 학습자 review는 남아 있다.
 
 다음 구현은 기존 six-frame wire 계약 → golden vectors → codec → vCAN application 시험
 순서다. Steering Command/Actual부터 검토하되 Brake/Drive와 공통 metadata의 일관성을 유지한다.

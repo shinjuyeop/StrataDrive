@@ -44,6 +44,14 @@ add_executable(steering_e2e_demo tools/steering_e2e_demo.cpp)
 target_link_libraries(steering_e2e_demo PRIVATE steering_frame_codec)
 stratadrive_quality(steering_e2e_demo)
 
+add_library(steering_receiver STATIC interfaces/common/steering_receiver.cpp)
+target_link_libraries(steering_receiver PUBLIC steering_frame_codec)
+stratadrive_quality(steering_receiver)
+
+add_executable(steering_receiver_demo tools/steering_receiver_demo.cpp)
+target_link_libraries(steering_receiver_demo PRIVATE steering_receiver)
+stratadrive_quality(steering_receiver_demo)
+
 include(CTest)
 if(BUILD_TESTING)
     # 현재 Host에 설치된 버전 사용. 자동 다운로드/설치하지 않는다.
@@ -61,4 +69,8 @@ if(BUILD_TESTING)
     target_link_libraries(e2e_profile5_test PRIVATE e2e_profile5 GTest::gtest_main)
     stratadrive_quality(e2e_profile5_test)
     gtest_discover_tests(e2e_profile5_test)
+    add_executable(steering_receiver_test tests/unit/steering_receiver_test.cpp)
+    target_link_libraries(steering_receiver_test PRIVATE steering_receiver GTest::gtest_main)
+    stratadrive_quality(steering_receiver_test)
+    gtest_discover_tests(steering_receiver_test)
 endif()

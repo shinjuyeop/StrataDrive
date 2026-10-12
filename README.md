@@ -19,7 +19,9 @@ build·단위 시험을 수행했다. 표현 형식은 검토 초안이며 실�
 작성하고 [Host DBC parser·32-byte frame codec](docs/learning/m1_steering_frame_codec.md)을
 구현·시험했다. 이어서 [AUTOSAR R25-11 E2E Profile 5](docs/learning/m1_autosar_e2e_profile5.md)의
 CRC/Counter Protect·Check를 적용하고 Host 25개 unit test와 DBC 교차 검증을 통과했다.
-학습자 review PENDING이며 application receiver/송수신은 미구현이다.
+이어서 [Steering 수신부](docs/learning/m1_steering_receiver.md)의 수용/trace Sequence/시간/Epoch/
+mode/range/timeout을 구현하고 normal·ASan/UBSan 각각 44개 unit test를 통과했다.
+학습자 review PENDING이며 application socket 송수신과 queue/coordinator 통합은 미구현이다.
 Six-frame 전체 DBC/codec, vECU/CARLA/ROS 2·DDS/control/AI/deployment runtime은 **PLANNED**다.
 기존 차량/성능 TC는 모두 **NOT RUN**, M1 acceptance도 미완료다.
 
@@ -57,41 +59,31 @@ architecture를 이해하고 각 구현을 직접 설명할 수 있는 것을 �
 ## System Architecture
 
 아래 그림은 **Planned topology**이며 아직 구현된 배포 구성이 아니다.
-주행 흐름을 위에서 아래로 읽도록 배치했다. 위·아래의 Host PC는 **같은 x86 Ubuntu 장비**이며,
-센서 입력 단계와 차량 반영 단계를 나누어 표시했다.
+Host와 Jetson의 배치, 주요 책임, 통신 경계를 묶어 표시했다.
+양방향 선은 센서·command·status·actual이 오가는 통신 연결이다.
 
 ```mermaid
 flowchart TB
-  subgraph HOST_INPUT["Host PC · 센서 입력"]
-    direction TB
-    CARLA["CARLA<br/>차량 · 도로 · 교통 · 보행자"]
-    SENS["Camera · IMU · GNSS<br/>Vehicle state"]
-    CARLA --> SENS
+  subgraph HOST["Host PC · x86 Ubuntu"]
+    direction LR
+    ADAPTER["Plant Adapter<br/>Ego actuation single writer"]
+    CARLA["CARLA<br/>Vehicle plant · Sensors"]
+    ADAPTER -->|차량 반영| CARLA
   end
   subgraph TARGET["Jetson · AGX Thor 또는 Orin NX 한 대"]
-    direction TB
-    CENTRAL["Central Vehicle Compute<br/>State · Perception<br/>World model · Planner"]
-    SAFETY["Safety Supervisor"]
-    CONTROL["Classical Controller<br/>Vehicle-level command"]
-    ZONE["Virtual Zone Controller<br/>조향 · 제동 · 구동 command 분배"]
-    ECU["Steering · Brake · Drive vECU<br/>Task · Delay · Saturation<br/>Dynamics · Fault"]
-    BRIDGE["Zone / Target feedback bridge<br/>Actual feedback 수집 · 전달"]
-    CENTRAL --> SAFETY --> CONTROL
-    CONTROL -->|Logical Ethernet / DDS| ZONE
-    ZONE -->|"CAN FD command<br/>SocketCAN / vCAN"| ECU
-    ECU -->|CAN FD actual feedback| BRIDGE
+    direction LR
+    CENTRAL["Central Vehicle Compute<br/>State · Perception<br/>World model · Planner<br/>Safety Supervisor<br/>Classical Controller"]
+    ZONE["Virtual Zone Controller<br/>Command allocation<br/>Actual 수집 / Target bridge"]
+    ECU["Leaf vECU<br/>Steering · Brake · Drive<br/>Task · Dynamics · Fault"]
+    CENTRAL <-->|DDS| ZONE
+    ZONE <-->|CAN FD| ECU
   end
-  subgraph HOST_OUTPUT["같은 Host PC · 차량 반영"]
-    direction TB
-    ADAPTER["CARLA Plant Adapter<br/>Ego actuation single writer"]
-    MOTION["같은 CARLA의 Vehicle motion<br/>다음 센서 frame 생성"]
-    ADAPTER --> MOTION
-  end
-  HOST_INPUT -->|Physical Ethernet| TARGET
-  TARGET -->|Physical Ethernet| HOST_OUTPUT
+  HOST <-->|Physical Ethernet| TARGET
 ```
 
-맨 아래 차량 움직임이 맨 위 센서 입력으로 이어지며 주행 흐름이 반복된다.
+Host는 Camera/IMU/GNSS와 vehicle state를 Central로 보내고, Zone/Target bridge의
+actual feedback을 Plant Adapter에서 받아 CARLA에 반영한다. Target 내부의 DDS는
+논리 Ethernet, CAN FD application 경로는 SocketCAN/vCAN을 사용한다.
 주행 흐름을 지원하는 시험·상태·진단 경로는 다음과 같다.
 
 | 경로 | 연결 / 역할 |
@@ -194,11 +186,14 @@ cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
 ./build/m1-angle/steering_angle_demo 0.1
 ./build/m1-angle/steering_frame_demo command 0.2
+./build/m1-angle/steering_receiver_demo
 ```
 
-이 명령은 조향각과 Steering frame의 byte 표현을 시험한다. 차량 제어 loop나 Target 배포는 아직 구현하지 않았다.
+이 명령은 조향각/Steering frame의 byte 표현과 수신부의 제어 가능한 시계 실험을 실행한다.
+차량 제어 loop나 Target 배포는 아직 구현하지 않았다.
 검사 범위와 예상 결과는 [field 실행 안내](docs/learning/m1_steering_codec.md)와
-[frame codec/DBC 교차 검증](docs/learning/m1_steering_frame_codec.md)에 있다.
+[frame codec/DBC 교차 검증](docs/learning/m1_steering_frame_codec.md),
+[수신부 실행 안내](docs/learning/m1_steering_receiver.md)에 있다.
 
 M1의 첫 개발 환경 확인은 Linux terminal에서 다음과 같이 실행한다.
 

@@ -94,7 +94,7 @@ int main() {
                 }
             }
         }
-        std::cout << "E2E OK와 actuator command 수용은 별도이며, freshness/timeout은 다음 작업입니다.\n";
+        std::cout << "E2E OK와 command 수용은 별도입니다. Freshness/timeout은 steering_receiver_demo에서 확인합니다.\n";
     } catch (const std::exception& error) {
         std::cerr << "REJECT: " << error.what() << '\n';
         return 1;

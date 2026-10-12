@@ -1,8 +1,8 @@
 # M1 세 번째 실행: DBC와 전체 Steering payload codec
 
 Status: **2026-10-12 Host DBC parser·frame codec/P05 구현/시험 완료 / 학습자 review PENDING**.
-Application receiver의 command 수용·freshness/trace Sequence 진행·timeout, vCAN application 송수신,
-Brake/Drive, actuator model과 M1 acceptance는 미완료다.
+[Application 수신부의 수용/freshness/trace Sequence/timeout](m1_steering_receiver.md)은 후속 Host 실험에서 시험했다.
+vCAN application/queue/coordinator, Brake/Drive, actuator model과 M1 acceptance는 미완료다.
 
 현재 source는 [AUTOSAR E2E Profile 5 후속 작업](m1_autosar_e2e_profile5.md)을 적용한 schema 2다.
 최초 자체 CRC 구현은 이 후속 작업으로 대체했다.
@@ -91,7 +91,7 @@ SteeringFrame을 채워야 한다. 실제 socket ABI를 이 struct와 동일하�
 GCC 11.4.0, CMake 4.3.2, C++17, GoogleTest 1.11.0, Debug build다.
 
 - 최초 자체 CRC 구현은 field 6 + frame 8의 **14개 PASS**였고, 현재 P05 개정은
-  field 6 + frame 10 + P05 9의 **25개 PASS**다.
+  field 6 + frame 10 + P05 9의 **25개 PASS**였다. 후속 수신부 추가 뒤 전체는 44개다.
   독립 golden vectors, invalid vs zero, NaN/Inf/범위 밖/잘못된 enum 거부,
   FD/ID/길이/flags, 모든 payload byte의 single-bit 손상, CRC를 재계산한 비정상 field,
   정확한 uint64 time/uint32 경계, CRC의 implicit Data ID/Counter coverage와 CRC field 제외를 확인했다.
@@ -117,11 +117,12 @@ cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17
 
 IF-CAN-STEERING의 wire 표현 일부를 검사했다. SYS-COM-002 / TC-COM-002/005 /
 TC-SAFE-002의 전체 acceptance나 100 ms loss 검출 결과를 PASS/VERIFIED로 바꾸지 않는다.
-Target/receiver/vCAN application/차량 runtime TC는 NOT RUN이며 학습자 review도 PENDING이다.
+Target/vCAN application/차량 runtime TC는 NOT RUN이며 학습자 review도 PENDING이다.
+제어 가능한 시계로 실행한 로컬 수신부 결과는 [별도 기록](m1_steering_receiver.md)에 있다.
 
 ## 다음 작은 작업
 
-[Frame 초안](../icd/steering_frame_draft.md)의 receiver 규칙을 검토하고 물리 허용 범위,
-INIT/복구 gate, session 설정, queue/monitor parameter를 해당 구현 범위에서 해소한다.
-제어 가능한 clock으로 freshness/duplicate/order/epoch/restart/wrap/timeout을 시험한 뒤
-vCAN application 송수신에 연결한다. Brake/Drive의 field 설계와 six-frame 검증도 남아 있다.
+[로컬 수신부](m1_steering_receiver.md)의 freshness/duplicate/order/epoch/restart/wrap/timeout을
+제어 가능한 clock으로 시험했다. 다음은 실제 clock과 bounded dispatch/queue/coordinator를
+SocketCAN/vCAN application 송수신에 연결하는 작업이다. 실제 물리 한계 확정,
+Brake/Drive의 field 설계와 six-frame 검증도 남아 있다.
