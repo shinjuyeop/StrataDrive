@@ -15,9 +15,9 @@ Repository root에서 기존 Host C++17/GCC/CMake/GoogleTest를 사용한다.
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_frame_demo command 0.2
-./build/m1-angle/steering_frame_demo actual 0.15
-./build/m1-angle/steering_frame_demo actual invalid
+./build/m1-angle/steering_demo frame command 0.2
+./build/m1-angle/steering_demo frame actual 0.15
+./build/m1-angle/steering_demo frame actual invalid
 ```
 
 첫 예제의 결과는 ID=`0x180`, CRC=`0x26EB`, 복원=`0.2 rad`이다.
@@ -49,7 +49,7 @@ uv pip install --python build/m1-dbc-venv/bin/python -r tools/requirements-dbc.t
 
 ```sh
 build/m1-dbc-venv/bin/python tools/check_steering_dbc.py
-build/m1-dbc-venv/bin/python tools/check_steering_dbc.py --demo build/m1-angle/steering_frame_demo
+build/m1-dbc-venv/bin/python tools/check_steering_dbc.py --demo build/m1-angle/steering_demo
 ```
 
 첫 명령은 [DBC](../../interfaces/dbc/steering_m1_draft.dbc)의 문법과 strict layout,
@@ -67,9 +67,9 @@ DBC range 검사에 맡기지 않고 C++ decoder에서 명시적으로 검사한
 
 ## 코드 읽기
 
-1. [SteeringMessage / SteeringFrame](../../interfaces/common/steering_frame_codec.hpp)을 본다.
+1. [SteeringMessage / SteeringFrame](../../interfaces/steering/steering_frame_codec.hpp)을 본다.
    Message는 물리량과 metadata, Frame은 CAN ID/종류/flags/길이/payload다.
-2. [encode_steering_frame](../../interfaces/common/steering_frame_codec.cpp)은 기존 angle
+2. [encode_steering_frame](../../interfaces/steering/steering_frame_codec.cpp)은 기존 angle
    codec으로 byte 0–1을 만들고, 나머지 field를 DBC 위치에 little-endian으로 기록한다.
    호출자가 stream별로 유지한 SteeringTxState를 받아 P05 Protect를 호출한다.
    Reserved byte 26–28은 0이고 CRC byte 29–30/Counter byte 31은 P05가 기록한다.
@@ -111,18 +111,19 @@ GCC 11.4.0, CMake 4.3.2, C++17, GoogleTest 1.11.0, Debug build다.
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
-clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/e2e_profile5.cpp interfaces/common/steering_frame_codec.cpp tools/steering_frame_demo.cpp tools/steering_e2e_demo.cpp tests/unit/e2e_profile5_test.cpp tests/unit/steering_frame_codec_test.cpp
-cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common interfaces/common/e2e_profile5.cpp interfaces/common/steering_frame_codec.cpp tools/steering_frame_demo.cpp tools/steering_e2e_demo.cpp
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/steering_demo.cpp tests/unit/e2e_profile5_test.cpp tests/unit/steering_frame_codec_test.cpp
+cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/steering_demo.cpp
 ```
 
 IF-CAN-STEERING의 wire 표현 일부를 검사했다. SYS-COM-002 / TC-COM-002/005 /
 TC-SAFE-002의 전체 acceptance나 100 ms loss 검출 결과를 PASS/VERIFIED로 바꾸지 않는다.
-Target/vCAN application/차량 runtime TC는 NOT RUN이며 학습자 review도 PENDING이다.
+이 codec 실행 당시 Target/vCAN application/차량 runtime TC는 NOT RUN이었다. 학습자 review는 PENDING이다.
 제어 가능한 시계로 실행한 로컬 수신부 결과는 [별도 기록](m1_steering_receiver.md)에 있다.
+이후 vCAN application 송수신/local timeout을 수행한 결과는 [SocketCAN 기록](m1_steering_socketcan.md)에 있다.
 
 ## 다음 작은 작업
 
 [로컬 수신부](m1_steering_receiver.md)의 freshness/duplicate/order/epoch/restart/wrap/timeout을
-제어 가능한 clock으로 시험했다. 다음은 실제 clock과 bounded dispatch/queue/coordinator를
-SocketCAN/vCAN application 송수신에 연결하는 작업이다. 실제 물리 한계 확정,
-Brake/Drive의 field 설계와 six-frame 검증도 남아 있다.
+제어 가능한 clock으로 시험했다. 이어서 실제 clock과 bounded dispatch/trusted fixture handshake를
+SocketCAN/vCAN에 연결해 시험했다. 영속 coordinator, queue overflow 주입, 실제 물리 한계 확정,
+Brake/Drive의 field 설계와 six-frame 검증은 남아 있다.

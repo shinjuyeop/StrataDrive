@@ -6,7 +6,9 @@ Status: semantic contract **DEFINED / Reference Baseline v0.1**.
 [Steering angle field 초안](steering_angle_encoding.md)의 독립 codec을 Host에서 시험했다.
 [Steering 두 frame의 codec·DBC parser 교차 검증](../learning/m1_steering_frame_codec.md)도
 Host에서 수행했다. [Steering 수신부](../learning/m1_steering_receiver.md)의 stateful 수용/시간/Epoch/
-timeout도 Host에서 시험했다. Application socket/queue/coordinator 통합은 미구현이다.
+timeout도 Host에서 시험했다. [SocketCAN/vCAN 연결](../learning/m1_steering_socketcan.md)의
+Steering application 송수신/fault/timeout은 실행했다. 영속 coordinator, application queue/
+kernel overflow 주입과 차량 통합은 남아 있다.
 
 | Interface ID | 논리적 내용 | Source → Destination | Transport / schema |
 | --- | --- | --- | --- |
@@ -74,6 +76,7 @@ metadata의 대응을 명시하고 replay/restart rejection을 검증한다. App
 CRC, timestamp encoding과 queue 정책은 [CAN ICD](can_icd.md)에서 결정한다.
 Timeout clock, reset/pause는 [timing](../requirements/timing_requirements.md)를 따른다.
 
-`interfaces/common/`에는 Steering angle field, 두 frame의 codec과 로컬 수신부 초안이 있다.
+`interfaces/common/`에는 조향과 독립인 P05, `interfaces/steering/`에는 Steering angle field,
+두 frame의 codec과 로컬 수신부가 있다. `interfaces/socketcan/`은 Linux socket I/O와 조향 변환을 맡는다.
 `interfaces/dbc/`에는 Steering 두 frame의 DBC 초안이 있고 `interfaces/dds/`는 아직 .gitkeep만 있다. [DDS ICD](ethernet_dds_icd.md),
 [traceability](../test-plan/traceability.md)를 참조한다.

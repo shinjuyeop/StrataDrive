@@ -2,7 +2,9 @@
 
 Status: **2026-10-12 Host 로컬 수신부·제어 가능한 시계 시험 완료 / 학습자 review PENDING**.
 결정은 [ADR-0008](../adr/ADR-0008-steering-receiver.md), 입력은 기존 [schema 2 frame](../icd/steering_frame_draft.md)이다.
-실제 socket/queue/coordinator와 clock adapter, actuator/차량 통합 및 M1 acceptance는 미완료다.
+이 단계는 수동 시계의 로컬 수신부 시험이다. 실제 socket/clock 연결은
+[후속 SocketCAN 기록](m1_steering_socketcan.md)에 있으며 영속 coordinator, queue budget,
+actuator/차량 통합 및 M1 acceptance는 미완료다.
 
 ## 무엇을 추가했나
 
@@ -32,7 +34,7 @@ Repository root에서 기존 C++17/GCC/CMake/GoogleTest 환경을 사용한다. 
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_receiver_demo
+./build/m1-angle/steering_demo receiver
 ```
 
 Demo는 socket/clock syscall 없이 수동 monotonic 시각을 전달한다. +/-0.5 rad는 시험용 한계이며
@@ -58,9 +60,9 @@ E2E status 0은 OK, 8은 REPEATED다. E2E OK인 거부 frame이 여럿 있어도
 
 ## 코드 읽기와 사용
 
-1. [설정/API](../../interfaces/common/steering_receiver.hpp)를 읽는다. Command/Actual마다 별도
+1. [설정/API](../../interfaces/steering/steering_receiver.hpp)를 읽는다. Command/Actual마다 별도
    receiver를 유지하며 호출 시각과 source 시각은 같은 monotonic domain이어야 한다.
-2. [수신 구현](../../interfaces/common/steering_receiver.cpp)의 `poll`을 먼저 본다.
+2. [수신 구현](../../interfaces/steering/steering_receiver.cpp)의 `poll`을 먼저 본다.
    `now - reference >= timeout`이며 reference는 last-valid RX 또는 session 시작이다.
    Clock 감소와 timeout은 새 Epoch의 explicit INIT 전까지 유지한다.
 3. `receive`는 raw P05 counter와 application 수용 기록을 분리한다.
@@ -101,7 +103,7 @@ GoogleTest 1.11.0/C++17 Debug에서 실행했다.
   startup window/gap/backward/uint32 wrap, unavailable vs zero, mode/range/1 ULP 경계,
   source age와 RX age 분리, startup/accepted timeout, late frame/explicit INIT,
   clock 감소, P05 8-bit wrap, UINT64_MAX 인접 시각을 검사했다.
-- `steering_receiver_demo`의 위 정상/reject/timeout/재초기화 결과 PASS.
+- `steering_demo receiver`의 위 정상/reject/timeout/재초기화 결과 PASS.
 - clang-tidy 14: 변경 receiver/demo/test 및 E2E demo의 적용 검사에서 user source 진단 없음.
   Non-user header/NOLINT는 기본 filter로 제외했다.
 - cppcheck 2.7: 변경 receiver/demo/E2E demo의 적용 검사에서 진단 없음.
@@ -113,8 +115,8 @@ GoogleTest 1.11.0/C++17 Debug에서 실행했다.
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
-clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/steering_receiver.cpp tools/steering_receiver_demo.cpp tests/unit/steering_receiver_test.cpp tools/steering_e2e_demo.cpp
-cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common interfaces/common/steering_receiver.cpp tools/steering_receiver_demo.cpp tools/steering_e2e_demo.cpp
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/steering/steering_receiver.cpp tools/steering_demo.cpp tests/unit/steering_receiver_test.cpp
+cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering interfaces/steering/steering_receiver.cpp tools/steering_demo.cpp
 ```
 
 같은 clock domain을 전제로 제어 가능한 시각의 경계를 시험했다. 실제 10 ms dispatch,
@@ -127,3 +129,7 @@ SYS-COM/TC-COM/TC-SAFE 전체 결과나 M1 acceptance를 PASS/VERIFIED로 변경
 monitor dispatch, trusted session/coordinator 설정을 연결한다.
 Command/Actual fixture로 송수신을 검증하며 Actual fixture를 Command echo나 dynamics의 증거로 사용하지 않는다.
 물리 한계 calibration, Brake/Drive의 공통 metadata와 six-frame 확장, vECU의 물리 응답은 후속 작업이다.
+
+위 작업 중 실제 시계/SocketCAN/독립 process/trusted fixture handshake/bounded dispatch와
+local timeout 시험은 [다음 SocketCAN 실행 기록](m1_steering_socketcan.md)에서 수행했다.
+영속 coordinator, application queue depth와 kernel overflow 주입은 여전히 후속 범위다.

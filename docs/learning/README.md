@@ -28,7 +28,14 @@ AUTOSAR 실습은 관련 설계·구현과 함께 진행한다. 전체 이론 �
 첫 C++은 [Steering angle field codec](m1_steering_codec.md)이며,
 [Steering frame codec·DBC parser 검증](m1_steering_frame_codec.md)을 거쳐
 [AUTOSAR E2E Profile 5 Protect/Check](m1_autosar_e2e_profile5.md)를 적용했다.
-현재 작업은 [Steering 수신부의 수용/시간/Epoch/timeout](m1_steering_receiver.md)이다.
+[Steering 수신부의 수용/시간/Epoch/timeout](m1_steering_receiver.md)을 구현하고
+[SocketCAN/vCAN 연결](m1_steering_socketcan.md)로 독립 TX/RX와 wall-time fault를 시험했다.
+현재 이해 확인/직접 재현은 PENDING이며 다음 wire 작업은 Brake/Drive 확장이다.
+
+실행 예제는 `tools/steering_demo.cpp` 하나로 통합했다.
+`angle`, `frame`, `e2e`, `receiver` 중 이번 학습에 필요한 명령을 실행한다.
+자동 단위 시험은 모듈별 기존 파일에 case를 추가하며 SocketCAN 통합 시험은
+`tests/integration/steering/`에 모았다. 배치/추가 기준은 [품질 정책](../quality_policy.md#코드예제시험-배치)에 있다.
 
 M0에서는 4~7단계의 실행 기능 작업을 시작하지 않는다. 대신 문서 diff, 구조,
 계약의 정상/오류 경로를 검토하고 configure-only 확인의 한계를 기록한다.

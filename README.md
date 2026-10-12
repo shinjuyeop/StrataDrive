@@ -21,7 +21,11 @@ build·단위 시험을 수행했다. 표현 형식은 검토 초안이며 실�
 CRC/Counter Protect·Check를 적용하고 Host 25개 unit test와 DBC 교차 검증을 통과했다.
 이어서 [Steering 수신부](docs/learning/m1_steering_receiver.md)의 수용/trace Sequence/시간/Epoch/
 mode/range/timeout을 구현하고 normal·ASan/UBSan 각각 44개 unit test를 통과했다.
-학습자 review PENDING이며 application socket 송수신과 queue/coordinator 통합은 미구현이다.
+이어서 [SocketCAN/vCAN 연결](docs/learning/m1_steering_socketcan.md)을 구현했다.
+Normal·ASan/UBSan 각각 unit 48개와 독립 TX/RX process의 integration 8개 case를 통과했다.
+정리 후 Normal local fixture의 timeout 검출은 마지막 valid RX/monitoring enable 이후 80.173–80.947 ms였다.
+실행 예제는 `steering_demo`의 네 명령으로 통합했고 통합 시험은 `tests/integration/steering/`으로 분류했다.
+학습자 review PENDING이며 영속 Epoch coordinator, application queue/overflow 주입과 차량 통합은 남아 있다.
 Six-frame 전체 DBC/codec, vECU/CARLA/ROS 2·DDS/control/AI/deployment runtime은 **PLANNED**다.
 기존 차량/성능 TC는 모두 **NOT RUN**, M1 acceptance도 미완료다.
 
@@ -175,18 +179,19 @@ AUTOSAR stack/toolchain은 미선정이며 ASIL과 safety concept은 미확정�
 | Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD-09 (M5) |
 | Physical AI | Pretrained perception, TensorRT export/inference; 이후 GRU 또는 작은 Temporal Transformer |
 | Quality | 첫 field codec에 GoogleTest 1.11.0, clang-tidy, cppcheck, ASan/UBSan 실행; 차량 regression은 Planned |
-| E2E protection | Steering의 AUTOSAR R25-11 Profile 5 Protect/Check를 직접 C++17로 구현; schema 2/Host 시험, E2E State Machine·application 통합은 후속 |
+| E2E protection | Steering의 AUTOSAR R25-11 Profile 5 Protect/Check와 로컬 receiver/SocketCAN을 C++17로 구현; E2E State Machine·차량 통합은 후속 |
 | AUTOSAR pilot | Steering vECU의 Classic OS/RTE/BSW toolchain 타당성 검토; release/구현체/Target 지원 미선정, NOT RUN |
 
-첫 C++ field codec을 build하고 실행한다. 현재 Host에 설치된 도구를 사용하며 자동 설치하지 않는다.
+Steering 예제와 시험을 build하고 실행한다. 현재 Host에 설치된 도구를 사용하며 자동 설치하지 않는다.
 
 ```sh
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_angle_demo 0.1
-./build/m1-angle/steering_frame_demo command 0.2
-./build/m1-angle/steering_receiver_demo
+./build/m1-angle/steering_demo angle 0.1
+./build/m1-angle/steering_demo frame command 0.2
+./build/m1-angle/steering_demo e2e
+./build/m1-angle/steering_demo receiver
 ```
 
 이 명령은 조향각/Steering frame의 byte 표현과 수신부의 제어 가능한 시계 실험을 실행한다.
@@ -194,6 +199,9 @@ ctest --test-dir build/m1-angle --output-on-failure
 검사 범위와 예상 결과는 [field 실행 안내](docs/learning/m1_steering_codec.md)와
 [frame codec/DBC 교차 검증](docs/learning/m1_steering_frame_codec.md),
 [수신부 실행 안내](docs/learning/m1_steering_receiver.md)에 있다.
+실행 명령은 `./build/m1-angle/steering_demo --help`로 확인한다.
+`-DBUILD_TESTING=OFF`로 configure하면 라이브러리와 예제만 build하며
+단위 시험과 통합 시험의 TX/RX 실행 파일은 제외한다.
 
 M1의 첫 개발 환경 확인은 Linux terminal에서 다음과 같이 실행한다.
 
@@ -202,6 +210,14 @@ unshare --user --map-root-user --net python3 tools/vcan_smoke.py
 ```
 
 예상 출력과 확인 범위는 [M1 실행 안내](docs/learning/m1_vcan_start.md)에 기록한다.
+
+Steering Command/Actual을 독립 송신·수신 process로 연결하고 오류/중단/flood를 검사한다.
+위 C++ build 후 다음 명령을 실행한다. 자세한 흐름과 결과는
+[Steering SocketCAN 안내](docs/learning/m1_steering_socketcan.md)에 있다.
+
+```sh
+unshare --user --map-root-user --net python3 tests/integration/steering/check_socketcan.py
+```
 
 ## Development Principles
 
@@ -248,8 +264,8 @@ StrataDrive/
 ├── docs/
 │   ├── requirements/      # System, timing, safety baseline
 │   ├── architecture/      # System, software, 배포, fault 계약
-│   ├── icd/               # Interface 의미, DDS/CAN 계약; wire layout은 후속 단계
-│   ├── adr/               # 설계 결정 네 개
+│   ├── icd/               # Interface 의미, DDS/CAN 계약; Steering wire 초안
+│   ├── adr/               # 설계 결정 기록
 │   ├── test-plan/         # 검증 전략, scenario baseline, 추적성
 │   ├── learning/          # 학습자 중심 절차
 │   ├── safety/            # Item Definition / HARA 학습 초안; 평가·승인 전
@@ -257,18 +273,26 @@ StrataDrive/
 │   ├── m0_baseline.md     # Exit checklist와 문서 검토 증거
 │   ├── roadmap.md
 │   └── quality_policy.md
-├── interfaces/            # dbc/, dds/, common/ — 배치용 placeholder
+├── interfaces/
+│   ├── common/            # 조향과 독립인 E2E Profile 5
+│   ├── steering/          # 조향 angle/frame codec, application receiver
+│   ├── socketcan/         # Linux CAN socket, steering 변환 adapter
+│   ├── dbc/               # Steering Command/Actual 초안
+│   └── dds/               # 배치용 placeholder
 ├── central/               # State, perception, world model, planning, control, safety, health, diagnostics
 ├── zone/                  # Gateway, validation, allocation, local safety
 ├── vecu/                  # Common task model, steering, brake, drive
 ├── simulation/            # Simple plant, CARLA, Plant Adapter, scenarios, fault injection
 ├── physical_ai/           # Perception, learned planner, export, inference
 ├── profiles/              # Reference / Thor Premium / Orin Mainstream 설계 data
-├── tests/                 # Unit, integration, SIL, fault, performance — 배치용 placeholder
+├── tests/
+│   ├── unit/              # 모듈별 C++ test; 기능 확장은 기존 파일의 case로 추가
+│   ├── integration/steering/ # SocketCAN TX/RX fixture와 Python 검사기
+│   └── sil/, fault/, performance/ # 후속 시험 배치
 ├── benchmark/             # Timing, compute, 검토된 결과
 ├── deploy/                # Docker, systemd, scripts — 배치용 placeholder
 ├── models/README.md       # 대용량 artifact 정책과 작은 sample 예외
-└── tools/                 # 배치용 placeholder
+└── tools/                 # steering_demo 하나, DBC 검사, vCAN 환경 확인
 ```
 
 [시스템 요구사항](docs/requirements/system_requirements.md)과

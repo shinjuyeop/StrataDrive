@@ -7,9 +7,12 @@ ID/layout/metadata/receiver 정책은 제안이며 wire baseline 채택이 아�
 [AUTOSAR R25-11 P05 Protect/Check](../learning/m1_autosar_e2e_profile5.md)를 추가했다.
 Wire decode는 stateless이며 P05 Counter는 별도 state로 검사한다.
 [Steering 수신부의 수용/trace Sequence/freshness/timeout](../learning/m1_steering_receiver.md)은
-제어 가능한 시계로 Host에서 시험했다. Socket/queue/coordinator 및 차량 통합은 미구현이다.
+제어 가능한 시계로 Host에서 시험했다. 이어서 [SocketCAN/vCAN 연결](../learning/m1_steering_socketcan.md)의
+독립 TX/RX, bounded dispatch, fault/timeout을 실행했다. 영속 coordinator, application queue,
+kernel overflow 주입과 차량 통합은 남아 있다.
 [Steering angle field 초안](steering_angle_encoding.md)의 C++ codec과 Host 단위 시험을 추가했다.
-Host vCAN fixture 송수신은 실행했으며, 차량 application frame 송수신은 아직 NOT RUN이다.
+Host vCAN에서 Steering application Command/Actual fixture를 송수신했다. Actual dynamics와
+Brake/Drive frame 송수신 및 차량 TC는 NOT RUN이다.
 Zone–vECU는 SocketCAN/vCAN을 사용하고 CAN FD application contract를 학습한다.
 vCAN은 전기적 동작, bit timing, 실제 arbitration/bus load 검증이 아니다.
 

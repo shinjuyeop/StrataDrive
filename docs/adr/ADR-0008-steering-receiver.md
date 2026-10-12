@@ -13,7 +13,7 @@ P05의 raw counter 재동기화를 마지막 유효 수신으로 취급하면 in
 
 ## 결정
 
-Socket/clock/coordinator와 독립인 C++17 [SteeringReceiver](../../interfaces/common/steering_receiver.hpp)를
+Socket/clock/coordinator와 독립인 C++17 [SteeringReceiver](../../interfaces/steering/steering_receiver.hpp)를
 Command/Actual stream마다 단일 thread에서 소유한다. Runtime 동적 할당이나 unbounded drain은 없다.
 신뢰된 호출자의 `start_session(epoch, monitoring_enable_ns)`가 INIT 설정을 전달한다.
 첫 Epoch는 nonzero, 재초기화는 이전보다 큰 Epoch와 비감소 시각을 요구한다.
@@ -63,3 +63,6 @@ Zone/Plant Adapter/vECU 통합에서 별도로 구현한다.
 [실행 기록](../learning/m1_steering_receiver.md): 새 receiver 19개 + 기존 25개 = normal/ASan·UBSan
 각각 44개 PASS. Demo, 변경 source의 compiler/static analysis와 README의 light/dark Mermaid 렌더링을
 확인했다. System TC, 실제 검출 지연, M1 acceptance와 학습자 review는 완료로 처리하지 않는다.
+
+후속 [ADR-0009](ADR-0009-steering-socketcan.md)에서 실제 CLOCK_MONOTONIC/SocketCAN adapter와
+독립 process 시험을 연결했다. 영속 Epoch coordinator와 차량 task/physical response는 남아 있다.

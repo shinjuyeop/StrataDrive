@@ -7,7 +7,9 @@ Status: **2026-10-12 설계 제안 / 학습자 review PENDING**.
 배치 초안이다. [두 frame의 Host codec/DBC parser 검증](../learning/m1_steering_frame_codec.md)은
 구현·실행했고 [P05 Protect/Check](../learning/m1_autosar_e2e_profile5.md)도 Host에서 시험했다.
 [로컬 Application Receiver](../learning/m1_steering_receiver.md)는 제어 가능한 시계로 Host에서 시험했다.
-Application socket/queue/coordinator 및 measured timeout 통합은 **PLANNED / NOT RUN**이다.
+[SocketCAN/vCAN application 연결](../learning/m1_steering_socketcan.md)은 독립 TX/RX process로
+실행했으며 local observed timeout도 기록했다. 영속 coordinator, application queue/overflow 주입,
+차량 timing 통합은 **PLANNED / NOT RUN**이다.
 Six-frame baseline 채택이나 M1 acceptance 완료로 처리하지 않는다.
 
 ## 1. 먼저 값의 의미와 생성 책임을 정한다
@@ -94,7 +96,8 @@ Producer는 bus/ID/송신 책임으로 대응한다. CAN ID나 CRC가 송신자 
 기준 판은 **AUTOSAR R25-11**이며 [FO Protocol §6.8](https://www.autosar.org/fileadmin/standards/R25-11/FO/AUTOSAR_FO_PRS_E2EProtocol.pdf)과
 [CP E2E Library §8.2.5/8.3.5](https://www.autosar.org/fileadmin/standards/R25-11/CP/AUTOSAR_CP_SWS_E2ELibrary.pdf)을 따른다.
 직접 작성한 C++17 Protect/Check와 초기화 구현이다. C ABI/vendor BSW/ARXML 설정을 가져온 것은 아니다.
-Profile-independent E2E State Machine과 application socket/queue/coordinator 통합은 미구현이다.
+Profile-independent E2E State Machine과 영속 coordinator/application queue 통합은 미구현이다.
+Application socket 연결은 [ADR-0009](../adr/ADR-0009-steering-socketcan.md)의 local fixture로 구현했다.
 로컬 application 수신부의 적용 범위는 [ADR-0008](../adr/ADR-0008-steering-receiver.md)에 있다.
 
 | 설정 | Command | Actual |
@@ -142,7 +145,9 @@ MaxDeltaCounter=10은 기존 rate에 맞춘 실험 후보이며 측정으로 확
 - Coordinator가 INIT에서 각 participant에 Epoch, clock mode, monitoring enable 시각을
   신뢰된 설정으로 전달하고 ready를 확인한다. RX frame에서 Epoch를 자동 학습하지 않는다.
   Epoch는 저장된 카운터로 실행마다 증가시키고 재사용/overflow 시 시작을 거부하는 후보다.
-  실제 coordinator/handshake는 미구현이다. 로컬 수신부는 신뢰된 호출자의
+  영속 coordinator는 미구현이다. SocketCAN fixture는 명시적으로 Epoch를 전달하고
+  RX/TX ready와 receiver session 시작을 확인한 뒤 TX를 시작한다. 격리된 새 시험의 Epoch=1은
+  영속 run 번호를 구현한 것이 아니다. 로컬 수신부는 신뢰된 호출자의
   `start_session(epoch, monitoring_enable_ns)`를 사용하며 같은 인스턴스에서 Epoch 재사용/감소를 거부한다.
 - Stream마다 Sequence는 0부터 새 발행마다 증가한다. 첫 수용은 startup window 내 번호
   0…9 중 하나를 허용한다(초기 packet loss 허용). 이후 `1 <= new − last <= 10`이면 진행,
@@ -169,18 +174,23 @@ Rejected/invalid/duplicate/다른 stream의 frame은 이 stream의 valid age를 
 
 Application queue capacity는 stream당 8개 후보, overflow는 기록하고 continuity fault로 처리한다.
 처리 iteration은 최대 8개를 검사하고 마지막 valid sample만 snapshot으로 남긴다.
-Socket buffer 크기/overflow 관측과 실제 dispatch budget은 구현 전에 TBD-01/04에서 해소한다.
+SocketCAN demo는 한 cycle 최대 8개를 검사하고 timeout/source age 검사 후 1 ms를 쉰다.
+별도 application queue는 없으며 kernel queue를 사용한다. SO_RXQ_OVFL 누적 drop을 관측하며
+nonzero이면 continuity fault로 demo를 종료한다. 실제 drop 주입과 buffer/dispatch budget 확정은
+TBD-01/04에 남아 있다.
 Kernel queue까지 정확히 8개로 제한됐다고 주장하지 않는다. Queue가 바빠도 timeout monitor를
 건너뛰지 않으며 unbounded drain을 넣지 않는다.
 
 Local timeout/acquisition threshold는 80 ms 후보, monitor period 10 ms와
 dispatch/execution/jitter margin 10 ms를 배정한다: `80 + 10 + 10 <= 100 ms`.
 Valid age가 80 ms 이상이면 loss를 검출한다. 첫 valid RX가 없으면 monitoring enable이 기점이다.
-마지막 valid RX 이후 100 ms 내 **실제 검출 완료** 여부는 별도 실행으로 측정해야 한다.
+Normal local vCAN의 8개 fixture에서 마지막 valid RX 또는 monitoring enable 이후
+80.173–80.947 ms에 검출했다. Demo의 1 ms 대기/최대 8개 dispatch는 위 10 ms task의
+생산용 구현이 아니며 임의 부하에서의 100 ms 상한은 후속 timing 검증 대상이다.
 Timeout 이후 late frame으로 자동 복귀하지 않고 explicit INIT gate를 요구한다.
 Physical protection output과 실제 actuator response는 M2/M4 범위다.
 
-이 로컬 수용/시간/timeout 정책은 [SteeringReceiver](../../interfaces/common/steering_receiver.hpp)에
+이 로컬 수용/시간/timeout 정책은 [SteeringReceiver](../../interfaces/steering/steering_receiver.hpp)에
 구현했다. `receive`는 timeout을 먼저 검사하므로 deadline 이후 도착한 frame이 fault를 해제하지 않는다.
 `poll`은 입력이 없는 cycle에도 호출해야 한다. `current_sample(now_ns)`는 last-valid RX age뿐 아니라
 원천 source age도 검사한다. 진단용 `last_accepted()` 이력은 제어 입력으로 직접 사용하지 않는다.
@@ -229,17 +239,19 @@ SourceTimeNs는 raw uint64로 다루고 float64 변환으로 ns 정밀도를 잃
 - P05 Counter의 duplicate/loss/jump/resync/wrap은 Host에서 시험했다. 이어서 로컬 Application receiver에서
   제어 가능한 clock으로 trace Sequence/old epoch/restart/wrap,
   stale/future/cached replay, timeout과 explicit INIT를 [시험했다](../learning/m1_steering_receiver.md).
-- vCAN에서 독립 socket 사이 Command/Actual fixture를 송수신한다. Actual fixture를
+- vCAN에서 독립 process/socket 사이 Command/Actual fixture를 [송수신했다](../learning/m1_steering_socketcan.md). Actual fixture를
   command echo나 actuator dynamics의 증거로 사용하지 않는다.
 - Brake/Drive의 units/ranges/scaling과 공통 metadata를 검토해 six-frame으로 확장한다.
-- Host DBC parser 검증은 실행했다. Target/CI 호환 검사, queue/handshake 구현, 물리 허용 범위 확정,
-  measured timeout evidence는 미완료다. 기존 TC-COM-002/005·TC-SAFE-002 결과를 PASS로 바꾸지 않는다.
+- Host DBC parser와 local wall-time timeout 검증은 실행했다. Target/CI 호환 검사, application queue,
+  kernel overflow 주입/영속 coordinator, 물리 허용 범위와 차량 timing은 미완료다.
+  기존 TC-COM-002/005·TC-SAFE-002 결과를 PASS로 바꾸지 않는다.
 
 ## 설계 확인 기록
 
 2026-10-12 초안 작성 시 문서/DBC의 byte·bit 배치와 위 vector를 산술 검사했다.
 이어서 cantools parser와 C++ wire codec을 구현·검증했고 P05/schema 2로 개정해 다시 시험했다. 자세한 범위는 [실행 기록](../learning/m1_steering_frame_codec.md)에 있다.
-로컬 Receiver는 제어 가능한 시계로 Host에서 시험했다. Socket/queue/coordinator/vCAN application
-및 실제 wall-time 검출 지연 시험은 **NOT RUN**이다.
+로컬 Receiver는 제어 가능한 시계로 Host에서 시험했다. 이어서 SocketCAN/vCAN의 독립 process
+송수신과 local wall-time 검출 지연을 시험했다. 영속 coordinator, application queue,
+kernel overflow 주입과 차량 timing은 **NOT RUN**이다.
 기존 field codec의 검증 결과와 별개의 범위이며 학습자의 이해 확인도 **PENDING**이다.
 이 제안은 Requirement의 shall이나 Reference v0.1을 변경하지 않고 TBD를 CLOSED로 처리하지 않는다.

@@ -137,7 +137,7 @@ def check_demo(db, demo):
                                    ("command", "-0.2", -2000), ("actual", "invalid", -32768)]:
         name = "SteeringCommand" if kind == "command" else "SteeringActual"
         message = db.get_message_by_name(name)
-        result = subprocess.run([str(demo), kind, input_value], capture_output=True,
+        result = subprocess.run([str(demo), "frame", kind, input_value], capture_output=True,
                                 text=True, check=True, timeout=5)
         payload_line = re.search(r"^Payload: ([0-9A-F ]+)$", result.stdout, re.M)
         id_line = re.search(r"^ID: 0x([0-9A-F]+)$", result.stdout, re.M)
@@ -162,7 +162,7 @@ def check_demo(db, demo):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dbc", type=Path, default=ROOT / "interfaces/dbc/steering_m1_draft.dbc")
-    parser.add_argument("--demo", type=Path, help="C++ steering_frame_demo 경로 (선택)")
+    parser.add_argument("--demo", type=Path, help="C++ steering_demo 경로; frame 명령으로 검사 (선택)")
     args = parser.parse_args()
     try:
         db = cantools.database.load_file(args.dbc, strict=True)

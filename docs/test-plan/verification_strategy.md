@@ -23,6 +23,10 @@ Steering의 [R25-11 P05 Protect/Check](../learning/m1_autosar_e2e_profile5.md)�
 [Steering 수신부](../learning/m1_steering_receiver.md)의 수용/시간/Epoch/timeout은
 제어 가능한 clock으로 Host에서 시험했다. 실제 wall-time 검출 지연이나 기존 system TC의
 전체 acceptance 결과로 확대하지 않는다.
+[Steering SocketCAN fixture](../learning/m1_steering_socketcan.md)에서 Command/Actual의 독립 process
+송수신, duplicate/corruption/stale/envelope/cached replay, silent/flood/stop과 timeout latch를 실행했다.
+Normal local 관측 timeout은 80.173–80.947 ms다. 이 증거를 kernel overflow 주입, 차량 보호 출력,
+전체 TC-COM/TC-SAFE나 임의 부하 timing 보장으로 확대하지 않는다.
 
 첫 C++ field codec에 설치된 GoogleTest 1.11.0을 사용했다. Python 단위 시험의 pytest 적용은
 PLANNED다. 빈 테스트를 PASS 처리하지 않는다. Regression은 scenario/seed/config/commit을 고정하고 이후

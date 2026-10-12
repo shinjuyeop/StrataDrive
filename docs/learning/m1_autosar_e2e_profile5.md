@@ -13,9 +13,9 @@ Repository root에서 실행한다. 새 package 설치는 필요 없다.
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_frame_demo command 0.2
-./build/m1-angle/steering_e2e_demo
-build/m1-dbc-venv/bin/python tools/check_steering_dbc.py --demo build/m1-angle/steering_frame_demo
+./build/m1-angle/steering_demo frame command 0.2
+./build/m1-angle/steering_demo e2e
+build/m1-dbc-venv/bin/python tools/check_steering_dbc.py --demo build/m1-angle/steering_demo
 ```
 
 DBC 전용 격리 환경이 없으면 [기존 설치 방법](m1_steering_frame_codec.md)을 따른다.
@@ -25,7 +25,7 @@ DBC 전용 격리 환경이 없으면 [기존 설치 방법](m1_steering_frame_c
 Payload: D0 07 02 01 00 00 00 00 01 00 00 00 00 CA 9A 3B 00 00 00 00 07 00 00 00 01 01 00 00 00 EB 26 00
 ```
 
-`steering_e2e_demo`의 결과는 다음과 같다.
+`steering_demo e2e`의 결과는 다음과 같다.
 
 ```text
 정상 첫 frame Counter=0 -> OK
@@ -76,7 +76,7 @@ CAN ID/length는 P05 CRC에 prefix로 넣지 않는다. CAN envelope는 별도�
    다음 Counter 증가를 담당한다. 첫 값은 0이고 255 뒤에 0으로 순환한다.
 3. `p05_check`는 CRC를 확인한 뒤 이전 Counter와 modulo-256 차이를 계산한다.
    초기 수신 Counter는 255다. 첫 Counter=0은 delta=1이므로 OK다.
-4. [SteeringTxState/SteeringRxState](../../interfaces/common/steering_frame_codec.hpp)는
+4. [SteeringTxState/SteeringRxState](../../interfaces/steering/steering_frame_codec.hpp)는
    Command/Actual별로 별도 유지한다. 새로 초기화할 때마다 Counter가 시작되므로
    매 송신/수신 호출에서 state를 다시 만들면 안 된다.
 5. `encode_steering_frame(message, tx)`는 angle/metadata를 포장한 뒤 Protect를 호출한다.
@@ -132,10 +132,12 @@ C++17, GoogleTest 1.11.0에서 Codex가 실행했다.
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
-clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/e2e_profile5.cpp interfaces/common/steering_frame_codec.cpp tools/steering_frame_demo.cpp tools/steering_e2e_demo.cpp tests/unit/e2e_profile5_test.cpp tests/unit/steering_frame_codec_test.cpp
-cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common interfaces/common/e2e_profile5.cpp interfaces/common/steering_frame_codec.cpp tools/steering_frame_demo.cpp tools/steering_e2e_demo.cpp
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/steering_demo.cpp tests/unit/e2e_profile5_test.cpp tests/unit/steering_frame_codec_test.cpp
+cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/steering_demo.cpp
 ```
 
 Profile 5 Protect/Check를 기준으로 직접 작성한 구현의 시험이다. Vendor BSW 도입은 아니다.
 E2E State Machine, OS/RTE/COM/BSW 통합, Target/차량 runtime TC는 NOT RUN이다.
 학습자 review는 PENDING이고 M1 acceptance나 100 ms loss 검출 완료로 처리하지 않는다.
+후속 [수신부](m1_steering_receiver.md)와 [SocketCAN 연결](m1_steering_socketcan.md)에서
+application 수용과 local wall-time timeout을 별도 시험했다.

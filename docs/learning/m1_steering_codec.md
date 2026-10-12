@@ -11,7 +11,7 @@ Repository root의 Linux terminal에서 실행한다. 현재 Host에 필요한 �
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_angle_demo 0.1
+./build/m1-angle/steering_demo angle 0.1
 ```
 
 예상 출력:
@@ -34,7 +34,7 @@ Bytes: E8 03
 마지막 예제의 차이는 quantization이다. `nan`과 `4.0`은 실패(exit 1)한다.
 4.0의 거부는 현재 wire 표현 범위를 넘기 때문이며 실제 차량의 조향 한계 판정이 아니다.
 
-[짧은 codec 구현](../../interfaces/common/steering_angle_codec.cpp)에서
+[짧은 codec 구현](../../interfaces/steering/steering_angle_codec.cpp)에서
 `encode_steering_angle()`의 범위 검사·반올림·byte 분리를 읽고,
 `decode_steering_angle()`에서 부호와 단위를 복원하는 부분을 읽는다.
 성공/실패는 `std::optional`로 표현한다. 값이 없으면 호출자가 거부를 처리해야 한다.
@@ -61,8 +61,8 @@ GCC 11.4.0 / CMake 4.3.2 / C++17 / GoogleTest 1.11.0, Debug build다.
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
-clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/steering_angle_codec.cpp tools/steering_angle_demo.cpp
-cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common interfaces/common/steering_angle_codec.cpp tools/steering_angle_demo.cpp
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/steering/steering_angle_codec.cpp tools/steering_demo.cpp
+cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering interfaces/steering/steering_angle_codec.cpp tools/steering_demo.cpp
 ```
 
 관련 interface는 IF-CAN-STEERING이다. SYS-COM-002 / TC-COM-002의 향후 frame validation을
@@ -78,4 +78,5 @@ cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17
 Brake/Drive와의 일관성을 검토한 뒤 전체 codec과 vCAN 송수신에 연결한다.
 [Frame codec과 DBC parser 교차 검증](m1_steering_frame_codec.md)을 Host에서 수행했다.
 이어서 [로컬 수신부](m1_steering_receiver.md)를 제어 가능한 시계로 Host에서 시험했다.
-Application socket/queue/coordinator 통합은 아직 PLANNED / NOT RUN이다.
+이어서 [SocketCAN/vCAN 연결](m1_steering_socketcan.md)로 독립 process 송수신과 local timeout을 시험했다.
+영속 coordinator, application queue/kernel overflow 주입과 차량 통합은 후속 작업이다.
