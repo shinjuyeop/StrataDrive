@@ -72,6 +72,9 @@ cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17
 
 ## 다음 작은 작업
 
-Steering Command와 Steering Actual을 포함한 six-frame 계약에 CAN ID/field 위치와
-공통 metadata를 배치한다. Field 초안과 최종 frame의 일관성을 검토한 뒤 전체 codec과
-vCAN 송수신에 연결한다. 지금은 위 실행에서 부호와 반올림에 따른 bytes 변화를 확인하면 된다.
+[Steering Command/Actual frame 설계 초안](../icd/steering_frame_draft.md)과
+[DBC](../../interfaces/dbc/steering_m1_draft.dbc)를 작성했다(2026-10-12, review PENDING).
+값의 의미 → ID/길이 → field 배치 → receiver 검증 → golden vectors 순서로 검토한다.
+Brake/Drive와의 일관성을 검토한 뒤 전체 codec과 vCAN 송수신에 연결한다.
+[Frame codec과 DBC parser 교차 검증](m1_steering_frame_codec.md)을 Host에서 수행했다.
+Receiver/application 송수신은 아직 PLANNED / NOT RUN이다.

@@ -1,8 +1,11 @@
 # Interface inventory and common contract
 
 Status: semantic contract **DEFINED / Reference Baseline v0.1**.
-Wire schema/DBC/IDL/전체 frame codec은 **PLANNED**이며 frame layout은 미확정이다.
-[Steering angle field 초안](steering_angle_encoding.md)의 독립 codec만 Host에서 시험했다.
+전체 wire schema/DBC/IDL/frame codec은 **PLANNED**이며 frame layout은 미확정이다.
+[Steering Command/Actual의 DBC·layout 제안](steering_frame_draft.md)을 작성했으며 review PENDING이다.
+[Steering angle field 초안](steering_angle_encoding.md)의 독립 codec을 Host에서 시험했다.
+[Steering 두 frame의 codec·DBC parser 교차 검증](../learning/m1_steering_frame_codec.md)도
+Host에서 수행했다. Receiver/stateful validation과 application 송수신은 미구현이다.
 
 | Interface ID | 논리적 내용 | Source → Destination | Transport / schema |
 | --- | --- | --- | --- |
@@ -70,6 +73,6 @@ metadata의 대응을 명시하고 replay/restart rejection을 검증한다. App
 CRC, timestamp encoding과 queue 정책은 [CAN ICD](can_icd.md)에서 결정한다.
 Timeout clock, reset/pause는 [timing](../requirements/timing_requirements.md)를 따른다.
 
-`interfaces/common/`에는 Steering angle field codec 초안이 있다.
-`interfaces/dds/`, `interfaces/dbc/`는 아직 .gitkeep만 있다. [DDS ICD](ethernet_dds_icd.md),
+`interfaces/common/`에는 Steering angle field와 두 frame의 codec 초안이 있다.
+`interfaces/dbc/`에는 Steering 두 frame의 DBC 초안이 있고 `interfaces/dds/`는 아직 .gitkeep만 있다. [DDS ICD](ethernet_dds_icd.md),
 [traceability](../test-plan/traceability.md)를 참조한다.

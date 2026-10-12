@@ -1,6 +1,12 @@
 # CAN / CAN FD application ICD baseline
 
-Status: semantic/failure contract **DEFINED**, CAN ID/DBC/전체 frame codec은 **PLANNED**.
+Status: semantic/failure contract **DEFINED**, 전체 six-frame DBC/codec은 **PLANNED**.
+[Steering 두 frame의 설계·DBC 초안](steering_frame_draft.md)을 작성했다(학습자 review PENDING).
+ID/layout/metadata/receiver 정책은 제안이며 wire baseline 채택이 아니다.
+[Steering frame codec·Host parser 검증](../learning/m1_steering_frame_codec.md)은 실행했다.
+[AUTOSAR R25-11 P05 Protect/Check](../learning/m1_autosar_e2e_profile5.md)를 추가했다.
+Wire decode는 stateless이며 P05 Counter는 별도 state로 검사한다.
+Application receiver의 수용/trace Sequence 진행/freshness/timeout은 아직 미구현이다.
 [Steering angle field 초안](steering_angle_encoding.md)의 C++ codec과 Host 단위 시험을 추가했다.
 Host vCAN fixture 송수신은 실행했으며, 차량 application frame 송수신은 아직 NOT RUN이다.
 Zone–vECU는 SocketCAN/vCAN을 사용하고 CAN FD application contract를 학습한다.
@@ -33,7 +39,7 @@ M0에서는 아래 필드를 할당하지 않는다. 각 6개 frame에 대해 M1
 | Frame | CAN ID, 11/29-bit format, FD/BRS flags, DLC code, payload byte length, direction |
 | Signal | start bit, bit length, signed/type, scaling/offset, unit, endian, min/max, invalid/reserved |
 | Sequence | width/modulus, increment/window, duplicate/out-of-order, wrap/restart/epoch 재동기화 |
-| Application CRC | width/polynomial/init/reflection/xor-out/order, coverage, CRC field 제외, data ID 보호 |
+| Application integrity | Steering은 R25-11 P05 Protect/Check 적용; profile/config/Data ID/CRC/Counter와 application trace Sequence 구분; Brake/Drive는 후속 설계 |
 | Freshness | source time/age 표현 또는 동등한 replay 방지, local RX time, 원천 metadata side-channel 대응 |
 | Receiver | bounded queue/depth/overflow, latest-valid snapshot, timeout threshold/monitor budget, startup handshake |
 | Verification | physical↔raw rounding/saturation, endian/bit numbering, counter/CRC golden vectors, malformed frame tests |

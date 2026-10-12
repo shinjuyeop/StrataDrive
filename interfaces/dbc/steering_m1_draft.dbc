@@ -1,0 +1,82 @@
+VERSION "StrataDrive M1 Steering P05 schema 2 draft 2026-10-12"
+
+NS_ :
+    CM_
+    BA_DEF_
+    BA_DEF_DEF_
+    BA_
+    VAL_
+
+BS_:
+
+BU_: Zone SteeringVecu
+
+BO_ 384 SteeringCommand: 32 Zone
+ SG_ Angle : 0|16@1- (0.0001,0) [-3.2767|3.2767] "rad" SteeringVecu
+ SG_ SchemaVersion : 16|8@1+ (1,0) [2|2] "" SteeringVecu
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" SteeringVecu
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" SteeringVecu
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" SteeringVecu
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" SteeringVecu
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" SteeringVecu
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" SteeringVecu
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" SteeringVecu
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" SteeringVecu
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" SteeringVecu
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" SteeringVecu
+
+BO_ 640 SteeringActual: 32 SteeringVecu
+ SG_ Angle : 0|16@1- (0.0001,0) [-3.2767|3.2767] "rad" Zone
+ SG_ SchemaVersion : 16|8@1+ (1,0) [2|2] "" Zone
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" Zone
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" Zone
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" Zone
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" Zone
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" Zone
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" Zone
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" Zone
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" Zone
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" Zone
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" Zone
+
+CM_ "Design proposal only. See docs/icd/steering_frame_draft.md. Not six-frame baseline or runtime validation.";
+CM_ BO_ 384 "Zone demand. Standard 11-bit CAN FD, 32-byte payload, DLC 13, BRS=0, ESI=0. Logical period 10 ms.";
+CM_ BO_ 640 "Independent actual model sample; not command echo. Same frame format as command.";
+CM_ SG_ 384 Angle "Equivalent front road-wheel angle, left positive. Raw -32768 (00 80) reserved invalid. Wire range is not actuator limit.";
+CM_ SG_ 640 Angle "Actual equivalent front road-wheel angle, left positive. Raw -32768 reserved invalid. Dynamics not implemented here.";
+CM_ SG_ 384 SourceTimeNs "Exact uint64 CLOCK_MONOTONIC ns of Zone allocation generation. Shared clock/session configured out of band.";
+CM_ SG_ 640 SourceTimeNs "Exact uint64 original model sample time. Cached replay must not renew source timestamp or sequence.";
+CM_ SG_ 384 CausalSequence "Upstream VehicleCommand sequence in configured common Epoch; full causal identity also logged.";
+CM_ SG_ 640 CausalSequence "Last accepted SteeringCommand sequence in common Epoch. Ignored when Origin=0.";
+CM_ SG_ 384 E2ECrc "AUTOSAR R25-11 P05. Cover payload 0..28, Counter byte 31, then implicit DataID 0x1001 low/high. CRC LE at bytes 29..30. No CAN ID/length prefix.";
+CM_ SG_ 640 E2ECrc "Same P05 coverage, implicit DataID 0x1002. DBC does not calculate CRC or enforce counter/receiver policy.";
+CM_ SG_ 384 E2ECounter "Owned by P05 Protect state: first 0, increase per protection, 255 wraps to 0. Independent of Sequence.";
+CM_ SG_ 640 E2ECounter "Independent Actual stream counter. 255 is valid. E2E OK alone does not authorize actuator use.";
+
+BA_DEF_ BO_ "VFrameFormat" ENUM "StandardCAN","ExtendedCAN","reserved","J1939PG","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","StandardCAN_FD","ExtendedCAN_FD";
+BA_DEF_DEF_ "VFrameFormat" "StandardCAN";
+BA_DEF_ BO_ "GenMsgCycleTime" INT 0 65535;
+BA_DEF_DEF_ "GenMsgCycleTime" 0;
+BA_DEF_ BO_ "E2EProfile" INT 0 255;
+BA_DEF_ BO_ "E2EDataID" INT 0 65535;
+BA_DEF_ BO_ "E2EOffsetBits" INT 0 32768;
+BA_DEF_ BO_ "E2EMaxDeltaCounter" INT 0 255;
+BA_ "VFrameFormat" BO_ 384 14;
+BA_ "VFrameFormat" BO_ 640 14;
+BA_ "GenMsgCycleTime" BO_ 384 10;
+BA_ "GenMsgCycleTime" BO_ 640 10;
+BA_ "E2EProfile" BO_ 384 5;
+BA_ "E2EProfile" BO_ 640 5;
+BA_ "E2EDataID" BO_ 384 4097;
+BA_ "E2EDataID" BO_ 640 4098;
+BA_ "E2EOffsetBits" BO_ 384 232;
+BA_ "E2EOffsetBits" BO_ 640 232;
+BA_ "E2EMaxDeltaCounter" BO_ 384 10;
+BA_ "E2EMaxDeltaCounter" BO_ 640 10;
+
+VAL_ 384 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 640 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 384 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 640 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 384 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";
+VAL_ 640 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";

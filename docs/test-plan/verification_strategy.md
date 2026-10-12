@@ -1,7 +1,8 @@
 # Verification strategy
 
 Status: case contract **DEFINED**, 아래 system TC의 runtime result는 **NOT RUN**이다.
-[Steering angle field codec](../learning/m1_steering_codec.md)의 Host 단위 시험은 실행했다.
+[Steering angle field codec](../learning/m1_steering_codec.md)과
+[frame codec·DBC parser](../learning/m1_steering_frame_codec.md)의 Host 표현 검사는 실행했다.
 Field 단위 결과, M0 document review와 vehicle/SIL verification을 구분한다.
 TC ID의 유일한 정의 목록은 아래 표, S/F ID 정의는 [scenario baseline](scenario_baseline.md)이다.
 
@@ -15,6 +16,10 @@ TC ID의 유일한 정의 목록은 아래 표, S/F ID 정의는 [scenario basel
 | SIL / tests/sil | Simple Plant 이후 CARLA actual-feedback loop, route tracking | 정해진 scenario/ODD 안의 simulator behavior |
 | Fault / tests/fault | loss/corruption/delay/jam/AI invalid/overrun 주입과 복구 | detection, local reaction, DTC, state, plant response 관측 |
 | Performance / tests/performance | task timing tail, overload, reference와 tier별 비교 | 지정한 환경의 observed statistics; static WCET proof 아님 |
+
+Steering의 [R25-11 P05 Protect/Check](../learning/m1_autosar_e2e_profile5.md)와 DBC를
+공식 예제/Counter 경계/fault/independent CRC로 Host에서 시험했다.
+이 범위는 command 수용/timeout이나 TC-COM-002 전체 acceptance가 아니다.
 
 첫 C++ field codec에 설치된 GoogleTest 1.11.0을 사용했다. Python 단위 시험의 pytest 적용은
 PLANNED다. 빈 테스트를 PASS 처리하지 않는다. Regression은 scenario/seed/config/commit을 고정하고 이후

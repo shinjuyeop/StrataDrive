@@ -5,6 +5,9 @@ Status: **M0 — Architecture / Requirement / ICD Baseline: BASELINED**.
 모두 통과했다. M1은 **IN PROGRESS**이며 [Host vCAN transport smoke](learning/m1_vcan_start.md)를
 실행했다. 이어서 [Steering angle field codec 초안](learning/m1_steering_codec.md)을 Host에서
 build/test했다. Six-frame DBC/전체 codec과 M1 acceptance는 미완료다. M2–M13은 **PLANNED**다.
+2026-10-12 [Steering Command/Actual의 frame·DBC 초안](icd/steering_frame_draft.md)을
+작성하고 [Host frame codec·DBC parser 교차 검증](learning/m1_steering_frame_codec.md)을 수행했다.
+Receiver 규칙은 제안이며 receiver/vCAN application 시험은 NOT RUN, 학습자 review는 PENDING이다.
 M0 완료는 system contract의 고정이며 runtime/vehicle verification 완료가 아니다.
 
 | Milestone | 계획 범위 | Acceptance 증거 후보 |
@@ -32,7 +35,9 @@ Fault architecture는 M0부터 다루며 local fault behavior는 M2/M4 등의 co
 
 [개발·학습 계획](engineering_plan.md)을 기존 milestone에 연결한다. 아래 표는 학습과
 검토 활동의 배치이며 위 milestone의 번호·구현 범위·기존 acceptance를 변경하지 않는다.
-추가 안전 분석과 AUTOSAR 실습은 **PLANNED**다. M0 exit review의 PASS에 포함하지 않는다.
+추가 안전 분석과 OS/RTE/BSW pilot은 **PLANNED**다. M0 exit review의 PASS에 포함하지 않는다.
+Steering의 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e_profile5.md)는
+M1 Host에서 직접 구현·시험했다. 이 부분 결과를 전체 AUTOSAR pilot 완료로 확대하지 않는다.
 
 | 관련 단계 | 함께 수행할 학습·검토 | 남길 근거 |
 | --- | --- | --- |
@@ -75,7 +80,9 @@ rationale/Result/영향 test를 기록하고 profile/ICD/scenario를 함께 갱�
 
 M1 부분 진행: TBD-01/02의 [Steering field 표현 초안](icd/steering_angle_encoding.md)과
 TBD-11의 [첫 Host C++ 실험 도구 선택](adr/ADR-0005-first-cpp-codec.md)을 기록했다.
-전체 wire/물리 범위/Target·CI 선택이 남아 있으므로 위 TBD를 CLOSED로 바꾸지 않는다.
+이어서 [Steering frame·DBC 제안](icd/steering_frame_draft.md)과
+[Host frame codec·parser 도구 선택](adr/ADR-0006-steering-frame-codec.md)을 구현·검증했다.
+전체 wire/물리 범위/Target·CI 선택과 receiver 구현·검증이 남아 있으므로 위 TBD를 CLOSED로 바꾸지 않는다.
 
 ## M1 entry and first work
 

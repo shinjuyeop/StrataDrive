@@ -1,7 +1,10 @@
 # Software quality policy
 
-Status: **M1 field codec에 부분 적용**. [첫 C++ 실험](adr/ADR-0005-first-cpp-codec.md)에
-compiler 경고, GoogleTest, static analysis와 sanitizer를 적용했다. 차량 시험은 NOT RUN이다.
+Status: **M1 field/frame codec에 부분 적용**. [첫 C++ 실험](adr/ADR-0005-first-cpp-codec.md)과
+[Steering frame codec](learning/m1_steering_frame_codec.md)에 compiler 경고, GoogleTest,
+static analysis와 sanitizer를 적용했다.
+[AUTOSAR P05 Protect/Check 개정](learning/m1_autosar_e2e_profile5.md)에서도
+normal/ASan·UBSan 25개 unit test와 변경 source의 static analysis를 실행했다. 차량 시험은 NOT RUN이다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |

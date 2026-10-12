@@ -25,7 +25,9 @@ architecture를 내가 직접 이해하는 것을 우선한다. M0 문서 baseli
 구현·실행·결과 해석으로 이어간다. 조향 dynamics/jam 판정은 M2, 상세 안전 분석과
 AUTOSAR 실습은 관련 설계·구현과 함께 진행한다. 전체 이론 학습을 M1 시작 조건으로 두지 않는다.
 첫 실행은 [M1 SocketCAN/vCAN 송수신](m1_vcan_start.md)이며,
-현재 작업은 [첫 C++ Steering angle field codec](m1_steering_codec.md)이다.
+첫 C++은 [Steering angle field codec](m1_steering_codec.md)이며,
+[Steering frame codec·DBC parser 검증](m1_steering_frame_codec.md)을 거쳐
+현재 작업은 [AUTOSAR E2E Profile 5 Protect/Check](m1_autosar_e2e_profile5.md)다.
 
 M0에서는 4~7단계의 실행 기능 작업을 시작하지 않는다. 대신 문서 diff, 구조,
 계약의 정상/오류 경로를 검토하고 configure-only 확인의 한계를 기록한다.
