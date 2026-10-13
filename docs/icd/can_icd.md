@@ -1,6 +1,6 @@
 # CAN / CAN FD application ICD baseline
 
-Status: semantic/failure contract **DEFINED**, 전체 six-frame DBC/codec은 **PLANNED**.
+Status: semantic/failure contract **DEFINED**, six-frame DBC/codec **Host 초안 구현·시험 / baseline 채택 PENDING**.
 [Steering 두 frame의 설계·DBC 초안](steering_frame_draft.md)을 작성했다(학습자 review PENDING).
 ID/layout/metadata/receiver 정책은 제안이며 wire baseline 채택이 아니다.
 [Steering frame codec·Host parser 검증](../learning/m1_steering_frame_codec.md)은 실행했다.
@@ -12,7 +12,11 @@ Wire decode는 stateless이며 P05 Counter는 별도 state로 검사한다.
 kernel overflow 주입과 차량 통합은 남아 있다.
 [Steering angle field 초안](steering_angle_encoding.md)의 C++ codec과 Host 단위 시험을 추가했다.
 Host vCAN에서 Steering application Command/Actual fixture를 송수신했다. Actual dynamics와
-Brake/Drive frame 송수신 및 차량 TC는 NOT RUN이다.
+[Brake Command/Actual 초안](brake_frame_draft.md)의 압력 codec·DBC·P05와 vCAN wire 송수신도
+[시험했다](../learning/m1_brake_codec.md). 이어서 [Brake application receiver](../adr/ADR-0012-brake-receiver.md)의
+수용/timeout을 normal/sanitizer unit·vCAN에서 실행했다.
+[Drive signed torque/회생 피드백 wire](drive_frame_draft.md)와 [application receiver/vCAN](../learning/m1_drive_codec.md)도
+실행했다. Actual dynamics, Zone blending 및 전체 차량 TC는 NOT RUN이다.
 Zone–vECU는 SocketCAN/vCAN을 사용하고 CAN FD application contract를 학습한다.
 vCAN은 전기적 동작, bit timing, 실제 arbitration/bus load 검증이 아니다.
 
@@ -27,12 +31,30 @@ vCAN은 전기적 동작, bit timing, 실제 arbitration/bus load 검증이 아�
 | IF-CAN-STEERING / vECU → Zone | Steering Actual | 10 ms | actual loss <=100 ms, unavailable/FAIL_SAFE; F01 |
 | IF-CAN-BRAKE / Zone → vECU | Brake Command (pressure demand) | 10 ms | invalid reject, age 미갱신; command loss <=100 ms, local FAIL_SAFE |
 | IF-CAN-BRAKE / vECU → Zone | Brake Actual | 10 ms | actual loss <=100 ms, unavailable/FAIL_SAFE; braking stop 보장 아님 |
-| IF-CAN-DRIVE / Zone → vECU | Drive Command (torque demand) | 10 ms | invalid reject, age 미갱신; command loss <=100 ms, zero-propulsive target/FAIL_SAFE; F03 |
-| IF-CAN-DRIVE / vECU → Zone | Drive Actual | 10 ms | actual loss <=100 ms, unavailable/FAIL_SAFE |
+| IF-CAN-DRIVE / Zone → vECU | Drive Command (signed motor torque demand: 구동/회생) | 10 ms | invalid reject, age 미갱신; command loss <=100 ms, zero motor torque target/FAIL_SAFE; F03 |
+| IF-CAN-DRIVE / vECU → Zone | Drive Actual + 별도 유효성의 회생 가용량 | 10 ms | actual loss <=100 ms, unavailable/FAIL_SAFE; capability 0/unknown은 별도 처리 |
 
 단위/부호는 [common contract](interface_overview.md), actuator별 물리 반응 TBD는
 [safety](../requirements/safety_requirements.md)를 따른다. Feedback의 값은 command echo가
 아니라 task/delay/saturation/dynamics/fault를 거친 실제 **모델 state sample**이다.
+
+Drive는 [RG-01](regenerative_braking_design.md)을 반영해 Command 32 / Actual 64 bytes로
+정의했다. Signed torque와 capability의 scaling/invalid code/원천 freshness/배치는
+[Drive wire 초안](drive_frame_draft.md)을 따른다. Critical actual validity와 capability validity를
+분리하고 Steering/Brake wire는 유지했다. 회생 물리 모델·배분 구현은 후속 작업이다.
+
+## EV-01 추가 wire 작업
+
+[EV 설계](ev_power_bms_design.md)의 IF-CAN-BMS(power 요청 / battery·limit·power status),
+IF-CAN-DRIVE-CONSTRAINT(원천 limit / drive permission)을 추가할 계획이다.
+Frame 수/ID/DLC/schema/P05/Data ID, correlation, critical stream 목록, INIT/재동기화와
+rate/freshness는 **TBD-14 / 미설계·미구현**이다. 기존 six-frame PASS와 구분한다.
+관련 요구는 SYS-EV-001–005, SYS-COM-003/004 v0.3이며 TC-EV-001–005는 NOT RUN이다.
+
+기존 M1 Drive의 보조 feedback source-age <=30 ms를 BMS에 자동 복제하지 않는다.
+BMS 센서/limit 생성·발행 주기를 정한 뒤 cached input의 age와 monitor margin을 포함해
+검증한다. 유효 zero limit와 unknown을 구분하고 Zone 전달 시각으로 원천 age를 연장하지 않는다.
+Critical status loss 검출 상한은 <=100 ms지만 power sequence/physical response 기한은 별도다.
 
 ## M1 wire-definition work (TBD-01)
 
@@ -43,7 +65,7 @@ M0에서는 아래 필드를 할당하지 않는다. 각 6개 frame에 대해 M1
 | Frame | CAN ID, 11/29-bit format, FD/BRS flags, DLC code, payload byte length, direction |
 | Signal | start bit, bit length, signed/type, scaling/offset, unit, endian, min/max, invalid/reserved |
 | Sequence | width/modulus, increment/window, duplicate/out-of-order, wrap/restart/epoch 재동기화 |
-| Application integrity | Steering은 R25-11 P05 Protect/Check 적용; profile/config/Data ID/CRC/Counter와 application trace Sequence 구분; Brake/Drive는 후속 설계 |
+| Application integrity | 세 actuator에 R25-11 P05 Protect/Check 적용; stream별 Data ID/CRC/Counter와 trace Sequence 구분; Drive Actual extension도 CRC에 포함 |
 | Freshness | source time/age 표현 또는 동등한 replay 방지, local RX time, 원천 metadata side-channel 대응 |
 | Receiver | bounded queue/depth/overflow, latest-valid snapshot, timeout threshold/monitor budget, startup handshake |
 | Verification | physical↔raw rounding/saturation, endian/bit numbering, counter/CRC golden vectors, malformed frame tests |
@@ -63,6 +85,10 @@ link-layer CRC와 별개이며 application에서 검증한다. 단순 sequence i
 6. Timeout 후 old demand 유지 대신 local protection을 선택한다. 복구는 explicit INIT gate다.
 7. Zone/Host는 raw command를 actual feedback으로 합성하지 않는다.
 
+Drive의 canonical 보조 feedback은 freshness/range 실패 시 torque와 분리해 무효화한다.
+Critical torque 검증이 통과하면 해당 stream의 valid-RX는 갱신할 수 있지만 capability의
+원천 age는 갱신하지 않는다. Canonical wire 위반이나 torque 검증 실패는 전체 frame을 거부한다.
+
 Steering/Brake local timeout의 물리 출력/hold/ramp, Drive torque 감소 envelope는
 M2(TBD-03)에서 정하고 test를 실행한다. M1 frame/vector 시험으로 물리 응답까지
 VERIFIED 처리하지 않는다. M1 acceptance는 DBC golden vectors와 vCAN application-frame
@@ -70,3 +96,11 @@ VERIFIED 처리하지 않는다. M1 acceptance는 DBC golden vectors와 vCAN app
 
 관련 요구: SYS-COM-001/002/003/004, SYS-ARCH-002, SYS-CTRL-001/002, SYS-SAFE-003/004.
 [Timing](../requirements/timing_requirements.md), [verification](../test-plan/verification_strategy.md).
+
+## ZON-01 예정 bus 배치
+
+[Front/Rear 분할](../architecture/zonal_partition.md)에서 Steering/Brake는 Front CAN,
+Drive/BMS/Drive constraint는 Rear CAN에 연결한다. 기존 six-frame wire 의미는 유지한다.
+현재 단일 vCAN fixture PASS가 두 bus/Zone routing 증거는 아니다. Bus/interface 이름은
+runtime config로 분리하고 bus/producer identity를 trace에 포함한다. Peer와 원천의 age를
+재직렬화로 연장하지 않는다. BMS 추가 wire는 TBD-14, peer 계약은 TBD-15다.

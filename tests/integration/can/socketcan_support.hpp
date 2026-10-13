@@ -1,6 +1,8 @@
 #pragma once
 
 #include "steering_receiver.hpp"
+#include "brake_receiver.hpp"
+#include "drive_receiver.hpp"
 
 #include <charconv>
 #include <cstdint>
@@ -31,7 +33,7 @@ inline void await_start() {
     }
 }
 
-inline const char* decision_name(can::SteeringReceiveDecision decision) {
+inline const char* decision_name(can::ActuatorReceiveDecision decision, bool pressure = false, bool torque = false) {
     using can::SteeringReceiveDecision;
     switch (decision) {
         case SteeringReceiveDecision::Accepted: return "ACCEPTED";
@@ -49,7 +51,8 @@ inline const char* decision_name(can::SteeringReceiveDecision decision) {
         case SteeringReceiveDecision::SourceNotIncreasing: return "SOURCE_NOT_INCREASING";
         case SteeringReceiveDecision::Unavailable: return "UNAVAILABLE";
         case SteeringReceiveDecision::ModeRejected: return "MODE_REJECTED";
-        case SteeringReceiveDecision::AngleOutOfRange: return "ANGLE_OUT_OF_RANGE";
+        case SteeringReceiveDecision::ValueOutOfRange:
+            return torque ? "TORQUE_OUT_OF_RANGE" : pressure ? "PRESSURE_OUT_OF_RANGE" : "ANGLE_OUT_OF_RANGE";
     }
     return "UNKNOWN";
 }

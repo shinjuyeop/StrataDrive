@@ -25,9 +25,9 @@ Command와 Actual은 별도 case로 실행한다. Command=0.2 rad, Actual=0.15 r
 | [steering/steering_frame_codec.cpp](../../interfaces/steering/steering_frame_codec.cpp) | 조향 32-byte payload와 E2E 연결 |
 | [steering/steering_receiver.cpp](../../interfaces/steering/steering_receiver.cpp) | 수용 조건, last-valid 이력, source age/timeout |
 | [socketcan/socketcan_endpoint.cpp](../../interfaces/socketcan/socketcan_endpoint.cpp) | Linux socket 생성/종료, FD send/receive, 누적 RX drop 관측 |
-| [socketcan/steering_socketcan.cpp](../../interfaces/socketcan/steering_socketcan.cpp) | 64-byte transport와 32-byte 조향 표현 사이 변환 |
-| [socketcan_tx.cpp](../../tests/integration/steering/socketcan_tx.cpp) / [socketcan_rx.cpp](../../tests/integration/steering/socketcan_rx.cpp) | 독립 송신/수신 실행 프로그램 |
-| [check_socketcan.py](../../tests/integration/steering/check_socketcan.py) | 임시 vCAN, trusted start handshake, fault 주입/결과 검사/cleanup |
+| [socketcan/actuator_socketcan.cpp](../../interfaces/socketcan/actuator_socketcan.cpp) | 64-byte transport와 32-byte 조향 표현 사이 변환 |
+| [socketcan_tx.cpp](../../tests/integration/can/socketcan_tx.cpp) / [socketcan_rx.cpp](../../tests/integration/can/socketcan_rx.cpp) | 독립 송신/수신 실행 프로그램 |
+| [check_socketcan.py](../../tests/integration/can/check_socketcan.py) | 임시 vCAN, trusted start handshake, fault 주입/결과 검사/cleanup |
 
 SocketCAN의 payload length는 DLC가 아닌 byte 수다. ID flags와 FD/Classical 구분은 수신 입력의
 일부이므로 codec에 전달할 때 보존한다. 16/64-byte 입력을 32-byte로 정규화하지 않는다.
@@ -42,7 +42,7 @@ Linux에서 아래 명령으로 build한 뒤 integration fixture를 실행한다
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-unshare --user --map-root-user --net python3 tests/integration/steering/check_socketcan.py
+unshare --user --map-root-user --net python3 tests/integration/can/check_socketcan.py
 ```
 
 User/network namespace 안에 `sd_m1_app` vCAN을 만들고 CAN FD MTU=72로 설정한다.
@@ -57,8 +57,8 @@ CLOCK_MONOTONIC이다. 영속 Epoch 발급/재시작 coordinator와 Host–Targe
 처음에는 위 Python runner로 시작 순서를 맞추는 편이 쉽다. `IFACE`는 이미 만든 FD-capable interface다.
 
 ```text
-steering_socketcan_tx IFACE cmd|actual EPOCH normal|faults|silent|flood
-steering_socketcan_rx IFACE cmd|actual EPOCH DURATION_MS
+actuator_socketcan_tx IFACE cmd|actual EPOCH normal|faults|silent|flood
+actuator_socketcan_rx IFACE cmd|actual EPOCH DURATION_MS
 ```
 
 ## 확인하는 8개 case
@@ -106,22 +106,22 @@ M1 전체 acceptance와 학습자 review는 완료로 바꾸지 않는다.
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
-unshare --user --map-root-user --net python3 tests/integration/steering/check_socketcan.py --build-dir build/m1-angle-sanitized
-clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/socketcan/socketcan_endpoint.cpp interfaces/socketcan/steering_socketcan.cpp tests/integration/steering/socketcan_tx.cpp tests/integration/steering/socketcan_rx.cpp tests/unit/steering_socketcan_test.cpp
-cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering -I interfaces/socketcan interfaces/socketcan/socketcan_endpoint.cpp interfaces/socketcan/steering_socketcan.cpp tests/integration/steering/socketcan_tx.cpp tests/integration/steering/socketcan_rx.cpp
-build/m1-dbc-venv/bin/python tools/check_steering_dbc.py --demo build/m1-angle/steering_demo
+unshare --user --map-root-user --net python3 tests/integration/can/check_socketcan.py --build-dir build/m1-angle-sanitized
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/socketcan/socketcan_endpoint.cpp interfaces/socketcan/actuator_socketcan.cpp tests/integration/can/socketcan_tx.cpp tests/integration/can/socketcan_rx.cpp tests/unit/actuator_socketcan_test.cpp
+cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering -I interfaces/brake -I interfaces/socketcan interfaces/socketcan/socketcan_endpoint.cpp interfaces/socketcan/actuator_socketcan.cpp tests/integration/can/socketcan_tx.cpp tests/integration/can/socketcan_rx.cpp
+build/m1-dbc-venv/bin/python tools/check_actuator_dbc.py --demo build/m1-angle/actuator_demo
 ```
 
 ## 예제·시험 정리와 재검증
 
-2026-10-12 예제 4개를 `tools/steering_demo.cpp` 하나로 합쳤다.
+2026-10-12 예제 4개를 `tools/actuator_demo.cpp` 하나로 합쳤다.
 각 단계는 `angle`, `frame`, `e2e`, `receiver` 명령으로 실행한다.
-SocketCAN TX/RX/helper/runner는 `tests/integration/steering/`에 모았고 `BUILD_TESTING=ON`에서만
+SocketCAN TX/RX/helper/runner는 `tests/integration/can/`에 모았고 `BUILD_TESTING=ON`에서만
 TX/RX 실행 파일을 만든다. 단위 시험 파일은 기존 모듈 구분을 유지한다.
 새 기능은 기존 모듈의 case로 추가하는 [배치 기준](../quality_policy.md#코드예제시험-배치)을 정했다.
 
 정리 후에도 기존 예제의 입력/출력/정상·거부 동작 17개가 normal/ASan·UBSan에서 일치했다.
-Normal에서 잘못된 명령 형태 7개와 `--help`를 확인했다. DBC 검사기도 `steering_demo frame`으로
+Normal에서 잘못된 명령 형태 7개와 `--help`를 확인했다. DBC 검사기도 `actuator_demo frame`으로
 호출하도록 바꾸고 기존 4개 payload의 독립 교차 검증을 통과했다.
 Fresh `BUILD_TESTING=OFF` build에서 라이브러리와 예제만 생성되는 것도 확인했다.
 
@@ -139,11 +139,15 @@ Fresh `BUILD_TESTING=OFF` build에서 라이브러리와 예제만 생성되는 
 
 ## 이해 확인과 다음 단계
 
+2026-10-13 [Brake wire 확장](m1_brake_codec.md)으로 demo/DBC 검사기는 각각
+`actuator_demo`/`check_actuator_dbc.py`로 이름을 바꿨고, 통합 시험을 `tests/integration/can/`으로 옮겼다.
+위 명령/링크는 현재 경로다. 이 문서의 2026-10-12 결과는 당시 Steering 8개 case의 기록이다.
+
 `TX first`와 첫 `RX ACCEPTED`를 찾아 Angle이 복원되는 경로를 설명한다.
 `faults`에서 E2E 통과한 stale/cached Sequence도 거부되는지, timeout의 reference가 raw RX가 아닌
 last-valid RX인지 확인한다. `flood`에서 한 번에 8개를 처리하는 이유와 kernel queue 깊이가
 8개라는 의미가 아님을 설명한다. 이것을 직접 재현하고 diff를 검토하는 단계는 PENDING이다.
 
-M1의 남은 wire 작업은 Brake/Drive의 units/ranges/scaling을 검토하고 Command/Actual 네 frame으로
-확장하는 것이다. M2에서는 실제 조향 state/dynamics, 유효 command에 따른 Actual 생성,
+Brake의 두 frame은 wire 검사까지 추가했다. 다음은 Brake 수신 수용과 Drive 두 frame의
+units/ranges/scaling 및 송수신 확장이다. M2에서는 실제 조향 state/dynamics, 유효 command에 따른 Actual 생성,
 local protection output과 task/queue를 연결한다. 영속 session과 kernel overflow 주입도 후속 검증이다.

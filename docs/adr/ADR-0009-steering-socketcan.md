@@ -46,11 +46,14 @@ Kernel queue가 8개라는 주장은 하지 않는다. 로깅 비용도 있으�
 Timeout 이후에도 관측을 이어가 late frame이 자동 복구하지 않는지 확인한다.
 I/O/overflow 종료는 demo의 오류 처리이며 차량 FAIL_SAFE output은 후속 vECU에서 구현한다.
 
-정리 후 TX/RX/helper/Python runner는 `tests/integration/steering/`에 모았다.
+정리 후 TX/RX/helper/Python runner는 `tests/integration/can/`에 모았다.
 Participant는 `BUILD_TESTING=ON`일 때만 build한다. 메모리 실행 예제 4개는
-`tools/steering_demo.cpp`의 angle/frame/e2e/receiver 명령으로 합쳤다.
+`tools/actuator_demo.cpp`의 angle/frame/e2e/receiver 명령으로 합쳤다.
 수신 trace는 cycle마다 한 번 flush하고, runner는 participant가 실패해도 수집한 stdout/stderr를 남긴다.
 Frame 검사/Counter/수용/timeout 정책은 유지한다. 추가 기준은 [품질 정책](../quality_policy.md#코드예제시험-배치)을 따른다.
+
+위 경로는 2026-10-13 [Brake 확장](ADR-0010-brake-wire-codec.md) 후 이름이다.
+당시 `steering_demo`/Steering 전용 integration 배치를 actuator 공통 배치로 확장했다.
 
 ## 증거와 다음 범위
 

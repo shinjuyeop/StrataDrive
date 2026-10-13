@@ -61,3 +61,11 @@ Wire encoding/CRC는 TBD-01(M1), dynamics는 TBD-03(M2), schedule은 TBD-04(M3),
 isolation/middleware는 TBD-05(M4/M5), allocation은 TBD-06(M4)로 보류한다.
 
 미결정 항목의 owner/rationale은 [TBD register](../roadmap.md#open-m0-decisions)를 따른다.
+
+## 2026-10-13 후속 topology 확장
+
+[ADR-0015 / ZON-01](ADR-0015-front-rear-zones.md)로 최종 Reference를 Front/Rear 두 논리
+Zone으로 확장했다. Front의 차량 전체 관리·배분과 상위 feedback 집계는 단일 owner다.
+Rear는 Drive/BMS gateway·local validation을 맡는다. 위 M0 계층/command/actual 계약과
+역사적 검토 결과는 유지하며 단일 Zone은 component 검증 단계로 사용한다.
+Peer protocol과 두 Zone runtime/TC-ZON 검증은 PLANNED / NOT RUN이다.

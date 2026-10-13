@@ -1,6 +1,6 @@
 #pragma once
 
-#include "e2e_profile5.hpp"
+#include "actuator_payload_codec.hpp"
 
 #include <array>
 #include <cstddef>
@@ -22,8 +22,8 @@ enum class SteeringFrameKind : std::uint16_t {
     Command = kSteeringCommandId,
     Actual = kSteeringActualId,
 };
-enum class SteeringLocalState : std::uint8_t { Init, Normal, Degraded, FailSafe };
-enum class SteeringOrigin : std::uint8_t { NoAcceptedInput, NormalPath, LocalProtection };
+using SteeringLocalState = ActuatorLocalState;
+using SteeringOrigin = ActuatorOrigin;
 
 struct SteeringMessage {
     SteeringFrameKind kind{SteeringFrameKind::Command};

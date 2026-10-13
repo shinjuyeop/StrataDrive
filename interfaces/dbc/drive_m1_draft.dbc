@@ -1,0 +1,100 @@
+VERSION "StrataDrive M1 Drive P05 schema 2 draft 2026-10-13"
+
+NS_ :
+    CM_
+    BA_DEF_
+    BA_DEF_DEF_
+    BA_
+    VAL_
+
+BS_:
+
+BU_: Zone DriveVecu
+
+BO_ 386 DriveCommand: 32 Zone
+ SG_ Torque : 0|16@1- (0.1,0) [-3276.7|3276.7] "Nm" DriveVecu
+ SG_ SchemaVersion : 16|8@1+ (1,0) [2|2] "" DriveVecu
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" DriveVecu
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" DriveVecu
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" DriveVecu
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" DriveVecu
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" DriveVecu
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" DriveVecu
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" DriveVecu
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" DriveVecu
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" DriveVecu
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" DriveVecu
+
+BO_ 642 DriveActual: 64 DriveVecu
+ SG_ Torque : 0|16@1- (0.1,0) [-3276.7|3276.7] "Nm" Zone
+ SG_ SchemaVersion : 16|8@1+ (1,0) [2|2] "" Zone
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" Zone
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" Zone
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" Zone
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" Zone
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" Zone
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" Zone
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" Zone
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" Zone
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" Zone
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" Zone
+ SG_ WheelSpeed : 256|16@1+ (0.01,0) [0|655.34] "rad/s" Zone
+ SG_ WheelSpeedValid : 272|8@1+ (1,0) [0|1] "" Zone
+ SG_ RegenLimitReason : 280|8@1+ (1,0) [0|4] "" Zone
+ SG_ RegenTorqueLimit : 288|16@1+ (0.1,0) [0|3276.7] "Nm" Zone
+ SG_ RegenCapabilityValid : 304|8@1+ (1,0) [0|1] "" Zone
+ SG_ FeedbackReserved : 312|8@1+ (1,0) [0|0] "" Zone
+ SG_ WheelSpeedSourceTimeNs : 320|64@1+ (1,0) [0|18446744073709551615] "ns" Zone
+ SG_ CapabilitySourceTimeNs : 384|64@1+ (1,0) [0|18446744073709551615] "ns" Zone
+ SG_ CapabilityInputTimeNs : 448|64@1+ (1,0) [0|18446744073709551615] "ns" Zone
+
+CM_ "RG-01 wire draft. Model, blending and vehicle runtime are separate. See docs/icd/drive_frame_draft.md.";
+CM_ BO_ 386 "Standard 11-bit CAN FD, DLC 13 (32 bytes), 10 ms logical period. BRS=0, ESI=0.";
+CM_ BO_ 642 "DLC 15 (64 bytes). Independent actual torque plus wheel speed and regenerative capability. Not command echo.";
+CM_ SG_ 386 Torque "Aggregate driven-wheel demand: positive propulsion, negative forward regenerative braking, valid 0 no torque demand. Raw -32768 reserved invalid. Scaling/range are project wire choices, not OEM calibration.";
+CM_ SG_ 642 Torque "Independent actual driven-wheel motor torque after dynamics and local protection. Raw -32768 invalid. Torque validity is independent from auxiliary feedback usability.";
+CM_ SG_ 642 WheelSpeed "Nonnegative forward equivalent wheel speed. Raw 65535 invalid; invalid flag requires sentinel and zero source timestamp.";
+CM_ SG_ 642 RegenTorqueLimit "Nonnegative regenerative torque magnitude. Valid 0 means unavailable regeneration, not invalid information. Raw 65535 invalid; raw 32768..65534 forbidden.";
+CM_ SG_ 642 RegenCapabilityValid "Separate from torque validity. Valid capability requires usable wheel speed and source/input freshness. Invalid flag requires sentinel, InputsInvalid reason and zero capability timestamps.";
+CM_ SG_ 642 RegenLimitReason "Diagnostic reason, not permission to use a stale limit. Disabled requires valid zero limit; invalid capability uses InputsInvalid.";
+CM_ SG_ 386 SourceTimeNs "Zone allocation generation time in common Epoch/CLOCK_MONOTONIC domain.";
+CM_ SG_ 642 SourceTimeNs "Original actual torque model sample time. Cached data must retain original sequence and timestamp.";
+CM_ SG_ 642 WheelSpeedSourceTimeNs "Original wheel speed source time. Never replace with torque frame transmission time.";
+CM_ SG_ 642 CapabilitySourceTimeNs "Capability calculation time, retained on cache reuse.";
+CM_ SG_ 642 CapabilityInputTimeNs "Oldest source time of every dependency used by capability calculation, including wheel speed and charge acceptance. New calculation time cannot rejuvenate stale input.";
+CM_ SG_ 386 E2ECrc "AUTOSAR P05, DataID 0x1201 low/high. Cover bytes 0..28 and 31. CRC LE at 29..30, Counter at 31.";
+CM_ SG_ 642 E2ECrc "P05 DataID 0x1202. Cover bytes 0..28 AND 31..63, then DataID low/high. Entire capability extension is protected.";
+CM_ SG_ 386 E2ECounter "Independent command Protect state; wraps 255 to 0. Not application Sequence.";
+CM_ SG_ 642 E2ECounter "Independent actual Protect state, including capability extension.";
+CM_ SG_ 386 CausalSequence "Upstream vehicle command sequence in common Epoch.";
+CM_ SG_ 642 CausalSequence "Last accepted DriveCommand sequence; ignored for NoAcceptedInput.";
+
+BA_DEF_ BO_ "VFrameFormat" ENUM "StandardCAN","ExtendedCAN","reserved","J1939PG","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","StandardCAN_FD","ExtendedCAN_FD";
+BA_DEF_DEF_ "VFrameFormat" "StandardCAN";
+BA_DEF_ BO_ "GenMsgCycleTime" INT 0 65535;
+BA_DEF_DEF_ "GenMsgCycleTime" 0;
+BA_DEF_ BO_ "E2EProfile" INT 0 255;
+BA_DEF_ BO_ "E2EDataID" INT 0 65535;
+BA_DEF_ BO_ "E2EOffsetBits" INT 0 32768;
+BA_DEF_ BO_ "E2EMaxDeltaCounter" INT 0 255;
+BA_ "VFrameFormat" BO_ 386 14;
+BA_ "GenMsgCycleTime" BO_ 386 10;
+BA_ "E2EProfile" BO_ 386 5;
+BA_ "E2EDataID" BO_ 386 4609;
+BA_ "E2EOffsetBits" BO_ 386 232;
+BA_ "E2EMaxDeltaCounter" BO_ 386 10;
+VAL_ 386 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 386 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 386 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";
+BA_ "VFrameFormat" BO_ 642 14;
+BA_ "GenMsgCycleTime" BO_ 642 10;
+BA_ "E2EProfile" BO_ 642 5;
+BA_ "E2EDataID" BO_ 642 4610;
+BA_ "E2EOffsetBits" BO_ 642 232;
+BA_ "E2EMaxDeltaCounter" BO_ 642 10;
+VAL_ 642 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 642 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 642 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";
+VAL_ 642 WheelSpeedValid 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 642 RegenCapabilityValid 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 642 RegenLimitReason 0 "Nominal" 1 "MotorOrSpeedLimited" 2 "ChargeAcceptanceLimited" 3 "Disabled" 4 "InputsInvalid";

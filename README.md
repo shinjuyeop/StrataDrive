@@ -4,30 +4,25 @@
 
 ## Current Status
 
-**M0 — Architecture / Requirement / ICD Baseline: BASELINED**
+**M0 — BASELINED / M1 — IN PROGRESS**. [M0 종료 검토](docs/m0_baseline.md)의 15개 문서 항목을
+통과했고, Steering/Brake/Drive의 **Command·Actual 6개 CAN FD frame**을 Host에서 구현했다.
+DBC, AUTOSAR R25-11 E2E Profile 5 Protect/Check, application receiver와 SocketCAN을 연결했다.
+Normal·ASan/UBSan 각각 **unit 98개 / vCAN 27 case PASS**이며 DBC·독립 CRC 교차 검증도 통과했다.
+실행 흐름과 상세 이력은 [학습 안내](docs/learning/README.md)에 있다.
 
-**StrataDrive Reference Baseline v0.1**의 system contract와 verification baseline을 정의했다.
-[종료 검토](docs/m0_baseline.md)의 15개 항목을 모두 통과했다. ODD, 정상 3개/
-fault 4개 scenario, command/actual 책임, logical rates, timeout/state, traceability가 문서 범위다.
-숫자는 engineering starting point이며 양산차 기준이나 실측 결과가 아니다.
+M1의 wire baseline 채택과 학습자 review/재현, 영속 Epoch coordinator, application queue/
+overflow 주입은 남아 있다. 이 결과는 actuator dynamics나 차량 closed-loop 검증이 아니다.
+vECU 응답 모델, Zone/DDS, CARLA, control/AI/deployment runtime과 기존 차량 TC는 **PLANNED / NOT RUN**이다.
 
-**M1 — DBC + vCAN: IN PROGRESS**. [첫 SocketCAN 실행](docs/learning/m1_vcan_start.md)에서
-Host의 임시 vCAN을 통해 CAN FD fixture 송수신을 확인했다. 학습자 review/재현은 PENDING이다.
-이어서 [첫 C++ Steering angle field codec](docs/learning/m1_steering_codec.md)의
-build·단위 시험을 수행했다. 표현 형식은 검토 초안이며 실제 조향 한계는 미확정이다.
-2026-10-12 [Steering Command/Actual의 frame·DBC 설계 초안](docs/icd/steering_frame_draft.md)을
-작성하고 [Host DBC parser·32-byte frame codec](docs/learning/m1_steering_frame_codec.md)을
-구현·시험했다. 이어서 [AUTOSAR R25-11 E2E Profile 5](docs/learning/m1_autosar_e2e_profile5.md)의
-CRC/Counter Protect·Check를 적용하고 Host 25개 unit test와 DBC 교차 검증을 통과했다.
-이어서 [Steering 수신부](docs/learning/m1_steering_receiver.md)의 수용/trace Sequence/시간/Epoch/
-mode/range/timeout을 구현하고 normal·ASan/UBSan 각각 44개 unit test를 통과했다.
-이어서 [SocketCAN/vCAN 연결](docs/learning/m1_steering_socketcan.md)을 구현했다.
-Normal·ASan/UBSan 각각 unit 48개와 독립 TX/RX process의 integration 8개 case를 통과했다.
-정리 후 Normal local fixture의 timeout 검출은 마지막 valid RX/monitoring enable 이후 80.173–80.947 ms였다.
-실행 예제는 `steering_demo`의 네 명령으로 통합했고 통합 시험은 `tests/integration/steering/`으로 분류했다.
-학습자 review PENDING이며 영속 Epoch coordinator, application queue/overflow 주입과 차량 통합은 남아 있다.
-Six-frame 전체 DBC/codec, vECU/CARLA/ROS 2·DDS/control/AI/deployment runtime은 **PLANNED**다.
-기존 차량/성능 TC는 모두 **NOT RUN**, M1 acceptance도 미완료다.
+[RG-01](docs/icd/regenerative_braking_design.md)은 회생·마찰 배분을,
+[EV-01](docs/icd/ev_power_bms_design.md)은 Battery/BMS·전원 lifecycle·차량 관리를 포함한다.
+[ZON-01](docs/adr/ADR-0015-front-rear-zones.md)로 최종 Reference의 **Front/Rear 두 논리 Zone**을
+채택했다. Front는 차량 전체 관리·배분과 Steering/Brake, Rear는 Drive/BMS 연결을 맡는다.
+피드백은 담당 Zone을 거쳐 Front에서 집계한다. 기존 Central–Zone–Leaf 계층을 유지하며,
+단일 Zone 검증 후 M4/M5에 분리한다. EV wire와 두 Zone runtime은 아직 미구현이다.
+
+**다음 작은 작업은 BMS/power/Drive constraint의 의미·wire·rate/freshness 결정**이다.
+추가 통신 검증과 M1 남은 수용 항목을 마친 뒤 M2 actuator·Battery/BMS/power 모델로 진행한다.
 
 ## Project Overview
 
@@ -74,53 +69,51 @@ flowchart TB
     CARLA["CARLA<br/>Vehicle plant · Sensors"]
     ADAPTER -->|차량 반영| CARLA
   end
-  subgraph TARGET["Jetson · AGX Thor 또는 Orin NX 한 대"]
-    direction LR
-    CENTRAL["Central Vehicle Compute<br/>State · Perception<br/>World model · Planner<br/>Safety Supervisor<br/>Classical Controller"]
-    ZONE["Virtual Zone Controller<br/>Command allocation<br/>Actual 수집 / Target bridge"]
-    ECU["Leaf vECU<br/>Steering · Brake · Drive<br/>Task · Dynamics · Fault"]
-    CENTRAL <-->|DDS| ZONE
-    ZONE <-->|CAN FD| ECU
+  subgraph TARGET["Jetson · Thor 또는 Orin 한 대"]
+    CENTRAL["Central Vehicle Compute<br/>State · Planner · Safety · Control"]
+    FRONT["Front Zone<br/>Vehicle management · Allocation<br/>Gateway · Feedback 집계"]
+    REAR["Rear Zone<br/>Local validation · Gateway"]
+    FRONT_LEAF["Front Leaf vECU<br/>Steering · Brake"]
+    REAR_LEAF["Rear Leaf vECU<br/>Drive · BMS"]
+    CENTRAL <-->|DDS| FRONT
+    FRONT <-->|Peer DDS| REAR
+    FRONT <-->|Front CAN FD| FRONT_LEAF
+    REAR <-->|Rear CAN FD| REAR_LEAF
   end
-  HOST <-->|Physical Ethernet| TARGET
+  CARLA -->|Sensor / Ethernet| CENTRAL
+  FRONT -->|Actual / Ethernet| ADAPTER
 ```
 
-Host는 Camera/IMU/GNSS와 vehicle state를 Central로 보내고, Zone/Target bridge의
-actual feedback을 Plant Adapter에서 받아 CARLA에 반영한다. Target 내부의 DDS는
-논리 Ethernet, CAN FD application 경로는 SocketCAN/vCAN을 사용한다.
-주행 흐름을 지원하는 시험·상태·진단 경로는 다음과 같다.
+[Zone 분할 설계](docs/architecture/zonal_partition.md)는 후륜 구동 Reference packaging을
+가정한다. Front의 Brake 값은 차량 전체 마찰제동 aggregate이며 전륜만 뜻하지 않는다.
+Front의 차량 전체 배분기는 하나다. Rear는 이미 배분된 Drive demand를 검증·전달하며,
+총 제동 요구를 다시 배분하지 않는다. BMS 상태·한계도 Rear→Front 경로로 보고한다.
 
 | 경로 | 연결 / 역할 |
 | --- | --- |
-| 시나리오·고장 주입 | Host의 ScenarioRunner / OpenSCENARIO / Fault-Test Orchestrator → CARLA 시나리오 제어 및 Zone 고장 주입; Host orchestrator가 tick 소유 |
-| 상태 피드백 | Zone → Logical Ethernet / DDS → Central Vehicle Compute |
-| 기록·평가 | Zone의 health / fault telemetry와 Plant Adapter 결과 → Host logging 및 PASS/FAIL 평가 |
+| 시나리오·고장 주입 | Host orchestrator → 시나리오/Zone/Leaf fault; Host가 tick 소유 |
+| 상태 피드백 | 각 Leaf → 담당 Zone → Front 집계 → Central / Host |
+| 기록·평가 | 원천 actual/health/fault와 Plant Adapter 결과 → Host logging / PASS·FAIL |
 
-Thor와 Orin은 **서로 독립적인 대체 Target**이며, 두 보드를 결합해 하나의 차량을
-구성하지 않는다. Central Vehicle Compute와 Zone Controller는 하나의 Linux Target에서
-Docker network 또는 network namespace + veth pair로 논리적으로 별도인 Ethernet node를
-구성할 계획이다. Host–Jetson은 실제 Ethernet, Zone Controller–Leaf ECU는 SocketCAN/vCAN을
-사용한다. vCAN은 CAN FD의 전기적 동작, 물리적 arbitration, bus timing을 재현하지 않는다.
+Thor와 Orin은 **서로 독립적인 대체 Target**이다. Central/Front/Rear를 같은 Linux Target의
+논리 Ethernet node로 분리할 계획이며 별도 보드는 필요하지 않다. Host–Target은 실제 Ethernet,
+Target 내부는 DDS와 Zone별 SocketCAN/vCAN을 사용한다. 이는 물리적 fault isolation이나
+CAN FD의 전기적 동작·arbitration·bus timing을 검증하는 구성은 아니다.
 
 **Vehicle-level command != actuator command != actual actuator feedback**이다.
-Central Classical Controller는 target speed와 acceleration/curvature/braking demand를 생성하고, Zone은
-Steering/Drive/Brake command로 allocation하며, vECU는 task/delay/saturation/dynamics/fault를
-거친 actual actuator feedback을 생성한다. Controller/Zone의 request는 actual state가 아니다.
+Central은 차량 수준 요구를 생성하고 Front가 Steering/Drive/Brake demand를 배분한다.
+vECU는 task/delay/saturation/dynamics/fault를 거친 actual을 생성한다. Bridge는 원천
+identity/validity/time과 상위 요구의 유효 기간을 보존하며 중계로 freshness를 연장하지 않는다.
 
-필수 closed-loop는 CARLA Sensor / Vehicle State → Central Vehicle Compute → Planner →
-Safety Supervisor → Classical Controller → Vehicle-level Command → logical Ethernet / DDS →
-Zone Controller → CAN application contract → Steering/Brake/Drive vECU → Actual Actuator
-Feedback → Zone/Target feedback bridge → Physical Ethernet → Host Plant Adapter → CARLA
-Vehicle Motion → next sensor frame이다.
+필수 loop는 CARLA Sensor → Central → Front allocation → 담당 Zone/CAN → Leaf response
+→ 담당 Zone → Front feedback bridge → Host Plant Adapter → CARLA motion이다.
+**Plant Adapter만 ego actuation single writer**이며 Host orchestrator가 tick을 소유한다.
+Actual이 invalid/stale/missing이면 다음 apply/tick을 보류한다. 이는 simulation containment이며
+물리적 안전 정지의 검증은 아니다. Raw command fallback이나 direct CARLA actuation은 금지한다.
 
-Planner/Controller/Zone의 CARLA direct actuation, vECU command의 actual 간주,
-actual loss 시 raw command fallback은 금지한다. **Plant Adapter만 ego actuation single writer**다.
-Host orchestrator는 tick을 소유한다. Actual이 invalid/stale/missing이면 다음 apply/tick을
-보류한다. 이는 simulation containment이며 물리적 안전 정지의 검증이 아니다.
-
-상세 내용은 [system architecture](docs/architecture/system_architecture.md),
-[software 계약](docs/architecture/software_architecture.md),
-[배포 architecture](docs/architecture/deployment_architecture.md)를 참조한다.
+상세 계약은 [system architecture](docs/architecture/system_architecture.md),
+[software 책임](docs/architecture/software_architecture.md),
+[배포 설계](docs/architecture/deployment_architecture.md)에 있다.
 
 ## Reference Baseline v0.1
 
@@ -179,27 +172,35 @@ AUTOSAR stack/toolchain은 미선정이며 ASIL과 safety concept은 미확정�
 | Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD-09 (M5) |
 | Physical AI | Pretrained perception, TensorRT export/inference; 이후 GRU 또는 작은 Temporal Transformer |
 | Quality | 첫 field codec에 GoogleTest 1.11.0, clang-tidy, cppcheck, ASan/UBSan 실행; 차량 regression은 Planned |
-| E2E protection | Steering의 AUTOSAR R25-11 Profile 5 Protect/Check와 로컬 receiver/SocketCAN을 C++17로 구현; E2E State Machine·차량 통합은 후속 |
+| E2E protection | Steering/Brake/Drive의 R25-11 Profile 5 Protect/Check와 receiver/SocketCAN 구현; E2E State Machine·차량 통합은 후속 |
 | AUTOSAR pilot | Steering vECU의 Classic OS/RTE/BSW toolchain 타당성 검토; release/구현체/Target 지원 미선정, NOT RUN |
 
-Steering 예제와 시험을 build하고 실행한다. 현재 Host에 설치된 도구를 사용하며 자동 설치하지 않는다.
+Steering/Brake/Drive 예제와 시험을 build하고 실행한다. 현재 Host에 설치된 도구를 사용하며 자동 설치하지 않는다.
 
 ```sh
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_demo angle 0.1
-./build/m1-angle/steering_demo frame command 0.2
-./build/m1-angle/steering_demo e2e
-./build/m1-angle/steering_demo receiver
+./build/m1-angle/actuator_demo angle 0.1
+./build/m1-angle/actuator_demo frame command 0.2
+./build/m1-angle/actuator_demo e2e
+./build/m1-angle/actuator_demo receiver
+./build/m1-angle/actuator_demo brake-pressure 2000500
+./build/m1-angle/actuator_demo brake-frame command 2000000
+./build/m1-angle/actuator_demo brake-frame actual 1500000
+./build/m1-angle/actuator_demo brake-receiver
+./build/m1-angle/actuator_demo drive-frame command -200
+./build/m1-angle/actuator_demo drive-frame actual -150
+./build/m1-angle/actuator_demo drive-feedback
 ```
 
-이 명령은 조향각/Steering frame의 byte 표현과 수신부의 제어 가능한 시계 실험을 실행한다.
+이 명령은 angle/pressure/torque/frame 표현과 수신부·회생 피드백의 제어 가능한 시계 실험을 실행한다.
 차량 제어 loop나 Target 배포는 아직 구현하지 않았다.
 검사 범위와 예상 결과는 [field 실행 안내](docs/learning/m1_steering_codec.md)와
 [frame codec/DBC 교차 검증](docs/learning/m1_steering_frame_codec.md),
-[수신부 실행 안내](docs/learning/m1_steering_receiver.md)에 있다.
-실행 명령은 `./build/m1-angle/steering_demo --help`로 확인한다.
+[수신부 실행 안내](docs/learning/m1_steering_receiver.md)와
+[Brake 실행 안내](docs/learning/m1_brake_codec.md#application-수신부-추가), [Drive 실행 안내](docs/learning/m1_drive_codec.md)에 있다.
+실행 명령은 `./build/m1-angle/actuator_demo --help`로 확인한다.
 `-DBUILD_TESTING=OFF`로 configure하면 라이브러리와 예제만 build하며
 단위 시험과 통합 시험의 TX/RX 실행 파일은 제외한다.
 
@@ -211,12 +212,12 @@ unshare --user --map-root-user --net python3 tools/vcan_smoke.py
 
 예상 출력과 확인 범위는 [M1 실행 안내](docs/learning/m1_vcan_start.md)에 기록한다.
 
-Steering Command/Actual을 독립 송신·수신 process로 연결하고 오류/중단/flood를 검사한다.
+Steering/Brake/Drive Command/Actual을 독립 송신·수신 process로 연결하고 오류/중단/flood를 검사한다.
 위 C++ build 후 다음 명령을 실행한다. 자세한 흐름과 결과는
 [Steering SocketCAN 안내](docs/learning/m1_steering_socketcan.md)에 있다.
 
 ```sh
-unshare --user --map-root-user --net python3 tests/integration/steering/check_socketcan.py
+unshare --user --map-root-user --net python3 tests/integration/can/check_socketcan.py
 ```
 
 ## Development Principles
@@ -239,9 +240,9 @@ unshare --user --map-root-user --net python3 tests/integration/steering/check_so
 | --- | --- |
 | M0 | Architecture / Requirement / ICD Baseline — BASELINED |
 | M1 | DBC + vCAN — IN PROGRESS |
-| M2 | Steering / Brake / Drive vECU |
+| M2 | Actuator + Battery/BMS/Power component models |
 | M3 | Real-Time Timing & Scheduling Measurement |
-| M4 | Virtual Zone Controller |
+| M4 | Front coordinator + Front/Rear Zone 분리 |
 | M5 | Central Compute + DDS |
 | M6 | Simple Vehicle Plant |
 | M7 | CARLA Integration |
@@ -264,7 +265,7 @@ StrataDrive/
 ├── docs/
 │   ├── requirements/      # System, timing, safety baseline
 │   ├── architecture/      # System, software, 배포, fault 계약
-│   ├── icd/               # Interface 의미, DDS/CAN 계약; Steering wire 초안
+│   ├── icd/               # DDS/CAN 계약; actuator wire와 EV/BMS 설계
 │   ├── adr/               # 설계 결정 기록
 │   ├── test-plan/         # 검증 전략, scenario baseline, 추적성
 │   ├── learning/          # 학습자 중심 절차
@@ -274,10 +275,12 @@ StrataDrive/
 │   ├── roadmap.md
 │   └── quality_policy.md
 ├── interfaces/
-│   ├── common/            # 조향과 독립인 E2E Profile 5
+│   ├── common/            # E2E Profile 5, 공통 payload 직렬화·수신 상태
 │   ├── steering/          # 조향 angle/frame codec, application receiver
-│   ├── socketcan/         # Linux CAN socket, steering 변환 adapter
-│   ├── dbc/               # Steering Command/Actual 초안
+│   ├── brake/             # 압력/frame codec, application receiver; 모델은 후속 구현
+│   ├── drive/             # 구동·회생 torque/frame codec, feedback receiver
+│   ├── socketcan/         # Linux CAN socket, actuator 변환 adapter
+│   ├── dbc/               # Steering/Brake/Drive six-frame 초안
 │   └── dds/               # 배치용 placeholder
 ├── central/               # State, perception, world model, planning, control, safety, health, diagnostics
 ├── zone/                  # Gateway, validation, allocation, local safety
@@ -287,12 +290,12 @@ StrataDrive/
 ├── profiles/              # Reference / Thor Premium / Orin Mainstream 설계 data
 ├── tests/
 │   ├── unit/              # 모듈별 C++ test; 기능 확장은 기존 파일의 case로 추가
-│   ├── integration/steering/ # SocketCAN TX/RX fixture와 Python 검사기
+│   ├── integration/can/  # SocketCAN TX/RX fixture와 Python 검사기
 │   └── sil/, fault/, performance/ # 후속 시험 배치
 ├── benchmark/             # Timing, compute, 검토된 결과
 ├── deploy/                # Docker, systemd, scripts — 배치용 placeholder
 ├── models/README.md       # 대용량 artifact 정책과 작은 sample 예외
-└── tools/                 # steering_demo 하나, DBC 검사, vCAN 환경 확인
+└── tools/                 # actuator_demo 하나, DBC 검사, vCAN 환경 확인
 ```
 
 [시스템 요구사항](docs/requirements/system_requirements.md)과

@@ -135,11 +135,12 @@ replay 결과는 별도 표시한다. Fault duration/seed/repetition은 실행 p
 ### F03 — Drive command loss
 
 - 목적 / input: 정상 positive drive torque demand/actual 이후 Zone→Drive command만 중단.
+  RG-01/v0.2에서는 negative regen demand/actual 이후의 variant도 실행한다.
   Drive task와 feedback TX는 계속 실행한다.
 - Expected: Drive vECU가 <=100 ms 안에 독립 검출, old demand 무효화, FAIL_SAFE와
-  zero-propulsive-torque target 선택. Actual torque는 dynamics를 거쳐 feedback으로 보고한다.
+  zero motor torque target 선택. Actual torque는 dynamics를 거쳐 feedback으로 보고한다.
 - 측정 / PASS 후보: detection/target 선택 시점, local state, torque actual trace.
-  Timeout 이후 uncontrolled torque 유지 금지. Actual torque 감소 envelope/deadline은
+  Timeout 이후 이전 구동/회생 demand 유지 금지. 양·음수 actual torque의 0 접근 envelope/deadline은
   TBD-03으로 M2 test 전에 확정하며, 없으면 물리 반응 판정은 BLOCKED다.
 - 요구: SYS-COM-003, SYS-SAFE-003/004.
 - Test / milestone: **TC-COM-003**; M1 loss fixture, M2 local behavior,
@@ -161,3 +162,31 @@ replay 결과는 별도 표시한다. Fault duration/seed/repetition은 실행 p
 판정 기준/미결정 물리 세부값은 [safety](../requirements/safety_requirements.md),
 추적은 [traceability](traceability.md), remaining decisions는
 [roadmap](../roadmap.md#open-m0-decisions)에 연결한다.
+
+## EV-01 후속 scenario families
+
+아래는 [EV 설계](../icd/ev_power_bms_design.md)의 추가 계획이다. M0 S01–S03/F01–F04
+정의와 검토 결과는 역사적으로 유지하며 EV runtime/Result는 NOT RUN이다.
+수치/입력 profile/clock/반복 횟수와 fault matrix는 해당 test 전에 고정한다.
+
+| ID | 설정 / variant | 관측 / test |
+| --- | --- | --- |
+| EV-S01 | OFF→CHECKS→PRECHARGE→HV_READY→주행→정지→SHUTDOWN→OFF; 초기 actual/health 누락 변형 | 전원 요청과 actual 분리, 정상 torque gate, non-driving startup/종료 응답; TC-EV-001 |
+| EV-S02 | 기존 ODD에서 propulsion/regen/friction, SOC·온도·속도/charge·discharge cap 변화; full/empty 및 known power fixture | local cap와 배분/deficit/actual 응답, battery balance/SOC와 RG energy; TC-EV-003/005, TC-REG-001–005 |
+| EV-F01 | BMS/power/Drive constraint의 critical stream 중단·invalid·cached replay·wrong epoch; 다른 stream은 정상, Central 단절 추가 | source/dependency age 보존, valid 0≠unknown, <=100 ms critical loss 검출, 로컬 반응/명시적 INIT; TC-EV-002/004 |
+| EV-F02 | precharge timeout, contactor mismatch, modeled sensor invalid, LV/interlock fault; clear/new frame/reinitialize | 고장별 power/torque 반응과 실제 상태, READY/permission gate, 자동 복귀 없음; TC-EV-001/004 |
+
+모든 sensor/power 고장을 실제 하드웨어 수준으로 검증하는 범위가 아니다. Model/fixture의
+가정을 기록하고 가능한 actual trace와 detection/Host containment를 구분한다.
+## ZON-01 후속 scenario families
+
+[Front/Rear 분할](../architecture/zonal_partition.md)의 계획이며 기존 정상 ODD를 유지한다.
+단일 Zone bring-up 또는 M1 vCAN PASS로 아래 Result를 대체하지 않는다. 모두 **NOT RUN**이다.
+Peer schema/QoS/clock/skew/INIT/rejoin과 physical response budget은 TBD-15/03/12/14에서
+실행 전에 고정한다. 두 Zone은 같은 Target에 있으므로 logical process/link fault를 주입한다.
+
+| ID | 설정 / variant | 관측 / test |
+| --- | --- | --- |
+| ZON-S01 | Front/Rear 담당 Leaf 정상, propulsion/regen/friction/power request와 원천 status 전달 | 한 번의 차량 전체 배분, Zone별 routing/원천 metadata, plant single writer; TC-ZON-001 |
+| ZON-F01 | Front/Rear 각각 정지, Front→Rear command / Rear→Front status 독립 단절, Leaf 정지+peer heartbeat, delay/cached replay | local timeout/보호/FAIL_SAFE, source/dependency age 보존, actual loss Host gate; TC-ZON-002 |
+| ZON-F02 | startup source 누락, peer/Leaf 재시작, wrong epoch/늦은 parent request, fault clear와 explicit reinitialize | trusted session, original expiry, power/health INIT gate, 자동 정상 복귀 없음; TC-ZON-003 |

@@ -138,8 +138,12 @@ valid RX가 같은 시각이라는 가정도 검토가 필요하다. FTTI는 현
 
 분석에서는 fault onset → detection → protection output → actual actuator response →
 vehicle behavior를 구분한다. 각 구간의 clock, 관측 방법과 model 한계를 기록하고,
-가용 actuator에 맞는 대응이 가능한지 검토한다. `FAIL_SAFE`라는 이름이나 zero-propulsive
+가용 actuator에 맞는 대응이 가능한지 검토한다. `FAIL_SAFE`라는 이름이나 zero motor torque
 target 선택만으로 안전 정지 또는 위험 회피가 증명되지 않는다.
+
+2026-10-13 [RG-01 회생제동 확장](../icd/regenerative_braking_design.md)은 후속 검토 대상이다.
+회생 한계 변화, 마찰제동 전환과 감속 부족/과다를 추가로 분석할 계획이다.
+회생 범위의 결정이나 신규 SYS 요구가 이 학습 초안의 HARA에서 도출됐다는 뜻은 아니다.
 
 Actual feedback 상실 시 CARLA의 다음 tick을 보류하는 기존 계약은 유지한다.
 이는 시험을 멈추는 containment 증거다. 그 이후 차량의 물리적 거동을 검증하려면

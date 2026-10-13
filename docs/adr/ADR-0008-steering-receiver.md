@@ -66,3 +66,7 @@ Zone/Plant Adapter/vECU 통합에서 별도로 구현한다.
 
 후속 [ADR-0009](ADR-0009-steering-socketcan.md)에서 실제 CLOCK_MONOTONIC/SocketCAN adapter와
 독립 process 시험을 연결했다. 영속 Epoch coordinator와 차량 task/physical response는 남아 있다.
+
+2026-10-13 [ADR-0012](ADR-0012-brake-receiver.md)에서 이 clock/Epoch/Sequence/timeout 상태를
+공통 `ActuatorReceiverState`로 추출해 Brake와 공유했다. 기존 Steering API와 정책은 유지했고
+기존 시험을 포함한 normal/sanitizer unit·vCAN을 다시 실행했다.

@@ -22,6 +22,12 @@ snapshot은 새 actual sample이 아니다. Safety Supervisor는 Planner의 각 
 Controller/Zone 출력 guard는 각 실행에서 확인한다. 별도 safety thread rate는 TBD-04다.
 Diagnostics aggregation은 control/timeout 경로를 blocking하지 않는다.
 
+[EV-01](../icd/ev_power_bms_design.md)과 SYS-PERF-002 v0.3은 BMS/power task·status·constraint
+발행 주기를 별도로 결정한다(TBD-14/M1/M2/M3). 위 100 Hz는 Steering/Brake/Drive에 대한
+기존 logical rate다. BMS 센서/limit의 dependency age, Zone forwarding, Drive local monitor
+margin을 함께 정하며 기존 M1 30 ms auxiliary-input 정책에 자동 대입하지 않는다.
+EV critical stream도 <=100 ms loss 검출 상한을 적용하되 power/토크 물리 반응 budget은 별도다.
+
 50 ms sensor tick 사이 Controller 20 ms, Zone/vECU 10 ms task가 최신 유효 snapshot을
 사용한다. Functional simulation 모드는 10 ms logical scheduling quantum을 기준으로
 sensor/plant를 5 quantum마다 갱신하는 계약이다. 새 sensor를 임의로 보간/생성하지 않는다.

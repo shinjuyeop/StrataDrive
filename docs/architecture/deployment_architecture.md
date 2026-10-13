@@ -17,13 +17,23 @@ architecture/source revision을 목표로 하되 서로 다른 보드에 동일 
 
 ## Target logical nodes
 
-Central Vehicle Compute → Virtual Ethernet / DDS → Virtual Zone Controller
-→ SocketCAN / vCAN → Steering / Brake / Drive vECU.
+Central Vehicle Compute → DDS → Front Zone ↔ DDS ↔ Rear Zone.
+Front CAN/vCAN → Steering / aggregate Brake; Rear CAN/vCAN → Drive / BMS.
+Front가 vehicle management/allocation과 상위 feedback 집계를 단독 소유한다.
 
-Central Vehicle Compute/Zone Controller를 Docker network 또는 Linux network namespace + veth pair로 별도
+[EV-01](../icd/ev_power_bms_design.md)은 같은 Target에 BMS 논리 Leaf를 추가한다.
+차량 관리(VCU 역할)/allocation/gateway를 기능적으로 구분하며 독립 process/task와 isolation은
+TBD-04/05다. Battery/power model의 실제 배치/단일 energy owner는 TBD-07에 정한다.
+[ZON-01](../adr/ADR-0015-front-rear-zones.md)로 두 Zone과 후륜 구동 packaging을 채택했다.
+단일 Zone component 검증 후 M4/M5에 논리 Front/Rear를 분리한다. Peer protocol과 독립
+통신 loss/rejoin 설정은 TBD-15이며 runtime/TC-ZON 시험은 PLANNED / NOT RUN이다.
+
+Central Vehicle Compute/Front/Rear를 Docker network 또는 Linux network namespace + veth pair로 별도
 Ethernet node처럼 구성할 계획이다. DDS discovery/QoS, multicast/routing, namespace
 안의 CAN 접근성, feedback bridge 배치, least-privilege device/capability와 observability는
 선택 후 검증한다. 단순 localhost function call로 Ethernet 경계를 대체하지 않는다.
+Front/Rear에 각각 별도 CAN/vCAN 경로를 두며 process/link의 독립 중단을 주입한다.
+동일 Target 자원 공유는 유지하므로 물리 전원/CPU 고장 독립성이나 failover를 주장하지 않는다.
 
 vCAN은 CAN frame 기반 application contract 시험용이다. CAN FD의 전기적 동작,
 실제 arbitration 지연, bus load/bitrate, transceiver/error confinement를 물리적으로

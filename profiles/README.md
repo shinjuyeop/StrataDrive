@@ -12,6 +12,21 @@ workload와 보드 조건의 TBD를 고정하고 Thor와 Orin에서
 별도 실험으로 비교한다. 후보 목록은 적용된 설정이 아니다. Model/hardware에
 의존하는 engine은 별도 artifact로 관리하고 공통 model/checksum과 수치 정확도를 추적한다.
 
+2026-10-13 [RG-01 회생제동 확장](../docs/icd/regenerative_braking_design.md)을 현재 설계에
+추가했다. YAML의 `design_extensions`는 M0 v0.1 이후의 requirement revision을 구분한다.
+Drive timeout은 이전 양·음수 demand를 무효화하는 zero motor torque target으로 개정했고,
+`regenerative_braking`에 공통 책임/부호/에너지 단위와 미결정 모델 parameter를 기록했다.
+Thor/Orin 공통 reference에 적용할 설계이며 runtime loader/회생 구현/검증 완료가 아니다.
+
+[EV-01](../docs/icd/ev_power_bms_design.md)을 v0.3 requirement extension으로 추가했다.
+[ZON-01](../docs/adr/ADR-0015-front-rear-zones.md)은 v0.4 requirement extension이다.
+`architecture`는 최종 Front/Rear 두 Zone과 단일 Zone component 검증 단계를 구분한다.
+후륜 구동 packaging에서 Front가 차량 관리·배분·피드백 집계를 소유하고 Rear는 Drive/BMS를 연결한다.
+Cross-zone schema/QoS/clock/rejoin은 TBD-15이며 runtime switch나 배포 구현이 아니다.
+`ev_power_bms`의 lifecycle·부호·단위는 설계 의미이며 parameter는 TBD-12/13/14다.
+BMS/power rate는 기존 100 Hz actuator와 자동 동일시하지 않고 별도 `null`로 남겼다.
+기존 M1의 30 ms 보조 입력 age와의 호환성도 검토한다.
+
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
 stack, model/input settings, scenario/seed, power/thermal 및 측정 조건을 기록한다.
 결과는 단순 속도 순위 대신 요구 충족과 feature trade-off로 평가한다.

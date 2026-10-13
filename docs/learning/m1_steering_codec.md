@@ -11,7 +11,7 @@ Repository root의 Linux terminal에서 실행한다. 현재 Host에 필요한 �
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_demo angle 0.1
+./build/m1-angle/actuator_demo angle 0.1
 ```
 
 예상 출력:
@@ -61,8 +61,8 @@ GCC 11.4.0 / CMake 4.3.2 / C++17 / GoogleTest 1.11.0, Debug build다.
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
-clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/steering/steering_angle_codec.cpp tools/steering_demo.cpp
-cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering interfaces/steering/steering_angle_codec.cpp tools/steering_demo.cpp
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/steering/steering_angle_codec.cpp tools/actuator_demo.cpp
+cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering -I interfaces/brake interfaces/steering/steering_angle_codec.cpp tools/actuator_demo.cpp
 ```
 
 관련 interface는 IF-CAN-STEERING이다. SYS-COM-002 / TC-COM-002의 향후 frame validation을

@@ -2,6 +2,10 @@
 
 Status: M0 **DEFINED / Reference Baseline v0.1**. 계약은 확정했으며 배포/runtime은
 PLANNED, 동작/성능 시험은 NOT RUN이다.
+2026-10-13 [EV-01](../icd/ev_power_bms_design.md) 범위를 추가했다. 아래 BMS/차량 관리/
+전원 모델은 PLANNED이며 M0 v0.1이나 기존 M1 실행 결과에 포함하지 않는다.
+[ZON-01](../adr/ADR-0015-front-rear-zones.md)은 최종 Front/Rear 두 논리 Zone과 Front의
+단일 차량 전체 조정 책임을 채택했다. Runtime/TC-ZON-001–003은 PLANNED / NOT RUN이다.
 
 ## 경계와 책임
 
@@ -11,8 +15,12 @@ PLANNED, 동작/성능 시험은 NOT RUN이다.
 | ARCH-ORCH | Host: ScenarioRunner / OpenSCENARIO, Fault/Test Orchestrator, logging, PASS/FAIL 평가 | 시나리오/seed/run ID, fault 시점, 결과 및 환경 기록 |
 | ARCH-CENTRAL | Target: vehicle state, perception, world model, planner, deterministic control, health | Vehicle-level command 생성; CARLA actuation API 의존 금지 |
 | ARCH-SAFETY | Target Central Vehicle Compute: Safety Supervisor | planner trajectory 검증, fallback/state 기반 제한, Classical Controller 출력 제한의 별도 guard |
-| ARCH-ZONE | Target: gateway, command validation, control allocation, local safety | Vehicle-level command를 actuator command로 변환; freshness와 local fault 판단 |
+| ARCH-ZONE | Front/Rear Zone 공통 component family | gateway, command validation, local safety; 기존 requirement ID의 family 책임 유지 |
+| ARCH-ZONE-FRONT | Target: Front gateway, vehicle management(VCU 역할), control allocation, feedback bridge | 차량 전체 주행 허가·배분의 단일 owner; Steering/aggregate Brake 연결과 Rear status 집계 |
+| ARCH-ZONE-REAR | Target: Rear gateway, local validation/protection | Drive/BMS 연결; 배분된 demand 전달과 원천 status 보고; 차량 전체 요구 재배분 금지 |
 | ARCH-VECU | Target: Steering / Brake / Drive software ECU | command 수신부터 task/state/dynamics를 거쳐 actual actuator feedback 생성 |
+| ARCH-BMS | Target: 독립 논리 BMS vECU | battery 센서와 power 요청 → charge/discharge limits, power 실제 상태/health; 상위 보고는 Zone 경유 |
+| ARCH-EV-PLANT | SIL battery / power plant | 실제 model power → energy/SOC/voltage/current/temperature, power 응답; BMS controller와 분리; M6/M7 배치/단일 energy owner TBD-07 |
 | ARCH-ADAPTER | Host: CARLA Plant Adapter; Target feedback bridge와 연결 | vECU actual feedback만 ego actuation 입력으로 변환; CARLA actuation의 단일 writer |
 | ARCH-DIAG | Target Central Vehicle Compute: Diagnostics Manager + Zone Controller/vECU local monitors | fault event 집계, DTC, state transition; local 반응은 Central Vehicle Compute 통신에 의존하지 않음 |
 
@@ -22,20 +30,22 @@ Orin NX 한 대다. 동일 Vehicle SW Architecture를 보드별 독립 배포하
 
 ```mermaid
 flowchart TB
-  SENSOR[CARLA Sensor / Vehicle State] --> CENTRAL[Central Vehicle Compute]
-  CENTRAL --> PLAN[Planner]
-  PLAN --> SAFE[Safety Supervisor]
-  SAFE --> CTRL[Classical Controller]
-  CTRL --> CMD[Vehicle-level Command]
-  CMD --> ETH[Virtual Ethernet / DDS]
-  ETH --> ZONE[Virtual Zone Controller]
-  ZONE --> CAN[SocketCAN / vCAN: CAN FD Command]
-  CAN --> ECU[Steering / Brake / Drive vECU]
-  ECU --> ACT[Actual Actuator Feedback]
-  ACT --> BRIDGE[CAN feedback → Zone Controller / target feedback bridge]
-  BRIDGE --> ADAPTER[Physical Ethernet → CARLA Plant Adapter]
-  ADAPTER --> MOTION[CARLA Vehicle Motion]
-  MOTION --> SENSOR
+  subgraph HOST["Host · Plant / Sensor"]
+    SENSOR["CARLA Sensor / State"]
+    ADAPTER["Plant Adapter · Single writer"]
+    ADAPTER --> SENSOR
+  end
+  CENTRAL["Central<br/>Planner → Safety → Controller"]
+  FRONT["Front Zone<br/>Vehicle management · Allocation · Bridge"]
+  REAR["Rear Zone<br/>Validation · Gateway"]
+  FL["Steering / Brake vECU"]
+  RL["Drive / BMS vECU"]
+  SENSOR -->|Physical Ethernet| CENTRAL
+  CENTRAL <-->|Vehicle / Power request · DDS| FRONT
+  FRONT <-->|Scoped demand / Source status · DDS| REAR
+  FRONT <-->|Front CAN FD| FL
+  REAR <-->|Rear CAN FD| RL
+  FRONT -->|Per-source actual · Physical Ethernet| ADAPTER
 ```
 
 ## Command hierarchy
@@ -44,13 +54,17 @@ flowchart TB
 
 | 계층 | Producer → Consumer | 의미 / 경계 |
 | --- | --- | --- |
-| Vehicle-level command | Central Classical Controller → Zone | target speed, acceleration demand, target curvature, braking demand + timestamp/sequence/freshness; actuator actual 값 아님 |
-| Actuator command | Zone control allocation → Steering/Brake/Drive vECU | steering angle demand / drive torque demand / brake pressure demand |
-| Actual actuator feedback | vECU task/delay/saturation/dynamics/fault → Zone/Target feedback bridge → Host Plant Adapter | actual steering angle / actual drive torque / actual brake pressure + 각 원천 time/validity |
+| Vehicle-level command | Central Classical Controller → Front Zone | target speed, acceleration demand, target curvature, braking demand + timestamp/sequence/freshness; actuator actual 값 아님 |
+| Actuator command | Front allocation → Steering/Brake 또는 Rear → Drive vECU | steering angle demand / drive torque demand / brake pressure demand |
+| Actual actuator feedback | vECU response → 담당 Zone → Front feedback bridge → Host Plant Adapter | actual steering angle / actual drive torque / actual brake pressure + 각 원천 time/validity |
 
 물리 의미/단위는 [interface overview](../icd/interface_overview.md)에 정의한다.
 Wire layout은 M1/M5, 수치 한계/calibration은 M2/M6/M7에 결정한다.
 동일한 값이 우연히 나와도 command와 actual은 서로 다른 책임과 sample이다.
+
+2026-10-13 [RG-01](../icd/regenerative_braking_design.md)로 회생제동 포함 범위를 결정했다.
+Drive는 signed 구동/회생 토크와 회생 가용량, Brake는 마찰제동 압력을 맡고 Front가 배분한다.
+상세 설계/runtime은 후속 작업이며 M0 v0.1의 검토 결과에 소급 포함하지 않는다.
 
 ## Closed-loop invariant
 
@@ -62,9 +76,9 @@ plant 입력을 결정해야 한다. Host fault orchestrator의 명시적 distur
 별도 기록하고 정상 control path와 구분한다. Ego autopilot과 다른 actuation
 writer는 PLANNED 통합에서 비활성화해야 한다.
 
-vECU feedback은 CAN → Zone Controller 수집/target bridge → Ethernet → Host Plant Adapter로
-전달한다. 최초 baseline은 단일 Zone Controller이며 feedback 집계의 책임은 Zone에 있다.
-Target bridge의 process 배치/transport는 M4/M5(TBD-05/06)에 정한다.
+vECU feedback은 CAN → 담당 Zone → Front 집계/target bridge → Ethernet → Host Plant Adapter로
+전달한다. M0 최초 baseline의 단일 Zone은 역사적으로 유지하며 최종 설계는 ZON-01의 두 Zone이다.
+Front의 bridge process/transport와 Rear peer 경로는 M4/M5(TBD-05/06/15)에 정한다.
 Bridge는 원천 metadata를 보존하고 actuator actual을 재계산하거나 command에서 생성하지 않는다.
 
 ## Plant fidelity와 시간
@@ -75,7 +89,12 @@ CARLA는 vehicle motion을 담당하며 actuator delay/dynamics의 중복 적용
 배제한다. Fresh actual feedback 없이는 다음 driving tick을 보류한다. 이는 simulation
 containment이며 실제 차량 정지의 검증이 아니다([안전 계약](../requirements/safety_requirements.md)).
 
-Reference plant/sensor는 20 Hz, Controller 50 Hz, Zone/vECU 100 Hz다. 한 Host
+RG-01의 음수 Drive Actual과 friction Brake Actual은 공통 wheel 기준으로 변환해 각각
+한 번씩 반영한다. Signed torque의 CARLA API mapping과 에너지 모델의 fidelity는
+TBD-02/07이다. 회생 한계는 plant actuation 값이 아니다.
+
+Reference plant/sensor는 20 Hz, Controller 50 Hz, Zone/Steering·Brake·Drive vECU 100 Hz다.
+BMS/power task·발행 주기는 TBD-14다. 한 Host
 orchestrator만 tick을 소유하고 Plant Adapter만 ego actuation을 쓴다. Orchestrator의
 route/scenario 설정 권한은 ego actuation 권한을 포함하지 않는다. Fault injector는
 command/feedback 통신이나 vECU model에 fault를 주입하며 별도 ego writer가 될 수 없다.
@@ -88,3 +107,15 @@ Reference ODD는 [system requirements](../requirements/system_requirements.md),
 
 관련 결정: [ADR-0001](../adr/ADR-0001-simulator-selection.md),
 [ADR-0002](../adr/ADR-0002-zonal-architecture.md).
+
+## EV-01과 ZON-01 추가 기능
+
+Central → Zone → Leaf와 담당 Zone을 거치는 feedback 경계를 유지한다.
+BMS는 Rear Leaf이고 상태·한계는 제약/관측 정보다. BMS status 자체를 wheel actuation에
+더하지 않는다. Rear→Front의 원천 한계/상태로 Front가 배분한 뒤 Rear→Drive로 전달하며
+Rear/Drive/BMS도 로컬 검증·보호한다. 전원 lifecycle과 기존 severity는 별개다.
+[Zone 분할 계약](zonal_partition.md), [EV 설계](../icd/ev_power_bms_design.md)를 따른다.
+
+최종 Front/Rear topology와 Front 단일 조정 owner는 ACCEPTED다. 단일 Zone에서 component를
+먼저 검증한 뒤 M4/M5에 두 Zone을 연결한다. Peer schema/QoS/queue/clock/fault budget/rejoin은
+TBD-15다. M0 review/현재 M1 wire 증거는 두 Zone runtime 검증이 아니다.

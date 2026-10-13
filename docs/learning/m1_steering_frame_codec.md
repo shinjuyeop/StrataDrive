@@ -15,9 +15,9 @@ Repository root에서 기존 Host C++17/GCC/CMake/GoogleTest를 사용한다.
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_demo frame command 0.2
-./build/m1-angle/steering_demo frame actual 0.15
-./build/m1-angle/steering_demo frame actual invalid
+./build/m1-angle/actuator_demo frame command 0.2
+./build/m1-angle/actuator_demo frame actual 0.15
+./build/m1-angle/actuator_demo frame actual invalid
 ```
 
 첫 예제의 결과는 ID=`0x180`, CRC=`0x26EB`, 복원=`0.2 rad`이다.
@@ -48,8 +48,8 @@ uv pip install --python build/m1-dbc-venv/bin/python -r tools/requirements-dbc.t
 ```
 
 ```sh
-build/m1-dbc-venv/bin/python tools/check_steering_dbc.py
-build/m1-dbc-venv/bin/python tools/check_steering_dbc.py --demo build/m1-angle/steering_demo
+build/m1-dbc-venv/bin/python tools/check_actuator_dbc.py
+build/m1-dbc-venv/bin/python tools/check_actuator_dbc.py --demo build/m1-angle/actuator_demo
 ```
 
 첫 명령은 [DBC](../../interfaces/dbc/steering_m1_draft.dbc)의 문법과 strict layout,
@@ -111,8 +111,8 @@ GCC 11.4.0, CMake 4.3.2, C++17, GoogleTest 1.11.0, Debug build다.
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
-clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/steering_demo.cpp tests/unit/e2e_profile5_test.cpp tests/unit/steering_frame_codec_test.cpp
-cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/steering_demo.cpp
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/actuator_demo.cpp tests/unit/e2e_profile5_test.cpp tests/unit/steering_frame_codec_test.cpp
+cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering -I interfaces/brake interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/actuator_demo.cpp
 ```
 
 IF-CAN-STEERING의 wire 표현 일부를 검사했다. SYS-COM-002 / TC-COM-002/005 /
@@ -126,4 +126,5 @@ TC-SAFE-002의 전체 acceptance나 100 ms loss 검출 결과를 PASS/VERIFIED�
 [로컬 수신부](m1_steering_receiver.md)의 freshness/duplicate/order/epoch/restart/wrap/timeout을
 제어 가능한 clock으로 시험했다. 이어서 실제 clock과 bounded dispatch/trusted fixture handshake를
 SocketCAN/vCAN에 연결해 시험했다. 영속 coordinator, queue overflow 주입, 실제 물리 한계 확정,
-Brake/Drive의 field 설계와 six-frame 검증은 남아 있다.
+[Brake의 field/frame wire](m1_brake_codec.md)는 후속 작업에서 추가했다.
+Brake 수신 수용, Drive field 설계와 six-frame 검증은 남아 있다.

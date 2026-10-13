@@ -1,10 +1,25 @@
 # StrataDrive Reference Baseline v0.1: design data only, no runtime loader.
 # Engineering starting points, not production requirements or measured results.
 # null = TBD, never zero/default/disabled. Decision owners are in docs/roadmap.md.
+# RG-01 (2026-10-13) extends the current design; M0 v0.1 review remains historical.
+# EV-01 adds BMS/power; ZON-01 accepts two logical Zones as planned design data.
 profile_id: reference
 status: defined
 baseline_name: StrataDrive Reference Baseline v0.1
 requirement_baseline: v0.1
+design_extensions:
+  - id: RG-01
+    scope_status: accepted
+    requirement_revision: v0.2
+    requirements: [SYS-CTRL-008, SYS-CTRL-009, SYS-SAFE-004, SYS-SAFE-005]
+  - id: EV-01
+    scope_status: accepted
+    requirement_revision: v0.3
+    requirements: [SYS-EV-001, SYS-EV-002, SYS-EV-003, SYS-EV-004, SYS-EV-005, SYS-COM-003, SYS-COM-004, SYS-PERF-002]
+  - id: ZON-01
+    scope_status: accepted
+    requirement_revision: v0.4
+    requirements: [SYS-ARCH-003]
 implementation_status: planned
 verification_status: not_run
 purpose: identical_workload_on_each_independent_target
@@ -12,6 +27,18 @@ eligible_targets:
   - jetson_agx_thor
   - jetson_orin_nx
 deployment: one_independent_target_per_vehicle_run
+architecture:
+  reference_zone_count: 2 # ZON-01; runtime planned, not a deployment switch
+  single_zone_bringup: component_validation_before_m4_split
+  reference_packaging: rear_drive_single_motor
+  planned_leaf_functions: [steering, brake, drive, bms]
+  front_leaf_functions: [steering, brake] # Brake remains vehicle-wide aggregate
+  rear_leaf_functions: [drive, bms]
+  vehicle_management_owner: front_zone
+  allocation_owner: front_zone
+  upper_feedback_owner: front_zone
+  upper_feedback_path: leaf_responsible_zone_front_aggregate_central_or_host
+  cross_zone_contract: null # TBD-15; schema/QoS/queue/clock/rejoin before M4/M5 tests
 odd:
   weather: clear_daylight
   road: paved_straight_and_gentle_curves
@@ -50,6 +77,9 @@ logical_timing:
   steering_vecu: {rate_hz: 100, period_ms: 10}
   brake_vecu: {rate_hz: 100, period_ms: 10}
   drive_vecu: {rate_hz: 100, period_ms: 10}
+  bms_vecu: {rate_hz: null, period_ms: null} # TBD-14 / M1/M2/M3
+  bms_status: {rate_hz: null, period_ms: null} # TBD-14; sensor dependency age is separate
+  power_lifecycle_task: {rate_hz: null, period_ms: null} # TBD-14 / M2/M3
   zone_status_feedback_bridge: {rate_hz: 100, period_ms: 10}
   functional_scheduling_quantum_ms: 10
   task_deadlines_ms: null # TBD-04 / M3
@@ -73,12 +103,48 @@ state_policy:
   states: [INIT, NORMAL, DEGRADED, FAIL_SAFE]
   critical_stream_loss: FAIL_SAFE
   recovery: explicit_reinitialize_then_init_checks
-  drive_command_timeout_target: zero_propulsive_torque
+  drive_command_timeout_target: zero_motor_torque # RG-01: cancel positive and negative demands
   actuator_physical_reaction_parameters: null # TBD-03 / M2
 control:
   lateral_algorithm: null # TBD-11 / M8; Pure Pursuit or Stanley
   longitudinal_algorithm: longitudinal_pid_planned
   allocation_parameters: null # TBD-02/06 / M2/M4
+regenerative_braking:
+  scope: included_in_design # no runtime feature loader exists
+  drive_torque_sign: positive_propulsion_negative_forward_regeneration
+  brake_pressure_meaning: friction_brake_only
+  torque_reference: aggregate_driven_wheel_equivalent
+  allocation_owner: front_zone
+  energy_source: valid_actual_torque_and_wheel_speed
+  energy_unit: J
+  capability_invalid_new_regen_target_nm: 0
+  common_wheel_geometry: null # TBD-02 / M2/M6
+  friction_pressure_to_torque_calibration: null # TBD-02 / M2/M6
+  regen_torque_envelope: null # TBD-03 / M2; speed and motor limits
+  charge_acceptance_model: null # TBD-03 / M2; include zero/limited/stale fixtures
+  recovery_efficiency: null # TBD-02/03 / M2/M6
+  low_speed_transition_and_hold: null # TBD-03/06 / M2/M4
+  capability_freshness_policy: null # TBD-01/02/04 / M1/M3/M4
+  blending_response_and_deficit_budget: null # TBD-03/06 / M2/M4
+  energy_integration_tolerance: null # TBD-02/03 / M2/M6
+ev_power_bms:
+  scope: included_in_design # no runtime loader or BMS implementation exists
+  upper_status_owner: bms_vecu_via_rear_then_front_zone
+  battery_model_and_bms_controller_separate: true
+  power_lifecycle_states: [OFF, CHECKS, PRECHARGE, HV_READY, SHUTDOWN]
+  power_readiness_is_system_normal: false
+  valid_zero_limit_means: no_allowed_power
+  current_sign: positive_discharge_negative_charge
+  limit_unit: W
+  soc_unit: fraction_0_to_1
+  power_sequence_and_fault_reactions: null # TBD-12 / M1/M2/M4
+  drive_permission_and_recovery_gates: null # TBD-12/14
+  usable_capacity_and_initial_soc: null # TBD-13 / M2
+  voltage_current_temperature_model: null # TBD-13 / M2
+  charge_discharge_limit_calibration: null # TBD-13 / M2
+  losses_auxiliary_load_and_energy_tolerance: null # TBD-13 / M2/M6
+  schema_critical_streams_and_source_age: null # TBD-14 / M1
+  model_placement_clock_and_single_energy_owner: null # TBD-07/04 / M6/M7
 # Future AI comparison workload; classical M8 scenarios do not require an AI model.
 workload:
   perception_model: null # TBD-09 / M10

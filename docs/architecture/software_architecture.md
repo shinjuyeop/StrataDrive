@@ -15,12 +15,16 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `central/control` | validated trajectory + ego state → speed reference + bounded acceleration/curvature/braking demand |
 | `central/health` | task, resource, heartbeat → fault monitor 입력 |
 | `central/diagnostics` | fault event → DTC lifecycle / system state 결정 |
-| `zone/gateway` | DDS vehicle commands ↔ CAN actuator commands/status 및 target feedback bridge 경계 |
+| `zone/gateway` | Front/Rear 공통 DDS↔각 CAN dispatch; Front의 target feedback bridge와 원천 metadata 보존 |
 | `zone/command_validation` | validity, age, sequence, range, mode 검증 → accept/reject 사유 |
-| `zone/control_allocation` | vehicle command → steering/brake/drive demand; 충돌 arbitration TBD-06 (M4) |
+| `zone/vehicle_management` | Front 전용: lifecycle 요청 + fresh BMS/power/actuator 상태 → 전원 요청/drive permission; 차량 전체 단일 VCU 역할, PLANNED |
+| `zone/control_allocation` | Front 전용: vehicle command + actual/capability → steering/brake/drive demand; 차량 전체 단일 배분, arbitration TBD-06 |
+| `zone/peer_routing` (planned) | Front→Rear scoped demand / Rear→Front per-source status와 trusted session; 의미 계약 ZON-01, protocol TBD-15 |
 | `zone/local_safety` | local timeout/fault → 제한 또는 local fail-safe; Central Vehicle Compute 의존 없는 판단 |
 | `vecu/common` | task model, bounded queues, watchdog, command integrity, diagnostics 계약 |
 | `vecu/steering`, `vecu/brake`, `vecu/drive` | accepted demand → state machine / actuator dynamics → actual feedback |
+| `vecu/bms` | model 센서 + power 요청 → charge/discharge 한계와 power 실제 상태/health; Zone 경유 status, EV-01 PLANNED |
+| `simulation/battery`, `simulation/power` | 실제 model power/전원 요청 → 에너지·센서·컨택터 응답; controller와 분리, parameter/배치 후속 |
 | `simulation/simple_plant` | CARLA 전 계약 검증용 작은 vehicle model |
 | `simulation/plant_adapter` | actual actuator feedback → plant별 actuation mapping |
 | `simulation/carla`, `simulation/scenarios`, `simulation/fault_injection` | simulator lifecycle, scenario, 명시적 fault injection |
@@ -30,6 +34,8 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 Safety Supervisor가 Planner와 Classical Controller 사이에서 trajectory를 검사한다.
 Classical Controller는 자체 출력 한계를 적용하고 Zone Controller는 수신 command를 독립 검증한다.
 어떤 layer도 다른 layer의 검증을 이유로 자신의 timeout/validity 계약을 생략하지 않는다.
+[ZON-01 분할](zonal_partition.md)에서 Rear는 차량 전체 배분기를 복제하지 않는다.
+위 경로는 책임의 예정 위치이며 아직 존재하지 않는 runtime module도 포함한다.
 
 ## vECU task/communication contract
 
@@ -41,6 +47,10 @@ vECU는 CAN echo simulator가 아니라 MCU/RTOS를 학습하는 Linux software 
 | Task_10ms_Control | 10 ms | 유효 command snapshot, state update, actuator dynamics/control |
 | Communication publication | 10 ms | bounded RX/TX queue, command 검증, 각 actual feedback publication |
 | Diagnostics aggregation | TBD-08 (M9) | fault aggregation/status; 빠른 timeout 검출은 10 ms local monitor 경로 |
+
+위 10 ms starting point는 Steering/Brake/Drive에 적용한다. BMS/power task와 status/constraint
+publication은 TBD-14에 별도 rate/source-age/monitor budget을 결정한다. `models/`는 AI artifact
+정책의 directory이며 EV 물리 model source는 위 `simulation/` 책임으로 분류한다.
 
 Periodic Task, RX/TX Queue, Mutex / Synchronization, State Machine, Watchdog,
 Command Timeout, Alive Counter, CRC, Deadline Monitoring, Fault State, Actuator
@@ -58,9 +68,13 @@ monitor 배치/독립성 및 stop 조건을 설계 검토한다. 이 계약은 �
 | --- | --- | --- |
 | Steering | steering command; rate / acceleration limit, dead time, friction, overshoot, noise | actual steering + validity/time; jam / tracking fault |
 | Brake | brake command; pressure buildup, response delay | actual brake pressure + validity/time; stuck / slow-response fault |
-| Drive | torque command; torque saturation, motor response | actual torque, speed/RPM + validity/time; over-current / mismatch fault |
+| Drive | signed 구동/회생 torque command; torque saturation, motor response, 단순 충전 수용 모델 | actual torque/speed, 회생 한계와 별도 validity/time; over-current / mismatch fault |
+| BMS / EV-01 | model 센서/요청, battery charge/discharge limits, 로컬 power protection; 주기 TBD-14 | state/limit/power actual과 source validity/time; sensor invalid/communication/power fault |
 
 Sign/unit 의미는 [공통 ICD](../icd/interface_overview.md)에 정의한다.
+[RG-01 회생제동 설계](../icd/regenerative_braking_design.md)는 Drive/Brake/Zone의 후속 범위다.
+에너지 집계는 actual 기반이다. [EV-01](../icd/ev_power_bms_design.md)에서 별도 BMS 논리
+vECU와 Battery/power model을 추가하며 RG-01의 BMS 제외 범위를 대체했다.
 Dynamics parameter, noise seed, 초기화 수치와 calibration은 TBD-02/03 (M2/M6/M7)다.
 Accepted demand와 actual actuator state를 다른 interface로 유지한다. Simulated current 등의 상태가 없으면 해당 fault는 검증됐다고 주장하지 않는다.
 

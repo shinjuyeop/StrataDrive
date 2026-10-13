@@ -4,6 +4,9 @@ Baseline: **StrataDrive Reference Baseline v0.1** / 2026-09-22.
 Status: **BASELINED**. 15개 exit 항목의 문서/계약 검토를 모두 통과했다.
 이 문서는 M0 계약 검토 결과이며 runtime test result가 아니다.
 
+후속 변경: 2026-10-13 [RG-01 회생제동 범위](adr/ADR-0011-regenerative-braking-scope.md)를
+결정했다. 아래 v0.1의 요구사항/TC 수와 exit 검토 결과는 당시 기록이며 RG-01을 포함하지 않는다.
+
 ## Decisions and rationale
 
 - Reference ODD는 맑은 낮/포장도로/단일 ego/신호등 없는 직선·완만한 곡선/0–40 km/h다.

@@ -34,7 +34,7 @@ Repository root에서 기존 C++17/GCC/CMake/GoogleTest 환경을 사용한다. 
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_demo receiver
+./build/m1-angle/actuator_demo receiver
 ```
 
 Demo는 socket/clock syscall 없이 수동 monotonic 시각을 전달한다. +/-0.5 rad는 시험용 한계이며
@@ -103,7 +103,7 @@ GoogleTest 1.11.0/C++17 Debug에서 실행했다.
   startup window/gap/backward/uint32 wrap, unavailable vs zero, mode/range/1 ULP 경계,
   source age와 RX age 분리, startup/accepted timeout, late frame/explicit INIT,
   clock 감소, P05 8-bit wrap, UINT64_MAX 인접 시각을 검사했다.
-- `steering_demo receiver`의 위 정상/reject/timeout/재초기화 결과 PASS.
+- `actuator_demo receiver`의 위 정상/reject/timeout/재초기화 결과 PASS.
 - clang-tidy 14: 변경 receiver/demo/test 및 E2E demo의 적용 검사에서 user source 진단 없음.
   Non-user header/NOLINT는 기본 filter로 제외했다.
 - cppcheck 2.7: 변경 receiver/demo/E2E demo의 적용 검사에서 진단 없음.
@@ -115,8 +115,8 @@ GoogleTest 1.11.0/C++17 Debug에서 실행했다.
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
-clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/steering/steering_receiver.cpp tools/steering_demo.cpp tests/unit/steering_receiver_test.cpp
-cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering interfaces/steering/steering_receiver.cpp tools/steering_demo.cpp
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/steering/steering_receiver.cpp tools/actuator_demo.cpp tests/unit/steering_receiver_test.cpp
+cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering -I interfaces/brake interfaces/steering/steering_receiver.cpp tools/actuator_demo.cpp
 ```
 
 같은 clock domain을 전제로 제어 가능한 시각의 경계를 시험했다. 실제 10 ms dispatch,

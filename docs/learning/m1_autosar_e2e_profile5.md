@@ -13,9 +13,9 @@ Repository root에서 실행한다. 새 package 설치는 필요 없다.
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/steering_demo frame command 0.2
-./build/m1-angle/steering_demo e2e
-build/m1-dbc-venv/bin/python tools/check_steering_dbc.py --demo build/m1-angle/steering_demo
+./build/m1-angle/actuator_demo frame command 0.2
+./build/m1-angle/actuator_demo e2e
+build/m1-dbc-venv/bin/python tools/check_actuator_dbc.py --demo build/m1-angle/actuator_demo
 ```
 
 DBC 전용 격리 환경이 없으면 [기존 설치 방법](m1_steering_frame_codec.md)을 따른다.
@@ -25,7 +25,7 @@ DBC 전용 격리 환경이 없으면 [기존 설치 방법](m1_steering_frame_c
 Payload: D0 07 02 01 00 00 00 00 01 00 00 00 00 CA 9A 3B 00 00 00 00 07 00 00 00 01 01 00 00 00 EB 26 00
 ```
 
-`steering_demo e2e`의 결과는 다음과 같다.
+`actuator_demo e2e`의 결과는 다음과 같다.
 
 ```text
 정상 첫 frame Counter=0 -> OK
@@ -132,8 +132,8 @@ C++17, GoogleTest 1.11.0에서 Codex가 실행했다.
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
-clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/steering_demo.cpp tests/unit/e2e_profile5_test.cpp tests/unit/steering_frame_codec_test.cpp
-cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/steering_demo.cpp
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/actuator_demo.cpp tests/unit/e2e_profile5_test.cpp tests/unit/steering_frame_codec_test.cpp
+cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17 --suppress=missingIncludeSystem -I interfaces/common -I interfaces/steering -I interfaces/brake interfaces/common/e2e_profile5.cpp interfaces/steering/steering_frame_codec.cpp tools/actuator_demo.cpp
 ```
 
 Profile 5 Protect/Check를 기준으로 직접 작성한 구현의 시험이다. Vendor BSW 도입은 아니다.

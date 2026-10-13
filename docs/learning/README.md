@@ -30,12 +30,23 @@ AUTOSAR 실습은 관련 설계·구현과 함께 진행한다. 전체 이론 �
 [AUTOSAR E2E Profile 5 Protect/Check](m1_autosar_e2e_profile5.md)를 적용했다.
 [Steering 수신부의 수용/시간/Epoch/timeout](m1_steering_receiver.md)을 구현하고
 [SocketCAN/vCAN 연결](m1_steering_socketcan.md)로 독립 TX/RX와 wall-time fault를 시험했다.
-현재 이해 확인/직접 재현은 PENDING이며 다음 wire 작업은 Brake/Drive 확장이다.
+[Brake 압력/frame·DBC·vCAN wire 검사](m1_brake_codec.md)까지 확장했다.
+[Brake 수신 수용/timeout](m1_brake_codec.md#application-수신부-추가)도 구현·시험했다.
+[Drive 구동·회생 토크와 피드백 wire/receiver](m1_drive_codec.md)도 기존 도구에서 구현·시험했다.
+현재 이해 확인/직접 재현은 PENDING이며 다음은 wire 복습, M1 남은 검토와 M2 응답 모델이다.
 
-실행 예제는 `tools/steering_demo.cpp` 하나로 통합했다.
-`angle`, `frame`, `e2e`, `receiver` 중 이번 학습에 필요한 명령을 실행한다.
+후속 [EV-01 범위/역할](../icd/ev_power_bms_design.md)을 정리했다. 다음에는 BMS와 battery
+model, power READY와 system NORMAL, 원천 status와 Zone 전달의 차이를 짧게 설명한 뒤
+필요한 BMS/power/constraint wire와 component 모델을 한 단계씩 진행한다.
+[ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Front는 차량 전체
+관리·배분과 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
+M4/M5에 분리하며 peer protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.
+
+실행 예제는 `tools/actuator_demo.cpp` 하나로 통합했다.
+`angle`, `frame`, `e2e`, `receiver`, `brake-pressure`, `brake-frame`, `brake-receiver`,
+`drive-frame`, `drive-feedback` 중 필요한 명령을 실행한다.
 자동 단위 시험은 모듈별 기존 파일에 case를 추가하며 SocketCAN 통합 시험은
-`tests/integration/steering/`에 모았다. 배치/추가 기준은 [품질 정책](../quality_policy.md#코드예제시험-배치)에 있다.
+`tests/integration/can/`에 모았다. 배치/추가 기준은 [품질 정책](../quality_policy.md#코드예제시험-배치)에 있다.
 
 M0에서는 4~7단계의 실행 기능 작업을 시작하지 않는다. 대신 문서 diff, 구조,
 계약의 정상/오류 경로를 검토하고 configure-only 확인의 한계를 기록한다.

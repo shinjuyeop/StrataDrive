@@ -1,15 +1,17 @@
 # Software quality policy
 
-Status: **M1 field/frame codec에 부분 적용**. [첫 C++ 실험](adr/ADR-0005-first-cpp-codec.md)과
-[Steering frame codec](learning/m1_steering_frame_codec.md)에 compiler 경고, GoogleTest,
-static analysis와 sanitizer를 적용했다.
-[AUTOSAR P05 Protect/Check 개정](learning/m1_autosar_e2e_profile5.md)에서도
-normal/ASan·UBSan 25개 unit test와 변경 source의 static analysis를 실행했다. 차량 시험은 NOT RUN이다.
-[Steering 수신부](learning/m1_steering_receiver.md) 추가 뒤 normal/ASan·UBSan 각각
-44개 unit test와 변경 수신부/demo/test의 static analysis를 실행했다.
-[SocketCAN 연결](learning/m1_steering_socketcan.md) 뒤 normal/ASan·UBSan 각각 unit 48개와
-독립 process vCAN integration 8개 case를 실행했다. 새 adapter/TX/RX/test의 적용 static analysis도
-통과했다. Local observed timeout을 차량 timing이나 임의 부하 보장으로 확대하지 않는다.
+Status: **M1 codec/receiver/SocketCAN에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 98개 / vCAN
+27 case PASS**, six-frame DBC/독립 CRC 교차 검증 PASS다. [Drive 실행 기록](learning/m1_drive_codec.md)에
+도구 버전, static analysis 적용 범위와 재현 명령을 보존한다.
+
+2026-10-13 문서 정리 시 normal·ASan/UBSan build/unit/vCAN과 DBC 검사를 다시 통과했다.
+Local observed timeout은 normal 80.019–81.072 ms, sanitizer 80.053–81.065 ms였다.
+차량 timing 보장이나 sanitizer의 대표 성능으로 확대하지 않는다. M1 최종 acceptance/학습자
+review는 PENDING, EV wire와 두 Zone/runtime/차량 TC는 PLANNED / NOT RUN이다.
+문서 52개의 상대 링크/앵커 459개, 요구사항 32개/TC 29개의 정의·추적성,
+YAML 3개의 중복 key/책임 배치와 Python syntax를 검사했다. 활성 경로의 낡은 참조를 정리하고
+과거 ADR/부분 시험 이력과 목적이 다른 검증 계층은 보존했다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |
@@ -36,17 +38,17 @@ Toolchain/compiler/CI/test 버전은 TBD-11(M1), board 지원/측정 환경은 T
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.
-- 학습/확인 예제는 영역별 실행 프로그램으로 묶는다. Steering은 `tools/steering_demo.cpp` 하나에
-  angle/frame/e2e/receiver 명령을 제공한다. 기존 기능의 작은 변경마다 별도 demo를 추가하지 않는다.
+- 학습/확인 예제는 영역별 실행 프로그램으로 묶는다. 세 actuator는 `tools/actuator_demo.cpp` 하나에
+  아홉 명령을 제공한다. 기존 기능의 작은 변경마다 별도 demo를 추가하지 않는다.
 - 단위 시험 파일은 모듈별로 유지한다. 기존 모듈의 조건/경계/fault 추가는 같은 파일의 case로 추가하고,
   새로운 독립 모듈이 생기면 시험 파일을 만든다.
 - 통합 시험의 participant/helper/runner는 같은 영역 아래 모은다.
-  Steering SocketCAN은 `tests/integration/steering/`이며 새 fault는 기존 runner의 case로 확장한다.
+  세 actuator SocketCAN은 `tests/integration/can/`이며 새 fault는 기존 runner의 case로 확장한다.
 - DBC 검사와 환경 확인은 `tools/`에 둔다. 목적과 확인 범위가 완전히 겹치는 임시 코드만 정리한다.
   표현/수용/transport의 서로 다른 검증 계층은 유지한다.
 
 CMake의 `BUILD_TESTING=OFF`는 단위 시험과 통합 시험용 TX/RX build를 제외한다.
-Fresh build에서 라이브러리와 `steering_demo`만 생성되는 것을 확인했다.
+Fresh build에서 라이브러리와 `actuator_demo`만 생성되는 것을 확인했다.
 기존 예제 4개의 정상/거부 출력 17개를 통합 프로그램과 비교했고 명령 오류 7개/도움말도 확인했다.
 단위 시험 파일은 이 정리로 추가하거나 합치지 않았다.
 정리 후 normal/ASan·UBSan 각각 unit 48개와 vCAN 8개 case를 통과했고,

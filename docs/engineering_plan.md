@@ -10,6 +10,18 @@ field codec 검증은 [C++ 실행 기록](learning/m1_steering_codec.md)에 범�
 제어 가능한 시계로 Host에서 시험했다. [SocketCAN 연결](learning/m1_steering_socketcan.md)로
 Steering의 독립 process 송수신/fault/wall-time timeout을 실행했다. 영속 coordinator,
 application queue/overflow 주입과 차량 통합은 남아 있다.
+[Brake wire 확장](learning/m1_brake_codec.md)으로 압력 field·공통 metadata·DBC/P05·vCAN을 시험했다.
+[Brake 수신 수용/timeout](adr/ADR-0012-brake-receiver.md)도 Host/vCAN에서 구현·시험했다.
+[Drive wire/receiver](learning/m1_drive_codec.md)의 signed torque/capability도 Host/vCAN에서 구현·시험했다.
+2026-10-13 [RG-01 회생제동 포함 범위](adr/ADR-0011-regenerative-braking-scope.md)를 결정했다.
+M0 v0.1의 역사적 검토는 유지하고 현재 interface/safety/profile/test 계획에 확장을 반영한다.
+Drive wire는 signed 구동/회생 torque와 capability 원천 시각을 담는다.
+다음은 wire 흐름 복습과 M1 검토, M2 모델이며 물리 회생/배분 runtime은 PLANNED / NOT RUN이다.
+후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
+고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며
+실행 결과는 NOT RUN이다. [ZON-01](architecture/zonal_partition.md)로 최종 Front/Rear 두 Zone,
+Front 단일 coordinator와 Rear Drive/BMS gateway를 채택했다. Peer protocol/runtime은 미구현이다.
+다음은 BMS/power/constraint 의미·wire·timing 결정과 M1 남은 수용 항목, 이후 M2 응답 모델이다.
 
 ## Project objective
 
@@ -33,6 +45,9 @@ M0 계약을 유지하며, 시스템이 수행할 물리적 보호 동작과 검
 - Target은 Jetson AGX Thor 또는 Jetson Orin NX 한 대다. 두 보드는 독립적인 배포 대안이다.
 - Target 내부 경로는 Central Vehicle Compute → Virtual Ethernet / DDS → Zone Controller
   → SocketCAN / vCAN → Steering / Brake / Drive vECU다.
+- EV-01은 BMS를 같은 계층의 Leaf로 추가하고 Zone의 gateway/vehicle management/
+  allocation을 구분한다. ZON-01의 Front만 차량 전체 관리·배분을 소유하고 Rear는 local gateway다.
+  BMS/power 상위 피드백은 Rear→Front 집계를 거친다.
 - vECU의 actual actuator feedback이 bridge를 거쳐 Host Plant Adapter로 전달된다.
   Plant Adapter만 CARLA ego actuation을 적용한다. Command를 actual로 대체하지 않는다.
 - Classical driving을 검증한 뒤 perception과 Learned Planner를 통합한다.
@@ -140,9 +155,10 @@ Steering frame/DBC에 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e
 [SocketCAN/vCAN 연결](learning/m1_steering_socketcan.md)까지 실행했다.
 영속 coordinator, queue overflow, 차량 통합 및 학습자 review는 남아 있다.
 
-다음 구현은 기존 six-frame wire 계약 → golden vectors → codec → vCAN application 시험
-순서다. Steering Command/Actual의 통신 부분을 토대로 Brake/Drive와 공통 metadata의 일관성을 검토한다.
-전체 frame codec 전에 관련 TBD-01/02/04/11을 검토한다. 개념 설명은 해당 작업에 필요한 만큼만
+Six-frame 초안의 golden vectors → codec → vCAN application 시험까지 실행했다.
+세 actuator는 공통 metadata와 수신 상태를 공유하고 Drive는 보조 freshness를 별도 검사한다.
+학습자 review와 영속 coordinator/queue overflow 검토가 남아 있으며 다음 모델 작업의
+TBD-02/03/04를 관련 구현 전에 검토한다. 개념 설명은 해당 작업에 필요한 만큼만
 진행하고 작은 변경·review·직접 실행·결과 해석으로 이어간다.
 
 Concept study의 남은 가정, 정상 응답 범위/jam 검출과 AUTOSAR 대응·pilot은 관련 구현과

@@ -1,5 +1,9 @@
 #include "steering_angle_codec.hpp"
 #include "steering_receiver.hpp"
+#include "brake_frame_codec.hpp"
+#include "brake_pressure_codec.hpp"
+#include "brake_receiver.hpp"
+#include "drive_receiver.hpp"
 
 #include <cstdint>
 #include <exception>
@@ -15,10 +19,15 @@ constexpr std::uint64_t kMs = 1000000ULL;
 
 void usage(std::ostream& output) {
     output << "사용법:\n"
-           << "  steering_demo angle <angle_rad>\n"
-           << "  steering_demo frame <command|actual> <angle_rad|invalid>\n"
-           << "  steering_demo e2e\n"
-           << "  steering_demo receiver\n";
+           << "  actuator_demo angle <angle_rad>\n"
+           << "  actuator_demo frame <command|actual> <angle_rad|invalid>\n"
+           << "  actuator_demo e2e\n"
+           << "  actuator_demo receiver\n"
+           << "  actuator_demo brake-pressure <pressure_pa>\n"
+           << "  actuator_demo brake-frame <command|actual> <pressure_pa|invalid>\n"
+           << "  actuator_demo brake-receiver\n"
+           << "  actuator_demo drive-frame <command|actual> <torque_nm|invalid>\n"
+           << "  actuator_demo drive-feedback\n";
 }
 
 double parse_angle(const std::string& input) {
@@ -40,6 +49,67 @@ void demo_angle(const std::string& input) {
                   << std::setw(2) << static_cast<unsigned int>(byte);
     }
     std::cout << std::dec << "\n복원: " << *decoded << " rad\n";
+}
+
+double parse_pressure(const std::string& input) {
+    std::size_t consumed = 0;
+    const double value = std::stod(input, &consumed);
+    if (consumed != input.size()) throw std::invalid_argument("Pa 숫자만 입력하세요.");
+    return value;
+}
+
+void demo_brake_pressure(const std::string& input) {
+    const double value = parse_pressure(input);
+    const auto bytes = encode_brake_pressure(value);
+    if (!bytes) throw std::runtime_error("압력은 finite이며 0..65534000 Pa여야 합니다.");
+    std::cout << std::setprecision(10) << "입력: " << value << " Pa\nBytes:";
+    for (const auto byte : *bytes) {
+        std::cout << ' ' << std::uppercase << std::hex << std::setfill('0')
+                  << std::setw(2) << static_cast<unsigned int>(byte);
+    }
+    std::cout << std::dec << "\n복원: " << *decode_brake_pressure(*bytes) << " Pa\n";
+}
+
+void demo_brake_frame(const std::string& kind, const std::string& input) {
+    if (kind != "command" && kind != "actual") {
+        throw std::invalid_argument("command 또는 actual을 선택하세요.");
+    }
+    BrakeMessage message;
+    message.kind = kind == "command" ? BrakeFrameKind::Command : BrakeFrameKind::Actual;
+    message.epoch = 1;
+    message.source_time_ns = kind == "command" ? kStart : kStart + 10 * kMs;
+    message.causal_sequence = kind == "command" ? 7 : 0;
+    message.local_state = BrakeLocalState::Normal;
+    message.origin = BrakeOrigin::NormalPath;
+    if (input == "invalid") {
+        message.local_state = BrakeLocalState::Init;
+        message.origin = BrakeOrigin::NoAcceptedInput;
+    } else {
+        message.pressure_pa = parse_pressure(input);
+    }
+    BrakeTxState tx{message.kind};
+    const auto frame = encode_brake_frame(message, tx);
+    if (!frame) throw std::runtime_error("Brake frame field가 유효한 표현 범위여야 합니다.");
+    const auto decoded = decode_brake_frame(*frame);
+    BrakeRxState rx{message.kind};
+    const auto result = check_brake_e2e(&*frame, rx);
+    if (!decoded || !stratadrive::e2e::p05_is_ok(result, rx.check.status)) {
+        throw std::runtime_error("Brake wire/E2E 검사가 실패했습니다.");
+    }
+    std::cout << "Fixture: brake " << kind << " (송수신/압력 응답 모델 실행 아님)\n"
+              << "ID: 0x" << std::uppercase << std::hex << frame->can_id << "\nPayload:";
+    for (const auto byte : frame->payload) {
+        std::cout << ' ' << std::setfill('0') << std::setw(2) << static_cast<unsigned int>(byte);
+    }
+    std::cout << "\nCRC: 0x" << std::setw(4)
+              << *brake_frame_crc(static_cast<std::uint16_t>(frame->can_id), frame->payload)
+              << std::dec << "\n복원: ";
+    if (decoded->pressure_pa) std::cout << std::setprecision(10) << *decoded->pressure_pa << " Pa\n";
+    else std::cout << "invalid/unavailable (Validity=0)\n";
+    std::cout << "Sequence: " << decoded->sequence << " Epoch: " << decoded->epoch
+              << " SourceTimeNs: " << decoded->source_time_ns << '\n'
+              << "E2E: Profile 5 Counter=" << static_cast<unsigned int>(frame->payload[31])
+              << " Status=OK (Brake 수신 수용 판정은 미구현)\n";
 }
 
 void demo_frame(const std::string& kind, const std::string& input) {
@@ -172,10 +242,10 @@ void demo_e2e() {
             }
         }
     }
-    std::cout << "E2E OK와 command 수용은 별도입니다. Freshness/timeout은 steering_demo receiver에서 확인합니다.\n";
+    std::cout << "E2E OK와 command 수용은 별도입니다. 조향 freshness/timeout은 actuator_demo receiver에서 확인합니다.\n";
 }
 
-const char* decision_name(SteeringReceiveDecision decision) {
+const char* decision_name(ActuatorReceiveDecision decision, bool pressure = false) {
     switch (decision) {
         case SteeringReceiveDecision::Accepted: return "ACCEPTED";
         case SteeringReceiveDecision::NotInitialized: return "NOT_INITIALIZED";
@@ -192,7 +262,7 @@ const char* decision_name(SteeringReceiveDecision decision) {
         case SteeringReceiveDecision::SourceNotIncreasing: return "SOURCE_NOT_INCREASING";
         case SteeringReceiveDecision::Unavailable: return "UNAVAILABLE";
         case SteeringReceiveDecision::ModeRejected: return "MODE_REJECTED";
-        case SteeringReceiveDecision::AngleOutOfRange: return "ANGLE_OUT_OF_RANGE";
+        case SteeringReceiveDecision::ValueOutOfRange: return pressure ? "PRESSURE_OUT_OF_RANGE" : "ANGLE_OUT_OF_RANGE";
     }
     return "UNKNOWN";
 }
@@ -205,13 +275,14 @@ SteeringFrame encode(const SteeringMessage& message, SteeringTxState& tx) {
     return *frame;
 }
 
-void show_receive(const char* label, const SteeringFrame& frame, SteeringReceiver& receiver,
-          std::uint64_t now_ns, SteeringReceiveDecision expected) {
+template <typename Frame, typename Receiver>
+void show_receive(const char* label, const Frame& frame, Receiver& receiver,
+          std::uint64_t now_ns, ActuatorReceiveDecision expected, bool pressure = false) {
     const auto result = receiver.receive(frame, now_ns);
     if (result.decision != expected) {
         throw std::runtime_error("예상한 receiver 결과와 다름");
     }
-    std::cout << label << " -> " << decision_name(result.decision);
+    std::cout << label << " -> " << decision_name(result.decision, pressure);
     if (result.e2e_status) {
         std::cout << " (E2E status=" << static_cast<unsigned int>(*result.e2e_status) << ')';
     }
@@ -280,6 +351,143 @@ void demo_receiver() {
     show_receive("새 Epoch + explicit INIT", encode(message, restarted), receiver, message.source_time_ns,
          SteeringReceiveDecision::Accepted);
 }
+void demo_brake_receiver() {
+    // fixture 압력 범위. 실제 차량 calibration이나 압력 dynamics를 실행하지 않는다.
+    BrakeReceiver receiver({BrakeFrameKind::Command, 0.0, 2000000.0});
+    if (!receiver.start_session(1, kStart)) throw std::runtime_error("Brake session 설정 실패");
+    BrakeTxState tx{BrakeFrameKind::Command};
+    BrakeMessage message;
+    message.pressure_pa = 1500000.0;
+    message.epoch = 1;
+    message.source_time_ns = kStart;
+    message.local_state = BrakeLocalState::Normal;
+    message.origin = BrakeOrigin::NormalPath;
+    const auto publish = [&](const char* label, std::uint64_t now_ns, BrakeReceiveDecision expected) {
+        const auto frame = encode_brake_frame(message, tx);
+        if (!frame) throw std::runtime_error("Brake fixture encode 실패");
+        show_receive(label, *frame, receiver, now_ns, expected, true);
+        return *frame;
+    };
+    std::cout << "Host Brake Receiver fixture (수동 시계, actuator 응답 모델 아님)\n";
+    const auto first = publish("정상 압력", kStart, BrakeReceiveDecision::Accepted);
+    show_receive("같은 frame 반복", first, receiver, kStart + 5 * kMs, BrakeReceiveDecision::E2eRejected, true);
+    publish("cached sample 재포장", kStart + 10 * kMs, BrakeReceiveDecision::SequenceRejected);
+    message.sequence = 1;
+    message.source_time_ns = kStart + 15 * kMs;
+    message.pressure_pa = 3000000.0;
+    publish("fixture 압력 한계 초과", message.source_time_ns, BrakeReceiveDecision::PressureOutOfRange);
+    message.source_time_ns = kStart + 20 * kMs;
+    message.pressure_pa = 0.0;
+    publish("유효한 제동 해제 0 Pa", message.source_time_ns, BrakeReceiveDecision::Accepted);
+    message.sequence = 2;
+    message.source_time_ns = kStart + 25 * kMs;
+    message.pressure_pa.reset();
+    publish("값 없음", message.source_time_ns, BrakeReceiveDecision::Unavailable);
+    if (receiver.current_sample(kStart + 50 * kMs + 1)) throw std::runtime_error("오래된 압력이 current sample로 남음");
+    std::cout << "source age 30 ms 초과 -> current sample 없음\n";
+    if (receiver.poll(kStart + 100 * kMs) != BrakeReceiverHealth::Timeout) {
+        throw std::runtime_error("Brake last-valid RX +80 ms timeout 미검출");
+    }
+    std::cout << "last-valid RX +80 ms -> TIMEOUT\n";
+    message.pressure_pa = 1500000.0;
+    message.source_time_ns = kStart + 101 * kMs;
+    publish("timeout 뒤 정상 frame", message.source_time_ns, BrakeReceiveDecision::Timeout);
+    if (!receiver.start_session(2, kStart + 110 * kMs)) throw std::runtime_error("Brake explicit INIT 실패");
+    BrakeTxState restarted{BrakeFrameKind::Command};
+    message.epoch = 2;
+    message.sequence = 0;
+    message.source_time_ns = kStart + 110 * kMs;
+    const auto frame = encode_brake_frame(message, restarted);
+    if (!frame) throw std::runtime_error("Brake restart encode 실패");
+    show_receive("새 Epoch + explicit INIT", *frame, receiver, message.source_time_ns, BrakeReceiveDecision::Accepted, true);
+}
+DriveMessage drive_fixture(DriveFrameKind kind) {
+    DriveMessage message;
+    message.kind = kind;
+    message.epoch = 1;
+    message.source_time_ns = kind == DriveFrameKind::Command ? kStart : kStart + 10 * kMs;
+    message.causal_sequence = kind == DriveFrameKind::Command ? 7 : 0;
+    message.local_state = ActuatorLocalState::Normal;
+    message.origin = ActuatorOrigin::NormalPath;
+    if (kind == DriveFrameKind::Actual) {
+        message.wheel_speed = DriveWheelSpeed{12.34, message.source_time_ns};
+        message.regen_capability = DriveRegenCapability{200, message.source_time_ns, kStart + 5 * kMs};
+        message.regen_limit_reason = DriveRegenLimitReason::ChargeAcceptanceLimited;
+    }
+    return message;
+}
+
+void demo_drive_frame(const std::string& kind, const std::string& input) {
+    if (kind != "command" && kind != "actual") throw std::invalid_argument("command 또는 actual을 선택하세요.");
+    auto message = drive_fixture(kind == "command" ? DriveFrameKind::Command : DriveFrameKind::Actual);
+    if (input == "invalid") {
+        message.local_state = ActuatorLocalState::Init;
+        message.origin = ActuatorOrigin::NoAcceptedInput;
+        message.wheel_speed.reset();
+        message.regen_capability.reset();
+        message.regen_limit_reason = DriveRegenLimitReason::InputsInvalid;
+    } else {
+        std::size_t consumed = 0;
+        message.torque_nm = std::stod(input, &consumed);
+        if (consumed != input.size()) throw std::invalid_argument("N·m 숫자만 입력하세요.");
+    }
+    DriveTxState tx{message.kind};
+    const auto frame = encode_drive_frame(message, tx);
+    if (!frame) throw std::runtime_error("Drive wire 표현 범위를 벗어났습니다.");
+    const auto decoded = decode_drive_frame(*frame);
+    if (!decoded) throw std::runtime_error("Drive decode 실패");
+    std::cout << "Fixture: Drive " << kind << " (모터/회생 모델 실행 아님)\n"
+              << "ID: 0x" << std::uppercase << std::hex << frame->can_id << "\nPayload:";
+    for (std::size_t index = 0; index < frame->payload_length; ++index) {
+        std::cout << ' ' << std::setfill('0') << std::setw(2) << static_cast<unsigned int>(frame->payload[index]);
+    }
+    std::cout << std::dec << "\nTorque valid: " << decoded->torque_nm.has_value()
+              << "\nTorque: " << decoded->torque_nm.value_or(0) << " N·m\n";
+    if (decoded->regen_capability) {
+        std::cout << "Regen limit: " << decoded->regen_capability->torque_limit_nm << " N·m\n"
+                  << "Capability source/input ns: " << decoded->regen_capability->source_time_ns
+                  << '/' << decoded->regen_capability->input_time_ns << '\n';
+    }
+}
+
+void demo_drive_feedback() {
+    DriveReceiver receiver({DriveFrameKind::Actual, {-300, 500}, 100, 300});
+    if (!receiver.start_session(1, kStart)) throw std::runtime_error("Drive session 설정 실패");
+    auto message = drive_fixture(DriveFrameKind::Actual);
+    message.source_time_ns = kStart;
+    message.torque_nm = -150;
+    message.wheel_speed->source_time_ns = kStart;
+    message.regen_capability = DriveRegenCapability{200, kStart, kStart};
+    DriveTxState tx{message.kind};
+    const auto publish = [&](const char* label, unsigned int ms, DriveFeedbackQuality expected) {
+        message.source_time_ns = kStart + ms * kMs;
+        message.wheel_speed->source_time_ns = message.source_time_ns;
+        const auto frame = encode_drive_frame(message, tx);
+        if (!frame) throw std::runtime_error("Drive fixture encode 실패");
+        const auto result = receiver.receive(*frame, message.source_time_ns);
+        if (result.decision != ActuatorReceiveDecision::Accepted || result.regen_capability != expected) {
+            throw std::runtime_error("Drive feedback quality 예상과 다름");
+        }
+        const auto current = receiver.current_sample(message.source_time_ns);
+        if (!current) throw std::runtime_error("fresh torque가 사용 불가");
+        std::cout << label << " -> 실제 토크 " << *current->torque_nm << " N·m, 회생 가용량 ";
+        if (current->regen_capability) std::cout << current->regen_capability->torque_limit_nm << " N·m";
+        else std::cout << "사용 불가";
+        std::cout << '\n';
+        ++message.sequence;
+    };
+    std::cout << "Host Drive feedback fixture (수동 시계, 응답/배분/에너지 모델 아님)\n";
+    publish("정상 피드백", 0, DriveFeedbackQuality::Usable);
+    publish("토크만 새 sample, 가용량은 cached", 20, DriveFeedbackQuality::Usable);
+    publish("cached 가용량의 원천 age 30 ms 초과", 31, DriveFeedbackQuality::Stale);
+    message.regen_capability->source_time_ns = kStart + 32 * kMs;
+    publish("가용량 재계산 시각만 새 값, 입력은 오래됨", 32, DriveFeedbackQuality::Stale);
+    message.regen_capability = DriveRegenCapability{0, kStart + 40 * kMs, kStart + 40 * kMs};
+    publish("유효한 회생 가능량 0", 40, DriveFeedbackQuality::Usable);
+    if (receiver.poll(kStart + 120 * kMs) != ActuatorReceiverHealth::Timeout ||
+        receiver.current_sample(kStart + 120 * kMs)) throw std::runtime_error("Drive timeout 검사 실패");
+    std::cout << "실제 토크 stream 상실 +80 ms -> latched TIMEOUT, 제어 sample 없음\n";
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -294,6 +502,11 @@ int main(int argc, char** argv) {
             else if (command == "frame" && argc == 4) demo_frame(argv[2], argv[3]);
             else if (command == "e2e" && argc == 2) demo_e2e();
             else if (command == "receiver" && argc == 2) demo_receiver();
+            else if (command == "brake-pressure" && argc == 3) demo_brake_pressure(argv[2]);
+            else if (command == "brake-frame" && argc == 4) demo_brake_frame(argv[2], argv[3]);
+            else if (command == "brake-receiver" && argc == 2) demo_brake_receiver();
+            else if (command == "drive-frame" && argc == 4) demo_drive_frame(argv[2], argv[3]);
+            else if (command == "drive-feedback" && argc == 2) demo_drive_feedback();
             else {
                 usage(std::cerr);
                 return 1;

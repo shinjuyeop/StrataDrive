@@ -1,6 +1,8 @@
 # Fault / diagnostics architecture
 
-Status: M0 계약 **DEFINED**, fault monitor/state machine/DTC runtime **PLANNED**.
+Status: M0 계약 **DEFINED**, system fault/DTC runtime **PLANNED**.
+M1 actuator receiver의 local 검증/timeout은 구현했으며 차량 보호 출력/DTC 통합은 미구현이다.
+[ZON-01](zonal_partition.md)의 Front/Rear 독립 peer/source monitor는 PLANNED / NOT RUN이다.
 
 ```mermaid
 flowchart LR
@@ -23,17 +25,27 @@ Local state와 Central aggregate state의 시각을 구분한다. 통신 단절 
 
 Fault 이름은 논리적 이름이며 numerical DTC mapping은 M9(TBD-08)이다.
 
+[RG-01](../icd/regenerative_braking_design.md)의 유효 회생 한계 0은 ECU 통신 고장이 아니다.
+Capability 제한과 actual stream 상실의 증거를 분리하며 기존 critical loss 정책을 유지한다.
+
 | Fault name / scenario | Primary detector | 독립 관측 / 최소 반응 |
 | --- | --- | --- |
 | STEERING_ECU_LOSS / F01 | Zone steering actual feedback age | Host Plant Adapter per-actuator age; unavailable, FAIL_SAFE, run gate |
 | CAN_CRC_ERROR / F02 | 수신 vECU, feedback의 경우 Zone | reject + valid RX age 미갱신; 오류 반복으로 timeout 가능 |
 | ALIVE_COUNTER_ERROR / F02 | 수신 vECU/Zone의 sequence 검사 | duplicate/out-of-order/잘못된 epoch reject; 정상 heartbeat로 대체 불가 |
 | COMMAND_STALE / F02 | 수신 vECU/Zone의 source freshness 검사 | reject, timeout 보호는 계속 진행 |
-| DRIVE_COMMAND_LOSS / F03 | Drive vECU local valid-command age | zero-propulsive target, local FAIL_SAFE, actual response 별도 기록 |
+| DRIVE_COMMAND_LOSS / F03 | Drive vECU local valid-command age | 이전 양·음수 demand 무효화, zero motor torque target, local FAIL_SAFE, actual response 별도 기록 |
 | CENTRAL_COMM_LOSS / F04 | Zone valid VehicleCommand age | local FAIL_SAFE/보호 allocation; Central diagnostics 의존 없음 |
 | STEERING_COMMAND_LOSS | Steering vECU local command age | local FAIL_SAFE; hold/rate/가용성 정책 M2에서 고정 |
 | BRAKE_COMMAND_LOSS | Brake vECU local command age | local FAIL_SAFE; brake 초기/유지/감압 정책 M2에서 고정 |
 | BRAKE_ECU_LOSS / DRIVE_ECU_LOSS | Zone의 각 actual feedback age | Host도 per-actuator stream 확인; brake 상실에서 정지 보장 금지 |
+| REGEN_CAPABILITY_INVALID / RG-01 | Drive input validation + Zone capability age | 새 회생 demand 0, 제한 원인/마찰제동 부족분 기록; critical actual loss와 별도; state/envelope TBD-06 |
+| BMS_STATUS_LOSS / BMS_CONSTRAINT_STALE / EV-F01 | Zone BMS status age + Drive forwarded-constraint dependency check | critical loss <=100 ms 검출, 새 normal motor demand 금지와 고장별 local reaction; valid 0≠unknown; TBD-12/14 |
+| POWER_NOT_READY / POWER_RESPONSE_FAULT / EV-F02 | BMS power actual monitor + Zone vehicle management | READY/normal permission 금지 또는 고장별 보호; precharge/contactor 요청≠actual; recovery INIT 재검증, TBD-12 |
+| BATTERY_SENSOR_INVALID / EV-F02 | BMS local sensor validation | 해당 state/limit validity 제거와 local protection; 센서 model/threshold/dwell TBD-13, 미구현 fault는 검증 주장 금지 |
+| FRONT_ZONE_LOSS / ZON-F01 | Rear valid peer-command age; Front Leaf의 command timeout | local 보호/FAIL_SAFE, old demand 무효; Front coordinator failover 없음; Host per-source gate |
+| REAR_ZONE_LOSS / ZON-F01 | Front peer 및 Drive/BMS 원천별 age; Rear Leaf의 command timeout | 정상 배분 중단/local 보호, 다른 Zone heartbeat로 정상화 금지; physical reaction TBD-03/12/15 |
+| PEER_SOURCE_STALE / PEER_SESSION_INVALID / ZON-F01/02 | 각 수신 Zone의 envelope와 per-source/dependency/session 검사 | cached source·parent expiry 보존, reject는 valid age 미갱신, trusted INIT/rejoin 및 power/health gate |
 | ACTUAL_FEEDBACK_STALE | Host Plant Adapter 원천 sequence/time/validity | bridge heartbeat와 독립 검출, run gate; cached actual을 fresh로 처리 금지 |
 | STEERING_TRACKING_FAULT / BRAKE_RESPONSE_FAULT | 해당 vECU demand↔actual residual | threshold/dwell/model이 정해진 후 검증(M2); Zone의 availability에 전달 |
 | TASK_OVERRUN | 각 component deadline monitor/watchdog | task 자체 정지 감시 독립성 M3 결정; miss와 local state 기록 |
