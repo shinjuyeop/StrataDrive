@@ -1,5 +1,7 @@
 #include "steering_angle_codec.hpp"
 #include "steering_receiver.hpp"
+#include "steering_actuator.hpp"
+#include "brake_actuator.hpp"
 #include "brake_frame_codec.hpp"
 #include "brake_pressure_codec.hpp"
 #include "brake_receiver.hpp"
@@ -35,7 +37,9 @@ void usage(std::ostream& output) {
            << "  actuator_demo drive-feedback\n"
            << "  actuator_demo bms-value <soc|voltage|current|temperature|power> <value>\n"
            << "  actuator_demo bms-frame <request|power-status|limits|battery|drive-limits|permission> [nominal|zero|invalid|partial]\n"
-           << "  actuator_demo bms-receiver\n";
+           << "  actuator_demo bms-receiver\n"
+           << "  actuator_demo steering-model\n"
+           << "  actuator_demo brake-model\n";
 #ifdef STRATADRIVE_LINUX_SESSION
     output << "  actuator_demo epoch <init|next> <store_directory>\n";
 #endif
@@ -655,6 +659,53 @@ int main(int argc, char** argv) {
             else if (command == "bms-value" && argc == 4) demo_bms_value(parse_bms_value_kind(argv[2]), parse_angle(argv[3]));
             else if (command == "bms-frame" && (argc == 3 || argc == 4)) demo_bms_frame(argv[2], argc == 4 ? argv[3] : "nominal");
             else if (command == "bms-receiver" && argc == 2) demo_bms_receiver();
+            else if (command == "steering-model" && argc == 2) {
+                stratadrive::vecu::SteeringActuator model({-0.5, 0.5, -0.3, 0.3, 0, 1, 50*kMs});
+                if (!model.start_session(1, kStart)) throw std::runtime_error("model session failed");
+                SteeringTxState tx{SteeringFrameKind::Command};
+                for (std::uint32_t step = 1; step <= 40; ++step) {
+                    const auto now = kStart + static_cast<std::uint64_t>(step)*10*kMs;
+                    if (step <= 30) {
+                        SteeringMessage input;
+                        input.angle_rad = 0.2; input.epoch = 1; input.sequence = step-1;
+                        input.source_time_ns = now; input.local_state = SteeringLocalState::Normal;
+                        input.origin = SteeringOrigin::NormalPath;
+                        const auto frame = encode_steering_frame(input, tx);
+                        if (!frame || model.receive(*frame, now).decision != SteeringReceiveDecision::Accepted)
+                            throw std::runtime_error("model input failed");
+                    }
+                    const auto frame = model.tick(now);
+                    const auto actual = frame ? decode_steering_frame(*frame) : std::nullopt;
+                    if (!actual) throw std::runtime_error("model publication failed");
+                    std::cout << "MODEL ms=" << step*10 << " angle_rad=" << *actual->angle_rad
+                              << " causal=" << actual->causal_sequence << " state=" << static_cast<int>(actual->local_state)
+                              << " origin=" << static_cast<int>(actual->origin) << '\n';
+                }
+            }
+            else if (command == "brake-model" && argc == 2) {
+                stratadrive::vecu::BrakeActuator model({2000000, 1500000, 0, 5000000, 10000000, 1000000, 50*kMs});
+                if (!model.start_session(1, kStart)) throw std::runtime_error("brake model session failed");
+                BrakeTxState tx{BrakeFrameKind::Command};
+                for (std::uint32_t step = 1; step <= 90; ++step) {
+                    const auto now = kStart + static_cast<std::uint64_t>(step)*10*kMs;
+                    if (step <= 65) {
+                        BrakeMessage input;
+                        input.pressure_pa = step < 35 ? 2000000 : 0;
+                        input.epoch = 1; input.sequence = step-1; input.source_time_ns = now;
+                        input.local_state = BrakeLocalState::Normal; input.origin = BrakeOrigin::NormalPath;
+                        const auto frame = encode_brake_frame(input, tx);
+                        if (!frame || model.receive(*frame, now).decision != BrakeReceiveDecision::Accepted)
+                            throw std::runtime_error("brake model input failed");
+                    }
+                    const auto frame = model.tick(now);
+                    const auto actual = frame ? decode_brake_frame(*frame) : std::nullopt;
+                    if (!actual) throw std::runtime_error("brake model publication failed");
+                    std::cout << "BRAKE_MODEL ms=" << step*10 << " pressure_pa=" << actual->pressure_pa.value_or(0)
+                              << " valid=" << actual->pressure_pa.has_value() << " causal=" << actual->causal_sequence
+                              << " state=" << static_cast<int>(actual->local_state)
+                              << " origin=" << static_cast<int>(actual->origin) << '\n';
+                }
+            }
 #ifdef STRATADRIVE_LINUX_SESSION
             else if (command == "epoch" && argc == 4) {
                 const std::string action = argv[2];

@@ -12,16 +12,16 @@ BMS/power model, vehicle management와 두 Zone runtime은 **PLANNED / NOT RUN**
 
 배터리 관측, 제어 한계, 전원 실제 상태와 요청/허가를 분리한다. 느린 SOC 표시의 수신
 중단과 주행에 필요한 critical 한계 상실을 같은 timeout으로 처리하지 않는다.
-전원 요청이나 Front의 주행 허가는 actual 컨택터/HV 상태를 대신하지 않는다.
+전원 요청이나 Central vehicle management의 주행 허가는 actual 컨택터/HV 상태를 대신하지 않는다.
 
 | Frame / Interface | CAN ID / P05 Data ID | Producer → Consumer | Bytes / DLC | 논리 주기 |
 | --- | --- | --- | --- | --- |
-| BmsPowerRequest / IF-CAN-BMS | 0x183 / 0x1301 | Front 결정 → Rear → BMS | 48 / 14 | 20 ms / 50 Hz |
-| BmsPowerStatus / IF-CAN-BMS | 0x283 / 0x1302 | BMS → Rear → Front | 64 / 15 | 10 ms / 100 Hz |
-| BmsPowerLimits / IF-CAN-BMS | 0x284 / 0x1303 | BMS → Rear → Front | 48 / 14 | 20 ms / 50 Hz |
-| BmsBatteryState / IF-CAN-BMS | 0x285 / 0x1304 | BMS → Rear → Front | 64 / 15 | 100 ms / 10 Hz |
-| DriveBatteryLimits / IF-CAN-DRIVE-CONSTRAINT | 0x193 / 0x1203 | BMS 원천 → Front 경유 → Rear → Drive | 48 / 14 | 20 ms / 50 Hz |
-| DrivePermission / IF-CAN-DRIVE-CONSTRAINT | 0x194 / 0x1204 | Front 결정 → Rear → Drive | 64 / 15 | 10 ms / 100 Hz |
+| BmsPowerRequest / IF-CAN-BMS | 0x183 / 0x1301 | Central 결정 → Rear → BMS | 48 / 14 | 20 ms / 50 Hz |
+| BmsPowerStatus / IF-CAN-BMS | 0x283 / 0x1302 | BMS → Rear → Central | 64 / 15 | 10 ms / 100 Hz |
+| BmsPowerLimits / IF-CAN-BMS | 0x284 / 0x1303 | BMS → Rear → Central | 48 / 14 | 20 ms / 50 Hz |
+| BmsBatteryState / IF-CAN-BMS | 0x285 / 0x1304 | BMS → Rear → Central | 64 / 15 | 100 ms / 10 Hz |
+| DriveBatteryLimits / IF-CAN-DRIVE-CONSTRAINT | 0x193 / 0x1203 | BMS 원천 → Central 판단 → Rear → Drive | 48 / 14 | 20 ms / 50 Hz |
+| DrivePermission / IF-CAN-DRIVE-CONSTRAINT | 0x194 / 0x1204 | Central 결정 → Rear → Drive | 64 / 15 | 10 ms / 100 Hz |
 
 Standard 11-bit CAN FD, BRS=0/ESI=0이다. SocketCAN length는 48/64이고 DLC code는 14/15다
 ([Linux 길이 변환 표](https://github.com/torvalds/linux/blob/master/drivers/net/can/dev/length.c),
@@ -75,10 +75,10 @@ Motor/inverter 효율, auxiliary load의 몫과 zero-speed 변환은 TBD-13이�
 
 ### BmsPowerRequest: bytes 32..47
 
-32..39 `ExpiresAtNs`, 40..47 `ParentSourceTimeNs`다. Source/Sequence는 **Front 결정**의
-시각/identity, CausalSequence는 upstream Central power request다. Rear는 이 정보를 보존한다.
+32..39 `ExpiresAtNs`, 40..47 `ParentSourceTimeNs`다. Source/Sequence는 **Central vehicle management 결정**의
+시각/identity, CausalSequence는 upstream Central lifecycle request다. Rear는 이 정보를 보존한다.
 Normal Enable은 원래 parent의 유효 기간 안에서만 생성/사용한다. `source < expiry <=
-source+80 ms`를 만족하되 parent deadline보다 늦게 만들지 않는다. Front 재계산/새 CAN
+source+80 ms`를 만족하되 parent deadline보다 늦게 만들지 않는다. Central 재계산/새 CAN
 counter가 parent를 연장하지 못한다. Enable은 INIT에서 power checks를 시작할 수 있지만
 normal torque 허가는 아니다. NoAcceptedInput은 KeepOff만, LocalProtection은 KeepOff/
 Shutdown만 허용한다. Invalid primary는 FFFF, expiry/parent time은 0이다.
@@ -103,7 +103,7 @@ BMS CausalSequence는 **로컬 모델 입력 batch**이며 느린 BmsBatteryStat
 
 DriveBatteryLimits는 원래 BmsPowerLimits의 의미 field, Sequence/Epoch/Source/Input time과
 origin/state/causal identity를 그대로 전달한다. CAN ID/Data ID/CRC와 독립 transport counter만
-바뀐다. Front는 이 한계를 사용해 배분하고 Rear는 검증·전달한다. 별도 BMS→Drive 직접
+바뀐다. Central allocation은 이 한계를 사용해 배분하고 Rear는 검증·전달한다. 별도 BMS→Drive 직접
 application 경로를 만들지 않는다. 더 느린 실제 sensor를 적용하면 dependency age/rate를
 근거와 함께 개정해야 한다.
 
@@ -135,7 +135,7 @@ bit3 charger connected, bit4 power fault다. Validity mask가 0인 bit의 값도
 Unknown을 false/정상으로 해석하지 않는다. Bus voltage invalid는 FFFF/flag 0이다.
 InputTime은 알려진 physical model observations 중 가장 오래된 입력, InputSequence는 그
 model batch다. 모든 actual 항목이 unknown이면 input time/sequence=0이다.
-CausalSequence와 AcceptedRequestSourceTime은 원래 수용한 Front 요청을 가리키며
+CausalSequence와 AcceptedRequestSourceTime은 원래 수용한 Central vehicle management 요청을 가리키며
 NoAcceptedInput이면 둘 다 0이다. 초기 non-driving actual은 normal driving 전에 발행한다.
 
 실제 HV가 준비돼도 contactor/condition/bus 값이 unknown/stale이거나 fault/charging 조건이면
@@ -145,14 +145,14 @@ NoAcceptedInput이면 둘 다 0이다. 초기 non-driving actual은 normal drivi
 ### DrivePermission: bytes 32..63
 
 32..35 PowerStatusSequence, 36..43 PowerStatusSourceTimeNs, 44..51 InputTimeNs,
-52..59 ExpiresAtNs, 60..63 PermissionReserved=0이다. Front 결정의 Source/Sequence와
+52..59 ExpiresAtNs, 60..63 PermissionReserved=0이다. Central vehicle management 결정의 Source/Sequence와
 upstream power request CausalSequence를 보존한다. InputTime은 power/limit/필수 health 등
 결정에 사용한 critical 원천의 가장 오래된 시각이다. `input <= power source <= source <
 expiry`와 parent-bounded deadline을 적용한다. Unknown이면 Inhibit/invalid로 처리한다.
 AllowNormal은 NormalPath + NORMAL 또는 검증된 DEGRADED envelope에서만 허용한다.
 Drive는 이 frame 하나만으로 torque를 적용하지 않으며 fresh torque/양쪽 한계/실제 power/
 session·local health를 함께 검증한다. 실제 Drive HV bus 입력은 **IF-MODEL-DRIVE-POWER**의
-로컬 물리 sensor 경계다. Front permission이나 참조한 PowerStatus identity를 local bus 측정으로
+로컬 물리 sensor 경계다. Central permission이나 참조한 PowerStatus identity를 local bus 측정으로
 대체하지 않는다. BMS→Drive application 직접 우회도 만들지 않는다. 센서 schema/physical
 threshold는 TBD-12/13/14이며 wire 검사 범위 밖이다. Invalid permission의 extension은 모두 0이다.
 
@@ -168,11 +168,11 @@ threshold는 TBD-12/13/14이며 wire 검사 범위 밖이다. Invalid permission
 | Battery 관측 source/group age | <=150 ms; 이를 넘으면 해당 group unknown |
 | Battery 관측 RX unavailable | 300 ms; 비critical 관측 상실이며 정상 critical stream을 대신하지 않음 |
 
-50/70 ms는 20 ms model/limit cadence와 Front/Rear 경유 budget을 구분하기 위한 **후속 측정
+50/70 ms는 20 ms model/limit cadence와 담당 Zone/Central 경유 budget을 구분하기 위한 **후속 측정
 대상 시작값**이다. Age와 local RX timeout을 함께 검사하며 threshold만으로 current sample을
 보장하지 않는다. Invalid/stale/duplicate는 해당 valid age를 갱신하지 않는다. Partial limit/
 power 상태는 진단에 보존하되 필요한 input unavailable은 즉시 normal-use gate를 닫는다.
-Source별 monitor를 peer heartbeat 또는 다른 유효 flag로 reset하지 않는다.
+Source별 monitor를 Zone heartbeat 또는 다른 유효 flag로 reset하지 않는다.
 
 Drive auxiliary receiver는 source age와 oldest capability input age의 config를 분리·시험했다.
 기본값은 양쪽 모두 30 ms이며 EV 연결에서 `max_capability_input_age_ns=70 ms`를 명시할 수 있다.
@@ -184,7 +184,7 @@ Wheel/capability source와 torque actual의 30 ms 정책은 유지한다. 이는
 Local 시험은 trusted Epoch의 같은 Target CLOCK_MONOTONIC domain을 사용한다. Cross-node
 sync/uncertainty, 각 hop의 budget과 coordinator의 parent/model identity 전달은 TBD-04/05/14/15다.
 Clock rollback/critical timeout은 latched, recovery는 explicit trusted INIT다. Startup/rejoin
-coordinator의 실제 peer/vehicle gate, fault-specific actual response와 Drive 통합 gate는 아직 미구현이다.
+coordinator의 실제 Central–Zone/vehicle gate, fault-specific actual response와 Drive 통합 gate는 아직 미구현이다.
 [Local Epoch/queue](../learning/m1_session_queue.md)는 영속 발급·trusted fixture 연결과 실제 overflow를 검사했다.
 
 `BmsReceiver::start_session`에는 외부 trusted Epoch/monitor-enable 시각을 제공한다.

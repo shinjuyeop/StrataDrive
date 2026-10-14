@@ -1,8 +1,8 @@
 # Steering actuator response study
 
 Status: **학습 자료 / 상세 이해 확인 PENDING**. 정상 응답을 설명하기 위한 계산 예제다.
-M2의 actuator model 선정·구현, parameter calibration, fault 검출 기준과 차량 시험은
-**PLANNED / NOT RUN**이다. 예제 수치를 profile/ICD의 TBD 값으로 채택하지 않는다.
+후속 [M2 첫 조향 모델](m2_steering_model.md)은 별도 fixture 설정으로 구현·시험했다.
+이 그래프의 parameter calibration, jam 검출 기준과 차량 시험은 **PLANNED / NOT RUN**이다. 예제 수치를 profile/ICD의 TBD 값으로 채택하지 않는다.
 
 [Interactive graph 열기](steering_response.html): HTML 파일을 로컬 browser로 열면 된다.
 외부 library나 서버 설치 없이 동작한다. 이 자료의 계산은 학습용이며 Host에서 실행하는

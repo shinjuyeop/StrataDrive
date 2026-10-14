@@ -1,5 +1,7 @@
 # ADR-0018: 영속 Epoch 발급과 수신 연속성 오류
 
+현재 배치: [ADR-0021](ADR-0021-central-coordination-and-parallel-zones.md). Epoch owner/배치는 2026-10-14 ADR-0021의 Central session으로 개정하고 library를 central/session으로 이동했다. 아래 zone/session/Front 설명은 당시 배치이며 발급 동작/record/FIFO/시험 결과는 유지한다.
+
 Date: 2026-10-14. Status: **M1 local 구현·검사 / wire 채택·학습자 review PENDING**.
 Owner: project owner. SYS-COM-002/003/004, SYS-SAFE-002와 EV 원천/재시작 계약에 연결한다.
 

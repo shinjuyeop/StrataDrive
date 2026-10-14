@@ -9,7 +9,7 @@ Wire decode는 stateless이며 P05 Counter는 별도 state로 검사한다.
 [Steering 수신부의 수용/trace Sequence/freshness/timeout](../learning/m1_steering_receiver.md)은
 제어 가능한 시계로 Host에서 시험했다. 이어서 [SocketCAN/vCAN 연결](../learning/m1_steering_socketcan.md)의
 독립 TX/RX, bounded dispatch, fault/timeout을 실행했다. 후속 [session/queue](../learning/m1_session_queue.md)에서
-영속 local Epoch 발급과 application/kernel overflow를 검사했다. Actual Front/DDS와 차량 통합은 남아 있다.
+영속 local Epoch 발급과 application/kernel overflow를 검사했다. Actual Central coordinator/Zone DDS와 차량 통합은 남아 있다.
 [Steering angle field 초안](steering_angle_encoding.md)의 C++ codec과 Host 단위 시험을 추가했다.
 Host vCAN에서 Steering application Command/Actual fixture를 송수신했다. Actual dynamics와
 [Brake Command/Actual 초안](brake_frame_draft.md)의 압력 codec·DBC·P05와 vCAN wire 송수신도
@@ -100,8 +100,8 @@ link-layer CRC와 별개이며 application에서 검증한다. 단순 sequence i
 
 M1 local issuer/FIFO의 운영 계약은 [ADR-0018](../adr/ADR-0018-local-session-and-rx-continuity.md)을 따른다.
 Queue capacity 32, ingress/dispatch budget 각 8은 첫 fixture 설정이며 task/bus 부하의 수용은 M2/M3다.
-Final Front는 persistent store를 소유하고 authority를 제공한다. M1은 CLI/stdin을 사용하는
-trusted local bootstrap을 검사했으며 실제 peer/vehicle INIT gate 구현은 M4/M5다.
+Central session은 persistent store를 소유하고 authority를 제공한다. M1은 CLI/stdin을 사용하는
+trusted local bootstrap을 검사했으며 실제 Central–Zone/vehicle INIT gate 구현은 M4/M5다.
 
 Drive의 canonical 보조 feedback은 freshness/range 실패 시 torque와 분리해 무효화한다.
 Critical torque 검증이 통과하면 해당 stream의 valid-RX는 갱신할 수 있지만 capability의
@@ -121,4 +121,4 @@ VERIFIED 처리하지 않는다. M1 acceptance는 DBC golden vectors와 vCAN app
 Drive/BMS/Drive constraint는 Rear CAN에 연결한다. 기존 six-frame wire 의미는 유지한다.
 현재 단일 vCAN fixture PASS가 두 bus/Zone routing 증거는 아니다. Bus/interface 이름은
 runtime config로 분리하고 bus/producer identity를 trace에 포함한다. Peer와 원천의 age를
-재직렬화로 연장하지 않는다. BMS 추가 wire는 TBD-14, peer 계약은 TBD-15다.
+재직렬화로 연장하지 않는다. BMS 추가 wire는 TBD-14, Central–Zone 계약은 TBD-15다.

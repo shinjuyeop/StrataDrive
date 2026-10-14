@@ -1,6 +1,8 @@
 #pragma once
 
 #include "steering_receiver.hpp"
+#include "steering_actuator.hpp"
+#include "brake_actuator.hpp"
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
 #include "bms_receiver.hpp"
@@ -17,6 +19,12 @@
 
 namespace stratadrive::fixture {
 struct TrustedSession { std::uint32_t epoch; std::uint64_t enable_ns; };
+inline vecu::SteeringActuatorConfig steering_model_config() {
+    return {-0.5, 0.5, -0.3, 0.3, 0, 1, 50000000}; // SIL fixture, not OEM calibration
+}
+inline vecu::BrakeActuatorConfig brake_model_config() {
+    return {2000000, 1500000, 0, 5000000, 10000000, 1000000, 50000000};
+}
 class RxPump {
 public:
     RxPump(socketcan::Endpoint& endpoint, std::string mode) : endpoint_(endpoint), mode_(std::move(mode)) {}

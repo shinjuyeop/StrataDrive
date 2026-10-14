@@ -1,7 +1,7 @@
 # Safety requirements and behavior contract
 
 Status: **DEFINED / Reference Baseline v0.1**; runtime **PLANNED / NOT RUN**.
-RG-01 후속 설계를 반영한다. SYS-SAFE-004/005는 v0.2이며 나머지 기존 요구는 v0.1이다.
+RG-01 후속 설계를 반영한다. SYS-SAFE-004는 v0.2, SYS-SAFE-005는 Central allocation owner를 반영한 v0.5이며 나머지 기존 요구는 v0.1이다.
 SYS-SAFE-001/002/003/004/005와 SYS-CTRL-002를 구체화한다. 학습용 SIL 보호 계약이며
 ISO 26262 준수, ASIL 할당, 인증, 실차 안전성이나 QNX/AUTOSAR 사용을 주장하지 않는다.
 
@@ -11,9 +11,9 @@ ISO 26262 준수, ASIL 할당, 인증, 실차 안전성이나 QNX/AUTOSAR 사용
 [EV-01](../icd/ev_power_bms_design.md)의 SYS-EV-001/004와 SYS-COM-003/004 v0.3을 추가로
 적용한다. BMS/power/permission의 critical 목록·freshness·고장별 physical reaction은
 TBD-12/14이며 runtime/TC-EV는 NOT RUN이다. 기존 M0 severity/recovery/Host gate를 유지한다.
-[ZON-01](../architecture/zonal_partition.md)에서 Front/Rear peer loss는 독립 monitor/local protection을
-적용한다. Front 단일 coordinator 정지를 Rear heartbeat로 정상화하지 않으며 failover는 범위 밖이다.
-상위/peer acknowledgement 없이 Leaf도 보호한다. TC-ZON-002/003은 NOT RUN이다.
+[ZON-01](../architecture/zonal_partition.md)에서 Central–Front/Rear 독립 link loss는 독립 monitor/local protection을
+적용한다. Central 단일 coordinator 정지를 Zone heartbeat로 정상화하지 않으며 failover는 범위 밖이다.
+상위 acknowledgement 없이 Leaf도 보호한다. TC-ZON-002/003은 NOT RUN이다.
 
 ## Responsibility and startup
 
@@ -41,14 +41,14 @@ Sensor/state 초기 수집과 vECU 초기 actual 발행은 NORMAL command의 도
 | F01 Steering feedback loss | Zone의 steering last-valid age → FAIL_SAFE; Host도 각 actual stream 감시 | steering unavailable 표시, normal route 수행 중단, 가용 Drive에 zero motor torque target 요청; raw steering command를 feedback으로 대체 금지 | brake/steering 물리 동작과 반응 budget TBD-03/06 |
 | F02 Invalid/stale actuator command | 수신 vECU validation; Zone도 DDS command를 독립 검사 | reject, 유효 snapshot/last-valid RX 보존; timeout 전 마지막 valid demand는 age 한계 안에서만 사용, timeout 후 local FAIL_SAFE | CRC/sequence/freshness/재동기화 encoding TBD-01 |
 | F03 Drive command loss | Drive vECU 자체 timeout → FAIL_SAFE | 이전 양수·음수 demand 무효화, local zero motor torque target 선택; actual torque는 model response로 feedback; 이전 구동/회생 demand 무기한 유지 금지 | 양·음수 torque의 0 접근 ramp/기한 TBD-03, M2 test 전 결정 |
-| F04 Central/Zone command loss | Zone local timeout → FAIL_SAFE | Central diagnostics 응답 없이 normal allocation 중단, actuator에 local protection command 전달; 이 경로도 끊기면 각 vECU timeout 동작 | allocation/brake conflict policy TBD-06; local mechanism M2/M4 |
+| F04 Central/Zone command loss | Zone local timeout → FAIL_SAFE | Central diagnostics 응답 없이 normal dispatch 중단, 담당 actuator의 local protection 요청/수행; 이 경로도 끊기면 각 vECU timeout 동작 | allocation/brake conflict policy TBD-06; local mechanism M2/M4 |
 | Brake/Drive feedback loss | Zone의 actuator별 age → FAIL_SAFE; Host 독립 감시 | 가용성 제거, normal driving 중단; brake unavailable에서 braking stop 보장 금지 | actuator별 reaction matrix TBD-03/06 |
-| Valid regen capability 감소/0; actual feedback 유효 | Drive local limit + Zone allocation | 회생 제한과 마찰제동 재배분, 실제 부족분 기록; capability 0만으로 ECU loss로 취급하지 않음 | 전환/압력 한계/저속 hold TBD-03/06 |
-| Regen capability invalid/stale; torque actual 유효 | Zone capability validation | 새 회생 demand 0, 마찰제동 가용성/요구 미충족 재검증; 허용 envelope 밖은 local protection | capability age와 제한 envelope TBD-01/02/06 |
-| EV-01 HV not ready / missing required health / charging connected | Zone vehicle management + Drive local permission/input validation | normal motor demand 금지, 전원/주행 준비 조건 재검증; READY와 NORMAL 구분 | sequence/handshake와 gate TBD-12/14 |
+| Valid regen capability 감소/0; actual feedback 유효 | Drive local limit + Central allocation | 회생 제한과 마찰제동 재배분, 실제 부족분 기록; capability 0만으로 ECU loss로 취급하지 않음 | 전환/압력 한계/저속 hold TBD-03/06 |
+| Regen capability invalid/stale; torque actual 유효 | Central allocation + Zone local capability validation | 새 회생 demand 0, 마찰제동 가용성/요구 미충족 재검증; 허용 envelope 밖은 local protection | capability age와 제한 envelope TBD-01/02/06 |
+| EV-01 HV not ready / missing required health / charging connected | Central vehicle management + Drive local permission/input validation | normal motor demand 금지, 전원/주행 준비 조건 재검증; READY와 NORMAL 구분 | sequence/handshake와 gate TBD-12/14 |
 | EV-01 BMS constraint unknown/stale / critical status loss | BMS/Zone/Drive 각 로컬 input monitor | 새 normal motor demand 금지, <=100 ms critical loss 검출, 고장별 local reaction; cached 입력 재발행으로 복구 금지 | charge/discharge cap/물리 반응 및 INIT 복구 TBD-12/13/14 |
-| EV-01 power/sensor fault | BMS local protection + Zone vehicle management | fault-specific torque/power 대응, actual/evidence 기록; 모든 fault에서 즉시 컨택터 open을 가정하지 않음 | threshold/dwell/LV/interlock/response matrix TBD-12/13 |
-| ZON-01 peer command/status loss / Zone 정지 | 수신 Front/Rear의 peer 및 per-source monitor + 각 Leaf local timeout | critical loss <=100 ms, FAIL_SAFE/정상 배분 중단·고장별 local protection; cached source/상위 expiry 보존, 명시적 INIT/rejoin | protocol/budget TBD-15, 물리 반응 TBD-03/12 |
+| EV-01 power/sensor fault | BMS local protection + Central vehicle management | fault-specific torque/power 대응, actual/evidence 기록; 모든 fault에서 즉시 컨택터 open을 가정하지 않음 | threshold/dwell/LV/interlock/response matrix TBD-12/13 |
+| ZON-01 Central–Zone command/status loss / Zone 정지 | Central와 해당 Zone의 방향별/per-source monitor + 각 Leaf local timeout | critical loss <=100 ms, FAIL_SAFE/정상 배분 중단·고장별 local protection; cached source/상위 expiry 보존, 명시적 INIT/rejoin | protocol/budget TBD-15, 물리 반응 TBD-03/12 |
 | Any stale/invalid/missing actual feedback at Plant Adapter | Host local validation/age monitor → FAIL_SAFE run gate | 마지막 actual을 새 sample처럼 재발행 금지, 명령 대체 금지; 유효 actual set 없는 다음 plant apply/tick을 차단 | mapping/skew 검증 TBD-02/07 |
 | Optional feature unavailable, critical paths healthy | 해당 monitor → DEGRADED | 사전에 검증된 제한 envelope 안에서만 기능 축소 허용 | envelope TBD-06/10; M0에서 critical fault의 계속 주행 허용 없음 |
 | AI timeout / invalid output | Central Safety Supervisor | 유효 Classical Planner fallback; fallback도 무효면 FAIL_SAFE | 전환/연속성/threshold TBD-10, M11 |

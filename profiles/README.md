@@ -19,10 +19,10 @@ Drive timeout은 이전 양·음수 demand를 무효화하는 zero motor torque 
 Thor/Orin 공통 reference에 적용할 설계이며 runtime loader/회생 구현/검증 완료가 아니다.
 
 [EV-01](../docs/icd/ev_power_bms_design.md)을 v0.3 requirement extension으로 추가했다.
-[ZON-01](../docs/adr/ADR-0015-front-rear-zones.md)은 v0.4 requirement extension이다.
+[ZON-01 v0.5](../docs/adr/ADR-0021-central-coordination-and-parallel-zones.md)은 v0.5 requirement revision이다.
 `architecture`는 최종 Front/Rear 두 Zone과 단일 Zone component 검증 단계를 구분한다.
-후륜 구동 packaging에서 Front가 차량 관리·배분·피드백 집계를 소유하고 Rear는 Drive/BMS를 연결한다.
-Cross-zone schema/QoS/clock/rejoin은 TBD-15이며 runtime switch나 배포 구현이 아니다.
+후륜 구동 packaging에서 Central이 차량 관리·배분·session·피드백 집계를 소유하고 Rear는 Drive/BMS를 연결한다.
+Central–Zone schema/QoS/clock/rejoin은 TBD-15이며 runtime switch나 배포 구현이 아니다.
 `ev_power_bms`의 lifecycle·부호·단위는 설계 의미이며 parameter는 TBD-12/13/14다.
 2026-10-14 [BMS wire 초안](../docs/icd/bms_frame_draft.md)에서 BMS control/limit 50 Hz,
 power actual/permission 100 Hz, battery 관측 10 Hz를 제안했다. YAML도 이 논리 설계 값을 담는다.
@@ -35,7 +35,15 @@ Trusted coordinator/startup/cross-node budget은 TBD다. 로컬 모델의 셀 �
 
 `m1_local_can_fixture`는 [영속 Epoch/queue 기술 검사](../docs/learning/m1_session_queue.md)의 설정이다.
 Capacity 32/ingress·dispatch 8/polling sleep 1 ms는 local fixture 값이다. 운영 store 경로와
-실제 Front/DDS INIT protocol은 후속이며 이 YAML이 runtime loader나 Target timing 보장은 아니다.
+실제 Central coordinator/Zone DDS INIT protocol은 후속이며 이 YAML이 runtime loader나 Target timing 보장은 아니다.
+
+`m2_steering_fixture`는 [첫 조향 응답 모델](../docs/learning/m2_steering_model.md)의 시험 설정이다.
+Command/model 각도 범위, rate/delay, control gap과 source-loss hold를 기록한다.
+C++ fixture와 값이 일치하지만 YAML loader는 없으며 OEM calibration은 TBD-02/03이다.
+
+`m2_brake_fixture`는 [첫 Brake 압력 모델](../docs/learning/m2_brake_model.md)의 설정이다.
+정상 delay/rise/fall과 물리 한계, loss 시 max(actual, floor) ramp를 기록한다.
+차량 안전 제동 calibration/ABS/pressure→wheel torque는 TBD-02/03/06의 후속 작업이다.
 
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
 stack, model/input settings, scenario/seed, power/thermal 및 측정 조건을 기록한다.

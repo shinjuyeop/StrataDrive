@@ -1,5 +1,7 @@
 # ADR-0015: Front/Rear 두 논리 Zone
 
+현재 배치: [ADR-0021](ADR-0021-central-coordination-and-parallel-zones.md). **부분 SUPERSEDED (2026-10-14):** Front의 차량 전체 조정·session·집계 및 Front↔Rear application 경로는 ADR-0021로 대체한다. 두 Zone/담당 Leaf/원천 보존/local 보호는 유지하며 아래 v0.4 내용은 당시 결정 기록이다.
+
 Date: 2026-10-13. Status: **ZON-01 포함 범위·책임 배치 ACCEPTED / 상세 protocol 초안 / runtime PLANNED / 시험 NOT RUN**.
 Owner: 학습자(project owner). 근거: 두 Zone 설계와 단일 Zone 동작 확인 후 확장하자는
 제안에 대한 사용자의 수용 및 문서 정리·검증·push 요청.

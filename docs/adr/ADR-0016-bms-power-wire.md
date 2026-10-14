@@ -1,5 +1,7 @@
 # ADR-0016: BMS 상태·Power·Drive constraint의 M1 wire 초안
 
+현재 배치: [ADR-0021](ADR-0021-central-coordination-and-parallel-zones.md). Producer/vehicle management·배분과 상위 routing 배치는 2026-10-14 ADR-0021로 개정한다. CAN wire/scaling/typed parent/expiry 초안과 당시 시험 결과는 유지한다.
+
 Date: 2026-10-14. Status: **범위 EV-01 / wire·timing PROPOSED / Host DBC·P05 부분 검사 / 학습자 review PENDING**.
 Owner: 학습자(project owner). 기존 EV-01/ZON-01과 BMS 규격부터 재개하는 작업 순서를 따른다.
 DBC parser/vector 검사와 실제 C++ EV receiver/runtime 채택을 구분한다.

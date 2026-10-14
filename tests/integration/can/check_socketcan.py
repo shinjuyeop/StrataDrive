@@ -461,12 +461,124 @@ def run_case(build, log_dir, kind, scenario, repetition, epoch_store):
         path.write_text("\n".join(name + ":\n" + data.decode(errors="replace") for name, data in output.items()))
 
 
+def run_model_case(build, log_dir, scenario, epoch_store, repetition, domain="steering"):
+    brake = domain == "brake"
+    value_key = "pressure_pa" if brake else "angle_rad"
+    history_key = "history_pressure_pa" if brake else "history_angle_rad"
+    maximum = 1500000 if brake else 0.3
+    quantum = 1000 if brake else 0.0001
+    rise_rate = 5000000 if brake else 1
+    fall_rate = 10000000 if brake else 1
+    epoch = issue_epoch(build, epoch_store)
+    processes = {}
+    output = {key: bytearray() for key in ("rx", "rx_err", "tx", "tx_err", "model", "model_err")}
+    try:
+        commands = {
+            "rx": [str(build / "actuator_socketcan_rx"), INTERFACE, "brake-actual" if brake else "actual", str(epoch), "1100" if brake else "850"],
+            "model": [str(build / "actuator_socketcan_rx"), INTERFACE, "brake-cmd" if brake else "cmd", str(epoch), "1000" if brake else "750", "model"],
+            "tx": [str(build / "actuator_socketcan_tx"), INTERFACE, "brake-cmd" if brake else "cmd", str(epoch), scenario],
+        }
+        for role, command in commands.items():
+            processes[role] = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                                stderr=subprocess.PIPE, bufsize=0)
+            prefix = "TX_READY" if role == "tx" else "RX_READY"
+            output[role].extend((ready(processes[role], prefix) + "\n").encode())
+        for role in ("rx", "model"):
+            start(processes[role])
+            output[role].extend((ready(processes[role], "SESSION ") + "\n").encode())
+        start(processes["tx"])
+        collect(processes, output)
+        traces = {key: data.decode() for key, data in output.items()}
+        ticks = [fields(line) for line in traces["model"].splitlines() if line.startswith("MODEL ")]
+        commands = [fields(line) for line in traces["tx"].splitlines() if line.startswith("MODEL_TX ")]
+        inputs = [fields(line) for line in traces["model"].splitlines() if line.startswith("MODEL_RX ")]
+        feedback = [fields(line) for line in traces["rx"].splitlines() if line.startswith("RX ")]
+        require(len(ticks) >= 50 and commands and inputs and feedback, "model flow incomplete")
+        require(all(item["valid"] == "1" for item in ticks), "modeled Actual unexpectedly unavailable")
+        require(all(item["decision"] == "ACCEPTED" for item in feedback), "Actual rejected across vCAN")
+        require(len(feedback) == len(ticks), "published Actual lost")
+        require([int(item["seq"]) for item in ticks] == list(range(len(ticks))), "Actual sequence gap")
+        for tick, received in zip(ticks, feedback):
+            require(received["last_source_ns"] == tick["at_ns"] and received["last_seq"] == tick["seq"],
+                    "Actual source identity changed across vCAN")
+            require(all(received[key] == tick[key] for key in ("state", "origin", "causal")),
+                    "Actual protection/causal metadata changed")
+            require(abs(float(received[history_key]) - float(tick[value_key])) <= quantum/100,
+                    "Actual is a command echo or changed on transport")
+        moving = [item for item in ticks if abs(float(item[value_key])) > quantum/2]
+        require(moving and int(moving[0]["at_ns"]) - int(inputs[0]["at_ns"]) >= 50_000_000,
+                "physical delay skipped")
+        for previous, current in zip(ticks, ticks[1:]):
+            elapsed = (int(current["at_ns"]) - int(previous["at_ns"]))/1e9
+            require(elapsed > 0 and abs(float(current[value_key])) <= maximum + quantum/2, "clock/physical limit failed")
+            difference = float(current[value_key]) - float(previous[value_key])
+            rate = rise_rate if difference >= 0 else fall_rate
+            require(abs(difference) <= rate*elapsed + quantum*1.01,
+                    "rate limit exceeded")
+        normal = [item for item in ticks if item["state"] == "1"]
+        protected = [item for item in ticks if item["state"] == "3"]
+        require(normal and protected and all(item["origin"] == "2" for item in protected), "loss protection missing")
+        if brake:
+            target = max(float(protected[0][value_key]), 1000000)
+            require(abs(float(protected[-1][value_key]) - target) <= quantum/2, "protective pressure floor not reached")
+            require(all(float(item[value_key]) <= target + quantum/2 for item in protected), "protective pressure overshot")
+            require(all(float(current[value_key]) >= float(previous[value_key]) for previous, current in zip(protected, protected[1:])),
+                    "loss protection released pressure")
+        else:
+            require(all(item[value_key] == protected[0][value_key] for item in protected), "held angle changed")
+        first_protection = ticks.index(protected[0])
+        require(all(item["state"] == "3" for item in ticks[first_protection:]), "late traffic healed model fault")
+        require(all(item["fault"] == "1" for item in protected), "unexpected scheduling/continuity fault")
+        accepted = [item for item in inputs if item["decision"] == "ACCEPTED"]
+        causal_source = next((int(item["at_ns"]) for item in commands if item["seq"] == protected[0]["causal"]), None)
+        require(accepted and causal_source is not None and
+                30_000_000 < int(protected[0]["at_ns"]) - causal_source <= 50_000_000,
+                "source-expiry control response missed its fixture budget")
+        if scenario == "model-normal":
+            require(abs(max(float(item[value_key]) for item in normal) - maximum) <= quantum/2, "physical saturation not reached")
+            if brake:
+                require(float(normal[-1][value_key]) == 0 and float(protected[0][value_key]) == 0,
+                        "valid zero did not release pressure before communication loss")
+            require(len(accepted) == len(commands), "normal command rejected")
+        else:
+            require(inputs[-1]["decision"] == "MODE_REJECTED", "late command bypassed latched protection")
+            if scenario == "model-high-loss":
+                require(brake and float(protected[0][value_key]) == maximum, "high pressure was reduced on loss")
+            else:
+                require(0 < float(protected[0][value_key]) < maximum, "loss did not interrupt movement")
+            expected_causal = "45" if scenario == "model-high-loss" else "15"
+            require(protected[0]["causal"] == protected[-1]["causal"] == expected_causal, "last accepted command lost")
+    finally:
+        for role, process in processes.items():
+            if process.poll() is None:
+                process.kill()
+            process.wait(timeout=1)
+            for stream, key in ((process.stdout, role), (process.stderr, role + "_err")):
+                if stream and not stream.closed:
+                    output[key].extend(stream.read(2_000_000))
+            for pipe in (process.stdin, process.stdout, process.stderr):
+                if pipe and not pipe.closed:
+                    pipe.close()
+        (log_dir / f"{domain}-{scenario}-{repetition}.log").write_text(
+            "\n".join(role + ":\n" + data.decode(errors="replace") for role, data in output.items()))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build-dir", type=Path, default=Path("build/m1-angle"))
     parser.add_argument("--repetitions", type=int, default=1)
-    parser.add_argument("--family", choices=("all", "actuator", "ev"), default="all")
+    parser.add_argument("--family", choices=("all", "actuator", "ev", "model"), default="all")
+    parser.add_argument("--model", choices=("all", "steering", "brake"), default="all")
     args = parser.parse_args()
+    has_actuator = args.family in ("all", "actuator")
+    has_ev = args.family in ("all", "ev")
+    has_model = args.family in ("all", "model")
+    model_cases = []
+    if has_model:
+        for domain in ("steering", "brake"):
+            if args.model in ("all", domain):
+                scenarios = ("model-normal", "model-loss", "model-high-loss") if domain == "brake" else ("model-normal", "model-loss")
+                model_cases += [(domain, scenario) for scenario in scenarios]
     build = args.build_dir.resolve()
     require(1 <= args.repetitions <= 20, "repetitions must be 1..20")
     for role in ("tx", "rx"):
@@ -485,39 +597,42 @@ def main():
         created = True
         subprocess.run(["ip", "link", "set", "dev", INTERFACE, "mtu", "72", "up"], check=True)
         for repetition in range(1, args.repetitions + 1):
-            for kind in (() if args.family == "ev" else ("cmd", "actual", "brake-cmd", "brake-actual", "drive-cmd", "drive-actual")):
+            for kind in (("cmd", "actual", "brake-cmd", "brake-actual", "drive-cmd", "drive-actual") if has_actuator else ()):
                 for scenario in ("normal", "faults", "silent", "flood"):
                     elapsed = run_case(build, log_dir, kind, scenario, repetition, epoch_store)
                     observed.append(elapsed)
                     print(f"PASS {kind}/{scenario} #{repetition}: timeout={elapsed:.3f} ms", flush=True)
-            if args.family != "ev":
+            if has_actuator:
                 elapsed = run_case(build, log_dir, "drive-actual", "feedback", repetition, epoch_store)
                 observed.append(elapsed)
                 print(f"PASS drive-actual/feedback #{repetition}: timeout={elapsed:.3f} ms", flush=True)
-            for kind in (() if args.family == "ev" else ("brake-cmd", "brake-actual")):
+            for kind in (("brake-cmd", "brake-actual") if has_actuator else ()):
                 run_case(build, log_dir, kind, "wire", repetition, epoch_store)
                 print(f"PASS {kind}/wire #{repetition}: 8 frames; wire/E2E only", flush=True)
-            if args.family != "actuator":
+            if has_ev:
                 ev_cases = [(kind, scenario) for kind in EV_STREAMS for scenario in ("normal", "faults", "silent", "flood")] + EV_EXTRA
                 for kind, scenario in ev_cases:
                     elapsed = run_case(build, log_dir, kind, scenario, repetition, epoch_store)
                     print(f"PASS {kind}/{scenario} #{repetition}: timeout={elapsed:.3f} ms", flush=True)
-            streams = (("cmd", "actual", "brake-cmd", "brake-actual", "drive-cmd", "drive-actual") if args.family != "ev" else ())
-            streams += tuple(EV_STREAMS) if args.family != "actuator" else ()
+            streams = (("cmd", "actual", "brake-cmd", "brake-actual", "drive-cmd", "drive-actual") if has_actuator else ())
+            streams += tuple(EV_STREAMS) if has_ev else ()
             for kind in streams:
                 for scenario in ("app-overflow", "kernel-overflow"):
                     run_case(build, log_dir, kind, scenario, repetition, epoch_store)
                     print(f"PASS {kind}/{scenario} #{repetition}: continuity latched", flush=True)
-            restart_streams = (("cmd",) if args.family != "ev" else ()) + (("drive-permission",) if args.family != "actuator" else ())
+            restart_streams = (("cmd",) if has_actuator else ()) + (("drive-permission",) if has_ev else ())
             for kind in restart_streams:
                 run_case(build, log_dir, kind, "restart", repetition, epoch_store)
                 print(f"PASS {kind}/restart #{repetition}: durable Epoch, old counter 200 rejected", flush=True)
+            for domain, scenario in model_cases:
+                run_model_case(build, log_dir, scenario, epoch_store, repetition, domain)
+                print(f"PASS {domain}/{scenario} #{repetition}: command -> dynamics -> Actual", flush=True)
     finally:
         if created:
             subprocess.run(["ip", "link", "delete", "dev", INTERFACE], check=True)
     ev_count = len(EV_STREAMS)*4 + len(EV_EXTRA)
-    count = (27 if args.family == "actuator" else ev_count if args.family == "ev" else 27+ev_count)*args.repetitions + (12 if args.family != "all" else 24)*args.repetitions + (2 if args.family == "all" else 1)*args.repetitions
-    print(f"PASS {count} cases (actuator 27 / EV {ev_count} / queue 24 / restart 2 per full repetition)")
+    count = ((40 if has_actuator else 0) + (49 if has_ev else 0) + len(model_cases))*args.repetitions
+    print(f"PASS {count} cases (M1 actuator 40 / EV {ev_count + 13} / M2 steering 2 + brake 3 per full repetition)")
     if observed:
         print(f"Actuator application timeout {min(observed):.3f}..{max(observed):.3f} ms")
     print(f"Epoch store: {epoch_store}; each grant persisted by an independent issuer process")

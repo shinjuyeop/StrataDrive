@@ -4,22 +4,25 @@
 
 ## Current Status
 
-**M0 — BASELINED / M1 — TECHNICAL CHECKS PASS · REVIEW PENDING**. [M0 종료 검토](docs/m0_baseline.md)의 15개 문서 항목을
+**M0 — BASELINED / M1 — TECHNICAL CHECKS PASS · REVIEW PENDING / M2 — IN PROGRESS**. [M0 종료 검토](docs/m0_baseline.md)의 15개 문서 항목을
 통과했고, Steering/Brake/Drive의 **Command·Actual 6개 CAN FD frame**을 Host에서 구현했다.
 DBC, AUTOSAR R25-11 E2E Profile 5 Protect/Check, application receiver와 SocketCAN을 연결했다.
-Normal·ASan/UBSan 각각 **unit 143개 PASS**다(2026-10-14 session/queue 포함).
-vCAN은 기존 63 + overflow 24 + restart 2, 총 **89 case PASS**이며 DBC·독립 CRC 교차 검증도 통과했다.
+M1 normal·ASan/UBSan 각각 **unit 143개 / vCAN 89개 PASS**다.
+M2 조향 13개·Brake 16개 unit과 model vCAN 5개를 더한 현재 결과는 각각 **unit 172개 / vCAN 94개 PASS**다.
+DBC·독립 CRC 교차 검증도 통과했다.
 실행 흐름과 상세 이력은 [학습 안내](docs/learning/README.md)에 있다.
 
 M1의 [영속 Epoch 발급·bounded queue·overflow/restart 검사](docs/learning/m1_session_queue.md)를 추가했다.
 Wire baseline 채택과 학습자 설명·직접 재현은 PENDING이다. 이 결과는 actuator dynamics나 차량 closed-loop 검증이 아니다.
-vECU 응답 모델, Zone/DDS, CARLA, control/AI/deployment runtime과 기존 차량 TC는 **PLANNED / NOT RUN**이다.
+M2의 첫 조향·Brake 압력 응답 모델은 Host functional SIL에서 부분 구현했다. Drive/Battery/BMS/Power 모델,
+Zone/DDS, CARLA, control/AI/deployment runtime과 기존 차량 TC는 **PLANNED / NOT RUN**이다.
 
 [RG-01](docs/icd/regenerative_braking_design.md)은 회생·마찰 배분을,
 [EV-01](docs/icd/ev_power_bms_design.md)은 Battery/BMS·전원 lifecycle·차량 관리를 포함한다.
 [ZON-01](docs/adr/ADR-0015-front-rear-zones.md)로 최종 Reference의 **Front/Rear 두 논리 Zone**을
-채택했다. Front는 차량 전체 관리·배분과 Steering/Brake, Rear는 Drive/BMS 연결을 맡는다.
-피드백은 담당 Zone을 거쳐 Front에서 집계한다. 기존 Central–Zone–Leaf 계층을 유지하며,
+채택했다. [ADR-0021](docs/adr/ADR-0021-central-coordination-and-parallel-zones.md)로 차량 전체 관리·배분·session·
+피드백 집계를 Central의 별도 component로 옮겼다. Front는 Steering/Brake, Rear는 Drive/BMS를 맡고
+각 Zone이 Central과 독립 통신한다. 피드백은 담당 Zone을 거쳐 Central에서 집계한다. 기존 Central–Zone–Leaf 계층을 유지하며,
 단일 Zone 검증 후 M4/M5에 분리한다. 두 Zone runtime은 아직 미구현이다.
 
 2026-10-14 [BMS wire 초안](docs/icd/bms_frame_draft.md)과 EV schema 1의 **6개 DBC frame**을
@@ -30,7 +33,10 @@ Drive 보조 입력도 source age와 capability dependency age를 분리했고 �
 EV 6개 frame도 기존 TX/RX/runner에 연결했다. 독립 trusted session/parent fixture와
 부분 상실·캐시·만료·명시적 rejoin, BMS limit 중계의 원천 보존을 local vCAN에서 검사했다.
 Local session issuer를 trusted INIT fixture에 연결했고 이전 Epoch의 P05 state 오염도 막았다.
-**다음 구현은 M2 실제 응답·Battery/BMS/power 모델**이다. 실제 Front coordinator/DDS는 M4/M5 범위다.
+[M2 첫 조향 모델](docs/learning/m2_steering_model.md)의 delay/rate/angle limit과 source-loss hold를
+기존 Command TX → model → Actual RX vCAN에 연결했다. [Brake 압력 모델](docs/learning/m2_brake_model.md)의
+가압/감압·release·local protection도 같은 loop에 연결했다. 다음은 Drive 응답과 Battery/BMS/Power다.
+실제 Central coordinator/Zone DDS는 M4/M5 범위다.
 실제 Drive 통합 gate도 M2 이후 작업이다.
 
 ## Project Overview
@@ -79,29 +85,29 @@ flowchart TB
     ADAPTER -->|차량 반영| CARLA
   end
   subgraph TARGET["Jetson · Thor 또는 Orin 한 대"]
-    CENTRAL["Central Vehicle Compute<br/>State · Planner · Safety · Control"]
-    FRONT["Front Zone<br/>Vehicle management · Allocation<br/>Gateway · Feedback 집계"]
-    REAR["Rear Zone<br/>Local validation · Gateway"]
+    CENTRAL["Central Vehicle Compute<br/>ADAS/control · 별도 VCU/session/bridge"]
+    FRONT["Front Zone<br/>Validation · Gateway · Local safety"]
+    REAR["Rear Zone<br/>Validation · Gateway · Local safety"]
     FRONT_LEAF["Front Leaf vECU<br/>Steering · Brake"]
     REAR_LEAF["Rear Leaf vECU<br/>Drive · BMS"]
     CENTRAL <-->|DDS| FRONT
-    FRONT <-->|Peer DDS| REAR
+    CENTRAL <-->|DDS| REAR
     FRONT <-->|Front CAN FD| FRONT_LEAF
     REAR <-->|Rear CAN FD| REAR_LEAF
   end
   CARLA -->|Sensor / Ethernet| CENTRAL
-  FRONT -->|Actual / Ethernet| ADAPTER
+  CENTRAL -->|Actual / Ethernet| ADAPTER
 ```
 
 [Zone 분할 설계](docs/architecture/zonal_partition.md)는 후륜 구동 Reference packaging을
 가정한다. Front의 Brake 값은 차량 전체 마찰제동 aggregate이며 전륜만 뜻하지 않는다.
-Front의 차량 전체 배분기는 하나다. Rear는 이미 배분된 Drive demand를 검증·전달하며,
-총 제동 요구를 다시 배분하지 않는다. BMS 상태·한계도 Rear→Front 경로로 보고한다.
+Central의 차량 전체 배분기는 하나다. 두 Zone은 scoped demand를 검증·전달하고 차량 전체
+요구를 다시 배분하지 않는다. BMS 상태·한계도 Rear→Central 경로로 보고한다.
 
 | 경로 | 연결 / 역할 |
 | --- | --- |
 | 시나리오·고장 주입 | Host orchestrator → 시나리오/Zone/Leaf fault; Host가 tick 소유 |
-| 상태 피드백 | 각 Leaf → 담당 Zone → Front 집계 → Central / Host |
+| 상태 피드백 | 각 Leaf → 담당 Zone → Central 집계/bridge → Host |
 | 기록·평가 | 원천 actual/health/fault와 Plant Adapter 결과 → Host logging / PASS·FAIL |
 
 Thor와 Orin은 **서로 독립적인 대체 Target**이다. Central/Front/Rear를 같은 Linux Target의
@@ -110,12 +116,13 @@ Target 내부는 DDS와 Zone별 SocketCAN/vCAN을 사용한다. 이는 물리적
 CAN FD의 전기적 동작·arbitration·bus timing을 검증하는 구성은 아니다.
 
 **Vehicle-level command != actuator command != actual actuator feedback**이다.
-Central은 차량 수준 요구를 생성하고 Front가 Steering/Drive/Brake demand를 배분한다.
+Central Controller는 차량 수준 요구를 생성하고 별도 Central allocation이 Steering/Drive/Brake
+demand를 배분한다. Front/Rear gateway가 담당 Leaf로 전달한다.
 vECU는 task/delay/saturation/dynamics/fault를 거친 actual을 생성한다. Bridge는 원천
 identity/validity/time과 상위 요구의 유효 기간을 보존하며 중계로 freshness를 연장하지 않는다.
 
-필수 loop는 CARLA Sensor → Central → Front allocation → 담당 Zone/CAN → Leaf response
-→ 담당 Zone → Front feedback bridge → Host Plant Adapter → CARLA motion이다.
+필수 loop는 CARLA Sensor → Central Controller → Central allocation → 담당 Zone/CAN → Leaf response
+→ 담당 Zone → Central feedback bridge → Host Plant Adapter → CARLA motion이다.
 **Plant Adapter만 ego actuation single writer**이며 Host orchestrator가 tick을 소유한다.
 Actual이 invalid/stale/missing이면 다음 apply/tick을 보류한다. 이는 simulation containment이며
 물리적 안전 정지의 검증은 아니다. Raw command fallback이나 direct CARLA actuation은 금지한다.
@@ -256,9 +263,9 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 | --- | --- |
 | M0 | Architecture / Requirement / ICD Baseline — BASELINED |
 | M1 | DBC + vCAN — TECHNICAL CHECKS PASS / REVIEW PENDING |
-| M2 | Actuator + Battery/BMS/Power component models |
+| M2 | IN PROGRESS: Steering·Brake 응답 모델; Drive/Battery/BMS/Power 후속 |
 | M3 | Real-Time Timing & Scheduling Measurement |
-| M4 | Front coordinator + Front/Rear Zone 분리 |
+| M4 | Central coordinator + 대등한 Front/Rear Zone |
 | M5 | Central Compute + DDS |
 | M6 | Simple Vehicle Plant |
 | M7 | CARLA Integration |
@@ -299,8 +306,8 @@ StrataDrive/
 │   ├── socketcan/         # Linux CAN socket, actuator·EV 변환 adapter
 │   ├── dbc/               # Actuator 6개 + EV/BMS 6개 frame 초안
 │   └── dds/               # 배치용 placeholder
-├── central/               # State, perception, world model, planning, control, safety, health, diagnostics
-├── zone/                  # Session Epoch store 구현; gateway/allocation/local safety 예정
+├── central/               # ADAS/control; session Epoch store; vehicle management/allocation/bridge 예정
+├── zone/                  # Front/Rear gateway/validation/local safety 예정
 ├── vecu/                  # Common task model, steering, brake, drive
 ├── simulation/            # Simple plant, CARLA, Plant Adapter, scenarios, fault injection
 ├── physical_ai/           # Perception, learned planner, export, inference

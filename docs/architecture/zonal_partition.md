@@ -1,90 +1,87 @@
-# Front/Rear Zone 분할 — ZON-01
+# Central과 Front/Rear Zone 분할 — ZON-01 v0.5
 
-Date: 2026-10-13. Status: **두 Zone·책임 배치 ACCEPTED / protocol 초안 / runtime PLANNED / 시험 NOT RUN**.
-[ADR-0015](../adr/ADR-0015-front-rear-zones.md)를 따른다. M0 v0.1 이후의 확장이며 기존
-단일 Zone/M1 실행 결과가 다중 Zone acceptance를 충족한 것은 아니다.
+Date: 2026-10-14. Status: **배치 ACCEPTED / protocol 초안 / runtime PLANNED / 시험 NOT RUN**.
+[ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)이 ADR-0015의 Front 조정 배치를 대체한다.
+기존 M0/M1/M2 결과는 새 다중 Zone acceptance의 증거가 아니다.
 
 ## Reference 배치
 
 | Node / Component | 책임 | 연결 |
 | --- | --- | --- |
-| Central / ARCH-CENTRAL | vehicle-level acceleration/curvature/braking demand, power lifecycle 요청, 상위 safety/diagnostics | Front DDS; Host sensor bridge |
-| Front / ARCH-ZONE-FRONT | vehicle management/drive permission, 총 구동·제동 배분의 단일 owner; Front CAN gateway, vehicle-wide feedback/target bridge | Central DDS, Rear peer DDS, Steering/Brake CAN |
-| Rear / ARCH-ZONE-REAR | scoped demand/constraint 검증·CAN dispatch, Drive/BMS 원천 status 수집, local protection | Front peer DDS, Drive/BMS CAN |
-| Front Leaf | Steering response와 aggregate friction-brake pressure | Front CAN |
-| Rear Leaf | signed motor response와 BMS state/charge·discharge limits/power actual | Rear CAN |
-| Host | sensor/vehicle motion, scenario/tick owner, 실제 actuator feedback의 단일 plant writer | Central sensor path, Front target bridge |
+| Central ADAS/control | state/perception/planning/safety, vehicle-level 요구 생성 | Host sensor, Central VCU interface |
+| Central vehicle_management | 전원 lifecycle·주행 허가의 단일 owner | lifecycle 요청, Rear BMS/power 원천 status, 각 Zone health |
+| Central control_allocation | 구동·회생·마찰제동·조향 배분의 단일 owner | Controller 요구/원천 actual·capability → 두 Zone scoped command |
+| Central session / feedback_bridge | trusted Epoch/INIT, 원천 feedback 집계·Host bridge | 각 Zone의 독립 command/status/session, Host actual/EV status |
+| Front Zone | local validation/monitor/protection, Front CAN gateway | Central DDS, Steering/aggregate Brake CAN |
+| Rear Zone | local validation/monitor/protection, Rear CAN gateway | Central DDS, Drive/BMS CAN |
+| Host | plant/scenario/tick owner, sensor 원천, actual의 단일 plant writer | Central sensor 경로, Central feedback bridge |
 
 ```mermaid
 flowchart TB
-  C["Central<br/>Vehicle / power requests"]
-  subgraph ZONES["같은 Target · 두 논리 Zone"]
+  H["Host · Sensor / Plant"]
+  C["Central · ADAS/control<br/>별도 VCU / session / bridge"]
+  subgraph ZONES["같은 Target · 대등한 두 논리 Zone"]
     direction LR
-    F["Front Zone<br/>Coordinator · Gateway · Bridge"]
-    R["Rear Zone<br/>Validation · Gateway · Local safety"]
-    F <-->|Peer DDS| R
+    F["Front · Gateway / Local safety"]
+    R["Rear · Gateway / Local safety"]
   end
-  C <-->|DDS| F
+  H <-->|Physical Ethernet| C
+  C <-->|Front command/status/session · DDS| F
+  C <-->|Rear command/status/session · DDS| R
   F <-->|Front CAN FD| FL["Steering · Brake"]
   R <-->|Rear CAN FD| RL["Drive · BMS"]
-  F -->|Actual / EV status| H["Host Plant Adapter"]
 ```
 
-Rear-drive single motor를 가정하는 학습용 배치이며 물리 calibration은 TBD-02/07이다.
-Brake pressure는 차량 전체 aggregate 값을 유지하며 Front controller 배치를 전륜 전용 제동으로 해석하지 않는다.
-Battery pack은 차체 하부의 등가 모델, BMS controller의 논리 접속 위치는 Rear로 가정한다.
-
-ARCH-ZONE은 두 Zone의 공통 책임을 나타내는 family ID로 유지하고 구체적 ownership은
-ARCH-ZONE-FRONT/REAR로 표시한다. 독립 process/network node를 같은 Target에 구성하고 별도 보드는 요구하지 않는다.
-같은 Linux/전원을 공유하므로 physical fault independence를 주장하지 않는다.
+Rear-drive single motor는 학습용 packaging 가정이며 calibration은 TBD-02/07이다.
+Front의 Brake는 차량 전체 aggregate 마찰제동 압력이며 전륜 전용 제동이 아니다.
+Battery pack은 차체 하부 등가 모델, BMS controller의 논리 접속 위치는 Rear다.
+같은 Target 자원을 공유하며 물리적 CPU/전원 고장 독립성이나 failover를 주장하지 않는다.
 
 ## Application routing
 
-| Interface | Producer → Consumer | 내용 / 원칙 |
+| Interface | Producer → Consumer | 계약 |
 | --- | --- | --- |
-| IF-DDS-VEHICLE-CMD / IF-DDS-POWER-REQUEST | Central → Front | vehicle-level request; parent identity/deadline 보존 |
-| IF-DDS-REAR-CMD | Front → Rear | 배분된 Drive demand, 원천 BMS limit/permission, BMS power request, 필요한 speed 입력; Rear는 재배분하지 않음 |
-| IF-DDS-REAR-STATUS | Rear → Front | Drive actual/capability, BMS/power status/health; source별 clock/time/sequence/validity/causal identity |
-| IF-DDS-REAR-SESSION | Front ↔ Rear | trusted INIT/rejoin, epoch/monitor-enable/correlation; payload에서 epoch 자동 학습 금지 |
+| IF-CENTRAL-VEHICLE-REQUEST | Controller → Central allocation | vehicle-level 요구; actuator actual이 아님 |
+| IF-CENTRAL-POWER-REQUEST | lifecycle requester → Central vehicle management | non-driving power 요청; 원래 identity/deadline 보존 |
+| IF-DDS-FRONT-CMD | Central → Front | 배분된 Steering/Brake 요구; parent/source expiry 보존 |
+| IF-DDS-REAR-CMD | Central → Rear | Drive 요구, BMS constraints/permission/power request, 필요한 speed 입력 |
+| IF-DDS-FRONT-STATUS | Front → Central | Steering/Brake 원천 actual/health |
+| IF-DDS-REAR-STATUS | Rear → Central | Drive actual/capability, BMS/power 원천 status/health |
+| IF-DDS-FRONT-SESSION / IF-DDS-REAR-SESSION | Central ↔ 각 Zone | trusted INIT/rejoin/Epoch/monitor enable/correlation |
 | IF-CAN-STEERING / IF-CAN-BRAKE | Front ↔ Front Leaf | 기존 command/actual 의미 |
-| IF-CAN-DRIVE / IF-CAN-BMS / IF-CAN-DRIVE-CONSTRAINT | Rear ↔ Rear Leaf | Front demand/constraint 검증 후 CAN 전달; 새 timestamp로 유효 기간 연장 금지 |
-| IF-DDS-ZONE-STATUS / IF-HOST-ACTUATOR / IF-HOST-EV-STATUS | Front → Central / Host | vehicle-wide 집계; Rear 경유 source metadata 보존, actual을 command로 합성하지 않음 |
+| IF-CAN-DRIVE / IF-CAN-BMS / IF-CAN-DRIVE-CONSTRAINT | Rear ↔ Rear Leaf | scoped demand 검증 후 CAN 전달; source/expiry 연장 금지 |
+| IF-HOST-ACTUATOR / IF-HOST-EV-STATUS | Central bridge → Host | 각 원천 time/sequence/validity/causal identity 보존 |
 
-Peer ingress는 raw reception과 valid acceptance를 구분하며 Front/Rear 각각 필요한 range/mode/
-epoch/freshness를 검증한다. 후단 CAN encoding의 transport counter가 진행해도 origin sample의
-sequence/time/deadline을 진행시킨 것으로 해석하지 않는다. Peer envelope와 per-source/dependency를
-모두 감시한다. Fresh peer heartbeat로 invalid BMS limit를 유효하게 만들지 않는다.
-BMS→Drive constraint는 Rear→Front 집계 후 coordinator가 판단한 route로 되돌려 전달한다.
-Drive/BMS의 로컬 제한·보호는 이 round trip이나 Central 승인을 기다리지 않는다.
+두 Zone은 차량 전체 요구를 다시 배분하지 않는다. 각 Zone envelope와 per-source/dependency
+freshness를 별도로 검사한다. Zone publication/새 CAN counter/다른 Zone heartbeat가 상위
+유효 기간이나 누락 Leaf sample의 age를 갱신하지 않는다.
+BMS limit 경로는 BMS→Rear→Central 판단→Rear→Drive다. Local Drive/BMS 보호는 이 왕복이나
+Central 승인을 기다리지 않는다. 정상 application 경로에 Front↔Rear relay를 추가하지 않는다.
+물리적인 switch/backbone forwarding은 이 routing table과 별개이며 TBD-05/15다.
 
 ## Coordinator와 local protection
 
-Front가 정상 총 요구/회생·마찰 배분과 power sequence/drive permission을 한 번만 결정한다.
-Rear는 Leaf별 dispatch와 local protection을 수행한다. Drive/BMS도 자신의 limit/input을
-검증한다. Front가 Rear local fault를 덮어 NORMAL로 복귀시키지 않는다.
-Front는 단일 coordinator이며 redundancy/runtime failover는 이번 범위 밖이다.
+Central의 VCU 기능은 ADAS/controller와 별도 validation/fault 책임을 갖는다.
+정상 power sequence/permission과 총 요구 배분을 한 번만 결정하며 Central 전체를 하나의
+무검증 함수/monolithic task로 합친다는 뜻은 아니다. Process/task/watchdog 배치는 TBD-04/05다.
+Zone와 Leaf는 자신의 loss/fault를 독립 검출하고 Central diagnostics 없이 보호한다.
 
 | Fault / variant | 검출 / 최소 계약 |
 | --- | --- |
-| Front→Rear command loss / Front process 정지 | Rear는 상위 승인 없이 <=100 ms critical loss 검출/local protection; Leaf 자체 timeout 유지 |
-| Rear→Front status loss / Rear process 정지 | Front는 Rear와 각 critical 원천 stream을 독립 판정, FAIL_SAFE/정상 배분 중단; Host actual gate 유지 |
-| Leaf 정지, Rear heartbeat 지속 | 누락 Leaf의 source age/validity 보존; heartbeat로 availability 복구 금지 |
-| Peer delay/cached replay/wrong epoch | reject/unknown, valid age 미갱신; 전달된 과거 값을 new actual로 간주하지 않음 |
-| 단방향 partition / clear / restart | 수신 방향별 local protection, epoch/health/INIT gate; 자동 severity 하향/복귀 금지 |
+| Central→Front 또는 Central→Rear command 단방향 상실 | 해당 Zone와 Leaf의 독립 timeout/local protection; 다른 link heartbeat로 복구 금지 |
+| Front→Central 또는 Rear→Central status 상실 / Zone 정지 | Central의 Zone별·Leaf별 원천 monitor, FAIL_SAFE/normal 배분 중단, Host actual gate |
+| Leaf 정지, 담당 Zone heartbeat 지속 | 원천 source age/validity 유지; aggregate heartbeat로 availability 복구 금지 |
+| Central VCU/controller 정지 | 두 Zone의 독립 command timeout과 local 보호; coordinator failover는 이번 범위 밖 |
+| Delay/replay/wrong Epoch / startup 누락 / 명시적 rejoin | reject/unknown, trusted Epoch/parent/INIT gate, 원래 expiry 보존, 자동 NORMAL 복귀 금지 |
 
-실제 torque/pressure/power 반응과 budget은 TBD-03/12/15에서 정하고 component/plant로 관측한다.
-Host tick gate는 simulation containment이며 물리적 정지/안전성의 증거가 아니다.
+Physical torque/pressure/power response와 budget은 TBD-03/12/15다.
+Host tick gate는 simulation containment이며 실제 정지 보장은 아니다.
 
 ## 남은 설계와 검증 순서
 
-TBD-15의 두 Zone 채택/mapping/단일 coordinator는 이 문서에서 결정했다. Peer IDL/serialization/QoS,
-bounded queue/overflow, clock/최대 skew, source-age/monitor margin, INIT/rejoin, mixed-version
-거부와 routing config는 **미결정/미구현**이다. 실행 전에 ICD/profile/test oracle에 구체화한다.
-CAN bus/interface 이름은 runtime config에서 분리한다. 같은 frame ID를 다른 bus에서 쓰더라도
-bus/producer identity를 trace에 포함한다. In-process shortcut을 cross-zone 검증으로 표시하지 않는다.
-
-M2 component의 기존 fixture를 활용하고 M4에서 단일 coordinator 동작 후 두 Zone gateway/monitor로 분할한다.
-M5에서 DDS 격리와 peer protocol, M6/M7에서 feedback-driven plant를 검증한다.
-ZON-S01/ZON-F01/02, TC-ZON-001–003을 [scenario](../test-plan/scenario_baseline.md),
-[verification](../test-plan/verification_strategy.md), [traceability](../test-plan/traceability.md)에 연결한다.
-Runtime Result는 NOT RUN이며 EV/M0/기존 M1 PASS를 다중 Zone 검증으로 확대하지 않는다.
+두 Zone/담당 Leaf/Central 단일 owner는 결정했다. Scoped command/status/session의 IDL/schema/QoS,
+bounded queue/clock/skew/source-age/monitor/rejoin과 routing config는 TBD-15/05/14다.
+M4에서 Central coordinator를 검증하고 Front/Rear gateway를 연결한다. M5는 독립 DDS 경계와
+Host bridge, M6/M7는 모델 기반 plant loop를 시험한다. Zone별 CAN bus/interface identity를
+trace에 보존하고 in-process shortcut을 cross-node 통신 검증으로 표시하지 않는다.
+ZON-S01/ZON-F01/F02, TC-ZON-001–003과 기존 COM/EV/SAFE 시험에 연결하며 전체 Result는 NOT RUN이다.

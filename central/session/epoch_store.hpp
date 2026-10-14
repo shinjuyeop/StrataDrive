@@ -4,7 +4,7 @@
 #include <string>
 
 namespace stratadrive::session {
-// Linux local-filesystem issuer, owned by the trusted session coordinator.
+// Linux local-filesystem issuer, owned by the Central trusted session coordinator.
 // Startup only: file locking/fsync must not run in a control/monitor cycle.
 class EpochStore {
 public:

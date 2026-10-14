@@ -18,8 +18,8 @@ design_extensions:
     requirements: [SYS-EV-001, SYS-EV-002, SYS-EV-003, SYS-EV-004, SYS-EV-005, SYS-COM-003, SYS-COM-004, SYS-PERF-002]
   - id: ZON-01
     scope_status: accepted
-    requirement_revision: v0.4
-    requirements: [SYS-ARCH-003]
+    requirement_revision: v0.5
+    requirements: [SYS-ARCH-003, SYS-CTRL-008, SYS-SAFE-005, SYS-EV-003]
 implementation_status: planned
 verification_status: not_run
 purpose: identical_workload_on_each_independent_target
@@ -28,17 +28,20 @@ eligible_targets:
   - jetson_orin_nx
 deployment: one_independent_target_per_vehicle_run
 architecture:
-  reference_zone_count: 2 # ZON-01; runtime planned, not a deployment switch
+  reference_zone_count: 2 # ZON-01 v0.5; runtime planned, not a deployment switch
   single_zone_bringup: component_validation_before_m4_split
   reference_packaging: rear_drive_single_motor
   planned_leaf_functions: [steering, brake, drive, bms]
   front_leaf_functions: [steering, brake] # Brake remains vehicle-wide aggregate
   rear_leaf_functions: [drive, bms]
-  vehicle_management_owner: front_zone
-  allocation_owner: front_zone
-  upper_feedback_owner: front_zone
-  upper_feedback_path: leaf_responsible_zone_front_aggregate_central_or_host
-  cross_zone_contract: null # TBD-15; schema/QoS/queue/clock/rejoin before M4/M5 tests
+  vehicle_management_owner: central_vehicle_management
+  allocation_owner: central_control_allocation
+  upper_feedback_owner: central_feedback_bridge
+  upper_feedback_path: leaf_responsible_zone_central_bridge_host
+  application_topology: central_to_each_zone
+  front_command_path: central_front_leaf
+  rear_command_path: central_rear_leaf
+  central_zone_contract: null # TBD-15; schema/QoS/queue/clock/rejoin before M4/M5 tests
 odd:
   weather: clear_daylight
   road: paved_straight_and_gentle_curves
@@ -101,7 +104,7 @@ m1_local_can_fixture:
   technical_status: host_unit_vcan_checked
   wire_acceptance: learner_review_pending
   epoch_issuer: durable_linux_local_store
-  issuer_owner: front_session_coordinator # M1 harness calls issuer; actual peer/vehicle INIT in M4/M5
+  issuer_owner: central_session_coordinator # M1 harness calls issuer; actual Central-Zone INIT in M4/M5
   deployment_store_directory: null # configured persistent path; no profile loader, TBD-05/15
   application_queue_capacity: 32
   ingress_budget_per_cycle: 8
@@ -109,6 +112,38 @@ m1_local_can_fixture:
   polling_sleep_ms: 1 # fixture only, not a Target scheduling guarantee
   continuity_loss_policy: discard_backlog_latch_unavailable
   recovery: newer_trusted_epoch_and_clean_ingress
+m2_steering_fixture:
+  implementation: first_host_functional_sil_model
+  command_min_rad: -0.5
+  command_max_rad: 0.5
+  angle_min_rad: -0.3
+  angle_max_rad: 0.3
+  initial_angle_rad: 0.0
+  max_rate_rad_s: 1.0
+  delay_ms: 50
+  period_ms: 10
+  max_tick_gap_ms: 30
+  max_source_age_ms: 30
+  valid_rx_timeout_ms: 80
+  local_loss_policy: discard_pending_hold_angle_latch
+  recovery: newer_trusted_epoch_preserving_physical_angle
+  parameter_status: fixture_only_no_oem_calibration # TBD-02/03; no YAML loader
+m2_brake_fixture:
+  implementation: first_host_functional_sil_model
+  command_max_pa: 2000000
+  max_pressure_pa: 1500000
+  initial_pressure_pa: 0
+  rise_rate_pa_s: 5000000
+  fall_rate_pa_s: 10000000
+  delay_ms: 50
+  fault_pressure_floor_pa: 1000000
+  period_ms: 10
+  max_tick_gap_ms: 30
+  max_source_age_ms: 30
+  valid_rx_timeout_ms: 80
+  local_loss_policy: discard_pending_latch_max_actual_or_floor_ramp
+  recovery: newer_trusted_epoch_preserving_physical_pressure
+  parameter_status: fixture_only_no_oem_calibration # TBD-02/03/06; no YAML loader
 plant_policy:
   simulator_mode: synchronous_fixed_step
   tick_owner: host_orchestrator
@@ -132,7 +167,7 @@ regenerative_braking:
   drive_torque_sign: positive_propulsion_negative_forward_regeneration
   brake_pressure_meaning: friction_brake_only
   torque_reference: aggregate_driven_wheel_equivalent
-  allocation_owner: front_zone
+  allocation_owner: central_control_allocation
   energy_source: valid_actual_torque_and_wheel_speed
   energy_unit: J
   capability_invalid_new_regen_target_nm: 0
@@ -147,7 +182,7 @@ regenerative_braking:
   energy_integration_tolerance: null # TBD-02/03 / M2/M6
 ev_power_bms:
   scope: included_in_design # communication libraries tested; model/runtime loader not implemented
-  upper_status_owner: bms_vecu_via_rear_then_front_zone
+  upper_status_owner: bms_vecu_via_rear_then_central
   battery_model_and_bms_controller_separate: true
   power_lifecycle_states: [OFF, CHECKS, PRECHARGE, HV_READY, SHUTDOWN]
   power_readiness_is_system_normal: false

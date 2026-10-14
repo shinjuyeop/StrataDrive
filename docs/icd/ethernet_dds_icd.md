@@ -3,67 +3,58 @@
 Status: semantic contract **DEFINED**. Vendor, ROS 2 vs direct DDS, IDL/topic/binary schema와
 runtime은 **TBD-05 / PLANNED**. Target 내부 Central–Zone은 logical Ethernet + DDS 계열,
 Host–Target은 Physical Ethernet이다. Host bridge transport에 DDS를 강제하지 않는다.
-[ZON-01](../architecture/zonal_partition.md)에서 Central의 목적 Zone과 상위 집계 owner는 Front다.
-Front↔Rear peer 의미는 아래에 추가하며 IDL/runtime은 미구현이다.
+[ZON-01 v0.5 / ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)에서 Central은
+별도 vehicle management/allocation/session/feedback bridge를 소유하고 각 Zone과 독립 통신한다.
+Front↔Rear application relay는 정상 경로에 필요하지 않다. IDL/runtime은 미구현이다.
 
-## Logical messages
-
-| 항목 | IF-DDS-VEHICLE-CMD | IF-DDS-ZONE-STATUS |
-| --- | --- | --- |
-| Name | VehicleCommand | ZoneStatus |
-| Source → Destination | Central Classical Controller → Front command validation | Front aggregate gateway → Central state/health/safety |
-| Payload 의미 | target speed, longitudinal acceleration demand, target curvature, braking demand | per-actuator actual sample/validity/age, availability, local state/fault |
-| Generation/publication | Controller 50 Hz / 20 ms | Zone 100 Hz / 10 ms starting point |
-| Metadata | source timestamp/clock, sequence/run epoch, source sensor/trajectory identity | 각 vECU 원천 time/sequence/validity/accepted-command identity 보존 |
-| Validation | finite/range/mode, sequence/epoch, source freshness/integrity | actuator별 원천 validity/freshness; aggregate heartbeat는 actual health가 아님 |
-| Timeout / failure | Zone last-valid-command RX부터 <=100 ms 검출; local FAIL_SAFE, F04 | unavailable 표시/보호 상태; Host actual path는 독립 monitor |
-| Recovery | explicit reinitialize → INIT gate | 원천 상태 재검증 후 복구; 새 aggregate만으로 정상화 금지 |
-| Wire/QoS | M5 TBD-05 | M5 TBD-05 |
-
-Vehicle-level target speed는 차량 속도 reference이고 longitudinal acceleration demand는
-Central PID의 제어 출력이다. 둘 다 Drive torque나 Drive Actual이 아니다.
-Target curvature는 lateral demand이지 Steering Actual이 아니다. Braking demand는
-Brake Actual pressure가 아니다. 정확한 semantic units/frame은
-[common contract](interface_overview.md)를 적용한다.
-
-[RG-01](regenerative_braking_design.md)에서도 Central의 vehicle-level demand를 유지한다.
-ZoneStatus는 actual torque와 구분해 회생 한계/validity/제한 원인 및 원천 freshness를
-전달할 계획이다. Cached capability를 aggregate 발행 시각으로 fresh하게 만들지 않는다.
-정확한 IDL/QoS는 TBD-05이며 Central에 직접 모터 command 경로를 추가하지 않는다.
-
-[EV-01](ev_power_bms_design.md)은 별도 IF-DDS-POWER-REQUEST(enable/shutdown 요청)와
-ZoneStatus의 source별 BMS/power/permission 정보를 추가한다. Central의 요청으로 READY를
-선언하지 않고 Zone vehicle management와 BMS가 actual/health를 확인한다.
-각 request correlation/epoch/deadline, status 원천/의존 validity/time, QoS와 publication
-주기는 TBD-14/05이며 기존 VehicleCommand의 runtime/IDL 구현 완료가 아니다.
-## Front/Rear peer 의미 — ZON-01
+## Central 내부 의미 계약
 
 | Interface | Producer → Consumer | 의미 / validation |
 | --- | --- | --- |
-| IF-DDS-REAR-CMD | Front → Rear | 배분된 Drive demand, 원천 BMS constraint/permission, power request와 speed; parent identity/expiry 보존; 차량 전체 재배분 금지 |
-| IF-DDS-REAR-STATUS | Rear → Front | Drive actual/capability, BMS/power 원천별 status; identity/time/clock/validity/dependency를 집계 시 보존 |
-| IF-DDS-REAR-SESSION | Front ↔ Rear | trusted INIT/rejoin epoch·monitor-enable·correlation; payload만으로 epoch를 수용하지 않음 |
+| IF-CENTRAL-VEHICLE-REQUEST | Classical Controller → Central allocation | target speed/acceleration/curvature/braking demand; source/trajectory identity, Epoch/sequence/freshness/mode 검사 |
+| IF-CENTRAL-POWER-REQUEST | lifecycle requester → Central vehicle management | enable/shutdown 요청; non-driving handshake, correlation/Epoch/deadline; 요청으로 READY 선언 금지 |
 
-Front는 vehicle management/allocation의 단일 owner, Rear는 로컬 validation/gateway다.
-Peer envelope 진행과 각 Leaf 원천/의존 freshness는 독립 검사한다. 재발행/새 CAN counter로
-상위 request의 유효 기간이나 cached BMS/actual age를 연장하지 않는다.
-Critical loss는 각 방향/원천별 <=100 ms 검출 및 상위 승인 없는 local protection을 적용한다.
-INIT/rejoin과 power/health gate를 통과하기 전 정상 출력/자동 복구를 허용하지 않는다.
+두 interface는 기존 IF-DDS-VEHICLE-CMD/IF-DDS-POWER-REQUEST의 의미를 유지하며 endpoint와
+현재 ID를 개정했다. Central 내부 transport는 in-process/IPC/DDS 중 TBD-05다. ADAS/control과
+VCU 기능은 같은 Target에서도 별도 validation/fault 책임을 갖는다. Controller의 50 Hz/20 ms는
+유지하고 Central coordinator의 task/monitor budget은 TBD-04/05/14다.
+Vehicle-level speed/acceleration/curvature/braking demand는 torque/pressure actual이 아니다.
+Central allocation이 원천 actual/capability/permission을 검증해 actuator demand를 만들고
+각 Zone을 거쳐 Leaf로 전달한다. [공통 의미](interface_overview.md)를 적용한다.
+
+## Central–Front/Rear 독립 경로 — ZON-01 v0.5
+
+| Interface | Producer → Consumer | 의미 / validation |
+| --- | --- | --- |
+| IF-DDS-FRONT-CMD | Central allocation → Front | scoped Steering/Brake demand; 원래 parent/source/expiry, integrity/range/mode 검증 |
+| IF-DDS-REAR-CMD | Central allocation/vehicle management → Rear | Drive demand, BMS constraints/permission/power request/speed; parent identity/expiry 보존 |
+| IF-DDS-FRONT-STATUS | Front → Central state/VCU/bridge | Steering/Brake actual/health; 각 원천 time/sequence/validity/causal identity |
+| IF-DDS-REAR-STATUS | Rear → Central state/VCU/bridge | Drive actual/capability, BMS/power status; 원천/의존 identity/time/clock/validity 보존 |
+| IF-DDS-FRONT-SESSION | Central session ↔ Front | trusted INIT/rejoin/Epoch/monitor-enable/correlation |
+| IF-DDS-REAR-SESSION | Central session ↔ Rear | 위와 동일; 다른 Zone heartbeat로 session/health 추론 금지 |
+
+IF-DDS-ZONE-STATUS는 Front/Rear status의 공통 family 의미다. Zone publication의 starting point는
+100 Hz/10 ms이며 BMS의 critical/observation cadence와 per-source freshness는 독립 보존한다.
+각 link의 command/status/session envelope와 실제 Leaf 원천/의존 freshness를 별도로 검사한다.
+재발행/새 CAN counter로 parent request의 유효 기간이나 cached actual/BMS age를 연장하지 않는다.
+Central vehicle management의 power 요청/permission은 실제 컨택터/HV 상태를 대신하지 않는다.
+
+Critical loss는 각 수신 방향/원천별 <=100 ms 검출과 local protection을 적용한다.
+Central requester/VCU 정지, 각 Zone 정지, 한쪽 link partition을 별도 시험하며 다른 link의
+heartbeat로 정상화하지 않는다. Leaf 자체 timeout과 Host per-source actual gate를 유지한다.
+Recovery는 trusted 새 Epoch/명시적 INIT와 required power/health 재검증을 요구한다.
 Schema/IDL/topic, rate/source-age/monitor budget, clock/skew, QoS/queue/overflow, trusted handshake는
-TBD-15/05/14다. 의미 계약만 정의했으며 두 Zone runtime/TC-ZON-001–003은 NOT RUN이다.
+TBD-15/05/14다. ID/배치는 의미 계약이며 두 Zone runtime/TC-ZON-001–003은 NOT RUN이다.
 
 ## Host bridge contracts
 
-IF-HOST-SENSOR는 sensor timestamp/frame ID, source clock, ego state validity를 전달한다.
-IF-HOST-ACTUATOR는 각 vECU actual sample을 Zone/Target bridge에서 Host Plant Adapter로
-전달한다. Bridge가 actual을 생성하거나 command로 보충하지 않는다. Host는 actual
-stream별 loss를 <=100 ms에 검출하고 valid source가 없으면 tick을 gate한다.
-Protocol, serialization, source time sync/uncertainty, snapshot skew, Host acknowledgement는
-M5에 설계하고 M6/M7에 검증한다(TBD-02/04/05/07).
-
-IF-HOST-EV-STATUS는 Zone을 거친 BMS/power/energy 관측 정보다. Actual actuator stream을
-대체하거나 별도 wheel torque로 더하지 않는다. Battery model의 physical sensor/coupling은
-이 상위 status bridge와 별도 경계이며 배치/단일 energy owner는 TBD-07이다.
+IF-HOST-SENSOR는 Host→Central sensor timestamp/frame ID/source clock/ego state validity를 전달한다.
+IF-HOST-ACTUATOR는 Leaf→담당 Zone→Central feedback bridge→Host Plant Adapter 경로다.
+Central bridge는 원천 actual을 집계/전달하며 값/validity/time을 command로 합성하지 않는다.
+Host는 actual stream별 loss를 <=100 ms에 검출하고 유효 actual set이 없으면 tick을 gate한다.
+IF-HOST-EV-STATUS도 BMS→Rear→Central bridge→Host 경로의 관측 정보이며 wheel actuation이 아니다.
+Protocol/serialization/source clock sync/skew/Host acknowledgement는 M5에 설계하고 M6/M7에
+검증한다(TBD-02/04/05/07). Battery/power physical sensor coupling과 상위 status 통신은 별개다.
 
 ## Middleware decision criteria and timing
 

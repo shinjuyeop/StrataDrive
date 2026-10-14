@@ -7,9 +7,13 @@ pressure, Pa, nonnegative를 유지한다. 차량 calibration이나 six-frame wi
 
 ## 압력 표현
 
+[첫 M2 Brake 모델](../learning/m2_brake_model.md)은 이 wire를 유지하면서 delay/rise/fall과
+독립 Actual, local source-loss pressure protection을 Host에서 구현·시험했다.
+실차 pressure/torque calibration과 전체 vehicle TC는 후속이다.
+
 | 항목 | 초안 |
 | --- | --- |
-| 물리 의미 | Command: Zone의 압력 demand; Actual: 독립 Brake 모델의 실제 압력 sample |
+| 물리 의미 | Command: Central이 배분하고 Zone이 검증·전달한 압력 demand; Actual: 독립 Brake 모델의 실제 압력 sample |
 | 단위 | Pa; 음수 없음 |
 | Field | byte 0–1, unsigned 16-bit, little endian |
 | Scaling | raw × 1,000 Pa, offset 0 |

@@ -56,7 +56,7 @@ Runtime fault/run gate/계약 위반으로 조기 종료하면 FAIL이다. 필�
 - Input: 맑은 낮/포장 직선, 정렬된 ego, target speed request **30 km/h**, fault 없음.
   출발 reference와 30 km/h plateau, route 종료 marker를 실행 전에 고정한다.
 - Expected behavior: valid startup 후 30 km/h를 추종하고 직선 경로를 유지한다.
-  Zone allocation과 각 vECU actual response를 통해서만 차량이 움직인다.
+  Central allocation·담당 Zone 전달과 각 vECU actual response를 통해서만 차량이 움직인다.
 - 주요 측정: speed error/overspeed, cross-track/heading P95, actual torque/brake/steering,
   command→actual lineage, completion와 timing trace.
 - PASS/FAIL 후보: 공통 판정 전부 적용; 30 km/h steady window max error <=1 km/h,
@@ -150,7 +150,7 @@ replay 결과는 별도 표시한다. Fault duration/seed/repetition은 실행 p
 
 - 목적 / input: 정상 운행 중 Central→Zone VehicleCommand 경로 중단. Central diagnostics도
   사용할 수 없는 변형과 Zone→vECU 추가 loss 변형을 둔다.
-- Expected: Zone이 local <=100 ms timeout을 독립 검출하고 normal allocation을 중단,
+- Expected: Zone이 local <=100 ms timeout을 독립 검출하고 normal dispatch를 중단,
   FAIL_SAFE/보호 demand를 선택한다. Central acknowledgement를 기다리지 않는다.
   하위 경로도 끊기면 각 vECU의 local timeout 보호가 동작한다.
 - 측정 / PASS 후보: Zone valid-command age/detection/state/local output, Central와 독립성,
@@ -187,6 +187,6 @@ Peer schema/QoS/clock/skew/INIT/rejoin과 physical response budget은 TBD-15/03/
 
 | ID | 설정 / variant | 관측 / test |
 | --- | --- | --- |
-| ZON-S01 | Front/Rear 담당 Leaf 정상, propulsion/regen/friction/power request와 원천 status 전달 | 한 번의 차량 전체 배분, Zone별 routing/원천 metadata, plant single writer; TC-ZON-001 |
-| ZON-F01 | Front/Rear 각각 정지, Front→Rear command / Rear→Front status 독립 단절, Leaf 정지+peer heartbeat, delay/cached replay | local timeout/보호/FAIL_SAFE, source/dependency age 보존, actual loss Host gate; TC-ZON-002 |
-| ZON-F02 | startup source 누락, peer/Leaf 재시작, wrong epoch/늦은 parent request, fault clear와 explicit reinitialize | trusted session, original expiry, power/health INIT gate, 자동 정상 복귀 없음; TC-ZON-003 |
+| ZON-S01 | Front/Rear 담당 Leaf 정상, propulsion/regen/friction/power request와 원천 status 전달 | Central의 한 번의 차량 전체 배분, 대등한 Zone별 routing/원천 metadata, plant single writer; TC-ZON-001 |
+| ZON-F01 | Front/Rear 각각 정지, 각 Central→Zone command / Zone→Central status 독립 단절, Central coordinator 정지, Leaf 정지+Zone heartbeat, delay/cached replay | local timeout/보호/FAIL_SAFE, source/dependency age 보존, actual loss Host gate; TC-ZON-002 |
+| ZON-F02 | startup source 누락, 각 Zone/Leaf/coordinator 재시작, wrong epoch/늦은 parent request, fault clear와 explicit reinitialize | trusted session, original expiry, power/health INIT gate, 자동 정상 복귀 없음; TC-ZON-003 |

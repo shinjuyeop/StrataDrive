@@ -16,6 +16,12 @@ Component model/Zone runtime과 전체 Result는 NOT RUN이다.
 
 ## Verification layers
 
+[M2 첫 Steering 모델](../learning/m2_steering_model.md)은 manual-clock unit과 세 독립 process의
+Command TX → response model → Actual RX vCAN을 실행했다. Functional component 부분 증거이며
+vehicle closed-loop/Target timing/전체 system TC Result는 NOT RUN이다.
+[Brake 첫 모델](../learning/m2_brake_model.md)은 정상 가압/감압·release와 source-loss 후
+floor ramp/high-pressure retain을 같은 model loop에서 검사한다. Full TC Result는 유지한다.
+
 | 검증 계층 / directory | 계획된 검사 | 증거 범위 |
 | --- | --- | --- |
 | Document review / M0 | architecture 경계, 요구사항, ICD field, 추적성, TBD 담당자 | 설계 검토일 뿐 runtime verification 아님 |
@@ -43,7 +49,7 @@ Brake의 수용/거부/timeout latch는 부분 증거이며 압력 응답/보호
 [Drive wire/receiver](../learning/m1_drive_codec.md) 뒤 normal/ASan·UBSan 각각 unit 98개와
 vCAN 27개 case를 실행했다. Signed torque, valid 0/invalid/cached capability와 입력 age,
 독립 actual timeout은 TC-COM-002/003/005와 TC-REG-004의 M1 부분 증거다.
-실제 torque zero-target 응답, Zone 새 회생 demand 억제/마찰 배분, Host gate 및 에너지는
+실제 torque zero-target 응답, Central 새 회생 demand 억제/마찰 배분, Host gate 및 에너지는
 미구현이므로 전체 TC 결과를 PASS로 변경하지 않는다.
 
 BMS wire의 6개 fixed golden, exact uint64, 336개 byte 변조와 51개 canonical 거부 vector를
@@ -71,9 +77,9 @@ interface/schema/parameter 변경 시 영향 requirement와 baseline 재검토�
 | Test ID | 설정 / 동작 | 관측 가능한 acceptance | Future milestone |
 | --- | --- | --- | --- |
 | TC-ARCH-001 | 두 보드에 동일 architecture/reference 독립 배포 | Central–Zone logical Ethernet, Zone–vECU vCAN, Host physical Ethernet; 다른 보드 의존 없음 | M0 topology review; M5/M12 runtime |
-| TC-ZON-001 | ZON-S01 Front/Rear topology와 routing, vehicle-wide 배분 호출/plant writer audit | Central→Front, Front→Steering/Brake 및 Rear→Drive/BMS; Front 단일 배분, 원천 metadata 보존, 담당 Zone 우회·중복 actuation 없음 | M4/M5; M6/M7 loop; M12 독립 보드 |
-| TC-ZON-002 | ZON-F01 Front/Rear process 정지, 양방향 각각의 loss/partition, Leaf 정지+peer heartbeat, delay/replay | 각 critical stream <=100 ms 독립 loss 검출, reject는 valid age 미갱신; 원천 actual/dependency age 보존, local protection/Host gate, raw fallback 없음; physical response TBD-03/12/15 | M4/M5; M6/M7/M9 통합 |
-| TC-ZON-003 | ZON-F02 startup missing source, peer/Leaf restart, wrong epoch/late parent request, clear/rejoin | trusted INIT/session과 required power/health 재검증; parent 유효 기간 보존, payload로 epoch 자동 학습/자동 NORMAL 복귀 금지; handshake/budget TBD-12/14/15 | M4/M5/M6/M7 |
+| TC-ZON-001 | ZON-S01 Front/Rear topology와 routing, vehicle-wide 배분 호출/plant writer audit | Central→각 Zone, Front→Steering/Brake 및 Rear→Drive/BMS; Central 별도 단일 VCU/배분, 원천 metadata 보존, 담당 Zone 우회·중복 actuation 없음 | M4/M5; M6/M7 loop; M12 독립 보드 |
+| TC-ZON-002 | ZON-F01 각 Central–Zone link 방향별 loss/partition, Front/Rear/coordinator process 정지, Leaf 정지+Zone heartbeat, delay/replay | 각 critical stream <=100 ms 독립 loss 검출, reject는 valid age 미갱신; 원천 actual/dependency age 보존, local protection/Host gate, raw fallback 없음; physical response TBD-03/12/15 | M4/M5; M6/M7/M9 통합 |
+| TC-ZON-003 | ZON-F02 startup missing source, 각 Zone/Leaf/coordinator restart, wrong epoch/late parent request, clear/rejoin | trusted INIT/session과 required power/health 재검증; parent 유효 기간 보존, payload로 epoch 자동 학습/자동 NORMAL 복귀 금지; handshake/budget TBD-12/14/15 | M4/M5/M6/M7 |
 | TC-COM-001 | F01 정상 후 Steering Actual 중단 | last-valid RX부터 Zone loss <=100 ms, FAIL_SAFE/Host gate, command fallback 부재 | M2/M4; M6/M7/M9 통합 |
 | TC-COM-002 | F02 CRC/duplicate/out-of-order/stale/epoch/restart/wrap | reject/accepted snapshot 유지, valid age 미갱신; 지속 invalid 시 timeout | M1/M2/M4/M5 |
 | TC-COM-003 | F03 양수 구동/음수 회생 각각에서 Drive command만 상실, 다른 task/feedback 정상 | <=100 ms local detection, old demand 무효/zero motor torque target, M2에서 고정할 양·음수→0 응답 envelope | M1/M2/M4/M6/M9 |
@@ -90,7 +96,7 @@ interface/schema/parameter 변경 시 영향 requirement와 baseline 재검토�
 | TC-REG-005 | known actual torque/speed/효율/charge cap fixture; command≠actual, friction-only, 정지, invalid sample | J 집계가 actual 기계적 에너지/충전 한계 이내, friction 제외, invalid는 측정 불가; 수치 적분 오차 TBD-02/03 | M2/M6; M7 mapping review |
 | TC-EV-001 | EV-S01 전원 준비→주행→정지→종료; 센서/actuator actual 없는 startup variant | 요청≠power actual, READY≠NORMAL, 유효 health/실제 HV 전까지 normal torque 금지; non-driving INIT 순환 의존 없음; 종료 실제 응답/조건 TBD-12 | M1 handshake; M2/M4/M6/M7 |
 | TC-EV-002 | EV-F01 BMS/power/constraint corruption/replay/epoch/valid 0/unknown/loss; Zone 재발행과 Drive cached dependency | reject/invalid 구분, 원천 time/age/validity 보존, critical loss <=100 ms 검출, local protection; rate/age/startup/clock/margin TBD-14 | M1 vectors/receiver/vCAN; M2/M3/M4/M5/M6/M7 |
-| TC-EV-003 | EV-S02 SOC/온도/모터속도별 charge/discharge cap 변화, valid 0, Brake saturation/응답 지연 | Drive local 한계/permission 준수와 Zone 배분, 실제 응답/부족분, W→N·m 변환 및 zero/low speed 경계; parameter/budget TBD-03/13 | M2/M4/M6/M7 |
+| TC-EV-003 | EV-S02 SOC/온도/모터속도별 charge/discharge cap 변화, valid 0, Brake saturation/응답 지연 | Drive local 한계/permission 준수와 Central 배분, 실제 응답/부족분, W→N·m 변환 및 zero/low speed 경계; parameter/budget TBD-03/13 | M2/M4/M6/M7 |
 | TC-EV-004 | EV-F01/02 precharge timeout/contactor mismatch/sensor invalid/LV/interlock와 Central 단절; clear/reinitialize | Central acknowledgement 없는 고장별 로컬 반응과 actual trace, 자동 복귀 금지; power 재검증과 기존 severity/Host gate; matrix/threshold/deadline TBD-12/14 | M2/M4 component; M6/M7/M9 integration |
 | TC-EV-005 | EV-S02 actual DC power/효율/부하 fixture, 구동/회생/full/empty/invalid와 command≠actual | 단일 owner/clock의 battery energy/SOC balance, cap/경계/손실 준수, 마찰 회수·이중 집계 없음; 불일치 clip으로 은폐 금지, 오차 TBD-13 | M2/M6; M7 mapping review |
 | TC-AI-001 | inference timeout/NaN/stale/infeasible; fallback input 상실 | AI reject→유효 classical fallback 또는 보호 상태; raw actuator 출력 없음; 전환 budget TBD-10 | M11 |
@@ -109,7 +115,7 @@ SYS-COM-003/004 v0.3의 EV 추가 coverage는 TC-EV-002/004에서 BMS/power/Driv
 critical stream 목록(TBD-14)에 따라 parameterize한다. 미구현 status source와 cached
 dependency를 기존 actuator heartbeat로 대체하지 않는다. SYS-PERF-002 v0.3의 BMS task/
 publication rate는 실행 전에 결정하며 100 Hz actuator rate와 자동으로 같다고 가정하지 않는다.
-ZON-01의 peer routing은 TC-ZON-002/003에서 SYS-COM-003/004, SYS-SAFE-002/003과
+ZON-01 v0.5의 독립 Central–Zone routing은 TC-ZON-002/003에서 SYS-COM-003/004, SYS-SAFE-002/003과
 SYS-EV-001/004 coverage를 확장한다. Peer heartbeat, BMS source, 각 actuator actual을
 독립 판정하며 timeout 물리 반응과 detection 결과는 별도 기록한다.
 

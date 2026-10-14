@@ -7,26 +7,27 @@ M1 wire layout은 [Drive wire 초안](drive_frame_draft.md)에 구현했고 학�
 물리 calibration과 제어 tuning은 해당 milestone에서 결정한다.
 후속 [EV-01](ev_power_bms_design.md)이 충전 fixture만 사용하는 범위를 BMS/배터리/
 power lifecycle 모델로 확장했다. 아래 RG-01 배분·토크·에너지 원칙은 유지한다.
-[ZON-01](../architecture/zonal_partition.md)의 Front가 차량 전체 회생·마찰 배분을 단독 수행한다.
-Rear는 Drive/BMS와 연결해 배분된 demand를 검증·전달하고 원천 feedback을 Front로 보고한다.
-이 문서의 일반 Zone 책임은 해당 배치를 따른다. Runtime은 PLANNED / NOT RUN이다.
+[ZON-01 v0.5](../architecture/zonal_partition.md)의 Central allocation이 차량 전체 회생·마찰 배분을 단독 수행한다.
+Rear는 Drive/BMS와 연결해 배분된 demand를 검증·전달하고 원천 feedback을 Central로 보고한다.
+이 문서의 차량 전체 배분은 Central의 별도 component, Central allocation은 지역별 전달·검증 책임이다. Runtime은 PLANNED / NOT RUN이다.
 
 ## 역할과 통신 경로
 
 | 역할 | 입력 → 출력 / 책임 |
 | --- | --- |
-| Central | vehicle state → acceleration/braking demand; 모터·압력을 직접 배분하지 않음 |
-| Zone | vehicle demand + 유효한 actual/capability → signed Drive torque + Brake pressure |
+| Central ADAS/control | vehicle state → acceleration/braking demand; 배분은 별도 component |
+| Central allocation | vehicle demand + 유효한 actual/capability/permission → signed Drive torque + Brake pressure |
+| Front/Rear Zone | scoped demand 검증 → 담당 CAN; 원천 actual/health 보존, local protection |
 | Drive vECU | signed torque demand → motor dynamics 후 actual torque + 회생 가용량 |
 | Brake vECU | pressure demand → 압력 dynamics 후 actual friction-brake pressure |
 | Plant Adapter | actual Drive torque + actual Brake pressure → 각각 한 번씩 plant에 적용 |
 
 ```mermaid
 flowchart TB
-  C[Central · 총 감속 요구] --> Z[Zone · 회생/마찰 배분]
-  Z --> D[Drive vECU · 회생 토크]
-  Z --> B[Brake vECU · 마찰제동 압력]
-  D --> P[Plant Adapter · actual만 반영]
+  C[Central Controller · 총 감속 요구] --> Z[Central allocation · 회생/마찰 배분]
+  Z --> D[Rear CAN → Drive · 회생 토크]
+  Z --> B[Front CAN → Brake · 마찰제동 압력]
+  D --> P[담당 Zone → Central bridge → Plant Adapter · actual만 반영]
   B --> P
   D -. actual / 회생 가용량 .-> Z
   B -. actual pressure .-> Z
@@ -52,7 +53,7 @@ power 모델은 EV-01에 포함하며 상세 셀 화학/열화/밸런싱은 제�
 | BrakeCommand/Actual.pressure_pa | nonnegative aggregate **마찰제동 압력**; 유효한 0은 release이며 unavailable과 구분 |
 
 회생 한계가 유효한 0이면 현재 회생을 사용할 수 없다는 정상적인 정보다.
-한계가 unknown/invalid/stale이면 Zone은 새로운 음수 Drive demand를 만들지 않는다.
+한계가 unknown/invalid/stale이면 Central allocation은 새로운 음수 Drive demand를 만들지 않는다.
 Drive는 로컬 최신 한계를 적용해 수신 demand를 다시 제한하며 capability 변화가 토크
 응답에 어떻게 반영되는지는 M2에 정의한다. 유효 torque actual과 무효 capability는 구분한다.
 Critical Drive Actual 자체가 invalid/stale/missing이면 기존 FAIL_SAFE/Plant gate를 적용한다.
@@ -62,7 +63,7 @@ Cached 충전 한계에 새 timestamp를 붙여 유효하게 만들지 않는다
 각 source/input age <=30 ms와 시간관계/불변 cached 값을 검사한다. Target clock/통합 skew와
 물리 budget은 TBD-02/04다. ZoneStatus/Host bridge도 이 유효성과 원천 정보를 보존해야 한다.
 
-## Zone 배분 원칙
+## Central 배분 원칙
 
 1. Central의 acceleration demand와 정상/보호 braking demand를 arbitration해 총 제동
    요구를 얻는다. 우선순위는 TBD-06이며 두 요구를 독립적으로 더해 중복 제동하지 않는다.
@@ -125,9 +126,9 @@ CARLA motion 검증과 단순 충전 모델의 에너지 추정 결과는 구분
 정의·구현했다. Six-frame 수는 유지하고 Actual payload를 확장해 원천 정보가 맞도록 했다.
 Capability는 actual torque의 대체 값이 아니다. [Host wire/receiver/vCAN 실행](../learning/m1_drive_codec.md)은
 완료했다. 후속 [local Epoch/queue](../learning/m1_session_queue.md)의 영속 발급과 overflow도 검사했다.
-Wire baseline 채택, 실제 Front/DDS protocol 및 물리 응답은 남아 있다.
+Wire baseline 채택, 실제 Central coordinator/Zone DDS protocol 및 물리 응답은 남아 있다.
 
-Brake receiver → Drive wire/receiver → M2 dynamics/충전 모델 → M4 Zone blending
+Brake receiver → Drive wire/receiver → M2 dynamics/충전 모델 → M4 Central blending
 → M6 Simple Plant → M7 CARLA 순서다. 새 테스트 실행 파일을 단계마다 만들기보다
 기존 unit/integration fixture에 관련 case를 추가한다.
 

@@ -27,6 +27,9 @@ M0의 23개 요구사항은 v0.1이다. 2026-10-13 [RG-01](../adr/ADR-0011-regen
 후속 [EV-01](../adr/ADR-0014-ev-functional-scope.md)으로 SYS-COM-003/004와 SYS-PERF-002를
 **v0.3으로 개정**하고 SYS-EV-001–005를 v0.3으로 추가했다. 그 외 기존 요구는 위 revision을
 유지한다. [ZON-01](../adr/ADR-0015-front-rear-zones.md)로 **SYS-ARCH-003 v0.4**를 추가한다.
+2026-10-14 [ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)로
+SYS-ARCH-003·SYS-CTRL-008·SYS-SAFE-005·SYS-EV-003을 **v0.5로 개정**한다.
+차량 전체 owner를 Front에서 Central의 별도 VCU component로 옮기고 각 Zone과 독립 통신한다.
 RG-01/EV-01/ZON-01 runtime verification은 NOT RUN이며 상세 parameter는 TBD다.
 DEFINED는 계약 정의, PLANNED는 향후 작업, TBD는 미결정 parameter,
 NOT RUN은 미실행, IMPLEMENTED는 존재하는 실행 구현, MEASURED는 관측 결과 보유,
@@ -54,7 +57,7 @@ CARLA에서 재현 가능한 직선/완만한 곡선, 속도 **0–40 km/h**다.
 | --- | --- | --- |
 | SYS-ARCH-001 | The system shall deploy the same Central–Zone–Leaf architecture independently on either AGX Thor or Orin NX. | 보드별 compute budget 비교; 두 보드 결합 차량 금지; TC-ARCH-001 |
 | SYS-ARCH-002 | The system shall distinguish vehicle-level command, actuator command and actual actuator feedback by producer, meaning and interface direction. | allocation 및 actuator dynamics/fault 관측; TC-CTRL-001 |
-| SYS-ARCH-003 | The final Reference shall use Front and Rear logical Zones with one vehicle-wide coordination owner, preserve per-source command and feedback metadata across peer routing, and verify independent Zone loss and rejoin. | ZON-01/v0.4; Front 단일 차량 관리·배분, Rear Drive/BMS gateway; peer schema/QoS/clock/rejoin TBD-15; TC-ZON-001/002/003 |
+| SYS-ARCH-003 | The final Reference shall connect Front and Rear logical Zones independently to Central, place single vehicle-management, allocation, session and feedback-aggregation owners in separate Central components, preserve per-source metadata, and verify independent Zone loss and rejoin. | ZON-01/v0.5; Central 단일 VCU/session/bridge, 두 Zone scoped gateway; 독립 command/status/session schema/QoS/clock/rejoin TBD-15; TC-ZON-001/002/003 |
 | SYS-ODD-001 | The reference driving scenarios shall remain within the StrataDrive Reference Baseline v0.1 ODD defined above. | 범위 밖 성능 주장 방지; TC-CTRL-002/003/004 |
 | SYS-COM-001 | The Zone Controller shall detect Steering vECU feedback communication loss within 100 ms of the last valid feedback reception. | F01; timeout threshold만이 아니라 monitor 지연까지 포함; TC-COM-001 |
 | SYS-COM-002 | Receivers shall reject commands with invalid application integrity, sequence or freshness and shall not refresh valid-command age from rejected frames. | CAN application CRC 필수, DDS integrity 방식 TBD-05; TC-COM-002 |
@@ -67,21 +70,21 @@ CARLA에서 재현 가능한 직선/완만한 곡선, 속도 **0–40 km/h**다.
 | SYS-CTRL-005 | The vehicle shall achieve a 95th-percentile absolute lateral cross-track error of at most 0.3 m on each reference route. | ego reference point와 reference path 기준; TC-CTRL-002/003/004 |
 | SYS-CTRL-006 | The vehicle shall achieve a 95th-percentile absolute heading error of at most 3 deg on each reference route. | path tangent 대비 wrapped angle; TC-CTRL-002/003/004 |
 | SYS-CTRL-007 | The vehicle shall not exceed the time-aligned validated target speed by more than 10 percent while that target is positive. | S03의 감속 request와 연속 target profile 구분; TC-CTRL-002/003/004 |
-| SYS-CTRL-008 | The Zone shall allocate braking between regenerative Drive torque and friction Brake pressure within validated actuator limits, using a common wheel reference and actual-response information. | RG-01/v0.2; capability/응답 전환/저속 hold calibration TBD-02/03/06; TC-REG-001/002/003 |
+| SYS-CTRL-008 | The Central control-allocation component shall allocate braking between regenerative Drive torque and friction Brake pressure within validated actuator limits, using a common wheel reference and actual-response information. | ZON-01/v0.5; RG-01 배분 원칙 유지, owner Zone→Central; capability/응답 전환/저속 hold calibration TBD-02/03/06; TC-REG-001/002/003 |
 | SYS-CTRL-009 | Recovered energy shall be computed from valid actual regenerative mechanical power and bounded by mechanical energy and charge acceptance, excluding friction-brake energy. | RG-01/v0.2; 단순 모델 효율/적분 오차 TBD-02/03; TC-REG-005 |
 | SYS-AI-001 | The learned planner shall provide trajectory, target speed and risk outputs through safety validation and classical control, with classical planner fallback on invalid or late AI output. | fallback 입력도 무효면 보호 상태; M11 계약, TC-AI-001 |
 | SYS-SAFE-001 | The system shall transition to DEGRADED or FAIL_SAFE when a safety-critical actuator interface is unavailable. | 상태만으로 정지 보장하지 않음; fault별 정책은 safety 문서; TC-SAFE-001 |
 | SYS-SAFE-002 | Components shall start in INIT, inhibit normal driving output until required input and feedback checks pass, and require explicit reinitialization before recovery to NORMAL. | 초기화/복구 gate, 자동 즉시 복귀 금지; TC-SAFE-002 |
 | SYS-SAFE-003 | The Zone Controller and each vECU shall execute their local timeout protection without waiting for Central communication or diagnostic acknowledgement. | F04 및 상위 process 단절; TC-COM-004 |
 | SYS-SAFE-004 | On drive-command timeout, the Drive vECU shall invalidate the old positive or negative demand and select a local zero motor torque target. | RG-01/v0.2; actual torque는 dynamics에 따라 변함; 양·음수→0 ramp/응답 deadline TBD-03; TC-COM-003 |
-| SYS-SAFE-005 | The Zone shall inhibit new regenerative demands when capability is invalid or stale, distinguish valid zero capability from critical actual loss, and report unmet braking demand with local protection outside the validated envelope. | RG-01/v0.2; 마찰제동 한계/전환 budget TBD-03/06; critical loss 정책 유지; TC-REG-002/004 |
+| SYS-SAFE-005 | The Central control-allocation component shall inhibit new regenerative demands when capability is invalid or stale, distinguish valid zero capability from critical actual loss, and report unmet braking demand with local protection outside the validated envelope. | ZON-01/v0.5; Central 배분 + Zone/Leaf 로컬 검증 유지; 마찰제동 한계/전환 budget TBD-03/06; critical loss 정책 유지; TC-REG-002/004 |
 | SYS-DIAG-001 | The system shall trace monitored faults through fault events, DTC records and system state transitions. | local action과 기록 경로 분리; DTC 통합 M9, TC-DIAG-001 |
 | SYS-PERF-001 | The system shall measure end-to-end control latency and report Mean/P95/P99/Max, sample count and deadline misses. | endpoint/clock/causal path는 timing 문서; M0 실측 없음; TC-PERF-001 |
 | SYS-PERF-002 | The Reference Config shall define sensor/plant and planner rates of 20 Hz, controller rate of 50 Hz, and Zone and Steering/Brake/Drive vECU control rates of 100 Hz, and shall specify BMS/power task and publication rates before their execution tests. | EV-01/v0.3; 기존 수치는 유지, 새 rate/source-age ADR-0016 초안/수용 TBD-14; logical 설정과 deadline 구분; TC-PERF-002, TC-EV-002 |
 | SYS-PERF-003 | Timing and timeout evidence shall identify its clock domain and distinguish simulation time from elapsed monotonic wall time. | 서로 다른 clock 직접 차감 금지, pause/reset 별도 처리; TC-PERF-001/002 |
 | SYS-EV-001 | The system shall verify modeled power readiness and fresh required health before enabling normal driving, keep power lifecycle distinct from severity state, and verify actual power response during startup and shutdown. | EV-01/v0.3; 요청≠actual/READY≠NORMAL, local drive permission과 INIT gate; TBD-12; TC-EV-001/004 |
 | SYS-EV-002 | The BMS vECU shall report modeled battery state, charge/discharge limits and actual power status through the Zone with source and dependency validity, time and identity; consumers shall distinguish valid zero limits from unknown or stale data. | EV-01/v0.3; schema/critical stream/rate/source age ADR-0016 초안/수용 TBD-14; TC-EV-002/003 |
-| SYS-EV-003 | Drive shall enforce fresh battery charge/discharge constraints and local drive permission together with validated motor limits, while Zone allocation accounts for the resulting availability and actual response. | EV-01/v0.3; W/N·m 변환 명시, zero/low speed와 local response TBD-03/13; TC-EV-003, TC-REG-001/002/004 |
+| SYS-EV-003 | Drive shall enforce fresh battery charge/discharge constraints and local drive permission together with validated motor limits, while Central allocation accounts for the resulting availability and actual response. | ZON-01/v0.5; Central 배분/vehicle management, local Drive gate 유지; W/N·m 변환 명시, zero/low speed와 local response TBD-03/13; TC-EV-003, TC-REG-001/002/004 |
 | SYS-EV-004 | BMS, Drive and Zone shall execute fault-specific local protection for unavailable critical EV inputs or power faults without Central diagnostic acknowledgement and shall require explicit reinitialization and power checks for recovery. | EV-01/v0.3; 고장별 reaction matrix/응답 budget TBD-12/14; 일괄 즉시 contactor open을 가정하지 않음; TC-EV-002/004 |
 | SYS-EV-005 | A single battery-model owner shall update energy and SOC from valid actual model power using a declared loss/load model and simulation clock, preserve energy balance within a fixed tolerance, and expose invalid samples or limit violations. | EV-01/v0.3; command/limit 적분·마찰 회수·이중 집계 금지, capacity/sign/full/empty/오차 TBD-13; TC-EV-005, TC-REG-005 |
 
@@ -98,6 +101,7 @@ scenario/test, traceability를 함께 갱신한다. 이전 결과는 이전 revi
 | v0.2 / 2026-10-13 | SYS-SAFE-004 개정, SYS-CTRL-008/009·SYS-SAFE-005 추가 | RG-01 회생제동 포함; zero-propulsive target → 양·음수 motor torque의 zero target; 가용량 기반 배분/실제 회수 에너지 계약 추가 | Owner: project owner; 사용자 범위 결정과 ADR-0011, Result 없음(설계 단계); TC-COM-003 재시험 및 TC-REG-001–005, M1/M2/M4/M6/M7 | 포함 범위 ACCEPTED; 상세 parameter/실행 검증 후속 |
 | v0.3 / 2026-10-13 | SYS-COM-003/004·SYS-PERF-002 개정, SYS-EV-001–005 추가 | EV-01 BMS/power/vehicle management 포함, actuator별 bridge → EV 원천/의존 status 보존; 기존 20/50/100 Hz는 유지하고 BMS rate를 별도 결정 | Owner: project owner; ADR-0014, Result 없음(설계 단계); TC-EV-001–005 및 기존 TC-COM/REG/PERF 영향 검토, M1–M7/M9; 당시 다중 Zone 채택은 별도 TBD-15 | 포함 범위 ACCEPTED; 상세 설계/학습자 review PENDING, runtime NOT RUN |
 | v0.4 / 2026-10-13 | SYS-ARCH-003 추가; 기존 COM/SAFE/EV peer coverage 연결 | ZON-01 최종 Front/Rear Zone 및 Front 단일 coordinator 채택; 원천 freshness/독립 loss/rejoin 유지 | Owner: project owner; ADR-0015, Result 없음(설계 단계); TC-ZON-001–003, M4/M5/M6/M7/M9/M12; TBD-15 protocol은 남음 | 두 Zone·책임 배치 ACCEPTED; protocol review PENDING, runtime NOT RUN |
+| v0.5 / 2026-10-14 | SYS-ARCH-003·SYS-CTRL-008·SYS-SAFE-005·SYS-EV-003 개정 | Front VCU/배분/session/집계→Central 별도 component; Central↔Front/Rear 독립 application 경로. 100 ms/freshness/actual-only/local 보호 유지 | Owner: project owner; 사용자 배치 변경 승인/ADR-0021. 새 topology runtime Result 없음; TC-ZON-001–003, TC-CTRL-001, TC-REG-001–004, TC-EV-001–004, TC-COM-001–005, TC-SAFE-001/002와 M4/M5/M6/M7/M9/M12 재검증 | 배치 ACCEPTED; protocol/학습자 review PENDING, system NOT RUN |
 
 향후 행에는 이전 값→새 값, 실험 Result ID(없으면 그 이유), 결정 owner, rationale,
 영향받는 test와 재시험 milestone을 반드시 기록한다.
@@ -106,5 +110,5 @@ scenario/test, traceability를 함께 갱신한다. 이전 결과는 이전 revi
 Scenario/Test → Future Result의 단일 연결점이다. 미결정 parameter는
 [roadmap TBD register](../roadmap.md#open-m0-decisions)로 관리한다.
 
-ZON-01에서 SYS-COM-003/004와 SYS-SAFE-002/003의 기존 의무를 peer-Zone 경로에도
+ZON-01에서 SYS-COM-003/004와 SYS-SAFE-002/003의 기존 의무를 독립 Central–Zone 경로에도
 적용한다. 문장/revision은 유지하며 TC-ZON-002/003으로 추가 coverage를 연결한다.

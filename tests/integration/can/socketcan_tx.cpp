@@ -415,6 +415,55 @@ void bms_fixture(const char* interface, can::BmsFrameKind kind,
     } else throw std::invalid_argument("unknown EV fixture scenario");
 }
 
+void steering_model_commands(const char* interface, std::uint32_t epoch, bool loss) {
+    using namespace stratadrive;
+    socketcan::Endpoint endpoint(interface);
+    can::SteeringTxState tx{can::SteeringFrameKind::Command};
+    std::cout << std::unitbuf << "TX_READY\n";
+    fixture::await_start();
+    const auto start = std::chrono::steady_clock::now();
+    std::uint32_t sequence = 0;
+    for (int ms = 0; ms <= 550; ms += 10) {
+        std::this_thread::sleep_until(start + std::chrono::milliseconds(ms));
+        if (loss && ms > 150 && ms != 400) continue;
+        can::SteeringMessage input;
+        input.epoch = epoch; input.sequence = sequence++; input.angle_rad = loss && ms == 400 ? -0.2 : 0.4;
+        input.source_time_ns = socketcan::monotonic_time_ns();
+        input.local_state = can::SteeringLocalState::Normal; input.origin = can::SteeringOrigin::NormalPath;
+        const auto frame = can::encode_steering_frame(input, tx);
+        if (!frame) throw std::runtime_error("model command encode failed");
+        endpoint.send(socketcan::to_socketcan(*frame));
+        std::cout << "MODEL_TX at_ns=" << input.source_time_ns << " seq=" << input.sequence << '\n';
+    }
+}
+
+void brake_model_commands(const char* interface, std::uint32_t epoch, const std::string& scenario) {
+    using namespace stratadrive;
+    socketcan::Endpoint endpoint(interface);
+    can::BrakeTxState tx{can::BrakeFrameKind::Command};
+    std::cout << std::unitbuf << "TX_READY\n";
+    fixture::await_start();
+    const auto start = std::chrono::steady_clock::now();
+    std::uint32_t sequence = 0;
+    const bool normal = scenario == "model-normal";
+    const bool high = scenario == "model-high-loss";
+    const int stop_ms = high ? 450 : 150;
+    const int late_ms = high ? 650 : 400;
+    for (int ms = 0; ms <= 650; ms += 10) {
+        std::this_thread::sleep_until(start + std::chrono::milliseconds(ms));
+        if (!normal && ms > stop_ms && ms != late_ms) continue;
+        can::BrakeMessage input;
+        input.epoch = epoch; input.sequence = sequence++;
+        input.pressure_pa = normal ? (ms < 350 ? 2000000 : 0) : (ms == late_ms ? 0 : 2000000);
+        input.source_time_ns = socketcan::monotonic_time_ns();
+        input.local_state = can::BrakeLocalState::Normal; input.origin = can::BrakeOrigin::NormalPath;
+        const auto frame = can::encode_brake_frame(input, tx);
+        if (!frame) throw std::runtime_error("brake model command encode failed");
+        endpoint.send(socketcan::to_socketcan(*frame));
+        std::cout << "MODEL_TX at_ns=" << input.source_time_ns << " seq=" << input.sequence << '\n';
+    }
+}
+
 int main(int argc, char** argv) {
     try {
         using namespace stratadrive;
@@ -424,6 +473,12 @@ int main(int argc, char** argv) {
         const auto epoch = fixture::positive_number(argv[3]);
         const std::string scenario = argv[4];
         const std::string stream = argv[2];
+        if (stream == "cmd" && (scenario == "model-normal" || scenario == "model-loss")) {
+            steering_model_commands(argv[1], epoch, scenario == "model-loss"); return 0;
+        }
+        if (stream == "brake-cmd" && (scenario == "model-normal" || scenario == "model-loss" || scenario == "model-high-loss")) {
+            brake_model_commands(argv[1], epoch, scenario); return 0;
+        }
         if (const auto ev_kind = fixture::bms_kind(stream)) {
             bms_fixture(argv[1], *ev_kind, scenario, epoch);
             return 0;

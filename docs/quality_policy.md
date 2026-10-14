@@ -1,10 +1,11 @@
 # Software quality policy
 
-Status: **M1 codec/receiver/SocketCAN에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 143개 PASS**다.
+Status: **M1 통신과 M2 첫 Steering/Brake 모델에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 172개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
-도구 버전, 검사 범위와 재현 명령을 보존한다. Session/queue를 포함한 local vCAN **89개 case**도 검사한다.
+도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개,
+총 local vCAN **94개 case**를 검사한다.
 
 2026-10-13 문서 정리 시 normal·ASan/UBSan build/unit/vCAN과 DBC 검사를 다시 통과했다.
 Local observed timeout은 normal 80.019–81.072 ms, sanitizer 80.053–81.065 ms였다.
@@ -72,6 +73,37 @@ Clang-tidy 14 analyzer/bugprone은 변경 source/test 11개와 receiver/queue/su
 적용해 user-source 진단 없이 통과했다. Cppcheck 2.7은 production/fixture source 10개에 적용했다.
 59개 Markdown의 상대 링크·앵커 528개, 32개 요구/29개 TC, YAML 3개와 Python 3개의
 정합성·syntax/whitespace를 검사했다. 실제 차량/Target 성능이나 전체 TC PASS로 확대하지 않는다.
+
+2026-10-14 [M2 첫 Steering 모델](learning/m2_steering_model.md)은 unit 13개를 추가했다.
+Normal·ASan/UBSan 각각 전체 156개 unit을 통과했다. 기존 M1 89개 vCAN 회귀를 모두 통과했고,
+model-normal/model-loss 2개를 별도로 실행해 각각 통과했다. 첫 model verifier에서 expiry의
+reference를 RX time에서 Command source time으로 수정하고 두 model case를 다시 통과했다.
+유효 Command → delay/rate/saturation → 독립 Actual RX, source-expiry hold/latch/late command
+거부를 확인했다. Actual validity와 FAIL_SAFE를 분리하며 full vehicle TC는 NOT RUN이다.
+Clang-tidy의 변경 source/test 5개와 cppcheck production/fixture 4개를 최종 user-source 진단 없이
+통과했다. BUILD_TESTING=OFF의 model library/demo build와 결정론적 demo도 통과했다.
+61개 Markdown의 상대 링크/앵커, 요구사항 32개/TC 29개와 YAML/Python 정합성을 확인했다.
+모델 설정은 SIL fixture이며 Target timing/실차 calibration은 별도다.
+
+2026-10-14 [M2 첫 Brake 압력 모델](learning/m2_brake_model.md)은 unit 16개와 model vCAN 3개를
+추가했다. Normal·ASan/UBSan 각각 전체 **172개 unit / 94개 vCAN**을 통과했다.
+가압/감압·delay/saturation·valid-zero release, expiry/continuity/deadline의 protective floor ramp,
+이미 높은 압력의 retain·late release 거부·clock/restart를 검사한다.
+Maximum delay/300개 목표 변경도 fixed history에 유지되는지 unit에서 확인했다.
+Generic model loop/runner를 Steering과 공유하고 Actual source/sequence/causal/state/pressure가
+독립 RX에 보존되는지 검사했다. Clang-tidy 14 변경 source/test 5개와 cppcheck 2.7 source 4개는
+user-source 진단 없이 통과했다. BUILD_TESTING=OFF library/demo build와 brake-model 실행도 통과했다.
+63개 Markdown의 상대 링크/앵커, 32개 요구/29개 TC와 YAML/Python 정합성도 확인했다.
+Pressure→wheel torque/차량 감속/ABS/회생 배분과 Target scheduling/full TC는 후속이다.
+
+2026-10-14 [ADR-0021](adr/ADR-0021-central-coordination-and-parallel-zones.md)은 Central의 별도
+VCU/allocation/session/feedback bridge와 대등한 두 Zone의 문서·profile 배치를 개정했다.
+요구 4개를 v0.5로 기록하고 기존 32개 요구/29개 TC의 owner/interface/fault variant를 갱신했다.
+Epoch library를 central/session으로 이동해 normal·ASan/UBSan build와 각 172개 unit을 통과했다.
+CPP 발급 동작은 이전 source와 동일함을 확인했다. BUILD_TESTING=OFF build와 독립 production
+issuer process의 1→2 발급, 64개 Markdown/상대 링크·앵커/추적성/YAML/Python 검사를 통과했다.
+앞선 94개 vCAN 결과는 기존 component/wire 부분 증거다. 실제 새 Central–Zone DDS topology와
+vehicle/system TC 결과는 NOT RUN이며 M4/M5 이후 검증한다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |

@@ -158,9 +158,9 @@ MaxDeltaCounter=10은 기존 rate에 맞춘 실험 후보이며 측정으로 확
 - SourceTimeNs는 monitoring enable 이후이고 now 이하이며, 수용 후에는 엄격히 증가해야 한다.
   `now − source_time <= 30 ms`를 freshness 후보로 둔다. 10 ms 주기의 세 주기 분량을
   초안 budget으로 둔 것이며 부하/queue 측정 근거는 아직 없다. 변경 시 시험 기준도 갱신한다.
-- Command의 SourceTimeNs는 Zone allocation 생성 시각, Actual은 모델 state sample 시각이다.
+- Command의 SourceTimeNs는 Central allocation 생성 시각, Actual은 모델 state sample 시각이다.
   Cached Actual의 재송신은 새 sample이 아니므로 timestamp/sequence를 새로 만들지 않는다.
-  Zone은 별도로 Central last-valid age를 감시하며 allocation 생성으로 상위 유효 기간을 연장하지 않는다.
+  Central allocation은 Controller last-valid age를, Zone은 전달된 parent expiry/source age를 별도 감시하며 새 command 생성/중계로 상위 유효 기간을 연장하지 않는다.
 - CausalSequence는 같은 run Epoch의 원천 identity와 연결한다. Upstream sensor/trajectory,
   clock-domain 이름, 원천 전체 identity는 logger/side-channel에 보존한다. Wire tuple과 log의
   대응 구현 및 Host bridge 보존 검증은 M4/M5 이후에 남는다. 다른 epoch input을 참조하지 않는다.

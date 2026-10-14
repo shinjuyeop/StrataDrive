@@ -12,7 +12,8 @@ M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. 
 | CARLA simulation / sensor baseline | 20 Hz | 50 ms | 한 Host orchestrator가 tick 소유; sensor/state baseline |
 | Planner | 20 Hz | 50 ms | 최신 유효 state snapshot 사용 |
 | Vehicle Controller (Classical Controller) | 50 Hz | 20 ms | 센서 frame 재사용 가능; 원천 age 보존 |
-| Zone Controller | 100 Hz | 10 ms | validation/allocation/local monitor 및 actuator command publication |
+| Central VCU/session/bridge | TBD-04/05/14 | M4/M5 task 검증 전 결정 | 별도 vehicle management/allocation·trusted INIT·원천 feedback 집계; 기존 Controller/Zone rate를 자동 복제하지 않음 |
+| Zone Controller | 100 Hz | 10 ms | scoped validation/local monitor 및 actuator command dispatch |
 | Steering vECU | 100 Hz | 10 ms | control/dynamics task 및 actual feedback publication |
 | Brake vECU | 100 Hz | 10 ms | 위와 동일 |
 | Drive vECU | 100 Hz | 10 ms | 위와 동일 |
@@ -100,12 +101,15 @@ component 구간만 측정하고 Central/Host/CARLA endpoint는 M5/M7 이후 연
 | planner_start / planner_end | snapshot 사용 시작 / candidate 완료 |
 | safety_start / safety_end | candidate 검증 시작 / validated trajectory 완료 |
 | controller_start / controller_end | 입력 snapshot 사용 / vehicle-level command 완료 |
-| central_command_tx | VehicleCommand publish/enqueue |
-| zone_ingress / zone_egress | vehicle command valid acceptance / CAN actuator command enqueue |
+| central_vehicle_request | Controller VehicleCommand publish/enqueue → Central allocation |
+| central_allocation_start / central_allocation_end | 유효 vehicle-level 요구·원천 feedback 사용 / scoped demand 완료 |
+| central_scoped_command_tx | 담당 Zone별 actuator demand publish/enqueue; parent identity/expiry 보존 |
+| zone_ingress / zone_egress | scoped command valid acceptance / CAN actuator command enqueue |
 | vecu_command_rx | actuator command valid acceptance; raw RX/reject도 별도 event |
 | vecu_task_start / vecu_task_end | accepted snapshot 사용 / dynamics update 완료 |
 | feedback_tx | 해당 actual sample publish/enqueue |
-| zone_feedback_rx / bridge_tx | actuator별 valid RX / Host 송신; 원천 metadata 보존 |
+| zone_feedback_rx / zone_status_tx | 담당 actuator별 valid RX / Central status 송신; 원천 metadata 보존 |
+| central_zone_status_rx / bridge_tx | 각 Zone/Leaf 원천 valid acceptance / Host 송신; source별 age/identity 보존 |
 | plant_adapter_ingress | Host의 각 actual feedback valid acceptance |
 | carla_actuation_apply | Plant Adapter가 입력을 적용한 시각과 적용 대상 simulation frame |
 | next_sensor_timestamp | 다음 sensor frame; 폐루프 확인용이며 기본 E2E 끝점과 구분 |

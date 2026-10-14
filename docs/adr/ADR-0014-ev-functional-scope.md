@@ -1,5 +1,7 @@
 # ADR-0014: 전기차 기능·상태·통신을 재현하는 SIL 범위
 
+현재 배치: [ADR-0021](ADR-0021-central-coordination-and-parallel-zones.md). 차량 관리/배분/session/Host 집계의 배치는 2026-10-14 ADR-0021의 Central 별도 component와 대등한 두 Zone을 따른다. 아래 결정/결과는 작성 당시 범위 기록이다.
+
 Date: 2026-10-13. Status: **EV-01 포함 범위 ACCEPTED / 상세 설계 초안 / 구현 PLANNED / 시험 NOT RUN**.
 Owner: 학습자(project owner). 근거: 실차의 프로세스·구조를 재현한다는 사용자 방향과
 기존 계층 유지, BMS 추가, Zone을 거치는 상위 feedback 경로에 대한 대화의 합의.

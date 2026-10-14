@@ -85,7 +85,7 @@ build/m1-dbc-venv/bin/python tools/check_actuator_dbc.py --demo build/m1-angle/a
 ```
 
 Sanitizer와 actuator/EV transport는 같은 build/runner를 사용한다. 아래 63개는 BMS 연결 당시의
-검사 범위다. 후속 [session/queue](m1_session_queue.md)까지 포함한 기본 실행은 89개,
+검사 범위다. 후속 [session/queue](m1_session_queue.md)까지 포함한 M1 subset은 89개이며, [M2 조향 모델](m2_steering_model.md)까지 포함한 현재 기본 실행은 94개(조향 2 + Brake 3 포함),
 `--family ev`는 49개, `--family actuator`는 40개다.
 
 ```sh

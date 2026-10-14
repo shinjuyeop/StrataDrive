@@ -9,18 +9,19 @@ field codec 검증은 [C++ 실행 기록](learning/m1_steering_codec.md)에 범�
 [Steering 수신부의 수용/sequence/freshness/timeout](learning/m1_steering_receiver.md)을
 제어 가능한 시계로 Host에서 시험했다. [SocketCAN 연결](learning/m1_steering_socketcan.md)로
 Steering의 독립 process 송수신/fault/wall-time timeout을 실행했다. 후속
-[영속 local Epoch/queue](learning/m1_session_queue.md)도 구현·시험했고 실제 Front/DDS·차량 통합은 남아 있다.
+[영속 local Epoch/queue](learning/m1_session_queue.md)도 구현·시험했고 실제 Central coordinator/Zone DDS·차량 통합은 남아 있다.
 [Brake wire 확장](learning/m1_brake_codec.md)으로 압력 field·공통 metadata·DBC/P05·vCAN을 시험했다.
 [Brake 수신 수용/timeout](adr/ADR-0012-brake-receiver.md)도 Host/vCAN에서 구현·시험했다.
 [Drive wire/receiver](learning/m1_drive_codec.md)의 signed torque/capability도 Host/vCAN에서 구현·시험했다.
 2026-10-13 [RG-01 회생제동 포함 범위](adr/ADR-0011-regenerative-braking-scope.md)를 결정했다.
 M0 v0.1의 역사적 검토는 유지하고 현재 interface/safety/profile/test 계획에 확장을 반영한다.
 Drive wire는 signed 구동/회생 torque와 capability 원천 시각을 담는다.
-M1 통신 검사와 M2 모델로 진행하며 물리 회생/배분 runtime은 PLANNED / NOT RUN이다.
+M1 통신 검사 후 [M2 첫 Steering 응답 모델](learning/m2_steering_model.md)을 Host에서 구현·시험했다.
+이어 [Brake 압력 응답](learning/m2_brake_model.md)도 구현·시험했다. 다음 component는 Drive 및 Battery/BMS/Power이며 물리 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며
 실행 결과는 NOT RUN이다. [ZON-01](architecture/zonal_partition.md)로 최종 Front/Rear 두 Zone,
-Front 단일 coordinator와 Rear Drive/BMS gateway를 채택했다. Peer protocol/runtime은 미구현이다.
+Central 별도 단일 coordinator와 Rear Drive/BMS gateway를 채택했다. 독립 Central–Zone protocol/runtime은 미구현이다.
 2026-10-14 [BMS 의미·wire·timing 초안](icd/bms_frame_draft.md)을 작성하고 DBC/CRC를 검사했다.
 [EV 물리/frame codec과 항목별 receiver](learning/m1_bms_codec.md), Drive auxiliary age 분리도
 Host에서 구현·시험했다. 기존 fixture의 EV vCAN/session·parent·relay 36개 검사도 추가했다.
@@ -49,9 +50,9 @@ M0 계약을 유지하며, 시스템이 수행할 물리적 보호 동작과 검
 - Target은 Jetson AGX Thor 또는 Jetson Orin NX 한 대다. 두 보드는 독립적인 배포 대안이다.
 - Target 내부 경로는 Central Vehicle Compute → Virtual Ethernet / DDS → Zone Controller
   → SocketCAN / vCAN → Steering / Brake / Drive vECU다.
-- EV-01은 BMS를 같은 계층의 Leaf로 추가하고 Zone의 gateway/vehicle management/
-  allocation을 구분한다. ZON-01의 Front만 차량 전체 관리·배분을 소유하고 Rear는 local gateway다.
-  BMS/power 상위 피드백은 Rear→Front 집계를 거친다.
+- EV-01은 BMS를 같은 계층의 Leaf로 추가하고 Central의 별도 vehicle management/allocation과 각 Zone gateway를 구분한다.
+  ZON-01 v0.5에서 Central이 차량 전체 관리·배분을 소유하고 두 Zone은 local gateway다.
+  BMS/power 상위 피드백은 Rear→Central 집계를 거친다.
 - vECU의 actual actuator feedback이 bridge를 거쳐 Host Plant Adapter로 전달된다.
   Plant Adapter만 CARLA ego actuation을 적용한다. Command를 actual로 대체하지 않는다.
 - Classical driving을 검증한 뒤 perception과 Learned Planner를 통합한다.
@@ -157,11 +158,12 @@ Steering frame/DBC에 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e
 직접 구현해 Host에서 시험했다. OS/RTE/BSW pilot과 별개의 적용 범위다.
 이어서 [로컬 application 수신부](learning/m1_steering_receiver.md)를 구현·시험했다.
 [SocketCAN/vCAN 연결](learning/m1_steering_socketcan.md)까지 실행했다.
-영속 local Epoch/queue overflow는 M1에서 검사했다. 실제 Front/DDS·차량 통합 및 학습자 review는 남아 있다.
+영속 local Epoch/queue overflow는 M1에서 검사했다. 실제 Central coordinator/Zone DDS·차량 통합 및 학습자 review는 남아 있다.
 
 Actuator/EV 12개 frame의 golden vectors → codec → vCAN application/overflow/restart 시험까지 실행했다.
 세 actuator는 공통 metadata와 수신 상태를 공유하고 Drive는 보조 freshness를 별도 검사한다.
-학습자 review와 actual Front/DDS protocol이 남아 있으며 다음 모델 작업의
+첫 [M2 조향 응답](learning/m2_steering_model.md)의 정상 응답과 local hold를 구현·시험했다.
+학습자 review와 actual Central coordinator/Zone DDS protocol이 남아 있으며 후속 Drive/Battery/BMS/Power 모델의
 TBD-02/03/04를 관련 구현 전에 검토한다. 개념 설명은 해당 작업에 필요한 만큼만
 진행하고 작은 변경·review·직접 실행·결과 해석으로 이어간다.
 

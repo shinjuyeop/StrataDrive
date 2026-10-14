@@ -36,6 +36,10 @@ AUTOSAR 실습은 관련 설계·구현과 함께 진행한다. 전체 이론 �
 현재 이해 확인/직접 재현은 PENDING이며 M1 통신 검사 이후 M2 응답 모델로 진행한다.
 [M1 마무리 session/queue](m1_session_queue.md)에서 영속 Epoch와 실제 application/kernel overflow,
 이전 Epoch의 P05 counter 오염 방지와 기술 exit checklist를 구현·검사했다.
+[M2 첫 조향 모델](m2_steering_model.md)의 delay/rate/saturation과 local hold를
+기존 Command TX → model → Actual RX에 연결했다. Unit 13개와 model vCAN 2개를 추가했다.
+[첫 Brake 모델](m2_brake_model.md)은 가압/감압과 0/unavailable·loss protection을 설명하고
+unit 16개와 vCAN 3개를 추가했다. 현재 전체 unit 172개, 기본 vCAN all 94개다.
 
 후속 [EV-01 범위/역할](../icd/ev_power_bms_design.md)을 정리했다. BMS와 battery model,
 power READY와 system NORMAL, 원천 status와 Zone 전달의 차이를 복습한다.
@@ -43,15 +47,15 @@ power READY와 system NORMAL, 원천 status와 Zone 전달의 차이를 복습�
 [BMS 물리값·frame codec과 항목별 receiver](m1_bms_codec.md)도 구현·시험했다.
 50/100 Hz critical 경로와 10 Hz 관측, valid 0/unknown, power request/actual/permission,
 원천 전달/expiry를 복습한다. 기존 vCAN fixture도 EV 36개 case로 확장했다.
-기존 actuator 27 + EV 36에 queue 24/restart 2를 더한 89개 독립 process 시험을 재현한다.
+기존 actuator 27 + EV 36에 queue 24/restart 2를 더한 M1 89개 독립 process 시험에 M2 model 2개를 추가해 Brake 3개까지 포함한 현재 all은 94개다.
 Battery/power 모델은 이후 구현하며 셀 전압·온도 극값을 로컬 모델 입력에 포함한다.
-[ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Front는 차량 전체
-관리·배분과 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
-M4/M5에 분리하며 peer protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.
+[ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Central의 별도 VCU가 차량 전체
+관리·배분/session/feedback 집계를 맡고 Front는 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
+M4/M5에 분리하며 Central–Zone protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.
 
 실행 예제는 `tools/actuator_demo.cpp` 하나로 통합했다.
 `angle`, `frame`, `e2e`, `receiver`, `brake-pressure`, `brake-frame`, `brake-receiver`,
-`drive-frame`, `drive-feedback`, `bms-value`, `bms-frame`, `bms-receiver`, Linux `epoch` 중 필요한 명령을 실행한다.
+`drive-frame`, `drive-feedback`, `bms-value`, `bms-frame`, `bms-receiver`, Linux `epoch`, `steering-model`, `brake-model` 중 필요한 명령을 실행한다.
 자동 단위 시험은 모듈별 기존 파일에 case를 추가하며 SocketCAN 통합 시험은
 `tests/integration/can/`에 모았다. 배치/추가 기준은 [품질 정책](../quality_policy.md#코드예제시험-배치)에 있다.
 

@@ -102,6 +102,9 @@ void application_fixture(const char* interface, std::uint16_t can_id, std::chron
                       << " last_valid_ns=" << (history ? history->received_time_ns : 0)
                       << " last_source_ns=" << (history ? history->message.source_time_ns : 0)
                       << " last_seq=" << (history ? history->message.sequence : 0)
+                      << " state=" << (history ? static_cast<int>(history->message.local_state) : -1)
+                      << " origin=" << (history ? static_cast<int>(history->message.origin) : -1)
+                      << " causal=" << (history ? history->message.causal_sequence : 0)
                       << " payload_length=" << static_cast<unsigned int>(received->payload_length)
                       << ' ' << value_field << '=' << (history ? value(history->message) : 0.0);
             trace_feedback(receiver.current_sample(now));
@@ -264,6 +267,46 @@ void bms_fixture(const char* interface, stratadrive::can::BmsFrameKind kind,
               << " usable=" << receiver.current_sample(socketcan::monotonic_time_ns()).has_value() << '\n';
 }
 
+template <typename Model, typename Convert, typename Decode, typename Value>
+void response_model_fixture(const char* interface, std::uint32_t epoch, std::chrono::milliseconds duration,
+                            Model& model, std::uint16_t command_id, Convert convert, Decode decode,
+                            Value value, const char* value_field) {
+    using namespace stratadrive;
+    socketcan::Endpoint endpoint(interface, command_id);
+    fixture::RxPump pump(endpoint, "");
+    std::cout << std::unitbuf << "RX_READY\n";
+    fixture::await_start();
+    const auto enable = socketcan::monotonic_time_ns();
+    if (!model.start_session(epoch, enable) || !pump.start_session({epoch, enable}))
+        throw std::runtime_error("model trusted INIT failed");
+    std::cout << "SESSION enable_ns=" << enable << " epoch=" << epoch << '\n' << std::nounitbuf;
+    auto next_tick = enable + 10000000;
+    while (socketcan::monotonic_time_ns() - enable < static_cast<std::uint64_t>(duration.count())*1000000) {
+        pump.collect(model);
+        for (unsigned int count = 0; count < 8; ++count) {
+            const auto frame = pump.pop(); if (!frame) break;
+            const auto now = socketcan::monotonic_time_ns();
+            const auto result = model.receive(convert(*frame), now);
+            std::cout << "MODEL_RX at_ns=" << now << " decision=" << fixture::decision_name(result.decision) << '\n';
+        }
+        const auto now = socketcan::monotonic_time_ns();
+        if (now >= next_tick) {
+            const auto frame = model.tick(now);
+            if (!frame) throw std::runtime_error("model publication/clock failure");
+            endpoint.send(socketcan::to_socketcan(*frame));
+            const auto actual = decode(*frame).value();
+            std::cout << "MODEL at_ns=" << now << ' ' << value_field << '=' << value(actual).value_or(0.0)
+                      << " valid=" << value(actual).has_value()
+                      << " state=" << static_cast<int>(actual.local_state)
+                      << " origin=" << static_cast<int>(actual.origin)
+                      << " causal=" << actual.causal_sequence << " seq=" << actual.sequence
+                      << " fault=" << static_cast<int>(model.fault()) << '\n';
+            next_tick = now + 10000000; // no backfilled ticks after a missed period
+        }
+        std::cout.flush(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+}
+
 int main(int argc, char** argv) {
     try {
         using namespace stratadrive;
@@ -277,6 +320,18 @@ int main(int argc, char** argv) {
         const std::string stream = argv[2];
         const std::string mode = argc == 6 ? argv[5] : "";
         const bool overflow = mode == "app-overflow" || mode == "kernel-overflow";
+        if (stream == "cmd" && mode == "model") {
+            vecu::SteeringActuator model(fixture::steering_model_config());
+            response_model_fixture(argv[1], epoch, duration, model, can::kSteeringCommandId,
+                socketcan::to_steering, can::decode_steering_frame,
+                [](const auto& actual) { return actual.angle_rad; }, "angle_rad"); return 0;
+        }
+        if (stream == "brake-cmd" && mode == "model") {
+            vecu::BrakeActuator model(fixture::brake_model_config());
+            response_model_fixture(argv[1], epoch, duration, model, can::kBrakeCommandId,
+                socketcan::to_brake, can::decode_brake_frame,
+                [](const auto& actual) { return actual.pressure_pa; }, "pressure_pa"); return 0;
+        }
         if (const auto ev_kind = fixture::bms_kind(stream)) {
             const bool forward = argc == 6 && std::string(argv[5]) == "forward";
             if ((argc == 6 && !forward && !overflow) || (forward && *ev_kind != can::BmsFrameKind::PowerLimits)) {

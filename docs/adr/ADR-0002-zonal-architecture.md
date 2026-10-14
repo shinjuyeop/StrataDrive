@@ -1,5 +1,7 @@
 # ADR-0002 — Central → Zone → Leaf architecture
 
+현재 배치: [ADR-0021](ADR-0021-central-coordination-and-parallel-zones.md). Zone의 차량 전체 allocation 배치는 2026-10-14 ADR-0021로 Central 별도 component로 대체했다. Central–Zone–Leaf 및 actual-only plant 원칙과 당시 M0 결과는 유지한다.
+
 ## Status
 
 Accepted for **StrataDrive Reference Baseline v0.1** (2026-09-22).

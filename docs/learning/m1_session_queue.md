@@ -8,8 +8,8 @@ M1 통신의 남은 startup/queue 부분을 다루며 M2 actuator/battery/power 
 
 Epoch는 현재 실행 세션의 번호다. Application Sequence와 P05 Counter는 그 세션 안에서
 진행한다. 수신 CAN에서 Epoch를 배우지 않고 trusted 시작 경로가 모든 participant에 제공한다.
-최종 구조에서는 Front의 session coordinator가 소유한다. 지금은 M1 test harness가
-[EpochStore](../../zone/session/epoch_store.hpp)를 기존 `actuator_demo epoch` 명령으로 호출한다.
+최종 구조에서는 Central의 session coordinator가 소유한다. 지금은 M1 test harness가
+[EpochStore](../../central/session/epoch_store.hpp)를 기존 `actuator_demo epoch` 명령으로 호출한다.
 발급 process가 종료되고 새로 실행돼도 같은 저장소의 다음 번호를 발급한다.
 
 ```mermaid
@@ -44,7 +44,7 @@ build/m1-angle/actuator_demo epoch next build/epoch-example
 두 `next`의 예상 값은 1, 2다. 이후 새 process의 `next`는 3이다.
 수신부 `start_session`은 더 큰 Epoch와 비감소 clock을 요구한다. 이것은 통신 session
 초기화이며 실제 HV readiness/정상 주행 허가를 자동으로 생성하는 기능이 아니다.
-Vehicle management, peer/parent context의 실제 DDS protocol은 여전히 M4/M5 범위다.
+Vehicle management, Central–Zone/parent context의 실제 DDS protocol은 여전히 M4/M5 범위다.
 
 ## 큐가 넘치면 왜 기존 값을 버리나
 
@@ -83,7 +83,7 @@ Runner는 격리된 새 test bus마다 private store를 explicit initialize하�
 독립 C++ issuer process에서 다음 Epoch를 발급한다. Rejoin의 다음 번호도 미리 reserve한다.
 `socketcan-results/epoch-run-*/store`와 TX/RX 로그에 원천/수신 시각·Epoch를 보존한다.
 운영 bus의 저장소를 매번 새로 만드는 예제가 아니다. Family 선택은 `--family actuator`
-또는 `--family ev`이며 respective 40/49개 case, 기본 all은 89개다.
+또는 `--family ev`이며 respective 40/49개 case, M1 subset은 89개다. 후속 [M2 조향 모델](m2_steering_model.md) 2개를 포함한 후속 [Brake 모델](m2_brake_model.md) 3개까지 포함한 현재 all은 94개다.
 
 | 기술 검사 | 판정 범위 |
 | --- | --- |
@@ -110,6 +110,6 @@ Cycle·손실 검출·물리 response의 서로 다른 clock/budget을 혼동하
 | 문서/ICD/profile/요구→시험 부분 증거 정합성 | 자동 검사; 전체 system TC는 NOT RUN |
 | 학습자의 설명·직접 재현과 wire baseline 채택 | PENDING; 자동 시험으로 대신하지 않음 |
 
-다음 구현은 M2의 실제 조향 응답부터 작은 component model로 시작한다. 이어서 Brake/Drive,
+후속 [M2 첫 조향 응답](m2_steering_model.md)을 작은 component model로 구현·시험했다. 이어서 Brake/Drive,
 배터리·셀 극값 입력/BMS 한계 산출, power 프리차지·컨택터 응답/보호와 local gate로 확장한다.
 Calibration·fault threshold와 physical response budget은 TBD-02/03/12/13이다.

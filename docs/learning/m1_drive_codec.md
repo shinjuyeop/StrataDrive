@@ -12,7 +12,7 @@ DriveActual encode/P05 → SocketCAN → receiver → fresh current_sample으로
 Actual에는 실제 모델 토크, 바퀴 속도, 회생 토크 한계가 들어갈 자리를 만들었다.
 현재 TX는 독립 fixture 값이며 모터 모델·충전 모델의 실제 계산 결과가 아니다.
 Torque만 fresh하고 회생 정보가 stale이면 torque는 유지하고 capability만 사용 불가로 표시한다.
-유효 0 capability와 unknown을 구분하므로 나중에 Zone이 마찰제동 배분을 판단할 수 있다.
+유효 0 capability와 unknown을 구분하므로 나중에 Central allocation이 마찰제동 배분을 판단할 수 있다.
 
 | 파일 | 책임 |
 | --- | --- |
@@ -92,7 +92,7 @@ cppcheck --enable=warning,performance,portability --error-exitcode=1 --std=c++17
 양수/음수/0 torque와 actual/capability의 유효성 차이를 복습한다.
 M1의 영속 Epoch coordinator, application queue/overflow 주입, 학습자 wire review는 남아 있다.
 다음 작은 작업은 [EV-01](../icd/ev_power_bms_design.md)의 BMS/power/constraint 의미·wire·timing이다.
-[ZON-01](../architecture/zonal_partition.md)의 Front 단일 coordinator/Rear gateway는 후속 M4/M5에 연결한다.
+[ZON-01](../architecture/zonal_partition.md)의 Central 별도 단일 coordinator/대등한 두 Zone gateway는 후속 M4/M5에 연결한다.
 M2에서 command가 실제 angle/pressure/torque로 변하는 응답 모델을 만들고, Drive의
-속도·충전 수용 한계와 에너지 모델을 붙인다. 이후 Zone 배분과 Plant/Central 차량 피드백을 연결한다.
+속도·충전 수용 한계와 에너지 모델을 붙인다. 이후 Central 배분과 Plant/Central 차량 피드백을 연결한다.
 현재 vehicle closed-loop, 실제 충전·회생, ABS/ESC, TC-REG-001–005 전체는 **NOT RUN**이다.
