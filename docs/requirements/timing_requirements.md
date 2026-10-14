@@ -1,8 +1,9 @@
 # Timing requirements and measurement contract
 
-Status: **DEFINED / Reference Baseline v0.1**. Logical configuration만 정의하며
-execution/latency/jitter 실측은 모두 **NOT RUN**이다. Rate와 100 ms 검출 상한은
-engineering starting point이며 production timing 보장이 아니다.
+Status: **DEFINED / Reference Baseline v0.1**. Logical configuration을 정의하며
+component task execution/차량 E2E latency/jitter 실측은 **NOT RUN**이다.
+M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. Rate와 100 ms 검출
+상한은 engineering starting point이며 production timing 보장이 아니다.
 
 ## Logical rate baseline
 
@@ -23,9 +24,17 @@ Controller/Zone 출력 guard는 각 실행에서 확인한다. 별도 safety thr
 Diagnostics aggregation은 control/timeout 경로를 blocking하지 않는다.
 
 [EV-01](../icd/ev_power_bms_design.md)과 SYS-PERF-002 v0.3은 BMS/power task·status·constraint
-발행 주기를 별도로 결정한다(TBD-14/M1/M2/M3). 위 100 Hz는 Steering/Brake/Drive에 대한
-기존 logical rate다. BMS 센서/limit의 dependency age, Zone forwarding, Drive local monitor
-margin을 함께 정하며 기존 M1 30 ms auxiliary-input 정책에 자동 대입하지 않는다.
+발행 주기는 [ADR-0016 wire 초안](../icd/bms_frame_draft.md)으로 구체화했다.
+BMS control/model sampling·limits/request는 50 Hz, power status/permission은 100 Hz,
+battery 관측 CAN은 10 Hz다. Critical source age 50 ms/dependency 70 ms, RX threshold
+80 ms+monitor 10 ms+dispatch/jitter margin 10 ms를 제안한다. 관측 age 150 ms/RX unavailable
+300 ms는 비critical이다. 위 기존 actuator rate와 구분하며 실제 BMS/power task·Zone runtime
+측정 증거는 없다.
+M1 Drive auxiliary의 source/input config를 분리·시험했고 기본값은 모두 30 ms다.
+Capability input age 70 ms를 명시적으로 설정할 수 있으며 source/torque budget은 유지한다.
+Local EV transport의 timeout/expiry는 fixture에서 시험했다. Sampler/model과 실제
+Zone forwarding/cross-node clock budget의 충족은 후속 통합에서 검증한다.
+20 Hz vehicle state와 speed input의 연결도 TBD-04/14/M3/M6다.
 EV critical stream도 <=100 ms loss 검출 상한을 적용하되 power/토크 물리 반응 budget은 별도다.
 
 50 ms sensor tick 사이 Controller 20 ms, Zone/vECU 10 ms task가 최신 유효 snapshot을

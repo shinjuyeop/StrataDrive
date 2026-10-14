@@ -407,4 +407,26 @@ TEST(DriveReceiver, TimeoutClockRollbackAndRecoveryAreLatched) {
     EXPECT_EQ(receiver.poll(message.source_time_ns + 1), ActuatorReceiverHealth::ClockError);
     EXPECT_FALSE(receiver.current_sample(message.source_time_ns + 1));
 }
+TEST(DriveReceiver, ExplicitDependencyAgeLeavesTorqueAndAuxiliarySourceBudgetsUnchanged) {
+    auto cfg = config(DriveFrameKind::Actual);
+    cfg.max_capability_input_age_ns = 70000000ULL;
+    DriveReceiver receiver(cfg); ASSERT_TRUE(receiver.start_session(1, kStart));
+    auto message = sample(DriveFrameKind::Actual); DriveTxState tx{message.kind};
+    ASSERT_EQ(receiver.receive(encode(message, tx), kStart).decision, ActuatorReceiveDecision::Accepted);
+    advance(message, 60);
+    message.wheel_speed->source_time_ns = message.source_time_ns;
+    message.regen_capability->source_time_ns = message.source_time_ns;
+    const auto result = receiver.receive(encode(message, tx), message.source_time_ns);
+    EXPECT_EQ(result.regen_capability, DriveFeedbackQuality::Usable);
+    ASSERT_TRUE(receiver.current_sample(kStart+70*kMs)->regen_capability);
+    const auto expired = receiver.current_sample(kStart+71*kMs); ASSERT_TRUE(expired);
+    EXPECT_TRUE(expired->torque_nm); EXPECT_FALSE(expired->regen_capability);
+    EXPECT_FALSE(receiver.current_sample(kStart+91*kMs)); // torque source still 30 ms
+    EXPECT_EQ(cfg.max_source_age_ns, 30000000ULL); EXPECT_EQ(cfg.max_feedback_age_ns, 30000000ULL);
+    for (const auto limit : {0ULL, 80000000ULL, 80000001ULL}) {
+        cfg.max_capability_input_age_ns = limit;
+        DriveReceiver invalid(cfg); EXPECT_FALSE(invalid.start_session(1, kStart));
+    }
+}
+
 }  // namespace

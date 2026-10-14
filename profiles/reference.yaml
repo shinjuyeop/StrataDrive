@@ -77,9 +77,15 @@ logical_timing:
   steering_vecu: {rate_hz: 100, period_ms: 10}
   brake_vecu: {rate_hz: 100, period_ms: 10}
   drive_vecu: {rate_hz: 100, period_ms: 10}
-  bms_vecu: {rate_hz: null, period_ms: null} # TBD-14 / M1/M2/M3
-  bms_status: {rate_hz: null, period_ms: null} # TBD-14; sensor dependency age is separate
-  power_lifecycle_task: {rate_hz: null, period_ms: null} # TBD-14 / M2/M3
+  # ADR-0016 / EV wire draft: planned rates, no runtime loader or measured timing.
+  bms_vecu: {rate_hz: 50, period_ms: 20} # local battery/model sampling and limit calculation
+  bms_battery_state: {rate_hz: 10, period_ms: 100} # observational CAN publication
+  bms_power_limits: {rate_hz: 50, period_ms: 20}
+  bms_power_status: {rate_hz: 100, period_ms: 10}
+  bms_power_request: {rate_hz: 50, period_ms: 20}
+  drive_battery_limits: {rate_hz: 50, period_ms: 20}
+  drive_permission: {rate_hz: 100, period_ms: 10}
+  power_lifecycle_task: {rate_hz: 100, period_ms: 10} # modeled power response/status
   zone_status_feedback_bridge: {rate_hz: 100, period_ms: 10}
   functional_scheduling_quantum_ms: 10
   task_deadlines_ms: null # TBD-04 / M3
@@ -128,7 +134,7 @@ regenerative_braking:
   blending_response_and_deficit_budget: null # TBD-03/06 / M2/M4
   energy_integration_tolerance: null # TBD-02/03 / M2/M6
 ev_power_bms:
-  scope: included_in_design # no runtime loader or BMS implementation exists
+  scope: included_in_design # communication libraries tested; model/runtime loader not implemented
   upper_status_owner: bms_vecu_via_rear_then_front_zone
   battery_model_and_bms_controller_separate: true
   power_lifecycle_states: [OFF, CHECKS, PRECHARGE, HV_READY, SHUTDOWN]
@@ -141,9 +147,30 @@ ev_power_bms:
   drive_permission_and_recovery_gates: null # TBD-12/14
   usable_capacity_and_initial_soc: null # TBD-13 / M2
   voltage_current_temperature_model: null # TBD-13 / M2
+  local_cell_extrema_inputs: [min_cell_voltage_v, max_cell_voltage_v, min_cell_temperature_c, max_cell_temperature_c]
+  local_cell_extrema_policy: independent_voltage_temperature_pair_validity_source_time_and_model_batch
+  cell_extrema_thresholds_and_dwell: null # TBD-13 / M2; no per-cell chemistry/balancing model
   charge_discharge_limit_calibration: null # TBD-13 / M2
   losses_auxiliary_load_and_energy_tolerance: null # TBD-13 / M2/M6
-  schema_critical_streams_and_source_age: null # TBD-14 / M1
+  wire_draft:
+    status: proposed_host_codec_receiver_vcan_tested # ADR-0016/17; actual model/Zone runtime still planned
+    schema_version: 1 # EV family only; actuator schema remains 2
+    dbc: interfaces/dbc/bms_m1_draft.dbc
+    critical_frames: [BmsPowerRequest, BmsPowerStatus, BmsPowerLimits, DriveBatteryLimits, DrivePermission]
+    observational_frames: [BmsBatteryState]
+    critical_source_age_max_ms: 50
+    critical_dependency_age_max_ms: 70
+    critical_rx_timeout_ms: 80
+    monitor_period_ms: 10
+    dispatch_jitter_margin_ms: 10
+    request_permission_max_lifetime_ms: 80
+    deadline_policy: preserve_original_parent_expiry
+    observation_source_group_age_max_ms: 150
+    observation_rx_unavailable_ms: 300
+    source_clock: shared_target_monotonic_in_trusted_epoch
+    startup_parent_model_identity_contract: null # TBD-12/14; trusted coordinator protocol pending, typed receiver checks tested
+    drive_auxiliary_dependency_policy: explicit_opt_in_70ms_input_default_30ms # source/torque remain 30 ms; no runtime loader
+    cross_node_budget_and_clock: null # TBD-04/05/14/15; before M3/M5/M6 acceptance
   model_placement_clock_and_single_energy_owner: null # TBD-07/04 / M6/M7
 # Future AI comparison workload; classical M8 scenarios do not require an AI model.
 workload:

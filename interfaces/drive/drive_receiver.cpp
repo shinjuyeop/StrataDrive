@@ -18,6 +18,7 @@ bool DriveReceiver::start_session(std::uint32_t epoch, std::uint64_t monitoring_
         !std::isfinite(config_.max_regen_torque_nm) || config_.max_regen_torque_nm <= 0 ||
         config_.max_regen_torque_nm > -config_.torque_nm.minimum ||
         config_.max_feedback_age_ns == 0 || config_.max_feedback_age_ns > config_.max_source_age_ns ||
+        capability_input_age_ns() == 0 || capability_input_age_ns() >= config_.timeout_ns ||
         !state_.start_session(epoch, monitoring_enable_ns)) return false;
     session_start_ns_ = monitoring_enable_ns;
     e2e::p05_check_init(e2e_.check);
@@ -58,7 +59,7 @@ DriveFeedbackQuality DriveReceiver::check_capability(
            cap.input_time_ns != capability_cursor_->input_time_ns ||
            message.regen_limit_reason != capability_reason_))))) return DriveFeedbackQuality::Invalid;
     if (now_ns - cap.source_time_ns > config_.max_feedback_age_ns ||
-        now_ns - cap.input_time_ns > config_.max_feedback_age_ns) return DriveFeedbackQuality::Stale;
+        now_ns - cap.input_time_ns > capability_input_age_ns()) return DriveFeedbackQuality::Stale;
     return DriveFeedbackQuality::Usable;
 }
 
@@ -112,7 +113,7 @@ std::optional<DriveMessage> DriveReceiver::current_sample(std::uint64_t now_ns) 
     }
     if (current.regen_capability && (!current.wheel_speed ||
         now_ns - current.regen_capability->source_time_ns > config_.max_feedback_age_ns ||
-        now_ns - current.regen_capability->input_time_ns > config_.max_feedback_age_ns)) {
+        now_ns - current.regen_capability->input_time_ns > capability_input_age_ns())) {
         current.regen_capability.reset();
         current.regen_limit_reason = DriveRegenLimitReason::InputsInvalid;
     }

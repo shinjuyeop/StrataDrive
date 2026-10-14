@@ -28,7 +28,12 @@ bool actuator_sequence_progresses(std::optional<std::uint32_t> previous, std::ui
 bool actuator_mode_allowed(const ActuatorMetadata& metadata, bool command);
 struct ActuatorValueRange { double minimum; double maximum; };
 bool actuator_value_in_range(double value, ActuatorValueRange range);
-struct ActuatorReceiverTiming { std::uint64_t max_source_age_ns; std::uint64_t timeout_ns; };
+struct ActuatorReceiverTiming {
+    std::uint64_t max_source_age_ns;
+    std::uint64_t timeout_ns;
+    // Existing critical callers retain 80 ms. BMS observation explicitly chooses 300 ms.
+    std::uint64_t timeout_limit_ns{80000000ULL};
+};
 
 // Clock/session/application cursor만 관리한다. Frame/P05/domain range/dynamics는 caller 책임이다.
 // Source와 now는 같은 monotonic clock domain이다. 단일 thread에서 stream별로 소유한다.

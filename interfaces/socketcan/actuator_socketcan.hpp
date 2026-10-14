@@ -4,6 +4,7 @@
 #include "steering_frame_codec.hpp"
 #include "brake_frame_codec.hpp"
 #include "drive_frame_codec.hpp"
+#include "bms_frame_codec.hpp"
 
 namespace stratadrive::socketcan {
 Frame to_socketcan(const can::SteeringFrame& frame);
@@ -12,4 +13,6 @@ Frame to_socketcan(const can::BrakeFrame& frame);
 can::BrakeFrame to_brake(const Frame& frame);
 Frame to_socketcan(const can::DriveFrame& frame);
 can::DriveFrame to_drive(const Frame& frame);
+Frame to_socketcan(const can::BmsFrame& frame);
+can::BmsFrame to_bms(const Frame& frame);
 }  // namespace stratadrive::socketcan

@@ -6,8 +6,6 @@
 namespace stratadrive::can {
 namespace {
 constexpr std::uint32_t kSequenceWindow = 10;
-// 100 ms 검출 budget에서 monitor/dispatch/jitter용 20 ms를 남기는 M1 후보 상한.
-constexpr std::uint64_t kMaxTimeoutNs = 80000000ULL;
 }  // namespace
 
 bool actuator_sequence_progresses(std::optional<std::uint32_t> previous, std::uint32_t next) {
@@ -36,7 +34,7 @@ ActuatorReceiverState::ActuatorReceiverState(ActuatorReceiverTiming timing) : ti
 
 bool ActuatorReceiverState::start_session(std::uint32_t epoch, std::uint64_t monitoring_enable_ns) {
     if (timing_.max_source_age_ns == 0 || timing_.max_source_age_ns >= timing_.timeout_ns ||
-        timing_.timeout_ns > kMaxTimeoutNs ||
+        timing_.timeout_ns > timing_.timeout_limit_ns ||
         epoch == 0 || (epoch_ != 0 && (epoch <= epoch_ || monitoring_enable_ns < last_observed_ns_))) {
         return false;
     }

@@ -12,6 +12,18 @@ import time
 
 
 INTERFACE = "sd_m1_app"
+EV_STREAMS = {
+    "bms-request": (0x183, 48, 20), "bms-power": (0x283, 64, 10),
+    "bms-limits": (0x284, 48, 20), "bms-battery": (0x285, 64, 100),
+    "drive-limits": (0x193, 48, 20), "drive-permission": (0x194, 64, 10),
+}
+EV_EXTRA = [
+    ("bms-limits", "partial"), ("drive-limits", "partial"),
+    ("bms-limits", "cached"), ("drive-limits", "cached"), ("bms-power", "cached"),
+    ("bms-battery", "observation"), ("bms-request", "expiry"), ("drive-permission", "expiry"),
+    ("bms-request", "parent"), ("drive-permission", "parent"),
+    ("drive-permission", "rejoin"), ("drive-limits", "forward"),
+]
 FAULT_DECISIONS = [
     "ACCEPTED", "E2E_REJECTED", "E2E_REJECTED", "SOURCE_STALE", "ACCEPTED",
     "MALFORMED_ENVELOPE", "MALFORMED_ENVELOPE", "MALFORMED_ENVELOPE",
@@ -100,6 +112,8 @@ def verify_brake(kind, session, output):
 
 
 def verify(kind, scenario, session, output):
+    if kind in EV_STREAMS:
+        return verify_ev(kind, scenario, session, output)
     if scenario == "wire":
         verify_brake(kind, session, output)
         return None
@@ -175,15 +189,177 @@ def verify(kind, scenario, session, output):
     return elapsed / 1_000_000
 
 
+def ev_start_plan(kind, scenario):
+    """Trusted fixture inputs come from the harness, never from CAN RX."""
+    anchor = time.monotonic_ns() + 20_000_000
+    rejoin = anchor + 180_000_000 if scenario == "rejoin" else 0
+    parents = []
+    if kind in ("bms-request", "drive-permission"):
+        if scenario == "normal":
+            period = EV_STREAMS[kind][2]
+            parents = [(1, 7+i, i*period, i*period+60) for i in range(5)]
+        elif scenario == "faults":
+            parents = [(1, 7, 0, 60), (1, 8, 65, 125), (1, 9, 220, 280)]
+        elif scenario == "expiry":
+            parents = [(1, 7, 0, 35), (1, 9, 130, 190)]
+        elif scenario == "parent":
+            parents = [(1, 7, 0, 60), (1, 8, 30, 90), (1, 9, 200, 260)]
+        elif scenario == "rejoin":
+            parents = [(1, 7, 0, 60), (1, 8, 100, 160), (2, 7, 200, 260), (2, 8, 220, 280)]
+        else:
+            parents = [(1, 7, 0, 60)]
+    items = ["start", str(anchor), str(rejoin), str(len(parents))]
+    for epoch, sequence, source_ms, expiry_ms in parents:
+        items += [str(epoch), str(sequence), str(anchor + source_ms*1_000_000), str(anchor + expiry_ms*1_000_000)]
+    return (" ".join(items) + "\n").encode()
+
+
+def verify_ev(kind, scenario, session, output):
+    lines = output["rx"].splitlines()
+    events = [fields(line) for line in lines if line.startswith("EV_RX ")]
+    views = [fields(line) for line in lines if line.startswith("EV_VIEW ")]
+    timeout = [fields(line) for line in lines if line.startswith("EV_TIMEOUT ")]
+    tx = [fields(line) for line in output["tx"].splitlines() if line.startswith("EV_TX ")]
+    anchor = int(fields(session)["enable_ns"])
+    observation = kind == "bms-battery"
+    lower = 300_000_000 if observation else 80_000_000
+    require(len(timeout) == (2 if scenario == "rejoin" else 1), "EV timeout/latch count mismatch")
+    for item in timeout:
+        elapsed = int(item["elapsed_ns"])
+        require(lower <= elapsed <= lower + 20_000_000, f"EV timeout outside monitor budget: {elapsed}")
+        require(item["usable"] == "0", "EV remained usable after timeout")
+    require(lines[-1].startswith("EV_END ") and fields(lines[-1])["timeout"] == "1", "EV timeout not latched at end")
+    decisions = [item["decision"] for item in events]
+    if scenario in ("normal", "forward"):
+        require(decisions == ["ACCEPTED"]*5, f"EV normal RX: {decisions}")
+        require(all(item["rx_q0"] == "USABLE" for item in events), "EV normal primary unusable")
+        if kind in ("bms-power", "bms-limits", "drive-limits", "bms-battery"):
+            require(all(item["rx_q1"] == "USABLE" for item in events), "EV normal dependency unusable")
+        if observation:
+            require(all(item["rx_q2"] == "USABLE" for item in events), "EV temperature unusable")
+            require(all(float(item["soc"]) == 0.75 and float(item["voltage_v"]) == 400 and
+                        float(item["current_a"]) == -12.3 and float(item["temperature_c"]) == 25
+                        for item in events), "EV physical observations changed in transport")
+        if kind == "bms-power": require(all(item["ready"] == "1" for item in events), "EV physical readiness lost")
+        if kind in ("bms-request", "drive-permission"):
+            require(all(item["allow"] == "1" for item in events), "fresh independently authorized request/grant unusable")
+        if kind == "bms-request":
+            require(all(item["local_state"] == "0" for item in events), "non-driving power Enable could not use INIT")
+    elif scenario == "faults":
+        expected = (["ACCEPTED", "E2E_REJECTED", "E2E_REJECTED"] + ["MALFORMED_ENVELOPE"]*5
+                    + ["EPOCH_MISMATCH", "SOURCE_STALE", "ACCEPTED", "SEQUENCE_REJECTED",
+                       "MALFORMED_PAYLOAD", "ACCEPTED", "TIMEOUT"])
+        require(decisions == expected, f"EV fault RX: {decisions}")
+        require(events[1]["e2e"] == "8" and events[2]["e2e"] == "7", "EV repeat/extension CRC not rejected")
+        require(events[-2]["rx_q0"] == "UNAVAILABLE", "EV unknown interpreted as valid zero")
+        require(events[-1]["e2e"] == "-1", "late EV frame ran E2E after latch")
+    elif scenario == "silent":
+        require(not events and int(timeout[0]["reference_ns"]) == anchor, "EV startup timeout origin changed")
+    elif scenario == "flood":
+        count = 2177 if observation else 769
+        require(len(events) == count and decisions[0] == "ACCEPTED", "EV flood count mismatch")
+        require(all(item in ("E2E_REJECTED", "TIMEOUT") for item in decisions[1:]), "EV flood renewed health")
+        require("TIMEOUT" in decisions, "EV flood did not reach latched timeout")
+    elif scenario == "partial":
+        require(decisions == ["ACCEPTED"]*5 + ["TIMEOUT"], f"EV partial RX: {decisions}")
+        require(events[1]["q0"] == "USABLE" and events[1]["charge_w"] == "0", "EV valid zero lost")
+        require(all(item["q0"] == "UNAVAILABLE" and item["q1"] == "USABLE" for item in events[2:5]),
+                "partial charge loss normalized or fresh discharge lost")
+        require(int(timeout[0]["reference_ns"]) == int(events[1]["at_ns"]), "other limit refreshed missing charge age")
+    elif scenario == "cached":
+        expected = ["ACCEPTED"]*4 + ["TIMEOUT"]*2 if kind == "bms-power" else ["ACCEPTED"]*6
+        require(decisions == expected, f"EV cached input RX: {decisions}")
+        if kind == "bms-power":
+            require(int(timeout[0]["reference_ns"]) == int(events[0]["at_ns"]), "cached power input refreshed physical RX")
+        else:
+            require(all(item["rx_q0"] == "STALE" and item["rx_q1"] == "STALE" for item in events[4:]),
+                    "new calculation concealed old dependency")
+            require(int(timeout[0]["reference_ns"]) == int(events[3]["at_ns"]), "stale dependency refreshed valid RX")
+    elif scenario == "observation":
+        require(decisions == ["ACCEPTED"]*6, f"EV observation RX: {decisions}")
+        require(all(item["q1"] == "USABLE" and item["q2"] == "UNAVAILABLE" for item in events[1:]),
+                "missing temperature stopped electrical observation")
+        require(events[1]["q0"] == "USABLE" and int(events[1]["soc_ns"]) == anchor, "cached SOC acquisition changed")
+        require(all(item["q0"] == "STALE" for item in events[2:]), "cached SOC became fresh from envelope")
+        require(int(timeout[0]["reference_ns"]) == int(events[-1]["at_ns"]), "observation envelope timeout origin changed")
+    elif scenario == "expiry":
+        require(decisions == ["ACCEPTED", "UNAVAILABLE", "UNAVAILABLE", "TIMEOUT"], f"EV expiry RX: {decisions}")
+        require([item["issue"] for item in events] == ["NONE", "EXPIRED", "PARENT_MISMATCH", "NONE"],
+                "EV parent expiry/renewal bypassed")
+        expiry = int(events[0]["expiry_ns"])
+        closed = [item for item in views if item["q0"] == "STALE" and item["allow"] == "0"]
+        require(closed and expiry <= int(closed[0]["at_ns"]) <= expiry + 20_000_000,
+                "EV expiry use gate did not close before RX timeout")
+    elif scenario == "parent":
+        require(decisions == ["ACCEPTED", "UNAVAILABLE", "UNAVAILABLE", "ACCEPTED", "UNAVAILABLE",
+                              "UNAVAILABLE", "ACCEPTED", "TIMEOUT"], f"EV parent RX: {decisions}")
+        require([item["issue"] for item in events] == ["NONE", "PARENT_MISSING", "PARENT_MISMATCH", "NONE",
+                    "PARENT_ROLLBACK", "PARENT_MISMATCH", "NONE", "NONE"], "EV parent identity/deadline checks bypassed")
+        require(events[6]["allow"] == "0" and events[6]["q0"] == "USABLE", "explicit non-driving action was not usable")
+    elif scenario == "rejoin":
+        require(decisions == ["ACCEPTED", "TIMEOUT", "TIMEOUT", "ACCEPTED", "EPOCH_MISMATCH", "ACCEPTED"],
+                f"EV rejoin RX: {decisions}")
+        resets = [fields(line) for line in lines if line.startswith("REINIT ")]
+        require(len(resets) == 1 and resets[0]["epoch"] == "2", "EV trusted explicit INIT missing")
+        require(events[3]["seq"] == "0" and events[3]["epoch"] == "2" and events[3]["counter"] == "0",
+                "EV new Epoch failed to reset stream state")
+        require([item["epoch"] for item in timeout] == ["1", "2"], "EV silently rejoined before trusted INIT")
+
+    history = None
+    for item in events:
+        current = tuple(item[key] for key in ("history_rx_ns", "source_ns", "seq", "epoch"))
+        if item["decision"] == "ACCEPTED":
+            require(item["history_rx_ns"] == item["at_ns"], "EV accepted RX timestamp mismatch")
+            age = int(item["at_ns"]) - int(item["source_ns"])
+            require(0 <= age <= (150_000_000 if observation else 50_000_000), "EV accepted old/future envelope")
+            history = current
+        else:
+            require(current == history, "EV rejected frame changed accepted history")
+        if item["decision"] == "ACCEPTED":
+            require((int(item["id"]), int(item["length"])) == EV_STREAMS[kind][:2], "EV envelope transport changed")
+    if scenario in ("normal", "forward"):
+        sources = [item["source_ns"] for item in events]
+        require(sources == [item["source_ns"] for item in tx], "EV original source timestamp changed in transport")
+        require([item["seq"] for item in events] == [item["seq"] for item in tx] and
+                all(item["epoch"] == "1" for item in events), "EV source sequence/Epoch changed in transport")
+        require([int(item["counter"]) for item in events] == list(range(5, 10) if scenario == "forward" else range(5)),
+                "EV transport counter did not remain independent")
+    if scenario == "forward":
+        forwarded = [fields(line) for line in output["relay"].splitlines() if line.startswith("FORWARD ")]
+        require(len(forwarded) == 5 and [item["source_ns"] for item in forwarded] == [item["source_ns"] for item in tx],
+                "EV relay lost original source lineage")
+        require(all(item["charge_w"] == "120000" and item["discharge_w"] == "200000" for item in events),
+                "EV relay changed physical limits")
+        require([item["input_ns"] for item in events] == [item["input_ns"] for item in tx] and
+                [item["causal_seq"] for item in events] == [item["causal_seq"] for item in tx],
+                "EV relay changed dependency time or model identity")
+        require(all(int(item["input_ns"]) < int(item["source_ns"]) for item in events),
+                "EV relay replaced old dependency with forwarding timestamp")
+        relay_timeout = [fields(line) for line in output["relay"].splitlines() if line.startswith("EV_TIMEOUT ")]
+        require(len(relay_timeout) == 1 and relay_timeout[0]["usable"] == "0" and
+                80_000_000 <= int(relay_timeout[0]["elapsed_ns"]) <= 100_000_000,
+                "EV relay receiver timeout bypassed monitor budget")
+    return int(timeout[-1]["elapsed_ns"])/1_000_000
+
+
 def run_case(build, log_dir, kind, scenario, repetition):
     processes = {}
     output = {name: bytearray() for name in ("tx", "rx", "tx_err", "rx_err")}
     session = ""
     try:
-        for role, argument in (("rx", "230"), ("tx", scenario)):
-            command = [str(build / f"actuator_socketcan_{role}"), INTERFACE, kind, "1", argument]
+        ev = kind in EV_STREAMS
+        duration = (950 if scenario == "observation" else 800) if kind == "bms-battery" else 400
+        roles = [("rx", "rx", kind, str(duration) if ev else "230"),
+                 ("tx", "tx", "bms-limits" if scenario == "forward" else kind, scenario)]
+        if scenario == "forward":
+            roles.append(("relay", "rx", "bms-limits", "400"))
+            output.update({"relay": bytearray(), "relay_err": bytearray()})
+        for role, executable, stream, argument in roles:
+            command = [str(build / f"actuator_socketcan_{executable}"), INTERFACE, stream, "1", argument]
             if role == "rx" and scenario == "wire":
                 command.append("wire")
+            if role == "relay":
+                command.append("forward")
             processes[role] = subprocess.Popen(
                 command,
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
@@ -191,10 +367,21 @@ def run_case(build, log_dir, kind, scenario, repetition):
         output["rx"].extend((rx_ready + "\n").encode())
         tx_ready = ready(processes["tx"], "TX_READY")
         output["tx"].extend((tx_ready + "\n").encode())
-        start(processes["rx"])
+        if ev:
+            if "relay" in processes:
+                output["relay"].extend((ready(processes["relay"], "RX_READY") + "\n").encode())
+            plan = ev_start_plan(kind, scenario)
+            for process in processes.values():
+                process.stdin.write(plan)
+                process.stdin.close()
+        else:
+            start(processes["rx"])
         session = ready(processes["rx"], "SESSION ")
         output["rx"].extend((session + "\n").encode())
-        start(processes["tx"])
+        if "relay" in processes:
+            output["relay"].extend((ready(processes["relay"], "SESSION ") + "\n").encode())
+        if not ev:
+            start(processes["tx"])
         collect(processes, output)
         return verify(kind, scenario, session, {name: data.decode() for name, data in output.items()})
     finally:
@@ -218,6 +405,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build-dir", type=Path, default=Path("build/m1-angle"))
     parser.add_argument("--repetitions", type=int, default=1)
+    parser.add_argument("--family", choices=("all", "actuator", "ev"), default="all")
     args = parser.parse_args()
     build = args.build_dir.resolve()
     require(1 <= args.repetitions <= 20, "repetitions must be 1..20")
@@ -232,22 +420,31 @@ def main():
         created = True
         subprocess.run(["ip", "link", "set", "dev", INTERFACE, "mtu", "72", "up"], check=True)
         for repetition in range(1, args.repetitions + 1):
-            for kind in ("cmd", "actual", "brake-cmd", "brake-actual", "drive-cmd", "drive-actual"):
+            for kind in (() if args.family == "ev" else ("cmd", "actual", "brake-cmd", "brake-actual", "drive-cmd", "drive-actual")):
                 for scenario in ("normal", "faults", "silent", "flood"):
                     elapsed = run_case(build, log_dir, kind, scenario, repetition)
                     observed.append(elapsed)
                     print(f"PASS {kind}/{scenario} #{repetition}: timeout={elapsed:.3f} ms", flush=True)
-            elapsed = run_case(build, log_dir, "drive-actual", "feedback", repetition)
-            observed.append(elapsed)
-            print(f"PASS drive-actual/feedback #{repetition}: timeout={elapsed:.3f} ms", flush=True)
-            for kind in ("brake-cmd", "brake-actual"):
+            if args.family != "ev":
+                elapsed = run_case(build, log_dir, "drive-actual", "feedback", repetition)
+                observed.append(elapsed)
+                print(f"PASS drive-actual/feedback #{repetition}: timeout={elapsed:.3f} ms", flush=True)
+            for kind in (() if args.family == "ev" else ("brake-cmd", "brake-actual")):
                 run_case(build, log_dir, kind, "wire", repetition)
                 print(f"PASS {kind}/wire #{repetition}: 8 frames; wire/E2E only", flush=True)
+            if args.family != "actuator":
+                ev_cases = [(kind, scenario) for kind in EV_STREAMS for scenario in ("normal", "faults", "silent", "flood")] + EV_EXTRA
+                for kind, scenario in ev_cases:
+                    elapsed = run_case(build, log_dir, kind, scenario, repetition)
+                    print(f"PASS {kind}/{scenario} #{repetition}: timeout={elapsed:.3f} ms", flush=True)
     finally:
         if created:
             subprocess.run(["ip", "link", "delete", "dev", INTERFACE], check=True)
-    print(f"PASS {27 * args.repetitions} cases (Steering 8 + Brake application 8 + Brake wire 2 + Drive 9 per repetition); "
-          f"application timeout {min(observed):.3f}..{max(observed):.3f} ms")
+    ev_count = len(EV_STREAMS)*4 + len(EV_EXTRA)
+    count = (27 if args.family == "actuator" else ev_count if args.family == "ev" else 27+ev_count)*args.repetitions
+    print(f"PASS {count} cases (actuator 27 / EV {ev_count} per full repetition)")
+    if observed:
+        print(f"Actuator application timeout {min(observed):.3f}..{max(observed):.3f} ms")
     print(f"Trace: {log_dir}; local vCAN fixture only (actuator/vehicle TC 아님)")
     return 0
 

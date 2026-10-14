@@ -3,7 +3,7 @@
 Status: semantic contract **DEFINED / Reference Baseline v0.1**.
 2026-10-13 [RG-01 회생제동 확장](regenerative_braking_design.md)의 포함 범위를 결정했다.
 아래 Drive 의미는 이 후속 설계를 반영하며 회생 runtime은 PLANNED / NOT RUN이다.
-CAN six-frame wire/DBC/codec은 **Host 초안 구현·시험 / baseline 채택 PENDING**이며 DDS IDL은 **PLANNED**다.
+CAN actuator 6개 + EV 6개 wire/DBC/codec은 **Host 초안 구현·시험 / baseline 채택 PENDING**이며 DDS IDL은 **PLANNED**다.
 [Steering Command/Actual의 DBC·layout 제안](steering_frame_draft.md)을 작성했으며 review PENDING이다.
 [Steering angle field 초안](steering_angle_encoding.md)의 독립 codec을 Host에서 시험했다.
 [Steering 두 frame의 codec·DBC parser 교차 검증](../learning/m1_steering_frame_codec.md)도
@@ -18,7 +18,10 @@ kernel overflow 주입과 차량 통합은 남아 있다.
 [Drive Command/Actual](drive_frame_draft.md)의 signed torque와 독립 capability freshness를
 [Host/vCAN에서 시험했다](../learning/m1_drive_codec.md). 모델·배분·차량 피드백 loop는 미구현이다.
 2026-10-13 [EV-01](ev_power_bms_design.md)으로 BMS Leaf, 차량 관리와 power lifecycle을
-추가했다. 아래 EV 의미 계약은 초안이며 BMS/power/constraint wire·DDS·runtime은 PLANNED다.
+추가했다. 2026-10-14 [BMS wire 초안](bms_frame_draft.md)의 EV 6개 DBC frame과
+Host C++ codec/항목별 receiver·DBC 교차 검증과 native SocketCAN 변환 시험을 추가했다.
+[BMS 실행 안내](../learning/m1_bms_codec.md)에 범위를 기록한다. EV TX/RX/relay의 vCAN도
+36개 case로 시험했다. Actual coordinator·DDS·component runtime은 PLANNED다.
 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 담당 경로와 peer 의미를 반영했다.
 Peer binary schema/IDL/QoS/clock/rejoin은 TBD-15/05이며 runtime은 미구현이다.
 
@@ -35,11 +38,12 @@ Peer binary schema/IDL/QoS/clock/rejoin은 TBD-15/05이며 runtime은 미구현�
 | IF-DDS-REAR-CMD | 배분된 Drive demand, BMS constraint/permission, power 요청·speed 입력 | Front → Rear validation/gateway | logical Ethernet / DDS; 의미 ZON-01, schema TBD-15 |
 | IF-DDS-REAR-STATUS | Drive actual/capability, BMS/power 원천 status | Rear → Front 집계/배분/vehicle management | logical Ethernet / DDS; source/dependency 보존, schema TBD-15 |
 | IF-DDS-REAR-SESSION | trusted INIT/rejoin, epoch·monitor enable·correlation | Front ↔ Rear session management | logical Ethernet / DDS; handshake TBD-15 |
-| IF-CAN-BMS | power 요청 / BMS state·limits·power actual | Rear ↔ BMS vECU | SocketCAN/vCAN; wire TBD-14 |
-| IF-CAN-DRIVE-CONSTRAINT | 원천 charge/discharge limit와 drive permission | Rear → Drive vECU | SocketCAN/vCAN; 기존 DriveCommand와 통합/별도 여부 TBD-14 |
+| IF-CAN-BMS | power 요청 / BMS state·limits·power actual | Rear ↔ BMS vECU | EV schema 1 DBC·C++ codec/receiver·local vCAN 부분 검사; actual coordinator TBD-14 |
+| IF-CAN-DRIVE-CONSTRAINT | 원천 charge/discharge limit와 drive permission | Rear → Drive vECU | 별도 DriveBatteryLimits / DrivePermission DBC 초안; runtime TBD-14 |
 | IF-HOST-ACTUATOR | per-actuator actual sample + 원천 metadata | vECU → CAN → 담당 Zone → Front bridge → Host Plant Adapter | feedback 집계 + Physical Ethernet; protocol TBD-05 |
 | IF-HOST-EV-STATUS | 관측용 BMS/power/energy 정보; wheel actuation 아님 | BMS → CAN → Rear → Front bridge → Host | Physical Ethernet; schema TBD-14/05 |
-| IF-MODEL-BMS | modeled battery/power 센서와 실제 전원 상태 | battery/power plant → BMS | SIL 로컬 sensor 경계; 모델 배치 TBD-07 |
+| IF-MODEL-BMS | modeled pack 센서, 셀 전압·온도 극값과 실제 전원 상태 | battery/power plant → BMS | SIL 로컬 sensor 경계; validity/time/batch 보존, 모델 TBD-13/07 |
+| IF-MODEL-DRIVE-POWER | modeled Drive local HV bus 실제 센서, source time/validity/identity | power plant → Drive local sensor validation | SIL 로컬 물리 경계; Front permission과 별도, schema/threshold TBD-12/13/14 |
 | IF-FAULT-EVENT | fault occurrence, evidence, local action/state | local monitors → Diagnostics Manager / Host logging | IPC/DDS/telemetry mapping TBD-05/08 |
 
 CAN family ID는 양방향 그룹이며 command와 actual feedback은 별도의 frame/message다.
@@ -81,6 +85,7 @@ RG-01에서는 Zone이 회생 한계 안에서 Drive의 음수 토크와 Brake�
 EV-01의 BMS SOC/전압/전류/온도/charge·discharge power limit, 전원 요청과 실제 상태는
 [EV 의미 계약](ev_power_bms_design.md#semantic-interface-초안)을 따른다. 상위 status는
 Zone을 거치고 Drive에 전달한 BMS dependency도 원천 validity/time을 유지한다.
+셀 전압·온도의 최소/최대값은 로컬 IF-MODEL-BMS 입력 범위이며 기존 CAN pack 관측 layout과 별개다.
 기존 six-frame payload에 EV 상태를 이미 담는 것으로 해석하지 않는다.
 ZON-01에서 차량 전체 allocation/permission은 Front 단일 owner이며 Rear는 scope를 검증·전달한다.
 Peer envelope와 원천/의존 sample의 validity/age를 별도로 검사한다.
@@ -111,7 +116,8 @@ Timeout clock, reset/pause는 [timing](../requirements/timing_requirements.md)�
 
 `interfaces/common/`에는 domain과 독립인 P05, 공통 actuator payload 직렬화와 수신 상태,
 `interfaces/steering/`에는 angle/frame codec과 로컬 수신부, `interfaces/brake/`에는 pressure/frame
-codec·로컬 수신부, `interfaces/drive/`에는 signed torque/feedback codec·수신부가 있다.
-`interfaces/socketcan/`은 Linux socket I/O와 세 actuator 변환을 맡는다.
-`interfaces/dbc/`에는 six-frame DBC 초안이 있고 DDS 구현은 후속 작업이다. [DDS ICD](ethernet_dds_icd.md),
+codec·로컬 수신부, `interfaces/drive/`에는 signed torque/feedback codec·수신부,
+`interfaces/bms/`에는 EV 물리값·6개 frame codec과 항목별 수신부가 있다.
+`interfaces/socketcan/`은 Linux socket I/O와 actuator·EV 변환을 맡는다.
+`interfaces/dbc/`에는 actuator/EV 총 12개 frame 초안이 있고 DDS 구현은 후속 작업이다. [DDS ICD](ethernet_dds_icd.md),
 [traceability](../test-plan/traceability.md)를 참조한다.

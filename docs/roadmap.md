@@ -10,7 +10,10 @@ vCAN 27 case, 독립 DBC/CRC 교차 검증을 통과했다. [학습 안내](lear
 [EV-01](icd/ev_power_bms_design.md)은 Battery/BMS/power/vehicle management 범위다.
 [ZON-01](architecture/zonal_partition.md)로 최종 Front/Rear 두 논리 Zone과 Front 단일
 coordinator를 채택했다. 단일 Zone component 검증 후 분리하며 기존 계층을 유지한다.
-EV wire, component 모델, Zone/DDS/차량 runtime과 TC-REG/EV/ZON은 **PLANNED / NOT RUN**이다.
+2026-10-14 [BMS wire 초안](icd/bms_frame_draft.md)의 EV 6개 DBC와 Host CRC/canonical 검사를
+추가했다. [EV C++ codec/항목별 receiver](learning/m1_bms_codec.md)와 SocketCAN 변환의 Host
+단위 검사와 EV local vCAN 36개 case도 통과했다. Component 모델, Zone/DDS/차량 runtime과
+TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 
 | Milestone | 계획 범위 | Acceptance 증거 후보 |
 | --- | --- | --- |
@@ -76,8 +79,8 @@ AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 �
 | TBD-10 | perception/learned-planner shape/risk/history/calibration, AI fallback timing/feasibility/recovery / AI·safety 담당 | **M10/M11**, AI 통합 시험 전 | classical M8 baseline 후 확장; AI로 actuator 직접 제어 금지는 확정 |
 | TBD-11 | C++ standard/compiler/CI/test tool versions, artifact size/license/storage policy; control 알고리즘/tuning, speed transition slope/duration, scenario repetitions / toolchain·control 담당 | **M1** 첫 code/tool 전; **M8** control/정상 시험 전; **M10** 첫 model fixture 전 | 작은 변경과 설명 가능한 도구 선택; 5 s settling + 10 s steady window와 수치 requirement 변경은 revision 필요 |
 | TBD-12 | EV 전원 sequence/주행 허가/INIT handshake, LV·충전 연결·interlock와 고장별 torque/power reaction, shutdown/복구 threshold·budget / vehicle management·safety 담당 | **M1** 의미/handshake; **M2** power component 시험 전; **M4/M6** gate/vehicle 검증 전 | READY≠NORMAL, 요청≠actual; 일괄 즉시 contactor open/정지 성공을 가정하지 않음 |
-| TBD-13 | battery usable capacity/initial SOC, voltage/current/thermal 단순 모델, charge/discharge 곡선·효율/부하/에너지 오차, motor power→torque / model 담당 | **M2** Battery/BMS/Drive 시험 전; **M6/M7** 일관성/매핑 재검증 | 특정 chemistry/OEM 값을 꾸며내지 않음; actual power·단일 energy owner/clock은 확정 |
-| TBD-14 | BMS/power/Drive constraint frame/schema/P05/Data ID, critical stream 목록, source/dependency validity/age, BMS task/발행 주기·monitor margin, DDS/Host status / interface·timing 담당 | **M1** 새 wire/vector/receiver 전; **M2/M3** task/timing; **M5** DDS/Host bridge 전 | 기존 six-frame/30 ms 정책에 자동 포함하지 않음; EV critical loss <=100 ms, 물리 반응 deadline은 별도 |
+| TBD-13 | battery usable capacity/initial SOC, pack·셀 극값 voltage/thermal 모델·threshold/dwell, charge/discharge 곡선·효율/부하/에너지 오차, motor power→torque / model 담당 | **M2** Battery/BMS/Drive 시험 전; **M6/M7** 일관성/매핑 재검증 | 로컬 셀 전압·온도 min/max 입력 포함; 특정 chemistry/OEM 값을 꾸며내지 않음; actual power·단일 energy owner/clock은 확정 |
+| TBD-14 | EV wire 수용·coordinator, trusted startup/parent·model identity 전달, clock/각 hop budget, DDS/Host status / interface·timing 담당 | **M1** wire/session 수용 전; **M2/M3** sampler/task/timing; **M5** DDS/Host bridge 전 | **부분 구현:** ADR-0016/17 6개 frame/P05와 항목별 receiver Host 검사; source 50/input 70/RX 80 ms 초안, Drive input age opt-in 분리와 local vCAN 36개 검사 완료; actual coordinator·Zone/runtime budget은 남음 |
 | TBD-15 | 남은 peer schema/QoS/queue/clock/skew/source-age·monitor budget/INIT-rejoin/routing config / architecture·communication 담당 | **M4** peer/local test 전, **M5/M6** DDS/plant 통합 검증 전 | **부분 결정:** ZON-01 Front/Rear, 후륜 구동 packaging, Front 단일 coordinator 채택; 세부 protocol은 TBD, calibration TBD-02/07; 별도 하드웨어 불필요 |
 
 RG-01의 추가 상세값도 기존 owner/gate에 귀속된다. 범위 결정으로 TBD가 해소되지는 않는다.
@@ -107,13 +110,17 @@ TBD-11의 [첫 Host C++ 실험 도구 선택](adr/ADR-0005-first-cpp-codec.md)�
 
 ## 다음 작업과 M1 남은 수용 항목
 
-다음 시작점은 **BMS/power/Drive constraint 계약(TBD-12/14)**이다.
+BMS/power/Drive constraint의 [의미·DBC·timing 초안](icd/bms_frame_draft.md)을 작성했다.
+물리 field/frame codec과 항목별 수신부, Drive auxiliary age 분리를 Host에서 시험했다.
+기존 vCAN fixture의 EV 송수신/session·parent·relay도 36개 case로 확장·시험했다.
+다음은 **M1 남은 수용 항목 정리 → M2 실제 응답·Battery/BMS/power 모델**이다.
+Wire/학습자 review는 PENDING이다.
 
-1. SOC/전압/전류/온도, charge·discharge power limit, power 요청/actual/permission의 producer·단위·validity를 정한다.
-2. Source/dependency time/identity, critical stream 목록, rate/source-age/timeout margin과 trusted INIT를 결정한다.
-3. DBC/layout/P05/Data ID와 vectors/receiver/vCAN 검증을 기존 공통 도구에 추가한다.
-4. 기존 six-frame wire review/재현, 영속 Epoch coordinator, application queue/overflow 주입 등 M1 수용 항목을 마친다.
-5. M2 actuator 실제 응답과 Battery/BMS/power model → M3 timing → M4 단일 coordinator/두 Zone 분할로 진행한다.
+1. EV 초안의 producer/단위/validity/source·dependency time/expiry와 주기 차이를 review한다.
+2. Actuator/EV vCAN 63개 case를 재현하고 source/parent·model identity와 timeout 판정 trace를 review한다.
+3. Wire review, 영속 Epoch coordinator, application queue/overflow 주입 등 M1 수용 항목을 마친다.
+4. M2 actuator 실제 응답과 Battery/BMS/power model(로컬 셀 전압·온도 극값 포함), 실제 local gate를 구현한다.
+5. M3 timing → M4 단일 coordinator/두 Zone 분할로 진행한다.
 
 Six-frame 구현·부분 시험과 새 EV/ZON 수용 항목을 구분한다. EV wire 값이나 물리 반응/전원
 parameter를 기존 100 Hz/30 ms 또는 특정 OEM 수치로 자동 확정하지 않는다.

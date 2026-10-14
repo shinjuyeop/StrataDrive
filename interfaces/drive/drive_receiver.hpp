@@ -12,6 +12,8 @@ struct DriveReceiverConfig {
     std::uint64_t max_source_age_ns{30000000ULL};
     std::uint64_t timeout_ns{80000000ULL};
     std::uint64_t max_feedback_age_ns{30000000ULL};
+    // Explicit EV dependency budget; nullopt keeps the existing source/input 30 ms policy.
+    std::optional<std::uint64_t> max_capability_input_age_ns{};
 };
 enum class DriveFeedbackQuality { Unavailable, Usable, Stale, Invalid };
 struct DriveReceiveResult {
@@ -37,6 +39,9 @@ public:
     const std::optional<std::uint64_t>& last_raw_rx_time_ns() const { return state_.last_raw_rx_time_ns(); }
 
 private:
+    std::uint64_t capability_input_age_ns() const {
+        return config_.max_capability_input_age_ns.value_or(config_.max_feedback_age_ns);
+    }
     DriveFeedbackQuality check_wheel_speed(const DriveMessage& message, std::uint64_t now_ns) const;
     DriveFeedbackQuality check_capability(const DriveMessage& message, std::uint64_t now_ns) const;
     const DriveReceiverConfig config_;

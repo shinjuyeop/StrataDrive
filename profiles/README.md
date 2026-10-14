@@ -24,8 +24,14 @@ Thor/Orin 공통 reference에 적용할 설계이며 runtime loader/회생 구�
 후륜 구동 packaging에서 Front가 차량 관리·배분·피드백 집계를 소유하고 Rear는 Drive/BMS를 연결한다.
 Cross-zone schema/QoS/clock/rejoin은 TBD-15이며 runtime switch나 배포 구현이 아니다.
 `ev_power_bms`의 lifecycle·부호·단위는 설계 의미이며 parameter는 TBD-12/13/14다.
-BMS/power rate는 기존 100 Hz actuator와 자동 동일시하지 않고 별도 `null`로 남겼다.
-기존 M1의 30 ms 보조 입력 age와의 호환성도 검토한다.
+2026-10-14 [BMS wire 초안](../docs/icd/bms_frame_draft.md)에서 BMS control/limit 50 Hz,
+power actual/permission 100 Hz, battery 관측 10 Hz를 제안했다. YAML도 이 논리 설계 값을 담는다.
+`wire_draft`의 50 ms source/70 ms dependency/80 ms timeout은 후속 측정 대상 시작값이다.
+Drive 보조 source/input age config를 분리·시험했다. 기본 30 ms를 유지하고 EV capability input
+70 ms는 명시적 opt-in이다. EV codec/receiver와 local vCAN 36개 case를 검사했으며
+실제 model/Zone task·cross-node rate/timeout 보장으로 확대하지 않는다.
+Trusted coordinator/startup/cross-node budget은 TBD다. 로컬 모델의 셀 전압·온도 극값 입력은
+범위로 정했고 threshold/dwell은 TBD-13이다. [BMS 실행 안내](../docs/learning/m1_bms_codec.md)를 참조한다.
 
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
 stack, model/input settings, scenario/seed, power/thermal 및 측정 조건을 기록한다.

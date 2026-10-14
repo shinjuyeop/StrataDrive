@@ -1,17 +1,58 @@
 # Software quality policy
 
 Status: **M1 codec/receiver/SocketCAN에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 98개 / vCAN
-27 case PASS**, six-frame DBC/독립 CRC 교차 검증 PASS다. [Drive 실행 기록](learning/m1_drive_codec.md)에
-도구 버전, static analysis 적용 범위와 재현 명령을 보존한다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 129개 PASS**다.
+Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
+[Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
+도구 버전, 검사 범위와 재현 명령을 보존한다. EV 36개를 포함한 local vCAN **63개 case**도 검사한다.
 
 2026-10-13 문서 정리 시 normal·ASan/UBSan build/unit/vCAN과 DBC 검사를 다시 통과했다.
 Local observed timeout은 normal 80.019–81.072 ms, sanitizer 80.053–81.065 ms였다.
 차량 timing 보장이나 sanitizer의 대표 성능으로 확대하지 않는다. M1 최종 acceptance/학습자
-review는 PENDING, EV wire와 두 Zone/runtime/차량 TC는 PLANNED / NOT RUN이다.
+review는 PENDING이었다. 당시 EV C++ 통신과 두 Zone/runtime/차량 TC는 PLANNED / NOT RUN이었다.
 문서 52개의 상대 링크/앵커 459개, 요구사항 32개/TC 29개의 정의·추적성,
 YAML 3개의 중복 key/책임 배치와 Python syntax를 검사했다. 활성 경로의 낡은 참조를 정리하고
 과거 ADR/부분 시험 이력과 목적이 다른 검증 계층은 보존했다.
+
+2026-10-14 [BMS wire 초안](icd/bms_frame_draft.md)의 DBC·6개 goldens/uint64/CRC/canonical
+검사를 추가했다. Normal·ASan/UBSan unit 99개, 기존 C++ demo 14개 교차 검증을 통과했다.
+48-byte P05 case는 전체 384개 single-bit corruption/잘못된 DataID를 검사한다.
+변경 C++ test에 clang-tidy 14 analyzer/bugprone을 적용해 user-source 진단은 없었다.
+이 결과는 EV codec/receiver/Drive gate/모델/transport와 전체 TC-EV의 PASS가 아니다.
+문서 54개/상대 링크·앵커 478개, 32개 요구와 29개 TC의 추적성, YAML 3개 및
+EV rate/age/100 ms monitor budget의 설계 일관성도 검사했다. Python syntax/whitespace 검사를 통과했다.
+
+같은 날 후속 구현에서 BMS value/frame codec·항목별 receiver를 추가했다. Normal·ASan/UBSan
+각각 129개 unit이 PASS다. BMS 28개와 기존 Drive/SocketCAN 파일에 추가한 age/adapter case를
+포함한다. 전체 12개 DBC/C++ payload 36개를 교차 검증했다.
+변경 C++ source/test 10개에 clang-tidy 14의 analyzer/bugprone을 적용해 user-source 진단 없이
+통과했다(third-party/header 진단은 제외). Cppcheck 2.7의 warning/performance/portability는
+BMS 3개·공통 수신 상태·Drive receiver·SocketCAN adapter·demo의 source 7개에 적용해 통과했다.
+EV의 native 48/64-byte 변환과 수동 clock timeout/parent expiry는 Host 단위 범위다.
+이 codec 구현 시점에는 EV TX/RX/wall-time budget, Drive의 torque·limits·permission·로컬 HV
+통합 gate, BMS/power 모델과 두 Zone/runtime/전체 TC-EV는 NOT RUN이었다.
+공통 수신 상태 변경 후 기존 actuator vCAN은 normal·ASan/UBSan 각각 27 case를 재통과했다.
+Local timeout은 normal 80.007–81.081 ms, sanitizer 80.029–81.219 ms였다.
+이는 기존 6개 actuator frame 회귀이며 새 EV transport의 검증 결과가 아니다.
+Fresh `BUILD_TESTING=OFF` build에서 BMS 포함 라이브러리/demo만 생성하고 receiver 예제를 실행했다.
+문서 57개/상대 링크·앵커 508개, 요구사항 32개/TC 29개, YAML 3개 및 Python 3개의 syntax와
+whitespace도 검사했다. System TC의 Runtime Result는 모두 NOT RUN을 유지한다.
+
+후속 EV SocketCAN 작업은 기존 TX/RX/support/runner를 확장했다. 6종류 각각의 normal/faults/
+silent/flood와 partial limits, cached dependency/physical input, 비critical 관측, parent expiry/
+identity·explicit INIT/rejoin, 3-process 원천 보존 relay의 **EV 36개**를 추가했다.
+Harness는 승인된 parent 목록을 stdin으로 공급하며 CAN에서 context를 자동 생성하지 않는다.
+RX는 cycle당 8개 dispatch 후 poll하며 overflow 관측 시 실패한다. Kernel overflow 주입과
+application queue/실제 coordinator·DDS는 남아 있다. Normal·ASan/UBSan 각각 전체 63개
+(기존 actuator 27 + EV 36)를 검사하고 전체 unit 129개와 DBC 교차 검증도 재통과했다.
+Clang-tidy 14 analyzer/bugprone은 변경 TX/RX 2개와 support header에 적용해 user-source
+진단 없이 통과했고 cppcheck 2.7 warning/performance/portability도 통과했다.
+EV critical timeout은 normal **80.021–81.045 ms**, sanitizer **80.052–81.036 ms**,
+관측 envelope timeout은 normal **300.282–300.984 ms**, sanitizer **300.275–301.069 ms**였다.
+Forward relay도 따로 80..100 ms budget을 판정했다. Actuator 회귀는 normal
+80.008–81.034 ms, sanitizer 80.001–81.050 ms였다. 고정된 local fixture의 관측값이며
+Target/차량 timing 보장이나 sanitizer의 대표 성능으로 확대하지 않는다.
+실제 BMS limit/power 모델·Drive actuation gate와 두 Zone/차량 TC는 NOT RUN이다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |
@@ -38,8 +79,9 @@ Toolchain/compiler/CI/test 버전은 TBD-11(M1), board 지원/측정 환경은 T
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.
-- 학습/확인 예제는 영역별 실행 프로그램으로 묶는다. 세 actuator는 `tools/actuator_demo.cpp` 하나에
-  아홉 명령을 제공한다. 기존 기능의 작은 변경마다 별도 demo를 추가하지 않는다.
+- 학습/확인 예제는 영역별 실행 프로그램으로 묶는다. 세 actuator와 EV/BMS는
+  `tools/actuator_demo.cpp` 하나에 기존 아홉 명령 + BMS 세 명령을 제공한다.
+  기존 기능의 작은 변경마다 별도 demo를 추가하지 않는다.
 - 단위 시험 파일은 모듈별로 유지한다. 기존 모듈의 조건/경계/fault 추가는 같은 파일의 case로 추가하고,
   새로운 독립 모듈이 생기면 시험 파일을 만든다.
 - 통합 시험의 participant/helper/runner는 같은 영역 아래 모은다.

@@ -128,17 +128,149 @@ void application_fixture(const char* interface, std::uint16_t can_id, std::chron
               << " usable=" << receiver.current_sample(stratadrive::socketcan::monotonic_time_ns()).has_value() << '\n';
 }
 
+namespace {
+void trace_bms(const std::optional<stratadrive::can::BmsCurrentSample>& current) {
+    using namespace stratadrive::can;
+    for (std::size_t group = 0; group < 3; ++group) {
+        std::cout << " q" << group << '=' << (current ? stratadrive::fixture::quality_name(current->quality[group]) : "NONE");
+    }
+    bool allowed = false, ready = false;
+    std::uint64_t input_ns = 0, expiry_ns = 0, soc_ns = 0;
+    double charge = 0, discharge = 0, soc = 0;
+    double voltage = 0, current_a = 0, temperature = 0;
+    if (current) {
+        allowed = bms_permission_allows_normal(*current); ready = bms_power_is_ready(*current);
+        if (const auto* value = std::get_if<BmsPowerLimits>(&current->message.content)) {
+            charge = value->charge_power_w.value_or(0); discharge = value->discharge_power_w.value_or(0); input_ns = value->input_time_ns;
+        } else if (const auto* value = std::get_if<BmsPowerStatus>(&current->message.content)) {
+            input_ns = value->input_time_ns; voltage = value->hv_bus_voltage_v.value_or(0);
+        }
+        else if (const auto* value = std::get_if<BmsPowerRequest>(&current->message.content)) {
+            expiry_ns = value->expires_at_ns; allowed = value->action == BmsPowerAction::Enable;
+        } else if (const auto* value = std::get_if<BmsDriveGrant>(&current->message.content)) {
+            input_ns = value->input_time_ns; expiry_ns = value->expires_at_ns;
+        } else if (const auto* value = std::get_if<BmsBatteryState>(&current->message.content)) {
+            if (value->soc) { soc = value->soc->fraction; soc_ns = value->soc->source_time_ns; }
+            if (value->electrical) {
+                input_ns = value->electrical->source_time_ns; voltage = value->electrical->voltage_v;
+                current_a = value->electrical->current_a;
+            }
+            if (value->temperature) temperature = value->temperature->celsius;
+        }
+    }
+    std::cout << " allow=" << allowed << " ready=" << ready << " charge_w=" << charge
+              << " discharge_w=" << discharge << " input_ns=" << input_ns
+              << " expiry_ns=" << expiry_ns << " soc=" << soc << " soc_ns=" << soc_ns
+              << " voltage_v=" << voltage << " current_a=" << current_a << " temperature_c=" << temperature;
+}
+}  // namespace
+
+void bms_fixture(const char* interface, stratadrive::can::BmsFrameKind kind,
+                 std::chrono::milliseconds duration, std::uint32_t epoch, bool forward) {
+    using namespace stratadrive;
+    socketcan::Endpoint endpoint(interface, static_cast<std::uint16_t>(kind));
+    can::BmsReceiver receiver({kind, {{0, 1000}, {-500, 500}, {-60, 200}, 200000}});
+    can::BmsTxState downstream{can::BmsFrameKind::DriveBatteryLimits};
+    downstream.protection.counter = 5; // independent stream, within P05 startup window
+    std::cout << std::unitbuf << "RX_READY\n";
+    const auto plan = fixture::await_bms_start();
+    const auto before_start = socketcan::monotonic_time_ns();
+    if (plan.enable_ns > before_start) std::this_thread::sleep_for(std::chrono::nanoseconds(plan.enable_ns - before_start));
+    if (!receiver.start_session(epoch, plan.enable_ns)) throw std::runtime_error("EV trusted session init failed");
+    std::cout << "SESSION enable_ns=" << plan.enable_ns << " epoch=" << epoch << '\n' << std::nounitbuf;
+    bool rejoined = false, reported = false;
+    auto monitoring_enable_ns = plan.enable_ns;
+    can::BmsQualities previous{can::BmsFieldQuality::NotApplicable, can::BmsFieldQuality::NotApplicable, can::BmsFieldQuality::NotApplicable};
+    while (socketcan::monotonic_time_ns() - plan.enable_ns < static_cast<std::uint64_t>(duration.count())*fixture::kMs) {
+        auto now = socketcan::monotonic_time_ns();
+        if (plan.rejoin_ns && !rejoined && now >= plan.rejoin_ns) {
+            if (!receiver.start_session(epoch + 1, now)) throw std::runtime_error("EV explicit rejoin failed");
+            ++epoch; rejoined = true; reported = false;
+            monitoring_enable_ns = now;
+            std::cout << "REINIT at_ns=" << now << " epoch=" << epoch << '\n';
+        }
+        for (unsigned int count = 0; count < 8; ++count) {
+            const auto received = endpoint.receive();
+            if (!received) break;
+            if (received->dropped_frames) throw std::runtime_error("EV kernel RX continuity lost");
+            now = socketcan::monotonic_time_ns();
+            const auto frame = socketcan::to_bms(received->frame);
+            const auto decoded = can::decode_bms_frame(frame);
+            // CAN provides only the lookup key. Values/authority come from stdin plan.
+            const auto* parent = decoded ? plan.parent(decoded->epoch, decoded->causal_sequence) : nullptr;
+            const auto result = receiver.receive(frame, now, parent);
+            const auto& history = receiver.last_accepted();
+            std::cout << "EV_RX decision=" << fixture::decision_name(result.decision)
+                      << " issue=" << fixture::issue_name(result.issue) << " at_ns=" << now
+                      << " id=" << frame.can_id << " length=" << static_cast<unsigned int>(frame.payload_length)
+                      << " e2e=" << (result.e2e_status ? static_cast<int>(*result.e2e_status) : -1)
+                      << " counter=" << static_cast<unsigned int>(frame.payload[31])
+                      << " history_rx_ns=" << (history ? history->received_time_ns : 0)
+                      << " source_ns=" << (history ? history->message.source_time_ns : 0)
+                      << " seq=" << (history ? history->message.sequence : 0)
+                      << " epoch=" << (history ? history->message.epoch : 0)
+                      << " causal_seq=" << (history ? history->message.causal_sequence : 0)
+                      << " local_state=" << (history ? static_cast<int>(history->message.local_state) : -1);
+            for (std::size_t group = 0; group < 3; ++group) {
+                std::cout << " rx_q" << group << '=' << fixture::quality_name(result.quality[group]);
+            }
+            trace_bms(receiver.current_sample(now)); std::cout << '\n';
+            if (forward && result.decision == can::ActuatorReceiveDecision::Accepted) {
+                const auto forwarded = can::forward_bms_limits(history->message, downstream);
+                if (!forwarded) throw std::runtime_error("EV source-preserving relay encode failed");
+                endpoint.send(socketcan::to_socketcan(*forwarded));
+                std::cout << "FORWARD source_ns=" << history->message.source_time_ns << " seq=" << history->message.sequence
+                          << " counter=" << static_cast<unsigned int>(forwarded->payload[31]) << '\n';
+            }
+        }
+        now = socketcan::monotonic_time_ns();
+        const auto current = receiver.current_sample(now);
+        const can::BmsQualities qualities = current ? current->quality : can::BmsQualities{
+            can::BmsFieldQuality::NotApplicable, can::BmsFieldQuality::NotApplicable, can::BmsFieldQuality::NotApplicable};
+        if (qualities != previous) {
+            std::cout << "EV_VIEW at_ns=" << now; trace_bms(current); std::cout << '\n'; previous = qualities;
+        }
+        if (receiver.health() == can::ActuatorReceiverHealth::ClockError) throw std::runtime_error("EV clock fault");
+        if (receiver.health() == can::ActuatorReceiverHealth::Timeout && !reported) {
+            const auto observation = kind == can::BmsFrameKind::BatteryState;
+            auto reference = observation && receiver.last_accepted() ? receiver.last_accepted()->received_time_ns :
+                             monitoring_enable_ns;
+            if (!observation) {
+                const std::size_t groups = kind == can::BmsFrameKind::PowerStatus || kind == can::BmsFrameKind::PowerLimits ||
+                                           kind == can::BmsFrameKind::DriveBatteryLimits ? 2 : 1;
+                for (std::size_t group = 0; group < groups; ++group) {
+                    const auto value = receiver.last_usable_rx_time_ns(group).value_or(monitoring_enable_ns);
+                    if (group == 0 || value < reference) reference = value;
+                }
+            }
+            std::cout << "EV_TIMEOUT at_ns=" << now << " reference_ns=" << reference
+                      << " elapsed_ns=" << now - reference << " epoch=" << epoch << " usable=" << current.has_value() << '\n';
+            reported = true;
+        }
+        std::cout.flush(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    std::cout << "EV_END epoch=" << epoch << " timeout=" << reported << '\n';
+}
+
 int main(int argc, char** argv) {
     try {
         using namespace stratadrive;
         if (argc != 5 && argc != 6) {
-            throw std::invalid_argument("usage: actuator_socketcan_rx IFACE cmd|actual|brake-cmd|brake-actual|drive-cmd|drive-actual EPOCH DURATION_MS [wire]");
+            throw std::invalid_argument("usage: actuator_socketcan_rx IFACE STREAM EPOCH DURATION_MS [wire|forward]; actuator or EV stream (harness stdin required)");
         }
         const auto epoch = fixture::positive_number(argv[3]);
         const auto duration_ms = fixture::positive_number(argv[4]);
         if (duration_ms > 10000) throw std::invalid_argument("fixture duration limit is 10000 ms");
         const auto duration = std::chrono::milliseconds{duration_ms};
         const std::string stream = argv[2];
+        if (const auto ev_kind = fixture::bms_kind(stream)) {
+            const bool forward = argc == 6 && std::string(argv[5]) == "forward";
+            if ((argc == 6 && !forward) || (forward && *ev_kind != can::BmsFrameKind::PowerLimits)) {
+                throw std::invalid_argument("EV forwarding fixture is bms-limits only");
+            }
+            bms_fixture(argv[1], *ev_kind, duration, epoch, forward);
+            return 0;
+        }
         const bool brake = stream == "brake-cmd" || stream == "brake-actual";
         const bool drive = stream == "drive-cmd" || stream == "drive-actual";
         if (argc == 6) {

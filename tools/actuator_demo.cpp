@@ -4,6 +4,8 @@
 #include "brake_pressure_codec.hpp"
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
+#include "bms_receiver.hpp"
+#include "bms_value_codec.hpp"
 
 #include <cstdint>
 #include <exception>
@@ -27,7 +29,10 @@ void usage(std::ostream& output) {
            << "  actuator_demo brake-frame <command|actual> <pressure_pa|invalid>\n"
            << "  actuator_demo brake-receiver\n"
            << "  actuator_demo drive-frame <command|actual> <torque_nm|invalid>\n"
-           << "  actuator_demo drive-feedback\n";
+           << "  actuator_demo drive-feedback\n"
+           << "  actuator_demo bms-value <soc|voltage|current|temperature|power> <value>\n"
+           << "  actuator_demo bms-frame <request|power-status|limits|battery|drive-limits|permission> [nominal|zero|invalid|partial]\n"
+           << "  actuator_demo bms-receiver\n";
 }
 
 double parse_angle(const std::string& input) {
@@ -488,6 +493,139 @@ void demo_drive_feedback() {
         receiver.current_sample(kStart + 120 * kMs)) throw std::runtime_error("Drive timeout 검사 실패");
     std::cout << "실제 토크 stream 상실 +80 ms -> latched TIMEOUT, 제어 sample 없음\n";
 }
+BmsFrameKind parse_bms_kind(const std::string& input) {
+    if (input == "request") return BmsFrameKind::PowerRequest;
+    if (input == "power-status") return BmsFrameKind::PowerStatus;
+    if (input == "limits") return BmsFrameKind::PowerLimits;
+    if (input == "battery") return BmsFrameKind::BatteryState;
+    if (input == "drive-limits") return BmsFrameKind::DriveBatteryLimits;
+    if (input == "permission") return BmsFrameKind::DrivePermission;
+    throw std::invalid_argument("BMS kind: request/power-status/limits/battery/drive-limits/permission");
+}
+BmsMessage bms_fixture(BmsFrameKind kind, const std::string& variant) {
+    if (variant != "nominal" && variant != "zero" && variant != "invalid" && variant != "partial") {
+        throw std::invalid_argument("BMS fixture: nominal/zero/invalid/partial");
+    }
+    BmsMessage message;
+    message.kind = kind; message.epoch = 1; message.source_time_ns = kStart;
+    message.causal_sequence = 7; message.local_state = ActuatorLocalState::Normal; message.origin = ActuatorOrigin::NormalPath;
+    switch (kind) {
+    case BmsFrameKind::PowerRequest:
+        message.content = BmsPowerRequest{BmsPowerAction::Enable, kStart+80*kMs, kStart-10*kMs}; break;
+    case BmsFrameKind::PowerStatus:
+        message.content = BmsPowerStatus{BmsPowerState::HvReady, true, true, false, 7, 31, 390, kStart-5*kMs, kStart-10*kMs, 12}; break;
+    case BmsFrameKind::PowerLimits:
+    case BmsFrameKind::DriveBatteryLimits:
+        message.content = BmsPowerLimits{120000, 200000, BmsLimitReason::Nominal, BmsLimitReason::Nominal, kStart-10*kMs}; break;
+    case BmsFrameKind::BatteryState:
+        message.content = BmsBatteryState{BmsSocSample{0.6, kStart-10*kMs}, BmsElectricalSample{400, -120, kStart-10*kMs}, BmsTemperatureSample{25, kStart-10*kMs}}; break;
+    case BmsFrameKind::DrivePermission:
+        message.content = BmsDriveGrant{BmsDrivePermission::AllowNormal, 12, kStart-5*kMs, kStart-10*kMs, kStart+70*kMs}; break;
+    }
+    if (variant == "invalid") {
+        message.local_state = ActuatorLocalState::Init; message.origin = ActuatorOrigin::NoAcceptedInput; message.causal_sequence = 0;
+        switch (kind) {
+        case BmsFrameKind::PowerRequest: message.content = BmsPowerRequest{}; break;
+        case BmsFrameKind::PowerStatus: message.content = BmsPowerStatus{}; break;
+        case BmsFrameKind::PowerLimits:
+        case BmsFrameKind::DriveBatteryLimits: message.content = BmsPowerLimits{}; break;
+        case BmsFrameKind::BatteryState: message.content = BmsBatteryState{}; break;
+        case BmsFrameKind::DrivePermission: message.content = BmsDriveGrant{}; break;
+        }
+    } else if (variant == "zero") {
+        if (auto* v = std::get_if<BmsPowerLimits>(&message.content)) {
+            v->charge_power_w = v->discharge_power_w = 0; v->charge_reason = v->discharge_reason = BmsLimitReason::Disabled;
+        } else if (auto* v = std::get_if<BmsBatteryState>(&message.content)) {
+            v->soc->fraction = 0; v->electrical->voltage_v = v->electrical->current_a = 0; v->temperature->celsius = 0;
+        } else if (auto* v = std::get_if<BmsPowerRequest>(&message.content)) v->action = BmsPowerAction::KeepOff;
+        else if (auto* v = std::get_if<BmsPowerStatus>(&message.content)) {
+            v->state = BmsPowerState::Off; v->positive_contactor_closed = v->negative_contactor_closed = false; v->hv_bus_voltage_v = 0;
+        } else std::get<BmsDriveGrant>(message.content).permission = BmsDrivePermission::Inhibit;
+    } else if (variant == "partial") {
+        if (auto* v = std::get_if<BmsPowerLimits>(&message.content)) {
+            v->charge_power_w.reset(); v->charge_reason = BmsLimitReason::InputsInvalid;
+        } else if (auto* v = std::get_if<BmsBatteryState>(&message.content)) v->temperature.reset();
+        else if (auto* v = std::get_if<BmsPowerStatus>(&message.content)) v->condition_validity = 15;
+        else throw std::invalid_argument("partial fixture는 limits/drive-limits/battery/power-status에서 지원합니다.");
+    }
+    return message;
+}
+BmsValueKind parse_bms_value_kind(const std::string& field) {
+    BmsValueKind kind;
+    if (field == "soc") kind = BmsValueKind::Soc;
+    else if (field == "voltage") kind = BmsValueKind::Voltage;
+    else if (field == "current") kind = BmsValueKind::Current;
+    else if (field == "temperature") kind = BmsValueKind::Temperature;
+    else if (field == "power") kind = BmsValueKind::PowerLimit;
+    else throw std::invalid_argument("BMS field: soc/voltage/current/temperature/power");
+    return kind;
+}
+void demo_bms_value(BmsValueKind kind, double value) {
+    const auto bytes = encode_bms_value(kind, value);
+    if (!bytes) throw std::runtime_error("BMS 물리값의 finite/wire 범위를 확인하세요.");
+    std::cout << "Bytes:";
+    for (const auto byte : *bytes) std::cout << ' ' << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << static_cast<unsigned int>(byte);
+    std::cout << std::dec << "\n복원: " << std::setprecision(12) << *decode_bms_value(kind, *bytes) << '\n';
+}
+void demo_bms_frame(const std::string& kind, const std::string& variant) {
+    const auto message = bms_fixture(parse_bms_kind(kind), variant);
+    BmsTxState tx{message.kind}; const auto frame = encode_bms_frame(message, tx);
+    if (!frame || !decode_bms_frame(*frame)) throw std::runtime_error("BMS wire encode/decode 실패");
+    std::cout << "Fixture: EV/BMS " << kind << '/' << variant << " (모델/송수신 실행 아님)\n"
+              << "ID: 0x" << std::hex << std::uppercase << frame->can_id << "\nPayload:";
+    for (std::size_t i = 0; i < frame->payload_length; ++i) {
+        std::cout << ' ' << std::setfill('0') << std::setw(2) << static_cast<unsigned int>(frame->payload[i]);
+    }
+    std::cout << std::dec << "\nLength: " << static_cast<unsigned int>(frame->payload_length)
+              << "\nSourceTimeNs: " << message.source_time_ns << '\n';
+}
+void demo_bms_receiver() {
+    std::cout << "Host BMS receiver fixture (수동 시계, 모델/배분/송수신 실행 아님)\n";
+    const BmsPhysicalRanges physical{{0, 1000}, {-500, 500}, {-60, 200}, 200000};
+    BmsReceiver receiver({BmsFrameKind::PowerLimits, physical});
+    if (!receiver.start_session(1, kStart)) throw std::runtime_error("BMS session 설정 실패");
+    auto message = bms_fixture(BmsFrameKind::PowerLimits, "nominal");
+    auto& value = std::get<BmsPowerLimits>(message.content); value.input_time_ns = kStart;
+    BmsTxState tx{message.kind};
+    const auto publish = [&](unsigned int ms, BmsFieldQuality charge_quality) {
+        message.source_time_ns = kStart+ms*kMs; value.input_time_ns = message.source_time_ns;
+        const auto frame = encode_bms_frame(message, tx);
+        if (!frame) throw std::runtime_error("BMS fixture encode 실패");
+        const auto result = receiver.receive(*frame, message.source_time_ns);
+        if (result.decision != ActuatorReceiveDecision::Accepted || result.quality[0] != charge_quality || result.quality[1] != BmsFieldQuality::Usable) {
+            throw std::runtime_error("BMS partial quality 예상과 다름");
+        }
+        const auto current = receiver.current_sample(message.source_time_ns);
+        if (!current) throw std::runtime_error("BMS envelope 사용 불가");
+        const auto& usable = std::get<BmsPowerLimits>(current->message.content);
+        std::cout << '+' << ms << " ms: 충전 한계 ";
+        if (usable.charge_power_w) std::cout << *usable.charge_power_w << " W";
+        else std::cout << "unknown";
+        std::cout << ", 방전 한계 " << *usable.discharge_power_w << " W\n";
+        ++message.sequence; ++message.causal_sequence;
+    };
+    publish(0, BmsFieldQuality::Usable);
+    value.charge_power_w = 0; value.charge_reason = BmsLimitReason::Disabled;
+    publish(20, BmsFieldQuality::Usable);
+    value.charge_power_w.reset(); value.charge_reason = BmsLimitReason::InputsInvalid;
+    publish(40, BmsFieldQuality::Unavailable); publish(60, BmsFieldQuality::Unavailable); publish(80, BmsFieldQuality::Unavailable);
+    if (receiver.poll(kStart+100*kMs) != ActuatorReceiverHealth::Timeout || receiver.current_sample(kStart+100*kMs)) {
+        throw std::runtime_error("충전 항목의 독립 timeout 검사 실패");
+    }
+    std::cout << "+100 ms: 방전/metadata가 진행해도 충전 마지막 valid RX(+20)부터 80 ms -> latched TIMEOUT\n";
+    BmsReceiver permission({BmsFrameKind::DrivePermission, physical});
+    if (!permission.start_session(1, kStart-10*kMs)) throw std::runtime_error("Permission session 설정 실패");
+    auto grant_message = bms_fixture(BmsFrameKind::DrivePermission, "nominal");
+    std::get<BmsDriveGrant>(grant_message.content).expires_at_ns = kStart+20*kMs;
+    const BmsParentContext root{1, 7, kStart-10*kMs, kStart+20*kMs}; // independently supplied trusted fixture
+    BmsTxState grant_tx{grant_message.kind}; const auto grant = encode_bms_frame(grant_message, grant_tx);
+    if (!grant || permission.receive(*grant, kStart, &root).quality[0] != BmsFieldQuality::Usable ||
+        !bms_permission_allows_normal(*permission.current_sample(kStart))) throw std::runtime_error("Grant 검사 실패");
+    const auto expired = permission.current_sample(kStart+20*kMs);
+    if (!expired || bms_permission_allows_normal(*expired)) throw std::runtime_error("Grant expiry 검사 실패");
+    std::cout << "Permission: 검증된 parent의 허가 -> expiry(+20 ms)에서 사용 금지; 실제 torque/HV gate는 별도\n";
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -507,6 +645,9 @@ int main(int argc, char** argv) {
             else if (command == "brake-receiver" && argc == 2) demo_brake_receiver();
             else if (command == "drive-frame" && argc == 4) demo_drive_frame(argv[2], argv[3]);
             else if (command == "drive-feedback" && argc == 2) demo_drive_feedback();
+            else if (command == "bms-value" && argc == 4) demo_bms_value(parse_bms_value_kind(argv[2]), parse_angle(argv[3]));
+            else if (command == "bms-frame" && (argc == 3 || argc == 4)) demo_bms_frame(argv[2], argc == 4 ? argv[3] : "nominal");
+            else if (command == "bms-receiver" && argc == 2) demo_bms_receiver();
             else {
                 usage(std::cerr);
                 return 1;

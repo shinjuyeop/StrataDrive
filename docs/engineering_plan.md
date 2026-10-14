@@ -16,12 +16,16 @@ application queue/overflow 주입과 차량 통합은 남아 있다.
 2026-10-13 [RG-01 회생제동 포함 범위](adr/ADR-0011-regenerative-braking-scope.md)를 결정했다.
 M0 v0.1의 역사적 검토는 유지하고 현재 interface/safety/profile/test 계획에 확장을 반영한다.
 Drive wire는 signed 구동/회생 torque와 capability 원천 시각을 담는다.
-다음은 wire 흐름 복습과 M1 검토, M2 모델이며 물리 회생/배분 runtime은 PLANNED / NOT RUN이다.
+M1 통신 검사와 M2 모델로 진행하며 물리 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며
 실행 결과는 NOT RUN이다. [ZON-01](architecture/zonal_partition.md)로 최종 Front/Rear 두 Zone,
 Front 단일 coordinator와 Rear Drive/BMS gateway를 채택했다. Peer protocol/runtime은 미구현이다.
-다음은 BMS/power/constraint 의미·wire·timing 결정과 M1 남은 수용 항목, 이후 M2 응답 모델이다.
+2026-10-14 [BMS 의미·wire·timing 초안](icd/bms_frame_draft.md)을 작성하고 DBC/CRC를 검사했다.
+[EV 물리/frame codec과 항목별 receiver](learning/m1_bms_codec.md), Drive auxiliary age 분리도
+Host에서 구현·시험했다. 기존 fixture의 EV vCAN/session·parent·relay 36개 검사도 추가했다.
+M2 로컬 모델 입력은 pack 관측과 셀 전압·온도 극값을 포함한다.
+M1 남은 수용 항목 이후 M2 응답 모델로 진행한다.
 
 ## Project objective
 

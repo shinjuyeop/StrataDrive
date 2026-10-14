@@ -140,4 +140,23 @@ TEST(DriveSocketcan, PreservesCommandAndAll64ActualBytes) {
         EXPECT_FALSE(can::decode_drive_frame(preserved));
     }
 }
+TEST(BmsSocketcan, Preserves48And64BytesWithoutAdmittingMalformedEnvelope) {
+    for (const auto kind : {can::BmsFrameKind::PowerRequest, can::BmsFrameKind::PowerStatus,
+                           can::BmsFrameKind::PowerLimits, can::BmsFrameKind::BatteryState,
+                           can::BmsFrameKind::DriveBatteryLimits, can::BmsFrameKind::DrivePermission}) {
+        can::BmsFrame frame;
+        frame.can_id = static_cast<std::uint16_t>(kind);
+        frame.payload_length = static_cast<std::uint8_t>(can::bms_e2e_config(kind)->data_length_bits/8);
+        frame.payload[0] = 0x12; frame.payload[frame.payload_length-1] = 0x34;
+        const auto decoded = socketcan::to_bms(socketcan::to_socketcan(frame));
+        EXPECT_EQ(decoded.payload, frame.payload); EXPECT_EQ(decoded.payload_length, frame.payload_length);
+        auto native = socketcan::to_socketcan(frame); native.can_id |= 0x80000000U; native.is_fd = false;
+        native.payload_length = 49; native.fd_flags = 2;
+        const auto malformed = socketcan::to_bms(native);
+        EXPECT_EQ(malformed.can_id, native.can_id); EXPECT_EQ(malformed.payload_length, 49);
+        EXPECT_FALSE(can::decode_bms_frame(malformed));
+        frame.payload_length = 65; EXPECT_THROW(socketcan::to_socketcan(frame), std::invalid_argument);
+    }
+}
+
 }  // namespace

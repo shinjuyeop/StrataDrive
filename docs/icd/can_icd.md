@@ -1,6 +1,6 @@
 # CAN / CAN FD application ICD baseline
 
-Status: semantic/failure contract **DEFINED**, six-frame DBC/codec **Host 초안 구현·시험 / baseline 채택 PENDING**.
+Status: semantic/failure contract **DEFINED**, actuator 6개 + EV 6개 DBC/codec **Host 초안 구현·시험 / baseline 채택 PENDING**.
 [Steering 두 frame의 설계·DBC 초안](steering_frame_draft.md)을 작성했다(학습자 review PENDING).
 ID/layout/metadata/receiver 정책은 제안이며 wire baseline 채택이 아니다.
 [Steering frame codec·Host parser 검증](../learning/m1_steering_frame_codec.md)은 실행했다.
@@ -43,18 +43,27 @@ Drive는 [RG-01](regenerative_braking_design.md)을 반영해 Command 32 / Actua
 [Drive wire 초안](drive_frame_draft.md)을 따른다. Critical actual validity와 capability validity를
 분리하고 Steering/Brake wire는 유지했다. 회생 물리 모델·배분 구현은 후속 작업이다.
 
-## EV-01 추가 wire 작업
+## EV-01 추가 wire 초안
 
+2026-10-14 [BMS wire 초안](bms_frame_draft.md)과 [BMS DBC](../../interfaces/dbc/bms_m1_draft.dbc)를
+추가했다. EV schema 1의 6개 frame에 대해 Host layout/CRC/canonical vector를 검사했다.
+[EV C++ codec/항목별 receiver와 native SocketCAN 변환](../learning/m1_bms_codec.md)은 Host에서 시험했다.
+EV vCAN TX/RX/relay도 기존 fixture에서 36개 case로 시험했다.
+Actual coordinator/Zone timing과 Drive의 실제 통합 gate는 PLANNED / NOT RUN이다.
 [EV 설계](ev_power_bms_design.md)의 IF-CAN-BMS(power 요청 / battery·limit·power status),
-IF-CAN-DRIVE-CONSTRAINT(원천 limit / drive permission)을 추가할 계획이다.
-Frame 수/ID/DLC/schema/P05/Data ID, correlation, critical stream 목록, INIT/재동기화와
-rate/freshness는 **TBD-14 / 미설계·미구현**이다. 기존 six-frame PASS와 구분한다.
+IF-CAN-DRIVE-CONSTRAINT(원천 limit / drive permission)의 wire/library를 추가했다.
+Frame 수/ID/DLC/schema/P05/Data ID, critical 목록과 local rate/age는 ADR-0016 초안에 있다.
+Receiver의 trusted INIT·typed parent/expiry 검사는 구현했다. 실제 context 전달 coordinator와
+wire 최종 수용은 **TBD-14 / 후속**이다. Local transport는 독립 trusted stdin fixture로 검사했다.
+기존 six-frame C++/vCAN PASS와 구분한다.
 관련 요구는 SYS-EV-001–005, SYS-COM-003/004 v0.3이며 TC-EV-001–005는 NOT RUN이다.
 
 기존 M1 Drive의 보조 feedback source-age <=30 ms를 BMS에 자동 복제하지 않는다.
 BMS 센서/limit 생성·발행 주기를 정한 뒤 cached input의 age와 monitor margin을 포함해
 검증한다. 유효 zero limit와 unknown을 구분하고 Zone 전달 시각으로 원천 age를 연장하지 않는다.
 Critical status loss 검출 상한은 <=100 ms지만 power sequence/physical response 기한은 별도다.
+새 source 50/input 70 ms 시작값과 기존 Drive 30 ms 정책의 차이를 config로 분리·시험했다.
+Drive source/torque 기본 budget은 유지하며 capability input 70 ms는 명시적 opt-in이다.
 
 ## M1 wire-definition work (TBD-01)
 

@@ -1,6 +1,6 @@
 # Software architecture and contracts
 
-Status: 계약 **DEFINED**, runtime **PLANNED / NOT RUN**. M0에서는 runtime code를 구현하지 않는다.
+Status: 계약 **DEFINED**, M1 actuator/EV 통신 library **Host 부분 구현·시험**, component runtime **PLANNED / NOT RUN**.
 Component ID는 [system architecture](system_architecture.md)의 ID를 사용한다.
 
 ## Module responsibility
@@ -48,8 +48,9 @@ vECU는 CAN echo simulator가 아니라 MCU/RTOS를 학습하는 Linux software 
 | Communication publication | 10 ms | bounded RX/TX queue, command 검증, 각 actual feedback publication |
 | Diagnostics aggregation | TBD-08 (M9) | fault aggregation/status; 빠른 timeout 검출은 10 ms local monitor 경로 |
 
-위 10 ms starting point는 Steering/Brake/Drive에 적용한다. BMS/power task와 status/constraint
-publication은 TBD-14에 별도 rate/source-age/monitor budget을 결정한다. `models/`는 AI artifact
+위 10 ms starting point는 Steering/Brake/Drive에 적용한다. [BMS wire 초안](../icd/bms_frame_draft.md)은
+BMS model/limit 20 ms, power actual/permission 10 ms, 관측 100 ms와 별도 age/monitor budget을 제안한다.
+EV codec/receiver는 Host에서 시험했으며 실제 task/hop timing은 TBD-14다. `models/`는 AI artifact
 정책의 directory이며 EV 물리 model source는 위 `simulation/` 책임으로 분류한다.
 
 Periodic Task, RX/TX Queue, Mutex / Synchronization, State Machine, Watchdog,
@@ -62,19 +63,25 @@ thread/process model, scheduling policy/priority/affinity는 TBD-01/04다.
 수신된 bytes는 검사 후 command snapshot에 게시한다. stale, 중복, 순서 오류,
 CRC 오류 frame은 valid-command freshness를 갱신해서는 안 된다. Alive counter
 폭/wrap/restart 정책, CRC coverage/polynomial, startup grace와 rejoin은 M1에 CAN ICD에서 확정한다(TBD-01). Timeout 감시는 통신 task 정지 중에도 관측 가능해야 하며 watchdog과
-monitor 배치/독립성 및 stop 조건을 설계 검토한다. 이 계약은 아직 구현되지 않았다.
+monitor 배치/독립성 및 stop 조건을 설계 검토한다. 수신 검증·timeout은 M1 library/fixture에서
+부분 구현·시험했으며 실제 task/watchdog 독립성과 물리 보호 응답은 후속 작업이다.
 
 | vECU | Command / dynamics 후보 | Feedback / fault 후보 |
 | --- | --- | --- |
 | Steering | steering command; rate / acceleration limit, dead time, friction, overshoot, noise | actual steering + validity/time; jam / tracking fault |
 | Brake | brake command; pressure buildup, response delay | actual brake pressure + validity/time; stuck / slow-response fault |
 | Drive | signed 구동/회생 torque command; torque saturation, motor response, 단순 충전 수용 모델 | actual torque/speed, 회생 한계와 별도 validity/time; over-current / mismatch fault |
-| BMS / EV-01 | model 센서/요청, battery charge/discharge limits, 로컬 power protection; 주기 TBD-14 | state/limit/power actual과 source validity/time; sensor invalid/communication/power fault |
+| BMS / EV-01 | pack 센서·셀 전압/온도 극값·요청, battery limits, 로컬 power protection; 20 ms sampling 시작값 | state/limit/power actual과 source validity/time; sensor invalid/communication/power fault, 모델 미구현 |
 
 Sign/unit 의미는 [공통 ICD](../icd/interface_overview.md)에 정의한다.
 [RG-01 회생제동 설계](../icd/regenerative_braking_design.md)는 Drive/Brake/Zone의 후속 범위다.
 에너지 집계는 actual 기반이다. [EV-01](../icd/ev_power_bms_design.md)에서 별도 BMS 논리
 vECU와 Battery/power model을 추가하며 RG-01의 BMS 제외 범위를 대체했다.
+Drive의 실제 HV bus sensor는 IF-MODEL-DRIVE-POWER의 power plant→Drive 로컬 물리 경계다.
+Front permission/PowerStatus 참조 metadata를 자체 실제 bus 측정 대신 사용하지 않는다.
+Sensor schema/threshold는 TBD-12/13/14이며 BMS→Drive application 직접 우회가 아니다.
+IF-MODEL-BMS의 셀 전압·온도 극값은 독립 pair validity/acquisition/batch를 가지며
+oldest dependency에 포함한다. [로컬 입력 계약](../icd/ev_power_bms_design.md#로컬-셀-극값-입력)을 따른다.
 Dynamics parameter, noise seed, 초기화 수치와 calibration은 TBD-02/03 (M2/M6/M7)다.
 Accepted demand와 actual actuator state를 다른 interface로 유지한다. Simulated current 등의 상태가 없으면 해당 fault는 검증됐다고 주장하지 않는다.
 

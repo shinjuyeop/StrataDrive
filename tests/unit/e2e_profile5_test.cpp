@@ -197,6 +197,42 @@ TEST(E2eProfile5, SupportsMinimumAndMaximumConfiguredLength) {
     EXPECT_EQ(long_data[4095], 0);
 }
 
+TEST(E2eProfile5, MatchesEv48ByteRequestGoldenAndProtectsItsDeadline) {
+    // Python binascii CRC-HQX + DBC raw fixture; BMS domain codec is not implemented.
+    constexpr P05Config config{0x1301, 384, 232, 10};
+    constexpr std::array<std::uint8_t, 48> expected{
+        0x01, 0x00, 0x01, 0x01, 0, 0, 0, 0, 0x01, 0, 0, 0,
+        0x00, 0xCA, 0x9A, 0x3B, 0, 0, 0, 0, 0x07, 0, 0, 0,
+        0x01, 0x01, 0, 0, 0, 0x9D, 0xC1, 0,
+        0x00, 0x7E, 0x5F, 0x40, 0, 0, 0, 0,
+        0x80, 0x33, 0x02, 0x3B, 0, 0, 0, 0};
+    auto data = expected;
+    data[29] = 0;
+    data[30] = 0;
+    P05ProtectState tx;
+    ASSERT_EQ(p05_protect(config, tx, data.data(), data.size()), P05Return::Ok);
+    EXPECT_EQ(data, expected);
+    EXPECT_EQ(p05_crc(config, data.data(), data.size()), 0xC19D);
+    P05CheckState rx;
+    ASSERT_EQ(p05_check(config, rx, data.data(), data.size()), P05Return::Ok);
+    EXPECT_EQ(rx.status, P05Status::Ok);
+    auto wrong_id = config;
+    wrong_id.data_id = 0x1302;
+    p05_check_init(rx);
+    EXPECT_EQ(p05_check(wrong_id, rx, data.data(), data.size()), P05Return::Ok);
+    EXPECT_EQ(rx.status, P05Status::Error);
+    for (std::size_t byte = 0; byte < data.size(); ++byte) {
+        for (unsigned int bit = 0; bit < 8; ++bit) {
+            auto corrupt = data;
+            corrupt[byte] ^= static_cast<std::uint8_t>(1U << bit);
+            p05_check_init(rx);
+            EXPECT_EQ(p05_check(config, rx, corrupt.data(), corrupt.size()), P05Return::Ok);
+            EXPECT_EQ(rx.status, P05Status::Error) << byte << ':' << bit;
+            EXPECT_EQ(rx.counter, 0xFF);
+        }
+    }
+}
+
 TEST(E2eProfile5, OkHelperRequiresSuccessfulCallAndPassingStatus) {
     for (const auto status : {P05Status::Ok, P05Status::OkSomeLost}) {
         EXPECT_TRUE(p05_is_ok(P05Return::Ok, status));

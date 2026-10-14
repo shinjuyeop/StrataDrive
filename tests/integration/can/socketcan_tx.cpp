@@ -233,15 +233,172 @@ void drive_feedback_fixture(const char* interface, std::uint32_t epoch) {
     }
 }
 
+void bms_fixture(const char* interface, can::BmsFrameKind kind,
+                 const std::string& scenario, std::uint32_t epoch) {
+    socketcan::Endpoint endpoint(interface);
+    std::cout << std::unitbuf << "TX_READY\n";
+    const auto plan = fixture::await_bms_start();
+    const auto at = [&](unsigned int ms) {
+        const auto deadline = plan.enable_ns + ms*fixture::kMs;
+        const auto now = socketcan::monotonic_time_ns();
+        if (deadline > now) std::this_thread::sleep_for(std::chrono::nanoseconds(deadline - now));
+    };
+    can::BmsTxState tx{kind};
+    const auto sample = [&](std::uint32_t sequence, std::uint32_t parent_sequence) {
+        auto message = fixture::bms_message(kind, {epoch, sequence, socketcan::monotonic_time_ns()},
+                                            plan.parent(epoch, parent_sequence));
+        if (scenario == "forward") std::get<can::BmsPowerLimits>(message.content).input_time_ns -= 10*fixture::kMs;
+        return message;
+    };
+    const auto send_frame = [&](const can::BmsFrame& frame, const char* label) {
+        endpoint.send(socketcan::to_socketcan(frame));
+        const auto decoded = can::decode_bms_frame(frame);
+        const auto* limits = decoded ? std::get_if<can::BmsPowerLimits>(&decoded->content) : nullptr;
+        std::cout << "EV_TX label=" << label << " at_ns=" << socketcan::monotonic_time_ns()
+                  << " id=" << frame.can_id << " length=" << static_cast<unsigned int>(frame.payload_length)
+                  << " seq=" << (decoded ? decoded->sequence : 0)
+                  << " source_ns=" << (decoded ? decoded->source_time_ns : 0)
+                  << " causal_seq=" << (decoded ? decoded->causal_sequence : 0)
+                  << " input_ns=" << (limits ? limits->input_time_ns : 0)
+                  << " counter=" << static_cast<unsigned int>(frame.payload[31]) << '\n';
+    };
+    const auto publish = [&](const can::BmsMessage& message, const char* label) {
+        const auto frame = can::encode_bms_frame(message, tx);
+        if (!frame) throw std::runtime_error("EV fixture encode failed");
+        send_frame(*frame, label);
+        return *frame;
+    };
+    at(0);
+    if (scenario == "silent") return;
+    if (scenario == "forward") at(20);
+    auto initial = sample(0, 7);
+    if (scenario == "cached") {
+        if (auto* value = std::get_if<can::BmsPowerLimits>(&initial.content)) value->input_time_ns = plan.enable_ns;
+        else std::get<can::BmsPowerStatus>(initial.content).input_time_ns = plan.enable_ns;
+    } else if (scenario == "observation") std::get<can::BmsBatteryState>(initial.content).soc->source_time_ns = plan.enable_ns;
+    const auto first = publish(initial, "first");
+    const bool observation = kind == can::BmsFrameKind::BatteryState;
+    if (scenario == "normal" || scenario == "forward") {
+        for (std::uint32_t index = 1; index < 5; ++index) {
+            at(index*fixture::bms_period_ms(kind) + (scenario == "forward" ? 20 : 0));
+            publish(sample(index, 7 + index), "normal");
+        }
+    } else if (scenario == "flood") {
+        const unsigned int last_ms = observation ? 340 : 120;
+        for (unsigned int ms = 5; ms <= last_ms; ms += 5) {
+            at(ms);
+            for (int index = 0; index < 32; ++index) endpoint.send(socketcan::to_socketcan(first));
+        }
+        std::cout << "EV_TX label=flood_end at_ns=" << socketcan::monotonic_time_ns() << '\n';
+    } else if (scenario == "faults") {
+        at(10); send_frame(first, "duplicate");
+        at(20); auto corrupt = can::encode_bms_frame(sample(1, 7), tx).value();
+        corrupt.payload[32] ^= 1; send_frame(corrupt, "corrupt_extension");
+        const auto malformed = [&](unsigned int ms, const char* label, unsigned int fault) {
+            at(ms); auto frame = socketcan::to_socketcan(can::encode_bms_frame(sample(1, 7), tx).value());
+            if (fault == 0) frame.payload_length = 16;
+            else if (fault == 1) frame.payload_length = frame.payload_length == 64 ? 48 : 64;
+            else if (fault == 2) frame.can_id |= 0x80000000U;
+            else if (fault == 3) frame.fd_flags = 1;
+            else { frame.is_fd = false; frame.fd_flags = 0; frame.payload_length = 2; }
+            endpoint.send(frame);
+            std::cout << "EV_TX label=" << label << " at_ns=" << socketcan::monotonic_time_ns() << '\n';
+        };
+        malformed(30, "short", 0); malformed(35, "wide", 1); malformed(40, "extended", 2);
+        malformed(45, "brs", 3); malformed(50, "classic", 4);
+        at(55); auto wrong_epoch = sample(1, 7); wrong_epoch.epoch = epoch + 1;
+        publish(wrong_epoch, "wrong_epoch");
+        const unsigned int stale_ms = observation ? 160 : 60;
+        at(stale_ms);
+        // Every dependency must remain <= envelope source even in an old fixture.
+        const auto stale = fixture::bms_message(kind, {epoch, 1, plan.enable_ns}, plan.parent(epoch, 7));
+        publish(stale, "stale");
+        at(stale_ms + 5); publish(sample(1, 8), "fresh");
+        at(stale_ms + 10); publish(sample(1, 8), "cached_sequence");
+        at(stale_ms + 15); auto canonical = can::encode_bms_frame(sample(2, 8), tx).value();
+        canonical.payload[26] = 1;
+        const auto crc = can::bms_frame_crc(canonical).value();
+        canonical.payload[29] = static_cast<std::uint8_t>(crc); canonical.payload[30] = static_cast<std::uint8_t>(crc >> 8U);
+        send_frame(canonical, "resealed_reserved");
+        at(stale_ms + 30); auto unknown = sample(2, 8); fixture::clear_bms_content(unknown);
+        publish(unknown, "unknown");
+        at(observation ? 600 : 220); publish(sample(3, 9), "late_after_timeout");
+    } else if (scenario == "partial") {
+        for (std::uint32_t index = 1; index < 5; ++index) {
+            at(index*20); auto message = sample(index, 7);
+            auto& value = std::get<can::BmsPowerLimits>(message.content);
+            if (index == 1) { value.charge_power_w = 0; value.charge_reason = can::BmsLimitReason::Disabled; }
+            else { value.charge_power_w.reset(); value.charge_reason = can::BmsLimitReason::InputsInvalid; }
+            publish(message, index == 1 ? "zero" : "charge_unknown");
+        }
+        at(130); publish(sample(6, 7), "late_after_timeout");
+    } else if (scenario == "cached") {
+        for (std::uint32_t index = 1; index < 6; ++index) {
+            at(index*20 + (kind == can::BmsFrameKind::PowerStatus && index > 3 ? 10 : 0));
+            auto message = sample(index, 7);
+            if (auto* value = std::get_if<can::BmsPowerLimits>(&message.content)) {
+                value->input_time_ns = plan.enable_ns; message.causal_sequence = 0;
+            } else {
+                auto& power = std::get<can::BmsPowerStatus>(message.content);
+                power.input_time_ns = plan.enable_ns; power.input_sequence = 0;
+            }
+            publish(message, "cached_input");
+        }
+    } else if (scenario == "observation") {
+        for (std::uint32_t index = 1; index < 6; ++index) {
+            at(index*100); auto message = sample(index, 7);
+            auto& value = std::get<can::BmsBatteryState>(message.content);
+            value.soc->source_time_ns = plan.enable_ns;
+            value.temperature.reset();
+            publish(message, "partial_cached_soc");
+        }
+    } else if (scenario == "expiry") {
+        at(45); publish(fixture::bms_message(kind, {epoch, 1, plan.enable_ns + 30*fixture::kMs},
+                                            plan.parent(epoch, 7)), "expired_parent");
+        at(65); publish(sample(2, 7), "renewed_same_parent");
+        at(130); publish(sample(3, 9), "late_after_timeout");
+    } else if (scenario == "parent") {
+        at(10); publish(sample(1, 900), "missing_parent");
+        at(20); auto mismatch = sample(1, 7);
+        if (auto* value = std::get_if<can::BmsPowerRequest>(&mismatch.content)) value->parent_source_time_ns += fixture::kMs;
+        else std::get<can::BmsDriveGrant>(mismatch.content).expires_at_ns += fixture::kMs;
+        publish(mismatch, "mismatched_parent");
+        at(30); publish(sample(1, 8), "fresh_parent");
+        at(40); publish(sample(2, 7), "rollback_parent");
+        at(60); auto extended = sample(2, 8);
+        if (auto* value = std::get_if<can::BmsPowerRequest>(&extended.content)) value->expires_at_ns += fixture::kMs;
+        else std::get<can::BmsDriveGrant>(extended.content).expires_at_ns += fixture::kMs;
+        publish(extended, "deadline_extension");
+        at(70); auto safe = sample(2, 900);
+        safe.causal_sequence = 0; safe.origin = can::ActuatorOrigin::LocalProtection;
+        if (auto* value = std::get_if<can::BmsPowerRequest>(&safe.content)) {
+            value->action = can::BmsPowerAction::Shutdown; value->parent_source_time_ns = 0;
+        } else std::get<can::BmsDriveGrant>(safe.content).permission = can::BmsDrivePermission::Inhibit;
+        publish(safe, "explicit_non_driving");
+        at(200); publish(sample(3, 9), "late_after_timeout");
+    } else if (scenario == "rejoin") {
+        at(100); auto unauthorized = sample(1, 8); unauthorized.epoch = epoch + 1;
+        publish(unauthorized, "unauthorized_epoch");
+        at(160); publish(sample(1, 7), "late_old_epoch");
+        at(200); epoch += 1; e2e::p05_protect_init(tx.protection); publish(sample(0, 7), "trusted_rejoin");
+        at(210); auto old = sample(1, 7); old.epoch -= 1; publish(old, "old_epoch");
+        at(220); publish(sample(1, 8), "fresh_after_rejoin");
+    } else throw std::invalid_argument("unknown EV fixture scenario");
+}
+
 int main(int argc, char** argv) {
     try {
         using namespace stratadrive;
         if (argc != 5) {
-            throw std::invalid_argument("usage: actuator_socketcan_tx IFACE cmd|actual|brake-cmd|brake-actual|drive-cmd|drive-actual EPOCH normal|faults|silent|flood|wire|feedback");
+            throw std::invalid_argument("usage: actuator_socketcan_tx IFACE STREAM EPOCH SCENARIO; actuator or bms-request|bms-power|bms-limits|bms-battery|drive-limits|drive-permission (harness stdin required)");
         }
         const auto epoch = fixture::positive_number(argv[3]);
         const std::string scenario = argv[4];
         const std::string stream = argv[2];
+        if (const auto ev_kind = fixture::bms_kind(stream)) {
+            bms_fixture(argv[1], *ev_kind, scenario, epoch);
+            return 0;
+        }
         const bool brake = stream == "brake-cmd" || stream == "brake-actual";
         const bool drive = stream == "drive-cmd" || stream == "drive-actual";
         if (stream == "drive-actual" && scenario == "feedback") {

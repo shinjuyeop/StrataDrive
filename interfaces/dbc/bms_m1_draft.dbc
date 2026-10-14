@@ -1,0 +1,245 @@
+VERSION "StrataDrive EV-01 BMS/power schema 1 draft 2026-10-14"
+
+NS_ :
+    CM_
+    BA_DEF_
+    BA_DEF_DEF_
+    BA_
+    VAL_
+
+BS_:
+
+BU_: RearZone BmsVecu DriveVecu
+
+BO_ 387 BmsPowerRequest: 48 RearZone
+ SG_ RequestAction : 0|16@1+ (1,0) [0|2] "" BmsVecu
+ SG_ SchemaVersion : 16|8@1+ (1,0) [1|1] "" BmsVecu
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" BmsVecu
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" BmsVecu
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" BmsVecu
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" BmsVecu
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" BmsVecu
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" BmsVecu
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" BmsVecu
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" BmsVecu
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" BmsVecu
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" BmsVecu
+ SG_ ExpiresAtNs : 256|64@1+ (1,0) [0|18446744073709551615] "ns" BmsVecu
+ SG_ ParentSourceTimeNs : 320|64@1+ (1,0) [0|18446744073709551615] "ns" BmsVecu
+
+BO_ 643 BmsPowerStatus: 64 BmsVecu
+ SG_ PowerState : 0|16@1+ (1,0) [0|4] "" RearZone
+ SG_ SchemaVersion : 16|8@1+ (1,0) [1|1] "" RearZone
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" RearZone
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" RearZone
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" RearZone
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" RearZone
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" RearZone
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" RearZone
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" RearZone
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" RearZone
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" RearZone
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" RearZone
+ SG_ PositiveContactor : 256|8@1+ (1,0) [0|1] "" RearZone
+ SG_ NegativeContactor : 264|8@1+ (1,0) [0|1] "" RearZone
+ SG_ PrechargeContactor : 272|8@1+ (1,0) [0|1] "" RearZone
+ SG_ ConditionBits : 280|8@1+ (1,0) [0|31] "" RearZone
+ SG_ ConditionValidity : 288|8@1+ (1,0) [0|31] "" RearZone
+ SG_ PowerReserved : 296|24@1+ (1,0) [0|0] "" RearZone
+ SG_ HvBusVoltage : 320|16@1+ (0.1,0) [0|6553.4] "V" RearZone
+ SG_ HvBusVoltageValid : 336|8@1+ (1,0) [0|1] "" RearZone
+ SG_ BusReserved : 344|8@1+ (1,0) [0|0] "" RearZone
+ SG_ InputTimeNs : 352|64@1+ (1,0) [0|18446744073709551615] "ns" RearZone
+ SG_ AcceptedRequestSourceTimeNs : 416|64@1+ (1,0) [0|18446744073709551615] "ns" RearZone
+ SG_ InputSequence : 480|32@1+ (1,0) [0|4294967295] "" RearZone
+
+BO_ 644 BmsPowerLimits: 48 BmsVecu
+ SG_ ChargePowerLimit : 0|16@1+ (10,0) [0|655340] "W" RearZone
+ SG_ SchemaVersion : 16|8@1+ (1,0) [1|1] "" RearZone
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" RearZone
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" RearZone
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" RearZone
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" RearZone
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" RearZone
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" RearZone
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" RearZone
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" RearZone
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" RearZone
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" RearZone
+ SG_ DischargePowerLimit : 256|16@1+ (10,0) [0|655340] "W" RearZone
+ SG_ DischargeLimitValid : 272|8@1+ (1,0) [0|1] "" RearZone
+ SG_ ChargeLimitReason : 280|8@1+ (1,0) [0|5] "" RearZone
+ SG_ DischargeLimitReason : 288|8@1+ (1,0) [0|5] "" RearZone
+ SG_ LimitReserved : 296|24@1+ (1,0) [0|0] "" RearZone
+ SG_ InputTimeNs : 320|64@1+ (1,0) [0|18446744073709551615] "ns" RearZone
+
+BO_ 645 BmsBatteryState: 64 BmsVecu
+ SG_ Soc : 0|16@1+ (0.0001,0) [0|1] "fraction" RearZone
+ SG_ SchemaVersion : 16|8@1+ (1,0) [1|1] "" RearZone
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" RearZone
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" RearZone
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" RearZone
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" RearZone
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" RearZone
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" RearZone
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" RearZone
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" RearZone
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" RearZone
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" RearZone
+ SG_ Voltage : 256|16@1+ (0.1,0) [0|6553.4] "V" RearZone
+ SG_ Current : 272|16@1- (0.1,0) [-3276.7|3276.7] "A" RearZone
+ SG_ Temperature : 288|16@1- (0.1,0) [-3276.7|3276.7] "degC" RearZone
+ SG_ ElectricalValid : 304|8@1+ (1,0) [0|1] "" RearZone
+ SG_ TemperatureValid : 312|8@1+ (1,0) [0|1] "" RearZone
+ SG_ SocSourceTimeNs : 320|64@1+ (1,0) [0|18446744073709551615] "ns" RearZone
+ SG_ ElectricalSourceTimeNs : 384|64@1+ (1,0) [0|18446744073709551615] "ns" RearZone
+ SG_ TemperatureSourceTimeNs : 448|64@1+ (1,0) [0|18446744073709551615] "ns" RearZone
+
+BO_ 403 DriveBatteryLimits: 48 RearZone
+ SG_ ChargePowerLimit : 0|16@1+ (10,0) [0|655340] "W" DriveVecu
+ SG_ SchemaVersion : 16|8@1+ (1,0) [1|1] "" DriveVecu
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" DriveVecu
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" DriveVecu
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" DriveVecu
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" DriveVecu
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" DriveVecu
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" DriveVecu
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" DriveVecu
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" DriveVecu
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" DriveVecu
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" DriveVecu
+ SG_ DischargePowerLimit : 256|16@1+ (10,0) [0|655340] "W" DriveVecu
+ SG_ DischargeLimitValid : 272|8@1+ (1,0) [0|1] "" DriveVecu
+ SG_ ChargeLimitReason : 280|8@1+ (1,0) [0|5] "" DriveVecu
+ SG_ DischargeLimitReason : 288|8@1+ (1,0) [0|5] "" DriveVecu
+ SG_ LimitReserved : 296|24@1+ (1,0) [0|0] "" DriveVecu
+ SG_ InputTimeNs : 320|64@1+ (1,0) [0|18446744073709551615] "ns" DriveVecu
+
+BO_ 404 DrivePermission: 64 RearZone
+ SG_ Permission : 0|16@1+ (1,0) [0|1] "" DriveVecu
+ SG_ SchemaVersion : 16|8@1+ (1,0) [1|1] "" DriveVecu
+ SG_ Validity : 24|8@1+ (1,0) [0|1] "" DriveVecu
+ SG_ Sequence : 32|32@1+ (1,0) [0|4294967295] "" DriveVecu
+ SG_ Epoch : 64|32@1+ (1,0) [1|4294967295] "" DriveVecu
+ SG_ SourceTimeNs : 96|64@1+ (1,0) [0|18446744073709551615] "ns" DriveVecu
+ SG_ CausalSequence : 160|32@1+ (1,0) [0|4294967295] "" DriveVecu
+ SG_ LocalState : 192|8@1+ (1,0) [0|3] "" DriveVecu
+ SG_ Origin : 200|8@1+ (1,0) [0|2] "" DriveVecu
+ SG_ Reserved : 208|24@1+ (1,0) [0|0] "" DriveVecu
+ SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" DriveVecu
+ SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" DriveVecu
+ SG_ PowerStatusSequence : 256|32@1+ (1,0) [0|4294967295] "" DriveVecu
+ SG_ PowerStatusSourceTimeNs : 288|64@1+ (1,0) [0|18446744073709551615] "ns" DriveVecu
+ SG_ InputTimeNs : 352|64@1+ (1,0) [0|18446744073709551615] "ns" DriveVecu
+ SG_ ExpiresAtNs : 416|64@1+ (1,0) [0|18446744073709551615] "ns" DriveVecu
+ SG_ PermissionReserved : 480|32@1+ (1,0) [0|0] "" DriveVecu
+
+CM_ "EV schema 1 draft; DBC/CRC checks only, no BMS codec/receiver/runtime yet. See docs/icd/bms_frame_draft.md. Not an OEM calibration or AUTOSAR-certified application.";
+CM_ BO_ 387 "Standard 11-bit CAN FD, 48 bytes/DLC 14, logical 20 ms. BRS=0, ESI=0. EV schema 1 is separate from actuator schema 2.";
+CM_ SG_ 387 E2ECrc "AUTOSAR P05 DataID 0x1301; CRC LE at bytes 29..30, Counter at 31. Cover 0..28 and 31..47, then implicit DataID low/high.";
+CM_ BO_ 643 "Standard 11-bit CAN FD, 64 bytes/DLC 15, logical 10 ms. BRS=0, ESI=0. EV schema 1 is separate from actuator schema 2.";
+CM_ SG_ 643 E2ECrc "AUTOSAR P05 DataID 0x1302; CRC LE at bytes 29..30, Counter at 31. Cover 0..28 and 31..63, then implicit DataID low/high.";
+CM_ BO_ 644 "Standard 11-bit CAN FD, 48 bytes/DLC 14, logical 20 ms. BRS=0, ESI=0. EV schema 1 is separate from actuator schema 2.";
+CM_ SG_ 644 E2ECrc "AUTOSAR P05 DataID 0x1303; CRC LE at bytes 29..30, Counter at 31. Cover 0..28 and 31..47, then implicit DataID low/high.";
+CM_ BO_ 645 "Standard 11-bit CAN FD, 64 bytes/DLC 15, logical 100 ms. BRS=0, ESI=0. EV schema 1 is separate from actuator schema 2.";
+CM_ SG_ 645 E2ECrc "AUTOSAR P05 DataID 0x1304; CRC LE at bytes 29..30, Counter at 31. Cover 0..28 and 31..63, then implicit DataID low/high.";
+CM_ BO_ 403 "Standard 11-bit CAN FD, 48 bytes/DLC 14, logical 20 ms. BRS=0, ESI=0. EV schema 1 is separate from actuator schema 2.";
+CM_ SG_ 403 E2ECrc "AUTOSAR P05 DataID 0x1203; CRC LE at bytes 29..30, Counter at 31. Cover 0..28 and 31..47, then implicit DataID low/high.";
+CM_ BO_ 404 "Standard 11-bit CAN FD, 64 bytes/DLC 15, logical 10 ms. BRS=0, ESI=0. EV schema 1 is separate from actuator schema 2.";
+CM_ SG_ 404 E2ECrc "AUTOSAR P05 DataID 0x1204; CRC LE at bytes 29..30, Counter at 31. Cover 0..28 and 31..63, then implicit DataID low/high.";
+CM_ SG_ 387 RequestAction "0 KeepOff / 1 Enable / 2 Shutdown is a request, never an actual contactor state. Invalid uses raw 65535, Validity=0 and zero expiry/parent time.";
+CM_ SG_ 387 ExpiresAtNs "Original parent-bounded deadline; valid request requires SourceTimeNs < ExpiresAtNs <= SourceTimeNs+80000000. Rear re-encoding must not renew the request.";
+CM_ SG_ 643 PowerState "Actual modeled lifecycle state, not system severity or normal driving permission. Invalid state raw 65535. HV_READY alone cannot authorize Drive.";
+CM_ SG_ 643 ConditionBits "Bit0 LV available, bit1 HV interlock closed, bit2 isolation OK, bit3 charger connected, bit4 power fault. Unknown condition bits are zero; ConditionValidity identifies known bits.";
+CM_ SG_ 643 InputTimeNs "Oldest physical model input used by this actual snapshot. New publication cannot refresh cached model input.";
+CM_ SG_ 643 AcceptedRequestSourceTimeNs "Original accepted Front power request time, CausalSequence is its sequence. NoAcceptedInput requires both correlation fields zero.";
+CM_ SG_ 644 InputTimeNs "Oldest local model dependency used for charge/discharge calculation. CausalSequence identifies that model-input batch, not BmsBatteryState CAN publication.";
+CM_ SG_ 645 Soc "SOC fraction: valid raw 0..10000, raw 65535 invalid, raw 10001..65534 forbidden. Validity is SOC validity only; other groups have separate flags/times.";
+CM_ SG_ 645 Current "Positive discharge / negative charge, 0.1 A, raw -32768 invalid. Wire range is not a physical current limit.";
+CM_ SG_ 645 Temperature "0.1 degC, raw -32768 invalid; physical thermal envelope is TBD-13, not the int16 representation range.";
+CM_ SG_ 645 ElectricalValid "Voltage and current are one atomic acquisition group. Invalid uses voltage 65535/current -32768 and zero electrical source time.";
+CM_ SG_ 403 SourceTimeNs "Preserve original BMS limit generation time/Sequence/Epoch/CausalSequence and InputTimeNs. Only CAN ID, DataID/CRC and transport counter change.";
+CM_ SG_ 404 Permission "Valid 0 means inhibit, valid 1 allows only after independent power/limits/torque/session checks. Invalid raw 65535 inhibits. Front owns the decision; Rear preserves its metadata/deadline.";
+CM_ SG_ 404 InputTimeNs "Oldest critical input used by the permission decision, including underlying BMS limit/power dependencies; heartbeat time cannot replace it.";
+CM_ SG_ 644 ChargePowerLimit "10 W, raw 0..65534; raw 65535 invalid. Validity is charge-limit validity. Valid zero means no allowed charging, not unknown.";
+CM_ SG_ 644 DischargePowerLimit "10 W, raw 0..65534, raw 65535 invalid. Independent DischargeLimitValid; no clamping of physical limits into the wire range.";
+CM_ SG_ 403 ChargePowerLimit "10 W, raw 0..65534; raw 65535 invalid. Validity is charge-limit validity. Valid zero means no allowed charging, not unknown.";
+CM_ SG_ 403 DischargePowerLimit "10 W, raw 0..65534, raw 65535 invalid. Independent DischargeLimitValid; no clamping of physical limits into the wire range.";
+
+BA_DEF_ BO_ "VFrameFormat" ENUM "StandardCAN","ExtendedCAN","reserved","J1939PG","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","reserved","StandardCAN_FD","ExtendedCAN_FD";
+BA_DEF_DEF_ "VFrameFormat" "StandardCAN";
+BA_DEF_ BO_ "GenMsgCycleTime" INT 0 65535;
+BA_DEF_DEF_ "GenMsgCycleTime" 0;
+BA_DEF_ BO_ "E2EProfile" INT 0 255;
+BA_DEF_ BO_ "E2EDataID" INT 0 65535;
+BA_DEF_ BO_ "E2EOffsetBits" INT 0 32768;
+BA_DEF_ BO_ "E2EMaxDeltaCounter" INT 0 255;
+BA_ "VFrameFormat" BO_ 387 14;
+BA_ "GenMsgCycleTime" BO_ 387 20;
+BA_ "E2EProfile" BO_ 387 5;
+BA_ "E2EDataID" BO_ 387 4865;
+BA_ "E2EOffsetBits" BO_ 387 232;
+BA_ "E2EMaxDeltaCounter" BO_ 387 10;
+VAL_ 387 RequestAction 0 "KeepOff" 1 "Enable" 2 "Shutdown";
+VAL_ 387 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 387 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 387 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";
+BA_ "VFrameFormat" BO_ 643 14;
+BA_ "GenMsgCycleTime" BO_ 643 10;
+BA_ "E2EProfile" BO_ 643 5;
+BA_ "E2EDataID" BO_ 643 4866;
+BA_ "E2EOffsetBits" BO_ 643 232;
+BA_ "E2EMaxDeltaCounter" BO_ 643 10;
+VAL_ 643 PowerState 0 "OFF" 1 "CHECKS" 2 "PRECHARGE" 3 "HV_READY" 4 "SHUTDOWN";
+VAL_ 643 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 643 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 643 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";
+VAL_ 643 PositiveContactor 0 "Open" 1 "Closed";
+VAL_ 643 NegativeContactor 0 "Open" 1 "Closed";
+VAL_ 643 PrechargeContactor 0 "Open" 1 "Closed";
+VAL_ 643 HvBusVoltageValid 0 "InvalidOrUnavailable" 1 "Valid";
+BA_ "VFrameFormat" BO_ 644 14;
+BA_ "GenMsgCycleTime" BO_ 644 20;
+BA_ "E2EProfile" BO_ 644 5;
+BA_ "E2EDataID" BO_ 644 4867;
+BA_ "E2EOffsetBits" BO_ 644 232;
+BA_ "E2EMaxDeltaCounter" BO_ 644 10;
+VAL_ 644 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 644 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 644 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";
+VAL_ 644 DischargeLimitValid 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 644 ChargeLimitReason 0 "Nominal" 1 "SocLimited" 2 "TemperatureLimited" 3 "ElectricalLimited" 4 "Disabled" 5 "InputsInvalid";
+VAL_ 644 DischargeLimitReason 0 "Nominal" 1 "SocLimited" 2 "TemperatureLimited" 3 "ElectricalLimited" 4 "Disabled" 5 "InputsInvalid";
+BA_ "VFrameFormat" BO_ 645 14;
+BA_ "GenMsgCycleTime" BO_ 645 100;
+BA_ "E2EProfile" BO_ 645 5;
+BA_ "E2EDataID" BO_ 645 4868;
+BA_ "E2EOffsetBits" BO_ 645 232;
+BA_ "E2EMaxDeltaCounter" BO_ 645 10;
+VAL_ 645 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 645 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 645 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";
+VAL_ 645 ElectricalValid 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 645 TemperatureValid 0 "InvalidOrUnavailable" 1 "Valid";
+BA_ "VFrameFormat" BO_ 403 14;
+BA_ "GenMsgCycleTime" BO_ 403 20;
+BA_ "E2EProfile" BO_ 403 5;
+BA_ "E2EDataID" BO_ 403 4611;
+BA_ "E2EOffsetBits" BO_ 403 232;
+BA_ "E2EMaxDeltaCounter" BO_ 403 10;
+VAL_ 403 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 403 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 403 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";
+VAL_ 403 DischargeLimitValid 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 403 ChargeLimitReason 0 "Nominal" 1 "SocLimited" 2 "TemperatureLimited" 3 "ElectricalLimited" 4 "Disabled" 5 "InputsInvalid";
+VAL_ 403 DischargeLimitReason 0 "Nominal" 1 "SocLimited" 2 "TemperatureLimited" 3 "ElectricalLimited" 4 "Disabled" 5 "InputsInvalid";
+BA_ "VFrameFormat" BO_ 404 14;
+BA_ "GenMsgCycleTime" BO_ 404 10;
+BA_ "E2EProfile" BO_ 404 5;
+BA_ "E2EDataID" BO_ 404 4612;
+BA_ "E2EOffsetBits" BO_ 404 232;
+BA_ "E2EMaxDeltaCounter" BO_ 404 10;
+VAL_ 404 Permission 0 "Inhibit" 1 "AllowNormal";
+VAL_ 404 Validity 0 "InvalidOrUnavailable" 1 "Valid";
+VAL_ 404 LocalState 0 "INIT" 1 "NORMAL" 2 "DEGRADED" 3 "FAIL_SAFE";
+VAL_ 404 Origin 0 "NoAcceptedInput" 1 "NormalPath" 2 "LocalProtection";

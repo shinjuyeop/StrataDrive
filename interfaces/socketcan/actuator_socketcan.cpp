@@ -38,4 +38,6 @@ Frame to_socketcan(const can::DriveFrame& frame) { return to_native(frame); }
 can::SteeringFrame to_steering(const Frame& frame) { return from_native<can::SteeringFrame>(frame); }
 can::BrakeFrame to_brake(const Frame& frame) { return from_native<can::BrakeFrame>(frame); }
 can::DriveFrame to_drive(const Frame& frame) { return from_native<can::DriveFrame>(frame); }
+Frame to_socketcan(const can::BmsFrame& frame) { return to_native(frame); }
+can::BmsFrame to_bms(const Frame& frame) { return from_native<can::BmsFrame>(frame); }
 }  // namespace stratadrive::socketcan

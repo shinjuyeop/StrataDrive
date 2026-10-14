@@ -7,7 +7,8 @@
 **M0 — BASELINED / M1 — IN PROGRESS**. [M0 종료 검토](docs/m0_baseline.md)의 15개 문서 항목을
 통과했고, Steering/Brake/Drive의 **Command·Actual 6개 CAN FD frame**을 Host에서 구현했다.
 DBC, AUTOSAR R25-11 E2E Profile 5 Protect/Check, application receiver와 SocketCAN을 연결했다.
-Normal·ASan/UBSan 각각 **unit 98개 / vCAN 27 case PASS**이며 DBC·독립 CRC 교차 검증도 통과했다.
+Normal·ASan/UBSan 각각 **unit 129개 PASS**다(2026-10-14 BMS codec/receiver 포함).
+vCAN은 actuator 27 + EV 36, 총 **63 case PASS**(2026-10-14)이며 DBC·독립 CRC 교차 검증도 통과했다.
 실행 흐름과 상세 이력은 [학습 안내](docs/learning/README.md)에 있다.
 
 M1의 wire baseline 채택과 학습자 review/재현, 영속 Epoch coordinator, application queue/
@@ -19,10 +20,17 @@ vECU 응답 모델, Zone/DDS, CARLA, control/AI/deployment runtime과 기존 차
 [ZON-01](docs/adr/ADR-0015-front-rear-zones.md)로 최종 Reference의 **Front/Rear 두 논리 Zone**을
 채택했다. Front는 차량 전체 관리·배분과 Steering/Brake, Rear는 Drive/BMS 연결을 맡는다.
 피드백은 담당 Zone을 거쳐 Front에서 집계한다. 기존 Central–Zone–Leaf 계층을 유지하며,
-단일 Zone 검증 후 M4/M5에 분리한다. EV wire와 두 Zone runtime은 아직 미구현이다.
+단일 Zone 검증 후 M4/M5에 분리한다. 두 Zone runtime은 아직 미구현이다.
 
-**다음 작은 작업은 BMS/power/Drive constraint의 의미·wire·rate/freshness 결정**이다.
-추가 통신 검증과 M1 남은 수용 항목을 마친 뒤 M2 actuator·Battery/BMS/power 모델로 진행한다.
+2026-10-14 [BMS wire 초안](docs/icd/bms_frame_draft.md)과 EV schema 1의 **6개 DBC frame**을
+추가하고 [BMS 물리값·frame codec과 항목별 receiver](docs/learning/m1_bms_codec.md)를 구현했다.
+기존 actuator 6개와 합쳐 **12개 frame / C++ payload 36개**를 DBC와 교차 검증했다.
+유효 0/unknown, source·dependency age, 원래 요청에 묶인 만료와 독립 timeout을 검사한다.
+Drive 보조 입력도 source age와 capability dependency age를 분리했고 기본값 30 ms는 유지한다.
+EV 6개 frame도 기존 TX/RX/runner에 연결했다. 독립 trusted session/parent fixture와
+부분 상실·캐시·만료·명시적 rejoin, BMS limit 중계의 원천 보존을 local vCAN에서 검사했다.
+M1 남은 coordinator/queue·wire 검토 이후 **다음 구현은 M2 실제 응답·Battery/BMS/power 모델**이다.
+실제 Drive 통합 gate도 M2 이후 작업이다.
 
 ## Project Overview
 
@@ -172,10 +180,10 @@ AUTOSAR stack/toolchain은 미선정이며 ASIL과 safety concept은 미확정�
 | Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD-09 (M5) |
 | Physical AI | Pretrained perception, TensorRT export/inference; 이후 GRU 또는 작은 Temporal Transformer |
 | Quality | 첫 field codec에 GoogleTest 1.11.0, clang-tidy, cppcheck, ASan/UBSan 실행; 차량 regression은 Planned |
-| E2E protection | Steering/Brake/Drive의 R25-11 Profile 5 Protect/Check와 receiver/SocketCAN 구현; E2E State Machine·차량 통합은 후속 |
+| E2E protection | Actuator와 EV/BMS frame에 R25-11 Profile 5 Protect/Check·receiver 구현; E2E State Machine·차량 통합은 후속 |
 | AUTOSAR pilot | Steering vECU의 Classic OS/RTE/BSW toolchain 타당성 검토; release/구현체/Target 지원 미선정, NOT RUN |
 
-Steering/Brake/Drive 예제와 시험을 build하고 실행한다. 현재 Host에 설치된 도구를 사용하며 자동 설치하지 않는다.
+Steering/Brake/Drive/BMS 예제와 시험을 build하고 실행한다. 현재 Host에 설치된 도구를 사용하며 자동 설치하지 않는다.
 
 ```sh
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
@@ -192,6 +200,9 @@ ctest --test-dir build/m1-angle --output-on-failure
 ./build/m1-angle/actuator_demo drive-frame command -200
 ./build/m1-angle/actuator_demo drive-frame actual -150
 ./build/m1-angle/actuator_demo drive-feedback
+./build/m1-angle/actuator_demo bms-value soc 0.75
+./build/m1-angle/actuator_demo bms-frame limits partial
+./build/m1-angle/actuator_demo bms-receiver
 ```
 
 이 명령은 angle/pressure/torque/frame 표현과 수신부·회생 피드백의 제어 가능한 시계 실험을 실행한다.
@@ -199,7 +210,8 @@ ctest --test-dir build/m1-angle --output-on-failure
 검사 범위와 예상 결과는 [field 실행 안내](docs/learning/m1_steering_codec.md)와
 [frame codec/DBC 교차 검증](docs/learning/m1_steering_frame_codec.md),
 [수신부 실행 안내](docs/learning/m1_steering_receiver.md)와
-[Brake 실행 안내](docs/learning/m1_brake_codec.md#application-수신부-추가), [Drive 실행 안내](docs/learning/m1_drive_codec.md)에 있다.
+[Brake 실행 안내](docs/learning/m1_brake_codec.md#application-수신부-추가), [Drive 실행 안내](docs/learning/m1_drive_codec.md),
+[BMS 실행 안내](docs/learning/m1_bms_codec.md)에 있다.
 실행 명령은 `./build/m1-angle/actuator_demo --help`로 확인한다.
 `-DBUILD_TESTING=OFF`로 configure하면 라이브러리와 예제만 build하며
 단위 시험과 통합 시험의 TX/RX 실행 파일은 제외한다.
@@ -212,12 +224,15 @@ unshare --user --map-root-user --net python3 tools/vcan_smoke.py
 
 예상 출력과 확인 범위는 [M1 실행 안내](docs/learning/m1_vcan_start.md)에 기록한다.
 
-Steering/Brake/Drive Command/Actual을 독립 송신·수신 process로 연결하고 오류/중단/flood를 검사한다.
+Steering/Brake/Drive Command/Actual과 EV 6개 frame을 독립 송신·수신 process로 연결하고 오류/중단/flood를 검사한다.
 위 C++ build 후 다음 명령을 실행한다. 자세한 흐름과 결과는
-[Steering SocketCAN 안내](docs/learning/m1_steering_socketcan.md)에 있다.
+[Steering SocketCAN 안내](docs/learning/m1_steering_socketcan.md)와
+[BMS SocketCAN 안내](docs/learning/m1_bms_codec.md#ev-socketcan-연결과-wall-time-시험)에 있다.
 
 ```sh
 unshare --user --map-root-user --net python3 tests/integration/can/check_socketcan.py
+# EV 36개만 재현할 때
+unshare --user --map-root-user --net python3 tests/integration/can/check_socketcan.py --family ev
 ```
 
 ## Development Principles
@@ -279,8 +294,9 @@ StrataDrive/
 │   ├── steering/          # 조향 angle/frame codec, application receiver
 │   ├── brake/             # 압력/frame codec, application receiver; 모델은 후속 구현
 │   ├── drive/             # 구동·회생 torque/frame codec, feedback receiver
-│   ├── socketcan/         # Linux CAN socket, actuator 변환 adapter
-│   ├── dbc/               # Steering/Brake/Drive six-frame 초안
+│   ├── bms/               # EV 물리값·6개 frame codec, 항목별 수신부
+│   ├── socketcan/         # Linux CAN socket, actuator·EV 변환 adapter
+│   ├── dbc/               # Actuator 6개 + EV/BMS 6개 frame 초안
 │   └── dds/               # 배치용 placeholder
 ├── central/               # State, perception, world model, planning, control, safety, health, diagnostics
 ├── zone/                  # Gateway, validation, allocation, local safety

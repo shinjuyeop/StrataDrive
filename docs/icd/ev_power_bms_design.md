@@ -1,6 +1,7 @@
 # EV/BMS 기능 설계 — EV-01
 
-Date: 2026-10-13. Status: **포함 범위 ACCEPTED / 상세 설계 초안 / wire·runtime PLANNED / 시험 NOT RUN**.
+Date: 2026-10-13; wire update: 2026-10-14.
+Status: **포함 범위 ACCEPTED / 상세 설계 초안 / EV C++ codec·receiver Host 부분 검사 / model·runtime PLANNED / TC NOT RUN**.
 [ADR-0014](../adr/ADR-0014-ev-functional-scope.md)의 후속 설계다.
 M0 v0.1과 RG-01 이후의 확장이며 기존 검토/실행 결과에 소급 포함하지 않는다.
 후속 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone 배치를 반영한다.
@@ -16,7 +17,7 @@ M0 v0.1과 RG-01 이후의 확장이며 기존 검토/실행 결과에 소급 �
 | Central | 기존 vehicle-level 요구와 Safety Supervisor, 상태 소비/전원 lifecycle 요청 | ODD 확대와 운전자 인계 의존 |
 | Front/Rear Zone | 각 gateway/local protection; Front 단일 vehicle management/allocation/feedback 집계 | 별도 VCU 계층/보드, coordinator failover |
 | Steering/Brake/Drive | 주기 실행, delay/saturation/dynamics, actual 및 로컬 고장 대응 | 정밀 기구/유압, 인버터 스위칭/전류 제어 |
-| Battery/BMS | 단순 SOC/전압/전류/온도, 충전·방전 한계, 센서 invalid와 주요 보호 상태 | 셀 화학/열화/밸런싱, 정밀 SOC estimator |
+| Battery/BMS | 단순 SOC/pack 전압·전류·온도 + 셀 전압·온도 극값 입력, 충전·방전 한계, 센서 invalid와 주요 보호 상태 | 셀별 상세 화학/열화/밸런싱, 정밀 SOC estimator |
 | Power | 프리차지/컨택터의 요청과 실제 모델 상태, HV 준비/종료, LV supply 및 interlock 조건 | DC/DC·충전기 회로, 충전 인프라/protocol |
 | Thermal/stability | 온도 조건과 derating, ABS/ESC 미구현 가정/연결 명시 | 정밀 열회로, 바퀴별 ABS/ESC/저마찰 성능 |
 | Diagnostics/process | fault→검출→local action→actual→DTC, explicit recovery, 요구/시험/변경 추적 | 전체 UDS/OBD, 양산 인증, body/infotainment |
@@ -94,8 +95,11 @@ Fault clear/new frame/전원 정상화만으로 latched FAIL_SAFE를 해제하�
 
 ## Semantic interface 초안
 
-아래 이름은 의미 계약이며 C++ type, topic, frame 수/ID/DLC/P05 배치가 아니다.
-기존 Steering/Brake/Drive six-frame M1 wire는 BMS/power 정보를 인코딩하지 않는다.
+아래 이름은 의미 계약이다. 후속 [BMS wire 초안](bms_frame_draft.md)에서 6개 EV frame의
+ID/DLC/P05/단위와 timing 시작값을 제안했다. [C++ EV codec/항목별 receiver](../learning/m1_bms_codec.md)와
+DBC 교차 검증·SocketCAN unit과 EV 독립 process/vCAN 36개 case를 수행했다.
+Actual coordinator/DDS/component runtime은 미구현이다.
+기존 actuator six-frame에는 BMS/power 정보를 추가하지 않았다.
 
 | Interface / 방향 | 필요한 의미 |
 | --- | --- |
@@ -105,7 +109,8 @@ Fault clear/new frame/전원 정상화만으로 latched FAIL_SAFE를 해제하�
 | IF-CAN-DRIVE-CONSTRAINT / Rear → Drive | 원천 BMS charge/discharge limit + permission; 생성/의존 input time 보존, local 검증 |
 | IF-DDS-ZONE-STATUS / Front → Central | BMS/power 상태와 drive permission, actuator actual/capability; source별 validity/age |
 | IF-HOST-EV-STATUS / Front → Host | 관측용 BMS/power 상태/한계/energy lineage; actuation stream과 구분 |
-| IF-MODEL-BMS / plant → BMS | modeled voltage/current/temperature/power feedback; 로컬 센서 의미, application CAN 피드백 아님 |
+| IF-MODEL-BMS / plant → BMS | modeled pack voltage/current/temperature, 셀 전압·온도 극값과 power feedback; 로컬 센서 의미, application CAN 피드백 아님 |
+| IF-MODEL-DRIVE-POWER / power plant → Drive | Drive 자체 HV bus 실제 sensor와 source/validity/identity; permission만으로 물리 준비 완료 선언 금지, 상세 threshold 후속 |
 
 | BMS 의미 필드 | 단위 / 표현 원칙 |
 | --- | --- |
@@ -119,6 +124,25 @@ Fault clear/new frame/전원 정상화만으로 latched FAIL_SAFE를 해제하�
 전체 status 한 개의 validity만으로 모든 한계/센서를 유효하게 만들지 않는다.
 용량, voltage/thermal 모델, SOC/온도 한계 곡선, fault threshold/dwell은 parameter 근거와
 fixture/OEM 근사 여부를 기록한다. 숫자는 이번 범위 결정에서 만들지 않는다.
+
+## 로컬 셀 극값 입력
+
+Pack 평균만으로 셀 과전압/저전압·국부 고온 조건을 가리지 않도록 **최소·최대 셀 전압과
+최소·최대 셀 온도**를 IF-MODEL-BMS에 포함한다. 이는 M2 구현 범위이며 아직 모델 코드는 없다.
+
+| 로컬 입력 | 단위 / 계약 |
+| --- | --- |
+| MinCellVoltage / MaxCellVoltage | V; finite, `0 <= min <= max`, 허용 범위·저/과전압 threshold와 dwell은 TBD-13 |
+| MinCellTemperature / MaxCellTemperature | °C; finite, `min <= max`, 허용 범위·저/고온 derating과 dwell은 TBD-13 |
+| 각 극값 pair의 validity/source time | 전압 pair와 온도 pair는 독립; unknown을 평균/정상 constant로 대체하지 않음 |
+| Model input identity | trusted Epoch + model batch sequence/acquisition; cached 재발행에서 보존하고 가장 오래된 dependency 시각에 포함 |
+
+첫 모델은 등가 극값과 fault injection으로 셀 불균형/센서 상실/온도 경계를 표현한다.
+Threshold를 사용하는 한계 계산·보호 판단은 필요한 극값의 validity/age까지 확인한다.
+셀별 화학·회로·열전달과 balancing을 구현하지 않으며 그 동작을 검증했다고 주장하지 않는다.
+원천 값과 limit reason/protection 결과는 model trace에 남겨 시험에서 대조한다.
+현재 6개 CAN frame의 pack 관측/limit/status layout은 유지한다. Raw 셀 극값을 상위에
+전부 발행하는 추가 진단 메시지는 별도의 소비·시험 필요가 생길 때 검토한다.
 
 ## 한계, freshness와 보호
 
@@ -134,8 +158,12 @@ Invalid/stale critical constraint에서는 새 normal motor demand를 허용하�
 보호를 선택한다. Torque 해소/마찰 배분/전원 반응은 고장별 검증된 matrix를 적용한다.
 
 Critical BMS/power stream loss는 SYS-COM-003 v0.3의 <=100 ms 검출 상한을 적용한다.
-각 stream의 rate/source-age/monitor margin, 더 느린 온도·SOC 입력과 빠른 한계 산출의
-관계는 TBD-14다. **기존 M1 Drive 보조 입력의 <=30 ms 수신 정책을 BMS에 자동 적용하지 않는다.**
+[BMS wire timing 초안](bms_frame_draft.md#first-sil-timing--수신-정책-초안)은 critical source
+50 ms/dependency 70 ms, RX 80 ms+monitor/margin 20 ms와 비critical 관측 경로를 구분한다.
+BMS control/model sampling 50 Hz와 관측 publication 10 Hz도 별개다. 실제 더 느린 sensor와
+cross-zone budget의 수용은 TBD-14/04/15이며 측정 전이다.
+**Drive 보조 source age는 <=30 ms를 유지하며 capability dependency age는 별도 설정으로 분리·시험했다.**
+기본 dependency age도 30 ms다. EV input 70 ms는 명시적 opt-in이며 full Drive/BMS gate 연결은 남는다.
 선택한 rate가 그 정책과 맞지 않으면 근거를 남겨 wire/receiver/profile/test revision을
 함께 검토한다. Startup grace와 물리 응답/전원 차단 deadline도 loss 검출 상한과 별개다.
 
@@ -170,6 +198,9 @@ EV-S01/02, EV-F01/02와 TC-EV-001–005는 [scenario](../test-plan/scenario_base
 
 TBD-12(power sequence/고장 반응), TBD-13(battery/limit/energy 모델), TBD-14(새 interface와
 timing)는 [roadmap register](../roadmap.md#open-m0-decisions)에 owner/gate를 둔다.
+TBD-14의 frame inventory/range/P05/논리 rate·age는 ADR-0016 초안으로 구체화했으며
+Host C++ 교차 검증/항목별 receiver와 EV local vCAN을 구현·시험했다. Wire 최종 수용,
+실제 trusted coordinator와 clock/runtime budget은 남는다.
 TBD-15의 두 Zone 채택/mapping/단일 owner는 결정했고 peer protocol/timing/rejoin은 남아 있다.
 실행 전에 해당 test의 값/판정식을 고정하며 미해결 값이 있는 시험을 PASS로 표시하지 않는다.
 
