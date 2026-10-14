@@ -63,7 +63,7 @@ Thor에서는 Premium feature 확장, Orin에서는 Mainstream resource optimiza
 
 ## Open deployment questions
 
-- direct DDS 또는 ROS 2 기반 통합, DDS vendor 및 isolation 방식
+- 기본 DDS와 Zenoh 후보 비교, direct API 또는 ROS 2 기반 통합, 구현체 및 isolation 방식
 - 실제 Ethernet 주소/방화벽/discovery 구성과 Host feedback transport
 - Host/Target clock sync 방식과 측정 오차; real-time policy/affinity/kernel 필요성
 - 공통 reference workload가 두 보드에서 실행 가능한지와 보드별 compatible stack

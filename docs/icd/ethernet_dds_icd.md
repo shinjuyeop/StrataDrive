@@ -3,6 +3,8 @@
 Status: semantic contract **DEFINED**. Vendor, ROS 2 vs direct DDS, IDL/topic/binary schema와
 runtime은 **TBD-05 / PLANNED**. Target 내부 Central–Zone은 logical Ethernet + DDS 계열,
 Host–Target은 Physical Ethernet이다. Host bridge transport에 DDS를 강제하지 않는다.
+DDS는 현재 기본 계획이며 Zenoh는 비교 후보다. 아직 transport를 변경하지 않았고
+IF-DDS 이름은 유지한다. 채택 변경 시 schema/ICD/배포/시험 영향을 별도 ADR로 기록한다.
 [ZON-01 v0.5 / ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)에서 Central은
 별도 vehicle management/allocation/session/feedback bridge를 소유하고 각 Zone과 독립 통신한다.
 Front↔Rear application relay는 정상 경로에 필요하지 않다. IDL/runtime은 미구현이다.
@@ -58,11 +60,18 @@ Protocol/serialization/source clock sync/skew/Host acknowledgement는 M5에 설�
 
 ## Middleware decision criteria and timing
 
-M4에서 후보를 비교하고 **M5 runtime 착수 전** ROS 2 integration 또는 direct DDS,
-vendor, isolation(Docker network vs netns/veth), Host bridge transport를 결정한다.
+M4에서 DDS와 Zenoh 후보를 같은 command/status/session 의미 계약·입력 부하·fault 조건으로
+비교하고 **M5 runtime 착수 전** middleware, ROS 2 integration 또는 direct API,
+구현체, isolation(Docker network vs netns/veth), Host bridge transport를 결정한다.
 판단 기준은 두 Jetson stack 호환성, dependency/학습 비용, discovery 재현성,
 QoS와 bounded queue/freshness 제어, tracing/clock 접근성, reconnect 시험 가능성이다.
 새 middleware 선택이 Central/Zone/vECU 책임을 바꾸는 이유가 되어서는 안 된다.
+
+비교 항목은 정상 지연/지터·자원 사용, 느린 consumer/queue 포화에서 오래된 command 배제,
+각 방향의 단절 검출, trusted 새 Epoch/INIT 재연결과 source/parent expiry 보존이다.
+구현체/version/schema/queue 설정, clock 조건, run 길이·반복 수와 판정 기준을 비교 전에 고정한다.
+DDS QoS 항목과 Zenoh의 설정이 같은 의미를 갖는다고 가정하지 않고 application 계약으로 검증한다.
+Transport가 제공하는 delivery/reconnect 기능도 receiver의 Epoch/freshness/local protection을 대체하지 않는다.
 
 결정할 QoS는 reliability, history/depth/resource limit, deadline/lifespan/liveliness,
 durability/ownership이다. Reliable delivery가 오래된 command의 적용을 정당화하지 않는다.

@@ -43,6 +43,26 @@ Classical Controller는 자체 출력 한계를 적용하고 Zone Controller는 
 vECU는 CAN echo simulator가 아니라 MCU/RTOS를 학습하는 Linux software model이다.
 실제 RTOS task나 interrupt의 등가 구현/실시간 보장은 주장하지 않는다.
 
+### Leaf Classic 개발 체계와 물리 모델 경계
+
+[ADR-0022](../adr/ADR-0022-leaf-classic-development-methodology.md)로 Leaf ECU 소프트웨어의
+개발 방향을 채택했다. 첫 대상은 Steering이며 Brake/Drive/BMS로 단계적으로 확장한다.
+
+| 경계 | 책임 / 설계 산출물 |
+| --- | --- |
+| ECU 기능 | 명령 처리, 상태/로컬 보호 판단, 출력 요구 결정과 상태 보고; SWC/Port/Interface/Runnable/Event 설계 |
+| 실행·통신 서비스 | Runnable→OS Task mapping, RTE/BSW 연결, 통신·timer·driver adapter; 실제 stack/toolchain은 pilot에서 결정 |
+| SIL 물리 모델 | ECU 출력 요구→조향각·압력·torque·battery/power 응답→관측 actual; model clock/초기값/parameter와 controller 경계 |
+
+현재 Steering/Brake의 `tick`은 monitor·출력 선택·물리 응답·Actual 생성까지 함께 실행한다.
+설계에서 이 책임을 구분하되 runtime 분리·디렉터리 이동은 후속 작은 구현 변경으로 수행한다.
+모델을 분리해도 command와 actual, 정상/보호 출력과 실제 응답의 차이를 보존한다.
+Actuator 물리 응답과 battery/power sensor 모델을 production SWC로 자동 분류하지 않는다.
+현재 library·single-owner Linux 실행은 생성된 RTE/BSW나 AUTOSAR OS의 증거가 아니다.
+Classic stack pilot은 PLANNED / NOT RUN이며 Central/Zone의 배치·Linux 계획은 유지한다.
+
+### 주기와 수신 계약
+
 | Logical task | Period starting point | 계획된 책임 |
 | --- | --- | --- |
 | Task_10ms_Control | 10 ms | 유효 command snapshot, state update, actuator dynamics/control |

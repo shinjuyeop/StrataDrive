@@ -55,6 +55,8 @@ Physical AI를 서로 다른 compute budget에 맞춘 배포와 함께 다룰 �
 설계·설정·생성·통합, ISO 26262의 기능 안전 활동, Automotive SPICE의 추적성과 변경
 관리를 참고하며 AI 단계에서는 ISO 21448 / SOTIF 관점을 연결한다. 구체적인 범위와
 첫 학습 순서는 [개발·학습 계획](docs/engineering_plan.md)에 정리한다.
+Leaf vECU의 ECU 소프트웨어는 [Classic 개발 체계](docs/adr/ADR-0022-leaf-classic-development-methodology.md)로
+Steering부터 설계하고 SIL 물리 모델의 책임을 구분한다. 실제 OS/RTE/BSW stack의 채택은 pilot에서 검토한다.
 
 ## Motivation
 
@@ -183,7 +185,7 @@ AUTOSAR stack/toolchain은 미선정이며 ASIL과 safety concept은 미확정�
 | Host simulation | x86 Ubuntu, CARLA 0.9.16 계열 초기 후보; 정확한 호환 버전 TBD-07 (M7) |
 | Core software | 첫 Host field codec은 C++17 / GCC 11.4.0 / CMake 4.3.2; Target·CI 선택은 TBD-11/09 |
 | Orchestration / analysis | Python, pytest; 버전 TBD-11 (M1) |
-| Communication | Virtual Ethernet 기반 DDS; vendor, direct DDS vs ROS 2 TBD-05 (M5); SocketCAN/vCAN |
+| Communication | Virtual Ethernet 기반 DDS 기본 계획; Zenoh 후보 비교, 구현체/direct API vs ROS 2 TBD-05 (M4 비교·M5 결정); SocketCAN/vCAN |
 | Isolation | Docker network 또는 Linux network namespace + veth; 선택 TBD-05 (M4/M5) |
 | Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD-09 (M5) |
 | Physical AI | Pretrained perception, TensorRT export/inference; 이후 GRU 또는 작은 Temporal Transformer |

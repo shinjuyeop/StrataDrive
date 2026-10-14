@@ -45,11 +45,14 @@ Fault architecture는 M0부터 다루며 local fault behavior는 M2/M4 등의 co
 추가 안전 분석과 OS/RTE/BSW pilot은 **PLANNED**다. M0 exit review의 PASS에 포함하지 않는다.
 Steering의 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e_profile5.md)는
 M1 Host에서 직접 구현·시험했다. 이 부분 결과를 전체 AUTOSAR pilot 완료로 확대하지 않는다.
+[ADR-0022](adr/ADR-0022-leaf-classic-development-methodology.md)로 Leaf의 Classic 개발 체계를
+채택했다. Steering부터 ECU 소프트웨어와 SIL 물리 모델 경계를 설계하고 Brake/Drive/BMS로 확장한다.
+실제 Classic stack 채택·코드 분리·pilot 실행은 후속이며 기존 component 결과를 pilot PASS로 바꾸지 않는다.
 
 | 관련 단계 | 함께 수행할 학습·검토 | 남길 근거 |
 | --- | --- | --- |
 | M1 준비 / M1 | Item Definition 초안과 첫 HARA 사례 검토; Steering interface와 AUTOSAR 개념 대응; toolchain 타당성 조사 | 가정·열린 질문, SWC/Port/Runnable/Task 대응, toolchain 지원·제약과 wire 계약 영향 |
-| M2–M4 | local protection의 위험·반응 근거 검토; 작은 AUTOSAR pilot의 실행 및 채택 여부 검토 | actuator response/fault/timing 증거, 설정·생성·실행 기록, 채택·보류 ADR |
+| M2–M4 | Leaf의 ECU/물리 모델 경계와 Steering SWC/Port/Runnable/Event/Task 설계; local protection 검토; 작은 AUTOSAR pilot과 stack 채택 여부 검토 | 설계 대응·입출력 계약, actuator response/fault/timing 증거, 설정·생성·실행 기록, 채택·보류 ADR |
 | M5–M8 | 선택한 배포 환경과 closed-loop에서 계약 검증; 차량 거동으로 안전 분석의 가정 재검토 | clock/통신/plant 한계와 실제 관측 구간, 변경된 가정 및 requirement revision |
 | M9 | local protection과 diagnostics를 연결하고 분석한 fault의 coverage 검토 | fault→검출→보호→actual response→DTC 연결과 미검증 경로 |
 | M10–M11 | SOTIF 관점의 인식·판단 한계, triggering condition, fallback 검토 | scenario/ODD 범위, AI 출력 검증과 fallback의 실제 결과 |
@@ -73,7 +76,7 @@ AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 �
 | TBD-02 | units의 raw scaling, allocation/calibration 값, frame/geometry 변환, feedback skew/age 한계, dynamics 중복 방지 / plant·interface 담당 | **M1** wire 범위; **M2** actuator 의미 구현; **M6** simple mapping; **M7** CARLA mapping 전 | 차량/plant 모델이 없으므로 변환 계수 미확정; physical meaning/sign은 M0 ICD에 정의 |
 | TBD-03 | actuator delay/saturation/dynamics/초기값, Steering/Brake timeout 물리 출력, Drive zero-target 후 torque 감소/ramp/반응 deadline, recovery dwell / vECU 담당 | **M2**, 각 actuator 정상/fault test 전; M6/M7 재검증 | 물리 parameter 근거 없이 압력/torque/ramp 수치 확정하지 않음; raw fallback/무제한 torque 유지 금지는 확정 |
 | TBD-04 | task/E2E deadline/budget, source-age 한계, clock sync/uncertainty, trace/overhead/queue schedule, watchdog 독립성, priority/affinity, multirate ordering, timing warmup/duration/repetitions / timing 담당 | **M1** timeout encoding budget; **M3** 측정 protocol/task budget; **M5/M7** cross-node/E2E 전 | logical rate와 실제 execution/latency를 구분; M3 존재 구간부터 측정하고 future endpoint 확장 |
-| TBD-05 | ROS 2 vs direct DDS/vendor/QoS/IDL/integrity, Docker vs netns/veth, bridge process/transport/Host acknowledgement, addressing/discovery / communication 담당 | **M4** 비교, **M5 runtime 시작 전** 결정 | 호환성/학습 비용/queue-freshness/관측성/재연결 기준; 계층을 바꾸지 않고 adapter로 수용 |
+| TBD-05 | 기본 DDS와 Zenoh 후보 비교, ROS 2 vs direct API/구현체/QoS/schema/integrity, Docker vs netns/veth, bridge process/transport/Host acknowledgement, addressing/discovery / communication 담당 | **M4** 비교, **M5 runtime 시작 전** 결정 | DDS 기본 계획 유지·Zenoh 미채택; 같은 계약/부하/fault로 호환성·학습 비용·queue-freshness·관측성·재연결 비교; adapter로 수용 |
 | TBD-06 | Central allocation/conflict arbitration, availability/rejoin/local protection 상세, DEGRADED envelope, local↔Central state reconcile / Central VCU·Zone safety 담당 | **M4**, local fault/재연결 시험 전 | 정상 torque/brake 충돌과 actuator availability 검증 필요; critical loss는 M0에서 FAIL_SAFE로 고정 |
 | TBD-07 | exact CARLA/Ubuntu/Python/ScenarioRunner 호환 build, map/route/seed/geometry/curve, Host GPU, tick/apply ordering 및 fidelity / simulation 담당 | **M7 통합 전**, route suitability M8 확인 | M0 설치/실행 없음; 공식 호환 정보와 재현 시험으로 선택; ODD/50 ms baseline 유지 |
 | TBD-08 | DTC code/debounce/persistence/clear, diagnostic aggregation cadence/storage / diagnostics 담당 | **M9**, event→DTC 통합 전 | local fault/protection은 M2/M4부터 구현, DTC 통합이 선행 조건 아님 |

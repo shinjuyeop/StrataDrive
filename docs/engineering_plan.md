@@ -1,6 +1,6 @@
 # Engineering and learning plan
 
-Status: **계획 정의 / M1 개발 환경 실험 착수 / 표준 실습 PLANNED**. 기존 **StrataDrive Reference Baseline v0.1**을
+Status: **M1 기술 검사 완료·review PENDING / M2 부분 구현·시험 / 표준 실습 PLANNED**. 기존 **StrataDrive Reference Baseline v0.1**을
 유지한다. 이 문서는 개발·학습 방향이며 AUTOSAR 도입 완료, 안전 분석 완료 또는
 표준 준수의 증거가 아니다. 학습자 검토는 **PENDING**, 기존 차량 runtime TC는 **NOT RUN**이다.
 Host transport smoke는 [M1 첫 실행 기록](learning/m1_vcan_start.md),
@@ -67,7 +67,7 @@ M0 계약을 유지하며, 시스템이 수행할 물리적 보호 동작과 검
 
 | 기준 | 프로젝트에서 수행할 활동 | 현재 범위와 상태 |
 | --- | --- | --- |
-| AUTOSAR Classic / Methodology | SWC, Port, Interface, Runnable, Event, ECU mapping과 OS Task의 관계 학습; ARXML, RTE/BSW 설정·생성·통합 실습 | Steering vECU를 첫 pilot 후보로 검토; release/stack/generator/target 미선정, 실행 NOT RUN |
+| AUTOSAR Classic / Methodology | Leaf ECU 소프트웨어의 SWC, Port, Interface, Runnable, Event, ECU/OS Task mapping 설계; SIL 물리 모델 경계 구분; ARXML, RTE/BSW 설정·생성·통합 실습 | ADR-0022로 개발 방향 채택, Steering부터 Brake/Drive/BMS로 확장; 실제 stack/release/generator/target 미선정, pilot NOT RUN |
 | Automotive SPICE 4.0 | 요구사항·설계·검증의 일관성, 추적성, 변경 영향과 review 기록 | 개발 과정 점검에 참고; capability level 평가나 전체 process 적용을 주장하지 않음 |
 | ISO 26262 | Item Definition → HARA → Safety Goal → Functional Safety Concept → 안전 요구·설계·검증의 연결 학습 | Concept study 초안부터 시작; ASIL 미평가, 전체 lifecycle 준수·인증 범위 아님 |
 | ISO 21448 / SOTIF | 기능 사양·인식·판단의 한계와 triggering condition, scenario coverage 검토 | M10/M11의 AI 통합에 연결할 계획; ODD 확장은 별도 baseline 변경 |
@@ -80,6 +80,13 @@ ISO 26262의 concept 활동은 [Part 3](https://www.iso.org/standard/68385.html)
 이 표의 프로젝트 배치는 학습 계획이며 표준이 지정한 milestone 순서가 아니다.
 
 ## AUTOSAR adoption path
+
+[ADR-0022](adr/ADR-0022-leaf-classic-development-methodology.md)로 Leaf의 Classic 개발 체계를
+채택한다. 이는 설계·학습 방향이며 Classic stack의 실제 도입 결정과 구분한다.
+Steering에서 명령 처리·로컬 보호·출력/상태 보고의 ECU 소프트웨어와
+delay/rate/saturation을 계산하는 SIL 물리 모델의 입출력 경계를 먼저 정리한다.
+현재 한 class/tick에서 실행하는 책임을 설계로 구분하며 이번 결정으로 코드를 이동하지 않는다.
+Steering의 작은 설계·pilot을 확인한 뒤 Brake/Drive/BMS에 확장한다.
 
 먼저 Steering 기능의 입력·출력, 내부 동작과 주기 실행을 기존 ICD에 대응시킨다.
 SWC/Runnable과 OS Task를 같은 개념으로 취급하지 않고, RTE가 연결하는 Application과
@@ -112,6 +119,11 @@ Host에서 수행하는 독립 실습은 target 배포 완료로 표시하지 �
 Host로 옮기거나 별도 MCU를 추가하려면 deployment 변경을 먼저 검토한다.
 Pilot이 보류되면 사유를 남기고 현재 Linux vECU 계획으로 진행할 수 있다.
 AUTOSAR 구현체를 사용하지 않은 구성의 명칭과 검증 범위는 그대로 유지한다.
+
+Central/Front/Rear는 현재 Linux 계획을 유지한다. QNX 전환은 이번 Leaf 개발 체계의 범위가 아니다.
+Central–Zone은 DDS를 기본 계획으로 두고 Zenoh를 M4 비교 후보로 추가한다(TBD-05).
+M5 runtime 시작 전 transport/도구를 결정하고 ICD/배포/시험에 반영한다.
+CAN FD 경로와 application의 Epoch/freshness/timeout/local protection 책임은 유지한다.
 
 ## Functional safety learning
 
