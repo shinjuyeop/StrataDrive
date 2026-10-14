@@ -16,6 +16,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `central/health` | task, resource, heartbeat → fault monitor 입력 |
 | `central/diagnostics` | fault event → DTC lifecycle / system state 결정 |
 | `zone/gateway` | Front/Rear 공통 DDS↔각 CAN dispatch; Front의 target feedback bridge와 원천 metadata 보존 |
+| `zone/session` | Linux 영속 Epoch issuer 구현; 최종 Front owner, M1 trusted fixture 연결; 실제 DDS/vehicle INIT protocol 후속 |
 | `zone/command_validation` | validity, age, sequence, range, mode 검증 → accept/reject 사유 |
 | `zone/vehicle_management` | Front 전용: lifecycle 요청 + fresh BMS/power/actuator 상태 → 전원 요청/drive permission; 차량 전체 단일 VCU 역할, PLANNED |
 | `zone/control_allocation` | Front 전용: vehicle command + actual/capability → steering/brake/drive demand; 차량 전체 단일 배분, arbitration TBD-06 |
@@ -57,6 +58,8 @@ Periodic Task, RX/TX Queue, Mutex / Synchronization, State Machine, Watchdog,
 Command Timeout, Alive Counter, CRC, Deadline Monitoring, Fault State, Actuator
 Dynamics를 포함할 계획이다. Queue capacity/overflow, lock 범위/priority inversion,
 thread/process model, scheduling policy/priority/affinity는 TBD-01/04다.
+M1 FIFO capacity 32와 cycle당 ingress/dispatch 8을 local fixture에 적용하고 overflow 시
+ContinuityError/current-sample 폐쇄를 검사했다. [Session/queue 기록](../learning/m1_session_queue.md)을 따른다.
 위 period는 logical config이며 production timing 보장이 아니다. Control/communication을
 별도 OS task로 만들지는 M2/M3에서 결정한다.
 

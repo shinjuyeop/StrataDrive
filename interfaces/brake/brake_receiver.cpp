@@ -22,13 +22,19 @@ bool BrakeReceiver::start_session(std::uint32_t epoch, std::uint64_t monitoring_
 
 BrakeReceiveResult BrakeReceiver::receive(const BrakeFrame& frame, std::uint64_t now_ns) {
     if (const auto rejected = state_.begin_receive(now_ns)) return {*rejected, std::nullopt};
+    const auto previous_e2e = e2e_.check;
     const auto e2e_return = check_brake_e2e(&frame, e2e_);
     if (e2e_return != e2e::P05Return::Ok) return {BrakeReceiveDecision::MalformedEnvelope, std::nullopt};
+    const auto message = decode_brake_frame(frame);
+    if (message && message->kind == e2e_.kind && message->epoch != state_.epoch()) {
+        const auto status = e2e_.check.status;
+        e2e_.check = previous_e2e;
+        return {BrakeReceiveDecision::EpochMismatch, status};
+    }
     const auto result = [this](BrakeReceiveDecision decision) {
         return BrakeReceiveResult{decision, e2e_.check.status};
     };
     if (!e2e::p05_is_ok(e2e_return, e2e_.check.status)) return result(BrakeReceiveDecision::E2eRejected);
-    const auto message = decode_brake_frame(frame);
     if (!message) return result(BrakeReceiveDecision::MalformedPayload);
     if (const auto rejected = state_.check_metadata(*message, now_ns)) return result(*rejected);
     if (!message->pressure_pa) return result(BrakeReceiveDecision::Unavailable);

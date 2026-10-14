@@ -23,6 +23,7 @@ public:
     explicit BrakeReceiver(BrakeReceiverConfig config);
     // Trusted INIT 전용: 더 큰 Epoch와 비감소 clock으로만 재초기화한다.
     bool start_session(std::uint32_t epoch, std::uint64_t monitoring_enable_ns);
+    void mark_continuity_lost(std::uint64_t now_ns) { state_.mark_continuity_lost(now_ns); }
     BrakeReceiveResult receive(const BrakeFrame& frame, std::uint64_t now_ns);
     BrakeReceiverHealth poll(std::uint64_t now_ns) { return state_.poll(now_ns); }
     std::optional<BrakeMessage> current_sample(std::uint64_t now_ns);

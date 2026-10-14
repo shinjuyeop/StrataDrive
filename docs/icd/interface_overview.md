@@ -9,8 +9,8 @@ CAN actuator 6개 + EV 6개 wire/DBC/codec은 **Host 초안 구현·시험 / bas
 [Steering 두 frame의 codec·DBC parser 교차 검증](../learning/m1_steering_frame_codec.md)도
 Host에서 수행했다. [Steering 수신부](../learning/m1_steering_receiver.md)의 stateful 수용/시간/Epoch/
 timeout도 Host에서 시험했다. [SocketCAN/vCAN 연결](../learning/m1_steering_socketcan.md)의
-Steering application 송수신/fault/timeout은 실행했다. 영속 coordinator, application queue/
-kernel overflow 주입과 차량 통합은 남아 있다.
+Steering application 송수신/fault/timeout은 실행했다. [M1 session/queue](../learning/m1_session_queue.md)의
+영속 local Epoch와 실제 application/kernel overflow도 검사했다. Actual Front/DDS·차량 통합은 남아 있다.
 [Brake Command/Actual wire 제안](brake_frame_draft.md)의 압력·metadata/P05 codec과
 [vCAN wire 시험](../learning/m1_brake_codec.md)도 수행했다. 이어서
 [Brake application 수용/timeout](../adr/ADR-0012-brake-receiver.md)을 Host/vCAN에서 시험했다.

@@ -22,6 +22,7 @@ struct ReceivedFrame {
     // SO_RXQ_OVFL: 이 socket에서 누적된 kernel RX drop 수. 0도 유효하다.
     std::uint32_t dropped_frames{0};
 };
+struct EndpointOptions { std::optional<int> receive_buffer_bytes; };
 
 // 실패는 exception, 빈 nonblocking RX queue는 nullopt. 소유 thread 한 개에서 사용한다.
 class Endpoint {
@@ -29,7 +30,9 @@ public:
     // ID가 없으면 TX 전용. ID가 있으면 하위 11 bit만 prefilter하여
     // EFF/RTR 같은 잘못된 envelope를 application 검사까지 보존한다.
     explicit Endpoint(const std::string& interface_name,
-                      std::optional<std::uint16_t> receive_id = std::nullopt);
+                      std::optional<std::uint16_t> receive_id = std::nullopt,
+                      EndpointOptions options = {});
+    int receive_buffer_bytes() const;
     ~Endpoint();
     Endpoint(const Endpoint&) = delete;
     Endpoint& operator=(const Endpoint&) = delete;

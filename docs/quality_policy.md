@@ -1,10 +1,10 @@
 # Software quality policy
 
 Status: **M1 codec/receiver/SocketCAN에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 129개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 143개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
-도구 버전, 검사 범위와 재현 명령을 보존한다. EV 36개를 포함한 local vCAN **63개 case**도 검사한다.
+도구 버전, 검사 범위와 재현 명령을 보존한다. Session/queue를 포함한 local vCAN **89개 case**도 검사한다.
 
 2026-10-13 문서 정리 시 normal·ASan/UBSan build/unit/vCAN과 DBC 검사를 다시 통과했다.
 Local observed timeout은 normal 80.019–81.072 ms, sanitizer 80.053–81.065 ms였다.
@@ -54,6 +54,25 @@ Forward relay도 따로 80..100 ms budget을 판정했다. Actuator 회귀는 no
 Target/차량 timing 보장이나 sanitizer의 대표 성능으로 확대하지 않는다.
 실제 BMS limit/power 모델·Drive actuation gate와 두 Zone/차량 TC는 NOT RUN이다.
 
+2026-10-14 [M1 session/queue 마무리](learning/m1_session_queue.md)는 영속 Epoch 발급과
+fixed-capacity FIFO/continuity latch를 구현했다. 기존 unit 129 + session/queue 14 = 143개,
+기존 vCAN 63 + application/kernel overflow 24 + durable restart 2 = 89개를 검사한다.
+Unit의 동시 8개 process 발급·손상/상실/busy/I/O/소진과 12개 receiver 복구를 확인했다.
+VCan kernel case는 실제 SO_RXQ_OVFL >0을 요구한다. 이전 Epoch의 counter 200이 새 세션의
+P05 state를 오염시키지 않는지 unit/독립 process 양쪽에서 검사했다.
+M1 기술 구현·자동 검사는 수용 항목별 기록하고 학습자 review/wire 채택은 PENDING으로 남긴다.
+Actual Front session/DDS 및 물리 response/system TC 결과는 후속이다.
+Normal·ASan/UBSan 각각 143개 unit/89개 vCAN이 PASS다. App overflow report의 최초 usable
+RX 대비 시간은 normal 23.601–25.059 ms, sanitizer 23.698–25.513 ms였다.
+Kernel drop report는 normal 48.986–51.073 ms, sanitizer 49.257–50.936 ms였고 12종류 모두
+실제 nonzero drop을 기록했다. Report latency는 물리 loss onset latency가 아니다.
+Critical timeout은 normal 80.013–81.071 ms, sanitizer 80.002–81.184 ms,
+관측 timeout은 normal 300.030–301.045 ms, sanitizer 300.422–300.788 ms였다.
+Clang-tidy 14 analyzer/bugprone은 변경 source/test 11개와 receiver/queue/support header에
+적용해 user-source 진단 없이 통과했다. Cppcheck 2.7은 production/fixture source 10개에 적용했다.
+59개 Markdown의 상대 링크·앵커 528개, 32개 요구/29개 TC, YAML 3개와 Python 3개의
+정합성·syntax/whitespace를 검사했다. 실제 차량/Target 성능이나 전체 TC PASS로 확대하지 않는다.
+
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |
 | Compiler | 직접 관리하는 GCC/Clang target에 `-Wall -Wextra -Werror` 적용 | 첫 C++ target부터 적용; 검토된 최소 범위의 예외는 문서화하고 third-party에 global flag 적용 지양 |
@@ -80,7 +99,7 @@ Toolchain/compiler/CI/test 버전은 TBD-11(M1), board 지원/측정 환경은 T
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.
 - 학습/확인 예제는 영역별 실행 프로그램으로 묶는다. 세 actuator와 EV/BMS는
-  `tools/actuator_demo.cpp` 하나에 기존 아홉 명령 + BMS 세 명령을 제공한다.
+  `tools/actuator_demo.cpp` 하나에 기존 아홉 명령 + BMS 세 명령 + Linux Epoch 명령을 제공한다.
   기존 기능의 작은 변경마다 별도 demo를 추가하지 않는다.
 - 단위 시험 파일은 모듈별로 유지한다. 기존 모듈의 조건/경계/fault 추가는 같은 파일의 case로 추가하고,
   새로운 독립 모듈이 생기면 시험 파일을 만든다.

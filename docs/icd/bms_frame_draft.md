@@ -184,7 +184,8 @@ Wheel/capability source와 torque actual의 30 ms 정책은 유지한다. 이는
 Local 시험은 trusted Epoch의 같은 Target CLOCK_MONOTONIC domain을 사용한다. Cross-node
 sync/uncertainty, 각 hop의 budget과 coordinator의 parent/model identity 전달은 TBD-04/05/14/15다.
 Clock rollback/critical timeout은 latched, recovery는 explicit trusted INIT다. Startup/rejoin
-coordinator, queue/overflow, fault-specific actual response와 실제 Drive 통합 gate는 아직 미구현이다.
+coordinator의 실제 peer/vehicle gate, fault-specific actual response와 Drive 통합 gate는 아직 미구현이다.
+[Local Epoch/queue](../learning/m1_session_queue.md)는 영속 발급·trusted fixture 연결과 실제 overflow를 검사했다.
 
 `BmsReceiver::start_session`에는 외부 trusted Epoch/monitor-enable 시각을 제공한다.
 NormalPath power request(초기 INIT Enable 포함)와 AllowNormal permission은 별도로 검증한
@@ -224,7 +225,7 @@ ctest --test-dir build/m1-angle --output-on-failure
 
 기존 CAN fixture에 EV 독립 TX/RX와 trusted session/parent fixture를 연결했다.
 Critical 80..100 ms/관측 300..320 ms timeout과 RX timeout 이전의 expiry gate를 검사한다.
-다음은 M1 남은 wire/coordinator/queue 검토 이후 M2의 실제 battery/power 모델과 BMS 한계
+다음은 M1 wire/학습자 review와 함께 M2의 실제 battery/power 모델과 BMS 한계
 산출, Drive torque·limits·permission·로컬 HV 통합 gate다.
 TBD-12/13/14 전체를 CLOSED로 바꾸지 않으며 학습자의 규격 review는 별도로 남긴다.
 

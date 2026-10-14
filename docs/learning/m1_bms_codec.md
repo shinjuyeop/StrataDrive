@@ -84,8 +84,9 @@ build/m1-angle/actuator_demo bms-receiver
 build/m1-dbc-venv/bin/python tools/check_actuator_dbc.py --demo build/m1-angle/actuator_demo
 ```
 
-Sanitizer와 actuator/EV transport는 같은 build/runner를 사용한다. 기본 실행은 63개,
-`--family ev`는 EV 36개, `--family actuator`는 기존 actuator 27개를 검사한다.
+Sanitizer와 actuator/EV transport는 같은 build/runner를 사용한다. 아래 63개는 BMS 연결 당시의
+검사 범위다. 후속 [session/queue](m1_session_queue.md)까지 포함한 기본 실행은 89개,
+`--family ev`는 49개, `--family actuator`는 40개다.
 
 ```sh
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
@@ -151,9 +152,9 @@ EV 36개 case는 6종류 각각 normal/faults/silent/flood 24개와 추가 12개
 
 Critical loss 검출은 마지막 usable RX부터 80..100 ms, 관측은 300..320 ms로 판정한다.
 Expiry use gate는 RX timeout을 기다리지 않고 닫는다. 각 역할의 stdio 준비/시작 handshake를
-기다리고 성공·실패 trace를 보존한다. vCAN의 전기적 동작·arbitration, kernel overflow 주입,
-실제 Zone round-trip 및 BMS 물리 한계 산출은 이번 시험 범위가 아니다.
+기다리고 성공·실패 trace를 보존한다. Kernel overflow는 후속 session/queue에서 주입했다.
+vCAN의 전기적 동작·arbitration, 실제 Zone round-trip 및 BMS 물리 한계 산출은 시험 범위 밖이다.
 
-M1 남은 wire/review·영속 coordinator·queue 항목을 확인한 뒤 M2 응답 모델로 진행한다.
+영속 local Epoch/queue의 M1 기술 검사를 완료했고 wire/학습자 review와 함께 M2 응답 모델로 진행한다.
 M2에서는 로컬 battery 모델의 셀 전압·온도 극값 입력, 실제 power response와 BMS limit
 산출을 구현한다. 구체적인 [모델 범위](../icd/ev_power_bms_design.md#로컬-셀-극값-입력)는 별도다.

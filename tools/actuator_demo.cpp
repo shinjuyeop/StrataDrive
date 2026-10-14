@@ -6,6 +6,9 @@
 #include "drive_receiver.hpp"
 #include "bms_receiver.hpp"
 #include "bms_value_codec.hpp"
+#ifdef STRATADRIVE_LINUX_SESSION
+#include "epoch_store.hpp"
+#endif
 
 #include <cstdint>
 #include <exception>
@@ -33,6 +36,9 @@ void usage(std::ostream& output) {
            << "  actuator_demo bms-value <soc|voltage|current|temperature|power> <value>\n"
            << "  actuator_demo bms-frame <request|power-status|limits|battery|drive-limits|permission> [nominal|zero|invalid|partial]\n"
            << "  actuator_demo bms-receiver\n";
+#ifdef STRATADRIVE_LINUX_SESSION
+    output << "  actuator_demo epoch <init|next> <store_directory>\n";
+#endif
 }
 
 double parse_angle(const std::string& input) {
@@ -268,6 +274,7 @@ const char* decision_name(ActuatorReceiveDecision decision, bool pressure = fals
         case SteeringReceiveDecision::Unavailable: return "UNAVAILABLE";
         case SteeringReceiveDecision::ModeRejected: return "MODE_REJECTED";
         case SteeringReceiveDecision::ValueOutOfRange: return pressure ? "PRESSURE_OUT_OF_RANGE" : "ANGLE_OUT_OF_RANGE";
+        case SteeringReceiveDecision::ContinuityLost: return "CONTINUITY_LOST";
     }
     return "UNKNOWN";
 }
@@ -648,6 +655,14 @@ int main(int argc, char** argv) {
             else if (command == "bms-value" && argc == 4) demo_bms_value(parse_bms_value_kind(argv[2]), parse_angle(argv[3]));
             else if (command == "bms-frame" && (argc == 3 || argc == 4)) demo_bms_frame(argv[2], argc == 4 ? argv[3] : "nominal");
             else if (command == "bms-receiver" && argc == 2) demo_bms_receiver();
+#ifdef STRATADRIVE_LINUX_SESSION
+            else if (command == "epoch" && argc == 4) {
+                const std::string action = argv[2];
+                if (action == "init") { stratadrive::session::EpochStore::initialize(argv[3]); std::cout << "EPOCH_STORE_INITIALIZED\n"; }
+                else if (action == "next") std::cout << "EPOCH value=" << stratadrive::session::EpochStore(argv[3]).issue() << '\n';
+                else throw std::invalid_argument("epoch action must be init or next");
+            }
+#endif
             else {
                 usage(std::cerr);
                 return 1;

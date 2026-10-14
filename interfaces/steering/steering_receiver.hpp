@@ -39,6 +39,7 @@ public:
     // 신뢰된 INIT 설정으로만 호출한다. 재초기화는 더 큰 Epoch/비감소 clock을 요구한다.
     // 실패하면 기존 session과 fault를 보존한다. Frame에서 Epoch를 자동 학습하지 않는다.
     bool start_session(std::uint32_t epoch, std::uint64_t monitoring_enable_ns);
+    void mark_continuity_lost(std::uint64_t now_ns) { state_.mark_continuity_lost(now_ns); }
     SteeringReceiveResult receive(const SteeringFrame& frame, std::uint64_t now_ns);
     SteeringReceiverHealth poll(std::uint64_t now_ns) { return state_.poll(now_ns); }
 

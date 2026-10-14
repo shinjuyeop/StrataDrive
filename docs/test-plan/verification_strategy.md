@@ -54,6 +54,9 @@ dependency/model identity/parent·expiry·INIT 수용을 수동 clock에서 시�
 EV local wall-time transport 36개 case로 critical/관측 timeout, partial loss/cached dependency,
 parent expiry/identity·explicit rejoin과 3-process source-preserving relay도 검사했다.
 Drive local HV/torque 통합 gate와 vehicle behavior는 미실행이다.
+[M1 session/queue](../learning/m1_session_queue.md)의 영속 issuer/FIFO·continuity latch,
+12개 receiver의 old Epoch/counter 200, 실제 application/kernel overflow와 process restart도
+검사했다. 전체 unit 143개/vCAN 89개는 local 부분 증거이며 system TC Result는 NOT RUN이다.
 
 첫 C++ field codec에 설치된 GoogleTest 1.11.0을 사용했다. Python 단위 시험의 pytest 적용은
 PLANNED다. 빈 테스트를 PASS 처리하지 않는다. Regression은 scenario/seed/config/commit을 고정하고 이후

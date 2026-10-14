@@ -97,6 +97,18 @@ clock_policy:
   pause_resets_valid_age: false
   run_reset: new_epoch_and_init_gate
   cross_node_sync: null # TBD-04/05 / M3/M5
+m1_local_can_fixture:
+  technical_status: host_unit_vcan_checked
+  wire_acceptance: learner_review_pending
+  epoch_issuer: durable_linux_local_store
+  issuer_owner: front_session_coordinator # M1 harness calls issuer; actual peer/vehicle INIT in M4/M5
+  deployment_store_directory: null # configured persistent path; no profile loader, TBD-05/15
+  application_queue_capacity: 32
+  ingress_budget_per_cycle: 8
+  dispatch_budget_per_cycle: 8
+  polling_sleep_ms: 1 # fixture only, not a Target scheduling guarantee
+  continuity_loss_policy: discard_backlog_latch_unavailable
+  recovery: newer_trusted_epoch_and_clean_ingress
 plant_policy:
   simulator_mode: synchronous_fixed_step
   tick_owner: host_orchestrator

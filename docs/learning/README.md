@@ -34,6 +34,8 @@ AUTOSAR 실습은 관련 설계·구현과 함께 진행한다. 전체 이론 �
 [Brake 수신 수용/timeout](m1_brake_codec.md#application-수신부-추가)도 구현·시험했다.
 [Drive 구동·회생 토크와 피드백 wire/receiver](m1_drive_codec.md)도 기존 도구에서 구현·시험했다.
 현재 이해 확인/직접 재현은 PENDING이며 M1 통신 검사 이후 M2 응답 모델로 진행한다.
+[M1 마무리 session/queue](m1_session_queue.md)에서 영속 Epoch와 실제 application/kernel overflow,
+이전 Epoch의 P05 counter 오염 방지와 기술 exit checklist를 구현·검사했다.
 
 후속 [EV-01 범위/역할](../icd/ev_power_bms_design.md)을 정리했다. BMS와 battery model,
 power READY와 system NORMAL, 원천 status와 Zone 전달의 차이를 복습한다.
@@ -41,7 +43,7 @@ power READY와 system NORMAL, 원천 status와 Zone 전달의 차이를 복습�
 [BMS 물리값·frame codec과 항목별 receiver](m1_bms_codec.md)도 구현·시험했다.
 50/100 Hz critical 경로와 10 Hz 관측, valid 0/unknown, power request/actual/permission,
 원천 전달/expiry를 복습한다. 기존 vCAN fixture도 EV 36개 case로 확장했다.
-Actuator 27 + EV 36의 독립 process 송수신을 재현하고 M1 남은 수용 항목을 확인한다.
+기존 actuator 27 + EV 36에 queue 24/restart 2를 더한 89개 독립 process 시험을 재현한다.
 Battery/power 모델은 이후 구현하며 셀 전압·온도 극값을 로컬 모델 입력에 포함한다.
 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Front는 차량 전체
 관리·배분과 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
@@ -49,7 +51,7 @@ M4/M5에 분리하며 peer protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN
 
 실행 예제는 `tools/actuator_demo.cpp` 하나로 통합했다.
 `angle`, `frame`, `e2e`, `receiver`, `brake-pressure`, `brake-frame`, `brake-receiver`,
-`drive-frame`, `drive-feedback`, `bms-value`, `bms-frame`, `bms-receiver` 중 필요한 명령을 실행한다.
+`drive-frame`, `drive-feedback`, `bms-value`, `bms-frame`, `bms-receiver`, Linux `epoch` 중 필요한 명령을 실행한다.
 자동 단위 시험은 모듈별 기존 파일에 case를 추가하며 SocketCAN 통합 시험은
 `tests/integration/can/`에 모았다. 배치/추가 기준은 [품질 정책](../quality_policy.md#코드예제시험-배치)에 있다.
 

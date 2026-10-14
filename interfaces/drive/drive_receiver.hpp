@@ -29,6 +29,7 @@ class DriveReceiver {
 public:
     explicit DriveReceiver(const DriveReceiverConfig& config);
     bool start_session(std::uint32_t epoch, std::uint64_t monitoring_enable_ns);
+    void mark_continuity_lost(std::uint64_t now_ns) { state_.mark_continuity_lost(now_ns); }
     DriveReceiveResult receive(const DriveFrame& frame, std::uint64_t now_ns);
     ActuatorReceiverHealth poll(std::uint64_t now_ns) { return state_.poll(now_ns); }
     // Torque가 fresh일 때만 반환. 각 optional feedback도 원천 age/quality 검사를 통과해야 존재한다.

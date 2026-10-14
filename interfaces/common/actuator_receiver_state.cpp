@@ -54,7 +54,8 @@ ActuatorReceiverHealth ActuatorReceiverState::poll(std::uint64_t now_ns) {
         return health_;
     }
     last_observed_ns_ = now_ns;
-    if (health_ == ActuatorReceiverHealth::ClockError || health_ == ActuatorReceiverHealth::Timeout) {
+    if (health_ == ActuatorReceiverHealth::ClockError || health_ == ActuatorReceiverHealth::Timeout ||
+        health_ == ActuatorReceiverHealth::ContinuityError) {
         return health_;
     }
     const auto reference_ns = accepted_ ? accepted_->received_time_ns : monitoring_enable_ns_;
@@ -62,10 +63,18 @@ ActuatorReceiverHealth ActuatorReceiverState::poll(std::uint64_t now_ns) {
     return health_;
 }
 
+void ActuatorReceiverState::mark_continuity_lost(std::uint64_t now_ns) {
+    const auto status = poll(now_ns);
+    if (status == ActuatorReceiverHealth::Waiting || status == ActuatorReceiverHealth::Receiving) {
+        health_ = ActuatorReceiverHealth::ContinuityError;
+    }
+}
+
 std::optional<ActuatorReceiveDecision> ActuatorReceiverState::begin_receive(std::uint64_t now_ns) {
     const auto status = poll(now_ns);  // late frame보다 timeout을 먼저 검사한다.
     if (status == ActuatorReceiverHealth::NotInitialized) return ActuatorReceiveDecision::NotInitialized;
     if (status == ActuatorReceiverHealth::ClockError) return ActuatorReceiveDecision::ClockError;
+    if (status == ActuatorReceiverHealth::ContinuityError) return ActuatorReceiveDecision::ContinuityLost;
     last_raw_rx_ns_ = now_ns;
     if (status == ActuatorReceiverHealth::Timeout) return ActuatorReceiveDecision::Timeout;
     return std::nullopt;

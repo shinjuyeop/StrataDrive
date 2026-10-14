@@ -13,6 +13,9 @@ M0 문서 review는 [exit checklist](../m0_baseline.md)에 별도 기록하며 �
 TC-EV-001/002/004와 TC-COM-002/005에 연결한다. Parent/expiry/partial limit timeout은 Host 로직
 범위다. EV 독립 TX/RX/relay vCAN 36개 case도 부분 증거에 연결한다.
 모델 물리 출력, Front/Rear runtime과 전체 system Result는 NOT RUN이다.
+[Session/queue 14개 unit·overflow/restart 26개 vCAN](../learning/m1_session_queue.md)은
+TC-COM-002/003/005, TC-SAFE-002, TC-EV-002/004의 local 부분 증거다.
+물리 보호·vehicle INIT·peer session까지 검증한 전체 TC Result로 확대하지 않는다.
 Result ID는 실제 실행 후에만 `RES-<test-suffix>-<run-id>`로 부여한다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |

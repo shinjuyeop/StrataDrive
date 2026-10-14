@@ -33,6 +33,10 @@ Drive 보조 source/input age config를 분리·시험했다. 기본 30 ms를 �
 Trusted coordinator/startup/cross-node budget은 TBD다. 로컬 모델의 셀 전압·온도 극값 입력은
 범위로 정했고 threshold/dwell은 TBD-13이다. [BMS 실행 안내](../docs/learning/m1_bms_codec.md)를 참조한다.
 
+`m1_local_can_fixture`는 [영속 Epoch/queue 기술 검사](../docs/learning/m1_session_queue.md)의 설정이다.
+Capacity 32/ingress·dispatch 8/polling sleep 1 ms는 local fixture 값이다. 운영 store 경로와
+실제 Front/DDS INIT protocol은 후속이며 이 YAML이 runtime loader나 Target timing 보장은 아니다.
+
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
 stack, model/input settings, scenario/seed, power/thermal 및 측정 조건을 기록한다.
 결과는 단순 속도 순위 대신 요구 충족과 feature trade-off로 평가한다.

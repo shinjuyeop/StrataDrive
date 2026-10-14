@@ -4,6 +4,8 @@
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
 #include "bms_receiver.hpp"
+#include "bounded_rx_queue.hpp"
+#include "socketcan_endpoint.hpp"
 
 #include <charconv>
 #include <cstdint>
@@ -14,6 +16,45 @@
 #include <vector>
 
 namespace stratadrive::fixture {
+struct TrustedSession { std::uint32_t epoch; std::uint64_t enable_ns; };
+class RxPump {
+public:
+    RxPump(socketcan::Endpoint& endpoint, std::string mode) : endpoint_(endpoint), mode_(std::move(mode)) {}
+    bool start_session(TrustedSession session) {
+        if (!queue_.start_session(session.epoch)) return false;
+        enable_ns_ = session.enable_ns; reported_ = false; return true;
+    }
+    template <typename Receiver> void collect(Receiver& receiver) {
+        const auto elapsed = socketcan::monotonic_time_ns() - enable_ns_;
+        // Fault fixture suspends ingress OR dispatch, never the timeout monitor.
+        if (mode_ == "kernel-overflow" && elapsed >= 10000000 && elapsed < 45000000) return;
+        for (unsigned int count = 0; count < 8; ++count) {
+            const auto received = endpoint_.receive(); if (!received) break;
+            if (!queue_.push(received->frame, received->dropped_frames)) {
+                const auto now = socketcan::monotonic_time_ns();
+                receiver.mark_continuity_lost(now);
+                if (!reported_) {
+                    std::cout << "QUEUE_FAULT kind=" << (queue_.fault() == can::RxQueueFault::KernelDrop ? "kernel" : "application")
+                              << " at_ns=" << now << " drops=" << received->dropped_frames
+                              << " usable=" << receiver.current_sample(now).has_value() << '\n';
+                    reported_ = true;
+                } else std::cout << "QUEUE_DISCARD at_ns=" << now << '\n';
+            }
+        }
+    }
+    std::optional<socketcan::Frame> pop() {
+        const auto elapsed = socketcan::monotonic_time_ns() - enable_ns_;
+        if (mode_ == "app-overflow" && elapsed >= 10000000 && elapsed < 45000000) return std::nullopt;
+        return queue_.pop();
+    }
+private:
+    socketcan::Endpoint& endpoint_;
+    const std::string mode_;
+    can::BoundedRxQueue<socketcan::Frame, 32> queue_;
+    std::uint64_t enable_ns_{0};
+    bool reported_{false};
+};
+
 inline std::uint32_t positive_number(const std::string& text) {
     std::uint32_t value{};
     const auto result = std::from_chars(text.data(), text.data() + text.size(), value);
@@ -185,6 +226,7 @@ inline const char* decision_name(can::ActuatorReceiveDecision decision, bool pre
         case SteeringReceiveDecision::ModeRejected: return "MODE_REJECTED";
         case SteeringReceiveDecision::ValueOutOfRange:
             return torque ? "TORQUE_OUT_OF_RANGE" : pressure ? "PRESSURE_OUT_OF_RANGE" : "ANGLE_OUT_OF_RANGE";
+        case SteeringReceiveDecision::ContinuityLost: return "CONTINUITY_LOST";
     }
     return "UNKNOWN";
 }

@@ -124,7 +124,8 @@ CARLA motion 검증과 단순 충전 모델의 에너지 추정 결과는 구분
 독립 Data ID 0x1201/0x1202와 source/input timestamp를 [ADR-0013](../adr/ADR-0013-drive-feedback-wire.md)에
 정의·구현했다. Six-frame 수는 유지하고 Actual payload를 확장해 원천 정보가 맞도록 했다.
 Capability는 actual torque의 대체 값이 아니다. [Host wire/receiver/vCAN 실행](../learning/m1_drive_codec.md)은
-완료했고 wire baseline 채택, 영속 coordinator/queue overflow 및 물리 응답은 남아 있다.
+완료했다. 후속 [local Epoch/queue](../learning/m1_session_queue.md)의 영속 발급과 overflow도 검사했다.
+Wire baseline 채택, 실제 Front/DDS protocol 및 물리 응답은 남아 있다.
 
 Brake receiver → Drive wire/receiver → M2 dynamics/충전 모델 → M4 Zone blending
 → M6 Simple Plant → M7 CARLA 순서다. 새 테스트 실행 파일을 단계마다 만들기보다

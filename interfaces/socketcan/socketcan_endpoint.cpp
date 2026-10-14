@@ -32,10 +32,12 @@ bool fd_length(std::uint8_t length) {
 }
 }  // namespace
 
-Endpoint::Endpoint(const std::string& interface_name, std::optional<std::uint16_t> receive_id) {
+Endpoint::Endpoint(const std::string& interface_name, std::optional<std::uint16_t> receive_id,
+                   EndpointOptions options) {
     if (interface_name.empty() || interface_name.size() >= IFNAMSIZ ||
         interface_name.find('\0') != std::string::npos ||
-        (receive_id && *receive_id > CAN_SFF_MASK)) {
+        (receive_id && *receive_id > CAN_SFF_MASK) ||
+        (options.receive_buffer_bytes && (*options.receive_buffer_bytes < 1024 || *options.receive_buffer_bytes > 1048576))) {
         throw std::invalid_argument("SocketCAN interface/receive ID");
     }
     fd_ = socket(PF_CAN, SOCK_RAW | SOCK_NONBLOCK | SOCK_CLOEXEC, CAN_RAW);
@@ -46,6 +48,9 @@ Endpoint::Endpoint(const std::string& interface_name, std::optional<std::uint16_
         const int enabled = 1;
         option(fd_, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &enabled, sizeof(enabled));
         option(fd_, SOL_SOCKET, SO_RXQ_OVFL, &enabled, sizeof(enabled));
+        if (options.receive_buffer_bytes) {
+            option(fd_, SOL_SOCKET, SO_RCVBUF, &*options.receive_buffer_bytes, sizeof(int));
+        }
         if (receive_id) {
             const can_filter filter{*receive_id, CAN_SFF_MASK};
             option(fd_, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter));
@@ -81,6 +86,12 @@ Endpoint::~Endpoint() {
     if (fd_ >= 0) {
         close(fd_);
     }
+}
+
+int Endpoint::receive_buffer_bytes() const {
+    int value = 0; socklen_t size = sizeof(value);
+    if (getsockopt(fd_, SOL_SOCKET, SO_RCVBUF, &value, &size) != 0) system_failure("SocketCAN SO_RCVBUF");
+    return value;
 }
 
 void Endpoint::send(const Frame& frame) {

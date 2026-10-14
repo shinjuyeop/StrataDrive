@@ -51,6 +51,7 @@ public:
     BmsReceiveResult receive(const BmsFrame& frame, std::uint64_t now_ns,
                              const BmsParentContext* parent = nullptr);
     ActuatorReceiverHealth poll(std::uint64_t now_ns);
+    void mark_continuity_lost(std::uint64_t now_ns);
     std::optional<BmsCurrentSample> current_sample(std::uint64_t now_ns);
     ActuatorReceiverHealth health() const { return health_; }
     const std::optional<BmsAcceptedSample>& last_accepted() const { return accepted_; }

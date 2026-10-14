@@ -106,7 +106,8 @@ bool BmsReceiver::start_session(std::uint32_t epoch, std::uint64_t monitoring_en
 }
 ActuatorReceiverHealth BmsReceiver::poll(std::uint64_t now_ns) {
     const auto base = cursor_.poll(now_ns);
-    if (base == ActuatorReceiverHealth::NotInitialized || base == ActuatorReceiverHealth::ClockError) {
+    if (base == ActuatorReceiverHealth::NotInitialized || base == ActuatorReceiverHealth::ClockError ||
+        base == ActuatorReceiverHealth::ContinuityError) {
         health_ = base; return health_;
     }
     if (health_ == ActuatorReceiverHealth::ClockError || health_ == ActuatorReceiverHealth::Timeout) return health_;
@@ -119,6 +120,12 @@ ActuatorReceiverHealth BmsReceiver::poll(std::uint64_t now_ns) {
     }
     health_ = base;
     return health_;
+}
+void BmsReceiver::mark_continuity_lost(std::uint64_t now_ns) {
+    const auto status = poll(now_ns);
+    if (status == ActuatorReceiverHealth::Waiting || status == ActuatorReceiverHealth::Receiving) {
+        cursor_.mark_continuity_lost(now_ns); health_ = cursor_.health(); usable_.reset();
+    }
 }
 BmsFieldQuality BmsReceiver::classify(std::size_t group, const BmsMessage& message, std::uint64_t now_ns) const {
     const auto age = [&](std::uint64_t time, std::uint64_t maximum) {
@@ -191,11 +198,15 @@ BmsReceiveResult BmsReceiver::receive(const BmsFrame& frame, std::uint64_t now_n
     const auto health = poll(now_ns); // latch before considering a late valid frame
     if (const auto reject = cursor_.begin_receive(now_ns)) return {*reject, std::nullopt};
     if (health == ActuatorReceiverHealth::Timeout) return {ActuatorReceiveDecision::Timeout, std::nullopt};
+    const auto previous_e2e = e2e_.check;
     const auto result = check_bms_e2e(&frame, e2e_);
     if (result != e2e::P05Return::Ok) return {ActuatorReceiveDecision::MalformedEnvelope, std::nullopt};
     BmsReceiveResult output{ActuatorReceiveDecision::Accepted, e2e_.check.status};
-    if (!e2e::p05_is_ok(result, e2e_.check.status)) { output.decision = ActuatorReceiveDecision::E2eRejected; return output; }
     const auto message = decode_bms_frame(frame);
+    if (message && message->kind == e2e_.kind && message->epoch != cursor_.epoch()) {
+        e2e_.check = previous_e2e; output.decision = ActuatorReceiveDecision::EpochMismatch; return output;
+    }
+    if (!e2e::p05_is_ok(result, e2e_.check.status)) { output.decision = ActuatorReceiveDecision::E2eRejected; return output; }
     if (!message) { output.decision = ActuatorReceiveDecision::MalformedPayload; return output; }
     if (const auto reject = cursor_.check_metadata(*message, now_ns)) { output.decision = *reject; return output; }
     if (!mode_allowed(*message, config_.allow_degraded_permission)) { output.decision = ActuatorReceiveDecision::ModeRejected; return output; }

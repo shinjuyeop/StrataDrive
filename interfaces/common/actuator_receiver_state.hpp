@@ -8,11 +8,12 @@
 namespace stratadrive::can {
 
 // 통신 monitor 상태다. 차량/actuator의 INIT/NORMAL/DEGRADED/FAIL_SAFE와 구분한다.
-enum class ActuatorReceiverHealth { NotInitialized, Waiting, Receiving, Timeout, ClockError };
+enum class ActuatorReceiverHealth { NotInitialized, Waiting, Receiving, Timeout, ClockError, ContinuityError };
 enum class ActuatorReceiveDecision {
     Accepted, NotInitialized, ClockError, Timeout, MalformedEnvelope, E2eRejected,
     MalformedPayload, EpochMismatch, SourceBeforeSession, SourceInFuture, SourceStale,
     SequenceRejected, SourceNotIncreasing, Unavailable, ModeRejected, ValueOutOfRange,
+    ContinuityLost,
     // 기존 Steering API와 Brake의 물리량 이름을 같은 공통 사유에 연결한다.
     AngleOutOfRange = ValueOutOfRange,
     PressureOutOfRange = ValueOutOfRange,
@@ -42,6 +43,7 @@ public:
     explicit ActuatorReceiverState(ActuatorReceiverTiming timing);
     bool start_session(std::uint32_t epoch, std::uint64_t monitoring_enable_ns);
     ActuatorReceiverHealth poll(std::uint64_t now_ns);
+    void mark_continuity_lost(std::uint64_t now_ns);
     // nullopt는 검사를 계속할 수 있다는 뜻이며 sample 수용 완료가 아니다.
     std::optional<ActuatorReceiveDecision> begin_receive(std::uint64_t now_ns);
     std::optional<ActuatorReceiveDecision> check_metadata(
@@ -50,6 +52,7 @@ public:
     void commit(const ActuatorMetadata& metadata, std::uint64_t now_ns);
     bool has_current_sample(std::uint64_t now_ns);
     ActuatorReceiverHealth health() const { return health_; }
+    std::uint32_t epoch() const { return epoch_; }
     const std::optional<std::uint64_t>& last_raw_rx_time_ns() const { return last_raw_rx_ns_; }
 
 private:

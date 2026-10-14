@@ -68,12 +68,16 @@ void brake_wire_fixture(const char* interface, bool actual, std::uint32_t epoch,
 template <typename Receiver, typename Convert, typename Value>
 void application_fixture(const char* interface, std::uint16_t can_id, std::chrono::milliseconds duration,
                          std::uint32_t epoch, Receiver& receiver, Convert convert,
-                         Value value, const char* value_field, bool pressure, bool torque = false) {
-    stratadrive::socketcan::Endpoint endpoint(interface, can_id);
+                         Value value, const char* value_field, bool pressure, bool torque = false,
+                         const std::string& mode = "") {
+    stratadrive::socketcan::Endpoint endpoint(interface, can_id,
+        {mode == "kernel-overflow" ? std::optional<int>{1024} : std::nullopt});
+    stratadrive::fixture::RxPump pump(endpoint, mode);
     std::cout << std::unitbuf << "RX_READY\n";
     stratadrive::fixture::await_start();
     const auto enable_ns = stratadrive::socketcan::monotonic_time_ns();
     if (!receiver.start_session(epoch, enable_ns)) throw std::runtime_error("trusted session init failed");
+    if (!pump.start_session({epoch, enable_ns})) throw std::runtime_error("trusted queue init failed");
     std::cout << "SESSION enable_ns=" << enable_ns << " epoch=" << epoch << '\n';
     // Ready/session handshake는 즉시 전달하고, 수신 trace는 cycle마다 한 번 flush한다.
     std::cout << std::nounitbuf;
@@ -82,13 +86,13 @@ void application_fixture(const char* interface, std::uint16_t can_id, std::chron
     bool timeout_reported = false;
     bool had_current_sample = false;
     while (stratadrive::socketcan::monotonic_time_ns() - enable_ns < static_cast<std::uint64_t>(duration.count()) * 1000000ULL) {
+        pump.collect(receiver);
         // Queue를 끝까지 비우지 않는다. Flood 중에도 매 cycle poll/age 검사를 실행한다.
         for (unsigned int count = 0; count < 8; ++count) {
-            const auto received = endpoint.receive();
+            const auto received = pump.pop();
             if (!received) break;
-            if (received->dropped_frames != 0) throw std::runtime_error("RX queue overflow: continuity lost");
             const auto now = stratadrive::socketcan::monotonic_time_ns();
-            const auto result = receiver.receive(convert(received->frame), now);
+            const auto result = receiver.receive(convert(*received), now);
             if (result.decision == stratadrive::can::ActuatorReceiveDecision::Accepted) ++accepted;
             else ++rejected;
             const auto& history = receiver.last_accepted();
@@ -98,14 +102,14 @@ void application_fixture(const char* interface, std::uint16_t can_id, std::chron
                       << " last_valid_ns=" << (history ? history->received_time_ns : 0)
                       << " last_source_ns=" << (history ? history->message.source_time_ns : 0)
                       << " last_seq=" << (history ? history->message.sequence : 0)
-                      << " payload_length=" << static_cast<unsigned int>(received->frame.payload_length)
+                      << " payload_length=" << static_cast<unsigned int>(received->payload_length)
                       << ' ' << value_field << '=' << (history ? value(history->message) : 0.0);
             trace_feedback(receiver.current_sample(now));
             std::cout << '\n';
         }
         const auto now = stratadrive::socketcan::monotonic_time_ns();
         const bool current = receiver.current_sample(now).has_value();
-        if (had_current_sample && !current) {
+        if (had_current_sample && !current && receiver.health() != stratadrive::can::ActuatorReceiverHealth::ContinuityError) {
             std::cout << "SOURCE_EXPIRED at_ns=" << now
                       << " source_ns=" << receiver.last_accepted()->message.source_time_ns << '\n';
         }
@@ -125,6 +129,7 @@ void application_fixture(const char* interface, std::uint16_t can_id, std::chron
     }
     std::cout << "END accepted=" << accepted << " rejected=" << rejected
               << " timeout=" << timeout_reported
+              << " continuity=" << (receiver.health() == stratadrive::can::ActuatorReceiverHealth::ContinuityError)
               << " usable=" << receiver.current_sample(stratadrive::socketcan::monotonic_time_ns()).has_value() << '\n';
 }
 
@@ -166,9 +171,12 @@ void trace_bms(const std::optional<stratadrive::can::BmsCurrentSample>& current)
 }  // namespace
 
 void bms_fixture(const char* interface, stratadrive::can::BmsFrameKind kind,
-                 std::chrono::milliseconds duration, std::uint32_t epoch, bool forward) {
+                 std::chrono::milliseconds duration, std::uint32_t epoch, bool forward,
+                 const std::string& mode) {
     using namespace stratadrive;
-    socketcan::Endpoint endpoint(interface, static_cast<std::uint16_t>(kind));
+    socketcan::Endpoint endpoint(interface, static_cast<std::uint16_t>(kind),
+        {mode == "kernel-overflow" ? std::optional<int>{1024} : std::nullopt});
+    fixture::RxPump pump(endpoint, mode);
     can::BmsReceiver receiver({kind, {{0, 1000}, {-500, 500}, {-60, 200}, 200000}});
     can::BmsTxState downstream{can::BmsFrameKind::DriveBatteryLimits};
     downstream.protection.counter = 5; // independent stream, within P05 startup window
@@ -177,6 +185,7 @@ void bms_fixture(const char* interface, stratadrive::can::BmsFrameKind kind,
     const auto before_start = socketcan::monotonic_time_ns();
     if (plan.enable_ns > before_start) std::this_thread::sleep_for(std::chrono::nanoseconds(plan.enable_ns - before_start));
     if (!receiver.start_session(epoch, plan.enable_ns)) throw std::runtime_error("EV trusted session init failed");
+    if (!pump.start_session({epoch, plan.enable_ns})) throw std::runtime_error("EV trusted queue init failed");
     std::cout << "SESSION enable_ns=" << plan.enable_ns << " epoch=" << epoch << '\n' << std::nounitbuf;
     bool rejoined = false, reported = false;
     auto monitoring_enable_ns = plan.enable_ns;
@@ -185,16 +194,17 @@ void bms_fixture(const char* interface, stratadrive::can::BmsFrameKind kind,
         auto now = socketcan::monotonic_time_ns();
         if (plan.rejoin_ns && !rejoined && now >= plan.rejoin_ns) {
             if (!receiver.start_session(epoch + 1, now)) throw std::runtime_error("EV explicit rejoin failed");
+            if (!pump.start_session({epoch + 1, now})) throw std::runtime_error("EV queue rejoin failed");
             ++epoch; rejoined = true; reported = false;
             monitoring_enable_ns = now;
             std::cout << "REINIT at_ns=" << now << " epoch=" << epoch << '\n';
         }
+        pump.collect(receiver);
         for (unsigned int count = 0; count < 8; ++count) {
-            const auto received = endpoint.receive();
+            const auto received = pump.pop();
             if (!received) break;
-            if (received->dropped_frames) throw std::runtime_error("EV kernel RX continuity lost");
             now = socketcan::monotonic_time_ns();
-            const auto frame = socketcan::to_bms(received->frame);
+            const auto frame = socketcan::to_bms(*received);
             const auto decoded = can::decode_bms_frame(frame);
             // CAN provides only the lookup key. Values/authority come from stdin plan.
             const auto* parent = decoded ? plan.parent(decoded->epoch, decoded->causal_sequence) : nullptr;
@@ -249,7 +259,9 @@ void bms_fixture(const char* interface, stratadrive::can::BmsFrameKind kind,
         }
         std::cout.flush(); std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    std::cout << "EV_END epoch=" << epoch << " timeout=" << reported << '\n';
+    std::cout << "EV_END epoch=" << epoch << " timeout=" << reported
+              << " continuity=" << (receiver.health() == can::ActuatorReceiverHealth::ContinuityError)
+              << " usable=" << receiver.current_sample(socketcan::monotonic_time_ns()).has_value() << '\n';
 }
 
 int main(int argc, char** argv) {
@@ -263,17 +275,19 @@ int main(int argc, char** argv) {
         if (duration_ms > 10000) throw std::invalid_argument("fixture duration limit is 10000 ms");
         const auto duration = std::chrono::milliseconds{duration_ms};
         const std::string stream = argv[2];
+        const std::string mode = argc == 6 ? argv[5] : "";
+        const bool overflow = mode == "app-overflow" || mode == "kernel-overflow";
         if (const auto ev_kind = fixture::bms_kind(stream)) {
             const bool forward = argc == 6 && std::string(argv[5]) == "forward";
-            if ((argc == 6 && !forward) || (forward && *ev_kind != can::BmsFrameKind::PowerLimits)) {
+            if ((argc == 6 && !forward && !overflow) || (forward && *ev_kind != can::BmsFrameKind::PowerLimits)) {
                 throw std::invalid_argument("EV forwarding fixture is bms-limits only");
             }
-            bms_fixture(argv[1], *ev_kind, duration, epoch, forward);
+            bms_fixture(argv[1], *ev_kind, duration, epoch, forward, mode);
             return 0;
         }
         const bool brake = stream == "brake-cmd" || stream == "brake-actual";
         const bool drive = stream == "drive-cmd" || stream == "drive-actual";
-        if (argc == 6) {
+        if (argc == 6 && !overflow) {
             if (!brake || std::string(argv[5]) != "wire") throw std::invalid_argument("wire mode is Brake-only");
             brake_wire_fixture(argv[1], stream == "brake-actual", epoch, duration);
         } else if (drive) {
@@ -281,20 +295,20 @@ int main(int argc, char** argv) {
             can::DriveReceiver receiver({kind, {-300, 500}, 100, 300});
             application_fixture(argv[1], static_cast<std::uint16_t>(kind), duration, epoch, receiver,
                 [](const auto& frame) { return socketcan::to_drive(frame); },
-                [](const auto& message) { return *message.torque_nm; }, "history_torque_nm", false, true);
+                [](const auto& message) { return *message.torque_nm; }, "history_torque_nm", false, true, mode);
         } else if (brake) {
             const auto kind = stream == "brake-actual" ? can::BrakeFrameKind::Actual : can::BrakeFrameKind::Command;
             // 0..2 MPa는 fixture 설정이며 실제 차량 압력 calibration이 아니다.
             can::BrakeReceiver receiver({kind, 0, 2000000});
             application_fixture(argv[1], static_cast<std::uint16_t>(kind), duration, epoch, receiver,
                 [](const auto& frame) { return socketcan::to_brake(frame); },
-                [](const auto& message) { return *message.pressure_pa; }, "history_pressure_pa", true);
+                [](const auto& message) { return *message.pressure_pa; }, "history_pressure_pa", true, false, mode);
         } else {
             const auto kind = fixture::kind(stream);
             can::SteeringReceiver receiver({kind, -0.5, 0.5});
             application_fixture(argv[1], static_cast<std::uint16_t>(kind), duration, epoch, receiver,
                 [](const auto& frame) { return socketcan::to_steering(frame); },
-                [](const auto& message) { return *message.angle_rad; }, "history_angle_rad", false);
+                [](const auto& message) { return *message.angle_rad; }, "history_angle_rad", false, false, mode);
         }
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';

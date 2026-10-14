@@ -107,15 +107,30 @@ void application_fixture(const char* interface, const std::string& scenario, Mes
         if (!frame) throw std::runtime_error("fixture encode failed");
         return *frame;
     };
+    if (scenario == "restart") { --message.epoch; tx.protection.counter = 200; }
     const auto first = publish(0);
+    if (scenario == "restart") ++message.epoch;
     const auto first_source_ns = message.source_time_ns;
     const auto initial_value = fixture_value(message);
     send(socketcan::to_socketcan(first), "first");
-    if (scenario == "normal") {
+    if (scenario == "restart") {
+        at(10); e2e::p05_protect_init(tx.protection); send(socketcan::to_socketcan(publish(0)), "new_epoch_first");
+        at(40); --message.epoch; const auto previous = tx.protection; tx.protection.counter = 200;
+        send(socketcan::to_socketcan(publish(1)), "old_epoch_counter"); tx.protection = previous; ++message.epoch;
+        at(50); send(socketcan::to_socketcan(publish(1)), "new_epoch_next");
+        at(190); send(socketcan::to_socketcan(publish(2)), "late_after_timeout");
+    } else if (scenario == "normal") {
         for (std::uint32_t sequence = 1; sequence < 5; ++sequence) {
             at(static_cast<int>(sequence) * 10);
             send(socketcan::to_socketcan(publish(sequence)), "normal");
         }
+    } else if (scenario == "app-overflow" || scenario == "kernel-overflow") {
+        at(20);
+        const int burst = scenario == "kernel-overflow" ? 2048 : 64;
+        for (int index = 0; index < burst; ++index) endpoint.send(socketcan::to_socketcan(first));
+        std::cout << "TX label=overflow_burst at_ns=" << socketcan::monotonic_time_ns() << '\n';
+        at(50); send(socketcan::to_socketcan(publish(1)), "fresh_after_overflow");
+        at(70); send(socketcan::to_socketcan(publish(2)), "late_after_overflow");
     } else if (scenario == "flood") {
         // 처리 budget 8보다 많은 반복 frame을 여러 번 burst한다. last-valid를 갱신하면 안 된다.
         for (int ms = 5; ms <= 120; ms += 5) {
@@ -272,17 +287,31 @@ void bms_fixture(const char* interface, can::BmsFrameKind kind,
     if (scenario == "silent") return;
     if (scenario == "forward") at(20);
     auto initial = sample(0, 7);
+    if (scenario == "restart") { --initial.epoch; tx.protection.counter = 200; }
     if (scenario == "cached") {
         if (auto* value = std::get_if<can::BmsPowerLimits>(&initial.content)) value->input_time_ns = plan.enable_ns;
         else std::get<can::BmsPowerStatus>(initial.content).input_time_ns = plan.enable_ns;
     } else if (scenario == "observation") std::get<can::BmsBatteryState>(initial.content).soc->source_time_ns = plan.enable_ns;
     const auto first = publish(initial, "first");
     const bool observation = kind == can::BmsFrameKind::BatteryState;
-    if (scenario == "normal" || scenario == "forward") {
+    if (scenario == "restart") {
+        at(10); e2e::p05_protect_init(tx.protection); publish(sample(0, 7), "new_epoch_first");
+        at(40); auto old = sample(1, 7); --old.epoch; const auto previous = tx.protection; tx.protection.counter = 200;
+        publish(old, "old_epoch_counter"); tx.protection = previous;
+        at(50); publish(sample(1, 8), "new_epoch_next");
+        at(190); publish(sample(2, 9), "late_after_timeout");
+    } else if (scenario == "normal" || scenario == "forward") {
         for (std::uint32_t index = 1; index < 5; ++index) {
             at(index*fixture::bms_period_ms(kind) + (scenario == "forward" ? 20 : 0));
             publish(sample(index, 7 + index), "normal");
         }
+    } else if (scenario == "app-overflow" || scenario == "kernel-overflow") {
+        at(20);
+        const int burst = scenario == "kernel-overflow" ? 2048 : 64;
+        for (int index = 0; index < burst; ++index) endpoint.send(socketcan::to_socketcan(first));
+        std::cout << "EV_TX label=overflow_burst at_ns=" << socketcan::monotonic_time_ns() << '\n';
+        at(50); publish(sample(1, 8), "fresh_after_overflow");
+        at(70); publish(sample(2, 9), "late_after_overflow");
     } else if (scenario == "flood") {
         const unsigned int last_ms = observation ? 340 : 120;
         for (unsigned int ms = 5; ms <= last_ms; ms += 5) {
@@ -409,8 +438,9 @@ int main(int argc, char** argv) {
             brake_wire_fixture(argv[1], stream == "brake-actual", epoch);
             return 0;
         }
-        if (scenario != "normal" && scenario != "faults" && scenario != "silent" && scenario != "flood") {
-            throw std::invalid_argument("unknown fixture scenario");
+        if (scenario != "normal" && scenario != "faults" && scenario != "silent" && scenario != "flood" &&
+            scenario != "app-overflow" && scenario != "kernel-overflow") {
+            if (scenario != "restart") throw std::invalid_argument("unknown fixture scenario");
         }
         if (drive) {
             const auto kind = stream == "drive-actual" ? can::DriveFrameKind::Actual : can::DriveFrameKind::Command;

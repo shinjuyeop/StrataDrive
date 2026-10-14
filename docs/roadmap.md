@@ -1,9 +1,9 @@
 # Milestone roadmap
 
-Status: **M0 — BASELINED / M1 — IN PROGRESS / M2–M13 — PLANNED**.
+Status: **M0 — BASELINED / M1 — TECHNICAL CHECKS PASS · REVIEW PENDING / M2–M13 — PLANNED**.
 [M0 exit review](m0_baseline.md)는 문서 계약의 검토다. 현재 Steering/Brake/Drive six-frame
-codec/P05/receiver/SocketCAN을 Host에서 구현해 normal·ASan/UBSan 각각 unit 98개와
-vCAN 27 case, 독립 DBC/CRC 교차 검증을 통과했다. [학습 안내](learning/README.md)에
+codec/P05/receiver/SocketCAN과 EV 통신을 Host에서 구현했다. Local session/queue를 포함해
+normal·ASan/UBSan 각각 unit 143개와 vCAN 89 case, 독립 DBC/CRC 교차 검증을 통과했다. [학습 안내](learning/README.md)에
 상세 실행 기록을 보존한다. Wire baseline 채택/학습자 review와 M1 최종 acceptance는 미완료다.
 
 [RG-01](icd/regenerative_braking_design.md)은 회생·마찰 배분,
@@ -18,7 +18,7 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | Milestone | 계획 범위 | Acceptance 증거 후보 |
 | --- | --- | --- |
 | M0 | Architecture / Requirement / ICD Baseline | ODD/scenario/수치/계층/timing/fault/ICD 의미 계약, traceability, owner가 있는 TBD, exit checklist |
-| M1 | DBC + vCAN | 기존 six-frame wire 수용, 영속 coordinator/queue와 review; EV BMS/power/constraint 의미·wire·rate/freshness 및 추가 통신 검사 |
+| M1 | DBC + vCAN | 12개 wire/receiver, 영속 local Epoch/queue 및 overflow/restart 기술 검사 완료; wire 채택·학습자 review PENDING |
 | M2 | Actuator + Battery / BMS / Power models | 주기 task/queue/state/dynamics, actual 기반 구동/회생·battery energy, power readiness/local protection; TC-EV component 시험 |
 | M3 | Real-Time Timing & Scheduling Measurement | execution/period/jitter/tails/miss 측정, clock/overhead 조건 기록 |
 | M4 | Front coordinator + Front/Rear Zone | 단일 vehicle management/allocation 확인 후 Zone gateway 분리; peer routing/원천 freshness/local loss/rejoin, TC-ZON-001–003; protocol TBD-15 |
@@ -105,20 +105,22 @@ TBD-11의 [첫 Host C++ 실험 도구 선택](adr/ADR-0005-first-cpp-codec.md)�
 [Host frame codec·parser 도구 선택](adr/ADR-0006-steering-frame-codec.md)을 구현·검증했다.
 로컬 Receiver 정책은 [ADR-0008](adr/ADR-0008-steering-receiver.md)에 기록했다.
 [SocketCAN 결정](adr/ADR-0009-steering-socketcan.md)에 local wall-time 시험을 기록했다.
-전체 wire/물리 범위/Target·CI 선택과 영속 coordinator, queue overflow 및 차량 timing 검증이
-남아 있으므로 위 TBD를 CLOSED로 바꾸지 않는다.
+영속 로컬 Epoch issuer/queue와 실제 overflow는 [M1 기술 exit](learning/m1_session_queue.md)에서 구현·검사했다.
+Wire 최종 채택/물리 범위/Target·CI, 실제 Front session protocol·차량 timing은 남아 있으므로
+위 TBD 전체를 CLOSED로 바꾸지 않는다.
 
 ## 다음 작업과 M1 남은 수용 항목
 
 BMS/power/Drive constraint의 [의미·DBC·timing 초안](icd/bms_frame_draft.md)을 작성했다.
 물리 field/frame codec과 항목별 수신부, Drive auxiliary age 분리를 Host에서 시험했다.
 기존 vCAN fixture의 EV 송수신/session·parent·relay도 36개 case로 확장·시험했다.
-다음은 **M1 남은 수용 항목 정리 → M2 실제 응답·Battery/BMS/power 모델**이다.
+Local Epoch/queue·overflow/restart를 구현·시험해 M1 기술 수용 항목을 정리했다.
+다음은 **M2 실제 응답·Battery/BMS/power 모델**이다.
 Wire/학습자 review는 PENDING이다.
 
 1. EV 초안의 producer/단위/validity/source·dependency time/expiry와 주기 차이를 review한다.
-2. Actuator/EV vCAN 63개 case를 재현하고 source/parent·model identity와 timeout 판정 trace를 review한다.
-3. Wire review, 영속 Epoch coordinator, application queue/overflow 주입 등 M1 수용 항목을 마친다.
+2. Actuator/EV vCAN 89개 case와 영속 Epoch/queue의 source·parent·model identity 및 fault trace를 재현·review한다.
+3. Wire baseline 채택과 학습자의 설명 기록을 남긴다. Actual Front/DDS coordinator는 M4/M5에 연결한다.
 4. M2 actuator 실제 응답과 Battery/BMS/power model(로컬 셀 전압·온도 극값 포함), 실제 local gate를 구현한다.
 5. M3 timing → M4 단일 coordinator/두 Zone 분할로 진행한다.
 

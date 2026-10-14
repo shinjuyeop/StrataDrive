@@ -8,6 +8,7 @@ from pathlib import Path
 import selectors
 import subprocess
 import sys
+import tempfile
 import time
 
 
@@ -102,7 +103,7 @@ def verify_brake(kind, session, output):
     require([item["valid"] for item in wire_events] == ["1", "1", "0", "1"],
             "Brake zero and unavailable were confused")
     require([int(item["seq"]) for item in wire_events] == [0, 2, 3, 4], "Brake sequence mismatch")
-    require(all(item["epoch"] == "1" for item in wire_events), "Brake Epoch transport mismatch")
+    require(all(item["epoch"] == fields(session)["epoch"] for item in wire_events), "Brake Epoch transport mismatch")
     timestamps = [int(item["source_ns"]) for item in wire_events]
     require(timestamps == sorted(set(timestamps)) and timestamps[0] >= int(fields(session)["enable_ns"]),
             "Brake source timestamp transport mismatch")
@@ -112,6 +113,10 @@ def verify_brake(kind, session, output):
 
 
 def verify(kind, scenario, session, output):
+    if scenario in ("app-overflow", "kernel-overflow"):
+        return verify_overflow(kind, scenario, session, output)
+    if scenario == "restart":
+        return verify_restart(kind, session, output)
     if kind in EV_STREAMS:
         return verify_ev(kind, scenario, session, output)
     if scenario == "wire":
@@ -189,7 +194,7 @@ def verify(kind, scenario, session, output):
     return elapsed / 1_000_000
 
 
-def ev_start_plan(kind, scenario):
+def ev_start_plan(kind, scenario, epoch):
     """Trusted fixture inputs come from the harness, never from CAN RX."""
     anchor = time.monotonic_ns() + 20_000_000
     rejoin = anchor + 180_000_000 if scenario == "rejoin" else 0
@@ -206,11 +211,15 @@ def ev_start_plan(kind, scenario):
             parents = [(1, 7, 0, 60), (1, 8, 30, 90), (1, 9, 200, 260)]
         elif scenario == "rejoin":
             parents = [(1, 7, 0, 60), (1, 8, 100, 160), (2, 7, 200, 260), (2, 8, 220, 280)]
+        elif scenario == "restart":
+            parents = [(1, 7, 0, 60), (1, 8, 50, 110), (1, 9, 190, 250)]
+        elif scenario in ("app-overflow", "kernel-overflow"):
+            parents = [(1, 7, 0, 60), (1, 8, 50, 110), (1, 9, 70, 130)]
         else:
             parents = [(1, 7, 0, 60)]
     items = ["start", str(anchor), str(rejoin), str(len(parents))]
-    for epoch, sequence, source_ms, expiry_ms in parents:
-        items += [str(epoch), str(sequence), str(anchor + source_ms*1_000_000), str(anchor + expiry_ms*1_000_000)]
+    for parent_epoch, sequence, source_ms, expiry_ms in parents:
+        items += [str(epoch + parent_epoch - 1), str(sequence), str(anchor + source_ms*1_000_000), str(anchor + expiry_ms*1_000_000)]
     return (" ".join(items) + "\n").encode()
 
 
@@ -221,6 +230,7 @@ def verify_ev(kind, scenario, session, output):
     timeout = [fields(line) for line in lines if line.startswith("EV_TIMEOUT ")]
     tx = [fields(line) for line in output["tx"].splitlines() if line.startswith("EV_TX ")]
     anchor = int(fields(session)["enable_ns"])
+    epoch = int(fields(session)["epoch"])
     observation = kind == "bms-battery"
     lower = 300_000_000 if observation else 80_000_000
     require(len(timeout) == (2 if scenario == "rejoin" else 1), "EV timeout/latch count mismatch")
@@ -300,10 +310,10 @@ def verify_ev(kind, scenario, session, output):
         require(decisions == ["ACCEPTED", "TIMEOUT", "TIMEOUT", "ACCEPTED", "EPOCH_MISMATCH", "ACCEPTED"],
                 f"EV rejoin RX: {decisions}")
         resets = [fields(line) for line in lines if line.startswith("REINIT ")]
-        require(len(resets) == 1 and resets[0]["epoch"] == "2", "EV trusted explicit INIT missing")
-        require(events[3]["seq"] == "0" and events[3]["epoch"] == "2" and events[3]["counter"] == "0",
+        require(len(resets) == 1 and resets[0]["epoch"] == str(epoch + 1), "EV trusted explicit INIT missing")
+        require(events[3]["seq"] == "0" and events[3]["epoch"] == str(epoch + 1) and events[3]["counter"] == "0",
                 "EV new Epoch failed to reset stream state")
-        require([item["epoch"] for item in timeout] == ["1", "2"], "EV silently rejoined before trusted INIT")
+        require([item["epoch"] for item in timeout] == [str(epoch), str(epoch + 1)], "EV silently rejoined before trusted INIT")
 
     history = None
     for item in events:
@@ -321,7 +331,7 @@ def verify_ev(kind, scenario, session, output):
         sources = [item["source_ns"] for item in events]
         require(sources == [item["source_ns"] for item in tx], "EV original source timestamp changed in transport")
         require([item["seq"] for item in events] == [item["seq"] for item in tx] and
-                all(item["epoch"] == "1" for item in events), "EV source sequence/Epoch changed in transport")
+                all(item["epoch"] == str(epoch) for item in events), "EV source sequence/Epoch changed in transport")
         require([int(item["counter"]) for item in events] == list(range(5, 10) if scenario == "forward" else range(5)),
                 "EV transport counter did not remain independent")
     if scenario == "forward":
@@ -342,10 +352,58 @@ def verify_ev(kind, scenario, session, output):
     return int(timeout[-1]["elapsed_ns"])/1_000_000
 
 
-def run_case(build, log_dir, kind, scenario, repetition):
+def issue_epoch(build, store):
+    completed = subprocess.run([str(build / "actuator_demo"), "epoch", "next", str(store)],
+                               check=True, capture_output=True, text=True)
+    value = int(fields(completed.stdout.strip())["value"])
+    require(0 < value <= 0xFFFFFFFF, "invalid durable Epoch grant")
+    return value
+
+
+def verify_overflow(kind, scenario, session, output):
+    lines = output["rx"].splitlines()
+    events = [fields(line) for line in lines if line.startswith(("RX ", "EV_RX "))]
+    faults = [fields(line) for line in lines if line.startswith("QUEUE_FAULT ")]
+    discarded = [fields(line) for line in lines if line.startswith("QUEUE_DISCARD ")]
+    require(events and events[0]["decision"] == "ACCEPTED", "overflow fixture lacked initial usable sample")
+    require(len(faults) == 1 and faults[0]["usable"] == "0", "queue continuity did not close use gate")
+    fault = faults[0]
+    require(fault["kind"] == ("kernel" if scenario == "kernel-overflow" else "application"), "wrong overflow layer")
+    require((int(fault["drops"]) > 0) == (scenario == "kernel-overflow"), "real SO_RXQ_OVFL evidence missing")
+    require(0 <= int(fault["at_ns"]) - int(events[0]["at_ns"]) <= 100_000_000, "continuity detection exceeded local budget")
+    require(all(event["decision"] != "ACCEPTED" for event in events[1:]), "backlog/new packet repaired continuity")
+    require(discarded and int(discarded[-1]["at_ns"]) >= int(fault["at_ns"]), "latched queue did not discard later traffic")
+    end = fields(lines[-1])
+    require(end["continuity"] == "1" and end["usable"] == "0", "overflow was automatically recovered")
+    require("fresh_after_overflow" in output["tx"] and "late_after_overflow" in output["tx"], "fresh late frames not transmitted")
+    return None
+
+
+def verify_restart(kind, session, output):
+    lines = output["rx"].splitlines()
+    events = [fields(line) for line in lines if line.startswith(("RX ", "EV_RX "))]
+    require([item["decision"] for item in events] == ["EPOCH_MISMATCH", "ACCEPTED", "EPOCH_MISMATCH", "ACCEPTED", "TIMEOUT"],
+            "old Epoch poisoned newly initialized transport or healed timeout")
+    source_key = "source_ns" if kind in EV_STREAMS else "last_source_ns"
+    rx_key = "history_rx_ns" if kind in EV_STREAMS else "last_valid_ns"
+    require(events[0][rx_key] == "0", "old Epoch learned before current producer")
+    require(events[2][rx_key] == events[1][rx_key] and events[2][source_key] == events[1][source_key],
+            "old counter/epoch changed accepted sample")
+    require(events[-1][rx_key] == events[3][rx_key] and events[-1]["e2e"] == "-1", "late frame bypassed timeout")
+    timers = [fields(line) for line in lines if line.startswith(("TIMEOUT ", "EV_TIMEOUT "))]
+    require(len(timers) == 1 and 80_000_000 <= int(timers[0]["elapsed_ns"]) <= 100_000_000, "restart timeout budget failed")
+    if kind in EV_STREAMS:
+        require(events[1]["allow"] == events[3]["allow"] == "1", "new independent parent grant unusable")
+    return int(timers[0]["elapsed_ns"])/1_000_000
+
+
+def run_case(build, log_dir, kind, scenario, repetition, epoch_store):
     processes = {}
     output = {name: bytearray() for name in ("tx", "rx", "tx_err", "rx_err")}
     session = ""
+    epoch = issue_epoch(build, epoch_store)
+    if scenario == "rejoin":
+        require(issue_epoch(build, epoch_store) == epoch + 1, "trusted rejoin Epoch reservation failed")
     try:
         ev = kind in EV_STREAMS
         duration = (950 if scenario == "observation" else 800) if kind == "bms-battery" else 400
@@ -355,11 +413,13 @@ def run_case(build, log_dir, kind, scenario, repetition):
             roles.append(("relay", "rx", "bms-limits", "400"))
             output.update({"relay": bytearray(), "relay_err": bytearray()})
         for role, executable, stream, argument in roles:
-            command = [str(build / f"actuator_socketcan_{executable}"), INTERFACE, stream, "1", argument]
+            command = [str(build / f"actuator_socketcan_{executable}"), INTERFACE, stream, str(epoch), argument]
             if role == "rx" and scenario == "wire":
                 command.append("wire")
             if role == "relay":
                 command.append("forward")
+            if role == "rx" and scenario in ("app-overflow", "kernel-overflow"):
+                command.append(scenario)
             processes[role] = subprocess.Popen(
                 command,
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=0)
@@ -370,7 +430,7 @@ def run_case(build, log_dir, kind, scenario, repetition):
         if ev:
             if "relay" in processes:
                 output["relay"].extend((ready(processes["relay"], "RX_READY") + "\n").encode())
-            plan = ev_start_plan(kind, scenario)
+            plan = ev_start_plan(kind, scenario, epoch)
             for process in processes.values():
                 process.stdin.write(plan)
                 process.stdin.close()
@@ -413,6 +473,11 @@ def main():
         require((build / f"actuator_socketcan_{role}").is_file(), "build SocketCAN test executables first")
     log_dir = build / "socketcan-results"
     log_dir.mkdir(exist_ok=True)
+    # Fresh explicit bootstrap is valid only on this isolated test bus. A real
+    # deployment configures one persistent store and never auto-resets it.
+    owned = Path(tempfile.mkdtemp(prefix="epoch-run-", dir=log_dir))
+    epoch_store = owned / "store"
+    subprocess.run([str(build / "actuator_demo"), "epoch", "init", str(epoch_store)], check=True, capture_output=True)
     created = False
     observed = []
     try:
@@ -422,29 +487,40 @@ def main():
         for repetition in range(1, args.repetitions + 1):
             for kind in (() if args.family == "ev" else ("cmd", "actual", "brake-cmd", "brake-actual", "drive-cmd", "drive-actual")):
                 for scenario in ("normal", "faults", "silent", "flood"):
-                    elapsed = run_case(build, log_dir, kind, scenario, repetition)
+                    elapsed = run_case(build, log_dir, kind, scenario, repetition, epoch_store)
                     observed.append(elapsed)
                     print(f"PASS {kind}/{scenario} #{repetition}: timeout={elapsed:.3f} ms", flush=True)
             if args.family != "ev":
-                elapsed = run_case(build, log_dir, "drive-actual", "feedback", repetition)
+                elapsed = run_case(build, log_dir, "drive-actual", "feedback", repetition, epoch_store)
                 observed.append(elapsed)
                 print(f"PASS drive-actual/feedback #{repetition}: timeout={elapsed:.3f} ms", flush=True)
             for kind in (() if args.family == "ev" else ("brake-cmd", "brake-actual")):
-                run_case(build, log_dir, kind, "wire", repetition)
+                run_case(build, log_dir, kind, "wire", repetition, epoch_store)
                 print(f"PASS {kind}/wire #{repetition}: 8 frames; wire/E2E only", flush=True)
             if args.family != "actuator":
                 ev_cases = [(kind, scenario) for kind in EV_STREAMS for scenario in ("normal", "faults", "silent", "flood")] + EV_EXTRA
                 for kind, scenario in ev_cases:
-                    elapsed = run_case(build, log_dir, kind, scenario, repetition)
+                    elapsed = run_case(build, log_dir, kind, scenario, repetition, epoch_store)
                     print(f"PASS {kind}/{scenario} #{repetition}: timeout={elapsed:.3f} ms", flush=True)
+            streams = (("cmd", "actual", "brake-cmd", "brake-actual", "drive-cmd", "drive-actual") if args.family != "ev" else ())
+            streams += tuple(EV_STREAMS) if args.family != "actuator" else ()
+            for kind in streams:
+                for scenario in ("app-overflow", "kernel-overflow"):
+                    run_case(build, log_dir, kind, scenario, repetition, epoch_store)
+                    print(f"PASS {kind}/{scenario} #{repetition}: continuity latched", flush=True)
+            restart_streams = (("cmd",) if args.family != "ev" else ()) + (("drive-permission",) if args.family != "actuator" else ())
+            for kind in restart_streams:
+                run_case(build, log_dir, kind, "restart", repetition, epoch_store)
+                print(f"PASS {kind}/restart #{repetition}: durable Epoch, old counter 200 rejected", flush=True)
     finally:
         if created:
             subprocess.run(["ip", "link", "delete", "dev", INTERFACE], check=True)
     ev_count = len(EV_STREAMS)*4 + len(EV_EXTRA)
-    count = (27 if args.family == "actuator" else ev_count if args.family == "ev" else 27+ev_count)*args.repetitions
-    print(f"PASS {count} cases (actuator 27 / EV {ev_count} per full repetition)")
+    count = (27 if args.family == "actuator" else ev_count if args.family == "ev" else 27+ev_count)*args.repetitions + (12 if args.family != "all" else 24)*args.repetitions + (2 if args.family == "all" else 1)*args.repetitions
+    print(f"PASS {count} cases (actuator 27 / EV {ev_count} / queue 24 / restart 2 per full repetition)")
     if observed:
         print(f"Actuator application timeout {min(observed):.3f}..{max(observed):.3f} ms")
+    print(f"Epoch store: {epoch_store}; each grant persisted by an independent issuer process")
     print(f"Trace: {log_dir}; local vCAN fixture only (actuator/vehicle TC 아님)")
     return 0
 

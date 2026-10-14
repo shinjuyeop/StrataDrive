@@ -34,9 +34,16 @@ bool SteeringReceiver::start_session(std::uint32_t epoch, std::uint64_t monitori
 SteeringReceiveResult SteeringReceiver::receive(const SteeringFrame& frame, std::uint64_t now_ns) {
     if (const auto rejected = state_.begin_receive(now_ns)) return {*rejected, std::nullopt};
 
+    const auto previous_e2e = e2e_.check;
     const auto e2e_return = check_steering_e2e(&frame, e2e_);
     if (e2e_return != e2e::P05Return::Ok) {
         return {SteeringReceiveDecision::MalformedEnvelope, std::nullopt};
+    }
+    const auto message = decode_steering_frame(frame);
+    if (message && message->kind == e2e_.kind && message->epoch != state_.epoch()) {
+        const auto status = e2e_.check.status;
+        e2e_.check = previous_e2e;
+        return {SteeringReceiveDecision::EpochMismatch, status};
     }
     const auto result = [this](SteeringReceiveDecision decision) {
         return SteeringReceiveResult{decision, e2e_.check.status};
@@ -44,7 +51,6 @@ SteeringReceiveResult SteeringReceiver::receive(const SteeringFrame& frame, std:
     if (!e2e::p05_is_ok(e2e_return, e2e_.check.status)) {
         return result(SteeringReceiveDecision::E2eRejected);
     }
-    const auto message = decode_steering_frame(frame);
     if (!message) {
         return result(SteeringReceiveDecision::MalformedPayload);
     }

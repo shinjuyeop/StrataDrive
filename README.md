@@ -4,15 +4,15 @@
 
 ## Current Status
 
-**M0 — BASELINED / M1 — IN PROGRESS**. [M0 종료 검토](docs/m0_baseline.md)의 15개 문서 항목을
+**M0 — BASELINED / M1 — TECHNICAL CHECKS PASS · REVIEW PENDING**. [M0 종료 검토](docs/m0_baseline.md)의 15개 문서 항목을
 통과했고, Steering/Brake/Drive의 **Command·Actual 6개 CAN FD frame**을 Host에서 구현했다.
 DBC, AUTOSAR R25-11 E2E Profile 5 Protect/Check, application receiver와 SocketCAN을 연결했다.
-Normal·ASan/UBSan 각각 **unit 129개 PASS**다(2026-10-14 BMS codec/receiver 포함).
-vCAN은 actuator 27 + EV 36, 총 **63 case PASS**(2026-10-14)이며 DBC·독립 CRC 교차 검증도 통과했다.
+Normal·ASan/UBSan 각각 **unit 143개 PASS**다(2026-10-14 session/queue 포함).
+vCAN은 기존 63 + overflow 24 + restart 2, 총 **89 case PASS**이며 DBC·독립 CRC 교차 검증도 통과했다.
 실행 흐름과 상세 이력은 [학습 안내](docs/learning/README.md)에 있다.
 
-M1의 wire baseline 채택과 학습자 review/재현, 영속 Epoch coordinator, application queue/
-overflow 주입은 남아 있다. 이 결과는 actuator dynamics나 차량 closed-loop 검증이 아니다.
+M1의 [영속 Epoch 발급·bounded queue·overflow/restart 검사](docs/learning/m1_session_queue.md)를 추가했다.
+Wire baseline 채택과 학습자 설명·직접 재현은 PENDING이다. 이 결과는 actuator dynamics나 차량 closed-loop 검증이 아니다.
 vECU 응답 모델, Zone/DDS, CARLA, control/AI/deployment runtime과 기존 차량 TC는 **PLANNED / NOT RUN**이다.
 
 [RG-01](docs/icd/regenerative_braking_design.md)은 회생·마찰 배분을,
@@ -29,7 +29,8 @@ vECU 응답 모델, Zone/DDS, CARLA, control/AI/deployment runtime과 기존 차
 Drive 보조 입력도 source age와 capability dependency age를 분리했고 기본값 30 ms는 유지한다.
 EV 6개 frame도 기존 TX/RX/runner에 연결했다. 독립 trusted session/parent fixture와
 부분 상실·캐시·만료·명시적 rejoin, BMS limit 중계의 원천 보존을 local vCAN에서 검사했다.
-M1 남은 coordinator/queue·wire 검토 이후 **다음 구현은 M2 실제 응답·Battery/BMS/power 모델**이다.
+Local session issuer를 trusted INIT fixture에 연결했고 이전 Epoch의 P05 state 오염도 막았다.
+**다음 구현은 M2 실제 응답·Battery/BMS/power 모델**이다. 실제 Front coordinator/DDS는 M4/M5 범위다.
 실제 Drive 통합 gate도 M2 이후 작업이다.
 
 ## Project Overview
@@ -231,7 +232,7 @@ Steering/Brake/Drive Command/Actual과 EV 6개 frame을 독립 송신·수신 pr
 
 ```sh
 unshare --user --map-root-user --net python3 tests/integration/can/check_socketcan.py
-# EV 36개만 재현할 때
+# EV 경로 49개(기존 EV 36 + queue 12 + restart 1)만 재현할 때
 unshare --user --map-root-user --net python3 tests/integration/can/check_socketcan.py --family ev
 ```
 
@@ -254,7 +255,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 | Milestone | 계획 범위 |
 | --- | --- |
 | M0 | Architecture / Requirement / ICD Baseline — BASELINED |
-| M1 | DBC + vCAN — IN PROGRESS |
+| M1 | DBC + vCAN — TECHNICAL CHECKS PASS / REVIEW PENDING |
 | M2 | Actuator + Battery/BMS/Power component models |
 | M3 | Real-Time Timing & Scheduling Measurement |
 | M4 | Front coordinator + Front/Rear Zone 분리 |
@@ -299,7 +300,7 @@ StrataDrive/
 │   ├── dbc/               # Actuator 6개 + EV/BMS 6개 frame 초안
 │   └── dds/               # 배치용 placeholder
 ├── central/               # State, perception, world model, planning, control, safety, health, diagnostics
-├── zone/                  # Gateway, validation, allocation, local safety
+├── zone/                  # Session Epoch store 구현; gateway/allocation/local safety 예정
 ├── vecu/                  # Common task model, steering, brake, drive
 ├── simulation/            # Simple plant, CARLA, Plant Adapter, scenarios, fault injection
 ├── physical_ai/           # Perception, learned planner, export, inference
