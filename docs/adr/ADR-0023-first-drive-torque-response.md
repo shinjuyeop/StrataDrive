@@ -3,6 +3,9 @@
 Date: 2026-10-15. Status: **Host functional SIL component 구현 / 학습자 review PENDING**.
 TBD-02/03/04/13, IF-CAN-DRIVE와 DRIVE_COMMAND_LOSS의 부분 검증에 연결한다.
 
+후속 구조 변경: [ADR-0032](ADR-0032-ecu-and-sil-execution-boundaries.md)에서 ECU의 plant 소유/호출을
+외부 SIL 연결 코드로 옮겼다. 아래는 이 ADR 채택 당시의 설계·시험 이력이다.
+
 ## 결정과 범위
 
 [ADR-0022](ADR-0022-leaf-classic-development-methodology.md)에 따라 두 책임을 별도 모듈로 둔다.

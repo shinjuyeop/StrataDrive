@@ -3,7 +3,7 @@
 #include "power_controller.hpp"
 #include "power_model.hpp"
 #include "ev_power_model.hpp"
-#include "drive_controller.hpp"
+#include "drive_sil.hpp"
 #include "bms_value_codec.hpp"
 #include "demo_commands.hpp"
 #include "demo_support.hpp"
@@ -329,7 +329,7 @@ void demo_ev_power(const std::string& scenario) {
         {0.002, 50, 0.02, 100, 1000, 500});
     vecu::PowerControllerConfig power_config; power_config.opening_current_max_a = 0.5;
     vecu::DriveControllerConfig drive_config; drive_config.fixed_power_reserve_w = 500; // idle + auxiliary + bounded main-path loss
-    vecu::PowerController power_control(power_config); vecu::BmsController bms(bms_fixture_config()); vecu::DriveController drive(drive_config);
+    vecu::PowerController power_control(power_config); vecu::BmsController bms(bms_fixture_config()); simulation::DriveSil drive(drive_config);
     can::BmsTxState requests{can::BmsFrameKind::PowerRequest}, status_tx{can::BmsFrameKind::PowerStatus},
         relay{can::BmsFrameKind::DriveBatteryLimits}, grants{can::BmsFrameKind::DrivePermission};
     can::DriveTxState commands{can::DriveFrameKind::Command};

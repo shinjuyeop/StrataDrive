@@ -1,15 +1,18 @@
 #pragma once
 
+#include "actuator_session.hpp"
+
 #include "drive_receiver.hpp"
 #include "drive_local_sensors.hpp"
 #include "bms_receiver.hpp"
-#include "torque_response.hpp"
+#include "drive_actuation.hpp"
+#include "torque_feedback.hpp"
 
 namespace stratadrive::vecu {
 // Functional-SIL fixture parameters; no OEM calibration or motor current control.
 struct DriveControllerConfig {
     can::ActuatorValueRange command_nm{-300, 500};
-    simulation::TorqueResponseConfig response{-200, 300, 0, 1000, 2000, 50000000};
+    drive::ResponseConfig response{-200, 300, 0, 1000, 2000, 50000000};
     double max_wheel_speed_rad_s{100}, regen_stop_rad_s{2}, regen_full_rad_s{5};
     double propulsion_mechanical_power_w{20000}, regen_mechanical_power_w{10000};
     // Positive draw envelope: Pdc = T*w/eta + loss_coefficient*T^2 + fixed reserve.
@@ -23,7 +26,7 @@ struct DriveControllerConfig {
 enum class DriveGateFault {
     None, CommandUnavailable, LimitsUnavailable, PermissionUnavailable, PermissionInhibit,
     LocalInputsUnavailable, HvNotReady, BmsProtection, Overspeed, ContinuityLost,
-    ClockError, ControlDeadline, SequenceExhausted
+    ClockError, ControlDeadline, SequenceExhausted, TorqueFeedbackUnavailable
 };
 struct DriveControlDecision {
     bool active{false};
@@ -35,20 +38,24 @@ struct DriveControlDecision {
     bool actual_outside_envelope{false}; // finite response residual, not silently clipped actual
 };
 
-// Mandatory EV gate + SIL torque adapter. The legacy DriveActuator remains an
+// Mandatory EV gate with explicit actuation/sensor ports; no owned plant.
+// The legacy DriveActuator remains an
 // isolated response fixture. No permissive mode bypass exists in this class.
 class DriveController {
 public:
     explicit DriveController(DriveControllerConfig config);
-    bool start_session(std::uint32_t application_epoch, std::uint32_t model_epoch, std::uint64_t enable_ns);
+    bool start_session(ActuatorSession session);
     can::DriveReceiveResult receive_command(const can::DriveFrame& frame, std::uint64_t now_ns);
     can::BmsReceiveResult receive_limits(const can::BmsFrame& frame, std::uint64_t now_ns);
     can::BmsReceiveResult receive_permission(const can::BmsFrame& frame, std::uint64_t now_ns, const can::BmsParentContext* parent);
     drive::SensorResult observe_local(const drive::LocalSensors& sensors, std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
-    std::optional<can::DriveFrame> tick(std::uint64_t now_ns);
+    bool prepare(std::uint64_t now_ns);
+    std::optional<can::DriveFrame> complete(const std::optional<drive::TorqueMeasurement>& sensor, std::uint64_t now_ns);
+    void mark_output_rejected(std::uint64_t now_ns) { fail(DriveGateFault::ControlDeadline, now_ns); }
+    const drive::Actuation& output() const { return output_; }
+    bool execution_gap() const { return execution_gap_; }
     const DriveControlDecision& decision() const { return decision_; }
-    double actual_torque_nm() const { return response_.actual_nm(); }
 private:
     struct Inputs {
         std::optional<can::DriveMessage> command;
@@ -64,7 +71,11 @@ private:
     const DriveControllerConfig config_;
     can::DriveReceiver command_;
     can::BmsReceiver limits_, permission_;
-    simulation::TorqueResponse response_;
+    TorqueFeedback feedback_;
+    drive::Actuation output_{};
+    std::optional<std::uint64_t> prepared_ns_;
+    std::optional<Inputs> prepared_inputs_;
+    bool execution_gap_{false};
     can::DriveTxState tx_{can::DriveFrameKind::Actual};
     std::optional<battery::ModelMeasurement<double>> speed_, speed_cursor_;
     std::optional<battery::ModelMeasurement<drive::HvFeedback>> hv_, hv_cursor_;

@@ -7,7 +7,8 @@ Status: **기존 component 및 Steering/Brake detector 검사 PASS / 학습자 �
 후속 2026-10-16: [Steering response monitor](learning/m2_steering_fault_monitor.md)를 구현·시험했다.
 Steering 후속 시점의 unit은 430개였다. 이어 [Brake response monitor](learning/m2_brake_fault_monitor.md)도
 구현·시험해 OPEN-M2-01/02 모두 **Host component 검사 완료 / 학습자 수용 PENDING**이다.
-현재 전체 unit은 normal·ASan/UBSan 각각 **470개 PASS**다. 아래 최초 검토의 391개 결과와 미구현 판정은 이후 `69a9614`로 커밋한 당시 snapshot의 이력이다.
+구조 정리 전 전체 unit은 normal·ASan/UBSan 각각 **470개 PASS**였다.
+후속 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)에서 21개를 더해 현재 전체 **491개 PASS**다. 아래 최초 검토의 391개 결과와 미구현 판정은 이후 `69a9614`로 커밋한 당시 snapshot의 이력이다.
 최신 실행 증거와 수치는 위 학습 안내/품질 기록에 따로 연결한다.
 
 ## 검토 범위와 판정
@@ -52,7 +53,8 @@ Drive는 fresh zero/Inhibit/known HV OFF일 때 non-driving INIT를 유지할 �
 BMS의 missing startup sensors는 INIT/unknown으로 남으며 fresh release dwell을 완료하지 못한다.
 Power는 확인 전 coil을 쓰지 않고 Inspect에서 실제 접점과 bus를 검사한다.
 
-현재 caller와 component는 single owner다. [SocketCAN fixture](learning/m1_session_queue.md)의
+현재 caller와 component는 single owner다. 후속 구조 정리로 ECU core의 `prepare/complete`와
+외부 SIL runner의 physical step/capture를 분리했으며, 기존 표의 `tick`은 이제 SIL helper의 API다. [SocketCAN fixture](learning/m1_session_queue.md)의
 application FIFO 32 / cycle당 ingress·dispatch 8과 물리 delay FIFO 128은 서로 다른 용도다.
 모든 함수 호출에 queue를 붙이는 구조가 아니다. Thread 분리 시 snapshot 동기화·queue ownership·overflow 반응을
 M3에서 설계하고, 전체 통신 task 정지 중 감시의 독립성을 따로 시험해야 한다.
@@ -156,7 +158,8 @@ normal·ASan/UBSan에서 PASS다. Production build, static analysis, Brake 8개 
 - 단일 센서로 기계 원인을 분리하지 않으며 OS task 정지·vehicle stop·DTC 통합을 검증한 결과가 아니다.
 
 OPEN-M2-01/02의 component 구현 공백은 해소했다. OPEN-M2-03과 wire 채택은 학습자 검토로 남긴다.
-M3의 첫 산출물은 release/clock owner와 task 경계, bounded handoff, 독립 monitor의 정지 검출 계약,
+[실행 경계 정리](learning/m2_execution_boundaries.md)로 ECU library의 plant 소유/호출은 제거했다.
+M3의 첫 산출물은 release/clock owner와 실제 task 경계, bounded handoff, 독립 monitor의 정지 검출 계약,
 job/입력/적용 target을 연결하는 trace schema와 측정 protocol이다. Period와 deadline을 별도로 정하고
 manual-clock 응답 지연과 실제 execution/jitter를 구분한다.
 

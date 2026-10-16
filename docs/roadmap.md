@@ -23,7 +23,8 @@ coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/sessio
 [실제 RC/접점·Battery 연결](learning/m2_ev_power_circuit.md)은 circuit 24개·Battery integrated-flow 5개를 추가했다.
 [Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가했다.
 [Brake response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 추가했다.
-현재 전체 unit 470개를 normal·sanitizer에서 검사하고 기존 vCAN 97개 증거를 유지한다.
+[ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)의 core 18개·외부 물리 진행 3개를 추가했다.
+현재 전체 unit 491개를 normal·sanitizer에서 검사하고 기존 vCAN 97개 증거를 유지한다.
 Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
 [M2 수용 검토](m2_acceptance_review.md)에서는 각각 model vCAN 8개·전체 unit·기존 demo를 재검사해 통과했다.
 Steering/Brake monitor 단계도 각각 model vCAN 8개를 회귀 검사했다. 학습자 수용은 PENDING이다. Zone/DDS/차량 runtime과
@@ -154,7 +155,8 @@ Wire/학습자 review는 PENDING이다.
 3. Wire baseline 채택과 학습자의 설명 기록을 남긴다. Actual Central coordinator/Zone DDS coordinator는 M4/M5에 연결한다.
 4. 실제 circuit/energy loop와 M2 parameter·task/monitor·fault/session의 component 증거는 수용 검토에 기록했다.
    OPEN-M2-01/02는 component 구현·시험했고 learner review가 남았다. M3의 runtime/trace 측정은 별도 준비한다.
-5. M3의 actual execution/period/jitter/deadline 측정 fixture를 설계하고, 이후 M4 단일 coordinator/두 Zone 분할로 진행한다.
+5. ECU/plant 소유와 호출을 분리했고 demo는 도메인별 source/단일 executable로 유지한다.
+   M3의 actual execution/period/jitter/deadline 측정 fixture를 설계하고, 이후 M4 단일 coordinator/두 Zone 분할로 진행한다.
 
 Six-frame 구현·부분 시험과 새 EV/ZON 수용 항목을 구분한다. EV wire 값이나 물리 반응/전원
 parameter를 기존 100 Hz/30 ms 또는 특정 OEM 수치로 자동 확정하지 않는다.

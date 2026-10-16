@@ -1,4 +1,4 @@
-#include "drive_controller.hpp"
+#include "drive_sil.hpp"
 
 #include <gtest/gtest.h>
 #include <cmath>
@@ -16,7 +16,7 @@ drive::LocalSensors local(std::uint32_t ms) {
 }
 class DriveControllerTest : public ::testing::Test {
 protected:
-    vecu::DriveController controller{vecu::DriveControllerConfig{}};
+    simulation::DriveSil controller{vecu::DriveControllerConfig{}};
     can::DriveTxState cmd_tx{can::DriveFrameKind::Command};
     can::BmsTxState bms_tx{can::BmsFrameKind::PowerLimits}, relay_tx{can::BmsFrameKind::DriveBatteryLimits}, grant_tx{can::BmsFrameKind::DrivePermission};
     can::DriveReceiver feedback{{can::DriveFrameKind::Actual, {-300, 500}, 100, 300, 30000000, 80000000, 30000000, 70000000}};
@@ -77,18 +77,18 @@ protected:
 };
 TEST(DriveControllerConfig, RejectsInvalidCalibrationWithoutAPermissiveBypass) {
     auto c = vecu::DriveControllerConfig{}; c.motoring_efficiency_lower_bound = 0;
-    EXPECT_THROW(vecu::DriveController{c}, std::invalid_argument);
-    c = {}; c.copper_loss_w_per_nm2 = 0; EXPECT_THROW(vecu::DriveController{c}, std::invalid_argument);
-    c = {}; c.regen_stop_rad_s = 0; EXPECT_THROW(vecu::DriveController{c}, std::invalid_argument);
-    c = {}; c.regen_full_rad_s = c.regen_stop_rad_s; EXPECT_THROW(vecu::DriveController{c}, std::invalid_argument);
-    c = {}; c.command_nm.maximum = 4000; EXPECT_THROW(vecu::DriveController{c}, std::invalid_argument);
-    c = {}; c.response.maximum_nm = 501; EXPECT_THROW(vecu::DriveController{c}, std::invalid_argument);
-    c = {}; c.minimum_hv_v = 500; EXPECT_THROW(vecu::DriveController{c}, std::invalid_argument);
-    c = {}; c.maximum_bms_power_w = std::numeric_limits<double>::infinity(); EXPECT_THROW(vecu::DriveController{c}, std::invalid_argument);
-    c = {}; c.max_tick_gap_ns = 31000000; EXPECT_THROW(vecu::DriveController{c}, std::invalid_argument);
+    EXPECT_THROW(simulation::DriveSil{c}, std::invalid_argument);
+    c = {}; c.copper_loss_w_per_nm2 = 0; EXPECT_THROW(simulation::DriveSil{c}, std::invalid_argument);
+    c = {}; c.regen_stop_rad_s = 0; EXPECT_THROW(simulation::DriveSil{c}, std::invalid_argument);
+    c = {}; c.regen_full_rad_s = c.regen_stop_rad_s; EXPECT_THROW(simulation::DriveSil{c}, std::invalid_argument);
+    c = {}; c.command_nm.maximum = 4000; EXPECT_THROW(simulation::DriveSil{c}, std::invalid_argument);
+    c = {}; c.response.maximum_nm = 501; EXPECT_THROW(simulation::DriveSil{c}, std::invalid_argument);
+    c = {}; c.minimum_hv_v = 500; EXPECT_THROW(simulation::DriveSil{c}, std::invalid_argument);
+    c = {}; c.maximum_bms_power_w = std::numeric_limits<double>::infinity(); EXPECT_THROW(simulation::DriveSil{c}, std::invalid_argument);
+    c = {}; c.max_tick_gap_ns = 31000000; EXPECT_THROW(simulation::DriveSil{c}, std::invalid_argument);
 }
 TEST(DriveControllerConfig, ExplicitApplicationAndPhysicalEpochMappingIsRequired) {
-    vecu::DriveController c({}); EXPECT_FALSE(c.tick(kStart));
+    simulation::DriveSil c({}); EXPECT_FALSE(c.tick(kStart));
     EXPECT_FALSE(c.start_session(0, 7, kStart)); EXPECT_FALSE(c.start_session(1, 0, kStart));
     ASSERT_TRUE(c.start_session(1, 7, kStart)); EXPECT_FALSE(c.start_session(1, 7, kStart));
     EXPECT_FALSE(c.start_session(2, 6, kStart));

@@ -22,7 +22,8 @@ Date: 2026-10-16. Status: **Host functional SIL 구현·검사 / 학습자 직�
 | 고장 판단 | [SteeringResponseMonitor](../../vecu/steering/steering_response_monitor.cpp): target 이력과 sensor port만 사용; jam flag나 plant getter를 읽지 않음 |
 | 통신·보호 연결 | [SteeringActuator](../../vecu/steering/steering_actuator.cpp): 기존 receiver, local fault/latch, modeled hold와 Actual/P05 |
 
-현재 SteeringActuator는 같은 thread에서 이들을 호출하는 SIL adapter다.
+후속 [실행 경계 정리](m2_execution_boundaries.md)에서 SteeringActuator를 ECU 판단만 남긴 core로 바꿨다.
+[SteeringSil](../../simulation/steering/steering_sil.cpp)이 같은 thread의 물리/센서·ECU 연결을 맡는다.
 파일 경계를 나눈 것이 실제 RTE/OS task 분리나 AUTOSAR stack 구현을 뜻하지 않는다.
 Actuator의 diagnostic getter는 시험·로그용이며 sensor가 없을 때 Actual을 채우는 데 쓰지 않는다.
 

@@ -1,5 +1,5 @@
 #include "steering_angle_codec.hpp"
-#include "steering_actuator.hpp"
+#include "steering_sil.hpp"
 #include "demo_commands.hpp"
 #include "demo_support.hpp"
 
@@ -222,7 +222,7 @@ void demo_steering_model(const std::string& scenario) {
     using namespace stratadrive;
     if (scenario != "normal" && scenario != "jam" && scenario != "slow" && scenario != "sensor-hold" &&
         scenario != "sensor-invalid" && scenario != "transient") throw std::invalid_argument("unknown steering-model scenario");
-    vecu::SteeringActuator model({-0.5, 0.5, -0.3, 0.3, 0, 1, 50*kMs});
+    simulation::SteeringSil model({-0.5, 0.5, -0.3, 0.3, 0, 1, 50*kMs});
     if (!model.start_session(1, kStart)) throw std::runtime_error("model session failed");
     can::SteeringTxState tx{can::SteeringFrameKind::Command};
     const std::array<const char*, 9> faults{"none", "command_unavailable", "continuity_lost", "clock_error", "control_deadline",

@@ -3,6 +3,9 @@
 Date: 2026-10-15. Status: **Host functional SIL component 구현·시험 / 직접 재현·이해 review PENDING**.
 [ADR-0027](../adr/ADR-0027-drive-local-gate-and-capability.md)의 구현이다.
 
+후속 [ECU/SIL 실행 경계 정리](m2_execution_boundaries.md) 뒤 ECU의 `prepare/complete`와
+`simulation/`의 SIL `tick`을 구분해서 읽는다. 물리 진행·고장 주입은 SIL 쪽 책임이다.
+
 ## 이번 단계의 역할
 
 기존 [Drive torque 응답](m2_drive_model.md)은 목표를 주면 지연·변화율·물리 한계에 따라 움직이는 fixture다.

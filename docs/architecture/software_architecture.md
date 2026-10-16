@@ -23,7 +23,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `central/feedback_bridge` | 두 Zone의 per-source actual/EV status → Central consumer/Host; 원천 age/identity 보존, PLANNED |
 | `zone/local_safety` | local timeout/fault → 제한 또는 local fail-safe; Central Vehicle Compute 의존 없는 판단 |
 | `vecu/common` | task model, bounded queues, watchdog, command integrity, diagnostics 계약 |
-| `vecu/steering`, `vecu/brake`, `vecu/drive` | accepted demand → normal/protection 목표 → actual feedback; DriveController는 BMS limits·Central permission·로컬 HV/속도의 필수 gate와 capability 계산, 기존 DriveActuator는 isolated 응답 fixture |
+| `vecu/steering`, `vecu/brake`, `vecu/drive` | accepted demand + 외부 sensor → normal/protection 목표·actual feedback; DriveController는 BMS limits·Central permission·로컬 HV/속도의 필수 gate와 capability 계산, 기존 DriveActuator는 isolated 응답 fixture |
 | `simulation/steering` / `vecu/steering/steering_response_monitor.*` | delay/rate·jam/angle sensor를 만드는 SIL plant / bounded target 이력·독립 sensor로 정상 range/residual/dwell·sensor health를 검사하는 local monitor |
 | `simulation/drive/torque_response.*` | Drive 목표 → delay/rate/saturation·zero-target 물리 응답; ECU 수신/상태 판단과 별도 모듈, 차량 speed/current loop는 미구현 |
 | `simulation/drive/drive_energy_model.*` | begin actual torque/speed·auxiliary → motor DC/손실 → 단일 BatteryModel SOC/관측; 이상적 경로 fixture, dynamic RC는 별도 EvPowerModel에서 연결; vehicle speed/current loop 후속 |
@@ -31,6 +31,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `simulation/battery` | 실제 DC branch power+auxiliary → chemical energy/SOC·Rint/lumped thermal·독립 관측; Host component 구현·시험, BMS와 분리 |
 | `vecu/bms` | local sensor port 검사 → 충방전 derating·보호 latch·PowerLimits와 로컬 safety gate; 물리 모델과 분리 |
 | `vecu/bms/power_controller.*` / `simulation/power` | BMS leaf의 lifecycle runnable / 실제 접점·RC bus·current 센서; controller/plant 분리, Host component 구현·시험 |
+| `simulation/{steering,brake,drive}/*_sil` | ECU와 plant 연결, physical step/acquisition·출력 적용·fault injection; ECU library 밖의 single-owner SIL runner |
 | `simulation/simple_plant` | CARLA 전 계약 검증용 작은 vehicle model |
 | `simulation/plant_adapter` | actual actuator feedback → plant별 actuation mapping |
 | `simulation/carla`, `simulation/scenarios`, `simulation/fault_injection` | simulator lifecycle, scenario, 명시적 fault injection |
@@ -59,14 +60,14 @@ vECU는 CAN echo simulator가 아니라 MCU/RTOS를 학습하는 Linux software 
 | 실행·통신 서비스 | Runnable→OS Task mapping, RTE/BSW 연결, 통신·timer·driver adapter; 실제 stack/toolchain은 pilot에서 결정 |
 | SIL 물리 모델 | ECU 출력 요구→조향각·압력·torque·battery/power 응답→관측 actual; model clock/초기값/parameter와 controller 경계 |
 
-현재 Steering/Brake의 `tick`은 monitor·출력 선택·물리 응답·Actual 생성까지 같은 thread에서 실행한다.
-Steering은 [별도 물리·sensor·local monitor](../learning/m2_steering_fault_monitor.md) 모듈로 책임을 분리했다.
-SteeringActuator는 이를 호출하는 SIL composition adapter이며 실제 OS/RTE task 분리는 아니다.
-첫 Drive는 [ECU adapter와 물리 모듈](../learning/m2_drive_model.md)을 별도 소스로 구현하고
-같은 thread에서 호출한다. BMS/permission/local HV gate는 미통합인 독립 응답 fixture다.
-[후속 DriveController](../learning/m2_drive_gate.md)는 같은 물리 모듈 앞에서 필수 EV gate와
-directional torque envelope를 적용한다. 센서 port·ECU 판단·물리 응답의 책임을 구분한다.
-설계에서 이 책임을 구분하되 runtime 분리·디렉터리 이동은 후속 작은 구현 변경으로 수행한다.
+[실행 경계 정리](../learning/m2_execution_boundaries.md) 뒤 `vecu`의 SteeringActuator·BrakeActuator·DriveActuator·DriveController는
+plant 객체를 소유하거나 물리/취득을 호출하지 않는다. `prepare(now)`/`complete(sensor, now)`로 job을 나누고
+interfaces의 typed actuation/sensor port를 사용한다. 두 phase는 한 owner가 같은 논리 job 시각에서 직렬로 호출한다.
+`simulation/*/*_sil`의 연결 코드가 ECU와 plant를 소유해 기존 delay·gap·fault 정책을 실행한다.
+실제 실행자는 둘을 각각 진행할 수 있으며, ECU 정지 중 외부 plant가 진행한 상태를 복귀 때 되돌리지 않는다.
+기존 CLI와 CAN fixture는 이 SIL 연결 코드를 사용한다. DriveController의 필수 BMS/permission/HV gate는 유지한다.
+BMS/PowerController도 기존의 외부 sensor/출력 port 경계를 유지한다. ECU library에는 simulation include/link 의존성이 없다.
+별도 OS task·thread·독립 watchdog·RTE mapping은 M3/pilot의 후속이며 현재 phase API가 이 구현을 대신하지 않는다.
 모델을 분리해도 command와 actual, 정상/보호 출력과 실제 응답의 차이를 보존한다.
 Actuator 물리 응답과 battery/power sensor 모델을 production SWC로 자동 분류하지 않는다.
 현재 library·single-owner Linux 실행은 생성된 RTE/BSW나 AUTOSAR OS의 증거가 아니다.

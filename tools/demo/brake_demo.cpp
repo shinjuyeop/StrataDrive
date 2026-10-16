@@ -1,4 +1,4 @@
-#include "brake_actuator.hpp"
+#include "brake_sil.hpp"
 #include "brake_pressure_codec.hpp"
 #include "demo_commands.hpp"
 #include "demo_support.hpp"
@@ -120,7 +120,7 @@ void demo_brake_model(const std::string& scenario) {
     using namespace stratadrive;
     if (scenario != "normal" && scenario != "stuck-rise" && scenario != "slow-rise" && scenario != "stuck-release" && scenario != "slow-release" && scenario != "sensor-hold" &&
         scenario != "sensor-invalid" && scenario != "transient") throw std::invalid_argument("unknown brake-model scenario");
-    vecu::BrakeActuator model({2000000, 1500000, 0, 5000000, 10000000, 1000000, 50*kMs});
+    simulation::BrakeSil model({2000000, 1500000, 0, 5000000, 10000000, 1000000, 50*kMs});
     if (!model.start_session(1, kStart)) throw std::runtime_error("model session failed");
     can::BrakeTxState tx{can::BrakeFrameKind::Command};
     const std::array<const char*, 9> faults{"none", "command_unavailable", "continuity_lost", "clock_error", "control_deadline",

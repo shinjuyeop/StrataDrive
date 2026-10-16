@@ -321,19 +321,19 @@ int main(int argc, char** argv) {
         const std::string mode = argc == 6 ? argv[5] : "";
         const bool overflow = mode == "app-overflow" || mode == "kernel-overflow";
         if (stream == "cmd" && mode == "model") {
-            vecu::SteeringActuator model(fixture::steering_model_config());
+            simulation::SteeringSil model(fixture::steering_model_config());
             response_model_fixture(argv[1], epoch, duration, model, can::kSteeringCommandId,
                 socketcan::to_steering, can::decode_steering_frame,
                 [](const auto& actual) { return actual.angle_rad; }, "angle_rad"); return 0;
         }
         if (stream == "brake-cmd" && mode == "model") {
-            vecu::BrakeActuator model(fixture::brake_model_config());
+            simulation::BrakeSil model(fixture::brake_model_config());
             response_model_fixture(argv[1], epoch, duration, model, can::kBrakeCommandId,
                 socketcan::to_brake, can::decode_brake_frame,
                 [](const auto& actual) { return actual.pressure_pa; }, "pressure_pa"); return 0;
         }
         if (stream == "drive-cmd" && mode == "model") {
-            vecu::DriveActuator model(fixture::drive_model_config());
+            simulation::DriveActuatorSil model(fixture::drive_model_config());
             response_model_fixture(argv[1], epoch, duration, model, can::kDriveCommandId,
                 socketcan::to_drive, can::decode_drive_frame,
                 [](const auto& actual) { return actual.torque_nm; }, "torque_nm"); return 0;

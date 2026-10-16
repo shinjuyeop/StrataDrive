@@ -1,20 +1,15 @@
 #pragma once
 
+#include "drive_actuation.hpp"
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 
 namespace stratadrive::simulation {
-struct TorqueResponseConfig {
-    double minimum_nm;
-    double maximum_nm;
-    double initial_nm;
-    double rate_nm_s;
-    double zero_rate_nm_s;
-    std::uint64_t delay_ns;
-};
-struct TorqueEnvelope { double minimum_nm, maximum_nm; }; // includes zero
+using TorqueResponseConfig = drive::ResponseConfig;
+using TorqueEnvelope = drive::TorqueEnvelope;
 
 // SIL plant only: no CAN, ECU state, permission, sensor or motor current loop.
 // The caller owns the monotonic clock, control period and missed-tick policy.

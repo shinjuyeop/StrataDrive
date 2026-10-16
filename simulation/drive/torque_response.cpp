@@ -8,12 +8,7 @@
 namespace stratadrive::simulation {
 TorqueResponse::TorqueResponse(TorqueResponseConfig config) : config_(config),
     envelope_{config.minimum_nm, config.maximum_nm}, actual_(config.initial_nm) {
-    if (!std::isfinite(config.minimum_nm) || !std::isfinite(config.maximum_nm) ||
-        !std::isfinite(config.maximum_nm - config.minimum_nm) || !std::isfinite(actual_) ||
-        !std::isfinite(config.rate_nm_s) || !std::isfinite(config.zero_rate_nm_s) ||
-        config.minimum_nm >= 0 || config.maximum_nm <= 0 ||
-        actual_ < config.minimum_nm || actual_ > config.maximum_nm ||
-        config.rate_nm_s <= 0 || config.zero_rate_nm_s <= 0) {
+    if (!drive::valid_response_config(config)) {
         throw std::invalid_argument("TorqueResponse configuration");
     }
 }

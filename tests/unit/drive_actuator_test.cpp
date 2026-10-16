@@ -1,4 +1,4 @@
-#include "drive_actuator.hpp"
+#include "drive_actuator_sil.hpp"
 
 #include <gtest/gtest.h>
 #include <algorithm>
@@ -65,7 +65,7 @@ TEST(TorqueResponseTest, CapacityOverflowAndTimestampOverflowFailWithoutAllocati
 
 class DriveActuatorTest : public ::testing::Test {
 protected:
-    vecu::DriveActuator model{configuration()};
+    simulation::DriveActuatorSil model{configuration()};
     can::DriveTxState tx{can::DriveFrameKind::Command};
     std::uint32_t sequence{0};
     void SetUp() override { ASSERT_TRUE(model.start_session(1, kStart)); }
@@ -124,17 +124,17 @@ TEST(TorqueResponseTest, InvalidEnvelopeIsRejectedAndNewSessionPreservesActualWi
 }
 TEST(DriveActuatorConfigTest, InvalidWireTimingAndPlantParametersAreRejected) {
     auto config = configuration(); config.command_nm.maximum = 4000;
-    EXPECT_THROW(vecu::DriveActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::DriveActuatorSil{config}, std::invalid_argument);
     config = configuration(); config.response.minimum_nm = -301;
-    EXPECT_THROW(vecu::DriveActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::DriveActuatorSil{config}, std::invalid_argument);
     config = configuration(); config.response.delay_ns = 1001*kMs;
-    EXPECT_THROW(vecu::DriveActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::DriveActuatorSil{config}, std::invalid_argument);
     config = configuration(); config.period_ns = 0;
-    EXPECT_THROW(vecu::DriveActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::DriveActuatorSil{config}, std::invalid_argument);
     config = configuration(); config.max_source_age_ns = config.timeout_ns;
-    EXPECT_THROW(vecu::DriveActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::DriveActuatorSil{config}, std::invalid_argument);
     config = configuration(); config.max_source_age_ns = 20*kMs;
-    vecu::DriveActuator short_age(config); EXPECT_TRUE(short_age.start_session(1, kStart));
+    simulation::DriveActuatorSil short_age(config); EXPECT_TRUE(short_age.start_session(1, kStart));
 }
 TEST_F(DriveActuatorTest, StartupIsInitThenUnavailableAndHasNoInventedAuxFeedback) {
     for (int ms = 10; ms < 80; ms += 10) {
@@ -271,7 +271,7 @@ TEST_F(DriveActuatorTest, CorruptUnavailableAndOutOfRangeFramesCannotRefreshComm
 }
 TEST_F(DriveActuatorTest, ZeroDelayInitialStateAndDegradedCommandRemainDistinct) {
     auto config = configuration(); config.response.initial_nm = 50; config.response.delay_ns = 0;
-    vecu::DriveActuator other(config); ASSERT_TRUE(other.start_session(1, kStart));
+    simulation::DriveActuatorSil other(config); ASSERT_TRUE(other.start_session(1, kStart));
     auto input = can::decode_drive_frame(command({10, 100})).value();
     input.local_state = can::ActuatorLocalState::Degraded;
     ASSERT_EQ(other.receive(can::encode_drive_frame(input, tx).value(), kStart + 10*kMs).decision, can::ActuatorReceiveDecision::Accepted);
@@ -282,11 +282,26 @@ TEST_F(DriveActuatorTest, ZeroDelayInitialStateAndDegradedCommandRemainDistinct)
 }
 TEST_F(DriveActuatorTest, MaximumDelayAndRepeatedTargetChangesStayBounded) {
     auto config = configuration(); config.response.delay_ns = 1000*kMs;
-    vecu::DriveActuator other(config); ASSERT_TRUE(other.start_session(1, kStart));
+    simulation::DriveActuatorSil other(config); ASSERT_TRUE(other.start_session(1, kStart));
     for (int ms = 10; ms <= 3000; ms += 10) {
         ASSERT_EQ(other.receive(command({ms, ms % 20 ? 500.0 : -300.0}), kStart + ms*kMs).decision, can::ActuatorReceiveDecision::Accepted);
         ASSERT_TRUE(other.tick(kStart + ms*kMs)); ASSERT_EQ(other.fault(), vecu::DriveFault::None);
         ASSERT_GE(other.actual_torque_nm(), -200); ASSERT_LE(other.actual_torque_nm(), 300);
     }
+}
+TEST(DriveExecutionBoundary, ExternalTorqueContinuesWithoutEcuAndZeroRequestCannotEraseResidual) {
+    vecu::DriveActuator ecu(configuration()); simulation::TorqueResponse plant(configuration().response);
+    ASSERT_TRUE(ecu.start_session({1,7,kStart})); plant.begin(kStart);
+    can::DriveMessage m; m.epoch=1; m.torque_nm=200; m.source_time_ns=kStart+10*kMs;
+    m.local_state=can::ActuatorLocalState::Normal; m.origin=can::ActuatorOrigin::NormalPath;
+    can::DriveTxState tx{m.kind}; ASSERT_EQ(ecu.receive(*can::encode_drive_frame(m,tx),m.source_time_ns).decision,can::ActuatorReceiveDecision::Accepted);
+    ASSERT_TRUE(ecu.prepare(m.source_time_ns)); ASSERT_TRUE(plant.set_target(ecu.output().target_nm,ecu.output().issued_time_ns));
+    ASSERT_TRUE(plant.advance(m.source_time_ns)); ASSERT_TRUE(ecu.complete(drive::TorqueMeasurement{7,0,m.source_time_ns,plant.actual_nm()},m.source_time_ns));
+    ASSERT_TRUE(plant.advance(kStart+100*kMs)); EXPECT_DOUBLE_EQ(plant.actual_nm(),40);
+    ASSERT_TRUE(ecu.prepare(kStart+100*kMs)); EXPECT_EQ(ecu.fault(),vecu::DriveFault::ControlDeadline);
+    plant.request_zero(ecu.output().issued_time_ns);
+    const auto frame=ecu.complete(drive::TorqueMeasurement{7,1,kStart+100*kMs,plant.actual_nm()},kStart+100*kMs); ASSERT_TRUE(frame);
+    EXPECT_DOUBLE_EQ(*can::decode_drive_frame(*frame)->torque_nm,40);
+    ASSERT_TRUE(plant.advance(kStart+110*kMs)); EXPECT_DOUBLE_EQ(plant.actual_nm(),20);
 }
 }  // namespace

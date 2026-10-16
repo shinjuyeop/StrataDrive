@@ -1,5 +1,5 @@
-#include "drive_actuator.hpp"
-#include "drive_controller.hpp"
+#include "drive_actuator_sil.hpp"
+#include "drive_sil.hpp"
 #include "drive_energy_model.hpp"
 #include "power_model.hpp"
 #include "bms_value_codec.hpp"
@@ -107,7 +107,7 @@ void demo_drive_gated(const std::string& scenario) {
     using namespace stratadrive;
     if (scenario != "normal" && scenario != "charge-zero" && scenario != "permission-loss" && scenario != "hv-loss" &&
         scenario != "speed-stale" && scenario != "limits-stale") throw std::invalid_argument("unknown drive-gated scenario");
-    vecu::DriveController controller({}); vecu::BmsController bms(bms_fixture_config());
+    simulation::DriveSil controller({}); vecu::BmsController bms(bms_fixture_config());
     simulation::PowerModel power_plant({0.002, 50, 0.02, 100, 1000, 500});
     can::DriveTxState cmd_tx{can::DriveFrameKind::Command};
     can::BmsTxState relay{can::BmsFrameKind::DriveBatteryLimits}, grants{can::BmsFrameKind::DrivePermission};
@@ -180,7 +180,7 @@ void demo_drive_energy(const std::string& scenario) {
         throw std::invalid_argument("unknown drive-energy scenario");
     }
     simulation::DriveEnergyModel energy({}, {180000000, 400, 0.05, 200000, 20, 25, 100, 0.01, 1, 100000});
-    vecu::DriveController drive({}); vecu::BmsController bms(bms_fixture_config());
+    simulation::DriveSil drive({}); vecu::BmsController bms(bms_fixture_config());
     can::DriveTxState commands{can::DriveFrameKind::Command};
     can::BmsTxState relay{can::BmsFrameKind::DriveBatteryLimits}, grants{can::BmsFrameKind::DrivePermission};
     can::DriveReceiver feedback({can::DriveFrameKind::Actual, {-300, 500}, 100, 300, 30000000, 80000000, 30000000, 70000000});
@@ -248,7 +248,7 @@ void demo_drive_energy(const std::string& scenario) {
 }
 
 void demo_drive_model() {
-    stratadrive::vecu::DriveActuator model({{-300, 500}, {-200, 300, 0, 1000, 2000, 50*kMs}});
+    stratadrive::simulation::DriveActuatorSil model({{-300, 500}, {-200, 300, 0, 1000, 2000, 50*kMs}});
     if (!model.start_session(1, kStart)) throw std::runtime_error("drive model session failed");
     DriveTxState tx{DriveFrameKind::Command};
     for (std::uint32_t step = 1; step <= 160; ++step) {

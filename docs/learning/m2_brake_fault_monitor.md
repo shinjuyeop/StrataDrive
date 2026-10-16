@@ -17,7 +17,8 @@ Date: 2026-10-16. Status: **Host functional SIL 구현·검사 / 학습자 직�
 | 고장 판단 | [BrakeResponseMonitor](../../vecu/brake/brake_response_monitor.cpp): issued target 이력과 센서만 사용 |
 | 통신·보호 연결 | [BrakeActuator](../../vecu/brake/brake_actuator.cpp): receiver/P05, 상태·latch와 보호 출력 요청 |
 
-이들은 현재 single-owner SIL adapter에서 실행한다. OS/RTE task나 hydraulic feedback controller를 만든 결과는 아니다.
+후속 [실행 경계 정리](m2_execution_boundaries.md) 뒤 BrakeActuator는 ECU 판단만 수행하고,
+[BrakeSil](../../simulation/brake/brake_sil.cpp)이 single-owner 물리/센서·ECU 연결을 맡는다. OS/RTE task나 hydraulic feedback controller를 만든 결과는 아니다.
 센서가 없을 때 plant의 diagnostic getter를 대신 사용하지 않는다.
 
 ## 정상으로 예상되는 압력 범위
@@ -110,7 +111,7 @@ Response fault 뒤 range/residual은 확정 당시 증거로 남긴다. 출력 �
 ## 검증과 다음 단계
 
 새 unit 40개는 plant 10·monitor 16·기존 adapter 파일의 14개다.
-전체 normal·ASan/UBSan **470개 PASS**, production build와 정상/고장 demo를 검사했다.
+당시 전체 normal·ASan/UBSan **470개 PASS**, production build와 정상/고장 demo를 검사했다.
 기존 Brake adapter 16개도 유지한다. Model vCAN 8개 회귀는 새 고장 network 시험과 구분한다.
 실행 범위·로그·정적 분석은 [품질 기록](../quality_policy.md)에 둔다.
 

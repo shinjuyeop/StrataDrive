@@ -3,6 +3,9 @@
 Date: 2026-10-15. Status: **Host functional SIL component 구현·시험 / 학습자 review PENDING**.
 TBD-02/03/12/13/14의 부분 구현이다. Full TC-REG/EV/ZON은 NOT RUN이다.
 
+후속 구조 변경: [ADR-0032](ADR-0032-ecu-and-sil-execution-boundaries.md)에서 ECU의 plant 소유/호출을
+외부 SIL 연결 코드로 옮겼다. 아래는 이 ADR 채택 당시의 설계·시험 이력이다.
+
 ## 결정과 책임
 
 `vecu/drive/DriveController`는 Command, 원천 보존된 DriveBatteryLimits, 별도로 검증한 parent의

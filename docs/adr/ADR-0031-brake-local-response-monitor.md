@@ -3,6 +3,9 @@
 Date: 2026-10-16. Status: **IMPLEMENTED / Host component checks; 학습자 수용 PENDING**.
 [M2 수용 검토](../m2_acceptance_review.md)의 OPEN-M2-02에 대한 component 구현이다.
 
+후속 구조 변경: [ADR-0032](ADR-0032-ecu-and-sil-execution-boundaries.md)에서 ECU의 plant 소유/호출을
+외부 SIL 연결 코드로 옮겼다. 아래는 이 ADR 채택 당시의 설계·시험 이력이다.
+
 ## 문제
 
 Fresh Command/Actual stream만으로 가압·감압 능력이 정상인지 알 수 없다.

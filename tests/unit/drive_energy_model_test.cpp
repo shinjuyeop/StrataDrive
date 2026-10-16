@@ -1,5 +1,5 @@
 #include "drive_energy_model.hpp"
-#include "drive_controller.hpp"
+#include "drive_sil.hpp"
 #include "bms_controller.hpp"
 
 #include <gtest/gtest.h>
@@ -218,7 +218,7 @@ vecu::BmsControllerConfig bms_config() {
 class DriveEnergyLoop : public ::testing::Test {
 protected:
     DriveEnergyModel energy{{}, battery_config()};
-    vecu::DriveController drive{{}};
+    simulation::DriveSil drive{{}};
     vecu::BmsController bms{bms_config()};
     can::DriveTxState command_tx{can::DriveFrameKind::Command};
     can::BmsTxState relay{can::BmsFrameKind::DriveBatteryLimits}, grants{can::BmsFrameKind::DrivePermission};

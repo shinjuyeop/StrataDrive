@@ -1,7 +1,9 @@
 #pragma once
 
+#include "actuator_session.hpp"
+
 #include "steering_receiver.hpp"
-#include "steering_response.hpp"
+#include "steering_actuation.hpp"
 #include "steering_response_monitor.hpp"
 
 #include <cstdint>
@@ -13,7 +15,7 @@ struct SteeringActuatorConfig {
     double command_max_rad;
     double angle_min_rad;
     double angle_max_rad;
-    double initial_angle_rad;
+    double initial_angle_rad; // fixture metadata; only the SIL plant applies it
     double max_rate_rad_s;
     std::uint64_t delay_ns;
     std::uint64_t period_ns{10000000};
@@ -26,23 +28,24 @@ struct SteeringActuatorConfig {
 enum class SteeringFault { None, CommandUnavailable, ContinuityLost, ClockError, ControlDeadline,
     SensorUnavailable, SensorInvalid, TrackingError, PhysicalModelError };
 
-// Single-owner functional SIL composition, not an OS task/production SWC.
-// The plant and local sensor monitor are separate modules; fault injection
-// enters the plant/capture only. The monitor never sees physical truth or jam flags.
+// ECU logic only: receiver, monitor, selected output and CAN publication.
+// prepare/complete delimit one externally clocked job. Physics and acquisition
+// run outside this object; use simulation's SIL runner for the legacy fixture.
 class SteeringActuator {
 public:
     explicit SteeringActuator(SteeringActuatorConfig config);
-    bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
+    bool start_session(ActuatorSession session);
     can::SteeringReceiveResult receive(const can::SteeringFrame& frame, std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
-    // At most one publication per period. A missed control deadline holds the
-    // angle rather than catching up physics. No output with an untrusted clock.
-    // Physical injection covers the elapsed interval ending at now_ns. Sensor
-    // action/override applies to the end acquisition; explicit SIL fixture inputs.
-    std::optional<can::SteeringFrame> tick(std::uint64_t now_ns, simulation::SteeringResponseInjection injection = {},
-        simulation::SteeringSensorAction sensor_action = simulation::SteeringSensorAction::Acquire,
-        std::optional<double> sensed_angle_override = std::nullopt);
-    double actual_angle_rad() const { return response_.actual_angle_rad(); } // diagnostics, never sensor fallback
+    // prepare checks clock/period/communication before external actuation.
+    // complete accepts a sensor snapshot for that same time, then selects the
+    // next output. No physics, sensor generation or implicit 0 fallback here.
+    bool prepare(std::uint64_t now_ns);
+    std::optional<can::SteeringFrame> complete(const std::optional<steering::AngleMeasurement>& sensor, std::uint64_t now_ns);
+    void mark_io_error(std::uint64_t now_ns);
+    void mark_output_rejected(std::uint64_t now_ns);
+    const steering::Actuation& output() const { return output_; }
+    bool execution_gap() const { return execution_gap_; }
     SteeringFault fault() const { return fault_; }
     const SteeringMonitorDecision& monitor_decision() const { return monitor_.decision(); }
     // Current command snapshot for ingress diagnostics; not actuator feedback.
@@ -55,11 +58,13 @@ private:
     const SteeringActuatorConfig config_;
     can::SteeringReceiver receiver_;
     can::SteeringTxState tx_{can::SteeringFrameKind::Actual};
-    simulation::SteeringResponse response_;
     SteeringResponseMonitor monitor_;
     std::uint32_t epoch_{0}, sequence_{0};
     std::uint64_t last_tick_ns_{0};
     bool sequence_exhausted_{false};
+    steering::Actuation output_{};
+    std::optional<std::uint64_t> prepared_ns_;
+    bool execution_gap_{false};
     SteeringFault fault_{SteeringFault::None};
 };
 }  // namespace stratadrive::vecu

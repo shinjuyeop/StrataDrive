@@ -38,15 +38,14 @@ bool operational(const can::BmsMessage& limits) {
 DriveController::DriveController(DriveControllerConfig config) : config_(config),
     command_({can::DriveFrameKind::Command, config.command_nm, can::kDriveWheelSpeedWireMaxRadS, -config.command_nm.minimum}),
     limits_({can::BmsFrameKind::DriveBatteryLimits, {{0, 1000}, {-3000, 3000}, {-50, 150}, config.maximum_bms_power_w}}),
-    permission_({can::BmsFrameKind::DrivePermission, {{0, 1000}, {-3000, 3000}, {-50, 150}, config.maximum_bms_power_w}}),
-    response_(config.response) {
+    permission_({can::BmsFrameKind::DrivePermission, {{0, 1000}, {-3000, 3000}, {-50, 150}, config.maximum_bms_power_w}}) {
     for (const auto x : {config.command_nm.minimum, config.command_nm.maximum, config.max_wheel_speed_rad_s,
         config.regen_stop_rad_s, config.regen_full_rad_s, config.propulsion_mechanical_power_w, config.regen_mechanical_power_w,
         config.motoring_efficiency_lower_bound, config.copper_loss_w_per_nm2, config.fixed_power_reserve_w,
         config.minimum_hv_v, config.maximum_hv_v, config.maximum_bms_power_w}) {
         if (!std::isfinite(x)) throw std::invalid_argument("DriveController finite calibration");
     }
-    if (config.command_nm.minimum >= 0 || config.command_nm.maximum <= 0 || config.command_nm.minimum < -can::kDriveTorqueWireMaxNm ||
+    if (!drive::valid_response_config(config.response) || config.command_nm.minimum >= 0 || config.command_nm.maximum <= 0 || config.command_nm.minimum < -can::kDriveTorqueWireMaxNm ||
         config.command_nm.maximum > can::kDriveTorqueWireMaxNm || config.response.minimum_nm < config.command_nm.minimum ||
         config.response.maximum_nm > config.command_nm.maximum || config.max_wheel_speed_rad_s <= config.regen_full_rad_s ||
         config.max_wheel_speed_rad_s > can::kDriveWheelSpeedWireMaxRadS || config.regen_stop_rad_s <= 0 ||
@@ -60,7 +59,10 @@ DriveController::DriveController(DriveControllerConfig config) : config_(config)
         !std::isfinite(std::pow(config.max_wheel_speed_rad_s/config.motoring_efficiency_lower_bound, 2)+
             4*config.copper_loss_w_per_nm2*config.maximum_bms_power_w)) throw std::invalid_argument("DriveController configuration");
 }
-bool DriveController::start_session(std::uint32_t application_epoch, std::uint32_t model_epoch, std::uint64_t enable_ns) {
+bool DriveController::start_session(ActuatorSession session) {
+    const auto application_epoch = session.application_epoch;
+    const auto model_epoch = session.model_epoch;
+    const auto enable_ns = session.enable_ns;
     if (application_epoch == 0 || model_epoch == 0 || (epoch_ != 0 &&
         (application_epoch <= epoch_ || model_epoch < model_epoch_ || enable_ns < last_observed_ns_))) return false;
     if (!command_.start_session(application_epoch, enable_ns) || !limits_.start_session(application_epoch, enable_ns) ||
@@ -68,7 +70,9 @@ bool DriveController::start_session(std::uint32_t application_epoch, std::uint32
     epoch_ = application_epoch; model_epoch_ = model_epoch; enable_ns_ = last_observed_ns_ = last_tick_ns_ = enable_ns;
     sequence_ = 0; armed_ = stopped_ = false; decision_ = {};
     speed_.reset(); speed_cursor_.reset(); hv_.reset(); hv_cursor_.reset(); permission_parent_.reset(); last_capability_input_ns_.reset();
-    response_.begin(enable_ns); e2e::p05_protect_init(tx_.protection);
+    feedback_.begin(model_epoch, enable_ns); e2e::p05_protect_init(tx_.protection);
+    output_ = {drive::ActuationMode::Zero, 0, std::nullopt, enable_ns};
+    prepared_ns_.reset(); prepared_inputs_.reset(); execution_gap_ = false;
     return true;
 }
 bool DriveController::clock(std::uint64_t now_ns) {
@@ -83,7 +87,7 @@ void DriveController::fail(DriveGateFault fault, std::uint64_t now_ns) {
         decision_.fault = fault;
     }
     decision_.active = false; decision_.selected_target_nm = 0;
-    if (fault != DriveGateFault::ClockError) response_.request_zero(now_ns);
+    if (fault != DriveGateFault::ClockError) output_ = {drive::ActuationMode::Zero, 0, drive::TorqueEnvelope{0, 0}, now_ns};
 }
 DriveController::Inputs DriveController::monitor(std::uint64_t now_ns) {
     Inputs in;
@@ -197,34 +201,40 @@ void DriveController::calculate(const Inputs& in) {
     decision_.regen_reason = *limits.charge_power_w == 0 || charge < motor ? can::DriveRegenLimitReason::ChargeAcceptanceLimited :
         motor < base ? can::DriveRegenLimitReason::MotorOrSpeedLimited : can::DriveRegenLimitReason::Nominal;
 }
-std::optional<can::DriveFrame> DriveController::tick(std::uint64_t now_ns) {
-    if (!clock(now_ns)) return std::nullopt;
-    if (now_ns-last_tick_ns_ < config_.period_ns) return std::nullopt;
-    const bool missed = now_ns-last_tick_ns_ > config_.max_tick_gap_ns;
-    if (missed) fail(DriveGateFault::ControlDeadline, now_ns);
+bool DriveController::prepare(std::uint64_t now_ns) {
+    if (prepared_ns_ && *prepared_ns_ == now_ns) return true;
+    if (prepared_ns_) { fail(DriveGateFault::ControlDeadline, now_ns); prepared_ns_.reset(); }
+    if (!clock(now_ns)) return false;
+    if (now_ns-last_tick_ns_ < config_.period_ns) return false;
+    execution_gap_ = now_ns-last_tick_ns_ > config_.max_tick_gap_ns;
+    if (execution_gap_) fail(DriveGateFault::ControlDeadline, now_ns);
     const auto in = monitor(now_ns);
     if (decision_.fault == DriveGateFault::None && in.allowed && in.command) armed_ = true;
     decision_.active = armed_ && decision_.fault == DriveGateFault::None && in.allowed && in.command.has_value();
     calculate(in);
     decision_.selected_target_nm = 0;
-    if (missed) response_.skip_to(now_ns);
-    if (!decision_.active) response_.request_zero(now_ns);
-    const simulation::TorqueEnvelope envelope{decision_.active ? -*decision_.regen_limit_nm : 0,
+    const drive::TorqueEnvelope envelope{decision_.active ? -*decision_.regen_limit_nm : 0,
         decision_.active ? *decision_.propulsion_limit_nm : 0};
-    if (!response_.constrain(envelope, now_ns)) { fail(DriveGateFault::ClockError, now_ns); stopped_ = true; return std::nullopt; }
     if (decision_.active) {
-        // Adding positive zero canonicalizes a clamped -0.0 without changing finite torque.
         decision_.selected_target_nm = std::clamp(*in.command->torque_nm, envelope.minimum_nm, envelope.maximum_nm) + 0.0;
-        if (!response_.set_target(decision_.selected_target_nm, now_ns)) {
-            fail(DriveGateFault::ControlDeadline, now_ns); calculate(in);
-        }
     }
-    if (!response_.advance(now_ns)) { fail(DriveGateFault::ClockError, now_ns); stopped_ = true; return std::nullopt; }
+    output_ = {decision_.active ? drive::ActuationMode::Target : drive::ActuationMode::Zero,
+        decision_.selected_target_nm, envelope, now_ns};
+    prepared_ns_ = now_ns; prepared_inputs_ = in; return true;
+}
+std::optional<can::DriveFrame> DriveController::complete(const std::optional<drive::TorqueMeasurement>& sensor, std::uint64_t now_ns) {
+    if (!prepared_ns_ || *prepared_ns_ != now_ns || !prepared_inputs_) return std::nullopt;
+    prepared_ns_.reset();
+    if (!clock(now_ns)) return std::nullopt;
+    const auto in = *prepared_inputs_; prepared_inputs_.reset();
+    const auto measured = feedback_.observe(sensor, now_ns, config_.response.minimum_nm, config_.response.maximum_nm);
+    if (!measured.valid) { fail(DriveGateFault::TorqueFeedbackUnavailable, now_ns); calculate(in); }
     last_tick_ns_ = now_ns;
-    decision_.actual_outside_envelope = response_.actual_nm() < (decision_.active ? envelope.minimum_nm : 0) ||
-        response_.actual_nm() > (decision_.active ? envelope.maximum_nm : 0);
+    decision_.actual_outside_envelope = measured.valid &&
+        (sensor->torque_nm < (decision_.active ? -*decision_.regen_limit_nm : 0) ||
+         sensor->torque_nm > (decision_.active ? *decision_.propulsion_limit_nm : 0));
     can::DriveMessage actual; actual.kind = can::DriveFrameKind::Actual; actual.epoch = epoch_; actual.sequence = sequence_;
-    actual.source_time_ns = now_ns; actual.torque_nm = response_.actual_nm();
+    actual.source_time_ns = now_ns; actual.torque_nm = measured.fresh;
     const auto& accepted = command_.last_accepted(); actual.causal_sequence = accepted ? accepted->message.sequence : 0;
     actual.local_state = decision_.fault != DriveGateFault::None ? can::ActuatorLocalState::FailSafe : !decision_.active ? can::ActuatorLocalState::Init :
         (decision_.selected_target_nm != *in.command->torque_nm || decision_.actual_outside_envelope ||

@@ -11,7 +11,6 @@ namespace stratadrive::vecu {
 SteeringActuator::SteeringActuator(SteeringActuatorConfig config)
     : config_(config), receiver_({can::SteeringFrameKind::Command,
           config.command_min_rad, config.command_max_rad, config.max_source_age_ns, config.timeout_ns}),
-      response_({config.angle_min_rad, config.angle_max_rad, config.initial_angle_rad, config.max_rate_rad_s, config.delay_ns}),
       monitor_({config.angle_min_rad, config.angle_max_rad, config.max_rate_rad_s*config.healthy_min_rate_fraction,
           config.max_rate_rad_s*config.healthy_max_rate_fraction, config.delay_ns, config.tracking_tolerance_rad,
           config.tracking_confirmation_ns, config.sensor_age_ns, config.max_tick_gap_ns}) {
@@ -32,18 +31,23 @@ SteeringActuator::SteeringActuator(SteeringActuatorConfig config)
         throw std::invalid_argument("SteeringActuator configuration");
     }
 }
-bool SteeringActuator::start_session(std::uint32_t epoch, std::uint64_t enable_ns) {
-    if (epoch_ != 0 && enable_ns < last_tick_ns_) return false;
-    if (!receiver_.start_session(epoch, enable_ns)) return false;
-    if (!response_.begin(enable_ns) || !monitor_.begin(response_.model_epoch(), enable_ns)) return false;
-    epoch_ = epoch; last_tick_ns_ = enable_ns; sequence_ = 0; sequence_exhausted_ = false;
+bool SteeringActuator::start_session(ActuatorSession session) {
+    const auto application_epoch = session.application_epoch;
+    const auto model_epoch = session.model_epoch;
+    const auto enable_ns = session.enable_ns;
+    if (model_epoch == 0 || (epoch_ != 0 && enable_ns < last_tick_ns_)) return false;
+    if (!receiver_.start_session(application_epoch, enable_ns)) return false;
+    if (!monitor_.begin(model_epoch, enable_ns)) return false;
+    epoch_ = application_epoch; last_tick_ns_ = enable_ns; sequence_ = 0; sequence_exhausted_ = false;
     e2e::p05_protect_init(tx_.protection);
     fault_ = SteeringFault::None;
-    return true; // physical angle survives a session restart
+    output_ = {steering::ActuationMode::Hold, 0, enable_ns}; prepared_ns_.reset(); execution_gap_ = false;
+    return true; // physical state belongs to the external plant
 }
 void SteeringActuator::fail(SteeringFault fault, std::uint64_t now_ns) {
-    if (fault_ == SteeringFault::None || fault == SteeringFault::ClockError) fault_ = fault;
-    response_.hold(now_ns);
+    if (fault_ == SteeringFault::None || fault == SteeringFault::ClockError) {
+        fault_ = fault; output_ = {steering::ActuationMode::Hold, 0, now_ns};
+    }
 }
 can::SteeringReceiveResult SteeringActuator::receive(const can::SteeringFrame& frame, std::uint64_t now_ns) {
     // Monitor even when the model has already latched a local fault.
@@ -63,26 +67,32 @@ void SteeringActuator::mark_continuity_lost(std::uint64_t now_ns) {
     if (epoch_ != 0) fail(receiver_.health() == can::SteeringReceiverHealth::ClockError ?
                         SteeringFault::ClockError : SteeringFault::ContinuityLost, now_ns);
 }
-std::optional<can::SteeringFrame> SteeringActuator::tick(std::uint64_t now_ns,
-        simulation::SteeringResponseInjection injection, simulation::SteeringSensorAction sensor_action,
-        std::optional<double> sensed_angle_override) {
-    if (epoch_ == 0) return std::nullopt;
+void SteeringActuator::mark_io_error(std::uint64_t now_ns) { fail(SteeringFault::PhysicalModelError, now_ns); }
+void SteeringActuator::mark_output_rejected(std::uint64_t now_ns) { fail(SteeringFault::ControlDeadline, now_ns); }
+bool SteeringActuator::prepare(std::uint64_t now_ns) {
+    if (prepared_ns_ && *prepared_ns_ == now_ns) return true;
+    if (prepared_ns_) { fail(SteeringFault::ControlDeadline, now_ns); prepared_ns_.reset(); }
+    if (epoch_ == 0) return false;
     const auto sample = receiver_.current_sample(now_ns);
     if (receiver_.health() == can::SteeringReceiverHealth::ClockError || now_ns < last_tick_ns_) {
-        fail(SteeringFault::ClockError, now_ns); return std::nullopt;
+        fail(SteeringFault::ClockError, now_ns); return false;
     }
-    if (fault_ == SteeringFault::ClockError || sequence_exhausted_) return std::nullopt;
-    if (now_ns - last_tick_ns_ < config_.period_ns) return std::nullopt;
-    if (now_ns - last_tick_ns_ > config_.max_tick_gap_ns) fail(SteeringFault::ControlDeadline, now_ns);
+    if (fault_ == SteeringFault::ClockError || sequence_exhausted_) return false;
+    if (now_ns - last_tick_ns_ < config_.period_ns) return false;
+    execution_gap_ = now_ns - last_tick_ns_ > config_.max_tick_gap_ns;
+    if (execution_gap_) fail(SteeringFault::ControlDeadline, now_ns);
     if (receiver_.health() == can::SteeringReceiverHealth::ContinuityError) fail(SteeringFault::ContinuityLost, now_ns);
     if (!sample && (receiver_.last_accepted() || receiver_.health() == can::SteeringReceiverHealth::Timeout)) {
         fail(SteeringFault::CommandUnavailable, now_ns);
     }
-    bool physical_valid = true;
-    if (fault_ == SteeringFault::None) {
-        if (!response_.advance(now_ns, injection)) { fail(SteeringFault::PhysicalModelError, now_ns); physical_valid = false; }
-    } else response_.hold(now_ns);
-    const auto sensor = physical_valid ? response_.capture(sensor_action, sensed_angle_override) : std::nullopt;
+    prepared_ns_ = now_ns;
+    return true;
+}
+std::optional<can::SteeringFrame> SteeringActuator::complete(const std::optional<steering::AngleMeasurement>& sensor, std::uint64_t now_ns) {
+    if (!prepared_ns_ || *prepared_ns_ != now_ns) return std::nullopt;
+    prepared_ns_.reset();
+    const auto sample = receiver_.current_sample(now_ns);
+    if (receiver_.health() == can::SteeringReceiverHealth::ClockError) { fail(SteeringFault::ClockError, now_ns); return std::nullopt; }
     const auto& monitoring = monitor_.observe(sensor, now_ns, fault_ == SteeringFault::None && sample.has_value());
     if (monitoring.fault == SteeringMonitorFault::ClockError) { fail(SteeringFault::ClockError, now_ns); return std::nullopt; }
     if (monitoring.fault == SteeringMonitorFault::SensorUnavailable) fail(SteeringFault::SensorUnavailable, now_ns);
@@ -90,7 +100,8 @@ std::optional<can::SteeringFrame> SteeringActuator::tick(std::uint64_t now_ns,
     if (monitoring.fault == SteeringMonitorFault::TrackingError) fail(SteeringFault::TrackingError, now_ns);
     if (fault_ == SteeringFault::None && sample) {
         const auto bounded = std::clamp(*sample->angle_rad, config_.angle_min_rad, config_.angle_max_rad);
-        if (!response_.set_target(bounded, now_ns) || !monitor_.set_target(bounded, now_ns)) fail(SteeringFault::ControlDeadline, now_ns);
+        if (!monitor_.set_target(bounded, now_ns)) fail(SteeringFault::ControlDeadline, now_ns);
+        else output_ = {steering::ActuationMode::Target, bounded, now_ns};
     }
     last_tick_ns_ = now_ns;
     can::SteeringMessage actual;
@@ -105,7 +116,10 @@ std::optional<can::SteeringFrame> SteeringActuator::tick(std::uint64_t now_ns,
     // No accepted command on startup failure: causal=0 is diagnostic only.
     // A cached sensor is not a fresh angle: publish unavailable without
     // replacing its acquisition time by this report's generation time.
-    if ((fault_ == SteeringFault::None || accepted) && monitoring.new_measurement) actual.angle_rad = monitoring.measured_rad;
+    if ((fault_ == SteeringFault::None || accepted) && monitoring.new_measurement) {
+        actual.angle_rad = monitoring.measured_rad;
+        actual.source_time_ns = *monitoring.source_time_ns;
+    }
     const auto frame = can::encode_steering_frame(actual, tx_);
     if (frame) {
         if (sequence_ == std::numeric_limits<std::uint32_t>::max()) sequence_exhausted_ = true;

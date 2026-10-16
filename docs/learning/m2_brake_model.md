@@ -5,6 +5,9 @@ Date: 2026-10-14. Status: **Host functional SIL 부분 구현·검사 / 학습�
 M2 전체/차량 정지/실차 제동 calibration을 완료한 결과가 아니다.
 후속 [pressure sensor·고장 검출](m2_brake_fault_monitor.md)에서 물리 응답과 monitor를 분리했다.
 
+후속 [ECU/SIL 실행 경계 정리](m2_execution_boundaries.md) 뒤 ECU의 `prepare/complete`와
+`simulation/`의 SIL `tick`을 구분해서 읽는다. 물리 진행·고장 주입은 SIL 쪽 책임이다.
+
 ## 1. 압력과 제동력은 다른 값
 
 우리 Brake Command/Actual의 값은 nonnegative aggregate **마찰제동 압력**, 단위 Pa다.
@@ -90,7 +93,7 @@ Source expiry/RX timeout/continuity loss/control deadline을 감지하면 정상
 1. [설정/클래스](../../vecu/brake/brake_actuator.hpp): 단위가 붙은 설정과 외부 clock API를 읽는다.
 2. [구현](../../vecu/brake/brake_actuator.cpp)의 `receive`: 기존 BrakeReceiver를 재사용한다.
 3. [물리 응답](../../simulation/brake/brake_pressure_response.cpp)의 `advance`/`move`: delay 경계와 가압·감압을 계산한다.
-4. `fail`/`tick`: normal pending 취소, 보호 target latch, Actual/P05 생성과 새 source/sequence를 확인한다.
+4. ECU의 `prepare`/`complete`와 [BrakeSil](../../simulation/brake/brake_sil.cpp)의 `tick`: 보호 요청·출력 적용, sensor→Actual/P05를 구분한다.
 5. [시험](../../tests/unit/brake_actuator_test.cpp): 결정론적 clock으로 정상·상실·재시작을 비교한다.
 
 물리 모델은 `simulation/brake/`, ECU 판정·SIL adapter는 `vecu/brake/`, wire·센서 계약은 `interfaces/brake/`에 둔다.

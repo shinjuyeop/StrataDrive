@@ -262,7 +262,7 @@ StrataDrive/
 ├── interfaces/
 │   ├── common/            # E2E Profile 5, 공통 payload 직렬화·수신 상태
 │   ├── steering/          # 조향 angle/frame codec, receiver, local sensor port
-│   ├── brake/             # 압력/frame codec, application receiver
+│   ├── brake/             # 압력/frame codec, receiver, sensor/actuation port
 │   ├── drive/             # 구동·회생 torque/frame codec, feedback receiver
 │   ├── bms/               # EV 물리값·6개 frame codec, 항목별 수신부
 │   ├── socketcan/         # Linux CAN socket, actuator·EV 변환 adapter
@@ -270,8 +270,8 @@ StrataDrive/
 │   └── dds/               # 배치용 placeholder
 ├── central/               # ADAS/control; session Epoch store; vehicle management/allocation/bridge 예정
 ├── zone/                  # Front/Rear gateway/validation/local safety 예정
-├── vecu/                  # Steering/Brake/Drive/BMS의 판단·보호와 SIL adapter
-├── simulation/            # Steering/Drive/Battery/Power 모델; vehicle/CARLA 통합 예정
+├── vecu/                  # Steering/Brake/Drive/BMS의 판단·보호; 물리 실행과 분리
+├── simulation/            # 물리 모델·SIL 연결 코드; vehicle/CARLA 통합 예정
 ├── physical_ai/           # Perception, learned planner, export, inference
 ├── profiles/              # Reference / Thor Premium / Orin Mainstream 설계 data
 ├── tests/

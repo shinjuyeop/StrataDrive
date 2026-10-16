@@ -1,4 +1,4 @@
-#include "steering_actuator.hpp"
+#include "steering_sil.hpp"
 
 #include <gtest/gtest.h>
 #include <algorithm>
@@ -11,7 +11,7 @@ constexpr std::uint64_t kStart = 1000000000, kMs = 1000000;
 vecu::SteeringActuatorConfig configuration() { return {-0.5, 0.5, -0.3, 0.3, 0, 1, 50*kMs}; }
 class SteeringActuatorTest : public ::testing::Test {
 protected:
-    vecu::SteeringActuator model{configuration()};
+    simulation::SteeringSil model{configuration()};
     can::SteeringTxState tx{can::SteeringFrameKind::Command};
     std::uint32_t sequence{0};
     void SetUp() override { ASSERT_TRUE(model.start_session(1, kStart)); }
@@ -42,13 +42,13 @@ protected:
 };
 TEST(SteeringActuatorConfig, InvalidParametersAreRejectedBeforeRunning) {
     auto config = configuration(); config.max_rate_rad_s = 0;
-    EXPECT_THROW(vecu::SteeringActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::SteeringSil{config}, std::invalid_argument);
     config = configuration(); config.delay_ns = 1001*kMs;
-    EXPECT_THROW(vecu::SteeringActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::SteeringSil{config}, std::invalid_argument);
     config = configuration(); config.initial_angle_rad = std::numeric_limits<double>::quiet_NaN();
-    EXPECT_THROW(vecu::SteeringActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::SteeringSil{config}, std::invalid_argument);
     config = configuration(); config.angle_max_rad = 0.6;
-    EXPECT_THROW(vecu::SteeringActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::SteeringSil{config}, std::invalid_argument);
 }
 TEST_F(SteeringActuatorTest, StartupIsInitAndSilentTimeoutIsUnavailable) {
     for (int ms = 10; ms < 80; ms += 10) {
@@ -162,7 +162,7 @@ TEST_F(SteeringActuatorTest, LateFreshCommandCannotHideExpiryBeforeNextControlTi
 }
 TEST_F(SteeringActuatorTest, ZeroDelayInitialAngleAndDegradedInputArePreserved) {
     auto config = configuration(); config.initial_angle_rad = 0.1; config.delay_ns = 0;
-    vecu::SteeringActuator other(config);
+    simulation::SteeringSil other(config);
     ASSERT_TRUE(other.start_session(1, kStart));
     can::SteeringMessage input;
     input.epoch = 1; input.angle_rad = -0.2; input.source_time_ns = kStart + 10*kMs;
@@ -205,7 +205,7 @@ TEST_F(SteeringActuatorTest, SensorBiasWithHealthyMechanicsAlsoProducesTrackingE
 }
 TEST_F(SteeringActuatorTest, HealthyRateVariationReversalAndCommandSaturationDoNotTriggerTracking) {
     for (double rate : {0.8, 1.2}) {
-        vecu::SteeringActuator c(configuration()); ASSERT_TRUE(c.start_session(1, kStart));
+        simulation::SteeringSil c(configuration()); ASSERT_TRUE(c.start_session(1, kStart));
         sequence = 0; e2e::p05_protect_init(tx.protection);
         for (int ms = 10; ms <= 1500; ms += 10) {
             ASSERT_EQ(c.receive(command({ms, ms < 700 ? 0.4 : -0.4}), kStart+ms*kMs).decision, can::SteeringReceiveDecision::Accepted);
@@ -261,5 +261,19 @@ TEST_F(SteeringActuatorTest, TransientResidualIsDegradedThenReturnsToNormalBefor
     EXPECT_EQ(transient.local_state, can::SteeringLocalState::Degraded); EXPECT_EQ(model.fault(), vecu::SteeringFault::None);
     const auto recovered = drive(170, 0.2);
     EXPECT_EQ(recovered.local_state, can::SteeringLocalState::Normal); EXPECT_FALSE(model.monitor_decision().violation_since_ns);
+}
+TEST(SteeringExecutionBoundary, ExternalPlantContinuesWhileEcuCallsStopAndResumeDoesNotRewindIt) {
+    vecu::SteeringActuator ecu(configuration()); simulation::SteeringResponse plant({-.3,.3,0,1,50*kMs});
+    ASSERT_TRUE(ecu.start_session({1,1,kStart})); ASSERT_TRUE(plant.begin(kStart));
+    can::SteeringMessage m; m.epoch=1; m.angle_rad=.2; m.source_time_ns=kStart+10*kMs;
+    m.local_state=can::SteeringLocalState::Normal; m.origin=can::SteeringOrigin::NormalPath;
+    can::SteeringTxState tx{m.kind}; ASSERT_EQ(ecu.receive(*can::encode_steering_frame(m,tx),m.source_time_ns).decision,can::SteeringReceiveDecision::Accepted);
+    ASSERT_TRUE(ecu.prepare(m.source_time_ns)); ASSERT_TRUE(plant.advance(m.source_time_ns)); ASSERT_TRUE(ecu.complete(plant.capture(),m.source_time_ns));
+    ASSERT_TRUE(plant.set_target(ecu.output().target_rad,ecu.output().issued_time_ns));
+    // No ECU method is called while the external plant advances 90 ms.
+    ASSERT_TRUE(plant.advance(kStart+100*kMs)); EXPECT_NEAR(plant.actual_angle_rad(),.04,1e-12);
+    ASSERT_TRUE(ecu.prepare(kStart+100*kMs)); EXPECT_EQ(ecu.fault(),vecu::SteeringFault::ControlDeadline);
+    ASSERT_TRUE(plant.hold(kStart+100*kMs)); ASSERT_TRUE(ecu.complete(plant.capture(),kStart+100*kMs));
+    EXPECT_NEAR(plant.actual_angle_rad(),.04,1e-12); EXPECT_EQ(ecu.output().mode,steering::ActuationMode::Hold);
 }
 }  // namespace

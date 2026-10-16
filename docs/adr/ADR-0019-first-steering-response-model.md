@@ -5,6 +5,9 @@
 Date: 2026-10-14. Status: **Host functional SIL 부분 구현 / 학습자 review PENDING**.
 Owner: project owner. TBD-02/03/04, IF-CAN-STEERING, STEERING_COMMAND_LOSS에 연결한다.
 
+후속 구조 변경: [ADR-0032](ADR-0032-ecu-and-sil-execution-boundaries.md)에서 ECU의 plant 소유/호출을
+외부 SIL 연결 코드로 옮겼다. 아래는 이 ADR 채택 당시의 설계·시험 이력이다.
+
 ## 결정
 
 `vecu/steering/SteeringActuator`가 기존 Command receiver를 소유하고, 외부 monotonic clock으로

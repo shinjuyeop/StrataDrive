@@ -1,4 +1,4 @@
-#include "brake_actuator.hpp"
+#include "brake_sil.hpp"
 
 #include <gtest/gtest.h>
 #include <algorithm>
@@ -11,7 +11,7 @@ constexpr std::uint64_t kStart = 1000000000, kMs = 1000000;
 vecu::BrakeActuatorConfig configuration() { return {2000000, 1500000, 0, 5000000, 10000000, 1000000, 50*kMs}; }
 class BrakeActuatorTest : public ::testing::Test {
 protected:
-    vecu::BrakeActuator model{configuration()};
+    simulation::BrakeSil model{configuration()};
     can::BrakeTxState tx{can::BrakeFrameKind::Command};
     std::uint32_t sequence{0};
     struct Input { int ms; double pressure; std::uint32_t epoch{1}; };
@@ -33,15 +33,15 @@ protected:
 };
 TEST(BrakeActuatorConfig, InvalidPressureRateFloorAndTimingAreRejected) {
     auto config = configuration(); config.rise_rate_pa_s = 0;
-    EXPECT_THROW(vecu::BrakeActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::BrakeSil{config}, std::invalid_argument);
     config = configuration(); config.fall_rate_pa_s = -1;
-    EXPECT_THROW(vecu::BrakeActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::BrakeSil{config}, std::invalid_argument);
     config = configuration(); config.fault_pressure_floor_pa = 1600000;
-    EXPECT_THROW(vecu::BrakeActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::BrakeSil{config}, std::invalid_argument);
     config = configuration(); config.initial_pressure_pa = std::numeric_limits<double>::quiet_NaN();
-    EXPECT_THROW(vecu::BrakeActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::BrakeSil{config}, std::invalid_argument);
     config = configuration(); config.delay_ns = 1001*kMs;
-    EXPECT_THROW(vecu::BrakeActuator{config}, std::invalid_argument);
+    EXPECT_THROW(simulation::BrakeSil{config}, std::invalid_argument);
 }
 TEST_F(BrakeActuatorTest, StartupSilenceIsInitThenDiagnosticUnavailableWithoutPressureJump) {
     for (int ms = 10; ms < 80; ms += 10) {
@@ -173,7 +173,7 @@ TEST_F(BrakeActuatorTest, RangeUnavailableAndCorruptionDoNotRefreshAcceptedComma
 }
 TEST_F(BrakeActuatorTest, InitialPressureZeroDelayAndDegradedInputRemainDistinct) {
     auto config = configuration(); config.initial_pressure_pa = 500000; config.delay_ns = 0;
-    vecu::BrakeActuator other(config); ASSERT_TRUE(other.start_session(1, kStart));
+    simulation::BrakeSil other(config); ASSERT_TRUE(other.start_session(1, kStart));
     can::BrakeMessage input;
     input.epoch = 1; input.pressure_pa = 1000000; input.source_time_ns = kStart + 10*kMs;
     input.local_state = can::BrakeLocalState::Degraded; input.origin = can::BrakeOrigin::NormalPath;
@@ -185,7 +185,7 @@ TEST_F(BrakeActuatorTest, InitialPressureZeroDelayAndDegradedInputRemainDistinct
 }
 TEST_F(BrakeActuatorTest, MaximumDelayAndManyTargetChangesStayWithinBoundedHistory) {
     auto config = configuration(); config.delay_ns = 1000*kMs;
-    vecu::BrakeActuator other(config); ASSERT_TRUE(other.start_session(1, kStart));
+    simulation::BrakeSil other(config); ASSERT_TRUE(other.start_session(1, kStart));
     for (int ms = 10; ms <= 3000; ms += 10) {
         ASSERT_EQ(other.receive(command({ms, ms % 20 ? 1000000.0 : 0.0}), kStart + ms*kMs).decision,
                   can::BrakeReceiveDecision::Accepted);
@@ -195,10 +195,10 @@ TEST_F(BrakeActuatorTest, MaximumDelayAndManyTargetChangesStayWithinBoundedHisto
     }
 }
 TEST(BrakeActuatorConfig, InvalidMonitoringSettingsAreRejected) {
-    auto c=configuration(); c.healthy_min_rate_fraction=1.1; EXPECT_THROW(vecu::BrakeActuator{c},std::invalid_argument);
-    c=configuration(); c.healthy_max_rate_fraction=.9; EXPECT_THROW(vecu::BrakeActuator{c},std::invalid_argument);
-    c=configuration(); c.response_confirmation_ns=kMs; EXPECT_THROW(vecu::BrakeActuator{c},std::invalid_argument);
-    c=configuration(); c.sensor_age_ns=40*kMs; EXPECT_THROW(vecu::BrakeActuator{c},std::invalid_argument);
+    auto c=configuration(); c.healthy_min_rate_fraction=1.1; EXPECT_THROW(simulation::BrakeSil{c},std::invalid_argument);
+    c=configuration(); c.healthy_max_rate_fraction=.9; EXPECT_THROW(simulation::BrakeSil{c},std::invalid_argument);
+    c=configuration(); c.response_confirmation_ns=kMs; EXPECT_THROW(simulation::BrakeSil{c},std::invalid_argument);
+    c=configuration(); c.sensor_age_ns=40*kMs; EXPECT_THROW(simulation::BrakeSil{c},std::invalid_argument);
 }
 TEST_F(BrakeActuatorTest, StuckRiseWithFreshCommandAndSensorCannotFabricateProtectivePressure) {
     for(int ms=10;ms<=100;ms+=10) drive(ms,1000000);
@@ -262,7 +262,7 @@ TEST_F(BrakeActuatorTest, SlowReleaseIsDetectedUsingFallBandThenCanBuildToProtec
 }
 TEST_F(BrakeActuatorTest, HealthyRateEdgesWithReversalAndSaturationDoNotLatch) {
     for(double fraction:{.8,1.,1.2}) {
-        vecu::BrakeActuator other(configuration()); ASSERT_TRUE(other.start_session(1,kStart));
+        simulation::BrakeSil other(configuration()); ASSERT_TRUE(other.start_session(1,kStart));
         sequence=0; e2e::p05_protect_init(tx.protection);
         for(int ms=10;ms<=700;ms+=10) {
             ASSERT_EQ(other.receive(command({ms,ms<350 ? 2000000.:0}),kStart+ms*kMs).decision,can::BrakeReceiveDecision::Accepted);
@@ -347,5 +347,19 @@ TEST_F(BrakeActuatorTest, NewApplicationEpochCannotRepairPersistentPhysicalStuck
     }
     EXPECT_EQ(model.fault(),vecu::BrakeFault::ResponseError);
     EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),200000);
+}
+TEST(BrakeExecutionBoundary, ExternalPressureContinuesWithoutEcuAndProtectionStartsAtResumeTime) {
+    vecu::BrakeActuator ecu(configuration()); simulation::BrakePressureResponse plant({1500000,0,5000000,10000000,50*kMs});
+    ASSERT_TRUE(ecu.start_session({1,1,kStart})); ASSERT_TRUE(plant.begin(kStart));
+    can::BrakeMessage m; m.epoch=1; m.pressure_pa=1000000; m.source_time_ns=kStart+10*kMs;
+    m.local_state=can::BrakeLocalState::Normal; m.origin=can::BrakeOrigin::NormalPath;
+    can::BrakeTxState tx{m.kind}; ASSERT_EQ(ecu.receive(*can::encode_brake_frame(m,tx),m.source_time_ns).decision,can::BrakeReceiveDecision::Accepted);
+    ASSERT_TRUE(ecu.prepare(m.source_time_ns)); ASSERT_TRUE(plant.advance(m.source_time_ns)); ASSERT_TRUE(ecu.complete(plant.capture(),m.source_time_ns));
+    ASSERT_TRUE(plant.set_target(ecu.output().target_pa,ecu.output().issued_time_ns));
+    ASSERT_TRUE(plant.advance(kStart+100*kMs)); EXPECT_DOUBLE_EQ(plant.actual_pressure_pa(),200000);
+    ASSERT_TRUE(ecu.prepare(kStart+100*kMs)); EXPECT_EQ(ecu.fault(),vecu::BrakeFault::ControlDeadline);
+    ASSERT_TRUE(plant.request_protection(ecu.output().target_pa,ecu.output().issued_time_ns));
+    ASSERT_TRUE(ecu.complete(plant.capture(),kStart+100*kMs)); EXPECT_EQ(ecu.protection_floor_observed(),false);
+    ASSERT_TRUE(plant.advance(kStart+110*kMs)); EXPECT_DOUBLE_EQ(plant.actual_pressure_pa(),250000);
 }
 }  // namespace

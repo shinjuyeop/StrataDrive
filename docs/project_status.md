@@ -15,7 +15,7 @@ Updated: **2026-10-16**. 현재 단계는 **M2 — IN PROGRESS**다.
 
 ## 구현·시험한 범위
 
-현재 구현은 **Host functional SIL component**다. 모델의 설정값은 첫 시험 fixture이며 실차 calibration은 아니다.
+현재 구현은 **Host functional SIL component**다. [실행 경계 정리](learning/m2_execution_boundaries.md)로 ECU 판단과 물리 실행 연결을 분리했다. 모델의 설정값은 첫 시험 fixture이며 실차 calibration은 아니다.
 
 | 영역 | 구현한 내용 | 상세 안내 |
 | --- | --- | --- |
@@ -37,11 +37,11 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 470개 PASS**; 새 Brake plant/monitor/adapter 시험 40개 포함 |
-| Local vCAN | **97개 case PASS 이력** = M1 89개 + model 8개; 최신 Brake 단계의 재실행은 normal·sanitizer 각각 model 8개 |
+| 전체 unit | Normal·ASan/UBSan **각각 491개 PASS**; 새 ECU 경계 18개·독립 물리 진행 3개 포함 |
+| Local vCAN | **97개 case PASS 이력** = M1 89개 + model 8개; 최신 구조 정리 단계의 재실행은 normal·sanitizer 각각 model 8개 |
 | DBC·CRC | 기존 12개 frame/C++ payload 36개와 독립 CRC 교차 검증 PASS |
-| Build·정적 분석 | 최신 Brake 단계의 production build, clang-tidy·cppcheck PASS |
-| Demo | 최신 Brake 8개 scenario와 Steering normal/jam·isolated Drive·EV normal 회귀를 normal·sanitizer·production에서 실행 |
+| Build·정적 분석 | 최신 구조 정리 단계의 production build, clang-tidy·cppcheck PASS |
+| Demo | Normal·sanitizer·production 각각 90개 CLI 입력의 stdout/stderr/exit code를 구조 변경 전과 비교 |
 | 전체 시스템 검증 | 32개 requirement와 29개 system TC의 전체 Result는 **NOT RUN**; component 부분 증거와 구분 |
 
 상세 case 수·실행 명령·증거 경로는 [품질 기록](quality_policy.md)과 [추적성](test-plan/traceability.md)에 있다.

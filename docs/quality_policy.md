@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신과 M2 Steering/Brake/Drive torque·Battery/BMS/Power·Drive gate·에너지/회로 연결 component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 470개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 491개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -292,6 +292,31 @@ M2 OPEN-M2-01/02의 component 구현 공백은 해소했고 직접 재현·학�
 변경된 source 5개에 적용해 통과했다. 기존 runtime library/시험 case는 이 단계에서 변경하지 않았다.
 비교 binary·명령 목록/스크립트·build/static 로그는 `build/m1-angle/structure-review/`와 각 build의
 `structure-demo-build.txt`에 둔다. 문서 링크/추적성/YAML/Python/whitespace 검사도 통과했다.
+
+2026-10-16 후속 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md) 정리에서 네 actuator/Drive core의
+physical response 소유/호출을 제거했다. Core `prepare/complete`와 typed actuation/sensor port,
+`simulation/`의 명시적 SIL runner로 분리했다. Model injection/truth는 simulation에만 남긴다.
+신뢰된 app/model epoch·enable boundary는 ActuatorSession으로 묶고 wire에서 자동 학습하지 않는다.
+
+새 **21개** = core-only 경계 18개 + 기존 actuator 파일의 독립 물리 진행 3개다.
+Normal·ASan/UBSan 각각 전체 **491개 unit PASS**, production BUILD_TESTING=OFF build를 통과했다.
+Core 경계 executable의 compile include/link 목록에 simulation 경로·plant library가 없음을 확인했다.
+ECU 미호출 중 외부 물리 진행·복귀 시 무소급 보호, sensor unknown/identity/source·Actual fallback 금지,
+job phase/clock·중복 완료와 gated Drive의 실제 torque port를 확인했다.
+Drive torque의 유효 scalar는 같은 job end의 새 acquisition만 보고하며 cached/delayed는 unavailable,
+missing/잘못된 identity·time·range/30 ms 초과 age는 TorqueFeedbackUnavailable로 latch한다.
+Steering/Brake의 지연된 새 acquisition은 원래 source time을 보존한다.
+
+Normal·sanitizer·production 각각 **90개 CLI 입력**의 stdout/stderr/exit code를 구조 변경 전 binary와 비교해 일치했다.
+기존 model vCAN **8개**(Steering 2/Brake 3/isolated Drive 3)도 normal·sanitizer에서 각각 회귀 검사했다.
+이는 새 port fault의 network case나 독립 task 정지 감시 시험이 아니다. 기존 all 97개 이력을 유지한다.
+Clang-tidy 14 analyzer/bugprone은 변경 C++ source 20개, cppcheck 2.7은 production/demo 13개에 적용했다.
+Normal 상세 로그·CLI 비교 목록/스크립트·core-only compile/link는 `build/m1-angle/structure-review/`에 둔다.
+최종 build/unit/XML은 normal·sanitizer의 `structure-final-*`, production의 `structure-final-build.txt`,
+vCAN은 각 build의 `structure-final-vcan.txt`와 `socketcan-results`에 둔다.
+실행 source/DBC/profile·문서 SHA-256과 로그 목록은 `build/m1-angle/structure-review/evidence.json`에 묶는다.
+문서 링크/앵커·32개 요구/29개 TC NOT RUN·YAML/Python/whitespace도 검사했다.
+M1/M2 학습자 수용은 PENDING이다. 실행 경계를 분리했으며 실제 thread/task/watchdog·RT 계측은 M3에 남는다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |

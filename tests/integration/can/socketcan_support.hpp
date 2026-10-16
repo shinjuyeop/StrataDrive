@@ -1,11 +1,11 @@
 #pragma once
 
 #include "steering_receiver.hpp"
-#include "steering_actuator.hpp"
-#include "brake_actuator.hpp"
+#include "steering_sil.hpp"
+#include "brake_sil.hpp"
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
-#include "drive_actuator.hpp"
+#include "drive_actuator_sil.hpp"
 #include "bms_receiver.hpp"
 #include "bounded_rx_queue.hpp"
 #include "socketcan_endpoint.hpp"

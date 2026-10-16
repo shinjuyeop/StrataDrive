@@ -6,9 +6,13 @@ M1 wire/receiver를 유지하고 M2 전체의 완료를 뜻하지 않는다.
 2026-10-16 [response monitor 후속](m2_steering_fault_monitor.md)에서 물리 응답·sensor 경계를 분리하고
 jam/slow-response fixture와 local residual/dwell 판단을 연결했다. 아래 정상 응답 계약과 기존 상실 정책은 유지한다.
 
+후속 [ECU/SIL 실행 경계 정리](m2_execution_boundaries.md) 뒤 ECU의 `prepare/complete`와
+`simulation/`의 SIL `tick`을 구분해서 읽는다. 물리 진행·고장 주입은 SIL 쪽 책임이다.
+
 ## 코드와 흐름
 
-- [SteeringActuator](../../vecu/steering/steering_actuator.hpp): 모델 설정, 수신, control tick, local fault.
+- [SteeringActuator](../../vecu/steering/steering_actuator.hpp): 수신·판단·local fault와 prepare/complete.
+- [SteeringSil](../../simulation/steering/steering_sil.cpp): 물리·센서·ECU 호출을 연결하는 예제용 tick.
 - [adapter 구현](../../vecu/steering/steering_actuator.cpp): 수신·sensor/monitor·보호와 Actual/P05 생성.
 - [물리 응답](../../simulation/steering/steering_response.cpp): delayed demand와 rate/angle limit; 후속 sensor/fault 경계.
 - [단위 시험](../../tests/unit/steering_actuator_test.cpp): 외부 clock으로 응답과 경계를 정확히 비교.

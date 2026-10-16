@@ -39,7 +39,8 @@ flowchart TB
 ```
 
 ECU 기능은 SWC/Port/Runnable 설계 대상이고 물리 모델은 SIL 환경의 책임이다.
-현재 `tick`은 같은 thread에서 이 둘을 순서대로 호출한다. 이것이 실제 RTE 연결이나
+후속 [실행 경계 정리](m2_execution_boundaries.md)에서 DriveActuator의 물리 소유/호출을 제거했다.
+[DriveActuatorSil](../../simulation/drive/drive_actuator_sil.cpp)의 `tick`이 같은 thread에서 둘을 순서대로 연결한다. 이것이 실제 RTE 연결이나
 독립 OS Task의 실행을 뜻하지 않는다. [ADR-0022](../adr/ADR-0022-leaf-classic-development-methodology.md)를 따른다.
 
 ## 시험 설정과 정상 응답
