@@ -1,6 +1,6 @@
 # Project status
 
-Updated: **2026-10-16**. 현재 단계는 **M2 — IN PROGRESS**다.
+Updated: **2026-10-16**. 현재 단계는 **M3 — IN PROGRESS**다.
 [README](../README.md)는 프로젝트 소개와 실행 진입점이며, 이 문서는 현재 구현 범위·검증 결과·다음 작업을 정리한다.
 단계별 일정은 [로드맵](roadmap.md), 날짜별 시험 이력·도구·로그 경로는 [품질 기록](quality_policy.md)에 둔다.
 
@@ -10,8 +10,9 @@ Updated: **2026-10-16**. 현재 단계는 **M2 — IN PROGRESS**다.
 | --- | --- | --- |
 | M0 — 계약·아키텍처 | BASELINED | [종료 검토](m0_baseline.md)는 문서 계약의 검토 결과 |
 | M1 — DBC·vCAN | TECHNICAL CHECKS PASS / REVIEW PENDING | Wire baseline 채택, 학습자 설명·직접 재현 |
-| M2 — Actuator·EV 모델 | IN PROGRESS | 학습자 직접 재현·수용 검토 |
-| M3–M13 | PLANNED | Timing → Central/Zone → DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
+| M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
+| M3 — Timing·실행 | IN PROGRESS | 첫 Steering 실행·독립 감시 검사 완료; 다른 task/통신·고정 부하·Target 검증 |
+| M4–M13 | PLANNED | Central/Zone → DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 ## 구현·시험한 범위
 
@@ -27,6 +28,7 @@ Updated: **2026-10-16**. 현재 단계는 **M2 — IN PROGRESS**다.
 | Battery·BMS | 실제 DC 기반 단일 energy/SOC owner, 전압·전류·온도·셀 극값 관측, 방향별 derating·보호 dwell/latch | [Battery](learning/m2_battery_model.md), [BMS](learning/m2_bms_controller.md) |
 | Power lifecycle | 실제 접점·RC bus 기반 precharge/READY, 전류 확인·접점 open·잔류 전압 방전, shutdown blocked | [전원 상태 흐름](learning/m2_power_lifecycle.md) |
 | 에너지·회로 연결 | Actual torque/speed→motor DC·손실→Battery SOC, capacitor·경로 손실과 atomic commit; 정상/용착/센서 상실/지속 부하 | [이상적 HV 연결](learning/m2_drive_energy.md), [실제 회로 연결](learning/m2_ev_power_circuit.md) |
+| 주기 실행·감시 | Steering ECU 10 ms/별도 deadline 5 ms, 독립 monitor·plant 2 ms, 고정 크기 snapshot·CSV trace와 overload/정지 검사 | [M3 첫 실행](learning/m3_steering_timing.md) |
 
 Receiver는 유효 0과 unknown, 원천 source/dependency age, 원래 요청에 묶인 expiry를 구분한다.
 중계·재발행으로 오래된 측정이나 제한값을 fresh하게 만들지 않는다.
@@ -37,21 +39,23 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 491개 PASS**; 새 ECU 경계 18개·독립 물리 진행 3개 포함 |
+| 전체 unit | Normal·ASan/UBSan **각각 C++ 505개 PASS**; Python 리포터 5개 PASS; M3 schedule/monitor/snapshot 14개 추가 |
 | Local vCAN | **97개 case PASS 이력** = M1 89개 + model 8개; 최신 구조 정리 단계의 재실행은 normal·sanitizer 각각 model 8개 |
 | DBC·CRC | 기존 12개 frame/C++ payload 36개와 독립 CRC 교차 검증 PASS |
-| Build·정적 분석 | 최신 구조 정리 단계의 production build, clang-tidy·cppcheck PASS |
-| Demo | Normal·sanitizer·production 각각 90개 CLI 입력의 stdout/stderr/exit code를 구조 변경 전과 비교 |
+| Build·정적 분석 | M3 production build, 변경 C++ clang-tidy·cppcheck PASS; TSan은 Host memory mapping 오류로 미실행 |
+| Demo·Timing | M2 구조 정리의 90개 CLI 비교 이력; M3는 normal·sanitizer 각각 12 runs / production 4 runs |
 | 전체 시스템 검증 | 32개 requirement와 29개 system TC의 전체 Result는 **NOT RUN**; component 부분 증거와 구분 |
 
 상세 case 수·실행 명령·증거 경로는 [품질 기록](quality_policy.md)과 [추적성](test-plan/traceability.md)에 있다.
-Unit·manual-clock demo는 실제 task execution/jitter 측정이 아니며 vCAN은 실제 CAN의 전기적 동작을 검증하지 않는다.
+Unit·manual-clock demo와 M3 wall-time trace는 구분한다. 첫 M3는 Host Steering component의 elapsed wall time 측정이며 Target/전체 E2E 증거는 아니다.
+VCan은 실제 CAN의 전기적 동작을 검증하지 않는다.
 Wire 채택과 학습자의 직접 재현·이해 기록은 PENDING이다.
 
 ## 다음 작업
 
-1. **M2 수용 검토:** 정상·고장·새 epoch를 직접 재현하고 [검토표](m2_acceptance_review.md)의 남은 항목을 확인한다.
-2. **M3 준비:** 실제 task/monitor 배치·watchdog 독립성·trace와 execution/period/jitter/deadline 측정 protocol을 설계한다.
+1. **M3 확장:** Brake/Drive/BMS·Power 주기와 실제 통신/RX 정지 감시·고정 부하/overload를 연결한다.
+2. **실행 배치·계측 검토:** task별 budget·handoff와 overhead, Target의 priority/affinity·독립 감시를 검증한다.
+3. **학습 기록:** M2 [검토표](m2_acceptance_review.md)와 첫 M3 trace를 직접 재현·설명한 기록을 남긴다.
 
 ## 후속 통합 범위
 
@@ -61,7 +65,7 @@ Front는 Steering/Brake, Rear는 Drive/BMS를 담당하며 feedback도 담당 Zo
 두 Zone runtime·DDS 통신과 실제 Central coordinator는 M4/M5 범위이며 현재 request/grant·relay는 fixture다.
 
 통합 EV 예제의 speed는 외부 고정값 20 rad/s다. 차량 관성·타이어·마찰제동 배분·CARLA closed-loop는 M4/M6/M7,
-실제 task/watchdog·timing은 M3, DTC 통합은 M9에 남는다. Classical control·AI·Target 배포도 후속 단계다.
+다른 task/통신 감시와 Target timing은 M3, DTC 통합은 M9에 남는다. Classical control·AI·Target 배포도 후속 단계다.
 Leaf는 [Classic 개발 체계](adr/ADR-0022-leaf-classic-development-methodology.md)를 따르는 방향을 채택했고,
 실제 OS/RTE/BSW stack·toolchain은 pilot에서 검토한다.
 

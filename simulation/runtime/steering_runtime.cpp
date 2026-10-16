@@ -55,13 +55,15 @@ struct Job {
     std::uint64_t injection_begin{0},injection_end{0};
     std::uint32_t command_sequence{0},causal_sequence{0};
     bool ran{false},prepared{false};
-    bool feedback_valid{false};
+    bool feedback_valid{false},feedback_failsafe{false};
     int fault{0},receive_decision{-1};
 };
 struct PlantStep {
     std::uint64_t time,begin,end,sensor_source,sensor_sequence;
     double angle;
     bool override_hold;
+    std::int64_t last_ecu_applied_job;
+    std::uint64_t output_issued,output_applied;
 };
 struct MonitorStep { std::uint64_t time; bool fault; };
 struct ThreadInfo {
@@ -160,7 +162,10 @@ void run_steering_runtime(const std::string& scenario, const std::filesystem::pa
                 auto feedback=row.prepared ? ecu.complete(cached.sensor,row.job_time) : std::nullopt;
                 if(detailed) row.complete_end=now_ns();
                 const auto admission=now_ns();
-                if(admission>schedule.deadline(i) || monitor.faulted() || monitor.clock_error()) {
+                // Discard late/newly invalidated jobs, but keep timely
+                // protected diagnostics once the ECU has latched its fault.
+                const bool newly_faulted=monitor.faulted() && ecu.fault()==vecu::SteeringFault::None;
+                if(admission>schedule.deadline(i) || newly_faulted || monitor.clock_error()) {
                     ecu.mark_output_rejected(admission); feedback.reset();
                 }
                 output_port.publish(Output{ecu.output(),i,schedule.deadline(i),feedback});
@@ -169,6 +174,7 @@ void run_steering_runtime(const std::string& scenario, const std::filesystem::pa
                     if(!decoded) throw std::runtime_error("runtime feedback codec");
                     row.feedback_at=now_ns(); row.feedback_source=decoded->source_time_ns;
                     row.feedback_valid=decoded->angle_rad.has_value();
+                    row.feedback_failsafe=decoded->local_state==can::SteeringLocalState::FailSafe && decoded->origin==can::SteeringOrigin::LocalProtection;
                     row.causal_sequence=decoded->causal_sequence;
                 }
                 row.fault=static_cast<int>(ecu.fault()); row.end=now_ns();
@@ -187,6 +193,8 @@ void run_steering_runtime(const std::string& scenario, const std::filesystem::pa
         std::uint64_t next_command=enable;
         Inputs inputs;
         std::optional<std::size_t> applied_job;
+        std::int64_t last_ecu_applied_job=-1;
+        std::uint64_t output_issued=0,output_applied=0;
         while(!abort.load(std::memory_order_acquire)) {
             const auto now=now_ns();
             const auto begin=detailed ? now_ns() : 0;
@@ -201,6 +209,10 @@ void run_steering_runtime(const std::string& scenario, const std::filesystem::pa
                 else if(output->actuation.mode==steering::ActuationMode::Hold) {
                     if(!plant.hold(now)) throw std::runtime_error("runtime ECU hold");
                 } else if(!plant.set_target(output->actuation.target_rad,now)) throw std::runtime_error("runtime target application");
+                if(now<=output->deadline_ns) {
+                    last_ecu_applied_job=static_cast<std::int64_t>(output->job);
+                    output_issued=output->actuation.issued_time_ns; output_applied=now;
+                }
             }
             inputs.sensor=plant.capture();
             const auto end=detailed ? now_ns() : 0;
@@ -215,25 +227,26 @@ void run_steering_runtime(const std::string& scenario, const std::filesystem::pa
             }
             input_port.publish(inputs);
             if(detailed) append_bounded(plant_steps,PlantStep{now,begin,end,inputs.sensor->source_time_ns,
-                inputs.sensor->sequence,inputs.sensor->angle_rad,forced_hold},plant_drops);
+                inputs.sensor->sequence,inputs.sensor->angle_rad,forced_hold,last_ecu_applied_job,output_issued,output_applied},plant_drops);
             if(now>=stop_at) break;
             sleep_until(next_poll(enable,now_ns()));
         }
     } catch(...) { errors[2]=std::current_exception(); abort.store(true,std::memory_order_release); }
     control_thread.join(); watch_thread.join();
     auto job_file=open_output(directory/"jobs.csv");
-    job_file << "job,release_ns,deadline_ns,start_ns,end_ns,ran,detected_ns,job_time_ns,prepare_begin_ns,prepare_end_ns,complete_begin_ns,complete_end_ns,input_source_ns,sensor_sequence,command_sequence,causal_sequence,feedback_source_ns,feedback_publish_ns,injection_begin_ns,injection_end_ns,prepared,fault,receive_decision,command_rx_ns,command_source_ns,feedback_valid\n";
+    job_file << "job,release_ns,deadline_ns,start_ns,end_ns,ran,detected_ns,job_time_ns,prepare_begin_ns,prepare_end_ns,complete_begin_ns,complete_end_ns,input_source_ns,sensor_sequence,command_sequence,causal_sequence,feedback_source_ns,feedback_publish_ns,injection_begin_ns,injection_end_ns,prepared,fault,receive_decision,command_rx_ns,command_source_ns,feedback_valid,feedback_failsafe\n";
     for(std::size_t i=0;i<kJobs;++i) {
         const auto& r=jobs[i];
         job_file << i << ',' << schedule.release(i) << ',' << schedule.deadline(i) << ',' << r.start << ',' << r.end << ',' << r.ran
             << ',' << monitor.detected(i) << ',' << r.job_time << ',' << r.prepare_begin << ',' << r.prepare_end << ',' << r.complete_begin << ',' << r.complete_end
             << ',' << r.input_source << ',' << r.sensor_sequence << ',' << r.command_sequence << ',' << r.causal_sequence << ',' << r.feedback_source << ',' << r.feedback_at
             << ',' << r.injection_begin << ',' << r.injection_end << ',' << r.prepared << ',' << r.fault << ',' << r.receive_decision
-            << ',' << r.command_rx << ',' << r.command_source << ',' << r.feedback_valid << '\n';
+            << ',' << r.command_rx << ',' << r.command_source << ',' << r.feedback_valid << ',' << r.feedback_failsafe << '\n';
     }
     auto plant_file=open_output(directory/"plant.csv");
-    plant_file << "time_ns,physics_begin_ns,physics_end_ns,sensor_source_ns,sensor_sequence,angle_rad,override_hold\n";
-    for(const auto& r:plant_steps) plant_file << r.time << ',' << r.begin << ',' << r.end << ',' << r.sensor_source << ',' << r.sensor_sequence << ',' << r.angle << ',' << r.override_hold << '\n';
+    plant_file << "time_ns,physics_begin_ns,physics_end_ns,sensor_source_ns,sensor_sequence,angle_rad,override_hold,last_ecu_applied_job,output_issued_ns,output_applied_ns\n";
+    for(const auto& r:plant_steps) plant_file << r.time << ',' << r.begin << ',' << r.end << ',' << r.sensor_source << ',' << r.sensor_sequence << ',' << r.angle << ',' << r.override_hold
+        << ',' << r.last_ecu_applied_job << ',' << r.output_issued << ',' << r.output_applied << '\n';
     auto monitor_file=open_output(directory/"monitor.csv"); monitor_file << "time_ns,fault\n";
     for(const auto& r:monitor_steps) monitor_file << r.time << ',' << r.fault << '\n';
     auto metadata=open_output(directory/"run.json");

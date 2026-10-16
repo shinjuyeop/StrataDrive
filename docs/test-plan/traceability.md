@@ -32,7 +32,10 @@ component 증거도 연결한다. 현재 unit 391개(normal·ASan/UBSan)와 mode
 TC-CTRL-001·TC-SAFE-001/002의 부분 증거를 더한다.
 [Brake response monitor](../learning/m2_brake_fault_monitor.md)의 가압/감압 stuck·slow, fresh sensor/unknown·latch/새 epoch와
 보호 요청/관측 시험도 같은 TC의 local 부분 증거다. 후속 [ECU/SIL 실행 경계](../learning/m2_execution_boundaries.md)는 core-only 18개와 외부 물리 진행 3개를 추가했다.
-전체 unit은 491개이며 학습자 수용은 PENDING이다. 실제 task 정지의 독립 검출/RT timing은 후속이다.
+M2 구조 정리 시점 unit은 491개이며 학습자 수용은 PENDING이다.
+[M3 첫 Steering 실행](../learning/m3_steering_timing.md)은 schedule/monitor/snapshot unit 14개를 더해 C++ 전체 505개,
+Python 리포터 5개와 Host wall-time normal/overrun/stall 검사를 수행했다.
+SYS-PERF-001/002/003·TC-PERF-001/002의 local 부분 근거이며 실제 전체 multirate·통신/Target·E2E는 후속이다.
 아래 system TC의 모든 required variant·차량/Zone/배포 환경을 검증한 결과는 아니며 Result는 NOT RUN을 유지한다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |

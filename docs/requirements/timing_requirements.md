@@ -1,7 +1,7 @@
 # Timing requirements and measurement contract
 
-Status: **DEFINED / Reference Baseline v0.1**. Logical configuration을 정의하며
-component task execution/차량 E2E latency/jitter 실측은 **NOT RUN**이다.
+Status: **DEFINED / Reference Baseline v0.1 + M3 첫 Steering Host 부분 측정**.
+차량 전체 E2E/Target latency·multirate 실측은 **NOT RUN**이다.
 M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. Rate와 100 ms 검출
 상한은 engineering starting point이며 production timing 보장이 아니다.
 
@@ -106,7 +106,7 @@ component 구간만 측정하고 Central/Host/CARLA endpoint는 M5/M7 이후 연
 | central_scoped_command_tx | 담당 Zone별 actuator demand publish/enqueue; parent identity/expiry 보존 |
 | zone_ingress / zone_egress | scoped command valid acceptance / CAN actuator command enqueue |
 | vecu_command_rx | actuator command valid acceptance; raw RX/reject도 별도 event |
-| vecu_task_start / vecu_task_end | accepted snapshot 사용 / dynamics update 완료 |
+| vecu_task_start / vecu_task_end | ECU job의 입력 snapshot 사용 / 판단·보고 완료; 외부 physics 비용은 별도 |
 | feedback_tx | 해당 actual sample publish/enqueue |
 | zone_feedback_rx / zone_status_tx | 담당 actuator별 valid RX / Central status 송신; 원천 metadata 보존 |
 | central_zone_status_rx / bridge_tx | 각 Zone/Leaf 원천 valid acceptance / Host 송신; source별 age/identity 보존 |
@@ -123,7 +123,12 @@ Actuator 물리 응답의 settling/도달 시간은 feedback 송신 latency와 �
 
 ## Future budget and report
 
-Task deadline, 단계별 latency budget, E2E deadline은 **TBD-04**, 아직 수치가 없다.
+전체 task deadline, 단계별 latency budget, E2E deadline은 **TBD-04**다.
+[ADR-0033](../adr/ADR-0033-first-wall-time-execution-and-monitor.md)에서 첫 Steering Host fixture만
+period 10 ms / relative deadline 5 ms / 독립 monitor·plant 2 ms로 선택했다.
+120 jobs의 release/start/end, ECU prepare/complete와 외부 physics, output issued/applied·local feedback을
+실제 wall time으로 기록했다. [첫 실행 안내](../learning/m3_steering_timing.md)를 따른다.
+이 실험의 deadline이나 SCHED_OTHER 관측 결과를 차량/Target 전체 budget으로 채택하지 않는다.
 Logical period가 같아도 모든 task deadline이 그 period와 같다고 가정하지 않는다.
 M3에서는 task release/start/end, Mean/P95/P99/Max, sample/drop 수, eligible jobs와
 miss 수/비율, trace overhead를 보고한다. M5/M7에 전체 causal path로 확장한다.

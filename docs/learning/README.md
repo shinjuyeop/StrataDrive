@@ -68,13 +68,17 @@ model vCAN 8개를 재검사하고 설정·고장·세션 경계를 대조했다
 당시 전체 unit은 **430개**였다. 정상 rate 범위·residual/dwell과 sensor health·fresh Actual/latch를 시험했다.
 [Brake response monitor](m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 더해 당시 전체 **470개**였다.
 가압/감압 이상과 보호 요청/압력 관측을 구분한다.
-[ECU/SIL 실행 경계](m2_execution_boundaries.md)를 분리하고 core 18개·외부 물리 진행 3개를 더해 현재 전체 **491개**다. 다음은 학습자 수용과 M3의 실제 task/watchdog·trace·timing 설계다.
+[ECU/SIL 실행 경계](m2_execution_boundaries.md)를 분리하고 core 18개·외부 물리 진행 3개를 더해 M2 시점 전체 **491개**였다.
+[M3 첫 주기 실행·독립 감시](m3_steering_timing.md)에서 schedule/monitor/snapshot 14개를 추가해 현재 C++ **505개**,
+Python 리포터 5개다. Steering의 실제 thread·deadline·CSV trace를 읽고 정상/overrun/stall에서 누락 job과 물리 보호를 비교한다.
+다른 task·실제 통신/부하·Target 확장은 후속이며 학습자 수용 기록은 별도로 남긴다.
 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Central의 별도 VCU가 차량 전체
 관리·배분/session/feedback 집계를 맡고 Front는 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
 M4/M5에 분리하며 Central–Zone protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.
 
 실행 프로그램은 `actuator_demo` 하나다. `tools/actuator_demo.cpp`는 명령 분기와 도움말을 맡고,
 예제 구현은 `tools/demo/`의 Steering·Brake·Drive·EV 파일로 나눈다.
+Linux `steering-runtime`은 `simulation/runtime/`의 실행 연결을 호출하며 같은 executable을 사용한다.
 `angle`, `frame`, `e2e`, `receiver`, `brake-pressure`, `brake-frame`, `brake-receiver`,
 `drive-frame`, `drive-feedback`, `bms-value`, `bms-frame`, `bms-receiver`, Linux `epoch`, `steering-model`, `brake-model`, `drive-model`, `battery-model`, `bms-control`, `power-model`, `drive-gated`, `drive-energy`, `ev-power` 중 필요한 명령을 실행한다.
 자동 단위 시험은 모듈별 기존 파일에 case를 추가하며 SocketCAN 통합 시험은

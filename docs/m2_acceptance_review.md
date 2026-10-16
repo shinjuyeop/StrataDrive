@@ -8,7 +8,7 @@ Status: **기존 component 및 Steering/Brake detector 검사 PASS / 학습자 �
 Steering 후속 시점의 unit은 430개였다. 이어 [Brake response monitor](learning/m2_brake_fault_monitor.md)도
 구현·시험해 OPEN-M2-01/02 모두 **Host component 검사 완료 / 학습자 수용 PENDING**이다.
 구조 정리 전 전체 unit은 normal·ASan/UBSan 각각 **470개 PASS**였다.
-후속 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)에서 21개를 더해 현재 전체 **491개 PASS**다. 아래 최초 검토의 391개 결과와 미구현 판정은 이후 `69a9614`로 커밋한 당시 snapshot의 이력이다.
+후속 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)에서 21개를 더해 M2 구조 정리 시점 전체 **491개 PASS**였다. 아래 최초 검토의 391개 결과와 미구현 판정은 이후 `69a9614`로 커밋한 당시 snapshot의 이력이다.
 최신 실행 증거와 수치는 위 학습 안내/품질 기록에 따로 연결한다.
 
 ## 검토 범위와 판정

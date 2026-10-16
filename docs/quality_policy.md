@@ -1,7 +1,7 @@
 # Software quality policy
 
-Status: **M1 통신과 M2 Steering/Brake/Drive torque·Battery/BMS/Power·Drive gate·에너지/회로 연결 component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 491개 PASS**다.
+Status: **M1 통신·M2 모델·M3 첫 Steering 실행/독립 감시에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 505개 PASS**, Python 리포터 **5개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -324,6 +324,39 @@ Classic ADR의 과거 대응표와 M1 수동 검사 명령을 당시 이력으�
 문서 87개/상대 링크·앵커 953개, 요구 32개/TC 29개 NOT RUN, YAML 3개/Python 3개와 whitespace 검사는 PASS다.
 이 후속은 문서만 변경했으며 C++ 시험을 다시 실행한 기록은 아니다.
 
+2026-10-16 [M3 첫 Steering 주기 실행](learning/m3_steering_timing.md)은 absolute schedule·독립 completion monitor와
+SPSC latest snapshot을 구현하고 ECU/monitor/plant owner를 분리했다. 새 unit **14개**를 더해
+normal·ASan/UBSan 각각 전체 **505개 PASS**, Python 통계/분모·unavailable 시각 검사 **5개 PASS**다.
+Normal/최소 계측/15 ms busy overrun/120 ms stall을 normal·sanitizer에서 각각 3회(**12 runs씩**),
+BUILD_TESTING=OFF build에서 1회(**4 runs**) 실행했다. 모든 run의 예정 job은 120개이고 warm-up 제외는 0이다.
+이번 최종 계측 실행은 세 build를 순서대로 수행했다. Host의 다른 부하·DVFS·cooling은 통제하지 않았다.
+
+Normal은 모두 120개 완료/miss 0이었다. Overrun은 실행 119개·skip 1개·miss 2개,
+stall은 실행 109개·skip 11개·miss 12개였으며 누락 job을 분모에서 빼지 않았다.
+Normal build의 첫 검출은 deadline 뒤 **1.073–1.242 ms**, 독립 Hold 적용은 검출 뒤 **1.999–2.006 ms**였다.
+둘 모두 ECU의 injected sleep/busy work 종료 전이었다. Late injected feedback은 발행하지 않았고
+새 sensor acquisition·Command/Actual causal identity와 output issued/applied time을 확인했다.
+복귀 뒤 timely FAIL_SAFE 진단 발행은 유지했다. Sensor-gap latch의 unavailable은 측정으로 집계하지 않으며
+진단 생성 시각과 유효 각도의 acquisition source를 구분하는 회귀 검사를 더했다.
+이 값은 default SCHED_OTHER의 local 관측이며 100 ms CAN loss·차량 반응/Target 보장으로 확대하지 않는다.
+
+Normal/full의 360개 job elapsed는 Mean **0.015845 ms**, P95 **0.015552 ms**, P99 **0.067195 ms**, Max **0.072855 ms**였다.
+Minimal 계측과의 평균 차이는 **+0.000231 ms**였다. 별도 실행의 scheduler/cache 잡음도 포함하므로
+이 차이를 계측 비용의 상한으로 보거나 deadline에서 빼지 않는다. ECU phase와 외부 physics 비용은 별도 지표다.
+Sanitizer 수치는 기능/메모리 검사이며 대표 성능 증거로 사용하지 않는다.
+
+변경 C++ source/test 4개에 clang-tidy 14 analyzer/bugprone, production/demo 3개에 cppcheck 2.7을 적용했다.
+최종 trace field 변경 뒤 해당 runtime source를 다시 검사했다. User-source 진단 없이 통과했으며 기존 header/NOLINT filter는 유지했다.
+TSan은 PIE/non-PIE 두 시작 시도 모두 Host의 `unexpected memory mapping`으로 실행되지 않았다. Race 검사는 NOT RUN이다.
+세 slot의 동시 payload 무결성 stress test와 ASan/UBSan 결과를 TSan PASS로 대신하지 않는다.
+
+각 build의 `m3-result/`에 CSV/run 환경·설정·source/profile/binary hash·summary/artifact manifest를 보존한다.
+Normal·sanitizer의 `m3-final-unit.txt/xml`, Python `m3-final-python.txt`, 각 build의 `m3-result.txt`와
+`m3-final-*` build/static 로그, normal의 `m3-static-clang.txt`·`m3-final-clang.txt`·`m3-final-cppcheck.txt`에 적용 범위를 남긴다.
+최종 소스·문서·로그 연결은 `build/m1-angle/m3-evidence.json`에 묶는다. 이번에 CAN wire/receiver/DBC는 변경하지 않았고
+vCAN 재실행은 하지 않았다. 기존 M2 model 8개·전체 97개는 앞선 실행 이력이다.
+M3는 IN PROGRESS다. 다른 ECU/통신 감시·고정 부하·Target/E2E는 후속이며 32개 요구/29개 전체 system TC는 NOT RUN이다.
+
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |
 | Compiler | 직접 관리하는 GCC/Clang target에 `-Wall -Wextra -Werror` 적용 | 첫 C++ target부터 적용; 검토된 최소 범위의 예외는 문서화하고 third-party에 global flag 적용 지양 |
@@ -396,6 +429,7 @@ clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings
 Cppcheck도 현재 compilation database의 include/define과 변경 production/demo 범위를 사용한다.
 GoogleTest macro의 기존 도구 제약은 위 기록처럼 따로 관리하며, 일부 source의 PASS를 전체 repository 결과로 확대하지 않는다.
 SIL 실행 API와 core-only 경계 시험의 읽는 순서는 [실행 경계 안내](learning/m2_execution_boundaries.md)에 있다.
+M3의 wall-time 실행과 report 재현은 [첫 Steering timing 안내](learning/m3_steering_timing.md)를 따른다.
 
 ## Design and evidence review
 

@@ -98,7 +98,9 @@ ISO 26262의 concept 활동은 [Part 3](https://www.iso.org/standard/68385.html)
 채택한다. 이는 설계·학습 방향이며 Classic stack의 실제 도입 결정과 구분한다.
 Steering에서 명령 처리·로컬 보호·출력/상태 보고의 ECU 소프트웨어와
 delay/rate/saturation을 계산하는 SIL 물리 모델의 입출력 경계를 먼저 정리한다.
-현재 한 class/tick에서 실행하는 책임을 설계로 구분하며 이번 결정으로 코드를 이동하지 않는다.
+[ECU/SIL 경계 정리](learning/m2_execution_boundaries.md)에서 ECU phase와 외부 물리 실행을 분리했고,
+[M3 첫 실행](learning/m3_steering_timing.md)에서 Steering의 별도 실행·감시와 계측을 연결했다.
+이 C++ 구조/Host thread를 생성된 RTE/BSW 또는 AUTOSAR OS 실행으로 보지 않는다.
 Steering의 작은 설계·pilot을 확인한 뒤 Brake/Drive/BMS에 확장한다.
 
 먼저 Steering 기능의 입력·출력, 내부 동작과 주기 실행을 기존 ICD에 대응시킨다.

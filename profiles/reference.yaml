@@ -1,4 +1,5 @@
 # StrataDrive Reference Baseline v0.1: design data only, no runtime loader.
+# M3 local Host timing fixture is a separate experiment, not a vehicle deadline.
 # Engineering starting points, not production requirements or measured results.
 # null = TBD, never zero/default/disabled. Decision owners are in docs/roadmap.md.
 # RG-01 (2026-10-13) extends the current design; M0 v0.1 review remains historical.
@@ -500,3 +501,23 @@ measurement:
     - ram
     - power
     - temperature
+
+# ADR-0033: mirrors the finite C++ Host experiment; not loaded by the runner.
+m3_steering_runtime_fixture:
+  period_ms: 10
+  relative_deadline_ms: 5
+  minimum_ecu_call_ms: 1
+  monitor_period_ms: 2
+  plant_period_ms: 2
+  jobs: 120
+  first_release_after_enable_ms: 10
+  injected_job_zero_based: 20
+  overrun_busy_ms: 15
+  stall_sleep_ms: 120
+  repetitions_per_condition: 3
+  excluded_warmup_jobs: 0
+  monitor_detection_margin_ms: 10
+  hold_after_detection_margin_ms: 10
+  clock: CLOCK_MONOTONIC
+  scheduling_policy: SCHED_OTHER
+  handoff: spsc_triple_buffer_latest_snapshot

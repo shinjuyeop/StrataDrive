@@ -93,6 +93,10 @@ sensor age/gap 20/30 ms도 기록한다. 보호는 increase-only/floor 요청이
 Floor 관측은 fresh sensor로만 보고하고 cached/invalid에서 unknown이다. YAML은 C++ 설정의 기록이며 loader는 없다.
 차량 안전 제동 calibration/ABS/pressure→wheel torque는 TBD-02/03/06의 후속 작업이다.
 
+`m3_steering_runtime_fixture`는 [첫 Steering wall-time 실행](../docs/learning/m3_steering_timing.md)의 설정 기록이다.
+10 ms release와 별도 5 ms deadline, 2 ms monitor/plant, 120 jobs와 bounded fault 조건은 local Host 실험이다.
+차량/Target deadline은 TBD-04이며 YAML loader는 없다. 중간 snapshot 대체와 trace drop을 구분하고 warm-up을 제외하지 않는다.
+
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
 stack, model/input settings, scenario/seed, power/thermal 및 측정 조건을 기록한다.
 결과는 단순 속도 순위 대신 요구 충족과 feature trade-off로 평가한다.

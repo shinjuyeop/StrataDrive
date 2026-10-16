@@ -81,10 +81,11 @@ build/m1-angle/actuator_demo brake-model stuck-rise
 build/m1-angle/actuator_demo ev-power normal
 ```
 
-명령·출력은 기존과 같다. 진입점은 93줄이며 도메인별 구현은 각각 180–425줄이다.
+M2 구조 정리 당시 명령·출력은 기존과 같았고 진입점은 93줄, 도메인별 구현은 각각 180–425줄이었다.
 새 기능마다 executable을 만들지 않고, 관련 도메인 파일과 기존 시험의 case를 확장한다.
 
 [ECU 경계 시험](../../tests/unit/ecu_boundary_test.cpp)은 core library만 link하는 18개 case다.
 Simulation include 경로와 plant library가 없어도 목표 선택·port validation·Actual/phase guard를 검증한다.
 외부 물리 진행 case 3개와 기존 470개를 합해 전체 491개다. 상세 build/static/vCAN 증거는 [품질 기록](../quality_policy.md)에 둔다.
 M2 직접 재현·설명은 PENDING이며 system TC 전체는 NOT RUN이다.
+후속 [M3 첫 wall-time 실행](m3_steering_timing.md)에서 별도 Steering task/monitor·plant와 계측을 연결했다.
