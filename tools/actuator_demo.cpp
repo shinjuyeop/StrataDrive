@@ -2,6 +2,7 @@
 #include "demo/demo_support.hpp"
 #ifdef STRATADRIVE_LINUX_SESSION
 #include "epoch_store.hpp"
+#include "steering_runtime.hpp"
 #endif
 
 #include <exception>
@@ -35,6 +36,7 @@ void usage(std::ostream& output) {
            << "  actuator_demo ev-power [normal|weld|current-unknown|aux-blocked]\n";
 #ifdef STRATADRIVE_LINUX_SESSION
     output << "  actuator_demo epoch <init|next> <store_directory>\n";
+    output << "  actuator_demo steering-runtime <normal|overrun|stall> <new_output_directory> [trace-off]\n";
 #endif
 }
 } // namespace stratadrive::demo
@@ -70,6 +72,11 @@ int main(int argc, char** argv) {
             else if (command == "ev-power" && (argc == 2 || argc == 3)) demo_ev_power(argc == 3 ? argv[2] : "normal");
             else if (command == "drive-model" && argc == 2) demo_drive_model();
 #ifdef STRATADRIVE_LINUX_SESSION
+            else if (command == "steering-runtime" && (argc == 4 || argc == 5)) {
+                if(argc==5 && std::string(argv[4])!="trace-off") throw std::invalid_argument("expected trace-off");
+                stratadrive::simulation::run_steering_runtime(argv[2],argv[3],argc==4);
+                std::cout << "RUNTIME_TRACE " << argv[3] << '\n';
+            }
             else if (command == "epoch" && argc == 4) {
                 const std::string action = argv[2];
                 if (action == "init") { stratadrive::session::EpochStore::initialize(argv[3]); std::cout << "EPOCH_STORE_INITIALIZED\n"; }
