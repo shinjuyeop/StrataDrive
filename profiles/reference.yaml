@@ -521,3 +521,28 @@ m3_steering_runtime_fixture:
   clock: CLOCK_MONOTONIC
   scheduling_policy: SCHED_OTHER
   handoff: spsc_triple_buffer_latest_snapshot
+
+# ADR-0034: separate finite Host multirate/vCAN experiment; no profile loader.
+m3_multirate_runtime_fixture:
+  window_ms: 2400
+  monitoring_tail_ms: 40
+  startup_lead_ms: 100
+  tasks:
+    brake: {period_ms: 10, first_offset_ms: 10, deadline_ms: 5, jobs: 240}
+    drive: {period_ms: 10, first_offset_ms: 10, deadline_ms: 5, jobs: 240}
+    bms: {period_ms: 20, first_offset_ms: 5, deadline_ms: 8, jobs: 120}
+    power: {period_ms: 10, first_offset_ms: 8, deadline_ms: 5, jobs: 240}
+    rx: {period_ms: 2, first_offset_ms: 2, deadline_ms: 3, jobs: 1200}
+  minimum_ecu_call_ms: 1
+  monitor_period_ms: 2
+  plant_period_ms: 2
+  rx_dispatch_budget: 8
+  accepted_rx_timeout_ms: 80
+  accepted_rx_detection_limit_ms: 100
+  trusted_issuer_history: 4
+  injection_offset_ms: 1100 # per-task latest scheduled release <= this offset
+  stall_sleep_ms: 120
+  application_epoch: 1
+  model_epoch: 7
+  excluded_warmup_jobs: 0
+  drive_torque_wire: unavailable_for_asynchronous_acquisition

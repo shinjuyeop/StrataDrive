@@ -29,7 +29,8 @@ Drive ECU adapter와 물리 모델을 별도 모듈로 두었다.
 [Steering local monitor](learning/m2_steering_fault_monitor.md)는 sensor/물리 경계와 함께 구현·시험했다.
 [Brake response monitor](learning/m2_brake_fault_monitor.md)도 독립 pressure sensor·가압/감압 정상 범위와
 보호 요청/관측을 구현·시험했다. [실행 경계 정리](learning/m2_execution_boundaries.md)로 ECU library에서 plant 소유/호출을 제거하고
-별도 SIL 연결 코드와 도메인별 demo source를 뒀다. 다음은 M2 학습자 수용과 M3의 실제 task/watchdog·trace·timing 설계다.
+별도 SIL 연결 코드와 도메인별 demo source를 뒀다. M3는 Host 다중 주기·독립 task/CAN 감시와 trace를 부분 구현했다.
+다음은 M2 학습자 수용과 M3 고정 부하·CPU 배치·Drive 관측 계약 검토다.
 차량 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며
@@ -100,7 +101,8 @@ Steering에서 명령 처리·로컬 보호·출력/상태 보고의 ECU 소프�
 delay/rate/saturation을 계산하는 SIL 물리 모델의 입출력 경계를 먼저 정리한다.
 [ECU/SIL 경계 정리](learning/m2_execution_boundaries.md)에서 ECU phase와 외부 물리 실행을 분리했고,
 [M3 첫 실행](learning/m3_steering_timing.md)에서 Steering의 별도 실행·감시와 계측을 연결했다.
-이 C++ 구조/Host thread를 생성된 RTE/BSW 또는 AUTOSAR OS 실행으로 보지 않는다.
+후속 [다중 주기 실행](learning/m3_multirate_runtime.md)은 Brake/Drive/BMS·Power와 실제 SocketCAN RX를 연결했다.
+이는 Host runnable/port 경계의 실험이며 생성된 RTE/BSW 또는 AUTOSAR OS 실행으로 보지 않는다.
 Steering의 작은 설계·pilot을 확인한 뒤 Brake/Drive/BMS에 확장한다.
 
 먼저 Steering 기능의 입력·출력, 내부 동작과 주기 실행을 기존 ICD에 대응시킨다.

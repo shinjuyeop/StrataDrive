@@ -4,9 +4,9 @@
 
 ## Current Status
 
-**M3 진행 중** — 조향의 실제 주기 실행·독립 deadline 감시와 timing trace를 구현·검사했다.
+**M3 진행 중** — 조향에 이어 Brake·Drive·BMS·Power의 다중 주기 실행과 독립 task/CAN 수신 감시를 구현·검사했다.
 M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도로 남긴다.
-다음은 **다른 ECU의 주기·통신 감시 확장과 부하 측정**이다.
+다음은 **고정 부하·CPU 배치 측정과 Drive sampling/timestamp 계약 검토**다.
 Central/Zone DDS·차량 closed-loop 통합은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
@@ -182,7 +182,8 @@ ctest --test-dir build/m1-angle --output-on-failure
 예상 결과는 [EV 회로 안내](docs/learning/m2_ev_power_circuit.md)와
 [조향 고장 검출 안내](docs/learning/m2_steering_fault_monitor.md)에 있다.
 Codec·수신부 등 나머지 예제는 `--help`와 [학습 안내](docs/learning/README.md)에서 확인한다.
-실제 wall-time 주기 실행·독립 감시와 CSV 결과는 [M3 첫 실행 안내](docs/learning/m3_steering_timing.md)에 있다.
+실제 wall-time 실행과 CSV 결과는 [M3 조향 안내](docs/learning/m3_steering_timing.md)와
+[다중 주기·CAN 감시 안내](docs/learning/m3_multirate_runtime.md)에 있다.
 `-DBUILD_TESTING=OFF`로 configure하면 라이브러리와 예제만 build하며
 단위 시험과 통합 시험의 TX/RX 실행 파일은 제외한다.
 
@@ -226,7 +227,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 | M0 | Architecture / Requirement / ICD Baseline — BASELINED |
 | M1 | DBC + vCAN — TECHNICAL CHECKS PASS / REVIEW PENDING |
 | M2 | Actuator·EV 모델 — TECHNICAL CHECKS PASS / REVIEW PENDING |
-| M3 | IN PROGRESS: 첫 Steering 주기 실행·독립 감시·timing trace |
+| M3 | IN PROGRESS: 다중 주기 실행·독립 task/CAN 감시·timing trace |
 | M4 | Central coordinator + 대등한 Front/Rear Zone |
 | M5 | Central Compute + DDS |
 | M6 | Simple Vehicle Plant |
@@ -279,6 +280,7 @@ StrataDrive/
 ├── tests/
 │   ├── unit/              # 모듈별 C++ test; 기능 확장은 기존 파일의 case로 추가
 │   ├── integration/can/  # SocketCAN TX/RX fixture와 Python 검사기
+│   ├── integration/runtime/ # 주기·deadline·CAN 상실 검사와 CSV 리포터
 │   └── sil/, fault/, performance/ # 후속 시험 배치
 ├── benchmark/             # Timing, compute, 검토된 결과
 ├── deploy/                # Docker, systemd, scripts — 배치용 placeholder

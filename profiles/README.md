@@ -97,6 +97,13 @@ Floor 관측은 fresh sensor로만 보고하고 cached/invalid에서 unknown이�
 10 ms release와 별도 5 ms deadline, 2 ms monitor/plant, 120 jobs와 bounded fault 조건은 local Host 실험이다.
 차량/Target deadline은 TBD-04이며 YAML loader는 없다. 중간 snapshot 대체와 trace drop을 구분하고 warm-up을 제외하지 않는다.
 
+`m3_multirate_runtime_fixture`는 [후속 다중 주기·CAN 감시](../docs/learning/m3_multirate_runtime.md)의 설정이다.
+Brake/Drive/Power 10 ms·deadline 5 ms, BMS 20 ms·deadline 8 ms, RX 2 ms·deadline 3 ms와 release offset/job 수를 기록한다.
+독립 감시/plant 2 ms, 5개 critical stream의 유효 RX threshold 80 ms·검출 <=100 ms와 poll당 8개 budget은 Host 실험 값이다.
+Core 최소 호출 guard 1 ms는 runnable period가 아니다. Trusted parent 이력은 CAN 밖의 최근 4개 원천 frame/context에 한정한다.
+비동기 Drive torque는 source를 보존해 현 wire에서 unavailable이며 physical trace의 실제 값과 구분한다.
+YAML loader·차량/Target timing 보장·실제 Central/Zone runtime은 후속이다.
+
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
 stack, model/input settings, scenario/seed, power/thermal 및 측정 조건을 기록한다.
 결과는 단순 속도 순위 대신 요구 충족과 feature trade-off로 평가한다.

@@ -157,5 +157,5 @@ Sanitizer는 build-dir을 `build/m1-angle-sanitized`로 바꾼다. 이전 97개 
 이 문서의 `drive-gated` 예제는 actual DC/SOC 충전을 적분하지 않는다. 이후 [Drive energy loop](m2_drive_energy.md)는
 이상적 HV 경로에서 실제 torque·speed·손실과 BatteryModel SOC를 연결했다. Interval/oldest dependency,
 shared reserve·finite residual/headroom을 검토했다. [실제 RC/접점 연결](m2_ev_power_circuit.md)도
-별도 combined loop로 구현·시험했다. 다음은 M2 수용 검토와 M3 timing 준비다.
+별도 combined loop로 구현·시험했다. M2 수용 검토는 PENDING이며 [M3 실행·계측](m3_multirate_runtime.md)은 진행 중이다.
 Central 배분/vehicle motion·정지, Target timing, 실제 RTE/OS/BSW와 전체 차량 TC는 후속이다.

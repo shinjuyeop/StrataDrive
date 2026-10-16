@@ -1,6 +1,7 @@
 # M3 첫 실행: 10 ms 주기와 독립 deadline 감시
 
-Date: 2026-10-16. Status: **Steering Host component 구현·계측 / M3 다른 task·부하·Target 검증 후속**.
+Date: 2026-10-16. Status: **Steering Host component 구현·계측 / 고정 부하·Target 검증 후속**.
+다른 ECU와 실제 RX 감시는 후속 [다중 주기 안내](m3_multirate_runtime.md)에 있다.
 [ADR-0033](../adr/ADR-0033-first-wall-time-execution-and-monitor.md)의 첫 실행이다.
 M2의 ECU/SIL 분리를 실제 thread 실행에 연결한다. 기존 deterministic 모델·vCAN 검사는 유지한다.
 
@@ -119,12 +120,12 @@ Clock resolution이나 clock-read probe도 cross-node 동기화 오차나 WCET b
 
 ## 이번 결과와 M3의 남은 범위
 
-Normal·ASan/UBSan 각각 C++ unit **505개**, Python 리포터 **5개**를 검사했다.
+첫 실행 시점 Normal·ASan/UBSan 각각 C++ unit **505개**, Python 리포터 **5개**를 검사했다.
 각 build에서 12 runs, BUILD_TESTING=OFF build에서 4 runs를 수행했다. 상세 실행 수치·로그는 [품질 기록](../quality_policy.md)에 둔다.
 TSan은 이 Host에서 `unexpected memory mapping`으로 시작하지 못해 검사 미실행이다.
 현재 thread는 SCHED_OTHER이며 RT priority/affinity를 설정하지 않았다. Sanitizer 수치는 대표 성능으로 사용하지 않는다.
 
-다음은 Brake/Drive/BMS·Power의 주기와 실제 통신/RX 정지 감시를 같은 방식으로 확장하고,
+후속 [다중 주기 실행](m3_multirate_runtime.md)으로 Brake/Drive/BMS·Power의 주기와 실제 통신/RX 정지 감시를 확장했다. 다음은
 고정 부하·overload와 실행 배치·trace overhead를 검토하는 것이다. Target, process/OS 고장 격리,
 무한 hang 강제 종료, 차량 전체 deadline·cross-node/E2E는 아직 검증하지 않았다.
 기존 32개 요구/29개 system TC는 NOT RUN이다. M2 학습자 수용 기록은 별도로 남긴다.

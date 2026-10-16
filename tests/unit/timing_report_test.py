@@ -50,6 +50,27 @@ class TimingReportTest(unittest.TestCase):
         row["feedback_source_ns"] = row["input_source_ns"]
         report.validate_feedback(row)
 
+    def test_loss_latency_keeps_original_valid_rx_and_both_budget_boundaries(self):
+        stream = dict(health=2, last_valid_ns=1_000_000_000, detected_ns=1_080_000_000)
+        self.assertEqual(report.receive_latency(stream), 80)
+        stream["detected_ns"] = 1_100_000_000
+        self.assertEqual(report.receive_latency(stream), 100)
+
+    def test_raw_packet_time_cannot_disguise_a_late_valid_loss_detection(self):
+        stream = dict(health=2, last_valid_ns=1_000_000_000, detected_ns=1_100_000_001)
+        with self.assertRaisesRegex(AssertionError, "budget"):
+            report.receive_latency(stream)
+        stream["detected_ns"] = 1_079_999_999
+        with self.assertRaisesRegex(AssertionError, "budget"):
+            report.receive_latency(stream)
+
+    def test_missing_original_reference_and_clock_fault_are_not_pass_results(self):
+        for stream in [dict(health=2, last_valid_ns=0, detected_ns=1_100_000_000),
+                       dict(health=3, last_valid_ns=1_000_000_000, detected_ns=1_100_000_000)]:
+            with self.assertRaises(AssertionError):
+                report.receive_latency(stream)
+        self.assertIsNone(report.receive_latency(dict(health=1, last_valid_ns=1_000_000_000, detected_ns=0)))
+
 
 if __name__ == "__main__":
     unittest.main()

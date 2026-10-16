@@ -163,4 +163,4 @@ Central permission, Drive 자체 HV 관측을 함께 검사해 목표를 제한�
 [첫 actual DC/SOC 연결](m2_drive_energy.md)은 이상적 energized HV 경로로 구현·시험했다.
 [후속 EvPowerModel](m2_ev_power_circuit.md)은 PowerModel의 dynamic capacitor/path 손실·구간 전류/발열과
 BatteryModel의 단일 chemical energy owner를 연결했다. 이 문서의 `power-model` 예제는 계속 독립 fixture다.
-다음은 M2 수용 검토와 M3 timing 준비이며 차량 motion 통합은 M6이다. Full vehicle TC는 NOT RUN이다.
+M2 수용 검토는 PENDING이며 [M3 실행·계측](m3_multirate_runtime.md)은 진행 중이다. 차량 motion 통합은 M6이며 Full vehicle TC는 NOT RUN이다.

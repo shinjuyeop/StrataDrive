@@ -185,7 +185,8 @@ Actual.CausalSequence는 현재 마지막 수용 Command 문맥이다. Delay 동
 M3 trace는 사용 snapshot/목표 적용 시각을 별도로 연결해야 한다.
 통합 demo의 100 ms/상태 변화 콘솔 출력도 모든 10 ms job의 trace를 대신하지 않는다.
 
-**Steering/Brake local detector의 Host component 구현·검사는 완료했다. 현재 다음은 학습자 수용과 M3 task/trace 설계다.**
+**Steering/Brake local detector의 Host component 구현·검사는 완료했다. 학습자 수용은 PENDING이며 M3 실행·계측은 진행 중이다.**
+현재 다중 주기·CAN 감시 범위와 다음 과제는 [M3 안내](learning/m3_multirate_runtime.md)에 기록한다.
 Brake도 독립 sensor/fault 경계를 두고 기존 delay/rise/fall·floor 시험 16개를 유지했다.
 학습자 수용을 대신 작성하거나 M2를 전체 완료 표시하지 않는다.
 M3 계측 설계는 병행 준비할 수 있지만 M2 미완료 항목의 해결 결과와 별도로 기록한다.

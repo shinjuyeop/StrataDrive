@@ -121,5 +121,5 @@ Local HV는 실제 battery terminal voltage이고 inverter-ready는 fixture다. 
 
 [후속 EvPowerModel](m2_ev_power_circuit.md)은 별도 `ev-power` loop에서 RC/DC-link·접점과 Battery를 연결했다.
 구간 current/heat·capacitor/path 손실·종료 중 지속 부하를 검사했다. 이 문서의 `drive-energy`는 계속
-ideal-path fixture다. 다음은 M2 수용 검토와 M3 timing 준비다. Vehicle motion/배분·마찰 보충,
+ideal-path fixture다. M2 수용 검토는 PENDING이며 [M3 실행·계측](m3_multirate_runtime.md)은 진행 중이다. Vehicle motion/배분·마찰 보충,
 정밀 map·실차 calibration·Target timing과 full TC는 후속이다.

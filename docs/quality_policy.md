@@ -1,7 +1,7 @@
 # Software quality policy
 
-Status: **M1 통신·M2 모델·M3 첫 Steering 실행/독립 감시에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 505개 PASS**, Python 리포터 **5개 PASS**다.
+Status: **M1 통신·M2 모델·M3 Host 다중 주기/task·CAN 감시에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 516개 PASS**, Python 리포터 **8개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -355,7 +355,60 @@ Normal·sanitizer의 `m3-final-unit.txt/xml`, Python `m3-final-python.txt`, 각 
 `m3-final-*` build/static 로그, normal의 `m3-static-clang.txt`·`m3-final-clang.txt`·`m3-final-cppcheck.txt`에 적용 범위를 남긴다.
 최종 소스·문서·로그 연결은 `build/m1-angle/m3-evidence.json`에 묶는다. 이번에 CAN wire/receiver/DBC는 변경하지 않았고
 vCAN 재실행은 하지 않았다. 기존 M2 model 8개·전체 97개는 앞선 실행 이력이다.
-M3는 IN PROGRESS다. 다른 ECU/통신 감시·고정 부하·Target/E2E는 후속이며 32개 요구/29개 전체 system TC는 NOT RUN이다.
+이 첫 실행 시점 다른 ECU/통신 감시는 후속이었으며 아래 확장에서 검사했다. M3는 IN PROGRESS이고 32개 요구/29개 전체 system TC는 NOT RUN이다.
+
+2026-10-16 후속 [M3 다중 주기·실제 CAN 감시](learning/m3_multirate_runtime.md)는 Brake/Drive/Power 10 ms·BMS 20 ms와
+SocketCAN RX 2 ms를 별도 thread로 실행했다. 유효 RX monitor 7개·trusted issuer history 4개 unit을 추가해
+normal·ASan/UBSan 각각 전체 **516개 PASS**, 리포터의 원천 참조/80..100 ms 경계·clock 검사 3개를 더해 Python **8개 PASS**다.
+BUILD_TESTING=OFF build도 통과했다. 기존 Core·wire/receiver·DBC 계약은 변경하지 않았다.
+
+정상/full·정상/minimal, Brake/Drive/BMS/Power/RX 각각의 120 ms stall과 지속 CRC 손상의 8조건을 실행했다.
+최종 소스에서 normal·sanitizer 각각 2회(**16 runs씩**), production 1회(**8 runs**)로 총 **40 runs PASS**다.
+공통 Linux helper 추출과 snapshot/보호 flag 취득→clock read 순서 수정 뒤 기존 Steering 4조건도
+normal·sanitizer 각각 1회(**8 runs 합계**) 회귀했다. 빌드/정적 분석을 끝낸 뒤 계측을 세 build에서 순서대로 실행했으며
+warm-up 제외는 0이다. Host 다른 부하·DVFS/cooling은 통제하지 않았다.
+
+Normal의 task miss/skip은 모두 0이었다. 아래는 normal build의 full 계측 2회 job elapsed(ms)이며,
+ECU prepare/complete 또는 tick 비용과 외부 물리 계산은 별도 trace 지표다. 서로 다른 주기의 sample을 합치지 않는다.
+
+| Task | Samples | Mean | P95 | P99 | Max |
+| --- | --- | --- | --- | --- | --- |
+| Brake | 480 | 0.029995 | 0.091016 | 0.096215 | 0.101209 |
+| Drive | 480 | 0.071357 | 0.184090 | 0.198146 | 0.201208 |
+| BMS | 240 | 0.010297 | 0.023323 | 0.025128 | 0.038002 |
+| Power | 480 | 0.061046 | 0.100879 | 0.108182 | 0.114536 |
+| RX | 2400 | 0.053212 | 0.148148 | 0.154004 | 0.171159 |
+
+Full/minimal 평균 차이는 task에 따라 음수도 나왔다. 별도 실행의 scheduling/cache 잡음을 포함하므로 계측 비용의 상한으로
+해석하거나 deadline에서 빼지 않는다. 자세한 역할별 비교는 `summary.json`의 `trace_overhead_comparison.by_task`에 둔다.
+Sanitizer 수치는 기능/메모리 검증에만 사용한다.
+
+Normal build의 stall에서 Brake/Drive/Power는 각각 miss 12·skip 11, BMS miss 6·skip 5, RX miss 60·skip 59였다.
+누락 job을 분모에 남겼고 다른 task는 miss 0이었다. 최초 검출은 해당 deadline 뒤 **1.055–1.294 ms**,
+독립 보호 적용은 검출 뒤 **1.820–2.022 ms**였으며 모두 stalled job 복귀 전이었다.
+초기 개발 검사에서 보호가 검출보다 수백 ns 먼저 적용된 것으로 찍힌 run은 FAIL로 보존했다.
+새 snapshot/flag를 취득한 뒤 적용 clock을 읽도록 수정해 소급 적용을 막았으며 최종 suite는 그 순서를 검사한다.
+
+마지막 valid application RX→loss 검출은 normal **80.002–81.996 ms**, sanitizer **80.005–82.019 ms**,
+production **80.010–81.993 ms**였다. CRC 손상 packet이 계속 들어와도 valid age는 갱신하지 않았다.
+유한 torque 잔여 응답·Brake increase-only floor와 Power 정지 중 접점 유지/복귀 후 measured-current 종료를 검사했다.
+정상 precharge/READY·BMS fresh release dwell→gated Drive와 실제 SOC 감소/회로 energy 잔차도 확인했다.
+이는 5개 입력 stream의 local Host/vCAN 증거이며 실제 CAN arbitration·Zone/Central·Target/차량 안전 정지 증거가 아니다.
+비동기 Drive torque는 원천 acquisition을 보존해 현 wire에서 unavailable이다. 실제 torque는 physical trace에 있고
+Actual CAN TX→독립 feedback RX는 sampling/timestamp 계약 검토 뒤 별도로 검사해야 한다.
+
+Clang-tidy 14 analyzer/bugprone은 변경 runtime·demo·test C++ 5개, cppcheck 2.7은 production/demo 3개에 적용해 통과했다.
+기존 user-source/header/NOLINT filter 범위를 유지했다. TSan은 앞서 기록한 Host 시작 오류 때문에 여전히 **NOT RUN**이다.
+각 build의 `m3-multi-recorded/`에 최종 40 runs의 CSV·run/environment·source/profile/binary hash·summary/artifact manifest를 보존한다.
+보고서 환경 설명의 모델/deadline을 family별로 수정해 재기록했으며 앞선 `m3-multi-final/` 40 runs도 보존한다.
+Steering 회귀는 normal·sanitizer의 `m3-steering-recorded/`, unit은 `m3-multi-unit.txt/xml`, Python은 normal의
+`m3-multi-python.txt`, build는 각 build의 `m3-multi-final-build.txt`에 기록했다.
+정적 분석은 normal의 `m3-multi-final-clang.txt`·`m3-multi-cppcheck.txt`, 최종 증거 연결은
+`build/m1-angle/m3-multirate-evidence.json`이다. 이전 실패/검토 로그는 별도 directory에 유지한다.
+Markdown 91개·상대 링크/앵커 1015개, 요구 32개/TC 29개, YAML 3개·Python 5개 syntax/정합성을 검사했다.
+기존 M1/M2 97개 vCAN은 이 40 runs와 별도 이력이다.
+고정 부하·CPU 배치/우선순위·Drive 관측 계약·M3 수용 검토와 Target/E2E는 후속이다.
+전체 32개 요구/29개 system TC는 NOT RUN이며 M1/M2 학습자 수용 기록은 PENDING이다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |

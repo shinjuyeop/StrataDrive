@@ -2,7 +2,8 @@
 
 Status: **M0 — BASELINED / M1·M2 — TECHNICAL CHECKS PASS · REVIEW PENDING / M3 — IN PROGRESS / M4–M13 — PLANNED**.
 M3의 [첫 Steering wall-time 실행](learning/m3_steering_timing.md)은 독립 monitor·plant, deadline/누락 job과 CSV 계측을 구현·검사했다.
-다른 task·통신/RX 정지·고정 부하와 Target/E2E 확장은 후속이다.
+후속 [다중 주기·CAN 감시](learning/m3_multirate_runtime.md)는 Brake/Drive/BMS·Power와 실제 RX를 연결했다.
+고정 부하·CPU 배치·Drive 관측 계약과 Target/E2E 확장은 후속이다.
 [M0 exit review](m0_baseline.md)는 문서 계약의 검토다. 현재 Steering/Brake/Drive six-frame
 codec/P05/receiver/SocketCAN과 EV 통신을 Host에서 구현했다. Local session/queue를 포함해
 normal·ASan/UBSan 각각 unit 143개와 vCAN 89 case, 독립 DBC/CRC 교차 검증을 통과했다. [학습 안내](learning/README.md)에
@@ -26,7 +27,7 @@ coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/sessio
 [Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가했다.
 [Brake response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 추가했다.
 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)의 core 18개·외부 물리 진행 3개를 추가했다.
-M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 14개를 더해 현재 505개이며 기존 vCAN 97개 증거를 유지한다.
+M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 25개를 더해 현재 516개이며 Python 리포터 8개를 검사했다. 기존 vCAN 97개 증거와 이번 multirate 40 runs·Steering 회귀 8 runs는 별도 범위다.
 Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
 [M2 수용 검토](m2_acceptance_review.md)에서는 각각 model vCAN 8개·전체 unit·기존 demo를 재검사해 통과했다.
 Steering/Brake monitor 단계도 각각 model vCAN 8개를 회귀 검사했다. 학습자 수용은 PENDING이다. Zone/DDS/차량 runtime과
@@ -37,7 +38,7 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | M0 | Architecture / Requirement / ICD Baseline | ODD/scenario/수치/계층/timing/fault/ICD 의미 계약, traceability, owner가 있는 TBD, exit checklist |
 | M1 | DBC + vCAN | 12개 wire/receiver, 영속 local Epoch/queue 및 overflow/restart 기술 검사 완료; wire 채택·학습자 review PENDING |
 | M2 | TECHNICAL CHECKS PASS: Actuator + Battery / BMS / Power models | component·Steering/Brake response monitor 시험; 학습자 수용 PENDING |
-| M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | 첫 Steering thread·독립 monitor/plant·overrun/stall 검사; 다른 task/통신·부하·Target 후속 |
+| M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | 다중 주기·독립 task/유효 RX 감시·정지/CRC 손상 검사; 부하·CPU 배치·Drive 관측 계약·Target 후속 |
 | M4 | Central coordinator + Front/Rear Zone | 단일 vehicle management/allocation 확인 후 Zone gateway 분리; 각 Zone routing/원천 freshness/local loss/rejoin, TC-ZON-001–003; protocol TBD-15 |
 | M5 | Central Compute + DDS | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
 | M6 | Simple Vehicle + EV Plant | 실제 actuator/power 응답을 통한 lifecycle/closed-loop, battery energy/SOC balance와 mapping 검증 |
@@ -90,7 +91,7 @@ AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 �
 | TBD-01 | CAN ID/DLC/layout/scaling/ranges, CRC/counter/epoch/source-age metadata, queue/restart/startup handshake, timeout threshold / interface 담당 | **M1**, DBC/codec 및 vector test 전; task 검증 M2/M3 | M0는 의미/검출 상한을 고정하고 encoding을 M1 산출물로 유지; 100 ms에 polling/실행 margin 포함 |
 | TBD-02 | units의 raw scaling, allocation/calibration 값, frame/geometry 변환, feedback skew/age 한계, dynamics 중복 방지 / plant·interface 담당 | **M1** wire 범위; **M2** actuator 의미 구현; **M6** simple mapping; **M7** CARLA mapping 전 | 차량/plant 모델이 없으므로 변환 계수 미확정; physical meaning/sign은 M0 ICD에 정의 |
 | TBD-03 | actuator delay/saturation/dynamics/초기값, Steering/Brake timeout 물리 출력, Drive zero-target 후 torque 감소/ramp/반응 deadline, recovery dwell / vECU 담당 | **M2**, 각 actuator 정상/fault test 전; M6/M7 재검증 | 물리 parameter 근거 없이 압력/torque/ramp 수치 확정하지 않음; raw fallback/무제한 torque 유지 금지는 확정 |
-| TBD-04 | task/E2E deadline/budget, source-age 한계, clock sync/uncertainty, trace/overhead/queue schedule, watchdog 독립성, priority/affinity, multirate ordering, timing warmup/duration/repetitions / timing 담당 | **M1** timeout encoding budget; **M3** 측정 protocol/task budget; **M5/M7** cross-node/E2E 전 | 부분 결정: ADR-0033의 Steering Host 10 ms/별도 deadline 5 ms·독립 monitor 2 ms/120 jobs; 실제 전체 배치·Target/E2E는 미결정 |
+| TBD-04 | task/E2E deadline/budget, source-age 한계, clock sync/uncertainty, trace/overhead/queue schedule, watchdog 독립성, priority/affinity, multirate ordering, timing warmup/duration/repetitions / timing 담당 | **M1** timeout encoding budget; **M3** 측정 protocol/task budget; **M5/M7** cross-node/E2E 전 | 부분 결정: ADR-0033/0034 Host task 10/20/2 ms·별도 deadline 5/8/3 ms, 독립 감시/plant 2 ms와 RX threshold 80 ms·검출 <=100 ms; 전체 배치·Target/E2E 미결정 |
 | TBD-05 | 기본 DDS와 Zenoh 후보 비교, ROS 2 vs direct API/구현체/QoS/schema/integrity, Docker vs netns/veth, bridge process/transport/Host acknowledgement, addressing/discovery / communication 담당 | **M4** 비교, **M5 runtime 시작 전** 결정 | DDS 기본 계획 유지·Zenoh 미채택; 같은 계약/부하/fault로 호환성·학습 비용·queue-freshness·관측성·재연결 비교; adapter로 수용 |
 | TBD-06 | Central allocation/conflict arbitration, availability/rejoin/local protection 상세, DEGRADED envelope, local↔Central state reconcile / Central VCU·Zone safety 담당 | **M4**, local fault/재연결 시험 전 | 정상 torque/brake 충돌과 actuator availability 검증 필요; critical loss는 M0에서 FAIL_SAFE로 고정 |
 | TBD-07 | exact CARLA/Ubuntu/Python/ScenarioRunner 호환 build, map/route/seed/geometry/curve, Host GPU, tick/apply ordering 및 fidelity / simulation 담당 | **M7 통합 전**, route suitability M8 확인 | M0 설치/실행 없음; 공식 호환 정보와 재현 시험으로 선택; ODD/50 ms baseline 유지 |
@@ -150,7 +151,8 @@ Battery의 단일 chemical energy owner를 연결해 시험했다. [M2 수용 �
 별도 물리·sensor 경계와 함께 구현·시험했다. [Brake response detector](learning/m2_brake_fault_monitor.md)도
 가압/감압과 보호 floor 요청·관측 경계를 구현·시험했다. M2 기술 검사는 완료했고 학습자 수용 기록은 별도다.
 [M3 첫 Steering 실행](learning/m3_steering_timing.md)에서는 독립 task monitor·물리 owner와 trace를 연결했다.
-다음은 다른 ECU의 주기·실제 통신/RX 정지 감시와 고정 부하 검증이다.
+후속 다중 주기 fixture에서 Brake/Drive/BMS·Power와 실제 통신/RX 정지·CRC 손상 감시를 검사했다.
+다음은 고정 부하·CPU 배치/계측 비교, Drive sampling/timestamp 계약과 M3 수용 검토다.
 Wire/학습자 review는 PENDING이다.
 
 1. EV 초안의 producer/단위/validity/source·dependency time/expiry와 주기 차이를 review한다.
@@ -159,7 +161,7 @@ Wire/학습자 review는 PENDING이다.
 4. 실제 circuit/energy loop와 M2 parameter·task/monitor·fault/session의 component 증거는 수용 검토에 기록했다.
    OPEN-M2-01/02는 component 구현·시험했고 learner review가 남았다. M3의 runtime/trace 측정은 별도 준비한다.
 5. ECU/plant 소유와 호출을 분리했고 demo는 도메인별 source/단일 executable로 유지한다.
-   M3의 첫 Steering execution/period/jitter/deadline fixture를 구현·검사했다. 다른 task·부하·Target으로 확장하고 이후 M4 단일 coordinator/두 Zone 분할로 진행한다.
+   M3의 Steering 및 다중 주기 execution/period/jitter/deadline·유효 RX 감시를 구현·검사했다. 부하·CPU 배치와 Drive 관측 계약을 검토하고 이후 M4 단일 coordinator/두 Zone 분할로 진행한다. Target 검증은 실제 배포 단계와 연결한다.
 
 Six-frame 구현·부분 시험과 새 EV/ZON 수용 항목을 구분한다. EV wire 값이나 물리 반응/전원
 parameter를 기존 100 Hz/30 ms 또는 특정 OEM 수치로 자동 확정하지 않는다.

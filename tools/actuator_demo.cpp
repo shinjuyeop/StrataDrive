@@ -3,6 +3,7 @@
 #ifdef STRATADRIVE_LINUX_SESSION
 #include "epoch_store.hpp"
 #include "steering_runtime.hpp"
+#include "multirate_runtime.hpp"
 #endif
 
 #include <exception>
@@ -37,6 +38,7 @@ void usage(std::ostream& output) {
 #ifdef STRATADRIVE_LINUX_SESSION
     output << "  actuator_demo epoch <init|next> <store_directory>\n";
     output << "  actuator_demo steering-runtime <normal|overrun|stall> <new_output_directory> [trace-off]\n";
+    output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt> <vcan_interface> <new_output_directory> [trace-off]\n";
 #endif
 }
 } // namespace stratadrive::demo
@@ -72,6 +74,13 @@ int main(int argc, char** argv) {
             else if (command == "ev-power" && (argc == 2 || argc == 3)) demo_ev_power(argc == 3 ? argv[2] : "normal");
             else if (command == "drive-model" && argc == 2) demo_drive_model();
 #ifdef STRATADRIVE_LINUX_SESSION
+            else if (command == "multirate-runtime" && (argc == 5 || argc == 6)) {
+                if(argc==6 && std::string(argv[5])!="trace-off") throw std::invalid_argument("expected trace-off");
+                stratadrive::simulation::MultirateRuntimeOptions options;
+                options.scenario=argv[2]; options.interface_name=argv[3]; options.directory=argv[4]; options.detailed_trace=argc==5;
+                stratadrive::simulation::run_multirate_runtime(options);
+                std::cout << "RUNTIME_TRACE " << argv[4] << '\n';
+            }
             else if (command == "steering-runtime" && (argc == 4 || argc == 5)) {
                 if(argc==5 && std::string(argv[4])!="trace-off") throw std::invalid_argument("expected trace-off");
                 stratadrive::simulation::run_steering_runtime(argv[2],argv[3],argc==4);

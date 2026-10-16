@@ -35,7 +35,11 @@ TC-CTRL-001·TC-SAFE-001/002의 부분 증거를 더한다.
 M2 구조 정리 시점 unit은 491개이며 학습자 수용은 PENDING이다.
 [M3 첫 Steering 실행](../learning/m3_steering_timing.md)은 schedule/monitor/snapshot unit 14개를 더해 C++ 전체 505개,
 Python 리포터 5개와 Host wall-time normal/overrun/stall 검사를 수행했다.
-SYS-PERF-001/002/003·TC-PERF-001/002의 local 부분 근거이며 실제 전체 multirate·통신/Target·E2E는 후속이다.
+SYS-PERF-001/002/003·TC-PERF-001/002의 local 부분 근거다.
+후속 [다중 주기·CAN 감시](../learning/m3_multirate_runtime.md)는 C++ 11개·Python 3개를 추가해 전체 **516/8개**를 검사했다.
+Brake/Drive/Power 10 ms·BMS 20 ms와 RX worker, 독립 task/유효 RX 감시의 40 runs·Steering 회귀 8 runs는
+위 PERF와 SYS-COM-002/003·TC-COM-002/003의 local 부분 증거다. 5개 실제 vCAN 입력의 정지/CRC 실패를 검사했으며
+Drive 비동기 torque는 현 wire에서 unavailable이다. 전체 multirate·Actual CAN feedback·Target/E2E는 후속이다.
 아래 system TC의 모든 required variant·차량/Zone/배포 환경을 검증한 결과는 아니며 Result는 NOT RUN을 유지한다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |

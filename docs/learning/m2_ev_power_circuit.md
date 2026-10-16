@@ -103,6 +103,6 @@ finite actual residual은 실제 flow로 계속 계산하며 순간 hard power �
 차량 관성·타이어·마찰제동·정밀 chemistry/inverter switching·LV sleep은 아직 없다.
 
 [M2 수용 검토](../m2_acceptance_review.md)에서 task/monitor 경계·parameter·fault/session과 component 증거를 대조했다.
-후속 [Steering jam/tracking local monitor](m2_steering_fault_monitor.md)를 구현·시험했고 [Brake response monitor](m2_brake_fault_monitor.md)도 후속 구현·시험했다. 다음은 M2 직접 재현·수용과 M3 task/trace 설계다.
+후속 [Steering jam/tracking local monitor](m2_steering_fault_monitor.md)를 구현·시험했고 [Brake response monitor](m2_brake_fault_monitor.md)도 후속 구현·시험했다. M2 직접 재현·수용은 PENDING이며 [M3 실행·계측](m3_multirate_runtime.md)은 진행 중이다.
 학습자 직접 재현·이해 review와 **M3 실행 주기·지터·deadline 측정**은 별도다.
 M2 전체를 이 연결 하나로 완료 처리하지 않는다.

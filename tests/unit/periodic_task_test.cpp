@@ -1,5 +1,6 @@
 #include "periodic_task.hpp"
 #include "latest_snapshot.hpp"
+#include "receive_watch.hpp"
 
 #include <gtest/gtest.h>
 #include <limits>
@@ -9,6 +10,47 @@
 namespace {
 using stratadrive::runtime::TaskSchedule;
 using stratadrive::runtime::DeadlineMonitor;
+using stratadrive::runtime::ReceiveWatch;
+using stratadrive::runtime::ReceiveHealth;
+TEST(ReceiveWatch, StartupHasItsOwnFiniteAcquisitionDeadline) {
+    ReceiveWatch watch(100,80);
+    EXPECT_EQ(watch.poll(std::nullopt,179),ReceiveHealth::Waiting);
+    EXPECT_EQ(watch.poll(std::nullopt,180),ReceiveHealth::Timeout);
+    EXPECT_EQ(watch.detected(),180U);
+}
+TEST(ReceiveWatch, OnlyNewValidAcceptanceMovesTheReference) {
+    ReceiveWatch watch(100,80);
+    EXPECT_EQ(watch.poll(120,130),ReceiveHealth::Receiving);
+    EXPECT_EQ(watch.poll(120,199),ReceiveHealth::Receiving);
+    EXPECT_EQ(watch.poll(120,200),ReceiveHealth::Timeout);
+    EXPECT_EQ(watch.last_valid(),120U);
+}
+TEST(ReceiveWatch, MissingSnapshotDoesNotEraseLastAcceptedTime) {
+    ReceiveWatch watch(100,80); watch.poll(120,130);
+    EXPECT_EQ(watch.poll(std::nullopt,200),ReceiveHealth::Timeout);
+    EXPECT_EQ(watch.last_valid(),120U);
+}
+TEST(ReceiveWatch, LateNewAcceptanceCannotClearALatchedTimeout) {
+    ReceiveWatch watch(100,80); watch.poll(120,200);
+    EXPECT_EQ(watch.poll(205,210),ReceiveHealth::Timeout);
+    EXPECT_EQ(watch.last_valid(),120U); EXPECT_EQ(watch.detected(),200U);
+}
+TEST(ReceiveWatch, SourceBeforeEnableFutureAndRegressingAcceptedClockAreRejected) {
+    ReceiveWatch a(100,80),b(100,80),c(100,80);
+    EXPECT_EQ(a.poll(99,110),ReceiveHealth::ClockError);
+    EXPECT_EQ(b.poll(111,110),ReceiveHealth::ClockError);
+    c.poll(120,130); EXPECT_EQ(c.poll(119,140),ReceiveHealth::ClockError);
+}
+TEST(ReceiveWatch, IndependentMonitorClockRollbackIsLatched) {
+    ReceiveWatch watch(100,80); watch.poll(110,120);
+    EXPECT_EQ(watch.poll(110,119),ReceiveHealth::ClockError);
+    EXPECT_EQ(watch.poll(130,140),ReceiveHealth::ClockError);
+}
+TEST(ReceiveWatch, InvalidTimingIsRejected) {
+    EXPECT_THROW(ReceiveWatch(0,80),std::invalid_argument);
+    EXPECT_THROW(ReceiveWatch(100,0),std::invalid_argument);
+    EXPECT_THROW(ReceiveWatch(100,1000000001),std::invalid_argument);
+}
 TEST(LatestSnapshot, BeforeFirstPublicationIsUnavailableAndRepeatedReadPreservesIdentity) {
     stratadrive::runtime::LatestSnapshot<std::uint64_t> port;
     EXPECT_FALSE(port.read()); port.publish(7);

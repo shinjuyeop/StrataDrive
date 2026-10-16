@@ -1,7 +1,7 @@
 # Timing requirements and measurement contract
 
-Status: **DEFINED / Reference Baseline v0.1 + M3 첫 Steering Host 부분 측정**.
-차량 전체 E2E/Target latency·multirate 실측은 **NOT RUN**이다.
+Status: **DEFINED / Reference Baseline v0.1 + M3 Host 다중 주기·CAN 상실 부분 측정**.
+차량 전체 E2E/Target latency·전체 multirate 실측은 **NOT RUN**이다.
 M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. Rate와 100 ms 검출
 상한은 engineering starting point이며 production timing 보장이 아니다.
 
@@ -17,6 +17,8 @@ M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. 
 | Steering vECU | 100 Hz | 10 ms | control/dynamics task 및 actual feedback publication |
 | Brake vECU | 100 Hz | 10 ms | 위와 동일 |
 | Drive vECU | 100 Hz | 10 ms | 위와 동일 |
+| BMS control / limits | 50 Hz | 20 ms | EV wire 초안; M3 Host runnable 부분 측정 |
+| Power lifecycle | 100 Hz | 10 ms | BMS leaf의 별도 runnable; M3 Host 부분 측정 |
 
 Communication 구현이 별도 thread여도 외부 publication cadence는 위 baseline을 따른다.
 Zone status/Host feedback bridge는 100 Hz 논리 publication starting point다. 재전송된
@@ -29,8 +31,8 @@ Diagnostics aggregation은 control/timeout 경로를 blocking하지 않는다.
 BMS control/model sampling·limits/request는 50 Hz, power status/permission은 100 Hz,
 battery 관측 CAN은 10 Hz다. Critical source age 50 ms/dependency 70 ms, RX threshold
 80 ms+monitor 10 ms+dispatch/jitter margin 10 ms를 제안한다. 관측 age 150 ms/RX unavailable
-300 ms는 비critical이다. 위 기존 actuator rate와 구분하며 실제 BMS/power task·Zone runtime
-측정 증거는 없다.
+300 ms는 비critical이다. 위 기존 actuator rate와 구분한다. BMS/Power Host task의 부분 측정은
+[ADR-0034](../adr/ADR-0034-multirate-runtime-and-can-loss-monitoring.md)에 있으며 실제 Zone/Target runtime은 미검증이다.
 M1 Drive auxiliary의 source/input config를 분리·시험했고 기본값은 모두 30 ms다.
 Capability input age 70 ms를 명시적으로 설정할 수 있으며 source/torque budget은 유지한다.
 Local EV transport의 timeout/expiry는 fixture에서 시험했다. Sampler/model과 실제
@@ -128,6 +130,14 @@ Actuator 물리 응답의 settling/도달 시간은 feedback 송신 latency와 �
 period 10 ms / relative deadline 5 ms / 독립 monitor·plant 2 ms로 선택했다.
 120 jobs의 release/start/end, ECU prepare/complete와 외부 physics, output issued/applied·local feedback을
 실제 wall time으로 기록했다. [첫 실행 안내](../learning/m3_steering_timing.md)를 따른다.
+[ADR-0034](../adr/ADR-0034-multirate-runtime-and-can-loss-monitoring.md)의 후속 Host fixture는
+Brake/Drive/Power 10 ms·deadline 5 ms, BMS 20 ms·deadline 8 ms, 실제 SocketCAN RX 2 ms·deadline 3 ms를 사용한다.
+독립 monitor/plant 2 ms와 2.4 s workload, 감시 tail 40 ms·warm-up 제외 0을 기록한다.
+각 receiver의 Accepted 시각만 별도 원자로 게시하고 critical 5개 stream의 유효 RX threshold 80 ms와
+실제 검출 <=100 ms를 검사한다. Task 정지와 유효 입력 상실을 구분하며 CRC 실패는 age를 갱신하지 않는다.
+출력/보호 snapshot 취득 뒤 적용 기준 시각을 읽어 인과 순서를 보존한다.
+Drive torque는 비동기 acquisition 때문에 현 wire에서 unavailable이며 실제 값은 physical trace다.
+[다중 주기 안내](../learning/m3_multirate_runtime.md)와 [품질 기록](../quality_policy.md)에 범위·실측을 남긴다.
 이 실험의 deadline이나 SCHED_OTHER 관측 결과를 차량/Target 전체 budget으로 채택하지 않는다.
 Logical period가 같아도 모든 task deadline이 그 period와 같다고 가정하지 않는다.
 M3에서는 task release/start/end, Mean/P95/P99/Max, sample/drop 수, eligible jobs와
