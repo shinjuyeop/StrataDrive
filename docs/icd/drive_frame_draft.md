@@ -68,7 +68,8 @@ P05는 CRC bytes 29..30만 제외한 전체 payload를 계산한 뒤 implicit Da
 Torque 수용은 공통 clock/timeout → envelope/P05 → canonical payload → metadata →
 value/mode/range 순서다. 첫 Sequence 0..9, 이후 +1..+10, same-Epoch uint32 wrap 금지,
 trusted session 시작 이후의 엄격히 증가하는 source time과 age <=30 ms를 적용한다.
-Command는 NormalPath + NORMAL/DEGRADED만 수용하며 local protection은 M2다.
+Command는 NormalPath + NORMAL/DEGRADED만 수용한다. M2의 [Drive local gate](../learning/m2_drive_gate.md)는
+원천 battery limits·Central permission·실제 local HV/speed를 검사하고 local protection을 적용한다.
 Actual의 유효 torque와 sender state는 별개다. NoAcceptedInput은 INIT에서만 허용한다.
 
 보조 feedback은 다음을 별도로 검사한다.
@@ -89,7 +90,9 @@ fallback하지 않는다. last_accepted는 raw accepted 진단 이력이며 제�
 
 Invalid torque는 보조 capability가 valid여도 critical valid-RX를 갱신하지 않는다.
 RX timeout 80 ms/clock rollback은 latched이며 새 Epoch와 비감소 clock의 explicit INIT으로
-초기화한다. Local motor zero-target 응답은 M2, Zone/Host gate는 후속 통합이다.
+초기화한다. M2 component의 local motor zero-target 응답과 Drive gate는 구현·시험했고,
+실제 Zone/Host gate·에너지 경로는 후속 통합이다. 보조 dependency age의 기본값은 30 ms이며
+Drive gate fixture는 capability input에만 70 ms를 명시적으로 선택한다.
 
 Wire golden과 독립 CRC, 범위/시간/invalid/timeout 및 실행 명령은
 [Drive 학습 안내](../learning/m1_drive_codec.md)에 기록한다.

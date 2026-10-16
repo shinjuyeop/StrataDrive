@@ -4,6 +4,8 @@ Status: M0 계약 **DEFINED**, system fault/DTC runtime **PLANNED**.
 M1 actuator receiver의 local 검증/timeout과 [M2 첫 Steering 모델](../learning/m2_steering_model.md)의
 source-loss/continuity/deadline hold는 Host에서 구현·시험했다. [첫 Brake 모델](../learning/m2_brake_model.md)의
 압력 floor/retain ramp도 부분 구현했다. 차량 보호 출력/DTC 통합은 미구현이다.
+[M2 수용 검토](../m2_acceptance_review.md)는 기존 actuator 보호와 BMS/Power/Drive gate·회로 component의
+부분 증거를 대조했다. Steering jam/tracking과 Brake stuck/slow-response detector는 **M2 미완료**다.
 [ZON-01](zonal_partition.md)의 Central–Front/Rear 독립 link/source monitor는 PLANNED / NOT RUN이다.
 
 ```mermaid
@@ -50,7 +52,7 @@ Capability 제한과 actual stream 상실의 증거를 분리하며 기존 criti
 | CENTRAL_COORDINATOR_LOSS / ZON-F01 | 각 Zone scoped-command age; Leaf 자체 timeout | 두 Zone 독립 local 보호; coordinator failover 없음, trusted INIT로만 복구 |
 | PEER_SOURCE_STALE / PEER_SESSION_INVALID / ZON-F01/02 | 각 수신 Zone의 envelope와 per-source/dependency/session 검사 | cached source·parent expiry 보존, reject는 valid age 미갱신, trusted INIT/rejoin 및 power/health gate |
 | ACTUAL_FEEDBACK_STALE | Host Plant Adapter 원천 sequence/time/validity | bridge heartbeat와 독립 검출, run gate; cached actual을 fresh로 처리 금지 |
-| STEERING_TRACKING_FAULT / BRAKE_RESPONSE_FAULT | 해당 vECU demand↔actual residual | threshold/dwell/model이 정해진 후 검증(M2); Zone의 availability에 전달 |
+| STEERING_TRACKING_FAULT / BRAKE_RESPONSE_FAULT | 해당 vECU demand↔actual residual | M2 미구현, 수용 검토 OPEN-M2-01/02; 독립 actual/fault 경계·정상 delay/rate/saturation·threshold/dwell을 정한 후 검증; Zone 전달은 후속 |
 | TASK_OVERRUN | 각 component deadline monitor/watchdog | task 자체 정지 감시 독립성 M3 결정; miss와 local state 기록 |
 | COMPUTE_OVERLOAD | Central health + task timing monitors | optional feature 축소 / 필수 경로 protection; M3/M12 검증 |
 | AI_INFERENCE_TIMEOUT / AI_OUTPUT_INVALID | Central inference monitor / Safety Supervisor | 유효 classical fallback 또는 FAIL_SAFE; M11 |

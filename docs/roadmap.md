@@ -14,14 +14,24 @@ coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/sessio
 추가했다. [EV C++ codec/항목별 receiver](learning/m1_bms_codec.md)와 SocketCAN 변환의 Host
 단위 검사와 EV local vCAN 36개 case도 통과했다. M2의 [첫 조향 모델](learning/m2_steering_model.md)은 Host 부분 구현·시험했다.
 [첫 Brake 압력 모델](learning/m2_brake_model.md)의 정상 가압/감압·release와 local protection도 연결했다.
-현재 전체 unit 172개/vCAN 94개를 normal·sanitizer에서 검사한다. 다른 component 모델, Zone/DDS/차량 runtime과
+[Drive torque 응답](learning/m2_drive_model.md)의 ECU/물리 모듈 분리와 signed loss zero ramp도 연결했다.
+[Battery 에너지·관측](learning/m2_battery_model.md)은 local component unit 30개를 추가했다.
+[BMS 한계·보호](learning/m2_bms_controller.md)는 local sensor port와 방향별 derating/latch를 연결해 unit 33개를 더했다.
+[Power lifecycle](learning/m2_power_lifecycle.md)은 RC bus/접점 actual·BMS gate·controlled shutdown으로 38개를 더했다.
+[Drive local gate/capability](learning/m2_drive_gate.md)는 gate 37개와 공유 physics 4개를 추가했다.
+[첫 Drive/Battery energy 연결](learning/m2_drive_energy.md)은 이상적 HV 경로에서 actual DC·SOC와 BMS/Drive loop 시험 28개를 추가했다.
+[실제 RC/접점·Battery 연결](learning/m2_ev_power_circuit.md)은 circuit 24개·Battery integrated-flow 5개를 추가했다.
+현재 전체 unit 391개를 normal·sanitizer에서 검사하고 기존 vCAN 97개 증거를 유지한다.
+Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
+[M2 수용 검토](m2_acceptance_review.md)에서는 각각 model vCAN 8개·전체 unit·기존 demo를 재검사해 통과했다.
+Steering/Brake response detector와 학습자 수용은 미완료다. Zone/DDS/차량 runtime과
 TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 
 | Milestone | 계획 범위 | Acceptance 증거 후보 |
 | --- | --- | --- |
 | M0 | Architecture / Requirement / ICD Baseline | ODD/scenario/수치/계층/timing/fault/ICD 의미 계약, traceability, owner가 있는 TBD, exit checklist |
 | M1 | DBC + vCAN | 12개 wire/receiver, 영속 local Epoch/queue 및 overflow/restart 기술 검사 완료; wire 채택·학습자 review PENDING |
-| M2 | IN PROGRESS: Actuator + Battery / BMS / Power models | 주기 task/queue/state/dynamics, actual 기반 구동/회생·battery energy, power readiness/local protection; TC-EV component 시험 |
+| M2 | IN PROGRESS: Actuator + Battery / BMS / Power models | component 수용 검토 수행; 주기/queue/state/dynamics·EV local 시험, Steering/Brake response detector·학습자 수용 미완료 |
 | M3 | Real-Time Timing & Scheduling Measurement | execution/period/jitter/tails/miss 측정, clock/overhead 조건 기록 |
 | M4 | Central coordinator + Front/Rear Zone | 단일 vehicle management/allocation 확인 후 Zone gateway 분리; 각 Zone routing/원천 freshness/local loss/rejoin, TC-ZON-001–003; protocol TBD-15 |
 | M5 | Central Compute + DDS | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
@@ -84,7 +94,7 @@ AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 �
 | TBD-10 | perception/learned-planner shape/risk/history/calibration, AI fallback timing/feasibility/recovery / AI·safety 담당 | **M10/M11**, AI 통합 시험 전 | classical M8 baseline 후 확장; AI로 actuator 직접 제어 금지는 확정 |
 | TBD-11 | C++ standard/compiler/CI/test tool versions, artifact size/license/storage policy; control 알고리즘/tuning, speed transition slope/duration, scenario repetitions / toolchain·control 담당 | **M1** 첫 code/tool 전; **M8** control/정상 시험 전; **M10** 첫 model fixture 전 | 작은 변경과 설명 가능한 도구 선택; 5 s settling + 10 s steady window와 수치 requirement 변경은 revision 필요 |
 | TBD-12 | EV 전원 sequence/주행 허가/INIT handshake, LV·충전 연결·interlock와 고장별 torque/power reaction, shutdown/복구 threshold·budget / vehicle management·safety 담당 | **M1** 의미/handshake; **M2** power component 시험 전; **M4/M6** gate/vehicle 검증 전 | READY≠NORMAL, 요청≠actual; 일괄 즉시 contactor open/정지 성공을 가정하지 않음 |
-| TBD-13 | battery usable capacity/initial SOC, pack·셀 극값 voltage/thermal 모델·threshold/dwell, charge/discharge 곡선·효율/부하/에너지 오차, motor power→torque / model 담당 | **M2** Battery/BMS/Drive 시험 전; **M6/M7** 일관성/매핑 재검증 | 로컬 셀 전압·온도 min/max 입력 포함; 특정 chemistry/OEM 값을 꾸며내지 않음; actual power·단일 energy owner/clock은 확정 |
+| TBD-13 | battery usable capacity/initial SOC, pack·셀 극값 voltage/thermal 모델·threshold/dwell, charge/discharge 곡선·효율/부하/에너지 오차, motor power→torque / model 담당 | **M2** Battery/BMS/Drive 시험 전; **M6/M7** 일관성/매핑 재검증 | 부분 구현: Battery/BMS·Drive gate·RC/접점/capacitor 실제 energy 연결·장부 시험; 차량 calibration/정밀 모델은 미결정; actual power·단일 owner/clock 유지 |
 | TBD-14 | EV wire 수용·coordinator, trusted startup/parent·model identity 전달, clock/각 hop budget, DDS/Host status / interface·timing 담당 | **M1** wire/session 수용 전; **M2/M3** sampler/task/timing; **M5** DDS/Host bridge 전 | **부분 구현:** ADR-0016/17 6개 frame/P05와 항목별 receiver Host 검사; source 50/input 70/RX 80 ms 초안, Drive input age opt-in 분리와 local vCAN 36개 검사 완료; actual coordinator·Zone/runtime budget은 남음 |
 | TBD-15 | 남은 Central–Zone schema/QoS/queue/clock/skew/source-age·monitor budget/INIT-rejoin/routing config / architecture·communication 담당 | **M4** 각 Zone/local test 전, **M5/M6** DDS/plant 통합 검증 전 | **부분 결정:** ZON-01 Front/Rear, 후륜 구동 packaging, Central 별도 단일 coordinator 채택; 세부 protocol은 TBD, calibration TBD-02/07; 별도 하드웨어 불필요 |
 
@@ -122,14 +132,25 @@ BMS/power/Drive constraint의 [의미·DBC·timing 초안](icd/bms_frame_draft.m
 Local Epoch/queue·overflow/restart를 구현·시험해 M1 기술 수용 항목을 정리했다.
 M2는 [Steering 응답 모델](learning/m2_steering_model.md)의 delay/rate/saturation 및 local source-loss hold를
 Host에서 구현·시험했다. [Brake 압력 모델](learning/m2_brake_model.md)의 가압/감압과
-압력 floor/retain 보호도 구현·시험했다. 다음은 **Drive 응답·Battery/BMS/Power 모델**이다.
+압력 floor/retain 보호도 구현·시험했다. [Drive torque-only fixture](learning/m2_drive_model.md)는
+signed 응답/zero ramp와 speed/capability unavailable을 검사했다.
+[Battery 모델](learning/m2_battery_model.md)의 에너지·센서 component도 구현·시험했다.
+[BMS 한계·보호](learning/m2_bms_controller.md)는 센서 검사·dwell/latch·PowerLimits를 구현·시험했다.
+[Power lifecycle](learning/m2_power_lifecycle.md)은 실제 접점/전압·current wait·shutdown blocked를 구현·시험했다.
+[Drive local gate·capability](learning/m2_drive_gate.md)는 원천 limits·허가·로컬 HV/속도를 확인한다.
+[실제 DC/Battery energy 연결](learning/m2_drive_energy.md)은 고정 speed/이상적 HV에서 실제 토크의 손실·auxiliary와
+finite residual·SOC guard band를 검사했다. [실제 RC/접점 연결](learning/m2_ev_power_circuit.md)도 capacitor/path 손실·구간 전류와
+Battery의 단일 chemical energy owner를 연결해 시험했다. [M2 수용 검토](m2_acceptance_review.md)로
+실행·설정·고장/세션·증거를 대조했다. **다음은 Steering jam/tracking local monitor, 이어서 Brake response detector**다.
+두 항목은 기존 fault architecture의 M2 미완료이며 M3 timing/독립 task monitor와 구분한다.
 Wire/학습자 review는 PENDING이다.
 
 1. EV 초안의 producer/단위/validity/source·dependency time/expiry와 주기 차이를 review한다.
 2. Actuator/EV vCAN 89개 case와 영속 Epoch/queue의 source·parent·model identity 및 fault trace를 재현·review한다.
 3. Wire baseline 채택과 학습자의 설명 기록을 남긴다. Actual Central coordinator/Zone DDS coordinator는 M4/M5에 연결한다.
-4. M2 Steering/Brake 첫 모델을 복습하고 Drive 실제 응답과 Battery/BMS/power model(로컬 셀 전압·온도 극값 포함), 실제 local gate를 구현한다.
-5. M3 timing → M4 단일 coordinator/두 Zone 분할로 진행한다.
+4. 실제 circuit/energy loop와 M2 parameter·task/monitor·fault/session의 component 증거는 수용 검토에 기록했다.
+   OPEN-M2-01/02 response detector를 구현·시험하고 learner review를 남긴다. M3의 runtime/trace 측정은 별도 준비한다.
+5. M3의 actual execution/period/jitter/deadline 측정 fixture를 설계하고, 이후 M4 단일 coordinator/두 Zone 분할로 진행한다.
 
 Six-frame 구현·부분 시험과 새 EV/ZON 수용 항목을 구분한다. EV wire 값이나 물리 반응/전원
 parameter를 기존 100 Hz/30 ms 또는 특정 OEM 수치로 자동 확정하지 않는다.

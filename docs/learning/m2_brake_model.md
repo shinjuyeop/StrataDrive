@@ -111,8 +111,8 @@ Loss는 가압 중 상실과 late release 거부, high-loss는 이미 높은 압
 Actual/P05, source/sequence/causal/state/origin과 pressure 값이 wire에서 보존되는지도 검사한다.
 결과 로그는 각 build의 `socketcan-results/brake-model-*.log`다.
 
-Unit 16개를 추가해 전체 172개다. Brake model vCAN 3개, Steering 2개를 합쳐
-`--family model`은 5개다. 기존 M1 89개를 포함한 기본 all은 94개다.
+Brake 추가 당시 unit 16개를 더해 전체 172개, model vCAN 5개/all 94개였다.
+후속 [Drive 응답](m2_drive_model.md)과 [Battery](m2_battery_model.md) 단계 시점은 unit 222개였으며 model vCAN 8개/all 97개 증거를 유지한다.
 `--model steering`은 앞선 조향 2개만 선택한다. Actuator family 40/EV family 49는 유지한다.
 Normal/sanitizer 실행 기록은 [품질 기록](../quality_policy.md)에 둔다. 기존 system TC는 NOT RUN이다.
 
@@ -123,5 +123,6 @@ Normal/sanitizer 실행 기록은 [품질 기록](../quality_policy.md)에 둔�
 3. 0 Pa와 unavailable을 같은 것으로 처리하면 각각 어떤 문제가 생기나?
 4. FAIL_SAFE 압력이 유효하다는 사실만으로 차량이 멈췄다고 말할 수 있나?
 
-답변과 직접 재현 기록은 학습자가 남긴다. 다음 구현은 Drive의 양·음수 torque 응답이다.
-회생·마찰 배분, pressure→wheel torque, Battery/BMS/Power 및 vehicle closed-loop는 후속이다.
+답변과 직접 재현 기록은 학습자가 남긴다. [Drive의 양·음수 torque 응답](m2_drive_model.md)도 구현·시험했다.
+[Battery 물리·관측](m2_battery_model.md), BMS/Power·Drive gate와 [이상적 HV의 DC/SOC 연결](m2_drive_energy.md)도 구현·시험했다.
+[실제 RC/접점 에너지 연결](m2_ev_power_circuit.md)도 시험했다. 회생·마찰 배분, pressure→wheel torque와 차량 closed-loop는 후속이다.

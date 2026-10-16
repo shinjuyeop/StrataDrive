@@ -464,6 +464,32 @@ void brake_model_commands(const char* interface, std::uint32_t epoch, const std:
     }
 }
 
+void drive_model_commands(const char* interface, std::uint32_t epoch, const std::string& scenario) {
+    using namespace stratadrive;
+    socketcan::Endpoint endpoint(interface);
+    can::DriveTxState tx{can::DriveFrameKind::Command};
+    std::cout << std::unitbuf << "TX_READY\n";
+    fixture::await_start();
+    const auto start = std::chrono::steady_clock::now();
+    std::uint32_t sequence = 0;
+    const bool normal = scenario == "model-normal";
+    const bool regen = scenario == "model-regen-loss";
+    for (int ms = 0; ms <= 1300; ms += 10) {
+        std::this_thread::sleep_until(start + std::chrono::milliseconds(ms));
+        if (!normal && ms > 150 && ms != 400) continue;
+        can::DriveMessage input;
+        input.epoch = epoch; input.sequence = sequence++;
+        input.torque_nm = normal ? (ms <= 400 ? 500 : ms <= 1000 ? -300 : 0) :
+                                  (ms == 400 ? (regen ? 500 : -300) : (regen ? -300 : 500));
+        input.source_time_ns = socketcan::monotonic_time_ns();
+        input.local_state = can::ActuatorLocalState::Normal; input.origin = can::ActuatorOrigin::NormalPath;
+        const auto frame = can::encode_drive_frame(input, tx);
+        if (!frame) throw std::runtime_error("drive model command encode failed");
+        endpoint.send(socketcan::to_socketcan(*frame));
+        std::cout << "MODEL_TX at_ns=" << input.source_time_ns << " seq=" << input.sequence << '\n';
+    }
+}
+
 int main(int argc, char** argv) {
     try {
         using namespace stratadrive;
@@ -478,6 +504,9 @@ int main(int argc, char** argv) {
         }
         if (stream == "brake-cmd" && (scenario == "model-normal" || scenario == "model-loss" || scenario == "model-high-loss")) {
             brake_model_commands(argv[1], epoch, scenario); return 0;
+        }
+        if (stream == "drive-cmd" && (scenario == "model-normal" || scenario == "model-loss" || scenario == "model-regen-loss")) {
+            drive_model_commands(argv[1], epoch, scenario); return 0;
         }
         if (const auto ev_kind = fixture::bms_kind(stream)) {
             bms_fixture(argv[1], *ev_kind, scenario, epoch);

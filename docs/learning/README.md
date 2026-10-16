@@ -39,7 +39,12 @@ AUTOSAR 실습은 관련 설계·구현과 함께 진행한다. 전체 이론 �
 [M2 첫 조향 모델](m2_steering_model.md)의 delay/rate/saturation과 local hold를
 기존 Command TX → model → Actual RX에 연결했다. Unit 13개와 model vCAN 2개를 추가했다.
 [첫 Brake 모델](m2_brake_model.md)은 가압/감압과 0/unavailable·loss protection을 설명하고
-unit 16개와 vCAN 3개를 추가했다. 현재 전체 unit 172개, 기본 vCAN all 94개다.
+unit 16개와 vCAN 3개를 추가했다.
+[Drive 응답과 제어기 구분](m2_drive_model.md)은 ECU/물리 모델 모듈 분리, signed torque·zero ramp와
+unit 20개/vCAN 3개를 추가했다.
+[Battery 에너지·관측](m2_battery_model.md)은 actual DC 입력, energy balance와 등가 전기·온도,
+센서 group의 독립 identity/age 시험 30개를 추가했다. Battery 단계 시점 전체 unit 222개였으며 기존 vCAN all 97개 증거를 유지한다.
+후속 BMS/Power/Drive gate의 시험과 isolated torque 응답 시험을 구분한다.
 
 후속 [EV-01 범위/역할](../icd/ev_power_bms_design.md)을 정리했다. BMS와 battery model,
 power READY와 system NORMAL, 원천 status와 Zone 전달의 차이를 복습한다.
@@ -47,15 +52,27 @@ power READY와 system NORMAL, 원천 status와 Zone 전달의 차이를 복습�
 [BMS 물리값·frame codec과 항목별 receiver](m1_bms_codec.md)도 구현·시험했다.
 50/100 Hz critical 경로와 10 Hz 관측, valid 0/unknown, power request/actual/permission,
 원천 전달/expiry를 복습한다. 기존 vCAN fixture도 EV 36개 case로 확장했다.
-기존 actuator 27 + EV 36에 queue 24/restart 2를 더한 M1 89개 독립 process 시험에 M2 model 2개를 추가해 Brake 3개까지 포함한 현재 all은 94개다.
-Battery/power 모델은 이후 구현하며 셀 전압·온도 극값을 로컬 모델 입력에 포함한다.
+기존 actuator 27 + EV 36에 queue 24/restart 2를 더한 M1 89개 독립 process 시험에 M2 Steering 2개·Brake 3개·Drive 3개를 더한 all 97개 이력을 유지한다.
+Battery는 로컬 모델의 셀 전압·온도 극값 관측까지 구현·시험했다.
+[BMS 판단](m2_bms_controller.md)은 그 관측의 유효성·시간을 검사하고 충방전 한계·보호 latch를 만든다.
+[Power lifecycle](m2_power_lifecycle.md)은 BMS gate와 실제 RC/접점/current로 프리차지·종료를 확인한다.
+[Drive local gate·capability](m2_drive_gate.md)는 원천 limits·Central permission·로컬 HV/속도를 확인하고
+valid zero/unknown과 actual 잔여 응답을 구분한다. Gate 단계 시점은 전체 unit 334개였다.
+Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 격리 네트워크에서 재검사해 통과했다.
+[실제 토크에서 배터리 충전까지](m2_drive_energy.md)는 이상적 HV/외부 speed에서 actual DC·손실·auxiliary·SOC와
+BMS/Drive loop를 연결하고 28개를 더해 당시 전체 unit은 362개였다.
+[실제 전원 회로 연결](m2_ev_power_circuit.md)은 구간 current/heat·capacitor·경로 손실과 Battery의 atomic commit을 추가해
+전체 unit 391개다. [M2 수용 검토](../m2_acceptance_review.md)에서 normal·sanitizer 각각 전체 unit과
+model vCAN 8개를 재검사하고 설정·고장·세션 경계를 대조했다.
+Steering jam/tracking·Brake stuck/slow-response detector와 학습자 수용은 남아 있다.
+다음은 Steering local response monitor이며 실제 task/watchdog·trace·timing은 M3에서 검증한다.
 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Central의 별도 VCU가 차량 전체
 관리·배분/session/feedback 집계를 맡고 Front는 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
 M4/M5에 분리하며 Central–Zone protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.
 
 실행 예제는 `tools/actuator_demo.cpp` 하나로 통합했다.
 `angle`, `frame`, `e2e`, `receiver`, `brake-pressure`, `brake-frame`, `brake-receiver`,
-`drive-frame`, `drive-feedback`, `bms-value`, `bms-frame`, `bms-receiver`, Linux `epoch`, `steering-model`, `brake-model` 중 필요한 명령을 실행한다.
+`drive-frame`, `drive-feedback`, `bms-value`, `bms-frame`, `bms-receiver`, Linux `epoch`, `steering-model`, `brake-model`, `drive-model`, `battery-model`, `bms-control`, `power-model`, `drive-gated`, `drive-energy`, `ev-power` 중 필요한 명령을 실행한다.
 자동 단위 시험은 모듈별 기존 파일에 case를 추가하며 SocketCAN 통합 시험은
 `tests/integration/can/`에 모았다. 배치/추가 기준은 [품질 정책](../quality_policy.md#코드예제시험-배치)에 있다.
 

@@ -332,6 +332,12 @@ int main(int argc, char** argv) {
                 socketcan::to_brake, can::decode_brake_frame,
                 [](const auto& actual) { return actual.pressure_pa; }, "pressure_pa"); return 0;
         }
+        if (stream == "drive-cmd" && mode == "model") {
+            vecu::DriveActuator model(fixture::drive_model_config());
+            response_model_fixture(argv[1], epoch, duration, model, can::kDriveCommandId,
+                socketcan::to_drive, can::decode_drive_frame,
+                [](const auto& actual) { return actual.torque_nm; }, "torque_nm"); return 0;
+        }
         if (const auto ev_kind = fixture::bms_kind(stream)) {
             const bool forward = argc == 6 && std::string(argv[5]) == "forward";
             if ((argc == 6 && !forward && !overflow) || (forward && *ev_kind != can::BmsFrameKind::PowerLimits)) {

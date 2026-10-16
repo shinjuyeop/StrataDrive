@@ -5,6 +5,46 @@ YAML은 설계용 data이며 loader, schema validator, deployment
 command는 미구현이다. `null`은 미결정이며 무제한, 비활성화, default 값을 뜻하지 않는다.
 `baseline_profile`은 문서상의 참조이며 자동 inheritance가 구현됐다는 뜻이 아니다.
 
+`m2_drive_fixture`는 [첫 torque 응답](../docs/learning/m2_drive_model.md)의 시험 설정이다.
+Command/physical 한계와 normal/zero rate를 구분하고 speed/capability는 unavailable로 둔다.
+BMS power limit·permission·local HV gate와 에너지 계산은 아직 통합하지 않았다.
+이 fixture를 차량 운행 가능한 Drive runtime이나 실제 회생 가용량으로 해석하지 않는다.
+
+`m2_drive_gate_fixture`는 [Drive local gate/capability](../docs/learning/m2_drive_gate.md)의 후속 설정이다.
+필수 원천 limits·trusted Central permission·독립 HV/속도 관측을 검사한다. 방향별 power/torque 한계,
+저속 회생 taper, queued goal 축소와 actual 잔여 응답을 구분한다. `eta`는 부하 비례 변환항의 하한 가정이고
+fixed reserve는 fixture의 공유 auxiliary/idle 몫이다. 실제 loss map/공유 부하 배분·headroom은 후속이다.
+Capability dependency 70 ms는 이 fixture의 명시적 opt-in이며 generic default 30 ms를 바꾸지 않는다.
+Central/relay는 독립 fixture다. Actual DC/Battery SOC는 아래 ideal-path·combined circuit component로 연결했고 차량 배분 runtime은 미통합이다.
+
+`m2_drive_energy_fixture`는 [실제 Drive/Battery 에너지 연결](../docs/learning/m2_drive_energy.md)의 설정이다.
+Begin actual torque/speed를 ZOH해 motor conversion/copper/idle·별도 auxiliary를 계산한다. Chemical energy는
+기존 BatteryModel만 소유하고 motor loss와 battery 저항 heat를 구분한다. 200 W reserve는 실제 idle 50 W와
+auxiliary 150 W를 덮으며 실제 장부에는 각 부하를 한 번만 더한다. SOC guard band/finite reaction budget은
+이 fixture의 부분 검토이며 shutdown/부품 안전성 보장이 아니다. 이상적 energized HV와 외부 speed를 사용하고
+이 ideal-path fixture는 dynamic PowerModel을 실행하지 않는다. RC/접점·capacitor는 별도 `m2_ev_power_fixture`에서 연결하고 vehicle motion은 후속이다.
+
+`m2_battery_fixture`는 [Battery 물리·관측 모델](../docs/learning/m2_battery_model.md)의 독립 시험 설정이다.
+50 kWh/400 V와 Rint/lumped thermal parameter는 차량 capacity·chemistry 선택이 아니다.
+Actual traction DC와 auxiliary만 입력하고 chemical energy 장부와 independent sensor acquisition을 검증한다.
+BMS sensor port와 이상적 HV·실제 RC 회로의 Drive actual DC까지 local component로 연결했다.
+차량 배분 runtime은 미통합이며 아래 차량 calibration TBD를 유지한다.
+
+`m2_bms_fixture`는 [BMS 한계·보호 판단](../docs/learning/m2_bms_controller.md)의 시험 설정이다.
+방향별 SOC/온도/cell voltage ramp, 독립 hard trip/release band와 acquisition 기반 dwell을 구분한다.
+차량 chemistry/제조사 calibration이나 hardware protection 지연을 지정한 값은 아니다.
+
+`m2_power_fixture`는 [Power lifecycle/RC·접점 모델](../docs/learning/m2_power_lifecycle.md)의 시험 설정이다.
+BMS local safety gate와 actual contactor/전압/전류를 확인한다. 시험용 저항·시간·잔류 전압 기준을
+실차 정격/안전 기준으로 해석하지 않는다. 이 standalone demo는 독립 fixture이며 아래 combined loop에서 Battery와 연결한다.
+
+`m2_ev_power_fixture`는 [실제 회로·Battery 연결](../docs/learning/m2_ev_power_circuit.md)의 설정이다.
+OCV/Rint·main/precharge/bleed·DC-link를 함께 풀고 구간 charge/current-square integral을 단일 BatteryModel에 전달한다.
+Motor 식은 ideal-path와 공유하지만 auxiliary는 pack-side actual current 0.375 A이고 OFF에도 남는다.
+Opening threshold 0.5 A와 Drive reserve 500 W는 이 combined fixture만의 값이며 legacy defaults를 바꾸지 않는다.
+50 µs 이하 내부 electrical step은 ECU task 주기가 아니다. Source/dependency·sensor unknown/hold와
+internal energy flow를 구분하고 Battery/회로는 함께 commit한다. 실제 Central/Zone/차량 motion·LV sleep은 후속이다.
+
 `reference.yaml`의 ODD/scenario/수치 acceptance/logical rate/state는 **Reference Baseline v0.1**로
 정의했다. 값은 engineering starting point이며 실측이나 양산차 기준이 아니다. 먼저 future AI
 workload와 보드 조건의 TBD를 고정하고 Thor와 Orin에서

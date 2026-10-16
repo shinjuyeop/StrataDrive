@@ -17,7 +17,18 @@ Steering의 독립 process 송수신/fault/wall-time timeout을 실행했다. �
 M0 v0.1의 역사적 검토는 유지하고 현재 interface/safety/profile/test 계획에 확장을 반영한다.
 Drive wire는 signed 구동/회생 torque와 capability 원천 시각을 담는다.
 M1 통신 검사 후 [M2 첫 Steering 응답 모델](learning/m2_steering_model.md)을 Host에서 구현·시험했다.
-이어 [Brake 압력 응답](learning/m2_brake_model.md)도 구현·시험했다. 다음 component는 Drive 및 Battery/BMS/Power이며 물리 회생/배분 runtime은 PLANNED / NOT RUN이다.
+이어 [Brake 압력 응답](learning/m2_brake_model.md)과 [Drive torque-only 응답](learning/m2_drive_model.md)도 구현·시험했다.
+Drive ECU adapter와 물리 모델을 별도 모듈로 두었다.
+[Battery energy/관측](learning/m2_battery_model.md)은 actual DC 입력과 독립 센서 group을 구현·시험했다.
+[BMS 한계·보호](learning/m2_bms_controller.md)는 센서 port·derating·latch와 PowerLimits를 구현·시험했다.
+[Power lifecycle](learning/m2_power_lifecycle.md)은 RC/접점 actual과 BMS inhibit를 연결해 Host component로 시험했다.
+[Drive local gate/capability](learning/m2_drive_gate.md)까지 Host component로 구현·시험했다.
+[첫 Drive/Battery energy 연결](learning/m2_drive_energy.md)은 이상적 HV에서 actual torque/speed·손실·auxiliary·SOC를 연결했다.
+[실제 RC/접점·Battery 연결](learning/m2_ev_power_circuit.md)은 capacitor/path 손실·구간 전류·종료 부하를 연결해 시험했다.
+[M2 수용 검토](m2_acceptance_review.md)에서 task/monitor·parameter·fault/session과 component 증거를 대조했다.
+Steering jam/tracking·Brake response detector는 M2 미완료다. 다음은 Steering local monitor이며,
+실제 task/watchdog·trace·timing은 M3에서 검증한다. 학습자 수용은 PENDING이다.
+차량 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며
 실행 결과는 NOT RUN이다. [ZON-01](architecture/zonal_partition.md)로 최종 Front/Rear 두 Zone,
@@ -175,8 +186,15 @@ Steering frame/DBC에 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e
 Actuator/EV 12개 frame의 golden vectors → codec → vCAN application/overflow/restart 시험까지 실행했다.
 세 actuator는 공통 metadata와 수신 상태를 공유하고 Drive는 보조 freshness를 별도 검사한다.
 첫 [M2 조향 응답](learning/m2_steering_model.md)의 정상 응답과 local hold를 구현·시험했다.
-학습자 review와 actual Central coordinator/Zone DDS protocol이 남아 있으며 후속 Drive/Battery/BMS/Power 모델의
-TBD-02/03/04를 관련 구현 전에 검토한다. 개념 설명은 해당 작업에 필요한 만큼만
+첫 [Drive torque 응답](learning/m2_drive_model.md)은 ECU 판단과 물리 계산의 경계를 별도 source로 구현했다.
+[Battery energy/관측](learning/m2_battery_model.md)도 구현·시험했다.
+[BMS 한계·보호](learning/m2_bms_controller.md)도 local component로 구현·시험했다.
+[Power lifecycle](learning/m2_power_lifecycle.md)도 local component로 구현·시험했다.
+[Drive local gate/capability](learning/m2_drive_gate.md)도 입력 검사와 실제 응답의 경계를 구분해 구현했다.
+[실제 DC/SOC 연결](learning/m2_drive_energy.md)은 이상적 HV의 component로 시험했다.
+[실제 circuit 연결](learning/m2_ev_power_circuit.md)도 constant-power/구간 current·heat와 atomic commit을 시험했다.
+학습자 review와 actual Central coordinator/Zone DDS protocol이 남아 있으며 차량 energy/motion coupling과
+TBD-02/03/04/13은 관련 통합 전에 검토한다. 개념 설명은 해당 작업에 필요한 만큼만
 진행하고 작은 변경·review·직접 실행·결과 해석으로 이어간다.
 
 Concept study의 남은 가정, 정상 응답 범위/jam 검출과 AUTOSAR 대응·pilot은 관련 구현과

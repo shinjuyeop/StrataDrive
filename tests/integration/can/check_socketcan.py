@@ -463,20 +463,26 @@ def run_case(build, log_dir, kind, scenario, repetition, epoch_store):
 
 def run_model_case(build, log_dir, scenario, epoch_store, repetition, domain="steering"):
     brake = domain == "brake"
-    value_key = "pressure_pa" if brake else "angle_rad"
-    history_key = "history_pressure_pa" if brake else "history_angle_rad"
-    maximum = 1500000 if brake else 0.3
-    quantum = 1000 if brake else 0.0001
-    rise_rate = 5000000 if brake else 1
-    fall_rate = 10000000 if brake else 1
+    drive = domain == "drive"
+    value_key = "torque_nm" if drive else "pressure_pa" if brake else "angle_rad"
+    history_key = "history_" + value_key
+    maximum = 300 if drive else 1500000 if brake else 0.3
+    minimum = -200 if drive else 0 if brake else -0.3
+    quantum = 0.1 if drive else 1000 if brake else 0.0001
+    rise_rate = 1000 if drive else 5000000 if brake else 1
+    fall_rate = 1000 if drive else 10000000 if brake else 1
+    command_stream = "drive-cmd" if drive else "brake-cmd" if brake else "cmd"
+    actual_stream = "drive-actual" if drive else "brake-actual" if brake else "actual"
+    model_duration = "1600" if drive else "1000" if brake else "750"
+    rx_duration = "1700" if drive else "1100" if brake else "850"
     epoch = issue_epoch(build, epoch_store)
     processes = {}
     output = {key: bytearray() for key in ("rx", "rx_err", "tx", "tx_err", "model", "model_err")}
     try:
         commands = {
-            "rx": [str(build / "actuator_socketcan_rx"), INTERFACE, "brake-actual" if brake else "actual", str(epoch), "1100" if brake else "850"],
-            "model": [str(build / "actuator_socketcan_rx"), INTERFACE, "brake-cmd" if brake else "cmd", str(epoch), "1000" if brake else "750", "model"],
-            "tx": [str(build / "actuator_socketcan_tx"), INTERFACE, "brake-cmd" if brake else "cmd", str(epoch), scenario],
+            "rx": [str(build / "actuator_socketcan_rx"), INTERFACE, actual_stream, str(epoch), rx_duration],
+            "model": [str(build / "actuator_socketcan_rx"), INTERFACE, command_stream, str(epoch), model_duration, "model"],
+            "tx": [str(build / "actuator_socketcan_tx"), INTERFACE, command_stream, str(epoch), scenario],
         }
         for role, command in commands.items():
             processes[role] = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -510,15 +516,31 @@ def run_model_case(build, log_dir, scenario, epoch_store, repetition, domain="st
                 "physical delay skipped")
         for previous, current in zip(ticks, ticks[1:]):
             elapsed = (int(current["at_ns"]) - int(previous["at_ns"]))/1e9
-            require(elapsed > 0 and abs(float(current[value_key])) <= maximum + quantum/2, "clock/physical limit failed")
+            require(elapsed > 0 and minimum - quantum/2 <= float(current[value_key]) <= maximum + quantum/2,
+                    "clock/physical limit failed")
             difference = float(current[value_key]) - float(previous[value_key])
             rate = rise_rate if difference >= 0 else fall_rate
+            if drive and current["state"] == "3":
+                rate = 2000
             require(abs(difference) <= rate*elapsed + quantum*1.01,
                     "rate limit exceeded")
         normal = [item for item in ticks if item["state"] == "1"]
         protected = [item for item in ticks if item["state"] == "3"]
         require(normal and protected and all(item["origin"] == "2" for item in protected), "loss protection missing")
-        if brake:
+        if drive:
+            require(float(protected[-1][value_key]) == 0, "torque did not reach zero")
+            require(all(abs(float(current[value_key])) <= abs(float(previous[value_key]))
+                        and float(current[value_key])*float(previous[value_key]) >= 0
+                        for previous, current in zip(protected, protected[1:])),
+                    "zero ramp grew torque magnitude or crossed zero")
+            require(all(item["regen_valid"] == item["speed_valid"] == "0" for item in feedback),
+                    "response fixture fabricated speed or regen capability")
+            if scenario != "model-normal":
+                require(len(protected) >= 3 and protected[0][value_key] != "0" and
+                        protected[0][value_key] != protected[1][value_key], "zero target became an instant torque reset")
+                sign = -1 if scenario == "model-regen-loss" else 1
+                require(sign*float(protected[0][value_key]) > 0, "wrong loss torque sign")
+        elif brake:
             target = max(float(protected[0][value_key]), 1000000)
             require(abs(float(protected[-1][value_key]) - target) <= quantum/2, "protective pressure floor not reached")
             require(all(float(item[value_key]) <= target + quantum/2 for item in protected), "protective pressure overshot")
@@ -539,13 +561,18 @@ def run_model_case(build, log_dir, scenario, epoch_store, repetition, domain="st
             if brake:
                 require(float(normal[-1][value_key]) == 0 and float(protected[0][value_key]) == 0,
                         "valid zero did not release pressure before communication loss")
+            if drive:
+                require(abs(min(float(item[value_key]) for item in normal) - minimum) <= quantum/2,
+                        "negative saturation not reached")
+                require(float(normal[-1][value_key]) == float(protected[0][value_key]) == 0,
+                        "valid zero did not remove torque before loss")
             require(len(accepted) == len(commands), "normal command rejected")
         else:
             require(inputs[-1]["decision"] == "MODE_REJECTED", "late command bypassed latched protection")
             if scenario == "model-high-loss":
                 require(brake and float(protected[0][value_key]) == maximum, "high pressure was reduced on loss")
             else:
-                require(0 < float(protected[0][value_key]) < maximum, "loss did not interrupt movement")
+                require(0 < abs(float(protected[0][value_key])) < maximum, "loss did not interrupt movement")
             expected_causal = "45" if scenario == "model-high-loss" else "15"
             require(protected[0]["causal"] == protected[-1]["causal"] == expected_causal, "last accepted command lost")
     finally:
@@ -568,16 +595,18 @@ def main():
     parser.add_argument("--build-dir", type=Path, default=Path("build/m1-angle"))
     parser.add_argument("--repetitions", type=int, default=1)
     parser.add_argument("--family", choices=("all", "actuator", "ev", "model"), default="all")
-    parser.add_argument("--model", choices=("all", "steering", "brake"), default="all")
+    parser.add_argument("--model", choices=("all", "steering", "brake", "drive"), default="all")
     args = parser.parse_args()
     has_actuator = args.family in ("all", "actuator")
     has_ev = args.family in ("all", "ev")
     has_model = args.family in ("all", "model")
     model_cases = []
     if has_model:
-        for domain in ("steering", "brake"):
+        for domain in ("steering", "brake", "drive"):
             if args.model in ("all", domain):
                 scenarios = ("model-normal", "model-loss", "model-high-loss") if domain == "brake" else ("model-normal", "model-loss")
+                if domain == "drive":
+                    scenarios = ("model-normal", "model-loss", "model-regen-loss")
                 model_cases += [(domain, scenario) for scenario in scenarios]
     build = args.build_dir.resolve()
     require(1 <= args.repetitions <= 20, "repetitions must be 1..20")
@@ -632,7 +661,7 @@ def main():
             subprocess.run(["ip", "link", "delete", "dev", INTERFACE], check=True)
     ev_count = len(EV_STREAMS)*4 + len(EV_EXTRA)
     count = ((40 if has_actuator else 0) + (49 if has_ev else 0) + len(model_cases))*args.repetitions
-    print(f"PASS {count} cases (M1 actuator 40 / EV {ev_count + 13} / M2 steering 2 + brake 3 per full repetition)")
+    print(f"PASS {count} cases (M1 actuator 40 / EV {ev_count + 13} / M2 steering 2 + brake 3 + drive 3 per full repetition)")
     if observed:
         print(f"Actuator application timeout {min(observed):.3f}..{max(observed):.3f} ms")
     print(f"Epoch store: {epoch_store}; each grant persisted by an independent issuer process")

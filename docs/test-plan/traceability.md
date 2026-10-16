@@ -25,6 +25,11 @@ Vehicle protection/plant/Target timing을 포함하는 전체 Result는 NOT RUN�
 [Brake 압력 모델](../learning/m2_brake_model.md)의 unit 16개와 독립 process vCAN 3개는
 TC-COM-002/003/005와 TC-SAFE-002의 local response 부분 증거다.
 정상 release와 pressure-floor ramp가 차량 정지/ABS/회생 배분을 검증한 것은 아니다.
+[M2 수용 검토](../m2_acceptance_review.md)는 Drive actual/gate, Battery/BMS/Power와 energy/circuit의
+component 증거도 연결한다. 현재 unit 391개(normal·ASan/UBSan)와 model vCAN 8개 재검사로
+위 COM/SAFE와 SYS-CTRL-009·SYS-EV-001–005·SYS-PERF-002/003의 local 부분 범위를 확인했다.
+Fresh 통신 중 Steering jam·Brake stuck/slow-response detector는 M2 미완료다.
+아래 system TC의 모든 required variant·차량/Zone/배포 환경을 검증한 결과는 아니며 Result는 NOT RUN을 유지한다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -1,11 +1,13 @@
 # Software quality policy
 
-Status: **M1 통신과 M2 첫 Steering/Brake 모델에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 172개 PASS**다.
+Status: **M1 통신과 M2 Steering/Brake/Drive torque·Battery/BMS/Power·Drive gate·에너지/회로 연결 component에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 391개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
-도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개,
-총 local vCAN **94개 case**를 검사한다.
+도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
+총 local vCAN **97개 case**를 검사한다.
+Battery/BMS/Power/Drive gate·에너지/회로 단계는 로컬 component 검사이며 CAN wire나 transport 변경은 없다.
+97개 vCAN은 앞선 Drive 응답 단계의 증거다. 직전 gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사해 통과했다.
 
 2026-10-13 문서 정리 시 normal·ASan/UBSan build/unit/vCAN과 DBC 검사를 다시 통과했다.
 Local observed timeout은 normal 80.019–81.072 ms, sanitizer 80.053–81.065 ms였다.
@@ -104,6 +106,143 @@ CPP 발급 동작은 이전 source와 동일함을 확인했다. BUILD_TESTING=O
 issuer process의 1→2 발급, 64개 Markdown/상대 링크·앵커/추적성/YAML/Python 검사를 통과했다.
 앞선 94개 vCAN 결과는 기존 component/wire 부분 증거다. 실제 새 Central–Zone DDS topology와
 vehicle/system TC 결과는 NOT RUN이며 M4/M5 이후 검증한다.
+
+2026-10-15 [첫 Drive torque 응답](learning/m2_drive_model.md)은 ECU adapter와 CAN 독립 물리
+모델을 별도 모듈로 구현했다. Unit 20개와 signed normal/positive-loss/negative-loss vCAN 3개를 추가해
+normal·ASan/UBSan 각각 전체 **192개 unit / 97개 vCAN**을 통과했다.
+Normal delay/rate/양·음 saturation/0 command, source-expiry·continuity·deadline의 zero-target ramp,
+late frame/clock/restart, 시간 순서·FIFO/uint64 경계를 검사했다. Actual source/sequence/causal/state와
+torque, speed/capability unavailable을 독립 RX에서 확인했다.
+Local actuator timeout은 normal 80.002–81.032 ms, sanitizer 80.013–81.052 ms였다.
+기존 CAN/P05 계약은 유지하며 BMS/permission/local HV gate, capability/energy와 full vehicle TC는 NOT RUN이다.
+실행 로그는 각 build의 `drive-model-unit.txt`, `drive-model-vcan-all.txt`,
+`socketcan-results/drive-model-*.log`에 보존한다.
+Clang-tidy 14 analyzer/bugprone을 변경 source/test 6개와 관련 header에 적용했다.
+단위시험 helper의 혼동 가능한 인자를 구조체로 수정했고 최종 test/물리 모델 재검사에서
+user-source 진단이 없었다. Cppcheck 2.7은 production/fixture source 5개를 통과했다.
+시간 skip에서 pending goal을 취소하도록 보강한 뒤 양 build의 unit 192개와 model vCAN 8개를
+다시 통과했다. BUILD_TESTING=OFF library/demo build와 결정론적 `drive-model` 예제도 통과했다.
+67개 Markdown/상대 링크·앵커 631개, 요구사항 32개/TC 29개, YAML 3개/Python 3개의
+정합성·syntax/whitespace를 검사했다. 기존 100 ms 검출 상한이나 full TC의 NOT RUN 상태는 유지한다.
+
+2026-10-15 [첫 Battery 물리·관측](learning/m2_battery_model.md)은 unit 30개를 추가했다.
+Normal·ASan/UBSan 각각 전체 **222개 unit**을 통과했다. 실제 DC/auxiliary power→chemical energy,
+zero/unknown·full/empty·실수 회로해/thermal 해석해, 독립 sensor pair·cache source/batch·explicit reset을 검사했다.
+100,000개 교대 power interval에서도 0.00018 J balance tolerance를 만족했다.
+Battery fault는 미관측 에너지를 추측하지 않고 current 관측을 unavailable로 만든다.
+CAN frame/vCAN case는 추가하지 않았고 앞선 Drive의 97개 증거와 full TC NOT RUN을 유지한다.
+실행 로그는 각 build의 `battery-model-unit.txt`, `battery-model-demo.txt`에 보존한다.
+Clang-tidy 14 analyzer/bugprone은 model/test/demo 3개와 model header에 적용해 최종 user-source
+진단 없이 통과했다. Cppcheck 2.7은 production/demo 2개를 통과했다.
+Full에서 한 ULP보다 작은 추가 charge도 capacity 위반으로 보고하는 경계를 보강한 뒤
+normal·sanitizer unit 222개를 다시 통과했다. BUILD_TESTING=OFF build와 `battery-model` demo도 통과했다.
+69개 Markdown/상대 링크·앵커 654개, 요구사항 32개/TC 29개, YAML 3개/Python 3개의
+정합성·syntax/whitespace를 검사했다. 기존 차량 수용 조건과 full TC의 NOT RUN 상태는 유지한다.
+
+2026-10-15 [첫 BMS 한계·보호 판단](learning/m2_bms_controller.md)은 unit 33개를 추가했다.
+Normal·ASan/UBSan 각각 전체 **255개 unit**과 기존 CLI의 `bms-control`을 통과했다.
+Platform-neutral sensor port를 추출하고 ECU와 plant 의존성을 분리했다. 방향별 SOC/온도/전압
+derating·10 W floor, cell 극값/pack mean, hard fault 후보의 즉시 inhibit·개별 acquisition dwell,
+release hysteresis·명시적 새 app Epoch/INIT·physical model/SOC 유지, sensor unknown/cache/skew/
+age/identity/clock/deadline과 기존 P05/receiver의 valid zero/usable-RX를 검사했다.
+Demo는 20 ms 수동 시계로 plant→sensor port→controller→codec→receiver를 실행한다.
+새 socket transport/vCAN case는 추가하지 않았고 이전 97개 증거 및 full TC NOT RUN은 유지한다.
+실행 로그는 각 build의 `bms-control-unit.txt`, `bms-control-demo.txt`에 보존한다.
+Clang-tidy 14 analyzer/bugprone은 controller/model/test 2개/demo의 source 5개와 관련 header에
+적용해 최종 user-source 진단 없이 통과했다. Cppcheck 2.7 production/demo 3개도 통과했다.
+BUILD_TESTING=OFF build/demo와 문서 71개/상대 링크·앵커 676개, 요구사항 32개/TC 29개,
+YAML 3개/Python 3개의 정합성·syntax/whitespace를 검사했다.
+실차 calibration·hardware protection·Power lifecycle/Drive gate·SOC estimator의 검증 결과가 아니다.
+
+2026-10-15 [첫 Power lifecycle](learning/m2_power_lifecycle.md)은 Power 37개와 BMS local gate 1개를
+추가했다. Normal·ASan/UBSan 각각 전체 **293개 unit**과 기존 CLI의 네 `power-model` scenario를 통과했다.
+RC 해석해·지연 event 전후 적분·실제 부하/반환 전류, negative/precharge/positive 실제 sequence,
+fresh acquisition dwell·BMS source-age/cache/unknown, current wait/open actual/discharge voltage,
+LV·weld/stuck/부분 센서·canonical unknown·trusted parent/expiry/identity/deadline/restart를 검사한다.
+초기 테스트의 late Enable 수용 기대를 receiver timeout latch의 원래 계약에 맞춰 수정했다.
+종료한 physical OFF와 센서 health FAIL_SAFE도 독립적으로 유지한다.
+LocalState와 PowerState를 구분하고 request source/causal과 physical batch/dependency를 보존한다.
+`power-unit.txt`, `power-demo-normal.txt`, `power-demo-bms-trip.txt`, `power-demo-weld.txt`,
+`power-demo-blocked.txt`는 각 build에 보존한다. Demo의 actual current/contactor/RC 응답은
+PowerModel에서 오고 SOC/온도/400 V는 명시적 fixture다. Battery SOC 에너지 통합은 미검증이다.
+Clang-tidy 14 analyzer/bugprone을 production 3개/test 2개/demo source 6개와 관련 header에 적용해
+최종 user-source 진단 없이 통과했다. Cppcheck 2.7 production/demo 4개도 통과했다.
+BUILD_TESTING=OFF build/네 demo와 문서 73개/상대 링크·앵커 700개, 요구사항 32개/TC 29개,
+YAML 3개/Python 3개의 정합성·syntax/whitespace를 검사했다.
+새 wire/transport/vCAN case는 없고 이전 97개 증거 및 full vehicle TC NOT RUN을 유지한다.
+실차 calibration/부품 정격/hardware 차단 안전성·Drive 실제 gate·독립 OS task 결과가 아니다.
+
+2026-10-15 [Drive local gate/capability](learning/m2_drive_gate.md)는 gate 37개와 공통 TorqueResponse
+추가 4개를 더했다. Normal·ASan/UBSan 각각 전체 **334개 unit PASS**다. 원천 limits의 명시적 relay,
+trusted parent/permission·local HV/speed·known zero/unknown·startup 순서·directional power/low-speed
+envelope·pending 목표 축소/회복·finite actual residual·loss/clock/deadline/새 Epoch를 검사했다.
+구동은 정지 copper loss와 shared fixed reserve를 포함한 power upper estimate, 회생은 반환 power의
+보수적 mechanical upper bound를 사용한다. 실제 효율 map/전류 제어/배터리 충전 적분은 시험하지 않았다.
+기존 CLI의 `drive-gated` 여섯 scenario를 normal·sanitizer·BUILD_TESTING=OFF build에서 실행했다.
+각 build의 `drive-gate-unit.txt`, `drive-gated-*.txt`와 production `drive-gate-build.txt`에 결과를 보존한다.
+Clang-tidy 14 analyzer/bugprone은 controller/physics/test 2개/demo source 5개와 관련 header에 적용하고,
+최종 변경 controller를 다시 검사했다. Cppcheck 2.7 production/demo 3개도 user-source 진단 없이 통과했다.
+Signed zero 정규화의 redundant-assignment 진단은 중복 조건 대입을 없애 해결했다.
+문서 75개/상대 링크·앵커 727개, 요구사항 32개/TC 29개와 NOT RUN 추적성, YAML 3개/Python 3개의
+정합성·syntax/whitespace도 검사했다.
+기존 isolated Drive model vCAN 3개는 normal·sanitizer 각각 재실행해 PASS했다. 처음 host namespace의
+`ip link add`는 권한 오류였으나 기존 문서의 `unshare --user --map-root-user --net`로 해결했다.
+`drive-gate-vcan-regression.txt`와 각 build의 `socketcan-results`에 결과를 보존한다.
+새 EV gate transport case는 없으며 이전 vCAN 97개 전체를 재사용한 새 PASS로 표시하지 않는다.
+Actual DC/Battery SOC coupling, 공유 부하/충전 headroom·잔여 회생 budget, 실제 Central/Zone runtime,
+차량 motion/마찰 보충·실차 calibration·Target OS timing과 전체 TC-REG/EV/ZON은 미검증이다.
+
+2026-10-15 [첫 Drive/Battery energy 연결](learning/m2_drive_energy.md)은 새 28개 시험으로 normal·ASan/UBSan
+각각 전체 **362개 unit PASS**다. 기계적 power→motor conversion/copper/idle→실제 DC→auxiliary·Battery
+chemical energy/저항 heat를 구분한다. Analytic 구동/회생·작은 회생의 순방전·standstill, actual delay,
+원천 identity/cache/age/skew·missing/역행/gap, full/empty capacity fault·no clipping과 20,000 interval 장부를 검사했다.
+초기 시험의 skew 기대는 실제 sequence rollback과 분리하고, BMS input이 매 10 ms 새 값이라는 기대는
+원래 20 ms multirate 계약에 맞춰 수정했다. Timestamp를 정규화해 통과시키지 않았다.
+Fixture의 gate upper power estimate/공유 reserve·SOC guard band/finite reaction budget을 교차 확인했고,
+20→10 ms ZOH refinement와 실제 Battery 관측→BMS→명시적 relay/독립 trusted grant→Drive→P05 receiver loop도 검사했다.
+`drive-energy-unit.txt`, `drive-energy-{normal,charge-zero,near-full,auxiliary}.txt`에 결과를 보존한다.
+Normal·sanitizer·BUILD_TESTING=OFF에서 네 demo와 SOC 증감·잔여 actual 반환·charge-zero·auxiliary·장부를 확인했다.
+Clang-tidy 14 analyzer/bugprone을 model/test/demo source 3개와 관련 header에 적용했다.
+Cppcheck 2.7 model/demo 2개도 검사했으며 최종 user-source 진단은 없다.
+에너지 모델의 validation loop는 std::find_if로 정리했다. Compiler warnings-as-errors·production build와
+문서 77개/상대 링크·앵커 754개·요구 32개/TC 29개 NOT RUN·YAML 3개/Python 3개·whitespace를 검사했다.
+Wire/transport/기존 torque physics 변경이 없어 새 vCAN 실행은 없고 이전 97개 이력·gate 단계의 3개 재검사를 유지한다.
+현재 coupling은 이상적 energized HV와 외부 fixed-speed의 component다. Dynamic RC/접점·capacitor/path
+에너지·shutdown 부하, vehicle motion·마찰 보충·실차 calibration/정확도·Target timing과 full TC는 미검증이다.
+
+2026-10-16 [RC/접점·Battery energy 연결](learning/m2_ev_power_circuit.md)은 새 29개(circuit 24개·Battery
+integrated-flow 5개)를 추가해 normal·ASan/UBSan 각각 전체 **391개 unit PASS**다.
+Actual motor DC·Rint/source·main/precharge/bleed·capacitor를 연결하고 구간 current/current-square 적분으로
+단일 Battery chemical energy를 갱신했다. RC analytic/event/end-point·50→25 µs refinement,
+isolated capacitor regen/discharge·10,000 alternating interval 장부·power/capacity domain과 atomic commit,
+identity/source/dependency/cache/unknown·epoch/clock·mean-square heat와 mode 변경 거부를 검사했다.
+기존 CLI `ev-power`의 normal/weld/current-unknown/aux-blocked 네 loop를 normal·sanitizer·production에서 실행했다.
+PowerStatus·DriveActual/P05 receiver, 실제 READY·구동/회생 SOC 증감·정상 OFF와 고장 blocked·접점·residual·energy를
+독립 로그 assertion으로 확인했다. 각 build의 `ev-circuit-unit.txt`, `ev-circuit-{scenario}.txt`에 결과를 보존한다.
+기존 Power 4개·Drive energy 4개·Drive gate 6개 demo도 세 build에서 회귀 실행했다.
+로그는 `ev-circuit-regression-{family}-{scenario}.txt`이며 production은 BUILD_TESTING=OFF다.
+Clang-tidy 14 analyzer/bugprone을 production 4개/test 2개/demo source 7개와 관련 header에 적용하고
+변경 뒤 해당 source를 재검사했다. Cppcheck 2.7 production/demo 5개도 최종 user-source 진단 없이 통과했다.
+Earliest contact event 선택은 std::accumulate로 정리했고 기존 362개 회귀도 통과했다.
+Combined fixture의 opening current 0.5 A·reserve 500 W와 standalone default 5 A·200 W를 구분한다.
+OFF 후 auxiliary 소비와 Drive PermissionInhibit latch는 별도다. Thermal은 interval 평균 heat 근사이며
+50 µs solver step을 ECU task/RTOS 보장으로 해석하지 않는다.
+문서 79개/상대 링크·앵커 781개·요구 32개/TC 29개 NOT RUN·YAML 3개/Python 3개·whitespace를 검사했다.
+새 wire/transport/vCAN case는 없으며 기존 vCAN 97개 이력과 gate 단계의 3개 재검사를 유지한다.
+Vehicle motion/마찰 배분·실제 Central/Zone·LV sleep·정밀 부품 calibration·Target timing과 full TC는 미검증이다.
+
+2026-10-16 [M2 수용 검토](m2_acceptance_review.md)는 기존 working tree의 주기·입출력·감시,
+fixture parameter, fault/session과 요구사항의 component 증거를 대조했다.
+Normal·ASan/UBSan 각각 전체 unit **391개**, model vCAN **8개**(Steering 2/Brake 3/isolated Drive 3)를 재실행해 통과했다.
+기존 actuator/Battery/BMS demo 5개와 combined EV scenario 4개도 각 build에서 실행했다.
+Combined 종료 phase/fault/접점·current unknown·actual zero·energy 잔차를 독립 assertion으로 확인했다.
+각 build의 `m2-review/`에 build/unit/JUnit/inventory·demo·vCAN 로그를 보존하고,
+normal build의 `m2-review/evidence.json`에 base commit과 미커밋 runtime source/DBC/profile hash를 기록했다.
+Runtime 코드·시험 모듈·의존성은 추가하지 않았다. 기존 vCAN all 97개 이력은 유지하며 이번 재실행 범위는 8개다.
+문서 80개/상대 링크·앵커 817개·요구 32개/TC 29개 NOT RUN·YAML 3개/Python 3개·whitespace를 검사했다.
+수용 검토에서 Steering jam/tracking·Brake stuck/slow-response detector를 **M2 미완료 OPEN-M2-01/02**로 기록했다.
+Tick gap guard는 멈춘 task의 독립 검출이 아니며 scheduler/watchdog·trace·deadline 측정은 M3에 남긴다.
+M2는 IN PROGRESS, M1 wire/학습자 설명·직접 재현은 PENDING, system Result는 NOT RUN을 유지한다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |

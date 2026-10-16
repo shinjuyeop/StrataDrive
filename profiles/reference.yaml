@@ -144,6 +144,227 @@ m2_brake_fixture:
   local_loss_policy: discard_pending_latch_max_actual_or_floor_ramp
   recovery: newer_trusted_epoch_preserving_physical_pressure
   parameter_status: fixture_only_no_oem_calibration # TBD-02/03/06; no YAML loader
+m2_drive_fixture:
+  implementation: isolated_torque_response_component
+  command_min_nm: -300
+  command_max_nm: 500
+  physical_min_nm: -200
+  physical_max_nm: 300
+  initial_nm: 0
+  normal_rate_nm_s: 1000
+  zero_rate_nm_s: 2000
+  delay_ms: 50
+  period_ms: 10
+  max_tick_gap_ms: 30
+  max_source_age_ms: 30
+  valid_rx_timeout_ms: 80
+  local_loss_policy: discard_pending_zero_target_ramp_latch
+  recovery: newer_trusted_epoch_preserving_physical_torque
+  speed_and_regen_capability: unavailable
+  bms_permission_local_hv_gate: not_integrated # no normal-drive readiness claim
+  parameter_status: fixture_only_no_oem_calibration # TBD-02/03/13; no YAML loader
+m2_drive_gate_fixture:
+  implementation: mandatory_ev_gate_with_separate_torque_response
+  legacy_isolated_fixture: m2_drive_fixture
+  command_nm: {minimum: -300, maximum: 500}
+  physical_nm: {minimum: -200, maximum: 300, initial: 0}
+  normal_rate_nm_s: 1000
+  protection_rate_nm_s: 2000
+  normal_delay_ms: 50
+  wheel_speed_reference: aggregate_driven_wheel_rad_s_forward_only
+  max_wheel_speed_rad_s: 100
+  regen_taper_rad_s: {zero: 2, full: 5}
+  motor_mechanical_power_w: {propulsion: 20000, regen: 10000}
+  motoring_load_conversion_efficiency_lower_bound: 0.9 # not total efficiency including copper/reserve
+  copper_loss_w_per_nm2: 0.01
+  fixed_power_reserve_w: 200 # fixture shared auxiliary/idle budget; allocation not implemented
+  regen_power_bound: returned_dc_no_greater_than_abs_actual_mechanical_power
+  capability_quantization_nm: 0.1 # floor, never round capability upward
+  hv_operating_v: {minimum: 300, maximum: 450}
+  maximum_bms_power_w: 100000
+  period_ms: 10
+  max_tick_gap_ms: 30
+  command_source_age_ms: 30
+  local_source_age_ms: 30
+  local_dependency_age_ms: 30
+  local_source_skew_ms: 20
+  bms_source_age_ms: 50
+  bms_dependency_age_ms: 70
+  critical_rx_timeout_ms: 80
+  limits_source: routed_drive_battery_limits_original_bms_identity
+  permission_source: central_allow_normal_with_separate_trusted_parent
+  local_inputs: independent_physical_speed_and_hv_acquisitions
+  unknown_limit_policy: reject_incomplete_pair_no_zero_or_opposite_fallback
+  capability_dependency: oldest_used_local_limits_grant_and_trusted_parent_ancestry
+  capability_receiver_input_age_ms: 70 # explicit opt-in; generic default remains 30
+  capability_dependency_regression: omit_unknown_never_retimestamp
+  startup: fresh_zero_command_inhibit_known_hv_off_non_driving_init
+  loss_policy: cancel_goals_zero_target_latch_finite_actual_response
+  envelope_contraction: clamp_all_pending_goals_no_restore_on_relaxation
+  recovery: newer_trusted_application_epoch_preserving_actual_torque
+  actual_outside_envelope: explicitly_reported_finite_residual
+  central_zone_runtime: independent_fixtures_not_integrated
+  actual_dc_battery_energy_coupling: connected_ideal_and_ev_power_components
+  parameter_status: fixture_only_no_oem_calibration # TBD-02/03/12/13/14 stay open; no YAML loader
+m2_drive_energy_fixture:
+  implementation: actual_torque_speed_dc_to_single_battery_energy_owner
+  electrical_boundary: ideal_energized_dc_path_no_capacitor_or_contactor_loss
+  mechanical_boundary: external_fixed_speed_fixture_not_vehicle_inertia
+  actual_torque_source: torque_response_begin_acquisition_not_command_or_capability
+  motoring_load_conversion_efficiency: 0.92
+  generating_load_conversion_efficiency: 0.85
+  copper_loss_w_per_nm2: 0.01
+  inverter_idle_w: 50
+  demo_auxiliary_w: 150 # idle + auxiliary fits Drive gate fixed reserve of 200 W
+  max_abs_torque_nm: 300
+  max_speed_rad_s: 100
+  demo_speed_rad_s: 20
+  demo_period_ms: 10
+  max_step_ms: 20
+  max_input_age_ms: 30 # at interval end, oldest of torque/speed/auxiliary dependencies
+  max_source_skew_ms: 10
+  integration: begin_acquisition_zero_order_hold_no_retroactive_end_sample
+  motor_ledger: compensated_signed_mechanical_work_and_nonnegative_losses
+  chemical_energy_owner: battery_model_only
+  motor_heat_policy: separate_motor_loss_ledger_not_battery_heat
+  balance_tolerance_j: 0.00036 # max(1e-6, capacity_j*2e-12), not model fidelity
+  invalid_input_policy: latched_unavailable_no_zero_or_backfill
+  capacity_violation_policy: report_battery_fault_and_excess_no_power_or_soc_clipping
+  physical_reset: explicit_new_scenario_only_never_ecu_session_restart
+  fixture_guard_band_j_each: 9000000 # 50 kWh, BMS SOC soft zero 0.05/0.95
+  finite_traction_reaction_budget_ms: 270 # 100 ms detection + 20 ms ZOH + 300/2000 s
+  finite_reaction_budget_scope: fixture_only_no_continuing_auxiliary_or_shutdown_guarantee
+  bms_drive_loop: original_limits_explicit_relay_independent_trusted_central_fixture
+  dynamic_power_circuit_and_vehicle_coupling: not_integrated
+  parameter_status: fixture_only_no_oem_calibration # TBD-03/12/13/14 stay open; no YAML loader
+m2_battery_fixture:
+  implementation: isolated_energy_electrical_thermal_sensor_model
+  capacity_j: 180000000 # 50 kWh; fixture, not vehicle capacity selection
+  initial_soc: 0.5
+  open_circuit_voltage_v: 400 # constant; SOC=energy fraction only under this assumption
+  resistance_ohm: 0.05
+  thermal_capacity_j_k: 200000
+  cooling_w_k: 20
+  ambient_temperature_c: 25
+  initial_temperature_c: 25
+  series_cells: 100
+  cell_voltage_half_spread_v: 0.01
+  cell_temperature_half_spread_c: 1
+  max_abs_power_w: 100000
+  demo_period_ms: 20
+  max_step_ms: 40
+  max_input_age_ms: 50
+  balance_tolerance_j: 0.00018 # max(1e-6, capacity_j*1e-12)
+  input_reference: actual_traction_branch_dc_plus_separate_auxiliary
+  invalid_power_policy: latch_unavailable_no_energy_backfill
+  capacity_violation_policy: reject_step_report_excess_no_clipping
+  reset: explicit_new_scenario_epoch_with_known_soc_temperature
+  bms_sensor_port: connected_local_component
+  actual_drive_dc_coupling: connected_ideal_and_ev_power_components
+  dynamic_power_circuit_coupling: connected_ev_power_component
+  parameter_status: fixture_only_no_oem_calibration # TBD-13 remains open; no YAML loader
+m2_bms_fixture:
+  implementation: local_sensor_validation_directional_limits_protection
+  charge_current_a: 80
+  discharge_current_a: 200
+  max_charge_power_w: 30000
+  max_discharge_power_w: 80000
+  charge_soc: {zero: 0.95, full: 0.80}
+  discharge_soc: {zero: 0.05, full: 0.10}
+  charge_cell_v: {zero: 4.20, full: 4.10}
+  discharge_cell_v: {zero: 3.00, full: 3.30}
+  charge_temperature_c: {cold_stop: 0, cold_full: 10, hot_full: 40, hot_stop: 45}
+  discharge_temperature_c: {cold_stop: -20, cold_full: 0, hot_full: 45, hot_stop: 55}
+  cell_v: {trip_low: 2.80, release_low: 2.95, release_high: 4.15, trip_high: 4.25}
+  pack_v: {trip_low: 280, release_low: 295, release_high: 415, trip_high: 425}
+  temperature_c: {trip_low: -30, release_low: -15, release_high: 50, trip_high: 60}
+  current_a: {trip_low: -100, release_low: -80, release_high: 200, trip_high: 250}
+  series_cells: 100
+  pack_extrema_tolerance_v: 2
+  period_ms: 20
+  max_tick_gap_ms: 40
+  max_source_age_ms: 50
+  max_dependency_age_ms: 70
+  max_sensor_skew_ms: 20
+  trip_dwell_ms: 40
+  release_dwell_ms: 100
+  dwell_reference: advancing_acquisition_source_not_repeated_poll_time
+  recovery: newer_trusted_application_epoch_init_fresh_release_dwell
+  model_epoch: explicitly_mapped_continuing_physical_scenario
+  output: existing_bms_power_limits_10w_floor
+  local_power_safety_gate: connected_with_original_identity_and_dependency
+  drive_gate: connected_component_via_explicit_relay_fixture
+  central_permission_coordinator: not_integrated
+  parameter_status: fixture_only_no_oem_calibration # TBD-12/13/14 stay open; no YAML loader
+m2_power_fixture:
+  implementation: bms_leaf_lifecycle_and_separate_dc_link_contactor_plant
+  capacitance_f: 0.002
+  precharge_resistance_ohm: 50
+  main_resistance_ohm: 0.02
+  discharge_resistance_ohm: 100
+  model_maximum_voltage_v: 1000
+  model_maximum_abs_load_current_a: 500
+  contactor_delay_ms: 20
+  model_max_step_ms: 20
+  model_max_input_age_ms: 50
+  controller_period_ms: 10
+  controller_max_tick_gap_ms: 30
+  max_source_age_ms: 50
+  max_dependency_age_ms: 70
+  minimum_pack_v: 300
+  maximum_pack_v: 450
+  off_bus_max_v: 30
+  precharge_ratio: 0.99
+  ready_delta_v: 5
+  opening_current_max_a: 5
+  checks_dwell_ms: 20
+  ready_dwell_ms: 20
+  current_dwell_ms: 20
+  checks_timeout_ms: 500
+  contactor_timeout_ms: 100
+  precharge_timeout_ms: 2000
+  shutdown_current_timeout_ms: 300
+  discharge_timeout_ms: 1000
+  request_source: existing_receiver_with_separate_trusted_parent
+  output: existing_bms_power_status_and_local_coil_inhibit_requests
+  feedback: original_atomic_physical_acquisition_with_partial_unknowns
+  shutdown_policy: inhibit_current_dwell_open_feedback_discharge_voltage
+  timeout_policy: blocked_latched_not_permission_to_force_open
+  restart: newer_application_epoch_inspect_continuing_physical_state
+  battery_energy_actual_drive_permission_coupling: connected_ev_power_fixture_with_independent_central
+  parameter_status: fixture_only_no_oem_calibration # TBD-12/13/14 stay open; no YAML loader
+m2_ev_power_fixture:
+  implementation: transactional_battery_dc_link_motor_physical_composition
+  base_model_parameters: [m2_battery_fixture, m2_power_fixture, m2_drive_energy_fixture] # design references, no inheritance loader
+  auxiliary_input: held_actual_pack_side_current_not_constant_power
+  auxiliary_current_a: 0.375
+  blocked_auxiliary_current_a: 10
+  motor_input: begin_actual_torque_speed_zero_order_hold_constant_bus_power
+  inverter_stage: explicit_enabled_fixture_disabled_only_after_actual_zero_on_shutdown
+  opening_current_max_a: 0.5 # combined fixture only; standalone default remains 5 A
+  drive_fixed_power_reserve_w: 500 # nominal steady idle/auxiliary/main-path loss budget, not transient hard clipping
+  integration_method: implicit_midpoint_high_voltage_root_split_at_contactor_events
+  integration_step_us: 50
+  integration_step_bound: no_greater_than_electrical_time_constant
+  substep_limit_per_event_segment: 200000
+  minimum_step_ns: 1
+  battery_flow: interval_charge_and_current_square_integrals_with_endpoint_current
+  battery_flow_source: interval_end_with_oldest_dependency_at_or_before_begin
+  thermal_update: lumped_interval_mean_heat_approximation
+  demo_period_ms: 10
+  max_step_ms: 20
+  max_input_age_ms: 30
+  max_source_skew_ms: 10
+  energy_owners: {chemical: battery_model, capacitor: power_model}
+  commit_policy: both_models_and_ledgers_or_neither
+  capacity_voltage_domain_failure: latch_unavailable_report_original_fault_no_clipping_or_backfill
+  balance_tolerance_j: 0.00072 # max(1e-6, capacity_j*4e-12); numerical bookkeeping, not vehicle fidelity
+  physical_sensor_faults: held_or_partial_ports_independent_of_internal_energy_flow_no_control_fallback
+  off_auxiliary_policy: continues_until_explicit_input_changes_no_lv_sleep_model
+  central_request_grant_relay: independent_trusted_fixtures_not_distributed_runtime
+  mechanical_boundary: external_fixed_20_rad_s_no_vehicle_inertia_or_friction_brake
+  shutdown_scenarios: [normal, welded_positive_contactor, unknown_power_current, continuing_auxiliary]
+  parameter_status: fixture_only_no_oem_calibration # TBD-03/12/13/14 and M2 acceptance remain open; no YAML loader
 plant_policy:
   simulator_mode: synchronous_fixed_step
   tick_owner: host_orchestrator
@@ -181,7 +402,7 @@ regenerative_braking:
   blending_response_and_deficit_budget: null # TBD-03/06 / M2/M4
   energy_integration_tolerance: null # TBD-02/03 / M2/M6
 ev_power_bms:
-  scope: included_in_design # communication libraries tested; model/runtime loader not implemented
+  scope: included_in_design # communication/model components tested; runtime loader not implemented
   upper_status_owner: bms_vecu_via_rear_then_central
   battery_model_and_bms_controller_separate: true
   power_lifecycle_states: [OFF, CHECKS, PRECHARGE, HV_READY, SHUTDOWN]
@@ -200,7 +421,7 @@ ev_power_bms:
   charge_discharge_limit_calibration: null # TBD-13 / M2
   losses_auxiliary_load_and_energy_tolerance: null # TBD-13 / M2/M6
   wire_draft:
-    status: proposed_host_codec_receiver_vcan_tested # ADR-0016/17; actual model/Zone runtime still planned
+    status: proposed_host_codec_receiver_vcan_tested # ADR-0016/17; first models only, actual Zone runtime planned
     schema_version: 1 # EV family only; actuator schema remains 2
     dbc: interfaces/dbc/bms_m1_draft.dbc
     critical_frames: [BmsPowerRequest, BmsPowerStatus, BmsPowerLimits, DriveBatteryLimits, DrivePermission]

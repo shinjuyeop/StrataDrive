@@ -5,6 +5,7 @@
 #include "brake_actuator.hpp"
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
+#include "drive_actuator.hpp"
 #include "bms_receiver.hpp"
 #include "bounded_rx_queue.hpp"
 #include "socketcan_endpoint.hpp"
@@ -24,6 +25,9 @@ inline vecu::SteeringActuatorConfig steering_model_config() {
 }
 inline vecu::BrakeActuatorConfig brake_model_config() {
     return {2000000, 1500000, 0, 5000000, 10000000, 1000000, 50000000};
+}
+inline vecu::DriveActuatorConfig drive_model_config() {
+    return {{-300, 500}, {-200, 300, 0, 1000, 2000, 50000000}};
 }
 class RxPump {
 public:

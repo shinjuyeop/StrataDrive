@@ -1,7 +1,15 @@
 # EV/BMS 기능 설계 — EV-01
 
 Date: 2026-10-13; wire update: 2026-10-14.
-Status: **포함 범위 ACCEPTED / 상세 설계 초안 / EV C++ codec·receiver Host 부분 검사 / model·runtime PLANNED / TC NOT RUN**.
+Status: **포함 범위 ACCEPTED / EV C++ 통신·Battery/BMS/Power component Host 부분 검사 / 통합 runtime PLANNED / TC NOT RUN**.
+2026-10-15 [첫 Battery 물리·관측 component](../learning/m2_battery_model.md)를 Host에서 구현·시험했다.
+[첫 BMS 한계·보호](../learning/m2_bms_controller.md)는 local sensor port 검사·방향별 derating·latch와
+PowerLimits를 구현·시험했다. [첫 Power lifecycle](../learning/m2_power_lifecycle.md)은 BMS gate·요청과
+실제 접점/RC bus/current를 연결했다. [Drive local gate/capability](../learning/m2_drive_gate.md)는
+원천 limits·독립 trusted permission·로컬 HV/속도를 확인하는 Host component로 구현·시험했다.
+[첫 energy coupling](../learning/m2_drive_energy.md)은 이상적 HV에서 actual torque/speed→DC→Battery SOC와 BMS 판단을 연결했다.
+[후속 RC/접점 연결](../learning/m2_ev_power_circuit.md)은 실제 capacitor/path·구간 전류/발열·Battery 에너지와 전원 lifecycle을 component로 시험했다.
+차량 motion/에너지·분산 runtime은 PLANNED / NOT RUN이다.
 [ADR-0014](../adr/ADR-0014-ev-functional-scope.md)의 후속 설계다.
 M0 v0.1과 RG-01 이후의 확장이며 기존 검토/실행 결과에 소급 포함하지 않는다.
 후속 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone 배치를 반영한다.
@@ -72,6 +80,10 @@ TC-ZON-001–003은 NOT RUN이다. 기존 M0/M1 또는 TC-EV 부분 증거로 �
 ## 전원 lifecycle과 driving gate
 
 전원 상태 초안은 **OFF → CHECKS → PRECHARGE → HV_READY → SHUTDOWN → OFF**다.
+[첫 component 결정](../adr/ADR-0026-first-power-lifecycle.md)은 실제 접점/전압 기반 precharge,
+current dwell→open actual→discharge voltage 기반 종료를 시험용 parameter로 구현했다.
+Unknown/high current·weld·timeout은 shutdown blocked/latch이며 강제 개방이나 OFF로 정상화하지 않는다.
+실차 고장별 emergency reaction/정격/Drive 연동은 TBD-12로 유지한다.
 차량 driving 여부와 system severity는 별도 정보다. INIT/NORMAL/DEGRADED/FAIL_SAFE를
 이 전원 enum으로 대체하거나 READY와 NORMAL을 같은 의미로 쓰지 않는다.
 
@@ -129,7 +141,10 @@ fixture/OEM 근사 여부를 기록한다. 숫자는 이번 범위 결정에서 
 ## 로컬 셀 극값 입력
 
 Pack 평균만으로 셀 과전압/저전압·국부 고온 조건을 가리지 않도록 **최소·최대 셀 전압과
-최소·최대 셀 온도**를 IF-MODEL-BMS에 포함한다. 이는 M2 구현 범위이며 아직 모델 코드는 없다.
+최소·최대 셀 온도**를 IF-MODEL-BMS에 포함한다. [첫 Battery component](../learning/m2_battery_model.md)는
+등가 관측과 independent validity/acquisition/dependency/batch, hold/invalid/override를 구현했다.
+[BMS controller](../adr/ADR-0025-first-bms-limits-and-protection.md)는 이 port의 group age/skew/identity와
+극값을 검사하고 시험용 threshold/dwell·보호를 적용한다. 차량 calibration은 TBD-13으로 유지한다.
 
 | 로컬 입력 | 단위 / 계약 |
 | --- | --- |
@@ -164,7 +179,8 @@ Critical BMS/power stream loss는 SYS-COM-003 v0.3의 <=100 ms 검출 상한을 
 BMS control/model sampling 50 Hz와 관측 publication 10 Hz도 별개다. 실제 더 느린 sensor와
 cross-zone budget의 수용은 TBD-14/04/15이며 측정 전이다.
 **Drive 보조 source age는 <=30 ms를 유지하며 capability dependency age는 별도 설정으로 분리·시험했다.**
-기본 dependency age도 30 ms다. EV input 70 ms는 명시적 opt-in이며 full Drive/BMS gate 연결은 남는다.
+기본 dependency age도 30 ms다. [Drive gate fixture](../learning/m2_drive_gate.md)는 EV capability input
+70 ms를 명시적으로 선택한다. 실제 Zone/vehicle runtime의 full Drive/BMS 연결은 남는다.
 선택한 rate가 그 정책과 맞지 않으면 근거를 남겨 wire/receiver/profile/test revision을
 함께 검토한다. Startup grace와 물리 응답/전원 차단 deadline도 loss 검출 상한과 별개다.
 
@@ -182,6 +198,8 @@ RG-01 회수 에너지(J)와 SOC는 서로 다른 값이다. SOC 계산 방식/u
 허용 power와 actual response를 제한해야 한다. Missing/invalid 입력은 측정 불가로 기록한다.
 마찰제동을 충전으로 집계하지 않는다. 온도는 첫 fixture 입력에서 시작할 수 있지만 실제
 thermal response 시험은 thermal model을 정의·실행한 이후에만 PASS로 표시한다.
+첫 Battery component는 constant-OCV/Rint와 lumped thermal 해석 응답을 시험했다.
+차량 chemistry별 모델·정밀 SOC estimator나 battery→Drive mechanical energy coupling 검증으로 확대하지 않는다.
 
 ## 요구·시험과 실행 순서
 

@@ -78,15 +78,15 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 
 기존 build directory는 M1부터 재사용한다. Demo는 fixed Epoch/가상 시각의 결정론적 실행이고,
 vCAN runner는 영속 issuer의 Epoch와 Linux monotonic wall clock을 사용한다.
-조향만 선택하면 2개다. [Brake 후속 모델](m2_brake_model.md)까지 model family는 5개,
-기존 actuator family 40개와 EV family 49개를 포함한 현재 기본 all은 94개다.
+조향만 선택하면 2개다. [Brake 후속 모델](m2_brake_model.md)까지 model family는 5개였으며
+[Drive 후속](m2_drive_model.md)까지 현재 8개다. 기존 actuator family 40개와 EV family 49개를 포함한 현재 기본 all은 97개다.
 실행 로그는 각 build의 `socketcan-results/steering-model-*.log`에 보존한다.
 Sanitizer는 `build/m1-angle-sanitized`와 `-DSTRATADRIVE_SANITIZERS=ON`을 사용한다.
 
 검사 범위:
 
 - Unit 13개 추가: 지연·동일 목표 refresh·방향 전환·rate·saturation·초기값·DEGRADED,
-  손상/expiry·continuity/restart·deadline/clock과 경계 시각. 조향 추가 당시 unit은 기존 143 + 13 = 156개이며 Brake 후속까지 현재 172개다.
+  손상/expiry·continuity/restart·deadline/clock과 경계 시각. 조향 추가 당시 unit은 기존 143 + 13 = 156개이며 Brake/Drive/Battery 후속 단계 시점은 222개였다.
 - Model normal: 0.4 rad 명령 → delay/rate → 0.3 rad 포화, 그 후 송신 상실과 hold.
 - Model loss: 움직이는 중 Command 중단 → source expiry → hold, 뒤늦은 반대 방향 명령 거부.
 - 두 경로 모두 독립 Actual RX의 CRC/metadata/source/sequence, 전송값과 모델값 일치 확인.
@@ -96,6 +96,8 @@ Sanitizer는 `build/m1-angle-sanitized`와 `-DSTRATADRIVE_SANITIZERS=ON`을 사�
 ## 다음 작업
 
 정상 추종 오차와 jam 판정을 구분해 설명하고 위 로그를 직접 재현한다.
-후속 [Brake 압력](m2_brake_model.md)도 구현·시험했다. 다음 Drive signed torque 응답으로 확장하고 Battery/BMS/Power 및 actual local gate를 만든다.
+후속 [Brake 압력](m2_brake_model.md)과 [Drive signed torque 응답](m2_drive_model.md)도 구현·시험했다.
+[Battery 물리·관측](m2_battery_model.md), BMS/Power·Drive gate와 [이상적 HV의 DC/SOC 연결](m2_drive_energy.md)도 구현·시험했다.
+[실제 RC/접점 에너지 연결](m2_ev_power_circuit.md)도 시험했다. 다음은 M2 수용 검토와 M3 timing 준비다.
 Steering의 inertia/friction/sensor/jam detector, 실제 task watchdog와 Target timing,
 차량 FAIL_SAFE/회생 배분은 이번 첫 모델에 포함하지 않는다.
