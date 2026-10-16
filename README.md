@@ -4,60 +4,11 @@
 
 ## Current Status
 
-**M0 — BASELINED / M1 — TECHNICAL CHECKS PASS · REVIEW PENDING / M2 — IN PROGRESS**. [M0 종료 검토](docs/m0_baseline.md)의 15개 문서 항목을
-통과했고, Steering/Brake/Drive의 **Command·Actual 6개 CAN FD frame**을 Host에서 구현했다.
-DBC, AUTOSAR R25-11 E2E Profile 5 Protect/Check, application receiver와 SocketCAN을 연결했다.
-M1 normal·ASan/UBSan 각각 **unit 143개 / vCAN 89개 PASS**다.
-M2 조향 adapter 22개·물리 응답 9개·local monitor 21개·Brake 16개·Drive 응답 24개·Battery 35개·BMS 34개·Power 37개·Drive gate 37개·에너지 연결 28개·통합 회로 24개를 더한 현재 결과는 **unit 430개 PASS**다.
-기존 model vCAN 8개를 포함한 **vCAN 97개 PASS** 이력은 유지한다. M2 수용 검토에서 normal·sanitizer 각각 model vCAN 8개를 재검사해 통과했다.
-Battery/BMS/Power/Drive gate·에너지/회로 연결은 로컬 component 시험이다.
-DBC·독립 CRC 교차 검증도 통과했다.
-실행 흐름과 상세 이력은 [학습 안내](docs/learning/README.md)에 있다.
+**M2 진행 중** — Host SIL에서 actuator·EV 모델과 조향 고장 검출을 구현·검증하고 있다.
+다음 작업은 **Brake stuck/slow-response detector**이며, M2 수용 검토와 직접 재현도 진행한다.
+Central/Zone DDS·차량 closed-loop 통합은 후속 단계다.
 
-M1의 [영속 Epoch 발급·bounded queue·overflow/restart 검사](docs/learning/m1_session_queue.md)를 추가했다.
-Wire baseline 채택과 학습자 설명·직접 재현은 PENDING이다. 이 결과는 actuator dynamics나 차량 closed-loop 검증이 아니다.
-M2의 첫 조향·Brake 압력·Drive torque 응답, Battery 에너지·관측, BMS 한계·보호, Power lifecycle과 Drive local gate·capability를 Host functional SIL에서 부분 구현했다.
-Actual torque/speed→DC power→Battery SOC에 dynamic RC/컨택터·capacitor·경로 손실까지 연결했다.
-속도·Central request/grant·relay는 fixture다. Zone/DDS, CARLA, control/AI/deployment runtime과 기존 차량 TC는 **PLANNED / NOT RUN**이다.
-
-[RG-01](docs/icd/regenerative_braking_design.md)은 회생·마찰 배분을,
-[EV-01](docs/icd/ev_power_bms_design.md)은 Battery/BMS·전원 lifecycle·차량 관리를 포함한다.
-[ZON-01](docs/adr/ADR-0015-front-rear-zones.md)로 최종 Reference의 **Front/Rear 두 논리 Zone**을
-채택했다. [ADR-0021](docs/adr/ADR-0021-central-coordination-and-parallel-zones.md)로 차량 전체 관리·배분·session·
-피드백 집계를 Central의 별도 component로 옮겼다. Front는 Steering/Brake, Rear는 Drive/BMS를 맡고
-각 Zone이 Central과 독립 통신한다. 피드백은 담당 Zone을 거쳐 Central에서 집계한다. 기존 Central–Zone–Leaf 계층을 유지하며,
-단일 Zone 검증 후 M4/M5에 분리한다. 두 Zone runtime은 아직 미구현이다.
-
-2026-10-14 [BMS wire 초안](docs/icd/bms_frame_draft.md)과 EV schema 1의 **6개 DBC frame**을
-추가하고 [BMS 물리값·frame codec과 항목별 receiver](docs/learning/m1_bms_codec.md)를 구현했다.
-기존 actuator 6개와 합쳐 **12개 frame / C++ payload 36개**를 DBC와 교차 검증했다.
-유효 0/unknown, source·dependency age, 원래 요청에 묶인 만료와 독립 timeout을 검사한다.
-Drive 보조 입력도 source age와 capability dependency age를 분리했고 기본값 30 ms는 유지한다.
-EV 6개 frame도 기존 TX/RX/runner에 연결했다. 독립 trusted session/parent fixture와
-부분 상실·캐시·만료·명시적 rejoin, BMS limit 중계의 원천 보존을 local vCAN에서 검사했다.
-Local session issuer를 trusted INIT fixture에 연결했고 이전 Epoch의 P05 state 오염도 막았다.
-[M2 첫 조향 모델](docs/learning/m2_steering_model.md)의 delay/rate/angle limit과 source-loss hold를
-기존 Command TX → model → Actual RX vCAN에 연결했다. [Brake 압력 모델](docs/learning/m2_brake_model.md)의
-가압/감압·release·local protection도 같은 loop에 연결했다.
-[Drive torque 응답](docs/learning/m2_drive_model.md)은 ECU adapter와 물리 모델을 구분하고
-양·음 torque 상실 시 zero-target ramp를 연결했다. 이 isolated fixture의 speed/capability는 unavailable이다.
-[Battery 모델](docs/learning/m2_battery_model.md)은 실제 DC power로 energy/SOC·등가 V/I/온도와
-독립 cell 극값 관측을 계산한다. [BMS 판단](docs/learning/m2_bms_controller.md)은 이 센서 port의
-유효성·freshness를 검사해 방향별 derating·보호 latch와 기존 PowerLimits를 만든다.
-[Power lifecycle](docs/learning/m2_power_lifecycle.md)은 실제 접점/RC bus 전압과 BMS gate를 확인해
-precharge·READY·controlled shutdown을 연결했다.
-[Drive local gate](docs/learning/m2_drive_gate.md)는 BMS 원천 한계·Central permission·로컬 HV/속도로
-목표 토크와 회생 가용량을 제한한다. Valid zero와 unknown, 유한 actual 잔여 응답을 구분한다.
-[Drive 에너지 연결](docs/learning/m2_drive_energy.md)은 실제 토크·속도의 conversion/copper/idle 손실과
-별도 보조 부하를 반영해 Battery SOC를 갱신하고, 실제 관측을 BMS 한계로 되돌린다.
-이 첫 예제는 10 ms ZOH·고정 speed·이상적 HV 경로다.
-[실제 회로 연결](docs/learning/m2_ev_power_circuit.md)은 구간 전류/발열과 capacitor·precharge/main/bleed 손실을
-계산하고 Battery·회로를 함께 commit한다. 전원 준비→구동·회생→종료와 weld/current-loss/지속 부하를 검사했다.
-[M2 수용 검토](docs/m2_acceptance_review.md)로 task/monitor·parameter·fault/session 경계와 시험 증거를 대조했다.
-[Steering local response monitor](docs/learning/m2_steering_fault_monitor.md)는 별도 angle sensor와 정상 rate 범위·residual/dwell로
-jam/slow-response fixture를 검출한다. Held/invalid sensor는 unavailable로 발행하고, 고장 확정은 local hold/latch로 연결했다.
-다음은 **Brake stuck/slow-response detector**다. 실제 task/watchdog·trace·timing은 M3에서 검증한다. 학습자 수용은 PENDING이다.
-실제 Central coordinator/Zone DDS는 M4/M5 범위다.
+[상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 
 ## Project Overview
 
@@ -86,7 +37,7 @@ architecture를 이해하고 각 구현을 직접 설명할 수 있는 것을 �
 
 ## Key Engineering Questions
 
-- Vehicle command, Zone Controller의 allocation, actuator response를 어떻게 분리할 것인가?
+- Vehicle command, Central allocation, Zone 전달, actuator response를 어떻게 분리할 것인가?
 - Stale message, ECU 통신 상실, actuator fault는 closed-loop 동작에 어떤 영향을 주는가?
 - 평균 AI latency 외에 어떤 timing tail과 deadline miss를 살펴봐야 하는가?
 - Learned Planner는 제한이 정의된 Classical Controller 경로를 어떻게 보조할 수 있는가?
@@ -213,36 +164,23 @@ AUTOSAR stack/toolchain은 미선정이며 ASIL과 safety concept은 미확정�
 | E2E protection | Actuator와 EV/BMS frame에 R25-11 Profile 5 Protect/Check·receiver 구현; E2E State Machine·차량 통합은 후속 |
 | AUTOSAR pilot | Steering vECU의 Classic OS/RTE/BSW toolchain 타당성 검토; release/구현체/Target 지원 미선정, NOT RUN |
 
+## Quick Start
+
 Steering/Brake/Drive/BMS 예제와 시험을 build하고 실행한다. 현재 Host에 설치된 도구를 사용하며 자동 설치하지 않는다.
 
 ```sh
 cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/m1-angle --parallel 2
 ctest --test-dir build/m1-angle --output-on-failure
-./build/m1-angle/actuator_demo angle 0.1
-./build/m1-angle/actuator_demo frame command 0.2
-./build/m1-angle/actuator_demo e2e
-./build/m1-angle/actuator_demo receiver
-./build/m1-angle/actuator_demo brake-pressure 2000500
-./build/m1-angle/actuator_demo brake-frame command 2000000
-./build/m1-angle/actuator_demo brake-frame actual 1500000
-./build/m1-angle/actuator_demo brake-receiver
-./build/m1-angle/actuator_demo drive-frame command -200
-./build/m1-angle/actuator_demo drive-frame actual -150
-./build/m1-angle/actuator_demo drive-feedback
-./build/m1-angle/actuator_demo bms-value soc 0.75
-./build/m1-angle/actuator_demo bms-frame limits partial
-./build/m1-angle/actuator_demo bms-receiver
+./build/m1-angle/actuator_demo ev-power normal
+./build/m1-angle/actuator_demo steering-model jam
+./build/m1-angle/actuator_demo --help
 ```
 
-이 명령은 angle/pressure/torque/frame 표현과 수신부·회생 피드백의 제어 가능한 시계 실험을 실행한다.
-차량 제어 loop나 Target 배포는 아직 구현하지 않았다.
-검사 범위와 예상 결과는 [field 실행 안내](docs/learning/m1_steering_codec.md)와
-[frame codec/DBC 교차 검증](docs/learning/m1_steering_frame_codec.md),
-[수신부 실행 안내](docs/learning/m1_steering_receiver.md)와
-[Brake 실행 안내](docs/learning/m1_brake_codec.md#application-수신부-추가), [Drive 실행 안내](docs/learning/m1_drive_codec.md),
-[BMS 실행 안내](docs/learning/m1_bms_codec.md)에 있다.
-실행 명령은 `./build/m1-angle/actuator_demo --help`로 확인한다.
+예제는 수동 시계로 전원 준비→구동·회생→종료와 조향 jam 검출을 재현한다.
+예상 결과는 [EV 회로 안내](docs/learning/m2_ev_power_circuit.md)와
+[조향 고장 검출 안내](docs/learning/m2_steering_fault_monitor.md)에 있다.
+Codec·수신부 등 나머지 예제는 `--help`와 [학습 안내](docs/learning/README.md)에서 확인한다.
 `-DBUILD_TESTING=OFF`로 configure하면 라이브러리와 예제만 build하며
 단위 시험과 통합 시험의 TX/RX 실행 파일은 제외한다.
 
@@ -316,13 +254,15 @@ StrataDrive/
 │   ├── learning/          # 학습자 중심 절차
 │   ├── safety/            # Item Definition / HARA 학습 초안; 평가·승인 전
 │   ├── engineering_plan.md # 표준 참고 범위와 단계별 적용·학습 계획
+│   ├── project_status.md  # 현재 구현 범위·시험 결과·다음 작업
 │   ├── m0_baseline.md     # Exit checklist와 문서 검토 증거
+│   ├── m2_acceptance_review.md # M2 수용 검토와 미완료 항목
 │   ├── roadmap.md
 │   └── quality_policy.md
 ├── interfaces/
 │   ├── common/            # E2E Profile 5, 공통 payload 직렬화·수신 상태
-│   ├── steering/          # 조향 angle/frame codec, application receiver
-│   ├── brake/             # 압력/frame codec, application receiver; 모델은 후속 구현
+│   ├── steering/          # 조향 angle/frame codec, receiver, local sensor port
+│   ├── brake/             # 압력/frame codec, application receiver
 │   ├── drive/             # 구동·회생 torque/frame codec, feedback receiver
 │   ├── bms/               # EV 물리값·6개 frame codec, 항목별 수신부
 │   ├── socketcan/         # Linux CAN socket, actuator·EV 변환 adapter
@@ -330,8 +270,8 @@ StrataDrive/
 │   └── dds/               # 배치용 placeholder
 ├── central/               # ADAS/control; session Epoch store; vehicle management/allocation/bridge 예정
 ├── zone/                  # Front/Rear gateway/validation/local safety 예정
-├── vecu/                  # Common task model, steering, brake, drive
-├── simulation/            # Simple plant, CARLA, Plant Adapter, scenarios, fault injection
+├── vecu/                  # Steering/Brake/Drive/BMS의 판단·보호와 SIL adapter
+├── simulation/            # Steering/Drive/Battery/Power 모델; vehicle/CARLA 통합 예정
 ├── physical_ai/           # Perception, learned planner, export, inference
 ├── profiles/              # Reference / Thor Premium / Orin Mainstream 설계 data
 ├── tests/
