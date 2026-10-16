@@ -1,4 +1,5 @@
 #include "steering_runtime.hpp"
+#include "runtime_support.hpp"
 
 #include "periodic_task.hpp"
 #include "latest_snapshot.hpp"
@@ -25,19 +26,13 @@ namespace stratadrive::simulation {
 namespace {
 constexpr std::uint64_t kMs=1000000, kPeriod=10*kMs, kDeadline=5*kMs, kPoll=2*kMs;
 constexpr std::size_t kJobs=120, kInjectedJob=20;
-std::uint64_t now_ns() {
-    timespec value{};
-    if (clock_gettime(CLOCK_MONOTONIC,&value)!=0) throw std::system_error(errno,std::generic_category(),"clock_gettime");
-    return static_cast<std::uint64_t>(value.tv_sec)*1000000000 + static_cast<std::uint64_t>(value.tv_nsec);
-}
-void sleep_until(std::uint64_t until) {
-    const timespec value{static_cast<time_t>(until/1000000000),static_cast<long>(until%1000000000)};
-    int result=0;
-    do { result=clock_nanosleep(CLOCK_MONOTONIC,TIMER_ABSTIME,&value,nullptr); } while(result==EINTR);
-    if(result!=0) throw std::system_error(result,std::generic_category(),"clock_nanosleep");
-}
+using runtime_support::now_ns;
+using runtime_support::sleep_until;
+using runtime_support::ThreadInfo;
+using runtime_support::open_output;
+using runtime_support::append_bounded;
 std::uint64_t next_poll(std::uint64_t enable, std::uint64_t now) {
-    return enable+((now-enable)/kPoll+1)*kPoll;
+    return runtime_support::next_wake(enable,kPoll,now);
 }
 struct Inputs {
     std::optional<can::SteeringFrame> command;
@@ -66,24 +61,6 @@ struct PlantStep {
     std::uint64_t output_issued,output_applied;
 };
 struct MonitorStep { std::uint64_t time; bool fault; };
-struct ThreadInfo {
-    int policy{-1},priority{-1},observed_cpu{-1};
-    void capture() {
-        sched_param parameter{};
-        const int result=pthread_getschedparam(pthread_self(),&policy,&parameter);
-        if(result!=0) throw std::system_error(result,std::generic_category(),"pthread_getschedparam");
-        priority=parameter.sched_priority; observed_cpu=sched_getcpu();
-    }
-};
-std::ofstream open_output(const std::filesystem::path& path) {
-    std::ofstream stream;
-    stream.exceptions(std::ios::failbit|std::ios::badbit); stream.open(path);
-    stream << std::setprecision(17); return stream;
-}
-template<class T> void append_bounded(std::vector<T>& values, const T& value, std::size_t& drops) {
-    if(values.size()==values.capacity()) ++drops;
-    else values.push_back(value);
-}
 } // namespace
 
 void run_steering_runtime(const std::string& scenario, const std::filesystem::path& directory, bool detailed) {
@@ -140,8 +117,9 @@ void run_steering_runtime(const std::string& scenario, const std::filesystem::pa
                 if(actual_start>=schedule.deadline(i)) continue;
                 auto& row=jobs[i]; row.ran=true; row.start=actual_start;
                 if(const auto snapshot=input_port.read()) cached=*snapshot; else ++input_read_empty;
+                const bool blocked=monitor.faulted() || monitor.clock_error();
                 row.job_time=now_ns();
-                if(monitor.faulted() || monitor.clock_error()) ecu.mark_output_rejected(row.job_time);
+                if(blocked) ecu.mark_output_rejected(row.job_time);
                 if(cached.command) {
                     const auto decoded=can::decode_steering_frame(*cached.command);
                     if(decoded) { row.command_sequence=decoded->sequence; row.command_source=decoded->source_time_ns; }
@@ -196,14 +174,15 @@ void run_steering_runtime(const std::string& scenario, const std::filesystem::pa
         std::int64_t last_ecu_applied_job=-1;
         std::uint64_t output_issued=0,output_applied=0;
         while(!abort.load(std::memory_order_acquire)) {
+            const bool forced_hold=monitor.faulted() || monitor.clock_error();
+            const auto pending_output=output_port.read();
             const auto now=now_ns();
             const auto begin=detailed ? now_ns() : 0;
             if(!plant.advance(now)) throw std::runtime_error("runtime physical step");
-            const bool forced_hold=monitor.faulted() || monitor.clock_error();
             if(forced_hold) {
                 if(!plant.hold(now)) throw std::runtime_error("runtime independent hold");
                 if(hold_at==0) hold_at=now;
-            } else if(const auto output=output_port.read(); output && applied_job!=output->job) {
+            } else if(const auto& output=pending_output; output && applied_job!=output->job) {
                 applied_job=output->job;
                 if(now>output->deadline_ns) ++expired_outputs;
                 else if(output->actuation.mode==steering::ActuationMode::Hold) {
