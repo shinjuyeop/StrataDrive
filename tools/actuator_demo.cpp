@@ -48,7 +48,7 @@ void usage(std::ostream& output) {
            << "  actuator_demo bms-frame <request|power-status|limits|battery|drive-limits|permission> [nominal|zero|invalid|partial]\n"
            << "  actuator_demo bms-receiver\n"
            << "  actuator_demo steering-model [normal|jam|slow|sensor-hold|sensor-invalid|transient]\n"
-           << "  actuator_demo brake-model\n"
+           << "  actuator_demo brake-model [normal|stuck-rise|slow-rise|stuck-release|slow-release|sensor-hold|sensor-invalid|transient]\n"
            << "  actuator_demo drive-model\n"
            << "  actuator_demo battery-model\n"
            << "  actuator_demo bms-control\n"
@@ -1118,6 +1118,67 @@ void demo_steering_model(const std::string& scenario) {
     }
 }
 
+void demo_brake_model(const std::string& scenario) {
+    using namespace stratadrive;
+    if (scenario != "normal" && scenario != "stuck-rise" && scenario != "slow-rise" && scenario != "stuck-release" && scenario != "slow-release" && scenario != "sensor-hold" &&
+        scenario != "sensor-invalid" && scenario != "transient") throw std::invalid_argument("unknown brake-model scenario");
+    vecu::BrakeActuator model({2000000, 1500000, 0, 5000000, 10000000, 1000000, 50*kMs});
+    if (!model.start_session(1, kStart)) throw std::runtime_error("model session failed");
+    can::BrakeTxState tx{can::BrakeFrameKind::Command};
+    const std::array<const char*, 9> faults{"none", "command_unavailable", "continuity_lost", "clock_error", "control_deadline",
+        "sensor_unavailable", "sensor_invalid", "response_error", "physical_model_error"};
+    std::cout << "Brake response / " << scenario << ": manual clock, independent local sensor; rise fault onset at 100 ms / release fault onset at 360 ms; no vehicle/OS timing\n";
+    for (std::uint32_t step = 1; step <= (scenario == "normal" ? 90U : 80U); ++step) {
+        const auto ms = step*10, begin_ms = ms-10;
+        const auto now = kStart+static_cast<std::uint64_t>(ms)*kMs;
+        if (scenario != "normal" || step <= 65) {
+            can::BrakeMessage input; input.pressure_pa = scenario == "normal" ? (step<35 ? 2000000:0) :
+                (scenario == "stuck-release" || scenario == "slow-release") && ms>300 ? 0:1000000; input.epoch = 1; input.sequence = step-1;
+            input.source_time_ns = now; input.local_state = can::BrakeLocalState::Normal; input.origin = can::BrakeOrigin::NormalPath;
+            const auto frame = can::encode_brake_frame(input, tx);
+            if (!frame) throw std::runtime_error("model input encoding failed");
+            const auto result = model.receive(*frame, now);
+            if (result.decision != can::BrakeReceiveDecision::Accepted &&
+                !(model.fault() != vecu::BrakeFault::None && result.decision == can::BrakeReceiveDecision::ModeRejected)) {
+                throw std::runtime_error("model input failed");
+            }
+        }
+        simulation::BrakePressureResponseInjection injection;
+        auto action = simulation::BrakeSensorAction::Acquire;
+        std::optional<double> sensed;
+        if (begin_ms >= 100) {
+            if (scenario == "stuck-rise") injection.stuck = true;
+            if (scenario == "slow-rise") injection.rise_rate_scale = 0.25;
+            if (scenario == "sensor-hold") action = simulation::BrakeSensorAction::Hold;
+            if (scenario == "sensor-invalid") sensed = std::numeric_limits<double>::quiet_NaN();
+        }
+        if (begin_ms >= 360) {
+            if (scenario == "stuck-release") injection.stuck = true;
+            if (scenario == "slow-release") injection.fall_rate_scale = 0.25;
+        }
+        if (scenario == "transient" && ms == 160) sensed = 1500000;
+        const auto frame = model.tick(now, injection, action, sensed);
+        const auto actual = frame ? can::decode_brake_frame(*frame) : std::nullopt;
+        if (!actual) throw std::runtime_error("model publication failed");
+        const auto& d = model.monitor_decision();
+        const auto print_optional = [](std::optional<double> x) { if (x) std::cout << *x; else std::cout << "unknown"; };
+        std::cout << "BRAKE_MODEL ms=" << ms << " pressure_pa="; print_optional(actual->pressure_pa);
+        std::cout << " valid=" << actual->pressure_pa.has_value() << " physical_pa=" << model.actual_pressure_pa()
+                  << " causal=" << actual->causal_sequence << " state=" << static_cast<int>(actual->local_state)
+                  << " origin=" << static_cast<int>(actual->origin) << " expected_min_pa="; print_optional(d.expected_min_pa);
+        std::cout << " expected_max_pa="; print_optional(d.expected_max_pa);
+        std::cout << " residual_pa=" << d.residual_pa << " sensor_source_ms=";
+        if (d.source_time_ns) std::cout << (*d.source_time_ns-kStart)/kMs; else std::cout << "unknown";
+        std::cout << " violation_ms=";
+        if (d.violation_since_ns) std::cout << (*d.violation_since_ns-kStart)/kMs; else std::cout << "unknown";
+        std::cout << " fault=" << faults.at(static_cast<std::size_t>(model.fault()));
+        std::cout << " protection_floor_observed=";
+        const auto floor = model.protection_floor_observed();
+        if (floor) std::cout << *floor; else std::cout << "unknown";
+        std::cout << '\n';
+    }
+}
+
 int main(int argc, char** argv) {
     try {
         if (argc == 2 && std::string(argv[1]) == "--help") {
@@ -1139,30 +1200,7 @@ int main(int argc, char** argv) {
             else if (command == "bms-frame" && (argc == 3 || argc == 4)) demo_bms_frame(argv[2], argc == 4 ? argv[3] : "nominal");
             else if (command == "bms-receiver" && argc == 2) demo_bms_receiver();
             else if (command == "steering-model" && (argc == 2 || argc == 3)) demo_steering_model(argc == 3 ? argv[2] : "normal");
-            else if (command == "brake-model" && argc == 2) {
-                stratadrive::vecu::BrakeActuator model({2000000, 1500000, 0, 5000000, 10000000, 1000000, 50*kMs});
-                if (!model.start_session(1, kStart)) throw std::runtime_error("brake model session failed");
-                BrakeTxState tx{BrakeFrameKind::Command};
-                for (std::uint32_t step = 1; step <= 90; ++step) {
-                    const auto now = kStart + static_cast<std::uint64_t>(step)*10*kMs;
-                    if (step <= 65) {
-                        BrakeMessage input;
-                        input.pressure_pa = step < 35 ? 2000000 : 0;
-                        input.epoch = 1; input.sequence = step-1; input.source_time_ns = now;
-                        input.local_state = BrakeLocalState::Normal; input.origin = BrakeOrigin::NormalPath;
-                        const auto frame = encode_brake_frame(input, tx);
-                        if (!frame || model.receive(*frame, now).decision != BrakeReceiveDecision::Accepted)
-                            throw std::runtime_error("brake model input failed");
-                    }
-                    const auto frame = model.tick(now);
-                    const auto actual = frame ? decode_brake_frame(*frame) : std::nullopt;
-                    if (!actual) throw std::runtime_error("brake model publication failed");
-                    std::cout << "BRAKE_MODEL ms=" << step*10 << " pressure_pa=" << actual->pressure_pa.value_or(0)
-                              << " valid=" << actual->pressure_pa.has_value() << " causal=" << actual->causal_sequence
-                              << " state=" << static_cast<int>(actual->local_state)
-                              << " origin=" << static_cast<int>(actual->origin) << '\n';
-                }
-            }
+            else if (command == "brake-model" && (argc == 2 || argc == 3)) demo_brake_model(argc == 3 ? argv[2] : "normal");
             else if (command == "battery-model" && argc == 2) demo_battery_model();
             else if (command == "bms-control" && argc == 2) demo_bms_control();
             else if (command == "power-model" && (argc == 2 || argc == 3)) demo_power_model(argc == 3 ? argv[2] : "normal");

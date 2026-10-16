@@ -194,4 +194,158 @@ TEST_F(BrakeActuatorTest, MaximumDelayAndManyTargetChangesStayWithinBoundedHisto
         ASSERT_GE(other.actual_pressure_pa(), 0); ASSERT_LE(other.actual_pressure_pa(), 1500000);
     }
 }
+TEST(BrakeActuatorConfig, InvalidMonitoringSettingsAreRejected) {
+    auto c=configuration(); c.healthy_min_rate_fraction=1.1; EXPECT_THROW(vecu::BrakeActuator{c},std::invalid_argument);
+    c=configuration(); c.healthy_max_rate_fraction=.9; EXPECT_THROW(vecu::BrakeActuator{c},std::invalid_argument);
+    c=configuration(); c.response_confirmation_ns=kMs; EXPECT_THROW(vecu::BrakeActuator{c},std::invalid_argument);
+    c=configuration(); c.sensor_age_ns=40*kMs; EXPECT_THROW(vecu::BrakeActuator{c},std::invalid_argument);
+}
+TEST_F(BrakeActuatorTest, StuckRiseWithFreshCommandAndSensorCannotFabricateProtectivePressure) {
+    for(int ms=10;ms<=100;ms+=10) drive(ms,1000000);
+    for(int ms=110;ms<=180;ms+=10) {
+        ASSERT_EQ(model.receive(command({ms,1000000}),kStart+ms*kMs).decision,can::BrakeReceiveDecision::Accepted);
+        const auto a=can::decode_brake_frame(*model.tick(kStart+ms*kMs,{true,1,1})).value();
+        ASSERT_TRUE(a.pressure_pa); EXPECT_DOUBLE_EQ(*a.pressure_pa,200000);
+        if(ms==120) { EXPECT_EQ(a.local_state,can::BrakeLocalState::Degraded); }
+        if(ms<180) { EXPECT_EQ(model.fault(),vecu::BrakeFault::None); }
+    }
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::ResponseError);
+    EXPECT_EQ(model.receiver().health(),can::BrakeReceiverHealth::Receiving);
+    EXPECT_EQ(model.monitor_decision().violation_since_ns,kStart+120*kMs);
+    EXPECT_EQ(model.protection_floor_observed(),false);
+    const auto failed=can::decode_brake_frame(*model.tick(kStart+190*kMs,{true,1,1})).value();
+    EXPECT_DOUBLE_EQ(*failed.pressure_pa,200000); EXPECT_EQ(failed.origin,can::BrakeOrigin::LocalProtection);
+    EXPECT_EQ(failed.local_state,can::BrakeLocalState::FailSafe);
+    EXPECT_EQ(model.receive(command({190,0}),kStart+190*kMs).decision,can::BrakeReceiveDecision::ModeRejected);
+}
+TEST_F(BrakeActuatorTest, PhysicalRecoveryDoesNotClearLatchAndProtectionRampsFromDetection) {
+    for(int ms=10;ms<=100;ms+=10) drive(ms,1000000);
+    for(int ms=110;ms<=180;ms+=10) {
+        model.receive(command({ms,1000000}),kStart+ms*kMs); ASSERT_TRUE(model.tick(kStart+ms*kMs,{true,1,1}));
+    }
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),200000);
+    EXPECT_DOUBLE_EQ(*tick(190).pressure_pa,250000);
+    for(int ms=200;ms<=340;ms+=10) tick(ms);
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),1000000); EXPECT_EQ(model.protection_floor_observed(),true);
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::ResponseError);
+}
+TEST_F(BrakeActuatorTest, SlowRiseIsDetectedWhileIndependentAcquisitionsContinue) {
+    for(int ms=10;ms<=100;ms+=10) drive(ms,1000000);
+    for(int ms=110;ms<=190;ms+=10) {
+        model.receive(command({ms,1000000}),kStart+ms*kMs); ASSERT_TRUE(model.tick(kStart+ms*kMs,{false,.25,1}));
+    }
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::ResponseError);
+    EXPECT_EQ(model.monitor_decision().violation_since_ns,kStart+130*kMs);
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),312500); EXPECT_EQ(model.protection_floor_observed(),false);
+}
+TEST_F(BrakeActuatorTest, StuckReleaseRetainsHigherPressureEvenAfterProtectionRequest) {
+    for(int ms=10;ms<=400;ms+=10) drive(ms,2000000);
+    for(int ms=410;ms<=530;ms+=10) {
+        model.receive(command({ms,0}),kStart+ms*kMs);
+        ASSERT_TRUE(model.tick(kStart+ms*kMs,{ms>460,1,1}));
+    }
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::ResponseError);
+    EXPECT_EQ(model.monitor_decision().violation_since_ns,kStart+470*kMs);
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),1500000);
+    EXPECT_EQ(model.protection_floor_observed(),true); // floor observed is not successful release
+    tick(540); EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),1500000);
+}
+TEST_F(BrakeActuatorTest, SlowReleaseIsDetectedUsingFallBandThenCanBuildToProtectiveFloor) {
+    for(int ms=10;ms<=300;ms+=10) drive(ms,1000000);
+    for(int ms=310;ms<=430;ms+=10) {
+        model.receive(command({ms,0}),kStart+ms*kMs);
+        ASSERT_TRUE(model.tick(kStart+ms*kMs,{false,1,ms>360 ? .25:1}));
+    }
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::ResponseError);
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),825000); EXPECT_EQ(model.protection_floor_observed(),false);
+    ASSERT_TRUE(model.tick(kStart+440*kMs,{false,1,.25})); EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),875000);
+}
+TEST_F(BrakeActuatorTest, HealthyRateEdgesWithReversalAndSaturationDoNotLatch) {
+    for(double fraction:{.8,1.,1.2}) {
+        vecu::BrakeActuator other(configuration()); ASSERT_TRUE(other.start_session(1,kStart));
+        sequence=0; e2e::p05_protect_init(tx.protection);
+        for(int ms=10;ms<=700;ms+=10) {
+            ASSERT_EQ(other.receive(command({ms,ms<350 ? 2000000.:0}),kStart+ms*kMs).decision,can::BrakeReceiveDecision::Accepted);
+            const auto f=other.tick(kStart+ms*kMs,{false,fraction,fraction}); ASSERT_TRUE(f);
+            EXPECT_EQ(other.fault(),vecu::BrakeFault::None); EXPECT_FALSE(other.monitor_decision().violation_since_ns);
+        }
+    }
+}
+TEST_F(BrakeActuatorTest, HeldSensorDoesNotRenewDownstreamValidPressureOrConfirmSuccess) {
+    can::BrakeReceiver downstream({can::BrakeFrameKind::Actual,0,1500000}); ASSERT_TRUE(downstream.start_session(1,kStart));
+    for(int ms=10;ms<=100;ms+=10) {
+        model.receive(command({ms,1000000}),kStart+ms*kMs); const auto f=model.tick(kStart+ms*kMs);
+        ASSERT_EQ(downstream.receive(*f,kStart+ms*kMs).decision,can::BrakeReceiveDecision::Accepted);
+    }
+    for(int ms=110;ms<=300;ms+=10) {
+        model.receive(command({ms,1000000}),kStart+ms*kMs);
+        const auto f=model.tick(kStart+ms*kMs,{},simulation::BrakeSensorAction::Hold); ASSERT_TRUE(f);
+        EXPECT_FALSE(can::decode_brake_frame(*f)->pressure_pa);
+        EXPECT_NE(downstream.receive(*f,kStart+ms*kMs).decision,can::BrakeReceiveDecision::Accepted);
+        EXPECT_FALSE(model.protection_floor_observed());
+    }
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::SensorUnavailable);
+    EXPECT_EQ(downstream.last_accepted()->received_time_ns,kStart+100*kMs);
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),1000000); // diagnostic truth is not feedback
+}
+TEST_F(BrakeActuatorTest, InvalidPressureIsUnknownWithoutTruthFallback) {
+    drive(10,1000000); model.receive(command({20,1000000}),kStart+20*kMs);
+    const auto f=model.tick(kStart+20*kMs,{},simulation::BrakeSensorAction::Acquire,std::numeric_limits<double>::quiet_NaN());
+    ASSERT_TRUE(f); EXPECT_FALSE(can::decode_brake_frame(*f)->pressure_pa);
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::SensorInvalid); EXPECT_FALSE(model.protection_floor_observed());
+}
+TEST_F(BrakeActuatorTest, ATransientOutlierDegradesThenClearsPendingWithoutLatch) {
+    for(int ms=10;ms<=300;ms+=10) {
+        model.receive(command({ms,1000000}),kStart+ms*kMs);
+        const auto f=model.tick(kStart+ms*kMs,{},simulation::BrakeSensorAction::Acquire,
+            ms==160 ? std::optional<double>{1500000}:std::nullopt);
+        ASSERT_TRUE(f); const auto a=can::decode_brake_frame(*f).value();
+        if(ms==160) { EXPECT_EQ(a.local_state,can::BrakeLocalState::Degraded); }
+        if(ms==170) { EXPECT_EQ(a.local_state,can::BrakeLocalState::Normal); EXPECT_FALSE(model.monitor_decision().violation_since_ns); }
+        EXPECT_EQ(model.fault(),vecu::BrakeFault::None);
+    }
+}
+TEST_F(BrakeActuatorTest, NewEpochPreservesPhysicsAndRequiresANewAcquisition) {
+    for(int ms=10;ms<=100;ms+=10) drive(ms,1000000);
+    model.mark_continuity_lost(kStart+100*kMs); ASSERT_TRUE(model.start_session(2,kStart+110*kMs));
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),200000);
+    const auto f=model.tick(kStart+120*kMs,{},simulation::BrakeSensorAction::Hold); ASSERT_TRUE(f);
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::SensorInvalid); EXPECT_FALSE(can::decode_brake_frame(*f)->pressure_pa);
+    ASSERT_TRUE(model.start_session(3,kStart+120*kMs)); const auto a=tick(130);
+    EXPECT_DOUBLE_EQ(*a.pressure_pa,200000); EXPECT_EQ(a.epoch,3U); EXPECT_EQ(a.sequence,0U);
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::None);
+}
+TEST_F(BrakeActuatorTest, InvalidPhysicalIntervalIsUnavailableAndCannotBackfill) {
+    for(int ms=10;ms<=100;ms+=10) drive(ms,1000000);
+    model.receive(command({110,1000000}),kStart+110*kMs);
+    const auto f=model.tick(kStart+110*kMs,{false,-1,1}); ASSERT_TRUE(f);
+    EXPECT_FALSE(can::decode_brake_frame(*f)->pressure_pa); EXPECT_FALSE(model.protection_floor_observed());
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::PhysicalModelError); EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),200000);
+    EXPECT_DOUBLE_EQ(*tick(120).pressure_pa,250000);
+}
+TEST_F(BrakeActuatorTest, PlausibleSensorFreezeCanResembleStuckPhysicsWithoutProvingItsCause) {
+    for(int ms=10;ms<=130;ms+=10) {
+        model.receive(command({ms,1000000}),kStart+ms*kMs);
+        ASSERT_TRUE(model.tick(kStart+ms*kMs,{},simulation::BrakeSensorAction::Acquire,0));
+    }
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::ResponseError);
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),350000); // plant moved; monitor cannot read this truth
+    EXPECT_EQ(model.protection_floor_observed(),false);
+}
+TEST_F(BrakeActuatorTest, NewApplicationEpochCannotRepairPersistentPhysicalStuckFault) {
+    for(int ms=10;ms<=100;ms+=10) drive(ms,1000000);
+    for(int ms=110;ms<=180;ms+=10) {
+        model.receive(command({ms,1000000}),kStart+ms*kMs); ASSERT_TRUE(model.tick(kStart+ms*kMs,{true,1,1}));
+    }
+    ASSERT_EQ(model.fault(),vecu::BrakeFault::ResponseError);
+    ASSERT_TRUE(model.start_session(2,kStart+180*kMs)); sequence=0; e2e::p05_protect_init(tx.protection);
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),200000);
+    for(int ms=190;ms<=310;ms+=10) {
+        ASSERT_EQ(model.receive(command({ms,1000000,2}),kStart+ms*kMs).decision,can::BrakeReceiveDecision::Accepted);
+        const auto f=model.tick(kStart+ms*kMs,{true,1,1}); ASSERT_TRUE(f);
+        if(ms==190) { EXPECT_EQ(can::decode_brake_frame(*f)->sequence,0U); EXPECT_EQ(model.fault(),vecu::BrakeFault::None); }
+    }
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::ResponseError);
+    EXPECT_DOUBLE_EQ(model.actual_pressure_pa(),200000);
+}
 }  // namespace

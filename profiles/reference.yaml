@@ -141,7 +141,7 @@ m2_steering_fixture:
   root_cause_diagnosis: not_isolated_from_single_angle_sensor
   parameter_status: fixture_only_no_oem_calibration # TBD-02/03; no YAML loader
 m2_brake_fixture:
-  implementation: first_host_functional_sil_model
+  implementation: separated_pressure_plant_sensor_and_local_monitor
   command_max_pa: 2000000
   max_pressure_pa: 1500000
   initial_pressure_pa: 0
@@ -154,7 +154,19 @@ m2_brake_fixture:
   max_source_age_ms: 30
   valid_rx_timeout_ms: 80
   local_loss_policy: discard_pending_latch_max_actual_or_floor_ramp
-  recovery: newer_trusted_epoch_preserving_physical_pressure
+  healthy_rate_fraction: {minimum: 0.8, maximum: 1.2} # applied separately to rise/fall
+  response_tolerance_pa: 25000
+  response_confirmation_ms: 60
+  response_dwell_clock: advancing_acquisition_source_not_cached_reads
+  sensor_source_age_ms: 20
+  max_sensor_acquisition_gap_ms: 30
+  pending_response_state: degraded
+  protection_output: increase_only_to_floor_no_release_above_floor
+  protection_physics: stuck_and_rate_injection_still_apply
+  protection_floor_observed: fresh_valid_sensor_only_unknown_on_cache_or_invalid
+  actual_pressure_publication: new_valid_acquisition_only_cached_reports_unavailable
+  root_cause_diagnosis: not_isolated_from_single_pressure_sensor
+  recovery: newer_trusted_epoch_preserving_physical_pressure_and_sensor_sequence
   parameter_status: fixture_only_no_oem_calibration # TBD-02/03/06; no YAML loader
 m2_drive_fixture:
   implementation: isolated_torque_response_component

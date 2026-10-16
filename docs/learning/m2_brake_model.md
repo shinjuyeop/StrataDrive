@@ -3,6 +3,7 @@
 Date: 2026-10-14. Status: **Host functional SIL 부분 구현·검사 / 학습자 설명·직접 재현 PENDING**.
 [ADR-0020](../adr/ADR-0020-first-brake-pressure-model.md)의 첫 마찰제동 모델이다.
 M2 전체/차량 정지/실차 제동 calibration을 완료한 결과가 아니다.
+후속 [pressure sensor·고장 검출](m2_brake_fault_monitor.md)에서 물리 응답과 monitor를 분리했다.
 
 ## 1. 압력과 제동력은 다른 값
 
@@ -88,11 +89,11 @@ Source expiry/RX timeout/continuity loss/control deadline을 감지하면 정상
 
 1. [설정/클래스](../../vecu/brake/brake_actuator.hpp): 단위가 붙은 설정과 외부 clock API를 읽는다.
 2. [구현](../../vecu/brake/brake_actuator.cpp)의 `receive`: 기존 BrakeReceiver를 재사용한다.
-3. `advance`/`move`: delay 경계에서 구간을 나누고 가압·감압 rate를 선택한다.
+3. [물리 응답](../../simulation/brake/brake_pressure_response.cpp)의 `advance`/`move`: delay 경계와 가압·감압을 계산한다.
 4. `fail`/`tick`: normal pending 취소, 보호 target latch, Actual/P05 생성과 새 source/sequence를 확인한다.
 5. [시험](../../tests/unit/brake_actuator_test.cpp): 결정론적 clock으로 정상·상실·재시작을 비교한다.
 
-Runtime model은 `vecu/brake/`, 수신 wire 계약은 `interfaces/brake/`에 둔다.
+물리 모델은 `simulation/brake/`, ECU 판정·SIL adapter는 `vecu/brake/`, wire·센서 계약은 `interfaces/brake/`에 둔다.
 두 모델은 기존 [integration model loop](../../tests/integration/can/socketcan_rx.cpp)와
 [runner](../../tests/integration/can/check_socketcan.py)를 공유한다. feature별 executable은 추가하지 않았다.
 

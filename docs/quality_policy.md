@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신과 M2 Steering/Brake/Drive torque·Battery/BMS/Power·Drive gate·에너지/회로 연결 component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 430개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 470개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -262,6 +262,29 @@ cppcheck 2.7 production/demo 4개도 user-source 진단 없이 통과했다.
 문서 82개/상대 링크·앵커 846개·요구 32개/TC 29개 NOT RUN·YAML 3개/Python 3개·whitespace도 검사했다.
 Threshold/rate/dwell은 fixture이며 기계 jam의 고유 원인 진단, 실차 조향 안전성이나 100 ms tracking 검출 보장이 아니다.
 M2 OPEN-M2-01의 component 증거를 추가했고 Brake OPEN-M2-02·학습자 수용, M3 task/watchdog/trace는 남긴다.
+
+2026-10-16 [Brake pressure response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·기존 adapter 14개,
+새 40개를 더해 normal·ASan/UBSan 각각 전체 **470개 unit PASS**다. 기존 Brake adapter 16개도 유지했다.
+독립 pressure sensor/물리 응답 경계와 별도 rise/fall 정상 band·residual/source-time dwell을 구현했다.
+가압/감압 stuck·slow, 정상 rate 양끝·지연/포화/방향 전환, transient pending 해제, unknown/cache·identity/time,
+bounded history, 새 epoch·persistent stuck과 plausible sensor freeze를 시험했다.
+보호 floor 요청 뒤에도 물리 stuck을 적용하고 요청/fresh 관측/실제 제동 성공을 구분한다.
+관측 gap은 fault를 latch하지만 개별 유효한 새 압력은 FAIL_SAFE 상태와 함께 보고할 수 있다.
+
+기존 CLI `brake-model`의 normal/stuck-rise/slow-rise/stuck-release/slow-release/sensor-hold/sensor-invalid/transient 8개와
+Steering normal/jam·isolated Drive·combined EV normal 회귀 4개를 normal·sanitizer·production에서 실행했다.
+별도 로그 assertion으로 rise stuck 120→180 ms, slow rise 130→190 ms, release stuck/slow 370→430 ms의 pending→검출,
+보호 중 stuck 잔존·floor unknown·transient 해제를 확인했다. Production BUILD_TESTING=OFF build도 통과했다.
+각 build의 `brake-monitor-build.txt`, `brake-monitor-<scenario>.txt`, `brake-monitor-regression-*.txt`에 보존하며,
+normal/sanitizer의 `brake-monitor-unit.txt`, `brake-monitor-unit.xml`에 전체 unit 결과를 둔다.
+기존 model vCAN 8개도 normal·sanitizer에서 각각 재실행했고 `brake-monitor-vcan.txt`와 `socketcan-results`에 결과를 둔다.
+이는 새 pressure fault network case가 아닌 기존 정상/통신 상실 회귀다. All 97개는 앞선 전체 실행 이력이다.
+Clang-tidy 14 analyzer/bugprone은 production 3개·test 3개·demo 1개, cppcheck 2.7은 production/demo 4개에 적용했다.
+문서·추적성/YAML·Python/whitespace 검사와 실행 source/DBC/profile SHA-256은
+`build/m1-angle/brake-monitor-doc-check.txt`, `brake-monitor-evidence.json`에 보존한다.
+M2 OPEN-M2-01/02의 component 구현 공백은 해소했고 직접 재현·학습자 수용은 PENDING이다.
+실차 calibration/고유 기계 원인 진단·vehicle stop·독립 task/watchdog는 검증한 결과가 아니다.
+32개 요구/29개 system TC 전체 Result는 NOT RUN이며 M3 task/trace·측정 설계가 다음 구현이다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |

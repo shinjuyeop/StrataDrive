@@ -86,6 +86,9 @@ healthy rate 0.8..1.2배·residual 여유 0.01 rad·fresh-source confirmation 60
 
 `m2_brake_fixture`는 [첫 Brake 압력 모델](../docs/learning/m2_brake_model.md)의 설정이다.
 정상 delay/rise/fall과 물리 한계, loss 시 max(actual, floor) ramp를 기록한다.
+[Brake monitor](../docs/learning/m2_brake_fault_monitor.md)의 방향별 healthy rate 0.8..1.2배·residual 25 kPa·fresh-source dwell 60 ms,
+sensor age/gap 20/30 ms도 기록한다. 보호는 increase-only/floor 요청이며 물리 stuck에도 압력 도달을 보장하지 않는다.
+Floor 관측은 fresh sensor로만 보고하고 cached/invalid에서 unknown이다. YAML은 C++ 설정의 기록이며 loader는 없다.
 차량 안전 제동 calibration/ABS/pressure→wheel torque는 TBD-02/03/06의 후속 작업이다.
 
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
