@@ -72,7 +72,8 @@ model vCAN 8개를 재검사하고 설정·고장·세션 경계를 대조했다
 관리·배분/session/feedback 집계를 맡고 Front는 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
 M4/M5에 분리하며 Central–Zone protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.
 
-실행 예제는 `tools/actuator_demo.cpp` 하나로 통합했다.
+실행 프로그램은 `actuator_demo` 하나다. `tools/actuator_demo.cpp`는 명령 분기와 도움말을 맡고,
+예제 구현은 `tools/demo/`의 Steering·Brake·Drive·EV 파일로 나눈다.
 `angle`, `frame`, `e2e`, `receiver`, `brake-pressure`, `brake-frame`, `brake-receiver`,
 `drive-frame`, `drive-feedback`, `bms-value`, `bms-frame`, `bms-receiver`, Linux `epoch`, `steering-model`, `brake-model`, `drive-model`, `battery-model`, `bms-control`, `power-model`, `drive-gated`, `drive-energy`, `ev-power` 중 필요한 명령을 실행한다.
 자동 단위 시험은 모듈별 기존 파일에 case를 추가하며 SocketCAN 통합 시험은

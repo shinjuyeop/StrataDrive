@@ -281,7 +281,7 @@ StrataDrive/
 ├── benchmark/             # Timing, compute, 검토된 결과
 ├── deploy/                # Docker, systemd, scripts — 배치용 placeholder
 ├── models/README.md       # 대용량 artifact 정책과 작은 sample 예외
-└── tools/                 # actuator_demo 하나, DBC 검사, vCAN 환경 확인
+└── tools/                 # actuator_demo 진입점, demo/ 도메인별 예제, DBC/vCAN 도구
 ```
 
 [시스템 요구사항](docs/requirements/system_requirements.md)과

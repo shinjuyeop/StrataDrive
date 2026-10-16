@@ -126,7 +126,9 @@ target_include_directories(power_controller PUBLIC vecu/bms)
 target_link_libraries(power_controller PUBLIC bms_receiver)
 stratadrive_quality(power_controller)
 
-add_executable(actuator_demo tools/actuator_demo.cpp)
+add_executable(actuator_demo tools/actuator_demo.cpp
+    tools/demo/steering_demo.cpp tools/demo/brake_demo.cpp
+    tools/demo/drive_demo.cpp tools/demo/ev_demo.cpp)
 target_link_libraries(actuator_demo PRIVATE steering_actuator brake_actuator drive_actuator drive_controller drive_energy_model ev_power_model bms_receiver battery_model bms_controller power_model power_controller)
 stratadrive_quality(actuator_demo)
 

@@ -286,6 +286,13 @@ M2 OPEN-M2-01/02의 component 구현 공백은 해소했고 직접 재현·학�
 실차 calibration/고유 기계 원인 진단·vehicle stop·독립 task/watchdog는 검증한 결과가 아니다.
 32개 요구/29개 system TC 전체 Result는 NOT RUN이며 M3 task/trace·측정 설계가 다음 구현이다.
 
+2026-10-16 예제 구조 정리에서 단일 `actuator_demo` 실행 파일을 유지하고 명령 분기/도움말과
+`tools/demo/`의 Steering·Brake·Drive·EV 구현을 분리했다. Normal·ASan/UBSan·BUILD_TESTING=OFF build에서
+각각 **90개 CLI 입력의 stdout/stderr/exit code가 이전 binary와 동일**했다. Clang-tidy analyzer/bugprone을
+변경된 source 5개에 적용해 통과했다. 기존 runtime library/시험 case는 이 단계에서 변경하지 않았다.
+비교 binary·명령 목록/스크립트·build/static 로그는 `build/m1-angle/structure-review/`와 각 build의
+`structure-demo-build.txt`에 둔다. 문서 링크/추적성/YAML/Python/whitespace 검사도 통과했다.
+
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |
 | Compiler | 직접 관리하는 GCC/Clang target에 `-Wall -Wextra -Werror` 적용 | 첫 C++ target부터 적용; 검토된 최소 범위의 예외는 문서화하고 third-party에 global flag 적용 지양 |
