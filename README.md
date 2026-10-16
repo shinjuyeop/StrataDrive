@@ -4,8 +4,8 @@
 
 ## Current Status
 
-**M2 진행 중** — Host SIL에서 actuator·EV 모델과 조향 고장 검출을 구현·검증하고 있다.
-다음 작업은 **Brake stuck/slow-response detector**이며, M2 수용 검토와 직접 재현도 진행한다.
+**M2 진행 중** — Host SIL의 actuator·EV 모델과 조향·브레이크 고장 검출을 구현·검증했다.
+다음은 **M2 직접 재현·수용 검토와 M3 task·trace 설계**다.
 Central/Zone DDS·차량 closed-loop 통합은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
@@ -223,7 +223,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 | --- | --- |
 | M0 | Architecture / Requirement / ICD Baseline — BASELINED |
 | M1 | DBC + vCAN — TECHNICAL CHECKS PASS / REVIEW PENDING |
-| M2 | IN PROGRESS: component·Steering response monitor 시험; Brake response detector·학습자 review 남음 |
+| M2 | IN PROGRESS: component·Steering/Brake response monitor 시험; 학습자 review 남음 |
 | M3 | Real-Time Timing & Scheduling Measurement |
 | M4 | Central coordinator + 대등한 Front/Rear Zone |
 | M5 | Central Compute + DDS |

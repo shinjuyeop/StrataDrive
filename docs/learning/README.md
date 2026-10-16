@@ -65,8 +65,9 @@ BMS/Drive loop를 연결하고 28개를 더해 당시 전체 unit은 362개였�
 당시 전체 unit 391개였다. [M2 수용 검토](../m2_acceptance_review.md)에서 normal·sanitizer 각각 전체 unit과
 model vCAN 8개를 재검사하고 설정·고장·세션 경계를 대조했다.
 후속 [Steering response monitor](m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가해
-현재 전체 unit은 **430개**다. 정상 rate 범위·residual/dwell과 sensor health·fresh Actual/latch를 시험했다.
-다음은 Brake stuck/slow-response detector이며 학습자 수용도 남아 있다. 실제 task/watchdog·trace·timing은 M3에서 검증한다.
+당시 전체 unit은 **430개**였다. 정상 rate 범위·residual/dwell과 sensor health·fresh Actual/latch를 시험했다.
+[Brake response monitor](m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 더해 현재 전체 **470개**다.
+가압/감압 이상과 보호 요청/압력 관측을 구분한다. 다음은 학습자 수용과 M3의 실제 task/watchdog·trace·timing 설계다.
 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Central의 별도 VCU가 차량 전체
 관리·배분/session/feedback 집계를 맡고 Front는 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
 M4/M5에 분리하며 Central–Zone protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.

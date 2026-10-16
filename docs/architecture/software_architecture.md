@@ -137,7 +137,9 @@ Power current sensor unknown/hold는 물리 장부와 독립이며 제어기가 
 [M2 수용 검토](../m2_acceptance_review.md)에서 주기·감시·설정·고장/세션 경계를 대조했다.
 [Steering response monitor](../learning/m2_steering_fault_monitor.md)는 fresh acquisition과 delay/rate-band 예측을 비교해
 tracking residual을 확인하고 hold/latch한다. Sensor unavailable/invalid와 cached Actual 재발행도 구분한다.
-기계 jam 원인 분리·센서 이중화·Brake pressure response detector는 미구현이다.
+[Brake pressure monitor](../learning/m2_brake_fault_monitor.md)는 별도 plant/sensor와 방향별 rise/fall band·residual/dwell을 둔다.
+Fault에서 increase-only/floor 출력 primitive를 요청하며 물리 stuck은 보호 뒤에도 적용된다. Floor 도달은 fresh sensor로만 관측한다.
+기계 원인 분리·센서 이중화·실제 hydraulic closed-loop controller는 미구현이다.
 독립 OS task/watchdog·trace 측정은 M3, 차량 보호 동작의 통합 검증은 M4/M6/M7에 남는다.
 Dynamics parameter, noise seed, 초기화 수치와 calibration은 TBD-02/03 (M2/M6/M7)다.
 Accepted demand와 actual actuator state를 다른 interface로 유지한다. Simulated current 등의 상태가 없으면 해당 fault는 검증됐다고 주장하지 않는다.

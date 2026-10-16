@@ -102,6 +102,6 @@ Sanitizer는 `build/m1-angle-sanitized`와 `-DSTRATADRIVE_SANITIZERS=ON`을 사�
 후속 [Brake 압력](m2_brake_model.md)과 [Drive signed torque 응답](m2_drive_model.md)도 구현·시험했다.
 [Battery 물리·관측](m2_battery_model.md), BMS/Power·Drive gate와 [이상적 HV의 DC/SOC 연결](m2_drive_energy.md)도 구현·시험했다.
 [실제 RC/접점 에너지 연결](m2_ev_power_circuit.md)과 [M2 수용 검토](../m2_acceptance_review.md)도 수행했다.
-[Steering sensor/response monitor](m2_steering_fault_monitor.md)를 후속으로 구현·시험했다. 다음은 Brake response detector다.
+[Steering sensor/response monitor](m2_steering_fault_monitor.md)를 후속으로 구현·시험했다. [Brake response monitor](m2_brake_fault_monitor.md)도 후속 구현·시험했다. 다음은 M2 직접 재현·수용과 M3 task/trace 설계다.
 Steering의 inertia/friction·정밀 sensor/원인 진단, 실제 task watchdog와 Target timing,
 차량 FAIL_SAFE/회생 배분은 미검증이다.

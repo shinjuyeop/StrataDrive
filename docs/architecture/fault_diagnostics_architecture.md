@@ -6,7 +6,9 @@ source-loss/continuity/deadline hold는 Host에서 구현·시험했다. [첫 Br
 압력 floor/retain ramp도 부분 구현했다. 차량 보호 출력/DTC 통합은 미구현이다.
 [M2 수용 검토](../m2_acceptance_review.md)는 기존 actuator 보호와 BMS/Power/Drive gate·회로 component의
 부분 증거를 대조했다. 후속 [Steering response monitor](../learning/m2_steering_fault_monitor.md)는
-정상 delay/rate 범위·sensor residual/dwell과 local hold/latch를 구현·시험했다. Brake detector는 **M2 미완료**다.
+정상 delay/rate 범위·sensor residual/dwell과 local hold/latch를 구현·시험했다.
+[Brake monitor](../learning/m2_brake_fault_monitor.md)도 별도 pressure sensor·rise/fall 범위와 residual/dwell을 구현·시험했다.
+보호 floor 요청과 fresh sensor 관측을 구분하며 물리 stuck은 보호 요청 뒤에도 지속될 수 있다.
 [ZON-01](zonal_partition.md)의 Central–Front/Rear 독립 link/source monitor는 PLANNED / NOT RUN이다.
 
 ```mermaid
@@ -54,7 +56,7 @@ Capability 제한과 actual stream 상실의 증거를 분리하며 기존 criti
 | PEER_SOURCE_STALE / PEER_SESSION_INVALID / ZON-F01/02 | 각 수신 Zone의 envelope와 per-source/dependency/session 검사 | cached source·parent expiry 보존, reject는 valid age 미갱신, trusted INIT/rejoin 및 power/health gate |
 | ACTUAL_FEEDBACK_STALE | Host Plant Adapter 원천 sequence/time/validity | bridge heartbeat와 독립 검출, run gate; cached actual을 fresh로 처리 금지 |
 | STEERING_TRACKING_FAULT | Steering local bounded-target history↔angle sensor | M2 component 구현·시험: rate-band 밖 0.01 rad 초과가 fresh source 기준 60 ms 지속되면 hold/latch; sensor health 별도, 기계 jam의 고유 원인 진단은 아님; Zone 전달 후속 |
-| BRAKE_RESPONSE_FAULT | Brake demand↔pressure sensor residual | M2 미구현 OPEN-M2-02; 독립 actual/fault 경계·정상 delay/rise/fall·threshold/dwell을 정한 후 검증; Zone 전달 후속 |
+| BRAKE_RESPONSE_FAULT | Brake demand↔pressure sensor residual | M2 component 구현·시험: 정상 delay/rise/fall band 밖 25 kPa 초과가 fresh source 기준 60 ms 지속되면 latch·increase-only floor 요청; 센서 health/보호 floor 관측 별도, Zone 전달 후속 |
 | TASK_OVERRUN | 각 component deadline monitor/watchdog | task 자체 정지 감시 독립성 M3 결정; miss와 local state 기록 |
 | COMPUTE_OVERLOAD | Central health + task timing monitors | optional feature 축소 / 필수 경로 protection; M3/M12 검증 |
 | AI_INFERENCE_TIMEOUT / AI_OUTPUT_INVALID | Central inference monitor / Safety Supervisor | 유효 classical fallback 또는 FAIL_SAFE; M11 |

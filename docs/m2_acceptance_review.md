@@ -1,12 +1,13 @@
 # M2 수용 검토: 응답 모델과 EV 전원·에너지
 
 Review ID: **M2-REV-20261016** / Date: **2026-10-16**.
-Status: **기존 component 기능 검사 PASS / M2 미완료 항목 OPEN / 학습자 직접 재현·이해 검토 PENDING**.
+Status: **기존 component 및 Steering/Brake detector 검사 PASS / 학습자 직접 재현·이해 검토 PENDING**.
 수행: Codex의 코드·설정·시험 증거 대조. M2 상태는 **IN PROGRESS**로 유지한다.
 
 후속 2026-10-16: [Steering response monitor](learning/m2_steering_fault_monitor.md)를 구현·시험했다.
-OPEN-M2-01은 **Host component 구현·검사 완료 / 학습자 수용 PENDING**이며 Brake OPEN-M2-02는 미구현이다.
-전체 unit은 430개다. 아래 최초 검토의 391개 결과와 미구현 판정은 이후 `69a9614`로 커밋한 당시 snapshot의 이력이다.
+Steering 후속 시점의 unit은 430개였다. 이어 [Brake response monitor](learning/m2_brake_fault_monitor.md)도
+구현·시험해 OPEN-M2-01/02 모두 **Host component 검사 완료 / 학습자 수용 PENDING**이다.
+현재 전체 unit은 normal·ASan/UBSan 각각 **470개 PASS**다. 아래 최초 검토의 391개 결과와 미구현 판정은 이후 `69a9614`로 커밋한 당시 snapshot의 이력이다.
 최신 실행 증거와 수치는 위 학습 안내/품질 기록에 따로 연결한다.
 
 ## 검토 범위와 판정
@@ -94,7 +95,7 @@ TBD-02/03/12/13/14는 이 fixture의 시험만으로 닫지 않는다.
 | 부하 전류·unknown에서 종료 차단, 접점 용착/응답 실패·잔류 전압 확인 | Power 시험 + `ev-power` 네 scenario | PASS; OFF 성공과 shutdown blocked를 구분 |
 | actual torque 기반 구동·충전, auxiliary/loss·capacitor 소유, atomic failure와 장시간 수지 | [Battery 35개](../tests/unit/battery_model_test.cpp), [ideal energy 28개](../tests/unit/drive_energy_model_test.cpp), [circuit 24개](../tests/unit/ev_power_model_test.cpp) | PASS |
 | 새 application epoch에서 old input/pending 폐기, 물리 angle/pressure/torque·battery scenario 보존 | actuator/Drive gate/BMS/Power unit; explicit physical reset 시험 | PASS; 배포 환경의 trusted INIT/rejoin은 M4/M5 |
-| fresh 통신 중 Steering jam, Brake stuck/slow response를 local detector가 구분 | 현재 독립 sensor/고장 모델과 residual/dwell detector 없음 | **OPEN-M2-01/02** |
+| fresh 통신 중 Steering jam, Brake stuck/slow response를 local detector가 구분 | 최초 검토 당시 detector 없음; 이후 [Steering](learning/m2_steering_fault_monitor.md)·[Brake](learning/m2_brake_fault_monitor.md) 구현·시험 | **후속 component PASS / 학습자 수용 PENDING** |
 
 Combined normal 종료의 `drive_fault=4`는 활성화 뒤 Inhibit를 latch하는 현재 정책이다.
 `phase=OFF, power_fault=0, blocked=0`인 전원 종료 성공과 모순되지 않는다.
@@ -142,12 +143,29 @@ Sanitizer 실행 시간은 대표 성능 수치가 아니다.
 32개 system requirement와 29개 system TC의 전체 Result는 모두 **NOT RUN**을 유지한다.
 학습자의 wire 채택·설명·직접 실행 기록도 **PENDING**이다.
 
+## Brake 후속 기술 검토
+
+2026-10-16, ADR-0031의 구현 commit `c1b58f2`를 대조했다. 새 unit 40개와 기존 Brake adapter 16개를 포함해 전체 470개,
+normal·ASan/UBSan에서 PASS다. Production build, static analysis, Brake 8개 scenario와 기존 model vCAN 8개도 검사했다.
+세부 증거는 [품질 기록](quality_policy.md), 수동 재현은 [Brake 학습 안내](learning/m2_brake_fault_monitor.md)에 있다.
+
+- 정상 가압/감압의 양끝 rate·delay·saturation은 고장으로 판정하지 않는다.
+- Fresh command/sensor 중 stuck·slow response는 residual의 source-time dwell로 검출한다.
+- 보호 요청 뒤에도 물리 stuck이 지속되고 floor를 못 채우는 경우를 시험했다. Floor 관측과 제동 성공은 다르다.
+- Sensor cache/invalid는 fresh Actual을 만들지 않는다. 새 epoch는 물리 압력/취득 번호를 보존하고 persistent stuck을 다시 검출한다.
+- 단일 센서로 기계 원인을 분리하지 않으며 OS task 정지·vehicle stop·DTC 통합을 검증한 결과가 아니다.
+
+OPEN-M2-01/02의 component 구현 공백은 해소했다. OPEN-M2-03과 wire 채택은 학습자 검토로 남긴다.
+M3의 첫 산출물은 release/clock owner와 task 경계, bounded handoff, 독립 monitor의 정지 검출 계약,
+job/입력/적용 target을 연결하는 trace schema와 측정 protocol이다. Period와 deadline을 별도로 정하고
+manual-clock 응답 지연과 실제 execution/jitter를 구분한다.
+
 ## 미완료 항목과 다음 작업
 
 | 항목 | 닫기 위해 필요한 것 | 단계 / 담당 |
 | --- | --- | --- |
 | OPEN-M2-01 Steering response fault | 후속 sensor/물리 경계와 rate-band predictor·residual/dwell·latch, 정상/고장/새 epoch를 구현·시험; [상세 증거](learning/m2_steering_fault_monitor.md) | **M2 component 검사 완료 / 학습자 수용 PENDING** / vECU·model 담당 |
-| OPEN-M2-02 Brake response fault | pressure actual/sensor 경계와 stuck/slow-response 주입, 가압·감압·보호 floor를 고려한 판정·반응·재시작 시험 | **M2**, Steering 뒤 / vECU·model 담당 |
+| OPEN-M2-02 Brake response fault | [독립 pressure sensor·가압/감압 band·residual/dwell](learning/m2_brake_fault_monitor.md), 보호 floor 요청/관측·persistent stuck·새 epoch 구현·시험 | **M2 component 검사 완료 / 학습자 수용 PENDING** / vECU·model 담당 |
 | OPEN-M2-03 학습자 수용 | 기존 M1 wire와 M2 정상/고장/복구를 직접 재현하고 설정·로그의 의미를 본인 설명으로 기록 | **M1/M2 PENDING** / project owner |
 | M3 준비: 실제 task/monitor | release owner·clock·period와 deadline 구분, RX/monitor/control 배치·bounded queue/snapshot, task 정지 감시 독립성과 gap/overload 처리 | **M3** / runtime·timing 담당 |
 | M3 준비: trace와 원인 연결 | run/epoch/clock, release/start/end, raw RX/accept/reject, queue/drop, 보호 검출·동작 시각, 사용 입력과 actual의 identity | **M3** / instrumentation 담당 |
@@ -159,7 +177,7 @@ Actual.CausalSequence는 현재 마지막 수용 Command 문맥이다. Delay 동
 M3 trace는 사용 snapshot/목표 적용 시각을 별도로 연결해야 한다.
 통합 demo의 100 ms/상태 변화 콘솔 출력도 모든 10 ms job의 trace를 대신하지 않는다.
 
-**최초 검토의 다음 항목인 Steering local monitor는 후속 구현·시험했다. 현재 다음은 Brake response detector다.**
-Brake도 독립 sensor/fault 경계를 정하고 기존 delay/rise/fall·floor 시험을 정상 oracle로 유지한다.
-Brake response 검토와 학습자 수용을 건너뛰어 M2를 완료 표시하지 않는다.
+**Steering/Brake local detector의 Host component 구현·검사는 완료했다. 현재 다음은 학습자 수용과 M3 task/trace 설계다.**
+Brake도 독립 sensor/fault 경계를 두고 기존 delay/rise/fall·floor 시험 16개를 유지했다.
+학습자 수용을 대신 작성하거나 M2를 전체 완료 표시하지 않는다.
 M3 계측 설계는 병행 준비할 수 있지만 M2 미완료 항목의 해결 결과와 별도로 기록한다.

@@ -114,7 +114,8 @@ bounded history·latch/new epoch와 fresh Actual을 확인한다.
 
 검출기는 bounded-rate predictor이며 motor torque/current controller가 아니다.
 실제 noise/관성/마찰/가변 delay·redundant sensor·jam 원인 분리·차량 조향 가용성/안전 정지는 미검증이다.
-다음은 [M2 수용 검토](../m2_acceptance_review.md)의 **Brake stuck/slow-response detector**다.
+후속 [Brake stuck/slow-response detector](m2_brake_fault_monitor.md)도 구현·시험했다.
+다음은 [M2 수용 검토](../m2_acceptance_review.md)의 직접 재현·설명과 M3 task/trace 설계다.
 실제 task/watchdog와 timing/trace 측정은 M3에 남긴다. 학습자의 직접 재현·설명은 PENDING이다.
 
 내 말로 확인할 부분은 세 가지다. 목표각과 측정각이 다르더라도 정상일 수 있는 이유,
