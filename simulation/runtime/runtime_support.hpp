@@ -29,11 +29,27 @@ inline std::uint64_t next_wake(std::uint64_t enable, std::uint64_t period, std::
 }
 struct ThreadInfo {
     int policy{-1},priority{-1},observed_cpu{-1};
+    std::vector<int> allowed_cpus;
     void capture() {
         sched_param parameter{};
         const int result=pthread_getschedparam(pthread_self(),&policy,&parameter);
         if(result!=0) throw std::system_error(result,std::generic_category(),"pthread_getschedparam");
         priority=parameter.sched_priority; observed_cpu=sched_getcpu();
+        cpu_set_t mask;
+        CPU_ZERO(&mask);
+        const int affinity_result=pthread_getaffinity_np(pthread_self(),sizeof(mask),&mask);
+        if(affinity_result!=0) throw std::system_error(affinity_result,std::generic_category(),"pthread_getaffinity_np");
+        allowed_cpus.clear();
+        for(int cpu=0;cpu<CPU_SETSIZE;++cpu) if(CPU_ISSET(cpu,&mask)) allowed_cpus.push_back(cpu);
+    }
+    void write_affinity(std::ostream& out) const {
+        out << '[';
+        for(std::size_t i=0;i<allowed_cpus.size();++i) { if(i) out << ','; out << allowed_cpus[i]; }
+        out << ']';
+    }
+    void write_json(std::ostream& out) const {
+        out << "{\"policy\":" << policy << ",\"priority\":" << priority << ",\"observed_cpu\":" << observed_cpu << ",\"allowed_cpus\":";
+        write_affinity(out); out << '}';
     }
 };
 inline std::ofstream open_output(const std::filesystem::path& path) {

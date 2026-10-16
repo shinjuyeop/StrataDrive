@@ -397,7 +397,11 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     for(std::size_t i=0;i<tasks.size();++i) { if(i) meta << ','; const auto& t=*tasks[i]; const auto& c=t.schedule.config();
         meta << "{\"name\":" << std::quoted(kNames[i]) << ",\"period_ns\":" << c.period_ns << ",\"deadline_ns\":" << c.relative_deadline_ns
             << ",\"first_release_ns\":" << c.first_release_ns << ",\"jobs\":" << c.jobs << ",\"policy\":" << t.thread.policy << ",\"priority\":" << t.thread.priority << '}'; }
-    meta << "],\n\"streams\": [";
+    meta << "],\n\"threads\": {";
+    for(std::size_t i=0;i<tasks.size();++i) { if(i) meta << ','; meta << std::quoted(kNames[i]) << ':'; tasks[i]->thread.write_json(meta); }
+    meta << ",\"monitor\":"; monitor_thread_info.write_json(meta);
+    meta << ",\"plant_fixture\":"; plant_thread_info.write_json(meta);
+    meta << "},\n\"streams\": [";
     for(std::size_t i=0;i<kStreams;++i) { if(i) meta << ','; meta << "{\"name\":" << std::quoted(kStreamNames[i]) << ",\"last_valid_ns\":" << receive_watches[i].last_valid().value_or(0)
         << ",\"detected_ns\":" << receive_watches[i].detected().value_or(0) << ",\"health\":" << static_cast<int>(receive_watches[i].health()) << '}'; }
     meta << "],\n\"input_snapshot_overwrites\": [";

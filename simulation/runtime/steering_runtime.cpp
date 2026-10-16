@@ -245,7 +245,8 @@ void run_steering_runtime(const std::string& scenario, const std::filesystem::pa
     for(std::size_t i=0;i<thread_info.size();++i) {
         if(i!=0) metadata << ',';
         metadata << "{\"role\": " << std::quoted(i==0?"ecu":i==1?"monitor":"plant_fixture") << ", \"policy\": " << thread_info[i].policy
-            << ", \"priority\": " << thread_info[i].priority << ", \"observed_cpu\": " << thread_info[i].observed_cpu << '}';
+            << ", \"priority\": " << thread_info[i].priority << ", \"observed_cpu\": " << thread_info[i].observed_cpu << ", \"allowed_cpus\": ";
+        thread_info[i].write_affinity(metadata); metadata << '}';
     }
     metadata << "]\n}\n";
     metadata.close(); job_file.close(); plant_file.close(); monitor_file.close();
