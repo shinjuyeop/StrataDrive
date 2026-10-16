@@ -125,7 +125,7 @@ Clock resolution이나 clock-read probe도 cross-node 동기화 오차나 WCET b
 TSan은 이 Host에서 `unexpected memory mapping`으로 시작하지 못해 검사 미실행이다.
 현재 thread는 SCHED_OTHER이며 RT priority/affinity를 설정하지 않았다. Sanitizer 수치는 대표 성능으로 사용하지 않는다.
 
-후속 [다중 주기 실행](m3_multirate_runtime.md)으로 Brake/Drive/BMS·Power의 주기와 실제 통신/RX 정지 감시를 확장했다. 다음은
-고정 부하·overload와 실행 배치·trace overhead를 검토하는 것이다. Target, process/OS 고장 격리,
+후속 [다중 주기 실행](m3_multirate_runtime.md)으로 Brake/Drive/BMS·Power의 주기와 실제 통신/RX 정지 감시를 확장했다.
+[고정 부하·CPU 배치 비교](m3_cpu_placement.md)에서 contention과 trace 차이를 검토했다. 다음은 Drive 관측 계약·실행 budget 검토다. Target, process/OS 고장 격리,
 무한 hang 강제 종료, 차량 전체 deadline·cross-node/E2E는 아직 검증하지 않았다.
 기존 32개 요구/29개 system TC는 NOT RUN이다. M2 학습자 수용 기록은 별도로 남긴다.

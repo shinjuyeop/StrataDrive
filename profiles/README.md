@@ -104,6 +104,12 @@ Core 최소 호출 guard 1 ms는 runnable period가 아니다. Trusted parent �
 비동기 Drive torque는 source를 보존해 현 wire에서 unavailable이며 physical trace의 실제 값과 구분한다.
 YAML loader·차량/Target timing 보장·실제 Central/Zone runtime은 후속이다.
 
+`m3_cpu_placement_fixture`는 [고정 부하·CPU 배치 비교](../docs/learning/m3_cpu_placement.md)의 protocol 기록이다.
+Runtime 7개 owner를 같은 allowed CPU A에 고정하고 부하 없음/A 부하/다른 B 부하를 full/minimal·3회 비교한다.
+10 ms마다 7 ms wall busy window를 요청하며 실제 busy CPU 범위와 worker 전체 CPU 시간을 따로 보고한다.
+SCHED_OTHER를 유지하고 기존 deadline/ECU 설정을 완화하지 않는다. 실패 run도 유효한 job은 통계에 남긴다.
+CPU 번호는 현재 allowed mask/topology에서 선택해 실행 결과에 기록하며 YAML loader나 resource reservation은 아니다.
+
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
 stack, model/input settings, scenario/seed, power/thermal 및 측정 조건을 기록한다.
 결과는 단순 속도 순위 대신 요구 충족과 feature trade-off로 평가한다.

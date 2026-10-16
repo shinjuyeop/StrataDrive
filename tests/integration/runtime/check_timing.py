@@ -5,6 +5,7 @@ import csv
 import hashlib
 import json
 import math
+import multiprocessing
 import os
 from pathlib import Path
 import platform
@@ -268,6 +269,221 @@ def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def cpu_topology(allowed):
+    result = {}
+    for cpu in allowed:
+        base = Path(f"/sys/devices/system/cpu/cpu{cpu}/topology")
+        result[cpu] = {name: (base / name).read_text().strip() if (base / name).exists() else None
+                       for name in ("physical_package_id", "core_id", "thread_siblings_list")}
+    return result
+
+
+def select_cpus(allowed, topology, runtime_cpu=None, load_cpu=None):
+    allowed = sorted(allowed)
+    require(len(allowed) >= 2, "CPU placement experiment needs two allowed logical CPUs")
+    runtime_cpu = allowed[0] if runtime_cpu is None else runtime_cpu
+    require(runtime_cpu in allowed, "runtime CPU outside inherited affinity")
+    def core(cpu):
+        entry = topology.get(cpu, {})
+        return entry.get("physical_package_id"), entry.get("core_id")
+    if load_cpu is None:
+        others = [cpu for cpu in allowed if cpu != runtime_cpu]
+        separate = [cpu for cpu in others if None not in core(cpu) + core(runtime_cpu) and core(cpu) != core(runtime_cpu)]
+        load_cpu = (separate or others)[0]
+    require(load_cpu in allowed and load_cpu != runtime_cpu, "load CPU must be a different allowed logical CPU")
+    return runtime_cpu, load_cpu
+
+
+def placement_conditions(repetitions):
+    # Rotate layout order, and alternate full/minimal order. No best-run selection.
+    layouts = ("baseline", "shared", "separate")
+    for repetition in range(repetitions):
+        ordered = layouts[repetition % 3:] + layouts[:repetition % 3]
+        for layout in ordered:
+            for detailed in ((True, False) if repetition % 2 == 0 else (False, True)):
+                yield layout, detailed, repetition + 1
+
+
+def cpu_load_worker(cpu, stop, connection):
+    """One bounded process: 7 ms wall busy window per 10 ms, actual CPU measured."""
+    try:
+        os.sched_setaffinity(0, {cpu})
+        period, busy = 10_000_000, 7_000_000
+        enable = time.monotonic_ns() + period
+        ready = dict(cpu=cpu, allowed_cpus=sorted(os.sched_getaffinity(0)), policy=os.sched_getscheduler(0),
+                     nice=os.getpriority(os.PRIO_PROCESS, 0), first_release_ns=enable,
+                     period_ns=period, busy_window_ns=busy)
+        connection.send(ready)
+        rows, next_job, value = [], 0, 1
+        wall_begin, cpu_begin = time.monotonic_ns(), time.process_time_ns()
+        limit = enable + 15_000_000_000
+        while not stop.is_set() and time.monotonic_ns() < limit:
+            release = enable + next_job * period
+            if stop.wait(max(0, release - time.monotonic_ns()) / 1e9):
+                break
+            now = time.monotonic_ns()
+            selected = (now - enable) // period
+            while next_job < selected:
+                rows.append(dict(release_ns=enable + next_job * period, start_ns=0, end_ns=0, cpu_ns=0, ran=0))
+                next_job += 1
+            start, cpu_start = time.monotonic_ns(), time.thread_time_ns()
+            release = enable + next_job * period
+            while time.monotonic_ns() < release + busy and not stop.is_set():
+                for _ in range(256):
+                    value = (value * 1664525 + 1013904223) & 0xffffffff
+            cpu_end, end = time.thread_time_ns(), time.monotonic_ns()
+            rows.append(dict(release_ns=release, start_ns=start, end_ns=end, cpu_ns=cpu_end - cpu_start, ran=1))
+            next_job += 1
+        total_cpu = time.process_time_ns() - cpu_begin
+        connection.send(dict(**ready, rows=rows, stopped_ns=time.monotonic_ns(), wall_begin_ns=wall_begin,
+                             total_cpu_ns=total_cpu, checksum=value,
+                             hard_limit_reached=time.monotonic_ns() >= limit))
+    except BaseException as error:
+        connection.send({"error": repr(error)})
+    finally:
+        connection.close()
+
+
+class CpuLoad:
+    """Own only this run's load child; stop/join it even if runtime/analyzer fails."""
+    def __init__(self, cpu):
+        context = multiprocessing.get_context("spawn")
+        self.stop = context.Event()
+        self.connection, child = context.Pipe(duplex=False)
+        self.process = context.Process(target=cpu_load_worker, args=(cpu, self.stop, child))
+        self.process.start()
+        child.close()
+        try:
+            require(self.connection.poll(5), "CPU load readiness timeout")
+            ready = self.connection.recv()
+            require("error" not in ready, f"CPU load startup: {ready}")
+        except BaseException:
+            self.finish()
+            raise
+
+    def finish(self):
+        self.stop.set()
+        result = {"error": "CPU load result timeout"}
+        try:
+            if self.connection.poll(3):
+                result = self.connection.recv()
+        except (EOFError, OSError) as error:
+            result = {"error": repr(error)}
+        finally:
+            self.process.join(1)
+            if self.process.is_alive():
+                self.process.terminate()
+                self.process.join(1)
+                if self.process.is_alive():
+                    self.process.kill()
+                    self.process.join()
+                result["error"] = "CPU load required forced termination"
+            self.connection.close()
+        result["exitcode"] = self.process.exitcode
+        self.process.close()
+        return result
+
+
+def validate_load(load, cpu, begin, end):
+    require("error" not in load and load["exitcode"] == 0 and not load["hard_limit_reached"], "load worker failed")
+    require(load["allowed_cpus"] == [cpu] and load["policy"] == os.SCHED_OTHER, "load placement/policy not applied")
+    require(load["first_release_ns"] <= begin < end <= load["stopped_ns"], "load did not span runtime window")
+    rows = load["rows"]
+    require(bool(rows), "no measured load cycles")
+    for i, row in enumerate(rows):
+        require(row["release_ns"] == load["first_release_ns"] + i * load["period_ns"], "load skipped releases hidden")
+        if row["ran"]:
+            require(row["release_ns"] <= row["start_ns"] <= row["end_ns"] and
+                    0 <= row["cpu_ns"] <= row["end_ns"] - row["start_ns"], "invalid load interval")
+        else:
+            require(row["cpu_ns"] == row["start_ns"] == row["end_ns"] == 0, "fabricated load work")
+    inside = [r for r in rows if r["ran"] and begin <= r["start_ns"] and r["end_ns"] <= end]
+    overlapping = [r for r in rows if r["ran"] and r["start_ns"] < end and r["end_ns"] > begin]
+    lower, upper = sum(r["cpu_ns"] for r in inside), sum(r["cpu_ns"] for r in overlapping)
+    require(lower > 0, "load never consumed CPU during measurement")
+    # Boundary cycles are retained; CPU within a partial interval is not invented.
+    return {"requested_busy_fraction": load["busy_window_ns"] / load["period_ns"],
+            "measurement_busy_cpu_fraction_lower": lower / (end - begin),
+            "measurement_busy_cpu_fraction_upper": min(1, upper / (end - begin)),
+            "worker_loop_cpu_fraction": load["total_cpu_ns"] / (load["stopped_ns"] - load["wall_begin_ns"]),
+            "skipped_cycles": sum(not r["ran"] for r in rows), "cycles": len(rows)}
+
+
+def validate_placement(metadata, cpu):
+    threads = metadata["threads"]
+    require(set(threads) == {"brake", "drive", "bms", "power", "rx", "monitor", "plant_fixture"}, "missing thread placement")
+    require(all(t["allowed_cpus"] == [cpu] and t["observed_cpu"] == cpu and t["policy"] == os.SCHED_OTHER and
+                t["priority"] == 0 for t in threads.values()), "runtime thread placement/policy not applied")
+
+
+def observe_jobs(directory):
+    """Retain valid job statistics even when the strict functional/timing contract fails."""
+    metadata = json.loads((directory / "run.json").read_text())
+    metrics = {}
+    for task in metadata["tasks"]:
+        rows = multirate_rows(directory / (task["name"] + "-jobs.csv"))
+        require(len(rows) == task["jobs"] and [r["job"] for r in rows] == list(range(task["jobs"])), "incomplete observation schedule")
+        require(all(r["release_ns"] == task["first_release_ns"] + i * task["period_ns"] and
+                    r["deadline_ns"] == r["release_ns"] + task["deadline_ns"] for i, r in enumerate(rows)), "observation schedule drift")
+        metrics[task["name"]] = job_metrics(rows)
+    return {"metadata": metadata, "metrics": metrics, "observation_scope": "job intervals validated; strict contract verdict separate"}
+
+
+def pooled_job_metrics(runs):
+    result = job_metrics([row for rows in runs for row in rows])
+    # Never turn the gap between independent runs into a task interval.
+    intervals = []
+    for rows in runs:
+        ran = [r for r in rows if r["ran"]]
+        intervals.extend((b["start_ns"] - a["start_ns"]) / 1e6 for a, b in zip(ran, ran[1:]))
+    result["observed_start_interval_ms"] = distribution(intervals)
+    return result
+
+
+def placement_comparison(reports):
+    groups = {}
+    for layout in ("baseline", "shared", "separate"):
+        for detailed in (True, False):
+            selected = [r for r in reports if r["layout"] == layout and r["detailed_trace"] == detailed]
+            complete = [r for r in selected if "observation_scope" in r]
+            groups[f"{layout}-{'full' if detailed else 'minimal'}"] = {
+                "runs": len(selected), "contract_passes": sum(r["runtime_contract_verdict"] == "PASS" for r in selected),
+                "run_passes": sum(r["verdict"] == "PASS" for r in selected),
+                "excluded_from_statistics": [r["label"] for r in selected if r not in complete],
+                "by_task": {name: pooled_job_metrics([multirate_rows(Path(r["directory"]) / (name + "-jobs.csv")) for r in complete])
+                            for name in ("brake", "drive", "bms", "power", "rx")} if complete else {},
+                "load_observations": [r["load_metrics"] for r in selected if "load_metrics" in r]}
+    return groups
+
+
+def trace_comparison(reports, family):
+    role_overheads = {}
+    for role in (("steering",) if family == "steering" else ("brake", "drive", "bms", "power", "rx")):
+        overhead = {}
+        for detailed in (True, False):
+            values, included, excluded = [], [], []
+            for report in reports:
+                metadata = report.get("metadata", {})
+                if metadata.get("scenario") != "normal" or metadata.get("detailed_trace") != detailed:
+                    continue
+                if report["verdict"] != "PASS" and "observation_scope" not in report:
+                    excluded.append(report["label"])
+                    continue
+                path = Path(report["directory"]) / ("jobs.csv" if role == "steering" else role + "-jobs.csv")
+                rows = load_rows(path) if role == "steering" else multirate_rows(path)
+                values.extend((r["end_ns"] - r["start_ns"]) / 1e6 for r in rows if r["ran"])
+                included.append(report["label"])
+            key = "full" if detailed else "minimal"
+            overhead[key + "_ms"] = distribution(values)
+            overhead[key + "_runs"] = included
+            overhead[key + "_excluded_runs"] = excluded
+        if overhead["full_ms"]["samples"] and overhead["minimal_ms"]["samples"]:
+            overhead["observed_mean_difference_ms"] = overhead["full_ms"]["mean"] - overhead["minimal_ms"]["mean"]
+        overhead["interpretation"] = "separate runs include scheduler/cache noise and any fault path; no correction subtracted from deadlines"
+        role_overheads[role] = overhead
+    return role_overheads["steering"] if family == "steering" else {"by_task": role_overheads}
+
+
 def environment(build, binary, family):
     tracked = subprocess.check_output(["git", "ls-files", "-co", "--exclude-standard"], cwd=ROOT, text=True).splitlines()
     sources = sorted({name for name in tracked if name.endswith((".cpp", ".hpp", ".yaml", ".py")) or name == "CMakeLists.txt"})
@@ -298,17 +514,34 @@ def main():
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument("--family", choices=("steering", "multirate"), default="steering")
+    parser.add_argument("--experiment", choices=("faults", "cpu-placement"), default="faults")
+    parser.add_argument("--runtime-cpu", type=int, help="allowed logical CPU for all seven runtime owners in placement experiment")
+    parser.add_argument("--load-cpu", type=int, help="different allowed logical CPU for separate placement; prefer another physical core")
     parser.add_argument("--analyze", type=Path, help="analyze one existing runtime trace without executing")
     args = parser.parse_args()
     if args.analyze:
         print(json.dumps(analyze(args.analyze), indent=2))
         return 0
     require(1 <= args.repetitions <= 20, "repetitions must be 1..20")
+    require(args.experiment != "cpu-placement" or args.family == "multirate", "cpu-placement requires --family multirate")
+    require(args.experiment == "cpu-placement" or (args.runtime_cpu is None and args.load_cpu is None), "CPU choices require cpu-placement experiment")
+    experiment = {"name": args.experiment}
+    runtime_cpu = load_cpu = None
+    if args.experiment == "cpu-placement":
+        allowed = sorted(os.sched_getaffinity(0))
+        topology = cpu_topology(allowed)
+        runtime_cpu, load_cpu = select_cpus(allowed, topology, args.runtime_cpu, args.load_cpu)
+        experiment.update(runtime_cpu=runtime_cpu, separate_load_cpu=load_cpu, topology=topology,
+                          requested_busy_window_ns=7_000_000, load_period_ns=10_000_000,
+                          policy="SCHED_OTHER unchanged; all runtime threads share runtime_cpu",
+                          order="rotate layouts per repetition; alternate full/minimal order; exclude zero warmup jobs")
     build = args.build_dir.resolve()
     binary = build / "actuator_demo"
     output = (args.output_dir or build / ("timing-results-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ"))).resolve()
     output.mkdir(parents=True, exist_ok=False)
-    (output / "environment.json").write_text(json.dumps(environment(build, binary, args.family), indent=2) + "\n")
+    env = environment(build, binary, args.family)
+    env["experiment"] = experiment
+    (output / "environment.json").write_text(json.dumps(env, indent=2) + "\n")
     reports = []
     conditions = [("normal", True), ("normal", False), ("overrun", True), ("stall", True)]
     interface = "m3timing0"
@@ -322,47 +555,73 @@ def main():
         except BaseException:
             subprocess.run(["ip", "link", "delete", "dev", interface], check=True)
             raise
-    # Alternate full/minimal normals; do not group all full runs before all minimal runs.
+    planned = [(f"{scenario}-{'full' if detailed else 'minimal'}-{rep+1}", scenario, detailed, None)
+               for rep in range(args.repetitions) for scenario, detailed in conditions]
+    if args.experiment == "cpu-placement":
+        planned = [(f"{layout}-{'full' if detailed else 'minimal'}-{rep}", "normal", detailed, layout)
+                   for layout, detailed, rep in placement_conditions(args.repetitions)]
     try:
-        for repetition in range(args.repetitions):
-            for scenario, detailed in conditions:
-                label = f"{scenario}-{'full' if detailed else 'minimal'}-{repetition+1}"
-                directory = output / label
-                command = [str(binary), "steering-runtime", scenario, str(directory)] if args.family == "steering" else [str(binary), "multirate-runtime", scenario, interface, str(directory)]
-                command += [] if detailed else ["trace-off"]
-                begin = time.monotonic_ns()
+        for label, scenario, detailed, layout in planned:
+            directory = output / label
+            command = [str(binary), "steering-runtime", scenario, str(directory)] if args.family == "steering" else [str(binary), "multirate-runtime", scenario, interface, str(directory)]
+            command += [] if detailed else ["trace-off"]
+            begin, process_elapsed = time.monotonic_ns(), 0
+            load, report = None, {"verdict": "FAIL"}
+            assigned_load = runtime_cpu if layout == "shared" else load_cpu if layout == "separate" else None
+            try:
+                if assigned_load is not None:
+                    load = CpuLoad(assigned_load)
+                process_begin = time.monotonic_ns()
                 try:
-                    process = subprocess.run(command, capture_output=True, text=True, timeout=10, check=False)
-                    (output / (label + ".stdout.txt")).write_text(process.stdout)
-                    (output / (label + ".stderr.txt")).write_text(process.stderr)
-                    require(process.returncode == 0, f"runtime exit {process.returncode}: {process.stderr.strip()}")
-                    report = analyze(directory)
-                except (AssertionError, OSError, ValueError, subprocess.TimeoutExpired) as error:
-                    report = {"verdict": "FAIL", "error": str(error)}
-                report.update(label=label, directory=str(directory), observed_process_wall_ns=time.monotonic_ns()-begin)
-                reports.append(report)
-                print(label, report["verdict"], report.get("error", ""), flush=True)
+                    # Parent remains unpinned. Only this child and its future threads inherit the mask.
+                    pin = None if runtime_cpu is None else lambda: os.sched_setaffinity(0, {runtime_cpu})
+                    process = subprocess.run(command, capture_output=True, text=True, timeout=10, check=False, preexec_fn=pin)
+                finally:
+                    process_elapsed = time.monotonic_ns() - process_begin
+                (output / (label + ".stdout.txt")).write_text(process.stdout)
+                (output / (label + ".stderr.txt")).write_text(process.stderr)
+                if args.family == "multirate":
+                    report.update(observe_jobs(directory))
+                require(process.returncode == 0, f"runtime exit {process.returncode}: {process.stderr.strip()}")
+                report.update(analyze(directory))
+            except (AssertionError, OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+                report.update(verdict="FAIL", error=str(error))
+            finally:
+                measured_load = load.finish() if load is not None else None
+            report["runtime_contract_verdict"] = report["verdict"]
+            controls = []
+            if layout is not None:
+                try:
+                    validate_placement(report["metadata"], runtime_cpu)
+                except (AssertionError, KeyError) as error:
+                    controls.append(str(error))
+                if measured_load is not None:
+                    (output / (label + ".load.json")).write_text(json.dumps(measured_load, indent=2) + "\n")
+                    try:
+                        m = report["metadata"]
+                        report["load_metrics"] = validate_load(measured_load, assigned_load, m["enable_ns"], m["stop_ns"])
+                    except (AssertionError, KeyError) as error:
+                        controls.append(str(error))
+                elif assigned_load is not None:
+                    controls.append("load worker not started")
+                report.update(layout=layout, runtime_cpu=runtime_cpu, load_cpu=assigned_load,
+                              placement_and_load_verdict="FAIL" if controls else "PASS", control_errors=controls)
+                if controls:
+                    report["verdict"] = "FAIL"
+            report.update(label=label, directory=str(directory), detailed_trace=detailed,
+                          observed_process_wall_ns=process_elapsed, observed_run_wall_ns=time.monotonic_ns()-begin)
+            reports.append(report)
+            print(label, report["verdict"], report.get("error", ""), "; ".join(controls), flush=True)
     finally:
         if created:
             subprocess.run(["ip", "link", "delete", "dev", interface], check=True)
-    role_overheads = {}
-    for role in (("steering",) if args.family == "steering" else ("brake", "drive", "bms", "power", "rx")):
-        overhead = {}
-        for detailed in (True, False):
-            values = []
-            for report in reports:
-                if report["verdict"] == "PASS" and report["label"].startswith("normal-" + ("full" if detailed else "minimal")):
-                    path = Path(report["directory"]) / ("jobs.csv" if role == "steering" else role + "-jobs.csv")
-                    task_rows = load_rows(path) if role == "steering" else multirate_rows(path)
-                    values.extend((r["end_ns"] - r["start_ns"]) / 1e6 for r in task_rows if r["ran"])
-            overhead["full_ms" if detailed else "minimal_ms"] = distribution(values)
-        if overhead["full_ms"]["samples"] and overhead["minimal_ms"]["samples"]:
-            overhead["observed_mean_difference_ms"] = overhead["full_ms"]["mean"] - overhead["minimal_ms"]["mean"]
-        overhead["interpretation"] = "separate runs; includes scheduler/cache noise; no correction subtracted from deadlines"
-        role_overheads[role] = overhead
-    overhead = role_overheads["steering"] if args.family == "steering" else {"by_task": role_overheads}
+    overhead = ({"by_layout": {layout: trace_comparison([r for r in reports if r["layout"] == layout], args.family)
+                               for layout in ("baseline", "shared", "separate")}} if args.experiment == "cpu-placement"
+                else trace_comparison(reports, args.family))
     summary = {"verdict": "PASS" if all(r["verdict"] == "PASS" for r in reports) else "FAIL", "runs": reports,
-               "trace_overhead_comparison": overhead, "full_system_tc": "NOT RUN"}
+               "experiment": experiment, "trace_overhead_comparison": overhead, "full_system_tc": "NOT RUN"}
+    if args.experiment == "cpu-placement":
+        summary["placement_comparison"] = placement_comparison(reports)
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     artifacts = {str(p.relative_to(output)): sha256(p) for p in sorted(output.rglob("*")) if p.is_file()}
     (output / "artifact-sha256.json").write_text(json.dumps(artifacts, indent=2) + "\n")

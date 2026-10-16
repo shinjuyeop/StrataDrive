@@ -4,9 +4,9 @@
 
 ## Current Status
 
-**M3 진행 중** — 조향에 이어 Brake·Drive·BMS·Power의 다중 주기 실행과 독립 task/CAN 수신 감시를 구현·검사했다.
+**M3 진행 중** — 다중 주기 실행·독립 task/CAN 감시와 고정 부하·CPU 배치 비교를 진행했다.
 M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도로 남긴다.
-다음은 **고정 부하·CPU 배치 측정과 Drive sampling/timestamp 계약 검토**다.
+다음은 **Drive sampling/timestamp 계약과 부하에서 드러난 deadline 위반 검토**다.
 Central/Zone DDS·차량 closed-loop 통합은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
@@ -184,6 +184,7 @@ ctest --test-dir build/m1-angle --output-on-failure
 Codec·수신부 등 나머지 예제는 `--help`와 [학습 안내](docs/learning/README.md)에서 확인한다.
 실제 wall-time 실행과 CSV 결과는 [M3 조향 안내](docs/learning/m3_steering_timing.md)와
 [다중 주기·CAN 감시 안내](docs/learning/m3_multirate_runtime.md)에 있다.
+[고정 부하·CPU 배치 안내](docs/learning/m3_cpu_placement.md)는 같은 CPU/다른 CPU 부하의 결과와 실패 run을 비교한다.
 `-DBUILD_TESTING=OFF`로 configure하면 라이브러리와 예제만 build하며
 단위 시험과 통합 시험의 TX/RX 실행 파일은 제외한다.
 
@@ -227,7 +228,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 | M0 | Architecture / Requirement / ICD Baseline — BASELINED |
 | M1 | DBC + vCAN — TECHNICAL CHECKS PASS / REVIEW PENDING |
 | M2 | Actuator·EV 모델 — TECHNICAL CHECKS PASS / REVIEW PENDING |
-| M3 | IN PROGRESS: 다중 주기 실행·독립 task/CAN 감시·timing trace |
+| M3 | IN PROGRESS: 다중 주기·독립 task/CAN 감시·고정 부하/CPU 배치 비교 |
 | M4 | Central coordinator + 대등한 Front/Rear Zone |
 | M5 | Central Compute + DDS |
 | M6 | Simple Vehicle Plant |

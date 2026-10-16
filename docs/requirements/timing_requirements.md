@@ -1,6 +1,6 @@
 # Timing requirements and measurement contract
 
-Status: **DEFINED / Reference Baseline v0.1 + M3 Host 다중 주기·CAN 상실 부분 측정**.
+Status: **DEFINED / Reference Baseline v0.1 + M3 Host 다중 주기·CAN 상실·CPU 부하/배치 부분 측정**.
 차량 전체 E2E/Target latency·전체 multirate 실측은 **NOT RUN**이다.
 M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. Rate와 100 ms 검출
 상한은 engineering starting point이며 production timing 보장이 아니다.
@@ -138,6 +138,10 @@ Brake/Drive/Power 10 ms·deadline 5 ms, BMS 20 ms·deadline 8 ms, 실제 SocketC
 출력/보호 snapshot 취득 뒤 적용 기준 시각을 읽어 인과 순서를 보존한다.
 Drive torque는 비동기 acquisition 때문에 현 wire에서 unavailable이며 실제 값은 physical trace다.
 [다중 주기 안내](../learning/m3_multirate_runtime.md)와 [품질 기록](../quality_policy.md)에 범위·실측을 남긴다.
+[ADR-0035](../adr/ADR-0035-controlled-cpu-load-and-placement.md)는 같은 runtime CPU mask에서 추가 부하 없음/같은 CPU/다른 CPU를 비교한다.
+부하 10 ms period·7 ms wall busy window와 실제 thread/process CPU 시간을 구분하고 3 layouts×2 trace modes×3회 반복한다.
+Owner가 직접 기록한 mask/policy를 확인하며 기존 deadline 위반은 FAIL로 유지하고 유효한 실패 job도 통계에 포함한다.
+CPU affinity는 resource reservation이 아니며 RT 우선순위·Target 보장은 후속이다. [부하 실행 안내](../learning/m3_cpu_placement.md)를 따른다.
 이 실험의 deadline이나 SCHED_OTHER 관측 결과를 차량/Target 전체 budget으로 채택하지 않는다.
 Logical period가 같아도 모든 task deadline이 그 period와 같다고 가정하지 않는다.
 M3에서는 task release/start/end, Mean/P95/P99/Max, sample/drop 수, eligible jobs와

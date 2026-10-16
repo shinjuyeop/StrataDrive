@@ -546,3 +546,23 @@ m3_multirate_runtime_fixture:
   model_epoch: 7
   excluded_warmup_jobs: 0
   drive_torque_wire: unavailable_for_asynchronous_acquisition
+
+# ADR-0035: fixed Host load/placement campaign, no profile loader or RT policy change.
+m3_cpu_placement_fixture:
+  family: multirate
+  scenario: normal
+  layouts: [baseline, shared, separate]
+  runtime_affinity: one_allowed_logical_cpu_for_all_seven_owners
+  separate_load_selection: prefer_different_physical_core_from_inherited_allowed_mask
+  load_processes: 1
+  load_period_ms: 10
+  requested_busy_window_ms: 7 # wall window; actual CPU consumption is measured separately
+  load_hard_limit_ms: 15000
+  scheduling_policy: SCHED_OTHER
+  priority_change: none
+  trace_modes: [full, minimal]
+  repetitions_per_condition: 3
+  layout_order: rotate_each_repetition
+  trace_order: alternate_each_repetition
+  excluded_warmup_jobs: 0
+  contract_failure_policy: retain_failures_and_all_valid_job_observations

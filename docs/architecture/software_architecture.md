@@ -1,7 +1,7 @@
 # Software architecture and contracts
 
 Status: 계약 **DEFINED**, M1 통신·M2 모델 **Host component 기술 검사 완료 / 학습자 수용 대기**,
-M3 다중 주기·독립 task/CAN 감시 **Host 부분 구현·계측**, 차량/Target runtime **PLANNED / NOT RUN**.
+M3 다중 주기·독립 task/CAN 감시·CPU 부하/배치 **Host 부분 구현·계측**, 차량/Target runtime **PLANNED / NOT RUN**.
 Component ID는 [system architecture](system_architecture.md)의 ID를 사용한다.
 
 ## Module responsibility
@@ -73,6 +73,8 @@ BMS/PowerController도 기존의 외부 sensor/출력 port 경계를 유지한�
 Phase API 자체는 task/watchdog 구현이 아니다. 후속 [첫 M3 fixture](../learning/m3_steering_timing.md)는
 Steering ECU·독립 monitor/plant를 별도 owner/thread로 실행했다. 후속 [다중 주기 fixture](../learning/m3_multirate_runtime.md)는
 Brake/Drive/BMS/Power/RX worker를 분리하고 소비자별 SPSC snapshot을 사용한다. Target 배치·RTE mapping은 후속이다.
+[CPU 배치 실험](../learning/m3_cpu_placement.md)은 7개 owner를 같은 allowed CPU에 고정하고 별도 load process의 위치를 비교한다.
+각 owner가 실제 affinity/policy를 보고한다. CPU 예약·독립 OS watchdog이나 priority 변경의 구현은 아니다.
 모델을 분리해도 command와 actual, 정상/보호 출력과 실제 응답의 차이를 보존한다.
 Actuator 물리 응답과 battery/power sensor 모델을 production SWC로 자동 분류하지 않는다.
 현재 library·single-owner Linux 실행은 생성된 RTE/BSW나 AUTOSAR OS의 증거가 아니다.

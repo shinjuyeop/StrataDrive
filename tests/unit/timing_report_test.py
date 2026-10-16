@@ -1,6 +1,7 @@
 """Independent small observations protect the report's denominator and tail meaning."""
 import importlib.util
 from pathlib import Path
+import tempfile
 import unittest
 
 PATH = Path(__file__).resolve().parents[1] / "integration/runtime/check_timing.py"
@@ -70,6 +71,76 @@ class TimingReportTest(unittest.TestCase):
             with self.assertRaises(AssertionError):
                 report.receive_latency(stream)
         self.assertIsNone(report.receive_latency(dict(health=1, last_valid_ns=1_000_000_000, detected_ns=0)))
+
+    def test_cpu_selection_prefers_a_different_physical_core_and_respects_allowed_mask(self):
+        topology = {0: dict(physical_package_id="0", core_id="0"),
+                    1: dict(physical_package_id="0", core_id="0"),
+                    2: dict(physical_package_id="0", core_id="1")}
+        self.assertEqual(report.select_cpus([0, 1, 2], topology), (0, 2))
+        self.assertEqual(report.select_cpus([0, 1, 2], topology, 2, 0), (2, 0))
+        self.assertEqual(report.select_cpus([3, 7], {}), (3, 7))
+
+    def test_impossible_or_outside_cpu_placement_is_rejected(self):
+        for allowed, runtime, load in [([0], None, None), ([0, 1], 2, None), ([0, 1], 0, 0), ([0, 1], 0, 2)]:
+            with self.assertRaises(AssertionError):
+                report.select_cpus(allowed, {}, runtime, load)
+
+    def test_layout_order_rotates_and_every_trace_condition_keeps_all_repetitions(self):
+        conditions = list(report.placement_conditions(3))
+        self.assertEqual(len(conditions), 18)
+        self.assertEqual([conditions[i][0] for i in (0, 6, 12)], ["baseline", "shared", "separate"])
+        self.assertEqual([conditions[i][1] for i in (0, 6, 12)], [True, False, True])
+        for layout in ("baseline", "shared", "separate"):
+            for detailed in (True, False):
+                self.assertEqual(sum(a == layout and b == detailed for a, b, _ in conditions), 3)
+
+    def test_pooling_retains_misses_and_excludes_only_the_gap_between_independent_runs(self):
+        def row(t, ran=1):
+            return dict(release_ns=t, deadline_ns=t+5, start_ns=t+1 if ran else 0,
+                        end_ns=t+2 if ran else 0, ran=ran, detected_ns=0 if ran else t+5)
+        result = report.pooled_job_metrics([[row(100), row(110), row(120, 0)], [row(10000), row(10010)]])
+        self.assertEqual((result["eligible_jobs"], result["executed_jobs"], result["missed_jobs"]), (5, 4, 1))
+        self.assertEqual(result["observed_start_interval_ms"]["samples"], 2)
+        self.assertEqual(result["observed_start_interval_ms"]["max"], .00001)
+
+    def test_load_cpu_bounds_keep_partial_boundary_cycles_without_inventing_cpu_time(self):
+        load = dict(exitcode=0, hard_limit_reached=False, allowed_cpus=[1], policy=0, first_release_ns=100,
+                    period_ns=10, busy_window_ns=7, stopped_ns=130, wall_begin_ns=90, total_cpu_ns=20,
+                    rows=[dict(release_ns=t, start_ns=t, end_ns=t+7, cpu_ns=6, ran=1) for t in (100, 110, 120)])
+        result = report.validate_load(load, 1, 105, 125)
+        self.assertEqual(result["requested_busy_fraction"], .7)
+        self.assertEqual(result["measurement_busy_cpu_fraction_lower"], .3)
+        self.assertEqual(result["measurement_busy_cpu_fraction_upper"], .9)
+        self.assertEqual(result["worker_loop_cpu_fraction"], .5)
+        self.assertEqual(result["cycles"], 3)
+
+    def test_load_without_window_coverage_or_correct_affinity_cannot_validate(self):
+        base = dict(exitcode=0, hard_limit_reached=False, allowed_cpus=[1], policy=0,
+                    first_release_ns=110, period_ns=10, busy_window_ns=7, stopped_ns=130, rows=[])
+        with self.assertRaisesRegex(AssertionError, "span"):
+            report.validate_load(base, 1, 100, 125)
+        with self.assertRaisesRegex(AssertionError, "placement"):
+            report.validate_load(base, 0, 115, 125)
+
+    def test_every_owner_must_confirm_its_mask_and_scheduler(self):
+        threads = {name: dict(allowed_cpus=[3], observed_cpu=3, policy=0, priority=0)
+                   for name in ("brake", "drive", "bms", "power", "rx", "monitor", "plant_fixture")}
+        report.validate_placement(dict(threads=threads), 3)
+        threads["monitor"]["allowed_cpus"] = [3, 4]
+        with self.assertRaisesRegex(AssertionError, "placement"):
+            report.validate_placement(dict(threads=threads), 3)
+
+    def test_failed_contract_observations_remain_in_trace_comparison(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            for name in ("brake", "drive", "bms", "power", "rx"):
+                (directory / (name + "-jobs.csv")).write_text("start_ns,end_ns,ran\n100,120,1\n0,0,0\n")
+            failed = dict(label="shared-full-1", directory=tmp, verdict="FAIL", observation_scope="validated job intervals",
+                          metadata=dict(scenario="normal", detailed_trace=True))
+            compared = report.trace_comparison([failed], "multirate")["by_task"]["drive"]
+            self.assertEqual(compared["full_ms"]["samples"], 1)
+            self.assertEqual(compared["full_runs"], ["shared-full-1"])
+            self.assertEqual(compared["full_excluded_runs"], [])
 
 
 if __name__ == "__main__":

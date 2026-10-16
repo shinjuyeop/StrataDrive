@@ -122,6 +122,7 @@ unshare --user --map-root-user --net python3 tests/integration/runtime/check_tim
 [검사·리포터](../../tests/integration/runtime/check_timing.py)는 두 family를 처리한다.
 상세 실행 수치와 검사 범위는 [품질 기록](../quality_policy.md)에 남긴다.
 
-고정 부하·CPU 배치/우선순위·overhead 검토와 Drive sampling/timestamp 계약, M3 수용 검토가 다음이다.
+후속 [고정 부하·CPU 배치 비교](m3_cpu_placement.md)에서 같은/다른 CPU의 부하와 실패 run을 비교했다.
+Drive sampling/timestamp 계약, 실행 budget·배치/우선순위와 M3 수용 검토가 다음이다.
 Target/차량 전체 E2E, 실제 Central/Zone, AUTOSAR OS/BSW, 무한 hang/OS 고장 격리는 검증하지 않았다.
 전체 32개 요구/29개 system TC는 NOT RUN이며 M1/M2 학습자 수용 기록은 별도다.

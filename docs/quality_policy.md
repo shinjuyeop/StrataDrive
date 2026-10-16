@@ -1,7 +1,7 @@
 # Software quality policy
 
-Status: **M1 통신·M2 모델·M3 Host 다중 주기/task·CAN 감시에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 516개 PASS**, Python 리포터 **8개 PASS**다.
+Status: **M1 통신·M2 모델·M3 Host 다중 주기/task·CAN 감시·CPU 부하/배치에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 516개 PASS**, Python 리포터 **16개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -407,8 +407,56 @@ Steering 회귀는 normal·sanitizer의 `m3-steering-recorded/`, unit은 `m3-mul
 `build/m1-angle/m3-multirate-evidence.json`이다. 이전 실패/검토 로그는 별도 directory에 유지한다.
 Markdown 91개·상대 링크/앵커 1015개, 요구 32개/TC 29개, YAML 3개·Python 5개 syntax/정합성을 검사했다.
 기존 M1/M2 97개 vCAN은 이 40 runs와 별도 이력이다.
-고정 부하·CPU 배치/우선순위·Drive 관측 계약·M3 수용 검토와 Target/E2E는 후속이다.
+이 단계에서 후속이던 고정 부하·CPU 배치 비교는 아래에 기록한다. Owner별 우선순위·Drive 관측 계약·M3 수용과 Target/E2E는 후속이다.
 전체 32개 요구/29개 system TC는 NOT RUN이며 M1/M2 학습자 수용 기록은 PENDING이다.
+
+2026-10-16 [고정 부하·CPU 배치 비교](learning/m3_cpu_placement.md)는 기존 timing runner와 runtime의 owner별 affinity 기록을 확장했다.
+CPU 선택/조건 순서·all-owner mask·busy CPU 경계·run 사이 interval·실패 통계 보존의 Python 8개를 추가해 **16개 PASS**다.
+Normal·ASan/UBSan 각각 기존 C++ **516개 PASS**, production BUILD_TESTING=OFF build도 PASS다.
+Clang-tidy 14 analyzer/bugprone은 runtime C++ 2개와 `simulation/runtime` header filter에 적용했고,
+cppcheck 2.7 warning/performance/portability는 기존 production/demo 3개 compile entry에 적용해 user-source 진단 없이 통과했다.
+TSan은 앞선 Host 시작 오류 때문에 여전히 NOT RUN이다.
+
+모든 runtime owner를 CPU 0에 고정하고 부하 없음/busy worker CPU 0/busy worker CPU 1을 비교했다.
+현재 allowed 0–15와 topology(package 0/core 0 및 1, sibling 0·8 및 1·9)를 기록했다. 별도 physical core가 보이지만 resource reservation은 아니다.
+부하는 10 ms마다 7 ms wall busy window를 요청하고 실제 busy thread CPU와 worker loop process CPU를 별도 측정한다.
+SCHED_OTHER·상속 nice를 유지했다. Layout 순서를 회전하고 full/minimal 순서도 바꿔 normal·production 각각 3회(**18 runs씩**),
+sanitizer 1회(**6 runs**)로 최종 **42 runs**를 순서대로 실행했다. Warm-up 제외는 0이며 빌드/정적 분석은 계측 전에 끝냈다.
+
+배치·부하 수명/CPU 측정은 **42/42 PASS**였고 worker 강제 종료·누락 cycle은 없었다.
+기존 ECU normal 계약은 **28 PASS / 14 FAIL**이다. Baseline·separate는 모두 통과했고 shared는 모두 실패했다.
+Normal·production shared RX는 각각 **48개 miss/skip**, sanitizer는 **18개 miss/skip**이었다. 다른 runnable의 miss는 0이었다.
+독립 monitor가 RX miss를 latch해 Drive가 처음 활성화되기 전에 zero 보호로 들어갔다.
+따라서 이 shared 배치의 정상 구동·timing 계약은 충족하지 못했다. 실행 성공/데이터 수집을 ECU 계약 PASS로 대신하지 않았다.
+
+아래는 normal build의 layout/trace별 RX individual sample 통계다. 각 조건의 예정 job은 3600개이며 miss는 모두 skip이었다.
+Response time은 실제 실행한 job의 release→end이며 skipped job에 가짜 duration을 부여하지 않는다.
+
+| Layout / trace | Executed / eligible | Miss / skip | Response P99 (ms) | Max (ms) |
+| --- | --- | --- | --- | --- |
+| baseline / full | 3600 / 3600 | 0 / 0 | 0.337464 | 0.404273 |
+| baseline / minimal | 3600 / 3600 | 0 / 0 | 0.319541 | 0.373310 |
+| shared / full | 3577 / 3600 | 23 / 23 | 0.760680 | 1.535098 |
+| shared / minimal | 3575 / 3600 | 25 / 25 | 0.881875 | 1.889200 |
+| separate / full | 3600 / 3600 | 0 / 0 | 0.339223 | 0.372659 |
+| separate / minimal | 3600 / 3600 | 0 / 0 | 0.189907 | 0.521037 |
+
+P99/Max가 deadline 3 ms보다 작아도 skip이 있는 조건은 실패다. 이 표의 Max는 WCET bound가 아니다.
+Normal build의 measurement busy CPU 하한/상한 관측 범위는 **66.51–69.46%**, bookkeeping을 포함한 worker loop CPU 비율은
+**67.47–69.40%**였다. 요청 70%를 실측 CPU 사용률로 대체하지 않는다. Runtime window 경계의 partial cycle CPU는 비례 추정하지 않았다.
+실패 run도 schedule/interval이 유효해 모든 job을 통계에 남겼고 통계에서 제외한 run은 0이었다.
+Full/minimal 차이는 layout별로만 비교하며 fault 뒤 코드 경로·scheduler/cache 잡음도 포함해 계측 비용 상한으로 쓰지 않는다.
+Sanitizer 수치는 기능/수명 검증이며 대표 성능 비교에 쓰지 않는다. Host 다른 process·interrupt·DVFS/cooling은 통제하지 않았다.
+
+기존 fault matrix 회귀는 normal·sanitizer 각각 multirate 8 + Steering 4 = **12 runs씩 PASS**다.
+최종 CPU campaign은 각 build의 `m3-placement-result/`에 CSV·run/environment·worker cycle·summary/artifact SHA를 남긴다.
+예비 `build/m1-angle/m3-placement-probe/`는 6 runs 중 shared/minimal 1건 FAIL을 포함해 별도로 보존한다.
+회귀는 normal·sanitizer의 `m3-placement-multi-regression/`·`m3-placement-steering-regression/`이다.
+Unit은 `m3-placement-unit.txt/xml`, build는 `m3-placement-build.txt`, Python은 normal의 `m3-placement-python.txt`,
+정적 분석은 normal의 `m3-placement-clang.txt`·`m3-placement-cppcheck.txt`에 기록한다.
+Source/profile/binary/artifact와 최종 문서·검사 로그 연결은 `build/m1-angle/m3-placement-evidence.json`에 둔다.
+Drive 비동기 torque CAN 보고 계약과 RX/monitor/plant budget·owner별 배치/우선순위를 검토해야 한다.
+기존 deadline을 완화하지 않았으며 M3는 IN PROGRESS다. 전체 32개 요구/29개 system TC는 NOT RUN이다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |
