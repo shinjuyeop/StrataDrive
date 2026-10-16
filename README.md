@@ -8,7 +8,7 @@
 통과했고, Steering/Brake/Drive의 **Command·Actual 6개 CAN FD frame**을 Host에서 구현했다.
 DBC, AUTOSAR R25-11 E2E Profile 5 Protect/Check, application receiver와 SocketCAN을 연결했다.
 M1 normal·ASan/UBSan 각각 **unit 143개 / vCAN 89개 PASS**다.
-M2 조향 13개·Brake 16개·Drive 응답 24개·Battery 35개·BMS 34개·Power 37개·Drive gate 37개·에너지 연결 28개·통합 회로 24개를 더한 현재 결과는 **unit 391개 PASS**다.
+M2 조향 adapter 22개·물리 응답 9개·local monitor 21개·Brake 16개·Drive 응답 24개·Battery 35개·BMS 34개·Power 37개·Drive gate 37개·에너지 연결 28개·통합 회로 24개를 더한 현재 결과는 **unit 430개 PASS**다.
 기존 model vCAN 8개를 포함한 **vCAN 97개 PASS** 이력은 유지한다. M2 수용 검토에서 normal·sanitizer 각각 model vCAN 8개를 재검사해 통과했다.
 Battery/BMS/Power/Drive gate·에너지/회로 연결은 로컬 component 시험이다.
 DBC·독립 CRC 교차 검증도 통과했다.
@@ -54,8 +54,9 @@ precharge·READY·controlled shutdown을 연결했다.
 [실제 회로 연결](docs/learning/m2_ev_power_circuit.md)은 구간 전류/발열과 capacitor·precharge/main/bleed 손실을
 계산하고 Battery·회로를 함께 commit한다. 전원 준비→구동·회생→종료와 weld/current-loss/지속 부하를 검사했다.
 [M2 수용 검토](docs/m2_acceptance_review.md)로 task/monitor·parameter·fault/session 경계와 시험 증거를 대조했다.
-Steering jam/tracking과 Brake stuck/slow-response detector는 **M2 미완료**다. 다음은 Steering local response monitor이며,
-실제 task/watchdog·trace·timing은 M3에서 검증한다. 학습자 수용은 PENDING이다.
+[Steering local response monitor](docs/learning/m2_steering_fault_monitor.md)는 별도 angle sensor와 정상 rate 범위·residual/dwell로
+jam/slow-response fixture를 검출한다. Held/invalid sensor는 unavailable로 발행하고, 고장 확정은 local hold/latch로 연결했다.
+다음은 **Brake stuck/slow-response detector**다. 실제 task/watchdog·trace·timing은 M3에서 검증한다. 학습자 수용은 PENDING이다.
 실제 Central coordinator/Zone DDS는 M4/M5 범위다.
 
 ## Project Overview
@@ -284,7 +285,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 | --- | --- |
 | M0 | Architecture / Requirement / ICD Baseline — BASELINED |
 | M1 | DBC + vCAN — TECHNICAL CHECKS PASS / REVIEW PENDING |
-| M2 | IN PROGRESS: component 시험·수용 검토 수행; Steering/Brake response detector·학습자 review 남음 |
+| M2 | IN PROGRESS: component·Steering response monitor 시험; Brake response detector·학습자 review 남음 |
 | M3 | Real-Time Timing & Scheduling Measurement |
 | M4 | Central coordinator + 대등한 Front/Rear Zone |
 | M5 | Central Compute + DDS |

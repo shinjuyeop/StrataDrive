@@ -24,6 +24,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `zone/local_safety` | local timeout/fault → 제한 또는 local fail-safe; Central Vehicle Compute 의존 없는 판단 |
 | `vecu/common` | task model, bounded queues, watchdog, command integrity, diagnostics 계약 |
 | `vecu/steering`, `vecu/brake`, `vecu/drive` | accepted demand → normal/protection 목표 → actual feedback; DriveController는 BMS limits·Central permission·로컬 HV/속도의 필수 gate와 capability 계산, 기존 DriveActuator는 isolated 응답 fixture |
+| `simulation/steering` / `vecu/steering/steering_response_monitor.*` | delay/rate·jam/angle sensor를 만드는 SIL plant / bounded target 이력·독립 sensor로 정상 range/residual/dwell·sensor health를 검사하는 local monitor |
 | `simulation/drive/torque_response.*` | Drive 목표 → delay/rate/saturation·zero-target 물리 응답; ECU 수신/상태 판단과 별도 모듈, 차량 speed/current loop는 미구현 |
 | `simulation/drive/drive_energy_model.*` | begin actual torque/speed·auxiliary → motor DC/손실 → 단일 BatteryModel SOC/관측; 이상적 경로 fixture, dynamic RC는 별도 EvPowerModel에서 연결; vehicle speed/current loop 후속 |
 | `simulation/power/ev_power_model.*` | 실제 torque/speed·inverter stage·pack aux current·coil 출력 → 공통 motor DC·PowerModel 회로/구간 전류·BatteryModel SOC; capacitor/경로 손실과 atomic commit, 외부 speed fixture |
@@ -58,7 +59,9 @@ vECU는 CAN echo simulator가 아니라 MCU/RTOS를 학습하는 Linux software 
 | 실행·통신 서비스 | Runnable→OS Task mapping, RTE/BSW 연결, 통신·timer·driver adapter; 실제 stack/toolchain은 pilot에서 결정 |
 | SIL 물리 모델 | ECU 출력 요구→조향각·압력·torque·battery/power 응답→관측 actual; model clock/초기값/parameter와 controller 경계 |
 
-현재 Steering/Brake의 `tick`은 monitor·출력 선택·물리 응답·Actual 생성까지 함께 실행한다.
+현재 Steering/Brake의 `tick`은 monitor·출력 선택·물리 응답·Actual 생성까지 같은 thread에서 실행한다.
+Steering은 [별도 물리·sensor·local monitor](../learning/m2_steering_fault_monitor.md) 모듈로 책임을 분리했다.
+SteeringActuator는 이를 호출하는 SIL composition adapter이며 실제 OS/RTE task 분리는 아니다.
 첫 Drive는 [ECU adapter와 물리 모듈](../learning/m2_drive_model.md)을 별도 소스로 구현하고
 같은 thread에서 호출한다. BMS/permission/local HV gate는 미통합인 독립 응답 fixture다.
 [후속 DriveController](../learning/m2_drive_gate.md)는 같은 물리 모듈 앞에서 필수 EV gate와
@@ -132,7 +135,9 @@ simulation과 독립인 local sensor port를 소비해 방향별 한계와 inhib
 별도 combined loop에서 dynamic RC/접점·Battery를 연결하고 actual local bus voltage와 구간 energy를 계산한다.
 Power current sensor unknown/hold는 물리 장부와 독립이며 제어기가 physical truth로 우회하지 않는다.
 [M2 수용 검토](../m2_acceptance_review.md)에서 주기·감시·설정·고장/세션 경계를 대조했다.
-Steering jam/tracking·Brake pressure response detector는 M2 미완료다.
+[Steering response monitor](../learning/m2_steering_fault_monitor.md)는 fresh acquisition과 delay/rate-band 예측을 비교해
+tracking residual을 확인하고 hold/latch한다. Sensor unavailable/invalid와 cached Actual 재발행도 구분한다.
+기계 jam 원인 분리·센서 이중화·Brake pressure response detector는 미구현이다.
 독립 OS task/watchdog·trace 측정은 M3, 차량 보호 동작의 통합 검증은 M4/M6/M7에 남는다.
 Dynamics parameter, noise seed, 초기화 수치와 calibration은 TBD-02/03 (M2/M6/M7)다.
 Accepted demand와 actual actuator state를 다른 interface로 유지한다. Simulated current 등의 상태가 없으면 해당 fault는 검증됐다고 주장하지 않는다.

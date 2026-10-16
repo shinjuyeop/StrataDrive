@@ -127,6 +127,18 @@ m2_steering_fixture:
   valid_rx_timeout_ms: 80
   local_loss_policy: discard_pending_hold_angle_latch
   recovery: newer_trusted_epoch_preserving_physical_angle
+  response_model: separate_sil_plant_with_local_angle_acquisition
+  sensor_identity: continuing_physical_epoch_sequence_and_source_time
+  healthy_rate_fraction: {minimum: 0.8, maximum: 1.2}
+  tracking_tolerance_rad: 0.01
+  tracking_confirmation_ms: 60
+  tracking_dwell_clock: advancing_acquisition_source_not_cached_reads
+  sensor_source_age_ms: 20
+  max_sensor_acquisition_gap_ms: 30
+  pending_tracking_state: degraded
+  tracking_fault_policy: discard_pending_hold_latch_requires_new_application_epoch
+  actual_angle_publication: new_valid_acquisition_only_cached_reports_unavailable
+  root_cause_diagnosis: not_isolated_from_single_angle_sensor
   parameter_status: fixture_only_no_oem_calibration # TBD-02/03; no YAML loader
 m2_brake_fixture:
   implementation: first_host_functional_sil_model

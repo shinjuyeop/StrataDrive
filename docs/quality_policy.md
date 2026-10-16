@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신과 M2 Steering/Brake/Drive torque·Battery/BMS/Power·Drive gate·에너지/회로 연결 component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 391개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **unit 430개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -243,6 +243,25 @@ Runtime 코드·시험 모듈·의존성은 추가하지 않았다. 기존 vCAN 
 수용 검토에서 Steering jam/tracking·Brake stuck/slow-response detector를 **M2 미완료 OPEN-M2-01/02**로 기록했다.
 Tick gap guard는 멈춘 task의 독립 검출이 아니며 scheduler/watchdog·trace·deadline 측정은 M3에 남긴다.
 M2는 IN PROGRESS, M1 wire/학습자 설명·직접 재현은 PENDING, system Result는 NOT RUN을 유지한다.
+
+2026-10-16 [Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·기존 adapter 9개,
+새 39개를 더해 normal·ASan/UBSan 각각 전체 **430개 unit PASS**다.
+물리 delay/rate/jam과 angle acquisition을 별도 모듈로 분리하고 local monitor가 issued bounded target 이력과
+독립 sensor만으로 정상 rate band·residual/dwell을 검사하도록 했다. 기존 Steering 13개도 회귀 통과했다.
+양방향 stall, 정상 rate band 양끝·지연/방향 전환/포화, transient pending 해제, fresh-source confirmation,
+unknown/cache/identity/clock·bounded history, valid Actual과 sensor fallback 금지·새 epoch를 시험했다.
+기존 CLI `steering-model`의 normal/jam/slow/sensor-hold/sensor-invalid/transient 6개와
+Brake/isolated Drive/combined EV normal 회귀 3개를 normal·sanitizer·production에서 실행했다.
+로그 assertion으로 jam 130→190 ms, slow 140→200 ms의 pending→검출, sensor unavailable와 transient 회복을 확인했다.
+Production BUILD_TESTING=OFF build도 통과했다. 각 build의 `steering-monitor-build.txt`, `steering-monitor-<scenario>.txt`,
+`steering-monitor-regression-*.txt`에 결과를 보존하며 unit 로그는 normal/sanitizer의 `steering-monitor-unit.txt`다.
+기존 model vCAN 8개도 normal·sanitizer에서 각각 재실행해 통과했고 로그는 `steering-monitor-vcan.txt`다.
+Jam을 넣은 새 SocketCAN case는 없으며 기존 all 97개 이력과 이번 8개 회귀를 구분한다.
+Clang-tidy 14 analyzer/bugprone을 production 3개·test 3개·demo 1개와 관련 header에 적용하고,
+cppcheck 2.7 production/demo 4개도 user-source 진단 없이 통과했다.
+문서 82개/상대 링크·앵커 846개·요구 32개/TC 29개 NOT RUN·YAML 3개/Python 3개·whitespace도 검사했다.
+Threshold/rate/dwell은 fixture이며 기계 jam의 고유 원인 진단, 실차 조향 안전성이나 100 ms tracking 검출 보장이 아니다.
+M2 OPEN-M2-01의 component 증거를 추가했고 Brake OPEN-M2-02·학습자 수용, M3 task/watchdog/trace는 남긴다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |

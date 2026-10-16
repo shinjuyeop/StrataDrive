@@ -24,6 +24,7 @@
 #include <exception>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
@@ -46,7 +47,7 @@ void usage(std::ostream& output) {
            << "  actuator_demo bms-value <soc|voltage|current|temperature|power> <value>\n"
            << "  actuator_demo bms-frame <request|power-status|limits|battery|drive-limits|permission> [nominal|zero|invalid|partial]\n"
            << "  actuator_demo bms-receiver\n"
-           << "  actuator_demo steering-model\n"
+           << "  actuator_demo steering-model [normal|jam|slow|sensor-hold|sensor-invalid|transient]\n"
            << "  actuator_demo brake-model\n"
            << "  actuator_demo drive-model\n"
            << "  actuator_demo battery-model\n"
@@ -1065,6 +1066,58 @@ void demo_ev_power(const std::string& scenario) {
     }
 }
 
+void demo_steering_model(const std::string& scenario) {
+    using namespace stratadrive;
+    if (scenario != "normal" && scenario != "jam" && scenario != "slow" && scenario != "sensor-hold" &&
+        scenario != "sensor-invalid" && scenario != "transient") throw std::invalid_argument("unknown steering-model scenario");
+    vecu::SteeringActuator model({-0.5, 0.5, -0.3, 0.3, 0, 1, 50*kMs});
+    if (!model.start_session(1, kStart)) throw std::runtime_error("model session failed");
+    can::SteeringTxState tx{can::SteeringFrameKind::Command};
+    const std::array<const char*, 9> faults{"none", "command_unavailable", "continuity_lost", "clock_error", "control_deadline",
+        "sensor_unavailable", "sensor_invalid", "tracking_error", "physical_model_error"};
+    std::cout << "Steering response / " << scenario << ": manual clock, independent local sensor; interval fault onset at 100 ms; no vehicle/OS timing\n";
+    for (std::uint32_t step = 1; step <= (scenario == "normal" ? 40U : 80U); ++step) {
+        const auto ms = step*10, begin_ms = ms-10;
+        const auto now = kStart+static_cast<std::uint64_t>(ms)*kMs;
+        if (scenario != "normal" || step <= 30) {
+            can::SteeringMessage input; input.angle_rad = 0.2; input.epoch = 1; input.sequence = step-1;
+            input.source_time_ns = now; input.local_state = can::SteeringLocalState::Normal; input.origin = can::SteeringOrigin::NormalPath;
+            const auto frame = can::encode_steering_frame(input, tx);
+            if (!frame) throw std::runtime_error("model input encoding failed");
+            const auto result = model.receive(*frame, now);
+            if (result.decision != can::SteeringReceiveDecision::Accepted &&
+                !(model.fault() != vecu::SteeringFault::None && result.decision == can::SteeringReceiveDecision::ModeRejected)) {
+                throw std::runtime_error("model input failed");
+            }
+        }
+        simulation::SteeringResponseInjection injection;
+        auto action = simulation::SteeringSensorAction::Acquire;
+        std::optional<double> sensed;
+        if (begin_ms >= 100) {
+            if (scenario == "jam") injection.jammed = true;
+            if (scenario == "slow") injection.rate_scale = 0.25;
+            if (scenario == "sensor-hold") action = simulation::SteeringSensorAction::Hold;
+            if (scenario == "sensor-invalid") sensed = std::numeric_limits<double>::quiet_NaN();
+        }
+        if (scenario == "transient" && ms == 160) sensed = 0.3;
+        const auto frame = model.tick(now, injection, action, sensed);
+        const auto actual = frame ? can::decode_steering_frame(*frame) : std::nullopt;
+        if (!actual) throw std::runtime_error("model publication failed");
+        const auto& d = model.monitor_decision();
+        const auto print_optional = [](std::optional<double> x) { if (x) std::cout << *x; else std::cout << "unknown"; };
+        std::cout << "MODEL ms=" << ms << " angle_rad="; print_optional(actual->angle_rad);
+        std::cout << " valid=" << actual->angle_rad.has_value() << " physical_rad=" << model.actual_angle_rad()
+                  << " causal=" << actual->causal_sequence << " state=" << static_cast<int>(actual->local_state)
+                  << " origin=" << static_cast<int>(actual->origin) << " expected_min_rad="; print_optional(d.expected_min_rad);
+        std::cout << " expected_max_rad="; print_optional(d.expected_max_rad);
+        std::cout << " residual_rad=" << d.residual_rad << " sensor_source_ms=";
+        if (d.source_time_ns) std::cout << (*d.source_time_ns-kStart)/kMs; else std::cout << "unknown";
+        std::cout << " violation_ms=";
+        if (d.violation_since_ns) std::cout << (*d.violation_since_ns-kStart)/kMs; else std::cout << "unknown";
+        std::cout << " fault=" << faults.at(static_cast<std::size_t>(model.fault())) << '\n';
+    }
+}
+
 int main(int argc, char** argv) {
     try {
         if (argc == 2 && std::string(argv[1]) == "--help") {
@@ -1085,29 +1138,7 @@ int main(int argc, char** argv) {
             else if (command == "bms-value" && argc == 4) demo_bms_value(parse_bms_value_kind(argv[2]), parse_angle(argv[3]));
             else if (command == "bms-frame" && (argc == 3 || argc == 4)) demo_bms_frame(argv[2], argc == 4 ? argv[3] : "nominal");
             else if (command == "bms-receiver" && argc == 2) demo_bms_receiver();
-            else if (command == "steering-model" && argc == 2) {
-                stratadrive::vecu::SteeringActuator model({-0.5, 0.5, -0.3, 0.3, 0, 1, 50*kMs});
-                if (!model.start_session(1, kStart)) throw std::runtime_error("model session failed");
-                SteeringTxState tx{SteeringFrameKind::Command};
-                for (std::uint32_t step = 1; step <= 40; ++step) {
-                    const auto now = kStart + static_cast<std::uint64_t>(step)*10*kMs;
-                    if (step <= 30) {
-                        SteeringMessage input;
-                        input.angle_rad = 0.2; input.epoch = 1; input.sequence = step-1;
-                        input.source_time_ns = now; input.local_state = SteeringLocalState::Normal;
-                        input.origin = SteeringOrigin::NormalPath;
-                        const auto frame = encode_steering_frame(input, tx);
-                        if (!frame || model.receive(*frame, now).decision != SteeringReceiveDecision::Accepted)
-                            throw std::runtime_error("model input failed");
-                    }
-                    const auto frame = model.tick(now);
-                    const auto actual = frame ? decode_steering_frame(*frame) : std::nullopt;
-                    if (!actual) throw std::runtime_error("model publication failed");
-                    std::cout << "MODEL ms=" << step*10 << " angle_rad=" << *actual->angle_rad
-                              << " causal=" << actual->causal_sequence << " state=" << static_cast<int>(actual->local_state)
-                              << " origin=" << static_cast<int>(actual->origin) << '\n';
-                }
-            }
+            else if (command == "steering-model" && (argc == 2 || argc == 3)) demo_steering_model(argc == 3 ? argv[2] : "normal");
             else if (command == "brake-model" && argc == 2) {
                 stratadrive::vecu::BrakeActuator model({2000000, 1500000, 0, 5000000, 10000000, 1000000, 50*kMs});
                 if (!model.start_session(1, kStart)) throw std::runtime_error("brake model session failed");

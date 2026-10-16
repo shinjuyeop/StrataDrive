@@ -33,6 +33,12 @@ protected:
                   can::SteeringReceiveDecision::Accepted);
         return tick(ms);
     }
+    can::SteeringMessage injected(int ms, double angle, simulation::SteeringResponseInjection injection = {},
+            simulation::SteeringSensorAction action = simulation::SteeringSensorAction::Acquire,
+            std::optional<double> sensed = std::nullopt) {
+        EXPECT_EQ(model.receive(command({ms, angle}), kStart+ms*kMs).decision, can::SteeringReceiveDecision::Accepted);
+        return can::decode_steering_frame(model.tick(kStart+ms*kMs, injection, action, sensed).value()).value();
+    }
 };
 TEST(SteeringActuatorConfig, InvalidParametersAreRejectedBeforeRunning) {
     auto config = configuration(); config.max_rate_rad_s = 0;
@@ -168,5 +174,92 @@ TEST_F(SteeringActuatorTest, ZeroDelayInitialAngleAndDegradedInputArePreserved) 
     EXPECT_EQ(first.local_state, can::SteeringLocalState::Degraded);
     ASSERT_TRUE(other.tick(kStart + 20*kMs));
     EXPECT_NEAR(other.actual_angle_rad(), 0.09, 1e-12);
+}
+TEST_F(SteeringActuatorTest, FreshCommandsAndFreshConstantAnglesDetectJamWithoutCommunicationTimeout) {
+    for (int ms = 10; ms <= 100; ms += 10) drive(ms, 0.2);
+    const auto held = model.actual_angle_rad();
+    can::SteeringMessage actual;
+    for (int ms = 110; ms <= 190; ms += 10) actual = injected(ms, 0.2, {true, 1});
+    EXPECT_EQ(model.fault(), vecu::SteeringFault::TrackingError);
+    EXPECT_EQ(model.receiver().health(), can::SteeringReceiverHealth::Receiving);
+    EXPECT_EQ(model.monitor_decision().violation_since_ns, kStart+130*kMs);
+    EXPECT_EQ(model.monitor_decision().detected_time_ns, kStart+190*kMs);
+    EXPECT_EQ(actual.local_state, can::SteeringLocalState::FailSafe); EXPECT_EQ(actual.origin, can::SteeringOrigin::LocalProtection);
+    ASSERT_TRUE(actual.angle_rad); EXPECT_NEAR(*actual.angle_rad, held, 0.000051);
+    EXPECT_EQ(actual.source_time_ns, kStart+190*kMs); EXPECT_EQ(actual.causal_sequence, sequence-1);
+    EXPECT_EQ(model.receive(command({200, -0.2}), kStart+200*kMs).decision, can::SteeringReceiveDecision::ModeRejected);
+    tick(200); tick(210); EXPECT_DOUBLE_EQ(model.actual_angle_rad(), held); // clearing the physical jam does not resume old targets
+}
+TEST_F(SteeringActuatorTest, SlowPhysicalMotionIsDetectedUsingTheSensorRatherThanTheInjectionFlag) {
+    for (int ms = 10; ms <= 300 && model.fault() == vecu::SteeringFault::None; ms += 10) injected(ms, 0.2, {false, 0.25});
+    EXPECT_EQ(model.fault(), vecu::SteeringFault::TrackingError);
+    EXPECT_GT(model.actual_angle_rad(), 0); EXPECT_LT(model.actual_angle_rad(), 0.2);
+    EXPECT_EQ(model.receiver().health(), can::SteeringReceiverHealth::Receiving);
+}
+TEST_F(SteeringActuatorTest, SensorBiasWithHealthyMechanicsAlsoProducesTrackingErrorWithoutClaimingRootCause) {
+    for (int ms = 10; ms <= 100; ms += 10) drive(ms, 0.2);
+    can::SteeringMessage actual;
+    for (int ms = 110; ms <= 170; ms += 10) actual = injected(ms, 0.2, {}, simulation::SteeringSensorAction::Acquire, 0.3);
+    EXPECT_EQ(model.fault(), vecu::SteeringFault::TrackingError);
+    EXPECT_NEAR(*actual.angle_rad, 0.3, 0.000051); EXPECT_LT(model.actual_angle_rad(), 0.2);
+}
+TEST_F(SteeringActuatorTest, HealthyRateVariationReversalAndCommandSaturationDoNotTriggerTracking) {
+    for (double rate : {0.8, 1.2}) {
+        vecu::SteeringActuator c(configuration()); ASSERT_TRUE(c.start_session(1, kStart));
+        sequence = 0; e2e::p05_protect_init(tx.protection);
+        for (int ms = 10; ms <= 1500; ms += 10) {
+            ASSERT_EQ(c.receive(command({ms, ms < 700 ? 0.4 : -0.4}), kStart+ms*kMs).decision, can::SteeringReceiveDecision::Accepted);
+            ASSERT_TRUE(c.tick(kStart+ms*kMs, {false, rate})); EXPECT_EQ(c.fault(), vecu::SteeringFault::None) << rate << ' ' << ms;
+        }
+    }
+}
+TEST_F(SteeringActuatorTest, HeldSensorsPublishUnavailableAndCannotRefreshActualReceiverAge) {
+    can::SteeringReceiver feedback({can::SteeringFrameKind::Actual, -0.3, 0.3}); ASSERT_TRUE(feedback.start_session(1, kStart));
+    for (int ms = 10; ms <= 100; ms += 10) {
+        ASSERT_EQ(model.receive(command({ms, 0.2}), kStart+ms*kMs).decision, can::SteeringReceiveDecision::Accepted);
+        ASSERT_EQ(feedback.receive(model.tick(kStart+ms*kMs).value(), kStart+ms*kMs).decision, can::SteeringReceiveDecision::Accepted);
+    }
+    for (int ms = 110; ms <= 130; ms += 10) {
+        ASSERT_EQ(model.receive(command({ms, 0.2}), kStart+ms*kMs).decision, can::SteeringReceiveDecision::Accepted);
+        const auto f = model.tick(kStart+ms*kMs, {}, simulation::SteeringSensorAction::Hold).value();
+        EXPECT_FALSE(can::decode_steering_frame(f)->angle_rad);
+        EXPECT_EQ(feedback.receive(f, kStart+ms*kMs).decision, can::SteeringReceiveDecision::Unavailable);
+        EXPECT_EQ(feedback.last_accepted()->received_time_ns, kStart+100*kMs);
+    }
+    EXPECT_EQ(model.fault(), vecu::SteeringFault::SensorUnavailable);
+    EXPECT_EQ(model.monitor_decision().fault, vecu::SteeringMonitorFault::SensorUnavailable);
+    EXPECT_GT(model.actual_angle_rad(), 0); // a diagnostic truth value exists but never substitutes for the lost sensor
+}
+TEST_F(SteeringActuatorTest, InvalidAngleIsUnavailableInsteadOfFallingBackToThePlant) {
+    drive(10, 0.2);
+    const auto actual = injected(20, 0.2, {}, simulation::SteeringSensorAction::Acquire, std::numeric_limits<double>::quiet_NaN());
+    EXPECT_FALSE(actual.angle_rad); EXPECT_EQ(model.fault(), vecu::SteeringFault::SensorInvalid);
+    EXPECT_EQ(actual.local_state, can::SteeringLocalState::FailSafe);
+}
+TEST_F(SteeringActuatorTest, NewEpochResetsTheMonitorAndRechecksSensorsWhilePhysicalAngleSurvives) {
+    for (int ms = 10; ms <= 100; ms += 10) drive(ms, 0.2);
+    for (int ms = 110; ms <= 190; ms += 10) injected(ms, 0.2, {true, 1});
+    const auto held = model.actual_angle_rad(); EXPECT_FALSE(model.start_session(1, kStart+190*kMs));
+    ASSERT_TRUE(model.start_session(2, kStart+190*kMs)); sequence = 0; e2e::p05_protect_init(tx.protection);
+    for (int ms = 200; ms <= 500; ms += 10) {
+        ASSERT_EQ(model.receive(command({ms, 0.2, 2}), kStart+ms*kMs).decision, can::SteeringReceiveDecision::Accepted);
+        const auto actual = tick(ms);
+        EXPECT_EQ(model.fault(), vecu::SteeringFault::None);
+        if (ms == 200) { EXPECT_EQ(actual.sequence, 0U); EXPECT_NEAR(*actual.angle_rad, held, 0.000051); }
+    }
+    EXPECT_NEAR(model.actual_angle_rad(), 0.2, 1e-12);
+}
+TEST_F(SteeringActuatorTest, InvalidPhysicalIntervalDoesNotProduceAFreshValidAngle) {
+    drive(10, 0.2);
+    const auto actual = injected(20, 0.2, {false, -1});
+    EXPECT_FALSE(actual.angle_rad); EXPECT_EQ(model.fault(), vecu::SteeringFault::PhysicalModelError);
+    EXPECT_DOUBLE_EQ(model.actual_angle_rad(), 0);
+}
+TEST_F(SteeringActuatorTest, TransientResidualIsDegradedThenReturnsToNormalBeforeFaultConfirmation) {
+    for (int ms = 10; ms <= 150; ms += 10) drive(ms, 0.2);
+    const auto transient = injected(160, 0.2, {}, simulation::SteeringSensorAction::Acquire, 0.3);
+    EXPECT_EQ(transient.local_state, can::SteeringLocalState::Degraded); EXPECT_EQ(model.fault(), vecu::SteeringFault::None);
+    const auto recovered = drive(170, 0.2);
+    EXPECT_EQ(recovered.local_state, can::SteeringLocalState::Normal); EXPECT_FALSE(model.monitor_decision().violation_since_ns);
 }
 }  // namespace

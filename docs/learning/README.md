@@ -62,10 +62,11 @@ Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 격�
 [실제 토크에서 배터리 충전까지](m2_drive_energy.md)는 이상적 HV/외부 speed에서 actual DC·손실·auxiliary·SOC와
 BMS/Drive loop를 연결하고 28개를 더해 당시 전체 unit은 362개였다.
 [실제 전원 회로 연결](m2_ev_power_circuit.md)은 구간 current/heat·capacitor·경로 손실과 Battery의 atomic commit을 추가해
-전체 unit 391개다. [M2 수용 검토](../m2_acceptance_review.md)에서 normal·sanitizer 각각 전체 unit과
+당시 전체 unit 391개였다. [M2 수용 검토](../m2_acceptance_review.md)에서 normal·sanitizer 각각 전체 unit과
 model vCAN 8개를 재검사하고 설정·고장·세션 경계를 대조했다.
-Steering jam/tracking·Brake stuck/slow-response detector와 학습자 수용은 남아 있다.
-다음은 Steering local response monitor이며 실제 task/watchdog·trace·timing은 M3에서 검증한다.
+후속 [Steering response monitor](m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가해
+현재 전체 unit은 **430개**다. 정상 rate 범위·residual/dwell과 sensor health·fresh Actual/latch를 시험했다.
+다음은 Brake stuck/slow-response detector이며 학습자 수용도 남아 있다. 실제 task/watchdog·trace·timing은 M3에서 검증한다.
 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Central의 별도 VCU가 차량 전체
 관리·배분/session/feedback 집계를 맡고 Front는 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
 M4/M5에 분리하며 Central–Zone protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.

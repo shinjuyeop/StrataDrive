@@ -26,8 +26,8 @@ Drive ECU adapter와 물리 모델을 별도 모듈로 두었다.
 [첫 Drive/Battery energy 연결](learning/m2_drive_energy.md)은 이상적 HV에서 actual torque/speed·손실·auxiliary·SOC를 연결했다.
 [실제 RC/접점·Battery 연결](learning/m2_ev_power_circuit.md)은 capacitor/path 손실·구간 전류·종료 부하를 연결해 시험했다.
 [M2 수용 검토](m2_acceptance_review.md)에서 task/monitor·parameter·fault/session과 component 증거를 대조했다.
-Steering jam/tracking·Brake response detector는 M2 미완료다. 다음은 Steering local monitor이며,
-실제 task/watchdog·trace·timing은 M3에서 검증한다. 학습자 수용은 PENDING이다.
+[Steering local monitor](learning/m2_steering_fault_monitor.md)는 sensor/물리 경계와 함께 구현·시험했다.
+다음은 M2 미완료인 Brake response detector다. 실제 task/watchdog·trace·timing은 M3에서 검증한다. 학습자 수용은 PENDING이다.
 차량 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며

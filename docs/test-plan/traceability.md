@@ -28,7 +28,8 @@ TC-COM-002/003/005와 TC-SAFE-002의 local response 부분 증거다.
 [M2 수용 검토](../m2_acceptance_review.md)는 Drive actual/gate, Battery/BMS/Power와 energy/circuit의
 component 증거도 연결한다. 현재 unit 391개(normal·ASan/UBSan)와 model vCAN 8개 재검사로
 위 COM/SAFE와 SYS-CTRL-009·SYS-EV-001–005·SYS-PERF-002/003의 local 부분 범위를 확인했다.
-Fresh 통신 중 Steering jam·Brake stuck/slow-response detector는 M2 미완료다.
+후속 [Steering response monitor](../learning/m2_steering_fault_monitor.md)의 물리/sensor·residual/dwell·local latch 시험은
+TC-CTRL-001·TC-SAFE-001/002의 부분 증거를 더한다. 전체 unit은 430개이며 Brake response detector는 M2 미완료다.
 아래 system TC의 모든 required variant·차량/Zone/배포 환경을 검증한 결과는 아니며 Result는 NOT RUN을 유지한다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |

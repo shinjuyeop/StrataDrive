@@ -4,6 +4,11 @@ Review ID: **M2-REV-20261016** / Date: **2026-10-16**.
 Status: **기존 component 기능 검사 PASS / M2 미완료 항목 OPEN / 학습자 직접 재현·이해 검토 PENDING**.
 수행: Codex의 코드·설정·시험 증거 대조. M2 상태는 **IN PROGRESS**로 유지한다.
 
+후속 2026-10-16: [Steering response monitor](learning/m2_steering_fault_monitor.md)를 구현·시험했다.
+OPEN-M2-01은 **Host component 구현·검사 완료 / 학습자 수용 PENDING**이며 Brake OPEN-M2-02는 미구현이다.
+전체 unit은 430개다. 아래 최초 검토의 391개 결과와 미구현 판정은 이후 `69a9614`로 커밋한 당시 snapshot의 이력이다.
+최신 실행 증거와 수치는 위 학습 안내/품질 기록에 따로 연결한다.
+
 ## 검토 범위와 판정
 
 수용 검토는 구현한 기능, 약속한 기능, 시험한 범위를 대조하는 작업이다.
@@ -11,12 +16,12 @@ Status: **기존 component 기능 검사 PASS / M2 미완료 항목 OPEN / 학�
 전체 requirement를 VERIFIED로 바꾸거나 차량 TC의 NOT RUN을 변경하지 않는다.
 기존 [학습 절차](learning/README.md)와 [품질 정책](quality_policy.md)을 적용한다.
 
-이번 검토에서 확인한 결과는 다음과 같다.
+최초 검토에서 확인한 결과는 다음과 같다.
 
 - Steering/Brake/Drive 응답, Battery/BMS/Power, Drive gate, 실제 회로·에너지 연결은 기존 기능 시험을 재통과했다.
 - 주기는 외부 caller가 실행하는 논리 계약이다. `tick()`이 다시 호출될 때 gap을 검출하는 것과
   멈춘 task를 독립적으로 감시하는 것은 다르다. 실제 scheduler/watchdog·부하 측정은 M3에 남는다.
-- **Steering jam/tracking 및 Brake stuck/slow-response 검출은 미구현이다.**
+- **당시 Steering jam/tracking 및 Brake stuck/slow-response 검출은 미구현이었다.**
   [fault architecture](architecture/fault_diagnostics_architecture.md#detection-ownership)가 M2 검증 대상으로 둔 항목이므로
   통신 timeout 시험으로 대체하지 않고 M2 미완료로 남긴다.
 - 설정값은 단위·부호·C++ fixture와 YAML 기록을 대조했다. 실차 calibration 채택이나 학습자 수용을 뜻하지 않는다.
@@ -141,7 +146,7 @@ Sanitizer 실행 시간은 대표 성능 수치가 아니다.
 
 | 항목 | 닫기 위해 필요한 것 | 단계 / 담당 |
 | --- | --- | --- |
-| OPEN-M2-01 Steering response fault | 명령과 독립된 actual/sensor 경계, jam 주입; 정상 delay/rate/saturation을 허용하는 residual·dwell·latch 및 정상/고장/새 epoch 시험 | **M2 다음 구현** / vECU·model 담당 |
+| OPEN-M2-01 Steering response fault | 후속 sensor/물리 경계와 rate-band predictor·residual/dwell·latch, 정상/고장/새 epoch를 구현·시험; [상세 증거](learning/m2_steering_fault_monitor.md) | **M2 component 검사 완료 / 학습자 수용 PENDING** / vECU·model 담당 |
 | OPEN-M2-02 Brake response fault | pressure actual/sensor 경계와 stuck/slow-response 주입, 가압·감압·보호 floor를 고려한 판정·반응·재시작 시험 | **M2**, Steering 뒤 / vECU·model 담당 |
 | OPEN-M2-03 학습자 수용 | 기존 M1 wire와 M2 정상/고장/복구를 직접 재현하고 설정·로그의 의미를 본인 설명으로 기록 | **M1/M2 PENDING** / project owner |
 | M3 준비: 실제 task/monitor | release owner·clock·period와 deadline 구분, RX/monitor/control 배치·bounded queue/snapshot, task 정지 감시 독립성과 gap/overload 처리 | **M3** / runtime·timing 담당 |
@@ -154,7 +159,7 @@ Actual.CausalSequence는 현재 마지막 수용 Command 문맥이다. Delay 동
 M3 trace는 사용 snapshot/목표 적용 시각을 별도로 연결해야 한다.
 통합 demo의 100 ms/상태 변화 콘솔 출력도 모든 10 ms job의 trace를 대신하지 않는다.
 
-**바로 다음 구현은 Steering의 정상 응답과 jam을 구별하는 local monitor다.**
-최소 sensor/fault 경계를 먼저 정하고 현재 delay/rate/saturation 시험을 정상 oracle로 유지한다.
-Steering/Brake response 검토와 학습자 수용을 건너뛰어 M2를 완료 표시하지 않는다.
+**최초 검토의 다음 항목인 Steering local monitor는 후속 구현·시험했다. 현재 다음은 Brake response detector다.**
+Brake도 독립 sensor/fault 경계를 정하고 기존 delay/rise/fall·floor 시험을 정상 oracle로 유지한다.
+Brake response 검토와 학습자 수용을 건너뛰어 M2를 완료 표시하지 않는다.
 M3 계측 설계는 병행 준비할 수 있지만 M2 미완료 항목의 해결 결과와 별도로 기록한다.

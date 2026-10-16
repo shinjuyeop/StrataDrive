@@ -80,6 +80,9 @@ Capacity 32/ingress·dispatch 8/polling sleep 1 ms는 local fixture 값이다. �
 `m2_steering_fixture`는 [첫 조향 응답 모델](../docs/learning/m2_steering_model.md)의 시험 설정이다.
 Command/model 각도 범위, rate/delay, control gap과 source-loss hold를 기록한다.
 C++ fixture와 값이 일치하지만 YAML loader는 없으며 OEM calibration은 TBD-02/03이다.
+[Steering response monitor](../docs/learning/m2_steering_fault_monitor.md)의 physical sensor identity,
+healthy rate 0.8..1.2배·residual 여유 0.01 rad·fresh-source confirmation 60 ms와 sensor age/gap 20/30 ms도 기록한다.
+센서 캐시는 새 angle Actual로 발행하지 않는다. 이 값은 첫 SIL 설정이며 기계 jam 원인 분리/실차 검출 budget은 아니다.
 
 `m2_brake_fixture`는 [첫 Brake 압력 모델](../docs/learning/m2_brake_model.md)의 설정이다.
 정상 delay/rise/fall과 물리 한계, loss 시 max(actual, floor) ramp를 기록한다.
