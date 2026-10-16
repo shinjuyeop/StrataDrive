@@ -128,6 +128,9 @@ C++17, GoogleTest 1.11.0에서 Codex가 실행했다.
 - cppcheck 2.7: 변경 production codec/demo 4개 source의 적용 검사에서 진단 없음.
   GoogleTest macro source는 기존 tool 제약 때문에 cppcheck 대상에서 제외했다.
 
+아래 명령은 당시 검사 이력이다. 구조 정리 뒤 demo 구현·include 경로가 확장됐으므로 현재 재현은
+[품질 정책의 검사 진입점](../quality_policy.md#현재-코드에서-검사하기)을 따른다.
+
 ```sh
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2

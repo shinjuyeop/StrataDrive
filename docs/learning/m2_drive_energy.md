@@ -18,7 +18,8 @@ flowchart TB
   C --> R["명시적 limits relay fixture"]
   R --> G["DriveController · 허가/로컬 HV·속도 → 목표 제한"]
   P["독립 Central 허가 fixture"] --> G
-  G --> T["TorqueResponse · 지연/변화율 → 실제 토크"]
+  G -->|"Actuation · DriveSil이 적용"| T["TorqueResponse · 지연/변화율 → 실제 토크"]
+  T -->|"독립 torque 측정 · DriveSil이 취득"| G
   T --> A
 ```
 
@@ -26,6 +27,9 @@ flowchart TB
 [구현](../../simulation/drive/drive_energy_model.cpp), [시험](../../tests/unit/drive_energy_model_test.cpp)에 있다.
 BatteryModel이 저장 에너지를 한 번만 소유한다. BMS/DriveController는 SOC를 직접 수정하지 않는다.
 ECU session 재시작으로 배터리를 충전된 초기 상태로 되돌리지 않는다.
+현재 [DriveSil](../../simulation/drive/drive_sil.cpp)이 ECU의 `prepare/complete`와 TorqueResponse를 연결하며
+DriveController에는 물리 모델 객체나 actual getter가 없다. 전체 fixture 순서는
+[drive_demo.cpp](../../tools/demo/drive_demo.cpp)의 `drive-energy` 경로에서 읽는다.
 
 ## 토크가 음수이면 무조건 충전일까?
 

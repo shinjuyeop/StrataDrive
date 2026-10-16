@@ -28,7 +28,7 @@ last-valid RX +80 ms TIMEOUT, late frame으로 latch 해제 불가, 새 Epoch의
 | [actuator_receiver_state.cpp](../../interfaces/common/actuator_receiver_state.cpp) | Steering/Brake 공통 clock/Epoch/source age/Sequence/timeout 상태 |
 | [brake_m1_draft.dbc](../../interfaces/dbc/brake_m1_draft.dbc) | 같은 wire 정의를 parser가 읽는 형식 |
 | [actuator_socketcan.cpp](../../interfaces/socketcan/actuator_socketcan.cpp) | Linux transport와 typed actuator frame 변환, 실제 envelope 보존 |
-| [actuator_demo.cpp](../../tools/actuator_demo.cpp) | 기존 조향 네 명령 + brake-pressure/brake-frame/brake-receiver |
+| [actuator_demo.cpp](../../tools/actuator_demo.cpp) / [brake_demo.cpp](../../tools/demo/brake_demo.cpp) | 공통 명령 분기·도움말 / brake-pressure·brake-frame·brake-receiver와 brake-model 구현 |
 | [brake_codec_test.cpp](../../tests/unit/brake_codec_test.cpp) | 새 Brake 모듈과 공유 layout의 자동 시험 |
 | [brake_receiver_test.cpp](../../tests/unit/brake_receiver_test.cpp) | Brake 수용/거부/범위/clock/timeout 경계와 상태 독립성 |
 | [check_socketcan.py](../../tests/integration/can/check_socketcan.py) | Steering 8 + Brake application 8 + Brake wire 2 case |
@@ -140,6 +140,9 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
   clang-tidy의 system/header suppression 및 GoogleTest macro의 기존 NOLINT를 포함한 전체 무경고 주장은 아니다.
 - Fresh `BUILD_TESTING=OFF` build에서 receiver/common-state library와 demo만 생성되며,
   unit/participant 없이 `brake-receiver`가 실행되는 것을 확인했다.
+
+아래 명령은 당시 검사 이력이다. 구조 정리 뒤 demo 구현·include 경로가 확장됐으므로 현재 재현은
+[품질 정책의 검사 진입점](../quality_policy.md#현재-코드에서-검사하기)을 따른다.
 
 ```sh
 clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/actuator_receiver_state.cpp interfaces/brake/brake_receiver.cpp interfaces/steering/steering_receiver.cpp tools/actuator_demo.cpp tests/integration/can/socketcan_tx.cpp tests/integration/can/socketcan_rx.cpp tests/unit/brake_receiver_test.cpp

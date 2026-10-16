@@ -34,13 +34,15 @@ Steering 후속 시점의 unit은 430개였다. 이어 [Brake response monitor](
 아래 시간은 ms다. `max gap`은 마지막 논리 실행과의 간격에 대한 guard이며 OS job deadline이 아니다.
 Source/dependency age는 `>`에서 만료하고 receiver timeout은 `>=`에서 latch한다.
 각 API의 clock 역행은 출력 중단/무효를 드러내며 실제 물리 상태를 과거로 돌리지 않는다.
+아래 첫 네 행은 현재 SIL 연결과 ECU core를 함께 표시한다. Delay/rate와 gap interval hold는
+SIL의 응답 정책이며 ECU core가 plant를 소유하거나 직접 진행한다는 뜻이 아니다.
 
 | 모듈 / 코드 | 실행·입력 시간 | 입력 → 출력 | 상실·실행 누락 반응 |
 | --- | --- | --- | --- |
-| [SteeringActuator](../vecu/steering/steering_actuator.cpp) | tick 10 / max gap 30; command source 30, RX 80 | 검증된 Command → delay/rate/angle 제한 → Actual/P05 | pending 취소, 현재 angle hold, FAIL_SAFE latch; 누락 구간 catch-up 없음 |
-| [BrakeActuator](../vecu/brake/brake_actuator.cpp) | tick 10 / max gap 30; command source 30, RX 80 | 검증된 압력 Command → delay/rise/fall 제한 → Actual/P05 | pending 취소, 최초 fault의 max(actual, floor)로 유한 ramp; gap interval은 hold |
-| [DriveActuator](../vecu/drive/drive_actuator.cpp) | tick 10 / max gap 30; command source 30, RX 80 | signed Command → 별도 TorqueResponse → Actual/P05 | 양·음수 목표 취소, zero target/ramp/latch; speed/capability와 EV gate 없는 isolated fixture |
-| [DriveController](../vecu/drive/drive_controller.cpp) | tick 10 / max gap 30; command 30/RX 80, limits·grant 50/70/RX 80, local age 30/skew 20 | Command + routed limits + trusted grant + local speed/HV → 제한 목표·capability·Actual | 활성화 뒤 입력/허가 상실 latch, zero target/유한 residual; gap interval backfill 없음 |
+| [SteeringSil](../simulation/steering/steering_sil.cpp) / [SteeringActuator](../vecu/steering/steering_actuator.cpp) | SIL tick 10 / ECU max gap 30; command source 30, RX 80 | ECU 목표 → plant delay/rate/angle 제한 → angle sensor → Actual/P05 | ECU hold/FAIL_SAFE 요청; SIL pending 취소·현재 angle 유지, 누락 구간 catch-up 없음 |
+| [BrakeSil](../simulation/brake/brake_sil.cpp) / [BrakeActuator](../vecu/brake/brake_actuator.cpp) | SIL tick 10 / ECU max gap 30; command source 30, RX 80 | ECU 목표 → plant delay/rise/fall 제한 → pressure sensor → Actual/P05 | ECU increase-only/floor 요청; SIL 보호 응답·gap interval hold, stuck 시 floor 도달 보장 없음 |
+| [DriveActuatorSil](../simulation/drive/drive_actuator_sil.cpp) / [DriveActuator](../vecu/drive/drive_actuator.cpp) | SIL tick 10 / ECU max gap 30; command source 30, RX 80 | ECU signed 목표 → TorqueResponse → torque sensor → Actual/P05 | ECU zero target/latch, plant 유한 ramp; speed/capability와 EV gate 없는 isolated fixture |
+| [DriveSil](../simulation/drive/drive_sil.cpp) / [DriveController](../vecu/drive/drive_controller.cpp) | SIL tick 10 / ECU max gap 30; command 30/RX 80, limits·grant 50/70/RX 80, local age 30/skew 20 | Command + limits + grant + local speed/HV → ECU 제한 목표·capability; plant torque sensor → Actual | 활성화 뒤 입력/허가 상실 latch, zero target/유한 residual; SIL gap interval backfill 없음 |
 | [BmsController](../vecu/bms/bms_controller.cpp) | tick 20 / max gap 40; sensor source 50/dependency 70/skew 20 | 독립 local sensor group → 방향별 PowerLimits + local safety gate | active 중 무효 입력 latch/unknown; 보호 pending 즉시 inhibit, fresh acquisition dwell 뒤 확정 |
 | [PowerController](../vecu/bms/power_controller.cpp) | tick 10 / max gap 30; sensor·gate 50/70, request RX 80/원래 expiry | actual sensor + BMS gate + trusted request → coil 요청·PowerStatus | inhibit 후 actual current dwell→접점 open→bus 방전; current unknown/high에서 강제 open하지 않음 |
 | [BatteryModel](../simulation/battery/battery_model.cpp) | standalone demo step 20 / max step 40; oldest input age 50 | actual DC power 또는 회로 current 적분 → 단일 chemical energy/SOC·heat·sensor port | gap/무효/capacity 초과 latch, 0 대입·clip·나중 backfill 없음 |
@@ -53,8 +55,11 @@ Drive는 fresh zero/Inhibit/known HV OFF일 때 non-driving INIT를 유지할 �
 BMS의 missing startup sensors는 INIT/unknown으로 남으며 fresh release dwell을 완료하지 못한다.
 Power는 확인 전 coil을 쓰지 않고 Inspect에서 실제 접점과 bus를 검사한다.
 
-현재 caller와 component는 single owner다. 후속 구조 정리로 ECU core의 `prepare/complete`와
-외부 SIL runner의 physical step/capture를 분리했으며, 기존 표의 `tick`은 이제 SIL helper의 API다. [SocketCAN fixture](learning/m1_session_queue.md)의
+현재 caller와 component는 single owner다. 네 ECU core는 trusted `ActuatorSession`으로 초기화하고,
+같은 job 시각의 `prepare/complete` 사이에 외부 실행자가 physical step/capture를 수행한다.
+외부에서 독립 진행한 plant 상태는 ECU 복귀 때 되돌리지 않는다. Drive의 torque 보고에는 같은 job end의
+새 acquisition이 필요하다. 상세 port/phase 계약은 [실행 경계 안내](learning/m2_execution_boundaries.md)를 따른다.
+[SocketCAN fixture](learning/m1_session_queue.md)의
 application FIFO 32 / cycle당 ingress·dispatch 8과 물리 delay FIFO 128은 서로 다른 용도다.
 모든 함수 호출에 queue를 붙이는 구조가 아니다. Thread 분리 시 snapshot 동기화·queue ownership·overflow 반응을
 M3에서 설계하고, 전체 통신 task 정지 중 감시의 독립성을 따로 시험해야 한다.

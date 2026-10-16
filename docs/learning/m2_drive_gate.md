@@ -115,8 +115,10 @@ Startup에는 known zero Command·Inhibit·센서를 먼저 보내 순환 의존
 활성화 뒤 허가 상실/만료, BMS protection, 필수 입력 loss, HV/inverter fault, overspeed나
 continuity/deadline에는 zero-target을 latch한다. 정상 센서나 fresh Enable만으로 복귀하지 않는다.
 새 trusted application Epoch가 필요하며 physical torque/model Epoch는 계속 유지한다.
-Clock rollback은 physics/output을 중단하고 missed interval은 hold한다. 늦은 새 입력을 받기 전에
-기존 age/expiry를 검사해서 tick 사이의 loss를 숨기지 않는다.
+Clock rollback은 ECU publication을 중단한다. 기존 [DriveSil](../../simulation/drive/drive_sil.cpp)은
+이때 물리 진행을 생략하고 missed interval도 hold한다. 외부 실행자가 plant를 독립 진행한 경우에는
+ECU 복귀 시 이미 진행한 물리를 되돌리지 않는다. 늦은 새 입력을 받기 전에 기존 age/expiry를 검사해서
+호출 사이의 loss를 숨기지 않는다. ECU의 `prepare/complete`와 SIL `tick`은 [실행 경계 안내](m2_execution_boundaries.md)를 따른다.
 
 Wheel SourceTime은 acquisition time, CapabilitySourceTime은 계산 시각이다.
 CapabilityInputTime은 사용한 local/limits/permission/parent의 **가장 오래된 dependency**다.

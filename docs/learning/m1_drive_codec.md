@@ -78,7 +78,8 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 - Fresh BUILD_TESTING=OFF에서 라이브러리/demo만 build했고 drive-feedback 실행을 확인했다.
   문서 relative link와 변경 text의 whitespace/Python syntax를 검사했다.
 
-Static analysis 재현 명령:
+아래 static analysis 명령은 당시 검사 이력이다. 구조 정리 뒤 demo 구현·include 경로가 확장됐으므로
+현재 재현은 [품질 정책의 검사 진입점](../quality_policy.md#현재-코드에서-검사하기)을 따른다.
 
 ```sh
 clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' interfaces/common/actuator_payload_codec.cpp interfaces/drive/drive_value_codec.cpp interfaces/drive/drive_frame_codec.cpp interfaces/drive/drive_receiver.cpp interfaces/socketcan/actuator_socketcan.cpp tools/actuator_demo.cpp tests/integration/can/socketcan_tx.cpp tests/integration/can/socketcan_rx.cpp tests/unit/drive_test.cpp tests/unit/actuator_socketcan_test.cpp

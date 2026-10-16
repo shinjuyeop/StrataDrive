@@ -105,7 +105,8 @@ GCC 11.4.0, CMake 4.3.2, C++17, GoogleTest 1.11.0, Debug build다.
   이 tool 설정에서 syntaxError가 발생해 cppcheck 완료 범위에서 제외했다.
   Test 소스는 compiler/clang-tidy 및 실제 GoogleTest/ASan/UBSan 실행으로 확인했다.
 
-검사 재현 명령:
+당시 실행 명령이다. 구조 정리 뒤 demo 구현·include 경로가 확장됐으므로 현재 재현은
+[품질 정책의 검사 진입점](../quality_policy.md#현재-코드에서-검사하기)을 따른다.
 
 ```sh
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON

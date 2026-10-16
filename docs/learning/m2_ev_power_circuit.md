@@ -10,6 +10,10 @@ Date: 2026-10-16. Status: **Host functional SIL component 구현·시험 / 직�
 DC-link capacitor를 사이에 두고 **Battery → 전원 회로 → inverter → 실제 torque**를 연결한다.
 구현은 [composition](../../simulation/power/ev_power_model.cpp), [회로](../../simulation/power/power_model.cpp),
 [단위 시험](../../tests/unit/ev_power_model_test.cpp)에 있다.
+전체 BMS/Power/Drive 호출 순서와 Central·relay·speed fixture는
+[ev_demo.cpp](../../tools/demo/ev_demo.cpp)의 `ev-power` 경로에 있다.
+Drive ECU와 torque plant의 실행 연결은 [DriveSil](../../simulation/drive/drive_sil.cpp)이 맡으며
+[ECU/SIL 경계](m2_execution_boundaries.md)를 따른다.
 
 | 저장량·손실 | 계산/소유하는 곳 |
 | --- | --- |

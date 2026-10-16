@@ -20,12 +20,13 @@ Date: 2026-10-16. Status: **Host functional SIL 구현·검사 / 학습자 직�
 | 물리 응답 | [SteeringResponse](../../simulation/steering/steering_response.cpp): bounded target→delay/rate→실제 angle; jam/rate variation 주입 |
 | 센서 취득 | [AngleMeasurement](../../interfaces/steering/steering_angle_sensor.hpp): model epoch, acquisition sequence/time, measured angle; hold/invalid/override는 sensor port에만 반영 |
 | 고장 판단 | [SteeringResponseMonitor](../../vecu/steering/steering_response_monitor.cpp): target 이력과 sensor port만 사용; jam flag나 plant getter를 읽지 않음 |
-| 통신·보호 연결 | [SteeringActuator](../../vecu/steering/steering_actuator.cpp): 기존 receiver, local fault/latch, modeled hold와 Actual/P05 |
+| 통신·보호 판단 | [SteeringActuator](../../vecu/steering/steering_actuator.cpp): 기존 receiver, local fault/latch, hold 요청과 sensor 기반 Actual/P05 |
+| SIL 실행 | [SteeringSil](../../simulation/steering/steering_sil.cpp): 출력 적용, 물리 진행·센서 취득과 ECU phase 연결 |
 
 후속 [실행 경계 정리](m2_execution_boundaries.md)에서 SteeringActuator를 ECU 판단만 남긴 core로 바꿨다.
 [SteeringSil](../../simulation/steering/steering_sil.cpp)이 같은 thread의 물리/센서·ECU 연결을 맡는다.
 파일 경계를 나눈 것이 실제 RTE/OS task 분리나 AUTOSAR stack 구현을 뜻하지 않는다.
-Actuator의 diagnostic getter는 시험·로그용이며 sensor가 없을 때 Actual을 채우는 데 쓰지 않는다.
+SteeringSil의 physical diagnostic getter는 시험·로그용이며 ECU에는 없다. Sensor가 없을 때 Actual을 채우는 데 쓰지 않는다.
 
 ## 목표각과 현재각을 바로 비교하지 않는 이유
 

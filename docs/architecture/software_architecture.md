@@ -25,6 +25,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `vecu/common` | task model, bounded queues, watchdog, command integrity, diagnostics 계약 |
 | `vecu/steering`, `vecu/brake`, `vecu/drive` | accepted demand + 외부 sensor → normal/protection 목표·actual feedback; DriveController는 BMS limits·Central permission·로컬 HV/속도의 필수 gate와 capability 계산, 기존 DriveActuator는 isolated 응답 fixture |
 | `simulation/steering` / `vecu/steering/steering_response_monitor.*` | delay/rate·jam/angle sensor를 만드는 SIL plant / bounded target 이력·독립 sensor로 정상 range/residual/dwell·sensor health를 검사하는 local monitor |
+| `simulation/brake` / `vecu/brake/brake_response_monitor.*` | delay·가압/감압·stuck/pressure sensor를 만드는 SIL plant / 방향별 정상 range/residual/dwell·sensor health를 검사하는 local monitor |
 | `simulation/drive/torque_response.*` | Drive 목표 → delay/rate/saturation·zero-target 물리 응답; ECU 수신/상태 판단과 별도 모듈, 차량 speed/current loop는 미구현 |
 | `simulation/drive/drive_energy_model.*` | begin actual torque/speed·auxiliary → motor DC/손실 → 단일 BatteryModel SOC/관측; 이상적 경로 fixture, dynamic RC는 별도 EvPowerModel에서 연결; vehicle speed/current loop 후속 |
 | `simulation/power/ev_power_model.*` | 실제 torque/speed·inverter stage·pack aux current·coil 출력 → 공통 motor DC·PowerModel 회로/구간 전류·BatteryModel SOC; capacitor/경로 손실과 atomic commit, 외부 speed fixture |
@@ -77,7 +78,7 @@ Classic stack pilot은 PLANNED / NOT RUN이며 Central/Zone의 배치·Linux 계
 
 | Logical task | Period starting point | 계획된 책임 |
 | --- | --- | --- |
-| Task_10ms_Control | 10 ms | 유효 command snapshot, state update, actuator dynamics/control |
+| Task_10ms_Control | 10 ms | 유효 command snapshot·센서 검사, state update와 normal/protection 출력 선택; SIL 물리 진행은 외부 책임 |
 | Communication publication | 10 ms | bounded RX/TX queue, command 검증, 각 actual feedback publication |
 | Diagnostics aggregation | TBD-08 (M9) | fault aggregation/status; 빠른 timeout 검출은 10 ms local monitor 경로 |
 
@@ -119,8 +120,9 @@ IF-MODEL-BMS의 셀 전압·온도 극값은 독립 pair validity/acquisition/ba
 oldest dependency에 포함한다. [로컬 입력 계약](../icd/ev_power_bms_design.md#로컬-셀-극값-입력)을 따른다.
 [첫 Steering 모델](../learning/m2_steering_model.md)은 single-owner tick/지연 FIFO와
 Command expiry/continuity/deadline 시 hold/latch, Actual/P05를 Host에서 시험했다.
-[Brake 모델](../learning/m2_brake_model.md)은 별도 rise/fall rate와 delay를 적용하고
-local fault 시 normal pending을 취소해 max(actual, fixture floor)를 목표로 ramp한다.
+[Brake ECU](../learning/m2_brake_model.md)는 local fault 시 increase-only/floor 출력을 요청한다.
+SIL plant가 normal pending을 취소하고 별도 rise/fall rate와 delay·보호 응답을 계산한다.
+정상 plant는 현재 압력 이상을 유지하며 floor까지 가압하지만 물리 stuck에도 도달을 보장하지 않는다.
 [Drive torque 모델](../learning/m2_drive_model.md)은 signed 정상 응답과 loss 시 zero-target ramp를 시험했다.
 이 isolated fixture의 speed/capability는 unavailable이다. 별도 [DriveController](../learning/m2_drive_gate.md)는
 원천 BMS limits·trusted permission·실제 local HV/speed를 확인해 목표/가용량을 계산한다.

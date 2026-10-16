@@ -1,13 +1,18 @@
 # ADR-0022: Leaf vECU의 Classic 개발 체계와 SIL 모델 경계
 
-Date: 2026-10-14. Status: **설계·학습 방향 ACCEPTED / 코드 분리·OS/RTE/BSW pilot PLANNED / pilot 실행 NOT RUN**.
+Date: 2026-10-14. Status: **설계·학습 방향 ACCEPTED / OS/RTE/BSW pilot PLANNED / pilot 실행 NOT RUN**.
 Owner: project owner. Leaf vECU의 ECU 소프트웨어는 AUTOSAR Classic의 개발 개념으로
 설계하고 Steering부터 적용한다. 실제 Classic stack의 채택은 pilot 결과로 별도 결정한다.
+
+후속 2026-10-16: [ADR-0032](ADR-0032-ecu-and-sil-execution-boundaries.md)에서 ECU와 SIL 실행 코드를 분리했다.
+현재 SteeringActuator는 `prepare/complete`로 입력·목표/보호·Actual을 처리하고,
+[SteeringSil](../../simulation/steering/steering_sil.cpp)의 `tick`이 외부 물리 진행·센서 취득을 연결한다.
+아래 표는 이 결정 당시의 대응 초안이며 실제 Runnable/Task·RTE/BSW pilot은 여전히 후속이다.
 
 ## 배경과 결정
 
 M1은 CAN 계약·수신 검증·P05를, M2는 Steering/Brake의 첫 functional SIL 응답을 구현했다.
-현재 C++ class는 ECU 판단과 물리 응답 계산을 함께 실행한다. Classic 설계를 정리할 때는
+결정 당시 C++ class는 ECU 판단과 물리 응답 계산을 함께 실행했다. Classic 설계를 정리할 때는
 기능 소프트웨어, 통신·OS 서비스, SIL에서 대신하는 물리 장치의 책임을 구분해야 한다.
 
 - Leaf의 명령 처리·로컬 상태/보호 판단·출력 결정·상태 보고를 SWC/Port/Interface와
@@ -29,7 +34,7 @@ Runnable/OS mapping은 [R25-11 RTE Requirements](https://www.autosar.org/fileadm
 
 ## Steering부터 적용할 경계
 
-| 현재 구현 | Classic 설계에서 정리할 책임 / 후속 |
+| 결정 당시 구현 | Classic 설계에서 정리할 책임 / 후속 |
 | --- | --- |
 | `SteeringReceiver`와 `SteeringActuator::receive` | CAN decode/P05와 application의 Epoch·freshness·mode·range 검사 경계; accepted command Port와 reject/health 의미 정의 |
 | `SteeringActuator::start_session` | trusted INIT 입력과 상태 초기화; Linux harness가 제공하는 session을 실제 startup/rejoin 경로에 어떻게 연결할지 정의 |
@@ -38,11 +43,11 @@ Runnable/OS mapping은 [R25-11 RTE Requirements](https://www.autosar.org/fileadm
 | `tick`의 Actual 생성·P05와 SocketCAN endpoint | 관측 actual/health Port와 통신 adapter를 구분; simulation 관측을 실제 sensor feedback과 혼동하지 않음 |
 | 외부 clock과 single-owner 호출 | TimingEvent/Task mapping 초안의 검증 환경; logical 10 ms와 실제 OS scheduling을 구분하고 M3에 측정 |
 
-현재 위치는 [Steering 구현](../../vecu/steering/steering_actuator.cpp),
+현재 코드는 [Steering ECU 구현](../../vecu/steering/steering_actuator.cpp),
 [수신부](../../interfaces/steering/steering_receiver.hpp),
 [M2 모델 시험](../learning/m2_steering_model.md)이다. 이번 결정은 코드 이동이나 동작 변경을 포함하지 않는다.
 SWC 수/Port type/Runnable 순서·동시성, actual sensor schema, RTE/BSW 연결은 후속 상세 설계다.
-현재 `tick`은 여러 책임을 함께 실행하므로 위 행별로 독립 Runnable이 이미 존재한다고 보지 않는다.
+당시 `tick`은 여러 책임을 함께 실행했다. 후속 phase API 분리 뒤에도 위 행별 독립 Runnable이 이미 존재한다고 보지 않는다.
 
 ## 다른 계층과 기술 선택
 

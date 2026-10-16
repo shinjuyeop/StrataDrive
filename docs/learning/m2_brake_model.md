@@ -30,7 +30,7 @@ Pa→N·m calibration, tire/vehicle/road model은 TBD-02의 Plant 작업이다.
 | 정상 목표 지연 | 50 ms | control tick에서 새 목표 포착 후 가압/감압을 시작할 시각 |
 | 가압 rate | 5 MPa/s | actual이 목표보다 낮을 때 상승 속도 상한 |
 | 감압 rate | 10 MPa/s | actual이 목표보다 높을 때 하강 속도 상한 |
-| 보호 floor | 1 MPa | 최초 fault의 actual과 이 값 중 큰 값을 보호 목표로 latch |
+| 보호 floor | 1 MPa | ECU는 increase-only/floor를 요청; 정상 plant는 현재 압력 이상을 유지하며 floor까지 가압 |
 | Control 최소 간격 / 최대 gap | 10 / 30 ms | gap 초과 interval을 backfill하지 않음 |
 | Source age / RX timeout | 30 / 80 ms | 원천 만료와 수신 상실은 다른 검사 |
 
@@ -70,20 +70,24 @@ Actual도 모델 상태 sample이며 Command echo가 아니다. 유효한 FAIL_S
 
 ## 5. 명령 상실 때 선택한 정책
 
-Source expiry/RX timeout/continuity loss/control deadline을 감지하면 정상 delay FIFO를 취소한다.
-최초 fault 시점에 `protection_target = max(actual, 1 MPa)`로 설정하고 latch한다.
+Source expiry/RX timeout/continuity loss/control deadline을 감지하면 ECU는
+**압력을 낮추지 않고 floor 1 MPa까지 가압하는 보호 출력**을 요청하고 latch한다.
+SIL plant가 정상 delay FIFO를 취소하고 이 요청을 적용한다. 고장이 없는 물리 응답에서는
+`protection_target = max(actual, 1 MPa)`와 같은 결과지만, ECU가 실제 압력 getter로 목표를 계산하지 않는다.
 
 - Actual이 0.4 MPa면 1 MPa까지 가압 rate로 접근한다. 그 순간 1 MPa로 jump하지 않는다.
 - Actual이 이미 1.5 MPa면 유지한다. 더 낮은 floor라는 이유로 압력을 빼지 않는다.
 - 보호 목표에는 정상 50 ms delay를 추가하지 않고, 감지 시각 이후 구간부터 계산한다.
 - 늦은 fresh 0 Pa Command도 latch를 해제하지 않는다. 더 큰 trusted Epoch로만 재시작한다.
 - Missed control interval에서는 이동을 생략하고 다음 정상 tick부터 보호를 진행한다.
-- Clock 역행 후에는 신뢰할 source time이 없어서 publication과 physics를 중단한다.
+- Clock 역행 후에는 신뢰할 source time이 없어서 ECU publication을 중단한다. 기존 SIL helper도 물리 진행을 생략한다.
 
 정상 sample이 interval 끝에서 stale이면 해당 interval의 정상 이동을 생략하는 sampled 정책이다.
 수신 함수도 새 frame을 검사하기 전에 이전 Command의 source expiry를 확인한다.
 수용 명령이 없는 startup timeout은 causal context 없이 입력 번호를 꾸미지 않도록 unavailable
-진단 Actual을 발행한다. 내부 모델의 보호 pressure는 계속 계산하며 getter로 확인할 수 있다.
+진단 Actual을 발행한다. SIL의 보호 pressure는 계속 계산하며 시험용 getter로 확인할 수 있다.
+물리 stuck은 보호 뒤에도 남을 수 있으며 floor 도달 여부는 fresh sensor로만 보고한다.
+외부 실행자가 ECU와 독립적으로 plant를 진행한 경우에는 이미 진행한 물리를 복귀 때 되돌리지 않는다.
 
 이는 **첫 SIL 보호 정책**이며 차량의 안전한 floor/정지 성공을 뜻하지 않는다.
 차량 감속·타이어·ABS·Zone arbitration과 결합하는 정책/calibration은 TBD-03/06에 남긴다.
@@ -96,7 +100,7 @@ Source expiry/RX timeout/continuity loss/control deadline을 감지하면 정상
 4. ECU의 `prepare`/`complete`와 [BrakeSil](../../simulation/brake/brake_sil.cpp)의 `tick`: 보호 요청·출력 적용, sensor→Actual/P05를 구분한다.
 5. [시험](../../tests/unit/brake_actuator_test.cpp): 결정론적 clock으로 정상·상실·재시작을 비교한다.
 
-물리 모델은 `simulation/brake/`, ECU 판정·SIL adapter는 `vecu/brake/`, wire·센서 계약은 `interfaces/brake/`에 둔다.
+ECU 판정은 `vecu/brake/`, 물리 모델과 SIL 연결은 `simulation/brake/`, wire·센서·출력 계약은 `interfaces/brake/`에 둔다.
 두 모델은 기존 [integration model loop](../../tests/integration/can/socketcan_rx.cpp)와
 [runner](../../tests/integration/can/check_socketcan.py)를 공유한다. feature별 executable은 추가하지 않았다.
 

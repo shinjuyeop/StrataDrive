@@ -13,7 +13,7 @@ jam/slow-response fixture와 local residual/dwell 판단을 연결했다. 아래
 
 - [SteeringActuator](../../vecu/steering/steering_actuator.hpp): 수신·판단·local fault와 prepare/complete.
 - [SteeringSil](../../simulation/steering/steering_sil.cpp): 물리·센서·ECU 호출을 연결하는 예제용 tick.
-- [adapter 구현](../../vecu/steering/steering_actuator.cpp): 수신·sensor/monitor·보호와 Actual/P05 생성.
+- [ECU 구현](../../vecu/steering/steering_actuator.cpp): 수신·sensor/monitor·보호 요청과 Actual/P05 생성.
 - [물리 응답](../../simulation/steering/steering_response.cpp): delayed demand와 rate/angle limit; 후속 sensor/fault 경계.
 - [단위 시험](../../tests/unit/steering_actuator_test.cpp): 외부 clock으로 응답과 경계를 정확히 비교.
 - 기존 [TX](../../tests/integration/can/socketcan_tx.cpp), [RX/model](../../tests/integration/can/socketcan_rx.cpp),
@@ -23,17 +23,20 @@ jam/slow-response fixture와 local residual/dwell 판단을 연결했다. 아래
 flowchart TB
   TX["Command TX · 0x180"] --> RX["bounded RX · 기존 수신 검증"]
   RX --> SNAP["유효 Command snapshot"]
-  SNAP --> MODEL["control tick: delay → rate/angle limit"]
-  MODEL --> ACT["Actual · 0x280 · 새 source/sequence/P05"]
+  SNAP --> ECU["ECU prepare/complete · 목표/보호 판단"]
+  ECU -->|"목표 요청"| MODEL["SIL plant · delay → rate/angle limit"]
+  MODEL -->|"독립 angle acquisition"| ECU
+  ECU --> ACT["Actual · 0x280 · 취득 source/새 sequence/P05"]
   ACT --> FEEDBACK["독립 Actual RX · validity/age/state 검사"]
   SNAP --> MONITOR["source expiry / RX timeout / continuity"]
-  MONITOR --> HOLD["pending 취소 · 현재 각도 hold · FAIL_SAFE latch"]
-  HOLD --> ACT
+  MONITOR --> ECU
 ```
 
 `receive(frame, now)`는 기존 CRC/P05, Epoch, sequence, source age, mode, command 범위를 검사한다.
-`tick(now)`가 현재 유효 snapshot을 읽어 모델을 갱신한다. 수신과 control을 같은 소유 thread에서
-실행하므로 mutex는 필요하지 않다. Runtime thread 분리 시 synchronization을 다시 설계한다.
+`SteeringSil::tick(now)`이 ECU의 `prepare/complete`와 외부 물리 진행·센서 취득을 연결한다.
+ECU는 유효 snapshot과 센서로 목표/hold 요청을 선택하며 모델을 직접 호출하지 않는다.
+현재 수신과 control은 같은 소유 thread에서 실행하므로 mutex는 필요하지 않다.
+Runtime thread 분리 시 synchronization을 다시 설계한다.
 외부에서 Epoch/clock을 제공하며 CAN으로 session을 자동 학습하지 않는다.
 
 ## 응답 계산
@@ -43,7 +46,7 @@ delay 50 ms / control 최소 간격 10 ms / 허용 tick gap 30 ms.
 Source age 30 ms, RX timeout 80 ms. 모두 시험 설정이며 profile loader나 실차 calibration은 아니다.
 단위는 equivalent front road-wheel angle의 rad다. [의미 계약](../icd/interface_overview.md)을 따른다.
 
-Tick에서 새 목표를 발견하면 `due = tick_time + delay`로 보관한다. 같은 목표를 계속 받아도
+SIL plant가 ECU의 새 목표를 받으면 `due = issued_time + delay`로 보관한다. 같은 목표를 계속 받아도
 due를 뒤로 밀지 않는다. 변경한 목표는 별도 due를 갖는다. Due 사이 구간마다 다음을 적용한다.
 
 ```text
@@ -63,14 +66,17 @@ Actual.CausalSequence는 마지막 수용 Command 번호다. Delay 중에도 더
 
 ## 상실과 재시작
 
-Source expiry 또는 RX timeout을 감지하면 pending target을 버리고 마지막 modeled angle을 유지한다.
+Source expiry 또는 RX timeout을 감지하면 ECU는 hold를 요청하고 FAIL_SAFE를 latch한다.
+SIL plant는 pending target을 버리고 현재 modeled angle을 유지한다.
 Continuity loss와 control gap 초과도 같은 hold/latch 정책을 사용한다. 이후 명령은 사용하지 않는다.
 `FAIL_SAFE / LocalProtection` Actual은 angle이 유효하더라도 정상 주행 가능을 의미하지 않는다.
 Startup에서 수용 명령이 없는 timeout은 unavailable Actual을 낸다.
 Clock 역행은 publication을 중단한다. 새 trusted Epoch로만 복구하고 실제 각도를 0으로 리셋하지 않는다.
 
-Tick 끝에서 sample이 stale이면 그 interval 전체를 이동하지 않는 sampled 모델이다.
+기존 SIL helper는 tick 끝에서 sample이 stale이면 그 interval 전체를 이동하지 않는 sampled 모델이다.
 새 수신 전에도 이전 source expiry를 확인한다. Missed tick을 catch-up 실행하지 않는다.
+외부 실행자가 plant를 독립 진행한 경우에는 ECU 복귀 시 이미 발생한 이동을 되돌리지 않는다.
+[실행 경계 안내](m2_execution_boundaries.md#ecu-호출이-멈추면-물리도-멈출까)를 함께 읽는다.
 이 hold 정책은 첫 SIL 선택이며 실차 안전 fallback/물리 actuator 사양을 보장하지 않는다.
 
 ## 실행

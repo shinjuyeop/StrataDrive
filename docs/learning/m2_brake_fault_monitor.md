@@ -16,6 +16,7 @@ Date: 2026-10-16. Status: **Host functional SIL 구현·검사 / 학습자 직�
 | 센서 취득 | [PressureMeasurement](../../interfaces/brake/brake_pressure_sensor.hpp): 물리 epoch, 취득 번호/시각, 압력; cache·invalid·override 분리 |
 | 고장 판단 | [BrakeResponseMonitor](../../vecu/brake/brake_response_monitor.cpp): issued target 이력과 센서만 사용 |
 | 통신·보호 연결 | [BrakeActuator](../../vecu/brake/brake_actuator.cpp): receiver/P05, 상태·latch와 보호 출력 요청 |
+| SIL 실행 | [BrakeSil](../../simulation/brake/brake_sil.cpp): 출력 적용, 물리 진행·센서 취득과 ECU phase 연결 |
 
 후속 [실행 경계 정리](m2_execution_boundaries.md) 뒤 BrakeActuator는 ECU 판단만 수행하고,
 [BrakeSil](../../simulation/brake/brake_sil.cpp)이 single-owner 물리/센서·ECU 연결을 맡는다. OS/RTE task나 hydraulic feedback controller를 만든 결과는 아니다.

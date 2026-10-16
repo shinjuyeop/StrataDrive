@@ -111,6 +111,9 @@ GoogleTest 1.11.0/C++17 Debug에서 실행했다.
 - README architecture는 Host/Target 구역과 Target의 Central/Zone/Leaf 구역을 묶어
   light/dark Mermaid로 렌더링했다. SVG viewBox 기준 높이 1282인 한 줄 흐름은 높이 380의 배치 그림으로 정리했다.
 
+아래 명령은 당시 검사 이력이다. 구조 정리 뒤 demo 구현·include 경로가 확장됐으므로 현재 재현은
+[품질 정책의 검사 진입점](../quality_policy.md#현재-코드에서-검사하기)을 따른다.
+
 ```sh
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
 cmake --build build/m1-angle-sanitized --parallel 2

@@ -85,7 +85,9 @@ healthy rate 0.8..1.2배·residual 여유 0.01 rad·fresh-source confirmation 60
 센서 캐시는 새 angle Actual로 발행하지 않는다. 이 값은 첫 SIL 설정이며 기계 jam 원인 분리/실차 검출 budget은 아니다.
 
 `m2_brake_fixture`는 [첫 Brake 압력 모델](../docs/learning/m2_brake_model.md)의 설정이다.
-정상 delay/rise/fall과 물리 한계, loss 시 max(actual, floor) ramp를 기록한다.
+정상 delay/rise/fall과 물리 한계, loss 시 increase-only/floor 보호 요청을 기록한다.
+정상 plant는 max(actual, floor)까지 유한 rate로 접근한다. [실행 경계](../docs/learning/m2_execution_boundaries.md)처럼
+이 물리 응답은 SIL이 계산하며 ECU가 physical getter로 보호 목표를 정하지 않는다.
 [Brake monitor](../docs/learning/m2_brake_fault_monitor.md)의 방향별 healthy rate 0.8..1.2배·residual 25 kPa·fresh-source dwell 60 ms,
 sensor age/gap 20/30 ms도 기록한다. 보호는 increase-only/floor 요청이며 물리 stuck에도 압력 도달을 보장하지 않는다.
 Floor 관측은 fresh sensor로만 보고하고 cached/invalid에서 unknown이다. YAML은 C++ 설정의 기록이며 loader는 없다.

@@ -55,7 +55,8 @@ GCC 11.4.0 / CMake 4.3.2 / C++17 / GoogleTest 1.11.0, Debug build다.
 - clang-tidy 14.0.0과 cppcheck 2.7로 codec/demo를 검사했다. 해당 소스의 진단 없음.
   clang-tidy의 system/non-user header 진단은 기본 filter로 제외됐다.
 
-검사 재현 명령:
+당시 실행 명령이다. 구조 정리 뒤 demo 구현·include 경로가 확장됐으므로 현재 재현은
+[품질 정책의 검사 진입점](../quality_policy.md#현재-코드에서-검사하기)을 따른다.
 
 ```sh
 cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON

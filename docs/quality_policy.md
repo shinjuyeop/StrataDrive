@@ -318,6 +318,12 @@ vCAN은 각 build의 `structure-final-vcan.txt`와 `socketcan-results`에 둔다
 문서 링크/앵커·32개 요구/29개 TC NOT RUN·YAML/Python/whitespace도 검사했다.
 M1/M2 학습자 수용은 PENDING이다. 실행 경계를 분리했으며 실제 thread/task/watchdog·RT 계측은 M3에 남는다.
 
+같은 날 후속 문서 대조에서 M2 학습 흐름·수용 검토 표를 현재 ECU phase/SIL API에 맞추고,
+Classic ADR의 과거 대응표와 M1 수동 검사 명령을 당시 이력으로 구분했다.
+현재 demo 파일 배치·검사 진입점과 Brake 보호 요청/물리 응답의 책임도 정리했다.
+문서 87개/상대 링크·앵커 953개, 요구 32개/TC 29개 NOT RUN, YAML 3개/Python 3개와 whitespace 검사는 PASS다.
+이 후속은 문서만 변경했으며 C++ 시험을 다시 실행한 기록은 아니다.
+
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |
 | Compiler | 직접 관리하는 GCC/Clang target에 `-Wall -Wextra -Werror` 적용 | 첫 C++ target부터 적용; 검토된 최소 범위의 예외는 문서화하고 third-party에 global flag 적용 지양 |
@@ -343,8 +349,10 @@ Toolchain/compiler/CI/test 버전은 TBD-11(M1), board 지원/측정 환경은 T
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.
-- 학습/확인 예제는 영역별 실행 프로그램으로 묶는다. 세 actuator와 EV/BMS는
-  `tools/actuator_demo.cpp` 하나에 기존 아홉 명령 + BMS 세 명령 + Linux Epoch 명령을 제공한다.
+- 학습/확인 예제는 `actuator_demo` 실행 파일 하나로 묶는다.
+  [진입점](../tools/actuator_demo.cpp)은 명령 분기·도움말을,
+  `tools/demo/{steering,brake,drive,ev}_demo.cpp`는 각 도메인의 명령 구현을 맡는다.
+  ECU 판단은 `vecu/`, 물리 모델과 SIL 연결은 `simulation/`에 둔다.
   기존 기능의 작은 변경마다 별도 demo를 추가하지 않는다.
 - 단위 시험 파일은 모듈별로 유지한다. 기존 모듈의 조건/경계/fault 추가는 같은 파일의 case로 추가하고,
   새로운 독립 모듈이 생기면 시험 파일을 만든다.
@@ -355,11 +363,39 @@ Toolchain/compiler/CI/test 버전은 TBD-11(M1), board 지원/측정 환경은 T
 
 CMake의 `BUILD_TESTING=OFF`는 단위 시험과 통합 시험용 TX/RX build를 제외한다.
 Fresh build에서 라이브러리와 `actuator_demo`만 생성되는 것을 확인했다.
-기존 예제 4개의 정상/거부 출력 17개를 통합 프로그램과 비교했고 명령 오류 7개/도움말도 확인했다.
+아래는 2026-10-12 최초 예제 통합의 이력이다. 최신 구조 정리의 491개 unit·90개 CLI 비교 범위는 위 2026-10-16 기록을 따른다.
+당시 기존 예제 4개의 정상/거부 출력 17개를 통합 프로그램과 비교했고 명령 오류 7개/도움말도 확인했다.
 단위 시험 파일은 이 정리로 추가하거나 합치지 않았다.
 정리 후 normal/ASan·UBSan 각각 unit 48개와 vCAN 8개 case를 통과했고,
 통합 demo/TX/RX source 3개의 static analysis와 DBC 교차 검증도 통과했다.
 수신 로그의 cycle flush와 실패 trace 보존을 보완한 범위는 [실행 기록](learning/m1_steering_socketcan.md#예제시험-정리와-재검증)에 남겼다.
+
+## 현재 코드에서 검사하기
+
+Repository root에서 실행한다. CMake는 `compile_commands.json`을 생성하므로 정적 분석에도
+현재 target의 include 경로·define을 사용한다. M1 학습 문서의 수동 `-I` 명령은 당시 검사 이력이며,
+현재의 도메인별 demo·ECU/SIL 파일 전체를 포함하지 않는다.
+
+```sh
+cmake -S . -B build/m1-angle -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/m1-angle -j 4
+ctest --test-dir build/m1-angle --output-on-failure
+cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON
+cmake --build build/m1-angle-sanitized -j 4
+ctest --test-dir build/m1-angle-sanitized --output-on-failure
+```
+
+예제의 명령 구현을 검사할 때는 dispatcher만 검사하지 않고 네 도메인 source를 포함한다.
+다음은 demo 5개 source에 한정한 clang-tidy 명령이다. ECU/plant 변경 시에는 해당 구현·시험 source도
+대상에 추가하고 검사 목록·도구 버전·결과를 기록한다.
+
+```sh
+clang-tidy -p build/m1-angle '-checks=-*,clang-analyzer-*,bugprone-*' '-warnings-as-errors=*' tools/actuator_demo.cpp tools/demo/*_demo.cpp
+```
+
+Cppcheck도 현재 compilation database의 include/define과 변경 production/demo 범위를 사용한다.
+GoogleTest macro의 기존 도구 제약은 위 기록처럼 따로 관리하며, 일부 source의 PASS를 전체 repository 결과로 확대하지 않는다.
+SIL 실행 API와 core-only 경계 시험의 읽는 순서는 [실행 경계 안내](learning/m2_execution_boundaries.md)에 있다.
 
 ## Design and evidence review
 

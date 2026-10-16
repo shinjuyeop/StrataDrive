@@ -26,6 +26,7 @@ Classic은 기능·실행·서비스 구조를 정리하며 특정 제어 알고
   receiver/session, source expiry/timeout/continuity/deadline, 목표 선택과 Actual/P05.
 - [TorqueResponse](../../simulation/drive/torque_response.hpp) / [구현](../../simulation/drive/torque_response.cpp):
   CAN과 독립인 물리 응답. Delay FIFO, torque 상태, 정상·zero-target rate를 소유.
+- [DriveActuatorSil](../../simulation/drive/drive_actuator_sil.cpp): ECU의 `prepare/complete`와 물리 진행·torque 취득을 연결.
 - [시험](../../tests/unit/drive_actuator_test.cpp): 두 경계의 입력과 관측값을 독립 검증.
 - 기존 [TX](../../tests/integration/can/socketcan_tx.cpp), [RX/model](../../tests/integration/can/socketcan_rx.cpp),
   [runner](../../tests/integration/can/check_socketcan.py): Command TX → model → 독립 Actual RX.
@@ -86,7 +87,8 @@ Normal 0 command는 delay 50 ms와 normal rate를 거친다. 반면 명령 상�
 
 이는 정상 tick에서의 시험 수치다. 늦은 fresh command로 fault가 해제되지 않으며
 새 trusted Epoch로만 복구한다. 재시작해도 물리 torque는 순간적으로 0으로 초기화하지 않는다.
-Missed interval은 hold하고 다음 regular tick에서 zero ramp를 실행한다. Clock 역행은 출력 중단이다.
+기존 SIL helper는 missed interval을 hold하고 다음 regular tick에서 zero ramp를 실행한다.
+Clock 역행은 ECU publication 중단이며, 외부 실행자가 독립 진행한 물리는 되돌리지 않는다.
 회생 torque 제거는 전체 제동력 감소를 뜻할 수 있으므로 실제 차량 보호는 마찰제동 배분과
 함께 검증해야 한다. 이 component 시험은 차량 정지 성공을 주장하지 않는다.
 
@@ -111,6 +113,7 @@ Sanitizer는 `build/m1-angle-sanitized`와 `-DSTRATADRIVE_SANITIZERS=ON`을 사�
 
 다음 학습은 목표·actual·capability의 차이와 zero target/응답 시간을 설명하는 것이다.
 [Battery 물리·관측](m2_battery_model.md), BMS/Power와 [Drive local gate·capability](m2_drive_gate.md)까지
-후속 component로 구현·시험했다. DriveController는 필수 입력을 검사하고 같은 TorqueResponse를 사용한다.
+후속 component로 구현·시험했다. DriveController는 필수 입력으로 목표/보호 출력을 선택한다.
+[DriveSil](../../simulation/drive/drive_sil.cpp)이 이 출력을 같은 TorqueResponse 모델에 적용하고 관측을 ECU에 전달한다.
 이 문서의 DriveActuator는 계속 isolated fixture다. [실제 DC/Battery 연결](m2_drive_energy.md)은
 별도 이상적 HV component로 구현했다. [실제 RC/접점 연결](m2_ev_power_circuit.md)도 시험했고 차량 motion/에너지 통합은 후속이다.
