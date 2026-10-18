@@ -52,3 +52,25 @@ Full과 minimal은 별도 관측이며 차이를 deadline에서 빼지 않는다
 
 현재 kernel은 PREEMPT_DYNAMIC이다. FIFO 적용과 PREEMPT_RT kernel은 별개이며 kernel trace 권한도 자동으로 생기지 않는다.
 실제 보드/차량의 정시성, WCET, 전체 M3 수용 여부는 별도 검토다.
+
+## 2026-10-19 측정 결과
+
+일반/FIFO 비교 24회는 모두 PASS였다. 추가 부하에서 Drive의 release→완료 지연은 다음과 같아.
+각 값은 같은 trace 조건의 3 runs에서 관측한 p99이며 단위는 ms다.
+
+| Trace | 일반 p99 | FIFO p99 | 기존 Drive 시한 |
+| --- | --- | --- | --- |
+| Full | 1.947 | 0.065 | 5 ms |
+| Minimal | 2.450 | 0.073 | 5 ms |
+
+CPU를 많이 쓰는 일반 작업과 경쟁할 때, 깨어난 제어 thread가 우선 실행되도록 설정한 결과를 볼 수 있어.
+다만 quiet/minimal RX max는 FIFO 쪽이 더 컸고 둘 다 시한 안이었다. 모든 지연을 개선하거나 정시성을 보장하는 결과는 아니야.
+
+고장 회귀는 normal OTHER/FIFO 각각 17/17, sanitizer OTHER 15/17·FIFO 17/17이었다.
+Sanitizer 일반 실행의 두 실패에는 요청 wake 뒤 약 2.05–2.11 ms 지연과 owner slot 누락이 있었다.
+한 run에서는 RX 정지 주입 전에 보호가 걸려 Drive가 활성화되지 않았다. 원래 시한·보호 계약을 유지해 FAIL로 보존했다.
+정확한 timer/IRQ/CPU 배정 원인은 kernel trace가 없어 아직 분리하지 못했다.
+
+기존 Trampoline 회귀 4/4를 포함한 최종 실행은 **94/96 PASS**야. C++은 normal/sanitizer 각각 523개,
+Python 59개와 정적 분석·native/별도 OS/ARM64 빌드도 검사했다. 상세 원인·scope·재현 로그는
+[품질 기록](../quality_policy.md#2026-10-19--native-owner별-fifo-실행과-동일-부하-비교)에 정리했다.

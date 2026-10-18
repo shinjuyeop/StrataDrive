@@ -121,11 +121,11 @@ FIFO는 별도 자식에서 잠깐 시험하고 원래 정책으로 복원한다
 
 Exit 0은 보고서를 수집했다는 뜻이다. FIFO가 거부됐다면 RT workload·지연 개선 비교는 **NOT RUN**으로 남긴다.
 일반 Linux에서도 FIFO를 사용할 수 있고, PREEMPT_RT kernel에서도 실행 계정의 권한은 별도로 확인해야 한다.
-권한이 준비된 다음에는 기존 M3의 같은 workload·시한에서 owner별 RT 설정과 실제 적용값을 기록하는 실행 경로가 필요하다.
+후속 [native FIFO 비교](m3_native_fifo.md)에서 같은 M3 workload·시한에 owner별 RT 설정과 실제 적용값 기록을 연결했다.
 
 2026-10-18에 native/ARM64 세 실행 파일의 빌드·ELF/ABI 확인과 native 기능 회귀 **12/12회**, Python **54개**를 통과했다.
 첫 Host 점검의 FIFO 요청은 EPERM이었으며 PREEMPT_RT가 아니다. 후속 권한 적용 결과는 아래에 기록한다.
-ARM64 runtime과 RT workload는 아직 실행하지 않았다.
+이 사전 점검 당시 ARM64 runtime과 RT workload는 실행하지 않았다. 이후 native FIFO 측정 결과는 후속 문서에 기록했다.
 재현 로그·검증 범위와 다음 조건은 [품질 기록](../quality_policy.md#2026-10-18--arm64-빌드-경계와-rt-사전-점검)에 정리했다.
 
 ## 권한 설정 후 기존 IDE 세션에서 실행하기
@@ -143,4 +143,4 @@ sudo -n -u "$(id -un)" -- python3 tools/runtime_diagnostics.py --probe-only \
 이 Host에서는 비밀번호 추가 입력 없이 UID 1000/CapEff=0을 유지한 채 20/20 한도를 받았다.
 FIFO priority 1과 20은 AVAILABLE, 상한을 넘는 21은 EPERM이었다. 모든 자식 probe는 원래 scheduler를 복원했다.
 이는 권한 확인이며 runtime owner의 policy/priority를 설정하거나 PREEMPT_RT·trace 권한을 활성화하지 않는다.
-다음은 기존 M3 workload에 owner별 RT 적용·실제값 확인을 연결하고 같은 시한에서 비교하는 단계다.
+후속 [native FIFO 실행·측정](m3_native_fifo.md)에 owner별 RT 적용·실제값 확인과 같은 시한의 비교 결과를 기록했다.

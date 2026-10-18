@@ -1,6 +1,6 @@
 # ADR-0042: Native M3 owner별 FIFO 설정과 비교
 
-Date: 2026-10-18. Status: **옵션 실행 경로 구현 / Host 측정·M3 수용 검토**.
+Date: 2026-10-18. Status: **옵션 실행 경로 구현·Host 비교 수행 / M3 수용 후속**. 결과 갱신: 2026-10-19.
 [ADR-0041](ADR-0041-arm64-rtos-build-and-host-preflight.md)의 새 PAM 세션에서 개발 계정의 rtprio 20을 확인했다.
 기존 native M3 workload에 Linux FIFO를 적용한다. Trampoline 내부 Task나 그 POSIX tick을 변경하는 작업과 구분한다.
 

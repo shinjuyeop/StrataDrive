@@ -1,6 +1,6 @@
 # Project status
 
-Updated: **2026-10-18**. 현재 단계는 **M3 — IN PROGRESS**다.
+Updated: **2026-10-19**. 현재 단계는 **M3 — IN PROGRESS**다.
 [README](../README.md)는 프로젝트 소개와 실행 진입점이며, 이 문서는 현재 구현 범위·검증 결과·다음 작업을 정리한다.
 단계별 일정은 [로드맵](roadmap.md), 날짜별 시험 이력·도구·로그 경로는 [품질 기록](quality_policy.md)에 둔다.
 
@@ -39,10 +39,12 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 C++ 521개 PASS 이력 유지**, 이번 Python **54개 PASS** |
-| Build·정적 분석 | Native RTOS·ARM64 Linux RTOS/ViPer/plant 빌드 PASS. 직전 native normal/sanitizer·C++ 정적 분석 이력 유지; hosted OS sanitizer/fiber 연동은 NOT RUN |
-| RTOS 파일럿 | 분리한 native build로 4조건×3회 신규 **12/12 PASS**: 정상·명령 중단·CRC 오류·Control WaitEvent 정지 |
-| 기존 Linux 실행 회귀 | Multirate 17조건+Steering 4조건을 normal/sanitizer에서 **42/42 PASS** |
+| 전체 unit | Normal·ASan/UBSan **각각 C++ 523개 PASS**, Python **59개 PASS** |
+| Build·정적 분석 | Native normal/sanitizer·별도 RTOS host·ARM64 빌드와 변경 C++ 3개 clang-tidy/cppcheck PASS. Hosted OS sanitizer/fiber 연동은 NOT RUN |
+| Native 일반/FIFO 비교 | 같은 CPU map·workload·시한으로 4조건×2 trace×3회 **24/24 PASS**, 설정·부하 control 모두 PASS |
+| Native 고장 회귀 | Normal OTHER/FIFO 각각 17/17, sanitizer OTHER 15/17·FIFO 17/17: **66/68 PASS**, 일반 sanitizer의 owner skip 두 실패 보존 |
+| RTOS 파일럿 | 기존 12회 이력에 더해 이번 4조건 **4/4 PASS**; native FIFO와 별도 실행 경로 |
+| 이전 Linux 실행 회귀 | Multirate 17조건+Steering 4조건 normal/sanitizer **42/42 PASS 이력 유지** |
 | 실행 대기 진단 | 무부하 3회·감시 CPU 부하 3회 수집; control **6/6 PASS**. 원래 정상 timing 계약은 각각 **2/3·0/3 PASS** |
 | Wire·전체 시스템 | 직전 vCAN 97개·DBC 12 frame/36 payload 이력 유지, 이번 재실행 없음. 32개 requirement/29개 system TC **NOT RUN** |
 
@@ -52,13 +54,17 @@ ARXML/RTE/BSW 생성·ARM64 Jetson 배포는 NOT RUN이다. 기존 Linux 배포 
 
 Trampoline POSIX의 가상 tick은 relative sleep 기반이다. 첫 파일럿 12 runs의 첫 release 기준 wall drift는
 약 **23.8–30.6 ms / 1.6 s**였다. 기능 PASS를 정시 실행이나 차량 전체 timing 충족으로 확대하지 않는다.
-신규 native 12 runs에서도 약 **24.3–28.8 ms / 1.6 s**의 drift를 관측했다. Linux scheduling은 여전히 SCHED_OTHER다.
+다음 hosted OS 12 runs에서도 약 **24.3–28.8 ms / 1.6 s**의 drift를 관측했다. Trampoline 파일럿의 Linux scheduling은 SCHED_OTHER다.
 [ARM64 빌드·RT 사전 점검](adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)을 추가했다.
 ARM64는 세 ELF의 CPU·loader/library ABI를 기록한 교차 빌드 결과이며 Jetson 실행 결과가 아니다.
 Host는 PREEMPT_DYNAMIC이다. 관리자 설정 후 새 PAM 실행 세션의 RT priority limit **20/20**과
 FIFO priority **1·20 AVAILABLE / 21 EPERM**을 확인했다. 기존 IDE 세션의 limit 0은 유지되지만 같은 사용자로
 새 실행 세션을 만들면 시험할 수 있다. [실행 방법](learning/m3_rtos_pilot.md#권한-설정-후-기존-ide-세션에서-실행하기)을 참고한다.
-Trace/perf 접근 제한은 남아 있다. RT workload·지연 개선 비교는 NOT RUN이며 owner별 RT 적용 경로와 실측이 다음 작업이다.
+Trace/perf 접근 제한은 남아 있다. [Native FIFO 실행](learning/m3_native_fifo.md)에서 owner별 실제 priority와
+startup gate·실패 취소·호출 thread 복원을 연결했다. 추가 부하의 Drive release→완료 p99는 full trace에서
+일반 **1.947 ms → FIFO 0.065 ms**, minimal에서 **2.450 ms → 0.073 ms**였다. 모든 작업의 지연 개선이나 WCET 보장은 아니다.
+Sanitizer 일반 실행 2회는 예상하지 않은 owner skip을 동반해 실패했다. 같은 cohort에서 FIFO 고장 회귀는 모두 PASS다.
+새 검사는 총 **94/96 PASS**이며 실패를 제거하거나 기존 시한을 완화하지 않았다. PREEMPT_RT kernel·Target timing은 후속이다.
 
 별도 observer가 기존 native multirate thread의 `/proc` 누적 카운터를 읽었다. 6회에서 monitor skip **486개**가 있었고,
 이를 덮는 모든 관측 구간에서 runqueue 대기 증가를 확인했다. 무부하의 한 구간에서는 요청 wake 지연 약 3.565 ms와
@@ -73,9 +79,9 @@ M1/M2 학습자 수용·전체 M3 수용은 PENDING이다.
 
 ## 다음 작업
 
-1. **ARM64 실행 검증:** 선택한 보드의 OS/BSP·sysroot/ABI와 POSIX stack·ViPer IPC·SocketCAN 지원을 확인하고 기능 4조건을 실행한다. 교차 빌드 PASS를 runtime 지원으로 확대하지 않는다.
-2. **Host timing 검증:** 새 실행 세션의 RT 권한을 확인했다. 다음은 native owner별 policy/priority 적용·실제값 검증 경로다. 같은 M3 workload/시한으로 일반/RT 실행을 비교하고 kernel trace 권한은 별도 준비한다.
-3. **M3 수용·후속 통합:** 기능/clock/budget·누락 분모·보호 요청과 실제 적용·미검증 범위를 검토한다. RTE/BSW·Central/두 Zone 통합은 후속이다.
+1. **M3 실행 수용 검토:** 일반/FIFO 24회 비교와 sanitizer 일반 2회 실패를 포함해, 선택할 실행 profile·누락 분모·보호 요청/실제 적용·기능/clock/budget을 검토한다.
+2. **Host 지연 원인 분해:** kernel trace 권한을 준비해 timer→wakeup→switch를 분리한다. PREEMPT_RT 환경 비교와 충분한 반복 검증도 후속이다.
+3. **ARM64·후속 통합:** 보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. RTE/BSW·Central/두 Zone 통합은 후속이다.
 
 ## 후속 통합 범위
 
@@ -85,7 +91,7 @@ Front는 Steering/Brake, Rear는 Drive/BMS를 담당하며 feedback도 담당 Zo
 두 Zone runtime·DDS 통신과 실제 Central coordinator는 M4/M5 범위이며 현재 request/grant·relay는 fixture다.
 
 통합 EV 예제의 speed는 외부 고정값 20 rad/s다. 차량 관성·타이어·마찰제동 배분·CARLA closed-loop는 M4/M6/M7,
-Owner별 배치는 Host에서 비교했고 RT 우선순위와 Target timing은 후속 배포 단계, DTC 통합은 M9에 남는다. Classical control·AI·Target 배포도 후속 단계다.
+Owner별 배치와 native FIFO 우선순위는 Host에서 비교했다. Target timing과 DTC 통합(M9), Classical control·AI·Target 배포는 후속 단계다.
 Leaf는 [Classic 개발 체계](adr/ADR-0022-leaf-classic-development-methodology.md)를 따르는 방향을 채택했고,
 실제 OS/RTE/BSW stack·toolchain은 pilot에서 검토한다.
 

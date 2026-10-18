@@ -53,3 +53,6 @@ Config를 못 읽으면 RT 여부는 unknown이다. FIFO가 AVAILABLE이어도 M
 공식 근거: [Trampoline POSIX platform](https://github.com/TrampolineRTOS/trampoline),
 [Linux scheduling 권한과 정책](https://man7.org/linux/man-pages/man7/sched.7.html),
 [PREEMPT_RT](https://www.kernel.org/doc/html/latest/core-api/real-time/index.html).
+
+후속 [ADR-0042](ADR-0042-native-owner-fifo-scheduling.md)로 native owner별 FIFO 적용과 Host 비교를 진행했다.
+실제 ARM64 실행·kernel trace와 Target 수용 조건은 유지한다.

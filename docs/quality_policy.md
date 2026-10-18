@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 다중 주기/task·CAN 감시·CPU 부하/배치에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 521개 PASS**, Python 리포터 **54개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 523개 PASS**, Python 리포터 **59개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -907,6 +907,84 @@ UID 1000/CapEff=0에서 기존 진단 도구로 FIFO **1·20 AVAILABLE**, 상한
 RT workload와 일반/RT timing 비교는 **NOT RUN**이다. PREEMPT_DYNAMIC kernel과 trace/perf 접근 제한도 유지한다.
 다음은 owner별 RT 설정·적용 실패 처리·실제 policy/priority 기록을 연결하고 같은 M3 시한에서 비교하는 것이다.
 새 로그인/IDE 재시작 또는 위 같은 사용자 실행 경로로 계정 한도를 적용할 수 있다.
+
+## 2026-10-19 — Native owner별 FIFO 실행과 동일 부하 비교
+
+구현은 **7843a7e**, 결정은 [ADR-0042](adr/ADR-0042-native-owner-fifo-scheduling.md)다.
+기존 multirate 실행기에 일곱 owner의 `owner-fifo=` 요청과 실제 policy/priority 확인, 모든 owner 준비 후 startup release,
+실패 시 전체 취소와 호출 thread 복원을 연결했다. C++ parser 검사 2개와 기존 Python 파일의 scheduling/control 검사 5개를 추가했다.
+
+### 확인한 범위
+
+Normal·ASan/UBSan build와 C++ **각각 523개**, Python **59개**는 PASS다.
+변경 C++ 3개(multirate runtime, demo 진입점, runtime unit)의 clang-tidy analyzer/bugprone·cppcheck warning/performance/portability도 PASS다.
+Cppcheck는 GTest macro를 읽기 위해 `--library=googletest`를 사용했다. 초기 macro 구문 오류 로그도 별도 보존했다.
+BUILD_TESTING=OFF의 hosted OS build와 ARM64 Linux RTOS·ViPer·plant build도 PASS이며 ARM64 runtime은 NOT RUN이다.
+
+최종 실행은 clean 구현 commit에서 순차 진행했다. Native workload는 기존 IO 동반 map(ECU4=CPU1, RX/monitor/plant=CPU0)을 유지했다.
+새 PAM 계정 세션의 rtprio는 20/20이며, 일반 조건은 SCHED_OTHER/0, FIFO는 10/10/9/10/18/20/19다.
+각 owner의 준비/실제 적용값과 startup·호출 thread 복원, native **92회**의 배치·설정·부하 control은 모두 PASS다.
+
+| Series | 조건 / 수 | 계약 결과 |
+| --- | --- | --- |
+| Native 비교 | OTHER/FIFO × quiet/loaded × full/minimal ×3 | **24/24 PASS** |
+| Normal OTHER 고장 회귀 | 기존 17조건, 같은 CPU map | **17/17 PASS** |
+| Normal FIFO 고장 회귀 | 같은 17조건과 주입 | **17/17 PASS** |
+| ASan/UBSan OTHER 고장 회귀 | 같은 17조건과 주입 | **15/17 PASS**, 2 FAIL 보존 |
+| ASan/UBSan FIFO 고장 회귀 | 같은 17조건과 주입 | **17/17 PASS** |
+| Hosted OS Steering 회귀 | 기존 정상/명령 상실/CRC/WaitEvent 정지 | **4/4 PASS** |
+
+총 **94/96 PASS**다. 추가 CLI 3개(권한 없음·BMS만 priority 21인 부분 실패·중복 옵션)는 예상 거부를 확인했으며 위 분모에 넣지 않는다.
+설정이 거부된 두 경우 모두 startup release=0, 모든 job/cycle 미실행, CAN/physical 행 없음과 호출 thread 복원을 확인했다.
+일반 policy로 fallback하거나 일부 작업만 실행하지 않았다. 미검증 priority map을 양산 설정으로 취급하지 않는다.
+
+### 같은 부하에서 관측한 지연
+
+다음은 normal build의 **Drive release→완료**이며 단위는 ms다. 각 행은 독립 3 runs의 job 관측을 합쳤고 run 간 gap은 만들지 않는다.
+Drive 시한은 두 정책 모두 기존 5 ms다. Full/minimal·sanitizer 및 앞선 배치/observer 실험과 섞지 않는다.
+
+| 부하 / trace | OTHER p99 | FIFO p99 | OTHER max | FIFO max |
+| --- | --- | --- | --- | --- |
+| ECU CPU 부하 / full | 1.946878 | 0.065454 | 2.638265 | 0.099024 |
+| ECU CPU 부하 / minimal | 2.449738 | 0.073157 | 2.493961 | 0.090526 |
+
+부하는 같은 SCHED_OTHER 7/10 ms wall busy window이며 CPU 소비도 검증했다. Partial boundary를 포함한 실제 CPU 비율 경계는
+전체 loaded runs에서 약 0.664–0.688이었다. 주어진 경합 조건에서 ECU 응답 tail이 줄었지만 모든 작업의 지연이 개선된 것은 아니다.
+예를 들어 quiet/minimal RX max는 OTHER **0.342025 ms**, FIFO **1.065564 ms**였다. 둘 다 RX 3 ms 시한 안이다.
+Clock/power/background를 고정한 WCET 실험이 아니며 이 수치로 다른 Host/Target 또는 모든 timing tail을 보장하지 않는다.
+
+### 보존한 sanitizer OTHER 실패
+
+`power-stall-full-1`은 plant slot 1035(release 2070 ms)를 생략했다. 다음 실제 실행의 요청 wake 지연은 **2.053252 ms**였다.
+Monitor가 **2074.100001 ms**에 검출했고 실제 brake floor는 **2076.057343 ms**에 적용됐다. Plant body max는 **0.238077 ms**였다.
+이 실패는 주입된 Power 정지와 별도로 발생한 owner miss이므로 정상 수용으로 바꾸지 않았다.
+
+`rx-stall-full-1`은 plant slots 210/721와 monitor slot 721을 생략했다. 요청 wake 지연은 각각 **2.073495/2.054862/2.111280 ms**다.
+첫 plant miss의 검출은 **424.154572 ms**, 실제 floor/zero 적용은 **426.067791 ms**로 계획된 RX 정지(1100 ms) 전이었다.
+Drive가 활성화되지 않아 oracle은 `Drive gate never enabled before fault`로 실패했다. Plant body max는 **0.205986 ms**였다.
+이는 긴 body가 아니라 요청 wake 뒤의 지연과 slot 누락을 관측한 기록이다. Timer/IRQ/CPU 배정 원인은 이 trace만으로 특정하지 않는다.
+
+두 run의 설정·배치 control은 PASS고 runtime abort/trace drop도 없다. 첫 실패는 plant 1개, 두 번째는 plant 2개·monitor 1개로
+총 **4개 guarded slot**이 누락됐다. 기존 최신 release 실행 정책과 4 ms guard를 유지했고 보호가 실제 적용된 시각도 보존했다.
+실패를 재실행 PASS로 대체하거나 비교 24회/앞선 observer 표본에 합치지 않았다. Sanitizer FIFO는 17/17이지만 hard real-time 증명은 아니다.
+
+### 로그와 남은 작업
+
+`build/m3-fifo-comparison/`(24), `m3-fifo-{other-faults,fifo-faults,asan-other-faults,asan-fifo-faults}/`(각17),
+`m3-fifo-rtos-regression/`(4)에 environment/source/binary·모든 CSV·summary/artifact hash를 둔다. 같은 이름의 .txt가 실행 로그다.
+`build/m3-fifo-campaign.{txt,json}`은 전체 실행 순서·exit/계약 결과를 보존한다.
+`build/m3-fifo-cli-checks/`는 3개 예상 거부, `m3-fifo-{unit,sanitized-unit,python,clang,cppcheck}.txt`는 검사 로그다.
+Native/sanitizer build는 `m3-fifo-{build,sanitized-build}.txt`, 문서 검사는 `m3-fifo-doc-check.txt`다.
+선택형 OS는 `build/m3-fifo-rtos-{host,pilot}/`, ARM64는 `m3-fifo-aarch64-{host,pilot}/`과 각 build 로그·manifest에 둔다.
+일부 build/CLI metadata는 직전 commit+작업 중 hash이며 구현 commit의 blob과 재대조했다. 최종 96 runs의 source commit은 clean 7843a7e다.
+
+`build/m3-fifo-evidence.py`·`.json`·`.txt`는 source/commit·binary/build/archive/도구·ELF/ABI hash,
+94 PASS/2 FAIL 재판정·실제 scheduler/CPU/startup/복원·부하 control·기존 OS IPC 정리를 대조한다.
+개발용 `build/m3-fifo-probe/`의 8 runs는 최종 24회 비교에서 제외한다.
+초기 `build/m3-fifo-python-probe.txt`의 54개 검사도 최신 59개 결과와 구분한다.
+
+다음은 선택할 실행 profile·M3 수용 검토와 kernel timer→wakeup→switch 관측이다. PREEMPT_DYNAMIC kernel·RT throttling은 유지했고
+PREEMPT_RT/kernel trace·실제 ARM64 실행·RTE/BSW·전체 32개 requirement/29개 TC는 **NOT RUN**이다.
 
 ## 코드·예제·시험 배치
 
