@@ -889,6 +889,25 @@ Native는 `build/m3-platform-native-host/`·`m3-platform-native-pilot/`, ARM64�
 다음은 선택한 ARM64 보드의 OS/BSP·ABI/stack/IPC 확인과 RT 권한이 있는 환경의 native policy/priority 적용·실측이다.
 다른 Leaf 확대와 M3 수용은 해당 증거 검토 뒤 진행한다.
 
+## 2026-10-18 — 개발 계정 RT 권한 적용 확인
+
+사용자가 준비된 설정을 `/etc/security/limits.d/90-stratadrive.conf`에 설치했다. Root:root/0644와
+`alswoghd soft/hard rtprio 20` 두 항목을 확인했다. 기존 IDE/Codex의 0/0 한도에서는 FIFO priority 1이 여전히 EPERM이었다.
+
+`sudo -n -u alswoghd`로 같은 사용자에게 새 PAM 실행 세션을 만들면 한도는 **20/20**이었다.
+UID 1000/CapEff=0에서 기존 진단 도구로 FIFO **1·20 AVAILABLE**, 상한 밖 **21 BLOCKED/EPERM**을 확인했다.
+각 probe의 원래 scheduler 복원도 확인했다. 부모 IDE와 새 세션의 실행 정책은 SCHED_OTHER/priority 0을 유지했다.
+시스템 sudo/sshd PAM 설정에 `pam_limits.so`가 있고, 이 실행 경로에서는 추가 비밀번호 입력이 필요하지 않았다.
+
+첫 기존 세션 기록은 `build/rt-permission-check-20261018T142149.202896Z/`, 새 세션 priority 1은
+`build/rt-permission-active-20261018T142329.848901Z/`, priority 20/21은 각각
+`build/rt-permission-bound-{20,21}-20261018T142439.618421Z/`에 capabilities·source/commit·artifact hash를 보존했다.
+이 기록의 source commit은 47c23fe다. 이번에는 문서만 변경해 build/unit/기능 회귀를 재실행하지 않았다.
+
+RT workload와 일반/RT timing 비교는 **NOT RUN**이다. PREEMPT_DYNAMIC kernel과 trace/perf 접근 제한도 유지한다.
+다음은 owner별 RT 설정·적용 실패 처리·실제 policy/priority 기록을 연결하고 같은 M3 시한에서 비교하는 것이다.
+새 로그인/IDE 재시작 또는 위 같은 사용자 실행 경로로 계정 한도를 적용할 수 있다.
+
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.

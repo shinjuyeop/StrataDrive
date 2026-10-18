@@ -55,8 +55,10 @@ Trampoline POSIX의 가상 tick은 relative sleep 기반이다. 첫 파일럿 12
 신규 native 12 runs에서도 약 **24.3–28.8 ms / 1.6 s**의 drift를 관측했다. Linux scheduling은 여전히 SCHED_OTHER다.
 [ARM64 빌드·RT 사전 점검](adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)을 추가했다.
 ARM64는 세 ELF의 CPU·loader/library ABI를 기록한 교차 빌드 결과이며 Jetson 실행 결과가 아니다.
-Host는 PREEMPT_DYNAMIC이며 FIFO priority 1은 EPERM, RT priority limit은 0, trace/perf 접근도 제한된다.
-RT workload·지연 개선 비교는 NOT RUN이다. PREEMPT_RT와 실행 계정의 RT 권한은 별도로 준비·검증해야 한다.
+Host는 PREEMPT_DYNAMIC이다. 관리자 설정 후 새 PAM 실행 세션의 RT priority limit **20/20**과
+FIFO priority **1·20 AVAILABLE / 21 EPERM**을 확인했다. 기존 IDE 세션의 limit 0은 유지되지만 같은 사용자로
+새 실행 세션을 만들면 시험할 수 있다. [실행 방법](learning/m3_rtos_pilot.md#권한-설정-후-기존-ide-세션에서-실행하기)을 참고한다.
+Trace/perf 접근 제한은 남아 있다. RT workload·지연 개선 비교는 NOT RUN이며 owner별 RT 적용 경로와 실측이 다음 작업이다.
 
 별도 observer가 기존 native multirate thread의 `/proc` 누적 카운터를 읽었다. 6회에서 monitor skip **486개**가 있었고,
 이를 덮는 모든 관측 구간에서 runqueue 대기 증가를 확인했다. 무부하의 한 구간에서는 요청 wake 지연 약 3.565 ms와
@@ -72,7 +74,7 @@ M1/M2 학습자 수용·전체 M3 수용은 PENDING이다.
 ## 다음 작업
 
 1. **ARM64 실행 검증:** 선택한 보드의 OS/BSP·sysroot/ABI와 POSIX stack·ViPer IPC·SocketCAN 지원을 확인하고 기능 4조건을 실행한다. 교차 빌드 PASS를 runtime 지원으로 확대하지 않는다.
-2. **Host timing 검증:** 사전 점검이 가능한 도구를 준비했다. 다음은 RT 권한이 있는 환경과 native owner별 policy/priority 적용·실제값 검증 경로다. 같은 M3 workload/시한과 kernel trace로 일반/RT 실행을 비교한다.
+2. **Host timing 검증:** 새 실행 세션의 RT 권한을 확인했다. 다음은 native owner별 policy/priority 적용·실제값 검증 경로다. 같은 M3 workload/시한으로 일반/RT 실행을 비교하고 kernel trace 권한은 별도 준비한다.
 3. **M3 수용·후속 통합:** 기능/clock/budget·누락 분모·보호 요청과 실제 적용·미검증 범위를 검토한다. RTE/BSW·Central/두 Zone 통합은 후속이다.
 
 ## 후속 통합 범위
