@@ -44,8 +44,11 @@ Brake/Drive/Power 10 ms·BMS 20 ms와 RX worker, 독립 task/유효 RX 감시의
 SYS-PERF-001/002/003·TC-PERF-001/002의 Host 부분 실험이며 부하에서 관측한 deadline 위반도 FAIL과 분모에 남긴다.
 Control 적용 검증과 기존 ECU 계약 충족을 구분한다. 조건별 실제 결과는 [품질 기록](../quality_policy.md)에 연결한다.
 [Drive Actual CAN 연결](../learning/m3_drive_feedback.md)은 비동기 취득/보조 시각·같은 torque 재발행 거부와 payload 대응을 검사해
-현재 C++ **521개**·Python **21개**다. SYS-COM-002/003/004·SYS-PERF-001/002/003과 TC-COM-002/003/005·TC-PERF-001/002의
+당시 C++ **521개**·Python **21개**다. SYS-COM-002/003/004·SYS-PERF-001/002/003과 TC-COM-002/003/005·TC-PERF-001/002의
 Host 부분 증거이며 Actual replay와 CRC 손상/worker 정지를 포함한다. 실제 Zone/Host bridge와 전체 TC Result는 NOT RUN이다.
+후속 [owner별 배치](../adr/ADR-0037-runtime-owner-cpu-placement.md)는 map/순서/실제 thread 대조에 Python 4개를 더해
+현재 C++ **521개**·Python **25개**다. 위 PERF의 Host 부분 증거이며 배치·부하 control과 ECU 계약의 실패를 구분한다.
+단독 RX/동반 IO 분리의 정상 비교와 고정 map의 기존 fault 회귀 결과는 [품질 기록](../quality_policy.md)에 남긴다.
 아래 system TC의 모든 required variant·차량/Zone/배포 환경을 검증한 결과는 아니며 Result는 NOT RUN을 유지한다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |

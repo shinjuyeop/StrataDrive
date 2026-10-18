@@ -518,6 +518,70 @@ Markdown 95개·상대 링크/앵커 1069개, 요구 32개/TC 29개, YAML 3개�
 전체 32개 요구/29개 system TC의 Result는 NOT RUN이다. Actual consumer를 차량에 반영하는 Central/Zone/Host bridge와
 owner별 실행 budget/배치·우선순위·Target 검증 및 M3 수용은 후속이다. M1/M2 학습자 수용 기록도 PENDING이다.
 
+2026-10-18 후속 [owner별 CPU 배치 비교](adr/ADR-0037-runtime-owner-cpu-placement.md)는
+7개 owner의 선택적 CPU map·실제 affinity/policy 확인을 추가했다. 기존 상속 동작과 세 layout의 CPU 실험은 유지한다.
+원래 RX source·CAN wire·8-frame budget·2 ms period/3 ms deadline과 ECU 설정·보호 기준을 변경하지 않았다.
+실행된 RX body가 짧아도 다음 release까지 CPU를 얻지 못해 이전 job을 생략할 수 있다.
+배치별 정상 계약을 확인하며 시한/skip 기준을 완화하거나 실패 조건을 골라 제외하지 않았다.
+
+Normal·BUILD_TESTING=OFF production 각 3회(**24 runs씩**), ASan/UBSan 1회(**8 runs**)를 순서대로 실행했다.
+CPU A=0·B=1이며 노출된 topology는 서로 다른 physical core다. Loaded 세 layout 모두 B에 같은 7/10 ms 요청 부하를 둔다.
+IO baseline은 같은 IO map의 무부하 대조군이다. 부모는 고정하지 않고 runtime thread가 자기 mask를 설정한다.
+Warm-up 제외는 0이고 layout/trace 순서를 회전했다. Host/VM의 다른 부하·IRQ·DVFS/cooling은 통제하지 않았다.
+배치·부하 control은 **56/56 PASS**, 정상 ECU 계약은 **31 PASS / 25 FAIL**이다.
+측정 window의 실제 busy CPU 하한 최소~상한 최대는 normal **67.08–69.08%**, production **66.92–68.76%**,
+sanitizer **64.92–67.73%**였다. 요청 duty 70%를 실현된 일정 CPU 사용률로 간주하지 않는다.
+아래는 full/minimal 합산 **계약 PASS/runs; RX skipped jobs**이며 normal·production의 layout당 예정 RX jobs는 7260개,
+sanitizer는 2420개다. 이번 RX miss 수는 모두 skip 수와 같았고 실행하지 않은 duration을 만들지 않았다.
+
+| Layout | Normal | Production | ASan/UBSan |
+| --- | --- | --- | --- |
+| colocated | 0/6; 47 | 0/6; 51 | 0/2; 50 |
+| rx-isolated | 1/6; 1 | 2/6; 0 | 2/2; 0 |
+| io-isolated | 6/6; 0 | 4/6; 3 | 2/2; 0 |
+| io-baseline | 6/6; 0 | 6/6; 0 | 2/2; 0 |
+
+RX만 이동해도 normal/production의 실제 output expiry가 각각 10/20개, Actual TX expiry가 17/17개 남았다.
+Normal의 rx-isolated에는 Power miss도 1개 있었다. RX 자체의 miss 0만으로 전체 계약을 PASS로 바꾸지 않는다.
+함께 이동한 IO 조건의 expiry는 모두 0이며, PASS 정상 run마다 **240 TX=240 RX=240 Accepted**였다.
+Production IO의 잔여 RX skip 3개는 실패로 보존한다. Full run의 한 skip 근처에서는 monitor와 physical capture도
+각각 약 4.27/4.31 ms 간격을 보였다. 공통 실행 지연의 관측이며 kernel/VM 원인을 식별한 scheduler trace는 아니다.
+
+IO-isolated의 RX **실행된 job response(release→종료, ms)**는 아래와 같다. 실패 run의 유효 job도 포함했다.
+같은 layout 안에서만 trace mode를 나누며 skip을 percentile에서 가짜 duration으로 대체하지 않는다.
+
+| Build / trace | Executed / scheduled | Mean | P95 | P99 | Max |
+| --- | --- | --- | --- | --- | --- |
+| normal full | 3630/3630 | 0.113605 | 0.193476 | 0.228865 | 0.992502 |
+| normal minimal | 3630/3630 | 0.118963 | 0.200799 | 0.243726 | 0.714671 |
+| production full | 3629/3630 | 0.108668 | 0.151443 | 0.233031 | 1.700965 |
+| production minimal | 3628/3630 | 0.080966 | 0.124059 | 0.205948 | 0.287464 |
+
+Production minimal의 작은 Max도 생략된 2개 job을 지우지 않는다. 고장 뒤 실행 경로 차이·scheduler/cache 간섭이 있으므로
+layout 사이 body 비용 차이를 최적화 성능으로 해석하지 않는다. Sanitizer 1회는 기능/수명 확인이며 대표 성능 비교가 아니다.
+Affinity는 CPU 예약/하드웨어 watchdog 격리가 아니며 IO 분리가 잔여 miss를 모두 해결했다고 선언하지 않는다.
+
+고정 IO map `1,1,1,1,0,0,0`에서 기존 normal full/minimal·worker stall 5·CRC 손상·Actual replay를
+normal·sanitizer 각각 1회(**18 runs 합계**) 실행해 모두 통과했다. 이 회귀에는 추가 CPU 부하가 없다.
+기존 상속 동작의 normal fault matrix도 1회(**9 runs**) 통과했다. 기존 3-layout CPU 실험은 normal 1회(**6 runs**)로
+control 6/6 PASS, 계약 4 PASS/2 FAIL(shared RX skip·Drive 미활성화)을 기록했다. 모두 별도 directory로 남긴다.
+
+Normal·sanitizer C++ **각각 521개 PASS**, 배치 map/실제 thread 대응/순서/입력 검사 4개를 더한 Python **25개 PASS**다.
+CLI malformed/duplicate/outside-mask 거부 **24조건**에서 socket/output directory 생성 전에 거부한 것을 확인했다.
+3개 build와 변경 C++ 2개(runtime/dispatcher)의 clang-tidy 14 analyzer/bugprone·runtime header filter,
+cppcheck 2.7 warning/performance/portability를 통과했다. 직전 M1/vCAN 97조건·DBC 검사는 위 이력을 따르며 이번에는 재실행하지 않았다.
+RT policy probe는 즉시 종료하는 별도 child에 FIFO priority 1을 요청했고 **EPERM**, RLIMIT_RTPRIO=(0,0)이었다.
+부모는 SCHED_OTHER/nice 0을 유지했다. RT priority 실제 실행 검증과 기존 Host 오류의 TSan은 **NOT RUN**이다.
+
+세 build의 `m3-owner-results/`에 최종 56 runs의 trace/environment/source/profile/binary/artifact hash,
+normal·sanitizer의 `m3-owner-faults/`에 고정 배치 18 runs, normal의 `m3-owner-inherited-faults/`·`m3-owner-legacy-placement/`에
+상속 fault 9/기존 CPU 실험 6 runs를 보존했다. 예비 8 runs는 normal의 `m3-owner-probe/`이며 최종 수치에 포함하지 않는다.
+Unit stdout은 각 build의 `m3-owner-ctest-console.txt`, Python/CLI/static/RT probe는 normal의
+`m3-owner-{python,cli,clang,cppcheck,rt-probe}.txt`다. 최종 무결성·코드/문서 연결은 `build/m1-angle/m3-owner-evidence.json`에 둔다.
+Monitor/plant의 physics 일부만이 아닌 전체 cycle budget, RT 적용 가능한 환경/Target timing과 M3 수용 검토는 남는다.
+전체 32개 requirement/29개 system TC의 Result는 NOT RUN이며 M1/M2 학습자 수용도 PENDING이다.
+이번 문서 검사는 Markdown 96개·상대 링크/앵커 1086개, YAML 3개·Python 5개의 syntax/정합성을 통과했다.
+
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |
 | Compiler | 직접 관리하는 GCC/Clang target에 `-Wall -Wextra -Werror` 적용 | 첫 C++ target부터 적용; 검토된 최소 범위의 예외는 문서화하고 third-party에 global flag 적용 지양 |
