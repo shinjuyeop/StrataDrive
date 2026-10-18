@@ -149,3 +149,8 @@ OS tick drift를 wall time으로 별도 측정하며 프로파일은 runtime loa
 
 이 파일럿에 병행한 scheduling observer의 대상은 기존 native multirate Linux thread다.
 RTOS 내부 Task별 kernel trace로 해석하지 않는다.
+
+`m3_native_fifo_fixture`는 [native FIFO 비교](../docs/learning/m3_native_fifo.md)의 설계 기록이다.
+Linux owner별 priority 10/10/9/10/18/20/19와 동일 IO 동반 CPU map, startup gate·호출 thread 복원,
+일반/FIFO × quiet/loaded × full/minimal 조건을 명시한다. 실제 설정은 CLI의 `owner-fifo=`와 owner CPU 옵션이다.
+YAML loader나 Trampoline Task 설정이 아니며 기존 M3 주기·시한과 RT throttling은 유지한다.

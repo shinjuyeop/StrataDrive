@@ -145,5 +145,9 @@ parameter가 아니며 M1/M2 runtime 구현이나 차량 시험의 완료로 표
 
 다음 [Steering RTOS 파일럿](m3_rtos_pilot.md)은 실제 Trampoline Task/Event/Alarm/Resource를 사용한다.
 기존 ECU와 CAN·외부 물리 모델을 연결하고, 별도 sampler로 Host runqueue 대기를 관측한다.
-기존 Python 리포터 파일에 source/late/skipped·counter coverage·spawn 검사 5개를 추가해 현재 **48개**다.
+기존 Python 리포터 파일에 source/late/skipped·counter coverage·spawn 검사 5개를 추가해 당시 **48개**였다.
 OS 기능, 가상 tick, Host wall timing, Target 검증은 각각 구분한다.
+
+후속 [native Linux FIFO 비교](m3_native_fifo.md)는 같은 M3 workload에 owner별 RT 우선순위를 적용한다.
+모든 owner의 startup 준비·실제값 확인과 실패 시 취소, 호출 thread 복원을 검사한다.
+ARM64/권한 사전 점검과 이번 검사를 포함한 현재 Python은 **59개**, C++은 normal/sanitizer 각각 **523개**다.

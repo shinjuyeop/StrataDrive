@@ -10,6 +10,7 @@ import multiprocessing
 import os
 from pathlib import Path
 import platform
+import resource
 import statistics
 import subprocess
 import time
@@ -433,6 +434,8 @@ def drive_feedback_metrics(transmitted, received, jobs):
 def analyze_multirate(directory, metadata):
     require(metadata["schema"] in (2, 3, 4, 5) and metadata["clock"] == "CLOCK_MONOTONIC", "unknown multirate schema/clock")
     require(not metadata["aborted"] and metadata["trace_drops"] == 0, "runtime/trace failure")
+    if "runtime_scheduling" in metadata:
+        validate_scheduling(metadata, metadata["runtime_scheduling"]["requested_fifo_priorities"])
     if metadata["scenario"] not in ("plant-overrun", "io-overrun"):
         require(metadata["expired_outputs"] == 0, "expired output outside plant overrun injection")
     rows, metrics = {}, {}
@@ -617,6 +620,8 @@ def select_cpus(allowed, topology, runtime_cpu=None, load_cpu=None):
 OWNER_NAMES = ("brake", "drive", "bms", "power", "rx", "monitor", "plant_fixture")
 OWNER_LAYOUTS = ("colocated", "rx-isolated", "io-isolated", "io-baseline")
 GUARD_LAYOUTS = ("io-control", "rx-separated", "guard-separated", "guard-baseline")
+SCHEDULER_LAYOUTS = ("other-quiet", "fifo-quiet", "other-loaded", "fifo-loaded")
+FIFO_PRIORITIES = (10, 10, 9, 10, 18, 20, 19)
 
 
 def owner_placement(layout, io_cpu, work_cpu):
@@ -654,6 +659,12 @@ def parse_owner_cpus(value):
     require(len(fields) == len(OWNER_NAMES) and all(f.isascii() and f.isdecimal() for f in fields),
             "owner-cpus requires seven nonnegative CPU IDs: " + ",".join(OWNER_NAMES))
     return dict(zip(OWNER_NAMES, map(int, fields)))
+
+
+def parse_fifo_priorities(value):
+    priorities = list(parse_owner_cpus(value).values())
+    require(all(1 <= priority <= 99 for priority in priorities), "owner-fifo requires seven priorities in 1..99")
+    return priorities
 
 
 def placement_conditions(repetitions, layouts=("baseline", "shared", "separate")):
@@ -770,12 +781,32 @@ def validate_load(load, cpu, begin, end):
             "skipped_cycles": sum(not r["ran"] for r in rows), "cycles": len(rows)}
 
 
-def validate_placement(metadata, cpu):
+def validate_scheduling(metadata, priorities):
+    config = metadata["runtime_scheduling"]
+    require(config["requested_fifo_priorities"] == priorities, "FIFO request missing or changed")
+    if priorities is not None:
+        require(len(priorities) == len(OWNER_NAMES) and all(1 <= p <= 99 for p in priorities), "invalid FIFO request")
+    policy = os.SCHED_OTHER if priorities is None else os.SCHED_FIFO
+    expected = [0]*len(OWNER_NAMES) if priorities is None else priorities
+    require(set(metadata["threads"]) == set(OWNER_NAMES), "missing scheduling owner")
+    require(all(metadata["threads"][name]["policy"] == policy and metadata["threads"][name]["priority"] == priority
+                for name,priority in zip(OWNER_NAMES,expected)), "runtime scheduling not applied; no fallback accepted")
+    require(config["setup_errors"] == [0]*7 and config["restore_error"] == 0, "scheduling setup/restore error")
+    release = config["startup_release_ns"]
+    require(0 < release < metadata["enable_ns"] and len(config["ready_ns"]) == 7 and
+            all(0 < ready <= release for ready in config["ready_ns"]), "workload released before every owner was ready")
+    before, after = config["caller_before"], config["caller_after"]
+    require(before["policy"] == after["policy"] == os.SCHED_OTHER and before["priority"] == after["priority"] == 0 and
+            before["tid"] == after["tid"] and before["allowed_cpus"] == after["allowed_cpus"], "caller scheduling/affinity not restored")
+
+
+def validate_placement(metadata, cpu, priorities=None):
     threads = metadata["threads"]
     expected = cpu if isinstance(cpu, dict) else dict.fromkeys(OWNER_NAMES, cpu)
     require(set(threads) == set(expected) == set(OWNER_NAMES), "missing thread placement")
     require(all(t["allowed_cpus"] == [expected[name]] and t["observed_cpu"] == expected[name] and
-                t["policy"] == os.SCHED_OTHER and t["priority"] == 0 for name, t in threads.items()),
+                t["policy"] == (os.SCHED_OTHER if priorities is None else os.SCHED_FIFO) and
+                t["priority"] == (0 if priorities is None else priorities[OWNER_NAMES.index(name)]) for name, t in threads.items()),
             "runtime thread placement/policy not applied")
     if isinstance(cpu, dict):
         require(metadata.get("requested_owner_cpus") == [expected[name] for name in OWNER_NAMES], "owner request missing or changed")
@@ -813,12 +844,13 @@ def pooled_job_metrics(runs):
     return result
 
 
-def placement_comparison(reports):
+def placement_comparison(reports, require_controls=False):
     groups = {}
     for layout in dict.fromkeys(r["layout"] for r in reports):
         for detailed in (True, False):
             selected = [r for r in reports if r["layout"] == layout and r["detailed_trace"] == detailed]
-            complete = [r for r in selected if "observation_scope" in r]
+            complete = [r for r in selected if "observation_scope" in r and
+                        (not require_controls or r.get("placement_and_load_verdict") == "PASS")]
             owner_complete = [r for r in complete if r.get("owner_cycles")]
             groups[f"{layout}-{'full' if detailed else 'minimal'}"] = {
                 "runs": len(selected), "contract_passes": sum(r["runtime_contract_verdict"] == "PASS" for r in selected),
@@ -836,7 +868,7 @@ def placement_comparison(reports):
     return groups
 
 
-def trace_comparison(reports, family):
+def trace_comparison(reports, family, require_controls=False):
     role_overheads = {}
     for role in (("steering",) if family == "steering" else ("brake", "drive", "bms", "power", "rx")):
         overhead = {}
@@ -846,7 +878,8 @@ def trace_comparison(reports, family):
                 metadata = report.get("metadata", {})
                 if metadata.get("scenario") != "normal" or metadata.get("detailed_trace") != detailed:
                     continue
-                if report["verdict"] != "PASS" and "observation_scope" not in report:
+                if ((report["verdict"] != "PASS" and "observation_scope" not in report) or
+                        (require_controls and report.get("placement_and_load_verdict") != "PASS")):
                     excluded.append(report["label"])
                     continue
                 path = Path(report["directory"]) / ("jobs.csv" if role == "steering" else role + "-jobs.csv")
@@ -869,7 +902,8 @@ def trace_comparison(reports, family):
         for detailed in (True, False):
             selected = [r for r in reports if r.get("metadata", {}).get("scenario") == "normal" and
                         r.get("metadata", {}).get("detailed_trace") == detailed]
-            valid = [r for r in selected if r.get("owner_cycles")]
+            valid = [r for r in selected if r.get("owner_cycles") and
+                     (not require_controls or r.get("placement_and_load_verdict") == "PASS")]
             values = [(row["end_ns"] - row["start_ns"]) / 1e6 for r in valid
                       for row in multirate_rows(Path(r["directory"]) / filename) if row["ran"]]
             key = "full" if detailed else "minimal"
@@ -890,12 +924,20 @@ def environment(build, binary, family):
     governor = Path("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")
     cpu_info = Path("/proc/cpuinfo").read_text()
     cpu_model = next((line.split(":", 1)[1].strip() for line in cpu_info.splitlines() if line.startswith("model name")), "unknown")
+    config = Path('/boot') / ('config-' + os.uname().release)
+    try:
+        kernel_config = config.read_text().splitlines()
+        preempt_rt = 'CONFIG_PREEMPT_RT=y' in kernel_config
+    except OSError:
+        preempt_rt = None
     return {"utc_started": datetime.now(timezone.utc).isoformat(), "commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
             "working_tree": subprocess.check_output(["git", "status", "--short"], cwd=ROOT, text=True).splitlines(),
             "binary_sha256": sha256(binary), "build_settings": selected, "cmake_cache_sha256": sha256(build / "CMakeCache.txt"),
             "compiler": subprocess.check_output([selected["CMAKE_CXX_COMPILER"], "--version"], text=True).splitlines()[0],
             "platform": platform.platform(), "machine": platform.machine(), "cpu_model": cpu_model, "cpu_count": os.cpu_count(),
             "cpu_affinity": sorted(os.sched_getaffinity(0)), "cpu_governor": governor.read_text().strip() if governor.exists() else "unknown",
+            "launcher_policy": os.sched_getscheduler(0), "launcher_priority": os.sched_getparam(0).sched_priority,
+            "rt_priority_limit": list(resource.getrlimit(resource.RLIMIT_RTPRIO)), "kernel_preempt_rt": preempt_rt,
             "load_average_before": os.getloadavg(), "power_clocks_cooling": "not controlled; governor observed only",
             "warmup_jobs_excluded": 0, "clock_sync": "single process CLOCK_MONOTONIC; cross-node N/A",
             "family": family,
@@ -911,11 +953,12 @@ def main():
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument("--family", choices=("steering", "multirate"), default="steering")
-    parser.add_argument("--experiment", choices=("faults", "cpu-placement", "owner-placement", "guard-placement"), default="faults")
+    parser.add_argument("--experiment", choices=("faults", "cpu-placement", "owner-placement", "guard-placement", "scheduler"), default="faults")
     parser.add_argument("--runtime-cpu", type=int, help="allowed CPU A: all owners in cpu-placement; IO owners in owner-placement")
     parser.add_argument("--load-cpu", type=int, help="different allowed logical CPU for separate placement; prefer another physical core")
     parser.add_argument("--guard-cpu", type=int, help="third allowed CPU C for guard-placement; prefer another physical core")
     parser.add_argument("--owner-cpus", help="fixed seven-owner CPU map for multirate fault regression, comma-separated in owner order")
+    parser.add_argument("--owner-fifo", help="seven explicit FIFO priorities for multirate fault regression; scheduler experiment default: 10,10,9,10,18,20,19")
     parser.add_argument("--analyze", type=Path, help="analyze one existing runtime trace without executing")
     args = parser.parse_args()
     if args.analyze:
@@ -923,16 +966,19 @@ def main():
         return 0
     require(1 <= args.repetitions <= 20, "repetitions must be 1..20")
     placement = args.experiment in ("cpu-placement", "owner-placement", "guard-placement")
-    require(not placement or args.family == "multirate", "placement requires --family multirate")
-    require(placement or (args.runtime_cpu is None and args.load_cpu is None), "CPU choices require placement experiment")
+    scheduler = args.experiment == "scheduler"
+    require(not (placement or scheduler) or args.family == "multirate", "placement/scheduler requires --family multirate")
+    require(placement or scheduler or (args.runtime_cpu is None and args.load_cpu is None), "CPU choices require placement/scheduler experiment")
     require(args.guard_cpu is None or args.experiment == "guard-placement", "guard-cpu requires guard-placement")
     fixed_owners = parse_owner_cpus(args.owner_cpus) if args.owner_cpus is not None else None
     require(fixed_owners is None or (not placement and args.family == "multirate"), "fixed owner-cpus requires multirate faults")
     if fixed_owners is not None:
         require(set(fixed_owners.values()) <= os.sched_getaffinity(0), "owner CPU outside inherited affinity")
+    fifo = parse_fifo_priorities(args.owner_fifo) if args.owner_fifo is not None else list(FIFO_PRIORITIES) if scheduler else None
+    require(fifo is None or (args.family == "multirate" and not placement), "owner-fifo requires multirate faults/scheduler")
     experiment = {"name": args.experiment}
     runtime_cpu = load_cpu = guard_cpu = None
-    if placement:
+    if placement or scheduler:
         allowed = sorted(os.sched_getaffinity(0))
         topology = cpu_topology(allowed)
         runtime_cpu, load_cpu = select_cpus(allowed, topology, args.runtime_cpu, args.load_cpu)
@@ -948,6 +994,12 @@ def main():
             experiment["guard_cpu"] = guard_cpu
             experiment["owner_maps"] = {layout: guard_placement(layout, runtime_cpu, load_cpu, guard_cpu) for layout in GUARD_LAYOUTS}
             experiment["load_location"] = "work CPU B for all loaded layouts; none for guard-baseline"
+        elif scheduler:
+            fixed_owners = fixed_owners or owner_placement("io-baseline", runtime_cpu, load_cpu)
+            experiment.update(fixed_owner_cpus=fixed_owners, fifo_priorities=fifo,
+                              policy="paired SCHED_OTHER/0 vs explicit per-owner SCHED_FIFO; no fallback",
+                              load_location="work CPU B for other-loaded/fifo-loaded; none for quiet",
+                              preempt_rt="kernel unchanged; not implied by FIFO scheduling")
     elif fixed_owners is not None:
         experiment["fixed_owner_cpus"] = fixed_owners
     build = args.build_dir.resolve()
@@ -973,8 +1025,8 @@ def main():
             raise
     planned = [(f"{scenario}-{'full' if detailed else 'minimal'}-{rep+1}", scenario, detailed, None)
                for rep in range(args.repetitions) for scenario, detailed in conditions]
-    if placement:
-        layouts = GUARD_LAYOUTS if args.experiment == "guard-placement" else OWNER_LAYOUTS if args.experiment == "owner-placement" else ("baseline", "shared", "separate")
+    if placement or scheduler:
+        layouts = SCHEDULER_LAYOUTS if scheduler else GUARD_LAYOUTS if args.experiment == "guard-placement" else OWNER_LAYOUTS if args.experiment == "owner-placement" else ("baseline", "shared", "separate")
         planned = [(f"{layout}-{'full' if detailed else 'minimal'}-{rep}", "normal", detailed, layout)
                    for layout, detailed, rep in placement_conditions(args.repetitions, layouts)]
     try:
@@ -987,12 +1039,17 @@ def main():
                 owners = guard_placement(layout, runtime_cpu, load_cpu, guard_cpu)
             if owners is not None:
                 command += ["owner-cpus=" + ",".join(str(owners[name]) for name in OWNER_NAMES)]
+            requested_fifo = fifo if not scheduler or layout.startswith("fifo-") else None
+            if requested_fifo is not None:
+                command += ["owner-fifo=" + ",".join(map(str,requested_fifo))]
             begin, process_elapsed = time.monotonic_ns(), 0
             load, report = None, {"verdict": "FAIL"}
             assigned_load = runtime_cpu if layout == "shared" else load_cpu if layout == "separate" else None
             if args.experiment == "owner-placement" and layout != "io-baseline":
                 assigned_load = load_cpu
             elif args.experiment == "guard-placement" and layout != "guard-baseline":
+                assigned_load = load_cpu
+            elif scheduler and layout.endswith("loaded"):
                 assigned_load = load_cpu
             try:
                 if assigned_load is not None:
@@ -1007,6 +1064,8 @@ def main():
                 (output / (label + ".stdout.txt")).write_text(process.stdout)
                 (output / (label + ".stderr.txt")).write_text(process.stderr)
                 if args.family == "multirate":
+                    if (directory / "run.json").exists():
+                        report["metadata"] = json.loads((directory / "run.json").read_text())
                     report.update(observe_jobs(directory))
                 require(process.returncode == 0, f"runtime exit {process.returncode}: {process.stderr.strip()}")
                 report.update(analyze(directory))
@@ -1016,9 +1075,14 @@ def main():
                 measured_load = load.finish() if load is not None else None
             report["runtime_contract_verdict"] = report["verdict"]
             controls = []
+            if args.family == "multirate":
+                try:
+                    validate_scheduling(report["metadata"], requested_fifo)
+                except (AssertionError, KeyError) as error:
+                    controls.append(str(error))
             if layout is not None or owners is not None:
                 try:
-                    validate_placement(report["metadata"], owners if owners is not None else runtime_cpu)
+                    validate_placement(report["metadata"], owners if owners is not None else runtime_cpu, requested_fifo)
                 except (AssertionError, KeyError) as error:
                     controls.append(str(error))
                 if measured_load is not None:
@@ -1034,6 +1098,10 @@ def main():
                               placement_and_load_verdict="FAIL" if controls else "PASS", control_errors=controls)
                 if controls:
                     report["verdict"] = "FAIL"
+            elif controls:
+                report["verdict"] = "FAIL"
+                report["control_errors"] = controls
+            report["requested_fifo_priorities"] = requested_fifo
             report.update(label=label, directory=str(directory), detailed_trace=detailed,
                           observed_process_wall_ns=process_elapsed, observed_run_wall_ns=time.monotonic_ns()-begin)
             reports.append(report)
@@ -1041,13 +1109,15 @@ def main():
     finally:
         if created:
             subprocess.run(["ip", "link", "delete", "dev", interface], check=True)
-    overhead = ({"by_layout": {layout: trace_comparison([r for r in reports if r["layout"] == layout], args.family)
-                               for layout in layouts}} if placement
+    overhead = ({"by_layout": {layout: trace_comparison([r for r in reports if r["layout"] == layout], args.family, require_controls=scheduler)
+                               for layout in layouts}} if placement or scheduler
                 else trace_comparison(reports, args.family))
     summary = {"verdict": "PASS" if all(r["verdict"] == "PASS" for r in reports) else "FAIL", "runs": reports,
                "experiment": experiment, "trace_overhead_comparison": overhead, "full_system_tc": "NOT RUN"}
-    if placement:
-        summary["placement_comparison"] = placement_comparison(reports)
+    if placement or scheduler:
+        summary["placement_comparison"] = placement_comparison(reports, require_controls=scheduler)
+    if scheduler:
+        summary["control_excluded_runs"] = [r["label"] for r in reports if r.get("placement_and_load_verdict") != "PASS"]
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     artifacts = {str(p.relative_to(output)): sha256(p) for p in sorted(output.rglob("*")) if p.is_file()}
     (output / "artifact-sha256.json").write_text(json.dumps(artifacts, indent=2) + "\n")

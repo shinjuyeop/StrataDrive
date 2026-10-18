@@ -660,3 +660,26 @@ m3_steering_rtos_pilot:
     attribution: covering_interval_only
     performance_baseline: false
     kernel_wakeup_switch_trace: requires_available_tracefs_or_perf_access
+
+# ADR-0042: opt-in native Linux FIFO comparison; independent of Trampoline Tasks.
+m3_native_fifo_fixture:
+  family: multirate
+  scenario: normal
+  policies: [SCHED_OTHER, SCHED_FIFO]
+  owner_order: [brake, drive, bms, power, rx, monitor, plant_fixture]
+  fifo_priorities: {brake: 10, drive: 10, bms: 9, power: 10, rx: 18, monitor: 20, plant_fixture: 19}
+  owner_map: io_baseline # ECU work CPU B; RX/monitor/plant CPU A
+  startup_wait_limit_ms: 50
+  all_owners_ready_before_enable: true
+  setup_failure: cancel_without_workload_or_fallback
+  caller_scheduler_and_affinity: restore_before_join_and_file_output
+  load_process_policy: SCHED_OTHER
+  load_cpu: work_cpu_B
+  load_period_ms: 10
+  load_busy_window_ms: 7
+  conditions: [other-quiet, fifo-quiet, other-loaded, fifo-loaded]
+  trace_modes: [full, minimal]
+  repetitions_per_condition: 3
+  timing_and_receive_contracts: m3_multirate_runtime_fixture_unchanged
+  kernel_change: none
+  hard_real_time_acceptance: not_claimed

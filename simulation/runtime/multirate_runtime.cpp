@@ -16,8 +16,11 @@
 #include <array>
 #include <atomic>
 #include <charconv>
+#include <chrono>
+#include <condition_variable>
 #include <exception>
 #include <memory>
+#include <mutex>
 #include <thread>
 
 namespace stratadrive::simulation {
@@ -143,7 +146,6 @@ void write_feedback_wire(std::ostream& out,const socketcan::Frame& frame) {
 }
 
 template<class Body> void execute(Task& task, std::atomic<bool>& abort, Body body) {
-    task.thread.capture();
     for(std::size_t next=0;next<task.rows.size() && !abort.load(std::memory_order_acquire);) {
         sleep_until(task.schedule.release(next)); const auto start=now_ns();
         const auto selected=task.schedule.newest_released(start,next);
@@ -187,6 +189,21 @@ std::array<int,7> parse_runtime_owner_cpus(const std::string& value) {
     return cpus;
 }
 
+std::array<int,7> parse_runtime_owner_fifo(const std::string& value) {
+    std::array<int,7> priorities{};
+    const char* next=value.data(); const char* end=next+value.size();
+    for(std::size_t i=0;i<priorities.size();++i) {
+        const auto result=std::from_chars(next,end,priorities[i]);
+        if(result.ec!=std::errc{} || priorities[i]<sched_get_priority_min(SCHED_FIFO) ||
+            priorities[i]>sched_get_priority_max(SCHED_FIFO) ||
+            (i+1==priorities.size() ? result.ptr!=end : result.ptr==end || *result.ptr!=',')) {
+            throw std::invalid_argument("owner-fifo requires seven FIFO priorities (1..99): brake,drive,bms,power,rx,monitor,plant_fixture");
+        }
+        if(i+1<priorities.size()) next=result.ptr+1;
+    }
+    return priorities;
+}
+
 void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     const auto& scenario=options.scenario;
     const auto& interface_name=options.interface_name;
@@ -195,8 +212,15 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     if(scenario!="normal" && scenario!="brake-stall" && scenario!="drive-stall" && scenario!="bms-stall" &&
         scenario!="power-stall" && scenario!="rx-stall" && scenario!="rx-corrupt" && scenario!="feedback-replay" &&
         scenario!="monitor-overrun" && scenario!="plant-overrun" && scenario!="monitor-stall" && scenario!="io-overrun") throw std::invalid_argument("multirate-runtime scenario");
+    ThreadInfo inherited; inherited.capture();
+    if(options.owner_fifo_priorities) {
+        if(inherited.policy!=SCHED_OTHER || inherited.priority!=0)
+            throw std::invalid_argument("FIFO experiment requires a SCHED_OTHER/0 launcher");
+        for(const int priority:*options.owner_fifo_priorities)
+            if(priority<sched_get_priority_min(SCHED_FIFO) || priority>sched_get_priority_max(SCHED_FIFO))
+                throw std::invalid_argument("FIFO priority outside supported range");
+    }
     if(options.owner_cpus) {
-        ThreadInfo inherited; inherited.capture();
         for(const int cpu:*options.owner_cpus) {
             if(std::find(inherited.allowed_cpus.begin(),inherited.allowed_cpus.end(),cpu)==inherited.allowed_cpus.end())
                 throw std::invalid_argument("owner CPU outside inherited affinity");
@@ -261,6 +285,35 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     };
     std::array<std::exception_ptr,7> errors{};
     ThreadInfo monitor_thread_info,plant_thread_info;
+    const std::array<ThreadInfo*,7> owner_info{&brake_task.thread,&drive_task.thread,&bms_task.thread,&power_task.thread,
+        &rx_task.thread,&monitor_thread_info,&plant_thread_info};
+    std::array<std::uint64_t,7> ready_ns{};
+    std::array<int,7> setup_errors{};
+    std::mutex startup_mutex;
+    std::condition_variable startup_condition;
+    std::size_t ready_workers=0;
+    bool startup_released=false;
+    std::uint64_t startup_release_ns=0;
+    auto cancel=[&] {
+        { const std::lock_guard<std::mutex> lock(startup_mutex); abort.store(true,std::memory_order_release); }
+        startup_condition.notify_all();
+    };
+    auto configure_owner=[&](std::size_t owner) {
+        try {
+            place_owner(owner);
+            owner_info[owner]->capture();
+            if(options.owner_fifo_priorities) {
+                sched_param parameter{}; parameter.sched_priority=(*options.owner_fifo_priorities)[owner];
+                const int result=pthread_setschedparam(pthread_self(),SCHED_FIFO,&parameter);
+                if(result!=0) throw std::system_error(result,std::generic_category(),"owner pthread_setschedparam");
+                owner_info[owner]->capture();
+                if(owner_info[owner]->policy!=SCHED_FIFO || owner_info[owner]->priority!=parameter.sched_priority)
+                    throw std::runtime_error("owner scheduling request not applied");
+            }
+            ready_ns[owner]=now_ns();
+        } catch(const std::system_error& error) { setup_errors[owner]=error.code().value(); throw; }
+        catch(...) { setup_errors[owner]=-1; throw; }
+    };
     std::uint64_t floor_at=0,zero_at=0,monitor_end=0;
     std::size_t physical_drops=0,monitor_drops=0,raw_drops=0,expired_outputs=0;
     std::vector<PhysicalRow> physical_rows; physical_rows.reserve(2600);
@@ -272,7 +325,6 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     can::ActuatorReceiverHealth feedback_health=can::ActuatorReceiverHealth::NotInitialized;
     std::optional<PhysicalRow> final_physical;
     auto watch=[&] {
-        monitor_thread_info.capture();
         bool injected=false;
         auto wake_target=enable,sleep_begin=now_ns(); sleep_until(wake_target);
         while(!abort.load(std::memory_order_acquire)) {
@@ -416,13 +468,35 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     };
     std::vector<std::thread> threads; threads.reserve(6);
     auto launch=[&](std::size_t owner,auto body) {
-        threads.emplace_back([&,owner,body] { try { place_owner(owner); body(); } catch(...) { errors[owner]=std::current_exception(); abort.store(true,std::memory_order_release); } });
+        threads.emplace_back([&,owner,body] {
+            try {
+                configure_owner(owner);
+                bool run=false;
+                {
+                    std::unique_lock<std::mutex> lock(startup_mutex);
+                    ++ready_workers; startup_condition.notify_all();
+                    startup_condition.wait(lock,[&] { return startup_released || abort.load(std::memory_order_acquire); });
+                    run=!abort.load(std::memory_order_acquire);
+                }
+                if(run) body();
+            } catch(...) { errors[owner]=std::current_exception(); cancel(); }
+        });
     };
     try { launch(5,watch); launch(0,brake); launch(1,drive); launch(2,bms); launch(3,power); launch(4,receive); }
-    catch(...) { abort.store(true,std::memory_order_release); for(auto& t:threads) t.join(); throw; }
+    catch(...) { errors[6]=std::current_exception(); cancel(); }
     try {
-        place_owner(6);
-        plant_thread_info.capture();
+        configure_owner(6);
+        {
+            std::unique_lock<std::mutex> lock(startup_mutex);
+            const bool ready=startup_condition.wait_for(lock,std::chrono::milliseconds(50),[&] {
+                return ready_workers==6 || abort.load(std::memory_order_acquire);
+            });
+            const auto release=now_ns();
+            if(!ready || abort.load(std::memory_order_acquire) || release>=enable)
+                throw std::runtime_error("runtime startup incomplete or after enable; workload cancelled");
+            startup_release_ns=release; startup_released=true;
+        }
+        startup_condition.notify_all();
         BrakePressureResponse pressure({1500000,0,5000000,10000000,50*kMs,7}); if(!pressure.begin(enable)) throw std::runtime_error("pressure INIT");
         DriveSilPlant torque({-200,300,0,1000,2000,50*kMs}); torque.begin(7,enable);
         EvPowerModel electrical({}, {180000000,400,.05,200000,20,25,100,.01,1,100000}, {.002,50,.02,100,1000,500});
@@ -546,7 +620,21 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
             if(now>=stop_at) break;
             wake_target=next_wake(enable,kPoll,now_ns()); sleep_begin=now_ns(); sleep_until(wake_target);
         }
-    } catch(...) { errors[6]=std::current_exception(); abort.store(true,std::memory_order_release); }
+    } catch(...) { if(!errors[6]) errors[6]=std::current_exception(); cancel(); }
+    // The plant uses this caller thread. Restore it before joins/file output,
+    // including failed startup; task metadata retains its measured policy.
+    ThreadInfo restored;
+    int restore_error=0;
+    try {
+        sched_param parameter{}; parameter.sched_priority=inherited.priority;
+        restore_error=pthread_setschedparam(pthread_self(),inherited.policy,&parameter);
+        if(restore_error!=0) throw std::system_error(restore_error,std::generic_category(),"restore caller scheduler");
+        cpu_set_t mask; CPU_ZERO(&mask);
+        for(const int cpu:inherited.allowed_cpus) CPU_SET(cpu,&mask);
+        restore_error=pthread_setaffinity_np(pthread_self(),sizeof(mask),&mask);
+        if(restore_error!=0) throw std::system_error(restore_error,std::generic_category(),"restore caller affinity");
+        restored.capture();
+    } catch(...) { if(!errors[6]) errors[6]=std::current_exception(); cancel(); }
     for(auto& thread:threads) thread.join();
     monitor_cycles.write(directory/"monitor-cycles.csv"); plant_cycles.write(directory/"plant-cycles.csv");
     for(const auto* task:tasks) {
@@ -618,6 +706,18 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
         for(std::size_t i=0;i<options.owner_cpus->size();++i) { if(i) meta << ','; meta << (*options.owner_cpus)[i]; }
         meta << ']';
     } else meta << "null";
+    meta << ",\n\"runtime_scheduling\":{\"requested_fifo_priorities\":";
+    if(options.owner_fifo_priorities) {
+        meta << '[';
+        for(std::size_t i=0;i<options.owner_fifo_priorities->size();++i) { if(i) meta << ','; meta << (*options.owner_fifo_priorities)[i]; }
+        meta << ']';
+    } else meta << "null";
+    meta << ",\"startup_release_ns\":" << startup_release_ns << ",\"ready_ns\":[";
+    for(std::size_t i=0;i<ready_ns.size();++i) { if(i) meta << ','; meta << ready_ns[i]; }
+    meta << "],\"setup_errors\":[";
+    for(std::size_t i=0;i<setup_errors.size();++i) { if(i) meta << ','; meta << setup_errors[i]; }
+    meta << "],\"restore_error\":" << restore_error << ",\"caller_before\":"; inherited.write_json(meta);
+    meta << ",\"caller_after\":"; restored.write_json(meta); meta << '}';
     meta << ",\n\"threads\": {";
     for(std::size_t i=0;i<tasks.size();++i) { if(i) meta << ','; meta << std::quoted(kNames[i]) << ':'; tasks[i]->thread.write_json(meta); }
     meta << ",\"monitor\":"; monitor_thread_info.write_json(meta);

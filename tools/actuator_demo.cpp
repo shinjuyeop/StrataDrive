@@ -40,7 +40,7 @@ void usage(std::ostream& output) {
     output << "  actuator_demo epoch <init|next> <store_directory>\n";
     output << "  actuator_demo steering-rtos-plant <normal|command-loss|corrupt|control-stall> <vcan> <inherited_channel_fd> <enable_ns> <output_directory>\n";
     output << "  actuator_demo steering-runtime <normal|overrun|stall> <new_output_directory> [trace-off]\n";
-    output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt|feedback-replay|monitor-overrun|plant-overrun|monitor-stall|io-overrun> <vcan_interface> <new_output_directory> [trace-off] [owner-cpus=brake,drive,bms,power,rx,monitor,plant_fixture]\n";
+    output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt|feedback-replay|monitor-overrun|plant-overrun|monitor-stall|io-overrun> <vcan_interface> <new_output_directory> [trace-off] [owner-cpus=brake,drive,bms,power,rx,monitor,plant_fixture] [owner-fifo=10,10,9,10,18,20,19]\n";
 #endif
 }
 } // namespace stratadrive::demo
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
             else if (command == "ev-power" && (argc == 2 || argc == 3)) demo_ev_power(argc == 3 ? argv[2] : "normal");
             else if (command == "drive-model" && argc == 2) demo_drive_model();
 #ifdef STRATADRIVE_LINUX_SESSION
-            else if (command == "multirate-runtime" && argc >= 5 && argc <= 7) {
+            else if (command == "multirate-runtime" && argc >= 5 && argc <= 8) {
                 stratadrive::simulation::MultirateRuntimeOptions options;
                 options.scenario=argv[2]; options.interface_name=argv[3]; options.directory=argv[4];
                 for(int i=5;i<argc;++i) {
@@ -84,6 +84,8 @@ int main(int argc, char** argv) {
                     if(argument=="trace-off" && options.detailed_trace) options.detailed_trace=false;
                     else if(argument.rfind("owner-cpus=",0)==0 && !options.owner_cpus)
                         options.owner_cpus=stratadrive::simulation::parse_runtime_owner_cpus(argument.substr(11));
+                    else if(argument.rfind("owner-fifo=",0)==0 && !options.owner_fifo_priorities)
+                        options.owner_fifo_priorities=stratadrive::simulation::parse_runtime_owner_fifo(argument.substr(11));
                     else throw std::invalid_argument("unknown or duplicate runtime option");
                 }
                 stratadrive::simulation::run_multirate_runtime(options);

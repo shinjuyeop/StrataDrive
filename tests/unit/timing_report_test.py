@@ -26,6 +26,56 @@ rtos_build = load_helper('build_rtos_pilot', PATH.parents[3] / 'tools/build_rtos
 
 
 class TimingReportTest(unittest.TestCase):
+    @staticmethod
+    def scheduling_fixture():
+        priorities=list(report.FIFO_PRIORITIES)
+        caller=dict(policy=os.SCHED_OTHER,priority=0,tid=123,allowed_cpus=[0,1])
+        return dict(enable_ns=1000,threads={name:dict(policy=os.SCHED_FIFO,priority=p,allowed_cpus=[0],observed_cpu=0)
+                    for name,p in zip(report.OWNER_NAMES,priorities)},
+                    runtime_scheduling=dict(requested_fifo_priorities=priorities,ready_ns=[10]*7,startup_release_ns=20,
+                    setup_errors=[0]*7,restore_error=0,caller_before=caller,caller_after=copy.deepcopy(caller)))
+
+    def test_requested_fifo_cannot_silently_fall_back_or_rewrite_its_request(self):
+        metadata=self.scheduling_fixture()
+        report.validate_scheduling(metadata,list(report.FIFO_PRIORITIES))
+        report.validate_placement(metadata,0,list(report.FIFO_PRIORITIES))
+        metadata['threads']['rx'].update(policy=os.SCHED_OTHER,priority=0)
+        with self.assertRaisesRegex(AssertionError,'no fallback'):
+            report.validate_scheduling(metadata,list(report.FIFO_PRIORITIES))
+        metadata=self.scheduling_fixture()
+        with self.assertRaisesRegex(AssertionError,'request'):
+            report.validate_scheduling(metadata,None)
+
+    def test_runtime_release_requires_every_owner_to_be_ready_before_enable(self):
+        for change in (dict(ready_ns=[10]*6+[0]),dict(ready_ns=[10]*6+[21]),dict(startup_release_ns=1000),dict(setup_errors=[0]*6+[1])):
+            metadata=self.scheduling_fixture(); metadata['runtime_scheduling'].update(change)
+            with self.assertRaises(AssertionError): report.validate_scheduling(metadata,list(report.FIFO_PRIORITIES))
+
+    def test_returning_to_caller_must_restore_policy_priority_and_affinity(self):
+        for change in (dict(policy=os.SCHED_FIFO,priority=19),dict(allowed_cpus=[0]),dict(tid=999)):
+            metadata=self.scheduling_fixture(); metadata['runtime_scheduling']['caller_after'].update(change)
+            with self.assertRaisesRegex(AssertionError,'not restored'):
+                report.validate_scheduling(metadata,list(report.FIFO_PRIORITIES))
+
+    def test_scheduler_campaign_rotates_every_policy_load_and_trace_condition(self):
+        conditions=list(report.placement_conditions(3,report.SCHEDULER_LAYOUTS))
+        self.assertEqual(len(conditions),24)
+        for layout in report.SCHEDULER_LAYOUTS:
+            self.assertEqual(sum(item[0]==layout for item in conditions),6)
+            for detailed in (True,False):
+                self.assertEqual(sum(item[:2]==(layout,detailed) for item in conditions),3)
+        self.assertEqual(report.parse_fifo_priorities('10,10,9,10,18,20,19'),list(report.FIFO_PRIORITIES))
+        for value in ('0,10,9,10,18,20,19','100,10,9,10,18,20,19','10,10,9,10,18,20','10,10,9,10,18,20,19,'):
+            with self.assertRaises(AssertionError): report.parse_fifo_priorities(value)
+
+    def test_invalid_scheduler_controls_remain_failures_without_pooling_their_trace(self):
+        run=dict(layout='fifo-quiet',detailed_trace=True,runtime_contract_verdict='FAIL',verdict='FAIL',label='failed-setup',
+                 placement_and_load_verdict='FAIL',observation_scope='retained',directory='/missing/never-read')
+        group=report.placement_comparison([run],require_controls=True)['fifo-quiet-full']
+        self.assertEqual((group['runs'],group['run_passes']),(1,0))
+        self.assertEqual(group['excluded_from_statistics'],['failed-setup'])
+        self.assertEqual(group['by_task'],{})
+
     def test_toolchain_compiler_detection_does_not_require_a_cached_variable(self):
         with tempfile.TemporaryDirectory() as temporary:
             build = Path(temporary)
