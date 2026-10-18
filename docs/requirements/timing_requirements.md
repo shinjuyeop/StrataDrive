@@ -193,3 +193,9 @@ Worst observed execution time은 관측 sample의 최대값이다. **WCET bound*
 기본 CLI 정책·기존 requirement 수치는 변경하지 않았다. 두 sanitizer OTHER 타이밍 실패는 OPEN이고 전체 수용은 PENDING이다.
 이번 리포터 수정은 pooled guarded interval의 run 사이 gap을 제거하며 정상/고장 판정이나 누락 분모를 완화하지 않는다.
 Central/Zone 추가 시 새 workload의 task/queue/monitor budget과 원천 인과 경로를 재검증한다. TBD-04의 차량/Target·E2E 값은 남긴다.
+
+[ADR-0043](../adr/ADR-0043-hosted-monotonic-timer-and-placement.md)은 hosted RTOS의 timer phase부터
+ReleaseDispatch까지 5 ms, 정상은 phase부터 Control 완료까지 5 ms인 추가 Host 검사를 채택·측정했다.
+기존 실제 release→완료 5 ms와 감시 20 ms를 유지하며 원래 기점보다 앞선 phase를 함께 검사한다.
+Relative 대조군도 원래 origin으로 평가하며 expiration 누락·signal coalescing은 timing FAIL이다.
+Absolute 24/24 PASS와 native FIFO 후속 102/102는 local 부분 증거다. 차량/Target 전체 시한·SYS requirement를 완화하거나 VERIFIED로 바꾸지 않는다.

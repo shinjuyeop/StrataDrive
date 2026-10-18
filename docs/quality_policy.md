@@ -1018,6 +1018,51 @@ Target timing은 실제 배포 단계, Central/Zone DDS는 M5, 차량 E2E는 M7�
 문서 105개/상대 링크·앵커 1186개, requirement 32개/TC 29개 추적성, YAML 3개/Python 8개 syntax와
 whitespace를 검사해 통과했다. 결과는 `build/m3-acceptance-review/docs-check.txt`에 둔다.
 
+## 2026-10-19 — Hosted timer drift 수정과 Host scheduling 회귀
+
+[ADR-0043](adr/ADR-0043-hosted-monotonic-timer-and-placement.md)의 구현은 `625b487`,
+기능 PASS 뒤 추가 timing 실패도 전체 FAIL/exit 1로 남기는 후속은 `554e91c`다.
+후자의 clean source에서 계측 relative/absolute × OTHER/FIFO × 4 scenarios × 3회를 실행했다.
+동일 IO CPU 0/RTOS CPU 1·추가 부하 없음·warm-up 제외 0이며 profile 순서를 repetition마다 회전했다.
+코드·설정은 측정 중 바꾸지 않았고 아래 native/observer와 시간상 겹치지 않게 순차 실행했다.
+
+| 실행 | 결과 / 범위 |
+| --- | --- |
+| Hosted timer 비교 48회 | 기능/배치 control 48/48 PASS, 추가 timing은 absolute 24/24 PASS / relative 0/24 PASS. 상대 대조군 24 FAIL/exit 1 보존 |
+| Native FIFO normal/sanitizer | 기존 17조건×3회, 각각 51/51 PASS. 원래 96회 cohort의 OTHER 실패 2건과 별도 |
+| Native observer 진단 | Control 12/12 PASS. Quiet 두 policy 각각 3/3, IO 부하 OTHER 0/3·FIFO 3/3 timing PASS |
+| ViPer 정지 주입 | 실제 35.133071 ms 정지, 누락 expirations 3개와 normal FAIL/exit 1 확인; 나머지 3조건 PASS |
+| Upstream backend 호환 | 원본 timer 선택·동일 CPU map의 OTHER 기능 4/4 PASS; 새 timing 수용으로 해석하지 않음 |
+| Unit·build/static | C++ normal/sanitizer 각각 523개, Python 63개 PASS. Native/hosted OS/ARM64 build, C++ 2개 clang-tidy·C/C++ 3개 cppcheck PASS |
+
+선택한 absolute/FIFO의 normal 세 runs에서 nominal drift는 −0.000772/−0.000368/−0.000862 ms,
+원래 timer phase→Control 완료 max는 0.276923 ms였다. Relative/FIFO는 15.016595–17.319982 ms drift와
+phase→완료 max 25.781443 ms였다. Absolute/OTHER도 Host 추가 timing 12/12 PASS이고 normal max는 0.284828 ms다.
+각 normal 원천 job의 관측이며 fault의 의도적 Control 정지나 run 사이 gap을 성능 표본에 합치지 않는다.
+실제 release 뒤 짧은 계산 시간만으로 timer 앞단 지연이 사라졌다고 판단하지 않는다.
+
+Timerfd는 놓친 기간을 기록하고 signal 하나만 보내며 mmap trace를 시작 전에 준비한다.
+원본 checkout은 수정하지 않고 GPL 표기·source/compile command/hash를 가진 timer object만 교체했다.
+기본 opt-in build는 absolute이며 `relative`는 동일 계측 대조군, `upstream`은 고정 원본이다.
+개발 probe 첫 4회 중 Control-stall은 12 ticks가 최소 wall 120 ms를 못 채워 FAIL이었다.
+13 ticks로 수정하고 >=120 ms oracle을 유지했다. 이 개발 8회와 정지/호환 8회는 48회 비교에서 제외했다.
+초기 cppcheck의 compound-literal ternary AST 오류는 동등한 initializer 표현으로 바꾼 뒤 검사했다.
+
+Observer IO 부하의 187개 miss event 모두를 덮는 sample에서 runqueue 대기 증가를 확인했다.
+Sample 경계 여유는 최대 2.891313 ms이며 intrusive 관측이다. 원래 sanitizer 두 실패의 개별 kernel 원인으로 소급하지 않는다.
+PREEMPT_DYNAMIC·governor powersave·RT throttling은 유지했다. 전력/clock/cooling/background는 고정하지 않았고
+tracefs/perf 접근도 여전히 제한돼 있다. PREEMPT_RT·실제 ARM64/Jetson·WCET·full AUTOSAR/전체 M3 수용은 후속이다.
+
+`build/m3-latency-campaign/`에 48회·native 102회·observer 12회의 모든 trace/CSV·source/binary/environment·manifest와
+`campaign.json`/각 `.txt`를 보존한다. `build/m3-latency-audit.{py,json,txt}`는 원본 hash·source blob·actual policy/CPU,
+독립 재판정·timer expiration/phase·observer counter/load·ELF/ABI·archive를 재대조한다.
+Build는 `build/m3-latency-{host,relative,absolute,aarch64-host,aarch64,upstream-host,upstream}/`과 같은 이름의 build 로그다.
+주입은 `build/m3-latency-timer-stop*`, 원본 호환은 `m3-latency-upstream-results/`, unit/static은 `m3-latency-{unit,sanitized-unit,python,clang,cppcheck-*}.txt`다.
+Profile YAML의 새 `m3_hosted_timer_fixture`는 측정 후 기록이며 당시 실제 설정은 ADR/source/CLI로 추적한다. Loader는 없다.
+32개 requirement/29개 system TC 전체 NOT RUN과 기존 wire/M1·M2 수용 상태를 유지한다.
+문서 106개/상대 링크·앵커 1203개, YAML 3개/Python 8개 syntax·추적성·whitespace도 검사했다.
+결과는 `build/m3-latency-doc-check.txt`에 보존한다.
+
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.

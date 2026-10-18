@@ -221,3 +221,7 @@ GOIL/OIL 2.5로 생성한 실제 OS Task/Event/Alarm/Resource와 기존 ECU를 �
 ARM64 ELF 생성과 CPU/loader/library 확인은 PASS이며 실제 보드의 POSIX stack·IPC·driver·timing은 후속이다.
 후속 [native FIFO 실행](learning/m3_native_fifo.md)은 owner별 설정·startup 취소·실제값·호출 thread 복원을 연결했다.
 일반/FIFO 비교와 sanitizer 회귀의 실패까지 보존하며 Trampoline OS·Target 정시성 및 전체 M3 수용과 구분한다.
+
+2026-10-19 [hosted timer 후속](adr/ADR-0043-hosted-monotonic-timer-and-placement.md)은 relative 누적 지연을
+absolute timerfd로 수정했다. 동일 조건 48회의 기능·추가 timing 판정을 분리하고 native FIFO 102회와
+별도 부하 진단·timer 정지 주입을 검사했다. Native 원래 실패의 커널 원인·Target 실행과 다른 Leaf OS 확장은 후속이다.

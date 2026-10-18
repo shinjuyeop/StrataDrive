@@ -39,12 +39,16 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 C++ 523개 PASS 이력 유지**; 이번 리포터 수정 후 Python **60개 PASS** |
+| 전체 unit | Normal·ASan/UBSan **각각 C++ 523개 PASS**, Python **63개 PASS** |
 | M3 수용 검토 | Host IO 동반/FIFO 기준 선택, 원본 96회 재분석·판정 동일. 전체 timing 수용은 PENDING |
-| Build·정적 분석 | Native normal/sanitizer·별도 RTOS host·ARM64 빌드와 변경 C++ 3개 clang-tidy/cppcheck PASS. Hosted OS sanitizer/fiber 연동은 NOT RUN |
+| Build·정적 분석 | Native normal/sanitizer·RTOS host·ARM64 빌드, 이번 C++ 2개 clang-tidy·C/C++ 3개 cppcheck PASS. Hosted OS sanitizer/fiber 연동은 NOT RUN |
 | Native 일반/FIFO 비교 | 같은 CPU map·workload·시한으로 4조건×2 trace×3회 **24/24 PASS**, 설정·부하 control 모두 PASS |
 | Native 고장 회귀 | Normal OTHER/FIFO 각각 17/17, sanitizer OTHER 15/17·FIFO 17/17: **66/68 PASS**, 일반 sanitizer의 owner skip 두 실패 보존 |
-| RTOS 파일럿 | 기존 12회 이력에 더해 이번 4조건 **4/4 PASS**; native FIFO와 별도 실행 경로 |
+| 이전 RTOS 파일럿 | 기존 12회 이력과 직전 4조건 **4/4 PASS**; 새 timer 비교와 별도 cohort |
+| Hosted timer 비교 | 기능 **48/48 PASS**. 추가 Host timing은 absolute **24/24**, relative **0/24 PASS**; 대조군 실패 보존 |
+| 후속 native FIFO 회귀 | 17조건×3회, normal/sanitizer 각각 **51/51 PASS**; 기존 OTHER 실패 2건 유지 |
+| 후속 대기 진단 | Control **12/12 PASS**. Quiet 두 정책 각각 3/3, IO 부하 OTHER 0/3·FIFO 3/3 timing PASS; intrusive 진단 |
+| Timer 정지·원본 호환 | ViPer 35.133 ms 정지의 누락 3개/정상 FAIL 확인; 나머지 3조건과 upstream 기능 4/4 확인, 48회 비교와 별도 |
 | 이전 Linux 실행 회귀 | Multirate 17조건+Steering 4조건 normal/sanitizer **42/42 PASS 이력 유지** |
 | 실행 대기 진단 | 무부하 3회·감시 CPU 부하 3회 수집; control **6/6 PASS**. 원래 정상 timing 계약은 각각 **2/3·0/3 PASS** |
 | Wire·전체 시스템 | 직전 vCAN 97개·DBC 12 frame/36 payload 이력 유지, 이번 재실행 없음. 32개 requirement/29개 system TC **NOT RUN** |
@@ -53,9 +57,9 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 별도 Linux plant process가 물리·센서 취득·Actual 수신을 맡는다. OIL 2.5 OSEK 기능 시험이며 R25-11 Classic stack 적합성,
 ARXML/RTE/BSW 생성·ARM64 Jetson 배포는 NOT RUN이다. 기존 Linux 배포 계획과 2 ms/4 ms guard·RX 3 ms 기준은 유지한다.
 
-Trampoline POSIX의 가상 tick은 relative sleep 기반이다. 첫 파일럿 12 runs의 첫 release 기준 wall drift는
+최초 Trampoline POSIX의 가상 tick은 relative sleep 기반이었다. 첫 파일럿 12 runs의 첫 release 기준 wall drift는
 약 **23.8–30.6 ms / 1.6 s**였다. 기능 PASS를 정시 실행이나 차량 전체 timing 충족으로 확대하지 않는다.
-다음 hosted OS 12 runs에서도 약 **24.3–28.8 ms / 1.6 s**의 drift를 관측했다. Trampoline 파일럿의 Linux scheduling은 SCHED_OTHER다.
+다음 hosted OS 12 runs에서도 약 **24.3–28.8 ms / 1.6 s**의 drift를 관측했다. 이 당시 Linux scheduling은 SCHED_OTHER였다.
 [ARM64 빌드·RT 사전 점검](adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)을 추가했다.
 ARM64는 세 ELF의 CPU·loader/library ABI를 기록한 교차 빌드 결과이며 Jetson 실행 결과가 아니다.
 Host는 PREEMPT_DYNAMIC이다. 관리자 설정 후 새 PAM 실행 세션의 RT priority limit **20/20**과
@@ -82,6 +86,13 @@ M1/M2 학습자 수용·전체 M3 수용은 PENDING이다.
 Pooled guarded 주기 통계에 run 사이 대기 시간이 섞인 오류를 수정했고 Python 60개가 통과했다.
 원본 96회를 재분석해 해당 16개 분포만 교정했고 개별 run 판정·Drive/RX 지연·miss/skip은 동일했다.
 원본 로그를 보존했으며 새 workload 실행은 0회다. 기본 실행 정책은 기존 상속 방식이며 FIFO는 CLI로 명시한다.
+
+후속 [ADR-0043](adr/ADR-0043-hosted-monotonic-timer-and-placement.md)에서 opt-in RTOS build의 timer 기본을
+절대 monotonic timerfd로 바꿨다. 선택한 Host RTOS/FIFO profile의 normal drift는 3회 모두 절댓값 0.001 ms 미만,
+원래 timer phase→Control 완료 max는 0.277 ms였다. 상대 타이머 대조군은 FIFO에서도 15–17 ms drift가 남았다.
+OS Task/CAN·native 시한은 유지하고, 새 추가 Host timing 5 ms 판정과 source/실제 CPU·policy를 대조했다.
+개발 probe의 12-tick 정지가 120 ms보다 짧아지는 문제는 13 ticks로 수정했고 최소 wall 120 ms 검사는 유지했다.
+원래 native sanitizer 두 실패의 정확한 커널 원인과 전체 M3 수용은 계속 PENDING이다.
 
 ## 다음 작업
 

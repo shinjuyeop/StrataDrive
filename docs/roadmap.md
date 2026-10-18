@@ -10,6 +10,8 @@ M3의 [첫 Steering wall-time 실행](learning/m3_steering_timing.md)은 독립 
 Host owner 4 ms 완료 guard·수신 이중 감시와 native FIFO 비교를 수행했다.
 [M3 수용 검토](m3_acceptance_review.md)에서 IO 동반/FIFO를 다음 Host 통합 기준으로 선택했다.
 일반 sanitizer 타이밍 실패 2건·학습자 수용은 남아 있으며 Target/E2E는 후속 배포·통합에서 검증한다.
+[후속 hosted timer 수정](adr/ADR-0043-hosted-monotonic-timer-and-placement.md)에서 absolute/relative와 OTHER/FIFO를 48회 비교했다.
+추가 Host timing은 absolute 24/24 PASS, 상대 대조군 0/24이며 native FIFO 고장 회귀 102/102도 확인했다. 전체 M3 수용은 미완료다.
 [M0 exit review](m0_baseline.md)는 문서 계약의 검토다. 현재 Steering/Brake/Drive six-frame
 codec/P05/receiver/SocketCAN과 EV 통신을 Host에서 구현했다. Local session/queue를 포함해
 normal·ASan/UBSan 각각 unit 143개와 vCAN 89 case, 독립 DBC/CRC 교차 검증을 통과했다. [학습 안내](learning/README.md)에

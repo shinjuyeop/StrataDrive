@@ -160,3 +160,15 @@ Central이 vehicle management/allocation/session을 소유하고 Front(Steering/
 새 통합 workload의 task/queue/monitor budget을 먼저 정하고 정상·정지·재가입을 다시 시험해야 한다.
 Central/Zone 추가 뒤에도 기존 보호 경로의 독립성과 실제 적용을 재확인한다.
 실제 DDS transport는 M5, 차량 closed-loop/control은 후속 milestone이다.
+
+## 후속 Host 지연 개선
+
+2026-10-19 [ADR-0043](adr/ADR-0043-hosted-monotonic-timer-and-placement.md)으로 hosted RTOS timer의
+누적 relative 지연을 absolute timerfd로 수정하고 실제 배치·FIFO·expiration/OS release를 대조했다.
+별도 48회는 기능 48 PASS, 추가 Host timing은 absolute 24 PASS / relative 24 FAIL이다.
+선택한 RTOS/FIFO의 normal phase→Control 완료 max 0.276923 ms와 drift 절댓값 <0.001 ms를 관측했다.
+고장 주입은 13 ticks로 최소 wall 정지 120 ms를 유지한다. Native 120 ms/기존 시한은 바꾸지 않았다.
+Native FIFO 후속은 normal/sanitizer 각각 51/51 PASS다. 진단 12회·timer stop·원본 호환은 별도이며
+원래 96회/94 PASS·두 FAIL을 대체하지 않는다. Python은 현재 63개, C++은 각각 523개다.
+OPEN-M3-01/02의 native 커널 원인과 학습자·Target/전체 수용은 남긴다.
+실행 명령·한계·source cohort는 [학습 안내](learning/m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기)를 따른다.

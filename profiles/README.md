@@ -158,3 +158,8 @@ YAML loader나 Trampoline Task 설정이 아니며 기존 M3 주기·시한과 R
 [M3 수용 검토](../docs/m3_acceptance_review.md)에서 이 IO 동반/FIFO 설정을 다음 Host 통합의 기준으로 선택했다.
 기본 실행 정책을 자동 변경하지 않는다. CPU 번호는 Host의 allowed mask/topology에 맞춰 실제 적용을 검증하고,
 Central/Zone workload 추가 시 timing을 다시 시험한다. 전체 M3 수용·Target calibration은 미완료다.
+
+`m3_hosted_timer_fixture`는 [ADR-0043](../docs/adr/ADR-0043-hosted-monotonic-timer-and-placement.md)의
+새 absolute timerfd·Host 배치/priority·추가 phase 5 ms 검사·13-tick 정지 주입을 측정 후 기록한 값이다.
+YAML loader는 없고 실제 측정 설정은 사전에 고정한 ADR/source/CLI다. 위 `m3_steering_rtos_pilot`의
+upstream relative/12-tick 값은 최초 이력으로 유지한다. 일반 CMake와 native multirate의 clock/시한을 변경하는 필드는 아니다.

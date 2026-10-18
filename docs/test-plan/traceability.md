@@ -125,3 +125,8 @@ C++ unit은 당시 normal/sanitizer 각각 521개였다. 진단 6 runs의 정상
 Sanitizer OTHER의 타이밍 실패 2건은 OPEN-M3-01로 유지한다. Pooled guarded 주기의 run 사이 gap을
 수정하고 Python 60개 및 원본 96회 재분석을 확인했다. 개별 run 판정은 94 PASS/2 FAIL로 동일하며 새 실행은 0회다.
 System TC 29개와 requirement 32개의 전체 NOT RUN, Target/E2E와 학습자 수용 상태는 변경하지 않는다.
+
+[ADR-0043](../adr/ADR-0043-hosted-monotonic-timer-and-placement.md)의 후속은 PERF-001/002/003의 local 부분 증거다.
+48회 기능 PASS와 timer phase 추가 검사(absolute 24 PASS / relative 24 FAIL)를 분리했고 native FIFO 102/102,
+별도 진단 12회·timer 정지·원본 backend 기능도 검사했다. 현재 C++은 normal/sanitizer 각각 523개, Python은 63개다.
+두 원래 native 실패와 kernel/Target 미실행·system NOT RUN·학습자 수용 상태는 유지한다.

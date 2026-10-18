@@ -2,6 +2,8 @@
 
 Date: 2026-10-18. Scope: **Trampoline POSIX Host 파일럿**. Target·RTE/BSW·실시간 수용은 후속이다.
 결정과 clock/budget 경계는 [ADR-0040](../adr/ADR-0040-steering-rtos-pilot-and-delay-observation.md)에 있다.
+2026-10-19부터 build helper의 기본 timer는 absolute timerfd다. 아래 최초 relative/12-tick 설명·수치는 당시 이력이며,
+현재 실행 기준·비교는 [누적 지연 수정](#절대-타이머로-누적-지연-줄이기)을 따른다.
 
 ## 이번에 달라지는 것
 
@@ -40,7 +42,7 @@ POSIX stack 전환에 필요한 C flag와 stack 크기는 OIL 설정 및 ADR에 
 - `normal`: 0→0.2 rad 명령과 실제 이동·원래 source의 Actual을 확인한다.
 - `command-loss`: 600 ms 뒤 명령을 끊고 local hold를 확인한다.
 - `corrupt`: 원래 트래픽은 계속 보내되 CRC를 깨뜨린다. 유효 수신 time을 갱신하면 실패다.
-- `control-stall`: 600 ms 이후 Control이 12 ticks WaitEvent한다. Watch·Receive와 외부 물리의 진행을 확인한다.
+- `control-stall`: 600 ms 이후 Control이 WaitEvent한다. 최초 12 ticks였고 현재는 최소 wall 120 ms를 위해 13 ticks를 사용한다. Watch·Receive와 외부 물리의 진행을 확인한다.
 
 `rtos-jobs.csv`는 release·start·phase·end·sensor/Actual source·Watch 검출·suspend/resume를 기록한다.
 `plant.csv`와 `actual.csv`는 외부 물리 및 실제 CAN Actual 수신이다. JSON은 OS API 오류·폐기·보호 적용을 담는다.
@@ -48,7 +50,7 @@ POSIX stack 전환에 필요한 C flag와 stack 크기는 OIL 설정 및 ADR에 
 
 ## 10 ms tick이 정확히 10 ms인가
 
-이 target은 ViPer의 relative sleep로 10 ms tick을 발생시킨다. Linux에서 늦게 실행되면 tick이 밀리거나 signal이 합쳐질 수 있다.
+최초 upstream backend는 ViPer의 relative sleep로 10 ms tick을 발생시켰다. Linux에서 늦게 실행되면 tick이 밀리거나 signal이 합쳐질 수 있다.
 OS Task는 이 가상 tick에 따라 실행된다. 센서 freshness와 보호는 Host CLOCK_MONOTONIC을 사용한다.
 보고서의 `release_interval_ms`와 `nominal_wall_drift_ms`로 두 시간의 차이를 확인한다.
 `release_to_end_ms`는 ReleaseDispatch가 실제 release를 게시한 뒤의 응답이다. 앞선 timer/Host 지연을 포함한 전체 latency가 아니다.
@@ -144,3 +146,69 @@ sudo -n -u "$(id -un)" -- python3 tools/runtime_diagnostics.py --probe-only \
 FIFO priority 1과 20은 AVAILABLE, 상한을 넘는 21은 EPERM이었다. 모든 자식 probe는 원래 scheduler를 복원했다.
 이는 권한 확인이며 runtime owner의 policy/priority를 설정하거나 PREEMPT_RT·trace 권한을 활성화하지 않는다.
 후속 [native FIFO 실행·측정](m3_native_fifo.md)에 owner별 RT 적용·실제값 확인과 같은 시한의 비교 결과를 기록했다.
+
+## 절대 타이머로 누적 지연 줄이기
+
+2026-10-19, [ADR-0043](../adr/ADR-0043-hosted-monotonic-timer-and-placement.md)으로 ViPer timer backend를 바꿨어.
+Relative 방식은 이번 실행이 늦게 끝난 시각부터 다음 10 ms를 기다려. 지연이 매 주기 더해질 수 있어.
+Absolute 방식은 최초 origin의 10/20/30 ms처럼 다음 예정 시각을 유지해. 늦게 깨어나도 다음 예정 시각을 함께 밀지 않아.
+Native multirate는 이미 absolute sleep을 썼고 이번 수정의 대상은 hosted RTOS의 가상 타이머야.
+
+새 backend는 CLOCK_MONOTONIC timerfd야. 놓친 expirations는 기록하고 signal 하나만 보내.
+Mmap trace에 예정 시각·wake·send와 실제 policy/CPU를 기록하며 tick 본문에서는 파일 출력을 하지 않아.
+일반 POSIX signal은 합쳐질 수 있어서 RTOS release도 서로 다른 timer send와 대조해.
+`--timer-mode relative`는 같은 계측의 상대 타이머 대조군, `upstream`은 고정 원본을 사용하는 옵션이야.
+원본 checkout을 수정하지 않고 별도 object로 링크해. 새 기본은 `absolute`야.
+
+현재 기준 실행은 다음과 같아. CPU 번호는 이 Host의 예이고 새 output directory를 사용해야 해.
+
+```sh
+python3 tools/build_rtos_pilot.py --timer-mode absolute \
+  --build-dir build/m3-timer-host --output-dir build/m3-timer-pilot
+sudo -n -u "$(id -un)" -- unshare --user --map-root-user --net \
+  python3 tests/integration/runtime/check_rtos.py \
+  --build-dir build/m3-timer-host --pilot-dir build/m3-timer-pilot \
+  --rtos-cpu 1 --plant-cpu 0 --fifo --require-wall-timing \
+  --repetitions 3 --output-dir build/m3-timer-results
+```
+
+RTOS와 그 ViPer timer는 CPU 1/FIFO 10, 외부 물리는 CPU 0/FIFO 19야.
+Linux priority와 Trampoline 내부 Task priority는 별개야. Runner는 일반 priority를 유지하고 설정 거부는 실패로 남겨.
+13-tick ResumeAlarm으로 정지 주입을 바꿨지만 실제 정지가 최소 120 ms라는 검사는 그대로야.
+처음 12 ticks로 실행한 개발 시험이 120 ms를 못 채워 실패한 기록도 보존했어.
+
+이번 추가 검사는 원래 timer phase부터 RTOS release까지 5 ms 이내, 정상에서는 phase부터 Control 완료까지도 5 ms 이내야.
+기존 실제 release부터 완료까지 5 ms라는 검사도 유지해. Relative 모드도 최초 origin의 nominal phase로 계산하므로
+매번 target을 뒤로 옮겨 지연을 숨길 수 없어. 미실행 expiration·합쳐진 signal·trace 오류도 timing 실패야.
+고장 주입 중 의도한 Control 정지는 원래 fault oracle로 검사하며 정상 완료 지연 통계와 구분해.
+
+동일 CPU map·추가 부하 없음·warm-up 제외 0으로 4 profiles×4 scenarios×3회, 총 48 runs를 실행했어.
+순서는 repetition마다 회전했고 아래 ms 값은 **normal 3 runs**의 drift 범위와 관측 최대야.
+Drift는 첫 release부터 마지막 release까지 nominal 10 ms 간격과의 차이야.
+
+| Timer / Linux 정책 | Normal drift (ms) | Phase→Control 완료 max (ms) | 추가 Host timing (12 runs) |
+| --- | --- | --- | --- |
+| Relative / OTHER | 24.565720..30.122158 | 41.513909 | 0/12 PASS |
+| Relative / FIFO | 15.016595..17.319982 | 25.781443 | 0/12 PASS |
+| Absolute / OTHER | 0.000191..0.007147 | 0.284828 | 12/12 PASS |
+| Absolute / FIFO | −0.000862..−0.000368 | 0.276923 | 12/12 PASS |
+
+기능은 48/48 PASS지만 상대 타이머 24회는 추가 timing이 FAIL이야. 전체 verdict와 process exit도 FAIL로 보존했어.
+FIFO만으로 relative drift가 없어지지는 않았고, absolute timer로 누적 경로를 없앤 효과가 이 비교에서 나타났어.
+이 짧은 무부하 Host 결과를 모든 작업·부하·Target의 정시성으로 확대하지 않아.
+
+별도 native FIFO 회귀는 normal/sanitizer 각각 51/51 PASS야. 같은 observer/CPU map의 진단 12회도 별도로 실행했어.
+무부하는 두 정책 모두 3/3 PASS, IO CPU 부하에서는 OTHER 0/3·FIFO 3/3이었어.
+OTHER의 187개 miss event를 덮는 sample 모두에서 runqueue 대기가 증가했지만 sample 경계 여유는 최대 2.891313 ms야.
+정확한 한 번의 wake 지연이나 원래 sanitizer 두 실패의 원인을 이 누적 카운터에 전부 할당할 수는 없어.
+
+Owned ViPer만 약 35.133 ms 멈춘 별도 주입에서는 expirations 3개 누락을 기록하고 정상 시험을 FAIL로 유지했어.
+원본 backend 선택 경로도 기능 4/4를 재검사했어. 이 주입/호환 8회와 개발 probe 8회는 위 48회 비교에 합치지 않아.
+Python 63개, C++ normal/sanitizer 각각 523개·정적 분석과 native/ARM64 build를 검사했어.
+ARM64는 교차 빌드이며 실제 보드 실행은 아니야.
+
+실행은 clean `554e91c` source야. `build/m3-latency-campaign/`에 48회·native 102회·진단 12회의
+원본 CSV/binary timer trace·environment/source/binary hash·manifest·summary를 보존했어.
+`build/m3-latency-audit.{py,json,txt}`, `m3-latency-timer-stop*`, `m3-latency-upstream-*`에도 재분석·주입·호환 근거를 둬.
+원래 94/96 결과의 두 실패는 그대로이며 kernel trace/perf 권한도 여전히 없어.
+Host RTOS의 누적 tick 지연을 수정한 결과와 native 커널 원인·PREEMPT_RT·Target 검증은 구분해야 해.

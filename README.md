@@ -4,7 +4,7 @@
 
 ## Current Status
 
-**M3 진행 중** — [수용 검토](docs/m3_acceptance_review.md)에서 다음 Host 통합의 CPU 배치·FIFO 실행 기준을 선택했다.
+**M3 진행 중** — [Host RTOS의 누적 tick 지연](docs/learning/m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기)을 수정하고 CPU 배치·FIFO 실행을 비교했다.
 일반 우선순위 sanitizer의 타이밍 실패 2건과 학습자 수용은 남아 있다. M1/M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도다.
 다음 구현은 M4 Central coordinator·Front/Rear Zone 계약부터 준비한다. DDS·차량 closed-loop·실제 Target 검증은 후속 단계다.
 

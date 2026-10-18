@@ -623,7 +623,7 @@ m3_guard_placement_fixture:
   excluded_warmup_jobs: 0
   contract_failure_policy: retain_failures_and_all_valid_job_observations
 
-# ADR-0040: optional hosted RTOS pilot. This does not replace the 2 ms M3 fixture.
+# ADR-0040 historical upstream-relative pilot. ADR-0043's current backend is recorded below.
 m3_steering_rtos_pilot:
   kernel: trampoline
   source_lock: third_party/trampoline.json
@@ -682,4 +682,31 @@ m3_native_fifo_fixture:
   repetitions_per_condition: 3
   timing_and_receive_contracts: m3_multirate_runtime_fixture_unchanged
   kernel_change: none
+  hard_real_time_acceptance: not_claimed
+
+# ADR-0043: post-measurement design record, not a loaded configuration.
+# Original ADR-0040 values above remain the historical relative/12-tick fixture.
+m3_hosted_timer_fixture:
+  timer_backend: absolute_monotonic_timerfd
+  comparison_backend: instrumented_relative_clock_nanosleep
+  upstream_backend: explicitly_available
+  period_ms: 10
+  phase_to_release_limit_ms: 5
+  normal_phase_to_control_completion_limit_ms: 5
+  original_release_to_completion_limit_ms: 5
+  original_watch_detection_margin_ms: 20
+  control_wait_event_ticks: 13
+  minimum_injected_wall_stall_ms: 120
+  timer_trace_schema: 1
+  timer_trace_capacity: 512
+  skipped_expiration_policy: one_signal_record_missed_periods_no_catchup_burst
+  coalesced_signal_policy: fail_timing
+  host_cpu_roles: {rtos_and_viper: work_B, external_plant: io_A}
+  fifo_priorities: {rtos_and_viper: 10, external_plant: 19}
+  comparison_policies: [SCHED_OTHER, SCHED_FIFO]
+  comparison_scenarios: [normal, command-loss, corrupt, control-stall]
+  repetitions_per_profile_and_scenario: 3
+  excluded_warmup_jobs: 0
+  kernel_change: none
+  target_runtime: not_run
   hard_real_time_acceptance: not_claimed

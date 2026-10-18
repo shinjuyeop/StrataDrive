@@ -1,6 +1,6 @@
 # ADR-0043: Hosted RTOS의 절대 주기 타이머와 명시적 Host 배치
 
-Date: 2026-10-19. Status: **구현·비교 검증 중**.
+Date: 2026-10-19. Status: **Host 구현·비교 검증 완료 / 원래 native 커널 원인·Target 후속**.
 [M3 수용 검토](../m3_acceptance_review.md)의 OPEN-M3-01/02와
 [RTOS 파일럿](ADR-0040-steering-rtos-pilot-and-delay-observation.md)의 tick drift를 후속 검토한다.
 
@@ -54,7 +54,7 @@ Measured window의 skipped expiration/coalesced signal은 0이어야 한다.
 
 ## 비교 protocol과 남은 범위
 
-계측 relative/absolute × OTHER/FIFO, 동일 CPU A=0/B=1·4 scenario·각 3회로 48 runs를 계획한다.
+계측 relative/absolute × OTHER/FIFO, 동일 CPU A=0/B=1·4 scenario·각 3회의 48 runs를 사전 계획하고 실행했다.
 Repetition마다 네 profile 순서를 회전한다. 추가 부하 없음·warm-up 제외 0, 원래 1.6 s window/500 ms enable lead를 사용한다.
 Normal phase 지연/nominal drift와 fault 반응을 따로 기록하며 모든 유효 실패를 보존한다.
 Native normal/sanitizer FIFO fault 회귀와 같은 observer/CPU 조건의 OTHER/FIFO 대기 관측도 별도 수행한다.
@@ -63,6 +63,13 @@ Native normal/sanitizer FIFO fault 회귀와 같은 observer/CPU 조건의 OTHER
 Timerfd의 누락 기록은 별도 owned ViPer 정지 주입으로 확인한다. 이를 정상 timing PASS로 처리하지 않는다.
 원본 sanitizer 두 실패를 새 PASS로 교체하지 않는다. 추가 실행이 kernel 원인을 소급 확정하지 않는다.
 Tracefs/perf 권한, PREEMPT_RT 비교·Target runtime·동시 process/OS 정지 중 독립 보호는 여전히 후속이다.
+
+구현 commit은 `625b487`, 기능 PASS 뒤 추가 timing 실패가 전체 FAIL로 남도록 한 후속은 `554e91c`다.
+후자의 clean source에서 기능 48/48 PASS, 추가 Host timing은 absolute 24/24 PASS·relative 0/24였다.
+Native FIFO는 normal/sanitizer 각각 51/51 PASS다. 별도 부하 진단의 OTHER 3/3 FAIL과 FIFO 3/3 PASS도 보존했다.
+설정 기록은 `m3_hosted_timer_fixture`에 사후 정리했다. YAML loader는 없으며 측정 당시 설정은 이 ADR와 source/CLI hash다.
+재현·수치·제약은 [학습 안내](../learning/m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기),
+실행 증거는 [품질 기록](../quality_policy.md)에 둔다. 전체 M3 수용은 PENDING이다.
 
 공식 근거: [clock_nanosleep과 absolute drift](https://man7.org/linux/man-pages/man2/clock_nanosleep.2.html),
 [timerfd의 periodic expiration count](https://man7.org/linux/man-pages/man2/timerfd_create.2.html),

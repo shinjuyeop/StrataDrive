@@ -155,3 +155,7 @@ ARM64/권한 사전 점검과 해당 검사를 포함한 당시 Python은 **59�
 [M3 수용 검토](../m3_acceptance_review.md)에서 IO 동반/FIFO Host 실행 기준을 선택했다.
 Guarded 주기 집계의 run 사이 gap을 수정하고 Python **60개**를 검사했다. 원본 96회 재분석의 판정은 **94 PASS/2 FAIL**로 동일하다.
 타이밍 예외와 직접 재현·설명은 PENDING이며, M4 coordinator 입출력·상태 계약부터 준비한다.
+
+[Hosted timer 지연 수정](m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기)은 relative sleep의 누적 drift와
+FIFO 효과를 48회 비교했다. Absolute timer의 추가 Host timing 24/24, native FIFO 후속 102/102를 확인했다.
+Python 63개와 C++ normal/sanitizer 각각 523개를 검사했다. 상대 대조군 timing 실패·원래 native 실패 2건은 보존한다.
