@@ -112,13 +112,14 @@ TEST(EcuBoundary, IsolatedDriveUnknownTorqueNeverBecomesZeroFeedback) {
     const auto f=c.complete(std::nullopt,time_ns(10)); ASSERT_TRUE(f); EXPECT_FALSE(can::decode_drive_frame(*f)->torque_nm);
     EXPECT_EQ(c.fault(),vecu::DriveFault::TorqueFeedbackUnavailable); EXPECT_EQ(c.output().mode,drive::ActuationMode::Zero);
 }
-TEST(EcuBoundary, IsolatedDriveCachedOrDelayedTorqueCannotRefreshPublication) {
+TEST(EcuBoundary, IsolatedDrivePublishesNewDelayedAcquisitionAndNeverRefreshesCachedTorque) {
     vecu::DriveActuator c(drive_config()); ASSERT_TRUE(c.start_session({1,7,kStart}));
     const drive::TorqueMeasurement s{7,0,time_ns(10),0}; ASSERT_TRUE(c.prepare(time_ns(10))); ASSERT_TRUE(c.complete(s,time_ns(10)));
     ASSERT_TRUE(c.prepare(time_ns(20))); const auto f=c.complete(s,time_ns(20)); ASSERT_TRUE(f);
     EXPECT_FALSE(can::decode_drive_frame(*f)->torque_nm); EXPECT_EQ(c.fault(),vecu::DriveFault::None);
     ASSERT_TRUE(c.prepare(time_ns(30))); const auto delayed=c.complete(drive::TorqueMeasurement{7,1,time_ns(25),0},time_ns(30));
-    ASSERT_TRUE(delayed); EXPECT_FALSE(can::decode_drive_frame(*delayed)->torque_nm);
+    ASSERT_TRUE(delayed); const auto actual=can::decode_drive_frame(*delayed); ASSERT_TRUE(actual);
+    ASSERT_TRUE(actual->torque_nm); EXPECT_DOUBLE_EQ(*actual->torque_nm,0); EXPECT_EQ(actual->source_time_ns,time_ns(25));
 }
 TEST(EcuBoundary, DriveTorqueIdentityEpochRangeAndAgeAreCheckedAtThePort) {
     const drive::TorqueMeasurement invalid[]={{8,0,time_ns(10),0},{7,0,time_ns(11),0},{7,0,kStart-1,0},
@@ -128,11 +129,11 @@ TEST(EcuBoundary, DriveTorqueIdentityEpochRangeAndAgeAreCheckedAtThePort) {
         const auto f=c.complete(s,time_ns(10)); ASSERT_TRUE(f); EXPECT_FALSE(can::decode_drive_frame(*f)->torque_nm);
         EXPECT_EQ(c.fault(),vecu::DriveFault::TorqueFeedbackUnavailable);
     }
-    vecu::TorqueFeedback guard; guard.begin(7,kStart); EXPECT_TRUE(guard.observe(drive::TorqueMeasurement{7,0,kStart,0},time_ns(30),-200,300).valid);
+    vecu::TorqueFeedback guard; guard.begin({1,7,kStart}); EXPECT_TRUE(guard.observe(drive::TorqueMeasurement{7,0,kStart,0},time_ns(30),-200,300).valid);
     EXPECT_FALSE(guard.observe(drive::TorqueMeasurement{7,0,kStart,0},time_ns(31),-200,300).valid);
 }
 TEST(EcuBoundary, TorqueCachedIdentityCannotMutateAndNewIdentityRequiresTimeProgress) {
-    vecu::TorqueFeedback guard; guard.begin(7,kStart);
+    vecu::TorqueFeedback guard; guard.begin({1,7,kStart});
     EXPECT_TRUE(guard.observe(drive::TorqueMeasurement{7,1,time_ns(10),1},time_ns(10),-200,300).valid);
     EXPECT_FALSE(guard.observe(drive::TorqueMeasurement{7,1,time_ns(10),2},time_ns(20),-200,300).valid);
     EXPECT_FALSE(guard.observe(drive::TorqueMeasurement{7,0,time_ns(20),1},time_ns(20),-200,300).valid);
@@ -169,6 +170,26 @@ TEST(EcuBoundary, GatedDriveRevokesAnActiveRequestWhenTorqueFeedbackIsUnknown) {
     EXPECT_FALSE(can::decode_drive_frame(*f)->torque_nm); EXPECT_FALSE(c.decision().active);
     EXPECT_EQ(c.output().mode,drive::ActuationMode::Zero); EXPECT_DOUBLE_EQ(c.output().envelope->maximum_nm,0);
     EXPECT_EQ(c.decision().fault,vecu::DriveGateFault::TorqueFeedbackUnavailable);
+}
+TEST(EcuBoundary, GatedDriveDelayedAcquisitionKeepsItsTimeAndIndependentAuxiliaryTimes) {
+    vecu::DriveController c({}); ASSERT_TRUE(c.start_session({1,7,kStart})); feed_gated_drive(c);
+    ASSERT_TRUE(c.prepare(time_ns(10)));
+    const auto frame=c.complete(drive::TorqueMeasurement{7,0,time_ns(5),25},time_ns(10)); ASSERT_TRUE(frame);
+    const auto actual=can::decode_drive_frame(*frame); ASSERT_TRUE(actual && actual->torque_nm && actual->wheel_speed && actual->regen_capability);
+    EXPECT_EQ(actual->source_time_ns,time_ns(5)); EXPECT_DOUBLE_EQ(*actual->torque_nm,25);
+    EXPECT_EQ(actual->wheel_speed->source_time_ns,time_ns(10)); EXPECT_EQ(actual->regen_capability->source_time_ns,time_ns(10));
+    can::DriveReceiver receiver({can::DriveFrameKind::Actual,{-200,300},100,200}); ASSERT_TRUE(receiver.start_session(1,kStart));
+    const auto received=receiver.receive(*frame,time_ns(11)); EXPECT_EQ(received.decision,can::ActuatorReceiveDecision::Accepted);
+    EXPECT_EQ(received.wheel_speed,can::DriveFeedbackQuality::Usable); EXPECT_EQ(received.regen_capability,can::DriveFeedbackQuality::Usable);
+    ASSERT_TRUE(receiver.current_sample(time_ns(11))); EXPECT_EQ(receiver.current_sample(time_ns(11))->source_time_ns,time_ns(5));
+}
+TEST(EcuBoundary, GatedDriveCachedTorqueIsUnavailableAtDiagnosticGenerationTime) {
+    vecu::DriveController c({}); ASSERT_TRUE(c.start_session({1,7,kStart})); feed_gated_drive(c);
+    const drive::TorqueMeasurement sensor{7,0,time_ns(5),25};
+    ASSERT_TRUE(c.prepare(time_ns(10))); ASSERT_TRUE(c.complete(sensor,time_ns(10)));
+    ASSERT_TRUE(c.prepare(time_ns(20))); const auto frame=c.complete(sensor,time_ns(20)); ASSERT_TRUE(frame);
+    const auto actual=can::decode_drive_frame(*frame); ASSERT_TRUE(actual); EXPECT_FALSE(actual->torque_nm);
+    EXPECT_EQ(actual->source_time_ns,time_ns(20)); EXPECT_EQ(c.decision().fault,vecu::DriveGateFault::None);
 }
 TEST(EcuBoundary, GatedDriveWithoutInputsHasNoInventedCapabilityOrTorque) {
     vecu::DriveController c({}); ASSERT_TRUE(c.start_session({1,7,kStart})); ASSERT_TRUE(c.prepare(time_ns(10)));

@@ -35,7 +35,7 @@ DriveFeedbackQuality DriveReceiver::check_wheel_speed(
     if (!message.wheel_speed) return DriveFeedbackQuality::Unavailable;
     const auto& speed = *message.wheel_speed;
     if (!actuator_value_in_range(speed.value_rad_s, {0, config_.max_wheel_speed_rad_s}) ||
-        speed.source_time_ns < session_start_ns_ || speed.source_time_ns > message.source_time_ns ||
+        speed.source_time_ns < session_start_ns_ ||
         speed.source_time_ns > now_ns ||
         (wheel_cursor_ && (speed.source_time_ns < wheel_cursor_->source_time_ns ||
          (speed.source_time_ns == wheel_cursor_->source_time_ns &&
@@ -51,7 +51,7 @@ DriveFeedbackQuality DriveReceiver::check_capability(
     if (!message.wheel_speed ||
         !actuator_value_in_range(cap.torque_limit_nm, {0, config_.max_regen_torque_nm}) ||
         cap.input_time_ns < session_start_ns_ || cap.input_time_ns > cap.source_time_ns ||
-        cap.source_time_ns > message.source_time_ns || cap.source_time_ns > now_ns ||
+        cap.source_time_ns > now_ns ||
         (capability_cursor_ && (cap.source_time_ns < capability_cursor_->source_time_ns ||
          cap.input_time_ns < capability_cursor_->input_time_ns ||
          (cap.source_time_ns == capability_cursor_->source_time_ns &&

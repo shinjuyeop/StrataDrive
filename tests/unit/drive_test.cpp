@@ -327,6 +327,41 @@ TEST(DriveReceiver, FreshTorqueDoesNotRejuvenateCachedCapabilityOrItsInputs) {
     EXPECT_DOUBLE_EQ(current->regen_capability->torque_limit_nm, 0);
 }
 
+TEST(DriveReceiver, IndependentAuxiliaryTimeCanFollowTorqueWithoutExtendingTorqueAge) {
+    DriveReceiver receiver(config(DriveFrameKind::Actual)); ASSERT_TRUE(receiver.start_session(1,kStart));
+    DriveTxState tx{DriveFrameKind::Actual}; auto message=sample(tx.kind); message.source_time_ns=kStart+5*kMs;
+    message.wheel_speed->source_time_ns=kStart+9*kMs;
+    message.regen_capability=DriveRegenCapability{200,kStart+10*kMs,kStart+8*kMs};
+    const auto result=receiver.receive(encode(message,tx),kStart+12*kMs);
+    EXPECT_EQ(result.decision,ActuatorReceiveDecision::Accepted);
+    EXPECT_EQ(result.wheel_speed,DriveFeedbackQuality::Usable); EXPECT_EQ(result.regen_capability,DriveFeedbackQuality::Usable);
+    const auto at_boundary=receiver.current_sample(kStart+35*kMs); ASSERT_TRUE(at_boundary && at_boundary->regen_capability);
+    EXPECT_EQ(at_boundary->source_time_ns,kStart+5*kMs);
+    EXPECT_FALSE(receiver.current_sample(kStart+35*kMs+1));
+}
+TEST(DriveReceiver, FreshAuxiliaryAndNewReportSequenceCannotRefreshTheSameTorqueSample) {
+    DriveReceiver receiver(config(DriveFrameKind::Actual)); ASSERT_TRUE(receiver.start_session(1,kStart));
+    DriveTxState tx{DriveFrameKind::Actual}; auto message=sample(tx.kind); message.source_time_ns=kStart+5*kMs;
+    ASSERT_EQ(receiver.receive(encode(message,tx),kStart+10*kMs).decision,ActuatorReceiveDecision::Accepted);
+    ++message.sequence; message.wheel_speed->source_time_ns=kStart+20*kMs;
+    message.regen_capability=DriveRegenCapability{200,kStart+20*kMs,kStart+20*kMs};
+    EXPECT_EQ(receiver.receive(encode(message,tx),kStart+20*kMs).decision,ActuatorReceiveDecision::SourceNotIncreasing);
+    EXPECT_EQ(receiver.last_accepted()->received_time_ns,kStart+10*kMs);
+    EXPECT_EQ(receiver.poll(kStart+90*kMs),ActuatorReceiverHealth::Timeout);
+    ++message.sequence; message.source_time_ns=kStart+90*kMs;
+    EXPECT_EQ(receiver.receive(encode(message,tx),kStart+90*kMs).decision,ActuatorReceiveDecision::Timeout);
+}
+TEST(DriveReceiver, AuxiliaryAfterTorqueStillRejectsFutureOrRegressingSamples) {
+    DriveReceiver receiver(config(DriveFrameKind::Actual)); ASSERT_TRUE(receiver.start_session(1,kStart));
+    DriveTxState tx{DriveFrameKind::Actual}; auto message=sample(tx.kind); message.source_time_ns=kStart+5*kMs;
+    message.wheel_speed->source_time_ns=kStart+10*kMs;
+    message.regen_capability=DriveRegenCapability{200,kStart+10*kMs,kStart+9*kMs};
+    ASSERT_EQ(receiver.receive(encode(message,tx),kStart+11*kMs).regen_capability,DriveFeedbackQuality::Usable);
+    advance(message,6); message.wheel_speed->source_time_ns=kStart+12*kMs;
+    EXPECT_EQ(receiver.receive(encode(message,tx),kStart+11*kMs).wheel_speed,DriveFeedbackQuality::Invalid);
+    advance(message,7); message.wheel_speed->source_time_ns=kStart+9*kMs;
+    EXPECT_EQ(receiver.receive(encode(message,tx),kStart+12*kMs).wheel_speed,DriveFeedbackQuality::Invalid);
+}
 TEST(DriveReceiver, AuxiliaryRangeTimeAndChangedCacheDoNotInvalidateFreshTorque) {
     for (unsigned int fault = 0; fault < 9; ++fault) {
         DriveReceiver receiver(config(DriveFrameKind::Actual));

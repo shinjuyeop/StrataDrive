@@ -24,7 +24,8 @@ struct DriveReceiveResult {
 };
 struct DriveAcceptedSample { DriveMessage message; std::uint64_t received_time_ns; };
 
-// Torque stream은 critical이다. 보조 speed/capability의 stale/invalid는 별도로 무효화한다.
+// Torque stream은 critical이다. 보조 source는 torque 취득보다 나중일 수 있으며
+// 각각 session/now·age/cursor로 검사한다. Stale/invalid 보조 값은 별도로 무효화한다.
 class DriveReceiver {
 public:
     explicit DriveReceiver(const DriveReceiverConfig& config);

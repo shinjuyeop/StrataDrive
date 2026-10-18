@@ -70,7 +70,7 @@ bool DriveController::start_session(ActuatorSession session) {
     epoch_ = application_epoch; model_epoch_ = model_epoch; enable_ns_ = last_observed_ns_ = last_tick_ns_ = enable_ns;
     sequence_ = 0; armed_ = stopped_ = false; decision_ = {};
     speed_.reset(); speed_cursor_.reset(); hv_.reset(); hv_cursor_.reset(); permission_parent_.reset(); last_capability_input_ns_.reset();
-    feedback_.begin(model_epoch, enable_ns); e2e::p05_protect_init(tx_.protection);
+    feedback_.begin(session); e2e::p05_protect_init(tx_.protection);
     output_ = {drive::ActuationMode::Zero, 0, std::nullopt, enable_ns};
     prepared_ns_.reset(); prepared_inputs_.reset(); execution_gap_ = false;
     return true;
@@ -234,7 +234,8 @@ std::optional<can::DriveFrame> DriveController::complete(const std::optional<dri
         (sensor->torque_nm < (decision_.active ? -*decision_.regen_limit_nm : 0) ||
          sensor->torque_nm > (decision_.active ? *decision_.propulsion_limit_nm : 0));
     can::DriveMessage actual; actual.kind = can::DriveFrameKind::Actual; actual.epoch = epoch_; actual.sequence = sequence_;
-    actual.source_time_ns = now_ns; actual.torque_nm = measured.fresh;
+    actual.source_time_ns = measured.fresh ? measured.fresh->source_time_ns : now_ns;
+    if (measured.fresh) actual.torque_nm = measured.fresh->torque_nm;
     const auto& accepted = command_.last_accepted(); actual.causal_sequence = accepted ? accepted->message.sequence : 0;
     actual.local_state = decision_.fault != DriveGateFault::None ? can::ActuatorLocalState::FailSafe : !decision_.active ? can::ActuatorLocalState::Init :
         (decision_.selected_target_nm != *in.command->torque_nm || decision_.actual_outside_envelope ||

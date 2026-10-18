@@ -1,8 +1,10 @@
 # M1 Drive Command / Actual wire 초안
 
-Date: 2026-10-13. Status: **DBC/codec/receiver/vCAN Host 시험 실행 / 학습자 review PENDING**.
+Date: 2026-10-13; timing clarification 2026-10-18. Status: **DBC/codec/receiver/vCAN Host 시험 실행 / 학습자 review PENDING**.
 [ADR-0013](../adr/ADR-0013-drive-feedback-wire.md)과 [RG-01](regenerative_braking_design.md)을 따른다.
 Six-frame wire baseline 채택이나 차량 runtime 완료를 뜻하지 않는다.
+[ADR-0036](../adr/ADR-0036-asynchronous-drive-actual-feedback.md)은 기존 SourceTimeNs의 토크 취득 의미를 유지하고
+비동기 sender와 독립 보조 시각 수신 정책을 명확히 한다. Schema 2/ID·length·P05·golden payload 배치는 유지한다.
 
 ## 물리량과 프레임
 
@@ -29,7 +31,7 @@ Standard 11-bit CAN FD, BRS=0/ESI=0, logical period 10 ms다. SocketCAN len에�
 | 0..1 | Torque: signed int16 LE, 0.1 N·m, valid raw -32767..32767, -32768(00 80) invalid |
 | 2 / 3 | SchemaVersion=2 / Torque Validity=0 또는 1 |
 | 4..7 / 8..11 | uint32 trace Sequence / nonzero uint32 Epoch |
-| 12..19 | uint64 actual sample 또는 command generation SourceTimeNs |
+| 12..19 | uint64 SourceTimeNs: valid Actual torque 취득 / unavailable Actual 진단 생성 / Command 생성 시각 |
 | 20..23 | uint32 CausalSequence |
 | 24 / 25 | LocalState / Origin: 기존 actuator enum |
 | 26..28 | Reserved=0 |
@@ -38,6 +40,8 @@ Standard 11-bit CAN FD, BRS=0/ESI=0, logical period 10 ms다. SocketCAN len에�
 Validity=0이면 torque raw -32768이어야 한다. 유효한 0은 raw 0000/Validity=1이다.
 반올림 전 finite와 wire 범위 ±3276.7 N·m를 검사한다. Half-away-from-zero rounding을
 사용하며 최대 양자화 오차는 0.05 N·m다. 차량 한계로 clamp하는 codec이 아니다.
+Actual은 새 유효 센서 sample만 원래 취득 시각으로 발행한다. Cached sample을 다시 읽는 job은 torque unavailable 진단이며
+새 generation time을 torque 취득 시각으로 사용하지 않는다. Sequence는 report 순서이고 physical sensor sequence를 대체하지 않는다.
 
 ## Actual extension: bytes 32..63
 
@@ -75,7 +79,7 @@ Actual의 유효 torque와 sender state는 별개다. NoAcceptedInput은 INIT에
 보조 feedback은 다음을 별도로 검사한다.
 
 - Caller가 명시한 speed/regen 범위; capability 최대값은 수용 가능한 음수 torque 크기 이내.
-- 각 source time은 session 시작 이상, torque source time/now 이하.
+- 각 보조 source time은 session 시작 이상, receiver now 이하이며 torque 취득 시각보다 나중일 수 있다.
   Capability input time은 session 시작 이상, capability source time 이하.
 - Wheel/capability source와 capability input의 now 기준 age가 모두 <=30 ms.
   Config는 0 < feedback_age <= torque_source_age < timeout <=80 ms다.
@@ -89,6 +93,9 @@ Invalid quality를 반환한다. current_sample(now)는 이후 age 만료도 반
 fallback하지 않는다. last_accepted는 raw accepted 진단 이력이며 제어에 직접 쓰지 않는다.
 
 Invalid torque는 보조 capability가 valid여도 critical valid-RX를 갱신하지 않는다.
+새 report Sequence/보조 source도 같은 torque 취득 시각을 fresh하게 만들지 못한다. 기존 receiver는
+torque보다 나중인 보조 시각을 Invalid로 제거할 수 있으므로 양쪽 정책을 함께 검토·업데이트한다.
+Binary layout과 SourceTimeNs의 기존 torque 의미는 같으며 wire version 자동 협상은 없다.
 RX timeout 80 ms/clock rollback은 latched이며 새 Epoch와 비감소 clock의 explicit INIT으로
 초기화한다. M2 component의 local motor zero-target 응답과 Drive gate는 구현·시험했고,
 실제 Zone/Host gate·에너지 경로는 후속 통합이다. 보조 dependency age의 기본값은 30 ms이며

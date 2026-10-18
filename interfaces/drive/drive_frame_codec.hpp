@@ -20,6 +20,8 @@ struct DriveRegenCapability {
     std::uint64_t input_time_ns;   // 계산에 사용한 가장 오래된 dependency의 원천 시각
 };
 struct DriveMessage : ActuatorMetadata {
+    // Actual SourceTimeNs: valid torque acquisition, or unavailable diagnostic
+    // generation. Wheel/capability source times are independent acquisitions.
     DriveFrameKind kind{DriveFrameKind::Command};
     std::optional<double> torque_nm;
     std::optional<DriveWheelSpeed> wheel_speed;

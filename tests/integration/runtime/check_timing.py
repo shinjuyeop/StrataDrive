@@ -163,13 +163,49 @@ def receive_latency(stream):
 
 
 def multirate_rows(path):
-    floating = {"pressure_pa", "torque_nm", "bus_v", "current_a", "soc", "balance_j", "selected"}
+    floating = {"pressure_pa", "torque_nm", "bus_v", "current_a", "soc", "balance_j", "selected", "input_torque_nm", "usable_torque_nm"}
     with path.open(newline="") as stream:
-        return [{k: float(v) if k in floating else int(v) for k, v in row.items()} for row in csv.DictReader(stream)]
+        return [{k: v if k == "payload_hex" else float(v) if k in floating else int(v) for k, v in row.items()} for row in csv.DictReader(stream)]
+
+
+def drive_feedback_metrics(transmitted, received, jobs):
+    """Match actual socket bytes to the producing job and independent valid RX."""
+    published, accepted = {}, []
+    for tx in transmitted:
+        job = jobs[tx["job"]]
+        require(job["reported"] and tx["generation_ns"] == job["phase_ns"], "feedback lost producing job")
+        require(tx["generation_ns"] <= tx["begin_ns"] <= tx["end_ns"], "feedback TX clock invalid")
+        if not tx["replayed"]:
+            require(tx["job"] == tx["candidate_job"] and tx["begin_ns"] <= tx["deadline_ns"], "feedback TX admitted late")
+        if tx["crc_ok"]:
+            require(tx["source_ns"] == job["report_source_ns"] and tx["value_valid"] == job["value_valid"], "wire source/validity changed")
+            if tx["value_valid"]:
+                require(tx["source_ns"] == job["input_source_ns"] and
+                        abs(tx["torque_nm"] - job["input_torque_nm"]) <= .050000000001, "torque acquisition/value refreshed")
+            for key in ("speed_source_ns", "capability_source_ns"):
+                require(tx[key] <= tx["generation_ns"], "auxiliary source exceeds report generation")
+        require(len(tx["payload_hex"]) == 128, "Actual wire length changed")
+        published.setdefault(tx["payload_hex"], tx)
+    for rx in received:
+        require(rx["payload_hex"] in published, "Actual RX did not come from recorded socket TX")
+        tx = published[rx["payload_hex"]]
+        require(tx["begin_ns"] <= rx["time_ns"], "Actual RX before socket TX")
+        if not rx["accepted_ns"]:
+            continue
+        require(rx["crc_ok"] and rx["value_valid"] and rx["usable"] and
+                rx["source_ns"] <= tx["generation_ns"] <= rx["time_ns"] <= rx["accepted_ns"], "invalid Actual acceptance")
+        require(rx["source_ns"] == rx["usable_source_ns"] == tx["source_ns"] and
+                rx["torque_nm"] == rx["usable_torque_nm"] == tx["torque_nm"], "receiver did not preserve original torque")
+        accepted.append((tx, rx))
+    require(bool(accepted), "no independent valid Actual RX")
+    return {"sent": len(transmitted), "received": len(received), "accepted": len(accepted),
+            "source_to_rx_ms": distribution([(rx["time_ns"] - rx["source_ns"]) / 1e6 for _, rx in accepted]),
+            "generation_to_tx_ms": distribution([(tx["begin_ns"] - tx["generation_ns"]) / 1e6 for tx, _ in accepted]),
+            "tx_to_rx_ms": distribution([(rx["time_ns"] - tx["begin_ns"]) / 1e6 for tx, rx in accepted])}
 
 
 def analyze_multirate(directory, metadata):
-    require(metadata["schema"] == 2 and metadata["clock"] == "CLOCK_MONOTONIC", "unknown multirate schema/clock")
+    require(metadata["schema"] in (2, 3) and metadata["clock"] == "CLOCK_MONOTONIC", "unknown multirate schema/clock")
     require(not metadata["aborted"] and metadata["trace_drops"] == metadata["expired_outputs"] == 0, "runtime/output/trace failure")
     rows, metrics = {}, {}
     expected_periods = {"brake": 10_000_000, "drive": 10_000_000, "bms": 20_000_000, "power": 10_000_000, "rx": 2_000_000}
@@ -206,13 +242,24 @@ def analyze_multirate(directory, metadata):
         require(all(r["time_ns"] == r["brake_source_ns"] == r["torque_source_ns"] for r in physical), "acquisition source fabricated")
         require(all(r["physics_end_ns"] >= r["physics_begin_ns"] >= r["time_ns"] for r in physical), "invalid physics cost")
         require(all(r["kernel_drops"] == 0 for r in raw), "unreported kernel continuity loss")
-        require({r["stream"] for r in raw if r["crc_ok"]} == set(range(5)), "stream never arrived intact")
+        require({r["stream"] for r in raw if r["crc_ok"]} == set(range(len(metadata["streams"]))), "stream never arrived intact")
         require(max(abs(r["balance_j"]) for r in physical) <= .00072, "EV energy conservation failed")
     else:
         require(not physical and not watches and not raw, "minimal mode recorded detailed buffers")
-    # A delayed independent torque acquisition remains unavailable on the
-    # existing Drive wire. Never stamp it as a fresh end-of-job measurement.
-    require(all(not r["value_valid"] for r in rows["drive"] if r["input_source_ns"] != r["phase_ns"]), "Drive torque retimestamped")
+    feedback = {}
+    if metadata["schema"] == 3:
+        require(len(metadata["streams"]) == 6 and metadata["streams"][-1]["name"] == "drive_actual", "Actual loss monitor missing")
+        require(metadata["actual_feedback"]["accepted"] > 0 and metadata["actual_feedback"]["expired"] == 0, "Actual missing/expired")
+        transmitted = multirate_rows(directory / "actual-tx.csv")
+        received = multirate_rows(directory / "actual-rx.csv")
+        if metadata["detailed_trace"]:
+            feedback = drive_feedback_metrics(transmitted, received, rows["drive"])
+            require(all(feedback[k] == metadata["actual_feedback"][k] for k in ("sent", "received", "accepted")), "Actual counters disagree")
+        else:
+            require(not transmitted and not received, "minimal mode recorded detailed Actual")
+    else:
+        # Historical schema 2 deliberately withheld asynchronous torque.
+        require(all(not r["value_valid"] for r in rows["drive"] if r["input_source_ns"] != r["phase_ns"]), "historical torque retimestamped")
     require(any(r["active"] and r["selected"] > 0 for r in rows["drive"]), "Drive gate never enabled before fault")
     require(any(r["state"] == 2 and not r["inhibit"] for r in rows["bms"]), "BMS never passed fresh release dwell")
     require(any(r["state"] == 7 for r in rows["power"]), "power never reached measured READY")
@@ -225,6 +272,11 @@ def analyze_multirate(directory, metadata):
         require(all(value is None for value in latencies.values()), "normal stream timed out")
         require(metadata["floor_applied_ns"] == metadata["zero_applied_ns"] == 0, "unexpected independent action")
         require(abs(final["pressure_pa"] - 1300000) < 1e-5 and abs(final["torque_nm"] - 250) < 1e-8, "normal response not reached")
+        if metadata["schema"] == 3:
+            counts = metadata["actual_feedback"]
+            require(counts["sent"] == counts["received"] == counts["accepted"] == len(rows["drive"]), "normal Actual lost/rejected")
+            if transmitted:
+                require(all(r["speed_usable"] == r["speed_valid"] and r["capability_usable"] == r["capability_valid"] for r in received), "normal auxiliary time was coupled to torque")
     elif scenario.endswith("-stall"):
         name = scenario.removesuffix("-stall")
         injected = next((r for r in rows[name] if r["injection_begin_ns"]), None)
@@ -247,6 +299,14 @@ def analyze_multirate(directory, metadata):
         require(all(m["missed_jobs"] == 0 for m in metrics.values()), "corrupt RX confused with task stall")
         require(all(value is not None for value in latencies.values()), "CRC traffic refreshed valid RX")
         require(raw and any(not r["crc_ok"] and r["time_ns"] > min(s["detected_ns"] for s in metadata["streams"]) for r in raw), "raw corrupt traffic did not continue after detection")
+    elif scenario == "feedback-replay":
+        require(all(m["missed_jobs"] == 0 for m in metrics.values()), "replayed feedback confused with task stall")
+        require(latencies["drive_actual"] is not None and all(v is None for k, v in latencies.items() if k != "drive_actual"), "Actual loss was not independent")
+        repeated = [tx for tx in transmitted if tx["replayed"]]
+        require(bool(repeated), "no Actual replay injection")
+        first = repeated[0]["begin_ns"]
+        require(any(rx["crc_ok"] and rx["time_ns"] >= metadata["streams"][-1]["detected_ns"] for rx in received), "CRC-valid replay traffic did not continue")
+        require(all(not rx["accepted_ns"] for rx in received if rx["time_ns"] >= first), "replayed torque refreshed valid RX")
     else:
         raise AssertionError("unknown multirate scenario")
     if scenario != "normal":
@@ -262,7 +322,7 @@ def analyze_multirate(directory, metadata):
         if scenario in ("bms-stall", "power-stall", "rx-stall", "rx-corrupt"):
             require(rows["power"][-1]["inhibit"], "fault automatically restored driving permission")
     return {"verdict": "PASS", "scope": "Host multirate/vCAN component; full system TC NOT RUN", "metadata": metadata,
-            "metrics": metrics, "valid_rx_loss_ms": latencies}
+            "metrics": metrics, "valid_rx_loss_ms": latencies, "actual_feedback": feedback}
 
 
 def sha256(path):
@@ -547,7 +607,7 @@ def main():
     interface = "m3timing0"
     created = False
     if args.family == "multirate":
-        conditions = [("normal", True), ("normal", False)] + [(name + "-stall", True) for name in ("brake", "drive", "bms", "power", "rx")] + [("rx-corrupt", True)]
+        conditions = [("normal", True), ("normal", False)] + [(name + "-stall", True) for name in ("brake", "drive", "bms", "power", "rx")] + [("rx-corrupt", True), ("feedback-replay", True)]
         subprocess.run(["ip", "link", "add", "dev", interface, "type", "vcan"], check=True)
         created = True
         try:

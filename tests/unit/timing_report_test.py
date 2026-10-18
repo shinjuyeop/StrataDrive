@@ -11,6 +11,51 @@ SPEC.loader.exec_module(report)
 
 
 class TimingReportTest(unittest.TestCase):
+    @staticmethod
+    def feedback_observations():
+        wire=dict(crc_ok=1,source_ns=10,sequence=0,value_valid=1,torque_nm=12.4,
+                  speed_valid=1,speed_source_ns=14,capability_valid=1,capability_source_ns=15,
+                  input_time_ns=12,payload_hex="01"*64)
+        tx=dict(wire,begin_ns=16,end_ns=17,generation_ns=15,deadline_ns=20,job=0,candidate_job=0,replayed=0)
+        rx=dict(wire,time_ns=18,accepted_ns=19,usable=1,usable_source_ns=10,usable_torque_nm=12.4)
+        job=dict(reported=1,phase_ns=15,report_source_ns=10,value_valid=1,input_source_ns=10,input_torque_nm=12.35)
+        return tx,rx,job
+
+    def test_actual_socket_observation_preserves_acquisition_and_separate_generation_time(self):
+        tx,rx,job=self.feedback_observations()
+        result=report.drive_feedback_metrics([tx],[rx],[job])
+        self.assertEqual(result["accepted"],1)
+        self.assertEqual(result["source_to_rx_ms"]["max"],.000008)
+        self.assertEqual(result["generation_to_tx_ms"]["max"],.000001)
+        self.assertEqual(result["tx_to_rx_ms"]["max"],.000002)
+
+    def test_report_generation_cannot_replace_the_actual_torque_acquisition(self):
+        tx,rx,job=self.feedback_observations(); tx["source_ns"]=15; job["report_source_ns"]=15
+        with self.assertRaisesRegex(AssertionError,"acquisition"):
+            report.drive_feedback_metrics([tx],[rx],[job])
+
+    def test_actual_receiver_requires_recorded_transmitted_bytes_and_valid_acceptance(self):
+        tx,rx,job=self.feedback_observations(); rx["payload_hex"]="02"*64
+        with self.assertRaisesRegex(AssertionError,"socket TX"):
+            report.drive_feedback_metrics([tx],[rx],[job])
+        rx["payload_hex"]=tx["payload_hex"]; rx["accepted_ns"]=0
+        with self.assertRaisesRegex(AssertionError,"no independent"):
+            report.drive_feedback_metrics([tx],[rx],[job])
+
+    def test_replayed_actual_stays_in_raw_counts_without_a_new_accepted_sample(self):
+        tx,rx,job=self.feedback_observations()
+        repeated=dict(tx,begin_ns=100,end_ns=101,replayed=1,candidate_job=1)
+        rejected=dict(rx,time_ns=102,accepted_ns=0,usable=0)
+        result=report.drive_feedback_metrics([tx,repeated],[rx,rejected],[job])
+        self.assertEqual((result["sent"],result["received"],result["accepted"]),(2,2,1))
+
+    def test_actual_csv_keeps_uint64_nanoseconds_and_exact_payload_bytes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp)/"actual.csv"; p.write_text("source_ns,torque_nm,payload_hex\n9007199254740993,12.4,"+"00"*64+"\n")
+            row=report.multirate_rows(p)[0]
+            self.assertEqual(row["source_ns"],9007199254740993)
+            self.assertEqual(row["payload_hex"],"00"*64)
+
     def test_skipped_and_late_jobs_are_not_dropped_from_miss_rate(self):
         rows = [dict(release_ns=100, deadline_ns=105, start_ns=101, end_ns=104, ran=1, detected_ns=0),
                 dict(release_ns=110, deadline_ns=115, start_ns=111, end_ns=116, ran=1, detected_ns=116),

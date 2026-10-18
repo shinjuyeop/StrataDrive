@@ -58,9 +58,9 @@ CM_ SG_ 642 RegenTorqueLimit "Nonnegative regenerative torque magnitude. Valid 0
 CM_ SG_ 642 RegenCapabilityValid "Separate from torque validity. Valid capability requires usable wheel speed and source/input freshness. Invalid flag requires sentinel, InputsInvalid reason and zero capability timestamps.";
 CM_ SG_ 642 RegenLimitReason "Diagnostic reason, not permission to use a stale limit. Disabled requires valid zero limit; invalid capability uses InputsInvalid.";
 CM_ SG_ 386 SourceTimeNs "Zone allocation generation time in common Epoch/CLOCK_MONOTONIC domain.";
-CM_ SG_ 642 SourceTimeNs "Original actual torque model sample time. Cached data must retain original sequence and timestamp.";
-CM_ SG_ 642 WheelSpeedSourceTimeNs "Original wheel speed source time. Never replace with torque frame transmission time.";
-CM_ SG_ 642 CapabilitySourceTimeNs "Capability calculation time, retained on cache reuse.";
+CM_ SG_ 642 SourceTimeNs "Valid torque: original acquisition time, including asynchronous samples. Unavailable torque: diagnostic generation time. Cached torque cannot refresh valid RX. ADR-0036, 2026-10-18; schema/layout unchanged.";
+CM_ SG_ 642 WheelSpeedSourceTimeNs "Original independent wheel speed source. May follow torque acquisition; bounded by receiver now/session and its own age/cursor. Never replace with frame transmission time.";
+CM_ SG_ 642 CapabilitySourceTimeNs "Independent capability calculation time, retained on cache reuse. May follow torque acquisition; bounded by receiver now/session and its own age/cursor.";
 CM_ SG_ 642 CapabilityInputTimeNs "Oldest source time of every dependency used by capability calculation, including wheel speed and charge acceptance. New calculation time cannot rejuvenate stale input.";
 CM_ SG_ 386 E2ECrc "AUTOSAR P05, DataID 0x1201 low/high. Cover bytes 0..28 and 31. CRC LE at 29..30, Counter at 31.";
 CM_ SG_ 642 E2ECrc "P05 DataID 0x1202. Cover bytes 0..28 AND 31..63, then DataID low/high. Entire capability extension is protected.";

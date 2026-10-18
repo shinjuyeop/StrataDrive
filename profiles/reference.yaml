@@ -522,8 +522,9 @@ m3_steering_runtime_fixture:
   scheduling_policy: SCHED_OTHER
   handoff: spsc_triple_buffer_latest_snapshot
 
-# ADR-0034: separate finite Host multirate/vCAN experiment; no profile loader.
+# ADR-0034/0036: finite Host multirate/vCAN + Actual RX; no profile loader.
 m3_multirate_runtime_fixture:
+  trace_schema: 3 # independent of CAN wire schema 2
   window_ms: 2400
   monitoring_tail_ms: 40
   startup_lead_ms: 100
@@ -532,7 +533,7 @@ m3_multirate_runtime_fixture:
     drive: {period_ms: 10, first_offset_ms: 10, deadline_ms: 5, jobs: 240}
     bms: {period_ms: 20, first_offset_ms: 5, deadline_ms: 8, jobs: 120}
     power: {period_ms: 10, first_offset_ms: 8, deadline_ms: 5, jobs: 240}
-    rx: {period_ms: 2, first_offset_ms: 2, deadline_ms: 3, jobs: 1200}
+    rx: {period_ms: 2, first_offset_ms: 2, deadline_ms: 3, jobs: 1210}
   minimum_ecu_call_ms: 1
   monitor_period_ms: 2
   plant_period_ms: 2
@@ -545,7 +546,9 @@ m3_multirate_runtime_fixture:
   application_epoch: 1
   model_epoch: 7
   excluded_warmup_jobs: 0
-  drive_torque_wire: unavailable_for_asynchronous_acquisition
+  rx_drain_tail_ms: 20
+  critical_receive_streams: 6 # five inputs + independent DriveActual receiver
+  drive_torque_wire: original_torque_acquisition_SourceTimeNs
 
 # ADR-0035: fixed Host load/placement campaign, no profile loader or RT policy change.
 m3_cpu_placement_fixture:

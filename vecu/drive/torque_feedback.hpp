@@ -1,14 +1,15 @@
 #pragma once
 
 #include "drive_actuation.hpp"
+#include "actuator_session.hpp"
 
 namespace stratadrive::vecu {
 class TorqueFeedback {
 public:
-    void begin(std::uint32_t epoch, std::uint64_t enable_ns) {
-        epoch_ = epoch; enable_ns_ = enable_ns; previous_.reset();
+    void begin(ActuatorSession session) {
+        epoch_ = session.model_epoch; enable_ns_ = session.enable_ns; previous_.reset();
     }
-    struct Result { bool valid{false}; std::optional<double> fresh; };
+    struct Result { bool valid{false}; std::optional<drive::TorqueMeasurement> fresh; };
     Result observe(const std::optional<drive::TorqueMeasurement>& sensor, std::uint64_t now_ns,
             double minimum, double maximum) {
         if (!sensor) return {};
@@ -20,9 +21,9 @@ public:
             (cached && (s.source_time_ns != previous_->source_time_ns || s.torque_nm != previous_->torque_nm)) ||
             (!cached && s.source_time_ns <= previous_->source_time_ns))) return {};
         previous_ = s;
-        // The current Drive wire has no separate torque acquisition timestamp.
-        // Only an end-of-job acquisition is published with this report's time.
-        return {true, !cached && s.source_time_ns == now_ns ? std::optional<double>{s.torque_nm} : std::nullopt};
+        // The wire's SourceTimeNs is the torque acquisition time. Preserve the
+        // whole fresh sample; observing a cached sample cannot create a new one.
+        return {true, !cached ? std::optional<drive::TorqueMeasurement>{s} : std::nullopt};
     }
 private:
     std::uint32_t epoch_{0};

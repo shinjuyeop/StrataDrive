@@ -33,7 +33,7 @@ bool DriveActuator::start_session(ActuatorSession session) {
     if (!receiver_.start_session(application_epoch, enable_ns)) return false;
     epoch_ = application_epoch; last_tick_ns_ = enable_ns; sequence_ = 0; sequence_exhausted_ = false;
     e2e::p05_protect_init(tx_.protection);
-    feedback_.begin(model_epoch, enable_ns); fault_ = DriveFault::None;
+    feedback_.begin(session); fault_ = DriveFault::None;
     output_ = {drive::ActuationMode::Zero, 0, std::nullopt, enable_ns};
     prepared_ns_.reset(); execution_gap_ = false;
     return true;
@@ -101,7 +101,10 @@ std::optional<can::DriveFrame> DriveActuator::complete(const std::optional<drive
                          sample ? sample->local_state : can::ActuatorLocalState::Init;
     actual.origin = fault_ != DriveFault::None ? can::ActuatorOrigin::LocalProtection :
                     accepted ? can::ActuatorOrigin::NormalPath : can::ActuatorOrigin::NoAcceptedInput;
-    if (fault_ == DriveFault::None || accepted) actual.torque_nm = measured.fresh;
+    if ((fault_ == DriveFault::None || accepted) && measured.fresh) {
+        actual.torque_nm = measured.fresh->torque_nm;
+        actual.source_time_ns = measured.fresh->source_time_ns;
+    }
     // Speed and regen capability stay unavailable: neither is computed by this plant.
     const auto frame = can::encode_drive_frame(actual, tx_);
     if (frame) {
