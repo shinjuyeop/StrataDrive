@@ -11,7 +11,7 @@ Updated: **2026-10-18**. 현재 단계는 **M3 — IN PROGRESS**다.
 | M0 — 계약·아키텍처 | BASELINED | [종료 검토](m0_baseline.md)는 문서 계약의 검토 결과 |
 | M1 — DBC·vCAN | TECHNICAL CHECKS PASS / REVIEW PENDING | Wire baseline 채택, 학습자 설명·직접 재현 |
 | M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
-| M3 — Timing·실행 | IN PROGRESS | 비동기 Drive Actual·owner별 배치 비교; 잔여 RX skip, monitor/plant budget·RT 우선순위/Target 및 수용 검토 |
+| M3 — Timing·실행 | IN PROGRESS | 비동기 Actual·owner별 배치·전체 cycle/RX 대응; budget 채택·RT 우선순위/Target 및 수용 검토 |
 | M4–M13 | PLANNED | Central/Zone → DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 ## 구현·시험한 범위
@@ -28,7 +28,7 @@ Updated: **2026-10-18**. 현재 단계는 **M3 — IN PROGRESS**다.
 | Battery·BMS | 실제 DC 기반 단일 energy/SOC owner, 전압·전류·온도·셀 극값 관측, 방향별 derating·보호 dwell/latch | [Battery](learning/m2_battery_model.md), [BMS](learning/m2_bms_controller.md) |
 | Power lifecycle | 실제 접점·RC bus 기반 precharge/READY, 전류 확인·접점 open·잔류 전압 방전, shutdown blocked | [전원 상태 흐름](learning/m2_power_lifecycle.md) |
 | 에너지·회로 연결 | Actual torque/speed→motor DC·손실→Battery SOC, capacitor·경로 손실과 atomic commit; 정상/용착/센서 상실/지속 부하 | [이상적 HV 연결](learning/m2_drive_energy.md), [실제 회로 연결](learning/m2_ev_power_circuit.md) |
-| 주기 실행·감시 | Steering 및 Brake/Drive/Power 10 ms·BMS 20 ms, 실제 SocketCAN RX·독립 task/유효 RX 감시, snapshot·CSV와 고정 부하/owner별 CPU 배치 비교 | [조향 실행](learning/m3_steering_timing.md), [다중 주기](learning/m3_multirate_runtime.md), [CPU 부하](learning/m3_cpu_placement.md) |
+| 주기 실행·감시 | Steering 및 Brake/Drive/Power 10 ms·BMS 20 ms, 실제 RX·독립 감시, owner별 CPU 배치·전체 body/CPU/sleep·RX 시간 대조 | [다중 주기](learning/m3_multirate_runtime.md), [CPU 부하](learning/m3_cpu_placement.md), [전체 cycle](learning/m3_owner_cycles.md) |
 
 Receiver는 유효 0과 unknown, 원천 source/dependency age, 원래 요청에 묶인 expiry를 구분한다.
 중계·재발행으로 오래된 측정이나 제한값을 fresh하게 만들지 않는다.
@@ -39,11 +39,12 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 C++ 521개 PASS**; Python 리포터 **25개 PASS**; 이번 배치/검사 순서·실제 map 검사 4개 추가 |
+| 전체 unit | Normal·ASan/UBSan **각각 C++ 521개 PASS**; Python 리포터 **37개 PASS**; 이번 cycle/CPU/skip/RX·fault expiry 검사 12개 추가 |
 | Local vCAN | 직전 전체 회귀 normal·sanitizer **각각 97개 PASS** = M1 89개 + model 8개; 이번 변경은 runtime/runner 배치 범위 |
 | DBC·CRC | 기존 12개 frame/C++ payload 36개와 독립 CRC 교차 검증 PASS |
-| Build·정적 분석 | 3 build·변경 C++ 2개 clang-tidy/cppcheck·CLI 거부 24조건 PASS; TSan은 기존 Host memory mapping 오류로 미실행 |
-| Demo·Timing | Owner 비교 56 runs: control 56/56 PASS, 정상 계약 31 PASS/25 FAIL. 고정 IO/기존 상속 fault 회귀 27 runs PASS; 기존 CPU 실험 회귀 6 runs는 4 PASS/2 FAIL |
+| Build·정적 분석 | 3 build·변경 C++ 2개 clang-tidy/cppcheck PASS; 이전 trace schema 2/3 재분석 PASS; TSan은 기존 Host 오류로 미실행 |
+| Runtime 회귀 | 기존 9+owner 지연 4=13조건을 3 build 및 고정 IO map의 normal/sanitizer에서 **65 runs PASS** |
+| Owner 부하 | Schema 4 비교 56 runs: control 56/56 PASS, 기존 정상 계약 33 PASS/23 FAIL. 기존 CPU 실험 6 runs는 control 6/6 PASS·계약 4 PASS/2 FAIL |
 | 전체 시스템 검증 | 32개 requirement와 29개 system TC의 전체 Result는 **NOT RUN**; component 부분 증거와 구분 |
 
 상세 case 수·실행 명령·증거 경로는 [품질 기록](quality_policy.md)과 [추적성](test-plan/traceability.md)에 있다.
@@ -55,15 +56,20 @@ VCan은 실제 CAN의 전기적 동작을 검증하지 않는다.
 일반·production 각각 공유 CPU의 RX miss는 48개, sanitizer는 18개였다. 이 배치의 정상 timing 계약 충족은 주장하지 않는다.
 10월 18일 새 workload의 1회 smoke에서는 일반 build 4 PASS / 2 FAIL, sanitizer 2 PASS / 4 FAIL이었다.
 Sanitizer의 separate 조건에서도 RX miss가 있었고 반복 성능 비교나 Target 보장으로 확대하지 않는다. Deadline은 유지했다.
-후속 [owner별 비교](adr/ADR-0037-runtime-owner-cpu-placement.md)는 normal·production 각 3회, sanitizer 1회 실행했다.
+이전 trace schema 3의 [owner별 비교](adr/ADR-0037-runtime-owner-cpu-placement.md)는 normal·production 각 3회, sanitizer 1회 실행했다.
 같은 CPU B 부하에서 RX·monitor·plant를 A로 함께 옮긴 조건은 normal 6/6, production 4/6, sanitizer 2/2 통과했다.
 Production의 잔여 RX skip 3개는 그대로 FAIL이다. RX만 옮기면 출력 만료도 남아 전체 정상 계약을 보장하지 못했다.
+후속 trace schema 4는 전체 cycle·CPU/sleep 기록과 RX 대응을 추가한 별도 workload다.
+이번 IO 분리 조건은 normal 6/6·production 6/6·sanitizer 2/2 통과했으나 production 무부하 대조군에서도 RX·monitor·plant가 같은 기회를 1개씩 놓쳤다.
+이 구간의 body는 짧고 두 owner의 요청 wake→시작은 약 2.49 ms 늦었다. Kernel/VM 원인을 식별한 것은 아니다.
+Sanitizer RX 단독 분리의 기존 정상 계약은 2/2 PASS지만 monitor/plant 기회는 각각 244개 생략됐다.
+현재 PASS에 새 owner deadline/skip 0 기준을 도입하지 않았다. 관측을 근거로 budget을 별도 검토한다.
 RT priority 적용 probe는 EPERM·RLIMIT_RTPRIO=0으로 거부됐다. RT policy 실행 검증은 NOT RUN이며 현재 배치를 Target 보장으로 확대하지 않는다.
 Wire 채택과 학습자의 직접 재현·이해 기록은 PENDING이다.
 
 ## 다음 작업
 
-1. **전체 cycle budget·감시 독립성:** Monitor/plant의 전체 cycle과 release 지연·누락을 계측하고 잔여 RX skip와 대조한다. RT 실험은 적용 가능한 실행 환경을 확인한 뒤 기존 SCHED_OTHER와 비교한다. 기존 deadline은 유지한다.
+1. **Budget 채택·감시 독립성:** 기록한 body/CPU·요청 wake 지연·감시/취득 공백을 근거로 owner budget과 수용 조건을 검토한다. RT 실험은 적용 가능한 환경에서 기존 SCHED_OTHER와 비교한다. 관측만으로 기존 deadline을 완화하지 않는다.
 2. **M3 수용 검토:** 취득/생성/송수신 시각·miss 분모·보호 응답과 미검증 범위를 대조한다.
 3. **학습자 수용:** M2 [검토표](m2_acceptance_review.md)와 M3 trace를 직접 재현·설명한 기록을 남긴다. 실제 Central/Zone 통합은 M4다.
 

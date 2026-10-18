@@ -582,6 +582,91 @@ Monitor/plant의 physics 일부만이 아닌 전체 cycle budget, RT 적용 가�
 전체 32개 requirement/29개 system TC의 Result는 NOT RUN이며 M1/M2 학습자 수용도 PENDING이다.
 이번 문서 검사는 Markdown 96개·상대 링크/앵커 1086개, YAML 3개·Python 5개의 syntax/정합성을 통과했다.
 
+2026-10-18 후속 [전체 owner cycle 계측](adr/ADR-0038-whole-owner-cycle-observation.md)은
+monitor의 입력 읽기→검사/보호/trace, plant/fixture의 입력 읽기→physics/센서→CAN TX/trace를 포함한다.
+Periodic sleep과 end 뒤 bookkeeping은 body 밖이다. 원래 snapshot 취득 후 application/acquisition 시각을 읽는 순서는 유지한다.
+Trace schema **4**에 owner마다 enable~2440 ms의 2 ms grid **1221개 기회**와 실제 sleep target/call/start·phase/end를 남긴다.
+양 trace mode에서 essential rows를 쓰고 full에만 CLOCK_THREAD_CPUTIME_ID delta를 추가했다.
+CPU 절대 시각은 thread 사이에서 비교하지 않고 계측 비용을 시한에서 빼지 않았다.
+
+Skipped release는 이전 body 안/다음 요청 wake 이전/요청 wake 이후로 분류한다. 이 합을 전체 skip 수와 맞추고,
+모든 RX miss를 같은 owner slot·앞/뒤 phase와 대조한다. 이는 관측 위치/동시 지연이며 kernel/IRQ/VM 원인 식별이 아니다.
+Failed run도 schedule/interval이 유효하면 보존한다. 잘못된 owner trace는 이유와 label을 남겨 제외하며 유효한 job 통계는 유지한다.
+Owner deadline은 null(TBD-04)로 두고 새 budget/skip 0 기준이나 자동 보호 latch를 도입하지 않았다.
+
+기존 9조건에 monitor/plant 각각 6 ms overrun의 full/minimal 4조건을 추가했다. 각 owner의 첫 phase>=1100 ms에서
+본문 끝에 sleep을 한 번 넣어 전체 body·기회 생략을 확인한다. Plant 주입 중 기다린 출력/Actual은 만료될 수 있다.
+해당 fault에서는 expiry가 첫 후속 cycle에만 있는지와 delta 합계, Actual sent+expired=240·sent=received=accepted,
+실제로 보낸 Actual의 기존 TX admission 시한을 검사한다. Normal/다른 fault의 expiry 0·기존 ECU deadline은 유지했다.
+이를 단위 시험으로도 고정했다. 주입의 PASS는 지연/폐기 관측의 성공이며 정상 timing 수용이 아니다.
+
+3개 build 각각 상속 map의 13조건, normal·sanitizer 각각 고정 IO map의 13조건을 1회씩 순서대로 실행해 **65 runs PASS**다.
+추가 CPU 부하 없는 기능/지연 주입 회귀다. Normal full의 monitor 주입 cycle은 body **6.071524 ms / CPU 0.019561 ms**,
+plant는 **6.221538 ms / CPU 0.132012 ms**였고 해당 owner는 각각 3개 기회를 생략했다.
+Plant 주입에서는 첫 후속 cycle에 출력 2개·Actual 1개가 만료돼 TX/RX/Accepted는 239개였다.
+같은 normal RX 120 ms stall은 RX miss 60개 동안 두 owner의 skip은 0이었다. RX 단독 정지와 전체 owner 지연의 관측을 구분했다.
+
+새 workload의 owner 배치 비교는 normal·BUILD_TESTING=OFF production 각각 3회(24 runs씩), ASan/UBSan 1회(8 runs)로
+**56 runs**를 실행했다. Control **56/56 PASS**, 기존 정상 계약 **33 PASS / 23 FAIL**이다. CPU A=0·B=1,
+loaded 조건의 부하는 모두 B의 7/10 ms 요청 window다. Warm-up 제외는 0, 순서는 회전하고 Host/VM 다른 부하·IRQ·DVFS/cooling은 통제하지 않았다.
+아래 수는 full/minimal 합산이며 owner마다 normal/production의 layout당 기회 7326개, sanitizer는 2442개다.
+RX 예정 jobs는 각각 7260/2420개다. Owner skip과 ECU/RX deadline miss는 서로 다른 관측이다.
+
+| Build | Layout | 기존 계약 PASS/runs | RX miss | Monitor skip | Plant skip | RX miss 중 두 owner도 같은 slot 생략 |
+| --- | --- | --- | --- | --- | --- | --- |
+| normal | colocated | 0/6 | 55 | 42 | 76 | 32 |
+| normal | rx-isolated | 1/6 | 7 | 55 | 128 | 0 |
+| normal | io-isolated | 6/6 | 0 | 0 | 0 | 0 |
+| normal | io-baseline | 6/6 | 0 | 0 | 0 | 0 |
+| production | colocated | 0/6 | 51 | 42 | 90 | 31 |
+| production | rx-isolated | 3/6 | 0 | 41 | 93 | 0 |
+| production | io-isolated | 6/6 | 0 | 0 | 0 | 0 |
+| production | io-baseline | 5/6 | 1 | 1 | 1 | 1 |
+| sanitizer | colocated | 0/2 | 16 | 15 | 19 | 14 |
+| sanitizer | rx-isolated | 2/2 | 0 | 244 | 244 | 0 |
+| sanitizer | io-isolated | 2/2 | 0 | 0 | 0 | 0 |
+| sanitizer | io-baseline | 2/2 | 0 | 0 | 0 | 0 |
+
+Sanitizer RX 단독 분리는 기존 계약 PASS여도 두 owner 각각 244개 기회가 생략됐다. 기존 verdict를 새 owner budget PASS로 바꾸지 않는다.
+Normal colocated에서는 owner skip 중 monitor 42개 모두·plant 76개 중 74개가 요청 wake 이후에 위치했다.
+Production colocated도 monitor 42개·plant 90개 모두 같은 분류였다. Body 밖 지연과 body 안 지연을 구분할 자료이며 원인 단정은 하지 않는다.
+
+Production의 **무부하 io-baseline-full-3**에도 RX job 470과 두 owner의 slot 471이 함께 생략됐다.
+Monitor/plant phase gap은 **4.398211/4.394398 ms**, 후속 cycle의 요청 wake→시작은 **2.488532/2.492042 ms**였다.
+Sleep 호출 자체는 target보다 늦지 않았고 body는 **0.002229/0.018754 ms**(CPU **0.001855/0.018434 ms**)였다.
+최신 release만 실행하는 RX 정책은 2 ms period를 넘긴 이전 job을 생략하므로 이를 단순히 3 ms body 초과로 해석하지 않는다.
+이번 loaded IO 분리 14/14 PASS를 Host/Target 보장이나 이전 schema의 실패 해결로 확대하지 않는다.
+
+아래는 IO-isolated full의 owner별 individual sample을 같은 build에서 합친 수치다. 각 owner **3663 executed/3663 scheduled**다.
+CPU 계측을 포함하는 새 workload이며 이전 schema와 합치지 않는다. 서로 다른 owner/build/mode의 percentile도 섞지 않는다.
+
+| Build / owner | Body P99 / Max ms | CPU P99 / Max ms | 요청 wake→시작 P99 / Max ms |
+| --- | --- | --- | --- |
+| normal monitor | 0.025179 / 0.045029 | 0.021274 / 0.042886 | 0.198079 / 0.782139 |
+| normal plant | 0.082582 / 0.118503 | 0.079904 / 0.117346 | 0.164478 / 1.849179 |
+| production monitor | 0.028146 / 0.081114 | 0.023138 / 0.064059 | 0.254787 / 0.298139 |
+| production plant | 0.100725 / 0.140094 | 0.096532 / 0.136229 | 0.195394 / 0.298796 |
+
+Sanitizer 1회는 기능/진단 범위이고 대표 성능 비교가 아니다. CPU delta와 wall 차이에는 대기·선점·I/O·계측 경계가 섞인다.
+기존 3-layout CPU 비교도 normal 1회(6 runs)로 control 6/6 PASS·기존 계약 4 PASS/2 FAIL(shared)을 기록했다.
+전체 새 wall-time 실행은 **127 runs = 102 PASS / 25 FAIL**, owner/기존 CPU 비교 control 62개와 고정 map control 26개는 모두 PASS다.
+
+Normal·sanitizer C++ **각각 521개**, whole-cycle/CPU/skip·pooling·RX 대응/불완전 trace 보존·정상/fault expiry 정책의
+Python 12개를 더한 **37개**가 PASS다. 3 build 및 변경 C++ 2개(runtime/dispatcher)의 clang-tidy 14 analyzer/bugprone·runtime header filter,
+cppcheck 2.7 warning/performance/portability도 통과했다. 이전 trace schema 2/3의 normal/full 각 1개를 현재 reader로 재분석해 PASS였다.
+M1/vCAN 97조건·DBC/CRC와 CLI 거부 검사는 이전 이력이며 이번에 재실행하지 않았다. RT/TSan은 기존 환경 제한으로 여전히 NOT RUN이다.
+
+각 build의 `m3-cycle-faults/`에 기본 39 runs, normal·sanitizer `m3-cycle-fixed-faults/`에 26 runs,
+3 build의 `m3-cycle-placement/`에 56 runs, normal `m3-cycle-legacy-placement/`에 6 runs를 보존했다.
+각 directory는 environment/source/profile/binary/artifact hash와 원래 CSV·실패 판정을 포함한다.
+초기 `m3-cycle-probe/` 13 runs(plant expiry의 정상 기준 적용으로 2 FAIL)는 최종 series에 포함하지 않았다.
+이후 explicit plant fault의 expiry delta·첫 후속 cycle/송수신 count 검사를 추가했고 정상 만료 0 기준은 유지했다.
+Build/unit은 각 build의 `m3-cycle-build.txt`·`m3-cycle-unit.txt`, Python/static/history/doc은 normal의
+`m3-cycle-{python,clang,cppcheck}.txt`·`m3-cycle-history.json`·`m3-cycle-doc-check.txt`다.
+`build/m1-angle/m3-cycle-evidence.json`은 최종 source/binary/artifact hash와 모든 127 runs의 cycle/expiry·원래 phase·physics/Actual TX 포함 범위를 대조한다.
+관측을 근거로 owner budget·최대 감시/취득 공백·RT 환경/Target 및 M3 수용을 검토한다. 전체 32개 요구/29개 system TC는 NOT RUN이며 학습자 수용도 PENDING이다.
+문서 검사도 Markdown 98개·상대 링크/앵커 1104개, YAML 3개·Python 5개의 syntax/정합성을 통과했다.
+
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |
 | Compiler | 직접 관리하는 GCC/Clang target에 `-Wall -Wextra -Werror` 적용 | 첫 C++ target부터 적용; 검토된 최소 범위의 예외는 문서화하고 third-party에 global flag 적용 지양 |

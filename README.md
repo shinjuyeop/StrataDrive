@@ -6,7 +6,7 @@
 
 **M3 진행 중** — 다중 주기 실행·독립 감시와 비동기 Drive Actual CAN 송수신을 연결했다.
 M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도로 남긴다.
-부하에서 드러난 RX 누락을 owner별 CPU 배치로 비교했으며, 다음은 **실행 budget·감시 독립성과 M3 수용 검토**다.
+RX 누락을 owner별 CPU 배치와 감시·물리 전체 cycle 기록으로 대조했으며, 다음은 **budget 채택·감시 독립성과 M3 수용 검토**다.
 Central/Zone DDS·차량 closed-loop 통합은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
