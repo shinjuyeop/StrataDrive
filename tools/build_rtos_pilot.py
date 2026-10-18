@@ -73,6 +73,8 @@ def main():
     parser.add_argument('--output-dir', type=Path)
     parser.add_argument('--fetch', action='store_true', help='explicitly fetch the pinned upstream revision if absent')
     parser.add_argument('--jobs', type=int, default=4)
+    parser.add_argument('--timer-mode', choices=('upstream', 'relative', 'absolute'), default='absolute',
+                        help='Linux ViPer backend: pinned upstream, instrumented relative baseline, or absolute monotonic timer')
     args = parser.parse_args()
     if not 1 <= args.jobs <= 16:
         parser.error('jobs must be 1..16')
@@ -117,7 +119,23 @@ def main():
         # objects apart so native/cross builds cannot contaminate one another.
         viper = output / 'viper'
         viper.mkdir(exist_ok=True)
-        run(['make', '-j', args.jobs, 'CC=' + cc, 'OBJ_DIR=' + str(viper / 'obj'), 'EXE=' + str(viper / 'viper')], source / 'viper', log)
+        timer_source = ROOT / 'vecu/platform/trampoline_posix/viper_timer.c'
+        objects = viper / 'obj'; objects.mkdir(exist_ok=True)
+        timer_build = dict(mode=args.timer_mode, trace_schema=None if args.timer_mode == 'upstream' else 1)
+        make_arguments = ['make', '-j', args.jobs, 'CC=' + cc, 'OBJ_DIR=' + str(objects), 'EXE=' + str(viper / 'viper')]
+        if args.timer_mode != 'upstream':
+            timer_object = objects / 'stratadrive_timer.o'
+            timer_command = [cc, '-std=c11', '-g', '-O2', '-Wall', '-Wextra', '-Werror',
+                             '-DSTRATADRIVE_ABSOLUTE_TIMER=' + str(int(args.timer_mode == 'absolute')),
+                             '-I' + str(source / 'viper'), '-c', timer_source, '-o', timer_object]
+            run(timer_command, ROOT, log)
+            make_arguments += ['OBJ=' + ' '.join(str(objects / (name + '.o')) for name in ('com', 'exec', 'log', 'main', 'control')) + ' ' + str(timer_object)]
+            timer_build.update(source=str(timer_source.relative_to(ROOT)), source_sha256=hashlib.sha256(timer_source.read_bytes()).hexdigest(),
+                               command=list(map(str, timer_command)))
+        # Switching modes in the same directory must relink even if an older
+        # upstream object happens to have an earlier mtime than the executable.
+        (viper / 'viper').unlink(missing_ok=True)
+        run(make_arguments, source / 'viper', log)
         configuration = ['cmake', '-S', ROOT, '-B', build, '-DBUILD_TESTING=OFF', '-DSTRATADRIVE_TRAMPOLINE_PILOT=ON']
         if toolchain:
             configuration += ['-DCMAKE_TOOLCHAIN_FILE=' + str(toolchain)]
@@ -152,7 +170,7 @@ def main():
         inputs += [p for p in adapter.iterdir() if p.is_file()] + [Path(__file__).resolve(), ROOT / 'third_party/trampoline.json']
         if toolchain:
             inputs.append(toolchain)
-        evidence = dict(upstream=lock, license_sha256=digest(source / lock['kernel_license_file']),
+        evidence = dict(upstream=lock, timer_backend=timer_build, license_sha256=digest(source / lock['kernel_license_file']),
                         commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
                         working_tree=subprocess.check_output(['git','status','--short'],cwd=ROOT,text=True).splitlines(),
                         goil_version=subprocess.check_output([goil, '--version'], text=True),

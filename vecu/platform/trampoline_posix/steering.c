@@ -40,7 +40,9 @@ TASK(Control)
             if (pilot_suspend()) {
                 /* Blocking this extended OS task leaves Receive/Watch runnable. */
                 ClearEvent(Resume);
-                SetRelAlarm(ResumeAlarm, 12, 0);
+                /* One extra tick covers the phase between dispatch and suspend;
+                 * the measured wall-time injection must still last >=120 ms. */
+                SetRelAlarm(ResumeAlarm, 13, 0);
                 WaitEvent(Resume);
                 ClearEvent(Resume);
                 pilot_resume();

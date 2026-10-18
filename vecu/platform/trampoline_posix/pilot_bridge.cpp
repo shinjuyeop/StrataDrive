@@ -185,6 +185,8 @@ extern "C" void pilot_close(unsigned error) {
                 << ',' << r.source << ',' << r.actual_source << ',' << r.reported << ',' << r.fault << ',' << r.detected.load() << ',' << r.suspend << ',' << r.resume << ',' << r.actual_valid << '\n';
         }
         sched_param priority{}; const int policy=sched_getscheduler(0); sched_getparam(0,&priority);
+        cpu_set_t mask; CPU_ZERO(&mask);
+        if(sched_getaffinity(0,sizeof(mask),&mask)!=0) throw std::runtime_error("pilot affinity read");
         std::ofstream meta(p.directory/"rtos.json");
         meta << "{\"schema\":1,\"rtos_pid\":" << getpid() << ",\"clock\":\"CLOCK_MONOTONIC\",\"os\":\"Trampoline POSIX\",\"oil_version\":\"2.5\",\"tick_ns\":10000000,"
             << "\"enable_ns\":" << p.enable << ",\"end_ns\":" << clock_ns() << ",\"completion_budget_ns\":" << deadline
@@ -193,7 +195,10 @@ extern "C" void pilot_close(unsigned error) {
             << ",\"rx_calls\":" << p.rx_calls << ",\"watch_calls\":" << p.watch_calls
             << ",\"os_errors\":" << p.os_errors << ",\"last_os_error\":" << p.last_os_error << ",\"fatal_errors\":" << p.fatal_errors
             << ",\"ipc_errors\":" << p.ipc_errors << ",\"shutdown_status\":" << error << ",\"linux_policy\":" << policy
-            << ",\"linux_priority\":" << priority.sched_priority << ",\"host_realtime_guarantee\":false}";
+            << ",\"linux_priority\":" << priority.sched_priority << ",\"linux_cpu\":" << sched_getcpu() << ",\"linux_allowed_cpus\":[";
+        bool separator=false;
+        for(int cpu=0;cpu<CPU_SETSIZE;++cpu) if(CPU_ISSET(cpu,&mask)) { if(separator) meta << ','; meta << cpu; separator=true; }
+        meta << "],\"host_realtime_guarantee\":false}";
         return 1;
     });
 }

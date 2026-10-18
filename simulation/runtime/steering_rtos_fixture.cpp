@@ -15,6 +15,7 @@ void run_steering_rtos_plant(const SteeringRtosPlantOptions& options) {
     using namespace runtime_support;
     const auto& scenario=options.scenario; const auto& interface_name=options.interface_name;
     const auto channel=options.channel; const auto enable=options.enable; const auto& directory=options.directory;
+    ThreadInfo thread_info; thread_info.capture();
     constexpr std::uint64_t ms=1000000;
     if(channel<0 || enable<=now_ns() || !std::filesystem::is_directory(directory) ||
         (scenario!="normal" && scenario!="command-loss" && scenario!="corrupt" && scenario!="control-stall"))
@@ -106,6 +107,8 @@ void run_steering_rtos_plant(const SteeringRtosPlantOptions& options) {
          << ",\"last_valid_command_source_ns\":" << last_command << ",\"expired_outputs\":" << expired << ",\"sensor_drops\":" << sensor_drops
          << ",\"trace_drops\":" << physical_drops+feedback_drops << ",\"actual_accepted\":" << accepted << ",\"source_errors\":" << source_errors
          << ",\"kernel_drops\":" << kernel_drops << ",\"final_angle_rad\":" << plant.actual_angle_rad()
-         << ",\"receiver_health\":" << static_cast<int>(receiver.health()) << "}\n";
+         << ",\"receiver_health\":" << static_cast<int>(receiver.health()) << ",\"thread\":";
+    thread_info.write_json(meta);
+    meta << "}\n";
 }
 } // namespace stratadrive::simulation

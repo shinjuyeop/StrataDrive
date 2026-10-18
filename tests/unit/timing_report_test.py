@@ -7,6 +7,7 @@ import tempfile
 import unittest
 import sys
 import os
+import struct
 
 PATH = Path(__file__).resolve().parents[1] / "integration/runtime/check_timing.py"
 SPEC = importlib.util.spec_from_file_location("check_timing", PATH)
@@ -26,6 +27,58 @@ rtos_build = load_helper('build_rtos_pilot', PATH.parents[3] / 'tools/build_rtos
 
 
 class TimingReportTest(unittest.TestCase):
+    @staticmethod
+    def write_timer_trace(directory, samples, mode=1, **overrides):
+        header=dict(zip(rtos.TIMER_HEADER,[0x5354524154494d31,1,64,512,len(samples),0,0,mode,
+                                         10_000_000,1_000_000_000,12,13,os.SCHED_OTHER,0,0,50000]))
+        header.update(overrides)
+        data=struct.pack('<16Q',*(header[k] for k in rtos.TIMER_HEADER))
+        data+=b''.join(struct.pack('<8Q',*(row[k] for k in rtos.TIMER_RECORD)) for row in samples)
+        path=directory/'viper-timer-13.bin'
+        path.write_bytes(data+bytes((512-len(samples))*64))
+        return path
+
+    def test_timer_expirations_remain_misses_even_when_latest_control_is_fast(self):
+        samples=[dict(target_ns=1_010_000_000,wake_ns=1_010_001_000,send_begin_ns=1_010_002_000,
+                      send_end_ns=1_010_003_000,skipped_periods=0,policy=0,priority=0,cpu=0),
+                 dict(target_ns=1_050_000_000,wake_ns=1_050_001_000,send_begin_ns=1_050_002_000,
+                      send_end_ns=1_050_003_000,skipped_periods=3,policy=0,priority=0,cpu=0)]
+        jobs=[dict(release_ns=r['send_end_ns']+1000,end_ns=r['send_end_ns']+2000) for r in samples]
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary); self.write_timer_trace(directory,samples)
+            result=rtos.timer_metrics(directory,jobs,dict(scenario='normal'))
+            self.assertEqual((result['verdict'],result['skipped_periods']),('FAIL',3))
+            samples[1]['skipped_periods']=0; self.write_timer_trace(directory,samples)
+            with self.assertRaisesRegex(AssertionError,'accounting'): rtos.timer_trace(directory/'viper-timer-13.bin')
+
+    def test_relative_timer_targets_cannot_hide_accumulated_nominal_drift(self):
+        samples=[]; jobs=[]; target=1_010_000_000
+        for _ in range(12):
+            samples.append(dict(target_ns=target,wake_ns=target+1_000_000,send_begin_ns=target+1_000_001,
+                                send_end_ns=target+1_000_002,skipped_periods=0,policy=0,priority=0,cpu=0))
+            jobs.append(dict(release_ns=target+1_000_003,end_ns=target+1_000_004))
+            target+=11_000_002
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary); self.write_timer_trace(directory,samples,mode=0)
+            result=rtos.timer_metrics(directory,jobs,dict(scenario='normal'))
+            self.assertEqual(result['verdict'],'FAIL')
+            self.assertGreater(result['timer_to_release_ms']['max'],12)
+
+    def test_nonqueued_timer_signals_and_incomplete_traces_cannot_pass_timing(self):
+        samples=[dict(target_ns=1_000_000_000+i*10_000_000,wake_ns=1_000_000_001+i*10_000_000,
+                      send_begin_ns=1_000_000_002+i*10_000_000,send_end_ns=1_000_000_003+i*10_000_000,
+                      skipped_periods=0,policy=0,priority=0,cpu=0) for i in (1,2,3)]
+        jobs=[dict(release_ns=samples[i]['send_end_ns']+1,end_ns=samples[i]['send_end_ns']+2) for i in (0,2)]
+        with tempfile.TemporaryDirectory() as temporary:
+            directory=Path(temporary); self.write_timer_trace(directory,samples)
+            result=rtos.timer_metrics(directory,jobs,dict(scenario='normal'))
+            self.assertEqual((result['verdict'],result['coalesced_signals']),('FAIL',1))
+            for changes in (dict(overflow=1),dict(error=22),dict(count=513)):
+                self.write_timer_trace(directory,samples,**changes)
+                with self.assertRaisesRegex(AssertionError,'incomplete'): rtos.timer_trace(directory/'viper-timer-13.bin')
+            path=self.write_timer_trace(directory,samples); path.write_bytes(path.read_bytes()[:100])
+            with self.assertRaisesRegex(AssertionError,'truncated'): rtos.timer_trace(path)
+
     @staticmethod
     def scheduling_fixture():
         priorities=list(report.FIFO_PRIORITIES)

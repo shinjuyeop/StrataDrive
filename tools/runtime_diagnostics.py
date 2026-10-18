@@ -148,6 +148,7 @@ def main():
     parser.add_argument('--owner-cpus',default='1,1,1,1,0,2,0')
     parser.add_argument('--observer-cpu',type=int,default=3)
     parser.add_argument('--load-cpu',type=int)
+    parser.add_argument('--owner-fifo',help='optional seven-owner FIFO map; the observer stays SCHED_OTHER')
     parser.add_argument('--repetitions',type=int,default=3)
     parser.add_argument('--probe-only',action='store_true',help='record RT/kernel/trace capabilities without running a workload or creating vCAN')
     parser.add_argument('--fifo-priority',type=int,default=1,help='priority for the short disposable capability probe, not a runtime scheduling configuration')
@@ -156,6 +157,7 @@ def main():
     timing.require(1 <= args.fifo_priority <= 99,'FIFO probe priority must be 1..99')
     if args.probe_only:
         timing.require(args.load_cpu is None,'probe-only cannot start a load worker')
+        timing.require(args.owner_fifo is None,'probe-only cannot configure a runtime')
         output = args.output_dir.resolve(); output.mkdir(parents=True,exist_ok=False)
         result = capabilities(args.fifo_priority)
         result.update(commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
@@ -167,6 +169,7 @@ def main():
         return
     allowed = os.sched_getaffinity(0)
     owners = timing.parse_owner_cpus(args.owner_cpus)
+    priorities = timing.parse_fifo_priorities(args.owner_fifo) if args.owner_fifo is not None else None
     timing.require(set(owners.values()) <= allowed and args.observer_cpu in allowed,'CPU outside allowed mask')
     timing.require(args.load_cpu is None or args.load_cpu in allowed,'load CPU outside allowed mask')
     os.sched_setaffinity(0,{args.observer_cpu})
@@ -174,7 +177,7 @@ def main():
     build = args.build_dir.resolve(); binary = build/'actuator_demo'
     # Keep original inherited CPU set in the runtime. The observer alone stays pinned.
     environment = timing.environment(build,binary,'multirate')
-    environment.update(diagnostic=capabilities(args.fifo_priority),requested_owner_cpus=owners,observer_cpu=args.observer_cpu,load_cpu=args.load_cpu,
+    environment.update(diagnostic=capabilities(args.fifo_priority),requested_owner_cpus=owners,requested_owner_fifo=priorities,observer_cpu=args.observer_cpu,load_cpu=args.load_cpu,
                        runtime_inherited_allowed_cpus=sorted(allowed),runtime_cpu_topology=timing.cpu_topology(sorted(allowed)))
     (output/'environment.json').write_text(json.dumps(environment,indent=2)+'\n')
     interface='diagnostic0'; reports=[]
@@ -189,6 +192,7 @@ def main():
                 try:
                     if args.load_cpu is not None: load=timing.CpuLoad(args.load_cpu)
                     command = [str(binary),'multirate-runtime','normal',interface,str(directory),'owner-cpus='+args.owner_cpus]
+                    if priorities is not None: command += ['owner-fifo='+args.owner_fifo]
                     process = subprocess.Popen(command,stdout=log,stderr=subprocess.STDOUT,preexec_fn=lambda:os.sched_setaffinity(0,allowed))
                     limit = time.monotonic()+10
                     while process.poll() is None:
@@ -197,7 +201,8 @@ def main():
                         time.sleep(.001)
                     timing.require(process.returncode==0,'runtime process failed')
                     report['observations']=timing.observe_jobs(directory)
-                    timing.validate_placement(report['observations']['metadata'],owners)
+                    timing.validate_placement(report['observations']['metadata'],owners,priorities)
+                    timing.validate_scheduling(report['observations']['metadata'],priorities)
                     report['control_verdict']='PASS'
                     try: timing.analyze(directory); report['contract_verdict']='PASS'
                     except (AssertionError,KeyError,ValueError) as error: report['contract_error']=str(error)
