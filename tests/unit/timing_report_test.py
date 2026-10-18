@@ -175,6 +175,38 @@ class TimingReportTest(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "placement"):
             report.validate_placement(dict(threads=threads), 3)
 
+    def test_owner_layouts_move_only_the_declared_owners_and_keep_load_cpu_fixed(self):
+        colocated = report.owner_placement("colocated", 3, 7)
+        rx = report.owner_placement("rx-isolated", 3, 7)
+        io = report.owner_placement("io-isolated", 3, 7)
+        self.assertEqual(set(colocated.values()), {7})
+        self.assertEqual({n for n in rx if rx[n] != colocated[n]}, {"rx"})
+        self.assertEqual({n for n in io if io[n] != colocated[n]}, {"rx", "monitor", "plant_fixture"})
+        self.assertEqual(io, report.owner_placement("io-baseline", 3, 7))
+
+    def test_wrong_owner_can_not_be_hidden_by_the_correct_set_of_used_cpus(self):
+        owners = report.owner_placement("io-isolated", 3, 7)
+        threads = {name: dict(allowed_cpus=[cpu], observed_cpu=cpu, policy=0, priority=0) for name, cpu in owners.items()}
+        metadata = dict(threads=threads, requested_owner_cpus=[owners[n] for n in report.OWNER_NAMES])
+        report.validate_placement(metadata, owners)
+        threads["drive"], threads["rx"] = threads["rx"], threads["drive"]
+        with self.assertRaisesRegex(AssertionError, "placement"):
+            report.validate_placement(metadata, owners)
+
+    def test_fixed_owner_map_needs_seven_decimal_ids_without_missing_or_extra_fields(self):
+        self.assertEqual(report.parse_owner_cpus("7,7,7,7,3,3,3"), report.owner_placement("io-isolated", 3, 7))
+        for invalid in ("", "0,0", "0,0,0,0,0,0,0,0", "0,0,0,0,0,0,", "0,0,0,0,0,0,-1", "0,0,0,0,0,0, 1"):
+            with self.assertRaises(AssertionError):
+                report.parse_owner_cpus(invalid)
+
+    def test_four_owner_layouts_keep_repetitions_and_rotate_without_dropping_a_layout(self):
+        conditions = list(report.placement_conditions(4, report.OWNER_LAYOUTS))
+        self.assertEqual(len(conditions), 32)
+        self.assertEqual([conditions[i][0] for i in (0, 8, 16, 24)], list(report.OWNER_LAYOUTS))
+        for layout in report.OWNER_LAYOUTS:
+            for detailed in (True, False):
+                self.assertEqual(sum(a == layout and b == detailed for a, b, _ in conditions), 4)
+
     def test_failed_contract_observations_remain_in_trace_comparison(self):
         with tempfile.TemporaryDirectory() as tmp:
             directory = Path(tmp)

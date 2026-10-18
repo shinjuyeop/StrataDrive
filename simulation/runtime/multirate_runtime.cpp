@@ -12,8 +12,10 @@
 #include "ev_power_model.hpp"
 #include "power_controller.hpp"
 
+#include <algorithm>
 #include <array>
 #include <atomic>
+#include <charconv>
 #include <exception>
 #include <memory>
 #include <thread>
@@ -113,6 +115,20 @@ std::optional<can::BmsParentContext> parent_for(const TrustedHistory& history, c
 }
 } // namespace
 
+std::array<int,7> parse_runtime_owner_cpus(const std::string& value) {
+    std::array<int,7> cpus{};
+    const char* next=value.data(); const char* end=next+value.size();
+    for(std::size_t i=0;i<cpus.size();++i) {
+        const auto result=std::from_chars(next,end,cpus[i]);
+        if(result.ec!=std::errc{} || cpus[i]<0 || cpus[i]>=CPU_SETSIZE ||
+            (i+1==cpus.size() ? result.ptr!=end : result.ptr==end || *result.ptr!=',')) {
+            throw std::invalid_argument("owner-cpus requires seven CPU IDs: brake,drive,bms,power,rx,monitor,plant_fixture");
+        }
+        if(i+1<cpus.size()) next=result.ptr+1;
+    }
+    return cpus;
+}
+
 void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     const auto& scenario=options.scenario;
     const auto& interface_name=options.interface_name;
@@ -120,6 +136,19 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     const bool detailed=options.detailed_trace;
     if(scenario!="normal" && scenario!="brake-stall" && scenario!="drive-stall" && scenario!="bms-stall" &&
         scenario!="power-stall" && scenario!="rx-stall" && scenario!="rx-corrupt" && scenario!="feedback-replay") throw std::invalid_argument("multirate-runtime scenario");
+    if(options.owner_cpus) {
+        ThreadInfo inherited; inherited.capture();
+        for(const int cpu:*options.owner_cpus) {
+            if(std::find(inherited.allowed_cpus.begin(),inherited.allowed_cpus.end(),cpu)==inherited.allowed_cpus.end())
+                throw std::invalid_argument("owner CPU outside inherited affinity");
+        }
+    }
+    auto place_owner=[&](std::size_t owner) {
+        if(!options.owner_cpus) return;
+        cpu_set_t mask; CPU_ZERO(&mask); CPU_SET((*options.owner_cpus)[owner],&mask);
+        const int result=pthread_setaffinity_np(pthread_self(),sizeof(mask),&mask);
+        if(result!=0) throw std::system_error(result,std::generic_category(),"pthread_setaffinity_np");
+    };
     if(!std::filesystem::create_directories(directory)) throw std::invalid_argument("runtime output directory must be new");
     socketcan::Endpoint tx(interface_name);
     std::array<std::unique_ptr<socketcan::Endpoint>,kReceiveStreams> sockets;
@@ -299,11 +328,12 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     };
     std::vector<std::thread> threads; threads.reserve(6);
     auto launch=[&](std::size_t owner,auto body) {
-        threads.emplace_back([&,owner,body] { try { body(); } catch(...) { errors[owner]=std::current_exception(); abort.store(true,std::memory_order_release); } });
+        threads.emplace_back([&,owner,body] { try { place_owner(owner); body(); } catch(...) { errors[owner]=std::current_exception(); abort.store(true,std::memory_order_release); } });
     };
     try { launch(5,watch); launch(0,brake); launch(1,drive); launch(2,bms); launch(3,power); launch(4,receive); }
     catch(...) { abort.store(true,std::memory_order_release); for(auto& t:threads) t.join(); throw; }
     try {
+        place_owner(6);
         plant_thread_info.capture();
         BrakePressureResponse pressure({1500000,0,5000000,10000000,50*kMs,7}); if(!pressure.begin(enable)) throw std::runtime_error("pressure INIT");
         DriveSilPlant torque({-200,300,0,1000,2000,50*kMs}); torque.begin(7,enable);
@@ -464,7 +494,13 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     for(std::size_t i=0;i<tasks.size();++i) { if(i) meta << ','; const auto& t=*tasks[i]; const auto& c=t.schedule.config();
         meta << "{\"name\":" << std::quoted(kNames[i]) << ",\"period_ns\":" << c.period_ns << ",\"deadline_ns\":" << c.relative_deadline_ns
             << ",\"first_release_ns\":" << c.first_release_ns << ",\"jobs\":" << c.jobs << ",\"policy\":" << t.thread.policy << ",\"priority\":" << t.thread.priority << '}'; }
-    meta << "],\n\"threads\": {";
+    meta << "],\n\"requested_owner_cpus\":";
+    if(options.owner_cpus) {
+        meta << '[';
+        for(std::size_t i=0;i<options.owner_cpus->size();++i) { if(i) meta << ','; meta << (*options.owner_cpus)[i]; }
+        meta << ']';
+    } else meta << "null";
+    meta << ",\n\"threads\": {";
     for(std::size_t i=0;i<tasks.size();++i) { if(i) meta << ','; meta << std::quoted(kNames[i]) << ':'; tasks[i]->thread.write_json(meta); }
     meta << ",\"monitor\":"; monitor_thread_info.write_json(meta);
     meta << ",\"plant_fixture\":"; plant_thread_info.write_json(meta);

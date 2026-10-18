@@ -148,6 +148,12 @@ Trace schema 3의 취득/생성/TX begin/end·RX/Accepted 시각과 원래 bytes
 Owner가 직접 기록한 mask/policy를 확인하며 기존 deadline 위반은 FAIL로 유지하고 유효한 실패 job도 통계에 포함한다.
 CPU affinity는 resource reservation이 아니며 RT 우선순위·Target 보장은 후속이다. [부하 실행 안내](../learning/m3_cpu_placement.md)를 따른다.
 이 실험의 deadline이나 SCHED_OTHER 관측 결과를 차량/Target 전체 budget으로 채택하지 않는다.
+
+[ADR-0037](../adr/ADR-0037-runtime-owner-cpu-placement.md)은 같은 CPU B 부하에서 7-owner 배치를
+colocated/RX만 분리/RX·monitor·plant 분리로 비교하고 같은 IO map의 무부하 대조군을 둔다.
+요청/실제 thread map을 대조하며 기존 period/deadline·valid RX·output expiry 계약을 유지한다.
+RX는 최신 release만 실행하므로 period를 넘겨 생략한 job도 miss다. 실행된 job의 duration만으로 판단하지 않는다.
+이 비교는 RT 우선순위 확정이나 monitor/plant 전체 cycle의 실행 budget 채택을 대신하지 않는다.
 Logical period가 같아도 모든 task deadline이 그 period와 같다고 가정하지 않는다.
 M3에서는 task release/start/end, Mean/P95/P99/Max, sample/drop 수, eligible jobs와
 miss 수/비율, trace overhead를 보고한다. M5/M7에 전체 causal path로 확장한다.

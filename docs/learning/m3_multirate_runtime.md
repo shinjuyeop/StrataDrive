@@ -2,6 +2,7 @@
 
 Date: 2026-10-16. Status: **Host multirate/vCAN component 구현·검사 / owner별 배치·우선순위·Target/E2E 후속**.
 2026-10-18 [Drive Actual 연결](m3_drive_feedback.md)로 비동기 torque 송수신과 여섯 번째 valid-RX 감시·RX drain tail을 추가했다.
+같은 날 후속 [owner별 CPU 배치 비교](m3_cpu_placement.md#owner별로-cpu를-나누기)를 추가했다.
 [첫 Steering 실행](m3_steering_timing.md)의 schedule·completion monitor와 latest snapshot을 확장했다.
 결정과 보호 범위는 [ADR-0034](../adr/ADR-0034-multirate-runtime-and-can-loss-monitoring.md)에 기록한다.
 

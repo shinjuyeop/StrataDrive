@@ -569,3 +569,24 @@ m3_cpu_placement_fixture:
   trace_order: alternate_each_repetition
   excluded_warmup_jobs: 0
   contract_failure_policy: retain_failures_and_all_valid_job_observations
+
+# ADR-0037: per-owner affinity comparison; CPU B load is fixed for loaded layouts.
+m3_owner_placement_fixture:
+  family: multirate
+  scenario: normal
+  owner_order: [brake, drive, bms, power, rx, monitor, plant_fixture]
+  layouts:
+    colocated: {cpu_a: [], cpu_b: [brake, drive, bms, power, rx, monitor, plant_fixture], load: cpu_b}
+    rx-isolated: {cpu_a: [rx], cpu_b: [brake, drive, bms, power, monitor, plant_fixture], load: cpu_b}
+    io-isolated: {cpu_a: [rx, monitor, plant_fixture], cpu_b: [brake, drive, bms, power], load: cpu_b}
+    io-baseline: {cpu_a: [rx, monitor, plant_fixture], cpu_b: [brake, drive, bms, power], load: none}
+  scheduling_policy: SCHED_OTHER
+  priority_change: none
+  trace_modes: [full, minimal]
+  repetitions_per_condition: 3
+  load_protocol: m3_cpu_placement_fixture
+  timing_and_receive_contracts: m3_multirate_runtime_fixture_unchanged
+  layout_order: rotate_each_repetition
+  trace_order: alternate_each_repetition
+  excluded_warmup_jobs: 0
+  contract_failure_policy: retain_failures_and_all_valid_job_observations

@@ -38,7 +38,7 @@ void usage(std::ostream& output) {
 #ifdef STRATADRIVE_LINUX_SESSION
     output << "  actuator_demo epoch <init|next> <store_directory>\n";
     output << "  actuator_demo steering-runtime <normal|overrun|stall> <new_output_directory> [trace-off]\n";
-    output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt|feedback-replay> <vcan_interface> <new_output_directory> [trace-off]\n";
+    output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt|feedback-replay> <vcan_interface> <new_output_directory> [trace-off] [owner-cpus=brake,drive,bms,power,rx,monitor,plant_fixture]\n";
 #endif
 }
 } // namespace stratadrive::demo
@@ -74,10 +74,16 @@ int main(int argc, char** argv) {
             else if (command == "ev-power" && (argc == 2 || argc == 3)) demo_ev_power(argc == 3 ? argv[2] : "normal");
             else if (command == "drive-model" && argc == 2) demo_drive_model();
 #ifdef STRATADRIVE_LINUX_SESSION
-            else if (command == "multirate-runtime" && (argc == 5 || argc == 6)) {
-                if(argc==6 && std::string(argv[5])!="trace-off") throw std::invalid_argument("expected trace-off");
+            else if (command == "multirate-runtime" && argc >= 5 && argc <= 7) {
                 stratadrive::simulation::MultirateRuntimeOptions options;
-                options.scenario=argv[2]; options.interface_name=argv[3]; options.directory=argv[4]; options.detailed_trace=argc==5;
+                options.scenario=argv[2]; options.interface_name=argv[3]; options.directory=argv[4];
+                for(int i=5;i<argc;++i) {
+                    const std::string argument=argv[i];
+                    if(argument=="trace-off" && options.detailed_trace) options.detailed_trace=false;
+                    else if(argument.rfind("owner-cpus=",0)==0 && !options.owner_cpus)
+                        options.owner_cpus=stratadrive::simulation::parse_runtime_owner_cpus(argument.substr(11));
+                    else throw std::invalid_argument("unknown or duplicate runtime option");
+                }
                 stratadrive::simulation::run_multirate_runtime(options);
                 std::cout << "RUNTIME_TRACE " << argv[4] << '\n';
             }

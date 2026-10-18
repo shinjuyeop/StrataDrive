@@ -354,11 +354,28 @@ def select_cpus(allowed, topology, runtime_cpu=None, load_cpu=None):
     return runtime_cpu, load_cpu
 
 
-def placement_conditions(repetitions):
+OWNER_NAMES = ("brake", "drive", "bms", "power", "rx", "monitor", "plant_fixture")
+OWNER_LAYOUTS = ("colocated", "rx-isolated", "io-isolated", "io-baseline")
+
+
+def owner_placement(layout, io_cpu, work_cpu):
+    require(layout in OWNER_LAYOUTS, "unknown owner layout")
+    return {name: io_cpu if (layout != "colocated" and name == "rx") or
+            (layout in ("io-isolated", "io-baseline") and name in ("monitor", "plant_fixture")) else work_cpu
+            for name in OWNER_NAMES}
+
+
+def parse_owner_cpus(value):
+    fields = value.split(",")
+    require(len(fields) == len(OWNER_NAMES) and all(f.isascii() and f.isdecimal() for f in fields),
+            "owner-cpus requires seven nonnegative CPU IDs: " + ",".join(OWNER_NAMES))
+    return dict(zip(OWNER_NAMES, map(int, fields)))
+
+
+def placement_conditions(repetitions, layouts=("baseline", "shared", "separate")):
     # Rotate layout order, and alternate full/minimal order. No best-run selection.
-    layouts = ("baseline", "shared", "separate")
     for repetition in range(repetitions):
-        ordered = layouts[repetition % 3:] + layouts[:repetition % 3]
+        ordered = layouts[repetition % len(layouts):] + layouts[:repetition % len(layouts)]
         for layout in ordered:
             for detailed in ((True, False) if repetition % 2 == 0 else (False, True)):
                 yield layout, detailed, repetition + 1
@@ -471,9 +488,13 @@ def validate_load(load, cpu, begin, end):
 
 def validate_placement(metadata, cpu):
     threads = metadata["threads"]
-    require(set(threads) == {"brake", "drive", "bms", "power", "rx", "monitor", "plant_fixture"}, "missing thread placement")
-    require(all(t["allowed_cpus"] == [cpu] and t["observed_cpu"] == cpu and t["policy"] == os.SCHED_OTHER and
-                t["priority"] == 0 for t in threads.values()), "runtime thread placement/policy not applied")
+    expected = cpu if isinstance(cpu, dict) else dict.fromkeys(OWNER_NAMES, cpu)
+    require(set(threads) == set(expected) == set(OWNER_NAMES), "missing thread placement")
+    require(all(t["allowed_cpus"] == [expected[name]] and t["observed_cpu"] == expected[name] and
+                t["policy"] == os.SCHED_OTHER and t["priority"] == 0 for name, t in threads.items()),
+            "runtime thread placement/policy not applied")
+    if isinstance(cpu, dict):
+        require(metadata.get("requested_owner_cpus") == [expected[name] for name in OWNER_NAMES], "owner request missing or changed")
 
 
 def observe_jobs(directory):
@@ -502,7 +523,7 @@ def pooled_job_metrics(runs):
 
 def placement_comparison(reports):
     groups = {}
-    for layout in ("baseline", "shared", "separate"):
+    for layout in dict.fromkeys(r["layout"] for r in reports):
         for detailed in (True, False):
             selected = [r for r in reports if r["layout"] == layout and r["detailed_trace"] == detailed]
             complete = [r for r in selected if "observation_scope" in r]
@@ -574,27 +595,38 @@ def main():
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument("--family", choices=("steering", "multirate"), default="steering")
-    parser.add_argument("--experiment", choices=("faults", "cpu-placement"), default="faults")
-    parser.add_argument("--runtime-cpu", type=int, help="allowed logical CPU for all seven runtime owners in placement experiment")
+    parser.add_argument("--experiment", choices=("faults", "cpu-placement", "owner-placement"), default="faults")
+    parser.add_argument("--runtime-cpu", type=int, help="allowed CPU A: all owners in cpu-placement; IO owners in owner-placement")
     parser.add_argument("--load-cpu", type=int, help="different allowed logical CPU for separate placement; prefer another physical core")
+    parser.add_argument("--owner-cpus", help="fixed seven-owner CPU map for multirate fault regression, comma-separated in owner order")
     parser.add_argument("--analyze", type=Path, help="analyze one existing runtime trace without executing")
     args = parser.parse_args()
     if args.analyze:
         print(json.dumps(analyze(args.analyze), indent=2))
         return 0
     require(1 <= args.repetitions <= 20, "repetitions must be 1..20")
-    require(args.experiment != "cpu-placement" or args.family == "multirate", "cpu-placement requires --family multirate")
-    require(args.experiment == "cpu-placement" or (args.runtime_cpu is None and args.load_cpu is None), "CPU choices require cpu-placement experiment")
+    placement = args.experiment in ("cpu-placement", "owner-placement")
+    require(not placement or args.family == "multirate", "placement requires --family multirate")
+    require(placement or (args.runtime_cpu is None and args.load_cpu is None), "CPU choices require placement experiment")
+    fixed_owners = parse_owner_cpus(args.owner_cpus) if args.owner_cpus is not None else None
+    require(fixed_owners is None or (not placement and args.family == "multirate"), "fixed owner-cpus requires multirate faults")
+    if fixed_owners is not None:
+        require(set(fixed_owners.values()) <= os.sched_getaffinity(0), "owner CPU outside inherited affinity")
     experiment = {"name": args.experiment}
     runtime_cpu = load_cpu = None
-    if args.experiment == "cpu-placement":
+    if placement:
         allowed = sorted(os.sched_getaffinity(0))
         topology = cpu_topology(allowed)
         runtime_cpu, load_cpu = select_cpus(allowed, topology, args.runtime_cpu, args.load_cpu)
         experiment.update(runtime_cpu=runtime_cpu, separate_load_cpu=load_cpu, topology=topology,
                           requested_busy_window_ns=7_000_000, load_period_ns=10_000_000,
-                          policy="SCHED_OTHER unchanged; all runtime threads share runtime_cpu",
+                          policy="SCHED_OTHER unchanged; explicit owner maps" if args.experiment == "owner-placement" else "SCHED_OTHER unchanged; all runtime threads share runtime_cpu",
                           order="rotate layouts per repetition; alternate full/minimal order; exclude zero warmup jobs")
+        if args.experiment == "owner-placement":
+            experiment["owner_maps"] = {layout: owner_placement(layout, runtime_cpu, load_cpu) for layout in OWNER_LAYOUTS}
+            experiment["load_location"] = "work CPU B for colocated/rx-isolated/io-isolated; none for io-baseline"
+    elif fixed_owners is not None:
+        experiment["fixed_owner_cpus"] = fixed_owners
     build = args.build_dir.resolve()
     binary = build / "actuator_demo"
     output = (args.output_dir or build / ("timing-results-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ"))).resolve()
@@ -617,24 +649,30 @@ def main():
             raise
     planned = [(f"{scenario}-{'full' if detailed else 'minimal'}-{rep+1}", scenario, detailed, None)
                for rep in range(args.repetitions) for scenario, detailed in conditions]
-    if args.experiment == "cpu-placement":
+    if placement:
+        layouts = OWNER_LAYOUTS if args.experiment == "owner-placement" else ("baseline", "shared", "separate")
         planned = [(f"{layout}-{'full' if detailed else 'minimal'}-{rep}", "normal", detailed, layout)
-                   for layout, detailed, rep in placement_conditions(args.repetitions)]
+                   for layout, detailed, rep in placement_conditions(args.repetitions, layouts)]
     try:
         for label, scenario, detailed, layout in planned:
             directory = output / label
             command = [str(binary), "steering-runtime", scenario, str(directory)] if args.family == "steering" else [str(binary), "multirate-runtime", scenario, interface, str(directory)]
             command += [] if detailed else ["trace-off"]
+            owners = owner_placement(layout, runtime_cpu, load_cpu) if args.experiment == "owner-placement" else fixed_owners
+            if owners is not None:
+                command += ["owner-cpus=" + ",".join(str(owners[name]) for name in OWNER_NAMES)]
             begin, process_elapsed = time.monotonic_ns(), 0
             load, report = None, {"verdict": "FAIL"}
             assigned_load = runtime_cpu if layout == "shared" else load_cpu if layout == "separate" else None
+            if args.experiment == "owner-placement" and layout != "io-baseline":
+                assigned_load = load_cpu
             try:
                 if assigned_load is not None:
                     load = CpuLoad(assigned_load)
                 process_begin = time.monotonic_ns()
                 try:
                     # Parent remains unpinned. Only this child and its future threads inherit the mask.
-                    pin = None if runtime_cpu is None else lambda: os.sched_setaffinity(0, {runtime_cpu})
+                    pin = (lambda: os.sched_setaffinity(0, {runtime_cpu})) if args.experiment == "cpu-placement" else None
                     process = subprocess.run(command, capture_output=True, text=True, timeout=10, check=False, preexec_fn=pin)
                 finally:
                     process_elapsed = time.monotonic_ns() - process_begin
@@ -650,9 +688,9 @@ def main():
                 measured_load = load.finish() if load is not None else None
             report["runtime_contract_verdict"] = report["verdict"]
             controls = []
-            if layout is not None:
+            if layout is not None or owners is not None:
                 try:
-                    validate_placement(report["metadata"], runtime_cpu)
+                    validate_placement(report["metadata"], owners if owners is not None else runtime_cpu)
                 except (AssertionError, KeyError) as error:
                     controls.append(str(error))
                 if measured_load is not None:
@@ -664,7 +702,7 @@ def main():
                         controls.append(str(error))
                 elif assigned_load is not None:
                     controls.append("load worker not started")
-                report.update(layout=layout, runtime_cpu=runtime_cpu, load_cpu=assigned_load,
+                report.update(layout=layout, runtime_cpu=runtime_cpu, owner_cpus=owners, load_cpu=assigned_load,
                               placement_and_load_verdict="FAIL" if controls else "PASS", control_errors=controls)
                 if controls:
                     report["verdict"] = "FAIL"
@@ -676,11 +714,11 @@ def main():
         if created:
             subprocess.run(["ip", "link", "delete", "dev", interface], check=True)
     overhead = ({"by_layout": {layout: trace_comparison([r for r in reports if r["layout"] == layout], args.family)
-                               for layout in ("baseline", "shared", "separate")}} if args.experiment == "cpu-placement"
+                               for layout in layouts}} if placement
                 else trace_comparison(reports, args.family))
     summary = {"verdict": "PASS" if all(r["verdict"] == "PASS" for r in reports) else "FAIL", "runs": reports,
                "experiment": experiment, "trace_overhead_comparison": overhead, "full_system_tc": "NOT RUN"}
-    if args.experiment == "cpu-placement":
+    if placement:
         summary["placement_comparison"] = placement_comparison(reports)
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     artifacts = {str(p.relative_to(output)): sha256(p) for p in sorted(output.rglob("*")) if p.is_file()}

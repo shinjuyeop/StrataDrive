@@ -1,6 +1,6 @@
 # M3: CPU에 부하를 주고 배치를 비교하기
 
-Date: 2026-10-16. Status: **Host 고정 부하·CPU 배치 실험 / Target·RT 우선순위 검증 후속**.
+Date: 2026-10-18. Status: **Host 고정 부하·owner별 CPU 배치 비교 / Target·RT 우선순위 검증 후속**.
 아래 10월 16일 수치는 다섯 입력 stream workload의 이력이다. 10월 18일 [Drive Actual 연결](m3_drive_feedback.md)은
 Actual RX 비용과 20 ms drain tail을 추가했으므로 새 workload의 측정과 구분한다.
 [다중 주기 실행](m3_multirate_runtime.md) 다음 단계다. 결정은 [ADR-0035](../adr/ADR-0035-controlled-cpu-load-and-placement.md)에 있다.
@@ -102,3 +102,48 @@ Monitor와 plant까지 CPU A를 공유하므로 독립 OS/하드웨어 watchdog�
 당시 unavailable이던 비동기 torque는 후속 [Drive Actual 연결](m3_drive_feedback.md)에서 취득 시각을 보존해 보고한다.
 실행 budget·owner별 배치/priority와 M3 수용 검토가 다음이며 Target·차량 전체 E2E는 후속이다.
 전체 32개 요구/29개 system TC는 NOT RUN이며 M1/M2 학습자 수용도 별도로 남긴다.
+
+## Owner별로 CPU를 나누기
+
+10월 18일 후속 [ADR-0037](../adr/ADR-0037-runtime-owner-cpu-placement.md)은 같은 부하 위치를 유지하고
+어떤 owner를 옮기는지 비교한다. Thread가 각각 있어도 같은 CPU에서 CPU를 얻기까지 기다릴 수 있다.
+앞선 smoke에서 RX가 실제 실행된 body는 최대 약 0.32 ms였고, 생략된 release 이후 다음 실행이
+2–3 ms 이상 늦는 구간이 있었다. 실행 body를 줄이는 것과 CPU 대기를 줄이는 것은 구분해야 한다.
+
+RX period 2 ms와 deadline 3 ms도 다른 값이다. Scheduler는 다음 release가 이미 왔으면 최신 job만
+실행하므로 3 ms 전에 이전 job을 생략할 수도 있다. Skip도 miss 분모에 남으며 catch-up으로 덮지 않는다.
+
+| Layout | CPU A | CPU B | 부하 |
+| --- | --- | --- | --- |
+| colocated | 없음 | ECU 4개·RX·monitor·plant | B |
+| rx-isolated | RX | ECU 4개·monitor·plant | B |
+| io-isolated | RX·monitor·plant | ECU 4개 | B |
+| io-baseline | RX·monitor·plant | ECU 4개 | 없음 |
+
+A/B는 allowed mask에서 고르고 가능하면 다른 physical core를 사용한다. `--runtime-cpu`가 A,
+`--load-cpu`가 B다. 요청 부하 7/10 ms·deadline·RX 최대 8 frames는 유지한다. Policy는 SCHED_OTHER다.
+`io-baseline`은 `io-isolated`와 같은 CPU map의 무부하 대조군이다.
+
+```sh
+unshare --user --map-root-user --net python3 tests/integration/runtime/check_timing.py --family multirate --experiment owner-placement --repetitions 3
+```
+
+4 layouts × 2 trace modes × 3회 = 24 runs다. 기존 CPU 배치 비교처럼 순서를 회전하고 실패 run도 보존한다.
+`environment.json`의 `experiment.owner_maps`에 요청 map이, `run.json`의 `requested_owner_cpus`와 `threads`에
+요청 순서와 실제 thread mask/policy가 남는다. 모두 일치해야 control PASS다.
+7-owner 순서는 **brake, drive, bms, power, rx, monitor, plant_fixture**다.
+
+선택한 배치에서 기존 fault 검사를 재현하려면 아래처럼 실제 allowed CPU 번호로 map을 명시한다.
+이 예는 CPU 0/1을 쓸 수 있는 Host에 한정한다. 이 명령은 추가 부하 없는 fault 회귀다.
+
+```sh
+unshare --user --map-root-user --net python3 tests/integration/runtime/check_timing.py --family multirate --owner-cpus 1,1,1,1,0,0,0 --repetitions 1
+```
+
+직접 실행할 때도 `actuator_demo multirate-runtime ... owner-cpus=1,1,1,1,0,0,0`으로 같은 map을 줄 수 있다.
+미지정 시 기존 affinity 상속을 유지한다. 잘못된 ID/map은 실행 전에 거부하며 자동 대체하지 않는다.
+실제 출력 만료·Actual 누락·보호 latch와 다른 ECU miss도 함께 봐야 한다. RX만 정상인 run을 전체 PASS로 바꾸지 않는다.
+최종 수치·반복 수·예비 run과 구분한 증거는 [품질 기록](../quality_policy.md)에 남긴다.
+
+이 배치는 monitor와 plant도 옮기는 실험이다. 별도 OS/하드웨어 watchdog이나 CPU 예약이 아니다.
+Monitor/plant 전체 cycle budget, RT priority, Target 검증과 M3 수용 검토는 남는다.

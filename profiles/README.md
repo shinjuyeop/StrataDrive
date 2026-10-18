@@ -112,6 +112,11 @@ Runtime 7개 owner를 같은 allowed CPU A에 고정하고 부하 없음/A 부�
 SCHED_OTHER를 유지하고 기존 deadline/ECU 설정을 완화하지 않는다. 실패 run도 유효한 job은 통계에 남긴다.
 CPU 번호는 현재 allowed mask/topology에서 선택해 실행 결과에 기록하며 YAML loader나 resource reservation은 아니다.
 
+`m3_owner_placement_fixture`는 [ADR-0037](../docs/adr/ADR-0037-runtime-owner-cpu-placement.md)의
+4 layouts × full/minimal × 3회 비교다. Loaded 조건의 부하는 모두 CPU B에 두고 RX만 A로 옮기는 경우,
+RX·monitor·plant를 함께 옮기는 경우를 비교한다. 같은 IO map의 무부하 대조군도 둔다.
+7-owner CPU map은 실행 시 명시하며 미지정 시 기존 상속 동작을 유지한다. SCHED_OTHER·period/deadline·RX budget은 같다.
+
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
 stack, model/input settings, scenario/seed, power/thermal 및 측정 조건을 기록한다.
 결과는 단순 속도 순위 대신 요구 충족과 feature trade-off로 평가한다.

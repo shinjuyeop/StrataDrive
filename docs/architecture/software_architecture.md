@@ -114,6 +114,9 @@ RX 정지·지속 CRC 실패에서도 Brake floor/Drive zero·BMS inhibit를 검
 보조 시각은 각자 session/now·age/cursor를 검사하며 cached torque로 valid RX를 연장하지 않는다.
 기존 RX owner의 0x282 socket/별도 DriveReceiver와 여섯 번째 valid-RX monitor를 연결했고 20 ms drain tail을 둔다.
 차량/Zone feedback bridge는 후속이다.
+후속 [owner별 CPU 배치](../adr/ADR-0037-runtime-owner-cpu-placement.md)는 같은 runtime의 7개 owner에 선택적으로
+각각 CPU를 지정한다. RX만 이동하거나 RX·monitor·physical/fixture를 함께 이동해 비교하며 ECU/물리 책임과
+CAN 계약은 유지한다. 별도 OS/하드웨어 watchdog이나 CPU 예약을 구현한 것은 아니다.
 
 | vECU | Command / dynamics 후보 | Feedback / fault 후보 |
 | --- | --- | --- |
