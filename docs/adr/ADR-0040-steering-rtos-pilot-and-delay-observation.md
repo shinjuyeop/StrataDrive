@@ -50,7 +50,7 @@ RTOS 파일럿의 기능 PASS를 기존 M3 정상 timing PASS로 대체하지 �
 ## 호환 설정과 시험
 
 POSIX port는 setjmp/longjmp로 별도 task stack을 전환한다. 현재 glibc의 fortified longjmp 검사와 충돌해
-생성된 hosted C 쪽에만 `-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0`을 적용한다. 일반 CMake 품질 설정은 유지한다.
+생성된 hosted C 쪽에만 `-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0`을 적용한다. 일반 CMake 품질 설정은 유지한다. 유효한 stack 크기에서 해당 flag만 제거한 독립 호환 probe로도 abort를 재현했다.
 Port의 stack-size 표현에 맞춰 task 49152 bytes/ISR 32768 bytes를 사용하고 overflow warning을 error로 처리한다.
 Sanitizer/fiber 연동은 미검증이므로 hosted OS binary를 ASan/UBSan 수용 증거로 쓰지 않는다. 기존 native core/unit 검사는 별도 수행한다.
 GOIL 생성 C의 upstream 경고와 직접 작성한 adapter의 정적 분석 결과를 구분한다.
@@ -65,6 +65,7 @@ Launcher는 자기 process group을 정리하며 실제 RTOS PID의 per-applicat
 ## 지연 분석
 
 Runtime ThreadInfo에 native TID를 추가한다. 기존 schema 5 metadata의 추가 필드이며 CAN/schema 계약은 유지한다.
+진단 대상은 기존 native multirate Linux thread이며 RTOS 내부 Task별 trace가 아니다.
 별도 observer가 `/proc/PID/task/TID/schedstat`의 CPU/queue/time-slice 누적값과 voluntary/involuntary switch를 읽는다.
 `CONFIG_SCHED_INFO`와 probe 권한 상태, sample begin/end를 기록한다. 이 관측은 intrusive diagnostic이며 성능 baseline이 아니다.
 누락 release 앞과 다음 실행 뒤를 완전히 덮는 표본 두 개가 있을 때만 delta를 계산한다. 경계 여유 시간과 불완전 coverage도 남긴다.

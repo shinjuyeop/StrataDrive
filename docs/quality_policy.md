@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 다중 주기/task·CAN 감시·CPU 부하/배치에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 521개 PASS**, Python 리포터 **43개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 521개 PASS**, Python 리포터 **48개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -756,6 +756,95 @@ Process/OS 전체 정지·hardware watchdog·RT/Target·전체 E2E는 미검증�
 job/guard 분모·peer 관측·원래 phase/physics/Actual TX 포함·보호 latch·재판정을 교차 검증했다.
 개발 중 `m3-guard-probe/`와 `m3-guard-probe2/` 각 17 runs는 최종 계약/소스와 구분해 집계에서 제외했다.
 첫 probe에서 monitor 정지 중 수신 진단이 늦는 문제가 드러나 별도 plant ReceiveWatch를 추가한 뒤 최종 source를 고정했다.
+
+## 2026-10-18 — Steering hosted RTOS와 실행 대기 진단
+
+[ADR-0040](adr/ADR-0040-steering-rtos-pilot-and-delay-observation.md)의 구현은 **fea2de6**, 진단 부하 worker의
+spawn import 수정은 **75b0cb2**다. Trampoline revision `ff287023252bf73273067f00d2dbc8bbc9a20401`을 고정하고
+GOIL **3.1.16 / GALGAS 3.7.0**·ViPer를 소스에서 빌드했다. Upstream license와 tool/binary/archive/input hash는
+`build/m3-rtos-pilot/build.json`에 있다. 일반 CMake build는 다운로드하지 않고 옵션 bridge와 외부 생성 빌드를 구분한다.
+
+OIL 2.5로 ReleaseDispatch/Watch/Receive/Control Task·Alarm·Event·Resource를 실제 kernel에 생성했다.
+기존 C++ Steering ECU·P05 CAN wire와 다른 process의 물리·센서·Actual receiver를 연결했다.
+이것은 hosted OSEK OS 기능 시험이다. Upstream의 AUTOSAR OS 4.2 API alignment와 프로젝트 R25-11 wire 사용을
+전체 Classic R25-11 stack 적합성으로 합치지 않는다. ARXML/RTE/BSW·ARM64 Jetson·실제 MCU/Target은 NOT RUN이다.
+
+Normal·ASan/UBSan **C++ 각각 521개**, Python **48개 PASS**다. 기존 Python 파일에 source/late/skipped·
+coverage·spawn 검사 5개를 추가했다. 세 build(native normal/sanitizer, 별도 BUILD_TESTING=OFF RTOS host)가 PASS다.
+변경 C++ 5개(bridge, plant fixture, 기존 두 runtime, dispatcher)에 clang-tidy 14 analyzer/bugprone과 cppcheck 2.7
+warning/performance/portability를 적용해 user-source 진단 없이 PASS다. Runtime support header도 clang-tidy 범위에 포함한다.
+직접 작성한 hosted C는 생성 build의 Wall/Wextra로 검사했다. Upstream POSIX port의 기존 write return-value 경고는 별도로 남았다.
+Hosted OS의 alternate-stack sanitizer/fiber 연동은 미검증이다. Native core의 ASan/UBSan 결과를 OS binary에 확대하지 않는다.
+
+| 실행 범위 | 조건 / 반복 | 결과 |
+| --- | --- | --- |
+| Hosted RTOS Steering | normal/command-loss/corrupt/control-stall ×3회 | **12/12 PASS** |
+| Native multirate | 기존 17조건 × normal/sanitizer | **34/34 PASS** |
+| Native Steering | normal full/minimal·overrun·stall × normal/sanitizer | **8/8 PASS** |
+| 추가 부하 없는 진단 | monitor CPU 2, observer CPU 3, 3회 | Capture/control 3/3 PASS, 원래 정상 timing **2 PASS/1 FAIL** |
+| Monitor CPU 부하 진단 | 같은 map + CPU 2의 7/10 ms wall busy window, 3회 | Capture/control 3/3 PASS, 원래 정상 timing **0 PASS/3 FAIL** |
+
+따라서 기능 회귀 **54/54 PASS**와 진단 **6 runs**를 구분한다. Build/static과 측정은 순차로 실행했다.
+기능 회귀의 source cohort는 fea2de6이고 최종 진단은 75b0cb2다. 두 commit 사이 실행 코드 변경은
+진단 Python import이며 C++/OIL/RTOS binary는 유지했다. Source hash는 당시 commit의 blob까지 대조한다.
+동일 측정을 다시 선택해 좋은 결과만 집계하지 않았다. 기존 전체 vCAN 97개/DBC 12 frame·36 payload는 이번 재실행하지 않았다.
+
+### RTOS 기능과 가상 tick
+
+Control-stall은 실제 OS의 WaitEvent와 12-tick Resume Alarm을 사용한다. 감시·수신 Task와 별도 plant가
+그동안 실행되는지, Watch가 복귀 전에 hold를 요청/적용하는지 검사했다. Late Actual 폐기·source 보존·CRC·
+잘못된 명령이 accepted time을 갱신하지 않는지·hold latch도 확인했다. 종료 JSON·OS 오류·모든 물리/Actual trace를 대조한다.
+Console shim exit 0만으로 OS 실행 성공을 판정하지 않는다. 각 RTOS PID의 POSIX IPC 이름 정리도 교차 확인했다.
+
+고정한 upstream ViPer는 10 ms relative usleep 기반이다. 이번 12 runs의 첫 release 기준 누적 drift는
+**23.846–30.521 ms**(1.6 s fixture)였다. 정상 3 runs의 ReleaseDispatch 게시→Control 완료 최대는 **0.131148 ms**다.
+5 ms 완료 budget은 ReleaseDispatch가 실제로 게시한 시각부터이며 그 앞의 alarm/timer/Host 지연은 포함하지 않는다.
+기능 PASS를 원래 M3의 2 ms/4 ms guard·RX 3 ms 시한이나 차량 E2E 완료로 대체하지 않는다.
+두 실행자의 원천 취득·generation·적용 시각도 합치지 않는다. Linux scheduling은 SCHED_OTHER로 유지했다.
+
+### 누락과 runqueue 대기
+
+진단 대상은 RTOS 내부 Task가 아니라 기존 **native multirate Linux thread**다. ECU4=CPU1, RX/plant=CPU0,
+monitor=CPU2, observer=CPU3다. Native 회귀의 기존 IO 동반 map과 다른 진단 조건이며 별도 비교군이다.
+`/proc/PID/task/TID/schedstat`와 context-switch 누적값을 sample begin/end와 함께 기록했다.
+CONFIG_SCHED_INFO=y를 확인했고 perf probe는 exit 255/paranoid=4, tracefs 접근은 EACCES였다. 커널 trace는 NOT RUN이다.
+
+| 진단 | Monitor skip | 완전 coverage | Queue 증가 관측 | 해당 구간의 queue delta |
+| --- | --- | --- | --- | --- |
+| 추가 부하 없음, 3 runs | 1 | 1/1 | 1/1 | 3.510370 ms |
+| Monitor CPU 부하, 3 runs | 485 | 485/485 | 485/485 | 2.071215–4.376561 ms |
+
+모든 486개 사건은 실행하지 않은 monitor slot이다. RX/plant miss 사건은 없었다. 각 run의 miss 수는 무부하 **1/0/0**,
+부하 **1/242/242**였으며 변동도 그대로 남겼다. 부하 process의 측정 중 실제 CPU 사용 경계는 약 **0.686–0.692**였다.
+모든 run의 요청/실제 affinity·policy와 부하 생존/소비 control을 검증했다.
+
+무부하 한 사건의 요청 wake 지연은 **3.564592 ms**, 이를 덮는 두 sample의 queue 증가는 **3.510370 ms**다.
+그러나 sample 구간은 **6.058660 ms**, 사건 앞뒤 여유는 **2.494068 ms**다. Queue 증가를 해당 wakeup 하나에
+전부 할당할 수는 없다. CPU 배정 대기가 관측된 근거이며 경쟁 process/IRQ/VM 또는 timer 지연의 완전한 분해는 아니다.
+앞선 배치 실험의 5개 실패에는 이 counter가 없으므로 원인을 소급 확정하지 않는다. Observer 자체의 추가 비용도
+포함한 진단 workload이며 원래 성능 표본과 합치지 않는다. 표본/카운터가 불완전하면 unknown으로 남긴다.
+
+### 로그와 남은 검증
+
+RTOS는 `build/m3-rtos-results/`에 environment·12 runs·summary·artifact hash를 보존했다.
+Native는 normal/sanitizer의 `m3-rtos-native/`(각17)·`m3-rtos-steering/`(각4)이며 같은 이름의 .txt 로그가 있다.
+진단은 normal build의 `m3-rtos-diagnostic-quiet/`·`m3-rtos-diagnostic-loaded/`에 각3 runs의 counter CSV와 대응 사건을 둔다.
+`build/m3-rtos-evidence.py`/`.json`은 54회 기능 재판정·6회 counter 재대조, source/commit·binary·upstream·artifact hash,
+OS API/원래 source·물리/보호·진단 coverage를 확인한다. Build/static은 `build/m3-rtos-{build,clang,cppcheck}.txt`,
+unit/Python은 각 native build의 `m3-rtos-unit.txt` 및 normal의 `m3-rtos-python.txt`, 문서는 `build/m3-rtos-doc-check.txt`다.
+
+개발 probe 1–4의 16 runs는 최종 series와 구분한다. POSIX stack 전환의 fortified longjmp 충돌, 허용되지 않은
+Alarm callback의 SetEvent, port stack-size overflow를 수정하고 실제 Task context와 적합한 크기로 고정했다.
+마지막 개발 probe의 4조건이 PASS한 뒤 최종 반복을 수행했다. 추가 호환 probe에서 유효한 49152-byte stack을 유지하고
+fortify 예외만 제거했을 때 `__longjmp_chk`와 같은 abort를 재현했다. `build/m3-rtos-fortify-result/`·
+`build/m3-rtos-fortify-check.txt`에 보존하며 예상 실패 1회는 기능 회귀의 분모에 넣지 않는다.
+최초 진단 quiet 3 runs와 실패한 loaded 실행기 로그
+(`m3-schedstat-quiet/`, `m3-schedstat-loaded.txt`)도 보존한다. Loaded는 runtime 실행 전 spawn import에서 실패했으며
+수정 뒤 새 directory에서 quiet/loaded를 함께 3회씩 실행했다. Runtime timing FAIL과 실행기 오류를 혼동하지 않는다.
+
+다음은 Steering OS/driver·Task mapping 검토, RT 설정이 가능한 native 환경과 timer→wakeup→switch 추적,
+Target/virtual target 호환성과 RTE/BSW 검토다. 현재 Linux kernel/권한을 바꾸지 않았다. 다른 Leaf의 OS 전환,
+Target·차량 전체 E2E, 32개 requirement/29개 system TC의 전체 Result는 **NOT RUN**, 학습자 수용은 PENDING이다.
 
 ## 코드·예제·시험 배치
 

@@ -146,3 +146,6 @@ override는 공통 SYS requirement를 완화하는 필드가 아니며 추가 co
 Upstream POSIX virtual tick 10 ms, Alarm 1 tick, 실제 ReleaseDispatch 게시 후 완료 budget 5 ms와
 시험용 검출 margin 20 ms를 명시한다. 기존 M3의 2 ms/3 ms RX·2 ms/4 ms owner 계약은 유지한다.
 OS tick drift를 wall time으로 별도 측정하며 프로파일은 runtime loader가 아니다. Target/RTE/BSW는 NOT RUN이다.
+
+이 파일럿에 병행한 scheduling observer의 대상은 기존 native multirate Linux thread다.
+RTOS 내부 Task별 kernel trace로 해석하지 않는다.

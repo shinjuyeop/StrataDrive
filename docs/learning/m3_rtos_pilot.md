@@ -65,7 +65,21 @@ unshare --user --map-root-user --net python3 tools/runtime_diagnostics.py --outp
 첫 명령은 추가 부하가 없고 두 번째는 monitor CPU에 기존 7/10 ms wall busy-window 부하를 둔다.
 이것은 observer까지 추가한 진단 workload다. 원래 무계측 성능 비교에 숫자를 합치지 않는다.
 
+진단 대상은 기존 native `multirate-runtime`의 Linux thread다. Hosted RTOS 내부 Task별 kernel trace가 아니다.
 `*-schedstat.csv`에서 CPU 실행 누적과 runqueue 대기 누적을 구분한다. 누락 구간을 덮는 두 sample의 차이를 보고
 그 구간에서 CPU를 기다린 시간이 늘었는지 확인한다. 앞뒤 sample 경계가 넓으면 옆 작업의 대기도 포함될 수 있다.
 따라서 report는 전체 구간의 관측과 불확실성을 함께 기록한다. 표본이 없으면 unknown이다.
 Perf/tracefs가 막혔다는 원래 오류도 environment에 남긴다. 정확한 timer→wakeup→CPU 전환 분석은 권한이 있는 환경에서 후속으로 진행한다.
+
+## 확인한 결과
+
+최종 기능 시험은 RTOS **12/12 PASS**, 기존 native Linux 실행 회귀 **42/42 PASS**다.
+C++ 521개를 normal/sanitizer 각각, Python 48개를 검사했다. Hosted RTOS binary의 sanitizer 검증은 미실행이다.
+POSIX 가상 tick의 첫 release 기준 drift는 1.6초 시험에서 약 23.8–30.6 ms였다. 정상 3 runs의
+ReleaseDispatch→Control 완료 최대는 약 0.131 ms였다. Timer 앞단의 지연과 Task 본문 응답은 구분해서 읽어야 한다.
+
+진단용 무부하/감시 CPU 부하 각 3 runs는 모두 수집했고 배치·부하 control도 통과했다.
+기존 정상 계약은 무부하 2/3, 부하 0/3 PASS다. Monitor의 486개 누락을 덮는 sample 구간 모두에서 runqueue 대기가 증가했다.
+Queue 증가가 관측된 것과 그 전부를 해당 wakeup에 할당하는 것은 다르다. 경계 여유와 원래 sample을 확인한다.
+개별 process/IRQ/VM 원인은 미확정이며 커널 trace는 권한 제한으로 NOT RUN이다.
+상세 수치·실패 자료·source cohort와 로그는 [품질 기록](../quality_policy.md)에 있다.

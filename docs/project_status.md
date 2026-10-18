@@ -11,7 +11,7 @@ Updated: **2026-10-18**. 현재 단계는 **M3 — IN PROGRESS**다.
 | M0 — 계약·아키텍처 | BASELINED | [종료 검토](m0_baseline.md)는 문서 계약의 검토 결과 |
 | M1 — DBC·vCAN | TECHNICAL CHECKS PASS / REVIEW PENDING | Wire baseline 채택, 학습자 설명·직접 재현 |
 | M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
-| M3 — Timing·실행 | IN PROGRESS | 비동기 Actual·4 ms Host 완료 guard·수신 이중 감시·배치 비교; RT/Target 및 수용 검토 |
+| M3 — Timing·실행 | IN PROGRESS | 비동기 Actual·교차 guard·Host RTOS 파일럿·실행 대기 관측; RT/Target 및 수용 검토 |
 | M4–M13 | PLANNED | Central/Zone → DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 ## 구현·시험한 범위
@@ -39,34 +39,37 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 C++ 521개 PASS**; Python **43개 PASS**. 기존 파일에 guard/peer/tail·수신 이중 감시·배치 6개 추가 |
-| Local vCAN·DBC | 직전 전체 회귀 각각 97개·12개 frame/36개 C++ payload PASS 이력; 이번 wire 변경 없음, 이 범위는 재실행하지 않음 |
-| Build·정적 분석 | 3 build PASS; 변경 C++ 2개 clang-tidy/cppcheck PASS; 이전 trace schema 2/3/4의 7개 기록 재분석 PASS |
-| Runtime 고장 회귀 | 기존 IO map의 17조건×3 build **51/51 PASS**, 상속 배치 normal build **17/17 PASS** |
-| 새 배치 비교 | Schema 5 **56 runs: 51 PASS / 5 FAIL**. 배치·부하 control은 56/56 PASS. IO 동반 배치 14/14, monitor 별도 코어 13/14 PASS |
-| 전체 시스템 검증 | 32개 requirement/29개 system TC **NOT RUN**; 학습자 M1/M2 수용 기록 PENDING |
+| 전체 unit | Normal·ASan/UBSan **각각 C++ 521개 PASS**, Python **48개 PASS** |
+| Build·정적 분석 | Native normal/sanitizer·별도 RTOS host build PASS; 변경 C++ 5개 clang-tidy/cppcheck PASS. Hosted OS의 sanitizer/fiber 연동은 NOT RUN |
+| RTOS 파일럿 | Trampoline POSIX Steering 4조건×3회 **12/12 PASS**: 정상·명령 중단·CRC 오류·Control WaitEvent 정지 |
+| 기존 Linux 실행 회귀 | Multirate 17조건+Steering 4조건을 normal/sanitizer에서 **42/42 PASS** |
+| 실행 대기 진단 | 무부하 3회·감시 CPU 부하 3회 수집; control **6/6 PASS**. 원래 정상 timing 계약은 각각 **2/3·0/3 PASS** |
+| Wire·전체 시스템 | 직전 vCAN 97개·DBC 12 frame/36 payload 이력 유지, 이번 재실행 없음. 32개 requirement/29개 system TC **NOT RUN** |
 
-완료 guard는 monitor와 plant가 상대의 release별 완료를 검사한다. 2 ms 주기·4 ms 시한의 1211개 대상 slot에서
-누락도 miss로 남기며 floor/zero는 latch된다. 유효 수신도 각자 별도 상태로 감시해 monitor 120 ms 정지 중
-plant가 수신 상실을 검출한다. Actual의 원래 취득 시각·각 보조 source age·실제 socket bytes/Accepted 검사는 유지한다.
+[RTOS 파일럿](learning/m3_rtos_pilot.md)은 기존 Steering ECU와 CAN을 유지하고 실제 OS Task/Event/Alarm/Resource를 연결한다.
+별도 Linux plant process가 물리·센서 취득·Actual 수신을 맡는다. OIL 2.5 OSEK 기능 시험이며 R25-11 Classic stack 적합성,
+ARXML/RTE/BSW 생성·ARM64 Jetson 배포는 NOT RUN이다. 기존 Linux 배포 계획과 2 ms/4 ms guard·RX 3 ms 기준은 유지한다.
 
-최종 series **124 runs: 119 PASS / 5 FAIL**와 107개 배치 control을 기록했다. 다섯 실패는 RX 누락 3 runs와
-monitor 누락 2 runs다. 누락 job 수는 RX 4개·monitor guard 3개이며 plant guard 누락은 없었다.
-새 guard가 보호하더라도 정상 timing은 FAIL이다. 직전 schema 4에서 owner skip이 있어도 PASS였던 기록과 합치지 않는다.
-이 Host에서는 기존 IO 동반 map(ECU CPU B, RX/monitor/plant CPU A)을 다음 시험의 기준으로 유지한다.
-별도 CPU가 항상 더 낫다는 증거는 없고 무부하 조건에도 누락이 있었다. 특정 kernel/VM 원인은 식별하지 않았다.
+Trampoline POSIX의 가상 tick은 relative sleep 기반이다. 이번 12 runs의 첫 release 기준 wall drift는
+약 **23.8–30.6 ms / 1.6 s**였다. 기능 PASS를 정시 실행이나 차량 전체 timing 충족으로 확대하지 않는다.
+Linux scheduling은 여전히 SCHED_OTHER다. Linux PREEMPT_RT·RT 우선순위 적용은 별도 후속이다.
 
-상세 표·재현 명령·로그는 [품질 기록](quality_policy.md), 동작 설명은 [완료 guard 학습 안내](learning/m3_owner_cycles.md)와
-[ADR-0039](adr/ADR-0039-owner-completion-guards.md)에 있다. 단위/기능 SIL과 실제 wall-time 측정을 구분한다.
-VCan은 실제 CAN 전기적 동작을 검증하지 않으며 Host 표본은 Target·전체 E2E·WCET 보장이 아니다.
-Plant/process/OS가 멈춘 동안 모델은 진행하지 못한다. 복귀 시 늦은 완료는 검출하지만 공백 중 실제 동작을 보장하지 않는다.
-RT priority probe는 앞서 EPERM·RLIMIT_RTPRIO=0으로 거부됐다. 이번 RT/TSan 실행은 NOT RUN이다.
+별도 observer가 기존 native multirate thread의 `/proc` 누적 카운터를 읽었다. 6회에서 monitor skip **486개**가 있었고,
+이를 덮는 모든 관측 구간에서 runqueue 대기 증가를 확인했다. 무부하의 한 구간에서는 요청 wake 지연 약 3.565 ms와
+대기 누적 증가 약 3.510 ms가 기록됐다. 앞뒤 sample 여유 약 2.494 ms가 포함되므로 개별 wakeup의 정확한 분해는 아니다.
+경쟁 process/IRQ/VM 원인은 아직 특정하지 않았다. Perf(paranoid=4)·tracefs 권한이 막힌 상태를 그대로 기록했다.
+이 observer는 추가 부하를 주는 진단 도구이며 기존 배치 성능 표본과 합치지 않는다.
+
+앞선 schema 5 배치 시리즈 124 runs의 119 PASS/5 FAIL은 [품질 이력](quality_policy.md)에 보존했다.
+기존 IO 동반 map(ECU CPU B, RX/monitor/plant CPU A)은 다음 Host 시험의 기준이다.
+이번 진단은 monitor를 CPU 2로 옮긴 실험 map이며 이전 5개 실패의 원인을 소급 확정하는 자료가 아니다.
+M1/M2 학습자 수용·전체 M3 수용은 PENDING이다.
 
 ## 다음 작업
 
-1. **RT/배포 환경 검증:** 현재 IO map·동일 workload/시한에서 실행 가능한 RT 환경의 우선순위·간섭 조건을 비교한다. Process/OS 공통 정지의 외부 감시도 배포 경계에서 정한다.
-2. **M3 수용 검토:** 취득/생성/TX/RX 시각, task/owner miss 분모, 보호 요청과 실제 적용의 차이, 실패·미검증 범위를 검토한다. 현재 4 ms는 Host fixture 설정이다.
-3. **학습자 수용:** M2 [검토표](m2_acceptance_review.md)와 M3 trace를 직접 재현·설명한 기록을 남긴다. Central/Zone 통합은 M4다.
+1. **Steering OS 파일럿 검토:** Task/Event/Alarm/Resource와 원래 source·보호 경계를 직접 재현한다. 실제 stack/ARM64 virtual target·driver 지원을 검토한 뒤 다른 Leaf로 확장한다.
+2. **Host timing 검증:** 같은 native M3 workload/시한에서 RT 설정이 가능한 환경을 비교한다. 권한이 있는 환경의 timer→wakeup→switch trace로 지연을 더 분해한다.
+3. **M3 수용·후속 통합:** 기능/clock/budget·누락 분모·보호 요청과 실제 적용·미검증 범위를 검토한다. RTE/BSW·Central/두 Zone 통합은 후속이다.
 
 ## 후속 통합 범위
 

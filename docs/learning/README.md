@@ -145,5 +145,5 @@ parameter가 아니며 M1/M2 runtime 구현이나 차량 시험의 완료로 표
 
 다음 [Steering RTOS 파일럿](m3_rtos_pilot.md)은 실제 Trampoline Task/Event/Alarm/Resource를 사용한다.
 기존 ECU와 CAN·외부 물리 모델을 연결하고, 별도 sampler로 Host runqueue 대기를 관측한다.
-기존 Python 리포터 파일에 source/late/skipped·counter coverage 검사 4개를 추가해 현재 **48개**다.
+기존 Python 리포터 파일에 source/late/skipped·counter coverage·spawn 검사 5개를 추가해 현재 **48개**다.
 OS 기능, 가상 tick, Host wall timing, Target 검증은 각각 구분한다.
