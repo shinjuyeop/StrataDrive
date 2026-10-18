@@ -123,9 +123,10 @@ Clock resolution이나 clock-read probe도 cross-node 동기화 오차나 WCET b
 첫 실행 시점 Normal·ASan/UBSan 각각 C++ unit **505개**, Python 리포터 **5개**를 검사했다.
 각 build에서 12 runs, BUILD_TESTING=OFF build에서 4 runs를 수행했다. 상세 실행 수치·로그는 [품질 기록](../quality_policy.md)에 둔다.
 TSan은 이 Host에서 `unexpected memory mapping`으로 시작하지 못해 검사 미실행이다.
-현재 thread는 SCHED_OTHER이며 RT priority/affinity를 설정하지 않았다. Sanitizer 수치는 대표 성능으로 사용하지 않는다.
+첫 실행 thread는 SCHED_OTHER이며 당시 RT priority/affinity를 설정하지 않았다. Sanitizer 수치는 대표 성능으로 사용하지 않는다.
 
 후속 [다중 주기 실행](m3_multirate_runtime.md)으로 Brake/Drive/BMS·Power의 주기와 실제 통신/RX 정지 감시를 확장했다.
-[고정 부하·CPU 배치 비교](m3_cpu_placement.md)에서 contention과 trace 차이를 검토했다. 다음은 Drive 관측 계약·실행 budget 검토다. Target, process/OS 고장 격리,
+[고정 부하·CPU 배치 비교](m3_cpu_placement.md)에서 contention과 trace 차이를 검토했고, 이후 비동기 Drive Actual과
+[Host 4 ms 완료 guard·수신 이중 감시](m3_owner_cycles.md)를 연결했다. RT/Target, process/OS 고장 격리,
 무한 hang 강제 종료, 차량 전체 deadline·cross-node/E2E는 아직 검증하지 않았다.
 기존 32개 요구/29개 system TC는 NOT RUN이다. M2 학습자 수용 기록은 별도로 남긴다.

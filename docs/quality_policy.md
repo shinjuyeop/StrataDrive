@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 다중 주기/task·CAN 감시·CPU 부하/배치에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 521개 PASS**, Python 리포터 **21개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 521개 PASS**, Python 리포터 **43개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -688,6 +688,74 @@ M0에서는 대형 의존성을 설치하지 않는다.
 
 Toolchain/compiler/CI/test 버전은 TBD-11(M1), board 지원/측정 환경은 TBD-09(M5/M12)로
 관리한다. Owner와 rationale은 [TBD register](roadmap.md#open-m0-decisions)를 따른다.
+
+## 2026-10-18 — 완료 guard·수신 이중 감시와 배치 비교
+
+[ADR-0039](adr/ADR-0039-owner-completion-guards.md)의 구현 commit은 **4a22815**다. Trace schema 5이며
+CAN wire schema 2는 유지한다. Monitor/plant 주기 2 ms, 완료 시한 4 ms를 Host fixture 계약으로 채택했다.
+각 owner의 guard는 enable–2420 ms의 1211 slots를 포함한다. 2424 ms의 마지막 deadline을 기존 2440 ms tail에서
+관측한다. 정상은 guard 대상 miss/skip 0이며 기존 ECU 5/8 ms·RX 3 ms·8-frame budget과
+유효 수신 threshold 80 ms·검출 <=100 ms를 유지했다. Schema 4의 PASS와 새 수용 기준을 합치지 않는다.
+
+기존 DeadlineMonitor로 peer 완료를 감시한다. 늦은 완료·이전 slot 누락을 fault로 latch하고 floor/zero를 요청한다.
+두 owner가 각자 별도 ReceiveWatch 상태를 가져 monitor 정지 중에도 plant가 accepted stream 상실을 검출한다.
+Effective loss는 먼저 실제 검출한 observer의 last-valid/detected pair이며 늦은 observer 진단도 원래 시각으로 남긴다.
+상세 trace의 owner/stream fault mask, guard first-fault와 peer body 경계, tail 및 누락 분모를 검증했다.
+
+Normal·ASan/UBSan **C++ 각각 521개**, Python **43개**가 PASS다. 기존 Python 파일에 guard 분모·late publication·
+peer/tail·배치·수신 이중 감시의 6개 case를 추가했다. 세 build(normal/sanitizer/BUILD_TESTING=OFF production)가 PASS다.
+Clang-tidy 14 analyzer/bugprone은 변경 C++ 2개와 runtime/공통 guard header 범위에서 user-source 진단이 없었다.
+Cppcheck 2.7 warning/performance/portability도 변경 C++ 2개가 PASS다. 확대된 config의 pass-by-value 진단은 const-reference로 수정했다.
+기존 trace schema 2의 2개·3의 2개·4의 3개 기록은 당시 의미로 재분석해 7개 PASS다.
+기존 전체 vCAN 97개/DBC 12 frame·36 payload는 이번에 재실행하지 않았다. Wire/codec 변경은 없다.
+
+최종 workload는 **3 build의 고정 IO map 17조건씩 51 runs**, normal 상속 배치 17 runs,
+배치 비교 normal/production 각각 3회×4 layouts×2 modes=24 runs와 sanitizer 1회×4×2=8 runs다.
+고장 회귀 68/68 PASS와 배치 51 PASS/5 FAIL을 합쳐 **124 runs: 119 PASS / 5 FAIL**이다.
+고정 map 51개+배치 56개에서 요청/실제 affinity·SCHED_OTHER·부하 생존/CPU 소비 control **107/107 PASS**다.
+각 campaign은 순차로 실행했고 build/static과 겹치지 않았다. Warm-up 제외·best-run 선택은 없다.
+
+| Build / layout | 정상 계약 PASS / runs | RX miss / eligible jobs | Monitor miss / guarded slots | Plant miss / guarded slots |
+| --- | --- | --- | --- | --- |
+| Normal / io-control | 6/6 | 0/7260 | 0/7266 | 0/7266 |
+| Normal / rx-separated | 5/6 | 2/7260 | 0/7266 | 0/7266 |
+| Normal / guard-separated | 6/6 | 0/7260 | 0/7266 | 0/7266 |
+| Normal / guard-baseline | 5/6 | 0/7260 | 2/7266 | 0/7266 |
+| Production / io-control | 6/6 | 0/7260 | 0/7266 | 0/7266 |
+| Production / rx-separated | 4/6 | 2/7260 | 0/7266 | 0/7266 |
+| Production / guard-separated | 5/6 | 0/7260 | 1/7266 | 0/7266 |
+| Production / guard-baseline | 6/6 | 0/7260 | 0/7266 | 0/7266 |
+| Sanitizer / io-control | 2/2 | 0/2420 | 0/2422 | 0/2422 |
+| Sanitizer / rx-separated | 2/2 | 0/2420 | 0/2422 | 0/2422 |
+| Sanitizer / guard-separated | 2/2 | 0/2420 | 0/2422 | 0/2422 |
+| Sanitizer / guard-baseline | 2/2 | 0/2420 | 0/2422 | 0/2422 |
+
+CPU A=0/B=1/C=2로 고정했다. IO control은 RX/monitor/plant=A, ECU4=B이고 부하는 B다.
+RX-separated는 RX만 C, guard-separated는 monitor만 C로 옮긴다. Guard-baseline은 마지막 map에 부하가 없다.
+각 guard 분모는 1211이며 전체 관측 기회 1221과 다르다. Full/minimal별 percentile은 summary에서 구분한다.
+누락으로 보호해도 정상 timing은 FAIL이며 failed run의 유효 job/owner 관측을 통계에 포함했다.
+다섯 실패는 RX 누락 3 runs와 monitor 누락 2 runs다. 총 RX miss 4개·monitor guard miss 3개이며
+plant guard miss는 없었다. 원인이 특정 kernel/VM이라고 단정하지 않는다.
+이번 Host의 다음 기준 배치는 **io-control 14/14 PASS**로 유지한다. Monitor 별도 코어 13/14 PASS이며
+무부하 조건에서도 누락이 있어 코어 추가나 무부하만으로 정상 시한을 보장할 수 없다.
+
+세 build의 owner 주입 24 runs에서 첫 owner fault 30개의 deadline→검출은 **0.038–4.260 ms**,
+첫 검출→zero 적용 24개는 **0.001–4.103 ms**였다. 모두 선택한 margin 10 ms 이내다.
+Monitor 120 ms 정지 full/minimal 6 runs의 backup loss 검출은 last-valid 기준 **80.002–82.047 ms**였다.
+주입 중 peer 검출/보호·복귀 후 latch, finite torque ramp·brake floor·Actual source/bytes/Accepted와 보고 수를 검사했다.
+Plant 정지 때는 monitor가 먼저 요청하더라도 실제 physics 적용은 복귀 후다. 두 owner의 6 ms 동시 지연은
+복귀 후 late completion 검출을 확인하며 공백 중 실제 출력 변경을 주장하지 않는다.
+Process/OS 전체 정지·hardware watchdog·RT/Target·전체 E2E는 미검증이다. RT probe는 앞서 EPERM/RLIMIT_RTPRIO=0이었고
+이번 RT 실행/TSan은 NOT RUN이다. **32개 requirement/29개 system TC의 전체 Result도 NOT RUN**이다.
+
+증거는 각 build의 `m3-guard-faults/`(17), `m3-guard-placement/`(24/8)와 normal `m3-guard-inherited/`(17)에 둔다.
+각 폴더의 environment/summary/artifact-sha256는 commit·source/profile·binary/build/CPU·모든 실행을 보존한다.
+각 build의 `m3-guard-{build,unit}.txt`(production은 unit 없음), normal의
+`m3-guard-{python,clang,cppcheck,doc-check}.txt`·`m3-guard-history.json`이 검사 로그다.
+`build/m1-angle/m3-guard-evidence.py`/`.json`은 124 runs의 source/profile/binary/artifact hash,
+job/guard 분모·peer 관측·원래 phase/physics/Actual TX 포함·보호 latch·재판정을 교차 검증했다.
+개발 중 `m3-guard-probe/`와 `m3-guard-probe2/` 각 17 runs는 최종 계약/소스와 구분해 집계에서 제외했다.
+첫 probe에서 monitor 정지 중 수신 진단이 늦는 문제가 드러나 별도 plant ReceiveWatch를 추가한 뒤 최종 source를 고정했다.
 
 ## 코드·예제·시험 배치
 

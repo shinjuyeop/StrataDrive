@@ -35,7 +35,7 @@ CPU 번호는 해당 Host의 allowed mask에 맞게 정한다. 첫 명령은 **1
 두 번째는 IO 동반 배치·RX 단독 분리·monitor 단독 분리·무부하 monitor 분리를 같은 ECU CPU B 조건으로 비교한다.
 한 번 통과한 배치를 보장으로 삼지 않는다. 실패도 남기고 full/minimal·build별 통계를 구분한다.
 
-현재 trace schema는 **5**, CAN schema는 **2**다. `owner_cycles.guarded_deadlines`는 해당 slot만 분모로 삼고
+현재 trace schema는 **5**, CAN schema는 **2**다. `owner_cycles.by_owner.<owner>.guarded_deadlines`는 해당 slot만 분모로 삼고
 CSV의 `guarded/deadline_ns/detected_ns`와 `run.json.owner_guards`를 대조한다. 생략한 slot에도 deadline/detection은
 있을 수 있지만 가짜 start/end는 없다. 미감시 tail에는 deadline이 없다. 아래는 schema 4 계측의 설계·당시 기록이다.
 
@@ -125,3 +125,15 @@ sent+expired=Drive reported job 수다. 다른 시점의 expiry는 FAIL이다.
 최종 반복 수·PASS/FAIL·관측과 로그 경로는 [품질 기록](../quality_policy.md)에 둔다.
 계측 뒤 ADR-0039에서 Host 완료 budget과 교차 감시를 채택했다.
 Process/OS 공통 정지·hardware watchdog·RT priority·Target/차량 전체 E2E와 M3 수용 검토는 남는다.
+
+## 완료 guard를 연결한 뒤의 측정
+
+Schema 5 최종 124 runs 중 119 PASS/5 FAIL이다. 기존 IO map의 고장 회귀 3 build×17=51 runs와
+상속 배치 17 runs는 통과했다. 배치 비교는 56 runs 중 51 PASS/5 FAIL이며 IO 동반 배치는 14/14 PASS였다.
+Monitor 별도 코어는 13/14, 무부하 monitor 별도 코어도 13/14였으므로 CPU를 더 나누면 보장된다고 해석하지 않는다.
+현재 Host 기준은 기존 IO 동반 map을 유지한다. 세부 실패와 full/minimal 통계·증거는 [품질 기록](../quality_policy.md)에 둔다.
+
+예를 들어 일반 build monitor-stall/full에서 peer 검출은 deadline 뒤 약 0.10 ms, 보호 요청 적용은 그 뒤 약 0.01 ms였다.
+Brake command의 backup 수신 상실 검출은 last-valid 뒤 약 81.94 ms로 monitor 복귀 전에 일어났다.
+Plant-overrun/full에서는 감시가 먼저 검출했고 보호는 plant 복귀 뒤 적용됐다. 검출→적용 간격은 약 4.10 ms였다.
+이는 특정 Host 표본이며 최대 보장값이 아니다. 두 owner가 함께 정지한 동안의 물리 출력을 보장하는 사례도 아니다.

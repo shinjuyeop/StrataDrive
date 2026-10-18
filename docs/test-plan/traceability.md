@@ -52,6 +52,8 @@ Host 부분 증거이며 Actual replay와 CRC 손상/worker 정지를 포함한�
 후속 [전체 owner cycle](../learning/m3_owner_cycles.md)은 당시 Python 12개를 더해 C++ **521개**·Python **37개**였다.
 다음 [교차 완료 guard](../adr/ADR-0039-owner-completion-guards.md)는 기존 리포터 파일에 guard 분모·tail·peer·수신 이중 감시·배치 6개를 추가해
 현재 Python **43개**다. 4 ms Host 완료 계약과 정상 누락 0, monitor/plant 지연 보호를 별도 component 증거로 검사한다.
+Schema 5 최종 고장 회귀 68/68 PASS와 배치 56 runs의 51 PASS/5 FAIL을 보존했다. 124 runs의 분모·peer 관측·원래 source와
+보호 latch를 교차 검증했으며 system TC의 전체 PASS로 확대하지 않는다. 배치 실패·상세 로그는 [품질 기록](../quality_policy.md)에 있다.
 위 PERF의 Host 부분 계측이며 whole-body/CPU·생략된 기회·RX 대응·fault expiry accounting을 검사한다.
 새 owner deadline 채택이나 전체 system TC 수용을 뜻하지 않는다.
 아래 system TC의 모든 required variant·차량/Zone/배포 환경을 검증한 결과는 아니며 Result는 NOT RUN을 유지한다.

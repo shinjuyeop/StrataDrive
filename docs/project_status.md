@@ -11,7 +11,7 @@ Updated: **2026-10-18**. 현재 단계는 **M3 — IN PROGRESS**다.
 | M0 — 계약·아키텍처 | BASELINED | [종료 검토](m0_baseline.md)는 문서 계약의 검토 결과 |
 | M1 — DBC·vCAN | TECHNICAL CHECKS PASS / REVIEW PENDING | Wire baseline 채택, 학습자 설명·직접 재현 |
 | M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
-| M3 — Timing·실행 | IN PROGRESS | 비동기 Actual·owner별 배치·전체 cycle/RX 대응; budget 채택·RT 우선순위/Target 및 수용 검토 |
+| M3 — Timing·실행 | IN PROGRESS | 비동기 Actual·4 ms Host 완료 guard·수신 이중 감시·배치 비교; RT/Target 및 수용 검토 |
 | M4–M13 | PLANNED | Central/Zone → DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 ## 구현·시험한 범위
@@ -28,7 +28,7 @@ Updated: **2026-10-18**. 현재 단계는 **M3 — IN PROGRESS**다.
 | Battery·BMS | 실제 DC 기반 단일 energy/SOC owner, 전압·전류·온도·셀 극값 관측, 방향별 derating·보호 dwell/latch | [Battery](learning/m2_battery_model.md), [BMS](learning/m2_bms_controller.md) |
 | Power lifecycle | 실제 접점·RC bus 기반 precharge/READY, 전류 확인·접점 open·잔류 전압 방전, shutdown blocked | [전원 상태 흐름](learning/m2_power_lifecycle.md) |
 | 에너지·회로 연결 | Actual torque/speed→motor DC·손실→Battery SOC, capacitor·경로 손실과 atomic commit; 정상/용착/센서 상실/지속 부하 | [이상적 HV 연결](learning/m2_drive_energy.md), [실제 회로 연결](learning/m2_ev_power_circuit.md) |
-| 주기 실행·감시 | Steering 및 Brake/Drive/Power 10 ms·BMS 20 ms, 실제 RX·독립 감시, owner별 CPU 배치·전체 body/CPU/sleep·RX 시간 대조 | [다중 주기](learning/m3_multirate_runtime.md), [CPU 부하](learning/m3_cpu_placement.md), [전체 cycle](learning/m3_owner_cycles.md) |
+| 주기 실행·감시 | Steering 및 Brake/Drive/Power 10 ms·BMS 20 ms, 실제 RX·독립 감시, owner별 CPU 배치·전체 body/CPU/sleep·RX 시간 대조·4 ms 교차 guard와 수신 이중 감시 | [다중 주기](learning/m3_multirate_runtime.md), [CPU 부하](learning/m3_cpu_placement.md), [전체 cycle](learning/m3_owner_cycles.md) |
 
 Receiver는 유효 0과 unknown, 원천 source/dependency age, 원래 요청에 묶인 expiry를 구분한다.
 중계·재발행으로 오래된 측정이나 제한값을 fresh하게 만들지 않는다.
@@ -39,39 +39,34 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 C++ 521개 PASS**; Python 리포터 **37개 PASS**; 이번 cycle/CPU/skip/RX·fault expiry 검사 12개 추가 |
-| Local vCAN | 직전 전체 회귀 normal·sanitizer **각각 97개 PASS** = M1 89개 + model 8개; 이번 변경은 runtime/runner 배치 범위 |
-| DBC·CRC | 기존 12개 frame/C++ payload 36개와 독립 CRC 교차 검증 PASS |
-| Build·정적 분석 | 3 build·변경 C++ 2개 clang-tidy/cppcheck PASS; 이전 trace schema 2/3 재분석 PASS; TSan은 기존 Host 오류로 미실행 |
-| Runtime 회귀 | 기존 9+owner 지연 4=13조건을 3 build 및 고정 IO map의 normal/sanitizer에서 **65 runs PASS** |
-| Owner 부하 | Schema 4 비교 56 runs: control 56/56 PASS, 기존 정상 계약 33 PASS/23 FAIL. 기존 CPU 실험 6 runs는 control 6/6 PASS·계약 4 PASS/2 FAIL |
-| 전체 시스템 검증 | 32개 requirement와 29개 system TC의 전체 Result는 **NOT RUN**; component 부분 증거와 구분 |
+| 전체 unit | Normal·ASan/UBSan **각각 C++ 521개 PASS**; Python **43개 PASS**. 기존 파일에 guard/peer/tail·수신 이중 감시·배치 6개 추가 |
+| Local vCAN·DBC | 직전 전체 회귀 각각 97개·12개 frame/36개 C++ payload PASS 이력; 이번 wire 변경 없음, 이 범위는 재실행하지 않음 |
+| Build·정적 분석 | 3 build PASS; 변경 C++ 2개 clang-tidy/cppcheck PASS; 이전 trace schema 2/3/4의 7개 기록 재분석 PASS |
+| Runtime 고장 회귀 | 기존 IO map의 17조건×3 build **51/51 PASS**, 상속 배치 normal build **17/17 PASS** |
+| 새 배치 비교 | Schema 5 **56 runs: 51 PASS / 5 FAIL**. 배치·부하 control은 56/56 PASS. IO 동반 배치 14/14, monitor 별도 코어 13/14 PASS |
+| 전체 시스템 검증 | 32개 requirement/29개 system TC **NOT RUN**; 학습자 M1/M2 수용 기록 PENDING |
 
-상세 case 수·실행 명령·증거 경로는 [품질 기록](quality_policy.md)과 [추적성](test-plan/traceability.md)에 있다.
-Unit·manual-clock demo와 M3 wall-time trace는 구분한다. M3는 Host component의 elapsed wall time 측정이며 Target/전체 E2E 증거는 아니다.
-Drive Actual은 기존 SourceTimeNs에 실제 torque 취득 시각을 보존하고 speed/capability는 각자 시각으로 검사한다.
-Cached torque는 새 sample로 발행하지 않으며 독립 Actual receiver의 Accepted와 raw bytes를 확인한다. 차량 feedback bridge는 후속이다.
-VCan은 실제 CAN의 전기적 동작을 검증하지 않는다.
-10월 16일 다섯 stream 부하 실험에서 baseline/다른 CPU 부하는 통과했지만 같은 CPU 부하의 14 runs는 RX job 누락과 Drive 활성화 실패를 기록했다.
-일반·production 각각 공유 CPU의 RX miss는 48개, sanitizer는 18개였다. 이 배치의 정상 timing 계약 충족은 주장하지 않는다.
-10월 18일 새 workload의 1회 smoke에서는 일반 build 4 PASS / 2 FAIL, sanitizer 2 PASS / 4 FAIL이었다.
-Sanitizer의 separate 조건에서도 RX miss가 있었고 반복 성능 비교나 Target 보장으로 확대하지 않는다. Deadline은 유지했다.
-이전 trace schema 3의 [owner별 비교](adr/ADR-0037-runtime-owner-cpu-placement.md)는 normal·production 각 3회, sanitizer 1회 실행했다.
-같은 CPU B 부하에서 RX·monitor·plant를 A로 함께 옮긴 조건은 normal 6/6, production 4/6, sanitizer 2/2 통과했다.
-Production의 잔여 RX skip 3개는 그대로 FAIL이다. RX만 옮기면 출력 만료도 남아 전체 정상 계약을 보장하지 못했다.
-후속 trace schema 4는 전체 cycle·CPU/sleep 기록과 RX 대응을 추가한 별도 workload다.
-이번 IO 분리 조건은 normal 6/6·production 6/6·sanitizer 2/2 통과했으나 production 무부하 대조군에서도 RX·monitor·plant가 같은 기회를 1개씩 놓쳤다.
-이 구간의 body는 짧고 두 owner의 요청 wake→시작은 약 2.49 ms 늦었다. Kernel/VM 원인을 식별한 것은 아니다.
-Sanitizer RX 단독 분리의 기존 정상 계약은 2/2 PASS지만 monitor/plant 기회는 각각 244개 생략됐다.
-현재 PASS에 새 owner deadline/skip 0 기준을 도입하지 않았다. 관측을 근거로 budget을 별도 검토한다.
-RT priority 적용 probe는 EPERM·RLIMIT_RTPRIO=0으로 거부됐다. RT policy 실행 검증은 NOT RUN이며 현재 배치를 Target 보장으로 확대하지 않는다.
-Wire 채택과 학습자의 직접 재현·이해 기록은 PENDING이다.
+완료 guard는 monitor와 plant가 상대의 release별 완료를 검사한다. 2 ms 주기·4 ms 시한의 1211개 대상 slot에서
+누락도 miss로 남기며 floor/zero는 latch된다. 유효 수신도 각자 별도 상태로 감시해 monitor 120 ms 정지 중
+plant가 수신 상실을 검출한다. Actual의 원래 취득 시각·각 보조 source age·실제 socket bytes/Accepted 검사는 유지한다.
+
+최종 series **124 runs: 119 PASS / 5 FAIL**와 107개 배치 control을 기록했다. 다섯 실패는 RX 누락 3 runs와
+monitor 누락 2 runs다. 누락 job 수는 RX 4개·monitor guard 3개이며 plant guard 누락은 없었다.
+새 guard가 보호하더라도 정상 timing은 FAIL이다. 직전 schema 4에서 owner skip이 있어도 PASS였던 기록과 합치지 않는다.
+이 Host에서는 기존 IO 동반 map(ECU CPU B, RX/monitor/plant CPU A)을 다음 시험의 기준으로 유지한다.
+별도 CPU가 항상 더 낫다는 증거는 없고 무부하 조건에도 누락이 있었다. 특정 kernel/VM 원인은 식별하지 않았다.
+
+상세 표·재현 명령·로그는 [품질 기록](quality_policy.md), 동작 설명은 [완료 guard 학습 안내](learning/m3_owner_cycles.md)와
+[ADR-0039](adr/ADR-0039-owner-completion-guards.md)에 있다. 단위/기능 SIL과 실제 wall-time 측정을 구분한다.
+VCan은 실제 CAN 전기적 동작을 검증하지 않으며 Host 표본은 Target·전체 E2E·WCET 보장이 아니다.
+Plant/process/OS가 멈춘 동안 모델은 진행하지 못한다. 복귀 시 늦은 완료는 검출하지만 공백 중 실제 동작을 보장하지 않는다.
+RT priority probe는 앞서 EPERM·RLIMIT_RTPRIO=0으로 거부됐다. 이번 RT/TSan 실행은 NOT RUN이다.
 
 ## 다음 작업
 
-1. **Budget 채택·감시 독립성:** 기록한 body/CPU·요청 wake 지연·감시/취득 공백을 근거로 owner budget과 수용 조건을 검토한다. RT 실험은 적용 가능한 환경에서 기존 SCHED_OTHER와 비교한다. 관측만으로 기존 deadline을 완화하지 않는다.
-2. **M3 수용 검토:** 취득/생성/송수신 시각·miss 분모·보호 응답과 미검증 범위를 대조한다.
-3. **학습자 수용:** M2 [검토표](m2_acceptance_review.md)와 M3 trace를 직접 재현·설명한 기록을 남긴다. 실제 Central/Zone 통합은 M4다.
+1. **RT/배포 환경 검증:** 현재 IO map·동일 workload/시한에서 실행 가능한 RT 환경의 우선순위·간섭 조건을 비교한다. Process/OS 공통 정지의 외부 감시도 배포 경계에서 정한다.
+2. **M3 수용 검토:** 취득/생성/TX/RX 시각, task/owner miss 분모, 보호 요청과 실제 적용의 차이, 실패·미검증 범위를 검토한다. 현재 4 ms는 Host fixture 설정이다.
+3. **학습자 수용:** M2 [검토표](m2_acceptance_review.md)와 M3 trace를 직접 재현·설명한 기록을 남긴다. Central/Zone 통합은 M4다.
 
 ## 후속 통합 범위
 

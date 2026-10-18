@@ -7,7 +7,7 @@ M3의 [첫 Steering wall-time 실행](learning/m3_steering_timing.md)은 독립 
 후속 [비동기 Drive Actual](learning/m3_drive_feedback.md)은 원래 취득 시각과 독립 보조 시각을 보존해 CAN 송수신을 연결했다.
 후속 [owner별 CPU 배치 비교](adr/ADR-0037-runtime-owner-cpu-placement.md)는 같은 부하에서 RX 단독/감시·plant 동반 이동을 비교한다.
 후속 [전체 owner cycle](learning/m3_owner_cycles.md)은 sleep/본문/CPU 시간을 나눠 RX miss와 감시·물리 owner를 대조한다.
-실행 budget 채택·RT 우선순위와 Target/E2E 확장은 후속이다.
+Host owner 4 ms 완료 guard·수신 이중 감시를 채택했고 IO 동반 배치를 시험 기준으로 유지한다. RT 우선순위와 Target/E2E 확장은 후속이다.
 [M0 exit review](m0_baseline.md)는 문서 계약의 검토다. 현재 Steering/Brake/Drive six-frame
 codec/P05/receiver/SocketCAN과 EV 통신을 Host에서 구현했다. Local session/queue를 포함해
 normal·ASan/UBSan 각각 unit 143개와 vCAN 89 case, 독립 DBC/CRC 교차 검증을 통과했다. [학습 안내](learning/README.md)에
@@ -157,7 +157,7 @@ Battery의 단일 chemical energy owner를 연결해 시험했다. [M2 수용 �
 가압/감압과 보호 floor 요청·관측 경계를 구현·시험했다. M2 기술 검사는 완료했고 학습자 수용 기록은 별도다.
 [M3 첫 Steering 실행](learning/m3_steering_timing.md)에서는 독립 task monitor·물리 owner와 trace를 연결했다.
 후속 다중 주기 fixture에서 Brake/Drive/BMS·Power와 실제 통신/RX 정지·CRC 손상 감시를 검사했다.
-고정 부하·owner별 CPU 배치/전체 cycle 계측과 비동기 Drive Actual 연결도 실행했다. Host 완료 guard·수신 이중 감시를 연결했다. 다음은 배치 반복 비교와 RT/Target·M3 수용 검토다.
+고정 부하·owner별 CPU 배치/전체 cycle 계측과 비동기 Drive Actual 연결도 실행했다. Host 완료 guard·수신 이중 감시를 연결했다. 배치 비교에서 IO 동반 map을 Host 기준으로 유지했다. 다음은 RT/Target·M3 수용 검토다.
 Wire/학습자 review는 PENDING이다.
 
 1. EV 초안의 producer/단위/validity/source·dependency time/expiry와 주기 차이를 review한다.
