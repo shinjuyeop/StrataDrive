@@ -1,0 +1,66 @@
+#pragma once
+
+#include "bms_receiver.hpp"
+#include "brake_frame_codec.hpp"
+#include "drive_frame_codec.hpp"
+#include "steering_frame_codec.hpp"
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <optional>
+
+namespace stratadrive::central {
+// In-process M4 contract, not a DDS schema. Each Zone reports its own health;
+// a fresh aggregate heartbeat cannot replace a missing Leaf sample.
+struct ZoneHealthSnapshot : can::ActuatorMetadata {
+    bool ready_for_normal{false};
+};
+struct FrontReadinessInputs {
+    std::optional<ZoneHealthSnapshot> health;
+    std::optional<can::SteeringMessage> steering_actual;
+    std::optional<can::BrakeMessage> brake_actual;
+};
+struct RearReadinessInputs {
+    std::optional<ZoneHealthSnapshot> health;
+    std::optional<can::DriveMessage> drive_actual;
+    std::optional<can::BmsCurrentSample> power_status;
+    std::optional<can::BmsCurrentSample> power_limits;
+};
+struct NormalDriveReadinessInputs {
+    // Supplied by trusted session setup, never learned from received samples.
+    std::uint32_t epoch{0};
+    std::uint64_t session_enable_ns{0};
+    FrontReadinessInputs front;
+    RearReadinessInputs rear;
+};
+struct ReadinessTiming {
+    std::uint64_t zone_source_age_ns{30000000ULL};
+    std::uint64_t actual_source_age_ns{30000000ULL};
+    std::uint64_t bms_source_age_ns{50000000ULL};
+    std::uint64_t bms_dependency_age_ns{70000000ULL};
+};
+enum class ReadinessBlock : std::size_t {
+    Context, FrontZone, RearZone, SteeringActual, BrakeActual, DriveActual,
+    PowerStatus, PowerLimits, Count
+};
+struct NormalDriveReadiness {
+    // Default construction also fails closed. Report all blockers in one pass.
+    std::array<bool, static_cast<std::size_t>(ReadinessBlock::Count)> blocked{
+        true, true, true, true, true, true, true, true};
+    std::optional<std::uint64_t> oldest_input_time_ns;
+    bool ready() const;
+    bool is_blocked(ReadinessBlock reason) const;
+};
+
+// Stateless prerequisite check only, NOT a DrivePermission or system state.
+// Caller must query each trusted ingress receiver's current_sample(now_ns) in
+// the same cycle, preserving epoch/sequence/source time and timeout/continuity
+// latches. Repackaging last_accepted() as a current sample is not permitted.
+// Clock values must share one monotonic domain; cross-node clock mapping is M5.
+// Lifecycle request/expiry, INIT/rejoin and FAIL_SAFE recovery remain the
+// vehicle-management owner's responsibility, even when ready() is true.
+NormalDriveReadiness evaluate_normal_drive_readiness(
+    const NormalDriveReadinessInputs& inputs, std::uint64_t now_ns,
+    const ReadinessTiming& timing = {});
+}  // namespace stratadrive::central

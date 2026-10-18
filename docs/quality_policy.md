@@ -1,7 +1,8 @@
 # Software quality policy
 
-Status: **M1 통신·M2 모델·M3 Host 다중 주기/task·CAN 감시·CPU 부하/배치에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 523개 PASS**, Python 리포터 **59개 PASS**다.
+Status: **M1 통신·M2 모델·M3 Host 실행·M4 첫 준비 판정 component에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 539개 PASS**다.
+Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 준비 판정에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -1062,6 +1063,29 @@ Profile YAML의 새 `m3_hosted_timer_fixture`는 측정 후 기록이며 당시 
 32개 requirement/29개 system TC 전체 NOT RUN과 기존 wire/M1·M2 수용 상태를 유지한다.
 문서 106개/상대 링크·앵커 1203개, YAML 3개/Python 8개 syntax·추적성·whitespace도 검사했다.
 결과는 `build/m3-latency-doc-check.txt`에 보존한다.
+
+## 2026-10-19 M4 Central 준비 판정 첫 component
+
+[정상 주행 준비 조건](learning/m4_normal_drive_readiness.md)을 `central/vehicle_management`의
+순수 library로 추가했다. 두 Zone의 health와 각각의 Steering/Brake/Drive Actual·BMS status/limits를
+확인하고 모든 차단 이유 및 oldest input을 반환한다. 실제 허가 발행/상태 owner·Zone ingress/runtime는 후속이다.
+새 CLI·wire 변경은 없으며 기존 request/grant fixture도 아직 유지한다.
+
+GCC 11.4.0, GoogleTest 1.11.0으로 새 unit 16개를 더해 normal·ASan/UBSan 각각 **539/539 PASS**다.
+각각의 source 상실·다른 Epoch·age 경계/미래·fault/DEGRADED, INIT actual/known zero,
+원래 dependency와 BMS quality·충전/접점 조건을 검사했다. 새 일반 Debug build와 기존 sanitizer build를 사용했다.
+`BUILD_TESTING=OFF` fresh build도 PASS다. Python 코드는 변경하지 않아 직전 63개 PASS 이력을 유지한다.
+
+Clang-tidy 14의 analyzer/bugprone 검사는 변경 production/test 2개에서 PASS다.
+Cppcheck 2.7은 현재 compilation database에서 production entry를 추출해 1개를 검사했다.
+GoogleTest 시험 source의 cppcheck 실행은 기존 macro 파싱 제약으로 syntaxError가 발생해 완료되지 않았다.
+Production 검사는 PASS이며 이를 test source 정적 분석 PASS로 확대하지 않는다.
+Test source는 compiler·clang-tidy·normal/sanitizer 실행으로 검사했다.
+
+로그는 `build/m4-readiness-{build,test,full-build,full-test,sanitized-configure,sanitized-build,sanitized-test}.txt`,
+`build/m4-readiness-{clang,cppcheck,cppcheck-production,production-configure,production-build}.txt`다.
+문서 링크/앵커·추적성·YAML/Python syntax는 `build/m4-readiness-doc-check.txt`에 기록한다.
+이번 vCAN·wall-time 통합 workload 실행은 없으며 M3 원본 실패·32개 requirement/29개 system TC NOT RUN을 유지한다.
 
 ## 코드·예제·시험 배치
 

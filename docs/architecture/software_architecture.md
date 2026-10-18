@@ -19,7 +19,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `zone/gateway` | Front/Rear 공통 DDS↔각 CAN dispatch; 각 Zone의 원천 status를 Central bridge에 전달 |
 | `central/session` | Linux 영속 Epoch issuer 구현; Central trusted owner, M1 fixture 연결; 실제 Central–Zone INIT protocol 후속 |
 | `zone/command_validation` | validity, age, sequence, range, mode 검증 → accept/reject 사유 |
-| `central/vehicle_management` | Central 별도 VCU: lifecycle 요청 + fresh BMS/power/actuator 상태 → 전원 요청/drive permission; 차량 전체 단일 VCU 역할, PLANNED |
+| `central/vehicle_management` | Central 별도 VCU: [순수 준비 판정](../learning/m4_normal_drive_readiness.md) 구현; lifecycle 요청·허가 상태 owner와 전원 요청/DrivePermission 발행은 후속 |
 | `central/control_allocation` | Central 별도 배분: vehicle command + actual/capability → steering/brake/drive demand; 차량 전체 단일 배분, arbitration TBD-06 |
 | `central/feedback_bridge` | 두 Zone의 per-source actual/EV status → Central consumer/Host; 원천 age/identity 보존, PLANNED |
 | `zone/local_safety` | local timeout/fault → 제한 또는 local fail-safe; Central Vehicle Compute 의존 없는 판단 |

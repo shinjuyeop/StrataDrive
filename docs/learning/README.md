@@ -159,3 +159,7 @@ Guarded 주기 집계의 run 사이 gap을 수정하고 Python **60개**를 검�
 [Hosted timer 지연 수정](m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기)은 relative sleep의 누적 drift와
 FIFO 효과를 48회 비교했다. Absolute timer의 추가 Host timing 24/24, native FIFO 후속 102/102를 확인했다.
 Python 63개와 C++ normal/sanitizer 각각 523개를 검사했다. 상대 대조군 timing 실패·원래 native 실패 2건은 보존한다.
+
+[M4 Central 정상 주행 준비 조건](m4_normal_drive_readiness.md)은 두 Zone의 health와 개별 Actual·BMS 입력을
+각각 검사한다. 준비됨과 실제 허가를 구분하며 INIT Actual·known zero와 원천 age를 보존한다.
+새 unit 16개를 더해 C++ normal/sanitizer 각각 539개 PASS다. 다음은 lifecycle/허가 상태 owner다.
