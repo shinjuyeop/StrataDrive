@@ -236,6 +236,7 @@ def validate_owner_cycles(rows, config):
 def owner_cycle_metrics(runs, period_ns):
     """Pool individual samples, keeping run boundaries and skipped opportunities."""
     rows = [r for run in runs for r in run]
+    guarded_runs = [[r for r in run if r.get("guarded")] for run in runs]
     ran = [r for r in rows if r["ran"]]
     cpu = [r for r in ran if r["cpu_begin_ns"]]
     locations = dict(inside_previous_body=0, before_requested_wake=0, after_requested_wake=0)
@@ -263,7 +264,7 @@ def owner_cycle_metrics(runs, period_ns):
             "sleep_return_delay_ms": distribution([(r["start_ns"] - max(r["wake_target_ns"], r["sleep_begin_ns"])) / 1e6 for r in ran]),
             "latest_release_to_start_ms": distribution([(r["start_ns"] - r["release_ns"]) / 1e6 for r in ran]),
             "observed_start_interval_ms": distribution(intervals),
-            "guarded_deadlines": job_metrics([r for r in rows if r.get("guarded")]) if any(r.get("guarded") for r in rows) else None,
+            "guarded_deadlines": pooled_job_metrics(guarded_runs) if any(guarded_runs) else None,
             "interpretation": "skip locations describe measured intervals; wall minus CPU is not a scheduler-cause attribution; guarded_deadlines applies only to schema 5 eligible slots"}
 
 

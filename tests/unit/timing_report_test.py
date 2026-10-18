@@ -388,6 +388,26 @@ class TimingReportTest(unittest.TestCase):
         self.assertEqual(metrics["observed_start_interval_ms"]["samples"], 6)
         self.assertEqual(metrics["observed_start_interval_ms"]["max"], .00001)
 
+    def test_guarded_owner_pooling_keeps_misses_and_excludes_run_gaps_and_tail(self):
+        config, first = self.guarded_fixture()
+        second = copy.deepcopy(first)
+        for row in second:
+            for key in ("release_ns", "wake_target_ns", "sleep_begin_ns", "start_ns", "phase_ns", "end_ns", "deadline_ns"):
+                if row[key]:
+                    row[key] += 10000
+        self.skip_cycle(second, 1)
+        second[1]["detected_ns"] = 11026
+        report.validate_owner_cycles(first, config)
+        report.validate_owner_cycles(second, dict(config, first_release_ns=11000))
+        metrics = report.owner_cycle_metrics([first, second], 10)
+        self.assertEqual((metrics["scheduled_slots"], metrics["executed_cycles"]), (8, 7))
+        guard = metrics["guarded_deadlines"]
+        self.assertEqual((guard["eligible_jobs"], guard["executed_jobs"], guard["skipped_jobs"], guard["missed_jobs"]), (6, 5, 1, 1))
+        self.assertEqual(guard["observed_start_interval_ms"]["samples"], 3)
+        self.assertEqual(guard["observed_start_interval_ms"]["max"], .00002)
+        self.assertEqual(guard["response_time_ms"]["samples"], 5)
+        self.assertEqual(guard["response_time_ms"]["max"], .000004)
+
     def test_bad_owner_trace_does_not_discard_valid_failed_run_job_observations_or_break_history(self):
         with tempfile.TemporaryDirectory() as tmp:
             directory = Path(tmp)

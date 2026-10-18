@@ -986,6 +986,22 @@ Native/sanitizer build는 `m3-fifo-{build,sanitized-build}.txt`, 문서 검사�
 다음은 선택할 실행 profile·M3 수용 검토와 kernel timer→wakeup→switch 관측이다. PREEMPT_DYNAMIC kernel·RT throttling은 유지했고
 PREEMPT_RT/kernel trace·실제 ARM64 실행·RTE/BSW·전체 32개 requirement/29개 TC는 **NOT RUN**이다.
 
+## 2026-10-19 — M3 수용 검토 중 guarded 주기 집계 수정
+
+`owner_cycle_metrics`의 `guarded_deadlines.observed_start_interval_ms`가 여러 run의 행을 먼저 합쳐
+독립 실행 사이의 대기 시간을 task 실행 간격으로 포함했다. 바깥 owner 통계와 ECU/RX의 pooled 통계는
+이미 run 경계를 보존했으며, 오류는 이 nested guarded 통계에 있었다. 기존 `pooled_job_metrics`를 재사용해 수정했다.
+두 run의 guarded slot·관측 tail·skip을 포함한 회귀 검사가 수정 전 실패하고 수정 후 통과했다.
+현재 Python 리포터 **60개 PASS**다. C++·runtime binary·주기·시한은 이번 변경 대상이 아니다.
+
+수정 전 `build/m3-fifo-evidence.py` 감사는 원래 96 runs의 source/binary/artifact와 **94 PASS/2 FAIL**을
+재확인했다. 그 감사 script/JSON/로그는 `build/m3-acceptance-review/m3-fifo-evidence.*`에 보존했다.
+수정 후 같은 원본 96 runs를 재분석했고 개별 run의 판정·owner 통계와 Drive/RX 지연·분모·miss/skip·trace 비교는 동일했다.
+24회 비교의 8조건×2 owner에서 pooled guarded interval 표본 수를 3632→3630으로 교정하고 해당 16개 분포를 다시 계산했다.
+원본 CSV/summary/hash는 덮어쓰지 않았다. 실행 재시험은 **0회**이며 두 sanitizer OTHER 실패도 그대로다.
+재분석 script/JSON/로그는 `build/m3-acceptance-review/reanalyze.py`, `reanalysis.json`, `reanalysis.txt`에 둔다.
+앞선 59개 Python·523개씩 C++·build/static 결과는 당시 검사 이력으로 유지한다.
+
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.
