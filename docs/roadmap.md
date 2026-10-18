@@ -7,7 +7,9 @@ M3의 [첫 Steering wall-time 실행](learning/m3_steering_timing.md)은 독립 
 후속 [비동기 Drive Actual](learning/m3_drive_feedback.md)은 원래 취득 시각과 독립 보조 시각을 보존해 CAN 송수신을 연결했다.
 후속 [owner별 CPU 배치 비교](adr/ADR-0037-runtime-owner-cpu-placement.md)는 같은 부하에서 RX 단독/감시·plant 동반 이동을 비교한다.
 후속 [전체 owner cycle](learning/m3_owner_cycles.md)은 sleep/본문/CPU 시간을 나눠 RX miss와 감시·물리 owner를 대조한다.
-Host owner 4 ms 완료 guard·수신 이중 감시를 채택했고 IO 동반 배치를 시험 기준으로 유지한다. Native FIFO 우선순위 비교까지 수행했으며 Target/E2E 확장과 수용 검토는 후속이다.
+Host owner 4 ms 완료 guard·수신 이중 감시와 native FIFO 비교를 수행했다.
+[M3 수용 검토](m3_acceptance_review.md)에서 IO 동반/FIFO를 다음 Host 통합 기준으로 선택했다.
+일반 sanitizer 타이밍 실패 2건·학습자 수용은 남아 있으며 Target/E2E는 후속 배포·통합에서 검증한다.
 [M0 exit review](m0_baseline.md)는 문서 계약의 검토다. 현재 Steering/Brake/Drive six-frame
 codec/P05/receiver/SocketCAN과 EV 통신을 Host에서 구현했다. Local session/queue를 포함해
 normal·ASan/UBSan 각각 unit 143개와 vCAN 89 case, 독립 DBC/CRC 교차 검증을 통과했다. [학습 안내](learning/README.md)에
@@ -43,7 +45,7 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | M0 | Architecture / Requirement / ICD Baseline | ODD/scenario/수치/계층/timing/fault/ICD 의미 계약, traceability, owner가 있는 TBD, exit checklist |
 | M1 | DBC + vCAN | 12개 wire/receiver, 영속 local Epoch/queue 및 overflow/restart 기술 검사 완료; wire 채택·학습자 review PENDING |
 | M2 | TECHNICAL CHECKS PASS: Actuator + Battery / BMS / Power models | component·Steering/Brake response monitor 시험; 학습자 수용 PENDING |
-| M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | 다중 주기·독립 감시·owner별 배치·전체 cycle/RX 대응·Drive Actual CAN; 4 ms Host 교차 guard·수신 이중 감시·native FIFO 비교; Target·수용 후속 |
+| M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | Host 수용 검토·IO 동반/FIFO 기준 선택; 일반 sanitizer 타이밍 예외·학습자 수용 OPEN, Target/E2E 후속 |
 | M4 | Central coordinator + Front/Rear Zone | 단일 vehicle management/allocation 확인 후 Zone gateway 분리; 각 Zone routing/원천 freshness/local loss/rejoin, TC-ZON-001–003; protocol TBD-15 |
 | M5 | Central Compute + DDS | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
 | M6 | Simple Vehicle + EV Plant | 실제 actuator/power 응답을 통한 lifecycle/closed-loop, battery energy/SOC balance와 mapping 검증 |
@@ -160,16 +162,18 @@ Battery의 단일 chemical energy owner를 연결해 시험했다. [M2 수용 �
 고정 부하·owner별 CPU 배치/전체 cycle 계측과 비동기 Drive Actual 연결도 실행했다. Host 완료 guard·수신 이중 감시를 연결했다. 배치 비교에서 IO 동반 map을 Host 기준으로 유지했다.
 [ARM64 RTOS 교차 빌드·RT 사전 점검](adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)을 확인했다.
 [Native owner별 FIFO 실행](learning/m3_native_fifo.md)의 일반/FIFO 비교 24/24회와 고장 회귀 66/68회를 기록했다.
-Sanitizer 일반 실행의 owner skip 2회 실패를 보존했다. 다음은 실행 profile·M3 수용 검토와 kernel trace/실제 ARM64 실행이다.
+Sanitizer 일반 실행의 owner skip 2회 실패를 보존했다. [M3 수용 검토](m3_acceptance_review.md)와
+guarded 주기 집계 수정을 마쳤다. 다음은 M4 coordinator 계약·기능 준비이며 timing 예외 분석을 병행한다.
+실제 ARM64 timing은 배포 단계에서 확인한다.
 Wire/학습자 review는 PENDING이다.
 
 1. EV 초안의 producer/단위/validity/source·dependency time/expiry와 주기 차이를 review한다.
 2. Actuator/EV vCAN 89개 case와 영속 Epoch/queue의 source·parent·model identity 및 fault trace를 재현·review한다.
 3. Wire baseline 채택과 학습자의 설명 기록을 남긴다. Actual Central coordinator/Zone DDS coordinator는 M4/M5에 연결한다.
 4. 실제 circuit/energy loop와 M2 parameter·task/monitor·fault/session의 component 증거는 수용 검토에 기록했다.
-   OPEN-M2-01/02는 component 구현·시험했고 learner review가 남았다. M3의 runtime/trace 측정은 별도 준비한다.
+   OPEN-M2-01/02는 component 구현·시험했고 learner review가 남았다. M3 Host runtime/trace는 측정·검토했고 timing 예외가 남았다.
 5. ECU/plant 소유와 호출을 분리했고 demo는 도메인별 source/단일 executable로 유지한다.
-   M3의 Steering 및 다중 주기 execution/period/jitter/deadline·유효 RX 감시와 고정 부하 비교·Drive Actual CAN을 연결했다. 실행 budget/배치·수용을 검토하고 이후 M4 단일 coordinator/두 Zone 분할로 진행한다. Target 검증은 실제 배포 단계와 연결한다.
+   M3의 실행 budget/배치·FIFO를 검토했다. M4 단일 coordinator 계약·두 Zone 기능 준비와 M3 예외 해소를 병행하되 전체 M3 수용은 PENDING으로 유지한다. 통합 workload는 다시 시험하고 Target 검증은 실제 배포 단계와 연결한다.
 
 Six-frame 구현·부분 시험과 새 EV/ZON 수용 항목을 구분한다. EV wire 값이나 물리 반응/전원
 parameter를 기존 100 Hz/30 ms 또는 특정 OEM 수치로 자동 확정하지 않는다.

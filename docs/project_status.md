@@ -11,7 +11,7 @@ Updated: **2026-10-19**. 현재 단계는 **M3 — IN PROGRESS**다.
 | M0 — 계약·아키텍처 | BASELINED | [종료 검토](m0_baseline.md)는 문서 계약의 검토 결과 |
 | M1 — DBC·vCAN | TECHNICAL CHECKS PASS / REVIEW PENDING | Wire baseline 채택, 학습자 설명·직접 재현 |
 | M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
-| M3 — Timing·실행 | IN PROGRESS | 비동기 Actual·교차 guard·Host RTOS 파일럿·실행 대기 관측; RT/Target 및 수용 검토 |
+| M3 — Timing·실행 | IN PROGRESS / HOST REVIEW COMPLETE | [실행 기준 선택](m3_acceptance_review.md); 일반 sanitizer 타이밍 실패 2건·학습자 수용 및 Target/E2E 후속 |
 | M4–M13 | PLANNED | Central/Zone → DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 ## 구현·시험한 범위
@@ -39,7 +39,8 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 C++ 523개 PASS**, Python **59개 PASS** |
+| 전체 unit | Normal·ASan/UBSan **각각 C++ 523개 PASS 이력 유지**; 이번 리포터 수정 후 Python **60개 PASS** |
+| M3 수용 검토 | Host IO 동반/FIFO 기준 선택, 원본 96회 재분석·판정 동일. 전체 timing 수용은 PENDING |
 | Build·정적 분석 | Native normal/sanitizer·별도 RTOS host·ARM64 빌드와 변경 C++ 3개 clang-tidy/cppcheck PASS. Hosted OS sanitizer/fiber 연동은 NOT RUN |
 | Native 일반/FIFO 비교 | 같은 CPU map·workload·시한으로 4조건×2 trace×3회 **24/24 PASS**, 설정·부하 control 모두 PASS |
 | Native 고장 회귀 | Normal OTHER/FIFO 각각 17/17, sanitizer OTHER 15/17·FIFO 17/17: **66/68 PASS**, 일반 sanitizer의 owner skip 두 실패 보존 |
@@ -64,7 +65,7 @@ Trace/perf 접근 제한은 남아 있다. [Native FIFO 실행](learning/m3_nati
 startup gate·실패 취소·호출 thread 복원을 연결했다. 추가 부하의 Drive release→완료 p99는 full trace에서
 일반 **1.947 ms → FIFO 0.065 ms**, minimal에서 **2.450 ms → 0.073 ms**였다. 모든 작업의 지연 개선이나 WCET 보장은 아니다.
 Sanitizer 일반 실행 2회는 예상하지 않은 owner skip을 동반해 실패했다. 같은 cohort에서 FIFO 고장 회귀는 모두 PASS다.
-새 검사는 총 **94/96 PASS**이며 실패를 제거하거나 기존 시한을 완화하지 않았다. PREEMPT_RT kernel·Target timing은 후속이다.
+직전 실행은 총 **94/96 PASS**이며 실패를 제거하거나 기존 시한을 완화하지 않았다. PREEMPT_RT kernel·Target timing은 후속이다.
 
 별도 observer가 기존 native multirate thread의 `/proc` 누적 카운터를 읽었다. 6회에서 monitor skip **486개**가 있었고,
 이를 덮는 모든 관측 구간에서 runqueue 대기 증가를 확인했다. 무부하의 한 구간에서는 요청 wake 지연 약 3.565 ms와
@@ -73,15 +74,20 @@ Sanitizer 일반 실행 2회는 예상하지 않은 owner skip을 동반해 실�
 이 observer는 추가 부하를 주는 진단 도구이며 기존 배치 성능 표본과 합치지 않는다.
 
 앞선 schema 5 배치 시리즈 124 runs의 119 PASS/5 FAIL은 [품질 이력](quality_policy.md)에 보존했다.
-기존 IO 동반 map(ECU CPU B, RX/monitor/plant CPU A)은 다음 Host 시험의 기준이다.
-이번 진단은 monitor를 CPU 2로 옮긴 실험 map이며 이전 5개 실패의 원인을 소급 확정하는 자료가 아니다.
+IO 동반 map(ECU CPU B, RX/monitor/plant CPU A)과 owner별 FIFO를 다음 Host 통합의 기준으로 선택했다.
+별도 observer 진단은 monitor를 CPU 2로 옮긴 실험 map이며 이전 5개 실패의 원인을 소급 확정하는 자료가 아니다.
 M1/M2 학습자 수용·전체 M3 수용은 PENDING이다.
+
+[M3 수용 검토](m3_acceptance_review.md)에서 계약·분모·실패·물리 적용을 대조했다.
+Pooled guarded 주기 통계에 run 사이 대기 시간이 섞인 오류를 수정했고 Python 60개가 통과했다.
+원본 96회를 재분석해 해당 16개 분포만 교정했고 개별 run 판정·Drive/RX 지연·miss/skip은 동일했다.
+원본 로그를 보존했으며 새 workload 실행은 0회다. 기본 실행 정책은 기존 상속 방식이며 FIFO는 CLI로 명시한다.
 
 ## 다음 작업
 
-1. **M3 실행 수용 검토:** 일반/FIFO 24회 비교와 sanitizer 일반 2회 실패를 포함해, 선택할 실행 profile·누락 분모·보호 요청/실제 적용·기능/clock/budget을 검토한다.
-2. **Host 지연 원인 분해:** kernel trace 권한을 준비해 timer→wakeup→switch를 분리한다. PREEMPT_RT 환경 비교와 충분한 반복 검증도 후속이다.
-3. **ARM64·후속 통합:** 보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. RTE/BSW·Central/두 Zone 통합은 후속이다.
+1. **M4 설계·기능 준비:** Central coordinator의 입출력·vehicle management/allocation/session과 Front/Rear scoped 경계를 정의한다. 원천 metadata·parent expiry·local loss/rejoin부터 다루고 DDS transport는 M5에 연결한다. 새 통합 workload의 timing은 별도 검증한다.
+2. **M3 타이밍 예외 해소:** OPEN-M3-01/02의 원본 실패를 유지하고 kernel trace 접근을 준비해 timer→wakeup→switch를 분석한다. 추가 반복과 PREEMPT_RT 비교는 후속 실험이며 M4 준비가 M3 전체 수용을 뜻하지 않는다. 학습자 직접 재현·설명도 남아 있다.
+3. **ARM64 배포 준비:** 보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. Target 검증은 배포 단계, RTE/BSW는 별도 pilot과 연결한다.
 
 ## 후속 통합 범위
 

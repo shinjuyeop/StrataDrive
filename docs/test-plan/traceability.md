@@ -117,3 +117,11 @@ C++ unit은 당시 normal/sanitizer 각각 521개였다. 진단 6 runs의 정상
 기존 hosted OS 회귀 4/4를 포함한 신규 96 runs는 **94 PASS/2 FAIL**다. Native 92회의 설정·배치·부하 control은 모두 PASS다.
 권한 부재·부분 적용 실패·중복 옵션 3개 예상 거부도 확인했다. C++ 523개씩/Python 59개와 정적 분석은 PASS다.
 전체 system TC, ARM64 runtime·PREEMPT_RT/kernel trace 수용은 계속 NOT RUN이다.
+
+## M3 Host acceptance review
+
+[M3-REV-20261019](../m3_acceptance_review.md)는 위 PERF-001/002/003·COM-002/003 및 SAFE/EV의 local
+타이밍·보호 부분 증거를 계약과 대조했다. IO 동반/FIFO를 다음 Host 통합 기준으로 선택했고 전체 M3 수용은 PENDING이다.
+Sanitizer OTHER의 타이밍 실패 2건은 OPEN-M3-01로 유지한다. Pooled guarded 주기의 run 사이 gap을
+수정하고 Python 60개 및 원본 96회 재분석을 확인했다. 개별 run 판정은 94 PASS/2 FAIL로 동일하며 새 실행은 0회다.
+System TC 29개와 requirement 32개의 전체 NOT RUN, Target/E2E와 학습자 수용 상태는 변경하지 않는다.

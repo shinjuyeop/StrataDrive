@@ -1,6 +1,6 @@
 # Engineering and learning plan
 
-Status: **M1 기술 검사 완료·review PENDING / M2 부분 구현·시험 / 표준 실습 PLANNED**. 기존 **StrataDrive Reference Baseline v0.1**을
+Status: **M1/M2 기술 검사 완료·review PENDING / M3 Host 수용 검토·타이밍 예외 OPEN / 표준 실습 PLANNED**. 기존 **StrataDrive Reference Baseline v0.1**을
 유지한다. 이 문서는 개발·학습 방향이며 AUTOSAR 도입 완료, 안전 분석 완료 또는
 표준 준수의 증거가 아니다. 학습자 검토는 **PENDING**, 기존 차량 runtime TC는 **NOT RUN**이다.
 Host transport smoke는 [M1 첫 실행 기록](learning/m1_vcan_start.md),
@@ -32,7 +32,9 @@ Drive ECU adapter와 물리 모델을 별도 모듈로 두었다.
 별도 SIL 연결 코드와 도메인별 demo source를 뒀다. M3는 Host 다중 주기·독립 task/CAN 감시와 trace를 부분 구현했다.
 후속 [고정 부하·CPU 배치 비교](learning/m3_cpu_placement.md)는 조건별 miss와 실제 부하를 기록한다.
 후속 [Drive Actual 연결](learning/m3_drive_feedback.md)은 비동기 torque의 취득 시각과 독립 보조 시각을 보존해 CAN 수신을 검증한다.
-다음은 M2 학습자 수용과 M3 실행 budget/배치·우선순위 및 수용 검토다.
+[M3 수용 검토](m3_acceptance_review.md)에서 다음 Host 통합의 IO 동반/FIFO 기준을 선택했다.
+일반 sanitizer 타이밍 실패 2건·학습자 수용은 남긴다. 다음은 M4 coordinator 입출력·상태 계약부터 준비하며
+새 통합 workload의 timing 검증과 기존 예외 분석을 이어간다.
 차량 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며

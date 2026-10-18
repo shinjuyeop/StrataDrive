@@ -1,7 +1,7 @@
 # Timing requirements and measurement contract
 
 Status: **DEFINED / Reference Baseline v0.1 + M3 Host 다중 주기·CAN 상실·CPU 부하/배치 부분 측정**.
-차량 전체 E2E/Target latency·전체 multirate 실측은 **NOT RUN**이다.
+차량 전체 E2E/Target latency·차량 전체 multirate 실측은 **NOT RUN**이다.
 M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. Rate와 100 ms 검출
 상한은 engineering starting point이며 production timing 보장이 아니다.
 
@@ -165,7 +165,7 @@ RX는 최신 release만 실행하므로 period를 넘겨 생략한 job도 miss�
 
 [ADR-0038](../adr/ADR-0038-whole-owner-cycle-observation.md)은 monitor/plant 각각 1221개의 2 ms 기회를 기록한다.
 Sleep target/call/start·application phase·body end를 구분하고 full에서 thread CPU delta를 추가한다.
-전체 body에는 fixture TX도 포함하며 기존 sensor/source 시각을 갱신하지 않는다. Owner deadline은 미채택(TBD-04)이다.
+전체 body에는 fixture TX도 포함하며 기존 sensor/source 시각을 갱신하지 않는다. 이 계측 당시 owner deadline은 미채택(TBD-04)이었다.
 RX miss와 같은 시간의 owner 실행/생략 및 앞뒤 phase를 대조하되 공통 kernel/VM 원인으로 단정하지 않는다.
 6 ms owner overrun의 주입/expiry accounting 검사는 정상 timing 수용과 구분한다. Normal/기존 fault의 만료 0 기준은 유지한다.
 Logical period가 같아도 모든 task deadline이 그 period와 같다고 가정하지 않는다.
@@ -183,3 +183,13 @@ Worst observed execution time은 관측 sample의 최대값이다. **WCET bound*
 보장이 아니며, Linux/vCAN 결과로 MCU/실제 CAN timing 보장을 도출하지 않는다.
 참조: [Reference Config](../../profiles/reference.yaml),
 [CAN ICD](../icd/can_icd.md), [verification](../test-plan/verification_strategy.md).
+
+## Host 실행 수용 검토
+
+[ADR-0039](../adr/ADR-0039-owner-completion-guards.md)는 monitor/plant에 2 ms 주기·4 ms 완료 시한과
+각각 1211 guarded slots를 채택했다. 최신 release를 실행해도 생략한 이전 slot은 miss이며 관측 tail 10개는 분모에서 제외한다.
+[ADR-0042](../adr/ADR-0042-native-owner-fifo-scheduling.md)는 기존 ECU/RX/owner 시한을 유지하고 일반/FIFO를 비교했다.
+[M3-REV-20261019](../m3_acceptance_review.md)는 IO 동반 배치/FIFO를 다음 Host 통합 기준으로 선택했다.
+기본 CLI 정책·기존 requirement 수치는 변경하지 않았다. 두 sanitizer OTHER 타이밍 실패는 OPEN이고 전체 수용은 PENDING이다.
+이번 리포터 수정은 pooled guarded interval의 run 사이 gap을 제거하며 정상/고장 판정이나 누락 분모를 완화하지 않는다.
+Central/Zone 추가 시 새 workload의 task/queue/monitor budget과 원천 인과 경로를 재검증한다. TBD-04의 차량/Target·E2E 값은 남긴다.

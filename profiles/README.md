@@ -154,3 +154,7 @@ RTOS 내부 Task별 kernel trace로 해석하지 않는다.
 Linux owner별 priority 10/10/9/10/18/20/19와 동일 IO 동반 CPU map, startup gate·호출 thread 복원,
 일반/FIFO × quiet/loaded × full/minimal 조건을 명시한다. 실제 설정은 CLI의 `owner-fifo=`와 owner CPU 옵션이다.
 YAML loader나 Trampoline Task 설정이 아니며 기존 M3 주기·시한과 RT throttling은 유지한다.
+
+[M3 수용 검토](../docs/m3_acceptance_review.md)에서 이 IO 동반/FIFO 설정을 다음 Host 통합의 기준으로 선택했다.
+기본 실행 정책을 자동 변경하지 않는다. CPU 번호는 Host의 allowed mask/topology에 맞춰 실제 적용을 검증하고,
+Central/Zone workload 추가 시 timing을 다시 시험한다. 전체 M3 수용·Target calibration은 미완료다.

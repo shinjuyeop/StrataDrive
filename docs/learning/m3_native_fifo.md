@@ -72,5 +72,14 @@ Sanitizer 일반 실행의 두 실패에는 요청 wake 뒤 약 2.05–2.11 ms �
 정확한 timer/IRQ/CPU 배정 원인은 kernel trace가 없어 아직 분리하지 못했다.
 
 기존 Trampoline 회귀 4/4를 포함한 최종 실행은 **94/96 PASS**야. C++은 normal/sanitizer 각각 523개,
-Python 59개와 정적 분석·native/별도 OS/ARM64 빌드도 검사했다. 상세 원인·scope·재현 로그는
+당시 Python 59개와 정적 분석·native/별도 OS/ARM64 빌드도 검사했다. 상세 원인·scope·재현 로그는
 [품질 기록](../quality_policy.md#2026-10-19--native-owner별-fifo-실행과-동일-부하-비교)에 정리했다.
+
+## 수용 검토에서 결정한 것
+
+[M3 수용 검토](../m3_acceptance_review.md)에서 IO 동반 배치/FIFO를 다음 Host 통합의 실행 기준으로 선택했다.
+일반 실행의 기본값은 유지하며 FIFO는 CLI로 명시해. 두 sanitizer OTHER 실패와 전체 M3 수용은 아직 열려 있어.
+검토 중 pooled guarded 주기 통계의 run 사이 gap 오류를 수정했고 Python 60개가 통과했어.
+원본 96회를 재분석해 해당 분포만 교정했으며 판정·Drive/RX 지연·miss/skip은 동일해. 새 workload 실행은 없었어.
+로그의 `floor_applied_ns`/`zero_applied_ns`는 plant에 보호 목표가 적용된 시각이야.
+압력·토크가 목표에 도달한 시각은 `physical.csv`에서 따로 읽어야 해.

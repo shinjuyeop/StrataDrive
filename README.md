@@ -4,10 +4,9 @@
 
 ## Current Status
 
-**M3 진행 중** — 다중 주기 실행·독립 감시와 비동기 Drive Actual CAN 송수신을 연결했다.
-M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도로 남긴다.
-감시·물리 작업에 [4 ms 완료 guard·교차 감시](docs/learning/m3_owner_cycles.md)를 연결했다. 배치 비교를 마쳤으며 다음은 **RT/Target 및 M3 수용 검토**다.
-[RTOS 파일럿·ARM64 교차 빌드](docs/learning/m3_rtos_pilot.md)와 [native FIFO 비교](docs/learning/m3_native_fifo.md)를 연결했다. 실제 Target·실시간 수용과 Central/Zone DDS·차량 closed-loop 통합은 후속 단계다.
+**M3 진행 중** — [수용 검토](docs/m3_acceptance_review.md)에서 다음 Host 통합의 CPU 배치·FIFO 실행 기준을 선택했다.
+일반 우선순위 sanitizer의 타이밍 실패 2건과 학습자 수용은 남아 있다. M1/M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도다.
+다음 구현은 M4 Central coordinator·Front/Rear Zone 계약부터 준비한다. DDS·차량 closed-loop·실제 Target 검증은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 
@@ -229,7 +228,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 | M0 | Architecture / Requirement / ICD Baseline — BASELINED |
 | M1 | DBC + vCAN — TECHNICAL CHECKS PASS / REVIEW PENDING |
 | M2 | Actuator·EV 모델 — TECHNICAL CHECKS PASS / REVIEW PENDING |
-| M3 | IN PROGRESS: 다중 주기·독립 task/CAN 감시·고정 부하/CPU 배치 비교 |
+| M3 | IN PROGRESS: Host 수용 검토·FIFO 기준 선택 / 타이밍 예외 OPEN |
 | M4 | Central coordinator + 대등한 Front/Rear Zone |
 | M5 | Central Compute + DDS |
 | M6 | Simple Vehicle Plant |

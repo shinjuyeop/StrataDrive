@@ -150,4 +150,8 @@ OS 기능, 가상 tick, Host wall timing, Target 검증은 각각 구분한다.
 
 후속 [native Linux FIFO 비교](m3_native_fifo.md)는 같은 M3 workload에 owner별 RT 우선순위를 적용한다.
 모든 owner의 startup 준비·실제값 확인과 실패 시 취소, 호출 thread 복원을 검사한다.
-ARM64/권한 사전 점검과 이번 검사를 포함한 현재 Python은 **59개**, C++은 normal/sanitizer 각각 **523개**다.
+ARM64/권한 사전 점검과 해당 검사를 포함한 당시 Python은 **59개**, C++은 normal/sanitizer 각각 **523개**였다.
+
+[M3 수용 검토](../m3_acceptance_review.md)에서 IO 동반/FIFO Host 실행 기준을 선택했다.
+Guarded 주기 집계의 run 사이 gap을 수정하고 Python **60개**를 검사했다. 원본 96회 재분석의 판정은 **94 PASS/2 FAIL**로 동일하다.
+타이밍 예외와 직접 재현·설명은 PENDING이며, M4 coordinator 입출력·상태 계약부터 준비한다.

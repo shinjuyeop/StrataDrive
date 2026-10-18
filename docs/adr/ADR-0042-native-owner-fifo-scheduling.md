@@ -1,6 +1,6 @@
 # ADR-0042: Native M3 owner별 FIFO 설정과 비교
 
-Date: 2026-10-18. Status: **옵션 실행 경로 구현·Host 비교 수행 / M3 수용 후속**. 결과 갱신: 2026-10-19.
+Date: 2026-10-18. Status: **옵션 실행 경로 구현·Host 통합 기준 선택 / 전체 M3 수용 PENDING**. 결과 갱신: 2026-10-19.
 [ADR-0041](ADR-0041-arm64-rtos-build-and-host-preflight.md)의 새 PAM 세션에서 개발 계정의 rtprio 20을 확인했다.
 기존 native M3 workload에 Linux FIFO를 적용한다. Trampoline 내부 Task나 그 POSIX tick을 변경하는 작업과 구분한다.
 
@@ -51,3 +51,7 @@ FIFO는 Linux scheduling policy다. PREEMPT_RT kernel 적용, memory locking·pa
 공식 API 근거: [pthread_setschedparam](https://man7.org/linux/man-pages/man3/pthread_setschedparam.3.html),
 [Linux scheduling](https://man7.org/linux/man-pages/man7/sched.7.html).
 실행·결과는 [학습 안내](../learning/m3_native_fifo.md), [품질 기록](../quality_policy.md)에 둔다.
+
+2026-10-19 [수용 검토](../m3_acceptance_review.md)에서 이 IO 배치/FIFO map을 다음 Host 통합 기준으로 선택했다.
+기존 상속 기본값을 바꾸지 않고 CLI로 명시한다. 일반 sanitizer의 두 타이밍 실패와 학습자 수용은 OPEN이며,
+새 Central/Zone workload의 budget·정상/정지/rejoin은 다시 검증한다.

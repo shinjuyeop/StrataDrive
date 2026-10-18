@@ -1002,6 +1002,22 @@ PREEMPT_RT/kernel trace·실제 ARM64 실행·RTE/BSW·전체 32개 requirement/
 재분석 script/JSON/로그는 `build/m3-acceptance-review/reanalyze.py`, `reanalysis.json`, `reanalysis.txt`에 둔다.
 앞선 59개 Python·523개씩 C++·build/static 결과는 당시 검사 이력으로 유지한다.
 
+## 2026-10-19 — M3 Host 수용 검토와 통합 기준 선택
+
+[M3-REV-20261019](m3_acceptance_review.md)에서 release/완료·누락 분모·원천 clock/Actual·유효 RX·교차 guard와
+보호 요청/plant 적용/물리 관측을 대조했다. IO 동반 CPU 배치와 FIFO 10/10/9/10/18/20/19를 다음 Host 통합 기준으로 선택했다.
+기본 CLI 정책·YAML 값·native runtime/시한은 바꾸지 않았다. 타이밍 예외 OPEN-M3-01/02·학습자 수용을 남기며 M3는 IN PROGRESS다.
+RX 실패의 floor 목표 적용 426.067791 ms 때 압력은 0.3 MPa, 1 MPa 이상 첫 관측은 566.313704 ms였다.
+Power 실패의 torque zero 목표는 1104.230218 ms, 실제 zero 관측은 1200.234945 ms였다.
+보호 목표 적용을 즉시 물리 목표 도달로 해석하지 않는다.
+
+README·상태·로드맵·timing 계약·ADR·학습/개발 계획·profile 안내·traceability를 갱신했다.
+M4 coordinator 계약·기능 준비와 M3 예외 해소를 병행할 수 있으나 새 통합 workload는 별도 검증한다.
+Target timing은 실제 배포 단계, Central/Zone DDS는 M5, 차량 E2E는 M7에 연결한다.
+기존 system requirement 32개/TC 29개의 전체 NOT RUN과 M1/M2 학습자 review는 유지한다.
+문서 105개/상대 링크·앵커 1186개, requirement 32개/TC 29개 추적성, YAML 3개/Python 8개 syntax와
+whitespace를 검사해 통과했다. 결과는 `build/m3-acceptance-review/docs-check.txt`에 둔다.
+
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.
