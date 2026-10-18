@@ -31,7 +31,7 @@ coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/sessio
 [Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가했다.
 [Brake response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 추가했다.
 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)의 core 18개·외부 물리 진행 3개를 추가했다.
-M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 30개를 더해 현재 521개이며 Python 리포터 43개를 검사했다.
+M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 30개를 더해 현재 521개이며 Python 리포터 47개를 검사했다.
 기존 vCAN 97개 이력과 M3 multirate/fault·고정 부하 실험은 별도 범위다. 실행 횟수·PASS/FAIL은 [품질 기록](quality_policy.md)에 남긴다.
 Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
 [M2 수용 검토](m2_acceptance_review.md)에서는 각각 model vCAN 8개·전체 unit·기존 demo를 재검사해 통과했다.
@@ -63,12 +63,12 @@ Fault architecture는 M0부터 다루며 local fault behavior는 M2/M4 등의 co
 
 [개발·학습 계획](engineering_plan.md)을 기존 milestone에 연결한다. 아래 표는 학습과
 검토 활동의 배치이며 위 milestone의 번호·구현 범위·기존 acceptance를 변경하지 않는다.
-추가 안전 분석과 OS/RTE/BSW pilot은 **PLANNED**다. M0 exit review의 PASS에 포함하지 않는다.
+추가 안전 분석과 RTE/BSW·Target pilot은 **PLANNED**다. Host의 [Steering OS 파일럿](learning/m3_rtos_pilot.md)은 별도로 구현했다. M0 exit review의 PASS에 포함하지 않는다.
 Steering의 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e_profile5.md)는
 M1 Host에서 직접 구현·시험했다. 이 부분 결과를 전체 AUTOSAR pilot 완료로 확대하지 않는다.
 [ADR-0022](adr/ADR-0022-leaf-classic-development-methodology.md)로 Leaf의 Classic 개발 체계를
 채택했다. Steering부터 ECU 소프트웨어와 SIL 물리 모델 경계를 설계하고 Brake/Drive/BMS로 확장한다.
-ECU/SIL 코드 분리는 완료했다. 실제 Classic stack 채택·pilot 실행은 후속이며 기존 component 결과를 pilot PASS로 바꾸지 않는다.
+ECU/SIL 코드 분리는 완료했다. 실제 Classic stack 채택·RTE/BSW pilot은 후속이며 기존 component 결과를 전체 stack pilot PASS로 바꾸지 않는다.
 
 | 관련 단계 | 함께 수행할 학습·검토 | 남길 근거 |
 | --- | --- | --- |

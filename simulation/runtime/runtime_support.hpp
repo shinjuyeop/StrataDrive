@@ -10,6 +10,8 @@
 #include <sched.h>
 #include <system_error>
 #include <time.h>
+#include <sys/syscall.h>
+#include <unistd.h>
 #include <vector>
 
 namespace stratadrive::simulation::runtime_support {
@@ -29,12 +31,14 @@ inline std::uint64_t next_wake(std::uint64_t enable, std::uint64_t period, std::
 }
 struct ThreadInfo {
     int policy{-1},priority{-1},observed_cpu{-1};
+    int tid{-1};
     std::vector<int> allowed_cpus;
     void capture() {
         sched_param parameter{};
         const int result=pthread_getschedparam(pthread_self(),&policy,&parameter);
         if(result!=0) throw std::system_error(result,std::generic_category(),"pthread_getschedparam");
         priority=parameter.sched_priority; observed_cpu=sched_getcpu();
+        tid=static_cast<int>(syscall(SYS_gettid));
         cpu_set_t mask;
         CPU_ZERO(&mask);
         const int affinity_result=pthread_getaffinity_np(pthread_self(),sizeof(mask),&mask);
@@ -48,7 +52,7 @@ struct ThreadInfo {
         out << ']';
     }
     void write_json(std::ostream& out) const {
-        out << "{\"policy\":" << policy << ",\"priority\":" << priority << ",\"observed_cpu\":" << observed_cpu << ",\"allowed_cpus\":";
+        out << "{\"policy\":" << policy << ",\"priority\":" << priority << ",\"tid\":" << tid << ",\"observed_cpu\":" << observed_cpu << ",\"allowed_cpus\":";
         write_affinity(out); out << '}';
     }
 };

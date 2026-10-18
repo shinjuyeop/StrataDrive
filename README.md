@@ -7,7 +7,7 @@
 **M3 진행 중** — 다중 주기 실행·독립 감시와 비동기 Drive Actual CAN 송수신을 연결했다.
 M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도로 남긴다.
 감시·물리 작업에 [4 ms 완료 guard·교차 감시](docs/learning/m3_owner_cycles.md)를 연결했다. 배치 비교를 마쳤으며 다음은 **RT/Target 및 M3 수용 검토**다.
-Central/Zone DDS·차량 closed-loop 통합은 후속 단계다.
+[Steering RTOS 파일럿·Host 실행 대기 관측](docs/learning/m3_rtos_pilot.md)을 별도로 연결했다. Central/Zone DDS·차량 closed-loop 통합은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 

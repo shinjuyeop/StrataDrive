@@ -193,3 +193,10 @@ stale history, invalid trajectory 시 Classical Planner fallback을 유지하며
 Top-level state는 INIT / NORMAL / DEGRADED / FAIL_SAFE이며 local command loss는
 Central diagnostics 없이 처리한다. [Fault architecture](fault_diagnostics_architecture.md)와
 [timing contract](../requirements/timing_requirements.md)를 함께 적용한다.
+
+## Optional hosted RTOS pilot
+
+[ADR-0040](../adr/ADR-0040-steering-rtos-pilot-and-delay-observation.md)은 `vecu/platform/trampoline_posix/`의
+C ABI adapter·OIL과 별도 Trampoline kernel build로 Steering을 실행한다. 기존 `vecu/steering` 판단 코드와
+CAN wire는 유지한다. `simulation/runtime/steering_rtos_fixture.*`는 다른 Linux process의 물리/센서/Actual 수신을 담당한다.
+정상 build는 RTOS를 내려받지 않는다. Host OS 기능 시험과 Linux/Target timing·RTE/BSW 통합을 구분한다.

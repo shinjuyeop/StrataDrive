@@ -141,3 +141,8 @@ override는 공통 SYS requirement를 완화하는 필드가 아니며 추가 co
 20 Hz camera/sensor baseline과 30→20 FPS optimization 후보는 다른 개념이다. 후자는
 향후 workload에서 30 FPS를 선택한 경우의 후보일 뿐 현재 Reference 값을 30으로 뜻하지
 않는다. 숫자를 바꾸면 요구사항/시나리오/ICD와 함께 revision/rationale을 기록한다.
+
+`m3_steering_rtos_pilot`은 [선택형 Steering OS 파일럿](../docs/learning/m3_rtos_pilot.md)의 설정 기록이다.
+Upstream POSIX virtual tick 10 ms, Alarm 1 tick, 실제 ReleaseDispatch 게시 후 완료 budget 5 ms와
+시험용 검출 margin 20 ms를 명시한다. 기존 M3의 2 ms/3 ms RX·2 ms/4 ms owner 계약은 유지한다.
+OS tick drift를 wall time으로 별도 측정하며 프로파일은 runtime loader가 아니다. Target/RTE/BSW는 NOT RUN이다.

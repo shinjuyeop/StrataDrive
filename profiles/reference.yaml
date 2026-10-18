@@ -622,3 +622,41 @@ m3_guard_placement_fixture:
   trace_order: alternate_each_repetition
   excluded_warmup_jobs: 0
   contract_failure_policy: retain_failures_and_all_valid_job_observations
+
+# ADR-0040: optional hosted RTOS pilot. This does not replace the 2 ms M3 fixture.
+m3_steering_rtos_pilot:
+  kernel: trampoline
+  source_lock: third_party/trampoline.json
+  target: posix/linux_x86_64_host_tested
+  configuration_language: oil_2_5
+  kernel_api_alignment: upstream_osek_autosar_os_4_2
+  actual_rte_bsw_integration: not_run
+  virtual_tick_ms: 10 # upstream ViPer relative usleep timer; not a wall-time guarantee
+  control_alarm_ticks: 1
+  receive_alarm_ticks: 1
+  watch_alarm_ticks: 1
+  release_task_priority: 5
+  watch_task_priority: 4
+  receive_task_priority: 3
+  control_task_priority: 2
+  completion_budget_ms: 5 # observed ReleaseDispatch publish -> Control finish
+  guard_detection_margin_ms: 20 # hosted fault fixture; original M3 budgets stay unchanged
+  window_ms: 1600
+  os_tail_ms: 40
+  plant_drain_tail_ms: 20
+  scenario_change_ms: 600
+  control_wait_event_ticks: 12
+  channel_sensor_budget: 8
+  can_receive_budget: 8
+  command_queue_capacity: 32
+  application_epoch: 2 # isolated local fixture; not the deployment session coordinator
+  model_epoch: 1
+  scenarios: [normal, command-loss, corrupt, control-stall]
+  linux_scheduling_policy: SCHED_OTHER
+  target_deployment: not_run
+  scheduling_observer:
+    backend: proc_schedstat_and_context_switch_counters
+    sample_sleep_ms: 1
+    attribution: covering_interval_only
+    performance_baseline: false
+    kernel_wakeup_switch_trace: requires_available_tracefs_or_perf_access

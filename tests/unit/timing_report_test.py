@@ -5,14 +5,66 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import sys
 
 PATH = Path(__file__).resolve().parents[1] / "integration/runtime/check_timing.py"
 SPEC = importlib.util.spec_from_file_location("check_timing", PATH)
 report = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = report
 SPEC.loader.exec_module(report)
+
+def load_helper(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+diagnostics = load_helper('runtime_diagnostics', PATH.parents[3] / 'tools/runtime_diagnostics.py')
+rtos = load_helper('check_rtos', PATH.with_name('check_rtos.py'))
 
 
 class TimingReportTest(unittest.TestCase):
+    def test_schedstat_delta_requires_samples_covering_the_entire_miss(self):
+        samples = [dict(begin_ns=10,end_ns=11,cpu_ns=20,queue_ns=30,slices=1,voluntary=1,involuntary=0),
+                   dict(begin_ns=20,end_ns=21,cpu_ns=22,queue_ns=35,slices=2,voluntary=2,involuntary=0)]
+        result = diagnostics.covering_delta(samples,12,19)
+        self.assertEqual(result['coverage'],'complete')
+        self.assertEqual(result['delta']['queue_ns'],5)
+        self.assertEqual(result['boundary_extra_ns'],4)
+        self.assertIn('covering interval',result['attribution'])
+        for begin,end in ((9,19),(12,22)):
+            self.assertEqual(diagnostics.covering_delta(samples,begin,end)['coverage'],'incomplete')
+
+    def test_zero_schedstat_wait_does_not_assign_a_timer_or_irq_cause(self):
+        samples = [dict(begin_ns=n,end_ns=n+1,cpu_ns=20,queue_ns=30,slices=1,voluntary=1,involuntary=0) for n in (10,20)]
+        self.assertIn('unproven',diagnostics.covering_delta(samples,12,19)['attribution'])
+        samples[1]['queue_ns']=29
+        self.assertEqual(diagnostics.covering_delta(samples,12,19)['coverage'],'counter_regressed')
+
+    def test_rtos_actual_preserves_acquisition_and_late_completion_is_not_admitted(self):
+        row=dict(job=0,release_ns=100,deadline_ns=5_000_100,start_ns=110,phase_ns=120,end_ns=130,
+                 source_ns=105,actual_source_ns=105,reported=1,actual_valid=1,detected_ns=0)
+        rtos.validate_jobs([row])
+        row['actual_source_ns']=120
+        with self.assertRaisesRegex(AssertionError,'retimestamped'):
+            rtos.validate_jobs([row])
+        row.update(actual_source_ns=105,end_ns=6_000_000,detected_ns=6_000_001)
+        with self.assertRaisesRegex(AssertionError,'late'):
+            rtos.validate_jobs([row])
+        row['reported']=0
+        rtos.validate_jobs([row])
+
+    def test_rtos_skipped_release_needs_watchdog_detection_and_no_fabricated_work(self):
+        row=dict(job=0,release_ns=100,deadline_ns=5_000_100,start_ns=0,phase_ns=0,end_ns=0,
+                 source_ns=0,actual_source_ns=0,reported=0,actual_valid=0,detected_ns=0)
+        with self.assertRaisesRegex(AssertionError,'watchdog'):
+            rtos.validate_jobs([row])
+        row['detected_ns']=5_000_101
+        rtos.validate_jobs([row])
+        row['source_ns']=1
+        with self.assertRaisesRegex(AssertionError,'fabricated'):
+            rtos.validate_jobs([row])
+
     @staticmethod
     def owner_fixture():
         config = dict(first_release_ns=1000, period_ns=10, slots=4, cpu_time_recorded=True)

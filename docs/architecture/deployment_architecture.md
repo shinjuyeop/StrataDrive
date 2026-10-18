@@ -76,3 +76,9 @@ TBD-04(clock/timing), TBD-05(middleware/network), TBD-07(Host/CARLA), TBD-09(boa
 TBD-11(toolchain/CI)에 있다. Middleware 선택 기준과 M4 비교/M5 결정 gate는
 [DDS ICD](../icd/ethernet_dds_icd.md)에 정의한다. Premium/Mainstream은 같은 architecture의
 각 독립 실험 profile이며 Reference config를 먼저 공통으로 측정한다.
+
+## Host OS pilot
+
+[Trampoline POSIX Steering 파일럿](../learning/m3_rtos_pilot.md)은 개발 Host에서 별도로 실행한다.
+추가 MCU나 Jetson OS 전환은 이번 변경에 포함하지 않는다. ARM64 지원·Target에 배치할 OS/virtual target은 후속 검토다.
+물리 모델과 ECU는 별도 process이고 둘 다 Host 자원을 공유한다. Hardware fault 독립성이나 실시간 보장은 주장하지 않는다.

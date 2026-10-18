@@ -140,3 +140,10 @@ parameter가 아니며 M1/M2 runtime 구현이나 차량 시험의 완료로 표
 
 기록은 필요한 시점에 작은 Markdown 파일로 추가한다. 모델 답변을 그대로
 붙여넣는 대신 이해한 내용, 재현 조건과 틀렸던 가정을 함께 남긴다.
+
+## Hosted RTOS pilot and scheduling diagnosis
+
+다음 [Steering RTOS 파일럿](m3_rtos_pilot.md)은 실제 Trampoline Task/Event/Alarm/Resource를 사용한다.
+기존 ECU와 CAN·외부 물리 모델을 연결하고, 별도 sampler로 Host runqueue 대기를 관측한다.
+기존 Python 리포터 파일에 source/late/skipped·counter coverage 검사 4개를 추가해 현재 **47개**다.
+OS 기능, 가상 tick, Host wall timing, Target 검증은 각각 구분한다.

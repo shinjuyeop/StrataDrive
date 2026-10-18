@@ -83,7 +83,7 @@ M0 계약을 유지하며, 시스템이 수행할 물리적 보호 동작과 검
 
 | 기준 | 프로젝트에서 수행할 활동 | 현재 범위와 상태 |
 | --- | --- | --- |
-| AUTOSAR Classic / Methodology | Leaf ECU 소프트웨어의 SWC, Port, Interface, Runnable, Event, ECU/OS Task mapping 설계; SIL 물리 모델 경계 구분; ARXML, RTE/BSW 설정·생성·통합 실습 | ADR-0022로 개발 방향 채택, Steering부터 Brake/Drive/BMS로 확장; 실제 stack/release/generator/target 미선정, pilot NOT RUN |
+| AUTOSAR Classic / Methodology | Leaf ECU 소프트웨어의 SWC, Port, Interface, Runnable, Event, ECU/OS Task mapping 설계; SIL 물리 모델 경계 구분; ARXML, RTE/BSW 설정·생성·통합 실습 | ADR-0022로 개발 방향 채택, Steering부터 Brake/Drive/BMS로 확장; 전체 stack/release/generator/target 미선정; Trampoline Host OS 파일럿 구현, RTE/BSW·Target NOT RUN |
 | Automotive SPICE 4.0 | 요구사항·설계·검증의 일관성, 추적성, 변경 영향과 review 기록 | 개발 과정 점검에 참고; capability level 평가나 전체 process 적용을 주장하지 않음 |
 | ISO 26262 | Item Definition → HARA → Safety Goal → Functional Safety Concept → 안전 요구·설계·검증의 연결 학습 | Concept study 초안부터 시작; ASIL 미평가, 전체 lifecycle 준수·인증 범위 아님 |
 | ISO 21448 / SOTIF | 기능 사양·인식·판단의 한계와 triggering condition, scenario coverage 검토 | M10/M11의 AI 통합에 연결할 계획; ODD 확장은 별도 baseline 변경 |
@@ -208,3 +208,10 @@ TBD-02/03/04/13은 관련 통합 전에 검토한다. 개념 설명은 해당 �
 Concept study의 남은 가정, 정상 응답 범위/jam 검출과 AUTOSAR 대응·pilot은 관련 구현과
 함께 이어간다. 전체 이론 학습이나 pilot 완료를 M1 시작 조건으로 두지 않는다.
 Pilot에서 발견한 제약은 해당 구현의 ICD와 도구 선택 검토에 반영하며, 변경 영향은 기록한다.
+
+## Hosted OS pilot update
+
+2026-10-18 [Trampoline Steering 파일럿](learning/m3_rtos_pilot.md)을 별도 opt-in build로 구현했다.
+GOIL/OIL 2.5로 생성한 실제 OS Task/Event/Alarm/Resource와 기존 ECU를 연결한다.
+확인 target은 Host x86_64 POSIX다. Classic R25-11 적합성·ARXML/RTE/BSW 생성·Jetson 배포는 NOT RUN이다.
+기존 Linux vECU 배포 계획을 유지하며 이 결과로 OS stack 전체를 채택하지 않는다.

@@ -1,6 +1,9 @@
 # ADR-0022: Leaf vECU의 Classic 개발 체계와 SIL 모델 경계
 
-Date: 2026-10-14. Status: **설계·학습 방향 ACCEPTED / OS/RTE/BSW pilot PLANNED / pilot 실행 NOT RUN**.
+Date: 2026-10-14. Status: **설계·학습 방향 ACCEPTED / Host OS 파일럿 구현 / RTE/BSW·Target pilot NOT RUN**.
+후속 2026-10-18: [ADR-0040](ADR-0040-steering-rtos-pilot-and-delay-observation.md)에서 Trampoline POSIX Steering OS 파일럿을 구현했다.
+아래는 최초 결정 당시의 계획이며 실제 RTE/BSW/Target 채택은 여전히 후속이다.
+
 Owner: project owner. Leaf vECU의 ECU 소프트웨어는 AUTOSAR Classic의 개발 개념으로
 설계하고 Steering부터 적용한다. 실제 Classic stack의 채택은 pilot 결과로 별도 결정한다.
 

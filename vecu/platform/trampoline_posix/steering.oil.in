@@ -1,0 +1,45 @@
+OIL_VERSION = "2.5";
+IMPLEMENTATION trampoline { TASK { UINT32 STACKSIZE = 49152; }; ISR { UINT32 STACKSIZE = 32768; }; };
+CPU SteeringPilot {
+  OS config {
+    STATUS = EXTENDED;
+    ERRORHOOK = TRUE;
+    STARTUPHOOK = TRUE;
+    SHUTDOWNHOOK = TRUE;
+    BUILD = TRUE {
+      TRAMPOLINE_BASE_PATH = @TRAMPOLINE@;
+      APP_SRC = "steering.c";
+      CFLAGS = "-g -O1 -Wall -Wextra -Werror=overflow -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0";
+      LINKER = "g++";
+      LDFLAGS = @LIBRARIES@;
+      APP_NAME = "steering_rtos";
+      SYSTEM = PYTHON;
+    };
+  };
+  APPMODE stdAppmode {};
+  EVENT Release { MASK = AUTO; };
+  EVENT Resume { MASK = AUTO; };
+  RESOURCE Mailbox { RESOURCEPROPERTY = STANDARD; };
+  TASK ReleaseDispatch { PRIORITY = 5; ACTIVATION = 1; SCHEDULE = FULL; AUTOSTART = FALSE; };
+  TASK Control {
+    PRIORITY = 2; ACTIVATION = 1; SCHEDULE = FULL;
+    AUTOSTART = TRUE { APPMODE = stdAppmode; };
+    EVENT = Release; EVENT = Resume; RESOURCE = Mailbox;
+  };
+  TASK Receive { PRIORITY = 3; ACTIVATION = 1; SCHEDULE = FULL; AUTOSTART = FALSE; RESOURCE = Mailbox; };
+  TASK Watch { PRIORITY = 4; ACTIVATION = 1; SCHEDULE = FULL; AUTOSTART = FALSE; };
+  ALARM ControlAlarm {
+    COUNTER = SystemCounter;
+    ACTION = ACTIVATETASK { TASK = ReleaseDispatch; };
+    AUTOSTART = TRUE { APPMODE = stdAppmode; ALARMTIME = 1; CYCLETIME = 1; };
+  };
+  ALARM ReceiveAlarm {
+    COUNTER = SystemCounter; ACTION = ACTIVATETASK { TASK = Receive; };
+    AUTOSTART = TRUE { APPMODE = stdAppmode; ALARMTIME = 1; CYCLETIME = 1; };
+  };
+  ALARM WatchAlarm {
+    COUNTER = SystemCounter; ACTION = ACTIVATETASK { TASK = Watch; };
+    AUTOSTART = TRUE { APPMODE = stdAppmode; ALARMTIME = 1; CYCLETIME = 1; };
+  };
+  ALARM ResumeAlarm { COUNTER = SystemCounter; ACTION = SETEVENT { TASK = Control; EVENT = Resume; }; AUTOSTART = FALSE; };
+};

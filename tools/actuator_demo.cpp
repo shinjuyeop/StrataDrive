@@ -4,6 +4,7 @@
 #include "epoch_store.hpp"
 #include "steering_runtime.hpp"
 #include "multirate_runtime.hpp"
+#include "steering_rtos_fixture.hpp"
 #endif
 
 #include <exception>
@@ -37,6 +38,7 @@ void usage(std::ostream& output) {
            << "  actuator_demo ev-power [normal|weld|current-unknown|aux-blocked]\n";
 #ifdef STRATADRIVE_LINUX_SESSION
     output << "  actuator_demo epoch <init|next> <store_directory>\n";
+    output << "  actuator_demo steering-rtos-plant <normal|command-loss|corrupt|control-stall> <vcan> <inherited_channel_fd> <enable_ns> <output_directory>\n";
     output << "  actuator_demo steering-runtime <normal|overrun|stall> <new_output_directory> [trace-off]\n";
     output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt|feedback-replay|monitor-overrun|plant-overrun|monitor-stall|io-overrun> <vcan_interface> <new_output_directory> [trace-off] [owner-cpus=brake,drive,bms,power,rx,monitor,plant_fixture]\n";
 #endif
@@ -86,6 +88,9 @@ int main(int argc, char** argv) {
                 }
                 stratadrive::simulation::run_multirate_runtime(options);
                 std::cout << "RUNTIME_TRACE " << argv[4] << '\n';
+            }
+            else if (command == "steering-rtos-plant" && argc == 7) {
+                stratadrive::simulation::run_steering_rtos_plant({argv[2],argv[3],std::stoi(argv[4]),std::stoull(argv[5]),argv[6]});
             }
             else if (command == "steering-runtime" && (argc == 4 || argc == 5)) {
                 if(argc==5 && std::string(argv[4])!="trace-off") throw std::invalid_argument("expected trace-off");
