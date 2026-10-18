@@ -1,6 +1,8 @@
 # ADR-0032: ECU 판단과 SIL 실행 연결의 분리
 
 Date: 2026-10-16. Status: **IMPLEMENTED / Host component checks; 실제 task/watchdog는 후속**.
+2026-10-18 follow-up: Drive torque의 같은 job 취득 제한·보조 시각 관계는 [ADR-0036](ADR-0036-asynchronous-drive-actual-feedback.md)으로 개정했다.
+아래는 경계 분리 당시의 결정 기록이다.
 ADR-0019/0020/0023/0027/0030/0031의 같은-thread composition을 세분화한다.
 기존 wire·물리 수치·통신 상실 정책과 학습자 수용 상태를 변경하지 않는다.
 

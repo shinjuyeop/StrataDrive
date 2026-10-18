@@ -136,7 +136,12 @@ Brake/Drive/Power 10 ms·deadline 5 ms, BMS 20 ms·deadline 8 ms, 실제 SocketC
 각 receiver의 Accepted 시각만 별도 원자로 게시하고 critical 5개 stream의 유효 RX threshold 80 ms와
 실제 검출 <=100 ms를 검사한다. Task 정지와 유효 입력 상실을 구분하며 CRC 실패는 age를 갱신하지 않는다.
 출력/보호 snapshot 취득 뒤 적용 기준 시각을 읽어 인과 순서를 보존한다.
-Drive torque는 비동기 acquisition 때문에 현 wire에서 unavailable이며 실제 값은 physical trace다.
+이 첫 fixture는 비동기 torque를 unavailable로 남겼다. 후속 [ADR-0036](../adr/ADR-0036-asynchronous-drive-actual-feedback.md)은
+기존 SourceTimeNs의 실제 취득 의미를 유지해 Actual CAN TX→독립 RX를 연결한다.
+각 보조 source는 receiver now/session·자기 age로 판정하며 torque source보다 나중일 수 있다.
+Critical watch는 Actual을 포함한 6개 stream이고 RX는 마지막 feedback을 비우기 위해 20 ms 더 실행한다(1210 jobs).
+Trace schema 3의 취득/생성/TX begin/end·RX/Accepted 시각과 원래 bytes를 구분하고 source→RX는 local 경계로만 보고한다.
+현재 sample age 30 ms와 valid-RX timeout 80 ms는 별개이며 차량 전체 E2E 완료를 뜻하지 않는다.
 [다중 주기 안내](../learning/m3_multirate_runtime.md)와 [품질 기록](../quality_policy.md)에 범위·실측을 남긴다.
 [ADR-0035](../adr/ADR-0035-controlled-cpu-load-and-placement.md)는 같은 runtime CPU mask에서 추가 부하 없음/같은 CPU/다른 CPU를 비교한다.
 부하 10 ms period·7 ms wall busy window와 실제 thread/process CPU 시간을 구분하고 3 layouts×2 trace modes×3회 반복한다.

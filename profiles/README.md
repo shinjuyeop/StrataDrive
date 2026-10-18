@@ -99,9 +99,11 @@ Floor 관측은 fresh sensor로만 보고하고 cached/invalid에서 unknown이�
 
 `m3_multirate_runtime_fixture`는 [후속 다중 주기·CAN 감시](../docs/learning/m3_multirate_runtime.md)의 설정이다.
 Brake/Drive/Power 10 ms·deadline 5 ms, BMS 20 ms·deadline 8 ms, RX 2 ms·deadline 3 ms와 release offset/job 수를 기록한다.
-독립 감시/plant 2 ms, 5개 critical stream의 유효 RX threshold 80 ms·검출 <=100 ms와 poll당 8개 budget은 Host 실험 값이다.
+독립 감시/plant 2 ms, 6개 critical stream(입력 5개+Drive Actual)의 valid RX threshold 80 ms·검출 <=100 ms와 poll당 8개 budget은 Host 실험 값이다.
 Core 최소 호출 guard 1 ms는 runnable period가 아니다. Trusted parent 이력은 CAN 밖의 최근 4개 원천 frame/context에 한정한다.
-비동기 Drive torque는 source를 보존해 현 wire에서 unavailable이며 physical trace의 실제 값과 구분한다.
+후속 [비동기 Drive Actual](../docs/learning/m3_drive_feedback.md)은 기존 SourceTimeNs에 실제 취득 시각을 보존해 송수신한다.
+RX 1210 jobs는 ECU workload 뒤 20 ms drain tail을 포함하며 monitor/plant tail은 40 ms다.
+Cached torque는 unavailable 진단이며 source age·valid RX timer를 갱신하지 않는다. Trace schema 3과 CAN schema 2를 구분한다.
 YAML loader·차량/Target timing 보장·실제 Central/Zone runtime은 후속이다.
 
 `m3_cpu_placement_fixture`는 [고정 부하·CPU 배치 비교](../docs/learning/m3_cpu_placement.md)의 protocol 기록이다.

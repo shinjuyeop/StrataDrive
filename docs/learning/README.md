@@ -73,9 +73,10 @@ model vCAN 8개를 재검사하고 설정·고장·세션 경계를 대조했다
 Python 리포터 5개였다. Steering의 실제 thread·deadline·CSV trace를 읽고 정상/overrun/stall에서 누락 job과 물리 보호를 비교한다.
 후속 [다중 주기·CAN 감시](m3_multirate_runtime.md)는 valid RX/trusted context 11개와 리포터 3개를 추가해
 당시 C++ **516개**, Python **8개**였다. Brake/Drive/Power 10 ms·BMS 20 ms와 RX의 정지/CRC 손상을 비교한다.
-[고정 부하·CPU 배치](m3_cpu_placement.md)는 리포터 8개를 더해 현재 C++ **516개**, Python **16개**다.
+[고정 부하·CPU 배치](m3_cpu_placement.md)는 리포터 8개를 더해 당시 C++ **516개**, Python **16개**였다.
 Requested duty와 실제 CPU 시간, task elapsed/response·miss를 구분하고 실패 run도 비교한다.
-Drive 관측 계약·배치/우선순위·Target 확장은 후속이며 학습자 수용 기록은 별도로 남긴다.
+후속 [Drive Actual CAN 송수신](m3_drive_feedback.md)은 취득 시각·독립 보조 시간·replay 검사 5개와 Python 5개를 더해
+현재 C++ **521개**, Python **21개**다. 배치/우선순위·Target 확장은 후속이며 학습자 수용 기록은 별도로 남긴다.
 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Central의 별도 VCU가 차량 전체
 관리·배분/session/feedback 집계를 맡고 Front는 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
 M4/M5에 분리하며 Central–Zone protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.

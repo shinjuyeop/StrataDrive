@@ -110,7 +110,10 @@ monitor 배치/독립성 및 stop 조건을 설계 검토한다. 수신 검증·
 RX 정지·지속 CRC 실패에서도 Brake floor/Drive zero·BMS inhibit를 검사한다. BMS/Power 정지의
 유한 torque 반응·측정 전류 기반 종료를 구분하며 전체 차량 보호 응답·영구 hang 격리는 후속이다.
 출력/보호 snapshot을 적용 시각보다 먼저 읽어 검출 이전으로 결정을 소급하지 않는다.
-비동기 Drive torque acquisition은 현 wire에서 unavailable이며 sampling/timestamp 계약은 후속이다.
+후속 [Drive Actual 연결](../learning/m3_drive_feedback.md)은 기존 header SourceTimeNs에 비동기 torque 취득 시각을 보존한다.
+보조 시각은 각자 session/now·age/cursor를 검사하며 cached torque로 valid RX를 연장하지 않는다.
+기존 RX owner의 0x282 socket/별도 DriveReceiver와 여섯 번째 valid-RX monitor를 연결했고 20 ms drain tail을 둔다.
+차량/Zone feedback bridge는 후속이다.
 
 | vECU | Command / dynamics 후보 | Feedback / fault 후보 |
 | --- | --- | --- |

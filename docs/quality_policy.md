@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 다중 주기/task·CAN 감시·CPU 부하/배치에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 516개 PASS**, Python 리포터 **16개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 521개 PASS**, Python 리포터 **21개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -457,6 +457,66 @@ Unit은 `m3-placement-unit.txt/xml`, build는 `m3-placement-build.txt`, Python�
 Source/profile/binary/artifact와 최종 문서·검사 로그 연결은 `build/m1-angle/m3-placement-evidence.json`에 둔다.
 Drive 비동기 torque CAN 보고 계약과 RX/monitor/plant budget·owner별 배치/우선순위를 검토해야 한다.
 기존 deadline을 완화하지 않았으며 M3는 IN PROGRESS다. 전체 32개 요구/29개 system TC는 NOT RUN이다.
+
+2026-10-18 [비동기 Drive Actual CAN 연결](learning/m3_drive_feedback.md)은 기존 header SourceTimeNs의 torque 취득 의미를 사용했다.
+Sender는 새 유효 sample의 원래 취득 시각을 보존하고 cached torque는 unavailable 진단으로 보고한다.
+Receiver의 보조 source를 torque 시각과 묶던 조건을 session/now·각 age/cursor로 개정했다.
+CAN schema 2/ID·length/P05 DataID·CRC coverage와 golden payload는 유지하고 DBC 설명/ICD·ADR을 함께 갱신했다.
+기존 receiver는 더 늦은 보조 시각을 Invalid로 제거할 수 있으므로 양쪽 정책 검토가 필요하다.
+
+Core/receiver의 지연된 새 torque·cache 미갱신·독립 보조/torque age·같은 sample 재발행/future/regression 5개를 더해
+normal·ASan/UBSan 각각 C++ **521개 PASS**다. Trace의 원래 bytes/source·generation·uint64 parse·replay count 검사 5개를 더해
+Python **21개 PASS**다. 새 valid TorqueMeasurement를 값/시각과 함께 반환하며 초기화는 기존 typed ActuatorSession을 사용한다.
+BUILD_TESTING=OFF build도 통과했다. Clang-tidy 14 analyzer/bugprone은 변경 C++ 7개와 runtime/Drive header filter에,
+cppcheck 2.7 warning/performance/portability는 production/demo 5개 compile entry에 적용해 통과했다.
+확대한 header filter에서 초기화 인자 순서 진단을 확인해 typed Session으로 정리했다. 최초 진단 로그도 보존한다.
+TSan은 앞서 기록한 Host 시작 오류 때문에 여전히 NOT RUN이다.
+
+Actual을 실제 socket으로 송신하고 기존 RX worker의 0x282 socket/별도 DriveReceiver로 검증했다.
+독립 monitor에 여섯 번째 valid RX를 추가했으며 Actual replay에서도 다른 5개 입력은 계속 정상 수용된다.
+RX budget 8·ECU period/deadline은 유지하고 마지막 response를 수신하는 20 ms drain tail(1210 RX jobs)을 명시했다.
+Trace schema 3과 CAN schema 2는 별개다. Minimal trace도 동일 송수신·receiver 경로와 count를 실행한다.
+
+최종 9조건(normal full/minimal·worker stall 5·CRC 손상·Actual replay)을 normal·sanitizer 각각 2회(**18 runs씩**),
+production 1회(**9 runs**)로 실행해 **45 runs PASS**다. 기존 Steering 4조건도 normal·sanitizer 각각 1회(**8 runs 합계**) 회귀했다.
+빌드/정적 분석 뒤 세 build의 계측을 순서대로 실행했으며 warm-up 제외는 0이다. Host 다른 부하·DVFS/cooling은 통제하지 않았다.
+정상 run마다 **240 TX = 240 RX = 240 Accepted**, expired Actual 0이었다. Full trace는 모든 Accepted의 64-byte payload·torque/source를
+원래 TX와 producing job의 sensor에 연결한다. Torque 양자화 차이 <=0.05 N·m와 원래 정수 ns를 검사한다.
+
+아래는 각 build의 normal/full individual sample을 합친 **토크 source→소프트웨어 RX(ms)**다.
+ECU job 비용·논리 job/report 시각→TX·socket TX→RX와 물리 settling time은 서로 구분한다.
+Trace generation_ns는 phase_ns이며 실제 직렬화 완료 시각을 뜻하지 않는다.
+
+| Build | Samples | Mean | P95 | P99 | Max |
+| --- | --- | --- | --- | --- | --- |
+| normal | 480 | 4.484734 | 6.045365 | 6.052930 | 6.060372 |
+| ASan/UBSan | 480 | 5.914341 | 6.046427 | 6.057854 | 6.075002 |
+| production BUILD_TESTING=OFF | 240 | 2.197888 | 4.019047 | 4.042298 | 6.006025 |
+
+Sanitizer는 기능/메모리 검사이고 위 차이를 대표 성능 개선/악화로 해석하지 않는다. Local single-clock·vCAN 경계이며 Target/차량 E2E가 아니다.
+Replay run의 raw TX/RX는 240개였으나 Accepted는 110개에서 멈췄다. Actual loss 검출은 normal **81.988–82.062 ms**,
+sanitizer **81.850–81.857 ms**, production **81.863 ms**였다. Raw CRC-valid replay가 계속되어도 valid age는 갱신하지 않았다.
+6개 stream 전체의 fault별 valid RX loss 범위는 normal **80.009–82.062 ms**, sanitizer **80.002–81.981 ms**,
+production **81.786–81.982 ms**였다. Source 30 ms 만료/current_sample unavailable과 RX 80 ms timeout latch는 별개다.
+Late feedback 자동 복구를 허용하지 않았고 독립 zero 요청 뒤 실제 torque는 유한하게 감소했다.
+
+새 workload의 CPU placement smoke는 normal·sanitizer 각각 1회(**12 runs 합계**) 실행했다.
+배치·부하 적용은 **12/12 PASS**, ECU 계약은 **6 PASS / 6 FAIL**이다. Normal은 baseline/separate 통과·shared 2건 실패(RX miss/skip 7/8),
+sanitizer는 baseline 2건 통과·shared 2건 실패(RX miss/skip 15/9)·separate 2건 실패(RX miss/skip 1/2)였다.
+일부 critical stream의 최초 valid reference를 취득하지 못한 경우도 FAIL로 남겼다. 실패 run의 유효 job 관측은 모두 통계에 보존했다.
+이는 새 RX 작업량/계측에서의 1회 smoke이며 10월 16일 3회 성능 비교와 구분한다. 기존 deadline을 완화하거나 실패 조건을 제외하지 않았다.
+
+기존 M1 actuator 40 + EV 49 + M2 model 8 = **97 cases**를 normal·sanitizer 각각 모두 재실행해 통과했다.
+Cantools 40.7.1의 기존 `build/m1-dbc-venv/bin/python`으로 12개 DBC·독립 CRC·C++ 36개 payload를 양 build와 교차 검증해 통과했다.
+시스템 Python에는 cantools가 없었고 기존 전용 환경을 사용했다. 설치나 버전 변경은 하지 않았다.
+Unit/build/Python/static/DBC는 각 build의 `m3-feedback-unit.txt/xml`·`m3-feedback-final-build.txt`, normal의 `m3-feedback-python.txt`·
+`m3-feedback-final-clang.txt`·`m3-feedback-final-cppcheck.txt`, 양 build의 `m3-feedback-dbc.txt`에 남긴다.
+각 build의 `m3-feedback-result/`에 45 runs의 trace/environment/source/profile/binary/artifact hash, 양 build의 `m3-feedback-steering/`·
+`m3-feedback-placement/`에 회귀/부하 실패를 보존했다. VCan stdout은 `m3-feedback-vcan.txt`, 원래 trace 사본은 `m3-feedback-vcan-artifacts/`다.
+최종 코드/문서/검사 로그 연결은 `build/m1-angle/m3-feedback-evidence.json`에 둔다. 예비 9 runs와 최초 static 진단도 별도 보존한다.
+Markdown 95개·상대 링크/앵커 1069개, 요구 32개/TC 29개, YAML 3개와 Python 5개의 syntax/정합성을 검사했다.
+전체 32개 요구/29개 system TC의 Result는 NOT RUN이다. Actual consumer를 차량에 반영하는 Central/Zone/Host bridge와
+owner별 실행 budget/배치·우선순위·Target 검증 및 M3 수용은 후속이다. M1/M2 학습자 수용 기록도 PENDING이다.
 
 | 영역 | 향후 정책 | 적용 시점 / 증거 |
 | --- | --- | --- |

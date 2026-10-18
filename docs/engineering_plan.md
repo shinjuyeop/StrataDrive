@@ -31,7 +31,8 @@ Drive ECU adapter와 물리 모델을 별도 모듈로 두었다.
 보호 요청/관측을 구현·시험했다. [실행 경계 정리](learning/m2_execution_boundaries.md)로 ECU library에서 plant 소유/호출을 제거하고
 별도 SIL 연결 코드와 도메인별 demo source를 뒀다. M3는 Host 다중 주기·독립 task/CAN 감시와 trace를 부분 구현했다.
 후속 [고정 부하·CPU 배치 비교](learning/m3_cpu_placement.md)는 조건별 miss와 실제 부하를 기록한다.
-다음은 M2 학습자 수용과 M3 Drive 관측 계약·실행 budget/배치 검토다.
+후속 [Drive Actual 연결](learning/m3_drive_feedback.md)은 비동기 torque의 취득 시각과 독립 보조 시각을 보존해 CAN 수신을 검증한다.
+다음은 M2 학습자 수용과 M3 실행 budget/배치·우선순위 및 수용 검토다.
 차량 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며

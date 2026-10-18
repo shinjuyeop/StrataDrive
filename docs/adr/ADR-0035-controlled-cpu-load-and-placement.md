@@ -1,6 +1,8 @@
 # ADR-0035: 고정 부하와 CPU 배치를 구분하는 Host 실험
 
 Date: 2026-10-16. Status: **M3 Host 실험 구현 / 측정 결과는 품질 기록에 연결**.
+2026-10-18 follow-up: [ADR-0036](ADR-0036-asynchronous-drive-actual-feedback.md)은 Actual RX 비용과 drain tail을 추가한다.
+아래 실험 protocol은 유지하며 10월 16일 측정과 새 workload 결과를 구분한다.
 [ADR-0034](ADR-0034-multirate-runtime-and-can-loss-monitoring.md)의 ECU 기능·period/deadline·CAN 계약을 유지한다.
 TBD-04의 부하/배치 측정 protocol 부분 결정이며 Target/차량 budget 확정은 아니다.
 

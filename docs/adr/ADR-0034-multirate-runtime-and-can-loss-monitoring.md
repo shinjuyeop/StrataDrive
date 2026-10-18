@@ -1,6 +1,8 @@
 # ADR-0034: 여러 Leaf 작업의 주기 실행과 CAN 수신 상실 감시
 
 Date: 2026-10-16. Status: **M3 Host component 구현 / 검사 결과는 품질 기록에 연결**.
+2026-10-18 follow-up: 비동기 torque/Actual CAN·6개 stream·RX drain tail은 [ADR-0036](ADR-0036-asynchronous-drive-actual-feedback.md)으로 확장했다.
+아래는 다섯 입력 stream을 사용한 첫 결정 기록이다.
 [ADR-0033](ADR-0033-first-wall-time-execution-and-monitor.md)의 Steering 실행을 유지하고
 Brake·Drive gate·BMS·Power와 실제 SocketCAN RX를 한 finite Host 실험에 연결한다.
 기존 Central/Front/Rear 배치와 AUTOSAR stack의 채택 상태를 변경하지 않는다.

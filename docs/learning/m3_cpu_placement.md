@@ -1,6 +1,8 @@
 # M3: CPU에 부하를 주고 배치를 비교하기
 
 Date: 2026-10-16. Status: **Host 고정 부하·CPU 배치 실험 / Target·RT 우선순위 검증 후속**.
+아래 10월 16일 수치는 다섯 입력 stream workload의 이력이다. 10월 18일 [Drive Actual 연결](m3_drive_feedback.md)은
+Actual RX 비용과 20 ms drain tail을 추가했으므로 새 workload의 측정과 구분한다.
 [다중 주기 실행](m3_multirate_runtime.md) 다음 단계다. 결정은 [ADR-0035](../adr/ADR-0035-controlled-cpu-load-and-placement.md)에 있다.
 
 ## 무엇을 비교하나
@@ -97,6 +99,6 @@ CPU 배치를 분리했을 때 결과가 좋아져도 그 Host sample의 관측�
 Host/VM 다른 부하·interrupt·DVFS·cooling은 통제하지 않았으며 sanitizer 값도 대표 성능으로 사용하지 않는다.
 Monitor와 plant까지 CPU A를 공유하므로 독립 OS/하드웨어 watchdog을 검증한 실험은 아니다.
 
-Drive 비동기 torque는 현 CAN 계약에서 여전히 unavailable이다. Sampling 동기화 또는 timestamp 계약과
-M3 수용 검토가 다음이며 owner별 배치/priority·Target·차량 전체 E2E는 후속이다.
+당시 unavailable이던 비동기 torque는 후속 [Drive Actual 연결](m3_drive_feedback.md)에서 취득 시각을 보존해 보고한다.
+실행 budget·owner별 배치/priority와 M3 수용 검토가 다음이며 Target·차량 전체 E2E는 후속이다.
 전체 32개 요구/29개 system TC는 NOT RUN이며 M1/M2 학습자 수용도 별도로 남긴다.

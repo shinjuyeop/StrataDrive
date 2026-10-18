@@ -67,9 +67,10 @@ ECU에는 physical getter가 없다. Typed sensor를 넣지 않으면 command나
 물리 상태와 acquisition sequence 보존은 SIL 쪽 책임이다.
 
 Steering/Brake는 늦게 도착한 새 acquisition의 원래 source time을 Actual에 보존한다.
-Drive의 새 torque port는 epoch·sequence·source time·Nm를 갖는다. 현재 Drive report는 **같은 job end 시각의
-새 acquisition만** torque로 발행한다. Cached/지연 취득은 unavailable이며 30 ms 초과 age·missing·identity/time/range 위반은
-TorqueFeedbackUnavailable이다. 부호와 기존 fault enum 값, wheel speed/capability 계약은 유지한다.
+Drive의 새 torque port는 epoch·sequence·source time·Nm를 갖는다. 이 경계 정리 시점에는 같은 job end 취득만 보고했다.
+후속 [Drive Actual 연결](m3_drive_feedback.md)은 새 비동기 sample도 원래 취득 시각으로 발행하고 cached sample은 unavailable로 둔다.
+30 ms 초과 age·missing·identity/time/range 위반은 TorqueFeedbackUnavailable이다. 부호와 기존 fault enum을 유지하고
+wheel speed/capability는 각각의 시각으로 수신 검사한다.
 
 ## 예제와 검사
 

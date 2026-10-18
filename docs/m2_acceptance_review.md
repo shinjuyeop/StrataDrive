@@ -57,8 +57,9 @@ Power는 확인 전 coil을 쓰지 않고 Inspect에서 실제 접점과 bus를 
 
 현재 caller와 component는 single owner다. 네 ECU core는 trusted `ActuatorSession`으로 초기화하고,
 같은 job 시각의 `prepare/complete` 사이에 외부 실행자가 physical step/capture를 수행한다.
-외부에서 독립 진행한 plant 상태는 ECU 복귀 때 되돌리지 않는다. Drive의 torque 보고에는 같은 job end의
-새 acquisition이 필요하다. 상세 port/phase 계약은 [실행 경계 안내](learning/m2_execution_boundaries.md)를 따른다.
+외부에서 독립 진행한 plant 상태는 ECU 복귀 때 되돌리지 않는다. 이 검토 시점의 같은 job end torque 제한은
+후속 [비동기 Drive Actual 연결](learning/m3_drive_feedback.md)에서 실제 취득 시각을 보존하도록 개정했다.
+Cached sample은 새 측정으로 발행하지 않는다. 상세 port/phase 계약은 [실행 경계 안내](learning/m2_execution_boundaries.md)를 따른다.
 [SocketCAN fixture](learning/m1_session_queue.md)의
 application FIFO 32 / cycle당 ingress·dispatch 8과 물리 delay FIFO 128은 서로 다른 용도다.
 모든 함수 호출에 queue를 붙이는 구조가 아니다. Thread 분리 시 snapshot 동기화·queue ownership·overflow 반응을

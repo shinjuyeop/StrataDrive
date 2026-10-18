@@ -4,7 +4,8 @@ Status: **M0 — BASELINED / M1·M2 — TECHNICAL CHECKS PASS · REVIEW PENDING 
 M3의 [첫 Steering wall-time 실행](learning/m3_steering_timing.md)은 독립 monitor·plant, deadline/누락 job과 CSV 계측을 구현·검사했다.
 후속 [다중 주기·CAN 감시](learning/m3_multirate_runtime.md)는 Brake/Drive/BMS·Power와 실제 RX를 연결했다.
 후속 [고정 부하·CPU 배치 비교](learning/m3_cpu_placement.md)는 contention과 실패 run도 기록했다.
-Drive 관측 계약·실행 budget/우선순위와 Target/E2E 확장은 후속이다.
+후속 [비동기 Drive Actual](learning/m3_drive_feedback.md)은 원래 취득 시각과 독립 보조 시각을 보존해 CAN 송수신을 연결했다.
+실행 budget/배치·우선순위와 Target/E2E 확장은 후속이다.
 [M0 exit review](m0_baseline.md)는 문서 계약의 검토다. 현재 Steering/Brake/Drive six-frame
 codec/P05/receiver/SocketCAN과 EV 통신을 Host에서 구현했다. Local session/queue를 포함해
 normal·ASan/UBSan 각각 unit 143개와 vCAN 89 case, 독립 DBC/CRC 교차 검증을 통과했다. [학습 안내](learning/README.md)에
@@ -28,7 +29,7 @@ coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/sessio
 [Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가했다.
 [Brake response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 추가했다.
 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)의 core 18개·외부 물리 진행 3개를 추가했다.
-M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 25개를 더해 현재 516개이며 Python 리포터 16개를 검사했다.
+M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 30개를 더해 현재 521개이며 Python 리포터 21개를 검사했다.
 기존 vCAN 97개 이력과 M3 multirate/fault·고정 부하 실험은 별도 범위다. 실행 횟수·PASS/FAIL은 [품질 기록](quality_policy.md)에 남긴다.
 Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
 [M2 수용 검토](m2_acceptance_review.md)에서는 각각 model vCAN 8개·전체 unit·기존 demo를 재검사해 통과했다.
@@ -40,7 +41,7 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | M0 | Architecture / Requirement / ICD Baseline | ODD/scenario/수치/계층/timing/fault/ICD 의미 계약, traceability, owner가 있는 TBD, exit checklist |
 | M1 | DBC + vCAN | 12개 wire/receiver, 영속 local Epoch/queue 및 overflow/restart 기술 검사 완료; wire 채택·학습자 review PENDING |
 | M2 | TECHNICAL CHECKS PASS: Actuator + Battery / BMS / Power models | component·Steering/Brake response monitor 시험; 학습자 수용 PENDING |
-| M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | 다중 주기·독립 task/유효 RX 감시·고정 부하/CPU 배치 비교; Drive 관측·budget/우선순위·Target 후속 |
+| M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | 다중 주기·독립 감시·고정 부하/CPU 배치·Drive Actual CAN 연결; budget/배치·우선순위·Target 후속 |
 | M4 | Central coordinator + Front/Rear Zone | 단일 vehicle management/allocation 확인 후 Zone gateway 분리; 각 Zone routing/원천 freshness/local loss/rejoin, TC-ZON-001–003; protocol TBD-15 |
 | M5 | Central Compute + DDS | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
 | M6 | Simple Vehicle + EV Plant | 실제 actuator/power 응답을 통한 lifecycle/closed-loop, battery energy/SOC balance와 mapping 검증 |
@@ -154,7 +155,7 @@ Battery의 단일 chemical energy owner를 연결해 시험했다. [M2 수용 �
 가압/감압과 보호 floor 요청·관측 경계를 구현·시험했다. M2 기술 검사는 완료했고 학습자 수용 기록은 별도다.
 [M3 첫 Steering 실행](learning/m3_steering_timing.md)에서는 독립 task monitor·물리 owner와 trace를 연결했다.
 후속 다중 주기 fixture에서 Brake/Drive/BMS·Power와 실제 통신/RX 정지·CRC 손상 감시를 검사했다.
-고정 부하·CPU 배치/계측 비교도 실행했다. 다음은 Drive sampling/timestamp 계약과 관측된 deadline 위반·budget/배치 검토, M3 수용 검토다.
+고정 부하·CPU 배치/계측 비교와 비동기 Drive Actual 연결도 실행했다. 다음은 관측된 deadline 위반·budget/배치·우선순위 검토, M3 수용 검토다.
 Wire/학습자 review는 PENDING이다.
 
 1. EV 초안의 producer/단위/validity/source·dependency time/expiry와 주기 차이를 review한다.
@@ -163,7 +164,7 @@ Wire/학습자 review는 PENDING이다.
 4. 실제 circuit/energy loop와 M2 parameter·task/monitor·fault/session의 component 증거는 수용 검토에 기록했다.
    OPEN-M2-01/02는 component 구현·시험했고 learner review가 남았다. M3의 runtime/trace 측정은 별도 준비한다.
 5. ECU/plant 소유와 호출을 분리했고 demo는 도메인별 source/단일 executable로 유지한다.
-   M3의 Steering 및 다중 주기 execution/period/jitter/deadline·유효 RX 감시와 고정 부하 비교를 실행했다. Drive 관측 계약과 실행 budget/배치·수용을 검토하고 이후 M4 단일 coordinator/두 Zone 분할로 진행한다. Target 검증은 실제 배포 단계와 연결한다.
+   M3의 Steering 및 다중 주기 execution/period/jitter/deadline·유효 RX 감시와 고정 부하 비교·Drive Actual CAN을 연결했다. 실행 budget/배치·수용을 검토하고 이후 M4 단일 coordinator/두 Zone 분할로 진행한다. Target 검증은 실제 배포 단계와 연결한다.
 
 Six-frame 구현·부분 시험과 새 EV/ZON 수용 항목을 구분한다. EV wire 값이나 물리 반응/전원
 parameter를 기존 100 Hz/30 ms 또는 특정 OEM 수치로 자동 확정하지 않는다.
