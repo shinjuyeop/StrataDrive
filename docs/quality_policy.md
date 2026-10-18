@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 다중 주기/task·CAN 감시·CPU 부하/배치에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 521개 PASS**, Python 리포터 **48개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 521개 PASS**, Python 리포터 **54개 PASS**다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -845,6 +845,49 @@ fortify 예외만 제거했을 때 `__longjmp_chk`와 같은 abort를 재현했�
 다음은 Steering OS/driver·Task mapping 검토, RT 설정이 가능한 native 환경과 timer→wakeup→switch 추적,
 Target/virtual target 호환성과 RTE/BSW 검토다. 현재 Linux kernel/권한을 바꾸지 않았다. 다른 Leaf의 OS 전환,
 Target·차량 전체 E2E, 32개 requirement/29개 system TC의 전체 Result는 **NOT RUN**, 학습자 수용은 PENDING이다.
+
+## 2026-10-18 — ARM64 빌드 경계와 RT 사전 점검
+
+구현은 **a9dfb54**, 결정은 [ADR-0041](adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)이다.
+기존 builder·진단 도구·Python 시험 파일을 확장했다. 일반 CMake build나 Target OS를 변경하지 않았다.
+
+| 확인 | 결과 / 범위 |
+| --- | --- |
+| Native POSIX RTOS build | 분리한 CMake·OS·ViPer directory에서 PASS |
+| ARM64 Linux 교차 빌드 | GCC/G++ 11.4.0으로 RTOS·ViPer·외부 plant 세 ELF 생성, readelf machine·hash 대조 PASS |
+| Native OS 기능 회귀 | 정상/명령 상실/CRC 손상/Control WaitEvent 정지 ×3회, **12/12 PASS** |
+| Python | 기존 파일에 compiler/ELF/architecture·preemption/FIFO 검사 6개 추가, **54개 PASS** |
+| CLI 차단 | 다른 CPU 실행·output architecture 혼용·CMake compiler 혼용·stale source·잘못된 FIFO priority **5개 예상 거부 확인** |
+| Host RT 사전 점검 | 보고서 수집 PASS, FIFO priority 1은 **BLOCKED / EPERM**, 원래 scheduler 복원 확인 |
+| 미실행 | 실제 ARM64/Jetson runtime·보드 stack/driver·RT workload·kernel trace·전체 system TC **NOT RUN** |
+
+신규 native 기능 series의 nominal wall drift는 **24.261–28.727 ms / 1.6 s**, 정상 3 runs의 실제
+ReleaseDispatch 게시→Control 완료 최대는 **0.141084 ms**였다. 앞선 12 runs와 별도 series이며 timing 개선 비교가 아니다.
+가상 tick의 앞단 timer/Host 지연은 기존대로 별도다. Original source·late report 폐기·hold 적용·OS 오류 및 PID별 IPC 정리를 재검사했다.
+기존 native multirate/Steering 42 runs와 normal/sanitizer C++ 521개씩의 이력은 유지한다. C++ 기능 변경이 없어 이번에 재실행하지 않았다.
+Wire/DBC·부하 scheduling observer series도 이번에 새로 실행하지 않았다.
+
+ARM64 산출물은 `/lib/ld-linux-aarch64.so.1`을 요구한다. RTOS/ViPer에는 `GLIBC_2.34`, plant에는
+`GLIBCXX_3.4.29`를 포함한 symbol 요구가 있다. 전체 목록은 각 `build.json`의 `elf_artifacts.runtime_requirements`에 있다.
+이는 현재 교차 toolchain의 ABI이며 선택한 JetPack/BSP와 호환된다는 근거가 아니다. GOIL은 Host 도구로 유지하고
+ViPer를 target별 output 안에서 빌드했다. 고정 upstream은 수정하지 않았고 일반 다운로드/라이선스 정책도 유지한다.
+
+Host는 `6.8.0-138-generic`, `CONFIG_PREEMPT_DYNAMIC=y`, `CONFIG_PREEMPT_RT` 비활성이다.
+RLIMIT_RTPRIO는 0/0, runtime/period throttling은 950000/1000000 µs다. Tracefs는 EACCES,
+perf paranoid=4/exit 255였다. 부모의 SCHED_OTHER/priority 0은 유지했다. Syscall 권한 검사와 PREEMPT_RT 여부를
+구분하며, 권한 거부를 workload FAIL이나 RT timing PASS로 바꾸지 않는다. Owner별 RT 실행 경로와 지연 비교는 후속이다.
+
+Native는 `build/m3-platform-native-host/`·`m3-platform-native-pilot/`, ARM64는
+`build/m3-rtos-aarch64-host/`·`m3-rtos-aarch64-pilot/`에 두며 `m3-platform-{native,cross}-build.txt`가 build 로그다.
+기능 회귀는 `build/m3-platform-rtos-results/`와 같은 이름의 .txt, 사전 점검은
+`build/m3-platform-capabilities-final/`, Python은 `build/m3-platform-python.txt`다.
+`build/m3-platform-evidence.py`·`.json`·`.txt`는 입력/도구/archive/ELF·ABI hash, 12회 기능 재판정·IPC 정리,
+5개 CLI 거부와 사전 점검 상태를 대조한다. 일부 build/run metadata의 HEAD는 직전 3dc2b26이며 작업 중 source hash를
+보존했다. 이를 구현 commit a9dfb54와 재대조했다. 사전 점검 최종 기록은 clean a9dfb54다.
+문서·링크·추적성/YAML·Python syntax는 `build/m3-platform-doc-check.txt`에 보존한다.
+
+다음은 선택한 ARM64 보드의 OS/BSP·ABI/stack/IPC 확인과 RT 권한이 있는 환경의 native policy/priority 적용·실측이다.
+다른 Leaf 확대와 M3 수용은 해당 증거 검토 뒤 진행한다.
 
 ## 코드·예제·시험 배치
 

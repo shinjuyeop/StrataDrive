@@ -122,3 +122,7 @@ FIFO는 별도 자식에서 잠깐 시험하고 원래 정책으로 복원한다
 Exit 0은 보고서를 수집했다는 뜻이다. FIFO가 거부됐다면 RT workload·지연 개선 비교는 **NOT RUN**으로 남긴다.
 일반 Linux에서도 FIFO를 사용할 수 있고, PREEMPT_RT kernel에서도 실행 계정의 권한은 별도로 확인해야 한다.
 권한이 준비된 다음에는 기존 M3의 같은 workload·시한에서 owner별 RT 설정과 실제 적용값을 기록하는 실행 경로가 필요하다.
+
+2026-10-18에 native/ARM64 세 실행 파일의 빌드·ELF/ABI 확인과 native 기능 회귀 **12/12회**, Python **54개**를 통과했다.
+현재 Host의 FIFO 요청은 EPERM이며 PREEMPT_RT가 아니다. ARM64 runtime과 RT workload는 아직 실행하지 않았다.
+재현 로그·검증 범위와 다음 조건은 [품질 기록](../quality_policy.md#2026-10-18--arm64-빌드-경계와-rt-사전-점검)에 정리했다.

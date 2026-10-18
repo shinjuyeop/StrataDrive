@@ -31,7 +31,7 @@ coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/sessio
 [Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가했다.
 [Brake response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 추가했다.
 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)의 core 18개·외부 물리 진행 3개를 추가했다.
-M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 30개를 더해 현재 521개이며 Python 리포터 48개를 검사했다.
+M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 30개를 더해 현재 521개이며 Python 리포터 54개를 검사했다.
 기존 vCAN 97개 이력과 M3 multirate/fault·고정 부하 실험은 별도 범위다. 실행 횟수·PASS/FAIL은 [품질 기록](quality_policy.md)에 남긴다.
 Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
 [M2 수용 검토](m2_acceptance_review.md)에서는 각각 model vCAN 8개·전체 unit·기존 demo를 재검사해 통과했다.
@@ -157,7 +157,9 @@ Battery의 단일 chemical energy owner를 연결해 시험했다. [M2 수용 �
 가압/감압과 보호 floor 요청·관측 경계를 구현·시험했다. M2 기술 검사는 완료했고 학습자 수용 기록은 별도다.
 [M3 첫 Steering 실행](learning/m3_steering_timing.md)에서는 독립 task monitor·물리 owner와 trace를 연결했다.
 후속 다중 주기 fixture에서 Brake/Drive/BMS·Power와 실제 통신/RX 정지·CRC 손상 감시를 검사했다.
-고정 부하·owner별 CPU 배치/전체 cycle 계측과 비동기 Drive Actual 연결도 실행했다. Host 완료 guard·수신 이중 감시를 연결했다. 배치 비교에서 IO 동반 map을 Host 기준으로 유지했다. 다음은 RT/Target·M3 수용 검토다.
+고정 부하·owner별 CPU 배치/전체 cycle 계측과 비동기 Drive Actual 연결도 실행했다. Host 완료 guard·수신 이중 감시를 연결했다. 배치 비교에서 IO 동반 map을 Host 기준으로 유지했다.
+[ARM64 RTOS 교차 빌드·RT 사전 점검](adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)을 확인했다.
+다음은 실제 ARM64 실행·RT 권한이 있는 환경의 native timing·M3 수용 검토다.
 Wire/학습자 review는 PENDING이다.
 
 1. EV 초안의 producer/단위/validity/source·dependency time/expiry와 주기 차이를 review한다.

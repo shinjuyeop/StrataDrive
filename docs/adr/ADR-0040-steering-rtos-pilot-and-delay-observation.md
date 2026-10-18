@@ -77,3 +77,5 @@ Queue delta 0도 timer 지연의 증명이 아니다. 기본 커널의 timer→w
 
 실행 방법은 [학습 안내](../learning/m3_rtos_pilot.md), 최종 결과는 [품질 기록](../quality_policy.md)에 둔다.
 전체 32개 requirement/29개 system TC는 NOT RUN이며 M3 전체 종료나 AUTOSAR stack 채택을 선언하지 않는다.
+후속 [ADR-0041](ADR-0041-arm64-rtos-build-and-host-preflight.md)은 ARM64 교차 빌드와 RT 권한 사전 점검을 추가한다.
+ARM64/RT 실행 수용은 계속 후속으로 유지한다.

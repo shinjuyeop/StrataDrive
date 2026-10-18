@@ -39,9 +39,9 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 C++ 521개 PASS**, Python **48개 PASS** |
-| Build·정적 분석 | Native normal/sanitizer·별도 RTOS host build PASS; 변경 C++ 5개 clang-tidy/cppcheck PASS. Hosted OS의 sanitizer/fiber 연동은 NOT RUN |
-| RTOS 파일럿 | Trampoline POSIX Steering 4조건×3회 **12/12 PASS**: 정상·명령 중단·CRC 오류·Control WaitEvent 정지 |
+| 전체 unit | Normal·ASan/UBSan **각각 C++ 521개 PASS 이력 유지**, 이번 Python **54개 PASS** |
+| Build·정적 분석 | Native RTOS·ARM64 Linux RTOS/ViPer/plant 빌드 PASS. 직전 native normal/sanitizer·C++ 정적 분석 이력 유지; hosted OS sanitizer/fiber 연동은 NOT RUN |
+| RTOS 파일럿 | 분리한 native build로 4조건×3회 신규 **12/12 PASS**: 정상·명령 중단·CRC 오류·Control WaitEvent 정지 |
 | 기존 Linux 실행 회귀 | Multirate 17조건+Steering 4조건을 normal/sanitizer에서 **42/42 PASS** |
 | 실행 대기 진단 | 무부하 3회·감시 CPU 부하 3회 수집; control **6/6 PASS**. 원래 정상 timing 계약은 각각 **2/3·0/3 PASS** |
 | Wire·전체 시스템 | 직전 vCAN 97개·DBC 12 frame/36 payload 이력 유지, 이번 재실행 없음. 32개 requirement/29개 system TC **NOT RUN** |
@@ -50,9 +50,13 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 별도 Linux plant process가 물리·센서 취득·Actual 수신을 맡는다. OIL 2.5 OSEK 기능 시험이며 R25-11 Classic stack 적합성,
 ARXML/RTE/BSW 생성·ARM64 Jetson 배포는 NOT RUN이다. 기존 Linux 배포 계획과 2 ms/4 ms guard·RX 3 ms 기준은 유지한다.
 
-Trampoline POSIX의 가상 tick은 relative sleep 기반이다. 이번 12 runs의 첫 release 기준 wall drift는
+Trampoline POSIX의 가상 tick은 relative sleep 기반이다. 첫 파일럿 12 runs의 첫 release 기준 wall drift는
 약 **23.8–30.6 ms / 1.6 s**였다. 기능 PASS를 정시 실행이나 차량 전체 timing 충족으로 확대하지 않는다.
-Linux scheduling은 여전히 SCHED_OTHER다. Linux PREEMPT_RT·RT 우선순위 적용은 별도 후속이다.
+신규 native 12 runs에서도 약 **24.3–28.8 ms / 1.6 s**의 drift를 관측했다. Linux scheduling은 여전히 SCHED_OTHER다.
+[ARM64 빌드·RT 사전 점검](adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)을 추가했다.
+ARM64는 세 ELF의 CPU·loader/library ABI를 기록한 교차 빌드 결과이며 Jetson 실행 결과가 아니다.
+Host는 PREEMPT_DYNAMIC이며 FIFO priority 1은 EPERM, RT priority limit은 0, trace/perf 접근도 제한된다.
+RT workload·지연 개선 비교는 NOT RUN이다. PREEMPT_RT와 실행 계정의 RT 권한은 별도로 준비·검증해야 한다.
 
 별도 observer가 기존 native multirate thread의 `/proc` 누적 카운터를 읽었다. 6회에서 monitor skip **486개**가 있었고,
 이를 덮는 모든 관측 구간에서 runqueue 대기 증가를 확인했다. 무부하의 한 구간에서는 요청 wake 지연 약 3.565 ms와
@@ -67,8 +71,8 @@ M1/M2 학습자 수용·전체 M3 수용은 PENDING이다.
 
 ## 다음 작업
 
-1. **Steering OS 파일럿 검토:** Task/Event/Alarm/Resource와 원래 source·보호 경계를 직접 재현한다. 실제 stack/ARM64 virtual target·driver 지원을 검토한 뒤 다른 Leaf로 확장한다.
-2. **Host timing 검증:** 같은 native M3 workload/시한에서 RT 설정이 가능한 환경을 비교한다. 권한이 있는 환경의 timer→wakeup→switch trace로 지연을 더 분해한다.
+1. **ARM64 실행 검증:** 선택한 보드의 OS/BSP·sysroot/ABI와 POSIX stack·ViPer IPC·SocketCAN 지원을 확인하고 기능 4조건을 실행한다. 교차 빌드 PASS를 runtime 지원으로 확대하지 않는다.
+2. **Host timing 검증:** 사전 점검이 가능한 도구를 준비했다. 다음은 RT 권한이 있는 환경과 native owner별 policy/priority 적용·실제값 검증 경로다. 같은 M3 workload/시한과 kernel trace로 일반/RT 실행을 비교한다.
 3. **M3 수용·후속 통합:** 기능/clock/budget·누락 분모·보호 요청과 실제 적용·미검증 범위를 검토한다. RTE/BSW·Central/두 Zone 통합은 후속이다.
 
 ## 후속 통합 범위

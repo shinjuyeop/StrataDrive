@@ -215,3 +215,5 @@ Pilot에서 발견한 제약은 해당 구현의 ICD와 도구 선택 검토에 
 GOIL/OIL 2.5로 생성한 실제 OS Task/Event/Alarm/Resource와 기존 ECU를 연결한다.
 확인 target은 Host x86_64 POSIX다. Classic R25-11 적합성·ARXML/RTE/BSW 생성·Jetson 배포는 NOT RUN이다.
 기존 Linux vECU 배포 계획을 유지하며 이 결과로 OS stack 전체를 채택하지 않는다.
+[ARM64 교차 빌드·Host RT 사전 점검](adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)도 추가했다.
+ARM64 ELF 생성과 CPU/loader/library 확인은 PASS이며 실제 보드의 POSIX stack·IPC·driver·timing은 후속이다.

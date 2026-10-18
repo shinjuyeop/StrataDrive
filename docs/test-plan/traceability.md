@@ -106,6 +106,8 @@ scenario/test oracle 갱신 → 해당 milestone에서 실행 → Result ID/arti
 ## Hosted OS pilot evidence
 
 [ADR-0040](../adr/ADR-0040-steering-rtos-pilot-and-delay-observation.md)의 Steering Trampoline OS 기능 12 runs와
-native Linux 회귀 42 runs는 PASS다. Source/Actual·late/skipped·observer coverage·spawn 검사 5개를 기존 Python 파일에 추가해
-현재 48개다. C++ unit은 normal/sanitizer 각각 521개다. 진단 6 runs의 정상 timing 실패 4개는 기능 PASS와 구분한다.
+native Linux 회귀 42 runs는 PASS다. Source/Actual·late/skipped·observer coverage·spawn 검사 5개를 추가한 당시 Python은 48개였다.
+[ADR-0041](../adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)의 native/ARM64 빌드와 native OS 신규 12 runs도 PASS다.
+Architecture 혼용·CMake compiler·FIFO probe 검사 6개를 더해 현재 Python 54개다. ARM64 runtime·RT workload는 NOT RUN이다.
+C++ unit은 normal/sanitizer 각각 521개 이력을 유지한다. 진단 6 runs의 정상 timing 실패 4개는 기능 PASS와 구분한다.
 이는 local component 부분 증거이며 RTE/BSW·Target 및 전체 system TC의 Result는 NOT RUN을 유지한다.
