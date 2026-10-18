@@ -1,8 +1,8 @@
 # Software quality policy
 
-Status: **M1 통신·M2 모델·M3 Host 실행·M4 첫 준비 판정 component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 539개 PASS**다.
-Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 준비 판정에서 변경·재실행하지 않았다.
+Status: **M1 통신·M2 모델·M3 Host 실행·M4 준비 판정/전원·허가 component에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 570개 PASS**다.
+Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -1086,6 +1086,36 @@ Test source는 compiler·clang-tidy·normal/sanitizer 실행으로 검사했다.
 `build/m4-readiness-{clang,cppcheck,cppcheck-production,production-configure,production-build}.txt`다.
 문서 링크/앵커·추적성·YAML/Python syntax는 `build/m4-readiness-doc-check.txt`에 기록한다.
 이번 vCAN·wall-time 통합 workload 실행은 없으며 M3 원본 실패·32개 requirement/29개 system TC NOT RUN을 유지한다.
+
+## 2026-10-19 M4 Central 전원·허가 상태 owner
+
+[ADR-0044](adr/ADR-0044-central-vehicle-management-lifecycle.md)와
+[학습 안내](learning/m4_vehicle_management.md)로 INIT/actual OFF·Enable/ACK·NORMAL·종료·FAIL_SAFE latch를 정의했다.
+원래 요청 identity/action/time/expiry의 변경·rollback을 거부하고 active parent/grant 만료를 새 입력보다 먼저 검사한다.
+허가는 현재 root·확인한 Enable child와 모든 source/dependency의 deadline 안에서만 산출한다.
+Shared readiness의 input-health 경로는 초기 BMS known zero/INIT·실제 OFF/Precharge를 인정하며 HV_READY로 바꾸지 않는다.
+
+새 모듈 시험 31개를 추가했다. 기존 준비 판정 16개를 포함해 M4 관련 47개, 전체 normal·ASan/UBSan 각각
+**570/570 PASS**다. 7개 source 각각의 상실·복구 latch, root/ACK/expiry·clock/gap과 startup/shutdown timeout을 검사했다.
+PowerModel + PowerController + 기존 CAN codec/독립 BmsReceiver를 연결해 10 ms씩 2.2 s **논리 시간** 동안
+precharge 중 허가 차단, actual READY 후 허가, Shutdown 응답·실제 open/low bus를 통한 종료를 확인했다.
+Front/Rear health·비Power Actual/limits·로컬 BMS gate는 명시적 fixture다. 신규 demo를 추가하지 않았으며
+기존 EV demo/runtime의 request/grant fixture는 유지한다. 이번 SocketCAN/vCAN·wall-time workload 실행은 없다.
+
+일반·sanitizer·BUILD_TESTING=OFF 빌드 PASS다. GCC 11.4.0/GoogleTest 1.11.0,
+clang-tidy 14 analyzer/bugprone으로 변경 production/test 3개 PASS, cppcheck 2.7로 현재 compilation database의
+production 2개 PASS다. GoogleTest macro의 기존 cppcheck 파싱 제약은 유지하므로 test cppcheck PASS를 주장하지 않는다.
+Python 변경·unit 재실행은 없으며 직전 63개 PASS 이력을 유지한다.
+개발 중 root 재전송 시험에서 11 ms 뒤에 10 ms를 전달해 clock latch가 동작한 시험 오류 1건을 수정했다.
+그 43-case 개발 실행은 `build/m4-management-test-development.txt`에 보존하며 최종 47개 결과와 구분한다.
+Clang-tidy가 지적한 동일 ACK 실패 분기는 공통 조건으로 정리했다. 기존 시한·고장 latch를 완화하지 않았다.
+최종 검토에서 OFF 관측을 전체 peer health와 분리했다. 별도 시험으로 sender fault/다른 Zone 상실 중에도
+유효 physical OFF는 보존하고 FAIL_SAFE를 유지하며, bus unknown일 때는 확인하지 않는 것을 검사했다.
+
+빌드/시험은 `build/m4-management-{configure,build,test,full-build,full-test,sanitized-configure,sanitized-build,sanitized-test}.txt`,
+production build는 `build/m4-management-production-{configure,build}.txt`, 정적 분석은
+`build/m4-management-{clang,cppcheck}.txt`에 기록한다. 문서 검사는 `build/m4-management-doc-check.txt`다.
+M3 기존 실패·전체 수용 대기와 32개 requirement/29개 system TC NOT RUN을 유지한다.
 
 ## 코드·예제·시험 배치
 

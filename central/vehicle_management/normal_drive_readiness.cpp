@@ -38,8 +38,10 @@ bool NormalDriveReadiness::is_blocked(ReadinessBlock reason) const {
     return index >= blocked.size() || blocked[index];
 }
 
-NormalDriveReadiness evaluate_normal_drive_readiness(
-    const NormalDriveReadinessInputs& inputs, std::uint64_t now_ns, const ReadinessTiming& timing) {
+namespace {
+NormalDriveReadiness evaluate(
+    const NormalDriveReadinessInputs& inputs, std::uint64_t now_ns, const ReadinessTiming& timing,
+    bool normal_drive) {
     NormalDriveReadiness result;
     // Do not silently widen the existing component budgets. Different vehicle
     // timing needs a reviewed contract, not an arbitrarily permissive parameter.
@@ -77,18 +79,24 @@ NormalDriveReadiness evaluate_normal_drive_readiness(
 
     const auto& power = inputs.rear.power_status;
     const auto* status = power ? std::get_if<can::BmsPowerStatus>(&power->message.content) : nullptr;
-    record(ReadinessBlock::PowerStatus, power && status &&
-           current(power->message, timing.bms_source_age_ns, inputs, now_ns) && normal(power->message) &&
+    record(ReadinessBlock::PowerStatus, power && status && power->message.kind == can::BmsFrameKind::PowerStatus &&
+           current(power->message, timing.bms_source_age_ns, inputs, now_ns) &&
+           (normal_drive ? normal(power->message) : actuator_available(power->message)) &&
            status->input_time_ns <= power->message.source_time_ns &&
            fresh(status->input_time_ns, timing.bms_dependency_age_ns, inputs, now_ns) &&
-           can::bms_power_is_ready(*power) && finite(status->hv_bus_voltage_v),
+           power->quality[0] == can::BmsFieldQuality::Usable && power->quality[1] == can::BmsFieldQuality::Usable &&
+           status->state && status->positive_contactor_closed && status->negative_contactor_closed &&
+           status->precharge_contactor_closed && status->condition_validity == 31 &&
+           finite(status->hv_bus_voltage_v) && *status->hv_bus_voltage_v >= 0 &&
+           (!normal_drive || can::bms_power_is_ready(*power)),
            status ? status->input_time_ns : 0);
 
     const auto& limits = inputs.rear.power_limits;
     const auto* limit = limits ? std::get_if<can::BmsPowerLimits>(&limits->message.content) : nullptr;
     record(ReadinessBlock::PowerLimits, limits && limit &&
            limits->message.kind == can::BmsFrameKind::PowerLimits &&
-           current(limits->message, timing.bms_source_age_ns, inputs, now_ns) && normal(limits->message) &&
+           current(limits->message, timing.bms_source_age_ns, inputs, now_ns) &&
+           (normal_drive ? normal(limits->message) : actuator_available(limits->message)) &&
            limits->quality[0] == can::BmsFieldQuality::Usable && limits->quality[1] == can::BmsFieldQuality::Usable &&
            finite(limit->charge_power_w) && *limit->charge_power_w >= 0 &&
            finite(limit->discharge_power_w) && *limit->discharge_power_w >= 0 &&
@@ -97,5 +105,14 @@ NormalDriveReadiness evaluate_normal_drive_readiness(
            limit ? limit->input_time_ns : 0);
     if (result.ready()) result.oldest_input_time_ns = oldest;
     return result;
+}
+}  // namespace
+NormalDriveReadiness evaluate_normal_drive_readiness(
+    const NormalDriveReadinessInputs& inputs, std::uint64_t now_ns, const ReadinessTiming& timing) {
+    return evaluate(inputs, now_ns, timing, true);
+}
+NormalDriveReadiness evaluate_vehicle_input_health(
+    const NormalDriveReadinessInputs& inputs, std::uint64_t now_ns, const ReadinessTiming& timing) {
+    return evaluate(inputs, now_ns, timing, false);
 }
 }  // namespace stratadrive::central

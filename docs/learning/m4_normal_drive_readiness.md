@@ -3,6 +3,7 @@
 Date: 2026-10-19. Status: **첫 순수 판단 component 구현·시험 / coordinator 통합 전**.
 [ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)의 Central
 `vehicle_management`를 시작한다. M3 전체 수용과 Target timing은 계속 PENDING이다.
+후속 [전원 요청·허가 상태 owner](m4_vehicle_management.md)를 구현해 이 준비 판정을 사용한다.
 
 ## 무엇부터 만드는가
 
@@ -75,7 +76,7 @@ dependency age 80 ms로 차단한다. 새 전송 시각이 오래된 측정을 �
 
 새 unit 16개는 7개 필수 source 각각의 상실·다른 Epoch·미래/과거·경계·fault를 반복 확인한다.
 Known zero/INIT actual, stale dependency 재발행, 양방향 limits quality, 충전 연결·actual 접점,
-전체 차단 이유와 oldest input도 검사했다. Normal·ASan/UBSan 각각 전체 C++ **539/539 PASS**다.
+전체 차단 이유와 oldest input도 검사했다. 이 첫 단계 당시 normal·ASan/UBSan 각각 전체 C++ **539/539 PASS**였다.
 Wire는 바꾸지 않았으며 이번 vCAN·wall-time 통합 실행은 없다. 시스템 요구사항/TC는 NOT RUN이다.
 
 ```sh
@@ -84,8 +85,8 @@ cmake --build build/m4-readiness -j 4
 ctest --test-dir build/m4-readiness -R '^NormalDriveReadiness\.' --output-on-failure
 ```
 
-다음은 이 결과를 사용하는 **stateful vehicle-management owner**다. Trusted session/INIT와
+후속 [stateful vehicle-management owner](m4_vehicle_management.md)는 이 결과와 trusted session/INIT,
 상위 lifecycle 요청을 받아 power Enable/Shutdown을 만들고, actual power 응답과 요청 identity를
 대조한 뒤 parent deadline을 넘지 않는 허가를 만든다. INIT 동안의 power checks와 normal torque
-허가, critical loss의 FAIL_SAFE latch와 명시적 재초기화를 따로 시험한다.
+허가, critical loss의 FAIL_SAFE latch와 명시적 재초기화를 따로 시험했다.
 그다음 allocation 및 Front/Rear routing/local monitor를 연결하고 DDS transport는 M5에서 추가한다.

@@ -162,4 +162,7 @@ Python 63개와 C++ normal/sanitizer 각각 523개를 검사했다. 상대 대�
 
 [M4 Central 정상 주행 준비 조건](m4_normal_drive_readiness.md)은 두 Zone의 health와 개별 Actual·BMS 입력을
 각각 검사한다. 준비됨과 실제 허가를 구분하며 INIT Actual·known zero와 원천 age를 보존한다.
-새 unit 16개를 더해 C++ normal/sanitizer 각각 539개 PASS다. 다음은 lifecycle/허가 상태 owner다.
+새 unit 16개를 더해 당시 C++ normal/sanitizer 각각 539개 PASS였다.
+[Central 전원·허가 상태 owner](m4_vehicle_management.md)는 INIT/actual OFF·원래 요청/ACK·expiry·FAIL_SAFE latch를
+연결한다. RC/접점과 기존 CAN receiver를 경유하는 논리 시간 시험을 포함해 새 31개를 더했고 전체 각각 570개 PASS다.
+다음은 allocation·Front/Rear 실제 ingress/runtime 통합이다.

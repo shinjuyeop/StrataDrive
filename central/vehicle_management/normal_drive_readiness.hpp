@@ -63,4 +63,10 @@ struct NormalDriveReadiness {
 NormalDriveReadiness evaluate_normal_drive_readiness(
     const NormalDriveReadinessInputs& inputs, std::uint64_t now_ns,
     const ReadinessTiming& timing = {});
+// Startup/shutdown input health: the same independent source/quality checks,
+// but known INIT BMS feedback and non-ready power phases are legitimate.
+// This does not assert HV readiness or authorize energizing/driving.
+NormalDriveReadiness evaluate_vehicle_input_health(
+    const NormalDriveReadinessInputs& inputs, std::uint64_t now_ns,
+    const ReadinessTiming& timing = {});
 }  // namespace stratadrive::central
