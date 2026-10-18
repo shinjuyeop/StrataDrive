@@ -1,8 +1,43 @@
 # M3: 감시·물리 작업이 언제 시작하고 끝났는지 보기
 
-Date: 2026-10-18. Status: **Host 전체 cycle 관측 / budget 채택·RT·Target 후속**.
+Date: 2026-10-18. Status: **Host 전체 cycle 관측·완료 guard 구현 / RT·Target·M3 수용 후속**.
 [Owner별 CPU 배치](m3_cpu_placement.md#owner별로-cpu를-나누기) 다음 단계다.
-결정은 [ADR-0038](../adr/ADR-0038-whole-owner-cycle-observation.md)에 기록한다.
+계측은 [ADR-0038](../adr/ADR-0038-whole-owner-cycle-observation.md), 현재 완료 계약은
+[ADR-0039](../adr/ADR-0039-owner-completion-guards.md)에 기록한다.
+
+## 지금 적용한 완료 guard
+
+Monitor와 plant는 2 ms마다 실행하며 각 release의 완료 시한은 **4 ms**다. 각자 1211개 slot(0–2420 ms)을
+서로 감시하고 마지막 deadline 2424 ms 이후에도 기존 2440 ms tail까지 실행한다. 전체 관측은 각 1221개다.
+정상 판정은 guard 대상에서 missed/skipped 0을 요구한다. 아래 schema 4 관측의 PASS에는 이 기준이 없었다.
+4 ms는 첫 Host 설정이며 차량/Target budget은 아니다. RX의 3 ms 시한을 늘린 것이 아니다.
+
+| 멈춘 작업 | 누가 검출하는가 | 보호가 실제 적용되는 때 |
+| --- | --- | --- |
+| Monitor | Plant가 monitor의 slot 완료를 확인 | Monitor가 멈춘 동안에도 plant가 floor/zero 요청 적용 |
+| Plant | Monitor가 plant의 slot 완료를 확인 | 검출 중 flag는 걸지만 실제 physics는 plant 복귀 뒤 |
+| 둘 다 | 먼저 실행 가능한 peer가 늦은 완료/누락 확인 | 실행이 재개된 뒤; 공백 중 동작 보장은 없음 |
+
+단순 heartbeat와 달리 완료 slot별 기록을 검사한다. 6 ms 쉬고 다음 slot을 완료해도 이전 slot의 누락은 남고
+fault는 latch된다. 보호는 pressure를 기존 floor 이상으로 유지하고 torque를 유한 ramp로 0에 접근시킨다.
+전원을 무조건 끊는 동작은 추가하지 않았다.
+
+각 accepted-RX stream도 monitor/plant가 별도의 상태로 감시한다. Monitor가 오래 쉬어도 plant의 수신 감시는 계속된다.
+Effective loss는 실제로 먼저 검출한 observer의 원래 last-valid/detected pair다. 늦게 복귀한 monitor의 진단을
+앞당겨 적지 않고 `streams[].observers`에 양쪽 기록을 보존한다.
+
+```sh
+unshare --user --map-root-user --net python3 tests/integration/runtime/check_timing.py --family multirate --repetitions 1 --owner-cpus 1,1,1,1,0,0,0
+unshare --user --map-root-user --net python3 tests/integration/runtime/check_timing.py --family multirate --experiment guard-placement --repetitions 3
+```
+
+CPU 번호는 해당 Host의 allowed mask에 맞게 정한다. 첫 명령은 **17 runs**, 두 번째는 4 layouts×2 modes×3회=24 runs다.
+두 번째는 IO 동반 배치·RX 단독 분리·monitor 단독 분리·무부하 monitor 분리를 같은 ECU CPU B 조건으로 비교한다.
+한 번 통과한 배치를 보장으로 삼지 않는다. 실패도 남기고 full/minimal·build별 통계를 구분한다.
+
+현재 trace schema는 **5**, CAN schema는 **2**다. `owner_cycles.guarded_deadlines`는 해당 slot만 분모로 삼고
+CSV의 `guarded/deadline_ns/detected_ns`와 `run.json.owner_guards`를 대조한다. 생략한 slot에도 deadline/detection은
+있을 수 있지만 가짜 start/end는 없다. 미감시 tail에는 deadline이 없다. 아래는 schema 4 계측의 설계·당시 기록이다.
 
 ## 계산 시간이 짧아도 주기가 밀리는 이유
 
@@ -40,8 +75,8 @@ Enable부터 2440 ms까지 owner마다 1221개의 예정 기회가 있다. 실�
 - `after_requested_wake`: 요청 wake가 도래한 뒤 실제 시작까지의 구간. 늦은 sleep 호출도 별도 지표로 구분한다.
 
 셋의 합은 skipped_slots다. `body_crossed_next_release`는 body가 다음 예정 기회까지 이어진 횟수다.
-Owner의 새 deadline을 period와 같다고 정하지 않았으므로 이를 task deadline miss로 표시하지 않는다.
-기존 normal 계약이 PASS여도 owner grid의 skip이 있을 수 있다. 이번 sanitizer의 RX 단독 분리에서는 monitor/plant가
+Schema 4에서는 owner deadline을 정하지 않아 이를 task deadline miss로 표시하지 않았다.
+당시 normal 계약이 PASS여도 owner grid의 skip이 있을 수 있었다. 당시 sanitizer의 RX 단독 분리에서는 monitor/plant가
 각각 244개 기회를 생략한 채 기존 계약 2/2 PASS였다. 이 관측을 숨기거나 새 owner budget 충족으로 해석하지 않는다.
 
 ## RX와 같은 시간축에서 보기
@@ -63,19 +98,19 @@ unshare --user --map-root-user --net python3 tests/integration/runtime/check_tim
 unshare --user --map-root-user --net python3 tests/integration/runtime/check_timing.py --family multirate --experiment owner-placement --repetitions 3
 ```
 
-첫 실행은 기존 9조건에 monitor/plant overrun full/minimal 4조건을 더한 **13 runs**다.
+당시 첫 실행은 기존 9조건에 monitor/plant overrun full/minimal 4조건을 더한 **13 runs**였다. 현재 기본 matrix는 위의 17 runs다.
 두 번째는 기존 4 layouts × 2 trace modes × 3회 = 24 runs다. 지정한 output directory를 덮어쓰지 않는다.
 
 | 파일/필드 | 의미 |
 | --- | --- |
 | `monitor-cycles.csv`, `plant-cycles.csv` | Full/minimal 모두 essential schedule·interval·expiry delta; Full은 CPU clock 추가 |
 | `monitor.csv`, `physical.csv`, `actual-*.csv` | 기존 상세 phase·physics 일부·실제 Actual bytes; Minimal은 비어 있음 |
-| `run.json.owner_cycles` | Grid·CPU clock·미채택 deadline(null)·주입 sleep 설정 |
+| `run.json.owner_cycles` | Schema 4는 deadline(null); schema 5는 4 ms·guarded slots·검출/적용 margin |
 | 각 run report의 `owner_cycles` | 검증한 owner별 개별 표본 통계와 RX miss 대응 |
 | `placement_comparison.*.by_owner` | 같은 layout/trace mode의 전체 run을 합친 통계. Run 사이 공백 제외 |
 | `owner_excluded_from_statistics` | 기록이 불완전해 제외한 label과 이유 |
 
-Trace schema 4와 CAN schema 2를 구분한다. Reader는 기존 trace 2/3도 읽지만 없던 whole-cycle 시각을 만들어내지 않는다.
+당시 trace schema 4와 CAN schema 2를 구분한다. Reader는 기존 trace 2/3/4도 읽지만 없던 시각이나 guard를 만들어내지 않는다.
 Body start가 새 sensor/Actual source time이 되는 것은 아니다. 원래 취득 시각·epoch/sequence·보호 인과 순서를 유지한다.
 
 ## 6 ms 지연을 넣어 확인하기
@@ -83,9 +118,10 @@ Body start가 새 sensor/Actual source time이 되는 것은 아니다. 원래 �
 `monitor-overrun`/`plant-overrun`은 1100 ms 이후 첫 body 끝에서 한 번 6 ms sleep한다.
 새 계측이 전체 지연과 생략된 기회를 잡는지 확인한다. 이 6 ms는 CPU 계산 부하가 아니며 실제 차량 calibration도 아니다.
 Plant가 쉬는 동안 도착한 출력과 Actual은 시한이 지나 폐기될 수 있다. 첫 후속 cycle의 expiry delta와 전체 count를 맞추고
-Actual sent+expired=240, sent=received=accepted 및 송신 admission 시한을 검사한다. 다른 시점의 expiry는 FAIL이다.
+당시 Actual sent+expired=240, sent=received=accepted 및 송신 admission 시한을 검사했다. Schema 5 보호 전이에서는
+sent+expired=Drive reported job 수다. 다른 시점의 expiry는 FAIL이다.
 정상 시험의 expiry 0 기준은 유지한다. 지연 주입 시험 PASS를 정상 timing PASS로 읽지 않는다.
 
 최종 반복 수·PASS/FAIL·관측과 로그 경로는 [품질 기록](../quality_policy.md)에 둔다.
-Monitor/plant 전체 body를 잰 것과 그 작업의 watchdog/실행 budget을 채택한 것은 별개다.
-RT priority·감시 독립성·Target/차량 전체 E2E와 M3 수용 검토는 남는다.
+계측 뒤 ADR-0039에서 Host 완료 budget과 교차 감시를 채택했다.
+Process/OS 공통 정지·hardware watchdog·RT priority·Target/차량 전체 E2E와 M3 수용 검토는 남는다.

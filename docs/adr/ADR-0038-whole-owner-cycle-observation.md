@@ -1,6 +1,7 @@
 # ADR-0038: 감시·물리 owner의 전체 cycle 계측과 RX 시간 대조
 
 Date: 2026-10-18. Status: **Host 계측 구현 / 실행 budget 채택·M3 수용은 후속**.
+후속 [ADR-0039](ADR-0039-owner-completion-guards.md)가 Host 완료 budget과 교차 guard를 채택했다. 아래는 schema 4의 당시 결정이다.
 [ADR-0037](ADR-0037-runtime-owner-cpu-placement.md)의 IO 분리 후에도 RX skip이 남았다.
 당시 physical.csv는 physics/capture 일부만 재고 뒤의 fixture CAN TX를 포함하지 않아 전체 비용과 지연 위치를 구분하기 어려웠다.
 

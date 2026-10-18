@@ -49,7 +49,9 @@ Host 부분 증거이며 Actual replay와 CRC 손상/worker 정지를 포함한�
 후속 [owner별 배치](../adr/ADR-0037-runtime-owner-cpu-placement.md)는 map/순서/실제 thread 대조에 Python 4개를 더해
 당시 C++ **521개**·Python **25개**다. 위 PERF의 Host 부분 증거이며 배치·부하 control과 ECU 계약의 실패를 구분한다.
 단독 RX/동반 IO 분리의 정상 비교와 고정 map의 기존 fault 회귀 결과는 [품질 기록](../quality_policy.md)에 남긴다.
-후속 [전체 owner cycle](../learning/m3_owner_cycles.md)은 Python 12개를 더해 현재 C++ **521개**·Python **37개**다.
+후속 [전체 owner cycle](../learning/m3_owner_cycles.md)은 당시 Python 12개를 더해 C++ **521개**·Python **37개**였다.
+다음 [교차 완료 guard](../adr/ADR-0039-owner-completion-guards.md)는 기존 리포터 파일에 guard 분모·tail·peer·수신 이중 감시·배치 6개를 추가해
+현재 Python **43개**다. 4 ms Host 완료 계약과 정상 누락 0, monitor/plant 지연 보호를 별도 component 증거로 검사한다.
 위 PERF의 Host 부분 계측이며 whole-body/CPU·생략된 기회·RX 대응·fault expiry accounting을 검사한다.
 새 owner deadline 채택이나 전체 system TC 수용을 뜻하지 않는다.
 아래 system TC의 모든 required variant·차량/Zone/배포 환경을 검증한 결과는 아니며 Result는 NOT RUN을 유지한다.

@@ -524,7 +524,7 @@ m3_steering_runtime_fixture:
 
 # ADR-0034/0036/0038: finite Host multirate/vCAN + whole owner cycles; no profile loader.
 m3_multirate_runtime_fixture:
-  trace_schema: 4 # independent of CAN wire schema 2; reader retains schemas 2/3
+  trace_schema: 5 # independent of CAN wire schema 2; reader retains schemas 2/3/4
   window_ms: 2400
   monitoring_tail_ms: 40
   startup_lead_ms: 100
@@ -539,7 +539,14 @@ m3_multirate_runtime_fixture:
   plant_period_ms: 2
   owner_cycle_slots: 1221 # enable through 2440 ms inclusive, both trace modes
   owner_cycle_cpu_clock: CLOCK_THREAD_CPUTIME_ID # detailed only
-  owner_cycle_deadline_ms: null # observation only; not inferred from 2 ms period
+  owner_cycle_deadline_ms: 4 # ADR-0039 Host completion budget; vehicle/Target deadline remains TBD-04
+  owner_guarded_slots: 1211 # through last RX release 2420 ms; last deadline 2424 ms < stop 2440 ms
+  owner_guard_observers: {monitor: plant_fixture, plant_fixture: monitor}
+  owner_detection_margin_ms: 10 # after deadline; measured Host acceptance, no RT guarantee
+  owner_application_margin_ms: 10 # after first detection, only when plant can execute
+  owner_fault_policy: latch_brake_floor_and_torque_zero
+  receive_loss_observers: [monitor, plant_fixture] # independent states, earliest real detection; no shared poll cursor
+  monitor_stall_sleep_ms: 120
   owner_cycle_injected_sleep_ms: 6 # after monitor/fixture body in explicit overrun scenarios
   rx_dispatch_budget: 8
   accepted_rx_timeout_ms: 80
@@ -590,6 +597,27 @@ m3_owner_placement_fixture:
   repetitions_per_condition: 3
   load_protocol: m3_cpu_placement_fixture
   timing_and_receive_contracts: m3_multirate_runtime_fixture_unchanged
+  layout_order: rotate_each_repetition
+  trace_order: alternate_each_repetition
+  excluded_warmup_jobs: 0
+  contract_failure_policy: retain_failures_and_all_valid_job_observations
+
+# ADR-0039: compare third-CPU RX separation with independent monitor placement.
+m3_guard_placement_fixture:
+  family: multirate
+  scenario: normal
+  layouts:
+    io-control: {cpu_a: [rx, monitor, plant_fixture], cpu_b: [brake, drive, bms, power], cpu_c: [], load: cpu_b}
+    rx-separated: {cpu_a: [monitor, plant_fixture], cpu_b: [brake, drive, bms, power], cpu_c: [rx], load: cpu_b}
+    guard-separated: {cpu_a: [rx, plant_fixture], cpu_b: [brake, drive, bms, power], cpu_c: [monitor], load: cpu_b}
+    guard-baseline: {cpu_a: [rx, plant_fixture], cpu_b: [brake, drive, bms, power], cpu_c: [monitor], load: none}
+  third_cpu_selection: prefer_different_physical_core_from_io_and_work
+  scheduling_policy: SCHED_OTHER
+  priority_change: none
+  trace_modes: [full, minimal]
+  repetitions_per_condition: 3
+  load_protocol: m3_cpu_placement_fixture
+  timing_and_receive_contracts: m3_multirate_runtime_fixture
   layout_order: rotate_each_repetition
   trace_order: alternate_each_repetition
   excluded_warmup_jobs: 0

@@ -125,6 +125,14 @@ Actuator 물리 응답의 settling/도달 시간은 feedback 송신 latency와 �
 
 ## Future budget and report
 
+[ADR-0039](../adr/ADR-0039-owner-completion-guards.md)는 monitor/plant의 Host 완료 시한 **4 ms**와
+각 1211개 guard slot(마지막 release 2420 ms/deadline 2424 ms)을 채택한다. 2440 ms까지의 나머지 10개 slot은
+관측 tail이다. 정상은 guard miss/skip 0이며 peer 검출·최초 검출 후 적용 margin은 각각 <=10 ms다.
+각자 별도 accepted-RX 감시를 실행해 monitor 정지 중에도 plant가 유효 RX 상실을 검출한다. 실제 먼저 검출한
+observer의 원래 last-valid/detected pair를 보존한다. 기존 RX 3 ms·threshold 80 ms·검출 <=100 ms는 유지한다.
+공통 process/OS 정지 중에는 observer가 실행되지 못하므로 복귀 전 보호 적용을 보장하지 않는다.
+이것은 Host fixture 계약이며 차량·Target·전체 E2E/TBD-04를 닫는 증거가 아니다.
+
 전체 task deadline, 단계별 latency budget, E2E deadline은 **TBD-04**다.
 [ADR-0033](../adr/ADR-0033-first-wall-time-execution-and-monitor.md)에서 첫 Steering Host fixture만
 period 10 ms / relative deadline 5 ms / 독립 monitor·plant 2 ms로 선택했다.

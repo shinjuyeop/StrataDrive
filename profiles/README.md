@@ -103,10 +103,12 @@ Brake/Drive/Power 10 ms·deadline 5 ms, BMS 20 ms·deadline 8 ms, RX 2 ms·deadl
 Core 최소 호출 guard 1 ms는 runnable period가 아니다. Trusted parent 이력은 CAN 밖의 최근 4개 원천 frame/context에 한정한다.
 후속 [비동기 Drive Actual](../docs/learning/m3_drive_feedback.md)은 기존 SourceTimeNs에 실제 취득 시각을 보존해 송수신한다.
 RX 1210 jobs는 ECU workload 뒤 20 ms drain tail을 포함하며 monitor/plant tail은 40 ms다.
-Cached torque는 unavailable 진단이며 source age·valid RX timer를 갱신하지 않는다. 현재 trace schema 4와 CAN schema 2를 구분한다.
+Cached torque는 unavailable 진단이며 source age·valid RX timer를 갱신하지 않는다. 현재 trace schema 5와 CAN schema 2를 구분한다.
 후속 [전체 cycle 계측](../docs/learning/m3_owner_cycles.md)은 enable부터 2440 ms까지 monitor/plant 각각 1221개 기회를 양 trace mode에 기록한다.
-Full의 thread CPU clock과 두 owner의 6 ms 주입을 추가했고 기존 trace 2/3은 원래 의미로 읽는다.
-`owner_cycle_deadline_ms: null`은 기존 TBD-04에 귀속되며 period 2 ms를 새 deadline으로 채택하지 않았다.
+Full의 thread CPU clock과 owner 지연 주입을 기록하며 기존 trace 2/3/4는 원래 의미로 읽는다.
+[ADR-0039](../docs/adr/ADR-0039-owner-completion-guards.md)는 Host owner deadline 4 ms·1211개 guard slot과
+peer 검출/적용 margin 10 ms를 채택한다. 나머지 tail 10개는 관측용이다. 교차 guard와 각자 별도 6-stream 수신 감시가
+floor/zero를 latch하며 effective RX loss는 실제 먼저 검출한 observer의 원래 last-valid/detected를 보존한다.
 YAML loader·차량/Target timing 보장·실제 Central/Zone runtime은 후속이다.
 
 `m3_cpu_placement_fixture`는 [고정 부하·CPU 배치 비교](../docs/learning/m3_cpu_placement.md)의 protocol 기록이다.
@@ -119,6 +121,10 @@ CPU 번호는 현재 allowed mask/topology에서 선택해 실행 결과에 기�
 4 layouts × full/minimal × 3회 비교다. Loaded 조건의 부하는 모두 CPU B에 두고 RX만 A로 옮기는 경우,
 RX·monitor·plant를 함께 옮기는 경우를 비교한다. 같은 IO map의 무부하 대조군도 둔다.
 7-owner CPU map은 실행 시 명시하며 미지정 시 기존 상속 동작을 유지한다. SCHED_OTHER·period/deadline·RX budget은 같다.
+
+`m3_guard_placement_fixture`는 같은 CPU B ECU/부하에서 IO 동반 배치, RX 단독 CPU C 분리, monitor 단독 C 분리와
+그 무부하 조건을 비교한다. Allowed A/B/C는 서로 달라야 하며 C도 가능한 다른 physical core를 선택한다.
+Full/minimal·layout 순환·모든 실패 보존 규칙은 유지한다. 별도 CPU 배치가 우수하다는 가정은 두지 않는다.
 
 향후 resolved profile에는 모든 TBD의 값, profile hash, source commit, board software
 stack, model/input settings, scenario/seed, power/thermal 및 측정 조건을 기록한다.

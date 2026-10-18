@@ -163,6 +163,27 @@ def receive_latency(stream):
     return elapsed / 1e6
 
 
+def validate_receive_observers(streams, physical, watches, detailed):
+    for i, stream in enumerate(streams):
+        observers = stream["observers"]
+        require(set(observers) == {"monitor", "plant_fixture"}, "redundant receive observer missing")
+        # The first actual observer detection is the effective loss decision.
+        # A stalled observer's later diagnostic is preserved, never retimestamped.
+        detected = [(s["detected_ns"], name) for name, s in observers.items() if s["detected_ns"]]
+        expected = min(detected)[1] if detected else "monitor"
+        require(stream["observer"] == expected and all(stream[k] == observers[expected][k] for k in ("last_valid_ns", "detected_ns", "health")), "effective RX loss did not preserve original observer record")
+        for name, record in observers.items():
+            require(record["health"] in (1, 2) and record["last_valid_ns"] > 0, "receive observer clock/startup fault")
+            if not record["detected_ns"]:
+                require(record["health"] == 1, "receive timeout omitted detection")
+                continue
+            require(record["health"] == 2 and record["detected_ns"] - record["last_valid_ns"] >= 80_000_000, "receive observer early timeout")
+            if detailed:
+                trace = physical if name == "plant_fixture" else watches
+                observation = next((r for r in trace if r["time_ns"] >= record["detected_ns"]), None)
+                require(observation is not None and observation["stream_fault_mask"] & (1 << i), "receive observer did not latch its own loss")
+
+
 def multirate_rows(path):
     floating = {"pressure_pa", "torque_nm", "bus_v", "current_a", "soc", "balance_j", "selected", "input_torque_nm", "usable_torque_nm"}
     with path.open(newline="") as stream:
@@ -178,9 +199,15 @@ def validate_owner_cycles(rows, config):
     for i, row in enumerate(rows):
         require(row["slot"] == i and row["release_ns"] == config["first_release_ns"] + i * config["period_ns"], "owner release drift")
         require(row["ran"] in (0, 1), "invalid owner ran flag")
+        if "guarded_slots" in config:
+            guarded = i < config["guarded_slots"]
+            require(row["guarded"] == guarded and row["deadline_ns"] == (row["release_ns"] + config["deadline_ns"] if guarded else 0), "owner guard schedule changed")
+            require(not row["detected_ns"] or guarded and row["detected_ns"] >= row["deadline_ns"], "owner fault before deadline or in unguarded tail")
+            if guarded and (not row["ran"] or row["end_ns"] > row["deadline_ns"]):
+                require(row["detected_ns"] >= row["deadline_ns"], "peer omitted missed owner work")
         require(row["expired_outputs"] >= 0 and row["expired_feedback"] >= 0, "negative owner expiry counter")
         if not row["ran"]:
-            require(all(v == 0 for k, v in row.items() if k not in ("slot", "release_ns")), "skipped owner cycle has fabricated work")
+            require(all(v == 0 for k, v in row.items() if k not in ("slot", "release_ns", "guarded", "deadline_ns", "detected_ns")), "skipped owner cycle has fabricated work")
             continue
         require(row["release_ns"] <= row["start_ns"] <= row["phase_ns"] <= row["end_ns"] and
                 row["sleep_begin_ns"] <= row["start_ns"] and row["wake_target_ns"] <= row["start_ns"], "invalid owner cycle interval")
@@ -235,7 +262,8 @@ def owner_cycle_metrics(runs, period_ns):
             "sleep_return_delay_ms": distribution([(r["start_ns"] - max(r["wake_target_ns"], r["sleep_begin_ns"])) / 1e6 for r in ran]),
             "latest_release_to_start_ms": distribution([(r["start_ns"] - r["release_ns"]) / 1e6 for r in ran]),
             "observed_start_interval_ms": distribution(intervals),
-            "interpretation": "skip locations describe measured intervals; wall minus CPU is not a scheduler-cause attribution; no owner deadline adopted"}
+            "guarded_deadlines": job_metrics([r for r in rows if r.get("guarded")]) if any(r.get("guarded") for r in rows) else None,
+            "interpretation": "skip locations describe measured intervals; wall minus CPU is not a scheduler-cause attribution; guarded_deadlines applies only to schema 5 eligible slots"}
 
 
 def correlate_rx_owners(rx_jobs, owners, config):
@@ -272,16 +300,90 @@ def observe_owner_cycles(directory, metadata, rx_jobs):
     require(config["first_release_ns"] == metadata["enable_ns"] and config["period_ns"] == 2_000_000 and
             config["slots"] == (metadata["stop_ns"] - metadata["enable_ns"]) // config["period_ns"] + 1,
             "owner observation schedule changed")
-    require(config["cpu_time_recorded"] == metadata["detailed_trace"] and config["cpu_clock"] == "CLOCK_THREAD_CPUTIME_ID" and
-            config["deadline_ns"] is None, "owner clock/budget policy changed")
+    require(config["cpu_time_recorded"] == metadata["detailed_trace"] and config["cpu_clock"] == "CLOCK_THREAD_CPUTIME_ID", "owner clock policy changed")
+    if metadata["schema"] >= 5:
+        require(config["deadline_ns"] == 4_000_000 and config["guarded_slots"] == 1211 and
+                config["detection_limit_ns"] == config["application_limit_ns"] == 10_000_000, "owner guard budget changed")
+        require(config["first_release_ns"] + (config["guarded_slots"] - 1) * config["period_ns"] + config["deadline_ns"] <= metadata["stop_ns"], "owner guard outlives observation tail")
+    else:
+        require(config["deadline_ns"] is None and "guarded_slots" not in config, "historical owner budget changed")
     rows = {name: multirate_rows(directory / filename) for name, filename in OWNER_CYCLE_FILES.items()}
     for run in rows.values():
         validate_owner_cycles(run, config)
     require(sum(r["expired_outputs"] for r in rows["plant_fixture"]) == metadata["expired_outputs"] and
             sum(r["expired_feedback"] for r in rows["plant_fixture"]) == metadata["actual_feedback"]["expired"], "owner expiry accounting mismatch")
     require(all(r["expired_outputs"] == r["expired_feedback"] == 0 for r in rows["monitor"]), "monitor wrote plant expiry counters")
+    if metadata["schema"] >= 5:
+        validate_owner_guards(rows, metadata)
     return {"by_owner": {name: owner_cycle_metrics([run], config["period_ns"]) for name, run in rows.items()},
-            "rx_correlation": correlate_rx_owners(rx_jobs, rows, config), "scope": "validated whole owner cycles; no owner deadline verdict"}
+            "rx_correlation": correlate_rx_owners(rx_jobs, rows, config), "scope": "validated whole owner cycles; schema 5 guards are a Host fixture criterion"}
+
+
+def validate_owner_guards(rows, metadata):
+    for name, run in rows.items():
+        peer = "plant_fixture" if name == "monitor" else "monitor"
+        info = metadata["owner_guards"][name]
+        require(info["observer"] == peer and not info["clock_error"], "owner observer/clock invalid")
+        guarded = [r for r in run if r["guarded"]]
+        require(rows[peer][-1]["phase_ns"] >= guarded[-1]["deadline_ns"], "peer stopped before last owner deadline")
+        faults = [r for r in guarded if r["detected_ns"]]
+        expected = {"job": faults[0]["slot"], "deadline_ns": faults[0]["deadline_ns"], "detected_ns": faults[0]["detected_ns"]} if faults else None
+        require(info["first_fault"] == expected, "owner first-fault metadata disagrees with CSV")
+        # Polling can precede the plant application clock; retain that causal order.
+        executed = [r for r in rows[peer] if r["ran"]]
+        starts = [r["start_ns"] for r in executed]
+        for row in faults:
+            i = bisect_left(starts, row["detected_ns"])
+            observation = executed[i] if i < len(executed) and starts[i] == row["detected_ns"] else executed[i-1] if i else None
+            require(observation is not None and observation["start_ns"] <= row["detected_ns"] <= observation["phase_ns"], "fault not observed by peer before its application phase")
+
+
+def validate_owner_injection(directory, metadata, observations, metrics, jobs, physical, watches):
+    scenario = metadata["scenario"]
+    names = ("monitor", "plant_fixture") if scenario == "io-overrun" else ("plant_fixture",) if scenario == "plant-overrun" else ("monitor",)
+    config = metadata["owner_cycles"]
+    require(all(m["missed_jobs"] == 0 for m in metrics.values()), "unrelated ECU/RX task missed owner injection")
+    for name, stats in observations["by_owner"].items():
+        cycles = multirate_rows(directory / OWNER_CYCLE_FILES[name])
+        injected = [r for r in cycles if r["injection_begin_ns"]]
+        if name not in names:
+            require(not injected and stats["guarded_deadlines"]["missed_jobs"] == 0, "unrelated owner missed deadline")
+            continue
+        require(len(injected) == 1, "owner injection missing/duplicated")
+        row = injected[0]
+        duration = 120_000_000 if scenario == "monitor-stall" else 6_000_000
+        require(row["injection_begin_ns"] >= metadata["enable_ns"] + metadata["injection_offset_ns"] and
+                row["injection_end_ns"] - row["injection_begin_ns"] >= duration, "owner injection too short/early")
+        fault = metadata["owner_guards"][name]["first_fault"]
+        require(fault and fault["job"] == row["slot"], "first owner fault was not the injected body")
+        detection = fault["detected_ns"]
+        require(0 <= detection - fault["deadline_ns"] <= config["detection_limit_ns"], "owner detection exceeded Host margin")
+        require(all(0 <= r["detected_ns"] - r["deadline_ns"] <= config["detection_limit_ns"] for r in cycles if r["detected_ns"]), "later owner miss exceeded detection margin")
+        if scenario != "io-overrun":
+            require(row["injection_begin_ns"] <= detection < row["injection_end_ns"], "peer waited for paused owner")
+        for field in ("floor_applied_ns", "zero_applied_ns"):
+            action = metadata[field]
+            first_detection = min(x["first_fault"]["detected_ns"] for x in metadata["owner_guards"].values() if x["first_fault"])
+            require(first_detection <= action <= first_detection + config["application_limit_ns"], "owner protection exceeded application margin")
+            if name == "monitor" and scenario != "io-overrun":
+                require(action < row["injection_end_ns"], "plant waited for paused monitor")
+            elif name == "plant_fixture":
+                require(action >= row["injection_end_ns"], "physics advanced inside paused plant body")
+        require(stats["skip_locations"]["inside_previous_body"] >= 2, "owner skips hidden by recovery")
+        if name == "plant_fixture":
+            validate_plant_overrun_expiry(cycles)
+        if scenario == "monitor-stall":
+            require(any(s["observer"] == "plant_fixture" and row["injection_begin_ns"] <= s["detected_ns"] < row["injection_end_ns"]
+                        for s in metadata["streams"]), "backup receive watch did not detect loss during monitor pause")
+    counts = metadata["actual_feedback"]
+    require(counts["sent"] == counts["received"] == counts["accepted"] and
+            counts["sent"] + counts["expired"] == sum(r["reported"] for r in jobs["drive"]), "protected Actual reports unaccounted")
+    first = min(x["first_fault"]["detected_ns"] for x in metadata["owner_guards"].values() if x["first_fault"])
+    for rows, floor, zero in ((physical, "independent_floor", "independent_zero"), (watches, "floor", "zero")):
+        held = [r for r in rows if r["time_ns"] >= max(metadata["floor_applied_ns"], metadata["zero_applied_ns"])]
+        require(all(r[floor] and r[zero] for r in held), "owner protection automatically recovered")
+        masks = [r["owner_fault_mask"] for r in rows if r["time_ns"] >= first]
+        require(all((b | a) == b for a, b in zip(masks, masks[1:])), "owner fault latch cleared")
 
 
 def validate_plant_overrun_expiry(cycles):
@@ -329,9 +431,9 @@ def drive_feedback_metrics(transmitted, received, jobs):
 
 
 def analyze_multirate(directory, metadata):
-    require(metadata["schema"] in (2, 3, 4) and metadata["clock"] == "CLOCK_MONOTONIC", "unknown multirate schema/clock")
+    require(metadata["schema"] in (2, 3, 4, 5) and metadata["clock"] == "CLOCK_MONOTONIC", "unknown multirate schema/clock")
     require(not metadata["aborted"] and metadata["trace_drops"] == 0, "runtime/trace failure")
-    if metadata["scenario"] != "plant-overrun":
+    if metadata["scenario"] not in ("plant-overrun", "io-overrun"):
         require(metadata["expired_outputs"] == 0, "expired output outside plant overrun injection")
     rows, metrics = {}, {}
     expected_periods = {"brake": 10_000_000, "drive": 10_000_000, "bms": 20_000_000, "power": 10_000_000, "rx": 2_000_000}
@@ -372,11 +474,13 @@ def analyze_multirate(directory, metadata):
         require(max(abs(r["balance_j"]) for r in physical) <= .00072, "EV energy conservation failed")
     else:
         require(not physical and not watches and not raw, "minimal mode recorded detailed buffers")
+    if metadata["schema"] >= 5:
+        validate_receive_observers(metadata["streams"], physical, watches, metadata["detailed_trace"])
     feedback = {}
     if metadata["schema"] >= 3:
         require(len(metadata["streams"]) == 6 and metadata["streams"][-1]["name"] == "drive_actual", "Actual loss monitor missing")
         require(metadata["actual_feedback"]["accepted"] > 0, "Actual missing")
-        if metadata["scenario"] != "plant-overrun":
+        if metadata["scenario"] not in ("plant-overrun", "io-overrun"):
             require(metadata["actual_feedback"]["expired"] == 0, "Actual expired outside plant overrun injection")
         transmitted = multirate_rows(directory / "actual-tx.csv")
         received = multirate_rows(directory / "actual-rx.csv")
@@ -407,7 +511,12 @@ def analyze_multirate(directory, metadata):
             cycle = plant_cycles[position] if position < len(starts) and starts[position] == tx["begin_ns"] else plant_cycles[position - 1] if position else None
             require(cycle is not None and cycle["start_ns"] <= tx["begin_ns"] <= tx["end_ns"] <= cycle["end_ns"], "Actual TX outside whole plant cycle")
     scenario = metadata["scenario"]
-    if scenario in ("normal", "monitor-overrun", "plant-overrun"):
+    guarded_injection = metadata["schema"] >= 5 and scenario in ("monitor-overrun", "plant-overrun", "monitor-stall", "io-overrun")
+    if metadata["schema"] >= 5 and not guarded_injection:
+        require(all(x["guarded_deadlines"]["missed_jobs"] == 0 for x in owner_observations["by_owner"].values()), "unplanned owner deadline miss")
+    if guarded_injection:
+        validate_owner_injection(directory, metadata, owner_observations, metrics, rows, physical, watches)
+    elif scenario in ("normal", "monitor-overrun", "plant-overrun"):
         require(all(m["missed_jobs"] == m["skipped_jobs"] == 0 for m in metrics.values()), "normal multirate missed jobs")
         require(all(r["fault"] == 0 for name in ("brake", "drive", "bms", "power") for r in rows[name]), "normal ECU fault")
         require(all(value is None for value in latencies.values()), "normal stream timed out")
@@ -507,6 +616,7 @@ def select_cpus(allowed, topology, runtime_cpu=None, load_cpu=None):
 
 OWNER_NAMES = ("brake", "drive", "bms", "power", "rx", "monitor", "plant_fixture")
 OWNER_LAYOUTS = ("colocated", "rx-isolated", "io-isolated", "io-baseline")
+GUARD_LAYOUTS = ("io-control", "rx-separated", "guard-separated", "guard-baseline")
 
 
 def owner_placement(layout, io_cpu, work_cpu):
@@ -514,6 +624,29 @@ def owner_placement(layout, io_cpu, work_cpu):
     return {name: io_cpu if (layout != "colocated" and name == "rx") or
             (layout in ("io-isolated", "io-baseline") and name in ("monitor", "plant_fixture")) else work_cpu
             for name in OWNER_NAMES}
+
+
+def select_guard_cpu(allowed, topology, io_cpu, work_cpu, requested=None):
+    candidates = sorted(set(allowed) - {io_cpu, work_cpu})
+    require(bool(candidates), "guard placement requires three distinct allowed CPUs")
+    if requested is not None:
+        require(requested in candidates, "guard CPU must differ from IO/work CPUs and be allowed")
+        return requested
+    def core(cpu):
+        entry = topology.get(cpu, {})
+        return entry.get("physical_package_id"), entry.get("core_id")
+    separate = [c for c in candidates if None not in core(c) + core(io_cpu) + core(work_cpu) and core(c) not in (core(io_cpu), core(work_cpu))]
+    return (separate or candidates)[0]
+
+
+def guard_placement(layout, io_cpu, work_cpu, guard_cpu):
+    require(layout in GUARD_LAYOUTS and len({io_cpu, work_cpu, guard_cpu}) == 3, "invalid guard placement")
+    owners = owner_placement("io-isolated", io_cpu, work_cpu)
+    if layout == "rx-separated":
+        owners["rx"] = guard_cpu
+    elif layout in ("guard-separated", "guard-baseline"):
+        owners["monitor"] = guard_cpu
+    return owners
 
 
 def parse_owner_cpus(value):
@@ -778,9 +911,10 @@ def main():
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument("--family", choices=("steering", "multirate"), default="steering")
-    parser.add_argument("--experiment", choices=("faults", "cpu-placement", "owner-placement"), default="faults")
+    parser.add_argument("--experiment", choices=("faults", "cpu-placement", "owner-placement", "guard-placement"), default="faults")
     parser.add_argument("--runtime-cpu", type=int, help="allowed CPU A: all owners in cpu-placement; IO owners in owner-placement")
     parser.add_argument("--load-cpu", type=int, help="different allowed logical CPU for separate placement; prefer another physical core")
+    parser.add_argument("--guard-cpu", type=int, help="third allowed CPU C for guard-placement; prefer another physical core")
     parser.add_argument("--owner-cpus", help="fixed seven-owner CPU map for multirate fault regression, comma-separated in owner order")
     parser.add_argument("--analyze", type=Path, help="analyze one existing runtime trace without executing")
     args = parser.parse_args()
@@ -788,26 +922,32 @@ def main():
         print(json.dumps(analyze(args.analyze), indent=2))
         return 0
     require(1 <= args.repetitions <= 20, "repetitions must be 1..20")
-    placement = args.experiment in ("cpu-placement", "owner-placement")
+    placement = args.experiment in ("cpu-placement", "owner-placement", "guard-placement")
     require(not placement or args.family == "multirate", "placement requires --family multirate")
     require(placement or (args.runtime_cpu is None and args.load_cpu is None), "CPU choices require placement experiment")
+    require(args.guard_cpu is None or args.experiment == "guard-placement", "guard-cpu requires guard-placement")
     fixed_owners = parse_owner_cpus(args.owner_cpus) if args.owner_cpus is not None else None
     require(fixed_owners is None or (not placement and args.family == "multirate"), "fixed owner-cpus requires multirate faults")
     if fixed_owners is not None:
         require(set(fixed_owners.values()) <= os.sched_getaffinity(0), "owner CPU outside inherited affinity")
     experiment = {"name": args.experiment}
-    runtime_cpu = load_cpu = None
+    runtime_cpu = load_cpu = guard_cpu = None
     if placement:
         allowed = sorted(os.sched_getaffinity(0))
         topology = cpu_topology(allowed)
         runtime_cpu, load_cpu = select_cpus(allowed, topology, args.runtime_cpu, args.load_cpu)
         experiment.update(runtime_cpu=runtime_cpu, separate_load_cpu=load_cpu, topology=topology,
                           requested_busy_window_ns=7_000_000, load_period_ns=10_000_000,
-                          policy="SCHED_OTHER unchanged; explicit owner maps" if args.experiment == "owner-placement" else "SCHED_OTHER unchanged; all runtime threads share runtime_cpu",
+                          policy="SCHED_OTHER unchanged; explicit owner maps" if args.experiment != "cpu-placement" else "SCHED_OTHER unchanged; all runtime threads share runtime_cpu",
                           order="rotate layouts per repetition; alternate full/minimal order; exclude zero warmup jobs")
         if args.experiment == "owner-placement":
             experiment["owner_maps"] = {layout: owner_placement(layout, runtime_cpu, load_cpu) for layout in OWNER_LAYOUTS}
             experiment["load_location"] = "work CPU B for colocated/rx-isolated/io-isolated; none for io-baseline"
+        elif args.experiment == "guard-placement":
+            guard_cpu = select_guard_cpu(allowed, topology, runtime_cpu, load_cpu, args.guard_cpu)
+            experiment["guard_cpu"] = guard_cpu
+            experiment["owner_maps"] = {layout: guard_placement(layout, runtime_cpu, load_cpu, guard_cpu) for layout in GUARD_LAYOUTS}
+            experiment["load_location"] = "work CPU B for all loaded layouts; none for guard-baseline"
     elif fixed_owners is not None:
         experiment["fixed_owner_cpus"] = fixed_owners
     build = args.build_dir.resolve()
@@ -823,7 +963,7 @@ def main():
     created = False
     if args.family == "multirate":
         conditions = [("normal", True), ("normal", False)] + [(name + "-stall", True) for name in ("brake", "drive", "bms", "power", "rx")] + [("rx-corrupt", True), ("feedback-replay", True)]
-        conditions += [(scenario, detailed) for scenario in ("monitor-overrun", "plant-overrun") for detailed in (True, False)]
+        conditions += [(scenario, detailed) for scenario in ("monitor-overrun", "plant-overrun", "monitor-stall", "io-overrun") for detailed in (True, False)]
         subprocess.run(["ip", "link", "add", "dev", interface, "type", "vcan"], check=True)
         created = True
         try:
@@ -834,7 +974,7 @@ def main():
     planned = [(f"{scenario}-{'full' if detailed else 'minimal'}-{rep+1}", scenario, detailed, None)
                for rep in range(args.repetitions) for scenario, detailed in conditions]
     if placement:
-        layouts = OWNER_LAYOUTS if args.experiment == "owner-placement" else ("baseline", "shared", "separate")
+        layouts = GUARD_LAYOUTS if args.experiment == "guard-placement" else OWNER_LAYOUTS if args.experiment == "owner-placement" else ("baseline", "shared", "separate")
         planned = [(f"{layout}-{'full' if detailed else 'minimal'}-{rep}", "normal", detailed, layout)
                    for layout, detailed, rep in placement_conditions(args.repetitions, layouts)]
     try:
@@ -843,12 +983,16 @@ def main():
             command = [str(binary), "steering-runtime", scenario, str(directory)] if args.family == "steering" else [str(binary), "multirate-runtime", scenario, interface, str(directory)]
             command += [] if detailed else ["trace-off"]
             owners = owner_placement(layout, runtime_cpu, load_cpu) if args.experiment == "owner-placement" else fixed_owners
+            if args.experiment == "guard-placement":
+                owners = guard_placement(layout, runtime_cpu, load_cpu, guard_cpu)
             if owners is not None:
                 command += ["owner-cpus=" + ",".join(str(owners[name]) for name in OWNER_NAMES)]
             begin, process_elapsed = time.monotonic_ns(), 0
             load, report = None, {"verdict": "FAIL"}
             assigned_load = runtime_cpu if layout == "shared" else load_cpu if layout == "separate" else None
             if args.experiment == "owner-placement" and layout != "io-baseline":
+                assigned_load = load_cpu
+            elif args.experiment == "guard-placement" and layout != "guard-baseline":
                 assigned_load = load_cpu
             try:
                 if assigned_load is not None:

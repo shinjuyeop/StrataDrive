@@ -119,6 +119,9 @@ RX 정지·지속 CRC 실패에서도 Brake floor/Drive zero·BMS inhibit를 검
 CAN 계약은 유지한다. 별도 OS/하드웨어 watchdog이나 CPU 예약을 구현한 것은 아니다.
 후속 [전체 cycle 계측](../learning/m3_owner_cycles.md)은 monitor의 snapshot 읽기부터 flag/trace 기록까지,
 physical/fixture의 snapshot 읽기부터 계산·센서·CAN TX/trace까지 잰다. Application phase와 원천 취득 시각은 유지한다.
+이후 [교차 완료 guard](../adr/ADR-0039-owner-completion-guards.md)를 붙였다. Monitor와 plant가 상대의 4 ms 시한을
+감시하며 두 owner는 수신 stream도 각자 별도 상태로 감시한다. Floor/zero는 latch하고 plant 적용 전 인과 순서를 지킨다.
+Thread 독립성은 process/OS/hardware 독립성이 아니며 공통 정지 중의 실제 동작은 보장하지 않는다.
 
 | vECU | Command / dynamics 후보 | Feedback / fault 후보 |
 | --- | --- | --- |

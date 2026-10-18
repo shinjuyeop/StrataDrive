@@ -25,7 +25,86 @@ class TimingReportTest(unittest.TestCase):
 
     @staticmethod
     def skip_cycle(rows, index):
-        rows[index] = {k: v if k in ("slot", "release_ns") else 0 for k, v in rows[index].items()}
+        rows[index] = {k: v if k in ("slot", "release_ns", "guarded", "deadline_ns", "detected_ns") else 0 for k, v in rows[index].items()}
+
+    def guarded_fixture(self):
+        config, rows = self.owner_fixture()
+        config.update(guarded_slots=3, deadline_ns=15)
+        for i, row in enumerate(rows):
+            row.update(guarded=int(i < 3), deadline_ns=row["release_ns"] + 15 if i < 3 else 0, detected_ns=0)
+        return config, rows
+
+    def test_guard_denominator_keeps_skipped_work_and_excludes_the_observation_tail(self):
+        config, rows = self.guarded_fixture()
+        self.skip_cycle(rows, 1)
+        rows[1]["detected_ns"] = 1026
+        report.validate_owner_cycles(rows, config)
+        guard = report.owner_cycle_metrics([rows], 10)["guarded_deadlines"]
+        self.assertEqual((guard["eligible_jobs"], guard["executed_jobs"], guard["missed_jobs"]), (3, 2, 1))
+
+    def test_timely_end_with_late_completion_publication_remains_a_guard_miss(self):
+        config, rows = self.guarded_fixture()
+        rows[0]["detected_ns"] = 1016
+        report.validate_owner_cycles(rows, config)
+        self.assertEqual(report.owner_cycle_metrics([rows], 10)["guarded_deadlines"]["missed_jobs"], 1)
+
+    def test_missing_peer_detection_early_detection_and_fabricated_tail_deadlines_are_rejected(self):
+        config, original = self.guarded_fixture()
+        for mutation in ("skipped", "early", "tail", "late"):
+            rows = copy.deepcopy(original)
+            if mutation == "skipped":
+                self.skip_cycle(rows, 0)
+                rows[1]["wake_target_ns"] = 1000; rows[1]["sleep_begin_ns"] = 900
+            elif mutation == "early":
+                rows[0]["detected_ns"] = 1014
+            elif mutation == "tail":
+                rows[-1]["deadline_ns"] = 1045
+            else:
+                rows[0]["end_ns"] = 1016
+            with self.assertRaises(AssertionError, msg=mutation):
+                report.validate_owner_cycles(rows, config)
+
+    def test_guard_first_fault_is_tied_to_the_peer_and_requires_tail_coverage(self):
+        _, rows = self.guarded_fixture()
+        peer = copy.deepcopy(rows)
+        rows[0]["detected_ns"] = peer[2]["phase_ns"]
+        info = dict(monitor=dict(observer="plant_fixture", clock_error=False,
+                                 first_fault=dict(job=0, deadline_ns=1015, detected_ns=1022)),
+                    plant_fixture=dict(observer="monitor", clock_error=False, first_fault=None))
+        # Last guarded deadline is 1035; the observer must reach it.
+        rows[-1]["phase_ns"] = peer[-1]["phase_ns"] = 1036
+        report.validate_owner_guards(dict(monitor=rows, plant_fixture=peer), dict(owner_guards=info))
+        info["monitor"]["observer"] = "monitor"
+        with self.assertRaisesRegex(AssertionError, "observer"):
+            report.validate_owner_guards(dict(monitor=rows, plant_fixture=peer), dict(owner_guards=info))
+        info["monitor"]["observer"] = "plant_fixture"
+        peer[-1]["phase_ns"] = 1034
+        with self.assertRaisesRegex(AssertionError, "last owner deadline"):
+            report.validate_owner_guards(dict(monitor=rows, plant_fixture=peer), dict(owner_guards=info))
+
+    def test_guard_placement_compares_rx_and_monitor_with_fixed_work_and_load_cpus(self):
+        for layout in report.GUARD_LAYOUTS:
+            owners = report.guard_placement(layout, 2, 4, 6)
+            self.assertEqual({owners[n] for n in ("brake", "drive", "bms", "power")}, {4})
+            self.assertEqual(owners["plant_fixture"], 2)
+            self.assertEqual(owners["rx"], 6 if layout == "rx-separated" else 2)
+            self.assertEqual(owners["monitor"], 6 if layout in ("guard-separated", "guard-baseline") else 2)
+        topology = {c: dict(physical_package_id=0, core_id=k) for c, k in ((2, 0), (4, 1), (6, 0), (8, 2))}
+        self.assertEqual(report.select_guard_cpu([2, 4, 6, 8], topology, 2, 4), 8)
+        for allowed, requested in (([2, 4], None), ([2, 4, 6], 4), ([2, 4, 6], 8)):
+            with self.assertRaises(AssertionError):
+                report.select_guard_cpu(allowed, topology, 2, 4, requested)
+
+    def test_redundant_receive_detection_preserves_early_backup_and_late_primary_records(self):
+        primary = dict(last_valid_ns=100, detected_ns=120_000_100, health=2)
+        backup = dict(last_valid_ns=100, detected_ns=82_000_100, health=2)
+        stream = dict(**backup, observer="plant_fixture", observers=dict(monitor=primary, plant_fixture=backup))
+        report.validate_receive_observers([stream], [dict(time_ns=82_000_101, stream_fault_mask=1)],
+                                          [dict(time_ns=120_000_100, stream_fault_mask=1)], True)
+        self.assertEqual(report.receive_latency(stream), 82)
+        stream["observer"] = "monitor"
+        with self.assertRaisesRegex(AssertionError, "original observer"):
+            report.validate_receive_observers([stream], [], [], False)
 
     def test_owner_wake_delay_keeps_the_requested_target_when_a_newer_release_is_selected(self):
         config, rows = self.owner_fixture()

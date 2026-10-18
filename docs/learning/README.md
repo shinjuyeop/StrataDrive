@@ -87,7 +87,8 @@ Linux `steering-runtime`과 `multirate-runtime`은 `simulation/runtime/`의 실�
 다중 주기의 [owner별 CPU 배치](m3_cpu_placement.md#owner별로-cpu를-나누기)는 같은 부하에서
 RX 단독 이동과 감시·plant 동반 이동을 비교한다. 요청/실제 배치와 모든 task의 miss·출력 만료를 함께 확인한다.
 다음 [전체 owner cycle](m3_owner_cycles.md)은 sleep 요청부터 실제 실행까지의 지연과 전체 body/CPU 시간을 나누고,
-RX 누락과 두 owner를 같은 시간축에서 대조한다. 계측과 새 budget 채택은 구분한다.
+RX 누락과 두 owner를 같은 시간축에서 대조한다. 이후 [ADR-0039](../adr/ADR-0039-owner-completion-guards.md)에서
+Host 4 ms 완료 budget·교차 guard와 별도 수신 감시를 연결했다. Python 검사는 기존 파일에 6개를 추가해 **43개**다.
 `angle`, `frame`, `e2e`, `receiver`, `brake-pressure`, `brake-frame`, `brake-receiver`,
 `drive-frame`, `drive-feedback`, `bms-value`, `bms-frame`, `bms-receiver`, Linux `epoch`, `steering-model`, `brake-model`, `drive-model`, `battery-model`, `bms-control`, `power-model`, `drive-gated`, `drive-energy`, `ev-power` 중 필요한 명령을 실행한다.
 자동 단위 시험은 모듈별 기존 파일에 case를 추가하며 SocketCAN 통합 시험은

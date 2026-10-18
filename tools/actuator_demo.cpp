@@ -38,7 +38,7 @@ void usage(std::ostream& output) {
 #ifdef STRATADRIVE_LINUX_SESSION
     output << "  actuator_demo epoch <init|next> <store_directory>\n";
     output << "  actuator_demo steering-runtime <normal|overrun|stall> <new_output_directory> [trace-off]\n";
-    output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt|feedback-replay|monitor-overrun|plant-overrun> <vcan_interface> <new_output_directory> [trace-off] [owner-cpus=brake,drive,bms,power,rx,monitor,plant_fixture]\n";
+    output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt|feedback-replay|monitor-overrun|plant-overrun|monitor-stall|io-overrun> <vcan_interface> <new_output_directory> [trace-off] [owner-cpus=brake,drive,bms,power,rx,monitor,plant_fixture]\n";
 #endif
 }
 } // namespace stratadrive::demo
