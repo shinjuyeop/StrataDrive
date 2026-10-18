@@ -407,7 +407,47 @@ state_policy:
 control:
   lateral_algorithm: null # TBD-11 / M8; Pure Pursuit or Stanley
   longitudinal_algorithm: longitudinal_pid_planned
-  allocation_parameters: null # TBD-02/06 / M2/M4
+  allocation_parameters: null # final vehicle TBD-02/06; first component fixture below, no loader
+m4_allocation_fixture:
+  implementation: normal_path_central_allocator_component
+  parameter_status: fixture_only_no_oem_or_vehicle_calibration
+  period_ms: 20
+  max_tick_gap_ms: 30
+  vehicle_request_source_age_ms: 30
+  vehicle_request_max_lifetime_ms: 60
+  mass_kg: 1000
+  wheel_radius_m: 0.3
+  wheelbase_m: 2.7
+  friction_nm_per_pa: 0.001
+  max_pressure_pa: 1500000
+  max_steering_rad: 0.3
+  max_propulsion_nm: 300
+  max_regen_nm: 200
+  max_service_braking_nm: 1500
+  request_acceleration_mps2: {minimum: -5, maximum: 2}
+  request_max_abs_curvature_inv_m: 1
+  max_wheel_speed_rad_s: 100
+  propulsion_mechanical_power_w: 20000
+  regen_mechanical_power_w: 10000
+  motoring_efficiency_lower_bound: 0.9
+  copper_loss_w_per_nm2: 0.01
+  reserve_power_w: 200
+  regen_low_speed_rad_s: {enter: 2, exit: 3}
+  explicit_hold: {entry_maximum_speed_rad_s: 0.5, braking_nm: 100, release: explicit_request_clear}
+  release: {maximum_friction_nm: 1, maximum_abs_motor_nm: 0.1}
+  actual_pair_skew_ms: 20
+  response_tolerance_nm: 50
+  response_dwell_ms: 700
+  response_clock: oldest_drive_brake_original_acquisition_no_cached_progress
+  capability_age_ms: {source: 30, input: 70}
+  capability_minimum_remaining_ms_for_new_regen: 20
+  optional_capability_expiry: suppress_regen_keep_live_friction_path_not_critical_loss
+  normal_braking_arbitration: maximum_deceleration_or_normalized_braking_not_sum
+  regen_recovery: next_braking_interval_after_observed_release
+  normal_output_expiry: minimum_vehicle_root_permission_and_used_source_dependency_deadlines
+  zone_parent_expiry_admission: not_implemented_legacy_can_has_no_parent_sideband
+  on_fault: latch_no_new_normal_commands_and_protection_required_not_brake_release
+  recovery: newer_trusted_epoch_without_resetting_physics
 regenerative_braking:
   scope: included_in_design # no runtime feature loader exists
   drive_torque_sign: positive_propulsion_negative_forward_regeneration

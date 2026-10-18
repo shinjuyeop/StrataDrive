@@ -16,7 +16,7 @@ Steering application 송수신/fault/timeout은 실행했다. [M1 session/queue]
 [Brake application 수용/timeout](../adr/ADR-0012-brake-receiver.md)을 Host/vCAN에서 시험했다.
 [첫 Brake 압력 모델](../learning/m2_brake_model.md)의 Host 응답/보호는 구현·시험했다. 차량 보호 통합은 후속이다.
 [Drive Command/Actual](drive_frame_draft.md)의 signed torque와 독립 capability freshness를
-[Host/vCAN에서 시험했다](../learning/m1_drive_codec.md). 모델·배분·차량 피드백 loop는 미구현이다.
+[Host/vCAN에서 시험했다](../learning/m1_drive_codec.md). M2 응답/에너지와 [M4 첫 배분 component](../learning/m4_control_allocation.md)는 구현했으며 차량 피드백 loop는 후속이다.
 2026-10-13 [EV-01](ev_power_bms_design.md)으로 BMS Leaf, 차량 관리와 power lifecycle을
 추가했다. 2026-10-14 [BMS wire 초안](bms_frame_draft.md)의 EV 6개 DBC frame과
 Host C++ codec/항목별 receiver·DBC 교차 검증과 native SocketCAN 변환 시험을 추가했다.
@@ -65,11 +65,12 @@ CAN family ID는 양방향 그룹이며 command와 actual feedback은 별도의 
 | VehicleCommand.target_speed | validated continuous speed reference, m/s, 전진 nonnegative; ODD/보고서는 km/h 병기 | Central Controller가 생성; Planner의 구간 speed request와 구분 |
 | VehicleCommand.longitudinal_acceleration_demand | desired vehicle acceleration, m/s², 전진 가속 양수/감속 음수 | Central longitudinal PID의 bounded 출력; Central allocation이 torque/brake demand로 배분 |
 | VehicleCommand.target_curvature | ego 진행 경로 curvature, 1/m, 좌회전 양수 | Central이 steering wheel/actuator actual을 출력하지 않음 |
-| VehicleCommand.braking_demand | 무차원 [0,1], 0=제동 요구 없음, 1=설정된 최대 제동 요구 | 압력/정지 성능 자체가 아님; Zone이 actuator demand로 변환 |
+| VehicleCommand.braking_demand | 무차원 [0,1], 0=제동 요구 없음, 1=설정된 최대 제동 요구 | 압력/정지 성능 자체가 아님; Central allocation이 actuator demand로 변환 |
+| VehicleCommand.standstill_hold | 명시적 정지 유지 요청 bool; in-process M4 fixture의 추가 의미 | 저속에서 마찰 hold demand 선택; 실제 정지/경사 유지 보장은 M6/M7 검증 |
 | Steering Command / Steering Actual | equivalent front road-wheel angle, rad, 좌회전 양수 | Central 배분·Zone 전달 demand / Steering vECU dynamics 후 actual |
-| Drive Command / Drive Actual | aggregate driven-wheel signed motor torque, N·m; 전진 구동 양수, 전진 회생 음수 | Zone demand / Drive vECU dynamics 후 actual; 후진 확장 제외 |
+| Drive Command / Drive Actual | aggregate driven-wheel signed motor torque, N·m; 전진 구동 양수, 전진 회생 음수 | Central 배분·Zone 전달 demand / Drive vECU dynamics 후 actual; 후진 확장 제외 |
 | Drive Actual regen capability | nonnegative 회생 토크 한계 N·m + 별도 validity/source freshness/제한 원인 | Drive가 산출하고 Central allocation이 배분에 사용; actual torque와 구분 |
-| Brake Command / Brake Actual | effective aggregate friction-brake pressure, Pa, nonnegative | Zone demand / Brake vECU dynamics 후 actual; caliper 상세 모델은 요구하지 않음 |
+| Brake Command / Brake Actual | effective aggregate friction-brake pressure, Pa, nonnegative | Central 배분·Zone 전달 demand / Brake vECU dynamics 후 actual; caliper 상세 모델은 요구하지 않음 |
 | 각 actual validity/state | actuator별 valid/unavailable 및 local state | 수신 성공만으로 actual health가 유효해지지 않음 |
 
 Ego/path 의미 frame은 x forward, y left, z up, yaw left-positive다. Path tracking 기준점은
@@ -78,13 +79,14 @@ Host adapter/state bridge에서 M6/M7에 검증한다(TBD-02/07). 단위 변환�
 숨기지 않는다. Acceleration demand/curvature→torque/angle, normalized braking→pressure의 allocation,
 max pressure/torque/angle와 CARLA normalization 수치는 M2/M4/M6(TBD-02/03/06)이다.
 Target speed는 추종 기준이고 longitudinal acceleration demand는 Central PID의 제어 출력이다.
-이를 분리해야 Zone에 speed controller의 책임이 암묵적으로 옮겨가지 않는다. Zone은
+이를 분리해야 Zone에 speed controller의 책임이 암묵적으로 옮겨가지 않는다. Central allocation은
 vehicle acceleration demand를 구동/제동 물리량으로 배분하며 정상/보호 braking demand의
 충돌 우선순위는 M4(TBD-06)에 결정한다. 물리 의미를 고정하되 특정 차량의 calibration을
 M0에서 꾸며내지 않기 위한 선택이다.
 
-RG-01에서는 Zone이 회생 한계 안에서 Drive의 음수 토크와 Brake의 마찰제동 압력을
-배분한다. 공통 wheel 기준의 압력→토크 변환과 actual 기반 전환 보정은 TBD-02/03/06이다.
+RG-01에서는 Central이 회생 한계 안에서 Drive의 음수 토크와 Brake의 마찰제동 압력을
+배분한다. 공통 wheel 기준의 압력→토크 변환과 actual 기반 전환 보정의 첫 component는
+[M4 allocation](../learning/m4_control_allocation.md)에 구현했다. 차량 calibration/전환 수용은 TBD-02/03/06이다.
 유효 capability 0과 critical Drive Actual 상실은 다른 조건이며 상세 계약은
 [회생제동 설계](regenerative_braking_design.md)를 따른다.
 
@@ -102,8 +104,8 @@ Peer envelope와 원천/의존 sample의 validity/age를 별도로 검사한다.
 적용해 Actual을 생성한다. Source expiry/continuity/control gap의 첫 SIL 보호 정책은 pending 취소와
 angle hold, FAIL_SAFE + LocalProtection이다. 기존 wire/meaning은 유지하며 차량 보호 calibration은 후속이다.
 [Brake 첫 모델](../learning/m2_brake_model.md)도 독립 pressure Actual을 생성하고 가압/감압 rate를
-분리한다. Local fault에서는 max(actual, fixture floor) ramp를 사용한다. Pressure→wheel torque와
-Central 회생 배분은 후속이며 유효 0/release와 unavailable의 기존 의미는 유지한다.
+분리한다. Local fault에서는 max(actual, fixture floor) ramp를 사용한다. Pressure→wheel torque 변환과
+첫 Central 회생 배분은 component로 구현했으며 차량 통합은 후속이다. 유효 0/release와 unavailable의 기존 의미는 유지한다.
 
 각 stream은 논리적으로 schema version, run/epoch, producer, source acquisition/generation
 시각 + clock domain, source sequence, validity, causal input identity를 갖는다.

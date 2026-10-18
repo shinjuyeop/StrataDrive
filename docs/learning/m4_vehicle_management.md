@@ -2,6 +2,7 @@
 
 Date: 2026-10-19. Status: **Host component + Power circuit 연결 시험 / 전체 coordinator 통합 전**.
 [ADR-0044](../adr/ADR-0044-central-vehicle-management-lifecycle.md)의 구현이다.
+후속 [첫 control allocation](m4_control_allocation.md)이 이 owner의 허가를 필수 gate로 사용한다.
 
 앞선 [준비 판정](m4_normal_drive_readiness.md)은 입력 snapshot이 조건을 만족하는지만 검사한다.
 이번 **VehicleManagement는 그 전의 상태와 고장을 기억하며 전원 요청·주행 허가를 발행**한다.
@@ -74,7 +75,7 @@ Clock rollback/표현 범위 소진에는 새 wire output을 만들지 않으며
 
 ## 어떻게 확인했나
 
-새 시험 31개를 더해 C++ 전체 normal·ASan/UBSan 각각 **570/570 PASS**다.
+이 단계에서 새 시험 31개를 더해 당시 C++ 전체 normal·ASan/UBSan 각각 **570/570 PASS**였다.
 초기 대기·known INIT/zero, parent 변경/재전송/만료, source age와 child expiry, 잘못된 ACK,
 7개 필수 source 각각의 상실/latch, 전원 준비·종료 timeout, 실제 OFF/재초기화와 clock/gap을 확인한다.
 
@@ -97,7 +98,7 @@ cmake --build build/m4-readiness -j 4
 ctest --test-dir build/m4-readiness -R '^VehicleManagement' --output-on-failure
 ```
 
-다음은 **control_allocation의 요구/출력 계약과 회생·마찰 배분**이다. VehicleManagement의 허가는
+후속 [control_allocation의 요구/출력 계약과 회생·마찰 배분](m4_control_allocation.md)을 구현·시험했다. VehicleManagement의 허가는
 정상 배분의 필수 gate로 사용하고 BMS 한계·Drive actual/capability와 Brake actual을 반영한다.
 그 뒤 Front/Rear routing·독립 ingress/local loss/rejoin과 전체 EV loop를 연결한다.
 DDS transport는 M5이며 이번 결과가 M3 전체 수용이나 차량 시스템 TC 통과를 뜻하지 않는다.

@@ -1,7 +1,7 @@
 # Software quality policy
 
-Status: **M1 통신·M2 모델·M3 Host 실행·M4 준비 판정/전원·허가 component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 570개 PASS**다.
+Status: **M1 통신·M2 모델·M3 Host 실행·M4 준비/허가/배분 component에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 606개 PASS**다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -1116,6 +1116,46 @@ Clang-tidy가 지적한 동일 ACK 실패 분기는 공통 조건으로 정리�
 production build는 `build/m4-management-production-{configure,build}.txt`, 정적 분석은
 `build/m4-management-{clang,cppcheck}.txt`에 기록한다. 문서 검사는 `build/m4-management-doc-check.txt`다.
 M3 기존 실패·전체 수용 대기와 32개 requirement/29개 system TC NOT RUN을 유지한다.
+
+## 2026-10-19 M4 첫 normal-path control allocation
+
+[ADR-0045](adr/ADR-0045-first-central-control-allocation.md)와 [학습 안내](learning/m4_control_allocation.md)에
+공통 wheel Nm/Pa 변환·서비스 제동 우선·현재 BMS/capability와 원래 권한·actual 잔여 회생 보정을 기록했다.
+첫 저속 hysteresis/explicit hold·observed release, 제동 구간 내 회생 목표 비증가와 response budget은
+`profiles/reference.yaml:m4_allocation_fixture`의 설계 데이터이며 loader/최종 차량 calibration이 아니다.
+이전 interface 문서에 남아 있던 Zone의 차량 전체 배분 책임 문구도 채택한 Central owner로 정리했다.
+
+새 unit **36개**, 전체 normal·ASan/UBSan 각각 **606/606 PASS**다.
+실제 VehicleManagement의 허가를 기존 BmsReceiver로 받아 분리된 lifecycle/vehicle root를 확인한다.
+별도 motor/pressure 모델의 sensor actual→CAN encode→독립 receiver→배분→command codec/receiver→plant 적용도 시험했다.
+정상 3.6 s 논리 시간(20 ms cycle)은 cap 상실/회복·coast/release/출발·재제동을 포함한다.
+별도 slow-pressure/held-pressure case는 관측 오차가 budget을 넘으면 보호를 요청하며 실제 sensor 값을 0으로 바꾸지 않는다.
+이 세 case는 신규 unit에 포함하며 독립 wall-time 실험 횟수로 더하지 않는다.
+
+Component 시험의 Zone health·Steering actual·BMS power/limits/permission·speed는 명시적 fixture다.
+Full Leaf response monitor, 차량 관성/타이어/경사·Battery energy loop와 실제 BMS sender DEGRADED의 허가 정책은 후속이다.
+기존 EV demo/runtime fixture도 유지하며 이번 SocketCAN/vCAN·DDS·RTOS/Target/timing workload 실행은 없다.
+Normal output 없음은 brake release가 아니며 `protection_required`의 실제 coordinator/Zone handoff는 다음 통합 범위다.
+기존 CAN command에 없는 parent/expiry sideband를 검사한 것을 Zone end-to-end 검증으로 표시하지 않는다.
+
+GCC 11.4.0/GoogleTest 1.11.0, native normal/sanitizer·BUILD_TESTING=OFF build PASS다.
+Clang-tidy 14 analyzer/bugprone은 production/test 2개, cppcheck 2.7은 compilation database의 production 1개 PASS다.
+Cppcheck가 지적한 큰 config 복사는 const reference 생성자 인자로 정리했다. Test cppcheck의 기존 GoogleTest macro 제약은 유지한다.
+Python 코드는 변경·unit 재실행하지 않았으며 직전 63개 PASS 이력을 유지한다.
+
+첫 31-case 개발 실행의 **29 PASS/2 FAIL**은 `build/m4-allocation-test-development.txt`에 보존했다.
+한 case는 input>source인 malformed capability를 stale로 예상한 시험 분류 오류, 다른 하나는 CAN 압력 해상도 1000 Pa
+양자화를 거친 관측과 unquantized plant truth를 직접 같다고 비교한 시험 오류였다. 수신 actual 기준으로 수정하고
+0.1 Nm/1000 Pa의 quantization 차이도 따로 검사했다. Response tolerance·dwell을 그 실패에 맞춰 완화하지 않았다.
+700 ms dwell은 첫 case 실행 전에 signed motor reversal/pressure delay를 고려해 정했으며 critical loss 100 ms와 별개다.
+최종 검토에서는 optional capability의 만료를 critical support의 만료와 분리했다.
+다음 nominal cycle까지 유효하지 않은 회생 한계는 미리 억제하고, 허용 owner gap에서 optional 한계만 만료돼도
+회생 복구 없이 마찰 경로를 유지한다. 필수 source/permission expiry는 계속 latch하며 각 경로를 별도 시험했다.
+
+로그는 `build/m4-allocation-{configure,build,test,full-build,full-test,sanitized-configure,sanitized-build,sanitized-test}.txt`,
+production build는 `build/m4-allocation-production-{configure,build}.txt`, 정적 분석은
+`build/m4-allocation-{clang,cppcheck}.txt`, 문서 정합성은 `build/m4-allocation-doc-check.txt`다.
+M3 원래 실패와 32개 requirement/29개 system TC NOT RUN·M1/M2 learner review 상태는 유지한다.
 
 ## 코드·예제·시험 배치
 

@@ -1,6 +1,6 @@
 # 회생제동 설계 — RG-01
 
-Date: 2026-10-13; component update: 2026-10-15. Status: **포함 범위 ACCEPTED / 상세 설계 초안 / M1 wire 구현·시험 / M2 응답·local gate/capability 부분 시험 / 에너지·차량 배분 NOT RUN**.
+Date: 2026-10-13; component update: 2026-10-19. Status: **범위 ACCEPTED / M1 wire·M2 응답/에너지·M4 첫 배분 component 시험 / 차량 배분 runtime NOT RUN**.
 [ADR-0011](../adr/ADR-0011-regenerative-braking-scope.md)의 후속 설계다.
 M0 Reference Baseline v0.1 이후의 확장이며 기존 M0 검토 결과에 포함하지 않는다.
 M1 wire layout은 [Drive wire 초안](drive_frame_draft.md)에 구현했고 학습자 review는 PENDING이다.
@@ -12,12 +12,12 @@ M1 wire layout은 [Drive wire 초안](drive_frame_draft.md)에 구현했고 학�
 목표 torque와 capability를 제한한다. Known zero/unknown과 유한 actual 잔여 응답을 구분하며
 [첫 energy coupling](../learning/m2_drive_energy.md)은 이상적 HV·외부 speed fixture에서 actual DC/손실·Battery 충전을 연결했다.
 [실제 RC/접점 연결](../learning/m2_ev_power_circuit.md)은 capacitor에 저장되는 회생과 battery 반환을 구분해 시험했다.
-차량 motion·마찰 보충 runtime은 아직 없다.
+차량 motion·통합 배분 runtime은 아직 없다. [첫 M4 allocator](../learning/m4_control_allocation.md)는 별도 pressure/torque 응답 모델과 마찰 보충 component 시험을 연결한다.
 후속 [EV-01](ev_power_bms_design.md)이 충전 fixture만 사용하는 범위를 BMS/배터리/
 power lifecycle 모델로 확장했다. 아래 RG-01 배분·토크·에너지 원칙은 유지한다.
 [ZON-01 v0.5](../architecture/zonal_partition.md)의 Central allocation이 차량 전체 회생·마찰 배분을 단독 수행한다.
 Rear는 Drive/BMS와 연결해 배분된 demand를 검증·전달하고 원천 feedback을 Central로 보고한다.
-이 문서의 차량 전체 배분은 Central의 별도 component, 각 Zone은 지역별 전달·검증 책임이다. Runtime은 PLANNED / NOT RUN이다.
+이 문서의 차량 전체 배분은 Central의 별도 component, 각 Zone은 지역별 전달·검증 책임이다. 첫 normal-path component는 구현했고 Zone/차량 runtime은 PLANNED / NOT RUN이다.
 
 ## 역할과 통신 경로
 
@@ -83,6 +83,12 @@ Cached 충전 한계에 새 timestamp를 붙여 유효하게 만들지 않는다
    변화율을 반영해 마찰제동을 보정한다. 전환 시 감속 부족·과다 허용 범위는 TBD-03/06이다.
 5. 저속 정지/정지 유지에서는 마찰제동을 사용한다. 속도 전환 구간, hold pressure와
    hysteresis는 TBD-03/06이며 임의의 속도 threshold를 현재 코드에 넣지 않는다.
+
+2026-10-19 [ADR-0045](../adr/ADR-0045-first-central-control-allocation.md)로 위 원칙의 첫 component fixture를 명시했다.
+정상 제동 중재는 max(negative acceleration torque, normalized service braking torque), 초기 회생 우선·
+관측 잔여 회생을 뺀 마찰 보정과 제동 구간 내 회생 목표 비증가, 2/3 rad/s 저속 hysteresis·명시적 hold를 시험했다.
+Threshold/geometry/pressure coefficient·response budget은 별도 fixture이며 최종 차량 TBD를 닫지 않는다.
+보호 경로·차량 전환/정지 검증과 실제 BMS derating의 허가 envelope는 후속이다.
 
 정상 steady-state 관계는 공통 기준에서 `B_request = B_regen + B_friction`이며 각 항은
 제동 토크의 양수 크기다. 동적 전환에서는 request와 actual의 차이를 별도 기록한다.

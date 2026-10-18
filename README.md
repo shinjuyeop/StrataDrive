@@ -6,7 +6,7 @@
 
 **M3 진행 중** — [Host RTOS의 누적 tick 지연](docs/learning/m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기)을 수정하고 CPU 배치·FIFO 실행을 비교했다.
 일반 우선순위 sanitizer의 타이밍 실패 2건과 학습자 수용은 남아 있다. M1/M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도다.
-M4는 [Central 전원 요청·주행 허가 상태 관리](docs/learning/m4_vehicle_management.md)를 component로 구현했다. 배분·Zone 연결·DDS·차량 closed-loop·Target 검증은 후속 단계다.
+M4는 Central 전원·허가와 [첫 제어 배분](docs/learning/m4_control_allocation.md)을 component로 구현했다. Zone 연결·DDS·차량 closed-loop·Target 검증은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 
