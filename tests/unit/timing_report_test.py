@@ -71,6 +71,8 @@ class TimingReportTest(unittest.TestCase):
         jobs=[dict(release_ns=samples[i]['send_end_ns']+1,end_ns=samples[i]['send_end_ns']+2) for i in (0,2)]
         with tempfile.TemporaryDirectory() as temporary:
             directory=Path(temporary); self.write_timer_trace(directory,samples)
+            healthy=[dict(release_ns=r['send_end_ns']+1,end_ns=r['send_end_ns']+2) for r in samples]
+            self.assertEqual(rtos.timer_metrics(directory,healthy,dict(scenario='normal'))['verdict'],'PASS')
             result=rtos.timer_metrics(directory,jobs,dict(scenario='normal'))
             self.assertEqual((result['verdict'],result['coalesced_signals']),('FAIL',1))
             for changes in (dict(overflow=1),dict(error=22),dict(count=513)):

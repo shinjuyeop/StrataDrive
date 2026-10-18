@@ -206,7 +206,7 @@ def main():
                 parent_channel, child_channel = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET|socket.SOCK_NONBLOCK)
                 enable = time.monotonic_ns()+500_000_000
                 processes = []
-                report = dict(scenario=scenario,directory=str(directory),verdict='FAIL')
+                report = dict(scenario=scenario,directory=str(directory),verdict='FAIL',functional_verdict='NOT RUN',control_verdict='NOT RUN')
                 with (directory/'rtos.log').open('w') as rlog, (directory/'plant.log').open('w') as plog:
                     try:
                         rt = subprocess.Popen([str(pilot/'steering_rtos'),interface,str(child_channel.fileno()),str(enable),scenario,str(directory)],
@@ -222,6 +222,7 @@ def main():
                         require(pt.wait(timeout=8)==0, 'plant process failed')
                         require(rt.wait(timeout=4)==0, 'RTOS process failed')
                         report.update(analyze(directory,scenario))
+                        report['functional_verdict']='PASS'
                         expected_policy=os.SCHED_FIFO if args.fifo else os.SCHED_OTHER
                         require(report['os']['linux_policy']==expected_policy and report['os']['linux_priority']==(10 if args.fifo else 0), 'RTOS policy not applied')
                         if args.rtos_cpu is not None:
@@ -242,7 +243,7 @@ def main():
                         if args.require_wall_timing:
                             require(report.get('timer',{}).get('verdict')=='PASS','Host timer phase/completion timing failed')
                     except (AssertionError,ValueError,KeyError,OSError,subprocess.SubprocessError) as error:
-                        report['error'] = str(error)
+                        report.update(verdict='FAIL',error=str(error))
                     finally:
                         parent_channel.close(); child_channel.close()
                         for process in processes:
