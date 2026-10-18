@@ -22,9 +22,65 @@ def load_helper(name, path):
 
 diagnostics = load_helper('runtime_diagnostics', PATH.parents[3] / 'tools/runtime_diagnostics.py')
 rtos = load_helper('check_rtos', PATH.with_name('check_rtos.py'))
+rtos_build = load_helper('build_rtos_pilot', PATH.parents[3] / 'tools/build_rtos_pilot.py')
 
 
 class TimingReportTest(unittest.TestCase):
+    def test_toolchain_compiler_detection_does_not_require_a_cached_variable(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            build = Path(temporary)
+            (build / 'CMakeCache.txt').write_text('# Compiler set as a normal toolchain variable\n')
+            detected = build / 'CMakeFiles/3.22.1/CMakeCXXCompiler.cmake'
+            detected.parent.mkdir(parents=True)
+            detected.write_text(f'set(CMAKE_CXX_COMPILER "{sys.executable}")\n')
+            rtos_build.validate_cached_compiler(build, sys.executable)
+            detected.write_text('set(CMAKE_CXX_COMPILER "/different/compiler")\n')
+            with self.assertRaisesRegex(RuntimeError, 'compiler differs'):
+                rtos_build.validate_cached_compiler(build, sys.executable)
+
+    def test_cross_build_cannot_be_used_as_a_native_runtime_result(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            executable = Path(temporary) / 'steering_rtos'
+            header = bytearray(20)
+            header[:6] = b'\x7fELF\x02\x01'
+            header[18:20] = (183).to_bytes(2, 'little')
+            executable.write_bytes(header)
+            self.assertEqual(rtos_build.elf_architecture(executable), 'aarch64')
+            with self.assertRaisesRegex(ValueError, 'cross-build is not a runtime test'):
+                rtos_build.validate_runtime_architecture([executable], host='x86_64')
+            rtos_build.validate_runtime_architecture([executable], host='aarch64')
+
+    def test_invalid_or_truncated_binary_is_not_architecture_evidence(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            executable = Path(temporary) / 'invalid'
+            for content in (b'not an executable', b'\x7fELF\x02\x01', b'\x7fELF\x01\x01' + bytes(14)):
+                executable.write_bytes(content)
+                with self.assertRaisesRegex(ValueError, 'ELF'):
+                    rtos_build.elf_architecture(executable)
+
+    def test_dynamic_preemption_is_not_reported_as_preempt_rt(self):
+        configuration = diagnostics.preemption_configuration('CONFIG_PREEMPT_DYNAMIC=y\n# CONFIG_PREEMPT_RT is not set\nCONFIG_SCHED_INFO=y\n')
+        self.assertFalse(configuration['preempt_rt'])
+        self.assertTrue(configuration['preempt_dynamic'])
+        self.assertTrue(configuration['sched_info'])
+
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'Linux scheduling capability probe')
+    def test_fifo_capability_probe_preserves_caller_policy_and_priority(self):
+        before = os.sched_getscheduler(0), os.sched_getparam(0)
+        result = diagnostics.fifo_probe(1)
+        self.assertEqual((os.sched_getscheduler(0), os.sched_getparam(0)), before)
+        self.assertIn(result['verdict'], ('AVAILABLE', 'BLOCKED'))
+        self.assertTrue(result['restored'])
+        if result['verdict'] == 'AVAILABLE':
+            self.assertEqual((result['observed_policy'], result['observed_priority']), (os.SCHED_FIFO, 1))
+        else:
+            self.assertIn('errno', result)
+
+    def test_fifo_probe_rejects_an_invalid_request_before_spawning(self):
+        for priority in (0, 100):
+            with self.assertRaisesRegex(ValueError, 'priority'):
+                diagnostics.fifo_probe(priority)
+
     @unittest.skipUnless(sys.platform.startswith('linux'), 'Linux affinity worker')
     def test_diagnostic_cpu_load_can_start_with_the_spawn_import_protocol(self):
         cpu=min(os.sched_getaffinity(0))

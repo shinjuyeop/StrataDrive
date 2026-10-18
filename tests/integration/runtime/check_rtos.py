@@ -10,11 +10,14 @@ from pathlib import Path
 import signal
 import socket
 import subprocess
+import sys
 import time
 
 from check_timing import distribution, require
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / 'tools'))
+from build_rtos_pilot import validate_runtime_architecture
 SCENARIOS = ('normal', 'command-loss', 'corrupt', 'control-stall')
 
 
@@ -90,19 +93,24 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-dir', type=Path, default=ROOT / 'build/m3-rtos-host')
     parser.add_argument('--pilot-dir', type=Path, default=ROOT / 'build/m3-rtos-pilot')
-    parser.add_argument('--source-dir', type=Path, default=ROOT / 'build/deps/trampoline')
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--repetitions', type=int, default=1)
     args = parser.parse_args()
     require(1 <= args.repetitions <= 10, 'repetitions must be 1..10')
     output, pilot, build = (p.resolve() for p in (args.output_dir, args.pilot_dir, args.build_dir))
-    output.mkdir(parents=True, exist_ok=False)
     built = json.loads((pilot/'build.json').read_text())
+    viper = Path(built['viper_path'])
+    artifacts = [pilot/'steering_rtos', build/'actuator_demo', viper]
+    validate_runtime_architecture(artifacts)
+    require(digest(viper) == built['viper_binary_sha256'], 'ViPer binary differs from build record')
+    for artifact in artifacts:
+        require(digest(artifact) == built['elf_artifacts'][str(artifact)]['sha256'], 'runtime artifact changed: '+str(artifact))
     require(digest(pilot/'steering_rtos') == built['binary_sha256'], 'RTOS binary differs from build record')
     for path, expected in built['input_sha256'].items():
         require(digest(ROOT/path)==expected, 'RTOS build is stale: '+path)
     for path, expected in built['bridge_libraries'].items():
         require(digest(Path(path))==expected, 'RTOS linked archive changed: '+path)
+    output.mkdir(parents=True, exist_ok=False)
     tracked = subprocess.check_output(['git', 'ls-files', '-co', '--exclude-standard'], cwd=ROOT, text=True).splitlines()
     sources = {p: digest(ROOT / p) for p in sorted(set(tracked)) if (ROOT / p).is_file() and (Path(p).suffix in ('.c','.cpp','.h','.hpp','.py','.json','.oil','.in','.yaml') or p == 'CMakeLists.txt')}
     env = dict(utc_started=datetime.now(timezone.utc).isoformat(), commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
@@ -125,7 +133,7 @@ def main():
                     try:
                         rt = subprocess.Popen([str(pilot/'steering_rtos'),interface,str(child_channel.fileno()),str(enable),scenario,str(directory)],
                             pass_fds=(child_channel.fileno(),),stdin=subprocess.PIPE,stdout=rlog,stderr=subprocess.STDOUT,start_new_session=True,
-                            env=dict(os.environ,VIPER_PATH=str(args.source_dir.resolve()/'viper')))
+                            env=dict(os.environ,VIPER_PATH=str(viper.parent)))
                         processes.append(rt)
                         pt = subprocess.Popen([str(build/'actuator_demo'),'steering-rtos-plant',scenario,interface,str(parent_channel.fileno()),str(enable),str(directory)],
                             pass_fds=(parent_channel.fileno(),),stdout=plog,stderr=subprocess.STDOUT,start_new_session=True)

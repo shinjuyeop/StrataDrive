@@ -83,3 +83,42 @@ ReleaseDispatch→Control 완료 최대는 약 0.131 ms였다. Timer 앞단의 �
 Queue 증가가 관측된 것과 그 전부를 해당 wakeup에 할당하는 것은 다르다. 경계 여유와 원래 sample을 확인한다.
 개별 process/IRQ/VM 원인은 미확정이며 커널 trace는 권한 제한으로 NOT RUN이다.
 상세 수치·실패 자료·source cohort와 로그는 [품질 기록](../quality_policy.md)에 있다.
+
+## ARM64에서 빌드할 수 있는가
+
+교차 컴파일은 현재 x86 PC에서 **ARM64 CPU용 파일을 만드는 작업**이다. 그 파일을 실제 보드에서 실행한 결과와 구분한다.
+[ADR-0041](../adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)로 다음 점검을 추가했다.
+
+```sh
+python3 tools/build_rtos_pilot.py --architecture aarch64
+```
+
+`aarch64-linux-gnu-gcc/g++`와 `readelf`가 필요하다. Upstream source가 없다면 기존과 같이 명시적으로 `--fetch`를 붙인다.
+Host에서 실행할 GOIL을 먼저 준비하고 ARM64용 RTOS·ViPer·외부 plant를 빌드한다.
+CMake 산출물은 `build/m3-rtos-aarch64-host/`, 생성 OS/ViPer는 `build/m3-rtos-aarch64-pilot/`에 둔다.
+Native 기본 directory는 그대로 유지한다. ViPer도 architecture별 object를 사용한다.
+
+각 `build.json`의 `architecture`와 `elf_artifacts`를 확인한다. 파일 이름이나 compiler 옵션만 보고 CPU를 판정하지 않는다.
+실행기는 RTOS·ViPer·plant 세 파일의 CPU가 현재 Host와 다르면 vCAN 생성 전에 거부한다.
+Compiler가 다르거나 다른 architecture의 output directory를 지정한 경우도 새 directory를 사용해야 한다.
+이번 GNU/Linux ARM64 빌드는 Jetson의 실제 OS/BSP용 sysroot 검증을 대신하지 않는다.
+`runtime_requirements`의 loader·필요 library·symbol version을 보드와 대조한 뒤 실행해야 한다.
+
+## 이 Linux에서 RT 시험을 할 수 있는가
+
+```sh
+python3 tools/runtime_diagnostics.py --probe-only --output-dir build/rt-capabilities
+```
+
+이 명령은 native/RTOS build나 vCAN 권한 없이 실행할 수 있다. 결과는 `capabilities.json`과 hash manifest다.
+CPU affinity·kernel config·RT priority limit·FIFO 적용 결과·trace/perf 접근 제한을 기록한다.
+FIFO는 별도 자식에서 잠깐 시험하고 원래 정책으로 복원한다. 부모나 M3 workload를 RT로 바꾸는 옵션은 아니다.
+`--fifo-priority 1`은 기본 권한 점검값이며 owner별 우선순위 설계와 구분한다.
+
+- `preemption.preempt_rt`: PREEMPT_RT kernel 설정 여부다. 일반 PREEMPT_DYNAMIC과 별개다.
+- `fifo_probe.verdict`: AVAILABLE/BLOCKED/UNKNOWN 중 하나다. AVAILABLE은 해당 priority의 syscall 적용 확인이다.
+- `tracefs_error`·`perf_probe_*`: 지연 분해에 필요한 관측이 현재 가능한지와 원래 오류를 확인한다.
+
+Exit 0은 보고서를 수집했다는 뜻이다. FIFO가 거부됐다면 RT workload·지연 개선 비교는 **NOT RUN**으로 남긴다.
+일반 Linux에서도 FIFO를 사용할 수 있고, PREEMPT_RT kernel에서도 실행 계정의 권한은 별도로 확인해야 한다.
+권한이 준비된 다음에는 기존 M3의 같은 workload·시한에서 owner별 RT 설정과 실제 적용값을 기록하는 실행 경로가 필요하다.

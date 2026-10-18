@@ -5,6 +5,7 @@ import csv
 import json
 import os
 from pathlib import Path
+import resource
 import subprocess
 import sys
 import time
@@ -71,19 +72,71 @@ def snapshot(pid):
     return records
 
 
-def capabilities():
+def preemption_configuration(text):
+    options = dict(line.split('=', 1) for line in text.splitlines() if line.startswith('CONFIG_') and '=' in line)
+    return dict(preempt_rt=options.get('CONFIG_PREEMPT_RT') == 'y',
+                preempt_dynamic=options.get('CONFIG_PREEMPT_DYNAMIC') == 'y',
+                sched_info=options.get('CONFIG_SCHED_INFO') == 'y')
+
+
+def fifo_probe(priority):
+    """Try only in a disposable child, restoring it before reporting; never promote the observer."""
+    if not os.sched_get_priority_min(os.SCHED_FIFO) <= priority <= os.sched_get_priority_max(os.SCHED_FIFO):
+        raise ValueError('FIFO priority outside supported range')
+    code = '''import json, os, sys
+result = dict(requested_priority=int(sys.argv[1]), verdict='BLOCKED')
+before = (os.sched_getscheduler(0), os.sched_getparam(0))
+try:
+    os.sched_setscheduler(0, os.SCHED_FIFO, os.sched_param(result['requested_priority']))
+    result.update(observed_policy=os.sched_getscheduler(0), observed_priority=os.sched_getparam(0).sched_priority)
+    if result['observed_policy'] == os.SCHED_FIFO and result['observed_priority'] == result['requested_priority']:
+        result['verdict'] = 'AVAILABLE'
+except OSError as error:
+    result.update(errno=error.errno, error=str(error))
+finally:
+    try:
+        os.sched_setscheduler(0, before[0], before[1])
+        result['restored'] = (os.sched_getscheduler(0), os.sched_getparam(0)) == before
+    except OSError as error:
+        result.update(verdict='BLOCKED', restore_error=str(error), restored=False)
+print(json.dumps(result))
+'''
+    try:
+        probe = subprocess.run([sys.executable, '-c', code, str(priority)], capture_output=True, text=True, timeout=3, check=False)
+        result = json.loads(probe.stdout)
+        result.update(exitcode=probe.returncode, stderr=probe.stderr)
+        if probe.returncode != 0 or not result.get('restored'):
+            result['verdict'] = 'BLOCKED'
+        return result
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        return dict(requested_priority=priority, verdict='UNKNOWN', error=str(error))
+
+
+def capabilities(fifo_priority=1):
     result = dict(kernel=os.uname().release,monotonic_clock='CLOCK_MONOTONIC',schedstat_sampling='intrusive diagnostic, not a performance baseline')
     config = Path('/boot')/('config-'+os.uname().release)
-    try: result['sched_info_enabled'] = 'CONFIG_SCHED_INFO=y' in config.read_text()
-    except OSError: result['sched_info_enabled'] = None
+    try:
+        result['preemption'] = dict(source=str(config), **preemption_configuration(config.read_text()))
+        result['sched_info_enabled'] = result['preemption']['sched_info']
+    except OSError as error:
+        result.update(preemption=dict(preempt_rt=None, error=str(error)), sched_info_enabled=None)
+    result.update(machine=os.uname().machine, fifo_probe=fifo_probe(fifo_priority),
+                  rlimit_rtprio=list(resource.getrlimit(resource.RLIMIT_RTPRIO)),
+                  caller_policy=os.sched_getscheduler(0), caller_priority=os.sched_getparam(0).sched_priority,
+                  allowed_cpus=sorted(os.sched_getaffinity(0)),
+                  scope='capability observation only; no RT workload, latency acceptance or system setting changes')
+    for key, path in dict(kernel_realtime='/sys/kernel/realtime', rt_runtime_us='/proc/sys/kernel/sched_rt_runtime_us',
+                          rt_period_us='/proc/sys/kernel/sched_rt_period_us', perf_event_paranoid='/proc/sys/kernel/perf_event_paranoid').items():
+        try: result[key] = Path(path).read_text().strip()
+        except OSError as error: result[key] = dict(error=str(error))
     try:
         result['tracefs'] = sorted(p.name for p in Path('/sys/kernel/tracing').iterdir())
     except OSError as error:
         result['tracefs_error'] = str(error)
     try:
-        probe = subprocess.run(['perf','stat','-e','context-switches','--','true'],capture_output=True,text=True,check=False)
+        probe = subprocess.run(['perf','stat','-e','context-switches','--','true'],capture_output=True,text=True,check=False,timeout=3)
         result.update(perf_probe_exit=probe.returncode,perf_probe_stderr=probe.stderr)
-    except OSError as error:
+    except (OSError, subprocess.SubprocessError) as error:
         result['perf_probe_error']=str(error)
     return result
 
@@ -96,8 +149,22 @@ def main():
     parser.add_argument('--observer-cpu',type=int,default=3)
     parser.add_argument('--load-cpu',type=int)
     parser.add_argument('--repetitions',type=int,default=3)
+    parser.add_argument('--probe-only',action='store_true',help='record RT/kernel/trace capabilities without running a workload or creating vCAN')
+    parser.add_argument('--fifo-priority',type=int,default=1,help='priority for the short disposable capability probe, not a runtime scheduling configuration')
     args = parser.parse_args()
     timing.require(1 <= args.repetitions <= 10,'repetitions must be 1..10')
+    timing.require(1 <= args.fifo_priority <= 99,'FIFO probe priority must be 1..99')
+    if args.probe_only:
+        timing.require(args.load_cpu is None,'probe-only cannot start a load worker')
+        output = args.output_dir.resolve(); output.mkdir(parents=True,exist_ok=False)
+        result = capabilities(args.fifo_priority)
+        result.update(commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+                      working_tree=subprocess.check_output(['git','status','--short'],cwd=ROOT,text=True).splitlines(),
+                      source_sha256=timing.sha256(Path(__file__)))
+        (output/'capabilities.json').write_text(json.dumps(result,indent=2)+'\n')
+        (output/'artifact-sha256.json').write_text(json.dumps({'capabilities.json':timing.sha256(output/'capabilities.json')},indent=2)+'\n')
+        print('Capability probe recorded; FIFO',result['fifo_probe']['verdict'],'; workload NOT RUN')
+        return
     allowed = os.sched_getaffinity(0)
     owners = timing.parse_owner_cpus(args.owner_cpus)
     timing.require(set(owners.values()) <= allowed and args.observer_cpu in allowed,'CPU outside allowed mask')
@@ -107,7 +174,7 @@ def main():
     build = args.build_dir.resolve(); binary = build/'actuator_demo'
     # Keep original inherited CPU set in the runtime. The observer alone stays pinned.
     environment = timing.environment(build,binary,'multirate')
-    environment.update(diagnostic=capabilities(),requested_owner_cpus=owners,observer_cpu=args.observer_cpu,load_cpu=args.load_cpu,
+    environment.update(diagnostic=capabilities(args.fifo_priority),requested_owner_cpus=owners,observer_cpu=args.observer_cpu,load_cpu=args.load_cpu,
                        runtime_inherited_allowed_cpus=sorted(allowed),runtime_cpu_topology=timing.cpu_topology(sorted(allowed)))
     (output/'environment.json').write_text(json.dumps(environment,indent=2)+'\n')
     interface='diagnostic0'; reports=[]

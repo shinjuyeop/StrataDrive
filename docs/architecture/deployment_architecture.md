@@ -80,5 +80,7 @@ TBD-11(toolchain/CI)에 있다. Middleware 선택 기준과 M4 비교/M5 결정 
 ## Host OS pilot
 
 [Trampoline POSIX Steering 파일럿](../learning/m3_rtos_pilot.md)은 개발 Host에서 별도로 실행한다.
-추가 MCU나 Jetson OS 전환은 이번 변경에 포함하지 않는다. ARM64 지원·Target에 배치할 OS/virtual target은 후속 검토다.
+추가 MCU나 Jetson OS 전환은 이번 변경에 포함하지 않는다.
+[ARM64 교차 빌드·RT 사전 점검](../adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)을 추가했다.
+일반 ARM64 Linux 산출물과 실제 Jetson BSP/ABI·실행 지원은 구분한다. Target OS/virtual target 채택과 timing은 후속 검토다.
 물리 모델과 ECU는 별도 process이고 둘 다 Host 자원을 공유한다. Hardware fault 독립성이나 실시간 보장은 주장하지 않는다.

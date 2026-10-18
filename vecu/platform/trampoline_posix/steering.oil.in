@@ -10,7 +10,9 @@ CPU SteeringPilot {
       TRAMPOLINE_BASE_PATH = @TRAMPOLINE@;
       APP_SRC = "steering.c";
       CFLAGS = "-g -O1 -Wall -Wextra -Werror=overflow -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0";
-      LINKER = "g++";
+      COMPILER = @CC@;
+      ASSEMBLER = @CC@;
+      LINKER = @CXX@;
       LDFLAGS = @LIBRARIES@;
       APP_NAME = "steering_rtos";
       SYSTEM = PYTHON;
