@@ -91,7 +91,8 @@ Power 정지 동안 접점이 유지되는지도 검사한다. 이는 bounded 12
 후속 [ADR-0036](../adr/ADR-0036-asynchronous-drive-actual-feedback.md)은 기존 SourceTimeNs에 실제 취득 시각을 보존하고,
 speed/capability는 독립 시각으로 수신 검사한다. Cached torque는 새 sample로 보고하지 않는다.
 Physical truth와 job의 sensor input, Actual socket TX bytes와 별도 DriveReceiver의 Accepted를 연결한다.
-Wire schema 2/64 bytes는 유지하며 trace schema는 3이다. Actual을 CARLA에 반영하는 vehicle bridge는 후속이다.
+Wire schema 2/64 bytes는 유지한다. Actual 단계의 trace schema는 3이며 후속 [전체 cycle 계측](m3_owner_cycles.md)은 4다.
+Actual을 CARLA에 반영하는 vehicle bridge는 후속이다.
 
 ## 실행과 결과 읽기
 
@@ -106,8 +107,9 @@ python3 tests/unit/timing_report_test.py
 unshare --user --map-root-user --net python3 tests/integration/runtime/check_timing.py --family multirate --repetitions 2
 ```
 
-정상/full·정상/minimal, Brake/Drive/BMS/Power/RX 각각의 stall, 지속 CRC 손상과 Actual replay로 9조건이다.
-2회 반복이면 18 runs다. Warm-up 제외는 0이며 각 task의 분모/Mean/P95/P99/Max와 miss를 따로 보고한다.
+기존 정상/full·정상/minimal, Brake/Drive/BMS/Power/RX 각각의 stall, 지속 CRC 손상과 Actual replay는 9조건이다.
+후속 monitor/plant 6 ms overrun의 full/minimal 4조건을 더해 현재 **13조건**, 2회 반복이면 26 runs다.
+Warm-up 제외는 0이며 각 task의 분모/Mean/P95/P99/Max와 miss를 따로 보고한다.
 서로 다른 주기의 sample을 한 평균으로 섞지 않는다.
 
 | 파일 | 확인할 내용 |
@@ -117,6 +119,7 @@ unshare --user --map-root-user --net python3 tests/integration/runtime/check_tim
 | `actual-tx.csv` / `actual-rx.csv` | Drive Actual의 원래 bytes·취득/생성/TX/RX/Accepted·usable 값과 replay |
 | `monitor.csv` | task/stream fault mask와 독립 보호 latch |
 | `physical.csv` | 실제 압력·torque·bus/current·SOC/energy 잔차, 보호와 실제 접점 |
+| `monitor-cycles.csv` / `plant-cycles.csv` | 양 trace mode의 전체 body·sleep target·1221개 기회/생략·expiry delta, full의 thread CPU time |
 | `run.json` | task별 period/deadline/offset·thread policy, last-valid/검출·보호 적용과 snapshot 계수 |
 | `summary.json` / `environment.json` | task별 timing/검출 판정·계측 비교 / commit·binary/source/profile hash·OS/compiler·부하/clock 조건 |
 
@@ -126,6 +129,6 @@ unshare --user --map-root-user --net python3 tests/integration/runtime/check_tim
 상세 실행 수치와 검사 범위는 [품질 기록](../quality_policy.md)에 남긴다.
 
 후속 [고정 부하·CPU 배치 비교](m3_cpu_placement.md)에서 같은/다른 CPU의 부하와 실패 run을 비교했다.
-Drive Actual은 후속 연결했고 실행 budget·배치/우선순위와 M3 수용 검토가 다음이다.
+Drive Actual과 [전체 cycle 계측](m3_owner_cycles.md)은 후속 연결했고 budget 채택·RT 우선순위와 M3 수용 검토가 다음이다.
 Target/차량 전체 E2E, 실제 Central/Zone, AUTOSAR OS/BSW, 무한 hang/OS 고장 격리는 검증하지 않았다.
 전체 32개 요구/29개 system TC는 NOT RUN이며 M1/M2 학습자 수용 기록은 별도다.

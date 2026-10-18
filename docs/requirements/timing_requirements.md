@@ -154,6 +154,12 @@ colocated/RX만 분리/RX·monitor·plant 분리로 비교하고 같은 IO map�
 요청/실제 thread map을 대조하며 기존 period/deadline·valid RX·output expiry 계약을 유지한다.
 RX는 최신 release만 실행하므로 period를 넘겨 생략한 job도 miss다. 실행된 job의 duration만으로 판단하지 않는다.
 이 비교는 RT 우선순위 확정이나 monitor/plant 전체 cycle의 실행 budget 채택을 대신하지 않는다.
+
+[ADR-0038](../adr/ADR-0038-whole-owner-cycle-observation.md)은 monitor/plant 각각 1221개의 2 ms 기회를 기록한다.
+Sleep target/call/start·application phase·body end를 구분하고 full에서 thread CPU delta를 추가한다.
+전체 body에는 fixture TX도 포함하며 기존 sensor/source 시각을 갱신하지 않는다. Owner deadline은 미채택(TBD-04)이다.
+RX miss와 같은 시간의 owner 실행/생략 및 앞뒤 phase를 대조하되 공통 kernel/VM 원인으로 단정하지 않는다.
+6 ms owner overrun의 주입/expiry accounting 검사는 정상 timing 수용과 구분한다. Normal/기존 fault의 만료 0 기준은 유지한다.
 Logical period가 같아도 모든 task deadline이 그 period와 같다고 가정하지 않는다.
 M3에서는 task release/start/end, Mean/P95/P99/Max, sample/drop 수, eligible jobs와
 miss 수/비율, trace overhead를 보고한다. M5/M7에 전체 causal path로 확장한다.

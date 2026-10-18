@@ -146,4 +146,5 @@ unshare --user --map-root-user --net python3 tests/integration/runtime/check_tim
 최종 수치·반복 수·예비 run과 구분한 증거는 [품질 기록](../quality_policy.md)에 남긴다.
 
 이 배치는 monitor와 plant도 옮기는 실험이다. 별도 OS/하드웨어 watchdog이나 CPU 예약이 아니다.
-Monitor/plant 전체 cycle budget, RT priority, Target 검증과 M3 수용 검토는 남는다.
+후속 [전체 cycle 계측](m3_owner_cycles.md)은 물리 계산뿐 아니라 fixture TX까지 포함하고 RX miss와 두 owner를 대조한다.
+Trace workload가 달라졌으므로 위 schema 3의 측정과 합치지 않는다. 전체 cycle budget 채택, RT priority, Target 검증과 M3 수용 검토는 남는다.

@@ -1,5 +1,7 @@
 """Independent small observations protect the report's denominator and tail meaning."""
 import importlib.util
+import copy
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -11,6 +13,148 @@ SPEC.loader.exec_module(report)
 
 
 class TimingReportTest(unittest.TestCase):
+    @staticmethod
+    def owner_fixture():
+        config = dict(first_release_ns=1000, period_ns=10, slots=4, cpu_time_recorded=True)
+        rows = [dict(slot=i, release_ns=1000+i*10, wake_target_ns=1000+i*10,
+                     sleep_begin_ns=900 if i == 0 else 995+i*10, start_ns=1001+i*10,
+                     phase_ns=1002+i*10, end_ns=1004+i*10, ran=1, cpu_begin_ns=10+i*10,
+                     cpu_end_ns=11+i*10, injection_begin_ns=0, injection_end_ns=0,
+                     expired_outputs=0, expired_feedback=0) for i in range(4)]
+        return config, rows
+
+    @staticmethod
+    def skip_cycle(rows, index):
+        rows[index] = {k: v if k in ("slot", "release_ns") else 0 for k, v in rows[index].items()}
+
+    def test_owner_wake_delay_keeps_the_requested_target_when_a_newer_release_is_selected(self):
+        config, rows = self.owner_fixture()
+        self.skip_cycle(rows, 0)
+        rows[1].update(wake_target_ns=1000, sleep_begin_ns=900, start_ns=1012, phase_ns=1013, end_ns=1015)
+        report.validate_owner_cycles(rows, config)
+        metrics = report.owner_cycle_metrics([rows], 10)
+        self.assertEqual(metrics["skipped_slots"], 1)
+        self.assertEqual(metrics["skip_locations"]["after_requested_wake"], 1)
+        self.assertEqual(metrics["wake_target_to_start_ms"]["max"], .000012)
+        self.assertEqual(metrics["latest_release_to_start_ms"]["max"], .000002)
+
+    def test_owner_body_overrun_keeps_skips_and_distinguishes_cpu_work_from_wall_time(self):
+        config, rows = self.owner_fixture()
+        rows[0]["end_ns"] = 1025
+        self.skip_cycle(rows, 1); self.skip_cycle(rows, 2)
+        rows[3]["sleep_begin_ns"] = 1026
+        report.validate_owner_cycles(rows, config)
+        metrics = report.owner_cycle_metrics([rows], 10)
+        self.assertEqual((metrics["scheduled_slots"], metrics["executed_cycles"], metrics["skipped_slots"]), (4, 2, 2))
+        self.assertEqual(metrics["skip_locations"]["inside_previous_body"], 2)
+        self.assertEqual(metrics["body_crossed_next_release"], 1)
+        self.assertEqual(metrics["body_elapsed_ms"]["max"], .000024)
+        self.assertEqual(metrics["thread_cpu_ms"]["max"], .000001)
+
+    def test_owner_bookkeeping_gap_is_separate_from_body_and_wake_return_delay(self):
+        config, rows = self.owner_fixture()
+        self.skip_cycle(rows, 1); self.skip_cycle(rows, 2)
+        rows[3]["sleep_begin_ns"] = 1029
+        report.validate_owner_cycles(rows, config)
+        metrics = report.owner_cycle_metrics([rows], 10)
+        self.assertEqual(metrics["skip_locations"]["before_requested_wake"], 2)
+        self.assertEqual(metrics["body_crossed_next_release"], 0)
+
+    def test_late_sleep_call_is_not_reported_entirely_as_sleep_return_delay(self):
+        config, rows = self.owner_fixture()
+        self.skip_cycle(rows, 1)
+        rows[2].update(wake_target_ns=1010, sleep_begin_ns=1021, start_ns=1023, phase_ns=1024, end_ns=1025)
+        rows[3]["sleep_begin_ns"] = 1026
+        report.validate_owner_cycles(rows, config)
+        metrics = report.owner_cycle_metrics([rows], 10)
+        self.assertEqual(metrics["wake_target_to_start_ms"]["max"], .000013)
+        self.assertEqual(metrics["sleep_call_lateness_ms"]["max"], .000011)
+        self.assertEqual(metrics["sleep_return_delay_ms"]["max"], .000002)
+
+    def test_late_terminal_cycle_does_not_invent_more_scheduled_slots(self):
+        config, rows = self.owner_fixture(); config["slots"] = 2; rows = rows[:2]
+        rows[0]["end_ns"] = 1015
+        rows[1].update(wake_target_ns=1020, sleep_begin_ns=1016, start_ns=1021, phase_ns=1022, end_ns=1024)
+        report.validate_owner_cycles(rows, config)
+        self.assertEqual(report.owner_cycle_metrics([rows], 10)["scheduled_slots"], 2)
+
+    def test_fabricated_owner_work_cpu_time_old_release_and_incomplete_tail_are_rejected(self):
+        config, original = self.owner_fixture()
+        for mutation in ("skipped", "cpu", "cpu_regression", "release", "tail"):
+            rows = copy.deepcopy(original)
+            if mutation == "skipped":
+                rows[0]["ran"] = 0
+            elif mutation == "cpu":
+                rows[0]["cpu_end_ns"] = 100
+            elif mutation == "cpu_regression":
+                rows[1]["cpu_begin_ns"] = 1; rows[1]["cpu_end_ns"] = 2
+            elif mutation == "release":
+                rows[0]["start_ns"] = 1011; rows[0]["phase_ns"] = 1012; rows[0]["end_ns"] = 1014
+            else:
+                self.skip_cycle(rows, 3)
+            with self.assertRaises(AssertionError, msg=mutation):
+                report.validate_owner_cycles(rows, config)
+
+    def test_minimal_owner_trace_keeps_intervals_but_has_no_cpu_clock_samples(self):
+        config, rows = self.owner_fixture(); config["cpu_time_recorded"] = False
+        for row in rows:
+            row["cpu_begin_ns"] = row["cpu_end_ns"] = 0
+        report.validate_owner_cycles(rows, config)
+        metrics = report.owner_cycle_metrics([rows], 10)
+        self.assertEqual(metrics["body_elapsed_ms"]["samples"], 4)
+        self.assertEqual(metrics["thread_cpu_ms"]["samples"], 0)
+        rows[0]["cpu_begin_ns"] = 1
+        with self.assertRaisesRegex(AssertionError, "minimal"):
+            report.validate_owner_cycles(rows, config)
+
+    def test_normal_contract_still_rejects_any_expired_output(self):
+        metadata = dict(schema=4, clock="CLOCK_MONOTONIC", aborted=False, trace_drops=0, expired_outputs=1, scenario="normal")
+        with self.assertRaisesRegex(AssertionError, "expired output"):
+            report.analyze_multirate(Path("unused"), metadata)
+
+    def test_plant_injection_does_not_allow_unrelated_or_unaccounted_expiry_later(self):
+        _, rows = self.owner_fixture()
+        rows[1].update(injection_begin_ns=1012, injection_end_ns=1013)
+        rows[2].update(expired_outputs=2, expired_feedback=1)
+        report.validate_plant_overrun_expiry(rows)
+        rows[3]["expired_outputs"] = 1
+        with self.assertRaisesRegex(AssertionError, "unrelated expiry"):
+            report.validate_plant_overrun_expiry(rows)
+
+    def test_rx_correlation_retains_each_miss_and_owner_slots_without_claiming_a_cause(self):
+        config, rows = self.owner_fixture()
+        rows[0]["end_ns"] = 1025; rows[3]["sleep_begin_ns"] = 1026
+        self.skip_cycle(rows, 1); self.skip_cycle(rows, 2)
+        rx = [dict(job=0, release_ns=1010, deadline_ns=1018, start_ns=0, end_ns=0, ran=0, detected_ns=1019),
+              dict(job=1, release_ns=1020, deadline_ns=1028, start_ns=1021, end_ns=1022, ran=1, detected_ns=1028)]
+        result = report.correlate_rx_owners(rx, dict(monitor=rows, plant_fixture=copy.deepcopy(rows)), config)
+        self.assertEqual((result["rx_missed_jobs"], result["both_owners_skipped_same_slot"]), (2, 2))
+        event = result["events"][0]["owners"]["monitor"]
+        self.assertEqual((event["previous_phase_ns"], event["next_phase_ns"], event["phase_gap_ns"]), (1002, 1032, 30))
+        self.assertTrue(event["next_phase_at_or_after_rx_deadline"])
+
+    def test_owner_pooling_uses_individual_samples_and_excludes_inter_run_gaps(self):
+        _, rows = self.owner_fixture(); second = copy.deepcopy(rows)
+        for row in second:
+            for key in ("release_ns", "wake_target_ns", "sleep_begin_ns", "start_ns", "phase_ns", "end_ns"):
+                row[key] += 10000
+        metrics = report.owner_cycle_metrics([rows, second], 10)
+        self.assertEqual(metrics["observed_start_interval_ms"]["samples"], 6)
+        self.assertEqual(metrics["observed_start_interval_ms"]["max"], .00001)
+
+    def test_bad_owner_trace_does_not_discard_valid_failed_run_job_observations_or_break_history(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            metadata = dict(schema=4, owner_cycles={}, tasks=[dict(name="rx", jobs=1, first_release_ns=100, period_ns=10, deadline_ns=5)])
+            (directory / "rx-jobs.csv").write_text("job,release_ns,deadline_ns,start_ns,end_ns,ran,detected_ns\n0,100,105,101,106,1,105\n")
+            (directory / "run.json").write_text(json.dumps(metadata))
+            observed = report.observe_jobs(directory)
+            self.assertEqual(observed["metrics"]["rx"]["missed_jobs"], 1)
+            self.assertIn("owner_observation_error", observed)
+            metadata["schema"] = 3
+            (directory / "run.json").write_text(json.dumps(metadata))
+            self.assertNotIn("owner_observation_error", report.observe_jobs(directory))
+
     @staticmethod
     def feedback_observations():
         wire=dict(crc_ok=1,source_ns=10,sequence=0,value_valid=1,torque_nm=12.4,

@@ -3,6 +3,7 @@
 Date: 2026-10-18. Status: **Host 비교 구현 / 결과·제한은 품질 기록에 연결**.
 [ADR-0035](ADR-0035-controlled-cpu-load-and-placement.md)의 같은 CPU 부하에서 RX job이 생략됐고,
 [ADR-0036](ADR-0036-asynchronous-drive-actual-feedback.md)의 여섯 stream workload에서도 재현했다.
+후속 [ADR-0038](ADR-0038-whole-owner-cycle-observation.md)은 감시·물리 전체 cycle 계측과 RX miss의 시간 대조를 추가한다.
 
 ## 관측과 결정
 

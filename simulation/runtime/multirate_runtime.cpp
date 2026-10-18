@@ -73,6 +73,52 @@ struct FeedbackRx {
     std::uint64_t time,accepted,usable_source; int decision;
     bool usable,speed_usable,capability_usable; double usable_torque; socketcan::Frame frame;
 };
+struct OwnerCycle {
+    std::uint64_t wake_target{0},sleep_begin{0},start{0},phase{0},end{0},cpu_begin{0},cpu_end{0},injection_begin{0},injection_end{0};
+    std::size_t expired_outputs{0},expired_feedback{0};
+    bool ran{false};
+};
+struct WakeSample { std::uint64_t target,sleep_begin,returned; };
+struct CycleTraceConfig { std::uint64_t first,period; std::size_t slots; bool record_cpu; };
+std::uint64_t owner_cpu_now_ns() {
+    timespec value{};
+    if(clock_gettime(CLOCK_THREAD_CPUTIME_ID,&value)!=0) throw std::system_error(errno,std::generic_category(),"owner thread CPU clock");
+    return static_cast<std::uint64_t>(value.tv_sec)*1000000000+static_cast<std::uint64_t>(value.tv_nsec);
+}
+class CycleTrace {
+public:
+    explicit CycleTrace(CycleTraceConfig config): config_(config),rows_(config.slots) {}
+    OwnerCycle& begin(WakeSample wake) {
+        const auto slot=std::min<std::uint64_t>((wake.returned-config_.first)/config_.period,rows_.size()-1);
+        auto& row=rows_[slot];
+        if(row.ran) throw std::runtime_error("owner cycle slot reused");
+        row.ran=true; row.wake_target=wake.target; row.sleep_begin=wake.sleep_begin; row.start=wake.returned;
+        if(config_.record_cpu) row.cpu_begin=owner_cpu_now_ns();
+        return row;
+    }
+    void finish(OwnerCycle& row) const {
+        if(config_.record_cpu) row.cpu_end=owner_cpu_now_ns();
+        row.end=now_ns();
+    }
+    void write(const std::filesystem::path& path) const {
+        auto out=open_output(path);
+        out << "slot,release_ns,wake_target_ns,sleep_begin_ns,start_ns,phase_ns,end_ns,ran,cpu_begin_ns,cpu_end_ns,injection_begin_ns,injection_end_ns,expired_outputs,expired_feedback\n";
+        for(std::size_t i=0;i<rows_.size();++i) {
+            const auto& r=rows_[i];
+            out << i << ',' << config_.first+i*config_.period << ',' << r.wake_target << ',' << r.sleep_begin << ',' << r.start
+                << ',' << r.phase << ',' << r.end << ',' << r.ran << ',' << r.cpu_begin << ',' << r.cpu_end
+                << ',' << r.injection_begin << ',' << r.injection_end << ',' << r.expired_outputs << ',' << r.expired_feedback << '\n';
+        }
+    }
+private:
+    CycleTraceConfig config_;
+    std::vector<OwnerCycle> rows_;
+};
+void inject_cycle(OwnerCycle& row,bool requested,bool& injected,std::uint64_t enable) {
+    if(!requested || injected || row.phase<enable+kInjection) return;
+    injected=true; row.injection_begin=now_ns();
+    sleep_until(row.injection_begin+6*kMs); row.injection_end=now_ns();
+}
 void write_feedback_wire(std::ostream& out,const socketcan::Frame& frame) {
     const auto m=can::decode_drive_frame(socketcan::to_drive(frame));
     out << ',' << m.has_value() << ',' << (m ? m->source_time_ns : 0) << ',' << (m ? m->sequence : 0)
@@ -135,7 +181,8 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     const auto& directory=options.directory;
     const bool detailed=options.detailed_trace;
     if(scenario!="normal" && scenario!="brake-stall" && scenario!="drive-stall" && scenario!="bms-stall" &&
-        scenario!="power-stall" && scenario!="rx-stall" && scenario!="rx-corrupt" && scenario!="feedback-replay") throw std::invalid_argument("multirate-runtime scenario");
+        scenario!="power-stall" && scenario!="rx-stall" && scenario!="rx-corrupt" && scenario!="feedback-replay" &&
+        scenario!="monitor-overrun" && scenario!="plant-overrun") throw std::invalid_argument("multirate-runtime scenario");
     if(options.owner_cpus) {
         ThreadInfo inherited; inherited.capture();
         for(const int cpu:*options.owner_cpus) {
@@ -154,6 +201,8 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     std::array<std::unique_ptr<socketcan::Endpoint>,kReceiveStreams> sockets;
     for(std::size_t i=0;i<kReceiveStreams;++i) sockets[i]=std::make_unique<socketcan::Endpoint>(interface_name,kIds[i]);
     const auto enable=now_ns()+100*kMs,stop_at=enable+kWindow+40*kMs;
+    const auto cycle_slots=static_cast<std::size_t>((stop_at-enable)/kPoll+1);
+    CycleTrace monitor_cycles({enable,kPoll,cycle_slots,detailed}),plant_cycles({enable,kPoll,cycle_slots,detailed});
     Task brake_task(kBrake,{enable+10*kMs,10*kMs,5*kMs,240}),drive_task(kDrive,{enable+10*kMs,10*kMs,5*kMs,240}),
          bms_task(kBms,{enable+5*kMs,20*kMs,8*kMs,120}),power_task(kPower,{enable+8*kMs,10*kMs,5*kMs,240}),
          rx_task(kRx,{enable+2*kMs,2*kMs,3*kMs,1210}); // 20 ms drain tail for the last Actual
@@ -186,11 +235,14 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
     can::ActuatorReceiverHealth feedback_health=can::ActuatorReceiverHealth::NotInitialized;
     std::optional<PhysicalRow> final_physical;
     auto watch=[&] {
-        monitor_thread_info.capture(); sleep_until(enable);
+        monitor_thread_info.capture();
+        bool injected=false;
+        auto wake_target=enable,sleep_begin=now_ns(); sleep_until(wake_target);
         while(!abort.load(std::memory_order_acquire)) {
+            auto& cycle=monitor_cycles.begin({wake_target,sleep_begin,now_ns()});
             std::array<std::optional<std::uint64_t>,kReceiveStreams> captures{};
             for(std::size_t i=0;i<kReceiveStreams;++i) { const auto value=valid_rx[i].load(std::memory_order_acquire); if(value!=0) captures[i]=value; }
-            const auto now=now_ns(); unsigned task_bits=0,stream_bits=0;
+            const auto now=now_ns(); cycle.phase=now; unsigned task_bits=0,stream_bits=0;
             for(std::size_t i=0;i<tasks.size();++i) {
                 tasks[i]->monitor.poll(now);
                 if(tasks[i]->monitor.faulted() || tasks[i]->monitor.clock_error()) task_bits|=1U<<i;
@@ -203,8 +255,10 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
             if((task_bits & ((1U<<kDrive)|(1U<<kBms)|(1U<<kPower)|(1U<<kRx))) || (stream_bits&62U)) zero_override.store(true,std::memory_order_release);
             if(task_bits & (1U<<kBms)) bms_inhibit.store(true,std::memory_order_release);
             if(detailed) append_bounded(monitor_rows,MonitorRow{now,task_bits,stream_bits,floor_override.load(),zero_override.load(),bms_inhibit.load()},monitor_drops);
+            inject_cycle(cycle,scenario=="monitor-overrun",injected,enable);
+            monitor_cycles.finish(cycle);
             if(now>=stop_at) break;
-            sleep_until(next_wake(enable,kPoll,now_ns()));
+            wake_target=next_wake(enable,kPoll,now_ns()); sleep_begin=now_ns(); sleep_until(wake_target);
         }
         monitor_end=now_ns();
     };
@@ -348,15 +402,18 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
         std::optional<DriveOutput> replay;
         vecu::PowerControlOutput power_state; std::optional<can::BmsMessage> power_status; bool bms_active=false;
         auto send=[&](socketcan::Frame frame) { frame.fd_flags|=4; if(scenario=="rx-corrupt" && now_ns()-enable>=kInjection) frame.payload[7]^=1; tx.send(frame); };
-        sleep_until(enable);
+        bool injected=false;
+        auto wake_target=enable,sleep_begin=now_ns(); sleep_until(wake_target);
         while(!abort.load(std::memory_order_acquire)) {
+            auto& cycle=plant_cycles.begin({wake_target,sleep_begin,now_ns()});
+            const auto old_expired_outputs=expired_outputs,old_expired_feedback=expired_feedback;
             // Acquire every external decision before its application clock.
             // A flag published during physics belongs to the NEXT interval.
             const bool floor=floor_override.load(std::memory_order_acquire),zero=zero_override.load(std::memory_order_acquire);
             const bool captured_bms_inhibit=bms_inhibit.load(std::memory_order_acquire);
             const auto brake_request=brake_output.read(); const auto drive_request=drive_output.read();
             const auto power_request=power_output.read(); const auto limits=bms_output.read();
-            const auto now=now_ns(),cost_begin=now_ns();
+            const auto now=now_ns(),cost_begin=now_ns(); cycle.phase=now;
             const double old_torque=torque.actual_nm(); const battery::ModelIdentity id{7,physical_sequence++,begin};
             const bool inverter=old_torque!=0 || (power_state.phase==vecu::PowerPhase::Ready && !power_state.inhibit_drive);
             const EvPowerInputs inputs{battery::ModelMeasurement<double>{old_torque,id,begin},battery::ModelMeasurement<double>{20,id,begin},
@@ -443,11 +500,15 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
                 static_cast<int>(power_state.phase)};
             if(detailed) append_bounded(physical_rows,*final_physical,physical_drops);
             begin=now;
+            cycle.expired_outputs=expired_outputs-old_expired_outputs; cycle.expired_feedback=expired_feedback-old_expired_feedback;
+            inject_cycle(cycle,scenario=="plant-overrun",injected,enable);
+            plant_cycles.finish(cycle);
             if(now>=stop_at) break;
-            sleep_until(next_wake(enable,kPoll,now_ns()));
+            wake_target=next_wake(enable,kPoll,now_ns()); sleep_begin=now_ns(); sleep_until(wake_target);
         }
     } catch(...) { errors[6]=std::current_exception(); abort.store(true,std::memory_order_release); }
     for(auto& thread:threads) thread.join();
+    monitor_cycles.write(directory/"monitor-cycles.csv"); plant_cycles.write(directory/"plant-cycles.csv");
     for(const auto* task:tasks) {
         auto out=open_output(directory/(std::string(kNames[task->role])+"-jobs.csv"));
         out << "job,release_ns,deadline_ns,start_ns,end_ns,ran,detected_ns,phase_ns,ecu_elapsed_ns,input_source_ns,input_sequence,report_source_ns,reported,value_valid,accepted_mask,rejected,raw_frames,injection_begin_ns,injection_end_ns,prepared,fault,state,active,inhibit,selected,input_torque_nm\n";
@@ -477,7 +538,7 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
         write_feedback_wire(fr,r.frame); fr << '\n';
     }
     auto meta=open_output(directory/"run.json");
-    meta << "{\n\"schema\": 3, \"family\": \"multirate\", \"scenario\": " << std::quoted(scenario) << ", \"detailed_trace\": " << (detailed?"true":"false")
+    meta << "{\n\"schema\": 4, \"family\": \"multirate\", \"scenario\": " << std::quoted(scenario) << ", \"detailed_trace\": " << (detailed?"true":"false")
         << ", \"clock\": \"CLOCK_MONOTONIC\", \"enable_ns\": " << enable << ", \"stop_ns\": " << stop_at << ", \"injection_offset_ns\": " << kInjection
         << ", \"monitor_period_ns\": " << kPoll << ", \"plant_period_ns\": " << kPoll << ", \"monitor_ended_ns\": " << monitor_end
         << ", \"floor_applied_ns\": " << floor_at << ", \"zero_applied_ns\": " << zero_at << ", \"expired_outputs\": " << expired_outputs
@@ -486,6 +547,9 @@ void run_multirate_runtime(const MultirateRuntimeOptions& options) {
         << ", \"rx_drain_tail_ns\": " << 20*kMs << ", \"actual_feedback\": {\"sent\":" << feedback_sent << ",\"received\":" << feedback_received
         << ",\"accepted\":" << feedback_accepted << ",\"expired\":" << expired_feedback << ",\"health\":" << static_cast<int>(feedback_health) << '}'
         << ", \"monitor_policy\": " << monitor_thread_info.policy << ", \"plant_policy\": " << plant_thread_info.policy
+        << ", \"owner_cycles\": {\"first_release_ns\":" << enable << ",\"period_ns\":" << kPoll << ",\"slots\":" << cycle_slots
+        << ",\"cpu_time_recorded\":" << (detailed?"true":"false") << ",\"cpu_clock\":\"CLOCK_THREAD_CPUTIME_ID\",\"injection_sleep_ns\":" << 6*kMs
+        << ",\"deadline_ns\":null,\"scope\":\"whole body including fixture TX; excludes periodic sleep and cycle bookkeeping after end\"}"
         << ", \"rx_budget\": 8, \"final_physical\": ";
     if(final_physical) meta << "{\"pressure_pa\":" << final_physical->pressure << ",\"torque_nm\":" << final_physical->torque
         << ",\"bus_v\":" << final_physical->bus << ",\"soc\":" << final_physical->soc << ",\"balance_j\":" << final_physical->balance << '}';

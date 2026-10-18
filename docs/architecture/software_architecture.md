@@ -117,6 +117,8 @@ RX 정지·지속 CRC 실패에서도 Brake floor/Drive zero·BMS inhibit를 검
 후속 [owner별 CPU 배치](../adr/ADR-0037-runtime-owner-cpu-placement.md)는 같은 runtime의 7개 owner에 선택적으로
 각각 CPU를 지정한다. RX만 이동하거나 RX·monitor·physical/fixture를 함께 이동해 비교하며 ECU/물리 책임과
 CAN 계약은 유지한다. 별도 OS/하드웨어 watchdog이나 CPU 예약을 구현한 것은 아니다.
+후속 [전체 cycle 계측](../learning/m3_owner_cycles.md)은 monitor의 snapshot 읽기부터 flag/trace 기록까지,
+physical/fixture의 snapshot 읽기부터 계산·센서·CAN TX/trace까지 잰다. Application phase와 원천 취득 시각은 유지한다.
 
 | vECU | Command / dynamics 후보 | Feedback / fault 후보 |
 | --- | --- | --- |

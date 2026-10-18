@@ -75,7 +75,8 @@ Source age 30 ms로 current_sample이 먼저 unavailable이 되는 것과 RX tim
 
 `generation_ns`는 ECU에 전달한 논리 job/report 시각(`phase_ns`)이다. 실제 직렬화 완료 시각을 뜻하지 않는다.
 Job start/end·ECU 비용과 socket begin/end는 따로 기록한다.
-Trace schema 3과 CAN schema 2는 다른 번호다. 이전 schema 2 timing 기록도 기존 의미로 분석한다.
+이 단계의 trace schema 3과 CAN schema 2는 다른 번호다. 후속 [전체 owner cycle](m3_owner_cycles.md)의 trace는 4이며,
+이전 schema 2/3 timing 기록도 기존 의미로 분석한다.
 상세 trace는 원래 payload bytes를 보존하고 minimal은 같은 송수신 경로의 count를 기록한다.
 원천 ns는 정수이며 floating-point timestamp로 바꾸지 않는다. Torque wire 양자화 오차는 최대 0.05 N·m다.
 Source→RX는 local 소프트웨어 경계의 latency이며 실제 CAN arbitration·차량 전체 E2E나 settling time이 아니다.

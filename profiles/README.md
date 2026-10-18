@@ -103,7 +103,10 @@ Brake/Drive/Power 10 ms·deadline 5 ms, BMS 20 ms·deadline 8 ms, RX 2 ms·deadl
 Core 최소 호출 guard 1 ms는 runnable period가 아니다. Trusted parent 이력은 CAN 밖의 최근 4개 원천 frame/context에 한정한다.
 후속 [비동기 Drive Actual](../docs/learning/m3_drive_feedback.md)은 기존 SourceTimeNs에 실제 취득 시각을 보존해 송수신한다.
 RX 1210 jobs는 ECU workload 뒤 20 ms drain tail을 포함하며 monitor/plant tail은 40 ms다.
-Cached torque는 unavailable 진단이며 source age·valid RX timer를 갱신하지 않는다. Trace schema 3과 CAN schema 2를 구분한다.
+Cached torque는 unavailable 진단이며 source age·valid RX timer를 갱신하지 않는다. 현재 trace schema 4와 CAN schema 2를 구분한다.
+후속 [전체 cycle 계측](../docs/learning/m3_owner_cycles.md)은 enable부터 2440 ms까지 monitor/plant 각각 1221개 기회를 양 trace mode에 기록한다.
+Full의 thread CPU clock과 두 owner의 6 ms 주입을 추가했고 기존 trace 2/3은 원래 의미로 읽는다.
+`owner_cycle_deadline_ms: null`은 기존 TBD-04에 귀속되며 period 2 ms를 새 deadline으로 채택하지 않았다.
 YAML loader·차량/Target timing 보장·실제 Central/Zone runtime은 후속이다.
 
 `m3_cpu_placement_fixture`는 [고정 부하·CPU 배치 비교](../docs/learning/m3_cpu_placement.md)의 protocol 기록이다.

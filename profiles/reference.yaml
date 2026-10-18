@@ -522,9 +522,9 @@ m3_steering_runtime_fixture:
   scheduling_policy: SCHED_OTHER
   handoff: spsc_triple_buffer_latest_snapshot
 
-# ADR-0034/0036: finite Host multirate/vCAN + Actual RX; no profile loader.
+# ADR-0034/0036/0038: finite Host multirate/vCAN + whole owner cycles; no profile loader.
 m3_multirate_runtime_fixture:
-  trace_schema: 3 # independent of CAN wire schema 2
+  trace_schema: 4 # independent of CAN wire schema 2; reader retains schemas 2/3
   window_ms: 2400
   monitoring_tail_ms: 40
   startup_lead_ms: 100
@@ -537,6 +537,10 @@ m3_multirate_runtime_fixture:
   minimum_ecu_call_ms: 1
   monitor_period_ms: 2
   plant_period_ms: 2
+  owner_cycle_slots: 1221 # enable through 2440 ms inclusive, both trace modes
+  owner_cycle_cpu_clock: CLOCK_THREAD_CPUTIME_ID # detailed only
+  owner_cycle_deadline_ms: null # observation only; not inferred from 2 ms period
+  owner_cycle_injected_sleep_ms: 6 # after monitor/fixture body in explicit overrun scenarios
   rx_dispatch_budget: 8
   accepted_rx_timeout_ms: 80
   accepted_rx_detection_limit_ms: 100

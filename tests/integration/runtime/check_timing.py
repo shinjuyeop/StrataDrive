@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run/analyze finite M3 Steering or multirate/vCAN experiments; retain every job."""
 import argparse
+from bisect import bisect_left
 import csv
 import hashlib
 import json
@@ -168,6 +169,129 @@ def multirate_rows(path):
         return [{k: v if k == "payload_hex" else float(v) if k in floating else int(v) for k, v in row.items()} for row in csv.DictReader(stream)]
 
 
+OWNER_CYCLE_FILES = {"monitor": "monitor-cycles.csv", "plant_fixture": "plant-cycles.csv"}
+
+
+def validate_owner_cycles(rows, config):
+    require(len(rows) == config["slots"] and bool(rows), "incomplete owner cycle schedule")
+    previous = None
+    for i, row in enumerate(rows):
+        require(row["slot"] == i and row["release_ns"] == config["first_release_ns"] + i * config["period_ns"], "owner release drift")
+        require(row["ran"] in (0, 1), "invalid owner ran flag")
+        require(row["expired_outputs"] >= 0 and row["expired_feedback"] >= 0, "negative owner expiry counter")
+        if not row["ran"]:
+            require(all(v == 0 for k, v in row.items() if k not in ("slot", "release_ns")), "skipped owner cycle has fabricated work")
+            continue
+        require(row["release_ns"] <= row["start_ns"] <= row["phase_ns"] <= row["end_ns"] and
+                row["sleep_begin_ns"] <= row["start_ns"] and row["wake_target_ns"] <= row["start_ns"], "invalid owner cycle interval")
+        require(row["wake_target_ns"] >= config["first_release_ns"] and
+                (row["wake_target_ns"] - config["first_release_ns"]) % config["period_ns"] == 0, "unaligned owner wake target")
+        selected = min((row["start_ns"] - config["first_release_ns"]) // config["period_ns"], config["slots"] - 1)
+        require(selected == i, "owner cycle assigned to an old release")
+        if previous is None:
+            require(row["wake_target_ns"] == config["first_release_ns"], "owner initial wake changed")
+        else:
+            require(previous["end_ns"] <= row["sleep_begin_ns"] and previous["end_ns"] < row["wake_target_ns"], "overlapping owner cycles or catch-up burst")
+            if config["cpu_time_recorded"]:
+                require(previous["cpu_end_ns"] <= row["cpu_begin_ns"], "owner CPU clock regressed")
+        if config["cpu_time_recorded"]:
+            require(0 < row["cpu_begin_ns"] <= row["cpu_end_ns"] and
+                    row["cpu_end_ns"] - row["cpu_begin_ns"] <= row["end_ns"] - row["start_ns"], "invalid owner CPU interval")
+        else:
+            require(row["cpu_begin_ns"] == row["cpu_end_ns"] == 0, "minimal mode recorded owner CPU clocks")
+        if row["injection_begin_ns"] or row["injection_end_ns"]:
+            require(row["phase_ns"] <= row["injection_begin_ns"] <= row["injection_end_ns"] <= row["end_ns"], "injection outside whole owner body")
+        previous = row
+    require(rows[-1]["ran"], "owner did not reach monitoring tail")
+
+
+def owner_cycle_metrics(runs, period_ns):
+    """Pool individual samples, keeping run boundaries and skipped opportunities."""
+    rows = [r for run in runs for r in run]
+    ran = [r for r in rows if r["ran"]]
+    cpu = [r for r in ran if r["cpu_begin_ns"]]
+    locations = dict(inside_previous_body=0, before_requested_wake=0, after_requested_wake=0)
+    intervals = []
+    for run in runs:
+        executed = [r for r in run if r["ran"]]
+        intervals.extend((b["start_ns"] - a["start_ns"]) / 1e6 for a, b in zip(executed, executed[1:]))
+        slots = [r["slot"] for r in executed]
+        for row in (r for r in run if not r["ran"]):
+            position = bisect_left(slots, row["slot"])
+            previous = executed[position - 1] if position else None
+            following = executed[position]  # Valid traces always complete the last slot.
+            location = ("inside_previous_body" if previous and row["release_ns"] <= previous["end_ns"] else
+                        "before_requested_wake" if row["release_ns"] < following["wake_target_ns"] else "after_requested_wake")
+            locations[location] += 1
+    return {"scheduled_slots": len(rows), "executed_cycles": len(ran), "skipped_slots": len(rows) - len(ran),
+            "skip_locations": locations,
+            "body_crossed_next_release": sum(r["ran"] and i + 1 < len(run) and r["end_ns"] >= r["release_ns"] + period_ns
+                                             for run in runs for i, r in enumerate(run)),
+            "body_elapsed_ms": distribution([(r["end_ns"] - r["start_ns"]) / 1e6 for r in ran]),
+            "thread_cpu_ms": distribution([(r["cpu_end_ns"] - r["cpu_begin_ns"]) / 1e6 for r in cpu]),
+            "body_wall_minus_cpu_ms": distribution([(r["end_ns"] - r["start_ns"] - r["cpu_end_ns"] + r["cpu_begin_ns"]) / 1e6 for r in cpu]),
+            "wake_target_to_start_ms": distribution([(r["start_ns"] - r["wake_target_ns"]) / 1e6 for r in ran]),
+            "sleep_call_lateness_ms": distribution([max(0, r["sleep_begin_ns"] - r["wake_target_ns"]) / 1e6 for r in ran]),
+            "sleep_return_delay_ms": distribution([(r["start_ns"] - max(r["wake_target_ns"], r["sleep_begin_ns"])) / 1e6 for r in ran]),
+            "latest_release_to_start_ms": distribution([(r["start_ns"] - r["release_ns"]) / 1e6 for r in ran]),
+            "observed_start_interval_ms": distribution(intervals),
+            "interpretation": "skip locations describe measured intervals; wall minus CPU is not a scheduler-cause attribution; no owner deadline adopted"}
+
+
+def correlate_rx_owners(rx_jobs, owners, config):
+    events = []
+    executed = {name: [r for r in rows if r["ran"]] for name, rows in owners.items()}
+    phases = {name: [r["phase_ns"] for r in rows] for name, rows in executed.items()}
+    for rx in rx_jobs:
+        if rx["ran"] and not rx["detected_ns"] and rx["end_ns"] <= rx["deadline_ns"]:
+            continue
+        event = {k: rx[k] for k in ("job", "release_ns", "deadline_ns", "start_ns", "end_ns", "ran", "detected_ns")}
+        event["owners"] = {}
+        for name, rows in owners.items():
+            offset = rx["release_ns"] - config["first_release_ns"]
+            require(offset >= 0 and offset % config["period_ns"] == 0, "RX release not aligned with owner opportunities")
+            slot = offset // config["period_ns"]
+            require(slot < len(rows), "RX outside owner observation window")
+            position = bisect_left(phases[name], rx["release_ns"])
+            before = phases[name][position - 1] if position else None
+            after = executed[name][position] if position < len(executed[name]) else None
+            event["owners"][name] = {"slot": slot, "slot_ran": rows[slot]["ran"],
+                "previous_phase_ns": before, "next_phase_ns": after["phase_ns"] if after else None,
+                "phase_gap_ns": after["phase_ns"] - before if after and before is not None else None,
+                "next_phase_at_or_after_rx_deadline": after["phase_ns"] >= rx["deadline_ns"] if after else None}
+        events.append(event)
+    return {"rx_missed_jobs": len(events), "both_owners_skipped_same_slot": sum(all(not x["slot_ran"] for x in e["owners"].values()) for e in events),
+            "by_owner": {name: {"skipped_same_slot": sum(not e["owners"][name]["slot_ran"] for e in events),
+                                 "next_phase_at_or_after_rx_deadline": sum(e["owners"][name]["next_phase_at_or_after_rx_deadline"] is True for e in events)}
+                         for name in owners}, "events": events,
+            "interpretation": "temporal correlation only; no common kernel/VM cause inferred"}
+
+
+def observe_owner_cycles(directory, metadata, rx_jobs):
+    config = metadata["owner_cycles"]
+    require(config["first_release_ns"] == metadata["enable_ns"] and config["period_ns"] == 2_000_000 and
+            config["slots"] == (metadata["stop_ns"] - metadata["enable_ns"]) // config["period_ns"] + 1,
+            "owner observation schedule changed")
+    require(config["cpu_time_recorded"] == metadata["detailed_trace"] and config["cpu_clock"] == "CLOCK_THREAD_CPUTIME_ID" and
+            config["deadline_ns"] is None, "owner clock/budget policy changed")
+    rows = {name: multirate_rows(directory / filename) for name, filename in OWNER_CYCLE_FILES.items()}
+    for run in rows.values():
+        validate_owner_cycles(run, config)
+    require(sum(r["expired_outputs"] for r in rows["plant_fixture"]) == metadata["expired_outputs"] and
+            sum(r["expired_feedback"] for r in rows["plant_fixture"]) == metadata["actual_feedback"]["expired"], "owner expiry accounting mismatch")
+    require(all(r["expired_outputs"] == r["expired_feedback"] == 0 for r in rows["monitor"]), "monitor wrote plant expiry counters")
+    return {"by_owner": {name: owner_cycle_metrics([run], config["period_ns"]) for name, run in rows.items()},
+            "rx_correlation": correlate_rx_owners(rx_jobs, rows, config), "scope": "validated whole owner cycles; no owner deadline verdict"}
+
+
+def validate_plant_overrun_expiry(cycles):
+    ran = [r for r in cycles if r["ran"]]
+    injected = [i for i, r in enumerate(ran) if r["injection_begin_ns"]]
+    require(len(injected) == 1 and injected[0] + 1 < len(ran), "plant injection has no recovery observation")
+    require(all(not (r["expired_outputs"] or r["expired_feedback"]) or i == injected[0] + 1 for i, r in enumerate(ran)),
+            "unrelated expiry outside first post-injection plant cycle")
+
+
 def drive_feedback_metrics(transmitted, received, jobs):
     """Match actual socket bytes to the producing job and independent valid RX."""
     published, accepted = {}, []
@@ -205,8 +329,10 @@ def drive_feedback_metrics(transmitted, received, jobs):
 
 
 def analyze_multirate(directory, metadata):
-    require(metadata["schema"] in (2, 3) and metadata["clock"] == "CLOCK_MONOTONIC", "unknown multirate schema/clock")
-    require(not metadata["aborted"] and metadata["trace_drops"] == metadata["expired_outputs"] == 0, "runtime/output/trace failure")
+    require(metadata["schema"] in (2, 3, 4) and metadata["clock"] == "CLOCK_MONOTONIC", "unknown multirate schema/clock")
+    require(not metadata["aborted"] and metadata["trace_drops"] == 0, "runtime/trace failure")
+    if metadata["scenario"] != "plant-overrun":
+        require(metadata["expired_outputs"] == 0, "expired output outside plant overrun injection")
     rows, metrics = {}, {}
     expected_periods = {"brake": 10_000_000, "drive": 10_000_000, "bms": 20_000_000, "power": 10_000_000, "rx": 2_000_000}
     require(len(metadata["tasks"]) == len(expected_periods) and {t["name"] for t in metadata["tasks"]} == set(expected_periods), "missing/duplicate task")
@@ -247,9 +373,11 @@ def analyze_multirate(directory, metadata):
     else:
         require(not physical and not watches and not raw, "minimal mode recorded detailed buffers")
     feedback = {}
-    if metadata["schema"] == 3:
+    if metadata["schema"] >= 3:
         require(len(metadata["streams"]) == 6 and metadata["streams"][-1]["name"] == "drive_actual", "Actual loss monitor missing")
-        require(metadata["actual_feedback"]["accepted"] > 0 and metadata["actual_feedback"]["expired"] == 0, "Actual missing/expired")
+        require(metadata["actual_feedback"]["accepted"] > 0, "Actual missing")
+        if metadata["scenario"] != "plant-overrun":
+            require(metadata["actual_feedback"]["expired"] == 0, "Actual expired outside plant overrun injection")
         transmitted = multirate_rows(directory / "actual-tx.csv")
         received = multirate_rows(directory / "actual-rx.csv")
         if metadata["detailed_trace"]:
@@ -265,18 +393,41 @@ def analyze_multirate(directory, metadata):
     require(any(r["state"] == 7 for r in rows["power"]), "power never reached measured READY")
     final = metadata["final_physical"]
     require(final and 0 < final["soc"] < .5 and abs(final["balance_j"]) <= .00072, "missing actual energy flow")
+    owner_observations = observe_owner_cycles(directory, metadata, rows["rx"]) if metadata["schema"] >= 4 else None
+    if owner_observations and metadata["detailed_trace"]:
+        monitor_cycles = [r for r in multirate_rows(directory / OWNER_CYCLE_FILES["monitor"]) if r["ran"]]
+        plant_cycles = [r for r in multirate_rows(directory / OWNER_CYCLE_FILES["plant_fixture"]) if r["ran"]]
+        require([r["phase_ns"] for r in monitor_cycles] == [r["time_ns"] for r in watches] and
+                [r["phase_ns"] for r in plant_cycles] == [r["time_ns"] for r in physical], "whole-cycle trace lost original application/acquisition phase")
+        require(all(c["start_ns"] <= p["physics_begin_ns"] <= p["physics_end_ns"] <= c["end_ns"]
+                    for c, p in zip(plant_cycles, physical)), "physics outside whole plant cycle")
+        starts = [r["start_ns"] for r in plant_cycles]
+        for tx in transmitted:
+            position = bisect_left(starts, tx["begin_ns"])
+            cycle = plant_cycles[position] if position < len(starts) and starts[position] == tx["begin_ns"] else plant_cycles[position - 1] if position else None
+            require(cycle is not None and cycle["start_ns"] <= tx["begin_ns"] <= tx["end_ns"] <= cycle["end_ns"], "Actual TX outside whole plant cycle")
     scenario = metadata["scenario"]
-    if scenario == "normal":
+    if scenario in ("normal", "monitor-overrun", "plant-overrun"):
         require(all(m["missed_jobs"] == m["skipped_jobs"] == 0 for m in metrics.values()), "normal multirate missed jobs")
         require(all(r["fault"] == 0 for name in ("brake", "drive", "bms", "power") for r in rows[name]), "normal ECU fault")
         require(all(value is None for value in latencies.values()), "normal stream timed out")
         require(metadata["floor_applied_ns"] == metadata["zero_applied_ns"] == 0, "unexpected independent action")
         require(abs(final["pressure_pa"] - 1300000) < 1e-5 and abs(final["torque_nm"] - 250) < 1e-8, "normal response not reached")
-        if metadata["schema"] == 3:
+        if metadata["schema"] >= 3:
             counts = metadata["actual_feedback"]
-            require(counts["sent"] == counts["received"] == counts["accepted"] == len(rows["drive"]), "normal Actual lost/rejected")
+            require(counts["sent"] == counts["received"] == counts["accepted"] and
+                    counts["sent"] + (counts["expired"] if scenario == "plant-overrun" else 0) == len(rows["drive"]), "normal/injected Actual lost/rejected without expiry accounting")
             if transmitted:
                 require(all(r["speed_usable"] == r["speed_valid"] and r["capability_usable"] == r["capability_valid"] for r in received), "normal auxiliary time was coupled to torque")
+        if scenario != "normal":
+            name = "monitor" if scenario == "monitor-overrun" else "plant_fixture"
+            cycles = multirate_rows(directory / OWNER_CYCLE_FILES[name])
+            injected = [r for r in cycles if r["injection_begin_ns"]]
+            require(len(injected) == 1 and injected[0]["injection_begin_ns"] >= metadata["enable_ns"] + metadata["injection_offset_ns"] and
+                    injected[0]["injection_end_ns"] - injected[0]["injection_begin_ns"] >= metadata["owner_cycles"]["injection_sleep_ns"], "owner overrun not injected")
+            require(owner_observations["by_owner"][name]["skip_locations"]["inside_previous_body"] >= 2, "whole body overrun omitted skipped opportunities")
+            if scenario == "plant-overrun":
+                validate_plant_overrun_expiry(cycles)
     elif scenario.endswith("-stall"):
         name = scenario.removesuffix("-stall")
         injected = next((r for r in rows[name] if r["injection_begin_ns"]), None)
@@ -322,7 +473,7 @@ def analyze_multirate(directory, metadata):
         if scenario in ("bms-stall", "power-stall", "rx-stall", "rx-corrupt"):
             require(rows["power"][-1]["inhibit"], "fault automatically restored driving permission")
     return {"verdict": "PASS", "scope": "Host multirate/vCAN component; full system TC NOT RUN", "metadata": metadata,
-            "metrics": metrics, "valid_rx_loss_ms": latencies, "actual_feedback": feedback}
+            "metrics": metrics, "valid_rx_loss_ms": latencies, "actual_feedback": feedback, "owner_cycles": owner_observations}
 
 
 def sha256(path):
@@ -500,14 +651,22 @@ def validate_placement(metadata, cpu):
 def observe_jobs(directory):
     """Retain valid job statistics even when the strict functional/timing contract fails."""
     metadata = json.loads((directory / "run.json").read_text())
-    metrics = {}
+    metrics, rx_rows = {}, []
     for task in metadata["tasks"]:
         rows = multirate_rows(directory / (task["name"] + "-jobs.csv"))
         require(len(rows) == task["jobs"] and [r["job"] for r in rows] == list(range(task["jobs"])), "incomplete observation schedule")
         require(all(r["release_ns"] == task["first_release_ns"] + i * task["period_ns"] and
                     r["deadline_ns"] == r["release_ns"] + task["deadline_ns"] for i, r in enumerate(rows)), "observation schedule drift")
         metrics[task["name"]] = job_metrics(rows)
-    return {"metadata": metadata, "metrics": metrics, "observation_scope": "job intervals validated; strict contract verdict separate"}
+        if task["name"] == "rx":
+            rx_rows = rows
+    observation = {"metadata": metadata, "metrics": metrics, "observation_scope": "job intervals validated; strict contract verdict separate"}
+    if metadata.get("schema", 0) >= 4:
+        try:
+            observation["owner_cycles"] = observe_owner_cycles(directory, metadata, rx_rows)
+        except (AssertionError, OSError, ValueError, KeyError) as error:
+            observation["owner_observation_error"] = str(error)
+    return observation
 
 
 def pooled_job_metrics(runs):
@@ -527,12 +686,19 @@ def placement_comparison(reports):
         for detailed in (True, False):
             selected = [r for r in reports if r["layout"] == layout and r["detailed_trace"] == detailed]
             complete = [r for r in selected if "observation_scope" in r]
+            owner_complete = [r for r in complete if r.get("owner_cycles")]
             groups[f"{layout}-{'full' if detailed else 'minimal'}"] = {
                 "runs": len(selected), "contract_passes": sum(r["runtime_contract_verdict"] == "PASS" for r in selected),
                 "run_passes": sum(r["verdict"] == "PASS" for r in selected),
                 "excluded_from_statistics": [r["label"] for r in selected if r not in complete],
                 "by_task": {name: pooled_job_metrics([multirate_rows(Path(r["directory"]) / (name + "-jobs.csv")) for r in complete])
                             for name in ("brake", "drive", "bms", "power", "rx")} if complete else {},
+                "owner_excluded_from_statistics": [{"label": r["label"], "reason": r.get("owner_observation_error", "no whole-cycle trace in this schema")}
+                                                   for r in selected if r not in owner_complete],
+                "by_owner": {name: owner_cycle_metrics([multirate_rows(Path(r["directory"]) / filename) for r in owner_complete], 2_000_000)
+                             for name, filename in OWNER_CYCLE_FILES.items()} if owner_complete else {},
+                "rx_owner_correlation": {"missed_jobs": sum(r["owner_cycles"]["rx_correlation"]["rx_missed_jobs"] for r in owner_complete),
+                                         "both_skipped_same_slot": sum(r["owner_cycles"]["rx_correlation"]["both_owners_skipped_same_slot"] for r in owner_complete)},
                 "load_observations": [r["load_metrics"] for r in selected if "load_metrics" in r]}
     return groups
 
@@ -562,7 +728,24 @@ def trace_comparison(reports, family):
             overhead["observed_mean_difference_ms"] = overhead["full_ms"]["mean"] - overhead["minimal_ms"]["mean"]
         overhead["interpretation"] = "separate runs include scheduler/cache noise and any fault path; no correction subtracted from deadlines"
         role_overheads[role] = overhead
-    return role_overheads["steering"] if family == "steering" else {"by_task": role_overheads}
+    if family == "steering":
+        return role_overheads["steering"]
+    owners = {}
+    for name, filename in OWNER_CYCLE_FILES.items():
+        compared = {}
+        for detailed in (True, False):
+            selected = [r for r in reports if r.get("metadata", {}).get("scenario") == "normal" and
+                        r.get("metadata", {}).get("detailed_trace") == detailed]
+            valid = [r for r in selected if r.get("owner_cycles")]
+            values = [(row["end_ns"] - row["start_ns"]) / 1e6 for r in valid
+                      for row in multirate_rows(Path(r["directory"]) / filename) if row["ran"]]
+            key = "full" if detailed else "minimal"
+            compared[key + "_ms"] = distribution(values)
+            compared[key + "_runs"] = [r["label"] for r in valid]
+            compared[key + "_excluded_runs"] = [r["label"] for r in selected if r not in valid]
+        compared["interpretation"] = "whole body; failed contracts retained if observations valid; no timing correction applied"
+        owners[name] = compared
+    return {"by_task": role_overheads, "by_owner": owners}
 
 
 def environment(build, binary, family):
@@ -640,6 +823,7 @@ def main():
     created = False
     if args.family == "multirate":
         conditions = [("normal", True), ("normal", False)] + [(name + "-stall", True) for name in ("brake", "drive", "bms", "power", "rx")] + [("rx-corrupt", True), ("feedback-replay", True)]
+        conditions += [(scenario, detailed) for scenario in ("monitor-overrun", "plant-overrun") for detailed in (True, False)]
         subprocess.run(["ip", "link", "add", "dev", interface, "type", "vcan"], check=True)
         created = True
         try:
