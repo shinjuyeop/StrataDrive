@@ -2,17 +2,17 @@
 """Sample owned runtime schedstat counters; retain coverage gaps and blocked kernel tracing."""
 import argparse
 import csv
-import importlib.util
 import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location('runtime_timing', ROOT/'tests/integration/runtime/check_timing.py')
-timing = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(timing)
+# multiprocessing "spawn" must be able to import the worker by its real module name.
+sys.path.insert(0,str(ROOT/'tests/integration/runtime'))
+import check_timing as timing
 
 
 def covering_delta(samples, begin_ns, end_ns):

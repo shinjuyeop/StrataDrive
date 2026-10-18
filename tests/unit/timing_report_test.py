@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 import sys
+import os
 
 PATH = Path(__file__).resolve().parents[1] / "integration/runtime/check_timing.py"
 SPEC = importlib.util.spec_from_file_location("check_timing", PATH)
@@ -24,6 +25,14 @@ rtos = load_helper('check_rtos', PATH.with_name('check_rtos.py'))
 
 
 class TimingReportTest(unittest.TestCase):
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'Linux affinity worker')
+    def test_diagnostic_cpu_load_can_start_with_the_spawn_import_protocol(self):
+        cpu=min(os.sched_getaffinity(0))
+        load=diagnostics.timing.CpuLoad(cpu)
+        result=load.finish()
+        self.assertEqual(result['exitcode'],0)
+        self.assertEqual(result['allowed_cpus'],[cpu])
+
     def test_schedstat_delta_requires_samples_covering_the_entire_miss(self):
         samples = [dict(begin_ns=10,end_ns=11,cpu_ns=20,queue_ns=30,slices=1,voluntary=1,involuntary=0),
                    dict(begin_ns=20,end_ns=21,cpu_ns=22,queue_ns=35,slices=2,voluntary=2,involuntary=0)]
