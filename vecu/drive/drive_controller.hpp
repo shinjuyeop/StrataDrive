@@ -28,7 +28,7 @@ enum class DriveGateFault {
     LocalInputsUnavailable, HvNotReady, BmsProtection, Overspeed, ContinuityLost,
     ClockError, ControlDeadline, SequenceExhausted, TorqueFeedbackUnavailable, UpstreamProtection, CommandsNotArmed
 };
-enum class DriveCommandStartup { Immediate, NonDriving };
+using DriveCommandStartup = ActuatorCommandStartup;
 struct DriveControlDecision {
     bool active{false};
     DriveGateFault fault{DriveGateFault::None};

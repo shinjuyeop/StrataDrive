@@ -9,7 +9,8 @@ namespace stratadrive::simulation {
 class SteeringSil {
 public:
     explicit SteeringSil(const vecu::SteeringActuatorConfig& config) : ecu_(config), plant_({config.angle_min_rad, config.angle_max_rad, config.initial_angle_rad, config.max_rate_rad_s, config.delay_ns}) {}
-    bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
+    bool start_session(std::uint32_t epoch, std::uint64_t enable_ns, ActuatorCommandStartup startup = ActuatorCommandStartup::Immediate);
+    bool arm_normal_commands(std::uint64_t now_ns) { return ecu_.arm_normal_commands(now_ns); }
     can::SteeringReceiveResult receive(const can::SteeringFrame& frame, std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
     std::optional<can::SteeringFrame> tick(std::uint64_t now_ns, const SteeringResponseInjection& injection = {},

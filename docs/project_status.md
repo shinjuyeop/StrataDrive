@@ -12,7 +12,7 @@ Updated: **2026-10-19**. **M3 — IN PROGRESS**를 유지하며 **M4 Central/Zon
 | M1 — DBC·vCAN | TECHNICAL CHECKS PASS / REVIEW PENDING | Wire baseline 채택, 학습자 설명·직접 재현 |
 | M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
 | M3 — Timing·실행 | IN PROGRESS / HOST REVIEW COMPLETE | [실행 기준 선택](m3_acceptance_review.md); 일반 sanitizer 타이밍 실패 2건·학습자 수용 및 Target/E2E 후속 |
-| M4 — Central/Zone | IN PROGRESS / COMPONENT IMPLEMENTATION | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·초기 구동 연결; Front startup·coordinated stop·Leaf lease·전체 ingress/status/runtime 후속 |
+| M4 — Central/Zone | IN PROGRESS / COMPONENT IMPLEMENTATION | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·양 Zone 초기 구동 연결; coordinated stop·Leaf lease·전체 ingress/status/runtime 후속 |
 | M5–M13 | PLANNED | DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 ## 구현·시험한 범위
@@ -33,6 +33,7 @@ Updated: **2026-10-19**. **M3 — IN PROGRESS**를 유지하며 **M4 Central/Zon
 | Zone 명령 수용 | Front atomic Steering/Brake·Rear Drive, 독립 trusted root 대조·scope/range/mode/age/expiry·연속성 latch·명시적 arm/INIT | [명령 수용 component](learning/m4_zone_command_admission.md) |
 | Zone 전달·로컬 보호 | Bounded FIFO·최신 명령 선택·각 CAN write 전후 expiry guard·partial/failure latch; 별도 trusted port로 실제 Leaf의 Hold/Protect/Zero 선택 | [Gateway·보호 연결](learning/m4_zone_gateway.md) |
 | Rear 전원·시동 연결 | 독립 lifecycle root·실제 송신 Enable ACK·limits/permission/status 감시, Drive NonDriving→trusted arm·정차/derating envelope, Drive/Power 로컬 보호 | [전원·초기 구동](learning/m4_rear_power_startup.md) |
+| Front 초기 구동 연결 | 센서/주기 감시를 유지하는 NonDriving, 두 Leaf·gateway의 동일 Epoch/fresh sensor preflight·arm, 실패 시 둘 다 보호 | [Front/양 Zone 시동](learning/m4_front_startup.md) |
 | 에너지·회로 연결 | Actual torque/speed→motor DC·손실→Battery SOC, capacitor·경로 손실과 atomic commit; 정상/용착/센서 상실/지속 부하 | [이상적 HV 연결](learning/m2_drive_energy.md), [실제 회로 연결](learning/m2_ev_power_circuit.md) |
 | 주기 실행·감시 | Steering 및 Brake/Drive/Power 10 ms·BMS 20 ms, 실제 RX·독립 감시, owner별 CPU 배치·전체 body/CPU/sleep·RX 시간 대조·4 ms 교차 guard와 수신 이중 감시 | [다중 주기](learning/m3_multirate_runtime.md), [CPU 부하](learning/m3_cpu_placement.md), [전체 cycle](learning/m3_owner_cycles.md) |
 
@@ -45,11 +46,11 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 C++ 726개 PASS**; Python **63개 PASS 이력**, 이번 Python 변경·unit 재실행 없음 |
-| M4 Central/Zone component | 기존 준비/상태/배분/admission/gateway와 새 startup7·readiness3·Rear19개 PASS. 실제 Rear 전원 준비→arm→배분 1.6 s 논리 시간 연결; Front/health/BMS limits/safety/speed는 fixture, 전체 coordinator/runtime·DDS/timing 후속 |
-| M4 분리 vCAN | Normal·sanitizer 각각 4/4 PASS. 기존 Front/Rear 3개 + Rear power/limits/permission→실제 Leaf 수신·독립 발급 context 대조 1개. 실제 물리 반응은 별도 component 시험 |
+| 전체 unit | Normal·ASan/UBSan **각각 C++ 750개 PASS**; Python **63개 PASS 이력**, 이번 Python 변경·unit 재실행 없음 |
+| M4 Central/Zone component | 기존 component + Front Leaf startup18·pair binding6개 PASS. 1.6 s 논리 시간에서 Front/Rear 실제 Leaf·물리 모델·독립 Actual receiver→VM/배분→두 gateway 연결; Zone health/BMS limits/safety/speed는 fixture, 전체 runtime/timing 후속 |
+| M4 분리 vCAN | Normal·sanitizer 각각 5/5 PASS. 기존 4개 + Front pre-arm CAN packet 거부/explicit arm 뒤 첫 Sequence0 pair의 실제 Leaf 수용. 물리 반응은 별도 component 시험 |
 | M3 수용 검토 | Host IO 동반/FIFO 기준 선택, 원본 96회 재분석·판정 동일. 전체 timing 수용은 PENDING |
-| Build·정적 분석 | M4 native normal/sanitizer·BUILD_TESTING=OFF 빌드, 변경 C++ 11개 clang-tidy·production 7개 cppcheck 검사. 새 test helper 경고 수정; 확장 header 검사에서 기존 DriveSilPlant::begin 인자 경고 1종은 보존. 기존 RTOS host·ARM64 build 이력 유지; hosted OS sanitizer/fiber 연동 NOT RUN |
+| Build·정적 분석 | M4 native normal/sanitizer·BUILD_TESTING=OFF 빌드, 변경 C++ 10개 clang-tidy·production 5개 cppcheck 검사. Arm 인자는 named context로 수정; 확장 header 검사에서 기존 DriveSilPlant::begin 인자 경고 1종은 보존. 기존 RTOS host·ARM64 build 이력 유지; hosted OS sanitizer/fiber 연동 NOT RUN |
 | Native 일반/FIFO 비교 | 같은 CPU map·workload·시한으로 4조건×2 trace×3회 **24/24 PASS**, 설정·부하 control 모두 PASS |
 | Native 고장 회귀 | Normal OTHER/FIFO 각각 17/17, sanitizer OTHER 15/17·FIFO 17/17: **66/68 PASS**, 일반 sanitizer의 owner skip 두 실패 보존 |
 | 이전 RTOS 파일럿 | 기존 12회 이력과 직전 4조건 **4/4 PASS**; 새 timer 비교와 별도 cohort |
@@ -59,7 +60,7 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 | Timer 정지·원본 호환 | ViPer 35.133 ms 정지의 누락 3개/정상 FAIL 확인; 나머지 3조건과 upstream 기능 4/4 확인, 48회 비교와 별도 |
 | 이전 Linux 실행 회귀 | Multirate 17조건+Steering 4조건 normal/sanitizer **42/42 PASS 이력 유지** |
 | 실행 대기 진단 | 무부하 3회·감시 CPU 부하 3회 수집; control **6/6 PASS**. 원래 정상 timing 계약은 각각 **2/3·0/3 PASS** |
-| Wire·전체 시스템 | 기존 vCAN 97개 normal/sanitizer 각각 재통과 + gateway 4개씩 PASS. DBC 12 frame/36 payload 이력 유지. 32개 requirement/29개 system TC **NOT RUN** |
+| Wire·전체 시스템 | 기존 vCAN 97개 normal/sanitizer 각각 재통과 + gateway/startup 5개씩 PASS. DBC 12 frame/36 payload 이력 유지. 32개 requirement/29개 system TC **NOT RUN** |
 
 [RTOS 파일럿](learning/m3_rtos_pilot.md)은 기존 Steering ECU와 CAN을 유지하고 실제 OS Task/Event/Alarm/Resource를 연결한다.
 별도 Linux plant process가 물리·센서 취득·Actual 수신을 맡는다. OIL 2.5 OSEK 기능 시험이며 R25-11 Classic stack 적합성,
@@ -104,7 +105,7 @@ OS Task/CAN·native 시한은 유지하고, 새 추가 Host timing 5 ms 판정�
 
 ## 다음 작업
 
-1. **M4 Front startup·정상 종료와 전체 경로:** Rear 시동 연결을 바탕으로 Front의 non-driving 대기/arm과 coordinated stop→전원 종료를 설계·시험한다. 기존 active Drive Inhibit의 fail-safe 정책과 정상 종료를 명시적으로 구분해야 한다. 기존 32-byte CAN의 remote Leaf composite lease/보호 계약도 결정한다. 실제 독립 ingress/status/feedback 감시·rejoin과 전체 coordinator를 통합한다. 기존 EV demo/runtime의 request/grant는 아직 fixture이며 교체한 전체 workload timing은 별도 검증한다. DDS는 M5다.
+1. **M4 정상 정지·전원 종료와 전체 경로:** 양 Zone 시동 연결 다음은 단일 stop owner와 trusted Leaf handoff다. 정상 제어 중 제동/hold→fresh actual 정지 증거→Inhibit/전원 종료를 설계·시험한다. [검토한 경계](adr/ADR-0049-front-nondriving-startup-and-paired-arm.md#정상-종료-검토--후속-구현)처럼 기존 active Drive Inhibit의 fail-safe 정책과 정상 종료를 구분한다. 기존 32-byte CAN의 remote Leaf composite lease/보호 계약도 결정한다. 실제 독립 ingress/status/feedback 감시·rejoin과 전체 coordinator를 통합한다. 기존 EV demo/runtime의 request/grant는 아직 fixture이며 교체한 전체 workload timing은 별도 검증한다. DDS는 M5다.
 2. **M3 타이밍 예외 해소:** OPEN-M3-01/02의 원본 실패를 유지하고 kernel trace 접근을 준비해 timer→wakeup→switch를 분석한다. 추가 반복과 PREEMPT_RT 비교는 후속 실험이며 M4 준비가 M3 전체 수용을 뜻하지 않는다. 학습자 직접 재현·설명도 남아 있다.
 3. **ARM64 배포 준비:** 보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. Target 검증은 배포 단계, RTE/BSW는 별도 pilot과 연결한다.
 
@@ -114,7 +115,7 @@ Central의 단일 vehicle management/allocation/session/feedback bridge와 Front
 [채택한 아키텍처](adr/ADR-0021-central-coordination-and-parallel-zones.md)다.
 Front는 Steering/Brake, Rear는 Drive/BMS를 담당하며 feedback도 담당 Zone→Central→Host를 거친다.
 준비 조건·전원/허가·첫 배분 library를 구현하고 PowerController·RC/접점·torque/pressure 응답 모델과 component 시험했다.
-Rear 전원/허가/limits와 explicit NonDriving→arm도 실제 controller·RC/torque component에 연결했다. 전체 coordinator·두 Zone runtime·DDS 통신은 M4/M5 후속이며 기존 demo/runtime의 request/grant·relay는 fixture다.
+Rear 전원/허가/limits·Front/Rear NonDriving→arm도 실제 controller·RC/angle/pressure/torque component와 독립 Actual receiver에 연결했다. 전체 coordinator·두 Zone runtime·DDS 통신은 M4/M5 후속이며 기존 demo/runtime의 request/grant·relay는 fixture다.
 
 기존 통합 EV 예제와 배분 응답 시험의 speed는 외부 고정값 20 rad/s, 새 Rear 시동 연결은 0 rad/s다. 차량 관성·타이어·차량 제동/배분 통합·CARLA closed-loop는 M4/M6/M7,
 Owner별 배치와 native FIFO 우선순위는 Host에서 비교했다. Target timing과 DTC 통합(M9), Classical control·AI·Target 배포는 후속 단계다.

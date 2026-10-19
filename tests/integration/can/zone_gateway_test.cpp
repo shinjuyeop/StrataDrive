@@ -3,6 +3,7 @@
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
 #include "rear_power_control.hpp"
+#include "front_startup_control.hpp"
 
 #include <gtest/gtest.h>
 #include <chrono>
@@ -103,5 +104,33 @@ TEST(RearPowerVcan, RoutesThreeBmsStreamsWithOriginalTimesAndSeparateTrustedPowe
     const auto native_grant=socketcan::to_bms(grant_frame->frame); const auto gc=control.context_for(native_grant,port.now_ns()); ASSERT_TRUE(gc);
     EXPECT_EQ(drive.receive_permission(native_grant,port.now_ns(),nullptr).decision,can::ActuatorReceiveDecision::Accepted);
     EXPECT_EQ(can::decode_bms_frame(native_grant)->source_time_ns,now); EXPECT_FALSE(gc->parent);
+}
+TEST(FrontStartupVcan, EarlyPacketsCannotArmAndFirstNormalPairReachesActualLeafReceivers) {
+    socketcan::Endpoint tx{"vcan_front"},sr{"vcan_front",can::kSteeringCommandId},br{"vcan_front",can::kBrakeCommandId};
+    vecu::SteeringActuator steering{{-.5,.5,-.3,.3,.1,1,50*kMs}};
+    vecu::BrakeActuator brake{{2000000,1500000,200000,5000000,10000000,1000000,50*kMs}};
+    simulation::FrontStartupControl control{steering,brake}; socketcan::ZoneGatewayPort port{tx,control};
+    zone::CommandGateway gateway{zone::ZoneScope::Front,port}; const auto acquired=port.now_ns(),enable=acquired-10*kMs;
+    ASSERT_TRUE(steering.start_session({3,7,enable},ActuatorCommandStartup::NonDriving));
+    ASSERT_TRUE(brake.start_session({3,7,enable},ActuatorCommandStartup::NonDriving)); ASSERT_TRUE(gateway.start_session(3,enable));
+    ASSERT_TRUE(steering.prepare(acquired)); ASSERT_TRUE(brake.prepare(acquired));
+    ASSERT_TRUE(steering.complete(steering::AngleMeasurement{7,0,acquired,.1},acquired));
+    ASSERT_TRUE(brake.complete(brake::PressureMeasurement{7,0,acquired,200000},acquired));
+    auto early=commands(port.now_ns()); early.steering.sequence=9; early.brake.sequence=9;
+    can::SteeringTxState st{can::SteeringFrameKind::Command}; can::BrakeTxState bt{can::BrakeFrameKind::Command};
+    ASSERT_NO_THROW(tx.send(socketcan::to_socketcan(*can::encode_steering_frame(early.steering,st))));
+    ASSERT_NO_THROW(tx.send(socketcan::to_socketcan(*can::encode_brake_frame(early.brake,bt))));
+    const auto sf=receive(sr),bf=receive(br); ASSERT_TRUE(sf); ASSERT_TRUE(bf);
+    EXPECT_EQ(steering.receive(socketcan::to_steering(sf->frame),port.now_ns()).decision,can::ActuatorReceiveDecision::NotInitialized);
+    EXPECT_EQ(brake.receive(socketcan::to_brake(bf->frame),port.now_ns()).decision,can::ActuatorReceiveDecision::NotInitialized);
+    ASSERT_TRUE(control.arm_commands(gateway,{3,port.now_ns()})); const auto c=commands(port.now_ns());
+    ASSERT_EQ(gateway.authorize_request(c.parent),zone::AdmissionResult::Accepted);
+    ASSERT_EQ(gateway.enqueue(central::front_commands(c)),zone::AdmissionResult::Accepted); ASSERT_EQ(gateway.dispatch().frames_enqueued,2U);
+    const auto normal_s=receive(sr),normal_b=receive(br); ASSERT_TRUE(normal_s); ASSERT_TRUE(normal_b);
+    ASSERT_EQ(steering.receive(socketcan::to_steering(normal_s->frame),port.now_ns()).decision,can::ActuatorReceiveDecision::Accepted);
+    ASSERT_EQ(brake.receive(socketcan::to_brake(normal_b->frame),port.now_ns()).decision,can::ActuatorReceiveDecision::Accepted);
+    EXPECT_EQ(steering.receiver().last_accepted()->message.sequence,0U); EXPECT_EQ(brake.receiver().last_accepted()->message.sequence,0U);
+    EXPECT_EQ(steering.receiver().last_accepted()->message.source_time_ns,c.steering.source_time_ns);
+    EXPECT_EQ(brake.receiver().last_accepted()->message.source_time_ns,c.brake.source_time_ns);
 }
 }  // namespace

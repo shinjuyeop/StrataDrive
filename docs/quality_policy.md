@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 726개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 750개 PASS**다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -1282,6 +1282,61 @@ TX0 표현 차이 때문에 발급 frame을 찾지 못했다. FDF만 정규화�
 Markdown117개/상대 링크·앵커1334개·추적성, YAML3개·Python8개 syntax와 whitespace를 검사했다. Python unit은 변경/재실행하지 않았다.
 M4는 component 구현 중이며 Front startup·정상 종료·remote normal Leaf lease/보호·독립 ingress/status/rejoin·
 전체 runtime/timing/DDS/Target은 후속이다. M3 원래 실패·학습자 수용 대기와 requirement32/TC29 NOT RUN도 유지한다.
+
+### 2026-10-19 — Front NonDriving·pair arm과 양 Zone 시동 연결
+
+[ADR-0049](adr/ADR-0049-front-nondriving-startup-and-paired-arm.md)와
+[학습 기록](learning/m4_front_startup.md)에 Front 초기 대기/arm·센서/clock 감시와 정상 종료의 후속 경계를 기록했다.
+Shared ActuatorCommandStartup을 사용하고 DriveCommandStartup 이름은 alias로 유지한다.
+기본 Immediate 회귀는 유지하며 NonDriving은 normal receiver만 늦게 시작한다. 두 Front Leaf는
+센서/period/clock 감시·INIT Actual을 계속하고, trusted FrontStartupControl이 두 Leaf/gateway를 preflight/arm한다.
+Wrong scope/Epoch나 준비 미완료는 거부, fault·commit 실패는 gateway latch와 두 Leaf Hold/Protect다.
+
+Steering startup9·Brake startup9·Front binding6개를 더해 normal·ASan/UBSan **각각 C++750/750 PASS**다.
+기존726개 첫 회귀도 PASS였다. 새23개 첫 실행과 실제 양 Zone 확장 후 실행도 각각749/749 PASS다.
+초기1 s 대기/센서·period/clock 감시, pre-arm packet·arm 이전 source 거부, 첫 normal Sequence0,
+캐시/만료/누락 센서·새 INIT의 old causal 억제/physics 보존, arm 기준80 ms·gateway commit 실패를 검사했다.
+Actual publication sequence와 물리 model/sensor는 arm에서 reset하지 않는다.
+
+기존1.6 s 논리 시간 Rear 시험의 Front actual fixture를 실제 Steering/Brake controller·별도 angle/pressure
+plant·독립 CAN Actual receiver로 교체했다. 프리차지 중 angle0.1 rad/pressure0.2 MPa를 유지하고
+normal command는0개다. 두 Zone arm 뒤 세 normal command Sequence0·angle 변화/pressure release·실제 구동을 확인했다.
+Zone health/BMS limits/safety·pack400 V/load0 A·외부 speed0은 fixture다. Full vehicle/BMS energy/SOC·
+독립 ingress/status·상실 이후 전체 coordinator/Front 반응은 후속이다. 기존 Rear 보호/WaitCurrent 검사는 유지했다.
+
+분리 vCAN은 normal·sanitizer **각각5/5 PASS**다. 새 Front case는 실제 CAN의 pre-arm Sequence9 거부 후
+trusted arm/첫 정상 Sequence0 pair의 실제 Leaf 수신을 검사한다. 센서는 acquisition fixture이며 물리 반응은 component 범위다.
+기존 local transport도 **각각97/97 PASS**다. `build/m4-front-can-{normal,sanitized}`의 fresh symlink 경로로
+이전 결과를 보존했다. Observed actuator timeout은 normal **80.033–81.183 ms**, sanitizer **80.013–81.226 ms**다.
+이는 local transport 관측이며 새 startup/full workload timing 보장으로 확대하지 않는다.
+
+Normal·ASan/UBSan·BUILD_TESTING=OFF production build를 통과했다. 변경 production5개·test5개에
+clang-tidy14 analyzer/bugprone을 적용했다. 새 Front arm의 epoch/time 인자 교환 경고는
+FrontArmContext로 묶어 수정·재검사했고 새 source/test 진단은 없다. 확장 header filter에서 기존
+DriveSilPlant::begin의 easily-swappable-parameters 경고1종이 두 test TU에서 반복된 기록은 유지한다.
+Cppcheck2.7 warning/performance/portability는 production5개를 현재 compilation database로 검사·재검사해 진단 없이 통과했다.
+GoogleTest macro/third-party 도구 범위와 이전 RTOS/ARM64 build 이력은 그대로 구분한다.
+
+개발 중 다른 optional frame 타입을 한 auto 선언에 묶은 오류와 void Endpoint::send를 bool로 검사한
+새 test compile 오류를 수정했다. 이 시점 실행된749-case cohort는 모두 PASS였다. 각각
+`build/m4-front-integration-build.txt`/`build/m4-front-build-final.txt`에 compile 진단을 보존했다.
+추가 review에서 advancing gateway clock 뒤의 두 번째 보호 callback이 과거 context 시각을 사용해
+SensorUnavailable을 ClockError로 덮는 문제를 발견했다. 새1-case 회귀의 **0 PASS/1 FAIL**은
+`build/m4-front-handoff-development.txt`에 보존했다. Leaf preflight를 gateway poll보다 먼저 하고,
+명시적 보호에 max(context time, gateway observed time)을 사용한 뒤 gateway 보호를 요청하도록 수정했다.
+고정 clock으로 문제를 숨기지 않았으며 final750개는 두 build 모두 PASS다. 변경 binding/회귀는
+`build/m4-front-handoff-clang-tidy.txt`에 재검사하고 production5개 cppcheck도 재통과했다.
+로그는 추가로 `build/m4-front-handoff-build{,-final}.txt`, `build/m4-front-sanitized-build-verified.txt`,
+`build/m4-front-production-build-verified.txt`에 보존한다.
+정상 종료는 현재 VM의 Inhibit/Shutdown과 active Drive fault의 구분이 필요해 후속 계약으로 남겼다.
+안전 시한·unknown 거부를 완화하거나 정상 종료를 위해 고장 latch를 지우지 않았다.
+
+로그는 `build/m4-front-{configure,build,baseline-test,build-tests,unit-development,integration-build-final,integration-development}.txt`,
+`build/m4-front-{build-vcan-final,build-verified,full-test,sanitized-configure,sanitized-build,sanitized-build-final,sanitized-test}.txt`,
+`build/m4-front-production-{configure,build,build-final}.txt`, `build/m4-front-{vcan,sanitized-vcan,clang-tidy,clang-tidy-final,cppcheck,cppcheck-final,doc-check}.txt`,
+`build/m4-front-can-{regression,sanitized-regression}.txt`와 socketcan-results에 둔다.
+Markdown119개/상대 링크·앵커1364개·추적성·YAML3개·Python8개 syntax·whitespace를 검사했다. Python unit 변경/재실행은 없다.
+M4 전체 완료·M3 타이밍 예외 해소·Target/system PASS로 확대하지 않는다. Requirement32/TC29는 NOT RUN이다.
 
 ## 코드·예제·시험 배치
 

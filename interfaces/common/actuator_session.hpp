@@ -3,6 +3,7 @@
 #include <cstdint>
 
 namespace stratadrive {
+enum class ActuatorCommandStartup { Immediate, NonDriving };
 // Trusted local application-to-physical mapping. This is not learned from CAN
 // or a measurement. Group the mapping and enable boundary as one startup input.
 struct ActuatorSession {

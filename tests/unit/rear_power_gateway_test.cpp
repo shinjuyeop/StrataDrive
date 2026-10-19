@@ -4,6 +4,9 @@
 #include "command_gateway.hpp"
 #include "power_model.hpp"
 #include "drive_sil_plant.hpp"
+#include "front_startup_control.hpp"
+#include "steering_response.hpp"
+#include "brake_pressure_response.hpp"
 
 #include <gtest/gtest.h>
 #include <vector>
@@ -227,18 +230,46 @@ public:
     }
     bool protect(zone::ZoneScope s,zone::ProtectionCause c,std::uint64_t n) noexcept override { return port.protect(s,c,n); }
 };
-central::NormalDriveReadinessInputs front_fixture(std::uint32_t ms) {
+class FrontPort : public zone::GatewayPort {
+public:
+    Port& clock; vecu::SteeringActuator& steering; vecu::BrakeActuator& brake;
+    simulation::FrontStartupControl control;
+    std::vector<can::SteeringMessage> steering_sent; std::vector<can::BrakeMessage> brake_sent;
+    FrontPort(Port& p,vecu::SteeringActuator& s,vecu::BrakeActuator& b):clock(p),steering(s),brake(b),control(s,b) {}
+    std::uint64_t now_ns() noexcept override { return clock.now; }
+    bool send(const zone::CommandFrame& f,const central::CommandContext& context) noexcept override {
+        try {
+            if(clock.now>=context.expires_at_ns) return false;
+            if(const auto* sf=std::get_if<can::SteeringFrame>(&f)) {
+                if(steering.receive(*sf,clock.now).decision!=can::ActuatorReceiveDecision::Accepted) return false;
+                steering_sent.push_back(*can::decode_steering_frame(*sf)); return true;
+            }
+            if(const auto* bf=std::get_if<can::BrakeFrame>(&f)) {
+                if(brake.receive(*bf,clock.now).decision!=can::ActuatorReceiveDecision::Accepted) return false;
+                brake_sent.push_back(*can::decode_brake_frame(*bf)); return true;
+            }
+            return false;
+        } catch(...) { return false; }
+    }
+    bool protect(zone::ZoneScope scope,zone::ProtectionCause cause,std::uint64_t now) noexcept override { return control.protect(scope,cause,now); }
+};
+central::NormalDriveReadinessInputs zone_health_fixture(std::uint32_t ms) {
     central::NormalDriveReadinessInputs in; in.epoch=3; in.session_enable_ns=kStart;
     in.front.health.emplace(); in.rear.health.emplace(); meta(*in.front.health,{ms,ms/10}); meta(*in.rear.health,{ms,ms/10});
     in.front.health->ready_for_normal=in.rear.health->ready_for_normal=true;
-    in.front.steering_actual.emplace(); meta(*in.front.steering_actual,{ms,ms/10}); in.front.steering_actual->kind=can::SteeringFrameKind::Actual; in.front.steering_actual->angle_rad=0;
-    in.front.brake_actual.emplace(); meta(*in.front.brake_actual,{ms,ms/10}); in.front.brake_actual->kind=can::BrakeFrameKind::Actual; in.front.brake_actual->pressure_pa=0;
     return in;
 }
-TEST(RearPowerIntegration, RealCentralAndPowerPrechargeKeepDriveZeroUntilExplicitArmThenAllocateWithoutBootstrapPackets) {
+TEST(RearPowerIntegration, BothZonesUseRealLeafActualsAndExplicitStartupThenProtectWithoutFabricatingPhysicalCompletion) {
     central::VehicleManagement owner; central::ControlAllocation allocation; vecu::PowerController power{{}}; vecu::DriveController drive{{}};
     simulation::PowerModel plant{{.002,50,.02,100,1000,500}}; simulation::DriveSilPlant motor{vecu::DriveControllerConfig{}.response};
     Port port; simulation::RearPowerControl control{drive,power}; port.control=&control; port.power=&power; port.drive=&drive;
+    vecu::SteeringActuator steering{{-.5,.5,-.3,.3,.1,1,50*kMs}};
+    vecu::BrakeActuator brake{{2000000,1500000,200000,5000000,10000000,1000000,50*kMs}};
+    simulation::SteeringResponse angles{{-.3,.3,.1,1,50*kMs,7}};
+    simulation::BrakePressureResponse pressure{{1500000,200000,5000000,10000000,50*kMs,7}};
+    FrontPort front_port{port,steering,brake}; zone::CommandGateway front{zone::ZoneScope::Front,front_port};
+    can::SteeringReceiver steering_rx{{can::SteeringFrameKind::Actual,-.3,.3}};
+    can::BrakeReceiver brake_rx{{can::BrakeFrameKind::Actual,0,1500000}};
     zone::RearPowerGateway rear{port}; DrivePort command_port{port,drive}; zone::CommandGateway normal{zone::ZoneScope::Rear,command_port}; port.commands=&normal;
     const can::BmsPhysicalRanges ranges{{0,1000},{-3000,3000},{-50,150},100000};
     can::BmsReceiver grant_rx{{can::BmsFrameKind::DrivePermission,ranges}}; port.observed_permission=&grant_rx;
@@ -248,6 +279,10 @@ TEST(RearPowerIntegration, RealCentralAndPowerPrechargeKeepDriveZeroUntilExplici
     ASSERT_TRUE(drive.start_session({3,7,kStart},vecu::DriveCommandStartup::NonDriving)); ASSERT_TRUE(control.start_session(3));
     ASSERT_TRUE(rear.start_session(3,kStart)); ASSERT_TRUE(normal.start_session(3,kStart)); ASSERT_TRUE(grant_rx.start_session(3,kStart)); ASSERT_TRUE(drive_rx.start_session(3,kStart));
     ASSERT_TRUE(plant.initialize({7,0,kStart},0)); motor.begin(7,kStart);
+    ASSERT_TRUE(steering.start_session({3,7,kStart},ActuatorCommandStartup::NonDriving));
+    ASSERT_TRUE(brake.start_session({3,7,kStart},ActuatorCommandStartup::NonDriving));
+    ASSERT_TRUE(angles.begin(kStart)); ASSERT_TRUE(pressure.begin(kStart)); ASSERT_TRUE(front.start_session(3,kStart));
+    ASSERT_TRUE(steering_rx.start_session(3,kStart)); ASSERT_TRUE(brake_rx.start_session(3,kStart));
     std::uint32_t root_seq=0,vehicle_seq=0; bool precharge=false,active=false; std::uint32_t first_normal=0;
     for(std::uint32_t ms=10;ms<=1600;ms+=10) {
         port.now=ns(ms); const battery::ModelIdentity id{7,ms/10,port.now};
@@ -262,32 +297,50 @@ TEST(RearPowerIntegration, RealCentralAndPowerPrechargeKeepDriveZeroUntilExplici
         drive.observe_local({battery::ModelMeasurement<double>{0,id,port.now},battery::ModelMeasurement<drive::HvFeedback>{{plant.diagnostic_state().bus_voltage_v,hv,false},id,port.now}},port.now);
         ASSERT_TRUE(motor.advance(port.now,false)); ASSERT_TRUE(drive.prepare(port.now)); const auto df=drive.complete(motor.capture(port.now),port.now); ASSERT_TRUE(df); ASSERT_TRUE(motor.apply(drive.output()));
         ASSERT_EQ(drive_rx.receive(*df,port.now).decision,can::ActuatorReceiveDecision::Accepted);
-        auto in=front_fixture(ms); in.rear.drive_actual=drive_rx.current_sample(port.now); in.rear.power_status=rear.power_status(); in.rear.power_limits=rear.power_limits();
+        ASSERT_TRUE(angles.advance(port.now)); ASSERT_TRUE(pressure.advance(port.now));
+        ASSERT_TRUE(steering.prepare(port.now)); ASSERT_TRUE(brake.prepare(port.now));
+        const auto af=steering.complete(angles.capture(),port.now);
+        const auto bf=brake.complete(pressure.capture(),port.now);
+        ASSERT_TRUE(af); ASSERT_TRUE(bf);
+        ASSERT_EQ(steering_rx.receive(*af,port.now).decision,can::ActuatorReceiveDecision::Accepted);
+        ASSERT_EQ(brake_rx.receive(*bf,port.now).decision,can::ActuatorReceiveDecision::Accepted);
+        if(steering.output().mode==steering::ActuationMode::Hold) { ASSERT_TRUE(angles.hold(port.now)); }
+        else { ASSERT_TRUE(angles.set_target(steering.output().target_rad,port.now)); }
+        if(brake.output().mode==brake::ActuationMode::Target) { ASSERT_TRUE(pressure.set_target(brake.output().target_pa,port.now)); }
+        EXPECT_EQ(front.poll().safety.cause,zone::ProtectionCause::None);
+        auto in=zone_health_fixture(ms); in.front.steering_actual=steering_rx.current_sample(port.now); in.front.brake_actual=brake_rx.current_sample(port.now); in.rear.drive_actual=drive_rx.current_sample(port.now); in.rear.power_status=rear.power_status(); in.rear.power_limits=rear.power_limits();
         if(ms%20==10) {
             const central::LifecycleRequest root{{3,root_seq++,port.now,ns(ms+60)},can::BmsPowerAction::Enable};
             ASSERT_EQ(owner.receive_request(root,port.now),central::LifecycleReceiveDecision::Accepted); ASSERT_EQ(rear.authorize_request(root),RearPowerResult::Accepted);
         }
         const auto out=owner.tick(in,port.now); ASSERT_TRUE(out); ASSERT_EQ(owner.decision().fault,central::VehicleManagementFault::None);
-        if(owner.decision().normal_allowed && !active) { ASSERT_TRUE(rear.arm_normal_commands()); active=true; first_normal=ms; }
+        if(owner.decision().normal_allowed && !active) { ASSERT_TRUE(front_port.control.arm_commands(front,{3,port.now})); ASSERT_TRUE(rear.arm_normal_commands()); active=true; first_normal=ms; }
         ASSERT_EQ(rear.enqueue_power(out->power_request),RearPowerResult::Accepted); ASSERT_EQ(rear.enqueue_permission(out->drive_permission),RearPowerResult::Accepted);
         ASSERT_EQ(rear.dispatch(),3U); ASSERT_EQ(rear.poll().safety.cause,zone::ProtectionCause::None);
         central::AllocationInputs ai; ai.feedback=in; ai.management=owner.decision(); ai.permission=grant_rx.current_sample(port.now); ai.permission_parent=out->permission_parent;
         if(ms%20==0) {
             if(active) {
-                const central::VehicleRequest r{3,vehicle_seq++,port.now,ns(ms+60),.2,0,0,false};
-                ASSERT_EQ(allocation.receive_request(r,port.now),central::AllocationReceiveDecision::Accepted); ASSERT_EQ(normal.authorize_request(r),zone::AdmissionResult::Accepted);
+                const central::VehicleRequest r{3,vehicle_seq++,port.now,ns(ms+60),.2,.02,0,false};
+                ASSERT_EQ(allocation.receive_request(r,port.now),central::AllocationReceiveDecision::Accepted); ASSERT_EQ(normal.authorize_request(r),zone::AdmissionResult::Accepted); ASSERT_EQ(front.authorize_request(r),zone::AdmissionResult::Accepted);
             }
             const auto a=allocation.tick(ai,port.now);
-            if(active) { ASSERT_TRUE(a); ASSERT_EQ(normal.enqueue(central::rear_commands(*a)),zone::AdmissionResult::Accepted); ASSERT_EQ(normal.dispatch().frames_enqueued,1U); }
+            if(active) { ASSERT_TRUE(a); ASSERT_EQ(normal.enqueue(central::rear_commands(*a)),zone::AdmissionResult::Accepted); ASSERT_EQ(normal.dispatch().frames_enqueued,1U); ASSERT_EQ(front.enqueue(central::front_commands(*a)),zone::AdmissionResult::Accepted); ASSERT_EQ(front.dispatch().frames_enqueued,2U); }
             else EXPECT_FALSE(a);
         }
         if(power.output().phase==vecu::PowerPhase::Precharging) { precharge=true; EXPECT_FALSE(active); EXPECT_FALSE(drive.decision().active); EXPECT_DOUBLE_EQ(motor.actual_nm(),0); }
-        if(!active) { EXPECT_TRUE(command_port.sent.empty()); }
+        if(!active) {
+            EXPECT_TRUE(command_port.sent.empty()); EXPECT_TRUE(front_port.steering_sent.empty()); EXPECT_TRUE(front_port.brake_sent.empty());
+            EXPECT_DOUBLE_EQ(angles.actual_angle_rad(),.1); EXPECT_DOUBLE_EQ(pressure.actual_pressure_pa(),200000);
+        }
+        EXPECT_EQ(steering.fault(),vecu::SteeringFault::None); EXPECT_EQ(brake.fault(),vecu::BrakeFault::None);
         EXPECT_EQ(drive.decision().fault,vecu::DriveGateFault::None);
     }
     EXPECT_TRUE(precharge); ASSERT_TRUE(active); EXPECT_GT(first_normal,80U); ASSERT_FALSE(command_port.sent.empty());
     EXPECT_EQ(command_port.sent.front().sequence,0U); EXPECT_GE(command_port.sent.front().source_time_ns,ns(first_normal));
     EXPECT_GT(motor.actual_nm(),0); EXPECT_EQ(port.protections,0U);
+    ASSERT_FALSE(front_port.steering_sent.empty()); ASSERT_FALSE(front_port.brake_sent.empty());
+    EXPECT_EQ(front_port.steering_sent.front().sequence,0U); EXPECT_EQ(front_port.brake_sent.front().sequence,0U);
+    EXPECT_NE(angles.actual_angle_rad(),.1); EXPECT_DOUBLE_EQ(pressure.actual_pressure_pa(),0);
     // Real Rear handoff selects both protections; ACK cannot erase physical residuals.
     EXPECT_FALSE(control.protect(zone::ZoneScope::Front,zone::ProtectionCause::UpstreamLost,port.now));
     rear.mark_continuity_lost(); EXPECT_TRUE(rear.poll().safety.handoff_accepted);

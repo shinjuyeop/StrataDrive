@@ -25,7 +25,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `central/feedback_bridge` | 두 Zone의 per-source actual/EV status → Central consumer/Host; 원천 age/identity 보존, PLANNED |
 | `zone/local_safety` | local timeout/expiry/overflow/send fault·trusted coordinator 보호 요청 → latch/별도 port handoff·Pending 재시도. Same-host SIL Leaf adapter로 기존 Hold/Protect/Zero 선택, remote signal/실제 도달은 별도 |
 | `vecu/common` | absolute task schedule·독립 completion monitor·유효 RX age monitor와 SPSC latest snapshot 구현; 전체 watchdog·diagnostics 배치는 후속 |
-| `vecu/steering`, `vecu/brake`, `vecu/drive` | accepted demand + 외부 sensor → normal/protection 목표·actual feedback; DriveController는 BMS limits·Central permission·로컬 HV/속도의 필수 gate와 capability 계산, 기존 DriveActuator는 isolated 응답 fixture |
+| `vecu/steering`, `vecu/brake`, `vecu/drive` | accepted demand + 외부 sensor → normal/protection 목표·actual feedback; Front/Rear 모두 explicit NonDriving→arm을 지원한다. DriveController는 BMS limits·Central permission·로컬 HV/속도의 필수 gate와 capability 계산, 기존 DriveActuator는 isolated 응답 fixture |
 | `simulation/steering` / `vecu/steering/steering_response_monitor.*` | delay/rate·jam/angle sensor를 만드는 SIL plant / bounded target 이력·독립 sensor로 정상 range/residual/dwell·sensor health를 검사하는 local monitor |
 | `simulation/brake` / `vecu/brake/brake_response_monitor.*` | delay·가압/감압·stuck/pressure sensor를 만드는 SIL plant / 방향별 정상 range/residual/dwell·sensor health를 검사하는 local monitor |
 | `simulation/drive/torque_response.*` | Drive 목표 → delay/rate/saturation·zero-target 물리 응답; ECU 수신/상태 판단과 별도 모듈, 차량 speed/current loop는 미구현 |
@@ -35,7 +35,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `vecu/bms` | local sensor port 검사 → 충방전 derating·보호 latch·PowerLimits와 로컬 safety gate; 물리 모델과 분리 |
 | `vecu/bms/power_controller.*` / `simulation/power` | BMS leaf의 lifecycle runnable / 실제 접점·RC bus·current 센서; controller/plant 분리, Host component 구현·시험 |
 | `simulation/{steering,brake,drive}/*_sil` | ECU와 plant 연결, physical step/acquisition·출력 적용·fault injection; ECU library 밖의 single-owner SIL runner |
-| `simulation/runtime` | RearPowerControl은 trusted TX context·explicit arm·Drive/Power 보호를 연결한다. Steering 및 다중 주기 Host fixture: Brake/Drive/BMS/Power/RX별 worker·독립 monitor·별도 plant owner, 출력 admission/적용과 CSV 계측; 차량 runtime·Target scheduler는 후속 |
+| `simulation/runtime` | [FrontStartupControl](../learning/m4_front_startup.md)은 두 Leaf·gateway preflight/arm·실패 시 보호를 연결한다. RearPowerControl은 trusted TX context·explicit arm·Drive/Power 보호를 연결한다. Steering 및 다중 주기 Host fixture: Brake/Drive/BMS/Power/RX별 worker·독립 monitor·별도 plant owner, 출력 admission/적용과 CSV 계측; 차량 runtime·Target scheduler는 후속 |
 | `simulation/simple_plant` | CARLA 전 계약 검증용 작은 vehicle model |
 | `simulation/plant_adapter` | actual actuator feedback → plant별 actuation mapping |
 | `simulation/carla`, `simulation/scenarios`, `simulation/fault_injection` | simulator lifecycle, scenario, 명시적 fault injection |

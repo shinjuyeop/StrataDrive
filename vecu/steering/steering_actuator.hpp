@@ -34,7 +34,10 @@ enum class SteeringFault { None, CommandUnavailable, ContinuityLost, ClockError,
 class SteeringActuator {
 public:
     explicit SteeringActuator(SteeringActuatorConfig config);
-    bool start_session(ActuatorSession session);
+    bool start_session(ActuatorSession session, ActuatorCommandStartup startup = ActuatorCommandStartup::Immediate);
+    bool can_arm_normal_commands(std::uint64_t now_ns);
+    bool arm_normal_commands(std::uint64_t now_ns); // trusted local coordinator only
+    std::uint32_t application_epoch() const { return epoch_; }
     can::SteeringReceiveResult receive(const can::SteeringFrame& frame, std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
     void request_local_protection(std::uint64_t now_ns); // trusted local port, not a normal CAN command
@@ -50,18 +53,18 @@ public:
     SteeringFault fault() const { return fault_; }
     const SteeringMonitorDecision& monitor_decision() const { return monitor_.decision(); }
     // Current command snapshot for ingress diagnostics; not actuator feedback.
-    std::optional<can::SteeringMessage> current_sample(std::uint64_t now_ns) {
-        return fault_ == SteeringFault::None ? receiver_.current_sample(now_ns) : std::nullopt;
-    }
+    std::optional<can::SteeringMessage> current_sample(std::uint64_t now_ns);
     const can::SteeringReceiver& receiver() const { return receiver_; }
 private:
+    bool clock(std::uint64_t now_ns);
     void fail(SteeringFault fault, std::uint64_t now_ns);
     const SteeringActuatorConfig config_;
     can::SteeringReceiver receiver_;
     can::SteeringTxState tx_{can::SteeringFrameKind::Actual};
     SteeringResponseMonitor monitor_;
     std::uint32_t epoch_{0}, sequence_{0};
-    std::uint64_t last_tick_ns_{0};
+    std::uint64_t last_tick_ns_{0}, last_observed_ns_{0};
+    bool command_monitoring_{true};
     bool sequence_exhausted_{false};
     steering::Actuation output_{};
     std::optional<std::uint64_t> prepared_ns_;

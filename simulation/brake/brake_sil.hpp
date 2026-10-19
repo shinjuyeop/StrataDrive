@@ -9,7 +9,8 @@ namespace stratadrive::simulation {
 class BrakeSil {
 public:
     explicit BrakeSil(const vecu::BrakeActuatorConfig& config) : ecu_(config), plant_({config.max_pressure_pa, config.initial_pressure_pa, config.rise_rate_pa_s, config.fall_rate_pa_s, config.delay_ns}) {}
-    bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
+    bool start_session(std::uint32_t epoch, std::uint64_t enable_ns, ActuatorCommandStartup startup = ActuatorCommandStartup::Immediate);
+    bool arm_normal_commands(std::uint64_t now_ns) { return ecu_.arm_normal_commands(now_ns); }
     can::BrakeReceiveResult receive(const can::BrakeFrame& frame, std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
     std::optional<can::BrakeFrame> tick(std::uint64_t now_ns, const BrakePressureResponseInjection& injection = {},

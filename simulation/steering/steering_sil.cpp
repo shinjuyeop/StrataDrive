@@ -1,8 +1,8 @@
 #include "steering_sil.hpp"
 
 namespace stratadrive::simulation {
-bool SteeringSil::start_session(std::uint32_t epoch, std::uint64_t enable_ns) {
-    if (!ecu_.start_session({epoch, plant_.model_epoch(), enable_ns})) return false;
+bool SteeringSil::start_session(std::uint32_t epoch, std::uint64_t enable_ns, ActuatorCommandStartup startup) {
+    if (!ecu_.start_session({epoch, plant_.model_epoch(), enable_ns}, startup)) return false;
     if (!plant_.begin(enable_ns)) return false;
     applied_.reset(); return true;
 }

@@ -102,5 +102,7 @@ ctest --test-dir build/m4-readiness -R '^VehicleManagement' --output-on-failure
 정상 배분의 필수 gate로 사용하고 BMS 한계·Drive actual/capability와 Brake actual을 반영한다.
 후속 [Rear 전원/허가/limits·초기 구동 연결](m4_rear_power_startup.md)은 실제 Power/Drive와
 독립 root·Enable ACK·trusted arm을 연결하고, 제한된 Drive/BMS DEGRADED envelope도 검토했다.
-Front startup·정상 종료·독립 ingress/local loss/rejoin과 전체 EV loop는 다음 통합이다.
+정상 종료·독립 ingress/local loss/rejoin과 전체 EV loop는 다음 통합이다.
 DDS transport는 M5이며 이번 결과가 M3 전체 수용이나 차량 시스템 TC 통과를 뜻하지 않는다.
+
+후속 [Front startup](m4_front_startup.md)은 두 Leaf/gateway의 대기/arm과 실제 양 Zone 시동 연결을 검증했다.

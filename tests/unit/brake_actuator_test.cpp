@@ -362,4 +362,68 @@ TEST(BrakeExecutionBoundary, ExternalPressureContinuesWithoutEcuAndProtectionSta
     ASSERT_TRUE(ecu.complete(plant.capture(),kStart+100*kMs)); EXPECT_EQ(ecu.protection_floor_observed(),false);
     ASSERT_TRUE(plant.advance(kStart+110*kMs)); EXPECT_DOUBLE_EQ(plant.actual_pressure_pa(),250000);
 }
+
+class BrakeStartupTest : public BrakeActuatorTest {
+protected:
+    void SetUp() override { ASSERT_TRUE(model.start_session(1,kStart,ActuatorCommandStartup::NonDriving)); }
+    void wait_until(int last) { for (int ms=10;ms<=last;ms+=10) ASSERT_TRUE(model.tick(kStart+ms*kMs)); }
+};
+TEST_F(BrakeStartupTest, LongStartupPublishesKnownInitWithoutNormalPackets) {
+    can::BrakeMessage actual;
+    for (int ms=10;ms<=1000;ms+=10) {
+        actual=tick(ms); ASSERT_TRUE(actual.pressure_pa); EXPECT_EQ(actual.local_state,can::BrakeLocalState::Init);
+        EXPECT_EQ(actual.origin,can::BrakeOrigin::NoAcceptedInput); EXPECT_EQ(actual.causal_sequence,0U);
+    }
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::None); EXPECT_EQ(actual.sequence,99U);
+    EXPECT_EQ(model.receiver().health(),can::BrakeReceiverHealth::NotInitialized);
+    EXPECT_FALSE(model.current_sample(kStart+1000*kMs));
+}
+TEST_F(BrakeStartupTest, EarlyPacketsCannotArmOrConsumeFirstNormalIdentity) {
+    wait_until(200); sequence=9;
+    EXPECT_EQ(model.receive(command({200,1000000}),kStart+200*kMs).decision,can::BrakeReceiveDecision::NotInitialized);
+    ASSERT_TRUE(model.tick(kStart+210*kMs)); ASSERT_TRUE(model.arm_normal_commands(kStart+210*kMs));
+    EXPECT_FALSE(model.arm_normal_commands(kStart+210*kMs)); sequence=0;
+    EXPECT_EQ(model.receive(command({200,1000000}),kStart+210*kMs).decision,can::BrakeReceiveDecision::SourceBeforeSession);
+    sequence=0; EXPECT_EQ(model.receive(command({220,1000000}),kStart+220*kMs).decision,can::BrakeReceiveDecision::Accepted);
+    ASSERT_TRUE(model.receiver().last_accepted()); EXPECT_EQ(model.receiver().last_accepted()->message.sequence,0U);
+    EXPECT_EQ(tick(220).sequence,21U); EXPECT_EQ(model.fault(),vecu::BrakeFault::None);
+}
+TEST_F(BrakeStartupTest, ArmNeedsANewValidAcquisitionRatherThanCachedPublication) {
+    EXPECT_FALSE(model.arm_normal_commands(kStart)); wait_until(100);
+    ASSERT_TRUE(model.tick(kStart+110*kMs,{},simulation::BrakeSensorAction::Hold));
+    EXPECT_FALSE(model.arm_normal_commands(kStart+110*kMs)); EXPECT_EQ(model.fault(),vecu::BrakeFault::None);
+    ASSERT_TRUE(model.tick(kStart+120*kMs)); EXPECT_TRUE(model.arm_normal_commands(kStart+120*kMs));
+}
+TEST_F(BrakeStartupTest, ExpiredSensorAtArmLatchesBeforeLateFreshAcquisition) {
+    wait_until(100); EXPECT_FALSE(model.arm_normal_commands(kStart+121*kMs));
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::SensorUnavailable);
+    ASSERT_TRUE(model.tick(kStart+130*kMs)); EXPECT_FALSE(model.arm_normal_commands(kStart+130*kMs));
+}
+TEST_F(BrakeStartupTest, MissingSensorStillSelectsProtectionDuringStartup) {
+    wait_until(100); ASSERT_TRUE(model.tick(kStart+110*kMs,{},simulation::BrakeSensorAction::Invalidate));
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::SensorUnavailable); EXPECT_FALSE(model.arm_normal_commands(kStart+110*kMs));
+}
+TEST_F(BrakeStartupTest, ControlGapCannotBeHiddenByArm) {
+    wait_until(100); EXPECT_FALSE(model.arm_normal_commands(kStart+131*kMs));
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::ControlDeadline);
+}
+TEST_F(BrakeStartupTest, WaitingBudgetStartsAtArmAndCannotBeRearmed) {
+    wait_until(1000); ASSERT_TRUE(model.arm_normal_commands(kStart+1000*kMs));
+    for (int ms=1010;ms<1080;ms+=10) { ASSERT_TRUE(model.tick(kStart+ms*kMs)); EXPECT_EQ(model.fault(),vecu::BrakeFault::None); }
+    EXPECT_FALSE(model.arm_normal_commands(kStart+1070*kMs)); ASSERT_TRUE(model.tick(kStart+1080*kMs));
+    EXPECT_EQ(model.fault(),vecu::BrakeFault::CommandUnavailable);
+}
+TEST_F(BrakeStartupTest, NewNonDrivingEpochPreservesPhysicsButNotOldCommandCausality) {
+    wait_until(10); ASSERT_TRUE(model.arm_normal_commands(kStart+10*kMs));
+    for (int ms=20;ms<=300;ms+=10) drive(ms,1000000);
+    const auto physical=model.actual_pressure_pa(); ASSERT_TRUE(model.start_session(2,kStart+300*kMs,ActuatorCommandStartup::NonDriving));
+    const auto actual=tick(310); ASSERT_TRUE(actual.pressure_pa); EXPECT_NEAR(*actual.pressure_pa,physical,500.1);
+    EXPECT_EQ(actual.sequence,0U); EXPECT_EQ(actual.causal_sequence,0U); EXPECT_EQ(actual.origin,can::BrakeOrigin::NoAcceptedInput);
+    EXPECT_FALSE(model.current_sample(kStart+310*kMs)); EXPECT_EQ(model.fault(),vecu::BrakeFault::None);
+}
+TEST_F(BrakeStartupTest, StartupClockAndInitCannotRegressBehindIngress) {
+    wait_until(100); EXPECT_EQ(model.receive(command({110,1000000}),kStart+110*kMs).decision,can::BrakeReceiveDecision::NotInitialized);
+    EXPECT_FALSE(model.start_session(2,kStart+109*kMs,ActuatorCommandStartup::NonDriving));
+    EXPECT_FALSE(model.arm_normal_commands(kStart+109*kMs)); EXPECT_EQ(model.fault(),vecu::BrakeFault::ClockError);
+}
 }  // namespace

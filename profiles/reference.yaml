@@ -441,6 +441,30 @@ m4_zone_gateway_fixture:
   socketcan_expiry_guard: exclusive_immediately_before_nonblocking_write
   remote_leaf_lease_and_protection: pending_no_composite_expiry_in_32_byte_can
   parameter_status: fixture_only_no_yaml_loader_or_target_timing_claim
+# ADR-0049: explicit Front startup; normal stop remains a separate pending contract.
+m4_front_startup_fixture:
+  implementation: single_owner_same_host_leaf_and_gateway_pair_arm
+  startup_policy: shared_ActuatorCommandStartup_NonDriving
+  default_startup_policy: Immediate
+  idle_output: hold_preserve_angle_and_pressure_not_parking_brake_guarantee
+  normal_receiver_start: explicit_trusted_arm_same_epoch
+  first_normal_sequence: 0
+  normal_wait_timeout_ms: 80
+  local_sensor_age_ms: 20
+  maximum_sensor_and_control_gap_ms: 30
+  control_period_ms: 10
+  arm_requires: [front_scope, matching_leaf_and_gateway_epoch, gateway_idle, both_new_valid_sensor_acquisitions, no_fault, no_prepared_job]
+  prearm_packets: reject_without_receiver_or_p05_progress
+  prearm_source_after_arm: reject_SourceBeforeSession
+  old_receiver_history: diagnostic_only_not_current_command_or_actual_cause
+  arm_resets_physics_or_actual_sequence: false
+  partial_arm_failure: latch_gateway_and_protect_both_leaves
+  protection_callback_clock: preserve_max_context_and_gateway_observation_before_gateway_handoff
+  non_driving_fault_monitors: [sensor_identity_range_age, control_gap, monotonic_clock, explicit_continuity_and_protection]
+  integrated_startup: {logical_window_ms: 1600, step_ms: 10, allocation_period_ms: 20}
+  integrated_initial_state: {front_angle_rad: 0.1, front_pressure_pa: 200000}
+  integrated_front_actuals: real_controllers_separate_plants_and_independent_can_receivers
+  parameter_status: fixture_only_no_loader_remote_startup_or_target_timing_claim
 # ADR-0048: finite Host Rear startup component, not a profile loader or full EV runtime.
 m4_rear_power_fixture:
   implementation: separate_rear_power_gateway_and_trusted_sil_control
@@ -475,7 +499,7 @@ m4_rear_power_fixture:
     other_sender_degraded: denied_unreviewed
   protection: drive_zero_and_power_local_inhibit_existing_current_open_discharge_sequence
   startup_test: {logical_window_ms: 1600, step_ms: 10, allocation_period_ms: 20}
-  startup_fixtures: [front_actual, zone_health, bms_limits, bms_safety_gate, pack_voltage_and_load, external_zero_speed]
+  startup_fixtures: [zone_health, bms_limits, bms_safety_gate, pack_voltage_and_load, external_zero_speed]
   coordinated_graceful_shutdown: pending_active_drive_inhibit_still_fails_safe
   remote_normal_can_leaf_lease_and_dds: pending
   parameter_status: fixture_only_no_yaml_loader_oem_calibration_or_target_timing_claim

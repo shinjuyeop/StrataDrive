@@ -2,6 +2,8 @@
 
 Date: 2026-10-19. Status: **Host component + 분리 vCAN 시험 / 전체 M4 runtime 후속**.
 [ADR-0048](../adr/ADR-0048-rear-power-routing-and-nondriving-startup.md)의 구현이다.
+아래726개/vCAN4개와 Front fixture 경계는 최초 Rear 단계 이력이다. 후속 [Front startup](m4_front_startup.md)은
+Front Actual을 실제 Leaf/모델·독립 receiver로 바꾸고 양 Zone 시동 연결로 확장했다.
 
 이번 단계는 Central이 만든 전원 요청·구동 허가를 Rear를 통해 실제 Power/Drive 수신부에 연결한다.
 **전원을 켜라는 요청, 실제 고전압 준비, 구동 허가는 서로 다른 사실**이다.
@@ -101,7 +103,7 @@ Sanitizer는 `build/m1-angle-sanitized`에 `-DSTRATADRIVE_SANITIZERS=ON`을 설�
 
 ## 다음 통합
 
-Front도 초기 정상 command를 강요하지 않는 대기/arm 경로가 필요하다. 전체 coordinator에서 독립
+Front 대기/arm은 [후속 구현](m4_front_startup.md)에서 연결했다. 전체 coordinator에서 독립
 ingress/status·loss/rejoin과 정상 정지→전원 종료를 연결한다. 현재 active Drive의 Inhibit는 기존 fail-safe
 정책을 유지하므로, 전 차량 graceful shutdown 구현 완료로 표시하지 않는다.
 

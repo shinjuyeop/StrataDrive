@@ -1,5 +1,6 @@
 #include "command_gateway.hpp"
 #include "zone_leaf_protection.hpp"
+#include "front_startup_control.hpp"
 #include "steering_response.hpp"
 #include "brake_pressure_response.hpp"
 #include "drive_sil_plant.hpp"
@@ -32,7 +33,11 @@ public:
     std::vector<Sent> sent;
     zone::ProtectionPort* protection{nullptr};
     vecu::SteeringActuator* steering{nullptr}; vecu::BrakeActuator* brake{nullptr}; vecu::DriveController* drive{nullptr};
-    std::uint64_t now_ns() noexcept override { return now; }
+    std::size_t clock_reads{0}, rollback_read{0}; std::uint64_t clock_step_ns{0};
+    std::uint64_t now_ns() noexcept override {
+        const auto observed = ++clock_reads == rollback_read ? now-1 : now;
+        now += clock_step_ns; return observed;
+    }
     bool send(const zone::CommandFrame& frame, const central::CommandContext& ctx) noexcept override {
         try {
         ++attempts; now += before_write_ns;
@@ -285,6 +290,69 @@ TEST(ZoneLeafProtection, GatewayReachesRealEvGateAndLeaseLossRevokesBothMotorTor
         EXPECT_EQ(g.poll().safety.cause,ProtectionCause::CommandExpired); EXPECT_EQ(d.decision().fault,vecu::DriveGateFault::UpstreamProtection);
         EXPECT_DOUBLE_EQ(plant.actual_nm(),0);
     }
+}
+class FrontStartupTest : public ::testing::Test {
+protected:
+    vecu::SteeringActuator steering{{-.5,.5,-.3,.3,.1,1,50*kMs}};
+    vecu::BrakeActuator brake{{2000000,1500000,400000,5000000,10000000,1000000,50*kMs}};
+    simulation::FrontStartupControl control{steering,brake};
+    Port port; zone::CommandGateway gateway{zone::ZoneScope::Front,port};
+    void SetUp() override {
+        ASSERT_TRUE(steering.start_session({3,7,kStart},ActuatorCommandStartup::NonDriving));
+        ASSERT_TRUE(brake.start_session({3,7,kStart},ActuatorCommandStartup::NonDriving));
+        port.protection=&control; port.steering=&steering; port.brake=&brake;
+        ASSERT_TRUE(gateway.start_session(3,kStart));
+    }
+    void observe(std::uint32_t ms) {
+        port.now=ns(ms); ASSERT_TRUE(steering.prepare(port.now)); ASSERT_TRUE(brake.prepare(port.now));
+        ASSERT_TRUE(steering.complete(steering::AngleMeasurement{7,ms/10-1,port.now,.1},port.now));
+        ASSERT_TRUE(brake.complete(brake::PressureMeasurement{7,ms/10-1,port.now,400000},port.now));
+    }
+};
+TEST_F(FrontStartupTest, LongIdleThenOneTrustedArmOpensBothLeavesAndGatewayWithoutBootstrapCommands) {
+    for(std::uint32_t ms=10;ms<=1000;ms+=10) { observe(ms); EXPECT_EQ(gateway.poll().admission.state,zone::AdmissionState::Idle); }
+    const auto c=commands(1000); EXPECT_EQ(gateway.enqueue(central::front_commands(c)),AdmissionResult::NotArmed);
+    EXPECT_TRUE(port.sent.empty()); ASSERT_TRUE(control.arm_commands(gateway,{3,port.now}));
+    EXPECT_FALSE(control.arm_commands(gateway,{3,port.now}));
+    ASSERT_EQ(gateway.authorize_request(c.parent),AdmissionResult::Accepted);
+    ASSERT_EQ(gateway.enqueue(central::front_commands(c)),AdmissionResult::Accepted); EXPECT_EQ(gateway.dispatch().frames_enqueued,2U);
+    ASSERT_TRUE(steering.receiver().last_accepted()); ASSERT_TRUE(brake.receiver().last_accepted());
+    EXPECT_EQ(steering.receiver().last_accepted()->message.sequence,0U); EXPECT_EQ(brake.receiver().last_accepted()->message.sequence,0U);
+    EXPECT_EQ(port.protection_calls,0U); EXPECT_EQ(steering.fault(),vecu::SteeringFault::None); EXPECT_EQ(brake.fault(),vecu::BrakeFault::None);
+}
+TEST_F(FrontStartupTest, OneMissingAcquisitionCannotPartiallyArmTheFront) {
+    port.now=ns(10); ASSERT_TRUE(steering.prepare(port.now));
+    ASSERT_TRUE(steering.complete(steering::AngleMeasurement{7,0,port.now,.1},port.now));
+    EXPECT_FALSE(control.arm_commands(gateway,{3,port.now})); EXPECT_TRUE(steering.can_arm_normal_commands(port.now));
+    EXPECT_EQ(gateway.poll().admission.state,zone::AdmissionState::Idle); observe(20);
+    EXPECT_TRUE(control.arm_commands(gateway,{3,port.now}));
+}
+TEST_F(FrontStartupTest, StaleSensorProtectsBothAndLateFreshDataCannotHealTheLatch) {
+    observe(10); port.now=ns(31); EXPECT_FALSE(control.arm_commands(gateway,{3,port.now}));
+    EXPECT_EQ(steering.fault(),vecu::SteeringFault::SensorUnavailable); EXPECT_EQ(brake.output().mode,brake::ActuationMode::Protect);
+    EXPECT_TRUE(gateway.poll().safety.handoff_accepted); observe(40);
+    EXPECT_FALSE(control.arm_commands(gateway,{3,port.now})); EXPECT_EQ(gateway.poll().admission.state,zone::AdmissionState::FailSafe);
+}
+TEST_F(FrontStartupTest, WrongScopeAndMismatchedInitCannotArmOrResetAnyRecipient) {
+    observe(10); zone::CommandGateway rear{zone::ZoneScope::Rear,port}; ASSERT_TRUE(rear.start_session(3,kStart));
+    EXPECT_FALSE(control.arm_commands(rear,{3,port.now})); EXPECT_FALSE(control.arm_commands(gateway,{4,port.now}));
+    ASSERT_TRUE(gateway.start_session(4,port.now)); EXPECT_FALSE(control.arm_commands(gateway,{4,port.now}));
+    EXPECT_EQ(steering.fault(),vecu::SteeringFault::None); EXPECT_EQ(brake.fault(),vecu::BrakeFault::None);
+    EXPECT_EQ(steering.application_epoch(),3U); EXPECT_EQ(brake.application_epoch(),3U);
+}
+TEST_F(FrontStartupTest, GatewayCommitFailureProtectsBothLeavesRatherThanLeavingAPartialNormalPath) {
+    observe(10); port.rollback_read=port.clock_reads+2;
+    EXPECT_FALSE(control.arm_commands(gateway,{3,port.now}));
+    EXPECT_EQ(gateway.poll().admission.state,zone::AdmissionState::FailSafe);
+    EXPECT_EQ(steering.output().mode,steering::ActuationMode::Hold); EXPECT_EQ(brake.output().mode,brake::ActuationMode::Protect);
+    EXPECT_NE(steering.fault(),vecu::SteeringFault::None); EXPECT_NE(brake.fault(),vecu::BrakeFault::None); EXPECT_TRUE(port.sent.empty());
+}
+TEST_F(FrontStartupTest, AdvancingGatewayClockDoesNotTurnSensorLossIntoAnArtificialClockFault) {
+    observe(10); port.now=ns(31); port.clock_step_ns=kMs;
+    EXPECT_FALSE(control.arm_commands(gateway,{3,port.now}));
+    EXPECT_EQ(steering.fault(),vecu::SteeringFault::SensorUnavailable);
+    EXPECT_EQ(brake.fault(),vecu::BrakeFault::SensorUnavailable);
+    EXPECT_TRUE(gateway.poll().safety.handoff_accepted);
 }
 INSTANTIATE_TEST_SUITE_P(BothZones,CommandGatewayTest,::testing::Values(zone::ZoneScope::Front,zone::ZoneScope::Rear),
     [](const ::testing::TestParamInfo<zone::ZoneScope>& info){return info.param==zone::ZoneScope::Front?"Front":"Rear";});

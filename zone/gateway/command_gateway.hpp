@@ -26,6 +26,9 @@ struct GatewayDispatch {
 // Only new accepted commands enter the bounded FIFO; no periodic restamping.
 class CommandGateway {
 public:
+    ZoneScope scope() const { return scope_; }
+    std::uint32_t application_epoch() const { return epoch_; }
+    std::uint64_t observed_time_ns() const { return observed_ns_; }
     static constexpr std::size_t kCapacity = 8;
     CommandGateway(ZoneScope scope, GatewayPort& port, const AdmissionConfig& config = {});
     bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);

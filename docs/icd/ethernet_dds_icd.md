@@ -18,7 +18,8 @@ Front atomic Steering/Brake·Rear Drive와 원래 vehicle root·oldest dependenc
 same-host Leaf의 Hold/Protect/Zero 선택을 연결했다. 두 독립 vCAN interface도 시험했다.
 [Rear power/permission/BMS limits·초기 구동](../learning/m4_rear_power_startup.md)도 in-process/실제 vCAN에서 연결했다.
 공통 `power_commands.hpp`의 lifecycle root는 독립 trusted 입력이며 CAN에서 추론하지 않는다.
-Front startup·정상 종료·trusted transport/INIT-rejoin·원격 Leaf lease/보호 경로와 전체 runtime은 후속이다.
+[Front startup](../learning/m4_front_startup.md)의 pair arm/실제 Leaf 수용도 same-host/vCAN에서 시험했다.
+정상 종료·trusted transport/INIT-rejoin·원격 Leaf lease/보호 경로와 전체 runtime은 후속이다.
 
 ## Central 내부 의미 계약
 

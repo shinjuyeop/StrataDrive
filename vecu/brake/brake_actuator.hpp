@@ -34,7 +34,10 @@ enum class BrakeFault { None, CommandUnavailable, ContinuityLost, ClockError, Co
 class BrakeActuator {
 public:
     explicit BrakeActuator(BrakeActuatorConfig config);
-    bool start_session(ActuatorSession session);
+    bool start_session(ActuatorSession session, ActuatorCommandStartup startup = ActuatorCommandStartup::Immediate);
+    bool can_arm_normal_commands(std::uint64_t now_ns);
+    bool arm_normal_commands(std::uint64_t now_ns); // trusted local coordinator only
+    std::uint32_t application_epoch() const { return epoch_; }
     can::BrakeReceiveResult receive(const can::BrakeFrame& frame, std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
     void request_local_protection(std::uint64_t now_ns); // trusted local port, not a pressure command
@@ -53,11 +56,10 @@ public:
     std::optional<bool> protection_floor_observed() const { return floor_observed_; }
     BrakeFault fault() const { return fault_; }
     // Current command snapshot for ingress diagnostics; not actuator feedback.
-    std::optional<can::BrakeMessage> current_sample(std::uint64_t now_ns) {
-        return fault_ == BrakeFault::None ? receiver_.current_sample(now_ns) : std::nullopt;
-    }
+    std::optional<can::BrakeMessage> current_sample(std::uint64_t now_ns);
     const can::BrakeReceiver& receiver() const { return receiver_; }
 private:
+    bool clock(std::uint64_t now_ns);
     void fail(BrakeFault fault, std::uint64_t now_ns);
     const BrakeActuatorConfig config_;
     can::BrakeReceiver receiver_;
@@ -65,7 +67,8 @@ private:
     BrakeResponseMonitor monitor_;
     std::optional<bool> floor_observed_;
     std::uint32_t epoch_{0}, sequence_{0};
-    std::uint64_t last_tick_ns_{0};
+    std::uint64_t last_tick_ns_{0}, last_observed_ns_{0};
+    bool command_monitoring_{true};
     bool sequence_exhausted_{false};
     brake::Actuation output_{};
     std::optional<std::uint64_t> prepared_ns_;

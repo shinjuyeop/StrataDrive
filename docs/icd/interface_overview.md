@@ -24,6 +24,8 @@ VehicleRequest/FrontCommands/RearCommands 계약을 사용한다. 독립 trusted
 기존 32-byte CAN의 remote Leaf lease 검사·remote 보호 신호와 전체 runtime은 후속이다.
 [Rear 전원·초기 구동](../learning/m4_rear_power_startup.md)은 별도 lifecycle root·Enable ACK 검증과
 PowerRequest/limits/permission 전달·Drive trusted arm을 실제 controller/component·vCAN에서 연결했다.
+[Front startup](../learning/m4_front_startup.md)도 same-host trusted pair arm과 실제 Leaf/독립 Actual·vCAN에 연결했다.
+Arm은 CAN payload에서 학습하지 않으며 기존 wire·critical source/expiry 계약은 유지한다.
 2026-10-13 [EV-01](ev_power_bms_design.md)으로 BMS Leaf, 차량 관리와 power lifecycle을
 추가했다. 2026-10-14 [BMS wire 초안](bms_frame_draft.md)의 EV 6개 DBC frame과
 Host C++ codec/항목별 receiver·DBC 교차 검증과 native SocketCAN 변환 시험을 추가했다.

@@ -276,4 +276,68 @@ TEST(SteeringExecutionBoundary, ExternalPlantContinuesWhileEcuCallsStopAndResume
     ASSERT_TRUE(plant.hold(kStart+100*kMs)); ASSERT_TRUE(ecu.complete(plant.capture(),kStart+100*kMs));
     EXPECT_NEAR(plant.actual_angle_rad(),.04,1e-12); EXPECT_EQ(ecu.output().mode,steering::ActuationMode::Hold);
 }
+
+class SteeringStartupTest : public SteeringActuatorTest {
+protected:
+    void SetUp() override { ASSERT_TRUE(model.start_session(1,kStart,ActuatorCommandStartup::NonDriving)); }
+    void wait_until(int last) { for (int ms=10;ms<=last;ms+=10) ASSERT_TRUE(model.tick(kStart+ms*kMs)); }
+};
+TEST_F(SteeringStartupTest, LongStartupPublishesKnownInitWithoutNormalPackets) {
+    can::SteeringMessage actual;
+    for (int ms=10;ms<=1000;ms+=10) {
+        actual=tick(ms); ASSERT_TRUE(actual.angle_rad); EXPECT_EQ(actual.local_state,can::SteeringLocalState::Init);
+        EXPECT_EQ(actual.origin,can::SteeringOrigin::NoAcceptedInput); EXPECT_EQ(actual.causal_sequence,0U);
+    }
+    EXPECT_EQ(model.fault(),vecu::SteeringFault::None); EXPECT_EQ(actual.sequence,99U);
+    EXPECT_EQ(model.receiver().health(),can::SteeringReceiverHealth::NotInitialized);
+    EXPECT_FALSE(model.current_sample(kStart+1000*kMs));
+}
+TEST_F(SteeringStartupTest, EarlyPacketsCannotArmOrConsumeFirstNormalIdentity) {
+    wait_until(200); sequence=9;
+    EXPECT_EQ(model.receive(command({200,0.2}),kStart+200*kMs).decision,can::SteeringReceiveDecision::NotInitialized);
+    ASSERT_TRUE(model.tick(kStart+210*kMs)); ASSERT_TRUE(model.arm_normal_commands(kStart+210*kMs));
+    EXPECT_FALSE(model.arm_normal_commands(kStart+210*kMs)); sequence=0;
+    EXPECT_EQ(model.receive(command({200,0.2}),kStart+210*kMs).decision,can::SteeringReceiveDecision::SourceBeforeSession);
+    sequence=0; EXPECT_EQ(model.receive(command({220,0.2}),kStart+220*kMs).decision,can::SteeringReceiveDecision::Accepted);
+    ASSERT_TRUE(model.receiver().last_accepted()); EXPECT_EQ(model.receiver().last_accepted()->message.sequence,0U);
+    EXPECT_EQ(tick(220).sequence,21U); EXPECT_EQ(model.fault(),vecu::SteeringFault::None);
+}
+TEST_F(SteeringStartupTest, ArmNeedsANewValidAcquisitionRatherThanCachedPublication) {
+    EXPECT_FALSE(model.arm_normal_commands(kStart)); wait_until(100);
+    ASSERT_TRUE(model.tick(kStart+110*kMs,{},simulation::SteeringSensorAction::Hold));
+    EXPECT_FALSE(model.arm_normal_commands(kStart+110*kMs)); EXPECT_EQ(model.fault(),vecu::SteeringFault::None);
+    ASSERT_TRUE(model.tick(kStart+120*kMs)); EXPECT_TRUE(model.arm_normal_commands(kStart+120*kMs));
+}
+TEST_F(SteeringStartupTest, ExpiredSensorAtArmLatchesBeforeLateFreshAcquisition) {
+    wait_until(100); EXPECT_FALSE(model.arm_normal_commands(kStart+121*kMs));
+    EXPECT_EQ(model.fault(),vecu::SteeringFault::SensorUnavailable);
+    ASSERT_TRUE(model.tick(kStart+130*kMs)); EXPECT_FALSE(model.arm_normal_commands(kStart+130*kMs));
+}
+TEST_F(SteeringStartupTest, MissingSensorStillSelectsProtectionDuringStartup) {
+    wait_until(100); ASSERT_TRUE(model.tick(kStart+110*kMs,{},simulation::SteeringSensorAction::Invalidate));
+    EXPECT_EQ(model.fault(),vecu::SteeringFault::SensorUnavailable); EXPECT_FALSE(model.arm_normal_commands(kStart+110*kMs));
+}
+TEST_F(SteeringStartupTest, ControlGapCannotBeHiddenByArm) {
+    wait_until(100); EXPECT_FALSE(model.arm_normal_commands(kStart+131*kMs));
+    EXPECT_EQ(model.fault(),vecu::SteeringFault::ControlDeadline);
+}
+TEST_F(SteeringStartupTest, WaitingBudgetStartsAtArmAndCannotBeRearmed) {
+    wait_until(1000); ASSERT_TRUE(model.arm_normal_commands(kStart+1000*kMs));
+    for (int ms=1010;ms<1080;ms+=10) { ASSERT_TRUE(model.tick(kStart+ms*kMs)); EXPECT_EQ(model.fault(),vecu::SteeringFault::None); }
+    EXPECT_FALSE(model.arm_normal_commands(kStart+1070*kMs)); ASSERT_TRUE(model.tick(kStart+1080*kMs));
+    EXPECT_EQ(model.fault(),vecu::SteeringFault::CommandUnavailable);
+}
+TEST_F(SteeringStartupTest, NewNonDrivingEpochPreservesPhysicsButNotOldCommandCausality) {
+    wait_until(10); ASSERT_TRUE(model.arm_normal_commands(kStart+10*kMs));
+    for (int ms=20;ms<=300;ms+=10) drive(ms,0.2);
+    const auto physical=model.actual_angle_rad(); ASSERT_TRUE(model.start_session(2,kStart+300*kMs,ActuatorCommandStartup::NonDriving));
+    const auto actual=tick(310); ASSERT_TRUE(actual.angle_rad); EXPECT_NEAR(*actual.angle_rad,physical,0.000051);
+    EXPECT_EQ(actual.sequence,0U); EXPECT_EQ(actual.causal_sequence,0U); EXPECT_EQ(actual.origin,can::SteeringOrigin::NoAcceptedInput);
+    EXPECT_FALSE(model.current_sample(kStart+310*kMs)); EXPECT_EQ(model.fault(),vecu::SteeringFault::None);
+}
+TEST_F(SteeringStartupTest, StartupClockAndInitCannotRegressBehindIngress) {
+    wait_until(100); EXPECT_EQ(model.receive(command({110,0.2}),kStart+110*kMs).decision,can::SteeringReceiveDecision::NotInitialized);
+    EXPECT_FALSE(model.start_session(2,kStart+109*kMs,ActuatorCommandStartup::NonDriving));
+    EXPECT_FALSE(model.arm_normal_commands(kStart+109*kMs)); EXPECT_EQ(model.fault(),vecu::SteeringFault::ClockError);
+}
 }  // namespace
