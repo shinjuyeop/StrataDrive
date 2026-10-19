@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vehicle_management.hpp"
+#include "actuator_stop_lease.hpp"
 #include "allocated_commands.hpp"
 
 namespace stratadrive::central {
@@ -32,7 +33,7 @@ enum class AllocationReceiveDecision {
     Accepted, Unchanged, NotInitialized, Latched, Invalid, EpochMismatch,
     Expired, SequenceRejected, MutationRejected
 };
-enum class AllocationState { NotInitialized, Waiting, Active, FailSafe };
+enum class AllocationState { NotInitialized, Waiting, Active, FailSafe, Quiesced };
 enum class AllocationFault {
     None, ClockError, ControlDeadline, SessionMismatch, RequestLost, SupportExpired,
     PermissionUnavailable, CriticalFeedback, WheelSpeedUnavailable, FeedbackSkew,
@@ -60,6 +61,8 @@ public:
     bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
     AllocationReceiveDecision receive_request(const VehicleRequest& request, std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
+    bool select_normal_stop(const ActuatorStopLease& lease, std::uint64_t now_ns);
+    std::uint32_t application_epoch() const { return epoch_; }
     std::optional<AllocatedCommands> tick(const AllocationInputs& inputs, std::uint64_t now_ns);
     const AllocationDecision& decision() const { return decision_; }
 private:
@@ -73,6 +76,7 @@ private:
     bool permission_valid(const AllocationInputs& inputs, std::uint64_t now_ns) const;
     const AllocationConfig config_;
     AllocationDecision decision_{};
+    StopLeaseState stop_;
     std::uint32_t epoch_{0};
     std::uint64_t enable_ns_{0}, last_observed_ns_{0}, sequence_{0};
     std::optional<std::uint64_t> last_tick_ns_, critical_expiry_ns_, regen_expiry_ns_;

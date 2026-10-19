@@ -42,6 +42,7 @@ bool BrakeActuator::start_session(ActuatorSession session, ActuatorCommandStartu
     if (startup == ActuatorCommandStartup::Immediate && !receiver_.start_session(application_epoch, enable_ns)) return false;
     if (!monitor_.begin(model_epoch, enable_ns)) return false;
     epoch_ = application_epoch; last_tick_ns_ = last_observed_ns_ = enable_ns;
+    stop_.reset(enable_ns);
     command_monitoring_ = startup == ActuatorCommandStartup::Immediate; sequence_ = 0; sequence_exhausted_ = false;
     e2e::p05_protect_init(tx_.protection);
     floor_observed_.reset(); fault_ = BrakeFault::None;
@@ -52,6 +53,7 @@ bool BrakeActuator::clock(std::uint64_t now_ns) {
     if (epoch_ == 0) return false;
     if (now_ns < last_observed_ns_) { fail(BrakeFault::ClockError, last_observed_ns_); return false; }
     last_observed_ns_ = now_ns;
+    if(stop_.active() && !stop_.live(now_ns)) fail(BrakeFault::StopLeaseExpired,now_ns);
     return fault_ != BrakeFault::ClockError;
 }
 std::optional<can::BrakeMessage> BrakeActuator::current_sample(std::uint64_t now_ns) {
@@ -59,7 +61,7 @@ std::optional<can::BrakeMessage> BrakeActuator::current_sample(std::uint64_t now
     return receiver_.current_sample(now_ns);
 }
 bool BrakeActuator::can_arm_normal_commands(std::uint64_t now_ns) {
-    if (!clock(now_ns) || command_monitoring_ || fault_ != BrakeFault::None || prepared_ns_ || sequence_exhausted_) return false;
+    if (!clock(now_ns) || command_monitoring_ || stop_.active() || fault_ != BrakeFault::None || prepared_ns_ || sequence_exhausted_) return false;
     if (now_ns-last_tick_ns_ > config_.max_tick_gap_ns) { fail(BrakeFault::ControlDeadline, now_ns); return false; }
     const auto& sensor = monitor_.decision();
     if (sensor.source_time_ns && now_ns-*sensor.source_time_ns > config_.sensor_age_ns) {
@@ -71,6 +73,19 @@ bool BrakeActuator::arm_normal_commands(std::uint64_t now_ns) {
     if (!can_arm_normal_commands(now_ns) || !receiver_.start_session(epoch_, now_ns)) return false;
     command_monitoring_ = true; return true;
 }
+bool BrakeActuator::select_normal_stop(const ActuatorStopLease& lease, std::uint64_t now_ns) {
+    if(!clock(now_ns) || fault_!=BrakeFault::None || prepared_ns_) return false;
+    auto next=stop_; if(!next.accept(lease,epoch_,now_ns)) return false;
+    const auto& sensor=monitor_.decision();
+    if(now_ns-last_tick_ns_>config_.max_tick_gap_ns || sensor.violation_since_ns || !sensor.new_measurement || !sensor.measured_pa || !sensor.source_time_ns ||
+        now_ns-*sensor.source_time_ns>config_.sensor_age_ns || *sensor.measured_pa<kStopPressurePa) return false;
+    if(!stop_.active()) {
+        if(!command_monitoring_ || !receiver_.current_sample(now_ns)) return false;
+        if(!monitor_.hold(now_ns)) return false;
+        output_={brake::ActuationMode::Hold,0,now_ns};
+    }
+    stop_=next; command_monitoring_=false; return true;
+}
 void BrakeActuator::fail(BrakeFault fault, std::uint64_t now_ns) {
     if (fault_ == BrakeFault::None) {
         fault_ = fault;
@@ -80,6 +95,7 @@ void BrakeActuator::fail(BrakeFault fault, std::uint64_t now_ns) {
 }
 can::BrakeReceiveResult BrakeActuator::receive(const can::BrakeFrame& frame, std::uint64_t now_ns) {
     if (!clock(now_ns)) return {epoch_ == 0 ? can::BrakeReceiveDecision::NotInitialized : can::BrakeReceiveDecision::ClockError, std::nullopt};
+    if(stop_.active()) return {can::BrakeReceiveDecision::ModeRejected,std::nullopt};
     if (!command_monitoring_) return {can::BrakeReceiveDecision::NotInitialized, std::nullopt};
     // Monitor even when the model has already latched a local fault.
     const auto previous = receiver_.current_sample(now_ns);
@@ -132,7 +148,7 @@ std::optional<can::BrakeFrame> BrakeActuator::complete(const std::optional<brake
     const auto sample = command_monitoring_ ? receiver_.current_sample(now_ns) : std::nullopt;
     if (command_monitoring_ && receiver_.health() == can::BrakeReceiverHealth::ClockError) { fail(BrakeFault::ClockError, now_ns); return std::nullopt; }
     floor_observed_.reset();
-    const auto& monitoring = monitor_.observe(sensor, now_ns, fault_ == BrakeFault::None && sample.has_value());
+    const auto& monitoring = monitor_.observe(sensor, now_ns, fault_ == BrakeFault::None && (sample.has_value() || stop_.active()));
     if (monitoring.fault == BrakeMonitorFault::ClockError) { fail(BrakeFault::ClockError, now_ns); return std::nullopt; }
     if (monitoring.fault == BrakeMonitorFault::SensorUnavailable) fail(BrakeFault::SensorUnavailable, now_ns);
     if (monitoring.fault == BrakeMonitorFault::SensorInvalid) fail(BrakeFault::SensorInvalid, now_ns);
@@ -142,6 +158,7 @@ std::optional<can::BrakeFrame> BrakeActuator::complete(const std::optional<brake
         if (!monitor_.set_target(bounded, now_ns)) fail(BrakeFault::ControlDeadline, now_ns);
         else output_ = {brake::ActuationMode::Target, bounded, now_ns};
     }
+    if(stop_.active() && monitoring.new_measurement && monitoring.measured_pa && *monitoring.measured_pa<kStopPressurePa) fail(BrakeFault::NormalStopInvalid,now_ns);
     if (fault_ != BrakeFault::None && monitoring.new_measurement && monitoring.measured_pa) {
         floor_observed_ = *monitoring.measured_pa >= config_.fault_pressure_floor_pa;
     }
@@ -149,7 +166,7 @@ std::optional<can::BrakeFrame> BrakeActuator::complete(const std::optional<brake
     can::BrakeMessage actual;
     actual.kind = can::BrakeFrameKind::Actual; actual.epoch = epoch_; actual.sequence = sequence_;
     actual.source_time_ns = now_ns;
-    const auto accepted = command_monitoring_ ? receiver_.last_accepted() : std::nullopt;
+    const auto accepted = (command_monitoring_ || stop_.active()) ? receiver_.last_accepted() : std::nullopt;
     actual.causal_sequence = accepted ? accepted->message.sequence : 0;
     actual.local_state = fault_ != BrakeFault::None ? can::BrakeLocalState::FailSafe :
                          sample ? (monitoring.violation_since_ns ? can::BrakeLocalState::Degraded : sample->local_state) : can::BrakeLocalState::Init;

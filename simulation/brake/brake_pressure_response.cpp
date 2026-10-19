@@ -33,6 +33,10 @@ bool BrakePressureResponse::request_protection(double floor_pa, std::uint64_t no
     protecting_ = true; target_ = floor_pa;
     return skip_to(now_ns); // no motion backdated before detection
 }
+bool BrakePressureResponse::hold(std::uint64_t now_ns) {
+    if(protecting_) return false; // a nominal hold cannot clear fault protection
+    return skip_to(now_ns);
+}
 bool BrakePressureResponse::set_target(double pressure_pa, std::uint64_t now_ns) {
     if (!initialized_ || protecting_ || now_ns < last_observed_ns_ || !std::isfinite(pressure_pa) ||
         pressure_pa < 0 || pressure_pa > config_.maximum_pa) return false;

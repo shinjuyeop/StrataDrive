@@ -1,6 +1,7 @@
 #pragma once
 
 #include "local_safety.hpp"
+#include "actuator_stop_lease.hpp"
 #include "power_commands.hpp"
 #include "bounded_rx_queue.hpp"
 
@@ -39,6 +40,9 @@ public:
     RearPowerResult receive_limits(const can::BmsFrame& frame);
     RearPowerResult receive_status(const can::BmsFrame& frame);
     bool arm_normal_commands();
+    bool select_normal_stop(const ActuatorStopLease& lease);
+    std::uint32_t application_epoch() const { return epoch_; }
+    std::uint64_t observed_time_ns() const { return observed_ns_; }
     std::size_t dispatch(); // <=8 scans / <=3 independent BMS writes
     RearPowerDecision poll();
     void mark_continuity_lost();
@@ -62,6 +66,7 @@ private:
     std::array<std::optional<can::BmsCurrentSample>,8> status_history_{};
     std::array<std::optional<SentPower>,16> sent_power_{};
     std::array<std::optional<std::uint64_t>,4> expiry_{};
+    StopLeaseState stop_;
     std::uint32_t epoch_{0};
     std::uint64_t enable_ns_{0}, observed_ns_{0};
     bool normal_armed_{false};

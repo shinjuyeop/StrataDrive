@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 750개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 773개 PASS**다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -1337,6 +1337,61 @@ SensorUnavailable을 ClockError로 덮는 문제를 발견했다. 새1-case 회�
 `build/m4-front-can-{regression,sanitized-regression}.txt`와 socketcan-results에 둔다.
 Markdown119개/상대 링크·앵커1364개·추적성·YAML3개·Python8개 syntax·whitespace를 검사했다. Python unit 변경/재실행은 없다.
 M4 전체 완료·M3 타이밍 예외 해소·Target/system PASS로 확대하지 않는다. Requirement32/TC29는 NOT RUN이다.
+
+### 2026-10-19 — NormalStop·terminal lease와 정상 HV 종료
+
+[ADR-0050](adr/ADR-0050-controlled-stop-and-terminal-handoff.md)와 [학습 기록](learning/m4_normal_stop.md)에
+stop intent/issuer 계보·actual dwell·terminal handoff/lease→Inhibit/Shutdown→actual OFF/ACK를 기록했다.
+NormalStop은 기존 issuer의 trusted 다음 sequence를 인계받고 자식 root의 expiry를 원래 stop authority 안에 둔다.
+HandoffPending의 ancestor/token/deadline은 고정이며 새 intent나 중복 lease로 연장하지 않는다.
+Scope/epoch/원래 ancestor를 대조한 same-host binding은 세 Leaf·allocator/양 Zone를 넘기며 부분 실패는 모두 보호한다.
+Monitor와 plant의 지연된 정상 목표를 취소하고 physical state/sensor identity·fault를 보존한다.
+VM은 Stopping/Stopped에서 fresh Shutdown만 갱신하며 Enable 취소와 phase timer 재시작을 허용하지 않는다.
+
+Stop/lease16개·VM 갱신1개·Rear terminal1개·통합5개를 더해 normal·ASan/UBSan **각 C++773/773 PASS**다.
+기존750개 첫 회귀와 초기 Stop unit 포함761개도 각각 PASS다. 별도3.2 s 논리 시간/10 ms·배분20 ms에서
+실제 controller·세 actuator plant/독립 Actual receiver·양 Zone/VM/allocator·PowerController/RC/접점을 연결했다.
+1200 ms stop intent→새 actual 확인60 ms→Hold/Zero 선택→정상 frame TX 중단→Inhibit/current/open/discharge→
+VM Stopped·actual OFF/ACK를 fault reset 없이 확인했다. 이후 positive torque/release CAN·arm은 거부한다.
+Complete 뒤에도 LV 센서와 terminal lease를 유지하는 fixture이며 ECU 전원 차단/parking brake는 아니다.
+
+Root/lease/source/sequence/epoch·immutable duplicate/late renewal·cached dwell·누락 actual·fake OFF ACK·
+제동/전원 종료 timeout·pending token 만료·issuer exhaustion과 local pressure/speed·lease 상실/부분 인계를 검사했다.
+정지 speed는 allocation의 hold entry0.5와 구분해 wheel-speed 한 step인 **0.01 rad/s**로 정했다.
+Torque0.1 Nm·hold0.1 MPa는 기존 release/hold fixture를 따른다. 제동1 m/s²·확인60 ms·braking5 s는
+첫 SIL 설정이며 차량 calibration/정지 거리 검증이 아니다. Speed20→0 script·Zone health·BMS limits/safety·
+pack400 V/load0 A는 명시적 fixture다. 차량 운동/BMS energy/SOC·분산 coordinator/전체 workload timing은 후속이다.
+
+분리 vCAN은 normal·sanitizer **각5/5 PASS**다. 기존 Front case에 terminal 선택 후 실제 CAN의 다음
+normal command 거부와 accepted sequence 보존을 더했다. Wire/CRC/schema는 바꾸지 않았다.
+기존 local transport도 **각97/97 PASS**다. Fresh `build/m4-stop-can-{normal,sanitized}` symlink 경로로
+이전 evidence를 보존했다. Observed timeout은 normal **80.056–81.189 ms**, sanitizer **80.005–81.033 ms**다.
+이는 기존 local transport 관측이며 stop/차량 wall-time 보장으로 확대하지 않는다.
+
+Normal·ASan/UBSan·BUILD_TESTING=OFF production build를 통과했다. 변경 production13개·test4개에
+clang-tidy14 analyzer/bugprone을 적용했다. 새 unit helper의 adjacent double 경고는 named readings로 묶고,
+cppcheck의 aggregate-copy 지적은 const reference로 수정·재검사했다. 새 source/test 진단은 없다.
+확장 header의 기존 DriveSilPlant::begin easily-swappable-parameters 경고1종(test1 TU)은 보존한다.
+Cppcheck2.7 warning/performance/portability는 현재 compilation database의 production13개를 재검사해 진단 없이 통과했다.
+Pending ancestor/lease 관계 보강 후 변경3 TU clang-tidy와 production13개 cppcheck도 재통과했다.
+Third-party suppressed 진단/GoogleTest macro 제약과 기존 RTOS/ARM64 build 이력은 따로 구분한다.
+
+첫 통합 실행 **763개 중761 PASS/2 FAIL**은 `build/m4-stop-integration-development.txt`에 보존한다.
+VM이 Stopping 이후 같은 Shutdown root 갱신도 RestartRequired로 거부해 정상 완료 전에 요청을 유지할 수 없었다.
+Shutdown만 갱신하도록 수정하고 Enable 거부/timeout 비연장·만료 root의 local restrictive shutdown을 유지했다.
+후속763/763 이후 경계/terminal 회귀를 더했다. Test if/GoogleTest brace와 grouped stamp 인자 compile
+오류는 각각 `build/m4-stop-test-build.txt`/`build/m4-stop-boundary-build.txt`에 보존했다.
+Normal CAN/BMS source budget·unknown 거부를 완화하거나 INIT로 fault를 지워 통과시키지 않았다.
+
+로그는 `build/m4-stop-{core-build,baseline-test,component-build,component-baseline,test-build-fixed,test-development}.txt`,
+`build/m4-stop-{integration-build,renew-build,renew-development,boundary-build-fixed,boundary-test,build-verified,guard-build,final-build,ancestry-build,full-test}.txt`,
+`build/m4-stop-{sanitized-configure,sanitized-build,sanitized-build-final,sanitized-build-verified,sanitized-test}.txt`,
+`build/m4-stop-production-{configure,build,build-final,build-verified}.txt`,
+`build/m4-stop-{vcan,sanitized-vcan,clang-tidy,clang-tidy-final,ancestry-clang-tidy,cppcheck,cppcheck-final,cppcheck-verified,doc-check}.txt`,
+`build/m4-stop-can-{regression,sanitized-regression}.txt`와 socketcan-results에 둔다.
+Markdown121개/상대 링크·앵커1397개·추적성·YAML3개·Python8개 syntax·whitespace를 검사했다. Python unit 변경/재실행은 없다.
+전체 ingress/status/rejoin·remote Leaf composite lease/stop transport·DDS·통합 timing/Target은 남아 있다.
+M4 전체 완료/실차 정지 성능·M3 원래 실패 해소로 확대하지 않는다. Requirement32/system TC29는 NOT RUN을 유지한다.
 
 ## 코드·예제·시험 배치
 

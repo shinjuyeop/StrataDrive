@@ -26,6 +26,8 @@ VehicleRequest/FrontCommands/RearCommands 계약을 사용한다. 독립 trusted
 PowerRequest/limits/permission 전달·Drive trusted arm을 실제 controller/component·vCAN에서 연결했다.
 [Front startup](../learning/m4_front_startup.md)도 same-host trusted pair arm과 실제 Leaf/독립 Actual·vCAN에 연결했다.
 Arm은 CAN payload에서 학습하지 않으며 기존 wire·critical source/expiry 계약은 유지한다.
+[정상 종료](../learning/m4_normal_stop.md)의 stop intent/자식 root·terminal lease/ACK도 shared in-process 계약이다.
+NormalStopControl은 실제 Leaf·gateway/allocator를 연결하며 remote stop/lease transport는 후속이다.
 2026-10-13 [EV-01](ev_power_bms_design.md)으로 BMS Leaf, 차량 관리와 power lifecycle을
 추가했다. 2026-10-14 [BMS wire 초안](bms_frame_draft.md)의 EV 6개 DBC frame과
 Host C++ codec/항목별 receiver·DBC 교차 검증과 native SocketCAN 변환 시험을 추가했다.

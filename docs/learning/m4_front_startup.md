@@ -2,6 +2,7 @@
 
 Date: 2026-10-19. Status: **Host component·분리 vCAN 시험 / 전체 M4 runtime 후속**.
 [ADR-0049](../adr/ADR-0049-front-nondriving-startup-and-paired-arm.md)의 구현이다.
+아래750개와 정상 종료 미구현 설명은 당시 단계 이력이다. [후속 정상 종료](m4_normal_stop.md)에서 별도 terminal handoff를 구현했다.
 
 Front도 Rear처럼 프리차지 동안 정상 command 없이 대기한다. 이때 센서·제어 주기는 계속 살아 있다.
 **명령을 기다리는 시간과, 실제 센서를 감시하는 시간은 서로 다른 계약**이다.
@@ -89,7 +90,8 @@ Production build·정적 분석과 로그/문서 검사 범위는 [품질 기록
 정상 출력을 중단한다. 이것은 전체 차량의 정상 종료가 완성됐다는 뜻이 아니다.
 [ADR의 후속 검토](../adr/ADR-0049-front-nondriving-startup-and-paired-arm.md#정상-종료-검토--후속-구현)처럼
 정상 제어 중 제동/hold→fresh actual 정지 증거→명시적 local handoff→Inhibit/전원 종료를 연결해야 한다.
-Vehicle motion threshold·hold calibration·각 phase budget과 owner는 다음 설계/시험에서 결정한다.
+후속 [NormalStop/ADR-0050](m4_normal_stop.md)에서 첫 Host fixture의 owner·조건·budget을 정해 연결했다.
+실차 motion/hold calibration과 차량 운동 검증은 남아 있다.
 
 Remote normal CAN의 composite lease/보호 전달·전체 ingress/status/rejoin·DDS·통합 workload timing과 Target도
 후속이다. 이번 component 결과를 M4 전체 완료나 M3 타이밍 예외 해소로 표시하지 않는다.

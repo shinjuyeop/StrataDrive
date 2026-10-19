@@ -9,7 +9,7 @@ bool BrakeSil::start_session(std::uint32_t epoch, std::uint64_t enable_ns, Actua
 bool BrakeSil::apply(std::uint64_t now_ns) {
     const auto& out = ecu_.output();
     (void)now_ns;
-    if (out.mode == brake::ActuationMode::Hold) return true;
+    if (out.mode == brake::ActuationMode::Hold) return plant_.hold(now_ns);
     if (applied_ && applied_->mode == out.mode && applied_->target_pa == out.target_pa &&
         applied_->issued_time_ns == out.issued_time_ns) return true;
     const bool ok = out.mode == brake::ActuationMode::Protect ?

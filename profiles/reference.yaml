@@ -465,6 +465,40 @@ m4_front_startup_fixture:
   integrated_initial_state: {front_angle_rad: 0.1, front_pressure_pa: 200000}
   integrated_front_actuals: real_controllers_separate_plants_and_independent_can_receivers
   parameter_status: fixture_only_no_loader_remote_startup_or_target_timing_claim
+# ADR-0050: functional SIL normal stop/terminal handoff; no vehicle calibration or loader.
+m4_normal_stop_fixture:
+  owner: central_NormalStop
+  states: [Waiting, Braking, HandoffPending, PowerDown, Complete, FailSafe]
+  intent_source_age_ms: 50
+  intent_maximum_lifetime_ms: 80
+  child_issuers: trusted_continuation_seed_no_can_learning_or_wrap
+  child_expiry: bounded_by_original_stop_root_expiry_and_source_age
+  braking_deceleration_mps2: 1
+  standstill_speed_max_rad_s: 0.01 # one wire step; distinct from allocator hold entry 0.5
+  torque_absolute_max_nm: 0.1
+  minimum_hold_pressure_pa: 100000 # existing hold100 Nm / friction0.001 Nm/Pa
+  confirmation_ms: 60
+  confirmation_clock: oldest_original_speed_torque_pressure_acquisition_no_cached_progress
+  actual_source_age_ms: 30
+  actual_skew_ms: 20
+  braking_timeout_ms: 5000
+  shutdown_timeout_ms: 2000
+  terminal_lease_source_age_ms: 50
+  terminal_lease_maximum_lifetime_ms: 80
+  terminal_lease_expiry: exclusive_previous_expiry_checked_before_renewal
+  pending_handoff_token: fixed_deadline_not_extended_by_new_intent
+  leaf_handoff: steering_hold_brake_hold_drive_zero_no_fault_reset
+  delayed_targets_and_predictions: cancel_preserve_sensor_identity_and_faults
+  normal_ingress_and_allocator: closed_until_new_trusted_init
+  rear_power_after_handoff: shutdown_only_no_enable_or_allow_normal
+  vm_stopping_and_stopped_renewal: shutdown_only_no_phase_budget_reset_or_enable_restart
+  completion: actual_off_open_contacts_low_bus_and_vm_ack_with_live_motion_evidence
+  after_complete: lv_sensors_and_terminal_lease_remain_alive
+  logical_test: {window_ms: 3200, step_ms: 10, allocation_period_ms: 20, stop_request_ms: 1200}
+  speed_input: explicit_script_20_to_0_rad_s_not_vehicle_dynamics
+  remaining_fixtures: [zone_health, bms_limits, bms_safety_gate, pack_voltage_and_load]
+  transport: same_host_trusted_callback_remote_stop_and_leaf_lease_pending
+  parameter_status: fixture_only_no_oem_calibration_or_target_timing_claim
 # ADR-0048: finite Host Rear startup component, not a profile loader or full EV runtime.
 m4_rear_power_fixture:
   implementation: separate_rear_power_gateway_and_trusted_sil_control
@@ -500,7 +534,7 @@ m4_rear_power_fixture:
   protection: drive_zero_and_power_local_inhibit_existing_current_open_discharge_sequence
   startup_test: {logical_window_ms: 1600, step_ms: 10, allocation_period_ms: 20}
   startup_fixtures: [zone_health, bms_limits, bms_safety_gate, pack_voltage_and_load, external_zero_speed]
-  coordinated_graceful_shutdown: pending_active_drive_inhibit_still_fails_safe
+  coordinated_graceful_shutdown: same_host_NormalStop_terminal_handoff_implemented_remote_vehicle_runtime_pending
   remote_normal_can_leaf_lease_and_dds: pending
   parameter_status: fixture_only_no_yaml_loader_oem_calibration_or_target_timing_claim
 m4_allocation_fixture:

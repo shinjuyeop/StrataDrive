@@ -28,6 +28,7 @@ class BrakeResponseMonitor {
 public:
     explicit BrakeResponseMonitor(BrakeMonitorConfig config);
     bool begin(std::uint32_t model_epoch, std::uint64_t enable_ns);
+    bool hold(std::uint64_t now_ns); // cancel delayed demands without resetting sensor identity/faults
     bool set_target(double bounded_pressure_pa, std::uint64_t now_ns);
     const BrakeMonitorDecision& observe(const std::optional<brake::PressureMeasurement>& sensor,
         std::uint64_t now_ns, bool tracking_enabled);

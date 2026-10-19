@@ -21,6 +21,11 @@ bool SteeringResponseMonitor::begin(std::uint32_t model_epoch, std::uint64_t ena
     head_ = size_ = 0; staged_.reset(); previous_.reset(); seeded_ = false;
     decision_ = {}; decision_.fault = SteeringMonitorFault::None; return true;
 }
+bool SteeringResponseMonitor::hold(std::uint64_t now_ns) {
+    if(model_epoch_==0 || decision_.fault!=SteeringMonitorFault::None || now_ns<last_observed_ns_ || !decision_.measured_rad || !decision_.source_time_ns) return false;
+    head_=size_=0; staged_.reset(); lower_=upper_=target_=*decision_.measured_rad; cursor_ns_=*decision_.source_time_ns;
+    last_observed_ns_=now_ns; decision_.violation_since_ns.reset(); decision_.residual_rad=0; return true;
+}
 bool SteeringResponseMonitor::set_target(double angle, std::uint64_t now_ns) {
     if (model_epoch_ == 0 || decision_.fault != SteeringMonitorFault::None || now_ns < last_observed_ns_ ||
         !std::isfinite(angle) || angle < config_.minimum_rad || angle > config_.maximum_rad) return false;

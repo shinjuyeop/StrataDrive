@@ -103,7 +103,8 @@ bool VehicleManagement::advance(std::uint64_t now) {
 LifecycleReceiveDecision VehicleManagement::receive_request(const LifecycleRequest& request, std::uint64_t now) {
     if (epoch_ == 0) return LifecycleReceiveDecision::NotInitialized;
     if (!advance(now) || decision_.state == VehicleManagementState::FailSafe) return LifecycleReceiveDecision::Latched;
-    if (decision_.state == VehicleManagementState::Stopping || decision_.state == VehicleManagementState::Stopped) {
+    if ((decision_.state == VehicleManagementState::Stopping || decision_.state == VehicleManagementState::Stopped) &&
+        request.action != can::BmsPowerAction::Shutdown) {
         return LifecycleReceiveDecision::RestartRequired;
     }
     const auto& id = request.identity;

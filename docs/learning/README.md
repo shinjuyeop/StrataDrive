@@ -176,4 +176,7 @@ Power/Drive NonDriving→trusted arm을 연결했다. Startup7·readiness3·Rear
 726개, 분리 vCAN 각각 4개 PASS다.
 후속 [Front startup](m4_front_startup.md)은 sensor/period 감시를 유지하며 두 Leaf·gateway를 함께 arm한다.
 Front startup18·binding6개를 더해 전체 각각750개·분리 vCAN5개 PASS다. 실제 Front Actual/물리 모델로
-양 Zone 시동 시험을 확장했다. 정상 종료·실제 ingress/status·Leaf lease/runtime 통합은 남아 있다.
+양 Zone 시동 시험을 확장했다.
+후속 [정상 종료](m4_normal_stop.md)는 stop intent/actual dwell·terminal handoff/lease→HV 종료를 연결했다.
+Stop/lease16·VM 갱신1·Rear terminal1·연결5개를 더해 전체 각각773개 PASS다. VCan5개도 terminal frame 거부를 확장했다.
+실제 ingress/status·rejoin·remote Leaf lease/runtime 통합은 남아 있다.

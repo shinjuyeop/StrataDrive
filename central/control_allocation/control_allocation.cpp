@@ -56,6 +56,7 @@ bool ControlAllocation::start_session(std::uint32_t epoch, std::uint64_t enable)
     if (epoch == 0 || (epoch_ != 0 && (epoch <= epoch_ || enable < last_observed_ns_))) return false;
     epoch_ = epoch; enable_ns_ = last_observed_ns_ = enable; sequence_ = 0;
     last_tick_ns_.reset(); critical_expiry_ns_.reset(); regen_expiry_ns_.reset(); request_.reset(); deficit_ = {}; excess_ = {};
+    stop_.reset(enable);
     armed_ = stopped_ = braking_ = low_speed_ = holding_ = false; episode_regen_nm_ = 0;
     decision_ = {}; decision_.state = AllocationState::Waiting;
     return true;
@@ -66,6 +67,12 @@ void ControlAllocation::fail(AllocationFault fault) {
 }
 bool ControlAllocation::live_request(std::uint64_t now) const {
     return request_ && now < request_->expires_at_ns && now-request_->source_time_ns <= config_.request_source_age_ns;
+}
+bool ControlAllocation::select_normal_stop(const ActuatorStopLease& lease,std::uint64_t now) {
+    if(epoch_==0 || now<last_observed_ns_ || decision_.fault!=AllocationFault::None) return false;
+    if(!stop_.active() && (!advance(now) || decision_.state!=AllocationState::Active)) return false;
+    if(!stop_.accept(lease,epoch_,now)) return false;
+    last_observed_ns_=now; stopped_=true; decision_.state=AllocationState::Quiesced; return true;
 }
 bool ControlAllocation::advance(std::uint64_t now) {
     if (epoch_ == 0 || stopped_) return false;

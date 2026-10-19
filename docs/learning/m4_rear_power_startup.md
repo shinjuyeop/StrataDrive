@@ -109,3 +109,5 @@ ingress/status·loss/rejoin과 정상 정지→전원 종료를 연결한다. �
 
 기존 32-byte normal CAN의 remote Leaf composite lease와 보호 전달 계약, DDS·전체 workload timing·Target도
 남아 있다. 이번 논리 시간·same-host vCAN 결과는 hard RT, 차량 정지 성공, M4 전체 완료의 증거가 아니다.
+
+후속 [정상 종료](m4_normal_stop.md)는 별도 terminal handoff/lease 뒤 Inhibit/HV 종료를 연결한다. 위 내용은 첫 Rear 단계 이력이다.

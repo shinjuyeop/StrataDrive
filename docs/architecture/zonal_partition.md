@@ -91,6 +91,7 @@ Scoped parent/expiry는 shared in-process 계약이며 별도 trusted root/arm, 
 same-host Leaf 보호 선택을 연결했다. 두 전용 vCAN에서 실제 frame 수신도 시험했다.
 [Rear 전원·초기 구동](../learning/m4_rear_power_startup.md)은 실제 Power/Drive와 원래 source/ACK·limits/permission을 연결했다.
 [Front startup](../learning/m4_front_startup.md) 후속 시험은 실제 Front Leaf/물리 모델·독립 Actual receiver까지 연결했다.
-Zone health·BMS limits/safety·speed는 fixture다. 정상 종료,
+[정상 정지/HV 종료](../learning/m4_normal_stop.md)도 terminal lease/인계와 실제 controller·물리 모델에 연결했다.
+Zone health·BMS limits/safety·외부 speed script는 fixture다.
 실제 ingress/status/runtime·remote Leaf composite expiry/보호 전달과 전체 차량 검증은 후속이다.
 ZON-S01/ZON-F01/F02, TC-ZON-001–003과 기존 COM/EV/SAFE 시험에 연결하며 전체 Result는 NOT RUN이다.

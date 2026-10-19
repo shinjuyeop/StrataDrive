@@ -35,7 +35,7 @@ coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/sessio
 [Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가했다.
 [Brake response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 추가했다.
 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)의 core 18개·외부 물리 진행 3개를 추가했다.
-M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 32개와 후속 M4 Central/Zone·Rear startup/derating·Front startup 검사를 더해 현재 C++ 750개다. 현재 결과는 [진행 현황](project_status.md), 단계별 분모는 [품질 기록](quality_policy.md)에 둔다.
+M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의 32개와 후속 M4 Central/Zone·Rear startup/derating·Front startup·정상 종료 검사를 더해 현재 C++ 773개다. 현재 결과는 [진행 현황](project_status.md), 단계별 분모는 [품질 기록](quality_policy.md)에 둔다.
 Python은 직전 hosted timer 단계의 63개 PASS 이력을 유지한다.
 기존 vCAN 97개 이력과 M3 multirate/fault·고정 부하 실험은 별도 범위다. 실행 횟수·PASS/FAIL은 [품질 기록](quality_policy.md)에 남긴다.
 Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
@@ -49,7 +49,7 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | M1 | DBC + vCAN | 12개 wire/receiver, 영속 local Epoch/queue 및 overflow/restart 기술 검사 완료; wire 채택·학습자 review PENDING |
 | M2 | TECHNICAL CHECKS PASS: Actuator + Battery / BMS / Power models | component·Steering/Brake response monitor 시험; 학습자 수용 PENDING |
 | M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | Host 수용 검토·IO 동반/FIFO 기준 선택; 일반 sanitizer 타이밍 예외·학습자 수용 OPEN, Target/E2E 후속 |
-| M4 | COMPONENT IMPLEMENTATION: Central coordinator + Front/Rear Zone | Central·scoped admission·CAN gateway/보호·Rear 전원/허가/limits·양 Zone 초기 구동 연결 시험; 정상 종료·Leaf lease·전체 ingress/status/runtime/rejoin 후속, TC-ZON-001–003 NOT RUN; protocol TBD-15 |
+| M4 | COMPONENT IMPLEMENTATION: Central coordinator + Front/Rear Zone | Central·scoped admission·CAN gateway/보호·Rear 전원/허가/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결 시험; remote Leaf lease·전체 ingress/status/runtime/rejoin 후속, TC-ZON-001–003 NOT RUN; protocol TBD-15 |
 | M5 | Central Compute + DDS | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
 | M6 | Simple Vehicle + EV Plant | 실제 actuator/power 응답을 통한 lifecycle/closed-loop, battery energy/SOC balance와 mapping 검증 |
 | M7 | CARLA Integration | Host–Target 실제 Ethernet, single ego writer, feedback-driven CARLA motion |
@@ -169,7 +169,7 @@ Sanitizer 일반 실행의 owner skip 2회 실패를 보존했다. [M3 수용 �
 guarded 주기 집계 수정을 마쳤다. M4 [Central 준비 판정](learning/m4_normal_drive_readiness.md)을 먼저 구현했다.
 후속 [lifecycle/허가 상태 owner](learning/m4_vehicle_management.md)도 구현·component 시험했다.
 후속 [첫 allocation](learning/m4_control_allocation.md), [Zone admission](learning/m4_zone_command_admission.md),
-[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)·[Rear 전원·초기 구동](learning/m4_rear_power_startup.md)과 [Front startup](learning/m4_front_startup.md)도 구현·시험했다. 다음은 coordinated stop·Leaf lease·전체 runtime 통합이며 M3 timing 예외 분석을 병행한다.
+[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)·[Rear 전원·초기 구동](learning/m4_rear_power_startup.md)과 [Front startup](learning/m4_front_startup.md)도 구현·시험했다. [정상 정지/HV 종료](learning/m4_normal_stop.md)도 Host component로 연결했다. 다음은 실제 status/ingress·rejoin·remote Leaf lease·전체 runtime 통합이며 M3 timing 예외 분석을 병행한다.
 실제 ARM64 timing은 배포 단계에서 확인한다.
 Wire/학습자 review는 PENDING이다.
 

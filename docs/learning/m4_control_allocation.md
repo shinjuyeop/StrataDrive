@@ -123,7 +123,9 @@ ctest --test-dir build/m4-readiness -R '^ControlAllocation' --output-on-failure
 
 후속 [scoped admission](m4_zone_command_admission.md)과 [CAN routing/local protection](m4_zone_gateway.md)은 구현했다.
 [Rear 전원/허가/limits·초기 NonDriving/arm](m4_rear_power_startup.md)도 후속 component/vCAN에서 연결했다.
-다음은 coordinated stop·Leaf lease·실제 독립 ingress/status/loss/rejoin과 전체 runtime이다.
+다음은 remote Leaf lease·실제 독립 ingress/status/loss/rejoin과 전체 runtime이다.
 기존 EV runtime fixture를 coordinator로 교체한 새 workload timing과 차량 response budget은 다시 검증한다.
 
 후속 [Front startup](m4_front_startup.md)은 두 Leaf/gateway의 대기/arm과 실제 양 Zone 시동 연결을 검증했다.
+
+후속 [정상 종료](m4_normal_stop.md)는 actual 정지 확인·terminal handoff/lease 뒤 HV 종료를 연결했다.

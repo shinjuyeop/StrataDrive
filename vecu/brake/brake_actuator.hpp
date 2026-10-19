@@ -1,6 +1,7 @@
 #pragma once
 
 #include "actuator_session.hpp"
+#include "actuator_stop_lease.hpp"
 
 #include "brake_receiver.hpp"
 #include "brake_actuation.hpp"
@@ -26,7 +27,7 @@ struct BrakeActuatorConfig {
     std::uint64_t response_confirmation_ns{60000000}, sensor_age_ns{20000000};
 };
 enum class BrakeFault { None, CommandUnavailable, ContinuityLost, ClockError, ControlDeadline,
-    SensorUnavailable, SensorInvalid, ResponseError, PhysicalModelError, UpstreamProtection };
+    SensorUnavailable, SensorInvalid, ResponseError, PhysicalModelError, UpstreamProtection, StopLeaseExpired, NormalStopInvalid };
 
 // ECU logic only: receiver, monitor, selected output and CAN publication.
 // prepare/complete delimit one externally clocked job. Physics and acquisition
@@ -36,6 +37,8 @@ public:
     explicit BrakeActuator(BrakeActuatorConfig config);
     bool start_session(ActuatorSession session, ActuatorCommandStartup startup = ActuatorCommandStartup::Immediate);
     bool can_arm_normal_commands(std::uint64_t now_ns);
+    bool select_normal_stop(const ActuatorStopLease& lease, std::uint64_t now_ns);
+    bool normal_stop_selected() const { return stop_.active(); }
     bool arm_normal_commands(std::uint64_t now_ns); // trusted local coordinator only
     std::uint32_t application_epoch() const { return epoch_; }
     can::BrakeReceiveResult receive(const can::BrakeFrame& frame, std::uint64_t now_ns);
@@ -69,6 +72,7 @@ private:
     std::uint32_t epoch_{0}, sequence_{0};
     std::uint64_t last_tick_ns_{0}, last_observed_ns_{0};
     bool command_monitoring_{true};
+    StopLeaseState stop_;
     bool sequence_exhausted_{false};
     brake::Actuation output_{};
     std::optional<std::uint64_t> prepared_ns_;

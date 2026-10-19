@@ -10,6 +10,8 @@ PowerLimits→DriveBatteryLimits와 원래 status/ACK를 연결했다. Parent는
 Normal torque receiver는 explicit arm 때 시작하며 wire의 sequence나 시각을 가짜 startup packet으로 소비하지 않는다.
 [Front startup](../learning/m4_front_startup.md)도 normal receiver를 trusted arm 때 시작한다.
 Steering/Brake는 그전에도 독립 센서의 INIT Actual을 발행한다. Arm 전 packet은 수신 상태를 진행시키지 않는다.
+[정상 종료](../learning/m4_normal_stop.md)의 terminal handoff 뒤에는 정상 command를 거부하고 별도 trusted lease를 감시한다.
+Wire/P05 layout은 유지한다. 이 stop lease/ACK는 same-host sideband이며 remote CAN protocol이 아니다.
 
 Status: semantic/failure contract **DEFINED**, actuator 6개 + EV 6개 DBC/codec **Host 초안 구현·시험 / baseline 채택 PENDING**.
 [Steering 두 frame의 설계·DBC 초안](steering_frame_draft.md)을 작성했다(학습자 review PENDING).

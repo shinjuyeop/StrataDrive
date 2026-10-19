@@ -39,7 +39,7 @@ bool RearPowerGateway::start_session(std::uint32_t epoch,std::uint64_t enable) {
     const auto now=port_.now_ns();
     if(epoch==0 || epoch<=epoch_ || enable>now || (epoch_!=0 && (enable<observed_ns_ || now<observed_ns_))) return false;
     if(!power_rx_.start_session(epoch,enable) || !permission_rx_.start_session(epoch,enable) || !limits_rx_.start_session(epoch,enable) || !status_rx_.start_session(epoch,enable)) return false;
-    queue_.start_session(epoch); safety_.start_session(epoch); root_.reset(); status_history_={}; sent_power_={}; expiry_={};
+    queue_.start_session(epoch); safety_.start_session(epoch); stop_.reset(enable); root_.reset(); status_history_={}; sent_power_={}; expiry_={};
     for(auto* tx:{&power_validation_,&permission_validation_,&power_tx_,&permission_tx_,&limits_tx_}) e2e::p05_protect_init(tx->protection);
     epoch_=epoch; enable_ns_=enable; observed_ns_=now; normal_armed_=false; return true;
 }
@@ -54,6 +54,7 @@ bool RearPowerGateway::refresh() {
     if(now<observed_ns_) { fail(ProtectionCause::ClockError); return false; }
     observed_ns_=now;
     if(safety_.decision().cause!=ProtectionCause::None) { safety_.dispatch(port_,ZoneScope::Rear,now); return false; }
+    if(stop_.active() && !stop_.live(now)) { fail(ProtectionCause::CommandExpired); return false; }
     for(const auto& bound:expiry_) if(bound && now>=*bound) { fail(ProtectionCause::CommandExpired); return false; }
     auto power=power_rx_.current_sample(now), permission=permission_rx_.current_sample(now), limits=limits_rx_.current_sample(now), status=status_rx_.current_sample(now);
     const std::array<bool,4> live{usable(power),usable(permission),usable(limits,true),usable(status,true)};
@@ -65,11 +66,12 @@ bool RearPowerGateway::refresh() {
             fail(ProtectionCause::UpstreamLost); return false;
         }
     }
-    if(normal_armed_ && (!status || !normal_status(*status) || !can::bms_power_is_ready(*status))) { fail(ProtectionCause::UpstreamLost); return false; }
+    if(normal_armed_ && !stop_.active() && (!status || !normal_status(*status) || !can::bms_power_is_ready(*status))) { fail(ProtectionCause::UpstreamLost); return false; }
     return true;
 }
 RearPowerResult RearPowerGateway::authorize_request(const central::LifecycleRequest& r) {
     if(!refresh()) return epoch_==0?RearPowerResult::NotInitialized:RearPowerResult::Latched;
+    if(stop_.active() && r.action!=can::BmsPowerAction::Shutdown) return RearPowerResult::ParentRejected;
     const auto& p=r.identity;
     if(p.epoch!=epoch_ || p.source_time_ns<enable_ns_ || p.source_time_ns>observed_ns_ || observed_ns_-p.source_time_ns>kSourceAge ||
         p.expires_at_ns<=observed_ns_ || p.expires_at_ns<=p.source_time_ns || p.expires_at_ns-p.source_time_ns>can::kBmsMaxLifetimeNs ||
@@ -101,6 +103,13 @@ const RearPowerGateway::SentPower* RearPowerGateway::acknowledged(const can::Bms
     }
     return nullptr;
 }
+bool RearPowerGateway::select_normal_stop(const ActuatorStopLease& lease) {
+    if(!refresh() || !normal_armed_) return false;
+    const bool first=!stop_.active();
+    if(!stop_.accept(lease,epoch_,observed_ns_)) return false;
+    if(first) for(std::size_t i=0;i<kCapacity;++i) if(!queue_.pop()) break;
+    return true;
+}
 bool RearPowerGateway::arm_normal_commands() {
     if(!refresh() || normal_armed_ || !ready()) return false;
     if(!port_.arm_normal_commands(epoch_,observed_ns_)) { fail(ProtectionCause::UpstreamLost); return false; }
@@ -108,7 +117,7 @@ bool RearPowerGateway::arm_normal_commands() {
 }
 bool RearPowerGateway::grant_supported(const can::BmsMessage& message) const {
     const auto* grant=std::get_if<can::BmsDriveGrant>(&message.content);
-    if(!grant || !normal_armed_) return false;
+    if(!grant || !normal_armed_ || stop_.active()) return false;
     for(const auto& s:status_history_) {
         if(!s || s->message.sequence!=grant->power_status_sequence || s->message.source_time_ns!=grant->power_status_source_time_ns ||
             observed_ns_>=deadline(s->message) || !can::bms_power_is_ready(*s)) continue;
@@ -133,6 +142,7 @@ RearPowerResult RearPowerGateway::enqueue(const can::BmsMessage& m,bool permissi
         }
     } else {
         const auto* r=std::get_if<can::BmsPowerRequest>(&m.content); if(!r) return RearPowerResult::Rejected;
+        if(stop_.active() && r->action==can::BmsPowerAction::Enable) return RearPowerResult::NotReady;
         if(m.origin==can::ActuatorOrigin::NormalPath) {
             if(!root_ || root_->action!=r->action) return RearPowerResult::ParentRejected;
             parent=root_->identity;

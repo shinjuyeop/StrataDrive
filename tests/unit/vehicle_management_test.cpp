@@ -304,6 +304,15 @@ TEST_F(VehicleManagementTest, StopWaitsForShutdownAckActualOpenContactsAndLowBus
     EXPECT_EQ(owner.receive_request(root(60), ns(60)), LifecycleReceiveDecision::RestartRequired);
     step(70, can::BmsPowerState::Off); EXPECT_FALSE(owner.decision().normal_allowed); EXPECT_TRUE(owner.decision().power_off_confirmed);
 }
+TEST_F(VehicleManagementTest, ShutdownRenewalsKeepOriginalStopPhaseAndCannotRestoreEnable) {
+    normal(); submit(30,can::BmsPowerAction::Shutdown); step(30);
+    submit(40,can::BmsPowerAction::Shutdown); step(40,can::BmsPowerState::Shutdown);
+    EXPECT_EQ(owner.decision().state,VehicleManagementState::Stopping); EXPECT_FALSE(owner.decision().normal_allowed);
+    EXPECT_EQ(owner.receive_request(root(50),ns(50)),LifecycleReceiveDecision::RestartRequired);
+    submit(50,can::BmsPowerAction::Shutdown); step(50,can::BmsPowerState::Off);
+    EXPECT_EQ(owner.decision().state,VehicleManagementState::Stopped); submit(60,can::BmsPowerAction::Shutdown);
+    EXPECT_FALSE(owner.decision().normal_allowed); EXPECT_EQ(owner.receive_request(root(70),ns(70)),LifecycleReceiveDecision::RestartRequired);
+}
 TEST_F(VehicleManagementTest, KeepOffDuringOperationRequestsControlledShutdownAndCannotBeCancelledByEnable) {
     normal(); submit(30, can::BmsPowerAction::KeepOff); step(30);
     EXPECT_EQ(power().action, can::BmsPowerAction::Shutdown);

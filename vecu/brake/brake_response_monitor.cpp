@@ -21,6 +21,11 @@ bool BrakeResponseMonitor::begin(std::uint32_t model_epoch, std::uint64_t enable
     head_ = size_ = 0; staged_.reset(); previous_.reset(); seeded_ = false;
     decision_ = {}; decision_.fault = BrakeMonitorFault::None; return true;
 }
+bool BrakeResponseMonitor::hold(std::uint64_t now_ns) {
+    if(model_epoch_==0 || decision_.fault!=BrakeMonitorFault::None || now_ns<last_observed_ns_ || !decision_.measured_pa || !decision_.source_time_ns) return false;
+    head_=size_=0; staged_.reset(); lower_=upper_=target_=*decision_.measured_pa; cursor_ns_=*decision_.source_time_ns;
+    last_observed_ns_=now_ns; decision_.violation_since_ns.reset(); decision_.residual_pa=0; return true;
+}
 bool BrakeResponseMonitor::set_target(double pressure, std::uint64_t now_ns) {
     if (model_epoch_ == 0 || decision_.fault != BrakeMonitorFault::None || now_ns < last_observed_ns_ ||
         !std::isfinite(pressure) || pressure < 0 || pressure > config_.maximum_pa) return false;

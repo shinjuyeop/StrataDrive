@@ -25,6 +25,7 @@ public:
     bool begin(std::uint64_t now_ns); // cancel commands, preserve physical pressure and sensor sequence
     bool set_target(double pressure_pa, std::uint64_t now_ns);
     bool advance(std::uint64_t now_ns, const BrakePressureResponseInjection& injection = {});
+    bool hold(std::uint64_t now_ns); // cancel pending normal targets, preserve pressure
     // Functional SIL protection primitive: cancel normal demands, build to the
     // floor, never release higher pressure. Injection still applies to physics.
     bool request_protection(double floor_pa, std::uint64_t now_ns);

@@ -16,7 +16,7 @@ bool CommandGateway::start_session(std::uint32_t epoch, std::uint64_t enable) {
     const auto now = port_.now_ns();
     if (epoch == 0 || epoch <= epoch_ || enable > now || (epoch_ != 0 && (enable < observed_ns_ || now < observed_ns_))) return false;
     if (!admission_.start_session(epoch, enable)) return false;
-    queue_.start_session(epoch); safety_.start_session(epoch);
+    queue_.start_session(epoch); safety_.start_session(epoch); stop_.reset(enable);
     e2e::p05_protect_init(steering_tx_.protection); e2e::p05_protect_init(brake_tx_.protection); e2e::p05_protect_init(drive_tx_.protection);
     epoch_ = epoch; observed_ns_ = now; return true;
 }
@@ -30,6 +30,10 @@ bool CommandGateway::refresh() {
     const auto now = port_.now_ns();
     if (now < observed_ns_) { admission_.poll(now); fail(ProtectionCause::ClockError); return false; }
     observed_ns_ = now;
+    if(stop_.active()) {
+        if(!stop_.live(now)) fail(ProtectionCause::CommandExpired);
+        safety_.dispatch(port_,scope_,now); return safety_.decision().cause==ProtectionCause::None;
+    }
     const auto state = admission_.poll(now);
     if (state.protection_required) {
         const auto cause = state.fault == AdmissionFault::CommandExpired ? ProtectionCause::CommandExpired :
@@ -40,14 +44,22 @@ bool CommandGateway::refresh() {
     return safety_.decision().cause == ProtectionCause::None;
 }
 bool CommandGateway::arm() {
-    return refresh() && admission_.arm(observed_ns_);
+    return refresh() && !stop_.active() && admission_.arm(observed_ns_);
+}
+bool CommandGateway::select_normal_stop(const ActuatorStopLease& lease) {
+    if(!refresh() || (!stop_.active() && admission_.decision().state!=AdmissionState::Active)) return false;
+    if(!stop_.accept(lease,epoch_,observed_ns_)) return false;
+    for(std::size_t i=0;i<kCapacity;++i) if(!queue_.pop()) break;
+    return true;
 }
 AdmissionResult CommandGateway::authorize_request(const central::VehicleRequest& parent) {
     if (!refresh()) return epoch_ == 0 ? AdmissionResult::NotInitialized : AdmissionResult::Latched;
+    if(stop_.active()) return AdmissionResult::NotArmed;
     return admission_.authorize_request(parent, observed_ns_);
 }
 AdmissionResult CommandGateway::enqueue(const central::ScopedCommands& commands) {
     if (!refresh()) return epoch_ == 0 ? AdmissionResult::NotInitialized : AdmissionResult::Latched;
+    if(stop_.active()) return AdmissionResult::NotArmed;
     const auto result = admission_.receive(commands, observed_ns_);
     if (result == AdmissionResult::Accepted && !queue_.push(commands)) {
         fail(ProtectionCause::QueueOverflow); return AdmissionResult::Latched;
@@ -56,7 +68,7 @@ AdmissionResult CommandGateway::enqueue(const central::ScopedCommands& commands)
 }
 GatewayDispatch CommandGateway::dispatch() {
     GatewayDispatch result;
-    if (!refresh()) return result;
+    if (!refresh() || stop_.active()) return result;
     const auto current = admission_.current_command(observed_ns_);
     if (!current) return result;
     for (std::size_t i = 0; i < kCapacity; ++i) {

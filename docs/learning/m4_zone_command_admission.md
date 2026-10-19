@@ -79,6 +79,8 @@ ctest --test-dir build/m4-readiness -R 'CommandAdmission|RealAllocatorOutputsPas
 기존 32-byte CAN payload에 이 sideband가 없으므로
 수용 시험을 Leaf까지 원래 만료가 보장된 end-to-end 검증으로 확대하지 않는다.
 후속 [Rear 전원/허가/limits·NonDriving/arm](m4_rear_power_startup.md)은 component/vCAN에서 연결했다.
-정상 종료·실제 독립 ingress/rejoin·전체 workload timing·DDS/M5는 남아 있다. System requirement 32개/TC 29개는 NOT RUN을 유지한다.
+전체 독립 ingress/rejoin·전체 workload timing·DDS/M5는 남아 있다. System requirement 32개/TC 29개는 NOT RUN을 유지한다.
 
 후속 [Front startup](m4_front_startup.md)은 두 Leaf/gateway의 대기/arm과 실제 양 Zone 시동 연결을 검증했다.
+
+후속 [정상 종료](m4_normal_stop.md)는 actual 정지 확인·terminal handoff/lease 뒤 HV 종료를 연결했다.

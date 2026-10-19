@@ -1,6 +1,7 @@
 #pragma once
 
 #include "local_safety.hpp"
+#include "actuator_stop_lease.hpp"
 #include "bounded_rx_queue.hpp"
 
 namespace stratadrive::zone {
@@ -33,6 +34,8 @@ public:
     CommandGateway(ZoneScope scope, GatewayPort& port, const AdmissionConfig& config = {});
     bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
     bool arm();
+    bool select_normal_stop(const ActuatorStopLease& lease);
+    bool normal_stop_selected() const { return stop_.active(); }
     AdmissionResult authorize_request(const central::VehicleRequest& parent);
     AdmissionResult enqueue(const central::ScopedCommands& commands);
     GatewayDispatch dispatch(); // bounded drain; at most one batch / two frames
@@ -50,6 +53,7 @@ private:
     can::SteeringTxState steering_tx_{can::SteeringFrameKind::Command};
     can::BrakeTxState brake_tx_{can::BrakeFrameKind::Command};
     can::DriveTxState drive_tx_{can::DriveFrameKind::Command};
+    StopLeaseState stop_;
     std::uint32_t epoch_{0};
     std::uint64_t observed_ns_{0};
 };

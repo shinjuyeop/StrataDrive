@@ -41,6 +41,7 @@ bool SteeringActuator::start_session(ActuatorSession session, ActuatorCommandSta
     if (startup == ActuatorCommandStartup::Immediate && !receiver_.start_session(application_epoch, enable_ns)) return false;
     if (!monitor_.begin(model_epoch, enable_ns)) return false;
     epoch_ = application_epoch; last_tick_ns_ = last_observed_ns_ = enable_ns;
+    stop_.reset(enable_ns);
     command_monitoring_ = startup == ActuatorCommandStartup::Immediate; sequence_ = 0; sequence_exhausted_ = false;
     e2e::p05_protect_init(tx_.protection);
     fault_ = SteeringFault::None;
@@ -51,6 +52,7 @@ bool SteeringActuator::clock(std::uint64_t now_ns) {
     if (epoch_ == 0) return false;
     if (now_ns < last_observed_ns_) { fail(SteeringFault::ClockError, last_observed_ns_); return false; }
     last_observed_ns_ = now_ns;
+    if(stop_.active() && !stop_.live(now_ns)) fail(SteeringFault::StopLeaseExpired,now_ns);
     return fault_ != SteeringFault::ClockError;
 }
 std::optional<can::SteeringMessage> SteeringActuator::current_sample(std::uint64_t now_ns) {
@@ -58,7 +60,7 @@ std::optional<can::SteeringMessage> SteeringActuator::current_sample(std::uint64
     return receiver_.current_sample(now_ns);
 }
 bool SteeringActuator::can_arm_normal_commands(std::uint64_t now_ns) {
-    if (!clock(now_ns) || command_monitoring_ || fault_ != SteeringFault::None || prepared_ns_ || sequence_exhausted_) return false;
+    if (!clock(now_ns) || command_monitoring_ || stop_.active() || fault_ != SteeringFault::None || prepared_ns_ || sequence_exhausted_) return false;
     if (now_ns-last_tick_ns_ > config_.max_tick_gap_ns) { fail(SteeringFault::ControlDeadline, now_ns); return false; }
     const auto& sensor = monitor_.decision();
     if (sensor.source_time_ns && now_ns-*sensor.source_time_ns > config_.sensor_age_ns) {
@@ -70,6 +72,19 @@ bool SteeringActuator::arm_normal_commands(std::uint64_t now_ns) {
     if (!can_arm_normal_commands(now_ns) || !receiver_.start_session(epoch_, now_ns)) return false;
     command_monitoring_ = true; return true;
 }
+bool SteeringActuator::select_normal_stop(const ActuatorStopLease& lease, std::uint64_t now_ns) {
+    if(!clock(now_ns) || fault_!=SteeringFault::None || prepared_ns_) return false;
+    auto next=stop_; if(!next.accept(lease,epoch_,now_ns)) return false;
+    const auto& sensor=monitor_.decision();
+    if(now_ns-last_tick_ns_>config_.max_tick_gap_ns || sensor.violation_since_ns || !sensor.new_measurement || !sensor.measured_rad || !sensor.source_time_ns ||
+        now_ns-*sensor.source_time_ns>config_.sensor_age_ns) return false;
+    if(!stop_.active()) {
+        if(!command_monitoring_ || !receiver_.current_sample(now_ns)) return false;
+        if(!monitor_.hold(now_ns)) return false;
+        output_={steering::ActuationMode::Hold,0,now_ns};
+    }
+    stop_=next; command_monitoring_=false; return true;
+}
 void SteeringActuator::fail(SteeringFault fault, std::uint64_t now_ns) {
     if (fault_ == SteeringFault::None || fault == SteeringFault::ClockError) {
         fault_ = fault; output_ = {steering::ActuationMode::Hold, 0, now_ns};
@@ -77,6 +92,7 @@ void SteeringActuator::fail(SteeringFault fault, std::uint64_t now_ns) {
 }
 can::SteeringReceiveResult SteeringActuator::receive(const can::SteeringFrame& frame, std::uint64_t now_ns) {
     if (!clock(now_ns)) return {epoch_ == 0 ? can::SteeringReceiveDecision::NotInitialized : can::SteeringReceiveDecision::ClockError, std::nullopt};
+    if(stop_.active()) return {can::SteeringReceiveDecision::ModeRejected,std::nullopt};
     if (!command_monitoring_) return {can::SteeringReceiveDecision::NotInitialized, std::nullopt};
     // Monitor even when the model has already latched a local fault.
     const auto previous = receiver_.current_sample(now_ns);
@@ -128,7 +144,7 @@ std::optional<can::SteeringFrame> SteeringActuator::complete(const std::optional
     prepared_ns_.reset();
     const auto sample = command_monitoring_ ? receiver_.current_sample(now_ns) : std::nullopt;
     if (command_monitoring_ && receiver_.health() == can::SteeringReceiverHealth::ClockError) { fail(SteeringFault::ClockError, now_ns); return std::nullopt; }
-    const auto& monitoring = monitor_.observe(sensor, now_ns, fault_ == SteeringFault::None && sample.has_value());
+    const auto& monitoring = monitor_.observe(sensor, now_ns, fault_ == SteeringFault::None && (sample.has_value() || stop_.active()));
     if (monitoring.fault == SteeringMonitorFault::ClockError) { fail(SteeringFault::ClockError, now_ns); return std::nullopt; }
     if (monitoring.fault == SteeringMonitorFault::SensorUnavailable) fail(SteeringFault::SensorUnavailable, now_ns);
     if (monitoring.fault == SteeringMonitorFault::SensorInvalid) fail(SteeringFault::SensorInvalid, now_ns);
@@ -142,7 +158,7 @@ std::optional<can::SteeringFrame> SteeringActuator::complete(const std::optional
     can::SteeringMessage actual;
     actual.kind = can::SteeringFrameKind::Actual; actual.epoch = epoch_; actual.sequence = sequence_;
     actual.source_time_ns = now_ns;
-    const auto accepted = command_monitoring_ ? receiver_.last_accepted() : std::nullopt;
+    const auto accepted = (command_monitoring_ || stop_.active()) ? receiver_.last_accepted() : std::nullopt;
     actual.causal_sequence = accepted ? accepted->message.sequence : 0;
     actual.local_state = fault_ != SteeringFault::None ? can::SteeringLocalState::FailSafe :
                          sample ? (monitoring.violation_since_ns ? can::SteeringLocalState::Degraded : sample->local_state) : can::SteeringLocalState::Init;

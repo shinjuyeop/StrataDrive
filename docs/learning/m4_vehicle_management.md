@@ -34,8 +34,9 @@ NORMAL은 주행 권한이 있다는 뜻이며 차량이 실제 움직였다는 
 
 STOPPING에서는 허가를 철회하고 Shutdown을 요청한다. 접점 open과 bus 하강을 **관측**하고
 그 status가 보낸 Shutdown의 응답인지 확인한 뒤 STOPPED가 된다. 다음 Enable에는 새 trusted INIT가
-필요하다. 기존 Drive local gate도 활성화 뒤 Inhibit/상실을 latch하므로 end-to-end session 재설정이 필요하다.
-정상 종료/고장별 전체 차량 반응은 이후 allocation·Zone 통합에서 다시 시험한다.
+필요하다. 기존 active Drive의 Inhibit 보호는 유지한다. 후속 NormalStop은 그 전에 terminal handoff를 수행한다.
+Stopping/Stopped에서는 fresh Shutdown만 갱신할 수 있고 phase timeout을 재시작하거나 Enable로 취소하지 않는다.
+정상 종료/고장별 전체 차량 반응은 이후 vehicle/runtime 통합에서 다시 시험한다.
 
 ## 왜 보낸 요청의 응답인지 확인할까
 
@@ -102,7 +103,9 @@ ctest --test-dir build/m4-readiness -R '^VehicleManagement' --output-on-failure
 정상 배분의 필수 gate로 사용하고 BMS 한계·Drive actual/capability와 Brake actual을 반영한다.
 후속 [Rear 전원/허가/limits·초기 구동 연결](m4_rear_power_startup.md)은 실제 Power/Drive와
 독립 root·Enable ACK·trusted arm을 연결하고, 제한된 Drive/BMS DEGRADED envelope도 검토했다.
-정상 종료·독립 ingress/local loss/rejoin과 전체 EV loop는 다음 통합이다.
+독립 ingress/local loss/rejoin과 전체 EV loop는 다음 통합이다.
 DDS transport는 M5이며 이번 결과가 M3 전체 수용이나 차량 시스템 TC 통과를 뜻하지 않는다.
 
 후속 [Front startup](m4_front_startup.md)은 두 Leaf/gateway의 대기/arm과 실제 양 Zone 시동 연결을 검증했다.
+
+후속 [정상 종료](m4_normal_stop.md)는 actual 정지 확인·terminal handoff/lease 뒤 HV 종료를 연결했다.

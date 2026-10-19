@@ -70,6 +70,7 @@ bool DriveController::start_session(ActuatorSession session, DriveCommandStartup
         !permission_.start_session(application_epoch, enable_ns)) return false;
     epoch_ = application_epoch; model_epoch_ = model_epoch; enable_ns_ = last_observed_ns_ = last_tick_ns_ = enable_ns;
     sequence_ = 0; armed_ = stopped_ = false; decision_ = {};
+    stop_.reset(enable_ns); last_torque_.reset();
     command_monitoring_ = startup == DriveCommandStartup::Immediate; startup_inputs_seen_ = false;
     speed_.reset(); speed_cursor_.reset(); hv_.reset(); hv_cursor_.reset(); permission_parent_.reset(); last_capability_input_ns_.reset();
     feedback_.begin(session); e2e::p05_protect_init(tx_.protection);
@@ -78,7 +79,7 @@ bool DriveController::start_session(ActuatorSession session, DriveCommandStartup
     return true;
 }
 bool DriveController::arm_normal_commands(std::uint64_t now_ns) {
-    if (!clock(now_ns) || command_monitoring_ || decision_.fault != DriveGateFault::None) return false;
+    if (!clock(now_ns) || command_monitoring_ || stop_.active() || decision_.fault != DriveGateFault::None) return false;
     const auto in = monitor(now_ns);
     if (decision_.fault != DriveGateFault::None || !in.complete || !in.permission ||
         can::bms_permission_allows_normal(*in.permission) ||
@@ -88,12 +89,24 @@ bool DriveController::arm_normal_commands(std::uint64_t now_ns) {
     if (!command_.start_session(epoch_, now_ns)) return false;
     command_monitoring_ = true; return true;
 }
+bool DriveController::select_normal_stop(const ActuatorStopLease& lease,std::uint64_t now_ns) {
+    if(!clock(now_ns) || decision_.fault!=DriveGateFault::None || prepared_ns_) return false;
+    auto next=stop_; if(!next.accept(lease,epoch_,now_ns)) return false;
+    const auto in=monitor(now_ns);
+    if(decision_.fault!=DriveGateFault::None || !in.complete || !last_torque_ || now_ns-last_torque_->source_time_ns>30000000 ||
+        std::abs(last_torque_->torque_nm)>kStopTorqueNm || in.speed->value>kStopSpeedRadS ||
+        (!stop_.active() && (!command_monitoring_ || !in.command))) return false;
+    stop_=next; command_monitoring_=false; startup_inputs_seen_=true; decision_.active=false;
+    output_={drive::ActuationMode::Zero,0,drive::TorqueEnvelope{0,0},now_ns}; return true;
+}
 bool DriveController::clock(std::uint64_t now_ns) {
     if (epoch_ == 0 || stopped_) return false;
     if (now_ns < last_observed_ns_) {
         fail(DriveGateFault::ClockError, now_ns); stopped_ = true; return false;
     }
-    last_observed_ns_ = now_ns; return true;
+    last_observed_ns_ = now_ns;
+    if(stop_.active() && !stop_.live(now_ns)) fail(DriveGateFault::StopLeaseExpired,now_ns);
+    return true;
 }
 void DriveController::fail(DriveGateFault fault, std::uint64_t now_ns) {
     if (decision_.fault == DriveGateFault::None || fault == DriveGateFault::ClockError || fault == DriveGateFault::ControlDeadline) {
@@ -121,7 +134,8 @@ DriveController::Inputs DriveController::monitor(std::uint64_t now_ns) {
     const bool timed_out = (command_monitoring_ && live(command_.health())) || live(limits_.health()) || live(permission_.health());
     const bool local_timeout = now_ns-enable_ns_ >= 80000000 && (!in.speed || !in.hv);
     if (!command_monitoring_) {
-        if (grant) fail(DriveGateFault::CommandsNotArmed, now_ns);
+        if (grant && !stop_.active()) fail(DriveGateFault::CommandsNotArmed, now_ns);
+        if(stop_.active() && in.speed && in.speed->value>kStopSpeedRadS) fail(DriveGateFault::NormalStopInvalid,now_ns);
         if (startup_inputs_seen_ || timed_out || local_timeout) {
             if (!limits_known) fail(DriveGateFault::LimitsUnavailable, now_ns);
             else if (!permission_known) fail(DriveGateFault::PermissionUnavailable, now_ns);
@@ -150,6 +164,7 @@ DriveController::Inputs DriveController::monitor(std::uint64_t now_ns) {
 can::DriveReceiveResult DriveController::receive_command(const can::DriveFrame& frame, std::uint64_t now_ns) {
     if (!clock(now_ns)) return {epoch_ == 0 ? can::ActuatorReceiveDecision::NotInitialized : can::ActuatorReceiveDecision::ClockError, std::nullopt};
     monitor(now_ns); // late fresh data cannot conceal a preceding expiry
+    if(stop_.active()) return {can::ActuatorReceiveDecision::ModeRejected,std::nullopt};
     if (!command_monitoring_) return {can::ActuatorReceiveDecision::NotInitialized, std::nullopt};
     return command_.receive(frame, now_ns);
 }
@@ -264,6 +279,8 @@ std::optional<can::DriveFrame> DriveController::complete(const std::optional<dri
     if (!clock(now_ns)) return std::nullopt;
     const auto in = *prepared_inputs_; prepared_inputs_.reset();
     const auto measured = feedback_.observe(sensor, now_ns, config_.response.minimum_nm, config_.response.maximum_nm);
+    if(measured.fresh) last_torque_=measured.fresh;
+    if(stop_.active() && measured.valid && std::abs(sensor->torque_nm)>kStopTorqueNm) fail(DriveGateFault::NormalStopInvalid,now_ns);
     if (!measured.valid) { fail(DriveGateFault::TorqueFeedbackUnavailable, now_ns); calculate(in); }
     last_tick_ns_ = now_ns;
     decision_.actual_outside_envelope = measured.valid &&

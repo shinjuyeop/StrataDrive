@@ -1,6 +1,7 @@
 #pragma once
 
 #include "actuator_session.hpp"
+#include "actuator_stop_lease.hpp"
 
 #include "drive_receiver.hpp"
 #include "drive_local_sensors.hpp"
@@ -26,7 +27,7 @@ struct DriveControllerConfig {
 enum class DriveGateFault {
     None, CommandUnavailable, LimitsUnavailable, PermissionUnavailable, PermissionInhibit,
     LocalInputsUnavailable, HvNotReady, BmsProtection, Overspeed, ContinuityLost,
-    ClockError, ControlDeadline, SequenceExhausted, TorqueFeedbackUnavailable, UpstreamProtection, CommandsNotArmed
+    ClockError, ControlDeadline, SequenceExhausted, TorqueFeedbackUnavailable, UpstreamProtection, CommandsNotArmed, StopLeaseExpired, NormalStopInvalid
 };
 using DriveCommandStartup = ActuatorCommandStartup;
 struct DriveControlDecision {
@@ -49,6 +50,8 @@ public:
     // Trusted coordinator callback only. NonDriving requires continuously fresh
     // Inhibit/limits/local sensors; it never consumes or restamps torque commands.
     bool arm_normal_commands(std::uint64_t now_ns);
+    bool select_normal_stop(const ActuatorStopLease& lease, std::uint64_t now_ns);
+    bool normal_stop_selected() const { return stop_.active(); }
     can::DriveReceiveResult receive_command(const can::DriveFrame& frame, std::uint64_t now_ns);
     can::BmsReceiveResult receive_limits(const can::BmsFrame& frame, std::uint64_t now_ns);
     can::BmsReceiveResult receive_permission(const can::BmsFrame& frame, std::uint64_t now_ns, const can::BmsParentContext* parent);
@@ -78,6 +81,8 @@ private:
     can::DriveReceiver command_;
     can::BmsReceiver limits_, permission_;
     TorqueFeedback feedback_;
+    std::optional<drive::TorqueMeasurement> last_torque_;
+    StopLeaseState stop_;
     drive::Actuation output_{};
     std::optional<std::uint64_t> prepared_ns_;
     std::optional<Inputs> prepared_inputs_;

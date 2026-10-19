@@ -132,5 +132,15 @@ TEST(FrontStartupVcan, EarlyPacketsCannotArmAndFirstNormalPairReachesActualLeafR
     EXPECT_EQ(steering.receiver().last_accepted()->message.sequence,0U); EXPECT_EQ(brake.receiver().last_accepted()->message.sequence,0U);
     EXPECT_EQ(steering.receiver().last_accepted()->message.source_time_ns,c.steering.source_time_ns);
     EXPECT_EQ(brake.receiver().last_accepted()->message.source_time_ns,c.brake.source_time_ns);
+    const auto handoff=port.now_ns(); const ActuatorStopLease lease{3,0,handoff,handoff+40*kMs};
+    ASSERT_TRUE(steering.select_normal_stop(lease,handoff)); ASSERT_TRUE(brake.select_normal_stop(lease,handoff));
+    ASSERT_TRUE(gateway.select_normal_stop(lease)); EXPECT_FALSE(gateway.arm());
+    auto late=commands(port.now_ns()); late.steering.sequence=late.brake.sequence=1; late.brake.pressure_pa=0;
+    ASSERT_NO_THROW(tx.send(socketcan::to_socketcan(*can::encode_steering_frame(late.steering,st))));
+    ASSERT_NO_THROW(tx.send(socketcan::to_socketcan(*can::encode_brake_frame(late.brake,bt))));
+    const auto late_s=receive(sr),late_b=receive(br); ASSERT_TRUE(late_s); ASSERT_TRUE(late_b);
+    EXPECT_EQ(steering.receive(socketcan::to_steering(late_s->frame),port.now_ns()).decision,can::ActuatorReceiveDecision::ModeRejected);
+    EXPECT_EQ(brake.receive(socketcan::to_brake(late_b->frame),port.now_ns()).decision,can::ActuatorReceiveDecision::ModeRejected);
+    EXPECT_EQ(steering.receiver().last_accepted()->message.sequence,0U); EXPECT_EQ(brake.receiver().last_accepted()->message.sequence,0U);
 }
 }  // namespace
