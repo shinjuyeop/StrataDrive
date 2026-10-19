@@ -18,7 +18,7 @@ bool valid_config(const VehicleManagementConfig& c) {
         t.actual_source_age_ns > 0 && t.actual_source_age_ns <= 30000000ULL &&
         t.bms_source_age_ns > 0 && t.bms_source_age_ns <= 50000000ULL &&
         t.bms_dependency_age_ns > 0 && t.bms_dependency_age_ns <= 70000000ULL &&
-        c.max_tick_gap_ns >= kPeriodNs && c.max_tick_gap_ns <= 30000000ULL &&
+        c.max_tick_gap_ns >= kPeriodNs && c.max_tick_gap_ns <= 30000000ULL && c.minimum_tick_interval_ns>0 && c.minimum_tick_interval_ns<=kPeriodNs &&
         c.initial_input_timeout_ns > 0 && c.initial_input_timeout_ns <= 80000000ULL &&
         c.request_source_age_ns > 0 && c.request_source_age_ns <= 50000000ULL &&
         c.output_lifetime_ns > 0 && c.output_lifetime_ns <= can::kBmsMaxLifetimeNs &&
@@ -166,7 +166,7 @@ std::uint64_t VehicleManagement::permission_expiry(
 }
 std::optional<VehicleManagementOutput> VehicleManagement::tick(const NormalDriveReadinessInputs& in, std::uint64_t now) {
     if (!advance(now)) return std::nullopt;
-    if (last_tick_ns_ && now - *last_tick_ns_ < kPeriodNs) return std::nullopt;
+    if (last_tick_ns_ && now - *last_tick_ns_ < config_.minimum_tick_interval_ns) return std::nullopt;
     last_tick_ns_ = now;
     if (in.epoch != epoch_ || in.session_enable_ns != enable_ns_) fail(VehicleManagementFault::SessionMismatch);
     decision_.normal_allowed = false;

@@ -258,6 +258,16 @@ TEST(NormalDriveReadiness, BoundedDegradedDriveRequiresFreshAuxiliaryEvidence) {
     m.regen_capability->torque_limit_nm=0; m.regen_capability->input_time_ns=kNow-71*kMs; expect_blocked(in,ReadinessBlock::DriveActual);
     m.regen_capability->input_time_ns=kNow; m.wheel_speed.reset(); expect_blocked(in,ReadinessBlock::DriveActual);
 }
+TEST(NormalDriveReadiness, OptionalUnknownCapabilityDoesNotEraseFreshBoundedTorqueAndSpeed) {
+    auto in=ready_inputs(); auto& m=*in.rear.drive_actual;
+    m.local_state=can::ActuatorLocalState::Degraded; m.wheel_speed=can::DriveWheelSpeed{0,kNow};
+    m.regen_capability.reset(); m.regen_limit_reason=can::DriveRegenLimitReason::InputsInvalid;
+    EXPECT_TRUE(evaluate(in).ready());
+    m.regen_limit_reason=can::DriveRegenLimitReason::Disabled; expect_blocked(in,ReadinessBlock::DriveActual);
+    m.regen_limit_reason=can::DriveRegenLimitReason::InputsInvalid; m.wheel_speed->source_time_ns=kNow-31*kMs; expect_blocked(in,ReadinessBlock::DriveActual);
+    m.wheel_speed->source_time_ns=kNow; m.torque_nm=301; expect_blocked(in,ReadinessBlock::DriveActual);
+    m.torque_nm.reset(); expect_blocked(in,ReadinessBlock::DriveActual);
+}
 TEST(NormalDriveReadiness, ReviewedBmsDeratingPreservesKnownZeroWithoutAdmittingFaultOrUnknown) {
     auto in=ready_inputs(); auto& s=*in.rear.power_limits; auto& l=std::get<can::BmsPowerLimits>(s.message.content);
     s.message.local_state=can::ActuatorLocalState::Degraded; l.charge_power_w=0; l.charge_reason=can::BmsLimitReason::SocLimited;

@@ -38,6 +38,7 @@ void usage(std::ostream& output) {
            << "  actuator_demo ev-power [normal|weld|current-unknown|aux-blocked]\n";
 #ifdef STRATADRIVE_LINUX_SESSION
     output << "  actuator_demo epoch <init|next> <store_directory>\n";
+    output << "  actuator_demo m4-async <logical|wall> <normal|normal-stop|partial-front|feedback-loss|command-loss|partial-arm|rejoin|old-epoch> <epoch_store> <new_output_directory>\n";
     output << "  actuator_demo steering-rtos-plant <normal|command-loss|corrupt|control-stall> <vcan> <inherited_channel_fd> <enable_ns> <output_directory>\n";
     output << "  actuator_demo steering-runtime <normal|overrun|stall> <new_output_directory> [trace-off]\n";
     output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt|feedback-replay|monitor-overrun|plant-overrun|monitor-stall|io-overrun> <vcan_interface> <new_output_directory> [trace-off] [owner-cpus=brake,drive,bms,power,rx,monitor,plant_fixture] [owner-fifo=10,10,9,10,18,20,19]\n";
@@ -76,6 +77,7 @@ int main(int argc, char** argv) {
             else if (command == "ev-power" && (argc == 2 || argc == 3)) demo_ev_power(argc == 3 ? argv[2] : "normal");
             else if (command == "drive-model" && argc == 2) demo_drive_model();
 #ifdef STRATADRIVE_LINUX_SESSION
+            else if(command=="m4-async" && argc==6) demo_m4_async({argv[2],argv[3],argv[4],argv[5]});
             else if (command == "multirate-runtime" && argc >= 5 && argc <= 8) {
                 stratadrive::simulation::MultirateRuntimeOptions options;
                 options.scenario=argv[2]; options.interface_name=argv[3]; options.directory=argv[4];

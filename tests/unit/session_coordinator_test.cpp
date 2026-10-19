@@ -221,6 +221,24 @@ TEST(SessionParticipant, CallbackOverrunAndClockRollbackNeverAckSuccess) {
     EXPECT_FALSE(owner.poll(now)); EXPECT_EQ(owner.fault(),ParticipantFault::Timeout); EXPECT_FALSE(owner.run_enabled());
     owner.poll(now-1); EXPECT_EQ(owner.fault(),ParticipantFault::Clock);
 }
+TEST(SessionParticipant, ScheduledInitPrecedesOldActorServiceWhenWakeIsSlightlyLate) {
+    class BoundaryPort final : public ParticipantPort {
+    public:
+        std::uint64_t now{kStart},serviced{kStart};
+        std::uint64_t now_ns() noexcept override { return now; }
+        Preparation prepare(const Plan&) noexcept override { return Preparation::Ready; }
+        bool initialize(const Plan& plan) noexcept override { return plan.enable_ns>=serviced; }
+        void protect() noexcept override {}
+        void service() noexcept override { serviced=now; }
+    } port;
+    SessionParticipant owner{Role::Drive,port}; Plan plan{1,kStart,kStart+kPrepareBudgetNs,0,0};
+    ASSERT_TRUE(owner.receive({Role::Drive,Phase::Prepare,plan,kStart},port.now));
+    plan.enable_ns=kStart+kInitLeadNs; plan.commit_deadline_ns=plan.enable_ns+kInitWindowNs;
+    EXPECT_FALSE(owner.receive({Role::Drive,Phase::Initialize,plan,kStart},port.now));
+    port.now=plan.enable_ns+kMs; const auto initialized=owner.poll(port.now); ASSERT_TRUE(initialized);
+    EXPECT_TRUE(initialized->accepted); EXPECT_EQ(initialized->phase,Phase::Initialize); EXPECT_EQ(port.serviced,port.now);
+    EXPECT_EQ(owner.fault(),ParticipantFault::None);
+}
 TEST(SessionMailbox, WraparoundPreservesOrderAndFullCapacity) {
     SessionMailbox<Ack,3> queue;
     for(std::uint32_t epoch=1;epoch<200;++epoch) {

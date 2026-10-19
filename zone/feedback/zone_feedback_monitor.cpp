@@ -13,8 +13,9 @@ bool protected_source(const std::optional<can::BmsCurrentSample>& m) {
     return m && (m->message.local_state==can::ActuatorLocalState::FailSafe || m->message.origin==can::ActuatorOrigin::LocalProtection);
 }
 }
-ZoneFeedbackMonitor::ZoneFeedbackMonitor(CommandGateway& commands,RearPowerGateway* power):commands_(commands),power_(power) {
+ZoneFeedbackMonitor::ZoneFeedbackMonitor(CommandGateway& commands,RearPowerGateway* power,std::uint64_t minimum):commands_(commands),power_(power),minimum_interval_ns_(minimum) {
     if((commands.scope()==ZoneScope::Rear)!=(power!=nullptr)) throw std::invalid_argument("Zone feedback scope/power binding");
+    if(minimum==0 || minimum>10000000ULL) throw std::invalid_argument("Zone feedback call guard");
 }
 bool ZoneFeedbackMonitor::start_session(std::uint32_t epoch,std::uint64_t enable) {
     if(epoch==0 || epoch<=epoch_ || (epoch_!=0 && enable<observed_ns_) || commands_.application_epoch()!=epoch ||
@@ -33,7 +34,7 @@ std::optional<ZoneHealthSnapshot> ZoneFeedbackMonitor::tick(const ZoneFeedbackIn
     if(epoch_==0) return std::nullopt;
     if(now<observed_ns_) { fail(ZoneFeedbackFault::ClockError); return std::nullopt; }
     observed_ns_=now;
-    if(tick_ns_ && now-*tick_ns_<10000000ULL) return std::nullopt;
+    if(tick_ns_ && now-*tick_ns_<minimum_interval_ns_) return std::nullopt;
     if(now-tick_ns_.value_or(enable_ns_)>30000000ULL) fail(ZoneFeedbackFault::ControlDeadline);
     tick_ns_=now;
     const auto gateway=commands_.poll();

@@ -22,6 +22,7 @@ struct AllocationConfig {
     std::uint64_t max_tick_gap_ns{30000000ULL}; // fixed 20 ms allocation period
     std::uint64_t request_source_age_ns{30000000ULL}, response_dwell_ns{700000000ULL};
     std::uint64_t feedback_skew_ns{20000000ULL};
+    std::uint64_t minimum_tick_interval_ns{20000000ULL}; // call guard; external allocation release remains 20 ms
 };
 struct AllocationInputs {
     NormalDriveReadinessInputs feedback;

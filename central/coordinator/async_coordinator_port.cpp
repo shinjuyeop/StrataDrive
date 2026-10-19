@@ -16,14 +16,14 @@ bool AsyncCoordinatorPort::initialize(CoordinatorSession s) {
     if(!steering_.start_session(s.epoch,s.enable_ns) || !brake_.start_session(s.epoch,s.enable_ns) || !drive_.start_session(s.epoch,s.enable_ns) ||
         !status_.start_session(s.epoch,s.enable_ns) || !limits_.start_session(s.epoch,s.enable_ns) || !permission_.start_session(s.epoch,s.enable_ns) ||
         !front_.start_session(s.epoch,s.enable_ns) || !rear_.start_session(s.epoch,s.enable_ns)) return false;
-    session_=s; observed_=now; failed_=false; pending_={}; issued_={}; issued_next_=0; commands_.reset();
-    armed_={}; stopped_={}; arm_sent_=false; stop_.reset(); return true;
+    session_=s; observed_=now; failed_=false; fault_=AsyncTransportFault::None; failed_operation_=-1; pending_={}; issued_={}; issued_next_=0; commands_.reset();
+    armed_={}; stopped_={}; arm_sent_=false; stop_.reset(); command_source_ns_=0; command_root_sequence_=0; return true;
 }
 bool AsyncCoordinatorPort::session_ready(CoordinatorSession s) noexcept {
     return !failed_ && s.epoch!=0 && s.epoch==session_.epoch && s.enable_ns==session_.enable_ns && !gate_.allows(s.epoch) &&
         !links_[0]->failed() && !links_[1]->failed();
 }
-void AsyncCoordinatorPort::fail() { failed_=true; gate_.close(); protect(); }
+void AsyncCoordinatorPort::fail(AsyncTransportFault fault) { if(!failed_) fault_=fault; failed_=true; gate_.close(); protect(); }
 bool AsyncCoordinatorPort::protect() noexcept {
     if(session_.epoch==0) return false;
     gate_.close();
@@ -67,7 +67,16 @@ bool AsyncCoordinatorPort::deliver_commands(const AllocatedCommands& commands) n
     if(commands_ || commands.parent.epoch!=session_.epoch) return false;
     commands_=commands;
     if(!post(0,ScopedCommands{front_commands(commands)},commands.expires_at_ns)) { commands_.reset(); return false; }
+    command_source_ns_=commands.steering.source_time_ns; command_root_sequence_=commands.parent.sequence;
     return true;
+}
+bool AsyncCoordinatorPort::allocation_ready(const VehicleManagementOutput& out,std::uint64_t release) noexcept {
+    const auto* grant=std::get_if<can::BmsDriveGrant>(&out.drive_permission.content);
+    if(!grant || grant->permission!=can::BmsDrivePermission::AllowNormal) return true;
+    if(out.drive_permission.source_time_ns<release || grant->expires_at_ns<=release || grant->expires_at_ns-release<=20000000ULL) return false;
+    const auto received=current_permission();
+    return received && received->message.epoch==out.drive_permission.epoch && received->message.sequence==out.drive_permission.sequence &&
+        received->message.source_time_ns==out.drive_permission.source_time_ns;
 }
 OperationStatus AsyncCoordinatorPort::stop_status(const NormalStopPlan& plan) noexcept {
     if(failed_ || !gate_.allows(session_.epoch)) return OperationStatus::Rejected;
@@ -82,11 +91,14 @@ void AsyncCoordinatorPort::result(std::size_t zone,const transport::TxResult& r)
     auto slot=std::find_if(pending_.begin(),pending_.end(),[&](const auto& p) { return p && p->request.epoch==r.epoch && p->request.token==r.token; });
     if(slot==pending_.end()) return; // duplicate/old result cannot complete a new operation
     const auto p=**slot; const auto now=now_ns();
-    if(zone!=p.zone || r.operation!=transport::operation(p.request.work) || r.source_ns<p.request.sent_ns || r.source_ns>now || now>=p.request.deadline_ns || !r.accepted) { fail(); return; }
+    if(zone!=p.zone || r.operation!=transport::operation(p.request.work) || r.source_ns<p.request.sent_ns || r.source_ns>now || now>=p.request.deadline_ns || !r.accepted) {
+        if(!failed_) failed_operation_=static_cast<int>(r.operation);
+        fail(now>=p.request.deadline_ns?AsyncTransportFault::ResultLate:!r.accepted?AsyncTransportFault::ResultRejected:AsyncTransportFault::ResultMismatch); return;
+    }
     slot->reset();
     if(r.operation==transport::Operation::Arm) armed_[zone]=true;
     if(r.operation==transport::Operation::Stop) stopped_[zone]=true;
-    if(r.operation==transport::Operation::Power && (r.frames<2 || r.frames>3)) { fail(); return; }
+    if(r.operation==transport::Operation::Power && (r.frames<2 || r.frames>3)) { fail(AsyncTransportFault::FrameCount); return; }
     if(r.operation==transport::Operation::Commands) {
         if(!commands_ || r.frames!=(zone==0?2U:1U)) { fail(); return; }
         if(zone==0) {
@@ -121,13 +133,13 @@ void AsyncCoordinatorPort::receive(std::size_t zone,const transport::Feedback& f
     }
 }
 void AsyncCoordinatorPort::service() {
-    const auto now=now_ns(); if(now<observed_) { fail(); return; } observed_=now;
+    const auto now=now_ns(); if(now<observed_) { fail(AsyncTransportFault::Clock); return; } observed_=now;
     for(std::size_t z=0;z<links_.size();++z) {
-        if(links_[z]->failed()) fail();
+        if(links_[z]->failed()) fail(AsyncTransportFault::Continuity);
         for(std::size_t i=0;i<transport::kBudget;++i) { const auto r=links_[z]->results.pop(); if(!r) break; result(z,*r); }
         for(std::size_t i=0;i<transport::kBudget;++i) { const auto f=links_[z]->feedback.pop(); if(!f) break; receive(z,*f); }
     }
-    for(const auto& p:pending_) if(p && now_ns()>=p->request.deadline_ns) fail();
+    for(const auto& p:pending_) if(p && now_ns()>=p->request.deadline_ns) { if(!failed_) failed_operation_=static_cast<int>(transport::operation(p->request.work)); fail(AsyncTransportFault::ResultTimeout); }
 }
 NormalDriveReadinessInputs AsyncCoordinatorPort::feedback() {
     const auto now=now_ns(); NormalDriveReadinessInputs in; in.epoch=session_.epoch; in.session_enable_ns=session_.enable_ns;

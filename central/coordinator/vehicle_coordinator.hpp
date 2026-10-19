@@ -5,6 +5,7 @@
 
 namespace stratadrive::central {
 struct CoordinatorSession { std::uint32_t epoch; std::uint64_t enable_ns; };
+struct CoordinatorExecution { bool external_releases{false}; };
 enum class OperationStatus { Pending, Accepted, Rejected };
 // Trusted single-owner adapter. Callbacks are bounded, nonblocking and must
 // retain original roots/expiry. ACK means output selection/enqueue, not physics.
@@ -21,6 +22,8 @@ public:
         return arm(epoch)?OperationStatus::Accepted:OperationStatus::Rejected;
     }
     virtual bool deliver_power(const VehicleManagementOutput& output) noexcept = 0;
+    virtual bool allocation_ready(const VehicleManagementOutput&,std::uint64_t) noexcept { return true; }
+    virtual bool commands_settled() const noexcept { return true; }
     virtual std::optional<can::BmsCurrentSample> current_permission() noexcept = 0;
     // Async ingress can still contain an older issued grant. Its independently
     // retained parent must match that received sample, not the latest issuance.
@@ -47,7 +50,7 @@ struct CoordinatorDecision {
 // input. tick uses independently validated current samples from this cycle.
 class VehicleCoordinator {
 public:
-    explicit VehicleCoordinator(CoordinatorPort& port);
+    explicit VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution execution = {});
     bool start_session(CoordinatorSession session);
     CoordinatorReceive receive_lifecycle(const LifecycleRequest& root, std::uint64_t now_ns);
     CoordinatorReceive receive_vehicle(const VehicleRequest& root, std::uint64_t now_ns);
@@ -55,15 +58,20 @@ public:
     void request_protection(std::uint64_t now_ns);
     // 10 ms externally clocked runnable, allocation every 20 ms. True means
     // a cycle ran (possibly selecting protection); inspect decision().
-    bool tick(const NormalDriveReadinessInputs& feedback, std::uint64_t now_ns);
+    bool tick(const NormalDriveReadinessInputs& feedback, std::uint64_t now_ns,bool management_release = true);
     CoordinatorDecision decision() const;
+    std::uint64_t next_allocation_ns() const;
 private:
     bool advance(std::uint64_t now_ns);
     bool checkpoint();
     void fail(CoordinatorFault fault);
     bool accept_lifecycle(const LifecycleRequest& root);
     bool accept_vehicle(const VehicleRequest& root);
+    bool allocate(const NormalDriveReadinessInputs& inputs);
+    void record_allocation_release();
+    OperationStatus progress_handoff();
     CoordinatorPort& port_;
+    const CoordinatorExecution execution_;
     VehicleManagement management_;
     ControlAllocation allocation_;
     NormalStop stop_;

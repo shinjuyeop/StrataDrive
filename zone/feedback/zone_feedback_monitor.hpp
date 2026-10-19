@@ -17,7 +17,7 @@ enum class ZoneFeedbackFault { None, ClockError, ControlDeadline, InputsUnavaila
 // protection use the same owner's clock. Does not reset any remote controller.
 class ZoneFeedbackMonitor {
 public:
-    explicit ZoneFeedbackMonitor(CommandGateway& commands, RearPowerGateway* power = nullptr);
+    explicit ZoneFeedbackMonitor(CommandGateway& commands, RearPowerGateway* power = nullptr,std::uint64_t minimum_interval_ns = 10000000ULL);
     bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
     std::optional<ZoneHealthSnapshot> tick(const ZoneFeedbackInputs& inputs, std::uint64_t now_ns);
     ZoneFeedbackFault fault() const { return fault_; }
@@ -25,6 +25,7 @@ private:
     void fail(ZoneFeedbackFault fault);
     CommandGateway& commands_;
     RearPowerGateway* power_;
+    const std::uint64_t minimum_interval_ns_;
     std::uint32_t epoch_{0};
     std::uint64_t enable_ns_{0}, observed_ns_{0}, sequence_{0};
     std::optional<std::uint64_t> tick_ns_;

@@ -79,6 +79,19 @@ std::optional<Ack> SessionParticipant::receive(const Control& c,std::uint64_t no
 }
 std::optional<Ack> SessionParticipant::poll(std::uint64_t now) {
     if(!observe(now)) { port_.service(); return std::nullopt; }
+    // At the scheduled boundary initialize before servicing the old actor.
+    // A real runnable may wake slightly after enable; advancing the old actor
+    // to that later instant first would make the agreed INIT time go backwards.
+    if(state_==ParticipantState::Initializing && observed_ns_>=plan_.enable_ns) {
+        const auto initialized=progress(); port_.service();
+        const auto completed=port_.now_ns();
+        const bool in_window=completed>=observed_ns_ && completed<plan_.commit_deadline_ns;
+        const bool healthy=checkpoint();
+        // A bounded negative INIT ACK must still reach Central. Failed state
+        // makes observe() return false even when the clock/window are valid.
+        if(!healthy && !(initialized && !initialized->accepted && fault_==ParticipantFault::Initialize && in_window)) return std::nullopt;
+        return initialized;
+    }
     port_.service(); if(!checkpoint()) return std::nullopt;
     return progress();
 }

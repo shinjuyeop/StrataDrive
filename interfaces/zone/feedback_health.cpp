@@ -36,11 +36,16 @@ bool finite(const std::optional<double>& value) { return value && std::isfinite(
 bool drive_available(const can::DriveMessage& m,const SourceContext& in,std::uint64_t now,const FeedbackTiming& timing) {
     if(actuator_available(m)) return true;
     if(m.local_state!=can::ActuatorLocalState::Degraded || m.origin!=can::ActuatorOrigin::NormalPath ||
-        !finite(m.torque_nm) || !can::actuator_value_in_range(*m.torque_nm,{-200,300}) || !m.wheel_speed || !m.regen_capability ||
-        static_cast<unsigned>(m.regen_limit_reason)>static_cast<unsigned>(can::DriveRegenLimitReason::Disabled)) return false;
-    const auto& speed=*m.wheel_speed; const auto& cap=*m.regen_capability;
-    return can::actuator_value_in_range(speed.value_rad_s,{0,100}) && can::actuator_value_in_range(cap.torque_limit_nm,{0,200}) &&
-        fresh(speed.source_time_ns,timing.actual_source_age_ns,in,now) && fresh(cap.source_time_ns,timing.actual_source_age_ns,in,now) &&
+        !finite(m.torque_nm) || !can::actuator_value_in_range(*m.torque_nm,{-200,300}) || !m.wheel_speed ||
+        static_cast<unsigned>(m.regen_limit_reason)>static_cast<unsigned>(can::DriveRegenLimitReason::InputsInvalid)) return false;
+    const auto& speed=*m.wheel_speed;
+    if(!can::actuator_value_in_range(speed.value_rad_s,{0,100}) || !fresh(speed.source_time_ns,timing.actual_source_age_ns,in,now)) return false;
+    // Optional regen capability may be unavailable while a new permission's
+    // older dependency catches up with the capability cursor. This is not a
+    // loss of measured torque/speed: allocation must use its friction fallback.
+    if(!m.regen_capability) return m.regen_limit_reason==can::DriveRegenLimitReason::InputsInvalid;
+    const auto& cap=*m.regen_capability;
+    return m.regen_limit_reason!=can::DriveRegenLimitReason::InputsInvalid && can::actuator_value_in_range(cap.torque_limit_nm,{0,200}) && fresh(cap.source_time_ns,timing.actual_source_age_ns,in,now) &&
         cap.input_time_ns<=cap.source_time_ns && fresh(cap.input_time_ns,timing.bms_dependency_age_ns,in,now) &&
         (m.regen_limit_reason!=can::DriveRegenLimitReason::Disabled || cap.torque_limit_nm==0);
 }

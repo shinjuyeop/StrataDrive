@@ -6,8 +6,11 @@
 namespace stratadrive::central {
 namespace {
 constexpr std::uint64_t kPeriod=10000000ULL, kAllocationPeriod=20000000ULL, kGap=30000000ULL;
+VehicleManagementConfig management_config(CoordinatorExecution e) { VehicleManagementConfig c; if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
+AllocationConfig allocation_config(CoordinatorExecution e) { AllocationConfig c; if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
+NormalStopConfig stop_config(CoordinatorExecution e) { NormalStopConfig c; if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
 }
-VehicleCoordinator::VehicleCoordinator(CoordinatorPort& port):port_(port) {}
+VehicleCoordinator::VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution e):port_(port),execution_(e),management_(management_config(e)),allocation_(allocation_config(e)),stop_(stop_config(e)) {}
 bool VehicleCoordinator::start_session(CoordinatorSession session) {
     if(session.epoch==0 || session.epoch<=epoch_ || (epoch_!=0 && session.enable_ns<observed_ns_)) return false;
     if(!port_.session_ready(session)) return false;
@@ -100,9 +103,61 @@ CoordinatorReceive VehicleCoordinator::receive_stop(const NormalStopRequest& roo
 void VehicleCoordinator::request_protection(std::uint64_t now) {
     if(epoch_!=0) { advance(now); fail(CoordinatorFault::LocalProtection); }
 }
-bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t now) {
+std::uint64_t VehicleCoordinator::next_allocation_ns() const {
+    const auto previous=allocation_ns_.value_or(enable_ns_);
+    return previous>std::numeric_limits<std::uint64_t>::max()-kAllocationPeriod?std::numeric_limits<std::uint64_t>::max():previous+kAllocationPeriod;
+}
+bool VehicleCoordinator::allocate(const NormalDriveReadinessInputs& in) {
+    if(!last_power_ || !port_.allocation_ready(*last_power_,next_allocation_ns())) return false;
+    if(in.epoch!=epoch_ || in.session_enable_ns!=enable_ns_) { fail(CoordinatorFault::SessionMismatch); return false; }
+    const auto received_parent=port_.received_permission_parent();
+    AllocationInputs inputs{in,management_.decision(),port_.current_permission(),received_parent?received_parent:last_power_->permission_parent};
+    if(!checkpoint()) return false;
+    record_allocation_release();
+    const auto commands=allocation_.tick(inputs,observed_ns_);
+    if(allocation_.decision().protection_required) { fail(CoordinatorFault::Allocation); return false; }
+    if(commands && !port_.deliver_commands(*commands)) { fail(CoordinatorFault::CommandDelivery); return false; }
+    return checkpoint();
+}
+void VehicleCoordinator::record_allocation_release() {
+    allocation_ns_=execution_.external_releases?enable_ns_+((observed_ns_-enable_ns_)/kAllocationPeriod)*kAllocationPeriod:observed_ns_;
+}
+OperationStatus VehicleCoordinator::progress_handoff() {
+    if(!pending_handoff_ || !port_.commands_settled()) return OperationStatus::Pending;
+    const auto plan=*pending_handoff_;
+    if(!allocation_.select_normal_stop(plan.lease,observed_ns_)) return OperationStatus::Rejected;
+    const auto status=port_.stop_status(plan);
+    if(!checkpoint()) return OperationStatus::Rejected;
+    if(status==OperationStatus::Accepted) {
+        if(plan.state==NormalStopState::HandoffPending && !stop_.acknowledge_handoff(plan.lease,observed_ns_)) return OperationStatus::Rejected;
+        pending_handoff_.reset(); normal_armed_=false;
+    }
+    return status;
+}
+bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t now,bool management_release) {
     if(epoch_==0) return false;
-    if(tick_ns_ && now>=*tick_ns_ && now-*tick_ns_<kPeriod) { advance(now); return false; }
+    if(!management_release || (tick_ns_ && now>=*tick_ns_ && now-*tick_ns_<(execution_.external_releases?1000000ULL:kPeriod))) {
+        if(!advance(now)) return false;
+        if(pending_handoff_) {
+            if(progress_handoff()==OperationStatus::Rejected) fail(CoordinatorFault::Handoff);
+            return true;
+        }
+        if(now<next_allocation_ns() ||
+            stop_.decision().state==NormalStopState::HandoffPending || stop_.decision().state==NormalStopState::PowerDown ||
+            stop_.decision().state==NormalStopState::Complete) return false;
+        if(!normal_armed_) {
+            record_allocation_release();
+            allocation_.tick({in,management_.decision(),std::nullopt,std::nullopt},observed_ns_);
+            if(allocation_.decision().protection_required) fail(CoordinatorFault::Allocation);
+            return true;
+        }
+        // Resume only the independent allocator after an asynchronous grant
+        // ingress. Do not rerun VM, issue a new grant or refresh an old root.
+        cycle_start_ns_=observed_ns_; in_cycle_=true;
+        if(!port_.healthy(epoch_)) fail(CoordinatorFault::LocalProtection);
+        const bool ran=fault_==CoordinatorFault::None && checkpoint() && allocate(in);
+        in_cycle_=false; return ran;
+    }
     protection_attempted_=false;
     advance(now);
     if(!tick_ns_ || now>=*tick_ns_) tick_ns_=now;
@@ -113,13 +168,18 @@ bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t
     if(in.epoch!=epoch_ || in.session_enable_ns!=enable_ns_) { fail(CoordinatorFault::SessionMismatch); return finish(); }
     if(!port_.healthy(epoch_)) { fail(CoordinatorFault::LocalProtection); return finish(); }
     if(!checkpoint()) return finish();
+    if(pending_handoff_) {
+        const auto status=progress_handoff();
+        if(status==OperationStatus::Rejected) fail(CoordinatorFault::Handoff);
+        if(status!=OperationStatus::Accepted) return finish();
+    }
     std::optional<NormalStopPlan> plan;
     // A stop arriving beside a newly accepted normal root waits until the next
     // source instant. It must not emit a child with the same source time or
     // issue another propulsive normal command while waiting.
     const bool stop_ready=stopping_ && (!lifecycle_ || observed_ns_>lifecycle_->identity.source_time_ns) && (!vehicle_ || observed_ns_>vehicle_->source_time_ns);
     if(stop_ready) {
-        plan=pending_handoff_?pending_handoff_:stop_.tick(in,management_.decision(),observed_ns_);
+        plan=stop_.tick(in,management_.decision(),observed_ns_);
         if(stop_.decision().protection_required || (plan && !accept_lifecycle(plan->lifecycle))) { fail(CoordinatorFault::Stop); return finish(); }
     }
     const auto power=management_.tick(in,observed_ns_);
@@ -129,7 +189,17 @@ bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t
         if(management_.decision().normal_allowed && !normal_armed_) {
             const auto arm=port_.arm_status(epoch_);
             if(arm==OperationStatus::Rejected) { fail(CoordinatorFault::Arm); return finish(); }
-            if(arm==OperationStatus::Pending) return finish();
+            if(arm==OperationStatus::Pending) {
+                // The allocation owner still executes its waiting runnable;
+                // pending arm is not a reason to suspend its deadline monitor.
+                // No permission is supplied and no normal output can be issued.
+                if(observed_ns_>=next_allocation_ns()) {
+                    record_allocation_release();
+                    allocation_.tick({in,management_.decision(),std::nullopt,std::nullopt},observed_ns_);
+                    if(allocation_.decision().protection_required) fail(CoordinatorFault::Allocation);
+                }
+                return finish();
+            }
             normal_armed_=true;
         }
         if(!checkpoint()) return finish();
@@ -139,28 +209,13 @@ bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t
     // A sub-owner can be early after callback jitter. Do not republish its old
     // output; still service the independent 20 ms allocation runnable.
     const bool terminal=stop_.decision().state==NormalStopState::PowerDown || stop_.decision().state==NormalStopState::Complete;
-    if(!terminal && (!stopping_ || plan) && observed_ns_-allocation_ns_.value_or(enable_ns_)>=kAllocationPeriod) {
-        if(stopping_ && plan->vehicle && !accept_vehicle(*plan->vehicle)) { fail(CoordinatorFault::Allocation); return finish(); }
-        const auto received_parent=port_.received_permission_parent();
-        AllocationInputs inputs{in,management_.decision(),port_.current_permission(),received_parent?received_parent:last_power_?last_power_->permission_parent:std::nullopt};
-        if(!checkpoint()) return finish();
-        allocation_ns_=observed_ns_;
-        const auto commands=allocation_.tick(inputs,observed_ns_);
-        if(allocation_.decision().protection_required) { fail(CoordinatorFault::Allocation); return finish(); }
-        if(commands && !port_.deliver_commands(*commands)) { fail(CoordinatorFault::CommandDelivery); return finish(); }
-        if(!checkpoint()) return finish();
+    if(stopping_ && plan && plan->vehicle && !plan->handoff_required && !accept_vehicle(*plan->vehicle)) { fail(CoordinatorFault::Allocation); return finish(); }
+    if(!terminal && (!stopping_ || (plan && !plan->handoff_required)) && observed_ns_>=next_allocation_ns()) {
+        allocate(in); if(fault_!=CoordinatorFault::None) return finish();
     }
     if(plan && plan->handoff_required) {
-        if(!allocation_.select_normal_stop(plan->lease,observed_ns_)) { fail(CoordinatorFault::Handoff); return finish(); }
-        const auto handoff=port_.stop_status(*plan);
-        if(handoff==OperationStatus::Rejected) { fail(CoordinatorFault::Handoff); return finish(); }
-        if(handoff==OperationStatus::Pending) { pending_handoff_=plan; return finish(); }
-        pending_handoff_.reset();
-        if(!checkpoint()) return finish();
-        if(plan->state==NormalStopState::HandoffPending) {
-            if(!stop_.acknowledge_handoff(plan->lease,observed_ns_)) fail(CoordinatorFault::Handoff);
-            else normal_armed_=false;
-        }
+        pending_handoff_=plan;
+        if(progress_handoff()==OperationStatus::Rejected) fail(CoordinatorFault::Handoff);
     }
     return finish();
 }

@@ -11,6 +11,7 @@ struct StopIssuerSeed { std::uint32_t lifecycle_next, vehicle_next; };
 struct NormalStopConfig {
     double deceleration_mps2{1};
     std::uint64_t confirmation_ns{60000000}, braking_timeout_ns{5000000000ULL}, shutdown_timeout_ns{2000000000};
+    std::uint64_t minimum_tick_interval_ns{10000000ULL};
 };
 enum class NormalStopState { NotInitialized, Waiting, Braking, HandoffPending, PowerDown, Complete, FailSafe };
 enum class NormalStopFault { None, ClockError, ControlDeadline, RequestLost, FeedbackUnavailable, StopEvidenceLost, HandoffExpired, ShutdownTimeout, BrakingTimeout, SequenceExhausted, UpstreamProtection };

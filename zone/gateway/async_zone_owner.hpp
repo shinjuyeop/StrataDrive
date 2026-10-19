@@ -16,10 +16,13 @@ public:
     bool initialize(std::uint32_t epoch,std::uint64_t enable_ns);
     void service();
     void protect_local();
+    void quiesce();
     bool protected_selected() const;
     std::uint32_t epoch() const { return epoch_; }
     bool faulted() const { return failed_; }
+    int rejection() const { return rejection_; }
     std::size_t command_frames() const { return command_frames_; }
+    std::uint64_t last_health_ns() const { return last_health_; }
     // Deterministic injection at the transport write boundary, owner thread only.
     bool fail_brake_write{false},drop_feedback{false},drop_permission_feedback{false};
 private:
@@ -43,7 +46,9 @@ private:
     can::BrakeReceiver brake_{{can::BrakeFrameKind::Actual,0,1500000}};
     can::DriveReceiver drive_{{can::DriveFrameKind::Actual,{-300,500},100,300}};
     std::uint32_t epoch_{0}; std::uint64_t enable_{0},observed_{0},last_health_{0},sending_token_{0};
+    std::array<std::uint64_t,2> last_inputs_{};
     bool failed_{false},drive_arm_ack_{false}; std::size_t command_frames_{0};
+    int rejection_{0};
     std::optional<transport::ZoneRequest> pending_;
     std::array<bool,transport::kLeaves> leaf_ack_{};
 };

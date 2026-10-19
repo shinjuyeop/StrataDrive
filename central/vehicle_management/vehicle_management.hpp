@@ -24,6 +24,7 @@ struct VehicleManagementConfig {
     std::uint64_t acknowledgement_timeout_ns{80000000ULL};
     std::uint64_t startup_timeout_ns{3000000000ULL}, shutdown_timeout_ns{2000000000ULL};
     double off_bus_max_v{30}; // functional-SIL fixture, not an OEM calibration
+    std::uint64_t minimum_tick_interval_ns{10000000ULL}; // call guard; external task remains 10 ms
 };
 struct VehicleManagementDecision {
     VehicleManagementState state{VehicleManagementState::NotInitialized};

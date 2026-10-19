@@ -5,6 +5,8 @@
 #include <string>
 
 namespace stratadrive::demo {
+struct M4DemoOptions { std::string clock,scenario,store,output; };
+void demo_m4_async(const M4DemoOptions& options);
 void demo_angle(const std::string& input);
 void demo_frame(const std::string& kind, const std::string& input);
 void demo_e2e();

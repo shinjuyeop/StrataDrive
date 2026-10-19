@@ -18,7 +18,7 @@ bool fresh(std::uint64_t source,std::uint64_t enable,std::uint64_t now) { return
 NormalStop::NormalStop(const NormalStopConfig& config):config_(config) {
     if(!std::isfinite(config.deceleration_mps2) || config.deceleration_mps2<=0 || config.deceleration_mps2>5 ||
         config.confirmation_ns<20*kMs || config.confirmation_ns>1000*kMs || config.braking_timeout_ns<=config.confirmation_ns ||
-        config.shutdown_timeout_ns==0) throw std::invalid_argument("NormalStop configuration");
+        config.shutdown_timeout_ns==0 || config.minimum_tick_interval_ns==0 || config.minimum_tick_interval_ns>10*kMs) throw std::invalid_argument("NormalStop configuration");
 }
 bool NormalStop::start_session(std::uint32_t epoch,std::uint64_t enable) {
     if(epoch==0 || epoch<=epoch_ || (epoch_!=0 && enable<observed_)) return false;
@@ -60,7 +60,7 @@ bool NormalStop::acknowledge_handoff(const ActuatorStopLease& lease,std::uint64_
 }
 std::optional<NormalStopPlan> NormalStop::tick(const NormalDriveReadinessInputs& in,const VehicleManagementDecision& management,std::uint64_t now) {
     if(!advance(now) || decision_.state==NormalStopState::Waiting) return std::nullopt;
-    if(last_tick_ && now-*last_tick_<10*kMs) return std::nullopt;
+    if(last_tick_ && now-*last_tick_<config_.minimum_tick_interval_ns) return std::nullopt;
     last_tick_=now;
     const bool power_down=decision_.state==NormalStopState::PowerDown || decision_.state==NormalStopState::Complete;
     if(in.epoch!=epoch_ || in.session_enable_ns!=enable_ || !(power_down?evaluate_vehicle_input_health(in,now):evaluate_normal_drive_readiness(in,now)).ready()) fail(NormalStopFault::FeedbackUnavailable);

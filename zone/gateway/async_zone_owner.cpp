@@ -4,13 +4,13 @@ namespace stratadrive::zone {
 AsyncZoneOwner::AsyncZoneOwner(ZoneScope scope,transport::Clock& clock,transport::RunGate& gate,transport::ZoneLink& central,
     const std::array<transport::LeafLink*,transport::kLeaves>& leaves)
     :scope_(scope),clock_(clock),gate_(gate),central_(central),leaves_(leaves),commands_(scope,*this),
-    power_(scope==ZoneScope::Rear?std::optional<RearPowerGateway>{std::in_place,static_cast<RearPowerPort&>(*this)}:std::nullopt),health_(commands_,power_?&*power_:nullptr) {}
+    power_(scope==ZoneScope::Rear?std::optional<RearPowerGateway>{std::in_place,static_cast<RearPowerPort&>(*this)}:std::nullopt),health_(commands_,power_?&*power_:nullptr,1000000) {}
 bool AsyncZoneOwner::initialize(std::uint32_t epoch,std::uint64_t enable) {
     if(epoch==0 || epoch<=epoch_ || central_.failed()) return false;
     const auto range=leaf_range(); for(auto i=range.first;i<range.second;++i) if(leaves_[i]->failed()) return false;
     if(!commands_.start_session(epoch,enable) || (power_ && !power_->start_session(epoch,enable)) ||
         !steering_.start_session(epoch,enable) || !brake_.start_session(epoch,enable) || !drive_.start_session(epoch,enable) || !health_.start_session(epoch,enable)) return false;
-    epoch_=epoch; enable_=enable; observed_=now_ns(); last_health_=enable; failed_=false; pending_.reset(); leaf_ack_={}; drive_arm_ack_=false;
+    epoch_=epoch; enable_=enable; observed_=now_ns(); last_health_=enable; last_inputs_={}; failed_=false; rejection_=0; pending_.reset(); leaf_ack_={}; drive_arm_ack_=false;
     return true;
 }
 std::pair<std::size_t,std::size_t> AsyncZoneOwner::leaf_range() const { return scope_==ZoneScope::Front?std::pair<std::size_t,std::size_t>{0,2}:std::pair<std::size_t,std::size_t>{2,5}; }
@@ -29,13 +29,17 @@ void AsyncZoneOwner::protect_local() {
     failed_=true; pending_.reset(); commands_.request_protection(); if(power_) power_->mark_continuity_lost();
     protect(scope_,ProtectionCause::CoordinatorRequest,now_ns());
 }
+void AsyncZoneOwner::quiesce() {
+    if(epoch_!=0) protect_local();
+    for(std::size_t i=0;i<transport::kBudget;++i) if(!central_.work.pop()) break;
+}
 bool AsyncZoneOwner::protected_selected() const { return failed_ && leaf_selected(); }
 bool AsyncZoneOwner::leaf_send(transport::Leaf leaf,transport::LeafRequest packet) {
     const auto now=now_ns();
     if(!gate_.allows(epoch_) || packet.epoch!=epoch_ || packet.deadline_ns<=now) return false;
     return leaves_[static_cast<std::size_t>(leaf)]->work.push(packet);
 }
-bool AsyncZoneOwner::send(const CommandFrame& frame,const central::CommandContext& context) noexcept {
+bool AsyncZoneOwner::send(const CommandFrame& frame,const central::CommandContext& context) noexcept try {
     if(context.parent.epoch!=epoch_ || now_ns()>=context.expires_at_ns) return false;
     transport::LeafRequest packet; packet.epoch=epoch_; packet.token=sending_token_; packet.sent_ns=now_ns();
     packet.deadline_ns=context.expires_at_ns; packet.command=context;
@@ -44,8 +48,8 @@ bool AsyncZoneOwner::send(const CommandFrame& frame,const central::CommandContex
     else if(const auto* b=std::get_if<can::BrakeFrame>(&frame)) { if(fail_brake_write) return false; packet.frame=*b; leaf=transport::Leaf::Brake; }
     else { packet.frame=std::get<can::DriveFrame>(frame); leaf=transport::Leaf::Drive; }
     const bool ok=leaf_send(leaf,packet); if(ok) ++command_frames_; return ok;
-}
-bool AsyncZoneOwner::send(const can::BmsFrame& frame,const RearPowerDelivery& delivery) noexcept {
+} catch(...) { return false; }  // Gateway records the failed/partial write and selects protection.
+bool AsyncZoneOwner::send(const can::BmsFrame& frame,const RearPowerDelivery& delivery) noexcept try {
     if(!power_ || delivery.message.epoch!=epoch_ || now_ns()>=delivery.expires_at_ns) return false;
     transport::LeafRequest packet; packet.epoch=epoch_; packet.token=sending_token_; packet.sent_ns=now_ns();
     packet.deadline_ns=delivery.expires_at_ns; packet.parent=delivery.parent; packet.frame=frame;
@@ -53,7 +57,7 @@ bool AsyncZoneOwner::send(const can::BmsFrame& frame,const RearPowerDelivery& de
     if(!leaf_send(leaf,packet)) return false;
     if(delivery.message.kind==can::BmsFrameKind::DrivePermission && !drop_permission_feedback) forward(frame);
     return true;
-}
+} catch(...) { return false; }
 bool AsyncZoneOwner::arm_normal_commands(std::uint32_t epoch,std::uint64_t) noexcept {
     return epoch==epoch_ && drive_arm_ack_ && commands_.arm();
 }
@@ -72,11 +76,18 @@ void AsyncZoneOwner::handle(const transport::ZoneRequest& r) {
     else if(const auto* root=std::get_if<central::VehicleRequest>(&r.work)) {
         const auto result=commands_.authorize_request(*root); complete(r,result==AdmissionResult::Accepted || result==AdmissionResult::Unchanged);
     } else if(const auto* out=std::get_if<central::VehicleManagementOutput>(&r.work)) {
-        if(!power_ || power_->enqueue_power(out->power_request)!=RearPowerResult::Accepted || power_->enqueue_permission(out->drive_permission)!=RearPowerResult::Accepted) { complete(r,false); return; }
-        const auto count=power_->dispatch(); complete(r,count>=2 && power_->poll().safety.cause==ProtectionCause::None,count);
+        if(!power_) { complete(r,false); return; }
+        const auto a=power_->enqueue_power(out->power_request),b=power_->enqueue_permission(out->drive_permission);
+        if(a!=RearPowerResult::Accepted || b!=RearPowerResult::Accepted) { if(!rejection_) rejection_=100+static_cast<int>(a)*10+static_cast<int>(b); complete(r,false); return; }
+        const auto count=power_->dispatch(); const auto cause=power_->poll().safety.cause;
+        if((count<2 || cause!=ProtectionCause::None) && !rejection_) rejection_=200+static_cast<int>(cause);
+        complete(r,count>=2 && cause==ProtectionCause::None,count);
     } else if(const auto* c=std::get_if<central::ScopedCommands>(&r.work)) {
-        if(commands_.enqueue(*c)!=AdmissionResult::Accepted) { complete(r,false); return; }
-        const auto sent=commands_.dispatch(); complete(r,!sent.partial_front && sent.frames_enqueued==(scope_==ZoneScope::Front?2U:1U),sent.frames_enqueued);
+        const auto admitted=commands_.enqueue(*c);
+        if(admitted!=AdmissionResult::Accepted) { if(!rejection_) rejection_=300+static_cast<int>(admitted); complete(r,false); return; }
+        const auto sent=commands_.dispatch(); const bool ok=!sent.partial_front && sent.frames_enqueued==(scope_==ZoneScope::Front?2U:1U);
+        if(!ok && !rejection_) rejection_=400+static_cast<int>(commands_.poll().safety.cause);
+        complete(r,ok,sent.frames_enqueued);
     } else {
         if(pending_) { complete(r,false); return; }
         const auto* stop=std::get_if<central::NormalStopPlan>(&r.work);
@@ -141,11 +152,20 @@ void AsyncZoneOwner::service() {
     progress();
     const auto state=commands_.poll();
     if(state.safety.cause!=ProtectionCause::None || (power_ && power_->poll().safety.cause!=ProtectionCause::None)) protect_local();
-    if(now-last_health_>=10000000ULL) {
-        last_health_=now;
-        const ZoneFeedbackInputs in{steering_.current_sample(now),brake_.current_sample(now),drive_.current_sample(now),
+    if(now-last_health_>=1000000ULL) {
+        const auto sample_now=now_ns();
+        const ZoneFeedbackInputs in{steering_.current_sample(sample_now),brake_.current_sample(sample_now),drive_.current_sample(sample_now),
             power_?power_->power_status():std::nullopt,power_?power_->power_limits():std::nullopt};
-        if(const auto health=health_.tick(in,now)) forward(*health);
+        const std::array<std::uint64_t,2> input_time=scope_==ZoneScope::Front?
+            std::array<std::uint64_t,2>{in.steering?in.steering->source_time_ns:0,in.brake?in.brake->source_time_ns:0}:
+            std::array<std::uint64_t,2>{in.drive?in.drive->source_time_ns:0,in.power_status?in.power_status->message.source_time_ns:0};
+        // Prefer this acquisition round after RX; do not publish yesterday's
+        // round immediately before this cycle's Leaf reports arrive. A bounded
+        // fallback still runs local loss detection when input progress stops.
+        if((input_time[0]>last_inputs_[0] && input_time[1]>last_inputs_[1]) || sample_now-last_health_>=20000000ULL) {
+            last_health_=now_ns(); last_inputs_=input_time;
+            if(const auto health=health_.tick(in,last_health_)) forward(*health);
+        }
     }
     if(protected_selected()) central_.protection.selected.store(epoch_,std::memory_order_release);
 }

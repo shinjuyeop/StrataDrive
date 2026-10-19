@@ -41,7 +41,7 @@ bool valid_config(const AllocationConfig& c) {
         t.actual_source_age_ns > 0 && t.actual_source_age_ns <= 30000000ULL &&
         t.bms_source_age_ns > 0 && t.bms_source_age_ns <= 50000000ULL &&
         t.bms_dependency_age_ns > 0 && t.bms_dependency_age_ns <= 70000000ULL &&
-        c.max_tick_gap_ns >= kPeriodNs && c.max_tick_gap_ns <= 30000000ULL &&
+        c.max_tick_gap_ns >= kPeriodNs && c.max_tick_gap_ns <= 30000000ULL && c.minimum_tick_interval_ns>0 && c.minimum_tick_interval_ns<=kPeriodNs &&
         c.request_source_age_ns > 0 && c.request_source_age_ns <= 30000000ULL &&
         c.feedback_skew_ns > 0 && c.feedback_skew_ns <= 20000000ULL && c.response_dwell_ns > 0;
 }
@@ -136,7 +136,7 @@ bool ControlAllocation::permission_valid(const AllocationInputs& in, std::uint64
 }
 std::optional<AllocatedCommands> ControlAllocation::tick(const AllocationInputs& in, std::uint64_t now) {
     if (!advance(now)) return std::nullopt;
-    if (last_tick_ns_ && now-*last_tick_ns_ < kPeriodNs) return std::nullopt;
+    if (last_tick_ns_ && now-*last_tick_ns_ < config_.minimum_tick_interval_ns) return std::nullopt;
     last_tick_ns_ = now;
     if (decision_.state == AllocationState::FailSafe) return std::nullopt;
     if (in.feedback.epoch != epoch_ || in.feedback.session_enable_ns != enable_ns_) fail(AllocationFault::SessionMismatch);

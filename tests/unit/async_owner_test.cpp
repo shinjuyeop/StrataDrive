@@ -64,6 +64,26 @@ TEST_F(AsyncOwnerTest, NewEpochDiscardsOldResultWithoutReopeningGate) {
     ASSERT_TRUE(port.initialize({4,clock.now})); ack(*front,*old); port.service();
     EXPECT_FALSE(port.transport_fault()); EXPECT_FALSE(gate.allows(4)); EXPECT_EQ(port.arm_status(3),central::OperationStatus::Rejected);
 }
+TEST_F(AsyncOwnerTest, AllocationWaitsForReceivedGrantAndUsesItsOriginalIssuedParent) {
+    initialize();
+    central::VehicleManagementOutput out;
+    out.power_request.kind=can::BmsFrameKind::PowerRequest;
+    out.drive_permission.kind=can::BmsFrameKind::DrivePermission;
+    for(auto* message:{&out.power_request,&out.drive_permission}) {
+        message->epoch=3; message->source_time_ns=kStart; message->local_state=can::ActuatorLocalState::Normal; message->origin=can::ActuatorOrigin::NormalPath;
+    }
+    out.power_request.content=can::BmsPowerRequest{can::BmsPowerAction::Enable,kStart+60*kMs,kStart};
+    out.drive_permission.content=can::BmsDriveGrant{can::BmsDrivePermission::AllowNormal,0,kStart,kStart,kStart+60*kMs};
+    out.power_parent=out.permission_parent=can::BmsParentContext{3,0,kStart,kStart+60*kMs};
+    ASSERT_TRUE(port.deliver_power(out)); EXPECT_FALSE(port.allocation_ready(out,kStart)); EXPECT_FALSE(port.current_permission());
+    can::BmsTxState tx{can::BmsFrameKind::DrivePermission}; const auto frame=can::encode_bms_frame(out.drive_permission,tx); ASSERT_TRUE(frame);
+    ASSERT_TRUE(rear->feedback.push(*frame)); port.service(); EXPECT_TRUE(port.allocation_ready(out,kStart));
+    const auto first=port.received_permission_parent(); ASSERT_TRUE(first); EXPECT_EQ(first->sequence,0U); EXPECT_EQ(first->source_time_ns,kStart);
+    clock.now+=10*kMs; auto newer=out; newer.drive_permission.sequence=1; newer.drive_permission.source_time_ns=clock.now; newer.drive_permission.causal_sequence=1;
+    newer.permission_parent=can::BmsParentContext{3,1,clock.now,clock.now+60*kMs};
+    ASSERT_TRUE(port.deliver_power(newer)); EXPECT_FALSE(port.allocation_ready(newer,clock.now));
+    const auto still_first=port.received_permission_parent(); ASSERT_TRUE(still_first); EXPECT_EQ(still_first->sequence,0U);
+}
 TEST_F(AsyncOwnerTest, BrokenMailboxCannotBeRepairedByEpochAndProtectionBypassesIt) {
     initialize(); const transport::ZoneRequest value{};
     for(std::size_t i=0;i<transport::kBudget;++i) ASSERT_TRUE(front->work.push(value));
@@ -85,5 +105,15 @@ TEST(AsyncZoneOwner, PartialLeafArmMustProtectBothLeavesThroughIndependentSignal
     EXPECT_TRUE(zone.faulted()); EXPECT_TRUE((*leaves)[0].protection.pending(3)); EXPECT_TRUE((*leaves)[1].protection.pending(3));
     const auto result=central->results.pop(); ASSERT_TRUE(result); EXPECT_FALSE(result->accepted); EXPECT_FALSE(zone.protected_selected());
     (*leaves)[0].protection.selected.store(3); (*leaves)[1].protection.selected.store(3); zone.service(); EXPECT_TRUE(central->protection.acknowledged(3));
+}
+TEST(AsyncZoneOwner, ExpiredQueueEntryIsRejectedWithoutRestampingOrLeafDispatch) {
+    Clock clock; transport::RunGate gate; auto central=std::make_unique<transport::ZoneLink>();
+    auto leaves=std::make_unique<std::array<transport::LeafLink,transport::kLeaves>>();
+    std::array<transport::LeafLink*,transport::kLeaves> ptrs{}; for(std::size_t i=0;i<ptrs.size();++i) ptrs[i]=&(*leaves)[i];
+    zone::AsyncZoneOwner zone{zone::ZoneScope::Front,clock,gate,*central,ptrs}; ASSERT_TRUE(zone.initialize(3,kStart)); gate.release(3);
+    const transport::ZoneRequest original{3,9,kStart,kStart+20*kMs,transport::Arm{}}; ASSERT_TRUE(central->work.push(original));
+    clock.now=original.deadline_ns; zone.service(); const auto result=central->results.pop(); ASSERT_TRUE(result);
+    EXPECT_FALSE(result->accepted); EXPECT_EQ(result->token,original.token); EXPECT_FALSE((*leaves)[0].work.pop()); EXPECT_FALSE((*leaves)[1].work.pop());
+    EXPECT_TRUE(zone.faulted()); EXPECT_TRUE((*leaves)[0].protection.pending(3));
 }
 }  // namespace
