@@ -18,9 +18,9 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `central/diagnostics` | fault event → DTC lifecycle / system state 결정 |
 | `zone/gateway` | Front/Rear 공통 DDS↔각 CAN dispatch; 각 Zone의 원천 status를 Central bridge에 전달 |
 | `central/session` | Linux 영속 Epoch issuer 구현; Central trusted owner, M1 fixture 연결; 실제 Central–Zone INIT protocol 후속 |
-| `zone/command_validation` | validity, age, sequence, range, mode 검증 → accept/reject 사유 |
+| `zone/command_validation` | [Front/Rear 독립 수용](../learning/m4_zone_command_admission.md) 구현: trusted root/arm·scope/atomic pair·age/expiry/range/mode/progress 검증 → current scoped snapshot 또는 reject/보호 요청; 실제 보호 출력 후속 |
 | `central/vehicle_management` | Central 별도 VCU: [준비 판정](../learning/m4_normal_drive_readiness.md)·[lifecycle/허가 상태 owner](../learning/m4_vehicle_management.md) 구현; trusted root/ACK/expiry·FAIL_SAFE latch와 전원 요청/DrivePermission 산출; 전체 Zone/runtime 통합 후속 |
-| `central/control_allocation` | [첫 normal-path 배분](../learning/m4_control_allocation.md) 구현: 허가된 vehicle root + fresh actual/capability/BMS → angle·torque·pressure와 scoped expiry; 실제 Zone admission·protection/차량 전환 검증은 TBD-06/15 |
+| `central/control_allocation` | [첫 normal-path 배분](../learning/m4_control_allocation.md) 구현: 허가된 vehicle root + fresh actual/capability/BMS → angle·torque·pressure와 scoped expiry; Zone 수용 연결 component 시험, gateway/protection/차량 전환은 TBD-06/15 |
 | `central/feedback_bridge` | 두 Zone의 per-source actual/EV status → Central consumer/Host; 원천 age/identity 보존, PLANNED |
 | `zone/local_safety` | local timeout/fault → 제한 또는 local fail-safe; Central Vehicle Compute 의존 없는 판단 |
 | `vecu/common` | absolute task schedule·독립 completion monitor·유효 RX age monitor와 SPSC latest snapshot 구현; 전체 watchdog·diagnostics 배치는 후속 |

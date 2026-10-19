@@ -167,4 +167,6 @@ Python 63개와 C++ normal/sanitizer 각각 523개를 검사했다. 상대 대�
 연결한다. RC/접점과 기존 CAN receiver를 경유하는 논리 시간 시험을 포함해 새 31개를 더했고 전체 각각 570개 PASS다.
 후속 [첫 control allocation](m4_control_allocation.md)은 accel/curvature·service braking을 angle·torque·pressure로 바꾸고
 actual 잔여 회생·저속/release·deficit/excess를 다룬다. 새 36개를 더해 전체 C++ 각각 606개 PASS다.
-다음은 Front/Rear scoped admission·보호 handoff·실제 ingress/runtime 통합이다.
+후속 [Front/Rear scoped admission](m4_zone_command_admission.md)은 독립 root 대조·atomic pair·expiry와
+명시적 arm/INIT를 구현한다. 새 수용/배분 연결 시험 59개를 더해 전체 각각 665개 PASS다.
+다음은 gateway/CAN egress·보호 handoff·실제 ingress/runtime 통합이다.

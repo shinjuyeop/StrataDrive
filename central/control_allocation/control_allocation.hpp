@@ -1,16 +1,9 @@
 #pragma once
 
 #include "vehicle_management.hpp"
+#include "allocated_commands.hpp"
 
 namespace stratadrive::central {
-// In-process IF-CENTRAL-VEHICLE-REQUEST. Target speed remains an upstream
-// controller reference; this component consumes its bounded acceleration output.
-struct VehicleRequest {
-    std::uint32_t epoch{0}, sequence{0};
-    std::uint64_t source_time_ns{0}, expires_at_ns{0};
-    double acceleration_mps2{0}, curvature_inv_m{0}, braking_demand{0};
-    bool standstill_hold{false}; // explicit hold request; not inferred from zero acceleration
-};
 struct AllocationConfig {
     // First functional-SIL calibration, NOT vehicle/OEM parameters.
     double mass_kg{1000}, wheel_radius_m{0.3}, wheelbase_m{2.7};
@@ -56,16 +49,6 @@ struct AllocationDecision {
     double regen_limit_nm{0}, selected_regen_nm{0}, capacity_deficit_nm{0}, propulsion_deficit_nm{0};
     bool steering_limited{false}, response_pending{false};
 };
-struct AllocatedCommands {
-    can::SteeringMessage steering;
-    can::BrakeMessage brake;
-    can::DriveMessage drive;
-    VehicleRequest parent; // vehicle root, distinct from the permission's lifecycle root
-    std::uint64_t oldest_input_time_ns{0}, expires_at_ns{0};
-    // Mandatory Zone admission sideband. Legacy 32-byte actuator CAN does NOT
-    // contain this ancestry/deadline; a future gateway must not discard it.
-};
-
 // Single-owner normal-path allocator. No plant/socket/controller PID/ABS/ESC.
 // All current inputs share a monotonic domain and obey receiver continuity /
 // current_sample contracts. Failure means no new normal output, NOT brake

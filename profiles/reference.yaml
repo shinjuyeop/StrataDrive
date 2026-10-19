@@ -408,6 +408,23 @@ control:
   lateral_algorithm: null # TBD-11 / M8; Pure Pursuit or Stanley
   longitudinal_algorithm: longitudinal_pid_planned
   allocation_parameters: null # final vehicle TBD-02/06; first component fixture below, no loader
+m4_zone_admission_fixture:
+  implementation: independent_front_rear_inprocess_normal_command_admission
+  shared_contract: interfaces/central/allocated_commands.hpp
+  trusted_parent: independent_vehicle_request_handoff_not_command_payload
+  activation: trusted_init_idle_then_explicit_coordinator_arm
+  scope: {front: atomic_steering_brake, rear: drive}
+  command_source_age_ms: 30
+  parent_source_age_ms: 30
+  parent_maximum_lifetime_ms: 60
+  oldest_dependency_age_ms: 70
+  first_command_timeout_ms: 80
+  monitor_period_budget_ms: 10
+  dispatch_jitter_budget_ms: 10
+  expiry: exclusive_minimum_parent_command_dependency_bound_no_restamping
+  recovery: newer_trusted_epoch_then_arm_and_new_authorized_command
+  parameter_status: fixture_only_no_yaml_loader_or_cross_node_clock_claim
+  can_egress_and_physical_protection: pending
 m4_allocation_fixture:
   implementation: normal_path_central_allocator_component
   parameter_status: fixture_only_no_oem_or_vehicle_calibration

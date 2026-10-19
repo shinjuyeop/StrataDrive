@@ -85,6 +85,7 @@ M4에서 Central coordinator를 검증하고 Front/Rear gateway를 연결한다.
 Host bridge, M6/M7는 모델 기반 plant loop를 시험한다. Zone별 CAN bus/interface identity를
 trace에 보존하고 in-process shortcut을 cross-node 통신 검증으로 표시하지 않는다.
 현재 [전원·허가 상태 owner](../learning/m4_vehicle_management.md)는 component로 구현·시험했다.
-후속 [첫 배분 component](../learning/m4_control_allocation.md)도 구현했다. Scoped parent/expiry는 in-process sideband이며 Zone admission 구현 전이다.
-Zone health/비Power actual은 그 연결 시험의 명시적 fixture이며 실제 Zone ingress/runtime 검증은 후속이다.
+후속 [첫 배분 component](../learning/m4_control_allocation.md)와 [독립 Zone 명령 수용](../learning/m4_zone_command_admission.md)도 구현했다.
+Scoped parent/expiry는 shared in-process 계약이며 별도 trusted root/arm, scope·범위·시간과 latch를 검사한다.
+Zone health/비Power actual은 배분 연결 시험의 명시적 fixture다. 실제 ingress/CAN egress/보호 출력/runtime 검증은 후속이다.
 ZON-S01/ZON-F01/F02, TC-ZON-001–003과 기존 COM/EV/SAFE 시험에 연결하며 전체 Result는 NOT RUN이다.

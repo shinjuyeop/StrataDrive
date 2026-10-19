@@ -6,7 +6,7 @@
 
 **M3 진행 중** — [Host RTOS의 누적 tick 지연](docs/learning/m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기)을 수정하고 CPU 배치·FIFO 실행을 비교했다.
 일반 우선순위 sanitizer의 타이밍 실패 2건과 학습자 수용은 남아 있다. M1/M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도다.
-M4는 Central 전원·허가와 [첫 제어 배분](docs/learning/m4_control_allocation.md)을 component로 구현했다. Zone 연결·DDS·차량 closed-loop·Target 검증은 후속 단계다.
+M4는 Central 전원·허가·제어 배분과 [Front/Rear 명령 검증](docs/learning/m4_zone_command_admission.md)을 component로 구현했다. CAN 전달·보호 출력·DDS·차량 closed-loop·Target 검증은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 
@@ -265,6 +265,7 @@ StrataDrive/
 │   └── quality_policy.md
 ├── interfaces/
 │   ├── common/            # E2E Profile 5, 공통 payload 직렬화·수신 상태
+│   ├── central/           # VehicleRequest, 배분 명령과 Front/Rear sideband 계약
 │   ├── steering/          # 조향 angle/frame codec, receiver, local sensor port
 │   ├── brake/             # 압력/frame codec, receiver, sensor/actuation port
 │   ├── drive/             # 구동·회생 torque/frame codec, feedback receiver
@@ -273,7 +274,7 @@ StrataDrive/
 │   ├── dbc/               # Actuator 6개 + EV/BMS 6개 frame 초안
 │   └── dds/               # 배치용 placeholder
 ├── central/               # ADAS/control; session Epoch store; vehicle management/allocation/bridge 예정
-├── zone/                  # Front/Rear gateway/validation/local safety 예정
+├── zone/                  # Front/Rear 명령 수용 구현; gateway/local safety 연결 예정
 ├── vecu/                  # Steering/Brake/Drive/BMS의 판단·보호; 물리 실행과 분리
 ├── simulation/            # 물리 모델·SIL 연결 코드; vehicle/CARLA 통합 예정
 ├── physical_ai/           # Perception, learned planner, export, inference

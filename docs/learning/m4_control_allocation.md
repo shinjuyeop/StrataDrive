@@ -77,7 +77,7 @@ Optional capability 만료만으로 전체 고장 latch를 만들지 않고 마�
 Wheel speed/capability 시각은 torque acquisition보다 늦을 수도 있으며, 각각의 source age를 검사한다.
 
 **기존 32-byte CAN command에는 이 parent/expiry sideband가 없다.**
-다음 Zone admission이 이를 확인하고 보존해야 한다. 이번 codec/receiver 시험을 end-to-end Zone expiry 검증으로 표시하지 않는다.
+후속 [Zone admission](m4_zone_command_admission.md)이 이를 확인·보존한다. CAN egress 연결 전이므로 이번 codec/receiver 시험을 Leaf까지 end-to-end expiry 검증으로 표시하지 않는다.
 입력은 매 cycle의 `current_sample(now)`이며 진단용 last accepted cache를 제어 입력으로 바꾸지 않는다.
 
 Actual net braking은 `K × Pactual − Tdrive_actual`이다. 아직 양수 추진 100 Nm가 남아 있다면 이를
@@ -120,6 +120,6 @@ cmake --build build/m4-readiness -j 4
 ctest --test-dir build/m4-readiness -R '^ControlAllocation' --output-on-failure
 ```
 
-다음은 Front/Rear scoped request admission·routing·독립 loss/rejoin과 protection handoff다.
+후속 [Front/Rear scoped admission](m4_zone_command_admission.md)은 구현했다. 다음은 CAN routing·독립 ingress/loss/rejoin과 protection handoff다.
 그 과정에서 기존 EV runtime fixture를 coordinator로 교체하고 BMS non-protection derating 허가 envelope·
 초기 non-driving command 경로를 확인한다. 새 workload timing과 차량 response budget은 다시 검증한다.

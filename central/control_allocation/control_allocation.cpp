@@ -45,11 +45,6 @@ bool valid_config(const AllocationConfig& c) {
         c.request_source_age_ns > 0 && c.request_source_age_ns <= 30000000ULL &&
         c.feedback_skew_ns > 0 && c.feedback_skew_ns <= 20000000ULL && c.response_dwell_ns > 0;
 }
-bool same_request(const VehicleRequest& a, const VehicleRequest& b) {
-    return a.epoch == b.epoch && a.sequence == b.sequence && a.source_time_ns == b.source_time_ns &&
-        a.expires_at_ns == b.expires_at_ns && a.acceleration_mps2 == b.acceleration_mps2 &&
-        a.curvature_inv_m == b.curvature_inv_m && a.braking_demand == b.braking_demand && a.standstill_hold == b.standstill_hold;
-}
 bool fresh(std::uint64_t time, std::uint64_t start, std::uint64_t now, std::uint64_t age) {
     return time >= start && time <= now && now-time <= age;
 }
@@ -101,7 +96,7 @@ AllocationReceiveDecision ControlAllocation::receive_request(const VehicleReques
     }
     if (!fresh(request.source_time_ns, enable_ns_, now, config_.request_source_age_ns) || now >= request.expires_at_ns) return AllocationReceiveDecision::Expired;
     if (request_ && request.sequence == request_->sequence) {
-        return same_request(request, *request_) ? AllocationReceiveDecision::Unchanged : AllocationReceiveDecision::MutationRejected;
+        return same_vehicle_request(request, *request_) ? AllocationReceiveDecision::Unchanged : AllocationReceiveDecision::MutationRejected;
     }
     const auto previous = request_ ? std::optional<std::uint32_t>{request_->sequence} : std::nullopt;
     if (!can::actuator_sequence_progresses(previous, request.sequence) ||

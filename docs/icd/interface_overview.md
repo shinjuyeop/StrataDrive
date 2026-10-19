@@ -17,6 +17,10 @@ Steering application 송수신/fault/timeout은 실행했다. [M1 session/queue]
 [첫 Brake 압력 모델](../learning/m2_brake_model.md)의 Host 응답/보호는 구현·시험했다. 차량 보호 통합은 후속이다.
 [Drive Command/Actual](drive_frame_draft.md)의 signed torque와 독립 capability freshness를
 [Host/vCAN에서 시험했다](../learning/m1_drive_codec.md). M2 응답/에너지와 [M4 첫 배분 component](../learning/m4_control_allocation.md)는 구현했으며 차량 피드백 loop는 후속이다.
+
+M4 [Zone 명령 수용](../learning/m4_zone_command_admission.md)은 shared in-process
+VehicleRequest/FrontCommands/RearCommands 계약을 사용한다. 독립 trusted root·scope·expiry를 검증하며,
+원래 parent/expiry가 없는 기존 32-byte actuator CAN의 egress/보호 연결은 후속이다.
 2026-10-13 [EV-01](ev_power_bms_design.md)으로 BMS Leaf, 차량 관리와 power lifecycle을
 추가했다. 2026-10-14 [BMS wire 초안](bms_frame_draft.md)의 EV 6개 DBC frame과
 Host C++ codec/항목별 receiver·DBC 교차 검증과 native SocketCAN 변환 시험을 추가했다.

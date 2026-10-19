@@ -1,7 +1,7 @@
 # Software quality policy
 
-Status: **M1 통신·M2 모델·M3 Host 실행·M4 준비/허가/배분 component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 606개 PASS**다.
+Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 665개 PASS**다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -1156,6 +1156,39 @@ Python 코드는 변경·unit 재실행하지 않았으며 직전 63개 PASS 이
 production build는 `build/m4-allocation-production-{configure,build}.txt`, 정적 분석은
 `build/m4-allocation-{clang,cppcheck}.txt`, 문서 정합성은 `build/m4-allocation-doc-check.txt`다.
 M3 원래 실패와 32개 requirement/29개 system TC NOT RUN·M1/M2 learner review 상태는 유지한다.
+
+## 2026-10-19 M4 Front/Rear scoped command admission
+
+[ADR-0046](adr/ADR-0046-scoped-zone-command-admission.md)와
+[학습 안내](learning/m4_zone_command_admission.md)의 독립 normal 명령 수용 경계를 구현했다.
+Shared VehicleRequest/CommandContext/FrontCommands/RearCommands를 `interfaces/central`로 분리해
+Zone이 배분 알고리즘에 의존하지 않도록 했다. Root 승인과 명령 수용은 독립 callback/cursor이며,
+trusted INIT/명시적 arm·scope/atomic pair·mode/range/age/expiry와 continuity/clock latch를 검사한다.
+재전송/잘못된 packet/다른 Zone 수신/새 root만으로 accepted command의 lease를 갱신하지 않는다.
+
+새 **59개 case**, 전체 normal·ASan/UBSan 각각 **665/665 PASS**다.
+실제 allocator 출력을 20 ms cycle/200 ms 논리 시간 동안 Front/Rear 수용부에 전달했다.
+별도 scoped fixture로 각 source/expiry 경계·identity 변조·invalid flood·원래 만료 우선 검사,
+독립 loss/reinit·더 좁은 local 설정·CAN wire 반올림 뒤 한계 초과 거부·uint64 끝의 포화 계산을 확인했다.
+초기 전원 준비 동안 Idle이 유지되고 packet으로 arm/INIT할 수 없는 것도 검사했다.
+정상 command lifetime 이후 보호 요청은 반환하지만 실제 보호 출력이나 물리 응답은 이 시험에서 실행하지 않는다.
+
+일반/sanitizer·`BUILD_TESTING=OFF` build PASS, clang-tidy 14 analyzer/bugprone은 변경 production/test
+4개와 새 계약/수용 header에 적용해 user-source 진단 없이 PASS다. Cppcheck 2.7은 현재 compilation
+database의 production 2개 PASS다. GoogleTest macro 파싱 제약에 따른 test cppcheck 범위 제한은 유지한다.
+첫 54-case 개발 실행의 52 PASS/2 FAIL은 `build/m4-admission-test-development.txt`에 보존한다.
+Mutation 시험이 root lifetime 60 ms도 함께 넘겨 InvalidContext를 먼저 받은 oracle 오류였다.
+Lifetime 안의 expiry 변경으로 해당 시험을 수정했으며 수용 정책/시한을 완화하지 않았다.
+정적 분석 실행 중 header 주석을 편집한 중간 snapshot의 파싱 실패는
+`build/m4-admission-clang-development.txt`에 보존했다. 파일을 고정한 뒤 4개 source/header 분석을 다시 통과했다.
+
+로그는 `build/m4-admission-{configure,build,full-test,sanitized-configure,sanitized-build,sanitized-test}.txt`,
+`build/m4-admission-production-{configure,build}.txt`, `build/m4-admission-{clang,cppcheck,doc-check}.txt`다.
+Markdown 113개/상대 링크·앵커 1276개, YAML 3개·Python 8개 syntax/추적성/whitespace를 검사했다.
+Python unit 변경·재실행은 없고 직전 63개 PASS 이력을 유지한다.
+이번 SocketCAN/vCAN·DDS·wall-time workload/Target/차량 실행은 없다. 기존 EV demo의 request/grant도 fixture다.
+Gateway queue/CAN egress의 원래 expiry guard·Rear lifecycle/constraint 전달·local safety handoff·실제 ingress/rejoin은 후속이다.
+M3 원본 실패와 전체 수용 대기, 32개 requirement/29개 system TC NOT RUN을 유지한다.
 
 ## 코드·예제·시험 배치
 

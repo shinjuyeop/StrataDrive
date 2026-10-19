@@ -1,4 +1,5 @@
 #include "control_allocation.hpp"
+#include "command_admission.hpp"
 #include "drive_sil_plant.hpp"
 #include "brake_pressure_response.hpp"
 #include "steering_receiver.hpp"
@@ -94,6 +95,26 @@ TEST_F(ControlAllocationTest, MapsAccelerationAndCurvatureToWheelTorqueAndRoadWh
     EXPECT_DOUBLE_EQ(*out->drive.torque_nm, 300); EXPECT_DOUBLE_EQ(*out->brake.pressure_pa, 0);
     EXPECT_NEAR(*out->steering.angle_rad, std::atan(2.7*0.1), can::kAngleResolutionRad);
     EXPECT_EQ(out->parent.source_time_ns, ns(20)); EXPECT_EQ(out->drive.causal_sequence, out->parent.sequence);
+}
+TEST_F(ControlAllocationTest, RealAllocatorOutputsPassIndependentScopedZoneAdmission) {
+    zone::CommandAdmission front{zone::ZoneScope::Front}, rear{zone::ZoneScope::Rear};
+    ASSERT_TRUE(front.start_session(3, kStart)); ASSERT_TRUE(rear.start_session(3, kStart));
+    ASSERT_TRUE(front.arm(kStart)); ASSERT_TRUE(rear.arm(kStart));
+    for (std::uint32_t ms = 20; ms <= 200; ms += 20) {
+        braking = 400.0/1500; const auto root = request(ms);
+        ASSERT_EQ(allocator.receive_request(root, ns(ms)), AllocationReceiveDecision::Accepted);
+        ASSERT_EQ(front.authorize_request(root, ns(ms)), zone::AdmissionResult::Accepted);
+        ASSERT_EQ(rear.authorize_request(root, ns(ms)), zone::AdmissionResult::Accepted);
+        out = allocator.tick(inputs(ms), ns(ms)); ASSERT_TRUE(out);
+        ASSERT_EQ(front.receive(central::front_commands(*out), ns(ms)), zone::AdmissionResult::Accepted);
+        ASSERT_EQ(rear.receive(central::rear_commands(*out), ns(ms)), zone::AdmissionResult::Accepted);
+        ASSERT_TRUE(front.current_command(ns(ms+9))); ASSERT_TRUE(rear.current_command(ns(ms+9)));
+        const auto accepted = std::get<central::RearCommands>(*rear.current_command(ns(ms+9)));
+        EXPECT_EQ(accepted.drive.source_time_ns, out->drive.source_time_ns);
+        EXPECT_EQ(accepted.expires_at_ns, out->expires_at_ns); EXPECT_TRUE(central::same_vehicle_request(accepted.parent, root));
+    }
+    EXPECT_FALSE(front.current_command(out->expires_at_ns)); EXPECT_TRUE(front.decision().protection_required);
+    EXPECT_FALSE(rear.current_command(out->expires_at_ns)); EXPECT_TRUE(rear.decision().protection_required);
 }
 TEST_F(ControlAllocationTest, SaturatesSteeringAndPropulsionWithoutInventingAchievedAcceleration) {
     acceleration = 2; curvature = -1; step(20); ASSERT_TRUE(out);
