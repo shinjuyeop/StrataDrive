@@ -184,3 +184,7 @@ Stop/lease16·VM 갱신1·Rear terminal1·연결5개를 더해 전체 각각773�
 후속 [실제 Zone 상태 감시](m4_zone_feedback_health.md)는 시동/종료의 health fixture를 교체한다.
 담당 Leaf/gateway 상태·독립 Front/Rear status ingress와 source 상실/partition·새 INIT 경계를 검사했다.
 전체 coordinator/runtime·rejoin transaction과 DDS는 후속이다.
+
+[MBD 개발 순서](../engineering_plan.md#model-based-design-path)는 M6–M8 후속 학습 계획이다.
+Central 종방향 속도 제어의 수식/상태·plant를 모델로 설계하고 MIL에서 검증한 뒤, 동일 input에 대한 C++ 결과를 비교한다.
+기존 C++ 물리 모델을 만든 것과 제어기를 모델에서 개발·검증한 것을 구분한다. 도구 선택·실행은 아직 NOT RUN이다.

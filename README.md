@@ -29,6 +29,9 @@ Physical AI를 서로 다른 compute budget에 맞춘 배포와 함께 다룰 �
 Leaf vECU의 ECU 소프트웨어는 [Classic 개발 체계](docs/adr/ADR-0022-leaf-classic-development-methodology.md)로
 Steering부터 설계하고 SIL 물리 모델의 책임을 구분한다. 실제 OS/RTE/BSW stack의 채택은 pilot에서 검토한다.
 
+[MBD 개발 계획](docs/engineering_plan.md#model-based-design-path)도 포함한다. M6에서 종방향 제어 모델/MIL,
+M8에서 C++ 구현과 동등성·차량 SIL을 검증할 계획이며 모델 도구·자동 코드 생성은 별도 결정이다.
+
 ## Motivation
 
 Simulator 주행 데모나 inference benchmark를 넘어, 각 compute tier에서 차량의

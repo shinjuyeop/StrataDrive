@@ -68,6 +68,31 @@ Drive local HV/torque 통합 gate와 vehicle behavior는 미실행이다.
 PLANNED다. 빈 테스트를 PASS 처리하지 않는다. Regression은 scenario/seed/config/commit을 고정하고 이후
 interface/schema/parameter 변경 시 영향 requirement와 baseline 재검토를 포함한다.
 
+## MBD model and code verification
+
+Status: **M6–M8 계획 / NOT RUN**. [ADR-0052](../adr/ADR-0052-model-based-design-development-path.md)와
+[개발 계획](../engineering_plan.md#model-based-design-path)을 따른다. 첫 대상은 Central 종방향 속도 제어기다.
+현재 C++ 단위/plant·Host SIL PASS와 새 제어 모델 MIL·동등성 결과를 구분한다.
+
+| 계층 | 실행 대상 / 비교 | 필요한 증거 |
+| --- | --- | --- |
+| M6 MIL | 실행 가능한 제어 모델 + 종방향 plant | 고정 reference/초기 상태·외란·parameter·sample time/solver에서 추종·제약·fault/state 판정 |
+| M8 component SIL / 동등성 | 모델과 컴파일된 수작업 C++에 동일한 input vector replay; 생성 코드 채택 시 같은 harness 추가 | 출력/관련 내부 상태의 수치 오차·mode/validity·허가/거부·INIT 전환 대조, model/code revision과 실패 로그 |
+| M8 차량 SIL | 실제 Central controller→allocation→Zone→Leaf→actual→Simple Vehicle/CARLA | 기존 scenario·추종 성능과 fault/timing, 모델 가정·multirate/통신 지연·mapping의 영향 |
+| 선택 후속 생성 pilot | 고정 model/tool/config에서 재생성한 code + adapter | 재생성 재현·build/정적 검사·동일 vector/회귀, 생성 코드와 수작업 code의 출처 구분 |
+
+입력 vector는 source time·validity·permission·세션 경계도 포함한다. 속도 유지/증가/감소·지속 saturation 후 회복·
+가감속/출력 변화율 경계·정지 부근·stale/invalid speed·허가 상실·새 INIT를 시험한다.
+각 case는 제어식/상태 계약과 기존 requirement/TC에 연결하고, 정확한 숫자/매핑은 pilot 전에 고정한다.
+초기 연결 대상은 기존 TC-CTRL-002–004 및 TC-COM-005/TC-ZON-003의 해당 부분이며 전체 system Result는 유지한다.
+
+Sample/step·실행 순서·초기 state·parameter·precision·invalid/NaN·saturation/anti-windup과
+절대/상대 오차·불일치 판정 규칙을 **결과를 보기 전에** 결정한다(TBD-16; timing TBD-04, tuning TBD-11).
+모델과 C++가 같은 production 함수를 호출하는 비교를 독립 설계 검증으로 표시하지 않는다.
+모델/코드의 tick별 동등성과 차량 closed-loop 성능·실시간 실행은 별도 판정이다.
+도구 선택/생성 설정 변경 시 golden vector·모델/코드 비교와 영향 회귀를 다시 검토한다.
+PIL/HIL·Target timing·안전 표준 적합성 결과는 이 계획으로 추가되지 않는다.
+
 ## Defined test cases
 
 각 case의 requirement/component/interface는 [traceability](traceability.md)에 있다.

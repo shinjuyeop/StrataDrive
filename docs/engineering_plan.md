@@ -98,6 +98,43 @@ ISO 26262의 concept 활동은 [Part 3](https://www.iso.org/standard/68385.html)
 기능 불충분성에 관한 SOTIF의 범위는 [ISO 21448](https://www.iso.org/standard/77490.html)을 참고한다.
 이 표의 프로젝트 배치는 학습 계획이며 표준이 지정한 milestone 순서가 아니다.
 
+## Model-Based Design path
+
+Status: **방법 채택 / 구현·MIL·모델/코드 동등성 검증 PLANNED / NOT RUN**.
+[ADR-0052](adr/ADR-0052-model-based-design-development-path.md)로 MBD를 M6–M8에 추가한다.
+기존 M4 coordinator/Zone 통합과 M3 예외 분석을 계속하며 MBD 때문에 구조나 milestone 번호를 바꾸지 않는다.
+기존 actuator/Battery/Power C++ plant를 활용하고 M6 차량 운동·제어 모델을 추가한다.
+제어 모델에서 구현으로 이어지는 새 MBD workflow의 완료 증거는 별도로 남긴다.
+
+첫 대상은 **Central 종방향 속도 제어기**다. 입력은 validated 목표 속도와 원천 시각/유효성을 갖는 actual 속도(m/s),
+출력은 bounded acceleration demand(m/s²)다. 기존 allocation→각 Zone→Leaf→actual feedback 경로를 사용한다.
+속도 오차에서 PI/PID의 각 항이 필요한 이유를 설명하고, 적분/미분 이산화·anti-windup·saturation·출력 변화율과
+허가 상실/새 INIT의 상태 전환을 설계한다. 구체 구조와 tuning은 TBD-11, 모델/도구·동등성 설정은 TBD-16에서 결정한다.
+
+| 배치 | 작업 | 남길 산출물 |
+| --- | --- | --- |
+| M4–M5 준비 | 제어/plant·실행 경계, 도구/Host harness 연동 검토 | 기존 ICD와 연결한 입출력/단위·validity·source/clock·출력 허용 조건, 도구 결정 |
+| M6 | Simple Vehicle 기반 종방향 plant와 실행 가능한 제어 모델, MIL 시험 | 제어식·가정·sample time/solver·parameter와 고정 scenario/seed·성능/제약 결과 |
+| M8 component | 모델 기준 C++ 구현과 공통 vector 동등성 시험 | revision별 tick 출력/관련 내부 상태·mode/validity·fault/INIT 비교와 허용 오차 |
+| M8 integration | 실제 Central/Zone/Leaf와 차량 SIL 연결, M7 CARLA mapping 대조 | 기존 주행·fault·timing 시험에 연결한 결과, MIL 가정과 실제 통합 차이 |
+| 선택 후속 pilot | 한 제어 component의 자동 코드 생성 가능성 평가 | license/지원 버전·재생성·adapter·Host/Target·동등성/정적 검사 근거 |
+
+MIL(Model-in-the-Loop)은 제어 모델과 plant를 함께 실행해 설계를 검증한다.
+모델/코드 비교는 동일한 timestamped input vector와 초기 상태·parameter·sample time으로 모델과 컴파일한 C++를
+각각 실행한다. 동일한 production 함수를 모델에서도 호출하는 self-comparison은 피한다.
+Closed-loop 추종 성능과 tick별 수치/상태 동등성은 각각 판정한다. 같은 모델과 비슷하게 동작한다는 사실만으로
+차량 요구사항 충족이나 Target timing을 선언하지 않는다.
+
+첫 MIL/동등성 case는 속도 유지·증가/감소 reference·가감속/slew 제한·지속 saturation 후 적분 회복·정지 부근과
+stale/invalid 속도·permission 상실·새 INIT다. Sample time/step·multirate 순서·numeric type·NaN/invalid 처리와
+출력/state 허용 오차는 결과를 보기 전에 고정한다. 기존 scenario/성능 수치 변경은 requirement revision 절차를 따른다.
+MBD 시험의 자세한 범위는 [검증 계획](test-plan/verification_strategy.md#mbd-model-and-code-verification)에 둔다.
+
+Simulink와 도구 독립 실행 모델(Python 등)을 후보로 검토한다. 도구/license·Host/CI 재현성·모델 diff·
+C++ harness 연동을 M6 pilot 전에 결정한다(TBD-16). 이번 결정으로 제품을 구매/설치하거나 자동 코드 생성 도입을 확정하지 않는다.
+먼저 모델 설계/검증과 수작업 C++ 비교를 수행하고 자동 생성은 선택 후속 pilot으로 둔다.
+AUTOSAR RTE/BSW 생성과 제어 알고리즘 생성은 따로 기록한다. PIL/HIL·전체 Leaf 재작성은 추가 확정 범위에 넣지 않는다.
+
 ## AUTOSAR adoption path
 
 [ADR-0022](adr/ADR-0022-leaf-classic-development-methodology.md)로 Leaf의 Classic 개발 체계를

@@ -13,7 +13,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `central/world_model` | state + observations → planner용 일관된 world representation |
 | `central/planner` | Phase A route/waypoint, Phase C의 learned 제안 → candidate trajectory; classical fallback 유지 |
 | `central/safety` | trajectory/state/health → 검증된 trajectory, 한계값, 선택된 fallback/system state |
-| `central/control` | validated trajectory + ego state → speed reference + bounded acceleration/curvature/braking demand |
+| `central/control` | validated trajectory + ego state → speed reference + bounded acceleration/curvature/braking demand; [MBD 계획](../engineering_plan.md#model-based-design-path)의 첫 종방향 제어 모델/MIL→C++ 비교 대상(M6–M8, PLANNED) |
 | `central/health` | task, resource, heartbeat → fault monitor 입력 |
 | `central/diagnostics` | fault event → DTC lifecycle / system state 결정 |
 | `interfaces/zone` | 공통 Zone scope/status·독립 status receiver와 Zone/Central 공유 Leaf health 정책; same-host 계약, DDS wire 후속 |

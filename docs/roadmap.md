@@ -51,14 +51,18 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | Host 수용 검토·IO 동반/FIFO 기준 선택; 일반 sanitizer 타이밍 예외·학습자 수용 OPEN, Target/E2E 후속 |
 | M4 | COMPONENT IMPLEMENTATION: Central coordinator + Front/Rear Zone | Central·scoped admission·CAN gateway/보호·Rear 전원/허가/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결 시험; 실제 Zone 상태/독립 ingress·상실 연결; remote Leaf lease·전체 runtime/rejoin 후속, TC-ZON-001–003 NOT RUN; protocol TBD-15 |
 | M5 | Central Compute + DDS | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
-| M6 | Simple Vehicle + EV Plant | 실제 actuator/power 응답을 통한 lifecycle/closed-loop, battery energy/SOC balance와 mapping 검증 |
+| M6 | Simple Vehicle + EV Plant / MBD MIL pilot | 실제 actuator/power 응답·lifecycle/energy 검증; 종방향 제어 모델·plant의 MIL, parameter/sample time·추종/제약 시험 |
 | M7 | CARLA Integration | Host–Target 실제 Ethernet, single ego writer, feedback-driven CARLA motion |
-| M8 | Classical Autonomous Driving | route/waypoint, Pure Pursuit 또는 Stanley, longitudinal PID의 기준 scenario |
+| M8 | Classical Autonomous Driving / MBD implementation | 종방향 모델→C++ 동등성·차량 SIL, longitudinal PID·route/waypoint·Pure Pursuit 또는 Stanley의 기준 scenario |
 | M9 | Fault / Diagnostics / DTC | actuator/BMS/power 및 cross-zone loss Fault Event/DTC/state/local action/actual response를 연결한 regression |
 | M10 | Physical AI Perception | pretrained detection/segmentation/tracking, TensorRT 통합과 accuracy/latency 기준 |
 | M11 | Learned Temporal Planner | 0.5–1초 history, trajectory/speed/risk 출력, Safety Supervisor/Classical Planner fallback 시험 |
 | M12 | Thor vs Orin Compute-Tier Optimization | 동일 Reference 비교 후 tier별 구성 최적화, 공통 requirement 재검증 |
 | M13 | Final SIL / V&V / Regression | scenario/fault/performance regression, traceability 결과와 한계 공개 |
+
+[MBD 개발 경로](engineering_plan.md#model-based-design-path)를 [ADR-0052](adr/ADR-0052-model-based-design-development-path.md)로 채택했다.
+첫 대상은 Central 종방향 속도 제어다. M6에서 모델/MIL, M8에서 C++와 동등성/차량 SIL을 검증한다.
+M4/M5 통합은 계속 진행하고 Simulink·자동 코드 생성 도입은 TBD-16의 별도 결정이다. 현재 MBD 실행 결과는 NOT RUN이다.
 
 Fault architecture는 M0부터 다루며 local fault behavior는 M2/M4 등의 component와
 함께 설계한다. Fault handling을 M9까지 미룬다는 뜻이 아니다. 각 단계에서
@@ -79,6 +83,7 @@ ECU/SIL 코드 분리는 완료했다. 실제 Classic stack 채택·RTE/BSW pilo
 | --- | --- | --- |
 | M1 준비 / M1 | Item Definition 초안과 첫 HARA 사례 검토; Steering interface와 AUTOSAR 개념 대응; toolchain 타당성 조사 | 가정·열린 질문, SWC/Port/Runnable/Task 대응, toolchain 지원·제약과 wire 계약 영향 |
 | M2–M4 | Leaf의 ECU/물리 모델 경계와 Steering SWC/Port/Runnable/Event/Task 설계; local protection 검토; 작은 AUTOSAR pilot과 stack 채택 여부 검토 | 설계 대응·입출력 계약, actuator response/fault/timing 증거, 설정·생성·실행 기록, 채택·보류 ADR |
+| M6–M8 | MBD 종방향 제어 pilot: 제어 모델/plant·MIL→C++ 구현→동등성/차량 SIL; 자동 생성은 선택 후속 | 모델/parameter·sample time/solver·공통 vector·수치/상태 비교·추종/제약·fault 결과; 도구 TBD-16 |
 | M5–M8 | 선택한 배포 환경과 closed-loop에서 계약 검증; 차량 거동으로 안전 분석의 가정 재검토 | clock/통신/plant 한계와 실제 관측 구간, 변경된 가정 및 requirement revision |
 | M9 | local protection과 diagnostics를 연결하고 분석한 fault의 coverage 검토 | fault→검출→보호→actual response→DTC 연결과 미검증 경로 |
 | M10–M11 | SOTIF 관점의 인식·판단 한계, triggering condition, fallback 검토 | scenario/ODD 범위, AI 출력 검증과 fallback의 실제 결과 |
@@ -113,6 +118,7 @@ AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 �
 | TBD-13 | battery usable capacity/initial SOC, pack·셀 극값 voltage/thermal 모델·threshold/dwell, charge/discharge 곡선·효율/부하/에너지 오차, motor power→torque / model 담당 | **M2** Battery/BMS/Drive 시험 전; **M6/M7** 일관성/매핑 재검증 | 부분 구현: Battery/BMS·Drive gate·RC/접점/capacitor 실제 energy 연결·장부 시험; 차량 calibration/정밀 모델은 미결정; actual power·단일 owner/clock 유지 |
 | TBD-14 | EV wire 수용·coordinator, trusted startup/parent·model identity 전달, clock/각 hop budget, DDS/Host status / interface·timing 담당 | **M1** wire/session 수용 전; **M2/M3** sampler/task/timing; **M5** DDS/Host bridge 전 | **부분 구현:** ADR-0016/17 6개 frame/P05와 항목별 receiver Host 검사; source 50/input 70/RX 80 ms 초안, Drive input age opt-in 분리와 local vCAN 36개 검사 완료; actual coordinator·Zone/runtime budget은 남음 |
 | TBD-15 | 남은 Central–Zone schema/QoS/queue/clock/skew/source-age·monitor budget/INIT-rejoin/routing config / architecture·communication 담당 | **M4** 각 Zone/local test 전, **M5/M6** DDS/plant 통합 검증 전 | **부분 결정:** ZON-01 Front/Rear, 후륜 구동 packaging, Central 별도 단일 coordinator 채택; 세부 protocol은 TBD, calibration TBD-02/07; 별도 하드웨어 불필요 |
+| TBD-16 | MBD 모델 도구/license·model artifact/Host harness·solver/sample time/numeric 설정·모델/코드 동등성 기준·선택적 generator / control·model·toolchain 담당 | **M6** MIL pilot 시작 전 도구/모델 설정; **M8** C++ 비교 실행 전 tolerance/초기 상태/공통 vector, 자동 생성 채택 전 재생성/호환 확인 | 방법은 ADR-0052로 채택, Simulink/Python 등 도구는 미선정; 기존 C++ plant는 기반이며 새 MIL/동등성 PASS가 아님; tuning/차량 수치·timing은 TBD-02/03/04/11과 연결 |
 
 RG-01의 추가 상세값도 기존 owner/gate에 귀속된다. 범위 결정으로 TBD가 해소되지는 않는다.
 

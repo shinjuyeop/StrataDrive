@@ -15,6 +15,9 @@ Updated: **2026-10-19**. **M3 — IN PROGRESS**를 유지하며 **M4 Central/Zon
 | M4 — Central/Zone | IN PROGRESS / COMPONENT IMPLEMENTATION | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결; 실제 Zone health·독립 status/상실 연결; remote Leaf lease·전체 coordinator/runtime/rejoin 후속 |
 | M5–M13 | PLANNED | DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
+[MBD 방법](engineering_plan.md#model-based-design-path)은 계획에 채택했다. 첫 대상은 Central 종방향 제어이며
+M6 모델/MIL→M8 C++ 동등성/차량 SIL 순서다. 도구·생성 경로는 TBD-16, 모델/검증 실행은 NOT RUN이다.
+
 ## 구현·시험한 범위
 
 현재 구현은 **Host functional SIL component**다. [실행 경계 정리](learning/m2_execution_boundaries.md)로 ECU 판단과 물리 실행 연결을 분리했다. 모델의 설정값은 첫 시험 fixture이며 실차 calibration은 아니다.
@@ -110,6 +113,7 @@ OS Task/CAN·native 시한은 유지하고, 새 추가 Host timing 5 ms 판정�
 1. **M4 단일 coordinator/runtime·전체 rejoin:** [실제 Zone health·독립 status 감시](learning/m4_zone_feedback_health.md)를 연결하고 Leaf Actual 누락·한쪽 partition/continuity·same-Epoch 복귀 차단을 component 시험했다. 다음은 시동/정상 종료·allocator·각 ingress/피드백을 단일 Central coordinator와 두 Zone 실행 경계로 묶고, 전체 참여자의 trusted INIT/rejoin·보호 순서를 시험하는 일이다. 기존32-byte CAN의 remote composite lease/stop/protection 계약도 남아 있다. 현재 status/terminal lease는 same-host이며 기존 EV demo/runtime request/grant는 fixture다. 새 전체 workload timing은 별도 검증하고 DDS는 M5에서 연결한다.
 2. **M3 타이밍 예외 해소:** OPEN-M3-01/02의 원본 실패를 유지하고 kernel trace 접근을 준비해 timer→wakeup→switch를 분석한다. 추가 반복과 PREEMPT_RT 비교는 후속 실험이며 M4 준비가 M3 전체 수용을 뜻하지 않는다. 학습자 직접 재현·설명도 남아 있다.
 3. **ARM64 배포 준비:** 보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. Target 검증은 배포 단계, RTE/BSW는 별도 pilot과 연결한다.
+4. **MBD 준비·후속 pilot:** 현재 M4 통합을 진행하고 M5 통신 경계를 준비하면서 제어 interface·도구/모델 검토를 병행한다. M6 Simple Vehicle에서 종방향 모델/MIL을 만들고 M8에서 C++ 동등성과 차량 SIL을 검증한다. [채택 범위](adr/ADR-0052-model-based-design-development-path.md)는 방법/계획이며 구현·Simulink/자동 생성 도입 완료가 아니다.
 
 ## 후속 통합 범위
 

@@ -1444,6 +1444,21 @@ Markdown123개/상대 링크·앵커1419개·추적성·YAML3개·Python8개 syn
 차량 운동/BMS energy 연결·전체 workload timing/Target은 후속이다. M4 전체 완료나 M3 예외 해소로 확대하지 않는다.
 Requirement32/system TC29는 NOT RUN을 유지한다.
 
+### 2026-10-19 — MBD 개발 경로 계획 추가
+
+[ADR-0052](adr/ADR-0052-model-based-design-development-path.md)로 MBD 방법을 채택하고
+[개발 계획](engineering_plan.md#model-based-design-path)·로드맵·검증 계층·현재 상태/학습 안내를 갱신했다.
+첫 대상은 Central 종방향 속도 제어다. M6 모델/plant·MIL→M8 수작업 C++와 동등성·차량 SIL로 배치했다.
+모델/코드의 공통 vector·초기 state·numeric/solver/sample time·수치/상태 비교와 차량 성능 판정을 구분한다.
+모델이 구현 함수를 공유해 자기 자신과 비교하는 것을 독립 설계 검증으로 표시하지 않는다.
+도구/허용 오차·선택적 code generator 결정은 owner/gate가 있는 TBD-16으로 등록했다.
+Simulink 구매/설치·자동 생성 도입은 미확정이며 MBD 구현/실행은 PLANNED / NOT RUN이다.
+
+문서 변경만 수행했다. C++/Python 실행 코드·CMake·YAML·wire와 requirement32/system TC29 정의·Result는 바꾸지 않았다.
+기존 C++795개·CAN97개/분리 vCAN5개의 normal/sanitizer PASS는 직전 단계 이력이며 이번에 재실행하지 않았다.
+Markdown124개/상대 링크·anchor1436개·fence·추적성·YAML3개 설계 budget·Python8개 syntax·whitespace 검사를 통과했다.
+검사 로그는 `build/mbd-plan-doc-check.log`다. 새 모델/MIL/동등성 검증의 PASS로 기존 이력을 전용하지 않는다.
+
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.
