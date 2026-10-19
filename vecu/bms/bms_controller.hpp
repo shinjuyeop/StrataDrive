@@ -54,6 +54,7 @@ public:
     // model epoch. This does not reset BatteryModel or change battery energy.
     // Every startup/recovery must pass release-band checks and fresh-data dwell.
     bool start_session(std::uint32_t application_epoch, std::uint32_t model_epoch, std::uint64_t enable_ns);
+    void request_local_protection(std::uint64_t now_ns);
     // No output on early/repeated calls, clock rollback or sequence exhaustion.
     // Caller applies the existing per-stream P05 encoder to each returned sample.
     std::optional<can::BmsMessage> tick(const battery::SensorSnapshot& inputs, std::uint64_t now_ns);

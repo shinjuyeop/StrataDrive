@@ -18,7 +18,7 @@ bool VehicleCoordinator::start_session(CoordinatorSession session) {
     if(!management_.start_session(session.epoch,session.enable_ns) || !allocation_.start_session(session.epoch,session.enable_ns) ||
         !stop_.start_session(session.epoch,session.enable_ns)) return false;
     epoch_=session.epoch; enable_ns_=session.enable_ns; observed_ns_=now;
-    tick_ns_.reset(); allocation_ns_.reset(); lifecycle_.reset(); vehicle_.reset(); last_power_.reset(); fault_=CoordinatorFault::None;
+    tick_ns_.reset(); allocation_ns_.reset(); lifecycle_.reset(); vehicle_.reset(); last_power_.reset(); pending_handoff_.reset(); fault_=CoordinatorFault::None;
     normal_armed_=stopping_=protection_selected_=protection_attempted_=in_cycle_=false; return true;
 }
 void VehicleCoordinator::fail(CoordinatorFault fault) {
@@ -119,7 +119,7 @@ bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t
     // issue another propulsive normal command while waiting.
     const bool stop_ready=stopping_ && (!lifecycle_ || observed_ns_>lifecycle_->identity.source_time_ns) && (!vehicle_ || observed_ns_>vehicle_->source_time_ns);
     if(stop_ready) {
-        plan=stop_.tick(in,management_.decision(),observed_ns_);
+        plan=pending_handoff_?pending_handoff_:stop_.tick(in,management_.decision(),observed_ns_);
         if(stop_.decision().protection_required || (plan && !accept_lifecycle(plan->lifecycle))) { fail(CoordinatorFault::Stop); return finish(); }
     }
     const auto power=management_.tick(in,observed_ns_);
@@ -127,7 +127,9 @@ bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t
     if(power) {
         last_power_=power;
         if(management_.decision().normal_allowed && !normal_armed_) {
-            if(!port_.arm(epoch_)) { fail(CoordinatorFault::Arm); return finish(); }
+            const auto arm=port_.arm_status(epoch_);
+            if(arm==OperationStatus::Rejected) { fail(CoordinatorFault::Arm); return finish(); }
+            if(arm==OperationStatus::Pending) return finish();
             normal_armed_=true;
         }
         if(!checkpoint()) return finish();
@@ -139,7 +141,8 @@ bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t
     const bool terminal=stop_.decision().state==NormalStopState::PowerDown || stop_.decision().state==NormalStopState::Complete;
     if(!terminal && (!stopping_ || plan) && observed_ns_-allocation_ns_.value_or(enable_ns_)>=kAllocationPeriod) {
         if(stopping_ && plan->vehicle && !accept_vehicle(*plan->vehicle)) { fail(CoordinatorFault::Allocation); return finish(); }
-        AllocationInputs inputs{in,management_.decision(),port_.current_permission(),last_power_?last_power_->permission_parent:std::nullopt};
+        const auto received_parent=port_.received_permission_parent();
+        AllocationInputs inputs{in,management_.decision(),port_.current_permission(),received_parent?received_parent:last_power_?last_power_->permission_parent:std::nullopt};
         if(!checkpoint()) return finish();
         allocation_ns_=observed_ns_;
         const auto commands=allocation_.tick(inputs,observed_ns_);
@@ -148,7 +151,11 @@ bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t
         if(!checkpoint()) return finish();
     }
     if(plan && plan->handoff_required) {
-        if(!allocation_.select_normal_stop(plan->lease,observed_ns_) || !port_.select_stop(*plan)) { fail(CoordinatorFault::Handoff); return finish(); }
+        if(!allocation_.select_normal_stop(plan->lease,observed_ns_)) { fail(CoordinatorFault::Handoff); return finish(); }
+        const auto handoff=port_.stop_status(*plan);
+        if(handoff==OperationStatus::Rejected) { fail(CoordinatorFault::Handoff); return finish(); }
+        if(handoff==OperationStatus::Pending) { pending_handoff_=plan; return finish(); }
+        pending_handoff_.reset();
         if(!checkpoint()) return finish();
         if(plan->state==NormalStopState::HandoffPending) {
             if(!stop_.acknowledge_handoff(plan->lease,observed_ns_)) fail(CoordinatorFault::Handoff);

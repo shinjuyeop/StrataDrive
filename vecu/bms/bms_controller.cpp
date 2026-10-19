@@ -125,6 +125,13 @@ void BmsController::latch(BmsControlFault fault) {
         fault == BmsControlFault::ControlDeadline || fault == BmsControlFault::SequenceExhausted) decision_.fault = fault;
     decision_.state = BmsControlState::Latched;
 }
+void BmsController::request_local_protection(std::uint64_t now_ns) {
+    if(application_epoch_==0) return;
+    latch(now_ns<last_observed_ns_?BmsControlFault::ClockError:BmsControlFault::Protection);
+    if(now_ns>=last_observed_ns_) last_observed_ns_=now_ns;
+    decision_.limits={}; decision_.inhibit_requested=true;
+    power_gate_.reset();
+}
 BmsInputIssue BmsController::validate(const battery::SensorSnapshot& s, std::uint64_t now_ns) const {
     if (!s.available) return BmsInputIssue::Unavailable;
     if (s.batch.epoch != model_epoch_) return BmsInputIssue::Identity;

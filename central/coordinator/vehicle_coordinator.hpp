@@ -5,6 +5,7 @@
 
 namespace stratadrive::central {
 struct CoordinatorSession { std::uint32_t epoch; std::uint64_t enable_ns; };
+enum class OperationStatus { Pending, Accepted, Rejected };
 // Trusted single-owner adapter. Callbacks are bounded, nonblocking and must
 // retain original roots/expiry. ACK means output selection/enqueue, not physics.
 class CoordinatorPort {
@@ -16,10 +17,19 @@ public:
     virtual bool authorize_lifecycle(const LifecycleRequest& root) noexcept = 0;
     virtual bool authorize_vehicle(const VehicleRequest& root) noexcept = 0;
     virtual bool arm(std::uint32_t epoch) noexcept = 0;
+    virtual OperationStatus arm_status(std::uint32_t epoch) noexcept {
+        return arm(epoch)?OperationStatus::Accepted:OperationStatus::Rejected;
+    }
     virtual bool deliver_power(const VehicleManagementOutput& output) noexcept = 0;
     virtual std::optional<can::BmsCurrentSample> current_permission() noexcept = 0;
+    // Async ingress can still contain an older issued grant. Its independently
+    // retained parent must match that received sample, not the latest issuance.
+    virtual std::optional<can::BmsParentContext> received_permission_parent() noexcept { return std::nullopt; }
     virtual bool deliver_commands(const AllocatedCommands& commands) noexcept = 0;
     virtual bool select_stop(const NormalStopPlan& plan) noexcept = 0;
+    virtual OperationStatus stop_status(const NormalStopPlan& plan) noexcept {
+        return select_stop(plan)?OperationStatus::Accepted:OperationStatus::Rejected;
+    }
     virtual bool protect() noexcept = 0;
 };
 enum class CoordinatorReceive { Accepted, Unchanged, Rejected, NotInitialized, NotReady, Latched, StopRequired, Stopping };
@@ -63,6 +73,7 @@ private:
     std::optional<LifecycleRequest> lifecycle_;
     std::optional<VehicleRequest> vehicle_;
     std::optional<VehicleManagementOutput> last_power_;
+    std::optional<NormalStopPlan> pending_handoff_;
     CoordinatorFault fault_{CoordinatorFault::None};
     bool normal_armed_{false}, stopping_{false}, protection_selected_{false}, protection_attempted_{false}, in_cycle_{false};
 };
