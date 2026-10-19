@@ -180,3 +180,7 @@ Front startup18·binding6개를 더해 전체 각각750개·분리 vCAN5개 PASS
 후속 [정상 종료](m4_normal_stop.md)는 stop intent/actual dwell·terminal handoff/lease→HV 종료를 연결했다.
 Stop/lease16·VM 갱신1·Rear terminal1·연결5개를 더해 전체 각각773개 PASS다. VCan5개도 terminal frame 거부를 확장했다.
 실제 ingress/status·rejoin·remote Leaf lease/runtime 통합은 남아 있다.
+
+후속 [실제 Zone 상태 감시](m4_zone_feedback_health.md)는 시동/종료의 health fixture를 교체한다.
+담당 Leaf/gateway 상태·독립 Front/Rear status ingress와 source 상실/partition·새 INIT 경계를 검사했다.
+전체 coordinator/runtime·rejoin transaction과 DDS는 후속이다.

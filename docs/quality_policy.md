@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 773개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 795개 PASS**다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -1392,6 +1392,57 @@ Normal CAN/BMS source budget·unknown 거부를 완화하거나 INIT로 fault를
 Markdown121개/상대 링크·앵커1397개·추적성·YAML3개·Python8개 syntax·whitespace를 검사했다. Python unit 변경/재실행은 없다.
 전체 ingress/status/rejoin·remote Leaf composite lease/stop transport·DDS·통합 timing/Target은 남아 있다.
 M4 전체 완료/실차 정지 성능·M3 원래 실패 해소로 확대하지 않는다. Requirement32/system TC29는 NOT RUN을 유지한다.
+
+### 2026-10-19 — 실제 Zone feedback health·독립 status ingress
+
+[ADR-0051](adr/ADR-0051-zone-feedback-health-and-status-ingress.md)과 [학습 기록](learning/m4_zone_feedback_health.md)에
+실제 gateway/담당 원천→Zone phase/health→독립 Front/Rear status receiver→Central 연결을 기록했다.
+공통 Leaf health 정책은 interfaces/zone으로 옮겨 Zone/Central이 같은 INIT/제한 DEGRADED·source/dependency/quality
+기준을 사용한다. 기존 readiness/VM/allocator·Stop 단위 fixture는 실제 phase/scope를 명시하도록 갱신했다.
+실제 controller/모델/CAN receiver 연결 시험의 항상 정상인 Zone health fixture는 제거했다.
+Ready/Active는 정상 준비 입력이며 실제 permission은 아니다. Terminal은 종료 input health에만 사용할 수 있다.
+
+각 원천은 첫 대기80 ms·유효 입력 상실 시 latch, 명시적 보호는 즉시 선택한다. Status는 관찰 완료 시각을 갖지만
+자식의 원래 시각을 바꾸지 않는다. 독립 ingress는 old source30 ms 초과를 late replacement 전에 latch하며
+scope/phase/metadata·Epoch·sequence·strict source를 검사한다. 중복/거부는 liveness를 갱신하지 않는다.
+통신 재개나 같은 Epoch의 정상 보고로 FailSafe/Terminal을 되돌리지 못한다. 복구는 각 참여자의 더 큰 trusted INIT다.
+Gateway callback 중 정상적인 clock 진행을 허용하고 완료 시각에서 입력 age를 다시 검사한다.
+
+Normal·ASan/UBSan **각 C++795/795 PASS**, BUILD_TESTING=OFF production build도 PASS다.
+기존773개 + monitor/status15개·Central Terminal1개·기존 실제 모델 연결 loss/partition6개다.
+시동/정상 종료3.2 s 논리 시간 연결의 status를 실제 monitor/receiver로 교체했다. Actual 전송 누락·한쪽 status
+partition·명시적 continuity를 주입하고 Central FAIL_SAFE/Inhibit·양 Zone Hold/Protect/Zero 선택을 확인했다.
+독립 component에서 첫 대기·원천 age 경계/재발행·각 stream 첫 유효 뒤 상실·clock/period·INIT/rejoin·old Epoch·
+Terminal/FailSafe 역행·잘못된 scope/phase·callback 중 clock 진행/입력 만료를 검사했다.
+
+Clang-tidy14 analyzer/bugprone을 production4개·test6개에 적용했다. 새 source/test 진단은 없다.
+기존 DriveSilPlant::begin의 인자 순서 경고1종이 연결 시험/allocator 시험2 TU에서 보이며 그대로 보존한다.
+Clock 보완 뒤 변경2 TU를 재검사해 새 진단 없이 통과했다. Cppcheck2.7 warning/performance/portability는
+현재 compilation database의 production4개를 검사하고 clock 수정 뒤 재통과했다.
+Third-party suppressed 진단과 GoogleTest cppcheck macro 제약은 기존 정책을 따른다.
+
+기존 분리 vCAN은 normal·sanitizer **각5/5 PASS**, legacy local CAN도 **각97/97 PASS**다.
+Status의 wire 검증은 아니며 codec/P05/CAN schema는 바꾸지 않았다. 새 symlink 디렉터리
+`build/m4-zone-feedback-can-{normal,sanitized}`와 별도 socketcan-results로 이전 evidence를 보존했다.
+Local application timeout은 normal **80.122–81.048 ms**, sanitizer **80.025–81.060 ms**다.
+이는 local transport 관측이며 전체 차량/Zone wall-time 보장으로 확대하지 않는다.
+
+첫 개발 build의 SteeringMessage metadata base cast 오류는 `build/m4-zone-feedback-build.log`에 보존하고
+명시적 필드 복사로 수정했다. 첫791개 실행은 **787 PASS/4 FAIL**이며
+`build/m4-zone-feedback-ctest-development.log`에 남겼다. 기존 permission/command expiry 또는 allocator skew가
+새 시험의 다음 정상 ingress/배분 기대보다 먼저 보호할 수 있었다. 정상 조건을 완화하는 대신 전송 누락을
+명시적1010 ms부터 주입하고,1040 ms 원천 만료 경계에서는 보호 상태 관찰을 정상 CAN 재전송보다 먼저 수행한다.
+후속791/793 및 clock 보강795개 회귀를 통과했다. 실제 multithread coordinator의 순서/지연을 검증한 것은 아니다.
+
+최종 build/unit 로그는 `build/m4-zone-feedback-{configure,build-final,ctest-normal,sanitized-configure,sanitized-build,ctest-sanitized,production-configure,production-build}.log`,
+`build/m4-zone-feedback-clock-{build-normal,build-sanitized,build-production,ctest-normal,ctest-sanitized}.log`다.
+정적 분석은 `build/m4-zone-feedback-{tidy-summary,tidy-*,cppcheck,clock-tidy,clock-cppcheck}.log`,
+vCAN은 `build/m4-zone-feedback-{vcan-normal,vcan-sanitized,can-normal,can-sanitized}.log`에 둔다.
+Markdown123개/상대 링크·앵커1419개·추적성·YAML3개·Python8개 syntax·whitespace를 검사했다.
+문서 검사 최종 로그는 `build/m4-zone-feedback-doc-check.log`다. Python unit 변경/재실행은 없다.
+전체 coordinator/runtime·실제 rejoin transaction·remote Leaf composite lease/stop/protection·DDS/clock mapping·
+차량 운동/BMS energy 연결·전체 workload timing/Target은 후속이다. M4 전체 완료나 M3 예외 해소로 확대하지 않는다.
+Requirement32/system TC29는 NOT RUN을 유지한다.
 
 ## 코드·예제·시험 배치
 

@@ -28,6 +28,8 @@ central::AllocationInputs inputs(std::uint32_t ms) {
     central::AllocationInputs in; auto& f = in.feedback; f.epoch = 3; f.session_enable_ns = kStart;
     f.front.health.emplace(); meta(*f.front.health, ms); f.front.health->ready_for_normal = true;
     f.rear.health.emplace(); meta(*f.rear.health, ms); f.rear.health->ready_for_normal = true;
+    f.front.health->phase=f.rear.health->phase=zone::ZonePhase::Ready;
+    f.rear.health->scope=zone::ZoneScope::Rear;
     f.front.steering_actual.emplace(); meta(*f.front.steering_actual, ms);
     f.front.steering_actual->kind = can::SteeringFrameKind::Actual; f.front.steering_actual->angle_rad = 0;
     f.front.brake_actual.emplace(); meta(*f.front.brake_actual, ms);

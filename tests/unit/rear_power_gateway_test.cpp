@@ -6,6 +6,7 @@
 #include "drive_sil_plant.hpp"
 #include "front_startup_control.hpp"
 #include "normal_stop_control.hpp"
+#include "zone_feedback_monitor.hpp"
 #include "steering_response.hpp"
 #include "brake_pressure_response.hpp"
 
@@ -267,13 +268,8 @@ public:
     }
     bool protect(zone::ZoneScope scope,zone::ProtectionCause cause,std::uint64_t now) noexcept override { return control.protect(scope,cause,now); }
 };
-central::NormalDriveReadinessInputs zone_health_fixture(std::uint32_t ms) {
-    central::NormalDriveReadinessInputs in; in.epoch=3; in.session_enable_ns=kStart;
-    in.front.health.emplace(); in.rear.health.emplace(); meta(*in.front.health,{ms,ms/10}); meta(*in.rear.health,{ms,ms/10});
-    in.front.health->ready_for_normal=in.rear.health->ready_for_normal=true;
-    return in;
-}
-enum class StopInjection { None, LeaseLoss, PressureLoss, SpeedLoss, PartialHandoff };
+enum class StopInjection { None, LeaseLoss, PressureLoss, SpeedLoss, PartialHandoff,
+    FrontActualLoss, RearActualLoss, FrontPartition, RearPartition, FrontContinuity, RearContinuity };
 void run_vehicle_fixture(bool shutdown,StopInjection injection) {
     const bool lose_lease=injection==StopInjection::LeaseLoss;
     central::VehicleManagement owner; central::ControlAllocation allocation; vecu::PowerController power{{}}; vecu::DriveController drive{{}};
@@ -287,6 +283,8 @@ void run_vehicle_fixture(bool shutdown,StopInjection injection) {
     can::SteeringReceiver steering_rx{{can::SteeringFrameKind::Actual,-.3,.3}};
     can::BrakeReceiver brake_rx{{can::BrakeFrameKind::Actual,0,1500000}};
     zone::RearPowerGateway rear{port}; DrivePort command_port{port,drive}; zone::CommandGateway normal{zone::ZoneScope::Rear,command_port}; port.commands=&normal;
+    zone::ZoneFeedbackMonitor front_health{front},rear_health{normal,&rear};
+    zone::ZoneStatusReceiver front_status{zone::ZoneScope::Front},rear_status{zone::ZoneScope::Rear};
     central::NormalStop stop;
     simulation::NormalStopControl stop_control{{steering,brake,drive,front,normal,rear,allocation}};
     const can::BmsPhysicalRanges ranges{{0,1000},{-3000,3000},{-50,150},100000};
@@ -302,10 +300,48 @@ void run_vehicle_fixture(bool shutdown,StopInjection injection) {
     ASSERT_TRUE(angles.begin(kStart)); ASSERT_TRUE(pressure.begin(kStart)); ASSERT_TRUE(front.start_session(3,kStart));
     ASSERT_TRUE(steering_rx.start_session(3,kStart)); ASSERT_TRUE(brake_rx.start_session(3,kStart));
     ASSERT_TRUE(stop.start_session(3,kStart));
+    ASSERT_TRUE(front_health.start_session(3,kStart)); ASSERT_TRUE(rear_health.start_session(3,kStart));
+    ASSERT_TRUE(front_status.start_session(3,kStart)); ASSERT_TRUE(rear_status.start_session(3,kStart));
     bool stopping=false,handed=false,loss_seen=false; std::uint32_t stop_seq=0; std::size_t drive_count=0,front_count=0;
     std::uint32_t root_seq=0,vehicle_seq=0; bool precharge=false,active=false; std::uint32_t first_normal=0;
+    const auto collect_feedback=[&](std::uint32_t ms) {
+        central::NormalDriveReadinessInputs in; in.epoch=3; in.session_enable_ns=kStart;
+        in.front.steering_actual=steering_rx.current_sample(port.now); in.front.brake_actual=brake_rx.current_sample(port.now);
+        in.rear.drive_actual=drive_rx.current_sample(port.now); in.rear.power_status=rear.power_status(); in.rear.power_limits=rear.power_limits();
+        const auto fh=front_health.tick({in.front.steering_actual,in.front.brake_actual,{},{},{}},port.now);
+        const auto rh=rear_health.tick({{},{},in.rear.drive_actual,in.rear.power_status,in.rear.power_limits},port.now);
+        EXPECT_TRUE(fh); EXPECT_TRUE(rh);
+        if(ms==1000 && injection==StopInjection::FrontContinuity) front_status.mark_continuity_lost(port.now);
+        if(ms==1000 && injection==StopInjection::RearContinuity) rear_status.mark_continuity_lost(port.now);
+        const bool front_partition=(ms>=1010 && injection==StopInjection::FrontPartition) || (ms>=1000 && injection==StopInjection::FrontContinuity);
+        const bool rear_partition=(ms>=1010 && injection==StopInjection::RearPartition) || (ms>=1000 && injection==StopInjection::RearContinuity);
+        if(!front_partition) { EXPECT_EQ(front_status.receive(*fh,port.now),can::ActuatorReceiveDecision::Accepted); }
+        if(!rear_partition) { EXPECT_EQ(rear_status.receive(*rh,port.now),can::ActuatorReceiveDecision::Accepted); }
+        in.front.health=front_status.current_sample(port.now); in.rear.health=rear_status.current_sample(port.now);
+        return in;
+    };
+    const auto verify_loss=[&](const central::NormalDriveReadinessInputs& in) {
+        const auto restricted=owner.tick(in,port.now); ASSERT_TRUE(restricted); EXPECT_FALSE(owner.decision().normal_allowed);
+        EXPECT_EQ(owner.decision().state,central::VehicleManagementState::FailSafe);
+        EXPECT_EQ(std::get<can::BmsDriveGrant>(restricted->drive_permission.content).permission,can::BmsDrivePermission::Inhibit);
+        if(injection==StopInjection::FrontActualLoss) { EXPECT_NE(front_health.fault(),zone::ZoneFeedbackFault::None); }
+        if(injection==StopInjection::RearActualLoss) { EXPECT_NE(rear_health.fault(),zone::ZoneFeedbackFault::None); }
+        stop_control.protect(port.now); loss_seen=true;
+        EXPECT_EQ(drive.output().mode,drive::ActuationMode::Zero); EXPECT_EQ(brake.output().mode,brake::ActuationMode::Protect);
+        EXPECT_NE(steering.fault(),vecu::SteeringFault::None);
+        // Reconnection cannot restore the failed receiver/owner in this Epoch.
+        port.now+=10*kMs;
+        if(injection==StopInjection::FrontPartition || injection==StopInjection::FrontContinuity) { EXPECT_NE(front_status.receive(*front_health.tick({},port.now),port.now),can::ActuatorReceiveDecision::Accepted); }
+        if(injection==StopInjection::RearPartition || injection==StopInjection::RearContinuity) { EXPECT_NE(rear_status.receive(*rear_health.tick({},port.now),port.now),can::ActuatorReceiveDecision::Accepted); }
+        EXPECT_FALSE(owner.decision().normal_allowed);
+    };
     for(std::uint32_t ms=10;ms<=(shutdown?3200U:1600U);ms+=10) {
         port.now=ns(ms);
+        // Expiring permission/gateway support may protect locally before the
+        // next normal CAN ingress. Observe that state before sending again.
+        if(ms==1040 && injection>=StopInjection::FrontActualLoss && injection<=StopInjection::RearPartition) {
+            const auto lost=collect_feedback(ms); EXPECT_FALSE(central::evaluate_vehicle_input_health(lost,port.now).ready()); verify_loss(lost); break;
+        }
         if(lose_lease && handed && rear.poll().safety.cause!=zone::ProtectionCause::None) {
             stop_control.protect(port.now); loss_seen=true;
             EXPECT_EQ(drive.output().mode,drive::ActuationMode::Zero); EXPECT_EQ(brake.output().mode,brake::ActuationMode::Protect);
@@ -324,7 +360,7 @@ void run_vehicle_fixture(bool shutdown,StopInjection injection) {
         const double speed=(handed && injection==StopInjection::SpeedLoss)?.02:shutdown?(ms<=1200?20:std::max(0.0,20-.04*(ms-1200))):0;
         drive.observe_local({battery::ModelMeasurement<double>{speed,id,port.now},battery::ModelMeasurement<drive::HvFeedback>{{plant.diagnostic_state().bus_voltage_v,hv,false},id,port.now}},port.now);
         ASSERT_TRUE(motor.advance(port.now,false)); ASSERT_TRUE(drive.prepare(port.now)); const auto df=drive.complete(motor.capture(port.now),port.now); ASSERT_TRUE(df); ASSERT_TRUE(motor.apply(drive.output()));
-        ASSERT_EQ(drive_rx.receive(*df,port.now).decision,can::ActuatorReceiveDecision::Accepted);
+        if(injection!=StopInjection::RearActualLoss || ms<1010) { ASSERT_EQ(drive_rx.receive(*df,port.now).decision,can::ActuatorReceiveDecision::Accepted); }
         if(handed && injection==StopInjection::SpeedLoss && drive.decision().fault!=vecu::DriveGateFault::None) {
             stop_control.protect(port.now); loss_seen=true; EXPECT_EQ(drive.decision().fault,vecu::DriveGateFault::NormalStopInvalid); break;
         }
@@ -338,14 +374,21 @@ void run_vehicle_fixture(bool shutdown,StopInjection injection) {
             EXPECT_GE(pressure.actual_pressure_pa(),kStopPressurePa); break;
         }
         ASSERT_TRUE(af); ASSERT_TRUE(bf);
-        ASSERT_EQ(steering_rx.receive(*af,port.now).decision,can::ActuatorReceiveDecision::Accepted);
+        if(injection!=StopInjection::FrontActualLoss || ms<1010) { ASSERT_EQ(steering_rx.receive(*af,port.now).decision,can::ActuatorReceiveDecision::Accepted); }
         ASSERT_EQ(brake_rx.receive(*bf,port.now).decision,can::ActuatorReceiveDecision::Accepted);
         if(steering.output().mode==steering::ActuationMode::Hold) { ASSERT_TRUE(angles.hold(port.now)); }
         else { ASSERT_TRUE(angles.set_target(steering.output().target_rad,port.now)); }
         if(brake.output().mode==brake::ActuationMode::Target) { ASSERT_TRUE(pressure.set_target(brake.output().target_pa,port.now)); }
         if(handed && brake.output().mode==brake::ActuationMode::Hold) { ASSERT_TRUE(pressure.hold(port.now)); }
         EXPECT_EQ(front.poll().safety.cause,zone::ProtectionCause::None);
-        auto in=zone_health_fixture(ms); in.front.steering_actual=steering_rx.current_sample(port.now); in.front.brake_actual=brake_rx.current_sample(port.now); in.rear.drive_actual=drive_rx.current_sample(port.now); in.rear.power_status=rear.power_status(); in.rear.power_limits=rear.power_limits();
+        auto in=collect_feedback(ms);
+        if(injection>=StopInjection::FrontActualLoss && !central::evaluate_vehicle_input_health(in,port.now).ready()) { verify_loss(in); break; }
+        if(handed) {
+            ASSERT_TRUE(in.front.health); ASSERT_TRUE(in.rear.health);
+            EXPECT_EQ(in.front.health->phase,zone::ZonePhase::Terminal); EXPECT_EQ(in.rear.health->phase,zone::ZonePhase::Terminal);
+            EXPECT_TRUE(central::evaluate_vehicle_input_health(in,port.now).ready());
+            EXPECT_FALSE(central::evaluate_normal_drive_readiness(in,port.now).ready());
+        }
         std::optional<central::NormalStopPlan> plan;
         if(shutdown && ms>=1200) {
             const central::NormalStopRequest intent{{3,stop_seq,port.now,ns(ms+60)},.02};
@@ -417,6 +460,7 @@ void run_vehicle_fixture(bool shutdown,StopInjection injection) {
         EXPECT_EQ(brake.receive(*release_frame,port.now).decision,can::ActuatorReceiveDecision::ModeRejected);
         return;
     }
+    if(injection>=StopInjection::FrontActualLoss) { EXPECT_TRUE(loss_seen); return; }
     EXPECT_GT(motor.actual_nm(),0); EXPECT_EQ(port.protections,0U);
     ASSERT_FALSE(front_port.steering_sent.empty()); ASSERT_FALSE(front_port.brake_sent.empty());
     EXPECT_EQ(front_port.steering_sent.front().sequence,0U); EXPECT_EQ(front_port.brake_sent.front().sequence,0U);
@@ -440,4 +484,10 @@ TEST(NormalStopIntegration, IndependentHandoffLeaseLossProtectsBothZonesWhilePow
 TEST(NormalStopIntegration, LocalPressureLossAfterHandoffCannotBeHiddenByFreshLeaseAndPowerFrames) { run_vehicle_fixture(true,StopInjection::PressureLoss); }
 TEST(NormalStopIntegration, LocalSpeedRiseAfterHandoffClosesTheDriveGateEvenBeforeCentralReacts) { run_vehicle_fixture(true,StopInjection::SpeedLoss); }
 TEST(NormalStopIntegration, ExpiryDuringPartialHandoffProtectsBothZonesWithoutAcknowledgingCompletion) { run_vehicle_fixture(true,StopInjection::PartialHandoff); }
+TEST(ZoneFeedbackIntegration, FrontLeafActualLossPropagatesThroughRealStatusAndProtectsBothZones) { run_vehicle_fixture(false,StopInjection::FrontActualLoss); }
+TEST(ZoneFeedbackIntegration, RearLeafActualLossPropagatesThroughRealStatusAndProtectsBothZones) { run_vehicle_fixture(false,StopInjection::RearActualLoss); }
+TEST(ZoneFeedbackIntegration, RearHeartbeatCannotHideFrontStatusPartition) { run_vehicle_fixture(false,StopInjection::FrontPartition); }
+TEST(ZoneFeedbackIntegration, FrontHeartbeatCannotHideRearStatusPartition) { run_vehicle_fixture(false,StopInjection::RearPartition); }
+TEST(ZoneFeedbackIntegration, FrontStatusContinuityLossRequiresNewInit) { run_vehicle_fixture(false,StopInjection::FrontContinuity); }
+TEST(ZoneFeedbackIntegration, RearStatusContinuityLossRequiresNewInit) { run_vehicle_fixture(false,StopInjection::RearContinuity); }
 } // namespace

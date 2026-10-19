@@ -15,6 +15,9 @@ Date: 2026-10-19. Status: **Host component·vCAN 회귀 / 전체 차량·분산 
 정상 종료 때문에 기존 fault를 초기화하지 않는다. 중간 실패는 별도 protection으로 가고,
 정상 출력이 없다는 사실을 Brake release나 물리 정지 성공으로 바꾸지 않는다.
 
+후속 [실제 Zone 상태 감시](m4_zone_feedback_health.md)에서 아래 연결 시험의 Zone health fixture를
+실제 gateway/원천 feedback monitor와 독립 status receiver로 교체했다. 아래 수치·fixture 설명은 최초 구현 이력이다.
+
 ## 코드에서 볼 책임
 
 | 파일 | 역할 |

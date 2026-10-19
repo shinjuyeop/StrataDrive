@@ -41,6 +41,7 @@ public:
     RearPowerResult receive_status(const can::BmsFrame& frame);
     bool arm_normal_commands();
     bool select_normal_stop(const ActuatorStopLease& lease);
+    bool normal_stop_selected() const { return stop_.active(); }
     std::uint32_t application_epoch() const { return epoch_; }
     std::uint64_t observed_time_ns() const { return observed_ns_; }
     std::size_t dispatch(); // <=8 scans / <=3 independent BMS writes

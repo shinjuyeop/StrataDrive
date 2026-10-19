@@ -1,6 +1,7 @@
 #pragma once
 
-#include "bms_receiver.hpp"
+#include "feedback_health.hpp"
+#include "zone_status.hpp"
 #include "brake_frame_codec.hpp"
 #include "drive_frame_codec.hpp"
 #include "steering_frame_codec.hpp"
@@ -11,11 +12,7 @@
 #include <optional>
 
 namespace stratadrive::central {
-// In-process M4 contract, not a DDS schema. Each Zone reports its own health;
-// a fresh aggregate heartbeat cannot replace a missing Leaf sample.
-struct ZoneHealthSnapshot : can::ActuatorMetadata {
-    bool ready_for_normal{false};
-};
+using ZoneHealthSnapshot = zone::ZoneHealthSnapshot;
 struct FrontReadinessInputs {
     std::optional<ZoneHealthSnapshot> health;
     std::optional<can::SteeringMessage> steering_actual;
@@ -34,12 +31,7 @@ struct NormalDriveReadinessInputs {
     FrontReadinessInputs front;
     RearReadinessInputs rear;
 };
-struct ReadinessTiming {
-    std::uint64_t zone_source_age_ns{30000000ULL};
-    std::uint64_t actual_source_age_ns{30000000ULL};
-    std::uint64_t bms_source_age_ns{50000000ULL};
-    std::uint64_t bms_dependency_age_ns{70000000ULL};
-};
+using ReadinessTiming = feedback::FeedbackTiming;
 enum class ReadinessBlock : std::size_t {
     Context, FrontZone, RearZone, SteeringActual, BrakeActual, DriveActual,
     PowerStatus, PowerLimits, Count

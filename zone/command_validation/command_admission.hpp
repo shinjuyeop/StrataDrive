@@ -1,9 +1,9 @@
 #pragma once
 
 #include "allocated_commands.hpp"
+#include "zone_status.hpp"
 
 namespace stratadrive::zone {
-enum class ZoneScope { Front, Rear };
 enum class AdmissionState { NotInitialized, Idle, Waiting, Active, FailSafe };
 enum class AdmissionFault { None, ClockError, CommandTimeout, CommandExpired, ContinuityLost };
 enum class AdmissionResult {

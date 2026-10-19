@@ -55,8 +55,10 @@ Drive의 known capability 제한과 BMS 방향별 derating만 검토해 허용�
 
 입력은 매 판정 cycle의 `current_sample(now_ns)` 결과다. Receiver의 P05·sequence·range 검사와
 timeout/continuity latch를 통과해야 한다. `last_accepted()` 진단 이력을 current sample처럼
-포장하지 않는다. Zone health도 향후 각 Zone의 trusted ingress monitor가 검증해야 한다.
-새 `ZoneHealthSnapshot`은 in-process 계약이며 DDS schema/완성된 health receiver가 아니다.
+포장하지 않는다. 후속 [Zone 상태 감시](m4_zone_feedback_health.md)가 실제 gateway/원천 health와 Front/Rear별 status receiver를 구현했다.
+`ZoneHealthSnapshot`은 interfaces/zone의 same-host 계약이며 DDS wire schema는 아니다.
+공통 Leaf health 정책은 interfaces/zone/feedback_health로 옮겼고 Central은 같은 정책을 사용한다.
+Terminal은 종료 input health에만 사용하고 normal readiness는 false다.
 
 | 항목 | 이번 component의 최대 age |
 | --- | --- |

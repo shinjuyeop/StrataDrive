@@ -16,7 +16,8 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `central/control` | validated trajectory + ego state → speed reference + bounded acceleration/curvature/braking demand |
 | `central/health` | task, resource, heartbeat → fault monitor 입력 |
 | `central/diagnostics` | fault event → DTC lifecycle / system state 결정 |
-| `zone/gateway` | Front/Rear 공통 DDS↔각 CAN dispatch; 각 Zone의 원천 status를 Central bridge에 전달 |
+| `interfaces/zone` | 공통 Zone scope/status·독립 status receiver와 Zone/Central 공유 Leaf health 정책; same-host 계약, DDS wire 후속 |
+| `zone/feedback` | [실제 상태 감시](../learning/m4_zone_feedback_health.md): 담당 Leaf current sample·실제 gateway → Zone별 phase/health·로컬 보호; source를 재발행 시각으로 바꾸지 않음 |
 | `central/session` | Linux 영속 Epoch issuer 구현; Central trusted owner, M1 fixture 연결; 실제 Central–Zone INIT protocol 후속 |
 | `zone/command_validation` | [Front/Rear 독립 수용](../learning/m4_zone_command_admission.md) 구현: trusted root/arm·scope/atomic pair·age/expiry/range/mode/progress 검증 → current scoped snapshot 또는 reject/보호 요청 |
 | `zone/gateway` | [Rear 전원·시동](../learning/m4_rear_power_startup.md) 및 [CAN 전달](../learning/m4_zone_gateway.md) 구현: bounded FIFO/최신 묶음·원래 source/expiry·각 write 전후 guard·partial/failure latch; 별도 SocketCAN port/분리 vCAN 시험 |

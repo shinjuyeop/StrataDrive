@@ -15,6 +15,8 @@ central::NormalDriveReadinessInputs inputs(std::uint32_t ms,StopReadings reading
     const auto speed=readings.speed, torque=readings.torque, pressure=readings.pressure;
     central::NormalDriveReadinessInputs in; in.epoch=3; in.session_enable_ns=kStart;
     in.front.health.emplace(); in.rear.health.emplace(); metadata(*in.front.health,ms); metadata(*in.rear.health,ms);
+    in.front.health->phase=in.rear.health->phase=zone::ZonePhase::Ready;
+    in.rear.health->scope=zone::ZoneScope::Rear;
     in.front.health->ready_for_normal=in.rear.health->ready_for_normal=true;
     in.front.steering_actual.emplace(); metadata(*in.front.steering_actual,ms); in.front.steering_actual->kind=can::SteeringFrameKind::Actual; in.front.steering_actual->angle_rad=0;
     in.front.brake_actual.emplace(); metadata(*in.front.brake_actual,ms); in.front.brake_actual->kind=can::BrakeFrameKind::Actual; in.front.brake_actual->pressure_pa=pressure;

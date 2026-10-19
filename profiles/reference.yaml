@@ -441,7 +441,7 @@ m4_zone_gateway_fixture:
   socketcan_expiry_guard: exclusive_immediately_before_nonblocking_write
   remote_leaf_lease_and_protection: pending_no_composite_expiry_in_32_byte_can
   parameter_status: fixture_only_no_yaml_loader_or_target_timing_claim
-# ADR-0049: explicit Front startup; normal stop remains a separate pending contract.
+# ADR-0049: explicit Front startup; ADR-0050 below defines normal stop.
 m4_front_startup_fixture:
   implementation: single_owner_same_host_leaf_and_gateway_pair_arm
   startup_policy: shared_ActuatorCommandStartup_NonDriving
@@ -465,6 +465,29 @@ m4_front_startup_fixture:
   integrated_initial_state: {front_angle_rad: 0.1, front_pressure_pa: 200000}
   integrated_front_actuals: real_controllers_separate_plants_and_independent_can_receivers
   parameter_status: fixture_only_no_loader_remote_startup_or_target_timing_claim
+# ADR-0051: same-host observed health, not DDS serialization or a profile loader.
+m4_zone_feedback_fixture:
+  period_ms: 10
+  maximum_tick_gap_ms: 30
+  initial_per_stream_wait_ms: 80
+  first_source_loss_after_seen: latch_without_new_startup_grace
+  status_source_age_ms: 30
+  status_initial_timeout_ms: 80
+  old_status_deadline: checked_before_late_replacement
+  phases: [Waiting, Ready, Active, Terminal, FailSafe]
+  terminal_input_health: true
+  terminal_normal_readiness: false
+  front_sources: [steering_actual, brake_actual, command_gateway]
+  rear_sources: [drive_actual, power_status, power_limits, command_gateway, rear_power_gateway]
+  actual_source_age_ms: 30
+  bms_source_age_ms: 50
+  bms_dependency_age_ms: 70
+  child_metadata: preserved_from_independent_receiver_current_sample
+  central_status_ingress: separate_front_and_rear_scope_epoch_sequence_source_latches
+  recovery: explicit_newer_trusted_init_per_gateway_monitor_receiver_no_automatic_reconnect
+  status_and_protection_transport: same_host_typed_callback_remote_wire_pending
+  whole_coordinator_runtime_rejoin: pending
+  parameter_status: fixture_only_no_loader_authentication_or_target_timing_claim
 # ADR-0050: functional SIL normal stop/terminal handoff; no vehicle calibration or loader.
 m4_normal_stop_fixture:
   owner: central_NormalStop
@@ -496,7 +519,7 @@ m4_normal_stop_fixture:
   after_complete: lv_sensors_and_terminal_lease_remain_alive
   logical_test: {window_ms: 3200, step_ms: 10, allocation_period_ms: 20, stop_request_ms: 1200}
   speed_input: explicit_script_20_to_0_rad_s_not_vehicle_dynamics
-  remaining_fixtures: [zone_health, bms_limits, bms_safety_gate, pack_voltage_and_load]
+  remaining_fixtures: [bms_limits, bms_safety_gate, pack_voltage_and_load]
   transport: same_host_trusted_callback_remote_stop_and_leaf_lease_pending
   parameter_status: fixture_only_no_oem_calibration_or_target_timing_claim
 # ADR-0048: finite Host Rear startup component, not a profile loader or full EV runtime.
@@ -533,7 +556,7 @@ m4_rear_power_fixture:
     other_sender_degraded: denied_unreviewed
   protection: drive_zero_and_power_local_inhibit_existing_current_open_discharge_sequence
   startup_test: {logical_window_ms: 1600, step_ms: 10, allocation_period_ms: 20}
-  startup_fixtures: [zone_health, bms_limits, bms_safety_gate, pack_voltage_and_load, external_zero_speed]
+  startup_fixtures: [bms_limits, bms_safety_gate, pack_voltage_and_load, external_zero_speed]
   coordinated_graceful_shutdown: same_host_NormalStop_terminal_handoff_implemented_remote_vehicle_runtime_pending
   remote_normal_can_leaf_lease_and_dds: pending
   parameter_status: fixture_only_no_yaml_loader_oem_calibration_or_target_timing_claim

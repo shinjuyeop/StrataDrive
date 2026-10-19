@@ -18,6 +18,9 @@ Front도 Rear처럼 프리차지 동안 정상 command 없이 대기한다. 이�
 Brake의 초기 Hold는 기존 압력을 유지하는 SIL 출력 의미다. 압력0을 보내 release하거나 보호 floor를
 요청하지 않는다. 정차/주차 유지 성능을 보장하는 제어기는 아직 아니다.
 
+후속 [실제 Zone 상태 감시](m4_zone_feedback_health.md)에서 아래 연결 시험의 Zone health fixture를
+실제 gateway/원천 feedback monitor와 독립 status receiver로 교체했다. 아래 수치·fixture 설명은 최초 구현 이력이다.
+
 ## 읽을 코드
 
 | 파일 | 책임 |

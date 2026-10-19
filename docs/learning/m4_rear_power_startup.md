@@ -30,6 +30,9 @@ flowchart TB
   P -.->|"trusted local protection"| D
 ```
 
+후속 [실제 Zone 상태 감시](m4_zone_feedback_health.md)에서 아래 연결 시험의 Zone health fixture를
+실제 gateway/원천 feedback monitor와 독립 status receiver로 교체했다. 아래 수치·fixture 설명은 최초 구현 이력이다.
+
 ## 시동 순서에서 배울 점
 
 1. Trusted INIT으로 같은 application Epoch를 공급한다. Drive는 `NonDriving`으로 시작한다.

@@ -22,6 +22,8 @@ central::NormalDriveReadinessInputs ready_inputs() {
     central::NormalDriveReadinessInputs in; in.epoch = 3; in.session_enable_ns = kStart;
     in.front.health.emplace(); in.rear.health.emplace();
     initialize(*in.front.health); initialize(*in.rear.health);
+    in.front.health->phase=in.rear.health->phase=zone::ZonePhase::Ready;
+    in.rear.health->scope=zone::ZoneScope::Rear;
     in.front.health->ready_for_normal = in.rear.health->ready_for_normal = true;
     in.front.steering_actual.emplace(); initialize(*in.front.steering_actual);
     in.front.steering_actual->kind = can::SteeringFrameKind::Actual;
@@ -171,6 +173,17 @@ TEST(NormalDriveReadiness, EachZoneMustExplicitlyReportReadiness) {
     auto in = ready_inputs(); in.front.health->ready_for_normal = false; expect_blocked(in, ReadinessBlock::FrontZone);
     in = ready_inputs(); in.rear.health->ready_for_normal = false; expect_blocked(in, ReadinessBlock::RearZone);
     in = ready_inputs(); in.rear.health->local_state = can::ActuatorLocalState::Init; expect_blocked(in, ReadinessBlock::RearZone);
+}
+TEST(NormalDriveReadiness, TerminalHealthSupportsShutdownButCannotAuthorizeNormalOrSwapZoneScope) {
+    auto in=ready_inputs();
+    in.front.health->phase=in.rear.health->phase=zone::ZonePhase::Terminal;
+    in.front.health->ready_for_normal=in.rear.health->ready_for_normal=false;
+    EXPECT_TRUE(central::evaluate_vehicle_input_health(in,kNow).ready());
+    EXPECT_FALSE(evaluate(in).ready());
+    in.rear.health->scope=zone::ZoneScope::Front;
+    EXPECT_TRUE(central::evaluate_vehicle_input_health(in,kNow).is_blocked(ReadinessBlock::RearZone));
+    in=ready_inputs(); in.front.health->phase=zone::ZonePhase::Waiting;
+    EXPECT_FALSE(central::evaluate_vehicle_input_health(in,kNow).ready());
 }
 TEST(NormalDriveReadiness, UnknownOrNonFiniteActualIsNotKnownZero) {
     for (const auto value : {std::optional<double>{}, std::optional<double>{std::numeric_limits<double>::quiet_NaN()},
