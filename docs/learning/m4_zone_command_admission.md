@@ -1,6 +1,6 @@
 # M4 Zone 명령 수용: 출처와 유효기간을 지킨다
 
-Date: 2026-10-19. Status: **첫 Host component 구현·시험 / CAN gateway·보호 출력 후속**.
+Date: 2026-10-19. Status: **첫 Host 수용 component 구현·시험 / 후속 gateway·보호 연결은 별도 안내**.
 [ADR-0046](../adr/ADR-0046-scoped-zone-command-admission.md),
 [공통 계약](../../interfaces/central/allocated_commands.hpp),
 [수용 API](../../zone/command_validation/command_admission.hpp),
@@ -75,8 +75,8 @@ cmake --build build/m4-readiness -j 4
 ctest --test-dir build/m4-readiness -R 'CommandAdmission|RealAllocatorOutputsPassIndependentScopedZoneAdmission' --output-on-failure
 ```
 
-다음은 **gateway의 bounded queue/egress에서 sideband와 expiry를 재검사하고 CAN으로 전달하는 경로**,
-그리고 local safety의 보호 handoff다. 기존 32-byte CAN payload에 이 sideband가 없으므로
+후속 [gateway의 bounded queue/egress와 CAN 전달·local safety handoff](m4_zone_gateway.md)는 구현했다.
+기존 32-byte CAN payload에 이 sideband가 없으므로
 수용 시험을 Leaf까지 원래 만료가 보장된 end-to-end 검증으로 확대하지 않는다.
 Rear power/permission·BMS constraint 전달, 초기 non-driving command, 실제 독립 ingress/rejoin·
 전체 workload timing·DDS/M5는 남아 있다. System requirement 32개/TC 29개는 NOT RUN을 유지한다.

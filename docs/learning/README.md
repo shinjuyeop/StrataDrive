@@ -169,4 +169,5 @@ Python 63개와 C++ normal/sanitizer 각각 523개를 검사했다. 상대 대�
 actual 잔여 회생·저속/release·deficit/excess를 다룬다. 새 36개를 더해 전체 C++ 각각 606개 PASS다.
 후속 [Front/Rear scoped admission](m4_zone_command_admission.md)은 독립 root 대조·atomic pair·expiry와
 명시적 arm/INIT를 구현한다. 새 수용/배분 연결 시험 59개를 더해 전체 각각 665개 PASS다.
-다음은 gateway/CAN egress·보호 handoff·실제 ingress/runtime 통합이다.
+후속 [gateway/CAN egress·보호 handoff](m4_zone_gateway.md)는 새 component 32개를 더해 전체 각각
+697개, 분리 vCAN 각각 3개를 통과했다. 실제 ingress/status/Rear lifecycle·startup·Leaf lease/runtime 통합은 남아 있다.

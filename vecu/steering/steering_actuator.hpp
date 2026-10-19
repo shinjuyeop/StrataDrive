@@ -26,7 +26,7 @@ struct SteeringActuatorConfig {
     std::uint64_t tracking_confirmation_ns{60000000}, sensor_age_ns{20000000};
 };
 enum class SteeringFault { None, CommandUnavailable, ContinuityLost, ClockError, ControlDeadline,
-    SensorUnavailable, SensorInvalid, TrackingError, PhysicalModelError };
+    SensorUnavailable, SensorInvalid, TrackingError, PhysicalModelError, UpstreamProtection };
 
 // ECU logic only: receiver, monitor, selected output and CAN publication.
 // prepare/complete delimit one externally clocked job. Physics and acquisition
@@ -37,6 +37,7 @@ public:
     bool start_session(ActuatorSession session);
     can::SteeringReceiveResult receive(const can::SteeringFrame& frame, std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
+    void request_local_protection(std::uint64_t now_ns); // trusted local port, not a normal CAN command
     // prepare checks clock/period/communication before external actuation.
     // complete accepts a sensor snapshot for that same time, then selects the
     // next output. No physics, sensor generation or implicit 0 fallback here.

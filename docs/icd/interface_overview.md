@@ -20,7 +20,8 @@ Steering application 송수신/fault/timeout은 실행했다. [M1 session/queue]
 
 M4 [Zone 명령 수용](../learning/m4_zone_command_admission.md)은 shared in-process
 VehicleRequest/FrontCommands/RearCommands 계약을 사용한다. 독립 trusted root·scope·expiry를 검증하며,
-원래 parent/expiry가 없는 기존 32-byte actuator CAN의 egress/보호 연결은 후속이다.
+후속 [CAN egress/로컬 보호](../learning/m4_zone_gateway.md)는 구현·시험했다. 원래 parent/expiry가 없는
+기존 32-byte CAN의 remote Leaf lease 검사·remote 보호 신호와 전체 runtime은 후속이다.
 2026-10-13 [EV-01](ev_power_bms_design.md)으로 BMS Leaf, 차량 관리와 power lifecycle을
 추가했다. 2026-10-14 [BMS wire 초안](bms_frame_draft.md)의 EV 6개 DBC frame과
 Host C++ codec/항목별 receiver·DBC 교차 검증과 native SocketCAN 변환 시험을 추가했다.

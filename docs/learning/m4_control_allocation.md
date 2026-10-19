@@ -120,6 +120,7 @@ cmake --build build/m4-readiness -j 4
 ctest --test-dir build/m4-readiness -R '^ControlAllocation' --output-on-failure
 ```
 
-후속 [Front/Rear scoped admission](m4_zone_command_admission.md)은 구현했다. 다음은 CAN routing·독립 ingress/loss/rejoin과 protection handoff다.
+후속 [scoped admission](m4_zone_command_admission.md)과 [CAN routing/local protection](m4_zone_gateway.md)은 구현했다.
+다음은 Rear lifecycle/constraint·startup/Leaf lease·실제 독립 ingress/status/loss/rejoin과 전체 runtime이다.
 그 과정에서 기존 EV runtime fixture를 coordinator로 교체하고 BMS non-protection derating 허가 envelope·
 초기 non-driving command 경로를 확인한다. 새 workload timing과 차량 response budget은 다시 검증한다.

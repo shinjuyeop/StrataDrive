@@ -68,6 +68,11 @@ void SteeringActuator::mark_continuity_lost(std::uint64_t now_ns) {
                         SteeringFault::ClockError : SteeringFault::ContinuityLost, now_ns);
 }
 void SteeringActuator::mark_io_error(std::uint64_t now_ns) { fail(SteeringFault::PhysicalModelError, now_ns); }
+void SteeringActuator::request_local_protection(std::uint64_t now_ns) {
+    if (epoch_ == 0) return;
+    receiver_.mark_continuity_lost(now_ns);
+    fail(SteeringFault::UpstreamProtection, now_ns);
+}
 void SteeringActuator::mark_output_rejected(std::uint64_t now_ns) { fail(SteeringFault::ControlDeadline, now_ns); }
 bool SteeringActuator::prepare(std::uint64_t now_ns) {
     if (prepared_ns_ && *prepared_ns_ == now_ns) return true;

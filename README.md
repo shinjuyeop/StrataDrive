@@ -6,7 +6,7 @@
 
 **M3 진행 중** — [Host RTOS의 누적 tick 지연](docs/learning/m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기)을 수정하고 CPU 배치·FIFO 실행을 비교했다.
 일반 우선순위 sanitizer의 타이밍 실패 2건과 학습자 수용은 남아 있다. M1/M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도다.
-M4는 Central 전원·허가·제어 배분과 [Front/Rear 명령 검증](docs/learning/m4_zone_command_admission.md)을 component로 구현했다. CAN 전달·보호 출력·DDS·차량 closed-loop·Target 검증은 후속 단계다.
+M4는 Central 전원·허가·제어 배분과 [Zone CAN 전달·로컬 보호 연결](docs/learning/m4_zone_gateway.md)을 Host component/vCAN에서 시험했다. 전체 EV runtime·DDS·차량 closed-loop·Target 검증은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 
@@ -270,11 +270,11 @@ StrataDrive/
 │   ├── brake/             # 압력/frame codec, receiver, sensor/actuation port
 │   ├── drive/             # 구동·회생 torque/frame codec, feedback receiver
 │   ├── bms/               # EV 물리값·6개 frame codec, 항목별 수신부
-│   ├── socketcan/         # Linux CAN socket, actuator·EV 변환 adapter
+│   ├── socketcan/         # Linux CAN socket·adapter, Zone deadline 송신 port
 │   ├── dbc/               # Actuator 6개 + EV/BMS 6개 frame 초안
 │   └── dds/               # 배치용 placeholder
 ├── central/               # ADAS/control; session Epoch store; vehicle management/allocation/bridge 예정
-├── zone/                  # Front/Rear 명령 수용 구현; gateway/local safety 연결 예정
+├── zone/                  # Front/Rear 명령 수용·CAN gateway·local safety component
 ├── vecu/                  # Steering/Brake/Drive/BMS의 판단·보호; 물리 실행과 분리
 ├── simulation/            # 물리 모델·SIL 연결 코드; vehicle/CARLA 통합 예정
 ├── physical_ai/           # Perception, learned planner, export, inference

@@ -95,6 +95,12 @@ int Endpoint::receive_buffer_bytes() const {
 }
 
 void Endpoint::send(const Frame& frame) {
+    send_impl(frame, std::nullopt);
+}
+bool Endpoint::send_before(const Frame& frame, std::uint64_t expires_at_ns) {
+    return send_impl(frame, expires_at_ns);
+}
+bool Endpoint::send_impl(const Frame& frame, std::optional<std::uint64_t> expires_at_ns) {
     const auto identifier = frame.can_id & CAN_EFF_MASK;
     if ((frame.can_id & CAN_ERR_FLAG) != 0 ||
         ((frame.can_id & CAN_EFF_FLAG) == 0 && identifier > CAN_SFF_MASK) ||
@@ -122,6 +128,7 @@ void Endpoint::send(const Frame& frame) {
         data = &classic_frame;
         size = sizeof(classic_frame);
     }
+    if (expires_at_ns && monotonic_time_ns() >= *expires_at_ns) return false;
     const auto sent = write(fd_, data, size);
     if (sent < 0) {
         system_failure("SocketCAN nonblocking write");
@@ -129,6 +136,7 @@ void Endpoint::send(const Frame& frame) {
     if (static_cast<std::size_t>(sent) != size) {
         throw std::runtime_error("SocketCAN incomplete write");
     }
+    return true;
 }
 
 std::optional<ReceivedFrame> Endpoint::receive() {

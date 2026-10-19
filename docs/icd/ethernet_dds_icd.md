@@ -13,8 +13,10 @@ M4 [scoped command 수용 component](../learning/m4_zone_command_admission.md)�
 `interfaces/central/allocated_commands.hpp`의 in-process 계약을 사용한다.
 Front atomic Steering/Brake·Rear Drive와 원래 vehicle root·oldest dependency·exclusive expiry를 보존한다.
 독립 trusted root 승인·명시적 arm, scope/range/mode/progress/age/expiry와 local latch를 검사한다.
-이는 DDS serialization/integrity/authentication/clock sync 또는 실제 CAN forwarding 구현이 아니다.
-Rear power/permission/BMS constraints, trusted transport/INIT-rejoin과 보호 출력은 후속이다.
+이는 DDS serialization/integrity/authentication/clock sync 구현이 아니다.
+후속 [CAN gateway/local protection](../learning/m4_zone_gateway.md)은 원래 source/expiry 보존·각 write guard와
+same-host Leaf의 Hold/Protect/Zero 선택을 연결했다. 두 독립 vCAN interface도 시험했다.
+Rear power/permission/BMS constraints, trusted transport/INIT-rejoin·원격 Leaf lease/보호 경로와 전체 runtime은 후속이다.
 
 ## Central 내부 의미 계약
 

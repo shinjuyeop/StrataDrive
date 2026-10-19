@@ -424,7 +424,23 @@ m4_zone_admission_fixture:
   expiry: exclusive_minimum_parent_command_dependency_bound_no_restamping
   recovery: newer_trusted_epoch_then_arm_and_new_authorized_command
   parameter_status: fixture_only_no_yaml_loader_or_cross_node_clock_claim
-  can_egress_and_physical_protection: pending
+  can_egress_and_physical_protection: gateway_and_same_host_leaf_handoff_checked_actual_response_separate
+m4_zone_gateway_fixture:
+  implementation: independent_single_owner_gateway_with_scoped_context
+  queue_capacity: 8
+  dispatch_scan_budget: 8
+  dispatched_batches_per_call: 1
+  maximum_frames_per_batch: {front: 2, rear: 1}
+  front_write_order: [steering, brake] # CAN writes are not atomic
+  superseded_commands: skip_without_restamping
+  overflow_or_send_failure: clear_backlog_latch_local_protection
+  normal_transmission: once_per_new_accepted_command_original_metadata
+  protection_port: separate_trusted_same_host_leaf_selection_not_normal_payload
+  protection_ack: selected_hold_protect_zero_not_physical_achievement
+  pending_protection: retry_once_per_poll
+  socketcan_expiry_guard: exclusive_immediately_before_nonblocking_write
+  remote_leaf_lease_and_protection: pending_no_composite_expiry_in_32_byte_can
+  parameter_status: fixture_only_no_yaml_loader_or_target_timing_claim
 m4_allocation_fixture:
   implementation: normal_path_central_allocator_component
   parameter_status: fixture_only_no_oem_or_vehicle_calibration

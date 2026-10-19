@@ -26,7 +26,7 @@ struct DriveControllerConfig {
 enum class DriveGateFault {
     None, CommandUnavailable, LimitsUnavailable, PermissionUnavailable, PermissionInhibit,
     LocalInputsUnavailable, HvNotReady, BmsProtection, Overspeed, ContinuityLost,
-    ClockError, ControlDeadline, SequenceExhausted, TorqueFeedbackUnavailable
+    ClockError, ControlDeadline, SequenceExhausted, TorqueFeedbackUnavailable, UpstreamProtection
 };
 struct DriveControlDecision {
     bool active{false};
@@ -50,6 +50,7 @@ public:
     can::BmsReceiveResult receive_permission(const can::BmsFrame& frame, std::uint64_t now_ns, const can::BmsParentContext* parent);
     drive::SensorResult observe_local(const drive::LocalSensors& sensors, std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
+    void request_local_protection(std::uint64_t now_ns); // trusted local port; no EV gate bypass
     bool prepare(std::uint64_t now_ns);
     std::optional<can::DriveFrame> complete(const std::optional<drive::TorqueMeasurement>& sensor, std::uint64_t now_ns);
     void mark_output_rejected(std::uint64_t now_ns) { fail(DriveGateFault::ControlDeadline, now_ns); }

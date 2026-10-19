@@ -1,5 +1,11 @@
 # CAN / CAN FD application ICD baseline
 
+M4 [Zone gateway](../learning/m4_zone_gateway.md)는 기존 command wire를 유지하면서 원래
+Epoch/Sequence/Source/CausalSequence를 전달하고 각 nonblocking write 전후 expiry를 검사한다.
+Scoped parent/expiry는 userspace sideband다. 기존 32-byte CAN에는 없으므로 kernel TX queue나
+remote Leaf까지 composite expiry가 보장됐다고 표시하지 않는다. Same-host SIL 보호 port와
+remote 보호 신호/Leaf lease 표현의 계약을 구분한다([ADR-0047](../adr/ADR-0047-zone-can-egress-and-local-protection.md)).
+
 Status: semantic/failure contract **DEFINED**, actuator 6개 + EV 6개 DBC/codec **Host 초안 구현·시험 / baseline 채택 PENDING**.
 [Steering 두 frame의 설계·DBC 초안](steering_frame_draft.md)을 작성했다(학습자 review PENDING).
 ID/layout/metadata/receiver 정책은 제안이며 wire baseline 채택이 아니다.

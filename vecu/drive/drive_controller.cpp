@@ -167,6 +167,14 @@ void DriveController::mark_continuity_lost(std::uint64_t now_ns) {
     command_.mark_continuity_lost(now_ns); limits_.mark_continuity_lost(now_ns); permission_.mark_continuity_lost(now_ns);
     fail(DriveGateFault::ContinuityLost, now_ns);
 }
+void DriveController::request_local_protection(std::uint64_t now_ns) {
+    if (epoch_ == 0) return;
+    const bool ordered = clock(now_ns);
+    command_.mark_continuity_lost(now_ns);
+    // fail selects Zero even if clock() already latched ClockError/stopped.
+    // Preserve that diagnostic; do not keep a previous motor target on this port.
+    fail(DriveGateFault::UpstreamProtection, ordered ? now_ns : last_observed_ns_);
+}
 void DriveController::calculate(const Inputs& in) {
     decision_.propulsion_limit_nm.reset(); decision_.regen_limit_nm.reset(); decision_.capability_input_time_ns = 0;
     decision_.regen_reason = can::DriveRegenLimitReason::InputsInvalid;

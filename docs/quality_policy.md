@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 665개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 697개 PASS**다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -1189,6 +1189,52 @@ Python unit 변경·재실행은 없고 직전 63개 PASS 이력을 유지한다
 이번 SocketCAN/vCAN·DDS·wall-time workload/Target/차량 실행은 없다. 기존 EV demo의 request/grant도 fixture다.
 Gateway queue/CAN egress의 원래 expiry guard·Rear lifecycle/constraint 전달·local safety handoff·실제 ingress/rejoin은 후속이다.
 M3 원본 실패와 전체 수용 대기, 32개 requirement/29개 system TC NOT RUN을 유지한다.
+
+## 2026-10-19 M4 Zone CAN gateway·local protection 연결
+
+[ADR-0047](adr/ADR-0047-zone-can-egress-and-local-protection.md)과
+[학습 안내](learning/m4_zone_gateway.md)에 bounded FIFO/최신 명령 선택·원래 sideband와 각 write 전후
+expiry guard·Front partial write·독립 local safety handoff를 기록했다.
+기존 Endpoint의 `send` 직렬화는 유지하고 deadline이 있는 nonblocking `send_before`를 추가했다.
+별도 same-host SIL port가 실제 SteeringActuator/BrakeActuator/mandatory DriveController의
+기존 Hold/Protect/Zero 출력을 선택한다. ACK는 물리 actual 도달과 구분한다.
+
+새 component **32개**, normal·ASan/UBSan 각각 전체 **697/697 PASS**다.
+독립 Front/Rear queue/clock/overflow/lease·송신 실패/지연·일부 Front frame 전송·새 INIT와
+Pending 보호 재시도를 검사했다. 분리된 Leaf/물리 모델은 지연 motion/release 취소,
+높은 brake pressure 유지·stuck pressure/floor 미도달, EV gate를 통한 signed torque 목표와
+lease 상실 후 남은 actual/zero ramp를 확인한다. BMS/허가/HV/speed는 해당 시험의 명시적 fixture다.
+
+두 독립 `vcan_front`/`vcan_rear` interface에서 새 native integration **각각 3/3 PASS**다.
+기존 CAN receiver의 P05/원래 metadata 수용·만료 write 없음·interface 독립성을 검사한다.
+해당 vCAN의 보호 ACK는 fixture이며 실제 Leaf/물리 보호 시험은 별도 component에 있다.
+공통 Endpoint 변경 회귀는 기존 runner의 **97/97개 case**를 normal/sanitizer 각각 재통과했다.
+Actuator observed timeout은 normal 80.013–81.209 ms, sanitizer 80.049–81.200 ms다.
+이 값은 기존 local transport fixture의 관측이며 새 gateway/차량 wall-time 보장으로 확대하지 않는다.
+기존 evidence를 덮지 않도록 `build/m4-gateway-can-{normal,sanitized}`에 현재 build 실행 파일의
+symlink와 새 `socketcan-results`를 분리했다. 원래 M3 workload/타이밍 실패 이력은 변경하지 않는다.
+
+일반/sanitizer·`BUILD_TESTING=OFF` build PASS다. Clang-tidy 14 analyzer/bugprone으로 변경 production/test
+10개와 관련 header를 검사했다. Test port의 vector/recipient 호출에서 exception escape 가능성 1건을
+수정하고 해당 source를 재검사해 user-source 진단 없이 PASS다. 최초 결과와 재검사는 각각
+`build/m4-gateway-clang.txt`/`build/m4-gateway-clang-test.txt`에 보존한다.
+Cppcheck 2.7은 현재 compilation database의 production 8개 PASS다. 기존 GoogleTest macro 파싱 제약에
+따른 test cppcheck 범위 제한은 유지하며, test는 compiler/clang-tidy/normal·sanitizer 실행으로 검사했다.
+
+첫 30-case 개발 실행의 29 PASS/1 FAIL은 `build/m4-gateway-test-development.txt`에 보존한다.
+TorqueResponse가 INIT부터 이미 진행한 zero ramp를 oracle이 빠뜨렸다. 원래 actual을 확인한 뒤
+그 residual에서 감소하는지 검사하도록 고쳤다. 후속 전체 697-case 중 696 PASS/1 FAIL은
+`build/m4-gateway-integration-development.txt`다. 새 EV fixture가 BMS input time만 진행시키고
+원래 causal identity를 그대로 둬 quality가 Invalid가 된 것이며, fixture identity와 Usable assertion을
+고쳤다. 기존 receiver의 freshness/quality·고장 latch와 시한을 완화하지 않았다.
+
+로그는 `build/m4-gateway-{configure,build,full-test,sanitized-configure,sanitized-build,sanitized-test}.txt`,
+`build/m4-gateway-production-{configure,build}.txt`, `build/m4-gateway-{vcan,sanitized-vcan,cppcheck,doc-check}.txt`,
+`build/m4-gateway-can-{regression,sanitized-regression}.txt`에 둔다.
+Markdown 115개/상대 링크·앵커 1301개, YAML 3개·Python 8개 syntax/추적성/whitespace를 검사했다.
+Python unit 변경·재실행은 없고 이전 63개 PASS 이력을 유지한다.
+Remote CAN composite lease/protection 표현·Rear lifecycle/constraint/startup·실제 ingress/status 감시와
+full runtime/timing/Target/system TC는 후속이다. M3 원래 실패·전체 수용 대기와 32개 requirement/29개 TC NOT RUN을 유지한다.
 
 ## 코드·예제·시험 배치
 

@@ -40,9 +40,13 @@ public:
     Endpoint& operator=(Endpoint&&) = delete;
 
     void send(const Frame& frame);
+    // Exclusive enqueue deadline, checked after ABI serialization immediately
+    // before nonblocking write. Does not cancel kernel queues or bound wire RX.
+    bool send_before(const Frame& frame, std::uint64_t expires_at_ns);
     std::optional<ReceivedFrame> receive();
 
 private:
+    bool send_impl(const Frame& frame, std::optional<std::uint64_t> expires_at_ns);
     int fd_{-1};
     std::uint32_t dropped_frames_{0};
 };

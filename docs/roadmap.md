@@ -49,7 +49,7 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | M1 | DBC + vCAN | 12개 wire/receiver, 영속 local Epoch/queue 및 overflow/restart 기술 검사 완료; wire 채택·학습자 review PENDING |
 | M2 | TECHNICAL CHECKS PASS: Actuator + Battery / BMS / Power models | component·Steering/Brake response monitor 시험; 학습자 수용 PENDING |
 | M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | Host 수용 검토·IO 동반/FIFO 기준 선택; 일반 sanitizer 타이밍 예외·학습자 수용 OPEN, Target/E2E 후속 |
-| M4 | COMPONENT IMPLEMENTATION: Central coordinator + Front/Rear Zone | 준비 조건·lifecycle/허가·allocation·scoped admission 구현; gateway/CAN routing·실제 ingress/local loss/rejoin·보호 출력 후속, TC-ZON-001–003 NOT RUN; protocol TBD-15 |
+| M4 | COMPONENT IMPLEMENTATION: Central coordinator + Front/Rear Zone | Central·scoped admission·CAN gateway/로컬 보호 연결 시험; Rear lifecycle/constraint·startup/Leaf lease·실제 ingress/status/runtime/rejoin 후속, TC-ZON-001–003 NOT RUN; protocol TBD-15 |
 | M5 | Central Compute + DDS | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
 | M6 | Simple Vehicle + EV Plant | 실제 actuator/power 응답을 통한 lifecycle/closed-loop, battery energy/SOC balance와 mapping 검증 |
 | M7 | CARLA Integration | Host–Target 실제 Ethernet, single ego writer, feedback-driven CARLA motion |
@@ -168,7 +168,8 @@ Battery의 단일 chemical energy owner를 연결해 시험했다. [M2 수용 �
 Sanitizer 일반 실행의 owner skip 2회 실패를 보존했다. [M3 수용 검토](m3_acceptance_review.md)와
 guarded 주기 집계 수정을 마쳤다. M4 [Central 준비 판정](learning/m4_normal_drive_readiness.md)을 먼저 구현했다.
 후속 [lifecycle/허가 상태 owner](learning/m4_vehicle_management.md)도 구현·component 시험했다.
-후속 [첫 allocation](learning/m4_control_allocation.md)과 [Zone scoped admission](learning/m4_zone_command_admission.md)도 구현·시험했다. 다음은 gateway/CAN 전달·보호 통합이며 M3 timing 예외 분석을 병행한다.
+후속 [첫 allocation](learning/m4_control_allocation.md), [Zone admission](learning/m4_zone_command_admission.md),
+[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)도 구현·시험했다. 다음은 Rear lifecycle/constraint·startup/Leaf lease·전체 runtime 통합이며 M3 timing 예외 분석을 병행한다.
 실제 ARM64 timing은 배포 단계에서 확인한다.
 Wire/학습자 review는 PENDING이다.
 

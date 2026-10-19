@@ -71,6 +71,11 @@ void BrakeActuator::mark_continuity_lost(std::uint64_t now_ns) {
                         BrakeFault::ClockError : BrakeFault::ContinuityLost, now_ns);
 }
 void BrakeActuator::mark_io_error(std::uint64_t now_ns) { fail(BrakeFault::PhysicalModelError, now_ns); }
+void BrakeActuator::request_local_protection(std::uint64_t now_ns) {
+    if (epoch_ == 0) return;
+    receiver_.mark_continuity_lost(now_ns);
+    fail(BrakeFault::UpstreamProtection, now_ns);
+}
 void BrakeActuator::mark_output_rejected(std::uint64_t now_ns) { fail(BrakeFault::ControlDeadline, now_ns); }
 bool BrakeActuator::prepare(std::uint64_t now_ns) {
     if (prepared_ns_ && *prepared_ns_ == now_ns) return true;
