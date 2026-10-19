@@ -11,3 +11,12 @@ bool ZoneGatewayPort::send(const zone::CommandFrame& frame, const central::Comma
     }
 }
 }  // namespace stratadrive::socketcan
+
+namespace stratadrive::socketcan {
+bool RearPowerGatewayPort::send(const can::BmsFrame& frame,const zone::RearPowerDelivery& delivery) noexcept {
+    try {
+        const auto native=to_socketcan(frame);
+        return now_ns()<delivery.expires_at_ns && control_.stage_context(frame,delivery) && endpoint_.send_before(native,delivery.expires_at_ns);
+    } catch (...) { return false; }
+}
+} // namespace stratadrive::socketcan

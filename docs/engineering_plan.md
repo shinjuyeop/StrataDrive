@@ -35,7 +35,7 @@ Drive ECU adapter와 물리 모델을 별도 모듈로 두었다.
 [M3 수용 검토](m3_acceptance_review.md)에서 다음 Host 통합의 IO 동반/FIFO 기준을 선택했다.
 일반 sanitizer 타이밍 실패 2건·학습자 수용은 남긴다. M4 [Central 전원·허가 상태 owner](learning/m4_vehicle_management.md)를
 component로 구현·시험했다. [첫 normal-path allocation](learning/m4_control_allocation.md)도 연결 시험했다.
-후속 [명령 수용](learning/m4_zone_command_admission.md)과 [CAN 전달·로컬 보호](learning/m4_zone_gateway.md)도 component/분리 vCAN에서 시험했다. 다음은 Rear lifecycle/constraint·startup/Leaf lease·전체 ingress/status/runtime이며 새 workload timing과 기존 예외 분석을 이어간다.
+후속 [명령 수용](learning/m4_zone_command_admission.md)·[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)와 [Rear 전원·초기 구동](learning/m4_rear_power_startup.md)도 component/분리 vCAN에서 시험했다. 다음은 Front startup·coordinated stop·Leaf lease·전체 ingress/status/runtime이며 새 workload timing과 기존 예외 분석을 이어간다.
 차량 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며

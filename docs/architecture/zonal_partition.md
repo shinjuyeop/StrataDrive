@@ -89,6 +89,7 @@ trace에 보존하고 in-process shortcut을 cross-node 통신 검증으로 표�
 Scoped parent/expiry는 shared in-process 계약이며 별도 trusted root/arm, scope·범위·시간과 latch를 검사한다.
 후속 [CAN gateway·local protection](../learning/m4_zone_gateway.md)은 bounded queue/egress guard와
 same-host Leaf 보호 선택을 연결했다. 두 전용 vCAN에서 실제 frame 수신도 시험했다.
-Zone health/비Power actual은 배분 연결 시험의 명시적 fixture다. Rear lifecycle/constraint·실제 ingress/status/runtime,
-remote Leaf composite expiry/보호 전달과 전체 차량 검증은 후속이다.
+[Rear 전원·초기 구동](../learning/m4_rear_power_startup.md)은 실제 Power/Drive와 원래 source/ACK·limits/permission을 연결했다.
+Front actual/Zone health·BMS limits/safety·speed는 이 연결 시험의 명시적 fixture다. Front startup·정상 종료,
+실제 ingress/status/runtime·remote Leaf composite expiry/보호 전달과 전체 차량 검증은 후속이다.
 ZON-S01/ZON-F01/F02, TC-ZON-001–003과 기존 COM/EV/SAFE 시험에 연결하며 전체 Result는 NOT RUN이다.

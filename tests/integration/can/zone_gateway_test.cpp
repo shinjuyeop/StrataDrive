@@ -2,6 +2,7 @@
 #include "steering_receiver.hpp"
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
+#include "rear_power_control.hpp"
 
 #include <gtest/gtest.h>
 #include <chrono>
@@ -75,5 +76,32 @@ TEST(ZoneGatewayVcan, SeparateZoneInterfacesRouteRearDriveAndKeepFrontProtection
     const auto current=drive.current_sample(rp.now_ns()); ASSERT_TRUE(current);
     EXPECT_DOUBLE_EQ(*current->torque_nm,-50); EXPECT_FALSE(wrong_bus.receive());
     EXPECT_EQ(front_safety.calls,1U); EXPECT_EQ(rear_safety.calls,0U);
+}
+TEST(RearPowerVcan, RoutesThreeBmsStreamsWithOriginalTimesAndSeparateTrustedPowerParent) {
+    socketcan::Endpoint tx{"vcan_rear"},pr{"vcan_rear",static_cast<std::uint16_t>(can::BmsFrameKind::PowerRequest)},
+        lr{"vcan_rear",static_cast<std::uint16_t>(can::BmsFrameKind::DriveBatteryLimits)},gr{"vcan_rear",static_cast<std::uint16_t>(can::BmsFrameKind::DrivePermission)};
+    vecu::DriveController drive{{}}; vecu::PowerController power{{}}; simulation::RearPowerControl control{drive,power};
+    socketcan::RearPowerGatewayPort port{tx,control}; zone::RearPowerGateway gateway{port}; const auto now=port.now_ns();
+    ASSERT_TRUE(drive.start_session({3,7,now},vecu::DriveCommandStartup::NonDriving)); ASSERT_TRUE(power.start_session(3,7,now));
+    ASSERT_TRUE(control.start_session(3)); ASSERT_TRUE(gateway.start_session(3,now));
+    can::BmsMessage l; l.kind=can::BmsFrameKind::PowerLimits; l.epoch=3; l.source_time_ns=now;
+    l.local_state=can::ActuatorLocalState::Init; l.origin=can::ActuatorOrigin::NoAcceptedInput;
+    l.content=can::BmsPowerLimits{0,0,can::BmsLimitReason::Disabled,can::BmsLimitReason::Disabled,now};
+    auto s=l; s.kind=can::BmsFrameKind::PowerStatus; can::BmsPowerStatus actual;
+    actual.state=can::BmsPowerState::Off; actual.positive_contactor_closed=actual.negative_contactor_closed=actual.precharge_contactor_closed=false;
+    actual.hv_bus_voltage_v=0; actual.condition_bits=7; actual.condition_validity=31; actual.input_time_ns=now; s.content=actual;
+    can::BmsTxState lt{l.kind},st{s.kind}; const auto lf=can::encode_bms_frame(l,lt),sf=can::encode_bms_frame(s,st); ASSERT_TRUE(lf); ASSERT_TRUE(sf);
+    ASSERT_EQ(gateway.receive_limits(*lf),zone::RearPowerResult::Accepted); ASSERT_EQ(gateway.receive_status(*sf),zone::RearPowerResult::Accepted);
+    ASSERT_EQ(gateway.authorize_request({{3,0,now,now+60*kMs},can::BmsPowerAction::Enable}),zone::RearPowerResult::Accepted);
+    auto p=l; p.kind=can::BmsFrameKind::PowerRequest; p.origin=can::ActuatorOrigin::NormalPath; p.content=can::BmsPowerRequest{can::BmsPowerAction::Enable,now+40*kMs,now};
+    auto g=l; g.kind=can::BmsFrameKind::DrivePermission; g.content=can::BmsDriveGrant{can::BmsDrivePermission::Inhibit,0,0,0,now+40*kMs};
+    ASSERT_EQ(gateway.enqueue_power(p),zone::RearPowerResult::Accepted); ASSERT_EQ(gateway.enqueue_permission(g),zone::RearPowerResult::Accepted); ASSERT_EQ(gateway.dispatch(),3U);
+    const auto power_frame=receive(pr),limit_frame=receive(lr),grant_frame=receive(gr); ASSERT_TRUE(power_frame); ASSERT_TRUE(limit_frame); ASSERT_TRUE(grant_frame);
+    const auto native_power=socketcan::to_bms(power_frame->frame); const auto context=control.context_for(native_power,port.now_ns()); ASSERT_TRUE(context); ASSERT_TRUE(context->parent);
+    EXPECT_EQ(context->parent->source_time_ns,now); EXPECT_EQ(power.receive(native_power,port.now_ns(),&*context->parent).decision,can::ActuatorReceiveDecision::Accepted);
+    EXPECT_EQ(drive.receive_limits(socketcan::to_bms(limit_frame->frame),port.now_ns()).decision,can::ActuatorReceiveDecision::Accepted);
+    const auto native_grant=socketcan::to_bms(grant_frame->frame); const auto gc=control.context_for(native_grant,port.now_ns()); ASSERT_TRUE(gc);
+    EXPECT_EQ(drive.receive_permission(native_grant,port.now_ns(),nullptr).decision,can::ActuatorReceiveDecision::Accepted);
+    EXPECT_EQ(can::decode_bms_frame(native_grant)->source_time_ns,now); EXPECT_FALSE(gc->parent);
 }
 }  // namespace

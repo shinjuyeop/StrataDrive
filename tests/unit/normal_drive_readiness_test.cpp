@@ -158,6 +158,10 @@ TEST(NormalDriveReadiness, FaultAndUnreviewedDegradedModesBlockEverySource) {
         mutate_source(in, source, [](auto& m) { m.local_state = can::ActuatorLocalState::FailSafe; });
         expect_blocked(in, source);
         in = ready_inputs(); mutate_source(in, source, [](auto& m) { m.local_state = can::ActuatorLocalState::Degraded; });
+        if(source==ReadinessBlock::PowerLimits) {
+            auto& limit=std::get<can::BmsPowerLimits>(in.rear.power_limits->message.content);
+            limit.charge_reason=limit.discharge_reason=can::BmsLimitReason::Nominal; // no reviewed limit reason
+        }
         expect_blocked(in, source);
         in = ready_inputs(); mutate_source(in, source, [](auto& m) { m.origin = can::ActuatorOrigin::LocalProtection; });
         expect_blocked(in, source);
@@ -231,5 +235,29 @@ TEST(NormalDriveReadiness, InvalidTimingCannotSilentlyWidenExistingBudgets) {
         timing = {}; timing.bms_dependency_age_ns = zero ? 0 : 70000001;
         EXPECT_FALSE(central::evaluate_normal_drive_readiness(ready_inputs(), kNow, timing).ready());
     }
+}
+TEST(NormalDriveReadiness, BoundedDegradedDriveRequiresFreshAuxiliaryEvidence) {
+    auto in=ready_inputs(); auto& m=*in.rear.drive_actual;
+    m.local_state=can::ActuatorLocalState::Degraded; m.wheel_speed=can::DriveWheelSpeed{0,kNow};
+    m.regen_capability=can::DriveRegenCapability{0,kNow,kNow}; m.regen_limit_reason=can::DriveRegenLimitReason::Disabled;
+    EXPECT_TRUE(evaluate(in).ready());
+    m.regen_capability->torque_limit_nm=1; expect_blocked(in,ReadinessBlock::DriveActual);
+    m.regen_capability->torque_limit_nm=0; m.regen_capability->input_time_ns=kNow-71*kMs; expect_blocked(in,ReadinessBlock::DriveActual);
+    m.regen_capability->input_time_ns=kNow; m.wheel_speed.reset(); expect_blocked(in,ReadinessBlock::DriveActual);
+}
+TEST(NormalDriveReadiness, ReviewedBmsDeratingPreservesKnownZeroWithoutAdmittingFaultOrUnknown) {
+    auto in=ready_inputs(); auto& s=*in.rear.power_limits; auto& l=std::get<can::BmsPowerLimits>(s.message.content);
+    s.message.local_state=can::ActuatorLocalState::Degraded; l.charge_power_w=0; l.charge_reason=can::BmsLimitReason::SocLimited;
+    EXPECT_TRUE(evaluate(in).ready());
+    l.discharge_power_w=0; l.discharge_reason=can::BmsLimitReason::Disabled; EXPECT_TRUE(evaluate(in).ready());
+    l.charge_reason=can::BmsLimitReason::InputsInvalid; expect_blocked(in,ReadinessBlock::PowerLimits);
+    l.charge_reason=can::BmsLimitReason::SocLimited; s.message.origin=can::ActuatorOrigin::LocalProtection; expect_blocked(in,ReadinessBlock::PowerLimits);
+    s.message.origin=can::ActuatorOrigin::NormalPath; s.quality[1]=can::BmsFieldQuality::Unavailable; expect_blocked(in,ReadinessBlock::PowerLimits);
+}
+TEST(NormalDriveReadiness, DegradedEvidenceDoesNotAdmitOtherSendersOrWidenTheEnvelope) {
+    auto in=ready_inputs(); in.front.steering_actual->local_state=can::ActuatorLocalState::Degraded; expect_blocked(in,ReadinessBlock::SteeringActual);
+    in=ready_inputs(); auto& s=*in.rear.power_limits; s.message.local_state=can::ActuatorLocalState::Degraded;
+    auto& l=std::get<can::BmsPowerLimits>(s.message.content); l.charge_reason=can::BmsLimitReason::ElectricalLimited; l.discharge_power_w=100001;
+    expect_blocked(in,ReadinessBlock::PowerLimits);
 }
 }  // namespace

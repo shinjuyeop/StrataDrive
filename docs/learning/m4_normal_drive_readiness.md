@@ -22,9 +22,9 @@ Date: 2026-10-19. Status: **첫 순수 판단 component 구현·시험 / coordin
 | Front | Zone 자체 health | 올바른 session, NORMAL/NormalPath, 명시적 ready |
 | Front | Steering Actual, Brake Actual | 각각 fresh·known actual, INIT 또는 NORMAL, local protection 없음 |
 | Rear | Zone 자체 health | Front와 별도로 확인 |
-| Rear | Drive Actual torque | fresh·known torque, INIT 또는 NORMAL, local protection 없음 |
+| Rear | Drive Actual torque | fresh·known torque, INIT/NORMAL 또는 ADR-0048의 제한된 DEGRADED, local protection 없음 |
 | Rear | 원래 BMS PowerStatus | 정상 sender, HV_READY, 실제 main 접점 closed·precharge open·known bus, LV/interlock/isolation 정상·충전 연결/fault 없음 |
-| Rear | 원래 BMS PowerLimits | 정상 sender, charge/discharge 양쪽 usable·finite·0 이상 |
+| Rear | 원래 BMS PowerLimits | NORMAL 또는 검토한 제한 DEGRADED sender, charge/discharge 양쪽 usable·known·finite |
 
 Steering angle 0, Brake pressure 0, Drive torque 0과 BMS charge limit 0은 알려진 값이다.
 Unknown으로 대체하지 않는다. Charge limit 0은 회생 불가를 뜻할 수 있지만 정상 구동 전체를
@@ -46,8 +46,10 @@ FAIL_SAFE 복구 기능이 없다. 다음 vehicle-management owner가 trusted IN
 초기 known Actual을 허용하는 이유도 이 구분에 있다. Leaf가 허가 전에 0 torque 같은
 non-driving Actual을 발행할 수 있어야 한다. 모든 Actual이 NORMAL이 될 때까지 기다리면
 Drive는 허가를 기다리고 Central은 Drive의 NORMAL을 기다리는 순환 의존이 생긴다.
-Zone 자체 health와 BMS의 정상 상태는 별도로 요구한다. 검증된 DEGRADED 정책은 아직 없으므로
-이번 준비 조건에서는 DEGRADED를 허용하지 않는다.
+Zone 자체 health와 PowerStatus의 정상 상태는 별도로 요구한다. 최초 구현에서는 모든 DEGRADED를 차단했다.
+후속 [ADR-0048](../adr/ADR-0048-rear-power-routing-and-nondriving-startup.md#검토한-degraded-envelope)에서
+Drive의 known capability 제한과 BMS 방향별 derating만 검토해 허용했다. 알려진 reason·값 범위·quality·
+원래 시각/의존 freshness를 모두 요구하며, FAIL_SAFE/LocalProtection와 다른 미검토 DEGRADED는 계속 차단한다.
 
 ## 원천 시각과 수신 책임
 

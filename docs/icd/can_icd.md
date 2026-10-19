@@ -5,6 +5,9 @@ Epoch/Sequence/Source/CausalSequence를 전달하고 각 nonblocking write 전�
 Scoped parent/expiry는 userspace sideband다. 기존 32-byte CAN에는 없으므로 kernel TX queue나
 remote Leaf까지 composite expiry가 보장됐다고 표시하지 않는다. Same-host SIL 보호 port와
 remote 보호 신호/Leaf lease 표현의 계약을 구분한다([ADR-0047](../adr/ADR-0047-zone-can-egress-and-local-protection.md)).
+[Rear 전원·초기 구동](../learning/m4_rear_power_startup.md)은 기존 EV wire의 PowerRequest·DrivePermission·
+PowerLimits→DriveBatteryLimits와 원래 status/ACK를 연결했다. Parent는 trusted TX 발급 context로 별도 대조한다.
+Normal torque receiver는 explicit arm 때 시작하며 wire의 sequence나 시각을 가짜 startup packet으로 소비하지 않는다.
 
 Status: semantic/failure contract **DEFINED**, actuator 6개 + EV 6개 DBC/codec **Host 초안 구현·시험 / baseline 채택 PENDING**.
 [Steering 두 frame의 설계·DBC 초안](steering_frame_draft.md)을 작성했다(학습자 review PENDING).
@@ -47,7 +50,7 @@ vCAN은 전기적 동작, bit timing, 실제 arbitration/bus load 검증이 아�
 Drive는 [RG-01](regenerative_braking_design.md)을 반영해 Command 32 / Actual 64 bytes로
 정의했다. Signed torque와 capability의 scaling/invalid code/원천 freshness/배치는
 [Drive wire 초안](drive_frame_draft.md)을 따른다. Critical actual validity와 capability validity를
-분리하고 Steering/Brake wire는 유지했다. 회생 물리 모델·배분 구현은 후속 작업이다.
+분리하고 Steering/Brake wire는 유지했다. 회생 물리/에너지와 Central 배분은 component로 구현했으며 차량 runtime은 후속이다.
 
 ## EV-01 추가 wire 초안
 
@@ -55,7 +58,8 @@ Drive는 [RG-01](regenerative_braking_design.md)을 반영해 Command 32 / Actua
 추가했다. EV schema 1의 6개 frame에 대해 Host layout/CRC/canonical vector를 검사했다.
 [EV C++ codec/항목별 receiver와 native SocketCAN 변환](../learning/m1_bms_codec.md)은 Host에서 시험했다.
 EV vCAN TX/RX/relay도 기존 fixture에서 36개 case로 시험했다.
-Actual coordinator/Zone timing과 Drive의 실제 통합 gate는 PLANNED / NOT RUN이다.
+Drive의 필수 EV gate와 Rear 전원/허가/limits·초기 구동 연결은 Host component로 구현했다.
+전체 coordinator/Zone runtime·통합 workload timing은 PLANNED / NOT RUN이다.
 [EV 설계](ev_power_bms_design.md)의 IF-CAN-BMS(power 요청 / battery·limit·power status),
 IF-CAN-DRIVE-CONSTRAINT(원천 limit / drive permission)의 wire/library를 추가했다.
 Frame 수/ID/DLC/schema/P05/Data ID, critical 목록과 local rate/age는 ADR-0016 초안에 있다.

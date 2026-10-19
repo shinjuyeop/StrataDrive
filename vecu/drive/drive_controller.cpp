@@ -59,21 +59,34 @@ DriveController::DriveController(DriveControllerConfig config) : config_(config)
         !std::isfinite(std::pow(config.max_wheel_speed_rad_s/config.motoring_efficiency_lower_bound, 2)+
             4*config.copper_loss_w_per_nm2*config.maximum_bms_power_w)) throw std::invalid_argument("DriveController configuration");
 }
-bool DriveController::start_session(ActuatorSession session) {
+bool DriveController::start_session(ActuatorSession session, DriveCommandStartup startup) {
     const auto application_epoch = session.application_epoch;
     const auto model_epoch = session.model_epoch;
     const auto enable_ns = session.enable_ns;
     if (application_epoch == 0 || model_epoch == 0 || (epoch_ != 0 &&
         (application_epoch <= epoch_ || model_epoch < model_epoch_ || enable_ns < last_observed_ns_))) return false;
-    if (!command_.start_session(application_epoch, enable_ns) || !limits_.start_session(application_epoch, enable_ns) ||
+    if (startup != DriveCommandStartup::Immediate && startup != DriveCommandStartup::NonDriving) return false;
+    if ((startup == DriveCommandStartup::Immediate && !command_.start_session(application_epoch, enable_ns)) || !limits_.start_session(application_epoch, enable_ns) ||
         !permission_.start_session(application_epoch, enable_ns)) return false;
     epoch_ = application_epoch; model_epoch_ = model_epoch; enable_ns_ = last_observed_ns_ = last_tick_ns_ = enable_ns;
     sequence_ = 0; armed_ = stopped_ = false; decision_ = {};
+    command_monitoring_ = startup == DriveCommandStartup::Immediate; startup_inputs_seen_ = false;
     speed_.reset(); speed_cursor_.reset(); hv_.reset(); hv_cursor_.reset(); permission_parent_.reset(); last_capability_input_ns_.reset();
     feedback_.begin(session); e2e::p05_protect_init(tx_.protection);
     output_ = {drive::ActuationMode::Zero, 0, std::nullopt, enable_ns};
     prepared_ns_.reset(); prepared_inputs_.reset(); execution_gap_ = false;
     return true;
+}
+bool DriveController::arm_normal_commands(std::uint64_t now_ns) {
+    if (!clock(now_ns) || command_monitoring_ || decision_.fault != DriveGateFault::None) return false;
+    const auto in = monitor(now_ns);
+    if (decision_.fault != DriveGateFault::None || !in.complete || !in.permission ||
+        can::bms_permission_allows_normal(*in.permission) ||
+        in.permission->message.local_state == can::ActuatorLocalState::FailSafe ||
+        in.hv->value.local_fault || !in.hv->value.inverter_ready ||
+        in.hv->value.bus_voltage_v < config_.minimum_hv_v || in.hv->value.bus_voltage_v > config_.maximum_hv_v) return false;
+    if (!command_.start_session(epoch_, now_ns)) return false;
+    command_monitoring_ = true; return true;
 }
 bool DriveController::clock(std::uint64_t now_ns) {
     if (epoch_ == 0 || stopped_) return false;
@@ -91,7 +104,8 @@ void DriveController::fail(DriveGateFault fault, std::uint64_t now_ns) {
 }
 DriveController::Inputs DriveController::monitor(std::uint64_t now_ns) {
     Inputs in;
-    in.command = command_.current_sample(now_ns); in.limits = limits_.current_sample(now_ns); in.permission = permission_.current_sample(now_ns);
+    if (command_monitoring_) in.command = command_.current_sample(now_ns);
+    in.limits = limits_.current_sample(now_ns); in.permission = permission_.current_sample(now_ns);
     if (speed_ && now_ns-speed_->identity.source_time_ns <= config_.local_age_ns && now_ns-speed_->input_time_ns <= config_.local_age_ns) in.speed = speed_;
     if (hv_ && now_ns-hv_->identity.source_time_ns <= config_.local_age_ns && now_ns-hv_->input_time_ns <= config_.local_age_ns) in.hv = hv_;
     if (in.speed && in.hv && std::max(in.speed->identity.source_time_ns, in.hv->identity.source_time_ns)-
@@ -104,8 +118,21 @@ DriveController::Inputs DriveController::monitor(std::uint64_t now_ns) {
     const bool hv_ok = in.hv && in.hv->value.bus_voltage_v >= config_.minimum_hv_v && in.hv->value.bus_voltage_v <= config_.maximum_hv_v &&
         in.hv->value.inverter_ready && !in.hv->value.local_fault;
     in.allowed = in.complete && grant && limits_ok && hv_ok && in.speed->value <= config_.max_wheel_speed_rad_s;
-    const bool timed_out = live(command_.health()) || live(limits_.health()) || live(permission_.health());
+    const bool timed_out = (command_monitoring_ && live(command_.health())) || live(limits_.health()) || live(permission_.health());
     const bool local_timeout = now_ns-enable_ns_ >= 80000000 && (!in.speed || !in.hv);
+    if (!command_monitoring_) {
+        if (grant) fail(DriveGateFault::CommandsNotArmed, now_ns);
+        if (startup_inputs_seen_ || timed_out || local_timeout) {
+            if (!limits_known) fail(DriveGateFault::LimitsUnavailable, now_ns);
+            else if (!permission_known) fail(DriveGateFault::PermissionUnavailable, now_ns);
+            else if (!in.speed || !in.hv) fail(DriveGateFault::LocalInputsUnavailable, now_ns);
+            else if (in.permission->message.local_state == can::ActuatorLocalState::FailSafe ||
+                in.permission->message.origin == can::ActuatorOrigin::LocalProtection) fail(DriveGateFault::UpstreamProtection, now_ns);
+            else if (in.limits->message.local_state == can::ActuatorLocalState::FailSafe || in.hv->value.local_fault) fail(DriveGateFault::BmsProtection, now_ns);
+        }
+        startup_inputs_seen_ = startup_inputs_seen_ || in.complete;
+        return in;
+    }
     // Explicit fresh Inhibit + known physical OFF is a legitimate non-driving INIT.
     // After activation, any loss closes the gate and latches until a newer trusted INIT.
     if (armed_ || timed_out || local_timeout || (grant && in.complete && in.command)) {
@@ -123,6 +150,7 @@ DriveController::Inputs DriveController::monitor(std::uint64_t now_ns) {
 can::DriveReceiveResult DriveController::receive_command(const can::DriveFrame& frame, std::uint64_t now_ns) {
     if (!clock(now_ns)) return {epoch_ == 0 ? can::ActuatorReceiveDecision::NotInitialized : can::ActuatorReceiveDecision::ClockError, std::nullopt};
     monitor(now_ns); // late fresh data cannot conceal a preceding expiry
+    if (!command_monitoring_) return {can::ActuatorReceiveDecision::NotInitialized, std::nullopt};
     return command_.receive(frame, now_ns);
 }
 can::BmsReceiveResult DriveController::receive_limits(const can::BmsFrame& frame, std::uint64_t now_ns) {

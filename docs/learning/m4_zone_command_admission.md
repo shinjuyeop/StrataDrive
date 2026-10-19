@@ -78,5 +78,5 @@ ctest --test-dir build/m4-readiness -R 'CommandAdmission|RealAllocatorOutputsPas
 후속 [gateway의 bounded queue/egress와 CAN 전달·local safety handoff](m4_zone_gateway.md)는 구현했다.
 기존 32-byte CAN payload에 이 sideband가 없으므로
 수용 시험을 Leaf까지 원래 만료가 보장된 end-to-end 검증으로 확대하지 않는다.
-Rear power/permission·BMS constraint 전달, 초기 non-driving command, 실제 독립 ingress/rejoin·
-전체 workload timing·DDS/M5는 남아 있다. System requirement 32개/TC 29개는 NOT RUN을 유지한다.
+후속 [Rear 전원/허가/limits·NonDriving/arm](m4_rear_power_startup.md)은 component/vCAN에서 연결했다.
+Front startup·정상 종료·실제 독립 ingress/rejoin·전체 workload timing·DDS/M5는 남아 있다. System requirement 32개/TC 29개는 NOT RUN을 유지한다.

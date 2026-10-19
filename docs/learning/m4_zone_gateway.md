@@ -89,5 +89,6 @@ Sanitizer는 `build/m1-angle-sanitized`에서 같은 새 target을 실행한다.
 이번에 보장하는 경계는 **userspace에서 SocketCAN에 넣기 직전까지**다.
 기존 32-byte CAN에는 원래 composite expiry가 없고 kernel TX queue나 실제 bus 전달을 취소할 수 없다.
 Leaf 수신 시 원래 expiry를 확인하는 규격과 remote 보호 전달 방식은 다음 계약 결정이다.
-Rear power/permission/constraint·초기 non-driving/arm·실제 ingress/status 감시·full runtime/timing,
-DDS와 Target/system TC도 남아 있다. M4 전체 완료나 M3 타이밍 예외 해소로 표시하지 않는다.
+[Rear power/permission/limits·초기 NonDriving/arm](m4_rear_power_startup.md)은 후속 단계에서 연결했다.
+Front startup·정상 종료·실제 ingress/status 감시·full runtime/timing·DDS와 Target/system TC는 남아 있다.
+위 697개/vCAN3개는 gateway 최초 단계 이력이다. M4 전체 완료나 M3 타이밍 예외 해소로 표시하지 않는다.

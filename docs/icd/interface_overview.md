@@ -2,7 +2,7 @@
 
 Status: semantic contract **DEFINED / Reference Baseline v0.1**.
 2026-10-13 [RG-01 회생제동 확장](regenerative_braking_design.md)의 포함 범위를 결정했다.
-아래 Drive 의미는 이 후속 설계를 반영하며 회생 runtime은 PLANNED / NOT RUN이다.
+아래 Drive 의미는 이 후속 설계를 반영한다. 회생/에너지·배분은 Host component로 구현했으며 차량 runtime은 PLANNED / NOT RUN이다.
 CAN actuator 6개 + EV 6개 wire/DBC/codec은 **Host 초안 구현·시험 / baseline 채택 PENDING**이며 DDS IDL은 **PLANNED**다.
 [Steering Command/Actual의 DBC·layout 제안](steering_frame_draft.md)을 작성했으며 review PENDING이다.
 [Steering angle field 초안](steering_angle_encoding.md)의 독립 codec을 Host에서 시험했다.
@@ -22,6 +22,8 @@ M4 [Zone 명령 수용](../learning/m4_zone_command_admission.md)은 shared in-p
 VehicleRequest/FrontCommands/RearCommands 계약을 사용한다. 독립 trusted root·scope·expiry를 검증하며,
 후속 [CAN egress/로컬 보호](../learning/m4_zone_gateway.md)는 구현·시험했다. 원래 parent/expiry가 없는
 기존 32-byte CAN의 remote Leaf lease 검사·remote 보호 신호와 전체 runtime은 후속이다.
+[Rear 전원·초기 구동](../learning/m4_rear_power_startup.md)은 별도 lifecycle root·Enable ACK 검증과
+PowerRequest/limits/permission 전달·Drive trusted arm을 실제 controller/component·vCAN에서 연결했다.
 2026-10-13 [EV-01](ev_power_bms_design.md)으로 BMS Leaf, 차량 관리와 power lifecycle을
 추가했다. 2026-10-14 [BMS wire 초안](bms_frame_draft.md)의 EV 6개 DBC frame과
 Host C++ codec/항목별 receiver·DBC 교차 검증과 native SocketCAN 변환 시험을 추가했다.

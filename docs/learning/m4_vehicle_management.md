@@ -100,5 +100,7 @@ ctest --test-dir build/m4-readiness -R '^VehicleManagement' --output-on-failure
 
 후속 [control_allocation의 요구/출력 계약과 회생·마찰 배분](m4_control_allocation.md)을 구현·시험했다. VehicleManagement의 허가는
 정상 배분의 필수 gate로 사용하고 BMS 한계·Drive actual/capability와 Brake actual을 반영한다.
-그 뒤 Front/Rear routing·독립 ingress/local loss/rejoin과 전체 EV loop를 연결한다.
+후속 [Rear 전원/허가/limits·초기 구동 연결](m4_rear_power_startup.md)은 실제 Power/Drive와
+독립 root·Enable ACK·trusted arm을 연결하고, 제한된 Drive/BMS DEGRADED envelope도 검토했다.
+Front startup·정상 종료·독립 ingress/local loss/rejoin과 전체 EV loop는 다음 통합이다.
 DDS transport는 M5이며 이번 결과가 M3 전체 수용이나 차량 시스템 TC 통과를 뜻하지 않는다.

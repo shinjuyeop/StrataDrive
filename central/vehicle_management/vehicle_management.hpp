@@ -1,14 +1,9 @@
 #pragma once
 
 #include "normal_drive_readiness.hpp"
+#include "power_commands.hpp"
 
 namespace stratadrive::central {
-// Authenticated/validated upstream ingress supplies this root, independently of
-// outgoing CAN. Same epoch/sequence identifies one immutable lifecycle request.
-struct LifecycleRequest {
-    can::BmsParentContext identity;
-    can::BmsPowerAction action;
-};
 enum class LifecycleReceiveDecision {
     Accepted, Unchanged, NotInitialized, Latched, Invalid, EpochMismatch,
     Expired, SequenceRejected, MutationRejected, RestartRequired
@@ -37,12 +32,6 @@ struct VehicleManagementDecision {
     bool normal_allowed{false};
     bool power_off_confirmed{false}; // actual OFF + acknowledgement, not a coil command
 };
-struct VehicleManagementOutput {
-    can::BmsMessage power_request;
-    can::BmsMessage drive_permission;
-    std::optional<can::BmsParentContext> power_parent, permission_parent;
-};
-
 // Single-owner, externally clocked Central runnable. No plant, socket, scheduler
 // or Epoch issuance. Inputs obey the readiness API's trusted-current-sample
 // contract; all values currently share one monotonic domain.

@@ -1,8 +1,8 @@
 #include "drive_sil.hpp"
 
 namespace stratadrive::simulation {
-bool DriveSil::start_session(std::uint32_t epoch, std::uint32_t model_epoch, std::uint64_t enable_ns) {
-    if (!ecu_.start_session({epoch, model_epoch, enable_ns})) return false;
+bool DriveSil::start_session(std::uint32_t epoch, std::uint32_t model_epoch, std::uint64_t enable_ns, vecu::DriveCommandStartup startup) {
+    if (!ecu_.start_session({epoch, model_epoch, enable_ns}, startup)) return false;
     plant_.begin(model_epoch, enable_ns); return true;
 }
 can::DriveReceiveResult DriveSil::receive_command(const can::DriveFrame& frame, std::uint64_t now_ns) {

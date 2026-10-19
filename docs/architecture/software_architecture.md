@@ -19,7 +19,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `zone/gateway` | Front/Rear 공통 DDS↔각 CAN dispatch; 각 Zone의 원천 status를 Central bridge에 전달 |
 | `central/session` | Linux 영속 Epoch issuer 구현; Central trusted owner, M1 fixture 연결; 실제 Central–Zone INIT protocol 후속 |
 | `zone/command_validation` | [Front/Rear 독립 수용](../learning/m4_zone_command_admission.md) 구현: trusted root/arm·scope/atomic pair·age/expiry/range/mode/progress 검증 → current scoped snapshot 또는 reject/보호 요청 |
-| `zone/gateway` | [CAN 전달](../learning/m4_zone_gateway.md) 구현: bounded FIFO/최신 묶음·원래 source/expiry·각 write 전후 guard·partial/failure latch; 별도 SocketCAN port/분리 vCAN 시험 |
+| `zone/gateway` | [Rear 전원·시동](../learning/m4_rear_power_startup.md) 및 [CAN 전달](../learning/m4_zone_gateway.md) 구현: bounded FIFO/최신 묶음·원래 source/expiry·각 write 전후 guard·partial/failure latch; 별도 SocketCAN port/분리 vCAN 시험 |
 | `central/vehicle_management` | Central 별도 VCU: [준비 판정](../learning/m4_normal_drive_readiness.md)·[lifecycle/허가 상태 owner](../learning/m4_vehicle_management.md) 구현; trusted root/ACK/expiry·FAIL_SAFE latch와 전원 요청/DrivePermission 산출; 전체 Zone/runtime 통합 후속 |
 | `central/control_allocation` | [첫 normal-path 배분](../learning/m4_control_allocation.md) 구현: 허가된 vehicle root + fresh actual/capability/BMS → angle·torque·pressure와 scoped expiry; Zone 수용 연결 시험, 전체 runtime/차량 전환은 TBD-06/15 |
 | `central/feedback_bridge` | 두 Zone의 per-source actual/EV status → Central consumer/Host; 원천 age/identity 보존, PLANNED |
@@ -35,7 +35,7 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `vecu/bms` | local sensor port 검사 → 충방전 derating·보호 latch·PowerLimits와 로컬 safety gate; 물리 모델과 분리 |
 | `vecu/bms/power_controller.*` / `simulation/power` | BMS leaf의 lifecycle runnable / 실제 접점·RC bus·current 센서; controller/plant 분리, Host component 구현·시험 |
 | `simulation/{steering,brake,drive}/*_sil` | ECU와 plant 연결, physical step/acquisition·출력 적용·fault injection; ECU library 밖의 single-owner SIL runner |
-| `simulation/runtime` | Steering 및 다중 주기 Host fixture: Brake/Drive/BMS/Power/RX별 worker·독립 monitor·별도 plant owner, 출력 admission/적용과 CSV 계측; 차량 runtime·Target scheduler는 후속 |
+| `simulation/runtime` | RearPowerControl은 trusted TX context·explicit arm·Drive/Power 보호를 연결한다. Steering 및 다중 주기 Host fixture: Brake/Drive/BMS/Power/RX별 worker·독립 monitor·별도 plant owner, 출력 admission/적용과 CSV 계측; 차량 runtime·Target scheduler는 후속 |
 | `simulation/simple_plant` | CARLA 전 계약 검증용 작은 vehicle model |
 | `simulation/plant_adapter` | actual actuator feedback → plant별 actuation mapping |
 | `simulation/carla`, `simulation/scenarios`, `simulation/fault_injection` | simulator lifecycle, scenario, 명시적 fault injection |

@@ -321,4 +321,49 @@ TEST_F(DriveControllerTest, NewApplicationEpochPreservesPhysicalTorqueAndRequire
     EXPECT_EQ(actual.local_state, can::ActuatorLocalState::Init); EXPECT_FALSE(actual.regen_capability);
     EXPECT_EQ(controller.actual_torque_nm(), 180);
 }
+class DriveStartupTest : public DriveControllerTest {
+protected:
+    void SetUp() override {
+        commands=false; allow=false; hv_v=0; inverter_ready=false;
+        ASSERT_TRUE(controller.start_session(1,7,kStart,vecu::DriveCommandStartup::NonDriving));
+        ASSERT_TRUE(feedback.start_session(1,kStart));
+    }
+};
+TEST_F(DriveStartupTest, FreshInhibitAndLocalInputsAllowLongPrechargeWithoutTorquePackets) {
+    run({10,1000}); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::None);
+    EXPECT_FALSE(controller.decision().active); EXPECT_DOUBLE_EQ(controller.actual_torque_nm(),0);
+    EXPECT_FALSE(controller.arm_normal_commands(time_ns(1000)));
+}
+TEST_F(DriveStartupTest, PacketsCannotArmAndFirstNormalSequenceRemainsZeroAfterExplicitArm) {
+    run({10,200}); cmd_seq=9;
+    EXPECT_EQ(controller.receive_command(command(200),time_ns(200)).decision,can::ActuatorReceiveDecision::NotInitialized);
+    hv_v=400; inverter_ready=true; inputs(210); ASSERT_TRUE(controller.arm_normal_commands(time_ns(210)));
+    EXPECT_FALSE(controller.arm_normal_commands(time_ns(210)));
+    allow=true; inputs(220); cmd_seq=0;
+    EXPECT_EQ(controller.receive_command(command(220),time_ns(220)).decision,can::ActuatorReceiveDecision::Accepted);
+    tick(220); EXPECT_TRUE(controller.decision().active); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::None);
+}
+TEST_F(DriveStartupTest, AllowNormalBeforeTrustedArmLatchesWithoutApplyingTorque) {
+    run({10,100}); allow=true; hv_v=400; inverter_ready=true; step(110);
+    EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::CommandsNotArmed); EXPECT_FALSE(controller.decision().active);
+    EXPECT_FALSE(controller.arm_normal_commands(time_ns(110))); EXPECT_DOUBLE_EQ(controller.actual_torque_nm(),0);
+}
+TEST_F(DriveStartupTest, MissingStartupPermissionCannotBeHiddenByLateFreshInhibit) {
+    step(10); grants=false; run({20,60}); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::None);
+    step(70); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::PermissionUnavailable);
+    grants=true; step(80); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::PermissionUnavailable);
+}
+TEST_F(DriveStartupTest, MissingStartupLimitsStillLatchWithContinuingInhibit) {
+    step(10); limits=false; run({20,70}); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::LimitsUnavailable);
+}
+TEST_F(DriveStartupTest, StartupLocalSensorLossStillLatchesWithFreshBmsTraffic) {
+    step(10); hv_valid=false; run({20,50}); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::LocalInputsUnavailable);
+    hv_valid=true; step(60); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::LocalInputsUnavailable);
+}
+TEST_F(DriveStartupTest, NormalCommandWaitingBudgetStartsAtExplicitArmAndIsNotExtended) {
+    run({10,1000}); hv_v=400; inverter_ready=true; inputs(1010);
+    ASSERT_TRUE(controller.arm_normal_commands(time_ns(1010))); tick(1010); run({1020,1080});
+    EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::None);
+    step(1090); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::CommandUnavailable);
+}
 }  // namespace

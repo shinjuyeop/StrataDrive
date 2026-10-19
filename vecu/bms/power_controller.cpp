@@ -84,6 +84,10 @@ void PowerController::mark_continuity_lost(std::uint64_t now_ns) {
     last_observed_ns_ = now_ns;
     requests_.mark_continuity_lost(now_ns); fail(PowerControlFault::ContinuityLost);
 }
+bool PowerController::request_local_protection(std::uint64_t now_ns) {
+    if(epoch_==0) return false;
+    mark_continuity_lost(now_ns); return true;
+}
 bool PowerController::Dwell::observe(bool condition, std::uint64_t source_ns, std::uint64_t duration_ns) {
     if (!condition) { first.reset(); last.reset(); return false; }
     if (!last || source_ns < *last || source_ns-*last > 50000000) first = source_ns;

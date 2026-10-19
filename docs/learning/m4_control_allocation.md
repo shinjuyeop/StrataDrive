@@ -110,8 +110,9 @@ receiver가 받은 actual이다. 두 수치의 양자화 오차도 별도로 대
 
 Steering actual/Zone health·BMS power/limits·permission은 응답 모델 시험의 명시적 fixture다.
 Speed는 외부 고정 20 rad/s이며 차량 관성·타이어·경사·Battery energy/SOC·full Leaf response monitor를 연결한 전체 loop가 아니다.
-실제 BMS derating의 sender DEGRADED를 허용하는 VehicleManagement 정책도 이번에 바꾸지 않았다.
-Normal sender의 valid zero/limited constraint로 첫 배분을 시험한 것이며 그 통합 envelope는 후속 검토다.
+이 첫 배분 시험 당시에는 BMS sender DEGRADED 허가 정책을 바꾸지 않았고 Normal sender의 valid zero/limited constraint를 사용했다.
+이후 [Rear 시동 연결/ADR-0048](m4_rear_power_startup.md)에서 정차 중 Drive capability와 BMS non-protection
+derating의 제한된 envelope를 검토·구현했다. 이 문서의 606개/3.6 s 결과는 당시 별도 시험 이력이다.
 SocketCAN/vCAN·DDS·wall-time 실행·Target/system TC는 이번에 실행하지 않았다.
 
 ```sh
@@ -121,6 +122,6 @@ ctest --test-dir build/m4-readiness -R '^ControlAllocation' --output-on-failure
 ```
 
 후속 [scoped admission](m4_zone_command_admission.md)과 [CAN routing/local protection](m4_zone_gateway.md)은 구현했다.
-다음은 Rear lifecycle/constraint·startup/Leaf lease·실제 독립 ingress/status/loss/rejoin과 전체 runtime이다.
-그 과정에서 기존 EV runtime fixture를 coordinator로 교체하고 BMS non-protection derating 허가 envelope·
-초기 non-driving command 경로를 확인한다. 새 workload timing과 차량 response budget은 다시 검증한다.
+[Rear 전원/허가/limits·초기 NonDriving/arm](m4_rear_power_startup.md)도 후속 component/vCAN에서 연결했다.
+다음은 Front startup·coordinated stop·Leaf lease·실제 독립 ingress/status/loss/rejoin과 전체 runtime이다.
+기존 EV runtime fixture를 coordinator로 교체한 새 workload timing과 차량 response budget은 다시 검증한다.

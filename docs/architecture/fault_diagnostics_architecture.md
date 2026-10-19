@@ -75,6 +75,8 @@ DEGRADED를 거쳐야 하는 것은 아니며 critical path loss는 NORMAL→FAI
 
 M0 F01/F03/F04 및 F02 지속 후 timeout은 보수적으로 FAIL_SAFE를 선택한다.
 Actuator가 불확실한 상태에서 계속 운행할 DEGRADED envelope는 아직 없기 때문이다.
+[ADR-0048](../adr/ADR-0048-rear-power-routing-and-nondriving-startup.md)은 알려진 Drive capability/BMS derating만
+제한적으로 허용한다. 불확실한 actual이나 critical loss로 계속 운행하는 envelope를 추가한 것은 아니다.
 동시 fault는 FAIL_SAFE 우선이며 복구는 자동 severity 하향 없이 gate를 거친다.
 RECOVERY는 별도 top-level state가 아니라 INIT 재검증 절차다. 상세 dwell과 local
 actuator 물리 동작은 [safety contract](../requirements/safety_requirements.md)의 TBD다.

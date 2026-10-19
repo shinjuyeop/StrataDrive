@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 697개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 726개 PASS**다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -1235,6 +1235,53 @@ Markdown 115개/상대 링크·앵커 1301개, YAML 3개·Python 8개 syntax/추
 Python unit 변경·재실행은 없고 이전 63개 PASS 이력을 유지한다.
 Remote CAN composite lease/protection 표현·Rear lifecycle/constraint/startup·실제 ingress/status 감시와
 full runtime/timing/Target/system TC는 후속이다. M3 원래 실패·전체 수용 대기와 32개 requirement/29개 TC NOT RUN을 유지한다.
+
+### 2026-10-19 — Rear 전원/허가/limits와 non-driving startup
+
+[ADR-0048](adr/ADR-0048-rear-power-routing-and-nondriving-startup.md)과
+[학습 기록](learning/m4_rear_power_startup.md)에 경계·시동 순서·reviewed DEGRADED envelope를 기록했다.
+독립 lifecycle root 승인→RearPowerGateway→기존 Power/Drive receiver, source/parent/expiry 보존,
+실제 송신 Enable ACK 뒤 explicit arm/AllowNormal을 연결했다. 기존 EV wire/시한·기본 Drive Immediate는 유지한다.
+NonDriving은 normal torque receiver만 arm까지 대기하며 limits/permission/local HV/speed 감시는 계속한다.
+정차 중 known regen Disabled와 정상 BMS derating만 제한적으로 허용하고 고장/unknown/stale은 계속 차단한다.
+
+Startup7·readiness3·Rear19개를 추가해 normal·ASan/UBSan **각각 C++ 726/726 PASS**다.
+1.6 s 논리 시간 연결에서 실제 VehicleManagement/PowerController/RC·접점/DriveController/torque plant와
+allocator·정상 gateway를 사용했다. >80 ms precharge 동안 normal torque packet 0개·actual motor0,
+actual Ready/ACK 뒤 명시적 arm·첫 normal Sequence0·실제 구동을 확인했다. 마지막 Rear 상실은
+실제 Drive Zero/Power inhibit를 선택하고 actual torque 잔류·닫힌 접점을 유지한다. 다음 tick은 WaitCurrent다.
+Front actual·Zone health·BMS limits/safety·pack400 V/load0 A·speed0은 fixture이며 full BMS/SOC/차량 loop가 아니다.
+정상 종료→전원 종료의 전체 coordinated stop을 검증한 것은 아니다.
+
+분리 vCAN은 normal·sanitizer **각각 4/4 PASS**다. 기존 Front/Rear3개와 새 Rear BMS3-stream
+(PowerRequest/DriveBatteryLimits/DrivePermission)의 기존 Leaf 수신·별도 trusted 발급 context 대조를 확인했다.
+발급 history16개는 trusted TX에서만 생성하며 exact envelope에서 optional FDF0x04 표시만 제외한다.
+BRS/ESI·payload/ID/length 불일치와 만료·새 INIT은 context를 회수하지 못한다. DDS 인증/remote protocol은 아니다.
+기존 transport도 격리 netns에서 **각각 97/97 PASS**다. Fresh symlink build 경로
+`build/m4-rear-can-{normal,sanitized}`에 로그를 분리해 과거 evidence를 보존했다.
+Observed actuator timeout은 normal **80.002–81.109 ms**, sanitizer **80.052–81.112 ms**다.
+이는 기존 local transport 관측이며 이번 gateway/전체 차량 wall-time 보장으로 확대하지 않는다.
+
+Normal·ASan/UBSan·BUILD_TESTING=OFF production build를 통과했다. 현재 compilation database로
+변경 production7개에 cppcheck2.7 warning/performance/portability를 적용해 진단 없이 통과했다.
+Production7개+test4개에 clang-tidy14 analyzer/bugprone을 적용했다. 확장 header filter에서 기존
+`DriveSilPlant::begin(model_epoch, now_ns)`의 easily-swappable-parameters 경고 1종(3 TU에서 반복)을 기록했다.
+새 test helper의 같은 경고는 named stamp 인자로 수정·재검사했고 새 source/test 진단은 없다.
+Third-party suppressed 진단과 기존 GoogleTest/cppcheck macro 제약을 전체 repo PASS로 바꾸지 않는다.
+
+첫 개발 cohort **723개 중 722 PASS/1 FAIL**은 `build/m4-rear-test-development.txt`에 보존한다.
+기존 blanket DEGRADED 거부 시험의 BMS Disabled0이 새 reviewed envelope에 들어간 경우였다.
+해당 fixture를 양 방향 Nominal인 미검토 DEGRADED로 바꿨고 fault/unknown 차단 검사는 유지했다.
+첫 vCAN **3 PASS/1 FAIL**은 `build/m4-rear-vcan-development.txt`다. Linux RX의 optional FDF4와
+TX0 표현 차이 때문에 발급 frame을 찾지 못했다. FDF만 정규화하고 BRS/ESI·payload mismatch 시험을 추가했다.
+실패를 삭제하거나 안전 시한/입력 validity를 완화해 통과시키지 않았다.
+
+로그는 `build/m4-rear-{build,build-final,full-test,sanitized-configure,sanitized-build,sanitized-build-final,sanitized-test}.txt`,
+`build/m4-rear-production-{configure,build}.txt`, `build/m4-rear-{vcan,sanitized-vcan,clang-tidy,clang-tidy-final,cppcheck,doc-check}.txt`,
+`build/m4-rear-can-{regression,sanitized-regression}.txt`와 각 socketcan-results에 둔다.
+Markdown117개/상대 링크·앵커1334개·추적성, YAML3개·Python8개 syntax와 whitespace를 검사했다. Python unit은 변경/재실행하지 않았다.
+M4는 component 구현 중이며 Front startup·정상 종료·remote normal Leaf lease/보호·독립 ingress/status/rejoin·
+전체 runtime/timing/DDS/Target은 후속이다. M3 원래 실패·학습자 수용 대기와 requirement32/TC29 NOT RUN도 유지한다.
 
 ## 코드·예제·시험 배치
 

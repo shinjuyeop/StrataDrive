@@ -26,8 +26,9 @@ struct DriveControllerConfig {
 enum class DriveGateFault {
     None, CommandUnavailable, LimitsUnavailable, PermissionUnavailable, PermissionInhibit,
     LocalInputsUnavailable, HvNotReady, BmsProtection, Overspeed, ContinuityLost,
-    ClockError, ControlDeadline, SequenceExhausted, TorqueFeedbackUnavailable, UpstreamProtection
+    ClockError, ControlDeadline, SequenceExhausted, TorqueFeedbackUnavailable, UpstreamProtection, CommandsNotArmed
 };
+enum class DriveCommandStartup { Immediate, NonDriving };
 struct DriveControlDecision {
     bool active{false};
     DriveGateFault fault{DriveGateFault::None};
@@ -44,7 +45,10 @@ struct DriveControlDecision {
 class DriveController {
 public:
     explicit DriveController(DriveControllerConfig config);
-    bool start_session(ActuatorSession session);
+    bool start_session(ActuatorSession session, DriveCommandStartup startup = DriveCommandStartup::Immediate);
+    // Trusted coordinator callback only. NonDriving requires continuously fresh
+    // Inhibit/limits/local sensors; it never consumes or restamps torque commands.
+    bool arm_normal_commands(std::uint64_t now_ns);
     can::DriveReceiveResult receive_command(const can::DriveFrame& frame, std::uint64_t now_ns);
     can::BmsReceiveResult receive_limits(const can::BmsFrame& frame, std::uint64_t now_ns);
     can::BmsReceiveResult receive_permission(const can::BmsFrame& frame, std::uint64_t now_ns, const can::BmsParentContext* parent);
@@ -57,6 +61,7 @@ public:
     const drive::Actuation& output() const { return output_; }
     bool execution_gap() const { return execution_gap_; }
     const DriveControlDecision& decision() const { return decision_; }
+    std::uint32_t application_epoch() const { return epoch_; }
 private:
     struct Inputs {
         std::optional<can::DriveMessage> command;
@@ -86,5 +91,6 @@ private:
     std::uint32_t epoch_{0}, model_epoch_{0}, sequence_{0};
     std::uint64_t enable_ns_{0}, last_observed_ns_{0}, last_tick_ns_{0};
     bool armed_{false}, stopped_{false};
+    bool command_monitoring_{true}, startup_inputs_seen_{false};
 };
 }  // namespace stratadrive::vecu

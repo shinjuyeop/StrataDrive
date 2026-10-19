@@ -441,6 +441,44 @@ m4_zone_gateway_fixture:
   socketcan_expiry_guard: exclusive_immediately_before_nonblocking_write
   remote_leaf_lease_and_protection: pending_no_composite_expiry_in_32_byte_can
   parameter_status: fixture_only_no_yaml_loader_or_target_timing_claim
+# ADR-0048: finite Host Rear startup component, not a profile loader or full EV runtime.
+m4_rear_power_fixture:
+  implementation: separate_rear_power_gateway_and_trusted_sil_control
+  independent_inputs: [central_power_request, central_drive_permission, bms_power_limits, bms_power_status]
+  queue_capacity: 8
+  dispatch_max_scan: 8
+  dispatch_max_frames: 3
+  dispatch_order: inhibit_first_limits_before_allow
+  source_age_ms: 50
+  dependency_age_ms: 70
+  initial_missing_input_ms: 80
+  power_status_history: 8
+  actually_sent_power_history: 16
+  trusted_tx_context_history: 16
+  context_matching: exact_frame_ignore_only_optional_fdf_marker_0x04
+  lifecycle_parent: separate_trusted_root_not_learned_from_can
+  drive_startup: explicit_non_driving_then_trusted_arm_same_epoch_first_normal_sequence_zero
+  drive_default_startup: immediate_existing_behavior
+  allow_support: actual_ready_normal_status_and_actually_sent_enable_ack_live_parent
+  degradation_review:
+    drive_torque_nm: {minimum: -200, maximum: 300}
+    drive_speed_rad_s: {minimum: 0, maximum: 100}
+    drive_regen_capability_nm: {minimum: 0, maximum: 200}
+    drive_auxiliary_source_age_ms: 30
+    drive_capability_dependency_age_ms: 70
+    drive_reason: [Nominal, MotorOrSpeedLimited, ChargeAcceptanceLimited, Disabled]
+    bms_direction_power_w: {minimum: 0, maximum: 100000}
+    bms_reason: [Nominal, SocLimited, TemperatureLimited, ElectricalLimited, Disabled]
+    bms_at_least_one_non_nominal_reason: true
+    disabled_requires_known_zero: true
+    required_origin: NormalPath
+    other_sender_degraded: denied_unreviewed
+  protection: drive_zero_and_power_local_inhibit_existing_current_open_discharge_sequence
+  startup_test: {logical_window_ms: 1600, step_ms: 10, allocation_period_ms: 20}
+  startup_fixtures: [front_actual, zone_health, bms_limits, bms_safety_gate, pack_voltage_and_load, external_zero_speed]
+  coordinated_graceful_shutdown: pending_active_drive_inhibit_still_fails_safe
+  remote_normal_can_leaf_lease_and_dds: pending
+  parameter_status: fixture_only_no_yaml_loader_oem_calibration_or_target_timing_claim
 m4_allocation_fixture:
   implementation: normal_path_central_allocator_component
   parameter_status: fixture_only_no_oem_or_vehicle_calibration
@@ -478,7 +516,7 @@ m4_allocation_fixture:
   normal_braking_arbitration: maximum_deceleration_or_normalized_braking_not_sum
   regen_recovery: next_braking_interval_after_observed_release
   normal_output_expiry: minimum_vehicle_root_permission_and_used_source_dependency_deadlines
-  zone_parent_expiry_admission: not_implemented_legacy_can_has_no_parent_sideband
+  zone_parent_expiry_admission: userspace_scoped_gateway_implemented_remote_32_byte_can_lease_pending
   on_fault: latch_no_new_normal_commands_and_protection_required_not_brake_release
   recovery: newer_trusted_epoch_without_resetting_physics
 regenerative_braking:

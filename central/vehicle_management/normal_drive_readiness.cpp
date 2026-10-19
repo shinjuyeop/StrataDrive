@@ -28,6 +28,28 @@ bool actuator_available(const Message& message) {
             message.origin == can::ActuatorOrigin::NormalPath));
 }
 bool finite(const std::optional<double>& value) { return value && std::isfinite(*value); }
+bool drive_available(const can::DriveMessage& m,const NormalDriveReadinessInputs& in,std::uint64_t now,const ReadinessTiming& timing) {
+    if(actuator_available(m)) return true;
+    if(m.local_state!=can::ActuatorLocalState::Degraded || m.origin!=can::ActuatorOrigin::NormalPath ||
+        !finite(m.torque_nm) || !can::actuator_value_in_range(*m.torque_nm,{-200,300}) || !m.wheel_speed || !m.regen_capability ||
+        static_cast<unsigned>(m.regen_limit_reason)>static_cast<unsigned>(can::DriveRegenLimitReason::Disabled)) return false;
+    const auto& speed=*m.wheel_speed; const auto& cap=*m.regen_capability;
+    return can::actuator_value_in_range(speed.value_rad_s,{0,100}) && can::actuator_value_in_range(cap.torque_limit_nm,{0,200}) &&
+        fresh(speed.source_time_ns,timing.actual_source_age_ns,in,now) && fresh(cap.source_time_ns,timing.actual_source_age_ns,in,now) &&
+        cap.input_time_ns<=cap.source_time_ns && fresh(cap.input_time_ns,timing.bms_dependency_age_ns,in,now) &&
+        (m.regen_limit_reason!=can::DriveRegenLimitReason::Disabled || cap.torque_limit_nm==0);
+}
+bool constrained_limits(const can::BmsCurrentSample& sample) {
+    const auto* limit=std::get_if<can::BmsPowerLimits>(&sample.message.content);
+    if(!limit || sample.message.local_state!=can::ActuatorLocalState::Degraded || sample.message.origin!=can::ActuatorOrigin::NormalPath) return false;
+    const auto direction=[](const std::optional<double>& value,can::BmsLimitReason reason) {
+        return value && can::actuator_value_in_range(*value,{0,100000}) &&
+            static_cast<unsigned>(reason)<=static_cast<unsigned>(can::BmsLimitReason::Disabled) &&
+            (reason!=can::BmsLimitReason::Disabled || *value==0);
+    };
+    return direction(limit->charge_power_w,limit->charge_reason) && direction(limit->discharge_power_w,limit->discharge_reason) &&
+        (limit->charge_reason!=can::BmsLimitReason::Nominal || limit->discharge_reason!=can::BmsLimitReason::Nominal);
+}
 }  // namespace
 
 bool NormalDriveReadiness::ready() const {
@@ -74,7 +96,7 @@ NormalDriveReadiness evaluate(
            finite(brake->pressure_pa) && *brake->pressure_pa >= 0, brake ? brake->source_time_ns : 0);
     const auto& drive = inputs.rear.drive_actual;
     record(ReadinessBlock::DriveActual, drive && drive->kind == can::DriveFrameKind::Actual &&
-           current(*drive, timing.actual_source_age_ns, inputs, now_ns) && actuator_available(*drive) &&
+           current(*drive, timing.actual_source_age_ns, inputs, now_ns) && drive_available(*drive,inputs,now_ns,timing) &&
            finite(drive->torque_nm), drive ? drive->source_time_ns : 0);
 
     const auto& power = inputs.rear.power_status;
@@ -96,7 +118,7 @@ NormalDriveReadiness evaluate(
     record(ReadinessBlock::PowerLimits, limits && limit &&
            limits->message.kind == can::BmsFrameKind::PowerLimits &&
            current(limits->message, timing.bms_source_age_ns, inputs, now_ns) &&
-           (normal_drive ? normal(limits->message) : actuator_available(limits->message)) &&
+           ((normal_drive ? normal(limits->message) : actuator_available(limits->message)) || constrained_limits(*limits)) &&
            limits->quality[0] == can::BmsFieldQuality::Usable && limits->quality[1] == can::BmsFieldQuality::Usable &&
            finite(limit->charge_power_w) && *limit->charge_power_w >= 0 &&
            finite(limit->discharge_power_w) && *limit->discharge_power_w >= 0 &&

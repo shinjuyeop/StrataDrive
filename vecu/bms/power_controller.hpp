@@ -39,9 +39,11 @@ public:
     bool start_session(std::uint32_t application_epoch, std::uint32_t model_epoch, std::uint64_t enable_ns);
     can::BmsReceiveResult receive(const can::BmsFrame& frame, std::uint64_t now_ns, const can::BmsParentContext* parent);
     void mark_continuity_lost(std::uint64_t now_ns);
+    bool request_local_protection(std::uint64_t now_ns); // latch; current/open/discharge sequence remains local
     std::optional<can::BmsMessage> tick(const std::optional<power::SensorSnapshot>& sensors,
         const std::optional<power::BmsSafetyGate>& bms, std::uint64_t now_ns);
     const PowerControlOutput& output() const { return output_; }
+    std::uint32_t application_epoch() const { return epoch_; }
 private:
     struct Dwell {
         std::optional<std::uint64_t> first, last;
