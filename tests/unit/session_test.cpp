@@ -4,6 +4,7 @@
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
 #include "bms_receiver.hpp"
+#include "session_coordinator.hpp"
 
 #include <gtest/gtest.h>
 #include <fcntl.h>
@@ -53,6 +54,31 @@ TEST_F(SessionTest, InstancesAndUnusedGrantsStillAdvanceDurableEpoch) {
     initialize(); { const session::EpochStore issuer(store.string()); EXPECT_EQ(issuer.issue(), 1U); }
     EXPECT_EQ(session::EpochStore(store.string()).issue(), 2U);
     EXPECT_EQ(session::EpochStore(store.string()).issue(), 3U);
+}
+class StartupPort : public session::CoordinatorPort {
+public:
+    std::uint64_t now{1000000000}; unsigned commits{0};
+    std::uint64_t now_ns() noexcept override { return now; }
+    bool quiesce_central() noexcept override { return true; }
+    bool send(const session::Control&) noexcept override { return true; }
+    bool commit_central(central::CoordinatorSession) noexcept override { ++commits; return true; }
+    void protect_central() noexcept override {}
+};
+TEST_F(SessionTest, DurableAbandonedAttemptRequiresNewGrantAndAllFreshOwnerAcks) {
+    initialize(); const session::EpochStore issuer(store.string()); StartupPort port;
+    session::SessionCoordinator startup{port};
+    // Durable file IO is explicit startup work, outside coordinator poll/receive.
+    const auto abandoned=issuer.issue(); ASSERT_TRUE(startup.begin(abandoned,port.now)); startup.cancel(port.now);
+    EXPECT_FALSE(startup.begin(abandoned,port.now)); const auto next=issuer.issue(); ASSERT_GT(next,abandoned);
+    ASSERT_TRUE(startup.begin(next,port.now)); EXPECT_FALSE(startup.run_enabled());
+    const auto acknowledge=[&](session::Phase phase) {
+        for(std::size_t i=0;i<session::kRoleCount;++i) {
+            EXPECT_EQ(startup.receive({static_cast<session::Role>(i),phase,startup.plan(),port.now,true},port.now),session::AckResult::Accepted);
+        }
+    };
+    acknowledge(session::Phase::Prepare); port.now=startup.plan().enable_ns; acknowledge(session::Phase::Initialize);
+    EXPECT_FALSE(startup.run_enabled()); acknowledge(session::Phase::Release); EXPECT_TRUE(startup.run_enabled()); EXPECT_EQ(port.commits,1U);
+    EXPECT_EQ(session::EpochStore(store.string()).issue(),next+1);
 }
 TEST_F(SessionTest, MissingStoreRecordOrLockNeverReinitializes) {
     EXPECT_THROW(session::EpochStore(store.string()).issue(), std::system_error);

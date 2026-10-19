@@ -183,7 +183,7 @@ Stop/lease16·VM 갱신1·Rear terminal1·연결5개를 더해 전체 각각773�
 
 후속 [실제 Zone 상태 감시](m4_zone_feedback_health.md)는 시동/종료의 health fixture를 교체한다.
 담당 Leaf/gateway 상태·독립 Front/Rear status ingress와 source 상실/partition·새 INIT 경계를 검사했다.
-전체 coordinator/runtime·rejoin transaction과 DDS는 후속이다.
+이후 coordinator와 typed 세션 transaction은 아래 후속에서 연결했다. 정상 비동기 runtime·DDS는 후속이다.
 
 [MBD 개발 순서](../engineering_plan.md#model-based-design-path)는 M6–M8 후속 학습 계획이다.
 Central 종방향 속도 제어의 수식/상태·plant를 모델로 설계하고 MIL에서 검증한 뒤, 동일 input에 대한 C++ 결과를 비교한다.
@@ -192,3 +192,7 @@ Central 종방향 속도 제어의 수식/상태·plant를 모델로 설계하�
 후속 [단일 Central coordinator](m4_vehicle_coordinator.md)는 VM/allocator/NormalStop을 소유하고
 실제 gateway/Leaf·permission RX에 연결한다. 새 coordinator20개/실제 연결5개를 더해 C++ normal/sanitizer 각각820개다.
 기존 시동/정상 종료·상실 시험을 수동 Central 호출에서 단일 API로 전환했다. 독립 runtime·전체 INIT/rejoin은 후속이다.
+
+후속 [8-role 세션 준비·INIT·재가입](m4_session_bootstrap.md)은 영속 grant·정확한 ACK·원래 deadline·global run gate와
+고정 용량 owner mailbox를 연결한다. 실제 actor INIT/부분 실패/새 Epoch 복구·물리 보존, 독립8-owner thread의 제어 메시지 전달을 검사했다.
+정상 command/status/protection port의 비동기화와 새 workload timing은 다음 단계다. 이 세션 thread 시험은 기존 정상 actor를 여러 thread가 공유한 결과가 아니다.

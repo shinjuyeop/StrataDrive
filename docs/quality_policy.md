@@ -1503,6 +1503,55 @@ Markdown126개/상대 링크·anchor1459개·fence·추적성·YAML3개 설계 b
 전체 remote INIT/ACK/rejoin·영속 Epoch 연결·remote composite lease/stop/protection·새 workload timing/Target은 후속이다.
 M4 전체 완료·M3 예외 해소나 requirement32/system TC29 PASS로 확대하지 않는다. MBD는 계획대로 M6–M8 후속이다.
 
+### 2026-10-19 — 세션 owner loop·8-role INIT/rejoin·물리 reset 경계
+
+[ADR-0054](adr/ADR-0054-trusted-session-owner-loops.md)와 [학습 기록](learning/m4_session_bootstrap.md)에
+Prepare→future enable/INIT→Central commit→Release ACK/global gate를 기록했다.
+Front/Rear Zone·Steering/Brake/Drive/BMS/Power·Central ingress의8개 role을 같은 plan으로 준비한다.
+영속 Epoch 발급은 explicit startup에서 수행하며 runnable·CAN/ACK가 새 grant를 만들지 않는다.
+원래 deadline·immutable ACK·bounded capacity8 SPSC와 role별 처리 budget을 유지한다.
+부분 INIT rollback/같은 Epoch 재시도는 허용하지 않고 보호 뒤 더 큰 durable grant를 요구한다.
+Overflow 링크는 즉시 run gate를 닫으며 join/transport 교체 없이 새 Epoch로 복구하지 않는다.
+
+Normal·ASan/UBSan **각 C++846/846 PASS**다. 이전820 + session23·실제 actor 연결2·durable grant 연결1개다.
+모든 단계 ACK·wrong scope/plan/phase/source·duplicate/mutation·원래 timeout·owner gap/clock rollback·uint64 경계,
+negative ACK·부분 send/commit 실패·callback overrun·준비 Pending 중 보호 service·유실 Prepare/Release/Abort,
+부분 INIT·new Epoch 복구·queue wrap/overflow/잘못된 role 링크와 다음 step 전 gate 폐쇄를 검사했다.
+8개 독립 owner thread는 typed mailbox와 자기 port 접근을 검사한다. 논리 clock/barrier이며 wall-time 실시간 판정은 없다.
+Callback 뒤 clock을 다시 읽으므로 앞 owner가 시간을 사용한 뒤 다음 메시지를 이전 시각으로 검사하지 않는다.
+
+실제 binding은 controller/gateway/monitor·Actual/permission/Zone status RX를 role별 INIT한다.
+정지·토크·접점 open/잔류 bus·same model identity와 source/dependency freshness를 준비·실제 enable에서 각각 확인한다.
+실제 actor 시험은 continuing physical acquisition·application1→실패2→명시적3 재가입을 수행한다.
+Angle/pressure/torque·RC contacts/bus·Battery SOC와 model Epoch7이 초기화되지 않음을 확인했다.
+다른 case는 Prepared 뒤 bus sensor 변화가 실제 INIT를 거부하고 Central commit이 일어나지 않음을 검사한다.
+이 startup fixture는 정상 producer가 없고 BMS 부하/에너지 loop를 실행하지 않는다. 기존 drive fixture의 speed/BMS limits 제약은 유지한다.
+
+Native normal/sanitizer·**Release BUILD_TESTING=OFF** build를 통과했다.
+Release 첫 build에서 기존 Zone feedback의 optional ternary에 GCC `-Wmaybe-uninitialized`가 발생했다.
+Power poll 결과를 존재 조건 안에서 바로 bool로 평가하도록 동등하게 정리해 경고 비활성화 없이 재통과했다.
+첫 실패 로그 `build/m4-session-production-build.log`는 보존하며 수정 후 결과는 `build/m4-session-production-build-verified.log`다.
+첫842개·추가845개 검사도 각각 normal/sanitizer 통과했고, 마지막 link-failure gate case를 더해846개를 검증했다.
+Clang-tidy14 analyzer/bugprone은 변경 production4개·test3개와 포함 header를 검사했다.
+새 user-source 진단은 없으며 기존 DriveSilPlant::begin 인자 순서 경고1종은 실제 actor test TU에 보존한다.
+Cppcheck2.7 warning/performance/portability는 현재 compilation database의 production4개를 진단 없이 통과했다.
+
+분리 gateway vCAN은 normal/sanitizer **각5/5 PASS**, 기존 local CAN은 **각97/97 PASS**다.
+Local application timeout은 normal **80.008–80.888 ms**, sanitizer **80.006–81.050 ms**다.
+Wire/CRC/schema를 바꾸지 않았다. 이 회귀는 session protocol을 network로 전송한 결과나 새 정상 workload timing 보장이 아니다.
+추적 로그는 `build/m4-session-can-{normal,sanitized}/socketcan-results`에 둔다.
+
+빌드·unit 로그는 `build/m4-session-{configure,build,ctest-normal,sanitized-configure,sanitized-build,ctest-sanitized}.log`,
+`build/m4-session-{build-final,ctest-final-normal,sanitized-build-final,ctest-final-sanitized}.log`,
+`build/m4-session-{build-verified,ctest-verified-normal,sanitized-build-verified,ctest-verified-sanitized,production-configure,production-build-verified}.log`다.
+정적/transport/문서 로그는 `build/m4-session-{tidy-summary,tidy-*,cppcheck,vcan-normal,vcan-sanitized,can-normal,can-sanitized,doc-check}.log`다.
+Markdown128개/상대 링크·anchor1483개·fence·요구32/TC29 추적성·YAML3개 budget·Python8개 syntax/whitespace도 통과했다. Python unit 변경/재실행은 없다.
+
+현재 실제 actor 연결은 직렬 same-host다. 기존 synchronous normal/protection port를 여러 thread에서 호출하지 않는다.
+정상 요청/arm/TX 결과·status/Actual/보호의 owner별 비동기 port·global gate 연결과 기존 EV runtime fixture 교체가 다음이다.
+전체 runtime의 독립 정지/partition·timing·remote INIT/Leaf lease wire·DDS/Host feedback bridge는 후속이다.
+M4 전체 완료·M3 예외 해소·requirement32/system TC29 PASS로 확대하지 않는다. MBD는 M6–M8 계획을 유지한다.
+
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.

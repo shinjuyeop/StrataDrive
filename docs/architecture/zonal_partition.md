@@ -93,5 +93,5 @@ same-host Leaf 보호 선택을 연결했다. 두 전용 vCAN에서 실제 frame
 [Front startup](../learning/m4_front_startup.md) 후속 시험은 실제 Front Leaf/물리 모델·독립 Actual receiver까지 연결했다.
 [정상 정지/HV 종료](../learning/m4_normal_stop.md)도 terminal lease/인계와 실제 controller·물리 모델에 연결했다.
 [실제 Zone health·독립 status ingress](../learning/m4_zone_feedback_health.md)도 구현해 상실/partition과 같은 Epoch 복귀 차단을 시험했다.
-BMS limits/safety·외부 speed script는 fixture다. [단일 coordinator/same-host 연결](../learning/m4_vehicle_coordinator.md)도 구현했다. 독립 runtime·전체 INIT/rejoin·remote Leaf composite expiry/보호 전달과 전체 차량 검증은 후속이다.
+BMS limits/safety·외부 speed script는 fixture다. [단일 coordinator/same-host 연결](../learning/m4_vehicle_coordinator.md)도 구현했다. [8-role Host 세션 준비/INIT/rejoin](../learning/m4_session_bootstrap.md)도 구현했다. 정상 port의 독립 runtime·remote INIT/Leaf composite expiry/보호 전달과 전체 차량 검증은 후속이다.
 ZON-S01/ZON-F01/F02, TC-ZON-001–003과 기존 COM/EV/SAFE 시험에 연결하며 전체 Result는 NOT RUN이다.

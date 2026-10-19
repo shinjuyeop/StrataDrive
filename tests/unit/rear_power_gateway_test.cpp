@@ -10,9 +10,13 @@
 #include "vehicle_coordinator_port.hpp"
 #include "steering_response.hpp"
 #include "brake_pressure_response.hpp"
+#include "vehicle_session_init.hpp"
+#include "session_loop.hpp"
+#include "multirate_fixture.hpp"
 
 #include <gtest/gtest.h>
 #include <vector>
+#include <memory>
 
 namespace {
 using namespace stratadrive;
@@ -510,4 +514,131 @@ TEST(CoordinatorIntegration, PowerWriteFailureStopsTheUnifiedCycleAndSelectsBoth
 TEST(CoordinatorIntegration, PartialFrontWriteProtectsBothZonesWithoutSendingTheRearBatch) { run_vehicle_fixture(false,StopInjection::FrontPartialTx); }
 TEST(CoordinatorIntegration, MissingActualPermissionIngressCannotBeReplacedByTheNewIssuedGrant) { run_vehicle_fixture(false,StopInjection::PermissionIngressLoss); }
 TEST(CoordinatorIntegration, OneGatewayNewEpochCannotReinitializeOrHealTheCentralSession) { run_vehicle_fixture(false,StopInjection::PartialRejoin); }
+
+class InitRecovery : public simulation::SessionRecoveryPort {
+public:
+    Port& clock; simulation::SessionInitParticipants& p; simulation::SessionResetEvidence samples;
+    std::size_t closed{0},services{0};
+    InitRecovery(Port& c,simulation::SessionInitParticipants& participants):clock(c),p(participants) {}
+    std::uint64_t now_ns() noexcept override { return clock.now; }
+    bool quiesce(session::Role) noexcept override { ++closed; return true; } // no normal producer in this startup fixture
+    simulation::SessionResetEvidence evidence() noexcept override { return samples; }
+    void service(session::Role) noexcept override { ++services; }
+    void protect(session::Role role) noexcept override {
+        switch(role) {
+        case session::Role::FrontZone: p.actors.front.request_protection(); break;
+        case session::Role::RearZone: p.actors.rear.request_protection(); p.actors.rear_power.mark_continuity_lost(); break;
+        case session::Role::Steering: p.actors.steering.request_local_protection(clock.now); break;
+        case session::Role::Brake: p.actors.brake.request_local_protection(clock.now); break;
+        case session::Role::Drive: p.actors.drive.request_local_protection(clock.now); break;
+        case session::Role::Power: p.actors.power.request_local_protection(clock.now); break;
+        case session::Role::CentralIngress: p.front_status.mark_continuity_lost(clock.now); p.rear_status.mark_continuity_lost(clock.now); break;
+        case session::Role::Bms: case session::Role::Count: break; // external run gate stays shut; no BMS bypass
+        }
+    }
+};
+class InitCentralPort : public session::CoordinatorPort {
+public:
+    central::VehicleCoordinator& core; Port& clock; std::size_t commits{0};
+    InitCentralPort(central::VehicleCoordinator& c,Port& p):core(c),clock(p) {}
+    std::uint64_t now_ns() noexcept override { return clock.now; }
+    bool quiesce_central() noexcept override { core.request_protection(clock.now); return true; }
+    bool send(const session::Control&) noexcept override { return false; } // SessionCentralLoop owns transport
+    bool commit_central(central::CoordinatorSession s) noexcept override { ++commits; return core.start_session(s); }
+    void protect_central() noexcept override { core.request_protection(clock.now); }
+};
+class InitFailurePort : public session::ParticipantPort {
+public:
+    simulation::VehicleSessionInit& real; bool reject{false};
+    explicit InitFailurePort(simulation::VehicleSessionInit& p):real(p) {}
+    std::uint64_t now_ns() noexcept override { return real.now_ns(); }
+    session::Preparation prepare(const session::Plan& p) noexcept override { return real.prepare(p); }
+    bool initialize(const session::Plan& p) noexcept override { return !reject && real.initialize(p); }
+    void protect() noexcept override { real.protect(); }
+    void service() noexcept override { real.service(); }
+};
+void run_session_bootstrap(bool unsafe_at_enable) {
+    vecu::PowerController power{{}}; vecu::DriveController drive{{}};
+    vecu::BmsController bms{simulation::multirate_fixture::bms_config()};
+    vecu::SteeringActuator steering{{-.5,.5,-.3,.3,.1,1,50*kMs}};
+    vecu::BrakeActuator brake{{2000000,1500000,200000,5000000,10000000,1000000,50*kMs}};
+    simulation::SteeringResponse angles{{-.3,.3,.1,1,50*kMs,7}};
+    simulation::BrakePressureResponse pressure{{1500000,200000,5000000,10000000,50*kMs,7}};
+    simulation::DriveSilPlant motor{vecu::DriveControllerConfig{}.response};
+    simulation::PowerModel plant{{.002,50,.02,100,1000,500}};
+    simulation::BatteryModel battery{{180000000,400,.05,200000,20,25,100,.01,1,100000}};
+    ASSERT_TRUE(angles.begin(kStart)); ASSERT_TRUE(pressure.begin(kStart)); motor.begin(7,kStart);
+    ASSERT_TRUE(plant.initialize({7,0,kStart},0)); ASSERT_TRUE(battery.initialize({7,kStart,.63,25}));
+    Port clock; simulation::RearPowerControl rear_control{drive,power}; clock.control=&rear_control; clock.drive=&drive; clock.power=&power;
+    FrontPort front_port{clock,steering,brake}; DrivePort rear_port{clock,drive};
+    zone::CommandGateway front{zone::ZoneScope::Front,front_port},rear{zone::ZoneScope::Rear,rear_port};
+    zone::RearPowerGateway rear_power{clock}; clock.commands=&rear;
+    zone::ZoneFeedbackMonitor front_monitor{front},rear_monitor{rear,&rear_power};
+    zone::ZoneStatusReceiver front_status{zone::ZoneScope::Front},rear_status{zone::ZoneScope::Rear};
+    const can::BmsPhysicalRanges ranges{{0,1000},{-3000,3000},{-50,150},100000};
+    can::BmsReceiver permission_rx{{can::BmsFrameKind::DrivePermission,ranges}};
+    can::SteeringReceiver steering_rx{{can::SteeringFrameKind::Actual,-.3,.3}};
+    can::BrakeReceiver brake_rx{{can::BrakeFrameKind::Actual,0,1500000}};
+    can::DriveReceiver drive_rx{{can::DriveFrameKind::Actual,{-300,500},100,300}};
+    simulation::CoordinatorSilParticipants actors{steering,brake,drive,power,front,rear,rear_power,permission_rx,front_port};
+    simulation::VehicleCoordinatorPort core_port{actors}; central::VehicleCoordinator core{core_port};
+    simulation::SessionInitParticipants participants{actors,bms,rear_control,front_monitor,rear_monitor,steering_rx,brake_rx,drive_rx,front_status,rear_status};
+    InitRecovery recovery{clock,participants}; InitCentralPort startup{core,clock}; session::SessionLinks links;
+    simulation::SessionCentralLoop central{startup,links};
+    std::vector<std::unique_ptr<simulation::VehicleSessionInit>> initializers;
+    std::vector<std::unique_ptr<InitFailurePort>> bindings;
+    std::vector<std::unique_ptr<simulation::SessionOwnerLoop>> owners;
+    for(std::size_t i=0;i<session::kRoleCount;++i) {
+        const auto role=static_cast<session::Role>(i);
+        initializers.push_back(std::make_unique<simulation::VehicleSessionInit>(role,7,participants,recovery));
+        bindings.push_back(std::make_unique<InitFailurePort>(*initializers.back()));
+        owners.push_back(std::make_unique<simulation::SessionOwnerLoop>(role,*bindings.back(),links[i]));
+    }
+    std::uint32_t physical_sequence=0;
+    const auto advance_physics=[&] {
+        const auto begin=clock.now; clock.now+=kMs;
+        ASSERT_EQ(plant.step({begin,clock.now,{{400,0,true,true,true,false,false},{7,physical_sequence++,begin},begin},{}}),simulation::PowerModelFault::None);
+        ASSERT_TRUE(angles.advance(clock.now)); ASSERT_TRUE(pressure.advance(clock.now)); ASSERT_TRUE(motor.advance(clock.now,false));
+        recovery.samples={battery::ModelMeasurement<double>{0,{7,physical_sequence,clock.now},clock.now},motor.capture(clock.now),plant.observation()};
+    };
+    const auto finish=[&] {
+        for(unsigned i=0;i<60 && central.state()!=session::State::Running && central.state()!=session::State::Failed;++i) {
+            advance_physics();
+            if(unsafe_at_enable && central.state()==session::State::Initializing && clock.now>=central.plan().enable_ns) {
+                recovery.samples.power->bus_voltage_v=100; // independent sensor change after Prepared
+            }
+            for(auto& owner:owners) owner->step();
+            central.step();
+        }
+    };
+    advance_physics(); ASSERT_TRUE(central.begin(1,clock.now)); finish();
+    if(unsafe_at_enable) {
+        EXPECT_FALSE(central.run_enabled()); EXPECT_EQ(central.fault(),session::Fault::Participant);
+        EXPECT_GT(central.plan().enable_ns,central.plan().requested_ns); EXPECT_EQ(startup.commits,0U);
+        EXPECT_EQ(steering.application_epoch(),0U); EXPECT_EQ(power.application_epoch(),0U);
+        EXPECT_DOUBLE_EQ(plant.diagnostic_state().bus_voltage_v,0); // sensor fault does not reset plant
+        EXPECT_TRUE(clock.sent.empty()); return;
+    }
+    ASSERT_TRUE(central.run_enabled());
+    EXPECT_EQ(startup.commits,1U); EXPECT_EQ(steering.application_epoch(),1U); EXPECT_EQ(power.application_epoch(),1U);
+    EXPECT_EQ(bms.decision().state,vecu::BmsControlState::InitialChecks); EXPECT_FALSE(core.decision().normal_armed);
+    EXPECT_TRUE(clock.sent.empty()); EXPECT_TRUE(front_port.steering_sent.empty()); EXPECT_TRUE(rear_port.sent.empty());
+    // Rejoin cannot skip one owner or reuse an abandoned Epoch. The startup
+    // fixture continues physical acquisition; it never applies normal actuation.
+    central.cancel(clock.now); bindings[static_cast<std::size_t>(session::Role::Brake)]->reject=true;
+    ASSERT_TRUE(central.begin(2,clock.now)); finish(); EXPECT_FALSE(central.run_enabled());
+    EXPECT_EQ(central.fault(),session::Fault::Participant); EXPECT_EQ(startup.commits,1U);
+    EXPECT_FALSE(central.begin(2,clock.now)); EXPECT_FALSE(core.decision().management.normal_allowed);
+    bindings[static_cast<std::size_t>(session::Role::Brake)]->reject=false;
+    ASSERT_TRUE(central.begin(3,clock.now)); finish(); ASSERT_TRUE(central.run_enabled());
+    EXPECT_EQ(startup.commits,2U); EXPECT_EQ(steering.application_epoch(),3U); EXPECT_EQ(brake.application_epoch(),3U);
+    EXPECT_EQ(drive.application_epoch(),3U); EXPECT_EQ(power.application_epoch(),3U); EXPECT_EQ(permission_rx.application_epoch(),3U);
+    EXPECT_DOUBLE_EQ(angles.actual_angle_rad(),.1); EXPECT_DOUBLE_EQ(pressure.actual_pressure_pa(),200000);
+    EXPECT_DOUBLE_EQ(motor.actual_nm(),0); EXPECT_DOUBLE_EQ(plant.diagnostic_state().bus_voltage_v,0);
+    EXPECT_FALSE(plant.diagnostic_state().contactors.positive); EXPECT_EQ(plant.diagnostic_state().identity.epoch,7U);
+    EXPECT_DOUBLE_EQ(battery.diagnostic_state().soc,.63); EXPECT_EQ(battery.diagnostic_state().identity.epoch,7U);
+    EXPECT_FALSE(core.decision().normal_armed); EXPECT_TRUE(clock.sent.empty()); EXPECT_GT(recovery.services,0U);
+}
+TEST(SessionBootstrapIntegration, AllOwnersCommitAndExplicitRejoinPreservesContinuingPhysicalModels) { run_session_bootstrap(false); }
+TEST(SessionBootstrapIntegration, PreparedAckCannotBypassChangedPhysicalEvidenceAtActualInit) { run_session_bootstrap(true); }
 } // namespace

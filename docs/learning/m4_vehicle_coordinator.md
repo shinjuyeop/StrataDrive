@@ -1,6 +1,6 @@
 # M4 Central coordinator: 시동·배분·정지를 한 실행 흐름으로
 
-Date: 2026-10-19. Status: **Host component 구현·회귀 / 독립 runtime·전체 rejoin 후속**.
+Date: 2026-10-19. Status: **Host component 구현·회귀 / 정상 독립 runtime 후속; 세션은 ADR-0054 연결**.
 설계는 [ADR-0053](../adr/ADR-0053-central-coordinator-and-same-host-binding.md)을 따른다.
 
 지금까지 만든 전원 판단·배분·정상 종료를 시험 코드가 직접 순서대로 호출했다.
@@ -52,13 +52,14 @@ Coordinator는 Rear normal batch를 계속 보내지 않고 두 Zone의 독립 �
 
 ## 확인한 결과와 남은 일
 
-Normal·ASan/UBSan **각 C++820/820 PASS**다. 이전795개에 coordinator20개·실제 연결5개를 추가했다.
+이 단계 당시 Normal·ASan/UBSan **각 C++820/820 PASS**다. 이전795개에 coordinator20개·실제 연결5개를 추가했다.
 기존 시동/정상 정지3.2 s 논리 시간·Actual 누락/상태 partition·lease/압력/속도 상실 흐름도 coordinator로 전환했다.
 추가 case는 부분 arm·Power write 실패·Front partial write·Central permission ingress 상실·한 gateway만 새 Epoch다.
 정적 분석·build/vCAN·개발 중 실패와 수정 근거는 [품질 기록](../quality_policy.md)에 둔다.
 
 현재 연결은 **같은 Host에서 외부 시각으로 호출하는 component**다. Independent runnable/thread/process나 DDS를
 새로 실행한 결과가 아니며, 기존 EV demo/runtime request/grant fixture를 아직 교체하지 않았다.
-새 Epoch의 전체 INIT/rejoin handshake·status/Actual ingress 및 Host feedback bridge를 실행 경계로 묶는 일이 다음이다.
+후속 [세션 owner/INIT-rejoin](m4_session_bootstrap.md)은 typed8-role 제어 loop·실제 actor INIT와 물리 보존을 연결했다.
+정상 status/Actual ingress·요청/결과/보호 port 및 Host feedback bridge를 독립 실행 경계로 묶는 일이 다음이다.
 그 뒤 새 workload에서 timing과 독립 정지/partition을 시험한다. Remote Leaf lease/보호와 Target 검증도 남아 있다.
 MBD는 계획한 M6 모델/MIL→M8 C++ 동등성·차량 SIL 순서를 유지한다.
