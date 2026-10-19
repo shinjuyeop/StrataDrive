@@ -26,6 +26,7 @@ bool AsyncZoneOwner::protect(ZoneScope scope,ProtectionCause cause,std::uint64_t
 }
 void AsyncZoneOwner::protect_local() {
     if(epoch_==0) return;
+    gate_.close(); // A local safety selection vetoes the shared normal path before Central observes status.
     failed_=true; pending_.reset(); commands_.request_protection(); if(power_) power_->mark_continuity_lost();
     protect(scope_,ProtectionCause::CoordinatorRequest,now_ns());
 }

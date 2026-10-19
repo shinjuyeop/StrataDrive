@@ -70,6 +70,7 @@ int AsyncLeafOwner::fault_code() const {
 }
 void AsyncLeafOwner::protect() noexcept {
     if(epoch_==0) return;
+    gate_.close();
     const auto now=now_ns();
     switch(leaf_) {
     case transport::Leaf::Steering: std::get<vecu::SteeringActuator>(actor_).request_local_protection(now); break;
@@ -152,7 +153,7 @@ void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
         auto& actor=std::get<vecu::PowerController>(actor_); const auto gate=bms_gate_.read();
         if(const auto m=actor.tick(s.power,gate?*gate:std::nullopt,now)) { if(const auto f=can::encode_bms_frame(*m,power_tx_)) publish(*f); }
     }
-    output(now);
+    if(faulted()) protect(); else output(now);
 }
 void AsyncLeafOwner::service() noexcept {
     try { service_impl(); } catch(...) { protect(); }

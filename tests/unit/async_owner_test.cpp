@@ -102,7 +102,8 @@ TEST(AsyncZoneOwner, PartialLeafArmMustProtectBothLeavesThroughIndependentSignal
     const auto steer=(*leaves)[0].work.pop(),brake=(*leaves)[1].work.pop(); ASSERT_TRUE(steer); ASSERT_TRUE(brake);
     ASSERT_TRUE((*leaves)[0].reports.push(transport::LeafResult{3,1,kStart,transport::LeafOperation::Arm,true}));
     ASSERT_TRUE((*leaves)[1].reports.push(transport::LeafResult{3,1,kStart,transport::LeafOperation::Arm,false})); zone.service();
-    EXPECT_TRUE(zone.faulted()); EXPECT_TRUE((*leaves)[0].protection.pending(3)); EXPECT_TRUE((*leaves)[1].protection.pending(3));
+    EXPECT_TRUE(zone.faulted()); EXPECT_FALSE(gate.allows(3));
+    EXPECT_TRUE((*leaves)[0].protection.pending(3)); EXPECT_TRUE((*leaves)[1].protection.pending(3));
     const auto result=central->results.pop(); ASSERT_TRUE(result); EXPECT_FALSE(result->accepted); EXPECT_FALSE(zone.protected_selected());
     (*leaves)[0].protection.selected.store(3); (*leaves)[1].protection.selected.store(3); zone.service(); EXPECT_TRUE(central->protection.acknowledged(3));
 }
