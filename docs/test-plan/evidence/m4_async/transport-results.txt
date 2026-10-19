@@ -1,0 +1,76 @@
+Source commit: 617c200ccd4dfcaf3262f8fbbc667364d032b5ba
+Environment: Linux 6.8.0-138-generic x86_64; user+network namespace; vCAN FD MTU72; GCC11.4 Debug normal / ASan+UBSan
+Scope: existing gateway/startup/terminal and CAN regression only; remote owner lease/arm/protection wire NOT RUN
+
+normal
+unshare --user --map-root-user --net bash -c 'ip link add vcan_front type vcan && ip link add vcan_rear type vcan && ip link set vcan_front mtu 72 up && ip link set vcan_rear mtu 72 up && exec build/m4-readiness/zone_gateway_vcan_test'
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 5 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from ZoneGatewayVcan
+[ RUN      ] ZoneGatewayVcan.FrontCanFdFramesReachIndependentReceiversWithOriginalMetadata
+[       OK ] ZoneGatewayVcan.FrontCanFdFramesReachIndependentReceiversWithOriginalMetadata (0 ms)
+[ RUN      ] ZoneGatewayVcan.ExpiredEnqueueDeadlineWritesNoKernelFrameAndInvokesLocalProtection
+[       OK ] ZoneGatewayVcan.ExpiredEnqueueDeadlineWritesNoKernelFrameAndInvokesLocalProtection (6 ms)
+[ RUN      ] ZoneGatewayVcan.SeparateZoneInterfacesRouteRearDriveAndKeepFrontProtectionIndependent
+[       OK ] ZoneGatewayVcan.SeparateZoneInterfacesRouteRearDriveAndKeepFrontProtectionIndependent (0 ms)
+[----------] 3 tests from ZoneGatewayVcan (6 ms total)
+
+[----------] 1 test from RearPowerVcan
+[ RUN      ] RearPowerVcan.RoutesThreeBmsStreamsWithOriginalTimesAndSeparateTrustedPowerParent
+[       OK ] RearPowerVcan.RoutesThreeBmsStreamsWithOriginalTimesAndSeparateTrustedPowerParent (0 ms)
+[----------] 1 test from RearPowerVcan (0 ms total)
+
+[----------] 1 test from FrontStartupVcan
+[ RUN      ] FrontStartupVcan.EarlyPacketsCannotArmAndFirstNormalPairReachesActualLeafReceivers
+[       OK ] FrontStartupVcan.EarlyPacketsCannotArmAndFirstNormalPairReachesActualLeafReceivers (0 ms)
+[----------] 1 test from FrontStartupVcan (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 3 test suites ran. (6 ms total)
+[  PASSED  ] 5 tests.
+
+unshare --user --map-root-user --net python3 tests/integration/can/check_socketcan.py --build-dir build/m4-readiness
+PASS drive/model-regen-loss #1: command -> dynamics -> Actual
+PASS 97 cases (M1 actuator 40 / EV 49 / M2 steering 2 + brake 3 + drive 3 per full repetition)
+Actuator application timeout 80.019..81.029 ms
+Epoch store: /d/shin/StrataDrive/build/m4-async-can-normal/socketcan-results/epoch-run-1uyp_785/store; each grant persisted by an independent issuer process
+Trace: /d/shin/StrataDrive/build/m4-async-can-normal/socketcan-results; local vCAN fixture only (actuator/vehicle TC 아님)
+Full logs: build/m4-async-{vcan,can}-normal.log; raw CAN trace: build/m4-async-can-normal/socketcan-results
+
+sanitized
+unshare --user --map-root-user --net bash -c 'ip link add vcan_front type vcan && ip link add vcan_rear type vcan && ip link set vcan_front mtu 72 up && ip link set vcan_rear mtu 72 up && exec build/m1-angle-sanitized/zone_gateway_vcan_test'
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 5 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from ZoneGatewayVcan
+[ RUN      ] ZoneGatewayVcan.FrontCanFdFramesReachIndependentReceiversWithOriginalMetadata
+[       OK ] ZoneGatewayVcan.FrontCanFdFramesReachIndependentReceiversWithOriginalMetadata (0 ms)
+[ RUN      ] ZoneGatewayVcan.ExpiredEnqueueDeadlineWritesNoKernelFrameAndInvokesLocalProtection
+[       OK ] ZoneGatewayVcan.ExpiredEnqueueDeadlineWritesNoKernelFrameAndInvokesLocalProtection (6 ms)
+[ RUN      ] ZoneGatewayVcan.SeparateZoneInterfacesRouteRearDriveAndKeepFrontProtectionIndependent
+[       OK ] ZoneGatewayVcan.SeparateZoneInterfacesRouteRearDriveAndKeepFrontProtectionIndependent (0 ms)
+[----------] 3 tests from ZoneGatewayVcan (6 ms total)
+
+[----------] 1 test from RearPowerVcan
+[ RUN      ] RearPowerVcan.RoutesThreeBmsStreamsWithOriginalTimesAndSeparateTrustedPowerParent
+[       OK ] RearPowerVcan.RoutesThreeBmsStreamsWithOriginalTimesAndSeparateTrustedPowerParent (0 ms)
+[----------] 1 test from RearPowerVcan (0 ms total)
+
+[----------] 1 test from FrontStartupVcan
+[ RUN      ] FrontStartupVcan.EarlyPacketsCannotArmAndFirstNormalPairReachesActualLeafReceivers
+[       OK ] FrontStartupVcan.EarlyPacketsCannotArmAndFirstNormalPairReachesActualLeafReceivers (0 ms)
+[----------] 1 test from FrontStartupVcan (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 3 test suites ran. (7 ms total)
+[  PASSED  ] 5 tests.
+
+unshare --user --map-root-user --net python3 tests/integration/can/check_socketcan.py --build-dir build/m1-angle-sanitized
+PASS drive/model-regen-loss #1: command -> dynamics -> Actual
+PASS 97 cases (M1 actuator 40 / EV 49 / M2 steering 2 + brake 3 + drive 3 per full repetition)
+Actuator application timeout 80.107..81.213 ms
+Epoch store: /d/shin/StrataDrive/build/m4-async-can-sanitized/socketcan-results/epoch-run-a3jrcn4z/store; each grant persisted by an independent issuer process
+Trace: /d/shin/StrataDrive/build/m4-async-can-sanitized/socketcan-results; local vCAN fixture only (actuator/vehicle TC 아님)
+Full logs: build/m4-async-{vcan,can}-sanitized.log; raw CAN trace: build/m4-async-can-sanitized/socketcan-results
+

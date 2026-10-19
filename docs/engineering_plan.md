@@ -35,12 +35,12 @@ Drive ECU adapter와 물리 모델을 별도 모듈로 두었다.
 [M3 수용 검토](m3_acceptance_review.md)에서 다음 Host 통합의 IO 동반/FIFO 기준을 선택했다.
 일반 sanitizer 타이밍 실패 2건·학습자 수용은 남긴다. M4 [Central 전원·허가 상태 owner](learning/m4_vehicle_management.md)를
 component로 구현·시험했다. [첫 normal-path allocation](learning/m4_control_allocation.md)도 연결 시험했다.
-후속 [명령 수용](learning/m4_zone_command_admission.md)·[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)와 [Rear 전원·초기 구동](learning/m4_rear_power_startup.md)도 component/분리 vCAN에서 시험했다. [Front startup](learning/m4_front_startup.md)도 실제 두 Leaf/모델·양 Zone 시동 연결에서 시험했다. [정상 정지/HV 종료](learning/m4_normal_stop.md)도 actual dwell·terminal handoff/lease와 연결했다. [실제 Zone health·독립 status ingress](learning/m4_zone_feedback_health.md)도 연결·시험했다. [단일 coordinator/same-host 연결](learning/m4_vehicle_coordinator.md)도 구현·시험했다. 후속 [8-role 세션 준비/INIT-rejoin](learning/m4_session_bootstrap.md)도 연결했다. 다음은 정상 port 비동기화·remote Leaf lease·독립 runtime이며 새 workload timing과 기존 예외 분석을 이어간다.
+후속 [명령 수용](learning/m4_zone_command_admission.md)·[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)와 [Rear 전원·초기 구동](learning/m4_rear_power_startup.md)도 component/분리 vCAN에서 시험했다. [Front startup](learning/m4_front_startup.md)도 실제 두 Leaf/모델·양 Zone 시동 연결에서 시험했다. [정상 정지/HV 종료](learning/m4_normal_stop.md)도 actual dwell·terminal handoff/lease와 연결했다. [실제 Zone health·독립 status ingress](learning/m4_zone_feedback_health.md)도 연결·시험했다. [단일 coordinator/same-host 연결](learning/m4_vehicle_coordinator.md)도 구현·시험했다. 후속 [8-role 세션 준비/INIT-rejoin](learning/m4_session_bootstrap.md)도 연결했다. 후속 [정상 비동기 owner runtime](learning/m4_async_owners.md)은 실제 BMS·RC/접점·feedback과 request/arm/TX result/protection을 연결했다. 다음은 owner 정지·방향별 partition의 시험 확대와 통합 workload의 M3 실행 기준 비교, remote Leaf lease 계약이며 기존 예외 분석을 이어간다.
 차량 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며
 실행 결과는 NOT RUN이다. [ZON-01](architecture/zonal_partition.md)로 최종 Front/Rear 두 Zone,
-Central 별도 단일 coordinator와 Rear Drive/BMS gateway를 채택했다. Host typed 세션 protocol은 ADR-0054에서 구현했고 정상 port 비동기 runtime·DDS wire는 후속이다.
+Central 별도 단일 coordinator와 Rear Drive/BMS gateway를 채택했다. Host typed 세션 protocol은 ADR-0054, 정상 port 비동기 runtime은 ADR-0055에서 구현했다. Remote lease·DDS wire는 후속이다.
 2026-10-14 [BMS 의미·wire·timing 초안](icd/bms_frame_draft.md)을 작성하고 DBC/CRC를 검사했다.
 [EV 물리/frame codec과 항목별 receiver](learning/m1_bms_codec.md), Drive auxiliary age 분리도
 Host에서 구현·시험했다. 기존 fixture의 EV vCAN/session·parent·relay 36개 검사도 추가했다.

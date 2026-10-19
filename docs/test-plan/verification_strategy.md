@@ -1,6 +1,8 @@
 # Verification strategy
 
 Status: case contract **DEFINED**, 아래 system TC의 runtime result는 **NOT RUN**이다.
+현재 component 구현·시험 상태의 기준은 [project_status](../project_status.md)다.
+아래 M1/초기 M2의 미구현·수치는 해당 단계의 이력이며 최신 상태를 대체하지 않는다.
 [Steering angle field codec](../learning/m1_steering_codec.md)과
 [frame codec·DBC parser](../learning/m1_steering_frame_codec.md)의 Host 표현 검사는 실행했다.
 Field 단위 결과, M0 document review와 vehicle/SIL verification을 구분한다.
@@ -10,11 +12,28 @@ TC ID의 유일한 정의 목록은 아래 표, S/F ID 정의는 [scenario basel
 [EV-01](../icd/ev_power_bms_design.md)의 TC-EV-001–005를 추가했다. BMS/power/차량 관리의
 2026-10-14 [BMS wire 초안](../icd/bms_frame_draft.md)의 DBC/CRC/canonical 부분 검사를 추가했다.
 EV C++ codec/receiver·SocketCAN unit과 EV local vCAN 36개 case도 수행했다.
-Component model/Zone runtime과 전체 Result는 NOT RUN이다.
+당시 component model/Zone runtime은 미실행이었다. 현재 Host component 범위는 아래 M4 근거를 따르며 전체 system Result는 NOT RUN이다.
 [ZON-01](../architecture/zonal_partition.md)의 TC-ZON-001–003을 추가했다.
 기존 M1 단위/vCAN PASS는 두 Zone runtime 증거가 아니며 새 Result는 NOT RUN이다.
 
 ## Verification layers
+
+### M4 실행한 component 근거
+
+[ADR-0055](../adr/ADR-0055-asynchronous-normal-owner-integration.md)의 정상 비동기 경로를
+`tests/integration/runtime/check_m4_async.py`로 검사한다. 단일 실행에서 normal·ASan/UBSan 각각
+전체872개 CTest와 영속 grant CLI 재가입을 실행하고 동일 결과를 [component 추적표](component_traceability.csv)에 연결한다.
+대표 정상·부분 송신 실패·Actual 상실·정상 종료·새 Epoch 복구의 [CSV/그래프/결과와 재현 절차](evidence/m4_async/README.md)를 Git에 보존한다.
+원본 JUnit/로그/모든 scenario CSV는 지정한 `build/` raw directory에 남긴다.
+`--reuse`는 source SHA256이 같을 때만 결과를 다시 추출하며 **실제로 시험한 원래 commit**을 유지한다.
+
+논리 clock의 state/fault/expiry 경계 시험과9개 실제 thread의 monotonic wall 관측을 구분한다.
+정상 request·arm·TX enqueue result·독립 status/Actual·보호 선택 ACK는 다른 관측점이다.
+ACK 성공을 물리 압력 도달·토크0·전원 OFF로 간주하지 않고 actual trace/해당 시험의 별도 assertion을 사용한다.
+Native 표본은 SCHED_OTHER·1.8초·고정 speed0·별도 부하 없음이다. M3 FIFO/배치 cohort의 대체나 WCET 증명이 아니다.
+기존 timing 실패·학습자 review와 아래 system TC의 **NOT RUN**을 유지한다.
+
+### 이전 단계의 부분 검사 이력
 
 [M2 첫 Steering 모델](../learning/m2_steering_model.md)은 manual-clock unit과 세 독립 process의
 Command TX → response model → Actual RX vCAN을 실행했다. Functional component 부분 증거이며
@@ -182,8 +201,9 @@ verdict와 reviewer를 기록한다.
 
 Verdict는 PASS / FAIL / BLOCKED / NOT RUN이다. Threshold나 환경이 부족하면 BLOCKED,
 미실행이면 NOT RUN이다. TBD인 numeric acceptance를 PASS로 표시하지 않는다. Raw data는
-`benchmark/results/raw/` 등 Git 대상 외부에 보관하고, 향후 검토된 summary는
-`benchmark/results/`에 둔다. 현재 실측 결과 파일은 만들지 않는다.
+`build/` 또는 `benchmark/results/raw/` 등 Git 대상 외부에 보관한다.
+현재 component의 작은 공유 summary·CSV·그래프는 `docs/test-plan/evidence/`에 두고,
+향후 차량 benchmark summary는 `benchmark/results/`에 둔다. 미실행 시험의 결과 파일을 만들어 PASS로 표시하지 않는다.
 
 ## M0 review and results boundary
 

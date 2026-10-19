@@ -5,6 +5,12 @@ SYS-ARCH-003·SYS-CTRL-008·SYS-SAFE-005·SYS-EV-003은 v0.5다. SYS-SAFE-004·S
 SYS-COM-003/004·SYS-PERF-002와 나머지 SYS-EV 요구는 v0.3, 그 외 기존 요구는 v0.1이다.
 [ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)의 Central owner/독립 Zone 경로를 반영한다.
 
+현재 구현 상태와 최신 시험 분모는 [project_status](../project_status.md)가 기준이다.
+**구현된 component의 추적성**은 [함수·실제 시험·판정 기준 CSV](component_traceability.csv),
+[normal/sanitizer 실제 결과](evidence/m4_async/component_results.csv), [commit·환경·재현·대표 수치](evidence/m4_async/README.md)로 연결한다.
+2026-10-19 M4 비동기 통합에서 대표20개 연결을 두 빌드의 전체 CTest 결과와 대조했다.
+이는 아래32개 requirement/29개 system TC의 전체 수용 결과와 구분한다.
+
 아래 system TC 전체 구현/검증은 PLANNED, runtime Result는 전부 **NOT RUN**이다.
 [Brake 수신부](../learning/m1_brake_codec.md#application-수신부-추가)의 Host/vCAN 부분 증거도
 전체 system TC의 PASS로 확대하지 않는다.

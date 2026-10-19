@@ -4,6 +4,8 @@ Date: 2026-10-19. Status: **Host session component 구현·시험 / 정상 runti
 [ADR-0053](ADR-0053-central-coordinator-and-same-host-binding.md)의 Central 실행 owner에
 명시적인 세션 제어 경계를 추가한다. Central–각 Zone의 병렬 연결과 담당 Leaf 구분을 유지한다.
 
+**후속 구현:** 이 문서의 수치·직렬 fixture 설명은 해당 단계의 이력이다. 정상 owner 비동기 연결·실제 BMS/센서 경로·정상 종료/재가입은 [ADR-0055](ADR-0055-asynchronous-normal-owner-integration.md)에서 진행했다. 현재 범위·최신 결과의 기준은 [project_status](../project_status.md)다.
+
 ## 결정과 소유권
 
 Central의 `SessionCoordinator`는 영속 issuer에서 **이미 발급한** 더 큰 application Epoch만 받는다.

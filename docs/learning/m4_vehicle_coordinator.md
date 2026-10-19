@@ -3,6 +3,8 @@
 Date: 2026-10-19. Status: **Host component 구현·회귀 / 정상 독립 runtime 후속; 세션은 ADR-0054 연결**.
 설계는 [ADR-0053](../adr/ADR-0053-central-coordinator-and-same-host-binding.md)을 따른다.
 
+**후속 구현:** 이 문서의 수치·직렬 fixture 설명은 해당 단계의 이력이다. 정상 owner 비동기 연결·실제 BMS/센서 경로·정상 종료/재가입은 [다음 M4 구현](m4_async_owners.md)에서 진행했다. 현재 범위·최신 결과의 기준은 [project_status](../project_status.md)다.
+
 지금까지 만든 전원 판단·배분·정상 종료를 시험 코드가 직접 순서대로 호출했다.
 이번에는 **누가 언제 호출하고, 한 단계가 실패했을 때 어디로 전달할지**를 Central coordinator가 관리한다.
 기존 owner의 검증과 실제 gateway/Leaf 수신 경로는 계속 사용한다.

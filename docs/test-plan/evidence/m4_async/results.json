@@ -1,0 +1,1827 @@
+{
+  "metadata": {
+    "source_commit": "117ebc002e2927d0886b8e6407497de716772adb",
+    "source_digest": "b732e5f04256d26b42606063b7f95bab99e17e8f87d472745e4cab251027450b",
+    "utc": "2026-10-19T11:13:24.517803+00:00",
+    "kernel": "6.8.0-138-generic",
+    "machine": "x86_64",
+    "cpu_count": 16,
+    "affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "scheduler_policy": 0,
+    "compiler": "c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0",
+    "cmake": "cmake version 4.3.2",
+    "python": "3.10.12",
+    "transport_poll_ns": 200000,
+    "physical_step_ns": 1000000,
+    "control_period_ns": 10000000,
+    "bms_allocation_period_ns": 20000000,
+    "model_epoch": 7,
+    "wheel_speed_rad_s": 0,
+    "acceleration_mps2": 0.2,
+    "curvature_inv_m": 0.02,
+    "pack_auxiliary_current_a": 0.25,
+    "injection_ns": 1200000000,
+    "explicit_rejoin_ns": 2300000000,
+    "system_tc_status": "NOT RUN"
+  },
+  "scope": "Host component; system requirements/TC results remain NOT RUN",
+  "counts": {
+    "normal": 872,
+    "sanitized": 872
+  },
+  "component_results": [
+    {
+      "id": "C-M4-01",
+      "requirements": "SYS-ARCH-003;SYS-SAFE-002",
+      "implementation": "central/session/session_coordinator.cpp#SessionCoordinator::receive;central/coordinator/async_coordinator_port.cpp#AsyncCoordinatorPort::session_ready",
+      "test": "AsyncOwnerTest.SessionAndGlobalGatePrecedeAllNormalIngress",
+      "criterion": "No enqueue before trusted INIT and global gate; local arm remains independent",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-02",
+      "requirements": "SYS-ARCH-002;SYS-CTRL-001;SYS-EV-001",
+      "implementation": "central/coordinator/vehicle_coordinator.cpp#VehicleCoordinator::allocate;simulation/runtime/async_leaf_owner.cpp#AsyncLeafOwner::runnable",
+      "test": "M4AsyncRuntime.NormalUsesRealBmsAndFeedbackBeforeActuation",
+      "criterion": "Real BMS release dwell and HV READY before arm; angle within 0.001 rad of atan(2.7*0.02); pressure below 1 Pa; torque above 50 Nm; SOC decreases",
+      "evidence": "logical-normal.csv"
+    },
+    {
+      "id": "C-M4-03",
+      "requirements": "SYS-COM-002",
+      "implementation": "interfaces/steering/steering_receiver.cpp#SteeringReceiver::receive",
+      "test": "SteeringReceiver.BadFramesDoNotRefreshValidRxAndDoNotReuseOldE2eStatus",
+      "criterion": "Invalid frame rejection leaves last valid reception unchanged",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-04",
+      "requirements": "SYS-COM-002;SYS-COM-004",
+      "implementation": "zone/gateway/async_zone_owner.cpp#AsyncZoneOwner::handle",
+      "test": "AsyncZoneOwner.ExpiredQueueEntryIsRejectedWithoutRestampingOrLeafDispatch",
+      "criterion": "Exclusive original deadline rejects queued work; no Leaf dispatch; priority protection remains available",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-05",
+      "requirements": "SYS-COM-004;SYS-EV-003",
+      "implementation": "central/coordinator/async_coordinator_port.cpp#AsyncCoordinatorPort::received_permission_parent",
+      "test": "AsyncOwnerTest.AllocationWaitsForReceivedGrantAndUsesItsOriginalIssuedParent",
+      "criterion": "Issued grant alone cannot authorize allocation; received grant keeps its separately issued original parent",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-06",
+      "requirements": "SYS-COM-001;SYS-COM-003;SYS-SAFE-001;SYS-SAFE-003",
+      "implementation": "zone/gateway/async_zone_owner.cpp#AsyncZoneOwner::service;simulation/runtime/async_leaf_owner.cpp#AsyncLeafOwner::protect",
+      "test": "M4AsyncRuntime.FeedbackLossCannotBeHiddenByLiveZoneHeartbeat",
+      "criterion": "Inject at 1200 ms; fault occurs after injection; all five Leaf output selections acknowledged within 100 ms of injection; protected_all implies closed global run gate even before Central fault observation",
+      "evidence": "logical-feedback-loss.csv"
+    },
+    {
+      "id": "C-M4-07",
+      "requirements": "SYS-COM-003;SYS-SAFE-003",
+      "implementation": "central/coordinator/vehicle_coordinator.cpp#VehicleCoordinator::allocate",
+      "test": "M4AsyncRuntime.LostVehicleRootDoesNotGetRenewedByPowerTraffic",
+      "criterion": "Continuing power requests cannot extend vehicle root; protection within 100 ms of stopping root refresh",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-08",
+      "requirements": "SYS-SAFE-001;SYS-SAFE-003",
+      "implementation": "central/coordinator/async_coordinator_port.cpp#AsyncCoordinatorPort::result;zone/gateway/async_zone_owner.cpp#AsyncZoneOwner::send",
+      "test": "M4AsyncRuntime.PartialFrontWritePreventsRearBatchAndProtectsAllDomains",
+      "criterion": "Front Steering write succeeds and Brake write fails; no Rear send for that batch; all domains protect within 100 ms of injection",
+      "evidence": "logical-partial-front.csv"
+    },
+    {
+      "id": "C-M4-09",
+      "requirements": "SYS-SAFE-002",
+      "implementation": "simulation/runtime/async_leaf_owner.cpp#AsyncLeafOwner::handle",
+      "test": "M4AsyncRuntime.PartialArmNeverEmitsNormalActuatorFrames",
+      "criterion": "One Leaf rejects arm; no normal actuator frames; all protection selections acknowledged",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-10",
+      "requirements": "SYS-EV-001;SYS-SAFE-002",
+      "implementation": "central/coordinator/vehicle_coordinator.cpp#VehicleCoordinator::progress_handoff;zone/gateway/async_zone_owner.cpp#AsyncZoneOwner::progress",
+      "test": "M4AsyncRuntime.NormalStopWaitsForLeafHandoffThenActualHvOff",
+      "criterion": "All terminal handoff ACKs precede Shutdown; measured torque below 0.1 Nm; pressure at least 100000 Pa; actual contactors open and bus below 30 V",
+      "evidence": "logical-normal-stop.csv"
+    },
+    {
+      "id": "C-M4-11",
+      "requirements": "SYS-ARCH-003;SYS-SAFE-002;SYS-EV-004",
+      "implementation": "simulation/runtime/async_leaf_owner.cpp#AsyncLeafOwner::initialize;simulation/runtime/m4_async_runtime.cpp#run_m4_async",
+      "test": "M4AsyncRuntime.ExplicitNewEpochRejoinKeepsPhysicalStateAndRestoresReadiness",
+      "criterion": "Fault at 1200 ms; explicit epoch 2 at 2300 ms; recheck reset evidence and BMS/HV readiness; continuous model epoch 7 and SOC ledger; protection cannot reopen the gate in the same epoch",
+      "evidence": "logical-rejoin.csv"
+    },
+    {
+      "id": "C-M4-12",
+      "requirements": "SYS-COM-002;SYS-SAFE-002",
+      "implementation": "zone/gateway/async_zone_owner.cpp#AsyncZoneOwner::handle",
+      "test": "M4AsyncRuntime.PreviousEpochWorkCannotDisturbCurrentNormalSession",
+      "criterion": "Old epoch 2 work in epoch 3 is discarded without authority learning or renewal",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-13",
+      "requirements": "SYS-SAFE-002",
+      "implementation": "central/session/epoch_store.cpp#EpochStore::issue;central/session/session_coordinator.cpp#SessionCoordinator::begin",
+      "test": "SessionTest.DurableAbandonedAttemptRequiresNewGrantAndAllFreshOwnerAcks",
+      "criterion": "Abandoned durable grant is consumed; rejoin needs larger persisted grant and every fresh phase ACK",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-14",
+      "requirements": "SYS-SAFE-001;SYS-EV-004",
+      "implementation": "vecu/bms/bms_controller.cpp#BmsController::evaluate",
+      "test": "BmsControllerTest.HardCellFaultInhibitsImmediatelyAndLatchesAfterFreshDwell",
+      "criterion": "Hard cell fault inhibits before confirmation and latches only on fresh dwell evidence",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-15",
+      "requirements": "SYS-SAFE-002;SYS-EV-004",
+      "implementation": "vecu/bms/bms_controller.cpp#BmsController::start_session",
+      "test": "BmsControllerTest.LatchDoesNotAutoClearAndRecoveryHysteresisNeedsNewSession",
+      "criterion": "Recovery hysteresis never auto clears fault; new session still needs release checks",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-16",
+      "requirements": "SYS-SAFE-001",
+      "implementation": "vecu/steering/steering_response_monitor.cpp#SteeringResponseMonitor::observe",
+      "test": "SteeringMonitorTest.FreshUnmovingAcquisitionsConfirmTrackingFaultAfterDelayAndDwell",
+      "criterion": "Fresh stationary angle under excitation breaches delay/rate/tolerance envelope and fresh confirmation dwell",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-17",
+      "requirements": "SYS-SAFE-001",
+      "implementation": "vecu/brake/brake_response_monitor.cpp#BrakeResponseMonitor::observe",
+      "test": "BrakeMonitorTest.FreshStuckAcquisitionsConfirmOnlyAfterDelayToleranceAndDwell",
+      "criterion": "Fresh stuck pressure does not become command-as-actual; detector requires delay/tolerance/dwell",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-18",
+      "requirements": "SYS-SAFE-005;SYS-CTRL-008",
+      "implementation": "central/control_allocation/control_allocation.cpp#ControlAllocation::tick;interfaces/zone/feedback_health.cpp#drive_available",
+      "test": "ControlAllocationTest.KnownZeroAndUnavailableCapabilityUseFrictionButMissingTorqueDoesNot",
+      "criterion": "Optional capability loss removes new regen authority; missing torque remains critical; friction allocation uses actual response",
+      "evidence": "results.json"
+    },
+    {
+      "id": "C-M4-19",
+      "requirements": "SYS-PERF-001;SYS-PERF-003;SYS-ARCH-003",
+      "implementation": "simulation/runtime/m4_async_runtime.cpp#run_m4_async",
+      "test": "M4AsyncWall.IndependentOwnersRunActualNormalPath",
+      "criterion": "Nine actual independent owner threads; per-owner body mean/P95/P99/max and period gaps measured with monotonic wall clock",
+      "evidence": "wall-normal.csv"
+    },
+    {
+      "id": "C-M4-20",
+      "requirements": "SYS-COM-003;SYS-PERF-003",
+      "implementation": "simulation/runtime/m4_async_runtime.cpp#run_m4_async",
+      "test": "M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse",
+      "criterion": "Actual wall-time injection and all-domain selection within 100 ms; no logical clock substitution",
+      "evidence": "wall-feedback-loss.csv"
+    }
+  ],
+  "scenarios": {
+    "normal/logical-normal": {
+      "test": "M4AsyncRuntime.NormalUsesRealBmsAndFeedbackBeforeActuation",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 0,
+      "all_protected_ns": 0,
+      "rejoin_active_ns": 0,
+      "completed_batches": 51,
+      "front_frames": 102,
+      "rear_frames": 51,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 9001,
+          "mean_body_us": 0.735859793356,
+          "p95_body_us": 0.696,
+          "p99_body_us": 7.245,
+          "max_body_us": 19.261,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "RearZone",
+          "samples": 9001,
+          "mean_body_us": 4.42611798689,
+          "p95_body_us": 7.021,
+          "p99_body_us": 33.133,
+          "max_body_us": 50.084,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "Steering",
+          "samples": 9001,
+          "mean_body_us": 0.349581379847,
+          "p95_body_us": 0.343,
+          "p99_body_us": 3.507,
+          "max_body_us": 13.458,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 9001,
+          "mean_body_us": 0.330160093323,
+          "p95_body_us": 0.291,
+          "p99_body_us": 3.146,
+          "max_body_us": 16.521,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 9001,
+          "mean_body_us": 0.599447950228,
+          "p95_body_us": 0.28,
+          "p99_body_us": 11.993,
+          "max_body_us": 28.659,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 9001,
+          "mean_body_us": 0.28326752583,
+          "p95_body_us": 0.267,
+          "p99_body_us": 3.416,
+          "max_body_us": 11.326,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 9001,
+          "mean_body_us": 0.390059104544,
+          "p95_body_us": 0.263,
+          "p99_body_us": 5.615,
+          "max_body_us": 24.756,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 9001,
+          "mean_body_us": 2.22169492279,
+          "p95_body_us": 7.445,
+          "p99_body_us": 20.113,
+          "max_body_us": 45.103,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Physical",
+          "samples": 1801,
+          "mean_body_us": 4.71279289284,
+          "p95_body_us": 6.713,
+          "p99_body_us": 7.248,
+          "max_body_us": 19.847,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "sanitized/logical-normal": {
+      "test": "M4AsyncRuntime.NormalUsesRealBmsAndFeedbackBeforeActuation",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 0,
+      "all_protected_ns": 0,
+      "rejoin_active_ns": 0,
+      "completed_batches": 51,
+      "front_frames": 102,
+      "rear_frames": 51,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 9001,
+          "mean_body_us": 3.8183606266,
+          "p95_body_us": 5.622,
+          "p99_body_us": 23.261,
+          "max_body_us": 59.157,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "RearZone",
+          "samples": 9001,
+          "mean_body_us": 13.5246485946,
+          "p95_body_us": 23.004,
+          "p99_body_us": 81.704,
+          "max_body_us": 144.354,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "Steering",
+          "samples": 9001,
+          "mean_body_us": 1.67569925564,
+          "p95_body_us": 2.375,
+          "p99_body_us": 12.958,
+          "max_body_us": 25.71,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 9001,
+          "mean_body_us": 1.08467370292,
+          "p95_body_us": 0.887,
+          "p99_body_us": 11.174,
+          "max_body_us": 23.429,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 9001,
+          "mean_body_us": 1.78698533496,
+          "p95_body_us": 0.924,
+          "p99_body_us": 30.298,
+          "max_body_us": 47.866,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 9001,
+          "mean_body_us": 0.957446061549,
+          "p95_body_us": 0.808,
+          "p99_body_us": 6.952,
+          "max_body_us": 42.231,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 9001,
+          "mean_body_us": 1.21632963004,
+          "p95_body_us": 0.781,
+          "p99_body_us": 16.875,
+          "max_body_us": 30.077,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 9001,
+          "mean_body_us": 8.38527696923,
+          "p95_body_us": 22.433,
+          "p99_body_us": 49.785,
+          "max_body_us": 77.068,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Physical",
+          "samples": 1801,
+          "mean_body_us": 22.3255530261,
+          "p95_body_us": 26.139,
+          "p99_body_us": 32.446,
+          "max_body_us": 46.643,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "normal/logical-normal-stop": {
+      "test": "M4AsyncRuntime.NormalStopWaitsForLeafHandoffThenActualHvOff",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 0,
+      "all_protected_ns": 0,
+      "rejoin_active_ns": 0,
+      "completed_batches": 31,
+      "front_frames": 62,
+      "rear_frames": 31,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 15001,
+          "mean_body_us": 0.682114725685,
+          "p95_body_us": 0.669,
+          "p99_body_us": 6.785,
+          "max_body_us": 13.054,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "RearZone",
+          "samples": 15001,
+          "mean_body_us": 4.23834191054,
+          "p95_body_us": 4.994,
+          "p99_body_us": 31.62,
+          "max_body_us": 57.566,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "Steering",
+          "samples": 15001,
+          "mean_body_us": 0.336834877675,
+          "p95_body_us": 0.332,
+          "p99_body_us": 3.445,
+          "max_body_us": 4.387,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 15001,
+          "mean_body_us": 0.317466368909,
+          "p95_body_us": 0.285,
+          "p99_body_us": 3.066,
+          "max_body_us": 16.509,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 15001,
+          "mean_body_us": 0.568896140257,
+          "p95_body_us": 0.267,
+          "p99_body_us": 10.802,
+          "max_body_us": 25.291,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 15001,
+          "mean_body_us": 0.280069462036,
+          "p95_body_us": 0.263,
+          "p99_body_us": 3.416,
+          "max_body_us": 16.131,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 15001,
+          "mean_body_us": 0.379793880408,
+          "p95_body_us": 0.259,
+          "p99_body_us": 5.397,
+          "max_body_us": 21.686,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 15001,
+          "mean_body_us": 2.14574961669,
+          "p95_body_us": 7.604,
+          "p99_body_us": 19.445,
+          "max_body_us": 31.091,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Physical",
+          "samples": 3001,
+          "mean_body_us": 4.51562179274,
+          "p95_body_us": 6.356,
+          "p99_body_us": 6.767,
+          "max_body_us": 36.876,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "sanitized/logical-normal-stop": {
+      "test": "M4AsyncRuntime.NormalStopWaitsForLeafHandoffThenActualHvOff",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 0,
+      "all_protected_ns": 0,
+      "rejoin_active_ns": 0,
+      "completed_batches": 31,
+      "front_frames": 62,
+      "rear_frames": 31,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 15001,
+          "mean_body_us": 3.59838470769,
+          "p95_body_us": 5.55,
+          "p99_body_us": 20.058,
+          "max_body_us": 45.941,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "RearZone",
+          "samples": 15001,
+          "mean_body_us": 13.0059772015,
+          "p95_body_us": 16.582,
+          "p99_body_us": 80.958,
+          "max_body_us": 144.252,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "Steering",
+          "samples": 15001,
+          "mean_body_us": 1.62297973468,
+          "p95_body_us": 2.314,
+          "p99_body_us": 12.176,
+          "max_body_us": 22.128,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 15001,
+          "mean_body_us": 1.05191647224,
+          "p95_body_us": 0.886,
+          "p99_body_us": 10.265,
+          "max_body_us": 28.754,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 15001,
+          "mean_body_us": 1.73434737684,
+          "p95_body_us": 0.793,
+          "p99_body_us": 30.024,
+          "max_body_us": 73.641,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 15001,
+          "mean_body_us": 0.944292513832,
+          "p95_body_us": 0.778,
+          "p99_body_us": 5.254,
+          "max_body_us": 36.409,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 15001,
+          "mean_body_us": 1.20198320112,
+          "p95_body_us": 0.76,
+          "p99_body_us": 16.478,
+          "max_body_us": 49.911,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 15001,
+          "mean_body_us": 8.22886347577,
+          "p95_body_us": 22.533,
+          "p99_body_us": 49.372,
+          "max_body_us": 66.541,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Physical",
+          "samples": 3001,
+          "mean_body_us": 22.0485721426,
+          "p95_body_us": 25.82,
+          "p99_body_us": 28.333,
+          "max_body_us": 67.46,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "normal/logical-partial-front": {
+      "test": "M4AsyncRuntime.PartialFrontWritePreventsRearBatchAndProtectsAllDomains",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 1215000000,
+      "all_protected_ns": 1215000000,
+      "rejoin_active_ns": 0,
+      "completed_batches": 21,
+      "front_frames": 43,
+      "rear_frames": 21,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 9001,
+          "mean_body_us": 0.760114542829,
+          "p95_body_us": 0.911,
+          "p99_body_us": 6.943,
+          "max_body_us": 20.181,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "RearZone",
+          "samples": 9001,
+          "mean_body_us": 3.18594089546,
+          "p95_body_us": 4.05,
+          "p99_body_us": 29.422,
+          "max_body_us": 38.932,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Steering",
+          "samples": 9001,
+          "mean_body_us": 0.371165537163,
+          "p95_body_us": 0.428,
+          "p99_body_us": 3.344,
+          "max_body_us": 16.302,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 9001,
+          "mean_body_us": 0.353142984113,
+          "p95_body_us": 0.404,
+          "p99_body_us": 3.049,
+          "max_body_us": 12.705,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 9001,
+          "mean_body_us": 0.530449950006,
+          "p95_body_us": 0.409,
+          "p99_body_us": 7.697,
+          "max_body_us": 15.71,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 9001,
+          "mean_body_us": 0.306129874458,
+          "p95_body_us": 0.344,
+          "p99_body_us": 0.718,
+          "max_body_us": 12.991,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 9001,
+          "mean_body_us": 0.409394289523,
+          "p95_body_us": 0.405,
+          "p99_body_us": 5.414,
+          "max_body_us": 19.333,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 9001,
+          "mean_body_us": 1.79516753694,
+          "p95_body_us": 3.64,
+          "p99_body_us": 17.67,
+          "max_body_us": 23.911,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Physical",
+          "samples": 1801,
+          "mean_body_us": 4.59426596335,
+          "p95_body_us": 6.398,
+          "p99_body_us": 7.015,
+          "max_body_us": 19.945,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "sanitized/logical-partial-front": {
+      "test": "M4AsyncRuntime.PartialFrontWritePreventsRearBatchAndProtectsAllDomains",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 1215000000,
+      "all_protected_ns": 1215000000,
+      "rejoin_active_ns": 0,
+      "completed_batches": 21,
+      "front_frames": 43,
+      "rear_frames": 21,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 9001,
+          "mean_body_us": 4.03565414954,
+          "p95_body_us": 6.591,
+          "p99_body_us": 20.998,
+          "max_body_us": 49.179,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "RearZone",
+          "samples": 9001,
+          "mean_body_us": 10.1603622931,
+          "p95_body_us": 14.289,
+          "p99_body_us": 70.102,
+          "max_body_us": 101.111,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Steering",
+          "samples": 9001,
+          "mean_body_us": 1.79589801133,
+          "p95_body_us": 2.688,
+          "p99_body_us": 11.927,
+          "max_body_us": 28.389,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 9001,
+          "mean_body_us": 1.25074880569,
+          "p95_body_us": 1.656,
+          "p99_body_us": 9.957,
+          "max_body_us": 18.697,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 9001,
+          "mean_body_us": 1.73970325519,
+          "p95_body_us": 1.646,
+          "p99_body_us": 25.794,
+          "max_body_us": 47.834,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 9001,
+          "mean_body_us": 1.13254716143,
+          "p95_body_us": 1.458,
+          "p99_body_us": 16.792,
+          "max_body_us": 33.382,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 9001,
+          "mean_body_us": 1.34841984224,
+          "p95_body_us": 1.532,
+          "p99_body_us": 16.664,
+          "max_body_us": 33.463,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 9001,
+          "mean_body_us": 6.97358471281,
+          "p95_body_us": 17.216,
+          "p99_body_us": 46.038,
+          "max_body_us": 69.26,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Physical",
+          "samples": 1801,
+          "mean_body_us": 22.5005496946,
+          "p95_body_us": 26.054,
+          "p99_body_us": 30.47,
+          "max_body_us": 61.103,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "normal/logical-feedback-loss": {
+      "test": "M4AsyncRuntime.FeedbackLossCannotBeHiddenByLiveZoneHeartbeat",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 1221200000,
+      "all_protected_ns": 1221400000,
+      "rejoin_active_ns": 0,
+      "completed_batches": 22,
+      "front_frames": 44,
+      "rear_frames": 22,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 9001,
+          "mean_body_us": 0.735836351516,
+          "p95_body_us": 0.877,
+          "p99_body_us": 6.768,
+          "max_body_us": 16.248,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "RearZone",
+          "samples": 9001,
+          "mean_body_us": 3.21754616154,
+          "p95_body_us": 4.047,
+          "p99_body_us": 28.811,
+          "max_body_us": 50.646,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Steering",
+          "samples": 9001,
+          "mean_body_us": 0.377896900344,
+          "p95_body_us": 0.438,
+          "p99_body_us": 3.343,
+          "max_body_us": 17.494,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 9001,
+          "mean_body_us": 0.356623264082,
+          "p95_body_us": 0.406,
+          "p99_body_us": 3.052,
+          "max_body_us": 15.802,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 9001,
+          "mean_body_us": 0.534432063104,
+          "p95_body_us": 0.411,
+          "p99_body_us": 7.753,
+          "max_body_us": 25.491,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 9001,
+          "mean_body_us": 0.304698700144,
+          "p95_body_us": 0.345,
+          "p99_body_us": 2.912,
+          "max_body_us": 13.203,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 9001,
+          "mean_body_us": 0.403155760471,
+          "p95_body_us": 0.397,
+          "p99_body_us": 5.41,
+          "max_body_us": 16.224,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 9001,
+          "mean_body_us": 1.81966581491,
+          "p95_body_us": 3.711,
+          "p99_body_us": 17.433,
+          "max_body_us": 52.638,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Physical",
+          "samples": 1801,
+          "mean_body_us": 4.64675291505,
+          "p95_body_us": 6.422,
+          "p99_body_us": 7.448,
+          "max_body_us": 35.223,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "sanitized/logical-feedback-loss": {
+      "test": "M4AsyncRuntime.FeedbackLossCannotBeHiddenByLiveZoneHeartbeat",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 1221200000,
+      "all_protected_ns": 1221400000,
+      "rejoin_active_ns": 0,
+      "completed_batches": 22,
+      "front_frames": 44,
+      "rear_frames": 22,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 9001,
+          "mean_body_us": 3.92024086213,
+          "p95_body_us": 6.349,
+          "p99_body_us": 19.971,
+          "max_body_us": 36.386,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "RearZone",
+          "samples": 9001,
+          "mean_body_us": 10.2641204311,
+          "p95_body_us": 14.384,
+          "p99_body_us": 70.65,
+          "max_body_us": 121.657,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Steering",
+          "samples": 9001,
+          "mean_body_us": 1.79017420287,
+          "p95_body_us": 2.652,
+          "p99_body_us": 11.908,
+          "max_body_us": 56.622,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 9001,
+          "mean_body_us": 1.23975824908,
+          "p95_body_us": 1.654,
+          "p99_body_us": 10.057,
+          "max_body_us": 26.347,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 9001,
+          "mean_body_us": 1.72139062326,
+          "p95_body_us": 1.631,
+          "p99_body_us": 25.769,
+          "max_body_us": 46.2,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 9001,
+          "mean_body_us": 1.10492934118,
+          "p95_body_us": 1.428,
+          "p99_body_us": 16.105,
+          "max_body_us": 25.127,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 9001,
+          "mean_body_us": 1.3903425175,
+          "p95_body_us": 1.539,
+          "p99_body_us": 16.731,
+          "max_body_us": 519.032,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 9001,
+          "mean_body_us": 7.00892923009,
+          "p95_body_us": 14.998,
+          "p99_body_us": 42.626,
+          "max_body_us": 102.78,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Physical",
+          "samples": 1801,
+          "mean_body_us": 22.3911693504,
+          "p95_body_us": 25.837,
+          "p99_body_us": 29.409,
+          "max_body_us": 67.874,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "normal/logical-rejoin": {
+      "test": "M4AsyncRuntime.ExplicitNewEpochRejoinKeepsPhysicalStateAndRestoresReadiness",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 1215000000,
+      "all_protected_ns": 1215000000,
+      "rejoin_active_ns": 3074200000,
+      "completed_batches": 77,
+      "front_frames": 155,
+      "rear_frames": 77,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 21001,
+          "mean_body_us": 0.779884291224,
+          "p95_body_us": 0.936,
+          "p99_body_us": 7.041,
+          "max_body_us": 46.364,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "RearZone",
+          "samples": 21001,
+          "mean_body_us": 3.45121122804,
+          "p95_body_us": 4.175,
+          "p99_body_us": 30.032,
+          "max_body_us": 64.482,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Steering",
+          "samples": 21001,
+          "mean_body_us": 0.365185086424,
+          "p95_body_us": 0.419,
+          "p99_body_us": 3.361,
+          "max_body_us": 6.423,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 21001,
+          "mean_body_us": 0.350595543069,
+          "p95_body_us": 0.4,
+          "p99_body_us": 3.043,
+          "max_body_us": 17.532,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 21001,
+          "mean_body_us": 0.547024475025,
+          "p95_body_us": 0.412,
+          "p99_body_us": 7.792,
+          "max_body_us": 22.963,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 21001,
+          "mean_body_us": 0.303968287224,
+          "p95_body_us": 0.34,
+          "p99_body_us": 4.947,
+          "max_body_us": 15.928,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 21001,
+          "mean_body_us": 0.399729155754,
+          "p95_body_us": 0.394,
+          "p99_body_us": 5.4,
+          "max_body_us": 15.521,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 21001,
+          "mean_body_us": 1.89363863626,
+          "p95_body_us": 4.619,
+          "p99_body_us": 18.932,
+          "max_body_us": 40.627,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 39.2
+        },
+        {
+          "owner": "Physical",
+          "samples": 4201,
+          "mean_body_us": 4.64332516068,
+          "p95_body_us": 6.606,
+          "p99_body_us": 7.259,
+          "max_body_us": 40.771,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "sanitized/logical-rejoin": {
+      "test": "M4AsyncRuntime.ExplicitNewEpochRejoinKeepsPhysicalStateAndRestoresReadiness",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 775000000,
+      "first_fault_ns": 1215000000,
+      "all_protected_ns": 1215000000,
+      "rejoin_active_ns": 3074200000,
+      "completed_batches": 77,
+      "front_frames": 155,
+      "rear_frames": 77,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 21001,
+          "mean_body_us": 4.07916008761,
+          "p95_body_us": 6.621,
+          "p99_body_us": 21.099,
+          "max_body_us": 45.731,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10.2
+        },
+        {
+          "owner": "RearZone",
+          "samples": 21001,
+          "mean_body_us": 10.9845302605,
+          "p95_body_us": 15.081,
+          "p99_body_us": 78.737,
+          "max_body_us": 126.034,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Steering",
+          "samples": 21001,
+          "mean_body_us": 1.79045493072,
+          "p95_body_us": 2.652,
+          "p99_body_us": 12.092,
+          "max_body_us": 34.628,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Brake",
+          "samples": 21001,
+          "mean_body_us": 1.20901799914,
+          "p95_body_us": 1.638,
+          "p99_body_us": 10.063,
+          "max_body_us": 25.759,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Drive",
+          "samples": 21001,
+          "mean_body_us": 1.75306694919,
+          "p95_body_us": 1.642,
+          "p99_body_us": 26.047,
+          "max_body_us": 68.444,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Bms",
+          "samples": 21001,
+          "mean_body_us": 1.08183272225,
+          "p95_body_us": 1.444,
+          "p99_body_us": 13.411,
+          "max_body_us": 36.5,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 20
+        },
+        {
+          "owner": "Power",
+          "samples": 21001,
+          "mean_body_us": 1.31897947717,
+          "p95_body_us": 1.515,
+          "p99_body_us": 16.587,
+          "max_body_us": 45.025,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 10
+        },
+        {
+          "owner": "Central",
+          "samples": 21001,
+          "mean_body_us": 7.35002599876,
+          "p95_body_us": 20.664,
+          "p99_body_us": 46.005,
+          "max_body_us": 93.097,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2,
+          "max_runnable_gap_ms": 39.2
+        },
+        {
+          "owner": "Physical",
+          "samples": 4201,
+          "mean_body_us": 22.39514806,
+          "p95_body_us": 26.094,
+          "p99_body_us": 29.233,
+          "max_body_us": 87.466,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "normal/wall-normal": {
+      "test": "M4AsyncWall.IndependentOwnersRunActualNormalPath",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 785977328,
+      "first_fault_ns": 0,
+      "all_protected_ns": 0,
+      "rejoin_active_ns": 0,
+      "completed_batches": 50,
+      "front_frames": 100,
+      "rear_frames": 50,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 8997,
+          "mean_body_us": 1.09628909637,
+          "p95_body_us": 3.944,
+          "p99_body_us": 5.329,
+          "max_body_us": 28.126,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.254184,
+          "max_runnable_gap_ms": 10.301644
+        },
+        {
+          "owner": "RearZone",
+          "samples": 8998,
+          "mean_body_us": 7.11095076684,
+          "p95_body_us": 26.235,
+          "p99_body_us": 37.327,
+          "max_body_us": 74.498,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.265467,
+          "max_runnable_gap_ms": 10.224735
+        },
+        {
+          "owner": "Steering",
+          "samples": 8997,
+          "mean_body_us": 0.674954762699,
+          "p95_body_us": 2.111,
+          "p99_body_us": 3.516,
+          "max_body_us": 23.869,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.254121,
+          "max_runnable_gap_ms": 10.052794
+        },
+        {
+          "owner": "Brake",
+          "samples": 8998,
+          "mean_body_us": 0.711629250945,
+          "p95_body_us": 2.119,
+          "p99_body_us": 3.636,
+          "max_body_us": 17.439,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.254155,
+          "max_runnable_gap_ms": 10.196193
+        },
+        {
+          "owner": "Drive",
+          "samples": 8998,
+          "mean_body_us": 1.6347157146,
+          "p95_body_us": 4.375,
+          "p99_body_us": 16.489,
+          "max_body_us": 58.257,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.259014,
+          "max_runnable_gap_ms": 10.012354
+        },
+        {
+          "owner": "Bms",
+          "samples": 8998,
+          "mean_body_us": 0.878681818182,
+          "p95_body_us": 2.148,
+          "p99_body_us": 4.738,
+          "max_body_us": 36.383,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.278736,
+          "max_runnable_gap_ms": 20.208839
+        },
+        {
+          "owner": "Power",
+          "samples": 8998,
+          "mean_body_us": 1.49246999333,
+          "p95_body_us": 2.296,
+          "p99_body_us": 28.79,
+          "max_body_us": 38.91,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.25325,
+          "max_runnable_gap_ms": 10.200554
+        },
+        {
+          "owner": "Central",
+          "samples": 8998,
+          "mean_body_us": 5.28105634585,
+          "p95_body_us": 23.256,
+          "p99_body_us": 30.093,
+          "max_body_us": 184.272,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.252938,
+          "max_runnable_gap_ms": 10.201764
+        },
+        {
+          "owner": "Physical",
+          "samples": 1800,
+          "mean_body_us": 21.6527327778,
+          "p95_body_us": 30.794,
+          "p99_body_us": 32.257,
+          "max_body_us": 40.724,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1.064538,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "sanitized/wall-normal": {
+      "test": "M4AsyncWall.IndependentOwnersRunActualNormalPath",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 826643271,
+      "first_fault_ns": 0,
+      "all_protected_ns": 0,
+      "rejoin_active_ns": 0,
+      "completed_batches": 48,
+      "front_frames": 96,
+      "rear_frames": 48,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 8994,
+          "mean_body_us": 4.11778663553,
+          "p95_body_us": 13.085,
+          "p99_body_us": 26.243,
+          "max_body_us": 51.985,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.346254,
+          "max_runnable_gap_ms": 10.403541
+        },
+        {
+          "owner": "RearZone",
+          "samples": 8994,
+          "mean_body_us": 17.531033022,
+          "p95_body_us": 27.236,
+          "p99_body_us": 91.687,
+          "max_body_us": 131.716,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.34774,
+          "max_runnable_gap_ms": 11.568371
+        },
+        {
+          "owner": "Steering",
+          "samples": 8994,
+          "mean_body_us": 2.65939793195,
+          "p95_body_us": 6.473,
+          "p99_body_us": 15.056,
+          "max_body_us": 43.525,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.339396,
+          "max_runnable_gap_ms": 10.174209
+        },
+        {
+          "owner": "Brake",
+          "samples": 8994,
+          "mean_body_us": 2.64484200578,
+          "p95_body_us": 6.32,
+          "p99_body_us": 14.493,
+          "max_body_us": 39.039,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.333275,
+          "max_runnable_gap_ms": 10.179527
+        },
+        {
+          "owner": "Drive",
+          "samples": 8974,
+          "mean_body_us": 3.54722476042,
+          "p95_body_us": 13.447,
+          "p99_body_us": 42.522,
+          "max_body_us": 1203.494,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1.234141,
+          "max_runnable_gap_ms": 10.554601
+        },
+        {
+          "owner": "Bms",
+          "samples": 8994,
+          "mean_body_us": 2.224911163,
+          "p95_body_us": 5.899,
+          "p99_body_us": 17.403,
+          "max_body_us": 52.895,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.336152,
+          "max_runnable_gap_ms": 20.176203
+        },
+        {
+          "owner": "Power",
+          "samples": 8994,
+          "mean_body_us": 2.38144296197,
+          "p95_body_us": 6.253,
+          "p99_body_us": 21.341,
+          "max_body_us": 52.774,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.345532,
+          "max_runnable_gap_ms": 10.176891
+        },
+        {
+          "owner": "Central",
+          "samples": 8994,
+          "mean_body_us": 12.2976479875,
+          "p95_body_us": 30.108,
+          "p99_body_us": 60.507,
+          "max_body_us": 91.476,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.339476,
+          "max_runnable_gap_ms": 10.061888
+        },
+        {
+          "owner": "Physical",
+          "samples": 1799,
+          "mean_body_us": 25.3869683157,
+          "p95_body_us": 35.534,
+          "p99_body_us": 42.386,
+          "max_body_us": 79.908,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1.070607,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "normal/wall-feedback-loss": {
+      "test": "M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 805848884,
+      "first_fault_ns": 1211440908,
+      "all_protected_ns": 1211847527,
+      "rejoin_active_ns": 0,
+      "completed_batches": 19,
+      "front_frames": 38,
+      "rear_frames": 19,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 8998,
+          "mean_body_us": 1.03908324072,
+          "p95_body_us": 1.709,
+          "p99_body_us": 5.942,
+          "max_body_us": 37.089,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.252753,
+          "max_runnable_gap_ms": 20.201495
+        },
+        {
+          "owner": "RearZone",
+          "samples": 8998,
+          "mean_body_us": 6.42399577684,
+          "p95_body_us": 8.713,
+          "p99_body_us": 33.369,
+          "max_body_us": 43.669,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.2545,
+          "max_runnable_gap_ms": 20.200375
+        },
+        {
+          "owner": "Steering",
+          "samples": 8998,
+          "mean_body_us": 1.2340791287,
+          "p95_body_us": 2.905,
+          "p99_body_us": 15.787,
+          "max_body_us": 27.082,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.252787,
+          "max_runnable_gap_ms": 10.200562
+        },
+        {
+          "owner": "Brake",
+          "samples": 8998,
+          "mean_body_us": 0.676954767726,
+          "p95_body_us": 2.157,
+          "p99_body_us": 3.474,
+          "max_body_us": 25.365,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.25437,
+          "max_runnable_gap_ms": 10.051211
+        },
+        {
+          "owner": "Drive",
+          "samples": 8998,
+          "mean_body_us": 1.44756245832,
+          "p95_body_us": 3.042,
+          "p99_body_us": 27.141,
+          "max_body_us": 41.915,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.298766,
+          "max_runnable_gap_ms": 10.201654
+        },
+        {
+          "owner": "Bms",
+          "samples": 8994,
+          "mean_body_us": 0.690148209918,
+          "p95_body_us": 2.149,
+          "p99_body_us": 4.567,
+          "max_body_us": 34.185,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.914558,
+          "max_runnable_gap_ms": 20.20034
+        },
+        {
+          "owner": "Power",
+          "samples": 8999,
+          "mean_body_us": 0.773325147239,
+          "p95_body_us": 2.931,
+          "p99_body_us": 6.128,
+          "max_body_us": 27.297,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.253062,
+          "max_runnable_gap_ms": 10.143166
+        },
+        {
+          "owner": "Central",
+          "samples": 8998,
+          "mean_body_us": 3.87465381196,
+          "p95_body_us": 7.708,
+          "p99_body_us": 23.788,
+          "max_body_us": 73.848,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.253681,
+          "max_runnable_gap_ms": 10.217693
+        },
+        {
+          "owner": "Physical",
+          "samples": 1800,
+          "mean_body_us": 8.43211333333,
+          "p95_body_us": 27.204,
+          "p99_body_us": 33.821,
+          "max_body_us": 38.095,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1.05319,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    },
+    "sanitized/wall-feedback-loss": {
+      "test": "M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse",
+      "passed": true,
+      "ownership_ok": true,
+      "physical_ok": true,
+      "first_active_ns": 806801378,
+      "first_fault_ns": 1212377143,
+      "all_protected_ns": 1212975567,
+      "rejoin_active_ns": 0,
+      "completed_batches": 19,
+      "front_frames": 38,
+      "rear_frames": 19,
+      "timing": [
+        {
+          "owner": "FrontZone",
+          "samples": 8995,
+          "mean_body_us": 4.0594639244,
+          "p95_body_us": 7.704,
+          "p99_body_us": 17.551,
+          "max_body_us": 38.467,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.254788,
+          "max_runnable_gap_ms": 20.204973
+        },
+        {
+          "owner": "RearZone",
+          "samples": 8993,
+          "mean_body_us": 13.2034967197,
+          "p95_body_us": 30.637,
+          "p99_body_us": 77.007,
+          "max_body_us": 119.519,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.376858,
+          "max_runnable_gap_ms": 20.229638
+        },
+        {
+          "owner": "Steering",
+          "samples": 8995,
+          "mean_body_us": 2.31420322401,
+          "p95_body_us": 6.616,
+          "p99_body_us": 14.049,
+          "max_body_us": 46.233,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.255305,
+          "max_runnable_gap_ms": 10.199628
+        },
+        {
+          "owner": "Brake",
+          "samples": 8995,
+          "mean_body_us": 3.29728349083,
+          "p95_body_us": 8.981,
+          "p99_body_us": 17.69,
+          "max_body_us": 73.227,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.25476,
+          "max_runnable_gap_ms": 10.201447
+        },
+        {
+          "owner": "Drive",
+          "samples": 8995,
+          "mean_body_us": 2.91724113396,
+          "p95_body_us": 6.037,
+          "p99_body_us": 34.241,
+          "max_body_us": 64.591,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.254728,
+          "max_runnable_gap_ms": 10.191823
+        },
+        {
+          "owner": "Bms",
+          "samples": 8995,
+          "mean_body_us": 2.94944458032,
+          "p95_body_us": 8.153,
+          "p99_body_us": 21.207,
+          "max_body_us": 74.279,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.254641,
+          "max_runnable_gap_ms": 20.199963
+        },
+        {
+          "owner": "Power",
+          "samples": 8995,
+          "mean_body_us": 3.14732729294,
+          "p95_body_us": 8.621,
+          "p99_body_us": 35.097,
+          "max_body_us": 73.751,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.259515,
+          "max_runnable_gap_ms": 10.200932
+        },
+        {
+          "owner": "Central",
+          "samples": 8995,
+          "mean_body_us": 9.06092084491,
+          "p95_body_us": 30.085,
+          "p99_body_us": 50.308,
+          "max_body_us": 92.065,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 0.254062,
+          "max_runnable_gap_ms": 10.21872
+        },
+        {
+          "owner": "Physical",
+          "samples": 1799,
+          "mean_body_us": 30.0722946081,
+          "p95_body_us": 42.295,
+          "p99_body_us": 48,
+          "max_body_us": 85.162,
+          "body_over_4ms": 0,
+          "max_poll_gap_ms": 1.071561,
+          "max_runnable_gap_ms": 0
+        }
+      ]
+    }
+  },
+  "cli_durable_rejoin": {
+    "normal": {
+      "startup": {
+        "first_epoch": 1,
+        "rejoin_epoch": 2,
+        "model_epoch": 7
+      },
+      "passed": true
+    },
+    "sanitized": {
+      "startup": {
+        "first_epoch": 1,
+        "rejoin_epoch": 2,
+        "model_epoch": 7
+      },
+      "passed": true
+    }
+  }
+}

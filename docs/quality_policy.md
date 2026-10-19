@@ -1,8 +1,9 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 820개 PASS**다.
-Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
+정상 owner 비동기 통합까지 normal·ASan/UBSan 각각 **C++ unit872/872 PASS**다(`117ebc0`). 아래 날짜별 과거 수치는 당시 범위로 보존한다.
+Python은 직전 hosted timer 단계의 **63개 PASS** 이력이다. 이번 M4 검증 runner를 추가·실행하고 syntax를 검사했으며 기존 Python unit은 재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
@@ -1552,12 +1553,61 @@ Markdown128개/상대 링크·anchor1483개·fence·요구32/TC29 추적성·YAM
 전체 runtime의 독립 정지/partition·timing·remote INIT/Leaf lease wire·DDS/Host feedback bridge는 후속이다.
 M4 전체 완료·M3 예외 해소·requirement32/system TC29 PASS로 확대하지 않는다. MBD는 M6–M8 계획을 유지한다.
 
+## 2026-10-19 M4 정상 owner 비동기 통합과 재현 근거
+
+[ADR-0055](adr/ADR-0055-asynchronous-normal-owner-integration.md)에서 앞선 session owner 위에
+Central/Front/Rear/다섯 Leaf/Physical의9개 owner를 연결했다. 방향별 정상 FIFO·정확한 TX result/arm/terminal ACK,
+별도 priority protection·global epoch gate·원래 root/parent/expiry를 사용한다. 실제 BMS 판단/RC·접점/센서→Actual을 연결했다.
+동기 port를 여러 thread에서 공유하지 않는다. CLI는 기존 actuator_demo의 m4-async이며 durable grant는 thread 시작 전에 발급한다.
+
+첫 port 단위 commit `439f5fa`는846+11=857개 normal PASS였다. 최종 코드 **`117ebc002e2927d0886b8e6407497de716772adb`**는
+846+async port13+runtime11+INIT wake1+optional capability1=**872개**, normal·ASan/UBSan **각각872/872 PASS**다.
+8개 논리 scenario·고정 grant17의 부분 실패, native 정상/Actual 상실2개, durable CLI 재가입 각각1개를 포함한다.
+같은 CTest/JUnit을 재사용해 [대표20개 함수·시험·판정·실제 결과](test-plan/evidence/m4_async/component_results.csv)를 연결했다.
+[최소 공유 근거](test-plan/evidence/m4_async/README.md)에 대상 commit/source SHA256·환경·명령·입력·수치/CSV·그래프를 보존했다.
+
+Native wall은 Linux6.8/GCC11.4 Debug, SCHED_OTHER·CPU0–15 허용·별도 부하 없음·각1.8s/조건1회다.
+Actual 상실 주입→전체 보호 선택 ACK는 normal11.848ms/sanitizer12.976ms, 두 wall 조건의 owner body 최대는
+normal184.272μs/sanitizer1203.494μs며4ms 초과 관측은0회다. 논리 fault/보호22ms 내·물리 압력 도달은 다른 clock/endpoint다.
+이는 M3 선택 FIFO/CPU map·독립 감시·부하/장기 반복 결과나 기존 timing 예외의 해소 근거가 아니다.
+
+Normal·sanitizer 기존 vCAN97개씩·gateway/startup5개씩도 재통과했다. Actuator timeout은
+normal80.019–81.029ms, sanitizer80.107–81.213ms였다. 기존12 frame/36 payload 계약은 변경하지 않았다.
+Production Release BUILD_TESTING=OFF 빌드와 변경 C++18개 clang-tidy14 analyzer/bugprone·production14개 cppcheck2.7을 확인했다.
+새 진단은 정리했고 기존 DriveSilPlant::begin의 인접 인자 경고1종은 보존했다. 예외가 noexcept send/service를 빠져나가지 않게
+기존 실패/보호 경로에 연결했다. 그래프3개는 같은 CSV에서 렌더해 확인했다.
+
+개발 중 상대 phase/수신 grant와 최신 issued parent 불일치·root release 불일치가 원래 expiry를 넘는 실패를 관측했다.
+원래 기한을 연장하지 않고 절대 release·실제 수신 grant 대기/원래 parent history·200μs ingress service로 수정했다.
+정상 종료의 terminal ACK 전 VM 실행도 보류해 half-handoff status를 새 Enable 근거로 쓰지 않는다.
+실제 optional capability unknown과 critical torque/speed loss를 분리해 기존 friction fallback을 유지했다.
+최종 검토에서 normal poll마다 gate를 다시 여는 호출도 세션 최초 Release 한 번으로 제한했다.
+모든 scenario trace에 protected_all이면 gate가 닫혀야 한다는 oracle을 추가했다.
+추가 oracle의 첫 native Actual 상실은 local Zone 보호→Central 인지 사이 열린 gate를 잡아 **871/872 PASS·1 FAIL**이었다
+(commit6677a46, `build/m4-async-verification-release/normal/`; 그 attempt의 sanitizer는 NOT RUN).
+Zone/Leaf 보호 진입에서도 atomic gate를 즉시 닫고 controller 자체 fault도 같은 경로로 보내 수정했다.
+수정 후 최종 전체872개와 CLI 재가입은 두 빌드 모두 PASS다. [짧은 전후 trace](test-plan/evidence/m4_async/gate-regression.csv)를 보존한다.
+앞선 회귀 assertion의 brace 경고는 수정했으며 실패 빌드 원본은 `build/m4-async-verification-gate/normal/build.txt`에 보존한다.
+수정 전 통합 commit617c200의872개 PASS는 `build/m4-async-verification/`에 보존하고 최종 결과와 합치지 않는다.
+초기871개 실행은868 PASS/3 FAIL(늦은 INIT wake 처리에서 negative ACK 누락)이었고 negative ACK 전달을 수정해 전체 회귀했다.
+개발 실패 원본 `build/m4-async-ctest-development.log`, `build/m4-async-logical-development.log`와
+`build/m4-async-runtime-{recovery,wall-service,absolute,capability,optional,root-phase}.log`는 보존한다.
+
+재현 runner는 `tests/integration/runtime/check_m4_async.py`다. 최종 원본은
+`build/m4-async-verification-safety/{metadata.json,normal/,sanitized/}`(configure/build/ctest/JUnit/CLI/원본 scenario),
+Gate 후속 정적 분석은 `build/m4-async-gate{,-test}-tidy.log`와 변경4개 `tidy-*` 로그를 함께 따른다.
+정적·production·transport는 `build/m4-async-{tidy-summary-reviewed,tidy-*,cppcheck-final,production-final,vcan-normal,vcan-sanitized,can-normal,can-sanitized}.log`다.
+Markdown131개/상대 링크·anchor1548개·fence, 요구32/TC29·YAML3개 budget·Python9개 syntax/whitespace도 통과했다.
+새 Python runner의 실제 실행과 기존63개 Python unit 재실행을 구분한다.
+Remote wire/process partition·M3 profile 통합 timing·TSan/Target/차량/MBD는 NOT RUN, learner review는 PENDING이다.
+과거846/820개 등 당시 수치와 M3 실패를 지우거나 전체 system TC PASS로 올리지 않는다.
+
 ## 코드·예제·시험 배치
 
 - 재사용 기능은 `interfaces/`와 해당 runtime component에 둔다.
 - 학습/확인 예제는 `actuator_demo` 실행 파일 하나로 묶는다.
   [진입점](../tools/actuator_demo.cpp)은 명령 분기·도움말을,
-  `tools/demo/{steering,brake,drive,ev}_demo.cpp`는 각 도메인의 명령 구현을 맡는다.
+  `tools/demo/{steering,brake,drive,ev}_demo.cpp`는 각 도메인의 명령 구현을, `m4_demo.cpp`는 독립 owner 경로의 실행·grant 준비를 맡는다.
   ECU 판단은 `vecu/`, 물리 모델과 SIL 연결은 `simulation/`에 둔다.
   기존 기능의 작은 변경마다 별도 demo를 추가하지 않는다.
 - 단위 시험 파일은 모듈별로 유지한다. 기존 모듈의 조건/경계/fault 추가는 같은 파일의 case로 추가하고,
@@ -1591,8 +1641,8 @@ cmake --build build/m1-angle-sanitized -j 4
 ctest --test-dir build/m1-angle-sanitized --output-on-failure
 ```
 
-예제의 명령 구현을 검사할 때는 dispatcher만 검사하지 않고 네 도메인 source를 포함한다.
-다음은 demo 5개 source에 한정한 clang-tidy 명령이다. ECU/plant 변경 시에는 해당 구현·시험 source도
+예제의 명령 구현을 검사할 때는 dispatcher만 검사하지 않고 도메인·M4 source를 포함한다.
+다음은 현재 demo6개 source에 한정한 clang-tidy 명령이다. ECU/plant 변경 시에는 해당 구현·시험 source도
 대상에 추가하고 검사 목록·도구 버전·결과를 기록한다.
 
 ```sh

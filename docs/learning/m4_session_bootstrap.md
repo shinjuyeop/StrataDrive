@@ -3,6 +3,8 @@
 Date: 2026-10-19. Status: **Host session component / 정상 비동기 runtime 후속**.
 설계와 수치는 [ADR-0054](../adr/ADR-0054-trusted-session-owner-loops.md)에 둔다.
 
+**후속 구현:** 이 문서의 수치·직렬 fixture 설명은 해당 단계의 이력이다. 정상 owner 비동기 연결·실제 BMS/센서 경로·정상 종료/재가입은 [다음 M4 구현](m4_async_owners.md)에서 진행했다. 현재 범위·최신 결과의 기준은 [project_status](../project_status.md)다.
+
 지금까지는 시험 caller가 각 controller/gateway/RX의 `start_session()`을 직접 호출했다.
 이번에는 Central이 준비 메시지를 보내고, 각 owner가 자기 INIT 결과를 ACK하는 절차를 추가했다.
 평소 조향·제동 명령과 별도의 trusted 제어 경로이며 CAN에 새 INIT frame을 추가한 것은 아니다.

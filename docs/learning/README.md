@@ -79,7 +79,7 @@ Requested duty와 실제 CPU 시간, task elapsed/response·miss를 구분하고
 현재 C++ **521개**, Python **21개**다. 배치/우선순위·Target 확장은 후속이며 학습자 수용 기록은 별도로 남긴다.
 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone을 채택했다. Central의 별도 VCU가 차량 전체
 관리·배분/session/feedback 집계를 맡고 Front는 Steering/Brake, Rear는 Drive/BMS gateway를 맡는다. 단일 Zone component 확인 후
-M4/M5에 분리하며 Central–Zone protocol(TBD-15)/runtime/TC-ZON은 미구현·NOT RUN이다.
+M4/M5에 분리한다. 후속 Host 세션/정상 owner runtime은 아래 M4 항목에서 구현했고 remote Central–Zone wire(TBD-15)/DDS와 전체 TC-ZON은 미실행이다.
 
 실행 프로그램은 `actuator_demo` 하나다. `tools/actuator_demo.cpp`는 명령 분기와 도움말을 맡고,
 예제 구현은 `tools/demo/`의 Steering·Brake·Drive·EV 파일로 나눈다.
@@ -183,7 +183,7 @@ Stop/lease16·VM 갱신1·Rear terminal1·연결5개를 더해 전체 각각773�
 
 후속 [실제 Zone 상태 감시](m4_zone_feedback_health.md)는 시동/종료의 health fixture를 교체한다.
 담당 Leaf/gateway 상태·독립 Front/Rear status ingress와 source 상실/partition·새 INIT 경계를 검사했다.
-이후 coordinator와 typed 세션 transaction은 아래 후속에서 연결했다. 정상 비동기 runtime·DDS는 후속이다.
+이후 coordinator와 typed 세션 transaction은 아래 후속에서 연결했다. 정상 비동기 runtime은 아래 후속에서 연결했고 DDS는 후속이다.
 
 [MBD 개발 순서](../engineering_plan.md#model-based-design-path)는 M6–M8 후속 학습 계획이다.
 Central 종방향 속도 제어의 수식/상태·plant를 모델로 설계하고 MIL에서 검증한 뒤, 동일 input에 대한 C++ 결과를 비교한다.
@@ -195,4 +195,4 @@ Central 종방향 속도 제어의 수식/상태·plant를 모델로 설계하�
 
 후속 [8-role 세션 준비·INIT·재가입](m4_session_bootstrap.md)은 영속 grant·정확한 ACK·원래 deadline·global run gate와
 고정 용량 owner mailbox를 연결한다. 실제 actor INIT/부분 실패/새 Epoch 복구·물리 보존, 독립8-owner thread의 제어 메시지 전달을 검사했다.
-정상 command/status/protection port의 비동기화와 새 workload timing은 다음 단계다. 이 세션 thread 시험은 기존 정상 actor를 여러 thread가 공유한 결과가 아니다.
+당시 세션 thread 시험은 기존 정상 actor를 여러 thread가 공유한 결과가 아니다. 후속 [정상 owner 비동기 통합](m4_async_owners.md)은 실제 controller·BMS·물리 센서와 request/arm/TX result/status/Actual/protection을 연결한다. 논리 시험과9개 native thread의 실측을 구분하고 [대표 근거](../test-plan/evidence/m4_async/README.md)와 [함수·시험 추적표](../test-plan/component_traceability.csv)를 재현한다. Remote lease/process partition·DDS와 M3 timing 수용은 후속이다.
