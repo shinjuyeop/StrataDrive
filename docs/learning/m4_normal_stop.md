@@ -18,6 +18,9 @@ Date: 2026-10-19. Status: **Host component·vCAN 회귀 / 전체 차량·분산 
 후속 [실제 Zone 상태 감시](m4_zone_feedback_health.md)에서 아래 연결 시험의 Zone health fixture를
 실제 gateway/원천 feedback monitor와 독립 status receiver로 교체했다. 아래 수치·fixture 설명은 최초 구현 이력이다.
 
+후속 [단일 Central coordinator](m4_vehicle_coordinator.md)가 아래 실제 연결 시험의 Central 호출 순서를 소유한다.
+아래 수치/직접 호출 설명은 최초 단계 이력이며 전체 독립 runtime·INIT/rejoin은 계속 후속이다.
+
 ## 코드에서 볼 책임
 
 | 파일 | 역할 |

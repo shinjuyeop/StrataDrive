@@ -23,6 +23,9 @@ flowchart TB
   C --> P[주행 허가 폐쇄 · 양 Zone 보호 선택]
 ```
 
+후속 [단일 Central coordinator](m4_vehicle_coordinator.md)가 아래 실제 연결 시험의 Central 호출 순서를 소유한다.
+아래 수치/직접 호출 설명은 최초 단계 이력이며 전체 독립 runtime·INIT/rejoin은 계속 후속이다.
+
 ## 공부할 구분
 
 **상태 보고 시각과 센서 취득 시각은 다르다.** Steering Actual의 source가10 ms에서 멈췄는데
@@ -67,6 +70,6 @@ NormalStop/시동 시험은 실제 controller·angle/pressure/torque/RC·접점 
 BMS limits/safety gate·pack/load·외부 speed script는 fixture다. 이 시험의 typed status 전달은 실제 DDS나
 wall-time 분산 실행이 아니며 지연 보장·완전한 rejoin 성공을 주장하지 않는다.
 
-다음은 이 component들을 **한 Central coordinator와 Front/Rear runtime 실행 경계**로 묶는 일이다.
+후속 [단일 coordinator](m4_vehicle_coordinator.md)로 같은 Host 호출 순서를 묶었다. 다음은 **Front/Rear·Central 독립 runtime 실행 경계**의 통합이다.
 고장 시 처리 순서·전체 세션 INIT/rejoin·원래 Actual/EV feedback bridge를 연결한 뒤
 remote Leaf lease/보호와 새 workload timing을 검증한다. DDS transport는 M5다.

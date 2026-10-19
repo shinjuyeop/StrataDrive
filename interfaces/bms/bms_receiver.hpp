@@ -54,6 +54,7 @@ public:
     void mark_continuity_lost(std::uint64_t now_ns);
     std::optional<BmsCurrentSample> current_sample(std::uint64_t now_ns);
     ActuatorReceiverHealth health() const { return health_; }
+    std::uint32_t application_epoch() const { return cursor_.epoch(); }
     const std::optional<BmsAcceptedSample>& last_accepted() const { return accepted_; }
     const std::optional<std::uint64_t>& last_raw_rx_time_ns() const { return cursor_.last_raw_rx_time_ns(); }
     const std::optional<std::uint64_t>& last_usable_rx_time_ns(std::size_t group) const { return last_usable_rx_.at(group); }

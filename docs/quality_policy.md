@@ -1,7 +1,7 @@
 # Software quality policy
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
-clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 795개 PASS**다.
+clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 normal·sanitizer 각각 **C++ unit 820개 PASS**다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이며 이번 M4 component에서 변경·재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -1458,6 +1458,50 @@ Simulink 구매/설치·자동 생성 도입은 미확정이며 MBD 구현/실�
 기존 C++795개·CAN97개/분리 vCAN5개의 normal/sanitizer PASS는 직전 단계 이력이며 이번에 재실행하지 않았다.
 Markdown124개/상대 링크·anchor1436개·fence·추적성·YAML3개 설계 budget·Python8개 syntax·whitespace 검사를 통과했다.
 검사 로그는 `build/mbd-plan-doc-check.log`다. 새 모델/MIL/동등성 검증의 PASS로 기존 이력을 전용하지 않는다.
+
+### 2026-10-19 — 단일 Central coordinator·실제 same-host 연결
+
+[ADR-0053](adr/ADR-0053-central-coordinator-and-same-host-binding.md)과 [학습 기록](learning/m4_vehicle_coordinator.md)에
+VehicleManagement/ControlAllocation/NormalStop의 private 소유·10/20 ms 순서·root/issuer 인계·부분 실패 보호를 기록했다.
+Same-host port는 실제 Front/Rear/Rear-power gateway·Steering/Brake/Drive/Power·permission RX를 연결한다.
+기존 실제 시동/정상 종료·Zone health/Actual 상실 시험에서 수동 Central 호출을 coordinator API로 교체했다.
+물리 모델이나 remote reset을 coordinator가 소유하지 않는다. Existing NormalStopControl의 직접 allocator binding은 유지하고
+coordinator가 자체 allocator를 quiesce한 뒤 Leaf/gateway만 선택하는 binding도 지원한다.
+
+Normal·ASan/UBSan **각 C++820/820 PASS**다. 기존795개 + coordinator20개·실제 연결5개다.
+미초기화/참여자 preflight·중복/mutation·초기 missing input·scope/Epoch/source 상실·root 전달/arm/power/command 실패·
+callback gap/clock rollback·stop issuer/우선권·부분 handoff/옛 stop 권한 만료와 보호 재시도 상한을 검사했다.
+실제 연결5개는 partial arm·Power TX·Front partial TX·Central permission RX 상실·한 gateway만의 새 Epoch다.
+기존 RC/접점·angle/pressure/torque·실제 controller/CAN receiver·Zone monitor의 정상 종료3.2 s 논리 시간과
+lease/압력/속도·Actual/독립 status loss 시험도 새 coordinator에서 통과했다. BMS limits/safety·pack/load·speed는 fixture다.
+
+실제 permission ingress를 새 발급 grant로 대체하지 않는다. Early VM tick에서는 이전 출력을 다시 보내지 않고,
+변경 없는 issued parent context만 보관해 실제 current permission을 대조하며 독립 allocation runnable을 계속 감시한다.
+Clock jitter로 VM이 early가 되는 case와 기존 allocation 지원 만료를 새 root 수용에서 즉시 전달하는 경계를 추가했다.
+Active Shutdown 우회·stop 뒤 정상 ingress·same-Epoch/부분 새 Epoch 복구를 차단한다. 보호 선택 ACK는 물리 완료가 아니다.
+
+Normal·sanitizer·BUILD_TESTING=OFF production build를 통과했다. Clang-tidy14 analyzer/bugprone으로
+production3개·test2개를 검사해 새 source/test 진단은 없다. 기존 DriveSilPlant::begin 인자 순서 경고1종은 연결 시험 TU에서 보존한다.
+Cppcheck2.7 warning/performance/portability는 compilation database의 변경 production3개를 진단 없이 통과했다.
+Third-party suppressed 진단/GoogleTest cppcheck macro 제약과 기존 RTOS/ARM64 build 이력은 구분한다.
+
+분리 vCAN은 normal·sanitizer **각5/5 PASS**, legacy local CAN도 **각97/97 PASS**다.
+Wire/CRC/schema 변경은 없다. 새 `build/m4-coordinator-can-{normal,sanitized}` symlink/socketcan-results에 기록했다.
+Local application timeout은 normal **80.038–81.119 ms**, sanitizer **80.012–80.992 ms**다.
+이는 기존 local transport 관측이며 coordinator·차량 workload wall-time 보장이 아니다.
+
+첫813개 회귀는 **808 PASS/5 FAIL**로 `build/m4-coordinator-ctest-development.log`에 보존했다.
+새 단위 fixture가 정상 vehicle root를 갱신하지 않아 기존 지원 만료를 넘어서 새 root/stop을 기대했다.
+정상 fixture에서30 ms root를 제공한 뒤40 ms에 배분하도록 수정했고 source/지원 만료 기준은 유지했다.
+후속818개 통과 뒤 early tick/즉시 만료 전파 경계를 더해820개를 재통과했다. 만료 뒤에는 새 root로 복구하지 않는 test도 유지한다.
+
+로그는 `build/m4-coordinator-{configure,build-development,ctest-development,integration-build,integration-ctest,build-verified,ctest-normal}.log`,
+`build/m4-coordinator-{sanitized-configure,sanitized-build,ctest-sanitized,production-configure,production-build}.log`,
+`build/m4-coordinator-{tidy-summary,tidy-*,cppcheck,vcan-normal,vcan-sanitized,can-normal,can-sanitized,doc-check}.log`다.
+Markdown126개/상대 링크·anchor1459개·fence·추적성·YAML3개 설계 budget·Python8개 syntax·whitespace를 검사했다. Python unit 변경/재실행은 없다.
+새 coordinator를 기존 EV demo/runtime에 배포하거나 독립 thread/process·DDS/Host feedback bridge를 실행한 것은 아니다.
+전체 remote INIT/ACK/rejoin·영속 Epoch 연결·remote composite lease/stop/protection·새 workload timing/Target은 후속이다.
+M4 전체 완료·M3 예외 해소나 requirement32/system TC29 PASS로 확대하지 않는다. MBD는 계획대로 M6–M8 후속이다.
 
 ## 코드·예제·시험 배치
 

@@ -465,6 +465,26 @@ m4_front_startup_fixture:
   integrated_initial_state: {front_angle_rad: 0.1, front_pressure_pa: 200000}
   integrated_front_actuals: real_controllers_separate_plants_and_independent_can_receivers
   parameter_status: fixture_only_no_loader_remote_startup_or_target_timing_claim
+# ADR-0053: first same-host Central owner; not a deployment scheduler or loader.
+m4_coordinator_fixture:
+  implementation: private_vehicle_management_allocation_normal_stop_owners
+  period_ms: 10
+  allocation_period_ms: 20
+  maximum_tick_and_callback_gap_ms: 30
+  inputs: independently_validated_current_feedback_and_original_trusted_roots
+  cycle_order: [clock_session_local_health, stop_plan, vehicle_management, explicit_pair_arm, rear_power_delivery, actual_permission_rx_and_allocation, normal_stop_handoff_ack]
+  normal_ingress_after_stop: closed_until_new_trusted_init
+  stop_issuer_seed: next_sequence_of_last_accepted_lifecycle_and_vehicle_root
+  same_source_stop: defer_child_without_new_propulsion_never_extend_old_support
+  partial_arm_or_delivery_or_handoff: latch_and_select_both_zone_protections
+  protection_retry: at_most_one_retry_per_runnable_not_per_invalid_packet
+  early_owner_tick: no_old_output_republication_independent_allocation_still_serviced
+  permission_input: actual_receiver_current_sample_with_unchanged_issued_parent_context
+  session_preflight: matching_participant_epoch_scope_idle_gateways_no_terminal_or_leaf_fault
+  remote_reset_and_full_rejoin_handshake: pending_no_packet_auto_init
+  binding: same_host_real_gateways_leaves_permission_rx_no_plant_ownership
+  independent_runtime_and_new_workload_timing: pending
+  parameter_status: fixture_only_no_yaml_loader_oem_calibration_or_target_timing_claim
 # ADR-0051: same-host observed health, not DDS serialization or a profile loader.
 m4_zone_feedback_fixture:
   period_ms: 10

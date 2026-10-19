@@ -35,7 +35,7 @@ Drive ECU adapter와 물리 모델을 별도 모듈로 두었다.
 [M3 수용 검토](m3_acceptance_review.md)에서 다음 Host 통합의 IO 동반/FIFO 기준을 선택했다.
 일반 sanitizer 타이밍 실패 2건·학습자 수용은 남긴다. M4 [Central 전원·허가 상태 owner](learning/m4_vehicle_management.md)를
 component로 구현·시험했다. [첫 normal-path allocation](learning/m4_control_allocation.md)도 연결 시험했다.
-후속 [명령 수용](learning/m4_zone_command_admission.md)·[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)와 [Rear 전원·초기 구동](learning/m4_rear_power_startup.md)도 component/분리 vCAN에서 시험했다. [Front startup](learning/m4_front_startup.md)도 실제 두 Leaf/모델·양 Zone 시동 연결에서 시험했다. [정상 정지/HV 종료](learning/m4_normal_stop.md)도 actual dwell·terminal handoff/lease와 연결했다. [실제 Zone health·독립 status ingress](learning/m4_zone_feedback_health.md)도 연결·시험했다. 다음은 단일 coordinator·전체 rejoin·remote Leaf lease·runtime이며 새 workload timing과 기존 예외 분석을 이어간다.
+후속 [명령 수용](learning/m4_zone_command_admission.md)·[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)와 [Rear 전원·초기 구동](learning/m4_rear_power_startup.md)도 component/분리 vCAN에서 시험했다. [Front startup](learning/m4_front_startup.md)도 실제 두 Leaf/모델·양 Zone 시동 연결에서 시험했다. [정상 정지/HV 종료](learning/m4_normal_stop.md)도 actual dwell·terminal handoff/lease와 연결했다. [실제 Zone health·독립 status ingress](learning/m4_zone_feedback_health.md)도 연결·시험했다. [단일 coordinator/same-host 연결](learning/m4_vehicle_coordinator.md)도 구현·시험했다. 다음은 전체 INIT/rejoin·remote Leaf lease·독립 runtime이며 새 workload timing과 기존 예외 분석을 이어간다.
 차량 회생/배분 runtime은 PLANNED / NOT RUN이다.
 후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
 고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며
@@ -229,7 +229,7 @@ Steering frame/DBC에 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e
 직접 구현해 Host에서 시험했다. OS/RTE/BSW pilot과 별개의 적용 범위다.
 이어서 [로컬 application 수신부](learning/m1_steering_receiver.md)를 구현·시험했다.
 [SocketCAN/vCAN 연결](learning/m1_steering_socketcan.md)까지 실행했다.
-영속 local Epoch/queue overflow는 M1에서 검사했다. 실제 Central coordinator/Zone DDS·차량 통합 및 학습자 review는 남아 있다.
+영속 local Epoch/queue overflow는 M1에서 검사했다. 독립 Central/Zone runtime·DDS·차량 통합 및 학습자 review는 남아 있다.
 
 Actuator/EV 12개 frame의 golden vectors → codec → vCAN application/overflow/restart 시험까지 실행했다.
 세 actuator는 공통 metadata와 수신 상태를 공유하고 Drive는 보조 freshness를 별도 검사한다.
@@ -241,7 +241,7 @@ Actuator/EV 12개 frame의 golden vectors → codec → vCAN application/overflo
 [Drive local gate/capability](learning/m2_drive_gate.md)도 입력 검사와 실제 응답의 경계를 구분해 구현했다.
 [실제 DC/SOC 연결](learning/m2_drive_energy.md)은 이상적 HV의 component로 시험했다.
 [실제 circuit 연결](learning/m2_ev_power_circuit.md)도 constant-power/구간 current·heat와 atomic commit을 시험했다.
-학습자 review와 actual Central coordinator/Zone DDS protocol이 남아 있으며 차량 energy/motion coupling과
+학습자 review와 독립 Central/Zone runtime·DDS protocol이 남아 있으며 차량 energy/motion coupling과
 TBD-02/03/04/13은 관련 통합 전에 검토한다. 개념 설명은 해당 작업에 필요한 만큼만
 진행하고 작은 변경·review·직접 실행·결과 해석으로 이어간다.
 

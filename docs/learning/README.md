@@ -188,3 +188,7 @@ Stop/lease16·VM 갱신1·Rear terminal1·연결5개를 더해 전체 각각773�
 [MBD 개발 순서](../engineering_plan.md#model-based-design-path)는 M6–M8 후속 학습 계획이다.
 Central 종방향 속도 제어의 수식/상태·plant를 모델로 설계하고 MIL에서 검증한 뒤, 동일 input에 대한 C++ 결과를 비교한다.
 기존 C++ 물리 모델을 만든 것과 제어기를 모델에서 개발·검증한 것을 구분한다. 도구 선택·실행은 아직 NOT RUN이다.
+
+후속 [단일 Central coordinator](m4_vehicle_coordinator.md)는 VM/allocator/NormalStop을 소유하고
+실제 gateway/Leaf·permission RX에 연결한다. 새 coordinator20개/실제 연결5개를 더해 C++ normal/sanitizer 각각820개다.
+기존 시동/정상 종료·상실 시험을 수동 Central 호출에서 단일 API로 전환했다. 독립 runtime·전체 INIT/rejoin은 후속이다.

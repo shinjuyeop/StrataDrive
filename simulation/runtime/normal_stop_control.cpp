@@ -19,11 +19,12 @@ bool NormalStopControl::select(const central::NormalStopPlan& plan,std::uint64_t
         lease.expires_at_ns>ancestor.expires_at_ns) return false;
     if(epoch==0 || p_.front.scope()!=zone::ZoneScope::Front || p_.rear.scope()!=zone::ZoneScope::Rear ||
         epoch!=p_.front.application_epoch() || epoch!=p_.rear.application_epoch() || epoch!=p_.power.application_epoch() ||
-        epoch!=p_.steering.application_epoch() || epoch!=p_.brake.application_epoch() || epoch!=p_.drive.application_epoch() || epoch!=p_.allocation.application_epoch()) return false;
+        epoch!=p_.steering.application_epoch() || epoch!=p_.brake.application_epoch() || epoch!=p_.drive.application_epoch() ||
+        (allocation_ && epoch!=allocation_->application_epoch())) return false;
     const auto time=observed(now);
     // Leaves select first, before gateway callbacks can advance their clock.
     if(!p_.steering.select_normal_stop(lease,time) || !p_.brake.select_normal_stop(lease,time) || !p_.drive.select_normal_stop(lease,time) ||
-        !p_.allocation.select_normal_stop(lease,time) || !p_.front.select_normal_stop(lease) || !p_.rear.select_normal_stop(lease) || !p_.power.select_normal_stop(lease) ||
+        (allocation_ && !allocation_->select_normal_stop(lease,time)) || !p_.front.select_normal_stop(lease) || !p_.rear.select_normal_stop(lease) || !p_.power.select_normal_stop(lease) ||
         observed(time)>=lease.expires_at_ns) { protect(time); return false; }
     return true;
 }
