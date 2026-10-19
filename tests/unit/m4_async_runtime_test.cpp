@@ -14,6 +14,9 @@ M4Result run(M4Scenario scenario,bool wall=false) {
     const auto result=run_m4_async(c);
     if(const auto* directory=std::getenv("STRATADRIVE_M4_RESULTS")) write_m4_result(c,result,directory);
     EXPECT_TRUE(result.passed)<<result.reason;
+    for(const auto& row:result.trace) {
+        if(row.protected_all) { EXPECT_FALSE(row.run_gate)<<"elapsed="<<row.elapsed_ns<<" epoch="<<row.epoch; }
+    }
     return result;
 }
 TEST(M4AsyncRuntime, NormalUsesRealBmsAndFeedbackBeforeActuation) {
