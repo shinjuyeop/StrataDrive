@@ -36,6 +36,7 @@ TEST(M4AsyncRuntime, PartialFrontWritePreventsRearBatchAndProtectsAllDomains) {
 TEST(M4AsyncRuntime, FeedbackLossCannotBeHiddenByLiveZoneHeartbeat) {
     const auto r=run(M4Scenario::FeedbackLoss); ASSERT_FALSE(r.trace.empty());
     EXPECT_LT(std::abs(r.trace.back().torque_nm),.1); EXPECT_GE(r.trace.back().pressure_pa,1000000);
+    for(const auto& row:r.trace) if(row.elapsed_ns>=r.first_fault_ns) EXPECT_FALSE(row.run_gate);
 }
 TEST(M4AsyncRuntime, LostVehicleRootDoesNotGetRenewedByPowerTraffic) { run(M4Scenario::CommandLoss); }
 TEST(M4AsyncRuntime, PartialArmNeverEmitsNormalActuatorFrames) { run(M4Scenario::PartialArm); }

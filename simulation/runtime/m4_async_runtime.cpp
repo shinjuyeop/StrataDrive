@@ -199,8 +199,11 @@ struct Network {
         sessions[7]->step(); startup.step(); now=clock.now_ns();
         if(startup.run_enabled()) {
             const auto epoch=startup.plan().epoch;
-            if(active_epoch!=epoch) { active_epoch=epoch; last_tick=last_root=last_vehicle=last_stop=vehicle_release=0; lifecycle_release=0; root_seq=vehicle_seq=stop_seq=0; next_management=startup.plan().enable_ns+14*kMs; }
-            gate.release(epoch);
+            if(active_epoch!=epoch) {
+                active_epoch=epoch; last_tick=last_root=last_vehicle=last_stop=vehicle_release=0; lifecycle_release=0;
+                root_seq=vehicle_seq=stop_seq=0; next_management=startup.plan().enable_ns+14*kMs;
+                gate.release(epoch); // Once per fully released session; a closed gate stays closed in this Epoch.
+            }
             // Decide the release once. Clock movement during ingress must not
             // execute VM without the root update belonging to that same job.
             const bool management_due=now>=next_management;
