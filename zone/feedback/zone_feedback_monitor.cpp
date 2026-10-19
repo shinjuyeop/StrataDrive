@@ -37,7 +37,7 @@ std::optional<ZoneHealthSnapshot> ZoneFeedbackMonitor::tick(const ZoneFeedbackIn
     if(now-tick_ns_.value_or(enable_ns_)>30000000ULL) fail(ZoneFeedbackFault::ControlDeadline);
     tick_ns_=now;
     const auto gateway=commands_.poll();
-    const auto power=power_?std::optional<RearPowerDecision>{power_->poll()}:std::nullopt;
+    const bool power_protected=power_ && power_->poll().safety.cause!=ProtectionCause::None;
     // A real clock may advance during port callbacks. Keep that observation;
     // never stamp the result earlier or require nanosecond equality.
     if(commands_.observed_time_ns()<now || (power_ && power_->observed_time_ns()<now)) {
@@ -48,7 +48,7 @@ std::optional<ZoneHealthSnapshot> ZoneFeedbackMonitor::tick(const ZoneFeedbackIn
     if(completed-now>30000000ULL) fail(ZoneFeedbackFault::ControlDeadline);
     if(commands_.application_epoch()!=epoch_ || (power_ && power_->application_epoch()!=epoch_) ||
         gateway.safety.cause!=ProtectionCause::None || gateway.admission.state==AdmissionState::NotInitialized ||
-        gateway.admission.state==AdmissionState::FailSafe || (power && power->safety.cause!=ProtectionCause::None)) fail(ZoneFeedbackFault::GatewayProtection);
+        gateway.admission.state==AdmissionState::FailSafe || power_protected) fail(ZoneFeedbackFault::GatewayProtection);
     const feedback::SourceContext context{epoch_,enable_ns_,completed};
     const bool front=commands_.scope()==ZoneScope::Front;
     const std::array<bool,5> healthy{feedback::steering_available(in.steering,context),feedback::brake_available(in.brake,context),
