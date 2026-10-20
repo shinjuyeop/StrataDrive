@@ -109,6 +109,10 @@ def timing_run(folder, profile, policy, loaded, case, repetition):
     late = [(int(j['start_ns'])-int(j['release_ns']))/1e6 for j in observed]
     body = [(int(j['end_ns'])-int(j['start_ns']))/1e6 for j in observed]
     cpu_times = [int(j['cpu_ns'])/1e6 for j in observed]
+    wake_delays = [(int(j['start_ns'])-int(j['requested_wake_ns']))/1e6 for j in observed if int(j.get('requested_wake_ns',0))]
+    origin = int(jobs[0]['release_ns'])-100_000_000 if jobs else 0
+    grid_control = bool(observed) and all(0 < int(j.get('requested_wake_ns',0)) <= int(j['start_ns']) and (int(j['requested_wake_ns'])-origin) % (2_000_000 if int(j['owner'])==9 else 1_000_000 if int(j['owner'])==8 else 200_000)==0 for j in observed)
+    growth_control = all(t.get('audit_buffer_growths',-1)==0 for t in result['timing'])
     response = 0.0; apply_response = 0.0
     fault_ok = True
     if case != 'normal':
@@ -141,9 +145,9 @@ def timing_run(folder, profile, policy, loaded, case, repetition):
                         'control_deadline_misses':sum(e['code']!='0' for e in controls)+sum(e['kind']=='control-late-start' and int(e['owner'])==owner for e in events)})
     (folder/'owners.json').write_text(json.dumps(metrics,indent=2)+'\n')
     exact_window = len(jobs)==10*1211
-    ok = code==0 and result['passed'] and setup and control and exact_window and fault_ok and (case!='normal' or result['timing_ok'])
+    ok = code==0 and result['passed'] and setup and control and exact_window and grid_control and growth_control and fault_ok and (case!='normal' or result['timing_ok'])
     row.update(verdict='PASS' if ok else 'BLOCKED' if not result['startup_ok'] and any(t['setup_error'] in (1,13) for t in result['threads']) else 'FAIL', reason='' if ok else 'functional/setup/load/window/deadline oracle; inspect preserved raw',
-               setup_control=setup, jobs=len(jobs), deadline_misses=result['deadline_misses'], skipped=result['skipped_opportunities'],
+               setup_control=setup, grid_control=grid_control, growth_control=growth_control, requested_wake_max_ms=max(wake_delays,default=0), jobs=len(jobs), deadline_misses=result['deadline_misses'], skipped=result['skipped_opportunities'],
                wake_mean_ms=sum(late)/len(late) if late else 0, wake_p95_ms=percentile(late,.95), wake_p99_ms=percentile(late,.99), wake_max_ms=max(late,default=0),
                body_mean_ms=sum(body)/len(body) if body else 0, body_p95_ms=percentile(body,.95), body_p99_ms=percentile(body,.99), body_max_ms=max(body,default=0),
                cpu_mean_ms=sum(cpu_times)/len(cpu_times) if cpu_times else 0, detect_after_deadline_ms=response, apply_after_detect_ms=apply_response,
@@ -155,6 +159,7 @@ def cohort(directory):
     directory.mkdir(parents=True, exist_ok=False)
     metadata = {'source_commit': subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(), 'source_digest': BASE['fingerprint'](),
                 'protocol_sha256': hashlib.sha256((ROOT/'docs/test-plan/m4_fault_timing_protocol.md').read_bytes()).hexdigest(),
+                'followup_protocol_sha256': hashlib.sha256((ROOT/'docs/test-plan/m4_followup_protocol.md').read_bytes()).hexdigest(),
                 'utc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'planned_runs':48, 'duration_ns':2540000000, 'guard_lead_ns':100000000,
                 'period_ns':2000000, 'deadline_ns':4000000, 'guard_slots_per_owner':1211, 'tail_ns':20000000, 'cpus':[0,1], 'repetitions':3}
     (directory/'metadata.json').write_text(json.dumps(metadata,indent=2)+'\n')

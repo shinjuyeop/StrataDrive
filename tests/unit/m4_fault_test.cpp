@@ -140,6 +140,39 @@ TEST(M4ExecutionWatch, LaterCompletionCannotFillAnEarlierMissedOpportunity) {
     watch.finish(4,first,1006000000,10000); watch.poll(9,1008000000);
     const auto rows=watch.rows(); const auto row=std::find_if(rows.begin(),rows.end(),[](const auto& value){return value.owner==4 && value.slot==0;}); ASSERT_NE(row,rows.end()); EXPECT_EQ(row->detected_ns,1004000000U);
 }
+TEST(M4ReleaseGrid, SharedOriginAlignsEveryOwnerPeriodAndSkipsCatchup) {
+    for(const auto period:{200000ULL,1000000ULL,2000000ULL}) {
+        const M4ReleaseGrid grid{1000000000,period};
+        EXPECT_EQ(grid.after(1001528864),1000000000+((1528864/period)+1)*period);
+        const auto target=grid.after(1000000000+20*period+722310);
+        EXPECT_EQ((target-grid.origin_ns)%period,0U);
+        EXPECT_GT(target,1000000000+20*period+722310);
+    }
+}
+TEST(M4ReleaseGrid, InvalidClockOrOverflowIsRejected) {
+    EXPECT_THROW((M4ReleaseGrid{10,0}.after(10)),std::invalid_argument);
+    EXPECT_THROW((M4ReleaseGrid{10,2}.after(9)),std::invalid_argument);
+    EXPECT_THROW((M4ReleaseGrid{0,2}.after(UINT64_MAX)),std::overflow_error);
+}
+TEST(M4ReleaseGrid, ReplaysOriginalMonitorPhaseCrossingWithoutChangingMissPolicy) {
+    constexpr std::uint64_t enable=1000000000;
+    M4ExecutionWatch old{enable,enable+700000000},aligned{enable,enable+700000000};
+    for(std::size_t i=0;i<=318;++i) {
+        const auto release=enable+i*2000000;
+        // Original slots315..318: private phase1.528864ms plus one
+        // extra0.722310ms wake delay crosses a guard boundary before deadline.
+        const auto private_start=release+1528864+(i==316?722310:0);
+        const auto previous=old.begin(9,private_start,true,release+1528864);
+        old.finish(9,previous,private_start+5000,1000);
+        const auto common_start=release+(i==316?722310:5000);
+        const auto current=aligned.begin(9,common_start,true,release);
+        ASSERT_TRUE(current); aligned.finish(9,current,common_start+5000,1000);
+    }
+    const auto fault=old.poll(8,enable+638000000); ASSERT_TRUE(fault[9]);
+    EXPECT_EQ(fault[9]->timing.job,316U);
+    EXPECT_FALSE(aligned.poll(8,enable+638000000)[9]);
+    EXPECT_EQ(old.rows()[9*341+316].end_ns,0U); // 700ms minus20ms tail:341 slots
+}
 M4Result run_guard(const std::string& recipe,const std::string& name,bool wall=false) {
     M4Config c; c.scenario=M4Scenario::Fault; c.execution_guards=true; c.wall_time=wall; c.faults={parse_m4_fault(recipe)};
     const auto r=run_m4_async(c);
@@ -160,6 +193,16 @@ TEST(M4GuardRuntime, PhysicalPeerProtectsWhileMonitorIsStopped) {
     EXPECT_TRUE(std::any_of(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"deadline-detected") && e.owner==8 && e.code==9;}));
     EXPECT_TRUE(std::any_of(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"override-applied") && e.time_ns<2400000000ULL;}));
 }
+TEST(M4GuardRuntime, JoinedRecoveryKeepsCommonReleasePhaseAndPhysicalIdentity) {
+    M4Config c; c.scenario=M4Scenario::Fault; c.execution_guards=true;
+    c.faults={parse_m4_fault("owner:pause:drive:1200:2:0")};
+    c.recovery_ns=2300000000; c.duration_ns=4200000000; c.replace_links=true;
+    const auto r=run_m4_async(c);
+    if(const auto* base=std::getenv("STRATADRIVE_M4_RESULTS")) write_m4_result(c,r,std::string(base)+"/faults/guard-rejoin");
+    ASSERT_TRUE(r.passed)<<r.reason; EXPECT_TRUE(r.model_preserved); EXPECT_GT(r.rejoin_active_ns,c.recovery_ns);
+    ASSERT_FALSE(r.trace.empty()); const auto origin=r.trace.front().source_ns-r.trace.front().elapsed_ns;
+    for(const auto& row:r.execution) EXPECT_EQ((row.release_ns-origin)%2000000,0U);
+}
 class M4GuardWall : public ::testing::TestWithParam<const char*> {};
 TEST_P(M4GuardWall, DeadlineIsDetectedBeforeBlockedOwnerReturns) {
     const std::string target=GetParam(); const auto r=run_guard("owner:overrun:"+target+":1200:6:0","guard-"+target+"-overrun",true);
@@ -168,6 +211,13 @@ TEST_P(M4GuardWall, DeadlineIsDetectedBeforeBlockedOwnerReturns) {
     ASSERT_NE(detected,r.events.end()); ASSERT_NE(returned,r.events.end()); EXPECT_LT(detected->time_ns,returned->time_ns);
     const auto applied=std::find_if(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"override-applied");});
     ASSERT_NE(applied,r.events.end()); EXPECT_LE(applied->time_ns-detected->time_ns,10000000U);
+    for(const auto& t:r.timing) EXPECT_EQ(t.audit_buffer_growths,0U)<<t.owner;
+    for(const auto& j:r.execution) if(j.start_ns) {
+        const auto origin=j.release_ns-j.slot*2000000-100000000;
+        const auto period=j.owner==9?2000000U:j.owner==8?1000000U:200000U;
+        EXPECT_LE(j.requested_wake_ns,j.start_ns);
+        EXPECT_EQ((j.requested_wake_ns-origin)%period,0U);
+    }
 }
 INSTANTIATE_TEST_SUITE_P(Independent,M4GuardWall,::testing::Values("drive","monitor","physical"));
 } // namespace

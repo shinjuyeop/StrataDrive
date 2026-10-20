@@ -36,6 +36,8 @@ private: bool wall_;
 struct Audit {
     std::thread::id owner{}; bool valid{true}; std::uint64_t last_poll{0},last_runnable{0},poll_gap{0},runnable_gap{0};
     std::vector<std::uint64_t> durations;
+    std::size_t buffer_growths{0};
+    void record(std::uint64_t duration) { if(durations.size()==durations.capacity()) ++buffer_growths; durations.push_back(duration); }
     void enter(std::uint64_t now) {
         if(owner==std::thread::id{}) owner=std::this_thread::get_id(); else valid=valid && owner==std::this_thread::get_id();
         if(last_poll) poll_gap=std::max(poll_gap,now-last_poll);
@@ -43,7 +45,7 @@ struct Audit {
     }
     void runnable(std::uint64_t now) { if(now!=0 && now!=last_runnable) { if(last_runnable) runnable_gap=std::max(runnable_gap,now-last_runnable); last_runnable=now; } }
     M4Timing result(std::string name) {
-        M4Timing r; r.owner=std::move(name); r.samples=durations.size(); if(durations.empty()) return r;
+        M4Timing r; r.owner=std::move(name); r.samples=durations.size(); r.audit_buffer_growths=buffer_growths; if(durations.empty()) return r;
         std::sort(durations.begin(),durations.end()); double sum=0;
         for(const auto d:durations) { sum+=static_cast<double>(d); if(d>4000000) ++r.body_over_4ms; }
         const auto count=static_cast<double>(durations.size());
@@ -224,6 +226,11 @@ struct Network {
     explicit Network(const M4Config& c):config(c),clock(c.wall_time),start(clock.now_ns()) {
         running_epoch.store(c.first_epoch);
         for(auto& log:owner_events) log.reserve(24000);
+        // Finite harness storage is provisioned before any native start gate.
+        // This removes known hot-path growth, not a claim about the old miss cause.
+        for(std::size_t i=0;i<audit.size();++i) audit[i].durations.reserve(static_cast<std::size_t>(config.duration_ns/(i==9?2*kMs:i==8?kMs:kIoPoll))+32);
+        physical.trace.reserve(static_cast<std::size_t>(config.duration_ns/(10*kMs))+32);
+        central_trace.reserve(static_cast<std::size_t>(config.duration_ns/(10*kMs))+32);
         bind_filters();
         std::array<transport::LeafLink*,transport::kLeaves> ptrs{}; for(std::size_t i=0;i<ptrs.size();++i) ptrs[i]=&leaves[i];
         for(std::size_t i=0;i<2;++i) {
@@ -251,7 +258,7 @@ struct Network {
         for(std::size_t i=0;i<8;++i) { bind(session_links[i].controls,FaultPath::SessionControl,i); bind(session_links[i].acks,FaultPath::SessionAck,i); }
     }
     void configure_watch(std::uint64_t until) {
-        const auto enable=execution_watch?clock.now_ns()+100*kMs:start+100*kMs;
+        const auto enable=execution_watch?M4ReleaseGrid{start,2*kMs}.after(clock.now_ns()+100*kMs-1):start+100*kMs;
         if(execution_watch) { const auto rows=execution_watch->rows(); result.execution.insert(result.execution.end(),rows.begin(),rows.end()); }
         if(config.execution_guards) execution_watch=std::make_unique<M4ExecutionWatch>(enable,start+until);
     }
@@ -357,7 +364,7 @@ struct Network {
                 observed.rear.drive_actual?observed.rear.drive_actual->source_time_ns:0,port.command_source_ns(),port.command_root_sequence()});
         }
     }
-    void step(std::size_t owner) {
+    void step(std::size_t owner,std::uint64_t requested_wake=0) {
         const auto now=clock.now_ns(),body_start=wall_now(); const auto elapsed=now-start;
         bool pause=false; std::uint64_t delay=0;
         for(const auto& f:config.faults) if(f.path==FaultPath::Owner && static_cast<std::size_t>(f.target)==owner && f.active(elapsed)) {
@@ -368,7 +375,7 @@ struct Network {
             }
             if(f.kind==FaultKind::Overrun && !config.wall_time) pause=true;
         }
-        const auto job=execution_watch?execution_watch->begin(owner,now,!pause):std::optional<std::size_t>{};
+        const auto job=execution_watch?execution_watch->begin(owner,now,!pause,requested_wake):std::optional<std::size_t>{};
         const auto cpu_start=job?cpu_now():0;
         if(pause!=paused[owner]) { owner_events[owner].push_back({now,pause?"owner-stopped":"owner-resumed",owner,gate.epoch(),0,0,now,0}); paused[owner]=pause; }
         if(pause) return; // No session, control, self-monitor, RX, output or ACK.
@@ -408,7 +415,7 @@ struct Network {
             if(gate_seen[owner] && !enabled) owner_events[owner].push_back({clock.now_ns(),"gate-closed-observed",owner,epoch,0,0,0,0});
             gate_seen[owner]=enabled;
         }
-        audit[owner].durations.push_back(wall_now()-body_start);
+        audit[owner].record(wall_now()-body_start);
         if(execution_watch) execution_watch->finish(owner,job,clock.now_ns(),job?cpu_now()-cpu_start:0);
     }
     M4Result finish() {
@@ -537,11 +544,13 @@ M4Result run_m4_async(const M4Config& config) {
                 while(!go.load(std::memory_order_acquire)) std::this_thread::sleep_for(std::chrono::microseconds(20));
                 if(aborted) return;
                 try {
-                    const auto origin=std::chrono::steady_clock::now(); auto release=origin;
-                    const auto period=std::chrono::nanoseconds(owner==9?2*kMs:owner==8?kMs:kIoPoll);
+                    const M4ReleaseGrid grid{network->start,owner==9?2*kMs:owner==8?kMs:kIoPoll};
+                    auto release=grid.after(network->clock.now_ns());
                     while(network->clock.now_ns()-network->start<until) {
-                        network->step(owner); const auto now=std::chrono::steady_clock::now();
-                        release=origin+period*((now-origin)/period+1); std::this_thread::sleep_until(release);
+                        std::this_thread::sleep_until(std::chrono::steady_clock::time_point(std::chrono::nanoseconds(release)));
+                        if(network->clock.now_ns()-network->start>=until) break;
+                        network->step(owner,release);
+                        release=grid.after(network->clock.now_ns());
                     }
                 } catch(...) { errors[owner]=true; }
             });
@@ -572,15 +581,15 @@ void write_m4_result(const M4Config& config,const M4Result& r,const std::string&
     std::filesystem::create_directories(directory); const auto prefix=std::filesystem::path(directory)/(std::string(config.wall_time?"wall-":"logical-")+m4_scenario_name(config.scenario));
     std::ofstream csv(prefix.string()+".csv"); csv<<"elapsed_ms,source_ns,epoch,run_gate,normal_armed,protected_all,management,coordinator_fault,stop_state,angle_rad,pressure_pa,torque_nm,bus_v,soc,steering_source_ns,brake_source_ns,drive_source_ns,command_source_ns,command_root_sequence,central_observation_ns,energy_j,model_epoch,model_sequence,contacts\n"<<std::setprecision(12);
     for(const auto& row:r.trace) csv<<static_cast<double>(row.elapsed_ns)/kMs<<','<<row.source_ns<<','<<row.epoch<<','<<row.run_gate<<','<<row.normal_armed<<','<<row.protected_all<<','<<row.management<<','<<row.coordinator_fault<<','<<row.stop_state<<','<<row.angle_rad<<','<<row.pressure_pa<<','<<row.torque_nm<<','<<row.bus_v<<','<<row.soc<<','<<row.steering_source_ns<<','<<row.brake_source_ns<<','<<row.drive_source_ns<<','<<row.command_source_ns<<','<<row.command_root_sequence<<','<<row.central_observation_ns<<','<<row.energy_j<<','<<row.model_epoch<<','<<row.model_sequence<<','<<row.contacts<<'\n';
-    std::ofstream guard(prefix.string()+"-execution.csv"); guard<<"owner,slot,release_ns,deadline_ns,start_ns,end_ns,cpu_ns,detected_ns\n";
-    for(const auto& j:r.execution) guard<<j.owner<<','<<j.slot<<','<<j.release_ns<<','<<j.deadline_ns<<','<<j.start_ns<<','<<j.end_ns<<','<<j.cpu_ns<<','<<j.detected_ns<<'\n';
+    std::ofstream guard(prefix.string()+"-execution.csv"); guard<<"owner,slot,release_ns,deadline_ns,start_ns,end_ns,cpu_ns,detected_ns,requested_wake_ns\n";
+    for(const auto& j:r.execution) guard<<j.owner<<','<<j.slot<<','<<j.release_ns<<','<<j.deadline_ns<<','<<j.start_ns<<','<<j.end_ns<<','<<j.cpu_ns<<','<<j.detected_ns<<','<<j.requested_wake_ns<<'\n';
     std::ofstream events(prefix.string()+"-events.csv"); events<<"time_ns,elapsed_ms,kind,owner,epoch,source_ns,deadline_ns,reference_ns,code\n"<<std::setprecision(12);
     const auto origin=r.trace.empty()?0:r.trace.front().source_ns-r.trace.front().elapsed_ns;
     for(const auto& e:r.events) events<<e.time_ns<<','<<static_cast<double>(e.time_ns-origin)/kMs<<','<<e.kind<<','<<e.owner<<','<<e.epoch<<','<<e.source_ns<<','<<e.deadline_ns<<','<<e.reference_ns<<','<<e.code<<'\n';
     std::ofstream summary(prefix.string()+".json"); summary<<std::boolalpha<<std::setprecision(12)<<"{\"passed\":"<<r.passed<<",\"ownership_ok\":"<<r.ownership_ok<<",\"physical_ok\":"<<r.physical_ok<<",\"first_active_ns\":"<<r.first_active_ns<<",\"first_fault_ns\":"<<r.first_fault_ns<<",\"all_protected_ns\":"<<r.all_protected_ns<<",\"rejoin_active_ns\":"<<r.rejoin_active_ns<<",\"completed_batches\":"<<r.completed_batches<<",\"front_frames\":"<<r.front_frames<<",\"rear_frames\":"<<r.rear_frames<<",\"timing\":[";
     for(std::size_t i=0;i<r.timing.size();++i) {
         const auto& t=r.timing[i]; if(i) summary<<',';
-        summary<<"{\"owner\":\""<<t.owner<<"\",\"samples\":"<<t.samples<<",\"mean_body_us\":"<<t.mean_body_us<<",\"p95_body_us\":"<<t.p95_body_us<<",\"p99_body_us\":"<<t.p99_body_us<<",\"max_body_us\":"<<t.max_body_us<<",\"body_over_4ms\":"<<t.body_over_4ms<<",\"max_poll_gap_ms\":"<<t.max_poll_gap_ms<<",\"max_runnable_gap_ms\":"<<t.max_runnable_gap_ms<<'}';
+        summary<<"{\"owner\":\""<<t.owner<<"\",\"samples\":"<<t.samples<<",\"mean_body_us\":"<<t.mean_body_us<<",\"p95_body_us\":"<<t.p95_body_us<<",\"p99_body_us\":"<<t.p99_body_us<<",\"max_body_us\":"<<t.max_body_us<<",\"body_over_4ms\":"<<t.body_over_4ms<<",\"max_poll_gap_ms\":"<<t.max_poll_gap_ms<<",\"max_runnable_gap_ms\":"<<t.max_runnable_gap_ms<<",\"audit_buffer_growths\":"<<t.audit_buffer_growths<<'}';
     }
     summary<<"],\"threads\":[";
     for(std::size_t i=0;i<r.threads.size();++i) {

@@ -1,7 +1,14 @@
 #include "m4_execution_watch.hpp"
 #include <stdexcept>
+#include <limits>
 
 namespace stratadrive::simulation {
+std::uint64_t M4ReleaseGrid::after(std::uint64_t now) const {
+    if(!period_ns || now<origin_ns) throw std::invalid_argument("invalid M4 release grid");
+    const auto remaining=period_ns-(now-origin_ns)%period_ns;
+    if(remaining>std::numeric_limits<std::uint64_t>::max()-now) throw std::overflow_error("M4 release grid overflow");
+    return now+remaining;
+}
 M4ExecutionWatch::Guard::Guard(runtime::TaskScheduleConfig config):schedule(config),monitor(schedule),rows(config.jobs) {}
 M4ExecutionWatch::M4ExecutionWatch(std::uint64_t enable,std::uint64_t stop) {
     if(stop<enable || stop-enable<20000000) throw std::invalid_argument("M4 guard window requires 20ms tail");
@@ -11,12 +18,12 @@ M4ExecutionWatch::M4ExecutionWatch(std::uint64_t enable,std::uint64_t stop) {
         for(std::size_t j=0;j<config.jobs;++j) guards_[i]->rows[j]={i,j,guards_[i]->schedule.release(j),guards_[i]->schedule.deadline(j),0,0,0,0};
     }
 }
-std::optional<std::size_t> M4ExecutionWatch::begin(std::size_t owner,std::uint64_t now,bool executing) {
+std::optional<std::size_t> M4ExecutionWatch::begin(std::size_t owner,std::uint64_t now,bool executing,std::uint64_t requested_wake) {
     auto& g=*guards_.at(owner); const auto next=g.schedule.newest_released(now,g.next);
     if(!next) return std::nullopt;
     g.next=*next+1;
     if(!executing) return std::nullopt; // missed opportunity remains an unfinished slot
-    g.rows[*next].start_ns=now; return next;
+    g.rows[*next].start_ns=now; g.rows[*next].requested_wake_ns=requested_wake; return next;
 }
 void M4ExecutionWatch::finish(std::size_t owner,std::optional<std::size_t> job,std::uint64_t end,std::uint64_t cpu) {
     if(!job) return;

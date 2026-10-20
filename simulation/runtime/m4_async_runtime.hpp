@@ -33,6 +33,7 @@ struct M4Timing {
     std::string owner;
     std::size_t samples{0},body_over_4ms{0};
     double mean_body_us{0},p95_body_us{0},p99_body_us{0},max_body_us{0},max_poll_gap_ms{0},max_runnable_gap_ms{0};
+    std::size_t audit_buffer_growths{0};
 };
 struct M4Result {
     bool passed{false},ownership_ok{true},physical_ok{true};
