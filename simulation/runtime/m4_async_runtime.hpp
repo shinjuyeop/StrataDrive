@@ -1,5 +1,6 @@
 #pragma once
 #include "m4_faults.hpp"
+#include "m4_execution_watch.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -15,6 +16,7 @@ struct M4Config {
     std::uint32_t first_epoch{1},rejoin_epoch{2}; // already issued trusted startup grants
     std::vector<M4Fault> faults;
     std::uint64_t recovery_ns{0}; bool replace_links{false};
+    bool execution_guards{false},fifo{false}; int cpu_a{-1},cpu_b{-1};
 };
 struct M4Trace {
     std::uint64_t elapsed_ns,source_ns;
@@ -44,6 +46,10 @@ struct M4Result {
     bool gate_latched{true},event_overflow{false};
     std::uint64_t effective_injection_ns{0},live_fault_ns{0},normal_blocked_ns{0};
     unsigned live_selection_mask{0},missing_selection_mask{0}; bool model_preserved{true};
+    struct Thread { std::size_t owner; int policy{-1},priority{-1},cpu{-1},tid{-1},requested_cpu{-1},setup_error{0}; std::vector<int> affinity; };
+    std::vector<Thread> threads;
+    std::vector<M4ExecutionRow> execution;
+    bool startup_ok{true},timing_ok{true}; std::size_t deadline_misses{0},skipped_opportunities{0};
 };
 // Finite Host SIL harness. Logical execution and independent wall-time owner
 // threads share the same components/links. No DDS, target OS or speed dynamics.

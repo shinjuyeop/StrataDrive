@@ -41,6 +41,7 @@ public:
     bool faulted() const;
     int fault_code() const;
     const std::vector<M4Event>& input_events() const { return input_events_; } // joined only
+    void execution_deadline(bool enabled) { execution_deadline_=enabled; } // startup only
 private:
     using Actor=std::variant<vecu::SteeringActuator,vecu::BrakeActuator,vecu::DriveController,vecu::BmsController,vecu::PowerController>;
     static Actor make_actor(transport::Leaf leaf);
@@ -57,5 +58,6 @@ private:
     std::vector<M4Event> input_events_;
     std::uint64_t command_expiry_ns_{0},command_source_ns_{0}; bool expiry_reported_{false};
     std::uint32_t prepared_epoch_{0};
+    bool execution_deadline_{false}; std::uint64_t body_release_{0},body_deadline_{0},receive_begin_{0};
 };
 }  // namespace stratadrive::simulation

@@ -30,6 +30,14 @@ void demo_m4_async(const M4DemoOptions& options) {
         else if(argument.rfind("duration-ms=",0)==0) config.duration_ns=milliseconds(argument.substr(12));
         else if(argument.rfind("recover-ms=",0)==0) config.recovery_ns=milliseconds(argument.substr(11));
         else if(argument=="replace-links") config.replace_links=true;
+        else if(argument=="guards") config.execution_guards=true;
+        else if(argument=="fifo") config.fifo=true;
+        else if(argument.rfind("cpus=",0)==0) {
+            const auto value=argument.substr(5); const auto comma=value.find(',');
+            if(comma==std::string::npos) throw std::invalid_argument("cpus requires A,B");
+            config.cpu_a=static_cast<int>(milliseconds(value.substr(0,comma))/1000000);
+            config.cpu_b=static_cast<int>(milliseconds(value.substr(comma+1))/1000000);
+        }
         else throw std::invalid_argument("unknown M4 option: "+argument);
     }
     if(config.scenario==simulation::M4Scenario::Fault && config.faults.empty()) throw std::invalid_argument("fault scenario requires fault= recipe");

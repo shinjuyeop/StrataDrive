@@ -130,4 +130,44 @@ TEST(M4FaultWall, PausedLeafCannotAcknowledgePhysicalWatchdogAction) {
     const auto r=run("owner:pause:drive:1200:200:0","wall-drive-stop",false,true);
     EXPECT_TRUE(std::any_of(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"output-watchdog") && e.owner==8 && e.code==4;}));
 }
+TEST(M4ExecutionWatch, LaterCompletionCannotFillAnEarlierMissedOpportunity) {
+    M4ExecutionWatch watch{1000000000,1100000000};
+    const auto first=watch.begin(4,1000000000,true); ASSERT_TRUE(first);
+    const auto next=watch.begin(4,1002000000,true); ASSERT_TRUE(next);
+    watch.finish(4,next,1002200000,10000);
+    const auto faults=watch.poll(9,1004000000); ASSERT_TRUE(faults[4]);
+    EXPECT_EQ(faults[4]->timing.deadline_ns,1004000000U);
+    watch.finish(4,first,1006000000,10000); watch.poll(9,1008000000);
+    const auto rows=watch.rows(); const auto row=std::find_if(rows.begin(),rows.end(),[](const auto& value){return value.owner==4 && value.slot==0;}); ASSERT_NE(row,rows.end()); EXPECT_EQ(row->detected_ns,1004000000U);
+}
+M4Result run_guard(const std::string& recipe,const std::string& name,bool wall=false) {
+    M4Config c; c.scenario=M4Scenario::Fault; c.execution_guards=true; c.wall_time=wall; c.faults={parse_m4_fault(recipe)};
+    const auto r=run_m4_async(c);
+    if(const auto* base=std::getenv("STRATADRIVE_M4_RESULTS")) write_m4_result(c,r,std::string(base)+"/faults/"+name);
+    EXPECT_TRUE(r.passed)<<r.reason; EXPECT_GT(r.deadline_misses,0U);
+    const auto target=static_cast<int>(c.faults[0].target);
+    const auto found=std::find_if(r.events.begin(),r.events.end(),[&](const auto& e){return kind(e,"deadline-detected") && e.code==target;});
+    EXPECT_NE(found,r.events.end());
+    if(found!=r.events.end()) { EXPECT_GE(found->time_ns,found->deadline_ns); EXPECT_LE(found->time_ns-found->deadline_ns,10000000U); }
+    return r;
+}
+TEST(M4GuardRuntime, OneSkippedSlotIsDetectedAfterOwnerResumes) {
+    const auto r=run_guard("owner:pause:drive:1200:2:0","guard-single-skip");
+    EXPECT_GT(r.skipped_opportunities,0U); EXPECT_TRUE(r.model_preserved);
+}
+TEST(M4GuardRuntime, PhysicalPeerProtectsWhileMonitorIsStopped) {
+    const auto r=run_guard("owner:pause:monitor:1200:200:0","guard-monitor-stop");
+    EXPECT_TRUE(std::any_of(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"deadline-detected") && e.owner==8 && e.code==9;}));
+    EXPECT_TRUE(std::any_of(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"override-applied") && e.time_ns<2400000000ULL;}));
+}
+class M4GuardWall : public ::testing::TestWithParam<const char*> {};
+TEST_P(M4GuardWall, DeadlineIsDetectedBeforeBlockedOwnerReturns) {
+    const std::string target=GetParam(); const auto r=run_guard("owner:overrun:"+target+":1200:6:0","guard-"+target+"-overrun",true);
+    const auto detected=std::find_if(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"deadline-detected");});
+    const auto returned=std::find_if(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"overrun-ended");});
+    ASSERT_NE(detected,r.events.end()); ASSERT_NE(returned,r.events.end()); EXPECT_LT(detected->time_ns,returned->time_ns);
+    const auto applied=std::find_if(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"override-applied");});
+    ASSERT_NE(applied,r.events.end()); EXPECT_LE(applied->time_ns-detected->time_ns,10000000U);
+}
+INSTANTIATE_TEST_SUITE_P(Independent,M4GuardWall,::testing::Values("drive","monitor","physical"));
 } // namespace

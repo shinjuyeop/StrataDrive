@@ -79,7 +79,10 @@ void AsyncLeafOwner::protect() noexcept {
     case transport::Leaf::Steering: std::get<vecu::SteeringActuator>(actor_).request_local_protection(now); break;
     case transport::Leaf::Brake: std::get<vecu::BrakeActuator>(actor_).request_local_protection(now); break;
     case transport::Leaf::Drive: std::get<vecu::DriveController>(actor_).request_local_protection(now); break;
-    case transport::Leaf::Bms: std::get<vecu::BmsController>(actor_).request_local_protection(now); break;
+    case transport::Leaf::Bms: {
+        auto& actor=std::get<vecu::BmsController>(actor_); actor.request_local_protection(now);
+        bms_gate_.publish(actor.power_gate()); break;
+    }
     case transport::Leaf::Power: std::get<vecu::PowerController>(actor_).request_local_protection(now); break;
     case transport::Leaf::Count: break;
     }
@@ -89,6 +92,7 @@ void AsyncLeafOwner::protect() noexcept {
 void AsyncLeafOwner::publish(const transport::Feedback& f) { if(!drop_actual && !link_.reports.push(transport::LeafReport{f})) protect(); }
 bool AsyncLeafOwner::receive(const transport::LeafRequest& r) {
     const auto now=now_ns();
+    receive_begin_=now;
     if(r.command && (r.command->parent.epoch!=epoch_ || r.command->oldest_input_time_ns>now || now-r.command->oldest_input_time_ns>70000000 ||
         now>=r.command->expires_at_ns || r.deadline_ns>r.command->expires_at_ns || r.command->expires_at_ns>r.command->parent.expires_at_ns)) return false;
     if(leaf_==transport::Leaf::Steering) {
@@ -119,7 +123,7 @@ void AsyncLeafOwner::handle(const transport::LeafRequest& r) {
     if(ok && r.command) { command_expiry_ns_=r.command->expires_at_ns; command_source_ns_=fault_message(r).source; expiry_reported_=false; }
     if(r.operation==transport::LeafOperation::Frame && input_events_.size()<input_events_.capacity()) {
         const auto m=fault_message(r);
-        input_events_.push_back({now_ns(),ok?"valid-input":"input-rejected",static_cast<std::size_t>(leaf_)+2,epoch_,m.source,m.deadline,r.command?r.command->parent.source_time_ns:r.sent_ns,r.command?1:0});
+        input_events_.push_back({now_ns(),ok?"valid-input":"input-rejected",static_cast<std::size_t>(leaf_)+2,epoch_,m.source,m.deadline,ok?receive_begin_:now,r.command?1:0});
     }
     if(ok && r.operation==transport::LeafOperation::Arm) {
         ok=!reject_arm;
@@ -164,7 +168,9 @@ void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
         auto& actor=std::get<vecu::PowerController>(actor_); const auto gate=bms_gate_.read();
         if(const auto m=actor.tick(s.power,gate?*gate:std::nullopt,now)) { if(const auto f=can::encode_bms_frame(*m,power_tx_)) publish(*f); }
     }
-    if(faulted()) protect(); else output(now);
+    const auto completed=now_ns(); const bool late=execution_deadline_ && completed>body_deadline_;
+    if(execution_deadline_ && input_events_.size()<input_events_.capacity()) input_events_.push_back({completed,"control-completed",static_cast<std::size_t>(leaf_)+2,epoch_,body_release_,body_deadline_,now,late?1:0});
+    if(faulted() || late) protect(); else output(now); // no late normal actuation publication
 }
 void AsyncLeafOwner::service() noexcept {
     try { service_impl(); } catch(...) { protect(); }
@@ -193,6 +199,11 @@ void AsyncLeafOwner::service_impl() {
         return;
     }
     started_=true; last_body_=now; next_body_=enable_+((now-enable_)/period+1)*period;
+    body_release_=next_body_-period; body_deadline_=body_release_+(leaf_==transport::Leaf::Bms?8000000ULL:5000000ULL);
+    if(execution_deadline_ && now>=body_deadline_) {
+        if(input_events_.size()<input_events_.capacity()) input_events_.push_back({now,"control-late-start",static_cast<std::size_t>(leaf_)+2,epoch_,body_release_,body_deadline_,now,1});
+        protect(); return;
+    }
     runnable(s.value_or(OwnerSensors{}),now);
 }
 }  // namespace stratadrive::simulation
