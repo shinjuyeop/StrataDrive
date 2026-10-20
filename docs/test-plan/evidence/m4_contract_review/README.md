@@ -70,3 +70,14 @@ are rejected. Central/assigned Zone records and new-Epoch reset are tested.
 cmake --build build/m4-readiness --target remote_leaf_test -j4
 build/m4-readiness/remote_leaf_test --gtest_filter='RemoteLeafTest.Protection*:RemoteLeafTest.ExpiredProtection*:RemoteLeafTest.FullProtection*'
 ```
+
+## Whole-regression finding — accepted command expiry observation
+
+First full run at `57457e6`: **normal 962 PASS/1 FAIL out of963**. Existing
+`M4FaultRuntime.AcceptedCommandExpiresAtItsOriginalContextDeadline` detected that
+`valid-input.deadline_ns` still used the now-shorter transport envelope rather than
+the accepted command's original context expiry. No control condition was relaxed:
+accepted-input observation now records inner authority expiry; send/delivery fault
+observations continue to record envelope expiry. Existing assertion passes unchanged
+(1/1 focused). The fail-fast runner did not start ASan/UBSan in this first attempt;
+that scope is NOT RUN for57457e6. A fresh full run follows this correction.

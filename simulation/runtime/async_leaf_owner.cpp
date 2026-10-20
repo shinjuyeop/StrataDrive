@@ -123,7 +123,10 @@ void AsyncLeafOwner::handle(const transport::LeafRequest& r) {
     if(ok && r.command) { command_expiry_ns_=r.command->expires_at_ns; command_source_ns_=fault_message(r).source; expiry_reported_=false; }
     if(r.operation==transport::LeafOperation::Frame && input_events_.size()<input_events_.capacity()) {
         const auto m=fault_message(r);
-        input_events_.push_back({now_ns(),ok?"valid-input":"input-rejected",static_cast<std::size_t>(leaf_)+2,epoch_,m.source,m.deadline,ok?receive_begin_:now,r.command?1:0});
+        // Accepted command authority outlives the bounded delivery envelope.
+        // Keep this event correlated with command-expired; transport events
+        // separately retain the original envelope deadline.
+        input_events_.push_back({now_ns(),ok?"valid-input":"input-rejected",static_cast<std::size_t>(leaf_)+2,epoch_,m.source,r.command?r.command->expires_at_ns:m.deadline,ok?receive_begin_:now,r.command?1:0});
     }
     if(ok && r.operation==transport::LeafOperation::Arm) {
         ok=!reject_arm;
