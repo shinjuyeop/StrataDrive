@@ -1,0 +1,45 @@
+{
+  "source_commit": "97afb35124206aa7c269b9618d3bc16e9e267527",
+  "source_digest": "0ca80a921492576f270b5dfe00bd0bab0349447bf904be81ec1159d4a3e4a5c8",
+  "baseline": "29b8221",
+  "original948_names_retained": 948,
+  "baseline966_names_retained": 966,
+  "new_cpp_tests": [
+    "AsyncOwnerTest.PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch",
+    "ControlAllocationTest.PendingPollDoesNotCountAsAnAllocationTick",
+    "ControlAllocationTest.PendingPollPreservesExclusiveSupportExpiryAndLatch",
+    "M4AsyncRuntime.DeferredBatchCompletesBeforeNormalStopHandoff",
+    "M4AsyncRuntime.LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority",
+    "M4AsyncRuntime.MissingPendingResultStillTimesOutAtOriginalEnvelope",
+    "M4AsyncRuntime.SustainedPendingCannotHideEventualAuthorityExpiry"
+  ],
+  "cpp_per_build": 973,
+  "labels": {
+    "normal": {
+      "integration.logical": 164,
+      "unit": 800,
+      "runtime.wall": 9
+    },
+    "sanitized": {
+      "integration.logical": 164,
+      "unit": 800,
+      "runtime.wall": 9
+    }
+  },
+  "python": {
+    "baseline": 63,
+    "added": 8,
+    "pass": 71
+  },
+  "tsan_boundary": 108,
+  "tsan_wall": 9,
+  "component_links": 93,
+  "runner_process_exit": {
+    "normal_asan_regression": 0,
+    "tsan_boundary": 0,
+    "tsan_wall": 0,
+    "native40": 0,
+    "timing48_collection": 0
+  },
+  "timing48_note": "Collection script exit0 does not imply timing acceptance; 42 PASS / 6 FAIL."
+}

@@ -1,0 +1,97 @@
+{
+  "utc": "2026-10-20T08:07:07.896003+00:00",
+  "attempts": [
+    {
+      "command": [
+        "uname",
+        "-a"
+      ],
+      "exit": 0,
+      "stdout": "Linux MJH 6.8.0-138-generic #138~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Aug  7 13:43:15 UTC  x86_64 x86_64 x86_64 GNU/Linux\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "cat",
+        "/proc/sys/kernel/perf_event_paranoid"
+      ],
+      "exit": 0,
+      "stdout": "4\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "head",
+        "-n",
+        "5",
+        "/sys/kernel/tracing/available_events"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "head: \uc77d\uae30\ub97c \uc704\ud574 '/sys/kernel/tracing/available_events'\uc744(\ub97c) \uc5f4 \uc218 \uc5c6\uc74c: \ud5c8\uac00 \uac70\ubd80\n"
+    },
+    {
+      "command": [
+        "perf",
+        "stat",
+        "-e",
+        "task-clock",
+        "--",
+        "true"
+      ],
+      "exit": 255,
+      "stdout": "",
+      "stderr": "Error:\nAccess to performance monitoring and observability operations is limited.\nConsider adjusting /proc/sys/kernel/perf_event_paranoid setting to open\naccess to performance monitoring and observability operations for processes\nwithout CAP_PERFMON, CAP_SYS_PTRACE or CAP_SYS_ADMIN Linux capability.\nMore information can be found at 'Perf events and tool security' document:\nhttps://www.kernel.org/doc/html/latest/admin-guide/perf-security.html\nperf_event_paranoid setting is 4:\n  -1: Allow use of (almost) all events by all users\n      Ignore mlock limit after perf_event_mlock_kb without CAP_IPC_LOCK\n>= 0: Disallow raw and ftrace function tracepoint access\n>= 1: Disallow CPU event access\n>= 2: Disallow kernel profiling\nTo make the adjusted perf_event_paranoid setting permanent preserve it\nin /etc/sysctl.conf (e.g. kernel.perf_event_paranoid = <setting>)\n"
+    },
+    {
+      "command": [
+        "sudo",
+        "-n",
+        "test",
+        "-r",
+        "/sys/kernel/tracing/trace"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "sudo: \uc554\ud638\uac00 \ud544\uc694\ud569\ub2c8\ub2e4\n"
+    },
+    {
+      "command": [
+        "bash",
+        "-c",
+        "ulimit -r"
+      ],
+      "exit": 0,
+      "stdout": "20\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "--version"
+      ],
+      "exit": 127,
+      "stdout": "",
+      "stderr": "[Errno 2] No such file or directory: 'cargo'",
+      "executed": false
+    },
+    {
+      "command": [
+        "rustc",
+        "--version"
+      ],
+      "exit": 127,
+      "stdout": "",
+      "stderr": "[Errno 2] No such file or directory: 'rustc'",
+      "executed": false
+    }
+  ],
+  "tools": {
+    "cargo": null,
+    "rustc": null,
+    "perf": "/usr/bin/perf",
+    "trace-cmd": null,
+    "clang-tidy": "/usr/bin/clang-tidy",
+    "cppcheck": "/usr/bin/cppcheck"
+  }
+}

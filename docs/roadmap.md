@@ -35,7 +35,7 @@ coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/sessio
 [Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가했다.
 [Brake response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 추가했다.
 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)의 core 18개·외부 물리 진행 3개를 추가했다.
-M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의32개·후속 M4 기능/세션을 더한846개 이력 위에, 정상 비동기 owner/INIT wake/capability26개로872개였고, 공통 고장30개·독립 감시6개로908개였고, release-grid/guard4와 원격 계약36개를 더해 현재 C++948개다. 현재 결과는 [진행 현황](project_status.md), 단계별 분모는 [품질 기록](quality_policy.md)에 둔다.
+M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의32개·후속 M4 기능/세션을 더한846개 이력 위에, 정상 비동기 owner/INIT wake/capability26개로872개였고, 공통 고장30개·독립 감시6개로908개였고, release-grid/guard4와 원격 계약36개로948개였다. 원격 계약 보완18개로966개, pending/expiry 경계7개로 현재 C++973개다. 현재 결과는 [진행 현황](project_status.md), 단계별 분모는 [품질 기록](quality_policy.md)에 둔다.
 Python은 직전 hosted timer 단계의 63개 PASS 이력을 유지한다.
 기존 vCAN 97개 이력과 M3 multirate/fault·고정 부하 실험은 별도 범위다. 실행 횟수·PASS/FAIL은 [품질 기록](quality_policy.md)에 남긴다.
 Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
@@ -64,8 +64,12 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 2026-10-20 후속 [M4 고장·독립 감시](adr/ADR-0056-m4-faults-and-independent-execution-watch.md)는 Host component 기능/복구 검증을 완료했다.
 원본Native48회41 PASS/7 FAIL은 보존한다. [위상 수정/구조 분리](adr/ADR-0057-m4-release-grid-and-owner-modules.md) 뒤 두 별도48회는각42 PASS/6 FAIL이며 timing 수용은 미완료다.
 [원격 owner 계약](icd/owner_wire_v1.md)·global credit/실제 Leaf actor component와 DDS/Zenoh netns 후보 probe를 구현·실행했다.
-최신 TSan native9개 중1 FAIL도 유지하며 [M4 종료 검토](m4_exit_review.md)는 NOT CLOSED다. M5 제어 adapter는 미착수이며, 원래32req/29TC와 Target/학습자 상태도 유지한다.
+과거 TSan native9개 중1 FAIL은 원인 미확정으로 유지하며 [M4 종료 검토](m4_exit_review.md)는 NOT CLOSED다. 후속 [pending/expiry 계약](adr/ADR-0059-pending-command-allocation-settlement.md)과 진단 종료 코드 수정은 구현·검증했고 새 source의 Normal/ASan·UBSan, TSan 경계·wall, 고정40회·48회 결과를 [별도 근거](test-plan/evidence/m4_settlement/README.md)에 둔다. M5 제어 adapter는 미착수이며, 원래32req/29TC와 Target/학습자 상태도 유지한다.
 MBD M6→M8·AUTOSAR/Target 확장 순서는 유지한다. 전체 system TC는 NOT RUN이다.
+
+배치 계획은 **Host PC + Jetson 한 대 내부 여러 vECU**다. Target 성능 검증에서
+Jetson 일반 커널과 PREEMPT_RT를 동일 workload·원래 deadline·실제 CPU/FIFO 설정으로 비교한다.
+이는 PLANNED / NOT RUN이며 이번 M4 Host 보완에서 커널 교체나 MCU 이식을 진행하지 않는다.
 
 
 [MBD 개발 경로](engineering_plan.md#model-based-design-path)를 [ADR-0052](adr/ADR-0052-model-based-design-development-path.md)로 채택했다.

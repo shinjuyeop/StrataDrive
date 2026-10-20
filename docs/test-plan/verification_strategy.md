@@ -48,7 +48,7 @@ Logical 기능, sanitizer 성능, 원격 process/네트워크·전체 system TC�
 
 [사전 프로토콜](m4_contract_review_protocol.md)과 [새 근거](evidence/m4_contract_review/README.md)에
 각 결함의 수정 전 실패·수정 후 결과, 원본948개와 신규18개를 구분한다. `1989477` 전체 normal/ASan·UBSan966개씩,
-경계 TSan67개·wall9개, 함수/실제 시험/판정86개가 최신 component 결과다.
+경계 TSan67개·wall9개, 함수/실제 시험/판정86개는 해당 source의 component 결과다.
 실제 Central·두 Zone 출력의 codec 왕복→private gate를 가진 다섯 RemoteLeafEndpoint→arm/제어/Actual/Stop을
 논리 clock으로 검사한다. 같은 process의 시험 harness이며 실제 remote scheduling/network 단절 증거는 아니다.
 Native runtime의 shared global gate/atomic 보호 효과도 실제 원격 보호 전달 보장으로 확대하지 않는다.
@@ -60,6 +60,19 @@ Full transport trace는 owner별 bounded log를 join 뒤 수집한다. 최초 se
 `1989477` 48회(guards on/trace off)는41/7, FIFO23/24이고 실패/설정/분모를 모두 보존한다.
 계측 trace와 실제 M3 완료 guard의 검출 기능, 수용 timing을 각각 판정한다. SDK source/stack 분석은 새 SDK 실행이 아니며
 기존 경고·M4 NOT CLOSED·학습자 REVIEW PENDING·전체32요구/29TC NOT RUN을 유지한다.
+
+### Pending settlement 후속 검증
+
+[ADR-0059](../adr/ADR-0059-pending-command-allocation-settlement.md)와
+[사전 프로토콜](m4_settlement_protocol.md)에 따라 pending 배분 보류·원래 시한/authority 감시를 검사했다.
+`97afb35` normal/ASan·UBSan 각각973/973(unit800/logical164/wall9), TSan 경계108/108·wall9/9,
+Python71/71와93개 component 추적 결과는 [새 evidence](evidence/m4_settlement/README.md)에 있다.
+Baseline966 이름은 유지하고7개를 추가했다. 기존19.8ms 재현의 oracle은 기한 전 pending 실패에서
+exact expiry 보호로 변경했으며 수정 전 raw/assertion 결과를 보존했다. 양쪽12ms의 기존 applied expiry 보호는 그대로다.
+논리 시간의 정상/지속 지연·만료·Stop/rejoin 검사와 실제 monotonic wall 검증을 별도 판정한다.
+Runner mock은 실제 Python process exit/수집 계약만 검사한다. 고정 실제40회는Normal20+TSan20 PASS,
+별도 기존48회 timing은42 PASS/6 FAIL(FIFO24/24), 모든 control48/48이다. deadline·분모는 그대로다.
+과거 native/SDK TSan·FIFO 누락 원인 미확정, Host timing PENDING, system/Target NOT RUN을 유지한다.
 
 ### 이전 단계의 부분 검사 이력
 

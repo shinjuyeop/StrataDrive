@@ -3,6 +3,14 @@
 Status: **Native Host component 구현·시험 / 전체 M4 수용 후속**.
 현재 상태는 [project_status](../project_status.md), 설계는 [ADR-0055](../adr/ADR-0055-asynchronous-normal-owner-integration.md)를 따른다.
 
+명령 결과 대기와 다음 배분 주기의 경계는
+[ADR-0059](../adr/ADR-0059-pending-command-allocation-settlement.md)로 보완했다.
+진행 중인 batch가 있으면 다음 배분 한 건을 보류하고, 성공 후 최신 입력으로 계산한다.
+대기 자체를 전달 실패로 취급하지 않지만, 원래 응답 deadline과 이미 적용한 명령의 expiry는
+각각 계속 검사한다. 대기 중 allocator poll도 완료된 tick으로 기록하지 않는다.
+Rear19.8ms와 양쪽12ms 지연의 서로 다른 보호 경로, 실제 출력 발행 관측과 재현 결과는
+[후속 근거](../test-plan/evidence/m4_settlement/README.md)에 있다.
+
 이번 경로는 `요청 → Central 판단 → Zone 검증/전송 → Leaf 제어 → 실제 sensor → Zone → Central`을 실행한다.
 `VehicleCoordinatorPort`가 다른 객체를 곧바로 호출하던 연결을 방향별 mailbox로 바꿨다.
 이전 EV 예제는 개별 모델 fixture로 유지하고, 새 `m4-async` 명령은 실제 VM·allocator·BMS·Power 판단을 사용한다.

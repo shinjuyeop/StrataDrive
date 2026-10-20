@@ -1,0 +1,59 @@
+[
+  {
+    "command": [
+      "clang-tidy",
+      "central/coordinator/async_coordinator_port.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*",
+      "-header-filter=central/.*|simulation/runtime/async_leaf_owner.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "clang-tidy",
+      "central/coordinator/vehicle_coordinator.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*",
+      "-header-filter=central/.*|simulation/runtime/async_leaf_owner.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "clang-tidy",
+      "central/control_allocation/control_allocation.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*",
+      "-header-filter=central/.*|simulation/runtime/async_leaf_owner.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "clang-tidy",
+      "simulation/runtime/async_leaf_owner.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*",
+      "-header-filter=central/.*|simulation/runtime/async_leaf_owner.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "cppcheck",
+      "--enable=warning,performance,portability",
+      "--error-exitcode=1",
+      "--std=c++17",
+      "central/coordinator/async_coordinator_port.cpp",
+      "central/coordinator/vehicle_coordinator.cpp",
+      "central/control_allocation/control_allocation.cpp",
+      "simulation/runtime/async_leaf_owner.cpp"
+    ],
+    "exit": 0
+  }
+]

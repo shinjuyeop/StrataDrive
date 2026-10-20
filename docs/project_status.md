@@ -54,21 +54,22 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 C++ | `1989477` Normal·ASan/UBSan **각각966/966 PASS**; unit798 / integration.logical159 / runtime.wall9. 원본948개 이름/assertion 유지 + 계약15·trace1·인과 경계2개. Python **63개 PASS 이력** 유지; 기존 Python unit 이번 재실행 없음 |
-| M4 고장·복구 component | Central/두 Zone/다섯 Leaf 실행 정지·8방향 loss·delay/원래 context expiry·FIFO overflow/join·새 Epoch 복구·Prepare/INIT/Release/arm/stop ACK 경계. runtime artifact33개씩 두 빌드 PASS, durable CLI 재가입 양 빌드 PASS. 논리 물리 CSV37개가 `5eb1b3b` 결과와 byte 동일; wall timing 동등성은 아님 |
+| 전체 C++ | `97afb35` Normal·ASan/UBSan **각각973/973 PASS**; unit800 / integration.logical164 / runtime.wall9. 검토 기준966개 이름 유지 + pending/expiry7개. 기존19.8ms 재현의 기대 결과만 [ADR-0059](adr/ADR-0059-pending-command-allocation-settlement.md)에 따라 변경하고 수정 전 결과 보존. Python **71/71 PASS**(기존63+runner8) |
+| M4 고장·복구 component | Central/두 Zone/다섯 Leaf 실행 정지·8방향 loss·delay/원래 context expiry·FIFO overflow/join·새 Epoch 복구·Prepare/INIT/Release/arm/stop ACK 경계. `97afb35` fault artifact33개씩 두 빌드 PASS, durable CLI 재가입 양 빌드 PASS. 과거37개 CSV byte 동일성 검사는 당시 source 이력이며 새 wall timing 동등성 주장이 아님 |
 | M4 물리 반응 | 원본 CSV 사후 감사: 정상 운전 뒤 고장56개 표본에서 angle hold·pressure floor·torque zero·접점 open 확인; never-active8개는 해당 반응 N/A. 짧은 run의 잔류 bus 전압과 실제 OFF 확인을 구분. SOC/energy/model 연속성 PASS |
 | M4 분리 vCAN | 이전 Normal·sanitizer 각각 **5/5 PASS 이력**. 실제 CAN command·metadata/원래 deadline·terminal 뒤 거부. 이번 계약 수정 후 vCAN 재실행은 NOT RUN; 실제 owner→codec→remote Leaf는 아래 논리 통합으로 검사 |
 | 원본 M4→M3 cohort (`12fc4a5`) | 사전 고정48회 ×2.54s, CPU0/1·OTHER/FIFO·부하/고장·3회 반복, 실제 설정/부하 control48/48 PASS. **41 PASS / 7 FAIL / 0 BLOCKED**. OTHER loaded normal0/6, FIFO normal12/12, intentional fault23/24 PASS.7개 실패를 모두 유지하며 timing 수용 미완료 |
 | 위상 수정/분리 후 native cohort | `603fe24`와`77d411c` **각각48회:42 PASS/6 FAIL/0 BLOCKED**, FIFO각24/24(Drive fault6/6 포함), OTHER loaded normal각0/6. 원본41/7과 별개이며 시한/분모 불변. 최초 FIFO extra wake kernel 원인 미확정, OPEN-M4-TIM-01 유지 |
 | 원격 계약·실제 Leaf | 이전 Epoch 거절 응답의 원래 identity 보존, 최초 sent 기준20ms/원래 expiry 중 이른 envelope, issuer/Epoch/token ACK8개씩 불변 보관. 실제 Central·두 Zone→codec→다섯 private-gate Leaf의 INIT/arm/정상 적용/Actual·Power/permission·Stop/HV OFF·지연 거부 PASS. 전체 원격 process 배포 아님 |
-| 최신 native TSan | `1989477` 변경 경계 **67/67**, runtime.wall **9/9 PASS**, 경합 경고0. 전체966개 TSan은 NOT RUN. 별도 `f895dc6` 최초부터 full trace 고정 normal20+TSan20회 **40/40 PASS**. 과거 `d7115ff` native8/9의 CommandDelivery 실패는 재현되지 않았으며 **OPEN-M4-TSAN-01 유지** |
-| 명령 전달 인과 분석 | 실제 owner 논리 시험에서 양 Zone result12ms 지연은 기존 Rear command expiry가 먼저 보호, Rear result19.8ms 지연은 개별 envelope 만료 전 다음 allocation의 pending 충돌로 CommandDelivery 보호. 원래 native 실패의 원인으로 확정하지 않음; timeout 불변 |
+| 최신 native TSan | `97afb35` 변경 경계 **108/108**, runtime.wall **9/9 PASS**, 경합 경고0. 전체973개 TSan은 NOT RUN. 최초부터 full trace 고정 normal20+TSan20회 **40/40 PASS**, 수정 runner exit0. 과거 `d7115ff`8/9의 CommandDelivery 실패는 원인 미확정·**OPEN-M4-TSAN-01 유지** |
+| 명령 전달 계약·수정 | 한 batch가 pending이면 다음 due 배분을 보류하고 original deadline·allocator expiry/30ms gap·Zone/Leaf authority 감시는 계속한다. 제때 완료되면 fresh 입력으로 기존20ms release grid 재개. Rear19.8ms는1025.2ms의 조기 보호 대신1025.4ms exact envelope expiry에서 보호; 양 Zone12ms는 기존 Rear 적용 명령의1011.000001ms expiry가 먼저 보호. 일시 지연 정상 재개·지속 지연 만료·Stop handoff 검사. 실제 native 과거 원인으로 확정하지 않음 |
 | 계약 수정 후 timing (`1989477`) | 같은48회 프로토콜 **41 PASS/7 FAIL/0 BLOCKED**; 설정/부하/grid control48/48. OTHER loaded normal6 FAIL + FIFO monitor-overrun 조건1 FAIL. **FIFO23/24**: 예정 주입1.2s 이전 Front/Rear slot281(662ms release/666ms deadline) 누락,666.004077ms 검출·666.009677ms 물리 override. kernel 원인 미확정, 이전 commit timing으로 대체하지 않음 |
+| 최신 settlement 후 timing (`97afb35`) | 동일48회 **42 PASS/6 FAIL/0 BLOCKED**; 설정·부하·release grid·buffer control48/48. OTHER loaded normal6 FAIL, FIFO24/24·intentional fault24/24 PASS. 이전 FIFO 누락 원인은 여전히 미확정이며 이번 미재현으로 닫지 않음. 원래 deadline 불변·Host timing 수용 PENDING |
 | 통신 후보 | 이전 v1 30/36·v2 36/36, wrapper ASan4/4·TSan4 FAIL·SDK 재계측 DDS2 FAIL 유지. 이번 source 분석에서 DDS vendor atomic helper의 `no_sanitize("thread")`/volatile fence 관측 공백 확인; 실제 GC lifetime 결함과 구분 미확정. Zenoh Rust 전체 계측 도구 부재. SDK 새 실행 NOT RUN, **OPEN-M4-MWTSAN-01** |
-| 독립 감시·실제 적용 | 기존2ms 기회·4ms 완료 guard 불변. 최신 timing의 통과 fault23회에서 원래 deadline→검출0.003316–0.118481ms·검출→물리 override0.000989–0.986818ms. 실패 run의 보호 성공을 정상 timing PASS로 합치지 않음; 자기 body/논리 clock과 구분 |
-| 추적성·공유 근거 | [함수→실제 GTest→판정·결과86개](test-plan/evidence/m4_contract_review/final/component_results.csv), [계약 수정 전후·source·환경·재현·정상/고장/복구 CSV/그래프·실패 원본](test-plan/evidence/m4_contract_review/README.md). 원본 [948개/기존 timing·TSan](test-plan/evidence/m4_followup/README.md)와 [872개](test-plan/evidence/m4_async/README.md)는 당시 이력 |
+| 독립 감시·실제 적용 | 기존2ms 기회·4ms 완료 guard 불변. `97afb35`의 intentional fault24/24 PASS: 원래 deadline→검출0.003282–0.084379ms·검출→물리 override0.000936–0.986748ms. 정상6 FAIL에서 보호가 동작해도 timing PASS로 합치지 않음; 자기 body/논리 clock과 구분 |
+| 추적성·공유 근거 | [함수→실제 GTest→판정·결과93개](test-plan/evidence/m4_settlement/final/component_results.csv), [수정 전후·source·환경·재현·정상/고장/복구 CSV/그래프·원본 로그](test-plan/evidence/m4_settlement/README.md). 이전966개와41/7은 [계약 검토](test-plan/evidence/m4_contract_review/README.md),948개·872개는 당시 이력으로 유지 |
 | M3 수용 검토 | Host IO 동반/FIFO 기준 선택, 원본 96회 재분석·판정 동일. 전체 timing 수용은 PENDING |
-| 최신 Build·정적 분석 | Debug normal/ASan·UBSan/TSan 빌드 PASS. 변경 production4개 clang-analyzer·cppcheck PASS. 이번 Release BUILD_TESTING=OFF는 NOT RUN; 이전 PASS와 enum registry 경고 기록은 보존 |
+| 최신 Build·정적 분석 | `97afb35` Debug normal/ASan·UBSan/TSan 빌드 PASS. 변경 production4개 clang-analyzer·cppcheck PASS. 이번 Release BUILD_TESTING=OFF는 NOT RUN; 이전 PASS와 enum registry 경고 기록 보존 |
 | 이전 Build·정적 분석 (`12fc4a5`) | Debug 두 빌드·Release BUILD_TESTING=OFF PASS. Clang-tidy10개·production8개 cppcheck; 새 analyzer 오류 없음, variant/noexcept·인자 순서 경고를 근거와 함께 보존. TSan 기본 ASLR 매핑 실패; process-local `setarch -R`에서 native7/7 PASS·경합 경고0. 전체 TSan/RTOS/Target 실행 결과로 확대하지 않음 |
 | Native 일반/FIFO 비교 | 같은 CPU map·workload·시한으로 4조건×2 trace×3회 **24/24 PASS**, 설정·부하 control 모두 PASS |
 | Native 고장 회귀 | Normal OTHER/FIFO 각각 17/17, sanitizer OTHER 15/17·FIFO 17/17: **66/68 PASS**, 일반 sanitizer의 owner skip 두 실패 보존 |
@@ -124,9 +125,9 @@ OS Task/CAN·native 시한은 유지하고, 새 추가 Host timing 5 ms 판정�
 
 ## 다음 작업
 
-1. **M4 종료 검토:** 원격 계약3개 수정·966개 전체 회귀·full trace40회 진단을 완료했다. [종료 checklist](m4_exit_review.md)의 timing/native·SDK TSan 예외는 OPEN이고, 새 FIFO 조기 누락1건도 있어 **M4 NOT CLOSED / M5 제어 adapter 미착수**다. 다음은 kernel timer→wakeup→switch 관측 조건 확보, 다음 allocation과 pending result의 정상 허용 지연 계약 검토, SDK 지원 계측이다. Host IO/FIFO 한정 수용은 조건부 제안이며 이번 결과로 지원 범위를 바꾸거나 수용하지 않는다.
+1. **M4 종료 검토:** pending/다음 배분 충돌·진단 실패 exit0를 수정하고973개 전체 회귀·TSan108+9·full trace40회·별도48회(42 PASS/6 FAIL)를 완료했다. [종료 checklist](m4_exit_review.md)의 timing/native·SDK TSan 예외는 OPEN이므로 **M4 NOT CLOSED / M5 제어 adapter 미착수**다. 다음은 권한 있는 timer→wakeup→sched_switch/IRQ/owner 구간 캡처, 동일 조건 실패 분석과 SDK 지원 계측이다. Host IO/FIFO 한정 수용은 명시적 범위 검토가 필요한 제안이며 이번 FIFO24/24만으로 기존 실패를 닫지 않는다.
 2. **M3 타이밍 예외 해소:** OPEN-M3-01/02의 원본 실패를 유지하고 kernel trace 접근을 준비해 timer→wakeup→switch를 분석한다. 추가 반복과 PREEMPT_RT 비교는 후속 실험이며 M4 준비가 M3 전체 수용을 뜻하지 않는다. 학습자 직접 재현·설명도 남아 있다.
-3. **ARM64 배포 준비:** 보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. Target 검증은 배포 단계, RTE/BSW는 별도 pilot과 연결한다.
+3. **ARM64 배포 준비:** Host PC + Jetson 한 대 내부 여러 vECU 배치를 유지한다. Jetson 일반 커널/PREEMPT_RT 동일 workload 비교는 Target 성능 검증 PLANNED / NOT RUN이다. 이번 커널 교체·MCU 이식은 없다.  보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. Target 검증은 배포 단계, RTE/BSW는 별도 pilot과 연결한다.
 4. **MBD 준비·후속 pilot:** 현재 M4 통합을 진행하고 M5 통신 경계를 준비하면서 제어 interface·도구/모델 검토를 병행한다. M6 Simple Vehicle에서 종방향 모델/MIL을 만들고 M8에서 C++ 동등성과 차량 SIL을 검증한다. [채택 범위](adr/ADR-0052-model-based-design-development-path.md)는 방법/계획이며 구현·Simulink/자동 생성 도입 완료가 아니다.
 
 ## 후속 통합 범위

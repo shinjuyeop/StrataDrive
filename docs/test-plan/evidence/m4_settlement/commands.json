@@ -1,0 +1,143 @@
+{
+  "cwd": "/d/shin/StrataDrive",
+  "source_commit": "97afb35124206aa7c269b9618d3bc16e9e267527",
+  "source_digest": "0ca80a921492576f270b5dfe00bd0bab0349447bf904be81ec1159d4a3e4a5c8",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "tests/integration/runtime/check_m4_faults.py",
+        "--raw-dir",
+        "build/m4-settlement/full",
+        "--output",
+        "build/m4-settlement/full-evidence"
+      ],
+      "exit": 0,
+      "result": "normal973/973; ASan/UBSan973/973; CLI rejoin both PASS"
+    },
+    {
+      "argv": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build/m4-tsan",
+        "-DCMAKE_BUILD_TYPE=Debug",
+        "-DSTRATADRIVE_TSAN=ON"
+      ],
+      "exit": 0
+    },
+    {
+      "argv": [
+        "cmake",
+        "--build",
+        "build/m4-tsan",
+        "-j4"
+      ],
+      "exit": 0
+    },
+    {
+      "argv": [
+        "setarch",
+        "x86_64",
+        "-R",
+        "ctest",
+        "--test-dir",
+        "build/m4-tsan",
+        "-R",
+        "Remote|PeerFixture|AsyncZoneOwner|AsyncOwnerTest|M4AsyncRuntime|Coordinator|ControlAllocationTest.PendingPoll",
+        "--output-on-failure",
+        "--output-junit",
+        "/d/shin/StrataDrive/build/m4-settlement/tsan/boundary.xml"
+      ],
+      "env": {
+        "STRATADRIVE_M4_RESULTS": "/d/shin/StrataDrive/build/m4-settlement/tsan/raw",
+        "STRATADRIVE_M4_TRANSPORT_TRACE": "1"
+      },
+      "exit": 0,
+      "result": "108/108 PASS"
+    },
+    {
+      "argv": [
+        "setarch",
+        "x86_64",
+        "-R",
+        "ctest",
+        "--test-dir",
+        "build/m4-tsan",
+        "-L",
+        "runtime.wall",
+        "--output-on-failure",
+        "--output-junit",
+        "/d/shin/StrataDrive/build/m4-settlement/tsan/wall.xml"
+      ],
+      "env": {
+        "STRATADRIVE_M4_RESULTS": "/d/shin/StrataDrive/build/m4-settlement/tsan/wall",
+        "STRATADRIVE_M4_TRANSPORT_TRACE": "1"
+      },
+      "exit": 0,
+      "result": "9/9 PASS"
+    },
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests/unit",
+        "-p",
+        "*_test.py",
+        "-v"
+      ],
+      "env": {
+        "STRATADRIVE_RUNNER_TEST_RESULTS": "/d/shin/StrataDrive/build/m4-settlement/runner-complete/raw"
+      },
+      "exit": 0,
+      "result": "71/71 PASS; runner-complete metadata was prior to commit with same final source digest"
+    },
+    {
+      "argv": [
+        "python3",
+        "tests/integration/runtime/check_m4_delivery_trace.py",
+        "build/m4-settlement/native40"
+      ],
+      "exit": 0,
+      "result": "20 normal +20 TSan PASS; all required evidence/settings validated"
+    },
+    {
+      "argv": [
+        "python3",
+        "tests/integration/runtime/check_m4_faults.py",
+        "--reuse",
+        "--raw-dir",
+        "build/m4-settlement/full",
+        "--output",
+        "build/m4-settlement/complete-evidence",
+        "--run-timing",
+        "--timing-dir",
+        "build/m4-settlement/timing48"
+      ],
+      "exit": 0,
+      "result": "collection complete; timing42 PASS/6 FAIL, NOT accepted"
+    },
+    {
+      "argv": [
+        "python3",
+        "docs/test-plan/evidence/m4_settlement/summarize.py",
+        "build/m4-settlement",
+        "docs/test-plan/evidence/m4_settlement"
+      ],
+      "exit": 0,
+      "result": "offline raw analysis/plots only"
+    }
+  ],
+  "binary_sha256": {
+    "build/m4-readiness/m4_async_runtime_test": "09337f4361b4d5b61e6c8665043b8de39e45a29a72ac91df7c2d92059bcb790e",
+    "build/m4-readiness/actuator_demo": "4736b40e8b5b2b67c4cf603ff96a7b1516d619541fdb10a8de80ff01b8f76347",
+    "build/m4-tsan/m4_async_runtime_test": "ef5b43c316c9583e771c0fc6cd5adedf46ef27fe005dcf59472eb2c12b363383",
+    "build/m4-tsan/actuator_demo": "f650d929402bb34ebd53e7578b81501c0f75a7f7210ab1e054638db40e8e7e9f",
+    "build/m1-angle-sanitized/m4_async_runtime_test": "fd544259254345d211078943bc03c389f0a3ebd502f717661c50c2981696fb98",
+    "build/m1-angle-sanitized/actuator_demo": "3d6f6a9825fd31d6d9940ff458a72633e9293f0ac5e0f482d3a45fa80404126f"
+  }
+}

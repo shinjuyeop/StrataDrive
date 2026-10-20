@@ -2,15 +2,33 @@
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
 clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
-현재 `1989477` normal·ASan/UBSan 각각 **C++966/966 PASS**다(unit798/logical159/wall9). [계약 검토 근거](test-plan/evidence/m4_contract_review/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
-최신 TSan 경계67/67·native wall9/9 PASS, 별도 `f895dc6` full trace normal20+TSan20회 PASS다. 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다. 아래 날짜별 과거 수치는 당시 범위로 보존한다.
-Python은 직전 hosted timer 단계의 **63개 PASS** 이력이다. 이번 M4 검증 runner를 추가·실행하고 syntax를 검사했으며 기존 Python unit은 재실행하지 않았다.
+현재 `97afb35` normal·ASan/UBSan 각각 **C++973/973 PASS**다(unit800/logical164/wall9).
+[Settlement 후속 근거](test-plan/evidence/m4_settlement/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
+TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.
+기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다.
+Python은 기존63+진단 runner8개를 실제 실행해 **71/71 PASS**다. 아래 과거 수치는 당시 범위로 보존한다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
 총 local vCAN **97개 case**를 검사한다.
 Battery/BMS/Power/Drive gate·에너지/회로 단계는 로컬 component 검사이며 CAN wire나 transport 변경은 없다.
 97개 vCAN은 앞선 Drive 응답 단계의 증거다. 직전 gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사해 통과했다.
+
+2026-10-20 `29b8221` 후속: `398a1de`는 pending 상태를 다음 배분 실패와 분리했다.
+대기 중 allocation tick은 완료 처리하지 않으며 request/support expiry·30ms gap·원래20ms TX envelope와
+실제 적용 명령 expiry는 그대로 감시한다. 전송 결과 후 fresh 입력으로 기존 release grid를 따른다.
+수정 전4개 focused는2 PASS/2 FAIL, 수정 후 최종 focused55/55 PASS다. 최초 persistent 지연을 정상으로
+기대한 시험의 FAIL도 보존했고, 일시 지연 정상/지속 지연 권한 만료 보호로 입력 조건·oracle을 구분했다.
+기존19.8ms 재현은 기한 전 pending 충돌에서 exact deadline 보호로 기대 결과를 변경한 유일한 기존 시험이다.
+`97afb35`는 진단 runner가 전체 결과 저장 후 FAIL/timeout/누락/TSan 경고에 exit1을 반환하도록 했다.
+실제 child process 검증8개는 수정 전1 PASS/5 FAIL/2 ERROR, 수정 후8 PASS; 전체 Python71 PASS다.
+최종973개 C++는 원본948+이전 검토18+이번7이며 이름은 모두 보존했다. 전체 normal/ASan·UBSan 각각973 PASS,
+TSan 변경 경계108·wall9 PASS, static production4개 PASS다. 같은 source/fingerprint의 고정40회는40 PASS/exit0다.
+별도 변경 없는48회 timing은42 PASS/6 FAIL, FIFO24/24, 설정·부하·grid·사전 할당 control48/48이다.
+실패6개는 OTHER loaded normal이며 독립 보호 성공과 timing 수용 실패를 구분한다. 통과 fault24회의
+원래 deadline→검출0.003282–0.084379ms, 검출→실제 override0.000936–0.986748ms를 기록했다.
+원래41/7·42/6·42/6·41/7 실패 기록, native/SDK TSan OPEN, tracefs/perf 제약·Target NOT RUN과
+M4 종료 보류는 유지한다. 이번 FIFO 성공이 과거 누락의 원인 규명이나 전체 수용을 뜻하지 않는다.
 
 2026-10-20 `4a399af` 외부 검토 후: 원본948개를 보존하고 old-Epoch reply identity(`7396b2d`),
 최초 sent/원래 expiry의20ms envelope(`9e96182`), issuer/Epoch/token 보호 ACK 보관(`57457e6`)을 수정했다.

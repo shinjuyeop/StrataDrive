@@ -91,3 +91,7 @@ Owner body의4 ms 초과 관측과 실제 period/loss response를 보고하되 �
 MBD·AUTOSAR 확장 순서, 기존 M3 timing 예외·학습자 review와32개 요구/29개 system TC의 NOT RUN은 유지한다.
 
 후속 owner/방향별 고장·joined 복구·M3 독립 guard/FIFO cohort는 [ADR-0056](ADR-0056-m4-faults-and-independent-execution-watch.md)과 최신 project_status를 따른다. 위 관측 수치는 당시 범위다.
+
+후속 [ADR-0059](ADR-0059-pending-command-allocation-settlement.md)는 in-flight batch가
+있는 동안 다음 due allocation을 보류하는 계약을 추가했다. 결과 deadline·기존 applied
+command expiry·감시/보호를 연장하지 않으며, 정상 결과 후 fresh 입력으로 기존 release grid를 따른다.
