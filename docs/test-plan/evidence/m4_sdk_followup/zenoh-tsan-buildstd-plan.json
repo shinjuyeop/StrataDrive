@@ -1,0 +1,24 @@
+{
+  "name": "tsan",
+  "command": [
+    "/d/shin/StrataDrive/build/m4-sdk-followup/toolchain/cargo/bin/cargo",
+    "+nightly-2026-10-20",
+    "build",
+    "--locked",
+    "--no-default-features",
+    "--features",
+    "transport_tcp",
+    "--target",
+    "x86_64-unknown-linux-gnu",
+    "-j4",
+    "-Zbuild-std"
+  ],
+  "env": {
+    "CARGO_HOME": "/d/shin/StrataDrive/build/m4-sdk-followup/toolchain/cargo",
+    "RUSTUP_HOME": "/d/shin/StrataDrive/build/m4-sdk-followup/toolchain/rustup",
+    "CARGO_TARGET_DIR": "/d/shin/StrataDrive/build/m4-sdk-followup/zenoh-tsan",
+    "RUSTFLAGS": "-Zsanitizer=thread -Zexternal-clangrt -Cdebuginfo=2",
+    "CARGO_COMMAND": "/d/shin/StrataDrive/build/m4-sdk-followup/cargo-with-std"
+  },
+  "timeout": 900
+}

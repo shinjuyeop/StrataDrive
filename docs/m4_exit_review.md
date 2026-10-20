@@ -4,6 +4,12 @@ Date: 2026-10-20. Status: **IN PROGRESS / NOT CLOSED**. 현재 상태 기준은 
 학습자 직접 재현/설명은 **REVIEW PENDING**, system32요구/29TC·Target/전체 원격 배포는 **NOT RUN**이다.
 이 검토는 위 상태를 PASS로 바꾸지 않는다.
 
+`1a4afe5` 후속은 [고정 커널 수집 준비/검사](test-plan/evidence/m4_kernel_campaign/README.md)와
+[native·SDK 진단](test-plan/evidence/m4_sdk_followup/README.md)까지 진행했다.
+Python108 PASS, 새 native40 PASS이나 과거 실패 원인은 미확정이다. 원래 사용자20/20을
+live ancestor에서 검증하고 자식만 복원하는 경계는 구현됐지만, 실제 sudo OFF/ON22회는
+암호 필요로 NOT RUN이다. 기존 사용자 권한 FIFO1 PASS는 이22회의 대체 결과가 아니다.
+
 | 종료 항목 | 구현/실제 시험 | 근거/판정 | 차단 여부 |
 | --- | --- | --- | --- |
 | 정상 request/arm/TX result/status/Actual/protection 소유권 | AsyncCoordinatorPort·AsyncZoneOwner·AsyncLeafOwner; M4AsyncRuntime·AsyncOwnerTest | 실제 BMS/HV/센서 준비·arm 뒤 정상 배분; 함수→시험→두 빌드 결과93개 연결 | Host component PASS |
@@ -17,7 +23,7 @@ Date: 2026-10-20. Status: **IN PROGRESS / NOT CLOSED**. 현재 상태 기준은 
 | 새 workload M3 감시/타이밍 수용 | 기존48회 프로토콜을 `97afb35`에 새 실행 | **42 PASS/6 FAIL**, 설정·부하·grid·사전 할당 control48/48. OTHER loaded normal6 FAIL; FIFO24/24·intentional fault24/24 PASS. `1989477`41/7·FIFO23/24와 이전 실패 보존 | **BLOCK: OPEN-M4-TIM-01**; 과거 FIFO 누락 원인 미확정, 시한/분모 유지 |
 | 변경 동시성 sanitizer | `97afb35` TSan 경계108+wall9; 동일 source의 full trace native20+TSan20 | 108/108·9/9 및40/40 PASS, 경합 경고0. `d7115ff`8/9의 CommandDelivery 실패 원인 미확정 | **BLOCK: OPEN-M4-TSAN-01**; 전체973 TSan NOT RUN, 논리 수정/새 PASS로 원인 확정하지 않음 |
 | 진단 수집·실패 종료 | check_m4_delivery_trace.py; Python runner 실제 child-process 시험8개 | 전체 예정 결과 저장 후 FAIL/timeout/누락/TSan 경고에 exit1, 전부 PASS는 exit0. 수정 전1 PASS/5 FAIL/2 ERROR→8 PASS; 전체 Python71 PASS | PASS; mock은 실행 성능 검증이 아님 |
-| Middleware 동시성 검증 | 기존 wrapper TSan4 FAIL·SDK 재계측 DDS2 FAIL의 version source/stack 분석 | DDS GC progress의 vendor volatile atomic helper가 `no_sanitize("thread")`; 계측 공백 확인이나 실제 lifetime 안전성은 미확정. Zenoh binary/Rust handoff도 미확정. 새 SDK 실행 NOT RUN | **BLOCK: OPEN-M4-MWTSAN-01**; suppress/false positive 종결 없음 |
+| Middleware 동시성 검증 | 기존 실패 보존 + DDS 공식 TSan4회·helper9회·Zenoh 초기8회/동일 nightly 비교8회 | DDS4 FAIL, helper 관측 공백 재현; GC lifetime 안전성은 미확정. Rust 설치·nested build-std 전달 보완; 동일 조건 Zenoh partial4 FAIL/full4 PASS. 원래 배포 binary provenance와 전체 feature 수용은 별도 | **BLOCK: OPEN-M4-MWTSAN-01**; SDK atomic 변경/suppression 없음 |
 | 기존 M3 예외 | OPEN-M3-01/02·ADR-0042/43 | 원본 OTHER sanitizer2 FAIL과 kernel trace 권한 제약 유지 | 전체 M3 수용 PENDING; 새 성공으로 닫지 않음 |
 
 최신 commit/환경/명령·수정 전후·원본·CSV/그래프는 [settlement evidence](test-plan/evidence/m4_settlement/README.md),
@@ -28,8 +34,8 @@ Date: 2026-10-20. Status: **IN PROGRESS / NOT CLOSED**. 현재 상태 기준은 
 ## 남은 차단과 필요한 결정
 
 1. **실행 타이밍:** 새 `97afb35`는42/48 PASS이고 FIFO24/24다. OTHER loaded normal6개는 원래4ms 완료 기회를 놓쳐 실패했다. 각 최초 누락·deadline·검출·override·직전 body/CPU/다음 wake는 [failures.csv](test-plan/evidence/m4_settlement/timing48/failures.csv)에 있다. 독립 보호 성공을 정상 timing PASS로 바꾸지 않는다. 이전 `1989477`의 예정1.2s 주입 전 Front/Rear slot281(release662ms/deadline666ms) 누락과666.004077ms 검출·666.009677ms override는 미해결 이력이다. 이번 미재현이 원인을 증명하지 않는다. 사용자 compact-v2 kernel capture 중185513쌍은 OFF243/ON159 miss지만 추적은 유실 없이 VALID다. 최초 조향 timer 초과3.714µs·CPU 배정대기2.856ms·body1.125µs, 최신-slot 선택으로2ms 기회가 누락되고4ms deadline 뒤65.184µs 검출·4.895µs 뒤 physical override를 확인했다. 이 OTHER 구간의 CPU contention 위치를 확인했으며 FIFO의 원인 증명은 아니다. [전체 원본/시간축](test-plan/evidence/m4_kernel_valid/README.md)을 따른다. 앞선183050쌍은 OFF176/ON311 miss, CPU1 event256668개 유실로 INVALID 이력이다. syscall pretty-printer와 relative realtime clock 처리 결함을 수정해762977 event 전부 파싱했어도9076 chain은 UNTRUSTED로 유지한다. 두 시도의 instance 제거/global 불변을 확인했고, 앞선183033 export EBADF는 원인 OPEN이다. [수집기 compact-v2](test-plan/m4_kernel_capture.md)는 필수 event 유지·optional 감소·CPU1 buffer32MiB를 적용했으며95개 Python 검사를 통과했다. 후속185446/185458 두 쌍의 EBADF stack은 종료 trace_marker 쓰기 실패를 가리킨다. Kernel ring reserve 실패/CPU2 포화가 후보이나 실패 통계가 없어 확정하지 않는다. `eecc1d7`의 실패 후 raw/stat 보존·collector CPU2MiB 배분은97개 Python 검사 통과, 새 실제 tracefs 검증 NOT RUN이다. FIFO 후속은 sudo에서 RT limit0/0을 상속한 점을 확인했으므로 원래 사용자20/20 예산을 보존하는 실행 경계가 선행 조건이다. [원본/재분석](test-plan/evidence/m4_kernel_capture_followup/README.md)을 보존하며 OS 원인으로 단정하지 않는다.
-2. **TSan native 정상 기능 실패:** 이번 full trace40/40 PASS에서 Command enqueue→result 최대 normal0.442994ms/TSan0.446838ms를 관측했다. 이전 `d7115ff` 사건은 여전히 미재현·원인 미확정이다. 논리 pending 충돌 결함은 ADR-0059로 수정했고, Rear19.8ms는1025.4ms exclusive deadline에서 보호한다. 양 Zone12ms는 기존 Rear 적용 명령의1011.000001ms expiry가 먼저 보호하는 결과를 유지한다. 다음 native 실패 시 원래 source/deadline·enqueue·RX/dispatch·Leaf 처리/출력 발행·결과 도착의 최초 실패 identity를 대조해야 한다. TSan 부담이나 이번 코드 결함이 과거 원인이라고 확정하지 않는다. Timeout 증가는 없다.
-3. **Middleware SDK 검증:** [정확한 source/stack 분석](test-plan/evidence/m4_contract_review/middleware/analysis.md)을 완료했다. DDS SDK-wide TSan 빌드에도 vendor atomic helper 계측 제외가 있어 기존 “완전 계측” 표현은 모든 동기화 계측을 뜻하지 않는다. 지원되는 TSan-aware atomic/reclamation 설정·동일 memory-order 검토와 최소 index/GC 재현이 필요하다. 단순 강한 atomic 교체는 원래 알고리즘의 안전성 증명이 아니다. Zenoh는 compatible Rust std/dependency 계측 toolchain·binary provenance/debug symbol이 필요하고 cargo/rustc가 없다. Wrapper와 SDK 내부/계측 인식 문제를 확정 분류할 근거가 부족하여 원래 경고는 OPEN이다.
+2. **TSan native 정상 기능 실패:** `97afb35` full trace40/40 PASS에서 Command enqueue→result 최대 normal0.442994ms/TSan0.446838ms를 관측했다. 이전 `d7115ff` 사건은 여전히 미재현·원인 미확정이다. 논리 pending 충돌 결함은 ADR-0059로 수정했고, Rear19.8ms는1025.4ms exclusive deadline에서 보호한다. 양 Zone12ms는 기존 Rear 적용 명령의1011.000001ms expiry가 먼저 보호하는 결과를 유지한다. 다음 native 실패 시 원래 source/deadline·enqueue·RX/dispatch·Leaf 처리/출력 발행·결과 도착의 최초 실패 identity를 대조해야 한다. TSan 부담이나 이번 코드 결함이 과거 원인이라고 확정하지 않는다. Timeout 증가는 없다.
+3. **Middleware SDK 검증:** [후속 근거](test-plan/evidence/m4_sdk_followup/README.md)에서 DDS 공식 `SANITIZER=thread` 빌드4회 모두 경고를 재현했다. Vendor helper의 invisible handoff는 최소9회 대조로 확인했으나 GC/vtime 회수 알고리즘의 정확성은 입증하지 않았다. Zenoh 도구 부재는 해소했다: 프로젝트 전용 Rust1.97.1·nightly/rust-src, nested Cargo에도 build-std를 전달하는 설정으로 전체 Rust 계측 빌드를 완료했다. 동일 nightly/probe/runtime/TCP feature 비교에서 partial4 FAIL/full4 PASS, runtime positive/negative6회 검출 동작을 확인했다. 이는 이 재현의 계측 공백을 뒷받침하며 기존 standalone binary의 모든 경고를 false positive로 종결하는 근거는 아니다. GCC11 runtime 미지원 callback은 동일 Rust LLVM23 runtime 사용으로 분리했고 Clang14 혼합 interop 실험/전체 feature qualification은 별도 검토 대상이다. Suppression·SDK atomic 교체는 없다.
 4. **수용 범위 판단:** **Host IO/FIFO 한정 기술 수용 검토**는 가능하지만 이번24/24 결과만으로 수용할 수 없다. Settlement 계약/기능 검증은 완료했지만, 과거 FIFO 누락의 원인 분석·동일 고정 cohort의 근거, SDK 경고에 대한 지원 계측/검토 및 지원 범위의 명시적 결정이 남았다. 그 뒤 지원 profile/남은 예외에 대한 명시적 검토가 필요하다. OTHER·Target/system·학습자 상태와 원본 실패를 삭제하거나 기본 policy/4ms를 바꾸지 않는다.
 
 Host PC + Jetson 한 대 내부 여러 vECU 배치를 유지한다. Jetson 일반 커널/PREEMPT_RT 동일 workload 비교는
@@ -37,7 +43,7 @@ Target 성능 검증 PLANNED / NOT RUN이다. 이번 커널 교체·MCU 이식·
 
 ## M5 첫 구현 단위
 
-이번에는 M4 pending/expiry 계약·진단 exit와 회귀검증까지 진행했고 **M5 Central↔Zone 제어 adapter는 미착수**다. M4 전체 종료 선행 조건이 아직 충족되지 않았다.
+이번에는 M4 고정 커널 수집기·원래 RT 한도 보존·SDK 계측과 native 진단까지 진행했고 **M5 Central↔Zone 제어 adapter는 미착수**다. M4 전체 종료 선행 조건이 아직 충족되지 않았다.
 다음 단위는 위 실행 예외/수용 범위 검토 뒤, Cyclone direct API의 독립 Central↔Front process에서 기존 request→arm→normal command→원천 Actual/result를 왕복시키는 것이다.
 공통 clock/netns profile과 원래 source/parent/expiry를 유지하고 방향별 tc loss/delay·이전 message/late ACK 거부·새 durable Epoch/전체 INIT·readiness·arm 재가입을 검증한다.
 Front 먼저여도 Central–Front/Rear 병렬 topology와 Rear Drive/BMS/power 책임은 유지하며 fixture/실제 원격 범위를 명시한다.

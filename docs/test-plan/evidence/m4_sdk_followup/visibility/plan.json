@@ -1,0 +1,29 @@
+{
+  "compiler": "gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0",
+  "command": [
+    "gcc",
+    "-std=c11",
+    "-O2",
+    "-g",
+    "-fsanitize=thread",
+    "-fno-omit-frame-pointer",
+    "-pthread",
+    "-I/d/shin/StrataDrive/build/m4-dds-full-tsan/install/include",
+    "/d/shin/StrataDrive/tests/integration/middleware/dds_atomic_visibility.c",
+    "-L/d/shin/StrataDrive/build/m4-dds-full-tsan/install/lib",
+    "-Wl,-rpath,/d/shin/StrataDrive/build/m4-dds-full-tsan/install/lib",
+    "-lddsc",
+    "-o",
+    "/d/shin/StrataDrive/build/m4-sdk-followup/visibility/visibility"
+  ],
+  "source_sha256": "6ec1c462dea419ecd1f71277e8182d5d85623fcbe09fc442b86eb48b5a478e5d",
+  "repetitions": 3,
+  "modes": [
+    "vendor",
+    "c11-control",
+    "race-control"
+  ],
+  "planned": 9,
+  "timeout_seconds": 15,
+  "scope": "helper visibility only; not GC lifetime correctness or middleware acceptance"
+}

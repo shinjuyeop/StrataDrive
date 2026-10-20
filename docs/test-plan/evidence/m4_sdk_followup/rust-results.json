@@ -1,0 +1,38 @@
+[
+  {
+    "command": [
+      "/d/shin/StrataDrive/build/m4-sdk-followup/toolchain/rustup-init",
+      "-y",
+      "--no-modify-path",
+      "--profile",
+      "minimal",
+      "--default-toolchain",
+      "none"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "/d/shin/StrataDrive/build/m4-sdk-followup/toolchain/cargo/bin/rustup",
+      "toolchain",
+      "install",
+      "1.97.1",
+      "--profile",
+      "minimal"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "/d/shin/StrataDrive/build/m4-sdk-followup/toolchain/cargo/bin/rustup",
+      "toolchain",
+      "install",
+      "nightly-2026-10-20",
+      "--profile",
+      "minimal",
+      "--component",
+      "rust-src"
+    ],
+    "exit": 0
+  }
+]

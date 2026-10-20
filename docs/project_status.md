@@ -4,6 +4,14 @@ Updated: **2026-10-20**. **M3 — IN PROGRESS**를 유지하며 **M4 Central/Zon
 [README](../README.md)는 프로젝트 소개와 실행 진입점이며, **이 문서가 현재 구현 상태·최신 시험 분모·다음 작업의 기준**이다. 과거 ADR/학습·품질 기록의 수치는 당시 범위로 유지한다.
 단계별 일정은 [로드맵](roadmap.md), 날짜별 시험 이력·도구·로그 경로는 [품질 기록](quality_policy.md)에 둔다.
 
+최신 후속: 원래 사용자 RTPRIO20/20을 검증해 자식에만 보존하는
+[고정 OTHER1+FIFO10 OFF/ON 수집기](test-plan/evidence/m4_kernel_campaign/README.md)를 준비했다.
+Python108/108, 별도 사용자 FIFO smoke1/1 PASS·OTHER smoke1 FAIL, native Normal20+TSan20 PASS다.
+sudo는 암호를 요구해 새 커널22회는 **NOT RUN**이다.
+[SDK 후속](test-plan/evidence/m4_sdk_followup/README.md)에서 DDS 공식 TSan4 FAIL을 재현했고,
+Rust 도구 설치·nested build-std 보완 후 Zenoh matched partial4 FAIL/full4 PASS를 확인했다.
+이 결과로 과거 native/FIFO 원인이나 M4 종료를 확정하지 않는다.
+
 ## Milestone 현황
 
 | 단계 | 상태 | 남은 항목 |
@@ -54,7 +62,7 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 C++ | `97afb35` Normal·ASan/UBSan **각각973/973 PASS**; unit800 / integration.logical164 / runtime.wall9. 검토 기준966개 이름 유지 + pending/expiry7개. 기존19.8ms 재현의 기대 결과만 [ADR-0059](adr/ADR-0059-pending-command-allocation-settlement.md)에 따라 변경하고 수정 전 결과 보존. Python **97/97 PASS**(기존95+marker 실패 보존/버퍼 제한2); C++ 실행 코드는97afb35 그대로 |
+| 전체 C++ | `97afb35` Normal·ASan/UBSan **각각973/973 PASS**; unit800 / integration.logical164 / runtime.wall9. 검토 기준966개 이름 유지 + pending/expiry7개. 기존19.8ms 재현의 기대 결과만 [ADR-0059](adr/ADR-0059-pending-command-allocation-settlement.md)에 따라 변경하고 수정 전 결과 보존. Python 당시 **97/97 PASS**(기존95+marker 실패 보존/버퍼 제한2); C++ 실행 코드는97afb35 그대로 |
 | M4 고장·복구 component | Central/두 Zone/다섯 Leaf 실행 정지·8방향 loss·delay/원래 context expiry·FIFO overflow/join·새 Epoch 복구·Prepare/INIT/Release/arm/stop ACK 경계. `97afb35` fault artifact33개씩 두 빌드 PASS, durable CLI 재가입 양 빌드 PASS. 과거37개 CSV byte 동일성 검사는 당시 source 이력이며 새 wall timing 동등성 주장이 아님 |
 | M4 물리 반응 | 원본 CSV 사후 감사: 정상 운전 뒤 고장56개 표본에서 angle hold·pressure floor·torque zero·접점 open 확인; never-active8개는 해당 반응 N/A. 짧은 run의 잔류 bus 전압과 실제 OFF 확인을 구분. SOC/energy/model 연속성 PASS |
 | M4 분리 vCAN | 이전 Normal·sanitizer 각각 **5/5 PASS 이력**. 실제 CAN command·metadata/원래 deadline·terminal 뒤 거부. 이번 계약 수정 후 vCAN 재실행은 NOT RUN; 실제 owner→codec→remote Leaf는 아래 논리 통합으로 검사 |
@@ -66,7 +74,7 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 | 계약 수정 후 timing (`1989477`) | 같은48회 프로토콜 **41 PASS/7 FAIL/0 BLOCKED**; 설정/부하/grid control48/48. OTHER loaded normal6 FAIL + FIFO monitor-overrun 조건1 FAIL. **FIFO23/24**: 예정 주입1.2s 이전 Front/Rear slot281(662ms release/666ms deadline) 누락,666.004077ms 검출·666.009677ms 물리 override. kernel 원인 미확정, 이전 commit timing으로 대체하지 않음 |
 | 최신 settlement 후 timing (`97afb35`) | 동일48회 **42 PASS/6 FAIL/0 BLOCKED**; 설정·부하·release grid·buffer control48/48. OTHER loaded normal6 FAIL, FIFO24/24·intentional fault24/24 PASS. 이전 FIFO 누락 원인은 여전히 미확정이며 이번 미재현으로 닫지 않음. 원래 deadline 불변·Host timing 수용 PENDING |
 | M4 kernel 관측 | compact-v2 사용자 실행3쌍/6 workload 모두 FAIL로 보존. 두 쌍은 end marker EBADF,185513쌍은 OFF243/ON159 miss·729726 event·유실0·**VALID**. 최초 CPU1 조향 사례: timer hard-expiry 초과3.714µs, wake→CPU2.856ms, body1.125µs. CPU 대기 중 최신 slot9로 넘어가 slot8 미완료, 원래 deadline 후65.184µs 검출·이후4.895µs physical override. 이 OTHER 관측의 지연 위치 확인이며 FIFO 원인/전체 수용과 구분. `eecc1d7` marker 실패 시 raw/stat 보존·collector CPU2MiB 보완은 Python97 PASS, 새 tracefs 실행 NOT RUN. [근거·CSV·그림](test-plan/evidence/m4_kernel_valid/README.md) |
-| 통신 후보 | 이전 v1 30/36·v2 36/36, wrapper ASan4/4·TSan4 FAIL·SDK 재계측 DDS2 FAIL 유지. 이번 source 분석에서 DDS vendor atomic helper의 `no_sanitize("thread")`/volatile fence 관측 공백 확인; 실제 GC lifetime 결함과 구분 미확정. Zenoh Rust 전체 계측 도구 부재. SDK 새 실행 NOT RUN, **OPEN-M4-MWTSAN-01** |
+| 통신 후보 | 이전 v1 30/36·v2 36/36, wrapper ASan4/4·TSan4 FAIL·SDK 재계측 DDS2 FAIL 유지. 새 DDS 공식 `SANITIZER=thread`4 FAIL, helper vendor3 경고/C11 control3 clean/의도적 race3 검출. 실제 GC lifetime 안전성은 미확정. Zenoh Rust1.97.1·nightly/std 확보, TCP baseline4/full TSan4 PASS; 동일 nightly·probe·runtime matched partial4 FAIL/full4 PASS. 계측 공백의 재현 근거이며 과거 배포 binary/전체 feature 수용은 별도. [원본/재현](test-plan/evidence/m4_sdk_followup/README.md), **OPEN-M4-MWTSAN-01** |
 | 독립 감시·실제 적용 | 기존2ms 기회·4ms 완료 guard 불변. `97afb35`의 intentional fault24/24 PASS: 원래 deadline→검출0.003282–0.084379ms·검출→물리 override0.000936–0.986748ms. 정상6 FAIL에서 보호가 동작해도 timing PASS로 합치지 않음; 자기 body/논리 clock과 구분 |
 | 추적성·공유 근거 | [함수→실제 GTest→판정·결과93개](test-plan/evidence/m4_settlement/final/component_results.csv), [수정 전후·source·환경·재현·정상/고장/복구 CSV/그래프·원본 로그](test-plan/evidence/m4_settlement/README.md). 이전966개와41/7은 [계약 검토](test-plan/evidence/m4_contract_review/README.md),948개·872개는 당시 이력으로 유지 |
 | M3 수용 검토 | Host IO 동반/FIFO 기준 선택, 원본 96회 재분석·판정 동일. 전체 timing 수용은 PENDING |

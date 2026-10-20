@@ -63,5 +63,13 @@ workloads with the unchanged normal application binary. OTHER loaded FAIL:
 deadline→detect0.003216ms, detect→physical override0.001157ms. Both identity and
 setup controls PASS, actual child UID1000/capabilities0/RTPRIO20/20.
 This verifies the new child identity logging and user-mode launch, **not** the
-sudo restoration or fixed11-pair campaign. Raw results are in
-`build/m4-kernel-user-smoke/` pending the final evidence archive.
+sudo restoration or fixed11-pair campaign. Complete results are preserved in
+`user-smoke-raw.tar.gz` (local originals: `build/m4-kernel-user-smoke/`).
+
+The new analyzer was also executed as an actual process against a fixture that
+references the existing historical VALID OTHER pair and10 NOT RUN entries.
+[Check/command](offline-fixture-check.json), [results](offline-fixture-results.json):
+exit2 as required, historical pair remains valid,10 missing entries do not become
+PASS, original kernel trace SHA256 unchanged. This creates no new kernel or FIFO
+execution evidence. The original-user smoke and this offline fixture do not count
+toward the prospective22 privileged workloads.

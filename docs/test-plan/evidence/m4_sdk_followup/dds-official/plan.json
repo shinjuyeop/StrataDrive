@@ -1,0 +1,41 @@
+{
+  "commands": [
+    [
+      "cmake",
+      "-S",
+      "/d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991",
+      "-B",
+      "/d/shin/StrataDrive/build/m4-sdk-followup/dds-official/build",
+      "-DCMAKE_BUILD_TYPE=Debug",
+      "-DCMAKE_INSTALL_PREFIX=/d/shin/StrataDrive/build/m4-sdk-followup/dds-official/install",
+      "-DBUILD_TESTING=OFF",
+      "-DBUILD_EXAMPLES=OFF",
+      "-DBUILD_DDSPERF=OFF",
+      "-DENABLE_SECURITY=OFF",
+      "-DENABLE_ICEORYX=OFF",
+      "-DBUILD_IDLC=OFF",
+      "-DSANITIZER=thread",
+      "-DCMAKE_C_FLAGS=-fno-omit-frame-pointer",
+      "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+    ],
+    [
+      "cmake",
+      "--build",
+      "/d/shin/StrataDrive/build/m4-sdk-followup/dds-official/build",
+      "-j4"
+    ],
+    [
+      "cmake",
+      "--install",
+      "/d/shin/StrataDrive/build/m4-sdk-followup/dds-official/build"
+    ]
+  ],
+  "conditions": [
+    "normal",
+    "overflow"
+  ],
+  "repetitions": 2,
+  "planned": 4,
+  "timeout_seconds": 30,
+  "suppression": false
+}

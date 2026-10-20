@@ -1,0 +1,18 @@
+{
+  "profiles": [
+    "baseline",
+    "tsan"
+  ],
+  "conditions": [
+    "normal",
+    "overflow"
+  ],
+  "repetitions": 2,
+  "planned": 8,
+  "timeout": 30,
+  "features": [
+    "transport_tcp"
+  ],
+  "sanitizer_runtime": "Rust nightly-2026-10-20 LLVM23.1.4 static runtime; Clang14 C/C++; experimental interop, not original SDK binary",
+  "suppression": false
+}

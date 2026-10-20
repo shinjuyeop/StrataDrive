@@ -6,7 +6,12 @@ clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 
 [Settlement 후속 근거](test-plan/evidence/m4_settlement/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
 TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.
 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다.
-Python은 기존95+marker 실패 보존/버퍼 제한2개를 실행해 **97/97 PASS**다. 아래 과거 수치는 당시 범위로 보존한다.
+Python 최신 회귀는 **108/108 PASS**다(기존97+권한/고정 수집/주입 경계/정리11).
+`05e088b` native full-trace Normal20+TSan20도40/40 PASS, 경고0이다.
+[고정 수집 준비](test-plan/evidence/m4_kernel_campaign/README.md)와
+[SDK 후속](test-plan/evidence/m4_sdk_followup/README.md)은 별도 분모다. DDS 공식 옵션 재빌드4/4 FAIL,
+Zenoh matched partial4 FAIL/full4 PASS를 보존하며 M4 종료는 보류한다.
+이번 C++ 전체·48회 timing 재실행은 없으며 위973/973은 기존 커밋의 결과다. 아래 과거 수치는 당시 범위로 보존한다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
