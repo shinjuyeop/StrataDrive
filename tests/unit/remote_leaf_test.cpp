@@ -110,4 +110,41 @@ TEST_F(RemoteLeafTest, NormalFifoOverflowLatchesSessionAndNewEpochCannotRepairFa
     auto proposal=plan;proposal.epoch=43;proposal.requested_ns=clock.logical;proposal.enable_ns=proposal.commit_deadline_ns=0;
     auto ack=send(session::Control{session::Role::Steering,session::Phase::Prepare,proposal,clock.logical});ASSERT_TRUE(ack);EXPECT_FALSE(std::get<session::Ack>(ack->payload).accepted);
 }
+// Keep the existing negative-response compatibility, but never reclassify its session.
+struct RemoteOldRequestTest : RemoteLeafTest, ::testing::WithParamInterface<transport::LeafOperation> {};
+TEST_P(RemoteOldRequestTest, RejoinedLeafReplyCannotPoisonCurrentZonePendingArm) {
+    ready();arm();send(remote::ProtectionRequest{42,9,clock.logical,clock.logical+20*kMs});
+    for(unsigned i=0;i<10;++i)step();
+    ready(43);credit();
+    transport::RunGate zone_gate; transport::ZoneLink central;
+    std::array<transport::LeafLink,transport::kLeaves> leaves;
+    std::array<transport::LeafLink*,transport::kLeaves> ptrs{};
+    for(std::size_t i=0;i<ptrs.size();++i)ptrs[i]=&leaves[i];
+    zone::AsyncZoneOwner zone{zone::ZoneScope::Front,clock,zone_gate,central,ptrs};
+    ASSERT_TRUE(zone.initialize(43,clock.logical));zone_gate.release(43);
+    ASSERT_TRUE(central.work.push({43,123,clock.logical,clock.logical+20*kMs,transport::Arm{}}));zone.service();
+    const auto steer=leaves[0].work.pop(),brake=leaves[1].work.pop();ASSERT_TRUE(steer);ASSERT_TRUE(brake);
+    const auto history=zone.input_history();const auto commands=actor.received_commands();
+    auto old=request(GetParam());old.epoch=42;
+    auto response=send(old,session::Role::FrontZone);ASSERT_TRUE(response);
+    const auto rejected=std::get<transport::LeafReport>(response->payload);
+    const auto result=std::get<transport::LeafResult>(rejected);
+    EXPECT_EQ(result.epoch,42U);EXPECT_EQ(result.token,old.token);EXPECT_EQ(result.operation,old.operation);EXPECT_FALSE(result.accepted);
+    for(unsigned i=0;i<2;++i) { // delayed/duplicated negative reply must not consume the pending arm
+        ASSERT_TRUE(leaves[0].reports.push(rejected));zone.service();
+        EXPECT_FALSE(zone.faulted());EXPECT_TRUE(zone_gate.allows(43));EXPECT_FALSE(central.results.pop());
+    }
+    EXPECT_TRUE(endpoint.allowed());EXPECT_FALSE(actor.faulted());EXPECT_EQ(actor.received_commands(),commands);
+    const auto after=zone.input_history();for(std::size_t i=0;i<history.size();++i) {
+        EXPECT_EQ(history[i].epoch,after[i].epoch);EXPECT_EQ(history[i].source_ns,after[i].source_ns);EXPECT_EQ(history[i].received_ns,after[i].received_ns);
+    }
+    ASSERT_TRUE(leaves[0].reports.push(transport::LeafResult{43,123,clock.logical,transport::LeafOperation::Arm,true}));
+    ASSERT_TRUE(leaves[1].reports.push(transport::LeafResult{43,123,clock.logical,transport::LeafOperation::Arm,true}));zone.service();
+    const auto armed=central.results.pop();ASSERT_TRUE(armed);EXPECT_TRUE(armed->accepted);EXPECT_TRUE(zone_gate.allows(43));
+    // A genuine current-session negative Frame still selects protection.
+    ASSERT_TRUE(leaves[0].reports.push(transport::LeafResult{43,124,clock.logical,transport::LeafOperation::Frame,false}));zone.service();
+    EXPECT_TRUE(zone.faulted());EXPECT_FALSE(zone_gate.allows(43));
+}
+INSTANTIATE_TEST_SUITE_P(FrameArmStop,RemoteOldRequestTest,::testing::Values(
+    transport::LeafOperation::Frame,transport::LeafOperation::Arm,transport::LeafOperation::Stop));
 } // namespace

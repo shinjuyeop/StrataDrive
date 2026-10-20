@@ -67,10 +67,14 @@ std::optional<remote::OwnerMessage> RemoteLeafEndpoint::receive(const remote::Ow
         // Check old expiry before accepting a newly arrived packet. No RX time
         // rewriting; actor still checks inner CAN/P05 and composite authority.
         if(m.from!=zone_) return std::nullopt;
+        // Preserve the legacy negative reply, but keep its original identity.
+        // Old-session traffic must not poll/mutate this session's credit or actor.
+        if(r->epoch!=epoch_)
+            return reply(transport::LeafReport{transport::LeafResult{r->epoch,r->token,now,r->operation,false}},zone_);
         if(!allowed() && credit_.fault()!=remote::RunLeaseFault::None) protect();
         const bool eligible=allowed() && r->epoch==epoch_ && r->sent_ns<=now && now<r->deadline_ns &&
             r->deadline_ns-r->sent_ns<=transport::kResultBudgetNs;
-        if(!eligible) return reply(transport::LeafReport{transport::LeafResult{epoch_,r->token,now,r->operation,false}},zone_);
+        if(!eligible) return reply(transport::LeafReport{transport::LeafResult{r->epoch,r->token,now,r->operation,false}},zone_);
         if(!link_.work.push(*r)) continuity_lost();
     }
     return std::nullopt;
