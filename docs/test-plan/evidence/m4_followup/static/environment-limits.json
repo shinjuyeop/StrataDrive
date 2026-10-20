@@ -1,0 +1,12 @@
+{
+  "perf_event_paranoid": "4",
+  "sched_switch_tracefs_readable": false,
+  "cargo_available": null,
+  "kernel": "6.8.0-138-generic",
+  "tracefs_probe": {
+    "errno": 13,
+    "error": "[Errno 13] Permission denied: '/sys/kernel/tracing/events/sched/sched_switch/enable'"
+  },
+  "perf_stat_exit": 255,
+  "perf_stat_output": "Error:\nAccess to performance monitoring and observability operations is limited.\nConsider adjusting /proc/sys/kernel/perf_event_paranoid setting to open\naccess to performance monitoring and observability operations for processes\nwithout CAP_PERFMON, CAP_SYS_PTRACE or CAP_SYS_ADMIN Linux capability.\nMore information can be found at 'Perf events and tool security' document:\nhttps://www.kernel.org/doc/html/latest/admin-guide/perf-security.html\nperf_event_paranoid setting is 4:\n  -1: Allow use of (almost) all events by all users\n      Ignore mlock limit after perf_event_mlock_kb without CAP_IPC_LOCK\n>= 0: Disallow raw and ftrace function tracepoint access\n>= 1: Disallow CPU event access\n>= 2: Disallow kernel profiling\nTo make the adjusted perf_event_paranoid setting permanent preserve it\nin /etc/sysctl.conf (e.g. kernel.perf_event_paranoid = <setting>)\n"
+}

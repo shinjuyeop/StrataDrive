@@ -2,7 +2,8 @@
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
 clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
-M4 고장/복구·독립 감시 연결까지 normal·ASan/UBSan 각각 **C++ unit908/908 PASS**다(`12fc4a5`). 아래 날짜별 과거 수치는 당시 범위로 보존한다.
+현재 M4 후속 normal·ASan/UBSan 각각 **C++948/948 PASS**다(unit798/logical141/wall9). [후속 근거](test-plan/evidence/m4_followup/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
+원격36개 TSan PASS와 native9개 중1 FAIL·경합 경고0을 구분한다. Native 실패를 sanitizer PASS로 합치지 않는다. 아래 날짜별 과거 수치는 당시 범위로 보존한다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이다. 이번 M4 검증 runner를 추가·실행하고 syntax를 검사했으며 기존 Python unit은 재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -10,6 +11,10 @@ Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 
 총 local vCAN **97개 case**를 검사한다.
 Battery/BMS/Power/Drive gate·에너지/회로 단계는 로컬 component 검사이며 CAN wire나 transport 변경은 없다.
 97개 vCAN은 앞선 Drive 응답 단계의 증거다. 직전 gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사해 통과했다.
+
+2026-10-20 M4 후속은 원본12fc4a5의908/908·41 PASS/7 FAIL을 보존했다. 원본7 FAIL의 명령/설정/slot을 감사하고 공통 release origin과 사전 할당/requested-wake 기록을 수정했다(`603fe24`). 이후 책임·데이터 계약/로컬 transport·reset predicate·disjoint CTest label을 별도 분리했다(`77d411c`). 각 시점 normal/ASan·UBSan912/912, 별도48회는각42 PASS/6 FAIL이다. 원본 FIFO wake 원인 미확정/OTHER 부하6 FAIL은 OPEN이다. 원본→수정35개, 수정→분리36개 logical physical CSV가 byte 동일하다.
+
+후속 owner-wire/global credit/remote Leaf endpoint36개를 더한`d7115ff`는 normal/ASan·UBSan948/948, 분리 전후36개 trace 동일이다. 기존 CAN/P05 payload와 source/parent/expiry를 유지한다. 새36개 TSan PASS, native9개 중8 PASS/1 FAIL(CommandDelivery 보호), 경합 경고0이며 추가1회 trace 진단 PASS는 원본 실패를 대체하지 않는다. Middleware v1 36회는30 PASS/6 FAIL(DDS late reply/reader rejection 관측 누락)을 보존하고, 관측 보완은`5eb1b3b`의 별도 결과로 기록한다. V2 별도36/36 PASS이고, wrapper ASan4/4 PASS·wrapper TSan4 FAIL·완전 DDS SDK 계측 추가2 FAIL을 보존한다. SDK 경고는 OPEN-M4-MWTSAN-01이며 억제/false-positive 확정 없이 보류한다. 두 후보의 실제 process/netns/CLI/조건/원본·공유 CSV는 후속 evidence에 있다. Probe는 echo이고 M5 제어/Actual 배포·복구가 아니다. Release BUILD_TESTING=OFF와 production4개 analyzer/cppcheck를 검사했고 analyzer 오류0이다. 명시적 enum range registry의 동일 반환식5개 branch-clone 경고는 근거와 함께 보존했다.
 
 2026-10-13 문서 정리 시 normal·ASan/UBSan build/unit/vCAN과 DBC 검사를 다시 통과했다.
 Local observed timeout은 normal 80.019–81.072 ms, sanitizer 80.053–81.065 ms였다.

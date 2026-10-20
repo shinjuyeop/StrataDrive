@@ -1,0 +1,1979 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b68000002c0 by thread T3:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNCINvMs1_NtCs91gtypcvNSg_18zenoh_link_commons8listenerNtBa_18ListenersUnicastIP12add_listenerNCNCNvXs5_NtCs9yvj4bCn0Iv_14zenoh_link_tcp7unicastNtB1G_21LinkManagerUnicastTcpNtNtBc_7unicast23LinkManagerUnicastTrait12new_listener00E00B1I_ <null> (libzenohc.so+0xa0d651)
+
+  Previous write of size 8 at 0x7b68000002c0 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvXs5_NtCs9yvj4bCn0Iv_14zenoh_link_tcp7unicastNtB7_21LinkManagerUnicastTcpNtNtCs91gtypcvNSg_18zenoh_link_commons7unicast23LinkManagerUnicastTrait12new_listener0B9_ <null> (libzenohc.so+0xa09c89)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 1408 at 0x7b6800000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvXs5_NtCs9yvj4bCn0Iv_14zenoh_link_tcp7unicastNtB7_21LinkManagerUnicastTcpNtNtCs91gtypcvNSg_18zenoh_link_commons7unicast23LinkManagerUnicastTrait12new_listener0B9_ <null> (libzenohc.so+0xa09c89)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T3 'acc-0' (tid=1477659, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xa0d651) in _RNCNCINvMs1_NtCs91gtypcvNSg_18zenoh_link_commons8listenerNtBa_18ListenersUnicastIP12add_listenerNCNCNvXs5_NtCs9yvj4bCn0Iv_14zenoh_link_tcp7unicastNtB1G_21LinkManagerUnicastTcpNtNtBc_7unicast23LinkManagerUnicastTrait12new_listener00E00B1I_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b08000004e0 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime21peers_connector_retry0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x224b1f)
+
+  Previous write of size 8 at 0x7b08000004e0 by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x2218fe)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 18 at 0x7b08000004e0 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x2218fe)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x224b1f) in _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime21peers_connector_retry0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 1 at 0x7b0400000220 by thread T2:
+    #0 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:905 (libtsan.so.0+0x686eb)
+    #1 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:901 (libtsan.so.0+0x686eb)
+    #2 _RNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtBb_7manager16TransportManager24new_link_manager_unicast0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x239a73)
+
+  Previous write of size 8 at 0x7b0400000220 by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCs74szB5X2FYh_15zenoh_transport <null> (libzenohc.so+0x11ffa7)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 8 at 0x7b0400000220 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCs74szB5X2FYh_15zenoh_transport <null> (libzenohc.so+0x11ffa7)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x239a73) in _RNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtBb_7manager16TransportManager24new_link_manager_unicast0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400000208 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtBb_7manager16TransportManager28open_transport_unicast_inner0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x23a756)
+
+  Previous write of size 8 at 0x7b8400000208 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x23a756) in _RNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtBb_7manager16TransportManager28open_transport_unicast_inner0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 1 at 0x7b04000002a0 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvNtCs91gtypcvNSg_18zenoh_link_commons7unicast22get_ip_interface_names <null> (libzenohc.so+0x9c5756)
+
+  Previous write of size 8 at 0x7b04000002a0 by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RINvMs2_NtCshzeild5i0cY_4spin4onceINtB6_4OnceINtNtCscdodAO9FK5_5alloc3vec3VecNtCseWZsDWV1SG5_13pnet_datalink16NetworkInterfaceEE18try_call_once_slowNCINvB2_9call_onceNvNvXs2_NtCsldiZIPQdPTd_10zenoh_util3netNtB2M_6IFACESNtNtNtCs4NRVxsYgnAr_4core3ops5deref5Deref5deref23___static_ref_initializeE0NtNtB3B_7convert10InfallibleEB2O_ <null> (libzenohc.so+0x13ecab)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 3 at 0x7b04000002a0 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RINvMs2_NtCshzeild5i0cY_4spin4onceINtB6_4OnceINtNtCscdodAO9FK5_5alloc3vec3VecNtCseWZsDWV1SG5_13pnet_datalink16NetworkInterfaceEE18try_call_once_slowNCINvB2_9call_onceNvNvXs2_NtCsldiZIPQdPTd_10zenoh_util3netNtB2M_6IFACESNtNtNtCs4NRVxsYgnAr_4core3ops5deref5Deref5deref23___static_ref_initializeE0NtNtB3B_7convert10InfallibleEB2O_ <null> (libzenohc.so+0x13ecab)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x9c5756) in _RNvNtCs91gtypcvNSg_18zenoh_link_commons7unicast22get_ip_interface_names
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b84000003c8 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x23d5fb)
+
+  Previous write of size 8 at 0x7b84000003c8 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x23d5fb) in _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400000928 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x23e1d3)
+
+  Previous write of size 8 at 0x7b8400000928 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x23e1d3) in _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400000ac0 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x23e1f0)
+
+  Previous write of size 8 at 0x7b8400000ac0 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x23e1f0) in _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400000ba8 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x23e3fb)
+
+  Previous write of size 8 at 0x7b8400000ba8 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x23e3fb) in _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400000c88 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x23e471)
+
+  Previous write of size 8 at 0x7b8400000c88 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x23e471) in _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400000e38 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x2401d8)
+
+  Previous write of size 8 at 0x7b8400000e38 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x2401d8) in _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400000d68 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x240263)
+
+  Previous write of size 8 at 0x7b8400000d68 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x240263) in _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400000fd0 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x240292)
+
+  Previous write of size 8 at 0x7b8400000fd0 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x240292) in _RNCNvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast13establishment4open9open_link0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400001098 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs9_NtNtCs74szB5X2FYh_15zenoh_transport7unicast4linkNtB7_12MaybeOpenAck13send_open_ack0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x23ad9b)
+
+  Previous write of size 8 at 0x7b8400001098 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x23ad9b) in _RNCNvMs9_NtNtCs74szB5X2FYh_15zenoh_transport7unicast4linkNtB7_12MaybeOpenAck13send_open_ack0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b680000fdf0 by thread T4:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_tx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_ <null> (libzenohc.so+0xb5aca0)
+
+  Previous write of size 8 at 0x7b680000fdf0 by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_tx <null> (libzenohc.so+0xb58d9e)
+
+  Location is heap block of size 1536 at 0x7b680000fc00 allocated by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_tx <null> (libzenohc.so+0xb58d9e)
+
+  Thread T4 'tx-0' (tid=1477661, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb5aca0) in _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_tx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b680000ffb0 by thread T4:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_tx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_ <null> (libzenohc.so+0xb5ae07)
+
+  Previous write of size 8 at 0x7b680000ffb0 by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_tx <null> (libzenohc.so+0xb58d9e)
+
+  Location is heap block of size 1536 at 0x7b680000fc00 allocated by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_tx <null> (libzenohc.so+0xb58d9e)
+
+  Thread T4 'tx-0' (tid=1477661, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb5ae07) in _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_tx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b0c00000310 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvXsZ_NtCscdodAO9FK5_5alloc6stringNtB5_6StringNtNtCs4NRVxsYgnAr_4core3fmt5Write9write_str.4329 <null> (libzenohc.so+0x2daa84)
+
+  Previous write of size 8 at 0x7b0c00000310 by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs_NtNtCs83hEX3Fh2mX_13zenoh_keyexpr8key_expr5ownedNtB4_12OwnedKeyExpr21from_string_unchecked <null> (libzenohc.so+0x9ae2fc)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 48 at 0x7b0c00000300 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs_NtNtCs83hEX3Fh2mX_13zenoh_keyexpr8key_expr5ownedNtB4_12OwnedKeyExpr21from_string_unchecked <null> (libzenohc.so+0x9ae2fc)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x2daa84) in _RNvXsZ_NtCscdodAO9FK5_5alloc6stringNtB5_6StringNtNtCs4NRVxsYgnAr_4core3fmt5Write9write_str.4329
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b7400000d90 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvXs7a_Cscr5T8tfPfTj_12zenoh_configNtB6_6ConfigNtNtCs4NRVxsYgnAr_4core5clone5Clone5clone.7377 <null> (libzenohc.so+0x6c6a9f)
+
+  Previous write of size 8 at 0x7b7400000d90 by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs3_NtNtCsbwmNCcMIFzr_5zenoh3api6configINtB5_8NotifierNtCscr5T8tfPfTj_12zenoh_config14ExpandedConfigE3new <null> (libzenohc.so+0x68ffc5)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 2120 at 0x7b7400000a00 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs3_NtNtCsbwmNCcMIFzr_5zenoh3api6configINtB5_8NotifierNtCscr5T8tfPfTj_12zenoh_config14ExpandedConfigE3new <null> (libzenohc.so+0x68ffc5)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x6c6a9f) in _RNvXs7a_Cscr5T8tfPfTj_12zenoh_configNtB6_6ConfigNtNtCs4NRVxsYgnAr_4core5clone5Clone5clone.7377
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b0c00000540 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvXs_NtNtCsbwmNCcMIFzr_5zenoh3net7runtimeNtB4_12RuntimeStateNtB4_8IRuntime23get_locators_noloopback <null> (libzenohc.so+0x60720a)
+
+  Previous write of size 8 at 0x7b0c00000540 by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB7_7Runtime14print_locators <null> (libzenohc.so+0x68ab3c)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 36 at 0x7b0c00000540 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB7_7Runtime14print_locators <null> (libzenohc.so+0x68ab3c)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x60720a) in _RNvXs_NtNtCsbwmNCcMIFzr_5zenoh3net7runtimeNtB4_12RuntimeStateNtB4_8IRuntime23get_locators_noloopback
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b8400000f38 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtBb_7manager16TransportManager23notify_new_link_unicast0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x2391a2)
+
+  Previous write of size 8 at 0x7b8400000f38 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Location is heap block of size 4992 at 0x7b8400000000 allocated by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x2391a2) in _RNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtBb_7manager16TransportManager23notify_new_link_unicast0CscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7bc000000000 by thread T4:
+    #0 send ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:6640 (libtsan.so.0+0x54084)
+    #1 _RNvXs1_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io11async_write10AsyncWrite10poll_write <null> (libzenohc.so+0x50010b)
+
+  Previous write of size 8 at 0x7bc000000000 by thread T2:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs0_NtNtCs74szB5X2FYh_15zenoh_transport6common8pipelineNtB5_13StageInRefill4pull <null> (libzenohc.so+0xaf0b9b)
+
+  Location is heap block of size 65160 at 0x7bc000000000 allocated by thread T2:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs0_NtNtCs74szB5X2FYh_15zenoh_transport6common8pipelineNtB5_13StageInRefill4pull <null> (libzenohc.so+0xaf0b9b)
+
+  Thread T4 'tx-0' (tid=1477661, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x50010b) in _RNvXs1_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io11async_write10AsyncWrite10poll_write
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b48000100b8 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvMs4_NtNtNtCska04bqf16gn_5tokio7runtime4task4coreINtB5_4CoreINtNtNtB9_8blocking4task12BlockingTaskNCNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtB1O_7manager16TransportManager23notify_new_link_unicast00ENtNtB13_8schedule16BlockingScheduleE9set_stageCscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x2495b2)
+
+  Previous write of size 8 at 0x7b48000100b8 by thread T5:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvMs4_NtNtNtCska04bqf16gn_5tokio7runtime4task4coreINtB5_4CoreINtNtNtB9_8blocking4task12BlockingTaskNCNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtB1O_7manager16TransportManager23notify_new_link_unicast00ENtNtB13_8schedule16BlockingScheduleE9set_stageCscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x2495b2)
+
+  Location is heap block of size 384 at 0x7b4800010080 allocated by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtBb_7manager16TransportManager23notify_new_link_unicast0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x2392a3)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T5 'net-1' (tid=1477662, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x2495b2) in _RNvMs4_NtNtNtCska04bqf16gn_5tokio7runtime4task4coreINtB5_4CoreINtNtNtB9_8blocking4task12BlockingTaskNCNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtB1O_7manager16TransportManager23notify_new_link_unicast00ENtNtB13_8schedule16BlockingScheduleE9set_stageCscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b70000159f8 by thread T6:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_rx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_ <null> (libzenohc.so+0xb49c4f)
+
+  Previous write of size 8 at 0x7b70000159f8 by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_rx <null> (libzenohc.so+0xb47f79)
+
+  Location is heap block of size 1920 at 0x7b7000015800 allocated by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_rx <null> (libzenohc.so+0xb47f79)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb49c4f) in _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_rx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b7000015c68 by thread T6:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_rx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_ <null> (libzenohc.so+0xb49e6b)
+
+  Previous write of size 8 at 0x7b7000015c68 by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_rx <null> (libzenohc.so+0xb47f79)
+
+  Location is heap block of size 1920 at 0x7b7000015800 allocated by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_rx <null> (libzenohc.so+0xb47f79)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb49e6b) in _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_rx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b8400000000 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB25_7Runtime20spawn_peer_connector00EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEECscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x15a7f7)
+
+  Previous write of size 8 at 0x7b8400000000 by main thread:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime18connect_peers_impl0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x220df9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x15a7f7) in _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB25_7Runtime20spawn_peer_connector00EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEECscVM0Ma5jKMf_6zenohc
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0800006040 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net8protocol6gossipNtB1l_6Gossip11link_statess2_0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1r_ <null> (libzenohc.so+0x615aa7)
+
+  Previous write of size 8 at 0x7b0800006040 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs1_NtNtNtCsbwmNCcMIFzr_5zenoh3net5codec9linkstateNtB7_15Zenoh080RoutingINtCs867qw7Oz1Lc_11zenoh_codec6RCodecNtNtNtB9_8protocol9linkstate13LinkStateListQNtNtCsjWbq8Tnd0P9_13zenoh_buffers4zbuf10ZBufReaderE4readBb_ <null> (libzenohc.so+0x609fb1)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x615aa7) in _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net8protocol6gossipNtB1l_6Gossip11link_statess2_0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1r_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b1800009000 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net8protocol6gossipNtB1l_6Gossip11link_statess2_0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1r_ <null> (libzenohc.so+0x615abc)
+
+  Previous write of size 8 at 0x7b1800009000 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCs80cSljSNyWs_14zenoh_link_tls <null> (libzenohc.so+0xf7017)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x615abc) in _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net8protocol6gossipNtB1l_6Gossip11link_statess2_0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1r_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b840000f000 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net8protocol6gossipNtB21_6Gossip11link_statess2_0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB27_ <null> (libzenohc.so+0x627127)
+
+  Previous write of size 8 at 0x7b840000f000 by thread T6:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10handle_oam <null> (libzenohc.so+0x5cfc96)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x627127) in _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net8protocol6gossipNtB21_6Gossip11link_statess2_0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB27_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 1 at 0x7b0400001830 by main thread:
+    #0 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:905 (libtsan.so.0+0x686eb)
+    #1 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:901 (libtsan.so.0+0x686eb)
+    #2 _RINvMs0_NtCs93aigwiPEdE_17zenoh_collections21single_or_box_hashsetINtB6_18SingleOrBoxHashSetNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource5ChildE3geteEB1C_ <null> (libzenohc.so+0x5c0f18)
+    #3 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Previous write of size 8 at 0x7b0400001830 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0xe6e67)
+
+  Location is heap block of size 8 at 0x7b0400001830 allocated by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0xe6e67)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5c0f18) in _RINvMs0_NtCs93aigwiPEdE_17zenoh_collections21single_or_box_hashsetINtB6_18SingleOrBoxHashSetNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource5ChildE3geteEB1C_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 1 at 0x7b0400001856 by main thread:
+    #0 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:905 (libtsan.so.0+0x686eb)
+    #1 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:901 (libtsan.so.0+0x686eb)
+    #2 _RINvMs0_NtCs93aigwiPEdE_17zenoh_collections21single_or_box_hashsetINtB6_18SingleOrBoxHashSetNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource5ChildE3geteEB1C_ <null> (libzenohc.so+0x5c0f18)
+    #3 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Previous write of size 8 at 0x7b0400001850 by thread T6:
+    #0 realloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:685 (libtsan.so.0+0x34179)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0xe6e47)
+
+  Location is heap block of size 12 at 0x7b0400001850 allocated by thread T6:
+    #0 realloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:685 (libtsan.so.0+0x34179)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0xe6e47)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5c0f18) in _RINvMs0_NtCs93aigwiPEdE_17zenoh_collections21single_or_box_hashsetINtB6_18SingleOrBoxHashSetNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource5ChildE3geteEB1C_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7ba000000120 by main thread:
+    #0 write ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:1141 (libtsan.so.0+0x4b310)
+    #1 _RNvMNtNtNtCsdAOJ79iDvxn_3mio3sys4unix5wakerNtB2_5Waker4wake <null> (libzenohc.so+0x32e210)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Previous write of size 8 at 0x7ba000000120 by thread T2:
+    #0 eventfd ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1596 (libtsan.so.0+0x36afb)
+    #1 _RNvMNtNtCska04bqf16gn_5tokio7runtime6driverNtB2_6Driver3new <null> (libzenohc.so+0x4f18e6)
+
+  Location is file descriptor 18 created by thread T2 at:
+    #0 eventfd ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1596 (libtsan.so.0+0x36afb)
+    #1 _RNvMNtNtCska04bqf16gn_5tokio7runtime6driverNtB2_6Driver3new <null> (libzenohc.so+0x4f18e6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x32e210) in _RNvMNtNtNtCsdAOJ79iDvxn_3mio3sys4unix5wakerNtB2_5Waker4wake
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b140000a0f0 by thread T8:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4c515)
+
+  Previous write of size 8 at 0x7b140000a0f0 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs4_NtCs9yvj4bCn0Iv_14zenoh_link_tcp7unicastNtB5_14LinkUnicastTcpNtNtCs91gtypcvNSg_18zenoh_link_commons7unicast16LinkUnicastTrait10read_exact <null> (libzenohc.so+0xa0786d)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb4c515) in _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7bc000030000 by thread T4:
+    #0 send ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:6640 (libtsan.so.0+0x54084)
+    #1 _RNvXs1_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io11async_write10AsyncWrite10poll_write <null> (libzenohc.so+0x50010b)
+
+  Previous write of size 8 at 0x7bc000030000 by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs0_NtNtCs74szB5X2FYh_15zenoh_transport6common8pipelineNtB5_13StageInRefill4pull <null> (libzenohc.so+0xaf0b9b)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:51 (zenoh_candidate_probe+0x4d20)
+
+  Location is heap block of size 65160 at 0x7bc000030000 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs0_NtNtCs74szB5X2FYh_15zenoh_transport6common8pipelineNtB5_13StageInRefill4pull <null> (libzenohc.so+0xaf0b9b)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:51 (zenoh_candidate_probe+0x4d20)
+
+  Thread T4 'tx-0' (tid=1477661, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x50010b) in _RNvXs1_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io11async_write10AsyncWrite10poll_write
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 1 at 0x7bc000020002 by thread T7:
+    #0 recv ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:6603 (libtsan.so.0+0x53ad4)
+    #1 _RNvXs0_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io10async_read9AsyncRead9poll_read <null> (libzenohc.so+0x4ff84b)
+
+  Previous write of size 1 at 0x7bc000020002 by thread T8:
+    #0 recv ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:6603 (libtsan.so.0+0x53ad4)
+    #1 _RNvXs0_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io10async_read9AsyncRead9poll_read <null> (libzenohc.so+0x4ff84b)
+
+  Location is heap block of size 65160 at 0x7bc000020000 allocated by thread T6:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:672 (libtsan.so.0+0x31edc)
+    #1 _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_rx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_ <null> (libzenohc.so+0xb4abdf)
+
+  Thread T7 'rx-1' (tid=1477665, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x4ff84b) in _RNvXs0_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io10async_read9AsyncRead9poll_read
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 1 at 0x7bc000020074 by thread T7:
+    #0 recv ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:6603 (libtsan.so.0+0x53ad4)
+    #1 _RNvXs0_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io10async_read9AsyncRead9poll_read <null> (libzenohc.so+0x4ff84b)
+
+  Previous read of size 1 at 0x7bc000020074 by thread T8 (mutexes: write M19):
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 z_bytes_reader_read <null> (libzenohc.so+0x28ccc3)
+    #3 _RNvYNCNvNtCscVM0Ma5jKMf_6zenohc10liveliness36__liveliness_declare_subscriber_inners_0INtNtNtNtCsbwmNCcMIFzr_5zenoh3api8handlers8callback12CallbackImplNtNtB1s_6sample6SampleE17call_with_messageB8_ <null> (libzenohc.so+0x289756)
+
+  Location is heap block of size 65160 at 0x7bc000020000 allocated by thread T6:
+    #0 calloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:672 (libtsan.so.0+0x31edc)
+    #1 _RNvXs6_NtNtCs4efKhRxMF5f_10tokio_util4task12task_trackerINtB5_13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1i_29TransportLinkUnicastUniversal8start_rx0ENtNtNtCs4NRVxsYgnAr_4core6future6future6Future4pollB1o_ <null> (libzenohc.so+0xb4abdf)
+
+  Mutex M19 (0x55555559b360) created at:
+    #0 pthread_mutex_lock ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:4240 (libtsan.so.0+0x53908)
+    #1 probe_take /d/shin/StrataDrive/tests/integration/middleware/zenoh_channel.c:39 (zenoh_candidate_probe+0xb291)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:41 (zenoh_candidate_probe+0x4966)
+
+  Thread T7 'rx-1' (tid=1477665, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x4ff84b) in _RNvXs0_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io10async_read9AsyncRead9poll_read
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7bc000030080 by thread T4:
+    #0 send ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:6640 (libtsan.so.0+0x54084)
+    #1 _RNvXs1_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io11async_write10AsyncWrite10poll_write <null> (libzenohc.so+0x50010b)
+
+  Previous write of size 8 at 0x7bc000030080 by main thread:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvXNtCsjWbq8Tnd0P9_13zenoh_buffers6writerQNtNtB4_4bbuf4BBufNtB2_6Writer12write_zsliceCs74szB5X2FYh_15zenoh_transport <null> (libzenohc.so+0xaf5582)
+    #3 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:51 (zenoh_candidate_probe+0x4d20)
+
+  Location is heap block of size 65160 at 0x7bc000030000 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs0_NtNtCs74szB5X2FYh_15zenoh_transport6common8pipelineNtB5_13StageInRefill4pull <null> (libzenohc.so+0xaf0b9b)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:51 (zenoh_candidate_probe+0x4d20)
+
+  Thread T4 'tx-0' (tid=1477661, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x50010b) in _RNvXs1_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io11async_write10AsyncWrite10poll_write
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b7c00000130 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal2rxNtNtB6_9transport25TransportUnicastUniversal12handle_close0Ba_ <null> (libzenohc.so+0xb2067d)
+
+  Previous write of size 8 at 0x7b7c00000130 by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Location is heap block of size 3200 at 0x7b7c00000000 allocated by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb2067d) in _RNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal2rxNtNtB6_9transport25TransportUnicastUniversal12handle_close0Ba_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b7c000001c8 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb2079b)
+
+  Previous write of size 8 at 0x7b7c000001c8 by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Location is heap block of size 3200 at 0x7b7c00000000 allocated by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb2079b) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b0800000580 by thread T2:
+    #0 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:905 (libtsan.so.0+0x686eb)
+    #1 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:901 (libtsan.so.0+0x686eb)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb209a8)
+
+  Previous write of size 8 at 0x7b0800000580 by thread T8:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs1_Cs91gtypcvNSg_18zenoh_link_commonsNtB5_4LinkNtNtCs4NRVxsYgnAr_4core5clone5Clone5clone <null> (libzenohc.so+0x738ef4)
+
+  Location is heap block of size 19 at 0x7b0800000580 allocated by thread T8:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs1_Cs91gtypcvNSg_18zenoh_link_commonsNtB5_4LinkNtNtCs4NRVxsYgnAr_4core5clone5Clone5clone <null> (libzenohc.so+0x738ef4)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb209a8) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b08000080a0 by thread T2:
+    #0 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:905 (libtsan.so.0+0x686eb)
+    #1 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:901 (libtsan.so.0+0x686eb)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb209d3)
+
+  Previous write of size 8 at 0x7b08000080a0 by thread T8:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs1_Cs91gtypcvNSg_18zenoh_link_commonsNtB5_4LinkNtNtCs4NRVxsYgnAr_4core5clone5Clone5clone <null> (libzenohc.so+0x738f2d)
+
+  Location is heap block of size 18 at 0x7b08000080a0 allocated by thread T8:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs1_Cs91gtypcvNSg_18zenoh_link_commonsNtB5_4LinkNtNtCs4NRVxsYgnAr_4core5clone5Clone5clone <null> (libzenohc.so+0x738f2d)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb209d3) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 1 at 0x7b0400002010 by thread T2:
+    #0 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:905 (libtsan.so.0+0x686eb)
+    #1 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:901 (libtsan.so.0+0x686eb)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb20ae3)
+
+  Previous write of size 8 at 0x7b0400002010 by thread T8:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs1_Cs91gtypcvNSg_18zenoh_link_commonsNtB5_4LinkNtNtCs4NRVxsYgnAr_4core5clone5Clone5clone <null> (libzenohc.so+0x739064)
+
+  Location is heap block of size 3 at 0x7b0400002010 allocated by thread T8:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs1_Cs91gtypcvNSg_18zenoh_link_commonsNtB5_4LinkNtNtCs4NRVxsYgnAr_4core5clone5Clone5clone <null> (libzenohc.so+0x739064)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb20ae3) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b7c00000350 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb218a0)
+
+  Previous write of size 8 at 0x7b7c00000350 by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Location is heap block of size 3200 at 0x7b7c00000000 allocated by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb218a0) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b7c00000250 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb218e5)
+
+  Previous write of size 8 at 0x7b7c00000250 by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Location is heap block of size 3200 at 0x7b7c00000000 allocated by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb218e5) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b5000013248 by thread T5:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtB6_8blocking4task12BlockingTaskNCNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB1z_25TransportUnicastUniversal8del_link00ENtNtBT_8schedule16BlockingScheduleEB1F_ <null> (libzenohc.so+0xb2354b)
+
+  Previous write of size 8 at 0x7b5000013248 by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb21ac9)
+
+  Location is heap block of size 512 at 0x7b5000013200 allocated by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb21ac9)
+
+  Thread T5 'net-1' (tid=1477662, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb2354b) in _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtB6_8blocking4task12BlockingTaskNCNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB1z_25TransportUnicastUniversal8del_link00ENtNtBT_8schedule16BlockingScheduleEB1F_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b7000015800 by thread T8:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1Y_29TransportLinkUnicastUniversal8start_rx0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB24_ <null> (libzenohc.so+0xb580b7)
+
+  Previous write of size 8 at 0x7b7000015800 by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_rx <null> (libzenohc.so+0xb47f79)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb580b7) in _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1Y_29TransportLinkUnicastUniversal8start_rx0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB24_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b0800002060 by thread T5:
+    #0 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:905 (libtsan.so.0+0x686eb)
+    #1 bcmp ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:901 (libtsan.so.0+0x686eb)
+    #2 _RNvXsf_NtNtCsbwmNCcMIFzr_5zenoh3net7runtimeNtB5_14RuntimeSessionNtCs74szB5X2FYh_15zenoh_transport25TransportPeerEventHandler8del_link <null> (libzenohc.so+0x7336d5)
+
+  Previous write of size 8 at 0x7b0800002060 by thread T2:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime21peers_connector_retry0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x223306)
+
+  Location is heap block of size 18 at 0x7b0800002060 allocated by thread T2:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime21peers_connector_retry0CscVM0Ma5jKMf_6zenohc <null> (libzenohc.so+0x223306)
+
+  Thread T5 'net-1' (tid=1477662, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x7336d5) in _RNvXsf_NtNtCsbwmNCcMIFzr_5zenoh3net7runtimeNtB5_14RuntimeSessionNtCs74szB5X2FYh_15zenoh_transport25TransportPeerEventHandler8del_link
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b08000080c0 by thread T5:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueNtCs91gtypcvNSg_18zenoh_link_commons4LinkECsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x58c439)
+
+  Previous write of size 8 at 0x7b08000080c0 by thread T8:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs1_Cs91gtypcvNSg_18zenoh_link_commonsNtB5_4LinkNtNtCs4NRVxsYgnAr_4core5clone5Clone5clone <null> (libzenohc.so+0x739000)
+
+  Thread T5 'net-1' (tid=1477662, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x58c439) in _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueNtCs91gtypcvNSg_18zenoh_link_commons4LinkECsbwmNCcMIFzr_5zenoh
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b7c00000328 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb21596)
+
+  Previous write of size 8 at 0x7b7c00000328 by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Location is heap block of size 3200 at 0x7b7c00000000 allocated by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb21596) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b7c00000428 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb215b3)
+
+  Previous write of size 8 at 0x7b7c00000428 by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Location is heap block of size 3200 at 0x7b7c00000000 allocated by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb215b3) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 1 at 0x7b7c0000033c by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb21608)
+
+  Previous write of size 8 at 0x7b7c00000338 by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Location is heap block of size 3200 at 0x7b7c00000000 allocated by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb21608) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 1 at 0x7b7c00000714 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_ <null> (libzenohc.so+0xb2162f)
+
+  Previous write of size 8 at 0x7b7c00000710 by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Location is heap block of size 3200 at 0x7b7c00000000 allocated by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb2162f) in _RNCNvMs_NtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal9transportNtB6_25TransportUnicastUniversal8del_link0Bc_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0400001800 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMs7_NtNtCs4efKhRxMF5f_10tokio_util4sync18cancellation_tokenNtB5_17CancellationToken6cancel <null> (libzenohc.so+0x5035b9)
+
+  Previous write of size 8 at 0x7b0400001800 by thread T8:
+    #0 realloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:685 (libtsan.so.0+0x34179)
+    #1 _RNCNvNtNtNtCs4efKhRxMF5f_10tokio_util4sync18cancellation_token9tree_node24decrease_handle_refcount0B9_ <null> (libzenohc.so+0x504558)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5035b9) in _RNvMs7_NtNtCs4efKhRxMF5f_10tokio_util4sync18cancellation_tokenNtB5_17CancellationToken6cancel
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b680000fc00 by thread T4:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1Y_29TransportLinkUnicastUniversal8start_tx0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB24_ <null> (libzenohc.so+0xb639e7)
+
+  Previous write of size 8 at 0x7b680000fc00 by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB2_29TransportLinkUnicastUniversal8start_tx <null> (libzenohc.so+0xb58d9e)
+
+  Thread T4 'tx-0' (tid=1477661, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb639e7) in _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4linkNtB1Y_29TransportLinkUnicastUniversal8start_tx0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB24_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7ba0000000f0 by thread T2:
+    #0 close ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1690 (libtsan.so.0+0x36996)
+    #1 _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueNtNtNtCska04bqf16gn_5tokio3net3udp9UdpSocketECs64bXjkoKmai_24zenoh_link_quic_datagram <null> (libzenohc.so+0xa00423)
+
+  Previous read of size 8 at 0x7ba0000000f0 by thread T8:
+    #0 recv ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:6603 (libtsan.so.0+0x53ad4)
+    #1 _RNvXs0_NtNtNtCska04bqf16gn_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io10async_read9AsyncRead9poll_read <null> (libzenohc.so+0x4ff84b)
+
+  Location is file descriptor 15 created by thread T2 at:
+    #0 socket ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1649 (libtsan.so.0+0x390c0)
+    #1 _RNvMNtCs91gtypcvNSg_18zenoh_link_commons3tcpNtB2_15TcpSocketConfig18socket_with_config <null> (libzenohc.so+0x9b2851)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xa00423) in _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueNtNtNtCska04bqf16gn_5tokio3net3udp9UdpSocketECs64bXjkoKmai_24zenoh_link_quic_datagram
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0800002080 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueNtNtCs9yvj4bCn0Iv_14zenoh_link_tcp7unicast14LinkUnicastTcpEBF_ <null> (libzenohc.so+0xa103ac)
+
+  Previous read of size 8 at 0x7b0800002080 by thread T8:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvMs_Cs91gtypcvNSg_18zenoh_link_commonsNtB4_4Link18to_patched_locator <null> (libzenohc.so+0x9c3b75)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xa103ac) in _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueNtNtCs9yvj4bCn0Iv_14zenoh_link_tcp7unicast14LinkUnicastTcpEBF_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b08000020a0 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcDINtNtNtNtCsbwmNCcMIFzr_5zenoh3api8handlers8callback12CallbackImplNtNtBN_9queryable5QueryEEL_E9drop_slowBP_ <null> (libzenohc.so+0x579ee8)
+
+  Previous read of size 8 at 0x7b08000020a0 by thread T8:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvMs_Cs91gtypcvNSg_18zenoh_link_commonsNtB4_4Link18to_patched_locator <null> (libzenohc.so+0x9c3b75)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x579ee8) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcDINtNtNtNtCsbwmNCcMIFzr_5zenoh3api8handlers8callback12CallbackImplNtNtBN_9queryable5QueryEEL_E9drop_slowBP_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b1400005050 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtCsiEQ5RC4XCkp_10zenoh_sync5event10EventInnerE9drop_slowCs74szB5X2FYh_15zenoh_transport <null> (libzenohc.so+0xade19f)
+
+  Previous write of size 8 at 0x7b1400005050 by thread T4:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMsa_NtNtCs74szB5X2FYh_15zenoh_transport6common8pipelineNtB5_14StageOutRefill6refill <null> (libzenohc.so+0xb5d905)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T4 'tx-0' (tid=1477661, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xade19f) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtCsiEQ5RC4XCkp_10zenoh_sync5event10EventInnerE9drop_slowCs74szB5X2FYh_15zenoh_transport
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b14000050f0 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtCsiEQ5RC4XCkp_10zenoh_sync5event10EventInnerE9drop_slowCs74szB5X2FYh_15zenoh_transport <null> (libzenohc.so+0xade19f)
+
+  Previous write of size 8 at 0x7b14000050f0 by thread T4:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueNtNtNtCs74szB5X2FYh_15zenoh_transport6common8pipeline8StageOutEBH_ <null> (libzenohc.so+0xb5a86d)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T4 'tx-0' (tid=1477661, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xade19f) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtCsiEQ5RC4XCkp_10zenoh_sync5event10EventInnerE9drop_slowCs74szB5X2FYh_15zenoh_transport
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7bc0000300e8 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcINtCs4bPwp7ip2w8_15ringbuffer_spsc10RingBufferINtNtB7_5boxed3BoxNtNtNtCs74szB5X2FYh_15zenoh_transport6common5batch6WBatchEKj10_EE9drop_slowB1N_ <null> (libzenohc.so+0xade248)
+
+  Previous write of size 8 at 0x7bc0000300e8 by main thread:
+    [failed to restore the stack]
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xade248) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcINtCs4bPwp7ip2w8_15ringbuffer_spsc10RingBufferINtNtB7_5boxed3BoxNtNtNtCs74szB5X2FYh_15zenoh_transport6common5batch6WBatchEKj10_EE9drop_slowB1N_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b1000000880 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcINtCs4bPwp7ip2w8_15ringbuffer_spsc10RingBufferINtNtB7_5boxed3BoxNtNtNtCs74szB5X2FYh_15zenoh_transport6common5batch6WBatchEKj10_EE9drop_slowB1N_ <null> (libzenohc.so+0xade225)
+
+  Previous write of size 8 at 0x7b1000000880 by main thread:
+    [failed to restore the stack]
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xade225) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcINtCs4bPwp7ip2w8_15ringbuffer_spsc10RingBufferINtNtB7_5boxed3BoxNtNtNtCs74szB5X2FYh_15zenoh_transport6common5batch6WBatchEKj10_EE9drop_slowB1N_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b1400005000 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtCsiEQ5RC4XCkp_10zenoh_sync5event10EventInnerE9drop_slowCs74szB5X2FYh_15zenoh_transport <null> (libzenohc.so+0xade19f)
+
+  Previous write of size 8 at 0x7b1400005000 by thread T4:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs5_Cs5DghsJLYBqn_14event_listenerNtB5_5Event6listenCs74szB5X2FYh_15zenoh_transport <null> (libzenohc.so+0x1235ed)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T4 'tx-0' (tid=1477661, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xade19f) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtCsiEQ5RC4XCkp_10zenoh_sync5event10EventInnerE9drop_slowCs74szB5X2FYh_15zenoh_transport
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b1800009100 by thread T2:
+    #0 memset ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:799 (libtsan.so.0+0x614cb)
+    #1 memset ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:797 (libtsan.so.0+0x614cb)
+    #2 _RNvXs3_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_8HatTrait24unregister_face_entities <null> (libzenohc.so+0x5f8d12)
+
+  Previous write of size 8 at 0x7b1800009100 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RINvMsa_NtCsgQfI1edjipl_9hashbrown3rawNtB6_13RawTableInner22fallible_with_capacityNtNtCscdodAO9FK5_5alloc5alloc6GlobalECsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x56a985)
+
+  Location is heap block of size 84 at 0x7b18000090c0 allocated by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RINvMsa_NtCsgQfI1edjipl_9hashbrown3rawNtB6_13RawTableInner22fallible_with_capacityNtNtCscdodAO9FK5_5alloc5alloc6GlobalECsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x56a985)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5f8d12) in _RNvXs3_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_8HatTrait24unregister_face_entities
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 1 at 0x7b1800009110 by thread T2:
+    #0 memset ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:799 (libtsan.so.0+0x614cb)
+    #1 memset ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:797 (libtsan.so.0+0x614cb)
+    #2 _RNvXs3_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_8HatTrait24unregister_face_entities <null> (libzenohc.so+0x5f8d12)
+
+  Previous write of size 1 at 0x7b1800009110 by thread T6:
+    #0 memset ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:799 (libtsan.so.0+0x614cb)
+    #1 memset ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:797 (libtsan.so.0+0x614cb)
+    #2 _RINvMsa_NtCsgQfI1edjipl_9hashbrown3rawNtB6_13RawTableInner22fallible_with_capacityNtNtCscdodAO9FK5_5alloc5alloc6GlobalECsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x56a9f3)
+
+  Location is heap block of size 84 at 0x7b18000090c0 allocated by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RINvMsa_NtCsgQfI1edjipl_9hashbrown3rawNtB6_13RawTableInner22fallible_with_capacityNtNtCscdodAO9FK5_5alloc5alloc6GlobalECsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x56a985)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5f8d12) in _RNvXs3_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_8HatTrait24unregister_face_entities
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0c00004830 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource11FaceContextE9drop_slowBP_ <null> (libzenohc.so+0x57ccb4)
+
+  Previous write of size 8 at 0x7b0c00004830 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs1_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resourceNtB5_11FaceContext3new <null> (libzenohc.so+0x5bd898)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x57ccb4) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource11FaceContextE9drop_slowBP_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b4000008600 by thread T5:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtNtCs2AWtUsOyxgP_3std3sys9backtrace28___rust_begin_short_backtraceNCNvMs4_NtNtNtCska04bqf16gn_5tokio7runtime8blocking4poolNtB1f_7Spawner12spawn_thread0uEB1l_ <null> (libzenohc.so+0x4ed074)
+
+  Previous write of size 8 at 0x7b4000008600 by thread T2:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvXs8_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4faceNtB5_4FaceNtNtBb_10primitives10Primitives10send_close <null> (libzenohc.so+0x706110)
+
+  Thread T5 'net-1' (tid=1477662, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x4ed074) in _RINvNtNtCs2AWtUsOyxgP_3std3sys9backtrace28___rust_begin_short_backtraceNCNvMs4_NtNtNtCska04bqf16gn_5tokio7runtime8blocking4poolNtB1f_7Spawner12spawn_thread0uEB1l_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0c00004860 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource11FaceContextE9drop_slowBP_ <null> (libzenohc.so+0x57ccdb)
+
+  Previous write of size 8 at 0x7b0c00004860 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs1_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resourceNtB5_11FaceContext3new <null> (libzenohc.so+0x5bd8d9)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x57ccdb) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource11FaceContextE9drop_slowBP_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b140000a000 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvXs8_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4faceNtB5_4FaceNtNtBb_10primitives10Primitives10send_close <null> (libzenohc.so+0x705303)
+
+  Previous write of size 8 at 0x7b140000a000 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs8_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4faceNtB5_4FaceNtNtBb_10primitives10Primitives12send_declare <null> (libzenohc.so+0x6f62cd)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x705303) in _RNvXs8_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4faceNtB5_4FaceNtNtBb_10primitives10Primitives10send_close
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0c00000690 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource11FaceContextE9drop_slowBP_ <null> (libzenohc.so+0x57ccb4)
+
+  Previous write of size 8 at 0x7b0c00000690 by main thread:
+    [failed to restore the stack]
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x57ccb4) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource11FaceContextE9drop_slowBP_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0c000006c0 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource11FaceContextE9drop_slowBP_ <null> (libzenohc.so+0x57ccdb)
+
+  Previous write of size 8 at 0x7b0c000006c0 by main thread:
+    [failed to restore the stack]
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x57ccdb) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher8resource11FaceContextE9drop_slowBP_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b1400000410 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvXs8_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4faceNtB5_4FaceNtNtBb_10primitives10Primitives10send_close <null> (libzenohc.so+0x7056a3)
+
+  Previous write of size 8 at 0x7b1400000410 by main thread:
+    [failed to restore the stack]
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x7056a3) in _RNvXs8_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4faceNtB5_4FaceNtNtBb_10primitives10Primitives10send_close
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0c00000660 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face <null> (libzenohc.so+0x5d0df8)
+
+  Previous write of size 8 at 0x7b0c00000660 by main thread:
+    [failed to restore the stack]
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5d0df8) in _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b50000009c0 by thread T2:
+    #0 memset ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:799 (libtsan.so.0+0x614cb)
+    #1 memset ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:797 (libtsan.so.0+0x614cb)
+    #2 _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face <null> (libzenohc.so+0x5d0e70)
+
+  Previous write of size 8 at 0x7b50000009c0 by main thread:
+    [failed to restore the stack]
+
+  Location is heap block of size 468 at 0x7b5000000800 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RINvMsa_NtCsgQfI1edjipl_9hashbrown3rawNtB6_13RawTableInner22fallible_with_capacityNtNtCscdodAO9FK5_5alloc5alloc6GlobalECsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x56a985)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5d0e70) in _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b140000a050 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face <null> (libzenohc.so+0x5d136f)
+
+  Previous write of size 8 at 0x7b140000a050 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0xe6e67)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5d136f) in _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b1000008040 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face <null> (libzenohc.so+0x5d1386)
+
+  Previous write of size 8 at 0x7b1000008040 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0xe6e67)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5d1386) in _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0800006060 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face <null> (libzenohc.so+0x5d1845)
+
+  Previous write of size 8 at 0x7b0800006060 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs4_NtCs4NRVxsYgnAr_4core6optionINtB5_6OptionINtNtCscdodAO9FK5_5alloc3vec3VecNtNtNtCs1cXQU0M9AeO_14zenoh_protocol4core7locator7LocatorEENtNtB7_5clone5Clone10clone_fromCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x611f74)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5d1845) in _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b0800006000 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face <null> (libzenohc.so+0x5d127d)
+
+  Previous write of size 8 at 0x7b0800006000 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXs4_NtCs4NRVxsYgnAr_4core6optionINtB5_6OptionINtNtCscdodAO9FK5_5alloc3vec3VecNtNtNtCs1cXQU0M9AeO_14zenoh_protocol4core7locator7LocatorEENtNtB7_5clone5Clone10clone_fromCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x611f09)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x5d127d) in _RNvXs0_NtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peerNtB5_3HatNtB7_12HatBaseTrait10close_face
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b1000000900 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4face9FaceStateE9drop_slowBP_ <null> (libzenohc.so+0x57bc0e)
+
+  Previous write of size 8 at 0x7b1000000900 by main thread:
+    [failed to restore the stack]
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x57bc0e) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4face9FaceStateE9drop_slowBP_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b10000080c0 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4face9FaceStateE9drop_slowBP_ <null> (libzenohc.so+0x57bd3e)
+
+  Previous write of size 8 at 0x7b10000080c0 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvMs4_NtCscdodAO9FK5_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0xe6e67)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x57bd3e) in _RNvMsn_NtCscdodAO9FK5_5alloc4syncINtB5_3ArcNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher4face9FaceStateE9drop_slowBP_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b5000000800 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueINtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher15local_resources14LocalResourcesmINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtBG_8resource8ResourceENtNtBG_6pubsub14SubscriberInfoEEBM_ <null> (libzenohc.so+0x63395b)
+
+  Previous write of size 8 at 0x7b5000000800 by main thread:
+    [failed to restore the stack]
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x63395b) in _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueINtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing10dispatcher15local_resources14LocalResourcesmINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtBG_8resource8ResourceENtNtBG_6pubsub14SubscriberInfoEEBM_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b18000090c0 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peer7HatFaceEBL_ <null> (libzenohc.so+0x6335e2)
+
+  Previous write of size 8 at 0x7b18000090c0 by thread T6:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RINvMsa_NtCsgQfI1edjipl_9hashbrown3rawNtB6_13RawTableInner22fallible_with_capacityNtNtCscdodAO9FK5_5alloc5alloc6GlobalECsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x56a985)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T6 'rx-0' (tid=1477664, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x6335e2) in _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueNtNtNtNtNtCsbwmNCcMIFzr_5zenoh3net7routing3hat4peer7HatFaceEBL_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b7c00000000 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal2rxNtNtBV_9transport25TransportUnicastUniversal12handle_close0INtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEBZ_ <null> (libzenohc.so+0xb243f7)
+
+  Previous write of size 8 at 0x7b7c00000000 by thread T8:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNCINvNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal4link9read_loopNCNCNvB4_17rx_task_non_uring00E0Ba_ <null> (libzenohc.so+0xb4db6a)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T8 'rx-2' (tid=1477668, running) created by thread T6 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb243f7) in _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollNCNvMNtNtNtCs74szB5X2FYh_15zenoh_transport7unicast9universal2rxNtNtBV_9transport25TransportUnicastUniversal12handle_close0INtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEBZ_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Read of size 8 at 0x7b08000025e0 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime21peers_connector_retry0Bd_ <null> (libzenohc.so+0x737da5)
+
+  Previous write of size 8 at 0x7b08000025e0 by thread T5:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXsf_NtNtCsbwmNCcMIFzr_5zenoh3net7runtimeNtB5_14RuntimeSessionNtCs74szB5X2FYh_15zenoh_transport25TransportPeerEventHandler8del_link <null> (libzenohc.so+0x7331bf)
+
+  Location is heap block of size 18 at 0x7b08000025e0 allocated by thread T5:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 _RNvXsf_NtNtCsbwmNCcMIFzr_5zenoh3net7runtimeNtB5_14RuntimeSessionNtCs74szB5X2FYh_15zenoh_transport25TransportPeerEventHandler8del_link <null> (libzenohc.so+0x7331bf)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T5 'net-1' (tid=1477662, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x737da5) in _RNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB9_7Runtime21peers_connector_retry0Bd_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b840001f5e0 by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtBb_7manager16TransportManager28open_transport_unicast_inner0CsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x61ea97)
+
+  Previous write of size 8 at 0x7b840001f5e0 by thread T5:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvXsf_NtNtCsbwmNCcMIFzr_5zenoh3net7runtimeNtB5_14RuntimeSessionNtCs74szB5X2FYh_15zenoh_transport25TransportPeerEventHandler8del_link <null> (libzenohc.so+0x73399f)
+
+  Location is heap block of size 4992 at 0x7b840001f400 allocated by thread T5:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvXsf_NtNtCsbwmNCcMIFzr_5zenoh3net7runtimeNtB5_14RuntimeSessionNtCs74szB5X2FYh_15zenoh_transport25TransportPeerEventHandler8del_link <null> (libzenohc.so+0x73399f)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T5 'net-1' (tid=1477662, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x61ea97) in _RNCNvMs5_NtNtCs74szB5X2FYh_15zenoh_transport7unicast7managerNtNtBb_7manager16TransportManager28open_transport_unicast_inner0CsbwmNCcMIFzr_5zenoh
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b840001f400 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB23_7Runtime11closed_link0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB27_ <null> (libzenohc.so+0x73a627)
+
+  Previous write of size 8 at 0x7b840001f400 by thread T5:
+    #0 posix_memalign ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:839 (libtsan.so.0+0x31da1)
+    #1 _RNvXsf_NtNtCsbwmNCcMIFzr_5zenoh3net7runtimeNtB5_14RuntimeSessionNtCs74szB5X2FYh_15zenoh_transport25TransportPeerEventHandler8del_link <null> (libzenohc.so+0x73399f)
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+  Thread T5 'net-1' (tid=1477662, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0x73a627) in _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMs0_NtNtNtCsbwmNCcMIFzr_5zenoh3net7runtime12orchestratorNtB23_7Runtime11closed_link0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB27_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b6800000000 by thread T3:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollNCNCINvMs1_NtCs91gtypcvNSg_18zenoh_link_commons8listenerNtBZ_18ListenersUnicastIP12add_listenerNCNCNvXs5_NtCs9yvj4bCn0Iv_14zenoh_link_tcp7unicastNtB2v_21LinkManagerUnicastTcpNtNtB11_7unicast23LinkManagerUnicastTrait12new_listener00E00INtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB2x_ <null> (libzenohc.so+0xa109a1)
+
+  Previous write of size 8 at 0x7b6800000000 by main thread:
+    [failed to restore the stack]
+
+  Thread T3 'acc-0' (tid=1477659, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xa109a1) in _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollNCNCINvMs1_NtCs91gtypcvNSg_18zenoh_link_commons8listenerNtBZ_18ListenersUnicastIP12add_listenerNCNCNvXs5_NtCs9yvj4bCn0Iv_14zenoh_link_tcp7unicastNtB2v_21LinkManagerUnicastTcpNtNtB11_7unicast23LinkManagerUnicastTrait12new_listener00E00INtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB2x_
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b08000000c0 by main thread:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueINtNtCscdodAO9FK5_5alloc3vec3VecNtNtNtCs1cXQU0M9AeO_14zenoh_protocol4core8endpoint9EndPointsEECs74szB5X2FYh_15zenoh_transport <null> (libzenohc.so+0xb8e7d9)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:58 (zenoh_candidate_probe+0x513b)
+
+  Previous read of size 8 at 0x7b08000000c0 by thread T5:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 _RNvXsa_NtCscdodAO9FK5_5alloc3vecINtB5_3VecNtNtNtCs1cXQU0M9AeO_14zenoh_protocol4core8endpoint9EndPointsENtNtCs4NRVxsYgnAr_4core5clone5Clone5cloneCsbwmNCcMIFzr_5zenoh <null> (libzenohc.so+0x6cdb6d)
+
+  As if synchronized via sleep:
+    #0 nanosleep ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:366 (libtsan.so.0+0x6696c)
+    #1 void std::this_thread::sleep_for<long, std::ratio<1l, 1000000l> >(std::chrono::duration<long, std::ratio<1l, 1000000l> > const&) <null> (zenoh_candidate_probe+0x7090)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:54 (zenoh_candidate_probe+0x4ec6)
+
+  Thread T5 'net-1' (tid=1477662, running) created by thread T2 at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb8e7d9) in _RINvNtCs4NRVxsYgnAr_4core3ptr9drop_glueINtNtCscdodAO9FK5_5alloc3vec3VecNtNtNtCs1cXQU0M9AeO_14zenoh_protocol4core8endpoint9EndPointsEECs74szB5X2FYh_15zenoh_transport
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477655)
+  Write of size 8 at 0x7b4800000780 by thread T2:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMs5_NtCs74szB5X2FYh_15zenoh_transport7managerNtB21_16TransportManager3new0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB23_ <null> (libzenohc.so+0xb8a2a7)
+
+  Previous write of size 8 at 0x7b4800000780 by main thread:
+    [failed to restore the stack]
+
+  Thread T2 'net-0' (tid=1477658, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 _RNvMs0_NtNtNtCs2AWtUsOyxgP_3std3sys6thread4unixNtB5_6Thread3new <null> (libzenohc.so+0x4e3ee6)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (zenoh_candidate_probe+0x4363)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/deps/zenoh-c/lib/libzenohc.so+0xb8a2a7) in _RINvNtNtNtCska04bqf16gn_5tokio7runtime4task3raw4pollINtNtNtCs4efKhRxMF5f_10tokio_util4task12task_tracker13TrackedFutureNCNvMs5_NtCs74szB5X2FYh_15zenoh_transport7managerNtB21_16TransportManager3new0EINtNtCscdodAO9FK5_5alloc4sync3ArcNtNtNtNtB6_9scheduler12multi_thread6handle6HandleEEB23_
+==================
+ThreadSanitizer: reported 87 warnings

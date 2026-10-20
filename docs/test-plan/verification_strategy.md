@@ -42,6 +42,8 @@ Whole-owner2/4ms 독립 감시와10/20ms 제어 자체5/8ms 검사, body 초과/
 Logical 기능, sanitizer 성능, 원격 process/네트워크·전체 system TC는 서로 다른 범위다.
 기존 M3 예외·학습자 review·system TC NOT RUN은 유지한다. 물리 응답 CSV의 사후 감사는 새로운 timing 수용 결과가 아니다.
 
+후속 [release-grid/구조 분리·원격 계약 evidence](evidence/m4_followup/README.md)에 전체948개 normal/ASan·UBSan과68개 함수/시험 연결, source별 두48회(각42/6), native TSan8/9 및 remote36/36을 별도로 보존한다. 원본7 FAIL과 최신 TSan1 FAIL을 닫지 않으며 M4 종료는 [검토 중](../m4_exit_review.md)이다. DDS/Zenoh netns echo는 middleware API/queue 실험이며 실제 controller/Actual 배포·session 재가입이나 아래 system TC 전체 결과가 아니다.
+
 ### 이전 단계의 부분 검사 이력
 
 [M2 첫 Steering 모델](../learning/m2_steering_model.md)은 manual-clock unit과 세 독립 process의

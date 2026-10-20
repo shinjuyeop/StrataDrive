@@ -1,0 +1,59 @@
+[
+  {
+    "command": [
+      "clang-tidy",
+      "interfaces/remote/owner_wire.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*,bugprone-*",
+      "-header-filter=interfaces/remote/.*|simulation/runtime/remote_leaf_endpoint.*|central/session/run_lease_issuer.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "clang-tidy",
+      "interfaces/remote/run_lease_gate.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*,bugprone-*",
+      "-header-filter=interfaces/remote/.*|simulation/runtime/remote_leaf_endpoint.*|central/session/run_lease_issuer.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "clang-tidy",
+      "central/session/run_lease_issuer.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*,bugprone-*",
+      "-header-filter=interfaces/remote/.*|simulation/runtime/remote_leaf_endpoint.*|central/session/run_lease_issuer.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "clang-tidy",
+      "simulation/runtime/remote_leaf_endpoint.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*,bugprone-*",
+      "-header-filter=interfaces/remote/.*|simulation/runtime/remote_leaf_endpoint.*|central/session/run_lease_issuer.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "cppcheck",
+      "--enable=warning,performance,portability",
+      "--error-exitcode=1",
+      "--std=c++17",
+      "interfaces/remote/owner_wire.cpp",
+      "interfaces/remote/run_lease_gate.cpp",
+      "central/session/run_lease_issuer.cpp",
+      "simulation/runtime/remote_leaf_endpoint.cpp"
+    ],
+    "exit": 0
+  }
+]

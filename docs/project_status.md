@@ -12,7 +12,7 @@ Updated: **2026-10-20**. **M3 — IN PROGRESS**를 유지하며 **M4 Central/Zon
 | M1 — DBC·vCAN | TECHNICAL CHECKS PASS / REVIEW PENDING | Wire baseline 채택, 학습자 설명·직접 재현 |
 | M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
 | M3 — Timing·실행 | IN PROGRESS / HOST REVIEW COMPLETE | [실행 기준 선택](m3_acceptance_review.md); 일반 sanitizer 타이밍 실패 2건·학습자 수용 및 Target/E2E 후속 |
-| M4 — Central/Zone | IN PROGRESS / COMPONENT IMPLEMENTATION | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결; 실제 Zone health·독립 status/상실 연결; 단일 coordinator·8-role session INIT/rejoin 위에9개 정상 owner runtime 연결·정상/고장/종료/복구 검사; 공통 owner/방향별 고장·joined 재가입·M3 독립 guard 연결 검사;48회 timing 중7 FAIL·remote Leaf lease 후속 |
+| M4 — Central/Zone | IN PROGRESS / COMPONENT IMPLEMENTATION | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결; 실제 Zone health·독립 status/상실 연결; 단일 coordinator·8-role session INIT/rejoin 위에9개 정상 owner runtime 연결·정상/고장/종료/복구 검사; 공통 owner/방향별 고장·joined 재가입·M3 독립 guard 연결 검사;release 위상 보완/책임 분리·owner-wire/remote Leaf credit·실제 actor 보호 검사; timing·native/SDK TSan 예외 OPEN, [종료 검토](m4_exit_review.md) 진행 |
 | M5–M13 | PLANNED | DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 [MBD 방법](engineering_plan.md#model-based-design-path)은 계획에 채택했다. 첫 대상은 Central 종방향 제어이며
@@ -54,15 +54,20 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 
 | 검사 | 결과 / 범위 |
 | --- | --- |
-| 전체 unit | Normal·ASan/UBSan **각각 C++ 908/908 PASS** (`12fc4a5`); Python **63개 PASS 이력** 유지. 신규 검증 runner 실행·syntax 검사, 기존 Python unit 재실행 없음 |
-| M4 고장·복구 component | 직전872 + 공통 고장30 + 독립 실행 감시6 =908. Central/두 Zone/다섯 Leaf 전체 실행 정지·8방향 loss·delay/원래 context expiry·실제 FIFO overflow/join·새 Epoch 복구·Prepare/INIT/Release/arm/stop ACK 경계.32개 runtime artifact씩 두 빌드 PASS; 단위 명시 grant와 별도 durable CLI 재가입 구분 |
+| 전체 C++ | Normal·ASan/UBSan **각각948/948 PASS**; unit798 / integration.logical141 / runtime.wall9. 원격 계약36개 추가; Python **63개 PASS 이력** 유지. 신규 검증 runner 실행·syntax 검사, 기존 Python unit 재실행 없음 |
+| M4 고장·복구 component | 당시872 + 공통 고장30 + 독립 실행 감시6 =908; 현재 release-grid4·remote36을 더해948. Central/두 Zone/다섯 Leaf 전체 실행 정지·8방향 loss·delay/원래 context expiry·실제 FIFO overflow/join·새 Epoch 복구·Prepare/INIT/Release/arm/stop ACK 경계.당시32개·현재33개 runtime artifact씩 두 빌드 PASS; 단위 명시 grant와 별도 durable CLI 재가입 구분 |
 | M4 물리 반응 | 원본 CSV 사후 감사: 정상 운전 뒤 고장56개 표본에서 angle hold·pressure floor·torque zero·접점 open 확인; never-active8개는 해당 반응 N/A. 짧은 run의 잔류 bus 전압과 실제 OFF 확인을 구분. SOC/energy/model 연속성 PASS |
-| M4 분리 vCAN | Normal·sanitizer 각각 **5/5 PASS** 재검사. 실제 CAN command·metadata/원래 deadline·terminal 뒤 거부. Remote composite authority/stop wire 검증은 후속 |
-| M4→M3 native cohort | 사전 고정48회 ×2.54s, CPU0/1·OTHER/FIFO·부하/고장·3회 반복, 실제 설정/부하 control48/48 PASS. **41 PASS / 7 FAIL / 0 BLOCKED**. OTHER loaded normal0/6, FIFO normal12/12, intentional fault23/24 PASS.7개 실패를 모두 유지하며 timing 수용 미완료 |
+| M4 분리 vCAN | Normal·sanitizer 각각 **5/5 PASS** 재검사. 실제 CAN command·metadata/원래 deadline·terminal 뒤 거부. 당시 remote composite authority/stop은 미실행; 현재 component 계약은 별도 행 참조 |
+| 원본 M4→M3 cohort (`12fc4a5`) | 사전 고정48회 ×2.54s, CPU0/1·OTHER/FIFO·부하/고장·3회 반복, 실제 설정/부하 control48/48 PASS. **41 PASS / 7 FAIL / 0 BLOCKED**. OTHER loaded normal0/6, FIFO normal12/12, intentional fault23/24 PASS.7개 실패를 모두 유지하며 timing 수용 미완료 |
+| 위상 수정/분리 후 native cohort | `603fe24`와`77d411c` **각각48회:42 PASS/6 FAIL/0 BLOCKED**, FIFO각24/24(Drive fault6/6 포함), OTHER loaded normal각0/6. 원본41/7과 별개이며 시한/분모 불변. 최초 FIFO extra wake kernel 원인 미확정, OPEN-M4-TIM-01 유지 |
+| 원격 계약·실제 Leaf | Versioned owner-wire/CRC32C·원래 raw CAN/parent/expiry, 모든8 Release ACK 뒤 global credit, clock·same-Epoch latch, 실제 Steering INIT/arm/Actual/stop/보호/rejoin. 신규36개 normal/ASan·UBSan/TSan PASS; 전체 원격 배포 아님 |
+| 최신 TSan | `d7115ff` remote36/36 PASS, native runtime.wall **8 PASS/1 FAIL**, race 경고0. CommandDelivery 보호 진입으로 정상 run 실패; 별도 trace 진단1 PASS는 원본 실패를 대체하지 않음. OPEN-M4-TSAN-01 |
+| 통신 후보 | Cyclone DDS11.0.1/Zenoh-C1.10.1 direct API·netns/veth 실제 loss/delay/overflow/load. 초기36회30 PASS/6 FAIL, reader rejection/late echo 관측 보완 v2 별도36/36 PASS. Wrapper ASan4/4, TSan4 FAIL·완전 DDS 계측2 FAIL은 OPEN-M4-MWTSAN-01. Echo이며 제어/원천 Actual adapter·remote rejoin 시험 아님 |
 | 독립 감시·실제 적용 | 기존 TaskSchedule/DeadlineMonitor의2ms 기회·4ms 완료 guard, 누락 slot/6ms overrun·Monitor/Physical peer 검사. 통과한 fault23회에서 원래 deadline→검출0.479–1.721ms·검출→물리 override0.001–0.997ms. 자기 body>4ms 관측/10·20ms control/논리 clock과 구분 |
-| 추적성·공유 근거 | [함수→실제 GTest→판정·결과56개](test-plan/evidence/m4_faults/component_results.csv), [commit·환경·재현·정상/고장/복구 CSV·그래프·실패 분모](test-plan/evidence/m4_faults/README.md). 이전 [872개 결과](test-plan/evidence/m4_async/README.md)는 당시 이력 |
+| 추적성·공유 근거 | [함수→실제 GTest→판정·결과68개](test-plan/evidence/m4_followup/remote/component_results.csv), [후속 commit·환경·재현·정상/고장/복구 CSV·그래프·모든 실패 분모](test-plan/evidence/m4_followup/README.md). 이전 [872개 결과](test-plan/evidence/m4_async/README.md)는 당시 이력 |
 | M3 수용 검토 | Host IO 동반/FIFO 기준 선택, 원본 96회 재분석·판정 동일. 전체 timing 수용은 PENDING |
-| Build·정적 분석 | Debug 두 빌드·Release BUILD_TESTING=OFF PASS. Clang-tidy10개·production8개 cppcheck; 새 analyzer 오류 없음, variant/noexcept·인자 순서 경고를 근거와 함께 보존. TSan 기본 ASLR 매핑 실패; process-local `setarch -R`에서 native7/7 PASS·경합 경고0. 전체 TSan/RTOS/Target 실행 결과로 확대하지 않음 |
+| 최신 Build·정적 분석 | Debug 두 빌드 및 Release BUILD_TESTING=OFF PASS. 새 production4개 clang-analyzer 오류0/cppcheck PASS; enum별 범위의 동일 반환식5개 branch-clone 경고는 명시적 enum registry로 보존 |
+| 이전 Build·정적 분석 (`12fc4a5`) | Debug 두 빌드·Release BUILD_TESTING=OFF PASS. Clang-tidy10개·production8개 cppcheck; 새 analyzer 오류 없음, variant/noexcept·인자 순서 경고를 근거와 함께 보존. TSan 기본 ASLR 매핑 실패; process-local `setarch -R`에서 native7/7 PASS·경합 경고0. 전체 TSan/RTOS/Target 실행 결과로 확대하지 않음 |
 | Native 일반/FIFO 비교 | 같은 CPU map·workload·시한으로 4조건×2 trace×3회 **24/24 PASS**, 설정·부하 control 모두 PASS |
 | Native 고장 회귀 | Normal OTHER/FIFO 각각 17/17, sanitizer OTHER 15/17·FIFO 17/17: **66/68 PASS**, 일반 sanitizer의 owner skip 두 실패 보존 |
 | 이전 RTOS 파일럿 | 기존 12회 이력과 직전 4조건 **4/4 PASS**; 새 timer 비교와 별도 cohort |
@@ -117,7 +122,7 @@ OS Task/CAN·native 시한은 유지하고, 새 추가 Host timing 5 ms 판정�
 
 ## 다음 작업
 
-1. **M4 원격 경계/M5 착수 준비:** [공통 고장·독립 감시](adr/ADR-0056-m4-faults-and-independent-execution-watch.md)의 Host component 구현/기능 검증은 완료했다. 다음 단위는 remote32-byte composite lease/INIT/arm/stop/protection·원천 feedback의 wire/clock/freshness 계약(TBD-15)과 DDS/QoS·격리(TBD-05)를 고정하고 첫 독립 Central↔Zone process adapter/양방향 partition 시험을 연결하는 것이다. 공유 atomic gate/protection 우회를 원격 보장으로 옮기지 않는다. 새 timing7 FAIL(OPEN-M4-TIM-01)과 기존 M3 예외를 보존하고 정상 FIFO 기준/후속 진단을 함께 진행한다.
+1. **M4 종료 검토:** [release 위상/책임 분리](adr/ADR-0057-m4-release-grid-and-owner-modules.md)와 [원격 authority/후보 실험](adr/ADR-0058-remote-owner-authority-and-dds-probe.md)을 구현·실행했다. [종료 checklist](m4_exit_review.md)의 timing/TSan 정상 기능 예외가 OPEN이므로 M4 전체 종료와 M5 제어 adapter 착수는 보류한다. 다음은 첫 run부터 full trace를 남기는 고정 TSan 진단과 Host IO/FIFO 수용 범위 검토다. 후보 echo probe를 M5 제어·Actual 배포로 집계하지 않는다.
 2. **M3 타이밍 예외 해소:** OPEN-M3-01/02의 원본 실패를 유지하고 kernel trace 접근을 준비해 timer→wakeup→switch를 분석한다. 추가 반복과 PREEMPT_RT 비교는 후속 실험이며 M4 준비가 M3 전체 수용을 뜻하지 않는다. 학습자 직접 재현·설명도 남아 있다.
 3. **ARM64 배포 준비:** 보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. Target 검증은 배포 단계, RTE/BSW는 별도 pilot과 연결한다.
 4. **MBD 준비·후속 pilot:** 현재 M4 통합을 진행하고 M5 통신 경계를 준비하면서 제어 interface·도구/모델 검토를 병행한다. M6 Simple Vehicle에서 종방향 모델/MIL을 만들고 M8에서 C++ 동등성과 차량 SIL을 검증한다. [채택 범위](adr/ADR-0052-model-based-design-development-path.md)는 방법/계획이며 구현·Simulink/자동 생성 도입 완료가 아니다.
@@ -128,7 +133,7 @@ Central의 단일 vehicle management/allocation/session/feedback bridge와 Front
 [채택한 아키텍처](adr/ADR-0021-central-coordination-and-parallel-zones.md)다.
 Front는 Steering/Brake, Rear는 Drive/BMS를 담당하며 feedback도 담당 Zone→Central→Host를 거친다.
 준비 조건·전원/허가·첫 배분 library를 구현하고 PowerController·RC/접점·torque/pressure 응답 모델과 component 시험했다.
-Rear 전원/허가/limits·Front/Rear NonDriving→arm과 NormalStop/terminal handoff→HV 종료도 실제 controller·RC/angle/pressure/torque component와 독립 Actual receiver에 연결했다. 실제 Zone health/독립 status receiver도 연결했다. 단일 coordinator와8-role 세션 준비/INIT/rejoin 뒤 정상9-owner 비동기 경로를 구현했다. 새 M4 경로는 실제 BMS/전원·명령·Actual을 사용한다. Remote INIT/lease·process partition·DDS/Host bridge는 M4/M5 후속이며 이전 EV demo/runtime의 request/grant·relay는 개별 모델 fixture로 유지한다.
+Rear 전원/허가/limits·Front/Rear NonDriving→arm과 NormalStop/terminal handoff→HV 종료도 실제 controller·RC/angle/pressure/torque component와 독립 Actual receiver에 연결했다. 실제 Zone health/독립 status receiver도 연결했다. 단일 coordinator와8-role 세션 준비/INIT/rejoin 뒤 정상9-owner 비동기 경로를 구현했다. 새 M4 경로는 실제 BMS/전원·명령·Actual을 사용한다. Remote INIT/lease wire와 Leaf component는 검사했고, 실제 controller process partition·DDS/Host bridge는 M5 후속이며 이전 EV demo/runtime의 request/grant·relay는 개별 모델 fixture로 유지한다.
 
 기존 통합 EV 예제/배분 응답의 speed는 고정20 rad/s, 첫 시동은0 rad/s, 정상 종료는 외부20→0 script다. 차량 관성·타이어·차량 제동/배분 통합·CARLA closed-loop는 M4/M6/M7,
 Owner별 배치와 native FIFO 우선순위는 Host에서 비교했다. Target timing과 DTC 통합(M9), Classical control·AI·Target 배포는 후속 단계다.

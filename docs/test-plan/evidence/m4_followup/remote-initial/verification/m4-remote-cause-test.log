@@ -1,0 +1,81 @@
+Test project /d/shin/StrataDrive/build/m4-remote-tests
+      Start  1: RemoteLeafTest.LocalReleaseAndUnarmedCreditCannotApplyACommand
+ 1/36 Test  #1: RemoteLeafTest.LocalReleaseAndUnarmedCreditCannotApplyACommand ...............................   Passed    0.00 sec
+      Start  2: RemoteLeafTest.ArmedOriginalFrameProducesOriginalActualAndCompositeExpiryProtects
+ 2/36 Test  #2: RemoteLeafTest.ArmedOriginalFrameProducesOriginalActualAndCompositeExpiryProtects ............   Passed    0.00 sec
+      Start  3: RemoteLeafTest.CreditSourceAgeAloneProtectsAnUnarmedLiveActor
+ 3/36 Test  #3: RemoteLeafTest.CreditSourceAgeAloneProtectsAnUnarmedLiveActor ................................   Passed    0.00 sec
+      Start  4: RemoteLeafTest.ExplicitProtectionAckIsLeafSelectionAndPreviousEpochCannotProtectNewSession
+ 4/36 Test  #4: RemoteLeafTest.ExplicitProtectionAckIsLeafSelectionAndPreviousEpochCannotProtectNewSession ...   Passed    0.00 sec
+      Start  5: RemoteLeafTest.ExpiredStopLeaseCannotBeRestampedByTransport
+ 5/36 Test  #5: RemoteLeafTest.ExpiredStopLeaseCannotBeRestampedByTransport ..................................   Passed    0.00 sec
+      Start  6: RemoteLeafTest.NormalFifoOverflowLatchesSessionAndNewEpochCannotRepairFailedLink
+ 6/36 Test  #6: RemoteLeafTest.NormalFifoOverflowLatchesSessionAndNewEpochCannotRepairFailedLink .............   Passed    0.00 sec
+      Start  7: RemoteWire.Crc32cMatchesPublishedCheckVector
+ 7/36 Test  #7: RemoteWire.Crc32cMatchesPublishedCheckVector .................................................   Passed    0.00 sec
+      Start  8: RemoteWire.IndependentLittleEndianGoldenKeepsOriginalIdentityAndBinary64
+ 8/36 Test  #8: RemoteWire.IndependentLittleEndianGoldenKeepsOriginalIdentityAndBinary64 .....................   Passed    0.00 sec
+      Start  9: RemoteWire.EverySingleBitCorruptionAndEveryTruncationIsRejected
+ 9/36 Test  #9: RemoteWire.EverySingleBitCorruptionAndEveryTruncationIsRejected ..............................   Passed    0.01 sec
+      Start 10: RemoteWire.ValidCrcCannotHideUnknownVersionReservedBooleanOrTruncatedEnum
+10/36 Test #10: RemoteWire.ValidCrcCannotHideUnknownVersionReservedBooleanOrTruncatedEnum ....................   Passed    0.00 sec
+      Start 11: RemoteWire.UnknownAndKnownZeroRemainDistinctAcrossAllBmsContents
+11/36 Test #11: RemoteWire.UnknownAndKnownZeroRemainDistinctAcrossAllBmsContents .............................   Passed    0.00 sec
+      Start 12: RemoteWire.EveryZoneOperationAndRawFrameAlternativeKeepsSideband
+12/36 Test #12: RemoteWire.EveryZoneOperationAndRawFrameAlternativeKeepsSideband .............................   Passed    0.00 sec
+      Start 13: RemoteWire.NoInnerCanCounterSourceOrCrcIsRegenerated
+13/36 Test #13: RemoteWire.NoInnerCanCounterSourceOrCrcIsRegenerated .........................................   Passed    0.00 sec
+      Start 14: RemoteWire.NonFiniteTypedDemandAndWrongPeerRouteAreRejected
+14/36 Test #14: RemoteWire.NonFiniteTypedDemandAndWrongPeerRouteAreRejected ..................................   Passed    0.00 sec
+      Start 15: RemoteWire.DelayedDecodedCommandKeepsOriginalExclusiveExpiryAtZone
+15/36 Test #15: RemoteWire.DelayedDecodedCommandKeepsOriginalExclusiveExpiryAtZone ...........................   Passed    0.00 sec
+      Start 16: RemoteClock.WorstCaseAgeAndExclusiveExpiryIncludeUncertaintyWithoutRewritingSource
+16/36 Test #16: RemoteClock.WorstCaseAgeAndExclusiveExpiryIncludeUncertaintyWithoutRewritingSource ...........   Passed    0.00 sec
+      Start 17: RemoteClock.UnknownDomainSignedOffsetAndArithmeticBoundsFailClosed
+17/36 Test #17: RemoteClock.UnknownDomainSignedOffsetAndArithmeticBoundsFailClosed ...........................   Passed    0.00 sec
+      Start 18: PeerFixture.LocalReleaseAloneCannotAuthorizeNormalCommands
+18/36 Test #18: PeerFixture.LocalReleaseAloneCannotAuthorizeNormalCommands ...................................   Passed    0.00 sec
+      Start 19: PeerFixture.SourceLossExpiresAndFreshSameEpochRenewalCannotHeal
+19/36 Test #19: PeerFixture.SourceLossExpiresAndFreshSameEpochRenewalCannotHeal ..............................   Passed    0.00 sec
+      Start 20: PeerFixture.ExactExpiryWrongClockOldPlanAndReplayNeverRefreshLease
+20/36 Test #20: PeerFixture.ExactExpiryWrongClockOldPlanAndReplayNeverRefreshLease ...........................   Passed    0.00 sec
+      Start 21: PeerFixture.ProtectionClockRollbackAndUnsafePreparationCannotAutoRecover
+21/36 Test #21: PeerFixture.ProtectionClockRollbackAndUnsafePreparationCannotAutoRecover .....................   Passed    0.00 sec
+      Start 22: PeerFixture.MissingFirstCreditHasItsOwnBoundedAcquisitionDeadline
+22/36 Test #22: PeerFixture.MissingFirstCreditHasItsOwnBoundedAcquisitionDeadline ............................   Passed    0.00 sec
+      Start 23: RemoteIssuer.NoGlobalCreditUntilEveryReleaseAckAndNoCreditAfterCancel
+23/36 Test #23: RemoteIssuer.NoGlobalCreditUntilEveryReleaseAckAndNoCreditAfterCancel ........................   Passed    0.00 sec
+      Start 24: RemoteProtection.LateAckWrongRoleAndOldEpochCannotCompleteNewRequest
+24/36 Test #24: RemoteProtection.LateAckWrongRoleAndOldEpochCannotCompleteNewRequest .........................   Passed    0.00 sec
+      Start 25: RemoteProtection.SelectionRequestCannotExtendOriginalTwentyMillisecondBudget
+25/36 Test #25: RemoteProtection.SelectionRequestCannotExtendOriginalTwentyMillisecondBudget .................   Passed    0.00 sec
+      Start 26: RemoteProtection.MissingOrNegativeAckIsNotASelectionAndCannotOpenRunGate
+26/36 Test #26: RemoteProtection.MissingOrNegativeAckIsNotASelectionAndCannotOpenRunGate .....................   Passed    0.00 sec
+      Start 27: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/0
+27/36 Test #27: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/0 ......................   Passed    0.00 sec
+      Start 28: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/1
+28/36 Test #28: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/1 ......................   Passed    0.00 sec
+      Start 29: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/2
+29/36 Test #29: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/2 ......................   Passed    0.00 sec
+      Start 30: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/3
+30/36 Test #30: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/3 ......................   Passed    0.00 sec
+      Start 31: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/4
+31/36 Test #31: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/4 ......................   Passed    0.00 sec
+      Start 32: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/5
+32/36 Test #32: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/5 ......................   Passed    0.00 sec
+      Start 33: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/6
+33/36 Test #33: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/6 ......................   Passed    0.00 sec
+      Start 34: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/7
+34/36 Test #34: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/7 ......................   Passed    0.00 sec
+      Start 35: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/8
+35/36 Test #35: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/8 ......................   Passed    0.00 sec
+      Start 36: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/9
+36/36 Test #36: AllContracts/RemoteWireBodies.RoundTripPreservesExactCanonicalMessage/9 ......................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 36
+
+Label Time Summary:
+integration.logical    =   0.01 sec*proc (6 tests)
+unit                   =   0.04 sec*proc (30 tests)
+
+Total Test time (real) =   0.07 sec

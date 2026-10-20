@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="9"
+	failures="1"
+	disabled="0"
+	skipped="0"
+	hostname="MJH"
+	time="16"
+	timestamp="2026-10-20T14:31:43"
+	>
+	<testcase name="M4AsyncWall.IndependentOwnersRunActualNormalPath" classname="M4AsyncWall.IndependentOwnersRunActualNormalPath" time="1.87749" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="runtime.wall"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M4AsyncWall.IndependentOwnersRunActualNormalPath
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M4AsyncWall
+[ RUN      ] M4AsyncWall.IndependentOwnersRunActualNormalPath
+/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:16: Failure
+Value of: result.passed
+  Actual: false
+Expected: true
+scenario=normal core=10 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=810816152 fault=915290114 selected=915819030 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14
+/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:60: Failure
+Expected: (r.trace.back().pressure_pa) &lt; (1), actual: 1e+06 vs 1
+/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:60: Failure
+Expected: (r.trace.back().torque_nm) &gt; (50), actual: 0 vs 50
+[  FAILED  ] M4AsyncWall.IndependentOwnersRunActualNormalPath (1870 ms)
+[----------] 1 test from M4AsyncWall (1870 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1870 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] M4AsyncWall.IndependentOwnersRunActualNormalPath
+
+ 1 FAILED TEST
+</system-out>
+	</testcase>
+	<testcase name="M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse" classname="M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse" time="1.88358" status="run">
+		<properties>
+			<property name="cmake_labels" value="runtime.wall"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M4AsyncWall
+[ RUN      ] M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse
+[       OK ] M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse (1876 ms)
+[----------] 1 test from M4AsyncWall (1876 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1876 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory" classname="M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory" time="4.5003" status="run">
+		<properties>
+			<property name="cmake_labels" value="runtime.wall"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M4FaultWall
+[ RUN      ] M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory
+[       OK ] M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory (4490 ms)
+[----------] 1 test from M4FaultWall (4490 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (4490 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction" classname="M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction" time="1.92915" status="run">
+		<properties>
+			<property name="cmake_labels" value="runtime.wall"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M4FaultWall
+[ RUN      ] M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction
+[       OK ] M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction (1920 ms)
+[----------] 1 test from M4FaultWall (1920 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1920 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/&quot;drive&quot;" classname="Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/&quot;drive&quot;" time="1.95749" status="run">
+		<properties>
+			<property name="cmake_labels" value="runtime.wall"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/0
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Independent/M4GuardWall
+[ RUN      ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/0
+[       OK ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/0 (1947 ms)
+[----------] 1 test from Independent/M4GuardWall (1947 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1947 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/&quot;monitor&quot;" classname="Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/&quot;monitor&quot;" time="1.9606" status="run">
+		<properties>
+			<property name="cmake_labels" value="runtime.wall"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/1
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Independent/M4GuardWall
+[ RUN      ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/1
+[       OK ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/1 (1950 ms)
+[----------] 1 test from Independent/M4GuardWall (1950 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1950 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/&quot;physical&quot;" classname="Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/&quot;physical&quot;" time="1.96298" status="run">
+		<properties>
+			<property name="cmake_labels" value="runtime.wall"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/2
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Independent/M4GuardWall
+[ RUN      ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/2
+[       OK ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/2 (1952 ms)
+[----------] 1 test from Independent/M4GuardWall (1952 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1952 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="SessionLoops.EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes" classname="SessionLoops.EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes" time="0.013264" status="run">
+		<properties>
+			<property name="cmake_labels" value="runtime.wall"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = SessionLoops.EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SessionLoops
+[ RUN      ] SessionLoops.EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes
+[       OK ] SessionLoops.EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes (5 ms)
+[----------] 1 test from SessionLoops (5 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (5 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="LatestSnapshot.ConcurrentOwnerCopiesCannotTearOrRegressAnAcquisition" classname="LatestSnapshot.ConcurrentOwnerCopiesCannotTearOrRegressAnAcquisition" time="0.138709" status="run">
+		<properties>
+			<property name="cmake_labels" value="runtime.wall"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = LatestSnapshot.ConcurrentOwnerCopiesCannotTearOrRegressAnAcquisition
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LatestSnapshot
+[ RUN      ] LatestSnapshot.ConcurrentOwnerCopiesCannotTearOrRegressAnAcquisition
+[       OK ] LatestSnapshot.ConcurrentOwnerCopiesCannotTearOrRegressAnAcquisition (131 ms)
+[----------] 1 test from LatestSnapshot (131 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (131 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+</testsuite>

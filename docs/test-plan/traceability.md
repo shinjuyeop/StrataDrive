@@ -2,7 +2,7 @@
 
 Status: **DEFINED / Reference Baseline v0.1 + RG-01 + EV-01 + ZON-01 v0.5**.
 SYS-ARCH-003·SYS-CTRL-008·SYS-SAFE-005·SYS-EV-003은 v0.5다. SYS-SAFE-004·SYS-CTRL-009는 v0.2,
-SYS-COM-003/004·SYS-PERF-002와 나머지 SYS-EV 요구는 v0.3, 그 외 기존 요구는 v0.1이다.
+SYS-COM-003/004·SYS-PERF-002와 나머지 SYS-EV 요구는 v0.3, SYS-COM-002는 Host wire refinement v0.6, 그 외 기존 요구는 v0.1이다.
 [ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)의 Central owner/독립 Zone 경로를 반영한다.
 
 현재 구현 상태와 최신 시험 분모는 [project_status](../project_status.md)가 기준이다.
@@ -12,6 +12,8 @@ SYS-COM-003/004·SYS-PERF-002와 나머지 SYS-EV 요구는 v0.3, 그 외 기존
 CSV evidence 열은 `evidence/` 기준이다. 원래20개 대표 수치는 `m4_async/` 당시 이력이고 최신 재실행 PASS는56개 결과에 기록한다.
 M4 native timing48개는 별도 조건별41 PASS/7 FAIL이며 이 결과를 unit PASS에 합치지 않는다.
 이는 아래32개 requirement/29개 system TC의 전체 수용 결과와 구분한다.
+
+후속 [M4 evidence](evidence/m4_followup/README.md)는 원래56개에 remote 계약12개 연결을 더해68개를 실제948개 CTest와 대조했다. 신규 wire/credit/clock/Leaf actor의36개 시험은 component 부분 증거다. Release-grid/구조 분리의 두48회는각42 PASS/6 FAIL이고, 최신 TSan native9개는8 PASS/1 FAIL로 구분한다. 원본41/7과 과거 source별 결과는 유지한다. [M4 종료 검토](../m4_exit_review.md)는 현재 NOT CLOSED다.
 
 아래 system TC 전체 구현/검증은 PLANNED, runtime Result는 전부 **NOT RUN**이다.
 [Brake 수신부](../learning/m1_brake_codec.md#application-수신부-추가)의 Host/vCAN 부분 증거도

@@ -1,0 +1,273 @@
+{
+  "original_metadata": {
+    "source_commit": "12fc4a51449cd9f14ad1be8b243dea4d8d4d7311",
+    "source_digest": "c009177e966b72ae21ff209079543fb6c537ef82d0fff8a6d364f9548958dc6a",
+    "protocol_sha256": "dcffc09390614ab4589a5df7d84f7bd894ab0f5fc108a32a98c4af4439a0b718",
+    "utc": "2026-10-20T04:16:22.890310+00:00",
+    "planned_runs": 48,
+    "duration_ns": 2540000000,
+    "guard_lead_ns": 100000000,
+    "period_ns": 2000000,
+    "deadline_ns": 4000000,
+    "guard_slots_per_owner": 1211,
+    "tail_ns": 20000000,
+    "cpus": [
+      0,
+      1
+    ],
+    "repetitions": 3
+  },
+  "scope": "post-run audit, no replacement run or changed verdict",
+  "failed_runs": 7,
+  "controls": [
+    {
+      "run": "normal-1-other-1-normal",
+      "setup_control": true,
+      "load_control": true,
+      "command": [
+        "/d/shin/StrataDrive/build/m4-readiness/actuator_demo",
+        "m4-async",
+        "wall",
+        "normal",
+        "/d/shin/StrataDrive/build/m4-timing-final/normal-1-other-1-normal/epochs",
+        "/d/shin/StrataDrive/build/m4-timing-final/normal-1-other-1-normal/result",
+        "guards",
+        "cpus=0,1",
+        "duration-ms=2540"
+      ],
+      "load": {
+        "cpu": 1,
+        "policy": 0,
+        "priority": 0,
+        "affinity": [
+          1
+        ],
+        "cpu_ns": 1709073320,
+        "wall_ns": 2615942688,
+        "windows": 261,
+        "busy_ns": 7000000,
+        "period_ns": 10000000
+      },
+      "original_verdict": "FAIL",
+      "reason": "scenario=normal core=7 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=126923259 selected=126923259 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14"
+    },
+    {
+      "run": "normal-2-other-1-normal",
+      "setup_control": true,
+      "load_control": true,
+      "command": [
+        "/d/shin/StrataDrive/build/m4-readiness/actuator_demo",
+        "m4-async",
+        "wall",
+        "normal",
+        "/d/shin/StrataDrive/build/m4-timing-final/normal-2-other-1-normal/epochs",
+        "/d/shin/StrataDrive/build/m4-timing-final/normal-2-other-1-normal/result",
+        "guards",
+        "cpus=0,1",
+        "duration-ms=2540"
+      ],
+      "load": {
+        "cpu": 1,
+        "policy": 0,
+        "priority": 0,
+        "affinity": [
+          1
+        ],
+        "cpu_ns": 1707013677,
+        "wall_ns": 2614153832,
+        "windows": 261,
+        "busy_ns": 7000000,
+        "period_ns": 10000000
+      },
+      "original_verdict": "FAIL",
+      "reason": "scenario=normal core=7 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=287299117 selected=287299117 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14"
+    },
+    {
+      "run": "normal-2-fifo-0-drive-stop",
+      "setup_control": true,
+      "load_control": true,
+      "command": [
+        "/d/shin/StrataDrive/build/m4-readiness/actuator_demo",
+        "m4-async",
+        "wall",
+        "fault",
+        "/d/shin/StrataDrive/build/m4-timing-final/normal-2-fifo-0-drive-stop/epochs",
+        "/d/shin/StrataDrive/build/m4-timing-final/normal-2-fifo-0-drive-stop/result",
+        "guards",
+        "cpus=0,1",
+        "duration-ms=2540",
+        "fifo",
+        "fault=owner:pause:drive:1200:200:0"
+      ],
+      "load": null,
+      "original_verdict": "FAIL",
+      "reason": "scenario=fault core=12 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=737117171 selected=737117171 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=11 leaf=2 leaf=14"
+    },
+    {
+      "run": "normal-3-other-1-normal",
+      "setup_control": true,
+      "load_control": true,
+      "command": [
+        "/d/shin/StrataDrive/build/m4-readiness/actuator_demo",
+        "m4-async",
+        "wall",
+        "normal",
+        "/d/shin/StrataDrive/build/m4-timing-final/normal-3-other-1-normal/epochs",
+        "/d/shin/StrataDrive/build/m4-timing-final/normal-3-other-1-normal/result",
+        "guards",
+        "cpus=0,1",
+        "duration-ms=2540"
+      ],
+      "load": {
+        "cpu": 1,
+        "policy": 0,
+        "priority": 0,
+        "affinity": [
+          1
+        ],
+        "cpu_ns": 1708319729,
+        "wall_ns": 2614937825,
+        "windows": 261,
+        "busy_ns": 7000000,
+        "period_ns": 10000000
+      },
+      "original_verdict": "FAIL",
+      "reason": "scenario=normal core=7 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=167586188 selected=167586188 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14"
+    },
+    {
+      "run": "sanitized-1-other-1-normal",
+      "setup_control": true,
+      "load_control": true,
+      "command": [
+        "/d/shin/StrataDrive/build/m1-angle-sanitized/actuator_demo",
+        "m4-async",
+        "wall",
+        "normal",
+        "/d/shin/StrataDrive/build/m4-timing-final/sanitized-1-other-1-normal/epochs",
+        "/d/shin/StrataDrive/build/m4-timing-final/sanitized-1-other-1-normal/result",
+        "guards",
+        "cpus=0,1",
+        "duration-ms=2540"
+      ],
+      "load": {
+        "cpu": 1,
+        "policy": 0,
+        "priority": 0,
+        "affinity": [
+          1
+        ],
+        "cpu_ns": 1589338825,
+        "wall_ns": 2656652108,
+        "windows": 265,
+        "busy_ns": 7000000,
+        "period_ns": 10000000
+      },
+      "original_verdict": "FAIL",
+      "reason": "scenario=normal core=12 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=239092400 selected=239092400 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14"
+    },
+    {
+      "run": "sanitized-2-other-1-normal",
+      "setup_control": true,
+      "load_control": true,
+      "command": [
+        "/d/shin/StrataDrive/build/m1-angle-sanitized/actuator_demo",
+        "m4-async",
+        "wall",
+        "normal",
+        "/d/shin/StrataDrive/build/m4-timing-final/sanitized-2-other-1-normal/epochs",
+        "/d/shin/StrataDrive/build/m4-timing-final/sanitized-2-other-1-normal/result",
+        "guards",
+        "cpus=0,1",
+        "duration-ms=2540"
+      ],
+      "load": {
+        "cpu": 1,
+        "policy": 0,
+        "priority": 0,
+        "affinity": [
+          1
+        ],
+        "cpu_ns": 1577314260,
+        "wall_ns": 2647801753,
+        "windows": 264,
+        "busy_ns": 7000000,
+        "period_ns": 10000000
+      },
+      "original_verdict": "FAIL",
+      "reason": "scenario=normal core=12 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=201832155 selected=201832155 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14"
+    },
+    {
+      "run": "sanitized-3-other-1-normal",
+      "setup_control": true,
+      "load_control": true,
+      "command": [
+        "/d/shin/StrataDrive/build/m1-angle-sanitized/actuator_demo",
+        "m4-async",
+        "wall",
+        "normal",
+        "/d/shin/StrataDrive/build/m4-timing-final/sanitized-3-other-1-normal/epochs",
+        "/d/shin/StrataDrive/build/m4-timing-final/sanitized-3-other-1-normal/result",
+        "guards",
+        "cpus=0,1",
+        "duration-ms=2540"
+      ],
+      "load": {
+        "cpu": 1,
+        "policy": 0,
+        "priority": 0,
+        "affinity": [
+          1
+        ],
+        "cpu_ns": 1590176723,
+        "wall_ns": 2656198425,
+        "windows": 265,
+        "busy_ns": 7000000,
+        "period_ns": 10000000
+      },
+      "original_verdict": "FAIL",
+      "reason": "scenario=normal core=12 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=118853423 selected=118853423 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14"
+    }
+  ],
+  "raw_sha256": {
+    "normal-1-other-1-normal/command.json": "bc7a3c1d71dfc32472460d8dba82c4d8f56d9fc720a9a8f73fc53e5cea98681e",
+    "normal-1-other-1-normal/result/wall-normal.json": "926f421d659588e59cb239919b0d2cf8d8221c37f83add171b1fc88eb224256b",
+    "normal-1-other-1-normal/result/wall-normal-execution.csv": "8b8bcf62f2b970a0f6b6396a65a95cbe72963d8386fc19a8b046fa1f3dc8463a",
+    "normal-1-other-1-normal/result/wall-normal-events.csv": "fd598d6279a706ab5f7b8fb720017b24021ba12a9a283cdb8b8651e202cea1f5",
+    "normal-1-other-1-normal/load.json": "0dfe221a2fbac81801dfb4022208a8a59bee43532c7c0eb48c18567d40508fd6",
+    "normal-2-other-1-normal/command.json": "0426d9fed99b442736769bf852e9b7a3241fccf9c17b070ff61550d710c9e1c3",
+    "normal-2-other-1-normal/result/wall-normal.json": "1850df0c61974a0a2a4fa4389fb5ced1f8f323026aab80f0705411399662d968",
+    "normal-2-other-1-normal/result/wall-normal-execution.csv": "81ac0f45e6046ff1c10723dc15e663863ac30ca10960f01823ddaf8d41f85c09",
+    "normal-2-other-1-normal/result/wall-normal-events.csv": "e8556a051896ad3768a18056ee636fd180390803337bd72949aafa38d69aac9e",
+    "normal-2-other-1-normal/load.json": "29a41db597aad4aad035c7cc71bb469a211165dcb54644a6258206e2a0287ef4",
+    "normal-2-fifo-0-drive-stop/command.json": "e0b40011b27111b1c5b56c2cde33a35fc911d05a36bb53dfa8f7a404056a2105",
+    "normal-2-fifo-0-drive-stop/result/wall-fault.json": "928553ada10595d56dfbf910191438e8ddaeca00aca27c9c007fc8367d825dd3",
+    "normal-2-fifo-0-drive-stop/result/wall-fault-execution.csv": "07d6f229633ad4e7ec1e8b0ef498a354582bf191c47a7cb55f119742ac090881",
+    "normal-2-fifo-0-drive-stop/result/wall-fault-events.csv": "ec44bb7e1cb6c97a99f2b84e0589a6a5b8dd57587ae98e0afb57dfbd33dfb4a1",
+    "normal-3-other-1-normal/command.json": "b455240f01de9a6f4594c78098a87b0452a7a64054ee84242902bbf3b6b11f08",
+    "normal-3-other-1-normal/result/wall-normal.json": "751e7e1bb924696ba6d1d2f6f38f02d41f590198dc1d36ebf85e6f2159ddb94f",
+    "normal-3-other-1-normal/result/wall-normal-execution.csv": "b92f0a936d0c53949c93f8b8d06ef684a537343d31f264688d97975fc2f1cbdd",
+    "normal-3-other-1-normal/result/wall-normal-events.csv": "c2b5716d8c6ae892ea955b8b09deee87bfdf270eccac9bbd9d124956dd9be669",
+    "normal-3-other-1-normal/load.json": "6bb80e89e3336d5cdea68d0b234f67a29c11f5b455466c19dc8310f1ab2b296b",
+    "sanitized-1-other-1-normal/command.json": "793c16234f62c6fdce6d5c30abbc7e7eb944811533c4c126a40c21647cb5ad9f",
+    "sanitized-1-other-1-normal/result/wall-normal.json": "4f05bf4298468f9e6e66f73a91b612a106a10039c7b23939e2ea20c73c1417b0",
+    "sanitized-1-other-1-normal/result/wall-normal-execution.csv": "29bc47f76e56fe6e7ade621da728ae9dc0c20d388d5ad208853c44d19668849d",
+    "sanitized-1-other-1-normal/result/wall-normal-events.csv": "07a7c0911b3ccb84797e753e723bd6d87b5c1c56bcdff29fdf206a9e4b9ac659",
+    "sanitized-1-other-1-normal/load.json": "01dd0236cc8bdb93f395caf1cd1c9ec4d44670ffbc97f3de8bfb8d437e183a0b",
+    "sanitized-2-other-1-normal/command.json": "13de5c96fb5ed490a1c5ac1bc0e9849a4e0d2bb2cf935fa53b4ae39d5aeb9236",
+    "sanitized-2-other-1-normal/result/wall-normal.json": "c5a8b02f2364960ec8c99960749501999d116c68c022ce7f40f79be394056928",
+    "sanitized-2-other-1-normal/result/wall-normal-execution.csv": "079017f206767add8334a004ce028cc5c94331f4f2dd3692056b619092667147",
+    "sanitized-2-other-1-normal/result/wall-normal-events.csv": "ca7db422183df86738da8c848527563542e3243ef1e1545f8c2cb302883e105a",
+    "sanitized-2-other-1-normal/load.json": "88dd17a2ea51b8f850a6385281f1845b830a5789faca6853ae71f27f97fc6eb5",
+    "sanitized-3-other-1-normal/command.json": "04aa0a6b6eb40ebd9dcdd79d776744d7be12d90e507a635e3f195207cf5631bb",
+    "sanitized-3-other-1-normal/result/wall-normal.json": "f4a1d46f08e5dba4e3909fcca245760d8f62e31eb0af39f9885883ffc91ed09b",
+    "sanitized-3-other-1-normal/result/wall-normal-execution.csv": "1b873f3a1a5d676f79f47f9ba94854b16f4fd3b97dc8fd2df0c516b5657e5489",
+    "sanitized-3-other-1-normal/result/wall-normal-events.csv": "68888ab4ffac80401e854669e616763f2d24ed32c10828fd10929c5a30d3b7e8",
+    "sanitized-3-other-1-normal/load.json": "b073a7982971bc6a1953406a97113f971a98b8bd0ff2c7ea2e9df887e3145387"
+  },
+  "findings": {
+    "code": "private periodic origins differ from common guard release; newest-only admission exposes phase crossing; hot audit/trace vectors allocate after startup",
+    "configuration": "all seven requested CPU/policy/priority and load controls match; no evidence of setup fallback",
+    "environment": "OTHER six failures correlated across CPU1 owners under OTHER busy load; skipped opportunities, no completed body deadline violations",
+    "unconfirmed": "original FIFO extra wake delay cause; no requested wake timestamps or kernel timer/wakeup/switch trace in original run; no proof allocation caused that miss"
+  }
+}

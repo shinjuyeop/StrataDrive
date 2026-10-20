@@ -1,0 +1,57 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=1477611)
+  Write of size 8 at 0x7ffff585c0a8 by thread T5:
+    #0 recvmsg ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:2994 (libtsan.so.0+0x5a99a)
+    #1 ddsi_udp_conn_read <null> (libddsc.so.11+0x43941)
+
+  Previous read of size 1 at 0x7ffff585c0ac by thread T2:
+    #0 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:827 (libtsan.so.0+0x6243e)
+    #1 memcpy ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:819 (libtsan.so.0+0x6243e)
+    #2 serdata_plist_from_ser.lto_priv.0 <null> (libddsc.so.11+0x4dee2)
+
+  Location is heap block of size 1048624 at 0x7ffff585c000 allocated by main thread:
+    #0 malloc ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:655 (libtsan.so.0+0x31c57)
+    #1 ddsrt_malloc <null> (libddsc.so.11+0xf085c)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (dds_candidate_probe+0x42e3)
+
+  Thread T5 'recv' (tid=1477617, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 ddsrt_thread_create <null> (libddsc.so.11+0xf6f83)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (dds_candidate_probe+0x42e3)
+
+  Thread T2 'dq.builtins' (tid=1477614, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 ddsrt_thread_create <null> (libddsc.so.11+0xf6f83)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (dds_candidate_probe+0x42e3)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/install/lib/libddsc.so.11+0x43941) in ddsi_udp_conn_read
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=1477611)
+  Write of size 8 at 0x7b800001c070 by thread T5:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 whc_default_free_deferred_free_list <null> (libddsc.so.11+0xcdc32)
+
+  Previous read of size 1 at 0x7b800001c074 by main thread (mutexes: write M130, write M197):
+    #0 sendmsg ../../../../src/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:3092 (libtsan.so.0+0x54ca2)
+    #1 ddsi_udp_conn_write <null> (libddsc.so.11+0x43f86)
+    #2 operator() /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:27 (dds_candidate_probe+0x3f5f)
+    #3 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:33 (dds_candidate_probe+0x4586)
+
+  Mutex M130 (0x7b5800002180) created at:
+    #0 pthread_mutex_init ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1227 (libtsan.so.0+0x4bee1)
+    #1 dds_entity_init <null> (libddsc.so.11+0xbe750)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (dds_candidate_probe+0x42e3)
+
+  Mutex M197 (0x7b1400002990) created at:
+    #0 pthread_mutex_init ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:1227 (libtsan.so.0+0x4bee1)
+    #1 ddsi_new_addrset <null> (libddsc.so.11+0x6d7fd)
+
+  Thread T5 'recv' (tid=1477617, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 ddsrt_thread_create <null> (libddsc.so.11+0xf6f83)
+    #2 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (dds_candidate_probe+0x42e3)
+
+SUMMARY: ThreadSanitizer: data race (/d/shin/StrataDrive/build/m4-communication-research/install/lib/libddsc.so.11+0xcdc32) in whc_default_free_deferred_free_list
+==================
+ThreadSanitizer: reported 2 warnings

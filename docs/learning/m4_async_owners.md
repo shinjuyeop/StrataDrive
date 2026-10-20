@@ -124,3 +124,18 @@ python3 tests/integration/runtime/check_m4_faults.py \
 재현 조건·PASS/FAIL 분모·원본 경로·대표 CSV/그래프는 [공유 근거](../test-plan/evidence/m4_faults/README.md),
 사전 시한·부하·반복 조건은 [프로토콜](../test-plan/m4_fault_timing_protocol.md)에 있다. 저장소의 대표 결과와 학습자의 직접 실행·이해 확인은 별개이며 학습자 검토는 PENDING이다.
 공유 atomic gate/protection이 통신 차단을 우회하는 같은 프로세스 시험이다. 원격 process/네트워크 단절·하드웨어 watchdog·Target timing 검증은 후속이다.
+
+
+## 후속 모듈·시험 선택과 원격 경계
+
+현재 실행 entry는 `m4_async_runtime.cpp`, private owner 상태/연결·시나리오/물리는 `m4_owner_network.*`, logical/native launch·join은 `m4_owner_execution.cpp`, join 뒤 판정/저장은 `m4_result.cpp`다. Canonical 메시지는 `interfaces/zone/owner_messages.hpp`, 같은 process SPSC/atomic만 `local_owner_transport.hpp`에 있다. 동기/비동기 INIT은 공통 `session_reset_safe`를 사용한다.
+
+기존 GTest/CTest 이름은 보존했고 label은 서로 겹치지 않는다. 현재948개는 unit798/logical141/wall9다.
+
+```bash
+ctest --test-dir build/m4-readiness -L unit --output-on-failure
+ctest --test-dir build/m4-readiness -L integration.logical --output-on-failure
+STRATADRIVE_M4_RESULTS="$PWD/build/my-m4-wall" ctest --test-dir build/m4-readiness -L runtime.wall --output-on-failure
+```
+
+[원격 ICD](../icd/owner_wire_v1.md)는 local Release만으로 global 준비를 추정하지 않도록 별도 run credit를 요구한다. 실제 Leaf endpoint component는 wire→INIT/credit→arm→command/Actual→보호/재가입을 시험했다. 같은 process global atomic 효과를 원격 보장으로 옮기지 않는다. [후속 evidence](../test-plan/evidence/m4_followup/README.md)와 [M4 종료 검토](../m4_exit_review.md)에서 새 timing/TSan FAIL과 candidate echo의 범위를 확인한다. 전체 M4·M5 제어 배포·학습자 review 완료가 아니다.

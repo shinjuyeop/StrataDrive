@@ -3,7 +3,7 @@
 Status: semantic contract **DEFINED / Reference Baseline v0.1**.
 2026-10-13 [RG-01 회생제동 확장](regenerative_braking_design.md)의 포함 범위를 결정했다.
 아래 Drive 의미는 이 후속 설계를 반영한다. 회생/에너지·배분은 Host component로 구현했으며 차량 runtime은 PLANNED / NOT RUN이다.
-CAN actuator 6개 + EV 6개 wire/DBC/codec은 **Host 초안 구현·시험 / baseline 채택 PENDING**이며 DDS IDL은 **PLANNED**다.
+CAN actuator 6개 + EV 6개 wire/DBC/codec은 **Host 초안 구현·시험 / baseline 채택 PENDING**이며 DDS controller IDL/adapter는 **PLANNED**다. 후보 실험의 fixed packet IDL과 실제 controller 배포를 구분한다.
 [Steering Command/Actual의 DBC·layout 제안](steering_frame_draft.md)을 작성했으며 review PENDING이다.
 [Steering angle field 초안](steering_angle_encoding.md)의 독립 codec을 Host에서 시험했다.
 [Steering 두 frame의 codec·DBC parser 교차 검증](../learning/m1_steering_frame_codec.md)도
@@ -28,6 +28,8 @@ PowerRequest/limits/permission 전달·Drive trusted arm을 실제 controller/co
 Arm은 CAN payload에서 학습하지 않으며 기존 wire·critical source/expiry 계약은 유지한다.
 [정상 종료](../learning/m4_normal_stop.md)의 stop intent/자식 root·terminal lease/ACK도 shared in-process 계약이다.
 NormalStopControl은 실제 Leaf·gateway/allocator를 연결하며 remote stop/lease transport는 후속이다.
+2026-10-20 후속 [owner-wire v1](owner_wire_v1.md)은 위 composite context/terminal lease·INIT/arm/protection·원천 raw CAN feedback을 outer CRC32C와 명시적 role/domain으로 전달한다. 실제 Leaf component에서 local Release와 별도 global credit, arm·expiry·보호/rejoin을 검사했다. 기존 CAN/DBC/P05는 불변이다. [DDS/Zenoh 후보](../adr/ADR-0058-remote-owner-authority-and-dds-probe.md)는 두 독립 netns process의 echo이며, 실제 Central/Zone 제어·Actual·세션 adapter는 아직 미구현이다. Target clock/보안·full deployment는 후속 gate다.
+
 2026-10-13 [EV-01](ev_power_bms_design.md)으로 BMS Leaf, 차량 관리와 power lifecycle을
 추가했다. 2026-10-14 [BMS wire 초안](bms_frame_draft.md)의 EV 6개 DBC frame과
 Host C++ codec/항목별 receiver·DBC 교차 검증과 native SocketCAN 변환 시험을 추가했다.

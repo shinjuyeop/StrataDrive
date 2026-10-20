@@ -1,0 +1,63 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=1479759)
+  Write of size 8 at 0x7b5400000000 by thread T1:
+    #0 free ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:711 (libtsan.so.0+0x37ab8)
+    #1 ddsrt_free /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 (libddsc.so.11+0x20d425)
+    #2 gc_buckets_cb /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_entity_index.c:224 (libddsc.so.11+0x7930a)
+    #3 gcreq_queue_thread /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_gc.c:214 (libddsc.so.11+0xd2812)
+    #4 create_thread_wrapper /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_thread.c:260 (libddsc.so.11+0x11e0df)
+    #5 os_startRoutineWrapper /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/threads/posix/threads.c:198 (libddsc.so.11+0x20f16c)
+
+  Previous read of size 4 at 0x7b5400000000 by thread T5:
+    #0 ddsrt_chh_lookup /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/hopscotch.c:414 (libddsc.so.11+0x2000e1)
+    #1 ddsi_entidx_lookup_guid_untyped /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_entity_index.c:299 (libddsc.so.11+0x79854)
+    #2 entidx_lookup_guid_int /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_entity_index.c:305 (libddsc.so.11+0x798b0)
+    #3 ddsi_entidx_lookup_participant_guid /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_entity_index.c:398 (libddsc.so.11+0x79dc3)
+    #4 handle_InfoDST /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_receive.c:1742 (libddsc.so.11+0x10c8a2)
+    #5 handle_submsg_sequence /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_receive.c:3141 (libddsc.so.11+0x114bbc)
+    #6 handle_rtps_message /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_receive.c:3300 (libddsc.so.11+0x115eba)
+    #7 do_packet /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_receive.c:3385 (libddsc.so.11+0x116428)
+    #8 ddsi_recv_thread /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_receive.c:3670 (libddsc.so.11+0x117dc0)
+    #9 create_thread_wrapper /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_thread.c:260 (libddsc.so.11+0x11e0df)
+    #10 os_startRoutineWrapper /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/threads/posix/threads.c:198 (libddsc.so.11+0x20f16c)
+
+  As if synchronized via sleep:
+    #0 nanosleep ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:366 (libtsan.so.0+0x6696c)
+    #1 dds_sleepfor /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/time.c:33 (libddsc.so.11+0x20a888)
+    #2 gcreq_queue_thread /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_gc.c:204 (libddsc.so.11+0xd275d)
+    #3 create_thread_wrapper /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_thread.c:260 (libddsc.so.11+0x11e0df)
+    #4 os_startRoutineWrapper /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/threads/posix/threads.c:198 (libddsc.so.11+0x20f16c)
+
+  Thread T1 'gc' (tid=1479761, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 ddsrt_thread_create /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/threads/posix/threads.c:462 (libddsc.so.11+0x20fb30)
+    #2 create_thread_int /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_thread.c:345 (libddsc.so.11+0x11e77c)
+    #3 ddsi_create_thread /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_thread.c:368 (libddsc.so.11+0x11e90a)
+    #4 ddsi_gcreq_queue_start /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_gc.c:242 (libddsc.so.11+0xd2a26)
+    #5 ddsi_start /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_init.c:1702 (libddsc.so.11+0xee326)
+    #6 dds_domain_init /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_domain.c:181 (libddsc.so.11+0x1811c6)
+    #7 dds_domain_create_internal_xml_or_raw /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_domain.c:258 (libddsc.so.11+0x18169e)
+    #8 dds_domain_create_internal /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_domain.c:282 (libddsc.so.11+0x1817e3)
+    #9 create_participant_flags_guid /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_participant.c:112 (libddsc.so.11+0x1675d6)
+    #10 dds_create_participant /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_participant.c:192 (libddsc.so.11+0x167b72)
+    #11 probe_open /d/shin/StrataDrive/tests/integration/middleware/dds_channel.c:17 (dds_candidate_probe+0xad9a)
+    #12 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (dds_candidate_probe+0x42e3)
+
+  Thread T5 'recv' (tid=1479765, running) created by main thread at:
+    #0 pthread_create ../../../../src/libsanitizer/tsan/tsan_interceptors_posix.cpp:969 (libtsan.so.0+0x605b8)
+    #1 ddsrt_thread_create /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/threads/posix/threads.c:462 (libddsc.so.11+0x20fb30)
+    #2 create_thread_int /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_thread.c:345 (libddsc.so.11+0x11e77c)
+    #3 ddsi_create_thread /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_thread.c:368 (libddsc.so.11+0x11e90a)
+    #4 setup_and_start_recv_threads /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_init.c:931 (libddsc.so.11+0xe8edc)
+    #5 ddsi_start /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_init.c:1710 (libddsc.so.11+0xee3f0)
+    #6 dds_domain_init /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_domain.c:181 (libddsc.so.11+0x1811c6)
+    #7 dds_domain_create_internal_xml_or_raw /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_domain.c:258 (libddsc.so.11+0x18169e)
+    #8 dds_domain_create_internal /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_domain.c:282 (libddsc.so.11+0x1817e3)
+    #9 create_participant_flags_guid /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_participant.c:112 (libddsc.so.11+0x1675d6)
+    #10 dds_create_participant /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_participant.c:192 (libddsc.so.11+0x167b72)
+    #11 probe_open /d/shin/StrataDrive/tests/integration/middleware/dds_channel.c:17 (dds_candidate_probe+0xad9a)
+    #12 main /d/shin/StrataDrive/tests/integration/middleware/probe.cpp:22 (dds_candidate_probe+0x42e3)
+
+SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free
+==================
+ThreadSanitizer: reported 1 warnings

@@ -1,0 +1,54 @@
+7847 warnings generated.
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:20:57: warning: repeated branch in conditional chain [bugprone-branch-clone]
+    else if constexpr(std::is_same_v<E,session::Phase>) return n<=3;
+                                                        ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:20:68: note: end of the original
+    else if constexpr(std::is_same_v<E,session::Phase>) return n<=3;
+                                                                   ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:21:66: note: clone 1 starts here
+    else if constexpr(std::is_same_v<E,can::ActuatorLocalState>) return n<=3;
+                                                                 ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:22:62: warning: repeated branch in conditional chain [bugprone-branch-clone]
+    else if constexpr(std::is_same_v<E,can::ActuatorOrigin>) return n<=2;
+                                                             ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:22:73: note: end of the original
+    else if constexpr(std::is_same_v<E,can::ActuatorOrigin>) return n<=2;
+                                                                        ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:27:62: note: clone 1 starts here
+    else if constexpr(std::is_same_v<E,can::BmsPowerAction>) return n<=2;
+                                                             ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:36:67: note: clone 2 starts here
+    else if constexpr(std::is_same_v<E,transport::LeafOperation>) return n<=2;
+                                                                  ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:28:61: warning: repeated branch in conditional chain [bugprone-branch-clone]
+    else if constexpr(std::is_same_v<E,can::BmsPowerState>) return n<=4;
+                                                            ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:28:72: note: end of the original
+    else if constexpr(std::is_same_v<E,can::BmsPowerState>) return n<=4;
+                                                                       ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:31:69: note: clone 1 starts here
+    else if constexpr(std::is_same_v<E,can::DriveRegenLimitReason>) return n<=4;
+                                                                    ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:33:58: note: clone 2 starts here
+    else if constexpr(std::is_same_v<E,zone::ZonePhase>) return n<=4;
+                                                         ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:29:66: warning: repeated branch in conditional chain [bugprone-branch-clone]
+    else if constexpr(std::is_same_v<E,can::BmsDrivePermission>) return n<=1;
+                                                                 ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:29:77: note: end of the original
+    else if constexpr(std::is_same_v<E,can::BmsDrivePermission>) return n<=1;
+                                                                            ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:32:58: note: clone 1 starts here
+    else if constexpr(std::is_same_v<E,zone::ZoneScope>) return n<=1;
+                                                         ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:30:62: warning: repeated branch in conditional chain [bugprone-branch-clone]
+    else if constexpr(std::is_same_v<E,can::BmsLimitReason>) return n<=5;
+                                                             ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:30:73: note: end of the original
+    else if constexpr(std::is_same_v<E,can::BmsLimitReason>) return n<=5;
+                                                                        ^
+/d/shin/StrataDrive/interfaces/remote/owner_wire.cpp:35:63: note: clone 1 starts here
+    else if constexpr(std::is_same_v<E,transport::Operation>) return n<=5;
+                                                              ^
+Suppressed 7842 warnings (7842 in non-user code).
+Use -header-filter=.* to display errors from all non-system headers. Use -system-headers to display errors from system headers as well.

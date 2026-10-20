@@ -1,0 +1,56 @@
+Test project /d/shin/StrataDrive/build/m4-tsan
+    Start  55: M4AsyncWall.IndependentOwnersRunActualNormalPath
+1/9 Test  #55: M4AsyncWall.IndependentOwnersRunActualNormalPath .................................***Failed    1.88 sec
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M4AsyncWall.IndependentOwnersRunActualNormalPath
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M4AsyncWall
+[ RUN      ] M4AsyncWall.IndependentOwnersRunActualNormalPath
+/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:16: Failure
+Value of: result.passed
+  Actual: false
+Expected: true
+scenario=normal core=10 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=810816152 fault=915290114 selected=915819030 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14
+/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:60: Failure
+Expected: (r.trace.back().pressure_pa) < (1), actual: 1e+06 vs 1
+/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:60: Failure
+Expected: (r.trace.back().torque_nm) > (50), actual: 0 vs 50
+[  FAILED  ] M4AsyncWall.IndependentOwnersRunActualNormalPath (1870 ms)
+[----------] 1 test from M4AsyncWall (1870 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1870 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] M4AsyncWall.IndependentOwnersRunActualNormalPath
+
+ 1 FAILED TEST
+
+    Start  56: M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse
+2/9 Test  #56: M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse .................   Passed    1.88 sec
+    Start  92: M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory
+3/9 Test  #92: M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory .......................   Passed    4.50 sec
+    Start  93: M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction
+4/9 Test  #93: M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction ....................   Passed    1.93 sec
+    Start  94: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"drive"
+5/9 Test  #94: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"drive" ......   Passed    1.96 sec
+    Start  95: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"monitor"
+6/9 Test  #95: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"monitor" ....   Passed    1.96 sec
+    Start  96: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"physical"
+7/9 Test  #96: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"physical" ...   Passed    1.96 sec
+    Start 121: SessionLoops.EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes
+8/9 Test #121: SessionLoops.EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes ..............   Passed    0.01 sec
+    Start 142: LatestSnapshot.ConcurrentOwnerCopiesCannotTearOrRegressAnAcquisition
+9/9 Test #142: LatestSnapshot.ConcurrentOwnerCopiesCannotTearOrRegressAnAcquisition .............   Passed    0.14 sec
+
+89% tests passed, 1 tests failed out of 9
+
+Label Time Summary:
+runtime.wall    =  16.22 sec*proc (9 tests)
+
+Total Test time (real) =  16.33 sec
+
+The following tests FAILED:
+	 55 - M4AsyncWall.IndependentOwnersRunActualNormalPath (Failed) runtime.wall
+Errors while running CTest
