@@ -1,6 +1,7 @@
 #pragma once
 
-#include "bms_receiver.hpp"
+#include "bms_frame_codec.hpp"
+#include "bms_parent_context.hpp"
 
 namespace stratadrive::central {
 // Independently trusted lifecycle ingress, distinct from VehicleRequest.

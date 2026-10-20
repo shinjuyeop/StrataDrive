@@ -1,6 +1,8 @@
 #pragma once
 
 #include "owner_transport.hpp"
+#include "command_gateway.hpp"
+#include "rear_power_gateway.hpp"
 #include "zone_feedback_monitor.hpp"
 #include "steering_receiver.hpp"
 #include "brake_receiver.hpp"

@@ -3,14 +3,11 @@
 #include "local_safety.hpp"
 #include "actuator_stop_lease.hpp"
 #include "power_commands.hpp"
+#include "gateway_messages.hpp"
+#include "bms_receiver.hpp"
 #include "bounded_rx_queue.hpp"
 
 namespace stratadrive::zone {
-struct RearPowerDelivery {
-    can::BmsMessage message;
-    std::optional<can::BmsParentContext> parent; // retain independently authorized context
-    std::uint64_t expires_at_ns{0};
-};
 class RearPowerControlPort : public ProtectionPort {
 public:
     virtual bool stage_context(const can::BmsFrame& frame, const RearPowerDelivery& delivery) noexcept = 0;

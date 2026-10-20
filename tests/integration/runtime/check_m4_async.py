@@ -12,7 +12,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[3]
-SOURCE_DIRS = ("central", "zone", "vecu", "interfaces", "simulation", "tests", "tools")
+SOURCE_DIRS = ("cmake", "central", "zone", "vecu", "interfaces", "simulation", "tests", "tools")
 PROFILES = {"normal": "build/m4-readiness", "sanitized": "build/m1-angle-sanitized"}
 SCENARIOS = {
     "logical-normal": "M4AsyncRuntime.NormalUsesRealBmsAndFeedbackBeforeActuation",
@@ -132,7 +132,7 @@ def main():
             raise ValueError("reuse rejected: tested source/commit differs")
     else:
         raw.mkdir(parents=True, exist_ok=False)
-        metadata = {"source_commit": commit, "source_digest": digest, "utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        metadata = {"source_commit": commit, "source_digest": digest, "source_dirs": SOURCE_DIRS, "utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
                     "kernel": platform.release(), "machine": platform.machine(), "cpu_count": os.cpu_count(), "affinity": sorted(os.sched_getaffinity(0)),
                     "scheduler_policy": os.sched_getscheduler(0), "compiler": subprocess.check_output(["c++", "--version"], text=True).splitlines()[0],
                     "cmake": subprocess.check_output(["cmake", "--version"], text=True).splitlines()[0],

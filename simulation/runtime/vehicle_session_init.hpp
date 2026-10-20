@@ -1,20 +1,13 @@
 #pragma once
 
 #include "session_participant.hpp"
+#include "session_reset.hpp"
 #include "vehicle_coordinator_port.hpp"
 #include "rear_power_control.hpp"
 #include "zone_feedback_monitor.hpp"
 #include "bms_controller.hpp"
 
 namespace stratadrive::simulation {
-struct SessionResetEvidence {
-    std::optional<battery::ModelMeasurement<double>> wheel_speed_rad_s;
-    std::optional<drive::TorqueMeasurement> torque;
-    std::optional<power::SensorSnapshot> power;
-};
-// Functional SIL reset preconditions, not production vehicle calibration.
-// Each acquisition retains its own source/dependency time and model identity.
-bool session_reset_safe(const SessionResetEvidence& evidence,std::uint32_t model_epoch,std::uint64_t now_ns);
 class SessionRecoveryPort {
 public:
     virtual ~SessionRecoveryPort() = default;

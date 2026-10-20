@@ -3,7 +3,12 @@
 #include "owner_transport.hpp"
 #include "session_participant.hpp"
 #include "latest_snapshot.hpp"
-#include "vehicle_session_init.hpp"
+#include "session_reset.hpp"
+#include "steering_actuator.hpp"
+#include "brake_actuator.hpp"
+#include "drive_controller.hpp"
+#include "bms_controller.hpp"
+#include "power_controller.hpp"
 #include "m4_faults.hpp"
 
 namespace stratadrive::simulation {

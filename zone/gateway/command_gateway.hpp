@@ -1,11 +1,11 @@
 #pragma once
 
 #include "local_safety.hpp"
+#include "gateway_messages.hpp"
 #include "actuator_stop_lease.hpp"
 #include "bounded_rx_queue.hpp"
 
 namespace stratadrive::zone {
-using CommandFrame = std::variant<can::SteeringFrame, can::BrakeFrame, can::DriveFrame>;
 class GatewayPort : public ProtectionPort {
 public:
     virtual std::uint64_t now_ns() noexcept = 0;

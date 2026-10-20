@@ -2,6 +2,7 @@
 
 #include "actuator_receiver_state.hpp"
 #include "bms_frame_codec.hpp"
+#include "bms_parent_context.hpp"
 
 namespace stratadrive::can {
 struct BmsPhysicalRanges {
@@ -19,14 +20,6 @@ struct BmsReceiverConfig {
     std::uint64_t observation_age_ns{150000000ULL};
     std::uint64_t observation_timeout_ns{300000000ULL};
     bool allow_degraded_permission{false};
-};
-// Caller supplies a separately validated Central power-request identity/deadline.
-// Never construct this trusted context by reading the incoming CAN frame alone.
-struct BmsParentContext {
-    std::uint32_t epoch;
-    std::uint32_t sequence;
-    std::uint64_t source_time_ns;
-    std::uint64_t expires_at_ns;
 };
 enum class BmsFieldQuality { NotApplicable, Unavailable, Usable, Stale, Invalid };
 enum class BmsReceiveIssue { None, Expired, ParentMissing, ParentMismatch, ParentRollback };
