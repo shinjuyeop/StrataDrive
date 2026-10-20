@@ -18,6 +18,11 @@ M4Timing Audit::result(std::string name) {
     }
 M4Result Network::finish() {
         collect_filters();
+        for(const auto& log:transport_logs) {
+            result.event_overflow=result.event_overflow || log.overflow;
+            result.transport_events.insert(result.transport_events.end(),log.rows.begin(),log.rows.end());
+        }
+        std::stable_sort(result.transport_events.begin(),result.transport_events.end(),[](const auto& a,const auto& b){return a.time_ns<b.time_ns;});
         if(execution_watch) { const auto rows=execution_watch->rows(); result.execution.insert(result.execution.end(),rows.begin(),rows.end()); }
         for(const auto& row:result.execution) {
             if(!row.end_ns || row.end_ns>row.deadline_ns) ++result.deadline_misses;
@@ -93,6 +98,11 @@ void write_m4_result(const M4Config& config,const M4Result& r,const std::string&
     std::filesystem::create_directories(directory); const auto prefix=std::filesystem::path(directory)/(std::string(config.wall_time?"wall-":"logical-")+m4_scenario_name(config.scenario));
     std::ofstream csv(prefix.string()+".csv"); csv<<"elapsed_ms,source_ns,epoch,run_gate,normal_armed,protected_all,management,coordinator_fault,stop_state,angle_rad,pressure_pa,torque_nm,bus_v,soc,steering_source_ns,brake_source_ns,drive_source_ns,command_source_ns,command_root_sequence,central_observation_ns,energy_j,model_epoch,model_sequence,contacts\n"<<std::setprecision(12);
     for(const auto& row:r.trace) csv<<static_cast<double>(row.elapsed_ns)/m4_detail::kMs<<','<<row.source_ns<<','<<row.epoch<<','<<row.run_gate<<','<<row.normal_armed<<','<<row.protected_all<<','<<row.management<<','<<row.coordinator_fault<<','<<row.stop_state<<','<<row.angle_rad<<','<<row.pressure_pa<<','<<row.torque_nm<<','<<row.bus_v<<','<<row.soc<<','<<row.steering_source_ns<<','<<row.brake_source_ns<<','<<row.drive_source_ns<<','<<row.command_source_ns<<','<<row.command_root_sequence<<','<<row.central_observation_ns<<','<<row.energy_j<<','<<row.model_epoch<<','<<row.model_sequence<<','<<row.contacts<<'\n';
+    if(config.transport_trace) {
+        std::ofstream transport_csv(prefix.string()+"-transport.csv");
+        transport_csv<<"time_ns,stage,owner,peer,epoch,token,operation,original_source_ns,inner_deadline_ns,sent_ns,envelope_deadline_ns,result_source_ns,payload_source_ns,outcome\n";
+        for(const auto& e:r.transport_events)transport_csv<<e.time_ns<<','<<e.stage<<','<<e.owner<<','<<e.peer<<','<<e.epoch<<','<<e.token<<','<<e.operation<<','<<e.original_source_ns<<','<<e.inner_deadline_ns<<','<<e.sent_ns<<','<<e.deadline_ns<<','<<e.result_source_ns<<','<<e.payload_source_ns<<','<<e.outcome<<'\n';
+    }
     std::ofstream guard(prefix.string()+"-execution.csv"); guard<<"owner,slot,release_ns,deadline_ns,start_ns,end_ns,cpu_ns,detected_ns,requested_wake_ns\n";
     for(const auto& j:r.execution) guard<<j.owner<<','<<j.slot<<','<<j.release_ns<<','<<j.deadline_ns<<','<<j.start_ns<<','<<j.end_ns<<','<<j.cpu_ns<<','<<j.detected_ns<<','<<j.requested_wake_ns<<'\n';
     std::ofstream events(prefix.string()+"-events.csv"); events<<"time_ns,elapsed_ms,kind,owner,epoch,source_ns,deadline_ns,reference_ns,code\n"<<std::setprecision(12);
@@ -109,7 +119,7 @@ void write_m4_result(const M4Config& config,const M4Result& r,const std::string&
         summary<<"{\"owner\":"<<t.owner<<",\"policy\":"<<t.policy<<",\"priority\":"<<t.priority<<",\"cpu\":"<<t.cpu<<",\"tid\":"<<t.tid<<",\"requested_cpu\":"<<t.requested_cpu<<",\"setup_error\":"<<t.setup_error<<",\"affinity\":[";
         for(std::size_t k=0;k<t.affinity.size();++k) { if(k) summary<<','; summary<<t.affinity[k]; } summary<<"]}";
     }
-    summary<<"],\"guards_enabled\":"<<config.execution_guards<<",\"fifo_requested\":"<<config.fifo<<",\"startup_ok\":"<<r.startup_ok<<",\"timing_ok\":"<<r.timing_ok<<",\"deadline_misses\":"<<r.deadline_misses<<",\"skipped_opportunities\":"<<r.skipped_opportunities;
+    summary<<"],\"transport_trace_enabled\":"<<config.transport_trace<<",\"guards_enabled\":"<<config.execution_guards<<",\"fifo_requested\":"<<config.fifo<<",\"startup_ok\":"<<r.startup_ok<<",\"timing_ok\":"<<r.timing_ok<<",\"deadline_misses\":"<<r.deadline_misses<<",\"skipped_opportunities\":"<<r.skipped_opportunities;
     summary<<",\"faults\":[";
     for(std::size_t i=0;i<config.faults.size();++i) {
         const auto& f=config.faults[i]; if(i) summary<<',';

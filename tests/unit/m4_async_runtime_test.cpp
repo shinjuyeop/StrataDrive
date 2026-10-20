@@ -8,6 +8,7 @@ namespace {
 using namespace stratadrive::simulation;
 M4Result run(M4Scenario scenario,bool wall=false) {
     M4Config c; c.scenario=scenario; c.wall_time=wall;
+    c.transport_trace=std::getenv("STRATADRIVE_M4_TRANSPORT_TRACE")!=nullptr;
     if(scenario==M4Scenario::NormalStop) c.duration_ns=3000000000;
     if(scenario==M4Scenario::Rejoin) c.duration_ns=4200000000;
     if(scenario==M4Scenario::OldEpoch) c.first_epoch=3;
@@ -60,4 +61,30 @@ TEST(M4AsyncWall, IndependentOwnersRunActualNormalPath) {
     EXPECT_NEAR(r.trace.back().angle_rad,std::atan(2.7*.02),.001); EXPECT_LT(r.trace.back().pressure_pa,1); EXPECT_GT(r.trace.back().torque_nm,50);
 }
 TEST(M4AsyncWall, IndependentFeedbackLossHasMeasuredProtectionResponse) { run(M4Scenario::FeedbackLoss,true); }
+TEST(M4AsyncRuntime, TransportTraceCorrelatesOriginalAuthorityWithoutChangingPhysicalResponse) {
+    M4Config c;const auto original=run_m4_async(c);c.transport_trace=true;const auto traced=run_m4_async(c);
+    ASSERT_TRUE(original.passed);ASSERT_TRUE(traced.passed)<<traced.reason;EXPECT_FALSE(traced.event_overflow);
+    ASSERT_EQ(original.trace.size(),traced.trace.size());
+    for(std::size_t i=0;i<original.trace.size();++i) {
+        const auto& a=original.trace[i];const auto& b=traced.trace[i];
+        EXPECT_EQ(a.run_gate,b.run_gate);EXPECT_EQ(a.normal_armed,b.normal_armed);EXPECT_EQ(a.coordinator_fault,b.coordinator_fault);
+        EXPECT_DOUBLE_EQ(a.angle_rad,b.angle_rad);EXPECT_DOUBLE_EQ(a.pressure_pa,b.pressure_pa);EXPECT_DOUBLE_EQ(a.torque_nm,b.torque_nm);
+        EXPECT_DOUBLE_EQ(a.bus_v,b.bus_v);EXPECT_DOUBLE_EQ(a.soc,b.soc);EXPECT_EQ(a.model_sequence,b.model_sequence);
+    }
+    std::size_t checked=0;
+    for(const auto& sent:traced.transport_events) {
+        if(std::string(sent.stage)!="central-enqueued" || sent.operation!=3)continue;
+        bool received=false,dispatched=false,completed=false,returned=false;
+        for(const auto& e:traced.transport_events)if(e.epoch==sent.epoch && e.token==sent.token) {
+            EXPECT_EQ(e.sent_ns,sent.sent_ns);EXPECT_EQ(e.original_source_ns,sent.original_source_ns);
+            EXPECT_EQ(e.inner_deadline_ns,sent.inner_deadline_ns);EXPECT_EQ(e.deadline_ns,sent.deadline_ns);
+            if(std::string(e.stage)=="zone-received")received=true;
+            if(std::string(e.stage)=="zone-leaf-enqueued")dispatched=true;
+            if(std::string(e.stage)=="leaf-completed") {completed=true;EXPECT_EQ(e.outcome,1);EXPECT_GT(e.payload_source_ns,0U);}
+            if(std::string(e.stage)=="central-result-accepted") {returned=true;EXPECT_LT(e.time_ns,e.deadline_ns);EXPECT_LE(e.result_source_ns,e.time_ns);}
+        }
+        EXPECT_TRUE(received);EXPECT_TRUE(dispatched);EXPECT_TRUE(completed);EXPECT_TRUE(returned);++checked;
+    }
+    EXPECT_GT(checked,20U);
+}
 }  // namespace

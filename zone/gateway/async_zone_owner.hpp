@@ -1,4 +1,5 @@
 #pragma once
+#include "transport_trace.hpp"
 
 #include "owner_transport.hpp"
 #include "command_gateway.hpp"
@@ -13,6 +14,7 @@ namespace stratadrive::zone {
 // Leaf state is accessed exclusively through one directed link per Leaf.
 class AsyncZoneOwner final : private GatewayPort,private RearPowerPort {
 public:
+    void transport_trace(transport::TransportTrace* sink) { trace_=sink; } // before launch only
     AsyncZoneOwner(ZoneScope scope,transport::Clock& clock,transport::RunGate& gate,transport::ZoneLink& central,
         const std::array<transport::LeafLink*,transport::kLeaves>& leaves);
     bool initialize(std::uint32_t epoch,std::uint64_t enable_ns);
@@ -31,6 +33,7 @@ public:
     // Deterministic injection at the transport write boundary, owner thread only.
     bool fail_brake_write{false},drop_feedback{false},drop_permission_feedback{false};
 private:
+    transport::TransportTrace* trace_{nullptr};
     std::uint64_t now_ns() noexcept override { return clock_.now_ns(); }
     bool send(const CommandFrame& frame,const central::CommandContext& context) noexcept override;
     bool send(const can::BmsFrame& frame,const RearPowerDelivery& delivery) noexcept override;

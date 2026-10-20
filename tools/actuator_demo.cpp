@@ -38,7 +38,7 @@ void usage(std::ostream& output) {
            << "  actuator_demo ev-power [normal|weld|current-unknown|aux-blocked]\n";
 #ifdef STRATADRIVE_LINUX_SESSION
     output << "  actuator_demo epoch <init|next> <store_directory>\n";
-    output << "  actuator_demo m4-async <logical|wall> <normal|normal-stop|partial-front|feedback-loss|command-loss|partial-arm|rejoin|old-epoch|fault> <epoch_store> <new_output_directory> [fault=path:kind:target:start_ms:duration_ms:delay_ms[:phase]] [duration-ms=N] [recover-ms=N] [replace-links] [guards] [cpus=A,B] [fifo]\n";
+    output << "  actuator_demo m4-async <logical|wall> <normal|normal-stop|partial-front|feedback-loss|command-loss|partial-arm|rejoin|old-epoch|fault> <epoch_store> <new_output_directory> [fault=path:kind:target:start_ms:duration_ms:delay_ms[:phase]] [duration-ms=N] [recover-ms=N] [replace-links] [trace-transport] [guards] [cpus=A,B] [fifo]\n";
     output << "  actuator_demo steering-rtos-plant <normal|command-loss|corrupt|control-stall> <vcan> <inherited_channel_fd> <enable_ns> <output_directory>\n";
     output << "  actuator_demo steering-runtime <normal|overrun|stall> <new_output_directory> [trace-off]\n";
     output << "  actuator_demo multirate-runtime <normal|brake-stall|drive-stall|bms-stall|power-stall|rx-stall|rx-corrupt|feedback-replay|monitor-overrun|plant-overrun|monitor-stall|io-overrun> <vcan_interface> <new_output_directory> [trace-off] [owner-cpus=brake,drive,bms,power,rx,monitor,plant_fixture] [owner-fifo=10,10,9,10,18,20,19]\n";

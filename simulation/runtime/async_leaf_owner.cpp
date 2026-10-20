@@ -114,6 +114,7 @@ bool AsyncLeafOwner::receive(const transport::LeafRequest& r) {
     return false;
 }
 void AsyncLeafOwner::handle(const transport::LeafRequest& r) {
+    if(trace_) transport::trace(trace_,"leaf-received",now_ns(),leaf_==transport::Leaf::Steering || leaf_==transport::Leaf::Brake?0:1,r);
     if(r.epoch!=epoch_) {
         if(input_events_.size()<input_events_.capacity()) input_events_.push_back({now_ns(),"old-epoch-rejected",static_cast<std::size_t>(leaf_)+2,r.epoch,r.sent_ns,r.deadline_ns,0,0});
         return;
@@ -145,7 +146,10 @@ void AsyncLeafOwner::handle(const transport::LeafRequest& r) {
         else ok=false;
         if(ok) { command_expiry_ns_=0; output(now); } // terminal lease now owns authority
     }
-    if(!link_.reports.push(transport::LeafResult{epoch_,r.token,now_ns(),r.operation,ok})) protect();
+    const auto completed=now_ns();
+    const bool queued=link_.reports.push(transport::LeafResult{epoch_,r.token,completed,r.operation,ok});
+    if(trace_) transport::trace(trace_,"leaf-completed",completed,leaf_==transport::Leaf::Steering || leaf_==transport::Leaf::Brake?0:1,r,ok?1:-1);
+    if(!queued) protect();
 }
 void AsyncLeafOwner::output(std::uint64_t now) {
     OwnerActuation out; out.epoch=epoch_; out.source_ns=now;

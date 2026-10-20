@@ -1,4 +1,5 @@
 #pragma once
+#include "transport_trace.hpp"
 
 #include "vehicle_coordinator.hpp"
 #include "owner_transport.hpp"
@@ -13,6 +14,7 @@ enum class AsyncTransportFault { None,Clock,Continuity,Send,ResultMismatch,Resul
 // and original deadlines are monitored even when no new request arrives.
 class AsyncCoordinatorPort final : public CoordinatorPort {
 public:
+    void transport_trace(transport::TransportTrace* sink) { trace_=sink; } // before launch only
     AsyncCoordinatorPort(transport::Clock& clock,transport::RunGate& gate,transport::ZoneLink& front,transport::ZoneLink& rear);
     bool initialize(CoordinatorSession session);
     void service();
@@ -44,6 +46,7 @@ public:
     OperationStatus stop_status(const NormalStopPlan& plan) noexcept override;
     bool protect() noexcept override;
 private:
+    transport::TransportTrace* trace_{nullptr};
     struct Pending { transport::ZoneRequest request; std::size_t zone; };
     struct IssuedPermission { can::BmsMessage message; std::optional<can::BmsParentContext> parent; };
     bool post(std::size_t zone,const transport::ZoneWork& work,std::uint64_t expiry) noexcept;

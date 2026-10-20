@@ -32,13 +32,25 @@ bool AsyncCoordinatorPort::protect() noexcept {
 }
 bool AsyncCoordinatorPort::post(std::size_t zone,const transport::ZoneWork& work,std::uint64_t expiry) noexcept {
     const auto now=now_ns();
-    if(failed_ || !gate_.allows(session_.epoch) || expiry<=now || next_token_==std::numeric_limits<std::uint64_t>::max()) return false;
+    if(failed_ || !gate_.allows(session_.epoch) || expiry<=now || next_token_==std::numeric_limits<std::uint64_t>::max()) {
+        if(trace_) {
+            const transport::ZoneRequest attempted{session_.epoch,next_token_,now,expiry,work};
+            const int reason=(failed_?1:0) | (!gate_.allows(session_.epoch)?2:0) | (expiry<=now?4:0) | (next_token_==std::numeric_limits<std::uint64_t>::max()?8:0);
+            transport::trace(trace_,"central-post-rejected",now_ns(),zone,attempted,reason);
+        }
+        return false;
+    }
     const auto deadline=now+std::min(transport::kResultBudgetNs,expiry-now);
     auto slot=std::find_if(pending_.begin(),pending_.end(),[](const auto& p) { return !p; });
-    if(slot==pending_.end()) { fail(); return false; }
+    if(slot==pending_.end()) {
+        if(trace_)transport::trace(trace_,"central-post-full",now_ns(),zone,transport::ZoneRequest{session_.epoch,next_token_,now,deadline,work},-1);
+        fail(); return false;
+    }
     transport::ZoneRequest request{session_.epoch,next_token_++,now,deadline,work};
     *slot=Pending{request,zone};
-    if(!links_[zone]->work.push(request)) { fail(); return false; }
+    const bool queued=links_[zone]->work.push(request);
+    if(trace_) transport::trace(trace_,"central-enqueued",now_ns(),zone,request,queued?1:-1);
+    if(!queued) { fail(); return false; }
     return true;
 }
 bool AsyncCoordinatorPort::authorize_lifecycle(const LifecycleRequest& root) noexcept { return post(1,root,root.identity.expires_at_ns); }
@@ -64,7 +76,15 @@ bool AsyncCoordinatorPort::deliver_power(const VehicleManagementOutput& out) noe
     return true;
 }
 bool AsyncCoordinatorPort::deliver_commands(const AllocatedCommands& commands) noexcept {
-    if(commands_ || commands.parent.epoch!=session_.epoch) return false;
+    if(commands_ || commands.parent.epoch!=session_.epoch) {
+        if(trace_) {
+            const transport::ZoneRequest attempted{session_.epoch,0,now_ns(),commands.expires_at_ns,ScopedCommands{front_commands(commands)}};
+            if(trace_) transport::trace(trace_,"command-submit-rejected",now_ns(),0,attempted,commands_?1:2);
+            for(const auto& p:pending_)if(p && transport::operation(p->request.work)==transport::Operation::Commands)
+                if(trace_) transport::trace(trace_,"command-still-pending",now_ns(),p->zone,p->request);
+        }
+        return false;
+    }
     commands_=commands;
     if(!post(0,ScopedCommands{front_commands(commands)},commands.expires_at_ns)) { commands_.reset(); return false; }
     command_source_ns_=commands.steering.source_time_ns; command_root_sequence_=commands.parent.sequence;
@@ -91,10 +111,13 @@ void AsyncCoordinatorPort::result(std::size_t zone,const transport::TxResult& r)
     auto slot=std::find_if(pending_.begin(),pending_.end(),[&](const auto& p) { return p && p->request.epoch==r.epoch && p->request.token==r.token; });
     if(slot==pending_.end()) return; // duplicate/old result cannot complete a new operation
     const auto p=**slot; const auto now=now_ns();
+    if(trace_) transport::trace(trace_,"central-result-received",now,zone,p.request,r.accepted?1:-1,r.source_ns);
     if(zone!=p.zone || r.operation!=transport::operation(p.request.work) || r.source_ns<p.request.sent_ns || r.source_ns>now || now>=p.request.deadline_ns || !r.accepted) {
         if(!failed_) failed_operation_=static_cast<int>(r.operation);
+        if(trace_) transport::trace(trace_,"central-result-rejected",now_ns(),zone,p.request,-1,r.source_ns);
         fail(now>=p.request.deadline_ns?AsyncTransportFault::ResultLate:!r.accepted?AsyncTransportFault::ResultRejected:AsyncTransportFault::ResultMismatch); return;
     }
+    if(trace_) transport::trace(trace_,"central-result-accepted",now_ns(),zone,p.request,1,r.source_ns);
     slot->reset();
     if(r.operation==transport::Operation::Arm) armed_[zone]=true;
     if(r.operation==transport::Operation::Stop) stopped_[zone]=true;
@@ -139,7 +162,7 @@ void AsyncCoordinatorPort::service() {
         for(std::size_t i=0;i<transport::kBudget;++i) { const auto r=links_[z]->results.pop(); if(!r) break; result(z,*r); }
         for(std::size_t i=0;i<transport::kBudget;++i) { const auto f=links_[z]->feedback.pop(); if(!f) break; receive(z,*f); }
     }
-    for(const auto& p:pending_) if(p && now_ns()>=p->request.deadline_ns) { if(!failed_) failed_operation_=static_cast<int>(transport::operation(p->request.work)); fail(AsyncTransportFault::ResultTimeout); }
+    for(const auto& p:pending_) if(p && now_ns()>=p->request.deadline_ns) { if(!failed_) failed_operation_=static_cast<int>(transport::operation(p->request.work)); if(trace_ && !failed_) transport::trace(trace_,"central-result-timeout",now_ns(),p->zone,p->request,-1); fail(AsyncTransportFault::ResultTimeout); }
 }
 NormalDriveReadinessInputs AsyncCoordinatorPort::feedback() {
     const auto now=now_ns(); NormalDriveReadinessInputs in; in.epoch=session_.epoch; in.session_enable_ns=session_.enable_ns;

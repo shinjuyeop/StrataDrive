@@ -95,16 +95,22 @@ Network::Network(const M4Config& c):config(c),clock(c.wall_time),start(clock.now
         for(std::size_t i=0;i<audit.size();++i) audit[i].durations.reserve(static_cast<std::size_t>(config.duration_ns/(i==9?2*kMs:i==8?kMs:kIoPoll))+32);
         physical.trace.reserve(static_cast<std::size_t>(config.duration_ns/(10*kMs))+32);
         central_trace.reserve(static_cast<std::size_t>(config.duration_ns/(10*kMs))+32);
+        if(config.transport_trace) {
+            for(std::size_t i=0;i<transport_logs.size();++i) {transport_logs[i].owner=i;transport_logs[i].rows.reserve(16384);}
+            port.transport_trace(&transport_logs[7]);
+        }
         bind_filters();
         std::array<transport::LeafLink*,transport::kLeaves> ptrs{}; for(std::size_t i=0;i<ptrs.size();++i) ptrs[i]=&leaves[i];
         for(std::size_t i=0;i<2;++i) {
             zone_owners[i]=std::make_unique<zone::AsyncZoneOwner>(i==0?zone::ZoneScope::Front:zone::ZoneScope::Rear,clock,gate,zones[i],ptrs);
+            if(config.transport_trace)zone_owners[i]->transport_trace(&transport_logs[i]);
             zone_sessions[i]=std::make_unique<ZoneSession>(*zone_owners[i],clock,sensors[i]);
             sessions[i]=std::make_unique<SessionOwnerLoop>(static_cast<session::Role>(i),*zone_sessions[i],session_links[i]);
         }
         for(std::size_t i=0;i<transport::kLeaves;++i) {
             leaf_owners[i]=std::make_unique<AsyncLeafOwner>(static_cast<transport::Leaf>(i),clock,gate,leaves[i],sensors[i+2],outputs[i],bms_gate);
             leaf_owners[i]->execution_deadline(config.execution_guards);
+            if(config.transport_trace)leaf_owners[i]->transport_trace(&transport_logs[i+2]);
             sessions[i+2]=std::make_unique<SessionOwnerLoop>(static_cast<session::Role>(i+2),*leaf_owners[i],session_links[i+2]);
         }
         sessions[7]=std::make_unique<SessionOwnerLoop>(session::Role::CentralIngress,ingress,session_links[7]);

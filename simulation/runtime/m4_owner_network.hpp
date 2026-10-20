@@ -86,6 +86,13 @@ public:
     void service() noexcept override { if(!prepared_) port_.service(); }
 private: central::AsyncCoordinatorPort& port_; Clock& clock_; runtime::LatestSnapshot<OwnerSensors>& sensors_; std::uint32_t prepared_{0};
 };
+struct TransportTraceLog final : transport::TransportTrace {
+    std::size_t owner{0};bool overflow{false};std::vector<transport::TransportTraceRow> rows;
+    void record(transport::TransportTraceRow row) noexcept override {
+        row.owner=owner;
+        if(rows.size()<rows.capacity())rows.push_back(row);else overflow=true;
+    }
+};
 struct Network;
 class BootPort final : public session::CoordinatorPort {
 public:
@@ -115,6 +122,7 @@ struct Network {
     std::array<std::vector<M4Event>,10> owner_events;
     transport::Protection monitor_override; std::atomic<std::uint32_t> running_epoch{0};
     PhysicalOwner physical{clock,gate,sensors,outputs,start,owner_events[8],monitor_override,config.first_epoch}; std::array<Audit,10> audit;
+    std::array<TransportTraceLog,8> transport_logs;
     std::unique_ptr<M4ExecutionWatch> execution_watch;
     std::vector<std::unique_ptr<FaultEvidence>> filters;
     std::array<bool,10> paused{},overrun{},fault_seen{},selected_seen{},gate_seen{};

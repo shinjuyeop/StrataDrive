@@ -39,7 +39,9 @@ bool AsyncZoneOwner::leaf_send(transport::Leaf leaf,transport::LeafRequest packe
     const auto now=now_ns();
     packet.deadline_ns=transport::delivery_deadline(packet.sent_ns,packet.deadline_ns);
     if(!gate_.allows(epoch_) || packet.epoch!=epoch_ || packet.sent_ns>now || packet.deadline_ns<=now) return false;
-    return leaves_[static_cast<std::size_t>(leaf)]->work.push(packet);
+    const bool queued=leaves_[static_cast<std::size_t>(leaf)]->work.push(packet);
+    if(trace_) transport::trace(trace_,"zone-leaf-enqueued",now_ns(),static_cast<std::size_t>(leaf)+2,packet,queued?1:-1);
+    return queued;
 }
 bool AsyncZoneOwner::send(const CommandFrame& frame,const central::CommandContext& context) noexcept try {
     if(context.parent.epoch!=epoch_ || now_ns()>=context.expires_at_ns) return false;
@@ -64,12 +66,16 @@ bool AsyncZoneOwner::arm_normal_commands(std::uint32_t epoch,std::uint64_t) noex
     return epoch==epoch_ && drive_arm_ack_ && commands_.arm();
 }
 void AsyncZoneOwner::complete(const transport::ZoneRequest& r,bool accepted,std::size_t frames) {
-    if(!central_.results.push({r.epoch,r.token,now_ns(),transport::operation(r.work),accepted,frames})) protect_local();
+    const auto completed=now_ns();
+    const bool queued=central_.results.push({r.epoch,r.token,completed,transport::operation(r.work),accepted,frames});
+    if(trace_) transport::trace(trace_,"zone-result-enqueued",now_ns(),7,r,accepted?1:-1,completed);
+    if(!queued) protect_local();
     if(!accepted && r.epoch==epoch_) protect_local();
 }
 void AsyncZoneOwner::forward(const transport::Feedback& f) { if(!drop_feedback && !central_.feedback.push(f)) protect_local(); }
 void AsyncZoneOwner::handle(const transport::ZoneRequest& r) {
     const auto now=now_ns();
+    if(trace_) transport::trace(trace_,"zone-received",now,7,r);
     // Old Epoch traffic is discarded without changing any new-session history.
     if(r.epoch!=epoch_) return;
     if(failed_ || !gate_.allows(epoch_) || r.sent_ns>now || now>=r.deadline_ns) { complete(r,false); return; }
@@ -87,6 +93,7 @@ void AsyncZoneOwner::handle(const transport::ZoneRequest& r) {
     } else if(const auto* c=std::get_if<central::ScopedCommands>(&r.work)) {
         const auto admitted=commands_.enqueue(*c);
         if(admitted!=AdmissionResult::Accepted) { if(!rejection_) rejection_=300+static_cast<int>(admitted); complete(r,false); return; }
+        if(trace_) transport::trace(trace_,"zone-command-dispatch",now_ns(),7,r);
         const auto sent=commands_.dispatch(); const bool ok=!sent.partial_front && sent.frames_enqueued==(scope_==ZoneScope::Front?2U:1U);
         if(!ok && !rejection_) rejection_=400+static_cast<int>(commands_.poll().safety.cause);
         complete(r,ok,sent.frames_enqueued);

@@ -30,6 +30,7 @@ void demo_m4_async(const M4DemoOptions& options) {
         else if(argument.rfind("duration-ms=",0)==0) config.duration_ns=milliseconds(argument.substr(12));
         else if(argument.rfind("recover-ms=",0)==0) config.recovery_ns=milliseconds(argument.substr(11));
         else if(argument=="replace-links") config.replace_links=true;
+        else if(argument=="trace-transport") config.transport_trace=true;
         else if(argument=="guards") config.execution_guards=true;
         else if(argument=="fifo") config.fifo=true;
         else if(argument.rfind("cpus=",0)==0) {

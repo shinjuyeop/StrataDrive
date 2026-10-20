@@ -1,6 +1,7 @@
 #pragma once
 #include "m4_faults.hpp"
 #include "m4_execution_watch.hpp"
+#include "transport_trace.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -17,6 +18,7 @@ struct M4Config {
     std::vector<M4Fault> faults;
     std::uint64_t recovery_ns{0}; bool replace_links{false};
     bool execution_guards{false},fifo{false}; int cpu_a{-1},cpu_b{-1};
+    bool transport_trace{false}; // opt-in intrusive diagnostics; separate timing cohort
 };
 struct M4Trace {
     std::uint64_t elapsed_ns,source_ns;
@@ -43,6 +45,7 @@ struct M4Result {
     std::vector<M4Trace> trace;
     std::vector<M4Timing> timing;
     std::vector<M4Event> events;
+    std::vector<transport::TransportTraceRow> transport_events;
     std::size_t stopped_ack_violations{0},replaced_links{0};
     bool gate_latched{true},event_overflow{false};
     std::uint64_t effective_injection_ns{0},live_fault_ns{0},normal_blocked_ns{0};

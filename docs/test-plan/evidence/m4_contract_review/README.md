@@ -81,3 +81,32 @@ accepted-input observation now records inner authority expiry; send/delivery fau
 observations continue to record envelope expiry. Existing assertion passes unchanged
 (1/1 focused). The fail-fast runner did not start ASan/UBSan in this first attempt;
 that scope is NOT RUN for57457e6. A fresh full run follows this correction.
+
+## Corrected contract boundary
+
+`c4195a6`: normal **963/963**, ASan/UBSan **963/963**, changed-boundary TSan
+**64/64** (Remote/PeerFixture/AsyncOwner/AsyncZone). Original948 names remain;
+15 added tests. Unit798 / integration.logical156 / runtime.wall9. Existing runtime
+fault/recovery artifacts33 per build; durable rejoin CLI both PASS. First962/963
+normal attempt remains separate. See `correction-boundary/` metadata/results/JUnit;
+raw `build/m4-contract-corrected/`, exported `build/m4-contract-corrected-evidence/`.
+
+```sh
+python3 tests/integration/runtime/check_m4_faults.py --raw-dir build/m4-contract-corrected --output build/m4-contract-corrected-evidence
+cmake -S . -B build/m4-tsan -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_TSAN=ON
+cmake --build build/m4-tsan --target remote_leaf_test remote_contract_test async_owner_test -j4
+setarch x86_64 -R ctest --test-dir build/m4-tsan -R 'Remote|PeerFixture|AsyncZoneOwner|AsyncOwnerTest' --output-on-failure
+```
+
+## Native diagnostic observation
+
+`TransportTrace` is an optional single-owner port. Each owner logs into its own
+preallocated16384-row sink; storage is read only after join, overflow is reported.
+Disabled trace does not decode CAN or acquire additional diagnostic timestamps.
+`trace-transport` CLI / test `STRATADRIVE_M4_TRANSPORT_TRACE=1` opts in. Rows correlate
+Epoch/token, original root and CAN source, command expiry, first sent/envelope bound,
+Zone dispatch/completion and Central receipt. Leaf completion means controller
+handling, not a fabricated physical response; existing physical CSV remains separate.
+A new logical test compares complete physical response with trace off/on and follows
+each actual command transaction. Native diagnostics use the fixed separate20+20
+protocol and do not replace the48-run guard cohort or historical TSan failure.

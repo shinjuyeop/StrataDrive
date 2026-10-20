@@ -1,4 +1,5 @@
 #pragma once
+#include "transport_trace.hpp"
 
 #include "owner_transport.hpp"
 #include "session_participant.hpp"
@@ -32,6 +33,7 @@ struct OwnerActuation {
 using BmsGateChannel=runtime::LatestSnapshot<std::optional<power::BmsSafetyGate>>;
 class AsyncLeafOwner final : public session::ParticipantPort {
 public:
+    void transport_trace(transport::TransportTrace* sink) { trace_=sink; } // before launch only
     AsyncLeafOwner(transport::Leaf leaf,transport::Clock& clock,transport::RunGate& gate,transport::LeafLink& link,
         runtime::LatestSnapshot<OwnerSensors>& sensors,runtime::LatestSnapshot<OwnerActuation>& output,BmsGateChannel& bms_gate);
     std::uint64_t now_ns() noexcept override { return clock_.now_ns(); }
@@ -49,6 +51,7 @@ public:
     const std::vector<M4Event>& input_events() const { return input_events_; } // joined only
     void execution_deadline(bool enabled) { execution_deadline_=enabled; } // startup only
 private:
+    transport::TransportTrace* trace_{nullptr};
     using Actor=std::variant<vecu::SteeringActuator,vecu::BrakeActuator,vecu::DriveController,vecu::BmsController,vecu::PowerController>;
     static Actor make_actor(transport::Leaf leaf);
     void handle(const transport::LeafRequest& request);
