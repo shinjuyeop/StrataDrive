@@ -1,0 +1,16 @@
+OSError: [Errno 9] Bad file descriptor
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tools/m4_kernel_capture.py", line 354, in run_pair
+    trace.stop_and_save()
+  File "/d/shin/StrataDrive/tools/m4_kernel_capture.py", line 169, in stop_and_save
+    self.mark("end")
+  File "/d/shin/StrataDrive/tools/m4_kernel_capture.py", line 165, in mark
+    control(self.path/"trace_marker", f"SD_M4_CLOCK_{name}")
+  File "/d/shin/StrataDrive/tools/m4_kernel_capture.py", line 41, in control
+    path.write_text(str(value) + "\n")
+  File "/usr/lib/python3.10/pathlib.py", line 1154, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+OSError: [Errno 9] Bad file descriptor

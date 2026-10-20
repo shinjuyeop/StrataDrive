@@ -1,0 +1,51 @@
+test_actual_nonroot_capture_exits_without_changing_tracefs (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_bounded_export_marks_truncation_without_growing_file (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_compact_capture_retains_required_chain_and_reports_omitted_events (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_conflicting_events_and_instances_are_not_modified (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_interruption_exports_partial_trace_and_cleans_instance (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_marker_cpu_has_headroom_within_original_total_buffer_cap (m4_kernel_trace_test.CollectorSafetyTest) ... ERROR
+test_marker_failure_preserves_raw_trace_and_stats_then_fails (m4_kernel_trace_test.CollectorSafetyTest) ... ERROR
+test_off_failure_does_not_suppress_on_and_privileges_are_dropped (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_partial_configuration_cleanup_only_touches_owned_instance (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_sigterm_is_handled_as_cleanup_interrupt (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_watchdog_eof_stops_only_owned_instance (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_worker_refuses_root_before_running_application (m4_kernel_trace_test.CollectorSafetyTest) ... ok
+test_clock_markers_validate_common_monotonic_axis (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_invalid_global_capture_does_not_publish_trusted_chain (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_kernel_format_and_exact_timestamp (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_loss_truncation_and_unknown_lines_invalidate_capture (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_missing_wake_or_wrong_clock_is_not_a_timer_chain (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_parseable_syscalls_do_not_hide_real_buffer_loss (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_real_capture_excerpt_links_relative_timer_but_remains_untrusted (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_real_kernel_syscall_entry_and_exit_formats (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_relative_realtime_uses_kernel_monotonic_base_without_wall_clock_conversion (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_reused_timer_address_cannot_borrow_old_owner_identity (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_separates_timer_slack_runnable_delay_and_body_preemption (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_sleeping_outside_body_is_not_runnable_wait (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_unexecuted_slot_does_not_acquire_a_fictitious_wakeup (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+test_wakeup_splits_sleep_from_runnable_wait_inside_body (m4_kernel_trace_test.KernelAnalysisTest) ... ok
+
+======================================================================
+ERROR: test_marker_cpu_has_headroom_within_original_total_buffer_cap (m4_kernel_trace_test.CollectorSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/m4_kernel_trace_test.py", line 231, in test_marker_cpu_has_headroom_within_original_total_buffer_cap
+    sizes = capture.buffer_sizes(list(range(16)), 2)
+AttributeError: module 'm4_kernel_capture' has no attribute 'buffer_sizes'
+
+======================================================================
+ERROR: test_marker_failure_preserves_raw_trace_and_stats_then_fails (m4_kernel_trace_test.CollectorSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/m4_kernel_trace_test.py", line 220, in test_marker_failure_preserves_raw_trace_and_stats_then_fails
+    self.assertEqual((folder/"kernel.trace").read_bytes(), b"# saved partial trace\n")
+  File "/usr/lib/python3.10/pathlib.py", line 1126, in read_bytes
+    with self.open(mode='rb') as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpwvmew79e/output/kernel.trace'
+
+----------------------------------------------------------------------
+Ran 26 tests in 0.050s
+
+FAILED (errors=2)

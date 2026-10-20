@@ -6,13 +6,22 @@ clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 
 [Settlement 후속 근거](test-plan/evidence/m4_settlement/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
 TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.
 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다.
-Python은 기존90+실제 kernel 출력/clock·수집 정책5개를 실행해 **95/95 PASS**다. 아래 과거 수치는 당시 범위로 보존한다.
+Python은 기존95+marker 실패 보존/버퍼 제한2개를 실행해 **97/97 PASS**다. 아래 과거 수치는 당시 범위로 보존한다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
 총 local vCAN **97개 case**를 검사한다.
 Battery/BMS/Power/Drive gate·에너지/회로 단계는 로컬 component 검사이며 CAN wire나 transport 변경은 없다.
 97개 vCAN은 앞선 Drive 응답 단계의 증거다. 직전 gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사해 통과했다.
+
+2026-10-20 첫 VALID kernel 관측: compact-v2 사용자 실행3쌍/6 workload 모두 FAIL, 두 쌍은
+종료 marker EBADF이고185513쌍은729726 event·유실0·11951 chain으로 VALID다. 최초 조향 사례는
+callback hard-expiry 초과3.714µs, wake→CPU2.856ms, body1.125µs다. 기존 최신-slot 정책에서
+2ms 기회가 누락되어4ms deadline 뒤65.184µs 검출·4.895µs 뒤 physical override를 확인했다.
+전체 운전 arm 전 사례이며 과거 FIFO/Target 원인 확인으로 확대하지 않는다. `eecc1d7`은
+marker 실패에도 raw/stat을 저장·실패 반환하고 collector CPU ring을2MiB로 보완했다. 전체97/97 PASS,
+새 실제 tracefs 재실행은 NOT RUN이다. EBADF의 buffer reserve 경로/포화 후보와 확정 사실을
+[근거](test-plan/evidence/m4_kernel_valid/README.md)에 구분한다. 이전 실패 수치는 유지한다.
 
 2026-10-20 kernel 첫 실제 관측 후속: `a26a206`은 실제 syscall pretty-printer를 파싱하고
 필수 event를 유지하며 optional 중복 수집량/CPU1 buffer를 조정했다. `984d5ac`은 Linux의

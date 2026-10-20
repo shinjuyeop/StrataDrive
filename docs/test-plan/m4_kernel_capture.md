@@ -1,10 +1,13 @@
 # M4 Host kernel observation — bounded OFF/ON pair
 
-Status: **first privileged capture executed but INVALID; compact-v2 recapture NOT RUN**.
-The user executed the original collector on kernel6.8.0-138-generic.
-OFF/ON timing failed; CPU1 dropped256668 events and the original parser rejected
-145058 syscall lines. [Follow-up evidence](evidence/m4_kernel_capture_followup/README.md)
-preserves both attempts and the separate offline correction. The agent's
+Status: **compact-v2 OTHER capture VALID / runtime FAIL; latest marker fix NOT RUN on tracefs**.
+The user executed the collector on kernel6.8.0-138-generic. The latest valid
+capture has729726 events,0 drops and11951 linked executed jobs. The first missed
+CPU1 opportunity is dominated by runnable CPU waiting; see the
+[timeline, CSV and plot](evidence/m4_kernel_valid/README.md).
+The original lossy trace and145058 unparsed syscall lines remain in
+[earlier evidence](evidence/m4_kernel_capture_followup/README.md).
+Two subsequent attempts failed while writing the end marker. The agent's
 noninteractive `sudo -n` still requires a password. M4 remains **NOT CLOSED**, previous timing/native/SDK TSan
 failures remain OPEN, and Target/system/learner states are unchanged.
 
@@ -108,15 +111,21 @@ changes are reported, not overwritten with a stale snapshot. These checks do
 not constitute a system-wide exclusion mechanism for arbitrary external tools.
 
 - Each application worker has a12s timeout and32MiB per-file limit.
-- ON uses16MiB on CPU0,32MiB on CPU1 and256KiB on other CPUs; total kernel ring
-  storage must be≤64MiB (51.5MiB on this16-CPU Host). Overwrite is disabled.
-  This addresses the observed CPU1 saturation; a new loss-free run is still
-  required. Any new loss remains INVALID.
+- ON uses16MiB on CPU0,32MiB on CPU1,2MiB on the collector/marker CPU and256KiB
+  on other CPUs; total kernel ring storage must be≤64MiB (nominal53.25MiB on
+  this16-CPU Host; actual rounded allocation is checked and recorded).
+  Overwrite is disabled. The valid v2 run used256KiB on its collector CPU2
+  and consumed244372bytes there. Extra marker headroom is a mitigation to
+  validate, not proof that EBADF is eliminated. Any new loss remains INVALID.
 - Export is≤128MiB of trace text. Overflow/dropped events or truncated export
   makes analysis invalid, never successful silence.
 - Normal exit, exception, SIGINT/SIGTERM/SIGHUP stop tracing, preserve available
   partial output, terminate the owned workload group and disable/remove only the
   new instance. Before/after global settings and cleanup outcomes are recorded.
+- If the end marker fails, stop and export available raw trace/statistics before
+  propagating the error. `marker_errors` and pre-stop `tracing_on` are retained.
+  The missing marker remains an alignment failure; it is never synthesized.
+  The write is unbuffered so the stack locates the original failure.
 - `free_buffer`/`disable_on_free` and a detached watchdog provide fail-stop on
   collector death. The watchdog has a **15s total cap** including export, kills
   the owned workload group on emergency, disables/removes the owned instance
@@ -188,9 +197,12 @@ M4 closure or replacement of the original48-run cohort follows from this pair.
 
 [Preparation evidence](evidence/m4_kernel_capture/README.md) preserves the original
 90-test preparation and nonroot smoke. [Follow-up evidence](evidence/m4_kernel_capture_followup/README.md)
-records95/95 Python tests, actual event inventory/collection and instance removal,
-two retained failed attempts and corrected offline parsing. Global state was
-unchanged and owned instances removed in both attempts. One earlier attempt
-had EBADF during export without a traceback; its cause remains OPEN and future
-collector errors now include a stack. Compact-v2 privileged capture/cleanup,
-loss-free correlation and kernel cause attribution remain NOT RUN.
+records95/95 Python tests and corrected offline parsing. The
+[first VALID observation](evidence/m4_kernel_valid/README.md) retains another
+three attempts, including two end-marker EBADF stacks and the valid OTHER trace.
+Global state was unchanged and owned instances removed. Source/trace analysis
+locates EBADF at marker write; buffer reservation/collector ring saturation is
+a candidate, not a confirmed root cause without failed-attempt statistics.
+The final marker export/headroom change has97/97 Python tests but actual tracefs
+validation is NOT RUN. The observed OTHER CPU-wait case does not close FIFO,
+TSan or M4 acceptance, and the application binary is unchanged.
