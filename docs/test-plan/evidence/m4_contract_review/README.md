@@ -25,3 +25,27 @@ ctest --test-dir build/m4-readiness -R 'RemoteLeafTest|RemoteOldRequestTest|Asyn
 ```
 
 `issue1/before.{log,xml}` and `after.{log,xml}` are actual pre/post-fix output.
+
+## Issue 2 — delivery envelope versus inner validity
+
+Baseline for correction: `7396b2d`. New logical integration's first three tests
+failed **0/3** before correction: initial real Power/permission envelopes were
+49.800001ms, rejected before reaching arm. The actual producer is AsyncZoneOwner;
+all five Leaf endpoints have private gates/queues. Same canonical codec in both
+directions preserves all bytes, parent/command/stop context and original Actual.
+
+After correction the new seven tests and existing selected tests pass **63/63**.
+This includes exact exclusive expiry, uint64 overflow bounds, actual Stop/HV off,
+Power/permission/Arm/Stop late rejection and old replies while Stop is pending.
+A draft added assertion incorrectly required a parent even for safe Inhibit;
+it was corrected to the existing AllowNormal/NormalPath authority contract.
+No baseline test names or assertions were changed.
+
+```sh
+cmake --build build/m4-readiness --target remote_leaf_test async_owner_test m4_async_runtime_test -j4
+ctest --test-dir build/m4-readiness -R 'Remote|AsyncZoneOwner|AsyncOwnerTest|M4AsyncRuntime' --output-on-failure
+```
+
+`issue2/before.xml` and `after.xml` retain actual results. Normal/ASan full regression
+and new-source timing are performed at the completed correction boundary, not inferred
+from prior commits' cohorts.

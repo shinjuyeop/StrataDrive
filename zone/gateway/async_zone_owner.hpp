@@ -50,7 +50,7 @@ private:
     can::SteeringReceiver steering_{{can::SteeringFrameKind::Actual,-.3,.3}};
     can::BrakeReceiver brake_{{can::BrakeFrameKind::Actual,0,1500000}};
     can::DriveReceiver drive_{{can::DriveFrameKind::Actual,{-300,500},100,300}};
-    std::uint32_t epoch_{0}; std::uint64_t enable_{0},observed_{0},last_health_{0},sending_token_{0};
+    std::uint32_t epoch_{0}; std::uint64_t enable_{0},observed_{0},last_health_{0},sending_token_{0},sending_sent_{0},sending_deadline_{0};
     std::array<std::uint64_t,2> last_inputs_{};
     bool failed_{false},drive_arm_ack_{false}; std::size_t command_frames_{0};
     int rejection_{0};

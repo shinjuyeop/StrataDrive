@@ -10,6 +10,12 @@ namespace stratadrive::transport {
 // Application queue/drain capacity and TX/selection receipt budget, shared by adapters.
 inline constexpr std::size_t kBudget=8;
 inline constexpr std::uint64_t kResultBudgetNs=20000000ULL;
+// Exclusive delivery bound, distinct from the inner command/lease lifetime.
+// Subtract before adding: the sum cannot exceed the representable original.
+inline constexpr std::uint64_t delivery_deadline(std::uint64_t first_sent,std::uint64_t original) {
+    return original<=first_sent?original:first_sent+
+        (original-first_sent<kResultBudgetNs?original-first_sent:kResultBudgetNs);
+}
 enum class Operation : std::size_t { Lifecycle, Vehicle, Power, Commands, Arm, Stop };
 struct Arm {};
 using ZoneWork=std::variant<central::LifecycleRequest,central::VehicleRequest,central::VehicleManagementOutput,

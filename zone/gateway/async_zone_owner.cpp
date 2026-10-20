@@ -37,13 +37,14 @@ void AsyncZoneOwner::quiesce() {
 bool AsyncZoneOwner::protected_selected() const { return failed_ && leaf_selected(); }
 bool AsyncZoneOwner::leaf_send(transport::Leaf leaf,transport::LeafRequest packet) {
     const auto now=now_ns();
-    if(!gate_.allows(epoch_) || packet.epoch!=epoch_ || packet.deadline_ns<=now) return false;
+    packet.deadline_ns=transport::delivery_deadline(packet.sent_ns,packet.deadline_ns);
+    if(!gate_.allows(epoch_) || packet.epoch!=epoch_ || packet.sent_ns>now || packet.deadline_ns<=now) return false;
     return leaves_[static_cast<std::size_t>(leaf)]->work.push(packet);
 }
 bool AsyncZoneOwner::send(const CommandFrame& frame,const central::CommandContext& context) noexcept try {
     if(context.parent.epoch!=epoch_ || now_ns()>=context.expires_at_ns) return false;
-    transport::LeafRequest packet; packet.epoch=epoch_; packet.token=sending_token_; packet.sent_ns=now_ns();
-    packet.deadline_ns=context.expires_at_ns; packet.command=context;
+    transport::LeafRequest packet; packet.epoch=epoch_; packet.token=sending_token_; packet.sent_ns=sending_sent_;
+    packet.deadline_ns=std::min(context.expires_at_ns,sending_deadline_); packet.command=context;
     transport::Leaf leaf;
     if(const auto* s=std::get_if<can::SteeringFrame>(&frame)) { packet.frame=*s; leaf=transport::Leaf::Steering; }
     else if(const auto* b=std::get_if<can::BrakeFrame>(&frame)) { if(fail_brake_write) return false; packet.frame=*b; leaf=transport::Leaf::Brake; }
@@ -52,8 +53,8 @@ bool AsyncZoneOwner::send(const CommandFrame& frame,const central::CommandContex
 } catch(...) { return false; }  // Gateway records the failed/partial write and selects protection.
 bool AsyncZoneOwner::send(const can::BmsFrame& frame,const RearPowerDelivery& delivery) noexcept try {
     if(!power_ || delivery.message.epoch!=epoch_ || now_ns()>=delivery.expires_at_ns) return false;
-    transport::LeafRequest packet; packet.epoch=epoch_; packet.token=sending_token_; packet.sent_ns=now_ns();
-    packet.deadline_ns=delivery.expires_at_ns; packet.parent=delivery.parent; packet.frame=frame;
+    transport::LeafRequest packet; packet.epoch=epoch_; packet.token=sending_token_; packet.sent_ns=sending_sent_;
+    packet.deadline_ns=std::min(delivery.expires_at_ns,sending_deadline_); packet.parent=delivery.parent; packet.frame=frame;
     const auto leaf=delivery.message.kind==can::BmsFrameKind::PowerRequest?transport::Leaf::Power:transport::Leaf::Drive;
     if(!leaf_send(leaf,packet)) return false;
     if(delivery.message.kind==can::BmsFrameKind::DrivePermission && !drop_permission_feedback) forward(frame);
@@ -72,7 +73,7 @@ void AsyncZoneOwner::handle(const transport::ZoneRequest& r) {
     // Old Epoch traffic is discarded without changing any new-session history.
     if(r.epoch!=epoch_) return;
     if(failed_ || !gate_.allows(epoch_) || r.sent_ns>now || now>=r.deadline_ns) { complete(r,false); return; }
-    sending_token_=r.token;
+    sending_token_=r.token; sending_sent_=r.sent_ns; sending_deadline_=r.deadline_ns;
     if(const auto* root=std::get_if<central::LifecycleRequest>(&r.work)) complete(r,power_ && power_->authorize_request(*root)==RearPowerResult::Accepted);
     else if(const auto* root=std::get_if<central::VehicleRequest>(&r.work)) {
         const auto result=commands_.authorize_request(*root); complete(r,result==AdmissionResult::Accepted || result==AdmissionResult::Unchanged);
@@ -98,7 +99,7 @@ void AsyncZoneOwner::handle(const transport::ZoneRequest& r) {
         pending_=r; leaf_ack_={};
         const auto begin=scope_==ZoneScope::Front?0U:2U,end=scope_==ZoneScope::Front?2U:3U;
         for(auto i=begin;i<end;++i) {
-            transport::LeafRequest p; p.epoch=epoch_; p.token=r.token; p.sent_ns=now; p.deadline_ns=r.deadline_ns;
+            transport::LeafRequest p; p.epoch=epoch_; p.token=r.token; p.sent_ns=r.sent_ns; p.deadline_ns=r.deadline_ns;
             p.operation=stop?transport::LeafOperation::Stop:transport::LeafOperation::Arm;
             if(stop) p.lease=stop->lease;
             if(!leaf_send(static_cast<transport::Leaf>(i),p)) { complete(r,false); pending_.reset(); return; }
