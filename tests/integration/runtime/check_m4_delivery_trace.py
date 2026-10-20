@@ -9,15 +9,21 @@ from pathlib import Path
 import platform
 import runpy
 import subprocess
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[3]
 BASE = runpy.run_path(str(ROOT/'tests/integration/runtime/check_m4_async.py'))
 TEST = 'M4AsyncWall.IndependentOwnersRunActualNormalPath'
 BUILDS = {'normal': 'build/m4-readiness', 'tsan': 'build/m4-tsan'}
+REQUIRED = ('unit.xml', 'wall-normal.json', 'wall-normal.csv', 'wall-normal-events.csv',
+            'wall-normal-execution.csv', 'wall-normal-transport.csv')
 
 
 def read_csv(path):
-    return list(csv.DictReader(path.open())) if path.exists() else []
+    if not path.exists():
+        return []
+    with path.open() as stream:
+        return list(csv.DictReader(stream))
 
 
 def analyze(folder):
@@ -40,7 +46,7 @@ def analyze(folder):
                'inner_expiry_ns': start['inner_deadline_ns'], 'sent_ns': start['sent_ns'],
                'envelope_deadline_ns': start['envelope_deadline_ns']}
         for stage in ('central-enqueued', 'zone-received', 'zone-command-dispatch', 'zone-leaf-enqueued',
-                      'leaf-received', 'leaf-completed', 'zone-result-enqueued', 'central-result-received',
+                      'leaf-received', 'leaf-completed', 'leaf-output-published', 'zone-result-enqueued', 'central-result-received',
                       'central-result-accepted', 'central-result-rejected', 'central-result-timeout', 'command-still-pending'):
             row[stage] = first(stage)
         rows.append(row)
@@ -56,6 +62,46 @@ def analyze(folder):
     return details
 
 
+def trial_evidence(folder, metadata):
+    """Missing/malformed/skipped evidence is a failed trial, never an empty PASS."""
+    errors = [f'missing/empty {name}' for name in REQUIRED
+              if not (folder/name).is_file() or (folder/name).stat().st_size == 0]
+    result, detail, settings = {}, {'trace_rows': 0, 'command_transactions': 0, 'rejections': []}, False
+    try:
+        result = json.loads((folder/'wall-normal.json').read_text())
+        if not isinstance(result, dict):
+            raise ValueError('runtime result must be an object')
+        threads = result.get('threads', [])
+        settings = (len(threads) == 9 and {t['owner'] for t in threads} == set(range(9)) and
+                    all(t['policy'] == 0 and t['priority'] == 0 and t['affinity'] == metadata['affinity']
+                        and not t['setup_error'] for t in threads))
+        if not settings:
+            errors.append('owner/settings coverage')
+        if (any(result.get(k) is not True for k in ('passed', 'ownership_ok', 'physical_ok', 'transport_trace_enabled'))
+                or result.get('event_overflow') is not False or result.get('guards_enabled') is not False
+                or result.get('duration_ns') != metadata['duration_ns']):
+            errors.append('runtime verdict/trace/config')
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        result = {}
+        errors.append(f'runtime result: {error}')
+    try:
+        cases = ET.parse(folder/'unit.xml').getroot().findall('.//testcase')
+        if (len(cases) != 1 or cases[0].get('classname', '')+'.'+cases[0].get('name', '') != TEST
+                or any(cases[0].find(tag) is not None for tag in ('failure', 'error', 'skipped'))
+                or cases[0].get('status') == 'notrun'):
+            errors.append('missing/failed/skipped requested GTest')
+    except (OSError, ET.ParseError) as error:
+        errors.append(f'JUnit: {error}')
+    try:
+        detail = analyze(folder)
+        if not detail['trace_rows'] or not detail['command_transactions']:
+            errors.append('missing command transport trace')
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        errors.append(f'transport trace: {error}')
+    (folder/'evidence-check.json').write_text(json.dumps({'errors': errors}, indent=2)+'\n')
+    return result, detail, settings, errors
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path)
@@ -67,7 +113,7 @@ def main():
                 'affinity': sorted(os.sched_getaffinity(0)), 'policy': os.sched_getscheduler(0),
                 'planned': 40, 'repetitions_per_profile': 20, 'test': TEST, 'duration_ns': 1800000000,
                 'load': 'none', 'guards': False, 'transport_trace': True, 'process_aslr': 'setarch -R',
-                'protocol': 'docs/test-plan/m4_contract_review_protocol.md'}
+                'protocol': 'docs/test-plan/m4_settlement_protocol.md'}
     (out/'metadata.json').write_text(json.dumps(metadata, indent=2)+'\n')
     rows = []
     for repetition in range(1,21):
@@ -77,28 +123,43 @@ def main():
                        '--gtest_filter='+TEST,'--gtest_output=xml:'+str(folder/'unit.xml')]
             changes = {'STRATADRIVE_M4_RESULTS': str(folder), 'STRATADRIVE_M4_TRANSPORT_TRACE': '1'}
             (folder/'command.json').write_text(json.dumps({'argv': command, 'env': changes},indent=2)+'\n')
+            executed = True
             with (folder/'run.log').open('w') as f:
                 try:
                     code = subprocess.run(command,cwd=ROOT,env={**os.environ,**changes},stdout=f,stderr=subprocess.STDOUT,timeout=30,check=False).returncode
-                except subprocess.TimeoutExpired:
+                except subprocess.TimeoutExpired as error:
                     code = 124
-            log = (folder/'run.log').read_text()
-            result = json.loads((folder/'wall-normal.json').read_text()) if (folder/'wall-normal.json').exists() else {}
-            detail = analyze(folder)
-            settings = bool(result.get('threads')) and all(t['policy']==0 and t['priority']==0 and t['affinity']==metadata['affinity'] and not t['setup_error'] for t in result.get('threads',[]))
-            passed = code==0 and result.get('passed') and not result.get('event_overflow') and settings and detail['trace_rows']>0 and 'WARNING: ThreadSanitizer' not in log
+                    f.write(f'\n{error}\n')
+                except OSError as error:
+                    code, executed = 127, False
+                    f.write(f'\nlaunch failed: {error}\n')
+            log = (folder/'run.log').read_text(errors='replace')
+            result, detail, settings, errors = trial_evidence(folder, metadata)
+            passed = executed and code == 0 and not errors and 'WARNING: ThreadSanitizer' not in log
             row = {'profile': profile,'repetition': repetition,'verdict': 'PASS' if passed else 'FAIL',
                    'exit_code': code,'settings_ok': settings,'trace_rows':detail['trace_rows'],
                    'warnings':log.count('WARNING: ThreadSanitizer'),'reason':result.get('reason', 'no runtime result'),
                    'submit_rejections':sum(e['stage']=='command-submit-rejected' for e in detail['rejections']),
-                   'first_fault_ns':result.get('first_fault_ns',0),'raw':folder.name}
+                   'first_fault_ns':result.get('first_fault_ns',0),'raw':folder.name,
+                   'executed': executed, 'evidence_errors': '; '.join(errors)}
             rows.append(row); (out/'cohort.json').write_text(json.dumps(rows,indent=2)+'\n'); print(json.dumps(row),flush=True)
-    if BASE['fingerprint']()!=digest:
-        raise RuntimeError('source changed during fixed cohort')
+    integrity = []
+    try:
+        if BASE['fingerprint']()!=digest:
+            integrity.append('source changed during fixed cohort')
+    except OSError as error:
+        integrity.append(f'cannot verify source fingerprint: {error}')
+    if len(rows) != metadata['planned'] or sum(r['executed'] for r in rows) != metadata['planned']:
+        integrity.append('planned execution missing')
     with (out/'summary.csv').open('w') as f:
         writer=csv.DictWriter(f,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
-    (out/'results.json').write_text(json.dumps({p:{v:sum(r['profile']==p and r['verdict']==v for r in rows) for v in ('PASS','FAIL')} for p in BUILDS},indent=2)+'\n')
+    results = {p:{v:sum(r['profile']==p and r['verdict']==v for r in rows) for v in ('PASS','FAIL')} for p in BUILDS}
+    passed = not integrity and all(r['verdict'] == 'PASS' for r in rows)
+    results['overall'] = {'verdict': 'PASS' if passed else 'FAIL', 'planned': metadata['planned'],
+                          'recorded': len(rows), 'executed': sum(r['executed'] for r in rows), 'errors': integrity}
+    (out/'results.json').write_text(json.dumps(results,indent=2)+'\n')
+    return 0 if passed else 1
 
 
 if __name__=='__main__':
-    main()
+    raise SystemExit(main())
