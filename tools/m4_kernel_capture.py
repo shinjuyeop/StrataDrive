@@ -81,6 +81,17 @@ def inventory(base=TRACEFS):
                 available=sorted(relevant), available_not_selected=sorted(relevant-set(selected)))
 
 
+def buffer_sizes(cpus, marker_cpu):
+    if marker_cpu in BUFFER_KB or marker_cpu not in cpus or not set(BUFFER_KB) <= set(cpus):
+        raise ValueError("marker collector requires a spare traced CPU outside CPUs0/1")
+    sizes = {cpu: 256 for cpu in cpus}
+    sizes.update(BUFFER_KB)
+    sizes[marker_cpu] = 2048  # End marker also needs space in its CPU's ring.
+    if sum(sizes.values()) > MAX_BUFFER_KB:
+        raise ValueError("requested per-CPU buffers exceed unchanged 64MiB total cap")
+    return sizes
+
+
 class TraceInstance:
     """Only a newly owned instance is mutated. Global settings are never written."""
     def __init__(self, base, folder, events):
@@ -101,13 +112,19 @@ class TraceInstance:
             raise RuntimeError("trace_clock mono unavailable; no timestamp conversion guessed")
         control(self.path/"trace_clock", "mono")
         control(self.path/"events/enable", 0)
+        cpus = sorted(int(p.name[3:]) for p in (self.path/"per_cpu").glob("cpu[0-9]*"))
+        affinity = os.sched_getaffinity(0)
+        if len(affinity) != 1:
+            raise RuntimeError("collector marker must be pinned to one spare CPU")
+        marker_cpu = next(iter(affinity))
+        sizes = buffer_sizes(cpus, marker_cpu)
         control(self.path/"buffer_size_kb", 256)
-        for cpu, kb in BUFFER_KB.items():
-            control(self.path/f"per_cpu/cpu{cpu}/buffer_size_kb", kb)
+        for cpu, kb in sizes.items():
+            if kb != 256:
+                control(self.path/f"per_cpu/cpu{cpu}/buffer_size_kb", kb)
         total = int((self.path/"buffer_total_size_kb").read_text())
         if total > MAX_BUFFER_KB:
             raise RuntimeError(f"kernel buffer exceeds {MAX_BUFFER_KB} KiB: {total}")
-        cpus = sorted(int(p.name[3:]) for p in (self.path/"per_cpu").glob("cpu[0-9]*"))
         # Capture cross-CPU wake sources too; application owners remain on CPUs0/1.
         bits = sum(1 << cpu for cpu in cpus)
         words = []
@@ -132,6 +149,7 @@ class TraceInstance:
         write_json(self.folder/"trace-settings.json",
                    dict(state=snapshot(self.path), cpus=cpus, total_buffer_kb=total,
                         policy="compact-v2", owner_buffer_kb=BUFFER_KB,
+                        marker_cpu=marker_cpu, requested_buffer_kb=sizes,
                         max_text_bytes=MAX_TRACE_BYTES, worker_timeout_seconds=MAX_SECONDS,
                         trace_watchdog_seconds=MAX_SECONDS+3,
                         clock="CLOCK_MONOTONIC", overwrite=False, instance=str(self.path)))
@@ -162,17 +180,34 @@ class TraceInstance:
 
     def mark(self, name):
         before = time.monotonic_ns()
-        control(self.path/"trace_marker", f"SD_M4_CLOCK_{name}")
+        # Unbuffered write keeps a kernel marker failure at the actual write,
+        # rather than having TextIO close/flush obscure its original traceback.
+        payload = f"SD_M4_CLOCK_{name}\n".encode()
+        with (self.path/"trace_marker").open("wb", buffering=0) as marker:
+            if marker.write(payload) != len(payload):
+                raise OSError("short trace_marker write")
         self.markers.append(dict(name=name, before_ns=before, after_ns=time.monotonic_ns()))
 
     def stop_and_save(self):
-        self.mark("end")
+        marker_error = None
+        try:
+            self.mark("end")
+        except OSError as error:
+            marker_error = error
+        before_stop = (self.path/"tracing_on").read_text().strip()
         control(self.path/"tracing_on", 0)
         stats = {p.parent.name: p.read_text() for p in sorted((self.path/"per_cpu").glob("cpu*/stats"))}
         truncated = bounded_copy(self.path/"trace", self.folder/"kernel.trace", MAX_TRACE_BYTES)
         write_json(self.folder/"trace-integrity.json",
                    dict(clock="mono", markers=self.markers, stats=stats, truncated=truncated,
+                        tracing_on_before_stop=before_stop,
+                        marker_errors=[] if marker_error is None else [
+                            dict(name="end", errno=marker_error.errno, error=str(marker_error))],
                         max_text_bytes=MAX_TRACE_BYTES))
+        if marker_error is not None:
+            # Keep raw/stats even when a full/disabled ring cannot accept a marker.
+            # Missing alignment remains a capture failure; never synthesize it.
+            raise marker_error
 
     def close(self):
         errors = []
@@ -353,6 +388,7 @@ def run_pair(folder, case, profile, identity, base=TRACEFS):
             if trace:
                 trace.stop_and_save()
         except BaseException as error:
+            row["collection"] = "INCOMPLETE"
             row["errors"].append(f"{type(error).__name__}: {error}")
             (trial/"collector-error.txt").write_text(traceback.format_exc())
             if trace and trace.created and not (trial/"kernel.trace").exists():

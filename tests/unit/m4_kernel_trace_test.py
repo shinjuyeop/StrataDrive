@@ -1,5 +1,6 @@
 """Synthetic kernel-format/cleanup contracts; not a real kernel capture."""
 import importlib.util
+import errno
 import json
 import os
 from pathlib import Path
@@ -200,6 +201,44 @@ class KernelAnalysisTest(unittest.TestCase):
 
 
 class CollectorSafetyTest(unittest.TestCase):
+    def test_marker_failure_preserves_raw_trace_and_stats_then_fails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = self.base(temp)
+            folder = Path(temp)/"output"
+            folder.mkdir()
+            inst = capture.TraceInstance(base, folder, [])
+            (inst.path/"events").mkdir(parents=True)
+            (inst.path/"per_cpu/cpu2").mkdir(parents=True)
+            (inst.path/"tracing_on").write_text("1")
+            (inst.path/"trace").write_bytes(b"# saved partial trace\n")
+            stats = "overrun: 0\ncommit overrun: 0\ndropped events: 1\n"
+            (inst.path/"per_cpu/cpu2/stats").write_text(stats)
+            with patch.object(inst, "mark", side_effect=OSError(errno.EBADF, "marker reserve failed")):
+                with self.assertRaises(OSError) as error:
+                    inst.stop_and_save()
+            self.assertEqual(error.exception.errno, errno.EBADF)
+            self.assertEqual((folder/"kernel.trace").read_bytes(), b"# saved partial trace\n")
+            saved = json.loads((folder/"trace-integrity.json").read_text())
+            self.assertEqual(saved["stats"]["cpu2"], stats)
+            self.assertEqual(saved["marker_errors"][0]["errno"], errno.EBADF)
+            self.assertEqual(saved["tracing_on_before_stop"], "1")
+            self.assertEqual((inst.path/"tracing_on").read_text().strip(), "0")
+            self.assertIn("clock sandwich markers incomplete",
+                          analysis.integrity_errors(saved, dict(markers={}, parsed=1,
+                              unknown_lines=0, unclosed_callbacks=0)))
+
+    def test_marker_cpu_has_headroom_within_original_total_buffer_cap(self):
+        sizes = capture.buffer_sizes(list(range(16)), 2)
+        self.assertEqual(sizes[0], 16384)
+        self.assertEqual(sizes[1], 32768)
+        self.assertEqual(sizes[2], 2048)
+        self.assertEqual(sizes[3], 256)
+        self.assertLess(sum(sizes.values()), capture.MAX_BUFFER_KB)
+        with self.assertRaises(ValueError):
+            capture.buffer_sizes(list(range(16)), 1)
+        with self.assertRaises(ValueError):
+            capture.buffer_sizes(list(range(80)), 2)
+
     def test_compact_capture_retains_required_chain_and_reports_omitted_events(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)

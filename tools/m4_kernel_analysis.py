@@ -202,6 +202,8 @@ def integrity_errors(integrity, data):
         errors.append("trace clock is not mono")
     if integrity.get("truncated"):
         errors.append("trace output truncated")
+    if integrity.get("marker_errors"):
+        errors.append("trace marker write failed")
     if not integrity.get("stats"):
         errors.append("per-CPU trace statistics missing")
     for cpu, text in integrity.get("stats", {}).items():
