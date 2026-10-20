@@ -18,6 +18,7 @@ public:
     void close() noexcept { epoch_.store(0,std::memory_order_release); }
     void release(std::uint32_t epoch) noexcept { epoch_.store(epoch,std::memory_order_release); }
     bool allows(std::uint32_t epoch) const noexcept { return epoch!=0 && epoch_.load(std::memory_order_acquire)==epoch; }
+    std::uint32_t epoch() const noexcept { return epoch_.load(std::memory_order_acquire); }
 private:
     std::atomic<std::uint32_t> epoch_{0};
 };
@@ -34,6 +35,10 @@ struct Protection {
 };
 constexpr std::size_t kBudget=8;
 constexpr std::uint64_t kResultBudgetNs=20000000ULL;
+struct InputEvidence { std::uint32_t epoch{0}; std::uint64_t source_ns{0},received_ns{0}; };
+template<class Sample> InputEvidence input_evidence(const std::optional<Sample>& accepted) {
+    return accepted?InputEvidence{accepted->message.epoch,accepted->message.source_time_ns,accepted->received_time_ns}:InputEvidence{};
+}
 enum class Operation : std::size_t { Lifecycle, Vehicle, Power, Commands, Arm, Stop };
 struct Arm {};
 using ZoneWork=std::variant<central::LifecycleRequest,central::VehicleRequest,central::VehicleManagementOutput,

@@ -4,6 +4,7 @@
 #include "session_participant.hpp"
 #include "latest_snapshot.hpp"
 #include "vehicle_session_init.hpp"
+#include "m4_faults.hpp"
 
 namespace stratadrive::simulation {
 struct OwnerSensors {
@@ -39,6 +40,7 @@ public:
     std::size_t received_commands() const { return commands_; }
     bool faulted() const;
     int fault_code() const;
+    const std::vector<M4Event>& input_events() const { return input_events_; } // joined only
 private:
     using Actor=std::variant<vecu::SteeringActuator,vecu::BrakeActuator,vecu::DriveController,vecu::BmsController,vecu::PowerController>;
     static Actor make_actor(transport::Leaf leaf);
@@ -52,5 +54,8 @@ private:
     runtime::LatestSnapshot<OwnerSensors>& sensors_; runtime::LatestSnapshot<OwnerActuation>& output_; BmsGateChannel& bms_gate_;
     Actor actor_; std::uint32_t epoch_{0},quiesced_{0}; std::uint64_t enable_{0},last_body_{0},next_body_{0}; bool started_{false}; std::size_t commands_{0};
     can::BmsTxState bms_tx_{can::BmsFrameKind::PowerLimits},power_tx_{can::BmsFrameKind::PowerStatus};
+    std::vector<M4Event> input_events_;
+    std::uint64_t command_expiry_ns_{0},command_source_ns_{0}; bool expiry_reported_{false};
+    std::uint32_t prepared_epoch_{0};
 };
 }  // namespace stratadrive::simulation

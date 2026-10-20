@@ -3,9 +3,10 @@
 #include "bms_value_codec.hpp"
 #include <iosfwd>
 #include <string>
+#include <vector>
 
 namespace stratadrive::demo {
-struct M4DemoOptions { std::string clock,scenario,store,output; };
+struct M4DemoOptions { std::string clock,scenario,store,output; std::vector<std::string> extra; };
 void demo_m4_async(const M4DemoOptions& options);
 void demo_angle(const std::string& input);
 void demo_frame(const std::string& kind, const std::string& input);

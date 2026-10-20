@@ -17,7 +17,7 @@ AsyncLeafOwner::Actor AsyncLeafOwner::make_actor(transport::Leaf leaf) {
 }
 AsyncLeafOwner::AsyncLeafOwner(transport::Leaf leaf,transport::Clock& clock,transport::RunGate& gate,transport::LeafLink& link,
     runtime::LatestSnapshot<OwnerSensors>& sensors,runtime::LatestSnapshot<OwnerActuation>& output,BmsGateChannel& bms_gate)
-    :leaf_(leaf),clock_(clock),gate_(gate),link_(link),sensors_(sensors),output_(output),bms_gate_(bms_gate),actor_(make_actor(leaf)) {}
+    :leaf_(leaf),clock_(clock),gate_(gate),link_(link),sensors_(sensors),output_(output),bms_gate_(bms_gate),actor_(make_actor(leaf)) { input_events_.reserve(12000); }
 session::Preparation AsyncLeafOwner::prepare(const session::Plan& plan) noexcept {
     if(plan.epoch!=quiesced_) {
         quiesced_=plan.epoch; if(epoch_!=0) protect();
@@ -25,7 +25,9 @@ session::Preparation AsyncLeafOwner::prepare(const session::Plan& plan) noexcept
     }
     if(link_.failed()) return session::Preparation::Rejected;
     const auto sensors=sensors_.read();
-    return sensors && session_reset_safe(reset_evidence(*sensors),7,now_ns())?session::Preparation::Ready:session::Preparation::Pending;
+    const bool ready=sensors && session_reset_safe(reset_evidence(*sensors),7,now_ns());
+    if(ready) prepared_epoch_=plan.epoch;
+    return ready?session::Preparation::Ready:session::Preparation::Pending;
 }
 bool AsyncLeafOwner::initialize(const session::Plan& plan) noexcept {
     const auto sensors=sensors_.read();
@@ -41,6 +43,7 @@ bool AsyncLeafOwner::initialize(const session::Plan& plan) noexcept {
     }
     if(ok) {
         epoch_=plan.epoch; enable_=last_body_=plan.enable_ns; started_=false;
+        command_expiry_ns_=command_source_ns_=0; expiry_reported_=false; prepared_epoch_=0;
         next_body_=enable_+(leaf_==transport::Leaf::Bms?20000000ULL:10000000ULL);
         e2e::p05_protect_init(bms_tx_.protection); e2e::p05_protect_init(power_tx_.protection);
     }
@@ -107,9 +110,17 @@ bool AsyncLeafOwner::receive(const transport::LeafRequest& r) {
     return false;
 }
 void AsyncLeafOwner::handle(const transport::LeafRequest& r) {
-    if(r.epoch!=epoch_) return;
+    if(r.epoch!=epoch_) {
+        if(input_events_.size()<input_events_.capacity()) input_events_.push_back({now_ns(),"old-epoch-rejected",static_cast<std::size_t>(leaf_)+2,r.epoch,r.sent_ns,r.deadline_ns,0,0});
+        return;
+    }
     const auto now=now_ns(); bool ok=gate_.allows(epoch_) && !faulted() && r.sent_ns<=now && now<r.deadline_ns;
     if(ok && r.operation==transport::LeafOperation::Frame) { ok=receive(r); if(ok && r.command) ++commands_; }
+    if(ok && r.command) { command_expiry_ns_=r.command->expires_at_ns; command_source_ns_=fault_message(r).source; expiry_reported_=false; }
+    if(r.operation==transport::LeafOperation::Frame && input_events_.size()<input_events_.capacity()) {
+        const auto m=fault_message(r);
+        input_events_.push_back({now_ns(),ok?"valid-input":"input-rejected",static_cast<std::size_t>(leaf_)+2,epoch_,m.source,m.deadline,r.command?r.command->parent.source_time_ns:r.sent_ns,r.command?1:0});
+    }
     if(ok && r.operation==transport::LeafOperation::Arm) {
         ok=!reject_arm;
         if(ok) {
@@ -125,7 +136,7 @@ void AsyncLeafOwner::handle(const transport::LeafRequest& r) {
         else if(ok && leaf_==transport::Leaf::Brake) ok=std::get<vecu::BrakeActuator>(actor_).select_normal_stop(*r.lease,now);
         else if(ok && leaf_==transport::Leaf::Drive) ok=std::get<vecu::DriveController>(actor_).select_normal_stop(*r.lease,now);
         else ok=false;
-        if(ok) output(now);
+        if(ok) { command_expiry_ns_=0; output(now); } // terminal lease now owns authority
     }
     if(!link_.reports.push(transport::LeafResult{epoch_,r.token,now_ns(),r.operation,ok})) protect();
 }
@@ -160,6 +171,15 @@ void AsyncLeafOwner::service() noexcept {
 }
 void AsyncLeafOwner::service_impl() {
     if(epoch_==0) return;
+    // Ready ACK guarantees old work is quiescent. Keep the session observer
+    // running, but never advance an old actor across the agreed INIT boundary.
+    if(prepared_epoch_>epoch_) return;
+    const auto ingress_now=now_ns();
+    if(command_expiry_ns_ && ingress_now>=command_expiry_ns_ && !expiry_reported_) {
+        expiry_reported_=true;
+        if(input_events_.size()<input_events_.capacity()) input_events_.push_back({ingress_now,"command-expired",static_cast<std::size_t>(leaf_)+2,epoch_,command_source_ns_,command_expiry_ns_,command_expiry_ns_,0});
+        protect(); // A fresh packet arriving after expiry cannot heal this epoch.
+    }
     if(link_.failed() || link_.protection.pending(epoch_)) protect();
     for(std::size_t i=0;i<transport::kBudget;++i) { const auto r=link_.work.pop(); if(!r) break; handle(*r); }
     const auto s=sensors_.read(); const auto now=now_ns(); const auto period=leaf_==transport::Leaf::Bms?20000000ULL:10000000ULL;

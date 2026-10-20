@@ -77,7 +77,11 @@ int main(int argc, char** argv) {
             else if (command == "ev-power" && (argc == 2 || argc == 3)) demo_ev_power(argc == 3 ? argv[2] : "normal");
             else if (command == "drive-model" && argc == 2) demo_drive_model();
 #ifdef STRATADRIVE_LINUX_SESSION
-            else if(command=="m4-async" && argc==6) demo_m4_async({argv[2],argv[3],argv[4],argv[5]});
+            else if(command=="m4-async" && argc>=6) {
+                M4DemoOptions options{argv[2],argv[3],argv[4],argv[5],{}};
+                for(int i=6;i<argc;++i) options.extra.emplace_back(argv[i]);
+                demo_m4_async(options);
+            }
             else if (command == "multirate-runtime" && argc >= 5 && argc <= 8) {
                 stratadrive::simulation::MultirateRuntimeOptions options;
                 options.scenario=argv[2]; options.interface_name=argv[3]; options.directory=argv[4];

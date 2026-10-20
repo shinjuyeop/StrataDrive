@@ -23,6 +23,10 @@ public:
     std::uint64_t completed_batches() const { return completed_batches_; }
     std::uint64_t command_source_ns() const { return command_source_ns_; }
     std::uint32_t command_root_sequence() const { return command_root_sequence_; }
+    std::array<transport::InputEvidence,6> input_history() const {
+        return {transport::input_evidence(steering_.last_accepted()),transport::input_evidence(brake_.last_accepted()),transport::input_evidence(drive_.last_accepted()),
+            transport::input_evidence(status_.last_accepted()),transport::input_evidence(limits_.last_accepted()),transport::input_evidence(permission_.last_accepted())};
+    }
     std::uint64_t now_ns() noexcept override { return clock_.now_ns(); }
     bool session_ready(CoordinatorSession session) noexcept override;
     bool healthy(std::uint32_t epoch) noexcept override;

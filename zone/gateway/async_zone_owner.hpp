@@ -23,6 +23,9 @@ public:
     int rejection() const { return rejection_; }
     std::size_t command_frames() const { return command_frames_; }
     std::uint64_t last_health_ns() const { return last_health_; }
+    std::array<transport::InputEvidence,3> input_history() const {
+        return {transport::input_evidence(steering_.last_accepted()),transport::input_evidence(brake_.last_accepted()),transport::input_evidence(drive_.last_accepted())};
+    }
     // Deterministic injection at the transport write boundary, owner thread only.
     bool fail_brake_write{false},drop_feedback{false},drop_permission_feedback{false};
 private:
