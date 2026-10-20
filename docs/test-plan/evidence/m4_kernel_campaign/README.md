@@ -6,6 +6,11 @@ Current state is maintained in [project status](../../../project_status.md).
 The [prospective protocol and exact sudo command](../../m4_kernel_capture.md)
 fix OTHER1 + FIFO10 OFF/ON pairs, normal build, no retries.
 
+Latest: the separate `d3e7f6d` campaign **213425 completed11/11 valid pairs**.
+OTHER2 FAIL, FIFO20 PASS, no FIFO pre-injection deadline misses; historical
+FIFO cause remains OPEN. [Full result, causal timeline and reproduction](completed_213425/README.md).
+The preparation and212418 failure below are historical records, not replaced.
+
 ## Preparation actually executed
 
 - `sudo -n true`: exit1, password required. [Environment](preparation/environment.json).

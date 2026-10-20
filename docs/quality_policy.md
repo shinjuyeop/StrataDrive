@@ -7,10 +7,11 @@ clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 
 TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.
 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다.
 Python 최신 회귀는 **112/112 PASS**다(이전108+background 유실/배분·콘솔 요약4).
-`cfeda34` 고정 수집212418은 OTHER2/22회 FAIL(180/320 miss), CPU9 추적1963개 유실로
-INVALID·FIFO20회 NOT RUN이다. 실제 user20/20 복원·marker/cleanup 성공을 확인했고,
-background buffer/중단 요약을 수정했다. 기존 원본은 별도 재분석에서도 exit2/INVALID 유지,
-새 buffer root 실행은 NOT RUN이다. [수정 전후](test-plan/evidence/m4_kernel_campaign/README.md)를 따른다.
+`d3e7f6d` 별도 고정 수집213425는11쌍 VALID·OTHER2 FAIL(191/186 miss)·FIFO20 PASS다.
+FIFO 주입 전 miss0, 원래 deadline 후3.170–5.059µs 검출·이후1.008–3.484µs 보호를 관측했다.
+실제 user20/20·FIFO 설정·marker/정리·유실0을 확인했지만 과거 FIFO 원인은 미확정이다.
+기존 `cfeda34`212418 유실/INVALID·FIFO20 NOT RUN과 원본 실패는 유지한다.
+[새 진단 분모·근거](test-plan/evidence/m4_kernel_campaign/completed_213425/README.md)를 따른다.
 `05e088b` native full-trace Normal20+TSan20도40/40 PASS, 경고0이다.
 [고정 수집 준비](test-plan/evidence/m4_kernel_campaign/README.md)와
 [SDK 후속](test-plan/evidence/m4_sdk_followup/README.md)은 별도 분모다. DDS 공식 옵션 재빌드4/4 FAIL,

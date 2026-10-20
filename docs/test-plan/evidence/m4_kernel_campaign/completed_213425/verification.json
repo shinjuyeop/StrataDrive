@@ -1,0 +1,53 @@
+{
+  "analysis": {
+    "command": [
+      "python3",
+      "tools/m4_kernel_campaign_analysis.py",
+      "build/m4-kernel-fixed-20261020-213425",
+      "build/m4-kernel-analysis-20261020-213425"
+    ],
+    "exit": 1,
+    "elapsed_seconds": 75.68814180698246,
+    "originals_unchanged": true
+  },
+  "audit_command": [
+    "python3",
+    "docs/test-plan/evidence/m4_kernel_campaign/completed_213425/reproduce.py",
+    "build/m4-kernel-analysis-20261020-213425",
+    "build/m4-kernel-analysis-20261020-213425/report-complete"
+  ],
+  "audit_exit": 0,
+  "tests_command": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests/unit",
+    "-p",
+    "*_test.py"
+  ],
+  "tests_exit": 0,
+  "python_count": 112,
+  "figure": "representative-timelines.png inspected",
+  "source_base": "d3e7f6d3147a3e12a8c302c81e05af57795a0a29",
+  "audit_script_sha256": "38167b136e68ef74d78fde7615758ab399d51e0c801a22b8fea1668e1f22f13b",
+  "cxx_sanitizer_timing48": "NOT RUN: no runtime or collector change in this analysis follow-up",
+  "capture_preserved": "build/m4-kernel-fixed-20261020-213425 (all 11 complete original pairs)",
+  "archive_scope": "all 22 workload raw files and 11 derived analyses; complete kernel traces only first OTHER and first FIFO ON; other 9 kernel traces local with full input hashes",
+  "shared_replay": {
+    "command": [
+      "python3",
+      "docs/test-plan/evidence/m4_kernel_campaign/completed_213425/reproduce.py",
+      "build/m4-kernel-shared-213425/m4-kernel-analysis-20261020-213425",
+      "build/m4-kernel-shared-213425/audit"
+    ],
+    "exit": 0,
+    "identical_report": true,
+    "original_archive_files_verified": 479,
+    "complete_kernel_traces_shared": [
+      "m4-kernel-analysis-20261020-213425/01-other-loaded/on/kernel.trace",
+      "m4-kernel-analysis-20261020-213425/02-fifo-monitor-overrun/on/kernel.trace"
+    ]
+  }
+}

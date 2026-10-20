@@ -2,7 +2,7 @@
 
 ## Fixed follow-up campaign (after `1a4afe5`)
 
-The preferred next command is now:
+For a separately planned privileged campaign, the command is:
 
 ```bash
 cd /d/shin/StrataDrive
@@ -53,15 +53,18 @@ mean intentional.
 The following single-pair command and original results are retained as history;
 that older CLI does not preserve the invoking user's RT limit across sudo.
 
-Status: **historical compact-v2 OTHER capture VALID / runtime FAIL; first fixed
-campaign INVALID due to background CPU9 trace loss**.
+Status: **corrected fixed campaign213425: all11 pairs VALID; OTHER2 FAIL, FIFO20 PASS**.
+The [completed campaign](evidence/m4_kernel_campaign/completed_213425/README.md)
+verified the new buffer allocation, user RT boundary, actual FIFO placement and
+cleanup. FIFO pre-injection misses were0; historical FIFO cause remains OPEN.
+No additional sudo run is needed to analyze these saved results.
 The20261020-212418 fixed campaign executed OTHER OFF/ON only (FAIL180/320 misses).
 It verified user/capabilities/20/20 restoration and both markers/cleanup, but
 CPU9 lost1963 events and FIFO10 pairs were NOT RUN. Background buffers are now
-enlarged within the original total cap; the new allocation's kernel run remains
-NOT RUN. [Originals, correction and112 Python checks](evidence/m4_kernel_campaign/README.md).
-The user executed the collector on kernel6.8.0-138-generic. The latest valid
-capture has729726 events,0 drops and11951 linked executed jobs. The first missed
+enlarged within the original total cap; the separate213425 campaign subsequently
+validated11 ON windows without event loss. [Originals, correction and112 Python checks](evidence/m4_kernel_campaign/README.md).
+The user executed the collector on kernel6.8.0-138-generic. The earlier185513 valid
+capture has729726 events,0 drops and11951 linked executed jobs. Its first missed
 CPU1 opportunity is dominated by runnable CPU waiting; see the
 [timeline, CSV and plot](evidence/m4_kernel_valid/README.md).
 The original lossy trace and145058 unparsed syscall lines remain in
