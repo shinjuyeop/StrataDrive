@@ -12,6 +12,31 @@ def call(cmd, log):
     if p.returncode: raise RuntimeError(f'{cmd}: {p.returncode}: {p.stdout}')
     return p.stdout
 
+def checked_result(folder, result, code=0, error=''):
+    issues=[error] if error else []
+    if code:issues.append(f'runner exit {code}')
+    if result.get('verdict')!='PASS':issues.append('workload did not PASS')
+    for role in ('central','zone'):
+        path=Path(folder)/(role+'.stderr')
+        if not path.is_file():issues.append(f'missing {role}.stderr');continue
+        text=path.read_text(errors='replace')
+        if any(marker in text for marker in ('WARNING: ThreadSanitizer','FATAL: ThreadSanitizer',
+                'ERROR: AddressSanitizer','ERROR: LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:')):
+            issues.append(f'sanitizer diagnostic in {role}.stderr')
+    return {**result,'verdict':'FAIL' if issues else 'PASS','diagnostic_errors':issues}
+
+def run_trial(command, folder, timeout=30):
+    with (Path(folder)/'runner.log').open('w') as log:
+        try:
+            with subprocess.Popen(command,stdout=log,stderr=subprocess.STDOUT,start_new_session=True) as process:
+                try:return process.wait(timeout=timeout),''
+                except subprocess.TimeoutExpired:
+                    try:os.killpg(process.pid,signal.SIGKILL)
+                    except ProcessLookupError:pass
+                    process.wait()
+                    return 124,f'timeout after {timeout}s; owned process group terminated'
+        except OSError as error:return 127,f'{type(error).__name__}: {error}'
+
 def child(folder, binary, condition):
     folder=Path(folder);folder.mkdir(parents=True,exist_ok=True)
     with (folder/'network.log').open('w') as log:
@@ -84,7 +109,12 @@ def child(folder, binary, condition):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--child',nargs=3);p.add_argument('--output',type=Path);p.add_argument('--protocol',type=Path,default=ROOT/'docs/test-plan/m4_middleware_probe_protocol_v2.md');p.add_argument('--build',type=Path,default=ROOT/'build/m4-middleware-probes/tests/integration/middleware');a=p.parse_args()
-    if a.child:child(*a.child);return
+    if a.child:
+        folder=Path(a.child[0]);folder.mkdir(parents=True,exist_ok=True)
+        try:result=checked_result(folder,child(*a.child))
+        except Exception as error:result={'verdict':'FAIL','diagnostic_errors':[f'{type(error).__name__}: {error}']}
+        (folder/'result.json').write_text(json.dumps(result,indent=2)+'\n')
+        return 0 if result['verdict']=='PASS' else 1
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
     meta={'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'source_digest':BASE['fingerprint'](),'kernel':platform.release(),'planned':36,'protocol_sha256':hashlib.sha256(a.protocol.read_bytes()).hexdigest()}
     (out/'metadata.json').write_text(json.dumps(meta,indent=2)+'\n');results=[]
@@ -94,10 +124,15 @@ def main():
                 folder=out/f'{candidate}-{condition}-{rep}';folder.mkdir()
                 command=['unshare','-Urnm',sys.executable,str(Path(__file__).resolve()),'--child',str(folder),str(a.build.resolve()/(candidate+'_candidate_probe')),condition]
                 (folder/'command.json').write_text(json.dumps(command)+'\n')
-                with (folder/'runner.log').open('w') as log:r=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT)
-                result=json.loads((folder/'result.json').read_text()) if (folder/'result.json').exists() else {'verdict':'BLOCKED','exit':r.returncode}
+                code,error=run_trial(command,folder)
+                try:result=json.loads((folder/'result.json').read_text())
+                except (OSError,ValueError) as missing:result={'verdict':'FAIL','missing_result':f'{type(missing).__name__}: {missing}'}
+                result=checked_result(folder,result,code,error)
                 row={'candidate':candidate,'condition':condition,'repetition':rep,**result};results.append(row)
+                (out/'results.json').write_text(json.dumps(results,indent=2)+'\n')
                 print(json.dumps(row),flush=True)
-    if BASE['fingerprint']()!=meta['source_digest']:raise RuntimeError('sources changed during cohort')
+    stable=BASE['fingerprint']()==meta['source_digest']
+    if not stable:(out/'source-error.txt').write_text('sources changed during cohort\n')
     (out/'results.json').write_text(json.dumps(results,indent=2)+'\n')
-if __name__=='__main__':main()
+    return 0 if stable and len(results)==36 and all(r['verdict']=='PASS' for r in results) else 1
+if __name__=='__main__':raise SystemExit(main())
