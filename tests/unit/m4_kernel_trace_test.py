@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import resource
 from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -23,6 +24,8 @@ def module(name):
 
 capture = module("m4_kernel_capture")
 analysis = module("m4_kernel_analysis")
+with patch.dict(sys.modules, m4_kernel_capture=capture):
+    campaign = module("m4_kernel_campaign")
 
 
 def event(ns, kind, body, tid=0, cpu=1):
@@ -201,6 +204,108 @@ class KernelAnalysisTest(unittest.TestCase):
 
 
 class CollectorSafetyTest(unittest.TestCase):
+    def test_verified_limit_is_set_only_in_child_before_dropping_all_credentials(self):
+        calls = MagicMock()
+        with patch.object(capture.resource, "setrlimit", calls.limit), \
+                patch.object(capture.os, "setgroups", calls.groups), \
+                patch.object(capture.os, "setgid", calls.gid), \
+                patch.object(capture.os, "setuid", calls.uid):
+            capture.drop_worker_privileges(1000, 1000, [1000, 27], [20, 20])
+        from unittest.mock import call
+        self.assertEqual(calls.mock_calls, [call.limit(resource.RLIMIT_RTPRIO, (20, 20)),
+                                          call.groups([1000, 27]), call.gid(1000), call.uid(1000)])
+        for uid, limit in ((0, [20, 20]), (1000, [99, 99]), (1000, [0, 0])):
+            with self.assertRaises(ValueError):
+                capture.drop_worker_privileges(uid, 1000, [], limit)
+
+    def test_live_parent_identity_and_ancestry_are_required(self):
+        parent = dict(pid=10, ppid=1, start_ticks=123, uids=[1000]*4, gids=[1000]*4,
+                      groups=[1000], cap_eff="0", rtprio=[20, 20], affinity=[0, 1, 2],
+                      policy=0, priority=0)
+        def read(pid):
+            return parent.copy() if pid == 10 else dict(ppid=10)
+        with patch.object(campaign.os, "getpid", return_value=20), \
+                patch.object(campaign, "proc_identity", side_effect=read):
+            self.assertEqual(campaign.verify_parent(10, 1000), parent)
+            for field, bad in (("rtprio", [0, 0]), ("uids", [0]*4),
+                               ("cap_eff", "1"), ("affinity", [0, 1]), ("policy", 1)):
+                original = parent[field]
+                parent[field] = bad
+                with self.subTest(field=field), self.assertRaises(ValueError):
+                    campaign.verify_parent(10, 1000)
+                parent[field] = original
+            with self.assertRaisesRegex(ValueError, "ancestor"):
+                campaign.verify_parent(99, 1000)
+
+    def test_campaign_is_fixed_and_budget_failure_is_not_success(self):
+        self.assertEqual(campaign.PLAN, ["other-loaded"]+["fifo-monitor-overrun"]*10)
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            with patch.object(campaign.time, "monotonic", return_value=361):
+                with self.assertRaisesRegex(RuntimeError, "time budget"):
+                    campaign.check_budget(folder, 0)
+            with patch.object(campaign.time, "monotonic", return_value=1), \
+                    patch.object(campaign, "size_bytes", return_value=campaign.MAX_BYTES-campaign.HEADROOM_BYTES):
+                with self.assertRaisesRegex(RuntimeError, "storage"):
+                    campaign.check_budget(folder, 0)
+
+    def test_campaign_keeps_all_pairs_after_workload_failure_and_returns_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = dict(pid=10, uids=[os.getuid()]*4, gids=[os.getgid()]*4,
+                          groups=os.getgroups(), affinity=[0, 1, 2], rtprio=[20, 20])
+            with patch.object(campaign, "proc_identity", return_value={}), \
+                    patch.object(campaign, "verify_parent", return_value=parent), \
+                    patch.object(campaign, "validate_other", return_value=True), \
+                    patch.object(capture, "check_conflicts", return_value={}), \
+                    patch.object(capture, "snapshot", return_value={}), \
+                    patch.object(capture, "run_pair", return_value=[dict(worker_exit=1), dict(worker_exit=0)]) as pair:
+                self.assertEqual(campaign.collect(Path(temp), parent), 1)
+                self.assertEqual(pair.call_count, 11)
+                result = json.loads((Path(temp)/"campaign.json").read_text())
+                self.assertEqual(len(result["attempts"]), 11)
+                self.assertTrue(all(r["status"] == "COLLECTED" for r in result["attempts"]))
+
+    def test_campaign_collection_error_is_invalid_without_retry(self):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = dict(pid=10, uids=[os.getuid()]*4, gids=[os.getgid()]*4,
+                          groups=os.getgroups(), affinity=[0, 1, 2], rtprio=[20, 20])
+            results = [[dict(worker_exit=0)], RuntimeError("EBADF fixture")] + [[dict(worker_exit=0)]]*9
+            with patch.object(campaign, "proc_identity", return_value={}), \
+                    patch.object(campaign, "verify_parent", return_value=parent), \
+                    patch.object(campaign, "validate_other", return_value=True), \
+                    patch.object(capture, "check_conflicts", return_value={}), \
+                    patch.object(capture, "snapshot", return_value={}), \
+                    patch.object(capture, "run_pair", side_effect=results) as pair:
+                self.assertEqual(campaign.collect(Path(temp), parent), 2)
+                self.assertEqual(pair.call_count, 11)
+                result = json.loads((Path(temp)/"campaign.json").read_text())
+                self.assertEqual(result["attempts"][1]["status"], "INVALID")
+                self.assertEqual(sum(r["status"] == "COLLECTED" for r in result["attempts"]), 10)
+
+    def test_invalid_initial_other_leaves_fifo_not_run(self):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = dict(pid=10, uids=[os.getuid()]*4, gids=[os.getgid()]*4,
+                          groups=os.getgroups(), affinity=[0, 1, 2], rtprio=[20, 20])
+            with patch.object(campaign, "proc_identity", return_value={}), \
+                    patch.object(campaign, "verify_parent", return_value=parent), \
+                    patch.object(campaign, "validate_other", return_value=False), \
+                    patch.object(capture, "check_conflicts", return_value={}), \
+                    patch.object(capture, "snapshot", return_value={}), \
+                    patch.object(capture, "run_pair", return_value=[dict(worker_exit=1)]) as pair:
+                self.assertEqual(campaign.collect(Path(temp), parent), 2)
+                self.assertEqual(pair.call_count, 1)
+                result = json.loads((Path(temp)/"campaign.json").read_text())
+                self.assertEqual(result["attempts"][0]["status"], "INVALID")
+                self.assertTrue(all(r["status"] == "NOT RUN" for r in result["attempts"][1:]))
+
+    def test_actual_nonroot_campaign_exits_without_creating_output(self):
+        result = subprocess.run([sys.executable, str(ROOT/"tools/m4_kernel_campaign.py"),
+                                 "build/should-not-be-created", "--user-parent", str(os.getppid())],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("use sudo", result.stderr)
+        self.assertFalse((ROOT/"build/should-not-be-created").exists())
+
     def test_marker_failure_preserves_raw_trace_and_stats_then_fails(self):
         with tempfile.TemporaryDirectory() as temp:
             base = self.base(temp)

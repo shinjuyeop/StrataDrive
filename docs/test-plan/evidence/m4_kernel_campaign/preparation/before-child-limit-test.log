@@ -1,0 +1,14 @@
+test_verified_limit_is_set_only_in_child_before_dropping_all_credentials (trace_test.CollectorSafetyTest) ... ERROR
+
+======================================================================
+ERROR: test_verified_limit_is_set_only_in_child_before_dropping_all_credentials (trace_test.CollectorSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/m4_kernel_trace_test.py", line 213, in test_verified_limit_is_set_only_in_child_before_dropping_all_credentials
+    capture.drop_worker_privileges(1000, 1000, [1000, 27], [20, 20])
+AttributeError: module 'old_capture' has no attribute 'drop_worker_privileges'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)

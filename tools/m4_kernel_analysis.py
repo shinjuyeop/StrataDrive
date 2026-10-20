@@ -296,7 +296,8 @@ def analyze_trial(folder):
                 and trial.get("jobs") == 12110 and result["guards_enabled"]
                 and not result["transport_trace_enabled"] and result["duration_ns"] == 2540000000
                 and identity["uid"] != 0 and identity["euid"] == identity["uid"]
-                and int(identity["cap_eff"], 16) == 0 and source.get("stable") is True)
+                and int(identity["cap_eff"], 16) == 0 and source.get("stable") is True
+                and trial.get("identity_control", True) is True)
     summary = dict(runtime_verdict=trial["verdict"], runtime_reason=result["reason"],
                    first_active_ns=result["first_active_ns"], deadline_misses=result["deadline_misses"],
                    skipped=result["skipped_opportunities"], scope="intrusive diagnostic, not timing acceptance",

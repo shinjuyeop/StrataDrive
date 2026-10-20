@@ -1,5 +1,50 @@
 # M4 Host kernel observation — bounded OFF/ON pair
 
+## Fixed follow-up campaign (after `1a4afe5`)
+
+The preferred next command is now:
+
+```bash
+cd /d/shin/StrataDrive
+sudo /usr/bin/timeout --signal=TERM --kill-after=20s 360s \
+  /usr/bin/python3 tools/m4_kernel_campaign.py \
+  "$PWD/build/m4-kernel-fixed-$(date +%Y%m%d-%H%M%S)" \
+  --user-parent "$$"
+```
+
+The original shell must remain alive and actually have RTPRIO20/20. Its UID,
+capabilities, ancestry, start time, limits, groups and affinity are verified from
+`/proc`/`prlimit`, not trusted from a supplied file. Only the forked worker child
+gets those verified20/20 limits before `setgroups/setgid/setuid`; neither the root
+collector nor global configuration is changed. Worker and actual runtime/load
+credentials and limits are retained. No password, sudoers edit or privileged broker.
+
+The prospective plan is **OTHER loaded OFF→ON once, then normal-build FIFO
+monitor-overrun OFF→ON ten times** (11 pairs/22 workloads). Initial OTHER analysis
+runs unprivileged between pairs: it must be VALID before FIFO starts. A valid
+workload FAIL does not prevent FIFO. An invalid initial trace leaves FIFO NOT RUN.
+Every subsequent FIFO attempt remains in the denominator, including failures;
+no replacement runs. Cleanup conflict stops remaining work, which remains NOT RUN.
+
+Overall limit360s (external kill grace20s), disk guard3GiB with512MiB reserved
+headroom, original worker12s/trace watchdog15s/file32MiB/trace128MiB/buffer64MiB
+caps apply. The fixed program has no arbitrary command argument. Storage is checked
+between trials and every200ms during execution; the reserved space covers the
+fixed worker output files and final trace export. Workspace
+`build/.m4-exclusive.lock` also excludes agent build/sanitizer jobs. Do not run
+unrelated builds/tests/tracers concurrently.
+
+`campaign.json` lists the plan and every attempt. Exit2 means incomplete/invalid
+collection or operational failure; exit1 means at least one worker failed;
+exit0 means collection workers succeeded, **not timing acceptance**. Except for the
+initial OTHER validation, analysis follows collection as the original user:
+`python3 tools/m4_kernel_analysis.py build/<campaign>/<pair>`.
+Trace loss, missing alignment/identity, changed source or cleanup errors remain
+INVALID even if a workload reports PASS. [Preparation/evidence](evidence/m4_kernel_campaign/README.md).
+
+The following single-pair command and original results are retained as history;
+that older CLI does not preserve the invoking user's RT limit across sudo.
+
 Status: **compact-v2 OTHER capture VALID / runtime FAIL; latest marker fix NOT RUN on tracefs**.
 The user executed the collector on kernel6.8.0-138-generic. The latest valid
 capture has729726 events,0 drops and11951 linked executed jobs. The first missed

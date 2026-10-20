@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import runpy
+import resource
 import select
 import signal
 import subprocess
@@ -30,13 +31,27 @@ def save_csv(path, rows):
 
 def run(command, folder, name):
     with (folder / (name + '.log')).open('w') as stream:
-        result = subprocess.run(command, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT, check=False)
-    return result.returncode
+        with subprocess.Popen(command, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT) as process:
+            # Read the actual child, not inferred credentials of its launcher.
+            try:
+                identity = process_identity(process.pid)
+            except (OSError, ProcessLookupError) as error:
+                identity = {'pid': process.pid, 'error': str(error)}
+            (folder/(name+'-identity.json')).write_text(json.dumps(identity, indent=2)+'\n')
+            return process.wait()
+
+
+def process_identity(pid):
+    status = dict(line.split(':', 1) for line in Path(f'/proc/{pid}/status').read_text().splitlines() if ':' in line)
+    return dict(pid=pid, uids=list(map(int, status['Uid'].split())), cap_eff=status['CapEff'].strip(),
+                rtprio=list(resource.prlimit(pid, resource.RLIMIT_RTPRIO)))
 
 
 def load_child(folder, cpu):
     """Separate OTHER process; controlled wall busy demand, measured CPU use."""
     os.sched_setaffinity(0, {cpu}); os.sched_setscheduler(0, os.SCHED_OTHER, os.sched_param(0))
+    identity = process_identity(os.getpid())
+    (folder/'load-identity.json').write_text(json.dumps(identity, indent=2)+'\n')
     active = True
     def stop(_signal, _frame):
         nonlocal active

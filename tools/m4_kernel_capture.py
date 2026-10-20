@@ -307,7 +307,18 @@ def kill_group(process):
     process.wait(timeout=2)
 
 
-def worker(folder, case, profile, affinity):
+def drop_worker_privileges(uid, gid, groups, rtprio):
+    # Called only in the forked child, BEFORE setuid. Popen(user=...) would
+    # lower privileges before preexec_fn and could not restore a hard limit.
+    if uid == 0 or tuple(rtprio) != (20, 20):
+        raise ValueError("only verified original nonroot 20/20 is supported")
+    resource.setrlimit(resource.RLIMIT_RTPRIO, tuple(rtprio))
+    os.setgroups(groups)
+    os.setgid(gid)
+    os.setuid(uid)
+
+
+def worker(folder, case, profile, affinity, expected_rtprio=None):
     if os.getuid() == 0 or os.geteuid() == 0:
         raise RuntimeError("workload must never run as root")
     os.sched_setaffinity(0, set(affinity))
@@ -324,6 +335,8 @@ def worker(folder, case, profile, affinity):
     write_json(folder/"worker-identity.json", identity)
     if int(identity["cap_eff"], 16):
         raise RuntimeError("workload has effective capabilities")
+    if expected_rtprio is not None and identity["rtprio"] != expected_rtprio:
+        raise RuntimeError("workload RT limit differs from verified invoking session")
     runner = runpy.run_path(str(ROOT/"tests/integration/runtime/check_m4_faults.py"))
     binary = ROOT/runner["PROFILES"][profile]/"actuator_demo"
     source = dict(source_commit=subprocess.check_output(
@@ -333,6 +346,15 @@ def worker(folder, case, profile, affinity):
     write_json(folder/"source.json", source)
     policy, loaded, scenario = CASES[case]
     row = runner["timing_run"](folder/"run", profile, policy, loaded, scenario, 1)
+    actual_identities = []
+    for name in ["runtime"] + (["load"] if loaded else []):
+        path = folder/"run"/(name+"-identity.json")
+        actual_identities.append(json.loads(path.read_text()) if path.exists() else {})
+    row["identity_control"] = all(
+        data.get("uids") == [identity["uid"]]*4 and data.get("rtprio") == identity["rtprio"]
+        and int(data.get("cap_eff", "1"), 16) == 0 for data in actual_identities)
+    if not row["identity_control"]:
+        row.update(verdict="BLOCKED", reason="actual workload identity/RT limit could not be verified")
     write_json(folder/"trial.json", row)
     source["source_digest_after"] = runner["BASE"]["fingerprint"]()
     source["binary_sha256_after"] = hashlib.sha256(binary.read_bytes()).hexdigest()
@@ -344,7 +366,7 @@ def worker(folder, case, profile, affinity):
     return 0 if row["verdict"] == "PASS" else 1
 
 
-def run_pair(folder, case, profile, identity, base=TRACEFS):
+def run_pair(folder, case, profile, identity, base=TRACEFS, rtprio=None, budget=None):
     """No retry: OFF first, ON second, even when OFF reports expected timing FAIL."""
     uid, gid, groups, affinity = identity
     before = check_conflicts(base)
@@ -355,6 +377,8 @@ def run_pair(folder, case, profile, identity, base=TRACEFS):
         raise RuntimeError(f"required events unavailable: {info['missing_required']}")
     rows = []
     for mode in ("off", "on"):
+        if budget:
+            budget()
         check_conflicts(base)
         trial = folder/mode
         trial.mkdir()
@@ -372,15 +396,33 @@ def run_pair(folder, case, profile, identity, base=TRACEFS):
                        PYTHONNOUSERSITE="1")
             command = [sys.executable, str(Path(__file__).resolve()), "_worker", str(trial),
                        "--case", case, "--profile", profile, "--affinity", ",".join(map(str, affinity))]
+            credentials = dict(user=uid, group=gid, extra_groups=groups)
+            if rtprio is not None:
+                command += ["--expected-rtprio", ",".join(map(str, rtprio))]
+                credentials = dict(preexec_fn=lambda: drop_worker_privileges(uid, gid, groups, rtprio))
             write_json(trial/"launch.json", dict(argv=command, uid=uid, gid=gid, groups=groups,
-                                                affinity=affinity, env_removed="sanitizer/loader/Python/M4 overrides"))
+                                                affinity=affinity, verified_rtprio=rtprio,
+                                                env_removed="sanitizer/loader/Python/M4 overrides"))
             with (trial/"worker.log").open("xb") as log:
                 process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
-                                           user=uid, group=gid, extra_groups=groups, start_new_session=True)
+                                           **credentials, start_new_session=True)
                 if trace:
                     trace.watch_worker(process.pid)
                 try:
-                    row["worker_exit"] = process.wait(timeout=MAX_SECONDS)
+                    if budget:
+                        deadline = time.monotonic()+MAX_SECONDS
+                        while process.poll() is None:
+                            budget()
+                            remaining = deadline-time.monotonic()
+                            if remaining <= 0:
+                                raise subprocess.TimeoutExpired(command, MAX_SECONDS)
+                            try:
+                                process.wait(timeout=min(.2, remaining))
+                            except subprocess.TimeoutExpired:
+                                pass
+                        row["worker_exit"] = process.returncode
+                    else:
+                        row["worker_exit"] = process.wait(timeout=MAX_SECONDS)
                     row["collection"] = "COMPLETE"
                 except subprocess.TimeoutExpired:
                     row["collection"] = "TIMEOUT"
@@ -439,9 +481,11 @@ def main():
     parser.add_argument("--case", choices=CASES, default="other-loaded")
     parser.add_argument("--profile", choices=("normal", "sanitized"), default="normal")
     parser.add_argument("--affinity", help=argparse.SUPPRESS)
+    parser.add_argument("--expected-rtprio", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.action == "_worker":
-        return worker(args.output, args.case, args.profile, list(map(int, args.affinity.split(","))))
+        return worker(args.output, args.case, args.profile, list(map(int, args.affinity.split(","))),
+                      list(map(int, args.expected_rtprio.split(","))) if args.expected_rtprio else None)
     if os.geteuid() != 0 or not os.environ.get("SUDO_UID"):
         parser.error("use sudo from the original non-root user; _worker never uses sudo")
     uid = int(os.environ["SUDO_UID"])
