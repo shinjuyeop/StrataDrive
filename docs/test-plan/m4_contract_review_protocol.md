@@ -39,3 +39,24 @@ Target and learner acceptance are unchanged.
 
 Host IO/FIFO technical acceptance is a proposal only; unsupported timing, SDK and
 native TSan conditions remain open until their explicit acceptance decisions.
+
+## Follow-up logical causal probe (after the fixed40 runs)
+
+The fixed40 native runs atf895dc6 all passed; do not extend/retry that denominator.
+Before executing a new probe, fix two **logical** conditions: no added delay and
+12ms delivery delay on Command TxResult only for both Zones from elapsed1000ms;
+all requests/feedback/Leaf execution unchanged. Run existing real Network/owners,
+original1.8s duration and original deadlines. Record full trace. Inspect whether
+next20ms allocation encounters a still-pending sequential Front→Rear batch while
+its individual20ms result deadline and inner command expiry are still live. This
+is a deliberate contract-pressure scenario, not a replay of the untraced original
+native scheduling incident and not performance evidence. Add the resulting
+protection/latch behavior to logical regression without changing timeouts.
+
+The12ms hypothesis probe selected protection earlier through the previous Rear
+command expiry, not the hypothesized busy-submit path. Keep its failed hypothesis
+JUnit and actual trace. Preserve that observed expiry path as a logical regression.
+One distinct second logical condition is fixed before execution: **Rear Command
+TxResult only19.8ms delay**, Front results unchanged, start1000ms. This tests the
+narrow next-allocation/pending-result boundary while fresh Rear command application
+already occurred. It does not modify any runtime budget or extend the native40 cohort.

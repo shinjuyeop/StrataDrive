@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="1" disabled="0" errors="0" time="0.228" timestamp="2026-10-20T15:42:31.136" name="AllTests">
+  <testsuite name="M4AsyncRuntime" tests="1" failures="1" disabled="0" skipped="0" errors="0" time="0.228" timestamp="2026-10-20T15:42:31.136">
+    <testcase name="PendingSequentialResultsProtectBeforeTheirIndividualDeadlinesExpire" status="run" result="completed" time="0.228" timestamp="2026-10-20T15:42:31.136" classname="M4AsyncRuntime">
+      <failure message="/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:113&#x0A;Expected equality of these values:&#x0A;  network-&gt;core.decision().fault&#x0A;    Which is: 4-byte object &lt;0C-00 00-00&gt;&#x0A;  stratadrive::central::CoordinatorFault::CommandDelivery&#x0A;    Which is: 4-byte object &lt;0A-00 00-00&gt;" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:113
+Expected equality of these values:
+  network->core.decision().fault
+    Which is: 4-byte object <0C-00 00-00>
+  stratadrive::central::CoordinatorFault::CommandDelivery
+    Which is: 4-byte object <0A-00 00-00>]]></failure>
+      <failure message="/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:114&#x0A;Expected equality of these values:&#x0A;  network-&gt;port.fault()&#x0A;    Which is: 4-byte object &lt;03-00 00-00&gt;&#x0A;  stratadrive::central::AsyncTransportFault::None&#x0A;    Which is: 4-byte object &lt;00-00 00-00&gt;" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:114
+Expected equality of these values:
+  network->port.fault()
+    Which is: 4-byte object <03-00 00-00>
+  stratadrive::central::AsyncTransportFault::None
+    Which is: 4-byte object <00-00 00-00>]]></failure>
+      <failure message="/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:117&#x0A;Expected: (pending) != (result.transport_events.end()), actual: 8-byte object &lt;C0-19 BF-0B 80-55 00-00&gt; vs 8-byte object &lt;C0-19 BF-0B 80-55 00-00&gt;" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:117
+Expected: (pending) != (result.transport_events.end()), actual: 8-byte object <C0-19 BF-0B 80-55 00-00> vs 8-byte object <C0-19 BF-0B 80-55 00-00>]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

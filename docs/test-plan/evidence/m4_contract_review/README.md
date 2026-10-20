@@ -110,3 +110,33 @@ handling, not a fabricated physical response; existing physical CSV remains sepa
 A new logical test compares complete physical response with trace off/on and follows
 each actual command transaction. Native diagnostics use the fixed separate20+20
 protocol and do not replace the48-run guard cohort or historical TSan failure.
+
+## Native no-reproduction and distinct logical causal probes
+
+Fixed native cohort at `f895dc6`: normal20/20 and TSan20/20 PASS, settings40/40,
+full trace40/40, race warnings0. Raw `build/m4-contract-delivery-cohort/`.
+This does **not** resolve the original d7115ff CommandDelivery incident.
+
+Two prospective logical conditions distinguish failure paths using actual owners:
+
+- Both Command TX results delayed12ms: original Rear applied command expires at
+  elapsed1011.000001ms; its next service1011.2ms protects. Front result returns
+ 1017.4ms, while the new command remains live until1031.000001ms, but the closed
+  gate correctly rejects Rear enqueue. First hypothesis expected a busy-submit
+  fault and failed; `causal/overlap-hypothesis.xml` preserves that incorrect
+  hypothesis. The regression now checks the observed original-authority path.
+- Rear Command TX result only delayed19.8ms: root1001ms → CAN source1005.2ms →
+  Rear enqueue1005.4ms → Zone/Leaf completion1005.6ms → next allocation1025.2ms
+  finds the previous transaction pending → CommandDelivery protection. Its
+  envelope deadline is1025.4ms and inner expiry1031.000001ms. Result arrival at
+  exactly1025.4ms is subsequently rejected by exclusive expiry. A draft assertion
+  incorrectly assumed the **final** transport fault would remain None after that
+  late reply; `causal/causal-draft.xml` retains the failure. The final test asserts
+  absence of transport rejection **before** the busy-submit event, preserving the
+  later rejection as distinct behavior. Both final logical tests pass unchanged
+  control logic/limits; this demonstrates a delay-only path, not a memory race or
+  a confirmed reconstruction of the historical untraced native failure.
+
+New logical regressions bring the full test set to966 (original948 + contracts15
++ trace equivalence1 + causal2), traceability86. Their actual full results are
+recorded after execution; prior964 results retain their own source identity.

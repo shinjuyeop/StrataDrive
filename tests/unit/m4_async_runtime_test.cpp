@@ -1,4 +1,5 @@
 #include "m4_async_runtime.hpp"
+#include "m4_owner_network.hpp"
 
 #include <gtest/gtest.h>
 #include <cstdlib>
@@ -86,5 +87,50 @@ TEST(M4AsyncRuntime, TransportTraceCorrelatesOriginalAuthorityWithoutChangingPhy
         EXPECT_TRUE(received);EXPECT_TRUE(dispatched);EXPECT_TRUE(completed);EXPECT_TRUE(returned);++checked;
     }
     EXPECT_GT(checked,20U);
+}
+M4Result delayed_results(std::uint64_t front_delay,std::uint64_t rear_delay,const char* name) {
+    class ResultDelay final : public stratadrive::session::MailboxDelivery<stratadrive::transport::TxResult> {
+    public:
+        m4_detail::Network& network;std::uint64_t delay;
+        ResultDelay(m4_detail::Network& n,std::uint64_t d):network(n),delay(d) {}
+        stratadrive::session::Delivery send(const stratadrive::transport::TxResult& r) noexcept override {
+            const auto now=network.clock.now_ns();
+            return {false,r.operation==stratadrive::transport::Operation::Commands && now>=network.start+1000000000?now+delay:0};
+        }
+        bool blocked() noexcept override {return false;}
+        std::uint64_t now_ns() const noexcept override {return network.clock.now_ns();}
+        void delivered(const stratadrive::transport::TxResult&) noexcept override {}
+        void overflow(const stratadrive::transport::TxResult&) noexcept override {}
+    };
+    M4Config config;config.transport_trace=true;
+    auto network=std::make_unique<m4_detail::Network>(config);ResultDelay front(*network,front_delay),rear(*network,rear_delay);
+    network->zones[0].results.delivery(&front);network->zones[1].results.delivery(&rear);
+    m4_detail::execute_logical(*network);const auto result=network->finish();
+    if(const auto* dir=std::getenv("STRATADRIVE_M4_RESULTS"))write_m4_result(config,result,std::string(dir)+"/delivery-causal/"+name);
+    return result;
+}
+TEST(M4AsyncRuntime, DelayedFrontResultCannotOutlivePreviousRearCommandAuthority) {
+    const auto control=delayed_results(0,0,"control");ASSERT_TRUE(control.passed);
+    const auto result=delayed_results(12000000,12000000,"both-12ms");
+    EXPECT_FALSE(result.passed);EXPECT_FALSE(result.event_overflow);
+    EXPECT_NE(result.reason.find("core=12 "),std::string::npos); // Transport, not an assumed busy-submit cause
+    const auto expired=std::find_if(result.events.begin(),result.events.end(),[](const auto& e){return e.owner==4 && std::string(e.kind)=="command-expired";});
+    ASSERT_NE(expired,result.events.end());EXPECT_GE(expired->time_ns,expired->deadline_ns);EXPECT_LE(expired->time_ns-expired->deadline_ns,200000U);
+    const auto blocked=std::find_if(result.transport_events.begin(),result.transport_events.end(),[](const auto& e){return std::string(e.stage)=="central-post-rejected" && e.peer==1;});
+    ASSERT_NE(blocked,result.transport_events.end());EXPECT_EQ(blocked->outcome,2);EXPECT_GT(blocked->time_ns,expired->time_ns);
+    EXPECT_LT(blocked->time_ns,blocked->inner_deadline_ns); // new command live; old applied authority already expired
+    for(const auto& row:result.trace)if(row.elapsed_ns>=result.first_fault_ns) {EXPECT_FALSE(row.run_gate);}
+}
+TEST(M4AsyncRuntime, PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry) {
+    const auto result=delayed_results(0,19800000,"rear-19p8ms");
+    EXPECT_FALSE(result.passed);EXPECT_FALSE(result.event_overflow);
+    EXPECT_NE(result.reason.find("core=10 "),std::string::npos);
+    EXPECT_GT(result.first_active_ns,0U);EXPECT_GE(result.first_fault_ns,1000000000U);
+    const auto pending=std::find_if(result.transport_events.begin(),result.transport_events.end(),[](const auto& e){return std::string(e.stage)=="command-still-pending";});
+    ASSERT_NE(pending,result.transport_events.end());EXPECT_LT(pending->time_ns,pending->deadline_ns);EXPECT_LT(pending->time_ns,pending->inner_deadline_ns);
+    EXPECT_FALSE(std::any_of(result.transport_events.begin(),pending,[](const auto& e){return std::string(e.stage)=="central-result-timeout" || std::string(e.stage)=="central-result-rejected" || std::string(e.stage)=="central-post-rejected";}));
+    EXPECT_TRUE(std::any_of(result.transport_events.begin(),pending,[&](const auto& e){return e.epoch==pending->epoch && e.token==pending->token && std::string(e.stage)=="zone-result-enqueued" && e.outcome==1;}));
+    for(const auto& row:result.trace)if(row.elapsed_ns>=result.first_fault_ns) {EXPECT_FALSE(row.run_gate);}
+    EXPECT_GT(result.all_protected_ns,result.first_fault_ns);EXPECT_LE(result.all_protected_ns-result.first_fault_ns,100000000U);
 }
 }  // namespace
