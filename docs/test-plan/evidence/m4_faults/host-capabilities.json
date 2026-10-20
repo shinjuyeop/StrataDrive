@@ -1,0 +1,63 @@
+{
+  "kernel": "6.8.0-138-generic",
+  "monotonic_clock": "CLOCK_MONOTONIC",
+  "schedstat_sampling": "intrusive diagnostic, not a performance baseline",
+  "preemption": {
+    "source": "/boot/config-6.8.0-138-generic",
+    "preempt_rt": false,
+    "preempt_dynamic": true,
+    "sched_info": true
+  },
+  "sched_info_enabled": true,
+  "machine": "x86_64",
+  "fifo_probe": {
+    "requested_priority": 20,
+    "verdict": "AVAILABLE",
+    "observed_policy": 1,
+    "observed_priority": 20,
+    "restored": true,
+    "exitcode": 0,
+    "stderr": ""
+  },
+  "rlimit_rtprio": [
+    20,
+    20
+  ],
+  "caller_policy": 0,
+  "caller_priority": 0,
+  "allowed_cpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "scope": "capability observation only; no RT workload, latency acceptance or system setting changes",
+  "kernel_realtime": {
+    "error": "[Errno 2] No such file or directory: '/sys/kernel/realtime'"
+  },
+  "rt_runtime_us": "950000",
+  "rt_period_us": "1000000",
+  "perf_event_paranoid": "4",
+  "tracefs_error": "[Errno 13] Permission denied: '/sys/kernel/tracing'",
+  "perf_probe_exit": 255,
+  "perf_probe_stderr": "Error:\nAccess to performance monitoring and observability operations is limited.\nConsider adjusting /proc/sys/kernel/perf_event_paranoid setting to open\naccess to performance monitoring and observability operations for processes\nwithout CAP_PERFMON, CAP_SYS_PTRACE or CAP_SYS_ADMIN Linux capability.\nMore information can be found at 'Perf events and tool security' document:\nhttps://www.kernel.org/doc/html/latest/admin-guide/perf-security.html\nperf_event_paranoid setting is 4:\n  -1: Allow use of (almost) all events by all users\n      Ignore mlock limit after perf_event_mlock_kb without CAP_IPC_LOCK\n>= 0: Disallow raw and ftrace function tracepoint access\n>= 1: Disallow CPU event access\n>= 2: Disallow kernel profiling\nTo make the adjusted perf_event_paranoid setting permanent preserve it\nin /etc/sysctl.conf (e.g. kernel.perf_event_paranoid = <setting>)\n",
+  "commit": "12fc4a51449cd9f14ad1be8b243dea4d8d4d7311",
+  "working_tree": [
+    " M docs/learning/m4_async_owners.md",
+    "?? docs/adr/ADR-0056-m4-faults-and-independent-execution-watch.md",
+    "?? docs/test-plan/evidence/m4_faults/"
+  ],
+  "source_sha256": "ff6465f5eef5ad818bf5d7bac5298d94230fe9fa694062c2ef1e1c6882b3909e"
+}

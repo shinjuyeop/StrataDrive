@@ -7,8 +7,10 @@ SYS-COM-003/004·SYS-PERF-002와 나머지 SYS-EV 요구는 v0.3, 그 외 기존
 
 현재 구현 상태와 최신 시험 분모는 [project_status](../project_status.md)가 기준이다.
 **구현된 component의 추적성**은 [함수·실제 시험·판정 기준 CSV](component_traceability.csv),
-[normal/sanitizer 실제 결과](evidence/m4_async/component_results.csv), [commit·환경·재현·대표 수치](evidence/m4_async/README.md)로 연결한다.
-2026-10-19 M4 비동기 통합에서 대표20개 연결을 두 빌드의 전체 CTest 결과와 대조했다.
+[normal/sanitizer 실제 결과56개](evidence/m4_faults/component_results.csv), [commit·환경·재현·고장/복구·timing 수치](evidence/m4_faults/README.md)로 연결한다.
+2026-10-19의20개 연결에 공통 고장·재가입·독립 감시36개를 추가하고 두 빌드908개 전체 CTest와 대조했다.
+CSV evidence 열은 `evidence/` 기준이다. 원래20개 대표 수치는 `m4_async/` 당시 이력이고 최신 재실행 PASS는56개 결과에 기록한다.
+M4 native timing48개는 별도 조건별41 PASS/7 FAIL이며 이 결과를 unit PASS에 합치지 않는다.
 이는 아래32개 requirement/29개 system TC의 전체 수용 결과와 구분한다.
 
 아래 system TC 전체 구현/검증은 PLANNED, runtime Result는 전부 **NOT RUN**이다.

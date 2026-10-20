@@ -22,7 +22,7 @@ EV C++ codec/receiver·SocketCAN unit과 EV local vCAN 36개 case도 수행했�
 
 [ADR-0055](../adr/ADR-0055-asynchronous-normal-owner-integration.md)의 정상 비동기 경로를
 `tests/integration/runtime/check_m4_async.py`로 검사한다. 단일 실행에서 normal·ASan/UBSan 각각
-전체872개 CTest와 영속 grant CLI 재가입을 실행하고 동일 결과를 [component 추적표](component_traceability.csv)에 연결한다.
+당시 전체872개 CTest와 영속 grant CLI 재가입을 실행하고 동일 결과를 [component 추적표](component_traceability.csv)에 연결한다.
 대표 정상·부분 송신 실패·Actual 상실·정상 종료·새 Epoch 복구의 [CSV/그래프/결과와 재현 절차](evidence/m4_async/README.md)를 Git에 보존한다.
 원본 JUnit/로그/모든 scenario CSV는 지정한 `build/` raw directory에 남긴다.
 `--reuse`는 source SHA256이 같을 때만 결과를 다시 추출하며 **실제로 시험한 원래 commit**을 유지한다.
@@ -32,6 +32,15 @@ EV C++ codec/receiver·SocketCAN unit과 EV local vCAN 36개 case도 수행했�
 ACK 성공을 물리 압력 도달·토크0·전원 OFF로 간주하지 않고 actual trace/해당 시험의 별도 assertion을 사용한다.
 Native 표본은 SCHED_OTHER·1.8초·고정 speed0·별도 부하 없음이다. M3 FIFO/배치 cohort의 대체나 WCET 증명이 아니다.
 기존 timing 실패·학습자 review와 아래 system TC의 **NOT RUN**을 유지한다.
+
+### M4 고장·M3 독립 감시 후속
+
+[ADR-0056](../adr/ADR-0056-m4-faults-and-independent-execution-watch.md)의 `check_m4_faults.py`는 전체 normal/sanitizer908개,
+고장/복구 runtime32개씩과 기존 CLI 재가입을 같은 실행에서 추출한다. [최신 근거](evidence/m4_faults/README.md)와56개 추적성을 연결한다.
+[사전 프로토콜](m4_fault_timing_protocol.md)로 고정한 native48회는41 PASS/7 FAIL이며 setting/load control48/48 PASS다.
+Whole-owner2/4ms 독립 감시와10/20ms 제어 자체5/8ms 검사, body 초과/누락 slot, 실제 물리 적용과 ECU ACK를 분리한다.
+Logical 기능, sanitizer 성능, 원격 process/네트워크·전체 system TC는 서로 다른 범위다.
+기존 M3 예외·학습자 review·system TC NOT RUN은 유지한다. 물리 응답 CSV의 사후 감사는 새로운 timing 수용 결과가 아니다.
 
 ### 이전 단계의 부분 검사 이력
 

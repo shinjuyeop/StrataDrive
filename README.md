@@ -6,7 +6,7 @@
 
 **M3 진행 중** — [Host RTOS의 누적 tick 지연](docs/learning/m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기)을 수정하고 CPU 배치·FIFO 실행을 비교했다.
 일반 우선순위 sanitizer의 타이밍 실패 2건과 학습자 수용은 남아 있다. M1/M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도다.
-M4는 [세션 INIT·재가입](docs/learning/m4_session_bootstrap.md) 위에 [정상 운전의 비동기 owner 경로](docs/learning/m4_async_owners.md)를 연결했다. Central·두 Zone·실제 Leaf/BMS·물리 owner를 독립 실행하며 시동·배분·정상 종료·상실/보호·새 Epoch 재가입을 Host component로 검사한다. DDS·차량 closed-loop·Target 검증은 후속 단계다.
+M4는 [세션 INIT·재가입](docs/learning/m4_session_bootstrap.md) 위에 [정상 운전의 비동기 owner 경로](docs/learning/m4_async_owners.md)를 연결했다. Central·두 Zone·실제 Leaf/BMS·물리 owner를 독립 실행하며 시동·배분·정상 종료·상실/보호·새 Epoch 재가입을 Host component로 검사한다. [공통 고장·복구/독립 감시 근거](docs/test-plan/evidence/m4_faults/README.md)를 추가했으며 새 timing48회 중7개 실패는 추적 중이다. DDS·차량 closed-loop·Target 검증은 후속 단계다.
 
 [상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 

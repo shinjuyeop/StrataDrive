@@ -89,3 +89,5 @@ Torque/speed 누락·stale·범위 초과·보호 origin은 계속 critical이�
 SocketCAN에서 실제 remote parent/composite lease/arm/protection을 전달하는 wire 계약·독립 process/DDS/Host bridge는 후속이다.
 Owner body의4 ms 초과 관측과 실제 period/loss response를 보고하되 전체 M3 timing 수용·Target/SCHED_FIFO 검증으로 확대하지 않는다.
 MBD·AUTOSAR 확장 순서, 기존 M3 timing 예외·학습자 review와32개 요구/29개 system TC의 NOT RUN은 유지한다.
+
+후속 owner/방향별 고장·joined 복구·M3 독립 guard/FIFO cohort는 [ADR-0056](ADR-0056-m4-faults-and-independent-execution-watch.md)과 최신 project_status를 따른다. 위 관측 수치는 당시 범위다.

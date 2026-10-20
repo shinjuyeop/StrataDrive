@@ -72,4 +72,55 @@ Logical 시험은 동일 port/owner를200 μs 논리 step으로 실행한다. Wa
 Normal·normal-stop·partial Front·feedback loss·vehicle-root loss·partial arm·explicit rejoin·old Epoch를 검사한다.
 제어 대상 speed는0 fixture이고 angle/pressure/torque·RC/Battery 반응은 실제 기존 모델이다. SOC/energy는 단일 EvPowerModel owner가 갱신한다.
 차량의 운동·회생 energy 검증은 기존 M2 component 증거와 M6–M8 계획을 구분한다.
-다음은 방향별 partition·owner 정지 시험 확대와 M3 선택 profile의 통합 workload 반복 측정이다. 이후 remote Leaf lifetime/arm/lease/protection 계약과 SocketCAN transport·독립 process·M5 DDS/Host bridge를 연결한다.
+후속 공통 고장 주입·독립 감시·CPU/FIFO 반복 측정은 아래와 [ADR-0056](../adr/ADR-0056-m4-faults-and-independent-execution-watch.md)을 따른다. Remote Leaf lifetime/arm/lease/protection 계약과 SocketCAN transport·독립 process·M5 DDS/Host bridge는 다음 경계다.
+
+
+## 정상 경로에 고장을 넣고 복구하기
+
+기존 `m4-async` 실행에 여러 `fault=` 옵션을 넣을 수 있다. 새 Epoch store는 명시적으로 최초 bootstrap하고 각 output은 새 directory를 사용한다.
+
+```sh
+build/m4-readiness/actuator_demo epoch init build/m4-fault-manual-epochs
+build/m4-readiness/actuator_demo m4-async logical fault build/m4-fault-manual-epochs build/m4-fault-manual-owner fault=owner:pause:drive:1200:200:0
+build/m4-readiness/actuator_demo m4-async wall fault build/m4-fault-manual-epochs build/m4-fault-manual-rejoin fault=zone-central:overflow:rear:1200:200:0 duration-ms=4200 recover-ms=2300 replace-links
+build/m4-readiness/actuator_demo m4-async wall fault build/m4-fault-manual-epochs build/m4-fault-manual-guard guards cpus=0,1 fifo duration-ms=2540 fault=owner:overrun:monitor:1200:6:0
+```
+
+Recipe는 `path:kind:target:start_ms:duration_ms:delay_ms[:phase]`다. 시각 단위는 정수 ms, 기준은 run 시작이다. Duration0은 지속이다.
+
+| Path | Kind / target | 쓰는 곳 |
+| --- | --- | --- |
+| owner | pause/overrun; central/front/rear/steering/brake/drive/bms/power/physical/monitor | 세션·RX·제어·자체 감시 전체 정지; monitor는 guards 필요 |
+| central-zone / zone-central | drop/delay/overflow; front/rear | request와 TX result/status/Actual 방향 |
+| zone-leaf / leaf-zone | drop/delay/overflow; steering/brake/drive/bms/power | command/operation과 Leaf result/Actual 방향 |
+| session-control / session-ack | drop/delay/overflow; front/rear/steering/brake/drive/bms/power/central | Prepare/INIT/Release 경계; 선택 phase로 prepare/init/release 지정 |
+
+Phase `arm`/`stop`은 해당 operation/result만 대상으로 한다. Delay는 delay_ms를 사용하며 원래 source/deadline은 유지한다.
+Overflow는 실제 pop을 막아 FIFO를 채운다. 고장이 끝나도 failed latch는 남으며 owner join 뒤 교체해야 한다.
+`recover-ms`는 명시적 복구 요청이며 단순 pause 해제와 다르다. 더 큰 durable Epoch·전체 session·fresh 물리 준비·readiness/arm이 필요하다.
+Physical 모델은 계속 존재하고 SOC/energy/angle/pressure/torque/전원과 model identity를 초기화하지 않는다.
+
+## Event와 실제 실행 감시 읽기
+
+`*-events.csv`는 실제 주입, valid input/feedback, controller fault, gate 관측, Leaf 선택/Zone ACK, physical watchdog/override, 복구/normal-authorized를 구분한다.
+`source_ns`는 원천, `deadline_ns`는 원래 기한, `reference_ns`는 사건별 기준이다. 유효 Leaf 입력의 reference는 실제 receiver에 넘긴 RX 시각이다.
+설정 주입 시각·첫 실제 차단·마지막 유효 수신·원래 command expiry를 서로 대체하지 않는다.
+Owner 번호는 Front0/Rear1/Steering2/Brake3/Drive4/BMS5/Power6/Central7/Physical8/Monitor9다.
+멈춘 owner의 missing ACK와 살아 있는 경로의 선택 mask를 함께 읽는다. Physical watchdog(owner8)은 멈춘 ECU의 ACK가 아니다.
+
+`guards`는 열 번째 독립 Monitor를 추가한다. 기존 M3 monitor가2 ms service 기회의4 ms deadline을 검사하고 Physical이 Monitor를 감시한다.
+`*-execution.csv`의 slot/release/deadline/start/end/CPU/detected 시각으로 누락·늦은 완료·독립 검출을 구분한다.
+기존 IO body>4 ms 통계가0이어도 실행 기회가 누락될 수 있다. 실제 제어10/20 ms 주기·5/8 ms 자체 admission 검사도 별도 event다.
+`cpus=A,B`와 `fifo`는 실제 적용된 thread 정보를 JSON에 남기며 권한 실패 시 정상 실행으로 대체하지 않는다.
+
+전체 회귀·prospective48회 cohort·최소 근거 생성은 다음 명령이다. 측정 중 다른 build/시험을 병행하지 않는다.
+
+```sh
+python3 tests/integration/runtime/check_m4_faults.py \
+  --raw-dir build/m4-fault-new --output build/m4-fault-evidence-new \
+  --timing-dir build/m4-timing-new --run-timing
+```
+
+재현 조건·PASS/FAIL 분모·원본 경로·대표 CSV/그래프는 [공유 근거](../test-plan/evidence/m4_faults/README.md),
+사전 시한·부하·반복 조건은 [프로토콜](../test-plan/m4_fault_timing_protocol.md)에 있다. 저장소의 대표 결과와 학습자의 직접 실행·이해 확인은 별개이며 학습자 검토는 PENDING이다.
+공유 atomic gate/protection이 통신 차단을 우회하는 같은 프로세스 시험이다. 원격 process/네트워크 단절·하드웨어 watchdog·Target timing 검증은 후속이다.

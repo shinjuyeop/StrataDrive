@@ -2,7 +2,7 @@
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
 clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
-정상 owner 비동기 통합까지 normal·ASan/UBSan 각각 **C++ unit872/872 PASS**다(`117ebc0`). 아래 날짜별 과거 수치는 당시 범위로 보존한다.
+M4 고장/복구·독립 감시 연결까지 normal·ASan/UBSan 각각 **C++ unit908/908 PASS**다(`12fc4a5`). 아래 날짜별 과거 수치는 당시 범위로 보존한다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이다. 이번 M4 검증 runner를 추가·실행하고 syntax를 검사했으며 기존 Python unit은 재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -1670,3 +1670,46 @@ AUTOSAR pilot은 입력 ARXML/설정, schema/release, generator/compiler 버전,
 분석 또는 실험에서 baseline 변경이 필요하면 이유, 영향 requirement/ICD/profile/test,
 재검증 범위를 기록한다. ASIL, FTTI, safe state와 같은 미결정 값을 임의로 확정하지 않는다.
 학습자의 review와 자동 문서 검사는 별도 기록이며 한쪽 결과가 다른 쪽을 대신하지 않는다.
+
+
+## 2026-10-20 — M4 공통 고장·복구와 M3 독립 감시 연결
+
+현재 기준은 [project_status](project_status.md), 공유 근거/명령은 [M4 fault evidence](test-plan/evidence/m4_faults/README.md),
+사전 측정 계획은 [프로토콜](test-plan/m4_fault_timing_protocol.md), 설계는 [ADR-0056](adr/ADR-0056-m4-faults-and-independent-execution-watch.md)다.
+외부 검토 `b65ec25`에서 시작해 `c83004f`(공통 고장) normal/sanitizer902개씩 PASS,
+`83a3f00`(독립 guard)908개씩 PASS, atomic launch 수정 `12fc4a5`에서908개씩 다시 PASS했다. 이전 결과/실패 로그를 교체하지 않았다.
+추적표56개를 실제 두 JUnit과 대조했다. 기존 normal/partial Front/normal stop/old Epoch/rejoin도 전체 회귀에 포함된다.
+기존 durable CLI 재가입 두 빌드1회씩, 새 overflow/join CLI는 두 빌드×logical/wall4/4 PASS다. 격리 vCAN gateway/startup 각각5개, Release BUILD_TESTING=OFF 빌드도 PASS다.
+
+공통 fault runtime32개 artifact씩은 정상 운전 중 Central/Zone/Leaf 전체 실행 정지와 방향별 drop/delay/실제 FIFO overflow,
+Prepare/INIT/Release·arm/stop ACK 경계를 구분한다. 재개만으로 gate가 열리지 않으며 join 뒤 link 교체·새 grant/full readiness·arm을 확인한다.
+물리 state/energy/model sequence를 보존한다. 사후 물리 감사56개 active fault 표본의 hold/floor/zero·접점 open PASS,
+never-active8개 N/A이며 짧은 run의 bus가30V 미만인지 별도 기록했다. 새로운 물리 응답 timing 기준을 사후 채택하지 않았다.
+
+Native cohort는 run2.54s·guard lead100ms·2ms/4ms·각 owner1211기회·20ms tail,
+normal/sanitizer × OTHER/FIFO × quiet/loaded normal3회와 Drive pause/Monitor overrun3회다.
+CPU0=두 Zone/Physical/Monitor, CPU1=Central/다섯 Leaf이며 FIFO9–20을 실제 thread에서 확인했다.
+Load는 별도 OTHER CPU1 process의7ms/10ms busy와 실제 CPU≥100ms를 대조했다.
+전체48회 설정/부하 control PASS. **41 PASS/7 FAIL/0 BLOCKED**이며 실패를 조용히 재실행하지 않았다.
+OTHER loaded normal6개는 모두 실행 기회 누락으로 FAIL, 나머지 normal18개 PASS다.
+Fault23/24 PASS, 나머지 normal-build FIFO Drive-stop은736.513ms에 Monitor 누락을 먼저 검출해 정상 arm 전에 보호했다.
+1200ms 주입 전의 다른 실패를 지정 고장의 검증 성공으로 세지 않았다.
+통과 fault의 원래 deadline→독립 검출0.479–1.721ms, 검출→물리 override0.001–0.997ms다.
+완료된 body만의 짧은 실행 시간과 skipped/missing slot을 구분한다. 통계는 run 내부에서 계산하며 논리/normal/sanitizer를 섞지 않았다.
+
+**OPEN-M4-TIM-01**: OTHER 부하의6개 누락과 FIFO의1개 조기 Monitor 누락. 감시/보호는 동작했으나 정상4ms 완료 계약 실패다.
+전체 OS 정지·동시 Monitor/Physical 정지는 하드웨어 watchdog 검증이 아니다. 새 PASS로 기존 OPEN-M3-01/02를 닫지 않는다.
+Preflight는 FIFO20 AVAILABLE·rlimit20/20, PREEMPT_DYNAMIC/not RT, perf paranoid4·tracefs EACCES를 다시 확인했다.
+추가 권한이 필요한 kernel timer/wakeup/switch 원인 분석은 미실행/미해결이며 시스템 설정은 바꾸지 않았다.
+
+TSan 기본 실행은 test body 전에 unexpected memory mapping(exit66)으로 실패했다.
+Process-local `setarch x86_64 -R`에서는 초기5개 기능 assertion이 통과해도 timed-CV 관련 경고5개로 exit66이었다.
+올바른 잠금 최소 예제에서도 같은 경고가 재현됐다. 시작 장벽을 release/acquire atomic으로 바꾼 뒤 native 신규5개+기존2개 **7/7 PASS·경합 경고0**다.
+이 범위를 전체 TSan·Target·FIFO timing 결과로 확대하지 않는다.
+Clang-tidy14 변경10개·cppcheck2.7 production8개 검사; cppcheck 새 진단0, clang analyzer 오류0.
+Variant `std::get`의 noexcept escape 경고(leaf/actor 고정 invariant), guard/test 인자 순서 경고와 기존 DriveSilPlant 인자 경고를 남겼다.
+Runtime atomic 수정 후 재검사는 기존 Drive 경고만 남았다. Compiler Debug/Release 새 경고0이다.
+
+기능/소스/환경 원본은 `build/m4-fault-atomic`, timing48개는 `build/m4-timing-final`, TSan/정적 분석/Release/preflight 로그는 공유 안내에 명시했다.
+물리/통신은 같은 프로세스의 typed mailbox·atomic bypass 범위다. 원격 분리/DDS·remote lease/clock·MBD/AUTOSAR 실행,
+기존 timing 원인 분석과 학습자 직접 재현/수용은 후속이다.32개 requirement/29개 system TC **NOT RUN**을 유지한다.

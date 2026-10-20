@@ -1,0 +1,141 @@
+{
+  "source_commit": "12fc4a51449cd9f14ad1be8b243dea4d8d4d7311",
+  "runs": [
+    {
+      "profile": "normal",
+      "mode": "logical",
+      "commands": [
+        [
+          "build/m4-readiness/actuator_demo",
+          "epoch",
+          "init",
+          "build/m4-fault-cli-final/normal-logical/epochs"
+        ],
+        [
+          "build/m4-readiness/actuator_demo",
+          "m4-async",
+          "logical",
+          "fault",
+          "build/m4-fault-cli-final/normal-logical/epochs",
+          "build/m4-fault-cli-final/normal-logical/result",
+          "fault=zone-central:overflow:rear:1200:200:0",
+          "duration-ms=4200",
+          "recover-ms=2300",
+          "replace-links"
+        ]
+      ],
+      "startup": {
+        "first_epoch": 1,
+        "rejoin_epoch": 2,
+        "model_epoch": 7
+      },
+      "passed": true,
+      "replaced_links": 1,
+      "model_preserved": true,
+      "rejoin_active_ns": 3074200000,
+      "raw": "build/m4-fault-cli-final/normal-logical"
+    },
+    {
+      "profile": "normal",
+      "mode": "wall",
+      "commands": [
+        [
+          "build/m4-readiness/actuator_demo",
+          "epoch",
+          "init",
+          "build/m4-fault-cli-final/normal-wall/epochs"
+        ],
+        [
+          "build/m4-readiness/actuator_demo",
+          "m4-async",
+          "wall",
+          "fault",
+          "build/m4-fault-cli-final/normal-wall/epochs",
+          "build/m4-fault-cli-final/normal-wall/result",
+          "fault=zone-central:overflow:rear:1200:200:0",
+          "duration-ms=4200",
+          "recover-ms=2300",
+          "replace-links"
+        ]
+      ],
+      "startup": {
+        "first_epoch": 1,
+        "rejoin_epoch": 2,
+        "model_epoch": 7
+      },
+      "passed": true,
+      "replaced_links": 1,
+      "model_preserved": true,
+      "rejoin_active_ns": 3116327283,
+      "raw": "build/m4-fault-cli-final/normal-wall"
+    },
+    {
+      "profile": "sanitized",
+      "mode": "logical",
+      "commands": [
+        [
+          "build/m1-angle-sanitized/actuator_demo",
+          "epoch",
+          "init",
+          "build/m4-fault-cli-final/sanitized-logical/epochs"
+        ],
+        [
+          "build/m1-angle-sanitized/actuator_demo",
+          "m4-async",
+          "logical",
+          "fault",
+          "build/m4-fault-cli-final/sanitized-logical/epochs",
+          "build/m4-fault-cli-final/sanitized-logical/result",
+          "fault=zone-central:overflow:rear:1200:200:0",
+          "duration-ms=4200",
+          "recover-ms=2300",
+          "replace-links"
+        ]
+      ],
+      "startup": {
+        "first_epoch": 1,
+        "rejoin_epoch": 2,
+        "model_epoch": 7
+      },
+      "passed": true,
+      "replaced_links": 1,
+      "model_preserved": true,
+      "rejoin_active_ns": 3074200000,
+      "raw": "build/m4-fault-cli-final/sanitized-logical"
+    },
+    {
+      "profile": "sanitized",
+      "mode": "wall",
+      "commands": [
+        [
+          "build/m1-angle-sanitized/actuator_demo",
+          "epoch",
+          "init",
+          "build/m4-fault-cli-final/sanitized-wall/epochs"
+        ],
+        [
+          "build/m1-angle-sanitized/actuator_demo",
+          "m4-async",
+          "wall",
+          "fault",
+          "build/m4-fault-cli-final/sanitized-wall/epochs",
+          "build/m4-fault-cli-final/sanitized-wall/result",
+          "fault=zone-central:overflow:rear:1200:200:0",
+          "duration-ms=4200",
+          "recover-ms=2300",
+          "replace-links"
+        ]
+      ],
+      "startup": {
+        "first_epoch": 1,
+        "rejoin_epoch": 2,
+        "model_epoch": 7
+      },
+      "passed": true,
+      "replaced_links": 1,
+      "model_preserved": true,
+      "rejoin_active_ns": 3120871385,
+      "raw": "build/m4-fault-cli-final/sanitized-wall"
+    }
+  ]
+}

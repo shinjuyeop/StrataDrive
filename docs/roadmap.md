@@ -35,7 +35,7 @@ coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/sessio
 [Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가했다.
 [Brake response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 추가했다.
 [ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)의 core 18개·외부 물리 진행 3개를 추가했다.
-M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의32개·후속 M4 기능/세션을 더한846개 이력 위에, 정상 비동기 owner/INIT wake/capability26개를 더해 현재 C++872개다. 현재 결과는 [진행 현황](project_status.md), 단계별 분모는 [품질 기록](quality_policy.md)에 둔다.
+M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의32개·후속 M4 기능/세션을 더한846개 이력 위에, 정상 비동기 owner/INIT wake/capability26개로872개였고, 공통 고장30개·독립 감시6개를 더해 현재 C++908개다. 현재 결과는 [진행 현황](project_status.md), 단계별 분모는 [품질 기록](quality_policy.md)에 둔다.
 Python은 직전 hosted timer 단계의 63개 PASS 이력을 유지한다.
 기존 vCAN 97개 이력과 M3 multirate/fault·고정 부하 실험은 별도 범위다. 실행 횟수·PASS/FAIL은 [품질 기록](quality_policy.md)에 남긴다.
 Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
@@ -49,7 +49,7 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | M1 | DBC + vCAN | 12개 wire/receiver, 영속 local Epoch/queue 및 overflow/restart 기술 검사 완료; wire 채택·학습자 review PENDING |
 | M2 | TECHNICAL CHECKS PASS: Actuator + Battery / BMS / Power models | component·Steering/Brake response monitor 시험; 학습자 수용 PENDING |
 | M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | Host 수용 검토·IO 동반/FIFO 기준 선택; 일반 sanitizer 타이밍 예외·학습자 수용 OPEN, Target/E2E 후속 |
-| M4 | COMPONENT IMPLEMENTATION: Central coordinator + Front/Rear Zone | Central·scoped admission·CAN gateway/보호·Rear 전원/허가/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결 시험; 실제 Zone 상태/독립 ingress·상실 연결; 단일 coordinator·8-role session INIT/rejoin·정상9-owner 비동기 runtime/실제 BMS·센서 연결 시험; 방향별 partition/owner 정지·통합 timing·remote Leaf lease 후속, TC-ZON-001–003 NOT RUN; protocol TBD-15 |
+| M4 | COMPONENT IMPLEMENTATION: Central coordinator + Front/Rear Zone | Central·scoped admission·CAN gateway/보호·Rear 전원/허가/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결 시험; 실제 Zone 상태/독립 ingress·상실 연결; 단일 coordinator·8-role session INIT/rejoin·정상9-owner 비동기 runtime/실제 BMS·센서 연결 시험; 공통 고장/복구·M3 독립 감시 연결 검사; timing48회 중7 FAIL 유지·remote Leaf lease/M5 process 경계 후속, TC-ZON-001–003 NOT RUN; protocol TBD-15 |
 | M5 | Central Compute + DDS | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
 | M6 | Simple Vehicle + EV Plant / MBD MIL pilot | 실제 actuator/power 응답·lifecycle/energy 검증; 종방향 제어 모델·plant의 MIL, parameter/sample time·추종/제약 시험 |
 | M7 | CARLA Integration | Host–Target 실제 Ethernet, single ego writer, feedback-driven CARLA motion |
@@ -59,6 +59,13 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | M11 | Learned Temporal Planner | 0.5–1초 history, trajectory/speed/risk 출력, Safety Supervisor/Classical Planner fallback 시험 |
 | M12 | Thor vs Orin Compute-Tier Optimization | 동일 Reference 비교 후 tier별 구성 최적화, 공통 requirement 재검증 |
 | M13 | Final SIL / V&V / Regression | scenario/fault/performance regression, traceability 결과와 한계 공개 |
+
+
+2026-10-20 후속 [M4 고장·독립 감시](adr/ADR-0056-m4-faults-and-independent-execution-watch.md)는 Host component 기능/복구 검증을 완료했다.
+Native48회는41 PASS/7 FAIL이며 timing 수용은 미완료다. M5 착수 전 remote composite authority/INIT/arm/stop/protection·clock/freshness와
+DDS/QoS/격리(TBD-05/15)를 정하고 첫 독립 process 왕복 adapter를 구현한다. 새 timing 예외와 기존 M3 예외/학습자 review는 병행 관리한다.
+MBD M6→M8·AUTOSAR/Target 확장 순서는 유지한다. 전체 system TC는 NOT RUN이다.
+
 
 [MBD 개발 경로](engineering_plan.md#model-based-design-path)를 [ADR-0052](adr/ADR-0052-model-based-design-development-path.md)로 채택했다.
 첫 대상은 Central 종방향 속도 제어다. M6에서 모델/MIL, M8에서 C++와 동등성/차량 SIL을 검증한다.

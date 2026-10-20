@@ -1,0 +1,66 @@
+TSan default: build/m4-tsan-native.log
+SHA256 2aacf56632c711f7205793b2ce4b9310f53b3f57a79148c52001a0abfd8c2112
+FATAL: ThreadSanitizer: unexpected memory mapping 0x56becbb35000-0x56becbb46000
+
+TSan timed CV before: build/m4-tsan-noaslr.log
+SHA256 b44e48294ff9263dd7543a52d661b01e316dee0c6fe0e1792942051fd790013e
+[==========] Running 5 tests from 2 test suites.
+WARNING: ThreadSanitizer: double lock of a mutex (pid=1413008)
+SUMMARY: ThreadSanitizer: double lock of a mutex /usr/include/x86_64-linux-gnu/c++/11/bits/gthr-default.h:749 in __gthread_mutex_lock
+WARNING: ThreadSanitizer: data race (pid=1413008)
+SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/simulation/runtime/m4_async_runtime.cpp:536 in operator()
+WARNING: ThreadSanitizer: data race (pid=1413008)
+SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/simulation/runtime/m4_async_runtime.cpp:550 in operator()
+WARNING: ThreadSanitizer: double lock of a mutex (pid=1413008)
+SUMMARY: ThreadSanitizer: double lock of a mutex /usr/include/x86_64-linux-gnu/c++/11/bits/gthr-default.h:749 in __gthread_mutex_lock
+WARNING: ThreadSanitizer: data race (pid=1413008)
+SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/simulation/runtime/m4_async_runtime.cpp:550 in operator()
+[==========] 5 tests from 2 test suites ran. (12306 ms total)
+[  PASSED  ] 5 tests.
+
+TSan minimal correct CV: build/tsan-cv-probe.log
+SHA256 d0c10f86dfd0bb4084bebfba1855ff9f1dbf8d0fcfc3c5dc654cd205cb394b35
+WARNING: ThreadSanitizer: double lock of a mutex (pid=1415236)
+SUMMARY: ThreadSanitizer: double lock of a mutex /usr/include/x86_64-linux-gnu/c++/11/bits/gthr-default.h:749 in __gthread_mutex_lock
+WARNING: ThreadSanitizer: data race (pid=1415236)
+SUMMARY: ThreadSanitizer: data race build/tsan_cv_probe.cpp:7 in operator()
+WARNING: ThreadSanitizer: data race (pid=1415236)
+SUMMARY: ThreadSanitizer: data race build/tsan_cv_probe.cpp:9 in main
+
+TSan after5 native: build/m4-tsan-atomic-native.log
+SHA256 67b34ee32b0f20f9364229431e42a7812b3787246c63d0d80bdafd5a2d4f4ec1
+[==========] Running 5 tests from 2 test suites.
+[==========] 5 tests from 2 test suites ran. (12318 ms total)
+[  PASSED  ] 5 tests.
+
+TSan after2 legacy: build/m4-tsan-atomic-legacy.log
+SHA256 453ebb8db4ba355300a5210f64fb46fc3ae1221e0841813b186c1402427d768e
+[==========] Running 2 tests from 1 test suite.
+[==========] 2 tests from 1 test suite ran. (3761 ms total)
+[  PASSED  ] 2 tests.
+
+cppcheck final source: build/m4-fault-cppcheck-final.log
+SHA256 73e93386e6ad7bcda34242be439b9d1647316577fac5072e4a3f31590c4f4352
+8/8 checked; exit0; no diagnostics
+
+final runtime clang tidy: build/m4-fault-tidy-atomic-runtime.log
+SHA256 28e41d3ff61d6073e23cd3b0d275cb11dda17a5440b5d2ebb9633f7a4fc7013b
+/d/shin/StrataDrive/simulation/drive/drive_sil_plant.hpp:10:16: warning: 2 adjacent parameters of 'begin' of convertible types are easily swapped by mistake [bugprone-easily-swappable-parameters]
+
+
+Reviewed clang diagnostics from the ten input files (full logs retained):
+build/m4-fault-tidy-simulation_runtime_async_leaf_owner.cpp.log
+/d/shin/StrataDrive/simulation/runtime/async_leaf_owner.cpp:21:38: warning: an exception may be thrown in function 'prepare' which should not throw exceptions [bugprone-exception-escape]
+/d/shin/StrataDrive/simulation/runtime/async_leaf_owner.cpp:74:22: warning: an exception may be thrown in function 'protect' which should not throw exceptions [bugprone-exception-escape]
+/d/shin/StrataDrive/simulation/runtime/async_leaf_owner.cpp:175:22: warning: an exception may be thrown in function 'service' which should not throw exceptions [bugprone-exception-escape]
+/d/shin/StrataDrive/simulation/runtime/async_leaf_owner.hpp:33:26: warning: an exception may be thrown in function 'prepare' which should not throw exceptions [bugprone-exception-escape]
+/d/shin/StrataDrive/simulation/runtime/async_leaf_owner.hpp:35:10: warning: an exception may be thrown in function 'protect' which should not throw exceptions [bugprone-exception-escape]
+/d/shin/StrataDrive/simulation/runtime/async_leaf_owner.hpp:36:10: warning: an exception may be thrown in function 'service' which should not throw exceptions [bugprone-exception-escape]
+build/m4-fault-tidy-simulation_runtime_m4_async_runtime.cpp.log
+/d/shin/StrataDrive/simulation/drive/drive_sil_plant.hpp:10:16: warning: 2 adjacent parameters of 'begin' of convertible types are easily swapped by mistake [bugprone-easily-swappable-parameters]
+build/m4-fault-tidy-simulation_runtime_m4_execution_watch.cpp.log
+/d/shin/StrataDrive/simulation/runtime/m4_execution_watch.cpp:14:52: warning: 2 adjacent parameters of 'begin' of similar type are easily swapped by mistake [bugprone-easily-swappable-parameters]
+/d/shin/StrataDrive/simulation/runtime/m4_execution_watch.cpp:26:71: warning: 2 adjacent parameters of 'poll' of similar type are easily swapped by mistake [bugprone-easily-swappable-parameters]
+build/m4-fault-tidy-tests_unit_m4_fault_test.cpp.log
+/d/shin/StrataDrive/tests/unit/m4_fault_test.cpp:46:14: warning: 2 adjacent parameters of 'run' of similar type ('const std::string &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
+/d/shin/StrataDrive/tests/unit/m4_fault_test.cpp:143:20: warning: 2 adjacent parameters of 'run_guard' of similar type ('const std::string &') are easily swapped by mistake [bugprone-easily-swappable-parameters]
