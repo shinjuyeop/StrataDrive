@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fixed privileged capture only: one OTHER pair, ten FIFO pairs; no build/analysis."""
 import argparse
+from collections import Counter
 import fcntl
 import json
 import os
@@ -159,6 +160,31 @@ def collect(output, parent, base=capture.TRACEFS):
     return 1 if any(code != 0 for row in planned for code in row["worker_exits"]) else 0
 
 
+def collection_summary(output, result):
+    state = json.loads((output/"campaign.json").read_text())
+    invalid = []
+    for row in state["attempts"]:
+        if row["status"] != "INVALID":
+            continue
+        detail = dict(pair=row["pair"], error=row.get("error"))
+        if row.get("directory"):
+            path = output/row["directory"]/"analysis.json"
+            if path.exists():
+                try:
+                    verdict = json.loads(path.read_text())
+                    detail["analysis_errors"] = {
+                        mode: verdict.get(mode, {}).get("errors", []) for mode in ("off", "on")}
+                except (OSError, ValueError) as error:
+                    detail["analysis_read_error"] = str(error)
+        invalid.append(detail)
+    return dict(output=str(output), collection_exit=result, status=state["status"],
+                reason=state.get("error"), pair_status_counts=dict(Counter(
+                    row["status"] for row in state["attempts"])), invalid_pairs=invalid,
+                analysis=("stopped; inspect campaign.json and invalid_pairs; no acceptance verdict"
+                          if state["status"] != "COLLECTION FINISHED" else
+                          "run tools/m4_kernel_campaign_analysis.py CAPTURE NEW_OUTPUT; no acceptance verdict"))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
@@ -191,8 +217,7 @@ def main():
         signal.alarm(MAX_SECONDS)
         os.sched_setaffinity(0, {min(set(parent["affinity"])-{0, 1})})
         result = collect(output, parent)
-        print(json.dumps(dict(output=str(output), collection_exit=result,
-                              analysis="pending: tools/m4_kernel_analysis.py per collected pair; no acceptance verdict")))
+        print(json.dumps(collection_summary(output, result)))
         return result
     except (Exception, KeyboardInterrupt) as error:
         (output/"error.txt").write_text(traceback.format_exc())

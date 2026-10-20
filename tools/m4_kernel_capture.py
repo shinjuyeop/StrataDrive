@@ -84,9 +84,17 @@ def inventory(base=TRACEFS):
 def buffer_sizes(cpus, marker_cpu):
     if marker_cpu in BUFFER_KB or marker_cpu not in cpus or not set(BUFFER_KB) <= set(cpus):
         raise ValueError("marker collector requires a spare traced CPU outside CPUs0/1")
-    sizes = {cpu: 256 for cpu in cpus}
-    sizes.update(BUFFER_KB)
+    sizes = dict(BUFFER_KB)
     sizes[marker_cpu] = 2048  # End marker also needs space in its CPU's ring.
+    background = set(cpus)-set(sizes)
+    # Cross-CPU wake sources must remain visible. A non-owner CPU exhausted its
+    # old 256KiB ring in the fixed campaign. Use the spare budget uniformly,
+    # keeping the owner/marker allocations and the original total cap unchanged.
+    remaining = MAX_BUFFER_KB-sum(sizes.values())
+    background_kb = min(1024, remaining//len(background)//256*256) if background else 1024
+    if background_kb < 256:
+        raise ValueError("requested per-CPU buffers exceed unchanged 64MiB total cap")
+    sizes.update({cpu: background_kb for cpu in sorted(background)})
     if sum(sizes.values()) > MAX_BUFFER_KB:
         raise ValueError("requested per-CPU buffers exceed unchanged 64MiB total cap")
     return sizes
@@ -148,7 +156,8 @@ class TraceInstance:
         write_json(self.folder/"event-formats.json", formats)
         write_json(self.folder/"trace-settings.json",
                    dict(state=snapshot(self.path), cpus=cpus, total_buffer_kb=total,
-                        policy="compact-v2", owner_buffer_kb=BUFFER_KB,
+                        policy="compact-v2", buffer_policy="bounded-background-v1",
+                        owner_buffer_kb=BUFFER_KB,
                         marker_cpu=marker_cpu, requested_buffer_kb=sizes,
                         max_text_bytes=MAX_TRACE_BYTES, worker_timeout_seconds=MAX_SECONDS,
                         trace_watchdog_seconds=MAX_SECONDS+3,

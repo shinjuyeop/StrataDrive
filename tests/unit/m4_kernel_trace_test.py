@@ -124,6 +124,14 @@ class KernelAnalysisTest(unittest.TestCase):
         self.assertEqual(analysis.integrity_errors(integrity, data),
                          ["cpu1: missing/nonzero dropped events"])
 
+    def test_background_cpu_loss_invalidates_owner_chains_too(self):
+        integrity = self.integrity()
+        integrity["stats"]["cpu9"] = "overrun: 0\ncommit overrun: 0\ndropped events: 1963\n"
+        errors = analysis.integrity_errors(integrity, self.data())
+        self.assertEqual(errors, ["cpu9: missing/nonzero dropped events"])
+        row = analysis.job_metrics(JOB, 42, self.data(), not errors)
+        self.assertEqual(row["timer_chain"], "UNTRUSTED")
+
     def test_separates_timer_slack_runnable_delay_and_body_preemption(self):
         data = self.data()
         row = analysis.job_metrics(JOB, 42, data, True)
@@ -340,6 +348,50 @@ class CollectorSafetyTest(unittest.TestCase):
         self.assertIn("use sudo", result.stderr)
         self.assertFalse((ROOT/"build/should-not-be-created").exists())
 
+    def test_campaign_summary_explains_invalid_prerequisite_and_not_run_count(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            pair = folder/"01-other-loaded"
+            pair.mkdir()
+            capture.write_json(pair/"analysis.json", dict(
+                off=dict(errors=[]), on=dict(errors=["cpu9: missing/nonzero dropped events"])))
+            capture.write_json(folder/"campaign.json", dict(status="STOPPED",
+                error="initial OTHER validation failed", attempts=[
+                    dict(pair=1, status="INVALID", directory=pair.name,
+                         error="initial OTHER trace INVALID"),
+                    *[dict(pair=i, status="NOT RUN") for i in range(2, 12)]]))
+            summary = campaign.collection_summary(folder, 2)
+            self.assertEqual(summary["collection_exit"], 2)
+            self.assertEqual(summary["pair_status_counts"], {"INVALID": 1, "NOT RUN": 10})
+            self.assertEqual(summary["reason"], "initial OTHER validation failed")
+            self.assertEqual(summary["invalid_pairs"][0]["analysis_errors"]["on"],
+                             ["cpu9: missing/nonzero dropped events"])
+            self.assertNotIn("pending", summary["analysis"])
+
+    def test_campaign_summary_distinguishes_workload_failure_from_invalid_trace(self):
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp)
+            capture.write_json(folder/"campaign.json", dict(
+                status="COLLECTION FINISHED",
+                attempts=[dict(pair=i, status="COLLECTED") for i in range(1, 12)]))
+            summary = campaign.collection_summary(folder, 1)
+            self.assertEqual(summary["collection_exit"], 1)
+            self.assertEqual(summary["invalid_pairs"], [])
+            self.assertEqual(summary["pair_status_counts"], {"COLLECTED": 11})
+            self.assertIn("no acceptance verdict", summary["analysis"])
+
+    def test_background_buffers_have_headroom_without_changing_owner_budgets(self):
+        sizes = capture.buffer_sizes(list(range(16)), 2)
+        self.assertTrue(all(sizes[cpu] >= 1024 for cpu in range(3, 16)))
+        self.assertEqual(sum(sizes.values()), 63*1024)
+        # All CPUs stay traced; larger machines still obey the original total cap.
+        sizes = capture.buffer_sizes(list(range(32)), 7)
+        self.assertEqual(set(sizes), set(range(32)))
+        self.assertEqual(sizes[7], 2048)
+        self.assertEqual({cpu: sizes[cpu] for cpu in (0, 1)}, capture.BUFFER_KB)
+        self.assertTrue(all(kb >= 256 for kb in sizes.values()))
+        self.assertLessEqual(sum(sizes.values()), capture.MAX_BUFFER_KB)
+
     def test_marker_failure_preserves_raw_trace_and_stats_then_fails(self):
         with tempfile.TemporaryDirectory() as temp:
             base = self.base(temp)
@@ -371,7 +423,7 @@ class CollectorSafetyTest(unittest.TestCase):
         self.assertEqual(sizes[0], 16384)
         self.assertEqual(sizes[1], 32768)
         self.assertEqual(sizes[2], 2048)
-        self.assertEqual(sizes[3], 256)
+        self.assertEqual(sizes[3], 1024)
         self.assertLess(sum(sizes.values()), capture.MAX_BUFFER_KB)
         with self.assertRaises(ValueError):
             capture.buffer_sizes(list(range(16)), 1)

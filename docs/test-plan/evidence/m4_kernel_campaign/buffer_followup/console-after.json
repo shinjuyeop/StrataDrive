@@ -1,0 +1,23 @@
+{
+  "output": "build/m4-kernel-fixed-20261020-212418",
+  "collection_exit": 2,
+  "status": "STOPPED",
+  "reason": "RuntimeError: initial OTHER collection/validation failed; FIFO NOT RUN",
+  "pair_status_counts": {
+    "INVALID": 1,
+    "NOT RUN": 10
+  },
+  "invalid_pairs": [
+    {
+      "pair": 1,
+      "error": "RuntimeError: initial OTHER trace INVALID; FIFO prerequisite not met",
+      "analysis_errors": {
+        "off": [],
+        "on": [
+          "cpu9: missing/nonzero dropped events"
+        ]
+      }
+    }
+  ],
+  "analysis": "stopped; inspect campaign.json and invalid_pairs; no acceptance verdict"
+}

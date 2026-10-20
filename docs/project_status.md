@@ -4,10 +4,14 @@ Updated: **2026-10-20**. **M3 — IN PROGRESS**를 유지하며 **M4 Central/Zon
 [README](../README.md)는 프로젝트 소개와 실행 진입점이며, **이 문서가 현재 구현 상태·최신 시험 분모·다음 작업의 기준**이다. 과거 ADR/학습·품질 기록의 수치는 당시 범위로 유지한다.
 단계별 일정은 [로드맵](roadmap.md), 날짜별 시험 이력·도구·로그 경로는 [품질 기록](quality_policy.md)에 둔다.
 
-최신 후속: 원래 사용자 RTPRIO20/20을 검증해 자식에만 보존하는
-[고정 OTHER1+FIFO10 OFF/ON 수집기](test-plan/evidence/m4_kernel_campaign/README.md)를 준비했다.
-Python108/108, 별도 사용자 FIFO smoke1/1 PASS·OTHER smoke1 FAIL, native Normal20+TSan20 PASS다.
-sudo는 암호를 요구해 새 커널22회는 **NOT RUN**이다.
+최신 후속: [고정 OTHER1+FIFO10 수집](test-plan/evidence/m4_kernel_campaign/README.md)의
+`cfeda34` 사용자 실행212418에서 OTHER2/22회 실행(OFF180/ON320 miss·둘 다 FAIL),
+CPU9 추적1963개 유실로 **INVALID**, FIFO20회 **NOT RUN**이다.
+원래 사용자·capabilities0·RTPRIO20/20 복원과 marker/cleanup 성공은 실제 확인했다.
+나머지 CPU 버퍼256KiB 부족을 보완해 이 Host에서1MiB씩/전체63MiB로 배분하고,
+중단 이유·미실행 수를 콘솔에 표시한다. Python **112/112 PASS**, 원본 별도 재분석도
+exit2/INVALID 유지다. 새 버퍼의 실제 root 수집은 **NOT RUN**(에이전트 sudo 암호 필요).
+이전 별도 사용자 FIFO smoke1/1 PASS·OTHER smoke1 FAIL, native Normal20+TSan20 PASS는 유지한다.
 [SDK 후속](test-plan/evidence/m4_sdk_followup/README.md)에서 DDS 공식 TSan4 FAIL을 재현했고,
 Rust 도구 설치·nested build-std 보완 후 Zenoh matched partial4 FAIL/full4 PASS를 확인했다.
 이 결과로 과거 native/FIFO 원인이나 M4 종료를 확정하지 않는다.
@@ -73,7 +77,7 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 | 명령 전달 계약·수정 | 한 batch가 pending이면 다음 due 배분을 보류하고 original deadline·allocator expiry/30ms gap·Zone/Leaf authority 감시는 계속한다. 제때 완료되면 fresh 입력으로 기존20ms release grid 재개. Rear19.8ms는1025.2ms의 조기 보호 대신1025.4ms exact envelope expiry에서 보호; 양 Zone12ms는 기존 Rear 적용 명령의1011.000001ms expiry가 먼저 보호. 일시 지연 정상 재개·지속 지연 만료·Stop handoff 검사. 실제 native 과거 원인으로 확정하지 않음 |
 | 계약 수정 후 timing (`1989477`) | 같은48회 프로토콜 **41 PASS/7 FAIL/0 BLOCKED**; 설정/부하/grid control48/48. OTHER loaded normal6 FAIL + FIFO monitor-overrun 조건1 FAIL. **FIFO23/24**: 예정 주입1.2s 이전 Front/Rear slot281(662ms release/666ms deadline) 누락,666.004077ms 검출·666.009677ms 물리 override. kernel 원인 미확정, 이전 commit timing으로 대체하지 않음 |
 | 최신 settlement 후 timing (`97afb35`) | 동일48회 **42 PASS/6 FAIL/0 BLOCKED**; 설정·부하·release grid·buffer control48/48. OTHER loaded normal6 FAIL, FIFO24/24·intentional fault24/24 PASS. 이전 FIFO 누락 원인은 여전히 미확정이며 이번 미재현으로 닫지 않음. 원래 deadline 불변·Host timing 수용 PENDING |
-| M4 kernel 관측 | compact-v2 사용자 실행3쌍/6 workload 모두 FAIL로 보존. 두 쌍은 end marker EBADF,185513쌍은 OFF243/ON159 miss·729726 event·유실0·**VALID**. 최초 CPU1 조향 사례: timer hard-expiry 초과3.714µs, wake→CPU2.856ms, body1.125µs. CPU 대기 중 최신 slot9로 넘어가 slot8 미완료, 원래 deadline 후65.184µs 검출·이후4.895µs physical override. 이 OTHER 관측의 지연 위치 확인이며 FIFO 원인/전체 수용과 구분. `eecc1d7` marker 실패 시 raw/stat 보존·collector CPU2MiB 보완은 Python97 PASS, 새 tracefs 실행 NOT RUN. [근거·CSV·그림](test-plan/evidence/m4_kernel_valid/README.md) |
+| M4 kernel 관측 | compact-v2 사용자 실행3쌍/6 workload 모두 FAIL로 보존. 두 쌍은 end marker EBADF,185513쌍은 OFF243/ON159 miss·729726 event·유실0·**VALID**. 최초 CPU1 조향 사례: timer hard-expiry 초과3.714µs, wake→CPU2.856ms, body1.125µs. CPU 대기 중 최신 slot9로 넘어가 slot8 미완료, 원래 deadline 후65.184µs 검출·이후4.895µs physical override. 이 OTHER 관측의 지연 위치 확인이며 FIFO 원인/전체 수용과 구분. `eecc1d7` 이후212418 실제 수집에서 두 marker·정리 성공과 user20/20 복원을 확인했으나 CPU9 유실로 INVALID다. Background buffer 보완은 Python112 PASS, 새 tracefs 실행 NOT RUN. [최신 고정 수집](test-plan/evidence/m4_kernel_campaign/README.md). [근거·CSV·그림](test-plan/evidence/m4_kernel_valid/README.md) |
 | 통신 후보 | 이전 v1 30/36·v2 36/36, wrapper ASan4/4·TSan4 FAIL·SDK 재계측 DDS2 FAIL 유지. 새 DDS 공식 `SANITIZER=thread`4 FAIL, helper vendor3 경고/C11 control3 clean/의도적 race3 검출. 실제 GC lifetime 안전성은 미확정. Zenoh Rust1.97.1·nightly/std 확보, TCP baseline4/full TSan4 PASS; 동일 nightly·probe·runtime matched partial4 FAIL/full4 PASS. 계측 공백의 재현 근거이며 과거 배포 binary/전체 feature 수용은 별도. [원본/재현](test-plan/evidence/m4_sdk_followup/README.md), **OPEN-M4-MWTSAN-01** |
 | 독립 감시·실제 적용 | 기존2ms 기회·4ms 완료 guard 불변. `97afb35`의 intentional fault24/24 PASS: 원래 deadline→검출0.003282–0.084379ms·검출→물리 override0.000936–0.986748ms. 정상6 FAIL에서 보호가 동작해도 timing PASS로 합치지 않음; 자기 body/논리 clock과 구분 |
 | 추적성·공유 근거 | [함수→실제 GTest→판정·결과93개](test-plan/evidence/m4_settlement/final/component_results.csv), [수정 전후·source·환경·재현·정상/고장/복구 CSV/그래프·원본 로그](test-plan/evidence/m4_settlement/README.md). 이전966개와41/7은 [계약 검토](test-plan/evidence/m4_contract_review/README.md),948개·872개는 당시 이력으로 유지 |
@@ -134,7 +138,7 @@ OS Task/CAN·native 시한은 유지하고, 새 추가 Host timing 5 ms 판정�
 
 ## 다음 작업
 
-1. **M4 종료 검토:** pending/다음 배분 충돌·진단 실패 exit0를 수정하고973개 전체 회귀·TSan108+9·full trace40회·별도48회(42 PASS/6 FAIL)를 완료했다. [종료 checklist](m4_exit_review.md)의 timing/native·SDK TSan 예외는 OPEN이므로 **M4 NOT CLOSED / M5 제어 adapter 미착수**다. 유실 없는 OTHER trace에서 CPU1 runnable 대기로2ms 기회를 건너뛰는 구간을 확인했다. 과거 FIFO 원인으로 확대하지 않는다. 다음 수집에서는 end-marker 실패에도 통계를 보존하는 수정의 실제 실행과 ring 포화 후보를 확인한다. 이후 FIFO는 sudo 경계의 원래 사용자 RT limit 보존(현재0/0, 기존20/20)을 먼저 확인한다. SDK 지원 계측도 남았다. Host IO/FIFO 한정 수용은 명시적 범위 검토가 필요한 제안이며 기존 FIFO24/24만으로 실패를 닫지 않는다.
+1. **M4 종료 검토:** pending/다음 배분 충돌·진단 실패 exit0를 수정하고973개 전체 회귀·TSan108+9·full trace40회·별도48회(42 PASS/6 FAIL)를 완료했다. [종료 checklist](m4_exit_review.md)의 timing/native·SDK TSan 예외는 OPEN이므로 **M4 NOT CLOSED / M5 제어 adapter 미착수**다. 유실 없는 과거 OTHER trace에서 CPU1 runnable 대기로2ms 기회를 건너뛰는 구간을 확인했으나 FIFO 원인으로 확대하지 않는다. 새212418 수집에서 사용자20/20 복원·marker/cleanup은 확인했지만 CPU9 추적 유실로 FIFO는 미실행이다. 보완된 background buffer로 별도 고정11쌍을 수집해 원래 FIFO 주입 전 누락/후속 보호를 분석한다. DDS GC lifetime·native 과거 실패 원인은 계속 미확정이다. Host IO/FIFO 한정 수용은 명시적 범위 검토가 필요한 제안이며 기존 FIFO24/24만으로 실패를 닫지 않는다.
 2. **M3 타이밍 예외 해소:** OPEN-M3-01/02의 원본 실패를 유지하고 사용자가 확인한 sudo 접근으로 실제 kernel trace를 수집해 timer→wakeup→switch를 분석한다. 추가 반복과 PREEMPT_RT 비교는 후속 실험이며 M4 준비가 M3 전체 수용을 뜻하지 않는다. 학습자 직접 재현·설명도 남아 있다.
 3. **ARM64 배포 준비:** Host PC + Jetson 한 대 내부 여러 vECU 배치를 유지한다. Jetson 일반 커널/PREEMPT_RT 동일 workload 비교는 Target 성능 검증 PLANNED / NOT RUN이다. 이번 커널 교체·MCU 이식은 없다.  보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. Target 검증은 배포 단계, RTE/BSW는 별도 pilot과 연결한다.
 4. **MBD 준비·후속 pilot:** 현재 M4 통합을 진행하고 M5 통신 경계를 준비하면서 제어 interface·도구/모델 검토를 병행한다. M6 Simple Vehicle에서 종방향 모델/MIL을 만들고 M8에서 C++ 동등성과 차량 SIL을 검증한다. [채택 범위](adr/ADR-0052-model-based-design-development-path.md)는 방법/계획이며 구현·Simulink/자동 생성 도입 완료가 아니다.

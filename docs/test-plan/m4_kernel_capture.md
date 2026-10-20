@@ -36,7 +36,10 @@ unrelated builds/tests/tracers concurrently.
 
 `campaign.json` lists the plan and every attempt. Exit2 means incomplete/invalid
 collection or operational failure; exit1 means at least one worker failed;
-exit0 means collection workers succeeded, **not timing acceptance**. Except for the
+exit0 means collection workers succeeded, **not timing acceptance**. The console
+also reports status, stop reason, INVALID/NOT RUN counts and available analysis
+errors; an already-failed initial validation is not labelled only "pending".
+Except for the
 initial OTHER validation, analysis follows collection as the original user:
 `python3 tools/m4_kernel_analysis.py build/<campaign>/<pair>`.
 Trace loss, missing alignment/identity, changed source or cleanup errors remain
@@ -50,7 +53,13 @@ mean intentional.
 The following single-pair command and original results are retained as history;
 that older CLI does not preserve the invoking user's RT limit across sudo.
 
-Status: **compact-v2 OTHER capture VALID / runtime FAIL; latest marker fix NOT RUN on tracefs**.
+Status: **historical compact-v2 OTHER capture VALID / runtime FAIL; first fixed
+campaign INVALID due to background CPU9 trace loss**.
+The20261020-212418 fixed campaign executed OTHER OFF/ON only (FAIL180/320 misses).
+It verified user/capabilities/20/20 restoration and both markers/cleanup, but
+CPU9 lost1963 events and FIFO10 pairs were NOT RUN. Background buffers are now
+enlarged within the original total cap; the new allocation's kernel run remains
+NOT RUN. [Originals, correction and112 Python checks](evidence/m4_kernel_campaign/README.md).
 The user executed the collector on kernel6.8.0-138-generic. The latest valid
 capture has729726 events,0 drops and11951 linked executed jobs. The first missed
 CPU1 opportunity is dominated by runnable CPU waiting; see the
@@ -161,9 +170,12 @@ changes are reported, not overwritten with a stale snapshot. These checks do
 not constitute a system-wide exclusion mechanism for arbitrary external tools.
 
 - Each application worker has a12s timeout and32MiB per-file limit.
-- ON uses16MiB on CPU0,32MiB on CPU1,2MiB on the collector/marker CPU and256KiB
-  on other CPUs; total kernel ring storage must be≤64MiB (nominal53.25MiB on
-  this16-CPU Host; actual rounded allocation is checked and recorded).
+- ON uses16MiB on CPU0,32MiB on CPU1,2MiB on the collector/marker CPU and up to1MiB
+  on each other CPU from the remaining budget; total kernel ring storage must
+  be≤64MiB (nominal63MiB on this16-CPU Host). Larger CPU counts get uniform256KiB
+  increments within the cap or are rejected if even256KiB cannot fit.
+  Actual rounded allocation is checked and recorded before capture.
+  This replaces the256KiB background rings that lost1963 events on CPU9.
   Overwrite is disabled. The valid v2 run used256KiB on its collector CPU2
   and consumed244372bytes there. Extra marker headroom is a mitigation to
   validate, not proof that EBADF is eliminated. Any new loss remains INVALID.

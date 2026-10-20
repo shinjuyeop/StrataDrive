@@ -1,0 +1,47 @@
+{
+  "base_commit": "cfeda3459cf446ed9f4f7b1f7de86e36da90b3ab",
+  "changed_source_sha256": {
+    "tools/m4_kernel_capture.py": "e3e757a40cf972eacefe78284d1e531cc514f64ec9f832ab618d459c3bb35d8d",
+    "tools/m4_kernel_campaign.py": "f03dbb780424c1b38606fefb79b1e6b16a5081844f31c8090830fee3bb7ba6c7",
+    "tests/unit/m4_kernel_trace_test.py": "ec86468258cbf8dd5e93ca3ead2cd348ccce5f33db9834c3effc386bd9871196"
+  },
+  "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "regression_command": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests/unit",
+    "-p",
+    "*_test.py"
+  ],
+  "before": {
+    "kernel_tests": 41,
+    "passed": 38,
+    "fail": 1,
+    "error": 2,
+    "process_exit": 1
+  },
+  "after": {
+    "all_python": 112,
+    "passed": 112,
+    "fail": 0,
+    "error": 0,
+    "process_exit": 0
+  },
+  "changed_existing_expectation": "marker_cpu_has_headroom: background CPU3 256 -> 1024 KiB; owner/marker/cap/error assertions retained",
+  "sudo_probe": {
+    "command": [
+      "sudo",
+      "-n",
+      "true"
+    ],
+    "exit": 1,
+    "stderr": "sudo: 암호가 필요합니다"
+  },
+  "new_privileged_capture": "NOT RUN",
+  "cxx_sanitizer_native40_timing48": "NOT RUN: diagnostic-only changes",
+  "original_campaign": "cfeda34; 2 workload FAIL / 22 planned; 1 pair INVALID / 11 planned; 10 pairs NOT RUN"
+}

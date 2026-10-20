@@ -1,0 +1,29 @@
+..F......EE..............................
+======================================================================
+ERROR: test_campaign_summary_distinguishes_workload_failure_from_invalid_trace (m4_kernel_trace_test.CollectorSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/m4_kernel_trace_test.py", line 377, in test_campaign_summary_distinguishes_workload_failure_from_invalid_trace
+    summary = campaign.collection_summary(folder, 1)
+AttributeError: module 'm4_kernel_campaign' has no attribute 'collection_summary'
+
+======================================================================
+ERROR: test_campaign_summary_explains_invalid_prerequisite_and_not_run_count (m4_kernel_trace_test.CollectorSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/m4_kernel_trace_test.py", line 363, in test_campaign_summary_explains_invalid_prerequisite_and_not_run_count
+    summary = campaign.collection_summary(folder, 2)
+AttributeError: module 'm4_kernel_campaign' has no attribute 'collection_summary'
+
+======================================================================
+FAIL: test_background_buffers_have_headroom_without_changing_owner_budgets (m4_kernel_trace_test.CollectorSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/m4_kernel_trace_test.py", line 385, in test_background_buffers_have_headroom_without_changing_owner_budgets
+    self.assertTrue(all(sizes[cpu] >= 1024 for cpu in range(3, 16)))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 41 tests in 0.101s
+
+FAILED (failures=1, errors=2)
