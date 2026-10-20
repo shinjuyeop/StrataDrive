@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <cstdlib>
 #include <cmath>
+#include <limits>
 
 namespace {
 using namespace stratadrive::simulation;
@@ -88,22 +89,23 @@ TEST(M4AsyncRuntime, TransportTraceCorrelatesOriginalAuthorityWithoutChangingPhy
     }
     EXPECT_GT(checked,20U);
 }
-M4Result delayed_results(std::uint64_t front_delay,std::uint64_t rear_delay,const char* name) {
+M4Result delayed_results(std::uint64_t front_delay,std::uint64_t rear_delay,const char* name,
+    std::uint64_t delay_end=std::numeric_limits<std::uint64_t>::max(),M4Config config={}) {
     class ResultDelay final : public stratadrive::session::MailboxDelivery<stratadrive::transport::TxResult> {
     public:
-        m4_detail::Network& network;std::uint64_t delay;
-        ResultDelay(m4_detail::Network& n,std::uint64_t d):network(n),delay(d) {}
+        m4_detail::Network& network;std::uint64_t delay,end;
+        ResultDelay(m4_detail::Network& n,std::uint64_t d,std::uint64_t e):network(n),delay(d),end(e) {}
         stratadrive::session::Delivery send(const stratadrive::transport::TxResult& r) noexcept override {
             const auto now=network.clock.now_ns();
-            return {false,r.operation==stratadrive::transport::Operation::Commands && now>=network.start+1000000000?now+delay:0};
+            return {false,r.operation==stratadrive::transport::Operation::Commands && now>=network.start+1000000000 && now-network.start<end?now+delay:0};
         }
         bool blocked() noexcept override {return false;}
         std::uint64_t now_ns() const noexcept override {return network.clock.now_ns();}
         void delivered(const stratadrive::transport::TxResult&) noexcept override {}
         void overflow(const stratadrive::transport::TxResult&) noexcept override {}
     };
-    M4Config config;config.transport_trace=true;
-    auto network=std::make_unique<m4_detail::Network>(config);ResultDelay front(*network,front_delay),rear(*network,rear_delay);
+    config.transport_trace=true;
+    auto network=std::make_unique<m4_detail::Network>(config);ResultDelay front(*network,front_delay,delay_end),rear(*network,rear_delay,delay_end);
     network->zones[0].results.delivery(&front);network->zones[1].results.delivery(&rear);
     m4_detail::execute_logical(*network);const auto result=network->finish();
     if(const auto* dir=std::getenv("STRATADRIVE_M4_RESULTS"))write_m4_result(config,result,std::string(dir)+"/delivery-causal/"+name);
@@ -121,15 +123,81 @@ TEST(M4AsyncRuntime, DelayedFrontResultCannotOutlivePreviousRearCommandAuthority
     EXPECT_LT(blocked->time_ns,blocked->inner_deadline_ns); // new command live; old applied authority already expired
     for(const auto& row:result.trace)if(row.elapsed_ns>=result.first_fault_ns) {EXPECT_FALSE(row.run_gate);}
 }
+TEST(M4AsyncRuntime, LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority) {
+    const auto result=delayed_results(200000,19600000,"live-pending",1020000000);
+    EXPECT_TRUE(result.passed)<<result.reason;EXPECT_FALSE(result.event_overflow);
+    const auto pending=std::find_if(result.transport_events.begin(),result.transport_events.end(),[](const auto& e){return std::string(e.stage)=="allocation-deferred";});
+    ASSERT_NE(pending,result.transport_events.end());
+    EXPECT_LT(pending->time_ns,pending->deadline_ns);EXPECT_LT(pending->time_ns,pending->inner_deadline_ns);
+    const auto completed=std::find_if(pending,result.transport_events.end(),[&](const auto& e){
+        return e.epoch==pending->epoch && e.token==pending->token && std::string(e.stage)=="central-result-accepted";
+    });
+    ASSERT_NE(completed,result.transport_events.end());EXPECT_LT(completed->time_ns,completed->deadline_ns);
+    EXPECT_EQ(completed->deadline_ns,pending->deadline_ns);EXPECT_EQ(completed->sent_ns,pending->sent_ns);
+    const auto output=std::find_if(result.transport_events.begin(),completed,[&](const auto& e){
+        return e.epoch==pending->epoch && e.token==pending->token && e.owner==4 &&
+            std::string(e.stage)=="leaf-output-published" && e.outcome==1;
+    });
+    ASSERT_NE(output,completed);EXPECT_LT(output->time_ns,output->inner_deadline_ns);
+    const auto resumed=std::find_if(completed,result.transport_events.end(),[](const auto& e){
+        return std::string(e.stage)=="central-enqueued" && e.operation==static_cast<int>(stratadrive::transport::Operation::Commands);
+    });
+    ASSERT_NE(resumed,result.transport_events.end());
+    EXPECT_GE(resumed->time_ns,completed->time_ns);EXPECT_GT(resumed->payload_source_ns,pending->payload_source_ns);
+    EXPECT_GT(resumed->original_source_ns,pending->original_source_ns);
+    const auto next=std::find_if(std::next(resumed),result.transport_events.end(),[](const auto& e){
+        return std::string(e.stage)=="central-enqueued" && e.peer==0 && e.operation==static_cast<int>(stratadrive::transport::Operation::Commands);
+    });
+    ASSERT_NE(next,result.transport_events.end());
+    EXPECT_EQ(next->original_source_ns-resumed->original_source_ns,20000000U);
+    EXPECT_LT(next->time_ns-resumed->time_ns,20000000U); // resume does not move the nominal release grid
+    EXPECT_EQ(result.first_fault_ns,0U);
+}
+TEST(M4AsyncRuntime, SustainedPendingCannotHideEventualAuthorityExpiry) {
+    const auto result=delayed_results(200000,19600000,"sustained-pending");
+    EXPECT_FALSE(result.passed);EXPECT_FALSE(result.event_overflow);
+    EXPECT_GT(result.first_fault_ns,1500000000U);
+    EXPECT_NE(result.reason.find("core=12 "),std::string::npos);
+    EXPECT_TRUE(std::any_of(result.transport_events.begin(),result.transport_events.end(),[](const auto& e){return std::string(e.stage)=="allocation-deferred";}));
+    EXPECT_FALSE(std::any_of(result.transport_events.begin(),result.transport_events.end(),[](const auto& e){return std::string(e.stage)=="command-submit-rejected";}));
+    const auto expired=std::find_if(result.events.begin(),result.events.end(),[](const auto& e){return e.owner==4 && std::string(e.kind)=="command-expired";});
+    ASSERT_NE(expired,result.events.end());EXPECT_GE(expired->time_ns,expired->deadline_ns);
+    EXPECT_LT(expired->time_ns-1000000000U,result.first_fault_ns); // local expiry precedes Central observation
+    for(const auto& row:result.trace)if(row.elapsed_ns>=result.first_fault_ns) {EXPECT_FALSE(row.run_gate);}
+}
+TEST(M4AsyncRuntime, MissingPendingResultStillTimesOutAtOriginalEnvelope) {
+    const auto result=delayed_results(0,21000000,"pending-timeout");
+    EXPECT_FALSE(result.passed);EXPECT_FALSE(result.event_overflow);
+    const auto timeout=std::find_if(result.transport_events.begin(),result.transport_events.end(),[](const auto& e){return std::string(e.stage)=="central-result-timeout";});
+    ASSERT_NE(timeout,result.transport_events.end());EXPECT_EQ(timeout->time_ns,timeout->deadline_ns);
+    EXPECT_LT(timeout->time_ns,timeout->inner_deadline_ns);
+    EXPECT_GE(result.first_fault_ns,timeout->time_ns-1000000000U);
+    EXPECT_LE(result.all_protected_ns-result.first_fault_ns,100000000U);
+}
+TEST(M4AsyncRuntime, DeferredBatchCompletesBeforeNormalStopHandoff) {
+    M4Config config;config.scenario=M4Scenario::NormalStop;config.duration_ns=3000000000;config.injection_ns=1020000000;
+    const auto result=delayed_results(200000,19600000,"pending-stop",1020000000,config);
+    EXPECT_TRUE(result.passed)<<result.reason;EXPECT_FALSE(result.event_overflow);
+    EXPECT_EQ(result.first_fault_ns,0U);EXPECT_GT(result.completed_batches,0U);
+}
 TEST(M4AsyncRuntime, PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry) {
+    // Historical reproducer name retained. Pending alone no longer selects
+    // CommandDelivery: this19.8ms delay arrives exactly at exclusive expiry.
     const auto result=delayed_results(0,19800000,"rear-19p8ms");
     EXPECT_FALSE(result.passed);EXPECT_FALSE(result.event_overflow);
-    EXPECT_NE(result.reason.find("core=10 "),std::string::npos);
+    EXPECT_NE(result.reason.find("core=12 "),std::string::npos);
     EXPECT_GT(result.first_active_ns,0U);EXPECT_GE(result.first_fault_ns,1000000000U);
-    const auto pending=std::find_if(result.transport_events.begin(),result.transport_events.end(),[](const auto& e){return std::string(e.stage)=="command-still-pending";});
+    const auto pending=std::find_if(result.transport_events.begin(),result.transport_events.end(),[](const auto& e){return std::string(e.stage)=="allocation-deferred";});
     ASSERT_NE(pending,result.transport_events.end());EXPECT_LT(pending->time_ns,pending->deadline_ns);EXPECT_LT(pending->time_ns,pending->inner_deadline_ns);
     EXPECT_FALSE(std::any_of(result.transport_events.begin(),pending,[](const auto& e){return std::string(e.stage)=="central-result-timeout" || std::string(e.stage)=="central-result-rejected" || std::string(e.stage)=="central-post-rejected";}));
     EXPECT_TRUE(std::any_of(result.transport_events.begin(),pending,[&](const auto& e){return e.epoch==pending->epoch && e.token==pending->token && std::string(e.stage)=="zone-result-enqueued" && e.outcome==1;}));
+    const auto rejected=std::find_if(pending,result.transport_events.end(),[&](const auto& e){
+        return e.epoch==pending->epoch && e.token==pending->token && std::string(e.stage)=="central-result-rejected";
+    });
+    ASSERT_NE(rejected,result.transport_events.end());
+    EXPECT_EQ(rejected->time_ns,pending->deadline_ns);EXPECT_EQ(rejected->deadline_ns,pending->deadline_ns);
+    EXPECT_GE(result.first_fault_ns,rejected->time_ns-1000000000U);
+    EXPECT_FALSE(std::any_of(result.transport_events.begin(),rejected,[](const auto& e){return std::string(e.stage)=="command-submit-rejected";}));
     for(const auto& row:result.trace)if(row.elapsed_ns>=result.first_fault_ns) {EXPECT_FALSE(row.run_gate);}
     EXPECT_GT(result.all_protected_ns,result.first_fault_ns);EXPECT_LE(result.all_protected_ns-result.first_fault_ns,100000000U);
 }

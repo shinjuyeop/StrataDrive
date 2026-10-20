@@ -65,6 +65,9 @@ public:
     bool select_normal_stop(const ActuatorStopLease& lease, std::uint64_t now_ns);
     std::uint32_t application_epoch() const { return epoch_; }
     std::optional<AllocatedCommands> tick(const AllocationInputs& inputs, std::uint64_t now_ns);
+    // Waiting for transport/grant is not a completed allocation tick. Keep the
+    // original request/support expiry and execution-gap monitors running.
+    void poll(std::uint64_t now_ns) { advance(now_ns); }
     const AllocationDecision& decision() const { return decision_; }
 private:
     struct Dwell {

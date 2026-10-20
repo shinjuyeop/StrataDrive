@@ -22,6 +22,9 @@ public:
         return arm(epoch)?OperationStatus::Accepted:OperationStatus::Rejected;
     }
     virtual bool deliver_power(const VehicleManagementOutput& output) noexcept = 0;
+    // False defers this due release without constructing/queueing a replacement
+    // command. Resume from current inputs; do not advance nominal release or
+    // renew transport/command authority while waiting.
     virtual bool allocation_ready(const VehicleManagementOutput&,std::uint64_t) noexcept { return true; }
     virtual bool commands_settled() const noexcept { return true; }
     virtual std::optional<can::BmsCurrentSample> current_permission() noexcept = 0;

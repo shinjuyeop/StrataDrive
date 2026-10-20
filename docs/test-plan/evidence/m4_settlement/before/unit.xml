@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="4"
+	failures="2"
+	disabled="0"
+	skipped="0"
+	hostname="MJH"
+	time="0"
+	timestamp="2026-10-20T16:58:47"
+	>
+	<testcase name="AsyncOwnerTest.PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch" classname="AsyncOwnerTest.PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch" time="0.00121529" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="integration.logical"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = AsyncOwnerTest.PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from AsyncOwnerTest
+[ RUN      ] AsyncOwnerTest.PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch
+/d/shin/StrataDrive/tests/unit/async_owner_test.cpp:66: Failure
+Value of: port.allocation_ready(output,clock.now)
+  Actual: true
+Expected: false
+[  FAILED  ] AsyncOwnerTest.PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch (0 ms)
+[----------] 1 test from AsyncOwnerTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] AsyncOwnerTest.PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch
+
+ 1 FAILED TEST
+</system-out>
+	</testcase>
+	<testcase name="M4AsyncRuntime.DelayedFrontResultCannotOutlivePreviousRearCommandAuthority" classname="M4AsyncRuntime.DelayedFrontResultCannotOutlivePreviousRearCommandAuthority" time="0.233052" status="run">
+		<properties>
+			<property name="cmake_labels" value="integration.logical"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M4AsyncRuntime.DelayedFrontResultCannotOutlivePreviousRearCommandAuthority
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M4AsyncRuntime
+[ RUN      ] M4AsyncRuntime.DelayedFrontResultCannotOutlivePreviousRearCommandAuthority
+[       OK ] M4AsyncRuntime.DelayedFrontResultCannotOutlivePreviousRearCommandAuthority (231 ms)
+[----------] 1 test from M4AsyncRuntime (231 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (231 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+	<testcase name="M4AsyncRuntime.LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority" classname="M4AsyncRuntime.LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority" time="0.10554" status="fail">
+		<failure message="Failed"/>
+		<properties>
+			<property name="cmake_labels" value="integration.logical"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M4AsyncRuntime.LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M4AsyncRuntime
+[ RUN      ] M4AsyncRuntime.LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority
+/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:126: Failure
+Value of: result.passed
+  Actual: false
+Expected: true
+scenario=normal core=10 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=775000000 fault=1025200000 selected=1025600000 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14
+/d/shin/StrataDrive/tests/unit/m4_async_runtime_test.cpp:128: Failure
+Expected: (pending) != (result.transport_events.end()), actual: 8-byte object &lt;00-2E BE-F8 D0-7D 00-00&gt; vs 8-byte object &lt;00-2E BE-F8 D0-7D 00-00&gt;
+[  FAILED  ] M4AsyncRuntime.LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority (104 ms)
+[----------] 1 test from M4AsyncRuntime (104 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (104 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] M4AsyncRuntime.LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority
+
+ 1 FAILED TEST
+</system-out>
+	</testcase>
+	<testcase name="M4AsyncRuntime.PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry" classname="M4AsyncRuntime.PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry" time="0.108435" status="run">
+		<properties>
+			<property name="cmake_labels" value="integration.logical"/>
+		</properties>
+		<system-out>Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M4AsyncRuntime.PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M4AsyncRuntime
+[ RUN      ] M4AsyncRuntime.PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry
+[       OK ] M4AsyncRuntime.PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry (107 ms)
+[----------] 1 test from M4AsyncRuntime (107 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (107 ms total)
+[  PASSED  ] 1 test.
+</system-out>
+	</testcase>
+</testsuite>

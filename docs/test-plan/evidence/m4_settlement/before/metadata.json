@@ -1,0 +1,16 @@
+{
+  "source_commit": "29b8221a0613668c5d99a14d5a25fd0a4de0c2a8",
+  "source_digest": "825b16c2a1e9ddc9dfff79df098bc33af24861f43c438803ed470c560a60d8d6",
+  "note": "29b8221 production + two new regressions only",
+  "command": [
+    "ctest",
+    "--test-dir",
+    "build/m4-readiness",
+    "-R",
+    "LivePendingBatch|PendingAllocationDoesNot|PendingRearResult|DelayedFrontResult",
+    "--output-on-failure",
+    "--output-junit",
+    "/d/shin/StrataDrive/build/m4-settlement/before/unit.xml"
+  ],
+  "exit": 8
+}

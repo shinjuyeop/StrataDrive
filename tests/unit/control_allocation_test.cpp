@@ -98,6 +98,23 @@ TEST_F(ControlAllocationTest, MapsAccelerationAndCurvatureToWheelTorqueAndRoadWh
     EXPECT_NEAR(*out->steering.angle_rad, std::atan(2.7*0.1), can::kAngleResolutionRad);
     EXPECT_EQ(out->parent.source_time_ns, ns(20)); EXPECT_EQ(out->drive.causal_sequence, out->parent.sequence);
 }
+TEST_F(ControlAllocationTest, PendingPollPreservesExclusiveSupportExpiryAndLatch) {
+    step(20);ASSERT_TRUE(out);const auto expiry=out->expires_at_ns;
+    allocator.poll(expiry-1);EXPECT_EQ(allocator.decision().fault,AllocationFault::None);
+    allocator.poll(expiry);EXPECT_EQ(allocator.decision().fault,AllocationFault::SupportExpired);
+    EXPECT_TRUE(allocator.decision().protection_required);
+    EXPECT_FALSE(allocator.start_session(3,expiry));allocator.poll(expiry+1);
+    EXPECT_TRUE(allocator.decision().protection_required);
+    EXPECT_TRUE(allocator.start_session(4,expiry+1));EXPECT_FALSE(allocator.decision().protection_required);
+}
+TEST_F(ControlAllocationTest, PendingPollDoesNotCountAsAnAllocationTick) {
+    EXPECT_FALSE(allocator.tick(inputs(20),ns(20))); // no root, still monitors runnable gap
+    allocator.poll(ns(40));allocator.poll(ns(50));
+    EXPECT_EQ(allocator.decision().fault,AllocationFault::None);
+    allocator.poll(ns(50)+1);
+    EXPECT_EQ(allocator.decision().fault,AllocationFault::ControlDeadline);
+    EXPECT_TRUE(allocator.decision().protection_required);
+}
 TEST_F(ControlAllocationTest, RealAllocatorOutputsPassIndependentScopedZoneAdmission) {
     zone::CommandAdmission front{zone::ZoneScope::Front}, rear{zone::ZoneScope::Rear};
     ASSERT_TRUE(front.start_session(3, kStart)); ASSERT_TRUE(rear.start_session(3, kStart));

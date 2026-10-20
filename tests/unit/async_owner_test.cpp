@@ -59,6 +59,19 @@ TEST_F(AsyncOwnerTest, CommandResultsHaveExactFrameCountsAndRearFollowsFront) {
     const auto r=rear->work.pop(); ASSERT_TRUE(r); EXPECT_EQ(std::get<central::ScopedCommands>(r->work).index(),1U);
     ack(*rear,*r,true,1); port.service(); EXPECT_EQ(port.completed_batches(),1U); EXPECT_FALSE(port.transport_fault());
 }
+TEST_F(AsyncOwnerTest, PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch) {
+    initialize(); central::AllocatedCommands commands; commands.parent={3,0,kStart,kStart+60*kMs}; commands.expires_at_ns=kStart+30*kMs;
+    ASSERT_TRUE(port.deliver_commands(commands));const auto f=front->work.pop();ASSERT_TRUE(f);
+    const central::VehicleManagementOutput output{};
+    clock.now=f->deadline_ns-1;EXPECT_FALSE(port.allocation_ready(output,clock.now));
+    EXPECT_FALSE(port.deliver_commands(commands));EXPECT_FALSE(front->work.pop());EXPECT_TRUE(gate.allows(3));
+    clock.now=f->deadline_ns;port.service();
+    EXPECT_EQ(port.fault(),central::AsyncTransportFault::ResultTimeout);EXPECT_FALSE(gate.allows(3));
+    ack(*front,*f,true,2);port.service();EXPECT_FALSE(rear->work.pop());EXPECT_FALSE(gate.allows(3));
+    ++clock.now;EXPECT_FALSE(port.initialize({3,clock.now}));ASSERT_TRUE(port.initialize({4,clock.now}));
+    ack(*front,*f,true,2);port.service();EXPECT_FALSE(port.transport_fault());EXPECT_FALSE(gate.allows(4));
+    EXPECT_FALSE(rear->work.pop());EXPECT_TRUE(port.commands_settled());
+}
 TEST_F(AsyncOwnerTest, NewEpochDiscardsOldResultWithoutReopeningGate) {
     initialize(); port.arm_status(3); const auto old=front->work.pop(); ASSERT_TRUE(old); gate.close(); clock.now+=kMs;
     ASSERT_TRUE(port.initialize({4,clock.now})); ack(*front,*old); port.service();

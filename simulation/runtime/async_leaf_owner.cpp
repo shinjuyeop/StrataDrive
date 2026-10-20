@@ -43,7 +43,7 @@ bool AsyncLeafOwner::initialize(const session::Plan& plan) noexcept {
     }
     if(ok) {
         epoch_=plan.epoch; enable_=last_body_=plan.enable_ns; started_=false;
-        command_expiry_ns_=command_source_ns_=0; expiry_reported_=false; prepared_epoch_=0;
+        command_expiry_ns_=command_source_ns_=0; expiry_reported_=false; prepared_epoch_=0; traced_command_.reset();
         next_body_=enable_+(leaf_==transport::Leaf::Bms?20000000ULL:10000000ULL);
         e2e::p05_protect_init(bms_tx_.protection); e2e::p05_protect_init(power_tx_.protection);
     }
@@ -121,7 +121,10 @@ void AsyncLeafOwner::handle(const transport::LeafRequest& r) {
     }
     const auto now=now_ns(); bool ok=gate_.allows(epoch_) && !faulted() && r.sent_ns<=now && now<r.deadline_ns;
     if(ok && r.operation==transport::LeafOperation::Frame) { ok=receive(r); if(ok && r.command) ++commands_; }
-    if(ok && r.command) { command_expiry_ns_=r.command->expires_at_ns; command_source_ns_=fault_message(r).source; expiry_reported_=false; }
+    if(ok && r.command) {
+        command_expiry_ns_=r.command->expires_at_ns; command_source_ns_=fault_message(r).source; expiry_reported_=false;
+        if(trace_) traced_command_=r;
+    }
     if(r.operation==transport::LeafOperation::Frame && input_events_.size()<input_events_.capacity()) {
         const auto m=fault_message(r);
         // Accepted command authority outlives the bounded delivery envelope.
@@ -158,6 +161,14 @@ void AsyncLeafOwner::output(std::uint64_t now) {
     if(leaf_==transport::Leaf::Drive) out.drive=std::get<vecu::DriveController>(actor_).output();
     if(leaf_==transport::Leaf::Power) out.coils=std::get<vecu::PowerController>(actor_).output().coils;
     output_.publish(out);
+    // Controller output publication is distinct from ingress completion and the
+    // later physical model step. Preserve the command identity in this trace.
+    if(trace_ && traced_command_) {
+        const auto published=now_ns();
+        transport::trace(trace_,"leaf-output-published",published,
+            leaf_==transport::Leaf::Steering || leaf_==transport::Leaf::Brake?0:1,*traced_command_,
+            gate_.allows(epoch_) && !faulted() && command_expiry_ns_ && published<command_expiry_ns_?1:-1);
+    }
 }
 void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
     if(leaf_==transport::Leaf::Steering) {

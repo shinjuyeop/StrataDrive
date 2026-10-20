@@ -91,6 +91,13 @@ bool AsyncCoordinatorPort::deliver_commands(const AllocatedCommands& commands) n
     return true;
 }
 bool AsyncCoordinatorPort::allocation_ready(const VehicleManagementOutput& out,std::uint64_t release) noexcept {
+    // One in-flight batch. A due release waits without creating/replacing a
+    // command or changing any pending envelope. service() owns result expiry.
+    if(commands_) {
+        if(trace_) for(const auto& p:pending_) if(p && transport::operation(p->request.work)==transport::Operation::Commands)
+            transport::trace(trace_,"allocation-deferred",now_ns(),p->zone,p->request);
+        return false;
+    }
     const auto* grant=std::get_if<can::BmsDriveGrant>(&out.drive_permission.content);
     if(!grant || grant->permission!=can::BmsDrivePermission::AllowNormal) return true;
     if(out.drive_permission.source_time_ns<release || grant->expires_at_ns<=release || grant->expires_at_ns-release<=20000000ULL) return false;

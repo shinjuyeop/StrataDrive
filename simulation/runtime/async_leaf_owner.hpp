@@ -52,6 +52,7 @@ public:
     void execution_deadline(bool enabled) { execution_deadline_=enabled; } // startup only
 private:
     transport::TransportTrace* trace_{nullptr};
+    std::optional<transport::LeafRequest> traced_command_; // owner-local, diagnostic only
     using Actor=std::variant<vecu::SteeringActuator,vecu::BrakeActuator,vecu::DriveController,vecu::BmsController,vecu::PowerController>;
     static Actor make_actor(transport::Leaf leaf);
     void handle(const transport::LeafRequest& request);

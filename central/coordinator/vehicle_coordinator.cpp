@@ -108,7 +108,11 @@ std::uint64_t VehicleCoordinator::next_allocation_ns() const {
     return previous>std::numeric_limits<std::uint64_t>::max()-kAllocationPeriod?std::numeric_limits<std::uint64_t>::max():previous+kAllocationPeriod;
 }
 bool VehicleCoordinator::allocate(const NormalDriveReadinessInputs& in) {
-    if(!last_power_ || !port_.allocation_ready(*last_power_,next_allocation_ns())) return false;
+    if(!last_power_ || !port_.allocation_ready(*last_power_,next_allocation_ns())) {
+        allocation_.poll(observed_ns_);
+        if(allocation_.decision().protection_required) fail(CoordinatorFault::Allocation);
+        return false;
+    }
     if(in.epoch!=epoch_ || in.session_enable_ns!=enable_ns_) { fail(CoordinatorFault::SessionMismatch); return false; }
     const auto received_parent=port_.received_permission_parent();
     AllocationInputs inputs{in,management_.decision(),port_.current_permission(),received_parent?received_parent:last_power_->permission_parent};
