@@ -26,6 +26,7 @@ capture = module("m4_kernel_capture")
 analysis = module("m4_kernel_analysis")
 with patch.dict(sys.modules, m4_kernel_capture=capture):
     campaign = module("m4_kernel_campaign")
+campaign_analysis = module("m4_kernel_campaign_analysis")
 
 
 def event(ns, kind, body, tid=0, cpu=1):
@@ -62,6 +63,21 @@ JOB = dict(owner="2", slot="1", release_ns="1002000000", deadline_ns="1006000000
 
 
 class KernelAnalysisTest(unittest.TestCase):
+    def test_pre_injection_deadline_remains_unexpected_when_detected_after_injection(self):
+        jobs = [dict(deadline_ns="1199", detected_ns="1205"),
+                dict(deadline_ns="1204", detected_ns="1207")]
+        events = [dict(kind="overrun-injected", owner="9", time_ns="1200")]
+        result = campaign_analysis.split_misses(jobs, events)
+        self.assertEqual(result["missed_before_injection"], 1)
+        self.assertEqual(result["missed_after_injection"], 1)
+        self.assertEqual(result["first_detection_ns"], 1205)
+
+    def test_unobserved_injection_is_not_inferred_from_planned_time(self):
+        result = campaign_analysis.split_misses([dict(deadline_ns="1300", detected_ns="1301")], [])
+        self.assertEqual(result["injection_ns"], 0)
+        self.assertEqual(result["missed_without_observed_injection"], 1)
+        self.assertEqual(result["missed_after_injection"], 0)
+
     def data(self, lines=None):
         with tempfile.TemporaryDirectory() as temp:
             p = Path(temp)/"kernel.trace"
@@ -248,6 +264,24 @@ class CollectorSafetyTest(unittest.TestCase):
                     patch.object(campaign, "size_bytes", return_value=campaign.MAX_BYTES-campaign.HEADROOM_BYTES):
                 with self.assertRaisesRegex(RuntimeError, "storage"):
                     campaign.check_budget(folder, 0)
+
+    def test_budget_scan_tolerates_atomic_rename_of_epoch_file(self):
+        folder, temporary = MagicMock(), MagicMock()
+        folder.rglob.return_value = [temporary]
+        temporary.is_file.return_value = True
+        temporary.is_symlink.return_value = False
+        temporary.stat.side_effect = FileNotFoundError("renamed during publication")
+        self.assertEqual(campaign.size_bytes(folder), 0)
+
+    def test_campaign_conflict_records_stop_and_all_attempts_not_run(self):
+        with tempfile.TemporaryDirectory() as temp, \
+                patch.object(campaign, "proc_identity", return_value={}), \
+                patch.object(capture, "check_conflicts", side_effect=RuntimeError("foreign tracer")):
+            parent = dict(uids=[os.getuid()]*4, gids=[os.getgid()]*4)
+            self.assertEqual(campaign.collect(Path(temp), parent), 2)
+            saved = json.loads((Path(temp)/"campaign.json").read_text())
+            self.assertEqual(saved["status"], "STOPPED")
+            self.assertTrue(all(r["status"] == "NOT RUN" for r in saved["attempts"]))
 
     def test_campaign_keeps_all_pairs_after_workload_failure_and_returns_failure(self):
         with tempfile.TemporaryDirectory() as temp:

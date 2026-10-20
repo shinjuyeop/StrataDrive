@@ -1,0 +1,24 @@
+test_budget_scan_tolerates_atomic_rename_of_epoch_file (trace_test.CollectorSafetyTest) ... ERROR
+
+======================================================================
+ERROR: test_budget_scan_tolerates_atomic_rename_of_epoch_file (trace_test.CollectorSafetyTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/m4_kernel_trace_test.py", line 274, in test_budget_scan_tolerates_atomic_rename_of_epoch_file
+    self.assertEqual(campaign.size_bytes(folder), 0)
+  File "/d/shin/StrataDrive/tools/m4_kernel_campaign.py", line 62, in size_bytes
+    total = 0
+  File "/d/shin/StrataDrive/tools/m4_kernel_campaign.py", line 62, in <genexpr>
+    total = 0
+  File "/usr/lib/python3.10/unittest/mock.py", line 1114, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/usr/lib/python3.10/unittest/mock.py", line 1118, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/usr/lib/python3.10/unittest/mock.py", line 1173, in _execute_mock_call
+    raise effect
+FileNotFoundError: renamed during publication
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)

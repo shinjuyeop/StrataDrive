@@ -37,3 +37,31 @@ Actual child identity logging changes diagnostic Python only. No C++ runtime,
 control timing, SDK algorithm, safety threshold, default scheduling or M5 change.
 Existing973-per-build and48-run timing results remain results of their original
 commits, not reruns of this tooling.
+
+## Follow-up diagnostic validation
+
+The offline campaign analyzer writes a **new output directory**, retaining raw
+capture inputs. It uses actual `overrun-injected` events, not assumed1200ms, to
+separate missed deadlines preceding injection from subsequent misses. A late
+detection of a pre-injection expired slot remains unexpected.
+
+```bash
+python3 tools/m4_kernel_campaign_analysis.py \
+  build/m4-kernel-fixed-<timestamp> build/m4-kernel-analysis-<timestamp>
+```
+
+Final Python [108/108 PASS](preparation/python-final.log) includes another4
+regressions: pre-injection deadline grouping, absent injection, atomic epoch
+file rename during budget scan, and conflict→STOPPED/all NOT RUN. The scan's
+previous `is_file`/`stat` race is reproduced as
+[1 ERROR before correction](preparation/before-rename-test.log). No privileged
+capture failure is claimed for that synthetic case.
+
+A separate original-user (no sudo, no kernel trace) smoke executed exactly two
+workloads with the unchanged normal application binary. OTHER loaded FAIL:
+273 missed/skipped opportunities. FIFO monitor-overrun PASS:4 missed/3 skipped,
+deadline→detect0.003216ms, detect→physical override0.001157ms. Both identity and
+setup controls PASS, actual child UID1000/capabilities0/RTPRIO20/20.
+This verifies the new child identity logging and user-mode launch, **not** the
+sudo restoration or fixed11-pair campaign. Raw results are in
+`build/m4-kernel-user-smoke/` pending the final evidence archive.

@@ -41,6 +41,11 @@ initial OTHER validation, analysis follows collection as the original user:
 `python3 tools/m4_kernel_analysis.py build/<campaign>/<pair>`.
 Trace loss, missing alignment/identity, changed source or cleanup errors remain
 INVALID even if a workload reports PASS. [Preparation/evidence](evidence/m4_kernel_campaign/README.md).
+For the entire fixed plan, run the unprivileged
+`tools/m4_kernel_campaign_analysis.py CAPTURE NEW_OUTPUT` after collection.
+It preserves inputs, retains NOT RUN attempts, and separates deadlines preceding
+the observed Monitor injection from later misses; later does not automatically
+mean intentional.
 
 The following single-pair command and original results are retained as history;
 that older CLI does not preserve the invoking user's RT limit across sudo.

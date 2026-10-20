@@ -59,7 +59,16 @@ def verify_parent(pid, uid):
 
 
 def size_bytes(folder):
-    return sum(p.stat().st_size for p in folder.rglob("*") if p.is_file() and not p.is_symlink())
+    total = 0
+    for path in folder.rglob("*"):
+        try:
+            if path.is_file() and not path.is_symlink():
+                total += path.stat().st_size
+        except FileNotFoundError:
+            # Durable epoch publication may rename a temporary file between
+            # discovery and stat. The next budget sample observes the new name.
+            continue
+    return total
 
 
 def check_budget(folder, started):
@@ -90,9 +99,10 @@ def collect(output, parent, base=capture.TRACEFS):
                  scope="intrusive diagnosis, not timing acceptance", m4="NOT CLOSED", attempts=planned)
     capture.write_json(output/"campaign.json", state)
     uid, gid = parent["uids"][0], parent["gids"][0]
-    original = capture.check_conflicts(base)
-    capture.write_json(output/"global-before.json", original)
+    original = None
     try:
+        original = capture.check_conflicts(base)
+        capture.write_json(output/"global-before.json", original)
         for row in planned:
             check_budget(output, started)
             # Never borrow a different session's values after the caller exits.
@@ -135,8 +145,13 @@ def collect(output, parent, base=capture.TRACEFS):
                 attempt.update(status="INVALID", error=state["error"])
         (output/"campaign-error.txt").write_text(traceback.format_exc())
     finally:
+        try:
+            unchanged = original is not None and capture.snapshot(base) == original
+        except OSError as error:
+            unchanged = False
+            state.update(status="STOPPED", cleanup_error=str(error))
         state.update(elapsed_seconds=time.monotonic()-started, bytes=size_bytes(output),
-                     global_unchanged=capture.snapshot(base) == original)
+                     global_unchanged=unchanged)
         capture.write_json(output/"campaign.json", state)
     if state["status"] != "COLLECTION FINISHED" or any(
             row["status"] != "COLLECTED" for row in planned) or not state["global_unchanged"]:
