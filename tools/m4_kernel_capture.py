@@ -14,6 +14,7 @@ import signal
 import subprocess
 import sys
 import time
+import traceback
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,15 +22,13 @@ TRACEFS = Path("/sys/kernel/tracing")
 MAX_SECONDS = 12
 MAX_TRACE_BYTES = 128 * 1024 * 1024
 MAX_BUFFER_KB = 64 * 1024
+BUFFER_KB = {0: 16384, 1: 32768}
 REQUIRED = ("timer:hrtimer_init", "timer:hrtimer_start", "timer:hrtimer_cancel",
             "timer:hrtimer_expire_entry", "timer:hrtimer_expire_exit",
             "sched:sched_wakeup", "sched:sched_switch",
             "irq:irq_handler_entry", "irq:irq_handler_exit")
-OPTIONAL = ("sched:sched_waking", "sched:sched_wakeup_new", "sched:sched_migrate_task",
-            "irq:softirq_raise", "irq:softirq_entry", "irq:softirq_exit",
-            "timer:timer_start", "timer:timer_expire_entry", "timer:timer_expire_exit",
-            "syscalls:sys_enter_clock_nanosleep", "syscalls:sys_exit_clock_nanosleep",
-            "syscalls:sys_enter_nanosleep", "syscalls:sys_exit_nanosleep")
+OPTIONAL = ("sched:sched_wakeup_new", "sched:sched_migrate_task",
+            "irq:softirq_raise", "irq:softirq_entry", "irq:softirq_exit")
 CASES = {"other-loaded": ("other", True, "normal"),
          "fifo-monitor-overrun": ("fifo", False, "monitor-overrun")}
 
@@ -73,10 +72,13 @@ def inventory(base=TRACEFS):
     selected = [e for e in REQUIRED + OPTIONAL if e in available]
     selected += sorted(e for e in available if e.startswith("irq_vectors:")
                        and e.endswith(("_entry", "_exit")))
-    return dict(selected=selected, missing_required=sorted(set(REQUIRED)-available),
+    relevant = {e for e in available if e.startswith(
+        ("timer:", "sched:", "irq:", "irq_vectors:", "ipi:",
+         "syscalls:sys_enter_clock_nanosleep", "syscalls:sys_exit_clock_nanosleep",
+         "syscalls:sys_enter_nanosleep", "syscalls:sys_exit_nanosleep"))}
+    return dict(policy="compact-v2", selected=selected, missing_required=sorted(set(REQUIRED)-available),
                 missing_optional=sorted(set(OPTIONAL)-available),
-                available=sorted(e for e in available if e.startswith(
-                    ("timer:", "sched:", "irq:", "irq_vectors:", "ipi:", "syscalls:sys_enter_clock_nanosleep"))))
+                available=sorted(relevant), available_not_selected=sorted(relevant-set(selected)))
 
 
 class TraceInstance:
@@ -100,8 +102,8 @@ class TraceInstance:
         control(self.path/"trace_clock", "mono")
         control(self.path/"events/enable", 0)
         control(self.path/"buffer_size_kb", 256)
-        for cpu in (0, 1):
-            control(self.path/f"per_cpu/cpu{cpu}/buffer_size_kb", 16384)
+        for cpu, kb in BUFFER_KB.items():
+            control(self.path/f"per_cpu/cpu{cpu}/buffer_size_kb", kb)
         total = int((self.path/"buffer_total_size_kb").read_text())
         if total > MAX_BUFFER_KB:
             raise RuntimeError(f"kernel buffer exceeds {MAX_BUFFER_KB} KiB: {total}")
@@ -129,6 +131,7 @@ class TraceInstance:
         write_json(self.folder/"event-formats.json", formats)
         write_json(self.folder/"trace-settings.json",
                    dict(state=snapshot(self.path), cpus=cpus, total_buffer_kb=total,
+                        policy="compact-v2", owner_buffer_kb=BUFFER_KB,
                         max_text_bytes=MAX_TRACE_BYTES, worker_timeout_seconds=MAX_SECONDS,
                         trace_watchdog_seconds=MAX_SECONDS+3,
                         clock="CLOCK_MONOTONIC", overwrite=False, instance=str(self.path)))
@@ -351,6 +354,7 @@ def run_pair(folder, case, profile, identity, base=TRACEFS):
                 trace.stop_and_save()
         except BaseException as error:
             row["errors"].append(f"{type(error).__name__}: {error}")
+            (trial/"collector-error.txt").write_text(traceback.format_exc())
             if trace and trace.created and not (trial/"kernel.trace").exists():
                 try:
                     trace.stop_and_save()
@@ -453,6 +457,7 @@ def main():
             return 1 if any(r["worker_exit"] != 0 for r in rows) else 0
         return 0
     except (Exception, KeyboardInterrupt) as error:
+        (output/"collector-error.txt").write_text(traceback.format_exc())
         write_json(output/"error.json", dict(error=f"{type(error).__name__}: {error}"))
         print(f"Capture stopped: {error}; evidence: {output}", file=sys.stderr)
         return 2

@@ -76,6 +76,34 @@ class KernelAnalysisTest(unittest.TestCase):
         self.assertEqual(row["ns"], 12345000123000)
         self.assertEqual(row["fields"]["next_pid"], "42")
 
+    def test_real_kernel_syscall_entry_and_exit_formats(self):
+        # 6.8.0-138 generic capture: syscall pretty-printers omit "event: body".
+        cases = [
+            ("sys_clock_nanosleep(which_clock: 0, flags: 0, rqtp: 7ffc2a8d5940, rmtp: 0)",
+             "sys_enter_clock_nanosleep", "which_clock", "0"),
+            ("sys_clock_nanosleep -> 0x0", "sys_exit_clock_nanosleep", "ret", "0x0"),
+            ("sys_nanosleep(rqtp: 740f3c7fed08, rmtp: 0)", "sys_enter_nanosleep", "rmtp", "0"),
+            ("sys_nanosleep -> 0xfffffffffffffdfc", "sys_exit_nanosleep", "ret", "0xfffffffffffffdfc"),
+        ]
+        for body, kind, key, value in cases:
+            with self.subTest(body=body):
+                row = analysis.parse(f"nosintgdmn-1800 [004] ...1. 447672.576178: {body}\n")
+                self.assertIsNotNone(row)
+                self.assertEqual(row["kind"], kind)
+                self.assertEqual(row["fields"][key], value)
+                self.assertEqual(row["ns"], 447672576178000)
+        self.assertIsNone(analysis.parse("actor-42 [001] ..... 1.002000: UNKNOWN OUTPUT"))
+
+    def test_parseable_syscalls_do_not_hide_real_buffer_loss(self):
+        lines = trace_lines() + [
+            "actor-42 [001] ..... 1.006000: sys_clock_nanosleep -> 0x0\n"]
+        data = self.data(lines)
+        self.assertEqual(data["unknown_lines"], 0)
+        integrity = self.integrity()
+        integrity["stats"]["cpu1"] = "overrun: 0\ncommit overrun: 0\ndropped events: 256668\n"
+        self.assertEqual(analysis.integrity_errors(integrity, data),
+                         ["cpu1: missing/nonzero dropped events"])
+
     def test_separates_timer_slack_runnable_delay_and_body_preemption(self):
         data = self.data()
         row = analysis.job_metrics(JOB, 42, data, True)
@@ -139,6 +167,24 @@ class KernelAnalysisTest(unittest.TestCase):
 
 
 class CollectorSafetyTest(unittest.TestCase):
+    def test_compact_capture_retains_required_chain_and_reports_omitted_events(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            available = [*capture.REQUIRED, "sched:sched_waking",
+                         "syscalls:sys_enter_clock_nanosleep", "irq_vectors:local_timer_entry",
+                         "irq_vectors:local_timer_exit", "irq:softirq_entry", "irq:softirq_exit"]
+            (base/"available_events").write_text("\n".join(available))
+            info = capture.inventory(base)
+            self.assertTrue(set(capture.REQUIRED) <= set(info["selected"]))
+            self.assertEqual(info["missing_required"], [])
+            self.assertIn("irq_vectors:local_timer_entry", info["selected"])
+            self.assertIn("irq:softirq_entry", info["selected"])
+            self.assertEqual(set(info["available_not_selected"]),
+                             {"sched:sched_waking", "syscalls:sys_enter_clock_nanosleep"})
+            self.assertNotIn("sched:sched_waking", info["selected"])
+            self.assertNotIn("syscalls:sys_enter_clock_nanosleep", info["selected"])
+            self.assertEqual(capture.BUFFER_KB, {0: 16384, 1: 32768})
+
     def base(self, temp):
         base = Path(temp)/"tracefs"
         (base/"events").mkdir(parents=True)

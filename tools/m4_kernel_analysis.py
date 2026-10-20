@@ -8,7 +8,10 @@ from pathlib import Path
 import re
 
 LINE = re.compile(r"^.*-(\d+)\s+(?:\(\s*\S+\s*\)\s+)?\[(\d+)\]\s+\S+\s+"
-                  r"(\d+)\.(\d+):\s+([\w:]+):\s*(.*)$")
+                  r"(\d+)\.(\d+):\s+(.*)$")
+EVENT = re.compile(r"([\w:]+):\s*(.*)$")
+SYSCALL_ENTRY = re.compile(r"sys_(clock_nanosleep|nanosleep)\((.*)\)$")
+SYSCALL_EXIT = re.compile(r"sys_(clock_nanosleep|nanosleep) -> (0x[0-9a-fA-F]+|-?\d+)$")
 FIELD = re.compile(r"(\w+)=([^\s]+)")
 RESOLUTION_NS = 1000  # ftrace text commonly prints microseconds. Keep rounding uncertainty.
 
@@ -32,10 +35,25 @@ def parse(line):
     match = LINE.match(line)
     if not match:
         return None
-    tid, cpu, seconds, fraction, kind, body = match.groups()
+    tid, cpu, seconds, fraction, printed = match.groups()
+    # The syscall trace pretty-printer does not use the usual "event: payload"
+    # form, even though its format file describes colon-separated arguments.
+    regular, entry, returned = EVENT.fullmatch(printed), SYSCALL_ENTRY.fullmatch(printed), SYSCALL_EXIT.fullmatch(printed)
+    if regular:
+        kind, body = regular.groups()
+        fields = dict(FIELD.findall(body))
+    elif entry:
+        name, body = entry.groups()
+        kind = "sys_enter_"+name
+        fields = dict(re.findall(r"(\w+):\s*([^,\s]+)", body))
+    elif returned:
+        name, body = returned.groups()
+        kind, fields = "sys_exit_"+name, {"ret": body}
+    else:
+        return None  # Unknown output remains an error, never silently skipped.
     stamp = int(seconds)*1000000000 + int((fraction+"000000000")[:9])
     return dict(tid=int(tid), cpu=int(cpu), ns=stamp, kind=kind.split(":")[-1],
-                body=body, fields=dict(FIELD.findall(body)))
+                body=body, fields=fields)
 
 
 def union_length(intervals):
@@ -72,6 +90,7 @@ def collect(trace, tids):
     irq_stack, irq_rows = {}, {}
     switch_ins, marker_times = {t: [] for t in tids}, {}
     parsed = unknown = 0
+    unknown_examples, event_counts = [], {}
     latest = 0
     with trace.open(errors="replace") as stream:
         for line in stream:
@@ -80,9 +99,12 @@ def collect(trace, tids):
             event = parse(line)
             if event is None:
                 unknown += 1
+                if len(unknown_examples) < 8:
+                    unknown_examples.append(line.strip()[:512])
                 continue
             parsed += 1
             ns, tid, cpu, kind, f = (event[k] for k in ("ns", "tid", "cpu", "kind", "fields"))
+            event_counts[kind] = event_counts.get(kind, 0)+1
             latest = max(latest, ns)
             if "SD_M4_CLOCK_" in event["body"]:
                 marker_times[event["body"].strip()] = ns
@@ -158,6 +180,7 @@ def collect(trace, tids):
                 off={k: Intervals(v) for k, v in off_rows.items()},
                 irqs={k: Intervals(v) for k, v in irq_rows.items()},
                 markers=marker_times, parsed=parsed, unknown_lines=unknown,
+                unknown_examples=unknown_examples, event_counts=event_counts,
                 unclosed_callbacks=len(callbacks), unclosed_irq=sum(map(len, irq_stack.values())),
                 open_irq=[(cpu, left) for (cpu, _), stack in irq_stack.items() for left in stack])
 
@@ -299,6 +322,7 @@ def analyze_trial(folder):
         save_csv(folder/"first-miss-kernel.csv", window)
         summary["window_at_row_cap"] = len(window) == 20000
     observed = [r for r in rows if r["timer_chain"] == "OBSERVED"]
+    untrusted = [r for r in rows if r["timer_chain"] == "UNTRUSTED"]
     incomplete = sum(r["coverage"] != "valid" for r in rows if int(r["start_ns"]))
     if incomplete and not errors:
         errors.append(f"incomplete scheduler/IRQ coverage in {incomplete} jobs")
@@ -310,6 +334,9 @@ def analyze_trial(folder):
                    errors=errors, tids_without_timer_chain=sorted(set(owners.values())-linked_tids),
                    boundary_unclosed_irq=data["unclosed_irq"],
                    text_resolution_ns=RESOLUTION_NS, parsed_events=data["parsed"],
+                   unparsed_lines=data["unknown_lines"], unparsed_examples=data["unknown_examples"],
+                   event_counts=data["event_counts"],
+                   untrusted_chains=len(untrusted),
                    observed_chains=len(observed), executed_jobs=sum(bool(int(r["start_ns"])) for r in rows),
                    maxima_ns={k: max((r[k] for r in observed), default=None) for k in metrics},
                    causal_verdict="Observed intervals only; missing edges remain unknown; no automatic OS/root-cause ruling")
