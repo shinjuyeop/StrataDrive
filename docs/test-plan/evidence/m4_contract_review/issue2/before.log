@@ -1,0 +1,119 @@
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = RemoteZoneIntegration.*
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from RemoteZoneIntegration
+[ RUN      ] RemoteZoneIntegration.RealZoneFramesArmApplyActualAndPowerAuthoritySurviveWire
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:65: Failure
+Expected: (r->deadline_ns-r->sent_ns) <= (transport::kResultBudgetNs), actual: 49800001 vs 20000000
+leaf=2
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:65: Failure
+Expected: (r->deadline_ns-r->sent_ns) <= (transport::kResultBudgetNs), actual: 49800001 vs 20000000
+leaf=4
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:78: Failure
+Value of: net->gate.allows(42)
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:78: Failure
+Value of: net->core.decision().normal_armed
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:78: Failure
+Expected equality of these values:
+  net->core.decision().fault
+    Which is: 4-byte object <07-00 00-00>
+  central::CoordinatorFault::None
+    Which is: 4-byte object <00-00 00-00>
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:79: Failure
+Expected equality of these values:
+  arms[i]
+    Which is: 0
+  1U
+    Which is: 1
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:79: Failure
+Expected: (actors[i]->received_commands()) > (10U), actual: 0 vs 10
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:79: Failure
+Expected equality of these values:
+  arms[i]
+    Which is: 0
+  1U
+    Which is: 1
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:79: Failure
+Expected: (actors[i]->received_commands()) > (10U), actual: 0 vs 10
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:79: Failure
+Expected equality of these values:
+  arms[i]
+    Which is: 0
+  1U
+    Which is: 1
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:79: Failure
+Expected: (actors[i]->received_commands()) > (10U), actual: 0 vs 10
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:84: Failure
+Value of: r.parent
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:83: Failure
+Value of: r.parent
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:87: Failure
+Expected: (power) > (20U), actual: 1 vs 20
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:87: Failure
+Expected: (permission) > (20U), actual: 1 vs 20
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:87: Failure
+Expected: (limits) > (20U), actual: 0 vs 20
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:89: Failure
+The difference between end.angle_rad and std::atan(2.7*.02) is 0.04605239635783745, which exceeds .002, where
+end.angle_rad evaluates to 0.10000000000000001,
+std::atan(2.7*.02) evaluates to 0.053947603642162556, and
+.002 evaluates to 0.002.
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:89: Failure
+Expected: (end.pressure_pa) < (1), actual: 1e+06 vs 1
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:89: Failure
+Expected: (end.torque_nm) > (50), actual: 0 vs 50
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:89: Failure
+Expected: (end.bus_v) > (395), actual: 0 vs 395
+[  FAILED  ] RemoteZoneIntegration.RealZoneFramesArmApplyActualAndPowerAuthoritySurviveWire (53 ms)
+[ RUN      ] RemoteZoneIntegration.RealZoneNormalStopPreservesTerminalLeaseAndCompletesHvOff
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:65: Failure
+Expected: (r->deadline_ns-r->sent_ns) <= (transport::kResultBudgetNs), actual: 49800001 vs 20000000
+leaf=2
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:65: Failure
+Expected: (r->deadline_ns-r->sent_ns) <= (transport::kResultBudgetNs), actual: 49800001 vs 20000000
+leaf=4
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:93: Failure
+Expected: (stops[i]) > (0U), actual: 0 vs 0
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:93: Failure
+Expected: (stops[i]) > (0U), actual: 0 vs 0
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:93: Failure
+Expected: (stops[i]) > (0U), actual: 0 vs 0
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:96: Failure
+Expected equality of these values:
+  net->core.decision().fault
+    Which is: 4-byte object <07-00 00-00>
+  central::CoordinatorFault::None
+    Which is: 4-byte object <00-00 00-00>
+[  FAILED  ] RemoteZoneIntegration.RealZoneNormalStopPreservesTerminalLeaseAndCompletesHvOff (140 ms)
+[ RUN      ] RemoteZoneIntegration.ActualProducedEnvelopeExpiresExclusivelyWithoutRestamping
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:65: Failure
+Expected: (r->deadline_ns-r->sent_ns) <= (transport::kResultBudgetNs), actual: 49800001 vs 20000000
+leaf=2
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:65: Failure
+Expected: (r->deadline_ns-r->sent_ns) <= (transport::kResultBudgetNs), actual: 49800001 vs 20000000
+leaf=4
+/d/shin/StrataDrive/tests/unit/remote_zone_integration_test.cpp:100: Failure
+Value of: net->core.decision().normal_armed
+  Actual: false
+Expected: true
+[  FAILED  ] RemoteZoneIntegration.ActualProducedEnvelopeExpiresExclusivelyWithoutRestamping (46 ms)
+[----------] 3 tests from RemoteZoneIntegration (240 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (240 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] RemoteZoneIntegration.RealZoneFramesArmApplyActualAndPowerAuthoritySurviveWire
+[  FAILED  ] RemoteZoneIntegration.RealZoneNormalStopPreservesTerminalLeaseAndCompletesHvOff
+[  FAILED  ] RemoteZoneIntegration.ActualProducedEnvelopeExpiresExclusivelyWithoutRestamping
+
+ 3 FAILED TESTS

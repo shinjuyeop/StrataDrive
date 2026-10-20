@@ -1,0 +1,61 @@
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = RemoteLeafTest.Protection*:RemoteLeafTest.ExpiredProtection*:RemoteLeafTest.FullProtection*
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from RemoteLeafTest
+[ RUN      ] RemoteLeafTest.ProtectionInterleavedNonMonotonicTokensKeepFirstSelection
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:155: Failure
+Expected equality of these values:
+  ack.selected_ns
+    Which is: 1021000002
+  selected
+    Which is: 1021000000
+[  FAILED  ] RemoteLeafTest.ProtectionInterleavedNonMonotonicTokensKeepFirstSelection (0 ms)
+[ RUN      ] RemoteLeafTest.ProtectionTokenMutationIsRejectedEvenAfterAnotherRequest
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:160: Failure
+Value of: send(forged)
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:161: Failure
+Value of: replay
+  Actual: false
+Expected: true
+[  FAILED  ] RemoteLeafTest.ProtectionTokenMutationIsRejectedEvenAfterAnotherRequest (0 ms)
+[ RUN      ] RemoteLeafTest.ProtectionIssuerIdentityHasSeparateImmutableRecords
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:168: Failure
+Expected equality of these values:
+  std::get<remote::ProtectionAck>(again_c->payload).selected_ns
+    Which is: 1021000002
+  std::get<remote::ProtectionAck>(central->payload).selected_ns
+    Which is: 1021000000
+[  FAILED  ] RemoteLeafTest.ProtectionIssuerIdentityHasSeparateImmutableRecords (0 ms)
+[ RUN      ] RemoteLeafTest.ExpiredProtectionCannotRenewAndNewEpochClearsIdentityRecords
+[       OK ] RemoteLeafTest.ExpiredProtectionCannotRenewAndNewEpochClearsIdentityRecords (0 ms)
+[ RUN      ] RemoteLeafTest.FullProtectionCacheNeverEvictsLiveOrExpiredTokenIdentity
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:184: Failure
+Value of: send(remote::ProtectionRequest{42,500,clock.logical,first.deadline_ns})
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:185: Failure
+Expected equality of these values:
+  std::get<remote::ProtectionAck>(replay->payload).selected_ns
+    Which is: 1021000008
+  first.source_time_ns
+    Which is: 1021000000
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:190: Failure
+Value of: send(remote::ProtectionRequest{42,501,clock.logical,clock.logical+20*kMs})
+  Actual: true
+Expected: false
+[  FAILED  ] RemoteLeafTest.FullProtectionCacheNeverEvictsLiveOrExpiredTokenIdentity (0 ms)
+[----------] 5 tests from RemoteLeafTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+[  FAILED  ] 4 tests, listed below:
+[  FAILED  ] RemoteLeafTest.ProtectionInterleavedNonMonotonicTokensKeepFirstSelection
+[  FAILED  ] RemoteLeafTest.ProtectionTokenMutationIsRejectedEvenAfterAnotherRequest
+[  FAILED  ] RemoteLeafTest.ProtectionIssuerIdentityHasSeparateImmutableRecords
+[  FAILED  ] RemoteLeafTest.FullProtectionCacheNeverEvictsLiveOrExpiredTokenIdentity
+
+ 4 FAILED TESTS

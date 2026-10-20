@@ -51,3 +51,10 @@ Initial Host profile: separate processes/netns on the **same kernel CLOCK_MONOTO
 ## Validation scope
 
 `remote_contract_test` covers golden, all10 tags, all6 operations/BMS alternatives/raw frame forms, every bit/truncation, delayed original expiry, clock uncertainty, all8 coordinator ACKs, replay/latch/receipt. `remote_leaf_test` runs a real Steering actuator/sensor/physical model through codec→INIT→credit→arm→command→Actual→expiry/protection→new session, stop expiry and true bounded FIFO overflow. `remote_zone_integration_test` additionally wires actual Central/Front/Rear outputs through codec to all five private Leaf endpoints and back to original Actual receivers, including readiness/arm, power/permission/limits, normal control and Stop/HV off. It checks original envelope expiry, late Arm/Stop/Power/permission rejection and old-Epoch results during pending Stop. This is a logical component harness, not remote process deployment or M5 adapter acceptance.
+
+[Review regressions and execution evidence](../test-plan/evidence/m4_contract_review/README.md)
+retain pre-fix failures, exact test names, the original948/new18 denominator,
+full normal/ASan results and separate native/TSan/timing cohorts. Negative
+current-Epoch Frame results still protect. ACK cache exhaustion does not synthesize
+an acknowledgement from a watchdog or stopped owner; recovery requires the existing
+new-session contract. These corrections do not close the timing/SDK acceptance gates.

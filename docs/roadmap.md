@@ -184,6 +184,11 @@ guarded 주기 집계 수정을 마쳤다. M4 [Central 준비 판정](learning/m
 후속 [lifecycle/허가 상태 owner](learning/m4_vehicle_management.md)도 구현·component 시험했다.
 후속 [첫 allocation](learning/m4_control_allocation.md), [Zone admission](learning/m4_zone_command_admission.md),
 [CAN 전달·로컬 보호](learning/m4_zone_gateway.md)·[Rear 전원·초기 구동](learning/m4_rear_power_startup.md)과 [Front startup](learning/m4_front_startup.md)도 구현·시험했다. [정상 정지/HV 종료](learning/m4_normal_stop.md)도 Host component로 연결했다. [실제 Zone health·독립 status ingress](learning/m4_zone_feedback_health.md)와 상실 시험을 연결했다. [단일 coordinator/same-host 연결](learning/m4_vehicle_coordinator.md)과 [8-role 세션 준비/INIT/rejoin](learning/m4_session_bootstrap.md)도 구현했다. 후속 [정상 비동기 owner 경로](learning/m4_async_owners.md)를 실제 BMS/HV·센서와 통합하고 정상/부분 실패/상실/정상 종료/새 Epoch 재가입을 시험했다. 후속 방향별 partition·owner 정지/복구 matrix와 M3 guard 반복 측정, remote Leaf credit/ICD component를 검사했다. 현재는 timing/TSan 예외와 M4 종료 검토를 남기고 M5 제어 adapter는 미착수다.
+
+`4a399af` 외부 검토의 원격 계약3개를 수정하고 실제 Zone→codec→Leaf 통합과 새 source 회귀/고정 timing을 실행했다.
+[최신 근거](test-plan/evidence/m4_contract_review/README.md)의 추가 FIFO 실패와 native/SDK TSan OPEN 분석을
+[종료 검토](m4_exit_review.md)에 반영했다. 다음 단위는 kernel 관측·정상 result settlement 계약 검토·지원 SDK 계측이며,
+M5 adapter·MBD·AUTOSAR 확장의 기존 선후관계는 변경하지 않는다.
 실제 ARM64 timing은 배포 단계에서 확인한다.
 Wire/학습자 review는 PENDING이다.
 

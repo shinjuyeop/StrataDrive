@@ -1,0 +1,59 @@
+[
+  {
+    "command": [
+      "clang-tidy",
+      "simulation/runtime/remote_leaf_endpoint.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*",
+      "-header-filter=interfaces/zone/.*|simulation/runtime/remote_leaf_endpoint.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "clang-tidy",
+      "zone/gateway/async_zone_owner.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*",
+      "-header-filter=interfaces/zone/.*|simulation/runtime/remote_leaf_endpoint.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "clang-tidy",
+      "central/coordinator/async_coordinator_port.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*",
+      "-header-filter=interfaces/zone/.*|simulation/runtime/remote_leaf_endpoint.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "clang-tidy",
+      "simulation/runtime/async_leaf_owner.cpp",
+      "-p",
+      "build/m4-readiness",
+      "-checks=-*,clang-analyzer-*",
+      "-header-filter=interfaces/zone/.*|simulation/runtime/remote_leaf_endpoint.*"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "cppcheck",
+      "--enable=warning,performance,portability",
+      "--error-exitcode=1",
+      "--std=c++17",
+      "simulation/runtime/remote_leaf_endpoint.cpp",
+      "zone/gateway/async_zone_owner.cpp",
+      "central/coordinator/async_coordinator_port.cpp",
+      "simulation/runtime/async_leaf_owner.cpp"
+    ],
+    "exit": 0
+  }
+]

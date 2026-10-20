@@ -1,0 +1,52 @@
+Test project /d/shin/StrataDrive/build/m4-readiness
+      Start   1: RemoteLeafTest.LocalReleaseAndUnarmedCreditCannotApplyACommand
+ 1/22 Test   #1: RemoteLeafTest.LocalReleaseAndUnarmedCreditCannotApplyACommand .....................................................   Passed    0.00 sec
+      Start   2: RemoteLeafTest.ArmedOriginalFrameProducesOriginalActualAndCompositeExpiryProtects
+ 2/22 Test   #2: RemoteLeafTest.ArmedOriginalFrameProducesOriginalActualAndCompositeExpiryProtects ..................................   Passed    0.00 sec
+      Start   3: RemoteLeafTest.CreditSourceAgeAloneProtectsAnUnarmedLiveActor
+ 3/22 Test   #3: RemoteLeafTest.CreditSourceAgeAloneProtectsAnUnarmedLiveActor ......................................................   Passed    0.00 sec
+      Start   4: RemoteLeafTest.ExplicitProtectionAckIsLeafSelectionAndPreviousEpochCannotProtectNewSession
+ 4/22 Test   #4: RemoteLeafTest.ExplicitProtectionAckIsLeafSelectionAndPreviousEpochCannotProtectNewSession .........................   Passed    0.00 sec
+      Start   5: RemoteLeafTest.ExpiredStopLeaseCannotBeRestampedByTransport
+ 5/22 Test   #5: RemoteLeafTest.ExpiredStopLeaseCannotBeRestampedByTransport ........................................................   Passed    0.00 sec
+      Start   6: RemoteLeafTest.NormalFifoOverflowLatchesSessionAndNewEpochCannotRepairFailedLink
+ 6/22 Test   #6: RemoteLeafTest.NormalFifoOverflowLatchesSessionAndNewEpochCannotRepairFailedLink ...................................   Passed    0.00 sec
+      Start   7: FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/4-byte object <00-00 00-00>
+ 7/22 Test   #7: FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/4-byte object <00-00 00-00> ...   Passed    0.00 sec
+      Start   8: FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/4-byte object <01-00 00-00>
+ 8/22 Test   #8: FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/4-byte object <01-00 00-00> ...   Passed    0.00 sec
+      Start   9: FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/4-byte object <02-00 00-00>
+ 9/22 Test   #9: FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/4-byte object <02-00 00-00> ...   Passed    0.00 sec
+      Start 300: AsyncOwnerTest.SessionAndGlobalGatePrecedeAllNormalIngress
+10/22 Test #300: AsyncOwnerTest.SessionAndGlobalGatePrecedeAllNormalIngress .........................................................   Passed    0.00 sec
+      Start 301: AsyncOwnerTest.ArmNeedsTwoCorrelatedAcksAndDoesNotResendWhilePending
+11/22 Test #301: AsyncOwnerTest.ArmNeedsTwoCorrelatedAcksAndDoesNotResendWhilePending ...............................................   Passed    0.00 sec
+      Start 302: AsyncOwnerTest.NegativePartialArmClosesGateAndSignalsBothZones
+12/22 Test #302: AsyncOwnerTest.NegativePartialArmClosesGateAndSignalsBothZones .....................................................   Passed    0.00 sec
+      Start 303: AsyncOwnerTest.MissingOrLateTxResultCannotRenewTheOriginalDeadline
+13/22 Test #303: AsyncOwnerTest.MissingOrLateTxResultCannotRenewTheOriginalDeadline .................................................   Passed    0.00 sec
+      Start 304: AsyncOwnerTest.WrongZoneOrOperationResultLatchesProtection
+14/22 Test #304: AsyncOwnerTest.WrongZoneOrOperationResultLatchesProtection .........................................................   Passed    0.00 sec
+      Start 305: AsyncOwnerTest.FrontTxMustSucceedBeforeRearCommandIsEvenQueued
+15/22 Test #305: AsyncOwnerTest.FrontTxMustSucceedBeforeRearCommandIsEvenQueued .....................................................   Passed    0.00 sec
+      Start 306: AsyncOwnerTest.CommandResultsHaveExactFrameCountsAndRearFollowsFront
+16/22 Test #306: AsyncOwnerTest.CommandResultsHaveExactFrameCountsAndRearFollowsFront ...............................................   Passed    0.00 sec
+      Start 307: AsyncOwnerTest.NewEpochDiscardsOldResultWithoutReopeningGate
+17/22 Test #307: AsyncOwnerTest.NewEpochDiscardsOldResultWithoutReopeningGate .......................................................   Passed    0.00 sec
+      Start 308: AsyncOwnerTest.AllocationWaitsForReceivedGrantAndUsesItsOriginalIssuedParent
+18/22 Test #308: AsyncOwnerTest.AllocationWaitsForReceivedGrantAndUsesItsOriginalIssuedParent .......................................   Passed    0.00 sec
+      Start 309: AsyncOwnerTest.BrokenMailboxCannotBeRepairedByEpochAndProtectionBypassesIt
+19/22 Test #309: AsyncOwnerTest.BrokenMailboxCannotBeRepairedByEpochAndProtectionBypassesIt .........................................   Passed    0.00 sec
+      Start 310: AsyncOwnerTest.ClockRollbackClosesBothZonesWithoutNormalRetry
+20/22 Test #310: AsyncOwnerTest.ClockRollbackClosesBothZonesWithoutNormalRetry ......................................................   Passed    0.00 sec
+      Start 311: AsyncZoneOwner.PartialLeafArmMustProtectBothLeavesThroughIndependentSignals
+21/22 Test #311: AsyncZoneOwner.PartialLeafArmMustProtectBothLeavesThroughIndependentSignals ........................................   Passed    0.00 sec
+      Start 312: AsyncZoneOwner.ExpiredQueueEntryIsRejectedWithoutRestampingOrLeafDispatch
+22/22 Test #312: AsyncZoneOwner.ExpiredQueueEntryIsRejectedWithoutRestampingOrLeafDispatch ..........................................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 22
+
+Label Time Summary:
+integration.logical    =   0.03 sec*proc (22 tests)
+
+Total Test time (real) =   0.05 sec

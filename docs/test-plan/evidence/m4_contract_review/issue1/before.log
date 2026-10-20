@@ -1,0 +1,108 @@
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = FrameArmStop/*
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from FrameArmStop/RemoteOldRequestTest
+[ RUN      ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/0
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:132: Failure
+Expected equality of these values:
+  result.epoch
+    Which is: 43
+  42U
+    Which is: 42
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone.faulted()
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone_gate.allows(43)
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone.faulted()
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone_gate.allows(43)
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:143: Failure
+Value of: armed
+  Actual: false
+Expected: true
+[  FAILED  ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/0, where GetParam() = 4-byte object <00-00 00-00> (0 ms)
+[ RUN      ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/1
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:132: Failure
+Expected equality of these values:
+  result.epoch
+    Which is: 43
+  42U
+    Which is: 42
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone.faulted()
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone_gate.allows(43)
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: central.results.pop()
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone.faulted()
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone_gate.allows(43)
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:143: Failure
+Value of: armed
+  Actual: false
+Expected: true
+[  FAILED  ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/1, where GetParam() = 4-byte object <01-00 00-00> (0 ms)
+[ RUN      ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/2
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:132: Failure
+Expected equality of these values:
+  result.epoch
+    Which is: 43
+  42U
+    Which is: 42
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone.faulted()
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone_gate.allows(43)
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: central.results.pop()
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone.faulted()
+  Actual: true
+Expected: false
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:135: Failure
+Value of: zone_gate.allows(43)
+  Actual: false
+Expected: true
+/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:143: Failure
+Value of: armed
+  Actual: false
+Expected: true
+[  FAILED  ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/2, where GetParam() = 4-byte object <02-00 00-00> (0 ms)
+[----------] 3 tests from FrameArmStop/RemoteOldRequestTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/0, where GetParam() = 4-byte object <00-00 00-00>
+[  FAILED  ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/1, where GetParam() = 4-byte object <01-00 00-00>
+[  FAILED  ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/2, where GetParam() = 4-byte object <02-00 00-00>
+
+ 3 FAILED TESTS

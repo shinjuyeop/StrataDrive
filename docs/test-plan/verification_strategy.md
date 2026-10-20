@@ -42,7 +42,24 @@ Whole-owner2/4ms 독립 감시와10/20ms 제어 자체5/8ms 검사, body 초과/
 Logical 기능, sanitizer 성능, 원격 process/네트워크·전체 system TC는 서로 다른 범위다.
 기존 M3 예외·학습자 review·system TC NOT RUN은 유지한다. 물리 응답 CSV의 사후 감사는 새로운 timing 수용 결과가 아니다.
 
-후속 [release-grid/구조 분리·원격 계약 evidence](evidence/m4_followup/README.md)에 전체948개 normal/ASan·UBSan과68개 함수/시험 연결, source별 두48회(각42/6), native TSan8/9 및 remote36/36을 별도로 보존한다. 원본7 FAIL과 최신 TSan1 FAIL을 닫지 않으며 M4 종료는 [검토 중](../m4_exit_review.md)이다. DDS/Zenoh netns echo는 middleware API/queue 실험이며 실제 controller/Actual 배포·session 재가입이나 아래 system TC 전체 결과가 아니다.
+후속 [release-grid/구조 분리·원격 계약 evidence](evidence/m4_followup/README.md)에 당시 전체948개 normal/ASan·UBSan과68개 함수/시험 연결, source별 두48회(각42/6), native TSan8/9 및 remote36/36을 별도로 보존한다. 원본7 FAIL과 당시 TSan1 FAIL을 닫지 않으며 M4 종료는 [검토 중](../m4_exit_review.md)이다. DDS/Zenoh netns echo는 middleware API/queue 실험이며 실제 controller/Actual 배포·session 재가입이나 아래 system TC 전체 결과가 아니다.
+
+### 원격 계약 수정과 OPEN 실패 분석
+
+[사전 프로토콜](m4_contract_review_protocol.md)과 [새 근거](evidence/m4_contract_review/README.md)에
+각 결함의 수정 전 실패·수정 후 결과, 원본948개와 신규18개를 구분한다. `1989477` 전체 normal/ASan·UBSan966개씩,
+경계 TSan67개·wall9개, 함수/실제 시험/판정86개가 최신 component 결과다.
+실제 Central·두 Zone 출력의 codec 왕복→private gate를 가진 다섯 RemoteLeafEndpoint→arm/제어/Actual/Stop을
+논리 clock으로 검사한다. 같은 process의 시험 harness이며 실제 remote scheduling/network 단절 증거는 아니다.
+Native runtime의 shared global gate/atomic 보호 효과도 실제 원격 보호 전달 보장으로 확대하지 않는다.
+
+Full transport trace는 owner별 bounded log를 join 뒤 수집한다. 최초 sent/원래 context expiry·enqueue·RX·dispatch·
+완료·결과 수신을 같은 identity로 연결하며, Leaf handling 완료와 물리 응답 CSV는 별개다.
+`f895dc6` 고정 native20+TSan20회(guards off)는40/40 PASS로 과거 실패 미재현이다.
+별도 논리12ms/19.8ms result 지연은 expiry/pending 충돌 보호를 구분하며 실제 wall 지연 분포에 합치지 않는다.
+`1989477` 48회(guards on/trace off)는41/7, FIFO23/24이고 실패/설정/분모를 모두 보존한다.
+계측 trace와 실제 M3 완료 guard의 검출 기능, 수용 timing을 각각 판정한다. SDK source/stack 분석은 새 SDK 실행이 아니며
+기존 경고·M4 NOT CLOSED·학습자 REVIEW PENDING·전체32요구/29TC NOT RUN을 유지한다.
 
 ### 이전 단계의 부분 검사 이력
 

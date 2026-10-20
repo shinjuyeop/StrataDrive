@@ -72,7 +72,7 @@ Logical 시험은 동일 port/owner를200 μs 논리 step으로 실행한다. Wa
 Normal·normal-stop·partial Front·feedback loss·vehicle-root loss·partial arm·explicit rejoin·old Epoch를 검사한다.
 제어 대상 speed는0 fixture이고 angle/pressure/torque·RC/Battery 반응은 실제 기존 모델이다. SOC/energy는 단일 EvPowerModel owner가 갱신한다.
 차량의 운동·회생 energy 검증은 기존 M2 component 증거와 M6–M8 계획을 구분한다.
-후속 공통 고장 주입·독립 감시·CPU/FIFO 반복 측정은 아래와 [ADR-0056](../adr/ADR-0056-m4-faults-and-independent-execution-watch.md)을 따른다. Remote Leaf lifetime/arm/lease/protection 계약과 SocketCAN transport·독립 process·M5 DDS/Host bridge는 다음 경계다.
+후속 공통 고장 주입·독립 감시·CPU/FIFO 반복 측정은 아래와 [ADR-0056](../adr/ADR-0056-m4-faults-and-independent-execution-watch.md)을 따른다. Remote Leaf lifetime/arm/lease/protection 계약은 아래 component 시험까지 진행했다. 실제 transport·독립 process·M5 DDS/Host bridge 통합은 다음 경계다.
 
 
 ## 정상 경로에 고장을 넣고 복구하기
@@ -139,3 +139,15 @@ STRATADRIVE_M4_RESULTS="$PWD/build/my-m4-wall" ctest --test-dir build/m4-readine
 ```
 
 [원격 ICD](../icd/owner_wire_v1.md)는 local Release만으로 global 준비를 추정하지 않도록 별도 run credit를 요구한다. 실제 Leaf endpoint component는 wire→INIT/credit→arm→command/Actual→보호/재가입을 시험했다. 같은 process global atomic 효과를 원격 보장으로 옮기지 않는다. [후속 evidence](../test-plan/evidence/m4_followup/README.md)와 [M4 종료 검토](../m4_exit_review.md)에서 새 timing/TSan FAIL과 candidate echo의 범위를 확인한다. 전체 M4·M5 제어 배포·학습자 review 완료가 아니다.
+
+외부 검토 후 [계약3개와 전달 trace](../test-plan/evidence/m4_contract_review/README.md)를 보완했다.
+전송 envelope는 최초 `sent_ns`부터 최대20ms이며, 내부 command/parent/stop lease의 유효기간과 별개다.
+이전 Epoch의 거절 응답도 원래 identity를 유지하고, 같은 보호 token의 ACK는 최초 선택 시각을 유지한다.
+실제 Zone 출력→codec→다섯 Leaf→Actual/정상 Stop을 논리 통합으로 확인했다.
+
+CLI의 `trace-transport` 또는 GTest의 `STRATADRIVE_M4_TRANSPORT_TRACE=1`을 켜면
+`*-transport.csv`에 원래 source/expiry·enqueue·Zone RX/dispatch·Leaf handling 완료·결과 수신이 남는다.
+각 owner의 사전 할당 로그를 join 뒤 수집하므로 실행 중 공용 logger를 공유하지 않는다.
+Leaf handling 완료는 실제 압력/토크 도달이 아니며 물리 CSV를 함께 읽어야 한다.
+고정40회 진단은 과거 TSan 실패를 재현하지 못했고, 새48회 timing은 FIFO 추가 실패를 포함해41/7이다.
+학습자의 직접 재현·이해 확인은 아직 REVIEW PENDING이며 M4 종료·M5 adapter 착수는 보류한다.

@@ -2,8 +2,8 @@
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
 clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
-현재 M4 후속 normal·ASan/UBSan 각각 **C++948/948 PASS**다(unit798/logical141/wall9). [후속 근거](test-plan/evidence/m4_followup/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
-원격36개 TSan PASS와 native9개 중1 FAIL·경합 경고0을 구분한다. Native 실패를 sanitizer PASS로 합치지 않는다. 아래 날짜별 과거 수치는 당시 범위로 보존한다.
+현재 `1989477` normal·ASan/UBSan 각각 **C++966/966 PASS**다(unit798/logical159/wall9). [계약 검토 근거](test-plan/evidence/m4_contract_review/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
+최신 TSan 경계67/67·native wall9/9 PASS, 별도 `f895dc6` full trace normal20+TSan20회 PASS다. 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다. 아래 날짜별 과거 수치는 당시 범위로 보존한다.
 Python은 직전 hosted timer 단계의 **63개 PASS** 이력이다. 이번 M4 검증 runner를 추가·실행하고 syntax를 검사했으며 기존 Python unit은 재실행하지 않았다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
@@ -11,6 +11,27 @@ Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 
 총 local vCAN **97개 case**를 검사한다.
 Battery/BMS/Power/Drive gate·에너지/회로 단계는 로컬 component 검사이며 CAN wire나 transport 변경은 없다.
 97개 vCAN은 앞선 Drive 응답 단계의 증거다. 직전 gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사해 통과했다.
+
+2026-10-20 `4a399af` 외부 검토 후: 원본948개를 보존하고 old-Epoch reply identity(`7396b2d`),
+최초 sent/원래 expiry의20ms envelope(`9e96182`), issuer/Epoch/token 보호 ACK 보관(`57457e6`)을 수정했다.
+수정 전 신규 시험은 각각0/3·0/3·1/5 PASS였고 수정 후 각 대상 시험이 통과했다.
+첫 전체 실행은 `57457e6` **962/963 PASS**로 기존 command-expiry 관측 assertion이 실패했고 ASan/UBSan은 미실행이었다.
+Accepted-input 관측을 내부 명령 expiry로 바로잡은 `c4195a6`는 normal/ASan·UBSan963/963·경계 TSan64/64였다.
+제어 시한과 기존 assertion은 변경하지 않았다. 전달 trace 등가성1개와 지연 인과 경계2개를 더한 `1989477`는
+전체966/966 두 빌드·경계 TSan67/67·wall9/9, fault artifact33개씩 및 durable CLI 재가입 양 빌드 PASS다.
+과거948개와 신규18개의 실제 결과를 별도 열로 남겼고, production4개 clang-analyzer/cppcheck도 통과했다.
+이번 vCAN·Release BUILD_TESTING=OFF·전체966개 TSan·새 SDK 실행·Rust 전체 계측은 NOT RUN이다.
+
+같은 후속에서 `f895dc6` native 고정20+20회(1.8s/OTHER/no load/guards off/full trace)는40/40 PASS였으나
+원래 TSan CommandDelivery 실패는 미확정이다. 실제 owner 논리 지연 두 조건으로 이전 command expiry와
+다음 allocation의 pending 충돌을 구분했고, 틀린 최초 가설/시험 draft 실패도 별도 보존했다.
+`1989477`의 새48회는 **41 PASS/7 FAIL/0 BLOCKED**, control48/48이며 **FIFO23/24**다.
+OTHER loaded6건 외에 FIFO Monitor-overrun 조건이 주입 전 Front/Rear662ms slot 누락으로 실패했다.
+666.004077ms 검출·666.009677ms 물리 override를 확인했으나 정상 timing 성공은 아니다.
+기존41/7·42/6·42/6과 같은 분모/시한을 유지하고 source별로 구분한다. Tracefs/perf 접근 제약으로 kernel 원인은 OPEN이다.
+DDS11.0.1 GC source에서 vendor atomic helper의 TSan 계측 제외를 확인했으나 실제 lifetime 안전성/false positive는
+확정하지 않았다. Zenoh binary와 Rust 동기화 인식도 미확정이다. 기존 wrapper4 FAIL·SDK 재계측2 FAIL은 OPEN,
+M4 NOT CLOSED·M5 미착수·학습자 REVIEW PENDING·전체 system NOT RUN을 유지한다.
 
 2026-10-20 M4 후속은 원본12fc4a5의908/908·41 PASS/7 FAIL을 보존했다. 원본7 FAIL의 명령/설정/slot을 감사하고 공통 release origin과 사전 할당/requested-wake 기록을 수정했다(`603fe24`). 이후 책임·데이터 계약/로컬 transport·reset predicate·disjoint CTest label을 별도 분리했다(`77d411c`). 각 시점 normal/ASan·UBSan912/912, 별도48회는각42 PASS/6 FAIL이다. 원본 FIFO wake 원인 미확정/OTHER 부하6 FAIL은 OPEN이다. 원본→수정35개, 수정→분리36개 logical physical CSV가 byte 동일하다.
 

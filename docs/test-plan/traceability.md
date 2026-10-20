@@ -6,6 +6,14 @@ SYS-COM-003/004·SYS-PERF-002와 나머지 SYS-EV 요구는 v0.3, SYS-COM-002는
 [ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)의 Central owner/독립 Zone 경로를 반영한다.
 
 현재 구현 상태와 최신 시험 분모는 [project_status](../project_status.md)가 기준이다.
+최신 `1989477`는 [component 추적표](component_traceability.csv)의 **86개 연결**을
+[normal/ASan·UBSan966개씩 실제 결과](evidence/m4_contract_review/final/component_results.csv)와 대조했다.
+원본948 + 계약15 + trace1 + 지연 인과2개를 [시험별 결과](evidence/m4_contract_review/final/tests.csv)로 구분한다.
+이전 Epoch Frame/Arm/Stop 거절·실제 Zone→codec→Leaf 적용/Actual·Power/Stop·ACK identity/capacity와
+두 결과 지연 보호 경계를 보완했다. [source별 근거](evidence/m4_contract_review/README.md)의 최신 timing48회41/7,
+native 진단40/40·경계 TSan67/67·wall9/9는 각기 별도 분모다. 과거 timing/TSan OPEN과 system NOT RUN은 유지한다.
+
+다음은 이전 단계의 추적성 확장 이력이다.
 **구현된 component의 추적성**은 [함수·실제 시험·판정 기준 CSV](component_traceability.csv),
 [normal/sanitizer 실제 결과56개](evidence/m4_faults/component_results.csv), [commit·환경·재현·고장/복구·timing 수치](evidence/m4_faults/README.md)로 연결한다.
 2026-10-19의20개 연결에 공통 고장·재가입·독립 감시36개를 추가하고 두 빌드908개 전체 CTest와 대조했다.
@@ -13,7 +21,7 @@ CSV evidence 열은 `evidence/` 기준이다. 원래20개 대표 수치는 `m4_a
 M4 native timing48개는 별도 조건별41 PASS/7 FAIL이며 이 결과를 unit PASS에 합치지 않는다.
 이는 아래32개 requirement/29개 system TC의 전체 수용 결과와 구분한다.
 
-후속 [M4 evidence](evidence/m4_followup/README.md)는 원래56개에 remote 계약12개 연결을 더해68개를 실제948개 CTest와 대조했다. 신규 wire/credit/clock/Leaf actor의36개 시험은 component 부분 증거다. Release-grid/구조 분리의 두48회는각42 PASS/6 FAIL이고, 최신 TSan native9개는8 PASS/1 FAIL로 구분한다. 원본41/7과 과거 source별 결과는 유지한다. [M4 종료 검토](../m4_exit_review.md)는 현재 NOT CLOSED다.
+후속 [M4 evidence](evidence/m4_followup/README.md)는 원래56개에 remote 계약12개 연결을 더해68개를 실제948개 CTest와 대조했다. 당시 wire/credit/clock/Leaf actor의36개 시험은 component 부분 증거다. Release-grid/구조 분리의 두48회는각42 PASS/6 FAIL이고, 당시 TSan native9개는8 PASS/1 FAIL로 구분한다. 원본41/7과 과거 source별 결과는 유지한다. [M4 종료 검토](../m4_exit_review.md)는 현재 NOT CLOSED다.
 
 아래 system TC 전체 구현/검증은 PLANNED, runtime Result는 전부 **NOT RUN**이다.
 [Brake 수신부](../learning/m1_brake_codec.md#application-수신부-추가)의 Host/vCAN 부분 증거도
