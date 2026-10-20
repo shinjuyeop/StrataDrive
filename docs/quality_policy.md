@@ -6,13 +6,25 @@ clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 
 [Settlement 후속 근거](test-plan/evidence/m4_settlement/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
 TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.
 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다.
-Python은 기존63+진단 runner8개를 실제 실행해 **71/71 PASS**다. 아래 과거 수치는 당시 범위로 보존한다.
+Python은 기존71+kernel 수집/분석19개를 실행해 **90/90 PASS**다. 아래 과거 수치는 당시 범위로 보존한다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
 총 local vCAN **97개 case**를 검사한다.
 Battery/BMS/Power/Drive gate·에너지/회로 단계는 로컬 component 검사이며 CAN wire나 transport 변경은 없다.
 97개 vCAN은 앞선 Drive 응답 단계의 증거다. 직전 gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사해 통과했다.
+
+2026-10-20 kernel 관측 준비: [수집 프로토콜](test-plan/m4_kernel_capture.md)은 OTHER loaded
+OFF1회→ON1회와 별도 FIFO Monitor-overrun 진단을 정의한다. 실제 owner TID·원래 실행 CSV를
+trace_clock=mono·clock sandwich와 대조하며 timer soft/hard expiry·wakeup·CPU 배정·body 선점/IRQ를 구분한다.
+`d20156b` collector/analyzer 위에 `cb0ad7c`가 sleeping→wakeup→runnable 구간 분할을 보완했다.
+이 분할 시험은 이전 analyzer에서 FAIL, 수정 후 PASS이며 전체 Python90/90다. 신규19개는 synthetic/임시
+filesystem/프로세스 권한 경계 시험이다. 실제 kernel instance cleanup이나 kernel 원인 확인을 뜻하지 않는다.
+`d20156b` 비관리자 Normal/OTHER loaded smoke1회는 기존 binary SHA와 동일, UID1000/capability0,
+설정·부하·grid·buffer control PASS이나 timing FAIL(266 miss/skip)이다. 원래48회 분모와 별도로 보존했다.
+현재 자동 세션의 sudo probe는 exit1/password-required, 사용자 터미널 sudo 성공은 사용자 확인 근거다.
+Privileged inventory·OFF/ON pair·실제 cleanup·원인 판정은 NOT RUN이다. 새 C++ full/TSan/48회 실행은
+없으며 기존 source별 실패와 M4 보류를 유지한다. [준비 근거](test-plan/evidence/m4_kernel_capture/README.md)를 따른다.
 
 2026-10-20 `29b8221` 후속: `398a1de`는 pending 상태를 다음 배분 실패와 분리했다.
 대기 중 allocation tick은 완료 처리하지 않으며 request/support expiry·30ms gap·원래20ms TX envelope와

@@ -1,0 +1,46 @@
+{
+  "tool_source_commit": "cb0ad7c170caf7770be537163f8aebe3f870720f",
+  "source_digest": "3e5b0cd9e2c38f66b6c50bab5006e64b3d5777ba5b53d1354d64b8d8b59adebc",
+  "python_command": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tests/unit",
+    "-p",
+    "*_test.py",
+    "-v"
+  ],
+  "python_exit": 0,
+  "python_pass": 90,
+  "python_previous": 71,
+  "python_added": 19,
+  "fixture_scope": "synthetic parser/cleanup; no actual privileged tracefs operations",
+  "worker_smoke": {
+    "argv": [
+      "/usr/bin/python3",
+      "tools/m4_kernel_capture.py",
+      "_worker",
+      "/d/shin/StrataDrive/build/m4-kernel-preparation/worker-off",
+      "--case",
+      "other-loaded",
+      "--profile",
+      "normal",
+      "--affinity",
+      "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15"
+    ],
+    "exit": 1,
+    "scope": "single real non-root worker smoke; NOT the privileged OFF/ON pair"
+  },
+  "privileged_pair": "NOT RUN",
+  "real_tracefs_cleanup": "NOT RUN",
+  "m4": "NOT CLOSED",
+  "runtime_cpp_changed": false,
+  "new_cpp_full_tsan_48run": "NOT RUN; previous source results retained",
+  "document_check": {
+    "command": "python3 build/m1-angle/bms-doc-check.py",
+    "exit": 0,
+    "scope": "151 Markdown files, 1735 links/anchors; requirements32/TCs29; YAML3/Python22"
+  }
+}

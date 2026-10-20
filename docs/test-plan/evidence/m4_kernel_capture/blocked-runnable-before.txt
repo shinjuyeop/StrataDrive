@@ -1,0 +1,14 @@
+test_wakeup_splits_sleep_from_runnable_wait_inside_body (trace_test.KernelAnalysisTest) ... FAIL
+
+======================================================================
+FAIL: test_wakeup_splits_sleep_from_runnable_wait_inside_body (trace_test.KernelAnalysisTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/m4_kernel_trace_test.py", line 131, in test_wakeup_splits_sleep_from_runnable_wait_inside_body
+    self.assertEqual(row["blocked_ns"], 100000)
+AssertionError: 200000 != 100000
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (failures=1)

@@ -1,0 +1,19 @@
+actor-80 [002] d..2. 0.999999000: tracing_mark_write: SD_M4_CLOCK_begin
+actor-42 [001] d..2. 1.000000000: hrtimer_init: hrtimer=abc clockid=CLOCK_MONOTONIC mode=REL
+actor-42 [001] d..2. 1.000100000: hrtimer_start: hrtimer=abc function=hrtimer_wakeup expires=1002050000 softexpires=1002000000 mode=REL
+actor-0 [001] d..2. 1.002180000: local_timer_entry: vector=239
+actor-0 [001] d..2. 1.002190000: irq_handler_entry: irq=1 name=timer
+actor-0 [001] d..2. 1.002200000: hrtimer_expire_entry: hrtimer=abc function=hrtimer_wakeup now=1002200000
+actor-0 [001] d..2. 1.002210000: sched_wakeup: comm=actor pid=42 prio=120 target_cpu=001
+actor-0 [001] d..2. 1.002220000: hrtimer_expire_exit: hrtimer=abc
+actor-0 [001] d..2. 1.002260000: irq_handler_exit: irq=1 ret=handled
+actor-0 [001] d..2. 1.002270000: local_timer_exit: vector=239
+actor-0 [001] d..2. 1.002600000: sched_switch: prev_comm=idle prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=actor next_pid=42 next_prio=120
+actor-42 [001] d..2. 1.003000000: sched_switch: prev_comm=actor prev_pid=42 prev_prio=120 prev_state=R+ ==> next_comm=load next_pid=99 next_prio=120
+actor-99 [001] d..2. 1.003200000: sched_switch: prev_comm=load prev_pid=99 prev_prio=120 prev_state=R ==> next_comm=actor next_pid=42 next_prio=120
+actor-42 [001] d..2. 1.003290000: local_timer_entry: vector=239
+actor-42 [001] d..2. 1.003300000: irq_handler_entry: irq=1 name=timer
+actor-42 [001] d..2. 1.003450000: irq_handler_exit: irq=1 ret=handled
+actor-42 [001] d..2. 1.003470000: local_timer_exit: vector=239
+actor-42 [001] d..2. 1.004000000: sched_switch: prev_comm=actor prev_pid=42 prev_prio=120 prev_state=S ==> next_comm=idle next_pid=0 next_prio=120
+actor-80 [002] d..2. 1.005000000: tracing_mark_write: SD_M4_CLOCK_end

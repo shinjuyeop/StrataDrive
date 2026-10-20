@@ -1,0 +1,18 @@
+{
+  "utc": "2026-10-20T09:21:56.933792+00:00",
+  "command": [
+    "sudo",
+    "-n",
+    "/usr/bin/python3",
+    "tools/m4_kernel_capture.py",
+    "probe",
+    "/d/shin/StrataDrive/build/m4-kernel-preparation/privileged-probe"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "sudo: \uc554\ud638\uac00 \ud544\uc694\ud569\ub2c8\ub2e4\n",
+  "user_report": {
+    "sudo head -n 5 /sys/kernel/tracing/available_events": "successful; reported by user, not agent capture",
+    "sudo perf stat -e task-clock -- true": "successful; reported by user, not agent capture"
+  }
+}
