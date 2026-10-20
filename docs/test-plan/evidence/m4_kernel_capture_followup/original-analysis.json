@@ -1,0 +1,67 @@
+{
+  "off": {
+    "runtime_verdict": "FAIL",
+    "runtime_reason": "scenario=normal core=7 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=128656741 selected=128656741 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14",
+    "first_active_ns": 0,
+    "deadline_misses": 176,
+    "skipped": 176,
+    "scope": "intrusive diagnostic, not timing acceptance",
+    "trace_status": "OFF",
+    "errors": [],
+    "controls_ok": true,
+    "binary_sha256": "4736b40e8b5b2b67c4cf603ff96a7b1516d619541fdb10a8de80ff01b8f76347",
+    "source_digest": "3e5b0cd9e2c38f66b6c50bab5006e64b3d5777ba5b53d1354d64b8d8b59adebc"
+  },
+  "on": {
+    "runtime_verdict": "FAIL",
+    "runtime_reason": "scenario=normal core=7 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=129659433 selected=129659433 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14",
+    "first_active_ns": 0,
+    "deadline_misses": 311,
+    "skipped": 311,
+    "scope": "intrusive diagnostic, not timing acceptance",
+    "trace_status": "INVALID",
+    "errors": [
+      "cpu1: missing/nonzero dropped events",
+      "trace absent/unparsed lines: 145058"
+    ],
+    "controls_ok": true,
+    "binary_sha256": "4736b40e8b5b2b67c4cf603ff96a7b1516d619541fdb10a8de80ff01b8f76347",
+    "source_digest": "3e5b0cd9e2c38f66b6c50bab5006e64b3d5777ba5b53d1354d64b8d8b59adebc",
+    "window_at_row_cap": false,
+    "tids_without_timer_chain": [
+      1556913,
+      1556914,
+      1556915,
+      1556916,
+      1556917,
+      1556918,
+      1556919,
+      1556920,
+      1556921,
+      1556922
+    ],
+    "boundary_unclosed_irq": 0,
+    "text_resolution_ns": 1000,
+    "parsed_events": 617919,
+    "observed_chains": 0,
+    "executed_jobs": 11799,
+    "maxima_ns": {
+      "soft_minus_requested_ns": null,
+      "callback_minus_soft_ns": null,
+      "callback_minus_hard_ns": null,
+      "switch_minus_wake_ns": null,
+      "body_minus_switch_ns": null,
+      "body_wall_ns": null,
+      "off_cpu_ns": null,
+      "runnable_off_cpu_ns": null,
+      "irq_overlap_ns": null
+    },
+    "causal_verdict": "Observed intervals only; missing edges remain unknown; no automatic OS/root-cause ruling"
+  },
+  "comparison": {
+    "collection_valid": false,
+    "interpretation": "OFF/ON may have different failures; observer effect is not a fix",
+    "m4": "NOT CLOSED",
+    "original_failures": "retained"
+  }
+}

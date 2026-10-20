@@ -6,13 +6,22 @@ clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 
 [Settlement 후속 근거](test-plan/evidence/m4_settlement/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
 TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.
 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다.
-Python은 기존71+kernel 수집/분석19개를 실행해 **90/90 PASS**다. 아래 과거 수치는 당시 범위로 보존한다.
+Python은 기존90+실제 kernel 출력/clock·수집 정책5개를 실행해 **95/95 PASS**다. 아래 과거 수치는 당시 범위로 보존한다.
 Actuator 6개 + EV 6개 DBC/독립 CRC와 C++ payload 36개의 교차 검사가 PASS다.
 [Drive 실행 기록](learning/m1_drive_codec.md)과 [BMS 실행 기록](learning/m1_bms_codec.md)에
 도구 버전, 검사 범위와 재현 명령을 보존한다. M1 89개와 M2 첫 Steering 2개·Brake 3개·Drive 3개,
 총 local vCAN **97개 case**를 검사한다.
 Battery/BMS/Power/Drive gate·에너지/회로 단계는 로컬 component 검사이며 CAN wire나 transport 변경은 없다.
 97개 vCAN은 앞선 Drive 응답 단계의 증거다. 직전 gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사해 통과했다.
+
+2026-10-20 kernel 첫 실제 관측 후속: `a26a206`은 실제 syscall pretty-printer를 파싱하고
+필수 event를 유지하며 optional 중복 수집량/CPU1 buffer를 조정했다. `984d5ac`은 Linux의
+relative CLOCK_REALTIME→MONOTONIC base 규칙을 적용하되 ABS realtime/미확인 clock을 거부한다.
+실제 trace 발췌 회귀를 포함해95/95 PASS다. 원래183050 capture는 OFF176/ON311 miss·CPU1 event256668 유실,
+parser145058줄 실패다. 재분석은762977 event 전부 파싱했지만 원본 유실로9076 chain 전부 UNTRUSTED,
+exit2/INVALID를 유지한다. 앞선183033의 EBADF·271/301 miss도 별도 보존했다. 두 실행의
+instance 제거/global 불변은 실제 확인했지만 새 compact-v2 수집/cleanup은 NOT RUN이다.
+C++ workload·deadline·48회 분모는 바뀌지 않는다. [후속 근거](test-plan/evidence/m4_kernel_capture_followup/README.md).
 
 2026-10-20 kernel 관측 준비: [수집 프로토콜](test-plan/m4_kernel_capture.md)은 OTHER loaded
 OFF1회→ON1회와 별도 FIFO Monitor-overrun 진단을 정의한다. 실제 owner TID·원래 실행 CSV를

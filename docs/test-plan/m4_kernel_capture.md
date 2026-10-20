@@ -1,10 +1,11 @@
 # M4 Host kernel observation — bounded OFF/ON pair
 
-Status: **collector/analyzer implemented; privileged capture NOT RUN**.
-The user confirmed interactive `sudo head .../available_events` and
-`sudo perf stat -e task-clock -- true` on this Host. The agent's separate
-noninteractive `sudo -n` still requires a password. Availability is not a
-completed capture. M4 remains **NOT CLOSED**, previous timing/native/SDK TSan
+Status: **first privileged capture executed but INVALID; compact-v2 recapture NOT RUN**.
+The user executed the original collector on kernel6.8.0-138-generic.
+OFF/ON timing failed; CPU1 dropped256668 events and the original parser rejected
+145058 syscall lines. [Follow-up evidence](evidence/m4_kernel_capture_followup/README.md)
+preserves both attempts and the separate offline correction. The agent's
+noninteractive `sudo -n` still requires a password. M4 remains **NOT CLOSED**, previous timing/native/SDK TSan
 failures remain OPEN, and Target/system/learner states are unchanged.
 
 ## Execute from the original user's terminal
@@ -16,7 +17,7 @@ be new and directly under the existing user-owned `build/` directory.
 ```bash
 cd /d/shin/StrataDrive
 sudo /usr/bin/python3 tools/m4_kernel_capture.py capture \
-  "$PWD/build/m4-kernel-other-$(date +%Y%m%d-%H%M%S)" \
+  "$PWD/build/m4-kernel-other-v2-$(date +%Y%m%d-%H%M%S)" \
   --case other-loaded --profile normal
 ```
 
@@ -34,7 +35,12 @@ sudo /usr/bin/python3 tools/m4_kernel_capture.py probe \
   "$PWD/build/m4-kernel-probe-$(date +%Y%m%d-%H%M%S)"
 ```
 
-After reviewing the first pair, use the preserved FIFO condition separately:
+After obtaining a loss-free OTHER pair, the preserved FIFO condition is selected
+as below. **Do not run it yet with the observed sudo RT limit0/0**: the original
+unprivileged baseline had20/20, while both actual sudo workers inherited0/0.
+OTHER/0 is unaffected; FIFO would fail setup. Restoring the original user's
+verified RT budget across sudo is a prerequisite, not permission to increase it.
+The collector currently records but does not restore that limit.
 
 ```bash
 sudo /usr/bin/python3 tools/m4_kernel_capture.py capture \
@@ -56,7 +62,7 @@ The unprivileged worker invokes the existing
 
 | Case | Runtime | Placement / scheduling | Load |
 | --- | --- | --- | --- |
-| `other-loaded` | normal,2540ms, guards ON, transport trace OFF | owners Front/Rear/Central/Physical/Monitor CPU0; five Leaf CPU1; OTHER/0 | original separate user process, CPU1 OTHER,7ms busy/10ms |
+| `other-loaded` | normal,2540ms, guards ON, transport trace OFF | Front/Rear/Physical/Monitor CPU0; five Leaf and Central CPU1; OTHER/0 | original separate user process, CPU1 OTHER,7ms busy/10ms |
 | `fifo-monitor-overrun` | same duration/guards, Monitor6ms injection at1200ms | same CPUs; original priorities18,18,10,10,10,9,10,11,19,20 | quiet |
 
 The original2ms opportunities,4ms completion deadline,1211 slots per owner,
@@ -78,8 +84,12 @@ the existing physical/event/execution CSVs.
 `inventory.json` records actual available, selected and missing events. Required:
 `timer:hrtimer_init/start/cancel/expire_entry/expire_exit`,
 `sched:sched_wakeup/sched_switch`, `irq:irq_handler_entry/exit`.
-Available waking/migration, softirq, low-resolution timer, nanosleep syscalls and
-`irq_vectors:*_entry/*_exit` are also selected. Local APIC timer/reschedule vectors
+Available migration/new-task wakeup, softirq and `irq_vectors:*_entry/*_exit` are
+also selected. Compact-v2 omits duplicate `sched_waking`, low-resolution timers
+and nanosleep syscall events; `available_not_selected` records this explicitly.
+Required timer/wakeup/switch/IRQ edges remain selected on all CPUs. The updated
+parser also supports the syscall pretty-printers in the original capture.
+Local APIC timer/reschedule vectors
 are distinct from generic device IRQ handlers. Each selected event's actual
 kernel `format` is retained. Missing required events stop the run without a
 substitute or guessed format.
@@ -98,8 +108,10 @@ changes are reported, not overwritten with a stale snapshot. These checks do
 not constitute a system-wide exclusion mechanism for arbitrary external tools.
 
 - Each application worker has a12s timeout and32MiB per-file limit.
-- ON uses16MiB rings on CPUs0/1 and256KiB on other CPUs; total kernel ring storage
-  must be≤64MiB. Overwrite is disabled.
+- ON uses16MiB on CPU0,32MiB on CPU1 and256KiB on other CPUs; total kernel ring
+  storage must be≤64MiB (51.5MiB on this16-CPU Host). Overwrite is disabled.
+  This addresses the observed CPU1 saturation; a new loss-free run is still
+  required. Any new loss remains INVALID.
 - Export is≤128MiB of trace text. Overflow/dropped events or truncated export
   makes analysis invalid, never successful silence.
 - Normal exit, exception, SIGINT/SIGTERM/SIGHUP stop tracing, preserve available
@@ -141,10 +153,15 @@ Owner mapping:0 Front,1 Rear,2 Steering,3 Brake,4 Drive,5 BMS,6 Power,
 7 Central,8 Physical,9 independent Monitor.
 
 For an actual owner TID, the analyzer follows the same timer address's latest
-arm and CLOCK_MONOTONIC initialization, its `hrtimer_wakeup` callback, the
+arm and effective CLOCK_MONOTONIC base, its `hrtimer_wakeup` callback, the
 targeted `sched_wakeup` within that callback, and the following `sched_switch`
 onto CPU. Reused addresses, missing callback/wake/clock and unobserved edges
-stay **NOT OBSERVED**. Loss/clock mismatch makes derived chains untrusted.
+stay **NOT OBSERVED**. Linux maps relative CLOCK_REALTIME timers to a monotonic
+base in `__hrtimer_init`; the init trace still prints the original clock argument.
+The analyzer now handles that rule and retains raw clock/mode and effective
+clock separately. Absolute CLOCK_REALTIME, unknown clocks and missing init are
+not converted by guessing an offset. Loss/clock mismatch makes derived chains
+**UNTRUSTED**, including9076 chains reconstructed from the original lossy capture.
 
 Interpret the components separately:
 
@@ -169,8 +186,11 @@ M4 closure or replacement of the original48-run cohort follows from this pair.
 
 ## Preparation validation
 
-[Preparation evidence](evidence/m4_kernel_capture/README.md) records synthetic
-parser/cleanup/privilege tests and one real unprivileged OTHER loaded worker
-smoke. The privileged inventory, actual event collection, real-instance cleanup,
-OFF/ON comparison and kernel cause attribution remain **NOT RUN until the above
-sudo command completes**. A controlled timing failure is retained as FAIL.
+[Preparation evidence](evidence/m4_kernel_capture/README.md) preserves the original
+90-test preparation and nonroot smoke. [Follow-up evidence](evidence/m4_kernel_capture_followup/README.md)
+records95/95 Python tests, actual event inventory/collection and instance removal,
+two retained failed attempts and corrected offline parsing. Global state was
+unchanged and owned instances removed in both attempts. One earlier attempt
+had EBADF during export without a traceback; its cause remains OPEN and future
+collector errors now include a stack. Compact-v2 privileged capture/cleanup,
+loss-free correlation and kernel cause attribution remain NOT RUN.
