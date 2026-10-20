@@ -12,18 +12,50 @@ def call(cmd, log):
     if p.returncode: raise RuntimeError(f'{cmd}: {p.returncode}: {p.stdout}')
     return p.stdout
 
+SUMMARY_FIELDS = ('cpu','affinity_count','cpu1','policy','sent','received',
+                  'accepted','rejected','echo_mismatch','channel_failures')
+
+def result_schema_errors(result):
+    if not isinstance(result,dict):return ['result must be a JSON object']
+    issues=[]
+    if type(result.get('verdict')) is not str or result['verdict'] not in ('PASS','FAIL'):
+        issues.append('verdict must be PASS or FAIL')
+    codes=result.get('codes')
+    if not isinstance(codes,list) or len(codes)!=2 or any(type(c) is not int for c in codes):
+        issues.append('codes must contain two integer process exit codes')
+    for field in ('invalid_accepted','expired_echoes'):
+        if type(result.get(field)) is not int or result[field]<0:issues.append(f'{field} must be a nonnegative integer')
+    for role in ('central','zone'):
+        summary=result.get(role)
+        if not isinstance(summary,dict):issues.append(f'{role} must be a summary object');continue
+        for field in SUMMARY_FIELDS:
+            if type(summary.get(field)) is not int or summary[field]<0:
+                issues.append(f'{role}.{field} must be a nonnegative integer')
+    if 'diagnostic_errors' in result and (not isinstance(result['diagnostic_errors'],list) or
+            any(type(x) is not str for x in result['diagnostic_errors'])):
+        issues.append('diagnostic_errors must be a list of strings')
+    return issues
+
 def checked_result(folder, result, code=0, error=''):
     issues=[error] if error else []
+    schema=result_schema_errors(result);issues.extend(schema)
+    original=result
+    if not isinstance(result,dict):result={'raw_result':original}
+    previous=result.get('diagnostic_errors')
+    if isinstance(previous,list):issues.extend(x for x in previous if type(x) is str)
     if code:issues.append(f'runner exit {code}')
     if result.get('verdict')!='PASS':issues.append('workload did not PASS')
+    if not schema and result['codes']!=[0,0]:issues.append('probe process exit was nonzero')
+    if not schema and result['invalid_accepted']!=0:issues.append('invalid input accepted')
     for role in ('central','zone'):
         path=Path(folder)/(role+'.stderr')
-        if not path.is_file():issues.append(f'missing {role}.stderr');continue
-        text=path.read_text(errors='replace')
+        try:text=path.read_text(errors='replace')
+        except OSError as missing:issues.append(f'missing/unreadable {role}.stderr: {missing}');continue
         if any(marker in text for marker in ('WARNING: ThreadSanitizer','FATAL: ThreadSanitizer',
                 'ERROR: AddressSanitizer','ERROR: LeakSanitizer','UndefinedBehaviorSanitizer','runtime error:')):
             issues.append(f'sanitizer diagnostic in {role}.stderr')
-    return {**result,'verdict':'FAIL' if issues else 'PASS','diagnostic_errors':issues}
+    return {**result,'verdict':'FAIL' if issues else 'PASS','runner_exit':code,
+            'diagnostic_errors':list(dict.fromkeys(issues))}
 
 def run_trial(command, folder, timeout=30):
     with (Path(folder)/'runner.log').open('w') as log:
@@ -111,8 +143,13 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--child',nargs=3);p.add_argument('--output',type=Path);p.add_argument('--protocol',type=Path,default=ROOT/'docs/test-plan/m4_middleware_probe_protocol_v2.md');p.add_argument('--build',type=Path,default=ROOT/'build/m4-middleware-probes/tests/integration/middleware');a=p.parse_args()
     if a.child:
         folder=Path(a.child[0]);folder.mkdir(parents=True,exist_ok=True)
-        try:result=checked_result(folder,child(*a.child))
-        except Exception as error:result={'verdict':'FAIL','diagnostic_errors':[f'{type(error).__name__}: {error}']}
+        try:
+            original=child(*a.child)
+            # Preserve the child's unvalidated result before writing the verdict.
+            raw=folder/'result.json'
+            if raw.exists():(folder/'result.original.json').write_bytes(raw.read_bytes())
+            result=checked_result(folder,original)
+        except Exception as error:result={'verdict':'FAIL','runner_exit':1,'diagnostic_errors':[f'{type(error).__name__}: {error}']}
         (folder/'result.json').write_text(json.dumps(result,indent=2)+'\n')
         return 0 if result['verdict']=='PASS' else 1
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
