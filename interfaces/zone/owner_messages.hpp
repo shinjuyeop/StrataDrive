@@ -7,6 +7,9 @@
 #include <variant>
 
 namespace stratadrive::transport {
+// Application queue/drain capacity and TX/selection receipt budget, shared by adapters.
+inline constexpr std::size_t kBudget=8;
+inline constexpr std::uint64_t kResultBudgetNs=20000000ULL;
 enum class Operation : std::size_t { Lifecycle, Vehicle, Power, Commands, Arm, Stop };
 struct Arm {};
 using ZoneWork=std::variant<central::LifecycleRequest,central::VehicleRequest,central::VehicleManagementOutput,

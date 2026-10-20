@@ -41,6 +41,7 @@ public:
     void service() noexcept override;
     bool drop_actual{false},reject_arm{false};
     std::uint32_t epoch() const { return epoch_; }
+    transport::Leaf leaf() const { return leaf_; }
     std::uint64_t last_body_ns() const { return last_body_; }
     std::size_t received_commands() const { return commands_; }
     bool faulted() const;

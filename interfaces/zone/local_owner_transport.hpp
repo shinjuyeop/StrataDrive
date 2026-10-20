@@ -30,8 +30,6 @@ struct Protection {
     bool pending(std::uint32_t epoch) const noexcept { return epoch!=0 && requested.load(std::memory_order_acquire)>=epoch; }
     bool acknowledged(std::uint32_t epoch) const noexcept { return epoch!=0 && selected.load(std::memory_order_acquire)==epoch; }
 };
-constexpr std::size_t kBudget=8;
-constexpr std::uint64_t kResultBudgetNs=20000000ULL;
 struct InputEvidence { std::uint32_t epoch{0}; std::uint64_t source_ns{0},received_ns{0}; };
 template<class Sample> InputEvidence input_evidence(const std::optional<Sample>& accepted) {
     return accepted?InputEvidence{accepted->message.epoch,accepted->message.source_time_ns,accepted->received_time_ns}:InputEvidence{};

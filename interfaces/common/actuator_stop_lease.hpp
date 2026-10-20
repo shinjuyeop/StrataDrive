@@ -4,7 +4,8 @@
 #include <optional>
 
 namespace stratadrive {
-// Trusted same-host terminal handoff; never reconstructed from normal CAN.
+// Trusted terminal handoff; remote owner-wire v1 preserves this identity.
+// Never reconstruct it from normal CAN or refresh its source/expiry at a hop.
 struct ActuatorStopLease {
     std::uint32_t epoch, sequence;
     std::uint64_t source_time_ns, expires_at_ns;
