@@ -13,12 +13,10 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <condition_variable>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <memory>
-#include <mutex>
 #include <thread>
 #include <string_view>
 #include <new>
@@ -517,7 +515,7 @@ M4Result run_m4_async(const M4Config& config) {
         for(const auto cpu:{config.cpu_a,config.cpu_b}) if(cpu>=0 && std::find(inherited.allowed_cpus.begin(),inherited.allowed_cpus.end(),cpu)==inherited.allowed_cpus.end()) throw std::invalid_argument("M4 CPU outside inherited affinity");
         auto segment=[&](std::uint64_t until) {
             if(config.execution_guards) network->configure_watch(until);
-            std::mutex mutex; std::condition_variable cv; std::size_t ready=0; bool go=false,aborted=false;
+            std::atomic<std::size_t> ready{0}; std::atomic<bool> go{false}; bool aborted=false;
             std::array<M4Result::Thread,10> observed{}; std::array<bool,10> errors{};
             std::vector<std::thread> workers;
             const std::array<int,10> priorities{18,18,10,10,10,9,10,11,19,20};
@@ -533,7 +531,10 @@ M4Result run_m4_async(const M4Config& config) {
                     if(info.policy!=(config.fifo?SCHED_FIFO:SCHED_OTHER) || info.priority!=(config.fifo?priorities[owner]:0) || (cpu>=0 && info.allowed_cpus!=std::vector<int>{cpu})) throw std::runtime_error("M4 requested setup was not applied");
                 } catch(const std::system_error& e) { out.setup_error=e.code().value(); } catch(...) { out.setup_error=-1; }
                 out.policy=info.policy; out.priority=info.priority; out.cpu=info.observed_cpu; out.tid=info.tid; out.affinity=info.allowed_cpus;
-                { std::unique_lock<std::mutex> lock(mutex); ++ready; cv.notify_all(); cv.wait(lock,[&] { return go; }); }
+                // A release/acquire launch gate avoids the GCC 11 TSan timed-CV
+                // interceptor gap. Setup writes happen before ready; abort before go.
+                ready.fetch_add(1,std::memory_order_release);
+                while(!go.load(std::memory_order_acquire)) std::this_thread::sleep_for(std::chrono::microseconds(20));
                 if(aborted) return;
                 try {
                     const auto origin=std::chrono::steady_clock::now(); auto release=origin;
@@ -544,11 +545,11 @@ M4Result run_m4_async(const M4Config& config) {
                     }
                 } catch(...) { errors[owner]=true; }
             });
-            { std::unique_lock<std::mutex> lock(mutex);
-              if(!cv.wait_for(lock,std::chrono::milliseconds(50),[&] { return ready==count; })) aborted=true;
-              if(ready==count) { for(std::size_t i=0;i<count;++i) if(observed[i].setup_error) aborted=true; }
-              go=true;
-            } cv.notify_all();
+            const auto setup_deadline=std::chrono::steady_clock::now()+std::chrono::milliseconds(50);
+            while(ready.load(std::memory_order_acquire)!=count && std::chrono::steady_clock::now()<setup_deadline) std::this_thread::sleep_for(std::chrono::microseconds(20));
+            if(ready.load(std::memory_order_acquire)!=count) aborted=true;
+            else for(std::size_t i=0;i<count;++i) if(observed[i].setup_error) aborted=true;
+            go.store(true,std::memory_order_release);
             for(auto& worker:workers) worker.join();
             if(aborted) { network->result.startup_ok=false; network->result.reason="M4 owner configuration/startup rejected"; }
             for(std::size_t i=0;i<count;++i) { network->result.threads.push_back(observed[i]); if(errors[i]) { network->result.startup_ok=false; network->result.reason="M4 owner execution exception"; } }
