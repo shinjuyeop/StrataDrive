@@ -1,0 +1,70 @@
+# Verbatim CPU0 excerpt of 20261020-183050, source034b588. Original full capture INVALID (drops).
+# Parser regression only, not a valid standalone timing capture.
+          <idle>-0       [000] d.h1. 447672.859810: local_timer_entry: vector=236
+          <idle>-0       [000] d.h1. 447672.859810: hrtimer_expire_entry: hrtimer=00000000b1f4aa35 function=hrtimer_wakeup now=447672859809623
+          <idle>-0       [000] d.h3. 447672.859810: sched_waking: comm=actuator_demo pid=1556913 prio=120 target_cpu=000
+          <idle>-0       [000] dNh4. 447672.859810: sched_wakeup: comm=actuator_demo pid=1556913 prio=120 target_cpu=000
+          <idle>-0       [000] dNh1. 447672.859810: hrtimer_expire_exit: hrtimer=00000000b1f4aa35
+          <idle>-0       [000] dNh1. 447672.859811: hrtimer_expire_entry: hrtimer=0000000044d00ed8 function=hrtimer_wakeup now=447672859809623
+          <idle>-0       [000] dNh3. 447672.859811: sched_waking: comm=actuator_demo pid=1556914 prio=120 target_cpu=000
+          <idle>-0       [000] dNh4. 447672.859811: sched_wakeup: comm=actuator_demo pid=1556914 prio=120 target_cpu=000
+          <idle>-0       [000] dNh1. 447672.859811: hrtimer_expire_exit: hrtimer=0000000044d00ed8
+          <idle>-0       [000] dNh1. 447672.859811: local_timer_exit: vector=236
+          <idle>-0       [000] d..2. 447672.859812: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=actuator_demo next_pid=1556913 next_prio=120
+   actuator_demo-1556913 [000] ...1. 447672.859812: sys_clock_nanosleep -> 0x0
+   actuator_demo-1556913 [000] ...1. 447672.859814: sys_clock_nanosleep(which_clock: 0, flags: 0, rqtp: 71e66d11abb0, rmtp: 71e66d11abb0)
+   actuator_demo-1556913 [000] ..... 447672.859814: hrtimer_init: hrtimer=00000000cb8208f9 clockid=CLOCK_REALTIME mode=REL
+   actuator_demo-1556913 [000] d..1. 447672.859814: hrtimer_start: hrtimer=00000000cb8208f9 function=hrtimer_wakeup expires=447672860008832 softexpires=447672859958832 mode=REL was_armed=0
+   actuator_demo-1556913 [000] d..2. 447672.859815: sched_switch: prev_comm=actuator_demo prev_pid=1556913 prev_prio=120 prev_state=S ==> next_comm=actuator_demo next_pid=1556914 next_prio=120
+   actuator_demo-1556914 [000] ...1. 447672.859815: sys_clock_nanosleep -> 0x0
+   actuator_demo-1556914 [000] ...1. 447672.859848: sys_clock_nanosleep(which_clock: 0, flags: 0, rqtp: 71e66c919bb0, rmtp: 71e66c919bb0)
+   actuator_demo-1556914 [000] ..... 447672.859848: hrtimer_init: hrtimer=00000000b2f359b3 clockid=CLOCK_REALTIME mode=REL
+   actuator_demo-1556914 [000] d..1. 447672.859848: hrtimer_start: hrtimer=00000000b2f359b3 function=hrtimer_wakeup expires=447672860008931 softexpires=447672859958931 mode=REL was_armed=0
+   actuator_demo-1556914 [000] d..2. 447672.859849: sched_switch: prev_comm=actuator_demo prev_pid=1556914 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120
+          <idle>-0       [000] d.h1. 447672.860001: local_timer_entry: vector=236
+          <idle>-0       [000] d.h1. 447672.860001: hrtimer_expire_entry: hrtimer=0000000080af5f10 function=tick_nohz_highres_handler now=447672860000900
+          <idle>-0       [000] d.h1. 447672.860002: softirq_raise: vec=7 [action=SCHED]
+          <idle>-0       [000] d.h1. 447672.860002: hrtimer_expire_exit: hrtimer=0000000080af5f10
+          <idle>-0       [000] d.h2. 447672.860002: hrtimer_start: hrtimer=0000000080af5f10 function=tick_nohz_highres_handler expires=447672861000000 softexpires=447672861000000 mode=ABS was_armed=0
+          <idle>-0       [000] d.h1. 447672.860002: hrtimer_expire_entry: hrtimer=00000000cb8208f9 function=hrtimer_wakeup now=447672860000900
+          <idle>-0       [000] d.h3. 447672.860002: sched_waking: comm=actuator_demo pid=1556913 prio=120 target_cpu=000
+          <idle>-0       [000] dNh4. 447672.860003: sched_wakeup: comm=actuator_demo pid=1556913 prio=120 target_cpu=000
+          <idle>-0       [000] dNh1. 447672.860003: hrtimer_expire_exit: hrtimer=00000000cb8208f9
+          <idle>-0       [000] dNh1. 447672.860003: hrtimer_expire_entry: hrtimer=00000000a75dc37b function=hrtimer_wakeup now=447672860000900
+          <idle>-0       [000] dNh3. 447672.860003: sched_waking: comm=actuator_demo pid=1556922 prio=120 target_cpu=000
+          <idle>-0       [000] dNh4. 447672.860003: sched_wakeup: comm=actuator_demo pid=1556922 prio=120 target_cpu=000
+          <idle>-0       [000] dNh1. 447672.860003: hrtimer_expire_exit: hrtimer=00000000a75dc37b
+          <idle>-0       [000] dNh1. 447672.860004: hrtimer_expire_entry: hrtimer=00000000a1f0ff4a function=hrtimer_wakeup now=447672860000900
+          <idle>-0       [000] dNh3. 447672.860004: sched_waking: comm=actuator_demo pid=1556921 prio=120 target_cpu=000
+          <idle>-0       [000] dNh4. 447672.860004: sched_wakeup: comm=actuator_demo pid=1556921 prio=120 target_cpu=000
+          <idle>-0       [000] dNh1. 447672.860004: hrtimer_expire_exit: hrtimer=00000000a1f0ff4a
+          <idle>-0       [000] dNh1. 447672.860004: hrtimer_expire_entry: hrtimer=00000000b2f359b3 function=hrtimer_wakeup now=447672860000900
+          <idle>-0       [000] dNh3. 447672.860004: sched_waking: comm=actuator_demo pid=1556914 prio=120 target_cpu=000
+          <idle>-0       [000] dNh4. 447672.860005: sched_wakeup: comm=actuator_demo pid=1556914 prio=120 target_cpu=000
+          <idle>-0       [000] dNh1. 447672.860005: hrtimer_expire_exit: hrtimer=00000000b2f359b3
+          <idle>-0       [000] dNh1. 447672.860005: local_timer_exit: vector=236
+          <idle>-0       [000] dNH1. 447672.860005: call_function_single_entry: vector=251
+          <idle>-0       [000] dNH1. 447672.860006: call_function_single_exit: vector=251
+          <idle>-0       [000] .Ns1. 447672.860006: softirq_entry: vec=7 [action=SCHED]
+          <idle>-0       [000] .Ns1. 447672.860006: softirq_exit: vec=7 [action=SCHED]
+          <idle>-0       [000] d..2. 447672.860007: sched_switch: prev_comm=swapper/0 prev_pid=0 prev_prio=120 prev_state=R ==> next_comm=actuator_demo next_pid=1556922 next_prio=120
+   actuator_demo-1556922 [000] ...1. 447672.860007: sys_clock_nanosleep -> 0x0
+   actuator_demo-1556922 [000] ...1. 447672.860010: sys_clock_nanosleep(which_clock: 0, flags: 0, rqtp: 71e668911bb0, rmtp: 71e668911bb0)
+   actuator_demo-1556922 [000] ..... 447672.860011: hrtimer_init: hrtimer=0000000071407c38 clockid=CLOCK_REALTIME mode=REL
+   actuator_demo-1556922 [000] d..1. 447672.860011: hrtimer_start: hrtimer=0000000071407c38 function=hrtimer_wakeup expires=447672862009005 softexpires=447672861959005 mode=REL was_armed=0
+   actuator_demo-1556922 [000] d..2. 447672.860011: sched_switch: prev_comm=actuator_demo prev_pid=1556922 prev_prio=120 prev_state=S ==> next_comm=actuator_demo next_pid=1556921 next_prio=120
+   actuator_demo-1556921 [000] ...1. 447672.860012: sys_clock_nanosleep -> 0x0
+   actuator_demo-1556921 [000] ...1. 447672.860020: sys_clock_nanosleep(which_clock: 0, flags: 0, rqtp: 71e669112bb0, rmtp: 71e669112bb0)
+   actuator_demo-1556921 [000] ..... 447672.860020: hrtimer_init: hrtimer=0000000063e7c225 clockid=CLOCK_REALTIME mode=REL
+   actuator_demo-1556921 [000] d..1. 447672.860020: hrtimer_start: hrtimer=0000000063e7c225 function=hrtimer_wakeup expires=447672861008883 softexpires=447672860958883 mode=REL was_armed=0
+   actuator_demo-1556921 [000] d..2. 447672.860021: sched_switch: prev_comm=actuator_demo prev_pid=1556921 prev_prio=120 prev_state=S ==> next_comm=actuator_demo next_pid=1556914 next_prio=120
+   actuator_demo-1556914 [000] ...1. 447672.860021: sys_clock_nanosleep -> 0x0
+   actuator_demo-1556914 [000] ...1. 447672.860028: sys_clock_nanosleep(which_clock: 0, flags: 0, rqtp: 71e66c919bb0, rmtp: 71e66c919bb0)
+   actuator_demo-1556914 [000] ..... 447672.860028: hrtimer_init: hrtimer=0000000061a8db26 clockid=CLOCK_REALTIME mode=REL
+   actuator_demo-1556914 [000] d..1. 447672.860028: hrtimer_start: hrtimer=0000000061a8db26 function=hrtimer_wakeup expires=447672860208847 softexpires=447672860158847 mode=REL was_armed=0
+   actuator_demo-1556914 [000] d..2. 447672.860029: sched_switch: prev_comm=actuator_demo prev_pid=1556914 prev_prio=120 prev_state=S ==> next_comm=actuator_demo next_pid=1556913 next_prio=120
+   actuator_demo-1556913 [000] ...1. 447672.860029: sys_clock_nanosleep -> 0x0
+   actuator_demo-1556913 [000] ...1. 447672.860031: sys_clock_nanosleep(which_clock: 0, flags: 0, rqtp: 71e66d11abb0, rmtp: 71e66d11abb0)
+   actuator_demo-1556913 [000] ..... 447672.860031: hrtimer_init: hrtimer=000000009bc3032a clockid=CLOCK_REALTIME mode=REL
+   actuator_demo-1556913 [000] d..1. 447672.860032: hrtimer_start: hrtimer=000000009bc3032a function=hrtimer_wakeup expires=447672860208840 softexpires=447672860158840 mode=REL was_armed=0
+   actuator_demo-1556913 [000] d..2. 447672.860032: sched_switch: prev_comm=actuator_demo prev_pid=1556913 prev_prio=120 prev_state=S ==> next_comm=swapper/0 next_pid=0 next_prio=120

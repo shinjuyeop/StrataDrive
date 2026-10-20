@@ -131,8 +131,41 @@ class KernelAnalysisTest(unittest.TestCase):
 
     def test_missing_wake_or_wrong_clock_is_not_a_timer_chain(self):
         for lines in ([x for x in trace_lines() if "sched_wakeup" not in x],
-                      [x.replace("CLOCK_MONOTONIC", "CLOCK_REALTIME") for x in trace_lines()]):
+                      [x.replace("CLOCK_MONOTONIC mode=REL", "CLOCK_REALTIME mode=ABS") for x in trace_lines()]):
             self.assertEqual(analysis.job_metrics(JOB, 42, self.data(lines), True)["timer_chain"], "NOT OBSERVED")
+
+    def test_relative_realtime_uses_kernel_monotonic_base_without_wall_clock_conversion(self):
+        for mode in ("REL", "REL|HARD", "REL|PINNED"):
+            lines = [x.replace("CLOCK_MONOTONIC mode=REL", "CLOCK_REALTIME mode="+mode) for x in trace_lines()]
+            data = self.data(lines)
+            row = analysis.job_metrics(JOB, 42, data, True)
+            self.assertEqual(row["timer_chain"], "OBSERVED")
+            self.assertEqual(row["timer_clock"], "CLOCK_REALTIME")
+            self.assertEqual(row["timer_effective_clock"], "CLOCK_MONOTONIC")
+            self.assertEqual(row["timer_init_mode"], mode)
+            self.assertEqual(row["callback_minus_hard_ns"], 150000)
+            # Whole-capture loss must still prevent a trusted inference.
+            self.assertEqual(analysis.job_metrics(JOB, 42, data, False)["timer_chain"], "UNTRUSTED")
+        missing_init = [x for x in trace_lines() if "hrtimer_init" not in x]
+        self.assertEqual(analysis.job_metrics(JOB, 42, self.data(missing_init), True)["timer_chain"], "NOT OBSERVED")
+
+    def test_real_capture_excerpt_links_relative_timer_but_remains_untrusted(self):
+        path = ROOT/"tests/unit/fixtures/m4_kernel_relative.trace"
+        tid = 1556913
+        data = analysis.collect(path, {tid})
+        data["cycle_times"] = {tid: [c["callback_ns"] for c in data["cycles"][tid]]}
+        job = dict(owner="0", slot="0", release_ns="447672859958482",
+                   deadline_ns="447672863958482", start_ns="447672860029173",
+                   end_ns="447672860030969", cpu_ns="1380", detected_ns="0",
+                   requested_wake_ns="447672859958482")
+        row = analysis.job_metrics(job, tid, data, False)
+        self.assertEqual(data["unknown_lines"], 0)
+        self.assertEqual(row["timer_chain"], "UNTRUSTED")  # Original full capture had drops.
+        self.assertEqual(row["timer_clock"], "CLOCK_REALTIME")
+        self.assertEqual(row["timer_effective_clock"], "CLOCK_MONOTONIC")
+        self.assertEqual(row["wake_ns"], 447672860003000)
+        self.assertEqual(row["switch_ns"], 447672860029000)
+        self.assertEqual(row["switch_minus_wake_ns"], 26000)
 
     def test_reused_timer_address_cannot_borrow_old_owner_identity(self):
         lines = trace_lines()

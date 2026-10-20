@@ -56,6 +56,15 @@ def parse(line):
                 body=body, fields=fields)
 
 
+def timer_clock(clock, mode):
+    # Linux __hrtimer_init(): relative CLOCK_REALTIME is backed by MONOTONIC.
+    # hrtimer_init's trace records the original clock argument, not that base.
+    # This is a kernel rule, not a guessed wall-clock -> monotonic offset.
+    if clock == "CLOCK_REALTIME" and "REL" in mode.split("|"):
+        return "CLOCK_MONOTONIC"
+    return clock
+
+
 def union_length(intervals):
     total, end = 0, -1
     for left, right in sorted(intervals):
@@ -109,13 +118,15 @@ def collect(trace, tids):
             if "SD_M4_CLOCK_" in event["body"]:
                 marker_times[event["body"].strip()] = ns
             if kind == "hrtimer_init":
-                clocks[f["hrtimer"]] = f["clockid"]
+                clocks[f["hrtimer"]] = (f["clockid"], f.get("mode", "UNKNOWN"))
                 timers.pop(f["hrtimer"], None)
             elif kind == "hrtimer_start":
                 addr = f["hrtimer"]
+                clock, mode = clocks.get(addr, ("UNKNOWN", "UNKNOWN"))
                 timers[addr] = dict(tid=tid, arm_ns=ns, timer=addr,
                     soft_ns=int(f["softexpires"]), hard_ns=int(f["expires"]),
-                    clock=clocks.get(addr, "UNKNOWN"), function=f.get("function", ""))
+                    clock=timer_clock(clock, mode), raw_clock=clock, init_mode=mode,
+                    function=f.get("function", ""))
             elif kind == "hrtimer_cancel":
                 timers.pop(f["hrtimer"], None)
             elif kind == "hrtimer_expire_entry":
@@ -216,6 +227,7 @@ def job_metrics(job, tid, data, valid):
     begin, end, requested = (int(job[k]) for k in ("start_ns", "end_ns", "requested_wake_ns"))
     row = {**job, "tid": tid, "coverage": "valid" if valid else "INVALID",
            "timer_chain": "NOT OBSERVED", "arm_ns": "", "soft_ns": "", "hard_ns": "",
+           "timer_clock": "", "timer_effective_clock": "", "timer_init_mode": "",
            "callback_ns": "", "wake_ns": "", "switch_ns": "", "soft_minus_requested_ns": "",
            "callback_minus_soft_ns": "", "callback_minus_hard_ns": "", "wake_minus_callback_ns": "",
            "switch_minus_wake_ns": "", "body_minus_switch_ns": "",
@@ -250,6 +262,8 @@ def job_metrics(job, tid, data, valid):
             or cycle["switch_ns"] > begin+RESOLUTION_NS):
         return row
     row["timer_chain"] = "OBSERVED" if valid else "UNTRUSTED"
+    row.update(timer_clock=cycle["raw_clock"], timer_effective_clock=cycle["clock"],
+               timer_init_mode=cycle["init_mode"])
     row.update({k: cycle[k] for k in ("arm_ns", "soft_ns", "hard_ns", "callback_ns", "wake_ns", "switch_ns")})
     row.update(soft_minus_requested_ns=cycle["soft_ns"]-requested,
                callback_minus_soft_ns=cycle["callback_ns"]-cycle["soft_ns"],
