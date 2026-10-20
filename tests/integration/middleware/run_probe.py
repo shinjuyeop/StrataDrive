@@ -69,22 +69,24 @@ def child(folder, binary, condition):
             identity=(r['epoch'],r['sequence'])
             if r['epoch']!='42' or identity in seen or not (int(r['source_ns'])<=int(r['time_ns'])<int(r['expiry_ns'])) or int(r['time_ns'])-int(r['source_ns'])>30_000_000:bad+=1
             seen.add(identity)
+        echoes=list(csv.DictReader((folder/'central.csv').open()))
+        expired_echoes=sum(r['event']=='echo' and (int(r['time_ns'])>=int(r['expiry_ns']) or int(r['time_ns'])-int(r['source_ns'])>30_000_000) for r in echoes)
         c,z=summaries['central'],summaries['zone'];thread_ok=all(x['tasks'] and all(t['affinity']==[1] and t['policy']==0 and t['priority']==0 for t in x['tasks']) for x in setup)
         ok=thread_ok and codes==[0,0] and bad==0 and c['echo_mismatch']==0 and all(x['cpu']==1 and x['affinity_count']==1 and x['cpu1']==1 and x['policy']==0 for x in (c,z))
         if condition in ('normal','loaded'):ok=ok and z['accepted']==100 and z['rejected']==3 and c['received']==103 and not(c['channel_failures']+z['channel_failures'])
         elif condition=='overflow':ok=ok and c['channel_failures']+z['channel_failures']>0
-        else:ok=ok and (z['accepted']<100 or c['received']<103 or z['rejected']>3)
+        else:ok=ok and (z['accepted']<100 or c['received']<103 or z['rejected']>3 or expired_echoes>1)
         if load:
             data=json.loads((folder/'load.json').read_text());ok=ok and data['affinity']==[1] and data['policy']==0 and data['priority']==0 and data['cpu_ns']>100_000_000
-        result={'verdict':'PASS' if ok else 'FAIL','invalid_accepted':bad,'codes':codes,**summaries}
+        result={'verdict':'PASS' if ok else 'FAIL','invalid_accepted':bad,'expired_echoes':expired_echoes,'codes':codes,**summaries}
         (folder/'result.json').write_text(json.dumps(result,indent=2)+'\n')
         return result
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--child',nargs=3);p.add_argument('--output',type=Path);p.add_argument('--build',type=Path,default=ROOT/'build/m4-middleware-probes/tests/integration/middleware');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--child',nargs=3);p.add_argument('--output',type=Path);p.add_argument('--protocol',type=Path,default=ROOT/'docs/test-plan/m4_middleware_probe_protocol_v2.md');p.add_argument('--build',type=Path,default=ROOT/'build/m4-middleware-probes/tests/integration/middleware');a=p.parse_args()
     if a.child:child(*a.child);return
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
-    meta={'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'source_digest':BASE['fingerprint'](),'kernel':platform.release(),'planned':36,'protocol_sha256':hashlib.sha256((ROOT/'docs/test-plan/m4_middleware_probe_protocol.md').read_bytes()).hexdigest()}
+    meta={'commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'source_digest':BASE['fingerprint'](),'kernel':platform.release(),'planned':36,'protocol_sha256':hashlib.sha256(a.protocol.read_bytes()).hexdigest()}
     (out/'metadata.json').write_text(json.dumps(meta,indent=2)+'\n');results=[]
     for rep in range(3):
         for candidate in (('dds','zenoh') if rep%2==0 else ('zenoh','dds')):
