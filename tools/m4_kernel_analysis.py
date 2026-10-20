@@ -104,6 +104,10 @@ def collect(trace, tids):
                         **start, callback_ns=ns, callback_now_ns=int(f["now"]), wake_ns=None)
             elif kind == "sched_wakeup":
                 target = int(f["pid"])
+                if target in off and not off[target][1].startswith("R"):
+                    left, state = off[target]
+                    off_rows[target].append((left, ns, state))
+                    off[target] = (ns, "R(wakeup)")
                 for (callback_cpu, _), callback in callbacks.items():
                     if callback_cpu == cpu and callback["tid"] == target:
                         callback["wake_ns"] = ns

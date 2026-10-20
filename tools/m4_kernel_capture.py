@@ -129,7 +129,8 @@ class TraceInstance:
         write_json(self.folder/"event-formats.json", formats)
         write_json(self.folder/"trace-settings.json",
                    dict(state=snapshot(self.path), cpus=cpus, total_buffer_kb=total,
-                        max_text_bytes=MAX_TRACE_BYTES, max_seconds=MAX_SECONDS,
+                        max_text_bytes=MAX_TRACE_BYTES, worker_timeout_seconds=MAX_SECONDS,
+                        trace_watchdog_seconds=MAX_SECONDS+3,
                         clock="CLOCK_MONOTONIC", overwrite=False, instance=str(self.path)))
         control(self.path/"trace", "")
         self.start_watchdog()
@@ -435,6 +436,7 @@ def main():
             original_affinity=affinity, collector_affinity=sorted(os.sched_getaffinity(0)),
             rtprio=list(resource.getrlimit(resource.RLIMIT_RTPRIO)), case=args.case, profile=args.profile,
             max_seconds_per_trial=MAX_SECONDS, max_trace_bytes=MAX_TRACE_BYTES,
+            trace_watchdog_seconds=MAX_SECONDS+3, planned_modes=["off", "on"] if args.action == "capture" else [],
             monotonic_ns=time.monotonic_ns(), system_status="NOT RUN", m4_status="NOT CLOSED"))
         if args.action == "probe":
             write_json(output/"inventory.json", inventory())

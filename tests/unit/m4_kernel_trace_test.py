@@ -124,6 +124,14 @@ class KernelAnalysisTest(unittest.TestCase):
         self.assertEqual(row["runnable_off_cpu_ns"], 0)
         self.assertEqual(row["blocked_ns"], 200000)
 
+    def test_wakeup_splits_sleep_from_runnable_wait_inside_body(self):
+        lines = [x.replace("prev_state=R+", "prev_state=S") for x in trace_lines()]
+        lines.insert(12, event(1003100000, "sched_wakeup", "comm=actor pid=42 prio=120 target_cpu=001"))
+        row = analysis.job_metrics(JOB, 42, self.data(lines), True)
+        self.assertEqual(row["blocked_ns"], 100000)
+        self.assertEqual(row["runnable_off_cpu_ns"], 100000)
+        self.assertEqual(row["off_cpu_ns"], 200000)
+
     def test_invalid_global_capture_does_not_publish_trusted_chain(self):
         row = analysis.job_metrics(JOB, 42, self.data(), False)
         self.assertEqual(row["coverage"], "INVALID")
