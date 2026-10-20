@@ -147,4 +147,46 @@ TEST_P(RemoteOldRequestTest, RejoinedLeafReplyCannotPoisonCurrentZonePendingArm)
 }
 INSTANTIATE_TEST_SUITE_P(FrameArmStop,RemoteOldRequestTest,::testing::Values(
     transport::LeafOperation::Frame,transport::LeafOperation::Arm,transport::LeafOperation::Stop));
+TEST_F(RemoteLeafTest, ProtectionInterleavedNonMonotonicTokensKeepFirstSelection) {
+    ready();credit();const remote::ProtectionRequest a{42,90,clock.logical,clock.logical+20*kMs};
+    const auto first=send(a);ASSERT_TRUE(first);const auto selected=std::get<remote::ProtectionAck>(first->payload).selected_ns;
+    ++clock.logical;const remote::ProtectionRequest b{42,7,clock.logical,clock.logical+19*kMs};ASSERT_TRUE(send(b));
+    ++clock.logical;const auto replay=send(a);ASSERT_TRUE(replay);const auto ack=std::get<remote::ProtectionAck>(replay->payload);
+    EXPECT_EQ(ack.selected_ns,selected);EXPECT_EQ(ack.request.source_time_ns,a.source_time_ns);EXPECT_EQ(ack.request.deadline_ns,a.deadline_ns);
+}
+TEST_F(RemoteLeafTest, ProtectionTokenMutationIsRejectedEvenAfterAnotherRequest) {
+    ready();credit();const remote::ProtectionRequest a{42,90,clock.logical,clock.logical+20*kMs};ASSERT_TRUE(send(a));
+    ++clock.logical;ASSERT_TRUE(send(remote::ProtectionRequest{42,7,clock.logical,clock.logical+19*kMs}));
+    auto forged=a;++forged.source_time_ns;EXPECT_FALSE(send(forged));forged=a;--forged.deadline_ns;EXPECT_FALSE(send(forged));
+    const auto replay=send(a);ASSERT_TRUE(replay);EXPECT_EQ(std::get<remote::ProtectionAck>(replay->payload).selected_ns,a.source_time_ns);
+}
+TEST_F(RemoteLeafTest, ProtectionIssuerIdentityHasSeparateImmutableRecords) {
+    ready();credit();const remote::ProtectionRequest a{42,90,clock.logical,clock.logical+20*kMs};const auto central=send(a);ASSERT_TRUE(central);
+    ++clock.logical;auto z=a;z.source_time_ns=clock.logical;const auto zone=send(z,session::Role::FrontZone);ASSERT_TRUE(zone);
+    ++clock.logical;ASSERT_TRUE(send(remote::ProtectionRequest{42,7,clock.logical,clock.logical+19*kMs}));
+    const auto again_c=send(a),again_z=send(z,session::Role::FrontZone);ASSERT_TRUE(again_c);ASSERT_TRUE(again_z);
+    EXPECT_EQ(std::get<remote::ProtectionAck>(again_c->payload).selected_ns,std::get<remote::ProtectionAck>(central->payload).selected_ns);
+    EXPECT_EQ(std::get<remote::ProtectionAck>(again_z->payload).selected_ns,std::get<remote::ProtectionAck>(zone->payload).selected_ns);
+    const remote::OwnerMessage wrong{session::Role::RearZone,session::Role::Steering,kClock,a};
+    EXPECT_FALSE(remote::encode_owner_message(wrong));EXPECT_FALSE(endpoint.receive(wrong));
+}
+TEST_F(RemoteLeafTest, ExpiredProtectionCannotRenewAndNewEpochClearsIdentityRecords) {
+    ready();credit();const remote::ProtectionRequest a{42,90,clock.logical,clock.logical+20*kMs};ASSERT_TRUE(send(a));
+    while(clock.logical<a.deadline_ns) { step(); }
+    EXPECT_FALSE(send(a));
+    auto forged=a;forged.source_time_ns=clock.logical;forged.deadline_ns=clock.logical+20*kMs;EXPECT_FALSE(send(forged));
+    ready(43);credit();EXPECT_FALSE(send(a));forged.epoch=43;forged.source_time_ns=clock.logical;forged.deadline_ns=clock.logical+20*kMs;
+    const auto ack=send(forged);ASSERT_TRUE(ack);EXPECT_EQ(std::get<remote::ProtectionAck>(ack->payload).selected_ns,clock.logical);
+}
+TEST_F(RemoteLeafTest, FullProtectionCacheNeverEvictsLiveOrExpiredTokenIdentity) {
+    ready();credit();const remote::ProtectionRequest first{42,900,clock.logical,clock.logical+20*kMs};ASSERT_TRUE(send(first));
+    for(std::size_t i=1;i<transport::kBudget;++i) {++clock.logical;ASSERT_TRUE(send(remote::ProtectionRequest{42,900-i,clock.logical,first.deadline_ns}));}
+    ++clock.logical;EXPECT_FALSE(send(remote::ProtectionRequest{42,500,clock.logical,first.deadline_ns}));
+    const auto replay=send(first);ASSERT_TRUE(replay);EXPECT_EQ(std::get<remote::ProtectionAck>(replay->payload).selected_ns,first.source_time_ns);
+    // Capacity is per issuer. No token ordering is assumed and no ACK is fabricated on saturation.
+    ASSERT_TRUE(send(remote::ProtectionRequest{42,500,clock.logical,first.deadline_ns},session::Role::FrontZone));
+    while(clock.logical<first.deadline_ns)step();
+    auto forged=first;forged.source_time_ns=clock.logical;forged.deadline_ns=clock.logical+20*kMs;EXPECT_FALSE(send(forged));
+    EXPECT_FALSE(send(remote::ProtectionRequest{42,501,clock.logical,clock.logical+20*kMs}));EXPECT_TRUE(actor.faulted());
+}
 } // namespace

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="5" failures="4" disabled="0" errors="0" time="0.001" timestamp="2026-10-20T15:25:40.574" name="AllTests">
+  <testsuite name="RemoteLeafTest" tests="5" failures="4" disabled="0" skipped="0" errors="0" time="0.001" timestamp="2026-10-20T15:25:40.574">
+    <testcase name="ProtectionInterleavedNonMonotonicTokensKeepFirstSelection" status="run" result="completed" time="0" timestamp="2026-10-20T15:25:40.574" classname="RemoteLeafTest">
+      <failure message="/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:155&#x0A;Expected equality of these values:&#x0A;  ack.selected_ns&#x0A;    Which is: 1021000002&#x0A;  selected&#x0A;    Which is: 1021000000" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:155
+Expected equality of these values:
+  ack.selected_ns
+    Which is: 1021000002
+  selected
+    Which is: 1021000000]]></failure>
+    </testcase>
+    <testcase name="ProtectionTokenMutationIsRejectedEvenAfterAnotherRequest" status="run" result="completed" time="0" timestamp="2026-10-20T15:25:40.574" classname="RemoteLeafTest">
+      <failure message="/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:160&#x0A;Value of: send(forged)&#x0A;  Actual: true&#x0A;Expected: false" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:160
+Value of: send(forged)
+  Actual: true
+Expected: false]]></failure>
+      <failure message="/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:161&#x0A;Value of: replay&#x0A;  Actual: false&#x0A;Expected: true" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:161
+Value of: replay
+  Actual: false
+Expected: true]]></failure>
+    </testcase>
+    <testcase name="ProtectionIssuerIdentityHasSeparateImmutableRecords" status="run" result="completed" time="0" timestamp="2026-10-20T15:25:40.574" classname="RemoteLeafTest">
+      <failure message="/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:168&#x0A;Expected equality of these values:&#x0A;  std::get&lt;remote::ProtectionAck&gt;(again_c-&gt;payload).selected_ns&#x0A;    Which is: 1021000002&#x0A;  std::get&lt;remote::ProtectionAck&gt;(central-&gt;payload).selected_ns&#x0A;    Which is: 1021000000" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:168
+Expected equality of these values:
+  std::get<remote::ProtectionAck>(again_c->payload).selected_ns
+    Which is: 1021000002
+  std::get<remote::ProtectionAck>(central->payload).selected_ns
+    Which is: 1021000000]]></failure>
+    </testcase>
+    <testcase name="ExpiredProtectionCannotRenewAndNewEpochClearsIdentityRecords" status="run" result="completed" time="0" timestamp="2026-10-20T15:25:40.574" classname="RemoteLeafTest" />
+    <testcase name="FullProtectionCacheNeverEvictsLiveOrExpiredTokenIdentity" status="run" result="completed" time="0" timestamp="2026-10-20T15:25:40.575" classname="RemoteLeafTest">
+      <failure message="/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:184&#x0A;Value of: send(remote::ProtectionRequest{42,500,clock.logical,first.deadline_ns})&#x0A;  Actual: true&#x0A;Expected: false" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:184
+Value of: send(remote::ProtectionRequest{42,500,clock.logical,first.deadline_ns})
+  Actual: true
+Expected: false]]></failure>
+      <failure message="/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:185&#x0A;Expected equality of these values:&#x0A;  std::get&lt;remote::ProtectionAck&gt;(replay-&gt;payload).selected_ns&#x0A;    Which is: 1021000008&#x0A;  first.source_time_ns&#x0A;    Which is: 1021000000" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:185
+Expected equality of these values:
+  std::get<remote::ProtectionAck>(replay->payload).selected_ns
+    Which is: 1021000008
+  first.source_time_ns
+    Which is: 1021000000]]></failure>
+      <failure message="/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:190&#x0A;Value of: send(remote::ProtectionRequest{42,501,clock.logical,clock.logical+20*kMs})&#x0A;  Actual: true&#x0A;Expected: false" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/remote_leaf_test.cpp:190
+Value of: send(remote::ProtectionRequest{42,501,clock.logical,clock.logical+20*kMs})
+  Actual: true
+Expected: false]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

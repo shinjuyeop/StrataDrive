@@ -1,4 +1,5 @@
 #include "remote_leaf_endpoint.hpp"
+#include <algorithm>
 #include <stdexcept>
 
 namespace stratadrive::simulation {
@@ -55,13 +56,19 @@ std::optional<remote::OwnerMessage> RemoteLeafEndpoint::receive(const remote::Ow
         if((m.from==session::Role::CentralIngress || m.from==zone_) && r->epoch==epoch_ && r->token &&
             r->source_time_ns<=now && now<r->deadline_ns && r->deadline_ns-r->source_time_ns<=transport::kResultBudgetNs &&
             now-r->source_time_ns<=session::kMessageAgeNs) {
-            auto& protection_ack_=protection_acks_[m.from==session::Role::CentralIngress?0:1];
-            if(protection_ack_ && protection_ack_->request.token==r->token) {
-                const auto& old=protection_ack_->request;
+            auto& cache=protection_acks_[m.from==session::Role::CentralIngress?0:1];
+            const auto duplicate=std::find_if(cache.begin(),cache.end(),[&](const auto& ack) {
+                return ack && ack->request.epoch==r->epoch && ack->request.token==r->token;
+            });
+            if(duplicate!=cache.end()) {
+                const auto& old=(*duplicate)->request;
                 if(old.epoch!=r->epoch || old.source_time_ns!=r->source_time_ns || old.deadline_ns!=r->deadline_ns) return std::nullopt;
-                return reply(*protection_ack_,m.from);
+                return reply(**duplicate,m.from);
             }
-            protect(); protection_ack_=remote::ProtectionAck{*r,now,actor_.faulted()}; return reply(*protection_ack_,m.from);
+            protect();
+            const auto empty=std::find_if(cache.begin(),cache.end(),[](const auto& ack) { return !ack; });
+            if(empty==cache.end()) return std::nullopt;
+            *empty=remote::ProtectionAck{*r,now,actor_.faulted()}; return reply(**empty,m.from);
         }
     } else if(const auto* r=std::get_if<transport::LeafRequest>(&m.payload)) {
         // Check old expiry before accepting a newly arrived packet. No RX time

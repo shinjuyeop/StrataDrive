@@ -49,3 +49,24 @@ ctest --test-dir build/m4-readiness -R 'Remote|AsyncZoneOwner|AsyncOwnerTest|M4A
 `issue2/before.xml` and `after.xml` retain actual results. Normal/ASan full regression
 and new-source timing are performed at the completed correction boundary, not inferred
 from prior commits' cohorts.
+
+## Issue 3 — interleaved protection identities
+
+Baseline implementation `9e96182`, final five regressions: **1 PASS/4 FAIL**.
+After correction: **5/5 PASS** and selected existing/new regression **68/68 PASS**.
+`issue3/before-final.xml` was run with the original cpp/hpp restored temporarily
+and the final tests; the fixed implementation was restored and rebuilt for
+`after-final.xml`. The draft wrong-route test was corrected to assert codec
+rejection directly rather than treating that expected encoder rejection as a
+fixture error. All original 948 assertions remain unchanged.
+
+Issuer/Epoch/token records are bounded to8 per issuer and retained until new INIT,
+including expired identity tombstones. No monotonic-token assumption or overwrite.
+At capacity protection remains selected but no new ACK is synthesized. Duplicate
+ACK keeps first selection/request bytes; altered token contents and expired replay
+are rejected. Central/assigned Zone records and new-Epoch reset are tested.
+
+```sh
+cmake --build build/m4-readiness --target remote_leaf_test -j4
+build/m4-readiness/remote_leaf_test --gtest_filter='RemoteLeafTest.Protection*:RemoteLeafTest.ExpiredProtection*:RemoteLeafTest.FullProtection*'
+```
