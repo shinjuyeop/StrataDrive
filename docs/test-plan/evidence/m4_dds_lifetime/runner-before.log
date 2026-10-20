@@ -1,0 +1,78 @@
+.F.FFFEF
+======================================================================
+ERROR: test_real_child_timeout_preserves_log_and_returns_failure (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 72, in test_real_child_timeout_preserves_log_and_returns_failure
+    code, error = module["run_trial"]([sys.executable, "-u", "-c",
+KeyError: 'run_trial'
+
+======================================================================
+FAIL: test_child_failure_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 61, in test_child_failure_exits_nonzero
+    def test_child_failure_exits_nonzero(self): self.check("child-failure", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 54, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : 
+
+======================================================================
+FAIL: test_child_warning_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 62, in test_child_warning_exits_nonzero
+    def test_child_warning_exits_nonzero(self): self.check("child-warning", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 54, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : 
+
+======================================================================
+FAIL: test_failure_preserves_all_36_and_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 64, in test_failure_preserves_all_36_and_exits_nonzero
+    def test_failure_preserves_all_36_and_exits_nonzero(self): self.check("failure", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 54, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : didate": "zenoh", "condition": "down-loss", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "up-loss", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "down-delay", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "overflow", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+
+
+======================================================================
+FAIL: test_missing_result_preserves_all_36_and_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 65, in test_missing_result_preserves_all_36_and_exits_nonzero
+    def test_missing_result_preserves_all_36_and_exits_nonzero(self): self.check("missing", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 54, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : didate": "zenoh", "condition": "down-loss", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "up-loss", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "down-delay", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "overflow", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+
+
+======================================================================
+FAIL: test_warning_preserves_all_36_and_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 66, in test_warning_preserves_all_36_and_exits_nonzero
+    def test_warning_preserves_all_36_and_exits_nonzero(self): self.check("warning", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 54, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : didate": "zenoh", "condition": "down-loss", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "up-loss", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "down-delay", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "overflow", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+{"candidate": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0]}
+
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.508s
+
+FAILED (failures=5, errors=1)

@@ -1,0 +1,32 @@
+{
+  "base_commit": "c52445a",
+  "runner_commit": "1677f85",
+  "participating_source_sha256": {
+    "tests/integration/middleware/run_probe.py": "11ffc7633147ccbd06a32e485de8c60f81cf162d5bc0dadfb9f1e9abde740366",
+    "tests/unit/middleware_probe_test.py": "89443f02106bcdcf7e0d951abba7f77ddd4fd45ec9fe608fee93aef64cbae1ae",
+    "tests/integration/middleware/dds_writer_lifetime.c": "b0315169dc4c67dd9fef9315e6e0a2134dac0635b6b991afa5e1736625f47170",
+    "tests/integration/middleware/dds_channel.c": "3b36115005728a3c5ea6865c26234569fd6a2bc83f225f3f02eb5c2d3d169dc7",
+    "tests/integration/middleware/probe.cpp": "e4ad7c2e970b24951a1a9bbc2e6558e146cadfe06b9e99854464804de04532cf"
+  },
+  "uid": 1000,
+  "kernel": "6.8.0-138-generic",
+  "python": "3.10.12",
+  "compiler": "gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0",
+  "scope": "functional/lifetime/sanitizer diagnostics, no performance acceptance",
+  "source_tree_at_execution": "c52445a plus the exact runner/probe/test files identified above; diagnostics only",
+  "v1_harness": "12 setup assertion failures; no correct lifetime observation, retained separately",
+  "v2_lifetime": "normal3 PASS, ASan/UBSan3 PASS, TSan3 FAIL (2 warnings/exit66 each); deliberate ASan UAF control3 detected/exit1",
+  "v2_driver_exit": "0 means all predefined diagnostic observations occurred, not SDK sanitizer PASS; per-run sanitizer_clean false remains FAIL",
+  "new_sdk_dependency": "Only new local ASan/UBSan instrumentation of the unchanged SDK; production dependency pin remains11.0.1",
+  "regression": "Python120/120, previous112+8; original saved36 probe outcomes rechecked36 PASS without workload rerun",
+  "not_run": [
+    "new C++973 full/ASan",
+    "new native40",
+    "new timing48",
+    "full 36 SDK cohort rerun",
+    "TSan full973",
+    "Jetson/Target",
+    "whole system TC",
+    "M5 adapter"
+  ]
+}

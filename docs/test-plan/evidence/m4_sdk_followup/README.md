@@ -141,7 +141,18 @@ transport_tcp --target x86_64-unknown-linux-gnu`, and TSan adds
 `-Zbuild-std` / the saved `CARGO_COMMAND` helper. Compilation and timing
 collection must hold the common workspace lock and run sequentially.
 
-Still pending: privileged fixed kernel cohort; old native failure's actual
-failed transaction; DDS GC correctness; qualification of the pinned fully
-instrumented Zenoh configuration/default-feature scope and original warning
-provenance. Target/system/learner review remain NOT RUN/REVIEW PENDING.
+Subsequent evidence (not additional runs in this cohort): the
+[completed213425 kernel cohort](../m4_kernel_campaign/completed_213425/README.md)
+contains11 VALID pairs, OTHER2 FAIL/FIFO20 PASS; privileged collection is no longer
+pending. The [actual DDS lifetime follow-up](../m4_dds_lifetime/README.md) connects
+real Writer lookup/unlink/awake-vtime/GC/mutex/free; normal3/ASan3 PASS, TSan3 FAIL,
+deliberate UAF controls3 detected. It also fixes the middleware runner's hidden
+failure exit and retains wrapper ASan2 PASS/TSan2 FAIL. The narrow Writer argument
+does not qualify bucket/proxy/WHC or the entire SDK.
+
+Still pending: old native failure's actual failed transaction; the remaining DDS
+publication/GC families; qualification of the pinned fully instrumented Zenoh
+configuration/default-feature scope and original warning provenance.
+The [limited Host acceptance proposal](../../../m4_host_acceptance_review.md)
+is PROPOSED, not an approved scope change. Target/system/learner review remain
+NOT RUN/REVIEW PENDING; all historical counts in this evidence are unchanged.

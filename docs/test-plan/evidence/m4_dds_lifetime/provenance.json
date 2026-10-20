@@ -1,0 +1,44 @@
+{
+  "base_commit": "c52445a",
+  "sdk": "11.0.1 e54e991",
+  "source_sha256": {
+    "src/ddsrt/src/hopscotch.c": "952ad936095b09246e66ac2227f4f96fcdccb7c6737d1436fd4f799eac087abd",
+    "src/ddsrt/include/dds/ddsrt/atomics/gcc.h": "a92e64c3d6086cf1f2f2f4f863ad760166f421b277d88e93047d8b3f239c382d",
+    "src/core/ddsi/include/dds/ddsi/ddsi_thread.h": "10d70a094b684a24dfcc22389f5460c064d94bb1dbd6acbc6ea4ad008b3f805d",
+    "src/core/ddsi/src/ddsi_gc.c": "2c86c575dd1ed79527254cc9301e04790faaf110d28ce86febb37826ff6c07fc",
+    "src/core/ddsi/src/ddsi_entity_index.c": "734ca38e5dded96be5589111d7958ad377c85ad9a19d3f80b8d9169019ff4c17",
+    "src/core/ddsi/src/ddsi_endpoint.c": "50595ffb0ed0d3a255f5562ce88e59af5c8b33930329536fb99289c487405166",
+    "src/core/ddsi/src/ddsi_proxy_endpoint.c": "39b0971466d836dc4684276c1c2d99ae1e5b7c2a5ed024ce0acb15c0c4fcf7ef",
+    "src/core/ddsi/src/ddsi_entity.c": "3ccd18d4b3a4df190a5686e57efe583fdaeb6e96bf9d96ba212d9eebeaa7700e",
+    "src/core/ddsi/src/ddsi_receive.c": "b08072829d111832caf8c7a245897bbf18395d93edf0f0c5d7ca39b237ceef93",
+    "src/core/ddsi/src/ddsi_lease.c": "73dcb89b1a09e8eade5fc16d90312cb9d89ef7916bb28a541bde3f497371fb10",
+    "src/core/ddsc/src/dds_writer.c": "98ffb1b719a67c42af76f8f888531ab29d24696f45bb958400f7728889de8d72",
+    "src/core/ddsc/src/dds_whc.c": "df1c2c859b128a2b080b8e719817378e05f5533f1ba0ce3f5b7c016e2d155c26"
+  },
+  "profiles": {
+    "normal": {
+      "binary_sha256": "5e47cda02423e7ba41b62e9552e51f3569dc1929a217cbb03c0693be3ecbd967",
+      "library": "/d/shin/StrataDrive/build/m4-communication-research/install/lib/libddsc.so.11",
+      "library_sha256": "94768951fb704e169dfd94322eeb11d0673ace099ba44696bc2f142b0617cd8f",
+      "asan_imports": 0,
+      "tsan_imports": 0
+    },
+    "tsan": {
+      "binary_sha256": "790dd2402afceb81b4fa6f09106a42dc93493ea64fd1e8fde33f1b0295e7ef2c",
+      "library": "/d/shin/StrataDrive/build/m4-sdk-followup/dds-official/install/lib/libddsc.so.11",
+      "library_sha256": "96b8129df69635cc0aa0e28bf81fd6864f34d162d03407d66c52794b6a359305",
+      "asan_imports": 0,
+      "tsan_imports": 26
+    },
+    "asan-ubsan": {
+      "binary_sha256": "feed84549c51402ad909a812fc53ecfe356bc28e069be287081cdfb00d5876f8",
+      "library": "/d/shin/StrataDrive/build/m4-dds-lifetime/asan-install/lib/libddsc.so.11",
+      "library_sha256": "2741644da5cdaf1ce7b5c2f65c99723c2a7532b5bfd614235d9f0b1ef87badd0",
+      "asan_imports": 31,
+      "tsan_imports": 0
+    }
+  },
+  "probe_sha256": "b0315169dc4c67dd9fef9315e6e0a2134dac0635b6b991afa5e1736625f47170",
+  "first_harness_source_hash": "NOT RECORDED at first compilation; original binaries and logs retained. v1 waited for synchronous dds_delete before allowing reader quiescence, an invalid harness cycle.",
+  "not_performance_acceptance": true
+}

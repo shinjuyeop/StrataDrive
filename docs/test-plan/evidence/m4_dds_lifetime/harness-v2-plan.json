@@ -1,0 +1,40 @@
+{
+  "base": "c52445a",
+  "hypotheses": {
+    "gc": "Hold a real ddsi_writer obtained under awake scope across dds_delete; observe actual SDK free allocator hook, GUID/mutex reads, and quiescent release. Correct lifetime must defer free until the final access; ASan deliberately asleep-too-early control must detect UAF. Native TSan may still warn on the same free/read boundary without this proving UAF.",
+    "wrapper": "Same SDK GC warnings with direct internal writer test isolates wrapper independence. Existing wrapper normal+overflow once each validates corrected runner warning/exit handling.",
+    "runner": "Any child FAIL/warning/timeout/missing result must cause nonzero aggregate while preserving planned trials."
+  },
+  "planned": {
+    "writer_gc": {
+      "profiles": [
+        "normal",
+        "asan-ubsan",
+        "tsan"
+      ],
+      "modes": [
+        "correct"
+      ],
+      "repetitions": 3,
+      "total": 9,
+      "timeout_seconds": 15,
+      "hold_ms": 20
+    },
+    "asan_positive": {
+      "profile": "asan-ubsan",
+      "mode": "use-after-asleep",
+      "repetitions": 3,
+      "total": 3,
+      "timeout_seconds": 15
+    },
+    "wrapper_tsan": [
+      "normal",
+      "overflow"
+    ]
+  },
+  "not_timing_acceptance": true,
+  "suppression": false,
+  "sdk_changes": false,
+  "rt_threshold_changes": false,
+  "revision": "v2: dds_delete synchronously waits for GC; deletion now runs separately; reader releases after index unlink plus 20ms. Original 12 setup aborts retained, not counted as runtime failure or PASS."
+}

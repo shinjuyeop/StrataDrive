@@ -6,7 +6,7 @@ SYS-COM-003/004·SYS-PERF-002와 나머지 SYS-EV 요구는 v0.3, SYS-COM-002는
 [ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)의 Central owner/독립 Zone 경로를 반영한다.
 
 현재 구현 상태와 최신 시험 분모는 [project_status](../project_status.md)가 기준이다.
-최신 `97afb35`는 [component 추적표](component_traceability.csv)의 **93개 연결**을
+최신 C++ 실행 `97afb35`는 [component 추적표](component_traceability.csv)의 **93개 연결**을
 [normal/ASan·UBSan973개씩 실제 결과](evidence/m4_settlement/final/component_results.csv)와 대조했다.
 원본948 + 이전 검토18 + 이번 pending/expiry7개를 [시험별 결과](evidence/m4_settlement/final/tests.csv)로 구분한다.
 이전 Epoch/codec/ACK 계약은 유지하고, 유효 pending과 다음 배분의 충돌을 수정했다.
@@ -15,6 +15,12 @@ Due 배분은 보류하되 기존 적용 명령 expiry·원래 TX deadline·allo
 같은 source의 timing48회42/6, native 진단40/40·경계 TSan108/108·wall9/9와 Python71/71은 별도 분모다.
 이전 `1989477`의966개·86개 연결·timing41/7은 [당시 근거](evidence/m4_contract_review/README.md)에 보존한다.
 과거 timing/TSan OPEN과 system NOT RUN은 유지한다.
+
+후속 diagnostic 연결3개를 [component 추적표](component_traceability.csv)에 별도 추가했다(총96개;
+위93개 C++ 실결과 연결은 그대로). MiddlewareProbeExitTest8개는 실제 프로세스 종료코드를
+검사하며 최신 Python120/120에 포함된다. DDS 실제 Writer 수명12회와 두 프로세스 wrapper4회는
+별도 SDK 진단 분모다. [실제 결과/실패/수명 CSV](evidence/m4_dds_lifetime/README.md)를 따르며
+TSan FAIL과 고의 UAF 검출을 SDK PASS로 합치지 않는다. System TC 상태는 변경하지 않는다.
 
 다음은 이전 단계의 추적성 확장 이력이다.
 **구현된 component의 추적성**은 [함수·실제 시험·판정 기준 CSV](component_traceability.csv),

@@ -1,0 +1,88 @@
+[
+  {
+    "case": "normal",
+    "exit": 1,
+    "warnings": 2,
+    "result": {
+      "verdict": "FAIL",
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "codes": [
+        66,
+        66
+      ],
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 0,
+        "rejected": 0,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 0,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "diagnostic_errors": [
+        "workload did not PASS",
+        "sanitizer diagnostic in central.stderr",
+        "sanitizer diagnostic in zone.stderr"
+      ]
+    }
+  },
+  {
+    "case": "overflow",
+    "exit": 1,
+    "warnings": 4,
+    "result": {
+      "verdict": "FAIL",
+      "invalid_accepted": 0,
+      "expired_echoes": 15,
+      "codes": [
+        66,
+        66
+      ],
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 0,
+        "rejected": 0,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 0,
+        "received": 103,
+        "accepted": 86,
+        "rejected": 17,
+        "echo_mismatch": 0,
+        "channel_failures": 13
+      },
+      "diagnostic_errors": [
+        "workload did not PASS",
+        "sanitizer diagnostic in central.stderr",
+        "sanitizer diagnostic in zone.stderr"
+      ]
+    }
+  }
+]

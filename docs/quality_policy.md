@@ -6,7 +6,11 @@ clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 
 [Settlement 후속 근거](test-plan/evidence/m4_settlement/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
 TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.
 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다.
-Python 최신 회귀는 **112/112 PASS**다(이전108+background 유실/배분·콘솔 요약4).
+Python 최신 회귀는 **120/120 PASS**다(이전112+middleware 오류 종료/누락/경고/timeout8).
+`1677f85`의 신규8개는 수정 전2 PASS/5 FAIL/1 ERROR→8 PASS다. [실제 DDS 수명 근거](test-plan/evidence/m4_dds_lifetime/README.md)는
+Writer normal3·ASan3 PASS, TSan3 FAIL/각2경고, 고의 ASan UAF3 검출을 별도 기록한다.
+초기 harness12 setup 실패, wrapper ASan2 PASS/TSan2 FAIL도 보존한다. 제품 코드·SDK 버전/알고리즘은 변경하지 않았다.
+[Host 한정 수용안](m4_host_acceptance_review.md)은 PROPOSED이며 기존 M4 종료 차단은 유지한다.
 `d3e7f6d` 별도 고정 수집213425는11쌍 VALID·OTHER2 FAIL(191/186 miss)·FIFO20 PASS다.
 FIFO 주입 전 miss0, 원래 deadline 후3.170–5.059µs 검출·이후1.008–3.484µs 보호를 관측했다.
 실제 user20/20·FIFO 설정·marker/정리·유실0을 확인했지만 과거 FIFO 원인은 미확정이다.
