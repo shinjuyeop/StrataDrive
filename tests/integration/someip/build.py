@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Build pinned, isolated SDK and pilot; never installs into the system."""
 import argparse
+import fcntl
+from run import open_lock
 import hashlib
 import json
 from pathlib import Path
@@ -62,6 +64,9 @@ def main():
          '-DCMAKE_PREFIX_PATH='+str(out/'install'),
          '-DSTRATADRIVE_SANITIZERS='+('ON' if a.profile=='asan' else 'OFF'),
          '-DSTRATADRIVE_TSAN='+('ON' if a.profile=='tsan' else 'OFF')])
-    run(['cmake','--build',out/'project','--target','someip_pilot','--parallel','4'])
+    run(['cmake','--build',out/'project','--target','someip_pilot','someip_front_adapter','--parallel','4'])
 
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    with open_lock() as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        main()

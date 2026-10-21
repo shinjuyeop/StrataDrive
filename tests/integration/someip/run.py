@@ -16,7 +16,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve()
-CASES = ('normal','late','ready-timeout','invalid','delay','overflow','close-busy','restart','restart-live')
+CASES = ('normal','late','ready-timeout','invalid','delay','overflow','close-busy','restart','restart-live','binding-invalid')
 
 def save(path, value):
     path.write_text(json.dumps(value,indent=2)+'\n')
@@ -201,6 +201,7 @@ def inside(folder, binary, case):
             result['pass']=result['pass'] and result.get('sender_alive_after_front_close',False) and bool(clients) and all(
                 0<r.get('busy_peak',0)<=8 and r.get('busy_sent')==r.get('busy_rejected',0)+r.get('busy_expired',0)
                 and r.get('busy_rejected',0)>0 for r in clients)
+        if case=='binding-invalid':result['pass']=result['pass'] and all(r.get('summary',{}).get('applied')==16 and r.get('summary',{}).get('frames')==16 and r.get('summary',{}).get('binding_rejected',0)>0 for r in result['processes'] if r['role']=='front')
         if case=='restart-live':result['pass']=result['pass'] and result.get('surviving_central_rejoined',False)
         save(folder/'result.json',result)
     return 0 if result['pass'] else 1
@@ -219,14 +220,14 @@ def main():
     if a.fixed_layout and a.profile!='tsan':p.error('--fixed-layout is a TSan diagnostic launch option')
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
     binary=ROOT/f'build/m5-someip-{a.profile}/project/tests/integration/someip/someip_pilot'
-    save(out/'plan.json',{'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':15,'fixed_layout':a.fixed_layout,
-         'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'binary':str(binary),'start_ns':time.time_ns(),
-         'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),
-         'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest()
-                          for p in sorted(HERE.parent.iterdir()) if p.is_file()}})
     rows=[]
     with open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        save(out/'plan.json',{'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':15,'fixed_layout':a.fixed_layout,
+             'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'binary':str(binary),'start_ns':time.time_ns(),
+             'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),
+             'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest()
+                              for p in sorted(HERE.parent.iterdir()) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()

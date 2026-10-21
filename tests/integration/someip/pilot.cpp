@@ -4,6 +4,7 @@
 #include "run_lease_gate.hpp"
 #include "front_startup_control.hpp"
 #include "allocation_fixture.hpp"
+#include "binding.hpp"
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -40,6 +41,22 @@ bool route(const remote::OwnerMessage& m,bool front) {
     return m.clock_domain==domain && m.from==(front?session::Role::FrontZone:session::Role::CentralIngress) &&
         m.to==(front?session::Role::CentralIngress:session::Role::FrontZone);
 }
+bool payload_contract(bool server,vsomeip::method_t method,const std::uint8_t* data,std::size_t size) {
+    if(method==ready_method || (server && method==status_method))return someip::probe(data,size);
+    if(!server && size==0)return true; // explicit protocol rejection/unavailable
+    const auto m=remote::decode_owner_message(data,size);
+    if(!m || !route(*m,!server))return false;
+    if(server) {
+        const auto* r=std::get_if<transport::ZoneRequest>(&m->payload);
+        if(!r)return false;
+        if(std::holds_alternative<central::VehicleRequest>(r->work))return true;
+        const auto* commands=std::get_if<central::ScopedCommands>(&r->work);
+        return commands && std::holds_alternative<central::FrontCommands>(*commands);
+    }
+    if(method==work_method)return std::holds_alternative<transport::TxResult>(m->payload);
+    const auto* feedback=std::get_if<transport::Feedback>(&m->payload);
+    return method==status_method && feedback && std::holds_alternative<can::SteeringFrame>(*feedback);
+}
 struct Item { std::shared_ptr<vsomeip::message> request; remote::OwnerPacket packet; };
 class Node {
 public:
@@ -48,7 +65,7 @@ public:
     std::mutex mutex;
     std::deque<Item> inbox;
     std::atomic<bool> available{false},overflow{false};
-    std::atomic<unsigned> received{0},highwater{0};
+    std::atomic<unsigned> received{0},highwater{0},binding_rejected{0};
     void start() {
         require(app->init(),"vsomeip init failed");
         app->register_state_handler([this](vsomeip::state_type_e s) {
@@ -59,11 +76,16 @@ public:
         });
         if(!server_) app->register_availability_handler(service,instance,[this](auto,auto,bool yes){available=yes;},1,0);
         app->register_message_handler(service,instance,vsomeip::ANY_METHOD,[this](const auto& message) {
-            if(server_ && message->get_method()==ready_method) {
-                const auto payload=message->get_payload();
-                if(payload->get_length()==4 && payload->get_data()[0]==0x53 && payload->get_data()[3]==1) reply(message,nullptr,true);
+            const auto payload=message->get_payload();
+            if(!someip::header(server_,message->get_service(),message->get_instance(),message->get_method(),
+                    static_cast<std::uint8_t>(message->get_message_type()),message->get_interface_version()) ||
+               !payload || !someip::payload(server_,message->get_method(),payload->get_data(),payload->get_length()) ||
+               !payload_contract(server_,message->get_method(),payload->get_data(),payload->get_length())) {
+                ++binding_rejected;
+                if(server_ && message->get_message_type()==vsomeip::message_type_e::MT_REQUEST) reply(message,nullptr);
                 return;
             }
+            if(server_ && message->get_method()==ready_method) { reply(message,nullptr,true); return; }
             Item item{message,{}};
             const auto p=message->get_payload();
             if(p->get_length()<=item.packet.bytes.size()) {
@@ -88,9 +110,10 @@ public:
         if(inbox.empty()) return {};
         auto v=std::move(inbox.front()); inbox.pop_front(); return v;
     }
-    void send(vsomeip::method_t method,const remote::OwnerPacket* packet=nullptr) {
+    void send(vsomeip::method_t method,const remote::OwnerPacket* packet=nullptr,
+              vsomeip::message_type_e type=vsomeip::message_type_e::MT_REQUEST,std::uint8_t version=1) {
         auto message=vsomeip::runtime::get()->create_request(true);
-        message->set_service(service); message->set_instance(instance); message->set_method(method); message->set_interface_version(1);
+        message->set_service(service); message->set_instance(instance); message->set_method(method); message->set_interface_version(version); message->set_message_type(type);
         auto p=vsomeip::runtime::get()->create_payload();
         const std::array<std::uint8_t,4> hello{0x53,0x44,0,1};
         if(packet) p->set_data(packet->bytes.data(),packet->size); else p->set_data(hello.data(),hello.size());
@@ -279,6 +302,7 @@ int main(int argc,char** argv) {
                 if(front && (!hold_until || now()>=hold_until)) for(unsigned i=0;i<8;++i) {
                     const auto item=node.pop(); if(!item) break;
                     if(item->request->get_method()==status_method) {node.reply(item->request,front->status?&*front->status:nullptr);continue;}
+                    if(item->request->get_method()!=work_method) {++front->rejected;node.reply(item->request,nullptr);continue;}
                     auto m=remote::decode_owner_message(item->packet.bytes.data(),item->packet.size);
                     if(!m || !route(*m,false) || !std::holds_alternative<transport::ZoneRequest>(m->payload)) {++front->rejected;node.reply(item->request,nullptr);continue;}
                     auto result=front->handle(std::get<transport::ZoneRequest>(m->payload)); node.reply(item->request,&result);
@@ -298,7 +322,7 @@ int main(int argc,char** argv) {
             if(test=="ready-timeout") {require(!found,"unexpected peer in timeout case");pass=true;}
             else {
                 require(found,"service discovery timeout"); node.send(ready_method); auto hello=node.response();
-                require(hello && hello->packet.size==4 && hello->packet.bytes[0]==0x53 && hello->packet.bytes[3]==1,"bidirectional readiness failed");
+                require(hello && hello->request->get_method()==ready_method && someip::probe(hello->packet.bytes.data(),hello->packet.size),"bidirectional readiness failed");
                 mark(prefix.string()+".ready");
                 require(wait([&]{return fs::exists(folder/("front-"+std::to_string(epoch)+".fixture"));},3000ms),"local fixture grant missing");
                 Client client(node,folder,epoch); std::uint64_t token=1; transport::ZoneRequest last{};
@@ -332,7 +356,7 @@ int main(int argc,char** argv) {
                         mark(folder/"central-observed-down");
                         require(wait([&]{return fs::exists(folder/"rejoin-43") && node.available.load();},3000ms),"new peer/local rejoin grant missing");
                         node.send(ready_method);const auto ready=node.response();
-                        require(ready && ready->packet.size==4 && ready->packet.bytes[0]==0x53 && ready->packet.bytes[3]==1,"new peer bidirectional readiness");
+                        require(ready && ready->request->get_method()==ready_method && someip::probe(ready->packet.bytes.data(),ready->packet.size),"new peer bidirectional readiness");
                         mark(folder/"central-43.ready");
                         require(wait([&]{return fs::exists(folder/"front-43.fixture");},3000ms),"new local fixture grant missing");
                         Client rejoined(node,folder,43);
@@ -341,6 +365,13 @@ int main(int argc,char** argv) {
                         std::uint64_t new_token=1;normal_cycles(rejoined,43,new_token);
                         client.applied+=rejoined.applied;client.rejected+=rejoined.rejected;client.statuses+=rejoined.statuses;
                         mark(folder/"live-rejoined");
+                    }
+                    if(test=="binding-invalid") {
+                        auto c=commands(epoch,10,now());
+                        auto packet=encode(transport::ZoneRequest{epoch,token++,c.parent.source_time_ns,c.parent.source_time_ns+20*ms,c.parent});
+                        node.send(0x21,&packet); const auto response=node.response();
+                        require(!response,"unknown method response entered processing inbox");
+                        ++client.rejected;
                     }
                     if(test=="invalid") {
                         client.transact(last,false); // identical bytes, duplicate token
@@ -389,6 +420,6 @@ int main(int argc,char** argv) {
       <<",\"stop_ns\":"<<stop_ns<<",\"applied\":"<<applied<<",\"rejected\":"<<rejected<<",\"statuses\":"<<statuses
       <<",\"frames\":"<<frames<<",\"protection_calls\":"<<protection<<",\"fault_protection_calls\":"<<fault_protection<<",\"overflow\":"<<(node.overflow?"true":"false")
       <<",\"busy_sent\":"<<busy_sent<<",\"busy_rejected\":"<<busy_rejected<<",\"busy_expired\":"<<busy_expired<<",\"busy_peak\":"<<busy_peak
-      <<",\"highwater\":"<<node.highwater<<",\"control_gate_open\":false,\"error\":\""<<error<<"\"}\n";
+      <<",\"binding_rejected\":"<<node.binding_rejected<<",\"highwater\":"<<node.highwater<<",\"control_gate_open\":false,\"error\":\""<<error<<"\"}\n";
     return pass?0:1;
 }

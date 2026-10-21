@@ -62,4 +62,84 @@ class SomeipPilotTest(unittest.TestCase):
             self.assertTrue(result['forced_cleanup']);self.assertEqual(result['child_exit'],-9)
             self.assertTrue((dest/'supervisor.txt').exists())
 
+
+class SomeipAdapterBookkeepingTest(unittest.TestCase):
+    def test_complete_binding_contract_without_sdk_or_build(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            binary=Path(tmp)/'binding'
+            subprocess.run(['c++','-std=c++17','-Wall','-Wextra','-Werror',str(ROOT/'tests/integration/someip/binding_check.cpp'),'-o',str(binary)],check=True,capture_output=True)
+            r=subprocess.run([str(binary)],check=True,capture_output=True,text=True)
+            self.assertIn('4274 binding assertions passed',r.stdout)
+
+    def test_attempt02_cohort_exclusion_preserves_individual_exit(self):
+        rows=json.loads((ROOT/'docs/test-plan/evidence/m5_someip_pilot/results-summary.json').read_text())
+        cohort=next(c for c in rows if c['cohort']=='attempt-02')
+        self.assertFalse(cohort['cohort_eligible'])
+        self.assertEqual(len(cohort['cases']),10)
+        self.assertTrue(all(c['exit']==0 and not c['eligible_case_result'] for c in cohort['cases']))
+        ready=next(c for c in cohort['cases'] if c['case']=='ready-timeout')
+        self.assertTrue(ready['individual_observed_pass'])
+
+    def test_build_obeys_same_exclusive_lock_before_mutation(self):
+        # Use a temporary checkout-shaped root; no existing SDK/build is needed.
+        import shutil, fcntl
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);dest=root/'tests/integration/someip';dest.mkdir(parents=True)
+            for name in ('build.py','run.py'):shutil.copy2(ROOT/'tests/integration/someip'/name,dest/name)
+            with runner.open_lock(root) as lock:
+                fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                p=subprocess.run([sys.executable,str(dest/'build.py'),'normal'],capture_output=True,text=True)
+            self.assertNotEqual(p.returncode,0)
+            self.assertIn('BlockingIOError',p.stderr)
+            self.assertFalse((root/'build/m5-someip-deps').exists())
+
+    def test_pilot_locks_before_reading_binary_identity(self):
+        import shutil, fcntl
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);dest=root/'tests/integration/someip';dest.mkdir(parents=True)
+            shutil.copy2(ROOT/'tests/integration/someip/run.py',dest/'run.py')
+            with runner.open_lock(root) as lock:
+                fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                p=subprocess.run([sys.executable,str(dest/'run.py'),str(root/'result'),'--cases','normal'],capture_output=True,text=True)
+            self.assertNotEqual(p.returncode,0);self.assertIn('BlockingIOError',p.stderr)
+            self.assertNotIn('FileNotFoundError',p.stderr)
+
+    def test_adapter_failure_cleanup_cannot_create_pass(self):
+        import importlib.util
+        path=ROOT/'tests/integration/someip'
+        with mock.patch.dict(sys.modules,{'run':runner}), mock.patch.object(sys,'path',[str(path),*sys.path]):
+            spec=importlib.util.spec_from_file_location('front_runner',path/'front_run.py')
+            module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(module.subprocess,'check_output',side_effect=subprocess.CalledProcessError(1,['mount'])):
+                self.assertEqual(module.inside(Path(tmp),Path('/absent/adapter'),'normal'),1)
+            self.assertFalse(json.loads((Path(tmp)/'result.json').read_text())['pass'])
+        a=module.config('front',1);b=module.config('front',2)
+        self.assertNotEqual(a['applications'][0]['id'],b['applications'][0]['id'])
+        self.assertEqual([s['reliable']['port'] for s in a['services']],[30501,30502])
+        self.assertEqual([s['reliable']['port'] for s in module.config('central')['services']],[30503,30504])
+
+class SdkOutcomeTest(unittest.TestCase):
+    def test_only_exact_injected_lease_loss_with_protection_and_rejoin_is_expected(self):
+        import importlib.util
+        from datetime import datetime
+        spec=importlib.util.spec_from_file_location('sdk_outcomes',ROOT/'tests/integration/someip/sdk_outcomes.py')
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        line='2026-10-21 16:34:40.275379 central [error] tcei::write_completion_condition: Connection reset by peer(104) bytes transferred: 0 bytes to sent: 101 remote:10.88.0.2:30502 (1311): [5345.0050.0140]'
+        wall=int(datetime(2026,10,21,16,34,40,275379).timestamp()*1e9)
+        result={'case':'restart-live','injected_crash':{'role':'front','generation':1,'ns':1_000_000_000},
+                'surviving_central_rejoined':True,'clock_sample':{'monotonic_ns':1_001_000_000,'wall_ns':wall,'utc_offset_s':datetime.now().astimezone().utcoffset().total_seconds()},
+                'processes':[{'role':'front','generation':1,'expected_abrupt_stop':True},
+                             {'role':'central','summary':{'pass':True,'epoch':2,'release_ack_mask':255,'diagnostic_rejected':1,'batches':24}}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            folder=Path(tmp);(folder/'central-protected').write_text('1020000000')
+            (folder/'central-1.events.csv').write_text('ns,event,epoch,role,value,deadline\n990000000,credit-issued,1,7,12,1050000000\n')
+            self.assertIsNotNone(module.expected_injected_lease_reset(line,'central-1.stdout',result,folder))
+            for changed in (dict(result,case='normal'),dict(result,surviving_central_rejoined=False),dict(result,injected_crash={})):
+                self.assertIsNone(module.expected_injected_lease_reset(line,'central-1.stdout',changed,folder))
+            for bad in (line.replace('0050','0020'),line.replace('101','102'),line.replace('30502','30501'),line.replace('104','32')):
+                self.assertIsNone(module.expected_injected_lease_reset(bad,'central-1.stdout',result,folder))
+            (folder/'central-protected').write_text('1200000000')
+            self.assertIsNone(module.expected_injected_lease_reset(line,'central-1.stdout',result,folder))
+
 if __name__=='__main__':unittest.main()

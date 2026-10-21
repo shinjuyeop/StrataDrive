@@ -36,6 +36,10 @@ Jetson/전체 시스템 NOT RUN을 유지한다.
 사전 [protocol](protocol.md)과 실행 전 amendment에 비교 가설·횟수·시간제한을 기록했다.
 각 case의 원본 로그/exit/설정/패킷/transactions는 [raw.tar.gz](raw.tar.gz)에 있다.
 [기계 판독 요약](results-summary.json)은 raw runner exit를 그대로 집계한다.
+후속 Host adapter 검토에서 attempt-02의 ready-timeout 행만 eligible로 남았던 집계
+불일치를 고쳤다. `individual_observed_pass`는 개별 원본 관측, `cohort_eligible`은
+10회 전체 제외, `eligible_case_result`는 둘의 교집합이다. ready-timeout의 raw exit0과
+개별 성공은 유지하지만 수용 근거에서는 나머지9회와 함께 제외한다.
 
 | Cohort | 실제 실행 | 결과 / 해석 |
 | --- | ---: | --- |
