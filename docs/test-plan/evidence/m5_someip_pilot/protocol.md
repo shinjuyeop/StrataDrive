@@ -104,7 +104,8 @@ execution-gap guard remain unchanged. All three final builds use this same sourc
 
 Normal-final10/10 and ASan-final8/8 passed. TSan-final8/8 FAILED before a usable
 pilot result: unexpected memory mapping at randomized PIE addresses, and two
-children terminated with SIGSEGV before summary. This is NOT race-free execution.
+children required supervisor cleanup; one child terminated with SIGSEGV before
+summary. This is NOT race-free execution.
 Existing repository DDS TSan runners already use process-local `setarch x86_64 -R`;
 the [GCC instrumentation manual](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html)
 documents that launch facility. Hypothesis: fixed per-process virtual layout lets
@@ -139,6 +140,17 @@ but did not explicitly require the expected application Epoch, and replies did
 not explicitly check their method ID. Add both checks. No wire/config/timing
 change. Run one normal case per build to exercise the edited receive paths;
 these three focused regressions do not replace the earlier fixed campaign.
+
+## Surviving-peer rejoin coverage
+
+The original restart case rebuilt both Central and Front. Add `restart-live` to
+cover the requested surviving-peer condition explicitly: Central remains in the
+same SDK application/process, Front42 is killed after8 successful cycles, Central
+must observe availability loss, a separate local grant authorizes Epoch43,
+Front43 is discovered and bidirectionally ready, old42 bytes are rejected and
+eight new cycles pass. No global Release ACK or automatic authority renewal.
+Run this new case once per build, plus one normal per build after extracting the
+shared eight-cycle helper. Timeout/oracle/CPU/config/expiry stay unchanged.
 
 Python tests cover fresh-checkout directory creation, oracle/failure bookkeeping
 and timeout cleanup; they are not SDK runtime tests. Whole 973/native40/timing48

@@ -16,7 +16,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve()
-CASES = ('normal','late','ready-timeout','invalid','delay','overflow','close-busy','restart')
+CASES = ('normal','late','ready-timeout','invalid','delay','overflow','close-busy','restart','restart-live')
 
 def save(path, value):
     path.write_text(json.dumps(value,indent=2)+'\n')
@@ -136,6 +136,23 @@ def inside(folder, binary, case):
             if central.poll() is not None: raise RuntimeError('Central failed before readiness')
             snapshot('central',epoch,central);snapshot('front',epoch,front)
             (folder/f'grant-{epoch}').write_text('trusted component fixture only; no global Release/RunLease\n')
+            if case=='restart-live':
+                wait_for(lambda:(folder/'restart-request').exists() or central.poll() is not None)
+                if not (folder/'restart-request').exists():raise RuntimeError('live restart phase not reached')
+                result['injected_peer_kill']={'pid':front.pid,'time_ns':time.monotonic_ns()}
+                front.kill();front.wait(timeout=2)
+                wait_for(lambda:(folder/'central-observed-down').exists() or central.poll() is not None)
+                if central.poll() is not None:raise RuntimeError('surviving Central failed')
+                (folder/'rejoin-43').write_text('explicit trusted local new Epoch; not learned from network\n')
+                front=launch('front',43)
+                wait_for(lambda:(folder/'central-43.ready').exists() or central.poll() is not None)
+                if central.poll() is not None:raise RuntimeError('new peer readiness failed')
+                snapshot('front',43,front)
+                (folder/'grant-43').write_text('new local component fixture grant\n')
+                central.wait(timeout=5)
+                (folder/'stop-43').touch();front.wait(timeout=3)
+                result['surviving_central_rejoined']=(folder/'live-rejoined').exists()
+                continue
             if case=='close-busy':
                 wait_for(lambda:(folder/'busy').exists() or central.poll() is not None)
                 if not (folder/'busy').exists(): raise RuntimeError('busy sender not reached')
@@ -157,7 +174,7 @@ def inside(folder, binary, case):
             row={'role':role,'epoch':epoch,'exit':p.returncode}
             try:row['summary']=json.loads((folder/f'{role}-{epoch}.json').read_text())
             except (OSError,ValueError):row['summary_missing']=True
-            if case=='restart' and role=='front' and epoch==42 and result.get('injected_peer_kill'):
+            if case in ('restart','restart-live') and role=='front' and epoch==42 and result.get('injected_peer_kill'):
                 row['expected_abrupt_stop']=p.returncode==-signal.SIGKILL
             result['processes'].append(row)
         if capture:
@@ -184,6 +201,7 @@ def inside(folder, binary, case):
             result['pass']=result['pass'] and result.get('sender_alive_after_front_close',False) and bool(clients) and all(
                 0<r.get('busy_peak',0)<=8 and r.get('busy_sent')==r.get('busy_rejected',0)+r.get('busy_expired',0)
                 and r.get('busy_rejected',0)>0 for r in clients)
+        if case=='restart-live':result['pass']=result['pass'] and result.get('surviving_central_rejoined',False)
         save(folder/'result.json',result)
     return 0 if result['pass'] else 1
 

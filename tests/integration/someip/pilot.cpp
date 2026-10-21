@@ -233,6 +233,23 @@ struct Client {
         ++statuses;
     }
 };
+
+transport::ZoneRequest normal_cycles(Client& client,std::uint32_t epoch,std::uint64_t& token) {
+    const auto begin=now();central::ControlAllocation allocator;
+    require(allocator.start_session(epoch,begin),"allocator local INIT");
+    auto next=now();transport::ZoneRequest last{};
+    for(unsigned cycle=0;cycle<8;++cycle) {
+        std::this_thread::sleep_until(std::chrono::steady_clock::time_point(std::chrono::nanoseconds(next)));
+        const auto t=now();next=t+20*ms;
+        const auto root=commands(epoch,cycle,t).parent;
+        require(allocator.receive_request(root,t)==central::AllocationReceiveDecision::Accepted,"allocator request rejected");
+        const auto output=allocator.tick(allocation_fixture(epoch,cycle,begin,t),t);
+        require(output.has_value(),"allocator refused fixture inputs");const auto& c=*output;
+        last={epoch,token++,c.parent.source_time_ns,c.parent.source_time_ns+20*ms,c.parent};client.transact(last,true);
+        last={epoch,token++,c.parent.source_time_ns,c.parent.source_time_ns+20*ms,central::front_commands(c)};client.transact(last,true);client.status();
+    }
+    return last;
+}
 } // namespace
 
 int main(int argc,char** argv) {
@@ -285,7 +302,6 @@ int main(int argc,char** argv) {
                 mark(prefix.string()+".ready");
                 require(wait([&]{return fs::exists(folder/("front-"+std::to_string(epoch)+".fixture"));},3000ms),"local fixture grant missing");
                 Client client(node,folder,epoch); std::uint64_t token=1; transport::ZoneRequest last{};
-                const auto begin=now();
                 if(test=="delay") {
                     auto c=commands(epoch,0,now()); last={epoch,token++,c.parent.source_time_ns,c.parent.source_time_ns+20*ms,c.parent};
                     client.transact(last,false);
@@ -305,22 +321,26 @@ int main(int argc,char** argv) {
                         require(old && std::holds_alternative<transport::ZoneRequest>(old->payload),"preserved prior-session bytes missing");
                         client.transact(std::get<transport::ZoneRequest>(old->payload),false,&old_packet);
                     }
-                    central::ControlAllocation allocator;
-                    require(allocator.start_session(epoch,begin),"allocator local INIT");
-                    auto next=now();
-                    for(unsigned cycle=0;cycle<8;++cycle) {
-                        std::this_thread::sleep_until(std::chrono::steady_clock::time_point(std::chrono::nanoseconds(next)));
-                        const auto t=now();next=t+20*ms;
-                        const auto root=commands(epoch,cycle,t).parent;
-                        require(allocator.receive_request(root,t)==central::AllocationReceiveDecision::Accepted,"allocator request rejected");
-                        const auto output=allocator.tick(allocation_fixture(epoch,cycle,begin,t),t);
-                        require(output.has_value(),"allocator refused fixture inputs");const auto& c=*output;
-                        last={epoch,token++,c.parent.source_time_ns,c.parent.source_time_ns+20*ms,c.parent};client.transact(last,true);
-                        last={epoch,token++,c.parent.source_time_ns,c.parent.source_time_ns+20*ms,central::front_commands(c)};client.transact(last,true);client.status();
-                    }
-                    if(test=="restart" && epoch==42) {
+                    last=normal_cycles(client,epoch,token);
+                    if((test=="restart" || test=="restart-live") && epoch==42) {
                         const auto p=encode(last);std::ofstream saved(folder/"epoch42.packet",std::ios::binary);
                         saved.write(reinterpret_cast<const char*>(p.bytes.data()),p.size);
+                    }
+                    if(test=="restart-live") {
+                        mark(folder/"restart-request");
+                        require(wait([&]{return !node.available.load();},3000ms),"live peer disappearance not observed");
+                        mark(folder/"central-observed-down");
+                        require(wait([&]{return fs::exists(folder/"rejoin-43") && node.available.load();},3000ms),"new peer/local rejoin grant missing");
+                        node.send(ready_method);const auto ready=node.response();
+                        require(ready && ready->packet.size==4 && ready->packet.bytes[0]==0x53 && ready->packet.bytes[3]==1,"new peer bidirectional readiness");
+                        mark(folder/"central-43.ready");
+                        require(wait([&]{return fs::exists(folder/"front-43.fixture");},3000ms),"new local fixture grant missing");
+                        Client rejoined(node,folder,43);
+                        // Same immutable old packet, same surviving SDK application.
+                        rejoined.transact(last,false);
+                        std::uint64_t new_token=1;normal_cycles(rejoined,43,new_token);
+                        client.applied+=rejoined.applied;client.rejected+=rejoined.rejected;client.statuses+=rejoined.statuses;
+                        mark(folder/"live-rejoined");
                     }
                     if(test=="invalid") {
                         client.transact(last,false); // identical bytes, duplicate token
