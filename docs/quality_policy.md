@@ -1842,3 +1842,25 @@ TSan 경고64 occurrences는 FAIL/OPEN; 의도된 peer SIGKILL은 sanitizer INCO
 20ms/inner expiry 검사는 유지했다. 제품 코드·SDK pin/알고리즘 변경 없음;973/native40/timing48
 재실행 없음. Host 한정 수용·M4 NOT CLOSED·DDS control gate CLOSED·과거 OPEN/Target NOT RUN 유지.
 이전 Daybreak 중단을 인계했으며 새 인증 안내는 없었다. 실패한 API URL 조회는 중단·기록했다.
+
+### 2026-10-21 — SOME/IP 실제 Host Central↔Front owner adapter
+
+구현2733d12, clean771cf86/origin 동기에서 시작. [사전 protocol·실제 설정·전체 원본](test-plan/evidence/m5_someip_front_adapter/README.md).
+8개 실제 Release ACK·RunLease·arm, allocation→Front/CAN/P05→실제 SIL Actual/health,
+별도 권한 lane·로컬 만료/보호·full8/8 종료/재시작·생존 Central의 새 Epoch 재가입을 연결했다.
+공통 owner/session/protection 구현은 변경하지 않았다. method/type/version/payload 및 완전한
+준비 형식 검사, 진단 시간 underflow/adapter 관측시각/반복 marker IO, 이전 credit의 prequeue
+필터링, SDK response-target 경로를 피하는 one-way nonce readiness를 보완했다.
+
+새 runtime 총201=188 raw PASS/13 FAIL(개발·기존 pilot 회귀·별도 SDK 관측 포함).
+최종 동일 C++ cohort Normal15/15·ASan13/13·TSan12/13; 경합 경고0.
+의도한 Front crash의 RunLease reset 판정 보완 뒤 동일 바이너리 affected regression3/3;
+원래 exit1은 유지. legacy binding9/9, SDK logging-only2/2, 공통 관련 계약 Normal/ASan
+각145/145, fresh checkout(build/ 없음) Python43/43. 원본/분모/SDK 계측 링크 상태 보존.
+일반153 Front 결과0.264439–1.061657ms, 원래 identity/time 대조; sanitizer 성능과 별도.
+SDK wait-warning 관측6건은 sending0/error125/queue0 취소 분기이며 전체 drain 보장이 아니다.
+
+Host functional SIL 조건부 채택, native execution-watch/부하 운용 수용 미완료.
+과거 physical-model 약61ms 실패 원인 OPEN-SOMEIP-HOST-01, 이전 DDS/M4 FAIL/OPEN 유지.
+전체973/native40/timing48·Rear network·Jetson은 재실행/실행 NOT RUN; 관련 변화 경계만 검사.
+외부 게시/문의 전송 및 Host 권한/보안 변경 없음.

@@ -1,5 +1,10 @@
 # M4 기술 종료 검토 — Host component와 원격 경계
 
+2026-10-21 후속: [SOME/IP 실제 Host Central↔Front adapter](test-plan/evidence/m5_someip_front_adapter/README.md)를
+functional SIL 범위에 조건부 채택했다. 실제8-role 세션·독립 보호·새 Epoch 복구 근거이며,
+이 문서의 M4 전체 NOT CLOSED·Host native IO/FIFO 한정 수용·기존 DDS FAIL/OPEN을 변경하지 않는다.
+새 polling scheduler의 native execution-watch/부하 수용은 아직 미완료다.
+
 Updated: 2026-10-21. Status: **HOST IO/FIFO COMPONENT LIMITED ACCEPTANCE / M4 NOT CLOSED**. 현재 상태 기준은 [project_status](project_status.md)다.
 학습자 직접 재현/설명은 **REVIEW PENDING**, system32요구/29TC·Target/전체 원격 배포는 **NOT RUN**이다.
 이 검토는 위 상태를 PASS로 바꾸지 않는다.

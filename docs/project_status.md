@@ -2,25 +2,33 @@
 
 Updated: **2026-10-21**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 DDS QUALIFICATION IN PROGRESS**다.
 
-최신 [SOME/IP(vSomeIP) 파일럿](test-plan/evidence/m5_someip_pilot/README.md)은 **조건부**다.
-별도 Central↔Front netns/veth 실행에서 실제 ControlAllocation·Front gateway·Steering/Brake
-CAN/P05 처리와 owner-wire 결과/Actual을 연결했다. 일반 고정10/10·ASan8/8 PASS,
-TSan 주소 배치 보완 뒤7/8 PASS·경합 경고0이었다. 남은 진단 송신 큐 결함을 고친
-지속 송신 종료3/3과 수신 Epoch/method 경계3/3도 PASS다. 초기 실패와 SDK 오류 로그가
-있는 과거 raw PASS를 별도 보존한다. 살아있는 Central의 Front 소실/재가입과 normal 회귀도
-세 빌드6/6 PASS다(총57 attempts; 세부 분모는 근거 참조).
-Fresh checkout Python37/37은 mock/bookkeeping이며 SDK 시험과 다르다.
-이는 SIL support 입력을 가진 두 노드 component fixture다. 전체 Release ACK/RunLease,
-정규 RUNNING, 실제 Host IO/Jetson/전체 시스템을 검증한 것이 아니다. 다음은 실제
-Session/RunLease·독립 보호 lane을 연결한 Host adapter 경계 시험이며, 기본 DDS 방향을
-교체한 결정은 아니다. **DDS gate CLOSED·정규 DDS adapter 미착수와 기존 FAIL/OPEN 유지**.
+최신 [SOME/IP Host Central↔Front adapter](test-plan/evidence/m5_someip_front_adapter/README.md)는
+**Host functional SIL 경로에 한해 조건부 채택**했다([ADR-0061](adr/ADR-0061-someip-front-owner-adapter.md)).
+실제 SessionCoordinator·RunLeaseIssuer·8개 참여자의 Release ACK·arm과 Central allocation→
+Front owner→기존 CAN/P05·Leaf→실제 SIL Actual/health 반환을 IP 경계에 연결했다.
+일반/권한 lane을 분리하고 포화8/8에서 독립 보호·SDK stop/join·새 Epoch 재시작,
+살아있는 Central에서 Front 소실·8-role 재가입, Central 소실 시 Front 로컬 보호를 검사했다.
+고정 최종 C++ cohort는 Normal15/15·ASan13/13·TSan12/13 raw이며 경합 경고0이다.
+의도된 peer crash의 RunLease reset 분류를 보완한 동일 바이너리 재가입 회귀3/3 PASS;
+원래 TSan exit1과 전체201 attempts의188 PASS/13 FAIL은 그대로 보존한다.
+관련 계약 Normal/ASan 각각145/145, 새 checkout(build/ 없음) Python43/43 PASS.
+기존 pilot은 별도 fixture 이력으로 유지하고 attempt-02 cohort 제외 메타데이터만 정합화했다.
+
+남은 fixture는 trusted 시나리오 입력과 지속 SIL 물리·센서 IO다. Rear owner들은 Central에
+로컬로 남는다. 새 polling scheduler의 native2ms/4ms execution-watch 연결·Host 부하 수용은
+미완료이며, 이전 physical-model 약61ms pause/실패 원인은 OPEN-SOMEIP-HOST-01이다.
+따라서 일반 운용/실시간 채택, 실제 Host IO·Rear 네트워크·Jetson·전체 시스템 수용은 아니다.
+다음은 기존 native execution-watch runtime에 이 adapter를 연결하고 원래 deadline의
+Host 부하 qualification을 수행하는 것이다. **DDS gate CLOSED·정규 DDS adapter 미착수와
+기존 FAIL/OPEN은 유지**하며 SOME/IP 채택을 DDS 결함 해결로 기록하지 않는다.
 [README](../README.md)는 프로젝트 소개와 실행 진입점이며, **이 문서가 현재 구현 상태·최신 시험 분모·다음 작업의 기준**이다. 과거 ADR/학습·품질 기록의 수치는 당시 범위로 유지한다.
 단계별 일정은 [로드맵](roadmap.md), 날짜별 시험 이력·도구·로그 경로는 [품질 기록](quality_policy.md)에 둔다.
 
 사용자는 `7bbafc7` 검토 뒤 [B안](m4_host_acceptance_review.md)을 명시적으로 승인했다.
 검증된 Host native IO/FIFO component만 한정 수용하고 **M4 전체 NOT CLOSED**를 유지한다.
 OTHER loaded 실패·과거 FIFO/native 실패·DDS 경고는 원본과 함께 OPEN 예외로 관리한다.
-DDS 통신·종료·재시작 및 경고별 수명 검증은 **M5 정규 제어 연결 전 필수 gate**다.
+DDS 통신·종료·재시작 및 경고별 수명 검증은 **DDS 정규 제어 연결 전 필수 gate**다.
+별도 SOME/IP 경로의 제한된 채택 범위는 ADR-0061을 따른다.
 Ubuntu/CPU/FIFO 배치·2ms 실행 기회·4ms deadline·command expiry·20ms envelope는 불변이다.
 학습자 REVIEW PENDING, Target/전체 시스템 NOT RUN은 그대로다.
 `9136c1f`는 middleware result의 최상위/필수 필드/타입 검사를 추가했다.
@@ -97,7 +105,7 @@ Middleware runner의 FAIL/경고 종료코드0 결함은 `1677f85`로 수정했�
 | M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
 | M3 — Timing·실행 | IN PROGRESS / HOST REVIEW COMPLETE | [실행 기준 선택](m3_acceptance_review.md); 일반 sanitizer 타이밍 실패 2건·학습자 수용 및 Target/E2E 후속 |
 | M4 — Central/Zone | HOST NATIVE IO/FIFO COMPONENT LIMITED ACCEPTANCE / WHOLE NOT CLOSED | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결; 실제 Zone health·독립 status/상실 연결; 단일 coordinator·8-role session INIT/rejoin 위에9개 정상 owner runtime 연결·정상/고장/종료/복구 검사; 공통 owner/방향별 고장·joined 재가입·M3 독립 guard 연결 검사;release 위상 보완/책임 분리·owner-wire/remote Leaf credit·실제 actor 보호 검사; timing·native/SDK TSan 예외 OPEN, [종료 검토](m4_exit_review.md) 진행 |
-| M5 — DDS | TRANSPORT QUALIFICATION IN PROGRESS / CONTROL GATE CLOSED | 승인한 B안에 따라 수명·통신·종료·재시작을 검증; 조건 충족 전 정규 제어 adapter enable 금지 |
+| M5 — 통신 | DDS CONTROL GATE CLOSED / SOME/IP HOST FUNCTIONAL SIL CONDITIONAL | DDS 기존 gate·FAIL 유지; SOME/IP 실제8-role Central↔Front adapter 기능 검증, native execution-watch·부하/운용 수용은 미완료 |
 | M6–M13 | PLANNED | 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 [MBD 방법](engineering_plan.md#model-based-design-path)은 계획에 채택했다. 첫 대상은 Central 종방향 제어이며

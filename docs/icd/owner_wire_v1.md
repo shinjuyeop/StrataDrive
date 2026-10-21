@@ -1,5 +1,9 @@
 # Owner wire v1 — Host remote boundary
 
+2026-10-21 transport binding: the [Host SOME/IP owner adapter](someip_front_adapter.md)
+uses these canonical bytes unchanged for actual session, authority, control and feedback.
+Its limited adoption does not alter this wire contract or the DDS gate.
+
 2026-10-21: the separate [SOME/IP Host pilot binding](someip_pilot.md) reuses these
 exact canonical bytes for Front work/result/Actual. Its local component grants
 are not a replacement for this document's global session/RunLease authority.

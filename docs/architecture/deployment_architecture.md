@@ -3,8 +3,11 @@
 Status: 배포 경계 **DEFINED**, runtime **PLANNED**. 실행 가능한 container/systemd/network 설정은 M0에 없다.
 
 2026-10-21 구현 경계: 정규 Target 배포는 여전히 PLANNED다. M4는 Host의 owner thread/
-component와 논리 owner-wire 연결, M5는 Host의 두 process/netns/veth DDS echo 진단까지다.
-이 진단의 Central/Zone 이름은 실제 allocator/gateway/Leaf 배포를 뜻하지 않는다.
+component와 논리 owner-wire 연결이다. M5 DDS는 두 process/netns/veth 진단이며 실제
+제어 adapter가 아니다. 별도 [SOME/IP Host adapter](../icd/someip_front_adapter.md)는
+Central↔Front 두 IP process에 실제8-role session·allocation/owner/Leaf·보호·재가입을 연결했다.
+Rear/Drive/BMS/Power는 Central에 로컬로 남으며 단일 SIL 물리 process가 모델 상태를 소유한다.
+이 functional SIL 조건부 채택은 native execution-watch/부하 수용 또는 Jetson 배포 완료가 아니다.
 [실제 CPU·주기·QoS·운용 후보 대조](../test-plan/evidence/m5_dds_operating_profile/README.md)를
 참조한다. Host + Jetson 한 대 내부 여러 vECU라는 원래 배포를 변경하지 않는다.
 
@@ -23,7 +26,8 @@ architecture/source revision을 목표로 하되 서로 다른 보드에 동일 
 
 ## Target logical nodes
 
-Central의 별도 VCU/coordinator → 각각 DDS → Front Zone / Rear Zone.
+원래 Target 계획: Central의 별도 VCU/coordinator → 각각 DDS → Front Zone / Rear Zone.
+Host Central↔Front SOME/IP 조건부 채택을 전체 Target protocol 결정으로 확대하지 않는다.
 Front CAN/vCAN → Steering / aggregate Brake; Rear CAN/vCAN → Drive / BMS.
 Central이 vehicle management/allocation/session과 상위 feedback 집계를 단독 소유한다.
 

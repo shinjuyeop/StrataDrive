@@ -1,5 +1,10 @@
 # M4 Host IO/FIFO 한정 수용 검토안
 
+2026-10-21 후속: [SOME/IP 실제 Host Central↔Front adapter](test-plan/evidence/m5_someip_front_adapter/README.md)를
+functional SIL 범위에 조건부 채택했다. 실제8-role 세션·독립 보호·새 Epoch 복구 근거이며,
+이 문서의 M4 전체 NOT CLOSED·Host native IO/FIFO 한정 수용·기존 DDS FAIL/OPEN을 변경하지 않는다.
+새 polling scheduler의 native execution-watch/부하 수용은 아직 미완료다.
+
 Updated:2026-10-21. **B APPROVED — Host native IO/FIFO component 한정 수용**.
 승인 근거: `7bbafc7` 검토 뒤 사용자의 명시적 B안 승인.
 **M4 전체 NOT CLOSED / DDS 제어 gate CLOSED**다. M5 transport qualification은 착수한다.

@@ -1,5 +1,9 @@
 # Ethernet / DDS ICD baseline
 
+2026-10-21 alternative: [SOME/IP Host Central↔Front owner adapter](someip_front_adapter.md)
+is conditionally adopted for its functional SIL profile. It is a separate protocol
+binding; this DDS contract, CLOSED control gate and historical FAIL/OPEN remain unchanged.
+
 2026-10-21 별도 [SOME/IP 파일럿 binding](someip_pilot.md)을 추가했다. 이는 COVESA vSomeIP
 구현으로 실행한 Host 두 노드 component 후보이며, 이 DDS 계획/이름/gate를 교체한 채택 결정은 아니다.
 

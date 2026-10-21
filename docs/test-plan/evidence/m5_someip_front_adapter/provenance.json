@@ -1,0 +1,181 @@
+{
+  "source_commit": "2733d122176f6a6a8d31e57c6ee3ccc8db506a23",
+  "starting_commit": "771cf869e263f41606016c385456834495b0b240",
+  "sdk_pin": "4187431d2815bd351845a09d01aa85b2a3163cab",
+  "sdk_worktree": "",
+  "sdk_release_url": "https://github.com/COVESA/vsomeip/releases/tag/3.7.6",
+  "boost_archive_sha256": "7009fe1faa1697476bdc7027703a2badb84e849b7b0baad5086b087b971f8617",
+  "compiler": "g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+  "cmake": "cmake version 4.3.2\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).",
+  "kernel": "Linux MJH 6.8.0-138-generic #138~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Aug  7 13:43:15 UTC  x86_64 x86_64 x86_64 GNU/Linux",
+  "os": "PRETTY_NAME=\"Ubuntu 22.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"22.04\"\nVERSION=\"22.04.5 LTS (Jammy Jellyfish)\"\nVERSION_CODENAME=jammy\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=jammy\n",
+  "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  16\nOn-line CPU(s) list:                     0-15\nVendor ID:                               GenuineIntel\nModel name:                              11th Gen Intel(R) Core(TM) i7-11700 @ 2.50GHz\nCPU family:                              6\nModel:                                   167\nThread(s) per core:                      2\nCore(s) per socket:                      8\nSocket(s):                               1\nStepping:                                1\nCPU max MHz:                             4900.0000\nCPU min MHz:                             800.0000\nBogoMIPS:                                4992.00\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid mpx avx512f avx512dq rdseed adx smap avx512ifma clflushopt intel_pt avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp hwp_pkg_req vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid fsrm md_clear flush_l1d arch_capabilities\nVirtualization:                          VT-x\nL1d cache:                               384 KiB (8 instances)\nL1i cache:                               256 KiB (8 instances)\nL2 cache:                                4 MiB (8 instances)\nL3 cache:                                16 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-15\nVulnerability Gather data sampling:      Mitigation; Microcode\nVulnerability Indirect target selection: Mitigation; Aligned branch/return thunks\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Mitigation; Enhanced IBRS\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI SW loop, KVM SW loop\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected",
+  "shared_production_diff": "",
+  "profiles": {
+    "normal": {
+      "binary_sha256": "ebb691b4e32e63dfa7a3dc0c14b5711d512df31a04dd8af0088302a9358d8332",
+      "equals_campaign4_binary": true,
+      "adapter_compile": "/usr/bin/c++ -I/d/shin/StrataDrive/simulation/runtime -I/d/shin/StrataDrive/vecu/common -I/d/shin/StrataDrive/central/coordinator -I/d/shin/StrataDrive/central/control_allocation -I/d/shin/StrataDrive/central/vehicle_management -I/d/shin/StrataDrive/interfaces/zone -I/d/shin/StrataDrive/interfaces/common -I/d/shin/StrataDrive/interfaces/bms -I/d/shin/StrataDrive/interfaces/steering -I/d/shin/StrataDrive/interfaces/brake -I/d/shin/StrataDrive/interfaces/drive -I/d/shin/StrataDrive/interfaces/central -I/d/shin/StrataDrive/interfaces/session -I/d/shin/StrataDrive/zone/feedback -I/d/shin/StrataDrive/zone/gateway -I/d/shin/StrataDrive/zone/local_safety -I/d/shin/StrataDrive/zone/command_validation -I/d/shin/StrataDrive/central/session -I/d/shin/StrataDrive/vecu/steering -I/d/shin/StrataDrive/vecu/brake -I/d/shin/StrataDrive/vecu/drive -I/d/shin/StrataDrive/vecu/bms -I/d/shin/StrataDrive/simulation/power -I/d/shin/StrataDrive/simulation/battery -I/d/shin/StrataDrive/simulation/drive -I/d/shin/StrataDrive/simulation/steering -I/d/shin/StrataDrive/simulation/brake -I/d/shin/StrataDrive/interfaces/remote -isystem /d/shin/StrataDrive/build/m5-someip-normal/install/include -O1 -g -fno-omit-frame-pointer -O2 -g -DNDEBUG -std=c++20 -Wall -Wextra -Werror -o tests/integration/someip/CMakeFiles/someip_front_adapter.dir/front_adapter.cpp.o -c /d/shin/StrataDrive/tests/integration/someip/front_adapter.cpp",
+      "sdk_tcp_compile": "/usr/bin/c++ -DBOOST_ATOMIC_DYN_LINK -DBOOST_ATOMIC_NO_LIB -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_FILESYSTEM_NO_LIB -DVSOMEIP_GIT_COMMIT=\\\"4187431@HEAD\\\" -DVSOMEIP_INTERNAL_SUPPRESS_DEPRECATED -DVSOMEIP_VERSION=\\\"3.7.6\\\" -D_GTHREAD_USE_MUTEX_INIT_FUNC -D_GTHREAD_USE_RECURSIVE_MUTEX_INIT_FUNC -I/d/shin/StrataDrive/build/m5-someip-deps/vsomeip/interface -I/d/shin/StrataDrive/build/m5-someip-normal/sdk/conf_header -I/d/shin/StrataDrive/build/m5-someip-deps/vsomeip/implementation/logger/include -isystem /d/shin/StrataDrive/build/m5-someip-normal/install/include -O1 -g -fno-omit-frame-pointer -DVSOMEIP_BOOST_VERSION=108500 -DWITHOUT_SYSTEMD  -pie -Wno-tsan -Wl,-z,relro,-z,now -D_GLIBCXX_USE_NANOSLEEP -pthread -Wall -Wextra -Wformat -Wformat-security -Wconversion -fexceptions -fstrict-aliasing -fstack-protector-strong -fasynchronous-unwind-tables -fno-omit-frame-pointer -Wformat -Wformat-security -Wpedantic -Werror -fPIE -Wno-inconsistent-missing-override -g   -Wl,-export-dynamic -Wl,--version-script=/d/shin/StrataDrive/build/m5-someip-deps/vsomeip/exportmap.gcc -O2 -g -DNDEBUG -std=gnu++20 -fPIC -D_FORTIFY_SOURCE=2 -o CMakeFiles/vsomeip3-internal.dir/implementation/endpoints/src/tcp_server_endpoint_impl.cpp.o -c /d/shin/StrataDrive/build/m5-someip-deps/vsomeip/implementation/endpoints/src/tcp_server_endpoint_impl.cpp",
+      "binary_symbols": {
+        "__asan_": false,
+        "__ubsan_": false,
+        "__tsan_": false
+      },
+      "libraries": {
+        "libboost_atomic.so.1.85.0": {
+          "sha256": "13bf818c45fea9ade16fe2ca056861104074f492bffcc4f895fa889273049ead",
+          "asan": false,
+          "ubsan": false,
+          "tsan": false
+        },
+        "libboost_filesystem.so.1.85.0": {
+          "sha256": "2d9ce1a535ff8c0811e279763391b50ad87e208a1be744aa38f39b32b5bda742",
+          "asan": false,
+          "ubsan": false,
+          "tsan": false
+        },
+        "libvsomeip3-cfg.so.3.7.6": {
+          "sha256": "1b89ca9ccf965cfa297808ae47aa738113aec2e98417511754430aa6b0c2196b",
+          "asan": false,
+          "ubsan": false,
+          "tsan": false
+        },
+        "libvsomeip3-e2e.so.3.7.6": {
+          "sha256": "2072ffc8d3ba44604fa321c31e5dfe1ae68d45e753ca3b974bb0361ab6402302",
+          "asan": false,
+          "ubsan": false,
+          "tsan": false
+        },
+        "libvsomeip3-sd.so.3.7.6": {
+          "sha256": "ae59ca02bd3ee0048b1acedcf972651db91b87c86cb0263b9d95d0077daacdf1",
+          "asan": false,
+          "ubsan": false,
+          "tsan": false
+        },
+        "libvsomeip3.so.3.7.6": {
+          "sha256": "12eb3a039923a16cbff11b1733d722ae1c2fa871f71ba35eefff64f643999d19",
+          "asan": false,
+          "ubsan": false,
+          "tsan": false
+        }
+      },
+      "binary_dynamic": "Dynamic section at offset 0x76a00 contains 32 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libvsomeip3.so.3]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [/d/shin/StrataDrive/build/m5-someip-normal/install/lib]\n 0x000000000000000c (INIT)               0x6000\n 0x000000000000000d (FINI)               0x669f0\n 0x0000000000000019 (INIT_ARRAY)         0x76888\n 0x000000000000001b (INIT_ARRAYSZ)       16 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x76898\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x3b0\n 0x0000000000000005 (STRTAB)             0x1208\n 0x0000000000000006 (SYMTAB)             0x470\n 0x000000000000000a (STRSZ)              4753 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000015 (DEBUG)              0x0\n 0x0000000000000003 (PLTGOT)             0x77c40\n 0x0000000000000002 (PLTRELSZ)           2472 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0x5060\n 0x0000000000000007 (RELA)               0x2750\n 0x0000000000000008 (RELASZ)             10512 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000000000001e (FLAGS)              BIND_NOW\n 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE\n 0x000000006ffffffe (VERNEED)            0x25c0\n 0x000000006fffffff (VERNEEDNUM)         4\n 0x000000006ffffff0 (VERSYM)             0x249a\n 0x000000006ffffff9 (RELACOUNT)          365\n 0x0000000000000000 (NULL)               0x0"
+    },
+    "asan": {
+      "binary_sha256": "e72ec58a3076f8a3a934088bede76d07b085ce503e8b7f29c25771bac6a96698",
+      "equals_campaign4_binary": true,
+      "adapter_compile": "/usr/bin/c++ -I/d/shin/StrataDrive/simulation/runtime -I/d/shin/StrataDrive/vecu/common -I/d/shin/StrataDrive/central/coordinator -I/d/shin/StrataDrive/central/control_allocation -I/d/shin/StrataDrive/central/vehicle_management -I/d/shin/StrataDrive/interfaces/zone -I/d/shin/StrataDrive/interfaces/common -I/d/shin/StrataDrive/interfaces/bms -I/d/shin/StrataDrive/interfaces/steering -I/d/shin/StrataDrive/interfaces/brake -I/d/shin/StrataDrive/interfaces/drive -I/d/shin/StrataDrive/interfaces/central -I/d/shin/StrataDrive/interfaces/session -I/d/shin/StrataDrive/zone/feedback -I/d/shin/StrataDrive/zone/gateway -I/d/shin/StrataDrive/zone/local_safety -I/d/shin/StrataDrive/zone/command_validation -I/d/shin/StrataDrive/central/session -I/d/shin/StrataDrive/vecu/steering -I/d/shin/StrataDrive/vecu/brake -I/d/shin/StrataDrive/vecu/drive -I/d/shin/StrataDrive/vecu/bms -I/d/shin/StrataDrive/simulation/power -I/d/shin/StrataDrive/simulation/battery -I/d/shin/StrataDrive/simulation/drive -I/d/shin/StrataDrive/simulation/steering -I/d/shin/StrataDrive/simulation/brake -I/d/shin/StrataDrive/interfaces/remote -isystem /d/shin/StrataDrive/build/m5-someip-asan/install/include -O1 -g -fno-omit-frame-pointer -O2 -g -DNDEBUG -std=c++20 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer -o tests/integration/someip/CMakeFiles/someip_front_adapter.dir/front_adapter.cpp.o -c /d/shin/StrataDrive/tests/integration/someip/front_adapter.cpp",
+      "sdk_tcp_compile": "/usr/bin/c++ -DBOOST_ATOMIC_DYN_LINK -DBOOST_ATOMIC_NO_LIB -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_FILESYSTEM_NO_LIB -DVSOMEIP_GIT_COMMIT=\\\"4187431@HEAD\\\" -DVSOMEIP_INTERNAL_SUPPRESS_DEPRECATED -DVSOMEIP_VERSION=\\\"3.7.6\\\" -D_GTHREAD_USE_MUTEX_INIT_FUNC -D_GTHREAD_USE_RECURSIVE_MUTEX_INIT_FUNC -I/d/shin/StrataDrive/build/m5-someip-deps/vsomeip/interface -I/d/shin/StrataDrive/build/m5-someip-asan/sdk/conf_header -I/d/shin/StrataDrive/build/m5-someip-deps/vsomeip/implementation/logger/include -isystem /d/shin/StrataDrive/build/m5-someip-asan/install/include -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -DVSOMEIP_BOOST_VERSION=108500 -DWITHOUT_SYSTEMD  -pie -Wno-tsan -Wl,-z,relro,-z,now -D_GLIBCXX_USE_NANOSLEEP -pthread -Wall -Wextra -Wformat -Wformat-security -Wconversion -fexceptions -fstrict-aliasing -fstack-protector-strong -fasynchronous-unwind-tables -fno-omit-frame-pointer -Wformat -Wformat-security -Wpedantic -Werror -fPIE -Wno-inconsistent-missing-override -g   -Wl,-export-dynamic -Wl,--version-script=/d/shin/StrataDrive/build/m5-someip-deps/vsomeip/exportmap.gcc -O2 -g -DNDEBUG -std=gnu++20 -fPIC -D_FORTIFY_SOURCE=2 -o CMakeFiles/vsomeip3-internal.dir/implementation/endpoints/src/tcp_server_endpoint_impl.cpp.o -c /d/shin/StrataDrive/build/m5-someip-deps/vsomeip/implementation/endpoints/src/tcp_server_endpoint_impl.cpp",
+      "binary_symbols": {
+        "__asan_": true,
+        "__ubsan_": true,
+        "__tsan_": false
+      },
+      "libraries": {
+        "libboost_atomic.so.1.85.0": {
+          "sha256": "a6ec2abbaf3a8b68034a85a67589a1c816b398c0cb6c356e03ac6edd401b6dae",
+          "asan": true,
+          "ubsan": true,
+          "tsan": false
+        },
+        "libboost_filesystem.so.1.85.0": {
+          "sha256": "1cc9f84ad1946f169b28c50ecb16f977654b5dedbefc94c8bb43b0eb11b7519f",
+          "asan": true,
+          "ubsan": true,
+          "tsan": false
+        },
+        "libvsomeip3-cfg.so.3.7.6": {
+          "sha256": "536e23224cbe681f6c5da09e84714d3475c4adcc986ef14baa29746bc9c7e299",
+          "asan": true,
+          "ubsan": true,
+          "tsan": false
+        },
+        "libvsomeip3-e2e.so.3.7.6": {
+          "sha256": "592bb51ff7fee9067624827c8c6a6beb0cf7e75ae84bc25d849c7ecb4afd532a",
+          "asan": true,
+          "ubsan": true,
+          "tsan": false
+        },
+        "libvsomeip3-sd.so.3.7.6": {
+          "sha256": "f617907ac1af738aeade6d1f095dd1be68909bcbbeb55e4725eeac21106897e2",
+          "asan": true,
+          "ubsan": true,
+          "tsan": false
+        },
+        "libvsomeip3.so.3.7.6": {
+          "sha256": "4f83268613d20e66e0a1ed9f06857bc2227f171ce890060b46eeefbc745e675b",
+          "asan": true,
+          "ubsan": true,
+          "tsan": false
+        }
+      },
+      "binary_dynamic": "Dynamic section at offset 0x1079848 contains 36 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libasan.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libvsomeip3.so.3]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libubsan.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [/d/shin/StrataDrive/build/m5-someip-asan/install/lib]\n 0x000000000000000c (INIT)               0x92c000\n 0x000000000000000d (FINI)               0xfd6f50\n 0x0000000000000020 (PREINIT_ARRAY)      0x1078a30\n 0x0000000000000021 (PREINIT_ARRAYSZ)    8 (bytes)\n 0x0000000000000019 (INIT_ARRAY)         0x1078a38\n 0x000000000000001b (INIT_ARRAYSZ)       472 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x1078c10\n 0x000000000000001c (FINI_ARRAYSZ)       464 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x3b0\n 0x0000000000000005 (STRTAB)             0x1780\n 0x0000000000000006 (SYMTAB)             0x490\n 0x000000000000000a (STRSZ)              6109 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000015 (DEBUG)              0x0\n 0x0000000000000003 (PLTGOT)             0x107aac8\n 0x0000000000000002 (PLTRELSZ)           3600 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0x92b170\n 0x0000000000000007 (RELA)               0x3258\n 0x0000000000000008 (RELASZ)             9600792 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000000000001e (FLAGS)              BIND_NOW\n 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE\n 0x000000006ffffffe (VERNEED)            0x30f8\n 0x000000006fffffff (VERNEEDNUM)         4\n 0x000000006ffffff0 (VERSYM)             0x2f5e\n 0x000000006ffffff9 (RELACOUNT)          399633\n 0x0000000000000000 (NULL)               0x0"
+    },
+    "tsan": {
+      "binary_sha256": "afec7f3de7d91a979e6fd7fd1e9850f2574d73a616381ae77b2e0793a90da197",
+      "equals_campaign4_binary": true,
+      "adapter_compile": "/usr/bin/c++ -I/d/shin/StrataDrive/simulation/runtime -I/d/shin/StrataDrive/vecu/common -I/d/shin/StrataDrive/central/coordinator -I/d/shin/StrataDrive/central/control_allocation -I/d/shin/StrataDrive/central/vehicle_management -I/d/shin/StrataDrive/interfaces/zone -I/d/shin/StrataDrive/interfaces/common -I/d/shin/StrataDrive/interfaces/bms -I/d/shin/StrataDrive/interfaces/steering -I/d/shin/StrataDrive/interfaces/brake -I/d/shin/StrataDrive/interfaces/drive -I/d/shin/StrataDrive/interfaces/central -I/d/shin/StrataDrive/interfaces/session -I/d/shin/StrataDrive/zone/feedback -I/d/shin/StrataDrive/zone/gateway -I/d/shin/StrataDrive/zone/local_safety -I/d/shin/StrataDrive/zone/command_validation -I/d/shin/StrataDrive/central/session -I/d/shin/StrataDrive/vecu/steering -I/d/shin/StrataDrive/vecu/brake -I/d/shin/StrataDrive/vecu/drive -I/d/shin/StrataDrive/vecu/bms -I/d/shin/StrataDrive/simulation/power -I/d/shin/StrataDrive/simulation/battery -I/d/shin/StrataDrive/simulation/drive -I/d/shin/StrataDrive/simulation/steering -I/d/shin/StrataDrive/simulation/brake -I/d/shin/StrataDrive/interfaces/remote -isystem /d/shin/StrataDrive/build/m5-someip-tsan/install/include -O1 -g -fno-omit-frame-pointer -O2 -g -DNDEBUG -std=c++20 -Wall -Wextra -Werror -fsanitize=thread -fno-omit-frame-pointer -o tests/integration/someip/CMakeFiles/someip_front_adapter.dir/front_adapter.cpp.o -c /d/shin/StrataDrive/tests/integration/someip/front_adapter.cpp",
+      "sdk_tcp_compile": "/usr/bin/c++ -DBOOST_ATOMIC_DYN_LINK -DBOOST_ATOMIC_NO_LIB -DBOOST_FILESYSTEM_DYN_LINK -DBOOST_FILESYSTEM_NO_LIB -DVSOMEIP_GIT_COMMIT=\\\"4187431@HEAD\\\" -DVSOMEIP_INTERNAL_SUPPRESS_DEPRECATED -DVSOMEIP_VERSION=\\\"3.7.6\\\" -D_GTHREAD_USE_MUTEX_INIT_FUNC -D_GTHREAD_USE_RECURSIVE_MUTEX_INIT_FUNC -I/d/shin/StrataDrive/build/m5-someip-deps/vsomeip/interface -I/d/shin/StrataDrive/build/m5-someip-tsan/sdk/conf_header -I/d/shin/StrataDrive/build/m5-someip-deps/vsomeip/implementation/logger/include -isystem /d/shin/StrataDrive/build/m5-someip-tsan/install/include -O1 -g -fno-omit-frame-pointer -fsanitize=thread -DVSOMEIP_BOOST_VERSION=108500 -DWITHOUT_SYSTEMD  -pie -Wno-tsan -Wl,-z,relro,-z,now -D_GLIBCXX_USE_NANOSLEEP -pthread -Wall -Wextra -Wformat -Wformat-security -Wconversion -fexceptions -fstrict-aliasing -fstack-protector-strong -fasynchronous-unwind-tables -fno-omit-frame-pointer -Wformat -Wformat-security -Wpedantic -Werror -fPIE -Wno-inconsistent-missing-override -g   -Wl,-export-dynamic -Wl,--version-script=/d/shin/StrataDrive/build/m5-someip-deps/vsomeip/exportmap.gcc -O2 -g -DNDEBUG -std=gnu++20 -fPIC -D_FORTIFY_SOURCE=2 -o CMakeFiles/vsomeip3-internal.dir/implementation/endpoints/src/tcp_server_endpoint_impl.cpp.o -c /d/shin/StrataDrive/build/m5-someip-deps/vsomeip/implementation/endpoints/src/tcp_server_endpoint_impl.cpp",
+      "binary_symbols": {
+        "__asan_": false,
+        "__ubsan_": false,
+        "__tsan_": true
+      },
+      "libraries": {
+        "libboost_atomic.so.1.85.0": {
+          "sha256": "53f30ebb1168f4fe31091d4e81b063c0f5e7c55db01cd715271c4fafe8b1cf81",
+          "asan": false,
+          "ubsan": false,
+          "tsan": true
+        },
+        "libboost_filesystem.so.1.85.0": {
+          "sha256": "5755f514d89851a1dd612e8ddf82ea098f2a09a9afb271c3390de7a139ef4c33",
+          "asan": false,
+          "ubsan": false,
+          "tsan": true
+        },
+        "libvsomeip3-cfg.so.3.7.6": {
+          "sha256": "e3e0fa506d2a41c87d8ef627337b7391101e78f673ccbf118f37b72608e2c363",
+          "asan": false,
+          "ubsan": false,
+          "tsan": true
+        },
+        "libvsomeip3-e2e.so.3.7.6": {
+          "sha256": "f7da2998baea55cbbe81b1eb2528ff03cff498f572de9ab305ae59d12fbcf70c",
+          "asan": false,
+          "ubsan": false,
+          "tsan": true
+        },
+        "libvsomeip3-sd.so.3.7.6": {
+          "sha256": "ebdb15e463d9cd00ac86c8449fb9636d3bbb5388d8d8da089a5d96e091aefdf9",
+          "asan": false,
+          "ubsan": false,
+          "tsan": true
+        },
+        "libvsomeip3.so.3.7.6": {
+          "sha256": "5fc7fac089b3b381b73528d1c12cc21108b0570dc3bbd09b84309e2108f9a2ea",
+          "asan": false,
+          "ubsan": false,
+          "tsan": true
+        }
+      },
+      "binary_dynamic": "Dynamic section at offset 0xce900 contains 35 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libtsan.so.0]\n 0x0000000000000001 (NEEDED)             Shared library: [libvsomeip3.so.3]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [/d/shin/StrataDrive/build/m5-someip-tsan/install/lib]\n 0x000000000000000c (INIT)               0x7000\n 0x000000000000000d (FINI)               0xb82a0\n 0x0000000000000020 (PREINIT_ARRAY)      0xce5b8\n 0x0000000000000021 (PREINIT_ARRAYSZ)    8 (bytes)\n 0x0000000000000019 (INIT_ARRAY)         0xce5c0\n 0x000000000000001b (INIT_ARRAYSZ)       472 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0xce798\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x3b0\n 0x0000000000000005 (STRTAB)             0x14a8\n 0x0000000000000006 (SYMTAB)             0x470\n 0x000000000000000a (STRSZ)              5265 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000015 (DEBUG)              0x0\n 0x0000000000000003 (PLTGOT)             0xcfb70\n 0x0000000000000002 (PLTRELSZ)           3144 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0x5a68\n 0x0000000000000007 (RELA)               0x2be8\n 0x0000000000000008 (RELASZ)             11904 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000000000001e (FLAGS)              BIND_NOW\n 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE\n 0x000000006ffffffe (VERNEED)            0x2a98\n 0x000000006fffffff (VERNEEDNUM)         4\n 0x000000006ffffff0 (VERSYM)             0x293a\n 0x000000006ffffff9 (RELACOUNT)          422\n 0x0000000000000000 (NULL)               0x0"
+    }
+  },
+  "source_sha256": {
+    "tests/integration/someip/CMakeLists.txt": "130617cce0af0b0d951d27f30c255a3d4d35ebed99b67433b7fc82e0988144ea",
+    "tests/integration/someip/adapter_transport.hpp": "130659c9ff2672afb9cd3cc23039b1b3cb688a9f61d259f170a2f7b28c7f9301",
+    "tests/integration/someip/allocation_fixture.hpp": "4fcbb6cc38c28ce1cfa58e1e5acb3b9542438968253580b3efd514e7f7820711",
+    "tests/integration/someip/binding.hpp": "1b3e4e4b2968a8ff157fa50247e5591e1deb5e59b8f42b70af571f5638d0c34c",
+    "tests/integration/someip/binding_check.cpp": "65379e414a4f6005025e8130d81699e767c5e6090cdbe716e6fdaf2793bb6c11",
+    "tests/integration/someip/build.py": "1f8c8df1e80c8bd234c545beb301222da068ab55ce1588c0d6dc49246eef979d",
+    "tests/integration/someip/front_adapter.cpp": "52090cdb775d6431b4dcdc05871519378e0e196a06a2135d3ef9f43df36c230c",
+    "tests/integration/someip/front_run.py": "852647a9b1c28de0daaefef955f75ce9119c1b162ab1bdc8151ea29afe9d5605",
+    "tests/integration/someip/observe_sdk.py": "0a2dd7413817fa0b72572ec6de360bbebd60a015ae07cefa0a74b075658fe754",
+    "tests/integration/someip/pilot.cpp": "e600669b6e4e96b5a51a41e43b3c757c2f0c7d4052275b4b972eda35fb827999",
+    "tests/integration/someip/plant_io.hpp": "6075cd7b2c58a02a1f2669acce5907e932b135d04e62099a09b5b501243c66d0",
+    "tests/integration/someip/run.py": "f1419d04d798912a1a3cda1fa23a2b96a51607df17ac6b938a738c2ce269f1c5",
+    "tests/integration/someip/sdk_outcomes.py": "f64abe7c2df20f9f4ce0aad6772cad02caadfb4d9a5a156cc20a89bde057627f"
+  }
+}

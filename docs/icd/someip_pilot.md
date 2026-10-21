@@ -1,5 +1,10 @@
 # Central ↔ Front SOME/IP pilot binding
 
+Historical component binding. The new [real-owner Host adapter](someip_front_adapter.md)
+uses actual eight-participant session/RunLease and separate authority lanes; it does
+not reuse this pilot's grant fixture. Exact v1 header/probe/status validation has
+been corrected and regression evidence is linked there.
+
 Status: opt-in Host component pilot; not the regular M5 adapter. SOME/IP is the
 protocol; COVESA vSomeIP is this implementation. DDS/Cyclone DDS qualification and
 all its historical FAIL/OPEN records remain unchanged. See [protocol and evidence](../test-plan/evidence/m5_someip_pilot/protocol.md).
