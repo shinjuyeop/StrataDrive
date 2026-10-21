@@ -37,10 +37,12 @@ class DdsLifecycleBookkeepingTest(unittest.TestCase):
         for readiness,count in ((False,38),(True,6)):
             with self.subTest(readiness=readiness),tempfile.TemporaryDirectory() as tmp:
                 tmp=Path(tmp);compiler=tmp/'gcc';compiler.write_text('#!/bin/sh\nexit 7\n');compiler.chmod(0o755)
+                self.assertFalse((tmp/'fresh-build').exists())
                 command=[sys.executable,__file__,'--operating-build-failure',str(tmp/'out')]
                 if readiness:command.append('--readiness')
                 r=subprocess.run(command,cwd=ROOT,env={**os.environ,'PATH':str(tmp)+':'+os.environ['PATH']},capture_output=True,text=True,timeout=10)
                 self.assertEqual(r.returncode,7,r.stderr)
+                self.assertTrue((tmp/'fresh-build/.m4-exclusive.lock').is_file())
                 rows=json.loads((tmp/'out/results.json').read_text())
                 self.assertEqual(len(rows),count)
                 self.assertTrue(all(row['verdict']=='NOT RUN' for row in rows))
@@ -85,9 +87,11 @@ class DdsLifecycleBookkeepingTest(unittest.TestCase):
     def test_real_process_build_failure_retains_every_planned_case(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp=Path(tmp);compiler=tmp/'gcc';compiler.write_text('#!/bin/sh\necho deliberate compiler failure\nexit 7\n');compiler.chmod(0o755)
+            self.assertFalse((tmp/'fresh-build').exists())
             command=[sys.executable,__file__,'--build-failure',str(tmp/'out')]
             r=subprocess.run(command,cwd=ROOT,env={**os.environ,'PATH':str(tmp)+':'+os.environ['PATH']},capture_output=True,text=True,timeout=10)
             self.assertEqual(r.returncode,7,r.stderr)
+            self.assertTrue((tmp/'fresh-build/.m4-exclusive.lock').is_file())
             plan=json.loads((tmp/'out/plan.json').read_text())
             rows=json.loads((tmp/'out/results.json').read_text())
             self.assertEqual(len(rows),plan['lifecycle_runs']+plan['bucket_runs'])
@@ -100,11 +104,15 @@ if __name__=='__main__':
         sys.path.insert(0,str(RUNNER.parent))
         import check_dds_operating_profile as operating
         sys.argv=[str(RUNNER.parent/'check_dds_operating_profile.py'),*sys.argv[2:]]
-        with patch.object(operating.d,'sha',lambda _path:'mock SDK hash for bookkeeping fixture'):
+        # Isolate only the lock location; keep real source/protocol reads and
+        # compiler-process failure. Never depend on or lock the user's build/.
+        lock=Path(sys.argv[1]).parent/'fresh-build/.m4-exclusive.lock'
+        with patch.object(operating.d,'sha',lambda _path:'mock SDK hash for bookkeeping fixture'),patch.object(operating.d,'BUILD_LOCK',lock):
             raise SystemExit(operating.main())
     elif len(sys.argv)>1 and sys.argv[1]=='--build-failure':
         module=runpy.run_path(str(RUNNER),run_name='diagnostic');main=module['main'];sys.argv=[str(RUNNER),sys.argv[2]]
         # These tests exercise process bookkeeping, not SDK availability/provenance.
-        with patch.dict(main.__globals__,sha=lambda _path:'mock SDK hash for bookkeeping fixture'):
+        lock=Path(sys.argv[1]).parent/'fresh-build/.m4-exclusive.lock'
+        with patch.dict(main.__globals__,sha=lambda _path:'mock SDK hash for bookkeeping fixture',BUILD_LOCK=lock):
             raise SystemExit(main())
     else:unittest.main()

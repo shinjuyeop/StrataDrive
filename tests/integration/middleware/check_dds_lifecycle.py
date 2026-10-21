@@ -16,6 +16,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
+BUILD_LOCK = ROOT/'build/.m4-exclusive.lock'
 CASES = ('normal', 'peer-stop', 'peer-kill', 'restart', 'callback-delete', 'overflow', 'partial')
 PROFILES = {
     'normal': ('build/m4-communication-research/install', 'build/m4-readiness', ''),
@@ -28,6 +29,10 @@ LIBS = ('owner_wire','zone_feedback_contract','steering_frame_codec','steering_a
 
 def save(path, value): path.write_text(json.dumps(value, indent=2)+'\n')
 def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+def open_build_lock():
+    # Bookkeeping fixtures and fresh checkouts need no pre-existing build output.
+    BUILD_LOCK.parent.mkdir(parents=True,exist_ok=True)
+    return BUILD_LOCK.open('a')
 def lifetime_result(text):
     # Sanitizer stderr can precede stdout in the combined preserved log.
     result={}
@@ -159,7 +164,7 @@ def main():
     case_order=(('whc',*cases) if a.lifetimes else ((*cases,) if a.followup else ('bucket',*cases)))
     rows=[{'profile':profile,'case':case,'verdict':'NOT RUN','reason':'build or previous stage not completed'} for profile in PROFILES for case in case_order]
     save(out/'results.json',rows)
-    with (ROOT/'build/.m4-exclusive.lock').open('a') as lock:
+    with open_build_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         code=build_probes(out)
         if code:return code

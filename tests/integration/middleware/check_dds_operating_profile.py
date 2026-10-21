@@ -125,7 +125,7 @@ def main():
     hashes={p.name:d.sha(p) for p in sources.iterdir()}
     d.save(out/'metadata.json',dict(sources=hashes,protocol_sha256=d.sha(protocol),
            sdk_libraries={k:d.sha(d.ROOT/v[0]/'lib/libddsc.so.11') for k,v in d.PROFILES.items()}))
-    with (d.ROOT/'build/.m4-exclusive.lock').open('a') as lock:
+    with d.open_build_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         code=d.build_probes(out)
         if code:return code

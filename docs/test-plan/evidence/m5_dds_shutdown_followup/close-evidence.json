@@ -1,0 +1,2057 @@
+[
+  {
+    "member": "cohort-v1/normal-restart",
+    "result_sha256": "818403b38a59bc7a205a3304748a42197cffa0fdc07e3f0834006960a3bbd2eb",
+    "result": {
+      "case": "restart",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 60,
+            "received": 79,
+            "accepted": 79,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 80,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513907981760432,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 87,
+            "max_write_ns": 38203,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 25,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513907981765200,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 23787,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 43,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 0,
+            "received": 60,
+            "accepted": 59,
+            "rejected": 1,
+            "old": 1,
+            "stale": 1,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 2,
+            "max_result": 1,
+            "callback_calls": 61,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513908522261146,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 59,
+            "max_write_ns": 31292,
+            "period_ms": 20
+          }
+        }
+      ],
+      "old_peer_exit": 0,
+      "explicit_epoch43_ns": 513908481761163,
+      "functional": "PASS",
+      "process_exit_ok": true
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "42": 2,
+      "43": 60
+    },
+    "command": {
+      "argv": [
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-restart",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "restart"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-restart/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-restart/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/normal-coordinated-restart",
+    "result_sha256": "8891fae2c70691404a404a5e86f99afa52cbbff661cb91bb2c005979cf72f872",
+    "result": {
+      "case": "restart",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 60,
+            "received": 79,
+            "accepted": 79,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 80,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513912864687864,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 81,
+            "max_write_ns": 46069,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 20,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513912864507464,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 14100,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 43,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 0,
+            "received": 60,
+            "accepted": 59,
+            "rejected": 1,
+            "old": 1,
+            "stale": 1,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 2,
+            "max_result": 1,
+            "callback_calls": 61,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513913451895456,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 59,
+            "max_write_ns": 30819,
+            "period_ms": 20
+          }
+        }
+      ],
+      "quiesce_ns": 513913227921807,
+      "close42_ns": 513913378184443,
+      "old_peer_exit": 0,
+      "explicit_epoch43_ns": 513913391385107,
+      "functional": "PASS",
+      "process_exit_ok": true
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "43": 60
+    },
+    "command": {
+      "argv": [
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-coordinated-restart",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "restart"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off",
+        "SD_COORDINATED_RESTART": "1"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-coordinated-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-coordinated-restart/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off",
+        "SD_COORDINATED_RESTART": "1"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-coordinated-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-coordinated-restart/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off",
+        "SD_COORDINATED_RESTART": "1"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/normal-peer-stop",
+    "result_sha256": "ca0adb57f78944d7a34f854afbe23bb1ec63e5058de9fbcaac89a603bd865dba",
+    "result": {
+      "case": "peer-stop",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 60,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 21,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513903437505963,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 60,
+            "max_write_ns": 50880,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 24,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513903437455773,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 11602,
+            "period_ms": 20
+          }
+        }
+      ],
+      "functional": "PASS",
+      "process_exit_ok": true
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "42": 36
+    },
+    "command": {
+      "argv": [
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-peer-stop",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "peer-stop"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-peer-stop",
+        "peer-stop",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-peer-stop/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-peer-stop",
+        "peer-stop",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-peer-stop/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/normal-close-saturated",
+    "result_sha256": "35b07340c8575d6154de586b96998f607e07006613b4be9f18175c8c574ce442",
+    "result": {
+      "case": "close-saturated",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 80,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 20,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513921205254270,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 80,
+            "max_write_ns": 49609,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 28,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513921205263798,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 1,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 27406,
+            "period_ms": 20
+          }
+        }
+      ],
+      "sender_alive_at_close": true,
+      "functional": "PASS",
+      "process_exit_ok": true
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "42": 51
+    },
+    "command": {
+      "argv": [
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-close-saturated",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "close-saturated"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-close-saturated",
+        "close-saturated",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-close-saturated/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-close-saturated",
+        "close-saturated",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/normal-close-saturated/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/asan-ubsan-restart",
+    "result_sha256": "f5d0f2b53216475837a22565e28e4a59345b416d24e221d1592c173ac1168644",
+    "result": {
+      "case": "restart",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 60,
+            "received": 80,
+            "accepted": 80,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 81,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513940137512261,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 89,
+            "max_write_ns": 140864,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 25,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513940137555126,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 65929,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 43,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 0,
+            "received": 62,
+            "accepted": 60,
+            "rejected": 2,
+            "old": 2,
+            "stale": 1,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 2,
+            "max_result": 1,
+            "callback_calls": 63,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513940683759116,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 60,
+            "max_write_ns": 98534,
+            "period_ms": 20
+          }
+        }
+      ],
+      "old_peer_exit": 0,
+      "explicit_epoch43_ns": 513940663237566,
+      "functional": "PASS",
+      "process_exit_ok": true
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "42": 3,
+      "43": 60
+    },
+    "command": {
+      "argv": [
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-restart",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "restart"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-restart/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-restart/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/asan-ubsan-coordinated-restart",
+    "result_sha256": "db54b94d08f2bb4370e27b54780f1eab7739f281314068113b488dc250bba217",
+    "result": {
+      "case": "restart",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 60,
+            "received": 80,
+            "accepted": 80,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 81,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513945072971717,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 81,
+            "max_write_ns": 151700,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 20,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513945073003128,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 46378,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 43,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 0,
+            "received": 61,
+            "accepted": 60,
+            "rejected": 1,
+            "old": 1,
+            "stale": 1,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 2,
+            "max_result": 1,
+            "callback_calls": 62,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513945659451785,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 60,
+            "max_write_ns": 68027,
+            "period_ms": 20
+          }
+        }
+      ],
+      "quiesce_ns": 513945436207376,
+      "close42_ns": 513945586463976,
+      "old_peer_exit": 0,
+      "explicit_epoch43_ns": 513945639069596,
+      "functional": "PASS",
+      "process_exit_ok": true
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "43": 60
+    },
+    "command": {
+      "argv": [
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-coordinated-restart",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "restart"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off",
+        "SD_COORDINATED_RESTART": "1"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-coordinated-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-coordinated-restart/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off",
+        "SD_COORDINATED_RESTART": "1"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-coordinated-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-coordinated-restart/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off",
+        "SD_COORDINATED_RESTART": "1"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/asan-ubsan-peer-stop",
+    "result_sha256": "04bf3226858193cefd71dd0120452ad33b59b71d6f440cbb356b315256b310e6",
+    "result": {
+      "case": "peer-stop",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 60,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 21,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513935483254646,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 60,
+            "max_write_ns": 95541,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 25,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513935483254893,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 47801,
+            "period_ms": 20
+          }
+        }
+      ],
+      "functional": "PASS",
+      "process_exit_ok": true
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "42": 35
+    },
+    "command": {
+      "argv": [
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-peer-stop",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "peer-stop"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-peer-stop",
+        "peer-stop",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-peer-stop/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-peer-stop",
+        "peer-stop",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-peer-stop/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/asan-ubsan-close-saturated",
+    "result_sha256": "aaf50b56e79c10b63b0e00bea4ec663b3376cf627e0caa3e25fb2f0e1dbfe21f",
+    "result": {
+      "case": "close-saturated",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 80,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 20,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513953571770447,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 80,
+            "max_write_ns": 139907,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 28,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513953571770516,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 1,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 59320,
+            "period_ms": 20
+          }
+        }
+      ],
+      "sender_alive_at_close": true,
+      "functional": "PASS",
+      "process_exit_ok": true
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "42": 51
+    },
+    "command": {
+      "argv": [
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-close-saturated",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "close-saturated"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-close-saturated",
+        "close-saturated",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-close-saturated/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-close-saturated",
+        "close-saturated",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/asan-ubsan-close-saturated/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/tsan-restart",
+    "result_sha256": "35816acd21a83baf957fd491ca4f095394e4faf6b4dd5c4a704e47c9e663efa3",
+    "result": {
+      "case": "restart",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 60,
+            "received": 80,
+            "accepted": 80,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 81,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513972814104348,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 96,
+            "max_write_ns": 124720,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 66,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 25,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513972814002271,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 142136,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 43,
+          "exit": 66,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 0,
+            "received": 62,
+            "accepted": 60,
+            "rejected": 2,
+            "old": 2,
+            "stale": 1,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 2,
+            "max_result": 1,
+            "callback_calls": 63,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513973501637632,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 60,
+            "max_write_ns": 193891,
+            "period_ms": 20
+          }
+        }
+      ],
+      "old_peer_exit": 66,
+      "explicit_epoch43_ns": 513973481324190,
+      "functional": "PASS",
+      "process_exit_ok": false
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "42": 10,
+      "43": 60
+    },
+    "command": {
+      "argv": [
+        "setarch",
+        "x86_64",
+        "-R",
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-restart",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "restart"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-restart/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-restart/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/tsan-coordinated-restart",
+    "result_sha256": "3f11fc542e4de3cb01b803b3db117779bf83ce4acebbcb8837331969f6558a04",
+    "result": {
+      "case": "restart",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 66,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 60,
+            "received": 80,
+            "accepted": 80,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 81,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513977995842157,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 81,
+            "max_write_ns": 133829,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 0,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 20,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513977995904130,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 100144,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 43,
+          "exit": 66,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 43,
+            "sent": 0,
+            "received": 61,
+            "accepted": 60,
+            "rejected": 1,
+            "old": 1,
+            "stale": 1,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 2,
+            "max_result": 1,
+            "callback_calls": 62,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513978667772432,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 60,
+            "max_write_ns": 128926,
+            "period_ms": 20
+          }
+        }
+      ],
+      "quiesce_ns": 513978363519129,
+      "close42_ns": 513978513781319,
+      "old_peer_exit": 0,
+      "explicit_epoch43_ns": 513978647286882,
+      "functional": "PASS",
+      "process_exit_ok": false
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "43": 60
+    },
+    "command": {
+      "argv": [
+        "setarch",
+        "x86_64",
+        "-R",
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-coordinated-restart",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "restart"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off",
+        "SD_COORDINATED_RESTART": "1"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-coordinated-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-coordinated-restart/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off",
+        "SD_COORDINATED_RESTART": "1"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-coordinated-restart",
+        "restart",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-coordinated-restart/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off",
+        "SD_COORDINATED_RESTART": "1"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/tsan-peer-stop",
+    "result_sha256": "476b5dceb450d7203919ba4fe239d2e47b1c4fa7c1882d9d2ee19dc7ec18f2c6",
+    "result": {
+      "case": "peer-stop",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 66,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 60,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 21,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513968085450155,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 60,
+            "max_write_ns": 145564,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 66,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 25,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513968085514831,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 96203,
+            "period_ms": 20
+          }
+        }
+      ],
+      "functional": "PASS",
+      "process_exit_ok": false
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "42": 35
+    },
+    "command": {
+      "argv": [
+        "setarch",
+        "x86_64",
+        "-R",
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-peer-stop",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "peer-stop"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-peer-stop",
+        "peer-stop",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-peer-stop/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-peer-stop",
+        "peer-stop",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-peer-stop/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    }
+  },
+  {
+    "member": "cohort-v1/tsan-close-saturated",
+    "result_sha256": "8abf6c57cf716cb60653b4e54afb55f3032237e8c161530829e2fe7e652adaf6",
+    "result": {
+      "case": "close-saturated",
+      "control_gate_open": false,
+      "processes": [
+        {
+          "role": "central",
+          "epoch": 42,
+          "exit": 66,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 80,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 0,
+            "callback_calls": 20,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513986794566936,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 0,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 80,
+            "max_write_ns": 118016,
+            "period_ms": 20
+          }
+        },
+        {
+          "role": "zone",
+          "epoch": 42,
+          "exit": 66,
+          "summary": {
+            "functional": true,
+            "control_gate_open": false,
+            "epoch": 42,
+            "sent": 0,
+            "received": 20,
+            "accepted": 20,
+            "rejected": 0,
+            "old": 0,
+            "stale": 0,
+            "failures": 0,
+            "overflow": 0,
+            "max_ingress": 1,
+            "max_result": 1,
+            "callback_calls": 28,
+            "callback_delete_begin_ns": 0,
+            "callback_delete_end_ns": 0,
+            "availability_loss_ns": 513986794528362,
+            "proxy_snapshots": 0,
+            "whc_snapshots": 0,
+            "reader_rejected": 1,
+            "reader_lost": 0,
+            "received_at_writer_delete": 0,
+            "received_after_writer_delete": 0,
+            "write_calls": 20,
+            "max_write_ns": 105715,
+            "period_ms": 20
+          }
+        }
+      ],
+      "sender_alive_at_close": true,
+      "functional": "PASS",
+      "process_exit_ok": false
+    },
+    "central_sends_after_zone_delete_marker_by_epoch": {
+      "42": 51
+    },
+    "command": {
+      "argv": [
+        "setarch",
+        "x86_64",
+        "-R",
+        "unshare",
+        "-Urnm",
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/middleware/check_dds_lifecycle.py",
+        "--inside",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-close-saturated",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "close-saturated"
+      ],
+      "env": {
+        "TSAN_OPTIONS": "halt_on_error=0:exitcode=66:history_size=7",
+        "ASAN_OPTIONS": "detect_leaks=1:exitcode=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "central_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "central",
+        "taskset",
+        "-c",
+        "1",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "central",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-close-saturated",
+        "close-saturated",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-close-saturated/central-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    },
+    "zone_command": {
+      "argv": [
+        "ip",
+        "netns",
+        "exec",
+        "zone",
+        "taskset",
+        "-c",
+        "2",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan/lifecycle-probe",
+        "zone",
+        "/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-close-saturated",
+        "close-saturated",
+        "42"
+      ],
+      "CYCLONEDDS_URI": "<CycloneDDS><Domain Id=\"37\"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address=\"10.88.0.1\"/><Peer Address=\"10.88.0.2\"/></Peers></Discovery><Tracing><Verbosity>warning</Verbosity><OutputFile>/d/shin/StrataDrive/build/m5-dds-operating-audit/cohort-v1/tsan-close-saturated/zone-42.trace</OutputFile></Tracing></Domain></CycloneDDS>",
+      "diagnostic_env": {
+        "SD_CENTRAL_CPU": "1",
+        "SD_ZONE_CPU": "2",
+        "SD_PERIOD_MS": "20",
+        "SD_OBSERVER": "minimal",
+        "SD_LIFETIME_TRACE": "off"
+      }
+    }
+  }
+]

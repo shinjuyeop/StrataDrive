@@ -4,6 +4,10 @@
 진단 수정/비교 근거다. 이 문서의42회23 PASS/19 FAIL·초기 setup 실패·추가 진단·Daybreak
 중단 이력을 변경하지 않는다. 후속 후보의 close 미재현으로 이 기록의 close/TSan OPEN을 닫지 않는다.
 
+`658562e` 뒤 [종료·TSan 경로별 후속](../m5_dds_shutdown_followup/README.md)은 원본 GDB와
+새 성공 조건을 대조하고 SDK 문의 초안을 보존했다. 잠금 준비 수정 뒤 Python29/29이며,
+그 안의 실제 child timeout 검증은 아래 과거 미재현 cleanup 시도와 별개다. 새 SDK 실행은0회다.
+
 2026-10-21. Reference `7bbafc7`; runner fix `9136c1f` plus exact diagnostic
 sources in [provenance](provenance.json) and each archived cohort's metadata.
 **User approved B: Host native IO/FIFO component LIMITED ACCEPTANCE.**

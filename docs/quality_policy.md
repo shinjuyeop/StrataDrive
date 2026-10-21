@@ -6,7 +6,12 @@ clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 
 [Settlement 후속 근거](test-plan/evidence/m4_settlement/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
 TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.
 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다.
-Python 최신 회귀는 **137/137 PASS**다(이전120+middleware JSON schema/process-exit14+diagnostic bookkeeping3).
+마지막 전체 Python 회귀 기록은 **137/137 PASS**다(이전120+middleware JSON schema/process-exit14+diagnostic bookkeeping3).
+`658562e` 후속 [관련29개 회귀](test-plan/evidence/m5_dds_shutdown_followup/README.md)는
+build/ 없는 checkout에서27 PASS/2개 시험 FAIL(하위 조건 포함3건)을 재현하고 잠금 준비를
+수정한 뒤 fresh·작업 트리 각각29/29 PASS다. SDK mock bookkeeping과 실제 child cleanup을
+검증했으며 새 DDS/성능/sanitizer 실행은0회다. 기존64경고의32 stack 조합과 SDK bitfield
+공유 바이트 근거를 보존했지만 모든 경고 FAIL·full-RHC 종료 OPEN·제어 gate CLOSED 유지다.
 `9136c1f` focused22개는 수정 전10 PASS/8 FAIL/4 ERROR→22 PASS. 원본 잘못된 JSON을 보존하고 남은 시험을 계속한다.
 `1677f85`의 신규8개는 수정 전2 PASS/5 FAIL/1 ERROR→8 PASS다. [실제 DDS 수명 근거](test-plan/evidence/m4_dds_lifetime/README.md)는
 Writer normal3·ASan3 PASS, TSan3 FAIL/각2경고, 고의 ASan UAF3 검출을 별도 기록한다.

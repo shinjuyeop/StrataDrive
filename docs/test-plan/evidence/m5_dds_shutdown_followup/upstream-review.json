@@ -1,0 +1,72 @@
+{
+  "checked_utc": "2026-10-21T04:37:53.621613+00:00",
+  "official_repository": "eclipse-cyclonedds/cyclonedds",
+  "repository_pin": "11.0.1 e54e991",
+  "sources": [
+    {
+      "url": "https://cyclonedds.io/docs/cyclonedds/11.0.1/api/entity.html#c.dds_delete",
+      "finding": "11.0.1 API supports recursive child deletion; no bounded full-RHC close procedure specified in this API description."
+    },
+    {
+      "url": "https://cyclonedds.io/docs/cyclonedds/11.0.1/examples/helloworld.html",
+      "finding": "Official example uses participant deletion for cleanup; it does not establish saturated/uncooperative close behavior."
+    },
+    {
+      "url": "https://github.com/eclipse-cyclonedds/cyclonedds/releases/tag/11.0.1",
+      "finding": "Newest of the three returned releases. Release fixes concern build, multicast parsing/UAF and type lookup interoperability, not an identified match for these paths."
+    },
+    {
+      "url": "https://github.com/eclipse-cyclonedds/cyclonedds/issues/1417#issuecomment-1256352842",
+      "finding": "Maintainer explains index removal followed by awake-thread virtual-clock progress before freeing; basis for scoped GC analysis."
+    },
+    {
+      "url": "https://github.com/eclipse-cyclonedds/cyclonedds/issues/1252#issuecomment-1103780286",
+      "finding": "Maintainer relates TSan reports to GC/hash design, while acknowledging risk of real races in the noise."
+    },
+    {
+      "url": "https://github.com/eclipse-cyclonedds/cyclonedds/issues/2039#issuecomment-2196511627",
+      "finding": "Maintainer discusses lock-free hash/GC visibility and risk that broad suppression hides genuine races; no suppression adopted."
+    },
+    {
+      "url": "https://github.com/eclipse-cyclonedds/cyclonedds/issues/2374",
+      "finding": "Current thread concerns same-entity listener reentrancy/set_listener; does not match our observed main-reader-close/recv-full-RHC/GC wait."
+    },
+    {
+      "url": "https://github.com/eclipse-cyclonedds/cyclonedds/pull/2162",
+      "finding": "Fetched state closed, merged=false, merged_at=null. Related WIP atomic and bitfield work; not an accepted fix or established match for our Writer bitfield."
+    },
+    {
+      "url": "https://github.com/eclipse-cyclonedds/cyclonedds/commit/e085130a3995f594f86699c99c260f267c2fc557",
+      "finding": "2019 reader deletion/listener lock fix. Current pin already unlocks before waiting for callbacks; our callback does not call take/delete and GDB waits later."
+    },
+    {
+      "url": "https://github.com/eclipse-cyclonedds/cyclonedds/commit/cc82024261aa9e7c08a34451adc3071e6ba114d9",
+      "finding": "2021 ddsperf discovery-listener reentrancy change, different application and stack; not a candidate."
+    }
+  ],
+  "bounded_queries": {
+    "issues": [
+      "dds_reader_close",
+      "ThreadSanitizer",
+      "remote_on_delivery_failure_fastpath",
+      "deadlock reader delete",
+      "TSan",
+      "tkmap",
+      "hang shutdown",
+      "test_suppress_heartbeat"
+    ],
+    "commits": [
+      "reader deadlock",
+      "full RHC",
+      "delivery failure",
+      "clear_retransmitting",
+      "bitfield"
+    ],
+    "pull_requests": [
+      "tsan"
+    ],
+    "limits": "top4-12 as relevant; not exhaustive upstream proof"
+  },
+  "candidate_decision": "No matching supported new shutdown or race-fix candidate established. SDK comparison NOT RUN; retain pin and request maintainer guidance.",
+  "access_restriction": "No new Daybreak/content block; old failed writer API URL not retried. No external posting."
+}

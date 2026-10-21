@@ -4,6 +4,11 @@ Updated: 2026-10-21. Status: **HOST IO/FIFO COMPONENT LIMITED ACCEPTANCE / M4 NO
 학습자 직접 재현/설명은 **REVIEW PENDING**, system32요구/29TC·Target/전체 원격 배포는 **NOT RUN**이다.
 이 검토는 위 상태를 PASS로 바꾸지 않는다.
 
+`658562e` 후속 [DDS 종료·경고 분류](test-plan/evidence/m5_dds_shutdown_followup/README.md)는
+새 checkout의 잠금 준비 결함을 수정해 관련 Python29/29를 확인했다. SDK runtime 재실행은
+없으며 full-RHC close OPEN·64 TSan occurrences FAIL·제어 gate CLOSED를 유지한다.
+Writer bitfield 공유 바이트 경합을 좁혔으나 지원되는 SDK 수정은 미확정이며 문의 초안만 남겼다.
+
 `1a4afe5` 후속은 [고정 커널 수집 준비/검사](test-plan/evidence/m4_kernel_campaign/README.md)와
 [native·SDK 진단](test-plan/evidence/m4_sdk_followup/README.md)까지 진행했다.
 해당 수집기 단계 Python112 PASS, 이전 native40 PASS이나 과거 실패 원인은 미확정이다.

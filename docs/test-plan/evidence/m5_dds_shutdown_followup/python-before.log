@@ -1,0 +1,81 @@
+test_expected_peer_kill_and_process_failure_cannot_be_sanitizer_pass (dds_lifecycle_test.DdsLifecycleBookkeepingTest) ... ok
+test_invalid_json_cannot_supply_a_lifetime_result (dds_lifecycle_test.DdsLifecycleBookkeepingTest) ... ok
+test_malformed_operating_results_are_errors_not_aggregation_exceptions (dds_lifecycle_test.DdsLifecycleBookkeepingTest) ... ok
+test_operating_campaign_build_failure_preserves_all_planned_rows (dds_lifecycle_test.DdsLifecycleBookkeepingTest) ... test_readiness_timeout_kills_and_records_both_real_children (dds_lifecycle_test.DdsLifecycleBookkeepingTest) ... ok
+test_real_process_build_failure_retains_every_planned_case (dds_lifecycle_test.DdsLifecycleBookkeepingTest) ... FAIL
+test_sanitizer_prefix_does_not_hide_lifetime_stdout (dds_lifecycle_test.DdsLifecycleBookkeepingTest) ... ok
+test_all_pass_exits_zero (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_array_result_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_bool_metric_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_child_failure_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_child_pass_exits_zero (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_child_warning_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_codes_type_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_failure_preserves_all_36_and_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_invalid_json_is_retained (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_missing_fields_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_missing_result_preserves_all_36_and_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_missing_role_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_negative_metric_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_null_result_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_probe_exit_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_process_exit_is_retained (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_real_child_timeout_preserves_log_and_returns_failure (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_role_type_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_string_result_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_verdict_type_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_warning_preserves_all_36_and_exits_nonzero (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+test_wrong_field_type_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest) ... ok
+
+======================================================================
+FAIL: test_operating_campaign_build_failure_preserves_all_planned_rows (dds_lifecycle_test.DdsLifecycleBookkeepingTest) (readiness=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/tests/unit/dds_lifecycle_test.py", line 43, in test_operating_campaign_build_failure_preserves_all_planned_rows
+    self.assertEqual(r.returncode,7,r.stderr)
+AssertionError: 1 != 7 : Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/tests/unit/dds_lifecycle_test.py", line 104, in <module>
+    raise SystemExit(operating.main())
+  File "/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/tests/integration/middleware/check_dds_operating_profile.py", line 128, in main
+    with (d.ROOT/'build/.m4-exclusive.lock').open('a') as lock:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/build/.m4-exclusive.lock'
+
+
+======================================================================
+FAIL: test_operating_campaign_build_failure_preserves_all_planned_rows (dds_lifecycle_test.DdsLifecycleBookkeepingTest) (readiness=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/tests/unit/dds_lifecycle_test.py", line 43, in test_operating_campaign_build_failure_preserves_all_planned_rows
+    self.assertEqual(r.returncode,7,r.stderr)
+AssertionError: 1 != 7 : Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/tests/unit/dds_lifecycle_test.py", line 104, in <module>
+    raise SystemExit(operating.main())
+  File "/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/tests/integration/middleware/check_dds_operating_profile.py", line 128, in main
+    with (d.ROOT/'build/.m4-exclusive.lock').open('a') as lock:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/build/.m4-exclusive.lock'
+
+
+======================================================================
+FAIL: test_real_process_build_failure_retains_every_planned_case (dds_lifecycle_test.DdsLifecycleBookkeepingTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/tests/unit/dds_lifecycle_test.py", line 90, in test_real_process_build_failure_retains_every_planned_case
+    self.assertEqual(r.returncode,7,r.stderr)
+AssertionError: 1 != 7 : Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/tests/unit/dds_lifecycle_test.py", line 109, in <module>
+    raise SystemExit(main())
+  File "/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/tests/integration/middleware/check_dds_lifecycle.py", line 162, in main
+    with (ROOT/'build/.m4-exclusive.lock').open('a') as lock:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m5-dds-shutdown-followup/fresh-checkout/build/.m4-exclusive.lock'
+
+
+----------------------------------------------------------------------
+Ran 29 tests in 2.537s
+
+FAILED (failures=3)

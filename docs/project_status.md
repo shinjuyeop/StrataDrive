@@ -39,6 +39,17 @@ PASS지만 정규 session/arm이 아니다. Writer 삭제가 reader take까지 �
 전체973/native40/timing48 재실행 없음. **DDS control gate CLOSED / 정규 adapter 미착수** 유지.
 이번 새 Daybreak 안내는 없었고 실패한 공식 API URL 조회는 중단했다. 접근 이력은 새 근거에 보존했다.
 
+`658562e` 후속 [종료·TSan 검토](test-plan/evidence/m5_dds_shutdown_followup/README.md)는
+build/ 없는 checkout에서 Python29개 중2개 시험의3 failure records를 재현했다.
+두 runner의 잠금 부모 생성과 독립 fixture를 보완한 뒤 새 checkout·작업 트리 각각29/29 PASS다.
+이는 mock SDK bookkeeping이며 새 DDS runtime0회다. 기존64회 경고를32개 stack 조합으로
+연결했다.9회는 구체적 publication 계측 공백,55회는 실제 사용 SDK 경로 미확정이며
+**64회 모두 FAIL 유지**다.1회는 Writer의 같은 bitfield 바이트에 대한 잠금 안 쓰기와
+잠금 밖 읽기를 원본·소스·실제 binary로 좁혔다. full-RHC GDB 대기는 reader close→GC와
+recv 재시도/awake 진행의 고리에 부합하지만 지원되는 수정은 미확정이다.
+대응하는 승인 patch/release를 찾지 못해 새 SDK 비교는 NOT RUN, 문의는 초안만 작성했다.
+제품 C++/SDK 변경·973/native40/timing48 재실행 없음. **DDS gate CLOSED / adapter 미착수**다.
+
 앞선 `d3e7f6d` 사용자 고정 수집213425의
 [OTHER1+FIFO10 OFF/ON11쌍](test-plan/evidence/m4_kernel_campaign/completed_213425/README.md)은
 전부 **VALID**다. OTHER2 FAIL(OFF191/ON186 miss), FIFO20 PASS이며 수집·분석 exit1은

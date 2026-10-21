@@ -8,6 +8,10 @@ Updated:2026-10-21. **B APPROVED — Host native IO/FIFO component 한정 수용
 [현재 상태](project_status.md), [기존 종료 기준](m4_exit_review.md),
 [새 DDS 수명 검증](test-plan/evidence/m4_dds_lifetime/README.md)을 함께 본다.
 
+`658562e` 후속 [종료·TSan 경로별 검토](test-plan/evidence/m5_dds_shutdown_followup/README.md)에서도
+full-RHC 종료 OPEN·64회 경고 FAIL이 남아 DDS 정규 adapter 연결은 불가다.
+관련 Python29/29는 fresh-checkout 준비/실패 수집 검증이며 SDK 수용 근거가 아니다.
+
 ## 판단과 선택지
 
 **기존 조건을 모두 유지한 M4 전체 종료는 NO-GO**다. DDS 전체 동시성 검증과 과거

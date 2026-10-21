@@ -1,5 +1,9 @@
 # DDS Host 환경·운용 후보 후속 — 2026-10-21
 
+`658562e` 뒤 [종료·TSan 후속](../m5_dds_shutdown_followup/README.md)은 fresh-checkout
+Python 준비 결함 수정과 이 문서의64경고 전수 분류다.32개 stack 조합/SDK bitfield 근거를
+보존했으며 새 DDS 실행 없이 기존 모든 FAIL·full-RHC OPEN·gate CLOSED를 유지한다.
+
 시작 시 `git fetch origin`: HEAD=`origin/main`=`c10688d`, ahead/behind0/0,
 작업 트리 clean. **M4 Host native IO/FIFO 한정 수용 / M4 NOT CLOSED / DDS control
 gate CLOSED**를 유지한다. 이전 [42회23 PASS/19 FAIL](../m5_dds_qualification/README.md),
