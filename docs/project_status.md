@@ -2,7 +2,27 @@
 
 Updated: **2026-10-21**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 DDS QUALIFICATION IN PROGRESS**다.
 
-최신 [SOME/IP Host Central↔Front adapter](test-plan/evidence/m5_someip_front_adapter/README.md)는
+최신 [SOME/IP native 실행 감시 근거](test-plan/evidence/m5_someip_native_watch/README.md)는
+기존2ms 실행 기회/4ms 감시를 실제 Central·Front owner와 지속 SIL 물리 프로세스에 연결했다.
+원래 요청 회차의 완료를 기록하고, owner/monitor 정지에는 살아 있는 독립 감시·물리 override가
+보호한다. 실제 RX8+추가1 거부·latch·FIFO 보존을 보강하고, 물리 보호 후 같은 Epoch의
+nominal 출력 적용 오류와 감시 마지막 회차 오기록·runner 선행 실패 판정을 수정했다.
+구현 `2dbc5e0`, 전체 Normal/ASan **978/978씩**, 관련 Python **48/48씩**(작업 트리·build 없는
+fresh checkout), 기존 native 영향 **6/6**이다. 최종 동일 C++ 기능은 **Normal12/13·ASan13/13·
+TSan10/13**, 새 통합 경로의 유한48회는 **31 PASS/17 FAIL**이며 sanitizer 경고는 없다.
+Normal FIFO 정상 무부하·CPU1/2 부하7ms/10ms는 **각3/3** 통과했다. 이2540ms 관측 profile의
+정상 운전 근거만 확보했으며 **전체 고장·복구 운용 수용 확대는 보류**한다. 일부 정상 운전에서
+원래 명령 expiry에 따른 보호와 주입 전 실패가 남아 OPEN-SOMEIP-NATIVE-01/02로 관리한다.
+SDK OTHER 스레드CPU4/5, ownerCPU1/2·physicalCPU3, monitorCPU0으로 분리했다. 실제 사용자
+RT limit20/20·FIFO 우선순위11/18/19/20을 확인했으며 모든 스레드 FIFO 적용은 하지 않았다.
+기존 동일 CPU TSan0/13·GDB 및 배치 비교 실패도 보존한다. 계측 결과는 Normal 성능과 별도다.
+통제61ms 모델 지연은 energy.step 실패·원래 dt/input·보호·IO 상태 기록을 검증했지만
+**OPEN-SOMEIP-HOST-01은 OPEN 유지**다. 다음 한 단계는 원래 allocation/permission/Leaf
+expiry 시간축과 최초 gateway 보호 원인을 좁혀 하나의 실행 위상 가설을 검증하는 것이다.
+기존 Host functional SIL 조건부 채택, M4 전체 NOT CLOSED·DDS historical OPEN/CLOSED,
+Rear 네트워크·Jetson·실제 IO·전체 시스템 NOT RUN을 유지한다.
+
+이전 `767d334`의 [SOME/IP Host Central↔Front adapter](test-plan/evidence/m5_someip_front_adapter/README.md)는
 **Host functional SIL 경로에 한해 조건부 채택**했다([ADR-0061](adr/ADR-0061-someip-front-owner-adapter.md)).
 실제 SessionCoordinator·RunLeaseIssuer·8개 참여자의 Release ACK·arm과 Central allocation→
 Front owner→기존 CAN/P05·Leaf→실제 SIL Actual/health 반환을 IP 경계에 연결했다.
@@ -15,11 +35,10 @@ Front owner→기존 CAN/P05·Leaf→실제 SIL Actual/health 반환을 IP 경�
 기존 pilot은 별도 fixture 이력으로 유지하고 attempt-02 cohort 제외 메타데이터만 정합화했다.
 
 남은 fixture는 trusted 시나리오 입력과 지속 SIL 물리·센서 IO다. Rear owner들은 Central에
-로컬로 남는다. 새 polling scheduler의 native2ms/4ms execution-watch 연결·Host 부하 수용은
-미완료이며, 이전 physical-model 약61ms pause/실패 원인은 OPEN-SOMEIP-HOST-01이다.
+로컬로 남는다. 당시 미완료였던 native2ms/4ms execution-watch 연결·Host 부하 시험은 위 후속에서 실행했으며,
+전체 운용 수용은 보류다. 이전 physical-model 약61ms pause/실패 원인은 OPEN-SOMEIP-HOST-01이다.
 따라서 일반 운용/실시간 채택, 실제 Host IO·Rear 네트워크·Jetson·전체 시스템 수용은 아니다.
-다음은 기존 native execution-watch runtime에 이 adapter를 연결하고 원래 deadline의
-Host 부하 qualification을 수행하는 것이다. **DDS gate CLOSED·정규 DDS adapter 미착수와
+기존 요청의 연결·qualification 결과와 현재 다음 단계는 위 최신 근거를 따른다. **DDS gate CLOSED·정규 DDS adapter 미착수와
 기존 FAIL/OPEN은 유지**하며 SOME/IP 채택을 DDS 결함 해결로 기록하지 않는다.
 [README](../README.md)는 프로젝트 소개와 실행 진입점이며, **이 문서가 현재 구현 상태·최신 시험 분모·다음 작업의 기준**이다. 과거 ADR/학습·품질 기록의 수치는 당시 범위로 유지한다.
 단계별 일정은 [로드맵](roadmap.md), 날짜별 시험 이력·도구·로그 경로는 [품질 기록](quality_policy.md)에 둔다.

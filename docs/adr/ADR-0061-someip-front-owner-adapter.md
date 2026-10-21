@@ -23,12 +23,22 @@ the original13 failures across201 runtime attempts remain immutable. SDK and pro
 ASan/UBSan/TSan instrumented builds were exercised; this is not SDK-wide safety proof.
 
 This is an executable functional integration, with fixed trusted demand and SIL
-physical/sensor IO still fixtures. It is **not unrestricted Host operational
-acceptance**: native IO/FIFO execution-watch integration/load qualification is pending;
-an earlier physical-model pause/failure remains OPEN with incomplete original timing
-diagnosis. Do not transfer native2ms/4ms acceptance to this polling scheduler. The
-next step is to bind this adapter into the existing native execution-watch path and
-qualify its original deadlines under the prescribed Host load, retaining all failures.
+physical/sensor IO still fixtures. The [native follow-up](../test-plan/evidence/m5_someip_native_watch/README.md)
+now connects existing2ms opportunities/4ms independent execution monitoring to the
+actual grouped Central/Front owners and persistent physical process. Completion
+identity uses the original requested wake. SDK send/probes run outside control-owner
+work; SDK threads stayOTHER0 on separateCPU4/5, ownersCPU1/2, physicalCPU3 and
+monitorsCPU0. Original authority/message/controller deadlines are unchanged.
+
+New Normal FIFO normal quiet/loaded profiles pass3/3 each in a2540ms measured window.
+Keep that limited normal-operation evidence separate from adoption: final functional
+Normal12/13, ASan13/13, TSan10/13 and actual adapter48=31/48 do not meet all fault/
+recovery conditions. **Do not expand conditional adoption to unrestricted operation.**
+Original command expiry still protects in some normal runs; the earliest allocation/
+gateway cause is partly unresolved. TSan old placement0/13 and all other raw failures
+remain. The61ms historical model cause remainsOPEN despite improved observations and
+controlled energy.step reproduction. Next correlate permission/allocation phases and
+first gateway cause against original Leaf expiry before one targeted correction/test.
 
 Keep the default transport/dependency selection unchanged. DDS control gate remains
 CLOSED with all Cyclone DDS FAIL/OPEN records; SOME/IP is a separate conditional

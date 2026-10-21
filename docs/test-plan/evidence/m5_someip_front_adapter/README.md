@@ -1,5 +1,9 @@
 # Host Central ↔ Front real-owner SOME/IP adapter
 
+Follow-up: [native execution watch](../m5_someip_native_watch/README.md) now connects
+the actual owners and records new functional/48-run results, including failures.
+This document preserves the earlier767d334 cohort and its then-current boundaries.
+
 2026-10-21. **Conditional adoption for this Host functional SIL profile**;
 unrestricted Host/native timing adoption remains pending. Implemented and executed
 real session/control/protection/rejoin, not a grant-file pilot. See

@@ -3,6 +3,14 @@
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
 clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
 
+2026-10-21 [SOME/IP native 감시 후속](test-plan/evidence/m5_someip_native_watch/README.md)은
+공유 watch/물리 보호 수정 후 전체 **Normal978/978·ASan978/978**(기존973+신규5),
+관련 Python **48/48**(working·fresh build 없음), 기존 native 영향 **6/6**을 확인했다.
+최종 실제 SDK 기능 Normal12/13·ASan13/13·TSan10/13, 새 adapter48회31/48을 보존한다.
+원래 expiry 보호와 정상 운전 실패는 별도이며 관측된 sanitizer 경고0을 전체 PASS로 바꾸지 않는다.
+Normal FIFO quiet/loaded3/3씩은 해당 유한 profile 근거이며 전체 운용 수용 확대는 보류다.
+아래973/Python137/native40 등은 과거 전체 회귀/각 경계 이력으로 유지한다.
+
 2026-10-21 [SOME/IP 파일럿](test-plan/evidence/m5_someip_pilot/README.md)은 별도 실제 IP
 57 attempts의 원본47 exit0/10 exit1을 보존한다. 이 중 초기10 exit0도 SDK 오류 로그 때문에
 수용에서 제외했다. 고정 최종 normal10/10, ASan8/8, TSan7/8 뒤 진단 송신 결함 수정3/3,
@@ -10,7 +18,7 @@ clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 
 project 경로의 최종 TSan 경고0이며 전체 SDK 안전성 증명은 아니다. Python37/37은 관련
 8+29개 mock/bookkeeping·실제 dummy timeout 정리 시험이다. 제품 C++ 변경 및 전체973/
 native40/timing48 재실행은 없다. 기존 DDS FAIL/OPEN·gate와 Host 한정 수용은 유지한다.
-현재 `97afb35` normal·ASan/UBSan 각각 **C++973/973 PASS**다(unit800/logical164/wall9).
+기존 `97afb35` normal·ASan/UBSan 각각 **C++973/973 PASS**다(unit800/logical164/wall9).
 [Settlement 후속 근거](test-plan/evidence/m4_settlement/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
 TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.
 기존 native8/9 실패는 미재현·원인 미확정으로 OPEN이며 새 성공에 합치지 않는다.

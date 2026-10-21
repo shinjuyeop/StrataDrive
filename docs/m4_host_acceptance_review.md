@@ -3,7 +3,8 @@
 2026-10-21 후속: [SOME/IP 실제 Host Central↔Front adapter](test-plan/evidence/m5_someip_front_adapter/README.md)를
 functional SIL 범위에 조건부 채택했다. 실제8-role 세션·독립 보호·새 Epoch 복구 근거이며,
 이 문서의 M4 전체 NOT CLOSED·Host native IO/FIFO 한정 수용·기존 DDS FAIL/OPEN을 변경하지 않는다.
-새 polling scheduler의 native execution-watch/부하 수용은 아직 미완료다.
+[후속 native 연결·실제48회](test-plan/evidence/m5_someip_native_watch/README.md)는31 PASS/17 FAIL이다.
+Normal FIFO 정상 무부하/부하는각3/3이지만 전체 고장/복구 수용은 보류하며 이 M4 판정은 유지한다.
 
 Updated:2026-10-21. **B APPROVED — Host native IO/FIFO component 한정 수용**.
 승인 근거: `7bbafc7` 검토 뒤 사용자의 명시적 B안 승인.

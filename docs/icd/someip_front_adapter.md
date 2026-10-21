@@ -76,8 +76,10 @@ SDK queues are8192 bytes, payload limits512 remote/1024 local. Overflow latches 
 fault; it never enlarges queues or renews requests. An asynchronous sender calls
 the SDK outside owner execution. No owner waits for a network response. Existing
 10/20ms owner grids and Central20ms allocation run with local monitoring continuing
-when ordinary reception is paused. This polling scheduler does not yet bind the
-separate M4 native2ms opportunity/4ms execution watchdog.
+when ordinary reception is paused. The optional native Host path now binds the existing
+M4 execution watch:2ms service opportunities,4ms deadline, original requested-slot
+completion and independent monitor protection. This does not alter10/20ms controller
+periods. Its finite2540ms qualification window is not an indefinite scheduler claim.
 
 No automatic application replay retries a command. Original source/sent/deadline,
 exclusive `min(original_deadline, sent+20ms)`, inner expiry and allocator dependencies
@@ -98,3 +100,28 @@ the sender, then calls SDK stop and joins dispatch. Send-return is not drain pro
 Raw API timestamps, original warning text, peer observations and bounded-loss
 accounting are retained. A runner timeout/kill is never orderly success. See the
 [fixed tests, raw results and limitations](../test-plan/evidence/m5_someip_front_adapter/README.md).
+
+## Native execution binding (2026-10-21)
+
+See [native protocol/results](../test-plan/evidence/m5_someip_native_watch/README.md).
+Central main owns Central/Rear/Drive/BMS/Power/Ingress as one actual completion group7;
+Front main owns FrontZone/Steering/Brake as group0. Each has monitor9; persistent
+physical group8 observes process-monitor completions through a bounded Linux atomic
+mmap observation channel. This channel supplies no session/command authority. The
+physical output override takes priority over fresh same-Epoch nominal outputs; only
+trusted higher-Epoch release permits recovery. Whole-ECU death also kills its local
+monitor, leaving the peer and persistent physical process as surviving protectors.
+A stopped physical process has no independent modeled physical actuator.
+
+Normal/FIFO candidate: mainCPU1/2/3, monitorCPU0; FIFO11/18/19/20 only on those selected
+threads. SDK/senderCPU4/5 and model auxiliariesCPU6 stayOTHER0. Readback and original
+userRT20/20 are preserved. Callback validation/bounded enqueue and asynchronous SDK
+send preserve ownership; application queue capacity8 and SDK8192 bytes are unchanged.
+Overflow rejects the extra arrival without overwriting queued items, latches fault
+and selects local protection independently of Central's command queue. Full queue
+shutdown and actual overflow have separate verdicts.
+
+Only measured normal FIFO quiet/loaded performance (3/3each) is positive profile
+evidence. Functional and fault cohorts contain failures, so native operational
+adoption remains pending. No current source re-stamping, deadline extension, retry
+lifetime renewal or broad sanitizer exemption is part of this contract.
