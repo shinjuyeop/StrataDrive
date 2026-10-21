@@ -2,6 +2,14 @@
 
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
 clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
+
+2026-10-21 [SOME/IP 파일럿](test-plan/evidence/m5_someip_pilot/README.md)은 별도 실제 IP
+57 attempts의 원본47 exit0/10 exit1을 보존한다. 이 중 초기10 exit0도 SDK 오류 로그 때문에
+수용에서 제외했다. 고정 최종 normal10/10, ASan8/8, TSan7/8 뒤 진단 송신 결함 수정3/3,
+수신 경계3/3, 살아있는 Central 재가입/회귀6/6을 별도 기록했다. fully instrumented SDK/Boost/
+project 경로의 최종 TSan 경고0이며 전체 SDK 안전성 증명은 아니다. Python37/37은 관련
+8+29개 mock/bookkeeping·실제 dummy timeout 정리 시험이다. 제품 C++ 변경 및 전체973/
+native40/timing48 재실행은 없다. 기존 DDS FAIL/OPEN·gate와 Host 한정 수용은 유지한다.
 현재 `97afb35` normal·ASan/UBSan 각각 **C++973/973 PASS**다(unit800/logical164/wall9).
 [Settlement 후속 근거](test-plan/evidence/m4_settlement/README.md)와 [M4 종료 검토](m4_exit_review.md)를 따른다.
 TSan 경계108/108·native wall9/9 PASS, full trace normal20+TSan20회40/40 PASS다.

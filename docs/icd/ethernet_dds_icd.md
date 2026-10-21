@@ -1,5 +1,8 @@
 # Ethernet / DDS ICD baseline
 
+2026-10-21 별도 [SOME/IP 파일럿 binding](someip_pilot.md)을 추가했다. 이는 COVESA vSomeIP
+구현으로 실행한 Host 두 노드 component 후보이며, 이 DDS 계획/이름/gate를 교체한 채택 결정은 아니다.
+
 2026-10-21 구현 보충: 아래 PLANNED는 정규 제어/Target 배포 상태다. 선택형 Host 진단에는
 CycloneDDS11.0.1 direct C API·고정512byte Packet IDL·owner-wire codec/netns echo가 있다.
 실제 Central↔Front 제어 adapter는 없으며 [control gate](../project_status.md)는 CLOSED다.

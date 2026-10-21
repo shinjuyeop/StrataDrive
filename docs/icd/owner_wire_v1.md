@@ -1,5 +1,9 @@
 # Owner wire v1 — Host remote boundary
 
+2026-10-21: the separate [SOME/IP Host pilot binding](someip_pilot.md) reuses these
+exact canonical bytes for Front work/result/Actual. Its local component grants
+are not a replacement for this document's global session/RunLease authority.
+
 Date: 2026-10-20. Status: **M4 codec/authority/Leaf endpoint component; remote vehicle runtime NOT RUN**.
 CAN/DBC/P05 bytes, DataIDs, counters and checks remain unchanged. This is a new outer Ethernet application contract, not AUTOSAR COM/RTE/BSW or a certified E2E profile. [Current state](../project_status.md) controls acceptance.
 

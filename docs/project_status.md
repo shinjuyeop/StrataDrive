@@ -1,6 +1,19 @@
 # Project status
 
 Updated: **2026-10-21**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 DDS QUALIFICATION IN PROGRESS**다.
+
+최신 [SOME/IP(vSomeIP) 파일럿](test-plan/evidence/m5_someip_pilot/README.md)은 **조건부**다.
+별도 Central↔Front netns/veth 실행에서 실제 ControlAllocation·Front gateway·Steering/Brake
+CAN/P05 처리와 owner-wire 결과/Actual을 연결했다. 일반 고정10/10·ASan8/8 PASS,
+TSan 주소 배치 보완 뒤7/8 PASS·경합 경고0이었다. 남은 진단 송신 큐 결함을 고친
+지속 송신 종료3/3과 수신 Epoch/method 경계3/3도 PASS다. 초기 실패와 SDK 오류 로그가
+있는 과거 raw PASS를 별도 보존한다. 살아있는 Central의 Front 소실/재가입과 normal 회귀도
+세 빌드6/6 PASS다(총57 attempts; 세부 분모는 근거 참조).
+Fresh checkout Python37/37은 mock/bookkeeping이며 SDK 시험과 다르다.
+이는 SIL support 입력을 가진 두 노드 component fixture다. 전체 Release ACK/RunLease,
+정규 RUNNING, 실제 Host IO/Jetson/전체 시스템을 검증한 것이 아니다. 다음은 실제
+Session/RunLease·독립 보호 lane을 연결한 Host adapter 경계 시험이며, 기본 DDS 방향을
+교체한 결정은 아니다. **DDS gate CLOSED·정규 DDS adapter 미착수와 기존 FAIL/OPEN 유지**.
 [README](../README.md)는 프로젝트 소개와 실행 진입점이며, **이 문서가 현재 구현 상태·최신 시험 분모·다음 작업의 기준**이다. 과거 ADR/학습·품질 기록의 수치는 당시 범위로 유지한다.
 단계별 일정은 [로드맵](roadmap.md), 날짜별 시험 이력·도구·로그 경로는 [품질 기록](quality_policy.md)에 둔다.
 

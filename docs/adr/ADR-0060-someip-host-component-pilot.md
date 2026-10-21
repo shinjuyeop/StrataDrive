@@ -1,6 +1,6 @@
 # ADR-0060: Central–Front SOME/IP Host component pilot
 
-Date: 2026-10-21. Status: **pilot implemented; adoption pending evidence**.
+Date: 2026-10-21. Status: **conditional Host pilot candidate; regular adoption deferred**.
 
 The DDS control gate remains CLOSED. Evaluate SOME/IP using pinned COVESA vSomeIP
 3.7.6 in a separate opt-in Linux C++ execution path. Protocol and implementation

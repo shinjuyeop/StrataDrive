@@ -1,0 +1,163 @@
+{
+  "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "compiler": "g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "cmake": "cmake version 4.3.2\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n",
+  "sdk_commit": "4187431d2815bd351845a09d01aa85b2a3163cab",
+  "profiles": {
+    "normal": {
+      "ldd": "\tlinux-vdso.so.1 (0x00007fff13d5f000)\n\tlibvsomeip3.so.3 => /d/shin/StrataDrive/build/m5-someip-normal/install/lib/libvsomeip3.so.3 (0x00007264b7400000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007264b7000000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007264b76a0000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007264b73d2000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007264b6c00000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007264b77e8000)\n",
+      "libraries": [
+        {
+          "path": "build/m5-someip-normal/install/lib/libvsomeip3-cfg.so.3.7.6",
+          "sha256": "1b89ca9ccf965cfa297808ae47aa738113aec2e98417511754430aa6b0c2196b",
+          "tsan": false,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-normal/install/lib/libboost_atomic.so.1.85.0",
+          "sha256": "13bf818c45fea9ade16fe2ca056861104074f492bffcc4f895fa889273049ead",
+          "tsan": false,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-normal/install/lib/libboost_filesystem.so.1.85.0",
+          "sha256": "2d9ce1a535ff8c0811e279763391b50ad87e208a1be744aa38f39b32b5bda742",
+          "tsan": false,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-normal/install/lib/libvsomeip3.so.3.7.6",
+          "sha256": "12eb3a039923a16cbff11b1733d722ae1c2fa871f71ba35eefff64f643999d19",
+          "tsan": false,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-normal/install/lib/libvsomeip3-e2e.so.3.7.6",
+          "sha256": "2072ffc8d3ba44604fa321c31e5dfe1ae68d45e753ca3b974bb0361ab6402302",
+          "tsan": false,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-normal/install/lib/libvsomeip3-sd.so.3.7.6",
+          "sha256": "ae59ca02bd3ee0048b1acedcf972651db91b87c86cb0263b9d95d0077daacdf1",
+          "tsan": false,
+          "asan": false,
+          "ubsan": false
+        }
+      ],
+      "bounded_busy_binary_sha256": "5fc1cd4522ed52c7681250d0f95a3ac8c36e1cfa345eb602ae04c159eba97f49",
+      "final_binary_sha256": "22b58bd515741f0dc58f07a3317eaf163585df6e401a64c334156f4fdebc8159"
+    },
+    "asan": {
+      "ldd": "\tlinux-vdso.so.1 (0x00007fff3fed5000)\n\tlibasan.so.6 => /lib/x86_64-linux-gnu/libasan.so.6 (0x00007ee52a800000)\n\tlibvsomeip3.so.3 => /d/shin/StrataDrive/build/m5-someip-asan/install/lib/libvsomeip3.so.3 (0x00007ee51fc00000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007ee51f800000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007ee52bd12000)\n\tlibubsan.so.1 => /lib/x86_64-linux-gnu/libubsan.so.1 (0x00007ee51f000000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007ee52bce2000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007ee51ec00000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007ee52be25000)\n",
+      "libraries": [
+        {
+          "path": "build/m5-someip-asan/install/lib/libvsomeip3-cfg.so.3.7.6",
+          "sha256": "536e23224cbe681f6c5da09e84714d3475c4adcc986ef14baa29746bc9c7e299",
+          "tsan": false,
+          "asan": true,
+          "ubsan": true
+        },
+        {
+          "path": "build/m5-someip-asan/install/lib/libboost_atomic.so.1.85.0",
+          "sha256": "a6ec2abbaf3a8b68034a85a67589a1c816b398c0cb6c356e03ac6edd401b6dae",
+          "tsan": false,
+          "asan": true,
+          "ubsan": true
+        },
+        {
+          "path": "build/m5-someip-asan/install/lib/libboost_filesystem.so.1.85.0",
+          "sha256": "1cc9f84ad1946f169b28c50ecb16f977654b5dedbefc94c8bb43b0eb11b7519f",
+          "tsan": false,
+          "asan": true,
+          "ubsan": true
+        },
+        {
+          "path": "build/m5-someip-asan/install/lib/libvsomeip3.so.3.7.6",
+          "sha256": "4f83268613d20e66e0a1ed9f06857bc2227f171ce890060b46eeefbc745e675b",
+          "tsan": false,
+          "asan": true,
+          "ubsan": true
+        },
+        {
+          "path": "build/m5-someip-asan/install/lib/libvsomeip3-e2e.so.3.7.6",
+          "sha256": "592bb51ff7fee9067624827c8c6a6beb0cf7e75ae84bc25d849c7ecb4afd532a",
+          "tsan": false,
+          "asan": true,
+          "ubsan": true
+        },
+        {
+          "path": "build/m5-someip-asan/install/lib/libvsomeip3-sd.so.3.7.6",
+          "sha256": "f617907ac1af738aeade6d1f095dd1be68909bcbbeb55e4725eeac21106897e2",
+          "tsan": false,
+          "asan": true,
+          "ubsan": true
+        }
+      ],
+      "bounded_busy_binary_sha256": "783e777949b238bba25a5ee29d71b5ef009d4ff89cad22733eb7fffb97b3921c",
+      "final_binary_sha256": "32db1f6561dd560f29d6353ab8d548b686d2ca811a0d3ebbd966e75279e5beb7"
+    },
+    "tsan": {
+      "ldd": "\tlinux-vdso.so.1 (0x00007ffcc8d26000)\n\tlibtsan.so.0 => /lib/x86_64-linux-gnu/libtsan.so.0 (0x0000734abb600000)\n\tlibvsomeip3.so.3 => /d/shin/StrataDrive/build/m5-someip-tsan/install/lib/libvsomeip3.so.3 (0x0000734abb000000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x0000734abac00000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x0000734abb519000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x0000734abc15c000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x0000734aba800000)\n\t/lib64/ld-linux-x86-64.so.2 (0x0000734abc217000)\n",
+      "libraries": [
+        {
+          "path": "build/m5-someip-tsan/install/lib/libvsomeip3-cfg.so.3.7.6",
+          "sha256": "e3e0fa506d2a41c87d8ef627337b7391101e78f673ccbf118f37b72608e2c363",
+          "tsan": true,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-tsan/install/lib/libboost_atomic.so.1.85.0",
+          "sha256": "53f30ebb1168f4fe31091d4e81b063c0f5e7c55db01cd715271c4fafe8b1cf81",
+          "tsan": true,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-tsan/install/lib/libboost_filesystem.so.1.85.0",
+          "sha256": "5755f514d89851a1dd612e8ddf82ea098f2a09a9afb271c3390de7a139ef4c33",
+          "tsan": true,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-tsan/install/lib/libvsomeip3.so.3.7.6",
+          "sha256": "5fc7fac089b3b381b73528d1c12cc21108b0570dc3bbd09b84309e2108f9a2ea",
+          "tsan": true,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-tsan/install/lib/libvsomeip3-e2e.so.3.7.6",
+          "sha256": "f7da2998baea55cbbe81b1eb2528ff03cff498f572de9ab305ae59d12fbcf70c",
+          "tsan": true,
+          "asan": false,
+          "ubsan": false
+        },
+        {
+          "path": "build/m5-someip-tsan/install/lib/libvsomeip3-sd.so.3.7.6",
+          "sha256": "ebdb15e463d9cd00ac86c8449fb9636d3bbb5388d8d8da089a5d96e091aefdf9",
+          "tsan": true,
+          "asan": false,
+          "ubsan": false
+        }
+      ],
+      "bounded_busy_binary_sha256": "9402372be6a464da34fde2f6597a49f774a3c67fe5cd8232223221a0a73358e0",
+      "final_binary_sha256": "33c7391e2b6134d4559392fcb0ededd6e15b3fb287e73702b36165ee47f54fa6"
+    }
+  },
+  "final_code_commit": "921964b844747be7ee5cc62bcdb9e232f08d8798",
+  "final_sources": {
+    "tests/integration/someip/run.py": "e1e39af8590ebfc59a958c57d7e7a2c5de7563f8bc2d51463a7d8d07fcbabe5b",
+    "tests/integration/someip/build.py": "a10b5e8a4595c71ae11fcf74ac6f75c019248ffe8d783d87566aa104cc13097f",
+    "tests/integration/someip/CMakeLists.txt": "b3f374ac4ab53a5373e07fe0d094302616afee1b6d1dabdc5070b257f4465337",
+    "tests/integration/someip/allocation_fixture.hpp": "4fcbb6cc38c28ce1cfa58e1e5acb3b9542438968253580b3efd514e7f7820711",
+    "tests/integration/someip/pilot.cpp": "93eccc2f970dd3fd202a6e45df835de01d7c2b5bf748a38c2d031421840696ee"
+  }
+}

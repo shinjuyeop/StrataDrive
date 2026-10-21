@@ -4,6 +4,10 @@ Updated: 2026-10-21. Status: **HOST IO/FIFO COMPONENT LIMITED ACCEPTANCE / M4 NO
 학습자 직접 재현/설명은 **REVIEW PENDING**, system32요구/29TC·Target/전체 원격 배포는 **NOT RUN**이다.
 이 검토는 위 상태를 PASS로 바꾸지 않는다.
 
+별도 [SOME/IP Host 파일럿](test-plan/evidence/m5_someip_pilot/README.md)은 실제 IP의
+Central↔Front component 경로와 제한된 sanitizer/종료·재가입 시험을 실행한 조건부 후보다.
+M4 전체 종료, 기존 DDS 실패 해결, 정규 M5 통합 또는 Jetson/전체 시스템 수용을 뜻하지 않는다.
+
 `658562e` 후속 [DDS 종료·경고 분류](test-plan/evidence/m5_dds_shutdown_followup/README.md)는
 새 checkout의 잠금 준비 결함을 수정해 관련 Python29/29를 확인했다. SDK runtime 재실행은
 없으며 full-RHC close OPEN·64 TSan occurrences FAIL·제어 gate CLOSED를 유지한다.

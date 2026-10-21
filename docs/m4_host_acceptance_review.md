@@ -12,6 +12,10 @@ Updated:2026-10-21. **B APPROVED — Host native IO/FIFO component 한정 수용
 full-RHC 종료 OPEN·64회 경고 FAIL이 남아 DDS 정규 adapter 연결은 불가다.
 관련 Python29/29는 fresh-checkout 준비/실패 수집 검증이며 SDK 수용 근거가 아니다.
 
+별도 [SOME/IP 파일럿](test-plan/evidence/m5_someip_pilot/README.md)은 Host 두 프로세스
+component 경로의 조건부 후보 검증이다. 지정 기능과 실제 SDK 계측 결과를 확보했지만
+전체 session/보호/Target 배포는 미검증이며, 이 문서의 한정 수용이나 DDS gate를 변경하지 않는다.
+
 ## 판단과 선택지
 
 **기존 조건을 모두 유지한 M4 전체 종료는 NO-GO**다. DDS 전체 동시성 검증과 과거
