@@ -200,13 +200,15 @@ central::AllocatedCommands commands(std::uint32_t epoch,std::uint32_t sequence,s
 }
 struct Client {
     Node& node; unsigned applied=0,rejected=0,statuses=0;
+    std::uint32_t expected_epoch;
     std::ofstream trace;
-    explicit Client(Node& n,const fs::path& folder,std::uint32_t epoch):node(n),trace(folder/("transactions-"+std::to_string(epoch)+".csv")) {
+    explicit Client(Node& n,const fs::path& folder,std::uint32_t epoch):node(n),expected_epoch(epoch),trace(folder/("transactions-"+std::to_string(epoch)+".csv")) {
         trace<<"epoch,token,operation,sent,deadline,received,result_source,accepted,frames\n";
     }
     void transact(const transport::ZoneRequest& request,bool expected,const remote::OwnerPacket* override_packet=nullptr,bool malformed=false) {
         const auto packet=encode(request); node.send(work_method,override_packet?override_packet:&packet);
         const auto response=node.response(); require(response.has_value(),"missing processing result");
+        require(response->request->get_method()==work_method,"wrong result method");
         const auto t=now(); const auto m=remote::decode_owner_message(response->packet.bytes.data(),response->packet.size);
         if(malformed) {require(!m,"malformed packet accepted");++rejected;return;}
         require(m && route(*m,true),"result CRC/route/clock");
@@ -221,12 +223,13 @@ struct Client {
     }
     void status() {
         node.send(status_method); const auto response=node.response(); require(response.has_value(),"missing status");
+        require(response->request->get_method()==status_method,"wrong status method");
         auto m=remote::decode_owner_message(response->packet.bytes.data(),response->packet.size);
         require(m && route(*m,true),"status CRC/route/clock");
         auto* feedback=std::get_if<transport::Feedback>(&m->payload); require(feedback,"not canonical feedback");
         auto* frame=std::get_if<can::SteeringFrame>(feedback); require(frame,"not actual CAN feedback");
         auto decoded=can::decode_steering_frame(*frame);
-        require(decoded && decoded->kind==can::SteeringFrameKind::Actual && now()-decoded->source_time_ns<20*ms,"stale/invalid Actual");
+        require(decoded && decoded->epoch==expected_epoch && decoded->kind==can::SteeringFrameKind::Actual && now()-decoded->source_time_ns<20*ms,"stale/invalid Actual");
         ++statuses;
     }
 };
@@ -238,6 +241,7 @@ int main(int argc,char** argv) {
     const fs::path folder=argv[2]; const std::string test=argv[3]; const auto epoch=static_cast<std::uint32_t>(std::stoul(argv[4]));
     const auto prefix=folder/(std::string(argv[1])+"-"+std::to_string(epoch));
     Node node(server); bool pass=false,stopped=false; unsigned applied=0,rejected=0,statuses=0,frames=0,protection=0,fault_protection=0;
+    unsigned busy_sent=0,busy_rejected=0,busy_expired=0,busy_peak=0;
     std::string error;
     try {
         node.start(); mark(prefix.string()+".started");
@@ -327,9 +331,31 @@ int main(int argc,char** argv) {
                         c=commands(epoch,11,now()-30*ms);last={epoch,token++,c.parent.source_time_ns,c.parent.source_time_ns+20*ms,c.parent};client.transact(last,false);
                     }
                     if(test=="close-busy") {
-                        mark(folder/"busy");
+                        // An uncooperative peer is still bounded: at most eight
+                        // outstanding requests. A lost result closes this lane;
+                        // continuing blind sends after disconnect hid send loss.
+                        std::deque<std::uint64_t> pending;
+                        bool failed=false;
                         const auto until=now()+250*ms;
-                        while(now()<until) {auto p=encode(last);node.send(work_method,&p);node.pop();std::this_thread::sleep_for(1ms);}
+                        while(now()<until) {
+                            if(const auto reply=node.pop()) {
+                                const auto m=remote::decode_owner_message(reply->packet.bytes.data(),reply->packet.size);
+                                require(m && route(*m,true),"busy response CRC/route/clock");
+                                const auto* r=std::get_if<transport::TxResult>(&m->payload);
+                                require(r && r->epoch==last.epoch && r->token==last.token && r->operation==transport::operation(last.work) && !r->accepted,"busy duplicate not rejected");
+                                require(!pending.empty(),"unexpected busy result");pending.pop_front();++busy_rejected;
+                                if(busy_rejected==1) mark(folder/"busy");
+                            }
+                            while(!pending.empty() && now()-pending.front()>=20*ms) {
+                                pending.pop_front();++busy_expired;failed=true;
+                            }
+                            if(!failed && pending.size()<transport::kBudget) {
+                                auto p=encode(last);node.send(work_method,&p);pending.push_back(now());++busy_sent;
+                                busy_peak=std::max(busy_peak,static_cast<unsigned>(pending.size()));
+                            }
+                            std::this_thread::sleep_for(1ms);
+                        }
+                        require(pending.empty() && busy_sent==busy_rejected+busy_expired,"busy request bookkeeping");
                     }
                 }
                 applied=client.applied;rejected=client.rejected;statuses=client.statuses;pass=true;
@@ -342,6 +368,7 @@ int main(int argc,char** argv) {
     summary<<"{\"pass\":"<<(pass?"true":"false")<<",\"orderly_stop\":"<<(stopped?"true":"false")
       <<",\"stop_ns\":"<<stop_ns<<",\"applied\":"<<applied<<",\"rejected\":"<<rejected<<",\"statuses\":"<<statuses
       <<",\"frames\":"<<frames<<",\"protection_calls\":"<<protection<<",\"fault_protection_calls\":"<<fault_protection<<",\"overflow\":"<<(node.overflow?"true":"false")
+      <<",\"busy_sent\":"<<busy_sent<<",\"busy_rejected\":"<<busy_rejected<<",\"busy_expired\":"<<busy_expired<<",\"busy_peak\":"<<busy_peak
       <<",\"highwater\":"<<node.highwater<<",\"control_gate_open\":false,\"error\":\""<<error<<"\"}\n";
     return pass?0:1;
 }

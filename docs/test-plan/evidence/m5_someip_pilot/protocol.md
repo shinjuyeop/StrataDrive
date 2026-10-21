@@ -100,6 +100,46 @@ Release ACKs. The received Front Actual is independently validated, not fed into
 an end-to-end vehicle loop in this pilot. Minimum20ms allocator interval and30ms
 execution-gap guard remain unchanged. All three final builds use this same source.
 
+## Amendment C, after tsan-final (before tsan-fixed-layout)
+
+Normal-final10/10 and ASan-final8/8 passed. TSan-final8/8 FAILED before a usable
+pilot result: unexpected memory mapping at randomized PIE addresses, and two
+children terminated with SIGSEGV before summary. This is NOT race-free execution.
+Existing repository DDS TSan runners already use process-local `setarch x86_64 -R`;
+the [GCC instrumentation manual](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html)
+documents that launch facility. Hypothesis: fixed per-process virtual layout lets
+the existing GCC11 TSan runtime initialize. Change only this launch option, keep
+the same binary/SDK/config/oracle; run the eight fixed cases once. No global ASLR,
+kernel/security/sudoers changes, no non-PIE rebuild, no suppression or retry loop.
+An attempted read of /proc/sys/vm/mmap_rnd_bits was denied; it is not retried or
+required for this process-local comparison. No Daybreak/model-content notice occurred.
+
+## Amendment D, after tsan-fixed-layout (before bounded-busy comparisons)
+
+Fixed layout produced real SDK execution: seven PASS and one close-busy FAIL,
+zero TSan diagnostics. Both close-busy DDS-unrelated vSomeIP stop APIs returned;
+failure was SDK8192-byte queue drops: the diagnostic sender continued blind1ms
+replays after peer disconnect. This sender violated the intended bounded pending
+transaction contract (not an SDK race). Repair only that branch: cap pending at8,
+correlate rejection responses, after20ms missing response close the send lane and
+record each expected injected-peer-loss expiry. Original command bytes/deadline
+remain unchanged. The busy marker now requires a received duplicate rejection,
+so the supervisor cannot close Front before traffic actually reaches it.
+
+Run close-busy once per normal/ASan/TSan build (TSan fixed layout); no unrelated
+repeat. Require <=8 pending, sent=rejected+explicit fault expiries, both stop/join
+return while Central is alive, no SDK `[error]` or sanitizer diagnostic. The old
+failed case remains FAIL. This is a sender fix, not a queue increase or relaxed
+SDK-error oracle. Normal transaction loss/expiry still fails unconditionally.
+
+## Final receive-boundary review
+
+Code review found that status checked outer CRC/route/domain and CAN source age,
+but did not explicitly require the expected application Epoch, and replies did
+not explicitly check their method ID. Add both checks. No wire/config/timing
+change. Run one normal case per build to exercise the edited receive paths;
+these three focused regressions do not replace the earlier fixed campaign.
+
 Python tests cover fresh-checkout directory creation, oracle/failure bookkeeping
 and timeout cleanup; they are not SDK runtime tests. Whole 973/native40/timing48
 are out of scope unless product code changes require them.

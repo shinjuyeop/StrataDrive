@@ -179,13 +179,18 @@ def inside(folder, binary, case):
             result['pass']=result['pass'] and bool(rows) and all(r.get('overflow') and r.get('highwater')==8 and r.get('frames')==0 and r.get('fault_protection_calls',0)>0 for r in rows)
         if case=='delay':
             result['pass']=result['pass'] and all(r.get('summary',{}).get('frames')==0 and r.get('summary',{}).get('fault_protection_calls',0)>0 for r in result['processes'] if r['role']=='front')
-        if case=='close-busy': result['pass']=result['pass'] and result.get('sender_alive_after_front_close',False)
+        if case=='close-busy':
+            clients=[r.get('summary',{}) for r in result['processes'] if r['role']=='central']
+            result['pass']=result['pass'] and result.get('sender_alive_after_front_close',False) and bool(clients) and all(
+                0<r.get('busy_peak',0)<=8 and r.get('busy_sent')==r.get('busy_rejected',0)+r.get('busy_expired',0)
+                and r.get('busy_rejected',0)>0 for r in clients)
         save(folder/'result.json',result)
     return 0 if result['pass'] else 1
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--inside',nargs=3);p.add_argument('--node',nargs=5);p.add_argument('--capture',type=Path)
     p.add_argument('--profile',choices=['normal','asan','tsan'],default='normal');p.add_argument('--cases',nargs='+',choices=CASES,default=list(CASES))
+    p.add_argument('--fixed-layout',action='store_true',help='TSan only: process-local setarch -R, no kernel setting changes')
     p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
     if a.capture:return capture_packets(a.capture)
     if a.node:
@@ -193,9 +198,10 @@ def main():
         subprocess.run(['mount','-t','tmpfs','tmpfs','/dev/shm'],check=True)
         os.execv(a.node[0],a.node)
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
+    if a.fixed_layout and a.profile!='tsan':p.error('--fixed-layout is a TSan diagnostic launch option')
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
     binary=ROOT/f'build/m5-someip-{a.profile}/project/tests/integration/someip/someip_pilot'
-    save(out/'plan.json',{'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':15,
+    save(out/'plan.json',{'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':15,'fixed_layout':a.fixed_layout,
          'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'binary':str(binary),'start_ns':time.time_ns(),
          'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),
          'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest()
@@ -207,6 +213,7 @@ def main():
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()
                 cmd=['unshare','-Urnm',sys.executable,str(HERE),'--inside',str(dest),str(binary),case]
+                if a.fixed_layout:cmd=['setarch','x86_64','-R',*cmd]
                 code=supervise(cmd,dest,15)
                 rows.append({'case':case,'repeat':repeat+1,'exit':code})
                 save(out/'results.json',rows)
