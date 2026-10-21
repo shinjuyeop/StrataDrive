@@ -119,6 +119,23 @@ class SomeipAdapterBookkeepingTest(unittest.TestCase):
         self.assertEqual([s['reliable']['port'] for s in a['services']],[30501,30502])
         self.assertEqual([s['reliable']['port'] for s in module.config('central')['services']],[30503,30504])
 
+    def test_preinjection_protection_or_exit_fails_without_waiting_for_timeout(self):
+        import importlib.util
+        path=ROOT/'tests/integration/someip'
+        with mock.patch.dict(sys.modules,{'run':runner}), mock.patch.object(sys,'path',[str(path),*sys.path]):
+            spec=importlib.util.spec_from_file_location('front_runner_precondition',path/'front_run.py')
+            module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp);central=mock.Mock();central.poll.return_value=None
+            self.assertFalse(module.normal_prerequisite(d,central))
+            (d/'control-established').touch();self.assertTrue(module.normal_prerequisite(d,central))
+            for role in ('front','central'):
+                p=d/(role+'-protected');p.write_text('1')
+                with self.assertRaisesRegex(RuntimeError,'before declared injection'):module.normal_prerequisite(d,central)
+                p.unlink()
+            central.poll.return_value=1
+            with self.assertRaisesRegex(RuntimeError,'exited'):module.normal_prerequisite(d,central)
+
 class SdkOutcomeTest(unittest.TestCase):
     def test_only_exact_injected_lease_loss_with_protection_and_rejoin_is_expected(self):
         import importlib.util
@@ -141,5 +158,48 @@ class SdkOutcomeTest(unittest.TestCase):
                 self.assertIsNone(module.expected_injected_lease_reset(bad,'central-1.stdout',result,folder))
             (folder/'central-protected').write_text('1200000000')
             self.assertIsNone(module.expected_injected_lease_reset(line,'central-1.stdout',result,folder))
+
+class NativeWatchBookkeepingTest(unittest.TestCase):
+    def module(self):
+        spec=importlib.util.spec_from_file_location('native_oracle',ROOT/'tests/integration/someip/native_oracle.py')
+        m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
+
+    def fixture(self,folder):
+        for role,owner,cpu in [('central',7,1),('front',0,2),('plant',8,3)]:
+            info={'origin':900000000,'quiesced':1010000000,'fault_ns':0,'fault_deadline':0,'monitor':{'policy':0,'priority':0,'allowed_cpus':[0]},'owner':{'policy':0,'priority':0,'allowed_cpus':[cpu]}}
+            (folder/f'{role}-1.native.watch.json').write_text(json.dumps(info))
+            (folder/f'{role}-1.native.watch.csv').write_text('owner,slot,release,deadline,start,end,cpu,detected,requested\n'+f'{owner},0,1000000000,1004000000,1000010000,1000020000,1000,0,1000000000\n')
+            (folder/f'{role}.runtime.json').write_text(json.dumps({'pid':100,'threads':[{'tid':100,'affinity':[cpu],'policy':0,'priority':0},{'tid':101,'affinity':[0],'policy':0,'priority':0}]}))
+
+    def test_normal_deadline_miss_is_not_protection_success(self):
+        m=self.module()
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp);self.fixture(d);self.assertTrue(m.native_oracle(d,'late',{},False)['pass'])
+            p=d/'front-1.native.watch.csv';p.write_text(p.read_text().replace('1000020000','1005000000'))
+            r=m.native_oracle(d,'late',{'protected':True},False)
+            self.assertFalse(r['pass']);self.assertFalse(r['normal_timing_ok'])
+
+    def test_wrong_requested_slot_cannot_hide_a_delayed_wake(self):
+        m=self.module()
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp);self.fixture(d);p=d/'front-1.native.watch.csv'
+            p.write_text(p.read_text().replace('1000,0,1000000000','1000,0,998000000'))
+            self.assertFalse(m.native_oracle(d,'late',{},False)['pass'])
+
+    def test_missing_watch_or_wrong_actual_policy_fails(self):
+        m=self.module()
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp);self.fixture(d)
+            self.assertFalse(m.native_oracle(d,'normal',{},True)['pass'])
+            (d/'front.runtime.json').unlink()
+            self.assertFalse(m.native_oracle(d,'late',{},False)['pass'])
+
+    def test_full_queue_without_real_extra_rejection_is_not_overflow(self):
+        m=self.module();f={'rx_highwater':8,'overflow':True,'rx_rejected':1,'rx_overflow_token':1000000008,'fifo_preserved':True,'overflow_drained':8,'unprocessed_rejected':8,'rx_overflow_ns':10,'pre_shutdown_protection':11,'selected_ns':12}
+        c={'diagnostic_sent':8,'diagnostic_rejected':0,'diagnostic_expired':8}
+        self.assertTrue(m.overflow_counters_ok(f,c,True))
+        for bad in (dict(f,overflow=False),dict(f,rx_rejected=0),dict(f,fifo_preserved=False),dict(f,pre_shutdown_protection=9),dict(f,overflow_drained=7)):
+            self.assertFalse(m.overflow_counters_ok(bad,c,True))
+        self.assertFalse(m.overflow_counters_ok(f,dict(c,diagnostic_expired=7),True))
 
 if __name__=='__main__':unittest.main()

@@ -4,6 +4,7 @@
 #include "remote_leaf_endpoint.hpp"
 #include "run_lease_issuer.hpp"
 #include "epoch_store.hpp"
+#include "native_execution_watch.hpp"
 #include <filesystem>
 #include <iostream>
 #include <map>
@@ -15,6 +16,15 @@ using namespace stratadrive::someip;
 namespace {
 using Role=session::Role;
 using Clock=simulation::m4_detail::Clock;
+bool native_enabled(){return std::getenv("STRATADRIVE_NATIVE_WATCH")!=nullptr;}
+bool fifo_enabled(){return std::getenv("STRATADRIVE_NATIVE_FIFO")!=nullptr;}
+std::uint64_t run_duration(){const auto* v=std::getenv("STRATADRIVE_NATIVE_DURATION_MS");return v?std::stoull(v)*kMs:9000*kMs;}
+struct NativeIteration {
+    simulation::NativeExecutionWatch* watch;std::optional<std::size_t> job;std::uint64_t cpu;
+    NativeIteration(simulation::NativeExecutionWatch* w,std::uint64_t requested):watch(w),cpu(w?w->m4_cpu():0){if(w)job=w->begin(requested);}
+    void finish(){if(watch){watch->finish(job,cpu);watch=nullptr;}}
+    ~NativeIteration(){finish();}
+};
 constexpr remote::ClockAgreement agreement{kDomain,kDomain,0,0,true};
 void mark(const fs::path& p){
     // Main owner only. Each diagnostic transition writes once, never each poll.
@@ -105,7 +115,8 @@ struct Owners final:session::CoordinatorPort {
     std::unique_ptr<FrontEndpoint> remote_zone;
     Transport& net;PlantIO io;
     session::SessionCoordinator coordinator{*this};central::RunLeaseIssuer issuer{coordinator};
-    std::ofstream events;Trace trace;
+    struct Event {std::uint64_t ns;const char* name;std::uint32_t epoch;unsigned role;std::uint64_t value,deadline;};
+    std::vector<Event> event_rows;bool event_overflow=false;Trace trace;
     std::uint32_t epoch=0,root_seq=0,vehicle_seq=0;std::uint64_t released=0,next_management=0,last_credit=0,vehicle_release=0,lifecycle_slot=0;
     std::uint64_t armed_ns=0,protected_ns=0,selected_ns=0,last_lease_expiry=0,actual_count=0,result_count=0,accepted_results=0;
     std::uint64_t protection_token=0,protection_sent=0,release_acks=0;bool stop_credit=false;
@@ -115,8 +126,23 @@ struct Owners final:session::CoordinatorPort {
     std::uint64_t diagnostic_sent=0,diagnostic_rejected=0,diagnostic_expired=0,diagnostic_late=0,pending_expired=0,state_violations=0,pre_init_rejected=0;
     std::uint64_t last_step=0,max_poll_gap=0;
     bool freeze_normal=false;remote::ProtectionReceipt receipt;
-    explicit Owners(bool f,Transport& n,const fs::path& d,const std::string& label):front(f),folder(d),tag(label),net(n),io((d/"sil-io"/"plant.bin").string()),events(d/(tag+".events.csv")),trace(d/(tag+".transport.csv")) {
-        events<<"ns,event,epoch,role,value,deadline\n";
+    std::atomic<std::uint64_t> monitor_delay{0};
+    std::unique_ptr<simulation::NativeExecutionWatch> watch;
+    void start_watch() {
+        if(!native_enabled())return;
+        const auto origin=now();
+        watch=std::make_unique<simulation::NativeExecutionWatch>((folder/"sil-io"/(front?"watch-front.bin":"watch-central.bin")).string(),front?0:7,origin,run_duration(),fifo_enabled(),[this](std::uint32_t e){
+            gate.close();for(auto& g:leaf_gates)g.close();for(auto& z:zones)z.protection.request(e);for(auto& l:leaves)l.protection.request(e);
+        },[this]{if(const auto delay=monitor_delay.exchange(0))simulation::runtime_support::sleep_until(now()+delay);});
+        simulation::NativeExecutionWatch::configure_thread(front?2:1,fifo_enabled()?(front?18:11):0);watch->owner_info.capture();
+    }
+    ~Owners(){
+        if(watch)watch->write((folder/(tag+".native")).string());
+        std::ofstream events(folder/(tag+".events.csv"));events<<"ns,event,epoch,role,value,deadline\n";
+        for(const auto& e:event_rows)events<<e.ns<<','<<e.name<<','<<e.epoch<<','<<e.role<<','<<e.value<<','<<e.deadline<<'\n';
+    }
+    explicit Owners(bool f,Transport& n,const fs::path& d,const std::string& label):front(f),folder(d),tag(label),net(n),io((d/"sil-io"/"plant.bin").string()),trace(d/(tag+".transport.csv")) {
+        event_rows.reserve(65536);
         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
         const unsigned z=front?0:1;
         zone[z]=std::make_unique<zone::AsyncZoneOwner>(front?zone::ZoneScope::Front:zone::ZoneScope::Rear,clock,gate,zones[z],ptr);
@@ -132,7 +158,7 @@ struct Owners final:session::CoordinatorPort {
         }
         if(!front){sessions[7]=std::make_unique<simulation::SessionOwnerLoop>(Role::CentralIngress,ingress,links[7]);port.transport_trace(&trace);}
     }
-    void event(const char* name,unsigned role,std::uint64_t value=0,std::uint64_t deadline=0){events<<now()<<','<<name<<','<<epoch<<','<<role<<','<<value<<','<<deadline<<'\n';}
+    void event(const char* name,unsigned role,std::uint64_t value=0,std::uint64_t deadline=0){if(event_rows.size()<event_rows.capacity())event_rows.push_back({now(),name,epoch,role,value,deadline});else event_overflow=true;}
     std::uint64_t now_ns() noexcept override{return clock.now_ns();}
     bool quiesce_central() noexcept override {gate.close();core.request_protection(now());port.protect();return true;}
     bool commit_central(central::CoordinatorSession s) noexcept override{return core.start_session(s);}
@@ -150,7 +176,7 @@ struct Owners final:session::CoordinatorPort {
         });
     }
     void emit(const std::optional<remote::OwnerMessage>& m){
-        if(m && std::holds_alternative<session::Ack>(m->payload)){const auto& a=std::get<session::Ack>(m->payload);if(a.accepted && a.phase==session::Phase::Initialize)net.initialized_epoch[static_cast<unsigned>(a.role)].store(a.plan.epoch);event("local-ack-produced",static_cast<unsigned>(a.role),static_cast<unsigned>(a.phase),a.accepted);events.flush();}
+        if(m && std::holds_alternative<session::Ack>(m->payload)){const auto& a=std::get<session::Ack>(m->payload);if(a.accepted && a.phase==session::Phase::Initialize)net.initialized_epoch[static_cast<unsigned>(a.role)].store(a.plan.epoch);event("local-ack-produced",static_cast<unsigned>(a.role),static_cast<unsigned>(a.phase),a.accepted);}
         if(m && !net.send(*m))fail("outbound-full");
     }
     void fail(const char* why) {
@@ -166,7 +192,7 @@ struct Owners final:session::CoordinatorPort {
     void receive(remote::OwnerMessage m) {
         if(front) {
             if(const auto* c=std::get_if<session::Control>(&m.payload)) {
-                event("control-received",static_cast<unsigned>(m.to),static_cast<unsigned>(c->phase),c->plan.epoch);events.flush();
+                event("control-received",static_cast<unsigned>(m.to),static_cast<unsigned>(c->phase),c->plan.epoch);
                 if(c->phase==session::Phase::Initialize){epoch=c->plan.epoch;pre_init_rejected=net.rejected;event("pre-init-binding-rejections",0,pre_init_rejected);}
             }
             if(m.to==Role::FrontZone) {
@@ -204,6 +230,7 @@ struct Owners final:session::CoordinatorPort {
     void step(bool drop_commands=false,bool drop_results=false,bool drop_status=false,bool drop_lease=false) {
         const auto observed=now();if(last_step)max_poll_gap=std::max(max_poll_gap,observed-last_step);last_step=observed;
         physical_io();
+        if(watch){watch->epoch(epoch);if(watch->faulted())fail("native-watch-protection");}
         if(net.overflow)fail("transport-overflow");
         if(front) {
             // This priority path remains active even when normal receive consumption stops.
@@ -220,7 +247,7 @@ struct Owners final:session::CoordinatorPort {
         for(unsigned i=0;i<8;++i)if(sessions[i])sessions[i]->step();
         for(auto& l:links)while(auto a=l.acks.pop())ack(*a);
         coordinator.poll(now());
-        if(coordinator.run_enabled() && !freeze_normal) {
+        if(coordinator.run_enabled()) {
             const auto t=now();const auto plan=coordinator.plan();
             if(!released){released=epoch;gate.release(epoch);next_management=plan.enable_ns+14*kMs;event("all-eight-released",7,release_acks);}
             if(!drop_lease && !stop_credit && gate.allows(epoch) && (!last_credit || t-last_credit>=10*kMs)) {
@@ -228,8 +255,8 @@ struct Owners final:session::CoordinatorPort {
             }
             const bool due=t>=next_management;
             const auto slot=t>=plan.enable_ns+4*kMs?(t-plan.enable_ns-4*kMs)/(20*kMs)+1:0;
-            if(due && slot!=lifecycle_slot){lifecycle_slot=slot;core.receive_lifecycle({{epoch,root_seq++,t,t+60*kMs},can::BmsPowerAction::Enable},now());}
-            if(core.decision().normal_armed && t>=core.next_allocation_ns() && vehicle_release!=core.next_allocation_ns()) {
+            if(!freeze_normal && due && slot!=lifecycle_slot){lifecycle_slot=slot;core.receive_lifecycle({{epoch,root_seq++,t,t+60*kMs},can::BmsPowerAction::Enable},now());}
+            if(!freeze_normal && core.decision().normal_armed && t>=core.next_allocation_ns() && vehicle_release!=core.next_allocation_ns()) {
                 vehicle_release=core.next_allocation_ns();core.receive_vehicle({epoch,vehicle_seq++,t,t+60*kMs,.2,.02,0,false},now());
             }
             if(due)next_management=plan.enable_ns+4*kMs+((t-plan.enable_ns-4*kMs)/(10*kMs)+1)*(10*kMs);
@@ -271,34 +298,58 @@ int plant(const fs::path& folder) {
     Clock clock{true};transport::RunGate gate;transport::Protection override_signal;
     std::array<runtime::LatestSnapshot<simulation::OwnerSensors>,8> sensors;
     std::array<runtime::LatestSnapshot<simulation::OwnerActuation>,5> outputs;
-    std::vector<simulation::M4Event> events;const auto start=now();
-    simulation::m4_detail::PhysicalOwner physical{clock,gate,sensors,outputs,start,events,override_signal,1};
-    PlantIO io((folder/"sil-io"/"plant.bin").string(),true);mark(folder/"plant-ready");
-    bool pass=true;std::uint64_t previous=now(),maximum_gap=0,fault_time=0;
+    std::vector<simulation::M4Event> events;events.reserve(4000);const auto start=now();
+    simulation::m4_detail::PhysicalOwner physical{clock,gate,sensors,outputs,start,events,override_signal,1};physical.trace.reserve(4000);
+    PlantIO io((folder/"sil-io"/"plant.bin").string(),true);
+    std::unique_ptr<simulation::NativeExecutionWatch> watch;
+    std::vector<std::unique_ptr<simulation::NativeMonitorObserver>> observers;
+    if(native_enabled()) {
+        watch=std::make_unique<simulation::NativeExecutionWatch>((folder/"sil-io/watch-plant.bin").string(),8,start,18000*kMs,fifo_enabled(),[&](std::uint32_t e){override_signal.request(e);});watch->epoch(1);
+        for(const auto* name:{"central","front","plant"})observers.push_back(std::make_unique<simulation::NativeMonitorObserver>((folder/"sil-io"/(std::string("watch-")+name+".bin")).string()));
+        simulation::NativeExecutionWatch::configure_thread(3,fifo_enabled()?19:0);watch->owner_info.capture();
+    }
+    mark(folder/"plant-ready");
+    bool pass=true,delayed=false;std::string error;std::uint64_t previous=now(),maximum_gap=0,fault_time=0,requested=now();
     std::vector<std::array<std::uint64_t,3>> timing;timing.reserve(40000);
-    while(!fs::exists(folder/"stop-plant") && now()-start<18'000*kMs) {
+    try {while(!fs::exists(folder/"stop-plant") && now()-start<18'000*kMs) {
+        if(watch)simulation::runtime_support::sleep_until(requested);
+        NativeIteration iteration(watch.get(),requested);
+        if(!delayed && fs::exists(folder/"inject-model-delay")){delayed=true;events.push_back({now(),"model-delay-injected",8,gate.epoch(),0,0,61000000,0});simulation::runtime_support::sleep_until(now()+61*kMs);}
         io.update([&](PlantState& state){
             for(unsigned i=0;i<5;++i)if(state.outputs[i].source_ns)outputs[i].publish(state.outputs[i]);
-            if(state.released_epoch)gate.release(state.released_epoch);
+            if(state.released_epoch){gate.release(state.released_epoch);if(watch)watch->epoch(state.released_epoch);}
         });
+        for(auto& observer:observers)if(const auto e=observer->poll(now()))override_signal.request(e);
         const auto before=now();maximum_gap=std::max(maximum_gap,before-previous);previous=before;
         physical.step();
         if(timing.size()<timing.capacity())timing.push_back({before,now(),physical.ok()?0ULL:1ULL});
-        else {pass=false;fault_time=now();break;}
+        else {pass=false;fault_time=now();error="plant timing capacity";break;}
         if(!physical.ok()){pass=false;fault_time=now();break;}
-        io.update([&](PlantState& state){if(auto s=sensors[0].read())state.sensors=*s;});
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
-    }
+        io.update([&](PlantState& state){if(auto sample=sensors[0].read())state.sensors=*sample;});
+        iteration.finish();
+        if(watch)requested=simulation::M4ReleaseGrid{start,500000}.after(now());
+        else std::this_thread::sleep_for(std::chrono::microseconds(500));
+    }}catch(const std::exception& e){pass=false;fault_time=now();error=e.what();}
+    if(watch)watch->write((folder/"plant-1.native").string());
     std::ofstream log(folder/"physical.csv");log<<"ns,epoch,angle,pressure,torque,bus,model_epoch,model_sequence\n";
     for(const auto& r:physical.trace)log<<r.source_ns<<','<<r.epoch<<','<<r.angle_rad<<','<<r.pressure_pa<<','<<r.torque_nm<<','<<r.bus_v<<','<<r.model_epoch<<','<<r.model_sequence<<'\n';
     std::ofstream steps(folder/"plant-timing.csv");steps<<"before,after,failed\n";for(const auto& r:timing)steps<<r[0]<<','<<r[1]<<','<<r[2]<<'\n';
-    std::ofstream(folder/"plant.json")<<"{\"pass\":"<<(pass?"true":"false")<<",\"samples\":"<<physical.trace.size()<<",\"max_step_gap_ns\":"<<maximum_gap<<",\"fault_time_ns\":"<<fault_time<<",\"energy_fault\":"<<physical.fault_code()<<"}\n";return pass?0:1;
+    std::ofstream ev(folder/"plant-events.csv");ev<<"ns,event,owner,epoch,source,deadline,reference,code\n";
+    for(const auto& e:events)ev<<e.time_ns<<','<<e.kind<<','<<e.owner<<','<<e.epoch<<','<<e.source_ns<<','<<e.deadline_ns<<','<<e.reference_ns<<','<<e.code<<'\n';
+    const auto& f=physical.failure();std::ofstream diag(folder/"plant-failure.json");
+    diag<<"{\"model\":\""<<f.model<<"\",\"site\":\""<<f.site<<"\",\"call_ns\":"<<f.call_ns<<",\"return_ns\":"<<f.return_ns<<",\"component_last_success_ns\":"<<f.component_last_success_ns<<",\"previous_call_ns\":"<<f.previous_call_ns<<",\"last_success_ns\":"<<f.last_success_ns<<",\"input_ns\":"<<f.input_ns<<",\"dt_ns\":"<<f.dt_ns<<",\"epoch\":"<<f.epoch<<",\"protection\":"<<f.protection<<",\"io_attempts\":"<<io.attempts<<",\"io_busy\":"<<io.busy<<",\"io_errors\":"<<io.errors<<",\"io_errno\":"<<io.last_errno<<",\"io_error_ns\":"<<io.last_error_ns<<",\"io_first_busy_ns\":"<<io.first_busy_ns<<",\"io_last_busy_ns\":"<<io.last_busy_ns<<",\"outputs\":[";
+    for(unsigned i=0;i<5;++i){if(i)diag<<',';const auto& o=f.outputs[i];diag<<"{\"source\":"<<o.source_ns<<",\"epoch\":"<<o.epoch<<",\"steering_mode\":"<<(o.steering?static_cast<int>(o.steering->mode):-1)<<",\"brake_mode\":"<<(o.brake?static_cast<int>(o.brake->mode):-1)<<",\"drive_mode\":"<<(o.drive?static_cast<int>(o.drive->mode):-1)<<'}';}diag<<"]}\n";
+    std::ofstream(folder/"plant.json")<<"{\"pass\":"<<(pass?"true":"false")<<",\"samples\":"<<physical.trace.size()<<",\"max_step_gap_ns\":"<<maximum_gap<<",\"fault_time_ns\":"<<fault_time<<",\"energy_fault\":"<<physical.fault_code()<<",\"error\":\""<<error<<"\"}\n";return pass?0:1;
 }
 } // namespace
 int main(int argc,char** argv) {
     if(argc<3)return 2;
     const std::string role=argv[1];const fs::path folder=argv[2];
-    if(role=="bootstrap"){session::EpochStore::initialize((folder/"epochs").string());return 0;}
+    if(role=="bootstrap"){
+        session::EpochStore::initialize((folder/"epochs").string());
+        for(const auto* name:{"central","front","plant"})simulation::NativeWatchChannel channel((folder/"sil-io"/(std::string("watch-")+name+".bin")).string(),true);
+        return 0;
+    }
     if(role=="plant"){try{return plant(folder);}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
     if(argc!=5)return 2;
     const bool front=role=="front";const std::string test=argv[3],generation=argv[4],tag=role+"-"+generation;
@@ -315,7 +366,7 @@ int main(int argc,char** argv) {
         }
         if(test=="ready-timeout" && !front){check(net.ready!=3,"unexpected ready");pass=true;}
         else {
-            check(net.ready==3,"bilateral readiness timeout");ready_ns=now();mark(folder/(tag+".ready"));
+            check(net.ready==3,"bilateral readiness timeout");ready_ns=now();owners->start_watch();mark(folder/(tag+".ready"));
             if(!front && test=="invalid") {
                 const auto t=now();auto p=remote::encode_owner_message({Role::CentralIngress,Role::FrontZone,kDomain,
                     session::Control{Role::FrontZone,session::Phase::Prepare,{999,t,t+2'000*kMs,0,0},t}});
@@ -329,10 +380,17 @@ int main(int argc,char** argv) {
             }
             if(!front)owners->begin(session::EpochStore((folder/"epochs").string()).issue());
             bool injected=false,rejoined=false,invalid_sent=false,rejoin_requested=false;
-            std::uint64_t injected_ns=0,paused_until=0,full_sent=0;
+            std::uint64_t injected_ns=0,paused_until=0,full_sent=0;bool overflow_probe=false;
             std::optional<transport::ZoneRequest> prior_request;
+            std::uint64_t requested_wake=owners->watch?owners->watch->next_wake(now()):now();bool native_injected=false;
             while(!fs::exists(folder/("stop-"+role)) && now()-ready_ns<9000*kMs) {
+                if(owners->watch)simulation::runtime_support::sleep_until(requested_wake);
+                NativeIteration iteration(owners->watch.get(),requested_wake);
                 const auto t=now();
+                if(front && owners->watch && !native_injected && fs::exists(folder/"inject") && (test=="owner-pause" || test=="monitor-overrun")) {
+                    native_injected=true;owners->event("native-injection",0,test=="owner-pause"?200*kMs:6*kMs);
+                    if(test=="owner-pause")simulation::runtime_support::sleep_until(t+200*kMs);else owners->monitor_delay=6*kMs;
+                }
                 const bool fault_phase=fs::exists(folder/"inject");
                 if(t>=probe_due){net.probe_peer();probe_due=t+50*kMs;}
                 if(fault_phase && !injected){owners->event("injection",front?0:7);injected=true;injected_ns=t;paused_until=(front && test=="delay")?0:t+30*kMs;}
@@ -350,7 +408,13 @@ int main(int argc,char** argv) {
                     for(unsigned i=0;i<8;++i){auto r=*owners->last_request;r.epoch+=100;r.token=1000000000ULL+i;owners->diagnostic(r);}
                     full_sent=8;
                 }
-                if(!front && full && fs::exists(folder/"queue-full") && !owners->protected_ns)owners->fail("full-queue-protection-request");
+                if(!front && test=="close-full" && fs::exists(folder/"queue-full") && !owners->protected_ns)owners->fail("full-queue-protection-request");
+                if(!front && test=="overflow" && full_sent==8 && fs::exists(folder/"queue-full") && !overflow_probe) {
+                    // Test-only finite ninth arrival, not a larger normal pending window.
+                    auto r=*owners->last_request;r.epoch+=100;r.token=1000000008ULL;
+                    check(net.send({Role::CentralIngress,Role::FrontZone,kDomain,r}),"overflow test injection enqueue");
+                    overflow_probe=true;owners->event("overflow-extra-send",0,r.token,r.deadline_ns);
+                }
                 if(!front && test=="close-full" && full_sent==8 && owners->diagnostic_pending.empty() && now()-injected_ns<100*kMs) {
                     // Bounded uncooperative peer: one further window after the first is accounted.
                     for(unsigned i=0;i<8;++i){auto r=*owners->last_request;r.epoch+=100;r.token=1000000008ULL+i;owners->diagnostic(r);}
@@ -369,9 +433,9 @@ int main(int argc,char** argv) {
                     if(!rejoin_requested){net.ready=0;net.probe_peer(true);rejoin_requested=true;}
                     else if(net.ready==3) {
                         check(owners->protected_ns!=0,"rejoin before protection");
-                        owners.reset(); // single owner stopped; all old mailbox users are gone
+                        iteration.finish();owners.reset(); // single owner stopped; all old mailbox users are gone
                         owners=std::make_unique<Owners>(false,net,folder,tag+"-rejoined");
-                        owners->begin(session::EpochStore((folder/"epochs").string()).issue());rejoined=true;
+                        owners->start_watch();owners->begin(session::EpochStore((folder/"epochs").string()).issue());rejoined=true;
                     }
                 }
                 if(!front && rejoined && owners->armed_ns && prior_request && !invalid_sent) {
@@ -379,7 +443,7 @@ int main(int argc,char** argv) {
                 }
                 if(!front && owners->port.completed_batches()>=10 && owners->pending.empty())mark(folder/"control-established");
                 const bool healthy_case=test=="normal" || test=="late" || test=="invalid" || (test=="restart-live" && rejoined);
-                if(!front && healthy_case && owners->armed_ns && now()-owners->armed_ns>=500*kMs && owners->pending.empty()) {
+                if(!front && healthy_case && owners->armed_ns && now()-owners->armed_ns>=500*kMs && (!owners->watch || now()-ready_ns>=run_duration()) && owners->pending.empty()) {
                     check(owners->release_acks==255 && owners->port.completed_batches()>=10 && owners->accepted_results>=20 && owners->actual_count>=20,"normal real control coverage");
                     check(!owners->protected_ns && owners->core.decision().fault==central::CoordinatorFault::None,"normal control fault");
                     if(test=="invalid")check(invalid_sent && owners->diagnostic_rejected==2,"invalid replay evidence");
@@ -390,7 +454,9 @@ int main(int argc,char** argv) {
                 if(!front && owners->coordinator.state()==session::State::Failed && !owners->armed_ns)throw std::runtime_error("session failed before arm");
                 if(front && owners->selected_ns)mark(folder/"front-protected");
                 if(!front && test=="close-full" && injected && t-injected_ns>=250*kMs){pass=owners->protected_ns && owners->diagnostic_pending.empty();break;}
-                std::this_thread::sleep_for(std::chrono::microseconds(200));
+                iteration.finish();
+                if(owners->watch)requested_wake=owners->watch->next_wake(now());
+                else std::this_thread::sleep_for(std::chrono::microseconds(200));
             }
             if(front)pass=fs::exists(folder/"stop-front");
             else if(test!="normal" && test!="late" && test!="invalid" && test!="restart-live")pass=owners->armed_ns && owners->protected_ns;
@@ -409,19 +475,37 @@ int main(int argc,char** argv) {
             }
         }
         const auto until=now()+20*kMs;
+        auto cleanup_wake=owners->watch?owners->watch->next_wake(now()):now();
         do {
+            if(owners->watch)simulation::runtime_support::sleep_until(cleanup_wake);
+            NativeIteration iteration(owners->watch.get(),cleanup_wake);
             for(unsigned lane=0;lane<2;++lane)for(unsigned i=0;i<8;++i){auto m=net.pop(lane);if(!m)break;owners->receive(*m);}
             owners->step();owners->physical_io();
             if(front?owners->zone[0]->protected_selected():owners->zones[0].protection.acknowledged(owners->epoch))break;
-            std::this_thread::sleep_for(std::chrono::microseconds(200));
+            iteration.finish();
+            if(owners->watch)cleanup_wake=owners->watch->next_wake(now());else std::this_thread::sleep_for(std::chrono::microseconds(200));
         }while(now()<until);
         for(const auto& item:owners->pending){++pending_cancelled;owners->event("cancelled-on-protection",0,item.first,item.second.deadline_ns);}
         owners->pending.clear();
-        if(owners->trace.overflow){pass=false;error="trace capacity exceeded";}
+        if(owners->trace.overflow || owners->event_overflow){pass=false;error="trace capacity exceeded";}
     }
+    // Controller work has selected protection and finished cleanup. Artifact IO
+    // and SDK teardown are outside the guarded owner lifetime.
+    if(owners && owners->watch)owners->watch->stop();
     if(owners) {
         std::ofstream out(folder/(tag+".leaf-events.csv"));out<<"ns,event,owner,epoch,source,deadline,value,detail\n";
         for(const auto& leaf:owners->leaf)if(leaf)for(const auto& e:leaf->input_events())out<<e.time_ns<<','<<e.kind<<','<<e.owner<<','<<e.epoch<<','<<e.source_ns<<','<<e.deadline_ns<<','<<e.reference_ns<<','<<e.code<<'\n';
+    }
+    if(owners && owners->watch)owners->watch->write((folder/(tag+".native")).string());
+    if(!front && pass && test!="ready-timeout" && (test=="normal" || test=="late" || test=="invalid" || test=="restart-live")) {
+        // Already protected/quiesced; retain the receive endpoint for the peer's
+        // final evidence. This handshake never extends a live command deadline.
+        mark(folder/(tag+".quiesced"));const auto cleanup_deadline=now()+1000*kMs;
+        while(!fs::exists(folder/"stop-central") && now()<cleanup_deadline) {
+            for(unsigned lane=0;lane<2;++lane)for(unsigned i=0;i<8;++i){auto m=net.pop(lane);if(!m)break;owners->receive(*m);}
+            owners->step();std::this_thread::sleep_for(std::chrono::microseconds(200));
+        }
+        if(!fs::exists(folder/"stop-central")){pass=false;error="peer shutdown handshake timeout";}
     }
     closing=now();net.stop();
     std::ofstream summary(folder/(tag+".json"));
@@ -431,6 +515,6 @@ int main(int argc,char** argv) {
         <<",\"batches\":"<<(owners?owners->port.completed_batches():0)<<",\"actual_count\":"<<(owners?owners->actual_count:0)<<",\"result_count\":"<<(owners?owners->result_count:0)
         <<",\"steering_applied\":"<<(owners && front?owners->leaf[0]->received_commands():0)<<",\"brake_applied\":"<<(owners && front?owners->leaf[1]->received_commands():0)
         <<",\"expired_rejected\":"<<(owners && front?owners->remote_zone->expired:0)<<",\"rx_highwater\":"<<net.highwater[0]<<",\"authority_highwater\":"<<net.highwater[1]<<",\"max_owner_poll_gap_ns\":"<<(owners?owners->max_poll_gap:0)<<",\"stale_authority_rejected\":"<<net.stale_authority_rejected<<",\"binding_rejected\":"<<net.rejected<<",\"send_returned\":"<<net.send_returned
-        <<",\"overflow\":"<<(net.overflow?"true":"false")<<",\"error\":\""<<error<<"\"}\n";
+        <<",\"rx_rejected\":"<<net.rx_rejected[0]<<",\"rx_overflow_ns\":"<<net.rx_overflow_ns<<",\"rx_overflow_token\":"<<net.rx_overflow_token<<",\"fifo_preserved\":"<<(net.fifo_preserved?"true":"false")<<",\"overflow_drained\":"<<net.drained_count<<",\"io_attempts\":"<<(owners?owners->io.attempts:0)<<",\"io_busy\":"<<(owners?owners->io.busy:0)<<",\"io_errors\":"<<(owners?owners->io.errors:0)<<",\"overflow\":"<<(net.overflow?"true":"false")<<",\"error\":\""<<error<<"\"}\n";
     return pass?0:1;
 }

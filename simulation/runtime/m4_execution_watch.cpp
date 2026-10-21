@@ -10,7 +10,8 @@ std::uint64_t M4ReleaseGrid::after(std::uint64_t now) const {
     return now+remaining;
 }
 M4ExecutionWatch::Guard::Guard(runtime::TaskScheduleConfig config):schedule(config),monitor(schedule),rows(config.jobs) {}
-M4ExecutionWatch::M4ExecutionWatch(std::uint64_t enable,std::uint64_t stop) {
+M4ExecutionWatch::M4ExecutionWatch(std::uint64_t enable,std::uint64_t stop,std::uint16_t mask):active_mask_(mask) {
+    if(!mask || (mask & ~0x3ffU))throw std::invalid_argument("invalid active owner mask");
     if(stop<enable || stop-enable<20000000) throw std::invalid_argument("M4 guard window requires 20ms tail");
     const runtime::TaskScheduleConfig config{enable,2000000,4000000,static_cast<std::size_t>((stop-enable-20000000)/2000000+1)};
     for(std::size_t i=0;i<guards_.size();++i) {
@@ -25,6 +26,17 @@ std::optional<std::size_t> M4ExecutionWatch::begin(std::size_t owner,std::uint64
     if(!executing) return std::nullopt; // missed opportunity remains an unfinished slot
     g.rows[*next].start_ns=now; g.rows[*next].requested_wake_ns=requested_wake; return next;
 }
+std::optional<std::size_t> M4ExecutionWatch::begin_requested(std::size_t owner,std::uint64_t now,bool executing,std::uint64_t requested) {
+    if(!requested || requested>now)throw std::invalid_argument("invalid original execution target");
+    auto& g=*guards_.at(owner);
+    // newest_released clamps to the final job; a later request is not that job.
+    if(requested>=g.schedule.release(g.schedule.config().jobs-1)+g.schedule.config().period_ns)return std::nullopt;
+    const auto next=g.schedule.newest_released(requested,g.next);
+    if(!next)return std::nullopt;
+    g.next=*next+1;
+    if(!executing)return std::nullopt;
+    g.rows[*next].start_ns=now;g.rows[*next].requested_wake_ns=requested;return next;
+}
 void M4ExecutionWatch::finish(std::size_t owner,std::optional<std::size_t> job,std::uint64_t end,std::uint64_t cpu) {
     if(!job) return;
     auto& g=*guards_.at(owner); g.rows[*job].end_ns=end; g.rows[*job].cpu_ns=cpu;
@@ -35,6 +47,7 @@ std::array<std::optional<M4ExecutionFault>,10> M4ExecutionWatch::poll(std::size_
     const auto first=observer==9?0U:9U,end=observer==9?9U:10U;
     if(observer!=8 && observer!=9) return found;
     for(auto i=first;i<end;++i) {
+        if(!(active_mask_ & (1U<<i)))continue;
         auto& g=*guards_[i]; g.monitor.poll(now);
         if(!g.reported) { if(const auto f=g.monitor.first_fault()) { found[i]=M4ExecutionFault{i,*f}; g.reported=true; } }
     }
@@ -42,7 +55,7 @@ std::array<std::optional<M4ExecutionFault>,10> M4ExecutionWatch::poll(std::size_
 }
 std::vector<M4ExecutionRow> M4ExecutionWatch::rows() const {
     std::vector<M4ExecutionRow> rows;
-    for(const auto& guard:guards_) for(auto row:guard->rows) { row.detected_ns=guard->monitor.detected(row.slot); rows.push_back(row); }
+    for(std::size_t i=0;i<guards_.size();++i)if(active_mask_ & (1U<<i))for(auto row:guards_[i]->rows) {row.detected_ns=guards_[i]->monitor.detected(row.slot);rows.push_back(row);}
     return rows;
 }
 } // namespace stratadrive::simulation

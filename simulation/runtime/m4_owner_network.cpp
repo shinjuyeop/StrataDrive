@@ -5,13 +5,24 @@
 namespace stratadrive::simulation::m4_detail {
 std::uint64_t cpu_now() { timespec t{}; if(clock_gettime(CLOCK_THREAD_CPUTIME_ID,&t)!=0) throw std::runtime_error("thread CPU clock"); return static_cast<std::uint64_t>(t.tv_sec)*1000000000+static_cast<std::uint64_t>(t.tv_nsec); }
 std::uint64_t wall_now() { return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()); }
+bool PhysicalOwner::observe(bool ok,const char* model,const char* site,std::uint64_t input) {
+    const unsigned component=model[0]=='e'?0:model[0]=='d'?1:model[0]=='s'?2:3;
+    if(!ok && !failure_.call_ns) {
+        failure_={model,site,current_call_,previous_call_,last_success_,input,current_call_>=last_?current_call_-last_:0,released_epoch_,override_.pending(released_epoch_),{}};
+        failure_.return_ns=clock_.now_ns();failure_.component_last_success_ns=component_success_[component];
+        for(std::size_t i=0;i<outputs_.size();++i)if(auto out=outputs_[i].read())failure_.outputs[i]=*out;
+        events_.push_back({current_call_,"physical-model-failure",8,released_epoch_,input,0,last_success_,static_cast<int>(energy_.fault())});
+    }
+    if(ok)component_success_[component]=clock_.now_ns();
+    return ok;
+}
 void PhysicalOwner::step() {
         const auto released_at_start=gate_.epoch(); if(released_at_start>released_epoch_) released_epoch_=released_at_start;
         const bool force_at_start=override_.pending(released_epoch_);
-        const auto now=clock_.now_ns();
+        const auto now=clock_.now_ns();previous_call_=current_call_;current_call_=now;
         if(!begun_) {
             begun_=true; last_=now; motor_.begin(7,now);
-            ok_=angles_.begin(now) && pressure_.begin(now) && energy_.initialize({7,now,.63,25},0); return;
+            ok_=observe(angles_.begin(now),"steering","begin",now) && observe(pressure_.begin(now),"brake","begin",now) && observe(energy_.initialize({7,now,.63,25},0),"energy","initialize",now); if(ok_)last_success_=now;return;
         }
         if(!ok_ || now<=last_) return;
         const battery::ModelIdentity id{7,sequence_++,last_};
@@ -21,7 +32,7 @@ void PhysicalOwner::step() {
         const EvPowerInputs inputs{battery::ModelMeasurement<double>{old_torque,id,last_},battery::ModelMeasurement<double>{0,id,last_},
             battery::ModelMeasurement<EvElectricalEnvironment>{{.25,inverter},id,last_}};
         const auto stepped=energy_.step({last_,now,inputs,coils_});
-        ok_=stepped.fault==EvPowerFault::None && motor_.advance(now,false) && angles_.advance(now) && pressure_.advance(now);
+        ok_=observe(stepped.fault==EvPowerFault::None,"energy","step",last_) && observe(motor_.advance(now,false),"drive","advance",last_) && observe(angles_.advance(now),"steering","advance",last_) && observe(pressure_.advance(now),"brake","advance",last_);
         if(!ok_) return;
         OwnerSensors s; s.source_ns=now; s.angle=angles_.capture(); s.pressure=pressure_.capture(); s.torque=motor_.capture(now);
         s.power=energy_.power_observation(); s.battery=energy_.battery_observation();
@@ -35,26 +46,35 @@ void PhysicalOwner::step() {
         for(std::size_t l=0;l<outputs_.size();++l) {
             const auto out=outputs_[l].read(); if(!out || out->source_ns>now || out->source_ns==applied_[l] || out->epoch>released_epoch_) continue;
             const bool stale=now-out->source_ns>30000000; applied_[l]=out->source_ns; applied_epoch_[l]=out->epoch;
+            // An independently selected physical override has priority over a
+            // still-live ECU's normal output in this same Epoch. Do not invoke
+            // a nominal target/begin API on the model's latched protection.
+            if(force_at_start && l<3) {
+                if(l==0)ok_=ok_ && observe(angles_.hold(now),"steering","override-output",out->source_ns);
+                if(l==1)ok_=ok_ && observe(pressure_.request_protection(1000000,now),"brake","override-output",out->source_ns);
+                if(l==2)ok_=ok_ && observe(motor_.apply({drive::ActuationMode::Zero,0,std::nullopt,now}),"drive","override-output",out->source_ns);
+                continue;
+            }
             if(l==4 && out->epoch>power_driver_epoch_ && released_at_start==out->epoch) { watchdog_[4]=false; current_safe_since_=0; driver_shutdown_=false; power_driver_epoch_=0; }
-            if(out->steering) ok_=ok_ && (stale || out->steering->mode==steering::ActuationMode::Hold?angles_.hold(now):angles_.set_target(out->steering->target_rad,now));
+            if(out->steering) ok_=ok_ && observe((stale || out->steering->mode==steering::ActuationMode::Hold?angles_.hold(now):angles_.set_target(out->steering->target_rad,now)),"steering","output",out->source_ns);
             if(out->brake) {
                 // Trusted new application release clears only the modeled
                 // actuator's protection-mode latch/pending demands. begin()
                 // preserves pressure, model identity and sensor sequence.
                 // A nominal Hold or CAN packet in the old Epoch cannot do so.
-                if(out->epoch>brake_release_epoch_ && released_at_start==out->epoch) { ok_=ok_ && pressure_.begin(now); brake_release_epoch_=out->epoch; }
+                if(out->epoch>brake_release_epoch_ && released_at_start==out->epoch) { ok_=ok_ && observe(pressure_.begin(now),"brake","release-begin",out->source_ns); brake_release_epoch_=out->epoch; }
                 if(out->brake->mode!=brake::ActuationMode::Protect && brake_release_epoch_!=out->epoch) continue;
-                if(stale || out->brake->mode==brake::ActuationMode::Protect) ok_=ok_ && pressure_.request_protection(out->brake->target_pa,now);
-                else if(out->brake->mode==brake::ActuationMode::Hold) ok_=ok_ && pressure_.hold(now);
-                else ok_=ok_ && pressure_.set_target(out->brake->target_pa,now);
+                if(stale || out->brake->mode==brake::ActuationMode::Protect) ok_=ok_ && observe(pressure_.request_protection(out->brake->target_pa,now),"brake","protect-output",out->source_ns);
+                else if(out->brake->mode==brake::ActuationMode::Hold) ok_=ok_ && observe(pressure_.hold(now),"brake","hold-output",out->source_ns);
+                else ok_=ok_ && observe(pressure_.set_target(out->brake->target_pa,now),"brake","target-output",out->source_ns);
             }
-            if(out->drive) { auto application=*out->drive; application.issued_time_ns=now; if(stale) { application.mode=drive::ActuationMode::Zero; application.target_nm=0; } ok_=ok_ && motor_.apply(application); }
+            if(out->drive) { auto application=*out->drive; application.issued_time_ns=now; if(stale) { application.mode=drive::ActuationMode::Zero; application.target_nm=0; } ok_=ok_ && observe(motor_.apply(application),"drive","output",out->source_ns); }
             if(out->coils) coils_=*out->coils;
         }
         // Independent application watchdog while a Leaf itself is stopped.
-        if(applied_[0] && now-applied_[0]>30000000) ok_=ok_ && angles_.hold(now);
-        if(applied_[1] && now-applied_[1]>30000000) ok_=ok_ && pressure_.request_protection(1000000,now);
-        if(applied_[2] && now-applied_[2]>30000000) ok_=ok_ && motor_.apply({drive::ActuationMode::Zero,0,std::nullopt,now});
+        if(applied_[0] && now-applied_[0]>30000000) ok_=ok_ && observe(angles_.hold(now),"steering","output-watchdog",applied_[0]);
+        if(applied_[1] && now-applied_[1]>30000000) ok_=ok_ && observe(pressure_.request_protection(1000000,now),"brake","output-watchdog",applied_[1]);
+        if(applied_[2] && now-applied_[2]>30000000) ok_=ok_ && observe(motor_.apply({drive::ActuationMode::Zero,0,std::nullopt,now}),"drive","driver-watchdog",applied_[2]);
         for(std::size_t l=0;l<5;++l) if(l!=3 && applied_[l] && now-applied_[l]>30000000 && !watchdog_[l]) {
             watchdog_[l]=true; if(l==4) power_driver_epoch_=applied_epoch_[l]; events_.push_back({now,"output-watchdog",8,applied_epoch_[l],applied_[l],applied_[l]+30000000,applied_[l],static_cast<int>(l+2)});
         }
@@ -62,7 +82,7 @@ void PhysicalOwner::step() {
         // output driver interlock first forces torque zero, then releases coils
         // only after measured current/torque are safe; this is not an ECU ACK.
         if(watchdog_[4]) {
-            ok_=ok_ && motor_.apply({drive::ActuationMode::Zero,0,std::nullopt,now});
+            ok_=ok_ && observe(motor_.apply({drive::ActuationMode::Zero,0,std::nullopt,now}),"drive","driver-watchdog",applied_[2]);
             if(std::abs(motor_.actual_nm())<.1 && std::abs(actual.pack_current_a)<vecu::PowerControllerConfig{}.opening_current_max_a) {
                 if(!current_safe_since_) current_safe_since_=now;
                 if(now-current_safe_since_>=vecu::PowerControllerConfig{}.current_dwell_ns) {
@@ -73,11 +93,11 @@ void PhysicalOwner::step() {
             } else current_safe_since_=0;
         }
         if(force_at_start) {
-            ok_=ok_ && angles_.hold(now) && pressure_.request_protection(1000000,now) && motor_.apply({drive::ActuationMode::Zero,0,std::nullopt,now});
+            ok_=ok_ && observe(angles_.hold(now),"steering","override",applied_[0]) && observe(pressure_.request_protection(1000000,now),"brake","override",applied_[1]) && observe(motor_.apply({drive::ActuationMode::Zero,0,std::nullopt,now}),"drive","override",applied_[2]);
             if(!override_.acknowledged(released_epoch_)) events_.push_back({now,"override-applied",8,released_epoch_,0,0,0,0});
             override_.selected.store(released_epoch_,std::memory_order_release);
         }
-        last_=now;
+        last_=now;if(ok_)last_success_=now;
         if(now-last_trace_>=10000000) {
             last_trace_=now;
             trace.push_back({now-start_,now,0,false,false,false,0,0,0,angles_.actual_angle_rad(),pressure_.actual_pressure_pa(),motor_.actual_nm(),actual.bus_voltage_v,energy_.battery_state().soc});
@@ -241,7 +261,7 @@ void Network::step(std::size_t owner,std::uint64_t requested_wake) {
             }
             if(f.kind==FaultKind::Overrun && !config.wall_time) pause=true;
         }
-        const auto job=execution_watch?execution_watch->begin(owner,now,!pause,requested_wake):std::optional<std::size_t>{};
+        const auto job=execution_watch?(requested_wake?execution_watch->begin_requested(owner,now,!pause,requested_wake):execution_watch->begin(owner,now,!pause)):std::optional<std::size_t>{};
         const auto cpu_start=job?cpu_now():0;
         if(pause!=paused[owner]) { owner_events[owner].push_back({now,pause?"owner-stopped":"owner-resumed",owner,gate.epoch(),0,0,now,0}); paused[owner]=pause; }
         if(pause) return; // No session, control, self-monitor, RX, output or ACK.

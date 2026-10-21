@@ -37,6 +37,13 @@ struct Audit {
     void runnable(std::uint64_t now) { if(now!=0 && now!=last_runnable) { if(last_runnable) runnable_gap=std::max(runnable_gap,now-last_runnable); last_runnable=now; } }
     M4Timing result(std::string name);
 };
+struct PhysicalFailure {
+    const char* model="none";const char* site="none";
+    std::uint64_t call_ns=0,previous_call_ns=0,last_success_ns=0,input_ns=0,dt_ns=0;
+    std::uint32_t epoch=0;bool protection=false;
+    std::array<OwnerActuation,5> outputs{};
+    std::uint64_t return_ns=0,component_last_success_ns=0;
+};
 class PhysicalOwner {
 public:
     PhysicalOwner(Clock& clock,transport::RunGate& gate,std::array<runtime::LatestSnapshot<OwnerSensors>,session::kRoleCount>& sensors,
@@ -46,7 +53,12 @@ public:
     bool ok() const { return ok_; }
     int fault_code() const { return static_cast<int>(energy_.fault()); }
     std::vector<M4Trace> trace;
+    const PhysicalFailure& failure() const {return failure_;}
+    std::uint64_t last_success() const {return last_success_;}
 private:
+    std::array<std::uint64_t,4> component_success_{};
+    PhysicalFailure failure_;std::uint64_t previous_call_=0,current_call_=0,last_success_=0;
+    bool observe(bool ok,const char* model,const char* site,std::uint64_t input);
     Clock& clock_; transport::RunGate& gate_; std::array<runtime::LatestSnapshot<OwnerSensors>,session::kRoleCount>& sensors_;
     std::array<runtime::LatestSnapshot<OwnerActuation>,transport::kLeaves>& outputs_;
     std::vector<M4Event>& events_; transport::Protection& override_; std::uint32_t released_epoch_; std::array<bool,5> watchdog_{}; std::array<std::uint32_t,5> applied_epoch_{};

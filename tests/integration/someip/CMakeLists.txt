@@ -7,3 +7,5 @@ add_executable(someip_front_adapter front_adapter.cpp)
 set_property(TARGET someip_front_adapter PROPERTY CXX_STANDARD 20)
 target_link_libraries(someip_front_adapter PRIVATE vsomeip3 remote_leaf_endpoint run_lease_issuer epoch_store)
 stratadrive_quality(someip_front_adapter)
+
+target_compile_definitions(someip_front_adapter PRIVATE STRATADRIVE_SOMEIP_TEST_HOOKS=1)

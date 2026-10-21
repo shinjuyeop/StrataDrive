@@ -1,4 +1,5 @@
 #include "m4_async_runtime.hpp"
+#include "m4_owner_network.hpp"
 #include "session_coordinator.hpp"
 #include <gtest/gtest.h>
 #include <algorithm>
@@ -221,3 +222,61 @@ TEST_P(M4GuardWall, DeadlineIsDetectedBeforeBlockedOwnerReturns) {
 }
 INSTANTIATE_TEST_SUITE_P(Independent,M4GuardWall,::testing::Values("drive","monitor","physical"));
 } // namespace
+
+TEST(M4ExecutionWatch, DelayedWakeCompletesOriginalRequestedSlotOnly) {
+    M4ExecutionWatch watch{1000000000,1100000000,static_cast<std::uint16_t>((1U<<4)|(1U<<9))};
+    const auto job=watch.begin_requested(4,1006500000,true,1000000000);
+    ASSERT_TRUE(job);EXPECT_EQ(*job,0U);watch.finish(4,job,1006600000,10000);
+    const auto fault=watch.poll(9,1007000000);ASSERT_TRUE(fault[4]);
+    EXPECT_EQ(fault[4]->timing.job,0U);EXPECT_EQ(fault[4]->timing.deadline_ns,1004000000U);
+    const auto rows=watch.rows();EXPECT_EQ(rows[0].requested_wake_ns,1000000000U);
+    EXPECT_EQ(rows[0].end_ns,1006600000U);EXPECT_EQ(rows[1].end_ns,0U);EXPECT_EQ(rows[3].end_ns,0U);
+    EXPECT_FALSE(fault[0]);EXPECT_FALSE(fault[1]);
+}
+TEST(M4ExecutionWatch, RequestedTargetRejectsFutureAndZero) {
+    M4ExecutionWatch watch{1000000000,1100000000};
+    EXPECT_THROW(watch.begin_requested(0,1000000000,true,1000000001),std::invalid_argument);
+    EXPECT_THROW(watch.begin_requested(0,1000000000,true,0),std::invalid_argument);
+}
+
+// Observation must identify the first actual failed submodel without changing its
+// original step interval or attempting to heal/re-timestamp the physical state.
+TEST(M4PhysicalObservation, LongOriginalStepRetainsFirstFailureContext) {
+    using namespace stratadrive;
+    simulation::m4_detail::Clock clock{false};transport::RunGate gate;
+    std::array<runtime::LatestSnapshot<simulation::OwnerSensors>,8> sensors;
+    std::array<runtime::LatestSnapshot<simulation::OwnerActuation>,5> outputs;
+    std::vector<simulation::M4Event> events;transport::Protection protection;
+    simulation::m4_detail::PhysicalOwner model{clock,gate,sensors,outputs,clock.now_ns(),events,protection,1};
+    model.step();ASSERT_TRUE(model.ok());const auto success=clock.now_ns();
+    clock.logical+=61000000;model.step();ASSERT_FALSE(model.ok());
+    const auto first=model.failure();EXPECT_STREQ(first.model,"energy");EXPECT_STREQ(first.site,"step");
+    EXPECT_EQ(first.call_ns,success+61000000);EXPECT_EQ(first.previous_call_ns,success);
+    EXPECT_EQ(first.last_success_ns,success);EXPECT_EQ(first.input_ns,success);EXPECT_EQ(first.dt_ns,61000000U);
+    clock.logical+=1000000;model.step();EXPECT_EQ(model.failure().call_ns,first.call_ns);
+    EXPECT_EQ(model.failure().input_ns,success);EXPECT_EQ(events.size(),1U);
+}
+TEST(M4PhysicalObservation, IndependentOverrideRejectsFreshNominalOutputInSameEpoch) {
+    using namespace stratadrive;
+    simulation::m4_detail::Clock clock{false};transport::RunGate gate;gate.release(1);
+    std::array<runtime::LatestSnapshot<simulation::OwnerSensors>,8> sensors;
+    std::array<runtime::LatestSnapshot<simulation::OwnerActuation>,5> outputs;
+    std::vector<simulation::M4Event> events;transport::Protection protection;
+    simulation::m4_detail::PhysicalOwner model{clock,gate,sensors,outputs,clock.now_ns(),events,protection,1};
+    model.step();clock.logical+=1000000;
+    simulation::OwnerActuation command;command.epoch=1;command.source_ns=clock.now_ns();command.brake=brake::Actuation{brake::ActuationMode::Target,0,command.source_ns};outputs[1].publish(command);
+    model.step();ASSERT_TRUE(model.ok());protection.request(1);clock.logical+=1000000;model.step();ASSERT_TRUE(model.ok());ASSERT_TRUE(protection.acknowledged(1));
+    clock.logical+=1000000;command.source_ns=clock.now_ns();command.brake->issued_time_ns=clock.now_ns();outputs[1].publish(command);
+    model.step();EXPECT_TRUE(model.ok());EXPECT_TRUE(protection.acknowledged(1));EXPECT_EQ(model.failure().call_ns,0U);
+    // A subsequent genuine higher release can recover; the same-Epoch output cannot.
+    gate.release(2);clock.logical+=1000000;command.epoch=2;command.source_ns=clock.now_ns();command.brake->issued_time_ns=clock.now_ns();outputs[1].publish(command);
+    model.step();EXPECT_TRUE(model.ok());EXPECT_FALSE(protection.pending(2));
+}
+
+TEST(M4ExecutionWatch, RequestedAfterFiniteWindowDoesNotCompleteLastSlot) {
+    M4ExecutionWatch watch{1000000000,1100000000,1U};
+    EXPECT_FALSE(watch.begin_requested(0,1100000000,true,1082000000));
+    const auto rows=watch.rows();ASSERT_EQ(rows.size(),41U);
+    EXPECT_EQ(rows.back().release_ns,1080000000U);EXPECT_EQ(rows.back().start_ns,0U);
+    const auto fault=watch.poll(9,1100000000);ASSERT_TRUE(fault[0]);
+}
