@@ -1,0 +1,5 @@
+find_package(vsomeip3 3.7.6 EXACT REQUIRED)
+add_executable(someip_pilot pilot.cpp)
+set_property(TARGET someip_pilot PROPERTY CXX_STANDARD 20)
+target_link_libraries(someip_pilot PRIVATE vsomeip3 owner_wire remote_run_gate front_startup_control control_allocation)
+stratadrive_quality(someip_pilot)
