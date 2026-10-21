@@ -1,0 +1,145 @@
+.EF...F..F.FFEFE.FE..F
+======================================================================
+ERROR: test_array_result_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 93, in test_array_result_preserves_all_36
+    def test_array_result_preserves_all_36(self): self.check("array", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 72, in check
+    rows = json.loads((output/"results.json").read_text())
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpizkisalh/result/results.json'
+
+======================================================================
+ERROR: test_null_result_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 94, in test_null_result_preserves_all_36
+    def test_null_result_preserves_all_36(self): self.check("null", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 72, in check
+    rows = json.loads((output/"results.json").read_text())
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpyrcm7sy6/result/results.json'
+
+======================================================================
+ERROR: test_process_exit_is_retained (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 105, in test_process_exit_is_retained
+    def test_process_exit_is_retained(self): self.check("process-exit", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 82, in check
+    if kind == "process-exit": self.assertEqual(rows[0]["runner_exit"], 7)
+KeyError: 'runner_exit'
+
+======================================================================
+ERROR: test_string_result_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 95, in test_string_result_preserves_all_36
+    def test_string_result_preserves_all_36(self): self.check("string", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 72, in check
+    rows = json.loads((output/"results.json").read_text())
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp9kksjir5/result/results.json'
+
+======================================================================
+FAIL: test_bool_metric_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 102, in test_bool_metric_preserves_all_36
+    def test_bool_metric_preserves_all_36(self): self.check("bool-metric", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 70, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : ": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0], "invalid_accepted": 0, "expired_echoes": 1, "central": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "zone": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "diagnostic_errors": []}
+
+
+======================================================================
+FAIL: test_codes_type_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 99, in test_codes_type_preserves_all_36
+    def test_codes_type_preserves_all_36(self): self.check("codes-type", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 70, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : ": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0], "invalid_accepted": 0, "expired_echoes": 1, "central": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "zone": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "diagnostic_errors": []}
+
+
+======================================================================
+FAIL: test_missing_fields_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 96, in test_missing_fields_preserves_all_36
+    def test_missing_fields_preserves_all_36(self): self.check("missing-fields", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 70, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : ": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0], "invalid_accepted": 0, "expired_echoes": 1, "central": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "zone": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "diagnostic_errors": []}
+
+
+======================================================================
+FAIL: test_missing_role_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 100, in test_missing_role_preserves_all_36
+    def test_missing_role_preserves_all_36(self): self.check("missing-role", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 70, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : ": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0], "invalid_accepted": 0, "expired_echoes": 1, "central": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "zone": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "diagnostic_errors": []}
+
+
+======================================================================
+FAIL: test_negative_metric_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 103, in test_negative_metric_preserves_all_36
+    def test_negative_metric_preserves_all_36(self): self.check("negative-metric", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 70, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : ": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0], "invalid_accepted": 0, "expired_echoes": 1, "central": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "zone": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "diagnostic_errors": []}
+
+
+======================================================================
+FAIL: test_probe_exit_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 104, in test_probe_exit_preserves_all_36
+    def test_probe_exit_preserves_all_36(self): self.check("probe-exit", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 70, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : ": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0], "invalid_accepted": 0, "expired_echoes": 1, "central": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "zone": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "diagnostic_errors": []}
+
+
+======================================================================
+FAIL: test_role_type_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 101, in test_role_type_preserves_all_36
+    def test_role_type_preserves_all_36(self): self.check("role-type", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 70, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : ": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0], "invalid_accepted": 0, "expired_echoes": 1, "central": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "zone": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "diagnostic_errors": []}
+
+
+======================================================================
+FAIL: test_wrong_field_type_preserves_all_36 (middleware_probe_test.MiddlewareProbeExitTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 97, in test_wrong_field_type_preserves_all_36
+    def test_wrong_field_type_preserves_all_36(self): self.check("wrong-type", 1)
+  File "/d/shin/StrataDrive/tests/unit/middleware_probe_test.py", line 70, in check
+    self.assertEqual(r.returncode, expected, r.stdout[-500:]+r.stderr[-1500:])
+AssertionError: 0 != 1 : ": "zenoh", "condition": "loaded", "repetition": 2, "verdict": "PASS", "codes": [0, 0], "invalid_accepted": 0, "expired_echoes": 1, "central": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "zone": {"cpu": 1, "affinity_count": 1, "cpu1": 1, "policy": 0, "sent": 100, "received": 103, "accepted": 100, "rejected": 3, "echo_mismatch": 0, "channel_failures": 0}, "diagnostic_errors": []}
+
+
+----------------------------------------------------------------------
+Ran 22 tests in 2.149s
+
+FAILED (failures=8, errors=4)

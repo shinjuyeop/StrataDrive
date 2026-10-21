@@ -66,8 +66,10 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 [원격 owner 계약](icd/owner_wire_v1.md)·global credit/실제 Leaf actor component와 DDS/Zenoh netns 후보 probe를 구현·실행했다.
 과거 TSan native9개 중1 FAIL은 원인 미확정으로 유지하며 [M4 종료 검토](m4_exit_review.md)는 NOT CLOSED다. 후속 [pending/expiry 계약](adr/ADR-0059-pending-command-allocation-settlement.md)과 진단 종료 코드 수정은 구현·검증했고 새 source의 Normal/ASan·UBSan, TSan 경계·wall, 고정40회·48회 결과를 [별도 근거](test-plan/evidence/m4_settlement/README.md)에 둔다. M5 제어 adapter는 미착수이며, 원래32req/29TC와 Target/학습자 상태도 유지한다.
 [DDS 실제 수명 검증](test-plan/evidence/m4_dds_lifetime/README.md) 후에도 전체 M4 종료는 NO-GO다.
-[Host IO/FIFO 한정 수용·예외 이관안](m4_host_acceptance_review.md)은 PROPOSED이며 사용자 결정 전에는 적용하지 않는다.
-M5 transport qualification gate와 이후 제어 adapter 순서는 검토안에 명시했고 구현은 미착수다.
+[Host IO/FIFO 한정 수용 B안](m4_host_acceptance_review.md)은 `7bbafc7` 검토 뒤 사용자 승인으로 적용했다.
+M4 전체 NOT CLOSED, 과거 실패/경고 OPEN·Target/system NOT RUN을 유지하며 M5 transport qualification에 착수한다.
+[새 qualification42회](test-plan/evidence/m5_dds_qualification/README.md)는23 PASS/19 FAIL이며 close/20ms 전달·경고 조건이 미충족이다.
+DDS qualification gate 충족 전 정규 제어 adapter는 보류한다. 충족 뒤 추가 승인 없이 기존 Central↔Front 연결 순서로 진행한다.
 MBD M6→M8·AUTOSAR/Target 확장 순서는 유지한다. 전체 system TC는 NOT RUN이다.
 
 배치 계획은 **Host PC + Jetson 한 대 내부 여러 vECU**다. Target 성능 검증에서

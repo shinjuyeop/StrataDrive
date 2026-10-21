@@ -1,0 +1,669 @@
+[
+  {
+    "case": "pass",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "pass",
+      "build/m5-dds-qualification/runner-fixtures/pass"
+    ],
+    "exit": 0,
+    "planned": 36,
+    "retained": 36,
+    "passed": 36,
+    "failed": 0,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "PASS",
+      "codes": [
+        0,
+        0
+      ],
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "runner_exit": 0,
+      "diagnostic_errors": []
+    }
+  },
+  {
+    "case": "array",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "array",
+      "build/m5-dds-qualification/runner-fixtures/array"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "raw_result": [],
+      "verdict": "FAIL",
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "result must be a JSON object",
+        "workload did not PASS"
+      ]
+    }
+  },
+  {
+    "case": "null",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "null",
+      "build/m5-dds-qualification/runner-fixtures/null"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "raw_result": null,
+      "verdict": "FAIL",
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "result must be a JSON object",
+        "workload did not PASS"
+      ]
+    }
+  },
+  {
+    "case": "string",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "string",
+      "build/m5-dds-qualification/runner-fixtures/string"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "raw_result": "PASS",
+      "verdict": "FAIL",
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "result must be a JSON object",
+        "workload did not PASS"
+      ]
+    }
+  },
+  {
+    "case": "missing-fields",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "missing-fields",
+      "build/m5-dds-qualification/runner-fixtures/missing-fields"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "codes must contain two integer process exit codes",
+        "invalid_accepted must be a nonnegative integer",
+        "expired_echoes must be a nonnegative integer",
+        "central must be a summary object",
+        "zone must be a summary object"
+      ]
+    }
+  },
+  {
+    "case": "wrong-type",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "wrong-type",
+      "build/m5-dds-qualification/runner-fixtures/wrong-type"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "codes": [
+        0,
+        0
+      ],
+      "invalid_accepted": "0",
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "invalid_accepted must be a nonnegative integer"
+      ]
+    }
+  },
+  {
+    "case": "verdict-type",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "verdict-type",
+      "build/m5-dds-qualification/runner-fixtures/verdict-type"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "codes": [
+        0,
+        0
+      ],
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "verdict must be PASS or FAIL",
+        "workload did not PASS"
+      ]
+    }
+  },
+  {
+    "case": "codes-type",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "codes-type",
+      "build/m5-dds-qualification/runner-fixtures/codes-type"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "codes": [
+        0,
+        "0"
+      ],
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "codes must contain two integer process exit codes"
+      ]
+    }
+  },
+  {
+    "case": "missing-role",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "missing-role",
+      "build/m5-dds-qualification/runner-fixtures/missing-role"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "codes": [
+        0,
+        0
+      ],
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "zone must be a summary object"
+      ]
+    }
+  },
+  {
+    "case": "role-type",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "role-type",
+      "build/m5-dds-qualification/runner-fixtures/role-type"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "codes": [
+        0,
+        0
+      ],
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": [],
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "zone must be a summary object"
+      ]
+    }
+  },
+  {
+    "case": "bool-metric",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "bool-metric",
+      "build/m5-dds-qualification/runner-fixtures/bool-metric"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "codes": [
+        0,
+        0
+      ],
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": true,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "zone.received must be a nonnegative integer"
+      ]
+    }
+  },
+  {
+    "case": "negative-metric",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "negative-metric",
+      "build/m5-dds-qualification/runner-fixtures/negative-metric"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "codes": [
+        0,
+        0
+      ],
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": -1,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "zone.received must be a nonnegative integer"
+      ]
+    }
+  },
+  {
+    "case": "probe-exit",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "probe-exit",
+      "build/m5-dds-qualification/runner-fixtures/probe-exit"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "codes": [
+        0,
+        66
+      ],
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "probe process exit was nonzero"
+      ]
+    }
+  },
+  {
+    "case": "process-exit",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "process-exit",
+      "build/m5-dds-qualification/runner-fixtures/process-exit"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "codes": [
+        0,
+        0
+      ],
+      "invalid_accepted": 0,
+      "expired_echoes": 1,
+      "central": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "zone": {
+        "cpu": 1,
+        "affinity_count": 1,
+        "cpu1": 1,
+        "policy": 0,
+        "sent": 100,
+        "received": 103,
+        "accepted": 100,
+        "rejected": 3,
+        "echo_mismatch": 0,
+        "channel_failures": 0
+      },
+      "runner_exit": 7,
+      "diagnostic_errors": [
+        "runner exit 7"
+      ]
+    }
+  },
+  {
+    "case": "invalid-json",
+    "argv": [
+      "/usr/bin/python3",
+      "tests/unit/middleware_probe_test.py",
+      "--fixture",
+      "invalid-json",
+      "build/m5-dds-qualification/runner-fixtures/invalid-json"
+    ],
+    "exit": 1,
+    "planned": 36,
+    "retained": 36,
+    "passed": 35,
+    "failed": 1,
+    "first": {
+      "candidate": "dds",
+      "condition": "normal",
+      "repetition": 0,
+      "verdict": "FAIL",
+      "missing_result": "JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+      "runner_exit": 0,
+      "diagnostic_errors": [
+        "codes must contain two integer process exit codes",
+        "invalid_accepted must be a nonnegative integer",
+        "expired_echoes must be a nonnegative integer",
+        "central must be a summary object",
+        "zone must be a summary object",
+        "workload did not PASS"
+      ]
+    }
+  }
+]

@@ -9,6 +9,7 @@
 #include <dds/ddsi/ddsi_entity_index.h>
 #include <dds/ddsi/ddsi_domaingv.h>
 #include "dds__entity.h"
+#include <dds/ddsi/ddsi_whc.h>
 #include "packet.h"
 #include <assert.h>
 #include <pthread.h>
@@ -39,7 +40,7 @@ struct context {
     struct ddsi_domaingv *gv;
     ddsi_guid_t guid;
     _Atomic int phase;
-    bool violate;
+    bool violate, watch_whc;
     dds_entity_t writer;
     uint64_t delete_ns, deleted_ns;
     uint64_t acquired_ns, last_access_ns, scope_end_ns;
@@ -63,7 +64,7 @@ static void *reader(void *arg) {
     ddsi_thread_state_awake(ts, c->gv);
     struct ddsi_writer *wr = ddsi_entidx_lookup_writer_guid(c->gv->entity_index, &c->guid);
     assert(wr);
-    atomic_store_explicit(&watched, (uintptr_t)wr, memory_order_relaxed);
+    atomic_store_explicit(&watched, (uintptr_t)(c->watch_whc ? (void *)wr->whc : (void *)wr), memory_order_relaxed);
     atomic_store_explicit(&held, 1, memory_order_relaxed);
     c->acquired_ns = now_ns();
     atomic_store_explicit(&c->phase, 1, memory_order_relaxed);
@@ -87,6 +88,7 @@ static void *reader(void *arg) {
     do {
         ddsrt_mutex_lock(&wr->e.lock);
         assert(memcmp(&wr->e.guid, &c->guid, sizeof(c->guid)) == 0);
+        if(c->watch_whc){struct ddsi_whc_state st;wr->whc->ops->get_state(wr->whc,&st);assert(st.max_seq>=st.min_seq);}
         ddsrt_mutex_unlock(&wr->e.lock);
         c->last_access_ns = now_ns(); ++c->reads;
         assert(!atomic_load_explicit(&freed_ns, memory_order_relaxed));
@@ -108,7 +110,8 @@ static void *deleter(void *arg) {
 }
 int main(int argc, char **argv) {
     const bool violate = argc == 2 && strcmp(argv[1], "--use-after-asleep") == 0;
-    assert(argc == 1 || violate);
+    const bool watch_whc = argc == 2 && strcmp(argv[1], "--whc") == 0;
+    assert(argc == 1 || violate || watch_whc);
     /* Install once before DDS creates threads; libc allocation semantics stay. */
     ddsrt_set_allocator((ddsrt_allocation_ops_t){malloc, calloc, realloc, observed_free});
     const dds_entity_t pp = dds_create_participant(51, NULL, NULL); assert(pp > 0);
@@ -117,7 +120,7 @@ int main(int argc, char **argv) {
     dds_entity *entity;
     assert(dds_entity_pin(writer, &entity) == DDS_RETCODE_OK);
     struct context c = {.gv = &entity->m_domain->gv, .guid = ((dds_writer *)entity)->m_wr->e.guid,
-                        .violate = violate, .writer = writer};
+                        .violate = violate, .watch_whc = watch_whc, .writer = writer};
     dds_entity_unpin(entity);
     pthread_t thread; assert(pthread_create(&thread, NULL, reader, &c) == 0);
     wait_phase(&c, 1);

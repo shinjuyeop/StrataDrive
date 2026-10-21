@@ -1,0 +1,93 @@
+{
+  "purpose": "Attempt to exercise new timeout cleanup bookkeeping with previous raw-restart executable, one fixed attempt",
+  "driver_exit": 0,
+  "functional": "PASS",
+  "post_check_exit": 1,
+  "post_check": "FAIL: expected timeout did not recur; assertion failed. Error-path bookkeeping was NOT exercised in this trial; not a fix claim or qualification PASS.",
+  "results": {
+    "case": "restart",
+    "control_gate_open": false,
+    "processes": [
+      {
+        "role": "central",
+        "epoch": 42,
+        "exit": 0,
+        "summary": {
+          "functional": true,
+          "control_gate_open": false,
+          "epoch": 43,
+          "sent": 60,
+          "received": 45,
+          "accepted": 44,
+          "rejected": 1,
+          "old": 0,
+          "stale": 1,
+          "failures": 0,
+          "overflow": 0,
+          "max_ingress": 1,
+          "max_result": 0,
+          "callback_calls": 46,
+          "callback_delete_begin_ns": 0,
+          "callback_delete_end_ns": 0,
+          "availability_loss_ns": 510808025520357,
+          "whc_snapshots": 95
+        }
+      },
+      {
+        "role": "zone",
+        "epoch": 42,
+        "exit": 0,
+        "summary": {
+          "functional": true,
+          "control_gate_open": false,
+          "epoch": 42,
+          "sent": 0,
+          "received": 20,
+          "accepted": 4,
+          "rejected": 16,
+          "old": 0,
+          "stale": 16,
+          "failures": 0,
+          "overflow": 0,
+          "max_ingress": 8,
+          "max_result": 4,
+          "callback_calls": 21,
+          "callback_delete_begin_ns": 0,
+          "callback_delete_end_ns": 0,
+          "availability_loss_ns": 0,
+          "whc_snapshots": 0
+        }
+      },
+      {
+        "role": "zone",
+        "epoch": 43,
+        "exit": 0,
+        "summary": {
+          "functional": true,
+          "control_gate_open": false,
+          "epoch": 43,
+          "sent": 0,
+          "received": 61,
+          "accepted": 44,
+          "rejected": 17,
+          "old": 1,
+          "stale": 17,
+          "failures": 0,
+          "overflow": 0,
+          "max_ingress": 8,
+          "max_result": 4,
+          "callback_calls": 62,
+          "callback_delete_begin_ns": 0,
+          "callback_delete_end_ns": 0,
+          "availability_loss_ns": 510808425015795,
+          "whc_snapshots": 0
+        }
+      }
+    ],
+    "old_peer_exit": 0,
+    "explicit_epoch43_ns": 510808102361517,
+    "functional": "PASS",
+    "process_exit_ok": true
+  },
+  "retry": false
+}

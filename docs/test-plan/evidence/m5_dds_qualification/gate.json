@@ -1,0 +1,48 @@
+{
+  "host_acceptance": "B APPROVED by user after7bbafc7; Host native IO/FIFO component only; M4 whole NOT CLOSED",
+  "DDS_control_gate": "CLOSED",
+  "control_adapter_started": false,
+  "conditions": {
+    "communications_close_restart": "NOT SATISFIED: raw restart close timeout3 builds; normal20ms all60 delivery failed in normal/ASan intrusive and ASan reduced observer; coordinated restart contract passes3 builds functionally but TSan FAIL",
+    "warnings_explained_or_fixed": "NOT SATISFIED: bucket and WHC scoped vtime evidence; observed proxy/lease allocation/access/free order; remote/lease/TKMAP and9 OTHER warning occurrences not individually closed",
+    "no_unexplained_memory_warning": "FAIL: TSan warning original logs retained; no suppression/annotation/SDK atomic rewrite",
+    "pinned_configuration": "Diagnostic source11.0.1 e54e991, three SDK library hashes unchanged and build/run options recorded; real production adapter NOT BUILT/NOT RUN"
+  },
+  "NOT_RUN": [
+    "Central Front control adapter",
+    "new production timing48",
+    "new native40",
+    "new C++973 full normal/ASan",
+    "full973 TSan",
+    "Jetson/Target",
+    "whole system32req/29TC",
+    "learner direct review"
+  ],
+  "new_open": [
+    "OPEN-M5-DDS-CLOSE-01 full reliable RHC / awake receive / GC wait during public reader close",
+    "OPEN-M5-DDS-DELIVERY-01 observed20ms diagnostic delivery miss, source-expiry rejection preserved",
+    "OPEN-M4-MWTSAN-01 inherited and extended warning-path qualification"
+  ],
+  "preserved_open": [
+    "OTHER loaded timing failure",
+    "OPEN-M4-TIM-01",
+    "OPEN-M4-TSAN-01"
+  ],
+  "actual_runtime_denominator": {
+    "cohort_v6": 24,
+    "followup_v7": 6,
+    "lifetimes_v8": 6,
+    "final_v9": 6,
+    "PASS": 23,
+    "FAIL": 19,
+    "gdb_additional": 1,
+    "pre_execution_build_setup_failures": 5
+  },
+  "python": "137/137 PASS = prior120 +14 schema/process +3 diagnostic bookkeeping; separate from42 SDK runs",
+  "additional_cleanup_probe": {
+    "driver_exit": 0,
+    "post_check_exit": 1,
+    "status": "FAIL to exercise intended timeout path; raw case completed, no retry"
+  },
+  "operational_note": "User reports Daybreak authentication required; additional investigation stopped after confirmation. Existing source/results retained. No authentication workaround or model/access change attempted."
+}

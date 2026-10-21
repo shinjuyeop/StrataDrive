@@ -22,6 +22,11 @@ Due 배분은 보류하되 기존 적용 명령 expiry·원래 TX deadline·allo
 별도 SDK 진단 분모다. [실제 결과/실패/수명 CSV](evidence/m4_dds_lifetime/README.md)를 따르며
 TSan FAIL과 고의 UAF 검출을 SDK PASS로 합치지 않는다. System TC 상태는 변경하지 않는다.
 
+사용자 B 승인 후 M5 diagnostic 연결4개를 추가해 component CSV는 **100개 연결**이다.
+[새 실제42회·packet/object CSV·원본·gate](evidence/m5_dds_qualification/README.md)는
+23 PASS/19 FAIL이며 정상 제어 gate CLOSED다. Python137과 실제 SDK 분모는 구분한다.
+M4 전체·Target·system NOT RUN/학습자 상태를 변경하지 않는다.
+
 다음은 이전 단계의 추적성 확장 이력이다.
 **구현된 component의 추적성**은 [함수·실제 시험·판정 기준 CSV](component_traceability.csv),
 [normal/sanitizer 실제 결과56개](evidence/m4_faults/component_results.csv), [commit·환경·재현·고장/복구·timing 수치](evidence/m4_faults/README.md)로 연결한다.

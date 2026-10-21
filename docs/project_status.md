@@ -1,8 +1,30 @@
 # Project status
 
-Updated: **2026-10-20**. **M3 — IN PROGRESS**를 유지하며 **M4 Central/Zone component 구현**을 진행한다.
+Updated: **2026-10-21**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 DDS QUALIFICATION IN PROGRESS**다.
 [README](../README.md)는 프로젝트 소개와 실행 진입점이며, **이 문서가 현재 구현 상태·최신 시험 분모·다음 작업의 기준**이다. 과거 ADR/학습·품질 기록의 수치는 당시 범위로 유지한다.
 단계별 일정은 [로드맵](roadmap.md), 날짜별 시험 이력·도구·로그 경로는 [품질 기록](quality_policy.md)에 둔다.
+
+사용자는 `7bbafc7` 검토 뒤 [B안](m4_host_acceptance_review.md)을 명시적으로 승인했다.
+검증된 Host native IO/FIFO component만 한정 수용하고 **M4 전체 NOT CLOSED**를 유지한다.
+OTHER loaded 실패·과거 FIFO/native 실패·DDS 경고는 원본과 함께 OPEN 예외로 관리한다.
+DDS 통신·종료·재시작 및 경고별 수명 검증은 **M5 정규 제어 연결 전 필수 gate**다.
+Ubuntu/CPU/FIFO 배치·2ms 실행 기회·4ms deadline·command expiry·20ms envelope는 불변이다.
+학습자 REVIEW PENDING, Target/전체 시스템 NOT RUN은 그대로다.
+`9136c1f`는 middleware result의 최상위/필수 필드/타입 검사를 추가했다.
+추가14개 실제 runner-process 회귀를 포함해 runner 단계 Python **134/134 PASS**이며,
+22개 focused 시험은 수정 전10 PASS/8 FAIL/4 ERROR→수정 후22 PASS다. 기존120개 이름/assertion을 유지했다.
+원본 result JSON·구문 오류·process exit를 보존하고 예정36개를 모두 수집한다.
+
+최신 [M5 DDS qualification 근거](test-plan/evidence/m5_dds_qualification/README.md)는
+24+6+6+6회 **42 attempts /23 PASS·19 FAIL**다. 초기5회 build/setup 실패는 runtime NOT RUN으로
+별도 보존했다. GDB 추가1회와 timeout-cleanup 경로를 재현하지 못한 추가1회도 별도 기록했다.
+실제 bucket/WHC·Proxy/lease/mutex 생성·접근·quiescence·free 관측을 확장했고 Normal/ASan 수명
+시험은 통과했지만 TSan 경고는 남는다. v6 raw restart는 세 빌드에서 close timeout,
+v7의 명시적 송신 중지/drain→epoch43 재준비는 기능 통과·old42 거부, TSan은 FAIL이다.
+계측을 줄인 ASan 정상 통신도20ms 전체 전달 조건을 놓친 실행이 있어 **DDS control gate CLOSED**다.
+정규 adapter는 미착수다. bookkeeping3개 추가 후 최신 전체 Python **137/137 PASS**다.
+사용자가 Daybreak 인증 요구를 확인한 뒤 추가 조사는 보류하고 완료한 코드·결과를 보존했다.
+이는 M4 기술 조건 변경이나 이미 실행한 시험의 NOT RUN 재분류가 아니다.
 
 앞선 `d3e7f6d` 사용자 고정 수집213425의
 [OTHER1+FIFO10 OFF/ON11쌍](test-plan/evidence/m4_kernel_campaign/completed_213425/README.md)은
@@ -23,11 +45,11 @@ SDK11.0.1의 실제 생성→lookup→unlink→quiescence→mutex/free를 분리
 두 프로세스 wrapper도 ASan 정상/overflow2 PASS, TSan2 FAIL을 보존한다.
 Writer 한 경로의 계측 공백 근거를 확보했지만 bucket/proxy/WHC 전체 안전성은 OPEN이다.
 Middleware runner의 FAIL/경고 종료코드0 결함은 `1677f85`로 수정했다.
-신규8개는 수정 전2 PASS/5 FAIL/1 ERROR→8 PASS, 최신 전체 Python **120/120 PASS**다.
+신규8개는 수정 전2 PASS/5 FAIL/1 ERROR→8 PASS, 당시 전체 Python **120/120 PASS**다.
 초기 lifetime harness의12개 setup 실패도 별도 보존했다. 제품 코드·SDK 알고리즘·버전 변경은 없다.
 기존6개 runtime/test 바이너리 SHA가 동일하여 C++973·TSan108+9·timing48 근거를 원래 identity로
 재사용하고 새 실행으로 세지 않는다. [Host IO/FIFO 한정 수용안](m4_host_acceptance_review.md)은
-**PROPOSED / 사용자 결정 대기**다. 기존 전체 종료는 NO-GO이며 **M4 NOT CLOSED**를 유지한다.
+당시 **PROPOSED**였고 이번 사용자 승인으로 위 한정 범위에 적용했다. 전체 종료는 NO-GO이며 **M4 NOT CLOSED**다.
 
 ## Milestone 현황
 
@@ -37,8 +59,9 @@ Middleware runner의 FAIL/경고 종료코드0 결함은 `1677f85`로 수정했�
 | M1 — DBC·vCAN | TECHNICAL CHECKS PASS / REVIEW PENDING | Wire baseline 채택, 학습자 설명·직접 재현 |
 | M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
 | M3 — Timing·실행 | IN PROGRESS / HOST REVIEW COMPLETE | [실행 기준 선택](m3_acceptance_review.md); 일반 sanitizer 타이밍 실패 2건·학습자 수용 및 Target/E2E 후속 |
-| M4 — Central/Zone | IN PROGRESS / COMPONENT IMPLEMENTATION | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결; 실제 Zone health·독립 status/상실 연결; 단일 coordinator·8-role session INIT/rejoin 위에9개 정상 owner runtime 연결·정상/고장/종료/복구 검사; 공통 owner/방향별 고장·joined 재가입·M3 독립 guard 연결 검사;release 위상 보완/책임 분리·owner-wire/remote Leaf credit·실제 actor 보호 검사; timing·native/SDK TSan 예외 OPEN, [종료 검토](m4_exit_review.md) 진행 |
-| M5–M13 | PLANNED | DDS → 차량/CARLA → control·diagnostics·AI·보드 비교 |
+| M4 — Central/Zone | HOST NATIVE IO/FIFO COMPONENT LIMITED ACCEPTANCE / WHOLE NOT CLOSED | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결; 실제 Zone health·독립 status/상실 연결; 단일 coordinator·8-role session INIT/rejoin 위에9개 정상 owner runtime 연결·정상/고장/종료/복구 검사; 공통 owner/방향별 고장·joined 재가입·M3 독립 guard 연결 검사;release 위상 보완/책임 분리·owner-wire/remote Leaf credit·실제 actor 보호 검사; timing·native/SDK TSan 예외 OPEN, [종료 검토](m4_exit_review.md) 진행 |
+| M5 — DDS | TRANSPORT QUALIFICATION IN PROGRESS / CONTROL GATE CLOSED | 승인한 B안에 따라 수명·통신·종료·재시작을 검증; 조건 충족 전 정규 제어 adapter enable 금지 |
+| M6–M13 | PLANNED | 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 [MBD 방법](engineering_plan.md#model-based-design-path)은 계획에 채택했다. 첫 대상은 Central 종방향 제어이며
 M6 모델/MIL→M8 C++ 동등성/차량 SIL 순서다. 도구·생성 경로는 TBD-16, 모델/검증 실행은 NOT RUN이다.
@@ -92,6 +115,7 @@ Steering TrackingError와 Brake ResponseError는 정상 응답 계약 위반을 
 | 최신 settlement 후 timing (`97afb35`) | 동일48회 **42 PASS/6 FAIL/0 BLOCKED**; 설정·부하·release grid·buffer control48/48. OTHER loaded normal6 FAIL, FIFO24/24·intentional fault24/24 PASS. 이전 FIFO 누락 원인은 여전히 미확정이며 이번 미재현으로 닫지 않음. 원래 deadline 불변·Host timing 수용 PENDING |
 | M4 kernel 관측 | compact-v2 사용자 실행3쌍/6 workload 모두 FAIL로 보존. 두 쌍은 end marker EBADF,185513쌍은 OFF243/ON159 miss·729726 event·유실0·**VALID**. 최초 CPU1 조향 사례: timer hard-expiry 초과3.714µs, wake→CPU2.856ms, body1.125µs. CPU 대기 중 최신 slot9로 넘어가 slot8 미완료, 원래 deadline 후65.184µs 검출·이후4.895µs physical override. 이 OTHER 관측의 지연 위치 확인이며 FIFO 원인/전체 수용과 구분. `eecc1d7` 후속212418은 CPU9 유실로 INVALID였다. 보완 후213425의11쌍 모두 VALID·FIFO20 PASS·주입 전 miss0, user20/20·marker/정리·유실0을 확인했다. OTHER191/186 miss는 FAIL로 유지하며 과거 FIFO 원인은 미재현·OPEN. [최신 고정 수집](test-plan/evidence/m4_kernel_campaign/completed_213425/README.md). [근거·CSV·그림](test-plan/evidence/m4_kernel_valid/README.md) |
 | 통신 후보 | 이전 v1 30/36·v2 36/36, wrapper ASan4/4·TSan4 FAIL·SDK 재계측 DDS2 FAIL 유지. 새 DDS 공식 `SANITIZER=thread`4 FAIL, helper vendor3 경고/C11 control3 clean/의도적 race3 검출. 후속 실제 Writer 수명 시험은 normal3/ASan3 PASS·TSan3 FAIL이며 한 경로의 GC 계측 공백 근거다. bucket/proxy/WHC 전체 안전성은 미확정. wrapper ASan2 PASS/TSan2 FAIL, runner 오류 종료 수정·Python120 PASS. [새 수명/판정 근거](test-plan/evidence/m4_dds_lifetime/README.md). Zenoh Rust1.97.1·nightly/std 확보, TCP baseline4/full TSan4 PASS; 동일 nightly·probe·runtime matched partial4 FAIL/full4 PASS. 계측 공백의 재현 근거이며 과거 배포 binary/전체 feature 수용은 별도. [원본/재현](test-plan/evidence/m4_sdk_followup/README.md), **OPEN-M4-MWTSAN-01** |
+| M5 DDS qualification | [새42회·두 추가 진단·원본·packet/object CSV](test-plan/evidence/m5_dds_qualification/README.md):23 PASS/19 FAIL. 실제 bucket/WHC/proxy·lease 수명 관측과 staged restart를 추가했지만 full-RHC close·20ms 전달·미확정 TSan 경고가 남아 정규 제어 gate CLOSED. 제품 source/SDK pin·기존2ms/4ms/envelope 불변. 최신 Python137 PASS. 새 production timing/Target/system NOT RUN |
 | 독립 감시·실제 적용 | 기존2ms 기회·4ms 완료 guard 불변. `97afb35`의 intentional fault24/24 PASS: 원래 deadline→검출0.003282–0.084379ms·검출→물리 override0.000936–0.986748ms. 정상6 FAIL에서 보호가 동작해도 timing PASS로 합치지 않음; 자기 body/논리 clock과 구분 |
 | 추적성·공유 근거 | [함수→실제 GTest→판정·결과93개](test-plan/evidence/m4_settlement/final/component_results.csv), [수정 전후·source·환경·재현·정상/고장/복구 CSV/그래프·원본 로그](test-plan/evidence/m4_settlement/README.md). 이전966개와41/7은 [계약 검토](test-plan/evidence/m4_contract_review/README.md),948개·872개는 당시 이력으로 유지 |
 | M3 수용 검토 | Host IO 동반/FIFO 기준 선택, 원본 96회 재분석·판정 동일. 전체 timing 수용은 PENDING |
@@ -151,7 +175,7 @@ OS Task/CAN·native 시한은 유지하고, 새 추가 Host timing 5 ms 판정�
 
 ## 다음 작업
 
-1. **M4 종료 결정:** [종료 checklist](m4_exit_review.md)의 TIM/native/SDK 세 OPEN은 유지한다. DDS 실제 Writer 경로를 검증했고 정상·ASan은 통과했지만 TSan 및 bucket/proxy/WHC 검증이 남아 **전체 종료 NO-GO / M5 adapter 미착수**다. [구체적 수용안](m4_host_acceptance_review.md)의 A는 기존 차단 유지, B는 Host native IO/FIFO component 한정 수용과 미확정 사건의 OPEN 예외·DDS qualification gate 이관이다. B를 조건부 권고하지만 지원 범위/종료 조건 변경이므로 사용자 결정 전에는 적용하지 않는다. B 결정 뒤 첫 단위는 정상 제어 gate를 닫은 두 프로세스 DDS 수명·transport qualification이며, 통과 뒤 기존 순서의 Central↔Front 제어 adapter로 진행한다. 과거 FIFO/native 실패를 미재현만으로 닫거나 같은 수집을 새 가설 없이 반복하지 않는다.
+1. **승인 범위와 M5 gate:** [B안](m4_host_acceptance_review.md)은 사용자 승인으로 적용했다. Host native IO/FIFO component만 한정 수용하며 M4 전체 종료는 아니다. TIM/native 미확정 사건은 OPEN 예외, DDS는 M5 정규 제어 전 필수 gate다. 두 프로세스/버킷·WHC·Proxy 수명 진단42회를 실행했다. full-RHC close timeout·20ms 전달 실패·미확정 경고가 남아 현재 gate는 CLOSED다. Daybreak 인증 요구 확인 뒤 추가 조사는 보류했다. 통신·종료·재시작 통과, 실제 사용 경로의 경고별 수정 또는 구체적 계측 한계 근거, 설명되지 않은 메모리 경고 부재와 SDK build/config 연결을 충족하면 추가 승인 없이 Central↔Front 제어 adapter로 진행한다. 미충족 시 gate를 닫고 진단을 계속한다.
 2. **M3 타이밍 예외 해소:** OPEN-M3-01/02의 원본 실패를 유지하고 수집한 VALID kernel trace의 timer→wakeup→switch 근거를 재사용한다. 과거 FIFO 실패 당시 chain은 없어 인과관계가 미확정이다. 재발 시 원래 identity/deadline과 kernel chain을 함께 확보하며 가설 없는 반복은 하지 않는다. PREEMPT_RT 비교는 Target 후속 실험이며 M4 준비가 M3 전체 수용을 뜻하지 않는다. 학습자 직접 재현·설명도 남아 있다.
 3. **ARM64 배포 준비:** Host PC + Jetson 한 대 내부 여러 vECU 배치를 유지한다. Jetson 일반 커널/PREEMPT_RT 동일 workload 비교는 Target 성능 검증 PLANNED / NOT RUN이다. 이번 커널 교체·MCU 이식은 없다.  보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. Target 검증은 배포 단계, RTE/BSW는 별도 pilot과 연결한다.
 4. **MBD 준비·후속 pilot:** 현재 M4 통합을 진행하고 M5 통신 경계를 준비하면서 제어 interface·도구/모델 검토를 병행한다. M6 Simple Vehicle에서 종방향 모델/MIL을 만들고 M8에서 C++ 동등성과 차량 SIL을 검증한다. [채택 범위](adr/ADR-0052-model-based-design-development-path.md)는 방법/계획이며 구현·Simulink/자동 생성 도입 완료가 아니다.

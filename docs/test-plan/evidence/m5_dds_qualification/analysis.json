@@ -1,0 +1,104 @@
+{
+  "cohorts": {
+    "cohort-v6": {
+      "normal": {
+        "PASS": 6,
+        "FAIL": 2,
+        "warnings": 0
+      },
+      "asan-ubsan": {
+        "PASS": 6,
+        "FAIL": 2,
+        "warnings": 0
+      },
+      "tsan": {
+        "PASS": 0,
+        "FAIL": 8,
+        "warnings": 58
+      }
+    },
+    "followup-v7": {
+      "normal": {
+        "PASS": 2,
+        "FAIL": 0,
+        "warnings": 0
+      },
+      "asan-ubsan": {
+        "PASS": 1,
+        "FAIL": 1,
+        "warnings": 0
+      },
+      "tsan": {
+        "PASS": 0,
+        "FAIL": 2,
+        "warnings": 18
+      }
+    },
+    "lifetimes-v8": {
+      "normal": {
+        "PASS": 2,
+        "FAIL": 0,
+        "warnings": 0
+      },
+      "asan-ubsan": {
+        "PASS": 2,
+        "FAIL": 0,
+        "warnings": 0
+      },
+      "tsan": {
+        "PASS": 0,
+        "FAIL": 2,
+        "warnings": 7
+      }
+    },
+    "final-v9": {
+      "normal": {
+        "PASS": 2,
+        "FAIL": 0,
+        "warnings": 0
+      },
+      "asan-ubsan": {
+        "PASS": 2,
+        "FAIL": 0,
+        "warnings": 0
+      },
+      "tsan": {
+        "PASS": 0,
+        "FAIL": 2,
+        "warnings": 15
+      }
+    }
+  },
+  "object_observations": {
+    "normal": {
+      "objects": 14,
+      "missing_allocation": 0,
+      "missing_free": 0,
+      "observed_scope_violations": 0
+    },
+    "asan-ubsan": {
+      "objects": 14,
+      "missing_allocation": 0,
+      "missing_free": 0,
+      "observed_scope_violations": 0
+    },
+    "tsan": {
+      "objects": 14,
+      "missing_allocation": 0,
+      "missing_free": 0,
+      "observed_scope_violations": 0
+    }
+  },
+  "warning_families": {
+    "BUCKET-PUBLISH": 11,
+    "BUCKET-GC": 16,
+    "OTHER-OPEN": 9,
+    "REMOTE-PUBLISH": 33,
+    "REMOTE-LEASE": 18,
+    "WHC-GC": 3,
+    "WRITER-GC": 4,
+    "TKMAP": 4
+  },
+  "packet_observations": 2478,
+  "interpretation": "No source/binary identity conflation; warnings count is not defect count. Observed scope ordering does not prove all remote/lease callback interleavings safe."
+}

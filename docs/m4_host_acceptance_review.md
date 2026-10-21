@@ -1,8 +1,10 @@
 # M4 Host IO/FIFO 한정 수용 검토안
 
-Date:2026-10-20. **PROPOSED / 사용자 결정 대기**.
-현재 승인 상태는 **M4 NOT CLOSED / M5 adapter 미착수**다.
-이 문서는 종료 기준·기본 policy·지원 범위를 변경하지 않는다.
+Updated:2026-10-21. **B APPROVED — Host native IO/FIFO component 한정 수용**.
+승인 근거: `7bbafc7` 검토 뒤 사용자의 명시적 B안 승인.
+**M4 전체 NOT CLOSED / DDS 제어 gate CLOSED**다. M5 transport qualification은 착수한다.
+승인은 아래 Host component 범위에만 적용한다. 기본 OTHER policy·Ubuntu/CPU/FIFO 배치·
+2ms 기회/4ms deadline·명령 expiry/20ms envelope와 보호 조건은 변경하지 않는다.
 [현재 상태](project_status.md), [기존 종료 기준](m4_exit_review.md),
 [새 DDS 수명 검증](test-plan/evidence/m4_dds_lifetime/README.md)을 함께 본다.
 
@@ -11,16 +13,16 @@ Date:2026-10-20. **PROPOSED / 사용자 결정 대기**.
 **기존 조건을 모두 유지한 M4 전체 종료는 NO-GO**다. DDS 전체 동시성 검증과 과거
 두 실행 실패의 원인이 미확정이다. 다만 **검증된 Host native component를 IO/FIFO
 조건으로 한정 수용하는 안은 권고할 수 있다.** 수용은 원인 해결 선언과 다르며 아래
-명시적 예외 이관과 M5 진입 순서에 대한 사용자 승인이 필요하다.
+명시적 예외 이관과 M5 진입 순서를 사용자가 승인했다. DDS 안전성 승인·전체 M4 종료는 아니다.
 
 | 결정 | 기존 조건에 대한 변경 | 영향과 권고 |
 | --- | --- | --- |
-| A. 기존 M4 종료 조건 유지 | 변경 없음. timing/native/SDK 세 OPEN의 기존 차단 유지 | 현재 적용 상태. 원인/SDK 수명 검증을 계속하며 M5 adapter 보류 |
-| B. Host IO/FIFO component 한정 수용 | Host component 범위를 아래 profile로 명시. OTHER loaded 정상 운전 수용 제외를 공식 승인하고 TIM/native 미확정 사건은 OPEN 예외로 이관. SDK 검증은 M5의 transport 단계 진입 gate로 이관 | **조건부 권고안**. Host 기술 단위 종료와 M5 transport qualification 착수가 가능. DDS 정규 제어 adapter의 정상 명령 enable은 SDK gate 이후. 전체 M3/Target/system/학습자 종료를 뜻하지 않음 |
+| A. 기존 M4 종료 조건 유지 | 변경 없음. timing/native/SDK 세 OPEN의 기존 차단 유지 | 비선택 대안으로 보존. 원래 전체 종료 조건은 여전히 미충족 |
+| B. Host IO/FIFO component 한정 수용 | Host component 범위를 아래 profile로 명시. OTHER loaded 정상 운전 수용 제외를 공식 승인하고 TIM/native 미확정 사건은 OPEN 예외로 이관. SDK 검증은 M5의 transport 단계 진입 gate로 이관 | **승인·적용**. Host 한정 기술 단위 수용과 M5 transport qualification 착수. DDS 정규 제어 adapter의 정상 명령 enable은 SDK gate 이후. 전체 M3/Target/system/학습자 종료를 뜻하지 않음 |
 
 B를 선택해도 기존 실패를 PASS나 RESOLVED로 바꾸지 않는다. 과거 사건과 DDS 경고는
-추적·재발 판정·후속 차단이 유지된다. 현재 문서에는 B가 **승인되지 않은 제안**으로만
-반영된다. M4 전체 무조건 종료나 M5 정규 제어 허용을 권고하는 근거는 없다.
+추적·재발 판정·후속 차단이 유지된다. B는 이 범위로 승인됐고 OTHER 부하 실패·과거 FIFO/native 사건·DDS 경고는
+원본과 함께 OPEN 예외로 유지한다. M4 전체 무조건 종료나 M5 정규 제어 허용을 권고하는 근거는 없다.
 
 ## 재사용 가능한 소스·시험 근거
 
@@ -56,7 +58,7 @@ OTHER2회는191/186 miss·FAIL이며 정상 arm 전에 보호했다.
 새 DDS adapter로 실행 부하/스레드/프로세스가 달라지면 그때 별도 원래 프로토콜을
 적용한다. 이번 DDS ASan/TSan·수명 시험은 기능/동시성 진단이며 timing 수용 결과가 아니다.
 
-## 제안하는 Host 실행 조건
+## 승인한 Host 실행 조건
 
 | 항목 | 한정 수용 profile과 실제 근거 |
 | --- | --- |
@@ -73,8 +75,8 @@ OTHER2회는191/186 miss·FAIL이며 정상 arm 전에 보호했다.
 현재 관측된 OTHER loaded 실패는 주로 CPU 배정 대기다. 대표 구간에서 timer hard-expiry
 초과2.268µs, runnable 대기3.559ms(부하 process3.536ms), body1.102µs였다. 기존 최신-slot
 선택 때문에 기회를 놓친 것이며 짧은 body만으로2ms/4ms 계약을 만족한다고 판단할 수 없다.
-이 부하 조건의 OTHER 정상 제어는 **미충족**이다. 이를 제외하려면 B의 범위 변경을
-명시적으로 승인해야 한다. 이 관측으로 과거 FIFO 사건의 OS 원인을 확정하지 않는다.
+이 부하 조건의 OTHER 정상 제어는 **미충족**이다. B 승인으로 이 부하 조건의 OTHER 정상 운전은 한정 수용 범위에서
+명시적으로 제외했다. 실패 판정 자체는 변경하지 않는다. 이 관측으로 과거 FIFO 사건의 OS 원인을 확정하지 않는다.
 
 ## 미확정 사건의 처리안
 
@@ -88,7 +90,7 @@ OTHER2회는191/186 miss·FAIL이며 정상 arm 전에 보호했다.
 과거 FIFO/native 실패 로그의 빠진 사건은 새 실행으로 복원할 수 없다.
 기존2ms/4ms/expiry/envelope를 완화하거나 기록을 RESOLVED로 바꾸지 않는다.
 
-## B 승인 이후의 M5 첫 단위와 판정
+## 승인 후 M5 첫 단위와 제어 gate 판정
 
 1. **첫 착수: pinned DDS의 두 process transport/lifetime qualification.** Central↔Front의
    bounded ingress/result lane, session/epoch identity, 정상 종료·중간 peer 종료·재시작을
@@ -105,11 +107,22 @@ OTHER2회는191/186 miss·FAIL이며 정상 arm 전에 보호했다.
    독립 원격 감시의 보호와 stopped owner ACK 부재를 확인하고 새 workload의 기존 타이밍
    프로토콜을 별도로 실행한다. 기간/횟수/조건은 구현 전 프로토콜에 고정한다.
 
-이는 SDK의 기존 미완료 조건을 명시적 후속 gate로 옮기는 제안이며 새로운 M4 차단을
-추가하지 않는다. B가 승인되기 전에는 M5 구현을 시작하지 않는다.
+SDK의 기존 미완료 조건을 승인에 따라 M5 정규 제어 연결 전 필수 gate로 관리한다.
+통신·종료·재시작 계약 통과, 실제 경로의 경고별 수정 또는 구체적 계측 한계/수명 근거,
+설명되지 않은 메모리·수명 경고 부재, 정확한 SDK build/config 연결을 모두 충족해야 한다.
+충족 시 추가 승인 없이 Central↔Front 제어 adapter를 진행한다. 미충족 시 gate를 닫고 진단을 계속한다.
 
 Host component 수용과 별개로 **학습자 REVIEW PENDING**, Jetson·전체 원격 배포·
 32 requirement/29 system TC는 **NOT RUN**이다. 배치는 Host PC + Jetson 한 대 안의 여러
 vECU를 유지한다. Jetson 일반 kernel/PREEMPT_RT 비교, NIC/IPC/SocketCAN·clock·CPU/RT
 priority 실제 적용과 새 workload의 성능은 Target에서 검증한다. MBD/AUTOSAR 순서는
 기존 ADR·로드맵을 유지한다.
+
+## 승인 이후 실제 진행
+
+[2026-10-21 qualification 결과](test-plan/evidence/m5_dds_qualification/README.md)는
+42회23 PASS/19 FAIL이다. 실제 bucket/WHC/Proxy·lease 관측과 명시적 staged restart를
+추가했지만 raw close timeout·20ms 전달 실패·미확정 TSan 경고가 남는다.
+**B 한정 수용 유지 / M4 전체 NOT CLOSED / DDS control gate CLOSED**다.
+정규 adapter는 미착수이며 Daybreak 인증 요구 확인 뒤 추가 조사는 보류했다.
+학습자·Target·system 상태와 과거 OPEN은 승인 전후 모두 유지한다.
