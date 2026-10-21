@@ -1808,3 +1808,24 @@ Runtime atomic 수정 후 재검사는 기존 Drive 경고만 남았다. Compile
 기능/소스/환경 원본은 `build/m4-fault-atomic`, timing48개는 `build/m4-timing-final`, TSan/정적 분석/Release/preflight 로그는 공유 안내에 명시했다.
 물리/통신은 같은 프로세스의 typed mailbox·atomic bypass 범위다. 원격 분리/DDS·remote lease/clock·MBD/AUTOSAR 실행,
 기존 timing 원인 분석과 학습자 직접 재현/수용은 후속이다.32개 requirement/29개 system TC **NOT RUN**을 유지한다.
+
+### 2026-10-21 — DDS Host 운용 후보·진단 결함 후속
+
+`c10688d`/origin 동기·clean tree에서 시작했다. [사전 조건·대조·원본](test-plan/evidence/m5_dds_operating_profile/README.md)에
+설계/코드/적용값을 구분했다. CPU1 공용5ms full0/3, minimal2/3, CPU1/2 minimal5ms·20ms 각각3/3.
+첫 DATA가 heartbeat 이전이라 거부되고100ms 재전송으로 초기17개가 만료되는 경로를 확인했다.
+선택형 양방향 transport readiness 후 같은 full/CPU1/5ms3/3 PASS, 준비 미송신은 원래 setup cap
+내 FAIL·go 없음·실제 cleanup 확인. 정규 session/arm/control gate와 별개다.
+
+진단의 writer-only 삭제가 reader take를 중단하던 결함 수정: 전1회 received20/rejected104,
+후 세 build 삭제 뒤40건 추가 수신/rejected0. QoS public readback·reader rejected/lost·thread 실제
+정책/affinity·write duration을 보완하고 최소 observer는 고정 event buffer를 사용한다.
+새 runtime45 attempts=수정 전1+비교/종료38+readiness6. 이전42회23/19는 그대로다.
+Normal/ASan 후보 close/restart·지속 송신/포화 close 기능 통과는 과거 close 해결을 뜻하지 않는다.
+TSan 경고64 occurrences는 FAIL/OPEN; 의도된 peer SIGKILL은 sanitizer INCOMPLETE로 별도 표시한다.
+
+관련 Python29/29, ASan/TSan 원래 expiry·실제 actor 보호 component 각각11/11 PASS.
+새 강제 timeout 회귀는 실제 자식 둘의 kill/wait/저장을 검사한다. 모든 새 명령/결과의 원래
+20ms/inner expiry 검사는 유지했다. 제품 코드·SDK pin/알고리즘 변경 없음;973/native40/timing48
+재실행 없음. Host 한정 수용·M4 NOT CLOSED·DDS control gate CLOSED·과거 OPEN/Target NOT RUN 유지.
+이전 Daybreak 중단을 인계했으며 새 인증 안내는 없었다. 실패한 API URL 조회는 중단·기록했다.

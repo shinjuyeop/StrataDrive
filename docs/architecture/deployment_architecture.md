@@ -2,6 +2,12 @@
 
 Status: 배포 경계 **DEFINED**, runtime **PLANNED**. 실행 가능한 container/systemd/network 설정은 M0에 없다.
 
+2026-10-21 구현 경계: 정규 Target 배포는 여전히 PLANNED다. M4는 Host의 owner thread/
+component와 논리 owner-wire 연결, M5는 Host의 두 process/netns/veth DDS echo 진단까지다.
+이 진단의 Central/Zone 이름은 실제 allocator/gateway/Leaf 배포를 뜻하지 않는다.
+[실제 CPU·주기·QoS·운용 후보 대조](../test-plan/evidence/m5_dds_operating_profile/README.md)를
+참조한다. Host + Jetson 한 대 내부 여러 vECU라는 원래 배포를 변경하지 않는다.
+
 ## Physical deployment
 
 | Node | 역할 | 미결정 사항 |

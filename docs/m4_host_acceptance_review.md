@@ -126,3 +126,9 @@ priority 실제 적용과 새 workload의 성능은 Target에서 검증한다. M
 **B 한정 수용 유지 / M4 전체 NOT CLOSED / DDS control gate CLOSED**다.
 정규 adapter는 미착수이며 Daybreak 인증 요구 확인 뒤 추가 조사는 보류했다.
 학습자·Target·system 상태와 과거 OPEN은 승인 전후 모두 유지한다.
+
+`c10688d` 이후 [환경·운용 후보 후속](test-plan/evidence/m5_dds_operating_profile/README.md)에서
+실제 QoS/thread/status 관측, partial writer 삭제 뒤 reader 정지 결함 수정,
+첫 heartbeat 전 DATA/100ms 재전송에 대한 양방향 transport 준비를 검사했다.
+새 성공은 기존42회 실패나 full-RHC close/TSan OPEN을 닫지 않는다.
+Host 한정 수용·M4 NOT CLOSED·DDS control gate CLOSED는 동일하다.

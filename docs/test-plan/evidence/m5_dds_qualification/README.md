@@ -1,5 +1,9 @@
 # M5 gate-closed DDS qualification follow-up
 
+후속: [Host 환경·운용 후보 점검](../m5_dds_operating_profile/README.md)은 별도45 attempts와
+진단 수정/비교 근거다. 이 문서의42회23 PASS/19 FAIL·초기 setup 실패·추가 진단·Daybreak
+중단 이력을 변경하지 않는다. 후속 후보의 close 미재현으로 이 기록의 close/TSan OPEN을 닫지 않는다.
+
 2026-10-21. Reference `7bbafc7`; runner fix `9136c1f` plus exact diagnostic
 sources in [provenance](provenance.json) and each archived cohort's metadata.
 **User approved B: Host native IO/FIFO component LIMITED ACCEPTANCE.**

@@ -1,5 +1,11 @@
 # Ethernet / DDS ICD baseline
 
+2026-10-21 구현 보충: 아래 PLANNED는 정규 제어/Target 배포 상태다. 선택형 Host 진단에는
+CycloneDDS11.0.1 direct C API·고정512byte Packet IDL·owner-wire codec/netns echo가 있다.
+실제 Central↔Front 제어 adapter는 없으며 [control gate](../project_status.md)는 CLOSED다.
+[환경·QoS 적용값과 메시지별 보관/유실/재시도 요구 대조](../test-plan/evidence/m5_dds_operating_profile/README.md)는
+운용 후보 검토이며 이 ICD의 모든 메시지에 동일 QoS를 채택한 결정이 아니다.
+
 Status: semantic contract **DEFINED**. Vendor, ROS 2 vs direct DDS, IDL/topic/binary schema와
 runtime은 **TBD-05 / PLANNED**. Target 내부 Central–Zone은 logical Ethernet + DDS 계열,
 Host–Target은 Physical Ethernet이다. Host bridge transport에 DDS를 강제하지 않는다.

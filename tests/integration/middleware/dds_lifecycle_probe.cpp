@@ -2,6 +2,7 @@
 #include "owner_wire.hpp"
 #include "packet.h"
 #include "dds_allocation_trace.hpp"
+#include "dds_lifecycle_observer.hpp"
 #include <dds/dds.h>
 extern "C" void lifecycle_snapshot(dds_entity_t writer,std::uint64_t out[6]);
 extern "C" int lifecycle_proxy_snapshot(dds_entity_t reader,std::uint64_t out[9]);
@@ -36,6 +37,31 @@ void snapshot(dds_entity_t writer,std::ofstream& out,const char* stage){
     for(unsigned i=2;i<6;++i)out<<','<<values[i];
     out<<'\n';
 }
+bool transport_ready(dds_entity_t writer,dds_entity_t reader,bool central,std::uint32_t epoch,
+                     const std::string& prefix,std::uint64_t setup) {
+    // Diagnostic bootstrap only: distinct from owner-wire messages and control authority.
+    strata_Packet local{};local.size=16;
+    std::memcpy(local.data,"SD_DIAG_READY",13);local.data[13]=central?0:1;
+    assert(epoch==42);local.data[14]=42;local.data[15]=1;
+    const auto begin=now();
+    const bool withhold=!central && std::getenv("SD_TEST_WITHHOLD_READY");
+    if(!withhold)assert(dds_write(writer,&local)==0);
+    bool received=false;
+    while(now()-setup<10000*ms) {
+        strata_Packet p{};void* samples[1]={&p};dds_sample_info_t info[1]{};
+        const auto count=dds_take(reader,samples,info,1,1);assert(count>=0);
+        if(count && info[0].valid_data) {
+            auto expected=local;expected.data[13]=central?1:0;
+            assert(p.size==expected.size && std::memcmp(p.data,expected.data,16)==0);
+            received=true;break;
+        }
+        sleep();
+    }
+    std::ofstream out(prefix+".transport-ready.json");
+    out<<"{\"begin_ns\":"<<begin<<",\"end_ns\":"<<now()<<",\"received\":"<<(received?"true":"false")
+       <<",\"sent\":"<<(withhold?"false":"true")<<",\"control_gate_open\":false}\n";
+    out.close();assert(out);return received;
+}
 }
 int main(int argc,char** argv){
     if(argc!=5)return 2;
@@ -44,6 +70,10 @@ int main(int argc,char** argv){
     const std::string prefix=folder+"/"+role+"-"+std::to_string(epoch);
     const bool observe=!(std::getenv("SD_LIFETIME_TRACE") && std::string(std::getenv("SD_LIFETIME_TRACE"))=="off");
     const bool coordinated=std::getenv("SD_COORDINATED_RESTART")!=nullptr;
+    const bool minimal=std::getenv("SD_OBSERVER") && std::string(std::getenv("SD_OBSERVER"))=="minimal";
+    const auto period_ms=std::getenv("SD_PERIOD_MS")?std::stoul(std::getenv("SD_PERIOD_MS")):5;
+    assert(period_ms==5 || period_ms==20);
+    const bool inspect=!minimal || scenario=="lifetime";
     if(observe)allocation_trace::install();
     Callback cb;cb.hold=!central && scenario=="callback-delete";cb.marker=prefix+".callback";
     const auto pp=dds_create_participant(37,nullptr,nullptr);assert(pp>0);
@@ -56,49 +86,67 @@ int main(int argc,char** argv){
     auto* listener=dds_create_listener(&cb);dds_lset_data_available(listener,available);
     auto reader=dds_create_reader(pp,central?up:down,qos,listener);assert(reader>0);
     dds_delete_listener(listener);dds_delete_qos(qos);
+    lifecycle_observer::qos(writer,prefix+".writer-qos.csv");
+    lifecycle_observer::qos(reader,prefix+".reader-qos.csv");
+    lifecycle_observer::ReaderStatus reader_status;
     assert(dds_set_status_mask(reader,DDS_SAMPLE_REJECTED_STATUS|DDS_SAMPLE_LOST_STATUS)==0);
     std::ofstream events(prefix+".csv"),objects(prefix+".objects.csv"),proxies(prefix+".proxy.csv");
     proxies<<"proxy,participant,lease,mutex,guid_prefix,guid_entity,lease_duration_ns,last_access_ns,scope_end_ns\n";
     events<<"time_ns,event,epoch,token,source_ns,deadline_ns,inner_expiry_ns,accepted\n";
-    objects<<"time_ns,stage,writer,whc,seq,min_seq,max_seq,unacked_bytes\n";snapshot(writer,objects,"created");
+    objects<<"time_ns,stage,writer,whc,seq,min_seq,max_seq,unacked_bytes\n";if(inspect)snapshot(writer,objects,"created");
     auto maps=std::ifstream("/proc/self/maps");std::ofstream(prefix+".maps")<<maps.rdbuf();
     const auto setup=now();
     for(;;){dds_publication_matched_status_t status{};assert(dds_get_publication_matched_status(writer,&status)==0);
-        if(status.current_count>0)break;
+        dds_subscription_matched_status_t subscription{};
+        if(std::getenv("SD_TRANSPORT_READY"))assert(dds_get_subscription_matched_status(reader,&subscription)==0);
+        if(status.current_count>0 && (!std::getenv("SD_TRANSPORT_READY") || subscription.current_count>0))break;
         if(now()-setup>10000*ms)return 3;
         sleep();}
+    if(std::getenv("SD_TRANSPORT_READY")) {
+        assert(scenario=="normal");
+        if(!transport_ready(writer,reader,central,epoch,prefix,setup)){assert(dds_delete(pp)==0);return 4;}
+    }
+    lifecycle_observer::threads(prefix+".matched");
     mark(prefix+".matched");
     const std::string go=folder+(epoch==43?"/go43":"/go");
     while(!std::filesystem::exists(go)){assert(now()-setup<12000*ms);sleep();}
     const auto start=now();auto next=start;unsigned sent=0,received=0,accepted=0,rejected=0,old=0,stale=0,failures=0,overflows=0;
-    std::uint64_t valid_deadline=0,loss=0,delete_begin=0,delete_end=0;bool failed_link=false,deleted=false;
+    std::uint64_t valid_deadline=0,loss=0,delete_begin=0,delete_end=0;bool failed_link=false,reader_deleted=false,writer_deleted=false;
     std::uint32_t previous=0;bool has_previous=false;std::deque<remote::OwnerPacket> ingress,result;
     remote::OwnerPacket saved{};bool saved_valid=false,replayed=false;unsigned max_in=0,max_out=0,proxy_samples=0;std::uint64_t whc_samples=0;
+    unsigned received_at_writer_delete=0;std::uint64_t max_write_ns=0,write_calls=0;
+    lifecycle_observer::Events buffered_events;
     const auto duration=(scenario=="restart"?4200:1600)*ms;
-    auto log=[&](const char* event,const transport::ZoneRequest& q,bool ok){
+    auto log=[&](const char* event,const transport::ZoneRequest& q,bool ok,std::uint64_t observed_at=0){
         const auto* r=std::get_if<central::VehicleRequest>(&q.work);
-        events<<now()<<','<<event<<','<<q.epoch<<','<<q.token<<','<<q.sent_ns<<','<<q.deadline_ns<<','<<(r?r->expires_at_ns:0)<<','<<ok<<'\n';events.flush();
+        lifecycle_observer::Event e{observed_at?observed_at:now(),q.epoch,q.token,q.sent_ns,q.deadline_ns,r?r->expires_at_ns:0,event,ok};
+        if(minimal)buffered_events.add(e);else {lifecycle_observer::Events::write(events,e);events.flush();}
     };
-    auto send=[&](const remote::OwnerPacket& packet){strata_Packet p{};p.size=packet.size;std::memcpy(p.data,packet.bytes.data(),packet.size);const auto rc=dds_write(writer,&p);if(rc<0){++failures;failed_link=true;}return rc==0;};
+    auto send=[&](const remote::OwnerPacket& packet){strata_Packet p{};p.size=packet.size;std::memcpy(p.data,packet.bytes.data(),packet.size);const auto began=now();const auto rc=dds_write(writer,&p);max_write_ns=std::max(max_write_ns,now()-began);++write_calls;if(rc<0){++failures;failed_link=true;}return rc==0;};
     while(now()-start<duration){
         const auto t=now();
         if(central && scenario=="restart" && epoch==42 && std::filesystem::exists(folder+"/epoch43")){epoch=43;sent=0;has_previous=false;next=t;}
-        if(central && sent<60 && t>=next && !(coordinated && scenario=="restart" && epoch==42 && std::filesystem::exists(folder+"/quiesce"))){
+        if(central && (sent<60 || scenario=="close-saturated") && t>=next && !(coordinated && scenario=="restart" && epoch==42 && std::filesystem::exists(folder+"/quiesce"))){
             central::VehicleRequest request{epoch,sent,t,t+30*ms,.2,.02,0,false};
             transport::ZoneRequest q{epoch,sent,t,t+20*ms,request};
             auto p=remote::encode_owner_message({session::Role::CentralIngress,session::Role::FrontZone,domain,q});assert(p);
             const bool ok=send(*p);log("send",q,ok);if(!saved_valid){saved=*p;saved_valid=true;}
-            snapshot(writer,objects,"write");++whc_samples;
+            if(inspect){snapshot(writer,objects,"write");++whc_samples;}
             if(scenario=="lifetime" && sent%20==0){std::uint64_t ids[9]{};if(lifecycle_proxy_snapshot(reader,ids)){for(unsigned i=0;i<9;++i)proxies<<(i?",":"")<<ids[i];proxies<<'\n';++proxy_samples;}}
-            ++sent;next=t+5*ms;
+            ++sent;next=t+period_ms*ms;
         }
         if(central && scenario=="restart" && epoch==43 && !replayed && sent>=5){assert(saved_valid);send(saved);replayed=true;}
-        if(!central && scenario=="callback-delete" && cb.entered.load(std::memory_order_relaxed) && !deleted){
+        if(!central && scenario=="callback-delete" && cb.entered.load(std::memory_order_relaxed) && !reader_deleted){
+            reader_status.read(reader,prefix+".reader-status.csv");
             delete_begin=now();assert(cb.active.load(std::memory_order_relaxed)>0);
-            assert(dds_delete(reader)==0);delete_end=now();assert(cb.active.load(std::memory_order_relaxed)==0);deleted=true;
+            assert(dds_delete(reader)==0);delete_end=now();assert(cb.active.load(std::memory_order_relaxed)==0);reader_deleted=true;
         }
-        const bool blocked=!central && scenario=="overflow" && t-start<400*ms;
-        if(!deleted && !blocked)for(unsigned budget=0;budget<8;++budget){
+        const bool blocked=!central && ((scenario=="overflow" && t-start<400*ms) || (scenario=="close-saturated" && received>=20));
+        if(blocked && scenario=="close-saturated") {
+            reader_status.read(reader,prefix+".reader-status.csv");
+            if(reader_status.rejected.total_count>0)break;
+        }
+        if(!reader_deleted && !blocked)for(unsigned budget=0;budget<8;++budget){
             strata_Packet p{};void* samples[1]={&p};dds_sample_info_t info[1]{};const auto n=dds_take(reader,samples,info,1,1);
             if(n<0){++failures;break;}if(n==0)break;if(!info[0].valid_data)continue;
             remote::OwnerPacket packet{};if(p.size>packet.bytes.size()){++rejected;continue;}
@@ -115,19 +163,22 @@ int main(int argc,char** argv){
                 q->deadline_ns<=r->expires_at_ns && q->sent_ns<=rx && rx<q->deadline_ns && rx<r->expires_at_ns &&
                 (!has_previous || r->sequence>previous);
             ++received;if(ok){++accepted;previous=r->sequence;has_previous=true;valid_deadline=q->deadline_ns;}else{++rejected;if(q->epoch!=epoch)++old;if(rx>=q->deadline_ns)++stale;}
-            log(central?"result":"ingress",*q,ok);
+            log(central?"result":"ingress",*q,ok,rx);
             if(!central && ok){if(result.size()==8){++overflows;failed_link=true;}else result.push_back(packet);max_out=std::max(max_out,unsigned(result.size()));}
             if(!central && received>=20)mark(prefix+".progress");
         }
         if(!result.empty()){
-            if(!central && scenario=="partial" && accepted>=20 && !deleted){assert(dds_delete(writer)==0);deleted=true;}
+            if(!central && scenario=="partial" && accepted>=20 && !writer_deleted){received_at_writer_delete=received;assert(dds_delete(writer)==0);writer_deleted=true;}
             if(!failed_link){send(result.front());result.pop_front();}else result.clear();
         }
         if(valid_deadline && t>=valid_deadline && !loss)loss=t; // availability only, never an ECU protection ACK
         if(!central && (scenario=="peer-stop" || (scenario=="restart" && epoch==42 && (!coordinated || std::filesystem::exists(folder+"/close42")))) && received>=20)break;
         sleep();
     }
-    if(!deleted || scenario=="callback-delete"){snapshot(writer,objects,"before-delete");(void)dds_wait_for_acks(writer,DDS_MSECS(100));}
+    if(minimal)buffered_events.save(events);
+    if(!reader_deleted)reader_status.read(reader,prefix+".reader-status.csv");
+    lifecycle_observer::threads(prefix+".closing");
+    if(!writer_deleted){if(inspect)snapshot(writer,objects,"before-delete");(void)dds_wait_for_acks(writer,DDS_MSECS(100));}
     mark(prefix+".delete");assert(dds_delete(pp)==0);assert(cb.active.load(std::memory_order_relaxed)==0);
     const auto cb_calls=cb.calls.load(std::memory_order_relaxed);assert(allocation_trace::save(prefix+".alloc.csv"));
     bool ok=sent>0 || received>0 || scenario=="callback-delete";
@@ -135,8 +186,9 @@ int main(int argc,char** argv){
     if(scenario=="normal")ok=ok && (central?(sent==60 && accepted==60):(accepted==60));
     if(scenario=="restart" && !central && epoch==43)ok=ok && accepted>0 && old>0 && stale>0;
     if(scenario=="callback-delete" && !central)ok=ok && delete_begin && delete_end>delete_begin;
-    if(scenario=="partial" && !central)ok=ok && failed_link && failures>0;
+    if(scenario=="partial" && !central)ok=ok && failed_link && failures>0 && received>received_at_writer_delete;
+    if(scenario=="close-saturated" && !central)ok=ok && reader_status.rejected.total_count>0;
     if(scenario=="overflow")ok=ok && (central?accepted<60:stale>0);
-    std::cout<<"{\"functional\":"<<(ok?"true":"false")<<",\"control_gate_open\":false,\"epoch\":"<<epoch<<",\"sent\":"<<sent<<",\"received\":"<<received<<",\"accepted\":"<<accepted<<",\"rejected\":"<<rejected<<",\"old\":"<<old<<",\"stale\":"<<stale<<",\"failures\":"<<failures<<",\"overflow\":"<<overflows<<",\"max_ingress\":"<<max_in<<",\"max_result\":"<<max_out<<",\"callback_calls\":"<<cb_calls<<",\"callback_delete_begin_ns\":"<<delete_begin<<",\"callback_delete_end_ns\":"<<delete_end<<",\"availability_loss_ns\":"<<loss<<",\"proxy_snapshots\":"<<proxy_samples<<",\"whc_snapshots\":"<<whc_samples<<"}\n";
+    std::cout<<"{\"functional\":"<<(ok?"true":"false")<<",\"control_gate_open\":false,\"epoch\":"<<epoch<<",\"sent\":"<<sent<<",\"received\":"<<received<<",\"accepted\":"<<accepted<<",\"rejected\":"<<rejected<<",\"old\":"<<old<<",\"stale\":"<<stale<<",\"failures\":"<<failures<<",\"overflow\":"<<overflows<<",\"max_ingress\":"<<max_in<<",\"max_result\":"<<max_out<<",\"callback_calls\":"<<cb_calls<<",\"callback_delete_begin_ns\":"<<delete_begin<<",\"callback_delete_end_ns\":"<<delete_end<<",\"availability_loss_ns\":"<<loss<<",\"proxy_snapshots\":"<<proxy_samples<<",\"whc_snapshots\":"<<whc_samples<<",\"reader_rejected\":"<<reader_status.rejected.total_count<<",\"reader_lost\":"<<reader_status.lost.total_count<<",\"received_at_writer_delete\":"<<received_at_writer_delete<<",\"received_after_writer_delete\":"<<(received_at_writer_delete?received-received_at_writer_delete:0)<<",\"write_calls\":"<<write_calls<<",\"max_write_ns\":"<<max_write_ns<<",\"period_ms\":"<<period_ms<<"}\n";
     return ok?0:1;
 }

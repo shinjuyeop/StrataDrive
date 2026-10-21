@@ -1,0 +1,46 @@
+cohort,id,profile,case,config,exit,raw_verdict,sanitizer_verdict,functional,tsan_warnings,negative_control_pass,reader_rejected,reader_lost,expired_events,result_samples,rtt_max_ms,rtt_p95_ms,max_observed_unacked_bytes
+pre-fix,normal/partial,normal,partial,D,0,PASS,NOT APPLICABLE,PASS,0,,104,0,0,19,0.523591,0.523591,0
+cohort-v1,normal-A-1,normal,normal,A,1,FAIL,NOT APPLICABLE,FAIL,0,,2,0,17,43,16.71433,6.897994,13200
+cohort-v1,normal-B-1,normal,normal,B,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.565378,0.338522,0
+cohort-v1,normal-C-1,normal,normal,C,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.569118,0.518265,0
+cohort-v1,normal-D-1,normal,normal,D,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.569155,0.551325,0
+cohort-v1,normal-A-2,normal,normal,A,1,FAIL,NOT APPLICABLE,FAIL,0,,2,0,17,60,100.879888,85.561052,16200
+cohort-v1,normal-B-2,normal,normal,B,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.634523,0.57759,0
+cohort-v1,normal-C-2,normal,normal,C,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.563708,0.534217,0
+cohort-v1,normal-D-2,normal,normal,D,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.553193,0.526369,0
+cohort-v1,normal-A-3,normal,normal,A,1,FAIL,NOT APPLICABLE,FAIL,0,,2,0,17,60,100.847838,85.870494,16200
+cohort-v1,normal-B-3,normal,normal,B,1,FAIL,NOT APPLICABLE,FAIL,0,,2,0,17,43,15.602098,6.120548,0
+cohort-v1,normal-C-3,normal,normal,C,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.571493,0.523681,0
+cohort-v1,normal-D-3,normal,normal,D,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.572231,0.53173,0
+cohort-v1,normal-overflow,normal,overflow,D,0,PASS,NOT APPLICABLE,PASS,0,,25,0,20,40,9.754807,0.547956,0
+cohort-v1,normal-peer-stop,normal,peer-stop,D,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,20,0.520389,0.519769,0
+cohort-v1,normal-peer-kill,normal,peer-kill,D,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,20,0.539374,0.519818,0
+cohort-v1,normal-restart,normal,restart,D,0,PASS,NOT APPLICABLE,PASS,0,,0,0,1,79,4.994098,0.546622,0
+cohort-v1,normal-coordinated-restart,normal,restart,D,0,PASS,NOT APPLICABLE,PASS,0,,0,0,1,79,0.566147,0.550211,0
+cohort-v1,normal-partial,normal,partial,D,0,PASS,NOT APPLICABLE,PASS,0,,0,0,4,19,0.521623,0.521623,0
+cohort-v1,normal-callback-delete,normal,callback-delete,D,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,0,,,0
+cohort-v1,normal-close-saturated,normal,close-saturated,D,0,PASS,NOT APPLICABLE,PASS,0,,1,0,0,20,0.546964,0.546233,0
+cohort-v1,asan-ubsan-normal,asan-ubsan,normal,D,0,PASS,PASS,PASS,0,,0,0,0,60,0.594891,0.589698,0
+cohort-v1,asan-ubsan-overflow,asan-ubsan,overflow,D,0,PASS,PASS,PASS,0,,25,0,20,40,9.967835,1.087861,0
+cohort-v1,asan-ubsan-peer-stop,asan-ubsan,peer-stop,D,0,PASS,PASS,PASS,0,,0,0,0,20,0.563192,0.56048,0
+cohort-v1,asan-ubsan-peer-kill,asan-ubsan,peer-kill,D,0,PASS,INCOMPLETE (expected peer SIGKILL),PASS,0,,0,0,0,20,0.639554,0.571204,0
+cohort-v1,asan-ubsan-restart,asan-ubsan,restart,D,0,PASS,PASS,PASS,0,,0,0,1,80,0.691872,0.603735,0
+cohort-v1,asan-ubsan-coordinated-restart,asan-ubsan,restart,D,0,PASS,PASS,PASS,0,,0,0,1,80,0.599524,0.584948,0
+cohort-v1,asan-ubsan-partial,asan-ubsan,partial,D,0,PASS,PASS,PASS,0,,0,0,5,19,0.599486,0.599486,0
+cohort-v1,asan-ubsan-callback-delete,asan-ubsan,callback-delete,D,0,PASS,PASS,PASS,0,,0,0,0,0,,,0
+cohort-v1,asan-ubsan-close-saturated,asan-ubsan,close-saturated,D,0,PASS,PASS,PASS,0,,1,0,0,20,0.639362,0.617119,0
+cohort-v1,tsan-normal,tsan,normal,D,1,FAIL,FAIL,PASS,5,,0,0,0,60,0.789986,0.6816,0
+cohort-v1,tsan-overflow,tsan,overflow,D,1,FAIL,FAIL,PASS,6,,25,0,20,40,11.759048,1.131541,0
+cohort-v1,tsan-peer-stop,tsan,peer-stop,D,1,FAIL,FAIL,PASS,10,,0,0,0,20,0.964563,0.68688,0
+cohort-v1,tsan-peer-kill,tsan,peer-kill,D,0,PASS,INCOMPLETE (expected peer SIGKILL),PASS,0,,0,0,0,20,0.732327,0.698391,0
+cohort-v1,tsan-restart,tsan,restart,D,1,FAIL,FAIL,PASS,15,,0,0,1,80,0.946955,0.714629,0
+cohort-v1,tsan-coordinated-restart,tsan,restart,D,1,FAIL,FAIL,PASS,4,,0,0,1,80,0.798308,0.745688,0
+cohort-v1,tsan-partial,tsan,partial,D,1,FAIL,FAIL,PASS,10,,0,0,5,19,0.783016,0.783016,0
+cohort-v1,tsan-callback-delete,tsan,callback-delete,D,1,FAIL,FAIL,PASS,4,,0,0,0,0,,,0
+cohort-v1,tsan-close-saturated,tsan,close-saturated,D,1,FAIL,FAIL,PASS,4,,1,0,0,20,0.778938,0.666292,0
+readiness-v2,normal-A-ready-1,normal,normal,A,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.789954,0.759083,13200
+readiness-v2,normal-A-ready-2,normal,normal,A,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.790435,0.74861,13200
+readiness-v2,normal-A-ready-3,normal,normal,A,0,PASS,NOT APPLICABLE,PASS,0,,0,0,0,60,0.875477,0.795247,13200
+readiness-v2,asan-ubsan-D-ready,asan-ubsan,normal,D,0,PASS,PASS,PASS,0,,0,0,0,60,0.634104,0.588063,0
+readiness-v2,tsan-D-ready,tsan,normal,D,1,FAIL,FAIL,PASS,6,,0,0,0,60,5.453361,0.710599,0
+readiness-v2,normal-withheld-ready,normal,normal,D,1,FAIL,NOT APPLICABLE,FAIL,0,True,0,0,0,0,,,0

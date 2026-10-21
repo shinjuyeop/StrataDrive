@@ -1,0 +1,402 @@
+{
+  "attempts": 45,
+  "cohorts": {
+    "pre-fix": {
+      "PASS": 1
+    },
+    "cohort-v1": {
+      "FAIL": 12,
+      "PASS": 26
+    },
+    "readiness-v2": {
+      "PASS": 4,
+      "FAIL": 2
+    }
+  },
+  "warnings": [
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-normal",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_entity_index.c:67 in entity_guid_eq"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-normal",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_entity_index.c:67 in entity_guid_eq"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-normal",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-normal",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-normal",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-overflow",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-overflow",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/hopscotch.c:414 in ddsrt_chh_lookup"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-overflow",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-overflow",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_tkmap.c:79 in dds_tk_equals"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-overflow",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_tkmap.c:79 in dds_tk_equals"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-overflow",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsc/src/dds_serdata_builtintopic.c:73 in serdata_builtin_eqkey"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/hopscotch.c:414 in ddsrt_chh_lookup"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/sync/posix/sync.c:29 in ddsrt_mutex_destroy"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-peer-stop",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-43.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/hopscotch.c:414 in ddsrt_chh_lookup"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-43.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_entity_index.c:67 in entity_guid_eq"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_receive.c:1283 in handle_Heartbeat"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_lease.c:161 in ddsi_lease_renew"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/sync/posix/sync.c:35 in ddsrt_mutex_lock"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/sync/posix/sync.c:29 in ddsrt_mutex_destroy"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-restart",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-coordinated-restart",
+      "file": "zone-43.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-coordinated-restart",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_tkmap.c:79 in dds_tk_equals"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-coordinated-restart",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_tkmap.c:79 in dds_tk_equals"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-coordinated-restart",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/hopscotch.c:414 in ddsrt_chh_lookup"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/sync/posix/sync.c:29 in ddsrt_mutex_destroy"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-partial",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-callback-delete",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-callback-delete",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-callback-delete",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-callback-delete",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-close-saturated",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-close-saturated",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/hopscotch.c:414 in ddsrt_chh_lookup"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-close-saturated",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "cohort-v1",
+      "trial": "tsan-close-saturated",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_endpoint.c:674 in ddsi_writer_clear_retransmitting"
+    },
+    {
+      "cohort": "readiness-v2",
+      "trial": "tsan-D-ready",
+      "file": "central-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/heap/posix/heap.c:106 in ddsrt_free"
+    },
+    {
+      "cohort": "readiness-v2",
+      "trial": "tsan-D-ready",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_entity_index.c:67 in entity_guid_eq"
+    },
+    {
+      "cohort": "readiness-v2",
+      "trial": "tsan-D-ready",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_receive.c:2638 in handle_Data"
+    },
+    {
+      "cohort": "readiness-v2",
+      "trial": "tsan-D-ready",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_lease.c:161 in ddsi_lease_renew"
+    },
+    {
+      "cohort": "readiness-v2",
+      "trial": "tsan-D-ready",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/core/ddsi/src/ddsi_receive.c:2357 in handle_regular"
+    },
+    {
+      "cohort": "readiness-v2",
+      "trial": "tsan-D-ready",
+      "file": "zone-42.stderr",
+      "summary": "SUMMARY: ThreadSanitizer: data race /d/shin/StrataDrive/build/m4-communication-research/deps/cyclonedds-src/eclipse-cyclonedds-cyclonedds-e54e991/src/ddsrt/src/sync/posix/sync.c:35 in ddsrt_mutex_lock"
+    }
+  ]
+}

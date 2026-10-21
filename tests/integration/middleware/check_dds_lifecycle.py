@@ -59,14 +59,18 @@ def inside(folder, binary, case):
             verbosity='warning' if os.environ.get('SD_LIFETIME_TRACE')=='off' else 'finest'
             env=dict(os.environ,CYCLONEDDS_URI=f'<CycloneDDS><Domain Id="37"><General><AllowMulticast>false</AllowMulticast></General><Discovery><ParticipantIndex>auto</ParticipantIndex><Peers><Peer Address="10.88.0.1"/><Peer Address="10.88.0.2"/></Peers></Discovery><Tracing><Verbosity>{verbosity}</Verbosity><OutputFile>{prefix}.trace</OutputFile></Tracing></Domain></CycloneDDS>')
             out=open(str(prefix)+'.json','w');err=open(str(prefix)+'.stderr','w');streams.extend((out,err))
-            cmd=['ip','netns','exec',role,'taskset','-c','1',str(binary),role,str(folder),case,str(epoch)]
+            cpu=os.environ.get('SD_CENTRAL_CPU' if role=='central' else 'SD_ZONE_CPU','1')
+            cmd=['ip','netns','exec',role,'taskset','-c',cpu,str(binary),role,str(folder),case,str(epoch)]
             if os.environ.get('SD_GDB_ZONE')=='1' and role=='zone' and epoch==42:
                 cmd=cmd[:7]+['timeout','--signal=INT','--kill-after=2s','6s','gdb','--batch','-ex','set pagination off','-ex','run','-ex','thread apply all bt','--args']+cmd[7:]
-            save(Path(str(prefix)+'.command.json'),{'argv':cmd,'CYCLONEDDS_URI':env['CYCLONEDDS_URI']})
+            save(Path(str(prefix)+'.command.json'),{'argv':cmd,'CYCLONEDDS_URI':env['CYCLONEDDS_URI'],'diagnostic_env':{k:v for k,v in env.items() if k.startswith('SD_')}})
             process=subprocess.Popen(cmd,stdout=out,stderr=err,env=env);processes.append((role,epoch,process));return process
         central=launch('central',42);zone=launch('zone',42)
         wait_for(lambda: all((folder/f'{r}-42.matched').exists() for r in ('central','zone')))
         (folder/'go').write_text(str(time.monotonic_ns()))
+        if case=='close-saturated':
+            wait_for(lambda:(folder/'zone-42.delete').exists())
+            result['sender_alive_at_close']=central.poll() is None
         if case=='peer-kill':
             wait_for(lambda:(folder/'zone-42.progress').exists());result['kill_ns']=time.monotonic_ns();zone.kill();zone.wait(timeout=3)
         elif case=='restart':
@@ -107,6 +111,26 @@ def inside(folder, binary, case):
         save(folder/'result.json',result)
     return 0 if result.get('functional')=='PASS' and result.get('process_exit_ok') else 1
 
+def build_probes(out, profiles=PROFILES):
+    commands=[]
+    includes=['-I'+str(ROOT/d) for d in ['interfaces/remote','interfaces/zone','interfaces/central','interfaces/steering','interfaces/common','interfaces/brake','interfaces/drive','interfaces/bms','interfaces/session','build/m4-probe-tsan/tests/integration/middleware']]
+    for profile,(sdk,libs,sanitizer) in profiles.items():
+        dest=out/profile;dest.mkdir();prefix=ROOT/sdk
+        flags=['-O1','-g','-fno-omit-frame-pointer','-Wall','-Wextra','-Werror','-pthread']+(['-fsanitize='+sanitizer] if sanitizer else [])
+        inc=includes+['-I'+str(prefix/'include'),'-I'+str(SRC/'src/core/ddsc/src')]
+        packet=ROOT/'build/m4-probe-tsan/tests/integration/middleware/packet.c'
+        commands.append(['gcc','-std=c11',*flags,*inc,'-c',str(packet),'-o',str(dest/'packet.o')])
+        commands.append(['gcc','-std=c11',*flags,*inc,str(HERE/'dds_bucket_lifetime.c'),str(dest/'packet.o'),'-L'+str(prefix/'lib'),'-Wl,-rpath,'+str(prefix/'lib'),'-lddsc','-o',str(dest/'bucket-probe')])
+        commands.append(['gcc','-std=c11',*flags,*inc,'-c',str(HERE/'dds_lifecycle_inspect.c'),'-o',str(dest/'inspect.o')])
+        commands.append(['gcc','-std=c11','-D_POSIX_C_SOURCE=200809L','-ffunction-sections','-fdata-sections',*flags,*inc,'-c',str(SRC/'src/ddsrt/src/hopscotch.c'),'-o',str(dest/'hopscotch.o')])
+        commands.append(['gcc','-std=c11',*flags,*inc,str(HERE/'dds_writer_lifetime.c'),str(dest/'packet.o'),'-L'+str(prefix/'lib'),'-Wl,-rpath,'+str(prefix/'lib'),'-lddsc','-o',str(dest/'whc-probe')])
+        commands.append(['g++','-std=c++17',*flags,*inc,'-Wl,--gc-sections',str(HERE/'dds_lifecycle_probe.cpp'),str(dest/'packet.o'),str(dest/'inspect.o'),str(dest/'hopscotch.o'),*[str(ROOT/libs/('lib'+lib+'.a')) for lib in LIBS],'-L'+str(prefix/'lib'),'-Wl,-rpath,'+str(prefix/'lib'),'-lddsc','-o',str(dest/'lifecycle-probe')])
+    save(out/'build-commands.json',commands)
+    for i,cmd in enumerate(commands):
+        with (out/f'build-{i}.log').open('w') as log:r=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,timeout=90)
+        if r.returncode:return r.returncode
+    return 0
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('output',type=Path,nargs='?');p.add_argument('--inside',nargs=3);p.add_argument('--followup',action='store_true');p.add_argument('--lifetimes',action='store_true');a=p.parse_args()
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
@@ -129,7 +153,7 @@ def main():
     if a.followup:plan['hypothesis']='Full allocation unwind+finest SDK observer perturbs20ms delivery; compare disabled intrusive observer with unchanged source/deadline/CPU. Separately quiesce sender and drain before old peer delete to break full-RHC/GC wait. Original raw deletion timeout remains OPEN.'
     if a.lifetimes:plan['hypothesis']='Real proxy GUID/participant/lease/mutex lookup via unchanged pinned hopscotch source, per-object access/quiescence/free recording; real WHC object held through SDK Writer removal. Not normal delivery timing acceptance, prior failures unchanged.'
     save(out/'plan.json',plan)
-    files=['run_probe.py','dds_bucket_lifetime.c','dds_lifecycle_probe.cpp','dds_lifecycle_inspect.c','dds_writer_lifetime.c','dds_allocation_trace.hpp','check_dds_lifecycle.py']
+    files=['run_probe.py','dds_bucket_lifetime.c','dds_lifecycle_probe.cpp','dds_lifecycle_inspect.c','dds_writer_lifetime.c','dds_allocation_trace.hpp','check_dds_lifecycle.py','dds_probe_qos.h','dds_lifecycle_observer.hpp']
     save(out/'metadata.json',{'sources':{f:sha(HERE/f) for f in files},'kernel':platform.release(),'uid':os.getuid(),'python':platform.python_version(),
         'sdk_libraries':{k:sha(ROOT/v[0]/'lib/libddsc.so.11') for k,v in PROFILES.items()}})
     case_order=(('whc',*cases) if a.lifetimes else ((*cases,) if a.followup else ('bucket',*cases)))
@@ -137,23 +161,8 @@ def main():
     save(out/'results.json',rows)
     with (ROOT/'build/.m4-exclusive.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        commands=[]
-        includes=['-I'+str(ROOT/d) for d in ['interfaces/remote','interfaces/zone','interfaces/central','interfaces/steering','interfaces/common','interfaces/brake','interfaces/drive','interfaces/bms','interfaces/session','build/m4-probe-tsan/tests/integration/middleware']]
-        for profile,(sdk,libs,sanitizer) in PROFILES.items():
-            dest=out/profile;dest.mkdir();prefix=ROOT/sdk
-            flags=['-O1','-g','-fno-omit-frame-pointer','-Wall','-Wextra','-Werror','-pthread']+(['-fsanitize='+sanitizer] if sanitizer else [])
-            inc=includes+['-I'+str(prefix/'include'),'-I'+str(SRC/'src/core/ddsc/src')]
-            packet=ROOT/'build/m4-probe-tsan/tests/integration/middleware/packet.c'
-            commands.append(['gcc','-std=c11',*flags,*inc,'-c',str(packet),'-o',str(dest/'packet.o')])
-            commands.append(['gcc','-std=c11',*flags,*inc,str(HERE/'dds_bucket_lifetime.c'),str(dest/'packet.o'),'-L'+str(prefix/'lib'),'-Wl,-rpath,'+str(prefix/'lib'),'-lddsc','-o',str(dest/'bucket-probe')])
-            commands.append(['gcc','-std=c11',*flags,*inc,'-c',str(HERE/'dds_lifecycle_inspect.c'),'-o',str(dest/'inspect.o')])
-            commands.append(['gcc','-std=c11','-D_POSIX_C_SOURCE=200809L','-ffunction-sections','-fdata-sections',*flags,*inc,'-c',str(SRC/'src/ddsrt/src/hopscotch.c'),'-o',str(dest/'hopscotch.o')])
-            commands.append(['gcc','-std=c11',*flags,*inc,str(HERE/'dds_writer_lifetime.c'),str(dest/'packet.o'),'-L'+str(prefix/'lib'),'-Wl,-rpath,'+str(prefix/'lib'),'-lddsc','-o',str(dest/'whc-probe')])
-            commands.append(['g++','-std=c++17',*flags,*inc,'-Wl,--gc-sections',str(HERE/'dds_lifecycle_probe.cpp'),str(dest/'packet.o'),str(dest/'inspect.o'),str(dest/'hopscotch.o'),*[str(ROOT/libs/('lib'+lib+'.a')) for lib in LIBS],'-L'+str(prefix/'lib'),'-Wl,-rpath,'+str(prefix/'lib'),'-lddsc','-o',str(dest/'lifecycle-probe')])
-        save(out/'build-commands.json',commands)
-        for i,cmd in enumerate(commands):
-            with (out/f'build-{i}.log').open('w') as log:r=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,timeout=90)
-            if r.returncode:return r.returncode
+        code=build_probes(out)
+        if code:return code
         began=time.monotonic()
         for profile,(_,_,san) in PROFILES.items():
             env={**os.environ,**plan['sanitizers']};dest=out/profile
@@ -182,6 +191,9 @@ def main():
                     functional='PASS' if detail.get('free_held')==0 and detail.get('last_access_ns',1)<=detail.get('scope_end_ns',0)<=detail.get('free_ns',0) else 'FAIL'
                 else:functional=detail.get('functional','FAIL')
                 row={'profile':profile,'case':case,'exit':code,'functional':functional,'tsan_warnings':warnings,'sanitizer_clean':not bad,'verdict':'PASS' if code==0 and not bad and functional=='PASS' else 'FAIL','result':detail}
+                row['sanitizer_verdict']=('FAIL' if bad else 'NOT APPLICABLE' if not san else
+                    'INCOMPLETE (expected peer SIGKILL)' if case=='peer-kill' else
+                    'INCOMPLETE (process failure)' if code!=0 else 'PASS')
                 index=next(i for i,r in enumerate(rows) if r['profile']==profile and r['case']==case);rows[index]=row
                 save(out/'results.json',rows);print(json.dumps({k:v for k,v in row.items() if k!='result'}),flush=True)
                 if time.monotonic()-began>600 or sum(f.stat().st_size for f in out.rglob('*') if f.is_file())>536870912:

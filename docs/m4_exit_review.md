@@ -90,3 +90,10 @@ SDK 경고·원래 OTHER/FIFO/native 실패, 학습자/Target/system 상태는 �
 추가 조사는 사용자가 보고한 Daybreak 인증 요구로 보류했다. 이미 완료한 로컬 실행 결과는 유지하며
 인증 우회·추가 SDK 실험은 하지 않았다. 인증 문제 해소 뒤 미확정 경로와 지원되는 close 해결책을
 검증하고 위 조건을 모두 충족할 때만 추가 승인 없이 adapter를 진행한다.
+
+후속 사용자 요청에 따른 [Host 환경·운용 후보 점검](test-plan/evidence/m5_dds_operating_profile/README.md)은
+설정과 실제 적용값을 분리하고 진단의 writer/reader 삭제 상태·통신 준비·관측 공백을 보완했다.
+5ms 단일 CPU의 초기20ms 실패 중 실제 heartbeat/retransmission 경로를 좁혔지만,
+과거 모든 전달 실패의 원인 확정은 아니다. 후보20ms/CPU 분리에서는 포화 중 지속 송신을
+포함한 close가 기능 통과했다. 과거 close timeout은 미재현/OPEN, 새 TSan64경고는 unresolved다.
+따라서 위 연결 조건의 판정과 OPEN-M5-DDS-CLOSE-01/DELIVERY-01/MWTSAN-01을 유지한다.

@@ -15,7 +15,7 @@ Ubuntu/CPU/FIFO 배치·2ms 실행 기회·4ms deadline·command expiry·20ms en
 22개 focused 시험은 수정 전10 PASS/8 FAIL/4 ERROR→수정 후22 PASS다. 기존120개 이름/assertion을 유지했다.
 원본 result JSON·구문 오류·process exit를 보존하고 예정36개를 모두 수집한다.
 
-최신 [M5 DDS qualification 근거](test-plan/evidence/m5_dds_qualification/README.md)는
+직전 [M5 DDS qualification 근거](test-plan/evidence/m5_dds_qualification/README.md)는
 24+6+6+6회 **42 attempts /23 PASS·19 FAIL**다. 초기5회 build/setup 실패는 runtime NOT RUN으로
 별도 보존했다. GDB 추가1회와 timeout-cleanup 경로를 재현하지 못한 추가1회도 별도 기록했다.
 실제 bucket/WHC·Proxy/lease/mutex 생성·접근·quiescence·free 관측을 확장했고 Normal/ASan 수명
@@ -25,6 +25,19 @@ v7의 명시적 송신 중지/drain→epoch43 재준비는 기능 통과·old42 
 정규 adapter는 미착수다. bookkeeping3개 추가 후 최신 전체 Python **137/137 PASS**다.
 사용자가 Daybreak 인증 요구를 확인한 뒤 추가 조사는 보류하고 완료한 코드·결과를 보존했다.
 이는 M4 기술 조건 변경이나 이미 실행한 시험의 NOT RUN 재분류가 아니다.
+
+`c10688d` 후속 [Host DDS 환경·운용 후보 점검](test-plan/evidence/m5_dds_operating_profile/README.md)은
+설계 YAML과 실행 설정/실제 QoS·thread readback을 구분했다. CPU1/1·5ms/full 일반3회0 PASS,
+minimal2/3, CPU1/2 minimal5ms와20ms 각각3/3이다. 첫 DATA/heartbeat 순서·100ms 재전송으로
+초기17개가 만료된 경로를 확인했다. 실제 양방향 transport 준비 추가 뒤 같은 full/CPU1/5ms3/3
+PASS지만 정규 session/arm이 아니다. Writer 삭제가 reader take까지 중단하던 진단 결함도
+수정했고 삭제 뒤40개 추가 수신·reader rejection0을 확인했다. 원본42회23/19는 불변이다.
+새45 attempts(수정 전1+비교/종료38+준비6)는 별도 보존한다. 후보의 종료/재시작·포화 close는
+기능 통과했지만 과거 close timeout은 미재현/OPEN, TSan64 warning occurrences는 unresolved다.
+준비 미송신의 실제 timeout/cleanup과 두 실제 child 강제 timeout 회귀를 확인했다.
+관련 Python29/29, sanitizer expiry/actor 보호 component ASan·TSan 각각11/11 PASS;
+전체973/native40/timing48 재실행 없음. **DDS control gate CLOSED / 정규 adapter 미착수** 유지.
+이번 새 Daybreak 안내는 없었고 실패한 공식 API URL 조회는 중단했다. 접근 이력은 새 근거에 보존했다.
 
 앞선 `d3e7f6d` 사용자 고정 수집213425의
 [OTHER1+FIFO10 OFF/ON11쌍](test-plan/evidence/m4_kernel_campaign/completed_213425/README.md)은
