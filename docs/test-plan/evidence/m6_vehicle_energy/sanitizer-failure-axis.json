@@ -1,0 +1,333 @@
+{
+  "final-asan/restart-live-1": {
+    "central-1-rejoined.events.csv": {
+      "ns": "611319447496281",
+      "event": "central-fault",
+      "epoch": "2",
+      "role": "7",
+      "value": "12",
+      "deadline": "0"
+    },
+    "rear-2.events.csv": {
+      "ns": "611319448465912",
+      "event": "leaf-first-fault",
+      "epoch": "2",
+      "role": "4",
+      "value": "14",
+      "deadline": "0"
+    },
+    "front-1.events.csv": {
+      "ns": "611312790873168",
+      "event": "leaf-first-fault",
+      "epoch": "1",
+      "role": "2",
+      "value": "9",
+      "deadline": "0"
+    },
+    "central-1.events.csv": {
+      "ns": "611312790879635",
+      "event": "central-fault",
+      "epoch": "1",
+      "role": "7",
+      "value": "5",
+      "deadline": "0"
+    },
+    "native": {
+      "pass": false,
+      "errors": [
+        "unexpected native deadline miss: central-1-rejoined.native.watch.json",
+        "unexpected native deadline miss: central-1.native.watch.json"
+      ],
+      "processes": [
+        {
+          "file": "central-1-rejoined.native.watch.json",
+          "active_slots": 6262,
+          "misses": 1,
+          "first_miss": {
+            "owner": 7,
+            "slot": 3120,
+            "release": 611319443464025,
+            "deadline": 611319447464025,
+            "start": 0,
+            "end": 0,
+            "cpu": 0,
+            "detected": 611319447478048,
+            "requested": 0
+          },
+          "fault_ns": 611319447478048,
+          "fault_deadline": 611319447464025
+        },
+        {
+          "file": "central-1.native.watch.json",
+          "active_slots": 6262,
+          "misses": 1,
+          "first_miss": {
+            "owner": 7,
+            "slot": 3120,
+            "release": 611319443464025,
+            "deadline": 611319447464025,
+            "start": 0,
+            "end": 0,
+            "cpu": 0,
+            "detected": 611319447478048,
+            "requested": 0
+          },
+          "fault_ns": 611319447478048,
+          "fault_deadline": 611319447464025
+        },
+        {
+          "file": "front-1.native.watch.json",
+          "active_slots": 7942,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        },
+        {
+          "file": "plant-1.native.watch.json",
+          "active_slots": 8426,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        },
+        {
+          "file": "rear-2.native.watch.json",
+          "active_slots": 6664,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        }
+      ],
+      "normal_timing_ok": false,
+      "fault_protection_ok": null
+    },
+    "sdk_error_count": 20,
+    "first_sdk_error": {
+      "file": "rear-2.stdout",
+      "line": 107,
+      "text": "2026-10-22 15:58:20.834950 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1287] queue_size: 8016 pending_train_size: 117 data size: 117"
+    },
+    "central-1.transport.csv": {
+      "event": "central-result-timeout",
+      "ns": "611312795273475",
+      "peer": "1",
+      "epoch": "1",
+      "token": "298",
+      "sent": "611312775086619",
+      "deadline": "611312795086619",
+      "operation": "2",
+      "decision": "-1",
+      "source": "0",
+      "original_source": "611312775075428",
+      "inner_deadline": "611312815086426",
+      "payload_source": "0"
+    }
+  },
+  "final-tsan/normal-1": {
+    "front-1.events.csv": {
+      "ns": "611329555546846",
+      "event": "leaf-first-fault",
+      "epoch": "1",
+      "role": "2",
+      "value": "9",
+      "deadline": "0"
+    },
+    "rear-1.events.csv": {
+      "ns": "611329558157126",
+      "event": "leaf-first-fault",
+      "epoch": "1",
+      "role": "4",
+      "value": "14",
+      "deadline": "0"
+    },
+    "central-1.events.csv": {
+      "ns": "611329548017268",
+      "event": "central-fault",
+      "epoch": "1",
+      "role": "7",
+      "value": "7",
+      "deadline": "7"
+    },
+    "native": {
+      "pass": false,
+      "errors": [
+        "normal1211 owner/monitor slots missing",
+        "normal1211 owner/monitor slots missing",
+        "unexpected native deadline miss: front-1.native.watch.json",
+        "normal1211 owner/monitor slots missing"
+      ],
+      "processes": [
+        {
+          "file": "central-1.native.watch.json",
+          "active_slots": 122,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        },
+        {
+          "file": "front-1.native.watch.json",
+          "active_slots": 528,
+          "misses": 1,
+          "first_miss": {
+            "owner": 0,
+            "slot": 95,
+            "release": 611329576011662,
+            "deadline": 611329580011662,
+            "start": 0,
+            "end": 0,
+            "cpu": 0,
+            "detected": 611329580066248,
+            "requested": 0
+          },
+          "fault_ns": 611329580066248,
+          "fault_deadline": 611329580011662
+        },
+        {
+          "file": "plant-1.native.watch.json",
+          "active_slots": 1386,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        },
+        {
+          "file": "rear-1.native.watch.json",
+          "active_slots": 892,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        }
+      ],
+      "normal_timing_ok": false,
+      "fault_protection_ok": null
+    },
+    "sdk_error_count": 95,
+    "first_sdk_error": {
+      "file": "front-1.stdout",
+      "line": 46,
+      "text": "2026-10-22 15:58:30.938106 front [error] tcei::write_completion_condition: Broken pipe(32) bytes transferred: 0 bytes to sent: 85 remote:10.88.0.1:30503 (1422): [5346.0070.006a]"
+    },
+    "central-1.transport.csv": {
+      "event": "central-result-timeout",
+      "ns": "611329547861038",
+      "peer": "1",
+      "epoch": "1",
+      "token": "22",
+      "sent": "611329527731424",
+      "deadline": "611329547731424",
+      "operation": "2",
+      "decision": "-1",
+      "source": "0",
+      "original_source": "611329527610567",
+      "inner_deadline": "611329577489364",
+      "payload_source": "0"
+    }
+  },
+  "final-tsan/restart-live-1": {
+    "central-1-rejoined.events.csv": {
+      "ns": "611335527998801",
+      "event": "central-fault",
+      "epoch": "2",
+      "role": "7",
+      "value": "12",
+      "deadline": "6"
+    },
+    "rear-2.events.csv": {
+      "ns": "611335526447586",
+      "event": "leaf-first-fault",
+      "epoch": "2",
+      "role": "4",
+      "value": "14",
+      "deadline": "0"
+    },
+    "front-1.events.csv": {
+      "ns": "611333104765655",
+      "event": "leaf-first-fault",
+      "epoch": "1",
+      "role": "2",
+      "value": "9",
+      "deadline": "0"
+    },
+    "central-1.events.csv": {
+      "ns": "611333104707626",
+      "event": "central-fault",
+      "epoch": "1",
+      "role": "7",
+      "value": "5",
+      "deadline": "0"
+    },
+    "native": {
+      "pass": true,
+      "errors": [],
+      "processes": [
+        {
+          "file": "central-1-rejoined.native.watch.json",
+          "active_slots": 2032,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        },
+        {
+          "file": "central-1.native.watch.json",
+          "active_slots": 2032,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        },
+        {
+          "file": "front-1.native.watch.json",
+          "active_slots": 3704,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        },
+        {
+          "file": "plant-1.native.watch.json",
+          "active_slots": 4158,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        },
+        {
+          "file": "rear-2.native.watch.json",
+          "active_slots": 2496,
+          "misses": 0,
+          "first_miss": null,
+          "fault_ns": 0,
+          "fault_deadline": 0
+        }
+      ],
+      "normal_timing_ok": true,
+      "fault_protection_ok": null
+    },
+    "sdk_error_count": 19,
+    "first_sdk_error": {
+      "file": "rear-2.stdout",
+      "line": 107,
+      "text": "2026-10-22 15:58:36.963304 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.055f] queue_size: 8016 pending_train_size: 117 data size: 117"
+    },
+    "central-1.transport.csv": {
+      "event": "central-result-timeout",
+      "ns": "611333109090679",
+      "peer": "1",
+      "epoch": "1",
+      "token": "296",
+      "sent": "611333088898683",
+      "deadline": "611333108898683",
+      "operation": "0",
+      "decision": "-1",
+      "source": "0",
+      "original_source": "611333088894561",
+      "inner_deadline": "611333148894561",
+      "payload_source": "0"
+    }
+  }
+}

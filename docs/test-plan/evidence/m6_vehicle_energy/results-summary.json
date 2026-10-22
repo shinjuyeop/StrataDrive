@@ -1,0 +1,2129 @@
+{
+  "source": "d2428610a0a86a68b6287e7e8454229f173fc203",
+  "raw_sdk_attempts": 12,
+  "raw_sdk_pass": 5,
+  "intended_final_attempts": 9,
+  "intended_final_pass": 5,
+  "cpp": {
+    "full-normal.xml": {
+      "name": "Linux-c++",
+      "tests": "1011",
+      "failures": "0",
+      "disabled": "0",
+      "skipped": "0",
+      "hostname": "MJH",
+      "time": "25",
+      "timestamp": "2026-10-22T15:58:46"
+    },
+    "full-asan.xml": {
+      "name": "Linux-c++",
+      "tests": "1011",
+      "failures": "0",
+      "disabled": "0",
+      "skipped": "0",
+      "hostname": "MJH",
+      "time": "56",
+      "timestamp": "2026-10-22T15:59:25"
+    },
+    "boundary-tsan.xml": {
+      "name": "Linux-c++",
+      "tests": "28",
+      "failures": "0",
+      "disabled": "0",
+      "skipped": "0",
+      "hostname": "MJH",
+      "time": "0",
+      "timestamp": "2026-10-22T16:04:39"
+    }
+  },
+  "sdk": [
+    {
+      "cohort": "dev-capability-axis",
+      "case": "normal",
+      "raw_exit": 1,
+      "intended_final_source": false,
+      "pass": false,
+      "error": null,
+      "energy": {
+        "pass": false,
+        "errors": [
+          "missing actual simultaneous regeneration/friction"
+        ]
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 8574,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 8634,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 8816,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 8666,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": true,
+        "errors": [],
+        "session_events": 24
+      },
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 1.69113,
+        "distance_m": 3.66504,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 1.15961e-11,
+        "samples": 866
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 724,
+            "received": 724,
+            "minimum_margin_ns": 1534561
+          },
+          {
+            "owner": 3,
+            "sent": 724,
+            "received": 724,
+            "minimum_margin_ns": 1532084
+          },
+          {
+            "owner": 4,
+            "sent": 724,
+            "received": 724,
+            "minimum_margin_ns": 935153
+          }
+        ],
+        "minimum_margin_ns": 935153
+      },
+      "sdk_errors": [],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "dev-nominal",
+      "case": "normal",
+      "raw_exit": 1,
+      "intended_final_source": false,
+      "pass": false,
+      "error": null,
+      "energy": {
+        "pass": false,
+        "errors": [
+          "no measured mechanical recovery and battery DC receipt"
+        ]
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 8584,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 8636,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 8816,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 8668,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": true,
+        "errors": [],
+        "session_events": 24
+      },
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 1.6911,
+        "distance_m": 3.66737,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 6.13909e-12,
+        "samples": 867
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 727,
+            "received": 727,
+            "minimum_margin_ns": 12689659
+          },
+          {
+            "owner": 3,
+            "sent": 727,
+            "received": 727,
+            "minimum_margin_ns": 12687197
+          },
+          {
+            "owner": 4,
+            "sent": 727,
+            "received": 727,
+            "minimum_margin_ns": 11979299
+          }
+        ],
+        "minimum_margin_ns": 11979299
+      },
+      "sdk_errors": [],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "dev-wire-axis",
+      "case": "normal",
+      "raw_exit": 1,
+      "intended_final_source": false,
+      "pass": false,
+      "error": null,
+      "energy": {
+        "pass": false,
+        "errors": [
+          "no measured mechanical recovery and battery DC receipt"
+        ]
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 8586,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 8644,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 8826,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 8674,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": true,
+        "errors": [],
+        "session_events": 24
+      },
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 1.69113,
+        "distance_m": 3.66736,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 3.58114e-12,
+        "samples": 869
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 725,
+            "received": 725,
+            "minimum_margin_ns": 12045385
+          },
+          {
+            "owner": 3,
+            "sent": 725,
+            "received": 725,
+            "minimum_margin_ns": 12040526
+          },
+          {
+            "owner": 4,
+            "sent": 725,
+            "received": 725,
+            "minimum_margin_ns": 11442883
+          }
+        ],
+        "minimum_margin_ns": 11442883
+      },
+      "sdk_errors": [],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "final-asan",
+      "case": "normal",
+      "raw_exit": 0,
+      "intended_final_source": true,
+      "pass": true,
+      "error": null,
+      "energy": {
+        "pass": true,
+        "errors": [],
+        "samples": 908,
+        "epoch": 1.0,
+        "max_combined_residual_j": 1.6484591469634324e-08,
+        "max_coupling_residual_j": 0.0,
+        "max_motion_residual_j": 1.8701484805205837e-11,
+        "peak_speed_rad_s": 5.637033538905135,
+        "final": {
+          "kinetic_j": 0.0,
+          "motor_work_j": 1155.460239585899,
+          "friction_j": 775.9355878662648,
+          "road_j": 379.52465171962194,
+          "battery_draw_j": 4768.640601590276,
+          "received_dc_j": 194.09089752401218,
+          "motor_loss_j": 2355.078215171998,
+          "circuit_loss_j": 320.6426802665343,
+          "auxiliary_j": 934.9116494812001,
+          "ohmic_j": 2.5385402759870788,
+          "capacitor_delta_j": 0.009276824806791676,
+          "soc": 0.6299735075522134
+        }
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 8588,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 8654,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 9264,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 8766,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": true,
+        "errors": [],
+        "session_events": 24
+      },
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 1.6911,
+        "distance_m": 3.76922,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 1.87015e-11,
+        "samples": 908
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 727,
+            "received": 727,
+            "minimum_margin_ns": 11090173
+          },
+          {
+            "owner": 3,
+            "sent": 727,
+            "received": 727,
+            "minimum_margin_ns": 11083846
+          },
+          {
+            "owner": 4,
+            "sent": 727,
+            "received": 727,
+            "minimum_margin_ns": 10415985
+          }
+        ],
+        "minimum_margin_ns": 10415985
+      },
+      "sdk_errors": [],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "final-asan",
+      "case": "restart-live",
+      "raw_exit": 1,
+      "intended_final_source": true,
+      "pass": false,
+      "error": null,
+      "energy": {
+        "pass": true,
+        "errors": [],
+        "samples": 828,
+        "epoch": 2.0,
+        "max_combined_residual_j": 1.4259057934395969e-08,
+        "max_coupling_residual_j": 0.0,
+        "max_motion_residual_j": 1.2221335055073723e-11,
+        "peak_speed_rad_s": 5.397340378792335,
+        "final": {
+          "kinetic_j": 0.0,
+          "motor_work_j": 1092.6523212028462,
+          "friction_j": 740.904151985823,
+          "road_j": 351.7481692170133,
+          "battery_draw_j": 4795.335840046406,
+          "received_dc_j": 164.48505548315595,
+          "motor_loss_j": 2185.3491560623766,
+          "circuit_loss_j": 660.7754892025209,
+          "auxiliary_j": 851.9548032549986,
+          "ohmic_j": 2.529210423057707,
+          "capacitor_delta_j": 2.0748599047094407,
+          "soc": 0.629973359245333
+        }
+      },
+      "native": {
+        "pass": false,
+        "errors": [
+          "unexpected native deadline miss: central-1-rejoined.native.watch.json",
+          "unexpected native deadline miss: central-1.native.watch.json"
+        ],
+        "processes": [
+          {
+            "file": "central-1-rejoined.native.watch.json",
+            "active_slots": 6262,
+            "misses": 1,
+            "first_miss": {
+              "owner": 7,
+              "slot": 3120,
+              "release": 611319443464025,
+              "deadline": 611319447464025,
+              "start": 0,
+              "end": 0,
+              "cpu": 0,
+              "detected": 611319447478048,
+              "requested": 0
+            },
+            "fault_ns": 611319447478048,
+            "fault_deadline": 611319447464025
+          },
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 6262,
+            "misses": 1,
+            "first_miss": {
+              "owner": 7,
+              "slot": 3120,
+              "release": 611319443464025,
+              "deadline": 611319447464025,
+              "start": 0,
+              "end": 0,
+              "cpu": 0,
+              "detected": 611319447478048,
+              "requested": 0
+            },
+            "fault_ns": 611319447478048,
+            "fault_deadline": 611319447464025
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 7942,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 8426,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-2.native.watch.json",
+            "active_slots": 6664,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": false,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": false,
+        "errors": [
+          "unexpected overflow central",
+          "normal stop did not complete",
+          "normal command/protection failure"
+        ],
+        "session_events": 24,
+        "renewal": {
+          "pass": true,
+          "errors": [],
+          "leaves": [
+            {
+              "owner": 2,
+              "sent": 522,
+              "received": 522,
+              "minimum_margin_ns": 13674954
+            },
+            {
+              "owner": 3,
+              "sent": 522,
+              "received": 522,
+              "minimum_margin_ns": 13670111
+            },
+            {
+              "owner": 4,
+              "sent": 522,
+              "received": 522,
+              "minimum_margin_ns": 12909172
+            }
+          ],
+          "minimum_margin_ns": 12909172
+        }
+      },
+      "vehicle": {
+        "pass": false,
+        "errors": [
+          "normal stop without actual low speed"
+        ]
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 522,
+            "received": 522,
+            "minimum_margin_ns": 13674954
+          },
+          {
+            "owner": 3,
+            "sent": 522,
+            "received": 522,
+            "minimum_margin_ns": 13670111
+          },
+          {
+            "owner": 4,
+            "sent": 522,
+            "received": 522,
+            "minimum_margin_ns": 12909172
+          }
+        ],
+        "minimum_margin_ns": 12909172
+      },
+      "sdk_errors": [
+        {
+          "file": "rear-2.stdout",
+          "line": 107,
+          "text": "2026-10-22 15:58:20.834950 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1287] queue_size: 8016 pending_train_size: 117 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 108,
+          "text": "2026-10-22 15:58:20.834984 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1288] queue_size: 8016 pending_train_size: 117 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 110,
+          "text": "2026-10-22 15:58:20.836985 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1289] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 111,
+          "text": "2026-10-22 15:58:20.845144 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.128a] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 112,
+          "text": "2026-10-22 15:58:20.845220 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.128b] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 113,
+          "text": "2026-10-22 15:58:20.855121 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.128c] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 114,
+          "text": "2026-10-22 15:58:20.855181 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.128d] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 115,
+          "text": "2026-10-22 15:58:20.855212 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.128e] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 116,
+          "text": "2026-10-22 15:58:20.857247 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.128f] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 117,
+          "text": "2026-10-22 15:58:20.865133 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1290] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 118,
+          "text": "2026-10-22 15:58:20.865196 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1291] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 119,
+          "text": "2026-10-22 15:58:20.875087 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1292] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 120,
+          "text": "2026-10-22 15:58:20.875127 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1293] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 121,
+          "text": "2026-10-22 15:58:20.875166 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1294] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 122,
+          "text": "2026-10-22 15:58:20.877458 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1295] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 123,
+          "text": "2026-10-22 15:58:20.885102 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1296] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 124,
+          "text": "2026-10-22 15:58:20.885143 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1297] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 135,
+          "text": "2026-10-22 15:58:20.894916 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1298] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 136,
+          "text": "2026-10-22 15:58:20.894931 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.1299] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 137,
+          "text": "2026-10-22 15:58:20.894938 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.129a] queue_size: 8133 pending_train_size: 0 data size: 117"
+        }
+      ],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "final-normal-cycle",
+      "case": "normal",
+      "raw_exit": 0,
+      "intended_final_source": true,
+      "pass": true,
+      "error": null,
+      "energy": {
+        "pass": true,
+        "errors": [],
+        "samples": 868,
+        "epoch": 1.0,
+        "max_combined_residual_j": 9.671566658653319e-09,
+        "max_coupling_residual_j": 0.0,
+        "max_motion_residual_j": 1.0345502232667059e-11,
+        "peak_speed_rad_s": 5.637153166745905,
+        "final": {
+          "kinetic_j": 0.0,
+          "motor_work_j": 1155.8097718941513,
+          "friction_j": 776.2812391919742,
+          "road_j": 379.5285327021849,
+          "battery_draw_j": 4726.25637319684,
+          "received_dc_j": 194.02843343729876,
+          "motor_loss_j": 2354.3858077221976,
+          "circuit_loss_j": 320.3663958032537,
+          "auxiliary_j": 892.8713081883376,
+          "ohmic_j": 2.5380367987542076,
+          "capacitor_delta_j": 0.2850527904280105,
+          "soc": 0.6299737430201489
+        }
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 8586,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 8652,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 8832,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 8684,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": true,
+        "errors": [],
+        "session_events": 24
+      },
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 1.69115,
+        "distance_m": 3.76926,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 1.03455e-11,
+        "samples": 868
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 726,
+            "received": 726,
+            "minimum_margin_ns": 12960855
+          },
+          {
+            "owner": 3,
+            "sent": 726,
+            "received": 726,
+            "minimum_margin_ns": 12958324
+          },
+          {
+            "owner": 4,
+            "sent": 726,
+            "received": 726,
+            "minimum_margin_ns": 12183756
+          }
+        ],
+        "minimum_margin_ns": 12183756
+      },
+      "sdk_errors": [],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "final-normal-faults",
+      "case": "command-loss",
+      "raw_exit": 1,
+      "intended_final_source": true,
+      "pass": false,
+      "error": null,
+      "energy": {
+        "pass": true,
+        "errors": [],
+        "samples": 137,
+        "epoch": 1.0,
+        "max_combined_residual_j": 7.450921657436993e-09,
+        "max_coupling_residual_j": 0.0,
+        "max_motion_residual_j": 2.55351295663786e-15,
+        "peak_speed_rad_s": 0.1614074620506483,
+        "final": {
+          "kinetic_j": 0.0,
+          "motor_work_j": 2.37316478423533,
+          "friction_j": 1.833873768247047,
+          "road_j": 0.5392910159882817,
+          "battery_draw_j": 516.4970269501209,
+          "received_dc_j": 0.0,
+          "motor_loss_j": 58.948073612847665,
+          "circuit_loss_j": 254.703890496054,
+          "auxiliary_j": 140.41354396790774,
+          "ohmic_j": 0.19604682765775971,
+          "capacitor_delta_j": 59.86230726457847,
+          "soc": 0.6299971305720725
+        }
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 1156,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 1180,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 1312,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 1194,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": false,
+        "errors": [
+          "actual torque/brake protection within original100ms not observed"
+        ],
+        "physical_protection_ns": null,
+        "expired_commands": [
+          {
+            "ns": "611255341018499",
+            "event": "command-expired",
+            "owner": "4",
+            "epoch": "1",
+            "source": "611255315750669",
+            "deadline": "611255340894156",
+            "value": "611255340894156",
+            "detail": "0"
+          }
+        ]
+      },
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 0.048437,
+        "distance_m": 0.00539288,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 2.55351e-15,
+        "samples": 137
+      },
+      "renewal": null,
+      "sdk_errors": [],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "final-normal-faults",
+      "case": "owner-pause",
+      "raw_exit": 0,
+      "intended_final_source": true,
+      "pass": true,
+      "error": null,
+      "energy": {
+        "pass": true,
+        "errors": [],
+        "samples": 148,
+        "epoch": 1.0,
+        "max_combined_residual_j": 8.212168722820934e-09,
+        "max_coupling_residual_j": 0.0,
+        "max_motion_residual_j": 7.771561172376096e-16,
+        "peak_speed_rad_s": 0.1379241521137328,
+        "final": {
+          "kinetic_j": 0.0,
+          "motor_work_j": 1.768257360968096,
+          "friction_j": 1.3416526450925643,
+          "road_j": 0.4266047158755311,
+          "battery_draw_j": 558.7811941504478,
+          "received_dc_j": 0.0,
+          "motor_loss_j": 53.94039059519655,
+          "circuit_loss_j": 306.4533602225355,
+          "auxiliary_j": 151.31293148768268,
+          "ohmic_j": 0.21434679649053917,
+          "capacitor_delta_j": 45.091907692978644,
+          "soc": 0.6299968956600325
+        }
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 1266,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 1268,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 1416,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 1284,
+            "misses": 99,
+            "first_miss": {
+              "owner": 1,
+              "slot": 535,
+              "release": 611257186310380,
+              "deadline": 611257190310380,
+              "start": 0,
+              "end": 0,
+              "cpu": 0,
+              "detected": 611257190312904,
+              "requested": 0
+            },
+            "fault_ns": 611257190312904,
+            "fault_deadline": 611257190310380
+          }
+        ],
+        "normal_timing_ok": false,
+        "fault_protection_ok": true
+      },
+      "rear": {
+        "pass": true,
+        "errors": [],
+        "expected_paused_consumer_overflow": {
+          "role": "rear",
+          "fault_ns": 611257190312904,
+          "overflow_ns": 611257201882171,
+          "authority_rejected": 5
+        },
+        "physical_protection_ns": 611257283041817
+      },
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 0.0414016,
+        "distance_m": 0.00426603,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 7.77156e-16,
+        "samples": 148
+      },
+      "renewal": null,
+      "sdk_errors": [],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "final-normal-faults",
+      "case": "restart-live",
+      "raw_exit": 0,
+      "intended_final_source": true,
+      "pass": true,
+      "error": null,
+      "energy": {
+        "pass": true,
+        "errors": [],
+        "samples": 868,
+        "epoch": 2.0,
+        "max_combined_residual_j": 1.4906618162058294e-08,
+        "max_coupling_residual_j": 2.6469779601696886e-23,
+        "max_motion_residual_j": 5.6274984672199935e-12,
+        "peak_speed_rad_s": 5.397378489104869,
+        "final": {
+          "kinetic_j": 0.0,
+          "motor_work_j": 1092.3987942570561,
+          "friction_j": 740.6599072081049,
+          "road_j": 351.7388870489549,
+          "battery_draw_j": 4848.22157561779,
+          "received_dc_j": 164.52763083088018,
+          "motor_loss_j": 2200.713027552488,
+          "circuit_loss_j": 661.5669869060966,
+          "auxiliary_j": 890.6751585757618,
+          "ohmic_j": 2.529679558975262,
+          "capacitor_delta_j": 0.3379287821215004,
+          "soc": 0.629973065435691
+        }
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1-rejoined.native.watch.json",
+            "active_slots": 7220,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 7220,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 8646,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 8810,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-2.native.watch.json",
+            "active_slots": 7318,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": true,
+        "errors": [],
+        "session_events": 24,
+        "renewal": {
+          "pass": true,
+          "errors": [],
+          "leaves": [
+            {
+              "owner": 2,
+              "sent": 551,
+              "received": 551,
+              "minimum_margin_ns": 11441887
+            },
+            {
+              "owner": 3,
+              "sent": 551,
+              "received": 551,
+              "minimum_margin_ns": 11439297
+            },
+            {
+              "owner": 4,
+              "sent": 551,
+              "received": 551,
+              "minimum_margin_ns": 10855225
+            }
+          ],
+          "minimum_margin_ns": 10855225
+        }
+      },
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 1.61921,
+        "distance_m": 3.49517,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 5.6275e-12,
+        "samples": 868
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 551,
+            "received": 551,
+            "minimum_margin_ns": 11441887
+          },
+          {
+            "owner": 3,
+            "sent": 551,
+            "received": 551,
+            "minimum_margin_ns": 11439297
+          },
+          {
+            "owner": 4,
+            "sent": 551,
+            "received": 551,
+            "minimum_margin_ns": 10855225
+          }
+        ],
+        "minimum_margin_ns": 10855225
+      },
+      "sdk_errors": [],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "final-normal-zero",
+      "case": "normal",
+      "raw_exit": 0,
+      "intended_final_source": true,
+      "pass": true,
+      "error": null,
+      "energy": {
+        "pass": true,
+        "errors": [],
+        "samples": 868,
+        "epoch": 1.0,
+        "max_combined_residual_j": 2.3846041585784405e-08,
+        "max_coupling_residual_j": 0.0,
+        "max_motion_residual_j": 6.30961949354969e-12,
+        "peak_speed_rad_s": 5.634096510466128,
+        "final": {
+          "kinetic_j": 0.0,
+          "motor_work_j": 1613.8151626722226,
+          "friction_j": 1245.216557327395,
+          "road_j": 368.598605344827,
+          "battery_draw_j": 4967.012802898884,
+          "received_dc_j": 0.0,
+          "motor_loss_j": 2137.4624846859497,
+          "circuit_loss_j": 320.3469977456112,
+          "auxiliary_j": 892.5805861499093,
+          "ohmic_j": 2.5336955020225096,
+          "capacitor_delta_j": 0.2738761537227933,
+          "soc": 0.9599724054844283
+        }
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 8594,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 8654,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 8834,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 8686,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": true,
+        "errors": [],
+        "session_events": 24
+      },
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 1.69022,
+        "distance_m": 3.66086,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 6.30962e-12,
+        "samples": 868
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 725,
+            "received": 725,
+            "minimum_margin_ns": 9659345
+          },
+          {
+            "owner": 3,
+            "sent": 725,
+            "received": 725,
+            "minimum_margin_ns": 9656940
+          },
+          {
+            "owner": 4,
+            "sent": 725,
+            "received": 725,
+            "minimum_margin_ns": 9016162
+          }
+        ],
+        "minimum_margin_ns": 9016162
+      },
+      "sdk_errors": [],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "final-tsan",
+      "case": "normal",
+      "raw_exit": 1,
+      "intended_final_source": true,
+      "pass": false,
+      "error": null,
+      "energy": {
+        "pass": false,
+        "errors": [
+          "normal scenario phase missing"
+        ]
+      },
+      "native": {
+        "pass": false,
+        "errors": [
+          "normal1211 owner/monitor slots missing",
+          "normal1211 owner/monitor slots missing",
+          "unexpected native deadline miss: front-1.native.watch.json",
+          "normal1211 owner/monitor slots missing"
+        ],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 122,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 528,
+            "misses": 1,
+            "first_miss": {
+              "owner": 0,
+              "slot": 95,
+              "release": 611329576011662,
+              "deadline": 611329580011662,
+              "start": 0,
+              "end": 0,
+              "cpu": 0,
+              "detected": 611329580066248,
+              "requested": 0
+            },
+            "fault_ns": 611329580066248,
+            "fault_deadline": 611329580011662
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 1386,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 892,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": false,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": false,
+        "errors": [
+          "unexpected overflow central",
+          "no actual normal Drive/brake model response before injection",
+          "missing real eight-participant release/arm",
+          "normal stop did not complete",
+          "normal command/protection failure",
+          "missing actual Drive commands"
+        ],
+        "session_events": 24
+      },
+      "vehicle": {
+        "pass": false,
+        "errors": [
+          "no actual vehicle motion"
+        ]
+      },
+      "renewal": {
+        "pass": false,
+        "errors": [
+          "command count/missing Leaf 2",
+          "command count/missing Leaf 3",
+          "command count/missing Leaf 4"
+        ],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 0,
+            "received": 0,
+            "minimum_margin_ns": null
+          },
+          {
+            "owner": 3,
+            "sent": 0,
+            "received": 0,
+            "minimum_margin_ns": null
+          },
+          {
+            "owner": 4,
+            "sent": 0,
+            "received": 0,
+            "minimum_margin_ns": null
+          }
+        ],
+        "minimum_margin_ns": null
+      },
+      "sdk_errors": [
+        {
+          "file": "front-1.stdout",
+          "line": 46,
+          "text": "2026-10-22 15:58:30.938106 front [error] tcei::write_completion_condition: Broken pipe(32) bytes transferred: 0 bytes to sent: 85 remote:10.88.0.1:30503 (1422): [5346.0070.006a]"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 108,
+          "text": "2026-10-22 15:58:31.076548 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00ec] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 109,
+          "text": "2026-10-22 15:58:31.076807 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00ed] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 110,
+          "text": "2026-10-22 15:58:31.085680 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00ee] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 111,
+          "text": "2026-10-22 15:58:31.086417 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00ef] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 112,
+          "text": "2026-10-22 15:58:31.092167 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f0] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 113,
+          "text": "2026-10-22 15:58:31.095489 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f1] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 114,
+          "text": "2026-10-22 15:58:31.096531 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f2] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 115,
+          "text": "2026-10-22 15:58:31.096773 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f3] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 116,
+          "text": "2026-10-22 15:58:31.105819 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f4] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 117,
+          "text": "2026-10-22 15:58:31.106018 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f5] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 118,
+          "text": "2026-10-22 15:58:31.112111 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f6] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 119,
+          "text": "2026-10-22 15:58:31.115905 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f7] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 120,
+          "text": "2026-10-22 15:58:31.116839 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f8] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 121,
+          "text": "2026-10-22 15:58:31.117019 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00f9] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 122,
+          "text": "2026-10-22 15:58:31.125562 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00fa] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 123,
+          "text": "2026-10-22 15:58:31.126315 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00fb] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 124,
+          "text": "2026-10-22 15:58:31.132527 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00fc] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 125,
+          "text": "2026-10-22 15:58:31.136287 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00fd] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 126,
+          "text": "2026-10-22 15:58:31.136470 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00fe] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 127,
+          "text": "2026-10-22 15:58:31.136598 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.00ff] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 138,
+          "text": "2026-10-22 15:58:31.146218 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0100] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 139,
+          "text": "2026-10-22 15:58:31.146442 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0101] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 140,
+          "text": "2026-10-22 15:58:31.152873 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0102] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 141,
+          "text": "2026-10-22 15:58:31.156374 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0103] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 142,
+          "text": "2026-10-22 15:58:31.156565 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0104] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 143,
+          "text": "2026-10-22 15:58:31.156717 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0105] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 144,
+          "text": "2026-10-22 15:58:31.165894 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0106] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 145,
+          "text": "2026-10-22 15:58:31.166639 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0107] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 146,
+          "text": "2026-10-22 15:58:31.173222 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0108] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 147,
+          "text": "2026-10-22 15:58:31.175732 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0109] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 148,
+          "text": "2026-10-22 15:58:31.175902 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.010a] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 149,
+          "text": "2026-10-22 15:58:31.176468 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.010b] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 150,
+          "text": "2026-10-22 15:58:31.187345 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.010c] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 151,
+          "text": "2026-10-22 15:58:31.187647 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.010d] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 152,
+          "text": "2026-10-22 15:58:31.193529 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.010e] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 153,
+          "text": "2026-10-22 15:58:31.195860 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.010f] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 154,
+          "text": "2026-10-22 15:58:31.196716 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0110] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 155,
+          "text": "2026-10-22 15:58:31.196905 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0111] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 156,
+          "text": "2026-10-22 15:58:31.205853 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0112] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 157,
+          "text": "2026-10-22 15:58:31.206582 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0113] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 158,
+          "text": "2026-10-22 15:58:31.213848 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0114] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 159,
+          "text": "2026-10-22 15:58:31.216250 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0115] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 160,
+          "text": "2026-10-22 15:58:31.216426 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0116] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 161,
+          "text": "2026-10-22 15:58:31.216578 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0117] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 162,
+          "text": "2026-10-22 15:58:31.225435 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0118] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 163,
+          "text": "2026-10-22 15:58:31.226177 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0119] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 164,
+          "text": "2026-10-22 15:58:31.234260 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.011a] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 165,
+          "text": "2026-10-22 15:58:31.235447 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.011b] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 166,
+          "text": "2026-10-22 15:58:31.236399 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.011c] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 167,
+          "text": "2026-10-22 15:58:31.236576 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.011d] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 178,
+          "text": "2026-10-22 15:58:31.247698 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.011e] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 179,
+          "text": "2026-10-22 15:58:31.247924 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.011f] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 180,
+          "text": "2026-10-22 15:58:31.254651 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0120] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 181,
+          "text": "2026-10-22 15:58:31.256035 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0121] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 182,
+          "text": "2026-10-22 15:58:31.256855 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0122] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 183,
+          "text": "2026-10-22 15:58:31.257046 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0123] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 184,
+          "text": "2026-10-22 15:58:31.265334 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0124] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 185,
+          "text": "2026-10-22 15:58:31.266147 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0125] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 186,
+          "text": "2026-10-22 15:58:31.275202 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0126] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 187,
+          "text": "2026-10-22 15:58:31.276186 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0127] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 188,
+          "text": "2026-10-22 15:58:31.276365 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0128] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 189,
+          "text": "2026-10-22 15:58:31.276497 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0129] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 190,
+          "text": "2026-10-22 15:58:31.285664 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.012a] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 191,
+          "text": "2026-10-22 15:58:31.286354 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.012b] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 192,
+          "text": "2026-10-22 15:58:31.296093 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.012c] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 193,
+          "text": "2026-10-22 15:58:31.296298 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.012d] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 194,
+          "text": "2026-10-22 15:58:31.296441 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.012e] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 195,
+          "text": "2026-10-22 15:58:31.297048 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.012f] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 196,
+          "text": "2026-10-22 15:58:31.305547 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0130] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 197,
+          "text": "2026-10-22 15:58:31.306276 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0131] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 198,
+          "text": "2026-10-22 15:58:31.315710 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0132] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 199,
+          "text": "2026-10-22 15:58:31.316650 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0133] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 200,
+          "text": "2026-10-22 15:58:31.316816 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0134] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 201,
+          "text": "2026-10-22 15:58:31.316944 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0135] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 202,
+          "text": "2026-10-22 15:58:31.325306 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0136] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 203,
+          "text": "2026-10-22 15:58:31.326259 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0137] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 204,
+          "text": "2026-10-22 15:58:31.336084 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0138] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 205,
+          "text": "2026-10-22 15:58:31.336264 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0139] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 206,
+          "text": "2026-10-22 15:58:31.336394 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.013a] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 207,
+          "text": "2026-10-22 15:58:31.336960 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.013b] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 208,
+          "text": "2026-10-22 15:58:31.345388 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.013c] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 209,
+          "text": "2026-10-22 15:58:31.346113 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.013d] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 220,
+          "text": "2026-10-22 15:58:31.355771 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.013e] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 221,
+          "text": "2026-10-22 15:58:31.355964 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.013f] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 222,
+          "text": "2026-10-22 15:58:31.356845 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0140] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 223,
+          "text": "2026-10-22 15:58:31.357033 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0141] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 224,
+          "text": "2026-10-22 15:58:31.365747 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0142] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 225,
+          "text": "2026-10-22 15:58:31.366500 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0143] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 226,
+          "text": "2026-10-22 15:58:31.376242 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0144] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 227,
+          "text": "2026-10-22 15:58:31.376442 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0145] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 228,
+          "text": "2026-10-22 15:58:31.376584 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0146] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 229,
+          "text": "2026-10-22 15:58:31.377172 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0147] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 230,
+          "text": "2026-10-22 15:58:31.385456 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0148] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-1.stdout",
+          "line": 231,
+          "text": "2026-10-22 15:58:31.386155 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1522): [534a.0070.0149] queue_size: 8133 pending_train_size: 0 data size: 117"
+        }
+      ],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    },
+    {
+      "cohort": "final-tsan",
+      "case": "restart-live",
+      "raw_exit": 1,
+      "intended_final_source": true,
+      "pass": false,
+      "error": null,
+      "energy": {
+        "pass": false,
+        "errors": [
+          "normal scenario phase missing"
+        ]
+      },
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1-rejoined.native.watch.json",
+            "active_slots": 2032,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 2032,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 3704,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 4158,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-2.native.watch.json",
+            "active_slots": 2496,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "rear": {
+        "pass": false,
+        "errors": [
+          "unexpected overflow central",
+          "normal stop did not complete",
+          "normal command/protection failure",
+          "premature protection rear",
+          "new Epoch Leaf renewal: ['command count/missing Leaf 4', 'unreceived command 4']"
+        ],
+        "session_events": 24,
+        "renewal": {
+          "pass": false,
+          "errors": [
+            "command count/missing Leaf 4",
+            "unreceived command 4"
+          ],
+          "leaves": [
+            {
+              "owner": 2,
+              "sent": 101,
+              "received": 101,
+              "minimum_margin_ns": 10004958
+            },
+            {
+              "owner": 3,
+              "sent": 101,
+              "received": 101,
+              "minimum_margin_ns": 9930410
+            },
+            {
+              "owner": 4,
+              "sent": 101,
+              "received": 100,
+              "minimum_margin_ns": 10701946
+            }
+          ],
+          "minimum_margin_ns": 9930410
+        }
+      },
+      "vehicle": {
+        "pass": false,
+        "errors": [
+          "normal stop without actual low speed"
+        ]
+      },
+      "renewal": {
+        "pass": false,
+        "errors": [
+          "command count/missing Leaf 4",
+          "unreceived command 4"
+        ],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 101,
+            "received": 101,
+            "minimum_margin_ns": 10004958
+          },
+          {
+            "owner": 3,
+            "sent": 101,
+            "received": 101,
+            "minimum_margin_ns": 9930410
+          },
+          {
+            "owner": 4,
+            "sent": 101,
+            "received": 100,
+            "minimum_margin_ns": 10701946
+          }
+        ],
+        "minimum_margin_ns": 9930410
+      },
+      "sdk_errors": [
+        {
+          "file": "rear-2.stdout",
+          "line": 107,
+          "text": "2026-10-22 15:58:36.963304 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.055f] queue_size: 8016 pending_train_size: 117 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 109,
+          "text": "2026-10-22 15:58:36.973046 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0560] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 110,
+          "text": "2026-10-22 15:58:36.973090 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0561] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 111,
+          "text": "2026-10-22 15:58:36.973119 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0562] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 112,
+          "text": "2026-10-22 15:58:36.976397 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0563] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 113,
+          "text": "2026-10-22 15:58:36.983013 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0564] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 114,
+          "text": "2026-10-22 15:58:36.983055 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0565] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 115,
+          "text": "2026-10-22 15:58:36.993021 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0566] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 116,
+          "text": "2026-10-22 15:58:36.993058 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0567] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 117,
+          "text": "2026-10-22 15:58:36.993084 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0568] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 118,
+          "text": "2026-10-22 15:58:36.996367 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0569] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 119,
+          "text": "2026-10-22 15:58:37.002980 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.056a] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 120,
+          "text": "2026-10-22 15:58:37.003021 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.056b] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 121,
+          "text": "2026-10-22 15:58:37.013028 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.056c] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 122,
+          "text": "2026-10-22 15:58:37.013070 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.056d] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 123,
+          "text": "2026-10-22 15:58:37.013097 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.056e] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 124,
+          "text": "2026-10-22 15:58:37.016613 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.056f] queue_size: 8133 pending_train_size: 0 data size: 83"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 135,
+          "text": "2026-10-22 15:58:37.023004 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0570] queue_size: 8133 pending_train_size: 0 data size: 117"
+        },
+        {
+          "file": "rear-2.stdout",
+          "line": 136,
+          "text": "2026-10-22 15:58:37.023047 rear [error] cei::check_queue_limit: Queue size limit (8192) reached. Dropping message (1523): [534a.0070.0571] queue_size: 8133 pending_train_size: 0 data size: 117"
+        }
+      ],
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": []
+    }
+  ]
+}
