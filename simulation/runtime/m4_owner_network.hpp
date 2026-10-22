@@ -6,6 +6,7 @@
 #include "async_zone_owner.hpp"
 #include "session_loop.hpp"
 #include "ev_power_model.hpp"
+#include "simple_vehicle.hpp"
 #include "drive_sil_plant.hpp"
 #include "steering_response.hpp"
 #include "brake_pressure_response.hpp"
@@ -47,16 +48,17 @@ struct PhysicalFailure {
 class PhysicalOwner {
 public:
     PhysicalOwner(Clock& clock,transport::RunGate& gate,std::array<runtime::LatestSnapshot<OwnerSensors>,session::kRoleCount>& sensors,
-        std::array<runtime::LatestSnapshot<OwnerActuation>,transport::kLeaves>& outputs,std::uint64_t start,std::vector<M4Event>& events,transport::Protection& override_signal,std::uint32_t first_epoch)
-        :clock_(clock),gate_(gate),sensors_(sensors),outputs_(outputs),events_(events),override_(override_signal),released_epoch_(first_epoch),start_(start) {}
+        std::array<runtime::LatestSnapshot<OwnerActuation>,transport::kLeaves>& outputs,std::uint64_t start,std::vector<M4Event>& events,transport::Protection& override_signal,std::uint32_t first_epoch,bool simple_vehicle=false)
+        :clock_(clock),gate_(gate),sensors_(sensors),outputs_(outputs),events_(events),override_(override_signal),released_epoch_(first_epoch),start_(start),vehicle_enabled_(simple_vehicle) {}
     void step();
     bool ok() const { return ok_; }
+    const SimpleVehicle* vehicle() const { return vehicle_enabled_?&vehicle_:nullptr; }
     int fault_code() const { return static_cast<int>(energy_.fault()); }
     std::vector<M4Trace> trace;
     const PhysicalFailure& failure() const {return failure_;}
     std::uint64_t last_success() const {return last_success_;}
 private:
-    std::array<std::uint64_t,4> component_success_{};
+    std::array<std::uint64_t,5> component_success_{};
     PhysicalFailure failure_;std::uint64_t previous_call_=0,current_call_=0,last_success_=0;
     bool observe(bool ok,const char* model,const char* site,std::uint64_t input);
     Clock& clock_; transport::RunGate& gate_; std::array<runtime::LatestSnapshot<OwnerSensors>,session::kRoleCount>& sensors_;
@@ -69,6 +71,7 @@ private:
     DriveSilPlant motor_{vecu::DriveControllerConfig{}.response};
     EvPowerModel energy_{{},{180000000,400,.05,200000,20,25,100,.01,1,100000},{.002,50,.02,100,1000,500}};
     power::CoilCommand coils_{};
+    bool vehicle_enabled_;SimpleVehicle vehicle_;
 };
 class ZoneSession final : public session::ParticipantPort {
 public:

@@ -69,6 +69,7 @@ struct Owners final:session::CoordinatorPort {
     std::map<std::pair<std::uint32_t,std::uint64_t>,std::uint64_t> diagnostic_pending;
     std::uint64_t diagnostic_sent=0,diagnostic_rejected=0,diagnostic_expired=0,diagnostic_late=0,pending_expired=0,state_violations=0,pre_init_rejected=0;
     std::uint64_t last_step=0,max_poll_gap=0;
+    double max_validated_wheel_speed=0;std::uint64_t wheel_speed_samples=0,last_wheel_source=0;
     bool freeze_normal=false;std::array<remote::ProtectionReceipt,2> receipt;
     bool stop_requested=false;std::uint32_t stop_seq=0;std::uint64_t stop_started=0,stop_complete=0,last_stop=0;
     std::atomic<std::uint64_t> monitor_delay{0};
@@ -228,7 +229,12 @@ struct Owners final:session::CoordinatorPort {
                 vehicle_release=core.next_allocation_ns();core.receive_vehicle({epoch,vehicle_seq++,t,t+60*kMs,.2,.02,0,false},now());
             }
             if(due)next_management=plan.enable_ns+4*kMs+((t-plan.enable_ns-4*kMs)/(10*kMs)+1)*(10*kMs);
-            const auto feedback=port.feedback();core.tick(feedback,now(),due);
+            const auto feedback=port.feedback();
+            if(feedback.rear.drive_actual && feedback.rear.drive_actual->wheel_speed) {
+                const auto& wheel=*feedback.rear.drive_actual->wheel_speed;
+                if(wheel.source_time_ns>last_wheel_source){last_wheel_source=wheel.source_time_ns;++wheel_speed_samples;max_validated_wheel_speed=std::max(max_validated_wheel_speed,wheel.value_rad_s);}
+            }
+            core.tick(feedback,now(),due);
             if(stop_requested && !stop_complete && core.decision().stop.state==central::NormalStopState::Complete){stop_complete=now();event("normal-stop-complete",7);}
 
         }
@@ -259,6 +265,7 @@ struct Owners final:session::CoordinatorPort {
 
     bool observed_normal_response() {
         const auto f=port.feedback();
+        if(std::getenv("STRATADRIVE_SIMPLE_VEHICLE") && (!f.rear.drive_actual || !f.rear.drive_actual->wheel_speed || f.rear.drive_actual->wheel_speed->value_rad_s<.1))return false;
         return f.rear.drive_actual && f.rear.drive_actual->torque_nm && *f.rear.drive_actual->torque_nm>1 &&
             f.front.brake_actual && f.front.brake_actual->pressure_pa && *f.front.brake_actual->pressure_pa<1;
     }
@@ -278,7 +285,7 @@ int plant(const fs::path& folder) {
     std::array<runtime::LatestSnapshot<simulation::OwnerSensors>,8> sensors;
     std::array<runtime::LatestSnapshot<simulation::OwnerActuation>,5> outputs;
     std::vector<simulation::M4Event> events;events.reserve(4000);const auto start=now();
-    simulation::m4_detail::PhysicalOwner physical{clock,gate,sensors,outputs,start,events,override_signal,1};physical.trace.reserve(4000);
+    simulation::m4_detail::PhysicalOwner physical{clock,gate,sensors,outputs,start,events,override_signal,1,std::getenv("STRATADRIVE_SIMPLE_VEHICLE")!=nullptr};physical.trace.reserve(4000);
     PlantIO io((folder/"sil-io"/"plant.bin").string(),true);
     std::unique_ptr<simulation::NativeExecutionWatch> watch;
     std::vector<std::unique_ptr<simulation::NativeMonitorObserver>> observers;
@@ -315,8 +322,8 @@ int plant(const fs::path& folder) {
         else std::this_thread::sleep_for(std::chrono::microseconds(500));
     }}catch(const std::exception& e){pass=false;fault_time=now();error=e.what();}
     if(watch)watch->write((folder/"plant-1.native").string());
-    std::ofstream log(folder/"physical.csv");log<<"ns,epoch,angle,pressure,torque,bus,model_epoch,model_sequence\n";
-    for(const auto& r:physical.trace)log<<r.source_ns<<','<<r.epoch<<','<<r.angle_rad<<','<<r.pressure_pa<<','<<r.torque_nm<<','<<r.bus_v<<','<<r.model_epoch<<','<<r.model_sequence<<'\n';
+    std::ofstream log(folder/"physical.csv");log<<"ns,epoch,angle,pressure,torque,bus,model_epoch,model_sequence,speed_mps,distance_m,x_m,y_m,yaw_rad,vehicle_balance_j\n";
+    for(const auto& r:physical.trace)log<<r.source_ns<<','<<r.epoch<<','<<r.angle_rad<<','<<r.pressure_pa<<','<<r.torque_nm<<','<<r.bus_v<<','<<r.model_epoch<<','<<r.model_sequence<<','<<r.speed_mps<<','<<r.distance_m<<','<<r.x_m<<','<<r.y_m<<','<<r.yaw_rad<<','<<r.vehicle_balance_j<<'\n';
     std::ofstream steps(folder/"plant-timing.csv");steps<<"before,after,failed\n";for(const auto& r:timing)steps<<r[0]<<','<<r[1]<<','<<r[2]<<'\n';
     std::ofstream ev(folder/"plant-events.csv");ev<<"ns,event,owner,epoch,source,deadline,reference,code\n";
     for(const auto& e:events)ev<<e.time_ns<<','<<e.kind<<','<<e.owner<<','<<e.epoch<<','<<e.source_ns<<','<<e.deadline_ns<<','<<e.reference_ns<<','<<e.code<<'\n';
@@ -510,6 +517,7 @@ int main(int argc,char** argv) {
         <<",\"batches\":"<<(owners?owners->port.completed_batches():0)<<",\"actual_count\":"<<(owners?owners->actual_count:0)<<",\"result_count\":"<<(owners?owners->result_count:0)
         <<",\"steering_applied\":"<<(owners && ecu==Ecu::Front?owners->leaf[0]->received_commands():0)<<",\"brake_applied\":"<<(owners && ecu==Ecu::Front?owners->leaf[1]->received_commands():0)
         <<",\"drive_applied\":"<<(owners && ecu==Ecu::Rear?owners->leaf[2]->received_commands():0)
+        <<",\"max_validated_wheel_speed\":"<<(owners?owners->max_validated_wheel_speed:0)<<",\"wheel_speed_samples\":"<<(owners?owners->wheel_speed_samples:0)
         <<",\"normal_stop_started\":"<<(owners?owners->stop_started:0)<<",\"normal_stop_complete\":"<<(owners?owners->stop_complete:0)
         <<",\"expired_rejected\":"<<(owners && remote?owners->remote_zone->expired:0)<<",\"rx_highwater\":"<<std::max(net.highwater[0].load(),net.highwater[2].load())<<",\"authority_highwater\":"<<std::max(net.highwater[1].load(),net.highwater[3].load())<<",\"max_owner_poll_gap_ns\":"<<(owners?owners->max_poll_gap:0)<<",\"stale_authority_rejected\":"<<net.stale_authority_rejected<<",\"binding_rejected\":"<<net.rejected<<",\"send_returned\":"<<net.send_returned
         <<",\"authority_rejected\":"<<net.rx_rejected[1]<<",\"transition_discarded\":["<<net.transition_discarded[0]<<','<<net.transition_discarded[1]<<','<<net.transition_discarded[2]<<','<<net.transition_discarded[3]<<']'<<",\"rx_rejected\":"<<net.rx_rejected[0]<<",\"rx_overflow_ns\":"<<net.rx_overflow_ns<<",\"rx_overflow_token\":"<<net.rx_overflow_token<<",\"fifo_preserved\":"<<(net.fifo_preserved?"true":"false")<<",\"overflow_drained\":"<<net.drained_count<<",\"io_attempts\":"<<(owners?owners->io.attempts:0)<<",\"io_busy\":"<<(owners?owners->io.busy:0)<<",\"io_errors\":"<<(owners?owners->io.errors:0)<<",\"overflow\":"<<(net.overflow?"true":"false")<<",\"error\":\""<<error<<"\"}\n";

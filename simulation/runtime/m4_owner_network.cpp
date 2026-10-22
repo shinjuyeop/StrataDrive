@@ -6,7 +6,7 @@ namespace stratadrive::simulation::m4_detail {
 std::uint64_t cpu_now() { timespec t{}; if(clock_gettime(CLOCK_THREAD_CPUTIME_ID,&t)!=0) throw std::runtime_error("thread CPU clock"); return static_cast<std::uint64_t>(t.tv_sec)*1000000000+static_cast<std::uint64_t>(t.tv_nsec); }
 std::uint64_t wall_now() { return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()); }
 bool PhysicalOwner::observe(bool ok,const char* model,const char* site,std::uint64_t input) {
-    const unsigned component=model[0]=='e'?0:model[0]=='d'?1:model[0]=='s'?2:3;
+    const unsigned component=model[0]=='e'?0:model[0]=='d'?1:model[0]=='s'?2:model[0]=='b'?3:4;
     if(!ok && !failure_.call_ns) {
         failure_={model,site,current_call_,previous_call_,last_success_,input,current_call_>=last_?current_call_-last_:0,released_epoch_,override_.pending(released_epoch_),{}};
         failure_.return_ns=clock_.now_ns();failure_.component_last_success_ns=component_success_[component];
@@ -22,6 +22,7 @@ void PhysicalOwner::step() {
         const auto now=clock_.now_ns();previous_call_=current_call_;current_call_=now;
         if(!begun_) {
             begun_=true; last_=now; motor_.begin(7,now);
+            if(vehicle_enabled_ && !observe(vehicle_.initialize(7,now),"vehicle","initialize",now)){ok_=false;return;}
             ok_=observe(angles_.begin(now),"steering","begin",now) && observe(pressure_.begin(now),"brake","begin",now) && observe(energy_.initialize({7,now,.63,25},0),"energy","initialize",now); if(ok_)last_success_=now;return;
         }
         if(!ok_ || now<=last_) return;
@@ -29,15 +30,19 @@ void PhysicalOwner::step() {
         const double old_torque=motor_.actual_nm();
         const auto& p=energy_.power_state();
         const bool inverter=(p.contactors.positive && p.contactors.negative && p.bus_voltage_v>=300) || std::abs(old_torque)>1e-9;
-        const EvPowerInputs inputs{battery::ModelMeasurement<double>{old_torque,id,last_},battery::ModelMeasurement<double>{0,id,last_},
+        const EvPowerInputs inputs{battery::ModelMeasurement<double>{old_torque,id,last_},battery::ModelMeasurement<double>{vehicle_enabled_?vehicle_.wheel_speed_rad_s():0,id,last_},
             battery::ModelMeasurement<EvElectricalEnvironment>{{.25,inverter},id,last_}};
+        if(vehicle_enabled_) {
+            const VehicleActual a{{old_torque,id,last_},{pressure_.actual_pressure_pa(),id,last_},{angles_.actual_angle_rad(),id,last_}};
+            if(!observe(vehicle_.step(last_,now,a)==VehicleFault::None,"vehicle","step",last_)){ok_=false;return;}
+        }
         const auto stepped=energy_.step({last_,now,inputs,coils_});
         ok_=observe(stepped.fault==EvPowerFault::None,"energy","step",last_) && observe(motor_.advance(now,false),"drive","advance",last_) && observe(angles_.advance(now),"steering","advance",last_) && observe(pressure_.advance(now),"brake","advance",last_);
         if(!ok_) return;
         OwnerSensors s; s.source_ns=now; s.angle=angles_.capture(); s.pressure=pressure_.capture(); s.torque=motor_.capture(now);
         s.power=energy_.power_observation(); s.battery=energy_.battery_observation();
         const auto& actual=energy_.power_state();
-        s.drive.wheel_speed=battery::ModelMeasurement<double>{0,{7,sequence_,now},now};
+        s.drive.wheel_speed=battery::ModelMeasurement<double>{vehicle_enabled_?vehicle_.wheel_speed_rad_s():0,{7,sequence_,now},now};
         s.drive.hv=battery::ModelMeasurement<drive::HvFeedback>{{actual.bus_voltage_v,actual.contactors.positive && actual.contactors.negative && actual.bus_voltage_v>=300,false},
             {7,sequence_,now},last_};
         for(auto& channel:sensors_) channel.publish(s);
@@ -101,6 +106,7 @@ void PhysicalOwner::step() {
         if(now-last_trace_>=10000000) {
             last_trace_=now;
             trace.push_back({now-start_,now,0,false,false,false,0,0,0,angles_.actual_angle_rad(),pressure_.actual_pressure_pa(),motor_.actual_nm(),actual.bus_voltage_v,energy_.battery_state().soc});
+            if(vehicle_enabled_) { const auto& v=vehicle_.state();trace.back().speed_mps=v.speed_mps;trace.back().distance_m=v.distance_m;trace.back().x_m=v.x_m;trace.back().y_m=v.y_m;trace.back().yaw_rad=v.yaw_rad;trace.back().vehicle_balance_j=v.balance_error_j; }
             trace.back().run_gate=released_at_start!=0; trace.back().epoch=released_at_start;
             trace.back().energy_j=energy_.battery_state().energy_j;
             trace.back().model_epoch=actual.identity.epoch; trace.back().model_sequence=actual.identity.sequence;

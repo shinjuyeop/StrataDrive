@@ -31,6 +31,7 @@ struct M4Trace {
     std::uint64_t steering_source_ns{0},brake_source_ns{0},drive_source_ns{0},command_source_ns{0};
     std::uint32_t command_root_sequence{0};
     std::uint64_t central_observation_ns{0};
+    double speed_mps{0},distance_m{0},x_m{0},y_m{0},yaw_rad{0},vehicle_balance_j{0};
     double energy_j{0}; std::uint32_t model_epoch{0},model_sequence{0}; unsigned contacts{0};
 };
 struct M4Timing {
