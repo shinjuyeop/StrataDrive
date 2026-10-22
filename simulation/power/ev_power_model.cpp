@@ -58,6 +58,12 @@ EvPowerStep EvPowerModel::fail(EvPowerFault fault) {
     return result_;
 }
 EvPowerStep EvPowerModel::step(const EvPowerInterval& interval, const PowerFaultInjection& injection, const BatterySensorCapture& capture) {
+    return step_impl(interval,nullptr,injection,capture);
+}
+EvPowerStep EvPowerModel::step_integrated_motion(const EvPowerInterval& interval,const IntegratedMotorWork& work,const PowerFaultInjection& injection,const BatterySensorCapture& capture) {
+    return step_impl(interval,&work,injection,capture);
+}
+EvPowerStep EvPowerModel::step_impl(const EvPowerInterval& interval,const IntegratedMotorWork* work,const PowerFaultInjection& injection,const BatterySensorCapture& capture) {
     if (result_.fault != EvPowerFault::None) return result_;
     if (interval.end_ns < last_observed_ns_) return fail(EvPowerFault::Clock);
     last_observed_ns_ = interval.end_ns;
@@ -75,11 +81,28 @@ EvPowerStep EvPowerModel::step(const EvPowerInterval& interval, const PowerFault
     const auto bounds = std::minmax_element(times.begin(), times.end());
     if (*bounds.second-*bounds.first > drive_config_.max_source_skew_ns) return fail(EvPowerFault::Skew);
     const auto& e = in.electrical->value;
-    const auto motor = calculate_motor_power(drive_config_, in.actual_torque_nm->value, in.wheel_speed_rad_s->value);
+    auto motor = calculate_motor_power(drive_config_, in.actual_torque_nm->value, in.wheel_speed_rad_s->value);
     if (!motor || !std::isfinite(e.auxiliary_current_a) || e.auxiliary_current_a < 0) return fail(EvPowerFault::Inputs);
     if (!e.inverter_enabled && in.actual_torque_nm->value != 0) return fail(EvPowerFault::InverterOff);
+    const auto seconds=static_cast<double>(interval.end_ns-interval.begin_ns)*1e-9;
+    auto dependency = std::min({in.actual_torque_nm->input_time_ns, in.wheel_speed_rad_s->input_time_ns, in.electrical->input_time_ns});
+    if(work) {
+        if(work->identity.epoch!=state_.identity.epoch || state_.identity.sequence==UINT32_MAX ||
+            work->identity.sequence!=state_.identity.sequence+1 || work->identity.source_time_ns!=interval.end_ns ||
+            work->begin_ns!=interval.begin_ns || work->end_ns!=interval.end_ns)
+            return fail(EvPowerFault::Identity);
+        if(work->input_time_ns<initialization_ns_ || work->input_time_ns>dependency)return fail(EvPowerFault::Inputs);
+        if(interval.end_ns-work->input_time_ns>drive_config_.max_input_age_ns)return fail(EvPowerFault::Stale);
+        dependency=work->input_time_ns; // includes older friction/steering dependencies from motion
+        if(!std::isfinite(work->mechanical_j) || (!e.inverter_enabled && work->mechanical_j!=0))return fail(EvPowerFault::Inputs);
+        const double torque=in.actual_torque_nm->value;
+        if(torque==0 && work->mechanical_j!=0)return fail(EvPowerFault::Inputs);
+        // Mean speed comes from integrated motion, not a restamped acquisition.
+        const double mean_speed=torque==0?0:work->mechanical_j/(torque*seconds);
+        motor=calculate_motor_power(drive_config_,torque,mean_speed);
+        if(!motor)return fail(EvPowerFault::Inputs);
+    }
     const auto actual_motor = e.inverter_enabled ? *motor : MotorPower{0, 0, 0};
-    const auto dependency = std::min({in.actual_torque_nm->input_time_ns, in.wheel_speed_rad_s->input_time_ns, in.electrical->input_time_ns});
     const PowerEnvironment environment{battery_config_.open_circuit_voltage_v, 0, e.lv_available, e.interlock_closed,
         e.isolation_ok, e.charger_connected, e.power_fault, battery_config_.resistance_ohm, e.auxiliary_current_a, actual_motor.dc_w};
     auto circuit = *circuit_; auto battery = *battery_; // transactional candidates; sensor faults do not erase physical flow
@@ -94,7 +117,6 @@ EvPowerStep EvPowerModel::step(const EvPowerInterval& interval, const PowerFault
         return fail(EvPowerFault::Battery);
     }
     auto totals = totals_;
-    const auto seconds = static_cast<double>(interval.end_ns-interval.begin_ns)/1e9;
     totals[0].add(actual_motor.mechanical_w*seconds); totals[1].add(actual_motor.loss_w*seconds);
     totals[2].add(flow.precharge_loss_j); totals[3].add(flow.main_loss_j); totals[4].add(flow.discharge_loss_j);
     const auto capacitor = 0.5*circuit_config_.capacitance_f*circuit.diagnostic_state().bus_voltage_v*circuit.diagnostic_state().bus_voltage_v;

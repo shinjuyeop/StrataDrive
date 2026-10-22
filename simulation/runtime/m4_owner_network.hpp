@@ -7,6 +7,7 @@
 #include "session_loop.hpp"
 #include "ev_power_model.hpp"
 #include "simple_vehicle.hpp"
+#include "vehicle_ev_model.hpp"
 #include "drive_sil_plant.hpp"
 #include "steering_response.hpp"
 #include "brake_pressure_response.hpp"
@@ -48,12 +49,15 @@ struct PhysicalFailure {
 class PhysicalOwner {
 public:
     PhysicalOwner(Clock& clock,transport::RunGate& gate,std::array<runtime::LatestSnapshot<OwnerSensors>,session::kRoleCount>& sensors,
-        std::array<runtime::LatestSnapshot<OwnerActuation>,transport::kLeaves>& outputs,std::uint64_t start,std::vector<M4Event>& events,transport::Protection& override_signal,std::uint32_t first_epoch,bool simple_vehicle=false)
-        :clock_(clock),gate_(gate),sensors_(sensors),outputs_(outputs),events_(events),override_(override_signal),released_epoch_(first_epoch),start_(start),vehicle_enabled_(simple_vehicle) {}
+        std::array<runtime::LatestSnapshot<OwnerActuation>,transport::kLeaves>& outputs,std::uint64_t start,std::vector<M4Event>& events,transport::Protection& override_signal,std::uint32_t first_epoch,bool simple_vehicle=false,double initial_soc=.63)
+        :clock_(clock),gate_(gate),sensors_(sensors),outputs_(outputs),events_(events),override_(override_signal),released_epoch_(first_epoch),start_(start),vehicle_enabled_(simple_vehicle),initial_soc_(initial_soc) {if(simple_vehicle)energy_trace.reserve(4000);}
     void step();
     bool ok() const { return ok_; }
-    const SimpleVehicle* vehicle() const { return vehicle_enabled_?&vehicle_:nullptr; }
-    int fault_code() const { return static_cast<int>(energy_.fault()); }
+    const SimpleVehicle* vehicle() const { return vehicle_enabled_?&coupled_.vehicle():nullptr; }
+    const EvPowerModel& electrical() const { return vehicle_enabled_?coupled_.electrical():energy_; }
+    int fault_code() const { return vehicle_enabled_?(coupled_.result().fault==VehicleEvFault::None?0:100+static_cast<int>(coupled_.result().fault)):static_cast<int>(energy_.fault()); }
+    struct EnergyTrace { std::uint32_t epoch;VehicleEnergyState state; };
+    std::vector<EnergyTrace> energy_trace;
     std::vector<M4Trace> trace;
     const PhysicalFailure& failure() const {return failure_;}
     std::uint64_t last_success() const {return last_success_;}
@@ -69,9 +73,12 @@ private:
     SteeringResponse angles_{{-.3,.3,.1,1,50000000,7}};
     BrakePressureResponse pressure_{{1500000,200000,5000000,10000000,50000000,7}};
     DriveSilPlant motor_{vecu::DriveControllerConfig{}.response};
-    EvPowerModel energy_{{},{180000000,400,.05,200000,20,25,100,.01,1,100000},{.002,50,.02,100,1000,500}};
+    static BatteryConfig battery_fixture() {return {180000000,400,.05,200000,20,25,100,.01,1,100000};}
+    static PowerModelConfig circuit_fixture() {return {.002,50,.02,100,1000,500};}
+    EvPowerModel energy_{{},battery_fixture(),circuit_fixture()};
     power::CoilCommand coils_{};
-    bool vehicle_enabled_;SimpleVehicle vehicle_;
+    bool vehicle_enabled_;double initial_soc_;
+    VehicleEvModel coupled_{{},{},battery_fixture(),circuit_fixture()};
 };
 class ZoneSession final : public session::ParticipantPort {
 public:

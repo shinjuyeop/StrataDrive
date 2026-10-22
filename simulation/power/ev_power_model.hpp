@@ -18,6 +18,14 @@ struct EvPowerInterval {
     EvPowerInputs inputs;
     power::CoilCommand coils; // applied physical output at begin, constant until end
 };
+// Whole-interval mechanical integration, NOT an acquired wheel-speed sample.
+// The physical motion owner supplies one result with source=end and original
+// oldest dependency. Scalar input acquisitions retain their original metadata.
+struct IntegratedMotorWork {
+    ModelIdentity identity{};
+    std::uint64_t begin_ns{0}, end_ns{0}, input_time_ns{0};
+    double mechanical_j{0};
+};
 enum class EvPowerFault { None, NotInitialized, Timing, Clock, Inputs, Identity, Stale, Skew, InverterOff, Circuit, Battery, EnergyBalance };
 struct EvPowerStep {
     EvPowerFault fault;
@@ -40,6 +48,8 @@ public:
     EvPowerModel(DriveEnergyConfig drive, BatteryConfig battery, PowerModelConfig circuit);
     bool initialize(BatteryInitialization initial, double bus_voltage_v, power::ContactorPositions contacts = {});
     EvPowerStep step(const EvPowerInterval& interval, const PowerFaultInjection& injection = {}, const BatterySensorCapture& capture = {});
+    EvPowerStep step_integrated_motion(const EvPowerInterval& interval, const IntegratedMotorWork& work,
+        const PowerFaultInjection& injection = {}, const BatterySensorCapture& capture = {});
     const BatteryObservation& battery_observation() const { return battery_observation_; }
     const std::optional<power::SensorSnapshot>& power_observation() const { return power_observation_; }
     const BatteryState& battery_state() const { return battery_->diagnostic_state(); }
@@ -48,6 +58,7 @@ public:
     const std::optional<PowerCircuitFlow>& last_flow() const { return flow_; } // internal physics diagnostics, not an ECU sensor bypass
     EvPowerFault fault() const { return result_.fault; }
 private:
+    EvPowerStep step_impl(const EvPowerInterval&, const IntegratedMotorWork*, const PowerFaultInjection&, const BatterySensorCapture&);
     struct Sum {
         double value{0}, correction{0};
         void add(double increment);

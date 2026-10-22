@@ -27,6 +27,8 @@ public:
     bool initialize(std::uint32_t model_epoch, std::uint64_t now_ns, double speed_mps=0);
     VehicleFault step(std::uint64_t begin, std::uint64_t end, const VehicleActual& actual);
     const VehicleState& state() const { return state_; }
+    double kinetic_j() const { return .5*config_.mass_kg*state_.speed_mps*state_.speed_mps; }
+    double initial_kinetic_j() const { return initial_kinetic_j_; }
     double wheel_speed_rad_s() const { return state_.speed_mps/config_.wheel_radius_m; }
 private:
     SimpleVehicleConfig config_;
