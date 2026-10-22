@@ -1,9 +1,13 @@
 # Host Central ↔ Front SOME/IP owner adapter
 
-Status: **limited adoption for Host FIFO Central↔Front functional SIL, host10-v1**,
+Current extension: [Central↔Front/Rear three-process Host adapter](someip_rear_adapter.md)
+now separates Rear/Drive/BMS/Power over SOME/IP. The ownership below describes the
+retained two-process baseline and its original qualification.
+
+Baseline status: **limited adoption for Host FIFO Central↔Front functional SIL, host10-v1**,
 [ADR-0061](../adr/ADR-0061-someip-front-owner-adapter.md). [Renewal qualification](../test-plan/evidence/m5_someip_refresh_delivery/README.md) covers
-the documented FIFO profile and existing load. Rear network separation, real IO,
-Jetson and whole-system acceptance are not established.
+the documented FIFO profile and existing load. That cohort did not establish Rear network separation; the extension above does.
+Real IO, Jetson and whole-system acceptance remain unestablished.
 This is separate from the [older component pilot](someip_pilot.md) and its grant
 fixture. SOME/IP is the protocol; pinned COVESA vSomeIP is the implementation.
 

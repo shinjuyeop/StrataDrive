@@ -2,14 +2,15 @@
 
 Status: 배포 경계 **DEFINED**, runtime **PLANNED**. 실행 가능한 container/systemd/network 설정은 M0에 없다.
 
-2026-10-21 구현 경계: 정규 Target 배포는 여전히 PLANNED다. M4는 Host의 owner thread/
-component와 논리 owner-wire 연결이다. M5 DDS는 두 process/netns/veth 진단이며 실제
-제어 adapter가 아니다. 별도 [SOME/IP Host adapter](../icd/someip_front_adapter.md)는
-Central↔Front 두 IP process에 실제8-role session·allocation/owner/Leaf·보호·재가입을 연결했다.
-Rear/Drive/BMS/Power는 Central에 로컬로 남으며 단일 SIL 물리 process가 모델 상태를 소유한다.
-이 functional SIL 조건부 채택은 native execution-watch/부하 수용 또는 Jetson 배포 완료가 아니다.
-[실제 CPU·주기·QoS·운용 후보 대조](../test-plan/evidence/m5_dds_operating_profile/README.md)를
-참조한다. Host + Jetson 한 대 내부 여러 vECU라는 원래 배포를 변경하지 않는다.
+2026-10-22 현재 Host 구현 경계: [3-process SOME/IP adapter](../icd/someip_rear_adapter.md)는
+문서화한 Normal FIFO functional SIL 범위에서 Central·Front·Rear를 별도 netns/veth process로
+연결한다. Central은 중앙 조정/배분/세션/RunLease, Front는 FrontZone/Steering/Brake,
+Rear는 RearZone/Drive/BMS/Power의 유일한 owner다. 별도 지속 SIL 물리 process가 모델을 소유한다.
+[검증 근거](../test-plan/evidence/m5_someip_rear_adapter/README.md)의 CPU1/2/7 owners,
+physical3, monitors0, SDK4/5/6 배치와 제한된 부하/시간에만 해당한다. TSan 정상 관측 구간
+FAIL은 별도로 보존한다. M4는 여전히 Host IO/FIFO component 한정 수용이며 전체 종료가 아니다.
+DDS 진단은 정규 제어 adapter가 아니고 기존 FAIL/OPEN/CLOSED를 유지한다.
+Target 배포는 PLANNED이며 Host+Jetson 한 대 내부 여러 vECU라는 원래 배포는 변경하지 않는다.
 
 ## Physical deployment
 
@@ -27,7 +28,7 @@ architecture/source revision을 목표로 하되 서로 다른 보드에 동일 
 ## Target logical nodes
 
 원래 Target 계획: Central의 별도 VCU/coordinator → 각각 DDS → Front Zone / Rear Zone.
-Host Central↔Front SOME/IP 조건부 채택을 전체 Target protocol 결정으로 확대하지 않는다.
+Host Central↔Front/Rear SOME/IP의 제한된 FIFO 수용을 전체 Target protocol 결정으로 확대하지 않는다.
 Front CAN/vCAN → Steering / aggregate Brake; Rear CAN/vCAN → Drive / BMS.
 Central이 vehicle management/allocation/session과 상위 feedback 집계를 단독 소유한다.
 

@@ -3,6 +3,10 @@
 Date: 2026-10-21; updated2026-10-22. Status: **limited adoption of Host FIFO Central–Front functional SIL, host10-v1**.
 Latest qualification is in the final section below; earlier cohorts/decisions remain historical.
 
+Current Rear extension: [ADR-0062](ADR-0062-someip-rear-host-adapter.md) accepts the
+documented three-process Normal FIFO Host scope. The local Rear statements below
+remain historical to the original two-process cohorts.
+
 Extend the opt-in vSomeIP path from component grants to real SessionCoordinator,
 RunLeaseIssuer, eight actual participants, VehicleCoordinator, Front/Rear/Leaf
 owners and independently continuing local protection. Central and Front are separate

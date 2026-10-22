@@ -1,6 +1,24 @@
 # M4 기술 종료 검토 — Host component와 원격 경계
 
-2026-10-22 최신 [실제 Leaf 갱신 수정](test-plan/evidence/m5_someip_refresh_delivery/README.md):
+2026-10-22 최신 [Rear 실제 통신 경계 후속](test-plan/evidence/m5_someip_rear_adapter/README.md):
+**문서화한 Host Normal FIFO Central↔Front/Rear 기능 범위 한정 수용 — Rear 연결 완료**
+([ADR-0062](adr/ADR-0062-someip-rear-host-adapter.md)). Central·Front·Rear 별도3프로세스,
+Rear/Drive/BMS/Power 단일 소유권과 실제8참여자 ACK/RunLease/arm·Front 결과 뒤 Rear 배분을
+SOME/IP에 연결했다. 원래 host10-v1·2ms/4ms·20ms envelope·source/expiry·큐8을 유지한다.
+최종 소스a790032의 Normal FIFO 무부하2/2·기존 부하2/2·Rear 핵심 고장4/4·Front 대표2/2,
+ASan/UBSan2/2, 전체 Normal/ASan각987/987이다. 정상4회의 세 Leaf 최소 여유는
+Steering7.766637/Brake7.764243/Drive7.163085ms, 재가입 후 최소는 각각6.378692/6.376290/
+5.576097ms다. 실제 NormalStop/HV-off 및 살아 있는 SDK stop/join을 확인했다.
+**TSan은1/2: 재가입 PASS, normal32 batches 뒤 원래 허가 지원 부족/expiry로 보호하여
+관측 구간 미완료 FAIL**. 메모리/UB/경합 경고0이며 wall-time은 승인된 Normal 성능 기준과
+분리한다. 최종13/14·전체34/41 raw 결과와 OPEN-SOMEIP-REAR-01을 보존한다. TSan 전체
+정상 구간 PASS나 무제한 Host 운용을 주장하지 않는다. CPU/부하/2540ms+실제 종료 tail의
+Normal FIFO SIL 범위만 수용하며 M4 전체 NOT CLOSED, DDS CLOSED/기존 OPEN, Jetson·실제 IO·
+M6·전체 시스템 미검증은 유지한다. M6 모델/센서 경계 설계는 다음 후보이며 구현하지 않았다.
+
+이하 기존 Central↔Front 및 이전 검토는 당시 상태와 분모를 보존한다.
+
+2026-10-22 이전 [실제 Leaf 갱신 수정](test-plan/evidence/m5_someip_refresh_delivery/README.md):
 **host10-v1의 Host FIFO Central↔Front 제한 범위 수용 / Rear 연결 진행 가능**.
 20ms 기본 profile은 보존하고 실제 Host allocation/VehicleRequest 갱신을10ms로 명시했다.
 허가 source/expiry는 그대로이며 다음 release 뒤8ms 인계 여유도 검사한다.

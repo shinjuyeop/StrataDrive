@@ -1,6 +1,8 @@
 # Host Central ↔ Front/Rear SOME/IP owner adapter
 
-Implementation candidate: three ECU processes, based on the accepted `host10-v1`
+Status: limited adoption of the documented Normal FIFO Host functional SIL profile
+([ADR-0062](../adr/ADR-0062-someip-rear-host-adapter.md)); TSan full normal window
+remains FAIL/incomplete, separate from Normal performance. Three ECU processes use the accepted `host10-v1`
 [Front adapter](someip_front_adapter.md). Qualification and exact scope are in
 [Rear evidence](../test-plan/evidence/m5_someip_rear_adapter/README.md). This adds
 Rear IP separation; it does not replace owner-wire, CAN/P05, the session protocol,
@@ -65,6 +67,14 @@ owners; actual feedback/results settle pending requests. `host10-v1` remains10ms
 allocation, management10ms/+4ms, permission support through next release+8ms,
 original20ms envelope, 2ms opportunities/4ms deadline and original controller grids.
 No stale field is restamped and no retry extends validity.
+
+During protected rejoin, Central explicitly closes ingress before old graph artifact
+teardown and durable Epoch IO; queued and arriving old messages are counted per lane.
+The overflow latch is never reset. Reopening precedes a fresh actual handshake.
+The endpoint respects the actual owner's Prepare Ready quiescence: old credit cannot
+reapply protection with a later clock to the retired actor before agreed INIT.
+Actual Abort/fault still executes protection. Diagnostic timestamps change generation
+only on actual positive Zone INIT ACK, not on receiving the INIT request.
 
 ## Protection, shutdown and rejoin
 
