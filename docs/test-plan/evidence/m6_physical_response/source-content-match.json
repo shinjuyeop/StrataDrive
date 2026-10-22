@@ -1,0 +1,12 @@
+{
+  "final_cpp_source": "02d78ec",
+  "final_offline_source": "a32de13",
+  "normal_sdk_source": "5f1ef49",
+  "normal_to_fixed_cpp_diff": "diff --git a/tests/integration/someip/front_adapter.cpp b/tests/integration/someip/front_adapter.cpp\nindex ceff239..ab39632 100644\n--- a/tests/integration/someip/front_adapter.cpp\n+++ b/tests/integration/someip/front_adapter.cpp\n@@ -214,7 +214,7 @@ struct Owners final:session::CoordinatorPort {\n         if(remote) {\n             // This priority path remains active even when normal receive consumption stops.\n             emit(remote_zone->poll());for(auto& e:remote_leaf)if(e)emit(e->poll());\n-            if(zone[zi]->faulted() && !protected_ns){protected_ns=now();event(\"local-protection\",zi,remote_zone->lease_fault(),remote_zone->last_lease_expiry);\n+            if(zone[zi]->faulted() && !protected_ns){protected_ns=now();event(\"local-protection-service\",zi,observed,protected_ns);event(\"local-protection\",zi,remote_zone->lease_fault(),remote_zone->last_lease_expiry);\n                 for(unsigned i=0;i<5;++i)if(leaf[i])event(\"leaf-first-fault\",i+2,leaf[i]->fault_code());}\n             if(zone[zi]->protected_selected() && !selected_ns){selected_ns=now();event(\"leaf-protection-selected\",zi);}\n             while(auto r=zones[zi].results.pop()) {\n",
+  "fixed_to_final_changes": [
+    "docs/test-plan/evidence/m6_physical_response/protocol.md",
+    "tests/integration/someip/physical_response.py",
+    "tests/unit/m6_physical_response_test.py"
+  ],
+  "final_cpp_equal_to_fixed": true
+}

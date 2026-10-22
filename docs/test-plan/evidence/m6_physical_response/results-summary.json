@@ -1,0 +1,698 @@
+{
+  "implementation_sources": [
+    "5f1ef49",
+    "02d78ec",
+    "a32de13"
+  ],
+  "contract": {
+    "revision": "m6-sil-physical-response-v1",
+    "loss_detection_ns": 100000000,
+    "local_selection_ns": 4000000,
+    "torque_tolerance_nm": 1,
+    "brake_floor_pa": 1000000,
+    "minimum_torque_nm": -200,
+    "maximum_torque_nm": 300,
+    "zero_rate_nm_s": 2000,
+    "brake_initial_pa": 200000,
+    "brake_minimum_pa": 0,
+    "brake_rise_pa_s": 5000000,
+    "normal_delay_ns": 50000000,
+    "protection_delay_ns": 0,
+    "delivery_budget_ns": 4000000,
+    "model_budget_ns": 4000000,
+    "observation_budget_ns": 10000000,
+    "margin_ns": 12000000,
+    "selection_to_observed_complete_ns": 230000000
+  },
+  "sdk_runs": [
+    {
+      "cohort": "final-sdk-command-loss",
+      "case": "command-loss",
+      "source": "5f1ef4985891acba38f26a82e179a34f5a5110e9",
+      "binary_sha256": "9739da6c87f064d0a92a27267a8a5f286951eb54dc68c1e9bde7c7fd86f81abd",
+      "exit": 1,
+      "pass": false,
+      "errors": [
+        "M6 actual response: ['local detection-to-selection deadline drive', 'local detection-to-selection deadline brake']"
+      ],
+      "sdk_errors": 0,
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": [],
+      "native_misses": 0,
+      "normal_prerequisite": true,
+      "raw": "final-sdk-command-loss/command-loss-1/result.json"
+    },
+    {
+      "cohort": "final-sdk-normal",
+      "case": "normal",
+      "source": "5f1ef4985891acba38f26a82e179a34f5a5110e9",
+      "binary_sha256": "9739da6c87f064d0a92a27267a8a5f286951eb54dc68c1e9bde7c7fd86f81abd",
+      "exit": 0,
+      "pass": true,
+      "errors": [],
+      "sdk_errors": 0,
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": [],
+      "native_misses": 0,
+      "normal_prerequisite": true,
+      "raw": "final-sdk-normal/normal-1/result.json"
+    },
+    {
+      "cohort": "fixed-sdk-command-loss",
+      "case": "command-loss",
+      "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+      "binary_sha256": "01450e1ee3fdb642ffe33ae084cc12325a74eb3686952c9a9cd8d05cd3a496fb",
+      "exit": 0,
+      "pass": true,
+      "errors": [],
+      "sdk_errors": 0,
+      "sanitizer_diagnostics": false,
+      "forced_cleanup": [],
+      "native_misses": 0,
+      "normal_prerequisite": true,
+      "raw": "fixed-sdk-command-loss/command-loss-1/result.json"
+    }
+  ],
+  "sdk_denominator": {
+    "total": 3,
+    "pass": 2,
+    "fail": 1,
+    "retained_first_observer_failure": 1,
+    "post_fix_changed_case": {
+      "command_loss": {
+        "pass": 1,
+        "total": 1
+      }
+    },
+    "unaffected_normal": {
+      "pass": 1,
+      "total": 1
+    }
+  },
+  "cpp": {
+    "normal": {
+      "tests": 1018,
+      "failed": 0,
+      "xml": "full-normal.xml",
+      "previous_1011_names_preserved": true
+    },
+    "asan": {
+      "tests": 1018,
+      "failed": 0,
+      "xml": "full-asan.xml",
+      "previous_1011_names_preserved": true
+    },
+    "tsan": {
+      "tests": 35,
+      "failed": 0,
+      "xml": "actual-boundary-tsan.xml"
+    }
+  },
+  "excluded_uninstrumented_tsan": {
+    "tests": 35,
+    "raw_pass": true,
+    "eligible_for_tsan": false,
+    "reason": "actual CMake option OFF/no instrumentation symbols"
+  },
+  "python": {
+    "final": {
+      "tests": 54,
+      "pass": 54
+    },
+    "fresh_no_build": {
+      "tests": 54,
+      "pass": 54
+    }
+  },
+  "checks": {
+    "development": [
+      {
+        "name": "dev-configure",
+        "argv": [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build/m4-readiness"
+        ],
+        "start_ns": 1792658576539959279,
+        "source": "729455ff9bfdb9478aabed721c3316dd7b1677d0",
+        "exit": 0,
+        "end_ns": 1792658576755302056
+      },
+      {
+        "name": "dev-contract-build",
+        "argv": [
+          "cmake",
+          "--build",
+          "build/m4-readiness",
+          "--target",
+          "m6_physical_response_test",
+          "--parallel",
+          "4"
+        ],
+        "start_ns": 1792658576755432753,
+        "source": "729455ff9bfdb9478aabed721c3316dd7b1677d0",
+        "exit": 0,
+        "end_ns": 1792658580178312493
+      },
+      {
+        "name": "dev-contract",
+        "argv": [
+          "ctest",
+          "--test-dir",
+          "build/m4-readiness",
+          "-R",
+          "^M6PhysicalResponse\\.",
+          "--output-on-failure"
+        ],
+        "start_ns": 1792658580178539822,
+        "source": "729455ff9bfdb9478aabed721c3316dd7b1677d0",
+        "exit": 0,
+        "end_ns": 1792658580294236976
+      },
+      {
+        "name": "dev-sdk-build",
+        "argv": [
+          "cmake",
+          "--build",
+          "build/m5-someip-normal/project",
+          "--target",
+          "someip_front_adapter",
+          "--parallel",
+          "4"
+        ],
+        "start_ns": 1792658580294537427,
+        "source": "729455ff9bfdb9478aabed721c3316dd7b1677d0",
+        "exit": 0,
+        "end_ns": 1792658586925715890
+      }
+    ],
+    "replay": [
+      {
+        "name": "replay-build",
+        "argv": [
+          "cmake",
+          "--build",
+          "build/m4-readiness",
+          "--target",
+          "m6_physical_response_test",
+          "--parallel",
+          "4"
+        ],
+        "start_ns": 1792658642755427601,
+        "source": "729455ff9bfdb9478aabed721c3316dd7b1677d0",
+        "exit": 0,
+        "end_ns": 1792658644223634155
+      },
+      {
+        "name": "replay-old100",
+        "argv": [
+          "env",
+          "STRATADRIVE_M6_REPLAY_DEADLINE_NS=100000000",
+          "build/m4-readiness/m6_physical_response_test",
+          "--gtest_filter=M6PhysicalResponse.ModelCompletionAgainstSelectedDeadline"
+        ],
+        "start_ns": 1792658644223869047,
+        "source": "729455ff9bfdb9478aabed721c3316dd7b1677d0",
+        "exit": 1,
+        "end_ns": 1792658644228557029
+      },
+      {
+        "name": "replay-new230",
+        "argv": [
+          "env",
+          "STRATADRIVE_M6_REPLAY_DEADLINE_NS=230000000",
+          "build/m4-readiness/m6_physical_response_test",
+          "--gtest_filter=M6PhysicalResponse.ModelCompletionAgainstSelectedDeadline"
+        ],
+        "start_ns": 1792658644229388458,
+        "source": "729455ff9bfdb9478aabed721c3316dd7b1677d0",
+        "exit": 0,
+        "end_ns": 1792658644233833790
+      }
+    ],
+    "first-sdk": [
+      {
+        "name": "final-sdk-normal-build",
+        "argv": [
+          "cmake",
+          "--build",
+          "build/m5-someip-normal/project",
+          "--target",
+          "someip_front_adapter",
+          "--parallel",
+          "4"
+        ],
+        "start_ns": 1792658712590103891,
+        "source": "5f1ef4985891acba38f26a82e179a34f5a5110e9",
+        "exit": 0,
+        "end_ns": 1792658717967879896
+      },
+      {
+        "name": "final-sdk-command-loss",
+        "argv": [
+          "python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m6-physical-response/final-sdk-command-loss",
+          "--three",
+          "--fault-zone",
+          "rear",
+          "--native-watch",
+          "--fifo",
+          "--simple-vehicle",
+          "--energy-cycle",
+          "nominal",
+          "--profile",
+          "normal",
+          "--cases",
+          "command-loss"
+        ],
+        "start_ns": 1792658717968119446,
+        "source": "5f1ef4985891acba38f26a82e179a34f5a5110e9",
+        "exit": 1,
+        "end_ns": 1792658720087392533
+      },
+      {
+        "name": "final-sdk-normal",
+        "argv": [
+          "python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m6-physical-response/final-sdk-normal",
+          "--three",
+          "--fault-zone",
+          "rear",
+          "--native-watch",
+          "--fifo",
+          "--simple-vehicle",
+          "--energy-cycle",
+          "nominal",
+          "--profile",
+          "normal",
+          "--cases",
+          "normal"
+        ],
+        "start_ns": 1792658720087599644,
+        "source": "5f1ef4985891acba38f26a82e179a34f5a5110e9",
+        "exit": 0,
+        "end_ns": 1792658729767764842
+      }
+    ],
+    "fixed-sdk": [
+      {
+        "name": "fixed-sdk-build",
+        "argv": [
+          "cmake",
+          "--build",
+          "build/m5-someip-normal/project",
+          "--target",
+          "someip_front_adapter",
+          "--parallel",
+          "4"
+        ],
+        "start_ns": 1792658822904275173,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658828281998970
+      },
+      {
+        "name": "fixed-sdk-command-loss",
+        "argv": [
+          "python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m6-physical-response/fixed-sdk-command-loss",
+          "--three",
+          "--fault-zone",
+          "rear",
+          "--native-watch",
+          "--fifo",
+          "--simple-vehicle",
+          "--energy-cycle",
+          "nominal",
+          "--profile",
+          "normal",
+          "--cases",
+          "command-loss"
+        ],
+        "start_ns": 1792658828282225423,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658830401412030
+      }
+    ],
+    "final-regression": [
+      {
+        "name": "final-normal-configure",
+        "argv": [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build/m4-readiness"
+        ],
+        "start_ns": 1792658869430758535,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658869645853601
+      },
+      {
+        "name": "final-normal-build",
+        "argv": [
+          "cmake",
+          "--build",
+          "build/m4-readiness",
+          "--parallel",
+          "4"
+        ],
+        "start_ns": 1792658869646017112,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658872817383642
+      },
+      {
+        "name": "final-full-normal",
+        "argv": [
+          "ctest",
+          "--test-dir",
+          "build/m4-readiness",
+          "--output-on-failure",
+          "--output-junit",
+          "/d/shin/StrataDrive/build/m6-physical-response/full-normal.xml"
+        ],
+        "start_ns": 1792658872817581475,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658897972252294
+      },
+      {
+        "name": "final-asan-configure",
+        "argv": [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build/m1-angle-sanitized"
+        ],
+        "start_ns": 1792658897972542316,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658898187888537
+      },
+      {
+        "name": "final-asan-build",
+        "argv": [
+          "cmake",
+          "--build",
+          "build/m1-angle-sanitized",
+          "--parallel",
+          "4"
+        ],
+        "start_ns": 1792658898188072842,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658908728109420
+      },
+      {
+        "name": "final-full-asan",
+        "argv": [
+          "ctest",
+          "--test-dir",
+          "build/m1-angle-sanitized",
+          "--output-on-failure",
+          "--output-junit",
+          "/d/shin/StrataDrive/build/m6-physical-response/full-asan.xml"
+        ],
+        "start_ns": 1792658908728333201,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658965048475094
+      },
+      {
+        "name": "tsan-configure",
+        "argv": [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build/m4-contract-tsan-final"
+        ],
+        "start_ns": 1792658965048753525,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658965264503409
+      },
+      {
+        "name": "tsan-build",
+        "argv": [
+          "cmake",
+          "--build",
+          "build/m4-contract-tsan-final",
+          "--target",
+          "m6_physical_response_test",
+          "vehicle_energy_test",
+          "async_owner_test",
+          "--parallel",
+          "4"
+        ],
+        "start_ns": 1792658965264726421,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658970643306724
+      },
+      {
+        "name": "final-boundary-tsan",
+        "argv": [
+          "setarch",
+          "x86_64",
+          "-R",
+          "ctest",
+          "--test-dir",
+          "build/m4-contract-tsan-final",
+          "-R",
+          "^(M6PhysicalResponse\\.|VehicleEnergy\\.|EnergyScenario\\.|AsyncOwnerTest\\.|AsyncZoneOwner\\.)",
+          "--output-on-failure",
+          "--output-junit",
+          "/d/shin/StrataDrive/build/m6-physical-response/boundary-tsan.xml"
+        ],
+        "start_ns": 1792658970643535574,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658970808875876
+      },
+      {
+        "name": "final-python-m6_physical_response",
+        "argv": [
+          "python3",
+          "tests/unit/m6_physical_response_test.py"
+        ],
+        "start_ns": 1792658970809138237,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658970924821613
+      },
+      {
+        "name": "final-python-m6_energy",
+        "argv": [
+          "python3",
+          "tests/unit/m6_energy_test.py"
+        ],
+        "start_ns": 1792658970925073810,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658970990402109
+      },
+      {
+        "name": "final-python-m6_model",
+        "argv": [
+          "python3",
+          "tests/unit/m6_model_test.py"
+        ],
+        "start_ns": 1792658970990664196,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658971055980296
+      },
+      {
+        "name": "final-python-someip_pilot",
+        "argv": [
+          "python3",
+          "tests/unit/someip_pilot_test.py"
+        ],
+        "start_ns": 1792658971056236649,
+        "source": "02d78ec850a5e8293a352e9b9ca32f9cb46b2964",
+        "exit": 0,
+        "end_ns": 1792658971572623662
+      }
+    ],
+    "final-bookkeeping": [
+      {
+        "name": "oracle-final-m6_physical_response",
+        "argv": [
+          "python3",
+          "tests/unit/m6_physical_response_test.py"
+        ],
+        "start_ns": 1792659083993849987,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659084108898275
+      },
+      {
+        "name": "oracle-final-m6_energy",
+        "argv": [
+          "python3",
+          "tests/unit/m6_energy_test.py"
+        ],
+        "start_ns": 1792659084109121674,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659084174291419
+      },
+      {
+        "name": "oracle-final-m6_model",
+        "argv": [
+          "python3",
+          "tests/unit/m6_model_test.py"
+        ],
+        "start_ns": 1792659084174523618,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659084239829438
+      },
+      {
+        "name": "oracle-final-someip_pilot",
+        "argv": [
+          "python3",
+          "tests/unit/someip_pilot_test.py"
+        ],
+        "start_ns": 1792659084240087336,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659084756090283
+      },
+      {
+        "name": "fresh-m6_physical_response",
+        "argv": [
+          "python3",
+          "/tmp/stratadrive-m6-response-zblh_wu9/tests/unit/m6_physical_response_test.py"
+        ],
+        "start_ns": 1792659085963812285,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659086078989114
+      },
+      {
+        "name": "fresh-m6_energy",
+        "argv": [
+          "python3",
+          "/tmp/stratadrive-m6-response-zblh_wu9/tests/unit/m6_energy_test.py"
+        ],
+        "start_ns": 1792659086079200518,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659086144691658
+      },
+      {
+        "name": "fresh-m6_model",
+        "argv": [
+          "python3",
+          "/tmp/stratadrive-m6-response-zblh_wu9/tests/unit/m6_model_test.py"
+        ],
+        "start_ns": 1792659086144902511,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659086210062209
+      },
+      {
+        "name": "fresh-someip_pilot",
+        "argv": [
+          "python3",
+          "/tmp/stratadrive-m6-response-zblh_wu9/tests/unit/someip_pilot_test.py"
+        ],
+        "start_ns": 1792659086210283619,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659086726742852
+      }
+    ],
+    "actual-tsan": [
+      {
+        "name": "actual-tsan-configure",
+        "argv": [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build/m6-response-tsan",
+          "-DSTRATADRIVE_TSAN=ON",
+          "-DCMAKE_BUILD_TYPE=Debug",
+          "-DCMAKE_CXX_FLAGS=-fno-pie",
+          "-DCMAKE_EXE_LINKER_FLAGS=-no-pie"
+        ],
+        "start_ns": 1792659658024818074,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659658390483846
+      },
+      {
+        "name": "actual-tsan-build",
+        "argv": [
+          "cmake",
+          "--build",
+          "build/m6-response-tsan",
+          "--target",
+          "m6_physical_response_test",
+          "vehicle_energy_test",
+          "async_owner_test",
+          "--parallel",
+          "4"
+        ],
+        "start_ns": 1792659658390782874,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659669931895650
+      },
+      {
+        "name": "actual-boundary-tsan",
+        "argv": [
+          "setarch",
+          "x86_64",
+          "-R",
+          "ctest",
+          "--test-dir",
+          "build/m6-response-tsan",
+          "-R",
+          "^(M6PhysicalResponse\\.|VehicleEnergy\\.|EnergyScenario\\.|AsyncOwnerTest\\.|AsyncZoneOwner\\.)",
+          "--output-on-failure",
+          "--output-junit",
+          "/d/shin/StrataDrive/build/m6-physical-response/actual-boundary-tsan.xml"
+        ],
+        "start_ns": 1792659669932136379,
+        "source": "a32de13d96ed25fa0560247c8d7f4bcbb19b5d19",
+        "exit": 0,
+        "end_ns": 1792659670448498662
+      }
+    ]
+  },
+  "old_timing": {
+    "rx_to_detection_ms": 24.196565,
+    "injection_to_detection_ms": 18.330246,
+    "injection_to_selection_ack_ms": 18.336023
+  },
+  "scoped_open01": "resolved model/deadline mismatch; old raw FAIL remains; old1MPa completion not observed",
+  "open02": "retained: sanitizer full SDK functionality incomplete; no new full SDK sanitizer runs",
+  "not_run": [
+    "charge-zero",
+    "owner-pause",
+    "restart-live",
+    "new load combinations",
+    "48 timing",
+    "whole SDK ASan/TSan",
+    "M7",
+    "M8",
+    "Jetson"
+  ],
+  "acceptance": "M6 Host quiet functional SIL vehicle/EV energy + modeled physical protection limited acceptance; not whole M6 exit",
+  "sdk_warning_lines": 171,
+  "sdk_warning_analysis": "warning-analysis.json",
+  "source_content_match": "source-content-match.json"
+}

@@ -67,3 +67,12 @@ Actuation.issued_time보다3.5/2.7us 늦었다. 검출 기점으로 사용할 �
 최종 offline oracle에서도 검사한다. Zone 선택의 시차를 무시하고 각자의 기점으로230ms를
 허용하지 않는다. 해당 Host profile의 판정값이며20ms transport envelope 변경이 아니다.
 추가 SDK 실행 없이 보존한 완전한 step/event 근거를 최종 oracle로 재평가한다.
+
+## 계측 readback으로 확인한 준비 결함
+
+`build/m4-contract-tsan-final`의 실제 STRATADRIVE_TSAN은 OFF였고 새 binary에
+__tsan 심볼/링크가 없었다. 앞선35/35는 일반 기능 실행이며 TSan 수용 근거에서 제외한다.
+이름으로 계측을 가정한 준비 결함이다. 기존 실행 원본/exit0은 바꾸지 않는다.
+별도 `build/m6-response-tsan`에 `STRATADRIVE_TSAN=ON`,Debug,
+고정 layout용 `-fno-pie/-no-pie`를 명시하고 동일35개 변경 경계만1회 실행한다.
+기존 SDK sanitizer 조건을 재실행하지 않는다. configure/compile/link/실제 심볼을 대조한다.

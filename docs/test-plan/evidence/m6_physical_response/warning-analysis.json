@@ -1,0 +1,39 @@
+{
+  "clock_alignment": "wall timestamp mapped using runner wall/monotonic sample, approximate; not a timing authority",
+  "interpretation": "Original warning text retained. Multicast lifecycle notifications can precede SDK stop. TCP control/result/actual remained complete; socket reset/loss warnings follow orderly SDK stop initiation. No generic SDK warning suppression was added.",
+  "cohorts": [
+    {
+      "cohort": "final-sdk-command-loss",
+      "first_stop_begin_ns": 617738659313775,
+      "categories": {
+        "network_up": 6,
+        "SD_observation_550ms": 3,
+        "socket_SD_teardown": 49,
+        "SD_multicast_handler_lifecycle_notification": 3
+      },
+      "socket_teardown_min_relative_stop_ns": 177683
+    },
+    {
+      "cohort": "fixed-sdk-command-loss",
+      "first_stop_begin_ns": 617848965438810,
+      "categories": {
+        "network_up": 6,
+        "SD_observation_550ms": 3,
+        "socket_SD_teardown": 45,
+        "SD_multicast_handler_lifecycle_notification": 2
+      },
+      "socket_teardown_min_relative_stop_ns": 175214
+    },
+    {
+      "cohort": "final-sdk-normal",
+      "first_stop_begin_ns": 617748092895981,
+      "categories": {
+        "network_up": 6,
+        "SD_observation_550ms": 3,
+        "SD_multicast_handler_lifecycle_notification": 2,
+        "socket_SD_teardown": 43
+      },
+      "socket_teardown_min_relative_stop_ns": 161951
+    }
+  ]
+}
