@@ -31,6 +31,7 @@ private:
     std::optional<NormalStopRequest> request_;
     std::optional<NormalStopRequest> pending_request_;
     std::optional<ActuatorStopLease> pending_;
+    std::optional<double> confirmation_pressure_;
     std::optional<std::uint64_t> last_tick_, confirmation_start_, last_evidence_;
     std::uint32_t epoch_{0};
     std::uint64_t enable_{0}, observed_{0}, phase_start_{0}, lifecycle_next_{0}, vehicle_next_{0};

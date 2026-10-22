@@ -77,6 +77,23 @@ TEST_F(NormalStopTest, SpeedTorqueAndPressureEachPreventHandoffWhilePacketsStayF
         EXPECT_EQ(step(ms,in).state,central::NormalStopState::Braking);
     }
 }
+TEST_F(NormalStopTest, FallingBrakePressureCannotStartTerminalHoldBeforeSettledDwell) {
+    // M6 moving vehicle: zero speed/torque while friction is still releasing.
+    // A terminal Hold at an old sensor pressure races the later physical hold.
+    for(std::uint32_t ms=10;ms<=100;ms+=10) {
+        const auto p=500000.0-ms*1000;
+        EXPECT_EQ(step(ms,inputs(ms,{0,0,p})).state,central::NormalStopState::Braking);
+    }
+    for(std::uint32_t ms=110;ms<170;ms+=10)
+        EXPECT_EQ(step(ms,inputs(ms,{0,0,100000})).state,central::NormalStopState::Braking);
+    const auto p=step(170,inputs(170,{0,0,100000}));
+    EXPECT_EQ(p.state,central::NormalStopState::HandoffPending);
+    EXPECT_EQ(p.lease.source_time_ns,ns(170));EXPECT_LE(p.lease.expires_at_ns,p.ancestor.identity.expires_at_ns);
+}
+TEST_F(NormalStopTest, StableOldBrakingTargetIsNotSettledStandingHold) {
+    for(std::uint32_t ms=10;ms<=100;ms+=10)
+        EXPECT_EQ(step(ms,inputs(ms,{0,0,300000})).state,central::NormalStopState::Braking);
+}
 TEST_F(NormalStopTest, PriorAuthorityExpiryCannotBeRevivedByAFreshRequest) {
     ASSERT_TRUE(stop.tick(inputs(10),management,ns(10)));
     EXPECT_EQ(stop.receive_request(request(70),ns(70)),central::StopReceiveResult::Latched);

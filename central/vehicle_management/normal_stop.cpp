@@ -1,4 +1,5 @@
 #include "normal_stop.hpp"
+#include "brake_pressure_codec.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -23,7 +24,7 @@ NormalStop::NormalStop(const NormalStopConfig& config):config_(config) {
 bool NormalStop::start_session(std::uint32_t epoch,std::uint64_t enable) {
     if(epoch==0 || epoch<=epoch_ || (epoch_!=0 && enable<observed_)) return false;
     epoch_=epoch; enable_=observed_=enable; decision_={NormalStopState::Waiting,NormalStopFault::None,false};
-    request_.reset(); pending_request_.reset(); pending_.reset(); last_tick_.reset(); confirmation_start_.reset(); last_evidence_.reset(); return true;
+    request_.reset(); pending_request_.reset(); pending_.reset(); last_tick_.reset(); confirmation_start_.reset(); confirmation_pressure_.reset(); last_evidence_.reset(); return true;
 }
 void NormalStop::fail(NormalStopFault fault) {
     if(decision_.fault==NormalStopFault::None || fault==NormalStopFault::ClockError) decision_.fault=fault;
@@ -78,9 +79,19 @@ std::optional<NormalStopPlan> NormalStop::tick(const NormalDriveReadinessInputs&
     }
     const bool stopped=d.wheel_speed->value_rad_s<=kStopSpeedRadS && std::abs(*d.torque_nm)<=kStopTorqueNm && *b.pressure_pa>=kStopPressurePa;
     if(decision_.state==NormalStopState::Braking) {
-        if(!stopped) confirmation_start_.reset();
-        else if(!confirmation_start_) confirmation_start_=oldest;
-        if(stopped && confirmation_start_ && oldest-*confirmation_start_>=config_.confirmation_ns) decision_.state=NormalStopState::HandoffPending;
+        // A stable *old braking target* can still have a delayed hold target in
+        // flight. Require the allocator's standing-hold pressure itself before
+        // timing the settled dwell; no deadline or accepted authority changes.
+        const bool at_hold=stopped && *b.pressure_pa<=kStopPressurePa+can::kBrakePressureResolutionPa;
+        if(!at_hold) { confirmation_start_.reset(); confirmation_pressure_.reset(); }
+        else if(!confirmation_start_ || !confirmation_pressure_ ||
+                std::abs(*b.pressure_pa-*confirmation_pressure_)>can::kBrakePressureResolutionPa) {
+            // A stationary vehicle may still have a moving pressure actuator.
+            // Hold uses an acquired pressure; wait for an entire existing dwell
+            // within one wire step around an anchor, not an accumulating delta.
+            confirmation_start_=oldest;confirmation_pressure_=*b.pressure_pa;
+        }
+        if(at_hold && confirmation_start_ && oldest-*confirmation_start_>=config_.confirmation_ns) decision_.state=NormalStopState::HandoffPending;
         if(now-phase_start_>=config_.braking_timeout_ns) fail(NormalStopFault::BrakingTimeout);
     } else if(!stopped) fail(NormalStopFault::StopEvidenceLost);
     last_evidence_=oldest;
