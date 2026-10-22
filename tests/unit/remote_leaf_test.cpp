@@ -110,6 +110,36 @@ TEST_F(RemoteLeafTest, NormalFifoOverflowLatchesSessionAndNewEpochCannotRepairFa
     auto proposal=plan;proposal.epoch=43;proposal.requested_ns=clock.logical;proposal.enable_ns=proposal.commit_deadline_ns=0;
     auto ack=send(session::Control{session::Role::Steering,session::Phase::Prepare,proposal,clock.logical});ASSERT_TRUE(ack);EXPECT_FALSE(std::get<session::Ack>(ack->payload).accepted);
 }
+TEST_F(RemoteLeafTest, PreparedRejoinCannotReapplyOldCreditProtectionAcrossEnable) {
+    ready();credit();const remote::RunLease old{plan,sequence++,clock.logical,clock.logical+60*kMs};
+    endpoint.continuity_lost();ASSERT_TRUE(actor.faulted());
+    plan={43,clock.logical,clock.logical+2000*kMs,clock.logical+20*kMs,clock.logical+40*kMs};
+    auto proposal=plan;proposal.enable_ns=proposal.commit_deadline_ns=0;
+    const auto prepared=send(session::Control{session::Role::Steering,session::Phase::Prepare,proposal,clock.logical});
+    ASSERT_TRUE(prepared);ASSERT_TRUE(std::get<session::Ack>(prepared->payload).accepted);
+    ASSERT_FALSE(send(session::Control{session::Role::Steering,session::Phase::Initialize,plan,clock.logical}));
+    // Actual independent plant remains active; the old actor is already safely
+    // quiescent. A stale credit callback/service occurs10us after agreed enable.
+    while(clock.logical<plan.enable_ns){clock.logical+=kMs;physical.step();}
+    clock.logical+=10000;physical.step();EXPECT_FALSE(send(old));EXPECT_FALSE(endpoint.allowed());
+    const auto initialized=endpoint.poll();ASSERT_TRUE(initialized);
+    EXPECT_TRUE(std::get<session::Ack>(initialized->payload).accepted);
+    EXPECT_EQ(std::get<session::Ack>(initialized->payload).plan.enable_ns,plan.enable_ns);
+    EXPECT_EQ(std::get<session::Ack>(initialized->payload).plan.commit_deadline_ns,plan.commit_deadline_ns);
+    EXPECT_FALSE(endpoint.allowed()); // INIT, old credit and probes cannot grant Run
+    const auto released=send(session::Control{session::Role::Steering,session::Phase::Release,plan,clock.logical});
+    ASSERT_TRUE(released);EXPECT_TRUE(std::get<session::Ack>(released->payload).accepted);
+    sequence=0;credit();EXPECT_TRUE(endpoint.allowed());
+    // Real Abort is not the old-credit replay case: it must still select and
+    // publish protection while a subsequent proposal is quiescent.
+    proposal={44,clock.logical,clock.logical+2000*kMs,0,0};
+    const auto next=send(session::Control{session::Role::Steering,session::Phase::Prepare,proposal,clock.logical});
+    ASSERT_TRUE(next);ASSERT_TRUE(std::get<session::Ack>(next->payload).accepted);
+    clock.logical+=kMs;physical.step();
+    EXPECT_FALSE(send(session::Control{session::Role::Steering,session::Phase::Abort,proposal,clock.logical}));
+    const auto out=outputs[0].read();ASSERT_TRUE(out);EXPECT_EQ(out->source_ns,clock.logical);
+    EXPECT_FALSE(endpoint.allowed());EXPECT_TRUE(actor.faulted());
+}
 // Keep the existing negative-response compatibility, but never reclassify its session.
 struct RemoteOldRequestTest : RemoteLeafTest, ::testing::WithParamInterface<transport::LeafOperation> {};
 TEST_P(RemoteOldRequestTest, RejoinedLeafReplyCannotPoisonCurrentZonePendingArm) {

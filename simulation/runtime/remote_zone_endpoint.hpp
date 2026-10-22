@@ -10,15 +10,15 @@ class RemoteZoneEndpoint final:private session::ParticipantPort {
     session::ParticipantPort& actor_;zone::AsyncZoneOwner& zone_;
     transport::RunGate& gate_; transport::ZoneLink& link_;
     session::SessionParticipant participant_;remote::RunLeaseGate credit_;
-    std::uint32_t epoch_=0;std::uint64_t last_token_=0;
+    std::uint32_t epoch_=0,prepared_epoch_=0;std::uint64_t last_token_=0;
     std::array<std::optional<remote::ProtectionAck>,8> protection_{};
     std::uint64_t now_ns() noexcept override{return actor_.now_ns();}
-    session::Preparation prepare(const session::Plan& p) noexcept override {gate_.close();return actor_.prepare(p);}
+    session::Preparation prepare(const session::Plan& p) noexcept override {gate_.close();const auto result=actor_.prepare(p);if(result==session::Preparation::Ready)prepared_epoch_=p.epoch;return result;}
     bool initialize(const session::Plan& p) noexcept override {
         gate_.close();if(!actor_.initialize(p) || !credit_.bind(p,agreement_,now_ns()))return false;
-        epoch_=p.epoch;last_token_=0;protection_={};return true;
+        epoch_=p.epoch;prepared_epoch_=0;last_token_=0;protection_={};return true;
     }
-    void protect() noexcept override{gate_.close();credit_.protect(epoch_);actor_.protect();}
+    void protect() noexcept override{gate_.close();credit_.protect(epoch_);if(prepared_epoch_<=epoch_ || participant_.fault()!=session::ParticipantFault::None)actor_.protect();}
     bool allowed(){return credit_.allows(participant_,now_ns()) && !zone_.faulted() && !link_.failed();}
     void service() noexcept override {
         if(allowed())gate_.release(epoch_);else {gate_.close();if(credit_.fault()!=remote::RunLeaseFault::None)protect();}

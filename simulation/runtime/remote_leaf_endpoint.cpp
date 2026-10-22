@@ -17,14 +17,22 @@ remote::OwnerMessage RemoteLeafEndpoint::reply(remote::OwnerPayload payload,sess
     return {role_,to,clock_.local_domain,std::move(payload)};
 }
 session::Preparation RemoteLeafEndpoint::prepare(const session::Plan& plan) noexcept {
-    local_gate_.close(); return actor_.prepare(plan);
+    local_gate_.close();const auto result=actor_.prepare(plan);
+    if(result==session::Preparation::Ready)prepared_epoch_=plan.epoch;
+    return result;
 }
 bool RemoteLeafEndpoint::initialize(const session::Plan& plan) noexcept {
     local_gate_.close();
     if(!actor_.initialize(plan) || !credit_.bind(plan,clock_,now_ns())) return false;
-    epoch_=plan.epoch; protection_acks_={}; return true;
+    epoch_=plan.epoch;prepared_epoch_=0; protection_acks_={}; return true;
 }
-void RemoteLeafEndpoint::protect() noexcept { local_gate_.close(); credit_.protect(epoch_); actor_.protect(); }
+void RemoteLeafEndpoint::protect() noexcept {
+    local_gate_.close();credit_.protect(epoch_);
+    // Prepare Ready already selected protection and quiesced the old actor.
+    // Do not re-enter it with a later clock while awaiting the agreed INIT.
+    // Genuine session failure/Abort still invokes the protection path.
+    if(prepared_epoch_<=epoch_ || session_.fault()!=session::ParticipantFault::None)actor_.protect();
+}
 bool RemoteLeafEndpoint::allowed() {
     const bool ok=credit_.allows(session_,now_ns()) && !actor_.faulted() && !link_.failed();
     if(ok) local_gate_.release(epoch_); else local_gate_.close();

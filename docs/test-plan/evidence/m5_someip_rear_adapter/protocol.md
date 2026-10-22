@@ -95,3 +95,29 @@ Freeze this correction for the final cohort. Re-execute the declared10 Normal ca
 and4 sanitizer cases on this source so startup/rejoin diagnostics and prerequisites
 are consistent across the final campaign. Previous candidate runs remain separately
 reported, never relabeled. No further repetition without a concrete failure cause.
+
+## Instrumented rejoin boundary correction
+
+77fba74 fixed campaign: Normal10/10, ASan2/2, TSan normal1/1; TSan Rear rejoin
+raw FAIL. No sanitizer diagnostic/native miss; an actual Brake negative INIT ACK
+occurred17us after original enable. No deadline is extended. Code inspection found
+the remote wrappers reapplying old-credit protection to an actor already quiesced
+by actual Prepare Ready. AsyncLeafOwner/ZoneSession deliberately suppress old
+service then, but the wrapper's repeated `protect()` bypassed that quiescence and
+could advance the old actor clock past original enable.
+
+Small actual-owner reproduction retains original live old credit and new plan,
+delivers the old credit10us after enable before INIT poll: negative INIT/Release
+FAIL before correction. Honor actual prepared-epoch quiescence for repeated old
+protection; real session fault/Abort still invokes actor protection. No change to
+SessionParticipant, clock checks, enable, credit/command expiry or controller rules.
+The same repro now passes, including genuine Abort during subsequent quiescence;
+related remote contracts pass. This demonstrates the defect/repair; the original
+TSan raw trace lacks the actor's private last-observed timestamp, so the exact
+internal predicate of that historical rejection is not retroactively asserted.
+
+One TSan normal+Rear-rejoin comparison first verifies this specific corrected
+boundary. Then the declared Normal10 and ASan2 are repeated on final common-endpoint
+source (initialization/protection is shared), followed by final whole Normal/ASan
+regression once. The comparison is the final TSan2, not an extra TSan campaign.
+Original13/14 final2 results, all earlier denominators and raw failures remain.

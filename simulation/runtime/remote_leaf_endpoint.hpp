@@ -24,7 +24,7 @@ private:
     remote::OwnerMessage reply(remote::OwnerPayload payload,session::Role to) const;
     session::Role role_,zone_; AsyncLeafOwner& actor_; transport::RunGate& local_gate_;
     transport::LeafLink& link_; remote::ClockAgreement clock_; remote::RunLeaseGate credit_;
-    session::SessionParticipant session_; std::uint32_t epoch_{0};
+    session::SessionParticipant session_; std::uint32_t epoch_{0},prepared_epoch_{0};
     // No monotonic-token contract: retain identity even after expiry, until INIT.
     // A full issuer cache rejects new identities instead of evicting/reselecting.
     std::array<std::array<std::optional<remote::ProtectionAck>,transport::kBudget>,2> protection_acks_{};
