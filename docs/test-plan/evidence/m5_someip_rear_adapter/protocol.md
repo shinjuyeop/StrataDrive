@@ -81,3 +81,17 @@ One four-case Rear comparison follows these specific fixes. Final source also
 requires quiet2+loaded2 again because the normal loop prerequisite changed; retain
 first candidate4/4 separately. Front representatives and sanitizer cases have not
 yet run and remain the originally planned counts. No extra fault combinations.
+
+The correction comparison was3/4 raw PASS. Rejoin performed actual Epoch2/all8 ACKs,
+69 new command batches, normal HV-off and stop/join;12 old Front feedback messages
+were explicitly discarded during the quiescent transition, no overflow. Its raw
+exit1 remains: Front's diagnostic protection timestamp was reset on INIT *receipt*,
+then relatched while the old controller waited for the existing20ms INIT enable.
+Actual initialization later recovered the controller but not that diagnostic field.
+Reset only the diagnostic timestamps on the actual positive local Zone INIT ACK;
+retain both prior timestamps in an event. No controller/permission reset is added.
+
+Freeze this correction for the final cohort. Re-execute the declared10 Normal cases
+and4 sanitizer cases on this source so startup/rejoin diagnostics and prerequisites
+are consistent across the final campaign. Previous candidate runs remain separately
+reported, never relabeled. No further repetition without a concrete failure cause.

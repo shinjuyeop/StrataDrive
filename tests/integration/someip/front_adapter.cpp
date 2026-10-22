@@ -133,7 +133,12 @@ struct Owners final:session::CoordinatorPort {
         });
     }
     void emit(const std::optional<remote::OwnerMessage>& m){
-        if(m && std::holds_alternative<session::Ack>(m->payload)){const auto& a=std::get<session::Ack>(m->payload);if(a.accepted && a.phase==session::Phase::Initialize)net.initialized_epoch[static_cast<unsigned>(a.role)].store(a.plan.epoch);event("local-ack-produced",static_cast<unsigned>(a.role),static_cast<unsigned>(a.phase),a.accepted);}
+        if(m && std::holds_alternative<session::Ack>(m->payload)){const auto& a=std::get<session::Ack>(m->payload);if(a.accepted && a.phase==session::Phase::Initialize) {
+            net.initialized_epoch[static_cast<unsigned>(a.role)].store(a.plan.epoch);
+            // A received INIT is only a request. Retire old diagnostic timestamps
+            // after this actual Zone owner initialized successfully at enable time.
+            if(remote && a.role==static_cast<Role>(zi)){event("initialized-diagnostic-reset",zi,protected_ns,selected_ns);protected_ns=selected_ns=0;}
+        }event("local-ack-produced",static_cast<unsigned>(a.role),static_cast<unsigned>(a.phase),a.accepted);}
         if(m && !net.send(*m))fail("outbound-full");
     }
     void fail(const char* why) {
@@ -150,7 +155,7 @@ struct Owners final:session::CoordinatorPort {
         if(remote) {
             if(const auto* c=std::get_if<session::Control>(&m.payload)) {
                 event("control-received",static_cast<unsigned>(m.to),static_cast<unsigned>(c->phase),c->plan.epoch);
-                if(c->phase==session::Phase::Initialize){if(epoch!=c->plan.epoch){protected_ns=selected_ns=0;}epoch=c->plan.epoch;pre_init_rejected=net.rejected;event("pre-init-binding-rejections",0,pre_init_rejected);}
+                if(c->phase==session::Phase::Initialize){epoch=c->plan.epoch;pre_init_rejected=net.rejected;event("pre-init-binding-rejections",0,pre_init_rejected);}
             }
             if(m.to==static_cast<Role>(zi)) {
                 const auto commands=command_count();const auto old_gate=gate.epoch();
