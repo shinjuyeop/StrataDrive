@@ -3,6 +3,13 @@
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
 clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
 
+2026-10-22 [M6 에너지 후속](test-plan/evidence/m6_vehicle_energy/README.md)는
+공유 physical model/EV receiver 변경 뒤 최종 전체 Normal·ASan/UBSan 각1011/1011,
+기존999 이름/assertion 보존+신규12,TSan 경계28/28,Python42/42를 확인했다.
+최종 실제 SDK는5/9(개발 포함5/12)이며 Normal command-loss physical100ms와 sanitizer
+wall/transport FAIL은 보존한다. Memory/UB/race 진단0으로 기능 미완료나 SDK 오류를
+면제하지 않았으며 M6 전체 수용은 보류다. 다음 검토는 actual torque response budget이다.
+
 2026-10-22 [M6 첫 모델·MIL/3-vECU 경계](test-plan/evidence/m6_simple_vehicle/README.md)는
 공유 NormalStop/PhysicalOwner 변경 뒤 최종 전체 Normal·ASan/UBSan 각각999/999를 확인했다.
 기존987 이름/assertion 보존,vehicle10·stop2 추가. TSan 경계28/28,실제 SDK 최종5/5와

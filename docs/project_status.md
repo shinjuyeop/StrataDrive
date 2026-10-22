@@ -2,7 +2,26 @@
 
 Updated: **2026-10-22**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 SOME/IP HOST LIMITED ACCEPTANCE / M6 IN PROGRESS**다.
 
-2026-10-22 최신 [M6 Simple Vehicle/MIL 첫 구현](test-plan/evidence/m6_simple_vehicle/README.md):
+2026-10-22 최신 [M6 차량/EV 에너지 후속](test-plan/evidence/m6_vehicle_energy/README.md):
+**구간 에너지 결합·receiver 설정 수정 완료 / M6 전체 수용 보류**.
+최종 소스d242861은 실제 actuator의 동일 구간 work를 vehicle/EV에 적용하고 candidate를
+함께 commit한다. Central/Rear receiver에 기존 EV capability dependency70ms를 명시해
+30ms generic 기본값에 의한 회생 소실을 수정했다. source30ms/expiry/20ms envelope는 유지한다.
+전체 Normal/ASan각1011/1011,TSan 변경 경계28/28,Python42/42다.
+실제8s quiet SDK는 Normal4/5(정상/charge-zero/owner-pause/Rear 재가입 PASS),ASan1/2,
+TSan0/2이며 최종5/9·개발 포함5/12 원본을 보존한다. actual memory/UB/race 진단0이
+기능 완료를 뜻하지 않는다. Normal 회생194.028J와 마찰776.281J를 분리했고 charge-zero는
+실제 BMS0W/마찰 정지,combined residual 최대2.385e-8J를 확인했다.
+**OPEN-M6-ENERGY-01:** command-loss local zero-target18.336ms 뒤 유한 ramp 때문에
+첫 actual complete sample122.707ms로 기존100ms gate FAIL. rate/gate를 바꾸지 않았다.
+**OPEN-M6-ENERGY-02:** sanitizer의4ms/20ms 시한·negative result/SDK queue drop과
+정상 관측·stop 미완료. 같은 조건을 반복하지 않았다. [ADR-0064](adr/ADR-0064-vehicle-ev-interval-energy.md)를 따른다.
+기존 M5 수용/과거 OPEN은 유지하고 다음 검토는 M6 실제 torque response budget(TBD-03)과
+기존 physical100ms gate 적용 범위다. M7/M8/Jetson·전체 시스템은 미검증이다.
+
+아래 첫 M6 기록은 이전 단계의 검증 범위/분모다.
+
+2026-10-22 이전 [M6 Simple Vehicle/MIL 첫 구현](test-plan/evidence/m6_simple_vehicle/README.md):
 **actual 기반 차량 모델과 첫 종방향 MIL·선택형3-vECU 연결 검증 완료, M6 전체 종료 아님**.
 기존 actuator 실제 torque/pressure/angle에서 vehicle speed/pose를 계산하고 wheel speed를
 Rear Drive→CAN/P05→SOME/IP→Central validator로 반환한다. 물리 state는 ECU 재가입에도 유지한다.
