@@ -35,7 +35,7 @@ def response_oracle(folder,result):
         require(all(int(a['model_ns'])<int(b['model_ns']) for a,b in zip(rs,rs[1:])),'nonmonotonic model samples')
         require(all(int(b['model_ns'])-int(a['model_ns'])<=c['model_budget_ns'] for a,b in zip(rs,rs[1:])),'model execution gap exceeds retained guard')
         live={r['role']:r['summary'] for r in result['processes'] if r['role'] in ('front','rear') and not r.get('expected_abrupt_stop')}
-        targets=[]
+        targets=[];applications=[]
         for leaf,role in [('drive','rear'),('brake','front')]:
             # pre_shutdown_protection is logged AFTER synchronous protection;
             # the service-entry event brackets detection, it is not a new source time.
@@ -54,8 +54,10 @@ def response_oracle(folder,result):
             applied=[x for x in selected if int(x[leaf+'_applied'])==int(x[leaf+'_source']) and int(x[leaf+'_applied'])>0]
             require(bool(applied),'protective output not consumed '+leaf)
             if applied:
-                a=applied[0];require(int(a['after_ns'])-s<=c['delivery_budget_ns'],'output handoff late '+leaf)
+                a=applied[0];applications.append(int(a['after_ns']));require(int(a['after_ns'])-s<=c['delivery_budget_ns'],'output handoff late '+leaf)
                 out[leaf]={'detection_interval_ns':[t,observed],'selection_ack_ns':ack,'selection_observed_ns':s,'application_interval_ns':[int(a['before_ns']),int(a['after_ns'])]}
+        if len(targets)==2 and len(applications)==2:
+            require(max(applications)-min(targets)<=c['delivery_budget_ns'],'both protective outputs not applied within global handoff budget')
         complete=[r for r in rs if abs(float(r['torque_nm']))<=c['torque_tolerance_nm'] and float(r['pressure_pa'])>=c['brake_floor_pa']]
         require(len(targets)==2 and bool(complete),'actual torque/brake protection incomplete')
         if len(targets)==2 and complete:

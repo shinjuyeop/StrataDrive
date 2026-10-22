@@ -46,6 +46,10 @@ class PhysicalResponseOracle(unittest.TestCase):
         self.write();self.assertTrue(self.verdict()['pass'],self.verdict())
         for r in self.rows:r['brake_selected']-=5000
         self.write();self.assertFalse(self.verdict()['pass'])
+    def test_late_other_actuator_handoff_cannot_hide_in_parallel_budget(self):
+        for r in self.rows:
+            r['brake_selected']+=5000000;r['brake_source']+=5000000;r['brake_applied']+=5000000
+        self.write();self.assertFalse(self.verdict()['pass'])
     def test_missing_samples_fails(self):
         (self.p/'physical-response.csv').unlink();self.assertFalse(self.verdict()['pass'])
     def test_model_gap_and_nonfinite_fail(self):

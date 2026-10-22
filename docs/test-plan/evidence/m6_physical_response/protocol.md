@@ -62,3 +62,8 @@ Actuation.issued_time보다3.5/2.7us 늦었다. 검출 기점으로 사용할 �
 추가 실제 실행은 변경된 fault 관측/판정의 command-loss1회만이다. nominal 정상 경로와
 모든 물리/제어 알고리즘은 동일해 기존 새 normal1회 결과를 유지하고 반복하지 않는다.
 최종 전체 Normal/ASan 및 경계 TSan은 이 수정 후 소스에서 실행한다.
+
+물리 budget의4ms output handoff는 **최초 로컬 목표 선택부터 양쪽 실제 출력 적용까지**로
+최종 offline oracle에서도 검사한다. Zone 선택의 시차를 무시하고 각자의 기점으로230ms를
+허용하지 않는다. 해당 Host profile의 판정값이며20ms transport envelope 변경이 아니다.
+추가 SDK 실행 없이 보존한 완전한 step/event 근거를 최종 oracle로 재평가한다.
