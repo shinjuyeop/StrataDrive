@@ -73,9 +73,16 @@ def rear_oracle(folder,case,result):
                 if role!='central':require(s.get('selected_ns',0)>=t,'actual Leaf protection not selected '+role)
                 protected.append(t)
             after=[p for p in physical if int(p['ns'])>=max(protected,default=injection)]
-            protected_actual=[p for p in physical if injection<=int(p['ns'])<=injection+100_000_000 and abs(float(p['torque']))<=1 and float(p['pressure'])>=100000]
-            require(bool(protected_actual),'actual torque/brake protection within original100ms not observed')
-            out['physical_protection_ns']=int(protected_actual[0]['ns']) if protected_actual else None
+            if result.get('physical_response') is not None:
+                require(bool(result.get('energy_cycle')),'M6 physical profile applied outside energy fixture')
+                from physical_response import response_oracle
+                out['physical_response']=response_oracle(folder,result)
+                require(out['physical_response']['pass'],'M6 actual response: '+str(out['physical_response']['errors']))
+                out['physical_protection_ns']=out['physical_response'].get('first_model_complete_ns')
+            else:
+                protected_actual=[p for p in physical if injection<=int(p['ns'])<=injection+100_000_000 and abs(float(p['torque']))<=1 and float(p['pressure'])>=100000]
+                require(bool(protected_actual),'actual torque/brake protection within original100ms not observed')
+                out['physical_protection_ns']=int(protected_actual[0]['ns']) if protected_actual else None
             if case=='command-loss':
                 target=result['fault_target'];events=rows(target+'-1.leaf-events.csv')
                 expiry=[e for e in events if e['event']=='command-expired' and int(e['ns'])>=injection]

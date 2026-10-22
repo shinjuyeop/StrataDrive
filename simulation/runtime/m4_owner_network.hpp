@@ -52,6 +52,10 @@ public:
         std::array<runtime::LatestSnapshot<OwnerActuation>,transport::kLeaves>& outputs,std::uint64_t start,std::vector<M4Event>& events,transport::Protection& override_signal,std::uint32_t first_epoch,bool simple_vehicle=false,double initial_soc=.63)
         :clock_(clock),gate_(gate),sensors_(sensors),outputs_(outputs),events_(events),override_(override_signal),released_epoch_(first_epoch),start_(start),vehicle_enabled_(simple_vehicle),initial_soc_(initial_soc) {if(simple_vehicle)energy_trace.reserve(4000);}
     void step();
+    // Owner-thread diagnostics only; no control/authority path or history allocation.
+    struct ResponseSample { std::uint64_t ns;double torque_nm,pressure_pa;std::array<std::uint64_t,5> applied; };
+    ResponseSample response_sample() const {return {last_,motor_.actual_nm(),pressure_.actual_pressure_pa(),applied_};}
+    static constexpr BrakePressureResponseConfig brake_response_config() {return {1500000,200000,5000000,10000000,50000000,7};}
     bool ok() const { return ok_; }
     const SimpleVehicle* vehicle() const { return vehicle_enabled_?&coupled_.vehicle():nullptr; }
     const EvPowerModel& electrical() const { return vehicle_enabled_?coupled_.electrical():energy_; }
@@ -71,7 +75,7 @@ private:
     std::uint64_t current_safe_since_{0}; std::uint32_t power_driver_epoch_{0}; bool driver_shutdown_{false};
     std::uint64_t start_,last_{0},last_trace_{0}; std::uint32_t sequence_{0},brake_release_epoch_{0}; bool begun_{false},ok_{true}; std::array<std::uint64_t,transport::kLeaves> applied_{};
     SteeringResponse angles_{{-.3,.3,.1,1,50000000,7}};
-    BrakePressureResponse pressure_{{1500000,200000,5000000,10000000,50000000,7}};
+    BrakePressureResponse pressure_{brake_response_config()};
     DriveSilPlant motor_{vecu::DriveControllerConfig{}.response};
     static BatteryConfig battery_fixture() {return {180000000,400,.05,200000,20,25,100,.01,1,100000};}
     static PowerModelConfig circuit_fixture() {return {.002,50,.02,100,1000,500};}

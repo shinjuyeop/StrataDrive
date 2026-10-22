@@ -329,6 +329,12 @@ int plant(const fs::path& folder) {
     mark(folder/"plant-ready");
     bool pass=true,delayed=false;std::string error;std::uint64_t previous=now(),maximum_gap=0,fault_time=0,requested=now(),injection=0;
     std::vector<std::array<std::uint64_t,3>> timing;timing.reserve(40000);
+    const bool response_enabled=std::getenv("STRATADRIVE_M6_RESPONSE")!=nullptr;
+    const double response_floor=response_enabled?std::stod(std::getenv("STRATADRIVE_M6_BRAKE_FLOOR")):100000;
+    const double response_tolerance=response_enabled?std::stod(std::getenv("STRATADRIVE_M6_TORQUE_TOLERANCE")):1;
+    struct ResponseRow {std::uint64_t before,after;simulation::m4_detail::PhysicalOwner::ResponseSample sample;simulation::OwnerActuation drive,brake;};
+    std::vector<ResponseRow> response;response.reserve(1024);bool response_done=false;
+
     try {while(!fs::exists(folder/"stop-plant") && now()-start<18'000*kMs) {
         if(watch)simulation::runtime_support::sleep_until(requested);
         NativeIteration iteration(watch.get(),requested);
@@ -346,7 +352,14 @@ int plant(const fs::path& folder) {
         if(three_enabled() && !physical.trace.empty()) {
             const auto& sample=physical.trace.back();
             if(!injection && fs::exists(folder/"inject")){std::ifstream in(folder/"inject");in>>injection;}
-            if(injection && sample.source_ns>=injection && std::abs(sample.torque_nm)<=1 && sample.pressure_pa>=100000)mark(folder/"physical-protected");
+            const auto actual=physical.response_sample();
+            if(response_enabled && injection && before>=injection && !response_done) {
+                if(response.size()==response.capacity()){pass=false;error="response observation capacity";fault_time=now();break;}
+                response.push_back({before,now(),actual,outputs[2].read().value_or(simulation::OwnerActuation{}),outputs[1].read().value_or(simulation::OwnerActuation{})});
+            }
+            const bool complete=response_enabled?(actual.ns>=injection && std::abs(actual.torque_nm)<=response_tolerance && actual.pressure_pa>=response_floor):
+                (sample.source_ns>=injection && std::abs(sample.torque_nm)<=1 && sample.pressure_pa>=100000);
+            if(injection && complete && (!response_enabled || !response_done)){mark(folder/"physical-protected");response_done=true;}
         }
         io.update([&](PlantState& state){if(auto sample=sensors[0].read())state.sensors=*sample;});
         iteration.finish();
@@ -359,6 +372,12 @@ int plant(const fs::path& folder) {
     if(physical.vehicle()) {
         std::ofstream e(folder/"energy.csv");e<<std::setprecision(17)<<"begin_ns,end_ns,input_ns,epoch,model_epoch,sequence,torque_nm,pressure_pa,wheel_speed_rad_s,kinetic_j,motor_work_j,friction_j,road_j,electrical_mechanical_j,motor_loss_j,battery_draw_j,received_dc_j,auxiliary_j,ohmic_j,capacitor_delta_j,circuit_loss_j,soc,vehicle_balance_j,coupling_balance_j,combined_balance_j\n";
         for(const auto& row:physical.energy_trace){const auto& v=row.state;e<<v.begin_ns<<','<<v.end_ns<<','<<v.input_ns<<','<<row.epoch<<','<<v.model_epoch<<','<<v.sequence<<','<<v.torque_nm<<','<<v.pressure_pa<<','<<v.wheel_speed_rad_s<<','<<v.kinetic_j<<','<<v.motor_work_j<<','<<v.friction_j<<','<<v.road_j<<','<<v.electrical_mechanical_j<<','<<v.motor_loss_j<<','<<v.battery_draw_j<<','<<v.received_dc_j<<','<<v.auxiliary_j<<','<<v.ohmic_j<<','<<v.capacitor_delta_j<<','<<v.circuit_loss_j<<','<<v.soc<<','<<v.vehicle_balance_j<<','<<v.coupling_balance_j<<','<<v.combined_balance_j<<'\n';}
+    }
+    if(response_enabled) {
+        std::ofstream r(folder/"physical-response.csv");r<<std::setprecision(17)<<"before_ns,after_ns,model_ns,torque_nm,pressure_pa,drive_source,drive_selected,drive_applied,drive_zero,brake_source,brake_selected,brake_applied,brake_protect,epoch\n";
+        for(const auto& x:response)r<<x.before<<','<<x.after<<','<<x.sample.ns<<','<<x.sample.torque_nm<<','<<x.sample.pressure_pa<<','<<x.drive.source_ns<<','<<(x.drive.drive?x.drive.drive->issued_time_ns:0)<<','<<x.sample.applied[2]<<','<<(x.drive.drive && x.drive.drive->mode==drive::ActuationMode::Zero)<<','<<x.brake.source_ns<<','<<(x.brake.brake?x.brake.brake->issued_time_ns:0)<<','<<x.sample.applied[1]<<','<<(x.brake.brake && x.brake.brake->mode==brake::ActuationMode::Protect)<<','<<x.drive.epoch<<'\n';
+        const auto d=vecu::DriveControllerConfig{}.response;const auto b=simulation::m4_detail::PhysicalOwner::brake_response_config();
+        std::ofstream(folder/"response-model.json")<<"{\"minimum_torque_nm\":"<<d.minimum_nm<<",\"maximum_torque_nm\":"<<d.maximum_nm<<",\"zero_rate_nm_s\":"<<d.zero_rate_nm_s<<",\"normal_delay_ns\":"<<d.delay_ns<<",\"brake_initial_pa\":"<<b.initial_pa<<",\"brake_rise_pa_s\":"<<b.rise_rate_pa_s<<",\"brake_maximum_pa\":"<<b.maximum_pa<<"}\n";
     }
     std::ofstream steps(folder/"plant-timing.csv");steps<<"before,after,failed\n";for(const auto& r:timing)steps<<r[0]<<','<<r[1]<<','<<r[2]<<'\n';
     std::ofstream ev(folder/"plant-events.csv");ev<<"ns,event,owner,epoch,source,deadline,reference,code\n";
