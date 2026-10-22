@@ -9,7 +9,7 @@
 [전체 결과](results-summary.json), [실제 SDK3회](results.csv), [시간축](timeline.csv),
 [최종 물리 판정](response-result.json), [곡선](physical-response.svg),
 [옛 로그 별도 재분석](old-reanalysis.json), [새 raw offline 재평가](offline-reanalysis.json),
-[환경](environment.json), [계측/링크](instrumentation.json),
+[환경](environment.json), [계측/링크](instrumentation.json), [실제 SDK Ninja 빌드](sdk-build.json),
 [SDK 경고 원문 위치](sdk-warnings.csv), [경고 시간대 대조](warning-analysis.json).
 원본·재현 driver·XML·plan/명령/설정·IP/스레드·PCAP은 [archive](raw-evidence.tar.gz),
 [파일 manifest](raw-manifest.json), [archive 식별자](archives.json)에 있다.
