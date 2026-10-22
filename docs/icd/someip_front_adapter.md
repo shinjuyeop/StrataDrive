@@ -1,8 +1,9 @@
 # Host Central ↔ Front SOME/IP owner adapter
 
-Status: **conditional adoption for the tested Host functional SIL profile**,
-[ADR-0061](../adr/ADR-0061-someip-front-owner-adapter.md). Native IO/FIFO timing,
-Rear network separation, Jetson and whole-system acceptance are not established.
+Status: **limited adoption for Host FIFO Central↔Front functional SIL, host10-v1**,
+[ADR-0061](../adr/ADR-0061-someip-front-owner-adapter.md). [Renewal qualification](../test-plan/evidence/m5_someip_refresh_delivery/README.md) covers
+the documented FIFO profile and existing load. Rear network separation, real IO,
+Jetson and whole-system acceptance are not established.
 This is separate from the [older component pilot](someip_pilot.md) and its grant
 fixture. SOME/IP is the protocol; pinned COVESA vSomeIP is the implementation.
 
@@ -75,7 +76,7 @@ Ordinary and authority lanes have distinct TCP services and bounded8 RX/TX queue
 SDK queues are8192 bytes, payload limits512 remote/1024 local. Overflow latches a
 fault; it never enlarges queues or renews requests. An asynchronous sender calls
 the SDK outside owner execution. No owner waits for a network response. Existing
-10/20ms owner grids and Central20ms allocation run with local monitoring continuing
+10/20ms owner grids and explicit Host Central10ms allocation run with local monitoring continuing
 when ordinary reception is paused. The optional native Host path now binds the existing
 M4 execution watch:2ms service opportunities,4ms deadline, original requested-slot
 completion and independent monitor protection. This does not alter10/20ms controller
@@ -121,9 +122,10 @@ Overflow rejects the extra arrival without overwriting queued items, latches fau
 and selects local protection independently of Central's command queue. Full queue
 shutdown and actual overflow have separate verdicts.
 
-Only measured normal FIFO quiet/loaded performance (3/3each) is positive profile
-evidence. Functional and fault cohorts contain failures, so native operational
-adoption remains pending. No current source re-stamping, deadline extension, retry
+At the original native review, only measured normal FIFO quiet/loaded performance
+(3/3each) was positive profile evidence. Those functional/fault cohorts contain
+failures and their operational adoption was pending; the new profile below has
+separate qualification. No current source re-stamping, deadline extension, retry
 lifetime renewal or broad sanitizer exemption is part of this contract.
 
 
@@ -132,4 +134,27 @@ allocation readiness also requires usable received permission at actual executio
 and unexpired original authority. Original release/source/support predicates remain.
 Durable EpochStore.issue finishes before a new native guard starts; eight real ACKs,
 RunLease and arm are still required afterwards. The historical short-support renewal
-path remains OPEN, so final FIFO8/8 is bounded evidence, not expanded adoption.
+path was still OPEN at that review, so its final FIFO8/8 alone did not expand adoption.
+The following explicitly changed profile supplies the actual renewal correction.
+
+## Host renewal profile (2026-10-22)
+
+The executable SOME/IP adapter explicitly selects `CommandRenewal::Host10ms` on
+both coordinator and async port. Default component tests retain `Legacy20ms`.
+`reference.yaml` does not configure this executable. Applied values are recorded
+as `host-renewal-period` events (period10,000,000ns/support18,000,000ns) and runner plan.
+Management is10ms on enable+4ms phase; fresh trusted VehicleRequest acquisition and
+allocation run10ms. Physical acquisition500µs, Leaf10ms/BMS20ms remain unchanged.
+
+A grant must retain source≥nominal release, be usable at actual now, match independently
+validated CAN ingress, and expire strictly after release+18ms. The18ms means next
+10ms release plus8ms phase/asynchronous handover reserve; it is not an expiry extension
+or a promise that any20ms transport delay preserves normal operation. The existing
+20ms envelope remains an exclusive rejection limit; all input-derived inner expiry
+and source age remain unchanged. One inflight batch and all bounded8 queues remain.
+
+Actual Leaf receipt is required before preceding original command expiry. Normal
+runner correlates every Central emitted command to accepted Steering/Brake/Drive
+source/Epoch/original expiry and rejects missing or late handover. Functional results,
+normal timing, and intentional fault protection remain separate. See the linked
+qualification for finite scope, all original failures and the immutable source/SDK pins.

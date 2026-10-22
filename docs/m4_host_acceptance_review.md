@@ -1,5 +1,20 @@
 # M4 Host IO/FIFO 한정 수용 검토안
 
+2026-10-22 최신 [실제 Leaf 갱신 수정](test-plan/evidence/m5_someip_refresh_delivery/README.md):
+**host10-v1의 Host FIFO Central↔Front 제한 범위 수용 / Rear 연결 진행 가능**.
+20ms 기본 profile은 보존하고 실제 Host allocation/VehicleRequest 갱신을10ms로 명시했다.
+허가 source/expiry는 그대로이며 다음 release 뒤8ms 인계 여유도 검사한다.
+동일 논리 재현은 수정 전 실제 Leaf expiry FAIL→새 profile 갱신 PASS(최소5.23ms 여유),
+최종 Normal FIFO 무부하2/2·기존 부하2/2·핵심 보호/종료/재가입4/4,
+ASan/UBSan·TSan 실제 SDK 각2/2, 전체 Normal/ASan 각983/983이다.
+Normal 실제 Leaf 최소 갱신 여유13.56ms. 원래2ms/4ms guard·20ms envelope·입력 age·
+8 ACK·RunLease·CAN/P05를 유지한다. OTHER 부하 timing은 진단 전용이며 sanitizer wall
+성능과 메모리/경합 오류 판정은 분리한다. 과거 실패·분모·OPEN은 변경하지 않았다.
+수용은 위 CPU/FIFO·기존 부하·2540ms 관측 Host functional SIL에 한하며,
+Rear 구현·Jetson·전체 시스템은 NOT RUN, M4 전체 NOT CLOSED·DDS CLOSED는 유지한다.
+
+이하 이전 검토의 당시 판정과 분모를 보존한다. 현재 SOME/IP FIFO 한정 판정은 위 후속을 따른다.
+
 2026-10-22 승인 범위 반영: [Host FIFO 후속](test-plan/evidence/m5_someip_fifo_refresh/README.md)의
 필수 조건은 실제8참여자 Central↔Front Normal FIFO 정상 운전·핵심 보호/종료/재가입이다.
 OTHER 부하 timing은 지원 한계 진단으로 분리하며, sanitizer wall time은 Normal 성능과 별도다.

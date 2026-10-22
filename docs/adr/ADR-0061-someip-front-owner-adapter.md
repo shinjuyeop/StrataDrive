@@ -1,6 +1,7 @@
 # ADR-0061: Host Central–Front SOME/IP owner adapter
 
-Date: 2026-10-21. Status: **conditional adoption of the Host functional SIL path**.
+Date: 2026-10-21; updated2026-10-22. Status: **limited adoption of Host FIFO Central–Front functional SIL, host10-v1**.
+Latest qualification is in the final section below; earlier cohorts/decisions remain historical.
 
 Extend the opt-in vSomeIP path from component grants to real SessionCoordinator,
 RunLeaseIssuer, eight actual participants, VehicleCoordinator, Front/Rear/Leaf
@@ -65,3 +66,35 @@ Functional SIL adoption remains conditional; FIFO acceptance expansion and Rear
 connection remain blocked on original-deadline renewal. M4 whole/Jetson/system and
 all DDS historical FAIL/OPEN remain separate. Do not reintroduce OTHER loaded timing
 as a blocker for this user-approved limited scope.
+
+## 2026-10-22 actual Leaf renewal qualification: host10-v1
+
+[Implementation and evidence](../test-plan/evidence/m5_someip_refresh_delivery/README.md),
+source6b2b5a3: adopt the explicit Host10ms renewal profile for this Host adapter.
+Keep default legacy20ms component behavior. Management remains10ms/phase+4ms;
+fresh VehicleRequest/allocation now run10ms, with permission expiry strictly after
+release+18ms (next10ms release +8ms remote handover reserve). Matching usable received
+grant and source≥release checks remain. No authority/command/source-age/native/wire
+expiry is extended;8ms is admission headroom, not a guarantee for arbitrary20ms delay.
+This doubles normal command/request traffic, without increasing queues or VM/Leaf rates.
+
+The real-owner phase replay first FAILS with legacy20: source-age-limited grant defers
+allocation, all three Leafs expire. Same acquisition/transport schedule with host10
+receives102 commands/Leaf before preceding original expiry, min5.230397ms margin;
+interrupted renewal still expires/protects. Historical exact limiting input is unknown,
+so the controlled169,603ns deficit does not purport to prove the old69,603ns event's
+network delay. Preserved raw historical failures remain failures.
+
+Final Normal FIFO quiet2/2, existing loaded2/2, command-loss/owner-pause/central-stop/
+restart-live4/4, instrumented actual SDK ASan/UBSan2/2 and TSan2/2, full Normal/ASan
+983/983 each. Four normal runs receive all698 commands per Leaf, minimum13.555378ms
+renewal margin. New runner rejects missing/duplicate/late Leaf handover and changed
+original expiry. No unexpected SDK/sanitizer errors or forced cleanup. Intentional
+owner-pause miss is protection success, not normal timing success.
+
+**Host FIFO Central–Front limited acceptance; Rear integration may proceed next.**
+Scope: documented CPU/policy,2540ms window, existing load and eight real participants,
+SIL plant/sensors/trusted demand. OTHER loaded timing is diagnostic under the already
+approved criteria; sanitizer wall time is separate. All historical OPEN exceptions,
+M4 whole NOT CLOSED, DDS gate CLOSED, Rear network/Jetson/system NOT RUN remain.
+No new adoption gate requires closing unrelated nonreproduced historical incidents.

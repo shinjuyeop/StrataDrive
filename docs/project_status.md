@@ -2,7 +2,20 @@
 
 Updated: **2026-10-22**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 DDS QUALIFICATION IN PROGRESS**다.
 
-최신 [Host FIFO 갱신/시작 순서 후속](test-plan/evidence/m5_someip_fifo_refresh/README.md)은
+2026-10-22 최신 [실제 Leaf 갱신 수정](test-plan/evidence/m5_someip_refresh_delivery/README.md):
+**host10-v1의 Host FIFO Central↔Front 제한 범위 수용 / Rear 연결 진행 가능**.
+20ms 기본 profile은 보존하고 실제 Host allocation/VehicleRequest 갱신을10ms로 명시했다.
+허가 source/expiry는 그대로이며 다음 release 뒤8ms 인계 여유도 검사한다.
+동일 논리 재현은 수정 전 실제 Leaf expiry FAIL→새 profile 갱신 PASS(최소5.23ms 여유),
+최종 Normal FIFO 무부하2/2·기존 부하2/2·핵심 보호/종료/재가입4/4,
+ASan/UBSan·TSan 실제 SDK 각2/2, 전체 Normal/ASan 각983/983이다.
+Normal 실제 Leaf 최소 갱신 여유13.56ms. 원래2ms/4ms guard·20ms envelope·입력 age·
+8 ACK·RunLease·CAN/P05를 유지한다. OTHER 부하 timing은 진단 전용이며 sanitizer wall
+성능과 메모리/경합 오류 판정은 분리한다. 과거 실패·분모·OPEN은 변경하지 않았다.
+수용은 위 CPU/FIFO·기존 부하·2540ms 관측 Host functional SIL에 한하며,
+Rear 구현·Jetson·전체 시스템은 NOT RUN, M4 전체 NOT CLOSED·DDS CLOSED는 유지한다.
+
+이전 `b624243` 검토의 [Host FIFO 갱신/시작 순서 후속](test-plan/evidence/m5_someip_fifo_refresh/README.md)은
 `45a3352`의 실제 만료/품질 검사와 `7fe4bbd`의 영속 Epoch 발급→native 감시 순서 수정을 검증했다.
 최종 **Normal FIFO8/8**, ASan/UBSan·TSan 실제 SDK 경계 **각2/2**다. 공통 전체 회귀는
 Normal **979/980**(기존 OTHER wall 주입 전 실패1), ASan **980/980**이며 원본을 유지한다.
@@ -11,8 +24,8 @@ Normal **979/980**(기존 OTHER wall 주입 전 실패1), ASan **980/980**이며
 Normal FIFO 정상 운전·핵심 보호/종료/재가입, 실제 sanitizer 오류 없음이다.
 다만 과거 정상 갱신 중단의 허가 expiry가 다음20ms release에69,603ns 부족한 분기는 확인했으나
 수정하지 못했다. 준비 조건의 단순 삭제는 실제 원격 인계 전 expiry를 유발해 철회했다.
-**Host functional SIL 조건부 채택 유지 / FIFO 수용 확대·Rear 연결 진행 보류**다. 다음은 이
-입력의 expiry 제한 의존성과 management/관측 phase를 재현해 원래 시한 내 갱신하는 수정이다.
+당시 **Host functional SIL 조건부 채택 / FIFO 수용 확대·Rear 연결 진행 보류**였다.
+이 갱신 경로는 위 새 profile에서 별도 수정·검증했으며 당시 결과를 PASS로 고치지 않는다.
 후속 PASS로 기존 OPEN을 닫지 않으며 M4 전체·Jetson·전체 시스템 수용으로 확대하지 않는다.
 
 이전 [SOME/IP native 실행 감시 근거](test-plan/evidence/m5_someip_native_watch/README.md)는
@@ -30,8 +43,8 @@ SDK OTHER 스레드CPU4/5, ownerCPU1/2·physicalCPU3, monitorCPU0으로 분리�
 RT limit20/20·FIFO 우선순위11/18/19/20을 확인했으며 모든 스레드 FIFO 적용은 하지 않았다.
 기존 동일 CPU TSan0/13·GDB 및 배치 비교 실패도 보존한다. 계측 결과는 Normal 성능과 별도다.
 통제61ms 모델 지연은 energy.step 실패·원래 dt/input·보호·IO 상태 기록을 검증했지만
-**OPEN-SOMEIP-HOST-01은 OPEN 유지**다. 다음 한 단계는 원래 allocation/permission/Leaf
-expiry 시간축과 최초 gateway 보호 원인을 좁혀 하나의 실행 위상 가설을 검증하는 것이다.
+**OPEN-SOMEIP-HOST-01은 OPEN 유지**다. 당시 제안한 allocation/permission/Leaf 시간축
+후속은 위 갱신 근거로 이행했다. 역사적 사건 전체의 원인을 확정한 것은 아니다.
 기존 Host functional SIL 조건부 채택, M4 전체 NOT CLOSED·DDS historical OPEN/CLOSED,
 Rear 네트워크·Jetson·실제 IO·전체 시스템 NOT RUN을 유지한다.
 
@@ -137,7 +150,7 @@ Middleware runner의 FAIL/경고 종료코드0 결함은 `1677f85`로 수정했�
 | M2 — Actuator·EV 모델 | TECHNICAL CHECKS PASS / REVIEW PENDING | 학습자 직접 재현·수용 검토 |
 | M3 — Timing·실행 | IN PROGRESS / HOST REVIEW COMPLETE | [실행 기준 선택](m3_acceptance_review.md); 일반 sanitizer 타이밍 실패 2건·학습자 수용 및 Target/E2E 후속 |
 | M4 — Central/Zone | HOST NATIVE IO/FIFO COMPONENT LIMITED ACCEPTANCE / WHOLE NOT CLOSED | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결; 실제 Zone health·독립 status/상실 연결; 단일 coordinator·8-role session INIT/rejoin 위에9개 정상 owner runtime 연결·정상/고장/종료/복구 검사; 공통 owner/방향별 고장·joined 재가입·M3 독립 guard 연결 검사;release 위상 보완/책임 분리·owner-wire/remote Leaf credit·실제 actor 보호 검사; timing·native/SDK TSan 예외 OPEN, [종료 검토](m4_exit_review.md) 진행 |
-| M5 — 통신 | DDS CONTROL GATE CLOSED / SOME/IP HOST FUNCTIONAL SIL CONDITIONAL | DDS 기존 gate·FAIL 유지; SOME/IP 실제8-role Central↔Front adapter 기능 검증, native execution-watch·부하/운용 수용은 미완료 |
+| M5 — 통신 | DDS CONTROL GATE CLOSED / SOME/IP HOST FIFO CENTRAL↔FRONT LIMITED ACCEPTANCE | host10-v1 실제8-role·native 감시·기존 부하 정상 갱신·핵심 보호/종료/재가입 수용; Rear 연결 진행 가능. DDS FAIL/OPEN·Rear/Jetson/system NOT RUN 유지 |
 | M6–M13 | PLANNED | 차량/CARLA → control·diagnostics·AI·보드 비교 |
 
 [MBD 방법](engineering_plan.md#model-based-design-path)은 계획에 채택했다. 첫 대상은 Central 종방향 제어이며
@@ -252,7 +265,7 @@ OS Task/CAN·native 시한은 유지하고, 새 추가 Host timing 5 ms 판정�
 
 ## 다음 작업
 
-1. **승인 범위와 M5 gate:** [B안](m4_host_acceptance_review.md)은 사용자 승인으로 적용했다. Host native IO/FIFO component만 한정 수용하며 M4 전체 종료는 아니다. TIM/native 미확정 사건은 OPEN 예외, DDS는 M5 정규 제어 전 필수 gate다. 두 프로세스/버킷·WHC·Proxy 수명 진단42회를 실행했다. full-RHC close timeout·20ms 전달 실패·미확정 경고가 남아 현재 gate는 CLOSED다. Daybreak 인증 요구 확인 뒤 추가 조사는 보류했다. 통신·종료·재시작 통과, 실제 사용 경로의 경고별 수정 또는 구체적 계측 한계 근거, 설명되지 않은 메모리 경고 부재와 SDK build/config 연결을 충족하면 추가 승인 없이 Central↔Front 제어 adapter로 진행한다. 미충족 시 gate를 닫고 진단을 계속한다.
+1. **Rear 연결 후속:** [host10-v1 근거](test-plan/evidence/m5_someip_refresh_delivery/README.md)로 Host FIFO Central↔Front를 한정 수용했다. 다음은 현재 Central 내부의 Rear/Drive/BMS/Power 경계를 분리하되 실제8 ACK·단일 소유권·원래 허가/명령 시한·독립 보호를 유지하는 구현이다. 이번 작업에는 포함하지 않았다. DDS는 사용하지 않는 별도 경로이며 full-RHC 종료·20ms 전달·TSan FAIL/OPEN과 CLOSED gate를 유지한다. 과거 Daybreak 제한 작업을 재시도하지 않는다. DDS 자체를 정규 연결할 경우에만 해당 통신/종료/경고 gate를 충족해야 한다. M4 전체 종료와 Jetson/system 수용은 별도다.
 2. **M3 타이밍 예외 해소:** OPEN-M3-01/02의 원본 실패를 유지하고 수집한 VALID kernel trace의 timer→wakeup→switch 근거를 재사용한다. 과거 FIFO 실패 당시 chain은 없어 인과관계가 미확정이다. 재발 시 원래 identity/deadline과 kernel chain을 함께 확보하며 가설 없는 반복은 하지 않는다. PREEMPT_RT 비교는 Target 후속 실험이며 M4 준비가 M3 전체 수용을 뜻하지 않는다. 학습자 직접 재현·설명도 남아 있다.
 3. **ARM64 배포 준비:** Host PC + Jetson 한 대 내부 여러 vECU 배치를 유지한다. Jetson 일반 커널/PREEMPT_RT 동일 workload 비교는 Target 성능 검증 PLANNED / NOT RUN이다. 이번 커널 교체·MCU 이식은 없다.  보드 OS/BSP·ABI/stack/IPC·SocketCAN과 실제 실행을 확인한 뒤 다른 Leaf OS 확장을 검토한다. Target 검증은 배포 단계, RTE/BSW는 별도 pilot과 연결한다.
 4. **MBD 준비·후속 pilot:** 현재 M4 통합을 진행하고 M5 통신 경계를 준비하면서 제어 interface·도구/모델 검토를 병행한다. M6 Simple Vehicle에서 종방향 모델/MIL을 만들고 M8에서 C++ 동등성과 차량 SIL을 검증한다. [채택 범위](adr/ADR-0052-model-based-design-development-path.md)는 방법/계획이며 구현·Simulink/자동 생성 도입 완료가 아니다.
