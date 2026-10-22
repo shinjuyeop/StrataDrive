@@ -1,8 +1,23 @@
 # Project status
 
-Updated: **2026-10-22**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 DDS QUALIFICATION IN PROGRESS**다.
+Updated: **2026-10-22**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 SOME/IP HOST LIMITED ACCEPTANCE / M6 IN PROGRESS**다.
 
-2026-10-22 최신 [Rear 실제 통신 경계 후속](test-plan/evidence/m5_someip_rear_adapter/README.md):
+2026-10-22 최신 [M6 Simple Vehicle/MIL 첫 구현](test-plan/evidence/m6_simple_vehicle/README.md):
+**actual 기반 차량 모델과 첫 종방향 MIL·선택형3-vECU 연결 검증 완료, M6 전체 종료 아님**.
+기존 actuator 실제 torque/pressure/angle에서 vehicle speed/pose를 계산하고 wheel speed를
+Rear Drive→CAN/P05→SOME/IP→Central validator로 반환한다. 물리 state는 ECU 재가입에도 유지한다.
+실제 이동으로 드러난 NormalStop의 delayed pressure/terminal Hold 경계를 수정했다.
+최종 C++13d1e87의 전체 Normal/ASan 각999/999,TSan 경계28/28,실제 SDK Normal3/3·
+ASan1/1·TSan1/1,Python8+24를 확인했다. 개발 포함 SDK6/9 원본과 MIL 최초 FAIL은 보존한다.
+실제 SDK는 low-speed acceleration fixture,30/20/0km/h 추종은 별도 Python MIL이다.
+MIL plateau max0.049180/0.046337/0.005251km/h,overspeed1.2233%;M8 C++ speed controller는 미구현이다.
+[ADR-0063](adr/ADR-0063-simple-vehicle-and-longitudinal-mil.md)/[모델 ICD](icd/simple_vehicle.md)를 따른다.
+M6 부하·장시간·전체 EV scenario/M7 CARLA/M8 동등성·차량 SIL/Jetson은 NOT RUN이다.
+기존 M5 Host 한정 수용·TSan OPEN/DDS CLOSED·M4 전체 NOT CLOSED는 유지한다.
+
+아래 Rear 연결 기록은 M6 착수 전의 수용 범위와 당시 분모다.
+
+2026-10-22 이전 [Rear 실제 통신 경계 후속](test-plan/evidence/m5_someip_rear_adapter/README.md):
 **문서화한 Host Normal FIFO Central↔Front/Rear 기능 범위 한정 수용 — Rear 연결 완료**
 ([ADR-0062](adr/ADR-0062-someip-rear-host-adapter.md)). Central·Front·Rear 별도3프로세스,
 Rear/Drive/BMS/Power 단일 소유권과 실제8참여자 ACK/RunLease/arm·Front 결과 뒤 Rear 배분을
@@ -169,10 +184,11 @@ Middleware runner의 FAIL/경고 종료코드0 결함은 `1677f85`로 수정했�
 | M3 — Timing·실행 | IN PROGRESS / HOST REVIEW COMPLETE | [실행 기준 선택](m3_acceptance_review.md); 일반 sanitizer 타이밍 실패 2건·학습자 수용 및 Target/E2E 후속 |
 | M4 — Central/Zone | HOST NATIVE IO/FIFO COMPONENT LIMITED ACCEPTANCE / WHOLE NOT CLOSED | Central·scoped admission·CAN gateway/보호·Rear power/permission/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결; 실제 Zone health·독립 status/상실 연결; 단일 coordinator·8-role session INIT/rejoin 위에9개 정상 owner runtime 연결·정상/고장/종료/복구 검사; 공통 owner/방향별 고장·joined 재가입·M3 독립 guard 연결 검사;release 위상 보완/책임 분리·owner-wire/remote Leaf credit·실제 actor 보호 검사; timing·native/SDK TSan 예외 OPEN, [종료 검토](m4_exit_review.md) 진행 |
 | M5 — 통신 | DDS CONTROL GATE CLOSED / SOME/IP HOST FIFO CENTRAL↔FRONT LIMITED ACCEPTANCE | host10-v1 실제8-role·native 감시·기존 부하 정상 갱신·핵심 보호/종료/재가입 수용; Rear 연결 진행 가능. DDS FAIL/OPEN·Rear/Jetson/system NOT RUN 유지 |
-| M6–M13 | PLANNED | 차량/CARLA → control·diagnostics·AI·보드 비교 |
+| M6 | IN PROGRESS | Simple Vehicle/첫 Python MIL·3-vECU quiet 검증; 전체 EV/부하·sensor 경계 후속 |
+| M7–M13 | PLANNED | CARLA → control·diagnostics·AI·보드 비교 |
 
 [MBD 방법](engineering_plan.md#model-based-design-path)은 계획에 채택했다. 첫 대상은 Central 종방향 제어이며
-M6 모델/MIL→M8 C++ 동등성/차량 SIL 순서다. 도구·생성 경로는 TBD-16, 모델/검증 실행은 NOT RUN이다.
+M6 모델/MIL→M8 C++ 동등성/차량 SIL 순서다. TBD-16의 첫 모델 도구는 Python으로 선택해 M6 MIL을 실행했다. 자동 생성과 M8 동등성은 NOT RUN이다.
 
 ## 구현·시험한 범위
 

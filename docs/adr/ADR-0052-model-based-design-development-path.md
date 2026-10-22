@@ -1,6 +1,8 @@
 # ADR-0052: 제어 기능의 MBD 개발·검증 경로
 
-Date: 2026-10-19. Status: **개발 방향 채택 / 모델·도구·MIL·동등성 시험 PLANNED / NOT RUN**.
+Date: 2026-10-19. Status: **개발 방향 채택 / M6 첫 Python MIL 검증 / M8 동등성·자동 생성 NOT RUN**.
+2026-10-22 [ADR-0063](ADR-0063-simple-vehicle-and-longitudinal-mil.md)으로 첫 Python 도구와
+M6 plant/MIL을 구현·검증했다. 아래 원래 M6→M8 책임 분리는 유지한다.
 사용자 요청으로 MBD(Model-Based Design)를 기존 M6–M8 개발 계획에 추가한다.
 M4 Central/Zone 통합과 M3 타이밍 예외 해소를 계속 진행하며 milestone 번호와 Reference ODD는 유지한다.
 

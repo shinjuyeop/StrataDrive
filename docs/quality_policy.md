@@ -3,6 +3,12 @@
 Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
 clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
 
+2026-10-22 [M6 첫 모델·MIL/3-vECU 경계](test-plan/evidence/m6_simple_vehicle/README.md)는
+공유 NormalStop/PhysicalOwner 변경 뒤 최종 전체 Normal·ASan/UBSan 각각999/999를 확인했다.
+기존987 이름/assertion 보존,vehicle10·stop2 추가. TSan 경계28/28,실제 SDK 최종5/5와
+개발 포함6/9를 구분하고 Python8+24,첫 MIL FAIL/수정 비교/최종 PASS를 보존한다.
+M6 전체/부하/Jetson/M8 controller 동등성 수용은 아니다. 이전 TSan OPEN은 그대로다.
+
 2026-10-21 [SOME/IP native 감시 후속](test-plan/evidence/m5_someip_native_watch/README.md)은
 공유 watch/물리 보호 수정 후 전체 **Normal978/978·ASan978/978**(기존973+신규5),
 관련 Python **48/48**(working·fresh build 없음), 기존 native 영향 **6/6**을 확인했다.

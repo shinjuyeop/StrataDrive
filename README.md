@@ -239,7 +239,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 | M3 | IN PROGRESS: Host 수용 검토·FIFO 기준 선택 / 타이밍 예외 OPEN |
 | M4 | Central coordinator + 대등한 Front/Rear Zone |
 | M5 | Central Compute + DDS |
-| M6 | Simple Vehicle Plant |
+| M6 | [Simple Vehicle + 첫 종방향 MIL](docs/test-plan/evidence/m6_simple_vehicle/README.md) — 부분 구현·검증 |
 | M7 | CARLA Integration |
 | M8 | Classical Autonomous Driving |
 | M9 | Fault / Diagnostics / DTC |

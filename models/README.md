@@ -27,7 +27,7 @@ models/samples/*
 fixture 전)이다. 보류 이유와 gate는 [TBD register](../docs/roadmap.md#open-m0-decisions)에 있다.
 
 2026-10-22 M6 첫 소형 설계 모델 예외: `longitudinal/model.py`, `longitudinal/mil.py`.
-외부 다운로드/weight가 아닌 이 저장소에서 작성한 Python source이며 저장소 license를 따른다.
+외부 다운로드/weight가 아닌 이 저장소에서 작성한 Python source다. 외부 모델이나 제3자 license를 포함하지 않았으며 저장소에 명시되지 않은 배포 license를 가정하지 않는다.
 각10KiB 미만, Git diff/review 및 고정 MIL replay가 필요해 정확한 두 경로만 추적한다.
 버전·SHA256은 매 실행 plan.json과 M6 근거 manifest에 기록한다. 생성 CSV·cache는 제외한다.
 도구/수식/한계는 [M6 계약](../docs/icd/simple_vehicle.md)을 따른다.

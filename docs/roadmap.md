@@ -1,6 +1,11 @@
 # Milestone roadmap
 
-Status: **M0 — BASELINED / M1·M2 — TECHNICAL CHECKS PASS · REVIEW PENDING / M3 — IN PROGRESS / M4 — COMPONENT IMPLEMENTATION / M5–M13 — PLANNED**.
+Status: **M0 — BASELINED / M1·M2 — TECHNICAL CHECKS PASS · REVIEW PENDING / M3 — IN PROGRESS / M4 — COMPONENT IMPLEMENTATION / M5 — HOST SOME/IP LIMITED ACCEPTANCE / M6 — IN PROGRESS / M7–M13 — PLANNED**.
+최신 M5/M6 실행 범위는 [project status](project_status.md)를 우선한다.
+[M6 첫 근거](test-plan/evidence/m6_simple_vehicle/README.md)는 actual 기반 차량 모델,
+Python MIL과 선택형3-vECU quiet 연결이다. 전체 M6 종료나 M8 controller 구현은 아니다.
+아래 단계별 과거 측정/실패 기록은 당시 범위로 보존한다.
+
 M3의 [첫 Steering wall-time 실행](learning/m3_steering_timing.md)은 독립 monitor·plant, deadline/누락 job과 CSV 계측을 구현·검사했다.
 후속 [다중 주기·CAN 감시](learning/m3_multirate_runtime.md)는 Brake/Drive/BMS·Power와 실제 RX를 연결했다.
 후속 [고정 부하·CPU 배치 비교](learning/m3_cpu_placement.md)는 contention과 실패 run도 기록했다.
@@ -50,8 +55,8 @@ TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
 | M2 | TECHNICAL CHECKS PASS: Actuator + Battery / BMS / Power models | component·Steering/Brake response monitor 시험; 학습자 수용 PENDING |
 | M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | Host 수용 검토·IO 동반/FIFO 기준 선택; 일반 sanitizer 타이밍 예외·학습자 수용 OPEN, Target/E2E 후속 |
 | M4 | COMPONENT IMPLEMENTATION: Central coordinator + Front/Rear Zone | Central·scoped admission·CAN gateway/보호·Rear 전원/허가/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결 시험; 실제 Zone 상태/독립 ingress·상실 연결; 단일 coordinator·8-role session INIT/rejoin·정상9-owner 비동기 runtime/실제 BMS·센서 연결 시험; 공통 고장/복구·M3 독립 감시 연결 검사; 위상 수정·구조 분리 후 각48회42 PASS/6 FAIL·원격 wire/global credit/Leaf actor component 검사; timing/TSan 예외 OPEN·M4 종료 검토 중, TC-ZON-001–003 NOT RUN; protocol TBD-15 |
-| M5 | Central Compute + DDS | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
-| M6 | Simple Vehicle + EV Plant / MBD MIL pilot | 실제 actuator/power 응답·lifecycle/energy 검증; 종방향 제어 모델·plant의 MIL, parameter/sample time·추종/제약 시험 |
+| M5 | Central Compute + Ethernet (SOME/IP Host 한정, DDS CLOSED) | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
+| M6 | IN PROGRESS: Simple Vehicle + EV Plant / MBD MIL pilot | 실제 actuator/power 응답·lifecycle/energy 검증; 종방향 제어 모델·plant의 MIL, parameter/sample time·추종/제약 시험 |
 | M7 | CARLA Integration | Host–Target 실제 Ethernet, single ego writer, feedback-driven CARLA motion |
 | M8 | Classical Autonomous Driving / MBD implementation | 종방향 모델→C++ 동등성·차량 SIL, longitudinal PID·route/waypoint·Pure Pursuit 또는 Stanley의 기준 scenario |
 | M9 | Fault / Diagnostics / DTC | actuator/BMS/power 및 cross-zone loss Fault Event/DTC/state/local action/actual response를 연결한 regression |
@@ -79,7 +84,7 @@ Jetson 일반 커널과 PREEMPT_RT를 동일 workload·원래 deadline·실제 C
 
 [MBD 개발 경로](engineering_plan.md#model-based-design-path)를 [ADR-0052](adr/ADR-0052-model-based-design-development-path.md)로 채택했다.
 첫 대상은 Central 종방향 속도 제어다. M6에서 모델/MIL, M8에서 C++와 동등성/차량 SIL을 검증한다.
-M4/M5 통합은 계속 진행하고 Simulink·자동 코드 생성 도입은 TBD-16의 별도 결정이다. 현재 MBD 실행 결과는 NOT RUN이다.
+M4/M5 통합은 계속 진행하고 Simulink·자동 코드 생성 도입은 TBD-16의 별도 결정이다. 첫 Python MIL은 위 M6 근거에서 실행했으며 M8 동등성/자동 생성은 NOT RUN이다.
 
 Fault architecture는 M0부터 다루며 local fault behavior는 M2/M4 등의 component와
 함께 설계한다. Fault handling을 M9까지 미룬다는 뜻이 아니다. 각 단계에서

@@ -5,7 +5,7 @@
 사용자 변경은 없었고 기존 M5 수용·DDS/TSan FAIL/OPEN 근거를 수정하지 않았다.
 구현 `b0819ab`, NormalStop 수정 및 최종 C++ 실행 소스 **`13d1e87`**,
 모델/도구 계약 `bf152b2`. 최종 Normal SDK cohort는 커밋 직전에 실행했으며
-`plan.json`의 실제 source hash·바이너리 SHA가 동일 C++ 내용임을 식별한다.
+`plan.json`의 실제 source hash·바이너리 SHA가 동일 C++ 내용임을 식별한다([63개 파일/바이너리 대조](source-content-match.json)).
 
 [사전 protocol/수정별 비교](protocol.md), [ICD](../../../icd/simple_vehicle.md),
 [ADR-0063](../../../adr/ADR-0063-simple-vehicle-and-longitudinal-mil.md),
