@@ -1,0 +1,1002 @@
+{
+  "cpp_source": "13d1e87aab7de3fe38119839b0799fe383a5adbc",
+  "raw_attempts": 9,
+  "raw_pass": 6,
+  "final_attempts": 5,
+  "final_pass": 5,
+  "cpp": {
+    "full-normal.xml": {
+      "name": "Linux-c++",
+      "tests": "999",
+      "failures": "0",
+      "disabled": "0",
+      "skipped": "0",
+      "hostname": "MJH",
+      "time": "24",
+      "timestamp": "2026-10-22T14:56:41"
+    },
+    "full-asan.xml": {
+      "name": "Linux-c++",
+      "tests": "999",
+      "failures": "0",
+      "disabled": "0",
+      "skipped": "0",
+      "hostname": "MJH",
+      "time": "55",
+      "timestamp": "2026-10-22T14:57:28"
+    },
+    "tsan-boundary.xml": {
+      "name": "Linux-c++",
+      "tests": "28",
+      "failures": "0",
+      "disabled": "0",
+      "skipped": "0",
+      "hostname": "MJH",
+      "time": "0",
+      "timestamp": "2026-10-22T14:59:22"
+    }
+  },
+  "sdk": [
+    {
+      "cohort": "sdk-dev-normal",
+      "case": "normal",
+      "raw_exit": 1,
+      "eligible": false,
+      "pass": false,
+      "vehicle": {
+        "pass": false,
+        "errors": [
+          "normal stop without actual low speed"
+        ]
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 205,
+            "received": 205,
+            "minimum_margin_ns": 13501033
+          },
+          {
+            "owner": 3,
+            "sent": 205,
+            "received": 205,
+            "minimum_margin_ns": 13498613
+          },
+          {
+            "owner": 4,
+            "sent": 205,
+            "received": 205,
+            "minimum_margin_ns": 12900693
+          }
+        ],
+        "minimum_margin_ns": 12900693
+      },
+      "forced_cleanup": [],
+      "sanitizer_diagnostics": false,
+      "sdk_errors": false,
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 2764,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 2828,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 2944,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 2842,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "processes": [
+        {
+          "role": "plant",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "central",
+          "exit": 1,
+          "expected_abrupt_stop": false,
+          "error": "normal owner selected protection"
+        },
+        {
+          "role": "front",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "rear",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "cohort": "sdk-final-asan",
+      "case": "normal",
+      "raw_exit": 0,
+      "eligible": true,
+      "pass": true,
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 0.162511,
+        "distance_m": 0.149126,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 7.81597e-14,
+        "samples": 399
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 215,
+            "received": 215,
+            "minimum_margin_ns": 11673121
+          },
+          {
+            "owner": 3,
+            "sent": 215,
+            "received": 215,
+            "minimum_margin_ns": 11668406
+          },
+          {
+            "owner": 4,
+            "sent": 215,
+            "received": 215,
+            "minimum_margin_ns": 10952601
+          }
+        ],
+        "minimum_margin_ns": 10952601
+      },
+      "forced_cleanup": [],
+      "sanitizer_diagnostics": false,
+      "sdk_errors": false,
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 3446,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 3506,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 4002,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 3620,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "processes": [
+        {
+          "role": "plant",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "central",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "front",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "rear",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "cohort": "sdk-final-normal",
+      "case": "normal",
+      "raw_exit": 0,
+      "eligible": true,
+      "pass": true,
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 0.159519,
+        "distance_m": 0.143854,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 8.52651e-14,
+        "samples": 361
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 213,
+            "received": 213,
+            "minimum_margin_ns": 13706382
+          },
+          {
+            "owner": 3,
+            "sent": 213,
+            "received": 213,
+            "minimum_margin_ns": 13703937
+          },
+          {
+            "owner": 4,
+            "sent": 213,
+            "received": 213,
+            "minimum_margin_ns": 13211365
+          }
+        ],
+        "minimum_margin_ns": 13211365
+      },
+      "forced_cleanup": [],
+      "sanitizer_diagnostics": false,
+      "sdk_errors": false,
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 3444,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 3494,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 3618,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 3510,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "processes": [
+        {
+          "role": "plant",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "central",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "front",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "rear",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "cohort": "sdk-final-normal",
+      "case": "command-loss",
+      "raw_exit": 0,
+      "eligible": true,
+      "pass": true,
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 0.0314751,
+        "distance_m": 0.00620738,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 1.33227e-15,
+        "samples": 147
+      },
+      "renewal": null,
+      "forced_cleanup": [],
+      "sanitizer_diagnostics": false,
+      "sdk_errors": false,
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 1264,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 1288,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 1404,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 1302,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "processes": [
+        {
+          "role": "plant",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "central",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "front",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "rear",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "cohort": "sdk-final-normal",
+      "case": "restart-live",
+      "raw_exit": 0,
+      "eligible": true,
+      "pass": true,
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 0.0305662,
+        "distance_m": 0.0110401,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 1.33227e-15,
+        "samples": 412
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 78,
+            "received": 78,
+            "minimum_margin_ns": 11003712
+          },
+          {
+            "owner": 3,
+            "sent": 78,
+            "received": 78,
+            "minimum_margin_ns": 11001287
+          },
+          {
+            "owner": 4,
+            "sent": 78,
+            "received": 78,
+            "minimum_margin_ns": 10357072
+          }
+        ],
+        "minimum_margin_ns": 10357072
+      },
+      "forced_cleanup": [],
+      "sanitizer_diagnostics": false,
+      "sdk_errors": false,
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1-rejoined.native.watch.json",
+            "active_slots": 2464,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 2464,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 4022,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 4146,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-2.native.watch.json",
+            "active_slots": 2562,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "processes": [
+        {
+          "role": "plant",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "central",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "front",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "rear",
+          "exit": -9,
+          "expected_abrupt_stop": true,
+          "error": null
+        },
+        {
+          "role": "rear",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "cohort": "sdk-final-tsan",
+      "case": "normal",
+      "raw_exit": 0,
+      "eligible": true,
+      "pass": true,
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 0.161641,
+        "distance_m": 0.147498,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 1.68754e-14,
+        "samples": 385
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 214,
+            "received": 214,
+            "minimum_margin_ns": 10586871
+          },
+          {
+            "owner": 3,
+            "sent": 214,
+            "received": 214,
+            "minimum_margin_ns": 10550110
+          },
+          {
+            "owner": 4,
+            "sent": 214,
+            "received": 214,
+            "minimum_margin_ns": 9349627
+          }
+        ],
+        "minimum_margin_ns": 9349627
+      },
+      "forced_cleanup": [],
+      "sanitizer_diagnostics": false,
+      "sdk_errors": false,
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 3448,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 3518,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 3884,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 3582,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "processes": [
+        {
+          "role": "plant",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "central",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "front",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "rear",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "cohort": "sdk-normal",
+      "case": "normal",
+      "raw_exit": 1,
+      "eligible": false,
+      "pass": false,
+      "vehicle": {
+        "pass": false,
+        "errors": [
+          "normal stop without actual low speed"
+        ]
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 202,
+            "received": 202,
+            "minimum_margin_ns": 13293081
+          },
+          {
+            "owner": 3,
+            "sent": 202,
+            "received": 202,
+            "minimum_margin_ns": 13290659
+          },
+          {
+            "owner": 4,
+            "sent": 202,
+            "received": 202,
+            "minimum_margin_ns": 12786614
+          }
+        ],
+        "minimum_margin_ns": 12786614
+      },
+      "forced_cleanup": [],
+      "sanitizer_diagnostics": false,
+      "sdk_errors": false,
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 2764,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 2828,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 2946,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 2844,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "processes": [
+        {
+          "role": "plant",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "central",
+          "exit": 1,
+          "expected_abrupt_stop": false,
+          "error": "normal control fault"
+        },
+        {
+          "role": "front",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "rear",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "cohort": "sdk-normal",
+      "case": "command-loss",
+      "raw_exit": 1,
+      "eligible": false,
+      "pass": false,
+      "vehicle": {
+        "pass": false,
+        "errors": [
+          "no actual vehicle motion"
+        ]
+      },
+      "renewal": null,
+      "forced_cleanup": [],
+      "sanitizer_diagnostics": false,
+      "sdk_errors": false,
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 920,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 952,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 1066,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-1.native.watch.json",
+            "active_slots": 966,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "processes": [
+        {
+          "role": "plant",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "central",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "front",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "rear",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        }
+      ]
+    },
+    {
+      "cohort": "sdk-normal",
+      "case": "restart-live",
+      "raw_exit": 0,
+      "eligible": false,
+      "pass": true,
+      "vehicle": {
+        "pass": true,
+        "errors": [],
+        "max_speed_mps": 0.0284752,
+        "distance_m": 0.00523602,
+        "final_speed_mps": 0.0,
+        "max_balance_error_j": 8.88178e-16,
+        "samples": 386
+      },
+      "renewal": {
+        "pass": true,
+        "errors": [],
+        "leaves": [
+          {
+            "owner": 2,
+            "sent": 77,
+            "received": 77,
+            "minimum_margin_ns": 11008012
+          },
+          {
+            "owner": 3,
+            "sent": 77,
+            "received": 77,
+            "minimum_margin_ns": 11005644
+          },
+          {
+            "owner": 4,
+            "sent": 77,
+            "received": 77,
+            "minimum_margin_ns": 10631214
+          }
+        ],
+        "minimum_margin_ns": 10631214
+      },
+      "forced_cleanup": [],
+      "sanitizer_diagnostics": false,
+      "sdk_errors": false,
+      "native": {
+        "pass": true,
+        "errors": [],
+        "processes": [
+          {
+            "file": "central-1-rejoined.native.watch.json",
+            "active_slots": 2486,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "central-1.native.watch.json",
+            "active_slots": 2486,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "front-1.native.watch.json",
+            "active_slots": 3692,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "plant-1.native.watch.json",
+            "active_slots": 3866,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          },
+          {
+            "file": "rear-2.native.watch.json",
+            "active_slots": 2562,
+            "misses": 0,
+            "first_miss": null,
+            "fault_ns": 0,
+            "fault_deadline": 0
+          }
+        ],
+        "normal_timing_ok": true,
+        "fault_protection_ok": null
+      },
+      "processes": [
+        {
+          "role": "plant",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "central",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "front",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        },
+        {
+          "role": "rear",
+          "exit": -9,
+          "expected_abrupt_stop": true,
+          "error": null
+        },
+        {
+          "role": "rear",
+          "exit": 0,
+          "expected_abrupt_stop": false,
+          "error": ""
+        }
+      ]
+    }
+  ]
+}
