@@ -953,3 +953,21 @@ m6_simple_vehicle:
     slew_mps3: 2
     deceleration_preview_ms: 120
     actual_cpp_controller: not_implemented_M8
+
+m6_vehicle_energy:
+  revision: vehicle-energy-v1
+  scenario_profile: energy-cycle-v1
+  activation: front_run.py_--three_--simple-vehicle_--native-watch_--energy-cycle_nominal_or_no-charge
+  yaml_loader: false
+  implementation: simulation/vehicle/vehicle_ev_model.cpp
+  input_kind: original_actuals_and_integrated_whole_interval_motor_work
+  commit: vehicle_electrical_battery_together_after_validation
+  balance_budget_j: {vehicle: 0.00001, coupling: 0.000001, combined: 0.001}
+  ev_receiver_dependency_ms: 70
+  actual_and_capability_source_ms: 30
+  scenario_no_charge_initial_soc: 0.96
+  observation_ms: 8000
+  shutdown_observation_tail_ms: 2500
+  original_zero_rate_nm_s: 2000
+  physical_100ms_gate: retained_FAIL_in_command_loss_high_torque_case
+  full_acceptance: withheld_open_m6_energy_01_and_02

@@ -1,6 +1,9 @@
 # Simple Vehicle / M6 초기 모델 계약
 
 2026-10-22. 모델 revision `simple-vehicle-v1`, MIL `m6-pi-v1`.
+후속 [vehicle-energy-v1](vehicle_energy.md)/[ADR-0064](../adr/ADR-0064-vehicle-ev-interval-energy.md)는
+선택형 Host 물리 경로를 같은 구간 work의 vehicle/EV 결합으로 확장했다. 아래 첫 v1의
+ZOH 비교 한계와 초기 실행 결과는 당시 기록이며 최신 수용 상태는 후속 evidence를 따른다.
 기존 M5 accepted fixture는 그대로이며 `front_run.py --three --simple-vehicle`로만 활성화한다.
 `profiles/reference.yaml`은 설계 기록이며 runtime loader가 아니다. 실제 값은
 `simulation/vehicle/simple_vehicle.hpp`의 config와 Python model의 상수다.
