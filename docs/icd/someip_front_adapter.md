@@ -125,3 +125,11 @@ Only measured normal FIFO quiet/loaded performance (3/3each) is positive profile
 evidence. Functional and fault cohorts contain failures, so native operational
 adoption remains pending. No current source re-stamping, deadline extension, retry
 lifetime renewal or broad sanitizer exemption is part of this contract.
+
+
+2026-10-22 [FIFO follow-up](../test-plan/evidence/m5_someip_fifo_refresh/README.md):
+allocation readiness also requires usable received permission at actual execution
+and unexpired original authority. Original release/source/support predicates remain.
+Durable EpochStore.issue finishes before a new native guard starts; eight real ACKs,
+RunLease and arm are still required afterwards. The historical short-support renewal
+path remains OPEN, so final FIFO8/8 is bounded evidence, not expanded adoption.

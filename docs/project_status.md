@@ -1,8 +1,21 @@
 # Project status
 
-Updated: **2026-10-21**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 DDS QUALIFICATION IN PROGRESS**다.
+Updated: **2026-10-22**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 DDS QUALIFICATION IN PROGRESS**다.
 
-최신 [SOME/IP native 실행 감시 근거](test-plan/evidence/m5_someip_native_watch/README.md)는
+최신 [Host FIFO 갱신/시작 순서 후속](test-plan/evidence/m5_someip_fifo_refresh/README.md)은
+`45a3352`의 실제 만료/품질 검사와 `7fe4bbd`의 영속 Epoch 발급→native 감시 순서 수정을 검증했다.
+최종 **Normal FIFO8/8**, ASan/UBSan·TSan 실제 SDK 경계 **각2/2**다. 공통 전체 회귀는
+Normal **979/980**(기존 OTHER wall 주입 전 실패1), ASan **980/980**이며 원본을 유지한다.
+새 SDK 전체25회23 PASS/2 FAIL과 최종12/12를 구분한다. 사용자 승인으로 **OTHER 부하 timing은
+진단 전용**이고 이번 FIFO 한정 진행을 막지 않는다. 필수 조건은 실제8참여자 Host Central↔Front의
+Normal FIFO 정상 운전·핵심 보호/종료/재가입, 실제 sanitizer 오류 없음이다.
+다만 과거 정상 갱신 중단의 허가 expiry가 다음20ms release에69,603ns 부족한 분기는 확인했으나
+수정하지 못했다. 준비 조건의 단순 삭제는 실제 원격 인계 전 expiry를 유발해 철회했다.
+**Host functional SIL 조건부 채택 유지 / FIFO 수용 확대·Rear 연결 진행 보류**다. 다음은 이
+입력의 expiry 제한 의존성과 management/관측 phase를 재현해 원래 시한 내 갱신하는 수정이다.
+후속 PASS로 기존 OPEN을 닫지 않으며 M4 전체·Jetson·전체 시스템 수용으로 확대하지 않는다.
+
+이전 [SOME/IP native 실행 감시 근거](test-plan/evidence/m5_someip_native_watch/README.md)는
 기존2ms 실행 기회/4ms 감시를 실제 Central·Front owner와 지속 SIL 물리 프로세스에 연결했다.
 원래 요청 회차의 완료를 기록하고, owner/monitor 정지에는 살아 있는 독립 감시·물리 override가
 보호한다. 실제 RX8+추가1 거부·latch·FIFO 보존을 보강하고, 물리 보호 후 같은 Epoch의

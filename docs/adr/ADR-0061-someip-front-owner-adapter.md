@@ -46,3 +46,22 @@ integration route, not a resolution of those defects. M4 remains Host native IO/
 component limited acceptance / whole NOT CLOSED. Rear network, Jetson, real IO and
 whole-system validation are NOT RUN. ADR-0060 remains the historical component-pilot
 decision; this ADR supersedes only its statement that no real owner adapter exists.
+
+
+## 2026-10-22 limited FIFO follow-up
+
+[New evidence](../test-plan/evidence/m5_someip_fifo_refresh/README.md): final Normal
+FIFO8/8 and ASan/UBSan/TSan SDK boundary2/2 each. User-approved criteria require
+Normal FIFO normal/core protection/shutdown/rejoin; OTHER loaded timing is diagnostic,
+and sanitizer wall time is separate from Normal performance. Actual memory/UB/race
+reports remain failures. Durable Epoch issuance now precedes a generation's native
+watch. Allocation readiness checks usable received authority at actual execution time.
+No period, expiry, source age, envelope, native deadline, queue or SDK change.
+
+The saved grant is69,603ns short of the next20ms release. Removing the phase check
+caused deterministic early command expiry and was rejected. That renewal defect is
+not fixed by the narrower readiness/startup corrections or the later passing cohort.
+Functional SIL adoption remains conditional; FIFO acceptance expansion and Rear
+connection remain blocked on original-deadline renewal. M4 whole/Jetson/system and
+all DDS historical FAIL/OPEN remain separate. Do not reintroduce OTHER loaded timing
+as a blocker for this user-approved limited scope.

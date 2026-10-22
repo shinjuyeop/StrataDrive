@@ -1,5 +1,14 @@
 # M4 Host IO/FIFO 한정 수용 검토안
 
+2026-10-22 승인 범위 반영: [Host FIFO 후속](test-plan/evidence/m5_someip_fifo_refresh/README.md)의
+필수 조건은 실제8참여자 Central↔Front Normal FIFO 정상 운전·핵심 보호/종료/재가입이다.
+OTHER 부하 timing은 지원 한계 진단으로 분리하며, sanitizer wall time은 Normal 성능과 별도다.
+실제 메모리/UB/경합 오류는 계속 FAIL이다. 최종 FIFO8/8·ASan/TSan SDK 각2/2이나,
+과거69,603ns short-support 정상 갱신 경로는 아직 수정하지 못해 **FIFO 통합 수용 확대와
+Rear 진행은 보류**한다. 영속 Epoch 발급을 감시 전에 완료하고 만료 허가 ready 판정을 수정했다.
+기존 Host IO/FIFO component 수용·M4 NOT CLOSED·DDS FAIL/OPEN·Jetson/system NOT RUN은 유지한다.
+
+
 2026-10-21 후속: [SOME/IP 실제 Host Central↔Front adapter](test-plan/evidence/m5_someip_front_adapter/README.md)를
 functional SIL 범위에 조건부 채택했다. 실제8-role 세션·독립 보호·새 Epoch 복구 근거이며,
 이 문서의 M4 전체 NOT CLOSED·Host native IO/FIFO 한정 수용·기존 DDS FAIL/OPEN을 변경하지 않는다.
