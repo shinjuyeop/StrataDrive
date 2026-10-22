@@ -159,6 +159,30 @@ class SdkOutcomeTest(unittest.TestCase):
             (folder/'central-protected').write_text('1200000000')
             self.assertIsNone(module.expected_injected_lease_reset(line,'central-1.stdout',result,folder))
 
+class RenewalBookkeepingTest(unittest.TestCase):
+    def test_actual_leaf_gap_missing_and_expiry_mutation_fail(self):
+        spec=importlib.util.spec_from_file_location('renewal_oracle',ROOT/'tests/integration/someip/renewal_oracle.py')
+        m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+        import csv
+        def fixture(d,late=False,missing=False,mutate=False):
+            with (d/'central-1.transport.csv').open('w') as f:
+                f.write('event,epoch,payload_source,operation,peer,inner_deadline,sent,deadline\n')
+                for i in range(10):
+                    for peer in (0,1):f.write(f'central-enqueued,1,{100+i*10},3,{peer},{130+i*10},{100+i*10},{120+i*10}\n')
+            for role,owners in [('front',(2,3)),('central',(4,))]:
+                with (d/(role+'-1.leaf-events.csv')).open('w') as f:
+                    f.write('event,ns,owner,epoch,source,deadline,detail\n')
+                    for owner in owners:
+                        for i in range(10):
+                            if missing and owner==2 and i==5:continue
+                            ns=100+i*10+(31 if late and i==9 else 1)
+                            f.write(f'valid-input,{ns},{owner},1,{100+i*10},{130+i*10+(1 if mutate else 0)},1\n')
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp);fixture(d);self.assertTrue(m.renewal_oracle(d)['pass'])
+            for bad in ('late','missing','mutate'):
+                fixture(d,**{bad:True});self.assertFalse(m.renewal_oracle(d)['pass'])
+            (d/'front-1.leaf-events.csv').unlink();self.assertFalse(m.renewal_oracle(d)['pass'])
+
 class NativeWatchBookkeepingTest(unittest.TestCase):
     def module(self):
         spec=importlib.util.spec_from_file_location('native_oracle',ROOT/'tests/integration/someip/native_oracle.py')

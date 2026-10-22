@@ -26,10 +26,14 @@ struct VehicleManagementConfig {
     double off_bus_max_v{30}; // functional-SIL fixture, not an OEM calibration
     std::uint64_t minimum_tick_interval_ns{10000000ULL}; // call guard; external task remains 10 ms
 };
+// Original source and exclusive bound that limited the issued grant. Diagnostic only.
+enum class PermissionLimit { OutputLifetime, LifecycleExpiry, LifecycleAge, AcknowledgedPower, FrontHealth, RearHealth, SteeringActual, BrakeActual, DriveActual, PowerStatus, PowerLimits, PowerInput, LimitsInput };
+struct PermissionSupport { PermissionLimit limit{PermissionLimit::OutputLifetime}; std::uint64_t source_ns{0},expiry_ns{0}; };
 struct VehicleManagementDecision {
     VehicleManagementState state{VehicleManagementState::NotInitialized};
     VehicleManagementFault fault{VehicleManagementFault::None};
     NormalDriveReadiness input_health{}, normal_readiness{};
+    PermissionSupport permission_support{};
     bool normal_allowed{false};
     bool power_off_confirmed{false}; // actual OFF + acknowledgement, not a coil command
 };
@@ -58,7 +62,7 @@ private:
     const IssuedRequest* acknowledgement(const NormalDriveReadinessInputs& inputs,
                                        std::uint64_t now_ns, can::BmsPowerAction action) const;
     std::uint64_t permission_expiry(const NormalDriveReadinessInputs& inputs,
-                                   const IssuedRequest& acknowledged, std::uint64_t now_ns) const;
+                                   const IssuedRequest& acknowledged, std::uint64_t now_ns);
     const VehicleManagementConfig config_;
     VehicleManagementDecision decision_{};
     std::uint32_t epoch_{0};

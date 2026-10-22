@@ -16,7 +16,8 @@ def native_oracle(folder,case,result,fifo):
                 protected=process.get('summary',{}).get('pre_shutdown_protection',0)
                 require(not protected or protected>=injected,'normal protection preceded fault injection')
         for path in sorted(folder.glob('*.native.watch.json')):
-            info=json.loads(path.read_text());rows=list(csv.DictReader(path.with_suffix('.csv').open()))
+            info=json.loads(path.read_text())
+            with path.with_suffix('.csv').open() as stream:rows=list(csv.DictReader(stream))
             active=[{k:int(v) for k,v in r.items()} for r in rows if int(r['deadline'])<=info['quiesced']]
             missed=[r for r in active if not r['end'] or r['end']>r['deadline']]
             require(all(r['deadline']-r['release']==4_000_000 for r in active),'guard deadline changed')

@@ -104,7 +104,7 @@ struct Owners final:session::CoordinatorPort {
     std::array<runtime::LatestSnapshot<simulation::OwnerSensors>,8> sensors;
     std::array<runtime::LatestSnapshot<simulation::OwnerActuation>,5> outputs;
     simulation::BmsGateChannel bms;
-    central::AsyncCoordinatorPort port{clock,gate,zones[0],zones[1]};central::VehicleCoordinator core{port,{true}};
+    central::AsyncCoordinatorPort port{clock,gate,zones[0],zones[1],central::CommandRenewal::Host10ms};central::VehicleCoordinator core{port,{true,central::CommandRenewal::Host10ms}};
     std::array<std::unique_ptr<zone::AsyncZoneOwner>,2> zone;
     std::array<std::unique_ptr<simulation::m4_detail::ZoneSession>,2> zone_session;
     std::array<std::unique_ptr<simulation::AsyncLeafOwner>,5> leaf;
@@ -174,7 +174,7 @@ struct Owners final:session::CoordinatorPort {
         const auto e=session::EpochStore((folder/"epochs").string()).issue();
         event("epoch-store-return",7,e);return e;
     }
-    void begin(std::uint32_t e){epoch=e;check(coordinator.begin(e,now()),"real session begin");event("epoch-issued",7,e);}
+    void begin(std::uint32_t e){epoch=e;event("host-renewal-period",7,central::allocation_period(central::CommandRenewal::Host10ms),central::permission_support(central::CommandRenewal::Host10ms));check(coordinator.begin(e,now()),"real session begin");event("epoch-issued",7,e);}
     void physical_io() {
         io.update([this](PlantState& s){
             for(auto& snapshot:sensors)snapshot.publish(s.sensors);

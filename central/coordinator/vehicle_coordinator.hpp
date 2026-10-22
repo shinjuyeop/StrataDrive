@@ -1,11 +1,12 @@
 #pragma once
 
 #include "control_allocation.hpp"
+#include "command_renewal.hpp"
 #include "normal_stop.hpp"
 
 namespace stratadrive::central {
 struct CoordinatorSession { std::uint32_t epoch; std::uint64_t enable_ns; };
-struct CoordinatorExecution { bool external_releases{false}; };
+struct CoordinatorExecution { bool external_releases{false}; CommandRenewal renewal{CommandRenewal::Legacy20ms}; };
 enum class OperationStatus { Pending, Accepted, Rejected };
 // Trusted single-owner adapter. Callbacks are bounded, nonblocking and must
 // retain original roots/expiry. ACK means output selection/enqueue, not physics.
@@ -21,6 +22,7 @@ public:
     virtual OperationStatus arm_status(std::uint32_t epoch) noexcept {
         return arm(epoch)?OperationStatus::Accepted:OperationStatus::Rejected;
     }
+    virtual void observe_permission(const PermissionSupport&,const can::BmsMessage&) noexcept {}
     virtual bool deliver_power(const VehicleManagementOutput& output) noexcept = 0;
     // False defers this due release without constructing/queueing a replacement
     // command. Resume from current inputs; do not advance nominal release or
@@ -59,7 +61,7 @@ public:
     CoordinatorReceive receive_vehicle(const VehicleRequest& root, std::uint64_t now_ns);
     CoordinatorReceive receive_stop(const NormalStopRequest& root, std::uint64_t now_ns);
     void request_protection(std::uint64_t now_ns);
-    // 10 ms externally clocked runnable, allocation every 20 ms. True means
+    // 10 ms management; allocation follows the explicit renewal profile. True means
     // a cycle ran (possibly selecting protection); inspect decision().
     bool tick(const NormalDriveReadinessInputs& feedback, std::uint64_t now_ns,bool management_release = true);
     CoordinatorDecision decision() const;

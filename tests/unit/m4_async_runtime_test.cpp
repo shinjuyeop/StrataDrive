@@ -201,4 +201,72 @@ TEST(M4AsyncRuntime, PendingRearResultSelectsCommandDeliveryBeforeIndividualExpi
     for(const auto& row:result.trace)if(row.elapsed_ns>=result.first_fault_ns) {EXPECT_FALSE(row.run_gate);}
     EXPECT_GT(result.all_protected_ns,result.first_fault_ns);EXPECT_LE(result.all_protected_ns-result.first_fault_ns,100000000U);
 }
+
+// Phase replay: genuine 500 us plant acquisitions (offset 430,396 ns).
+// From 1 s, Front feedback becomes visible after 6 ms,
+// still within the original 20 ms transport envelope. No payload restamping.
+M4Result renewal_phase_replay(M4Config config,const char* name) {
+    class FeedbackDelay final : public stratadrive::session::MailboxDelivery<stratadrive::transport::Feedback> {
+    public:
+        m4_detail::Network& n;
+        explicit FeedbackDelay(m4_detail::Network& network):n(network) {}
+        stratadrive::session::Delivery send(const stratadrive::transport::Feedback&) noexcept override {
+            const auto now=n.clock.now_ns();
+            return {false,now-n.start>=1000000000?now+6000000:0};
+        }
+        bool blocked() noexcept override {return false;}
+        std::uint64_t now_ns() const noexcept override {return n.clock.now_ns();}
+        void delivered(const stratadrive::transport::Feedback&) noexcept override {}
+        void overflow(const stratadrive::transport::Feedback&) noexcept override {}
+    };
+    config.transport_trace=true;
+    auto n=std::make_unique<m4_detail::Network>(config);FeedbackDelay feedback(*n);
+    n->zones[0].feedback.delivery(&feedback);
+    std::uint64_t plant=0,owner=0;
+    while(std::min(plant,owner)<=config.duration_ns) {
+        if(plant<=owner) {n->clock.logical=n->start+plant;n->step(8);plant=plant==0?430396:plant+500000;}
+        else {n->clock.logical=n->start+owner;for(unsigned i=0;i<8;++i)n->step(i);owner+=200000;}
+    }
+    auto result=n->finish();
+    if(const auto* dir=std::getenv("STRATADRIVE_M4_RESULTS"))write_m4_result(config,result,std::string(dir)+"/renewal/"+name);
+    return result;
+}
+TEST(M4RefreshDelivery, ObservedPhaseMustRenewActualLeavesBeforeOriginalExpiry) {
+    M4Config config;config.renewal=stratadrive::central::CommandRenewal::Host10ms;
+    const auto result=renewal_phase_replay(config,"host10");
+    EXPECT_TRUE(result.passed)<<result.reason;
+    EXPECT_EQ(result.first_fault_ns,0U);
+    ASSERT_FALSE(result.event_overflow);
+    std::array<std::uint64_t,3> expiry{};std::array<unsigned,3> renewals{};
+    for(const auto& e:result.events)if(e.owner>=2 && e.owner<=4 && std::string(e.kind)=="valid-input" && e.code==1) {
+        const auto i=e.owner-2;
+        if(expiry[i]) {EXPECT_LT(e.time_ns,expiry[i]);++renewals[i];}
+        expiry[i]=e.deadline_ns;
+    }
+    for(auto count:renewals)EXPECT_GT(count,50U);
+}
+
+TEST(M4RefreshDelivery, LegacyPhaseReproducesShortSupportThenActualExpiry) {
+    const auto r=renewal_phase_replay({},"legacy20");
+    EXPECT_FALSE(r.passed);EXPECT_FALSE(r.event_overflow);
+    const auto defer=std::find_if(r.transport_events.begin(),r.transport_events.end(),[](const auto& e){return std::string(e.stage)=="allocation-readiness" && e.outcome==3;});
+    ASSERT_NE(defer,r.transport_events.end());
+    EXPECT_EQ(defer->sent_ns+20000000-defer->inner_deadline_ns,169603U);
+    EXPECT_GT(defer->deadline_ns,defer->time_ns); // old command still live at first short-support branch
+    const auto limit=std::find_if(r.transport_events.begin(),r.transport_events.end(),[&](const auto& e){return std::string(e.stage)=="permission-limit" && e.inner_deadline_ns==defer->inner_deadline_ns;});
+    ASSERT_NE(limit,r.transport_events.end());EXPECT_EQ(limit->outcome,static_cast<int>(stratadrive::central::PermissionLimit::SteeringActual));
+    EXPECT_EQ(limit->inner_deadline_ns,limit->original_source_ns+30000001);
+    for(unsigned owner=2;owner<=4;++owner) {
+        const auto expired=std::find_if(r.events.begin(),r.events.end(),[&](const auto& e){return e.owner==owner && std::string(e.kind)=="command-expired";});
+        ASSERT_NE(expired,r.events.end());EXPECT_EQ(expired->deadline_ns,defer->deadline_ns);EXPECT_GE(expired->time_ns,expired->deadline_ns);
+    }
+    EXPECT_GT(r.all_protected_ns,r.first_fault_ns);EXPECT_LE(r.all_protected_ns-r.first_fault_ns,100000000U);
+}
+TEST(M4RefreshDelivery, InterruptedHostRenewalStillExpiresOriginalAuthority) {
+    M4Config c;c.renewal=stratadrive::central::CommandRenewal::Host10ms;c.scenario=M4Scenario::CommandLoss;
+    const auto r=renewal_phase_replay(c,"host10-command-loss");
+    EXPECT_TRUE(r.passed)<<r.reason;EXPECT_FALSE(r.event_overflow);
+    EXPECT_GE(r.first_fault_ns,c.injection_ns);EXPECT_LE(r.all_protected_ns-r.first_fault_ns,100000000U);
+    EXPECT_TRUE(std::any_of(r.events.begin(),r.events.end(),[](const auto& e){return std::string(e.kind)=="command-expired" && e.time_ns>=e.deadline_ns;}));
+}
 }  // namespace

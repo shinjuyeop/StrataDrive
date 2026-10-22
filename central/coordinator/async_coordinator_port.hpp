@@ -15,7 +15,7 @@ enum class AsyncTransportFault { None,Clock,Continuity,Send,ResultMismatch,Resul
 class AsyncCoordinatorPort final : public CoordinatorPort {
 public:
     void transport_trace(transport::TransportTrace* sink) { trace_=sink; } // before launch only
-    AsyncCoordinatorPort(transport::Clock& clock,transport::RunGate& gate,transport::ZoneLink& front,transport::ZoneLink& rear);
+    AsyncCoordinatorPort(transport::Clock& clock,transport::RunGate& gate,transport::ZoneLink& front,transport::ZoneLink& rear,CommandRenewal renewal=CommandRenewal::Legacy20ms);
     bool initialize(CoordinatorSession session);
     void service();
     NormalDriveReadinessInputs feedback();
@@ -36,6 +36,7 @@ public:
     bool authorize_vehicle(const VehicleRequest& root) noexcept override;
     bool arm(std::uint32_t epoch) noexcept override { return arm_status(epoch)==OperationStatus::Accepted; }
     OperationStatus arm_status(std::uint32_t epoch) noexcept override;
+    void observe_permission(const PermissionSupport&,const can::BmsMessage&) noexcept override;
     bool deliver_power(const VehicleManagementOutput& output) noexcept override;
     bool allocation_ready(const VehicleManagementOutput& output,std::uint64_t release_ns) noexcept override;
     bool commands_settled() const noexcept override { return !commands_; }
@@ -53,6 +54,7 @@ private:
     void result(std::size_t zone,const transport::TxResult& result);
     void receive(std::size_t zone,const transport::Feedback& value);
     void fail(AsyncTransportFault fault = AsyncTransportFault::Send);
+    const CommandRenewal renewal_;
     transport::Clock& clock_; transport::RunGate& gate_;
     std::array<transport::ZoneLink*,2> links_;
     CoordinatorSession session_{}; std::uint64_t observed_{0},next_token_{1},completed_batches_{0}; bool failed_{false};

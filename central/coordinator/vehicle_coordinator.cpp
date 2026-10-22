@@ -5,9 +5,9 @@
 
 namespace stratadrive::central {
 namespace {
-constexpr std::uint64_t kPeriod=10000000ULL, kAllocationPeriod=20000000ULL, kGap=30000000ULL;
+constexpr std::uint64_t kPeriod=10000000ULL, kGap=30000000ULL;
 VehicleManagementConfig management_config(CoordinatorExecution e) { VehicleManagementConfig c; if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
-AllocationConfig allocation_config(CoordinatorExecution e) { AllocationConfig c; if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
+AllocationConfig allocation_config(CoordinatorExecution e) { AllocationConfig c; c.minimum_tick_interval_ns=e.external_releases?1000000:allocation_period(e.renewal); return c; }
 NormalStopConfig stop_config(CoordinatorExecution e) { NormalStopConfig c; if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
 }
 VehicleCoordinator::VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution e):port_(port),execution_(e),management_(management_config(e)),allocation_(allocation_config(e)),stop_(stop_config(e)) {}
@@ -105,7 +105,8 @@ void VehicleCoordinator::request_protection(std::uint64_t now) {
 }
 std::uint64_t VehicleCoordinator::next_allocation_ns() const {
     const auto previous=allocation_ns_.value_or(enable_ns_);
-    return previous>std::numeric_limits<std::uint64_t>::max()-kAllocationPeriod?std::numeric_limits<std::uint64_t>::max():previous+kAllocationPeriod;
+    const auto period=allocation_period(execution_.renewal);
+    return previous>std::numeric_limits<std::uint64_t>::max()-period?std::numeric_limits<std::uint64_t>::max():previous+period;
 }
 bool VehicleCoordinator::allocate(const NormalDriveReadinessInputs& in) {
     if(!last_power_ || !port_.allocation_ready(*last_power_,next_allocation_ns())) {
@@ -124,7 +125,8 @@ bool VehicleCoordinator::allocate(const NormalDriveReadinessInputs& in) {
     return checkpoint();
 }
 void VehicleCoordinator::record_allocation_release() {
-    allocation_ns_=execution_.external_releases?enable_ns_+((observed_ns_-enable_ns_)/kAllocationPeriod)*kAllocationPeriod:observed_ns_;
+    const auto period=allocation_period(execution_.renewal);
+    allocation_ns_=execution_.external_releases?enable_ns_+((observed_ns_-enable_ns_)/period)*period:observed_ns_;
 }
 OperationStatus VehicleCoordinator::progress_handoff() {
     if(!pending_handoff_ || !port_.commands_settled()) return OperationStatus::Pending;
@@ -190,6 +192,7 @@ bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t
     if(management_.decision().fault!=VehicleManagementFault::None) { fail(CoordinatorFault::Management); return finish(); }
     if(power) {
         last_power_=power;
+        port_.observe_permission(management_.decision().permission_support,power->drive_permission);
         if(management_.decision().normal_allowed && !normal_armed_) {
             const auto arm=port_.arm_status(epoch_);
             if(arm==OperationStatus::Rejected) { fail(CoordinatorFault::Arm); return finish(); }
@@ -211,7 +214,7 @@ bool VehicleCoordinator::tick(const NormalDriveReadinessInputs& in,std::uint64_t
         if(!checkpoint()) return finish();
     }
     // A sub-owner can be early after callback jitter. Do not republish its old
-    // output; still service the independent 20 ms allocation runnable.
+    // output; still service the independent allocation runnable.
     const bool terminal=stop_.decision().state==NormalStopState::PowerDown || stop_.decision().state==NormalStopState::Complete;
     if(stopping_ && plan && plan->vehicle && !plan->handoff_required && !accept_vehicle(*plan->vehicle)) { fail(CoordinatorFault::Allocation); return finish(); }
     if(!terminal && (!stopping_ || (plan && !plan->handoff_required)) && observed_ns_>=next_allocation_ns()) {

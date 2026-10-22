@@ -7,8 +7,8 @@ namespace stratadrive::central {
 namespace {
 const can::BmsPhysicalRanges kRanges{{0,1000},{-3000,3000},{-50,150},100000};
 }
-AsyncCoordinatorPort::AsyncCoordinatorPort(transport::Clock& clock,transport::RunGate& gate,transport::ZoneLink& front,transport::ZoneLink& rear)
-    :clock_(clock),gate_(gate),links_{&front,&rear},status_({can::BmsFrameKind::PowerStatus,kRanges}),
+AsyncCoordinatorPort::AsyncCoordinatorPort(transport::Clock& clock,transport::RunGate& gate,transport::ZoneLink& front,transport::ZoneLink& rear,CommandRenewal renewal)
+    :renewal_(renewal),clock_(clock),gate_(gate),links_{&front,&rear},status_({can::BmsFrameKind::PowerStatus,kRanges}),
     limits_({can::BmsFrameKind::PowerLimits,kRanges}),permission_({can::BmsFrameKind::DrivePermission,kRanges}) {}
 bool AsyncCoordinatorPort::initialize(CoordinatorSession s) {
     const auto now=now_ns();
@@ -67,6 +67,14 @@ OperationStatus AsyncCoordinatorPort::arm_status(std::uint32_t epoch) noexcept {
     }
     return armed_[0] && armed_[1]?OperationStatus::Accepted:OperationStatus::Pending;
 }
+void AsyncCoordinatorPort::observe_permission(const PermissionSupport& support,const can::BmsMessage& message) noexcept {
+    const auto* grant=std::get_if<can::BmsDriveGrant>(&message.content);
+    if(!trace_ || !grant || grant->permission!=can::BmsDrivePermission::AllowNormal) return;
+    transport::TransportTraceRow row;row.stage="permission-limit";row.time_ns=now_ns();row.epoch=message.epoch;
+    row.peer=message.sequence;row.operation=-1;row.original_source_ns=support.source_ns;
+    row.inner_deadline_ns=support.expiry_ns;row.payload_source_ns=message.source_time_ns;
+    row.outcome=static_cast<int>(support.limit);trace_->record(row);
+}
 bool AsyncCoordinatorPort::deliver_power(const VehicleManagementOutput& out) noexcept {
     const auto* request=std::get_if<can::BmsPowerRequest>(&out.power_request.content);
     const auto* grant=std::get_if<can::BmsDriveGrant>(&out.drive_permission.content);
@@ -114,7 +122,7 @@ bool AsyncCoordinatorPort::allocation_ready(const VehicleManagementOutput& out,s
     // 3 short/expired support,4 no usable matching RX. Bounded sink, no IO.
     const int reason=(!grant || grant->permission!=can::BmsDrivePermission::AllowNormal)?0:
         (out.drive_permission.source_time_ns<release || out.drive_permission.source_time_ns>now_ns())?2:
-        (grant->expires_at_ns<=now_ns() || grant->expires_at_ns<=release || grant->expires_at_ns-release<=20000000ULL)?3:
+        (grant->expires_at_ns<=now_ns() || grant->expires_at_ns<=release || grant->expires_at_ns-release<=permission_support(renewal_))?3:
         (!received || !can::bms_permission_allows_normal(*received) || received->message.epoch!=out.drive_permission.epoch ||
          received->message.sequence!=out.drive_permission.sequence ||
          received->message.source_time_ns!=out.drive_permission.source_time_ns)?4:0;

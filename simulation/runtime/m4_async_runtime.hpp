@@ -1,5 +1,6 @@
 #pragma once
 #include "m4_faults.hpp"
+#include "command_renewal.hpp"
 #include "m4_execution_watch.hpp"
 #include "transport_trace.hpp"
 
@@ -12,6 +13,7 @@ namespace stratadrive::simulation {
 enum class M4Scenario { Normal,NormalStop,PartialFront,FeedbackLoss,CommandLoss,PartialArm,Rejoin,OldEpoch,Fault };
 struct M4Config {
     M4Scenario scenario{M4Scenario::Normal};
+    central::CommandRenewal renewal{central::CommandRenewal::Legacy20ms};
     bool wall_time{false};
     std::uint64_t duration_ns{1800000000},injection_ns{1200000000},rejoin_ns{2300000000};
     std::uint32_t first_epoch{1},rejoin_epoch{2}; // already issued trusted startup grants

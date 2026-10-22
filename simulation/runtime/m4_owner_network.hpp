@@ -124,7 +124,7 @@ struct Network {
     std::array<runtime::LatestSnapshot<OwnerSensors>,session::kRoleCount> sensors;
     std::array<runtime::LatestSnapshot<OwnerActuation>,transport::kLeaves> outputs;
     BmsGateChannel bms_gate;
-    central::AsyncCoordinatorPort port{clock,gate,zones[0],zones[1]}; central::VehicleCoordinator core{port,{true}};
+    central::AsyncCoordinatorPort port{clock,gate,zones[0],zones[1],config.renewal}; central::VehicleCoordinator core{port,{true,config.renewal}};
     std::array<std::unique_ptr<zone::AsyncZoneOwner>,2> zone_owners;
     std::array<std::unique_ptr<ZoneSession>,2> zone_sessions;
     std::array<std::unique_ptr<AsyncLeafOwner>,transport::kLeaves> leaf_owners;

@@ -148,21 +148,27 @@ const VehicleManagement::IssuedRequest* VehicleManagement::acknowledgement(
     return nullptr;
 }
 std::uint64_t VehicleManagement::permission_expiry(
-    const NormalDriveReadinessInputs& in, const IssuedRequest& acknowledged, std::uint64_t now) const {
+    const NormalDriveReadinessInputs& in, const IssuedRequest& acknowledged, std::uint64_t now) {
     const auto& t = config_.readiness;
-    auto expiry = std::min({add(now, config_.output_lifetime_ns), request_->identity.expires_at_ns,
-        add(request_->identity.source_time_ns, config_.request_source_age_ns + 1),
-        std::get<can::BmsPowerRequest>(acknowledged.message.content).expires_at_ns});
-    const auto bound = [&](std::uint64_t source, std::uint64_t age) { expiry = std::min(expiry, add(source, age + 1)); };
-    bound(in.front.health->source_time_ns, t.zone_source_age_ns); bound(in.rear.health->source_time_ns, t.zone_source_age_ns);
-    bound(in.front.steering_actual->source_time_ns, t.actual_source_age_ns);
-    bound(in.front.brake_actual->source_time_ns, t.actual_source_age_ns);
-    bound(in.rear.drive_actual->source_time_ns, t.actual_source_age_ns);
-    bound(in.rear.power_status->message.source_time_ns, t.bms_source_age_ns);
-    bound(in.rear.power_limits->message.source_time_ns, t.bms_source_age_ns);
-    bound(power_status(in)->input_time_ns, t.bms_dependency_age_ns);
-    bound(std::get<can::BmsPowerLimits>(in.rear.power_limits->message.content).input_time_ns, t.bms_dependency_age_ns);
-    return expiry;
+    PermissionSupport support{PermissionLimit::OutputLifetime,now,add(now,config_.output_lifetime_ns)};
+    const auto limit = [&](PermissionLimit kind,std::uint64_t source,std::uint64_t expiry) {
+        if(expiry<support.expiry_ns) support={kind,source,expiry};
+    };
+    limit(PermissionLimit::LifecycleExpiry,request_->identity.source_time_ns,request_->identity.expires_at_ns);
+    limit(PermissionLimit::LifecycleAge,request_->identity.source_time_ns,add(request_->identity.source_time_ns,config_.request_source_age_ns+1));
+    limit(PermissionLimit::AcknowledgedPower,acknowledged.message.source_time_ns,std::get<can::BmsPowerRequest>(acknowledged.message.content).expires_at_ns);
+    const auto bound = [&](PermissionLimit kind,std::uint64_t source,std::uint64_t age) { limit(kind,source,add(source,age+1)); };
+    bound(PermissionLimit::FrontHealth,in.front.health->source_time_ns,t.zone_source_age_ns);
+    bound(PermissionLimit::RearHealth,in.rear.health->source_time_ns,t.zone_source_age_ns);
+    bound(PermissionLimit::SteeringActual,in.front.steering_actual->source_time_ns,t.actual_source_age_ns);
+    bound(PermissionLimit::BrakeActual,in.front.brake_actual->source_time_ns,t.actual_source_age_ns);
+    bound(PermissionLimit::DriveActual,in.rear.drive_actual->source_time_ns,t.actual_source_age_ns);
+    bound(PermissionLimit::PowerStatus,in.rear.power_status->message.source_time_ns,t.bms_source_age_ns);
+    bound(PermissionLimit::PowerLimits,in.rear.power_limits->message.source_time_ns,t.bms_source_age_ns);
+    bound(PermissionLimit::PowerInput,power_status(in)->input_time_ns,t.bms_dependency_age_ns);
+    bound(PermissionLimit::LimitsInput,std::get<can::BmsPowerLimits>(in.rear.power_limits->message.content).input_time_ns,t.bms_dependency_age_ns);
+    decision_.permission_support=support;
+    return support.expiry_ns;
 }
 std::optional<VehicleManagementOutput> VehicleManagement::tick(const NormalDriveReadinessInputs& in, std::uint64_t now) {
     if (!advance(now)) return std::nullopt;
