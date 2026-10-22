@@ -65,7 +65,7 @@ class ModelTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             rows=[dict(ns=i+1,model_epoch=7,model_sequence=i,speed_mps=.2,distance_m=.01*i,x_m=0,y_m=0,yaw_rad=0,vehicle_balance_j=0) for i in range(12)]
             with (Path(d)/'physical.csv').open('w') as f:w=csv.DictWriter(f,fieldnames=rows[0]);w.writeheader();w.writerows(rows)
-            (Path(d)/'central-1.json').write_text(json.dumps({'normal_stop_complete':8}))
+            (Path(d)/'central-1.json').write_text(json.dumps({'normal_stop_complete':8,'max_validated_wheel_speed':.7,'wheel_speed_samples':12}))
             self.assertFalse(vehicle_oracle(d,'normal')['pass'])
 
 if __name__=='__main__':unittest.main()

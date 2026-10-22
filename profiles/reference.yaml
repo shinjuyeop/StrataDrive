@@ -922,3 +922,34 @@ m3_hosted_timer_fixture:
   kernel_change: none
   target_runtime: not_run
   hard_real_time_acceptance: not_claimed
+
+m6_simple_vehicle:
+  revision: simple-vehicle-v1
+  activation: front_run.py_--three_--simple-vehicle
+  runtime_configuration: simulation/vehicle/simple_vehicle.hpp
+  yaml_loader: false
+  scope: flat_forward_only_no_slip_host_functional_sil
+  mass_kg: 1000
+  wheel_radius_m: 0.3
+  wheelbase_m: 2.7
+  friction_nm_per_pa: 0.001
+  rolling_n: 100
+  drag_n_per_mps2: 0.4
+  max_step_ms: 20
+  actual_input_age_ms: 30
+  actual_skew_ms: 10
+  physical_owner: persistent_sil_process_not_reset_by_ecu_rejoin
+  independent_mil:
+    revision: m6-pi-v1
+    implementation: models/longitudinal/model.py
+    tool: python3_standard_library_binary64
+    controller_period_ms: 20
+    actual_speed_period_ms: 50
+    original_speed_age_ms: 60
+    plant_step_ms: 2
+    kp: 1
+    ki: 0.2
+    acceleration_mps2: {minimum: -5, maximum: 2}
+    slew_mps3: 2
+    deceleration_preview_ms: 120
+    actual_cpp_controller: not_implemented_M8
