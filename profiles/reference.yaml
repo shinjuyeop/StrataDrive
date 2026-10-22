@@ -969,5 +969,12 @@ m6_vehicle_energy:
   observation_ms: 8000
   shutdown_observation_tail_ms: 2500
   original_zero_rate_nm_s: 2000
-  physical_100ms_gate: retained_FAIL_in_command_loss_high_torque_case
-  full_acceptance: withheld_open_m6_energy_01_and_02
+  historical_physical_100ms_gate: retained_FAIL_in_command_loss_high_torque_case
+  physical_response_contract: profiles/m6_sil_response_v1.json
+  physical_response_loader: front_run.py_and_physical_response.py_JSON_only_for_energy_normal_command_loss
+  physical_response_selection_to_complete_ms: 230 # authoritative value is the JSON; this YAML is not loaded
+  physical_complete: absolute_torque_le_1Nm_and_actual_brake_ge_1MPa
+  acceptance: Host_quiet_vehicle_energy_and_physical_protection_limited
+  full_acceptance: pending_M6_exit_coverage_review
+  open_m6_energy_01: resolved_current_model_response_budget_mismatch_old_FAIL_preserved
+  open_m6_energy_02: retained_instrumented_SDK_functional_incomplete

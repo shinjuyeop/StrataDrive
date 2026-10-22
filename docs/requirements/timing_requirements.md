@@ -199,3 +199,17 @@ ReleaseDispatch까지 5 ms, 정상은 phase부터 Control 완료까지 5 ms인 �
 기존 실제 release→완료 5 ms와 감시 20 ms를 유지하며 원래 기점보다 앞선 phase를 함께 검사한다.
 Relative 대조군도 원래 origin으로 평가하며 expiration 누락·signal coalescing은 timing FAIL이다.
 Absolute 24/24 PASS와 native FIFO 후속 102/102는 local 부분 증거다. 차량/Target 전체 시한·SYS requirement를 완화하거나 VERIFIED로 바꾸지 않는다.
+
+## M6 SIL physical-response-v1 (2026-10-22)
+
+100ms는 마지막 유효 RX→검출의 기존 상한이다.
+
+현재 Host quiet M6 모델의 별도 실제 출력 판정은 [실행 JSON](../../profiles/m6_sil_response_v1.json)과
+[계산/실측 근거](../test-plan/evidence/m6_physical_response/README.md)를 따른다.
+로컬 검출 회차→보호 선택 ACK<=4ms, 최초 로컬 목표 선택→양쪽 실제 출력 적용<=4ms,
+최초 목표 선택→abs(torque)<=1Nm AND 실제 brake>=1MPa의 완료 관측<=230ms다.
+200ms 병렬 물리 최악값+출력 인계4+모델4+CSV관측10+여유12로 산정했다.
+Synchronous 보호 이후의 fault 관측 시각은 검출 순간이 아니므로 진입~반환 구간과
+원래 command-expired/last-valid RX를 연결한다.10ms 첫 관측과 모델 crossing 구간도 분리한다.
+이는 명시한 SIL 설정/Host profile의 판정으로, command expiry/RunLease/20ms envelope/
+2ms opportunity/4ms watch를 늘리거나 다른 profile·차량 반응 시한을 일괄 변경하지 않는다.

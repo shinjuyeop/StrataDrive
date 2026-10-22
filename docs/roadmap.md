@@ -5,8 +5,11 @@ Status: **M0 — BASELINED / M1·M2 — TECHNICAL CHECKS PASS · REVIEW PENDING 
 [M6 첫 근거](test-plan/evidence/m6_simple_vehicle/README.md)는 actual 기반 차량 모델,
 Python MIL과 선택형3-vECU quiet 연결이다. 전체 M6 종료나 M8 controller 구현은 아니다.
 [M6 에너지 후속](test-plan/evidence/m6_vehicle_energy/README.md)은 동일 구간 vehicle/EV work와
-실제 regen/charge-zero를 검증했다. Normal physical100ms와 sanitizer 기능 FAIL이 남아
-전체 M6는 보류하며 원본5/9와 기존 OPEN을 유지한다.
+실제 regen/charge-zero를 검증했다. 당시 원본5/9·100ms FAIL은 유지한다.
+[물리 응답 후속](test-plan/evidence/m6_physical_response/README.md)은 모델 범위에서230ms를
+확정하고 실제 Normal command-loss/nominal을 통과해 **Host quiet 기능 한정 수용**했다.
+OPEN-M6-ENERGY-01의 모델/판정 불일치는 해소,SDK sanitizer 기능 OPEN02는 유지한다.
+M6 전체 종료는 선언하지 않으며 다음은 요구사항/TBD별 근거·제외·잔여 coverage 종료 검토다.
 아래 단계별 과거 측정/실패 기록은 당시 범위로 보존한다.
 
 M3의 [첫 Steering wall-time 실행](learning/m3_steering_timing.md)은 독립 monitor·plant, deadline/누락 job과 CSV 계측을 구현·검사했다.

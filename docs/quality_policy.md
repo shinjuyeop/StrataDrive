@@ -1885,3 +1885,15 @@ Host functional SIL 조건부 채택, native execution-watch/부하 운용 수�
 과거 physical-model 약61ms 실패 원인 OPEN-SOMEIP-HOST-01, 이전 DDS/M4 FAIL/OPEN 유지.
 전체973/native40/timing48·Rear network·Jetson은 재실행/실행 NOT RUN; 관련 변화 경계만 검사.
 외부 게시/문의 전송 및 Host 권한/보안 변경 없음.
+
+## 2026-10-22 M6 SIL 물리 응답 시한 후속
+
+[별도 근거](test-plan/evidence/m6_physical_response/README.md): 기존1011 C++ 이름/assertion을
+유지하고 현재 모델의 물리 응답 계약7개를 추가했다. 최종 전체 Normal/ASan+UBSan 각1회
+1018/1018, 변경 경계 TSan35/35, Python/무build git archive 각각54/54 PASS다.
+SDK Normal FIFO는3회 중2PASS/1FAIL이며 첫 관측기 시각 해석 FAIL도 보존한다.
+수정한 command-loss1/1 및 영향 없는 nominal1/1로 모델 한정230ms 물리 응답을 수용한다.
+100ms는 여전히 마지막 유효 RX→검출 상한이다. target/ACK와 실제 torque·pressure 완료는 다르다.
+과거 SDK5/9·개발 포함5/12/100ms FAIL, sanitizer SDK 기능 OPEN02는 수정하지 않는다.
+이번 SDK는 Normal 비계측이고 경계 sanitizer는 SDK를 링크하지 않는다. 기존 계측 SDK 미완료를
+경고0만으로 PASS 처리하지 않는다. M6 전체 종료/M4 전체 종료/Jetson·차량 검증은 별도다.

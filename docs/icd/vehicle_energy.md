@@ -100,3 +100,12 @@ before execution for the longer scenario; control RX/TX capacities remain8.
 Results and failure originals are in [the evidence](../test-plan/evidence/m6_vehicle_energy/README.md).
 M7's20Hz external sensor boundary, M8 C++ speed controller/equivalence, Jetson,
 OEM calibration and complete vehicle validation are subsequent scopes.
+
+## M6 physical response refinement (2026-10-22)
+
+The current model's loss detection, local target selection and physical completion
+have separate [M6 SIL response criteria](m6_physical_response.md).
+The runner loads the explicit JSON only for M6 energy normal/command-loss;
+legacy M5 and other fault-profile judgments are unchanged.
+The finite torque/brake rates and actual energy integration are unchanged.
+Historical100ms FAIL and instrumented SDK incomplete results remain in their originals.

@@ -90,3 +90,11 @@ Dwell/재연결 handshake의 정확한 값은 M1/M2/M4(TBD-01/03/06)에서 정�
 [Fault architecture](../architecture/fault_diagnostics_architecture.md),
 [fault scenarios](../test-plan/scenario_baseline.md),
 [TBD register](../roadmap.md#open-m0-decisions)를 함께 적용한다.
+
+## M6 SIL의 보호 목표와 실제 도달 (2026-10-22)
+
+SYS-SAFE-004의 원래 양수/음수 demand 무효화와 zero-target 선택은 유지한다.
+현재 M6 Host quiet 모델은 [별도 물리 응답 계약](../icd/m6_physical_response.md)에서
+검출100ms, 로컬 보호 선택4ms, 실제 토크·압력 도달230ms를 구분한다.
+TBD-03의 **현재 SIL 설정** 범위만 결정한 것이며 OEM/Target/다른 모델의 미결정 값은 유지한다.
+목표 선택/SDK send/ACK만으로 실제 물리 완료나 정지 성공을 인정하지 않는다.

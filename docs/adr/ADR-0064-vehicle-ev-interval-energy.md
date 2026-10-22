@@ -30,3 +30,16 @@ memory/UB/race 진단0이 기능 실행 완료를 뜻하지 않는다. 원본 �
 
 상세 [모델 경계](../icd/vehicle_energy.md), [protocol/근거와 미완료](../test-plan/evidence/m6_vehicle_energy/README.md)를 따른다.
 M6 전체 종료/M7 CARLA/M8 C++ controller·동등성/Jetson·전체 시스템으로 확대하지 않는다.
+
+## 2026-10-22 후속 결정 — 현재 SIL 물리 응답 범위
+
+사용자는 현재 모델에서 계산한 물리 응답 시한 적용을 승인했다.
+[M6 physical-response-v1](../icd/m6_physical_response.md)의230ms는
+max(토크149.5ms,제동200ms)+출력4+모델4+관측10+여유12다.
+마지막 RX→검출100ms, local 보호 선택4ms와 별도다. 실제 abs(T)<=1Nm와
+보호 floor1MPa를 함께 확인하며 finite rate/기존 권한·source/expiry를 유지한다.
+[실제 후속 근거](../test-plan/evidence/m6_physical_response/README.md)에 따라
+현재 Host quiet 차량·EV·물리 보호 기능을 한정 수용하고 OPEN01의 시한 불일치 범위를 해소한다.
+위 이전100ms FAIL/분모와 OPEN02 SDK sanitizer 기능 미완료는 유지한다.
+M6 전체 종료는 요구사항/TBD coverage 검토로 별도 판정하며 기존 OPEN 전체 해결을
+다음 개발의 일괄 선행 조건으로 추가하지 않는다.

@@ -2,7 +2,28 @@
 
 Updated: **2026-10-22**. **M3 — IN PROGRESS / M4 Host IO/FIFO COMPONENT LIMITED ACCEPTANCE / M5 SOME/IP HOST LIMITED ACCEPTANCE / M6 IN PROGRESS**다.
 
-2026-10-22 최신 [M6 차량/EV 에너지 후속](test-plan/evidence/m6_vehicle_energy/README.md):
+2026-10-22 최신 [M6 물리 응답 시한 확정](test-plan/evidence/m6_physical_response/README.md):
+**Host quiet 차량·EV 에너지·물리 보호 기능 한정 수용 / M6 전체 종료 아님**.
+마지막 유효 RX→검출100ms와 물리 완료를 분리했다. 현재 모델 −200..+300Nm/zero2000Nm/s의
+abs(T)<=1 도달149.5ms, 압력0→보호1MPa/rise5MPa/s의200ms를 병렬로 합성하고,
+양쪽 출력 인계4+모델4+관측10+여유12를 더해 최초 목표 선택→실제 완료230ms를 확정했다.
+M6 전용 [실행 JSON](../profiles/m6_sil_response_v1.json)을 runner/oracle가 공유한다.
+원래 source/expiry·20ms envelope·host10-v1·2ms/4ms·rate·실제8참여자 계약은 유지한다.
+실제 SDK 신규3회는 **2PASS/1FAIL**(최초 관측기 시각 해석 FAIL 보존)이며,
+수정 후 command-loss1/1 및 영향 없는 nominal1/1 PASS다. 검출24.195ms(last RX 기점),
+목표 선택 확인<=0.0061ms(로컬 검출 회차), 실제 torque/1MPa 완료는 최초 선택+200.925ms,
+주입+219.604ms다.10ms CSV 첫 완료220.130ms와 고해상도 crossing 구간을 분리했다.
+전체 C++ Normal/ASan 각각1018/1018,TSan 경계35/35,최종 Python/무build export 각54/54.
+SDK 이번 Normal 비계측; 경계 sanitizer는 SDK 전체 검증이 아니다.
+**OPEN-M6-ENERGY-01 해소:** 현재 모델/시한 불일치와 실제 물리 응답 범위.
+과거100ms FAIL/분모와 옛1MPa 미관측은 그대로다.
+**OPEN-M6-ENERGY-02 유지:** 기존 실제 sanitizer SDK 기능 시한/송수신/오류·미완료.
+다음은 M6 종료 검토표의 요구사항·TBD/coverage 대조다. M7/M8·Jetson·전체 시스템은 미검증,
+기존 M5 한정 수용·DDS 역사적 OPEN·M4 전체 종료 보류는 유지한다.
+
+아래 에너지 단계는 당시 상태/원본 분모를 보존한 이전 기록이다.
+
+2026-10-22 이전 [M6 차량/EV 에너지 후속](test-plan/evidence/m6_vehicle_energy/README.md):
 **구간 에너지 결합·receiver 설정 수정 완료 / M6 전체 수용 보류**.
 최종 소스d242861은 실제 actuator의 동일 구간 work를 vehicle/EV에 적용하고 candidate를
 함께 commit한다. Central/Rear receiver에 기존 EV capability dependency70ms를 명시해
