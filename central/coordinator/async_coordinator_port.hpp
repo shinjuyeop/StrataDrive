@@ -67,7 +67,8 @@ private:
     std::array<bool,2> armed_{},stopped_{}; bool arm_sent_{false}; std::optional<ActuatorStopLease> stop_;
     can::SteeringReceiver steering_{{can::SteeringFrameKind::Actual,-.3,.3}};
     can::BrakeReceiver brake_{{can::BrakeFrameKind::Actual,0,1500000}};
-    can::DriveReceiver drive_{{can::DriveFrameKind::Actual,{-300,500},100,300}};
+    // Torque/wheel/capability source remain30ms; EV dependency is70ms.
+    can::DriveReceiver drive_{{can::DriveFrameKind::Actual,{-300,500},100,300,30000000,80000000,30000000,70000000}};
     can::BmsReceiver status_,limits_,permission_;
     zone::ZoneStatusReceiver front_{zone::ZoneScope::Front},rear_{zone::ZoneScope::Rear};
 };

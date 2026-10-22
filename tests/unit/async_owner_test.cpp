@@ -22,6 +22,20 @@ struct AsyncOwnerTest : ::testing::Test {
         ASSERT_TRUE(link.results.push({r.epoch,r.token,clock.now,transport::operation(r.work),accepted,frames}));
     }
 };
+TEST_F(AsyncOwnerTest, EvCapabilityDependencyKeepsItsOriginalSeventyMillisecondBudget) {
+    initialize();clock.now=kStart+50*kMs;
+    can::DriveMessage m;m.kind=can::DriveFrameKind::Actual;m.epoch=3;m.sequence=0;
+    m.source_time_ns=clock.now;m.local_state=can::ActuatorLocalState::Normal;m.origin=can::ActuatorOrigin::NormalPath;
+    m.torque_nm=0;m.wheel_speed=can::DriveWheelSpeed{5,clock.now};
+    m.regen_capability=can::DriveRegenCapability{200,clock.now,clock.now-40*kMs};m.regen_limit_reason=can::DriveRegenLimitReason::Nominal;
+    can::DriveTxState tx{can::DriveFrameKind::Actual};const auto frame=can::encode_drive_frame(m,tx);ASSERT_TRUE(frame);
+    ASSERT_TRUE(rear->feedback.push(*frame));port.service();const auto f=port.feedback();
+    ASSERT_TRUE(f.rear.drive_actual);ASSERT_TRUE(f.rear.drive_actual->torque_nm);ASSERT_TRUE(f.rear.drive_actual->wheel_speed);
+    ASSERT_TRUE(f.rear.drive_actual->regen_capability);
+    EXPECT_EQ(f.rear.drive_actual->regen_capability->input_time_ns,kStart+10*kMs);
+    // The capability source/torque age remains30ms; no stale-data revival.
+    clock.now+=30*kMs+1;EXPECT_FALSE(port.feedback().rear.drive_actual);
+}
 TEST_F(AsyncOwnerTest, SessionAndGlobalGatePrecedeAllNormalIngress) {
     const central::LifecycleRequest root{{3,0,kStart,kStart+60*kMs},can::BmsPowerAction::Enable};
     EXPECT_FALSE(port.authorize_lifecycle(root)); ASSERT_TRUE(port.initialize({3,kStart}));
