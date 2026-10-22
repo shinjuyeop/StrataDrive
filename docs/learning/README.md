@@ -6,6 +6,9 @@ architecture를 내가 직접 이해하는 것을 우선한다. M0 문서 baseli
 이번 M0 계약은 사용자 요청의 범위/판정 기준을 반영하며 종료 검토는
 [M0 baseline summary](../m0_baseline.md)에 기록한다.
 
+현재 기술 범위/다음 작업은 [project_status](../project_status.md), M6 범위 종료는
+[검토표](../m6_exit_review.md)를 따른다. 아래 실행/개념 목록은 학습 이력이다.
+
 각 milestone은 다음 순서로 진행한다.
 
 1. 현재 작은 작업에 필요한 개념 공부

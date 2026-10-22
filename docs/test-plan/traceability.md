@@ -5,37 +5,12 @@ SYS-ARCH-003·SYS-CTRL-008·SYS-SAFE-005·SYS-EV-003은 v0.5다. SYS-SAFE-004·S
 SYS-COM-003/004·SYS-PERF-002와 나머지 SYS-EV 요구는 v0.3, SYS-COM-002는 Host wire refinement v0.6, 그 외 기존 요구는 v0.1이다.
 [ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)의 Central owner/독립 Zone 경로를 반영한다.
 
-현재 구현 상태와 최신 시험 분모는 [project_status](../project_status.md)가 기준이다.
-최신 C++ 실행 `97afb35`는 [component 추적표](component_traceability.csv)의 **93개 연결**을
-[normal/ASan·UBSan973개씩 실제 결과](evidence/m4_settlement/final/component_results.csv)와 대조했다.
-원본948 + 이전 검토18 + 이번 pending/expiry7개를 [시험별 결과](evidence/m4_settlement/final/tests.csv)로 구분한다.
-이전 Epoch/codec/ACK 계약은 유지하고, 유효 pending과 다음 배분의 충돌을 수정했다.
-Due 배분은 보류하되 기존 적용 명령 expiry·원래 TX deadline·allocator gap은 계속 감시한다.
-기존19.8ms 시험 이름은 유지하고 oracle 변경 이유·수정 전 실패는 [새 근거](evidence/m4_settlement/README.md)에 둔다.
-같은 source의 timing48회42/6, native 진단40/40·경계 TSan108/108·wall9/9와 Python71/71은 별도 분모다.
-이전 `1989477`의966개·86개 연결·timing41/7은 [당시 근거](evidence/m4_contract_review/README.md)에 보존한다.
-과거 timing/TSan OPEN과 system NOT RUN은 유지한다.
-
-후속 diagnostic 연결3개를 [component 추적표](component_traceability.csv)에 별도 추가했다(총96개;
-위93개 C++ 실결과 연결은 그대로). MiddlewareProbeExitTest8개는 실제 프로세스 종료코드를
-검사하며 최신 Python120/120에 포함된다. DDS 실제 Writer 수명12회와 두 프로세스 wrapper4회는
-별도 SDK 진단 분모다. [실제 결과/실패/수명 CSV](evidence/m4_dds_lifetime/README.md)를 따르며
-TSan FAIL과 고의 UAF 검출을 SDK PASS로 합치지 않는다. System TC 상태는 변경하지 않는다.
-
-사용자 B 승인 후 M5 diagnostic 연결4개를 추가해 component CSV는 **100개 연결**이다.
-[새 실제42회·packet/object CSV·원본·gate](evidence/m5_dds_qualification/README.md)는
-23 PASS/19 FAIL이며 정상 제어 gate CLOSED다. Python137과 실제 SDK 분모는 구분한다.
-M4 전체·Target·system NOT RUN/학습자 상태를 변경하지 않는다.
-
-다음은 이전 단계의 추적성 확장 이력이다.
-**구현된 component의 추적성**은 [함수·실제 시험·판정 기준 CSV](component_traceability.csv),
-[normal/sanitizer 실제 결과56개](evidence/m4_faults/component_results.csv), [commit·환경·재현·고장/복구·timing 수치](evidence/m4_faults/README.md)로 연결한다.
-2026-10-19의20개 연결에 공통 고장·재가입·독립 감시36개를 추가하고 두 빌드908개 전체 CTest와 대조했다.
-CSV evidence 열은 `evidence/` 기준이다. 원래20개 대표 수치는 `m4_async/` 당시 이력이고 최신 재실행 PASS는56개 결과에 기록한다.
-M4 native timing48개는 별도 조건별41 PASS/7 FAIL이며 이 결과를 unit PASS에 합치지 않는다.
-이는 아래32개 requirement/29개 system TC의 전체 수용 결과와 구분한다.
-
-후속 [M4 evidence](evidence/m4_followup/README.md)는 원래56개에 remote 계약12개 연결을 더해68개를 실제948개 CTest와 대조했다. 당시 wire/credit/clock/Leaf actor의36개 시험은 component 부분 증거다. Release-grid/구조 분리의 두48회는각42 PASS/6 FAIL이고, 당시 TSan native9개는8 PASS/1 FAIL로 구분한다. 원본41/7과 과거 source별 결과는 유지한다. [M4 종료 검토](../m4_exit_review.md)는 현재 NOT CLOSED다.
+현재 구현/수용·OPEN은 [project_status](../project_status.md)가 기준이다.
+[component 추적표](component_traceability.csv)의112개 연결은 함수/구체 test/판정/evidence를 유지한다.
+105개 C++ 항목은 기존 최종1018개 결과의 이름과 대조할 수 있고,7개 DDS diagnostic/Python 연결은
+각 evidence의 별도 분모다. 진단 문자열을 C++ test로 세거나 component PASS를 전체 system TC로 올리지 않는다.
+M6 부분 요구/TBD와 종료 판정은 [M6 검토](../m6_exit_review.md)에 모았다.
+과거 source별 분모/실패는 기존 evidence와 [품질 이력](../quality_policy.md)에 보존한다.
 
 아래 system TC 전체 구현/검증은 PLANNED, runtime Result는 전부 **NOT RUN**이다.
 [Brake 수신부](../learning/m1_brake_codec.md#application-수신부-추가)의 Host/vCAN 부분 증거도
@@ -140,7 +115,7 @@ scenario/test oracle 갱신 → 해당 milestone에서 실행 → Result ID/arti
 [ADR-0040](../adr/ADR-0040-steering-rtos-pilot-and-delay-observation.md)의 Steering Trampoline OS 기능 12 runs와
 native Linux 회귀 42 runs는 PASS다. Source/Actual·late/skipped·observer coverage·spawn 검사 5개를 추가한 당시 Python은 48개였다.
 [ADR-0041](../adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)의 native/ARM64 빌드와 native OS 신규 12 runs도 PASS다.
-Architecture 혼용·CMake compiler·FIFO probe 검사 6개를 더해 현재 Python 54개다. ARM64 runtime·RT workload는 NOT RUN이다.
+Architecture 혼용·CMake compiler·FIFO probe 검사6개를 더한 당시 Python은54개였다. ARM64 runtime·RT workload는 NOT RUN이다.
 C++ unit은 당시 normal/sanitizer 각각 521개였다. 진단 6 runs의 정상 timing 실패 4개는 기능 PASS와 구분한다.
 이는 local component 부분 증거이며 RTE/BSW·Target 및 전체 system TC의 Result는 NOT RUN을 유지한다.
 

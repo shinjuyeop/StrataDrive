@@ -4,16 +4,12 @@
 
 ## Current Status
 
-**M3 진행 중** — [Host RTOS의 누적 tick 지연](docs/learning/m3_rtos_pilot.md#절대-타이머로-누적-지연-줄이기)을 수정하고 CPU 배치·FIFO 실행을 비교했다.
-일반 우선순위 sanitizer의 타이밍 실패 2건과 학습자 수용은 남아 있다. M1/M2 기술 검사는 완료했으며 직접 재현·수용 기록은 별도다.
-M4는 [세션 INIT·재가입](docs/learning/m4_session_bootstrap.md) 위에 [정상 운전의 비동기 owner 경로](docs/learning/m4_async_owners.md)를 연결했다. Central·두 Zone·실제 Leaf/BMS·물리 owner를 독립 실행하며 시동·배분·정상 종료·상실/보호·새 Epoch 재가입을 Host component로 검사한다. [공통 고장·복구/독립 감시 근거](docs/test-plan/evidence/m4_faults/README.md)를 추가했으며 새 timing48회 중7개 실패는 추적 중이다. DDS·차량 closed-loop·Target 검증은 후속 단계다.
+**M6 Host quiet SIL/Python MIL 범위 종료** — [종료 검토](docs/m6_exit_review.md).
+Central·Front·Rear 3개 프로세스의 SOME/IP Host FIFO 경로에 실제8-role 세션·보호·재가입,
+actual 기반 차량/EV 에너지와 유한 물리 응답을 연결했다. M4 전체 종료, SDK sanitizer 전체
+기능 완료, Jetson·전체 시스템 검증을 뜻하지 않는다.
 
-최신 [SOME/IP Host Central↔Front adapter](docs/test-plan/evidence/m5_someip_front_adapter/README.md)는
-실제8-role 세션·제어·독립 보호·새 Epoch 복구를 연결한 functional SIL 조건부 채택 경로다.
-native execution-watch/부하 운용 수용은 후속이며 M4 전체 NOT CLOSED·DDS CLOSED·기존 실패를 유지한다.
-아래 Jetson/DDS 그림은 원래 Target 계획이며 이번 Host 실행 결과와 구분한다.
-
-[상세 진행 현황·시험 결과](docs/project_status.md) · [전체 로드맵](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
+[현재 상태·OPEN·다음 작업](docs/project_status.md) · [단계/TBD](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 
 ## Project Overview
 
@@ -53,64 +49,24 @@ architecture를 이해하고 각 구현을 직접 설명할 수 있는 것을 �
 
 ## System Architecture
 
-아래 그림은 **Planned topology**이며 아직 구현된 배포 구성이 아니다.
-Host와 Jetson의 배치, 주요 책임, 통신 경계를 묶어 표시했다.
-양방향 선은 센서·command·status·actual이 오가는 통신 연결이다.
+현재 Host functional SIL의 실제 실행 경계는 다음과 같다.
 
 ```mermaid
-flowchart TB
-  subgraph HOST["Host PC · x86 Ubuntu"]
-    direction LR
-    ADAPTER["Plant Adapter<br/>Ego actuation single writer"]
-    CARLA["CARLA<br/>Vehicle plant · Sensors"]
-    ADAPTER -->|차량 반영| CARLA
-  end
-  subgraph TARGET["Jetson · Thor 또는 Orin 한 대"]
-    CENTRAL["Central Vehicle Compute<br/>ADAS/control · 별도 VCU/session/bridge"]
-    FRONT["Front Zone<br/>Validation · Gateway · Local safety"]
-    REAR["Rear Zone<br/>Validation · Gateway · Local safety"]
-    FRONT_LEAF["Front Leaf vECU<br/>Steering · Brake"]
-    REAR_LEAF["Rear Leaf vECU<br/>Drive · BMS"]
-    CENTRAL <-->|DDS| FRONT
-    CENTRAL <-->|DDS| REAR
-    FRONT <-->|Front CAN FD| FRONT_LEAF
-    REAR <-->|Rear CAN FD| REAR_LEAF
-  end
-  CARLA -->|Sensor / Ethernet| CENTRAL
-  CENTRAL -->|Actual / Ethernet| ADAPTER
+flowchart LR
+  C[Central: 조정·배분·세션] <-->|SOME/IP / 실제 IP| F[Front: Zone·Steering·Brake]
+  C <-->|SOME/IP / 실제 IP| R[Rear: Zone·Drive·BMS·Power]
+  P[Persistent SIL: actuator·센서·vehicle·EV] <-->|물리 출력·센서; 명령·권한 아님| F
+  P <-->|물리 출력·센서; 명령·권한 아님| R
 ```
 
-[Zone 분할 설계](docs/architecture/zonal_partition.md)는 후륜 구동 Reference packaging을
-가정한다. Front의 Brake 값은 차량 전체 마찰제동 aggregate이며 전륜만 뜻하지 않는다.
-Central의 차량 전체 배분기는 하나다. 두 Zone은 scoped demand를 검증·전달하고 차량 전체
-요구를 다시 배분하지 않는다. BMS 상태·한계도 Rear→Central 경로로 보고한다.
+실제8참여자 INIT/Release ACK/RunLease/arm, 원천 source/expiry·CAN/P05와 독립 보호를 유지한다.
+C++ vehicle demand는 시나리오 fixture이며 Python 종방향 MIL은 별도 모델이다.
+구체 배치/CPU·스레드·Host/Target 차이는 [배포 문서](docs/architecture/deployment_architecture.md),
+소프트웨어 책임은 [software architecture](docs/architecture/software_architecture.md)에 있다.
 
-| 경로 | 연결 / 역할 |
-| --- | --- |
-| 시나리오·고장 주입 | Host orchestrator → 시나리오/Zone/Leaf fault; Host가 tick 소유 |
-| 상태 피드백 | 각 Leaf → 담당 Zone → Central 집계/bridge → Host |
-| 기록·평가 | 원천 actual/health/fault와 Plant Adapter 결과 → Host logging / PASS·FAIL |
-
-Thor와 Orin은 **서로 독립적인 대체 Target**이다. Central/Front/Rear를 같은 Linux Target의
-논리 Ethernet node로 분리할 계획이며 별도 보드는 필요하지 않다. Host–Target은 실제 Ethernet,
-Target 내부는 DDS와 Zone별 SocketCAN/vCAN을 사용한다. 이는 물리적 fault isolation이나
-CAN FD의 전기적 동작·arbitration·bus timing을 검증하는 구성은 아니다.
-
-**Vehicle-level command != actuator command != actual actuator feedback**이다.
-Central Controller는 차량 수준 요구를 생성하고 별도 Central allocation이 Steering/Drive/Brake
-demand를 배분한다. Front/Rear gateway가 담당 Leaf로 전달한다.
-vECU는 task/delay/saturation/dynamics/fault를 거친 actual을 생성한다. Bridge는 원천
-identity/validity/time과 상위 요구의 유효 기간을 보존하며 중계로 freshness를 연장하지 않는다.
-
-필수 loop는 CARLA Sensor → Central Controller → Central allocation → 담당 Zone/CAN → Leaf response
-→ 담당 Zone → Central feedback bridge → Host Plant Adapter → CARLA motion이다.
-**Plant Adapter만 ego actuation single writer**이며 Host orchestrator가 tick을 소유한다.
-Actual이 invalid/stale/missing이면 다음 apply/tick을 보류한다. 이는 simulation containment이며
-물리적 안전 정지의 검증은 아니다. Raw command fallback이나 direct CARLA actuation은 금지한다.
-
-상세 계약은 [system architecture](docs/architecture/system_architecture.md),
-[software 책임](docs/architecture/software_architecture.md),
-[배포 설계](docs/architecture/deployment_architecture.md)에 있다.
+Host PC + Jetson 한 대(Thor **또는** Orin)에 여러 vECU를 두는 Target은 계획이다.
+M7 CARLA에서는 Plant Adapter만 ego actuation의 단일 writer이며 실제 actuator feedback만 사용한다.
+raw command fallback/중복 dynamics는 금지한다. [전체 설계](docs/architecture/system_architecture.md)를 따른다.
 
 ## Reference Baseline v0.1
 
@@ -142,30 +98,25 @@ Quantization과 feature 제거 후에는 정확도와 차량 동작을 다시 �
 
 ## Scope / Non-Scope
 
-M0에서는 요구사항, architecture, semantic ICD baseline, ADR, 검증 계획, 학습 절차를 다룬다.
-이후 milestone에서는 AI보다 classical driving을 먼저 구현하고, actuator model,
-fault, 공정한 compute 비교를 다룰 계획이다.
+기술 학습과 계약 검증을 위한 Host functional SIL/MIL 프로젝트다.
+현재 완료 범위는 위 상태/종료 검토를 따르며 CARLA·상위 주행 제어·AI·Target은 후속이다.
+Linux vECU/SIL 모델은 MCU·물리 차량의 근사이며 production/도로 운행 준비,
+HIL·functional safety 인증·ISO26262 준수나 CARLA와 상용 검증 도구의 동등성을 주장하지 않는다.
 
-M0에서는 CARLA 설치, model 다운로드, production software 구현, 차량 시험을
-수행하지 않는다. QNX, AUTOSAR, hardware-in-the-loop (HIL)의 적용이나 functional safety
-인증, ISO 26262 준수를 주장하지 않는다. Linux vECU model은 MCU/RTOS 학습을 위한
-근사 모델이다. CARLA가 CarMaker, CANoe, dSPACE와 동등하다고 주장하지 않으며,
-이 프로젝트가 실제 도로 운행 준비를 입증하는 것은 아니다.
+[AUTOSAR 개발 경로](docs/engineering_plan.md#autosar-adoption-path)와
+[Item Definition/HARA 학습 초안](docs/safety/concept_study.md)은 별도 범위다.
+실제 Classic RTE/BSW stack·ASIL/safety concept·학습자 개인 수용은 미확정이며
+component 시험 PASS를 전체 stack/안전 인증으로 확대하지 않는다.
 
-후속 학습에는 Steering vECU의 실제 AUTOSAR OS/RTE/BSW 적용 가능성 검토와
-[Item Definition / HARA 초안 검토](docs/safety/concept_study.md)를 포함한다.
-AUTOSAR stack/toolchain은 미선정이며 ASIL과 safety concept은 미확정이다.
-기존 M0 baseline과 milestone은 유지하고 기술 채택은 근거를 검토한 뒤 결정한다.
+## Tech Stack and Planned Target
 
-## Planned Tech Stack
-
-| 영역 | 계획된 선택 / 미결정 사항 |
+| 영역 | 적용한 Host 선택 / 후속 범위 |
 | --- | --- |
 | Host simulation | x86 Ubuntu, CARLA 0.9.16 계열 초기 후보; 정확한 호환 버전 TBD-07 (M7) |
-| Core software | 첫 Host field codec은 C++17 / GCC 11.4.0 / CMake 4.3.2; Target·CI 선택은 TBD-11/09 |
-| Orchestration / analysis | Python, pytest; 버전 TBD-11 (M1) |
-| Communication | Virtual Ethernet 기반 DDS 기본 계획; Zenoh 후보 비교, 구현체/direct API vs ROS 2 TBD-05 (M4 비교·M5 결정); SocketCAN/vCAN |
-| Isolation | Docker network 또는 Linux network namespace + veth; 선택 TBD-05 (M4/M5) |
+| Core software | Host core C++17·SOME/IP adapter C++20 / GCC11.4 / CMake; Target·CI는 TBD-11/09 |
+| Orchestration / analysis | Python 표준 라이브러리·unittest, 고정 SIL runner/독립 MIL; 도구/실행 버전은 evidence |
+| Communication | Host: SOME/IP(vSomeIP3.7.6), owner-wire v1·CAN/P05; DDS는 CLOSED 대안/과거 근거 보존. Target 채택·clock은 후속 |
+| Isolation | Host: Linux netns/veth의 실제 IP 경계. Target 격리·권한은 별도 검증 |
 | Target | Jetson AGX Thor 또는 Jetson Orin NX 한 대; 보드별 platform stack TBD-09 (M5) |
 | Physical AI | Pretrained perception, TensorRT export/inference; 이후 GRU 또는 작은 Temporal Transformer |
 | Quality | 첫 field codec에 GoogleTest 1.11.0, clang-tidy, cppcheck, ASan/UBSan 실행; 차량 regression은 Planned |
@@ -173,6 +124,12 @@ AUTOSAR stack/toolchain은 미선정이며 ASIL과 safety concept은 미확정�
 | AUTOSAR pilot | Steering vECU의 Classic OS/RTE/BSW toolchain 타당성 검토; release/구현체/Target 지원 미선정, NOT RUN |
 
 ## Quick Start
+
+아래는 core/CAN demo 진입점이다. 실제3-vECU 실행/SDK 빌드는
+[Rear adapter 재현](docs/test-plan/evidence/m5_someip_rear_adapter/README.md),
+M6 quiet 모델·물리 응답은 [최종 재현](docs/test-plan/evidence/m6_physical_response/README.md#실행계측-경계와-재현)을 따른다.
+별도 SDK/Host userns·실제 RT 권한 조건을 core build 성공으로 대체하지 않는다.
+
 
 Steering/Brake/Drive/BMS 예제와 시험을 build하고 실행한다. 현재 Host에 설치된 도구를 사용하며 자동 설치하지 않는다.
 
@@ -231,26 +188,10 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 
 ## Milestone Roadmap
 
-| Milestone | 계획 범위 |
-| --- | --- |
-| M0 | Architecture / Requirement / ICD Baseline — BASELINED |
-| M1 | DBC + vCAN — TECHNICAL CHECKS PASS / REVIEW PENDING |
-| M2 | Actuator·EV 모델 — TECHNICAL CHECKS PASS / REVIEW PENDING |
-| M3 | IN PROGRESS: Host 수용 검토·FIFO 기준 선택 / 타이밍 예외 OPEN |
-| M4 | Central coordinator + 대등한 Front/Rear Zone |
-| M5 | Central Compute + DDS |
-| M6 | [Vehicle / EV / physical response](docs/test-plan/evidence/m6_physical_response/README.md) — Host quiet 기능 한정 수용·전체 종료 검토 후속 |
-| M7 | CARLA Integration |
-| M8 | Classical Autonomous Driving |
-| M9 | Fault / Diagnostics / DTC |
-| M10 | Physical AI Perception |
-| M11 | Learned Temporal Planner |
-| M12 | Thor vs Orin Compute-Tier Optimization |
-| M13 | Final SIL / V&V / Regression |
-
-Acceptance 증거의 상세 후보는 [로드맵](docs/roadmap.md)에 정리한다.
-Fault 계약은 M0부터 정의하며, local fault 동작은 관련 component와 함께 설계할 계획이다.
-M9에서는 전체 시스템의 diagnostics와 DTC를 통합한다.
+[로드맵](docs/roadmap.md)이 단계별 범위와 TBD의 기준이다. M6 Host quiet SIL/MIL은 종료했고,
+다음은 M7 CARLA 접속 계약/호환 환경 확인이다. M8에서 종방향 모델의 C++ 구현·동등성과
+차량 closed-loop를 검증한다. M9 diagnostics, M10–M11 AI, M12 compute 비교, M13 전체 V&V는 후속이다.
+Local fault 보호는 이미 각 component/runtime에 존재하며 M9까지 미루지 않는다.
 
 ## Repository Structure
 
@@ -260,7 +201,7 @@ StrataDrive/
 ├── docs/
 │   ├── requirements/      # System, timing, safety baseline
 │   ├── architecture/      # System, software, 배포, fault 계약
-│   ├── icd/               # DDS/CAN 계약; actuator wire와 EV/BMS 설계
+│   ├── icd/               # SOME/IP/owner-wire/CAN·모델 계약; DDS 이력
 │   ├── adr/               # 설계 결정 기록
 │   ├── test-plan/         # 검증 전략, scenario baseline, 추적성
 │   ├── learning/          # 학습자 중심 절차
@@ -268,6 +209,7 @@ StrataDrive/
 │   ├── engineering_plan.md # 표준 참고 범위와 단계별 적용·학습 계획
 │   ├── project_status.md  # 현재 구현 범위·시험 결과·다음 작업
 │   ├── m0_baseline.md     # Exit checklist와 문서 검토 증거
+│   ├── m6_exit_review.md # Host quiet SIL/MIL 종료·TBD 분할·M7 선행 조건
 │   ├── m2_acceptance_review.md # M2 수용 검토와 미완료 항목
 │   ├── roadmap.md
 │   └── quality_policy.md
@@ -281,14 +223,15 @@ StrataDrive/
 │   ├── socketcan/         # Linux CAN socket·adapter, Zone deadline 송신 port
 │   ├── dbc/               # Actuator 6개 + EV/BMS 6개 frame 초안
 │   └── dds/               # 배치용 placeholder
-├── central/               # ADAS/control; session Epoch store; vehicle management/allocation/bridge 예정
+├── central/               # 조정·배분·세션·피드백; ADAS/control은 후속
 ├── zone/                  # Front/Rear 명령 수용·CAN gateway·local safety component
-├── vecu/                  # Steering/Brake/Drive/BMS의 판단·보호; 물리 실행과 분리
-├── simulation/            # 물리 모델·SIL 연결 코드; vehicle/CARLA 통합 예정
+├── vecu/                  # Steering/Brake/Drive/BMS/Power 판단·보호; 물리 실행과 분리
+├── simulation/            # 실제 actuator·vehicle/EV·SIL runtime; CARLA 후속
 ├── physical_ai/           # Perception, learned planner, export, inference
 ├── profiles/              # Reference / Thor Premium / Orin Mainstream 설계 data
 ├── tests/
 │   ├── unit/              # 모듈별 C++ test; 기능 확장은 기존 파일의 case로 추가
+│   ├── integration/someip/ # 3-vECU 실행·IP/세션·갱신·보호 판정
 │   ├── integration/can/  # SocketCAN TX/RX fixture와 Python 검사기
 │   ├── integration/runtime/ # 주기·deadline·CAN 상실 검사와 CSV 리포터
 │   └── sil/, fault/, performance/ # 후속 시험 배치

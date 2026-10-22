@@ -1,6 +1,6 @@
 # Deployment and compute-tier architecture
 
-Status: 배포 경계 **DEFINED**, runtime **PLANNED**. 실행 가능한 container/systemd/network 설정은 M0에 없다.
+Status: **Host netns/veth3-vECU 실행 구현 / Target 배포 PLANNED**. 현재 수용/OPEN은 [project_status](../project_status.md)를 따른다.
 
 2026-10-22 현재 Host 구현 경계: [3-process SOME/IP adapter](../icd/someip_rear_adapter.md)는
 문서화한 Normal FIFO functional SIL 범위에서 Central·Front·Rear를 별도 netns/veth process로
@@ -34,10 +34,10 @@ Central이 vehicle management/allocation/session과 상위 feedback 집계를 �
 
 [EV-01](../icd/ev_power_bms_design.md)은 같은 Target에 BMS 논리 Leaf를 추가한다.
 차량 관리(VCU 역할)/allocation/gateway를 기능적으로 구분하며 독립 process/task와 isolation은
-TBD-04/05다. Battery/power model의 실제 배치/단일 energy owner는 TBD-07에 정한다.
+TBD-04/05다. 현재 M6 Host 배치/단일 energy owner는 persistent physical process로 결정했다. CARLA/Target 모델 배치는 TBD-07의 후속 범위다.
 [ZON-01](../adr/ADR-0015-front-rear-zones.md)로 두 Zone과 후륜 구동 packaging을 채택했다.
-단일 Zone component 검증 후 M4/M5에 논리 Front/Rear를 분리한다. Central–Zone protocol과 독립
-통신 loss/rejoin 설정은 TBD-15이며 runtime/TC-ZON 시험은 PLANNED / NOT RUN이다.
+Host에서는 Front/Rear를 실제 분리해 SOME/IP/독립 보호·재가입을 검증했다. Target protocol/clock/격리와
+전체 TC-ZON 판정은 TBD-15 후속이며 Host 일부 근거를 전체 system PASS로 확대하지 않는다.
 
 Central Vehicle Compute/Front/Rear를 Docker network 또는 Linux network namespace + veth pair로 별도
 Ethernet node처럼 구성할 계획이다. Central 내부 ADAS/VCU interface와 DDS discovery/QoS, multicast/routing, namespace

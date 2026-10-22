@@ -1,12 +1,10 @@
 # System architecture
 
-Status: M0 **DEFINED / Reference Baseline v0.1**. 계약은 확정했으며 배포/runtime은
-PLANNED, 동작/성능 시험은 NOT RUN이다.
-2026-10-13 [EV-01](../icd/ev_power_bms_design.md) 범위를 추가했다. 아래 BMS/차량 관리/
-전원 모델은 PLANNED이며 M0 v0.1이나 기존 M1 실행 결과에 포함하지 않는다.
-[ZON-01 v0.5 / ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)은
-Front/Rear 두 Zone을 Central에 대등하게 연결한다. 차량 전체 관리·배분/session/feedback bridge는
-Central의 별도 component다. Runtime/TC-ZON-001–003은 PLANNED / NOT RUN이다.
+Status: **전체 시스템/Target 설계 계약 DEFINED**. Host 구현·한정 수용과
+전체 차량/Target 미검증 범위는 [project_status](../project_status.md)를 따른다.
+[ZON-01 v0.5 / ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)의
+Central 단일 조정/배분/세션과 대등한 Front/Rear를 Host SOME/IP로 연결했다.
+M6 Host quiet 모델/MIL은 종료했으며 아래 CARLA/Jetson 배포·상위 autonomy는 후속이다.
 
 ## 경계와 책임
 
@@ -25,13 +23,16 @@ Central의 별도 component다. Runtime/TC-ZON-001–003은 PLANNED / NOT RUN이
 | ARCH-ZONE-REAR | Target: Rear gateway, local validation/monitor/protection | Central과 독립 command/status/session; Drive/BMS CAN; 전체 요구 재배분 금지 |
 | ARCH-VECU | Target: Steering / Brake / Drive software ECU | command 수신부터 task/state/dynamics를 거쳐 actual actuator feedback 생성 |
 | ARCH-BMS | Target: 독립 논리 BMS vECU | battery 센서와 power 요청 → charge/discharge limits, power 실제 상태/health; 상위 보고는 Zone 경유 |
-| ARCH-EV-PLANT | SIL battery / power plant | 실제 model power → energy/SOC/voltage/current/temperature, power 응답; BMS controller와 분리; M6/M7 배치/단일 energy owner TBD-07 |
+| ARCH-EV-PLANT | SIL battery / power plant | 실제 model power → energy/SOC/voltage/current/temperature, power 응답; BMS controller와 분리; M6 Host는 persistent physical owner; M7 CARLA/Target 배치 TBD-07 |
 | ARCH-ADAPTER | Host: CARLA Plant Adapter; Target feedback bridge와 연결 | vECU actual feedback만 ego actuation 입력으로 변환; CARLA actuation의 단일 writer |
 | ARCH-DIAG | Target Central Vehicle Compute: Diagnostics Manager + Zone Controller/vECU local monitors | fault event 집계, DTC, state transition; local 반응은 Central Vehicle Compute 통신에 의존하지 않음 |
 
 Host–Target은 **실제 Ethernet**이다. Target은 Jetson AGX Thor **또는** Jetson
 Orin NX 한 대다. 동일 Vehicle SW Architecture를 보드별 독립 배포하며 두 보드를
 연결해 하나의 차량으로 구성하지 않는다.
+
+다음 그림의 DDS는 원래 Target 설계의 전송 후보 표기다. 현재 Host 실행은
+SOME/IP이며, Target protocol/clock/격리는 [배포 문서](deployment_architecture.md)의 후속 검증 범위다.
 
 ```mermaid
 flowchart TB

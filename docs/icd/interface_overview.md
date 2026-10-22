@@ -1,61 +1,31 @@
 # Interface inventory and common contract
 
-Status: semantic contract **DEFINED / Reference Baseline v0.1**.
-2026-10-13 [RG-01 회생제동 확장](regenerative_braking_design.md)의 포함 범위를 결정했다.
-아래 Drive 의미는 이 후속 설계를 반영한다. 회생/에너지·배분은 Host component로 구현했으며 차량 runtime은 PLANNED / NOT RUN이다.
-CAN actuator 6개 + EV 6개 wire/DBC/codec은 **Host 초안 구현·시험 / baseline 채택 PENDING**이며 DDS controller IDL/adapter는 **PLANNED**다. 후보 실험의 fixed packet IDL과 실제 controller 배포를 구분한다.
-[Steering Command/Actual의 DBC·layout 제안](steering_frame_draft.md)을 작성했으며 review PENDING이다.
-[Steering angle field 초안](steering_angle_encoding.md)의 독립 codec을 Host에서 시험했다.
-[Steering 두 frame의 codec·DBC parser 교차 검증](../learning/m1_steering_frame_codec.md)도
-Host에서 수행했다. [Steering 수신부](../learning/m1_steering_receiver.md)의 stateful 수용/시간/Epoch/
-timeout도 Host에서 시험했다. [SocketCAN/vCAN 연결](../learning/m1_steering_socketcan.md)의
-Steering application 송수신/fault/timeout은 실행했다. [M1 session/queue](../learning/m1_session_queue.md)의
-영속 local Epoch와 실제 application/kernel overflow도 검사했다. Actual Central coordinator/Zone DDS·차량 통합은 남아 있다.
-[Brake Command/Actual wire 제안](brake_frame_draft.md)의 압력·metadata/P05 codec과
-[vCAN wire 시험](../learning/m1_brake_codec.md)도 수행했다. 이어서
-[Brake application 수용/timeout](../adr/ADR-0012-brake-receiver.md)을 Host/vCAN에서 시험했다.
-[첫 Brake 압력 모델](../learning/m2_brake_model.md)의 Host 응답/보호는 구현·시험했다. 차량 보호 통합은 후속이다.
-[Drive Command/Actual](drive_frame_draft.md)의 signed torque와 독립 capability freshness를
-[Host/vCAN에서 시험했다](../learning/m1_drive_codec.md). M2 응답/에너지와 [M4 첫 배분 component](../learning/m4_control_allocation.md)는 구현했으며 차량 피드백 loop는 후속이다.
-
-M4 [Zone 명령 수용](../learning/m4_zone_command_admission.md)은 shared in-process
-VehicleRequest/FrontCommands/RearCommands 계약을 사용한다. 독립 trusted root·scope·expiry를 검증하며,
-후속 [CAN egress/로컬 보호](../learning/m4_zone_gateway.md)는 구현·시험했다. 원래 parent/expiry가 없는
-기존 32-byte CAN의 remote Leaf lease 검사·remote 보호 신호와 전체 runtime은 후속이다.
-[Rear 전원·초기 구동](../learning/m4_rear_power_startup.md)은 별도 lifecycle root·Enable ACK 검증과
-PowerRequest/limits/permission 전달·Drive trusted arm을 실제 controller/component·vCAN에서 연결했다.
-[Front startup](../learning/m4_front_startup.md)도 same-host trusted pair arm과 실제 Leaf/독립 Actual·vCAN에 연결했다.
-Arm은 CAN payload에서 학습하지 않으며 기존 wire·critical source/expiry 계약은 유지한다.
-[정상 종료](../learning/m4_normal_stop.md)의 stop intent/자식 root·terminal lease/ACK도 shared in-process 계약이다.
-NormalStopControl은 실제 Leaf·gateway/allocator를 연결하며 remote stop/lease transport는 후속이다.
-2026-10-20 후속 [owner-wire v1](owner_wire_v1.md)은 위 composite context/terminal lease·INIT/arm/protection·원천 raw CAN feedback을 outer CRC32C와 명시적 role/domain으로 전달한다. 실제 Leaf component에서 local Release와 별도 global credit, arm·expiry·보호/rejoin을 검사했다. 기존 CAN/DBC/P05는 불변이다. [DDS/Zenoh 후보](../adr/ADR-0058-remote-owner-authority-and-dds-probe.md)는 두 독립 netns process의 echo이며, 실제 Central/Zone 제어·Actual·세션 adapter는 아직 미구현이다. Target clock/보안·full deployment는 후속 gate다.
-
-2026-10-13 [EV-01](ev_power_bms_design.md)으로 BMS Leaf, 차량 관리와 power lifecycle을
-추가했다. 2026-10-14 [BMS wire 초안](bms_frame_draft.md)의 EV 6개 DBC frame과
-Host C++ codec/항목별 receiver·DBC 교차 검증과 native SocketCAN 변환 시험을 추가했다.
-[BMS 실행 안내](../learning/m1_bms_codec.md)에 범위를 기록한다. EV TX/RX/relay의 vCAN도
-36개 case로 시험했다. Actual coordinator·DDS·component runtime은 PLANNED다.
-[ZON-01](../architecture/zonal_partition.md)의 Central–Front/Rear 독립 경로와 의미를 반영했다.
-Peer binary schema/IDL/QoS/clock/rejoin은 TBD-15/05이며 runtime은 미구현이다.
+Status: **공통 의미 계약 DEFINED**. 현재 Host3-vECU SOME/IP·M6 SIL/MIL과 Target 계획을 구분한다.
+[project_status](../project_status.md)가 구현/수용 범위의 기준이다. 아래 IF-DDS-*는 원래 semantic
+interface ID를 보존한 이름이며 Host 구현의 실제 transport는 SOME/IP다.
+실제 encoding/session/clock·bounded lane은 [owner-wire](owner_wire_v1.md),
+[Front](someip_front_adapter.md)/[Rear](someip_rear_adapter.md), 모델은
+[SimpleVehicle/MIL](simple_vehicle.md)/[vehicle-energy](vehicle_energy.md)를 따른다.
+CAN/DBC/P05 의미와 원천 시각·권한 검사는 유지하며 아래 ID를 rename하지 않는다.
 
 | Interface ID | 논리적 내용 | Source → Destination | Transport / schema |
 | --- | --- | --- | --- |
 | IF-HOST-SENSOR | Camera/IMU/GNSS + ego vehicle state | Host sensor bridge → Central vehicle_state/perception | Physical Ethernet; protocol TBD-05 |
 | IF-CENTRAL-TRAJECTORY | candidate/validated trajectory, target speed, risk | Planner → Safety Supervisor → Classical Controller | in-process/IPC TBD-05; validation 경계 유지 |
 | IF-CENTRAL-VEHICLE-REQUEST | Vehicle-level Command | Central Classical Controller → Central allocation | Central 내부 의미 interface; transport TBD-05 |
-| IF-DDS-ZONE-STATUS | 각 Zone status의 공통 family | Front/Rear → Central state/VCU/bridge | 두 독립 status interface의 의미; DDS ICD |
+| IF-DDS-ZONE-STATUS | 각 Zone status의 공통 family | Front/Rear → Central state/VCU/bridge | 두 독립 status interface의 의미; Host SOME/IP ICD |
 | IF-CAN-STEERING | Steering Command / Steering Actual | Front ↔ Steering vECU | SocketCAN/vCAN; CAN FD application contract |
 | IF-CAN-BRAKE | Brake Command / Brake Actual | Front ↔ Brake vECU | 위와 동일 |
 | IF-CAN-DRIVE | Drive Command / Drive Actual | Rear ↔ Drive vECU | 위와 동일 |
 | IF-CENTRAL-POWER-REQUEST | enable/shutdown 요청과 correlation | lifecycle requester → Central vehicle management | Central 내부 의미 interface; transport TBD-05 |
-| IF-DDS-FRONT-CMD | scoped Steering/Brake demand | Central allocation → Front validation/gateway | logical Ethernet / DDS; schema TBD-15 |
-| IF-DDS-FRONT-STATUS | Steering/Brake 원천 actual/health | Front → Central state/배분/bridge | logical Ethernet / DDS; source metadata 보존 |
-| IF-DDS-FRONT-SESSION | trusted INIT/rejoin/Epoch/monitor enable | Central session ↔ Front session validation | logical Ethernet / DDS; handshake TBD-15 |
-| IF-DDS-REAR-CMD | 배분된 Drive demand, BMS constraint/permission, power 요청·speed 입력 | Central allocation/vehicle management → Rear validation/gateway | logical Ethernet / DDS; 의미 ZON-01, schema TBD-15 |
-| IF-DDS-REAR-STATUS | Drive actual/capability, BMS/power 원천 status | Rear → Central state/배분/vehicle management/bridge | logical Ethernet / DDS; source/dependency 보존, schema TBD-15 |
-| IF-DDS-REAR-SESSION | trusted INIT/rejoin, epoch·monitor enable·correlation | Central session ↔ Rear session validation | logical Ethernet / DDS; handshake TBD-15 |
-| IF-CAN-BMS | power 요청 / BMS state·limits·power actual | Rear ↔ BMS vECU | EV schema 1 DBC·C++ codec/receiver·local vCAN 부분 검사; actual coordinator TBD-14 |
-| IF-CAN-DRIVE-CONSTRAINT | 원천 charge/discharge limit와 drive permission | Rear → Drive vECU | 별도 DriveBatteryLimits / DrivePermission DBC 초안; runtime TBD-14 |
+| IF-DDS-FRONT-CMD | scoped Steering/Brake demand | Central allocation → Front validation/gateway | Host SOME/IP/owner-wire v1; Target TBD-15 |
+| IF-DDS-FRONT-STATUS | Steering/Brake 원천 actual/health | Front → Central state/배분/bridge | Host SOME/IP/owner-wire v1; source metadata 보존 |
+| IF-DDS-FRONT-SESSION | trusted INIT/rejoin/Epoch/monitor enable | Central session ↔ Front session validation | Host SOME/IP 실제8-role session; Target TBD-15 |
+| IF-DDS-REAR-CMD | 배분된 Drive demand, BMS constraint/permission, power 요청·speed 입력 | Central allocation/vehicle management → Rear validation/gateway | Host SOME/IP/owner-wire v1; 의미 ZON-01 |
+| IF-DDS-REAR-STATUS | Drive actual/capability, BMS/power 원천 status | Rear → Central state/배분/vehicle management/bridge | Host SOME/IP/owner-wire v1; source/dependency 보존 |
+| IF-DDS-REAR-SESSION | trusted INIT/rejoin, epoch·monitor enable·correlation | Central session ↔ Rear session validation | Host SOME/IP 실제8-role session; Target TBD-15 |
+| IF-CAN-BMS | power 요청 / BMS state·limits·power actual | Rear ↔ BMS vECU | EV schema1 DBC/C++·CAN/P05·Host actual coordinator 연결; Target TBD-14 |
+| IF-CAN-DRIVE-CONSTRAINT | 원천 charge/discharge limit와 drive permission | Rear → Drive vECU | DriveBatteryLimits/DrivePermission DBC·Host runtime 연결; Target TBD-14 |
 | IF-HOST-ACTUATOR | per-actuator actual sample + 원천 metadata | vECU → CAN → 담당 Zone → Central bridge → Host Plant Adapter | feedback 집계 + Physical Ethernet; protocol TBD-05 |
 | IF-HOST-EV-STATUS | 관측용 BMS/power/energy 정보; wheel actuation 아님 | BMS → CAN → Rear → Central bridge → Host | Physical Ethernet; schema TBD-14/05 |
 | IF-MODEL-BMS | modeled pack 센서, 셀 전압·온도 극값과 실제 전원 상태 | battery/power plant → BMS | SIL 로컬 sensor 경계; validity/time/batch 보존, 모델 TBD-13/07 |
@@ -63,11 +33,11 @@ Peer binary schema/IDL/QoS/clock/rejoin은 TBD-15/05이며 runtime은 미구현�
 | IF-FAULT-EVENT | fault occurrence, evidence, local action/state | local monitors → Diagnostics Manager / Host logging | IPC/DDS/telemetry mapping TBD-05/08 |
 
 CAN family ID는 양방향 그룹이며 command와 actual feedback은 별도의 frame/message다.
-각 wire ID는 M1에 할당한다. Host transport와 Central–Zone DDS가 같다고 가정하지 않는다.
+각 CAN wire ID는 기존 frame/DBC 계약에 정의돼 있다. Host transport와 Central–Zone DDS가 같다고 가정하지 않는다.
 `Vehicle-level command != actuator command != actual actuator feedback`을 모든 schema에서 유지한다.
 
 이전 IF-DDS-VEHICLE-CMD/IF-DDS-POWER-REQUEST는 ADR-0021로 retired하고 위 Central 내부 ID로
-대체했다. 아직 DDS IDL/runtime이 없어 wire migration은 없으며 과거 ADR/결과는 이전 ID에 귀속된다.
+대체했다. DDS 정규 adapter는 없고 Host SOME/IP가 후속 구현이며 과거 ADR/결과는 이전 ID에 귀속된다.
 
 ## Semantic payload contract
 
@@ -147,5 +117,5 @@ Timeout clock, reset/pause는 [timing](../requirements/timing_requirements.md)�
 codec·로컬 수신부, `interfaces/drive/`에는 signed torque/feedback codec·수신부,
 `interfaces/bms/`에는 EV 물리값·6개 frame codec과 항목별 수신부가 있다.
 `interfaces/socketcan/`은 Linux socket I/O와 actuator·EV 변환을 맡는다.
-`interfaces/dbc/`에는 actuator/EV 총 12개 frame 초안이 있고 DDS 구현은 후속 작업이다. [DDS ICD](ethernet_dds_icd.md),
+`interfaces/dbc/`에는 actuator/EV 총 12개 frame 초안이 있고 정규 DDS gate는 CLOSED이며 Host SOME/IP 구현과 구분한다. [DDS ICD](ethernet_dds_icd.md),
 [traceability](../test-plan/traceability.md)를 참조한다.

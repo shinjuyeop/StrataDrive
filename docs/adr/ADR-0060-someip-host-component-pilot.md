@@ -1,5 +1,7 @@
 # ADR-0060: Central–Front SOME/IP Host component pilot
 
+후속 관계(2026-10-22): Pilot의 grant fixture를 정규 세션으로 보지 않는다. 후속 실제 세션/Host adapter 채택은 [ADR-0061](ADR-0061-someip-front-owner-adapter.md), Rear 확장은 [0062](ADR-0062-someip-rear-host-adapter.md)를 따른다.
+
 Date: 2026-10-21. Status: **conditional Host pilot candidate; regular adoption deferred**.
 
 The DDS control gate remains CLOSED. Evaluate SOME/IP using pinned COVESA vSomeIP

@@ -1,32 +1,9 @@
 # Fault / diagnostics architecture
 
-Status: M0 계약 **DEFINED**, system fault/DTC runtime **PLANNED**.
-M1 actuator receiver의 local 검증/timeout과 [M2 첫 Steering 모델](../learning/m2_steering_model.md)의
-source-loss/continuity/deadline hold는 Host에서 구현·시험했다. [첫 Brake 모델](../learning/m2_brake_model.md)의
-압력 floor/retain ramp도 부분 구현했다. 차량 보호 출력/DTC 통합은 미구현이다.
-[M2 수용 검토](../m2_acceptance_review.md)는 기존 actuator 보호와 BMS/Power/Drive gate·회로 component의
-부분 증거를 대조했다. 후속 [Steering response monitor](../learning/m2_steering_fault_monitor.md)는
-정상 delay/rate 범위·sensor residual/dwell과 local hold/latch를 구현·시험했다.
-[Brake monitor](../learning/m2_brake_fault_monitor.md)도 별도 pressure sensor·rise/fall 범위와 residual/dwell을 구현·시험했다.
-보호 floor 요청과 fresh sensor 관측을 구분하며 물리 stuck은 보호 요청 뒤에도 지속될 수 있다.
-[ZON-01](zonal_partition.md)의 Central–Front/Rear 독립 link/source monitor는 PLANNED / NOT RUN이다.
-
-```mermaid
-flowchart LR
-  INJECT[Fault Injection] --> MON[Local Fault Monitor]
-  MON --> LOCAL[Local protection and local state]
-  MON --> EVENT[Fault Event]
-  EVENT --> DIAG[Diagnostics Manager]
-  DIAG --> DTC[DTC record]
-  DIAG --> STATE[Central aggregate system state]
-  LOCAL --> EVENT
-```
-
-DTC 저장 완료는 state transition이나 local protection의 선행 조건이 아니다.
-Zone/vECU는 Central communication이 없어도 timeout을 검출하고 보호 동작을 수행한다.
-Local state와 Central aggregate state의 시각을 구분한다. 통신 단절 중 Central의
-상태 표시는 늦거나 unknown일 수 있으며 이를 local NORMAL의 증거로 쓰지 않는다.
-재연결 시 더 낮은 severity로 자동 덮어쓰지 않고 INIT 재검증한다.
+Status: **local 검출/독립 보호와 M6 quiet 실제 출력 반응 구현 / 전체 system fault/DTC 통합 후속**.
+[현재 상태](../project_status.md), [M6 범위 종료](../m6_exit_review.md)를 따른다.
+실제3-vECU의 방향별 loss/새 Epoch 재가입과 보호 목표·finite actual response를 구분한다.
+부품 원인 분리/센서 이중화·전체 DTC는 미검증이며, 아래 감시 책임/상태 계약은 유지한다.
 
 ## Detection ownership
 

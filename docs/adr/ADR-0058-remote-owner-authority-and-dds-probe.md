@@ -1,5 +1,7 @@
 # ADR-0058: 원격 owner authority와 Host 통신 후보 경계
 
+후속 관계(2026-10-22): 원격 계약은 유지한다. Host 전송 채택은 [ADR-0060](ADR-0060-someip-host-component-pilot.md)→[0061](ADR-0061-someip-front-owner-adapter.md)→[0062](ADR-0062-someip-rear-host-adapter.md)로 이어졌다. DDS 실패/gate를 해결한 것은 아니다.
+
 Date: 2026-10-20. Status: **원격 계약/Leaf component 구현; middleware 후보 실험·M4 종료 검토**.
 [ADR-0054](ADR-0054-trusted-session-owner-loops.md)/[0055](ADR-0055-asynchronous-normal-owner-integration.md)/[0056](ADR-0056-m4-faults-and-independent-execution-watch.md)의 상태 소유권, 원래 시각, 보호 latch를 유지한다.
 

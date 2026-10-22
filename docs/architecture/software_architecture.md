@@ -1,7 +1,7 @@
 # Software architecture and contracts
 
-Status: 계약 **DEFINED**, M1 통신·M2 모델 **Host component 기술 검사 완료 / 학습자 수용 대기**,
-M3 다중 주기·독립 task/CAN 감시·CPU 부하/배치 **Host 부분 구현·계측**, 차량/Target runtime **PLANNED / NOT RUN**.
+Status: **현재 Host3-vECU SOME/IP·M6 quiet SIL/MIL 범위 구현/수용**.
+현재 범위/OPEN은 [project_status](../project_status.md), Target/CARLA/상위 controller는 후속이다.
 Component ID는 [system architecture](system_architecture.md)의 ID를 사용한다.
 
 ## Module responsibility
@@ -13,33 +13,35 @@ Component ID는 [system architecture](system_architecture.md)의 ID를 사용한
 | `central/world_model` | state + observations → planner용 일관된 world representation |
 | `central/planner` | Phase A route/waypoint, Phase C의 learned 제안 → candidate trajectory; classical fallback 유지 |
 | `central/safety` | trajectory/state/health → 검증된 trajectory, 한계값, 선택된 fallback/system state |
-| `central/control` | validated trajectory + ego state → speed reference + bounded acceleration/curvature/braking demand; [MBD 계획](../engineering_plan.md#model-based-design-path)의 첫 종방향 제어 모델/MIL→C++ 비교 대상(M6–M8, PLANNED) |
+| `central/control` | validated trajectory + ego state → speed reference + bounded acceleration/curvature/braking demand; [MBD 계획](../engineering_plan.md#model-based-design-path)의 Python 모델/MIL은 M6 범위 종료; 이 C++ controller·동등성/차량 폐루프는 M8 후속 |
 | `central/health` | task, resource, heartbeat → fault monitor 입력 |
 | `central/diagnostics` | fault event → DTC lifecycle / system state 결정 |
 | `interfaces/session` | trusted role/plan·participant INIT/ACK·독립 deadline·고정 용량 SPSC 제어 mailbox; CAN/DDS wire/authentication과 별개 |
-| `interfaces/zone` | 공통 Zone scope/status·독립 status receiver와 Zone/Central 공유 Leaf health 정책; same-host 계약, DDS wire 후속 |
+| `interfaces/zone` | 공통 Zone scope/status·독립 status receiver와 Zone/Central 공유 Leaf health 정책; same-host 계약과 owner-wire v1/SOME/IP Host adapter로 연결 |
 | `zone/feedback` | [실제 상태 감시](../learning/m4_zone_feedback_health.md): 담당 Leaf current sample·실제 gateway → Zone별 phase/health·로컬 보호; source를 재발행 시각으로 바꾸지 않음 |
-| `central/session` | Linux 영속 Epoch issuer·[세션 coordinator](../learning/m4_session_bootstrap.md): 8-role Prepare/INIT/Release·exact ACK/deadline·global gate, Host typed component; remote wire 후속 |
+| `central/session` | Linux 영속 Epoch issuer·[세션 coordinator](../learning/m4_session_bootstrap.md): 8-role Prepare/INIT/Release·exact ACK/deadline·global gate, 실제8-role typed component와 remote owner-wire/SOME/IP 연결 |
 | `zone/command_validation` | [Front/Rear 독립 수용](../learning/m4_zone_command_admission.md) 구현: trusted root/arm·scope/atomic pair·age/expiry/range/mode/progress 검증 → current scoped snapshot 또는 reject/보호 요청 |
 | `zone/gateway` | [Rear 전원·시동](../learning/m4_rear_power_startup.md) 및 [CAN 전달](../learning/m4_zone_gateway.md) 구현: bounded FIFO/최신 묶음·원래 source/expiry·각 write 전후 guard·partial/failure latch; 별도 SocketCAN port/분리 vCAN 시험 |
-| `central/coordinator` | [단일 Central 실행](../learning/m4_vehicle_coordinator.md): VM/allocator/NormalStop 소유·10/20 ms 순서·root/issuer 인계·partial/clock/gap 실패 보호; same-host port, 전체 remote INIT/runtime 후속 |
+| `central/coordinator` | [단일 Central 실행](../learning/m4_vehicle_coordinator.md): VM/allocator/NormalStop 소유·10/20 ms 순서·root/issuer 인계·partial/clock/gap 실패 보호; async port와 실제3-process SOME/IP INIT/runtime 연결 |
 | `central/vehicle_management` | [NormalStop](../learning/m4_normal_stop.md)은 stop intent·actual dwell·terminal ACK 뒤 Shutdown을 산출한다. Central 별도 VCU: [준비 판정](../learning/m4_normal_drive_readiness.md)·[lifecycle/허가 상태 owner](../learning/m4_vehicle_management.md) 구현; trusted root/ACK/expiry·FAIL_SAFE latch와 전원 요청/DrivePermission 산출; 첫 coordinator/same-host 연결 구현, 독립 Zone/runtime 통합 후속 |
 | `central/control_allocation` | [첫 normal-path 배분](../learning/m4_control_allocation.md) 구현: 허가된 vehicle root + fresh actual/capability/BMS → angle·torque·pressure와 scoped expiry; Zone 수용 연결 시험, 전체 runtime/차량 전환은 TBD-06/15 |
-| `central/feedback_bridge` | 두 Zone의 per-source actual/EV status → Central consumer/Host; 원천 age/identity 보존, PLANNED |
-| `zone/local_safety` | local timeout/expiry/overflow/send fault·trusted coordinator 보호 요청 → latch/별도 port handoff·Pending 재시도. Same-host SIL Leaf adapter로 기존 Hold/Protect/Zero 선택, remote signal/실제 도달은 별도 |
+| `central/feedback_bridge` | 두 Zone의 per-source actual/EV status → Central consumer/Host; 원천 age/identity 보존; 검증된 feedback 소비는 coordinator/async port에 구현, 외부 CARLA bridge는 후속 |
+| `zone/local_safety` | local timeout/expiry/overflow/send fault·trusted coordinator 보호 요청 → latch/별도 port handoff·Pending 재시도. Same-host SIL Leaf adapter로 기존 Hold/Protect/Zero 선택, remote protection/receipt와 실제 도달은 SOME/IP·M6 물리 판정으로 별도 확인 |
 | `vecu/common` | absolute task schedule·독립 completion monitor·유효 RX age monitor와 SPSC latest snapshot 구현; 전체 watchdog·diagnostics 배치는 후속 |
 | `vecu/steering`, `vecu/brake`, `vecu/drive` | accepted demand + 외부 sensor → normal/protection 목표·actual feedback; Front/Rear 모두 explicit NonDriving→arm을 지원한다. DriveController는 BMS limits·Central permission·로컬 HV/속도의 필수 gate와 capability 계산, 기존 DriveActuator는 isolated 응답 fixture |
 | `simulation/steering` / `vecu/steering/steering_response_monitor.*` | delay/rate·jam/angle sensor를 만드는 SIL plant / bounded target 이력·독립 sensor로 정상 range/residual/dwell·sensor health를 검사하는 local monitor |
 | `simulation/brake` / `vecu/brake/brake_response_monitor.*` | delay·가압/감압·stuck/pressure sensor를 만드는 SIL plant / 방향별 정상 range/residual/dwell·sensor health를 검사하는 local monitor |
 | `simulation/drive/torque_response.*` | Drive 목표 → delay/rate/saturation·zero-target 물리 응답; ECU 수신/상태 판단과 별도 모듈, 차량 speed/current loop는 미구현 |
 | `simulation/drive/drive_energy_model.*` | begin actual torque/speed·auxiliary → motor DC/손실 → 단일 BatteryModel SOC/관측; 이상적 경로 fixture, dynamic RC는 별도 EvPowerModel에서 연결; vehicle speed/current loop 후속 |
-| `simulation/power/ev_power_model.*` | 실제 torque/speed·inverter stage·pack aux current·coil 출력 → 공통 motor DC·PowerModel 회로/구간 전류·BatteryModel SOC; capacitor/경로 손실과 atomic commit, 외부 speed fixture |
+| `simulation/power/ev_power_model.*` | 실제 torque/speed·inverter stage·pack aux current·coil 출력 → 공통 motor DC·PowerModel 회로/구간 전류·BatteryModel SOC; capacitor/경로 손실과 atomic commit; legacy 외부 speed fixture와 M6 실제 wheel/구간 work port 구분 |
 | `simulation/battery` | 실제 DC branch power+auxiliary → chemical energy/SOC·Rint/lumped thermal·독립 관측; Host component 구현·시험, BMS와 분리 |
 | `vecu/bms` | local sensor port 검사 → 충방전 derating·보호 latch·PowerLimits와 로컬 safety gate; 물리 모델과 분리 |
 | `vecu/bms/power_controller.*` / `simulation/power` | BMS leaf의 lifecycle runnable / 실제 접점·RC bus·current 센서; controller/plant 분리, Host component 구현·시험 |
 | `simulation/{steering,brake,drive}/*_sil` | ECU와 plant 연결, physical step/acquisition·출력 적용·fault injection; ECU library 밖의 single-owner SIL runner |
-| `simulation/runtime` | [Session loops/INIT adapter](../learning/m4_session_bootstrap.md)는 owner별 bounded control/ACK 전달·실제 actor/RX INIT·fresh 물리 reset 조건을 연결한다. [정상 비동기 owner 경로](../learning/m4_async_owners.md)는 Central·Front/Rear·다섯 Leaf·Physical의9개 native thread에서 실제 request/arm/TX result/Actual/status/보호를 typed port로 연결한다. 실제 BMS/회로·센서를 사용하며 fixed wheel speed0은 남긴다. 동기 port를 여러 owner가 공유하지 않는다. [VehicleCoordinatorPort](../learning/m4_vehicle_coordinator.md)는 실제 gateway/Leaf·permission RX에 Central을 연결하고 epoch/scope/부분 실패를 검사한다. [NormalStopControl](../learning/m4_normal_stop.md)은 세 Leaf/allocator·양 Zone terminal handoff와 부분 실패 보호를 연결한다. [FrontStartupControl](../learning/m4_front_startup.md)은 두 Leaf·gateway preflight/arm·실패 시 보호를 연결한다. RearPowerControl은 trusted TX context·explicit arm·Drive/Power 보호를 연결한다. Steering 및 다중 주기 Host fixture: Brake/Drive/BMS/Power/RX별 worker·독립 monitor·별도 plant owner, 출력 admission/적용과 CSV 계측; 차량 runtime·Target scheduler는 후속 |
-| `simulation/simple_plant` | CARLA 전 계약 검증용 작은 vehicle model |
+| `simulation/runtime` | [Session loops/INIT adapter](../learning/m4_session_bootstrap.md)는 owner별 bounded control/ACK 전달·실제 actor/RX INIT·fresh 물리 reset 조건을 연결한다. [정상 비동기 owner 경로](../learning/m4_async_owners.md)는 Central·Front/Rear·다섯 Leaf·Physical의9개 native thread에서 실제 request/arm/TX result/Actual/status/보호를 typed port로 연결한다. 실제 BMS/회로·센서를 사용한다. legacy fixed-wheel0 fixture와 M6의 실제 wheel acquisition 경로를 구분한다. 동기 port를 여러 owner가 공유하지 않는다. [VehicleCoordinatorPort](../learning/m4_vehicle_coordinator.md)는 실제 gateway/Leaf·permission RX에 Central을 연결하고 epoch/scope/부분 실패를 검사한다. [NormalStopControl](../learning/m4_normal_stop.md)은 세 Leaf/allocator·양 Zone terminal handoff와 부분 실패 보호를 연결한다. [FrontStartupControl](../learning/m4_front_startup.md)은 두 Leaf·gateway preflight/arm·실패 시 보호를 연결한다. RearPowerControl은 trusted TX context·explicit arm·Drive/Power 보호를 연결한다. M4/M3 단일-process 다중 owner fixture도 유지한다. M6 실제3-process 경로는 아래 test adapter를 통해 공통 owner/physical runtime을 재사용하며 Target scheduler/CARLA는 후속 |
+| `simulation/vehicle` | 실제 actuator 입력의 SimpleVehicle/VehicleEvModel·구간 work·single physical owner |
+| `tests/integration/someip` | 선택형 실제3-vECU Host SDK adapter/runner·고장 시나리오·판정. 재사용 owner/session/protection은 공통 runtime에 유지, CARLA/Target 배포용 정규 executable은 아님 |
+| `simulation/simple_plant` | 원래 배치 placeholder; 실제 M6 구현 경로는 위 vehicle/ |
 | `simulation/plant_adapter` | actual actuator feedback → plant별 actuation mapping |
 | `simulation/carla`, `simulation/scenarios`, `simulation/fault_injection` | simulator lifecycle, scenario, 명시적 fault injection |
 | `physical_ai/perception`, `physical_ai/learned_planner` | model-specific inference/preprocessing와 temporal model 연구 |
@@ -169,7 +171,7 @@ tracking residual을 확인하고 hold/latch한다. Sensor unavailable/invalid�
 Fault에서 increase-only/floor 출력 primitive를 요청하며 물리 stuck은 보호 뒤에도 적용된다. Floor 도달은 fresh sensor로만 관측한다.
 기계 원인 분리·센서 이중화·실제 hydraulic closed-loop controller는 미구현이다.
 M3 Host 다중 주기·실제 CAN 입력/독립 deadline·유효 RX 감시와 trace는 구현·검사했다. 부하·CPU 배치/Target timing은 M3 이후 배포 단계,
-차량 보호 동작의 통합 검증은 M4/M6/M7에 남는다.
+현재 M6 quiet 보호 응답은 [종료 검토](../m6_exit_review.md) 범위에서 검증했다. 외부 차량 보호는 M7 후속이다.
 Dynamics parameter, noise seed, 초기화 수치와 calibration은 TBD-02/03 (M2/M6/M7)다.
 Accepted demand와 actual actuator state를 다른 interface로 유지한다. Simulated current 등의 상태가 없으면 해당 fault는 검증됐다고 주장하지 않는다.
 

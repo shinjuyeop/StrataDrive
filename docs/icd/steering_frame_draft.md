@@ -96,7 +96,8 @@ Producer는 bus/ID/송신 책임으로 대응한다. CAN ID나 CRC가 송신자 
 기준 판은 **AUTOSAR R25-11**이며 [FO Protocol §6.8](https://www.autosar.org/fileadmin/standards/R25-11/FO/AUTOSAR_FO_PRS_E2EProtocol.pdf)과
 [CP E2E Library §8.2.5/8.3.5](https://www.autosar.org/fileadmin/standards/R25-11/CP/AUTOSAR_CP_SWS_E2ELibrary.pdf)을 따른다.
 직접 작성한 C++17 Protect/Check와 초기화 구현이다. C ABI/vendor BSW/ARXML 설정을 가져온 것은 아니다.
-Profile-independent E2E State Machine과 영속 coordinator/application queue 통합은 미구현이다.
+Profile-independent AUTOSAR E2E State Machine은 미구현이다. 영속 coordinator/application queue와
+실제 session은 후속 Host runtime에 구현했으며 [현재 상태](../project_status.md)를 따른다.
 Application socket 연결은 [ADR-0009](../adr/ADR-0009-steering-socketcan.md)의 local fixture로 구현했다.
 로컬 application 수신부의 적용 범위는 [ADR-0008](../adr/ADR-0008-steering-receiver.md)에 있다.
 
@@ -145,7 +146,8 @@ MaxDeltaCounter=10은 기존 rate에 맞춘 실험 후보이며 측정으로 확
 - Coordinator가 INIT에서 각 participant에 Epoch, clock mode, monitoring enable 시각을
   신뢰된 설정으로 전달하고 ready를 확인한다. RX frame에서 Epoch를 자동 학습하지 않는다.
   Epoch는 저장된 카운터로 실행마다 증가시키고 재사용/overflow 시 시작을 거부하는 후보다.
-  영속 coordinator는 미구현이다. SocketCAN fixture는 명시적으로 Epoch를 전달하고
+  이 standalone SocketCAN fixture는 영속 coordinator를 실행하지 않는다. 후속 Host runtime의
+영속 Epoch/실제 세션과 구분한다. SocketCAN fixture는 명시적으로 Epoch를 전달하고
   RX/TX ready와 receiver session 시작을 확인한 뒤 TX를 시작한다. 격리된 새 시험의 Epoch=1은
   영속 run 번호를 구현한 것이 아니다. 로컬 수신부는 신뢰된 호출자의
   `start_session(epoch, monitoring_enable_ns)`를 사용하며 같은 인스턴스에서 Epoch 재사용/감소를 거부한다.

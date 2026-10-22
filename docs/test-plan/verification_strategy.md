@@ -3,19 +3,6 @@
 Status: case contract **DEFINED**, 아래 system TC의 runtime result는 **NOT RUN**이다.
 현재 component 구현·시험 상태의 기준은 [project_status](../project_status.md)다.
 아래 M1/초기 M2의 미구현·수치는 해당 단계의 이력이며 최신 상태를 대체하지 않는다.
-[Steering angle field codec](../learning/m1_steering_codec.md)과
-[frame codec·DBC parser](../learning/m1_steering_frame_codec.md)의 Host 표현 검사는 실행했다.
-Field 단위 결과, M0 document review와 vehicle/SIL verification을 구분한다.
-TC ID의 유일한 정의 목록은 아래 표, S/F ID 정의는 [scenario baseline](scenario_baseline.md)이다.
-[RG-01](../icd/regenerative_braking_design.md)의 후속 시험 TC-REG-001–005도 아래에 정의한다.
-회생 관련 시험은 계획이며 기존 Steering/Brake wire 시험의 PASS를 적용하지 않는다.
-[EV-01](../icd/ev_power_bms_design.md)의 TC-EV-001–005를 추가했다. BMS/power/차량 관리의
-2026-10-14 [BMS wire 초안](../icd/bms_frame_draft.md)의 DBC/CRC/canonical 부분 검사를 추가했다.
-EV C++ codec/receiver·SocketCAN unit과 EV local vCAN 36개 case도 수행했다.
-당시 component model/Zone runtime은 미실행이었다. 현재 Host component 범위는 아래 M4 근거를 따르며 전체 system Result는 NOT RUN이다.
-[ZON-01](../architecture/zonal_partition.md)의 TC-ZON-001–003을 추가했다.
-기존 M1 단위/vCAN PASS는 두 Zone runtime 증거가 아니며 새 Result는 NOT RUN이다.
-
 ## Verification layers
 
 ### M4 실행한 component 근거
@@ -109,8 +96,8 @@ Brake의 수용/거부/timeout latch는 부분 증거이며 압력 응답/보호
 [Drive wire/receiver](../learning/m1_drive_codec.md) 뒤 normal/ASan·UBSan 각각 unit 98개와
 vCAN 27개 case를 실행했다. Signed torque, valid 0/invalid/cached capability와 입력 age,
 독립 actual timeout은 TC-COM-002/003/005와 TC-REG-004의 M1 부분 증거다.
-실제 torque zero-target 응답, Central 새 회생 demand 억제/마찰 배분, Host gate 및 에너지는
-미구현이므로 전체 TC 결과를 PASS로 변경하지 않는다.
+당시에는 torque/배분/Host gate·에너지가 미구현이었다. 후속 Host/M6 구현도 부분 근거이며
+전체 TC 결과를 PASS로 변경하지 않는다.
 
 BMS wire의 6개 fixed golden, exact uint64, 336개 byte 변조와 51개 canonical 거부 vector를
 Host에서 검사했다. 기존 P05 suite에 48-byte golden/잘못된 DataID/384개 single-bit 변조 case를
@@ -130,7 +117,8 @@ interface/schema/parameter 변경 시 영향 requirement와 baseline 재검토�
 
 ## MBD model and code verification
 
-Status: **M6–M8 계획 / NOT RUN**. [ADR-0052](../adr/ADR-0052-model-based-design-development-path.md)와
+Status: **M6 Host quiet SIL/Python MIL 범위 종료 / M8 코드 동등성·차량 폐루프 NOT RUN**.
+[M6 종료 검토표](../m6_exit_review.md)가 기존 근거와 현재 완료/미실행 범위를 구분한다. [ADR-0052](../adr/ADR-0052-model-based-design-development-path.md)와
 [개발 계획](../engineering_plan.md#model-based-design-path)을 따른다. 첫 대상은 Central 종방향 속도 제어기다.
 현재 C++ 단위/plant·Host SIL PASS와 새 제어 모델 MIL·동등성 결과를 구분한다.
 

@@ -1,18 +1,9 @@
 # EV/BMS 기능 설계 — EV-01
 
-Date: 2026-10-13; wire update: 2026-10-14.
-Status: **포함 범위 ACCEPTED / EV C++ 통신·Battery/BMS/Power component Host 부분 검사 / 통합 runtime PLANNED / TC NOT RUN**.
-2026-10-15 [첫 Battery 물리·관측 component](../learning/m2_battery_model.md)를 Host에서 구현·시험했다.
-[첫 BMS 한계·보호](../learning/m2_bms_controller.md)는 local sensor port 검사·방향별 derating·latch와
-PowerLimits를 구현·시험했다. [첫 Power lifecycle](../learning/m2_power_lifecycle.md)은 BMS gate·요청과
-실제 접점/RC bus/current를 연결했다. [Drive local gate/capability](../learning/m2_drive_gate.md)는
-원천 limits·독립 trusted permission·로컬 HV/속도를 확인하는 Host component로 구현·시험했다.
-[첫 energy coupling](../learning/m2_drive_energy.md)은 이상적 HV에서 actual torque/speed→DC→Battery SOC와 BMS 판단을 연결했다.
-[후속 RC/접점 연결](../learning/m2_ev_power_circuit.md)은 실제 capacitor/path·구간 전류/발열·Battery 에너지와 전원 lifecycle을 component로 시험했다.
-차량 motion/에너지·분산 runtime은 PLANNED / NOT RUN이다.
-[ADR-0014](../adr/ADR-0014-ev-functional-scope.md)의 후속 설계다.
-M0 v0.1과 RG-01 이후의 확장이며 기존 검토/실행 결과에 소급 포함하지 않는다.
-후속 [ZON-01](../architecture/zonal_partition.md)의 Front/Rear 두 Zone 배치를 반영한다.
+원래 범위 결정:2026-10-13([ADR-0014](../adr/ADR-0014-ev-functional-scope.md)).
+현재 **Host3-vECU 전원/actual·M6 quiet 차량/에너지 기능 구현**, Target/전체 TC 미검증이다.
+실행/수용 범위는 [project_status](../project_status.md), 현재 모델 수식·구간 에너지·물리 시한은
+[vehicle-energy ICD](vehicle_energy.md)를 따른다. 아래는 EV 기능의 의미/책임 계약이다.
 
 ## 목표와 구현 깊이
 
@@ -111,7 +102,7 @@ Fault clear/new frame/전원 정상화만으로 latched FAIL_SAFE를 해제하�
 아래 이름은 의미 계약이다. 후속 [BMS wire 초안](bms_frame_draft.md)에서 6개 EV frame의
 ID/DLC/P05/단위와 timing 시작값을 제안했다. [C++ EV codec/항목별 receiver](../learning/m1_bms_codec.md)와
 DBC 교차 검증·SocketCAN unit과 EV 독립 process/vCAN 36개 case를 수행했다.
-Actual coordinator/DDS/component runtime은 미구현이다.
+Host actual coordinator·BMS/전원·vehicle runtime은 연결했다. DDS 정규 adapter·Target/전체 system TC는 미검증이다.
 기존 actuator six-frame에는 BMS/power 정보를 추가하지 않았다.
 
 | Interface / 방향 | 필요한 의미 |

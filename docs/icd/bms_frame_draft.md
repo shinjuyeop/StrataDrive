@@ -184,7 +184,8 @@ Wheel/capability source와 torque actual의 30 ms 정책은 유지한다. 이는
 Local 시험은 trusted Epoch의 같은 Target CLOCK_MONOTONIC domain을 사용한다. Cross-node
 sync/uncertainty, 각 hop의 budget과 coordinator의 parent/model identity 전달은 TBD-04/05/14/15다.
 Clock rollback/critical timeout은 latched, recovery는 explicit trusted INIT다. Startup/rejoin
-coordinator의 실제 Central–Zone/vehicle gate, fault-specific actual response와 Drive 통합 gate는 아직 미구현이다.
+이 wire 초안 이후 Host Central–Zone 세션/vehicle·Drive gate와 M6 actual response를 연결했다.
+현재 수용은 [project_status](../project_status.md)를 따르며 다른 kernel/Target timing은 후속이다.
 [Local Epoch/queue](../learning/m1_session_queue.md)는 영속 발급·trusted fixture 연결과 실제 overflow를 검사했다.
 
 `BmsReceiver::start_session`에는 외부 trusted Epoch/monitor-enable 시각을 제공한다.

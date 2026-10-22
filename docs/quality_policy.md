@@ -1,7 +1,10 @@
 # Software quality policy
 
-Status: **M1 통신·M2 모델·M3 Host 실행·M4 Central/Zone component에 적용**. Compiler warnings, GoogleTest,
+Status: **Host component/runtime·M6 SIL/MIL에 적용; 아래 날짜별 수치는 당시 이력**. Compiler warnings, GoogleTest,
 clang-tidy/cppcheck와 ASan/UBSan을 사용했다. 현재 상태·최신 검증 분모의 기준은 [project_status.md](project_status.md)다.
+
+현재 M6 범위 종료는 [종료 검토](m6_exit_review.md), 최신 상태는 위 대표 문서를 따른다.
+다음은 기존 실행/개발 이력이며 현재 수용 상태를 대체하지 않는다.
 
 2026-10-22 [M6 에너지 후속](test-plan/evidence/m6_vehicle_energy/README.md)는
 공유 physical model/EV receiver 변경 뒤 최종 전체 Normal·ASan/UBSan 각1011/1011,

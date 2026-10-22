@@ -1,51 +1,8 @@
 # Engineering and learning plan
 
-Status: **M1/M2 기술 검사 완료·review PENDING / M3 Host 수용 검토·타이밍 예외 OPEN / 표준 실습 PLANNED**. 기존 **StrataDrive Reference Baseline v0.1**을
-유지한다. 이 문서는 개발·학습 방향이며 AUTOSAR 도입 완료, 안전 분석 완료 또는
-표준 준수의 증거가 아니다. 학습자 검토는 **PENDING**, 기존 차량 runtime TC는 **NOT RUN**이다.
-Host transport smoke는 [M1 첫 실행 기록](learning/m1_vcan_start.md),
-field codec 검증은 [C++ 실행 기록](learning/m1_steering_codec.md)에 범위와 결과를 남긴다.
-[Steering frame codec·DBC parser 검증](learning/m1_steering_frame_codec.md)도 Host에서 수행했다.
-[Steering 수신부의 수용/sequence/freshness/timeout](learning/m1_steering_receiver.md)을
-제어 가능한 시계로 Host에서 시험했다. [SocketCAN 연결](learning/m1_steering_socketcan.md)로
-Steering의 독립 process 송수신/fault/wall-time timeout을 실행했다. 후속
-[영속 local Epoch/queue](learning/m1_session_queue.md)도 구현·시험했고 Central same-host coordinator·세션 component로 연결했다. Zone DDS·차량 통합은 남아 있다.
-[Brake wire 확장](learning/m1_brake_codec.md)으로 압력 field·공통 metadata·DBC/P05·vCAN을 시험했다.
-[Brake 수신 수용/timeout](adr/ADR-0012-brake-receiver.md)도 Host/vCAN에서 구현·시험했다.
-[Drive wire/receiver](learning/m1_drive_codec.md)의 signed torque/capability도 Host/vCAN에서 구현·시험했다.
-2026-10-13 [RG-01 회생제동 포함 범위](adr/ADR-0011-regenerative-braking-scope.md)를 결정했다.
-M0 v0.1의 역사적 검토는 유지하고 현재 interface/safety/profile/test 계획에 확장을 반영한다.
-Drive wire는 signed 구동/회생 torque와 capability 원천 시각을 담는다.
-M1 통신 검사 후 [M2 첫 Steering 응답 모델](learning/m2_steering_model.md)을 Host에서 구현·시험했다.
-이어 [Brake 압력 응답](learning/m2_brake_model.md)과 [Drive torque-only 응답](learning/m2_drive_model.md)도 구현·시험했다.
-Drive ECU adapter와 물리 모델을 별도 모듈로 두었다.
-[Battery energy/관측](learning/m2_battery_model.md)은 actual DC 입력과 독립 센서 group을 구현·시험했다.
-[BMS 한계·보호](learning/m2_bms_controller.md)는 센서 port·derating·latch와 PowerLimits를 구현·시험했다.
-[Power lifecycle](learning/m2_power_lifecycle.md)은 RC/접점 actual과 BMS inhibit를 연결해 Host component로 시험했다.
-[Drive local gate/capability](learning/m2_drive_gate.md)까지 Host component로 구현·시험했다.
-[첫 Drive/Battery energy 연결](learning/m2_drive_energy.md)은 이상적 HV에서 actual torque/speed·손실·auxiliary·SOC를 연결했다.
-[실제 RC/접점·Battery 연결](learning/m2_ev_power_circuit.md)은 capacitor/path 손실·구간 전류·종료 부하를 연결해 시험했다.
-[M2 수용 검토](m2_acceptance_review.md)에서 task/monitor·parameter·fault/session과 component 증거를 대조했다.
-[Steering local monitor](learning/m2_steering_fault_monitor.md)는 sensor/물리 경계와 함께 구현·시험했다.
-[Brake response monitor](learning/m2_brake_fault_monitor.md)도 독립 pressure sensor·가압/감압 정상 범위와
-보호 요청/관측을 구현·시험했다. [실행 경계 정리](learning/m2_execution_boundaries.md)로 ECU library에서 plant 소유/호출을 제거하고
-별도 SIL 연결 코드와 도메인별 demo source를 뒀다. M3는 Host 다중 주기·독립 task/CAN 감시와 trace를 부분 구현했다.
-후속 [고정 부하·CPU 배치 비교](learning/m3_cpu_placement.md)는 조건별 miss와 실제 부하를 기록한다.
-후속 [Drive Actual 연결](learning/m3_drive_feedback.md)은 비동기 torque의 취득 시각과 독립 보조 시각을 보존해 CAN 수신을 검증한다.
-[M3 수용 검토](m3_acceptance_review.md)에서 다음 Host 통합의 IO 동반/FIFO 기준을 선택했다.
-일반 sanitizer 타이밍 실패 2건·학습자 수용은 남긴다. M4 [Central 전원·허가 상태 owner](learning/m4_vehicle_management.md)를
-component로 구현·시험했다. [첫 normal-path allocation](learning/m4_control_allocation.md)도 연결 시험했다.
-후속 [명령 수용](learning/m4_zone_command_admission.md)·[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)와 [Rear 전원·초기 구동](learning/m4_rear_power_startup.md)도 component/분리 vCAN에서 시험했다. [Front startup](learning/m4_front_startup.md)도 실제 두 Leaf/모델·양 Zone 시동 연결에서 시험했다. [정상 정지/HV 종료](learning/m4_normal_stop.md)도 actual dwell·terminal handoff/lease와 연결했다. [실제 Zone health·독립 status ingress](learning/m4_zone_feedback_health.md)도 연결·시험했다. [단일 coordinator/same-host 연결](learning/m4_vehicle_coordinator.md)도 구현·시험했다. 후속 [8-role 세션 준비/INIT-rejoin](learning/m4_session_bootstrap.md)도 연결했다. 후속 [정상 비동기 owner runtime](learning/m4_async_owners.md)은 실제 BMS·RC/접점·feedback과 request/arm/TX result/protection을 연결했다. 다음은 owner 정지·방향별 partition의 시험 확대와 통합 workload의 M3 실행 기준 비교, remote Leaf lease 계약이며 기존 예외 분석을 이어간다.
-차량 회생/배분 runtime은 PLANNED / NOT RUN이다.
-후속 [EV-01 범위 결정](adr/ADR-0014-ev-functional-scope.md)으로 실차의 준비·주행·종료·주요
-고장 과정을 Battery/BMS/power/vehicle management까지 확장했다. EV 요구/시험은 v0.3 계획이며
-실행 결과는 NOT RUN이다. [ZON-01](architecture/zonal_partition.md)로 최종 Front/Rear 두 Zone,
-Central 별도 단일 coordinator와 Rear Drive/BMS gateway를 채택했다. Host typed 세션 protocol은 ADR-0054, 정상 port 비동기 runtime은 ADR-0055에서 구현했다. Remote lease·DDS wire는 후속이다.
-2026-10-14 [BMS 의미·wire·timing 초안](icd/bms_frame_draft.md)을 작성하고 DBC/CRC를 검사했다.
-[EV 물리/frame codec과 항목별 receiver](learning/m1_bms_codec.md), Drive auxiliary age 분리도
-Host에서 구현·시험했다. 기존 fixture의 EV vCAN/session·parent·relay 36개 검사도 추가했다.
-M2 로컬 모델 입력은 pack 관측과 셀 전압·온도 극값을 포함한다.
-M1 남은 수용 항목 이후 M2 응답 모델로 진행한다.
+Status: **개발 방법·학습 계획**. 현재 구현/수용·OPEN은 [project_status](project_status.md),
+단계/TBD는 [roadmap](roadmap.md), M6 범위 종료는 [검토표](m6_exit_review.md)를 따른다.
+표준 준수·AUTOSAR 전체 도입·개인 학습 수용은 이 문서로 승인하지 않는다.
 
 ## Project objective
 
@@ -100,7 +57,7 @@ ISO 26262의 concept 활동은 [Part 3](https://www.iso.org/standard/68385.html)
 
 ## Model-Based Design path
 
-Status: **방법 채택 / 구현·MIL·모델/코드 동등성 검증 PLANNED / NOT RUN**.
+Status: **M6 Python 모델/MIL 범위 종료 / M8 C++ 동등성·통합 NOT RUN**.
 [ADR-0052](adr/ADR-0052-model-based-design-development-path.md)로 MBD를 M6–M8에 추가한다.
 기존 M4 coordinator/Zone 통합과 M3 예외 분석을 계속하며 MBD 때문에 구조나 milestone 번호를 바꾸지 않는다.
 기존 actuator/Battery/Power C++ plant를 활용하고 M6 차량 운동·제어 모델을 추가한다.
@@ -130,8 +87,8 @@ stale/invalid 속도·permission 상실·새 INIT다. Sample time/step·multirat
 출력/state 허용 오차는 결과를 보기 전에 고정한다. 기존 scenario/성능 수치 변경은 requirement revision 절차를 따른다.
 MBD 시험의 자세한 범위는 [검증 계획](test-plan/verification_strategy.md#mbd-model-and-code-verification)에 둔다.
 
-Simulink와 도구 독립 실행 모델(Python 등)을 후보로 검토한다. 도구/license·Host/CI 재현성·모델 diff·
-C++ harness 연동을 M6 pilot 전에 결정한다(TBD-16). 이번 결정으로 제품을 구매/설치하거나 자동 코드 생성 도입을 확정하지 않는다.
+M6 도구는 [ADR-0063](adr/ADR-0063-simple-vehicle-and-longitudinal-mil.md)의 Python으로 결정했다.
+M8 C++ harness/동등성 및 선택적 generator/license·재생성은 후속(TBD-16)이다.
 먼저 모델 설계/검증과 수작업 C++ 비교를 수행하고 자동 생성은 선택 후속 pilot으로 둔다.
 AUTOSAR RTE/BSW 생성과 제어 알고리즘 생성은 따로 기록한다. PIL/HIL·전체 Leaf 재작성은 추가 확정 범위에 넣지 않는다.
 
@@ -221,33 +178,10 @@ ISO 자료는 공개 개요를 바탕으로 학습 범위를 정하는 데 참�
 
 ## Next learning cycle
 
-기존 M0 종료 결과와 M1–M13 milestone을 유지한다. 단계별 연결은
-[roadmap](roadmap.md#engineering-activities)에 정리한다. 현재는 M1 기술 검사를 마무리했으며
-[첫 SocketCAN/vCAN 실행](learning/m1_vcan_start.md)과
-[Steering angle field codec](learning/m1_steering_codec.md)을 학습자가 재현할 수 있다.
-Steering frame/DBC에 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e_profile5.md)를
-직접 구현해 Host에서 시험했다. OS/RTE/BSW pilot과 별개의 적용 범위다.
-이어서 [로컬 application 수신부](learning/m1_steering_receiver.md)를 구현·시험했다.
-[SocketCAN/vCAN 연결](learning/m1_steering_socketcan.md)까지 실행했다.
-영속 local Epoch/queue overflow는 M1에서 검사했다. 독립 Central/Zone runtime·DDS·차량 통합 및 학습자 review는 남아 있다.
-
-Actuator/EV 12개 frame의 golden vectors → codec → vCAN application/overflow/restart 시험까지 실행했다.
-세 actuator는 공통 metadata와 수신 상태를 공유하고 Drive는 보조 freshness를 별도 검사한다.
-첫 [M2 조향 응답](learning/m2_steering_model.md)의 정상 응답과 local hold를 구현·시험했다.
-첫 [Drive torque 응답](learning/m2_drive_model.md)은 ECU 판단과 물리 계산의 경계를 별도 source로 구현했다.
-[Battery energy/관측](learning/m2_battery_model.md)도 구현·시험했다.
-[BMS 한계·보호](learning/m2_bms_controller.md)도 local component로 구현·시험했다.
-[Power lifecycle](learning/m2_power_lifecycle.md)도 local component로 구현·시험했다.
-[Drive local gate/capability](learning/m2_drive_gate.md)도 입력 검사와 실제 응답의 경계를 구분해 구현했다.
-[실제 DC/SOC 연결](learning/m2_drive_energy.md)은 이상적 HV의 component로 시험했다.
-[실제 circuit 연결](learning/m2_ev_power_circuit.md)도 constant-power/구간 current·heat와 atomic commit을 시험했다.
-학습자 review와 독립 Central/Zone runtime·DDS protocol이 남아 있으며 차량 energy/motion coupling과
-TBD-02/03/04/13은 관련 통합 전에 검토한다. 개념 설명은 해당 작업에 필요한 만큼만
-진행하고 작은 변경·review·직접 실행·결과 해석으로 이어간다.
-
-Concept study의 남은 가정, 정상 응답 범위/jam 검출과 AUTOSAR 대응·pilot은 관련 구현과
-함께 이어간다. 전체 이론 학습이나 pilot 완료를 M1 시작 조건으로 두지 않는다.
-Pilot에서 발견한 제약은 해당 구현의 ICD와 도구 선택 검토에 반영하며, 변경 영향은 기록한다.
+현재 다음 단위와 선행 조건은 [M7 최초 접속 준비](m6_exit_review.md#다음-한-단계--m7-최초-접속-계약과-환경-확인)를 따른다.
+각 단계에서 필요한 개념→구현/설계→검증→설명으로 진행하고, 개인 이해 확인은
+[학습 원칙](learning/README.md)에 별도 기록한다. 이전 단계의 상세 이력은 각 learning/evidence와
+[품질 이력](quality_policy.md)에 남긴다.
 
 ## Hosted OS pilot update
 

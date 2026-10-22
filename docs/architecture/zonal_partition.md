@@ -1,6 +1,7 @@
 # Central과 Front/Rear Zone 분할 — ZON-01 v0.5
 
-Date: 2026-10-14. Status: **배치 ACCEPTED / protocol 초안 / runtime PLANNED / 시험 NOT RUN**.
+Date: 2026-10-14. Status: **배치 ACCEPTED / Host3-vECU SOME/IP 한정 수용 / Target·전체 system 시험 NOT RUN**.
+현재 구현·다음 단계는 [project_status](../project_status.md)를 따른다.
 [ADR-0021](../adr/ADR-0021-central-coordination-and-parallel-zones.md)이 ADR-0015의 Front 조정 배치를 대체한다.
 기존 M0/M1/M2 결과는 새 다중 Zone acceptance의 증거가 아니다.
 
@@ -13,7 +14,7 @@ Date: 2026-10-14. Status: **배치 ACCEPTED / protocol 초안 / runtime PLANNED 
 | Central control_allocation | 구동·회생·마찰제동·조향 배분의 단일 owner | Controller 요구/원천 actual·capability → 두 Zone scoped command |
 | Central session / feedback_bridge | trusted Epoch/INIT, 원천 feedback 집계·Host bridge | 각 Zone의 독립 command/status/session, Host actual/EV status |
 | Front Zone | local validation/monitor/protection, Front CAN gateway | Central DDS, Steering/aggregate Brake CAN |
-| Rear Zone | local validation/monitor/protection, Rear CAN gateway | Central DDS, Drive/BMS CAN |
+| Rear Zone | local validation/monitor/protection, Rear CAN gateway | Central Ethernet(Host SOME/IP), Drive/BMS CAN |
 | Host | plant/scenario/tick owner, sensor 원천, actual의 단일 plant writer | Central sensor 경로, Central feedback bridge |
 
 ```mermaid
