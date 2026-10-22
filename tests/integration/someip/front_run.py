@@ -49,7 +49,7 @@ def inside(folder,binary,case):
     three=bool(os.environ.get('STRATADRIVE_THREE_ECU'));target='rear' if os.environ.get('STRATADRIVE_FAULT_REAR') else 'front'
     peers={};peer_roles=('front','rear') if three else ('front',)
     result={'case':case,'three_ecu':three,'fault_target':target,'pass':False,'processes':[],'forced_cleanup':[],
-            'clock_sample':{'monotonic_ns':time.monotonic_ns(),'wall_ns':time.time_ns(),'utc_offset_s':datetime.now().astimezone().utcoffset().total_seconds()}}
+            'energy_cycle':os.environ.get('STRATADRIVE_ENERGY_CYCLE'),'clock_sample':{'monotonic_ns':time.monotonic_ns(),'wall_ns':time.time_ns(),'utc_offset_s':datetime.now().astimezone().utcoffset().total_seconds()}}
     def call(cmd):return subprocess.check_output(list(map(str,cmd)),stderr=subprocess.STDOUT,text=True)
     def launch(role,generation=1,test_override=None):
         prefix=folder/f'{role}-{generation}'
@@ -175,7 +175,7 @@ def inside(folder,binary,case):
                     for r,p in peers.items():(folder/('stop-'+r)).touch();p.wait(timeout=3)
                     (folder/'stop-central').touch()
         if case in ('normal','late','invalid','restart-live'):
-            pilot.wait_for(lambda:(folder/'central-1.quiesced').exists() or central.poll() is not None,8)
+            pilot.wait_for(lambda:(folder/'central-1.quiesced').exists() or central.poll() is not None,11 if os.environ.get('STRATADRIVE_ENERGY_CYCLE') else 8)
             if central.poll() is None:
                 for r,p in peers.items():(folder/('stop-'+r)).touch();p.wait(timeout=3)
                 (folder/'stop-central').touch()
@@ -275,18 +275,26 @@ def inside(folder,binary,case):
             from vehicle_oracle import vehicle_oracle
             result['vehicle']=vehicle_oracle(folder,case)
             result['pass']=result['pass'] and result['vehicle']['pass']
+        if os.environ.get('STRATADRIVE_ENERGY_CYCLE'):
+            from energy_oracle import energy_oracle
+            result['energy']=energy_oracle(folder,case,os.environ['STRATADRIVE_ENERGY_CYCLE'])
+            result['pass']=result['pass'] and result['energy']['pass']
         pilot.save(folder/'result.json',result)
     return 0 if result['pass'] else 1
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--inside',nargs=3)
-    p.add_argument('--simple-vehicle',action='store_true');p.add_argument('--three',action='store_true');p.add_argument('--fault-zone',choices=['front','rear'],default='front')
+    p.add_argument('--energy-cycle',choices=['nominal','no-charge']);p.add_argument('--simple-vehicle',action='store_true');p.add_argument('--three',action='store_true');p.add_argument('--fault-zone',choices=['front','rear'],default='front')
     p.add_argument('--native-watch',action='store_true');p.add_argument('--fifo',action='store_true');p.add_argument('--loaded',action='store_true');p.add_argument('--timing',action='store_true');p.add_argument('--duration-ms',type=int,default=2540)
     p.add_argument('--profile',choices=['normal','asan','tsan'],default='normal');p.add_argument('--fixed-layout',action='store_true')
     p.add_argument('--cases',nargs='+',choices=CASES,default=['normal']);p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
     if a.fixed_layout and a.profile!='tsan':p.error('fixed-layout is TSan-only')
     if (a.fifo or a.loaded or a.timing) and not a.native_watch:p.error('native-watch required')
+    if a.energy_cycle:
+        if not (a.three and a.simple_vehicle and a.native_watch):p.error('energy-cycle requires three/simple-vehicle/native-watch')
+        if a.duration_ms not in (2540,8000):p.error('energy-cycle-v1 has a fixed 8000ms observation')
+        a.duration_ms=8000;os.environ['STRATADRIVE_ENERGY_CYCLE']=a.energy_cycle
     if a.simple_vehicle:
         if not a.three:p.error('simple-vehicle requires three ECUs')
         os.environ['STRATADRIVE_SIMPLE_VEHICLE']='1'
@@ -306,12 +314,12 @@ def main():
     rows=[]
     with pilot.open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        pilot.save(out/'plan.json',{'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'fault_target':a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*')]) if p.is_file()}})
+        pilot.save(out/'plan.json',{'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'fault_target':a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()
                 cmd=['unshare','-Urnm',sys.executable,str(HERE),'--inside',str(dest),str(binary),case]
                 if a.fixed_layout:cmd=['setarch','x86_64','-R',*cmd]
-                code=pilot.supervise(cmd,dest,20);rows.append({'case':case,'repeat':repeat+1,'exit':code});pilot.save(out/'results.json',rows)
+                code=pilot.supervise(cmd,dest,25 if a.energy_cycle else 20);rows.append({'case':case,'repeat':repeat+1,'exit':code});pilot.save(out/'results.json',rows)
     return 0 if all(r['exit']==0 for r in rows) else 1
 if __name__=='__main__':sys.exit(main())

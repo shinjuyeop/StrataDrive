@@ -17,6 +17,7 @@ def native_oracle(folder,case,result,fifo):
                 require(not protected or protected>=injected,'normal protection preceded fault injection')
         for path in sorted(folder.glob('*.native.watch.json')):
             info=json.loads(path.read_text())
+            if result.get('energy_cycle'):require(info['quiesced']<=info['stop'],'energy profile exceeded its guarded observation '+path.name)
             with path.with_suffix('.csv').open() as stream:rows=list(csv.DictReader(stream))
             active=[{k:int(v) for k,v in r.items()} for r in rows if int(r['deadline'])<=info['quiesced']]
             missed=[r for r in active if not r['end'] or r['end']>r['deadline']]

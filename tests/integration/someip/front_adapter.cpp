@@ -1,6 +1,7 @@
 // Opt-in Host adapter. Eight real participants; no pilot grants or synthetic feedback.
 #include "adapter_transport.hpp"
 #include "plant_io.hpp"
+#include "energy_scenario.hpp"
 #include "remote_leaf_endpoint.hpp"
 #include "remote_zone_endpoint.hpp"
 #include "run_lease_issuer.hpp"
@@ -17,6 +18,8 @@ using namespace stratadrive::someip;
 namespace {
 using Role=session::Role;
 using Clock=simulation::m4_detail::Clock;
+bool energy_enabled(){return std::getenv("STRATADRIVE_ENERGY_CYCLE")!=nullptr;}
+bool no_charge(){const auto* p=std::getenv("STRATADRIVE_ENERGY_CYCLE");return p && std::string(p)=="no-charge";}
 bool native_enabled(){return std::getenv("STRATADRIVE_NATIVE_WATCH")!=nullptr;}
 bool three_enabled(){return std::getenv("STRATADRIVE_THREE_ECU")!=nullptr;}
 unsigned fault_zone(){return std::getenv("STRATADRIVE_FAULT_REAR")?1:0;}
@@ -36,7 +39,7 @@ void mark(const fs::path& p){
 }
 struct Trace final:transport::TransportTrace {
     std::ofstream out;std::vector<transport::TransportTraceRow> rows;bool overflow=false;
-    explicit Trace(const fs::path& p):out(p){rows.reserve(65536);}
+    explicit Trace(const fs::path& p):out(p){rows.reserve(energy_enabled()?196608:65536);}
     ~Trace(){out<<"event,ns,peer,epoch,token,sent,deadline,operation,decision,source,original_source,inner_deadline,payload_source\n";
         for(const auto& r:rows)out<<r.stage<<','<<r.time_ns<<','<<r.peer<<','<<r.epoch<<','<<r.token<<','<<r.sent_ns<<','<<r.deadline_ns<<','<<r.operation<<','<<r.outcome<<','<<r.result_source_ns<<','<<r.original_source_ns<<','<<r.inner_deadline_ns<<','<<r.payload_source_ns<<'\n';}
     void record(transport::TransportTraceRow r) noexcept override;
@@ -70,6 +73,9 @@ struct Owners final:session::CoordinatorPort {
     std::uint64_t diagnostic_sent=0,diagnostic_rejected=0,diagnostic_expired=0,diagnostic_late=0,pending_expired=0,state_violations=0,pre_init_rejected=0;
     std::uint64_t last_step=0,max_poll_gap=0;
     double max_validated_wheel_speed=0;std::uint64_t wheel_speed_samples=0,last_wheel_source=0;
+    struct EnergyFeedback {std::uint64_t now,source;std::uint32_t epoch;double torque,speed,capability,charge;bool cap_present,charge_present;};
+    std::vector<EnergyFeedback> energy_feedback;bool energy_feedback_overflow=false;const char* energy_phase=nullptr;
+    int observed_regen=-1;
     bool freeze_normal=false;std::array<remote::ProtectionReceipt,2> receipt;
     bool stop_requested=false;std::uint32_t stop_seq=0;std::uint64_t stop_started=0,stop_complete=0,last_stop=0;
     std::atomic<std::uint64_t> monitor_delay{0};
@@ -83,12 +89,17 @@ struct Owners final:session::CoordinatorPort {
         simulation::NativeExecutionWatch::configure_thread(remote?(zi?7:2):1,fifo_enabled()?(remote?18:11):0);watch->owner_info.capture();
     }
     ~Owners(){
+    if(!remote && energy_enabled()) {
+        std::ofstream f(folder/(tag+".energy-feedback.csv"));f<<"ns,source_ns,epoch,torque_nm,wheel_speed_rad_s,capability_nm,charge_w,cap_present,charge_present\n";
+        for(const auto& e:energy_feedback)f<<e.now<<','<<e.source<<','<<e.epoch<<','<<e.torque<<','<<e.speed<<','<<e.capability<<','<<e.charge<<','<<e.cap_present<<','<<e.charge_present<<'\n';
+    }
+
         if(watch)watch->write((folder/(tag+".native")).string());
         std::ofstream events(folder/(tag+".events.csv"));events<<"ns,event,epoch,role,value,deadline\n";
         for(const auto& e:event_rows)events<<e.ns<<','<<e.name<<','<<e.epoch<<','<<e.role<<','<<e.value<<','<<e.deadline<<'\n';
     }
     explicit Owners(Ecu e,Transport& n,const fs::path& d,const std::string& label):ecu(e),remote(e!=Ecu::Central),three(three_enabled()),zi(e==Ecu::Rear?1:0),folder(d),tag(label),net(n),io((d/"sil-io"/"plant.bin").string()),trace(d/(tag+".transport.csv")) {
-        event_rows.reserve(65536);
+        event_rows.reserve(65536);if(energy_enabled() && !remote)energy_feedback.reserve(2000);
         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
         if(remote || !three) {
             const unsigned z=remote?zi:1;
@@ -183,6 +194,10 @@ struct Owners final:session::CoordinatorPort {
             }
             if(!zones[static_cast<unsigned>(m.from)].results.push(*r))fail("result-overflow");
         } else if(auto* f=std::get_if<transport::Feedback>(&m.payload)) {
+            if(energy_enabled())if(const auto* frame=std::get_if<can::DriveFrame>(f)) {
+                const auto actual=can::decode_drive_frame(*frame);
+                if(actual && actual->regen_capability)event("wire-capability",7,actual->regen_capability->source_time_ns,actual->regen_capability->input_time_ns);
+            }
             ++actual_count;if(!zones[static_cast<unsigned>(m.from)].feedback.push(*f))fail("feedback-overflow");
         } else if(auto* a=std::get_if<remote::ProtectionAck>(&m.payload)) {
             const unsigned z=static_cast<unsigned>(m.from);
@@ -226,15 +241,32 @@ struct Owners final:session::CoordinatorPort {
             const auto slot=t>=plan.enable_ns+4*kMs?(t-plan.enable_ns-4*kMs)/(20*kMs)+1:0;
             if(!stop_requested && !freeze_normal && due && slot!=lifecycle_slot){lifecycle_slot=slot;core.receive_lifecycle({{epoch,root_seq++,t,t+60*kMs},can::BmsPowerAction::Enable},now());}
             if(!stop_requested && !freeze_normal && core.decision().normal_armed && t>=core.next_allocation_ns() && vehicle_release!=core.next_allocation_ns()) {
-                vehicle_release=core.next_allocation_ns();core.receive_vehicle({epoch,vehicle_seq++,t,t+60*kMs,.2,.02,0,false},now());
+                vehicle_release=core.next_allocation_ns();
+                auto demand=someip::test::EnergyDemand{"fixed",.2,false};
+                if(energy_enabled() && armed_ns) {
+                    demand=someip::test::energy_demand(t-armed_ns);
+                    if(energy_phase!=demand.phase){energy_phase=demand.phase;event(demand.phase,7,t-armed_ns);}
+                }
+                core.receive_vehicle({epoch,vehicle_seq++,t,t+60*kMs,demand.acceleration,.02,0,demand.hold},now());
             }
             if(due)next_management=plan.enable_ns+4*kMs+((t-plan.enable_ns-4*kMs)/(10*kMs)+1)*(10*kMs);
             const auto feedback=port.feedback();
             if(feedback.rear.drive_actual && feedback.rear.drive_actual->wheel_speed) {
                 const auto& wheel=*feedback.rear.drive_actual->wheel_speed;
-                if(wheel.source_time_ns>last_wheel_source){last_wheel_source=wheel.source_time_ns;++wheel_speed_samples;max_validated_wheel_speed=std::max(max_validated_wheel_speed,wheel.value_rad_s);}
+                if(wheel.source_time_ns>last_wheel_source){last_wheel_source=wheel.source_time_ns;++wheel_speed_samples;max_validated_wheel_speed=std::max(max_validated_wheel_speed,wheel.value_rad_s);
+                    if(energy_enabled()) {
+                        const auto& d=*feedback.rear.drive_actual;const auto* limits=feedback.rear.power_limits?std::get_if<can::BmsPowerLimits>(&feedback.rear.power_limits->message.content):nullptr;
+                        if(energy_feedback.size()<energy_feedback.capacity())energy_feedback.push_back({now(),wheel.source_time_ns,epoch,d.torque_nm.value_or(0),wheel.value_rad_s,d.regen_capability?d.regen_capability->torque_limit_nm:0,limits?limits->charge_power_w.value_or(0):0,d.regen_capability.has_value(),limits && limits->charge_power_w.has_value()});else energy_feedback_overflow=true;
+                    }
+                }
             }
             core.tick(feedback,now(),due);
+            if(energy_enabled() && static_cast<int>(core.decision().allocation.regen)!=observed_regen) {
+                observed_regen=static_cast<int>(core.decision().allocation.regen);
+                const auto cap=feedback.rear.drive_actual?feedback.rear.drive_actual->regen_capability:std::nullopt;
+                event("regen-admission",7,observed_regen,cap?std::min(cap->source_time_ns+30*kMs+1,cap->input_time_ns+70*kMs+1):0);
+                if(cap)event("regen-capability-input",7,cap->source_time_ns,cap->input_time_ns);
+            }
             if(stop_requested && !stop_complete && core.decision().stop.state==central::NormalStopState::Complete){stop_complete=now();event("normal-stop-complete",7);}
 
         }
@@ -285,7 +317,7 @@ int plant(const fs::path& folder) {
     std::array<runtime::LatestSnapshot<simulation::OwnerSensors>,8> sensors;
     std::array<runtime::LatestSnapshot<simulation::OwnerActuation>,5> outputs;
     std::vector<simulation::M4Event> events;events.reserve(4000);const auto start=now();
-    simulation::m4_detail::PhysicalOwner physical{clock,gate,sensors,outputs,start,events,override_signal,1,std::getenv("STRATADRIVE_SIMPLE_VEHICLE")!=nullptr};physical.trace.reserve(4000);
+    simulation::m4_detail::PhysicalOwner physical{clock,gate,sensors,outputs,start,events,override_signal,1,std::getenv("STRATADRIVE_SIMPLE_VEHICLE")!=nullptr,no_charge()?.96:.63};physical.trace.reserve(4000);
     PlantIO io((folder/"sil-io"/"plant.bin").string(),true);
     std::unique_ptr<simulation::NativeExecutionWatch> watch;
     std::vector<std::unique_ptr<simulation::NativeMonitorObserver>> observers;
@@ -324,6 +356,10 @@ int plant(const fs::path& folder) {
     if(watch)watch->write((folder/"plant-1.native").string());
     std::ofstream log(folder/"physical.csv");log<<"ns,epoch,angle,pressure,torque,bus,model_epoch,model_sequence,speed_mps,distance_m,x_m,y_m,yaw_rad,vehicle_balance_j\n";
     for(const auto& r:physical.trace)log<<r.source_ns<<','<<r.epoch<<','<<r.angle_rad<<','<<r.pressure_pa<<','<<r.torque_nm<<','<<r.bus_v<<','<<r.model_epoch<<','<<r.model_sequence<<','<<r.speed_mps<<','<<r.distance_m<<','<<r.x_m<<','<<r.y_m<<','<<r.yaw_rad<<','<<r.vehicle_balance_j<<'\n';
+    if(physical.vehicle()) {
+        std::ofstream e(folder/"energy.csv");e<<std::setprecision(17)<<"begin_ns,end_ns,input_ns,epoch,model_epoch,sequence,torque_nm,pressure_pa,wheel_speed_rad_s,kinetic_j,motor_work_j,friction_j,road_j,electrical_mechanical_j,motor_loss_j,battery_draw_j,received_dc_j,auxiliary_j,ohmic_j,capacitor_delta_j,circuit_loss_j,soc,vehicle_balance_j,coupling_balance_j,combined_balance_j\n";
+        for(const auto& row:physical.energy_trace){const auto& v=row.state;e<<v.begin_ns<<','<<v.end_ns<<','<<v.input_ns<<','<<row.epoch<<','<<v.model_epoch<<','<<v.sequence<<','<<v.torque_nm<<','<<v.pressure_pa<<','<<v.wheel_speed_rad_s<<','<<v.kinetic_j<<','<<v.motor_work_j<<','<<v.friction_j<<','<<v.road_j<<','<<v.electrical_mechanical_j<<','<<v.motor_loss_j<<','<<v.battery_draw_j<<','<<v.received_dc_j<<','<<v.auxiliary_j<<','<<v.ohmic_j<<','<<v.capacitor_delta_j<<','<<v.circuit_loss_j<<','<<v.soc<<','<<v.vehicle_balance_j<<','<<v.coupling_balance_j<<','<<v.combined_balance_j<<'\n';}
+    }
     std::ofstream steps(folder/"plant-timing.csv");steps<<"before,after,failed\n";for(const auto& r:timing)steps<<r[0]<<','<<r[1]<<','<<r[2]<<'\n';
     std::ofstream ev(folder/"plant-events.csv");ev<<"ns,event,owner,epoch,source,deadline,reference,code\n";
     for(const auto& e:events)ev<<e.time_ns<<','<<e.kind<<','<<e.owner<<','<<e.epoch<<','<<e.source_ns<<','<<e.deadline_ns<<','<<e.reference_ns<<','<<e.code<<'\n';
@@ -377,7 +413,7 @@ int main(int argc,char** argv) {
             std::uint64_t injected_ns=0,paused_until=0,full_sent=0;bool overflow_probe=false;
             std::optional<transport::ZoneRequest> prior_request;
             std::uint64_t requested_wake=owners->watch?owners->watch->next_wake(now()):now();bool native_injected=false;
-            while(!fs::exists(folder/("stop-"+role)) && now()-ready_ns<9000*kMs) {
+            while(!fs::exists(folder/("stop-"+role)) && now()-ready_ns<(energy_enabled()?13000:9000)*kMs) {
                 if(owners->watch)simulation::runtime_support::sleep_until(requested_wake);
                 NativeIteration iteration(owners->watch.get(),requested_wake);
                 const auto t=now();
@@ -442,7 +478,7 @@ int main(int argc,char** argv) {
                 }
                 if(!remote && owners->port.completed_batches()>=10 && owners->pending.empty() && (!three_enabled() || owners->observed_normal_response()))mark(folder/"control-established");
                 const bool healthy_case=test=="normal" || test=="late" || test=="invalid" || (test=="restart-live" && rejoined);
-                if(!remote && healthy_case && owners->armed_ns && now()-owners->armed_ns>=500*kMs && (!owners->watch || now()-ready_ns>=run_duration()) && owners->pending.empty()) {
+                if(!remote && healthy_case && owners->armed_ns && now()-owners->armed_ns>=500*kMs && (!owners->watch || now()-ready_ns>=run_duration()) && (!energy_enabled() || now()-owners->armed_ns>=5000*kMs) && owners->pending.empty()) {
                     check(owners->release_acks==255 && owners->port.completed_batches()>=10 && owners->accepted_results>=20 && owners->actual_count>=20,"normal real control coverage");
                     check(!owners->protected_ns && owners->core.decision().fault==central::CoordinatorFault::None,"normal control fault");
                     if(test=="invalid")check(invalid_sent && owners->diagnostic_rejected==2,"invalid replay evidence");
@@ -489,7 +525,7 @@ int main(int argc,char** argv) {
         }while(now()<until);
         for(const auto& item:owners->pending){++pending_cancelled;owners->event("cancelled-on-protection",0,item.first,item.second.deadline_ns);}
         owners->pending.clear();
-        if(owners->trace.overflow || owners->event_overflow){pass=false;error="trace capacity exceeded";}
+        if(owners->trace.overflow || owners->event_overflow || owners->energy_feedback_overflow){pass=false;error="trace capacity exceeded";}
     }
     // Controller work has selected protection and finished cleanup. Artifact IO
     // and SDK teardown are outside the guarded owner lifetime.
