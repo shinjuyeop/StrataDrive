@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <memory>
+#include <vector>
 
 namespace {
 using namespace stratadrive;
@@ -96,6 +97,69 @@ TEST_F(AsyncOwnerTest, AllocationWaitsForReceivedGrantAndUsesItsOriginalIssuedPa
     newer.permission_parent=can::BmsParentContext{3,1,clock.now,clock.now+60*kMs};
     ASSERT_TRUE(port.deliver_power(newer)); EXPECT_FALSE(port.allocation_ready(newer,clock.now));
     const auto still_first=port.received_permission_parent(); ASSERT_TRUE(still_first); EXPECT_EQ(still_first->sequence,0U);
+}
+// Saved normal failure: next release=532747851408166, latest grant
+// source=532747855410737, expiry=532747871338563 (69,603ns short).
+TEST_F(AsyncOwnerTest, ReadinessRequiresCurrentUsableGrantWithoutRestamping) {
+    initialize();
+    central::VehicleManagementOutput out;
+    for(auto* m:{&out.power_request,&out.drive_permission}) {
+        m->epoch=3; m->source_time_ns=kStart; m->local_state=can::ActuatorLocalState::Normal;
+        m->origin=can::ActuatorOrigin::NormalPath;
+    }
+    out.power_request.kind=can::BmsFrameKind::PowerRequest;
+    out.drive_permission.kind=can::BmsFrameKind::DrivePermission;
+    out.power_request.content=can::BmsPowerRequest{can::BmsPowerAction::Enable,kStart+60*kMs,kStart};
+    out.drive_permission.content=can::BmsDriveGrant{can::BmsDrivePermission::AllowNormal,0,kStart,kStart,kStart+30*kMs};
+    out.power_parent=out.permission_parent=can::BmsParentContext{3,0,kStart,kStart+60*kMs};
+    ASSERT_TRUE(port.deliver_power(out));const auto request=rear->work.pop();ASSERT_TRUE(request);
+    can::BmsTxState tx{can::BmsFrameKind::DrivePermission};const auto frame=can::encode_bms_frame(out.drive_permission,tx);ASSERT_TRUE(frame);
+    clock.now=kStart+kMs;ack(*rear,*request,true,2);ASSERT_TRUE(rear->feedback.push(*frame));port.service();
+    clock.now=kStart+6*kMs;
+    ASSERT_TRUE(port.current_permission());
+    EXPECT_FALSE(port.allocation_ready(out,clock.now)); // Preserve the release phase contract.
+    EXPECT_TRUE(port.allocation_ready(out,kStart));
+    EXPECT_EQ(port.current_permission()->message.source_time_ns,kStart);
+    EXPECT_EQ(std::get<can::BmsDriveGrant>(port.current_permission()->message.content).expires_at_ns,kStart+30*kMs);
+    // Do not turn the observed 69,603ns shortfall into a synthetic longer grant.
+    const auto short_release=kStart+10*kMs+69603;
+    clock.now=short_release;EXPECT_FALSE(port.allocation_ready(out,short_release));
+    clock.now=kStart+30*kMs;EXPECT_FALSE(port.allocation_ready(out,kStart)); // Was true on metadata identity alone.
+    EXPECT_FALSE(port.allocation_ready(out,short_release));
+    ASSERT_TRUE(port.current_permission()); // Expired current view is canonical unavailable.
+    EXPECT_FALSE(can::bms_permission_allows_normal(*port.current_permission()));
+    EXPECT_EQ(std::get<can::BmsDriveGrant>(out.drive_permission.content).expires_at_ns,kStart+30*kMs);
+}
+TEST_F(AsyncOwnerTest, RecordedInsufficientGrantCannotCoverNextTwentyMillisecondRelease) {
+    constexpr std::uint64_t release=532747851408166,source=532747855410737,expiry=532747871338563;
+    EXPECT_EQ(release+20*kMs-expiry,69603U);
+    clock.now=source;initialize();
+    struct Trace final:transport::TransportTrace {
+        std::vector<transport::TransportTraceRow> rows;
+        void record(transport::TransportTraceRow row) noexcept override {rows.push_back(row);}
+    } trace;
+    trace.rows.reserve(32);port.transport_trace(&trace);
+    central::VehicleManagementOutput out;
+    for(auto* m:{&out.power_request,&out.drive_permission}) {
+        m->epoch=3;m->source_time_ns=source;m->local_state=can::ActuatorLocalState::Normal;m->origin=can::ActuatorOrigin::NormalPath;
+    }
+    out.power_request.kind=can::BmsFrameKind::PowerRequest;out.drive_permission.kind=can::BmsFrameKind::DrivePermission;
+    out.power_request.content=can::BmsPowerRequest{can::BmsPowerAction::Enable,source+50*kMs,source};
+    out.drive_permission.content=can::BmsDriveGrant{can::BmsDrivePermission::AllowNormal,0,source,source,expiry};
+    out.power_parent=out.permission_parent=can::BmsParentContext{3,0,source,source+60*kMs};
+    ASSERT_TRUE(port.deliver_power(out));const auto r=rear->work.pop();ASSERT_TRUE(r);
+    can::BmsTxState tx{can::BmsFrameKind::DrivePermission};const auto frame=can::encode_bms_frame(out.drive_permission,tx);ASSERT_TRUE(frame);
+    clock.now=532747855631899;ack(*rear,*r,true,2);ASSERT_TRUE(rear->feedback.push(*frame));port.service();
+    ASSERT_TRUE(port.current_permission());EXPECT_TRUE(port.commands_settled());
+    EXPECT_FALSE(port.allocation_ready(out,release));
+    ASSERT_FALSE(trace.rows.empty());const auto& decision=trace.rows.back();
+    EXPECT_STREQ(decision.stage,"allocation-readiness");EXPECT_EQ(decision.outcome,3);
+    EXPECT_EQ(decision.token,0U);EXPECT_EQ(decision.operation,-1); // Not a transaction identity.
+    EXPECT_EQ(decision.sent_ns,release);EXPECT_EQ(decision.original_source_ns,source);
+    EXPECT_EQ(decision.inner_deadline_ns,expiry);
+    clock.now=532747859008926;EXPECT_FALSE(port.allocation_ready(out,release));
+    EXPECT_TRUE(gate.allows(3)); // This port does not fabricate a Leaf completion or expiry extension.
+    EXPECT_FALSE(front->work.pop());EXPECT_FALSE(rear->work.pop());
 }
 TEST_F(AsyncOwnerTest, BrokenMailboxCannotBeRepairedByEpochAndProtectionBypassesIt) {
     initialize(); const transport::ZoneRequest value{};

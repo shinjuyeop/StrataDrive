@@ -17,7 +17,7 @@ bool AsyncCoordinatorPort::initialize(CoordinatorSession s) {
         !status_.start_session(s.epoch,s.enable_ns) || !limits_.start_session(s.epoch,s.enable_ns) || !permission_.start_session(s.epoch,s.enable_ns) ||
         !front_.start_session(s.epoch,s.enable_ns) || !rear_.start_session(s.epoch,s.enable_ns)) return false;
     session_=s; observed_=now; failed_=false; fault_=AsyncTransportFault::None; failed_operation_=-1; pending_={}; issued_={}; issued_next_=0; commands_.reset();
-    armed_={}; stopped_={}; arm_sent_=false; stop_.reset(); command_source_ns_=0; command_root_sequence_=0; return true;
+    armed_={}; stopped_={}; arm_sent_=false; stop_.reset(); command_source_ns_=0; command_root_sequence_=0; traced_release_=command_expiry_ns_=0; traced_permission_=0; traced_readiness_=-1; return true;
 }
 bool AsyncCoordinatorPort::session_ready(CoordinatorSession s) noexcept {
     return !failed_ && s.epoch!=0 && s.epoch==session_.epoch && s.enable_ns==session_.enable_ns && !gate_.allows(s.epoch) &&
@@ -71,6 +71,13 @@ bool AsyncCoordinatorPort::deliver_power(const VehicleManagementOutput& out) noe
     const auto* request=std::get_if<can::BmsPowerRequest>(&out.power_request.content);
     const auto* grant=std::get_if<can::BmsDriveGrant>(&out.drive_permission.content);
     if(!request || !grant || out.power_request.epoch!=session_.epoch || out.drive_permission.epoch!=session_.epoch) return false;
+    if(trace_) {
+        transport::TransportTraceRow row;row.stage="permission-issued";row.time_ns=now_ns();
+        row.epoch=out.drive_permission.epoch;row.peer=out.drive_permission.sequence;row.operation=-1;
+        row.original_source_ns=out.drive_permission.source_time_ns;row.inner_deadline_ns=grant->expires_at_ns;
+        row.payload_source_ns=grant->input_time_ns;row.result_source_ns=grant->power_status_source_time_ns;
+        row.deadline_ns=command_expiry_ns_;trace_->record(row);
+    }
     if(!post(1,out,std::min(request->expires_at_ns,grant->expires_at_ns))) return false;
     issued_[issued_next_]=IssuedPermission{out.drive_permission,out.permission_parent}; issued_next_=(issued_next_+1)%issued_.size();
     return true;
@@ -87,23 +94,40 @@ bool AsyncCoordinatorPort::deliver_commands(const AllocatedCommands& commands) n
     }
     commands_=commands;
     if(!post(0,ScopedCommands{front_commands(commands)},commands.expires_at_ns)) { commands_.reset(); return false; }
-    command_source_ns_=commands.steering.source_time_ns; command_root_sequence_=commands.parent.sequence;
+    command_expiry_ns_=commands.expires_at_ns; command_source_ns_=commands.steering.source_time_ns; command_root_sequence_=commands.parent.sequence;
     return true;
 }
 bool AsyncCoordinatorPort::allocation_ready(const VehicleManagementOutput& out,std::uint64_t release) noexcept {
-    // One in-flight batch. A due release waits without creating/replacing a
-    // command or changing any pending envelope. service() owns result expiry.
+    // Keep the existing transaction trace and do not poll permission while a
+    // batch is still in flight. These rows retain the real request token.
     if(commands_) {
         if(trace_) for(const auto& p:pending_) if(p && transport::operation(p->request.work)==transport::Operation::Commands)
             transport::trace(trace_,"allocation-deferred",now_ns(),p->zone,p->request);
         return false;
     }
     const auto* grant=std::get_if<can::BmsDriveGrant>(&out.drive_permission.content);
-    if(!grant || grant->permission!=can::BmsDrivePermission::AllowNormal) return true;
-    if(out.drive_permission.source_time_ns<release || grant->expires_at_ns<=release || grant->expires_at_ns-release<=20000000ULL) return false;
     const auto received=current_permission();
-    return received && received->message.epoch==out.drive_permission.epoch && received->message.sequence==out.drive_permission.sequence &&
-        received->message.source_time_ns==out.drive_permission.source_time_ns;
+    // Preserve the phase and next-period support checks: an earlier grant can
+    // leave only nanoseconds for the next remote handover. Additionally require
+    // usable received authority at actual execution time, not identity alone.
+    // Codes: 0 ready,1 batch pending,2 source outside release..now,
+    // 3 short/expired support,4 no usable matching RX. Bounded sink, no IO.
+    const int reason=(!grant || grant->permission!=can::BmsDrivePermission::AllowNormal)?0:
+        (out.drive_permission.source_time_ns<release || out.drive_permission.source_time_ns>now_ns())?2:
+        (grant->expires_at_ns<=now_ns() || grant->expires_at_ns<=release || grant->expires_at_ns-release<=20000000ULL)?3:
+        (!received || !can::bms_permission_allows_normal(*received) || received->message.epoch!=out.drive_permission.epoch ||
+         received->message.sequence!=out.drive_permission.sequence ||
+         received->message.source_time_ns!=out.drive_permission.source_time_ns)?4:0;
+    if(trace_ && (release!=traced_release_ || reason!=traced_readiness_ || out.drive_permission.sequence!=traced_permission_)) {
+        transport::TransportTraceRow row;
+        row.stage="allocation-readiness";row.time_ns=now_ns();row.epoch=out.drive_permission.epoch;
+        row.peer=out.drive_permission.sequence;row.operation=-1;row.sent_ns=release;
+        row.original_source_ns=out.drive_permission.source_time_ns;
+        row.inner_deadline_ns=grant?grant->expires_at_ns:0;
+        row.payload_source_ns=command_source_ns_;row.deadline_ns=command_expiry_ns_;row.outcome=reason;
+        trace_->record(row);traced_release_=release;traced_readiness_=reason;traced_permission_=out.drive_permission.sequence;
+    }
+    return reason==0;
 }
 OperationStatus AsyncCoordinatorPort::stop_status(const NormalStopPlan& plan) noexcept {
     if(failed_ || !gate_.allows(session_.epoch)) return OperationStatus::Rejected;

@@ -57,6 +57,7 @@ private:
     std::array<transport::ZoneLink*,2> links_;
     CoordinatorSession session_{}; std::uint64_t observed_{0},next_token_{1},completed_batches_{0}; bool failed_{false};
     AsyncTransportFault fault_{AsyncTransportFault::None}; int failed_operation_{-1};
+    std::uint64_t traced_release_{0},command_expiry_ns_{0}; std::uint32_t traced_permission_{0}; int traced_readiness_{-1};
     std::uint64_t command_source_ns_{0}; std::uint32_t command_root_sequence_{0};
     std::array<std::optional<Pending>,16> pending_{};
     std::array<std::optional<IssuedPermission>,16> issued_{}; std::size_t issued_next_{0};

@@ -21,6 +21,11 @@ bool AsyncZoneOwner::leaf_selected() const {
 }
 bool AsyncZoneOwner::protect(ZoneScope scope,ProtectionCause cause,std::uint64_t) noexcept {
     if(scope!=scope_ || cause==ProtectionCause::None || epoch_==0) return false;
+    if(trace_ && !failed_) {
+        transport::TransportTraceRow row;row.stage="gateway-protection";row.time_ns=now_ns();
+        row.epoch=epoch_;row.peer=static_cast<std::size_t>(scope_);row.outcome=static_cast<int>(cause);
+        trace_->record(row);
+    }
     const auto range=leaf_range(); for(auto i=range.first;i<range.second;++i) leaves_[i]->protection.request(epoch_);
     return leaf_selected();
 }
