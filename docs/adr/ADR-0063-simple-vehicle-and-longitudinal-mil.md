@@ -1,5 +1,7 @@
 # ADR-0063: M6 actual 기반 Simple Vehicle와 첫 종방향 MIL
 
+후속 관계(2026-10-22): 당시 첫 구현 결정은 유지한다. vehicle/EV 결합은 [ADR-0064](ADR-0064-vehicle-ev-interval-energy.md), M6 Host quiet SIL/MIL 종료는 [검토표](../m6_exit_review.md)에서 후속 판정했다.
+
 Date: 2026-10-22. Status: **M6 첫 구현 경계 채택 / 유한 검증 결과는 evidence 참조**.
 
 사용자가 완료된 Rear 연결 뒤 M6 진행을 요청했다. M5 3-vECU Host 수용과 과거

@@ -1,5 +1,7 @@
 # ADR-0064: 차량 운동과 EV의 구간 에너지 결합
 
+후속 관계(2026-10-22): 아래는 당시 구현/FAIL과 물리 시한 후속 결정이다. 이후 [M6 종료 검토](../m6_exit_review.md)에서 Host quiet SIL/MIL 범위 종료를 판정했다. 과거100ms FAIL/SDK OPEN은 그대로다.
+
 Date: 2026-10-22. Status: **구현·component 및 일부 Host 기능 검증 / 전체 M6 수용 보류**.
 
 M6 후속으로 actual 기반 차량 운동, 회생/마찰 배분과 실제 EV 전원·배터리 에너지 수지를
@@ -34,7 +36,7 @@ M6 전체 종료/M7 CARLA/M8 C++ controller·동등성/Jetson·전체 시스템�
 ## 2026-10-22 후속 결정 — 현재 SIL 물리 응답 범위
 
 사용자는 현재 모델에서 계산한 물리 응답 시한 적용을 승인했다.
-[M6 physical-response-v1](../icd/m6_physical_response.md)의230ms는
+[M6 physical-response-v1](../icd/vehicle_energy.md#physical-response-contract)의230ms는
 max(토크149.5ms,제동200ms)+출력4+모델4+관측10+여유12다.
 마지막 RX→검출100ms, local 보호 선택4ms와 별도다. 실제 abs(T)<=1Nm와
 보호 floor1MPa를 함께 확인하며 finite rate/기존 권한·source/expiry를 유지한다.

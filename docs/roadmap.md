@@ -1,100 +1,34 @@
 # Milestone roadmap
 
-Status: **M0 — BASELINED / M1·M2 — TECHNICAL CHECKS PASS · REVIEW PENDING / M3 — IN PROGRESS / M4 — COMPONENT IMPLEMENTATION / M5 — HOST SOME/IP LIMITED ACCEPTANCE / M6 — IN PROGRESS / M7–M13 — PLANNED**.
-최신 M5/M6 실행 범위는 [project status](project_status.md)를 우선한다.
-[M6 첫 근거](test-plan/evidence/m6_simple_vehicle/README.md)는 actual 기반 차량 모델,
-Python MIL과 선택형3-vECU quiet 연결이다. 전체 M6 종료나 M8 controller 구현은 아니다.
-[M6 에너지 후속](test-plan/evidence/m6_vehicle_energy/README.md)은 동일 구간 vehicle/EV work와
-실제 regen/charge-zero를 검증했다. 당시 원본5/9·100ms FAIL은 유지한다.
-[물리 응답 후속](test-plan/evidence/m6_physical_response/README.md)은 모델 범위에서230ms를
-확정하고 실제 Normal command-loss/nominal을 통과해 **Host quiet 기능 한정 수용**했다.
-OPEN-M6-ENERGY-01의 모델/판정 불일치는 해소,SDK sanitizer 기능 OPEN02는 유지한다.
-M6 전체 종료는 선언하지 않으며 다음은 요구사항/TBD별 근거·제외·잔여 coverage 종료 검토다.
-아래 단계별 과거 측정/실패 기록은 당시 범위로 보존한다.
+현재 구현·수용·OPEN은 [project_status](project_status.md), 실행 이력은 각 evidence와
+[품질 기록](quality_policy.md)을 따른다. 이 문서는 단계별 산출물과 TBD의 대표 문서다.
+**M6 Host quiet SIL/Python MIL 범위 CLOSED**: [종료 검토표](m6_exit_review.md).
+기존 M4 전체 NOT CLOSED, M5 Host FIFO 한정 수용, SDK sanitizer OPEN·Target/system NOT RUN은 유지한다.
 
-M3의 [첫 Steering wall-time 실행](learning/m3_steering_timing.md)은 독립 monitor·plant, deadline/누락 job과 CSV 계측을 구현·검사했다.
-후속 [다중 주기·CAN 감시](learning/m3_multirate_runtime.md)는 Brake/Drive/BMS·Power와 실제 RX를 연결했다.
-후속 [고정 부하·CPU 배치 비교](learning/m3_cpu_placement.md)는 contention과 실패 run도 기록했다.
-후속 [비동기 Drive Actual](learning/m3_drive_feedback.md)은 원래 취득 시각과 독립 보조 시각을 보존해 CAN 송수신을 연결했다.
-후속 [owner별 CPU 배치 비교](adr/ADR-0037-runtime-owner-cpu-placement.md)는 같은 부하에서 RX 단독/감시·plant 동반 이동을 비교한다.
-후속 [전체 owner cycle](learning/m3_owner_cycles.md)은 sleep/본문/CPU 시간을 나눠 RX miss와 감시·물리 owner를 대조한다.
-Host owner 4 ms 완료 guard·수신 이중 감시와 native FIFO 비교를 수행했다.
-[M3 수용 검토](m3_acceptance_review.md)에서 IO 동반/FIFO를 다음 Host 통합 기준으로 선택했다.
-일반 sanitizer 타이밍 실패 2건·학습자 수용은 남아 있으며 Target/E2E는 후속 배포·통합에서 검증한다.
-[후속 hosted timer 수정](adr/ADR-0043-hosted-monotonic-timer-and-placement.md)에서 absolute/relative와 OTHER/FIFO를 48회 비교했다.
-추가 Host timing은 absolute 24/24 PASS, 상대 대조군 0/24이며 native FIFO 고장 회귀 102/102도 확인했다. 전체 M3 수용은 미완료다.
-[M0 exit review](m0_baseline.md)는 문서 계약의 검토다. 현재 Steering/Brake/Drive six-frame
-codec/P05/receiver/SocketCAN과 EV 통신을 Host에서 구현했다. Local session/queue를 포함해
-normal·ASan/UBSan 각각 unit 143개와 vCAN 89 case, 독립 DBC/CRC 교차 검증을 통과했다. [학습 안내](learning/README.md)에
-상세 실행 기록을 보존한다. Wire baseline 채택/학습자 review와 M1 최종 acceptance는 미완료다.
+| Milestone | 산출물 / 현재 gate |
+| --- | --- |
+| M0 | Architecture/requirement/ICD baseline — BASELINED |
+| M1/M2 | DBC/vCAN·actuator/EV component — 기술 검사 완료, 학습자 review 별도 |
+| M3 | 실행 감시·FIFO 기준 — 과거 timing 예외/전체 수용 OPEN |
+| M4 | Central·양 Zone·owner/session/protection — Host IO/FIFO component 한정 수용, 전체 NOT CLOSED |
+| M5 | 실제 Central↔Front/Rear SOME/IP IP 경계·8참여자·보호/재가입 — 해당 Host FIFO 기능 한정 수용, DDS CLOSED |
+| M6 | Simple Vehicle+EV actual/lifecycle/energy·물리 응답·종방향 모델/MIL — **Host quiet SIL/MIL 범위 CLOSED** |
+| M7 | CARLA 접속·actual-only single writer·clock/multirate·Host–Target 배포/매핑 — NOT RUN |
+| M8 | Classical driving, M6 종방향 모델→C++ 공통 vector 동등성/차량 SIL, route/waypoint·lateral control — NOT RUN |
+| M9 | Fault/Diagnostics/DTC 통합. Local fault 보호는 이미 각 component에서 구현 |
+| M10/M11 | Physical AI perception/temporal planner·classical fallback |
+| M12 | Thor 또는 Orin의 독립 reference 비교/최적화 |
+| M13 | 전체 SIL/V&V/regression·추적성·제약 공개 |
 
-[RG-01](icd/regenerative_braking_design.md)은 회생·마찰 배분,
-[EV-01](icd/ev_power_bms_design.md)은 Battery/BMS/power/vehicle management 범위다.
-[ZON-01 v0.5 / ADR-0021](adr/ADR-0021-central-coordination-and-parallel-zones.md)로 최종 Front/Rear 두 논리 Zone과 Central 별도 단일
-coordinator를 채택했다. 각 Zone은 Central과 독립 command/status/session 경로를 갖고 기존 Central–Zone–Leaf 계층을 유지한다.
-2026-10-14 [BMS wire 초안](icd/bms_frame_draft.md)의 EV 6개 DBC와 Host CRC/canonical 검사를
-추가했다. [EV C++ codec/항목별 receiver](learning/m1_bms_codec.md)와 SocketCAN 변환의 Host
-단위 검사와 EV local vCAN 36개 case도 통과했다. M2의 [첫 조향 모델](learning/m2_steering_model.md)은 Host 부분 구현·시험했다.
-[첫 Brake 압력 모델](learning/m2_brake_model.md)의 정상 가압/감압·release와 local protection도 연결했다.
-[Drive torque 응답](learning/m2_drive_model.md)의 ECU/물리 모듈 분리와 signed loss zero ramp도 연결했다.
-[Battery 에너지·관측](learning/m2_battery_model.md)은 local component unit 30개를 추가했다.
-[BMS 한계·보호](learning/m2_bms_controller.md)는 local sensor port와 방향별 derating/latch를 연결해 unit 33개를 더했다.
-[Power lifecycle](learning/m2_power_lifecycle.md)은 RC bus/접점 actual·BMS gate·controlled shutdown으로 38개를 더했다.
-[Drive local gate/capability](learning/m2_drive_gate.md)는 gate 37개와 공유 physics 4개를 추가했다.
-[첫 Drive/Battery energy 연결](learning/m2_drive_energy.md)은 이상적 HV 경로에서 actual DC·SOC와 BMS/Drive loop 시험 28개를 추가했다.
-[실제 RC/접점·Battery 연결](learning/m2_ev_power_circuit.md)은 circuit 24개·Battery integrated-flow 5개를 추가했다.
-[Steering response monitor](learning/m2_steering_fault_monitor.md)는 물리 9개·monitor 21개·adapter 9개를 추가했다.
-[Brake response monitor](learning/m2_brake_fault_monitor.md)는 plant 10개·monitor 16개·adapter 14개를 추가했다.
-[ECU/SIL 실행 경계](learning/m2_execution_boundaries.md)의 core 18개·외부 물리 진행 3개를 추가했다.
-M2 구조 정리 시점 전체 unit 491개를 normal·sanitizer에서 검사했다. M3의32개·후속 M4 기능/세션을 더한846개 이력 위에, 정상 비동기 owner/INIT wake/capability26개로872개였고, 공통 고장30개·독립 감시6개로908개였고, release-grid/guard4와 원격 계약36개로948개였다. 원격 계약 보완18개로966개, pending/expiry 경계7개로 현재 C++973개다. 현재 결과는 [진행 현황](project_status.md), 단계별 분모는 [품질 기록](quality_policy.md)에 둔다.
-Python은 직전 hosted timer 단계의 63개 PASS 이력을 유지한다.
-기존 vCAN 97개 이력과 M3 multirate/fault·고정 부하 실험은 별도 범위다. 실행 횟수·PASS/FAIL은 [품질 기록](quality_policy.md)에 남긴다.
-Gate 단계에는 normal·sanitizer 각각 기존 Drive model vCAN 3개를 재검사했고,
-[M2 수용 검토](m2_acceptance_review.md)에서는 각각 model vCAN 8개·전체 unit·기존 demo를 재검사해 통과했다.
-Steering/Brake monitor 단계도 각각 model vCAN 8개를 회귀 검사했다. 학습자 수용은 PENDING이다. [M4 Host 정상 Zone runtime](learning/m4_async_owners.md)은 구현·component 시험했고 DDS/차량 runtime과
-TC-REG/EV/ZON 전체 결과는 **PLANNED / NOT RUN**이다.
+## 다음 작업
 
-| Milestone | 계획 범위 | Acceptance 증거 후보 |
-| --- | --- | --- |
-| M0 | Architecture / Requirement / ICD Baseline | ODD/scenario/수치/계층/timing/fault/ICD 의미 계약, traceability, owner가 있는 TBD, exit checklist |
-| M1 | DBC + vCAN | 12개 wire/receiver, 영속 local Epoch/queue 및 overflow/restart 기술 검사 완료; wire 채택·학습자 review PENDING |
-| M2 | TECHNICAL CHECKS PASS: Actuator + Battery / BMS / Power models | component·Steering/Brake response monitor 시험; 학습자 수용 PENDING |
-| M3 | IN PROGRESS: Real-Time Timing & Scheduling Measurement | Host 수용 검토·IO 동반/FIFO 기준 선택; 일반 sanitizer 타이밍 예외·학습자 수용 OPEN, Target/E2E 후속 |
-| M4 | COMPONENT IMPLEMENTATION: Central coordinator + Front/Rear Zone | Central·scoped admission·CAN gateway/보호·Rear 전원/허가/limits·양 Zone 초기 구동·정상 정지/HV 종료 연결 시험; 실제 Zone 상태/독립 ingress·상실 연결; 단일 coordinator·8-role session INIT/rejoin·정상9-owner 비동기 runtime/실제 BMS·센서 연결 시험; 공통 고장/복구·M3 독립 감시 연결 검사; 위상 수정·구조 분리 후 각48회42 PASS/6 FAIL·원격 wire/global credit/Leaf actor component 검사; timing/TSan 예외 OPEN·M4 종료 검토 중, TC-ZON-001–003 NOT RUN; protocol TBD-15 |
-| M5 | Central Compute + Ethernet (SOME/IP Host 한정, DDS CLOSED) | Central/Front/Rear 논리 Ethernet, vehicle/power/scoped request·원천 status, QoS/freshness/Host bridge 및 독립 partition/rejoin |
-| M6 | IN PROGRESS: Simple Vehicle + EV Plant / MBD MIL pilot | 실제 actuator/power 응답·lifecycle/energy 검증; 종방향 제어 모델·plant의 MIL, parameter/sample time·추종/제약 시험 |
-| M7 | CARLA Integration | Host–Target 실제 Ethernet, single ego writer, feedback-driven CARLA motion |
-| M8 | Classical Autonomous Driving / MBD implementation | 종방향 모델→C++ 동등성·차량 SIL, longitudinal PID·route/waypoint·Pure Pursuit 또는 Stanley의 기준 scenario |
-| M9 | Fault / Diagnostics / DTC | actuator/BMS/power 및 cross-zone loss Fault Event/DTC/state/local action/actual response를 연결한 regression |
-| M10 | Physical AI Perception | pretrained detection/segmentation/tracking, TensorRT 통합과 accuracy/latency 기준 |
-| M11 | Learned Temporal Planner | 0.5–1초 history, trajectory/speed/risk 출력, Safety Supervisor/Classical Planner fallback 시험 |
-| M12 | Thor vs Orin Compute-Tier Optimization | 동일 Reference 비교 후 tier별 구성 최적화, 공통 requirement 재검증 |
-| M13 | Final SIL / V&V / Regression | scenario/fault/performance regression, traceability 결과와 한계 공개 |
-
-
-2026-10-20 후속 [M4 고장·독립 감시](adr/ADR-0056-m4-faults-and-independent-execution-watch.md)는 Host component 기능/복구 검증을 완료했다.
-원본Native48회41 PASS/7 FAIL은 보존한다. [위상 수정/구조 분리](adr/ADR-0057-m4-release-grid-and-owner-modules.md) 뒤 두 별도48회는각42 PASS/6 FAIL이며 timing 수용은 미완료다.
-[원격 owner 계약](icd/owner_wire_v1.md)·global credit/실제 Leaf actor component와 DDS/Zenoh netns 후보 probe를 구현·실행했다.
-과거 TSan native9개 중1 FAIL은 원인 미확정으로 유지하며 [M4 종료 검토](m4_exit_review.md)는 NOT CLOSED다. 후속 [pending/expiry 계약](adr/ADR-0059-pending-command-allocation-settlement.md)과 진단 종료 코드 수정은 구현·검증했고 새 source의 Normal/ASan·UBSan, TSan 경계·wall, 고정40회·48회 결과를 [별도 근거](test-plan/evidence/m4_settlement/README.md)에 둔다. M5 제어 adapter는 미착수이며, 원래32req/29TC와 Target/학습자 상태도 유지한다.
-[DDS 실제 수명 검증](test-plan/evidence/m4_dds_lifetime/README.md) 후에도 전체 M4 종료는 NO-GO다.
-[Host IO/FIFO 한정 수용 B안](m4_host_acceptance_review.md)은 `7bbafc7` 검토 뒤 사용자 승인으로 적용했다.
-M4 전체 NOT CLOSED, 과거 실패/경고 OPEN·Target/system NOT RUN을 유지하며 M5 transport qualification에 착수한다.
-[새 qualification42회](test-plan/evidence/m5_dds_qualification/README.md)는23 PASS/19 FAIL이며 close/20ms 전달·경고 조건이 미충족이다.
-DDS qualification gate 충족 전 정규 제어 adapter는 보류한다. 충족 뒤 추가 승인 없이 기존 Central↔Front 연결 순서로 진행한다.
-MBD M6→M8·AUTOSAR/Target 확장 순서는 유지한다. 전체 system TC는 NOT RUN이다.
-
-배치 계획은 **Host PC + Jetson 한 대 내부 여러 vECU**다. Target 성능 검증에서
-Jetson 일반 커널과 PREEMPT_RT를 동일 workload·원래 deadline·실제 CPU/FIFO 설정으로 비교한다.
-이는 PLANNED / NOT RUN이며 이번 M4 Host 보완에서 커널 교체나 MCU 이식을 진행하지 않는다.
-
-
-[MBD 개발 경로](engineering_plan.md#model-based-design-path)를 [ADR-0052](adr/ADR-0052-model-based-design-development-path.md)로 채택했다.
-첫 대상은 Central 종방향 속도 제어다. M6에서 모델/MIL, M8에서 C++와 동등성/차량 SIL을 검증한다.
-M4/M5 통합은 계속 진행하고 Simulink·자동 코드 생성 도입은 TBD-16의 별도 결정이다. 첫 Python MIL은 위 M6 근거에서 실행했으며 M8 동등성/자동 생성은 NOT RUN이다.
-
-Fault architecture는 M0부터 다루며 local fault behavior는 M2/M4 등의 component와
-함께 설계한다. Fault handling을 M9까지 미룬다는 뜻이 아니다. 각 단계에서
-[학습 절차](learning/README.md)와 [quality policy](quality_policy.md)를 적용한다.
+M7 첫 단위는 **호환 환경과 CARLA synchronous actual bridge 계약 확정**이다.
+[선행 조건](m6_exit_review.md#다음-한-단계--m7-최초-접속-계약과-환경-확인):
+실제 GPU/OS·server/client/Python/ScenarioRunner 버전,50ms tick·single writer,
+20Hz state와 기존30ms freshness,좌표/단위·중복 dynamics/energy 방지·clock/invalid 처리를 확인한다.
+M7 구현·설치·새 차량 시험은 이번 검토에서 수행하지 않았다. SDK/M4/DDS의 역사적 OPEN을
+이 첫 작업의 일괄 선행 조건으로 추가하지 않는다. Jetson은 원래 Host+보드 한 대 계획이며
+BSP/ABI/권한/NIC·clock/실제 배포 검증을 건너뛰지 않는다.
 
 ## Engineering activities
 
@@ -132,21 +66,21 @@ AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 �
 | ID | 미결정 사항 / owner 역할 | 결정 milestone / gate | 보류 rationale / 영향 |
 | --- | --- | --- | --- |
 | TBD-01 | CAN ID/DLC/layout/scaling/ranges, CRC/counter/epoch/source-age metadata, queue/restart/startup handshake, timeout threshold / interface 담당 | **M1**, DBC/codec 및 vector test 전; task 검증 M2/M3 | M0는 의미/검출 상한을 고정하고 encoding을 M1 산출물로 유지; 100 ms에 polling/실행 margin 포함 |
-| TBD-02 | units의 raw scaling, allocation/calibration 값, frame/geometry 변환, feedback skew/age 한계, dynamics 중복 방지 / plant·interface 담당 | **M1** wire 범위; **M2** actuator 의미 구현; **M6** simple mapping; **M7** CARLA mapping 전 | 차량/plant 모델이 없으므로 변환 계수 미확정; physical meaning/sign은 M0 ICD에 정의 |
-| TBD-03 | actuator delay/saturation/dynamics/초기값, Steering/Brake timeout 물리 출력, Drive zero-target 후 torque 감소/ramp/반응 deadline, recovery dwell / vECU 담당 | **M2**, 각 actuator 정상/fault test 전; M6/M7 재검증 | 물리 parameter 근거 없이 압력/torque/ramp 수치 확정하지 않음; raw fallback/무제한 torque 유지 금지는 확정 |
+| TBD-02 | units의 raw scaling, allocation/calibration 값, frame/geometry 변환, feedback skew/age 한계, dynamics 중복 방지 / plant·interface 담당 | **M1** wire 범위; **M2** actuator 의미 구현; **M6** simple mapping; **M7** CARLA mapping 전 | M6 SIL geometry/force·actual mapping은 종료 검토의 부분 결정; M7 CARLA/OEM 변환·calibration은 미결정 |
+| TBD-03 | actuator delay/saturation/dynamics/초기값, Steering/Brake timeout 물리 출력, Drive zero-target 후 torque 감소/ramp/반응 deadline, recovery dwell / vECU 담당 | **M2**, 각 actuator 정상/fault test 전; M6/M7 재검증 | M6 현재 모델의 finite 응답/standing hold·230ms 물리 budget 확정; 다른 vehicle/Target budget은 후속, raw fallback/무제한 torque 유지 금지 |
 | TBD-04 | task/E2E deadline/budget, source-age 한계, clock sync/uncertainty, trace/overhead/queue schedule, watchdog 독립성, priority/affinity, multirate ordering, timing warmup/duration/repetitions / timing 담당 | **M1** timeout encoding budget; **M3** 측정 protocol/task budget; **M5/M7** cross-node/E2E 전 | 부분 결정: ADR-0033/0034 Host task 10/20/2 ms·deadline 5/8/3 ms, monitor/plant 2 ms와 RX threshold 80 ms·검출 <=100 ms; ADR-0035/37 부하·배치와 ADR-0038의 whole-cycle/CPU·1221개 기회·RX 대응 기록; ADR-0039 Host owner deadline 4 ms·1211 guard slots·교차 보호·이중 수신 감시 채택; ADR-0042 Host FIFO fixture 비교 수행; 차량/Target 우선순위·E2E 미결정 |
-| TBD-05 | 기본 DDS와 Zenoh 후보 비교, ROS 2 vs direct API/구현체/QoS/schema/integrity, Docker vs netns/veth, bridge process/transport/Host acknowledgement, addressing/discovery / communication 담당 | **M4** 비교, **M5 runtime 시작 전** 결정 | DDS 기본 방향 유지·Cyclone11.0.1 direct C API Host 후보, Zenoh-C1.10.1 미채택 대안; 동일 packet/부하/fault의 실제 netns probe, reader rejection/late reply 관측을 추가한 별도 cohort. 첫 adapter의 분리 lane/실패 latch·세션/rejoin 검증은 후속; SDK TSan 경고 OPEN-M4-MWTSAN-01로 구현체 배포 수용 보류; ADR-0058 |
+| TBD-05 | middleware 구현체/API·schema/integrity·격리·bridge/discovery / communication 담당 | M5 Host 적용; M7 Target 연결 전 재검증 | Host SOME/IP/vSomeIP3.7.6 direct C++·netns/veth/owner-wire는 ADR-0060→0061→0062로 한정 채택. DDS/Cyclone 종료·TSan gate CLOSED는 별도 보존; Target은 미검증 |
 | TBD-06 | Central allocation/conflict arbitration, availability/rejoin/local protection 상세, DEGRADED envelope, local↔Central state reconcile / Central VCU·Zone safety 담당 | **M4**, local fault/재연결 시험 전 | 정상 torque/brake 충돌과 actuator availability 검증 필요; critical loss는 M0에서 FAIL_SAFE로 고정 |
-| TBD-07 | exact CARLA/Ubuntu/Python/ScenarioRunner 호환 build, map/route/seed/geometry/curve, Host GPU, tick/apply ordering 및 fidelity / simulation 담당 | **M7 통합 전**, route suitability M8 확인 | M0 설치/실행 없음; 공식 호환 정보와 재현 시험으로 선택; ODD/50 ms baseline 유지 |
+| TBD-07 | exact CARLA/Ubuntu/Python/ScenarioRunner 호환 build, map/route/seed/geometry/curve, Host GPU, tick/apply ordering 및 fidelity / simulation 담당 | **M7 통합 전**, route suitability M8 확인 | M6 단일 Host physical owner/clock는 결정. CARLA 접속/호환 버전·실제 mapping은 M7 시작 전에 확인; ODD/50ms baseline 유지 |
 | TBD-08 | DTC code/debounce/persistence/clear, diagnostic aggregation cadence/storage / diagnostics 담당 | **M9**, event→DTC 통합 전 | local fault/protection은 M2/M4부터 구현, DTC 통합이 선행 조건 아님 |
 | TBD-09 | board/RAM/platform stack/power/cooling, reference AI model/checksum/input/precision/feature, profile override, accuracy/resource threshold와 benchmark protocol / compute·AI 담당 | **M5** 첫 Target 호환 stack; **M10** model/reference workload; **M12** board별 비교 전 | 두 보드 독립 배포 원칙은 확정; 동일 binary/engine/JetPack 호환을 가정하지 않음 |
 | TBD-10 | perception/learned-planner shape/risk/history/calibration, AI fallback timing/feasibility/recovery / AI·safety 담당 | **M10/M11**, AI 통합 시험 전 | classical M8 baseline 후 확장; AI로 actuator 직접 제어 금지는 확정 |
 | TBD-11 | C++ standard/compiler/CI/test tool versions, artifact size/license/storage policy; control 알고리즘/tuning, speed transition slope/duration, scenario repetitions / toolchain·control 담당 | **M1** 첫 code/tool 전; **M8** control/정상 시험 전; **M10** 첫 model fixture 전 | 작은 변경과 설명 가능한 도구 선택; 5 s settling + 10 s steady window와 수치 requirement 변경은 revision 필요 |
-| TBD-12 | EV 전원 sequence/주행 허가/INIT handshake, LV·충전 연결·interlock와 고장별 torque/power reaction, shutdown/복구 threshold·budget / vehicle management·safety 담당 | **M1** 의미/handshake; **M2** power component 시험 전; **M4/M6** gate/vehicle 검증 전 | READY≠NORMAL, 요청≠actual; 일괄 즉시 contactor open/정지 성공을 가정하지 않음 |
-| TBD-13 | battery usable capacity/initial SOC, pack·셀 극값 voltage/thermal 모델·threshold/dwell, charge/discharge 곡선·효율/부하/에너지 오차, motor power→torque / model 담당 | **M2** Battery/BMS/Drive 시험 전; **M6/M7** 일관성/매핑 재검증 | 부분 구현: Battery/BMS·Drive gate·RC/접점/capacitor 실제 energy 연결·장부 시험; 차량 calibration/정밀 모델은 미결정; actual power·단일 owner/clock 유지 |
-| TBD-14 | EV wire 수용·coordinator, trusted startup/parent·model identity 전달, clock/각 hop budget, DDS/Host status / interface·timing 담당 | **M1** wire/session 수용 전; **M2/M3** sampler/task/timing; **M5** DDS/Host bridge 전 | **부분 구현:** ADR-0016/17 6개 frame/P05와 항목별 receiver Host 검사; source 50/input 70/RX 80 ms 초안, Drive input age opt-in 분리와 local vCAN 36개 검사 완료; 독립 Central/Zone runtime budget은 남음 |
-| TBD-15 | 남은 Central–Zone schema/QoS/queue/clock/skew/source-age·monitor budget/INIT-rejoin/routing config / architecture·communication 담당 | **M4** 각 Zone/local test 전, **M5/M6** DDS/plant 통합 검증 전 | **부분 결정:** ZON-01 Front/Rear, 후륜 구동 packaging, Central 별도 단일 coordinator 및 Host typed8-role Prepare/INIT/Release(ADR-0054)·방향별 bounded SPSC/정상 owner 연결(ADR-0055); owner-wire v1/global60ms credit·30ms source age·20ms receipt·common kernel monotonic·원천 CAN/P05/parent/expiry/역방향 ACK 계약 component 검사. 다른 kernel clock/실제 DDS 세션·격리는 M5 gate, calibration TBD-02/07; 별도 하드웨어 불필요 |
-| TBD-16 | MBD 모델 도구/license·model artifact/Host harness·solver/sample time/numeric 설정·모델/코드 동등성 기준·선택적 generator / control·model·toolchain 담당 | **M6** MIL pilot 시작 전 도구/모델 설정; **M8** C++ 비교 실행 전 tolerance/초기 상태/공통 vector, 자동 생성 채택 전 재생성/호환 확인 | 방법은 ADR-0052로 채택, Simulink/Python 등 도구는 미선정; 기존 C++ plant는 기반이며 새 MIL/동등성 PASS가 아님; tuning/차량 수치·timing은 TBD-02/03/04/11과 연결 |
+| TBD-12 | EV 전원 sequence/주행 허가/INIT handshake, LV·충전 연결·interlock와 고장별 torque/power reaction, shutdown/복구 threshold·budget / vehicle management·safety 담당 | **M1** 의미/handshake; **M2** power component 시험 전; **M4/M6** gate/vehicle 검증 전 | M6 SIL의 실제8-role startup/RunLease/arm·정상 stop/HV-off·재가입 검증 완료. 외부 차량/LV/charging/Target 반응은 후속; READY≠권한≠물리 완료 |
+| TBD-13 | battery usable capacity/initial SOC, pack·셀 극값 voltage/thermal 모델·threshold/dwell, charge/discharge 곡선·효율/부하/에너지 오차, motor power→torque / model 담당 | **M2** Battery/BMS/Drive 시험 전; **M6/M7** 일관성/매핑 재검증 | M6 SIL의 Battery/BMS·회로·vehicle 구간 work/장부 및 charge-zero 검증 완료. 차량 chemistry/thermal/OEM calibration·M7 mapping은 미결정; 단일 owner/clock 유지 |
+| TBD-14 | EV wire 수용·coordinator, trusted startup/parent·model identity 전달, clock/각 hop budget, DDS/Host status / interface·timing 담당 | **M1** wire/session 수용 전; **M2/M3** sampler/task/timing; **M5** DDS/Host bridge 전 | **부분 구현:** ADR-0016/17 6개 frame/P05와 항목별 receiver Host 검사; source 50/input 70/RX 80 ms 초안, Drive input age opt-in 분리와 local vCAN 36개 검사 완료; Host 독립3-vECU/실제 session·원천 전달은 구현; 다른 kernel/Target budget은 남음 |
+| TBD-15 | 남은 Central–Zone schema/QoS/queue/clock/skew/source-age·monitor budget/INIT-rejoin/routing config / architecture·communication 담당 | **M4** 각 Zone/local test 전, **M5/M6** DDS/plant 통합 검증 전 | **부분 결정:** ZON-01 Front/Rear, 후륜 구동 packaging, Central 별도 단일 coordinator 및 Host typed8-role Prepare/INIT/Release(ADR-0054)·방향별 bounded SPSC/정상 owner 연결(ADR-0055); owner-wire v1/global60ms credit·30ms source age·20ms receipt·common kernel monotonic·원천 CAN/P05/parent/expiry/역방향 ACK 계약 component 검사. Host SOME/IP 3-vECU 세션/격리는 한정 수용; 다른 kernel clock/Target·DDS는 별도 gate, calibration TBD-02/07; 별도 하드웨어 불필요 |
+| TBD-16 | MBD 모델 도구/license·model artifact/Host harness·solver/sample time/numeric 설정·모델/코드 동등성 기준·선택적 generator / control·model·toolchain 담당 | **M6** MIL pilot 시작 전 도구/모델 설정; **M8** C++ 비교 실행 전 tolerance/초기 상태/공통 vector, 자동 생성 채택 전 재생성/호환 확인 | M6 Python/binary64·독립 plant·solver/sample/reference/초기 상태·MIL을 ADR-0063으로 결정/검증. M8 C++ 동등성 tolerance·generator 도입은 미결정; M6 종료 검토 참조 |
 
 RG-01의 추가 상세값도 기존 owner/gate에 귀속된다. 범위 결정으로 TBD가 해소되지는 않는다.
 
@@ -164,67 +98,7 @@ RG-01의 추가 상세값도 기존 owner/gate에 귀속된다. 범위 결정으
 수치 변경 시 [requirement revision](requirements/system_requirements.md)에 이전/새 값과
 rationale/Result/영향 test를 기록하고 profile/ICD/scenario를 함께 갱신한다.
 
-M1 부분 진행: TBD-01/02의 [Steering field 표현 초안](icd/steering_angle_encoding.md)과
-TBD-11의 [첫 Host C++ 실험 도구 선택](adr/ADR-0005-first-cpp-codec.md)을 기록했다.
-이어서 [Steering frame·DBC 제안](icd/steering_frame_draft.md)과
-[Host frame codec·parser 도구 선택](adr/ADR-0006-steering-frame-codec.md)을 구현·검증했다.
-로컬 Receiver 정책은 [ADR-0008](adr/ADR-0008-steering-receiver.md)에 기록했다.
-[SocketCAN 결정](adr/ADR-0009-steering-socketcan.md)에 local wall-time 시험을 기록했다.
-영속 로컬 Epoch issuer/queue와 실제 overflow는 [M1 기술 exit](learning/m1_session_queue.md)에서 구현·검사했다.
-Wire 최종 채택/물리 범위/Target·CI, 실제 Central–Zone session protocol·차량 timing은 남아 있으므로
-위 TBD 전체를 CLOSED로 바꾸지 않는다.
 
-## 다음 작업과 M1 남은 수용 항목
-
-BMS/power/Drive constraint의 [의미·DBC·timing 초안](icd/bms_frame_draft.md)을 작성했다.
-물리 field/frame codec과 항목별 수신부, Drive auxiliary age 분리를 Host에서 시험했다.
-기존 vCAN fixture의 EV 송수신/session·parent·relay도 36개 case로 확장·시험했다.
-Local Epoch/queue·overflow/restart를 구현·시험해 M1 기술 수용 항목을 정리했다.
-M2는 [Steering 응답 모델](learning/m2_steering_model.md)의 delay/rate/saturation 및 local source-loss hold를
-Host에서 구현·시험했다. [Brake 압력 모델](learning/m2_brake_model.md)의 가압/감압과
-압력 floor/retain 보호도 구현·시험했다. [Drive torque-only fixture](learning/m2_drive_model.md)는
-signed 응답/zero ramp와 speed/capability unavailable을 검사했다.
-[Battery 모델](learning/m2_battery_model.md)의 에너지·센서 component도 구현·시험했다.
-[BMS 한계·보호](learning/m2_bms_controller.md)는 센서 검사·dwell/latch·PowerLimits를 구현·시험했다.
-[Power lifecycle](learning/m2_power_lifecycle.md)은 실제 접점/전압·current wait·shutdown blocked를 구현·시험했다.
-[Drive local gate·capability](learning/m2_drive_gate.md)는 원천 limits·허가·로컬 HV/속도를 확인한다.
-[실제 DC/Battery energy 연결](learning/m2_drive_energy.md)은 고정 speed/이상적 HV에서 실제 토크의 손실·auxiliary와
-finite residual·SOC guard band를 검사했다. [실제 RC/접점 연결](learning/m2_ev_power_circuit.md)도 capacitor/path 손실·구간 전류와
-Battery의 단일 chemical energy owner를 연결해 시험했다. [M2 수용 검토](m2_acceptance_review.md)로
-실행·설정·고장/세션·증거를 대조했다. [Steering jam/tracking local monitor](learning/m2_steering_fault_monitor.md)를
-별도 물리·sensor 경계와 함께 구현·시험했다. [Brake response detector](learning/m2_brake_fault_monitor.md)도
-가압/감압과 보호 floor 요청·관측 경계를 구현·시험했다. M2 기술 검사는 완료했고 학습자 수용 기록은 별도다.
-[M3 첫 Steering 실행](learning/m3_steering_timing.md)에서는 독립 task monitor·물리 owner와 trace를 연결했다.
-후속 다중 주기 fixture에서 Brake/Drive/BMS·Power와 실제 통신/RX 정지·CRC 손상 감시를 검사했다.
-고정 부하·owner별 CPU 배치/전체 cycle 계측과 비동기 Drive Actual 연결도 실행했다. Host 완료 guard·수신 이중 감시를 연결했다. 배치 비교에서 IO 동반 map을 Host 기준으로 유지했다.
-[ARM64 RTOS 교차 빌드·RT 사전 점검](adr/ADR-0041-arm64-rtos-build-and-host-preflight.md)을 확인했다.
-[Native owner별 FIFO 실행](learning/m3_native_fifo.md)의 일반/FIFO 비교 24/24회와 고장 회귀 66/68회를 기록했다.
-Sanitizer 일반 실행의 owner skip 2회 실패를 보존했다. [M3 수용 검토](m3_acceptance_review.md)와
-guarded 주기 집계 수정을 마쳤다. M4 [Central 준비 판정](learning/m4_normal_drive_readiness.md)을 먼저 구현했다.
-후속 [lifecycle/허가 상태 owner](learning/m4_vehicle_management.md)도 구현·component 시험했다.
-후속 [첫 allocation](learning/m4_control_allocation.md), [Zone admission](learning/m4_zone_command_admission.md),
-[CAN 전달·로컬 보호](learning/m4_zone_gateway.md)·[Rear 전원·초기 구동](learning/m4_rear_power_startup.md)과 [Front startup](learning/m4_front_startup.md)도 구현·시험했다. [정상 정지/HV 종료](learning/m4_normal_stop.md)도 Host component로 연결했다. [실제 Zone health·독립 status ingress](learning/m4_zone_feedback_health.md)와 상실 시험을 연결했다. [단일 coordinator/same-host 연결](learning/m4_vehicle_coordinator.md)과 [8-role 세션 준비/INIT/rejoin](learning/m4_session_bootstrap.md)도 구현했다. 후속 [정상 비동기 owner 경로](learning/m4_async_owners.md)를 실제 BMS/HV·센서와 통합하고 정상/부분 실패/상실/정상 종료/새 Epoch 재가입을 시험했다. 후속 방향별 partition·owner 정지/복구 matrix와 M3 guard 반복 측정, remote Leaf credit/ICD component를 검사했다. 현재는 timing/TSan 예외와 M4 종료 검토를 남기고 M5 제어 adapter는 미착수다.
-
-`4a399af` 외부 검토의 원격 계약3개를 수정하고 실제 Zone→codec→Leaf 통합과 새 source 회귀/고정 timing을 실행했다.
-[최신 근거](test-plan/evidence/m4_contract_review/README.md)의 추가 FIFO 실패와 native/SDK TSan OPEN 분석을
-[종료 검토](m4_exit_review.md)에 반영했다. 다음 단위는 kernel 관측·정상 result settlement 계약 검토·지원 SDK 계측이며,
-M5 adapter·MBD·AUTOSAR 확장의 기존 선후관계는 변경하지 않는다.
-실제 ARM64 timing은 배포 단계에서 확인한다.
-Wire/학습자 review는 PENDING이다.
-
-1. EV 초안의 producer/단위/validity/source·dependency time/expiry와 주기 차이를 review한다.
-2. Actuator/EV vCAN 89개 case와 영속 Epoch/queue의 source·parent·model identity 및 fault trace를 재현·review한다.
-3. Wire baseline 채택과 학습자의 설명 기록을 남긴다. 단일 Central coordinator와 독립 Central/Zone Host 실행은 구현했고 remote 계약·DDS는 M4/M5에 연결한다.
-4. 실제 circuit/energy loop와 M2 parameter·task/monitor·fault/session의 component 증거는 수용 검토에 기록했다.
-   OPEN-M2-01/02는 component 구현·시험했고 learner review가 남았다. M3 Host runtime/trace는 측정·검토했고 timing 예외가 남았다.
-5. ECU/plant 소유와 호출을 분리했고 demo는 도메인별 source/단일 executable로 유지한다.
-   M3의 실행 budget/배치·FIFO를 검토했다. M4 단일 coordinator 계약·두 Zone 기능 준비와 M3 예외 해소를 병행하되 전체 M3 수용은 PENDING으로 유지한다. 통합 workload는 다시 시험하고 Target 검증은 실제 배포 단계와 연결한다.
-
-Six-frame 구현·부분 시험과 새 EV/ZON 수용 항목을 구분한다. EV wire 값이나 물리 반응/전원
-parameter를 기존 100 Hz/30 ms 또는 특정 OEM 수치로 자동 확정하지 않는다.
-
-M0의 성공 기준은 문서량이 아니라 M1 DBC/vCAN을 시작해도 Central/Zone/vECU/Plant
-책임과 command/actual 계약을 뒤집지 않아도 되는 상태다. M1에서 처음 발견한 encoding
-제약은 architecture 변경 대신 ICD revision과 rationale로 해결한다. 필요한 설계 변경은
-숨기지 않고 영향 requirement를 다시 검토한다. 학습자는 milestone마다 설계와 trade-off를
-자신의 말로 기록하며 문서 baseline 상태가 개인의 이해를 대신하지 않는다.
+TBD-02/03/07/12/13/16의 **M6 결정값·소유권·근거와 M7 이후 gate의 구분**은
+[M6 종료 검토](m6_exit_review.md#tbd의-m6-결정과-후속-경계)에 모았다. ID 전체를 CLOSED로
+덮어쓰지 않는다. 새 수치/범위 변경은 원래 requirement revision·profile/ICD/evidence 절차를 따른다.

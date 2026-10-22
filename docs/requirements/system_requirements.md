@@ -116,6 +116,6 @@ ZON-01에서 SYS-COM-003/004와 SYS-SAFE-002/003의 기존 의무를 독립 Cent
 적용한다. 문장/revision은 유지하며 TC-ZON-002/003으로 추가 coverage를 연결한다.
 
 M6 Host quiet의 SYS-SAFE-004/TBD-03 현재 모델 상세화는
-[M6 physical-response-v1](../icd/m6_physical_response.md)을 따른다. 기존 loss 검출100ms와
+[M6 physical-response-v1](../icd/vehicle_energy.md#physical-response-contract)을 따른다. 기존 loss 검출100ms와
 zero-target 선택 요구는 유지하고 실제 토크·제동 응답 시한을 모델/운용 범위로 분리했다.
 다른 profile/Target의 물리 수치를 확정하거나 과거 FAIL을 변경하는 개정은 아니다.

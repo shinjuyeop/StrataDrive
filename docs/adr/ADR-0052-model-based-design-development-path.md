@@ -1,5 +1,7 @@
 # ADR-0052: 제어 기능의 MBD 개발·검증 경로
 
+후속 관계(2026-10-22): M6 범위 종료는 [검토표](../m6_exit_review.md), M8 동등성/자동 생성은 후속이다.
+
 Date: 2026-10-19. Status: **개발 방향 채택 / M6 첫 Python MIL 검증 / M8 동등성·자동 생성 NOT RUN**.
 2026-10-22 [ADR-0063](ADR-0063-simple-vehicle-and-longitudinal-mil.md)으로 첫 Python 도구와
 M6 plant/MIL을 구현·검증했다. 아래 원래 M6→M8 책임 분리는 유지한다.
