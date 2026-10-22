@@ -167,6 +167,13 @@ struct Owners final:session::CoordinatorPort {
         event("session-send",static_cast<unsigned>(c.role),static_cast<unsigned>(c.phase),c.plan.commit_deadline_ns);
         return remote_role(c.role)?net.send({Role::CentralIngress,c.role,kDomain,c}):links[static_cast<unsigned>(c.role)].controls.push(c);
     }
+    std::uint32_t issue_epoch() {
+        // Durable storage can block in fsync. No control authority exists yet;
+        // finish it before enabling this generation's native execution guard.
+        event("epoch-store-begin",7);
+        const auto e=session::EpochStore((folder/"epochs").string()).issue();
+        event("epoch-store-return",7,e);return e;
+    }
     void begin(std::uint32_t e){epoch=e;check(coordinator.begin(e,now()),"real session begin");event("epoch-issued",7,e);}
     void physical_io() {
         io.update([this](PlantState& s){
@@ -235,7 +242,8 @@ struct Owners final:session::CoordinatorPort {
         if(front) {
             // This priority path remains active even when normal receive consumption stops.
             emit(remote_zone->poll());for(auto& e:remote_leaf)emit(e->poll());
-            if(zone[0]->faulted() && !protected_ns){protected_ns=now();event("local-protection",0,remote_zone->lease_fault(),remote_zone->last_lease_expiry);}
+            if(zone[0]->faulted() && !protected_ns){protected_ns=now();event("local-protection",0,remote_zone->lease_fault(),remote_zone->last_lease_expiry);
+                for(unsigned i=0;i<2;++i)event("leaf-first-fault",i+2,leaf[i]->fault_code());}
             if(zone[0]->protected_selected() && !selected_ns){selected_ns=now();event("leaf-protection-selected",0);}
             while(auto r=zones[0].results.pop()) {
                 event("result-produced",0,r->token,r->source_ns);
@@ -366,7 +374,9 @@ int main(int argc,char** argv) {
         }
         if(test=="ready-timeout" && !front){check(net.ready!=3,"unexpected ready");pass=true;}
         else {
-            check(net.ready==3,"bilateral readiness timeout");ready_ns=now();owners->start_watch();mark(folder/(tag+".ready"));
+            check(net.ready==3,"bilateral readiness timeout");
+            const auto issued_epoch=front?0:owners->issue_epoch();
+            ready_ns=now();owners->start_watch();mark(folder/(tag+".ready"));
             if(!front && test=="invalid") {
                 const auto t=now();auto p=remote::encode_owner_message({Role::CentralIngress,Role::FrontZone,kDomain,
                     session::Control{Role::FrontZone,session::Phase::Prepare,{999,t,t+2'000*kMs,0,0},t}});
@@ -378,7 +388,7 @@ int main(int argc,char** argv) {
                 while(net.probe_responses[0]==count && now()<deadline)std::this_thread::sleep_for(std::chrono::microseconds(200));
                 check(net.probe_responses[0]>count,"negative binding barrier");
             }
-            if(!front)owners->begin(session::EpochStore((folder/"epochs").string()).issue());
+            if(!front)owners->begin(issued_epoch);
             bool injected=false,rejoined=false,invalid_sent=false,rejoin_requested=false;
             std::uint64_t injected_ns=0,paused_until=0,full_sent=0;bool overflow_probe=false;
             std::optional<transport::ZoneRequest> prior_request;
@@ -435,7 +445,8 @@ int main(int argc,char** argv) {
                         check(owners->protected_ns!=0,"rejoin before protection");
                         iteration.finish();owners.reset(); // single owner stopped; all old mailbox users are gone
                         owners=std::make_unique<Owners>(false,net,folder,tag+"-rejoined");
-                        owners->start_watch();owners->begin(session::EpochStore((folder/"epochs").string()).issue());rejoined=true;
+                        const auto issued_epoch=owners->issue_epoch();
+                        owners->start_watch();owners->begin(issued_epoch);rejoined=true;
                     }
                 }
                 if(!front && rejoined && owners->armed_ns && prior_request && !invalid_sent) {
