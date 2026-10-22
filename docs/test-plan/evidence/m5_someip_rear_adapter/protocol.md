@@ -56,3 +56,28 @@ Normal performance; actual memory/UB/race errors fail. OTHER wall diagnostics ar
 new admission gates. No48 matrix/allSDK/compound faults/M6/Jetson or historical OPEN
 root-cause research. Qualified finite Host scope may be accepted without closing
 unrelated historical exceptions. No external posts/messages.
+
+## Observed correction and bounded comparison (before rerun)
+
+First candidate1145720: Normal quiet2/2, loaded2/2. Rear fault cohort0/4:
+command-loss and Central crash were injected after10 batches but before actual
+Drive torque appeared; command-loss capture also ended before physical pressure
+reached100kPa. Owner pause correctly faulted/overrode before authority-lane RX8
+overflow, but the new oracle incorrectly required no overflow for this declared
+stopped-consumer fault. Rear rejoin had a real Central ingress overflow: surviving
+Front continued feedback while old graph artifact teardown and durable Epoch IO
+blocked the quiescent Central owner. These four raw failures remain failures.
+
+Correction: (a) require real validated positive Drive Actual and released Brake
+before declaring control-established; no synthetic state, (b) observe actual model
+protection before cleanup, original100ms limit remains, (c) allow only target-owner
+pause overflow after independently recorded native fault with rejection count>0,
+(d) explicitly quiesce/count/reject ingress during protected graph retirement/Epoch
+IO, then reopen before the fresh actual session handshake. No queue/deadline change,
+no overflow latch clearing, no old command retry. Ready probes continue but grant
+no permission. The three-process normal hot loop now checks actual feedback too.
+
+One four-case Rear comparison follows these specific fixes. Final source also
+requires quiet2+loaded2 again because the normal loop prerequisite changed; retain
+first candidate4/4 separately. Front representatives and sanitizer cases have not
+yet run and remain the originally planned counts. No extra fault combinations.

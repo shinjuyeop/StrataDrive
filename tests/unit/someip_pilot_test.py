@@ -160,6 +160,17 @@ class ThreeEcuBookkeepingTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertFalse(m.rear_oracle(Path(tmp),'normal',{})['pass'])
 
+    def test_paused_consumer_overflow_requires_prior_independent_fault(self):
+        path=ROOT/'tests/integration/someip'
+        with mock.patch.object(sys,'path',[str(path),*sys.path]):
+            spec=importlib.util.spec_from_file_location('rear_oracle_overflow',path/'rear_oracle.py')
+            m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+        summary={'overflow':True,'rx_overflow_ns':110,'authority_highwater':8,'authority_rejected':3}
+        watch={'fault_ns':105}
+        self.assertTrue(m.expected_paused_overflow('owner-pause','rear','rear',summary,watch,100))
+        for case,role,target,s,w in [('normal','rear','rear',summary,watch),('owner-pause','front','rear',summary,watch),('owner-pause','rear','rear',summary,{'fault_ns':115}),('owner-pause','rear','rear',dict(summary,authority_rejected=0),watch)]:
+            self.assertFalse(m.expected_paused_overflow(case,role,target,s,w,100))
+
 class SdkOutcomeTest(unittest.TestCase):
     def test_only_exact_injected_lease_loss_with_protection_and_rejoin_is_expected(self):
         import importlib.util

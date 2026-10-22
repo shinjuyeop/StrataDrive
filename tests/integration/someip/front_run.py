@@ -141,6 +141,7 @@ def inside(folder,binary,case):
                     if central.poll() is not None:raise RuntimeError('surviving Central failed')
                     for r,p in peers.items():
                         if r!=target:pilot.wait_for(lambda r=r:(folder/(r+'-protected')).exists(),3)
+                    if three:pilot.wait_for(lambda:(folder/'physical-protected').exists(),1)
                     watch_snapshot('after-'+target+'-crash')
                     peers[target]=launch(target,2);front=peers['front']
                     pilot.wait_for(lambda:(folder/(target+'-2.started')).exists() or peers[target].poll() is not None,3)
@@ -156,6 +157,7 @@ def inside(folder,binary,case):
                     for r,p in peers.items():
                         pilot.wait_for(lambda r=r,p=p:(folder/(r+'-protected')).exists() or p.poll() is not None,3)
                         if not (folder/(r+'-protected')).exists():raise RuntimeError(r+' independent protection missing')
+                    if three:pilot.wait_for(lambda:(folder/'physical-protected').exists(),1)
                 elif case=='close-full':
                     pilot.wait_for(lambda:(folder/'queue-full').exists() or central.poll() is not None,3)
                     if not (folder/'queue-full').exists():raise RuntimeError('queue never full')
@@ -167,6 +169,7 @@ def inside(folder,binary,case):
                     pilot.wait_for(lambda:(folder/'central-protected').exists() or central.poll() is not None,1)
                     pilot.wait_for(lambda:(folder/'diagnostics-settled').exists() or central.poll() is not None,1)
                     if case=='delay':pilot.wait_for(lambda:(folder/'delay-drained').exists() or front.poll() is not None,1)
+                    if three:pilot.wait_for(lambda:(folder/'physical-protected').exists(),1)
                     # Keep the Central receive endpoint alive while Front publishes
                     # final rejection/protection evidence and returns from SDK stop.
                     for r,p in peers.items():(folder/('stop-'+r)).touch();p.wait(timeout=3)

@@ -252,6 +252,11 @@ struct Owners final:session::CoordinatorPort {
         }
     }
 
+    bool observed_normal_response() {
+        const auto f=port.feedback();
+        return f.rear.drive_actual && f.rear.drive_actual->torque_nm && *f.rear.drive_actual->torque_nm>1 &&
+            f.front.brake_actual && f.front.brake_actual->pressure_pa && *f.front.brake_actual->pressure_pa<1;
+    }
     void diagnostic(transport::ZoneRequest r) {
         check(diagnostic_pending.size()<8,"diagnostic pending bound");
         diagnostic_pending[{r.epoch,r.token}]=now()+20*kMs;++diagnostic_sent;
@@ -278,7 +283,7 @@ int plant(const fs::path& folder) {
         simulation::NativeExecutionWatch::configure_thread(3,fifo_enabled()?19:0);watch->owner_info.capture();
     }
     mark(folder/"plant-ready");
-    bool pass=true,delayed=false;std::string error;std::uint64_t previous=now(),maximum_gap=0,fault_time=0,requested=now();
+    bool pass=true,delayed=false;std::string error;std::uint64_t previous=now(),maximum_gap=0,fault_time=0,requested=now(),injection=0;
     std::vector<std::array<std::uint64_t,3>> timing;timing.reserve(40000);
     try {while(!fs::exists(folder/"stop-plant") && now()-start<18'000*kMs) {
         if(watch)simulation::runtime_support::sleep_until(requested);
@@ -294,6 +299,11 @@ int plant(const fs::path& folder) {
         if(timing.size()<timing.capacity())timing.push_back({before,now(),physical.ok()?0ULL:1ULL});
         else {pass=false;fault_time=now();error="plant timing capacity";break;}
         if(!physical.ok()){pass=false;fault_time=now();break;}
+        if(three_enabled() && !physical.trace.empty()) {
+            const auto& sample=physical.trace.back();
+            if(!injection && fs::exists(folder/"inject")){std::ifstream in(folder/"inject");in>>injection;}
+            if(injection && sample.source_ns>=injection && std::abs(sample.torque_nm)<=1 && sample.pressure_pa>=100000)mark(folder/"physical-protected");
+        }
         io.update([&](PlantState& state){if(auto sample=sensors[0].read())state.sensors=*sample;});
         iteration.finish();
         if(watch)requested=simulation::M4ReleaseGrid{start,500000}.after(now());
@@ -405,17 +415,20 @@ int main(int argc,char** argv) {
                 if(!remote && test=="restart-live" && fs::exists(folder/"rejoin-request") && !rejoined) {
                     if(!rejoin_requested){net.ready=0;net.probe_peer(true);rejoin_requested=true;}
                     else if(net.ready==net.ready_mask()) {
-                        check(owners->protected_ns!=0,"rejoin before protection");
+                        check(owners->protected_ns!=0 && !owners->gate.allows(owners->epoch),"rejoin before protection");
+                        owners->event("ingress-transition-begin",7,owners->pending.size());
+                        for(const auto& item:owners->pending)owners->event("retired-pending",7,item.first,item.second.deadline_ns);
+                        net.begin_quiescent_transition();
                         iteration.finish();owners.reset(); // single owner stopped; all old mailbox users are gone
                         owners=std::make_unique<Owners>(Ecu::Central,net,folder,tag+"-rejoined");
                         const auto issued_epoch=owners->issue_epoch();
-                        owners->start_watch();owners->begin(issued_epoch);rejoined=true;
+                        owners->start_watch();net.end_quiescent_transition();owners->event("ingress-transition-end",7,issued_epoch);owners->begin(issued_epoch);rejoined=true;
                     }
                 }
                 if(!remote && rejoined && owners->armed_ns && prior_request && !invalid_sent) {
                     owners->diagnostic(*prior_request);invalid_sent=true;mark(folder/"rejoined");
                 }
-                if(!remote && owners->port.completed_batches()>=10 && owners->pending.empty())mark(folder/"control-established");
+                if(!remote && owners->port.completed_batches()>=10 && owners->pending.empty() && (!three_enabled() || owners->observed_normal_response()))mark(folder/"control-established");
                 const bool healthy_case=test=="normal" || test=="late" || test=="invalid" || (test=="restart-live" && rejoined);
                 if(!remote && healthy_case && owners->armed_ns && now()-owners->armed_ns>=500*kMs && (!owners->watch || now()-ready_ns>=run_duration()) && owners->pending.empty()) {
                     check(owners->release_acks==255 && owners->port.completed_batches()>=10 && owners->accepted_results>=20 && owners->actual_count>=20,"normal real control coverage");
@@ -494,6 +507,6 @@ int main(int argc,char** argv) {
         <<",\"drive_applied\":"<<(owners && ecu==Ecu::Rear?owners->leaf[2]->received_commands():0)
         <<",\"normal_stop_started\":"<<(owners?owners->stop_started:0)<<",\"normal_stop_complete\":"<<(owners?owners->stop_complete:0)
         <<",\"expired_rejected\":"<<(owners && remote?owners->remote_zone->expired:0)<<",\"rx_highwater\":"<<std::max(net.highwater[0].load(),net.highwater[2].load())<<",\"authority_highwater\":"<<std::max(net.highwater[1].load(),net.highwater[3].load())<<",\"max_owner_poll_gap_ns\":"<<(owners?owners->max_poll_gap:0)<<",\"stale_authority_rejected\":"<<net.stale_authority_rejected<<",\"binding_rejected\":"<<net.rejected<<",\"send_returned\":"<<net.send_returned
-        <<",\"rx_rejected\":"<<net.rx_rejected[0]<<",\"rx_overflow_ns\":"<<net.rx_overflow_ns<<",\"rx_overflow_token\":"<<net.rx_overflow_token<<",\"fifo_preserved\":"<<(net.fifo_preserved?"true":"false")<<",\"overflow_drained\":"<<net.drained_count<<",\"io_attempts\":"<<(owners?owners->io.attempts:0)<<",\"io_busy\":"<<(owners?owners->io.busy:0)<<",\"io_errors\":"<<(owners?owners->io.errors:0)<<",\"overflow\":"<<(net.overflow?"true":"false")<<",\"error\":\""<<error<<"\"}\n";
+        <<",\"authority_rejected\":"<<net.rx_rejected[1]<<",\"transition_discarded\":["<<net.transition_discarded[0]<<','<<net.transition_discarded[1]<<','<<net.transition_discarded[2]<<','<<net.transition_discarded[3]<<']'<<",\"rx_rejected\":"<<net.rx_rejected[0]<<",\"rx_overflow_ns\":"<<net.rx_overflow_ns<<",\"rx_overflow_token\":"<<net.rx_overflow_token<<",\"fifo_preserved\":"<<(net.fifo_preserved?"true":"false")<<",\"overflow_drained\":"<<net.drained_count<<",\"io_attempts\":"<<(owners?owners->io.attempts:0)<<",\"io_busy\":"<<(owners?owners->io.busy:0)<<",\"io_errors\":"<<(owners?owners->io.errors:0)<<",\"overflow\":"<<(net.overflow?"true":"false")<<",\"error\":\""<<error<<"\"}\n";
     return pass?0:1;
 }

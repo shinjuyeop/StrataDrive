@@ -7,6 +7,13 @@ from pathlib import Path
 from renewal_oracle import renewal_oracle
 
 
+def expected_paused_overflow(case,role,target,summary,watch,injection):
+    # Only saturation caused by the declared stopped consumer, after an independently
+    # detected deadline fault. This is a fault outcome, never normal availability.
+    return (case=='owner-pause' and role==target and summary.get('overflow') is True
+            and injection<=watch.get('fault_ns',0)<=summary.get('rx_overflow_ns',0)
+            and summary.get('authority_highwater')==8 and summary.get('authority_rejected',0)>0)
+
 def rear_oracle(folder,case,result):
     folder=Path(folder);out={'pass':True,'errors':[]}
     def require(ok,why):
@@ -23,9 +30,16 @@ def rear_oracle(folder,case,result):
             if role not in live:continue
             s=live[role]
             require(s.get('orderly_stop') is True and 0<s.get('stop_begin',0)<=s.get('stop_return',0)<=s.get('join_return',0),'stop/join not returned '+role)
-            require(not s.get('overflow') and s.get('rx_highwater',9)<=8 and s.get('authority_highwater',9)<=8,'unexpected overflow '+role)
+            expected=False
+            if s.get('overflow') and case=='owner-pause':
+                watch=json.loads((folder/(role+'-1.native.watch.json')).read_text())
+                expected=expected_paused_overflow(case,role,result['fault_target'],s,watch,int((folder/'inject').read_text()))
+                if expected:out['expected_paused_consumer_overflow']={'role':role,'fault_ns':watch['fault_ns'],'overflow_ns':s['rx_overflow_ns'],'authority_rejected':s['authority_rejected']}
+            require((not s.get('overflow') or expected) and s.get('rx_highwater',9)<=8 and s.get('authority_highwater',9)<=8,'unexpected overflow '+role)
         physical=rows('physical.csv')
-        require(len(physical)>10 and max(float(r['torque']) for r in physical)>0,'no actual Drive model response')
+        injection=int((folder/'inject').read_text()) if (folder/'inject').exists() else 0
+        before=[r for r in physical if not injection or int(r['ns'])<injection]
+        require(len(physical)>10 and any(float(r['torque'])>1 and float(r['pressure'])<1 for r in before),'no actual normal Drive/brake model response before injection')
         healthy=case in ('normal','restart-live')
         if healthy:
             c=live['central'];f=live['front'];r=live['rear']
@@ -59,7 +73,9 @@ def rear_oracle(folder,case,result):
                 if role!='central':require(s.get('selected_ns',0)>=t,'actual Leaf protection not selected '+role)
                 protected.append(t)
             after=[p for p in physical if int(p['ns'])>=max(protected,default=injection)]
-            require(any(abs(float(p['torque']))<=1 and float(p['pressure'])>=100000 for p in after),'actual torque/brake protection not observed')
+            protected_actual=[p for p in physical if injection<=int(p['ns'])<=injection+100_000_000 and abs(float(p['torque']))<=1 and float(p['pressure'])>=100000]
+            require(bool(protected_actual),'actual torque/brake protection within original100ms not observed')
+            out['physical_protection_ns']=int(protected_actual[0]['ns']) if protected_actual else None
             if case=='command-loss':
                 target=result['fault_target'];events=rows(target+'-1.leaf-events.csv')
                 expiry=[e for e in events if e['event']=='command-expired' and int(e['ns'])>=injection]

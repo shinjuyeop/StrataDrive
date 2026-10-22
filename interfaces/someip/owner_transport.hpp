@@ -16,7 +16,7 @@ inline std::uint64_t now() { return std::chrono::duration_cast<std::chrono::nano
 inline void check(bool ok,const char* why) { if(!ok) throw std::runtime_error(why); }
 class Transport {
     struct Out { remote::OwnerPacket packet; unsigned method; };
-    Ecu ecu_; bool three_; std::shared_ptr<vsomeip::application> app_;
+    Ecu ecu_; bool three_;bool transitioning_=false; std::shared_ptr<vsomeip::application> app_;
     std::thread dispatch_,sender_; std::mutex mutex_; std::array<std::deque<remote::OwnerMessage>,4> rx_;
     std::array<std::deque<Out>,4> tx_; std::atomic<bool> sending_{false},closing_{false};
     std::ofstream trace_;
@@ -30,7 +30,7 @@ public:
     std::atomic<unsigned> available{0},ready{0},rejected{0},rx_count{0},send_returned{0};
     std::array<std::atomic<unsigned>,4> highwater{},tx_highwater{};
     std::atomic<bool> overflow{false};
-    std::array<std::atomic<unsigned>,4> rx_rejected{};
+    std::array<std::atomic<unsigned>,4> rx_rejected{},transition_discarded{};
     std::atomic<std::uint64_t> rx_overflow_ns{0},rx_overflow_token{0};
     std::array<std::uint64_t,8> full_tokens{},drained_tokens{};unsigned drained_count=0;
     bool fifo_preserved=true; // callback writes full_tokens under mutex; pop uses same mutex
@@ -87,6 +87,7 @@ public:
                     if(!eligible){++stale_authority_rejected;return;}
                 }
                 std::lock_guard<std::mutex> lock(mutex_);++rx_count;
+                if(transitioning_){++transition_discarded[l];return;}
                 if(rx_[l].size()==8) {
                     ++rx_rejected[l];
                     if(!rx_overflow_ns.load()) {
@@ -130,6 +131,19 @@ public:
             const auto stamp=now();probe_sent[l]=stamp;probe_nonce[l]=stamp;
             send_probe(l,{1,static_cast<std::uint8_t>(ecu_==Ecu::Central?0:1),static_cast<std::uint8_t>(l%2),stamp});
         }
+    }
+    // Call only after Central authority is closed and the old session protected.
+    // No command/ACK is accepted while its owning graph is retired and durable
+    // Epoch IO runs. Probes continue; discarded old ingress is counted per lane.
+    // This never clears overflow or supplies authority. A fresh handshake follows.
+    void begin_quiescent_transition() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        check(ecu_==Ecu::Central && !transitioning_ && !overflow,"invalid ingress transition");
+        transitioning_=true;
+        for(unsigned l=0;l<channels();++l){transition_discarded[l]+=rx_[l].size();rx_[l].clear();}
+    }
+    void end_quiescent_transition() {
+        std::lock_guard<std::mutex> lock(mutex_);check(transitioning_,"ingress not quiesced");transitioning_=false;
     }
     bool send(const remote::OwnerMessage& m) {
         auto p=remote::encode_owner_message(m);if(!p)return false;const auto mid=method(m.payload);const unsigned l=(authority(mid)?1:0)+(ecu_==Ecu::Central && three_ && owns_role(Ecu::Rear,m.to)?2:0);
