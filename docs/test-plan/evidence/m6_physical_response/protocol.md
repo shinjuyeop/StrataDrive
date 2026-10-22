@@ -49,3 +49,16 @@ M6 actual 완료는 기존 최소100kPa가 아닌 **실제 보호 floor1MPa 및 
 입력·rate·target은 동일하다. 원래 과거 실제 사건을 똑같이 재현했다는 주장은 아니다.
 공통 header의 진단 snapshot/기존 brake config 단일 getter를 추가했으므로 보수적으로
 최종 전체 Normal/ASan 각1회를 실행한다(물리/제어/실행 알고리즘은 변경하지 않음).
+
+## 첫 실행 후 수정과 추가 실행 근거
+
+5f1ef49 SDK nominal normal은 PASS. command-loss는 actual 완료219.318ms(주입),
+200.395ms(최초 선택)이나 새 oracle가 local detection-to-selection에서 FAIL했다.
+`pre_shutdown_protection`은 synchronous poll/보호 처리 후의 관측 시각이며 실제
+Actuation.issued_time보다3.5/2.7us 늦었다. 검출 기점으로 사용할 수 없다는 관측/판정 결함이다.
+시한을 완화하지 않고 step 진입~최초 fault 관측을 bounded event로 기록한다.
+실제 Drive command-expired 시각/마지막 유효 RX도 별도 유지한다.
+수정 전 실패 원본을 보존하고 서비스 구간 의미의 Python 회귀를 추가한다.
+추가 실제 실행은 변경된 fault 관측/판정의 command-loss1회만이다. nominal 정상 경로와
+모든 물리/제어 알고리즘은 동일해 기존 새 normal1회 결과를 유지하고 반복하지 않는다.
+최종 전체 Normal/ASan 및 경계 TSan은 이 수정 후 소스에서 실행한다.

@@ -214,7 +214,7 @@ struct Owners final:session::CoordinatorPort {
         if(remote) {
             // This priority path remains active even when normal receive consumption stops.
             emit(remote_zone->poll());for(auto& e:remote_leaf)if(e)emit(e->poll());
-            if(zone[zi]->faulted() && !protected_ns){protected_ns=now();event("local-protection",zi,remote_zone->lease_fault(),remote_zone->last_lease_expiry);
+            if(zone[zi]->faulted() && !protected_ns){protected_ns=now();event("local-protection-service",zi,observed,protected_ns);event("local-protection",zi,remote_zone->lease_fault(),remote_zone->last_lease_expiry);
                 for(unsigned i=0;i<5;++i)if(leaf[i])event("leaf-first-fault",i+2,leaf[i]->fault_code());}
             if(zone[zi]->protected_selected() && !selected_ns){selected_ns=now();event("leaf-protection-selected",zi);}
             while(auto r=zones[zi].results.pop()) {

@@ -21,6 +21,8 @@ class PhysicalResponseOracle(unittest.TestCase):
         for i in range(211):
             t=self.selection+i*1_000_000
             self.rows.append(dict(before_ns=t,after_ns=t+1000,model_ns=t+500,torque_nm=max(0,300-i*2),pressure_pa=min(1000000,i*5000),drive_source=self.selection,drive_selected=self.selection,drive_applied=self.selection,drive_zero=1,brake_source=self.selection,brake_selected=self.selection,brake_applied=self.selection,brake_protect=1,epoch=1))
+        for role in ('front','rear'):
+            (self.p/(role+'-1.events.csv')).write_text(f'ns,event,value,deadline\n{self.selection},local-protection-service,{self.selection-1000},{self.selection}\n')
         self.write()
     def write(self):
         with (self.p/'physical-response.csv').open('w') as f:w=csv.DictWriter(f,fieldnames=list(self.rows[0]));w.writeheader();w.writerows(self.rows)
@@ -38,6 +40,11 @@ class PhysicalResponseOracle(unittest.TestCase):
         for i in range(31):
             r=dict(self.rows[-1]);r.update(before_ns=r['before_ns']+(i+1)*1000000,after_ns=r['after_ns']+(i+1)*1000000,model_ns=r['model_ns']+(i+1)*1000000);self.rows.append(r)
         for r in self.rows[:-1]:r['pressure_pa']=999999
+        self.write();self.assertFalse(self.verdict()['pass'])
+    def test_selection_may_precede_post_service_observation_but_not_service_entry(self):
+        for r in self.rows:r['brake_selected']-=500
+        self.write();self.assertTrue(self.verdict()['pass'],self.verdict())
+        for r in self.rows:r['brake_selected']-=5000
         self.write();self.assertFalse(self.verdict()['pass'])
     def test_missing_samples_fails(self):
         (self.p/'physical-response.csv').unlink();self.assertFalse(self.verdict()['pass'])

@@ -37,8 +37,14 @@ def response_oracle(folder,result):
         live={r['role']:r['summary'] for r in result['processes'] if r['role'] in ('front','rear') and not r.get('expected_abrupt_stop')}
         targets=[]
         for leaf,role in [('drive','rear'),('brake','front')]:
-            t=live[role]['pre_shutdown_protection'];ack=live[role]['selected_ns']
-            require(t<=ack<=t+c['local_selection_ns'],'local protection selection ACK late '+leaf)
+            # pre_shutdown_protection is logged AFTER synchronous protection;
+            # the service-entry event brackets detection, it is not a new source time.
+            observed=live[role]['pre_shutdown_protection'];ack=live[role]['selected_ns']
+            intervals=[e for e in rows(role+'-1.events.csv') if e['event']=='local-protection-service' and int(e['deadline'])==observed]
+            require(len(intervals)==1,'missing local detection service interval '+leaf)
+            if len(intervals)!=1:continue
+            t=int(intervals[0]['value'])
+            require(injection<=t<=observed<=ack<=t+c['local_selection_ns'],'local protection selection ACK late '+leaf)
             selected=[r for r in rs if int(r[leaf+'_selected'])>=injection and int(r[leaf+('_zero' if leaf=='drive' else '_protect')])==1]
             require(bool(selected),'missing actual local target '+leaf)
             if not selected:continue
@@ -49,7 +55,7 @@ def response_oracle(folder,result):
             require(bool(applied),'protective output not consumed '+leaf)
             if applied:
                 a=applied[0];require(int(a['after_ns'])-s<=c['delivery_budget_ns'],'output handoff late '+leaf)
-                out[leaf]={'detected_ns':t,'selection_ack_ns':ack,'selection_observed_ns':s,'application_interval_ns':[int(a['before_ns']),int(a['after_ns'])]}
+                out[leaf]={'detection_interval_ns':[t,observed],'selection_ack_ns':ack,'selection_observed_ns':s,'application_interval_ns':[int(a['before_ns']),int(a['after_ns'])]}
         complete=[r for r in rs if abs(float(r['torque_nm']))<=c['torque_tolerance_nm'] and float(r['pressure_pa'])>=c['brake_floor_pa']]
         require(len(targets)==2 and bool(complete),'actual torque/brake protection incomplete')
         if len(targets)==2 and complete:
