@@ -129,12 +129,36 @@ class SomeipAdapterBookkeepingTest(unittest.TestCase):
             d=Path(tmp);central=mock.Mock();central.poll.return_value=None
             self.assertFalse(module.normal_prerequisite(d,central))
             (d/'control-established').touch();self.assertTrue(module.normal_prerequisite(d,central))
-            for role in ('front','central'):
+            for role in ('front','central','rear'):
                 p=d/(role+'-protected');p.write_text('1')
                 with self.assertRaisesRegex(RuntimeError,'before declared injection'):module.normal_prerequisite(d,central)
                 p.unlink()
             central.poll.return_value=1
             with self.assertRaisesRegex(RuntimeError,'exited'):module.normal_prerequisite(d,central)
+
+class ThreeEcuBookkeepingTest(unittest.TestCase):
+    def test_three_routes_do_not_reuse_endpoint_or_routing_resources(self):
+        path=ROOT/'tests/integration/someip'
+        with mock.patch.dict(sys.modules,{'run':runner}),mock.patch.object(sys,'path',[str(path),*sys.path]):
+            spec=importlib.util.spec_from_file_location('three_runner',path/'front_run.py')
+            m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+        configs=[m.config(r,1,True) for r in ('central','front','rear')]
+        for field in ('network','unicast','routing','diagnosis'):self.assertEqual(len({c[field] for c in configs}),3)
+        services=[x for c in configs for x in c['services']]
+        self.assertEqual(len({x['service'] for x in services}),8)
+        self.assertEqual(len({x['reliable']['port'] for x in services}),8)
+        for c in configs:
+            self.assertEqual(int(c['applications'][0]['id'],16)>>8,int(c['diagnosis'],16))
+            self.assertEqual(c['endpoint-queue-limit-external'],8192)
+        self.assertNotEqual(m.config('rear',1,True)['applications'][0]['id'],m.config('rear',2,True)['applications'][0]['id'])
+
+    def test_missing_rear_evidence_is_failure(self):
+        path=ROOT/'tests/integration/someip'
+        with mock.patch.object(sys,'path',[str(path),*sys.path]):
+            spec=importlib.util.spec_from_file_location('rear_oracle',path/'rear_oracle.py')
+            m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertFalse(m.rear_oracle(Path(tmp),'normal',{})['pass'])
 
 class SdkOutcomeTest(unittest.TestCase):
     def test_only_exact_injected_lease_loss_with_protection_and_rejoin_is_expected(self):
@@ -182,6 +206,40 @@ class RenewalBookkeepingTest(unittest.TestCase):
             for bad in ('late','missing','mutate'):
                 fixture(d,**{bad:True});self.assertFalse(m.renewal_oracle(d)['pass'])
             (d/'front-1.leaf-events.csv').unlink();self.assertFalse(m.renewal_oracle(d)['pass'])
+
+    def test_three_ecu_token_path_and_front_result_order_are_required(self):
+        spec=importlib.util.spec_from_file_location('renewal_oracle',ROOT/'tests/integration/someip/renewal_oracle.py')
+        m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+        import csv
+        fields=['event','ns','epoch','token','payload_source','operation','peer','original_source','inner_deadline','sent','deadline']
+        def fixture(d,bad=None):
+            central=[];peers={'front':[],'rear':[]}
+            for i in range(10):
+                t=100+i*10
+                for peer in (0,1):
+                    request=dict(zip(fields,['central-enqueued',t+peer,1,i*2+peer+1,t,3,peer,t-2,t+30,t+peer,t+20+peer]))
+                    central.append(request)
+                    central.append(dict(request,event='central-result-accepted',ns=t+1+peer))
+                    role='front' if peer==0 else 'rear'
+                    peers[role].append(dict(request,event='zone-received',ns=t+2))
+                    for owner in ((2,3) if peer==0 else (4,)):
+                        peers[role].append(dict(request,event='zone-leaf-enqueued',ns=t+3,peer=owner,operation=0))
+            if bad=='token':peers['rear'][0]['token']=999
+            if bad=='source':peers['rear'][0]['original_source']=0
+            if bad=='order':central[1]['ns']=110
+            if bad=='missing':central=[r for r in central if not(r['event']=='central-result-accepted' and r['token']==2)]
+            for name,rows in [('central',central),*peers.items()]:
+                with (d/(name+'-1.transport.csv')).open('w') as f:
+                    w=csv.DictWriter(f,fieldnames=fields);w.writeheader();w.writerows(rows)
+            for name,owners in [('front',(2,3)),('rear',(4,))]:
+                with (d/(name+'-1.leaf-events.csv')).open('w') as f:
+                    f.write('event,ns,owner,epoch,source,deadline,detail\n')
+                    for owner in owners:
+                        for i in range(10):f.write(f'valid-input,{104+i*10},{owner},1,{100+i*10},{130+i*10},1\n')
+        with tempfile.TemporaryDirectory() as tmp:
+            d=Path(tmp);fixture(d);self.assertTrue(m.renewal_oracle(d,three=True)['pass'])
+            for bad in ('token','source','order','missing'):
+                fixture(d,bad);self.assertFalse(m.renewal_oracle(d,three=True)['pass'],bad)
 
 class NativeWatchBookkeepingTest(unittest.TestCase):
     def module(self):

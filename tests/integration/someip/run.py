@@ -66,7 +66,7 @@ def supervise(cmd, dest, seconds):
 
 def capture_packets(folder):
     """AF_PACKET in caller-owned netns; no tcpdump setgroups/root drop required."""
-    active=True; count=0
+    active=True; count=0;peer_counts={}
     def stop(*_):
         nonlocal active
         active=False
@@ -86,7 +86,10 @@ def capture_packets(folder):
                 tcp=14+iplen;ports=struct.unpack('!HH',frame[tcp:tcp+4])
                 size=struct.unpack('!H',frame[16:18])[0]-iplen-((frame[tcp+12]>>4)*4)
                 if 30501 in ports and size>0:count+=1
-    sock.close();save(folder/'capture.json',{'ip_data_packets':count,'interface':'sdc','normal_exit':True})
+                if size>0:
+                    for address in [socket.inet_ntoa(frame[26:30]),socket.inet_ntoa(frame[30:34])]:
+                        if address in ('10.88.0.2','10.88.0.3'):peer_counts[address]=peer_counts.get(address,0)+1
+    sock.close();save(folder/'capture.json',{'ip_data_packets':count,'peer_data_packets':peer_counts,'interface':'sdc','normal_exit':True})
 
 def inside(folder, binary, case):
     folder=folder.resolve(); processes=[]; streams=[]; capture=None

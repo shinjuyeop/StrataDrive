@@ -1,4 +1,6 @@
 #include "remote_leaf_endpoint.hpp"
+#include "remote_zone_endpoint.hpp"
+#include "../../interfaces/someip/owner_message_binding.hpp"
 #include "m4_owner_network.hpp"
 #include <gtest/gtest.h>
 #include <limits>
@@ -156,3 +158,46 @@ TEST_F(RemoteZoneIntegration, ExpiredArmAndStopResponsesRemainBoundToTheOriginal
     }
 }
 } // namespace
+
+TEST(SomeipRearBinding, ServicesRolesAndPayloadAreBoundToOneEcu) {
+    using namespace stratadrive;using someip::Ecu;using session::Role;
+    for(const auto ecu:{Ecu::Front,Ecu::Rear}) {
+        const bool rear=ecu==Ecu::Rear;const auto zone=rear?Role::RearZone:Role::FrontZone;
+        for(unsigned i=0;i<8;++i) {
+            const auto role=static_cast<Role>(i);
+            remote::OwnerMessage m{Role::CentralIngress,role,someip::kDomain,session::Control{role,session::Phase::Prepare,{},0}};
+            EXPECT_EQ(someip::binding(ecu,rear?0x5349:0x5345,1,0x40,1,1,m),someip::owns_role(ecu,role));
+            EXPECT_FALSE(someip::binding(ecu,rear?0x5345:0x5349,1,0x40,1,1,m));
+            if(someip::owns_role(ecu,role)) {
+                EXPECT_FALSE(someip::binding(ecu,rear?0x5349:0x5345,1,0x20,1,1,m));
+                EXPECT_FALSE(someip::binding(ecu,rear?0x5349:0x5345,1,0x40,0,1,m));
+                EXPECT_FALSE(someip::binding(ecu,rear?0x5349:0x5345,1,0x40,1,2,m));
+            }
+            m={role,Role::CentralIngress,someip::kDomain,session::Ack{role,session::Phase::Release,{},0,true}};
+            EXPECT_EQ(someip::binding(Ecu::Central,rear?0x534b:0x5347,1,0x40,1,1,m),someip::owns_role(ecu,role));
+        }
+        remote::OwnerMessage m{zone,Role::CentralIngress,someip::kDomain,transport::TxResult{}};
+        EXPECT_TRUE(someip::binding(Ecu::Central,rear?0x534a:0x5346,1,0x80,1,1,m));
+        m.from=rear?Role::Drive:Role::Steering;
+        EXPECT_FALSE(someip::binding(Ecu::Central,rear?0x534a:0x5346,1,0x80,1,1,m));
+        m={Role::CentralIngress,zone,someip::kDomain,transport::ZoneRequest{}};
+        EXPECT_TRUE(someip::binding(ecu,rear?0x5348:0x5344,1,0x20,1,1,m));
+        if(rear){EXPECT_FALSE(someip::binding(true,0x5348,1,0x20,1,1,m));} // opt-in only
+    }
+}
+
+TEST(SomeipRearBinding, ZoneEndpointCannotAcquirePeerOwnershipOrAuthorityFromWrongRoute) {
+    using namespace stratadrive;
+    auto n=std::make_unique<simulation::m4_detail::Network>(simulation::M4Config{});
+    constexpr remote::ClockAgreement clock{99,99,0,0,true};
+    for(unsigned z=0;z<2;++z) {
+        const auto role=static_cast<session::Role>(z);
+        simulation::RemoteZoneEndpoint endpoint(role,*n->zone_sessions[z],*n->zone_owners[z],n->gate,n->zones[z],clock);
+        const auto before=n->gate.epoch();
+        EXPECT_FALSE(endpoint.receive({session::Role::CentralIngress,static_cast<session::Role>(1-z),99,transport::ZoneRequest{}}));
+        EXPECT_EQ(n->gate.epoch(),before);EXPECT_FALSE(n->zones[z].work.pop());
+        EXPECT_THROW((simulation::RemoteZoneEndpoint(session::Role::Drive,*n->zone_sessions[z],*n->zone_owners[z],n->gate,n->zones[z],clock)),std::invalid_argument);
+        auto wrong=clock;wrong.established=false;
+        EXPECT_THROW((simulation::RemoteZoneEndpoint(role,*n->zone_sessions[z],*n->zone_owners[z],n->gate,n->zones[z],wrong)),std::invalid_argument);
+    }
+}

@@ -269,4 +269,12 @@ TEST(M4RefreshDelivery, InterruptedHostRenewalStillExpiresOriginalAuthority) {
     EXPECT_GE(r.first_fault_ns,c.injection_ns);EXPECT_LE(r.all_protected_ns-r.first_fault_ns,100000000U);
     EXPECT_TRUE(std::any_of(r.events.begin(),r.events.end(),[](const auto& e){return std::string(e.kind)=="command-expired" && e.time_ns>=e.deadline_ns;}));
 }
+TEST(M4RefreshDelivery, Host10NormalStopUsesRealHandoffAndHvOff) {
+    M4Config c;c.renewal=stratadrive::central::CommandRenewal::Host10ms;
+    c.scenario=M4Scenario::NormalStop;c.duration_ns=3000000000;
+    const auto r=run_m4_async(c);
+    ASSERT_TRUE(r.passed)<<r.reason;EXPECT_EQ(r.first_fault_ns,0U);
+    ASSERT_FALSE(r.trace.empty());EXPECT_LT(r.trace.back().bus_v,30);
+    EXPECT_LT(std::abs(r.trace.back().torque_nm),.1);EXPECT_GE(r.trace.back().pressure_pa,100000);
+}
 }  // namespace
