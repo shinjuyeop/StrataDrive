@@ -1,0 +1,103 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 44 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from DriveControllerConfig
+[ RUN      ] DriveControllerConfig.RejectsInvalidCalibrationWithoutAPermissiveBypass
+[       OK ] DriveControllerConfig.RejectsInvalidCalibrationWithoutAPermissiveBypass (0 ms)
+[ RUN      ] DriveControllerConfig.ExplicitApplicationAndPhysicalEpochMappingIsRequired
+[       OK ] DriveControllerConfig.ExplicitApplicationAndPhysicalEpochMappingIsRequired (0 ms)
+[----------] 2 tests from DriveControllerConfig (0 ms total)
+
+[----------] 35 tests from DriveControllerTest
+[ RUN      ] DriveControllerTest.InitReportsKnownModelTorqueButUnknownCapabilityUntilInputsArrive
+[       OK ] DriveControllerTest.InitReportsKnownModelTorqueButUnknownCapabilityUntilInputsArrive (0 ms)
+[ RUN      ] DriveControllerTest.FreshInhibitAndKnownPhysicalOffCanRemainNonDrivingInit
+[       OK ] DriveControllerTest.FreshInhibitAndKnownPhysicalOffCanRemainNonDrivingInit (0 ms)
+[ RUN      ] DriveControllerTest.PositiveAndNegativeCommandsStillPassThroughPhysicalDelayAndRate
+[       OK ] DriveControllerTest.PositiveAndNegativeCommandsStillPassThroughPhysicalDelayAndRate (2 ms)
+[ RUN      ] DriveControllerTest.PropulsionHonorsElectricalDrawIncludingIdleAndTorqueSquaredLoss
+[       OK ] DriveControllerTest.PropulsionHonorsElectricalDrawIncludingIdleAndTorqueSquaredLoss (0 ms)
+[ RUN      ] DriveControllerTest.StandstillUsesFiniteCopperLossLimitAndNeverDividesByZero
+[       OK ] DriveControllerTest.StandstillUsesFiniteCopperLossLimitAndNeverDividesByZero (0 ms)
+[ RUN      ] DriveControllerTest.ValidZeroDischargeBlocksLaunchAndPositiveTorqueButChargeStaysIndependent
+[       OK ] DriveControllerTest.ValidZeroDischargeBlocksLaunchAndPositiveTorqueButChargeStaysIndependent (0 ms)
+[ RUN      ] DriveControllerTest.ChargeAcceptanceBoundsRegenWithUnitEfficiencyAsConservativeUpperReturn
+[       OK ] DriveControllerTest.ChargeAcceptanceBoundsRegenWithUnitEfficiencyAsConservativeUpperReturn (0 ms)
+[ RUN      ] DriveControllerTest.LowSpeedTaperAndMotorConstantPowerEnvelopeLimitCapability
+[       OK ] DriveControllerTest.LowSpeedTaperAndMotorConstantPowerEnvelopeLimitCapability (0 ms)
+[ RUN      ] DriveControllerTest.CapabilityRoundingNeverExceedsPowerAcceptance
+[       OK ] DriveControllerTest.CapabilityRoundingNeverExceedsPowerAcceptance (0 ms)
+[ RUN      ] DriveControllerTest.ValidZeroChargeCancelsQueuedRegenAndRampsResidualWithoutTeleport
+[       OK ] DriveControllerTest.ValidZeroChargeCancelsQueuedRegenAndRampsResidualWithoutTeleport (1 ms)
+[ RUN      ] DriveControllerTest.PositivePowerContractionUsesProtectionRateAndCanResumeOnFreshSoftLimits
+[       OK ] DriveControllerTest.PositivePowerContractionUsesProtectionRateAndCanResumeOnFreshSoftLimits (2 ms)
+[ RUN      ] DriveControllerTest.PermissionInhibitAfterActivationLatchesAndZerosBothSigns
+[       OK ] DriveControllerTest.PermissionInhibitAfterActivationLatchesAndZerosBothSigns (1 ms)
+[ RUN      ] DriveControllerTest.ClaimedReadyInPermissionCannotReplaceActualLocalHv
+[       OK ] DriveControllerTest.ClaimedReadyInPermissionCannotReplaceActualLocalHv (0 ms)
+[ RUN      ] DriveControllerTest.InverterHealthIsRequiredEvenWith400VoltBus
+[       OK ] DriveControllerTest.InverterHealthIsRequiredEvenWith400VoltBus (0 ms)
+[ RUN      ] DriveControllerTest.HardwareFaultRevokesAnAlreadyActiveGate
+[       OK ] DriveControllerTest.HardwareFaultRevokesAnAlreadyActiveGate (0 ms)
+[ RUN      ] DriveControllerTest.BmsProtectionIsNotTreatedAsAnOrdinarySoftPowerLimit
+[       OK ] DriveControllerTest.BmsProtectionIsNotTreatedAsAnOrdinarySoftPowerLimit (0 ms)
+[ RUN      ] DriveControllerTest.MissingSpeedIsUnknownCapabilityWithStillValidResidualTorque
+[       OK ] DriveControllerTest.MissingSpeedIsUnknownCapabilityWithStillValidResidualTorque (1 ms)
+[ RUN      ] DriveControllerTest.MissingHvNeverFallsBackToPermissionOrOldSensorValue
+[       OK ] DriveControllerTest.MissingHvNeverFallsBackToPermissionOrOldSensorValue (0 ms)
+[ RUN      ] DriveControllerTest.HeldPhysicalAcquisitionExpiresDespiteFreshCommandAndPermission
+[       OK ] DriveControllerTest.HeldPhysicalAcquisitionExpiresDespiteFreshCommandAndPermission (0 ms)
+[ RUN      ] DriveControllerTest.CachedPhysicalValuesCannotBeChangedOrReidentified
+[       OK ] DriveControllerTest.CachedPhysicalValuesCannotBeChangedOrReidentified (0 ms)
+[ RUN      ] DriveControllerTest.PhysicalEpochFutureDependencyAndUnsupportedReverseAreRejected
+[       OK ] DriveControllerTest.PhysicalEpochFutureDependencyAndUnsupportedReverseAreRejected (0 ms)
+[ RUN      ] DriveControllerTest.AcquisitionSkewCannotBeHiddenByIndividuallyFreshValues
+[       OK ] DriveControllerTest.AcquisitionSkewCannotBeHiddenByIndividuallyFreshValues (0 ms)
+[ RUN      ] DriveControllerTest.OverspeedOutsideTheCalibratedEnvelopeInhibits
+[       OK ] DriveControllerTest.OverspeedOutsideTheCalibratedEnvelopeInhibits (0 ms)
+[ RUN      ] DriveControllerTest.StaleLimitsCannotBeRefreshedByOtherStreams
+[       OK ] DriveControllerTest.StaleLimitsCannotBeRefreshedByOtherStreams (0 ms)
+[ RUN      ] DriveControllerTest.PartialLimitsStayUnknownRatherThanBecomingZeroOrCopiedFromOtherDirection
+[       OK ] DriveControllerTest.PartialLimitsStayUnknownRatherThanBecomingZeroOrCopiedFromOtherDirection (0 ms)
+[ RUN      ] DriveControllerTest.OriginalBmsFrameIsNotAcceptedAsTheRoutedDriveLimitsFrame
+[       OK ] DriveControllerTest.OriginalBmsFrameIsNotAcceptedAsTheRoutedDriveLimitsFrame (0 ms)
+[ RUN      ] DriveControllerTest.MissingTrustedParentRevokesVerifiedGrantAndCannotAutoLearnItFromCan
+[       OK ] DriveControllerTest.MissingTrustedParentRevokesVerifiedGrantAndCannotAutoLearnItFromCan (0 ms)
+[ RUN      ] DriveControllerTest.ExpiredGrantCannotBeConcealedByALateFreshRenewalBetweenTicks
+[       OK ] DriveControllerTest.ExpiredGrantCannotBeConcealedByALateFreshRenewalBetweenTicks (0 ms)
+[ RUN      ] DriveControllerTest.CommandLossUsesZeroRampAndLateCommandCannotRestartIt
+[       OK ] DriveControllerTest.CommandLossUsesZeroRampAndLateCommandCannotRestartIt (1 ms)
+[ RUN      ] DriveControllerTest.CapabilityPreservesOldestDependencyWhileItsCalculationSourceAdvances
+[       OK ] DriveControllerTest.CapabilityPreservesOldestDependencyWhileItsCalculationSourceAdvances (0 ms)
+[ RUN      ] DriveControllerTest.DependencyRollbackIsNotNormalizedIntoAFreshCapability
+[       OK ] DriveControllerTest.DependencyRollbackIsNotNormalizedIntoAFreshCapability (0 ms)
+[ RUN      ] DriveControllerTest.DeadlineHoldsTheMissedIntervalThenRampsToZero
+[       OK ] DriveControllerTest.DeadlineHoldsTheMissedIntervalThenRampsToZero (2 ms)
+[ RUN      ] DriveControllerTest.ContinuityLossStartsAtItsDetectionTimeAndCancelsPendingGoals
+[       OK ] DriveControllerTest.ContinuityLossStartsAtItsDetectionTimeAndCancelsPendingGoals (0 ms)
+[ RUN      ] DriveControllerTest.ClockRegressionSuppressesAllOutputWithoutAdvancingPhysics
+[       OK ] DriveControllerTest.ClockRegressionSuppressesAllOutputWithoutAdvancingPhysics (0 ms)
+[ RUN      ] DriveControllerTest.NewApplicationEpochPreservesPhysicalTorqueAndRequiresFreshInputs
+[       OK ] DriveControllerTest.NewApplicationEpochPreservesPhysicalTorqueAndRequiresFreshInputs (0 ms)
+[----------] 35 tests from DriveControllerTest (22 ms total)
+
+[----------] 7 tests from DriveStartupTest
+[ RUN      ] DriveStartupTest.FreshInhibitAndLocalInputsAllowLongPrechargeWithoutTorquePackets
+[       OK ] DriveStartupTest.FreshInhibitAndLocalInputsAllowLongPrechargeWithoutTorquePackets (2 ms)
+[ RUN      ] DriveStartupTest.PacketsCannotArmAndFirstNormalSequenceRemainsZeroAfterExplicitArm
+[       OK ] DriveStartupTest.PacketsCannotArmAndFirstNormalSequenceRemainsZeroAfterExplicitArm (0 ms)
+[ RUN      ] DriveStartupTest.AllowNormalBeforeTrustedArmLatchesWithoutApplyingTorque
+[       OK ] DriveStartupTest.AllowNormalBeforeTrustedArmLatchesWithoutApplyingTorque (0 ms)
+[ RUN      ] DriveStartupTest.MissingStartupPermissionCannotBeHiddenByLateFreshInhibit
+[       OK ] DriveStartupTest.MissingStartupPermissionCannotBeHiddenByLateFreshInhibit (0 ms)
+[ RUN      ] DriveStartupTest.MissingStartupLimitsStillLatchWithContinuingInhibit
+[       OK ] DriveStartupTest.MissingStartupLimitsStillLatchWithContinuingInhibit (0 ms)
+[ RUN      ] DriveStartupTest.StartupLocalSensorLossStillLatchesWithFreshBmsTraffic
+[       OK ] DriveStartupTest.StartupLocalSensorLossStillLatchesWithFreshBmsTraffic (0 ms)
+[ RUN      ] DriveStartupTest.NormalCommandWaitingBudgetStartsAtExplicitArmAndIsNotExtended
+[       OK ] DriveStartupTest.NormalCommandWaitingBudgetStartsAtExplicitArmAndIsNotExtended (2 ms)
+[----------] 7 tests from DriveStartupTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 44 tests from 3 test suites ran. (29 ms total)
+[  PASSED  ] 44 tests.

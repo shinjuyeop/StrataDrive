@@ -1,0 +1,43 @@
+{
+  "status": "OBSERVED",
+  "readiness_errors": [
+    "time-out of 5000ms while waiting for the simulator, make sure the simulator is ready and connected to 127.0.0.1:2000"
+  ],
+  "server_command": [
+    "./CarlaUE4.sh",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-RenderOffScreen",
+    "-quality-level=Low",
+    "-nosound",
+    "-carla-rpc-port=2000",
+    "-vulkan",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-log"
+  ],
+  "shipping_pid": 2805186,
+  "map_load": {
+    "exit": 0,
+    "stdout": "Carla/Maps/Town03_Opt\n",
+    "stderr": ""
+  },
+  "client_command": [
+    "/d/shin/stratadrive-tools/carla-0.9.16/venv-bundled/bin/python",
+    "-I",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1g_wheel.py",
+    "--capture",
+    "--fixture",
+    "slope",
+    "--map",
+    "Town03_Opt",
+    "--output",
+    "/d/shin/StrataDrive/docs/test-plan/evidence/m7_carla_1h/attempt03-final-slope/capture",
+    "--native",
+    "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+    "--native-mode",
+    "external-wheel-plant"
+  ],
+  "client_exit": 0,
+  "server_exit": 139,
+  "remaining_listeners": ""
+}

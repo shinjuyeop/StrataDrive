@@ -74,7 +74,10 @@ acceptance:
   speed_plateau_settling_sim_seconds: 5
   speed_plateau_min_evaluation_sim_seconds: 10
 logical_timing:
-  simulation_sensor: {rate_hz: 20, period_ms: 50}
+  # M7-1d: split world/state from cameras; M6 executable profiles stay unchanged.
+  carla_world: {rate_hz: 100, period_ms: 10}
+  carla_vehicle_state: {rate_hz: 100, period_ms: 10}
+  carla_rgb_semantic_gt: {rate_hz: 20, period_ms: 50}
   planner: {rate_hz: 20, period_ms: 50}
   vehicle_controller: {rate_hz: 50, period_ms: 20}
   zone_controller: {rate_hz: 100, period_ms: 10}

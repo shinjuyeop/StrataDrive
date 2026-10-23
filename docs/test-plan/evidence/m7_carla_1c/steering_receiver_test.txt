@@ -1,0 +1,47 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 19 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 19 tests from SteeringReceiver
+[ RUN      ] SteeringReceiver.RequiresTrustedSessionAndValidConfiguration
+[       OK ] SteeringReceiver.RequiresTrustedSessionAndValidConfiguration (0 ms)
+[ RUN      ] SteeringReceiver.AcceptsFreshProgressAndStoresOriginalMetadata
+[       OK ] SteeringReceiver.AcceptsFreshProgressAndStoresOriginalMetadata (0 ms)
+[ RUN      ] SteeringReceiver.BadFramesDoNotRefreshValidRxAndDoNotReuseOldE2eStatus
+[       OK ] SteeringReceiver.BadFramesDoNotRefreshValidRxAndDoNotReuseOldE2eStatus (0 ms)
+[ RUN      ] SteeringReceiver.ChecksPayloadStructureAfterSuccessfulProtection
+[       OK ] SteeringReceiver.ChecksPayloadStructureAfterSuccessfulProtection (0 ms)
+[ RUN      ] SteeringReceiver.E2eResynchronizationDoesNotAdvanceApplicationCursor
+[       OK ] SteeringReceiver.E2eResynchronizationDoesNotAdvanceApplicationCursor (0 ms)
+[ RUN      ] SteeringReceiver.RejectsOtherEpochWithoutAdoptingIt
+[       OK ] SteeringReceiver.RejectsOtherEpochWithoutAdoptingIt (0 ms)
+[ RUN      ] SteeringReceiver.EnforcesSessionFutureAndFreshnessBoundaries
+[       OK ] SteeringReceiver.EnforcesSessionFutureAndFreshnessBoundaries (0 ms)
+[ RUN      ] SteeringReceiver.EnforcesTraceWindowAndRejectsUint32Wrap
+[       OK ] SteeringReceiver.EnforcesTraceWindowAndRejectsUint32Wrap (0 ms)
+[ RUN      ] SteeringReceiver.CachedReplayAndTraceRejectionsPreserveLastValidCursors
+[       OK ] SteeringReceiver.CachedReplayAndTraceRejectionsPreserveLastValidCursors (0 ms)
+[ RUN      ] SteeringReceiver.FirstTraceSequenceMustBeInsideStartupWindow
+[       OK ] SteeringReceiver.FirstTraceSequenceMustBeInsideStartupWindow (0 ms)
+[ RUN      ] SteeringReceiver.AppliesExplicitRangeAndKeepsUnavailableDistinctFromZero
+[       OK ] SteeringReceiver.AppliesExplicitRangeAndKeepsUnavailableDistinctFromZero (0 ms)
+[ RUN      ] SteeringReceiver.CommandModeRequiresNormalPathAndNormalOrDegradedState
+[       OK ] SteeringReceiver.CommandModeRequiresNormalPathAndNormalOrDegradedState (0 ms)
+[ RUN      ] SteeringReceiver.ActualValidityDoesNotImplyHealthyActuatorOrNormalDriving
+[       OK ] SteeringReceiver.ActualValidityDoesNotImplyHealthyActuatorOrNormalDriving (0 ms)
+[ RUN      ] SteeringReceiver.SourceAgeExpiresBeforeCommunicationTimeout
+[       OK ] SteeringReceiver.SourceAgeExpiresBeforeCommunicationTimeout (0 ms)
+[ RUN      ] SteeringReceiver.MissingFirstInputTimesOutAndRequiresNewExplicitSession
+[       OK ] SteeringReceiver.MissingFirstInputTimesOutAndRequiresNewExplicitSession (0 ms)
+[ RUN      ] SteeringReceiver.RejectedTrafficCannotPostponeTimeoutOrCauseAutomaticRecovery
+[       OK ] SteeringReceiver.RejectedTrafficCannotPostponeTimeoutOrCauseAutomaticRecovery (0 ms)
+[ RUN      ] SteeringReceiver.ClockRegressionLatchesFaultAndInvalidInitPreservesHistory
+[       OK ] SteeringReceiver.ClockRegressionLatchesFaultAndInvalidInitPreservesHistory (0 ms)
+[ RUN      ] SteeringReceiver.P05CounterWrapDoesNotResetApplicationProgress
+[       OK ] SteeringReceiver.P05CounterWrapDoesNotResetApplicationProgress (0 ms)
+[ RUN      ] SteeringReceiver.UsesExactUint64SubtractionsWithoutTimestampOverflow
+[       OK ] SteeringReceiver.UsesExactUint64SubtractionsWithoutTimestampOverflow (0 ms)
+[----------] 19 tests from SteeringReceiver (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 19 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 19 tests.

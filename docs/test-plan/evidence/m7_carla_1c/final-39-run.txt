@@ -1,0 +1,96 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 39 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 27 tests from Contract
+[ RUN      ] Contract.ValidActualAppliesOnceAndPreservesBytesIdentityAndOriginalTimes
+[       OK ] Contract.ValidActualAppliesOnceAndPreservesBytesIdentityAndOriginalTimes (0 ms)
+[ RUN      ] Contract.NativeLeafSoftwareReportsSensorsRatherThanCommandTargets
+[       OK ] Contract.NativeLeafSoftwareReportsSensorsRatherThanCommandTargets (0 ms)
+[ RUN      ] Contract.OldEpochCannotStartSessionFromPayload
+[       OK ] Contract.OldEpochCannotStartSessionFromPayload (0 ms)
+[ RUN      ] Contract.CachedActualAndChangedCachedValueCannotRenewSource
+[       OK ] Contract.CachedActualAndChangedCachedValueCannotRenewSource (0 ms)
+[ RUN      ] Contract.PreparedSnapshotDoesNotFollowCallerMutation
+[       OK ] Contract.PreparedSnapshotDoesNotFollowCallerMutation (0 ms)
+[ RUN      ] Contract.SecondWriterForeignHandleAndForeignThreadHaveNoBackendAccess
+[       OK ] Contract.SecondWriterForeignHandleAndForeignThreadHaveNoBackendAccess (0 ms)
+[ RUN      ] Contract.SameBackendCannotBeBoundByASecondAdapter
+[       OK ] Contract.SameBackendCannotBeBoundByASecondAdapter (0 ms)
+[ RUN      ] Contract.ThrowingApplyIsAmbiguousAndCannotBeRetried
+[       OK ] Contract.ThrowingApplyIsAmbiguousAndCannotBeRetried (0 ms)
+[ RUN      ] Contract.ThrowingTickIsAmbiguousAndCannotBeRetried
+[       OK ] Contract.ThrowingTickIsAmbiguousAndCannotBeRetried (0 ms)
+[ RUN      ] Contract.WrongPreparedFrameIsRejectedWithoutApply
+[       OK ] Contract.WrongPreparedFrameIsRejectedWithoutApply (0 ms)
+[ RUN      ] Contract.WrongTickFrameCannotConsumeSuccessfulApplyAsAnotherFrame
+[       OK ] Contract.WrongTickFrameCannotConsumeSuccessfulApplyAsAnotherFrame (0 ms)
+[ RUN      ] Contract.PendingSnapshotCannotBeReplacedByNewIngress
+[       OK ] Contract.PendingSnapshotCannotBeReplacedByNewIngress (0 ms)
+[ RUN      ] Contract.ReentrantBackendCannotReplaceOrResetAnInFlightApply
+[       OK ] Contract.ReentrantBackendCannotReplaceOrResetAnInFlightApply (0 ms)
+[ RUN      ] Contract.TickWithoutApplyAndWrongTicketCannotAdvance
+[       OK ] Contract.TickWithoutApplyAndWrongTicketCannotAdvance (0 ms)
+[ RUN      ] Contract.DuplicateTickCannotAdvanceTwice
+[       OK ] Contract.DuplicateTickCannotAdvanceTwice (0 ms)
+[ RUN      ] Contract.NonDrivingAndCarlaDrivingAreDisabledEvenWithValidActual
+[       OK ] Contract.NonDrivingAndCarlaDrivingAreDisabledEvenWithValidActual (0 ms)
+[ RUN      ] Contract.NonDrivingModeDoesNotGrantProbeAuthority
+[       OK ] Contract.NonDrivingModeDoesNotGrantProbeAuthority (0 ms)
+[ RUN      ] Contract.FreshAtStartDoesNotAuthorizeFiftyMillisecondHold
+[       OK ] Contract.FreshAtStartDoesNotAuthorizeFiftyMillisecondHold (0 ms)
+[ RUN      ] Contract.ExactSourceAgeBoundaryIsInclusiveButNotExtended
+[       OK ] Contract.ExactSourceAgeBoundaryIsInclusiveButNotExtended (0 ms)
+[ RUN      ] Contract.ExclusiveExpiryAndIntervalCoverageUseOriginalSupport
+[       OK ] Contract.ExclusiveExpiryAndIntervalCoverageUseOriginalSupport (0 ms)
+[ RUN      ] Contract.ExpiryInsideProposedIntervalRejectsBeforeApply
+[       OK ] Contract.ExpiryInsideProposedIntervalRejectsBeforeApply (0 ms)
+[ RUN      ] Contract.ApplyAfterScheduledIntervalBeginIsNotBackdated
+[       OK ] Contract.ApplyAfterScheduledIntervalBeginIsNotBackdated (0 ms)
+[ RUN      ] Contract.AmbiguousApplyConsumesTicketAndLatchesWithoutRetryOrTick
+[       OK ] Contract.AmbiguousApplyConsumesTicketAndLatchesWithoutRetryOrTick (0 ms)
+[ RUN      ] Contract.RejectedApplyCannotBeReportedAsSuccessfulTick
+[       OK ] Contract.RejectedApplyCannotBeReportedAsSuccessfulTick (0 ms)
+[ RUN      ] Contract.AmbiguousTickNeverIssuesASecondTick
+[       OK ] Contract.AmbiguousTickNeverIssuesASecondTick (0 ms)
+[ RUN      ] Contract.FaultLatchesUntilExplicitNewInitAndOldTicketCannotBindNewSession
+[       OK ] Contract.FaultLatchesUntilExplicitNewInitAndOldTicketCannotBindNewSession (0 ms)
+[ RUN      ] Contract.ClockRollbackCannotHealOrApplyPendingSnapshot
+[       OK ] Contract.ClockRollbackCannotHealOrApplyPendingSnapshot (0 ms)
+[----------] 27 tests from Contract (0 ms total)
+
+[----------] 5 tests from M7Ingress
+[ RUN      ] M7Ingress.CommandCanNeverBeAcceptedAsActualForAnyActuator
+[       OK ] M7Ingress.CommandCanNeverBeAcceptedAsActualForAnyActuator (0 ms)
+[ RUN      ] M7Ingress.WrongRoleRunPlantAndClockCannotAcquireTrustedIdentity
+[       OK ] M7Ingress.WrongRoleRunPlantAndClockCannotAcquireTrustedIdentity (0 ms)
+[ RUN      ] M7Ingress.MissingInvalidCrcUnavailableAndOutOfRangeRemainUnavailable
+[       OK ] M7Ingress.MissingInvalidCrcUnavailableAndOutOfRangeRemainUnavailable (0 ms)
+[ RUN      ] M7Ingress.NonfiniteProducerValuesCannotBeEncodedIntoActual
+[       OK ] M7Ingress.NonfiniteProducerValuesCannotBeEncodedIntoActual (0 ms)
+[ RUN      ] M7Ingress.StaleFutureAndOldestDependencyChecksDoNotRestamp
+[       OK ] M7Ingress.StaleFutureAndOldestDependencyChecksDoNotRestamp (0 ms)
+[----------] 5 tests from M7Ingress (0 ms total)
+
+[----------] 1 test from M7Writer
+[ RUN      ] M7Writer.ConcurrentAdapterBindingCanCreateOnlyOneBackendOwner
+[       OK ] M7Writer.ConcurrentAdapterBindingCanCreateOnlyOneBackendOwner (0 ms)
+[----------] 1 test from M7Writer (0 ms total)
+
+[----------] 6 tests from M7Freshness
+[ RUN      ] M7Freshness.NativeDriveReceiverUsesOriginalSourceAtZeroTenTwentyThirtyFortyMs
+[       OK ] M7Freshness.NativeDriveReceiverUsesOriginalSourceAtZeroTenTwentyThirtyFortyMs (0 ms)
+[ RUN      ] M7Freshness.NativeReceiverRejectsAtThirtyMillisecondsPlusOneNanosecond
+[       OK ] M7Freshness.NativeReceiverRejectsAtThirtyMillisecondsPlusOneNanosecond (0 ms)
+[ RUN      ] M7Freshness.FreshTorqueAndEvSeventyMsDependencyCannotRefreshOldWheelSample
+[       OK ] M7Freshness.FreshTorqueAndEvSeventyMsDependencyCannotRefreshOldWheelSample (0 ms)
+[ RUN      ] M7Freshness.ReplayAndNewSequenceWithOldSourceCannotRenewAcceptedRxOrTimeout
+[       OK ] M7Freshness.ReplayAndNewSequenceWithOldSourceCannotRenewAcceptedRxOrTimeout (0 ms)
+[ RUN      ] M7Freshness.NativeLocalValidationRejectsRestampOldDependencyBadIdentityAndNan
+[       OK ] M7Freshness.NativeLocalValidationRejectsRestampOldDependencyBadIdentityAndNan (0 ms)
+[ RUN      ] M7Freshness.NativeDriveGateProtectsAtFortyMsAndFreshDataDoesNotUnlatch
+[       OK ] M7Freshness.NativeDriveGateProtectsAtFortyMsAndFreshDataDoesNotUnlatch (0 ms)
+[----------] 6 tests from M7Freshness (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 39 tests from 4 test suites ran. (1 ms total)
+[  PASSED  ] 39 tests.

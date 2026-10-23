@@ -1,0 +1,57 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 21 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from DriveValues
+[ RUN      ] DriveValues.DirectionZeroAndReservedCodes
+[       OK ] DriveValues.DirectionZeroAndReservedCodes (0 ms)
+[ RUN      ] DriveValues.ExhaustiveRawRoundTripsAndQuantizationBound
+[       OK ] DriveValues.ExhaustiveRawRoundTripsAndQuantizationBound (19 ms)
+[ RUN      ] DriveValues.RejectsNonfiniteAndPreRoundingRangeViolations
+[       OK ] DriveValues.RejectsNonfiniteAndPreRoundingRangeViolations (0 ms)
+[----------] 3 tests from DriveValues (19 ms total)
+
+[----------] 6 tests from DriveFrame
+[ RUN      ] DriveFrame.IndependentCrcGoldenVectors
+[       OK ] DriveFrame.IndependentCrcGoldenVectors (0 ms)
+[ RUN      ] DriveFrame.ZeroCapabilityAndUnavailableHaveDistinctCanonicalEncoding
+[       OK ] DriveFrame.ZeroCapabilityAndUnavailableHaveDistinctCanonicalEncoding (0 ms)
+[ RUN      ] DriveFrame.AllBytesIncludingCapabilityInputTimeAreCrcProtected
+[       OK ] DriveFrame.AllBytesIncludingCapabilityInputTimeAreCrcProtected (0 ms)
+[ RUN      ] DriveFrame.RejectsResealedNoncanonicalPayloadAndMalformedEnvelopes
+[       OK ] DriveFrame.RejectsResealedNoncanonicalPayloadAndMalformedEnvelopes (0 ms)
+[ RUN      ] DriveFrame.FullWidthTimesAndFailedEncodeDoNotAdvanceCounter
+[       OK ] DriveFrame.FullWidthTimesAndFailedEncodeDoNotAdvanceCounter (0 ms)
+[ RUN      ] DriveFrame.StreamSpecificDataIdsAndCounterWrap
+[       OK ] DriveFrame.StreamSpecificDataIdsAndCounterWrap (1 ms)
+[----------] 6 tests from DriveFrame (2 ms total)
+
+[----------] 12 tests from DriveReceiver
+[ RUN      ] DriveReceiver.AcceptsPropulsionRegenAndZeroForBothStreams
+[       OK ] DriveReceiver.AcceptsPropulsionRegenAndZeroForBothStreams (0 ms)
+[ RUN      ] DriveReceiver.RejectsInvalidConfigurationAndRequiresTrustedEpoch
+[       OK ] DriveReceiver.RejectsInvalidConfigurationAndRequiresTrustedEpoch (0 ms)
+[ RUN      ] DriveReceiver.RejectedMessagesNeverRefreshCriticalHistory
+[       OK ] DriveReceiver.RejectedMessagesNeverRefreshCriticalHistory (0 ms)
+[ RUN      ] DriveReceiver.FreshTorqueDoesNotRejuvenateCachedCapabilityOrItsInputs
+[       OK ] DriveReceiver.FreshTorqueDoesNotRejuvenateCachedCapabilityOrItsInputs (0 ms)
+[ RUN      ] DriveReceiver.IndependentAuxiliaryTimeCanFollowTorqueWithoutExtendingTorqueAge
+[       OK ] DriveReceiver.IndependentAuxiliaryTimeCanFollowTorqueWithoutExtendingTorqueAge (0 ms)
+[ RUN      ] DriveReceiver.FreshAuxiliaryAndNewReportSequenceCannotRefreshTheSameTorqueSample
+[       OK ] DriveReceiver.FreshAuxiliaryAndNewReportSequenceCannotRefreshTheSameTorqueSample (0 ms)
+[ RUN      ] DriveReceiver.AuxiliaryAfterTorqueStillRejectsFutureOrRegressingSamples
+[       OK ] DriveReceiver.AuxiliaryAfterTorqueStillRejectsFutureOrRegressingSamples (0 ms)
+[ RUN      ] DriveReceiver.AuxiliaryRangeTimeAndChangedCacheDoNotInvalidateFreshTorque
+[       OK ] DriveReceiver.AuxiliaryRangeTimeAndChangedCacheDoNotInvalidateFreshTorque (0 ms)
+[ RUN      ] DriveReceiver.AuxiliaryExpiryIsIndependentOfTorqueAgeAndNoFallbackToOldCap
+[       OK ] DriveReceiver.AuxiliaryExpiryIsIndependentOfTorqueAgeAndNoFallbackToOldCap (0 ms)
+[ RUN      ] DriveReceiver.MissingTorqueCannotBeReplacedByValidCapability
+[       OK ] DriveReceiver.MissingTorqueCannotBeReplacedByValidCapability (0 ms)
+[ RUN      ] DriveReceiver.TimeoutClockRollbackAndRecoveryAreLatched
+[       OK ] DriveReceiver.TimeoutClockRollbackAndRecoveryAreLatched (0 ms)
+[ RUN      ] DriveReceiver.ExplicitDependencyAgeLeavesTorqueAndAuxiliarySourceBudgetsUnchanged
+[       OK ] DriveReceiver.ExplicitDependencyAgeLeavesTorqueAndAuxiliarySourceBudgetsUnchanged (0 ms)
+[----------] 12 tests from DriveReceiver (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 21 tests from 3 test suites ran. (22 ms total)
+[  PASSED  ] 21 tests.

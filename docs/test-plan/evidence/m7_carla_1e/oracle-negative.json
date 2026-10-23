@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "scope": "offline corrupted copies only",
+  "tests": [
+    {
+      "mutation": "wall_order",
+      "rejected": true,
+      "reason": "timing order"
+    },
+    {
+      "mutation": "delta_50ms",
+      "rejected": true,
+      "reason": "delta/platform"
+    },
+    {
+      "mutation": "camera_timestamp",
+      "rejected": true,
+      "reason": "camera source"
+    },
+    {
+      "mutation": "missing_camera",
+      "rejected": true,
+      "reason": "main camera loss/cadence"
+    }
+  ]
+}

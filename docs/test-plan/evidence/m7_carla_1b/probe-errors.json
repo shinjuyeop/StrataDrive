@@ -1,0 +1,13 @@
+{
+  "observations": [
+    {
+      "probe": "recovery client after server01 crash",
+      "result": "10s connection timeout; no actors could be recovered; server01 exit139 recorded"
+    },
+    {
+      "probe": "listener_probe first revision",
+      "result": "JSON serialization TypeError: Object of type method is not JSON serializable; is_listening had been read without calling",
+      "cleanup": "probe finally destroyed sensor before serialization failed"
+    }
+  ]
+}

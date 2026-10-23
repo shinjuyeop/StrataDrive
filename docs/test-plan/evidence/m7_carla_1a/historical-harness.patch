@@ -1,0 +1,46 @@
+--- final
++++ smoke-before-cleanup-fix.py
+@@ -92,22 +92,9 @@
+                 if owned:
+                     actor = owned[-1]
+                     case["destroy_return"] = actor.destroy()
+-                    case["cleanup_observations"] = []
+-                    # get_actor(id) can return a cached actor description after
+-                    # destruction. Use current episode IDs and snapshot instead.
+-                    for _ in range(10):
+-                        frame = world.tick(10.0)
+-                        snapshot = world.get_snapshot()
+-                        present = world.get_actors().find(actor.id) is not None
+-                        in_snapshot = snapshot.find(actor.id) is not None
+-                        case["cleanup_observations"].append({
+-                            "tick_frame": frame, "snapshot_frame": snapshot.frame,
+-                            "registry_present": present, "snapshot_present": in_snapshot})
+-                        if not present and not in_snapshot:
+-                            break
+-                    case["present_after_cleanup"] = present or in_snapshot
+-                    if not case["present_after_cleanup"]:
+-                        owned.pop()
++                    owned.pop()
++                    world.tick(10.0)
++                    case["present_after_cleanup"] = world.get_actor(actor.id) is not None
+                     if not case["destroy_return"] or case["present_after_cleanup"]:
+                         raise RuntimeError("ego cleanup failed")
+             case["status"] = "PASS"
+--- final
++++ smoke-intermediate.py
+@@ -93,12 +93,12 @@
+                     actor = owned[-1]
+                     case["destroy_return"] = actor.destroy()
+                     case["cleanup_observations"] = []
+-                    # get_actor(id) can return a cached actor description after
+-                    # destruction. Use current episode IDs and snapshot instead.
++                    # Actor destruction and the streamed episode registry need
++                    # not become visible in the same frame as the RPC reply.
+                     for _ in range(10):
+                         frame = world.tick(10.0)
+                         snapshot = world.get_snapshot()
+-                        present = world.get_actors().find(actor.id) is not None
++                        present = world.get_actor(actor.id) is not None
+                         in_snapshot = snapshot.find(actor.id) is not None
+                         case["cleanup_observations"].append({
+                             "tick_frame": frame, "snapshot_frame": snapshot.frame,

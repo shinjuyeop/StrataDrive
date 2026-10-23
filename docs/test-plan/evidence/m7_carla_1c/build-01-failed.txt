@@ -1,0 +1,67 @@
+[  7%] Building CXX object CMakeFiles/steering_angle_codec.dir/interfaces/steering/steering_angle_codec.cpp.o
+[  7%] Building CXX object CMakeFiles/e2e_profile5.dir/interfaces/common/e2e_profile5.cpp.o
+[  7%] Linking CXX static library libe2e_profile5.a
+[ 15%] Linking CXX static library libsteering_angle_codec.a
+[ 15%] Built target steering_angle_codec
+[ 15%] Built target e2e_profile5
+[ 15%] Building CXX object CMakeFiles/steering_response_monitor.dir/vecu/steering/steering_response_monitor.cpp.o
+[ 23%] Building CXX object CMakeFiles/brake_response_monitor.dir/vecu/brake/brake_response_monitor.cpp.o
+[ 23%] Linking CXX static library libsteering_response_monitor.a
+[ 23%] Linking CXX static library libbrake_response_monitor.a
+[ 23%] Built target steering_response_monitor
+[ 23%] Built target brake_response_monitor
+[ 30%] Building CXX object CMakeFiles/actuator_payload_codec.dir/interfaces/common/actuator_payload_codec.cpp.o
+[ 30%] Linking CXX static library libactuator_payload_codec.a
+[ 30%] Built target actuator_payload_codec
+[ 38%] Building CXX object CMakeFiles/bms_codec.dir/interfaces/bms/bms_value_codec.cpp.o
+[ 46%] Building CXX object CMakeFiles/actuator_receiver_state.dir/interfaces/common/actuator_receiver_state.cpp.o
+[ 46%] Building CXX object CMakeFiles/bms_codec.dir/interfaces/bms/bms_frame_codec.cpp.o
+[ 46%] Linking CXX static library libactuator_receiver_state.a
+[ 46%] Built target actuator_receiver_state
+[ 53%] Building CXX object CMakeFiles/drive_codec.dir/interfaces/drive/drive_value_codec.cpp.o
+[ 53%] Building CXX object CMakeFiles/drive_codec.dir/interfaces/drive/drive_frame_codec.cpp.o
+[ 53%] Linking CXX static library libbms_codec.a
+[ 53%] Built target bms_codec
+[ 53%] Building CXX object CMakeFiles/steering_frame_codec.dir/interfaces/steering/steering_frame_codec.cpp.o
+[ 53%] Linking CXX static library libsteering_frame_codec.a
+[ 53%] Linking CXX static library libdrive_codec.a
+[ 53%] Built target steering_frame_codec
+[ 53%] Built target drive_codec
+[ 61%] Building CXX object CMakeFiles/brake_codec.dir/interfaces/brake/brake_pressure_codec.cpp.o
+[ 61%] Building CXX object CMakeFiles/bms_receiver.dir/interfaces/bms/bms_receiver.cpp.o
+[ 61%] Building CXX object CMakeFiles/brake_codec.dir/interfaces/brake/brake_frame_codec.cpp.o
+[ 61%] Linking CXX static library libbrake_codec.a
+[ 61%] Built target brake_codec
+[ 61%] Building CXX object CMakeFiles/drive_receiver.dir/interfaces/drive/drive_receiver.cpp.o
+[ 69%] Linking CXX static library libbms_receiver.a
+[ 69%] Built target bms_receiver
+[ 76%] Building CXX object CMakeFiles/steering_receiver.dir/interfaces/steering/steering_receiver.cpp.o
+[ 76%] Linking CXX static library libdrive_receiver.a
+[ 76%] Built target drive_receiver
+[ 76%] Building CXX object CMakeFiles/brake_receiver.dir/interfaces/brake/brake_receiver.cpp.o
+[ 76%] Linking CXX static library libsteering_receiver.a
+[ 76%] Built target steering_receiver
+[ 76%] Building CXX object CMakeFiles/drive_actuator.dir/vecu/drive/drive_actuator.cpp.o
+[ 84%] Linking CXX static library libbrake_receiver.a
+[ 84%] Built target brake_receiver
+[ 92%] Building CXX object CMakeFiles/drive_controller.dir/vecu/drive/drive_controller.cpp.o
+[ 92%] Linking CXX static library libdrive_actuator.a
+[ 92%] Built target drive_actuator
+[100%] Building CXX object CMakeFiles/steering_actuator.dir/vecu/steering/steering_actuator.cpp.o
+[100%] Linking CXX static library libdrive_controller.a
+[100%] Built target drive_controller
+[100%] Building CXX object CMakeFiles/brake_actuator.dir/vecu/brake/brake_actuator.cpp.o
+[100%] Linking CXX static library libsteering_actuator.a
+[100%] Built target steering_actuator
+[100%] Linking CXX static library libbrake_actuator.a
+[100%] Built target brake_actuator
+[100%] Building CXX object tests/integration/carla/m7_1c/CMakeFiles/m7_plant_contract_test.dir/contract_test.cpp.o
+/d/shin/StrataDrive/tests/integration/carla/m7_1c/contract_test.cpp: In member function ‘virtual void {anonymous}::M7Freshness_NativeDriveReceiverUsesOriginalSourceAtZeroTenTwentyThirtyFortyMs_Test::TestBody()’:
+/d/shin/StrataDrive/tests/integration/carla/m7_1c/contract_test.cpp:280:11: error: suggest explicit braces to avoid ambiguous ‘else’ [-Werror=dangling-else]
+  280 |         if(current)EXPECT_EQ(current->source_time_ns,t(10));
+      |           ^
+cc1plus: all warnings being treated as errors
+gmake[3]: *** [tests/integration/carla/m7_1c/CMakeFiles/m7_plant_contract_test.dir/build.make:79: tests/integration/carla/m7_1c/CMakeFiles/m7_plant_contract_test.dir/contract_test.cpp.o] 오류 1
+gmake[2]: *** [CMakeFiles/Makefile2:6432: tests/integration/carla/m7_1c/CMakeFiles/m7_plant_contract_test.dir/all] 오류 2
+gmake[1]: *** [CMakeFiles/Makefile2:6439: tests/integration/carla/m7_1c/CMakeFiles/m7_plant_contract_test.dir/rule] 오류 2
+gmake: *** [Makefile:2006: m7_plant_contract_test] 오류 2

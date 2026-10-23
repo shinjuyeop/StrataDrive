@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="24" failures="0" disabled="0" errors="0" time="1.123" timestamp="2026-10-23T15:38:05.124" name="AllTests">
+  <testsuite name="RemoteLeafTest" tests="12" failures="0" disabled="0" skipped="0" errors="0" time="0.003" timestamp="2026-10-23T15:38:05.124">
+    <testcase name="LocalReleaseAndUnarmedCreditCannotApplyACommand" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.124" classname="RemoteLeafTest" />
+    <testcase name="ArmedOriginalFrameProducesOriginalActualAndCompositeExpiryProtects" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.124" classname="RemoteLeafTest" />
+    <testcase name="CreditSourceAgeAloneProtectsAnUnarmedLiveActor" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.125" classname="RemoteLeafTest" />
+    <testcase name="ExplicitProtectionAckIsLeafSelectionAndPreviousEpochCannotProtectNewSession" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.125" classname="RemoteLeafTest" />
+    <testcase name="ExpiredStopLeaseCannotBeRestampedByTransport" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.125" classname="RemoteLeafTest" />
+    <testcase name="NormalFifoOverflowLatchesSessionAndNewEpochCannotRepairFailedLink" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.126" classname="RemoteLeafTest" />
+    <testcase name="PreparedRejoinCannotReapplyOldCreditProtectionAcrossEnable" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.126" classname="RemoteLeafTest" />
+    <testcase name="ProtectionInterleavedNonMonotonicTokensKeepFirstSelection" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.126" classname="RemoteLeafTest" />
+    <testcase name="ProtectionTokenMutationIsRejectedEvenAfterAnotherRequest" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.126" classname="RemoteLeafTest" />
+    <testcase name="ProtectionIssuerIdentityHasSeparateImmutableRecords" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.126" classname="RemoteLeafTest" />
+    <testcase name="ExpiredProtectionCannotRenewAndNewEpochClearsIdentityRecords" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.127" classname="RemoteLeafTest" />
+    <testcase name="FullProtectionCacheNeverEvictsLiveOrExpiredTokenIdentity" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.127" classname="RemoteLeafTest" />
+  </testsuite>
+  <testsuite name="RemoteZoneIntegration" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="1.118" timestamp="2026-10-23T15:38:05.127">
+    <testcase name="RealZoneFramesArmApplyActualAndPowerAuthoritySurviveWire" status="run" result="completed" time="0.099" timestamp="2026-10-23T15:38:05.127" classname="RemoteZoneIntegration" />
+    <testcase name="RealZoneNormalStopPreservesTerminalLeaseAndCompletesHvOff" status="run" result="completed" time="0.274" timestamp="2026-10-23T15:38:05.227" classname="RemoteZoneIntegration" />
+    <testcase name="ActualProducedEnvelopeExpiresExclusivelyWithoutRestamping" status="run" result="completed" time="0.089" timestamp="2026-10-23T15:38:05.501" classname="RemoteZoneIntegration" />
+    <testcase name="OldFrameArmStopRepliesCannotConsumeCurrentPendingStop" status="run" result="completed" time="0.281" timestamp="2026-10-23T15:38:05.590" classname="RemoteZoneIntegration" />
+    <testcase name="DelayedPowerAndPermissionKeepOriginalExpiryAndCannotReachActor" status="run" result="completed" time="0.097" timestamp="2026-10-23T15:38:05.871" classname="RemoteZoneIntegration" />
+    <testcase name="ExpiredArmAndStopResponsesRemainBoundToTheOriginalOperation" status="run" result="completed" time="0.276" timestamp="2026-10-23T15:38:05.969" classname="RemoteZoneIntegration" />
+  </testsuite>
+  <testsuite name="RemoteDeliveryDeadline" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T15:38:06.246">
+    <testcase name="OverflowAndOriginalExclusiveBoundary" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:06.246" classname="RemoteDeliveryDeadline" />
+  </testsuite>
+  <testsuite name="SomeipRearBinding" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T15:38:06.246">
+    <testcase name="ServicesRolesAndPayloadAreBoundToOneEcu" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:06.246" classname="SomeipRearBinding" />
+    <testcase name="ZoneEndpointCannotAcquirePeerOwnershipOrAuthorityFromWrongRoute" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:06.246" classname="SomeipRearBinding" />
+  </testsuite>
+  <testsuite name="FrameArmStop/RemoteOldRequestTest" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.001" timestamp="2026-10-23T15:38:06.246">
+    <testcase name="RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/0" value_param="4-byte object &lt;00-00 00-00&gt;" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:06.246" classname="FrameArmStop/RemoteOldRequestTest" />
+    <testcase name="RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/1" value_param="4-byte object &lt;01-00 00-00&gt;" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:06.247" classname="FrameArmStop/RemoteOldRequestTest" />
+    <testcase name="RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/2" value_param="4-byte object &lt;02-00 00-00&gt;" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:06.247" classname="FrameArmStop/RemoteOldRequestTest" />
+  </testsuite>
+</testsuites>

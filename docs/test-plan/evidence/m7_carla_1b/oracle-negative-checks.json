@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "offline mutated copies, not live faults",
+  "checks": [
+    {
+      "mutation": "changed_source_ns",
+      "rejected": "source timestamp rewrite"
+    },
+    {
+      "mutation": "cross_stream_time",
+      "rejected": "cross sensor timestamp mismatch"
+    },
+    {
+      "mutation": "GT_online_leak",
+      "rejected": "GT/online routing violation"
+    }
+  ]
+}

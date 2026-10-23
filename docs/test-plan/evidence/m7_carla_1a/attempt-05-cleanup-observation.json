@@ -1,0 +1,129 @@
+{
+  "started_utc": "2026-10-23T04:24:23.125899+00:00",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "executable": "/d/shin/stratadrive-tools/carla-0.9.16/venv/bin/python",
+  "carla_module": "/d/shin/stratadrive-tools/carla-0.9.16/venv/lib/python3.10/site-packages/carla/__init__.py",
+  "endpoint": [
+    "127.0.0.1",
+    2000
+  ],
+  "mode": "NON_DRIVING; ego physics disabled; no control API",
+  "cases": [
+    {
+      "name": "normal_cleanup",
+      "status": "FAIL",
+      "actor_id": 25,
+      "observed_frame": 16603,
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "alive_before_cleanup": true,
+      "destroy_return": true,
+      "cleanup_observations": [
+        {
+          "tick_frame": 16604,
+          "snapshot_frame": 16604,
+          "registry_present": true,
+          "snapshot_present": false
+        },
+        {
+          "tick_frame": 16605,
+          "snapshot_frame": 16605,
+          "registry_present": true,
+          "snapshot_present": false
+        },
+        {
+          "tick_frame": 16606,
+          "snapshot_frame": 16606,
+          "registry_present": true,
+          "snapshot_present": false
+        },
+        {
+          "tick_frame": 16607,
+          "snapshot_frame": 16607,
+          "registry_present": true,
+          "snapshot_present": false
+        },
+        {
+          "tick_frame": 16608,
+          "snapshot_frame": 16608,
+          "registry_present": true,
+          "snapshot_present": false
+        },
+        {
+          "tick_frame": 16609,
+          "snapshot_frame": 16609,
+          "registry_present": true,
+          "snapshot_present": false
+        },
+        {
+          "tick_frame": 16610,
+          "snapshot_frame": 16610,
+          "registry_present": true,
+          "snapshot_present": false
+        },
+        {
+          "tick_frame": 16611,
+          "snapshot_frame": 16611,
+          "registry_present": true,
+          "snapshot_present": false
+        },
+        {
+          "tick_frame": 16612,
+          "snapshot_frame": 16612,
+          "registry_present": true,
+          "snapshot_present": false
+        },
+        {
+          "tick_frame": 16613,
+          "snapshot_frame": 16613,
+          "registry_present": true,
+          "snapshot_present": false
+        }
+      ],
+      "present_after_cleanup": true
+    }
+  ],
+  "status": "FAIL",
+  "client_version": "0.9.16",
+  "server_version": "0.9.16",
+  "map": "Carla/Maps/Town10HD_Opt",
+  "initial_vehicle_ids": [],
+  "settings_before": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "settings_during": {
+    "synchronous_mode": true,
+    "fixed_delta_seconds": 0.05,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "blueprint": "vehicle.lincoln.mkz_2020",
+  "spawn": {
+    "x": -64.64484405517578,
+    "y": 24.471010208129883,
+    "z": 0.5999999642372131,
+    "pitch": 0.0,
+    "yaw": 0.15919798612594604,
+    "roll": 0.0
+  },
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_1a_smoke.py\", line 112, in main\n    raise RuntimeError(\"ego cleanup failed\")\nRuntimeError: ego cleanup failed\n",
+  "settings_after": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "elapsed_wall_s": 4.40653626807034
+}

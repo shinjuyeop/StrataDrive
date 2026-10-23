@@ -1,0 +1,57 @@
+WARNING: sensor object went out of the scope but the sensor is still alive in the simulation: Actor 26 (sensor.camera.semantic_segmentation) 
+{
+  "status": "FAIL",
+  "started_utc": "2026-10-23T04:42:46.476917+00:00",
+  "harness_sha256": "161be052e6cd05f307e7a6414972241cf1741ebf5c598d6374ed97c432fa5960",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "carla_module": "/d/shin/stratadrive-tools/carla-0.9.16/venv/lib/python3.10/site-packages/carla/__init__.py",
+  "cases": [
+    {
+      "case": "nominal",
+      "status": "FAIL"
+    }
+  ],
+  "clock_domains": {
+    "source": "CARLA simulation",
+    "arrival": "Host CLOCK_MONOTONIC"
+  },
+  "M6_runtime": "not attached",
+  "ego_actuation": "none",
+  "versions": [
+    "0.9.16",
+    "0.9.16"
+  ],
+  "settings_before": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "settings_during": {
+    "synchronous_mode": true,
+    "fixed_delta_seconds": 0.05,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_1b_capture.py\", line 454, in main\n    require(result['status'] == 'PASS', f'{name} failed')\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_1b_capture.py\", line 29, in require\n    raise RuntimeError(message)\nRuntimeError: nominal failed\n",
+  "settings_after": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "remaining_vehicles": [
+    24
+  ],
+  "remaining_sensors": [
+    26,
+    25
+  ],
+  "cleanup_error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_1b_capture.py\", line 483, in main\n    require(not summary['remaining_vehicles'] and not summary['remaining_sensors'], 'actors remain')\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_1b_capture.py\", line 29, in require\n    raise RuntimeError(message)\nRuntimeError: actors remain\n"
+}

@@ -1,0 +1,58 @@
+{
+  "harness_hashes_match": true,
+  "fetched_source_hashes_match": true,
+  "historical_evidence": {
+    "m7_carla_1a": {
+      "files": 24,
+      "exit": 0
+    },
+    "m7_carla_1b": {
+      "files": 89,
+      "exit": 0
+    },
+    "m7_carla_1c": {
+      "files": 45,
+      "exit": 0
+    },
+    "m7_carla_1d": {
+      "files": 53,
+      "exit": 0
+    }
+  },
+  "archived_raw_recomputation": "identical analysis",
+  "doc_links": {
+    "checked": 142,
+    "missing": []
+  },
+  "M6_implementation_changes": [],
+  "diff_check_exit": 0,
+  "python_compile_exit": 0,
+  "listeners": "",
+  "oracle_negative_tests": {
+    "status": "PASS",
+    "scope": "offline corrupted copies only",
+    "tests": [
+      {
+        "mutation": "wall_order",
+        "rejected": true,
+        "reason": "timing order"
+      },
+      {
+        "mutation": "delta_50ms",
+        "rejected": true,
+        "reason": "delta/platform"
+      },
+      {
+        "mutation": "camera_timestamp",
+        "rejected": true,
+        "reason": "camera source"
+      },
+      {
+        "mutation": "missing_camera",
+        "rejected": true,
+        "reason": "main camera loss/cadence"
+      }
+    ]
+  },
+  "M6_full_regression": "NOT RUN"
+}

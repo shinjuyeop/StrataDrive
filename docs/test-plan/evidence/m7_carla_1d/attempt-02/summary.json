@@ -1,0 +1,80 @@
+{
+  "status": "COLLECTED",
+  "started_utc": "2026-10-23T06:00:47.321130+00:00",
+  "profile": {
+    "world_s": 0.01,
+    "camera_s": 0.05,
+    "camera_stride": 5,
+    "startup_ticks": 100,
+    "drain_ticks": 100,
+    "nominal_ticks": 800,
+    "fault_and_reset_ticks": 400,
+    "camera": [
+      800,
+      600,
+      90
+    ],
+    "queue_capacity": 64,
+    "final_callback_wait_wall_s": 3,
+    "pause_wall_s": 0.25,
+    "freshness_limit_ns": 30000000,
+    "ego_physics": false,
+    "autopilot": false,
+    "actuation_calls": 0,
+    "source_clock": "CARLA simulation",
+    "receipt_clock": "Host CLOCK_MONOTONIC",
+    "wall_acquisition_mapping": "unavailable",
+    "M6_runtime": "not attached"
+  },
+  "sources": {
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1d_multirate.py": "32f57a36a9b80e5edd3a751e545bc8ab4a3436bc6f2d65f19ae778d75aba1833",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1b_capture.py": "adb15f7608955f629567df0ea28aff3afe909cba33182576ce62ea3f69b40b99"
+  },
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "executable": "/d/shin/stratadrive-tools/carla-0.9.16/venv-bundled/bin/python",
+  "carla_module": "/d/shin/stratadrive-tools/carla-0.9.16/venv-bundled/lib/python3.10/site-packages/carla/__init__.py",
+  "cases": [
+    {
+      "name": "nominal",
+      "status": "COLLECTED"
+    },
+    {
+      "name": "drop",
+      "status": "COLLECTED"
+    },
+    {
+      "name": "after_reset",
+      "status": "COLLECTED"
+    }
+  ],
+  "versions": [
+    "0.9.16",
+    "0.9.16"
+  ],
+  "settings_before": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "settings_during": {
+    "synchronous_mode": true,
+    "fixed_delta_seconds": 0.01,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "stage": "before_fresh_client_reload",
+  "settings_after": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "remaining_actors": []
+}

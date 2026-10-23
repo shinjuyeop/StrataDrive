@@ -9,7 +9,8 @@ M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. 
 
 | 단계 | Rate | Period | 적용 의미 |
 | --- | --- | --- | --- |
-| CARLA simulation / sensor baseline | 20 Hz | 50 ms | 한 Host orchestrator가 tick 소유; sensor/state baseline |
+| CARLA world / Vehicle State (M7-1d 개정) | 100 Hz | 10 ms | 단일 Host tick owner; 매 frame 새 snapshot, 실제 wheel feedback 적합성은 미확정 |
+| CARLA RGB / Semantic GT | 20 Hz | 50 ms | world5frame마다 capture; GT는 학습/평가 전용 |
 | Planner | 20 Hz | 50 ms | 최신 유효 state snapshot 사용 |
 | Vehicle Controller (Classical Controller) | 50 Hz | 20 ms | 센서 frame 재사용 가능; 원천 age 보존 |
 | Central VCU/session/bridge | TBD-04/05/14 | M4/M5 task 검증 전 결정 | 별도 vehicle management/allocation·trusted INIT·원천 feedback 집계; 기존 Controller/Zone rate를 자동 복제하지 않음 |
@@ -37,12 +38,16 @@ M1 Drive auxiliary의 source/input config를 분리·시험했고 기본값은 �
 Capability input age 70 ms를 명시적으로 설정할 수 있으며 source/torque budget은 유지한다.
 Local EV transport의 timeout/expiry는 fixture에서 시험했다. Sampler/model과 실제
 Zone forwarding/cross-node clock budget의 충족은 후속 통합에서 검증한다.
-20 Hz vehicle state와 speed input의 연결도 TBD-04/14/M3/M6다.
+M7-1d는 world/state100Hz·영상20Hz로 개정한다. 실제 wheel speed 원천과 clock/전송
+budget의 연결은 TBD-04/07/14이며,30ms source-age는 유지한다.
 EV critical stream도 <=100 ms loss 검출 상한을 적용하되 power/토크 물리 반응 budget은 별도다.
 
-50 ms sensor tick 사이 Controller 20 ms, Zone/vECU 10 ms task가 최신 유효 snapshot을
+50 ms camera tick 사이 Controller 20 ms, Zone/vECU 10 ms task가 최신 유효 snapshot을
 사용한다. Functional simulation 모드는 10 ms logical scheduling quantum을 기준으로
-sensor/plant를 5 quantum마다 갱신하는 계약이다. 새 sensor를 임의로 보간/생성하지 않는다.
+M7 world/state는 매 quantum, 영상은5 quantum마다 갱신하는 계약이다. 새 sensor를 임의로
+보간/생성하지 않는다. 사용자 승인 M7-1d 개정은 기존50ms world baseline을 대체하며,
+M6 실행 profile/모델·과거 검증 및 native2ms/4ms guard는 변경하지 않는다.
+[Plant Adapter ICD](../icd/carla_plant_adapter.md#5-clock과-m7-multirate-개정-m7-1d)에 범위를 둔다.
 동시 release의 순서/queue/substep 구현과 plant aliasing 검증은 M3/M6/M7(TBD-04/07)이다.
 이 논리 schedule을 실측 CPU schedule로 주장하지 않는다.
 

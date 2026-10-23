@@ -99,7 +99,8 @@ RG-01의 음수 Drive Actual과 friction Brake Actual은 공통 wheel 기준으�
 한 번씩 반영한다. Signed torque의 CARLA API mapping과 에너지 모델의 fidelity는
 TBD-02/07이다. 회생 한계는 plant actuation 값이 아니다.
 
-Reference plant/sensor는 20 Hz, Controller 50 Hz, Zone/Steering·Brake·Drive vECU 100 Hz다.
+M7-1d 개정 Reference world/Vehicle State는100Hz, RGB/GT는20Hz다.
+Controller50Hz, Zone/Steering·Brake·Drive vECU100Hz와30ms freshness는 유지한다.
 BMS/power task·발행 주기는 TBD-14다. 한 Host
 orchestrator만 tick을 소유하고 Plant Adapter만 ego actuation을 쓴다. Orchestrator의
 route/scenario 설정 권한은 ego actuation 권한을 포함하지 않는다. Fault injector는

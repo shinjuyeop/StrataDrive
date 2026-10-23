@@ -1,0 +1,104 @@
+{
+  "baseline_commit": "7a2b0fa5f2185ca214d56f5dc6212b355f66d790",
+  "scope": "test-only fake-plant and original native Drive logical checks; no CARLA server",
+  "compiler": "c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0",
+  "cmake": "cmake version 4.3.2",
+  "host": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "results": {
+    "asan-39.xml": {
+      "tests": 39,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    },
+    "asan.xml": {
+      "tests": 38,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    },
+    "brake_receiver_test.xml": {
+      "tests": 16,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    },
+    "drive_controller_test.xml": {
+      "tests": 44,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    },
+    "drive_test.xml": {
+      "tests": 21,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    },
+    "ecu_boundary_test.xml": {
+      "tests": 20,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    },
+    "final-39.xml": {
+      "tests": 39,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    },
+    "normal-01.xml": {
+      "tests": 34,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    },
+    "normal-final.xml": {
+      "tests": 38,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    },
+    "steering_receiver_test.xml": {
+      "tests": 19,
+      "failures": 0,
+      "disabled": 0,
+      "errors": 0
+    }
+  },
+  "final_ctest": {
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m7-contract",
+      "-L",
+      "m7.contract",
+      "--output-on-failure"
+    ],
+    "returncode": 0
+  },
+  "source_sha256": {
+    "CMakeLists.txt": "6862eff5de542d3465d1422c03b56ca1799c1172bbf8f171b83089ee96273202",
+    "tests/integration/carla/m7_1c/CMakeLists.txt": "fe418c66eed7496a8842362b1e76824a9d38a908228e485822eab182ffdb0db5",
+    "tests/integration/carla/m7_1c/actual_boundary.hpp": "171c9e20ea014376130a3bb4b3b25a3ebf0413f6c4be427257a014596058c648",
+    "tests/integration/carla/m7_1c/contract_test.cpp": "4f20fefa7e832a4105869c4b4b21333eb08a8d5d410bf31d033b5982317c4680"
+  },
+  "historical_source_sha256": {
+    "first-build": {
+      "header": "aec0afa6fb0e861ee14cd1a3717596a6dbf75c2f4ed81733f10b007db1888e98",
+      "test": "176798d0a4bea1e210e50dd73d5e562c4545389093c781b798a68854311b5984"
+    },
+    "normal34": {
+      "header": "6d71fbf5af462ea4961671d06ed38cabc2293aa3a32dcf6b0ff3dcbb4615d3f9",
+      "test": "7f84caa820b6dc635ada7b4c54ee67ae79a3412800fe3fbaf6d1324dd63b635e"
+    },
+    "normal38": {
+      "header": "6d71fbf5af462ea4961671d06ed38cabc2293aa3a32dcf6b0ff3dcbb4615d3f9",
+      "test": "cf6fec4dcd95afa98c5cb7139822373f9af2cbd39fbd5064d1ef58fc8f51a093"
+    }
+  },
+  "final_asan_environment": {
+    "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+    "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+  }
+}

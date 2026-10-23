@@ -6,6 +6,94 @@
 CARLA package/client/ScenarioRunner 다운로드·설치·빌드·서버 실행은 하지 않았다.
 온라인 문서/릴리스 metadata 조회와 Host read-only 점검만 수행했다.
 
+## 2026-10-23 후속 — M7-1a 실행
+
+사용자의 다운로드·설치 허용으로 공식0.9.16 package/별도 Python3.10 환경을 준비하고
+[실행 원본·실패/재현](evidence/m7_carla_1a/README.md)을 기록했다. 양쪽 버전0.9.16·world 연결,
+비주행 ego 정상/예외 생성·종료·잔존0·설정 복원을 최종 시도에서 확인했다. 원본6시도1PASS/5FAIL
+(서버 미실행 negative1, world timeout2, 관측기 cache 오판2)을 모두 보존했다.
+**M7-1-01 PASS, M7-1-02 ego 부분 PASS; 센서 포함02 전체와03~09 NOT RUN**이다.
+아래의 M7-0 미설치/NOT RUN 문구·Host 표는 당시 조사 기록이다. 현재 실행 상태는 이 후속과
+연결한 evidence를 따른다. 정상 주행·source build·M6 변경은 수행하지 않았다.
+
+## 2026-10-23 후속 — M7-1b 실행
+
+[실행/실패/재현](evidence/m7_carla_1b/README.md):50ms 단일 tick owner의240tick과
+RGB/GT/state main 각200/200, raw frame/time·format/pose·GT 분리, 정상/예외 센서 cleanup을
+확인했다. 초기 camera1frame 누락은 startup 분모에 보존했다. 실제 drop·카메라 delay/reorder/
+duplicate, 실제 pause/reset·새 epoch 및 metadata replay를 검사했다.
+**02~04는 해당 비주행 profile PASS,05/06은 부분 PASS**,07~09는 NOT RUN이다.
+전체4시도1PASS/3FAIL·native incomplete와 server crash를 보존했다. 같은 sensor-session
+client reload의 native crash는 두 wheel에서 재현됐고, 최종 한정 경로는 client retire→
+fresh client→reload다. 초기1a와 다른 최종 client artifact는 서버 포함 wheel의 별도 venv로
+고정했다. live overflow/10s 초과 delay·ECU timeout/old Actual은 미검증이다. 다음은 M7-1c다.
+
+## 2026-10-23 후속 — M7-1c 논리 실행
+
+[test-only Actual/fake backend·원래 Drive 검증](evidence/m7_carla_1c/README.md)을 완료했다.
+Normal/ASan 각39/39, 관련 기존120/120 PASS. compile 경고로 실패한 첫 build와 중간 cohort는
+보존했다. **07/08은 명시된 논리 범위 PASS,09는 fake/CLI 부분 PASS**이며 실제 CARLA
+actuation/외부 writer·peer 인증/권한 전송·RPC 오류는 NOT RUN이다.
+원래 source0/10/20/30ms 수용,30ms+1ns 거부,40ms Drive 보호 선택·fresh 입력 후 latch 유지로
+50ms state/30ms conflict를 확인했다. 실제 수신 시각 restamp나 요구 완화는 하지 않았다.
+후속은 인과적 substep 관측·ECU exchange·actuation/clock 설계 타당성 검토다.
+
+## 2026-10-23 후속 — M7-1d 시간 계약 개정·실행
+
+사용자가 world/state10ms·영상50ms 방향의 다음 작업을 승인했다. [ICD](../icd/carla_plant_adapter.md)
+및 [시간 계약](../requirements/timing_requirements.md)을 개정하고 [실행 근거](evidence/m7_carla_1d/README.md)를 남겼다.
+M7-0/1b의50ms world 조건은 과거 baseline으로 보존하며 현재 M7 world는10ms다.
+Controller20ms·Zone/vECU10ms·Drive30ms·native guard/기존 M6 수용은 유지한다.
+
+비주행 main state600/600·RGB/GT 각120/120과 누락·pause/reset을 확인했다.
+첫 camera 간격60ms, 최초 oracle FAIL·startup 위상 수정·확인 실행을 구분해 기록했다.
+논리 sampling 충돌은 해소했지만 wall100Hz는 충족하지 못했다. 실제 ECU30ms freshness는 NOT RUN이다.
+최종 actor0·설정 복원 뒤 서버 SIGTERM 중SIGSEGV/139는 **OPEN-M7-1D-01**로 남겼다.
+다음은 wheel telemetry·clock mapping·wall timing 비용/native guard·종료 crash의 제한된 조사다.
+아래 M7-0/1b 시험표의50ms 조건/분모는 역사적 조건이며 새 실행 수치로 덮어쓰지 않는다.
+
+## 2026-10-23 후속 — M7-1e 진단·대안
+
+[진단 근거](evidence/m7_carla_1e/README.md): physics-on wheel 회전각 RPC 확인, 정적4조건×2회
+render/camera/audit 비용 분리, platform/Host clock bracket 검사, 새3서버 종료 재현을 수행했다.
+metadata 수집만으로 RTF1.014~1.033이나 실제 Drive source-age는 NOT RUN이다.
+고정 offset mapping은 전체 관측에 맞지 않았고, 빈 서버TERM/INT도139로 종료했다.
+다음은 별도 functional clock·8-role barrier 설계와 wheel 구간 각속도 의미 검증 계획이다.
+새 source build/정상 주행 연결·기존 M6 계약 변경은 하지 않았다.
+
+## 2026-10-23 후속 — M7-1f functional clock/shadow
+
+[functional clock/shadow 실행](evidence/m7_carla_1f/README.md)을 추가했다. 별도 opt-in C++
+harness가 실제8-role native actor의 세션·RunLease·arm·Actual 경로를 stationary SIL fixture로
+실행하고, Python 단일 tick owner는 각 snapshot의 원래 elapsed time을 전달한 뒤8역할 처리
+barrier를 기다린다. Normal/ASan 각14/14, 관련 기존144/144와1c39/39를 확인했다.
+CARLA는 physics-off ego/RGB/GT 비주행이며 vehicle/wheel을 ECU 입력으로 전달하지 않는다.
+100ms 지연·250ms pause의 논리 기능 검증은 wall freshness·native deadline 검증이 아니다.
+새 run의 INIT와 old scope 거부는 native 시험, 이번 live world reload/reset은 NOT RUN이다.
+다음 작은 작업은 [ICD의 wheel 계획](../icd/carla_plant_adapter.md#m7-1g-wheel-검증-계획)이다.
+
+## 2026-10-23 후속 — M7-1g 실제 wheel/native 연결
+
+[실행/실패 근거](evidence/m7_carla_1g/README.md):0.9.16의 직접 PhysX omega를 발견해
+pitch 차분 대신 사용했다. physics-on 무동력 내리막400tick에서 실제 wheel→Drive vECU→
+DriveActual CAN/P05→Rear→Central 반환396개, armed fixture322frame, 최대 source age10ms를 확인했다.
+첫 native 연결은 fractional timestamp에서 pending sample을 덮어쓰는 버그로 실패했고 수정했다.
+평지 native 연결은 미세 음수 wheel 때문에 여전히 FAIL이다. 임의 clamp/abs/요구 완화는 없다.
+Normal/ASan 각22/22(1f14+1g8), 기존 관련144/144와1c39/39, raw oracle 변조7/7 거부.
+6live 시도 중3개 수집 완료/3개 실패이며 모두 서버 종료139. M6 수용·과거 원본은 유지한다.
+정상 제어 주행·actuation·energy fidelity는 미완료다. 다음은 정지 잡음의 sensor 의미,
+actuator/전기 port 분리와 rad/Nm/Pa actuation 방식 결정이다. source build는 하지 않았다.
+
+## 2026-10-23 후속 — M7-1h actuator/electrical 분리
+
+[구현·실행·실패](evidence/m7_carla_1h/README.md): 별도 opt-in M7 owner가 actuator 응답과
+EvPowerModel을 소유하며 실제 wheel 취득 이력에서 각1ms 구간 begin 이전 sample을 선택한다.
+차량 운동은 적분하지 않는다. 계산 결과는 CARLA에 적용하지 않은 ZOH 모델 예측으로 표시한다.
+Normal/ASan 각32/32(기존22+신규10), 기존 관련144/144·1c39/39와 실제 내리막400tick을 확인했다.
+평지의 미세 음수는 SubResolutionNegative 진단 후 거부한다. 0.01rad/s wire resolution을
+noise 보정 허용으로 해석하지 않았다. 평지 연결 FAIL·서버 종료139·정상 actuation 미연결은 유지한다.
+다음은 actuation 방식·중복 dynamics·정지 sensor 오차 근거, applied Actual/interval work 계약이다.
+
 ## 실제 Host 관측
 
 아래는 공식 권장값이 아니라 이 작업 terminal에서 얻은 snapshot이다. 메모리/공간은 변동한다.
@@ -55,7 +143,7 @@ ScenarioRunner v0.9.16(후속 연동)**이다. 패키지 포함 wheel 또는 공
 ScenarioRunner 호환은 별도 미검증이다. AI 영상 품질 평가가 필요해질 때 해당0.10.x tag,
 map/weather 기능·GPU 부하·ScenarioRunner 지원을 다시 비교한다(TBD-07/09).
 
-## 코드 대조와 설계 결과
+## M7-0 당시 코드 대조와 설계 결과
 
 [Plant Adapter ICD](../icd/carla_plant_adapter.md)가 의미 계약의 기준이다. 아래 실제 구현을
 대조했으며 문서의 설계 위치를 이미 구현된 CARLA 모듈로 오인하지 않는다.
@@ -69,14 +157,14 @@ map/weather 기능·GPU 부하·ScenarioRunner 지원을 다시 비교한다(TBD
 | [P05](../../interfaces/common/e2e_profile5.cpp), [ADR-0036](../adr/ADR-0036-asynchronous-drive-actual-feedback.md) | CRC/counter와 Actual acquisition 의미 보존. 새 bridge의 도착 시각으로 재인코딩 금지 |
 | [ADR-0063](../adr/ADR-0063-simple-vehicle-and-longitudinal-mil.md), [ADR-0064](../adr/ADR-0064-vehicle-ev-interval-energy.md) | 독립 Python MIL과 M6 차량/전기 구간 work의 수용 경계를 CARLA로 승계할 수 없음 |
 
-결정한 것은 actual-only/single writer,50ms tick owner,20/10ms 기존 주기, GT 격리,
+M7-0 당시 결정한 것은 actual-only/single writer,50ms tick owner,20/10ms 기존 주기, GT 격리,
 원천 identity/time/validity와 pause/reset 의미다. calibration·true substep 양방향 연동·clock
 mapping·energy fidelity는 OPEN이다. **기본 패키지50ms world state로 정상 Drive 연결 불가**라는
 판정을 숨기지 않으며 M7-1은 비주행 connectivity/sensor/거부 검증부터 진행한다.
 
 ## M7-1 시험 준비와 공통 증거
 
-모든 아래 시험은 **PLANNED / NOT RUN**. 이번 Host 정보 조회를 CARLA 시험 PASS로 세지 않는다.
+아래 시험표는 M7-0 당시 **PLANNED / NOT RUN** 계획이다. 현재 M7-1a/b/c/d 부분 실행은 위 후속을 따른다. 이번 Host 정보 조회를 CARLA 시험 PASS로 세지 않는다.
 M7-1 실행 단계에서만 package/client를 준비하고 source build/ScenarioRunner 자동 실행은 하지 않는다.
 단일 ego, traffic0, clear daytime, front RGB+동일 pose GT, state20Hz를 초기 scope로 한다.
 실행 전 사용 가능한 map/vehicle blueprint/spawn point를 조회해 exact ID·pose·seed·physics
@@ -100,15 +188,15 @@ clock/버전/manifest·raw trace·oracle 결과·시도별 실패를 향후 `evi
 
 | ID / 현재 상태 | 절차 | 판정과 남길 증거 |
 | --- | --- | --- |
-| M7-1-01 / NOT RUN | 별도 env의 client로 localhost server 연결, `get_client_version/get_server_version`, import 경로·package hash 기록 | 둘 다0.9.16, RPC 정상. 불일치는 fail/중단; wheel tag만으로 PASS 금지 |
-| M7-1-02 / NOT RUN | INIT/NON_DRIVING에서 ego·RGB·GT 생성, parent/actor 목록 확인, 정상/예외 종료 | 자기 actor만 destroy, sensor callback 종료·queue 폐기, actor 잔존0. 기존 world settings 복원 결과 기록 |
-| M7-1-03 / NOT RUN | 설정 readback 후 단일 owner로240tick, tick request/return/snapshot frame·elapsed/delta·Host monotonic 기록 | 연속 frame+1, delta0.05s(수치 tolerance1µs), timestamp 단조. 중복 tick/설정 변경 거부. wall duration·RTF 보고, wall20Hz PASS로 확대 금지 |
-| M7-1-04 / NOT RUN | RGB/GT/state join, BGRA 길이·class ID·intrinsic/extrinsic·frame/time 검사 | 본 관측200세트 완전, pose/frame 일치. raw GT red-channel label과 palette 구분, GT 온라인 구독0. 위치/축 변환 왕복·좌우 부호 vector 검사 |
-| M7-1-05 / NOT RUN | 각각 RGB/GT/state callback drop·delay/reorder/duplicate·queue overflow를 명시 주입 | 의도한 missing/late reason과 exact frame 기록, cached restamp0. 필수 온라인 관측 누락은 driving gate 닫힘; GT 누락은 dataset invalid, 값0 채움 금지 |
-| M7-1-06 / NOT RUN | tick pause 후 resume, world reload/reset, old callback/old Actual 늦게 전달 | pause 중 sim time 정지·wall 증가. attached monitor는 기존 timeout/latch 유지. 새 run/epoch와 INIT 전 normal 금지, old frame/actor/Actual 거부, ECU rejoin만으로 world reset 금지 |
-| M7-1-07 / NOT RUN | Actual admission harness에 유효 Actual positive vector와 command 타입/출처 위조·stale·old epoch·NaN·부분 bundle·변조 cached Actual 주입, 두 번째 writer/tick 요청 시도 | fake backend에서 유효 vector당 commit1회·중복0, raw command→apply0, 원래 metadata 불변, reject 이유·apply audit·writer owner 기록. API spy/fixture 검증은 실제 Central→Zone→vECU 연결 PASS와 구분 |
-| M7-1-08 / NOT RUN | logical0/10/20/30/40/50ms에 원래0ms wheel sample을 기존 Drive 검증기로 평가, CARLA frame period와 비교 | 40ms에서 stale이며30ms 초과 거부가 기대 결과. 보호/차단 확인은 negative case 성공일 뿐 정상 주행 가능 판정 아님. future50ms sample 소급 금지 |
-| M7-1-09 / NOT RUN | mock backend에서 interval coverage·미확정 calibration·apply RPC ambiguous·중간 expiry 검사, live 수집 모드에서 정상 driving 요청 차단 확인 | 근거 없는 normalized apply0, 추가 driving tick0, 최초 failure 유지. 실제 moving ego mapping/EV·응답 시험은 후속 gate BLOCKED |
+| M7-1-01 / PASS (M7-1a) | 별도 env의 client로 localhost server 연결, `get_client_version/get_server_version`, import 경로·package hash 기록 | 둘 다0.9.16, RPC 정상. 불일치는 fail/중단; wheel tag만으로 PASS 금지 |
+| M7-1-02 / PASS (비주행 정상/예외 fixture) | INIT/NON_DRIVING에서 ego·RGB·GT 생성, parent/actor 목록 확인, 정상/예외 종료 | 자기 actor만 destroy, sensor callback 종료·queue 폐기, actor 잔존0. 기존 world settings 복원 결과 기록 |
+| M7-1-03 / PASS (240tick profile) | 설정 readback 후 단일 owner로240tick, tick request/return/snapshot frame·elapsed/delta·Host monotonic 기록 | 연속 frame+1, delta0.05s(수치 tolerance1µs), timestamp 단조. 중복 tick/설정 변경 거부. wall duration·RTF 보고, wall20Hz PASS로 확대 금지 |
+| M7-1-04 / PASS (정적 smoke 수집) | RGB/GT/state join, BGRA 길이·class ID·intrinsic/extrinsic·frame/time 검사 | 본 관측200세트 완전, pose/frame 일치. raw GT red-channel label과 palette 구분, GT 온라인 구독0. 위치/축 변환 왕복·좌우 부호 vector 검사 |
+| M7-1-05 / 부분 PASS; live overflow/deadline NOT RUN | 각각 RGB/GT/state callback drop·delay/reorder/duplicate·queue overflow를 명시 주입 | 의도한 missing/late reason과 exact frame 기록, cached restamp0. 필수 온라인 관측 누락은 driving gate 닫힘; GT 누락은 dataset invalid, 값0 채움 금지 |
+| M7-1-06 / 부분 PASS; ECU timeout/old Actual NOT RUN | tick pause 후 resume, world reload/reset, old callback/old Actual 늦게 전달 | pause 중 sim time 정지·wall 증가. attached monitor는 기존 timeout/latch 유지. 새 run/epoch와 INIT 전 normal 금지, old frame/actor/Actual 거부, ECU rejoin만으로 world reset 금지 |
+| M7-1-07 / 논리 PASS; 실제 전송/writer NOT RUN | Actual admission harness에 유효 Actual positive vector와 command 타입/출처 위조·stale·old epoch·NaN·부분 bundle·변조 cached Actual 주입, 두 번째 writer/tick 요청 시도 | fake backend에서 유효 vector당 commit1회·중복0, raw command→apply0, 원래 metadata 불변, reject 이유·apply audit·writer owner 기록. API spy/fixture 검증은 실제 Central→Zone→vECU 연결 PASS와 구분 |
+| M7-1-08 / native logical PASS | logical0/10/20/30/40/50ms에 원래0ms wheel sample을 기존 Drive 검증기로 평가, CARLA frame period와 비교 | 40ms에서 stale이며30ms 초과 거부가 기대 결과. 보호/차단 확인은 negative case 성공일 뿐 정상 주행 가능 판정 아님. future50ms sample 소급 금지 |
+| M7-1-09 / fake/CLI 부분 PASS | mock backend에서 interval coverage·미확정 calibration·apply RPC ambiguous·중간 expiry 검사, live 수집 모드에서 정상 driving 요청 차단 확인 | 근거 없는 normalized apply0, 추가 driving tick0, 최초 failure 유지. 실제 moving ego mapping/EV·응답 시험은 후속 gate BLOCKED |
 
 M7-1-02/03/04의 sensor-only world 진행은 ECU 주행 허가를 발급하지 않는 별도
 NON_DRIVING 시험이다. 필요하면 INIT에서 ego physics 비활성화한 정적 fixture임을 명시한다.
@@ -125,19 +213,19 @@ single writer의 unit spy 결과만으로 외부 client 차단이나 전체 실�
    M7-1-03~06. M6 runtime과 주행 연결하지 않는다.
 3. **M7-1c 경계 시험:** simulator 독립 typed Actual/metadata validator와 fake backend,
    기존 Drive 검증을 이용한 negative case, M7-1-07~09. 새 wire/기존 threshold 변경 없음.
-4. **별도 M7 주행 선행 설계:** 같은 CARLA dynamics의 실제 substep wheel 관측과10ms
-   ECU exchange/Actual apply 가능성을 조사하고 clock·interval coverage를 증명한다.
-   패키지만으로 불가하면 제약을 보고하고 backend 확장안을 먼저 검토한다. 이번에는 빌드하지 않는다.
+4. **M7-1d 주기 분리:** world/state10ms·영상50ms 비주행 cadence/누락·pause/reset 검증 완료.
+   다음은 wheel 원천·clock mapping·wall timing 비용·native guard·Actual interval 적합성 검토다.
+   기존50ms world 내부 substep 양방향 연동 후보는 이번 요구 개정으로 우선순위에서 제외했다.
 5. **주행 gate 이후:** 차종 geometry/torque·pressure·steer mapping calibration, actuator
    중복 제거, 실제8-role 경로 연결, energy interval port와 보호 응답 검증을 각각 작은 변경으로 수행한다.
 
-**착수 가능:** M7-1a/b 및 c의 비주행·negative 시험 준비. **조건부 환경 적합**, CARLA 실행은
-아직 미검증. **착수 불가:** 현재 stock50ms state를 기존 Drive에 붙인 정상 주행·M6 동등
-energy/안전 수용 주장. 미해결 핵심은30ms freshness/인과적 substep, 물리량 calibration,
-actuator 중복·energy 원천이다. 기존 M4/SDK/DDS OPEN 전체를 M7-1 선행 조건으로 추가하지 않는다.
+**현재:** M7-1a/b/c/d의 명시한 한정 실행 완료, [1d 결과](evidence/m7_carla_1d/README.md)의
+startup/wall timing 제한·종료 crash와 기존 OPEN 유지. 다음 조사에는 착수 가능하다.
+**착수 불가:** 실제 clock·wheel/Actual 경로·native guard·calibration을 입증하지 않은 정상 주행,
+M6 동등 energy/안전 수용 주장. 기존 M4/SDK/DDS OPEN 전체를 M7 비주행 선행 조건으로 추가하지 않는다.
 Jetson 배포/학습은 범위 밖이며 TBD-09는 Host 조사만 반영한다.
 
-## 이번 변경의 검증 범위
+## M7-0 변경의 검증 범위
 
 변경은 Markdown7개(새 문서2개·기존 연결/상태5개)다. 변경 문서의 로컬 링크/앵커121개를
 정적으로 대조해 깨짐0, code fence 짝 누락0을 확인했다. `git diff --check`와 새 파일의

@@ -1,0 +1,98 @@
+{
+  "started_utc": "2026-10-23T04:24:53.780318+00:00",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "executable": "/d/shin/stratadrive-tools/carla-0.9.16/venv/bin/python",
+  "carla_module": "/d/shin/stratadrive-tools/carla-0.9.16/venv/lib/python3.10/site-packages/carla/__init__.py",
+  "endpoint": [
+    "127.0.0.1",
+    2000
+  ],
+  "mode": "NON_DRIVING; ego physics disabled; no control API",
+  "cases": [
+    {
+      "name": "normal_cleanup",
+      "status": "PASS",
+      "actor_id": 26,
+      "observed_frame": 20225,
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "alive_before_cleanup": true,
+      "destroy_return": true,
+      "cleanup_observations": [
+        {
+          "tick_frame": 20226,
+          "snapshot_frame": 20226,
+          "registry_present": false,
+          "snapshot_present": false
+        }
+      ],
+      "present_after_cleanup": false
+    },
+    {
+      "name": "injected_exception_cleanup",
+      "status": "PASS",
+      "actor_id": 27,
+      "observed_frame": 20227,
+      "velocity_mps": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "alive_before_cleanup": true,
+      "expected_exception": "deliberate exception after ego creation",
+      "destroy_return": true,
+      "cleanup_observations": [
+        {
+          "tick_frame": 20228,
+          "snapshot_frame": 20228,
+          "registry_present": false,
+          "snapshot_present": false
+        }
+      ],
+      "present_after_cleanup": false
+    }
+  ],
+  "status": "PASS",
+  "client_version": "0.9.16",
+  "server_version": "0.9.16",
+  "map": "Carla/Maps/Town10HD_Opt",
+  "initial_vehicle_ids": [],
+  "settings_before": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "settings_during": {
+    "synchronous_mode": true,
+    "fixed_delta_seconds": 0.05,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "blueprint": "vehicle.lincoln.mkz_2020",
+  "spawn": {
+    "x": -64.64484405517578,
+    "y": 24.471010208129883,
+    "z": 0.5999999642372131,
+    "pitch": 0.0,
+    "yaw": 0.15919798612594604,
+    "roll": 0.0
+  },
+  "remaining_vehicle_ids": [],
+  "settings_after": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "elapsed_wall_s": 4.279380782973021
+}

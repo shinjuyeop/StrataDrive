@@ -1,0 +1,41 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 16 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 16 tests from BrakeReceiver
+[ RUN      ] BrakeReceiver.RequiresTrustedSessionAndValidConfiguration
+[       OK ] BrakeReceiver.RequiresTrustedSessionAndValidConfiguration (0 ms)
+[ RUN      ] BrakeReceiver.AcceptsProgressAndPreservesActualSourceAndCausality
+[       OK ] BrakeReceiver.AcceptsProgressAndPreservesActualSourceAndCausality (0 ms)
+[ RUN      ] BrakeReceiver.RepeatCorruptionAndBadEnvelopesDoNotRefreshValidRx
+[       OK ] BrakeReceiver.RepeatCorruptionAndBadEnvelopesDoNotRefreshValidRx (0 ms)
+[ RUN      ] BrakeReceiver.RejectsCrcValidMalformedPayloadWithoutCommitting
+[       OK ] BrakeReceiver.RejectsCrcValidMalformedPayloadWithoutCommitting (0 ms)
+[ RUN      ] BrakeReceiver.EnforcesEpochSessionFutureAndAgeBoundaries
+[       OK ] BrakeReceiver.EnforcesEpochSessionFutureAndAgeBoundaries (0 ms)
+[ RUN      ] BrakeReceiver.RejectsRepackagedReplayAndPreservesApplicationCursors
+[       OK ] BrakeReceiver.RejectsRepackagedReplayAndPreservesApplicationCursors (0 ms)
+[ RUN      ] BrakeReceiver.FirstSequenceMustBeInsideStartupWindow
+[       OK ] BrakeReceiver.FirstSequenceMustBeInsideStartupWindow (0 ms)
+[ RUN      ] BrakeReceiver.PhysicalPressureLimitsAreIndependentOfWireCapacity
+[       OK ] BrakeReceiver.PhysicalPressureLimitsAreIndependentOfWireCapacity (0 ms)
+[ RUN      ] BrakeReceiver.UnavailableAndOutOfRangeTrafficCannotRenewValidAge
+[       OK ] BrakeReceiver.UnavailableAndOutOfRangeTrafficCannotRenewValidAge (0 ms)
+[ RUN      ] BrakeReceiver.CommandModeRequiresNormalPathAndNormalOrDegraded
+[       OK ] BrakeReceiver.CommandModeRequiresNormalPathAndNormalOrDegraded (0 ms)
+[ RUN      ] BrakeReceiver.ActualSampleValidityDoesNotOverrideSenderHealth
+[       OK ] BrakeReceiver.ActualSampleValidityDoesNotOverrideSenderHealth (0 ms)
+[ RUN      ] BrakeReceiver.SourceAgeExpiresBeforeRxTimeoutAndHistoryRemainsDiagnostic
+[       OK ] BrakeReceiver.SourceAgeExpiresBeforeRxTimeoutAndHistoryRemainsDiagnostic (0 ms)
+[ RUN      ] BrakeReceiver.DeadlineAndLateValidFrameCannotClearTimeoutLatch
+[       OK ] BrakeReceiver.DeadlineAndLateValidFrameCannotClearTimeoutLatch (0 ms)
+[ RUN      ] BrakeReceiver.ClockRollbackLatchesUntilNewExplicitSession
+[       OK ] BrakeReceiver.ClockRollbackLatchesUntilNewExplicitSession (0 ms)
+[ RUN      ] BrakeReceiver.CounterResynchronizationDoesNotCommitRejectedMetadata
+[       OK ] BrakeReceiver.CounterResynchronizationDoesNotCommitRejectedMetadata (0 ms)
+[ RUN      ] BrakeReceiver.CommandAndActualHaveIndependentSessionAndCounterState
+[       OK ] BrakeReceiver.CommandAndActualHaveIndependentSessionAndCounterState (0 ms)
+[----------] 16 tests from BrakeReceiver (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 16 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 16 tests.

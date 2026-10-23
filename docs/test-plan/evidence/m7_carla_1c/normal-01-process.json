@@ -1,0 +1,23 @@
+[
+  {
+    "name": "build-03",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m7-contract",
+      "--target",
+      "m7_plant_contract_test",
+      "--parallel",
+      "2"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "normal-01",
+    "command": [
+      "build/m7-contract/tests/integration/carla/m7_1c/m7_plant_contract_test",
+      "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/normal-01.xml"
+    ],
+    "returncode": 0
+  }
+]

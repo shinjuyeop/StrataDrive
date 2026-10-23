@@ -1,0 +1,81 @@
+{
+  "status": "SHADOW_COMPLETE",
+  "mode": "functional-shadow",
+  "driving": false,
+  "native_inputs": "stationary SIL actuator/electrical fixture; no CARLA wheel feed",
+  "carla_apply_calls": 0,
+  "scope": [
+    1,
+    42,
+    7
+  ],
+  "clock_domain": 5563993196838736969,
+  "ticks_planned": 320,
+  "world_dt_s": 0.01,
+  "camera_dt_s": 0.05,
+  "injections": [
+    {
+      "index": 150,
+      "kind": "slow-host",
+      "wall_begin_ns": 696630215593005,
+      "wall_end_ns": 696630315748997,
+      "frame": 174,
+      "sim_s": 2.474958566017449
+    },
+    {
+      "index": 220,
+      "kind": "pause",
+      "wall_begin_ns": 696631021030157,
+      "wall_end_ns": 696631271299090,
+      "frame": 244,
+      "sim_s": 3.1749585503712296
+    }
+  ],
+  "cleanup": {
+    "settings_restored": true,
+    "remaining_owned": []
+  },
+  "artifacts": {
+    "native_sha256": "950ae63b661e4ed3d8af564ddc4b2bc69a52f6b3d4df85d3ebec21408d770552",
+    "runner_sha256": "1438bf231c3d9a7a80cbe990ba90efdf18a2dadeaedf32791a13f40b29226b1a",
+    "native_sources": {
+      "CMakeLists.txt": "abf62a44f8615bda5a92b61488745f48fd9ea5e255369794889902836586d7b2",
+      "frame_clock.hpp": "c40259ec748ed4729d65129464896da573429dc7c283c92410ed155c477e0b26",
+      "functional_rig.cpp": "0715343b3aa0311745169c6916d5b2ee166a8efbdebe63ac25ac65424633acd4",
+      "functional_rig.hpp": "88e0f0cb90a9c443fed128911ff435e5382e0c7c7318bb3af98c53210566c0c4",
+      "functional_test.cpp": "a4d5ec1c2f474d2a676bd1d32db2fd25e85290d81928e479be947c042f648fe5",
+      "shadow_main.cpp": "4aeb68efeedf2de7aa4011bef701d9b3d17460bf037fd9c93b31bcbbba079ec7"
+    }
+  },
+  "versions": [
+    "0.9.16",
+    "0.9.16"
+  ],
+  "map": "Carla/Maps/Town10HD_Opt",
+  "ego": {
+    "id": 24,
+    "blueprint": "vehicle.lincoln.mkz_2020",
+    "physics": false
+  },
+  "native_command": [
+    "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1f/m7_functional_shadow",
+    "--functional-shadow",
+    "1",
+    "42",
+    "7"
+  ],
+  "negative": {
+    "kind": "duplicate-observation",
+    "request": "STEP 1 42 7 5563993196838736969 343 4.1649585282430053 0.0099999997764825821",
+    "reply": {
+      "status": "FAIL",
+      "driving": false,
+      "next_frame": null
+    },
+    "frame_before": 344,
+    "frame_after": 344
+  },
+  "native_exit": 1,
+  "ticks_completed": 320,
+  "overflow": []
+}

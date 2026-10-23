@@ -1,0 +1,657 @@
+{
+  "status": "PASS",
+  "cases": {
+    "nominal": {
+      "status": "PASS",
+      "scope": "non-driving logical cadence/collection; no native ECU or wall freshness acceptance",
+      "windows": {
+        "startup": {
+          "state": {
+            "expected": 100,
+            "received": 100,
+            "missing_frames": []
+          },
+          "rgb.front": {
+            "expected": 20,
+            "received": 19,
+            "missing_frames": [
+              22098
+            ]
+          },
+          "gt.front": {
+            "expected": 20,
+            "received": 19,
+            "missing_frames": [
+              22098
+            ]
+          }
+        },
+        "main": {
+          "state": {
+            "expected": 600,
+            "received": 600,
+            "missing_frames": []
+          },
+          "rgb.front": {
+            "expected": 120,
+            "received": 120,
+            "missing_frames": []
+          },
+          "gt.front": {
+            "expected": 120,
+            "received": 120,
+            "missing_frames": []
+          }
+        },
+        "drain": {
+          "state": {
+            "expected": 100,
+            "received": 100,
+            "missing_frames": []
+          },
+          "rgb.front": {
+            "expected": 20,
+            "received": 20,
+            "missing_frames": []
+          },
+          "gt.front": {
+            "expected": 20,
+            "received": 20,
+            "missing_frames": []
+          }
+        }
+      },
+      "startup_capture": {
+        "rgb.front": {
+          "observed_frames": [
+            22097,
+            22103,
+            22108,
+            22113,
+            22118,
+            22123,
+            22128,
+            22133,
+            22138,
+            22143,
+            22148,
+            22153,
+            22158,
+            22163,
+            22168,
+            22173,
+            22178,
+            22183,
+            22188,
+            22193
+          ],
+          "frame_gaps": [
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "off_steady_phase_frames": [
+            22097
+          ]
+        },
+        "gt.front": {
+          "observed_frames": [
+            22097,
+            22103,
+            22108,
+            22113,
+            22118,
+            22123,
+            22128,
+            22133,
+            22138,
+            22143,
+            22148,
+            22153,
+            22158,
+            22163,
+            22168,
+            22173,
+            22178,
+            22183,
+            22188,
+            22193
+          ],
+          "frame_gaps": [
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "off_steady_phase_frames": [
+            22097
+          ]
+        }
+      },
+      "camera_phase_mod5": {
+        "rgb.front": 3,
+        "gt.front": 3
+      },
+      "sim_s": 8.0,
+      "collection_wall_s": 10.458570118,
+      "real_time_factor": 0.7649229206037819,
+      "tick_rpc_ms": {
+        "count": 800,
+        "mean": 8.602082867499997,
+        "p95": 27.765494,
+        "p99": 30.181572,
+        "max": 87.736923
+      },
+      "snapshot_completion_gap_ms_including_pause": {
+        "count": 799,
+        "mean": 13.088530669586975,
+        "p95": 28.01591,
+        "p99": 30.780511,
+        "max": 250.999038
+      },
+      "snapshot_completion_gap_ms_excluding_pause": {
+        "count": 798,
+        "mean": 12.790397201754384,
+        "p95": 27.933326,
+        "p99": 30.604963,
+        "max": 87.892831
+      },
+      "completion_gaps_over_30ms_excluding_pause": 12,
+      "state_receipt_gap_ms_including_pause_and_drops": {
+        "count": 799,
+        "mean": 13.088529690863595,
+        "p95": 28.01092,
+        "p99": 30.715908,
+        "max": 251.000113
+      },
+      "logical_state_age_ns": {
+        "count": 800,
+        "mean": 0.0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "stale_frames": [],
+      "wall_source_freshness": "NOT RUN: acquisition clock mapping and ECU bridge unavailable",
+      "wheel_feedback": "NOT RUN: actor velocity is not measured wheel angular speed",
+      "queue_high_water": {
+        "rgb.front": 1,
+        "gt.front": 1
+      }
+    },
+    "drop": {
+      "status": "PASS",
+      "scope": "non-driving logical cadence/collection; no native ECU or wall freshness acceptance",
+      "windows": {
+        "startup": {
+          "state": {
+            "expected": 100,
+            "received": 100,
+            "missing_frames": []
+          },
+          "rgb.front": {
+            "expected": 20,
+            "received": 19,
+            "missing_frames": [
+              22899
+            ]
+          },
+          "gt.front": {
+            "expected": 20,
+            "received": 19,
+            "missing_frames": [
+              22899
+            ]
+          }
+        },
+        "main": {
+          "state": {
+            "expected": 200,
+            "received": 195,
+            "missing_frames": [
+              23028,
+              23029,
+              23030,
+              23031,
+              23032
+            ]
+          },
+          "rgb.front": {
+            "expected": 40,
+            "received": 39,
+            "missing_frames": [
+              23029
+            ]
+          },
+          "gt.front": {
+            "expected": 40,
+            "received": 39,
+            "missing_frames": [
+              23029
+            ]
+          }
+        },
+        "drain": {
+          "state": {
+            "expected": 100,
+            "received": 100,
+            "missing_frames": []
+          },
+          "rgb.front": {
+            "expected": 20,
+            "received": 20,
+            "missing_frames": []
+          },
+          "gt.front": {
+            "expected": 20,
+            "received": 20,
+            "missing_frames": []
+          }
+        }
+      },
+      "startup_capture": {
+        "rgb.front": {
+          "observed_frames": [
+            22898,
+            22904,
+            22909,
+            22914,
+            22919,
+            22924,
+            22929,
+            22934,
+            22939,
+            22944,
+            22949,
+            22954,
+            22959,
+            22964,
+            22969,
+            22974,
+            22979,
+            22984,
+            22989,
+            22994
+          ],
+          "frame_gaps": [
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "off_steady_phase_frames": [
+            22898
+          ]
+        },
+        "gt.front": {
+          "observed_frames": [
+            22898,
+            22904,
+            22909,
+            22914,
+            22919,
+            22924,
+            22929,
+            22934,
+            22939,
+            22944,
+            22949,
+            22954,
+            22959,
+            22964,
+            22969,
+            22974,
+            22979,
+            22984,
+            22989,
+            22994
+          ],
+          "frame_gaps": [
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "off_steady_phase_frames": [
+            22898
+          ]
+        }
+      },
+      "camera_phase_mod5": {
+        "rgb.front": 4,
+        "gt.front": 4
+      },
+      "sim_s": 4.0,
+      "collection_wall_s": 5.059783072,
+      "real_time_factor": 0.7905477256792561,
+      "tick_rpc_ms": {
+        "count": 400,
+        "mean": 8.569854009999993,
+        "p95": 27.093795,
+        "p99": 29.195499,
+        "max": 53.784926
+      },
+      "snapshot_completion_gap_ms_including_pause": {
+        "count": 399,
+        "mean": 12.679297280701768,
+        "p95": 27.432793,
+        "p99": 29.359689,
+        "max": 53.910206
+      },
+      "snapshot_completion_gap_ms_excluding_pause": {
+        "count": 399,
+        "mean": 12.679297280701768,
+        "p95": 27.432793,
+        "p99": 29.359689,
+        "max": 53.910206
+      },
+      "completion_gaps_over_30ms_excluding_pause": 3,
+      "state_receipt_gap_ms_including_pause_and_drops": {
+        "count": 394,
+        "mean": 12.840212256345172,
+        "p95": 27.527224,
+        "p99": 47.305156,
+        "max": 54.824285
+      },
+      "logical_state_age_ns": {
+        "count": 400,
+        "mean": 374999.99,
+        "p95": 0,
+        "p99": 10000000,
+        "max": 49999999
+      },
+      "stale_frames": [
+        {
+          "frame": 23031,
+          "source_frame": 23027,
+          "source_time_ns": 96896828334,
+          "age_ns": 39999999,
+          "available": false
+        },
+        {
+          "frame": 23032,
+          "source_frame": 23027,
+          "source_time_ns": 96896828334,
+          "age_ns": 49999999,
+          "available": false
+        }
+      ],
+      "wall_source_freshness": "NOT RUN: acquisition clock mapping and ECU bridge unavailable",
+      "wheel_feedback": "NOT RUN: actor velocity is not measured wheel angular speed",
+      "queue_high_water": {
+        "rgb.front": 1,
+        "gt.front": 1
+      }
+    },
+    "after_reset": {
+      "status": "PASS",
+      "scope": "non-driving logical cadence/collection; no native ECU or wall freshness acceptance",
+      "windows": {
+        "startup": {
+          "state": {
+            "expected": 100,
+            "received": 100,
+            "missing_frames": []
+          },
+          "rgb.front": {
+            "expected": 20,
+            "received": 19,
+            "missing_frames": [
+              23303
+            ]
+          },
+          "gt.front": {
+            "expected": 20,
+            "received": 19,
+            "missing_frames": [
+              23303
+            ]
+          }
+        },
+        "main": {
+          "state": {
+            "expected": 200,
+            "received": 200,
+            "missing_frames": []
+          },
+          "rgb.front": {
+            "expected": 40,
+            "received": 40,
+            "missing_frames": []
+          },
+          "gt.front": {
+            "expected": 40,
+            "received": 40,
+            "missing_frames": []
+          }
+        },
+        "drain": {
+          "state": {
+            "expected": 100,
+            "received": 100,
+            "missing_frames": []
+          },
+          "rgb.front": {
+            "expected": 20,
+            "received": 20,
+            "missing_frames": []
+          },
+          "gt.front": {
+            "expected": 20,
+            "received": 20,
+            "missing_frames": []
+          }
+        }
+      },
+      "startup_capture": {
+        "rgb.front": {
+          "observed_frames": [
+            23302,
+            23308,
+            23313,
+            23318,
+            23323,
+            23328,
+            23333,
+            23338,
+            23343,
+            23348,
+            23353,
+            23358,
+            23363,
+            23368,
+            23373,
+            23378,
+            23383,
+            23388,
+            23393,
+            23398
+          ],
+          "frame_gaps": [
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "off_steady_phase_frames": [
+            23302
+          ]
+        },
+        "gt.front": {
+          "observed_frames": [
+            23302,
+            23308,
+            23313,
+            23318,
+            23323,
+            23328,
+            23333,
+            23338,
+            23343,
+            23348,
+            23353,
+            23358,
+            23363,
+            23368,
+            23373,
+            23378,
+            23383,
+            23388,
+            23393,
+            23398
+          ],
+          "frame_gaps": [
+            6,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "off_steady_phase_frames": [
+            23302
+          ]
+        }
+      },
+      "camera_phase_mod5": {
+        "rgb.front": 3,
+        "gt.front": 3
+      },
+      "sim_s": 4.0,
+      "collection_wall_s": 5.665277019,
+      "real_time_factor": 0.7060555003020939,
+      "tick_rpc_ms": {
+        "count": 400,
+        "mean": 9.332930947500001,
+        "p95": 28.096808,
+        "p99": 31.138418,
+        "max": 280.808167
+      },
+      "snapshot_completion_gap_ms_including_pause": {
+        "count": 399,
+        "mean": 14.192479799498763,
+        "p95": 28.283371,
+        "p99": 43.284667,
+        "max": 280.911725
+      },
+      "snapshot_completion_gap_ms_excluding_pause": {
+        "count": 398,
+        "mean": 13.59679576633167,
+        "p95": 28.252174,
+        "p99": 31.934475,
+        "max": 280.911725
+      },
+      "completion_gaps_over_30ms_excluding_pause": 5,
+      "state_receipt_gap_ms_including_pause_and_drops": {
+        "count": 399,
+        "mean": 14.19247760150377,
+        "p95": 28.277366,
+        "p99": 43.342051,
+        "max": 280.955157
+      },
+      "logical_state_age_ns": {
+        "count": 400,
+        "mean": 0.0,
+        "p95": 0,
+        "p99": 0,
+        "max": 0
+      },
+      "stale_frames": [],
+      "wall_source_freshness": "NOT RUN: acquisition clock mapping and ECU bridge unavailable",
+      "wheel_feedback": "NOT RUN: actor velocity is not measured wheel angular speed",
+      "queue_high_water": {
+        "rgb.front": 1,
+        "gt.front": 1
+      }
+    }
+  }
+}

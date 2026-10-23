@@ -1,0 +1,41 @@
+{
+  "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+  "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+  "runs": [
+    {
+      "name": "asan-configure",
+      "command": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build/m7-contract-asan",
+        "-DSTRATADRIVE_M7_CONTRACT_TESTS=ON",
+        "-DSTRATADRIVE_SANITIZERS=ON",
+        "-DCMAKE_BUILD_TYPE=Debug"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "asan-build",
+      "command": [
+        "cmake",
+        "--build",
+        "build/m7-contract-asan",
+        "--target",
+        "m7_plant_contract_test",
+        "--parallel",
+        "2"
+      ],
+      "returncode": 0
+    },
+    {
+      "name": "asan-run",
+      "command": [
+        "build/m7-contract-asan/tests/integration/carla/m7_1c/m7_plant_contract_test",
+        "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/asan.xml"
+      ],
+      "returncode": 0
+    }
+  ]
+}

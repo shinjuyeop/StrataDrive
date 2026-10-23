@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="30" failures="0" disabled="0" errors="0" time="0.013" timestamp="2026-10-23T15:38:05.107" name="AllTests">
+  <testsuite name="RemoteWire" tests="9" failures="0" disabled="0" skipped="0" errors="0" time="0.013" timestamp="2026-10-23T15:38:05.108">
+    <testcase name="Crc32cMatchesPublishedCheckVector" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.108" classname="RemoteWire" />
+    <testcase name="IndependentLittleEndianGoldenKeepsOriginalIdentityAndBinary64" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.108" classname="RemoteWire" />
+    <testcase name="EverySingleBitCorruptionAndEveryTruncationIsRejected" status="run" result="completed" time="0.012" timestamp="2026-10-23T15:38:05.108" classname="RemoteWire" />
+    <testcase name="ValidCrcCannotHideUnknownVersionReservedBooleanOrTruncatedEnum" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.120" classname="RemoteWire" />
+    <testcase name="UnknownAndKnownZeroRemainDistinctAcrossAllBmsContents" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.120" classname="RemoteWire" />
+    <testcase name="EveryZoneOperationAndRawFrameAlternativeKeepsSideband" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteWire" />
+    <testcase name="NoInnerCanCounterSourceOrCrcIsRegenerated" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteWire" />
+    <testcase name="NonFiniteTypedDemandAndWrongPeerRouteAreRejected" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteWire" />
+    <testcase name="DelayedDecodedCommandKeepsOriginalExclusiveExpiryAtZone" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteWire" />
+  </testsuite>
+  <testsuite name="RemoteClock" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T15:38:05.121">
+    <testcase name="WorstCaseAgeAndExclusiveExpiryIncludeUncertaintyWithoutRewritingSource" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteClock" />
+    <testcase name="UnknownDomainSignedOffsetAndArithmeticBoundsFailClosed" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteClock" />
+  </testsuite>
+  <testsuite name="PeerFixture" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T15:38:05.121">
+    <testcase name="LocalReleaseAloneCannotAuthorizeNormalCommands" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="PeerFixture" />
+    <testcase name="SourceLossExpiresAndFreshSameEpochRenewalCannotHeal" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="PeerFixture" />
+    <testcase name="ExactExpiryWrongClockOldPlanAndReplayNeverRefreshLease" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="PeerFixture" />
+    <testcase name="ProtectionClockRollbackAndUnsafePreparationCannotAutoRecover" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="PeerFixture" />
+    <testcase name="MissingFirstCreditHasItsOwnBoundedAcquisitionDeadline" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="PeerFixture" />
+  </testsuite>
+  <testsuite name="RemoteIssuer" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T15:38:05.121">
+    <testcase name="NoGlobalCreditUntilEveryReleaseAckAndNoCreditAfterCancel" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteIssuer" />
+  </testsuite>
+  <testsuite name="RemoteProtection" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T15:38:05.121">
+    <testcase name="LateAckWrongRoleAndOldEpochCannotCompleteNewRequest" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteProtection" />
+    <testcase name="SelectionRequestCannotExtendOriginalTwentyMillisecondBudget" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteProtection" />
+    <testcase name="MissingOrNegativeAckIsNotASelectionAndCannotOpenRunGate" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="RemoteProtection" />
+  </testsuite>
+  <testsuite name="AllContracts/RemoteWireBodies" tests="10" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T15:38:05.121">
+    <testcase name="RoundTripPreservesExactCanonicalMessage/0" value_param="0" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+    <testcase name="RoundTripPreservesExactCanonicalMessage/1" value_param="1" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+    <testcase name="RoundTripPreservesExactCanonicalMessage/2" value_param="2" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+    <testcase name="RoundTripPreservesExactCanonicalMessage/3" value_param="3" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+    <testcase name="RoundTripPreservesExactCanonicalMessage/4" value_param="4" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+    <testcase name="RoundTripPreservesExactCanonicalMessage/5" value_param="5" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+    <testcase name="RoundTripPreservesExactCanonicalMessage/6" value_param="6" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+    <testcase name="RoundTripPreservesExactCanonicalMessage/7" value_param="7" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+    <testcase name="RoundTripPreservesExactCanonicalMessage/8" value_param="8" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+    <testcase name="RoundTripPreservesExactCanonicalMessage/9" value_param="9" status="run" result="completed" time="0" timestamp="2026-10-23T15:38:05.121" classname="AllContracts/RemoteWireBodies" />
+  </testsuite>
+</testsuites>

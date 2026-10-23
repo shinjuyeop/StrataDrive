@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="21" failures="0" disabled="0" errors="0" time="0.022" timestamp="2026-10-23T14:09:30.902" name="AllTests">
+  <testsuite name="DriveValues" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.019" timestamp="2026-10-23T14:09:30.902">
+    <testcase name="DirectionZeroAndReservedCodes" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.902" classname="DriveValues" />
+    <testcase name="ExhaustiveRawRoundTripsAndQuantizationBound" status="run" result="completed" time="0.019" timestamp="2026-10-23T14:09:30.902" classname="DriveValues" />
+    <testcase name="RejectsNonfiniteAndPreRoundingRangeViolations" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.922" classname="DriveValues" />
+  </testsuite>
+  <testsuite name="DriveFrame" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="0.002" timestamp="2026-10-23T14:09:30.922">
+    <testcase name="IndependentCrcGoldenVectors" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.922" classname="DriveFrame" />
+    <testcase name="ZeroCapabilityAndUnavailableHaveDistinctCanonicalEncoding" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.922" classname="DriveFrame" />
+    <testcase name="AllBytesIncludingCapabilityInputTimeAreCrcProtected" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.922" classname="DriveFrame" />
+    <testcase name="RejectsResealedNoncanonicalPayloadAndMalformedEnvelopes" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.922" classname="DriveFrame" />
+    <testcase name="FullWidthTimesAndFailedEncodeDoNotAdvanceCounter" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.922" classname="DriveFrame" />
+    <testcase name="StreamSpecificDataIdsAndCounterWrap" status="run" result="completed" time="0.001" timestamp="2026-10-23T14:09:30.922" classname="DriveFrame" />
+  </testsuite>
+  <testsuite name="DriveReceiver" tests="12" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T14:09:30.924">
+    <testcase name="AcceptsPropulsionRegenAndZeroForBothStreams" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="RejectsInvalidConfigurationAndRequiresTrustedEpoch" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="RejectedMessagesNeverRefreshCriticalHistory" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="FreshTorqueDoesNotRejuvenateCachedCapabilityOrItsInputs" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="IndependentAuxiliaryTimeCanFollowTorqueWithoutExtendingTorqueAge" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="FreshAuxiliaryAndNewReportSequenceCannotRefreshTheSameTorqueSample" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="AuxiliaryAfterTorqueStillRejectsFutureOrRegressingSamples" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="AuxiliaryRangeTimeAndChangedCacheDoNotInvalidateFreshTorque" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="AuxiliaryExpiryIsIndependentOfTorqueAgeAndNoFallbackToOldCap" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="MissingTorqueCannotBeReplacedByValidCapability" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="TimeoutClockRollbackAndRecoveryAreLatched" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+    <testcase name="ExplicitDependencyAgeLeavesTorqueAndAuxiliarySourceBudgetsUnchanged" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.924" classname="DriveReceiver" />
+  </testsuite>
+</testsuites>

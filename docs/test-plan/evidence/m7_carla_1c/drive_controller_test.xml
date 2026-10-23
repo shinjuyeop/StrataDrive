@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="44" failures="0" disabled="0" errors="0" time="0.029" timestamp="2026-10-23T14:09:30.926" name="AllTests">
+  <testsuite name="DriveControllerConfig" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T14:09:30.926">
+    <testcase name="RejectsInvalidCalibrationWithoutAPermissiveBypass" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.926" classname="DriveControllerConfig" />
+    <testcase name="ExplicitApplicationAndPhysicalEpochMappingIsRequired" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.926" classname="DriveControllerConfig" />
+  </testsuite>
+  <testsuite name="DriveControllerTest" tests="35" failures="0" disabled="0" skipped="0" errors="0" time="0.022" timestamp="2026-10-23T14:09:30.926">
+    <testcase name="InitReportsKnownModelTorqueButUnknownCapabilityUntilInputsArrive" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.926" classname="DriveControllerTest" />
+    <testcase name="FreshInhibitAndKnownPhysicalOffCanRemainNonDrivingInit" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.926" classname="DriveControllerTest" />
+    <testcase name="PositiveAndNegativeCommandsStillPassThroughPhysicalDelayAndRate" status="run" result="completed" time="0.002" timestamp="2026-10-23T14:09:30.927" classname="DriveControllerTest" />
+    <testcase name="PropulsionHonorsElectricalDrawIncludingIdleAndTorqueSquaredLoss" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.930" classname="DriveControllerTest" />
+    <testcase name="StandstillUsesFiniteCopperLossLimitAndNeverDividesByZero" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.931" classname="DriveControllerTest" />
+    <testcase name="ValidZeroDischargeBlocksLaunchAndPositiveTorqueButChargeStaysIndependent" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.931" classname="DriveControllerTest" />
+    <testcase name="ChargeAcceptanceBoundsRegenWithUnitEfficiencyAsConservativeUpperReturn" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.931" classname="DriveControllerTest" />
+    <testcase name="LowSpeedTaperAndMotorConstantPowerEnvelopeLimitCapability" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.932" classname="DriveControllerTest" />
+    <testcase name="CapabilityRoundingNeverExceedsPowerAcceptance" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.932" classname="DriveControllerTest" />
+    <testcase name="ValidZeroChargeCancelsQueuedRegenAndRampsResidualWithoutTeleport" status="run" result="completed" time="0.001" timestamp="2026-10-23T14:09:30.932" classname="DriveControllerTest" />
+    <testcase name="PositivePowerContractionUsesProtectionRateAndCanResumeOnFreshSoftLimits" status="run" result="completed" time="0.002" timestamp="2026-10-23T14:09:30.934" classname="DriveControllerTest" />
+    <testcase name="PermissionInhibitAfterActivationLatchesAndZerosBothSigns" status="run" result="completed" time="0.001" timestamp="2026-10-23T14:09:30.936" classname="DriveControllerTest" />
+    <testcase name="ClaimedReadyInPermissionCannotReplaceActualLocalHv" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.938" classname="DriveControllerTest" />
+    <testcase name="InverterHealthIsRequiredEvenWith400VoltBus" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.938" classname="DriveControllerTest" />
+    <testcase name="HardwareFaultRevokesAnAlreadyActiveGate" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.938" classname="DriveControllerTest" />
+    <testcase name="BmsProtectionIsNotTreatedAsAnOrdinarySoftPowerLimit" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.938" classname="DriveControllerTest" />
+    <testcase name="MissingSpeedIsUnknownCapabilityWithStillValidResidualTorque" status="run" result="completed" time="0.001" timestamp="2026-10-23T14:09:30.939" classname="DriveControllerTest" />
+    <testcase name="MissingHvNeverFallsBackToPermissionOrOldSensorValue" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.940" classname="DriveControllerTest" />
+    <testcase name="HeldPhysicalAcquisitionExpiresDespiteFreshCommandAndPermission" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.940" classname="DriveControllerTest" />
+    <testcase name="CachedPhysicalValuesCannotBeChangedOrReidentified" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.941" classname="DriveControllerTest" />
+    <testcase name="PhysicalEpochFutureDependencyAndUnsupportedReverseAreRejected" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.941" classname="DriveControllerTest" />
+    <testcase name="AcquisitionSkewCannotBeHiddenByIndividuallyFreshValues" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.941" classname="DriveControllerTest" />
+    <testcase name="OverspeedOutsideTheCalibratedEnvelopeInhibits" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.941" classname="DriveControllerTest" />
+    <testcase name="StaleLimitsCannotBeRefreshedByOtherStreams" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.941" classname="DriveControllerTest" />
+    <testcase name="PartialLimitsStayUnknownRatherThanBecomingZeroOrCopiedFromOtherDirection" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.942" classname="DriveControllerTest" />
+    <testcase name="OriginalBmsFrameIsNotAcceptedAsTheRoutedDriveLimitsFrame" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.942" classname="DriveControllerTest" />
+    <testcase name="MissingTrustedParentRevokesVerifiedGrantAndCannotAutoLearnItFromCan" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.942" classname="DriveControllerTest" />
+    <testcase name="ExpiredGrantCannotBeConcealedByALateFreshRenewalBetweenTicks" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.942" classname="DriveControllerTest" />
+    <testcase name="CommandLossUsesZeroRampAndLateCommandCannotRestartIt" status="run" result="completed" time="0.001" timestamp="2026-10-23T14:09:30.942" classname="DriveControllerTest" />
+    <testcase name="CapabilityPreservesOldestDependencyWhileItsCalculationSourceAdvances" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.944" classname="DriveControllerTest" />
+    <testcase name="DependencyRollbackIsNotNormalizedIntoAFreshCapability" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.944" classname="DriveControllerTest" />
+    <testcase name="DeadlineHoldsTheMissedIntervalThenRampsToZero" status="run" result="completed" time="0.002" timestamp="2026-10-23T14:09:30.944" classname="DriveControllerTest" />
+    <testcase name="ContinuityLossStartsAtItsDetectionTimeAndCancelsPendingGoals" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.946" classname="DriveControllerTest" />
+    <testcase name="ClockRegressionSuppressesAllOutputWithoutAdvancingPhysics" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.947" classname="DriveControllerTest" />
+    <testcase name="NewApplicationEpochPreservesPhysicalTorqueAndRequiresFreshInputs" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.948" classname="DriveControllerTest" />
+  </testsuite>
+  <testsuite name="DriveStartupTest" tests="7" failures="0" disabled="0" skipped="0" errors="0" time="0.006" timestamp="2026-10-23T14:09:30.949">
+    <testcase name="FreshInhibitAndLocalInputsAllowLongPrechargeWithoutTorquePackets" status="run" result="completed" time="0.002" timestamp="2026-10-23T14:09:30.949" classname="DriveStartupTest" />
+    <testcase name="PacketsCannotArmAndFirstNormalSequenceRemainsZeroAfterExplicitArm" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.951" classname="DriveStartupTest" />
+    <testcase name="AllowNormalBeforeTrustedArmLatchesWithoutApplyingTorque" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.952" classname="DriveStartupTest" />
+    <testcase name="MissingStartupPermissionCannotBeHiddenByLateFreshInhibit" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.952" classname="DriveStartupTest" />
+    <testcase name="MissingStartupLimitsStillLatchWithContinuingInhibit" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.952" classname="DriveStartupTest" />
+    <testcase name="StartupLocalSensorLossStillLatchesWithFreshBmsTraffic" status="run" result="completed" time="0" timestamp="2026-10-23T14:09:30.953" classname="DriveStartupTest" />
+    <testcase name="NormalCommandWaitingBudgetStartsAtExplicitArmAndIsNotExtended" status="run" result="completed" time="0.002" timestamp="2026-10-23T14:09:30.953" classname="DriveStartupTest" />
+  </testsuite>
+</testsuites>

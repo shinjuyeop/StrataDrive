@@ -1,0 +1,80 @@
+[
+  {
+    "name": "build-final",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m7-contract",
+      "--target",
+      "m7_plant_contract_test",
+      "steering_receiver_test",
+      "brake_receiver_test",
+      "drive_test",
+      "drive_controller_test",
+      "ecu_boundary_test",
+      "--parallel",
+      "2"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "normal-final",
+    "command": [
+      "build/m7-contract/tests/integration/carla/m7_1c/m7_plant_contract_test",
+      "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/normal-final.xml"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "ctest",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m7-contract",
+      "-L",
+      "m7.contract",
+      "--output-on-failure"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "steering_receiver_test",
+    "command": [
+      "build/m7-contract/steering_receiver_test",
+      "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/steering_receiver_test.xml"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "brake_receiver_test",
+    "command": [
+      "build/m7-contract/brake_receiver_test",
+      "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/brake_receiver_test.xml"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "drive_test",
+    "command": [
+      "build/m7-contract/drive_test",
+      "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/drive_test.xml"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "drive_controller_test",
+    "command": [
+      "build/m7-contract/drive_controller_test",
+      "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/drive_controller_test.xml"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "ecu_boundary_test",
+    "command": [
+      "build/m7-contract/ecu_boundary_test",
+      "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/ecu_boundary_test.xml"
+    ],
+    "returncode": 0
+  }
+]

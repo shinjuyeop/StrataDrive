@@ -1,0 +1,440 @@
+--- final/actual_boundary.hpp
++++ first-build/actual_boundary.hpp
+@@ -5,7 +5,6 @@
+ #include "drive_receiver.hpp"
+ #include <algorithm>
+ #include <array>
+-#include <atomic>
+ #include <memory>
+ #include <thread>
+ 
+@@ -46,7 +45,6 @@
+     virtual ~Backend() = default;
+ private:
+     friend class Boundary;
+-    std::atomic_flag claimed_=ATOMIC_FLAG_INIT;
+     virtual ApplyResult apply(const ActualBundle&, const Interval&) = 0;
+     virtual bool tick(const Interval&) = 0;
+ };
+@@ -60,18 +58,17 @@
+         Writer(const Writer&) = delete;
+         Writer& operator=(const Writer&) = delete;
+     };
+-    explicit Boundary(Backend& backend): backend_(backend), thread_(std::this_thread::get_id()), bound_(!backend.claimed_.test_and_set()) {}
++    explicit Boundary(Backend& backend): backend_(backend), thread_(std::this_thread::get_id()) {}
+     Boundary(const Boundary&) = delete;
+     Boundary& operator=(const Boundary&) = delete;
+     std::unique_ptr<Writer> claim() {
+-        if (std::this_thread::get_id()!=thread_ || !bound_ || claimed_) return {};
++        if (claimed_ || std::this_thread::get_id()!=thread_) return {};
+         claimed_=true; return std::unique_ptr<Writer>(new Writer(this));
+     }
+     // Explicit trusted INIT only; packets never initialize or learn these IDs.
+     Code start(const Writer& w, std::uint32_t app, std::uint32_t plant,
+                std::uint64_t run, std::uint64_t clock, Time now) {
+         if (!owns(w)) return Code::Writer;
+-        if (dispatching_) return Code::Pending;
+         if (!app || !plant || !run || !clock || (state_ &&
+             (app<=app_ || plant<plant_ || now<last_))) return Code::Init;
+         auto s=std::make_unique<State>();
+@@ -85,7 +82,7 @@
+     Code receive(const Writer& w, const Frames& frames, const Provenance& p, Time now) {
+         if (!owns(w)) return Code::Writer;
+         if (auto c=clock(now); c!=Code::Ok) return c;
+-        if (pending_ || applied_ || dispatching_) return fail(Code::Pending);
++        if (pending_ || applied_) return fail(Code::Pending);
+         if (p.run!=run_ || p.clock!=domain_ || p.plant!=plant_ ||
+             p.support[0].role!=Role::Steering || p.support[1].role!=Role::Brake ||
+             p.support[2].role!=Role::Drive) return fail(Code::Source);
+@@ -109,7 +106,7 @@
+         if (!owns(w)) return Code::Writer;
+         if (auto c=clock(now); c!=Code::Ok) return c;
+         if (mode!=Mode::FakeProbe) return fail(Code::Disabled);
+-        if (pending_ || applied_ || dispatching_) return fail(Code::Pending);
++        if (pending_ || applied_) return fail(Code::Pending);
+         if (interval.frame!=next_frame_ || interval.begin<now || interval.end<=interval.begin)
+             return fail(Code::Frame);
+         if (!accepted_ || !state_->steering.current_sample(now) || !state_->brake.current_sample(now) ||
+@@ -125,12 +122,7 @@
+         if (auto c=valid(pending_->actual,now,pending_->interval.end); c!=Code::Ok) return fail(c);
+         if (now>pending_->interval.begin) return fail(Code::Time);
+         const auto step=*pending_; pending_.reset(); // consume before any backend call
+-        ApplyResult result=ApplyResult::Ambiguous;
+-        dispatching_=true;
+-        try { result=backend_.apply(step.actual,step.interval); }
+-        catch (...) { dispatching_=false; return fail(Code::ApplyAmbiguous); }
+-        dispatching_=false;
+-        if (fault_!=Code::Ok) return fault_;
++        const auto result=backend_.apply(step.actual,step.interval);
+         if (result==ApplyResult::Rejected) return fail(Code::ApplyRejected);
+         if (result==ApplyResult::Ambiguous) return fail(Code::ApplyAmbiguous);
+         applied_=step; return Code::Ok;
+@@ -145,13 +137,7 @@
+         if (auto c=valid(applied_->actual,now,applied_->interval.end); c!=Code::Ok) return fail(c);
+         if (now>applied_->interval.begin) return fail(Code::Time);
+         const auto step=*applied_; applied_.reset();
+-        bool acknowledged=false;
+-        dispatching_=true;
+-        try { acknowledged=backend_.tick(step.interval); }
+-        catch (...) { dispatching_=false; return fail(Code::TickAmbiguous); }
+-        dispatching_=false;
+-        if (fault_!=Code::Ok) return fault_;
+-        if (!acknowledged) return fail(Code::TickAmbiguous);
++        if (!backend_.tick(step.interval)) return fail(Code::TickAmbiguous);
+         ++next_frame_; return Code::Ok;
+     }
+     Code fault() const { return fault_; }
+@@ -164,7 +150,7 @@
+     };
+     struct Prepared { std::uint64_t ticket; ActualBundle actual; Interval interval; };
+     bool owns(const Writer& w) const {
+-        return bound_ && w.boundary_==this && std::this_thread::get_id()==thread_;
++        return w.boundary_==this && std::this_thread::get_id()==thread_;
+     }
+     Code fail(Code c) { if (fault_==Code::Ok) fault_=c; return fault_; }
+     Code clock(Time now) {
+@@ -189,8 +175,7 @@
+     }
+     Backend& backend_;
+     const std::thread::id thread_;
+-    const bool bound_;
+-    bool claimed_{false},dispatching_{false};
++    bool claimed_{false};
+     std::unique_ptr<State> state_;
+     std::uint32_t app_{0},plant_{0};
+     std::uint64_t run_{0},domain_{0},serial_{0},next_frame_{1};
+--- final/contract_test.cpp
++++ first-build/contract_test.cpp
+@@ -5,7 +5,6 @@
+ #include "drive_controller.hpp"
+ #include <gtest/gtest.h>
+ #include <limits>
+-#include <functional>
+ #include <type_traits>
+ 
+ namespace {
+@@ -16,12 +15,11 @@
+ struct Spy final : Backend {
+     unsigned applies{0},ticks{0};
+     ApplyResult result{ApplyResult::Applied};
+-    bool tick_ack{true}, throw_apply{false}, throw_tick{false};
++    bool tick_ack{true};
+     std::optional<ActualBundle> observed;
+-    std::function<void()> on_apply;
+ private:
+-    ApplyResult apply(const ActualBundle& a,const Interval&) override { ++applies; observed=a; if(on_apply)on_apply(); if(throw_apply)throw std::runtime_error("apply RPC lost"); return result; }
+-    bool tick(const Interval&) override { ++ticks; if(throw_tick)throw std::runtime_error("tick RPC lost"); return tick_ack; }
++    ApplyResult apply(const ActualBundle& a,const Interval&) override { ++applies; observed=a; return result; }
++    bool tick(const Interval&) override { ++ticks; return tick_ack; }
+ };
+ Provenance support(Time source=t(10)) {
+     return {1,10,7,{{{Role::Steering,source,t(70)},{Role::Brake,source,t(70)},{Role::Drive,source,t(70)}}}};
+@@ -196,62 +194,11 @@
+     EXPECT_EQ(foreign,Code::Writer);EXPECT_EQ(spy.ticks,0U);
+     EXPECT_EQ(boundary.advance(*writer,ticket,1,t(10)),Code::Ok);
+ }
+-TEST_F(Contract, SameBackendCannotBeBoundByASecondAdapter) {
+-    Boundary other(spy); EXPECT_FALSE(other.claim());
+-    receive(); ASSERT_EQ(prepare(),Code::Ok);
+-    EXPECT_EQ(boundary.commit(*writer,ticket,t(10)),Code::Ok); EXPECT_EQ(spy.applies,1U);
+-}
+-TEST_F(Contract, ThrowingApplyIsAmbiguousAndCannotBeRetried) {
+-    receive(); ASSERT_EQ(prepare(),Code::Ok); spy.throw_apply=true;
+-    EXPECT_EQ(boundary.commit(*writer,ticket,t(10)),Code::ApplyAmbiguous);
+-    EXPECT_EQ(boundary.commit(*writer,ticket,t(10)),Code::ApplyAmbiguous);
+-    EXPECT_EQ(boundary.advance(*writer,ticket,1,t(10)),Code::ApplyAmbiguous);
+-    EXPECT_EQ(spy.applies,1U); EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, ThrowingTickIsAmbiguousAndCannotBeRetried) {
+-    receive(); ASSERT_EQ(prepare(),Code::Ok); ASSERT_EQ(boundary.commit(*writer,ticket,t(10)),Code::Ok);
+-    spy.throw_tick=true;
+-    EXPECT_EQ(boundary.advance(*writer,ticket,1,t(10)),Code::TickAmbiguous);
+-    EXPECT_EQ(boundary.advance(*writer,ticket,1,t(10)),Code::TickAmbiguous);
+-    EXPECT_EQ(spy.ticks,1U);
+-}
+-TEST(M7Writer, ConcurrentAdapterBindingCanCreateOnlyOneBackendOwner) {
+-    Spy spy; std::atomic<unsigned> owners{0};
+-    std::thread a([&]{Boundary b(spy);if(b.claim())++owners;});
+-    std::thread b([&]{Boundary c(spy);if(c.claim())++owners;});
+-    a.join();b.join();EXPECT_EQ(owners.load(),1U);EXPECT_EQ(spy.applies,0U);EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, WrongPreparedFrameIsRejectedWithoutApply) {
+-    receive();std::uint64_t id=0;
+-    EXPECT_EQ(boundary.prepare(*writer,Mode::FakeProbe,{2,t(10),t(20)},t(10),id),Code::Frame);
+-    EXPECT_EQ(spy.applies,0U);EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, WrongTickFrameCannotConsumeSuccessfulApplyAsAnotherFrame) {
+-    receive();ASSERT_EQ(prepare(),Code::Ok);ASSERT_EQ(boundary.commit(*writer,ticket,t(10)),Code::Ok);
+-    EXPECT_EQ(boundary.advance(*writer,ticket,2,t(10)),Code::Ticket);
+-    EXPECT_EQ(spy.applies,1U);EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, PendingSnapshotCannotBeReplacedByNewIngress) {
+-    receive();ASSERT_EQ(prepare(),Code::Ok);
+-    EXPECT_EQ(boundary.receive(*writer,vector(1,11,1),support(t(11)),t(11)),Code::Pending);
+-    EXPECT_EQ(boundary.commit(*writer,ticket,t(11)),Code::Pending);
+-    EXPECT_EQ(spy.applies,0U);EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, ReentrantBackendCannotReplaceOrResetAnInFlightApply) {
+-    receive();ASSERT_EQ(prepare(),Code::Ok);
+-    spy.on_apply=[&]{
+-        EXPECT_EQ(boundary.start(*writer,2,7,1,10,t(10)),Code::Pending);
+-        EXPECT_EQ(boundary.receive(*writer,vector(1,11,1),support(t(11)),t(11)),Code::Pending);
+-    };
+-    EXPECT_EQ(boundary.commit(*writer,ticket,t(10)),Code::Pending);
+-    EXPECT_EQ(boundary.advance(*writer,ticket,1,t(11)),Code::Pending);
+-    EXPECT_EQ(spy.applies,1U);EXPECT_EQ(spy.ticks,0U);
+-}
+ TEST_F(Contract, TickWithoutApplyAndWrongTicketCannotAdvance) {
+     EXPECT_EQ(boundary.advance(*writer,999,1,t(10)),Code::Ticket);
+     EXPECT_EQ(spy.applies,0U);EXPECT_EQ(spy.ticks,0U);
+ }
+-TEST_F(Contract, DuplicateTickCannotAdvanceTwice) {
++TEST_F(Contract, WrongFrameAndDuplicateTickCannotAdvanceTwice) {
+     receive();ASSERT_EQ(prepare(),Code::Ok);ASSERT_EQ(boundary.commit(*writer,ticket,t(10)),Code::Ok);
+     ASSERT_EQ(boundary.advance(*writer,ticket,1,t(10)),Code::Ok);
+     EXPECT_EQ(boundary.advance(*writer,ticket,1,t(10)),Code::Ticket);
+@@ -330,7 +277,7 @@
+     for(unsigned delta: {0U,10U,20U,30U,40U}) {
+         const auto current=rx.current_sample(t(10+delta));
+         EXPECT_EQ(current.has_value(),delta<=30) << delta;
+-        if(current) { EXPECT_EQ(current->source_time_ns,t(10)); }
++        if(current)EXPECT_EQ(current->source_time_ns,t(10));
+     }
+     RecordProperty("logical_age_ms","0,10,20,30=usable;40=unavailable;source=1010000000");
+ }
+--- final/actual_boundary.hpp
++++ normal34/actual_boundary.hpp
+@@ -71,7 +71,6 @@
+     Code start(const Writer& w, std::uint32_t app, std::uint32_t plant,
+                std::uint64_t run, std::uint64_t clock, Time now) {
+         if (!owns(w)) return Code::Writer;
+-        if (dispatching_) return Code::Pending;
+         if (!app || !plant || !run || !clock || (state_ &&
+             (app<=app_ || plant<plant_ || now<last_))) return Code::Init;
+         auto s=std::make_unique<State>();
+@@ -85,7 +84,7 @@
+     Code receive(const Writer& w, const Frames& frames, const Provenance& p, Time now) {
+         if (!owns(w)) return Code::Writer;
+         if (auto c=clock(now); c!=Code::Ok) return c;
+-        if (pending_ || applied_ || dispatching_) return fail(Code::Pending);
++        if (pending_ || applied_) return fail(Code::Pending);
+         if (p.run!=run_ || p.clock!=domain_ || p.plant!=plant_ ||
+             p.support[0].role!=Role::Steering || p.support[1].role!=Role::Brake ||
+             p.support[2].role!=Role::Drive) return fail(Code::Source);
+@@ -109,7 +108,7 @@
+         if (!owns(w)) return Code::Writer;
+         if (auto c=clock(now); c!=Code::Ok) return c;
+         if (mode!=Mode::FakeProbe) return fail(Code::Disabled);
+-        if (pending_ || applied_ || dispatching_) return fail(Code::Pending);
++        if (pending_ || applied_) return fail(Code::Pending);
+         if (interval.frame!=next_frame_ || interval.begin<now || interval.end<=interval.begin)
+             return fail(Code::Frame);
+         if (!accepted_ || !state_->steering.current_sample(now) || !state_->brake.current_sample(now) ||
+@@ -126,11 +125,8 @@
+         if (now>pending_->interval.begin) return fail(Code::Time);
+         const auto step=*pending_; pending_.reset(); // consume before any backend call
+         ApplyResult result=ApplyResult::Ambiguous;
+-        dispatching_=true;
+         try { result=backend_.apply(step.actual,step.interval); }
+-        catch (...) { dispatching_=false; return fail(Code::ApplyAmbiguous); }
+-        dispatching_=false;
+-        if (fault_!=Code::Ok) return fault_;
++        catch (...) { return fail(Code::ApplyAmbiguous); }
+         if (result==ApplyResult::Rejected) return fail(Code::ApplyRejected);
+         if (result==ApplyResult::Ambiguous) return fail(Code::ApplyAmbiguous);
+         applied_=step; return Code::Ok;
+@@ -145,13 +141,8 @@
+         if (auto c=valid(applied_->actual,now,applied_->interval.end); c!=Code::Ok) return fail(c);
+         if (now>applied_->interval.begin) return fail(Code::Time);
+         const auto step=*applied_; applied_.reset();
+-        bool acknowledged=false;
+-        dispatching_=true;
+-        try { acknowledged=backend_.tick(step.interval); }
+-        catch (...) { dispatching_=false; return fail(Code::TickAmbiguous); }
+-        dispatching_=false;
+-        if (fault_!=Code::Ok) return fault_;
+-        if (!acknowledged) return fail(Code::TickAmbiguous);
++        try { if (!backend_.tick(step.interval)) return fail(Code::TickAmbiguous); }
++        catch (...) { return fail(Code::TickAmbiguous); }
+         ++next_frame_; return Code::Ok;
+     }
+     Code fault() const { return fault_; }
+@@ -190,7 +181,7 @@
+     Backend& backend_;
+     const std::thread::id thread_;
+     const bool bound_;
+-    bool claimed_{false},dispatching_{false};
++    bool claimed_{false};
+     std::unique_ptr<State> state_;
+     std::uint32_t app_{0},plant_{0};
+     std::uint64_t run_{0},domain_{0},serial_{0},next_frame_{1};
+--- final/contract_test.cpp
++++ normal34/contract_test.cpp
+@@ -5,7 +5,6 @@
+ #include "drive_controller.hpp"
+ #include <gtest/gtest.h>
+ #include <limits>
+-#include <functional>
+ #include <type_traits>
+ 
+ namespace {
+@@ -18,9 +17,8 @@
+     ApplyResult result{ApplyResult::Applied};
+     bool tick_ack{true}, throw_apply{false}, throw_tick{false};
+     std::optional<ActualBundle> observed;
+-    std::function<void()> on_apply;
+ private:
+-    ApplyResult apply(const ActualBundle& a,const Interval&) override { ++applies; observed=a; if(on_apply)on_apply(); if(throw_apply)throw std::runtime_error("apply RPC lost"); return result; }
++    ApplyResult apply(const ActualBundle& a,const Interval&) override { ++applies; observed=a; if(throw_apply)throw std::runtime_error("apply RPC lost"); return result; }
+     bool tick(const Interval&) override { ++ticks; if(throw_tick)throw std::runtime_error("tick RPC lost"); return tick_ack; }
+ };
+ Provenance support(Time source=t(10)) {
+@@ -215,43 +213,11 @@
+     EXPECT_EQ(boundary.advance(*writer,ticket,1,t(10)),Code::TickAmbiguous);
+     EXPECT_EQ(spy.ticks,1U);
+ }
+-TEST(M7Writer, ConcurrentAdapterBindingCanCreateOnlyOneBackendOwner) {
+-    Spy spy; std::atomic<unsigned> owners{0};
+-    std::thread a([&]{Boundary b(spy);if(b.claim())++owners;});
+-    std::thread b([&]{Boundary c(spy);if(c.claim())++owners;});
+-    a.join();b.join();EXPECT_EQ(owners.load(),1U);EXPECT_EQ(spy.applies,0U);EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, WrongPreparedFrameIsRejectedWithoutApply) {
+-    receive();std::uint64_t id=0;
+-    EXPECT_EQ(boundary.prepare(*writer,Mode::FakeProbe,{2,t(10),t(20)},t(10),id),Code::Frame);
+-    EXPECT_EQ(spy.applies,0U);EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, WrongTickFrameCannotConsumeSuccessfulApplyAsAnotherFrame) {
+-    receive();ASSERT_EQ(prepare(),Code::Ok);ASSERT_EQ(boundary.commit(*writer,ticket,t(10)),Code::Ok);
+-    EXPECT_EQ(boundary.advance(*writer,ticket,2,t(10)),Code::Ticket);
+-    EXPECT_EQ(spy.applies,1U);EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, PendingSnapshotCannotBeReplacedByNewIngress) {
+-    receive();ASSERT_EQ(prepare(),Code::Ok);
+-    EXPECT_EQ(boundary.receive(*writer,vector(1,11,1),support(t(11)),t(11)),Code::Pending);
+-    EXPECT_EQ(boundary.commit(*writer,ticket,t(11)),Code::Pending);
+-    EXPECT_EQ(spy.applies,0U);EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, ReentrantBackendCannotReplaceOrResetAnInFlightApply) {
+-    receive();ASSERT_EQ(prepare(),Code::Ok);
+-    spy.on_apply=[&]{
+-        EXPECT_EQ(boundary.start(*writer,2,7,1,10,t(10)),Code::Pending);
+-        EXPECT_EQ(boundary.receive(*writer,vector(1,11,1),support(t(11)),t(11)),Code::Pending);
+-    };
+-    EXPECT_EQ(boundary.commit(*writer,ticket,t(10)),Code::Pending);
+-    EXPECT_EQ(boundary.advance(*writer,ticket,1,t(11)),Code::Pending);
+-    EXPECT_EQ(spy.applies,1U);EXPECT_EQ(spy.ticks,0U);
+-}
+ TEST_F(Contract, TickWithoutApplyAndWrongTicketCannotAdvance) {
+     EXPECT_EQ(boundary.advance(*writer,999,1,t(10)),Code::Ticket);
+     EXPECT_EQ(spy.applies,0U);EXPECT_EQ(spy.ticks,0U);
+ }
+-TEST_F(Contract, DuplicateTickCannotAdvanceTwice) {
++TEST_F(Contract, WrongFrameAndDuplicateTickCannotAdvanceTwice) {
+     receive();ASSERT_EQ(prepare(),Code::Ok);ASSERT_EQ(boundary.commit(*writer,ticket,t(10)),Code::Ok);
+     ASSERT_EQ(boundary.advance(*writer,ticket,1,t(10)),Code::Ok);
+     EXPECT_EQ(boundary.advance(*writer,ticket,1,t(10)),Code::Ticket);
+--- final/actual_boundary.hpp
++++ normal38/actual_boundary.hpp
+@@ -71,7 +71,6 @@
+     Code start(const Writer& w, std::uint32_t app, std::uint32_t plant,
+                std::uint64_t run, std::uint64_t clock, Time now) {
+         if (!owns(w)) return Code::Writer;
+-        if (dispatching_) return Code::Pending;
+         if (!app || !plant || !run || !clock || (state_ &&
+             (app<=app_ || plant<plant_ || now<last_))) return Code::Init;
+         auto s=std::make_unique<State>();
+@@ -85,7 +84,7 @@
+     Code receive(const Writer& w, const Frames& frames, const Provenance& p, Time now) {
+         if (!owns(w)) return Code::Writer;
+         if (auto c=clock(now); c!=Code::Ok) return c;
+-        if (pending_ || applied_ || dispatching_) return fail(Code::Pending);
++        if (pending_ || applied_) return fail(Code::Pending);
+         if (p.run!=run_ || p.clock!=domain_ || p.plant!=plant_ ||
+             p.support[0].role!=Role::Steering || p.support[1].role!=Role::Brake ||
+             p.support[2].role!=Role::Drive) return fail(Code::Source);
+@@ -109,7 +108,7 @@
+         if (!owns(w)) return Code::Writer;
+         if (auto c=clock(now); c!=Code::Ok) return c;
+         if (mode!=Mode::FakeProbe) return fail(Code::Disabled);
+-        if (pending_ || applied_ || dispatching_) return fail(Code::Pending);
++        if (pending_ || applied_) return fail(Code::Pending);
+         if (interval.frame!=next_frame_ || interval.begin<now || interval.end<=interval.begin)
+             return fail(Code::Frame);
+         if (!accepted_ || !state_->steering.current_sample(now) || !state_->brake.current_sample(now) ||
+@@ -126,11 +125,8 @@
+         if (now>pending_->interval.begin) return fail(Code::Time);
+         const auto step=*pending_; pending_.reset(); // consume before any backend call
+         ApplyResult result=ApplyResult::Ambiguous;
+-        dispatching_=true;
+         try { result=backend_.apply(step.actual,step.interval); }
+-        catch (...) { dispatching_=false; return fail(Code::ApplyAmbiguous); }
+-        dispatching_=false;
+-        if (fault_!=Code::Ok) return fault_;
++        catch (...) { return fail(Code::ApplyAmbiguous); }
+         if (result==ApplyResult::Rejected) return fail(Code::ApplyRejected);
+         if (result==ApplyResult::Ambiguous) return fail(Code::ApplyAmbiguous);
+         applied_=step; return Code::Ok;
+@@ -145,13 +141,8 @@
+         if (auto c=valid(applied_->actual,now,applied_->interval.end); c!=Code::Ok) return fail(c);
+         if (now>applied_->interval.begin) return fail(Code::Time);
+         const auto step=*applied_; applied_.reset();
+-        bool acknowledged=false;
+-        dispatching_=true;
+-        try { acknowledged=backend_.tick(step.interval); }
+-        catch (...) { dispatching_=false; return fail(Code::TickAmbiguous); }
+-        dispatching_=false;
+-        if (fault_!=Code::Ok) return fault_;
+-        if (!acknowledged) return fail(Code::TickAmbiguous);
++        try { if (!backend_.tick(step.interval)) return fail(Code::TickAmbiguous); }
++        catch (...) { return fail(Code::TickAmbiguous); }
+         ++next_frame_; return Code::Ok;
+     }
+     Code fault() const { return fault_; }
+@@ -190,7 +181,7 @@
+     Backend& backend_;
+     const std::thread::id thread_;
+     const bool bound_;
+-    bool claimed_{false},dispatching_{false};
++    bool claimed_{false};
+     std::unique_ptr<State> state_;
+     std::uint32_t app_{0},plant_{0};
+     std::uint64_t run_{0},domain_{0},serial_{0},next_frame_{1};
+--- final/contract_test.cpp
++++ normal38/contract_test.cpp
+@@ -5,7 +5,6 @@
+ #include "drive_controller.hpp"
+ #include <gtest/gtest.h>
+ #include <limits>
+-#include <functional>
+ #include <type_traits>
+ 
+ namespace {
+@@ -18,9 +17,8 @@
+     ApplyResult result{ApplyResult::Applied};
+     bool tick_ack{true}, throw_apply{false}, throw_tick{false};
+     std::optional<ActualBundle> observed;
+-    std::function<void()> on_apply;
+ private:
+-    ApplyResult apply(const ActualBundle& a,const Interval&) override { ++applies; observed=a; if(on_apply)on_apply(); if(throw_apply)throw std::runtime_error("apply RPC lost"); return result; }
++    ApplyResult apply(const ActualBundle& a,const Interval&) override { ++applies; observed=a; if(throw_apply)throw std::runtime_error("apply RPC lost"); return result; }
+     bool tick(const Interval&) override { ++ticks; if(throw_tick)throw std::runtime_error("tick RPC lost"); return tick_ack; }
+ };
+ Provenance support(Time source=t(10)) {
+@@ -236,16 +234,6 @@
+     EXPECT_EQ(boundary.receive(*writer,vector(1,11,1),support(t(11)),t(11)),Code::Pending);
+     EXPECT_EQ(boundary.commit(*writer,ticket,t(11)),Code::Pending);
+     EXPECT_EQ(spy.applies,0U);EXPECT_EQ(spy.ticks,0U);
+-}
+-TEST_F(Contract, ReentrantBackendCannotReplaceOrResetAnInFlightApply) {
+-    receive();ASSERT_EQ(prepare(),Code::Ok);
+-    spy.on_apply=[&]{
+-        EXPECT_EQ(boundary.start(*writer,2,7,1,10,t(10)),Code::Pending);
+-        EXPECT_EQ(boundary.receive(*writer,vector(1,11,1),support(t(11)),t(11)),Code::Pending);
+-    };
+-    EXPECT_EQ(boundary.commit(*writer,ticket,t(10)),Code::Pending);
+-    EXPECT_EQ(boundary.advance(*writer,ticket,1,t(11)),Code::Pending);
+-    EXPECT_EQ(spy.applies,1U);EXPECT_EQ(spy.ticks,0U);
+ }
+ TEST_F(Contract, TickWithoutApplyAndWrongTicketCannotAdvance) {
+     EXPECT_EQ(boundary.advance(*writer,999,1,t(10)),Code::Ticket);

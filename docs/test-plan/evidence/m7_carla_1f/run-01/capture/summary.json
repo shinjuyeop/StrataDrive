@@ -1,0 +1,69 @@
+{
+  "status": "SHADOW_COMPLETE",
+  "mode": "functional-shadow",
+  "driving": false,
+  "native_inputs": "stationary SIL actuator/electrical fixture; no CARLA wheel feed",
+  "carla_apply_calls": 0,
+  "scope": [
+    1,
+    42,
+    7
+  ],
+  "clock_domain": 5563993196838736969,
+  "ticks_planned": 320,
+  "world_dt_s": 0.01,
+  "camera_dt_s": 0.05,
+  "injections": [
+    {
+      "index": 150,
+      "kind": "slow-host",
+      "wall_begin_ns": 696307005747921,
+      "wall_end_ns": 696307105864139,
+      "frame": 174,
+      "sim_s": 2.4422716038534418
+    },
+    {
+      "index": 220,
+      "kind": "pause",
+      "wall_begin_ns": 696307790021979,
+      "wall_end_ns": 696308040287817,
+      "frame": 244,
+      "sim_s": 3.1422715882072225
+    }
+  ],
+  "cleanup": {
+    "settings_restored": true,
+    "remaining_owned": []
+  },
+  "versions": [
+    "0.9.16",
+    "0.9.16"
+  ],
+  "map": "Carla/Maps/Town10HD_Opt",
+  "ego": {
+    "id": 24,
+    "blueprint": "vehicle.lincoln.mkz_2020",
+    "physics": false
+  },
+  "native_command": [
+    "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1f/m7_functional_shadow",
+    "--functional-shadow",
+    "1",
+    "42",
+    "7"
+  ],
+  "negative": {
+    "kind": "duplicate-observation",
+    "request": "STEP 1 42 7 5563993196838736969 343 4.1322715660789981 0.0099999997764825821",
+    "reply": {
+      "status": "FAIL",
+      "driving": false,
+      "next_frame": null
+    },
+    "frame_before": 344,
+    "frame_after": 344
+  },
+  "native_exit": 1,
+  "ticks_completed": 320,
+  "overflow": []
+}

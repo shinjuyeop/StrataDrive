@@ -10,8 +10,8 @@ actual 기반 차량/EV 에너지와 유한 물리 응답을 연결했다. M4 �
 기능 완료, Jetson·전체 시스템 검증을 뜻하지 않는다.
 
 M7-0 환경 조사와 [CARLA Plant Adapter ICD 초안](docs/icd/carla_plant_adapter.md)을 작성했다.
-[M7-1 비주행 연결·센서 시험](docs/test-plan/m7_carla_preflight.md)은 준비 가능하며 CARLA 실행은
-NOT RUN이다. 20Hz state/Drive30ms freshness와 물리량 calibration은 정상 주행 전 미해결 gate다.
+[M7-1b 센서 수집](docs/test-plan/evidence/m7_carla_1b/README.md)과
+[M7-1c Actual/fake backend·Drive 논리 경계](docs/test-plan/evidence/m7_carla_1c/README.md)를 한정 검증했다. M7-1d에서 world/state100Hz·영상20Hz로 개정했다. [M7-1f](docs/test-plan/evidence/m7_carla_1f/README.md)는 별도 functional clock과 실제8-role native actor의 CARLA 비주행 shadow barrier를 구현했다. [M7-1g](docs/test-plan/evidence/m7_carla_1g/README.md)는 실제 wheel 센서→native Actual 반환까지 연결했다. [M7-1h](docs/test-plan/evidence/m7_carla_1h/README.md)는 별도 actuator/electrical owner와 실제 wheel 기반 ZOH 예측을 연결했다. 평지 미세 음수 측정·물리량 calibration·정상 actuation은 미해결이다.
 
 [현재 상태·OPEN·다음 작업](docs/project_status.md) · [단계/TBD](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 
@@ -80,7 +80,7 @@ raw command fallback/중복 dynamics는 금지한다. [전체 설계](docs/archi
 | 정상 scenario | S01 직선 30 km/h, S02 곡선 30 km/h, S03 직선→곡선→직선 및 30→20 km/h request |
 | 주행 acceptance | steady speed max absolute error <=1 km/h; lateral absolute P95 <=0.3 m; heading absolute P95 <=3 deg; positive validated target 대비 overspeed <=10% |
 | 통신 | critical command/actual loss는 마지막 valid RX부터 <=100 ms에 검출; invalid/stale command는 valid age 갱신 금지 |
-| Logical rates | simulation/sensor·Planner 20 Hz, Controller 50 Hz, Zone·Steering/Brake/Drive vECU 100 Hz |
+| Logical rates | CARLA world/state 100 Hz, RGB/GT·Planner 20 Hz, Controller 50 Hz, Zone·Steering/Brake/Drive vECU 100 Hz |
 | State | INIT → NORMAL → DEGRADED → FAIL_SAFE; critical loss는 FAIL_SAFE 직행, recovery는 explicit INIT 재검증 |
 
 수치와 평가 window는 [scenario baseline](docs/test-plan/scenario_baseline.md), 시간 정의는
@@ -193,7 +193,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 ## Milestone Roadmap
 
 [로드맵](docs/roadmap.md)이 단계별 범위와 TBD의 기준이다. M6 Host quiet SIL/MIL은 종료했고,
-M7-0 조사·계약 초안 이후 다음은 M7-1 비주행 접속·센서/경계 시험이다. M8에서 종방향 모델의 C++ 구현·동등성과
+[M7-1d](docs/test-plan/evidence/m7_carla_1d/README.md)는10ms world/state·50ms 영상의 비주행 수집을 한정 검증했다. 실제 시간 지연과 서버 종료 crash는 OPEN이다. [M7-1e 진단](docs/test-plan/evidence/m7_carla_1e/README.md)에서 wheel RPC와 수집 비용을 확인했다. [M7-1g](docs/test-plan/evidence/m7_carla_1g/README.md)에서 직접 PhysX omega→native DriveActual 반환을 한정 검증했다. [M7-1h](docs/test-plan/evidence/m7_carla_1h/README.md)에서 actuator/전기 port를 분리했다. 다음은 rad/Nm/Pa actuation 방식과 정지 부근 sensor 오차/validity의 근거 확정이다. M8에서 종방향 모델의 C++ 구현·동등성과
 차량 closed-loop를 검증한다. M9 diagnostics, M10–M11 AI, M12 compute 비교, M13 전체 V&V는 후속이다.
 Local fault 보호는 이미 각 component/runtime에 존재하며 M9까지 미루지 않는다.
 

@@ -1,0 +1,10 @@
+add_library(m7_external_plant STATIC actuator_electrical.cpp)
+target_include_directories(m7_external_plant PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(m7_external_plant PUBLIC m4_async_runtime)
+stratadrive_quality(m7_external_plant)
+target_link_libraries(m7_functional_fixture PUBLIC m7_external_plant)
+add_executable(m7_external_test external_test.cpp)
+target_link_libraries(m7_external_test PRIVATE m7_functional_fixture GTest::gtest_main)
+stratadrive_quality(m7_external_test)
+gtest_discover_tests(m7_external_test DISCOVERY_MODE PRE_TEST
+    PROPERTIES LABELS "integration.logical;m7.functional;m7.external")

@@ -51,3 +51,12 @@ Client0.9.16/Python3.10, ScenarioRunner v0.9.16을 우선 후보로 유지한다
 [Plant Adapter 초안](../icd/carla_plant_adapter.md)은 기존 actual-only 경계를 유지하며
 50ms state/Drive30ms·substep actuation·calibration이 해결되기 전 정상 주행을 차단한다.
 M7-1 비주행 연결/센서/negative 시험과 실제 주행 gate를 구분한다. M0의 당시 수용은 변경하지 않는다.
+
+## 2026-10-23 M7-1d 시간 계약 개정
+
+사용자 승인으로 world/Vehicle State는10ms, RGB/GT는50ms로 분리한다.
+50ms world가 Drive30ms freshness를 필연적으로 위반하므로 sampling 주기를 개정했다.
+Controller20ms·Zone/vECU10ms·30ms freshness·단일 tick/actuation owner는 유지한다.
+[시간 계약](../requirements/timing_requirements.md)과 [ICD](../icd/carla_plant_adapter.md)가
+현재 의미 계약이다. 기존 M6 profile과 M7-1b/c 결과는 당시 조건으로 보존한다.
+10ms 설정은 wall100Hz 보장이나 wheel feedback/정상 주행 승인 증거가 아니다.

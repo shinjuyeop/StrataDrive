@@ -1,0 +1,200 @@
+{
+  "run_id": "0cb285ad-8c30-47de-8319-842a2c65dcb8",
+  "plant_epoch": 1,
+  "fault_injection": false,
+  "status": "PASS",
+  "tick_count_requested": 60,
+  "events": [],
+  "profile": {
+    "startup": 20,
+    "main": 20,
+    "drain": 20,
+    "camera": [
+      800,
+      600,
+      90,
+      0.05
+    ],
+    "queue_capacity": 64,
+    "deadline_wall_s": 10.0,
+    "non_driving": true,
+    "camera_actor_extrinsic": {
+      "x": 1.5,
+      "y": 0,
+      "z": 1.7,
+      "pitch": 0,
+      "yaw": 0,
+      "roll": 0
+    },
+    "calibration_id": "m7-smoke-front-v1; not OEM/rear-axle calibration"
+  },
+  "online_streams": [
+    "rgb.front",
+    "state"
+  ],
+  "training_evaluation_streams": [
+    "gt.front"
+  ],
+  "map": "Carla/Maps/Town10HD_Opt",
+  "blueprint": "vehicle.lincoln.mkz_2020",
+  "ego_id": 64,
+  "spawn": {
+    "position_m": [
+      -64.64484405517578,
+      24.471010208129883,
+      0.5999999642372131
+    ],
+    "rotation_deg": [
+      0.0,
+      0.0,
+      0.15919798612594604
+    ]
+  },
+  "sensors": {
+    "rgb.front": {
+      "id": 65,
+      "parent_id": 64,
+      "attributes": {
+        "tint": "0.0",
+        "blur_amount": "1.0",
+        "min_fstop": "1.2",
+        "chromatic_aberration_offset": "0.0",
+        "slope": "0.88",
+        "focal_distance": "1000.0",
+        "exposure_speed_down": "1.0",
+        "exposure_speed_up": "3.0",
+        "motion_blur_min_object_screen_size": "0.1",
+        "lens_flare_intensity": "0.1",
+        "motion_blur_intensity": "0.45",
+        "exposure_min_bright": "10.0",
+        "gamma": "2.2",
+        "blade_count": "5",
+        "enable_postprocess_effects": "true",
+        "calibration_constant": "16.0",
+        "exposure_compensation": "0.0",
+        "exposure_mode": "histogram",
+        "exposure_max_bright": "12.0",
+        "lens_x_size": "0.08",
+        "chromatic_aberration_intensity": "0.0",
+        "lens_kcube": "0",
+        "fstop": "1.4",
+        "lens_k": "0",
+        "toe": "0.55",
+        "motion_blur_max_distortion": "0.35",
+        "lens_circle_multiplier": "0.0",
+        "bloom_intensity": "0.675",
+        "shutter_speed": "200.0",
+        "lens_circle_falloff": "5.0",
+        "temp": "6500.0",
+        "fov": "90",
+        "image_size_y": "600",
+        "white_clip": "0.04",
+        "shoulder": "0.26",
+        "image_size_x": "800",
+        "lens_y_size": "0.08",
+        "sensor_tick": "0.05",
+        "ros_publish_tf": "true",
+        "blur_radius": "0.0",
+        "ros_frame_id": "",
+        "iso": "100.0",
+        "ros_name": "",
+        "black_clip": "0.0",
+        "role_name": "front"
+      },
+      "actor_extrinsic": {
+        "position_m": [
+          1.5,
+          0.0,
+          1.7000000476837158
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "gt.front": {
+      "id": 66,
+      "parent_id": 64,
+      "attributes": {
+        "lens_x_size": "0.08",
+        "lens_circle_multiplier": "0.0",
+        "lens_y_size": "0.08",
+        "lens_kcube": "0",
+        "image_size_y": "600",
+        "lens_circle_falloff": "5.0",
+        "image_size_x": "800",
+        "lens_k": "0",
+        "sensor_tick": "0.05",
+        "fov": "90",
+        "ros_publish_tf": "true",
+        "ros_frame_id": "",
+        "ros_name": "",
+        "role_name": "front"
+      },
+      "actor_extrinsic": {
+        "position_m": [
+          1.5,
+          0.0,
+          1.7000000476837158
+        ],
+        "rotation_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "intrinsics": [
+    [
+      400.00000000000006,
+      0,
+      400
+    ],
+    [
+      0,
+      400.00000000000006,
+      300
+    ],
+    [
+      0,
+      0,
+      1
+    ]
+  ],
+  "tick_guard": [
+    "duplicate/out-of-order tick request",
+    "wrong tick owner"
+  ],
+  "expected_exception": "deliberate sensor lifecycle exception",
+  "listeners_after_stop": {
+    "65": false,
+    "66": false
+  },
+  "queue_cleared": {
+    "rgb.front": 1,
+    "gt.front": 0
+  },
+  "callback_counts_after_stop": {
+    "rgb.front": 21,
+    "gt.front": 21
+  },
+  "callback_quiet": true,
+  "destroy_results": {
+    "66": true,
+    "65": true,
+    "64": true
+  },
+  "remaining_owned_ids": [],
+  "join_events": [],
+  "queue_high_water": {
+    "rgb.front": 2,
+    "gt.front": 2
+  },
+  "ticks": 23,
+  "collection_ticks": 22,
+  "wall_tick_s": 1.044864403,
+  "real_time_factor": 1.0527681839305612
+}

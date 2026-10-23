@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "scope": "offline mutated copies only",
+  "tests": [
+    {
+      "mutation": "source_restamp",
+      "rejected": true,
+      "reason": "source restamp"
+    },
+    {
+      "mutation": "world_delta",
+      "rejected": true,
+      "reason": "10ms cadence"
+    },
+    {
+      "mutation": "main_state_loss",
+      "rejected": true,
+      "reason": "unexpected main state loss"
+    },
+    {
+      "mutation": "main_camera_phase",
+      "rejected": true,
+      "reason": "camera stride changed"
+    },
+    {
+      "mutation": "online_GT",
+      "rejected": true,
+      "reason": "channel contamination/loss"
+    }
+  ]
+}

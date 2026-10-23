@@ -1,0 +1,194 @@
+{
+  "status": "COLLECTED",
+  "run_id": "48ef8e3a-1848-4be3-95cb-0d328aa21974",
+  "plant_epoch": 1,
+  "episode": 14622347194807904787,
+  "profile": {
+    "world_s": 0.01,
+    "camera_s": 0.05,
+    "camera_stride": 5,
+    "startup_ticks": 100,
+    "drain_ticks": 100,
+    "nominal_ticks": 800,
+    "fault_and_reset_ticks": 400,
+    "camera": [
+      800,
+      600,
+      90
+    ],
+    "queue_capacity": 64,
+    "final_callback_wait_wall_s": 3,
+    "pause_wall_s": 0.25,
+    "freshness_limit_ns": 30000000,
+    "ego_physics": false,
+    "autopilot": false,
+    "actuation_calls": 0,
+    "source_clock": "CARLA simulation",
+    "receipt_clock": "Host CLOCK_MONOTONIC",
+    "wall_acquisition_mapping": "unavailable",
+    "M6_runtime": "not attached"
+  },
+  "fault": true,
+  "requested_ticks": 400,
+  "events": [
+    {
+      "reason": "injected_drop",
+      "stream": "state",
+      "frame": 23028
+    },
+    {
+      "reason": "injected_drop",
+      "stream": "state",
+      "frame": 23029
+    },
+    {
+      "reason": "injected_drop",
+      "stream": "state",
+      "frame": 23030
+    },
+    {
+      "reason": "injected_drop",
+      "stream": "state",
+      "frame": 23031
+    },
+    {
+      "reason": "injected_drop",
+      "stream": "rgb.front",
+      "frame": 23029
+    },
+    {
+      "reason": "injected_drop",
+      "stream": "gt.front",
+      "frame": 23029
+    },
+    {
+      "reason": "injected_drop",
+      "stream": "state",
+      "frame": 23032
+    }
+  ],
+  "sensors": {
+    "rgb.front": {
+      "id": 60,
+      "parent_id": 59,
+      "attributes": {
+        "tint": "0.0",
+        "blur_amount": "1.0",
+        "min_fstop": "1.2",
+        "chromatic_aberration_offset": "0.0",
+        "slope": "0.88",
+        "focal_distance": "1000.0",
+        "exposure_speed_down": "1.0",
+        "exposure_speed_up": "3.0",
+        "motion_blur_min_object_screen_size": "0.1",
+        "lens_flare_intensity": "0.1",
+        "motion_blur_intensity": "0.45",
+        "exposure_min_bright": "10.0",
+        "gamma": "2.2",
+        "blade_count": "5",
+        "enable_postprocess_effects": "true",
+        "calibration_constant": "16.0",
+        "exposure_compensation": "0.0",
+        "exposure_mode": "histogram",
+        "exposure_max_bright": "12.0",
+        "lens_x_size": "0.08",
+        "chromatic_aberration_intensity": "0.0",
+        "lens_kcube": "0",
+        "fstop": "1.4",
+        "lens_k": "0",
+        "toe": "0.55",
+        "motion_blur_max_distortion": "0.35",
+        "lens_circle_multiplier": "0.0",
+        "bloom_intensity": "0.675",
+        "shutter_speed": "200.0",
+        "lens_circle_falloff": "5.0",
+        "temp": "6500.0",
+        "fov": "90",
+        "image_size_y": "600",
+        "white_clip": "0.04",
+        "shoulder": "0.26",
+        "image_size_x": "800",
+        "lens_y_size": "0.08",
+        "sensor_tick": "0.05",
+        "ros_publish_tf": "true",
+        "blur_radius": "0.0",
+        "ros_frame_id": "",
+        "iso": "100.0",
+        "ros_name": "",
+        "black_clip": "0.0",
+        "role_name": "front"
+      }
+    },
+    "gt.front": {
+      "id": 61,
+      "parent_id": 59,
+      "attributes": {
+        "lens_x_size": "0.08",
+        "lens_circle_multiplier": "0.0",
+        "lens_y_size": "0.08",
+        "lens_kcube": "0",
+        "image_size_y": "600",
+        "lens_circle_falloff": "5.0",
+        "image_size_x": "800",
+        "lens_k": "0",
+        "sensor_tick": "0.05",
+        "fov": "90",
+        "ros_publish_tf": "true",
+        "ros_frame_id": "",
+        "ros_name": "",
+        "role_name": "front"
+      }
+    }
+  },
+  "map": "Carla/Maps/Town10HD_Opt",
+  "blueprint": "vehicle.lincoln.mkz_2020",
+  "ego_id": 59,
+  "spawn": {
+    "position_m": [
+      -64.64484405517578,
+      24.471010208129883,
+      0.5999999642372131
+    ],
+    "rotation_deg": [
+      0.0,
+      0.0,
+      0.15919798612594604
+    ]
+  },
+  "wheel_api_inventory": [
+    "get_wheel_pitch_angle",
+    "get_wheel_steer_angle",
+    "set_wheel_pitch_angle",
+    "set_wheel_steer_direction"
+  ],
+  "first_frame": 22898,
+  "settings_end": {
+    "synchronous_mode": true,
+    "fixed_delta_seconds": 0.01,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "listeners_after_stop": {
+    "60": false,
+    "61": false
+  },
+  "cleared": {
+    "rgb.front": 0,
+    "gt.front": 0
+  },
+  "callback_quiet": true,
+  "destroy_results": {
+    "61": true,
+    "60": true,
+    "59": true
+  },
+  "remaining_owned_ids": [],
+  "join_events": [],
+  "collection_ticks": 400,
+  "queue_high_water": {
+    "rgb.front": 1,
+    "gt.front": 1
+  }
+}

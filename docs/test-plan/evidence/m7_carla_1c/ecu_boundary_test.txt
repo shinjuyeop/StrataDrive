@@ -1,0 +1,49 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 20 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 20 tests from EcuBoundary
+[ RUN      ] EcuBoundary.SteeringReportsTheInjectedPortAndSelectsTargetWithoutAPlant
+[       OK ] EcuBoundary.SteeringReportsTheInjectedPortAndSelectsTargetWithoutAPlant (0 ms)
+[ RUN      ] EcuBoundary.SteeringMissingSensorCannotBeFilledFromCommandOrInitialCalibration
+[       OK ] EcuBoundary.SteeringMissingSensorCannotBeFilledFromCommandOrInitialCalibration (0 ms)
+[ RUN      ] EcuBoundary.SteeringDelayedAcquisitionKeepsItsOriginalSourceTime
+[       OK ] EcuBoundary.SteeringDelayedAcquisitionKeepsItsOriginalSourceTime (0 ms)
+[ RUN      ] EcuBoundary.SteeringJobPhasesRejectWrongTimeDuplicateCompletionAndAbandonedWork
+[       OK ] EcuBoundary.SteeringJobPhasesRejectWrongTimeDuplicateCompletionAndAbandonedWork (0 ms)
+[ RUN      ] EcuBoundary.SteeringCannotPublishAfterClockChangesBetweenPhases
+[       OK ] EcuBoundary.SteeringCannotPublishAfterClockChangesBetweenPhases (0 ms)
+[ RUN      ] EcuBoundary.BrakeProtectionRequestDoesNotEstablishFloorObservation
+[       OK ] EcuBoundary.BrakeProtectionRequestDoesNotEstablishFloorObservation (0 ms)
+[ RUN      ] EcuBoundary.BrakeMissingOrInvalidFeedbackDoesNotUseRequestedPressure
+[       OK ] EcuBoundary.BrakeMissingOrInvalidFeedbackDoesNotUseRequestedPressure (0 ms)
+[ RUN      ] EcuBoundary.BrakeDelayedSourceAndCachedAcquisitionAreNotFreshReports
+[       OK ] EcuBoundary.BrakeDelayedSourceAndCachedAcquisitionAreNotFreshReports (0 ms)
+[ RUN      ] EcuBoundary.BrakeJobGapAndClockErrorAreDetectedWithoutPlantCalls
+[       OK ] EcuBoundary.BrakeJobGapAndClockErrorAreDetectedWithoutPlantCalls (0 ms)
+[ RUN      ] EcuBoundary.IsolatedDriveUsesMeasuredTorqueAndReturnsAnActuationRequest
+[       OK ] EcuBoundary.IsolatedDriveUsesMeasuredTorqueAndReturnsAnActuationRequest (0 ms)
+[ RUN      ] EcuBoundary.IsolatedDriveUnknownTorqueNeverBecomesZeroFeedback
+[       OK ] EcuBoundary.IsolatedDriveUnknownTorqueNeverBecomesZeroFeedback (0 ms)
+[ RUN      ] EcuBoundary.IsolatedDrivePublishesNewDelayedAcquisitionAndNeverRefreshesCachedTorque
+[       OK ] EcuBoundary.IsolatedDrivePublishesNewDelayedAcquisitionAndNeverRefreshesCachedTorque (0 ms)
+[ RUN      ] EcuBoundary.DriveTorqueIdentityEpochRangeAndAgeAreCheckedAtThePort
+[       OK ] EcuBoundary.DriveTorqueIdentityEpochRangeAndAgeAreCheckedAtThePort (0 ms)
+[ RUN      ] EcuBoundary.TorqueCachedIdentityCannotMutateAndNewIdentityRequiresTimeProgress
+[       OK ] EcuBoundary.TorqueCachedIdentityCannotMutateAndNewIdentityRequiresTimeProgress (0 ms)
+[ RUN      ] EcuBoundary.GatedDriveProducesBoundedOutputAndCapabilityWithoutSimulatedTorque
+[       OK ] EcuBoundary.GatedDriveProducesBoundedOutputAndCapabilityWithoutSimulatedTorque (0 ms)
+[ RUN      ] EcuBoundary.GatedDriveRevokesAnActiveRequestWhenTorqueFeedbackIsUnknown
+[       OK ] EcuBoundary.GatedDriveRevokesAnActiveRequestWhenTorqueFeedbackIsUnknown (0 ms)
+[ RUN      ] EcuBoundary.GatedDriveDelayedAcquisitionKeepsItsTimeAndIndependentAuxiliaryTimes
+[       OK ] EcuBoundary.GatedDriveDelayedAcquisitionKeepsItsTimeAndIndependentAuxiliaryTimes (0 ms)
+[ RUN      ] EcuBoundary.GatedDriveCachedTorqueIsUnavailableAtDiagnosticGenerationTime
+[       OK ] EcuBoundary.GatedDriveCachedTorqueIsUnavailableAtDiagnosticGenerationTime (0 ms)
+[ RUN      ] EcuBoundary.GatedDriveWithoutInputsHasNoInventedCapabilityOrTorque
+[       OK ] EcuBoundary.GatedDriveWithoutInputsHasNoInventedCapabilityOrTorque (0 ms)
+[ RUN      ] EcuBoundary.GatedDriveChecksCompletionClockAndExplicitPhaseOrdering
+[       OK ] EcuBoundary.GatedDriveChecksCompletionClockAndExplicitPhaseOrdering (0 ms)
+[----------] 20 tests from EcuBoundary (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 20 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 20 tests.

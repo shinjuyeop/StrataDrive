@@ -1,8 +1,10 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-23, `m7-plant-draft-v1`. **M7-0 의미 계약 결정 / backend·수치 calibration 미확정 / 구현 NOT RUN**.
-기존 [공통 ICD](interface_overview.md), [시간 계약](../requirements/timing_requirements.md),
-[owner-wire](owner_wire_v1.md), [M6 종료 범위](../m6_exit_review.md)를 변경하지 않는다.
+2026-10-23, `m7-plant-draft-v5`. **functional wheel/actuator/electrical 포트 연결 / 정상 주행 actuation·수치 calibration 미확정**.
+[시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
+50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
+기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
+[M6 종료 범위](../m6_exit_review.md)의 통신·안전·물리 수용 계약은 유지한다.
 환경 근거와 실행 gate는 [M7 사전 점검·시험 계획](../test-plan/m7_carla_preflight.md)에 둔다.
 
 ## 1. 경계와 단일 소유권
@@ -130,61 +132,68 @@ M7-1은 수집 전용 bounded window로 지연 frame을 join한다. startup/drai
 남기며 별도 분모로 보고한다. 주행 모드에서 필수 input 만료/미완성이면 다음 driving tick을
 보류한다. GT-only 누락은 dataset sample을 invalid로 만들며 online 주행 입력이 되지는 않는다.
 
-## 5. Clock, 50ms tick과 freshness 충돌
+## 5. Clock과 M7 multirate 개정 (M7-1d)
 
-**결정:** synchronous_mode=true, fixed_delta_seconds=0.05, 단일 Host orchestrator가 tick을
-소유한다. physics substepping은 max delta0.01s/max steps10 후보로 설정·readback하여
-`fixed_delta <= max_substep_delta * max_substeps`를 확인한다. 이것은 서버 내부 적분이며
-Python에서 10ms 측정을 받거나 10ms마다 actuation할 수 있다는 증거가 아니다.
-ScenarioRunner는 M7-1 기본 실행에서 제외하며 추후 passive 연동 또는 명시적 tick owner
-위임 중 하나만 선택한다. `apply_batch_sync(..., do_tick=True)`의 숨은 tick도 금지한다.
+**결정:** 사용자가 world/state10ms + 영상50ms 방향의 다음 작업을 승인했다.
+M7-0의50ms world baseline을 아래와 같이 명시적으로 supersede한다. M7-1b의50ms
+시험과 M7-1c의40ms stale 거부는 당시 조건의 유효한 과거 증거로 보존한다.
+M6 코드/실행 profile/수용 수치와 Drive30ms 한계는 변경하지 않는다.
 
-Controller20ms, Zone/vECU10ms release grid는 유지한다. functional replay의 10ms quantum
-순서는 새 관측 수용→due Controller/기존 Central 배분→기존 Front/Rear 전달·Leaf 작업→
-physical actuator 응답/Actual 반환→adapter validation이다. 기존 owner-wire settle/ACK와
-Front/Rear 전송 순서를 생략하지 않는다. 20ms Controller 위상은 50ms frame마다 재시작하지
-않으므로 0,20,40,60,80,100ms에 release된다. 이 순서는 미래 scheduler 설계이며 기존
-Host wall-time loop를 한 번의 50ms sleep으로 바꾸거나 5회 catch-up했다고 간주하지 않는다.
-
-Driving step은 관측 frame n 뒤 각 원천의 실제 Actual을 수용·검사하고, adapter apply 완료를
-확인한 뒤 owner가 한 번 tick하여 n+1 snapshot을 확인한다. 해당 interval의 유효성/인과성이
-입증되어야 한다. `apply` RPC 성공과 물리 응답 완료는 다르며 result에 두 시각을 구분한다.
-
-### 20Hz state와 Drive30ms — 현재 차단 사유
-
-실제 코드 [DriveController](../../vecu/drive/drive_controller.cpp)는 local source와 oldest dependency
-각각 age<=30ms를 요구하며 config>30ms를 거부한다. [DriveReceiver](../../interfaces/drive/drive_receiver.cpp)도
-wheel source30ms를 검사한다. EV capability dependency70ms는 별도 계약이며 이 문제를 해소하지 않는다.
-M6 MIL의 speed60ms도 실제 Drive에 적용할 수 없다.
-
-시각0에 측정하고50ms에 다음 state가 생성되면, 10ms task의 age는0/10/20/30/**40**ms다.
-지연이 전혀 없어도40ms release는 stale이다. 30ms는 `>` 비교 기준 경계일 뿐 전송 margin이
-없고 실제 wall 지연은 더해진다. `get_velocity()` 재호출, 100Hz 재발행, sequence 증가,
-도착 시각으로 restamp, 미래50ms sample을40ms에 배치하는 방법은 해결이 아니다.
-
-| 해결 후보 | 판정 / 다음 확인 |
+| 단계 | M7 개정 주기 / 의미 |
 | --- | --- |
-| 50ms world tick 안 실제 physics substep에서 wheel 관측·ECU exchange·Actual apply barrier 제공 | **요구사항 보존 방향의 우선 조사 후보**, 미구현/미입증. 같은 CARLA dynamics의 실제 substep 원천, 10ms causal exchange와 transport/age budget 모두 필요. 50ms 완료 후 과거 substep 묶음을 받는 것만으로는 live Drive freshness 해결 불가 |
-| 10ms world tick + camera/state export50ms | 기술 대안이나 이번50ms fixed tick 조건 변경이므로 미채택; 별도 requirement revision 없이는 사용 불가 |
-| predictor/독립 빠른 wheel model | 관측 보간·중복 dynamics/추정치 계약 변경이므로 현재 measured Drive 입력 대체로 미채택 |
-| 30ms→60ms 완화 / 캐시 restamp | 금지. 코드/config 변경 없음 |
+| CARLA world / Vehicle State | synchronous=true, fixed_delta_seconds=0.01; 매 frame의 새 WorldSnapshot/ActorSnapshot 취득 |
+| RGB / Semantic GT | sensor_tick=0.05; world5frame마다 촬영, 원래 frame/time 유지 |
+| Planner / Controller | 기존50/20ms; Controller 위상은 영상 frame마다 재시작하지 않음 |
+| Zone / Steering·Brake·Drive vECU | 기존10ms; 실제 task/runtime 연동은 후속 |
+| Source freshness / native owner guard | 기존30ms 및2ms opportunity/4ms 완료 계약 유지; CARLA tick으로 대체하지 않음 |
 
-추가로 M6 actual age30ms·SimpleVehicle max step20ms와 native2ms/4ms guard는50ms hold로
-대체할 수 없다. tick 직전에 fresh여도 interval 중간에 새 보호/Actual이 생길 수 있다.
-한 Actual을50ms 내내 유효하다고 간주하지 않는다. 위 substep 연동은 입력 관측뿐 아니라
-**같은 구간 실제 actuation 갱신과 protection 반영**까지 입증해야 한다. 원래20ms transport
-envelope는 command lifetime과 다르므로 단순히50ms로 늘리지 않는다.
+단일 Host orchestrator만 tick한다. `apply_batch_sync(..., do_tick=True)`의 숨은 tick,
+Traffic Manager/ScenarioRunner의 별도 tick은 금지한다. ScenarioRunner는 기본 시험에서 제외한다.
+physics substepping은 max delta0.01s/max steps10으로 설정·readback한다. 이 설정은
+서버 내부 적분의 상한이며 클라이언트 substep 관측/API 제공의 증거는 아니다.
 
-따라서 stock Python API만으로 기존 runtime 정상 주행 연결은 **BLOCKED**다. M7-1은
-NON_DRIVING 센서 수집·의도적 stale 거부를 먼저 수행한다. 이 분리는 해결 완료나 freshness
-예외가 아니며, 다음 주행 gate는 TBD-04/07의 causal substep 설계/검증으로 남긴다.
+향후 functional scheduler의 각10ms 단계 순서는 새 관측 수용→due Controller/기존 Central
+배분→Front/Rear 전달·Leaf 작업→외부 actuator 응답/Actual 반환→adapter 검증/apply ACK→
+단일 world tick→다음 관측이다. Controller는0,20,40,60ms의 연속 위상을 유지한다.
+관측 frame n을 사용한 출력은 다음 interval에만 적용한다. 원천30ms·skew·expiry·interval
+coverage와 기존 peer/parent/ACK/RunLease를 모두 검사한다. camera 지연 때문에 같은
+snapshot을 새 것으로 재발행하거나 미래 상태를 과거 ECU release에 배치하지 않는다.
+이 순서는 **설계**이며 M7-1d에는 ECU scheduler·Actual apply가 연결되지 않는다.
+
+### 50ms/30ms 충돌의 해소 범위와 남은 gate
+
+기존 [DriveController](../../vecu/drive/drive_controller.cpp)와
+[DriveReceiver](../../interfaces/drive/drive_receiver.cpp)는 원천/oldest dependency30ms를
+요구한다. 50ms 측정 사이10ms task의 age0/10/20/30/**40**ms는 필연적으로 stale이었다.
+EV capability70ms나 M6 MIL speed60ms는 이 계약을 바꾸지 않는다.
+
+이제 state를10ms마다 **실제 새 snapshot**으로 취득하여 이 샘플링 주기 불일치를 제거한다.
+state까지50ms로 export/decimate하면 충돌이 남으므로 critical feedback 후보 경로는100Hz를
+유지한다. 영상만20Hz다. 100Hz 재발행·sequence 증가·도착 시각 restamp·보간으로 대체하지 않는다.
+
+| 대안 / 상태 | 판단 |
+| --- | --- |
+| world/state10ms + 영상50ms | **채택**, M7-1d 비주행 수집으로 논리 cadence 검증. 실시간 Drive 적합은 별도 |
+| 50ms world 내부의 실제 substep 양방향 연동 | 기존 조건 보존 후보였으나 이번 주기 개정으로 우선순위에서 제외. 패키지에서 구현/입증되지 않음 |
+| predictor/독립 wheel model | measured input 대체 불가, 중복 dynamics 금지 |
+| freshness30→60ms / 캐시 restamp | 계속 금지 |
+
+10ms 논리 tick도 wall10ms를 보장하지 않는다. sampling 간격+전송/queue/consumer 지연+
+clock uncertainty가30ms 안인지 실제 경로에서 측정해야 한다. actor velocity와 `speed/radius`는
+실제 wheel angular-speed 센서가 아니므로 Drive 연결에 필요한 wheel 원천은 여전히 미확정이다.
+또한10ms interval 안의 새 보호 반영·비가역 CARLA RPC 지연은 native2ms/4ms guard와 별개다.
+더 빠른 world 설정만으로 기존 완료 시한이나20ms transport envelope 충족을 주장하지 않는다.
+Actual interval support·중복 dynamics/energy·calibration gate도 남는다.
+
+**정상 주행 연결 BLOCKED**를 유지한다. M7-1d 수집기는 static NON_DRIVING fixture이며
+논리 cadence·센서 누락·pause/reset 결과와 wall 측정치를 따로 보고한다.
 
 ### 시간 영역·pause/reset
 
 CARLA `frame/timestamp.elapsed_seconds`는 simulation clock이다. 원래 double seconds와
 명시적 반올림한 ns를 함께 보존한다. M7-1 tick 검증 tolerance1µs는 부동소수 비교용이며
 source-age 여유가 아니다. callback arrival/receive/apply/RPC 시작·끝은 Host CLOCK_MONOTONIC.
-UTC는 run label에만 사용한다. 두 clock을 직접 빼거나 nominal50ms를 wall50ms라고 주장하지 않는다.
+UTC는 run label에만 사용한다. 두 clock을 직접 빼거나 nominal10ms를 wall10ms라고 주장하지 않는다.
 
 기존 owner-wire Host는 공통 kernel monotonic·zero offset/uncertainty다. CARLA sim timestamp를
 그 domain으로 단순 라벨 교체하지 않는다. functional replay는 별도 simulation clock 모드로
@@ -199,14 +208,135 @@ application Epoch/전체 INIT/arm으로 연결한다. ECU 단독 재가입은 CA
 snapshot 확인이 불가능한 RPC timeout·부분 apply는 ambiguous로 기록하고 추가 tick을 막는다.
 containment는 시뮬레이션 진행 중단이며 물리 차량 정지/안전 성능의 증거가 아니다.
 
+## M7-1b 실행 연결
+
+2026-10-23 [수집 근거](../test-plan/evidence/m7_carla_1b/README.md)에서 정적 ego의
+RGB/GT/state·50ms tick/원천 metadata·채널 분리·제한된 fault/pause/reset을 검사했다.
+서버 포함0.9.16 wheel/별도 venv·fresh client reset 경로를 한정 사용한다. 같은 client native
+reload/server crash OPEN은 보존한다. Vehicle State는 actor origin이고 rear-axle calibration은
+미확정이다. 이 실행은 외부 Actual bridge·clock mapping/Drive30ms·actuation/energy 수용이 아니다.
+
+## M7-1c 논리 검증 연결
+
+2026-10-23 [test-only Actual/fake backend](../test-plan/evidence/m7_carla_1c/README.md)에서
+원래 receiver/P05·DriveController를 재사용해 metadata/interval·writer·single-use ticket·
+ambiguous apply/tick·중복/재진입 거부와 source-age 경계를 검사했다. Normal/ASan 각39/39.
+이 prototype은 정규 runtime/새 wire ABI가 아니다. measurement support metadata는 fixture의
+원천 선언이며 기존 CAN command/RunLease expiry와 같은 것으로 바꾸지 않았다. 실제
+peer/parent/authority transport·CARLA 접근 제어·주행 calibration은 미구현이다.
+이1c 당시50ms 조건에서는 원래 Drive가40ms-old local sample로 보호를 선택해 충돌이 남았다.
+현재 M7 주기는 아래1d 개정을 따르며1c의 과거 조건/결과는 보존한다.
+
+## M7-1d 실행 연결
+
+[10ms world/state·50ms 영상 비주행 근거](../test-plan/evidence/m7_carla_1d/README.md)에서
+main state600/600·영상각120/120, live pipeline drop·실제 pause/fresh-client reset을 확인했다.
+첫 camera 간격60ms는 startup 변동으로 남겼다. 마지막50startup tick에서 안정 위상을 확인하고
+main 위상을 고정했다. 주행 센서 readiness는 첫 callback 수신만으로 성립하지 않는다.
+최종 nominal RTF0.764923, pause 제외 snapshot 완료 간격>30ms12/798로 wall100Hz는 미충족이다.
+실제 ECU clock/Drive 연결은 NOT RUN이며 논리 source-age replay로 대체하지 않는다.
+정리 후 SIGTERM 중 native SIGSEGV/139는 OPEN-M7-1D-01이다. 기존 native crash OPEN도 유지한다.
+
+## M7-1e 원천·clock·비용 진단 연결
+
+[진단과 대안](../test-plan/evidence/m7_carla_1e/README.md)에서 공식0.9.16 source와 설치된
+wheel RPC를 대조했다. `get_wheel_pitch_angle`은 physics on이면 물리 wheel 회전각,
+off이면 animation pitch다. frame/time 없는 float RPC이며4wheel 개별 호출이다.
+새 snapshot 사이 tick을 보류한 unpowered probe에서 유한 값을 얻었지만, 유효 회전 자극·
+wrap/slip·구간 각속도의 기존 Drive sensor 적합성은 NOT RUN이다. v/r 대체는 계속 금지한다.
+
+`platform_timestamp`는 WorldObserver 직렬화 시작의 FPlatformTime이며 개별 물리 취득
+시각과 동일하다고 가정하지 않는다. Host monotonic과 약2.4s 차이가 있었고, 전체 진단
+구간에서 하나의 상수 offset은 관측 bracket과 불일치했다. arrival restamp/zero offset은 금지다.
+render/audit 분리 결과 metadata만 수집하면 RTF1.014~1.033이었으나 max gap26.654ms이며
+실제 ECU/통신·source-age 수용은 미검증이다. 빈 서버도 종료139가 재현돼 OPEN을 유지한다.
+
+다음 우선 후보는 명시적 **functional simulation clock 모드 설계**다. 기존 wall runtime에
+sim timestamp를 넣거나 기존2ms/4ms guard의 clock을 몰래 바꾸지 않는다. 전체 ECU/권한/
+lease/expiry·Actual 경로와 논리 barrier를 별도 opt-in으로 설계하고,30ms 값·원천 dependency를
+보존해야 한다. 해당 결과는 wall deadline/100ms 검출 수용을 대신하지 않는다.
+CARLA를 영상/환경용으로만 쓰고 기존 SIL이 motion을 소유하는 대안은 현재 소유권 변경을
+요구하므로 미채택이다.1e 당시 정상 주행·새 backend·clock mode 구현은 NOT RUN이었다.
+
+## M7-1f functional clock/shadow 계약과 구현
+
+[구현/시험](../test-plan/evidence/m7_carla_1f/README.md)은 `STRATADRIVE_M7_FUNCTIONAL_TESTS=ON`
+및 native CLI `--functional-shadow`로만 실행한다. default는 OFF이며 production wire ABI,
+M6 실행 profile, 세션·lease 상수, 기존 wall watch를 변경하지 않는다.
+
+| 경계 | 이번 구현 / 제한 |
+| --- | --- |
+| 시계 | run/application/plant scope와 별도 domain `0x4d3746554e435449`; native 시간은 CARLA snapshot의 원래 elapsed seconds를 ns로 반올림. nominal grid나 도착 시각으로 치환하지 않음. 원래 seconds·platform·Host monotonic도 raw trace에 별도 저장 |
+| tick 순서 | snapshot → frame/scope/time 검사 → 해당 시각까지 native jobs →8역할 처리 barrier → NON_DRIVING next-frame permit → Python tick1회 → 원래 snapshot 확인. 중복/skip/rollback/domain 오류는 해당 instance를 latch하고 재시도 금지 |
+| native 실행 | 같은 프로세스/단일 thread의 실제 Central·Front/Rear Zone·Steering/Brake/Drive/BMS/Power. 기존0.2ms ingress·1ms physical fixture job grid, Controller root20ms, Host10ms child allocation, leaf10ms/BMS20ms를 유지. 이 grid는 Host 실행 기회/4ms deadline 판정이 아님 |
+| 세션/권한 | 실제8역할 ParticipantPort의 Prepare/INIT/Release ACK를 원래 SessionCoordinator가 수용한 뒤 원래 RunLeaseIssuer가 발급. 각 역할에 개별 RunLeaseGate, global60ms·source30ms·원래 expiry 유지. Central self-credit만 local binding; 다른 역할의 제어/ACK/lease는 v1 codec 왕복, normal 경로는 native typed queues. SOME/IP/프로세스 분리 시험 아님 |
+| Actual | native physical fixture→vECU→Zone→Central 실제 반환 경로. armed 구간에3Actual의 원래 source age+다음10ms<=30ms/skew<=10ms 검사. 이것은 **source-only fixture coverage**이며1c의 source/oldest/expiry provenance·full apply admission을 대체하지 않음 |
+| plant 책임 | 기존 PhysicalOwner를 `simple_vehicle=false`인 stationary actuator/electrical 시험 fixture로만 재사용. fixture wheel=0; CARLA 측정으로 위장하지 않음. CARLA는 별도 physics-off ego, apply0. 실제 backend 분리/물리량/energy 결합은 아직 구현하지 않음 |
+| pause/실패 | Python이 tick을 멈춘 동안 native process에도 STEP을 보내지 않아 logical time·lease를 갱신하지 않음. 별도10s IPC wall timeout은 시험 hang containment용. lease 갱신 상실·Actual/역할 누락은 native 검증 또는 barrier에서 차단. wall 실행에서는 기존 monitor가 계속 동작한다는 계약 유지 |
+| reset | fault latch를 같은 instance에서 해제하지 않음. trusted caller가 새 scope·새 process/object를 발급하고 INIT부터 재시작. native 새scope/oldscope 거부를 검증했으나 live world reset·영속 epoch store 연결은 NOT RUN |
+
+**해결 범위:** CARLA의 wall 처리 지연과30ms source-age를 혼용하던 문제에 대해, 요구값을
+보존하는 별도 기능 검증 경로를 구현했다. 원래 native ECU/권한 API에 동일 logical time을
+공급할 수 있음을 실제 actor 경로에서 확인했다. CARLA의 vehicle/wheel sensor나 Actual actuation이
+이 경로에 연결된 것은 아니다. 실제 wheel 원천·source/oldest dependency·actuator 분리·calibration이
+준비되기 전 정상 driving permit은 구현하지 않는다. wall mapping과2ms/4ms 검증은 별도 gate다.
+
+## M7-1g wheel 검증 계획
+
+**계획을 실행한 결과:** [M7-1g 원본/실패/근거](../test-plan/evidence/m7_carla_1g/README.md).
+0.9.16의 `get_telemetry_data().wheels[].omega`가 직접 PhysX rad/s를 제공함을 확인했다.
+이 입력에는 pitch 차분·unwrap 후보를 사용하지 않는다. 기존1e/1f의 당시 조사 결과는 보존한다.
+
+| 항목 | 이번 결정과 한계 |
+| --- | --- |
+| 원천 | physics-on,4wheel을 한 RPC/scene read lock으로 읽음. RPC payload에는 timestamp/frame 없음. 전용 single tick owner가 snapshot 전후 동일 frame/time을 확인하고 source=oldest=원래 elapsed ns로 결부 |
+| identity | trusted run/application/plant/actor·functional clock 고정. 원래 frame을 sequence로 사용,32bit 범위 밖 거부. 네트워크 인증이나 서버 timestamp 확장을 구현한 것은 아님 |
+| ECU 입력 | 뒤쪽 index2/3 산술평균 → 기존 LocalSensors → DriveActual CAN/P05 → Rear → Central. 실제 비영 wheel 입력/원래 source/CAN0.01rad/s 양자화를 확인. rear drivetrain calibration을 의미하지 않음 |
+| multirate | native subjob 시각보다 미래인 sample은 최대2개 queue에서 보존. 소비 시각으로 restamp하지 않음. ns grid 오차 때문에 pending을 덮어쓰던 첫 live 실패를 수정·회귀 검증 |
+| 유효성 | 결측·scope/actor/frame/source 불일치·NaN·range·rear 음수 거부. 평지 접지 중 미세 음수로 native 연결 실패가 남음. abs/epsilon/clamp로 원래 전진 전용 계약을 완화하지 않음 |
+| 실제 검증 | 내리막400tick 중396개 wheel Actual 반환·322개 armed fixture frame, 최대 wheel source age10ms. pause250ms와 duplicate 후 tick 차단. 무동력 중력 이동이며 정상 control actuation 아님 |
+| ownership | CARLA는 motion만 관측, native torque/steer/pressure·전기는 여전히 시험 fixture. 에너지 입력 wheel0을 실제 CARLA energy로 사용하지 않음. CARLA apply0이며 정상 driving CLI 없음 |
+
+`telemetry.torque`는 DebugWheelTorque이며 실측상 `-long_force×radius`와 일치한다.
+모터축 Drive Actual로 사용하지 않는다. 직접 omega는 구간 각도 차분의 aliasing 문제를 피하지만,
+이 결과가 역회전/정지 잡음/슬립/전체 운행 범위 calibration을 모두 해결하지는 않는다.
+
+1g 이후 signed wheel validity와 actuator/전기 포트 분리는 아래1h를 따른다.
+full Actual provenance→apply ACK→tick 및 원래
+interval expiry 검증이 끝나기 전 정상 driving permit은 없다. 패키지 직접 torque 포트가 확인되지
+않았으므로 검증 가능한 역변환과 서버 확장안을 비교한다. source build는 별도 범위다.
+
+## M7-1h signed validity와 actuator/electrical 포트
+
+[구현·실행 근거](../test-plan/evidence/m7_carla_1h/README.md).
+`--external-wheel-plant`는 M7 전용 ActuatorElectrical을 선택하며 기존 PhysicalOwner를 병행하지 않는다.
+Steering/Brake/Drive 응답과 EvPowerModel을 소유하고 SimpleVehicle/VehicleEvModel을 사용하지 않는다.
+파라미터는 기존 functional fixture의 명시적 재사용이며 CARLA 차종 calibration이 아니다.
+
+| 포트 | 계약 / 현재 상태 |
+| --- | --- |
+| signed wheel 평가 | 기존 accepted 값은 유지. rear 음수 중 abs<0.005rad/s인 zero-bin은 SubResolutionNegative 진단으로만 분류하고 forward 값은 unavailable. 기존0.01rad/s wire resolution을 noise 허용값으로 사용하지 않음. 평지 일반 연결은 FAIL 유지 |
+| ECU wheel | 원래 sample·rear 평균·source/frame/model identity, 기존 source-age 유지. 값이나 시각을 소비 시각에 맞춰 고치지 않음 |
+| electrical wheel | 원래 acquisition 최대5개 history에서 각1ms 구간 begin 이전 최신 값 선택. ZOH 입력이며 미래 endpoint 사용 금지. 기존30ms age/10ms skew 유지 |
+| actuator output | leaf/type·application·source 검증 후 기존 물리 응답 모델에만 적용. fresh old/new application mismatch·잘못된 시각/값 거부. no-actuation publication은 watchdog을 갱신하지 않음 |
+| commit/fault | actuator·전기·Battery·출력 cursor를 후보 상태로 계산, 전체 성공 후 commit. 실패 시 센서 unavailable·latch·추가 tick 거부. 모델 상태 일부만 전진시키지 않음 |
+| energy audit | 각 구간 Tactual×ω(begin)×dt 및 source/oldest/누적을 출력. `MODEL_ZOH_UNAPPLIED`, `carla_work_valid=false` 고정. CARLA apply/receipt가 없으므로 실제 차량 work/회생/에너지 수용으로 사용 금지 |
+
+1h는 실제 wheel을 전기 **예측 모델**에 공급하는 포트 분리까지 구현했다. CARLA 실제 물리 work를
+받는 IntegratedMotorWork 연결은 아직 없다. 모델 파라미터/응답 budget의 CARLA 동등성도 미검증이다.
+다음1i에서 rad/Nm/Pa actuation 방식·중복 dynamics와 정지 부근 sensor 오차/validity의 근거를
+확정한 뒤 full Actual provenance/apply ACK/interval work를 연결한다. M6 계약은 변경하지 않는다.
+
 ## 6. 결정과 미결정
 
-**결정:** actual-only 경로·단일 actuation writer,50ms synchronous 단일 tick owner,
+**결정:** actual-only 경로·단일 actuation writer,10ms world/state·50ms 영상·단일 tick owner,
 20/10ms 기존 rate·freshness/권한 보존, 중복 motion/actuator/energy 금지, metadata/좌표 의미,
-GT 격리, pause/reset containment, M7-1 비주행 범위.
+GT 격리, pause/reset containment, M7-1 비제어 관측 범위. 별도 opt-in functional clock/8-role
+barrier는1f, 직접 omega→native Actual 반환은1g, actuator/electrical 분리·원래 wheel 기반 ZOH는1h에서
+한정 검증했다. 정상 CARLA driving 허가는 아니다.
 
-**미결정:** 실행 확인한 server/client artifact, vehicle/map/geometry와 역변환 calibration,
-substep 양방향 연동 가능성·clock mapping·interval validity, energy telemetry/원자적 실패 처리,
+**미결정:** smoke 외 server/client 조합의 안정성, vehicle geometry와 역변환 calibration,
+wheel 정지 잡음/전체 ODD validity·wall clock mapping·full Actual interval·native guard 연동, energy telemetry/원자적 실패 처리,
 Host–Target transport/배치, M10 AI shape/history. 소유자·gate는 기존 TBD-02/03/04/07/09
 (energy는 기존 TBD-13)이며 [로드맵](../roadmap.md)에 연결한다. 이번 문서는 주행 통합 승인이나
 interface binary freeze가 아니다.

@@ -1,0 +1,274 @@
+--- final
++++ attempt-01-source.py
+@@ -1,8 +1,6 @@
+ #!/usr/bin/env python3
+ """CARLA 0.9.16 NON_DRIVING RGB/GT/state collection and containment tests."""
+ import argparse
+-import faulthandler
+-import gc
+ from collections import Counter, deque
+ from datetime import datetime, timezone
+ import hashlib
+@@ -289,17 +287,6 @@
+                         record['sample_export'] = str(folder.relative_to(output))
+                         samples.add(stream)
+ 
+-        errors = []
+-        def other_thread_tick():
+-            try:
+-                owner.tick(owner.previous.frame + 1)
+-            except RuntimeError as exc:
+-                errors.append(str(exc))
+-        thread = threading.Thread(target=other_thread_tick)
+-        thread.start()
+-        thread.join()
+-        require(errors == ['wrong tick owner'], 'foreign tick thread not rejected')
+-        result['tick_guard'].extend(errors)
+         for i in range(count):
+             snap = owner.tick(owner.previous.frame + 1)
+             frames.append(snap.frame)
+@@ -347,19 +334,8 @@
+             require(max(p['timestamp_seconds'] for p in packets)-min(p['timestamp_seconds'] for p in packets)
+                     <= TOLERANCE, 'cross-stream timestamp mismatch')
+             require(packets[0]['pose_carla'] == packets[1]['pose_carla'], 'RGB/GT camera pose mismatch')
+-            # RGB/GT must match the configured rigid transform of this actor.
+-            actor = packets[2]
+-            sign = [1, -1, 1]
+-            native_rotation = [[sign[i]*actor['rotation_project'][i][j]*sign[j]
+-                                for j in range(3)] for i in range(3)]
+-            offset = [1.5, 0, 1.7]
+-            expected = [actor['pose_carla']['position_m'][i] +
+-                        sum(native_rotation[i][j]*offset[j] for j in range(3)) for i in range(3)]
+-            require(max(abs(a-b) for a, b in zip(expected, packets[0]['pose_carla']['position_m']))
+-                    < 1e-4, 'camera/actor extrinsic mismatch')
+             pairs += 1
+         result['joined_frames'] = pairs
+-        result['extrinsic_tolerance_m'] = 1e-4
+         if not fault:
+             require(all(not v['missing_frames'] for v in result['windows']['main']['streams'].values()),
+                     'nominal main sensor loss')
+@@ -381,31 +357,15 @@
+         result['error'] = traceback.format_exc()
+     finally:
+         try:
+-            cleanup_errors = []
+-            result['listeners_after_stop'] = {}
+             for sensor in sensors:
+-                try:
+-                    sensor.stop()
+-                    result['listeners_after_stop'][str(sensor.id)] = sensor.is_listening()
+-                except Exception as exc:
+-                    cleanup_errors.append(f'stop {sensor.id}: {exc}')
++                sensor.stop()
++                require(not sensor.is_listening, 'sensor listener still active')
+             result['queue_cleared'] = {k: b.close() for k, b in boxes.items()}
+-            stopped_counts = {k: b.callbacks for k, b in boxes.items()}
+-            time.sleep(0.1)
+             result['callback_counts_after_stop'] = {k: b.callbacks for k, b in boxes.items()}
+-            result['callback_quiet'] = stopped_counts == result['callback_counts_after_stop']
+-            result['destroy_results'] = {}
+-            for actor in reversed(actors):
+-                try:
+-                    result['destroy_results'][str(actor.id)] = actor.destroy()
+-                except Exception as exc:
+-                    cleanup_errors.append(f'destroy {actor.id}: {exc}')
++            result['destroy_results'] = {str(a.id): a.destroy() for a in reversed(actors)}
+             if owner:
+                 owner.tick(owner.previous.frame+1)
+             result['remaining_owned_ids'] = [a.id for a in world.get_actors() if a.id in {x.id for x in actors}]
+-            require(not cleanup_errors, str(cleanup_errors))
+-            require(not any(result['listeners_after_stop'].values()), 'sensor listener still active')
+-            require(result['callback_quiet'], 'callbacks continued after stop')
+             require(not result['remaining_owned_ids'] and all(result['destroy_results'].values()), 'owned actor cleanup failed')
+             require(all(not b.queue and b.held is None and b.closed for b in boxes.values()), 'queue cleanup failed')
+             world.set_weather(original_weather)
+@@ -423,12 +383,6 @@
+         save(output/'result.json', result)
+         (output/'ticks.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in (owner.trace if owner else [])))
+         (output/'packets.jsonl').write_text(''.join(json.dumps(p)+'\n' for p in join.records.values()))
+-        # Separate exported consumer channels; mixed packets.jsonl is audit only.
+-        for folder, streams in [('online', ('rgb.front', 'state')),
+-                                ('training_evaluation', ('gt.front',))]:
+-            (output/folder).mkdir(exist_ok=True)
+-            (output/folder/'records.jsonl').write_text(''.join(json.dumps(p)+'\n'
+-                for p in join.records.values() if p['stream'] in streams))
+     return result, join
+ 
+ 
+@@ -446,7 +400,7 @@
+         require(not same.accept(p) and same.events[-1]['reason'] == 'late_after_deadline', 'late callback healed missing')
+         tests.append({'stream': stream, 'old_epoch': 'rejected', 'late_after_deadline': 'rejected',
+                       'frame': p['frame'], 'source_time_ns': p['source_time_ns']})
+-    # Synthetic frame objects exercise queue capacity, not a live sensor overflow.
++    # Real callback payload used in capacity test, but isolated replay queue.
+     class Frame:
+         frame = 1
+     box = Inbox(1, 'rgb.front', [])
+@@ -472,10 +426,9 @@
+     parser.add_argument('--output', type=Path, required=True)
+     args = parser.parse_args()
+     args.output.mkdir(parents=True, exist_ok=False)
+-    faulthandler.enable()
+     summary = {'status': 'FAIL', 'started_utc': datetime.now(timezone.utc).isoformat(),
+                'harness_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+-               'python': sys.version, 'executable': sys.executable, 'carla_module': carla.__file__, 'cases': [],
++               'python': sys.version, 'carla_module': carla.__file__, 'cases': [],
+                'clock_domains': {'source': 'CARLA simulation', 'arrival': 'Host CLOCK_MONOTONIC'},
+                'M6_runtime': 'not attached', 'ego_actuation': 'none'}
+     world = original = None
+@@ -498,25 +451,13 @@
+                                                ('exception_cleanup', False, 60, True)]:
+             result, join = collect(world, args.output/name, 1, fault, count, exception)
+             summary['cases'].append({'case': name, 'status': result['status']})
+-            summary['stage'] = name
+-            save(args.output/'summary.json', summary)
+             require(result['status'] == 'PASS', f'{name} failed')
+             if name == 'nominal':
+                 old_join = join
+                 replay_boundary_checks(join, args.output)
+         before = world.id
+-        summary['stage'] = 'before_reload'
+-        save(args.output/'summary.json', summary)
+-        # Retire the sensor-session client before reset. Same-client native
+-        # reload crashed in recorded attempts; a clean client probe succeeded.
+-        world = None
+-        del client
+-        gc.collect()
+-        client = carla.Client('127.0.0.1', 2000)
+-        client.set_timeout(TIMEOUT)
++        client.reload_world(False)
+         world = client.get_world()
+-        require(world.id == before, 'unexpected external world reset')
+-        world = client.reload_world(False)
+         require(world.id != before, 'world episode did not change')
+         result, new_join = collect(world, args.output/'after_reset', 2, count=80)
+         old_packet = next(iter(old_join.records.values()))
+--- final
++++ attempt-02-source.py
+@@ -1,8 +1,6 @@
+ #!/usr/bin/env python3
+ """CARLA 0.9.16 NON_DRIVING RGB/GT/state collection and containment tests."""
+ import argparse
+-import faulthandler
+-import gc
+ from collections import Counter, deque
+ from datetime import datetime, timezone
+ import hashlib
+@@ -289,17 +287,6 @@
+                         record['sample_export'] = str(folder.relative_to(output))
+                         samples.add(stream)
+ 
+-        errors = []
+-        def other_thread_tick():
+-            try:
+-                owner.tick(owner.previous.frame + 1)
+-            except RuntimeError as exc:
+-                errors.append(str(exc))
+-        thread = threading.Thread(target=other_thread_tick)
+-        thread.start()
+-        thread.join()
+-        require(errors == ['wrong tick owner'], 'foreign tick thread not rejected')
+-        result['tick_guard'].extend(errors)
+         for i in range(count):
+             snap = owner.tick(owner.previous.frame + 1)
+             frames.append(snap.frame)
+@@ -347,19 +334,8 @@
+             require(max(p['timestamp_seconds'] for p in packets)-min(p['timestamp_seconds'] for p in packets)
+                     <= TOLERANCE, 'cross-stream timestamp mismatch')
+             require(packets[0]['pose_carla'] == packets[1]['pose_carla'], 'RGB/GT camera pose mismatch')
+-            # RGB/GT must match the configured rigid transform of this actor.
+-            actor = packets[2]
+-            sign = [1, -1, 1]
+-            native_rotation = [[sign[i]*actor['rotation_project'][i][j]*sign[j]
+-                                for j in range(3)] for i in range(3)]
+-            offset = [1.5, 0, 1.7]
+-            expected = [actor['pose_carla']['position_m'][i] +
+-                        sum(native_rotation[i][j]*offset[j] for j in range(3)) for i in range(3)]
+-            require(max(abs(a-b) for a, b in zip(expected, packets[0]['pose_carla']['position_m']))
+-                    < 1e-4, 'camera/actor extrinsic mismatch')
+             pairs += 1
+         result['joined_frames'] = pairs
+-        result['extrinsic_tolerance_m'] = 1e-4
+         if not fault:
+             require(all(not v['missing_frames'] for v in result['windows']['main']['streams'].values()),
+                     'nominal main sensor loss')
+@@ -423,12 +399,6 @@
+         save(output/'result.json', result)
+         (output/'ticks.jsonl').write_text(''.join(json.dumps(r)+'\n' for r in (owner.trace if owner else [])))
+         (output/'packets.jsonl').write_text(''.join(json.dumps(p)+'\n' for p in join.records.values()))
+-        # Separate exported consumer channels; mixed packets.jsonl is audit only.
+-        for folder, streams in [('online', ('rgb.front', 'state')),
+-                                ('training_evaluation', ('gt.front',))]:
+-            (output/folder).mkdir(exist_ok=True)
+-            (output/folder/'records.jsonl').write_text(''.join(json.dumps(p)+'\n'
+-                for p in join.records.values() if p['stream'] in streams))
+     return result, join
+ 
+ 
+@@ -472,10 +442,9 @@
+     parser.add_argument('--output', type=Path, required=True)
+     args = parser.parse_args()
+     args.output.mkdir(parents=True, exist_ok=False)
+-    faulthandler.enable()
+     summary = {'status': 'FAIL', 'started_utc': datetime.now(timezone.utc).isoformat(),
+                'harness_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+-               'python': sys.version, 'executable': sys.executable, 'carla_module': carla.__file__, 'cases': [],
++               'python': sys.version, 'carla_module': carla.__file__, 'cases': [],
+                'clock_domains': {'source': 'CARLA simulation', 'arrival': 'Host CLOCK_MONOTONIC'},
+                'M6_runtime': 'not attached', 'ego_actuation': 'none'}
+     world = original = None
+@@ -498,25 +467,13 @@
+                                                ('exception_cleanup', False, 60, True)]:
+             result, join = collect(world, args.output/name, 1, fault, count, exception)
+             summary['cases'].append({'case': name, 'status': result['status']})
+-            summary['stage'] = name
+-            save(args.output/'summary.json', summary)
+             require(result['status'] == 'PASS', f'{name} failed')
+             if name == 'nominal':
+                 old_join = join
+                 replay_boundary_checks(join, args.output)
+         before = world.id
+-        summary['stage'] = 'before_reload'
+-        save(args.output/'summary.json', summary)
+-        # Retire the sensor-session client before reset. Same-client native
+-        # reload crashed in recorded attempts; a clean client probe succeeded.
+-        world = None
+-        del client
+-        gc.collect()
+-        client = carla.Client('127.0.0.1', 2000)
+-        client.set_timeout(TIMEOUT)
++        client.reload_world(False)
+         world = client.get_world()
+-        require(world.id == before, 'unexpected external world reset')
+-        world = client.reload_world(False)
+         require(world.id != before, 'world episode did not change')
+         result, new_join = collect(world, args.output/'after_reset', 2, count=80)
+         old_packet = next(iter(old_join.records.values()))
+--- final
++++ attempt-03-source.py
+@@ -2,7 +2,6 @@
+ """CARLA 0.9.16 NON_DRIVING RGB/GT/state collection and containment tests."""
+ import argparse
+ import faulthandler
+-import gc
+ from collections import Counter, deque
+ from datetime import datetime, timezone
+ import hashlib
+@@ -507,16 +506,8 @@
+         before = world.id
+         summary['stage'] = 'before_reload'
+         save(args.output/'summary.json', summary)
+-        # Retire the sensor-session client before reset. Same-client native
+-        # reload crashed in recorded attempts; a clean client probe succeeded.
+-        world = None
+-        del client
+-        gc.collect()
+-        client = carla.Client('127.0.0.1', 2000)
+-        client.set_timeout(TIMEOUT)
++        client.reload_world(False)
+         world = client.get_world()
+-        require(world.id == before, 'unexpected external world reset')
+-        world = client.reload_world(False)
+         require(world.id != before, 'world episode did not change')
+         result, new_join = collect(world, args.output/'after_reset', 2, count=80)
+         old_packet = next(iter(old_join.records.values()))

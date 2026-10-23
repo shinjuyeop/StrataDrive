@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/carla/analyze_m7_1d.py", line 155, in <module>
+    main()
+  File "/d/shin/StrataDrive/tests/integration/carla/analyze_m7_1d.py", line 149, in main
+    result = analyze(args.attempt)
+  File "/d/shin/StrataDrive/tests/integration/carla/analyze_m7_1d.py", line 141, in analyze
+    return {'status': 'PASS', 'cases': {name: analyze_case(attempt/name, count, fault)
+  File "/d/shin/StrataDrive/tests/integration/carla/analyze_m7_1d.py", line 141, in <dictcomp>
+    return {'status': 'PASS', 'cases': {name: analyze_case(attempt/name, count, fault)
+  File "/d/shin/StrataDrive/tests/integration/carla/analyze_m7_1d.py", line 65, in analyze_case
+    check(all(f % 5 == phases[stream] for f in observed), 'camera stride changed')
+  File "/d/shin/StrataDrive/tests/integration/carla/analyze_m7_1d.py", line 11, in check
+    raise ValueError(reason)
+ValueError: camera stride changed

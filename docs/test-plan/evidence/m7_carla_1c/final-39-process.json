@@ -1,0 +1,44 @@
+[
+  {
+    "name": "final-39-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m7-contract",
+      "--target",
+      "m7_plant_contract_test",
+      "--parallel",
+      "2"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "final-39-run",
+    "command": [
+      "build/m7-contract/tests/integration/carla/m7_1c/m7_plant_contract_test",
+      "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/final-39.xml"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "asan-39-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m7-contract-asan",
+      "--target",
+      "m7_plant_contract_test",
+      "--parallel",
+      "2"
+    ],
+    "returncode": 0
+  },
+  {
+    "name": "asan-39-run",
+    "command": [
+      "build/m7-contract-asan/tests/integration/carla/m7_1c/m7_plant_contract_test",
+      "--gtest_output=xml:docs/test-plan/evidence/m7_carla_1c/asan-39.xml"
+    ],
+    "returncode": 0
+  }
+]

@@ -1,0 +1,54 @@
+{
+  "baseline": {
+    "sensor_feedback": "PASS",
+    "rows": 400,
+    "native_armed_rows": 322,
+    "native_returned_rows": 396,
+    "max_abs_omega_rad_s": 39.102882385253906,
+    "max_forward_m_s": 8.692605018615723,
+    "max_returned_source_age_ns": 10000000,
+    "max_CAN_roundtrip_error": 0,
+    "telemetry_torque_plus_long_force_radius_max_Nm": 0.00047851562521827873,
+    "normal_driving": "NOT_CONNECTED",
+    "energy_fidelity": "NOT_VALIDATED",
+    "server_shutdown": "FAIL",
+    "server_exit": 139
+  },
+  "mutations": [
+    {
+      "case": "source-restamp",
+      "status": "REJECTED",
+      "reason": "returned acquisition not an observed source"
+    },
+    {
+      "case": "wrong-wheel-value",
+      "status": "REJECTED",
+      "reason": "CAN value differs from original .01 rad/s quantization"
+    },
+    {
+      "case": "wrong-actor",
+      "status": "REJECTED",
+      "reason": "identity"
+    },
+    {
+      "case": "duplicate-frame",
+      "status": "REJECTED",
+      "reason": "frame/bracket"
+    },
+    {
+      "case": "future-tick-permit",
+      "status": "REJECTED",
+      "reason": "native tick"
+    },
+    {
+      "case": "fake-normal-driving",
+      "status": "REJECTED",
+      "reason": "native boundary"
+    },
+    {
+      "case": "missing-credit",
+      "status": "REJECTED",
+      "reason": "armed without evidence"
+    }
+  ]
+}

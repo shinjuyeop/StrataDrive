@@ -1,0 +1,36 @@
+{
+  "status": "PASS",
+  "scope": "offline corrupted copies",
+  "cases": [
+    {
+      "mutation": "restamped_clock",
+      "rejected": true,
+      "reason": "restamped clock"
+    },
+    {
+      "mutation": "missing_role",
+      "rejected": true,
+      "reason": "barrier"
+    },
+    {
+      "mutation": "credit_without_all_release",
+      "rejected": true,
+      "reason": "credit before all release ACKs"
+    },
+    {
+      "mutation": "stale_actual_source",
+      "rejected": true,
+      "reason": "Actual source interval"
+    },
+    {
+      "mutation": "skipped_tick",
+      "rejected": true,
+      "reason": "tick order"
+    },
+    {
+      "mutation": "expired_credit",
+      "rejected": true,
+      "reason": "native credit thresholds"
+    }
+  ]
+}

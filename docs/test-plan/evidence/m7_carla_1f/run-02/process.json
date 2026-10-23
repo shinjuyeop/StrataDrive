@@ -1,0 +1,32 @@
+{
+  "status": "OBSERVED",
+  "readiness_errors": [
+    "time-out of 5000ms while waiting for the simulator, make sure the simulator is ready and connected to 127.0.0.1:2000"
+  ],
+  "server_command": [
+    "./CarlaUE4.sh",
+    "-RenderOffScreen",
+    "-quality-level=Low",
+    "-nosound",
+    "-carla-rpc-port=2000",
+    "-vulkan",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-log"
+  ],
+  "server_directory": "/d/shin/stratadrive-tools/carla-0.9.16/server",
+  "shipping_pid": 2750870,
+  "client_command": [
+    "/d/shin/stratadrive-tools/carla-0.9.16/venv-bundled/bin/python",
+    "-I",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1f_shadow.py",
+    "--capture",
+    "--native",
+    "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1f/m7_functional_shadow",
+    "--output",
+    "/d/shin/stratadrive-tools/carla-0.9.16/m7-1f/run-02/capture"
+  ],
+  "client_exit": 0,
+  "server_exit": 139,
+  "remaining_listeners": ""
+}

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="22" failures="0" disabled="0" errors="0" time="7.092" timestamp="2026-10-23T15:38:06.296" name="AllTests">
+  <testsuite name="M4AsyncRuntime" tests="16" failures="0" disabled="0" skipped="0" errors="0" time="2.783" timestamp="2026-10-23T15:38:06.296">
+    <testcase name="NormalUsesRealBmsAndFeedbackBeforeActuation" status="run" result="completed" time="0.144" timestamp="2026-10-23T15:38:06.296" classname="M4AsyncRuntime" />
+    <testcase name="NormalStopWaitsForLeafHandoffThenActualHvOff" status="run" result="completed" time="0.234" timestamp="2026-10-23T15:38:06.440" classname="M4AsyncRuntime" />
+    <testcase name="PartialFrontWritePreventsRearBatchAndProtectsAllDomains" status="run" result="completed" time="0.126" timestamp="2026-10-23T15:38:06.675" classname="M4AsyncRuntime" />
+    <testcase name="FeedbackLossCannotBeHiddenByLiveZoneHeartbeat" status="run" result="completed" time="0.119" timestamp="2026-10-23T15:38:06.801" classname="M4AsyncRuntime" />
+    <testcase name="LostVehicleRootDoesNotGetRenewedByPowerTraffic" status="run" result="completed" time="0.123" timestamp="2026-10-23T15:38:06.921" classname="M4AsyncRuntime" />
+    <testcase name="PartialArmNeverEmitsNormalActuatorFrames" status="run" result="completed" time="0.106" timestamp="2026-10-23T15:38:07.045" classname="M4AsyncRuntime" />
+    <testcase name="ExplicitNewEpochRejoinKeepsPhysicalStateAndRestoresReadiness" status="run" result="completed" time="0.302" timestamp="2026-10-23T15:38:07.151" classname="M4AsyncRuntime" />
+    <testcase name="PreviousEpochWorkCannotDisturbCurrentNormalSession" status="run" result="completed" time="0.142" timestamp="2026-10-23T15:38:07.453" classname="M4AsyncRuntime" />
+    <testcase name="PersistedGrantValueDoesNotChangePartialWriteProtection" status="run" result="completed" time="0.121" timestamp="2026-10-23T15:38:07.596" classname="M4AsyncRuntime" />
+    <testcase name="TransportTraceCorrelatesOriginalAuthorityWithoutChangingPhysicalResponse" status="run" result="completed" time="0.284" timestamp="2026-10-23T15:38:07.718" classname="M4AsyncRuntime" />
+    <testcase name="DelayedFrontResultCannotOutlivePreviousRearCommandAuthority" status="run" result="completed" time="0.278" timestamp="2026-10-23T15:38:08.003" classname="M4AsyncRuntime" />
+    <testcase name="LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority" status="run" result="completed" time="0.143" timestamp="2026-10-23T15:38:08.281" classname="M4AsyncRuntime" />
+    <testcase name="SustainedPendingCannotHideEventualAuthorityExpiry" status="run" result="completed" time="0.143" timestamp="2026-10-23T15:38:08.425" classname="M4AsyncRuntime" />
+    <testcase name="MissingPendingResultStillTimesOutAtOriginalEnvelope" status="run" result="completed" time="0.136" timestamp="2026-10-23T15:38:08.568" classname="M4AsyncRuntime" />
+    <testcase name="DeferredBatchCompletesBeforeNormalStopHandoff" status="run" result="completed" time="0.234" timestamp="2026-10-23T15:38:08.704" classname="M4AsyncRuntime" />
+    <testcase name="PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry" status="run" result="completed" time="0.14" timestamp="2026-10-23T15:38:08.939" classname="M4AsyncRuntime" />
+  </testsuite>
+  <testsuite name="M4AsyncWall" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="3.621" timestamp="2026-10-23T15:38:09.079">
+    <testcase name="IndependentOwnersRunActualNormalPath" status="run" result="completed" time="1.811" timestamp="2026-10-23T15:38:09.079" classname="M4AsyncWall" />
+    <testcase name="IndependentFeedbackLossHasMeasuredProtectionResponse" status="run" result="completed" time="1.81" timestamp="2026-10-23T15:38:10.890" classname="M4AsyncWall" />
+  </testsuite>
+  <testsuite name="M4RefreshDelivery" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0.687" timestamp="2026-10-23T15:38:12.701">
+    <testcase name="ObservedPhaseMustRenewActualLeavesBeforeOriginalExpiry" status="run" result="completed" time="0.161" timestamp="2026-10-23T15:38:12.701" classname="M4RefreshDelivery" />
+    <testcase name="LegacyPhaseReproducesShortSupportThenActualExpiry" status="run" result="completed" time="0.146" timestamp="2026-10-23T15:38:12.863" classname="M4RefreshDelivery" />
+    <testcase name="InterruptedHostRenewalStillExpiresOriginalAuthority" status="run" result="completed" time="0.151" timestamp="2026-10-23T15:38:13.009" classname="M4RefreshDelivery" />
+    <testcase name="Host10NormalStopUsesRealHandoffAndHvOff" status="run" result="completed" time="0.227" timestamp="2026-10-23T15:38:13.161" classname="M4RefreshDelivery" />
+  </testsuite>
+</testsuites>

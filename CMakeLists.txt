@@ -541,3 +541,23 @@ endif()
 if(STRATADRIVE_SOMEIP_PILOT)
     add_subdirectory(tests/integration/someip)
 endif()
+
+# Opt-in fake-plant contract tests; no CARLA SDK/server and no default M6 test changes.
+option(STRATADRIVE_M7_CONTRACT_TESTS "Build M7 Actual boundary / freshness logical tests" OFF)
+if(STRATADRIVE_M7_CONTRACT_TESTS)
+    if(NOT BUILD_TESTING)
+        message(FATAL_ERROR "STRATADRIVE_M7_CONTRACT_TESTS requires BUILD_TESTING")
+    endif()
+    add_subdirectory(tests/integration/carla/m7_1c)
+endif()
+
+# Separate functional-clock experiment. Never enabled by an M6 profile.
+option(STRATADRIVE_M7_FUNCTIONAL_TESTS "Build M7 simulation-clock shadow harness (no driving)" OFF)
+if(STRATADRIVE_M7_FUNCTIONAL_TESTS)
+    if(NOT BUILD_TESTING)
+        message(FATAL_ERROR "STRATADRIVE_M7_FUNCTIONAL_TESTS requires BUILD_TESTING")
+    endif()
+    add_subdirectory(tests/integration/carla/m7_1f)
+    add_subdirectory(tests/integration/carla/m7_1g)
+    add_subdirectory(tests/integration/carla/m7_1h)
+endif()
