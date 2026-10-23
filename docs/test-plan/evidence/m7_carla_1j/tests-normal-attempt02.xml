@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="11" failures="1" disabled="0" errors="0" time="0.046" timestamp="2026-10-23T17:53:51.538" name="AllTests">
+  <testsuite name="NoDrive" tests="10" failures="1" disabled="0" skipped="0" errors="0" time="0.045" timestamp="2026-10-23T17:53:51.538">
+    <testcase name="StageIsNotPhysicsAndOneTickConsumesAndClearsAllPersistentInputs" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.538" classname="NoDrive" />
+    <testcase name="SameVehicleCannotHaveASecondPortOrBoundaryWriter" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.538" classname="NoDrive" />
+    <testcase name="MissingStageAndExpiredActualDoNotAdvancePhysics" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.539" classname="NoDrive" />
+    <testcase name="DelayedTickDoesNotApplyStagedEffortOrRestampItsSource" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.539" classname="NoDrive" />
+    <testcase name="PauseClearsPendingAndNeedsNewInit" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.539" classname="NoDrive" />
+    <testcase name="UnownedSdkWriteIsDetectedBeforePhysics" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.540" classname="NoDrive" />
+    <testcase name="CommandFrameIsNotAnActuatorActual" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.540" classname="NoDrive" />
+    <testcase name="WrongWheelBindingIsRejected" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.540" classname="NoDrive" />
+    <testcase name="SignedReverseOmegaIsPreservedAndNeverClamped" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.540" classname="NoDrive" />
+    <testcase name="ActualFixtureHoldAccelerateRegenerateAndStopOnRealSdkPlane" status="run" result="completed" time="0.042" timestamp="2026-10-23T17:53:51.541" classname="NoDrive">
+      <failure message="/d/shin/StrataDrive/tests/integration/carla/m7_1j/nodrive_test.cpp:130&#x0A;Expected equality of these values:&#x0A;  negative_samples&#x0A;    Which is: 45&#x0A;  0U&#x0A;    Which is: 0" type=""><![CDATA[/d/shin/StrataDrive/tests/integration/carla/m7_1j/nodrive_test.cpp:130
+Expected equality of these values:
+  negative_samples
+    Which is: 45
+  0U
+    Which is: 0]]></failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="NoDriveFault" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-10-23T17:53:51.583">
+    <testcase name="AmbiguousStepClearsInputsWithoutClaimingObservation" status="run" result="completed" time="0" timestamp="2026-10-23T17:53:51.583" classname="NoDriveFault" />
+  </testsuite>
+</testsuites>

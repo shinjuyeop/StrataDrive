@@ -549,6 +549,7 @@ if(STRATADRIVE_M7_CONTRACT_TESTS)
         message(FATAL_ERROR "STRATADRIVE_M7_CONTRACT_TESTS requires BUILD_TESTING")
     endif()
     add_subdirectory(tests/integration/carla/m7_1c)
+    add_subdirectory(tests/integration/carla/m7_1i)
 endif()
 
 # Separate functional-clock experiment. Never enabled by an M6 profile.
@@ -560,4 +561,13 @@ if(STRATADRIVE_M7_FUNCTIONAL_TESTS)
     add_subdirectory(tests/integration/carla/m7_1f)
     add_subdirectory(tests/integration/carla/m7_1g)
     add_subdirectory(tests/integration/carla/m7_1h)
+endif()
+
+# Isolated public PhysX SDK probe; not the CARLA server or an M6 runtime backend.
+option(STRATADRIVE_M7_PHYSX_PROBES "Build standalone M7 NoDrive SDK probe" OFF)
+if(STRATADRIVE_M7_PHYSX_PROBES)
+    if(NOT BUILD_TESTING)
+        message(FATAL_ERROR "STRATADRIVE_M7_PHYSX_PROBES requires BUILD_TESTING")
+    endif()
+    add_subdirectory(tests/integration/carla/m7_1j)
 endif()

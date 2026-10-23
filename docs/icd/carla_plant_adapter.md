@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-23, `m7-plant-draft-v5`. **functional wheel/actuator/electrical 포트 연결 / 정상 주행 actuation·수치 calibration 미확정**.
+2026-10-23, `m7-plant-draft-v7`. **functional wheel/actuator/electrical 포트 연결 / 독립 NoDrive SDK 물리 포트 한정 검증 / CARLA 정상 actuation 미연결**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -81,7 +81,7 @@ steer[-1,1], throttle/brake[0,1]이며 Nm/Pa 직접 입력이 아니다. wheel m
 radius는 cm, max brake torque는 Nm다. engine torque curve는 wheel aggregate torque가 아니다.
 Ackermann speed/acceleration 제어는 별도 제어기를 추가하므로 actual-only 대체 경로로 채택하지 않는다.
 
-| 원천 actual | 후보 mapping / 정해진 의미 | 아직 필요한 근거 |
+| 원천 actual | 기본 package에서 검토한 mapping (미채택) | 아직 필요한 근거 |
 | --- | --- | --- |
 | Steering δ(rad), 좌회전+ | `steer = inverse_steering(-δ, speed, geometry, calibration)` | 좌우 road-wheel→equivalent angle, 속도별 steering curve, tire/geometry와 포화 범위. 단순 δ/상수 확정 금지 |
 | Drive T(Nm), 전진 구동+ | `throttle = inverse_drivetrain(T, wheel_speed, gear, calibration)` | engine/gear/differential 손실·inertia·zero-throttle drag를 포함한 wheel 기준 역변환. T/300 같은 M6 fixture 재사용 금지 |
@@ -99,6 +99,86 @@ friction torque를 **한 번만 합산**한다. 각 원천 기여는 장부에�
 calibration artifact는 vehicle blueprint/map·CARLA build, physics readback, 단위/부호,
 geometry, 곡선/유효 범위, 데이터·식별 방법, 검증 잔차/허용 오차, revision/hash를 포함한다.
 계수·허용 오차는 **TBD-02/03/07**. M7-1에서 geometry를 읽는 것은 calibration 완료가 아니다.
+
+### M7-1i — 직접 wheel effort 확장안
+
+[공식 소스·설치 API 조사 및 오프라인 시험](../test-plan/evidence/m7_carla_1i/README.md)에 따라
+기본 `VehicleControl`의 throttle 역변환을 정상 연결의 구현 방향으로 채택하지 않는다.
+선행 Actual은 wheel torque인데 기본 backend는 engine/clutch/gear 상태를 추가한다.
+현재 공개 관측만으로 이를 정확히 역변환하거나 중복 응답을 없앴다는 근거가 없다.
+**우선 구현 후보는 PhysX `PxVehicleNoDrive`를 노출하는 별도 CARLA 서버 확장**이다.
+이는 엔진 없는 suspension/wheel/tire plant를 제공하지만 설치된0.9.16 Python API에는
+직접 effort setter가 없다.1j에서 source build 작업은 승인 범위가 되었지만 실제 서버 구현·빌드·차량 수용은 미완료다.
+
+| 입력 | 확장 backend에 전달할 SI 값 / 설계 법칙 | 미결정 또는 필요한 검증 |
+| --- | --- | --- |
+| equivalent Steering Actual δ, 좌+ rad | 이상 Ackermann: `δL=atan2(L tanδ,L−W tanδ/2)`, `δR=atan2(L tanδ,L+W tanδ/2)`; CARLA 우+ 기준은 `−δL,−δR`, rear0 | 실제 local wheelbase L/front track W, 휠 순서·축 부호·최대각 readback과 실제 회전 검증. 스케일·속도 필터·추가 지연 없음 |
+| aggregate Drive Actual T, signed Nm | 제안 EV 모델은 이상적 open differential: rear 각각 `T/2`, front0. 양·음수 모두 motor 입력에 유지 | stock mkz drivetrain 재현이 아닌 명시적 모델 법칙. 원래 rear 평균 ω와 `ΣTiωi=T(ωRL+ωRR)/2`가 일치. torque vectoring은 별도 work port 개정 필요 |
+| Brake Actual P, Pa | 근거 있는 `P→[TFL,TFR,TRL,TRR]` 단조 table의 구간 선형 보간; 전부 nonnegative friction Nm | 실제 유압·패드·디스크 데이터 또는 명시적으로 수용한 가상 brake 모델 필요. max brake800Nm readback만으로 P→Nm 식별 불가. 기본 계수 없음 |
+
+`tests/integration/carla/m7_1i`는 위 수학만 구현한 **test-only prototype**이다.
+합성 geometry/table은 오프라인 test vector이며 차량 calibration artifact가 아니다.
+table 누락/비정상·입력/휠 한계 초과·불가능한 조향 기하는 거부하고 clamp/외삽하지 않는다.
+원래1c Actual/P05 boundary 뒤 fake backend로만 검사하며 `CarlaDriving`은 계속 Disabled다.
+순수 함수의 double 인자 자체는 Actual provenance 증명이 아니므로 runtime 입구로 노출하지 않는다.
+
+CARLA plugin 경계까지 SI를 보존한다. UE kg/cm/s 내부에서만 torque를 `Nm×100²`로 바꾼다.
+이는 단위 변환이지 임의 normalization gain이 아니다. 각도는 rad, scene 길이는 cm→m로 구분한다.
+upstream PhysX3.4 소스는 확장 설계 근거이며 bundled UE의 exact build identity를 증명하지 않는다.
+빌드 시 실제 fork/commit·scale·좌표 기준을 별도로 고정하고 검증해야 한다.
+
+확장 시 native actuator는 delay/rate/fault, CARLA는 wheel inertia/damping·tire/suspension·chassis만
+소유한다. stock movement controller·engine·clutch·gear·steering smoothing은 함께 실행하지 않는다.
+기존 M6 response/vehicle model을 변경하거나 두 번째 motion step을 추가하지 않는다.
+
+#### 서버 apply receipt와 interval work 요구
+
+구현 전의 의미 계약이며 새 RPC/wire ABI는 아직 없다. 단일 writer와 tick owner는 유지한다.
+
+1. INIT에서 build/model/calibration hash, wheel order, 단위, run/plant/actor/owner를 바인딩한다.
+   client가 임의로 보낸 capability=true는 권한 또는 calibration 수용 근거가 아니다.
+2. `prepare`는 원래 CAN/P05 Actual·application·sequence·source/oldest/expiry를 그대로 보존한다.
+   geometry/table 범위와 전체10ms interval coverage를 검사한다. endpoint 관측으로 소급하지 않는다.
+3. 하나의 `(run,plant,actor,frame,token)`에4wheel steer/motor/friction을 원자적으로 stage한다.
+   pre-physics ACK는 **staged**이고 work 증명이 아니다. 같은 token 재호출은 조회만 가능하며
+   재적용·중복 tick을 하지 않는다. timeout은 receipt/snapshot 대조 전까지 ambiguous로 latch한다.
+4. physics 구간 종료 receipt는 실제 begin/end·frame·적용 effort·solver substep coverage·원래
+   Actual 참조를 포함한다. `Σ Tmotor_i Δθdynamic_i`와 friction loss를 별도로 기록한다.
+   animation pitch 또는 endpoint `T×ω×dt`를 실제 구간 work로 승격하지 않는다. brake lock,
+   damping·tire loss·수치 잔차를 분리하고 선택한 solver work 정의/허용 오차를 검증해야 한다.
+5. receipt가 검증된 뒤에만 단일 EV owner의 IntegratedMotorWork에 전달한다. 같은 구간을
+   기존 ZOH 예측과 함께 적분하지 않는다. 외부 tick은 rollback 불가하므로 불완전 receipt는
+   energy unavailable·latch이며 다음 tick 금지다. M6 energy budget 수용을 승계하지 않는다.
+
+NoDrive setter는 다음 setter까지 지속되는 API다. 따라서 RPC 추가만으로 expiry를 만족하지 않는다.
+확장 서버가 frame별 single-use latch와 pre-tick coverage를 검사하고 old effort 재사용을 막아야 한다.
+pause는 tick 정지·pending token 폐기, reset은 새 epoch/INIT·잔존 effort 제거이며 자동 재무장하지 않는다.
+wheel·brake 초기 보호 Actual도 같은 반환 경로를 거쳐야 하고 초기화 명목의 직접 brake 쓰기는 금지한다.
+
+### M7-1j — 독립 public SDK 포트와 남은 서버 경계
+
+[실행 근거](../test-plan/evidence/m7_carla_1j/README.md)의 포트는 위 계약 중
+단일 wrapper owner·Actual/P05 admission·frame별 stage/tick·잔존 setter 제거·모호한 결과 latch를
+공개 PhysX3.4 CHECKED SDK에서 구현했다. 입력은 합성 Actual fixture이며1c `FakeProbe`
+경계 뒤에서만 실행한다. 실제 native8-role 반환·CARLA RPC에 연결한 것은 아니다.
+post-step 관측에는 원래 Actual/provenance·interval·float applied effort·raw signed omega·
+PhysX sleep을 보존한다. setter readback을 새 Actual로 생성하지 않는다.
+`interval_work_valid=false`이며 위 서버 work receipt 계약을 충족했다고 주장하지 않는다.
+
+SDK snippet은 upY/forwardZ, wheel order RL/RR/FL/FR이므로 프로젝트 FL/FR/RL/RR과
+`{2,3,0,1}`로 바인딩했다. SI1500kg/radius0.5m fixture와 합성 pressure table은
+mkz_2020 또는 실제 brake calibration이 아니다. 실제 UE에서는 fork·좌표·단위·wheel geometry를
+다시 검증해야 한다. 외부 SDK writer는 wrapper만으로 완전히 봉쇄되지 않는다.
+
+world10ms 안에서 차량 내부 `setSubStepCount`를3/10/20/40으로 비교했다.
+3에서는 출발 중 rear 음수45/850 FAIL,10/20/40은0/850이었다. 독립 probe 설정은20이며
+별도 fail-stop 시험에서 coarse 첫 음수 후 다음 tick 차단을 확인했다. 신호 보정/threshold 완화가
+아니며 차량 질량·타이어·gain은 바꾸지 않았다. 이 설정을 CARLA `max_substeps`와 혼동하거나
+stock 바이너리의 평지 실패 해결로 수용하지 않는다. 정확도 허용 오차·전체 ODD는 OPEN이다.
+
+공개 SDK build는 성공했으나 UE fork는 접근404이며 Epic–GitHub 연결 미설정이다.
+실제 UE/CARLA 포트는 NOT RUN이다. 계정 연결 후 동일 의미를 실제 서버 lifecycle·scene tick
+안에 구현·검증하고 brake calibration과 구간 work를 해결해야 정상 주행 gate를 열 수 있다.
 
 ## 4. 좌표계와 센서 계약
 
@@ -324,8 +404,23 @@ Steering/Brake/Drive 응답과 EvPowerModel을 소유하고 SimpleVehicle/Vehicl
 
 1h는 실제 wheel을 전기 **예측 모델**에 공급하는 포트 분리까지 구현했다. CARLA 실제 물리 work를
 받는 IntegratedMotorWork 연결은 아직 없다. 모델 파라미터/응답 budget의 CARLA 동등성도 미검증이다.
-다음1i에서 rad/Nm/Pa actuation 방식·중복 dynamics와 정지 부근 sensor 오차/validity의 근거를
-확정한 뒤 full Actual provenance/apply ACK/interval work를 연결한다. M6 계약은 변경하지 않는다.
+1i의 직접 wheel effort 확장안은 위3절을 따른다. full Actual provenance/apply ACK/interval work
+연결은 후속이며 M6 계약은 변경하지 않는다.
+
+### M7-1i 정지 부근 validity 판단
+
+**숫자 epsilon은 채택하지 않는다.** 기존 평지 trace는 자유 낙하·접지 중이고 Brake Actual이
+CARLA에 적용되지 않았다. 음수74/400개의 관측 상한은 센서 오차 bound가 아니며, 현재 RPC는
+PhysX sleep/접지 제약 상태도 제공하지 않는다. actor `is_active/is_dormant`로 대체할 수 없다.
+upstream PhysX에는 brake로 회전 부호가 바뀔 때 wheel을 물리적으로 lock하는 처리와 sleeping
+차량의 내부 속도를0으로 만드는 처리가 있다. 이는 **물리 solver 동작**이지 client의 음수→0 보정
+허용이 아니다. 현재 바이너리의 미세 음수 원인이나 brake 적용 후 정상성을 증명한 것도 아니다.
+
+후속 순서는 실제 보호 Brake Actual 적용 → 원래 wheel·contact/sleep·frame·receipt 관측 →
+정지/출발/정지 반복 시험이다. 음수이면 계속 unavailable/latch하고 tick을 정지한다.
+exact0 또는 원래 전진 범위의 측정만 수용하며 warmup을 명목으로 음수 구간을 숨기지 않는다.
+이 경로로도 실패하면 forward ODD와 측정 불확도를 포함한 별도 requirement revision이 필요하다.
+이번 단계에서 M6 ODD·codec·source-age·reset 증거 조건을 바꾸지 않았다.
 
 ## 6. 결정과 미결정
 
@@ -333,7 +428,9 @@ Steering/Brake/Drive 응답과 EvPowerModel을 소유하고 SimpleVehicle/Vehicl
 20/10ms 기존 rate·freshness/권한 보존, 중복 motion/actuator/energy 금지, metadata/좌표 의미,
 GT 격리, pause/reset containment, M7-1 비제어 관측 범위. 별도 opt-in functional clock/8-role
 barrier는1f, 직접 omega→native Actual 반환은1g, actuator/electrical 분리·원래 wheel 기반 ZOH는1h에서
-한정 검증했다. 정상 CARLA driving 허가는 아니다.
+한정 검증했다.1i는 직접 wheel effort 확장안을 우선 후보로 결정하고 수학/거부 경계를 오프라인
+검증했다.1j는 공개 NoDrive SDK에서 합성 Actual의 물리 적용·single-use/pause 경계를 한정 검증했다.
+정지 sensor의 임의 오차 보정은 미채택이다. 정상 CARLA driving 수용은 아니다.
 
 **미결정:** smoke 외 server/client 조합의 안정성, vehicle geometry와 역변환 calibration,
 wheel 정지 잡음/전체 ODD validity·wall clock mapping·full Actual interval·native guard 연동, energy telemetry/원자적 실패 처리,

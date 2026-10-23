@@ -1,0 +1,44 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 11 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 10 tests from NoDrive
+[ RUN      ] NoDrive.StageIsNotPhysicsAndOneTickConsumesAndClearsAllPersistentInputs
+[       OK ] NoDrive.StageIsNotPhysicsAndOneTickConsumesAndClearsAllPersistentInputs (0 ms)
+[ RUN      ] NoDrive.SameVehicleCannotHaveASecondPortOrBoundaryWriter
+[       OK ] NoDrive.SameVehicleCannotHaveASecondPortOrBoundaryWriter (0 ms)
+[ RUN      ] NoDrive.MissingStageAndExpiredActualDoNotAdvancePhysics
+[       OK ] NoDrive.MissingStageAndExpiredActualDoNotAdvancePhysics (0 ms)
+[ RUN      ] NoDrive.DelayedTickDoesNotApplyStagedEffortOrRestampItsSource
+[       OK ] NoDrive.DelayedTickDoesNotApplyStagedEffortOrRestampItsSource (0 ms)
+[ RUN      ] NoDrive.PauseClearsPendingAndNeedsNewInit
+[       OK ] NoDrive.PauseClearsPendingAndNeedsNewInit (0 ms)
+[ RUN      ] NoDrive.UnownedSdkWriteIsDetectedBeforePhysics
+[       OK ] NoDrive.UnownedSdkWriteIsDetectedBeforePhysics (0 ms)
+[ RUN      ] NoDrive.CommandFrameIsNotAnActuatorActual
+[       OK ] NoDrive.CommandFrameIsNotAnActuatorActual (0 ms)
+[ RUN      ] NoDrive.WrongWheelBindingIsRejected
+[       OK ] NoDrive.WrongWheelBindingIsRejected (0 ms)
+[ RUN      ] NoDrive.SignedReverseOmegaIsPreservedAndNeverClamped
+[       OK ] NoDrive.SignedReverseOmegaIsPreservedAndNeverClamped (0 ms)
+[ RUN      ] NoDrive.ActualFixtureHoldAccelerateRegenerateAndStopOnRealSdkPlane
+/d/shin/StrataDrive/tests/integration/carla/m7_1j/nodrive_test.cpp:130: Failure
+Expected equality of these values:
+  negative_samples
+    Which is: 45
+  0U
+    Which is: 0
+[  FAILED  ] NoDrive.ActualFixtureHoldAccelerateRegenerateAndStopOnRealSdkPlane (42 ms)
+[----------] 10 tests from NoDrive (45 ms total)
+
+[----------] 1 test from NoDriveFault
+[ RUN      ] NoDriveFault.AmbiguousStepClearsInputsWithoutClaimingObservation
+[       OK ] NoDriveFault.AmbiguousStepClearsInputsWithoutClaimingObservation (0 ms)
+[----------] 1 test from NoDriveFault (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 11 tests from 2 test suites ran. (46 ms total)
+[  PASSED  ] 10 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] NoDrive.ActualFixtureHoldAccelerateRegenerateAndStopOnRealSdkPlane
+
+ 1 FAILED TEST

@@ -94,6 +94,32 @@ Normal/ASan 각32/32(기존22+신규10), 기존 관련144/144·1c39/39와 실제
 noise 보정 허용으로 해석하지 않았다. 평지 연결 FAIL·서버 종료139·정상 actuation 미연결은 유지한다.
 다음은 actuation 방식·중복 dynamics·정지 sensor 오차 근거, applied Actual/interval work 계약이다.
 
+## 2026-10-23 후속 — M7-1i actuation 방식 검토
+
+[조사·오프라인 구현/검증](evidence/m7_carla_1i/README.md): 기본 throttle 역변환은 미채택하고,
+PhysX NoDrive의4wheel effort를 노출하는 서버 확장안을 우선 후보로 결정했다. 설치0.9.16 binding과
+공식 소스를 대조했으며 exact upstream commit/해시를 남겼다. 새 CARLA 실행·source build는 없다.
+직접 rad/Nm/Pa mapping의 수학/Actual 경계 prototype Normal·ASan 각16/16, 기존 M7 각71/71.
+처음 ASan1c binary 미빌드로 회귀 실행이 중단된 기록과 빌드 후 결과를 구분한다.
+Brake pressure table 수치는 미확정이고 음수 측정 보정도 미채택이다. 과거 평지 무제어 접지
+실패를 정상 brake-hold의 센서 오차로 해석하지 않는다. 다음은 별도 source build 범위 결정 →
+직접 effort 포트·calibration artifact → 실제 보호 brake 적용/원래 wheel 검증이다.
+frame receipt/interval work·서버139·wall 수용은 OPEN으로 유지한다.
+
+## 2026-10-23 후속 — M7-1j source build/독립 SDK 포트
+
+[실제 빌드·실행·실패](evidence/m7_carla_1j/README.md): source build 범위로 후속 착수했다.
+공개 CARLA0.9.16 source 확보, 공개 PhysX3.4 CHECKED SDK 빌드·합성 Actual→NoDrive 포트
+Normal/ASan 각15/15를 확인했다. 외부 SDK 자체는 sanitizer 미계측이며 vptr 검사는 제외다.
+기본 적분 음수45/850 FAIL을 보존했고 world10ms 안의 차량 적분20분할 후보에서는0/850이다.
+시각/배분/정지/invalid work 독립 CSV oracle와 손상8/8 거부를 확인했다. CARLA 차량 calibration은 아니다.
+
+UE fork 접근은 Git/GitHub CLI404이며 사용자가 Epic–GitHub 연결을 설정한 적 없다고 응답했다.
+공식 CARLA build 명령은 UE4_ROOT 누락으로 실패했고 UE compilation은 시작되지 않았다.
+계정 연결·EpicGames 초대 수락 후 UE toolchain/fork pin → CARLA 서버 포트 → 실제 brake
+calibration/보호 제동·wheel → 구간 work 순서로 계속한다. 기존 package/venv·M6는 유지한다.
+원래 M7-0/1a–1i의 source build 제외 기록은 당시 범위이며1j부터 변경됐다.
+
 ## 실제 Host 관측
 
 아래는 공식 권장값이 아니라 이 작업 terminal에서 얻은 snapshot이다. 메모리/공간은 변동한다.

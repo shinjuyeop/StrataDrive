@@ -23,6 +23,8 @@ Updated: **2026-10-23**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1f | 별도 functional clock·실제8-role native 세션/credit/Actual 경로·CARLA 비주행 shadow 구현. Normal/ASan 각14/14, 기존144/144와1c39/39. CARLA wheel/actuation은 미연결 | [구현/실행 근거](test-plan/evidence/m7_carla_1f/README.md) |
 | M7-1g | 실제 PhysX wheel→native DriveActual→Rear/Central 반환 한정 연결. 내리막400tick·반환396·최대 age10ms. Normal/ASan 각22/22. 평지 음수 측정 연결 FAIL·정상 actuation 미연결 | [원본/실패/남은 gate](test-plan/evidence/m7_carla_1g/README.md) |
 | M7-1h | M7 actuator/electrical owner 분리·실제 wheel 기반1ms ZOH 예측 연결. Normal/ASan 각32/32. 평지 SubResolutionNegative 거부 유지; CARLA 실제 work/actuation 미연결 | [구현/실행/제한](test-plan/evidence/m7_carla_1h/README.md) |
+| M7-1i | 직접 wheel effort 서버 확장안을 우선 후보로 결정, rad/Nm/Pa 수학 prototype Normal/ASan 각16/16·기존 M7 각71/71. package 직접 포트·brake calibration 부재 확인, 음수 보정 미채택. 새 CARLA 실행/빌드 없음 | [조사/검증/후속](test-plan/evidence/m7_carla_1i/README.md) |
+| M7-1j | source build 범위 착수. 공개 PhysX CHECKED SDK·합성 Actual→NoDrive 포트 Normal/ASan 각15/15. 기본 적분 음수45/850 FAIL 보존, 내부20분할 후보에서0/850. UE fork404·계정 연결 미설정으로 CARLA build/연동 BLOCKED | [빌드/실행/제한](test-plan/evidence/m7_carla_1j/README.md) |
 | M7 후속–M13 | PLANNED / NOT RUN; 정상 CARLA 주행 연결 BLOCKED | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
@@ -57,13 +59,29 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 
 ## 다음 작업
 
-**다음은 M7-1i 정상 actuation 방식과 sensor 오차/validity 근거 확정**.
+**M7-1j는 부분 완료이며, 다음은 Epic–GitHub 계정 연결 후 UE/CARLA 서버 확장이다**.
+[M7-1j](test-plan/evidence/m7_carla_1j/README.md)에서 공개 CARLA source를 확보하고 공개 PhysX3.4
+CHECKED SDK·합성 Actual→NoDrive 물리 포트를 구현했다. Normal/ASan 각15/15, 독립 CSV
+손상8/8 거부를 확인했다. 외부 SDK 자체는 sanitizer 미계측이며 UBSan vptr만 제외했다.
+기본 적분 출발 음수45/850 FAIL을 보존하고 차량 내부3/10/20/40분할을 비교했다.
+world10ms를 유지한20분할 후보는 정지·출발·음수 torque 감속·마찰 정지에서 음수0/850이었다.
+이는 독립 synthetic 차량의 결과이며 stock CARLA 평지 실패 해결·native8-role 주행 성공이 아니다.
+
+사용자가 source build 후속 진행을 지시했으므로 별도 범위 승인은 더 필요하지 않다.
+현재 UE fork는 Git/GitHub CLI 모두 접근 불가이며 사용자는 Epic 계정을 연결한 적 없다고 답했다.
+[공식 계정 연결/초대 수락](https://www.unrealengine.com/ue-on-github?lang=en-US)이 선행되어야 한다.
+실제 CARLA build 명령은 UE4_ROOT 누락으로 종료했고 UE 컴파일은 시작하지 않았다.
+이후 UE toolchain/fork pin → 서버 NoDrive/writer/frame 포트 → 실제 geometry/brake calibration →
+보호 Brake Actual과 raw wheel 검증 → interval work/EV 연결 순서다. 합성 pressure table은 calibration이
+아니며 numerical subdivision은 이 독립 시험의 후보 설정이다. epsilon/clamp는 추가하지 않았다.
+새 CARLA 서버 실행·정상 주행·에너지 수용은 NOT RUN이고 기존 M6는 유지한다.
+
 [M7-1h](test-plan/evidence/m7_carla_1h/README.md)에서 별도 actuator/electrical owner를 구현했다.
 차량 운동을 중복 적분하지 않고, 전기 모델에 각1ms 구간 begin 이전의 실제 wheel 원천을 넣는다.
 400tick의3,989구간을 독립 ZOH oracle로 확인했다. 이 에너지는 CARLA에 적용되지 않은 모델 예측이다.
 Normal/ASan 각32/32, 기존 관련144/144·1c39/39. 미세 음수는 zero-bin 진단 후 거부하며
 평지 문제를0 clamp로 감추지 않았다. rad/Nm/Pa 변환·applied Actual receipt/interval work와
-정지 부근 signed sensor의 근거 있는 오차/validity 결정이 남는다. source build는 하지 않았다.
+정지 부근 signed sensor의 근거 있는 오차/validity 결정이 남는다.1h 당시 source build는 하지 않았다.
 
 [M7-1g](test-plan/evidence/m7_carla_1g/README.md)에서 직접 PhysX omega를 기존 Drive 센서에
 연결했다. 내리막400tick에서 원래 vECU·CAN/P05·Rear·Central Actual 반환을 확인했다.

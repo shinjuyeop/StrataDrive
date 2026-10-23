@@ -1,0 +1,42 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 15 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 13 tests from NoDrive
+[ RUN      ] NoDrive.StageIsNotPhysicsAndOneTickConsumesAndClearsAllPersistentInputs
+[       OK ] NoDrive.StageIsNotPhysicsAndOneTickConsumesAndClearsAllPersistentInputs (2 ms)
+[ RUN      ] NoDrive.SameVehicleCannotHaveASecondPortOrBoundaryWriter
+[       OK ] NoDrive.SameVehicleCannotHaveASecondPortOrBoundaryWriter (0 ms)
+[ RUN      ] NoDrive.MissingStageDoesNotAdvancePhysics
+[       OK ] NoDrive.MissingStageDoesNotAdvancePhysics (0 ms)
+[ RUN      ] NoDrive.DelayedTickDoesNotApplyStagedEffortOrRestampItsSource
+[       OK ] NoDrive.DelayedTickDoesNotApplyStagedEffortOrRestampItsSource (0 ms)
+[ RUN      ] NoDrive.PauseClearsPendingAndNeedsNewInit
+[       OK ] NoDrive.PauseClearsPendingAndNeedsNewInit (0 ms)
+[ RUN      ] NoDrive.UnownedSdkWriteIsDetectedBeforePhysics
+[       OK ] NoDrive.UnownedSdkWriteIsDetectedBeforePhysics (0 ms)
+[ RUN      ] NoDrive.CommandFrameIsNotAnActuatorActual
+[       OK ] NoDrive.CommandFrameIsNotAnActuatorActual (0 ms)
+[ RUN      ] NoDrive.WrongWheelBindingIsRejected
+[       OK ] NoDrive.WrongWheelBindingIsRejected (1 ms)
+[ RUN      ] NoDrive.SignedReverseOmegaIsPreservedAndNeverClamped
+[       OK ] NoDrive.SignedReverseOmegaIsPreservedAndNeverClamped (1 ms)
+[ RUN      ] NoDrive.CoarseSolverNegativeWheelStopsBeforeNextPhysicsTick
+[       OK ] NoDrive.CoarseSolverNegativeWheelStopsBeforeNextPhysicsTick (10 ms)
+[ RUN      ] NoDrive.LeftActualSteersTheFrontAxleToLeftTrajectory
+[       OK ] NoDrive.LeftActualSteersTheFrontAxleToLeftTrajectory (54 ms)
+[ RUN      ] NoDrive.RightActualSteersTheFrontAxleToRightTrajectory
+[       OK ] NoDrive.RightActualSteersTheFrontAxleToRightTrajectory (50 ms)
+[ RUN      ] NoDrive.ActualFixtureHoldAccelerateRegenerateAndStopOnRealSdkPlane
+[       OK ] NoDrive.ActualFixtureHoldAccelerateRegenerateAndStopOnRealSdkPlane (92 ms)
+[----------] 13 tests from NoDrive (218 ms total)
+
+[----------] 2 tests from NoDriveFault
+[ RUN      ] NoDriveFault.AmbiguousStepClearsInputsWithoutClaimingObservation
+[       OK ] NoDriveFault.AmbiguousStepClearsInputsWithoutClaimingObservation (1 ms)
+[ RUN      ] NoDriveFault.StepExceptionClearsInputsAndCannotBeRetried
+[       OK ] NoDriveFault.StepExceptionClearsInputsAndCannotBeRetried (0 ms)
+[----------] 2 tests from NoDriveFault (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 15 tests from 2 test suites ran. (220 ms total)
+[  PASSED  ] 15 tests.

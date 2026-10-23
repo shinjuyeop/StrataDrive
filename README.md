@@ -11,7 +11,7 @@ actual 기반 차량/EV 에너지와 유한 물리 응답을 연결했다. M4 �
 
 M7-0 환경 조사와 [CARLA Plant Adapter ICD 초안](docs/icd/carla_plant_adapter.md)을 작성했다.
 [M7-1b 센서 수집](docs/test-plan/evidence/m7_carla_1b/README.md)과
-[M7-1c Actual/fake backend·Drive 논리 경계](docs/test-plan/evidence/m7_carla_1c/README.md)를 한정 검증했다. M7-1d에서 world/state100Hz·영상20Hz로 개정했다. [M7-1f](docs/test-plan/evidence/m7_carla_1f/README.md)는 별도 functional clock과 실제8-role native actor의 CARLA 비주행 shadow barrier를 구현했다. [M7-1g](docs/test-plan/evidence/m7_carla_1g/README.md)는 실제 wheel 센서→native Actual 반환까지 연결했다. [M7-1h](docs/test-plan/evidence/m7_carla_1h/README.md)는 별도 actuator/electrical owner와 실제 wheel 기반 ZOH 예측을 연결했다. 평지 미세 음수 측정·물리량 calibration·정상 actuation은 미해결이다.
+[M7-1c Actual/fake backend·Drive 논리 경계](docs/test-plan/evidence/m7_carla_1c/README.md)를 한정 검증했다. M7-1d에서 world/state100Hz·영상20Hz로 개정했다. [M7-1f](docs/test-plan/evidence/m7_carla_1f/README.md)는 별도 functional clock과 실제8-role native actor의 CARLA 비주행 shadow barrier를 구현했다. [M7-1g](docs/test-plan/evidence/m7_carla_1g/README.md)는 실제 wheel 센서→native Actual 반환까지 연결했다. [M7-1h](docs/test-plan/evidence/m7_carla_1h/README.md)는 별도 actuator/electrical owner와 실제 wheel 기반 ZOH 예측을 연결했다. [M7-1i](docs/test-plan/evidence/m7_carla_1i/README.md)는 직접 wheel effort 서버 확장안을 정리하고 오프라인 변환/거부 경계를 검증했다. [M7-1j](docs/test-plan/evidence/m7_carla_1j/README.md)는 공개 PhysX NoDrive SDK에서 합성 Actual 기반 물리 포트를 구현·검증했다. UE 저장소 접근은 Epic–GitHub 연결 미설정으로 차단되어 CARLA 서버 확장·brake calibration·실제 보호 brake 검증이 남는다.
 
 [현재 상태·OPEN·다음 작업](docs/project_status.md) · [단계/TBD](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 
@@ -193,7 +193,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 ## Milestone Roadmap
 
 [로드맵](docs/roadmap.md)이 단계별 범위와 TBD의 기준이다. M6 Host quiet SIL/MIL은 종료했고,
-[M7-1d](docs/test-plan/evidence/m7_carla_1d/README.md)는10ms world/state·50ms 영상의 비주행 수집을 한정 검증했다. 실제 시간 지연과 서버 종료 crash는 OPEN이다. [M7-1e 진단](docs/test-plan/evidence/m7_carla_1e/README.md)에서 wheel RPC와 수집 비용을 확인했다. [M7-1g](docs/test-plan/evidence/m7_carla_1g/README.md)에서 직접 PhysX omega→native DriveActual 반환을 한정 검증했다. [M7-1h](docs/test-plan/evidence/m7_carla_1h/README.md)에서 actuator/전기 port를 분리했다. 다음은 rad/Nm/Pa actuation 방식과 정지 부근 sensor 오차/validity의 근거 확정이다. M8에서 종방향 모델의 C++ 구현·동등성과
+[M7-1d](docs/test-plan/evidence/m7_carla_1d/README.md)는10ms world/state·50ms 영상의 비주행 수집을 한정 검증했다. 실제 시간 지연과 서버 종료 crash는 OPEN이다. [M7-1e 진단](docs/test-plan/evidence/m7_carla_1e/README.md)에서 wheel RPC와 수집 비용을 확인했다. [M7-1g](docs/test-plan/evidence/m7_carla_1g/README.md)에서 직접 PhysX omega→native DriveActual 반환을 한정 검증했다. [M7-1h](docs/test-plan/evidence/m7_carla_1h/README.md)에서 actuator/전기 port를 분리했다. [M7-1i](docs/test-plan/evidence/m7_carla_1i/README.md)는 NoDrive 기반 직접 effort 포트를 우선 후보로 정하고 수학 prototype을 검증했다. [M7-1j](docs/test-plan/evidence/m7_carla_1j/README.md)의 독립 SDK 포트는 Normal/ASan 각15/15이며 실제 CARLA 연동은 미검증이다. 다음은 Epic–GitHub 연결 후 UE/CARLA 빌드와 서버 포트·brake calibration이다. M8에서 종방향 모델의 C++ 구현·동등성과
 차량 closed-loop를 검증한다. M9 diagnostics, M10–M11 AI, M12 compute 비교, M13 전체 V&V는 후속이다.
 Local fault 보호는 이미 각 component/runtime에 존재하며 M9까지 미루지 않는다.
 

@@ -1,0 +1,35 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from M7ExternalWheel
+[ RUN      ] M7ExternalWheel.ZeroBinDoesNotAuthorizeNegativeToZeroConversion
+[       OK ] M7ExternalWheel.ZeroBinDoesNotAuthorizeNegativeToZeroConversion (0 ms)
+[----------] 1 test from M7ExternalWheel (0 ms total)
+
+[----------] 6 tests from M7ExternalPlant
+[ RUN      ] M7ExternalPlant.HeldWheelAcquisitionIsNotRestampedAtOneMsModelSteps
+[       OK ] M7ExternalPlant.HeldWheelAcquisitionIsNotRestampedAtOneMsModelSteps (0 ms)
+[ RUN      ] M7ExternalPlant.MissingFutureWrongEpochReverseAndNonfiniteInputsLatchWithoutCommit
+[       OK ] M7ExternalPlant.MissingFutureWrongEpochReverseAndNonfiniteInputsLatchWithoutCommit (0 ms)
+[ RUN      ] M7ExternalPlant.StaleOldestDependencyStillExpiresAtThirtyMs
+[       OK ] M7ExternalPlant.StaleOldestDependencyStillExpiresAtThirtyMs (0 ms)
+[ RUN      ] M7ExternalPlant.MutatedCachedSampleDoesNotBecomeNewEnergyInput
+[       OK ] M7ExternalPlant.MutatedCachedSampleDoesNotBecomeNewEnergyInput (0 ms)
+[ RUN      ] M7ExternalPlant.BadOutputAfterCandidateEnergyStepRollsBackAllPhysicalState
+[       OK ] M7ExternalPlant.BadOutputAfterCandidateEnergyStepRollsBackAllPhysicalState (0 ms)
+[ RUN      ] M7ExternalPlant.LostActuatorOutputSelectsZeroAndPressureFloorWithRealResponse
+[       OK ] M7ExternalPlant.LostActuatorOutputSelectsZeroAndPressureFloorWithRealResponse (52 ms)
+[----------] 6 tests from M7ExternalPlant (54 ms total)
+
+[----------] 3 tests from M7ExternalNative
+[ RUN      ] M7ExternalNative.EightRolesUseRealWheelForElectricalZohWithoutVehicleIntegration
+[       OK ] M7ExternalNative.EightRolesUseRealWheelForElectricalZohWithoutVehicleIntegration (622 ms)
+[ RUN      ] M7ExternalNative.FutureEndpointCannotChangePreviousIntervalWork
+[       OK ] M7ExternalNative.FutureEndpointCannotChangePreviousIntervalWork (386 ms)
+[ RUN      ] M7ExternalNative.FractionalTimestampAndOldestRemainOriginal
+[       OK ] M7ExternalNative.FractionalTimestampAndOldestRemainOriginal (533 ms)
+[----------] 3 tests from M7ExternalNative (1542 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (1597 ms total)
+[  PASSED  ] 10 tests.

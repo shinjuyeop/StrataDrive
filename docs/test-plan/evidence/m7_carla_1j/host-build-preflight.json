@@ -1,0 +1,53 @@
+{
+  "utc": "2026-10-23T08:35:23Z",
+  "head": "5017785aba917f6cc27fdacf3b09ddfddc1db806",
+  "ue4_root_configured": null,
+  "commands": {
+    "ue_git_access": {
+      "argv": [
+        "git",
+        "ls-remote",
+        "https://github.com/CarlaUnreal/UnrealEngine.git",
+        "refs/heads/carla"
+      ],
+      "exit": 128,
+      "stdout": "",
+      "stderr": "remote: Repository not found.\nfatal: \uc800\uc7a5\uc18c 'https://github.com/CarlaUnreal/UnrealEngine.git/'\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4\n"
+    },
+    "public_carla_git": {
+      "argv": [
+        "git",
+        "ls-remote",
+        "https://github.com/carla-simulator/carla.git",
+        "refs/tags/0.9.16"
+      ],
+      "exit": 0,
+      "stdout": "294096eb1c38eabf246e4f3a9cdab704e33a7f4c\trefs/tags/0.9.16\n",
+      "stderr": ""
+    }
+  },
+  "disk": {
+    "/d": {
+      "total": 983349252096,
+      "used": 635873247232,
+      "free": 297449078784
+    },
+    "/": {
+      "total": 235214802944,
+      "used": 147100012544,
+      "free": 76091924480
+    }
+  },
+  "tools": {
+    "g++": "/usr/bin/g++",
+    "g++-12": null,
+    "clang": null,
+    "clang++": null,
+    "clang++-10": null,
+    "clang++-14": "/usr/bin/clang++-14",
+    "cmake": "/home/alswoghd/.local/bin/cmake",
+    "ninja": "/home/alswoghd/.local/bin/ninja",
+    "gh": "/usr/bin/gh",
+    "git-lfs": "/usr/bin/git-lfs"
+  }
+}

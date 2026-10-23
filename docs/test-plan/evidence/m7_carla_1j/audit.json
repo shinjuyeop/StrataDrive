@@ -1,0 +1,153 @@
+{
+  "scope": "standalone public SDK / synthetic Actual fixtures only",
+  "traces": {
+    "solver-3": {
+      "result": "FAIL",
+      "errors": [
+        "no negative rear samples"
+      ],
+      "intervals": 850,
+      "negative_rear_samples": 45,
+      "first_negative_frame": 101,
+      "minimum_rear_rad_s": -1.4486925601959229,
+      "acceleration_end_m_s": 1.5515086650848389,
+      "negative_torque_end_m_s": 1.2519874572753906,
+      "stop_m_s": 0.0,
+      "final_z_m": 5.333651542663574,
+      "subdivisions": [
+        [
+          3,
+          3
+        ]
+      ],
+      "sha256": "df6736687879cfc30d1c324b9f141887463df2dfac21ffebf2a45bc5ca64a123"
+    },
+    "solver-10": {
+      "result": "PASS",
+      "errors": [],
+      "intervals": 850,
+      "negative_rear_samples": 0,
+      "first_negative_frame": null,
+      "minimum_rear_rad_s": 0.0,
+      "acceleration_end_m_s": 1.5518020391464233,
+      "negative_torque_end_m_s": 1.2550954818725586,
+      "stop_m_s": 0.0,
+      "final_z_m": 5.364814758300781,
+      "subdivisions": [
+        [
+          10,
+          10
+        ]
+      ],
+      "sha256": "45b79b1a33b6b6fc43ffc10b6babbdc5b1e5ed697e8f6d6fb7834814789f5bcb"
+    },
+    "solver-20": {
+      "result": "PASS",
+      "errors": [],
+      "intervals": 850,
+      "negative_rear_samples": 0,
+      "first_negative_frame": null,
+      "minimum_rear_rad_s": 0.0,
+      "acceleration_end_m_s": 1.5517783164978027,
+      "negative_torque_end_m_s": 1.2550827264785767,
+      "stop_m_s": 0.0,
+      "final_z_m": 5.369064807891846,
+      "subdivisions": [
+        [
+          20,
+          20
+        ]
+      ],
+      "sha256": "4b8a01c8089cac555c2f02b651c52eb7deeee5dfe4ccb770ff37dd1702335b54"
+    },
+    "solver-40": {
+      "result": "PASS",
+      "errors": [],
+      "intervals": 850,
+      "negative_rear_samples": 0,
+      "first_negative_frame": null,
+      "minimum_rear_rad_s": 0.0,
+      "acceleration_end_m_s": 1.55172860622406,
+      "negative_torque_end_m_s": 1.2550102472305298,
+      "stop_m_s": 0.0,
+      "final_z_m": 5.369009971618652,
+      "subdivisions": [
+        [
+          40,
+          40
+        ]
+      ],
+      "sha256": "40dbd53429eadf02587cbfdee47a0084de9c4119efe1e035667435bdf509dd5e"
+    },
+    "physics-normal-verified": {
+      "result": "PASS",
+      "errors": [],
+      "intervals": 850,
+      "negative_rear_samples": 0,
+      "first_negative_frame": null,
+      "minimum_rear_rad_s": 0.0,
+      "acceleration_end_m_s": 1.5517783164978027,
+      "negative_torque_end_m_s": 1.2550827264785767,
+      "stop_m_s": 0.0,
+      "final_z_m": 5.369064807891846,
+      "subdivisions": [
+        [
+          20,
+          20
+        ]
+      ],
+      "sha256": "4b8a01c8089cac555c2f02b651c52eb7deeee5dfe4ccb770ff37dd1702335b54"
+    },
+    "physics-asan-verified": {
+      "result": "PASS",
+      "errors": [],
+      "intervals": 850,
+      "negative_rear_samples": 0,
+      "first_negative_frame": null,
+      "minimum_rear_rad_s": 0.0,
+      "acceleration_end_m_s": 1.5517783164978027,
+      "negative_torque_end_m_s": 1.2550827264785767,
+      "stop_m_s": 0.0,
+      "final_z_m": 5.369064807891846,
+      "subdivisions": [
+        [
+          20,
+          20
+        ]
+      ],
+      "sha256": "4b8a01c8089cac555c2f02b651c52eb7deeee5dfe4ccb770ff37dd1702335b54"
+    }
+  },
+  "expected_results_matched": true,
+  "mutations": {
+    "future-source": [
+      "original fixture source/oldest"
+    ],
+    "new-oldest": [
+      "original fixture source/oldest"
+    ],
+    "wrong-tick": [
+      "10ms interval"
+    ],
+    "wrong-wheel-torque": [
+      "signed rear allocation"
+    ],
+    "wrong-friction": [
+      "synthetic brake vector"
+    ],
+    "negative-wheel": [
+      "no negative rear samples"
+    ],
+    "nonfinite-wheel": [
+      "finite values"
+    ],
+    "claimed-work": [
+      "work remains unavailable"
+    ]
+  },
+  "mutation_rejections": "8/8",
+  "coarse_result_remains": "FAIL",
+  "carla_server": "NOT RUN",
+  "interval_work": "unavailable",
+  "probe_consistency": "PASS"
+}
