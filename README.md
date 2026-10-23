@@ -9,6 +9,10 @@ Central·Front·Rear 3개 프로세스의 SOME/IP Host FIFO 경로에 실제8-ro
 actual 기반 차량/EV 에너지와 유한 물리 응답을 연결했다. M4 전체 종료, SDK sanitizer 전체
 기능 완료, Jetson·전체 시스템 검증을 뜻하지 않는다.
 
+M7-0 환경 조사와 [CARLA Plant Adapter ICD 초안](docs/icd/carla_plant_adapter.md)을 작성했다.
+[M7-1 비주행 연결·센서 시험](docs/test-plan/m7_carla_preflight.md)은 준비 가능하며 CARLA 실행은
+NOT RUN이다. 20Hz state/Drive30ms freshness와 물리량 calibration은 정상 주행 전 미해결 gate다.
+
 [현재 상태·OPEN·다음 작업](docs/project_status.md) · [단계/TBD](docs/roadmap.md) · [학습 안내](docs/learning/README.md)
 
 ## Project Overview
@@ -189,7 +193,7 @@ unshare --user --map-root-user --net python3 tests/integration/can/check_socketc
 ## Milestone Roadmap
 
 [로드맵](docs/roadmap.md)이 단계별 범위와 TBD의 기준이다. M6 Host quiet SIL/MIL은 종료했고,
-다음은 M7 CARLA 접속 계약/호환 환경 확인이다. M8에서 종방향 모델의 C++ 구현·동등성과
+M7-0 조사·계약 초안 이후 다음은 M7-1 비주행 접속·센서/경계 시험이다. M8에서 종방향 모델의 C++ 구현·동등성과
 차량 closed-loop를 검증한다. M9 diagnostics, M10–M11 AI, M12 compute 비교, M13 전체 V&V는 후속이다.
 Local fault 보호는 이미 각 component/runtime에 존재하며 M9까지 미루지 않는다.
 

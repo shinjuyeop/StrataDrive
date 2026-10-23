@@ -7,6 +7,8 @@ interface ID를 보존한 이름이며 Host 구현의 실제 transport는 SOME/I
 [Front](someip_front_adapter.md)/[Rear](someip_rear_adapter.md), 모델은
 [SimpleVehicle/MIL](simple_vehicle.md)/[vehicle-energy](vehicle_energy.md)를 따른다.
 CAN/DBC/P05 의미와 원천 시각·권한 검사는 유지하며 아래 ID를 rename하지 않는다.
+M7 IF-HOST-ACTUATOR/SENSOR의 [Plant Adapter 의미 계약 초안](carla_plant_adapter.md)은
+actual-only·좌표/단위·clock·GT 분리와50ms/30ms 통합 gate를 정의한다. 새 wire 구현은 NOT RUN이다.
 
 | Interface ID | 논리적 내용 | Source → Destination | Transport / schema |
 | --- | --- | --- | --- |

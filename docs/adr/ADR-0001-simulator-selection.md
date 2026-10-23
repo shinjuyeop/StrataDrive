@@ -42,3 +42,12 @@ control을 분리해야 한다. Mapping 충실도, 동기화, 필요한 scenario
 M0에서는 CARLA를 설치하거나 release 호환성을 검증하지 않았다.
 
 미결정 항목의 owner/rationale은 [TBD register](../roadmap.md#open-m0-decisions)를 따른다.
+
+## 2026-10-23 M7-0 후속 조사
+
+[Host 실측·공식 호환성 조사](../test-plan/m7_carla_preflight.md)에 따라0.9.16 패키지,
+Client0.9.16/Python3.10, ScenarioRunner v0.9.16을 우선 후보로 유지한다. UE5의 영상 fidelity
+이점은 있으나 이번 접속/계약 단계의 전환 필요성은 없어 보류한다. 설치·실행 검증은 NOT RUN.
+[Plant Adapter 초안](../icd/carla_plant_adapter.md)은 기존 actual-only 경계를 유지하며
+50ms state/Drive30ms·substep actuation·calibration이 해결되기 전 정상 주행을 차단한다.
+M7-1 비주행 연결/센서/negative 시험과 실제 주행 gate를 구분한다. M0의 당시 수용은 변경하지 않는다.

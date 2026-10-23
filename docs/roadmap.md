@@ -13,7 +13,7 @@
 | M4 | Central·양 Zone·owner/session/protection — Host IO/FIFO component 한정 수용, 전체 NOT CLOSED |
 | M5 | 실제 Central↔Front/Rear SOME/IP IP 경계·8참여자·보호/재가입 — 해당 Host FIFO 기능 한정 수용, DDS CLOSED |
 | M6 | Simple Vehicle+EV actual/lifecycle/energy·물리 응답·종방향 모델/MIL — **Host quiet SIL/MIL 범위 CLOSED** |
-| M7 | CARLA 접속·actual-only single writer·clock/multirate·Host–Target 배포/매핑 — NOT RUN |
+| M7 | M7-0 Host 조사·Plant Adapter ICD 초안/시험 계획 작성 완료; M7-1 비주행 접속·수집 준비 가능. CARLA runtime/정상 주행·Host–Target 배포 NOT RUN |
 | M8 | Classical driving, M6 종방향 모델→C++ 공통 vector 동등성/차량 SIL, route/waypoint·lateral control — NOT RUN |
 | M9 | Fault/Diagnostics/DTC 통합. Local fault 보호는 이미 각 component에서 구현 |
 | M10/M11 | Physical AI perception/temporal planner·classical fallback |
@@ -22,13 +22,15 @@
 
 ## 다음 작업
 
-M7 첫 단위는 **호환 환경과 CARLA synchronous actual bridge 계약 확정**이다.
-[선행 조건](m6_exit_review.md#다음-한-단계--m7-최초-접속-계약과-환경-확인):
-실제 GPU/OS·server/client/Python/ScenarioRunner 버전,50ms tick·single writer,
-20Hz state와 기존30ms freshness,좌표/단위·중복 dynamics/energy 방지·clock/invalid 처리를 확인한다.
-M7 구현·설치·새 차량 시험은 이번 검토에서 수행하지 않았다. SDK/M4/DDS의 역사적 OPEN을
-이 첫 작업의 일괄 선행 조건으로 추가하지 않는다. Jetson은 원래 Host+보드 한 대 계획이며
-BSP/ABI/권한/NIC·clock/실제 배포 검증을 건너뛰지 않는다.
+M7-0의 [환경 조사·M7-1 계획](test-plan/m7_carla_preflight.md)과
+[Plant Adapter ICD 초안](icd/carla_plant_adapter.md)을 기준으로 M7-1a 환경/버전 확인 →
+M7-1b 비주행 RGB/GT/state 수집 → M7-1c actual-only·freshness 거부 시험을 수행한다.
+CARLA0.9.16을 우선 후보로 유지하며 다운로드/설치/빌드/실행은 아직 하지 않았다.
+50ms world state는 기존 Drive30ms source-age를 충족하지 못한다. 실제 substep 관측·ECU
+exchange·actuation/clock과 calibration을 입증하기 전 정상 주행 연결은 BLOCKED다.
+캐시 restamp·요구 완화·command 우회는 해결안이 아니다. [M6 선행 조건](m6_exit_review.md#다음-한-단계--m7-최초-접속-계약과-환경-확인)을 유지하고,
+SDK/M4/DDS의 역사적 OPEN 전체를 이 첫 비주행 시험의 선행 조건으로 추가하지 않는다.
+Jetson BSP/ABI/권한/NIC·clock/실제 배포 검증은 별도 후속이다.
 
 ## Engineering activities
 
@@ -66,14 +68,14 @@ AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 �
 | ID | 미결정 사항 / owner 역할 | 결정 milestone / gate | 보류 rationale / 영향 |
 | --- | --- | --- | --- |
 | TBD-01 | CAN ID/DLC/layout/scaling/ranges, CRC/counter/epoch/source-age metadata, queue/restart/startup handshake, timeout threshold / interface 담당 | **M1**, DBC/codec 및 vector test 전; task 검증 M2/M3 | M0는 의미/검출 상한을 고정하고 encoding을 M1 산출물로 유지; 100 ms에 polling/실행 margin 포함 |
-| TBD-02 | units의 raw scaling, allocation/calibration 값, frame/geometry 변환, feedback skew/age 한계, dynamics 중복 방지 / plant·interface 담당 | **M1** wire 범위; **M2** actuator 의미 구현; **M6** simple mapping; **M7** CARLA mapping 전 | M6 SIL geometry/force·actual mapping은 종료 검토의 부분 결정; M7 CARLA/OEM 변환·calibration은 미결정 |
-| TBD-03 | actuator delay/saturation/dynamics/초기값, Steering/Brake timeout 물리 출력, Drive zero-target 후 torque 감소/ramp/반응 deadline, recovery dwell / vECU 담당 | **M2**, 각 actuator 정상/fault test 전; M6/M7 재검증 | M6 현재 모델의 finite 응답/standing hold·230ms 물리 budget 확정; 다른 vehicle/Target budget은 후속, raw fallback/무제한 torque 유지 금지 |
-| TBD-04 | task/E2E deadline/budget, source-age 한계, clock sync/uncertainty, trace/overhead/queue schedule, watchdog 독립성, priority/affinity, multirate ordering, timing warmup/duration/repetitions / timing 담당 | **M1** timeout encoding budget; **M3** 측정 protocol/task budget; **M5/M7** cross-node/E2E 전 | 부분 결정: ADR-0033/0034 Host task 10/20/2 ms·deadline 5/8/3 ms, monitor/plant 2 ms와 RX threshold 80 ms·검출 <=100 ms; ADR-0035/37 부하·배치와 ADR-0038의 whole-cycle/CPU·1221개 기회·RX 대응 기록; ADR-0039 Host owner deadline 4 ms·1211 guard slots·교차 보호·이중 수신 감시 채택; ADR-0042 Host FIFO fixture 비교 수행; 차량/Target 우선순위·E2E 미결정 |
+| TBD-02 | units의 raw scaling, allocation/calibration 값, frame/geometry 변환, feedback skew/age 한계, dynamics 중복 방지 / plant·interface 담당 | **M1** wire 범위; **M2** actuator 의미 구현; **M6** simple mapping; **M7** CARLA mapping 전 | M6 SIL geometry/force·actual mapping은 종료 검토의 부분 결정; M7 좌표/SI 의미·actual-only port는 [ICD 초안](icd/carla_plant_adapter.md)으로 결정. CARLA geometry/역변환·오차 한계/OEM calibration은 미결정, 정상 apply 전 gate |
+| TBD-03 | actuator delay/saturation/dynamics/초기값, Steering/Brake timeout 물리 출력, Drive zero-target 후 torque 감소/ramp/반응 deadline, recovery dwell / vECU 담당 | **M2**, 각 actuator 정상/fault test 전; M6/M7 재검증 | M6 현재 모델의 finite 응답/standing hold·230ms 물리 budget 확정; M7 actuator 응답은 기존 physical owner, 차량 운동은 CARLA로 소유권 결정. engine/steering 중복 제거·외부 물리 응답 budget은 미검증, raw fallback/무제한 torque 유지 금지 |
+| TBD-04 | task/E2E deadline/budget, source-age 한계, clock sync/uncertainty, trace/overhead/queue schedule, watchdog 독립성, priority/affinity, multirate ordering, timing warmup/duration/repetitions / timing 담당 | **M1** timeout encoding budget; **M3** 측정 protocol/task budget; **M5/M7** cross-node/E2E 전 | 부분 결정: ADR-0033/0034 Host task 10/20/2 ms·deadline 5/8/3 ms, monitor/plant 2 ms와 RX threshold 80 ms·검출 <=100 ms; ADR-0035/37 부하·배치와 ADR-0038의 whole-cycle/CPU·1221개 기회·RX 대응 기록; ADR-0039 Host owner deadline 4 ms·1211 guard slots·교차 보호·이중 수신 감시 채택; ADR-0042 Host FIFO fixture 비교 수행; M7 50ms tick 단일 owner·20/10ms 유지. 20Hz state→Drive30ms 불충족 및50ms actual hold 문제는 [ICD](icd/carla_plant_adapter.md)의 true substep/clock gate OPEN; 차량/Target 우선순위·E2E 미결정 |
 | TBD-05 | middleware 구현체/API·schema/integrity·격리·bridge/discovery / communication 담당 | M5 Host 적용; M7 Target 연결 전 재검증 | Host SOME/IP/vSomeIP3.7.6 direct C++·netns/veth/owner-wire는 ADR-0060→0061→0062로 한정 채택. DDS/Cyclone 종료·TSan gate CLOSED는 별도 보존; Target은 미검증 |
 | TBD-06 | Central allocation/conflict arbitration, availability/rejoin/local protection 상세, DEGRADED envelope, local↔Central state reconcile / Central VCU·Zone safety 담당 | **M4**, local fault/재연결 시험 전 | 정상 torque/brake 충돌과 actuator availability 검증 필요; critical loss는 M0에서 FAIL_SAFE로 고정 |
-| TBD-07 | exact CARLA/Ubuntu/Python/ScenarioRunner 호환 build, map/route/seed/geometry/curve, Host GPU, tick/apply ordering 및 fidelity / simulation 담당 | **M7 통합 전**, route suitability M8 확인 | M6 단일 Host physical owner/clock는 결정. CARLA 접속/호환 버전·실제 mapping은 M7 시작 전에 확인; ODD/50ms baseline 유지 |
+| TBD-07 | exact CARLA/Ubuntu/Python/ScenarioRunner 호환 build, map/route/seed/geometry/curve, Host GPU, tick/apply ordering 및 fidelity / simulation 담당 | **M7 통합 전**, route suitability M8 확인 | M7-0 Host Ubuntu22.04.5/RTX3090 24GB 확인, CARLA0.9.16·Client0.9.16/Python3.10·ScenarioRunner v0.9.16 후보. UE5 전환 보류. [공식 근거/실측](test-plan/m7_carla_preflight.md); exact artifact·runtime·map/geometry/calibration·substep은 OPEN, ODD/50ms 유지 |
 | TBD-08 | DTC code/debounce/persistence/clear, diagnostic aggregation cadence/storage / diagnostics 담당 | **M9**, event→DTC 통합 전 | local fault/protection은 M2/M4부터 구현, DTC 통합이 선행 조건 아님 |
-| TBD-09 | board/RAM/platform stack/power/cooling, reference AI model/checksum/input/precision/feature, profile override, accuracy/resource threshold와 benchmark protocol / compute·AI 담당 | **M5** 첫 Target 호환 stack; **M10** model/reference workload; **M12** board별 비교 전 | 두 보드 독립 배포 원칙은 확정; 동일 binary/engine/JetPack 호환을 가정하지 않음 |
+| TBD-09 | board/RAM/platform stack/power/cooling, reference AI model/checksum/input/precision/feature, profile override, accuracy/resource threshold와 benchmark protocol / compute·AI 담당 | **M5** 첫 Target 호환 stack; **M10** model/reference workload; **M12** board별 비교 전 | 두 보드 독립 배포 원칙 유지. M7-0 Host 자원만 조사; GT는 학습/평가 전용, M7-1 camera smoke 설정은 AI Reference 확정 아님. Jetson·model/feature·동일 binary/engine/JetPack 호환 미검증 |
 | TBD-10 | perception/learned-planner shape/risk/history/calibration, AI fallback timing/feasibility/recovery / AI·safety 담당 | **M10/M11**, AI 통합 시험 전 | classical M8 baseline 후 확장; AI로 actuator 직접 제어 금지는 확정 |
 | TBD-11 | C++ standard/compiler/CI/test tool versions, artifact size/license/storage policy; control 알고리즘/tuning, speed transition slope/duration, scenario repetitions / toolchain·control 담당 | **M1** 첫 code/tool 전; **M8** control/정상 시험 전; **M10** 첫 model fixture 전 | 작은 변경과 설명 가능한 도구 선택; 5 s settling + 10 s steady window와 수치 requirement 변경은 revision 필요 |
 | TBD-12 | EV 전원 sequence/주행 허가/INIT handshake, LV·충전 연결·interlock와 고장별 torque/power reaction, shutdown/복구 threshold·budget / vehicle management·safety 담당 | **M1** 의미/handshake; **M2** power component 시험 전; **M4/M6** gate/vehicle 검증 전 | M6 SIL의 실제8-role startup/RunLease/arm·정상 stop/HV-off·재가입 검증 완료. 외부 차량/LV/charging/Target 반응은 후속; READY≠권한≠물리 완료 |
