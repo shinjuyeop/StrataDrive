@@ -176,8 +176,9 @@ world10ms 안에서 차량 내부 `setSubStepCount`를3/10/20/40으로 비교했
 아니며 차량 질량·타이어·gain은 바꾸지 않았다. 이 설정을 CARLA `max_substeps`와 혼동하거나
 stock 바이너리의 평지 실패 해결로 수용하지 않는다. 정확도 허용 오차·전체 ODD는 OPEN이다.
 
-공개 SDK build는 성공했으나 UE fork는 접근404이며 Epic–GitHub 연결 미설정이다.
-실제 UE/CARLA 포트는 NOT RUN이다. 계정 연결 후 동일 의미를 실제 서버 lifecycle·scene tick
+1j 초기 UE fork404 이후 Epic 연결과 [UE4.26.2 전체 빌드](../test-plan/evidence/m7_carla_1j_ue_build/README.md)를 완료했다.
+후속 [CARLA 기본 빌드](../test-plan/evidence/m7_carla_1j_carla_build/README.md)는 Client/서버 module exit0이다.
+source 서버 실행·직접 포트는 NOT RUN이다. 동일 의미를 실제 서버 lifecycle·scene tick
 안에 구현·검증하고 brake calibration과 구간 work를 해결해야 정상 주행 gate를 열 수 있다.
 
 ## 4. 좌표계와 센서 계약

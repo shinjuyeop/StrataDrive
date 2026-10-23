@@ -1,0 +1,39 @@
+diff --git a/Util/BuildTools/Setup.sh b/Util/BuildTools/Setup.sh
+index 9f93676..213aee2 100755
+--- a/Util/BuildTools/Setup.sh
++++ b/Util/BuildTools/Setup.sh
+@@ -422,7 +422,7 @@ unset RECAST_BASENAME
+ # ==============================================================================
+ 
+ LIBPNG_VERSION=1.6.37
+-LIBPNG_REPO=https://sourceforge.net/projects/libpng/files/libpng16/${LIBPNG_VERSION}/libpng-${LIBPNG_VERSION}.tar.xz
++LIBPNG_REPO=https://downloads.sourceforge.net/project/libpng/libpng16/older-releases/${LIBPNG_VERSION}/libpng-${LIBPNG_VERSION}.tar.xz
+ LIBPNG_BASENAME=libpng-${LIBPNG_VERSION}
+ LIBPNG_INSTALL=${LIBPNG_BASENAME}-install
+ 
+@@ -729,6 +729,9 @@ else
+ 
+   mv ${PROJ_VERSION} ${PROJ_SRC_DIR}
+ 
++  # PROJ 7.2.1 uses std::int64_t but omits its defining header.
++  sed -i '/#include <vector>/i #include <cstdint>' ${PROJ_SRC_DIR}/src/proj_json_streaming_writer.hpp
++
+   mkdir -p ${PROJ_SRC_DIR}/build
+   mkdir -p ${PROJ_INSTALL_DIR}
+ 
+@@ -738,6 +741,7 @@ else
+       -DCMAKE_CXX_FLAGS="-std=c++14 -fPIC" \
+       -DSQLITE3_INCLUDE_DIR=${SQLITE_INCLUDE_DIR} -DSQLITE3_LIBRARY=${SQLITE_LIB} \
+       -DEXE_SQLITE3=${SQLITE_EXE} \
++      -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+       -DENABLE_TIFF=OFF -DENABLE_CURL=OFF -DBUILD_SHARED_LIBS=OFF -DBUILD_PROJSYNC=OFF \
+       -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJINFO=OFF \
+       -DBUILD_CCT=OFF -DBUILD_CS2CS=OFF -DBUILD_GEOD=OFF -DBUILD_GIE=OFF \
+@@ -756,6 +760,7 @@ else
+       -DCMAKE_CXX_FLAGS="-std=c++14 -fPIC -stdlib=libc++ -I${LLVM_INCLUDE} -Wl,-L${LLVM_LIBPATH}"  \
+       -DSQLITE3_INCLUDE_DIR=${SQLITE_INCLUDE_DIR} -DSQLITE3_LIBRARY=${SQLITE_LIB} \
+       -DEXE_SQLITE3=${SQLITE_EXE} \
++      -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+       -DENABLE_TIFF=OFF -DENABLE_CURL=OFF -DBUILD_SHARED_LIBS=OFF -DBUILD_PROJSYNC=OFF \
+       -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJINFO=OFF \
+       -DBUILD_CCT=OFF -DBUILD_CS2CS=OFF -DBUILD_GEOD=OFF -DBUILD_GIE=OFF \

@@ -1,0 +1,31 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "make",
+        "LibCarla.server.release",
+        "osm2odr",
+        "downloadplugins"
+      ],
+      "exit": 0
+    },
+    {
+      "argv": [
+        "bash",
+        "Util/BuildTools/BuildUE4Plugins.sh",
+        "--build"
+      ],
+      "exit": 0
+    },
+    {
+      "argv": [
+        "bash",
+        "Util/BuildTools/BuildCarlaUE4.sh",
+        "--build",
+        "--no-simready"
+      ],
+      "exit": 0
+    }
+  ],
+  "utc": "2026-10-23T13:46:51.737634+00:00"
+}

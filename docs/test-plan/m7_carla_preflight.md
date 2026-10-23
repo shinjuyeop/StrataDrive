@@ -120,6 +120,25 @@ UE fork 접근은 Git/GitHub CLI404이며 사용자가 Epic–GitHub 연결을 �
 calibration/보호 제동·wheel → 구간 work 순서로 계속한다. 기존 package/venv·M6는 유지한다.
 원래 M7-0/1a–1i의 source build 제외 기록은 당시 범위이며1j부터 변경됐다.
 
+## 2026-10-23 후속 — UE4.26.2 빌드 완료
+
+[빌드 근거](evidence/m7_carla_1j_ue_build/README.md): Epic 연결 후 fork 접근 성공,
+`carla` branch commit e9d9e60c85f643e10eeb03f42f61554d18dcb30f 고정.
+Setup/프로젝트 파일 생성 exit0, 중단했던 make를 재개하여 전체 exit0을 확인했다.
+UE4Editor 및 도구 생성, ldd missing0이며 engine tracked source 변경 없음.
+editor runtime/CARLA build·정상 actuation은 NOT RUN이다. 다음은 g++-12 등 CARLA 빌드
+의존성·별도 Client 환경·버전에 맞는 asset 준비와 기본 서버/client build다.
+이전 fork404·UE4_ROOT 누락·중단 기록은 당시 근거로 보존한다.
+
+## 2026-10-23 후속 — CARLA Client/서버 모듈 빌드
+
+[의존성·실제 build 근거](evidence/m7_carla_1j_carla_build/README.md): g++-12 등 시스템
+패키지 설치 확인 후 별도 Python3.10 venv에서 Client wheel과 서버 모듈을 빌드했다.
+Client01 URL404/02 PROJ include/03 PROJ C PIC 실패를 보존하고 최소 build patch 후
+Client04 exit0/import 성공, server01 exit0/ldd missing0을 확인했다. SimReady는 제외했다.
+0.9.16 content ID는20250912_2171890이다. source Client identity는294096e-dirty이며
+서버 handshake/ego/runtime·NoDrive 직접 포트는 NOT RUN이다. 다음은 source 서버 smoke다.
+
 ## 실제 Host 관측
 
 아래는 공식 권장값이 아니라 이 작업 terminal에서 얻은 snapshot이다. 메모리/공간은 변동한다.
