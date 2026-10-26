@@ -139,6 +139,34 @@ Client04 exit0/import 성공, server01 exit0/ldd missing0을 확인했다. SimRe
 0.9.16 content ID는20250912_2171890이다. source Client identity는294096e-dirty이며
 서버 handshake/ego/runtime·NoDrive 직접 포트는 NOT RUN이다. 다음은 source 서버 smoke다.
 
+## 2026-10-26 후속 — source 서버 실행
+
+[실행·실패·범위](evidence/m7_carla_1j_source_smoke/README.md): Town10HD_Opt는 최초
+1800s 준비 한도를 넘겼고 추가 관찰 뒤 SIGINT에 응답하지 않아 강제 정리했다. 반복 준비
+조회가 backlog를 누적시킨 관측도 보존하고, 이후 LoadMap 완료 후 조회하는 방식으로 바꿨다.
+Town03_Opt 렌더링 시작에서는 distance field/GPUScene 경로 SIGSEGV를 관측했다.
+시작 DisableRendering INI로 재실행하고 초기 INI/Episode 읽기값을 혼동한 harness 실패를
+수정한 뒤, 비렌더링 identity/ego 정상·예외2/2 및10ms 본 관측102샘플을 검증했다.
+Episode 설정 복원 후 SIGINT130과 포트/소유 프로세스 정리를 확인했다. exit0 수용이 아니다.
+raw timestamp와 실패를 보존했으며 비렌더링 결과를 RGB/GT·렌더링 crash 해결로 확대하지 않는다.
+기존 M6/age30ms·native guard는 유지하고 해당 wall 수용 시험은 수행하지 않았다.
+후속 [렌더링 조사](evidence/m7_carla_1j_render_diagnosis/README.md)에서는 같은 바이너리의
+camera 경로 SIGSEGV와 유효하지 않은 Distance Field 내부 참조를 GDB로 관측했다.
+다음 GDB1회·native 같은 서버2회는 각각150tick/RGB·GT30쌍 수신·정리/설정 복원에 성공했다.
+간헐 재현이며 원인은 미확정이다. shader 준비 중 체크무늬 재질·첫60ms 영상 간격도 보존한다.
+완전 센서 delivery/렌더러 안정성·정상 actuation 수용은 아니다. engine patch는 적용하지 않았다.
+다음은 실패 시 자원 수명 추적과 asset 준비 완료 조건의 새 native 서버 반복 검증이다.
+
+[후속 준비/반복 검증](evidence/m7_carla_1j_render_followup/README.md): 넓은 proxy 추적은
+world20s timeout으로 FAIL했고, 줄인 추적의 ego/camera는 한정 통과했다. DDC01은 exit0에도
+대상 맵0개로 FAIL, 파일 경로를 고친 DDC02는10개 대상을 인식했으나 광범위 cooked 데이터
+생성으로 확대돼 SIGINT 후 수동 강제 중단했다. 모두 보존하고 실제 장면 준비 관측으로 전환했다.
+ego/RGB/GT 유지23,620tick·1169.091s에서 shader/Distance Field zero를10s 간격2회 확인했다.
+준비 후 GDB1회·서로 다른 새 native2서버 각150tick/30쌍·정리/복원·SIGINT130을 확인했다.
+샘플 RGB의 대체 체크무늬가 벽면 재질로 바뀐 것을 확인했지만 전체 content 적합성은 OPEN이다.
+첫60ms 영상 간격·원래 timestamp를 보존했다. root cause 미확정이며 engine/M6 변경은 없다.
+다음 작은 작업은 이 제한된 baseline의 NoDrive single-writer/frame stage·receipt 최소 서버 포트다.
+
 ## 실제 Host 관측
 
 아래는 공식 권장값이 아니라 이 작업 terminal에서 얻은 snapshot이다. 메모리/공간은 변동한다.

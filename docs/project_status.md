@@ -1,6 +1,6 @@
 # Project status
 
-Updated: **2026-10-23**. 현재 구현·수용 범위의 대표 문서다.
+Updated: **2026-10-26**. 현재 구현·수용 범위의 대표 문서다.
 단계/TBD는 [로드맵](roadmap.md), 종료 판단은 아래 review, 실행 원본·과거 분모는 각 evidence와
 [품질 이력](quality_policy.md)을 따른다. 이력의 당시 미구현/FAIL을 현재 상태로 해석하지 않는다.
 
@@ -25,6 +25,9 @@ Updated: **2026-10-23**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1h | M7 actuator/electrical owner 분리·실제 wheel 기반1ms ZOH 예측 연결. Normal/ASan 각32/32. 평지 SubResolutionNegative 거부 유지; CARLA 실제 work/actuation 미연결 | [구현/실행/제한](test-plan/evidence/m7_carla_1h/README.md) |
 | M7-1i | 직접 wheel effort 서버 확장안을 우선 후보로 결정, rad/Nm/Pa 수학 prototype Normal/ASan 각16/16·기존 M7 각71/71. package 직접 포트·brake calibration 부재 확인, 음수 보정 미채택. 새 CARLA 실행/빌드 없음 | [조사/검증/후속](test-plan/evidence/m7_carla_1i/README.md) |
 | M7-1j | source build 범위 착수. 공개 PhysX CHECKED SDK·합성 Actual→NoDrive 포트 Normal/ASan 각15/15. 기본 적분 음수45/850 FAIL 보존, 내부20분할 후보에서0/850. 후속 Epic 연결·UE4.26.2 make exit0. 후속 CARLA Client/서버 module build exit0, 직접 연동 미완료 | [빌드/실행/제한](test-plan/evidence/m7_carla_1j/README.md) |
+| M7-1j source 실행 | Town03 비렌더링 연결/identity·ego 정상/예외2/2·10ms102샘플 한정 통과. SIGINT130·자원 정리 확인. Town10 준비 한도 초과/강제 종료와 Town03 렌더링 SIGSEGV·검증 코드 초기조건 FAIL 보존. 렌더링 OPEN | [실행·실패·제한](test-plan/evidence/m7_carla_1j_source_smoke/README.md) |
+| M7-1j 렌더링 조사 | GDB camera SIGSEGV의 잘못된 Distance Field 참조 관측, 원인 미확정. 같은 바이너리의 GDB1회·native 같은 서버2회 각 RGB/GT30쌍·150tick·actor 정리/설정 복원 한정 통과. 재질 준비/렌더러 안정성 OPEN | [조사·실패·한계](test-plan/evidence/m7_carla_1j_render_diagnosis/README.md) |
+| M7-1j 준비 baseline | ego/RGB/GT 유지 중 shader·Distance Field zero를10s 간격2회 확인. 준비 후 GDB1회·새 native2서버 각150tick/30쌍 및 정리/복원, SIGINT130 한정 확인. broad trace timeout·DDC01 대상0/02 수동 중단 보존. 원래 crash root cause OPEN | [후속 검증](test-plan/evidence/m7_carla_1j_render_followup/README.md) |
 | M7 후속–M13 | PLANNED / NOT RUN; 정상 CARLA 주행 연결 BLOCKED | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
@@ -59,7 +62,7 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 
 ## 다음 작업
 
-**M7-1j는 부분 완료이며, UE/CARLA 기본 빌드 완료 후 source 서버 smoke가 다음 단계다**.
+**M7-1j는 준비된 Town03 비주행 반복 baseline을 확보했다. 원래 렌더링 crash 원인과 정상 actuation은 OPEN이다**.
 [M7-1j](test-plan/evidence/m7_carla_1j/README.md)에서 공개 CARLA source를 확보하고 공개 PhysX3.4
 CHECKED SDK·합성 Actual→NoDrive 물리 포트를 구현했다. Normal/ASan 각15/15, 독립 CSV
 손상8/8 거부를 확인했다. 외부 SDK 자체는 sanitizer 미계측이며 UBSan vptr만 제외했다.
@@ -74,14 +77,28 @@ Epic–GitHub 연결 후 UE fork 접근을 확인했고, `carla` branch의 UE4.2
 중단했던 make를 재개해 전체 exit0, UE4Editor 및 도구 생성·ldd missing0 확인.
 engine tracked source 변경은 없다. 후속 [CARLA 기본 빌드](test-plan/evidence/m7_carla_1j_carla_build/README.md)에서
 의존성 설치 확인·별도 venv의 Client wheel과 서버 module build exit0/import·ldd missing0을 확인했다.
-libpng URL404/PROJ include/PIC 실패3시도와 최소 build patch를 보존했다. 서버 실행은 NOT RUN이다.
+libpng URL404/PROJ include/PIC 실패3시도와 최소 build patch를 보존했다.
+후속 [source 실행](test-plan/evidence/m7_carla_1j_source_smoke/README.md)에서 Client/Server
+294096e-dirty 일치와 Town03 비렌더링 ego 정상/예외2/2, 본 관측102개의10ms tick을 검증했다.
+Episode 설정 복원 후 SIGINT130으로 종료했고 포트/소유 프로세스가 정리됐다. exit0 판정은 아니다.
+Town10 최초 준비1800s 한도 초과/수동 강제 종료, Town03 렌더링 시작 SIGSEGV와 시작 INI/Episode
+읽기값을 동일하게 가정한 harness FAIL을 보존했다. 비렌더링 성공으로 렌더링 FAIL을 닫지 않는다.
 이전 fork404와 UE4_ROOT 누락 build 실패는 당시 evidence로 보존한다.
-시스템 의존성 설치와 전용 Python/0.9.16 content 준비를 마쳤다. 다음은 source 서버
-identity/연결·ego smoke →
-서버 NoDrive/writer/frame 포트 → 실제 geometry/brake calibration → 보호 Brake Actual과 raw wheel
+시스템 의존성과 전용 Python/0.9.16 content를 준비했다. 후속
+[렌더링 조사](test-plan/evidence/m7_carla_1j_render_diagnosis/README.md)에서 camera 경로 SIGSEGV의
+유효하지 않은 Distance Field 내부 참조를 GDB로 관측했다. 같은 바이너리에서 GDB1회와
+native 같은 서버2회가 각각150tick/RGB·GT30쌍 수신·정리/복원에 성공했지만 원인은 미확정이다.
+체크무늬 재질·shader 준비 지속·첫60ms 간격도 남아 있으며 native supervisor exit143/종료 wait status
+미확보를 별도 기록했다. engine 수정이나 요구 완화는 하지 않았다.
+후속 [준비/반복 검증](test-plan/evidence/m7_carla_1j_render_followup/README.md)에서 넓은 추적의 world timeout과
+DDC01 대상0/02 광범위 cooked cache 수동 중단을 보존했다. 실제 ego/RGB/GT를 유지하며
+shader/Distance Field zero를10s 간격2회 확인했고 준비 후 GDB1회·별도 새 native2서버에서
+각150tick/30쌍 수집·정리/복원을 확인했다. native SIGINT130이며 full stability 수용이 아니다.
+원래 잘못된 참조의 원인은 재현되지 않아 OPEN이고 기존 누락 content 경고도 남는다.
+다음은 이 제한된 baseline의 서버 NoDrive/writer/frame 포트 → 실제 geometry/brake calibration → 보호 Brake Actual과 raw wheel
 검증 → interval work/EV 연결 순서다. 합성 pressure table은 calibration이
 아니며 numerical subdivision은 이 독립 시험의 후보 설정이다. epsilon/clamp는 추가하지 않았다.
-새 CARLA 서버 실행·정상 주행·에너지 수용은 NOT RUN이고 기존 M6는 유지한다.
+source 영상은 위 최소 수신 진단만 검증했다. 완전 센서 delivery·정상 주행·에너지 수용은 NOT RUN이고 기존 M6는 유지한다.
 
 [M7-1h](test-plan/evidence/m7_carla_1h/README.md)에서 별도 actuator/electrical owner를 구현했다.
 차량 운동을 중복 적분하지 않고, 전기 모델에 각1ms 구간 begin 이전의 실제 wheel 원천을 넣는다.

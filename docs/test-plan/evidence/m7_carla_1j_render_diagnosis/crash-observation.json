@@ -1,0 +1,50 @@
+{
+  "status": "OPEN",
+  "crash_site": "FDistanceFieldVolumeTexture::IsValidDistanceFieldVolume; rendering thread SceneCapture/GPUScene",
+  "texture_this": "0x7ffe64861350",
+  "volume_data_reference": "0x0100000400000000",
+  "fault_instruction": "mov 0x18(%rax),%ecx",
+  "rax": "0x0100000400000000",
+  "confirmed": "non-null texture address; invalid internal reference at fault; simple missing null guard is insufficient",
+  "hypotheses": [
+    "stale proxy / use after free",
+    "other memory corruption or object/layout misuse"
+  ],
+  "not_proven": [
+    "allocation/free owner and responsible mesh",
+    "async replacement as root cause",
+    "cache preparation as fix",
+    "GPU driver as cause"
+  ],
+  "source_review": [
+    {
+      "path": "Engine/Source/Runtime/Engine/Private/StaticMeshRender.cpp",
+      "lines": [
+        215,
+        1938
+      ],
+      "finding": "proxy caches LOD0 DistanceFieldData; HasDistanceFieldRepresentation already guards pointer before checking volume"
+    },
+    {
+      "path": "Engine/Source/Runtime/Engine/Private/DistanceFieldAtlas.cpp",
+      "lines": [
+        868,
+        1245,
+        1300
+      ],
+      "finding": "volume reference dereferenced; asynchronous replacement/recreate/deferred cleanup ownership needs tracking"
+    },
+    {
+      "path": "Engine/Source/Runtime/Engine/Public/StaticMeshResources.h",
+      "lines": [
+        735,
+        790
+      ],
+      "finding": "recreate context already flushes detach rendering commands; adding another blind flush is not an established fix"
+    }
+  ],
+  "engine_patch_applied": false,
+  "cache_deleted": false,
+  "gpu_driver_changed": false,
+  "native01_supervisor_issue": "tool session exit143; cause unknown; server remained alive and reparented; probe2 manually run, later explicit SIGINT cleanup; wait status unavailable"
+}

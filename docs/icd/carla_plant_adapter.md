@@ -178,7 +178,18 @@ stock 바이너리의 평지 실패 해결로 수용하지 않는다. 정확도 
 
 1j 초기 UE fork404 이후 Epic 연결과 [UE4.26.2 전체 빌드](../test-plan/evidence/m7_carla_1j_ue_build/README.md)를 완료했다.
 후속 [CARLA 기본 빌드](../test-plan/evidence/m7_carla_1j_carla_build/README.md)는 Client/서버 module exit0이다.
-source 서버 실행·직접 포트는 NOT RUN이다. 동일 의미를 실제 서버 lifecycle·scene tick
+[source 실행](../test-plan/evidence/m7_carla_1j_source_smoke/README.md)은 Town03 비렌더링
+identity/ego 정상·예외2/2·102샘플10ms를 한정 검증했고 Episode 설정 복원·SIGINT130/자원 정리를 확인했다.
+Town10 준비 한도 초과와 Town03 렌더링 SIGSEGV는 미해결이다.
+후속 [렌더링 조사](../test-plan/evidence/m7_carla_1j_render_diagnosis/README.md)에서 잘못된
+Distance Field 내부 참조를 관측했다. 같은 바이너리에서 source RGB/GT320×240 수신은
+GDB1회·native 같은 서버2회 각30쌍으로 한정 확인했지만 crash 원인/재질 준비/완전 delivery는 OPEN이다.
+직접 effort 포트·정상 actuation은 NOT RUN이며 기존 센서/시간 계약을 완화하지 않는다.
+후속 [준비/반복 검증](../test-plan/evidence/m7_carla_1j_render_followup/README.md)은 ego·RGB/GT가
+살아 있는 상태의 shader/Distance Field zero 관측2회와 준비 후 새 native2서버의150tick/30쌍·
+정리/복원·SIGINT130을 한정 확인했다. 원래 crash 원인·전체 content/동적 asset 안정성은 OPEN이다.
+이 baseline은 NoDrive 최소 포트의 후속 시험 조건이며 정상 actuation/주행 수용이 아니다.
+동일 의미를 실제 서버 lifecycle·scene tick
 안에 구현·검증하고 brake calibration과 구간 work를 해결해야 정상 주행 gate를 열 수 있다.
 
 ## 4. 좌표계와 센서 계약

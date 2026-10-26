@@ -13,3 +13,11 @@
 *.pth binary
 *.engine binary
 *.plan binary
+
+# Preserve immutable runtime evidence, including CSV CRLF and raw log spacing.
+docs/test-plan/evidence/m7_carla_1j_source_smoke/**/*.csv -text whitespace=cr-at-eol
+docs/test-plan/evidence/m7_carla_1j_source_smoke/**/*.txt -text -whitespace
+docs/test-plan/evidence/m7_carla_1j_render_diagnosis/**/*.csv -text whitespace=cr-at-eol
+docs/test-plan/evidence/m7_carla_1j_render_diagnosis/**/*.txt -text -whitespace
+docs/test-plan/evidence/m7_carla_1j_render_followup/**/*.csv -text whitespace=cr-at-eol
+docs/test-plan/evidence/m7_carla_1j_render_followup/**/*.txt -text -whitespace

@@ -1,0 +1,26 @@
+Malloc Size=65538 LargeMemoryPoolOffset=65554 
+CommonUnixCrashHandler: Signal=11
+[2026.10.26-04.34.46:995][  2]LogCore: === Critical error: ===
+Unhandled Exception: SIGSEGV: invalid attempt to read memory at address 0x000000000000002c
+
+[2026.10.26-04.34.46:995][  2]LogCore: === Critical error: ===
+Unhandled Exception: SIGSEGV: invalid attempt to read memory at address 0x000000000000002c
+
+[2026.10.26-04.34.46:995][  2]LogCore: 0x00007fe4e05a4903 libUE4Editor-Engine.so!FDistanceFieldVolumeTexture::IsValidDistanceFieldVolume() const [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Engine/Private/DistanceFieldAtlas.cpp:868]
+0x00007fe4e0eb4112 libUE4Editor-Engine.so!FPrimitiveSceneShaderData::FPrimitiveSceneShaderData(FPrimitiveSceneProxy const*) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Engine/Private/PrimitiveUniformShaderParameters.cpp:86]
+0x00007fe4ce4a9cfa libUE4Editor-Renderer.so!void UpdateGPUSceneInternal<FRWBufferStructured>(FRHICommandListImmediate&, FScene&) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Renderer/Private/GPUScene.cpp:291]
+0x00007fe4ce3dc5e3 libUE4Editor-Renderer.so!FDeferredShadingSceneRenderer::Render_CARLA(FRHICommandListImmediate&, FGBufferRequest*) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Renderer/Private/DeferredShadingRenderer.cpp:1729]
+0x00007fe4ceac0456 libUE4Editor-Renderer.so!RenderViewFamily_RenderThread(FRHICommandListImmediate&, FSceneRenderer*) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Renderer/Private/SceneRendering.cpp:3616]
+0x00007fe4ceabfbb8 libUE4Editor-Renderer.so!TEnqueueUniqueRenderCommandType<FRendererModule::BeginRenderingViewFamily(FCanvas*, FSceneViewFamily*)::FDrawSceneCommandName, FRendererModule::BeginRenderingViewFamily(FCanvas*, FSceneViewFamily*)::$_45>::DoTask(ENamedThreads::Type, TRefCountPtr<FGraphEvent> const&) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/RenderCore/Public/RenderingThread.h:183]
+0x00007fe4ceac2cb6 libUE4Editor-Renderer.so!TGraphTask<TEnqueueUniqueRenderCommandType<FRendererModule::BeginRenderingViewFamily(FCanvas*, FSceneViewFamily*)::FDrawSceneCommandName, FRendererModule::BeginRenderingViewFamily(FCanvas*, FSceneViewFamily*)::$_45> >::ExecuteTask(TArray<FBaseGraphTask*, TSizedDefaultAllocator<32> >&, ENamedThreads::Type) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Core/Public/Async/TaskGraphInterfaces.h:886]
+0x00007fe4e360a7fc libUE4Editor-Core.so!FNamedTaskThread::ProcessTasksNamedThread(int, bool) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Core/Private/Async/TaskGraph.cpp:709]
+0x00007fe4e3608efe libUE4Editor-Core.so!FNamedTaskThread::ProcessTasksUntilQuit(int) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Core/Private/Async/TaskGraph.cpp:600]
+0x00007fe4ddb6a66f libUE4Editor-RenderCore.so!RenderingThreadMain(FEvent*) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/RenderCore/Private/RenderingThread.cpp:372]
+0x00007fe4ddbb5cb2 libUE4Editor-RenderCore.so!FRenderingThread::Run() [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/RenderCore/Private/RenderingThread.cpp:526]
+0x00007fe4e36ba897 libUE4Editor-Core.so!FRunnableThreadPThread::Run() [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Core/Private/HAL/PThreadRunnableThread.cpp:25]
+0x00007fe4e367eca3 libUE4Editor-Core.so!FRunnableThreadPThread::_ThreadProc(void*) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Core/Private/HAL/PThreadRunnableThread.h:185]
+0x00007fe4d9c94a83 libc.so.6!UnknownFunction(0x94a82)
+0x00007fe4d9d268e0 libc.so.6!UnknownFunction(0x1268df)
+
+[2026.10.26-04.34.46:995][  2]LogCore: 0x00007fe4e05a4903 libUE4Editor-Engine.so!FDistanceFieldVolumeTexture::IsValidDistanceFieldVolume() const [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Engine/Private/DistanceFieldAtlas.cpp:868]
+0x00007fe4e0eb4112 libUE4Editor-Engine.so!FPrimitiveSceneShaderData::FPrimitiveSceneShaderData(FPrimitiveSceneProxy const*) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Engine/Private/PrimitiveUniformShaderParameters.cpp:86]

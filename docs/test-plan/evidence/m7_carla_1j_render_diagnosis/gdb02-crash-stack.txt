@@ -1,0 +1,28 @@
+#0  FDistanceFieldVolumeTexture::IsValidDistanceFieldVolume (this=0x7ffe64861350) at Runtime/Engine/Private/DistanceFieldAtlas.cpp:868
+#1  0x00007ffff4cb4112 in FPrimitiveSceneShaderData::FPrimitiveSceneShaderData (this=0x7ffe9fcfb430, Proxy=0x7ffcf384ee80) at Runtime/Engine/Private/PrimitiveUniformShaderParameters.cpp:86
+#2  0x00007fffe22a9cfa in UpdateGPUSceneInternal<FRWBufferStructured> (RHICmdList=..., Scene=...) at Runtime/Renderer/Private/GPUScene.cpp:291
+#3  0x00007fffe228181a in UpdateGPUScene (RHICmdList=..., Scene=...) at Runtime/Renderer/Private/GPUScene.cpp:535
+#4  0x00007fffe21dc5e3 in FDeferredShadingSceneRenderer::Render_CARLA (this=<optimized out>, RHICmdList=..., InOutGBufferRequest=<optimized out>) at Runtime/Renderer/Private/DeferredShadingRenderer.cpp:1729
+#5  0x00007fffe281cce1 in UpdateSceneCaptureContentDeferred_RenderThread (RHICmdList=..., SceneRenderer=0x7fffda7d6050, RenderTarget=0x7ffe214ff5d0, RenderTargetTexture=0x7ffe214ff580, EventName=..., ResolveParams=..., bGenerateMips=<optimized out>, GenerateMipsParams=..., InOutGBufferRequest=0x0) at Runtime/Renderer/Private/SceneCaptureRendering.cpp:291
+#6  UpdateSceneCaptureContent_RenderThread (RHICmdList=..., SceneRenderer=<optimized out>, RenderTarget=0x7ffe214ff5d0, RenderTargetTexture=0x7ffe214ff580, EventName=..., ResolveParams=..., bGenerateMips=<optimized out>, GenerateMipsParams=..., bDisableFlipCopyLDRGLES=<optimized out>, InOutGBufferRequest=0x0) at Runtime/Renderer/Private/SceneCaptureRendering.cpp:411
+#7  0x00007fffe281c689 in FScene::UpdateSceneCaptureContentsWithGBuffers(USceneCaptureComponent2D*, FGBufferRequest*)::$_128::operator()(FRHICommandListImmediate&) const (this=0x7ffcfd1271d8, RHICmdList=...) at Runtime/Renderer/Private/SceneCaptureRendering.cpp:802
+#8  TEnqueueUniqueRenderCommandType<FScene::UpdateSceneCaptureContentsWithGBuffers(USceneCaptureComponent2D*, FGBufferRequest*)::CaptureCommandName, FScene::UpdateSceneCaptureContentsWithGBuffers(USceneCaptureComponent2D*, FGBufferRequest*)::$_128>::DoTask(ENamedThreads::Type, TRefCountPtr<FGraphEvent> const&) (this=0x7ffcfd1271d8, CurrentThread=<optimized out>, MyCompletionGraphEvent=...) at Runtime/RenderCore/Public/RenderingThread.h:183
+#9  0x00007fffe281da66 in TGraphTask<TEnqueueUniqueRenderCommandType<FScene::UpdateSceneCaptureContentsWithGBuffers(USceneCaptureComponent2D*, FGBufferRequest*)::CaptureCommandName, FScene::UpdateSceneCaptureContentsWithGBuffers(USceneCaptureComponent2D*, FGBufferRequest*)::$_128> >::ExecuteTask(TArray<FBaseGraphTask*, TSizedDefaultAllocator<32> >&, ENamedThreads::Type) (this=<optimized out>, NewTasks=..., CurrentThread=<optimized out>) at Runtime/Core/Public/Async/TaskGraphInterfaces.h:886
+#10 0x00007ffff740a7fc in FBaseGraphTask::Execute (this=0x7ffcfd1271c0, NewTasks=empty, CurrentThread=ENamedThreads::ActualRenderingThread) at Runtime/Core/Public/Async/TaskGraphInterfaces.h:524
+#11 FNamedTaskThread::ProcessTasksNamedThread (this=<optimized out>, QueueIndex=<optimized out>, bAllowStall=true) at Runtime/Core/Private/Async/TaskGraph.cpp:709
+#12 0x00007ffff7408efe in FNamedTaskThread::ProcessTasksUntilQuit (this=0x7fffda0bc020, QueueIndex=0) at Runtime/Core/Private/Async/TaskGraph.cpp:600
+#13 0x00007ffff196a66f in RenderingThreadMain (TaskGraphBoundSyncEvent=<optimized out>) at Runtime/RenderCore/Private/RenderingThread.cpp:372
+#14 0x00007ffff19b5cb2 in FRenderingThread::Run (this=0x7ffcf81180c0) at Runtime/RenderCore/Private/RenderingThread.cpp:526
+#15 0x00007ffff74ba897 in FRunnableThreadPThread::Run (this=0x7ffd81070000) at Runtime/Core/Private/HAL/PThreadRunnableThread.cpp:25
+#16 0x00007ffff747eca3 in FRunnableThreadPThread::_ThreadProc (pThis=0x7ffd81070000) at Runtime/Core/Private/HAL/PThreadRunnableThread.h:185
+#17 0x00007fffeda94a83 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:442
+#18 0x00007fffedb268e0 in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:81
+rax            0x100000400000000   72057611217797120
+rdi            0x7ffe64861350      140730584929104
+rip            0x7ffff43a4903      0x7ffff43a4903 <FDistanceFieldVolumeTexture::IsValidDistanceFieldVolume() const+3>
+=> 0x7ffff43a4903 <_ZNK27FDistanceFieldVolumeTexture26IsValidDistanceFieldVolumeEv+3>:	mov    0x18(%rax),%ecx
+this = 0x7ffe64861350
+0x7ffe64861350:	0x0100000400000000	0x00000008ffffffff
+0x7ffe64861360:	0x00007ffcfd149ae0	0x000000100000000d
+0x7ffe64861370:	0x0103000100000001	0x00000005ffffffff
+0x7ffe64861380:	0x00007ffff5fa94d0	0x00007ffe59580000

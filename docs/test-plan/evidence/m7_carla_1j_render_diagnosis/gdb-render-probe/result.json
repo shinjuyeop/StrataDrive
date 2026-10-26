@@ -1,0 +1,40 @@
+{
+  "status": "FAIL",
+  "started_utc": "2026-10-26T05:11:28.301287+00:00",
+  "executable": "/d/shin/stratadrive-tools/m7-source/carla-build-venv/bin/python",
+  "expected_version": "294096e-dirty",
+  "mode": "RENDERED DIAGNOSTIC; ego physics disabled; GT evaluation only",
+  "image_config": {
+    "width": 320,
+    "height": 240,
+    "fov_deg": 90,
+    "sensor_tick_s": 0.05
+  },
+  "client_version": "294096e-dirty",
+  "server_version": "294096e-dirty",
+  "map": "Carla/Maps/Town03_Opt",
+  "settings_before": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "settings_during": {
+    "synchronous_mode": true,
+    "fixed_delta_seconds": 0.01,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_1j_render_probe.py\", line 102, in main\n    frame = world.tick(20)\nRuntimeError: time-out of 20000ms while waiting for the simulator, make sure the simulator is ready and connected to 127.0.0.1:2200\n",
+  "destroy_returns": {
+    "90": false,
+    "89": false,
+    "88": false
+  },
+  "cleanup_error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_1j_render_probe.py\", line 162, in main\n    world.tick(5)\nRuntimeError: time-out of 5000ms while waiting for the simulator, make sure the simulator is ready and connected to 127.0.0.1:2200\n",
+  "elapsed_wall_s": 41.05008037499829
+}

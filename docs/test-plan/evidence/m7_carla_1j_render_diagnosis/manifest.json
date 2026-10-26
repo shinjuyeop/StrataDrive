@@ -1,0 +1,98 @@
+{
+  "created_utc": "2026-10-26T05:20:42.011143+00:00",
+  "raw_external_files": [
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/render-diagnosis-20261026-attempt01/gdb.log",
+      "sha256": "5da103ea1ab88499c517ba32781ea2ece2b010f7cbffe895a91838190906c74a",
+      "bytes": 213764
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/render-diagnosis-20261026-attempt01/inspect.gdb",
+      "sha256": "917e80fff153acfdc84f39af60971d7f9f0e207f3a67d06530e2098acc3a76cf",
+      "bytes": 1348
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/render-diagnosis-20261026-attempt02/gdb.log",
+      "sha256": "6d28aa6b4923b090e1fd5808ca0f087d00503253dc98c8acfd0acbd9031cd983",
+      "bytes": 506801
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/render-diagnosis-20261026-attempt02/inspect.gdb",
+      "sha256": "0d453ae60d329bd08d51df3d8ddd3364a9c666cd1c8a39bea475b8b328cde269",
+      "bytes": 1479
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/render-diagnosis-20261026-attempt03/gdb.log",
+      "sha256": "bf69b8450c0bc400be5abd6f8cb271cbc88d0adaed2a1ff0eac3c781eeebdb34",
+      "bytes": 588563
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/render-diagnosis-20261026-attempt03/inspect.gdb",
+      "sha256": "84d650fc95e614bb57b9996bec214bb255c832daeb2c5742dab9c25b4b5867a8",
+      "bytes": 2226
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/render-diagnosis-20261026-native01/run.py",
+      "sha256": "2fb199a3284300c4546f6be24fab2a142f978e6d793fc6a99508bb6980f26069",
+      "bytes": 2629
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/render-diagnosis-20261026-native01/server.log",
+      "sha256": "54ca5c85e3a5e58549777b5f556a591f4f39fc7b8e0297645b1d1627a0f285f5",
+      "bytes": 572914
+    }
+  ],
+  "tests": [
+    {
+      "path": "tests/integration/carla/m7_1j_render_probe.py",
+      "sha256": "76160b4a99a344d773b99bdcf0231d890bff4dda5e513b7cf32bb2732521f579"
+    },
+    {
+      "path": "tests/integration/carla/audit_m7_1j_render_probe.py",
+      "sha256": "b8463f9aadd0ad8433b207959381fd42a56cee1051c24ea0d8ab1d835d488aad"
+    },
+    {
+      "path": "tests/integration/carla/m7_1j_source_smoke.py",
+      "sha256": "44e5658e4a164743a5566beaf6c8628f50cb141b8aa6a566ca6f8e1712eddea2"
+    }
+  ],
+  "engine_tracked_diff": "",
+  "engine_commit": "e9d9e60c85f643e10eeb03f42f61554d18dcb30f",
+  "carla_tracked_diff_sha256": "920a0262a79075f81449f3c90e114235c911dd39fd2dc347d0092cb4184fc7c7",
+  "carla_diff_scope": "existing Setup.sh compatibility + generated project/plugin configuration only; no renderer/physics source change",
+  "raw_logs_policy": "local debugger logs retained externally; symbols/structured findings only in repository",
+  "artifacts": [
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/PythonAPI/carla/dist/carla-0.9.16-cp310-cp310-linux_x86_64.whl",
+      "sha256": "8f6a607859b779d05ba7fc6dc28503f26f9043e940b2523f90223d092461a115",
+      "matches_prior_smoke": true
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so",
+      "sha256": "f6da71ba7268f3149ff3e108e113ed036253efb1d37419784a3777bfd06ba404",
+      "matches_prior_smoke": true
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Binaries/Linux/libUE4Editor-CarlaUE4.so",
+      "sha256": "5acb17817c98c261aea787a4a43be5a7d20fd918bf1c1cebdd19467a9e479226",
+      "matches_prior_smoke": true
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+      "sha256": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+      "matches_prior_smoke": true
+    }
+  ],
+  "investigated_engine_modules": [
+    {
+      "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/libUE4Editor-Engine.so",
+      "sha256": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+      "bytes": 75864512
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/libUE4Editor-Renderer.so",
+      "sha256": "388d2c2ccf187150976e52654d11510c23c844ec91a958bf2c8db023d6f12816",
+      "bytes": 16522104
+    }
+  ]
+}
