@@ -1,0 +1,1138 @@
+{
+  "status": "PASS_CAUSE_AND_COMPARISON_AUDIT_ONLY",
+  "normal_driving_enabled": false,
+  "interval_work_valid": false,
+  "instrumented20_matches_1n_all_physics": 1621,
+  "same_original_stress_input": true,
+  "tire_callback_corruption_rejected": true,
+  "numerical_deltas_not_acceptance_tolerances": {
+    "160_vs_320": {
+      "max_forward_m_s": 0.0017125701904296964,
+      "max_wheel_rad_s": 0.004845142364501953,
+      "max_position_m": 0.002363538207155271
+    },
+    "320_vs_640": {
+      "max_forward_m_s": 0.001328659057617143,
+      "max_wheel_rad_s": 0.0038001537322998047,
+      "max_position_m": 0.0020119690985226
+    }
+  },
+  "candidate_repeat_identical_physics": 1621,
+  "direct_solver_repeat_identical_physics": 1621,
+  "direct_readout_did_not_change_prior_motion": true,
+  "runs": {
+    "substeps160-fixed": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 0,
+      "native_forward_unavailable_frames": 0,
+      "native_forward_gate": "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 99200,
+        "negative_callback_samples": 10,
+        "min_callback_omega_rad_s": -1.0073303080559981e-08,
+        "negative_callbacks_by_wheel": [
+          5,
+          5,
+          0,
+          0
+        ],
+        "recurrence_checks": 98890,
+        "max_recurrence_error_rad_s": 5.934618296787875e-08,
+        "first_positive_to_negative": null,
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.4548933222613414e-08,
+            9.975946113627288e-09,
+            0.01775616645812988
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.4548933222613414e-08,
+            9.975946113627288e-09,
+            0.01775616645812988
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.4548933222613414e-08,
+            9.975946113627288e-09,
+            0.01775616645812988
+          ]
+        }
+      }
+    },
+    "substeps20-raw": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 6,
+      "native_forward_unavailable_frames": 3,
+      "native_forward_gate": "FAIL_RAW_NEGATIVE_UNAVAILABLE",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": true,
+      "direct_solver_negative_samples": 6,
+      "direct_solver_rear_unavailable_frames": 3,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 12480,
+        "negative_callback_samples": 1528,
+        "min_callback_omega_rad_s": -1.1726512908935547,
+        "negative_callbacks_by_wheel": [
+          18,
+          18,
+          746,
+          746
+        ],
+        "recurrence_checks": 12480,
+        "max_recurrence_error_rad_s": 3.391319567391804e-07,
+        "first_positive_to_negative": {
+          "phase": "launch",
+          "frame": "129",
+          "wheel": 0,
+          "ordinal": 3,
+          "before": {
+            "wheel": 0,
+            "omega_before_rad_s": 0.002806902164593339,
+            "long_slip": 0.0010863762581720948,
+            "tire_load_n": 5244.258125,
+            "tire_torque_nm": -11.3291140625,
+            "long_force_n": 31.912998046875
+          },
+          "drive_nm": 0,
+          "predicted_after": -0.0016877187966448434,
+          "actual_after": -0.0016877190209925175,
+          "dt_s": 0.0005
+        },
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -2.2616552541876447e-08,
+            3.911902240361087e-08,
+            0.01761397361755371
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -2.2616552541876447e-08,
+            3.911902240361087e-08,
+            0.01761397361755371
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -2.2616552541876447e-08,
+            3.911902240361087e-08,
+            0.01761397361755371
+          ]
+        }
+      }
+    },
+    "substeps20-response": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1620,
+      "raw_negative_wheel_samples": 12,
+      "native_forward_unavailable_frames": 3,
+      "native_forward_gate": "FAIL_RAW_NEGATIVE_UNAVAILABLE",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 0,
+        "negative_callback_samples": 0,
+        "min_callback_omega_rad_s": null,
+        "negative_callbacks_by_wheel": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "recurrence_checks": 0,
+        "max_recurrence_error_rad_s": 0,
+        "first_positive_to_negative": null,
+        "solver_work_coverage": false
+      },
+      "response_replay": {
+        "acquisitions": 1621,
+        "sessions": 3,
+        "physical_step_ns": 1000000,
+        "energy_or_native_authority": false
+      },
+      "response_source_corruption_rejected": true,
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -2.2616552541876447e-08,
+            3.911902240361087e-08,
+            0.01761397361755371
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -2.2616552541876447e-08,
+            3.911902240361087e-08,
+            0.01761397361755371
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -2.2616552541876447e-08,
+            3.911902240361087e-08,
+            0.01761397361755371
+          ]
+        }
+      }
+    },
+    "substeps20-sleep": {
+      "receipts": 1723,
+      "sessions": 3,
+      "nonzero_receipts": 1703,
+      "raw_negative_wheel_samples": 6,
+      "native_forward_unavailable_frames": 3,
+      "native_forward_gate": "FAIL_RAW_NEGATIVE_UNAVAILABLE",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 0,
+        "negative_callback_samples": 0,
+        "min_callback_omega_rad_s": null,
+        "negative_callbacks_by_wheel": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "recurrence_checks": 0,
+        "max_recurrence_error_rad_s": 0,
+        "first_positive_to_negative": null,
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 134,
+          "sleeping": true,
+          "velocity_m_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "left_settle": {
+          "ticks": 134,
+          "sleeping": true,
+          "velocity_m_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "right_settle": {
+          "ticks": 134,
+          "sleeping": true,
+          "velocity_m_s": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "substeps20-trace": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 6,
+      "native_forward_unavailable_frames": 3,
+      "native_forward_gate": "FAIL_RAW_NEGATIVE_UNAVAILABLE",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 12480,
+        "negative_callback_samples": 1528,
+        "min_callback_omega_rad_s": -1.1726512908935547,
+        "negative_callbacks_by_wheel": [
+          18,
+          18,
+          746,
+          746
+        ],
+        "recurrence_checks": 12168,
+        "max_recurrence_error_rad_s": 3.391319567391804e-07,
+        "first_positive_to_negative": {
+          "phase": "launch",
+          "frame": "129",
+          "wheel": 0,
+          "ordinal": 3,
+          "before": {
+            "wheel": 0,
+            "omega_before_rad_s": 0.002806902164593339,
+            "long_slip": 0.0010863762581720948,
+            "tire_load_n": 5244.258125,
+            "tire_torque_nm": -11.3291140625,
+            "long_force_n": 31.912998046875
+          },
+          "drive_nm": 0,
+          "predicted_after": -0.0016877187966448434,
+          "actual_after": -0.0016877190209925175,
+          "dt_s": 0.0005
+        },
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -2.2616552541876447e-08,
+            3.911902240361087e-08,
+            0.01761397361755371
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -2.2616552541876447e-08,
+            3.911902240361087e-08,
+            0.01761397361755371
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -2.2616552541876447e-08,
+            3.911902240361087e-08,
+            0.01761397361755371
+          ]
+        }
+      }
+    },
+    "substeps320-fixed": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 0,
+      "native_forward_unavailable_frames": 0,
+      "native_forward_gate": "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 198400,
+        "negative_callback_samples": 6,
+        "min_callback_omega_rad_s": -3.1012437062827303e-09,
+        "negative_callbacks_by_wheel": [
+          3,
+          3,
+          0,
+          0
+        ],
+        "recurrence_checks": 198090,
+        "max_recurrence_error_rad_s": 5.948488768225957e-08,
+        "first_positive_to_negative": {
+          "phase": "launch",
+          "frame": "129",
+          "wheel": 0,
+          "ordinal": 1,
+          "before": {
+            "wheel": 0,
+            "omega_before_rad_s": 8.376186855230117e-09,
+            "long_slip": 3.328757358644907e-08,
+            "tire_load_n": 5327.15125,
+            "tire_torque_nm": -0.00034742236137390135,
+            "long_force_n": 0.0009786545485258103
+          },
+          "drive_nm": 0,
+          "predicted_after": -2.387283821187674e-10,
+          "actual_after": -2.3872934185042993e-10,
+          "dt_s": 3.125e-05
+        },
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        }
+      }
+    },
+    "substeps320-raw-response": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1620,
+      "raw_negative_wheel_samples": 0,
+      "native_forward_unavailable_frames": 0,
+      "native_forward_gate": "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": true,
+      "direct_solver_negative_samples": 0,
+      "direct_solver_rear_unavailable_frames": 0,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 266240,
+        "negative_callback_samples": 4,
+        "min_callback_omega_rad_s": -1.578755237652274e-09,
+        "negative_callbacks_by_wheel": [
+          2,
+          2,
+          0,
+          0
+        ],
+        "recurrence_checks": 213760,
+        "max_recurrence_error_rad_s": 5.944044700889606e-08,
+        "first_positive_to_negative": null,
+        "solver_work_coverage": false
+      },
+      "response_replay": {
+        "acquisitions": 1621,
+        "sessions": 3,
+        "physical_step_ns": 1000000,
+        "energy_or_native_authority": false
+      },
+      "response_source_corruption_rejected": true,
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        }
+      }
+    },
+    "substeps320-rawa": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 0,
+      "native_forward_unavailable_frames": 0,
+      "native_forward_gate": "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": true,
+      "direct_solver_negative_samples": 0,
+      "direct_solver_rear_unavailable_frames": 0,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 198400,
+        "negative_callback_samples": 6,
+        "min_callback_omega_rad_s": -3.1012437062827303e-09,
+        "negative_callbacks_by_wheel": [
+          3,
+          3,
+          0,
+          0
+        ],
+        "recurrence_checks": 198400,
+        "max_recurrence_error_rad_s": 5.948488768225957e-08,
+        "first_positive_to_negative": {
+          "phase": "launch",
+          "frame": "129",
+          "wheel": 0,
+          "ordinal": 1,
+          "before": {
+            "wheel": 0,
+            "omega_before_rad_s": 8.376186855230117e-09,
+            "long_slip": 3.328757358644907e-08,
+            "tire_load_n": 5327.15125,
+            "tire_torque_nm": -0.00034742236137390135,
+            "long_force_n": 0.0009786545485258103
+          },
+          "drive_nm": 0,
+          "predicted_after": -2.387283821187674e-10,
+          "actual_after": -2.3872934185042993e-10,
+          "dt_s": 3.125e-05
+        },
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        }
+      }
+    },
+    "substeps320-rawb": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 0,
+      "native_forward_unavailable_frames": 0,
+      "native_forward_gate": "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": true,
+      "direct_solver_negative_samples": 0,
+      "direct_solver_rear_unavailable_frames": 0,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 198400,
+        "negative_callback_samples": 6,
+        "min_callback_omega_rad_s": -3.1012437062827303e-09,
+        "negative_callbacks_by_wheel": [
+          3,
+          3,
+          0,
+          0
+        ],
+        "recurrence_checks": 198400,
+        "max_recurrence_error_rad_s": 5.948488768225957e-08,
+        "first_positive_to_negative": {
+          "phase": "launch",
+          "frame": "129",
+          "wheel": 0,
+          "ordinal": 1,
+          "before": {
+            "wheel": 0,
+            "omega_before_rad_s": 8.376186855230117e-09,
+            "long_slip": 3.328757358644907e-08,
+            "tire_load_n": 5327.15125,
+            "tire_torque_nm": -0.00034742236137390135,
+            "long_force_n": 0.0009786545485258103
+          },
+          "drive_nm": 0,
+          "predicted_after": -2.387283821187674e-10,
+          "actual_after": -2.3872934185042993e-10,
+          "dt_s": 3.125e-05
+        },
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        }
+      }
+    },
+    "substeps320-repeat": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 0,
+      "native_forward_unavailable_frames": 0,
+      "native_forward_gate": "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 198400,
+        "negative_callback_samples": 6,
+        "min_callback_omega_rad_s": -3.1012437062827303e-09,
+        "negative_callbacks_by_wheel": [
+          3,
+          3,
+          0,
+          0
+        ],
+        "recurrence_checks": 198090,
+        "max_recurrence_error_rad_s": 5.948488768225957e-08,
+        "first_positive_to_negative": {
+          "phase": "launch",
+          "frame": "129",
+          "wheel": 0,
+          "ordinal": 1,
+          "before": {
+            "wheel": 0,
+            "omega_before_rad_s": 8.376186855230117e-09,
+            "long_slip": 3.328757358644907e-08,
+            "tire_load_n": 5327.15125,
+            "tire_torque_nm": -0.00034742236137390135,
+            "long_force_n": 0.0009786545485258103
+          },
+          "drive_nm": 0,
+          "predicted_after": -2.387283821187674e-10,
+          "actual_after": -2.3872934185042993e-10,
+          "dt_s": 3.125e-05
+        },
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        }
+      }
+    },
+    "substeps320-response": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1620,
+      "raw_negative_wheel_samples": 0,
+      "native_forward_unavailable_frames": 0,
+      "native_forward_gate": "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 266240,
+        "negative_callback_samples": 4,
+        "min_callback_omega_rad_s": -1.578755237652274e-09,
+        "negative_callbacks_by_wheel": [
+          2,
+          2,
+          0,
+          0
+        ],
+        "recurrence_checks": 213426,
+        "max_recurrence_error_rad_s": 5.944044700889606e-08,
+        "first_positive_to_negative": null,
+        "solver_work_coverage": false
+      },
+      "response_replay": {
+        "acquisitions": 1621,
+        "sessions": 3,
+        "physical_step_ns": 1000000,
+        "energy_or_native_authority": false
+      },
+      "response_source_corruption_rejected": true,
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8446226022206247e-08,
+            -5.6596900321892467e-08,
+            0.01776463508605957
+          ]
+        }
+      }
+    },
+    "substeps320-sleep": {
+      "receipts": 1732,
+      "sessions": 3,
+      "nonzero_receipts": 1712,
+      "raw_negative_wheel_samples": 0,
+      "native_forward_unavailable_frames": 0,
+      "native_forward_gate": "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 198400,
+        "negative_callback_samples": 4,
+        "min_callback_omega_rad_s": -1.2625519296705079e-08,
+        "negative_callbacks_by_wheel": [
+          2,
+          2,
+          0,
+          0
+        ],
+        "recurrence_checks": 198090,
+        "max_recurrence_error_rad_s": 5.967781468996236e-08,
+        "first_positive_to_negative": null,
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 137,
+          "sleeping": true,
+          "velocity_m_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "left_settle": {
+          "ticks": 137,
+          "sleeping": true,
+          "velocity_m_s": [
+            0,
+            0,
+            0
+          ]
+        },
+        "right_settle": {
+          "ticks": 137,
+          "sleeping": true,
+          "velocity_m_s": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "substeps40-fixed": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 68,
+      "native_forward_unavailable_frames": 35,
+      "native_forward_gate": "FAIL_RAW_NEGATIVE_UNAVAILABLE",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 0,
+        "negative_callback_samples": 0,
+        "min_callback_omega_rad_s": null,
+        "negative_callbacks_by_wheel": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "recurrence_checks": 0,
+        "max_recurrence_error_rad_s": 0,
+        "first_positive_to_negative": null,
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.5838713807170278e-08,
+            2.5112560706475053e-08,
+            0.01769768714904785
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.5838713807170278e-08,
+            2.5112560706475053e-08,
+            0.01769768714904785
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.5838713807170278e-08,
+            2.5112560706475053e-08,
+            0.01769768714904785
+          ]
+        }
+      }
+    },
+    "substeps640-fixed": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 0,
+      "native_forward_unavailable_frames": 0,
+      "native_forward_gate": "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 396800,
+        "negative_callback_samples": 6,
+        "min_callback_omega_rad_s": -1.6202376107443683e-09,
+        "negative_callbacks_by_wheel": [
+          3,
+          3,
+          0,
+          0
+        ],
+        "recurrence_checks": 396490,
+        "max_recurrence_error_rad_s": 5.963023763655428e-08,
+        "first_positive_to_negative": null,
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.3867553434465664e-08,
+            -4.414780960360076e-08,
+            0.01776972770690918
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.3867553434465664e-08,
+            -4.414780960360076e-08,
+            0.01776972770690918
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.3867553434465664e-08,
+            -4.414780960360076e-08,
+            0.01776972770690918
+          ]
+        }
+      }
+    },
+    "substeps80-fixed": {
+      "receipts": 1621,
+      "sessions": 3,
+      "nonzero_receipts": 1601,
+      "raw_negative_wheel_samples": 26,
+      "native_forward_unavailable_frames": 14,
+      "native_forward_gate": "FAIL_RAW_NEGATIVE_UNAVAILABLE",
+      "legacy_omega_scope": "unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+      "direct_solver_wheel_required": false,
+      "direct_solver_negative_samples": null,
+      "direct_solver_rear_unavailable_frames": null,
+      "runtime_dynamic_checks": {
+        "forward_launch": true,
+        "negative_motor_decelerates_forward": true,
+        "friction_reaches_exact_wheel_zero": true,
+        "hold_exact_wheel_zero": true,
+        "left_yaw_sign": true,
+        "right_yaw_sign": true
+      },
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "callbacks": {
+        "callbacks": 0,
+        "negative_callback_samples": 0,
+        "min_callback_omega_rad_s": null,
+        "negative_callbacks_by_wheel": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "recurrence_checks": 0,
+        "max_recurrence_error_rad_s": 0,
+        "first_positive_to_negative": null,
+        "solver_work_coverage": false
+      },
+      "settling": {
+        "settle_hold": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8193670712207677e-08,
+            2.735516773100244e-08,
+            0.01773773193359375
+          ]
+        },
+        "left_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8193670712207677e-08,
+            2.735516773100244e-08,
+            0.01773773193359375
+          ]
+        },
+        "right_settle": {
+          "ticks": 100,
+          "sleeping": false,
+          "velocity_m_s": [
+            -1.8193670712207677e-08,
+            2.735516773100244e-08,
+            0.01773773193359375
+          ]
+        }
+      }
+    }
+  }
+}

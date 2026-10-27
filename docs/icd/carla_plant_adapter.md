@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-27, `m7-plant-draft-v11`. **V1 가상 EV 격리 nonzero effort 검증 / raw wheel native gate FAIL / 정상 주행 미연결**.
+2026-10-27, `m7-plant-draft-v12`. **V1/320분할 격리 출발 실패 해소·직접 solver 원천 추가 / 정상 주행 미연결**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -543,6 +543,24 @@ Actual trajectory 분리 시험은 후속이다. adapter에서 응답 ramp/filte
 전체 ODD/실제8-role/work/전기/wall 수용을 이 대조 결과로 대체하지 않는다.
 
 ## 6. 결정과 미결정
+
+**M7-1o 후속:** [원인·검증](../test-plan/evidence/m7_carla_1o/README.md)에서 기존20분할의
+출발 음수는 저속 tire 반력과 명시적 wheel 적분의 진동으로 확인했다. 정착/기존 response 모델
+입력/40·80분할도 FAIL이며, 물리 계수 변경 없이320분할을 후속 격리 통합 후보로 사용한다.
+world10ms와30ms freshness는 그대로다.160/320/640 비교는 측정된 민감도이며 전역 정확도 수용이 아니다.
+
+원천 정정: 기존 `getWheelRotationSpeed()`/`omega_rad_s`는 이 fork의 `mCorrectedWheelSpeeds`다.
+무구동·무제동 저속에서는 rolling speed 혼합이 가능하므로 항상 내부 solver ω라는 해석은 정정한다.
+과거 원본/FAIL은 보존한다. 새 `solver_omega_rad_s`/`PhysX3.4.mWheelSpeeds.direct.v1`는
+pinned UE header의 serialization accessor로 `mWheelSpeeds`를 직접 읽은 동일 post-physics
+frame 관측이다. engine 수정·v/r 재구성·clamp·timestamp 재발급이 아니다. 향후 native bridge는
+이 source를 명시적으로 요구하고 source 부재·비유한·rear 음수에는 unavailable/latch를 유지한다.
+공개 보정값으로 fallback하지 않는다. 기존 M6 CAN/P05 wire나 native 요구사항은 바꾸지 않는다.
+
+최종320분할의 새2서버 stress와 response 입력은 각각1,621frame/4wheel 직접 solver 음수0이다.
+내부 앞바퀴 callback의 미세 음수는 보존하며 모든 substep의 무음수/전체 ODD를 주장하지 않는다.
+callback은 생략될 수 있어 `interval_work_valid=false`와 solver work/단일 EV gate는 유지한다.
+native8-role full Actual/authority·wall2/4ms는 미연결·미수용이다.
 
 **결정:** actual-only 경로·단일 actuation writer,10ms world/state·50ms 영상·단일 tick owner,
 20/10ms 기존 rate·freshness/권한 보존, 중복 motion/actuator/energy 금지, metadata/좌표 의미,

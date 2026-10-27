@@ -1,0 +1,29 @@
+{
+  "scope": "local straight small-slip frozen-chassis linear estimate; NOT global stability proof or calibration",
+  "regularizer_speed_m_s": 0.1,
+  "inertia_kg_m2": 1.26025,
+  "radius_m": 0.355,
+  "stiffness_n_per_slip": 29399.995370046374,
+  "omega_torque_slope_nm_s": 37051.34416510094,
+  "linear_decay_time_seconds": 3.4013610798688464e-05,
+  "linear_explicit_stability_dt_less_than_seconds": 6.802722159737693e-05,
+  "nonoscillatory_dt_at_most_seconds": 3.4013610798688464e-05,
+  "world_interval_seconds": 0.01,
+  "minimum_linear_stable_count": 147,
+  "minimum_linear_nonoscillatory_count": 294,
+  "proposed_counts": [
+    160,
+    320,
+    640
+  ],
+  "note": "Counts follow the observed asset and slip law. Final choice requires same-input actual runs and convergence; body coupling, combined slip, tire clipping and contact vary.",
+  "stiffness_basis": "first observed small-slip callback long_force_n/long_slip; local slope estimate, not a new calibration",
+  "first_callback": {
+    "wheel": 2,
+    "omega_before_rad_s": 0,
+    "long_slip": 4.0620247432343604e-07,
+    "tire_load_n": 9205.583125,
+    "tire_torque_nm": -0.004239534378051758,
+    "long_force_n": 0.0119423508644104
+  }
+}

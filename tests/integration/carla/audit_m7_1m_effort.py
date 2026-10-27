@@ -6,6 +6,7 @@ Mapping can pass while dynamic/forward-native criteria fail; report both.
 """
 import argparse
 import copy
+import gzip
 import hashlib
 import json
 import math
@@ -19,6 +20,15 @@ def f32(value):
     return struct.unpack("f", struct.pack("f", value))[0]
 
 
+def read_receipts(directory):
+    path = directory/"receipts.jsonl"
+    if path.exists():
+        text = path.read_text()
+    else:
+        text = gzip.decompress((directory/"receipts.jsonl.gz").read_bytes()).decode()
+    return [json.loads(line) for line in text.splitlines()]
+
+
 def audit(result, entries, model, model_hash):
     require(result["status"] in ("PASS_RECEIPT_RUN", "DYNAMIC_CRITERIA_FAIL"), "runtime incomplete")
     require(not result["normal_driving_enabled"] and not result["interval_work_valid"], "scope")
@@ -28,6 +38,7 @@ def audit(result, entries, model, model_hash):
     identities = {(b["run"], b["session"], b["actor"]): b for b in result["bindings"]}
     cursors, tickets = {}, set()
     negative = rear_negative = nonzero = 0
+    solver_negative = solver_rear_negative = 0
     phase_counts = {}
     for entry in entries:
         r = entry["receipt"]
@@ -73,9 +84,10 @@ def audit(result, entries, model, model_hash):
         require(r["physics"]["nodrive"] and len(wheels) == 4, "NoDrive")
         if "expected_vehicle_substeps" in result:
             count = result["expected_vehicle_substeps"]
-            require(r["physics"]["numerical_profile"] == ("vehicle20-diagnostic-v1" if count else "asset-default") and
-                    r["physics"]["vehicle_substeps_low"] == (20 if count else 3) and
-                    r["physics"]["vehicle_substeps_high"] == (20 if count else 1) and
+            require(count in (0, 20, 40, 80, 160, 320, 640) and
+                    r["physics"]["numerical_profile"] == (f"vehicle{count}-diagnostic-v1" if count else "asset-default") and
+                    r["physics"]["vehicle_substeps_low"] == (count or 3) and
+                    r["physics"]["vehicle_substeps_high"] == (count or 1) and
                     r["physics"]["vehicle_substeps_threshold_m_s"] == 5, "numerical profile")
         L = model["wheels"][0]["offset_x_m"] - model["wheels"][2]["offset_x_m"]
         H = (model["wheels"][1]["offset_y_right_m"] - model["wheels"][0]["offset_y_right_m"]) / 2
@@ -95,7 +107,15 @@ def audit(result, entries, model, model_hash):
             require(abs(w["set_steer_right_rad"]) <= w["max_steer_rad"] and w["set_friction_nm"] <= w["max_brake_nm"], "limits")
             require(math.isfinite(w["omega_rad_s"]), "wheel finite")
             negative += w["omega_rad_s"] < 0
+            if result.get("require_solver_wheel"):
+                require(w.get("solver_omega_source") == "PhysX3.4.mWheelSpeeds.direct.v1" and
+                        math.isfinite(w["solver_omega_rad_s"]), "direct solver source/value")
+                if w["set_drive_nm"] != 0 or w["set_friction_nm"] != 0:
+                    require(w["solver_omega_rad_s"] == w["omega_rad_s"], "loaded solver/API mismatch")
+                solver_negative += w["solver_omega_rad_s"] < 0
         rear_negative += any(w["omega_rad_s"] < 0 for w in wheels[2:])
+        if result.get("require_solver_wheel"):
+            solver_rear_negative += any(w["solver_omega_rad_s"] < 0 for w in wheels[2:])
         for field in ("body_world_position_m", "com_velocity_world_m_s", "angular_velocity_world_rad_s", "body_quaternion_xyzw"):
             require(all(math.isfinite(v) for v in r["physics"][field]), "body finite")
         phase_counts[entry["phase"]] = phase_counts.get(entry["phase"], 0)+1
@@ -114,7 +134,12 @@ def audit(result, entries, model, model_hash):
     require(result["dynamic_checks"] == dynamics, "dynamic summary mismatch")
     return dict(receipts=len(entries), sessions=len(cursors), nonzero_receipts=nonzero,
                 raw_negative_wheel_samples=negative, native_forward_unavailable_frames=rear_negative,
-                native_forward_gate="FAIL_RAW_NEGATIVE_UNAVAILABLE" if rear_negative else "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+                native_forward_gate="FAIL_RAW_NEGATIVE_UNAVAILABLE" if
+                    (solver_rear_negative if result.get("require_solver_wheel") else rear_negative) else "NO_NEGATIVE_IN_THIS_RUN_ONLY",
+                legacy_omega_scope="unmodified public getter; this fork uses mCorrectedWheelSpeeds",
+                direct_solver_wheel_required=result.get("require_solver_wheel", False),
+                direct_solver_negative_samples=solver_negative if result.get("require_solver_wheel") else None,
+                direct_solver_rear_unavailable_frames=solver_rear_negative if result.get("require_solver_wheel") else None,
                 runtime_dynamic_checks=result["dynamic_checks"], normal_driving_enabled=False, interval_work_valid=False)
 
 
@@ -125,7 +150,7 @@ def main():
     p.add_argument("--output", type=Path, required=True)
     a = p.parse_args()
     result = json.loads((a.directory/"result.json").read_text())
-    entries = [json.loads(line) for line in (a.directory/"receipts.jsonl").read_text().splitlines()]
+    entries = read_receipts(a.directory)
     data = a.model.read_bytes()
     model, sha = json.loads(data), hashlib.sha256(data).hexdigest()
     report = dict(status="FAIL")
@@ -144,6 +169,9 @@ def main():
         }
         if "expected_vehicle_substeps" in result:
             faults["numerical_profile"] = lambda es: es[0]["receipt"]["physics"].update(vehicle_substeps_low=19)
+        if result.get("require_solver_wheel"):
+            faults["solver_source"] = lambda es: es[0]["receipt"]["physics"]["wheels"][2].update(solver_omega_source="public_blend")
+            faults["solver_nonfinite"] = lambda es: es[0]["receipt"]["physics"]["wheels"][2].update(solver_omega_rad_s=float("nan"))
         report["corruption_rejections"] = {}
         for name, damage in faults.items():
             corrupted = copy.deepcopy(entries)

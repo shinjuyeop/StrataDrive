@@ -26,8 +26,14 @@ def main():
     p.add_argument("--fixture", type=Path, required=True)
     p.add_argument("--model", type=Path, required=True)
     p.add_argument("--port", type=int, default=2200)
-    p.add_argument("--vehicle-substeps", type=int, choices=(0, 20), default=0,
+    p.add_argument("--vehicle-substeps", type=int, choices=(0, 20, 40, 80, 160, 320, 640), default=0,
                    help="Expected server-only numerical profile; 0 means original asset defaults")
+    p.add_argument("--settle-mode", choices=("fixed100", "sleep"), default="fixed100",
+                   help="Diagnostic comparison only; sleep waits at most 1000 ticks, retaining all observations")
+    p.add_argument("--response-fixture", type=Path,
+                   help="Optional unchanged response-model trajectory; still synthetic Actual, not native authority")
+    p.add_argument("--require-solver-wheel", action="store_true",
+                   help="Require direct mWheelSpeeds acquisition, separately from the legacy public getter")
     args = p.parse_args()
     args.output.mkdir(exist_ok=False, parents=True)
     model_hash = hashlib.sha256(args.model.read_bytes()).hexdigest()
@@ -36,6 +42,9 @@ def main():
                   normal_driving_enabled=False, interval_work_valid=False,
                   model_sha256=model_hash, cases=[], bindings=[], phases=[])
     result["expected_vehicle_substeps"] = args.vehicle_substeps
+    result["settle_mode"] = args.settle_mode
+    result["input_profile"] = "response-model-fixture" if args.response_fixture else "step-fixture"
+    result["require_solver_wheel"] = args.require_solver_wheel
     events = []
     client = carla.Client("127.0.0.1", args.port)
     client.set_timeout(10)
@@ -43,6 +52,7 @@ def main():
     session, run = "0", ""
     world = original = actor = None
     bound = False
+    response = None
     begin = frame = seq = 0
     receipts = (args.output/"receipts.jsonl").open("w")
 
@@ -68,7 +78,7 @@ def main():
                          str(torque), str(pressure), str(angle), kind], text=True))
 
     def bind(label):
-        nonlocal actor, bound, session, run, begin, frame, seq
+        nonlocal actor, bound, session, run, begin, frame, seq, response
         bp = world.get_blueprint_library().find("vehicle.lincoln.mkz_2020")
         bp.set_attribute("role_name", "m7_virtual_v1_diagnostic")
         pose = world.get_map().get_spawn_points()[0]
@@ -81,17 +91,25 @@ def main():
         case("bound_v1_"+label, out["ok"] and out["effort_profile"] == "virtual-ev-v1-diagnostic" and
              out["model_sha256"] == model_hash and out["physics"]["inputs_zero"])
         ph = out["physics"]
-        case("numerical_profile_"+label, ph["numerical_profile"] == ("vehicle20-diagnostic-v1" if args.vehicle_substeps else "asset-default") and
-             ph["vehicle_substeps_low"] == (20 if args.vehicle_substeps else 3) and
-             ph["vehicle_substeps_high"] == (20 if args.vehicle_substeps else 1) and ph["vehicle_substeps_threshold_m_s"] == 5)
+        case("numerical_profile_"+label, ph["numerical_profile"] == (f"vehicle{args.vehicle_substeps}-diagnostic-v1" if args.vehicle_substeps else "asset-default") and
+             ph["vehicle_substeps_low"] == (args.vehicle_substeps or 3) and
+             ph["vehicle_substeps_high"] == (args.vehicle_substeps or 1) and ph["vehicle_substeps_threshold_m_s"] == 5)
         result["bindings"].append(out)
         begin, frame, seq = int(out["logical_begin_ns"]), int(out["frame"]), 0
+        if args.response_fixture:
+            response = subprocess.Popen([str(args.response_fixture.resolve())], stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE, text=True)
 
     def close():
-        nonlocal bound, actor
+        nonlocal bound, actor, response
         out = rpc("close")
         case("close_"+session, out["ok"] and not out["locked"] and not out["registry_actor_present"])
         bound, actor = False, None
+        if response:
+            response.stdin.close()
+            case("response_fixture_exit_"+session, response.wait(timeout=5) == 0)
+            response.stdout.close()
+            response = None
 
     def rejected(name, expected, **kw):
         before = rpc("describe", auth=False)["frame"]
@@ -101,7 +119,21 @@ def main():
 
     def tick(label, torque=0, pressure=0, angle=0, kind="actual"):
         nonlocal begin, frame, seq
+        target = dict(torque_nm=torque, pressure_pa=pressure, angle_left_rad=angle, kind=kind)
+        measured = None
+        if response:
+            response.stdin.write(f"{begin} {torque} {pressure} {angle} {kind}\n")
+            response.stdin.flush()
+            measured = json.loads(response.stdout.readline())
+            if measured["source_ns"] != str(begin):
+                raise RuntimeError("response acquisition source")
+            torque, pressure, angle = (measured[k] for k in ("torque_nm", "pressure_pa", "angle_left_rad"))
         original_actual = fixture(torque, pressure, angle, kind)
+        if measured is not None:
+            # Report codec quantization as transmitted, retaining unquantized acquisitions too.
+            def decoded(role, scale, signed):
+                return int.from_bytes(bytes.fromhex(original_actual[role]["payload"])[:2], "little", signed=signed)*scale
+            torque, pressure, angle = decoded("drive", .1, True), decoded("brake", 1000, False), decoded("steering", .0001, True)
         staged = rpc("stage", record=False, frame=str(frame+1), **original_actual)
         if not staged["ok"] or int(staged["frame"]) != frame:
             raise RuntimeError("stage: "+json.dumps(staged))
@@ -123,11 +155,19 @@ def main():
             raise RuntimeError("ambiguous tick: query only; advance NOT retried")
         entry = dict(phase=label, requested=dict(torque_nm=torque, pressure_pa=pressure, angle_left_rad=angle, kind=kind),
                      receipt=receipt)
+        if measured is not None:
+            entry.update(model_target=target, model_measurement=measured)
         receipts.write(json.dumps(entry, separators=(",", ":"))+"\n")
         receipts.flush()
         if (receipt["original_actual"] != original_actual or int(receipt["frame"]) != frame+1 or
                 not receipt["inputs_cleared_after_physics"] or receipt["interval_work_valid"]):
             raise RuntimeError("receipt mismatch")
+        if args.require_solver_wheel:
+            for w in receipt["physics"]["wheels"]:
+                if w.get("solver_omega_source") != "PhysX3.4.mWheelSpeeds.direct.v1" or not math.isfinite(w["solver_omega_rad_s"]):
+                    raise RuntimeError("direct solver wheel source")
+                if (w["set_drive_nm"] != 0 or w["set_friction_nm"] != 0) and w["omega_rad_s"] != w["solver_omega_rad_s"]:
+                    raise RuntimeError("effort-loaded API and solver wheel must agree")
         if seq == 0 or label == "release" and seq % 10 == 0:
             cleared = rpc("describe", auth=False, record=False)
             case("persistent_setters_clear_"+str(frame), cleared["physics"]["inputs_zero"])
@@ -136,17 +176,30 @@ def main():
         begin, frame, seq = begin+10000000, frame+1, seq+1
         return receipt["physics"]
 
-    def phase(label, count, torque=0, pressure=0, angle=0, kind="actual"):
-        data = [tick(label, torque, pressure, angle, kind) for _ in range(count)]
+    def phase(label, count, torque=0, pressure=0, angle=0, kind="actual", wait_sleep=False):
+        data = []
+        for _ in range(count):
+            data.append(tick(label, torque, pressure, angle, kind))
+            if wait_sleep and len(data) >= 100 and data[-1]["sleeping"]:
+                break
         negative = sum(w["omega_rad_s"] < 0 for d in data for w in d["wheels"])
         rear_invalid = sum(any(w["omega_rad_s"] < 0 for w in d["wheels"][2:]) for d in data)
-        summary = dict(label=label, count=count, first=data[0], last=data[-1],
+        summary = dict(label=label, count=len(data), first=data[0], last=data[-1],
                        raw_negative_samples=negative, native_forward_unavailable_frames=rear_invalid,
                        all_wheels_exact_zero_frames=sum(all(w["omega_rad_s"] == 0 for w in d["wheels"]) for d in data),
                        rear_negative_policy="unavailable to native input; diagnostic observations only; no native loop connected")
         result["phases"].append(summary)
         print(json.dumps({k: summary[k] for k in ("label", "count", "raw_negative_samples", "native_forward_unavailable_frames")}), flush=True)
+        if wait_sleep:
+            case("settled_"+label, data[-1]["sleeping"] and
+                 data[-1]["com_velocity_world_m_s"] == [0, 0, 0] and
+                 data[-1]["angular_velocity_world_rad_s"] == [0, 0, 0] and
+                 all(w["omega_rad_s"] == 0 for w in data[-1]["wheels"]))
         return data
+
+    def settle(label):
+        return phase(label, 1000 if args.settle_mode == "sleep" else 100,
+                     pressure=1500000, kind="brake-protection", wait_sleep=args.settle_mode == "sleep")
 
     try:
         result["client_version"] = client.get_client_version()
@@ -190,7 +243,7 @@ def main():
         case("pause_cannot_rearm", not rpc("advance", ticket=staged["ticket"])["ok"])
         close()
         bind("straight_after_pause")
-        phase("settle_hold", 100, pressure=1500000, kind="brake-protection")
+        settle("settle_hold")
         phase("capacity_200kPa", 1, pressure=200000)
         launch = phase("launch", 300, torque=300)
         regen = phase("negative_motor", 100, torque=-200)
@@ -207,7 +260,7 @@ def main():
         close()
         for label, angle in (("left", .2), ("right", -.2)):
             bind(label)
-            phase(label+"_settle", 100, pressure=1500000, kind="brake-protection")
+            settle(label+"_settle")
             turn = phase(label+"_turn", 300, torque=300, angle=angle)
             yaw_integral = sum(d["angular_velocity_world_rad_s"][2]*.01 for d in turn)
             result["dynamic_checks"][label+"_yaw_sign"] = yaw_integral*angle < 0
@@ -225,6 +278,10 @@ def main():
         result["error"] = traceback.format_exc()
     finally:
         receipts.close()
+        if response:
+            response.stdin.close()
+            result["response_fixture_exit"] = response.wait(timeout=5)
+            response.stdout.close()
         try:
             if bound:
                 result["close"] = rpc("close")

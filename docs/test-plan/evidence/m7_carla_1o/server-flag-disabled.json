@@ -1,0 +1,52 @@
+{
+  "status": "COMPLETE_ISOLATED_RUN",
+  "argv": [
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-game",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-carla-rpc-port=2200",
+    "-quality-level=Low",
+    "-carla-settings=/d/shin/stratadrive-tools/m7-source/m7-1o-flag-disabled/CarlaSettings.ini",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput"
+  ],
+  "started_utc": "2026-10-27T05:42:33.719806+00:00",
+  "normal_driving_enabled": false,
+  "owner_key": "ephemeral child environment; value never recorded",
+  "executed_artifact_sha256": {
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py": "63d4f1b6bbc1b0edfa8d6c5afb1996c01149c8cadaf91dd88d95dd464ba9c64c",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1m_effort.py": "1fddcd137040734de83f7bde529ae386c48e50a82ec5a6baffdaa8e0f4bef262",
+    "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture": "2ad36fdfab9c9230a70f1ec8b288faf0774dbcaa2f578f445c127ffb9db673f3",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so": "5711561b6186c9f479a28565b591b756300b6a49f9d9152fe29508c2a841cd8d",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so": "2c41bab3de02979228046cf193b65d708ae97b69308aecd214880af537e56079"
+  },
+  "pid": 914292,
+  "probe_argv": [
+    "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+    "-c",
+    "import carla,json,sys\nfrom pathlib import Path\nc=carla.Client('127.0.0.1',2200);c.set_timeout(10)\nr=json.loads(c.m7_nodrive(json.dumps({'op':'describe'})))\nok=not r['ok'] and r['reason']==sys.argv[2] and not r['locked']\np=Path(sys.argv[1]);p.mkdir()\n(p/'result.json').write_text(json.dumps({'status':'PASS_FLAG_REJECTION' if ok else 'FAIL','response':r,'expected':sys.argv[2]},indent=2)+'\\n')\nsys.exit(0 if ok else 1)",
+    "/d/shin/StrataDrive/docs/test-plan/evidence/m7_carla_1o/flag-disabled",
+    "disabled"
+  ],
+  "probe_exit": 0,
+  "stop_requested": "SIGINT to owned process group after probe",
+  "server_exit": 130,
+  "elapsed_wall_seconds": 25.665463205994456,
+  "logs": {
+    "server.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-1o-flag-disabled/server.log",
+      "sha256": "b369ae113409fdafa7683abe97e1b20b6ae3ab253a94e2441b9b6a9f31afce98"
+    },
+    "client.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-1o-flag-disabled/client.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "engine_commit": "e9d9e60c85f643e10eeb03f42f61554d18dcb30f",
+  "engine_tracked_diff": [],
+  "source_sha256": {
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/ThirdParty/PhysX3/PhysX_3.4/Source/PhysXVehicle/src/PxVehicleUpdate.cpp": "face50bc0460ded43facdbea8e858e8478119d8abadd73e49c1188698631181c",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/ThirdParty/PhysX3/PhysX_3.4/Source/PhysXVehicle/src/PxVehicleWheels.cpp": "e3b6016f3ea503d7bd268da6a0c7c51e6133e1e890869246c7840613a699c416",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/ThirdParty/PhysX3/PhysX_3.4/Source/PhysXVehicle/src/PxVehicleSuspWheelTire4.h": "b1ff84649dfe9fd3482dff0e43ec2d665a7d86cda8b1f3e03668d7a0ebf90c98",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/ThirdParty/PhysX3/PhysX_3.4/Include/vehicle/PxVehicleWheels.h": "acafe4ebd7fdbfccece76f358be2239b3272d3790c242a6ce2de208de32f6b1e",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Plugins/Runtime/PhysXVehicles/Source/PhysXVehicles/Private/WheeledVehicleMovementComponent.cpp": "e2f4c6c58bc1ba8f847af3101494d336d505c1c40e287a7a554f578cfa308b52"
+  },
+  "public_reference": "https://github.com/NVIDIAGameWorks/PhysX-3.4/blob/master/PhysX_3.4/Source/PhysXVehicle/src/PxVehicleUpdate.cpp",
+  "public_getter": "mCorrectedWheelSpeeds; low-speed free-rolling blend possible",
+  "new_direct_source": "mWheelsDynData.getWheel4DynData()[index/4].mWheelSpeeds[index%4]; read only",
+  "legacy_evidence": "unchanged; raw meant unmodified public getter, not proven unblended integration state",
+  "callback_scope": "ordered tire callbacks, skipped callbacks possible; not solver work coverage"
+}

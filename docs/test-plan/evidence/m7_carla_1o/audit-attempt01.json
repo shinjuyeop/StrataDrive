@@ -1,0 +1,12 @@
+{
+  "status": "FAIL_AUDIT_ASSUMPTION",
+  "reason": "Compared final unpowered front-wheel public getter to internal recurrence. UE PhysX getWheelRotationSpeed returns mCorrectedWheelSpeeds, including low-speed free-rolling blend.",
+  "example": {
+    "phase": "launch",
+    "wheel": 0,
+    "ordinal": 19,
+    "predicted_internal": 0.006566936662569117,
+    "public_endpoint": 0.0017255274578928947
+  },
+  "correction": "Keep all raw public observations; compare internal callback adjacency, and final endpoint only with nonzero drive (unblended). No omega tolerance or validity change."
+}

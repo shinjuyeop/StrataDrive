@@ -13,6 +13,12 @@ import subprocess
 from model_header import generate
 
 PIN = "294096eb1c38eabf246e4f3a9cdab704e33a7f4c"
+ENGINE_PIN = "e9d9e60c85f643e10eeb03f42f61554d18dcb30f"
+PHYSX_ROOT = Path("Engine/Source/ThirdParty/PhysX3/PhysX_3.4")
+READOUT_HEADERS = {
+    "Source/PhysXVehicle/src/PxVehicleSuspWheelTire4.h": "b1ff84649dfe9fd3482dff0e43ec2d665a7d86cda8b1f3e03668d7a0ebf90c98",
+    "Include/vehicle/PxVehicleWheels.h": "acafe4ebd7fdbfccece76f358be2239b3272d3790c242a6ce2de208de32f6b1e",
+}
 PLUGIN = Path("Unreal/CarlaUE4/Plugins/Carla/Source/Carla")
 NATIVE = PLUGIN.parent / "M7Native"
 READ_ONLY = {
@@ -57,6 +63,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--carla", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--engine", type=Path, required=True,
+                        help="Pinned UE source required for the read-only internal wheel accessor; never copied or modified")
     args = parser.parse_args()
     root = args.carla.resolve()
     own = Path(__file__).resolve().parent
@@ -64,6 +72,13 @@ def main():
     revision = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
     if revision != PIN:
         raise RuntimeError(f"expected {PIN}; got {revision}")
+    engine = args.engine.resolve()
+    engine_revision = subprocess.check_output(["git", "-C", str(engine), "rev-parse", "HEAD"], text=True).strip()
+    if engine_revision != ENGINE_PIN:
+        raise RuntimeError("unsupported engine revision for direct solver wheel readout")
+    for relative, expected in READOUT_HEADERS.items():
+        if sha((engine/PHYSX_ROOT/relative).read_bytes()) != expected:
+            raise RuntimeError(f"changed solver readout header: {relative}")
     previous = json.loads(args.manifest.read_text()) if args.manifest.exists() else None
     output = {}
     original = {}
@@ -115,7 +130,9 @@ def main():
     path = PLUGIN / "Carla.Build.cs"
     s = base(path)
     s = replace(s, '    PrivatePCHHeaderFile = "Carla.h";',
-                '    PrivatePCHHeaderFile = "Carla.h";\n    CppStandard = CppStandardVersion.Cpp17;\n    PrivateDependencyModuleNames.Add("M7Native");\n    PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "../M7Native/Native"));')
+                '    PrivatePCHHeaderFile = "Carla.h";\n    CppStandard = CppStandardVersion.Cpp17;\n    PrivateDependencyModuleNames.Add("M7Native");\n    PrivateIncludePaths.Add(Path.Combine(ModuleDirectory, "../M7Native/Native"));\n'
+                '    PrivateIncludePaths.Add(Path.Combine(EngineDirectory, "Source/ThirdParty/PhysX3/PhysX_3.4/Source/PhysXVehicle/src"));\n'
+                '    PrivateIncludePaths.Add(Path.Combine(EngineDirectory, "Source/ThirdParty/PhysX3/PhysX_3.4/Include/vehicle"));')
     output[str(path)] = s.encode()
     path = PLUGIN.parent.parent / "Carla.uplugin"
     s = base(path)
@@ -205,6 +222,7 @@ def main():
         if not dest.exists() or dest.read_bytes() != data:
             dest.write_bytes(data)
     manifest = {"carla_commit": PIN, "schema": "m7-nodrive-zero-probe-v1", "integration": integration,
+                "solver_readout_engine": {"root": str(engine), "commit": engine_revision, "headers_sha256": READOUT_HEADERS},
                 "native_sources_sha256": native_hashes, "legacy_rpc_decisions": bindings,
                 "installed": {path: sha(data) for path, data in output.items()}}
     args.manifest.parent.mkdir(parents=True, exist_ok=True)

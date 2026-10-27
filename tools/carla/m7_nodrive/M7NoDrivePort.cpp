@@ -171,8 +171,15 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   Tick = false;
   const bool ZeroFlag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7ZeroProbe"));
   const bool V1Flag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7V1Probe"));
-  const bool TwentyFlag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7V1Substeps20"));
-  if (TwentyFlag && !V1Flag) return Encode(Response(false, TEXT("numerical_profile_requires_v1")));
+  unsigned VehicleSubsteps = 0;
+  for (unsigned Candidate : {20u, 40u, 80u, 160u, 320u, 640u}) {
+    const FString Flag = FString::Printf(TEXT("StrataM7V1Substeps%u"), Candidate);
+    if (FParse::Param(FCommandLine::Get(), *Flag)) {
+      if (VehicleSubsteps) return Encode(Response(false, TEXT("ambiguous_numerical_profile")));
+      VehicleSubsteps = Candidate;
+    }
+  }
+  if (VehicleSubsteps && !V1Flag) return Encode(Response(false, TEXT("numerical_profile_requires_v1")));
   if (ZeroFlag && V1Flag) return Encode(Response(false, TEXT("ambiguous_profile")));
   if (!ZeroFlag && !V1Flag)
     return Encode(Response(false, TEXT("disabled")));
@@ -226,7 +233,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.Drive.reset(new DriveReceiver({DriveFrameKind::Actual, {-200, 300}, 100, 200}));
     if (!S.Steering->start_session(S.Session, LogicalOrigin) ||
         !S.Brake->start_session(S.Session, LogicalOrigin) ||
-        !S.Drive->start_session(S.Session, LogicalOrigin) || !Movement->EnableZeroProbe(TwentyFlag)) {
+        !S.Drive->start_session(S.Session, LogicalOrigin) || !Movement->EnableZeroProbe(VehicleSubsteps)) {
       Latch(TEXT("nodrive_init")); return Encode(Response(false, S.Reason));
     }
     S.PhysicsGeneration = Movement->PhysicsGeneration();

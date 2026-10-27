@@ -13,7 +13,7 @@ class CARLA_API UM7NoDriveMovement : public UWheeledVehicleMovementComponent4W
 {
   GENERATED_BODY()
 public:
-  bool EnableZeroProbe(bool VehicleTwenty = false);
+  bool EnableZeroProbe(unsigned VehicleSubsteps = 0);
   bool IsZeroProbe() const { return bZeroProbe; }
   bool HasNoDrive() const;
   bool InputsAreZero() const;
@@ -27,11 +27,17 @@ public:
   bool ApplyEffort(const FM7WheelEffort& Effort);
   bool EffortMatches(const FM7WheelEffort& Effort) const;
   bool NumericalProfileMatches() const;
+  virtual void GenerateTireForces(UVehicleWheel* Wheel, const FTireShaderInput& Input, FTireShaderOutput& Output) override;
 protected:
   virtual void SetupVehicleDrive(physx::PxVehicleWheelsSimData* Data) override;
   virtual void UpdateSimulation(float DeltaTime) override;
 private:
   bool bZeroProbe = false;
   uint64 Generation = 0;
-  bool bVehicleTwenty = false;
+  unsigned DiagnosticSubsteps = 0;
+  struct FTireObservation {
+    unsigned Wheel;
+    float Omega, Slip, Load, Torque, LongForce;
+  };
+  TArray<FTireObservation> TireObservations;
 };

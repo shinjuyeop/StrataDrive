@@ -344,3 +344,13 @@ full Actual/work/EV/wall·전체 renderer 안정성은 미수용이다. 다음�
 같은 새 binary의 기본 rear 음수487frame 재현,20분할 새2서버 각3frame/1,621receipt였다.
 출발 첫 tick에 약−.256rad/s가 남아 native forward gate FAIL/20분할 정상 미채택이다.
 원래 Actual/시각/요구사항을 보존하며 다음40분할 또는 기존 actuator Actual trajectory의 분리 시험이 남는다.
+
+## 2026-10-27 후속 — M7-1o 출발 적분 안정화와 wheel 원천 정정
+
+[실행 원본](evidence/m7_carla_1o/README.md):20분할은 실제 정착과 기존 response 모델 입력에서도
+출발 음수를 재현했고40/80분할도 실패했다. 읽기 전용 tire callback으로 저속 반력의 적분 진동을
+확인하고320분할을 후속 격리 후보로 정했다. 최종 직접 solver source의 새2서버 stress 및
+response 입력은 각1,621frame/4wheel 음수0이다. 중간 앞바퀴 미세 음수는 보존한다.
+기존 공개 getter는 무구동 저속 보정값일 수 있어 `mWheelSpeeds` 직접 읽기를 별도로 추가했다.
+UE commit/header hash를 고정하며 engine/M6 source·물리 계수·주기/freshness는 바꾸지 않았다.
+정상 주행은 직접 원천의 native 반환·full Actual/authority·solver work/단일 EV·wall 검증 뒤 판단한다.
