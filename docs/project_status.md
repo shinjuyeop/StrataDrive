@@ -1,6 +1,6 @@
 # Project status
 
-Updated: **2026-10-26**. 현재 구현·수용 범위의 대표 문서다.
+Updated: **2026-10-27**. 현재 구현·수용 범위의 대표 문서다.
 단계/TBD는 [로드맵](roadmap.md), 종료 판단은 아래 review, 실행 원본·과거 분모는 각 evidence와
 [품질 이력](quality_policy.md)을 따른다. 이력의 당시 미구현/FAIL을 현재 상태로 해석하지 않는다.
 
@@ -29,6 +29,7 @@ Updated: **2026-10-26**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1j 렌더링 조사 | GDB camera SIGSEGV의 잘못된 Distance Field 참조 관측, 원인 미확정. 같은 바이너리의 GDB1회·native 같은 서버2회 각 RGB/GT30쌍·150tick·actor 정리/설정 복원 한정 통과. 재질 준비/렌더러 안정성 OPEN | [조사·실패·한계](test-plan/evidence/m7_carla_1j_render_diagnosis/README.md) |
 | M7-1j 준비 baseline | ego/RGB/GT 유지 중 shader·Distance Field zero를10s 간격2회 확인. 준비 후 GDB1회·새 native2서버 각150tick/30쌍 및 정리/복원, SIGINT130 한정 확인. broad trace timeout·DDC01 대상0/02 수동 중단 보존. 원래 crash root cause OPEN | [후속 검증](test-plan/evidence/m7_carla_1j_render_followup/README.md) |
 | M7-1k | 실제 UE NoDrive 0 effort 서버 포트·별도 Client 구현. 최종156개 검사(반복 포함)/13개10ms receipt, 직접 외부 writer·일반 tick 거부, pause/실제 physics reset·새 INIT 한정 검증. 독립 audit 손상8/8 거부, default-off 비주행2/2·102샘플. 초기 build2FAIL/시험1FAIL 보존. 정상 driving/work 미완료 | [실행·실패·gate](test-plan/evidence/m7_carla_1k/README.md) |
+| M7-1l | 읽기 전용 rest geometry5개 INIT 자세·COM/body/actor/프로젝트 반사 교차 검증, 독립 손상7/7 거부·reset 후 geometry 무효화. 실제 COM과 공개 COMNudge 구분. 새 binary의1k 회귀156개/13receipt 통과. build1FAIL·단위 가정 audit1FAIL 보존. brake V1/H1은 제안·미채택, 정상 gate 유지 | [실행·모델 선택안](test-plan/evidence/m7_carla_1l/README.md) |
 | M7 후속–M13 | PLANNED / NOT RUN; 정상 CARLA 주행 연결 BLOCKED | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
@@ -63,13 +64,17 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 
 ## 다음 작업
 
-**M7-1k는 서버 NoDrive의0 effort·single writer/frame/receipt 경계를 한정 검증했다. 정상 actuation과 렌더링 crash 원인은 OPEN이다**.
+**M7-1l는 rest geometry/기준점 검증과 brake 모델안을 정리했다. brake 계수는 미채택이며 정상 actuation과 렌더링 crash 원인은 OPEN이다**.
+[M7-1l](test-plan/evidence/m7_carla_1l/README.md)의5개 INIT 자세에서 nominal rear-axle rest 위치와
+COM/body/actor 변환을 확인했다. 공개 `center_of_mass`는 실제 COM이 아닌 COMNudge다.
+다음은 V1(기존 M6 합산 torque law를4륜 균등 배분하는 가상 EV) 수용 여부 또는 H1(실측 유압 자료)
+선택이다. 제안 수치를 runtime에 적용하지 않았고 nonzero/보호 brake·full Actual·work/EV·wall gate는 남는다.
 [M7-1k](test-plan/evidence/m7_carla_1k/README.md)는 원본 CAN/P05 receiver를 UE 도구체인으로
 컴파일하고, opt-in ego를 실제 NoDrive로 전환한다. 합성 Actual 세 값이 모두0인 경우만
 허용하며 실제8-role 주행 authority나 brake calibration은 아니다. 최종13개 receipt의 원래 source와
 raw signed wheel을 보존했고 work는 unavailable이다. 실제 reset 후 pending 폐기·재무장 차단,
 별도 client의 직접 제어/velocity/pose/physics 거부와 기존 flag-off 비주행 lifecycle을 확인했다.
-다음은 readback geometry 검증·근거 있는 brake 모델 → nonzero effort/보호 Brake Actual 및 raw wheel →
+rest geometry는1l 범위까지 확인했다. 근거 있는 brake 모델 → nonzero effort/보호 Brake Actual 및 raw wheel →
 실제8-role full Actual interval → solver work/단일 EV → wall timing 순서다.
 [M7-1j](test-plan/evidence/m7_carla_1j/README.md)에서 공개 CARLA source를 확보하고 공개 PhysX3.4
 CHECKED SDK·합성 Actual→NoDrive 물리 포트를 구현했다. Normal/ASan 각15/15, 독립 CSV

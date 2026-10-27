@@ -1,0 +1,56 @@
+{
+  "inspected_on_client_date": "2026-10-27 Asia/Seoul",
+  "files": {
+    "ue_movement": {
+      "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Plugins/Runtime/PhysXVehicles/Source/PhysXVehicles/Private/WheeledVehicleMovementComponent.cpp",
+      "sha256": "e2f4c6c58bc1ba8f847af3101494d336d505c1c40e287a7a554f578cfa308b52"
+    },
+    "ue_nodrive": {
+      "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/ThirdParty/PhysX3/PhysX_3.4/Source/PhysXVehicle/src/PxVehicleNoDrive.cpp",
+      "sha256": "528dcbdc9afc7ac5f4b5fcf056bab8bd2af5afbe8f7c9d7c508b4337b8e4a002"
+    },
+    "carla_physics": {
+      "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Vehicle/CarlaWheeledVehicle.cpp",
+      "sha256": "8e31c1ba88cac1c5ce69e470dee796c9421887a7e257ccca640c2ffa166dbdd4"
+    },
+    "carla_rpc_physics": {
+      "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/rpc/VehiclePhysicsControl.h",
+      "sha256": "cebdb6ee0ac7bfb6d4924379cdd9260cd2d867a82069e7126794daa3e4689ee0"
+    },
+    "carla_location": {
+      "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/geom/Location.h",
+      "sha256": "d147b89ce788fcba306a38fc5db94089e218d366f0a1fa868623621bef42a36b"
+    }
+  },
+  "findings": {
+    "ue_movement": "SetupWheels: COM inverse maps GetWheelRestingPosition to mWheelsSimData; rest position uses root reference bone, mesh scale, class/additional offsets",
+    "carla_physics": "GetVehiclePhysicsControl forwards COMNudge, not the absolute mass-frame local pose",
+    "carla_rpc_physics": "center_of_mass uses geom::Location conversion",
+    "carla_location": "FVector to Location converts cm to m",
+    "ue_nodrive": "setBrakeTorque checks wheel index and nonnegative input, then stores it; no max-brake-torque clamp in setter"
+  },
+  "web_sources": [
+    {
+      "url": "https://www.mathworks.com/help/sdl/ref/discbrake.html",
+      "adopted": "symbolic pressure/area/friction/radius relation; defaults NOT adopted"
+    },
+    {
+      "url": "https://www.brembo.com/en/news-archive/5-factors-that-make-a-brembo-braking-system-unbeatable",
+      "adopted": "qualitative dependence on clamping force, friction and effective radius; no MKZ parameters"
+    },
+    {
+      "url": "https://github.com/NVIDIAGameWorks/PhysX-3.4/blob/master/PhysX_3.4/Include/vehicle/PxVehicleNoDrive.h",
+      "adopted": "upstream API semantics, distinguished from inspected exact UE fork"
+    }
+  ],
+  "not_used": [
+    {
+      "url": "https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/docs/Vehicles.html",
+      "reason": "5.4.1 is not the bundled 3.4 implementation"
+    },
+    {
+      "url": "https://unece.org/sites/default/files/2021-03/ECE-TRANS-WP29-2021-055e.pdf",
+      "reason": "direct fetch 403; not a calibration data source"
+    }
+  ]
+}

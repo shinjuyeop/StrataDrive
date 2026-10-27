@@ -312,6 +312,17 @@ native wall/transport timeout 실주입·평지 보호 brake 및 렌더링 안�
 다음 작업은 wheel/COM geometry의 좌표·차량 기준점 검증과 근거 있는 brake 모델 선정이다.
 기존 M6 수용·ECU 주기·freshness·영상/GT 계약은 유지한다.
 
+## 2026-10-27 후속 — M7-1l rest geometry/brake 모델안
+
+[실행·실패·모델안](evidence/m7_carla_1l/README.md):5개 INIT 자세의 frozen-frame geometry와
+reference/body/실제 COM/world/actor/프로젝트 반사 변환을 교차 검증했다. 독립 손상7종 거부·실제 reset 뒤 geometry 무효화와
+새 source binary의1k156개 검사/13receipt 회귀를 확인했다. build1FAIL과 API COM 단위 가정
+audit1FAIL을 보존했고 서버는 정리 후 SIGINT130으로 종료했다. sensor/actuation 시험이 아니다.
+
+V1(M6 합산 torque law·4륜 균등 가상 EV)과 H1(실측 유압 식별)의 구체 모델안을 제시했다.
+실차 보정 자료나 가상 모델의 명시적 수용 전에는 계수를 확정하지 않는다. 서버0 effort gate와
+M6 계약은 유지하며 실제 조향 부호·보호 brake/raw wheel·full Actual/work/wall은 후속이다.
+
 ## M7-0 변경의 검증 범위
 
 변경은 Markdown7개(새 문서2개·기존 연결/상태5개)다. 변경 문서의 로컬 링크/앵커121개를

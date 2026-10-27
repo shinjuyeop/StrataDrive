@@ -1,0 +1,150 @@
+{
+  "schema": "m7-brake-capacity-proposal-v1",
+  "status": "DRAFT_NOT_APPROVED",
+  "runtime_enabled": false,
+  "model": "quasistatic per-wheel friction capacity; no second actuator lag or vehicle integrator",
+  "law": "P_w=alpha_w*P_actual; T_capacity_w=2*mu_eff_w*A_one_side_w*r_eff_w*eta_w*max(P_w-P_threshold_w,0)",
+  "piston_area_definition": "sum of hydraulic piston areas on ONE side; factor 2 counts equal pad forces, not all piston faces twice",
+  "pressure_observation_location": "TBD: bind source Actual pressure to a defined hydraulic location/circuit",
+  "geometry_evidence": "geometry01/result.json + audit02.json; reference geometry only",
+  "vehicle_blueprint": "vehicle.lincoln.mkz_2020",
+  "approved_coefficients": false,
+  "pressure_calibration": "UNAVAILABLE",
+  "normal_driving_enabled": false,
+  "per_wheel": {
+    "Wheel_Front_Left": {
+      "index": 0,
+      "asset_max_brake_nm": 800,
+      "alpha": null,
+      "mu_eff": null,
+      "one_side_piston_area_m2": null,
+      "effective_radius_m": null,
+      "efficiency": null,
+      "onset_pressure_pa": null,
+      "parameter_evidence": null
+    },
+    "Wheel_Front_Right": {
+      "index": 1,
+      "asset_max_brake_nm": 800,
+      "alpha": null,
+      "mu_eff": null,
+      "one_side_piston_area_m2": null,
+      "effective_radius_m": null,
+      "efficiency": null,
+      "onset_pressure_pa": null,
+      "parameter_evidence": null
+    },
+    "Wheel_Rear_Left": {
+      "index": 2,
+      "asset_max_brake_nm": 800,
+      "alpha": null,
+      "mu_eff": null,
+      "one_side_piston_area_m2": null,
+      "effective_radius_m": null,
+      "efficiency": null,
+      "onset_pressure_pa": null,
+      "parameter_evidence": null
+    },
+    "Wheel_Rear_Right": {
+      "index": 3,
+      "asset_max_brake_nm": 800,
+      "alpha": null,
+      "mu_eff": null,
+      "one_side_piston_area_m2": null,
+      "effective_radius_m": null,
+      "efficiency": null,
+      "onset_pressure_pa": null,
+      "parameter_evidence": null
+    }
+  },
+  "reject_policy": [
+    "missing/unapproved parameters",
+    "negative/nonfinite pressure",
+    "outside measured/model pressure envelope",
+    "torque above per-wheel accepted limit; no silent clamp"
+  ],
+  "not_inferred": [
+    "pressure gain from 800Nm asset max",
+    "brake effective radius from wheel radius",
+    "M6 fixture pressure gain",
+    "OEM identity from blueprint name",
+    "separate static/kinetic calibration from one PhysX capacity"
+  ],
+  "required_acceptance": [
+    "explicit virtual model acceptance OR matched vehicle measurements",
+    "same-source Actual interval/provenance",
+    "isolated nonzero/hold/release/forward+reverse/brake-loss tests",
+    "solver work and independent energy validation"
+  ],
+  "alternatives": [
+    {
+      "id": "V1",
+      "name": "M6 torque-law reference, equal four-wheel allocation",
+      "status": "PROPOSED_NOT_ACCEPTED",
+      "kind": "explicit virtual EV, NOT MKZ hydraulic identification",
+      "source_path": "simulation/vehicle/simple_vehicle.hpp",
+      "source_sha256": "fd78d064212aacda2be6f3e8de33a7e7f67b43ddf97cca233b3cbbe7cbdf6d98",
+      "aggregate_nm_per_pa": 0.001,
+      "per_wheel_fraction": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ],
+      "per_wheel_nm_per_pa": [
+        0.00025,
+        0.00025,
+        0.00025,
+        0.00025
+      ],
+      "pressure_range_pa": [
+        0,
+        1500000
+      ],
+      "table": [
+        {
+          "pressure_pa": 0,
+          "per_wheel_nm": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "pressure_pa": 200000,
+          "per_wheel_nm": [
+            50,
+            50,
+            50,
+            50
+          ]
+        },
+        {
+          "pressure_pa": 1500000,
+          "per_wheel_nm": [
+            375,
+            375,
+            375,
+            375
+          ]
+        }
+      ],
+      "basis": "Aggregate gain and pressure envelope from existing M6 SIL definition; equal allocation is a new proposed virtual-model choice. Does NOT preserve M6 motion or acceptance on different chassis.",
+      "approval_required": "explicit acceptance of this virtual model before runtime installation",
+      "delay": "no additional lag: input is acquired Actual pressure",
+      "unknown": [
+        "standstill/raw signed wheel validity",
+        "friction work/energy",
+        "vehicle response and ODD"
+      ]
+    },
+    {
+      "id": "H1",
+      "name": "identified hydraulic capacity model",
+      "status": "BLOCKED_MISSING_PARAMETERS",
+      "law": "P_w=alpha_w*P_actual; T_capacity_w=2*mu_eff_w*A_one_side_w*r_eff_w*eta_w*max(P_w-P_threshold_w,0)",
+      "parameters": "per_wheel null entries above; need matched vehicle/bench evidence"
+    }
+  ]
+}

@@ -29,6 +29,7 @@ uint64 값은 정확한 decimal 문자열로 보존한다. `describe` 외 변경
 | 요청 | 동작 |
 | --- | --- |
 | describe | 진단 한계·현재 frame·readback 조회. 정상 driving/work capability는 false |
+| geometry | owner/run/session과 동일 physics generation을 검사한 읽기 전용 reference/rest geometry. actor/body/COM pose·reference bone·offset을 SI로 반환하며 tick/actuation 없음 |
 | bind(actor) | sync10ms·4wheel 확인, 새 session/application epoch 발급, NoDrive 생성. 실패는 latch |
 | stage(frame, steering/brake/drive) | 원래 CAN ID/FD flags/전체 payload hex와 oldest/expiry 검사. 각 native Actual receiver/P05/epoch/sequence/source 검사. 세 값 모두 정확히0일 때만 원자적 수용 |
 | advance(ticket) | 한 번만 tick cue를 큐에 넣음. 응답은 queued이며 physics receipt가 아님 |
@@ -49,6 +50,12 @@ payload source time을 바꾸지 않고 전체 구간 age30ms/skew10ms·exclusiv
 서버 simulation begin/end는 별도로 기록한다. 이 진단 clock/합성 epoch는 실제8-role authority,
 native wall deadline 또는 kernel clock mapping 증명이 아니다. 과거 sample을 재취득했다고
 표시하지 않는다.
+
+[M7-1l geometry 검증](../../../docs/test-plan/evidence/m7_carla_1l/README.md)은5개 INIT 자세에서
+reference bone→body→COM→world→actor를 교차 검증했다. wheel resting center와 contact patch,
+공개 `center_of_mass`(RPC에서 이미 m로 변환된 COMNudge)와 실제 PhysX COM pose를 구분한다.
+식별한 기준점은 body에 고정된 nominal rear-axle **rest** 중심이며 suspension에 따라 움직이는
+wheel center 측정이 아니다. nonzero 조향 부호·브레이크 보정·주행은 계속 미검증이다.
 
 캘리브레이션 없는 nonzero rad/Nm/Pa를 모두 거부한다. wheel geometry/max brake readback은
 보정 완료가 아니다. `set_*`는 적용 demand readback이며 새 actuator Actual이 아니다.

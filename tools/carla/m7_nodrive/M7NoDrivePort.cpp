@@ -227,6 +227,19 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     if (S.Receipt.IsValid()) R->SetObjectField(TEXT("receipt"), S.Receipt);
     return Encode(R);
   }
+  if (Op == TEXT("geometry")) {
+    if (!S.Movement.IsValid() || !S.Movement->HasNoDrive() ||
+        S.Movement->PhysicsGeneration() != S.PhysicsGeneration)
+      return Encode(Response(false, TEXT("geometry_generation")));
+    Json Geometry;
+    if (!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(
+          S.Movement->DescribeGeometry()), Geometry) || !Geometry.IsValid())
+      return Encode(Response(false, TEXT("geometry_unavailable")));
+    auto R = Response(true, TEXT("read_only_rest_geometry"));
+    R->SetNumberField(TEXT("simulation_seconds"), Episode.GetElapsedGameTime());
+    R->SetObjectField(TEXT("geometry"), Geometry);
+    return Encode(R);
+  }
   if (Op == TEXT("pause")) {
     Latch(TEXT("paused_requires_close_and_new_init"));
     return Encode(Response(true, S.Reason));

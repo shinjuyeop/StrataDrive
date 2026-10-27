@@ -17,6 +17,7 @@ public:
   void ClearInputs();
   void ResetZeroProbe();
   FString DescribePhysics() const;
+  FString DescribeGeometry();
 protected:
   virtual void SetupVehicleDrive(physx::PxVehicleWheelsSimData* Data) override;
   virtual void UpdateSimulation(float DeltaTime) override;

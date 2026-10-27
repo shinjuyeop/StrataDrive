@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-26, `m7-plant-draft-v8`. **functional wheel/actuator/electrical 포트 연결 / 서버 NoDrive 0 effort 진단 포트 / CARLA 정상 actuation 미연결**.
+2026-10-27, `m7-plant-draft-v9`. **functional wheel/actuator/electrical 포트 연결 / 서버 NoDrive 0 effort·rest geometry 검증 / CARLA 정상 actuation 미연결**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -226,6 +226,30 @@ physics generation 변경 또는 모호한 post-tick 결과는 다음 tick을 �
 다음 gate는 readback geometry의 좌표·휠 순서 검증과 근거 있는 brake 모델, nonzero effort,
 보호 Brake Actual/raw wheel, 실제8-role interval 연결, solver work/단일 EV 및 wall timing이다.
 짧은0 effort 실행은 평지 brake-hold·기존 미세 음수 문제·렌더러 crash 해결의 근거가 아니다.
+
+### M7-1l — rest geometry와 brake 모델 선택 경계
+
+[실행·독립 감사](../test-plan/evidence/m7_carla_1l/README.md)에서 yaw0/±90/180 및
+yaw37/pitch7/roll−4의5개 INIT 자세를 사용했다. physics enabled·tick 정지 상태에서
+reference bone/offset→body→실제 COM→world→actor 및 프로젝트 반사 변환을 대조했다.
+FL/FR/RL/RR 순서와 nominal rear-axle rest 중심의 actor 기준 위치 약
+`[-1.388633,0,0.359541] m`, wheelbase 약2.86047m·front track 약1.59292m를 확인했다.
+이는 **reference/rest geometry**이며 contact patch나 suspension 변위에 따른 실제 wheel center가 아니다.
+body에 고정된 nominal rear frame의 초기 근거로 사용하며 동적 기준점/속도 변환은 별도 검증한다.
+
+공개 `VehiclePhysicsControl.center_of_mass`는 `COMNudge`이고 RPC에서 이미 cm→m 변환된다.
+관측값 `[0.3,0,-0.2] m`를 실제 COM 위치로 사용하지 않는다. 실제 body local COM은
+약`[0.212369,0.000294,0.549693] m`였다. 변환 검사는 float32 계산 오차 예산을 사전 고정했고
+센서 validity/freshness epsilon을 추가하지 않았다. nonzero 조향 방향은 NOT RUN이다.
+
+[brake 모델안](../test-plan/evidence/m7_carla_1l/brake-model-proposal.json)은 **미채택**이다.
+V1은 기존 M6의 합산0.001Nm/Pa를 명시적인 가상 EV에서4륜 균등 배분하는 제안이며
+각0.00025Nm/Pa,200kPa에서각50Nm·1.5MPa에서각375Nm다. 합산 law의 근거는 기존 SIL
+정의이고 균등 배분은 새 가상 모델 선택이다. MKZ/OEM 보정이나 M6 응답 수용 승계가 아니다.
+이 가상 모델의 명시적 수용 전에는 runtime에 설치하지 않는다.
+H1은 유압 pressure 위치/회로 배분·피스톤 면적·마찰·유효 반경·효율·onset의 식별 자료를
+요구하는 대안이며 수치는 미확정이다. wheel radius와 max brake800Nm로 이를 대신하지 않는다.
+현재 서버는0 Actual만 수용하며 pressure→torque law를 실행하지 않는다.
 
 ## 4. 좌표계와 센서 계약
 
