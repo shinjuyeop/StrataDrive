@@ -1,0 +1,8 @@
+/d/shin/stratadrive-tools/m7-source/m7-1s/original-asan-03/LibCarla/source/carla/multigpu/router.cpp:24:14: runtime error: member call on null pointer of type 'carla::multigpu::Listener'
+    #0 0x525bfa in carla::multigpu::Router::Stop() /d/shin/stratadrive-tools/m7-source/m7-1s/original-asan-03/LibCarla/source/carla/multigpu/router.cpp:24:14
+    #1 0x4e2054 in main /d/shin/stratadrive-tools/m7-source/m7-1s/original-asan-03/m7_1s_shutdown.cpp:71:39
+    #2 0x7094c3a29d8f in __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+    #3 0x7094c3a29e3f in __libc_start_main csu/../csu/libc-start.c:392:3
+    #4 0x420b34 in _start (/d/shin/stratadrive-tools/m7-source/m7-1s/original-asan-03/probe+0x420b34) (BuildId: 85712b90b337bf24b997fee6514cb9cc5c7ab294)
+
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /d/shin/stratadrive-tools/m7-source/m7-1s/original-asan-03/LibCarla/source/carla/multigpu/router.cpp:24:14 in 

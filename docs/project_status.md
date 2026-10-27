@@ -36,6 +36,7 @@ Updated: **2026-10-27**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1p | 직접 solver→기존 native 센서/CAN·Rear·Central 반환 한정 연결. 새320분할 step/response 서버 각1,621관측·1,609반환, 다음 구간 끝 age 최대20ms. 실제20분할 음수/주입 snapshot 누락 시 다음 tick 차단. Normal/ASan 각60/60, metadata 손상29종 거부. 최초 snapshot 수신 지연/정리 검사 FAIL 보존. full Actual actuation/work/wall은 미완료 | [실행·실패·제한](test-plan/evidence/m7_carla_1p/README.md) |
 | M7-1q | native8-role Actual/Release·credit·부모 명령 전체 구간을 서버에서 검사하고 NoDrive에 실제 적용. 새2서버 각400tick/319정상 구간·최대 source age20ms. Normal/ASan 각64/64. 제한된 기능 연결 완료, solver work/단일 EV·wall 수용 미완료 | [실행·실패·제한](test-plan/evidence/m7_carla_1q/README.md) |
 | M7-1r | 완전한 solver work→단일 EV 정산 연결. 최종 새2서버 각400receipt/400정산·319정상 구간, Normal/ASan 각69/69. 누락·중복·불일치 시 다음 tick 차단; 일반 주행/회생·wall 미수용 | [실행·실패·제한](test-plan/evidence/m7_carla_1r/README.md) |
+| M7-1s | secondary-server accept/close 경합 TSan 재현·종료 순서 수정. component Normal/ASan·UBSan/TSan 각6/6, native 각69/69. 준비 확인 후 새12서버 SIGINT130. 최초 cold-load timeout/강제−9 1회 보존 | [원인·실행·제한](test-plan/evidence/m7_carla_1s/README.md) |
 | M7 후속–M13 | PLANNED / NOT RUN; 일반 주행/회생·wall gate OPEN | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
@@ -64,7 +65,8 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 | --- | --- |
 | OPEN-M6-ENERGY-01 | 현재 모델/응답 판정 불일치 범위 해소. 옛100ms FAIL·옛1MPa 미관측은 보존 |
 | OPEN-M6-ENERGY-02 | 실제 instrumented SDK의 wall/송수신·SDK 오류/기능 미완료 OPEN. 경계 sanitizer PASS로 대체하지 않음; [원본](test-plan/evidence/m6_vehicle_energy/README.md) |
-| OPEN-M7-1R-EXIT-01 | 기존 native 모드 회귀의 SIGINT 종료 중−11. multi-GPU Listener/Asio accept 스택 관측, 재실행130이나 원인/수정은 OPEN. [원본/실패](test-plan/evidence/m7_carla_1r/README.md) |
+| OPEN-M7-1R-EXIT-01 | **FIXED_LIMITED (M7-1s):** accept/close data race를 실제 source TSan으로 재현·수정하고 준비 후 새12서버 SIGINT130 확인. [원본 실패](test-plan/evidence/m7_carla_1r/README.md)는 보존; UE 전체/다른 종료 원인 수용 아님. [수정 근거](test-plan/evidence/m7_carla_1s/README.md) |
+| OPEN-M7-1S-COLD-01 | 최초 cold-load 중 get_world10초 timeout 뒤 SIGINT30초 한도 초과/강제−9. 포트와 world 준비를 구분해 runner 보완; cold-load 중단 자체의 종료 한도 수용은 OPEN. [실패/경계](test-plan/evidence/m7_carla_1s/README.md) |
 | M4·M3 과거 timing/FIFO/native/physical pause | 역사적 OPEN 유지. 후속 통과로 과거 원인 해소를 주장하지 않음; [M4 검토](m4_exit_review.md), [native 근거](test-plan/evidence/m5_someip_native_watch/README.md) |
 | DDS | **정규 제어 gate CLOSED, adapter 미착수**. 종료/20ms/TSan FAIL·접근 제한 이력 보존; [DDS 후속](test-plan/evidence/m5_dds_shutdown_followup/README.md). 제한된 작업을 우회·재시도하지 않음 |
 | Target/전체 시스템 | Jetson·실제 IO·Host–Target 검증,32req/29system TC는 NOT RUN. 학습자 설명/수용은 기술 판정과 별도 |
@@ -81,9 +83,10 @@ Normal/ASan 각69/69와 원본 wire·solver 방정식·work·SOC/손실 장부�
 누락/중복/잘못된 정산 ACK는 다음 tick을 차단하고, EV 모델의 중간 실패는 frame checkpoint를 복원한다.
 이미 실행된 CARLA physics를 되돌리는 것은 아니며 실패한 native rig는 새 process/INIT로 교체해야 한다.
 최소 명령 expiry 여유1ns는 functional clock 경계이지 wall jitter 수용이 아니다.
-다음 **M7-1s**는 회귀 중 관측된 서버 종료−11의 최소 재현/원인 분리·수정 검증을 먼저 진행한다.
-그 뒤 같은 Actual/권한 경로의 가속→감속→정지·재출발, 보호 제동, signed 회생을 작은 시나리오로
-검증한다. 이후 계측 비용과 wall2/4ms·clock uncertainty를
+[M7-1s](test-plan/evidence/m7_carla_1s/README.md)는 accept/close 경합을 수정하고 준비 후 새12서버 종료를 확인했다.
+다음 **M7-1t**는 같은 Actual/권한·단일 EV 경로의 가속→감속→정지·재출발을 작은 시나리오로
+검증한다. V1 가상 EV 브레이크는 유지하며 보호 제동·signed 회생은 별도 시험이다. cold-load 중단의
+30초 종료 한도는 별도 OPEN이다. 이후 계측 비용과 wall2/4ms·clock uncertainty를
 분리 검증한다. renderer·전체 ODD·AI 학습·Jetson은 아직 착수 범위가 아니다.
 [M7-1p](test-plan/evidence/m7_carla_1p/README.md)의 센서 반환·실제 음수/누락 차단 및
 [M7-1o](test-plan/evidence/m7_carla_1o/README.md)의 직접 solver 원천/내부 적분 조사 결과는 보존한다.

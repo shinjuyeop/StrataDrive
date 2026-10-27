@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import subprocess
 from model_header import generate
+from shutdown_patch import apply as shutdown_patches
 
 PIN = "294096eb1c38eabf246e4f3a9cdab704e33a7f4c"
 ENGINE_PIN = "e9d9e60c85f643e10eeb03f42f61554d18dcb30f"
@@ -181,6 +182,8 @@ def main():
     s = replace(s, '    // send the worldsnapshot',
                 '    M7NoDrive::AfterTick(*CurrentEpisode, GetFrameCounter(), DeltaSeconds);\n\n    // send the worldsnapshot')
     output[str(path)] = s.encode()
+
+    output.update(shutdown_patches(base, replace))
 
     integration = {path: {"original_utf8": original[path], "original_sha256": sha(original[path].encode()),
                           "installed_sha256": sha(data)} for path, data in output.items()}

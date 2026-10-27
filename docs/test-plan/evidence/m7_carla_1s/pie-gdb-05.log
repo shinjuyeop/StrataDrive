@@ -1,0 +1,18 @@
+Registered pretty printers for UE4 classes
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Program received signal SIGSEGV, Segmentation fault.
+0x000063b0aa29aae1 in __sanitizer::internal_mmap(void*, unsigned long, int, int, int, unsigned long long) ()
+#0  0x000063b0aa29aae1 in __sanitizer::internal_mmap(void*, unsigned long, int, int, int, unsigned long long) ()
+#1  0x000063b0aa29c3da in __sanitizer::MmapNamed(void*, unsigned long, int, int, char const*) ()
+#2  0x000063b0aa2a6198 in __sanitizer::ReservedAddressRange::Init(unsigned long, char const*, unsigned long) ()
+#3  0x000063b0aa202e7a in __sanitizer::SizeClassAllocator64<__asan::AP64<__sanitizer::LocalAddressSpaceView> >::Init(int, unsigned long) ()
+#4  0x000063b0aa20017d in __asan::Allocator::InitLinkerInitialized(__asan::AllocatorOptions const&) ()
+#5  0x000063b0aa28ad44 in __asan::AsanInitInternal() ()
+#6  0x00007c70568fe5be in _dl_init (main_map=0x7c70569332e0, argc=2, argv=0x7fff2c0a91f8, env=0x7fff2c0a9210) at ./elf/dl-init.c:102
+#7  0x00007c70569182ca in _dl_start_user () from /lib64/ld-linux-x86-64.so.2
+#8  0x0000000000000002 in ?? ()
+#9  0x00007fff2c0a9d06 in ?? ()
+#10 0x00007fff2c0a9d46 in ?? ()
+#11 0x0000000000000000 in ?? ()

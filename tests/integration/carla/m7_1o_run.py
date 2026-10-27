@@ -64,6 +64,8 @@ def main():
     argv = [str(a.engine/"Engine/Binaries/Linux/UE4Editor"),
             str(a.source/"Unreal/CarlaUE4/CarlaUE4.uproject"), "/Game/Carla/Maps/Town03_Opt",
             "-game", "-RenderOffScreen", "-nosound", "-unattended", "-nosplash", "-carla-server",
+            "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+            "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
             "-carla-rpc-port=2200", "-quality-level=Low", "-carla-settings="+str(settings),
             "-StrataM7NativeProbe" if a.native_actual else ("-StrataM7ZeroProbe" if a.zero else "-StrataM7V1Probe")]
     if a.vehicle_substeps and not a.zero:
@@ -129,6 +131,43 @@ def main():
                 time.sleep(.5)
         else:
             raise TimeoutError("RPC port readiness timeout")
+        # A listening RPC port can precede the first usable episode snapshot
+        # during cold map loading. Only read state here; never tick or mutate.
+        # Share the existing 180 s startup deadline, not the driving budgets.
+        readiness = a.runtime/"readiness.json"
+        ready_code = """
+import carla,json,sys,time
+from pathlib import Path
+client=carla.Client('127.0.0.1',2200)
+deadline=time.monotonic()+float(sys.argv[2])
+report={'status':'FAIL','attempts':[]}
+try:
+    while time.monotonic()<deadline:
+        client.set_timeout(min(2.,max(.001,deadline-time.monotonic())))
+        try:
+            world=client.get_world()
+            snapshot=world.get_snapshot()
+            if snapshot.frame>0:
+                report.update(status='READY_READ_ONLY',episode=world.id,
+                              frame=snapshot.frame,elapsed_seconds=snapshot.timestamp.elapsed_seconds)
+                break
+        except RuntimeError as error:
+            report['attempts'].append(str(error))
+        time.sleep(min(.2,max(0.,deadline-time.monotonic())))
+finally:
+    Path(sys.argv[1]).write_text(json.dumps(report,indent=2)+'\\n')
+sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
+"""
+        remaining = deadline-time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("world readiness deadline exhausted")
+        with (a.runtime/"readiness.log").open("w") as log:
+            ready = subprocess.run([str(a.python), "-c", ready_code, str(readiness), str(remaining)],
+                                   env=env, stdout=log, stderr=subprocess.STDOUT, timeout=remaining+2)
+        if readiness.exists():
+            report["world_readiness"] = json.loads(readiness.read_text())
+        if ready.returncode:
+            raise RuntimeError("world snapshot not ready within startup deadline")
         probe = "m7_1k_server_probe.py" if a.zero else "m7_1m_effort.py"
         cmd = [str(a.python), str(Path(__file__).with_name(probe)), "--fixture", str(a.fixture),
                "--output", str(a.output)]
@@ -187,7 +226,7 @@ def main():
                 report["status"] = "SERVER_EXIT_FAIL"
         report["elapsed_wall_seconds"] = time.monotonic()-started
         report["logs"] = {}
-        for name in ("server.log", "client.log"):
+        for name in ("server.log", "client.log", "readiness.log"):
             path = a.runtime/name
             if path.exists():
                 report["logs"][name] = dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest())

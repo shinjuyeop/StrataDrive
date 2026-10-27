@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-27, `m7-plant-draft-v15`. **native Actual→CARLA·solver work→단일 EV 기능 연결 한정 검증 / 전체 정상 주행 미수용**.
+2026-10-27, `m7-plant-draft-v16`. **native Actual→CARLA·solver work→단일 EV 기능 연결 한정 검증 / 전체 정상 주행 미수용**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -670,6 +670,19 @@ post-physics receipt/clear 후 다음 관측으로 진행한다. 일반 CARLA wr
 UE 원본 source/static archive는 보존하고, hash로 고정한 외부 copy에 읽기 전용 observer를 삽입하여
 PhysXVehicles module만 별도 빌드한다. 원본 module backup/restore와 실행 binary hash를 기록한다.
 Wall2/4ms·계측 비용·renderer·다중 ODD·실차 calibration·signed 회생/일반 정지는 미수용이다.
+
+### M7-1s: 서버 lifecycle 종료 경계
+
+[종료 조사/검증](../test-plan/evidence/m7_carla_1s/README.md)의 pinned source patch는
+secondary-server I/O pool stop/join 뒤 acceptor/session을 해제한다. 취소/실패 accept를 재등록하지
+않고 context reset을 제거한다. 반복 Stop/소멸과 Router 자기 참조를 처리한다. 외부 생산자를
+먼저 정지한 lifecycle owner가 호출하며, worker 내부 Stop·동시 lifecycle 호출·같은 Router의
+재시작은 지원하지 않는다. 새 서버/Router로 다시 시작한다. M7 frame/pause/reset·Actual/EV 계약은 그대로다.
+
+시험 runner는 포트 개방뿐 아니라 read-only client의 첫 유효 world snapshot까지 확인한다.
+기존180초 startup deadline 안의 준비 절차이며 tick/actuation을 수행하거나 sensor timestamp를
+재작성하지 않는다. 실제 probe RPC10초·SIGINT 종료30초, Drive30ms·expiry 기준은 유지한다.
+probe 성공이어도 서버−11/강제 종료는 FAIL이다. cold-load 중단의 종료 한도는 별도 미수용이다.
 
 **결정:** actual-only 경로·단일 actuation writer,10ms world/state·50ms 영상·단일 tick owner,
 20/10ms 기존 rate·freshness/권한 보존, 중복 motion/actuator/energy 금지, metadata/좌표 의미,

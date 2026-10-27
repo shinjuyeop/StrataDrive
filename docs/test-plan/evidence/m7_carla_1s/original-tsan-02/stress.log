@@ -1,0 +1,168 @@
+INFO:  Listening at  0.0.0.0:41791 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:36227 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:40281 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:45843 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:45063 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:45097 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:46737 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:39711 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:46523 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:34471 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:43951 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:42425 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:43019 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:45599 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:34197 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:38257 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:38637 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:44813 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:45169 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:39089 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:39991 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:42503 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:42509 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:39313 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:37291 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:38825 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:37343 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:41157 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:44373 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:35617 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:36489 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:42285 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:46091 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:41893 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:36445 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:36353 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:35203 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:37659 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:38625 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:37329 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:41143 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:42987 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:42183 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:39011 
+INFO:  Disconnecting all secondary servers 
+INFO:  Listening at  0.0.0.0:36315 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+INFO:  Listening at  0.0.0.0:36375 
+INFO:  Disconnecting all secondary servers 
+ERROR: Secondary server: Operation canceled 
+==================
+WARNING: ThreadSanitizer: data race (pid=1081572)
+  Read of size 4 at 0x7b2400003510 by thread T189:
+    #0 void boost::asio::detail::reactive_socket_service<boost::asio::ip::tcp>::async_accept<boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::asio::any_io_executor>(boost::asio::detail::reactive_socket_service<boost::asio::ip::tcp>::implementation_type&, boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>*, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1&, boost::asio::any_io_executor const&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/reactive_socket_service.hpp:527:42 (probe+0x4e600b) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #1 void boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept::operator()<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::asio::ip::tcp, boost::asio::any_io_executor>(carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1&&, boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>*, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>*) const /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/basic_socket_acceptor.hpp:2647:34 (probe+0x4e600b)
+    #2 void boost::asio::detail::completion_handler_async_result<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, void (boost::system::error_code)>::initiate<boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>*, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>*>(boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept&&, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1&&, boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>*&&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>*&&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/async_result.hpp:273:5 (probe+0x4e600b)
+    #3 boost::asio::constraint<detail::async_result_has_initiate_memfn<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, void (boost::system::error_code)>::value, decltype(async_result<std::decay<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1>::type, void (boost::system::error_code)>::initiate(static_cast<boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept>(fp), static_cast<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1>(fp0), static_cast<boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>*>(fp1), static_cast<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>*>(fp1)))>::type boost::asio::async_initiate<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, void (boost::system::error_code), boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept, boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>*, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>*>(boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept&&, boost::asio::type_identity<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1>::type&, boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>*&&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>*&&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/async_result.hpp:570:10 (probe+0x4e600b)
+    #4 decltype(async_initiate<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, void (boost::system::error_code)>(decltype(__declval<boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept>(0)) std::declval<boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept>()(), fp0, &(fp), static_cast<boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>*>(0))) boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::async_accept<boost::asio::ip::tcp, boost::asio::any_io_executor, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1>(boost::asio::basic_socket<boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept, boost::asio::any_io_executor>&, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1&&, boost::asio::constraint<is_convertible<boost::asio::ip::tcp, boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::initiate_async_accept>::value, int>::type) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/basic_socket_acceptor.hpp:1398:12 (probe+0x4e600b)
+    #5 carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>) /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/LibCarla/source/carla/multigpu/listener.cpp:56:15 (probe+0x4e600b)
+    #6 carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1::operator()(boost::system::error_code) const /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/LibCarla/source/carla/multigpu/listener.cpp:59:7 (probe+0x4e9238) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #7 boost::asio::detail::binder1<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::system::error_code>::operator()() /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/bind_handler.hpp:115:5 (probe+0x4e9238)
+    #8 void boost::asio::detail::handler_work<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::asio::any_io_executor, void>::complete<boost::asio::detail::binder1<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::system::error_code> >(boost::asio::detail::binder1<carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::system::error_code>&, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/handler_work.hpp:470:7 (probe+0x4e7a7b) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #9 boost::asio::detail::reactive_socket_accept_op<boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>, boost::asio::ip::tcp, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::asio::any_io_executor>::do_complete(void*, boost::asio::detail::scheduler_operation*, boost::system::error_code const&, unsigned long) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/reactive_socket_accept_op.hpp:154:9 (probe+0x4e7a7b)
+    #10 boost::asio::detail::scheduler_operation::complete(void*, boost::system::error_code const&, unsigned long) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/scheduler_operation.hpp:40:5 (probe+0x4db81a) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #11 boost::asio::detail::scheduler::do_run_one(boost::asio::detail::conditionally_enabled_mutex::scoped_lock&, boost::asio::detail::scheduler_thread_info&, boost::system::error_code const&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/impl/scheduler.ipp:493:12 (probe+0x4db81a)
+    #12 boost::asio::detail::scheduler::run(boost::system::error_code&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/impl/scheduler.ipp:210:10 (probe+0x4db401) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #13 boost::asio::io_context::run() /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/impl/io_context.ipp:64:24 (probe+0x4f4b81) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #14 carla::ThreadPool::Run() /d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/ThreadPool.h:64:19 (probe+0x4f4b23) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #15 carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()::operator()() const /d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/ThreadPool.h:52:57 (probe+0x4f4b23)
+    #16 void std::__invoke_impl<void, carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()>(std::__invoke_other, carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()&&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/invoke.h:61:14 (probe+0x4f4b23)
+    #17 std::__invoke_result<carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()>::type std::__invoke<carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()>(carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()&&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/invoke.h:96:14 (probe+0x4f4b23)
+    #18 void std::thread::_Invoker<std::tuple<carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()> >::_M_invoke<0ul>(std::_Index_tuple<0ul>) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/std_thread.h:292:13 (probe+0x4f4b23)
+    #19 std::thread::_Invoker<std::tuple<carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()> >::operator()() /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/std_thread.h:299:11 (probe+0x4f4b23)
+    #20 std::thread::_State_impl<std::thread::_Invoker<std::tuple<carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()> > >::_M_run() /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/std_thread.h:244:13 (probe+0x4f4b23)
+    #21 <null> <null> (libstdc++.so.6+0xf6ca5) (BuildId: 110d46b888a9f02658a881fbb351212cc7458220)
+
+  Previous write of size 4 at 0x7b2400003510 by main thread:
+    #0 boost::asio::detail::reactive_socket_service_base::construct(boost::asio::detail::reactive_socket_service_base::base_implementation_type&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/impl/reactive_socket_service_base.ipp:46:16 (probe+0x4e4c8e) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #1 boost::asio::detail::reactive_socket_service_base::close(boost::asio::detail::reactive_socket_service_base::base_implementation_type&, boost::system::error_code&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/impl/reactive_socket_service_base.ipp:130:3 (probe+0x4e4c8e)
+    #2 boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::close() /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/basic_socket_acceptor.hpp:663:25 (probe+0x4d4b9b) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #3 carla::multigpu::Listener::Stop() /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/LibCarla/source/carla/multigpu/listener.cpp:32:15 (probe+0x4e59ad) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #4 carla::multigpu::Router::Stop() /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/LibCarla/source/carla/multigpu/router.cpp:24:14 (probe+0x4ec8ae) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #5 main /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/m7_1s_shutdown.cpp:70:17 (probe+0x4d2228) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+
+  Location is heap block of size 136 at 0x7b24000034e0 allocated by main thread:
+    #0 operator new(unsigned long) <null> (probe+0x4d0b56) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #1 std::__new_allocator<std::_Sp_counted_ptr_inplace<carla::multigpu::Listener, std::allocator<void>, (__gnu_cxx::_Lock_policy)2> >::allocate(unsigned long, void const*) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/new_allocator.h:151:27 (probe+0x4f69ec) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #2 std::allocator_traits<std::allocator<std::_Sp_counted_ptr_inplace<carla::multigpu::Listener, std::allocator<void>, (__gnu_cxx::_Lock_policy)2> > >::allocate(std::allocator<std::_Sp_counted_ptr_inplace<carla::multigpu::Listener, std::allocator<void>, (__gnu_cxx::_Lock_policy)2> >&, unsigned long) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/alloc_traits.h:482:20 (probe+0x4f69ec)
+    #3 std::__allocated_ptr<std::allocator<std::_Sp_counted_ptr_inplace<carla::multigpu::Listener, std::allocator<void>, (__gnu_cxx::_Lock_policy)2> > > std::__allocate_guarded<std::allocator<std::_Sp_counted_ptr_inplace<carla::multigpu::Listener, std::allocator<void>, (__gnu_cxx::_Lock_policy)2> > >(std::allocator<std::_Sp_counted_ptr_inplace<carla::multigpu::Listener, std::allocator<void>, (__gnu_cxx::_Lock_policy)2> >&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/allocated_ptr.h:98:21 (probe+0x4f69ec)
+    #4 std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count<carla::multigpu::Listener, std::allocator<void>, boost::asio::io_context&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>&>(carla::multigpu::Listener*&, std::_Sp_alloc_shared_tag<std::allocator<void> >, boost::asio::io_context&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/shared_ptr_base.h:969:19 (probe+0x4f69ec)
+    #5 std::__shared_ptr<carla::multigpu::Listener, (__gnu_cxx::_Lock_policy)2>::__shared_ptr<std::allocator<void>, boost::asio::io_context&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>&>(std::_Sp_alloc_shared_tag<std::allocator<void> >, boost::asio::io_context&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/shared_ptr_base.h:1712:14 (probe+0x4f69ec)
+    #6 std::shared_ptr<carla::multigpu::Listener>::shared_ptr<std::allocator<void>, boost::asio::io_context&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>&>(std::_Sp_alloc_shared_tag<std::allocator<void> >, boost::asio::io_context&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/shared_ptr.h:464:4 (probe+0x4ece5a) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #7 std::shared_ptr<std::enable_if<!(is_array<carla::multigpu::Listener>::value), carla::multigpu::Listener>::type> std::make_shared<carla::multigpu::Listener, boost::asio::io_context&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>&>(boost::asio::io_context&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/shared_ptr.h:1009:14 (probe+0x4ece5a)
+    #8 carla::multigpu::Router::Router(unsigned short) /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/LibCarla/source/carla/multigpu/router.cpp:33:15 (probe+0x4ece5a)
+    #9 void std::_Construct<carla::multigpu::Router, unsigned short const&>(carla::multigpu::Router*, unsigned short const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/stl_construct.h:119:25 (probe+0x4e4d98) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #10 void std::allocator_traits<std::allocator<void> >::construct<carla::multigpu::Router, unsigned short const&>(std::allocator<void>&, carla::multigpu::Router*, unsigned short const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/alloc_traits.h:661:4 (probe+0x4e4d98)
+    #11 std::_Sp_counted_ptr_inplace<carla::multigpu::Router, std::allocator<void>, (__gnu_cxx::_Lock_policy)2>::_Sp_counted_ptr_inplace<unsigned short const&>(std::allocator<void>, unsigned short const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/shared_ptr_base.h:604:4 (probe+0x4e4d98)
+    #12 std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count<carla::multigpu::Router, std::allocator<void>, unsigned short const&>(carla::multigpu::Router*&, std::_Sp_alloc_shared_tag<std::allocator<void> >, unsigned short const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/shared_ptr_base.h:972:6 (probe+0x4e4d98)
+    #13 std::__shared_ptr<carla::multigpu::Router, (__gnu_cxx::_Lock_policy)2>::__shared_ptr<std::allocator<void>, unsigned short const&>(std::_Sp_alloc_shared_tag<std::allocator<void> >, unsigned short const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/shared_ptr_base.h:1712:14 (probe+0x4e4d98)
+    #14 std::shared_ptr<carla::multigpu::Router>::shared_ptr<std::allocator<void>, unsigned short const&>(std::_Sp_alloc_shared_tag<std::allocator<void> >, unsigned short const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/shared_ptr.h:464:4 (probe+0x4d1f76) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #15 std::shared_ptr<std::enable_if<!(is_array<carla::multigpu::Router>::value), carla::multigpu::Router>::type> std::make_shared<carla::multigpu::Router, unsigned short const&>(unsigned short const&) /usr/bin/../lib/gcc/x86_64-linux-gnu/13/../../../../include/c++/13/bits/shared_ptr.h:1009:14 (probe+0x4d1f76)
+    #16 main /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/m7_1s_shutdown.cpp:53:23 (probe+0x4d1f76)
+
+  Thread T189 (tid=1082260, running) created by main thread at:
+    #0 pthread_create <null> (probe+0x450b9d) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #1 std::thread::_M_start_thread(std::unique_ptr<std::thread::_State, std::default_delete<std::thread::_State> >, void (*)()) <null> (libstdc++.so.6+0xf6d78) (BuildId: 110d46b888a9f02658a881fbb351212cc7458220)
+    #2 void carla::ThreadGroup::CreateThread<carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()&>(carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/ThreadGroup.h:28:16 (probe+0x4f463a) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #3 void carla::ThreadGroup::CreateThreads<carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()>(unsigned long, carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/ThreadGroup.h:35:9 (probe+0x4f463a)
+    #4 carla::ThreadPool::AsyncRun(unsigned long) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/ThreadPool.h:52:16 (probe+0x4edc18) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #5 carla::multigpu::Router::AsyncRun(unsigned long) /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/LibCarla/source/carla/multigpu/router.cpp:79:9 (probe+0x4edc18)
+    #6 main /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/m7_1s_shutdown.cpp:58:17 (probe+0x4d2049) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+
+SUMMARY: ThreadSanitizer: data race /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/reactive_socket_service.hpp:527:42 in void boost::asio::detail::reactive_socket_service<boost::asio::ip::tcp>::async_accept<boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::asio::any_io_executor>(boost::asio::detail::reactive_socket_service<boost::asio::ip::tcp>::implementation_type&, boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>&, boost::asio::ip::basic_endpoint<boost::asio::ip::tcp>*, carla::multigpu::Listener::OpenSession(carla::time_duration, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>)>, std::function<void (std::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1&, boost::asio::any_io_executor const&)
+==================

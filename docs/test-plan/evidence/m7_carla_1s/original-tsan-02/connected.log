@@ -1,0 +1,17 @@
+ThreadSanitizer:DEADLYSIGNAL
+==1083414==ERROR: ThreadSanitizer: SEGV on unknown address 0x000000000020 (pc 0x0000004eaa32 bp 0x7fffffffd3f0 sp 0x7fffffffd380 T1083414)
+==1083414==The signal is caused by a READ memory access.
+==1083414==Hint: address points to the zero page.
+    #0 boost::asio::detail::reactive_socket_service_base::is_open(boost::asio::detail::reactive_socket_service_base::base_implementation_type const&) const /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/reactive_socket_service_base.hpp:92:17 (probe+0x4eaa32) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #1 boost::asio::detail::reactive_socket_service_base::cancel(boost::asio::detail::reactive_socket_service_base::base_implementation_type&, boost::system::error_code&) /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/impl/reactive_socket_service_base.ipp:160:8 (probe+0x4eaa32)
+    #2 boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::any_io_executor>::cancel() /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/basic_socket_acceptor.hpp:769:25 (probe+0x4eaa32)
+    #3 carla::multigpu::Listener::Stop() /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/LibCarla/source/carla/multigpu/listener.cpp:31:15 (probe+0x4e59a5) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #4 carla::multigpu::Router::Stop() /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/LibCarla/source/carla/multigpu/router.cpp:24:14 (probe+0x4ec8ae) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #5 main /d/shin/stratadrive-tools/m7-source/m7-1s/original-tsan-02/m7_1s_shutdown.cpp:71:39 (probe+0x4d224d) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+    #6 __libc_start_call_main csu/../sysdeps/nptl/libc_start_call_main.h:58:16 (libc.so.6+0x29d8f) (BuildId: 6a6cb5a80fd5e5bb5bf3aeaa111add98e88843a5)
+    #7 __libc_start_main csu/../csu/libc-start.c:392:3 (libc.so.6+0x29e3f) (BuildId: 6a6cb5a80fd5e5bb5bf3aeaa111add98e88843a5)
+    #8 _start <null> (probe+0x422b14) (BuildId: 005f833822befa41c99a1dac0255cf56ec34ba4e)
+
+ThreadSanitizer can not provide additional info.
+SUMMARY: ThreadSanitizer: SEGV /d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include/boost/asio/detail/reactive_socket_service_base.hpp:92:17 in boost::asio::detail::reactive_socket_service_base::is_open(boost::asio::detail::reactive_socket_service_base::base_implementation_type const&) const
+==1083414==ABORTING

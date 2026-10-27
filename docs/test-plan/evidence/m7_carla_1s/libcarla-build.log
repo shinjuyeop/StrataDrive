@@ -1,0 +1,62 @@
+[1/5] Building CXX object LibCarla/cmake/server/CMakeFiles/carla_server.dir/__/__/source/carla/multigpu/primaryCommands.cpp.o
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:39:21: warning: use of old-style cast [-Wold-style-cast]
+  carla::Buffer buf((unsigned char *) map.c_str(), (size_t) map.size() + 1);
+                    ^                 ~~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:39:52: warning: use of old-style cast [-Wold-style-cast]
+  carla::Buffer buf((unsigned char *) map.c_str(), (size_t) map.size() + 1);
+                                                   ^        ~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:46:21: warning: use of old-style cast [-Wold-style-cast]
+  carla::Buffer buf((carla::Buffer::value_type *) &sensor_id,
+                    ^                             ~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:47:21: warning: use of old-style cast [-Wold-style-cast]
+                    (size_t) sizeof(stream_id));
+                    ^        ~~~~~~~~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:59:21: warning: use of old-style cast [-Wold-style-cast]
+  carla::Buffer buf((unsigned char *) msg.c_str(), (size_t) msg.size());
+                    ^                 ~~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:59:52: warning: use of old-style cast [-Wold-style-cast]
+  carla::Buffer buf((unsigned char *) msg.c_str(), (size_t) msg.size());
+                                                   ^        ~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:70:23: warning: use of old-style cast [-Wold-style-cast]
+    carla::Buffer buf((carla::Buffer::value_type *) &sensor_id,
+                      ^                             ~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:71:23: warning: use of old-style cast [-Wold-style-cast]
+                      (size_t) sizeof(stream_id));
+                      ^        ~~~~~~~~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:75:10: warning: unused variable 'res' [-Wunused-variable]
+    bool res = (*reinterpret_cast<bool *>(response.buffer.data()));
+         ^
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:85:23: warning: use of old-style cast [-Wold-style-cast]
+    carla::Buffer buf((carla::Buffer::value_type *) &sensor_id,
+                      ^                             ~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:86:23: warning: use of old-style cast [-Wold-style-cast]
+                      (size_t) sizeof(stream_id));
+                      ^        ~~~~~~~~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:90:10: warning: unused variable 'res' [-Wunused-variable]
+    bool res = (*reinterpret_cast<bool *>(response.buffer.data()));
+         ^
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:100:23: warning: use of old-style cast [-Wold-style-cast]
+    carla::Buffer buf((carla::Buffer::value_type *) &sensor_id,
+                      ^                             ~~~~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primaryCommands.cpp:101:23: warning: use of old-style cast [-Wold-style-cast]
+                      (size_t) sizeof(stream_id));
+                      ^        ~~~~~~~~~~~~~~~~~
+14 warnings generated.
+[2/5] Building CXX object LibCarla/cmake/server/CMakeFiles/carla_server.dir/__/__/source/carla/multigpu/listener.cpp.o
+[3/5] Building CXX object LibCarla/cmake/server/CMakeFiles/carla_server.dir/__/__/source/carla/multigpu/router.cpp.o
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/router.cpp:124:21: warning: use of old-style cast [-Wold-style-cast]
+  Buffer buf_header((uint8_t *) &header, sizeof(header));
+                    ^           ~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/router.cpp:144:21: warning: use of old-style cast [-Wold-style-cast]
+  Buffer buf_header((uint8_t *) &header, sizeof(header));
+                    ^           ~~~~~~~
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/router.cpp:176:21: warning: use of old-style cast [-Wold-style-cast]
+  Buffer buf_header((uint8_t *) &header, sizeof(header));
+                    ^           ~~~~~~~
+3 warnings generated.
+[4/5] Building CXX object LibCarla/cmake/server/CMakeFiles/carla_server.dir/__/__/source/carla/multigpu/primary.cpp.o
+/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/multigpu/primary.cpp:109:28: warning: implicit conversion loses integer precision: 'std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >::size_type' (aka 'unsigned long') to 'int' [-Wshorten-64-to-32]
+      int this_size = text.size();
+          ~~~~~~~~~   ~~~~~^~~~~~
+1 warning generated.
+[5/5] Linking CXX static library LibCarla/cmake/server/libcarla_server.a

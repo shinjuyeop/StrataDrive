@@ -1,0 +1,106 @@
+{
+  "patched": true,
+  "sanitizer": "address",
+  "pin": "294096eb1c38eabf246e4f3a9cdab704e33a7f4c",
+  "build_argv": [
+    "clang++-14",
+    "-std=c++14",
+    "-pthread",
+    "-O1",
+    "-g",
+    "-fno-omit-frame-pointer",
+    "-DBOOST_ERROR_CODE_HEADER_ONLY",
+    "-I/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/LibCarla/source",
+    "-I/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source",
+    "-isystem",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/third-party",
+    "-isystem",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/rpclib-v2.2.1_c5-c10-libcxx-install/include",
+    "-isystem",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include",
+    "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/m7_1s_shutdown.cpp",
+    "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/LibCarla/source/carla/multigpu/listener.cpp",
+    "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/LibCarla/source/carla/multigpu/router.cpp",
+    "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/LibCarla/source/carla/multigpu/primary.cpp",
+    "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/LibCarla/source/carla/multigpu/primaryCommands.cpp",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source/carla/Buffer.cpp",
+    "-o",
+    "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/probe",
+    "-fsanitize=address,undefined"
+  ],
+  "source_sha256": {
+    "LibCarla/source/carla/multigpu/listener.cpp": "0e4fe4bafcd38e1e4b084fe9acd2be9ac31b91b7f516758cbbd62856ee074a5f",
+    "LibCarla/source/carla/multigpu/listener.h": "62b9b64d89e9e93d936f4b281804b8712e5c8f4f14d82944172a9a0e94592dd2",
+    "LibCarla/source/carla/multigpu/router.cpp": "d8d00c468aa1d4f5508666806c26f6908580ef94c3707a532d8b1e739cac1751",
+    "LibCarla/source/carla/multigpu/router.h": "81da5136ed31d24783e46ab2321425bd4d46d87f65bb4774ef115ab2034f70ae",
+    "LibCarla/source/carla/multigpu/primary.cpp": "de793f938c6e54748f6363a4c7e5dbc786d697be1db49b703b6e63c18a45160c",
+    "LibCarla/source/carla/multigpu/primary.h": "f375cdf9373f3bea5bb4bca890a36af47e4f29d78df2ff88c75901641891ada8",
+    "LibCarla/source/carla/multigpu/primaryCommands.cpp": "5d970e976f8564375d1f68865b58549a8ddd3ede9cd252775b8627a32159ccbc",
+    "LibCarla/source/carla/multigpu/primaryCommands.h": "5bc624de06b69b7e73197ad87b85e9ebbdcd73f3d13b2f44a6a95bcc22ec101a"
+  },
+  "harness_sha256": "c471e03154555ef5203a578c630c88fbf85e92e0f618078644b0d4c27743c9ab",
+  "cases": [
+    {
+      "case": "cancel",
+      "iterations": 1,
+      "argv": [
+        "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/probe",
+        "cancel",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "case": "empty",
+      "iterations": 1,
+      "argv": [
+        "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/probe",
+        "empty",
+        "1"
+      ],
+      "exit": -11
+    },
+    {
+      "case": "double",
+      "iterations": 1,
+      "argv": [
+        "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/probe",
+        "double",
+        "1"
+      ],
+      "exit": -11
+    },
+    {
+      "case": "stress",
+      "iterations": 1000,
+      "argv": [
+        "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/probe",
+        "stress",
+        "1000"
+      ],
+      "exit": 0
+    },
+    {
+      "case": "connected",
+      "iterations": 100,
+      "argv": [
+        "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/probe",
+        "connected",
+        "100"
+      ],
+      "exit": -11
+    },
+    {
+      "case": "lifetime",
+      "iterations": 10,
+      "argv": [
+        "/d/shin/stratadrive-tools/m7-source/m7-1s/patched-asan-02/probe",
+        "lifetime",
+        "10"
+      ],
+      "exit": 0
+    }
+  ],
+  "build_exit": 0,
+  "binary_sha256": "4111ab1ac99b50a2a86c5aa59fa2fc9d1c25f4160fab6d6725760fe38e53bd7c"
+}

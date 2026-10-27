@@ -401,3 +401,22 @@ OPEN-M7-1R-EXIT-01이다. 재실행130을 실패 해소로 간주하지 않는�
 경로의 가속→감속→정지·재출발, 보호 제동, signed 회생을 각각
 작은 시험으로 분리한다. 각 시험에서 work 누락/음수 범위/정산 오류 시 즉시 중단하고 다음 tick을
 막는지 확인한 뒤 wall2/4ms·계측 비용을 검증한다. 일반 ODD/renderer·AI/Jetson·M6 전체 회귀는 NOT RUN.
+
+## 2026-10-27 후속 — M7-1s 종료 경합 수정
+
+[원인·실행·실패](evidence/m7_carla_1s/README.md): 실제 pinned CARLA Listener/Router의
+accept/close data race를 독립 TSan으로 재현했다. pool stop/join 후 소켓·세션을 닫고,
+취소 재등록/context reset·중복 Stop·자기 참조를 수정했다. 실제 source component는
+Normal/ASan·UBSan/TSan 각각6/6(종료1,000회·연결 종료100회 포함), 기존 native Normal/ASan 각69/69다.
+UE 전체 sanitizer 수용이 아니다. LibCarla와 UE Carla module을 다시 빌드했고 M6 원본40파일,
+M7Native/PhysX observer module·V1/기존 시간 계약은 보존했다.
+
+최초 실행은 cold map 준비 중 get_world10초 timeout 뒤 SIGINT30초 한도 초과/강제−9로 실패했다.
+실패를 보존하고 기존180초 startup 한도 안에서 read-only world snapshot 준비를 기다리도록
+runner를 보완했다. cold-load 중단 자체의30초 종료 수용은 남는다. 후속 새 서버의 개별 종료/독립
+work audit는 위 evidence에 기록한다. M7-1r−11은 accept/close 경합 수정 범위로 한정해 판단하며
+옛 package SIGTERM/renderer crash까지 해소한 것으로 확대하지 않는다.
+
+다음 M7-1t는 같은 native Actual/단일 EV 경로의 가속→감속→정지·재출발을 확인한다.
+V1 가상 EV 브레이크를 유지하며 보호 제동·signed 회생은 별도 scenario다.
+cold-load 중단·wall2/4ms/clock uncertainty·장시간/전체 ODD는 별도 gate로 남는다.
