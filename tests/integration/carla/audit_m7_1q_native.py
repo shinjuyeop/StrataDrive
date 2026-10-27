@@ -85,7 +85,9 @@ def audit(directory, model, corrupt=None, work_mode=False):
             history[ns]=(wheels[2]['solver_omega_rad_s']+wheels[3]['solver_omega_rad_s'])/2
             if 'receipt' not in row:
                 if work_mode and row.get('terminal_settlement'): continue
-                check(row['index']==200 and report['fault']!='none','unexpected incomplete interval');continue
+                check((row['index']==200 and report['fault']!='none') or
+                      (report['fault']=='rgb-drop' and row['native']['admission']['ok'] and 'fault_observed' in report),
+                      'unexpected incomplete interval');continue
             n=row['native'];proof=n['native_export'];r=row['receipt'];out=r['original_actual']['admitted_actual']
             check(n['now_ns']==ns and proof['observed_ns']==str(ns),'native original clock')
             check(all(r[k]==b[k] for k in ('run','session','actor','application','model_id','model_sha256','effort_profile')),'binding')

@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-27, `m7-plant-draft-v16`. **native Actual→CARLA·solver work→단일 EV 기능 연결 한정 검증 / 전체 정상 주행 미수용**.
+2026-10-27, `m7-plant-draft-v17`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -697,3 +697,42 @@ wheel 정지 잡음/전체 ODD validity·wall clock mapping·일반 시나리오
 Host–Target transport/배치, M10 AI shape/history. 소유자·gate는 기존 TBD-02/03/04/07/09
 (energy는 기존 TBD-13)이며 [로드맵](../roadmap.md)에 연결한다. 이번 문서는 주행 통합 승인이나
 interface binary freeze가 아니다.
+
+
+### M7 통합 검증: 현재 적용 계약
+
+앞선 단계별 “미연결/미수용” 서술은 당시 기록이다. 현재 판정은
+[통합 종료 검토](../m7_exit_review.md)와 [원본](../test-plan/evidence/m7_carla_integrated/README.md)을 따른다.
+
+- `m7_integrated_v1.txt`는 INIT 전에 고정하는 상위 VehicleRequest 일정이다.20ms Controller
+  release에서 상대 simulation 시각으로 선택하고, 원래 source/sequence/expiry를 부여한다.
+  마지막 단계 이후 요청을 무한 유지하지 않는다. 기존 M6 allocation의 질량/radius를 V1 값으로
+  바꾸지 않았으므로 이 입력의 가속도는 CARLA 실제 가속도와 동일하다는 의미가 아니다.
+- native 정상 Actual·원래 권한 전체 구간·직접 solver wheel·완전 work·단일 EV ACK를 유지한다.
+  각900구간에서 가속·음수 motor work/충전 구간·마찰 제동·휠 정지·재출발을 관측했다.
+  휠0과 차체0은 구분하며, 작은 signed 차체 잔류 속도를 삭제하지 않는다.
+- `-StrataM7SensorFrame5` **및** native probe flag, `role_name=m7_frame5`, RGB/semantic
+  camera 종류, `sensor_tick=0.05`를 모두 만족하는 센서만 매 frame의 actor tick에서
+  `FCarlaEngine::GetFrameCounter()%5==0`일 때 실제 capture한다. float interval의 첫60ms
+  지연을 피하는 전용 취득 스케줄이다.10ms world guard는 유지하며 image frame/timestamp는
+  기존 CARLA 원본이다. 다른 센서/flag-off 실행에는 적용하지 않는다.
+- 영상은320×240/FOV90,ego 기준x1.6m/z1.7m/pitch−8deg,원본BGRA8이다. GT는 red channel의
+  semantic tag와 `TRAIN_EVAL_ONLY` 용도로 분리한다. 어떤 영상도 이번 고정 요청 생성에 쓰지 않는다.
+  sensor/ego identity·frame·취득 timestamp·arrival monotonic·validity·payload hash를 기록하며
+  run/session/generation은 같은 실행의 binding envelope에 속한다. 새 run으로 캐시를 넘기지 않는다.
+- 초기 ego snapshot 미존재는 index0에만 unavailable로 남긴다. 후속 state 누락은 실패다.
+  RGB delivery drop은 원래 frame의 누락으로 기록하고 다음 이미지에서 gap을 확인하면 다음 tick을
+  차단한다. pause/reset은 기존 latch/새 INIT 조건을 유지한다. 이 gap 검출을 미래 AI deadline 수용으로
+  확대하지 않는다. bounded callback buffer overflow도 실패다.
+- 실행 환경은 Town03_Opt/mkz_2020/ClearNoon/traffic 없음. 최종 재현 runner는 `-FixedSeed`로
+  UE의 `RandInit(0)/SRandInit(0)`을 선택하며 fixed timestep은 CARLA 설정만 소유한다.
+  `-Deterministic`의 별도 timestep 옵션을 사용하지 않는다.54m 직선 경로 후보는 좌표/곡률/map hash를
+  evidence에 고정했고30km/h 적합성은 M8에서 확인한다. 이번4.77m 주행은 route tracking 시험이 아니다.
+- wall 계측은 같은 Host monotonic끼리만 차감한다. native stdin 대기 구간의 실행 공백이2ms를
+  넘는 것을 확인했으며 개별4ms deadline 수용은 아직 없다. functional clock을 wall로 이름만
+  바꾸거나 RPC10s timeout을 freshness 요구에 대입하지 않는다.
+
+현재 `native_admission.hpp`는 arm 뒤 비정상 origin/state와 닫힌 authority를 거부한다.
+따라서 현재 fault 정책은 다음 physics tick 차단이며 **실제 native LocalProtection Actual을
+계속 적용하는 안전 정지 경로가 아니다**. 그 경로와 wall guard 연동, cold-loading 중30초 종료,
+원래 renderer crash 원인/장시간 안정성이 남은 gate다. M6 계약·V1 계수는 변경하지 않았다.

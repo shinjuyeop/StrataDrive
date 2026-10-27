@@ -1,0 +1,63 @@
+{
+  "status": "SERVER_EXIT_FAIL",
+  "argv": [
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-game",
+    "-FixedSeed",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+    "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+    "-carla-rpc-port=2200",
+    "-quality-level=Low",
+    "-carla-settings=/d/shin/stratadrive-tools/m7-source/m7-integrated/loading-diagnostic/CarlaSettings.ini",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput"
+  ],
+  "started_utc": "2026-10-27T10:22:21.659068+00:00",
+  "normal_driving_enabled": false,
+  "owner_key": "ephemeral child environment; value never recorded",
+  "executed_artifact_sha256": {
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py": "e2b6bf4e3f4ae4cceef58627f74c8f3b4aaeeedfb6bfee1c67136fa4172a2246",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1m_effort.py": "5e9d4db3eb16c94fbe923f216148fd81f729c846c304c0fe3ece27ac7143fe0a",
+    "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture": "2ad36fdfab9c9230a70f1ec8b288faf0774dbcaa2f578f445c127ffb9db673f3",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Plugins/Runtime/PhysXVehicles/Binaries/Linux/libUE4Editor-PhysXVehicles.so": "c78ce3f0ff27895ec617bd424d24ce677c0d30ad8ab0df77afa4fc50bae36e06",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so": "fbec1d414fbdcb48dbe7ab2cf88a7b87c3933ee1bdd82dfe40cc94c0ba8ac223",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so": "caac52be19aee8372025ed6adc10e754c4da9b90be12b98ea88be71553af8f55"
+  },
+  "pid": 1161627,
+  "abort_observation": {
+    "status": "LOADING_ABORT_REQUESTED",
+    "ticks": 0,
+    "ego_created": false,
+    "error": "time-out of 200ms while waiting for the simulator, make sure the simulator is ready and connected to 127.0.0.1:2200"
+  },
+  "stop_requested": "SIGINT to owned process group after probe",
+  "stop_requested_monotonic_ns": 115043367811946,
+  "shutdown_diagnostic": "owned process stack snapshot; timing is diagnostic only",
+  "debugger_error": "bounded stack capture timeout",
+  "forced_stop": "SIGKILL after SIGINT timeout",
+  "exit_observed_monotonic_ns": 115074083557109,
+  "server_exit": -9,
+  "elapsed_wall_seconds": 53.51541915499547,
+  "logs": {
+    "server.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-integrated/loading-diagnostic/server.log",
+      "sha256": "3933a0d62dab7fb0fff0d3380c8a3161948f62443f7b8481bbbd73017170f945"
+    },
+    "client.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-integrated/loading-diagnostic/client.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "shutdown-gdb.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-integrated/loading-diagnostic/shutdown-gdb.log",
+      "sha256": "0b7852d84f349c7a35b69f7e3f1aa83f9c193235bae9a7e904cd8f9aa97d3b3f"
+    }
+  }
+}

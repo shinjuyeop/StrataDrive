@@ -5,6 +5,7 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <vector>
 
 namespace stratadrive::m7_functional {
 // Trusted local sensor binding, not a CAN command/actuation permission. The
@@ -14,6 +15,7 @@ struct WheelSample {
     Time frame=0,source=0;
     std::array<double,4> omega{}; // FL, FR, RL, RR; rad/s, signed, no abs/clamp
 };
+struct RequestPhase { Time end_ms; double acceleration,curvature,braking; bool hold; };
 struct WheelAudit {Time source;double rad_s;};
 enum class PlantMode { StationaryFixture,ExternalWheelZoh,ExternalSolverWork };
 struct Report {
@@ -47,6 +49,8 @@ public:
     Report observe(const Observation& observation,const WheelSample& wheel,const m7_external::SolverWork& work);
     // Explicit test fault injection, set before observe. Missing processing is
     // never counted as an ACK. Credit loss keeps the original native age rules.
+    // Fixed before INIT; evaluated at each original 20ms Controller release.
+    void request_profile(std::vector<RequestPhase> phases);
     void omit_role(int role);
     void stop_credit(bool value);
     void drop_actual(bool value);
@@ -58,6 +62,7 @@ private:
     PlantMode plant_mode_;
     bool export_actual_;
     std::optional<m7_external::SolverWork> work_;
+    std::vector<RequestPhase> profile_;
     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
 };
 } // namespace stratadrive::m7_functional

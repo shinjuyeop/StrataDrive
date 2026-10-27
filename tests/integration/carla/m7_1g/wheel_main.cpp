@@ -1,6 +1,7 @@
 #include "functional_rig.hpp"
 #include "native_admission.hpp"
 #include <iomanip>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -22,7 +23,7 @@ template<std::size_t N> void packets(const std::array<std::optional<stratadrive:
 }
 int main(int argc,char** argv) {
     try {
-        if(argc!=6 || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
+        if((argc!=6 && argc!=8) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
             throw std::runtime_error("requires --wheel-shadow or --external-wheel-plant run application plant actor; no general driving acceptance");
         const auto run=std::stoull(argv[2]),app=std::stoull(argv[3]),plant=std::stoull(argv[4]),actor=std::stoull(argv[5]);
         if(!actor || actor>UINT32_MAX || app>UINT32_MAX || plant>UINT32_MAX)throw std::runtime_error("identity range");
@@ -31,6 +32,19 @@ int main(int argc,char** argv) {
         const bool external=std::string(argv[1])=="--external-wheel-plant" || exporting;
         FunctionalRig rig({run,static_cast<std::uint32_t>(app),static_cast<std::uint32_t>(plant)},static_cast<std::uint32_t>(actor),
             solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting);
+        if(argc==8) {
+            if(!solver_work || std::string(argv[6])!="--scenario")throw std::runtime_error("scenario requires solver-work mode");
+            std::ifstream file(argv[7]);if(!file)throw std::runtime_error("scenario open");
+            std::vector<RequestPhase> phases;std::string row;
+            while(std::getline(file,row)) {
+                if(row.empty() || row[0]=='#')continue;
+                RequestPhase phase{};unsigned hold;std::string extra;std::istringstream input(row);
+                if(!(input>>phase.end_ms>>phase.acceleration>>phase.curvature>>phase.braking>>hold) || hold>1 || (input>>extra))
+                    throw std::runtime_error("invalid scenario row");
+                phase.hold=hold!=0;phases.push_back(phase);
+            }
+            rig.request_profile(std::move(phases));
+        }
         std::cout<<std::setprecision(17);
         std::string line;
         std::unique_ptr<stratadrive::m7_native::Admission> admission;

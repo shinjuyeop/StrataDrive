@@ -90,6 +90,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     unsigned release_mask=0;std::size_t controller_releases=0;
     bool running=false,stop_credit=false,drop_actual=false;int omitted=-1;
     bool wheel_mode=false;
+    std::vector<RequestPhase> profile;
     std::optional<WheelSample> wheel;
     std::deque<WheelSample> pending_wheels;
     bool export_actual=false;
@@ -215,8 +216,17 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             // Upstream Controller request remains 20ms. Existing Host10ms child
             // allocation/permission renewal is retained, not a new Controller rate.
             core.receive_lifecycle({{scope.application,lifecycle_seq++,now,now+60*ms},can::BmsPowerAction::Enable},now);
-            if(core.decision().normal_armed)
-                core.receive_vehicle({scope.application,vehicle_seq++,now,now+60*ms,.2,.02,0,false},now);
+            if(core.decision().normal_armed) {
+                RequestPhase request{10000,.2,.02,0,false};
+                if(!profile.empty()) {
+                    const auto it=std::find_if(profile.begin(),profile.end(),[&](const RequestPhase& phase) {
+                        return now-start<phase.end_ms*ms;
+                    });
+                    require(it!=profile.end(),"request profile exhausted");request=*it;
+                }
+                core.receive_vehicle({scope.application,vehicle_seq++,now,now+60*ms,
+                    request.acceleration,request.curvature,request.braking,request.hold},now);
+            }
             next_controller+=20*ms;++controller_releases;
         }
         const bool due=now>=next_management;if(due)next_management+=10*ms;
@@ -339,6 +349,7 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         const bool initial=!native_;
         require(plant_mode_==PlantMode::ExternalSolverWork ? (initial?!work_:bool(work_)) : !work_,"missing/unexpected solver work");
         if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_);
+        native_->profile=profile_;
         if(work_) {
             require(work_->frame==o.frame && work_->end==now && native_->external->begin_work_frame(*work_),"solver work admission");
         }
@@ -375,6 +386,17 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         if(native_ && plant_mode_==PlantMode::ExternalSolverWork)native_->external->abort_work_frame();
         clock_.fail();throw;
     }
+}
+void FunctionalRig::request_profile(std::vector<RequestPhase> phases) {
+    require(!native_ && !phases.empty() && phases.size()<=32,"profile must be bounded and set before INIT");
+    Time previous=0;
+    for(const auto& p:phases) {
+        require(p.end_ms>previous && p.end_ms<=10000 && std::isfinite(p.acceleration) &&
+            p.acceleration>=-5 && p.acceleration<=2 && std::isfinite(p.curvature) &&
+            std::abs(p.curvature)<=1 && std::isfinite(p.braking) && p.braking>=0 && p.braking<=1,"invalid request profile");
+        previous=p.end_ms;
+    }
+    profile_=std::move(phases);
 }
 void FunctionalRig::omit_role(int role) {omitted_=role;}
 void FunctionalRig::stop_credit(bool value) {stop_credit_=value;}

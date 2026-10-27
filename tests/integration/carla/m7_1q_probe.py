@@ -19,6 +19,7 @@ import traceback
 import carla
 from audit_m7_1r_work import validate as validate_work, f32
 from m7_1k_server_probe import FIELDS
+from m7_sensor_capture import Capture
 from m7_1p_bridge import aligned_snapshot, require, DOMAIN, SOURCE
 
 
@@ -27,18 +28,25 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--native', type=Path, required=True)
     p.add_argument('--model', type=Path, required=True)
-    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy'), default='none')
+    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop'), default='none')
     p.add_argument('--ticks', type=int, default=400)
     p.add_argument('--solver-work', action='store_true')
+    p.add_argument('--scenario', type=Path)
+    p.add_argument('--cameras', action='store_true')
     a = p.parse_args()
-    require(150 <= a.ticks <= 800, 'bounded functional horizon')
+    require(150 <= a.ticks <= 950, 'bounded functional horizon')
+    require(a.fault!='rgb-drop' or a.cameras, 'RGB fault requires cameras')
+    require(not a.scenario or a.solver_work, 'scenario requires settled work')
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(status='FAIL', normal_driving_enabled=False, interval_work_valid=False,
                   mode='native eight-role functional Actual connection', fault=a.fault, cases=[])
+    if a.scenario:
+        report['scenario'] = dict(path=str(a.scenario),sha256=hashlib.sha256(a.scenario.read_bytes()).hexdigest(),text=a.scenario.read_text())
     events = []
     client = carla.Client('127.0.0.1', 2200)
     client.set_timeout(10)
     world = original = actor = process = stderr = None
+    capture = Capture(a.output,a.fault=='rgb-drop') if a.cameras else None
     bound = False
     session, run = '0', ''
     key = os.environ['STRATADRIVE_M7_OWNER_KEY']
@@ -73,13 +81,21 @@ def main():
         original = world.get_settings()
         report['original_settings'] = {k:getattr(original,k) for k in FIELDS}
         settings = world.get_settings()
-        settings.synchronous_mode, settings.fixed_delta_seconds, settings.no_rendering_mode = True, .01, True
+        settings.synchronous_mode, settings.fixed_delta_seconds, settings.no_rendering_mode = True, .01, not a.cameras
         settings.substepping, settings.max_substep_delta_time, settings.max_substeps = True, .01, 10
         world.apply_settings(settings)
         world.tick()  # sole unbound initialization tick, before ego creation
         blueprint = world.get_blueprint_library().find('vehicle.lincoln.mkz_2020')
         blueprint.set_attribute('role_name', 'm7_native_actual_functional')
-        actor = world.spawn_actor(blueprint, world.get_map().get_spawn_points()[0])
+        spawn = world.get_map().get_spawn_points()[0]
+        report['route_fixture'] = dict(map=world.get_map().name,spawn_index=0,seed=dict(engine_fixed_seed=0,traffic_randomness='none'),
+            weather='ClearNoon',traffic=False,controller='fixed requests; no route following',
+            spawn=dict(x=spawn.location.x,y=spawn.location.y,z=spawn.location.z,
+                       roll=spawn.rotation.roll,pitch=spawn.rotation.pitch,yaw=spawn.rotation.yaw),
+            opendrive_sha256=hashlib.sha256(world.get_map().to_opendrive().encode()).hexdigest())
+        world.set_weather(carla.WeatherParameters.ClearNoon)
+        actor = world.spawn_actor(blueprint, spawn)
+        if capture: capture.attach(world,actor,carla)
         model_hash = hashlib.sha256(a.model.read_bytes()).hexdigest()
         binding = rpc('bind', actor=str(actor.id), application='42', model_sha256=model_hash)
         bound, session, run = binding['locked'], binding['session'], binding['run']
@@ -93,11 +109,12 @@ def main():
         case('initial_clock', snapshot.timestamp.elapsed_seconds == end and
              math.floor(end*1e9+.5) == int(binding['logical_begin_ns']))
         stderr = (a.output/'native.stderr').open('w')
-        process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)],
+        process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else []),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
         receipt = None
         for i in range(a.ticks+int(a.solver_work)):
-            record = dict(index=i, frame=frame, simulation_seconds=end, physics=ph)
+            record = dict(index=i, frame=frame, simulation_seconds=end, physics=ph,
+                          wall_begin_ns=time.monotonic_ns())
             try:
                 if a.fault == 'snapshot' and i == 200:
                     record['fault'] = 'withheld current snapshot; previous object and timestamp retained'
@@ -107,6 +124,16 @@ def main():
                     getter = world.get_snapshot
                 snapshot, delivery = aligned_snapshot(getter, frame)
                 record['snapshot_delivery'] = delivery
+                state=snapshot.find(actor.id)
+                require(state is not None or i==0,'missing actor state after first physics tick')
+                record['vehicle_state']=dict(frame=snapshot.frame,timestamp=snapshot.timestamp.elapsed_seconds,
+                    source_identity='CARLA.ActorSnapshot',valid=state is not None)
+                if state is not None:
+                    transform=state.get_transform();velocity=state.get_velocity()
+                    record['vehicle_state'].update(
+                        position_ue_m=[transform.location.x,transform.location.y,transform.location.z],
+                        rotation_ue_deg=[transform.rotation.roll,transform.rotation.pitch,transform.rotation.yaw],
+                        velocity_ue_m_s=[velocity.x,velocity.y,velocity.z])
                 require(snapshot.timestamp.elapsed_seconds == end, 'snapshot source timestamp')
                 require(ph['generation'] == binding['physics']['generation'] and ph['nodrive'], 'generation')
                 require(ph['vehicle_substeps_low'] == ph['vehicle_substeps_high'] == 320, 'profile')
@@ -131,10 +158,12 @@ def main():
                     record['work_input']=packet
                     process.stdin.write(packet+'\n')
                     if i==200 and a.fault=='work-duplicate': process.stdin.write(packet+'\n')
+                record['wall_native_begin_ns']=time.monotonic_ns()
                 process.stdin.write(line+'\n');process.stdin.flush()
                 require(bool(select.select([process.stdout],[],[],10)[0]), 'native reply timeout')
                 native = json.loads(process.stdout.readline())
                 record['native'] = native
+                record['wall_native_end_ns']=time.monotonic_ns()
                 if i==200 and a.fault in ('work-missing','work-duplicate'):
                     require(native['status']=='FAIL' and native['next_frame'] is None,'native work fail closed')
                     stopped_frame=frame
@@ -171,6 +200,11 @@ def main():
                         require(not native['armed_fixture'], 'missing armed wheel')
                     else:
                         require(value['source_ns'] in history and abs(value['rad_s']-history[value['source_ns']]) <= (0 if field=='sensor_wheel' else .005+1e-12), 'native source/value provenance')
+                if capture and capture.snapshot()['errors']:
+                    require(a.fault=='rgb-drop' and capture.snapshot()['dropped'], 'unexpected camera delivery gap')
+                    stopped_frame=frame
+                    report['fault_observed']='RGB missing frame; no reuse or timestamp rewrite; next tick blocked'
+                    break
                 proof = copy.deepcopy(native['native_export'])
                 for k in ('service_mask','credit_mask','release_mask'):
                     proof[k] = str(native[k])
@@ -204,6 +238,7 @@ def main():
                         caught = str(exc)
                     case('foreign_tick_denied', caught is not None and 'M7 exclusive zero-probe owner' in caught and
                          rpc('describe')['frame']==str(frame), error=caught)
+                record['wall_advance_begin_ns']=time.monotonic_ns()
                 queued = rpc('advance', record=False, ticket=staged['ticket'])
                 require(queued['ok'], 'advance not accepted; never retry')
                 deadline = time.monotonic()+10
@@ -216,6 +251,7 @@ def main():
                     time.sleep(.001)
                 require(receipt is not None, 'ambiguous advance; no retry')
                 record['receipt'] = receipt
+                record['wall_receipt_ns']=time.monotonic_ns()
                 require(all(receipt[k] == binding[k] for k in ('run','session','actor','application','model_id','model_sha256','effort_profile')), 'receipt scope')
                 require(receipt['clock_domain'] == 'm7-native-simulation-elapsed' and
                         receipt['source_identity'] == 'native-eight-role-CAN-P05-Actual; authenticated-local-owner', 'source identity')
@@ -248,6 +284,7 @@ def main():
                 record['error'] = traceback.format_exc()
                 raise
             finally:
+                record['wall_end_ns']=time.monotonic_ns()
                 raw.write(json.dumps(record,separators=(',',':'))+'\n');raw.flush()
         if a.fault == 'none':
             case('native_closed_loop_complete', count == a.ticks and normal>300 and empty==4)
@@ -257,6 +294,9 @@ def main():
             case('native_profile_rejects_synthetic_stage', not rejected['ok'] and rejected['latched'] and
                  rejected['reason']=='native_actual_only' and rejected['frame']==str(frame))
             report['status'] = 'PASS_FUNCTIONAL_NATIVE_SOLVER_WORK' if a.solver_work else 'PASS_FUNCTIONAL_NATIVE_ACTUAL'
+        elif a.fault=='rgb-drop':
+            case('rgb_drop_before_next_tick',stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
+            report['status']='PASS_EXPECTED_SENSOR_STOP'
         elif a.fault in ('credit','command','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy'):
             case('server_rejection_before_next_tick', stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
             report['status'] = 'PASS_EXPECTED_SERVER_REJECTION'
@@ -268,6 +308,14 @@ def main():
             report['status'] = 'PASS_EXPECTED_SNAPSHOT_STOP'
     finally:
         raw.close()
+        if capture:
+            try:
+                time.sleep(.5)  # bounded drain, no tick and no restamping
+                capture.stop()
+            except Exception:
+                report['sensor_cleanup_error']=traceback.format_exc();report['status']='FAIL'
+            finally:
+                (a.output/'sensors.json').write_text(json.dumps(capture.snapshot(),indent=2)+'\n')
         report.update(receipts=count, normal_intervals=normal, empty_init_intervals=empty)
         if a.solver_work:
             report.update(solver_work_observed_intervals=count, motor_work_j=work_sum,
@@ -287,6 +335,7 @@ def main():
                 closed = rpc('close')
                 case('ego_destroyed', closed['ok'] and not closed['locked'] and not closed['registry_actor_present'])
                 bound, actor = False, None
+            if capture: capture.destroy()
             if process:
                 process.stdin.close()
                 report['native_exit'] = process.wait(timeout=10)

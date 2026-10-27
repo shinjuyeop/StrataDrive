@@ -1,0 +1,50 @@
+{
+  "status": "PASS_BOUNDED_INTEGRATED_AUDIT",
+  "receipts": 209,
+  "phases": [],
+  "sensors": {
+    "rgb": 41,
+    "gt": 42,
+    "intentional_drops": 1,
+    "first_frame": 50,
+    "last_frame": 255,
+    "original_timestamp_match": true,
+    "gt_control_use": false
+  },
+  "wall": {
+    "clock": "host CLOCK_MONOTONIC; no simulation-to-wall subtraction",
+    "native_roundtrip": {
+      "count": 210,
+      "mean_ms": 1.6463218904761905,
+      "p95_ms": 2.319575,
+      "p99_ms": 2.780441,
+      "max_ms": 3.22706,
+      "above_2ms": 27,
+      "above_4ms": 0
+    },
+    "native_idle_lower_bound": {
+      "count": 209,
+      "mean_ms": 47.124228559808614,
+      "p95_ms": 77.490555,
+      "p99_ms": 87.699827,
+      "max_ms": 335.715669,
+      "above_2ms": 209,
+      "above_4ms": 209
+    },
+    "advance_to_receipt": {
+      "count": 209,
+      "mean_ms": 35.52247964593302,
+      "p95_ms": 59.054439,
+      "p99_ms": 65.311712,
+      "max_ms": 178.148088,
+      "above_2ms": 209,
+      "above_4ms": 209
+    },
+    "production_2ms_4ms_gate": "NOT_ACCEPTED",
+    "per_job_4ms_deadlines": "NOT_INSTRUMENTED",
+    "observed_native_opportunity_gap_violation": true,
+    "includes_json_solver_trace_and_explicit_250ms_pause": true
+  },
+  "full_m7_closed": false,
+  "body_stationary_acceptance": false
+}

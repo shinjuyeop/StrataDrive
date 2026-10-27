@@ -120,4 +120,12 @@ TEST(M7FunctionalNative, FreshInstanceNeedsNewInitAndRejectsOldScope) {
     for(unsigned i=0;i<=150;++i){o=observation(i);o.scope=fresh;end=clean.observe(o);}
     EXPECT_TRUE(end.armed);EXPECT_EQ(end.release_mask,255U);
 }
+TEST(M7FunctionalNative, ScenarioCannotRewritePastOrAcceptInvalidSchedule) {
+    FunctionalRig rig(scope);
+    EXPECT_THROW(rig.request_profile({{100,.2,0,0,false},{90,.2,0,0,false}}),std::runtime_error);
+    EXPECT_THROW(rig.request_profile({{100,.2,0,2,false}}),std::runtime_error);
+    rig.request_profile({{100,.2,0,0,false}});
+    rig.observe(observation());
+    EXPECT_THROW(rig.request_profile({{1000,1,0,0,false}}),std::runtime_error);
+}
 } // namespace

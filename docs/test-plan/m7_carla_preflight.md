@@ -420,3 +420,24 @@ work audit는 위 evidence에 기록한다. M7-1r−11은 accept/close 경합 �
 다음 M7-1t는 같은 native Actual/단일 EV 경로의 가속→감속→정지·재출발을 확인한다.
 V1 가상 EV 브레이크를 유지하며 보호 제동·signed 회생은 별도 scenario다.
 cold-load 중단·wall2/4ms/clock uncertainty·장시간/전체 ODD는 별도 gate로 남는다.
+
+
+## M7 통합 검증 — 2026-10-27 현재 판정
+
+후속 작업을 개별 승인 단계로 계속 나누지 않고 주행·회생/마찰 제동·정지/재출발·영상/state·
+누락·pause/reset·종료·wall 계측과 독립 audit를 묶어 실행했다.
+[통합 실행 원본/실패](evidence/m7_carla_integrated/README.md), [종료 검토](../m7_exit_review.md),
+[재현 runner](../../tests/integration/carla/m7_integrated_run.py)를 사용한다.
+
+정상 새 서버5회(비렌더3/영상2)가 각각900receipt/900EV 정산·819정상 권한 구간을 완료했다.
+영상2회는 각각RGB180/GT180이며 원래 image/state timestamp가 일치한다. native Normal/ASan
+각70/70, raw-wire/work/EV 독립 감사와 영상/상위 요청 metadata 손상7종 거부를 확인했다.
+실행별 분모를 기존 M6나 과거 M7 PASS에 합산하지 않는다.
+
+새 시험 코드의 초기 ActorSnapshot 미존재 실패와 기본 camera의 첫60ms 간격 실패를 보존했다.
+전자는 초기 unavailable 처리, 후자는 M7 전용 frame5 실제 취득 스케줄로 수정했다.
+M6 코드·40개 native 복사 원본·UE tracked source·V1 계수·freshness/expiry는 유지했다.
+
+최종 기능 성공은 전체 M7 종료가 아니다. native owner 대기 공백>2ms, 실제 보호 Actual 적용 경로
+미구현, cold-loading의 준비180s/종료30s 실패가 남는다. 원래 renderer crash 원인도 미확정이다.
+계측 비용과 clock domain·동일 scope·성공/실패를 분리한 현재 판정은 통합 종료 검토를 따른다.

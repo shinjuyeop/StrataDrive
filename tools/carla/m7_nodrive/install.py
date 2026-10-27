@@ -12,6 +12,7 @@ import re
 import subprocess
 from model_header import generate
 from shutdown_patch import apply as shutdown_patches
+from sensor_patch import apply as sensor_patches
 
 PIN = "294096eb1c38eabf246e4f3a9cdab704e33a7f4c"
 ENGINE_PIN = "e9d9e60c85f643e10eeb03f42f61554d18dcb30f"
@@ -184,6 +185,7 @@ def main():
     output[str(path)] = s.encode()
 
     output.update(shutdown_patches(base, replace))
+    output.update(sensor_patches(base, replace))
 
     integration = {path: {"original_utf8": original[path], "original_sha256": sha(original[path].encode()),
                           "installed_sha256": sha(data)} for path, data in output.items()}
