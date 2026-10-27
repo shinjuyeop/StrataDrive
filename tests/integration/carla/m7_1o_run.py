@@ -31,6 +31,8 @@ def main():
     p.add_argument("--zero", action="store_true")
     p.add_argument("--response-fixture", type=Path)
     p.add_argument("--require-solver-wheel", action="store_true")
+    p.add_argument("--native-wheel-bridge", type=Path)
+    p.add_argument("--bridge-drop-snapshot", action="store_true")
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
     a = p.parse_args()
@@ -81,6 +83,9 @@ def main():
             a.source/"Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so")}
     if a.response_fixture:
         report["executed_artifact_sha256"][str(a.response_fixture)] = sha(a.response_fixture)
+    if a.native_wheel_bridge:
+        for path in (a.native_wheel_bridge, Path(__file__).with_name("m7_1p_bridge.py")):
+            report["executed_artifact_sha256"][str(path)] = sha(path)
     server = None
     started = time.monotonic()
     try:
@@ -111,6 +116,10 @@ def main():
                 cmd += ["--response-fixture", str(a.response_fixture)]
             if a.require_solver_wheel:
                 cmd += ["--require-solver-wheel"]
+            if a.native_wheel_bridge:
+                cmd += ["--native-wheel-bridge", str(a.native_wheel_bridge)]
+            if a.bridge_drop_snapshot:
+                cmd += ["--bridge-drop-snapshot"]
         if a.flag_check:
             expected = {"ambiguous": "ambiguous_numerical_profile", "requires-v1": "numerical_profile_requires_v1",
                         "disabled": "disabled"}[a.flag_check]

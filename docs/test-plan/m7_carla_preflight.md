@@ -354,3 +354,16 @@ response 입력은 각1,621frame/4wheel 음수0이다. 중간 앞바퀴 미세 �
 기존 공개 getter는 무구동 저속 보정값일 수 있어 `mWheelSpeeds` 직접 읽기를 별도로 추가했다.
 UE commit/header hash를 고정하며 engine/M6 source·물리 계수·주기/freshness는 바꾸지 않았다.
 정상 주행은 직접 원천의 native 반환·full Actual/authority·solver work/단일 EV·wall 검증 뒤 판단한다.
+
+## 2026-10-27 후속 — M7-1p 직접 solver/native 반환
+
+[실행·실패 기록](evidence/m7_carla_1p/README.md):320분할 step/response 새2서버의 각각1,621개
+직접 solver 관측을 기존 native8-role fixture에 공급해1,609개 Actual 반환을 확인했다.
+원래 acquisition을 유지해 다음 구간 끝 age 최대20ms이며 기존30ms 요구를 변경하지 않았다.
+20분할의 실제 음수와200번째 snapshot 전달 누락 주입은 native barrier 없이 다음 tick을 차단했다.
+Normal/ASan 각60/60, frozen replay 각1,621개와 손상29종 거부·독립 live audit 손상8종 거부를 확인했다.
+최초 receipt보다 snapshot stream이 늦은 FAIL 및 당시 cleanup latch 검사 FAIL은 보존한다.
+동일 frame 도착까지 조회만 기다리고 모든 실패 경로를 latch하도록 고쳤다. 수정 후 누락 주입은
+cached receipt로 회복하지 못했으며6개 소유 서버 모두 설정/actor 정리 후 SIGINT130이었다.
+native sensor 반환만 연결했고 CARLA actuation은 합성 Actual이다. 다음은 full Actual/authority 적용
+gate → solver work/단일 EV → wall 검증이며 renderer·AI/Jetson·M6 전체 회귀는 이번에 실행하지 않았다.

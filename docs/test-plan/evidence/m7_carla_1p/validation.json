@@ -1,0 +1,118 @@
+{
+  "status": "PASS_SCOPED_VALIDATION_ONLY",
+  "base_commit": "3fa51f3dd05fc5eacf704ba155dd56504b10e32a",
+  "normal_driving_enabled": false,
+  "interval_work_valid": false,
+  "source_sha256": {
+    "tests/integration/carla/m7_1m_effort.py": "5e9d4db3eb16c94fbe923f216148fd81f729c846c304c0fe3ece27ac7143fe0a",
+    "tests/integration/carla/m7_1o_run.py": "6d1b5416b1ae8d55fa3012b7ee9bbc5e82f3e75a32661f066d475b69ab198546",
+    "tests/integration/carla/m7_1p_bridge.py": "b7ea563b44d0554b6cd5dae62c422b3852bb690d423ec498d339122e3d873e1d",
+    "tests/integration/carla/m7_1p_verify.py": "be7c3a22e1ad2d27ba2cad5cb7f639ad369d3011e20efd8f6601d75beaaccee8",
+    "tests/integration/carla/audit_m7_1p_bridge.py": "5162f586823b458ee1fdd5aac3002eb8057f5c943c6bf389445ba5b7f73adef1"
+  },
+  "live": [
+    {
+      "evidence": "server-live20.json",
+      "status": "PROBE_FAIL",
+      "probe_exit": 1,
+      "server_exit": 130,
+      "elapsed_wall_seconds": 25.866469778993633
+    },
+    {
+      "evidence": "server-live320a.json",
+      "status": "PROBE_FAIL",
+      "probe_exit": 1,
+      "server_exit": 130,
+      "elapsed_wall_seconds": 36.13340887700906
+    },
+    {
+      "evidence": "server-live320b.json",
+      "status": "COMPLETE_ISOLATED_RUN",
+      "probe_exit": 0,
+      "server_exit": 130,
+      "elapsed_wall_seconds": 37.737359897000715
+    },
+    {
+      "evidence": "server-live320response.json",
+      "status": "COMPLETE_ISOLATED_RUN",
+      "probe_exit": 0,
+      "server_exit": 130,
+      "elapsed_wall_seconds": 38.543297041993355
+    },
+    {
+      "evidence": "server-snapshot-loss-final.json",
+      "status": "PROBE_FAIL",
+      "probe_exit": 1,
+      "server_exit": 130,
+      "elapsed_wall_seconds": 38.09162130599725
+    },
+    {
+      "evidence": "server-snapshot-loss.json",
+      "status": "PROBE_FAIL",
+      "probe_exit": 1,
+      "server_exit": 130,
+      "elapsed_wall_seconds": 37.63805014299578
+    }
+  ],
+  "tests": {
+    "normal": {
+      "tests": 60,
+      "failures": 0,
+      "log": "native-normal-final.log"
+    },
+    "replay_normal": {
+      "receipts": 1621,
+      "corruptions": 29,
+      "snapshot_delivery": {
+        "delayed_exact_frame": true,
+        "missing_rejected": true,
+        "skipped_rejected": true
+      }
+    },
+    "asan": {
+      "tests": 60,
+      "failures": 0,
+      "log": "native-asan-final.log"
+    },
+    "replay_asan": {
+      "receipts": 1621,
+      "corruptions": 29,
+      "snapshot_delivery": {
+        "delayed_exact_frame": true,
+        "missing_rejected": true,
+        "skipped_rejected": true
+      }
+    }
+  },
+  "not_run": [
+    "normal native Actual actuation",
+    "solver work/EV acceptance",
+    "wall 2/4ms acceptance",
+    "M6 full regression",
+    "new RGB/GT/renderer validation",
+    "Jetson/AI"
+  ],
+  "prior_frozen_entries": 1152,
+  "owned_server_processes_remaining": 0,
+  "ports_free": [
+    2200,
+    2201,
+    2202
+  ],
+  "tracked_changes": [
+    "README.md",
+    "docs/icd/carla_plant_adapter.md",
+    "docs/project_status.md",
+    "docs/roadmap.md",
+    "docs/test-plan/m7_carla_preflight.md",
+    "tests/integration/carla/m7_1m_effort.py",
+    "tests/integration/carla/m7_1o_run.py"
+  ],
+  "M6_code_contract_evidence_changes": [],
+  "native_shadow_sha256": {
+    "normal": "fbb650096b4ed675e02b230bd015f90a30556bd3cf0c0b23756c091bfb7decc0",
+    "asan": "823a92898713cc43e3f84d906bdb30e4b37721bee8eb92a4030fca9add9dd9bd"
+  },
+  "markdown_file_targets_checked": 245,
+  "markdown_file_targets_missing": []
+}

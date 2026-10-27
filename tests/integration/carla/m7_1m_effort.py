@@ -34,7 +34,13 @@ def main():
                    help="Optional unchanged response-model trajectory; still synthetic Actual, not native authority")
     p.add_argument("--require-solver-wheel", action="store_true",
                    help="Require direct mWheelSpeeds acquisition, separately from the legacy public getter")
+    p.add_argument("--native-wheel-bridge", type=Path,
+                   help="M7-1p sensor-only native shadow; its output NEVER actuates CARLA")
+    p.add_argument("--bridge-drop-snapshot", action="store_true",
+                   help="Explicit fault: withhold the 200th snapshot from the bridge, retaining its old timestamp")
     args = p.parse_args()
+    if args.bridge_drop_snapshot and not args.native_wheel_bridge:
+        p.error("--bridge-drop-snapshot requires --native-wheel-bridge")
     args.output.mkdir(exist_ok=False, parents=True)
     model_hash = hashlib.sha256(args.model.read_bytes()).hexdigest()
     result = dict(status="FAIL", started_utc=datetime.now(timezone.utc).isoformat(),
@@ -53,8 +59,15 @@ def main():
     world = original = actor = None
     bound = False
     response = None
+    bridge = None
+    last_receipt = None
+    previous_bridge_snapshot = None
     begin = frame = seq = 0
     receipts = (args.output/"receipts.jsonl").open("w")
+    bridge_log = (args.output/"bridge.jsonl").open("w") if args.native_wheel_bridge else None
+    if args.native_wheel_bridge:
+        from m7_1p_bridge import NativeBridge, aligned_snapshot
+        result["native_bridge"] = "direct solver -> existing native sensor/Actual return; no actuation authority"
 
     def case(name, ok, **details):
         result["cases"].append(dict(name=name, status="PASS" if ok else "FAIL", **details))
@@ -78,7 +91,7 @@ def main():
                          str(torque), str(pressure), str(angle), kind], text=True))
 
     def bind(label):
-        nonlocal actor, bound, session, run, begin, frame, seq, response
+        nonlocal actor, bound, session, run, begin, frame, seq, response, bridge, last_receipt, previous_bridge_snapshot
         bp = world.get_blueprint_library().find("vehicle.lincoln.mkz_2020")
         bp.set_attribute("role_name", "m7_virtual_v1_diagnostic")
         pose = world.get_map().get_spawn_points()[0]
@@ -96,12 +109,42 @@ def main():
              ph["vehicle_substeps_high"] == (args.vehicle_substeps or 1) and ph["vehicle_substeps_threshold_m_s"] == 5)
         result["bindings"].append(out)
         begin, frame, seq = int(out["logical_begin_ns"]), int(out["frame"]), 0
+        last_receipt = None
+        previous_bridge_snapshot = None
+        if args.native_wheel_bridge:
+            snapshot, delivery = aligned_snapshot(world.get_snapshot, frame)
+            case("bridge_bind_snapshot_"+session, snapshot.frame == frame)
+            binding = dict(out, simulation_seconds=snapshot.timestamp.elapsed_seconds, snapshot_delivery=delivery)
+            result.setdefault("bridge_bindings", []).append(binding)
+            bridge = NativeBridge(args.native_wheel_bridge, binding, args.output/("native-"+session+".stderr"))
         if args.response_fixture:
             response = subprocess.Popen([str(args.response_fixture.resolve())], stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE, text=True)
 
+    def retire_bridge(reason):
+        nonlocal bridge
+        if bridge is None:
+            return
+        code = bridge.close()
+        case("native_exit_"+session, code == 0, exit=code, reason=reason)
+        if last_receipt:
+            try:
+                bridge.observe(last_receipt)
+            except RuntimeError:
+                case("retired_bridge_rejects_cached_"+session, True, reason=reason)
+            else:
+                raise AssertionError("retired bridge accepted cached receipt")
+        bridge = None
+
     def close():
         nonlocal bound, actor, response
+        if bridge:
+            before = rpc("describe", auth=False)["frame"]
+            paused = rpc("pause")
+            retire_bridge("backend pause/close")
+            after = rpc("describe", auth=False)
+            case("bridge_pause_stops_tick_"+session, paused["latched"] and before == after["frame"] and
+                 after["physics"]["inputs_zero"])
         out = rpc("close")
         case("close_"+session, out["ok"] and not out["locked"] and not out["registry_actor_present"])
         bound, actor = False, None
@@ -118,7 +161,7 @@ def main():
         case(name, not out["ok"] and out["reason"] == expected and before == after)
 
     def tick(label, torque=0, pressure=0, angle=0, kind="actual"):
-        nonlocal begin, frame, seq
+        nonlocal begin, frame, seq, last_receipt, previous_bridge_snapshot
         target = dict(torque_nm=torque, pressure_pa=pressure, angle_left_rad=angle, kind=kind)
         measured = None
         if response:
@@ -159,6 +202,7 @@ def main():
             entry.update(model_target=target, model_measurement=measured)
         receipts.write(json.dumps(entry, separators=(",", ":"))+"\n")
         receipts.flush()
+        last_receipt = receipt
         if (receipt["original_actual"] != original_actual or int(receipt["frame"]) != frame+1 or
                 not receipt["inputs_cleared_after_physics"] or receipt["interval_work_valid"]):
             raise RuntimeError("receipt mismatch")
@@ -168,6 +212,38 @@ def main():
                     raise RuntimeError("direct solver wheel source")
                 if (w["set_drive_nm"] != 0 or w["set_friction_nm"] != 0) and w["omega_rad_s"] != w["solver_omega_rad_s"]:
                     raise RuntimeError("effort-loaded API and solver wheel must agree")
+        if bridge:
+            observation = dict(run=run, session=session, phase=label, frame=receipt["frame"])
+            try:
+                getter = world.get_snapshot
+                if args.bridge_drop_snapshot and seq == 199:
+                    observation["injected_snapshot_loss"] = dict(
+                        held_frame=previous_bridge_snapshot.frame,
+                        held_elapsed_seconds=previous_bridge_snapshot.timestamp.elapsed_seconds,
+                        policy="withhold delivery; no timestamp rewrite; no extra tick")
+                    getter = lambda: previous_bridge_snapshot
+                snapshot, delivery = aligned_snapshot(getter, int(receipt["frame"]))
+                previous_bridge_snapshot = snapshot
+                observation.update(snapshot_frame=snapshot.frame, snapshot_elapsed_seconds=snapshot.timestamp.elapsed_seconds,
+                                   snapshot_delivery=delivery)
+                if snapshot.frame != int(receipt["frame"]) or abs(snapshot.timestamp.elapsed_seconds-receipt["simulation_end_seconds"]) >= 1e-9:
+                    raise RuntimeError("receipt differs from world snapshot")
+                observation.update(bridge.observe(receipt))
+                observation["status"] = "NATIVE_SENSOR_RETURN_BARRIER"
+            except Exception as exc:
+                bridge.failed = bridge.gate.failed = True
+                observation.update(status="REJECTED_NO_NEXT_TICK", error=str(exc))
+                raise
+            finally:
+                bridge_log.write(json.dumps(observation, separators=(",", ":"))+"\n")
+                bridge_log.flush()
+            if seq == 199:
+                before = rpc("describe", auth=False)
+                time.sleep(.25)
+                after = rpc("describe", auth=False)
+                case("bridge_wall_pause_no_restamp_"+session, before["frame"] == after["frame"] and
+                     before["logical_begin_ns"] == after["logical_begin_ns"],
+                     held_native=observation["native"], wall_pause_seconds=.25)
         if seq == 0 or label == "release" and seq % 10 == 0:
             cleared = rpc("describe", auth=False, record=False)
             case("persistent_setters_clear_"+str(frame), cleared["physics"]["inputs_zero"])
@@ -272,12 +348,42 @@ def main():
             case("nonzero_reset_"+label, staged["ok"] and reset["latched"] and
                  reset["physics"]["inputs_zero"] and int(reset["physics"]["generation"]) > generation)
             case("reset_ticket_rejected_"+label, not rpc("advance", ticket=staged["ticket"])["ok"])
+            retire_bridge("physics generation reset")
             close()
         result["status"] = "PASS_RECEIPT_RUN" if all(result["dynamic_checks"].values()) else "DYNAMIC_CRITERIA_FAIL"
     except Exception:
         result["error"] = traceback.format_exc()
     finally:
         receipts.close()
+        if bridge_log:
+            bridge_log.close()
+        if bridge:
+            # Any gate/native failure closes the backend BEFORE cleanup; no
+            # subsequent stage/advance, timestamp rewrite or automatic restart.
+            # Also cover errors before observe (fixture/RPC/receipt validation).
+            bridge.failed = bridge.gate.failed = True
+            try:
+                before = rpc("describe", auth=False)
+                paused = rpc("pause")
+                time.sleep(.25)
+                after = rpc("describe", auth=False)
+                cached_rejected = False
+                if last_receipt:
+                    try:
+                        bridge.observe(last_receipt)
+                    except RuntimeError:
+                        cached_rejected = True
+                result["bridge_fail_stop"] = dict(before=before, paused=paused, after=after,
+                    cached_rejected=cached_rejected, native_exit=bridge.close())
+                case("bridge_failure_no_next_tick", before["frame"] == after["frame"] and after["latched"] and
+                     after["physics"]["inputs_zero"] and cached_rejected)
+            except Exception:
+                result["bridge_cleanup_error"] = traceback.format_exc()
+                try:
+                    result["native_emergency_cleanup_exit"] = bridge.close()
+                except Exception:
+                    result["native_cleanup_error"] = traceback.format_exc()
+            bridge = None
         if response:
             response.stdin.close()
             result["response_fixture_exit"] = response.wait(timeout=5)

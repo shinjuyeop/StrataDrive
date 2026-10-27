@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-27, `m7-plant-draft-v12`. **V1/320분할 격리 출발 실패 해소·직접 solver 원천 추가 / 정상 주행 미연결**.
+2026-10-27, `m7-plant-draft-v13`. **직접 solver의 native sensor/Actual 반환 한정 연결 / 정상 주행 미연결**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -561,6 +561,30 @@ frame 관측이다. engine 수정·v/r 재구성·clamp·timestamp 재발급이 
 내부 앞바퀴 callback의 미세 음수는 보존하며 모든 substep의 무음수/전체 ODD를 주장하지 않는다.
 callback은 생략될 수 있어 `interval_work_valid=false`와 solver work/단일 EV gate는 유지한다.
 native8-role full Actual/authority·wall2/4ms는 미연결·미수용이다.
+
+**M7-1p 센서 반환 경계:** [실행 근거](../test-plan/evidence/m7_carla_1p/README.md).
+별도 opt-in local bridge는 bind의 run UUID/session/actor/physics generation/model/profile을 고정하고,
+post-physics receipt의4wheel 직접 source·순서·frame·ticket·구간 연속성을 검사한다. 공개
+`omega_rad_s` fallback은 없다. CARLA world snapshot은 같은 frame/원래 simulation-end time으로
+교차 확인한다. receipt RPC보다 episode stream이 늦을 수 있어 최대10s wall 동안 **조회만** 기다린다.
+timeout/skip이면 latch한다. 이 timeout은 functional harness의 수신 한도이며30ms source age나
+native wall deadline 변경이 아니다. 기다리는 동안 tick/advance 재시도·restamp는 없다.
+
+센서 acquisition은 원래 simulation-end seconds의 ns 반올림이며 frame은 원래 acquisition sequence다.
+기존 M7 native fixture의 scope `(1,42,7)`/clock domain은 fresh process마다 새 INIT로 시작한다.
+CARLA run/session/generation은 그 외부의 신뢰된 local binding으로 보존한다. synthetic Actual의
+`m7-zero-probe-logical-frame` 시각이나 session을 native authority로 간주/변환하지 않는다.
+기존 native rear 평균·CAN0.01rad/s 양자화·vECU→Rear→Central 반환을 사용하고, pending sample은
+자기 시각 이후 job에만 공급된다. Controller20ms/Zone·vECU10ms/Drive30ms를 유지한다.
+
+실제320분할 step/response 새2서버는 각각1,621관측/1,609반환·다음 구간 끝 age 최대20ms였다.
+native 반환은 **sensor-only shadow**다. actuator/전기는 stationary native fixture이고
+차량 motion 적분은 비활성이다. 이 fixture의 torque/SOC를 CARLA effort/work로 주장하지 않는다.
+native barrier 성공만 다음 진단 tick 진행을 허용한다. 부재/비유한/범위 초과/원천 불일치/후륜 음수는
+다음 tick을 막고 backend pause·persistent setter clear·latch로 이어진다. 아주 작은 음수도 native가
+거부한다. pause/reset/close는 bridge를 폐기하며 cached receipt로 재무장하지 않는다.
+실제20분할 음수와 snapshot 누락 주입에서 containment를 검증했다. 실제8-role full Actual의
+authority/interval→NoDrive 적용, solver work/EV, wall 성능은 별도 후속 gate다.
 
 **결정:** actual-only 경로·단일 actuation writer,10ms world/state·50ms 영상·단일 tick owner,
 20/10ms 기존 rate·freshness/권한 보존, 중복 motion/actuator/energy 금지, metadata/좌표 의미,

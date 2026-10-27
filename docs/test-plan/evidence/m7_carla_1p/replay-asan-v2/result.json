@@ -1,0 +1,245 @@
+{
+  "status": "PASS_REPLAY_AND_REJECTION",
+  "mode": "frozen receipt replay, NOT live CARLA",
+  "replay": [
+    {
+      "session": "2",
+      "count": 821,
+      "armed": 743,
+      "returned": 817,
+      "max_next_end_age_ns": 20000000,
+      "max_CAN_error_rad_s": 0.004997019767761124,
+      "exit": 0
+    },
+    {
+      "session": "3",
+      "count": 400,
+      "armed": 322,
+      "returned": 396,
+      "max_next_end_age_ns": 20000000,
+      "max_CAN_error_rad_s": 0.004990668296813938,
+      "exit": 0
+    },
+    {
+      "session": "4",
+      "count": 400,
+      "armed": 322,
+      "returned": 396,
+      "max_next_end_age_ns": 20000000,
+      "max_CAN_error_rad_s": 0.004999559521675079,
+      "exit": 0
+    }
+  ],
+  "corruptions": [
+    {
+      "name": "wrong_run",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "receipt identity"
+    },
+    {
+      "name": "wrong_session",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "receipt identity"
+    },
+    {
+      "name": "wrong_actor",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "receipt identity"
+    },
+    {
+      "name": "wrong_model_id",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "receipt identity"
+    },
+    {
+      "name": "wrong_model_sha256",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "receipt identity"
+    },
+    {
+      "name": "wrong_effort_profile",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "receipt identity"
+    },
+    {
+      "name": "wrong_physics_generation",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "physics generation"
+    },
+    {
+      "name": "wrong_clock_domain",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "diagnostic clock/scope"
+    },
+    {
+      "name": "wrong_source_identity",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "diagnostic clock/scope"
+    },
+    {
+      "name": "duplicate_frame",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "receipt frame"
+    },
+    {
+      "name": "skipped_frame",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "receipt frame"
+    },
+    {
+      "name": "stale_time",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "simulation continuity"
+    },
+    {
+      "name": "future_time",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "simulation continuity"
+    },
+    {
+      "name": "nan_time",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "simulation timestamp"
+    },
+    {
+      "name": "shifted_begin_and_end",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "simulation continuity"
+    },
+    {
+      "name": "uncleared_inputs",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "receipt completion/scope"
+    },
+    {
+      "name": "wrong_logical_epoch",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "diagnostic interval"
+    },
+    {
+      "name": "missing_solver_value",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "'solver_omega_rad_s'"
+    },
+    {
+      "name": "missing_source_id",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "'solver_omega_source'"
+    },
+    {
+      "name": "public_getter_source",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "solver source identity"
+    },
+    {
+      "name": "wrong_wheel_order",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "wheel order"
+    },
+    {
+      "name": "missing_wheel",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "missing wheel"
+    },
+    {
+      "name": "wrong_nested_generation",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "physics generation"
+    },
+    {
+      "name": "wrong_numerical_profile",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "physics profile"
+    },
+    {
+      "name": "tiny_rear_negative",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 1,
+      "reason": "native rejected wheel"
+    },
+    {
+      "name": "reverse_rear",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 1,
+      "reason": "native rejected wheel"
+    },
+    {
+      "name": "range_rear",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 1,
+      "reason": "native rejected wheel"
+    },
+    {
+      "name": "nan_solver",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "nonfinite solver wheel"
+    },
+    {
+      "name": "inf_solver",
+      "rejected": true,
+      "latched": true,
+      "native_exit": 0,
+      "reason": "nonfinite solver wheel"
+    }
+  ],
+  "snapshot_delivery": {
+    "delayed_exact_frame": true,
+    "missing_rejected": true,
+    "skipped_rejected": true
+  },
+  "duplicate_receipt_rejected": true,
+  "public_getter_unused": true
+}

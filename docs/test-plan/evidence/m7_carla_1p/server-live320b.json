@@ -1,0 +1,66 @@
+{
+  "status": "COMPLETE_ISOLATED_RUN",
+  "argv": [
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-game",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-carla-rpc-port=2200",
+    "-quality-level=Low",
+    "-carla-settings=/d/shin/stratadrive-tools/m7-source/m7-1p-live320b/CarlaSettings.ini",
+    "-StrataM7V1Probe",
+    "-StrataM7V1Substeps320",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput"
+  ],
+  "started_utc": "2026-10-27T06:03:03.954609+00:00",
+  "normal_driving_enabled": false,
+  "owner_key": "ephemeral child environment; value never recorded",
+  "executed_artifact_sha256": {
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py": "c4209a9fae31f5460ea50d61aea54a35263a61c05e8ab409fe6a969d7a210d26",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1m_effort.py": "f72fc2cab380f160c5712325768b5a1f2588e9020b838f17807c1e008169db23",
+    "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture": "2ad36fdfab9c9230a70f1ec8b288faf0774dbcaa2f578f445c127ffb9db673f3",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so": "5711561b6186c9f479a28565b591b756300b6a49f9d9152fe29508c2a841cd8d",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so": "2c41bab3de02979228046cf193b65d708ae97b69308aecd214880af537e56079",
+    "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow": "fbb650096b4ed675e02b230bd015f90a30556bd3cf0c0b23756c091bfb7decc0",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1p_bridge.py": "2b3ab2574aa5f7b760ea23815c30668dfa134658f2eb49dea9cfcbd833951242"
+  },
+  "pid": 928752,
+  "probe_argv": [
+    "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1m_effort.py",
+    "--fixture",
+    "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+    "--output",
+    "docs/test-plan/evidence/m7_carla_1p/live320b",
+    "--model",
+    "/d/shin/StrataDrive/tools/carla/m7_nodrive/virtual_ev_v1.json",
+    "--vehicle-substeps",
+    "320",
+    "--settle-mode",
+    "fixed100",
+    "--require-solver-wheel",
+    "--native-wheel-bridge",
+    "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow"
+  ],
+  "probe_exit": 0,
+  "stop_requested": "SIGINT to owned process group after probe",
+  "server_exit": 130,
+  "elapsed_wall_seconds": 37.737359897000715,
+  "logs": {
+    "server.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-1p-live320b/server.log",
+      "sha256": "8456c8af90bbec3a26112ac0a18ed449ea345ea84eff2845bec57a44839c310d"
+    },
+    "client.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-1p-live320b/client.log",
+      "sha256": "bcf113c2501b2f5d8d91d0cae233d80656d7f8123a7d4bddb72a2e643a2179ee"
+    }
+  }
+}
