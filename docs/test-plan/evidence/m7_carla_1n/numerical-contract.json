@@ -1,0 +1,39 @@
+{
+  "schema": "m7-numerical-candidate-v1",
+  "v1_model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+  "default": {
+    "low": 3,
+    "high": 1,
+    "threshold_m_s": 5
+  },
+  "candidate": {
+    "server_flags": [
+      "StrataM7V1Probe",
+      "StrataM7V1Substeps20"
+    ],
+    "low": 20,
+    "high": 20,
+    "threshold_m_s": 5
+  },
+  "world_tick_ns": 10000000,
+  "camera_period_ns": 50000000,
+  "drive_max_source_age_ns": 30000000,
+  "normal_driving_enabled": false,
+  "interval_work_valid": false,
+  "adoption": "DIAGNOSTIC_CANDIDATE_ONLY_NOT_NORMAL_ACCEPTED",
+  "source": [
+    {
+      "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/ThirdParty/PhysX3/PhysX_3.4/Include/vehicle/PxVehicleWheels.h",
+      "sha256": "acafe4ebd7fdbfccece76f358be2239b3272d3790c242a6ce2de208de32f6b1e"
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/ThirdParty/PhysX3/PhysX_3.4/Source/PhysXVehicle/src/PxVehicleUpdate.cpp",
+      "sha256": "face50bc0460ded43facdbea8e858e8478119d8abadd73e49c1188698631181c"
+    },
+    {
+      "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Plugins/Runtime/PhysXVehicles/Source/PhysXVehicles/Private/WheeledVehicleMovementComponent.cpp",
+      "sha256": "e2f4c6c58bc1ba8f847af3101494d336d505c1c40e287a7a554f578cfa308b52"
+    }
+  ],
+  "finding": "NoDrive computes numSubSteps from low/high count using absolute body forward speed; fixed20 applies both sides of5m/s; no tire/solver source edits"
+}

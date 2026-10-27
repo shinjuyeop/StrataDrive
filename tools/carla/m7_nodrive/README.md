@@ -88,3 +88,10 @@ g++ -std=c++17 -O2 -Wall -Wextra -Werror \
 python3 tests/integration/carla/audit_m7_1k_server_probe.py \
   <new-evidence-dir>/result.json --output <new-audit.json>
 ```
+
+M7-1n의 `-StrataM7V1Substeps20`은 V1 flag를 함께 요구하는 별도 수치 진단 옵션이다.
+기본 asset3/1은 유지하고 후보만 low/high20/20을 설정한다. 실제 readback count/threshold와
+`numerical_profile`을 binding/receipt에 남기며 pre/post20/20 검사를 수행한다.
+world10ms/영상50ms/Drive30ms·actuator model·tire law는 바꾸지 않는다.
+[대조](../../../docs/test-plan/evidence/m7_carla_1n/README.md)에서 rear 음수487→3frame이나
+launch 첫 tick FAIL이 남아 정상 profile로 채택하지 않았다.40분할은 이 서버에서 NOT RUN이다.

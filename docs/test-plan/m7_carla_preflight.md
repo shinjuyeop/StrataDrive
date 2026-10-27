@@ -337,3 +337,10 @@ M6 계약은 유지하며 실제 조향 부호·보호 brake/raw wheel·full Act
 새2서버 각1,621receipt/38검사·독립 손상9/9 거부, hold100/100 exact wheel0을 확인했다.
 각487frame의 raw rear 음수는 native 전진 입력 unavailable이며 정상 gate FAIL이다. clamp/restamp 없음.
 full Actual/work/EV/wall·전체 renderer 안정성은 미수용이다. 다음은 내부 적분 분할 후보의 명시적 비교다.
+
+## 2026-10-27 후속 — M7-1n 내부 적분 대조
+
+[같은 입력의 실제 대조](evidence/m7_carla_1n/README.md): 기본3/1·내부20/20을 별도 서버 옵션으로 구분했다.
+같은 새 binary의 기본 rear 음수487frame 재현,20분할 새2서버 각3frame/1,621receipt였다.
+출발 첫 tick에 약−.256rad/s가 남아 native forward gate FAIL/20분할 정상 미채택이다.
+원래 Actual/시각/요구사항을 보존하며 다음40분할 또는 기존 actuator Actual trajectory의 분리 시험이 남는다.

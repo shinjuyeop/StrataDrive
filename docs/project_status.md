@@ -31,6 +31,7 @@ Updated: **2026-10-27**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1k | 실제 UE NoDrive 0 effort 서버 포트·별도 Client 구현. 최종156개 검사(반복 포함)/13개10ms receipt, 직접 외부 writer·일반 tick 거부, pause/실제 physics reset·새 INIT 한정 검증. 독립 audit 손상8/8 거부, default-off 비주행2/2·102샘플. 초기 build2FAIL/시험1FAIL 보존. 정상 driving/work 미완료 | [실행·실패·gate](test-plan/evidence/m7_carla_1k/README.md) |
 | M7-1l | 읽기 전용 rest geometry5개 INIT 자세·COM/body/actor/프로젝트 반사 교차 검증, 독립 손상7/7 거부·reset 후 geometry 무효화. 실제 COM과 공개 COMNudge 구분. 새 binary의1k 회귀156개/13receipt 통과. build1FAIL·단위 가정 audit1FAIL 보존. brake V1/H1은 제안·미채택, 정상 gate 유지 | [실행·모델 선택안](test-plan/evidence/m7_carla_1l/README.md) |
 | M7-1m | 사용자 수용 V1 가상 EV·별도 서버 opt-in nonzero effort 한정 검증. 새2서버 각각1,621 receipt/38검사·독립 손상9/9 거부. 보호 Brake Actual hold100/100 exact0. 각487frame rear 음수로 native forward gate FAIL, full Actual/work/wall 미연결 | [실행·실패](test-plan/evidence/m7_carla_1m/README.md) |
+| M7-1n | 동일 binary·동일 원래 Actual 대조: 기본3/1에서 rear 음수487frame 재현, 내부20/20 새2서버는 각각3frame(출발 첫 tick)으로 감소하나 native forward gate FAIL. 각1,621receipt/42검사·손상10/10 거부.20분할 정상 미채택 | [대조·실패](test-plan/evidence/m7_carla_1n/README.md) |
 | M7 후속–M13 | PLANNED / NOT RUN; 정상 CARLA 주행 연결 BLOCKED | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
@@ -71,8 +72,10 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 기존1l geometry에 고정한 이상 Ackermann/rear50:50 모델을 별도 서버 옵션으로 적용했다.
 각1,621receipt의 두 새 서버에서 출발·음수 motor 감속·마찰 정지·hold/release·좌우 조향을 관측했다.
 보호 Brake Actual도 적용했지만 각487frame은 raw rear 음수로 native 전진 입력 unavailable이다.
-값을 보정하거나 native loop에 공급하지 않았다. 다음은 차량 내부 적분 분할의 명시적 후보 비교 →
-원래 wheel validity → 실제8-role full Actual interval → solver work/단일 EV → wall timing이다.
+값을 보정하거나 native loop에 공급하지 않았다. 후속 [M7-1n](test-plan/evidence/m7_carla_1n/README.md)의
+동일 입력 대조에서 내부20분할은 rear 음수487→3frame으로 줄었지만 출발 첫 tick의 약−.256rad/s가
+새2서버에서 동일하게 남았다.20분할은 정상 미채택이다. 다음은40분할 수렴 후보 또는 기존 actuator owner의
+원래 Actual trajectory 분리 시험 → 원래 wheel validity → 실제8-role full Actual interval → solver work/단일 EV → wall timing이다.
 [1l geometry](test-plan/evidence/m7_carla_1l/README.md)의 실제 COM/COMNudge 구분은 유지한다.
 V1은 실제 MKZ 유압 calibration이나 기존 M6 응답/에너지 수용을 승계하지 않는다.
 [M7-1k](test-plan/evidence/m7_carla_1k/README.md)는 원본 CAN/P05 receiver를 UE 도구체인으로

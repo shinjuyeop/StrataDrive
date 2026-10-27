@@ -44,7 +44,7 @@ struct State {
   FString Run;
   TMap<FString, uint64> Denied;
   Json Receipt, Pending;
-  // Diagnostic admission ranges only; zero-effort gate below is stricter.
+  // Diagnostic admission ranges; the selected server profile adds a separate model gate.
   std::unique_ptr<SteeringReceiver> Steering;
   std::unique_ptr<BrakeReceiver> Brake;
   std::unique_ptr<DriveReceiver> Drive;
@@ -171,6 +171,8 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   Tick = false;
   const bool ZeroFlag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7ZeroProbe"));
   const bool V1Flag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7V1Probe"));
+  const bool TwentyFlag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7V1Substeps20"));
+  if (TwentyFlag && !V1Flag) return Encode(Response(false, TEXT("numerical_profile_requires_v1")));
   if (ZeroFlag && V1Flag) return Encode(Response(false, TEXT("ambiguous_profile")));
   if (!ZeroFlag && !V1Flag)
     return Encode(Response(false, TEXT("disabled")));
@@ -224,7 +226,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.Drive.reset(new DriveReceiver({DriveFrameKind::Actual, {-200, 300}, 100, 200}));
     if (!S.Steering->start_session(S.Session, LogicalOrigin) ||
         !S.Brake->start_session(S.Session, LogicalOrigin) ||
-        !S.Drive->start_session(S.Session, LogicalOrigin) || !Movement->EnableZeroProbe()) {
+        !S.Drive->start_session(S.Session, LogicalOrigin) || !Movement->EnableZeroProbe(TwentyFlag)) {
       Latch(TEXT("nodrive_init")); return Encode(Response(false, S.Reason));
     }
     S.PhysicsGeneration = Movement->PhysicsGeneration();
@@ -361,7 +363,7 @@ bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
       FMath::Abs(Episode.GetElapsedGameTime() - S.SimBegin) > 1e-9) {
     Latch(TEXT("prephysics_guard")); return false;
   }
-  if ((S.V1 && !S.Movement->ValidateV1()) || !S.Movement->ApplyEffort(S.Effort)) {
+  if (!S.Movement->NumericalProfileMatches() || (S.V1 && !S.Movement->ValidateV1()) || !S.Movement->ApplyEffort(S.Effort)) {
     Latch(TEXT("effort_apply")); return false;
   }
   S.Staged = S.Queued = false;
@@ -373,7 +375,8 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
 {
   if (!S.Locked) return;
   if (!S.InFlight || Frame != S.Frame || !S.Movement.IsValid() ||
-      !S.Movement->EffortMatches(S.Effort) || S.Movement->PhysicsGeneration() != S.PhysicsGeneration ||
+      !S.Movement->EffortMatches(S.Effort) || !S.Movement->NumericalProfileMatches() ||
+      S.Movement->PhysicsGeneration() != S.PhysicsGeneration ||
       FMath::Abs(DeltaSeconds - .01f) > 1e-8f ||
       FMath::Abs(Episode.GetElapsedGameTime() - S.SimBegin - .01) > 1e-6) {
     Latch(TEXT("postphysics_ambiguous")); return;

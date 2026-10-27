@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-27, `m7-plant-draft-v10`. **V1 가상 EV 격리 nonzero effort 검증 / raw wheel native gate FAIL / 정상 주행 미연결**.
+2026-10-27, `m7-plant-draft-v11`. **V1 가상 EV 격리 nonzero effort 검증 / raw wheel native gate FAIL / 정상 주행 미연결**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -524,6 +524,23 @@ unavailable이다. 음수는 최대 약−7.4rad/s로 작은 센서 epsilon으�
 정상 native 경로라면 unavailable/latch·다음 tick 차단 계약이 유지된다. **forward gate FAIL**이다.
 내부 적분 분할 후보 비교는 후속이며 world/ECU rate·30ms freshness를 바꾸는 해결안이 아니다.
 solver 구간 work는 미관측, `interval_work_valid=false`; 전기/SOC/회생 수용과 정상 주행 permit은 없다.
+
+## M7-1n — 별도 내부20분할 수치 진단
+
+[동일 입력 대조·원본 실패](../test-plan/evidence/m7_carla_1n/README.md).
+`-StrataM7V1Substeps20`은 V1 flag와 함께 지정하는 별도 서버 진단 옵션이다.
+client가 count를 전달하는 actuation API를 만들지 않는다. 기본 asset low/high3/1·threshold5m/s는
+유지하고, 후보에서만 low/high20/20을 NoDrive wheel sim data에 설정한다.
+threshold 양쪽에서20이므로 원래10ms world step 내부 분할이다. wheel/frame/source를 추가 생성하거나
+Controller20ms/Zone10ms·Drive30ms freshness·Actual expiry를 바꾸지 않는다.
+receipt의 numerical profile·실제 live low/high/threshold를 보존하고,20/20 일치 여부도 pre/post에 검사한다.
+
+동일 원래 CAN/P05/Actual·V1 law·world 설정에서 기본487frame rear 음수가 재현됐고,
+20분할 새2서버는 각각3frame으로 감소했다. launch 첫 tick의 약−.256rad/s는 여전히 unavailable이다.
+입력과 원래 음수를 보정하지 않았으며 이3frame을 startup 면제로 처리하지 않는다.
+**20분할 정상 profile은 미채택, native gate FAIL**이다.40분할이나 기존 actuator owner의 원래
+Actual trajectory 분리 시험은 후속이다. adapter에서 응답 ramp/filter를 추가하지 않는다.
+전체 ODD/실제8-role/work/전기/wall 수용을 이 대조 결과로 대체하지 않는다.
 
 ## 6. 결정과 미결정
 

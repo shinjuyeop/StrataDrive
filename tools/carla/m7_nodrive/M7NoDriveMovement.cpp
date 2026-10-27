@@ -14,10 +14,11 @@ bool UM7NoDriveMovement::HasNoDrive() const
     PVehicle->mWheelsSimData.getNbWheels() == 4;
 }
 
-bool UM7NoDriveMovement::EnableZeroProbe()
+bool UM7NoDriveMovement::EnableZeroProbe(bool VehicleTwenty)
 {
   if (bZeroProbe || !PVehicle || WheelSetups.Num() != 4) return false;
   bZeroProbe = true;
+  bVehicleTwenty = VehicleTwenty;
   RecreatePhysicsState();
   ClearInputs();
   return HasNoDrive();
@@ -39,6 +40,8 @@ void UM7NoDriveMovement::SetupVehicleDrive(physx::PxVehicleWheelsSimData* Data)
   PVehicleDrive = nullptr;
   if (!UpdatedPrimitive || Data->getNbWheels() != 4) { Data->free(); return; }
   auto* Vehicle = physx::PxVehicleNoDrive::allocate(4);
+  // Separate diagnostic candidate only. World/ECU rates, tire law and effort are unchanged.
+  if (bVehicleTwenty) Data->setSubStepCount(Data->getThresholdLongSpeed(), 20, 20);
   bool Ready = false;
   FPhysicsCommand::ExecuteWrite(UpdatedPrimitive->GetBodyInstance()->ActorHandle,
     [&](const FPhysicsActorHandle& Actor) {
@@ -52,6 +55,13 @@ void UM7NoDriveMovement::SetupVehicleDrive(physx::PxVehicleWheelsSimData* Data)
   Data->free();
   if (Ready) PVehicle = Vehicle;
   else Vehicle->free();
+}
+
+bool UM7NoDriveMovement::NumericalProfileMatches() const
+{
+  return HasNoDrive() && (!bVehicleTwenty ||
+    (PVehicle->mWheelsSimData.getLowForwardSpeedSubStepCount() == 20 &&
+     PVehicle->mWheelsSimData.getHighForwardSpeedSubStepCount() == 20));
 }
 
 void UM7NoDriveMovement::UpdateSimulation(float DeltaTime)
@@ -90,6 +100,10 @@ FString UM7NoDriveMovement::DescribePhysics() const
     static_cast<unsigned long long>(Generation)));
   TArray<TSharedPtr<FJsonValue>> Wheels;
   if (HasNoDrive()) {
+    Object->SetStringField(TEXT("numerical_profile"), bVehicleTwenty ? TEXT("vehicle20-diagnostic-v1") : TEXT("asset-default"));
+    Object->SetNumberField(TEXT("vehicle_substeps_low"), PVehicle->mWheelsSimData.getLowForwardSpeedSubStepCount());
+    Object->SetNumberField(TEXT("vehicle_substeps_high"), PVehicle->mWheelsSimData.getHighForwardSpeedSubStepCount());
+    Object->SetNumberField(TEXT("vehicle_substeps_threshold_m_s"), PVehicle->mWheelsSimData.getThresholdLongSpeed() / 100.0);
     const auto* NoDrive = static_cast<const physx::PxVehicleNoDrive*>(PVehicle);
     for (unsigned W = 0; W != 4; ++W) {
       auto Wheel = MakeShared<FJsonObject>();

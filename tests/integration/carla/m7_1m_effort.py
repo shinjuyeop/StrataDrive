@@ -26,6 +26,8 @@ def main():
     p.add_argument("--fixture", type=Path, required=True)
     p.add_argument("--model", type=Path, required=True)
     p.add_argument("--port", type=int, default=2200)
+    p.add_argument("--vehicle-substeps", type=int, choices=(0, 20), default=0,
+                   help="Expected server-only numerical profile; 0 means original asset defaults")
     args = p.parse_args()
     args.output.mkdir(exist_ok=False, parents=True)
     model_hash = hashlib.sha256(args.model.read_bytes()).hexdigest()
@@ -33,6 +35,7 @@ def main():
                   mode="isolated synthetic CAN/P05 V1 diagnostic; NOT native driving",
                   normal_driving_enabled=False, interval_work_valid=False,
                   model_sha256=model_hash, cases=[], bindings=[], phases=[])
+    result["expected_vehicle_substeps"] = args.vehicle_substeps
     events = []
     client = carla.Client("127.0.0.1", args.port)
     client.set_timeout(10)
@@ -77,6 +80,10 @@ def main():
         session, run = out["session"], out["run"]
         case("bound_v1_"+label, out["ok"] and out["effort_profile"] == "virtual-ev-v1-diagnostic" and
              out["model_sha256"] == model_hash and out["physics"]["inputs_zero"])
+        ph = out["physics"]
+        case("numerical_profile_"+label, ph["numerical_profile"] == ("vehicle20-diagnostic-v1" if args.vehicle_substeps else "asset-default") and
+             ph["vehicle_substeps_low"] == (20 if args.vehicle_substeps else 3) and
+             ph["vehicle_substeps_high"] == (20 if args.vehicle_substeps else 1) and ph["vehicle_substeps_threshold_m_s"] == 5)
         result["bindings"].append(out)
         begin, frame, seq = int(out["logical_begin_ns"]), int(out["frame"]), 0
 

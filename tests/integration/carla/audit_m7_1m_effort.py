@@ -71,6 +71,12 @@ def audit(result, entries, model, model_hash):
         require(actual == dict(steering=req["angle_left_rad"], brake=req["pressure_pa"], drive=req["torque_nm"]), "original differs from request")
         wheels = r["physics"]["wheels"]
         require(r["physics"]["nodrive"] and len(wheels) == 4, "NoDrive")
+        if "expected_vehicle_substeps" in result:
+            count = result["expected_vehicle_substeps"]
+            require(r["physics"]["numerical_profile"] == ("vehicle20-diagnostic-v1" if count else "asset-default") and
+                    r["physics"]["vehicle_substeps_low"] == (20 if count else 3) and
+                    r["physics"]["vehicle_substeps_high"] == (20 if count else 1) and
+                    r["physics"]["vehicle_substeps_threshold_m_s"] == 5, "numerical profile")
         L = model["wheels"][0]["offset_x_m"] - model["wheels"][2]["offset_x_m"]
         H = (model["wheels"][1]["offset_y_right_m"] - model["wheels"][0]["offset_y_right_m"]) / 2
         t = math.tan(actual["steering"])
@@ -136,6 +142,8 @@ def main():
             "wheel_nan": lambda es: es[0]["receipt"]["physics"]["wheels"][2].update(omega_rad_s=float("nan")),
             "steer_sign": lambda es: next(e for e in es if e["phase"] == "left_turn")["receipt"]["physics"]["wheels"][0].update(set_steer_right_rad=.2),
         }
+        if "expected_vehicle_substeps" in result:
+            faults["numerical_profile"] = lambda es: es[0]["receipt"]["physics"].update(vehicle_substeps_low=19)
         report["corruption_rejections"] = {}
         for name, damage in faults.items():
             corrupted = copy.deepcopy(entries)

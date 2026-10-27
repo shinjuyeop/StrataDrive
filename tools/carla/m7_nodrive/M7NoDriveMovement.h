@@ -13,7 +13,7 @@ class CARLA_API UM7NoDriveMovement : public UWheeledVehicleMovementComponent4W
 {
   GENERATED_BODY()
 public:
-  bool EnableZeroProbe();
+  bool EnableZeroProbe(bool VehicleTwenty = false);
   bool IsZeroProbe() const { return bZeroProbe; }
   bool HasNoDrive() const;
   bool InputsAreZero() const;
@@ -26,10 +26,12 @@ public:
   bool PrepareV1(double Angle, double Torque, double Pressure, FM7WheelEffort& Out) const;
   bool ApplyEffort(const FM7WheelEffort& Effort);
   bool EffortMatches(const FM7WheelEffort& Effort) const;
+  bool NumericalProfileMatches() const;
 protected:
   virtual void SetupVehicleDrive(physx::PxVehicleWheelsSimData* Data) override;
   virtual void UpdateSimulation(float DeltaTime) override;
 private:
   bool bZeroProbe = false;
   uint64 Generation = 0;
+  bool bVehicleTwenty = false;
 };
