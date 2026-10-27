@@ -1,0 +1,52 @@
+{
+  "status": "PASS",
+  "checks": {
+    "lifecycle_status": true,
+    "exact_source_identity": true,
+    "map_identity": true,
+    "no_remaining_vehicles": true,
+    "settings_restored": true,
+    "10ms_settings": true,
+    "explicit_render_scope": true,
+    "two_distinct_egos": true,
+    "expected_exception": true,
+    "normal_cleanup/count": true,
+    "normal_cleanup/indices": true,
+    "normal_cleanup/frame_snapshot": true,
+    "normal_cleanup/frame_continuity": true,
+    "normal_cleanup/simulation_dt": true,
+    "normal_cleanup/reported_dt": true,
+    "normal_cleanup/wall_order": true,
+    "normal_cleanup/cleanup": true,
+    "injected_exception_cleanup/count": true,
+    "injected_exception_cleanup/indices": true,
+    "injected_exception_cleanup/frame_snapshot": true,
+    "injected_exception_cleanup/frame_continuity": true,
+    "injected_exception_cleanup/simulation_dt": true,
+    "injected_exception_cleanup/reported_dt": true,
+    "injected_exception_cleanup/wall_order": true,
+    "injected_exception_cleanup/cleanup": true,
+    "no_extra_trace_rows": true
+  },
+  "cases": {
+    "normal_cleanup": {
+      "ticks": 100,
+      "first_frame": 7502,
+      "last_frame": 7601,
+      "simulation_dt_min_s": 0.009999999776482582,
+      "simulation_dt_max_s": 0.009999999776482582,
+      "wall_tick_max_ms": 1.897216
+    },
+    "injected_exception_cleanup": {
+      "ticks": 2,
+      "first_frame": 7603,
+      "last_frame": 7604,
+      "simulation_dt_min_s": 0.009999999776482582,
+      "simulation_dt_max_s": 0.009999999776482582,
+      "wall_tick_max_ms": 1.003676
+    }
+  },
+  "scope": "source server connection, physics-disabled ego lifecycle, 10ms logical ticks",
+  "wall_deadline_acceptance": "NOT RUN",
+  "normal_actuation": "NOT RUN"
+}

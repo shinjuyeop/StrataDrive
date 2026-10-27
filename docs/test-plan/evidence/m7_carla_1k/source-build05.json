@@ -1,0 +1,648 @@
+{
+  "carla_commit": "294096eb1c38eabf246e4f3a9cdab704e33a7f4c",
+  "schema": "m7-nodrive-zero-probe-v1",
+  "integration": {
+    "LibCarla/source/carla/client/detail/Client.h": {
+      "original_sha256": "99bd88bc83ac41c6ddc92c22f2c888803271101e37add1326793ec4c4fe67bf8",
+      "installed_sha256": "0026787ac0e4012af04634cafad5454c2a94d23a32bd1bc1c7ba2a8531e6d059"
+    },
+    "LibCarla/source/carla/client/detail/Client.cpp": {
+      "original_sha256": "dce17059630f3ebf8281191cd33ac5135269ce9cb1a882fd1bfb5f4e6628b922",
+      "installed_sha256": "1f8395d98e4c442fd1c8a7ef4866d82db3eba4b25143d4a54508fad28781b4e4"
+    },
+    "LibCarla/source/carla/client/detail/Simulator.h": {
+      "original_sha256": "de333eeae87dfda760bd6f1b95b58a466654d4ebe143c1f0f1ea7c91a6749c2a",
+      "installed_sha256": "a0514624f8d907878a62536aab9b95738540d940ea31b1b1d16df300d0187b75"
+    },
+    "LibCarla/source/carla/client/Client.h": {
+      "original_sha256": "b4dd013335d042c505f22f30aca593920cae1e14bddee9b3fe5c0f08f0bd3e36",
+      "installed_sha256": "8e17ee2b991b696cefd09e74dff65dfc09f8f4a92737b2a034aca3efdc73cfdb"
+    },
+    "PythonAPI/carla/source/libcarla/Client.cpp": {
+      "original_sha256": "59143c65db8175832f5ba8e7972bf7bbe514bad00517a97f57f02950d78d68b3",
+      "installed_sha256": "db9a5c4c0ab0f1370e99be8e8034c2a7200d967a537ffdf246ffefda9f177442"
+    },
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Carla.Build.cs": {
+      "original_sha256": "7263db93a4ae516e362b74dfa95506661fae29d29e15df9df52c3c9d8f2c8e6b",
+      "installed_sha256": "41bc8fe740383c0761aa75b56db2c4e279ade3268861f2be12fe7476a9a99a53"
+    },
+    "Unreal/CarlaUE4/Plugins/Carla/Carla.uplugin": {
+      "original_sha256": "fc1bee5d9c7f7bd1c9ce9a82c6d21879ede138d2bb30a5cc2b5c3069a9caabb8",
+      "installed_sha256": "4cb3433722f7f55f2357e90880be9c34ccd173fe01fd7c915d4b7c06fa42771c"
+    },
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Vehicle/CarlaWheeledVehicle.cpp": {
+      "original_sha256": "23a3a051f8e6c7c8114883ba4abc5c60a92368d4a7f042ac8602665640537731",
+      "installed_sha256": "8e31c1ba88cac1c5ce69e470dee796c9421887a7e257ccca640c2ffa166dbdd4"
+    },
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Server/CarlaServer.cpp": {
+      "original_sha256": "635677e3f24355de79095cab4eb0f620b065eeb1b94f15384427174323d2ce7d",
+      "installed_sha256": "67da7eb19a2ae9f39d9809e88fb6d079a2517ecc355d732c8e5396ae671c6a11"
+    },
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Game/CarlaEngine.cpp": {
+      "original_sha256": "da79b4f314502e0267963cc98fa54f127a97c5c66c8e007796649582b3969c73",
+      "installed_sha256": "f47f26df1767fc6657ea7e5eb59be0a7155b72b7694b69b7cc218e4bf5f72f25"
+    }
+  },
+  "native_sources_sha256": {
+    "interfaces/common/e2e_profile5.hpp": "bff8d79fdc88ab50904d44e68ee2bc1678d46bcaae34697606733381ba2ff2dc",
+    "interfaces/common/e2e_profile5.cpp": "baa8c2966033e6c05a58e650bce01cc71621b8ecd0708c0d09b2c33c43ed823f",
+    "interfaces/common/actuator_payload_codec.hpp": "d770055f8fcc64387701c68d6e04e6df07490db112f61b6eb5ad0332bcefa0ab",
+    "interfaces/common/actuator_payload_codec.cpp": "4b677938d7a811629ed9f95b2fa5302daff631fc3d92a4bc974ae9405887e402",
+    "interfaces/common/actuator_receiver_state.hpp": "ffb334d48599bbf78b2bca57266fbf994076a91c27a452ebf1cde660cc651298",
+    "interfaces/common/actuator_receiver_state.cpp": "cae452e06dca5bc1f765bc9c8f8c58b52dd6801f97ad22f19b798eff6db52b42",
+    "interfaces/steering/steering_angle_codec.hpp": "a833980fecd5c296fd273317aa7ea4fd35e7cb141ed9ac15d607e7aa2405f080",
+    "interfaces/steering/steering_angle_codec.cpp": "45766ca7f9f381391ab39ac843eee62fad533767bc1f9ab954afceae0f486007",
+    "interfaces/steering/steering_frame_codec.hpp": "2461ab8d705a182c4a3fff4ddbb20e985e62531e20b03b527049674c5ddea907",
+    "interfaces/steering/steering_frame_codec.cpp": "129eedc9efa6557e4d966c68f48dfe2331d6888a47c1cd3d9b8590d83bb09ff7",
+    "interfaces/steering/steering_receiver.hpp": "c594ab5dedf869d315c0f4c85605c222cc731302209cca598f54e167ab7c70c1",
+    "interfaces/steering/steering_receiver.cpp": "c3e4cc3c9374ef1e7acccb06da464b83c5260a0fbde3f444b80bd4c3ca6c5506",
+    "interfaces/brake/brake_pressure_codec.hpp": "5bc13199eb11c4140327e6d756485dcf1501fb74be18647fbee99aa5df9b5511",
+    "interfaces/brake/brake_pressure_codec.cpp": "dbc4fe907ee772982d43dbba420339bbde42acf010382eb7bbd4c748d1154dc0",
+    "interfaces/brake/brake_frame_codec.hpp": "3dff56ca71a716a28771bc75e0e1ba8128ab0a1b72bead1409744ef4dd64a891",
+    "interfaces/brake/brake_frame_codec.cpp": "3014d06a2d5f60769968190956d34a22d1e435a060c9dc4a2c8f5d316f9bfc75",
+    "interfaces/brake/brake_receiver.hpp": "6d7451e9d95fa7f8b1d094a801c5450f5c69b08d5a0310a854e8d6aacb0be61b",
+    "interfaces/brake/brake_receiver.cpp": "a53cba6ef9609dc4a31ebc1dc109effb6e8aa0c561ac60abeb9658c6dc8e2b44",
+    "interfaces/drive/drive_value_codec.hpp": "14fa27197285ef3673cfc34ddef895d2176b1849305a04f2aaf9da59a623ce9e",
+    "interfaces/drive/drive_value_codec.cpp": "56c283c68a54d35c486131cccf945f94929fd6bc3ed22243d34a5048d30642a6",
+    "interfaces/drive/drive_frame_codec.hpp": "e9bc51c99401cd543508ccbe6a02d66b66c83a102d36642e51799b7937570b29",
+    "interfaces/drive/drive_frame_codec.cpp": "b02f1bdf9f9cf43d466538f77e0e831ae39c4a4c20047ea7e2de689138ca1043",
+    "interfaces/drive/drive_receiver.hpp": "5d38944ad3dab81be99b464167c6b14ab23063dd3384ca316d896a2aff3755e6",
+    "interfaces/drive/drive_receiver.cpp": "110cbcb463567b7ed9de883c753ffbc656df38cee5bc6a9f5a38c832df43b0d4"
+  },
+  "legacy_rpc_decisions": [
+    {
+      "name": "is_traffic_manager_running",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_traffic_manager_running",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "add_traffic_manager_running",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "destroy_traffic_manager",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "version",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "tick_cue",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_available_maps",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "load_new_episode",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "load_map_layer",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "unload_map_layer",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "copy_opendrive_to_file",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "apply_color_texture_to_objects",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "apply_float_color_texture_to_objects",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_names_of_all_objects",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_episode_info",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_map_info",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_map_data",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_navigation_mesh",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_required_files",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "request_file",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_episode_settings",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "set_episode_settings",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_actor_definitions",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_spectator",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_all_level_BBs",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_environment_objects",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "enable_environment_objects",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_annotations_traverse_translucency",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_weather_parameters",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "set_weather_parameters",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_imui_gravity",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "set_imui_gravity",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_actors_by_id",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "spawn_actor",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "spawn_actor_with_parent",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "destroy_actor",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "console_command",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_sensor_token",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "enable_sensor_for_ros",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "disable_sensor_for_ros",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "is_sensor_enabled_for_ros",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "send",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_ignored_vehicles",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_actor_location",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_actor_transform",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_walker_state",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_actor_target_velocity",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_actor_target_angular_velocity",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "enable_actor_constant_velocity",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "disable_actor_constant_velocity",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "add_actor_impulse",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "add_actor_impulse_at_location",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "add_actor_force",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "add_actor_force_at_location",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "add_actor_angular_impulse",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "add_actor_torque",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_actor_bounding_box",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_actor_component_world_transform",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_actor_component_relative_transform",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_actor_bone_world_transforms",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_vehicle_bone_world_transforms",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_actor_bone_relative_transforms",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_actor_component_names",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_actor_bone_names",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_actor_socket_world_transforms",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_actor_socket_relative_transforms",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_actor_socket_names",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_physics_control",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_vehicle_light_state",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "apply_physics_control",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_vehicle_light_state",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "open_vehicle_door",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "close_vehicle_door",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_wheel_steer_direction",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_wheel_steer_angle",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "set_wheel_pitch_angle",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_wheel_pitch_angle",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "set_actor_simulate_physics",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_actor_collisions",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_actor_dead",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_actor_enable_gravity",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "apply_control_to_vehicle",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "apply_ackermann_control_to_vehicle",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_ackermann_controller_settings",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "apply_ackermann_controller_settings",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "apply_control_to_walker",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_bones_transform",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "set_bones_transform",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "blend_pose",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_pose_from_animation",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_actor_autopilot",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_telemetry_data",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "show_vehicle_debug_telemetry",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "enable_carsim",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "use_carsim_road",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "enable_chrono_physics",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "restore_physx_physics",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_traffic_light_state",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_traffic_light_green_time",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_traffic_light_yellow_time",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_traffic_light_red_time",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "freeze_traffic_light",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "reset_traffic_light_group",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "reset_all_traffic_lights",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "freeze_all_traffic_lights",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "get_vehicle_light_states",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_group_traffic_lights",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_light_boxes",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "get_gbuffer_token",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "enable_gbuffers",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "are_gbuffers_enabled",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "start_recorder",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "stop_recorder",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "show_recorder_file_info",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "show_recorder_collisions",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "show_recorder_actors_blocked",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "replay_file",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_replayer_time_factor",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_replayer_ignore_hero",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "set_replayer_ignore_spectator",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "stop_replayer",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "draw_debug_shape",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "clear_debug_shape",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "clear_debug_string",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "apply_batch",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "query_lights_state",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "update_lights_state",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "update_day_night_cycle",
+      "blocked_while_bound": true
+    },
+    {
+      "name": "project_point",
+      "blocked_while_bound": false
+    },
+    {
+      "name": "cast_ray",
+      "blocked_while_bound": false
+    }
+  ],
+  "installed": {
+    "LibCarla/source/carla/client/detail/Client.h": "0026787ac0e4012af04634cafad5454c2a94d23a32bd1bc1c7ba2a8531e6d059",
+    "LibCarla/source/carla/client/detail/Client.cpp": "1f8395d98e4c442fd1c8a7ef4866d82db3eba4b25143d4a54508fad28781b4e4",
+    "LibCarla/source/carla/client/detail/Simulator.h": "a0514624f8d907878a62536aab9b95738540d940ea31b1b1d16df300d0187b75",
+    "LibCarla/source/carla/client/Client.h": "8e17ee2b991b696cefd09e74dff65dfc09f8f4a92737b2a034aca3efdc73cfdb",
+    "PythonAPI/carla/source/libcarla/Client.cpp": "db9a5c4c0ab0f1370e99be8e8034c2a7200d967a537ffdf246ffefda9f177442",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Carla.Build.cs": "41bc8fe740383c0761aa75b56db2c4e279ade3268861f2be12fe7476a9a99a53",
+    "Unreal/CarlaUE4/Plugins/Carla/Carla.uplugin": "4cb3433722f7f55f2357e90880be9c34ccd173fe01fd7c915d4b7c06fa42771c",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Vehicle/CarlaWheeledVehicle.cpp": "8e31c1ba88cac1c5ce69e470dee796c9421887a7e257ccca640c2ffa166dbdd4",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Server/CarlaServer.cpp": "67da7eb19a2ae9f39d9809e88fb6d079a2517ecc355d732c8e5396ae671c6a11",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Game/CarlaEngine.cpp": "f47f26df1767fc6657ea7e5eb59be0a7155b72b7694b69b7cc218e4bf5f72f25",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/M7NoDrive/M7NoDriveMovement.cpp": "0609645643fc21343bb7db162436ce88f62d5ff39fd3d4d36eda88a772a01103",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/M7NoDrive/M7NoDrivePort.cpp": "d096b7807c18ada7e4cc2a17c745be0cab68bfa06499e1c55411a0f659592c64",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/M7NoDrive/M7NoDriveMovement.h": "d81fd705dd63dd88e7be738af4db08c6d63d022e8d582f2f7a2ecf4800c7cb28",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/M7NoDrive/M7NoDrivePort.h": "b3abd75363af1b29bd8f2b4207e64dc2be083b15eb6f982e44f67aeae467ca5d",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/M7Native.Build.cs": "0fa65dd207ce05b5d4d7aec21f3e3b4fce74c764465d7d682be4c4d2af87c7c7",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/M7Native.cpp": "af656732537fc600c8f1f2df83cbec255660608ab8fc2213a8b93a01bc89bb20",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/e2e_profile5.hpp": "bff8d79fdc88ab50904d44e68ee2bc1678d46bcaae34697606733381ba2ff2dc",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/e2e_profile5.inc": "baa8c2966033e6c05a58e650bce01cc71621b8ecd0708c0d09b2c33c43ed823f",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_e2e_profile5.cpp": "0c0dcb13621f4e8cc3f74ee64a398921ae19ecfe23eded7774f0386500618227",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/actuator_payload_codec.hpp": "d770055f8fcc64387701c68d6e04e6df07490db112f61b6eb5ad0332bcefa0ab",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/actuator_payload_codec.inc": "4b677938d7a811629ed9f95b2fa5302daff631fc3d92a4bc974ae9405887e402",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_actuator_payload_codec.cpp": "8ec70d24ef43ba6247db9a03b6c7a6c4f6f0af3846fc3958ab6553e6ba4f0e3f",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/actuator_receiver_state.hpp": "ffb334d48599bbf78b2bca57266fbf994076a91c27a452ebf1cde660cc651298",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/actuator_receiver_state.inc": "cae452e06dca5bc1f765bc9c8f8c58b52dd6801f97ad22f19b798eff6db52b42",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_actuator_receiver_state.cpp": "69070080e9b22ccda30c51e10190feaefe7979057909fdbb4c9911e0e5df4dd4",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/steering_angle_codec.hpp": "a833980fecd5c296fd273317aa7ea4fd35e7cb141ed9ac15d607e7aa2405f080",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/steering_angle_codec.inc": "45766ca7f9f381391ab39ac843eee62fad533767bc1f9ab954afceae0f486007",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_steering_angle_codec.cpp": "ec34bf6a500c9baf20495bef98760d9272a5265ac77acf252fece17298c98918",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/steering_frame_codec.hpp": "2461ab8d705a182c4a3fff4ddbb20e985e62531e20b03b527049674c5ddea907",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/steering_frame_codec.inc": "129eedc9efa6557e4d966c68f48dfe2331d6888a47c1cd3d9b8590d83bb09ff7",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_steering_frame_codec.cpp": "e426213206bbf064a8020f072c778d6574f6b03d0ae549a455f8fb3f37776435",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/steering_receiver.hpp": "c594ab5dedf869d315c0f4c85605c222cc731302209cca598f54e167ab7c70c1",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/steering_receiver.inc": "c3e4cc3c9374ef1e7acccb06da464b83c5260a0fbde3f444b80bd4c3ca6c5506",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_steering_receiver.cpp": "6cd4586cab5f6efe570c72bd22e0ed3c1403da3f09b27c9aa35d3a9a5ce34817",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/brake_pressure_codec.hpp": "5bc13199eb11c4140327e6d756485dcf1501fb74be18647fbee99aa5df9b5511",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/brake_pressure_codec.inc": "dbc4fe907ee772982d43dbba420339bbde42acf010382eb7bbd4c748d1154dc0",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_brake_pressure_codec.cpp": "c357bfc3d15a054f9c95c8441bf2cf41f513d9cde67989cdc83e559f72bd72fe",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/brake_frame_codec.hpp": "3dff56ca71a716a28771bc75e0e1ba8128ab0a1b72bead1409744ef4dd64a891",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/brake_frame_codec.inc": "3014d06a2d5f60769968190956d34a22d1e435a060c9dc4a2c8f5d316f9bfc75",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_brake_frame_codec.cpp": "471dd01082c8bf5893b464388a0be9b75cce0372531a49ed06bb65a59928e11f",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/brake_receiver.hpp": "6d7451e9d95fa7f8b1d094a801c5450f5c69b08d5a0310a854e8d6aacb0be61b",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/brake_receiver.inc": "a53cba6ef9609dc4a31ebc1dc109effb6e8aa0c561ac60abeb9658c6dc8e2b44",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_brake_receiver.cpp": "cb6e03b55792d8894d6b5b3f713de460b0668251330d6ffa19caad2ed0b94c67",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/drive_value_codec.hpp": "14fa27197285ef3673cfc34ddef895d2176b1849305a04f2aaf9da59a623ce9e",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/drive_value_codec.inc": "56c283c68a54d35c486131cccf945f94929fd6bc3ed22243d34a5048d30642a6",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_drive_value_codec.cpp": "a56ab10f61ec3684c674dc8ad1cfbf36308e737e0c3518fb507ed9c2bdcf3388",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/drive_frame_codec.hpp": "e9bc51c99401cd543508ccbe6a02d66b66c83a102d36642e51799b7937570b29",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/drive_frame_codec.inc": "b02f1bdf9f9cf43d466538f77e0e831ae39c4a4c20047ea7e2de689138ca1043",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_drive_frame_codec.cpp": "a6aab94c821ad25b4be1a78cf3fde91db49647294d24530c591c38d9e1e050fa",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/drive_receiver.hpp": "5d38944ad3dab81be99b464167c6b14ab23063dd3384ca316d896a2aff3755e6",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native/drive_receiver.inc": "110cbcb463567b7ed9de883c753ffbc656df38cee5bc6a9f5a38c832df43b0d4",
+    "Unreal/CarlaUE4/Plugins/Carla/Source/M7Native/Native_drive_receiver.cpp": "344b8444b40577f9e095cc81e595b12f9c161af617cb91df185a302eb3f1091e"
+  }
+}

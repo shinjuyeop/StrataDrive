@@ -298,6 +298,20 @@ startup/wall timing 제한·종료 crash와 기존 OPEN 유지. 다음 조사에
 M6 동등 energy/안전 수용 주장. 기존 M4/SDK/DDS OPEN 전체를 M7 비주행 선행 조건으로 추가하지 않는다.
 Jetson 배포/학습은 범위 밖이며 TBD-09는 Host 조사만 반영한다.
 
+## 2026-10-26 후속 — M7-1k 최소 서버 포트
+
+[실행·실패 기록](evidence/m7_carla_1k/README.md)의 opt-in 포트는 실제 UE NoDrive에
+합성 CAN/P05 Actual0만 수용한다. 최종156개 검사(반복 포함)·13개10ms receipt와
+원본 보존/손상8종 거부, 별도 client의 직접 writer·일반 tick 차단, pause/실제 physics reset,
+새 session/INIT를 확인했다. flag-off 별도 서버는 기존 비주행 lifecycle2/2·102샘플을 통과했다.
+서버4회 모두 설정/actor 정리 후 SIGINT130이다. 초기 build2회와 harness1회의 FAIL을 보존한다.
+
+이는 위 M7-1-06/07/09의 **서버 진단 일부**에 대한 후속 근거이며 과거 전체 판정을
+PASS로 고치지 않는다. 실제8-role 정상 연결·nonzero rad/Nm/Pa·brake calibration·구간 work,
+native wall/transport timeout 실주입·평지 보호 brake 및 렌더링 안정성은 미수용이다.
+다음 작업은 wheel/COM geometry의 좌표·차량 기준점 검증과 근거 있는 brake 모델 선정이다.
+기존 M6 수용·ECU 주기·freshness·영상/GT 계약은 유지한다.
+
 ## M7-0 변경의 검증 범위
 
 변경은 Markdown7개(새 문서2개·기존 연결/상태5개)다. 변경 문서의 로컬 링크/앵커121개를

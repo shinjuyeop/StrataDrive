@@ -28,6 +28,7 @@ Updated: **2026-10-26**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1j source 실행 | Town03 비렌더링 연결/identity·ego 정상/예외2/2·10ms102샘플 한정 통과. SIGINT130·자원 정리 확인. Town10 준비 한도 초과/강제 종료와 Town03 렌더링 SIGSEGV·검증 코드 초기조건 FAIL 보존. 렌더링 OPEN | [실행·실패·제한](test-plan/evidence/m7_carla_1j_source_smoke/README.md) |
 | M7-1j 렌더링 조사 | GDB camera SIGSEGV의 잘못된 Distance Field 참조 관측, 원인 미확정. 같은 바이너리의 GDB1회·native 같은 서버2회 각 RGB/GT30쌍·150tick·actor 정리/설정 복원 한정 통과. 재질 준비/렌더러 안정성 OPEN | [조사·실패·한계](test-plan/evidence/m7_carla_1j_render_diagnosis/README.md) |
 | M7-1j 준비 baseline | ego/RGB/GT 유지 중 shader·Distance Field zero를10s 간격2회 확인. 준비 후 GDB1회·새 native2서버 각150tick/30쌍 및 정리/복원, SIGINT130 한정 확인. broad trace timeout·DDC01 대상0/02 수동 중단 보존. 원래 crash root cause OPEN | [후속 검증](test-plan/evidence/m7_carla_1j_render_followup/README.md) |
+| M7-1k | 실제 UE NoDrive 0 effort 서버 포트·별도 Client 구현. 최종156개 검사(반복 포함)/13개10ms receipt, 직접 외부 writer·일반 tick 거부, pause/실제 physics reset·새 INIT 한정 검증. 독립 audit 손상8/8 거부, default-off 비주행2/2·102샘플. 초기 build2FAIL/시험1FAIL 보존. 정상 driving/work 미완료 | [실행·실패·gate](test-plan/evidence/m7_carla_1k/README.md) |
 | M7 후속–M13 | PLANNED / NOT RUN; 정상 CARLA 주행 연결 BLOCKED | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
@@ -62,7 +63,14 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 
 ## 다음 작업
 
-**M7-1j는 준비된 Town03 비주행 반복 baseline을 확보했다. 원래 렌더링 crash 원인과 정상 actuation은 OPEN이다**.
+**M7-1k는 서버 NoDrive의0 effort·single writer/frame/receipt 경계를 한정 검증했다. 정상 actuation과 렌더링 crash 원인은 OPEN이다**.
+[M7-1k](test-plan/evidence/m7_carla_1k/README.md)는 원본 CAN/P05 receiver를 UE 도구체인으로
+컴파일하고, opt-in ego를 실제 NoDrive로 전환한다. 합성 Actual 세 값이 모두0인 경우만
+허용하며 실제8-role 주행 authority나 brake calibration은 아니다. 최종13개 receipt의 원래 source와
+raw signed wheel을 보존했고 work는 unavailable이다. 실제 reset 후 pending 폐기·재무장 차단,
+별도 client의 직접 제어/velocity/pose/physics 거부와 기존 flag-off 비주행 lifecycle을 확인했다.
+다음은 readback geometry 검증·근거 있는 brake 모델 → nonzero effort/보호 Brake Actual 및 raw wheel →
+실제8-role full Actual interval → solver work/단일 EV → wall timing 순서다.
 [M7-1j](test-plan/evidence/m7_carla_1j/README.md)에서 공개 CARLA source를 확보하고 공개 PhysX3.4
 CHECKED SDK·합성 Actual→NoDrive 물리 포트를 구현했다. Normal/ASan 각15/15, 독립 CSV
 손상8/8 거부를 확인했다. 외부 SDK 자체는 sanitizer 미계측이며 UBSan vptr만 제외했다.
@@ -95,7 +103,7 @@ DDC01 대상0/02 광범위 cooked cache 수동 중단을 보존했다. 실제 eg
 shader/Distance Field zero를10s 간격2회 확인했고 준비 후 GDB1회·별도 새 native2서버에서
 각150tick/30쌍 수집·정리/복원을 확인했다. native SIGINT130이며 full stability 수용이 아니다.
 원래 잘못된 참조의 원인은 재현되지 않아 OPEN이고 기존 누락 content 경고도 남는다.
-다음은 이 제한된 baseline의 서버 NoDrive/writer/frame 포트 → 실제 geometry/brake calibration → 보호 Brake Actual과 raw wheel
+서버 NoDrive/writer/frame 포트는 1k의0 effort 범위까지 진행했다. 실제 geometry/brake calibration → 보호 Brake Actual과 raw wheel
 검증 → interval work/EV 연결 순서다. 합성 pressure table은 calibration이
 아니며 numerical subdivision은 이 독립 시험의 후보 설정이다. epsilon/clamp는 추가하지 않았다.
 source 영상은 위 최소 수신 진단만 검증했다. 완전 센서 delivery·정상 주행·에너지 수용은 NOT RUN이고 기존 M6는 유지한다.

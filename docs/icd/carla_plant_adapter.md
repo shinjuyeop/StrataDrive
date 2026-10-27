@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-23, `m7-plant-draft-v7`. **functional wheel/actuator/electrical 포트 연결 / 독립 NoDrive SDK 물리 포트 한정 검증 / CARLA 정상 actuation 미연결**.
+2026-10-26, `m7-plant-draft-v8`. **functional wheel/actuator/electrical 포트 연결 / 서버 NoDrive 0 effort 진단 포트 / CARLA 정상 actuation 미연결**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -191,6 +191,41 @@ GDB1회·native 같은 서버2회 각30쌍으로 한정 확인했지만 crash �
 이 baseline은 NoDrive 최소 포트의 후속 시험 조건이며 정상 actuation/주행 수용이 아니다.
 동일 의미를 실제 서버 lifecycle·scene tick
 안에 구현·검증하고 brake calibration과 구간 work를 해결해야 정상 주행 gate를 열 수 있다.
+
+### M7-1k — 서버 NoDrive 0 effort 진단 포트
+
+[설치·구체 RPC 계약](../../tools/carla/m7_nodrive/README.md)과
+[실행 evidence](../test-plan/evidence/m7_carla_1k/README.md)에 별도 opt-in 서버 포트를 둔다.
+고정 CARLA/UE Linux fork에서 기존4W component를 상속하고, 명시적으로 bind한 ego만
+실제 `PxVehicleNoDrive`로 전환한다. stock engine/gear/control 처리는 그 ego에서 제외하며
+타이어·suspension·차량 운동은 기존 UE PhysX 한 곳이 소유한다. M6 구현·wire는 변경하지 않는다.
+
+현재 admission은 **합성 CAN/P05 fixture 전용이며 세 Actual이 모두0인 경우만 허용**한다.
+원본 receiver·codec을 UE clang10/libc++의 별도 모듈에서 그대로 컴파일해 Actual CAN identity,
+CRC·epoch·sequence·source를 검사한다. oldest/source의 전체10ms age30ms·skew10ms 및
+exclusive expiry도 별도로 검사한다. nonzero rad/Nm/Pa는 calibration unavailable로 거부한다.
+합성 지원 provenance는 실제 Central–Zone–vECU authority가 아니며 이 진단 경로를 정상
+8-role 반환으로 수용하지 않는다. command/마지막 control을 새 Actual로 발행하지 않는다.
+
+서버 INIT는 owner key와 명시적 실행 flag를 요구하고 run UUID/session/actor를 바인딩한다.
+바인딩 중 legacy 제어·force/velocity/pose·physics·설정/reload·batch·일반 tick RPC를 막는다.
+이는 전용 실행 환경의 추가 서버 guard이며 전체 CARLA 인증/격리 수용을 뜻하지 않는다.
+`stage` ACK는 미적용, `advance` ACK는 큐 삽입, `receipt`만 physics 종료 관측이다.
+frame/ticket은 single-use이며 원래 CAN bytes와 실제 frame·simulation begin/end를 receipt에
+보존한다. persistent setter readback은 적용 demand이지 실제 actuator feedback이 아니다.
+raw signed wheel ω를 보존하며 `interval_work_valid=false`, substep work observation도 false다.
+energy owner를 연결하지 않은 이0 effort 진단만 다음 관측 tick을 허용하며, 정상 energy
+receipt가 불완전하면 latch해야 한다는 위 주행 계약을 완화하지 않는다.
+
+진단 clock은 bind 원점1s + frame차×10ms이고 원래 payload source는 불변이다.
+실제 simulation 시각을 별도 기록하며 native wall/kernel clock 수용으로 승격하지 않는다.
+pause는 pending 폐기·latch, reset은 실제 physics state 재생성·generation 변경·latch다.
+physics generation 변경 또는 모호한 post-tick 결과는 다음 tick을 막는다. close로 해당 ego를
+종료하고 새 session/INIT를 받아야 다시 진행한다. advance timeout의 자동 재시도는 금지한다.
+
+다음 gate는 readback geometry의 좌표·휠 순서 검증과 근거 있는 brake 모델, nonzero effort,
+보호 Brake Actual/raw wheel, 실제8-role interval 연결, solver work/단일 EV 및 wall timing이다.
+짧은0 effort 실행은 평지 brake-hold·기존 미세 음수 문제·렌더러 crash 해결의 근거가 아니다.
 
 ## 4. 좌표계와 센서 계약
 

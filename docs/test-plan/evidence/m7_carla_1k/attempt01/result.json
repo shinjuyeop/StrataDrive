@@ -1,0 +1,512 @@
+{
+  "status": "FAIL",
+  "started_utc": "2026-10-26T10:27:25.242479+00:00",
+  "mode": "zero-effort synthetic CAN/P05; real UE NoDrive; NOT native eight-role driving",
+  "normal_driving_enabled": false,
+  "interval_work_valid": false,
+  "cases": [
+    {
+      "name": "version",
+      "status": "PASS"
+    },
+    {
+      "name": "dedicated_prepared_map",
+      "status": "PASS"
+    },
+    {
+      "name": "no_owner_cannot_bind",
+      "status": "PASS"
+    },
+    {
+      "name": "malformed_request_rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "bind_real_nodrive",
+      "status": "PASS",
+      "response": {
+        "ok": true,
+        "reason": "bound_zero_only",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false,
+        "physics": {
+          "nodrive": true,
+          "inputs_zero": true,
+          "sleeping": false,
+          "wheels": [
+            {
+              "index": 0,
+              "bone": "Wheel_Front_Left",
+              "radius_m": 0.355,
+              "max_brake_nm": 800,
+              "max_steer_rad": 1.2217304706573486,
+              "offset_x_m": 1.2594692993164063,
+              "offset_y_right_m": -0.7967538452148437,
+              "set_drive_nm": 0,
+              "set_friction_nm": 0,
+              "set_steer_right_rad": 0,
+              "omega_rad_s": 0
+            },
+            {
+              "index": 1,
+              "bone": "Wheel_Front_Right",
+              "radius_m": 0.355,
+              "max_brake_nm": 800,
+              "max_steer_rad": 1.2217304706573486,
+              "offset_x_m": 1.2594692993164063,
+              "offset_y_right_m": 0.796165771484375,
+              "set_drive_nm": 0,
+              "set_friction_nm": 0,
+              "set_steer_right_rad": 0,
+              "omega_rad_s": 0
+            },
+            {
+              "index": 2,
+              "bone": "Wheel_Rear_Left",
+              "radius_m": 0.355,
+              "max_brake_nm": 800,
+              "max_steer_rad": 0,
+              "offset_x_m": -1.6010015869140626,
+              "offset_y_right_m": -0.7967538452148437,
+              "set_drive_nm": 0,
+              "set_friction_nm": 0,
+              "set_steer_right_rad": 0,
+              "omega_rad_s": 0
+            },
+            {
+              "index": 3,
+              "bone": "Wheel_Rear_Right",
+              "radius_m": 0.355,
+              "max_brake_nm": 800,
+              "max_steer_rad": 0,
+              "offset_x_m": -1.6010015869140626,
+              "offset_y_right_m": 0.796165771484375,
+              "set_drive_nm": 0,
+              "set_friction_nm": 0,
+              "set_steer_right_rad": 0,
+              "omega_rad_s": 0
+            }
+          ]
+        },
+        "logical_begin_ns": "1000000000"
+      }
+    },
+    {
+      "name": "second_bind_rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "missing_bundle",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "envelope_or_coverage",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "frame_mismatch",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "frame",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "unauthenticated_stage_rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "wrong_session_rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "command_is_not_actual",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "envelope_or_coverage",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "p05_crc_rejected",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "actual_receiver",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "old_application_epoch_rejected",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "actual_receiver",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "future_actual_rejected",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "envelope_or_coverage",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "future_wire_source_rejected",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "actual_receiver",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "whole_interval_age_not_relaxed",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "envelope_or_coverage",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "exclusive_expiry_at_end_rejected",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "envelope_or_coverage",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "uncalibrated_torque",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "calibration_unavailable_zero_only",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "uncalibrated_pressure",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "calibration_unavailable_zero_only",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "uncalibrated_angle",
+      "status": "PASS",
+      "response": {
+        "ok": false,
+        "reason": "calibration_unavailable_zero_only",
+        "schema": "m7-nodrive-zero-probe-v1",
+        "normal_driving_enabled": false,
+        "interval_work_valid": false,
+        "frame": "40484",
+        "session": "1",
+        "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+        "actor": "86",
+        "clock_domain": "m7-zero-probe-logical-frame",
+        "locked": true,
+        "latched": false,
+        "staged": false,
+        "in_flight": false
+      },
+      "frame_before": 40484,
+      "frame_after": 40484
+    },
+    {
+      "name": "ordinary_tick_server_blocked",
+      "status": "PASS",
+      "error": "M7 exclusive zero-probe owner"
+    },
+    {
+      "name": "settings_write_server_blocked",
+      "status": "PASS",
+      "error": "M7 exclusive zero-probe owner"
+    },
+    {
+      "name": "reload_server_blocked",
+      "status": "PASS",
+      "error": "M7 exclusive zero-probe owner"
+    }
+  ],
+  "receipts": [],
+  "client_version": "294096e-dirty",
+  "server_version": "294096e-dirty",
+  "map": "Carla/Maps/Town03_Opt",
+  "original_settings": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "bindings": [
+    {
+      "ok": true,
+      "reason": "bound_zero_only",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "frame": "40484",
+      "session": "1",
+      "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+      "actor": "86",
+      "clock_domain": "m7-zero-probe-logical-frame",
+      "locked": true,
+      "latched": false,
+      "staged": false,
+      "in_flight": false,
+      "physics": {
+        "nodrive": true,
+        "inputs_zero": true,
+        "sleeping": false,
+        "wheels": [
+          {
+            "index": 0,
+            "bone": "Wheel_Front_Left",
+            "radius_m": 0.355,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0
+          },
+          {
+            "index": 1,
+            "bone": "Wheel_Front_Right",
+            "radius_m": 0.355,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0
+          },
+          {
+            "index": 2,
+            "bone": "Wheel_Rear_Left",
+            "radius_m": 0.355,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0
+          },
+          {
+            "index": 3,
+            "bone": "Wheel_Rear_Right",
+            "radius_m": 0.355,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0
+          }
+        ]
+      },
+      "logical_begin_ns": "1000000000"
+    }
+  ],
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_1k_server_probe.py\", line 198, in main\n    blocked = observer.apply_batch_sync([carla.command.ApplyVehicleControl(actor.id, carla.VehicleControl(throttle=1))], True)\nRuntimeError: M7 exclusive zero-probe owner\n",
+  "close": {
+    "ok": true,
+    "reason": "closed_actor_destroyed",
+    "schema": "m7-nodrive-zero-probe-v1",
+    "normal_driving_enabled": false,
+    "interval_work_valid": false,
+    "frame": "40484",
+    "session": "1",
+    "run": "212E29F4-0769-4E8D-97CE-03B3DAE7284F",
+    "actor": "86",
+    "clock_domain": "m7-zero-probe-logical-frame",
+    "locked": false,
+    "latched": true,
+    "staged": false,
+    "in_flight": false
+  },
+  "restored_settings": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "remaining_vehicle_ids": []
+}
