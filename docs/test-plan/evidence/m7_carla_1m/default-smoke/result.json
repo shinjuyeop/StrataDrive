@@ -1,0 +1,97 @@
+{
+  "started_utc": "2026-10-27T03:44:36.047253+00:00",
+  "executable": "/d/shin/stratadrive-tools/m7-source/carla-build-venv/bin/python",
+  "carla_module": "/d/shin/stratadrive-tools/m7-source/carla-build-venv/lib/python3.10/site-packages/carla/__init__.py",
+  "endpoint": [
+    "127.0.0.1",
+    2200
+  ],
+  "expected_version": "294096e-dirty",
+  "mode": "NON_DRIVING; ego physics disabled; no apply_control",
+  "status": "PASS",
+  "cases": [
+    {
+      "name": "normal_cleanup",
+      "status": "PASS",
+      "actor_id": 86,
+      "ticks": 100,
+      "timestamp_increment_min_s": 0.009999999776482582,
+      "timestamp_increment_max_s": 0.009999999776482582,
+      "velocity_m_s": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "destroy_return": true,
+      "cleanup_observations": [
+        {
+          "tick_frame": 13333,
+          "snapshot_frame": 13333,
+          "registry_present": false,
+          "snapshot_present": false
+        }
+      ]
+    },
+    {
+      "name": "injected_exception_cleanup",
+      "status": "PASS",
+      "actor_id": 87,
+      "ticks": 2,
+      "timestamp_increment_min_s": 0.009999999776482582,
+      "timestamp_increment_max_s": 0.009999999776482582,
+      "velocity_m_s": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "expected_exception": "deliberate post-spawn lifecycle exception",
+      "destroy_return": true,
+      "cleanup_observations": [
+        {
+          "tick_frame": 13336,
+          "snapshot_frame": 13336,
+          "registry_present": false,
+          "snapshot_present": false
+        }
+      ]
+    }
+  ],
+  "client_version": "294096e-dirty",
+  "server_version": "294096e-dirty",
+  "map": "Carla/Maps/Town03_Opt",
+  "expected_map": "Town03_Opt",
+  "initial_vehicle_ids": [],
+  "settings_before": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "requested_no_rendering": true,
+  "settings_during": {
+    "synchronous_mode": true,
+    "fixed_delta_seconds": 0.01,
+    "no_rendering_mode": true,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "blueprint": "vehicle.lincoln.mkz_2020",
+  "spawn": {
+    "x": 220.40966796875,
+    "y": -5.085507869720459,
+    "z": 0.27530714869499207
+  },
+  "remaining_vehicle_ids": [],
+  "settings_after": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "elapsed_wall_s": 0.4246149399987189
+}

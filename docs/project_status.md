@@ -30,6 +30,7 @@ Updated: **2026-10-27**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1j 준비 baseline | ego/RGB/GT 유지 중 shader·Distance Field zero를10s 간격2회 확인. 준비 후 GDB1회·새 native2서버 각150tick/30쌍 및 정리/복원, SIGINT130 한정 확인. broad trace timeout·DDC01 대상0/02 수동 중단 보존. 원래 crash root cause OPEN | [후속 검증](test-plan/evidence/m7_carla_1j_render_followup/README.md) |
 | M7-1k | 실제 UE NoDrive 0 effort 서버 포트·별도 Client 구현. 최종156개 검사(반복 포함)/13개10ms receipt, 직접 외부 writer·일반 tick 거부, pause/실제 physics reset·새 INIT 한정 검증. 독립 audit 손상8/8 거부, default-off 비주행2/2·102샘플. 초기 build2FAIL/시험1FAIL 보존. 정상 driving/work 미완료 | [실행·실패·gate](test-plan/evidence/m7_carla_1k/README.md) |
 | M7-1l | 읽기 전용 rest geometry5개 INIT 자세·COM/body/actor/프로젝트 반사 교차 검증, 독립 손상7/7 거부·reset 후 geometry 무효화. 실제 COM과 공개 COMNudge 구분. 새 binary의1k 회귀156개/13receipt 통과. build1FAIL·단위 가정 audit1FAIL 보존. brake V1/H1은 제안·미채택, 정상 gate 유지 | [실행·모델 선택안](test-plan/evidence/m7_carla_1l/README.md) |
+| M7-1m | 사용자 수용 V1 가상 EV·별도 서버 opt-in nonzero effort 한정 검증. 새2서버 각각1,621 receipt/38검사·독립 손상9/9 거부. 보호 Brake Actual hold100/100 exact0. 각487frame rear 음수로 native forward gate FAIL, full Actual/work/wall 미연결 | [실행·실패](test-plan/evidence/m7_carla_1m/README.md) |
 | M7 후속–M13 | PLANNED / NOT RUN; 정상 CARLA 주행 연결 BLOCKED | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
@@ -64,11 +65,16 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 
 ## 다음 작업
 
-**M7-1l는 rest geometry/기준점 검증과 brake 모델안을 정리했다. brake 계수는 미채택이며 정상 actuation과 렌더링 crash 원인은 OPEN이다**.
-[M7-1l](test-plan/evidence/m7_carla_1l/README.md)의5개 INIT 자세에서 nominal rear-axle rest 위치와
-COM/body/actor 변환을 확인했다. 공개 `center_of_mass`는 실제 COM이 아닌 COMNudge다.
-다음은 V1(기존 M6 합산 torque law를4륜 균등 배분하는 가상 EV) 수용 여부 또는 H1(실측 유압 자료)
-선택이다. 제안 수치를 runtime에 적용하지 않았고 nonzero/보호 brake·full Actual·work/EV·wall gate는 남는다.
+**M7-1m에서 V1 가상 EV를 사용자 수용하고 실제 UE NoDrive nonzero effort를 격리 검증했다.
+정상 주행은 raw rear wheel 음수·full Actual/work/wall gate로 계속 BLOCKED다.**
+[M7-1m](test-plan/evidence/m7_carla_1m/README.md)는 M6 합산0.001Nm/Pa의 가상 law를4륜 균등 배분하고,
+기존1l geometry에 고정한 이상 Ackermann/rear50:50 모델을 별도 서버 옵션으로 적용했다.
+각1,621receipt의 두 새 서버에서 출발·음수 motor 감속·마찰 정지·hold/release·좌우 조향을 관측했다.
+보호 Brake Actual도 적용했지만 각487frame은 raw rear 음수로 native 전진 입력 unavailable이다.
+값을 보정하거나 native loop에 공급하지 않았다. 다음은 차량 내부 적분 분할의 명시적 후보 비교 →
+원래 wheel validity → 실제8-role full Actual interval → solver work/단일 EV → wall timing이다.
+[1l geometry](test-plan/evidence/m7_carla_1l/README.md)의 실제 COM/COMNudge 구분은 유지한다.
+V1은 실제 MKZ 유압 calibration이나 기존 M6 응답/에너지 수용을 승계하지 않는다.
 [M7-1k](test-plan/evidence/m7_carla_1k/README.md)는 원본 CAN/P05 receiver를 UE 도구체인으로
 컴파일하고, opt-in ego를 실제 NoDrive로 전환한다. 합성 Actual 세 값이 모두0인 경우만
 허용하며 실제8-role 주행 authority나 brake calibration은 아니다. 최종13개 receipt의 원래 source와

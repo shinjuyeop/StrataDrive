@@ -329,3 +329,11 @@ M6 계약은 유지하며 실제 조향 부호·보호 brake/raw wheel·full Act
 정적으로 대조해 깨짐0, code fence 짝 누락0을 확인했다. `git diff --check`와 새 파일의
 공백 검사에 오류가 없다. M6 종료 문서·requirements·profiles·구현·시험/evidence 파일의
 변경0을 확인했다. C++/SDK/MIL 회귀와 CARLA runtime 시험은 새로 실행하지 않았다.
+
+## 2026-10-27 후속 — M7-1m 승인 V1 nonzero 격리 진단
+
+[실행·실패](evidence/m7_carla_1m/README.md): 사용자가 V1 가상 EV law를 수용했다.
+별도 서버 opt-in·model hash/geometry 검사로 합성 Actual의 nonzero effort와 보호 Brake Actual을 적용했다.
+새2서버 각1,621receipt/38검사·독립 손상9/9 거부, hold100/100 exact wheel0을 확인했다.
+각487frame의 raw rear 음수는 native 전진 입력 unavailable이며 정상 gate FAIL이다. clamp/restamp 없음.
+full Actual/work/EV/wall·전체 renderer 안정성은 미수용이다. 다음은 내부 적분 분할 후보의 명시적 비교다.

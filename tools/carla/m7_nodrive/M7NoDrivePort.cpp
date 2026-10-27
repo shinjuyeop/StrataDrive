@@ -1,6 +1,7 @@
 #include "Carla.h"
 #include "M7NoDrivePort.h"
 #include "M7NoDriveMovement.h"
+#include "M7NoDriveModelConstants.h"
 #include "Carla/Game/CarlaEngine.h"
 #include "Carla/Game/CarlaEpisode.h"
 #include "Carla/Actor/CarlaActor.h"
@@ -36,6 +37,8 @@ struct State {
   uint64 BaseFrame = 0, NextTicket = 0, Ticket = 0, Frame = 0, Begin = 0;
   uint64 PhysicsGeneration = 0;
   double SimBegin = 0;
+  bool V1 = false;
+  FM7WheelEffort Effort;
   bool Locked = false, Staged = false, Queued = false, InFlight = false, Latched = false;
   FString Reason;
   FString Run;
@@ -79,6 +82,11 @@ Json Response(bool Ok, const FString& Reason)
   R->SetStringField(TEXT("schema"), TEXT("m7-nodrive-zero-probe-v1"));
   R->SetBoolField(TEXT("normal_driving_enabled"), false);
   R->SetBoolField(TEXT("interval_work_valid"), false);
+  R->SetStringField(TEXT("effort_profile"), S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only"));
+  if (S.V1) {
+    R->SetStringField(TEXT("model_id"), UTF8_TO_TCHAR(M7V1::Id));
+    R->SetStringField(TEXT("model_sha256"), UTF8_TO_TCHAR(M7V1::Sha));
+  }
   R->SetStringField(TEXT("frame"), Dec(FCarlaEngine::GetFrameCounter()));
   R->SetStringField(TEXT("session"), Dec(S.Session));
   R->SetStringField(TEXT("run"), S.Run);
@@ -161,7 +169,10 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
 {
   check(IsInGameThread());
   Tick = false;
-  if (!FParse::Param(FCommandLine::Get(), TEXT("StrataM7ZeroProbe")))
+  const bool ZeroFlag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7ZeroProbe"));
+  const bool V1Flag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7V1Probe"));
+  if (ZeroFlag && V1Flag) return Encode(Response(false, TEXT("ambiguous_profile")));
+  if (!ZeroFlag && !V1Flag)
     return Encode(Response(false, TEXT("disabled")));
   Json J;
   if (Input.size() > 16384 || Input.find('\0') != std::string::npos || !FJsonSerializer::Deserialize(
@@ -187,6 +198,9 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   if (Op == TEXT("bind")) {
     uint64 Id;
     if (S.Locked) return Encode(Response(false, TEXT("already_bound")));
+    FString Model;
+    if (V1Flag && (!Text(J, TEXT("model_sha256"), Model) || Model != UTF8_TO_TCHAR(M7V1::Sha)))
+      return Encode(Response(false, TEXT("model_identity")));
     if (!Settings(Episode) || !Number(J, TEXT("actor"), Id) || Id > MAX_uint32 ||
         S.Session == MAX_uint32) return Encode(Response(false, TEXT("init")));
     auto* CarlaActor = Episode.FindCarlaActor(static_cast<uint32>(Id));
@@ -196,6 +210,8 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.Actor = Actor;
     S.ActorId = static_cast<uint32>(Id);
     S.Movement = Movement;
+    S.V1 = V1Flag;
+    S.Effort = FM7WheelEffort();
     S.Locked = true; // Failure during conversion remains contained until close.
     S.Latched = S.Staged = S.Queued = S.InFlight = false;
     S.Receipt.Reset(); S.Pending.Reset();
@@ -212,7 +228,10 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
       Latch(TEXT("nodrive_init")); return Encode(Response(false, S.Reason));
     }
     S.PhysicsGeneration = Movement->PhysicsGeneration();
-    auto R = Response(true, TEXT("bound_zero_only"));
+    if (S.V1 && !Movement->ValidateV1()) {
+      Latch(TEXT("model_geometry")); return Encode(Response(false, S.Reason));
+    }
+    auto R = Response(true, S.V1 ? TEXT("bound_virtual_v1_diagnostic") : TEXT("bound_zero_only"));
     R->SetObjectField(TEXT("physics"), Physics());
     R->SetStringField(TEXT("logical_begin_ns"), Dec(Now()));
     return Encode(R);
@@ -301,14 +320,18 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     if (FMath::Max3(Sources[0], Sources[1], Sources[2]) -
         FMath::Min3(Sources[0], Sources[1], Sources[2]) > Skew)
       return Encode(Response(false, TEXT("source_skew")));
-    if (*SM->angle_rad != 0 || *BM->pressure_pa != 0 || *DM->torque_nm != 0)
+    FM7WheelEffort Effort;
+    if (!S.V1 && (*SM->angle_rad != 0 || *BM->pressure_pa != 0 || *DM->torque_nm != 0))
       return Encode(Response(false, TEXT("calibration_unavailable_zero_only")));
+    if (S.V1 && !S.Movement->PrepareV1(*SM->angle_rad, *DM->torque_nm, *BM->pressure_pa, Effort))
+      return Encode(Response(false, TEXT("model_range_or_geometry")));
     // The immutable configs match; update only validated receiver state via copy construction.
     S.Steering.reset(new SteeringReceiver(SR));
     S.Brake.reset(new BrakeReceiver(BR));
     S.Drive.reset(new DriveReceiver(DR));
     S.Frame = Frame; S.Begin = Begin; S.SimBegin = Episode.GetElapsedGameTime();
     S.Ticket = ++S.NextTicket;
+    S.Effort = Effort;
     S.Pending = Object();
     for (const TCHAR* Role : {TEXT("steering"), TEXT("brake"), TEXT("drive")})
       S.Pending->SetObjectField(Role, J->GetObjectField(Role));
@@ -338,7 +361,9 @@ bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
       FMath::Abs(Episode.GetElapsedGameTime() - S.SimBegin) > 1e-9) {
     Latch(TEXT("prephysics_guard")); return false;
   }
-  S.Movement->ClearInputs(); // Single permitted writer; zero Actual only.
+  if ((S.V1 && !S.Movement->ValidateV1()) || !S.Movement->ApplyEffort(S.Effort)) {
+    Latch(TEXT("effort_apply")); return false;
+  }
   S.Staged = S.Queued = false;
   S.InFlight = true;
   return true;
@@ -348,7 +373,7 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
 {
   if (!S.Locked) return;
   if (!S.InFlight || Frame != S.Frame || !S.Movement.IsValid() ||
-      !S.Movement->InputsAreZero() || S.Movement->PhysicsGeneration() != S.PhysicsGeneration ||
+      !S.Movement->EffortMatches(S.Effort) || S.Movement->PhysicsGeneration() != S.PhysicsGeneration ||
       FMath::Abs(DeltaSeconds - .01f) > 1e-8f ||
       FMath::Abs(Episode.GetElapsedGameTime() - S.SimBegin - .01) > 1e-6) {
     Latch(TEXT("postphysics_ambiguous")); return;
@@ -368,10 +393,20 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   R->SetNumberField(TEXT("simulation_end_seconds"), Episode.GetElapsedGameTime());
   R->SetObjectField(TEXT("original_actual"), S.Pending);
   R->SetObjectField(TEXT("physics"), Physics());
-  R->SetBoolField(TEXT("applied_zero_effort"), true);
+  bool Zero = true;
+  for (unsigned W = 0; W != 4; ++W)
+    Zero = Zero && S.Effort.Drive[W] == 0 && S.Effort.Brake[W] == 0 && S.Effort.Steer[W] == 0;
+  R->SetBoolField(TEXT("applied_zero_effort"), Zero);
+  R->SetStringField(TEXT("effort_profile"), S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only"));
+  if (S.V1) {
+    R->SetStringField(TEXT("model_id"), UTF8_TO_TCHAR(M7V1::Id));
+    R->SetStringField(TEXT("model_sha256"), UTF8_TO_TCHAR(M7V1::Sha));
+  }
   R->SetBoolField(TEXT("interval_work_valid"), false);
   R->SetBoolField(TEXT("solver_substep_work_observed"), false);
   S.Movement->ClearInputs();
+  if (!S.Movement->InputsAreZero()) { Latch(TEXT("clear_failed")); return; }
+  R->SetBoolField(TEXT("inputs_cleared_after_physics"), true);
   S.Receipt = R;
   S.Pending.Reset();
   S.InFlight = false;

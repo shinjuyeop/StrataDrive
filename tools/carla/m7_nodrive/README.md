@@ -1,8 +1,9 @@
 # M7 NoDrive 최소 서버 포트
 
 CARLA0.9.16 commit `294096eb1c38eabf246e4f3a9cdab704e33a7f4c`와 프로젝트의
-UE4.26.2 Linux 도구체인을 대상으로 하는 **opt-in 0 effort 진단 포트**다.
-정상 주행 backend가 아니다. 실행 판정은 [M7-1k evidence](../../../docs/test-plan/evidence/m7_carla_1k/README.md)를 따른다.
+UE4.26.2 Linux 도구체인을 대상으로 하는 **opt-in 진단 포트**다.
+zero-only는 [M7-1k](../../../docs/test-plan/evidence/m7_carla_1k/README.md), 승인 V1 nonzero는
+[M7-1m](../../../docs/test-plan/evidence/m7_carla_1m/README.md) 범위다. 정상 주행 backend가 아니다.
 
 `install.py --carla <source-root> --manifest <external-path.json>`은 고정 revision과 원본
 integration 파일을 검사하고 프로젝트 소스를 외부 CARLA fork에 설치한다. 다운로드·빌드·실행은
@@ -17,8 +18,10 @@ byte 그대로 복사해 별도 `M7Native` UE 모듈에서 C++17/clang10/libc++�
 Linux visibility 설정으로 필요한 원본 심볼을 내보내며 외부 PhysX SDK 바이너리를 링크하지 않는다.
 엔진 소스/PhysX solver는 수정하지 않는다. 다른 플랫폼/UE 버전은 미지원이다.
 
-서버는 `-StrataM7ZeroProbe`와 최소32문자의 `STRATADRIVE_M7_OWNER_KEY`가 모두 있어야
-bind를 허용한다. owner key는 실행 환경에서 만들고 서버/시험 client에만 전달한다. 저장소,
+서버는 `-StrataM7ZeroProbe` 또는 `-StrataM7V1Probe` 중 하나와 최소32문자의
+`STRATADRIVE_M7_OWNER_KEY`가 있어야 bind를 허용한다. 두 flag 동시 지정은 거부한다.
+V1 bind는 [승인 가상 모델](virtual_ev_v1.json)의 SHA256도 요구한다. 계수는 client 입력이 아니라
+`model_header.py`로 생성한 서버 상수다. owner key는 실행 환경에서 만들고 서버/시험 client에만 전달한다. 저장소,
 로그, RPC evidence에 키를 넣지 않는다. 전용 서버·무허가 client 배제는 계속 환경 gate다.
 stock CARLA 전체를 인증·암호화하는 기능으로 주장하지 않는다.
 
@@ -31,7 +34,7 @@ uint64 값은 정확한 decimal 문자열로 보존한다. `describe` 외 변경
 | describe | 진단 한계·현재 frame·readback 조회. 정상 driving/work capability는 false |
 | geometry | owner/run/session과 동일 physics generation을 검사한 읽기 전용 reference/rest geometry. actor/body/COM pose·reference bone·offset을 SI로 반환하며 tick/actuation 없음 |
 | bind(actor) | sync10ms·4wheel 확인, 새 session/application epoch 발급, NoDrive 생성. 실패는 latch |
-| stage(frame, steering/brake/drive) | 원래 CAN ID/FD flags/전체 payload hex와 oldest/expiry 검사. 각 native Actual receiver/P05/epoch/sequence/source 검사. 세 값 모두 정확히0일 때만 원자적 수용 |
+| stage(frame, steering/brake/drive) | 원래 CAN ID/FD flags/전체 payload hex와 oldest/expiry 검사. 각 native Actual receiver/P05/epoch/sequence/source 검사. zero profile은 세 값 모두0, V1은 고정 geometry와 승인 범위/law를 검사해 원자적 수용 |
 | advance(ticket) | 한 번만 tick cue를 큐에 넣음. 응답은 queued이며 physics receipt가 아님 |
 | receipt | physics 후 실제 frame/시각·원래 Actual·setter readback·raw signed ω 조회. 반복 조회는 재적용 없음 |
 | pause | pending 폐기·setter 제거·latch. 자동 재무장 없음 |
@@ -55,10 +58,14 @@ native wall deadline 또는 kernel clock mapping 증명이 아니다. 과거 sam
 reference bone→body→COM→world→actor를 교차 검증했다. wheel resting center와 contact patch,
 공개 `center_of_mass`(RPC에서 이미 m로 변환된 COMNudge)와 실제 PhysX COM pose를 구분한다.
 식별한 기준점은 body에 고정된 nominal rear-axle **rest** 중심이며 suspension에 따라 움직이는
-wheel center 측정이 아니다. nonzero 조향 부호·브레이크 보정·주행은 계속 미검증이다.
+wheel center 측정이 아니다. 실제 유압 보정은 미검증이다. V1의 조향 부호는1m 격리 범위만 확인했다.
 
-캘리브레이션 없는 nonzero rad/Nm/Pa를 모두 거부한다. wheel geometry/max brake readback은
-보정 완료가 아니다. `set_*`는 적용 demand readback이며 새 actuator Actual이 아니다.
+zero profile은 nonzero를 계속 거부한다. V1은 사용자가 수용한 가상 EV이며 OEM calibration이 아니다.
+이상 Ackermann/후륜50:50 및 합산0.001Nm/Pa의4륜 균등 brake capacity다. 승인 pressure0..1.5MPa,
+각375Nm이 geometry의800Nm 상한 이내인지 검사한다. setter가 상한을 자동 적용한다고 가정하지 않는다.
+pre-physics에서 원래 Actual만 적용하고, post-physics에서 float32 setter readback을 정확히 대조한 뒤
+12개 setter를 모두 지운다. receipt의 `inputs_cleared_after_physics`와 다음 describe로 제거를 확인한다.
+`set_*`는 적용 demand readback이며 새 actuator Actual이나 실제 brake 반력이 아니다.
 raw ω를 clamp/abs/epsilon으로 보정하지 않는다. `interval_work_valid=false`이며 endpoint
 Tωdt, SOC/회생 수용이나 full Actual 주행을 주장하지 않는다. RGB/GT·AI·Jetson은 이 포트 시험
 범위 밖이며 기존 영상50ms와 ECU 주기/freshness 계약은 그대로다.

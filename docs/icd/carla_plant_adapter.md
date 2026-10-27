@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-27, `m7-plant-draft-v9`. **functional wheel/actuator/electrical 포트 연결 / 서버 NoDrive 0 effort·rest geometry 검증 / CARLA 정상 actuation 미연결**.
+2026-10-27, `m7-plant-draft-v10`. **V1 가상 EV 격리 nonzero effort 검증 / raw wheel native gate FAIL / 정상 주행 미연결**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -493,6 +493,38 @@ exact0 또는 원래 전진 범위의 측정만 수용하며 warmup을 명목으
 이 경로로도 실패하면 forward ODD와 측정 불확도를 포함한 별도 requirement revision이 필요하다.
 이번 단계에서 M6 ODD·codec·source-age·reset 증거 조건을 바꾸지 않았다.
 
+## M7-1m — 수용된 V1 가상 EV / 격리 nonzero 진단
+
+[승인 모델](../../tools/carla/m7_nodrive/virtual_ev_v1.json)과 [실행 근거](../test-plan/evidence/m7_carla_1m/README.md).
+사용자가 V1을 수용했다. 이는 **가상 모델 선택**이며 실제 MKZ 유압 식별이 아니다.
+기존1l의 DRAFT artifact는 당시 상태로 보존한다. 별도 `-StrataM7V1Probe`가 있어야 하며
+zero-only flag와 동시 지정은 거부한다. owner/run/session 외 bind에 정확한 모델 SHA256이 필요하다.
+모델 값은 서버가 설치 시 생성한 상수이며 client가 승인/계수를 선언해 교체할 수 없다.
+
+| 입력·범위 | 승인된 V1 법칙 |
+| --- | --- |
+| equivalent angle ±0.3rad, 프로젝트 좌+ |1l 실측 front track/wheelbase로 이상 Ackermann, UE 우+는 음수, rear0 |
+| aggregate signed motor −200..300Nm | front0, rear각T/2. 별도 gear/lag/filter 없음 |
+| Pressure Actual0..1.5MPa | 합산0.001Nm/Pa,4륜 각25%의 nonnegative brake capacity.200kPa→각50Nm,1.5MPa→각375Nm |
+| geometry/상한 | 실측 mass1696kg·wheel bone/COM x,y offset·radius.355m·front steer/각800Nm brake와 정확히 일치해야 함. 변경 asset은 거부 |
+
+검사된 원래 CAN/P05 Actual에서만 mapping한다. 원래 native receiver의 mode/source/age/expiry를
+통과해야 하며 pressure/drive/steer 초과를 clamp하지 않는다. LocalProtection Brake Actual은 센서 보고의
+원래 mode를 보존한다. 합성 test fixture이며 실제8-role 보호 authority를 증명한 것은 아니다.
+Nm는 UE kg·cm²/s²로10000배, rad는 그대로 float32 setter에 전달한다. pre-physics에서12개 setter를
+한 번 적용하고 post-physics에서 같은 float32 demand를 검증·receipt에 남긴 뒤 모두0으로 지운다.
+후속 describe의0은 setter 제거 증거이며 solver에 실제 적용된 brake 반력의 측정값이 아니다.
+pause/reset은 nonzero pending도 폐기·latch한다. 다음 tick이나 자동 재무장으로 이어지지 않는다.
+clock schema 이름은 기존 `m7-zero-probe-logical-frame`을 유지하며 wall authority를 뜻하지 않는다.
+
+실제 두 새 서버에서 각1,621receipt·nonzero1,601개와 출발/감속/정지/hold/release/좌우 조향을
+관측했다. hold100/100frame exact wheel0이지만, 출발/주행의 rear 음수로 각487frame은 native forward
+unavailable이다. 음수는 최대 약−7.4rad/s로 작은 센서 epsilon으로 처리할 근거도 없다.
+이 diagnostic에서는 native sensor 입력/8-role loop를 연결하지 않고 원래 음수까지 관측했다.
+정상 native 경로라면 unavailable/latch·다음 tick 차단 계약이 유지된다. **forward gate FAIL**이다.
+내부 적분 분할 후보 비교는 후속이며 world/ECU rate·30ms freshness를 바꾸는 해결안이 아니다.
+solver 구간 work는 미관측, `interval_work_valid=false`; 전기/SOC/회생 수용과 정상 주행 permit은 없다.
+
 ## 6. 결정과 미결정
 
 **결정:** actual-only 경로·단일 actuation writer,10ms world/state·50ms 영상·단일 tick owner,
@@ -503,7 +535,7 @@ barrier는1f, 직접 omega→native Actual 반환은1g, actuator/electrical 분�
 검증했다.1j는 공개 NoDrive SDK에서 합성 Actual의 물리 적용·single-use/pause 경계를 한정 검증했다.
 정지 sensor의 임의 오차 보정은 미채택이다. 정상 CARLA driving 수용은 아니다.
 
-**미결정:** smoke 외 server/client 조합의 안정성, vehicle geometry와 역변환 calibration,
+**미결정:** smoke 외 server/client 조합의 안정성, V1 외 vehicle geometry/실차 역변환 calibration,
 wheel 정지 잡음/전체 ODD validity·wall clock mapping·full Actual interval·native guard 연동, energy telemetry/원자적 실패 처리,
 Host–Target transport/배치, M10 AI shape/history. 소유자·gate는 기존 TBD-02/03/04/07/09
 (energy는 기존 TBD-13)이며 [로드맵](../roadmap.md)에 연결한다. 이번 문서는 주행 통합 승인이나

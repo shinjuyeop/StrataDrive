@@ -110,6 +110,18 @@ FString UM7NoDriveMovement::DescribePhysics() const
       Wheels.Add(MakeShared<FJsonValueObject>(Wheel));
     }
     Object->SetBoolField(TEXT("sleeping"), PVehicle->getRigidDynamicActor()->isSleeping());
+    const auto* Body = PVehicle->getRigidDynamicActor();
+    const auto Pose = Body->getGlobalPose();
+    auto Vector = [](const physx::PxVec3& V, double Scale) {
+      return TArray<TSharedPtr<FJsonValue>>{MakeShared<FJsonValueNumber>(V.x * Scale),
+        MakeShared<FJsonValueNumber>(V.y * Scale), MakeShared<FJsonValueNumber>(V.z * Scale)};
+    };
+    Object->SetArrayField(TEXT("body_world_position_m"), Vector(Pose.p, .01));
+    Object->SetArrayField(TEXT("com_velocity_world_m_s"), Vector(Body->getLinearVelocity(), .01));
+    Object->SetArrayField(TEXT("angular_velocity_world_rad_s"), Vector(Body->getAngularVelocity(), 1));
+    Object->SetNumberField(TEXT("body_forward_velocity_m_s"), Pose.q.getBasisVector0().dot(Body->getLinearVelocity()) / 100.0);
+    Object->SetArrayField(TEXT("body_quaternion_xyzw"), {MakeShared<FJsonValueNumber>(Pose.q.x),
+      MakeShared<FJsonValueNumber>(Pose.q.y), MakeShared<FJsonValueNumber>(Pose.q.z), MakeShared<FJsonValueNumber>(Pose.q.w)});
   }
   Object->SetArrayField(TEXT("wheels"), Wheels);
   FString Result;

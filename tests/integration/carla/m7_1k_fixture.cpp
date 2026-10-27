@@ -31,6 +31,10 @@ int main(int argc,char** argv) {
         BrakeMessage b;b.kind=BrakeFrameKind::Actual;b.epoch=epoch;b.sequence=seq;
         b.source_time_ns=time;b.causal_sequence=seq;b.local_state=ActuatorLocalState::Normal;
         b.origin=ActuatorOrigin::NormalPath;b.pressure_pa=pressure;
+        if (std::string(argv[7]) == "brake-protection") {
+            b.local_state=ActuatorLocalState::FailSafe;
+            b.origin=ActuatorOrigin::LocalProtection;
+        }
         DriveMessage d;d.kind=command?DriveFrameKind::Command:DriveFrameKind::Actual;
         d.epoch=epoch;d.sequence=seq;d.source_time_ns=time;d.causal_sequence=seq;
         d.local_state=ActuatorLocalState::Normal;d.origin=ActuatorOrigin::NormalPath;d.torque_nm=torque;

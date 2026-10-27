@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
+from model_header import generate
 
 PIN = "294096eb1c38eabf246e4f3a9cdab704e33a7f4c"
 PLUGIN = Path("Unreal/CarlaUE4/Plugins/Carla/Source/Carla")
@@ -163,6 +164,7 @@ def main():
     # Copy only project-owned code. No engine implementation is vendored here.
     for source in sorted(own.glob("M7NoDrive*.cpp")) + sorted(own.glob("M7NoDrive*.h")):
         output[str(PLUGIN / "M7NoDrive" / source.name)] = source.read_bytes()
+    output[str(PLUGIN / "M7NoDrive/M7NoDriveModelConstants.h")] = generate()
     for name in ("M7Native.Build.cs", "M7Native.cpp"):
         output[str(NATIVE / name)] = (own / name).read_bytes()
     native_hashes = {}
