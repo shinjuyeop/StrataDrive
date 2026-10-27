@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+"""Independent complete NoDrive solver trace/work validation, no EV claims."""
+import argparse
+import copy
+import gzip
+import json
+import math
+from pathlib import Path
+import struct
+from audit_m7_1q_native import check, audit as audit_native
+
+
+def f32(x):
+    return struct.unpack('<f',struct.pack('<f',x))[0]
+
+
+def validate(row):
+    r = row['receipt']
+    w = r['solver_work']
+    check(w['source']=='PhysX3.4.NoDrive.integrator.postOmega.v1','solver identity')
+    check(r['interval_work_valid'] and r['solver_substep_work_observed'] and w['valid'],'work validity')
+    check((w['abi'],w['begins'],w['ends'],w['wheels'],w['overflow'])==(1,1,1,4,0),'whole invocation')
+    check(w['solver_dt_s']==f32(.01),'solver world interval')
+    steps = w['steps']
+    sleeping = w['sleeping']==1
+    check((sleeping and w['count']==len(steps)==0) or
+          (w['sleeping']==0 and w['count']==len(steps)==320),'complete substeps')
+    final = r['physics']['wheels']
+    effort = [q['set_drive_nm'] for q in final]
+    sums = [0.]*4
+    minimum = math.inf
+    maximum_residual = 0.
+    for k,s in enumerate(steps):
+        check((s['ordinal'],s['count'],s['block'])==(k,320,0),'ordered unique substeps')
+        check(s['dt_s']==f32(f32(.01)*f32(1/320)),'actual solver dt')
+        for field in ('before_rad_s','after_rad_s','drive_nm','brake_nm','tire_nm','damping_nm_s'):
+            check(len(s[field])==4 and all(type(v) in (int,float) and math.isfinite(v) for v in s[field]),'finite complete wheel tuple')
+        for j in range(4):
+            check(s['drive_nm'][j]==effort[j],'applied torque binding')
+            check(not k or s['before_rad_s'][j]==steps[k-1]['after_rad_s'][j],'omega continuity')
+            if k==319: check(s['after_rad_s'][j]==final[j]['solver_omega_rad_s'],'final direct solver readout')
+            # Validate original integrator equation independently in SI. The
+            # error bound accounts only for binary32 intermediate arithmetic.
+            old=s['before_rad_s'][j];dt_i=s['dt_s']/final[j]['inertia_kg_m2']
+            terms=[s[name][j] for name in ('drive_nm','brake_nm','tire_nm')]
+            predicted=(old+dt_i*sum(terms))/(1+s['damping_nm_s'][j]*dt_i)
+            if final[j]['set_friction_nm']!=0 and old*predicted<=0: predicted=0.
+            residual=abs(predicted-s['after_rad_s'][j]);maximum_residual=max(maximum_residual,residual)
+            scale=abs(old)+dt_i*sum(abs(v) for v in terms)+abs(predicted)
+            check(residual <= 16*2**-23*scale+2**-126,'integrator equation')
+            sums[j]+=s['drive_nm'][j]*s['after_rad_s'][j]*s['dt_s']
+        if effort[2] or effort[3]: minimum=min(minimum,(s['after_rad_s'][2]+s['after_rad_s'][3])/2)
+    if sleeping:
+        check(all(q['set_drive_nm']==q['set_steer_right_rad']==q['solver_omega_rad_s']==0 for q in final),'explicit sleeping zero-work witness')
+    check(len(w['motor_work_j'])==4 and all(math.isclose(a,b,rel_tol=1e-13,abs_tol=1e-15) for a,b in zip(sums,w['motor_work_j'])),'signed work sum')
+    eligible = all(s['drive_nm'][0]==s['drive_nm'][1]==0 and s['drive_nm'][2]==s['drive_nm'][3] and
+                   (not s['drive_nm'][2] or 0 <= (s['after_rad_s'][2]+s['after_rad_s'][3])/2 <= 100) for s in steps)
+    check(w['forward_energy_eligible']==eligible,'EV forward eligibility')
+    return sums,minimum,maximum_residual
+
+
+def validate_settlement(row, previous, cumulative):
+    n=row['native'];s=n['settlement'];r=previous['receipt']
+    begin=int(r['logical_begin_ns']);end=math.floor(r['simulation_end_seconds']*1e9+.5)
+    check(n['energy_basis']=='OBSERVED_SOLVER_WORK_SINGLE_EV' and n['carla_work_valid'],'single EV basis')
+    check(s['frame']==int(r['frame']) and s['end_ns']==end,'settlement identity')
+    check(math.isclose(s['total_mechanical_j'],cumulative,rel_tol=1e-13,abs_tol=1e-12),'solver/EV work conservation')
+    check(abs(s['balance_j'])<=.00072,'original M6 energy tolerance')
+    accounted=s['total_mechanical_j']+sum(s[k] for k in ('motor_loss_j','auxiliary_j','ohmic_j','capacitor_delta_j','circuit_loss_j'))
+    check(abs(s['chemical_j']-accounted-s['balance_j'])<1e-10,'independent energy ledger')
+    check(abs(s['soc']-(.63-s['chemical_j']/180000000))<3e-16,'SOC/chemical energy')
+    cursor=begin;total=0.;w=r['solver_work'];duration=end-begin
+    torque=sum(q['set_drive_nm'] for q in r['physics']['wheels'])
+    admitted=r['original_actual']['admitted_actual']
+    oldest=begin if admitted['empty_init'] else int(admitted['oldest_actuator_ns'])
+    for e in n['electrical_steps']:
+        check(e['begin_ns']==cursor and cursor<e['end_ns']<=min(cursor+1000000,end),'complete native energy coverage')
+        check(e['wheel_source_ns']==begin and e['wheel_oldest_ns']==oldest and e['actual_torque_nm']==torque,'original source and applied torque')
+        expected=0.
+        for k,q in enumerate(w['steps']):
+            lo=duration*k/320;hi=duration*(k+1)/320
+            fraction=max(0.,min(e['end_ns']-begin,hi)-max(cursor-begin,lo))/(hi-lo)
+            expected+=sum(q['drive_nm'][j]*q['after_rad_s'][j]*q['dt_s'] for j in (2,3))*fraction
+        check(abs(e['mechanical_j']-expected)<1e-11,'conservative per-model-interval work')
+        cursor=e['end_ns'];total+=e['mechanical_j']
+    check(cursor==end and abs(total-sum(w['motor_work_j']))<1e-11,'complete frame settled once')
+
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('directory',type=Path)
+    p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--model',type=Path,default=Path(__file__).resolve().parents[3]/'tools/carla/m7_nodrive/virtual_ev_v1.json')
+    a=p.parse_args()
+    path=a.directory/'trace.jsonl'
+    opening=open
+    if not path.exists(): path=path.with_suffix('.jsonl.gz');opening=gzip.open
+    report=json.loads((a.directory/'result.json').read_text())
+    connected=report.get('ev_settlement_connected',False)
+    count=0;totals=[0.]*4;minimum=math.inf;residual=0.;sample=None;negative=[]
+    previous=None;settlement_sample=None;settlements=0;max_balance=0.
+    with opening(path,'rt') as file:
+        for line in file:
+            row=json.loads(line)
+            if connected and row.get('native',{}).get('settlement'):
+                validate_settlement(row,previous,sum(totals));settlements+=1
+                max_balance=max(max_balance,abs(row['native']['settlement']['balance_j']))
+                if row['index']==150:settlement_sample=(copy.deepcopy(row),copy.deepcopy(previous),sum(totals))
+            if 'receipt' not in row: continue
+            sums,m,e=validate(row)
+            count+=1;totals=[x+y for x,y in zip(totals,sums)];minimum=min(minimum,m);residual=max(residual,e)
+            if m<0: negative.append(row['index'])
+            if row['index']==150: sample=row
+            previous=row
+    mutations={
+        'missing_step':lambda w:w['steps'].pop(10),
+        'duplicate_ordinal':lambda w:w['steps'][10].update(ordinal=9),
+        'missing_end':lambda w:w.update(ends=0),
+        'overflow':lambda w:w.update(overflow=1),
+        'wrong_dt':lambda w:w['steps'][10].update(dt_s=.01),
+        'torque':lambda w:w['steps'][10]['drive_nm'].__setitem__(2,999),
+        'omega':lambda w:w['steps'][10]['after_rad_s'].__setitem__(2,999),
+        'nonfinite':lambda w:w['steps'][10]['after_rad_s'].__setitem__(2,float('nan')),
+        'sum':lambda w:w['motor_work_j'].__setitem__(2,999),
+        'source':lambda w:w.update(source='corrected public wheel getter'),
+        'false_sleep':lambda w:w.update(sleeping=1),
+    }
+    checks={}
+    check(sample is not None,'mutation sample')
+    for name,mutate in mutations.items():
+        bad=copy.deepcopy(sample);mutate(bad['receipt']['solver_work'])
+        try: validate(bad)
+        except ValueError as e: checks[name]=str(e)
+        else: raise ValueError('accepted corruption: '+name)
+    energy_checks={}
+    if connected:
+        check(settlement_sample is not None,'settlement mutation sample')
+        mutations={
+            'duplicate_energy_interval':lambda n:n['electrical_steps'].insert(1,copy.deepcopy(n['electrical_steps'][0])),
+            'missing_energy_interval':lambda n:n['electrical_steps'].pop(1),
+            'restamped_wheel':lambda n:n['electrical_steps'][1].update(wheel_source_ns=n['electrical_steps'][1]['begin_ns']),
+            'predicted_work':lambda n:n.update(energy_basis='MODEL_ZOH_PREDICTION_NOT_CARLA_WORK'),
+            'changed_work_total':lambda n:n['settlement'].update(total_mechanical_j=999),
+            'changed_SOC':lambda n:n['settlement'].update(soc=.63),
+            'changed_loss':lambda n:n['settlement'].update(motor_loss_j=999),
+        }
+        for name,mutate in mutations.items():
+            row,prev,cumulative=copy.deepcopy(settlement_sample);mutate(row['native'])
+            try:validate_settlement(row,prev,cumulative)
+            except ValueError as e:energy_checks[name]=str(e)
+            else:raise ValueError('accepted energy corruption: '+name)
+        if report['fault']=='none':check(settlements==count==report['settlements'],'all receipt settlements')
+        else:check(settlements>=report['settlements'],'partial fault settlement counts')
+    result=dict(status='PASS_COMPLETE_SOLVER_OBSERVATION',intervals=count,motor_work_j=totals,
+                minimum_loaded_rear_mean_rad_s=None if minimum==math.inf else minimum,
+                forward_ineligible=negative,maximum_equation_residual_rad_s=residual,
+                rejected_corruptions=checks,ev_settlement_connected=connected,
+                independently_verified_settlements=settlements,max_abs_energy_balance_j=max_balance,
+                rejected_energy_corruptions=energy_checks,
+                native_actual_audit=audit_native(a.directory,json.loads(a.model.read_text()),work_mode=True))
+    a.output.write_text(json.dumps(result,indent=2)+'\n')
+    print(json.dumps(result))
+
+
+if __name__=='__main__':main()

@@ -380,3 +380,24 @@ Normal/ASan 각64/64, 원본 wire/physics 독립 검사와 권한·명령·snaps
 다음 M7-1r은 solver 구간 work의 완전성/누락 검출 → 단일 EV 정산 → 원자적 실패 처리다.
 모델 전기는 ZOH 예측으로만 표기하고 `interval_work_valid=false`를 유지한다. M6/engine 원본·V1 계수는
 변경하지 않았으며 일반 주행 시나리오/renderer·AI 학습·Jetson·M6 전체 회귀는 이번에 실행하지 않았다.
+
+## 2026-10-27 후속 — M7-1r 완전한 solver work·단일 EV 정산
+
+[실행·실패·제한](evidence/m7_carla_1r/README.md): NoDrive 적분 전후320개 구간을 원래 dt/토크와
+함께 관측하고 누락/중복·sleep return을 구분하는 opt-in observer를 구현했다. UE source/static
+archive는 변경하지 않고 외부 생성본으로 PhysXVehicles module을 빌드했으며 원본 binary를 보존했다.
+최종 새2서버 각400receipt/400정산·319정상 구간에서 signed discrete motor work를 기존 단일
+EV owner에 연결했다. work의 보수적 시간 배분과 끝 잔여 정산은 원래 wheel/CAN timestamp를
+갱신하지 않는다. 새 모드는 ZOH 전기 예측을 함께 실행하지 않는다. Normal/ASan 각69/69,
+raw wire/solver/work/SOC/손실 독립 검사, 실제 work 누락·중복 및 ACK 누락·중복·불일치 차단을 기록한다.
+M6 계약/구현·V1 계수·Drive30ms/기존 expiry·world10ms/영상50ms는 유지한다. 초기 native build
+실패와 ACK 중복 시험의 집계 오류를 원본 그대로 보존하고 수정 후 확인했다.
+
+기존 native 회귀의 서버 종료−11도1회 관측했다. multi-GPU Listener/Asio accept 스택이며 원인/수정은
+OPEN-M7-1R-EXIT-01이다. 재실행130을 실패 해소로 간주하지 않는다. 비정상 서버 종료를 성공으로
+집계하던 runner를 수정했고 원본 실패를 보존했다.
+
+다음 M7-1s: 종료−11의 최소 재현/원인 분리·수정 검증을 먼저 진행한다. 그 뒤 같은 native Actual
+경로의 가속→감속→정지·재출발, 보호 제동, signed 회생을 각각
+작은 시험으로 분리한다. 각 시험에서 work 누락/음수 범위/정산 오류 시 즉시 중단하고 다음 tick을
+막는지 확인한 뒤 wall2/4ms·계측 비용을 검증한다. 일반 ODD/renderer·AI/Jetson·M6 전체 회귀는 NOT RUN.

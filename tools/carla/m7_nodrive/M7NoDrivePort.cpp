@@ -38,7 +38,9 @@ struct State {
   uint64 BaseFrame = 0, NextTicket = 0, Ticket = 0, Frame = 0, Begin = 0;
   uint64 PhysicsGeneration = 0;
   double SimBegin = 0;
-  bool V1 = false, Native = false;
+  bool V1 = false, Native = false, Work = false;
+  bool AwaitSettlement = false;
+  double TotalMotorWork = 0;
   std::unique_ptr<stratadrive::m7_native::Admission> NativeGate;
   uint32 Application = 0;
   FM7WheelEffort Effort;
@@ -99,6 +101,7 @@ Json Response(bool Ok, const FString& Reason)
   R->SetBoolField(TEXT("latched"), S.Latched);
   R->SetBoolField(TEXT("staged"), S.Staged);
   R->SetBoolField(TEXT("in_flight"), S.InFlight || S.Queued);
+  R->SetBoolField(TEXT("awaiting_ev_settlement"), S.AwaitSettlement);
   return R;
 }
 void Latch(const FString& Reason)
@@ -268,6 +271,8 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.Movement = Movement;
     S.V1 = V1Flag || NativeFlag;
     S.Native = NativeFlag;
+    S.Work = NativeFlag && FParse::Param(FCommandLine::Get(), TEXT("StrataM7SolverWork"));
+    S.AwaitSettlement = false; S.TotalMotorWork = 0;
     S.Application = static_cast<uint32>(Application);
     S.NativeGate.reset(NativeFlag ? new stratadrive::m7_native::Admission(S.Application, Now(Episode)) : nullptr);
     S.Effort = FM7WheelEffort();
@@ -349,9 +354,31 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
       !S.Movement->InputsAreZero() || S.Movement->PhysicsGeneration() != S.PhysicsGeneration) {
     Latch(TEXT("plant_changed")); return Encode(Response(false, S.Reason));
   }
+  if (Op == TEXT("settle_work")) {
+    uint64 Ticket, Frame, End;
+    double Total = 0, Balance = 0;
+    FString Basis;
+    if (!S.Work || !S.AwaitSettlement || !S.Receipt.IsValid() ||
+        !Number(J,TEXT("ticket"),Ticket) || Ticket != S.Ticket ||
+        !Number(J,TEXT("frame"),Frame) || Frame != S.Frame ||
+        !Number(J,TEXT("end_ns"),End) || End != Now(Episode) ||
+        !Text(J,TEXT("basis"),Basis) || Basis != TEXT("OBSERVED_SOLVER_WORK_SINGLE_EV") ||
+        !J->TryGetNumberField(TEXT("total_mechanical_j"),Total) || !FMath::IsFinite(Total) ||
+        !J->TryGetNumberField(TEXT("balance_j"),Balance) || !FMath::IsFinite(Balance) ||
+        FMath::Abs(Total-S.TotalMotorWork) > 256*2.220446049250313e-16*(1+FMath::Abs(Total)+double(S.Ticket)) ||
+        FMath::Abs(Balance) > .00072) {
+      Latch(TEXT("ev_settlement_rejected")); return Encode(Response(false,S.Reason));
+    }
+    S.AwaitSettlement = false;
+    auto R = Response(true,TEXT("ev_settlement_accepted"));
+    R->SetStringField(TEXT("ticket"),Dec(S.Ticket));
+    R->SetNumberField(TEXT("total_mechanical_j"),S.TotalMotorWork);
+    return Encode(R);
+  }
   if (Op == TEXT("stage_native")) {
     uint64 Frame;
     if (!S.Native || !S.NativeGate) return Encode(Response(false, TEXT("native_profile_required")));
+    if (S.AwaitSettlement) { Latch(TEXT("ev_settlement_required")); return Encode(Response(false,S.Reason)); }
     if (S.Staged || S.Queued || S.InFlight) return Encode(Response(false, TEXT("pending")));
     const Json* Proof = nullptr;
     stratadrive::m7_native::Input Native;
@@ -464,6 +491,7 @@ bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
     Latch(TEXT("effort_apply")); return false;
   }
   S.Staged = S.Queued = false;
+  if (S.Work && !S.Movement->BeginSolverWork()) { Latch(TEXT("solver_observer_unavailable")); return false; }
   S.InFlight = true;
   return true;
 }
@@ -503,12 +531,24 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
     R->SetStringField(TEXT("model_id"), UTF8_TO_TCHAR(M7V1::Id));
     R->SetStringField(TEXT("model_sha256"), UTF8_TO_TCHAR(M7V1::Sha));
   }
-  R->SetBoolField(TEXT("interval_work_valid"), false);
-  R->SetBoolField(TEXT("solver_substep_work_observed"), false);
+  bool WorkValid = false;
+  if (S.Work) {
+    Json Work;
+    FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S.Movement->FinishSolverWork(WorkValid)), Work);
+    R->SetObjectField(TEXT("solver_work"), Work);
+    if (WorkValid) {
+      for (const auto& J : Work->GetArrayField(TEXT("motor_work_j"))) S.TotalMotorWork += J->AsNumber();
+      S.AwaitSettlement = true;
+      R->SetStringField(TEXT("work_end_ns"),Dec(Now(Episode)));
+    }
+  }
+  R->SetBoolField(TEXT("interval_work_valid"), WorkValid);
+  R->SetBoolField(TEXT("solver_substep_work_observed"), WorkValid);
   S.Movement->ClearInputs();
   if (!S.Movement->InputsAreZero()) { Latch(TEXT("clear_failed")); return; }
   R->SetBoolField(TEXT("inputs_cleared_after_physics"), true);
   S.Receipt = R;
+  if (S.Work && !WorkValid) { Latch(TEXT("solver_work_incomplete")); return; }
   S.Pending.Reset();
   S.InFlight = false;
 }

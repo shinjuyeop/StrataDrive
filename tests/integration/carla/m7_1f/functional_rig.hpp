@@ -15,7 +15,7 @@ struct WheelSample {
     std::array<double,4> omega{}; // FL, FR, RL, RR; rad/s, signed, no abs/clamp
 };
 struct WheelAudit {Time source;double rad_s;};
-enum class PlantMode { StationaryFixture,ExternalWheelZoh };
+enum class PlantMode { StationaryFixture,ExternalWheelZoh,ExternalSolverWork };
 struct Report {
     Time now=0,next_frame=0,lease_source=0,lease_expiry=0;
     unsigned release_mask=0,credit_mask=0,service_mask=0;
@@ -28,14 +28,14 @@ struct Report {
     std::optional<double> returned_torque;
     std::optional<Time> regen_oldest;
     std::optional<m7_external::ElectricalAudit> electrical;
-    std::array<m7_external::ElectricalAudit,11> electrical_steps{};
+    std::array<m7_external::ElectricalAudit,12> electrical_steps{};
     unsigned electrical_count=0;
     std::optional<NativeExport> native_export;
 };
 // Real native actors/session/credit + M6 actuator/electrical fixture. Optional
 // M7-1g mode replaces only the ECU sensor. M7-1h explicitly selects a separate
-// external-wheel ZOH electrical/actuator owner. Neither has a CARLA actuation
-// port or a claim that predicted electrical work was applied to the vehicle.
+// external-wheel electrical/actuator owner. M7-1r explicitly replaces ZOH with
+// observed solver work; the external adapter remains the sole CARLA writer.
 class FunctionalRig {
 public:
     explicit FunctionalRig(Scope scope,std::uint32_t trusted_wheel_actor=0,PlantMode mode=PlantMode::StationaryFixture,bool export_actual=false);
@@ -44,6 +44,7 @@ public:
     FunctionalRig& operator=(const FunctionalRig&)=delete;
     Report observe(const Observation& observation);
     Report observe(const Observation& observation,const WheelSample& wheel);
+    Report observe(const Observation& observation,const WheelSample& wheel,const m7_external::SolverWork& work);
     // Explicit test fault injection, set before observe. Missing processing is
     // never counted as an ACK. Credit loss keeps the original native age rules.
     void omit_role(int role);
@@ -56,6 +57,7 @@ private:
     std::uint32_t wheel_actor_;
     PlantMode plant_mode_;
     bool export_actual_;
+    std::optional<m7_external::SolverWork> work_;
     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
 };
 } // namespace stratadrive::m7_functional

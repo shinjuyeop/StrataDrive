@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-27, `m7-plant-draft-v14`. **native Actual→CARLA 기능 연결 한정 검증 / 전체 정상 주행 미수용**.
+2026-10-27, `m7-plant-draft-v15`. **native Actual→CARLA·solver work→단일 EV 기능 연결 한정 검증 / 전체 정상 주행 미수용**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -625,6 +625,52 @@ post-physics receipt/clear 후 다음 관측으로 진행한다. 일반 CARLA wr
 현재 시험은 고정 VehicleRequest(0.2m/s², curvature0.02/m)의 제한된 출발이며 일반 시나리오·센서
 영상/AI·전체 ODD·wall deadline은 포함하지 않는다. 다음은 solver work/단일 EV·원자적 실패 처리다.
 
+### M7-1r: 완전한 solver work와 단일 EV 정산
+
+[실행 근거](../test-plan/evidence/m7_carla_1r/README.md). `-StrataM7SolverWork`를 native/320분할
+프로필에 추가한 경우만 아래 계약을 사용한다. 기존1q 모드는 ZOH 예측/`interval_work_valid=false`를
+유지한다. M6 코드·EV 계수·에너지 오차 수용 기준은 변경하지 않는다.
+
+- **관측점:** pinned PhysX3.4 `updateNoDrive` 진입/정상 종료 및 sleeping-return, 각320개
+  `integrateNoDriveWheelSpeeds` 호출 전후의 raw `mWheelSpeeds`, 실제 drive/brake/tire/damping,
+  원래 float solver dt를 기록한다. ABI1·단일 호출·4wheel·순서/개수·overflow·전후 연속성·setter·
+  최종 direct getter를 검사한다. tire callback 생략을 work 누락으로 추정 보완하지 않는다.
+  sleeping은 실제 해당 return의 witness와 torque/steer/최종 wheel0이 함께 있어야0 work다.
+- **정의:** wheel별 `W = Σ τ_drive,Nm × ω_solver,after,rad/s × dt_solver,s`인 signed discrete
+  motor work다. NoDrive의 구동 wheel 회전각 적분에 쓰이는 post-solver ω를 사용한다. torque0의
+  렌더링용 회전 보정은 motor work0을 바꾸지 않는다. UE torque의cm²→m² 변환은10000으로 나눈다.
+  프레임 끝 속도의 ZOH나 임의 변환 계수를 사용하지 않는다. 이 정의는 chassis/tire/brake까지
+  포함한 전체 기계 에너지 보존·연속시간 적분 정확도·OEM 효율의 검증을 뜻하지 않는다.
+- **범위:** V1 rear50:50의 모터 축 속도는 후륜 평균이다. 관측된 구동 substep마다 그 평균이
+  원래 전진 모델의0..100rad/s 범위를 벗어나면 EV 연결을 거부한다. 음수 절댓값/epsilon/clamp는 없다.
+  마찰 brake work는 DC/회생 work에 합치지 않는다. 실제 회생/일반 제동 scenario는 후속 검증이다.
+- **원천/시각:** receipt의 UUID/session/actor/generation/frame/ticket 및 원본 Actual proof를
+  유지한다. `solver_work.source=PhysX3.4.NoDrive.integrator.postOmega.v1`; 정산 끝은 원래 CARLA
+  elapsed seconds를 ns 반올림한 `work_end_ns`다. 기존 `logical_end_ns=begin+10ms`는 명목 끝이며
+  float clock으로1ns 차이 날 수 있다. 어느 경우에도 wheel/CAN 취득 시각을 고쳐 쓰지 않는다.
+- **정산:** native `--native-solver-work`는 완전한 receipt를 검증한 후 기존 EV owner 하나의
+  `step_integrated_motion`만 호출한다. 같은 owner의 ZOH `step`은 호출하지 않고 SimpleVehicle도
+  만들지 않는다. scalar wheel은 구간 시작의 원래 취득 표본이다. torque는 서버가 실제 setter에
+  적용한 Nm witness이며 source는 그 apply의 원래 frame begin, oldest는 원본 Actual/wheel 의존성이다.
+  원본 CAN의 source/sequence는 proof에 그대로 남으며 apply witness가 새 CAN Actual을 만들지 않는다.
+  최초 empty INIT의0 setter도 명시적 무입력 관측이며 정상 권한/가짜 Actual이 아니다.
+- **다중 주기:** 원래320개 discrete work를 원래 frame begin/end의 동일 ordinal bin에 배분하고,
+  native1ms 경계와 겹치는 비율만 각 전기 구간에 보수적으로 배정한다. 원래 solver dt와 frame 전체
+  work 합은 보존하며 이 배분값을 새 wheel 취득으로 사용하지 않는다. 끝의1ms 미만 잔여도 그 프레임
+  안에서 정산한다. actuator 응답 job·Controller20ms·Zone/vECU10ms·30ms age/10ms skew는 유지한다.
+- **commit/중단:** 모델 상태와 cursor는 frame checkpoint를 두며 중간 실패 시 해당 frame의
+  actuator/EV 모델 상태·장부를 복원하고 sensor를 무효화한다. 이미 진행된 CARLA physics나 내부
+  native 메시지를 되돌릴 수 있다는 뜻은 아니다. 실패한 rig는 폐기하고 fresh process/새 INIT가 필요하다.
+  서버는 유효 work receipt 뒤 `settle_work` 전까지 다음 stage를 차단한다. 인증된 단일 local adapter가
+  frame/ticket/원래 끝 시각·누적 motor J·에너지 balance를 제출하며 누락/중복/불일치는 clear·latch다.
+  누적 J 비교 허용치는 binary64 합산 오차 범위이고 EV의 기존0.00072J balance 기준은 유지한다.
+  ACK는 신뢰된 local owner의 결과 보고이며 독립 원격 증명/암호 인증 protocol로 전용하지 않는다.
+
+이 opt-in receipt만 `interval_work_valid=true`다. `normal_driving_enabled=false`는 유지한다.
+UE 원본 source/static archive는 보존하고, hash로 고정한 외부 copy에 읽기 전용 observer를 삽입하여
+PhysXVehicles module만 별도 빌드한다. 원본 module backup/restore와 실행 binary hash를 기록한다.
+Wall2/4ms·계측 비용·renderer·다중 ODD·실차 calibration·signed 회생/일반 정지는 미수용이다.
+
 **결정:** actual-only 경로·단일 actuation writer,10ms world/state·50ms 영상·단일 tick owner,
 20/10ms 기존 rate·freshness/권한 보존, 중복 motion/actuator/energy 금지, metadata/좌표 의미,
 GT 격리, pause/reset containment, M7-1 비제어 관측 범위. 별도 opt-in functional clock/8-role
@@ -634,7 +680,7 @@ barrier는1f, 직접 omega→native Actual 반환은1g, actuator/electrical 분�
 정지 sensor의 임의 오차 보정은 미채택이다. 정상 CARLA driving 수용은 아니다.
 
 **미결정:** smoke 외 server/client 조합의 안정성, V1 외 vehicle geometry/실차 역변환 calibration,
-wheel 정지 잡음/전체 ODD validity·wall clock mapping·일반 시나리오의 Actual interval·native wall guard 연동, energy telemetry/원자적 실패 처리,
+wheel 정지 잡음/전체 ODD validity·wall clock mapping·일반 시나리오의 Actual interval·native wall guard 연동, 일반 주행/회생의 energy telemetry,
 Host–Target transport/배치, M10 AI shape/history. 소유자·gate는 기존 TBD-02/03/04/07/09
 (energy는 기존 TBD-13)이며 [로드맵](../roadmap.md)에 연결한다. 이번 문서는 주행 통합 승인이나
 interface binary freeze가 아니다.

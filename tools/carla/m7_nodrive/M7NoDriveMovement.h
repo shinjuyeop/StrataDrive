@@ -27,6 +27,8 @@ public:
   bool ApplyEffort(const FM7WheelEffort& Effort);
   bool EffortMatches(const FM7WheelEffort& Effort) const;
   bool NumericalProfileMatches() const;
+  bool BeginSolverWork();
+  FString FinishSolverWork(bool& Valid);
   virtual void GenerateTireForces(UVehicleWheel* Wheel, const FTireShaderInput& Input, FTireShaderOutput& Output) override;
 protected:
   virtual void SetupVehicleDrive(physx::PxVehicleWheelsSimData* Data) override;

@@ -35,7 +35,8 @@ Updated: **2026-10-27**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1o | 저속 tire 반력/명시적 적분의 출발 진동 확인. 정착·response 입력·40/80분할 FAIL 보존.320분할과 직접 solver ω 읽기로 새2서버 stress 및 response 입력 각1,621frame 음수0. 공개 getter의 저속 보정과 solver 원천 분리. 정상8-role/work/wall 미연결 | [원인·수정·검증](test-plan/evidence/m7_carla_1o/README.md) |
 | M7-1p | 직접 solver→기존 native 센서/CAN·Rear·Central 반환 한정 연결. 새320분할 step/response 서버 각1,621관측·1,609반환, 다음 구간 끝 age 최대20ms. 실제20분할 음수/주입 snapshot 누락 시 다음 tick 차단. Normal/ASan 각60/60, metadata 손상29종 거부. 최초 snapshot 수신 지연/정리 검사 FAIL 보존. full Actual actuation/work/wall은 미완료 | [실행·실패·제한](test-plan/evidence/m7_carla_1p/README.md) |
 | M7-1q | native8-role Actual/Release·credit·부모 명령 전체 구간을 서버에서 검사하고 NoDrive에 실제 적용. 새2서버 각400tick/319정상 구간·최대 source age20ms. Normal/ASan 각64/64. 제한된 기능 연결 완료, solver work/단일 EV·wall 수용 미완료 | [실행·실패·제한](test-plan/evidence/m7_carla_1q/README.md) |
-| M7 후속–M13 | PLANNED / NOT RUN; 전체 정상 주행 수용은 work/EV·wall gate OPEN | [로드맵](roadmap.md) |
+| M7-1r | 완전한 solver work→단일 EV 정산 연결. 최종 새2서버 각400receipt/400정산·319정상 구간, Normal/ASan 각69/69. 누락·중복·불일치 시 다음 tick 차단; 일반 주행/회생·wall 미수용 | [실행·실패·제한](test-plan/evidence/m7_carla_1r/README.md) |
+| M7 후속–M13 | PLANNED / NOT RUN; 일반 주행/회생·wall gate OPEN | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
 
@@ -63,24 +64,27 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 | --- | --- |
 | OPEN-M6-ENERGY-01 | 현재 모델/응답 판정 불일치 범위 해소. 옛100ms FAIL·옛1MPa 미관측은 보존 |
 | OPEN-M6-ENERGY-02 | 실제 instrumented SDK의 wall/송수신·SDK 오류/기능 미완료 OPEN. 경계 sanitizer PASS로 대체하지 않음; [원본](test-plan/evidence/m6_vehicle_energy/README.md) |
+| OPEN-M7-1R-EXIT-01 | 기존 native 모드 회귀의 SIGINT 종료 중−11. multi-GPU Listener/Asio accept 스택 관측, 재실행130이나 원인/수정은 OPEN. [원본/실패](test-plan/evidence/m7_carla_1r/README.md) |
 | M4·M3 과거 timing/FIFO/native/physical pause | 역사적 OPEN 유지. 후속 통과로 과거 원인 해소를 주장하지 않음; [M4 검토](m4_exit_review.md), [native 근거](test-plan/evidence/m5_someip_native_watch/README.md) |
 | DDS | **정규 제어 gate CLOSED, adapter 미착수**. 종료/20ms/TSan FAIL·접근 제한 이력 보존; [DDS 후속](test-plan/evidence/m5_dds_shutdown_followup/README.md). 제한된 작업을 우회·재시도하지 않음 |
 | Target/전체 시스템 | Jetson·실제 IO·Host–Target 검증,32req/29system TC는 NOT RUN. 학습자 설명/수용은 기술 판정과 별도 |
 
 ## 다음 작업
 
-**M7-1q에서 실제 native Actual을 CARLA에 적용하는 기능 경로를 연결했다.
-전체 정상 주행 수용은 solver work/단일 EV·wall gate가 남아 있다.**
-[M7-1q](test-plan/evidence/m7_carla_1q/README.md)의 새2서버는 각각400tick/319정상 권한 구간,
-최종 전진 약0.291m/s를 확인했다. 원래 CAN/P05·8-role Release ACK·Run credit·부모 명령과
-permission을 전달하고 서버가 전체 다음10ms를 검사한다. 물리 입력은 반환된 Actual뿐이다.
-M7 전용 INIT offset8ms로 작업 위상만 맞췄고 Controller20ms/Zone·vECU10ms·Drive30ms,
-source timestamp/기존 expiry는 유지한다. 최종 Normal/ASan 각64/64, 원본 wire/물리 독립 검사를 기록했다.
-최소 명령 expiry 여유1ns는 functional clock 경계의 통과이며 wall jitter 수용이 아니다.
-이번 연결은 Town03_Opt/단일 V1 ego/내부320분할의 고정 입력 출발 범위다. 일반 주행·제동 시나리오,
-solver 구간 work와 모델 전기의 일치, wall2/4ms 및 renderer 안정성은 별도 검증해야 한다.
-다음 **M7-1r**은 완전한 solver 구간 work 관측 가능성·누락 검출 → 단일 EV owner 정산 →
-실패 시 원자적 중단 검증 순서다. `interval_work_valid=false`를 유지하며 AI/Jetson은 착수하지 않는다.
+**M7-1r에서 실제 solver work를 단일 EV owner에 연결했다. 전체 정상 주행 수용은 아직 아니다.**
+[M7-1r](test-plan/evidence/m7_carla_1r/README.md)의 최종 새2서버는 각각400receipt/400정산·319정상
+권한 구간을 확인했다. 각 구간의320개 NoDrive 적분 전후를 관측하고, work 총량을 보존하여
+기존1ms EV 모델에 전달한다. ZOH 전기를 함께 계산하지 않으며 원본 Actual/권한·wheel source를 유지한다.
+완전한 관측과 정산을 확인한 opt-in receipt만 `interval_work_valid=true`다.
+기존 M6 구현/계약·V1 계수·Controller20ms/Zone·vECU10ms·Drive30ms·expiry는 그대로다.
+Normal/ASan 각69/69와 원본 wire·solver 방정식·work·SOC/손실 장부의 독립 검사를 기록했다.
+누락/중복/잘못된 정산 ACK는 다음 tick을 차단하고, EV 모델의 중간 실패는 frame checkpoint를 복원한다.
+이미 실행된 CARLA physics를 되돌리는 것은 아니며 실패한 native rig는 새 process/INIT로 교체해야 한다.
+최소 명령 expiry 여유1ns는 functional clock 경계이지 wall jitter 수용이 아니다.
+다음 **M7-1s**는 회귀 중 관측된 서버 종료−11의 최소 재현/원인 분리·수정 검증을 먼저 진행한다.
+그 뒤 같은 Actual/권한 경로의 가속→감속→정지·재출발, 보호 제동, signed 회생을 작은 시나리오로
+검증한다. 이후 계측 비용과 wall2/4ms·clock uncertainty를
+분리 검증한다. renderer·전체 ODD·AI 학습·Jetson은 아직 착수 범위가 아니다.
 [M7-1p](test-plan/evidence/m7_carla_1p/README.md)의 센서 반환·실제 음수/누락 차단 및
 [M7-1o](test-plan/evidence/m7_carla_1o/README.md)의 직접 solver 원천/내부 적분 조사 결과는 보존한다.
 [M7-1m](test-plan/evidence/m7_carla_1m/README.md)는 M6 합산0.001Nm/Pa의 가상 law를4륜 균등 배분하고,

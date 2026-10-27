@@ -31,7 +31,8 @@ def main():
     p.add_argument("--settle-mode", choices=("fixed100", "sleep"), default="fixed100")
     p.add_argument("--zero", action="store_true")
     p.add_argument("--native-actual", type=Path)
-    p.add_argument("--native-fault", choices=("none","credit","command","snapshot"), default="none")
+    p.add_argument("--solver-work", action="store_true")
+    p.add_argument("--native-fault", choices=("none","credit","command","snapshot","work-missing","work-duplicate","ev-ack-missing","ev-ack-duplicate","ev-ack-energy"), default="none")
     p.add_argument("--response-fixture", type=Path)
     p.add_argument("--require-solver-wheel", action="store_true")
     p.add_argument("--native-wheel-bridge", type=Path)
@@ -39,6 +40,8 @@ def main():
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
     a = p.parse_args()
+    if a.solver_work and not a.native_actual:
+        p.error("solver work requires native Actual")
     if a.native_actual and (a.zero or a.response_fixture or a.native_wheel_bridge or a.flag_check or a.vehicle_substeps != 320):
         p.error("native Actual requires exclusive vehicle320 profile")
     root = Path(__file__).resolve().parents[3]
@@ -65,6 +68,8 @@ def main():
             "-StrataM7NativeProbe" if a.native_actual else ("-StrataM7ZeroProbe" if a.zero else "-StrataM7V1Probe")]
     if a.vehicle_substeps and not a.zero:
         argv.append(f"-StrataM7V1Substeps{a.vehicle_substeps}")
+    if a.solver_work:
+        argv.append("-StrataM7SolverWork")
     if a.flag_check == "ambiguous":
         argv.append("-StrataM7V1Substeps40" if a.vehicle_substeps == 20 else "-StrataM7V1Substeps20")
     elif a.flag_check == "requires-v1":
@@ -84,6 +89,7 @@ def main():
     report["executed_artifact_sha256"] = {
         str(path): sha(path) for path in (
             Path(__file__), Path(__file__).with_name("m7_1m_effort.py"), a.fixture,
+            a.engine/"Engine/Plugins/Runtime/PhysXVehicles/Binaries/Linux/libUE4Editor-PhysXVehicles.so",
             a.source/"Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so",
             a.source/"Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so")}
     if a.native_actual:
@@ -93,6 +99,7 @@ def main():
         snapshot.mkdir()
         report["native_source_snapshots"] = {}
         for path in (a.native_actual, Path(__file__).with_name("m7_1q_probe.py"),
+                     Path(__file__).with_name("audit_m7_1r_work.py"), Path(__file__).with_name("audit_m7_1q_native.py"),
                      Path(__file__).with_name("m7_1p_bridge.py"), Path(__file__).with_name("m7_1k_server_probe.py")):
             dest = snapshot/path.name
             shutil.copy2(path, dest)
@@ -142,6 +149,8 @@ def main():
             cmd = [str(a.python), str(a.runtime/"probe/m7_1q_probe.py"), "--native", str(a.native_actual),
                    "--model", str(root/"tools/carla/m7_nodrive/virtual_ev_v1.json"), "--output", str(a.output),
                    "--fault", a.native_fault]
+            if a.solver_work:
+                cmd += ["--solver-work"]
         if a.flag_check:
             expected = {"ambiguous": "ambiguous_numerical_profile", "requires-v1": "numerical_profile_requires_v1",
                         "disabled": "disabled"}[a.flag_check]
@@ -174,6 +183,8 @@ def main():
                     os.killpg(server.pid, signal.SIGKILL)
                     server.wait(timeout=10)
             report["server_exit"] = server.returncode
+            if server.returncode != 130 or "forced_stop" in report:
+                report["status"] = "SERVER_EXIT_FAIL"
         report["elapsed_wall_seconds"] = time.monotonic()-started
         report["logs"] = {}
         for name in ("server.log", "client.log"):

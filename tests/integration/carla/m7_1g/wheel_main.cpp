@@ -22,24 +22,47 @@ template<std::size_t N> void packets(const std::array<std::optional<stratadrive:
 }
 int main(int argc,char** argv) {
     try {
-        if(argc!=6 || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export"))
+        if(argc!=6 || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
             throw std::runtime_error("requires --wheel-shadow or --external-wheel-plant run application plant actor; no general driving acceptance");
         const auto run=std::stoull(argv[2]),app=std::stoull(argv[3]),plant=std::stoull(argv[4]),actor=std::stoull(argv[5]);
         if(!actor || actor>UINT32_MAX || app>UINT32_MAX || plant>UINT32_MAX)throw std::runtime_error("identity range");
-        const bool exporting=std::string(argv[1])=="--native-actual-export";
+        const bool solver_work=std::string(argv[1])=="--native-solver-work";
+        const bool exporting=std::string(argv[1])=="--native-actual-export" || solver_work;
         const bool external=std::string(argv[1])=="--external-wheel-plant" || exporting;
         FunctionalRig rig({run,static_cast<std::uint32_t>(app),static_cast<std::uint32_t>(plant)},static_cast<std::uint32_t>(actor),
-            external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture,exporting);
+            solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting);
         std::cout<<std::setprecision(17);
         std::string line;
         std::unique_ptr<stratadrive::m7_native::Admission> admission;
+        std::optional<stratadrive::m7_external::SolverWork> work;
+        std::optional<WheelSample> previous_wheel;
+        stratadrive::m7_native::Output previous_admission;
         while(std::getline(std::cin,line)) {
-            if(line.size()>1024)throw std::runtime_error("input size");
+            if(line.size()>(solver_work?20000U:1024U))throw std::runtime_error("input size");
+            if(line.rfind("WORK ",0)==0) {
+                if(!solver_work || work || !previous_wheel || !admission)throw std::runtime_error("unexpected work");
+                stratadrive::m7_external::SolverWork v;unsigned sleeping=0,count=0;
+                std::string op,extra;std::istringstream input(line);
+                if(!(input>>op>>v.frame>>v.begin>>v.end>>v.dt>>sleeping>>count) || sleeping>1 ||
+                   count!=(sleeping?0U:320U))throw std::runtime_error("work header");
+                v.sleeping=sleeping!=0;
+                for(unsigned k=0;k<count;++k)if(!(input>>v.rear_mean[k]))throw std::runtime_error("missing work substep");
+                if(input>>extra)throw std::runtime_error("extra work substep");
+                v.torque=double(float((previous_admission.torque*.5)*10000))*2/10000;
+                v.oldest=previous_admission.empty?v.begin:previous_admission.oldest_actuator;
+                const auto& w=*previous_wheel;
+                v.wheel={(w.omega[2]+w.omega[3])/2,{7,static_cast<std::uint32_t>(w.frame),w.source},w.source};
+                if(v.frame!=w.frame+1 || v.begin!=w.source || !v.valid())throw std::runtime_error("invalid work binding/value");
+                work=v;continue;
+            }
             Observation o{};WheelSample w{};std::string op,extra;std::istringstream in(line);
             if(!(in>>op>>o.scope.run>>o.scope.application>>o.scope.plant>>o.clock>>o.frame>>o.elapsed_s>>o.delta_s
                  >>w.actor>>w.frame>>w.source>>w.omega[0]>>w.omega[1]>>w.omega[2]>>w.omega[3]) ||
                op!="WHEEL" || (in>>extra))throw std::runtime_error("invalid WHEEL");
-            const auto r=rig.observe(o,w);
+            if(solver_work && previous_wheel && !work)throw std::runtime_error("missing solver work receipt");
+            const auto r=work?rig.observe(o,w,*work):rig.observe(o,w);
+            const bool settled=bool(work);
+            work.reset();previous_wheel=w;
             bool admission_good=true;
             std::cout<<"{\"status\":\"WHEEL_SHADOW_BARRIER\",\"driving\":false,\"normal_apply\":\""
                 <<(exporting?"REQUIRES_SERVER_ADMISSION":"BLOCKED_CALIBRATION_AND_PLANT_OWNERSHIP")<<"\""
@@ -67,6 +90,7 @@ int main(int argc,char** argv) {
                 stratadrive::m7_native::Output out;
                 const bool good=admission->accept(input,r.now,out);
                 admission_good=good;
+                previous_admission=out;
                 std::cout<<",\"admission\":{\"ok\":"<<(good?"true":"false")<<",\"reason\":\""<<admission->error()
                     <<"\",\"empty\":"<<(out.empty?"true":"false")<<",\"normal\":"<<(out.normal?"true":"false")
                     <<",\"angle_rad\":"<<out.angle<<",\"torque_nm\":"<<out.torque<<",\"pressure_pa\":"<<out.pressure
@@ -74,8 +98,8 @@ int main(int argc,char** argv) {
                     <<"\",\"exclusive_expiry_ns\":\""<<out.exclusive_expiry<<"\"}";
             }
             if(external) {
-                std::cout<<",\"energy_basis\":\""<<(exporting?"MODEL_ZOH_PREDICTION_NOT_CARLA_WORK":"MODEL_ZOH_UNAPPLIED")
-                    <<"\",\"carla_work_valid\":false,\"electrical_steps\":[";
+                std::cout<<",\"energy_basis\":\""<<(solver_work?"OBSERVED_SOLVER_WORK_SINGLE_EV":(exporting?"MODEL_ZOH_PREDICTION_NOT_CARLA_WORK":"MODEL_ZOH_UNAPPLIED"))
+                    <<"\",\"carla_work_valid\":"<<(settled?"true":"false")<<",\"electrical_steps\":[";
                 for(unsigned j=0;j<r.electrical_count;++j) {
                     const auto& e=r.electrical_steps[j];if(j)std::cout<<',';
                     std::cout<<"{\"begin_ns\":"<<e.begin<<",\"end_ns\":"<<e.end<<",\"wheel_source_ns\":"<<e.wheel_source
@@ -84,6 +108,12 @@ int main(int argc,char** argv) {
                         <<",\"total_mechanical_j\":"<<e.total_mechanical_j<<",\"soc\":"<<e.soc<<",\"balance_j\":"<<e.balance_j<<'}';
                 }
                 std::cout<<']';
+                if(solver_work && settled && r.electrical)std::cout<<",\"settlement\":{\"frame\":"<<o.frame
+                    <<",\"end_ns\":"<<r.now<<",\"total_mechanical_j\":"<<r.electrical->total_mechanical_j
+                    <<",\"soc\":"<<r.electrical->soc<<",\"balance_j\":"<<r.electrical->balance_j
+                    <<",\"motor_loss_j\":"<<r.electrical->motor_loss_j<<",\"auxiliary_j\":"<<r.electrical->auxiliary_j
+                    <<",\"ohmic_j\":"<<r.electrical->ohmic_j<<",\"capacitor_delta_j\":"<<r.electrical->capacitor_delta_j
+                    <<",\"circuit_loss_j\":"<<r.electrical->circuit_loss_j<<",\"chemical_j\":"<<r.electrical->chemical_j<<'}';
             }
             std::cout<<"}"<<std::endl;
             if(!admission_good)return 1;

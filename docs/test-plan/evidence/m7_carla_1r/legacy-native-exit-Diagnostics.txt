@@ -1,0 +1,28 @@
+Generating report for minidump
+
+Application version 4.26.2.0
+ ... built from changelist 0
+
+OS version Linux 6.8.0-138-generic (network name: MJH)
+Running 8 x86_64 processors (16 logical cores)
+Exception was "SIGSEGV: invalid attempt to read memory at address 0x00000000000000a3"
+
+<SOURCE START>
+<SOURCE END>
+
+<CALLSTACK START>
+libUE4Editor-Carla.so!carla::multigpu::Listener::OpenSession(carla::time_duration, std::__1::function<void (std::__1::shared_ptr<carla::multigpu::Primary>)>, std::__1::function<void (std::__1::shared_ptr<carla::multigpu::Primary>)>, std::__1::function<void (std::__1::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)(+0x803)
+libUE4Editor-Carla.so!boost::asio::detail::binder1<carla::multigpu::Listener::OpenSession(carla::time_duration, std::__1::function<void (std::__1::shared_ptr<carla::multigpu::Primary>)>, std::__1::function<void (std::__1::shared_ptr<carla::multigpu::Primary>)>, std::__1::function<void (std::__1::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::system::error_code>::operator()()()
+libUE4Editor-Carla.so!boost::asio::detail::reactive_socket_accept_op<boost::asio::basic_socket<boost::asio::ip::tcp, boost::asio::any_io_executor>, boost::asio::ip::tcp, carla::multigpu::Listener::OpenSession(carla::time_duration, std::__1::function<void (std::__1::shared_ptr<carla::multigpu::Primary>)>, std::__1::function<void (std::__1::shared_ptr<carla::multigpu::Primary>)>, std::__1::function<void (std::__1::shared_ptr<carla::multigpu::Primary>, carla::Buffer)>)::$_1, boost::asio::any_io_executor>::do_complete(void*, boost::asio::detail::scheduler_operation*, boost::system::error_code const&, unsigned long)()
+libUE4Editor-Carla.so!boost::asio::detail::scheduler::do_run_one(boost::asio::detail::conditionally_enabled_mutex::scoped_lock&, boost::asio::detail::scheduler_thread_info&, boost::system::error_code const&) [/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/CarlaDependencies/include/boost/asio/detail/impl/scheduler.ipp:493]
+libUE4Editor-Carla.so!boost::asio::detail::scheduler::run(boost::system::error_code&) [/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/CarlaDependencies/include/boost/asio/detail/impl/scheduler.ipp:210]
+libUE4Editor-Carla.so!boost::asio::io_context::run() [/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/CarlaDependencies/include/boost/asio/impl/io_context.ipp:64]
+libUE4Editor-Carla.so!void* std::__1::__thread_proxy<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct> >, carla::ThreadPool::AsyncRun(unsigned long)::'lambda'()> >(void*) [/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/ThirdParty/Linux/LibCxx/include/c++/v1/thread:284]
+libc.so.6!UnknownFunction(0x94a82)
+libc.so.6!UnknownFunction(0x1268df)
+
+<CALLSTACK END>
+
+0 loaded modules
+
+Report end!

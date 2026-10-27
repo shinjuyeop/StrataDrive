@@ -83,7 +83,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::unique_ptr<simulation::m4_detail::PhysicalOwner> physical;
     std::unique_ptr<m7_external::ActuatorElectrical> external;
     std::deque<WheelSample> wheel_history;
-    std::array<m7_external::ElectricalAudit,11> electrical_steps{};
+    std::array<m7_external::ElectricalAudit,12> electrical_steps{};
     unsigned electrical_count=0;
     Time next_management=0,next_controller=0,last_lease=0;
     std::uint32_t lifecycle_seq=0,vehicle_seq=0;
@@ -104,7 +104,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             for(unsigned i=0;i<2;++i)zones[i].feedback.delivery(&feedback_capture[i]);
             for(unsigned i=0;i<5;++i)leaves[i].work.delivery(&command_capture[i]);
         }
-        if(mode==PlantMode::ExternalWheelZoh)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application);
+        if(mode!=PlantMode::StationaryFixture)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application,mode==PlantMode::ExternalSolverWork);
         else physical=std::make_unique<simulation::m4_detail::PhysicalOwner>(clock,gates[7],fixture_sensors,outputs,start,events,override_signal,s.application,false);
         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
         for(unsigned i=0;i<2;++i) {
@@ -313,13 +313,17 @@ FunctionalRig::FunctionalRig(Scope scope,std::uint32_t actor,PlantMode mode,bool
     // Native PhysicalOwner's immutable fixture epoch is 7. Do not pretend a
     // packet can choose a new physical plant identity or an axle calibration.
     require(!actor || scope.plant==7,"wheel fixture plant binding");
-    require(mode!=PlantMode::ExternalWheelZoh || actor!=0,"external plant requires wheel binding");
+    require(mode==PlantMode::StationaryFixture || actor!=0,"external plant requires wheel binding");
 }
 FunctionalRig::~FunctionalRig()=default;
 Report FunctionalRig::observe(const Observation& o) {
     return observe_impl(o,std::nullopt);
 }
 Report FunctionalRig::observe(const Observation& o,const WheelSample& wheel) {
+    return observe_impl(o,wheel);
+}
+Report FunctionalRig::observe(const Observation& o,const WheelSample& wheel,const m7_external::SolverWork& work) {
+    require(!work_,"duplicate pending work");work_=work;
     return observe_impl(o,wheel);
 }
 Report FunctionalRig::observe_impl(const Observation& o,const std::optional<WheelSample>& wheel) {
@@ -332,7 +336,12 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
             const auto assessed=m7_external::assess(wheel->omega);
             require(bool(assessed.forward_rad_s),m7_external::reason(assessed.validity));
         }
+        const bool initial=!native_;
+        require(plant_mode_==PlantMode::ExternalSolverWork ? (initial?!work_:bool(work_)) : !work_,"missing/unexpected solver work");
         if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_);
+        if(work_) {
+            require(work_->frame==o.frame && work_->end==now && native_->external->begin_work_frame(*work_),"solver work admission");
+        }
         native_->wheel_mode=wheel_actor_!=0;
         if(wheel) {
             // An original floating timestamp may precede the next native job
@@ -347,9 +356,25 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         }
         native_->omitted=omitted_;native_->stop_credit=stop_credit_;native_->drop_actual=drop_actual_;
         auto r=native_->advance(now);
+        if(work_) {
+            require(native_->external->finish_work_frame(now),native_->external->error().c_str());
+            const auto& audit=native_->external->audit();
+            if(audit.end>audit.begin) {
+                require(r.electrical_count<r.electrical_steps.size(),"solver tail audit overflow");
+                r.electrical_steps[r.electrical_count++]=audit;
+            }
+            r.electrical=audit;
+            if(native_->external->sensors())for(auto& channel:native_->fixture_sensors)channel.publish(*native_->external->sensors());
+            work_.reset();
+        }
         for(unsigned i=0;i<8;++i)if(r.service_mask&(1U<<i))clock_.serviced(i);
-        r.next_frame=clock_.permit_non_driving_tick();return r;
-    } catch(...) {clock_.fail();throw;}
+        r.next_frame=clock_.permit_non_driving_tick();
+        if(plant_mode_==PlantMode::ExternalSolverWork)native_->external->commit_work_frame();
+        return r;
+    } catch(...) {
+        if(native_ && plant_mode_==PlantMode::ExternalSolverWork)native_->external->abort_work_frame();
+        clock_.fail();throw;
+    }
 }
 void FunctionalRig::omit_role(int role) {omitted_=role;}
 void FunctionalRig::stop_credit(bool value) {stop_credit_=value;}

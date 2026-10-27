@@ -188,6 +188,7 @@ def main():
     for source in sorted(own.glob("M7NoDrive*.cpp")) + sorted(own.glob("M7NoDrive*.h")):
         output[str(PLUGIN / "M7NoDrive" / source.name)] = source.read_bytes()
     output[str(PLUGIN / "M7NoDrive/M7NoDriveModelConstants.h")] = generate()
+    output[str(PLUGIN / "M7NoDrive/M7SolverTrace.h")] = (own / "M7SolverTrace.h").read_bytes()
     for name in ("M7Native.Build.cs", "M7Native.cpp"):
         output[str(NATIVE / name)] = (own / name).read_bytes()
     native_hashes = {}

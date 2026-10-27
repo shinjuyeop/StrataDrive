@@ -17,6 +17,7 @@ import time
 import traceback
 
 import carla
+from audit_m7_1r_work import validate as validate_work, f32
 from m7_1k_server_probe import FIELDS
 from m7_1p_bridge import aligned_snapshot, require, DOMAIN, SOURCE
 
@@ -26,8 +27,9 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--native', type=Path, required=True)
     p.add_argument('--model', type=Path, required=True)
-    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot'), default='none')
+    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy'), default='none')
     p.add_argument('--ticks', type=int, default=400)
+    p.add_argument('--solver-work', action='store_true')
     a = p.parse_args()
     require(150 <= a.ticks <= 800, 'bounded functional horizon')
     a.output.mkdir(parents=True, exist_ok=False)
@@ -42,6 +44,9 @@ def main():
     key = os.environ['STRATADRIVE_M7_OWNER_KEY']
     history = {}
     count = normal = empty = 0
+    work_sum = [0.,0.,0.,0.]
+    ineligible = []
+    settlements = 0
     stopped_frame = None
     raw = (a.output/'trace.jsonl').open('w')
 
@@ -88,10 +93,10 @@ def main():
         case('initial_clock', snapshot.timestamp.elapsed_seconds == end and
              math.floor(end*1e9+.5) == int(binding['logical_begin_ns']))
         stderr = (a.output/'native.stderr').open('w')
-        process = subprocess.Popen([str(a.native.resolve()), '--native-actual-export','1','42','7',str(actor.id)],
+        process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)],
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
         receipt = None
-        for i in range(a.ticks):
+        for i in range(a.ticks+int(a.solver_work)):
             record = dict(index=i, frame=frame, simulation_seconds=end, physics=ph)
             try:
                 if a.fault == 'snapshot' and i == 200:
@@ -115,12 +120,51 @@ def main():
                 history[ns] = (omega[2]+omega[3])/2
                 line = f'WHEEL 1 42 7 {DOMAIN} {frame} {end:.17g} 0.01 {actor.id} {frame} {ns} ' + ' '.join(f'{v:.17g}' for v in omega)
                 record['native_input'] = line
+                if a.solver_work and receipt:
+                    work = receipt['solver_work']
+                    means = [(s['after_rad_s'][2]+s['after_rad_s'][3])/2 for s in work['steps']]
+                    solver_dt=f32(f32(.01)*f32(1/320)) if work['sleeping'] else work['steps'][0]['dt_s']
+                    packet = (f"WORK {frame} {receipt['logical_begin_ns']} {ns} "
+                              f"{solver_dt:.17g} "
+                              f"{work['sleeping']} {len(means)} "+' '.join(f'{v:.17g}' for v in means))
+                    if i==200 and a.fault=='work-missing': packet=packet.rsplit(' ',1)[0]
+                    record['work_input']=packet
+                    process.stdin.write(packet+'\n')
+                    if i==200 and a.fault=='work-duplicate': process.stdin.write(packet+'\n')
                 process.stdin.write(line+'\n');process.stdin.flush()
                 require(bool(select.select([process.stdout],[],[],10)[0]), 'native reply timeout')
                 native = json.loads(process.stdout.readline())
                 record['native'] = native
+                if i==200 and a.fault in ('work-missing','work-duplicate'):
+                    require(native['status']=='FAIL' and native['next_frame'] is None,'native work fail closed')
+                    stopped_frame=frame
+                    report['fault_observed']='native solver work rejected before further model jobs/tick'
+                    break
                 require(native['status'] == 'WHEEL_SHADOW_BARRIER' and native['admission']['ok'], 'native admission')
                 require(native['now_ns'] == ns and native['next_frame'] == frame+1 and native['service_mask'] == 255, 'barrier identity')
+                if a.solver_work and receipt:
+                    settlement=native['settlement']
+                    require(native['energy_basis']=='OBSERVED_SOLVER_WORK_SINGLE_EV' and native['carla_work_valid'] and
+                            settlement['frame']==frame and settlement['end_ns']==ns and
+                            math.isclose(settlement['total_mechanical_j'],sum(work_sum),rel_tol=1e-12,abs_tol=1e-12),'single EV complete-frame work settlement')
+                    if not (i==200 and a.fault=='ev-ack-missing'):
+                        ack=dict(ticket=receipt['ticket'],frame=str(frame),end_ns=str(ns),basis=native['energy_basis'],
+                                 total_mechanical_j=settlement['total_mechanical_j'],balance_j=settlement['balance_j'])
+                        if i==200 and a.fault=='ev-ack-energy': ack['total_mechanical_j']+=1
+                        accepted=rpc('settle_work',record=False,**ack)
+                        record['settlement_ack']=accepted
+                        if accepted['ok']: settlements+=1
+                        if i==200 and a.fault=='ev-ack-duplicate':
+                            require(accepted['ok'],'first ack');accepted=rpc('settle_work',record=False,**ack)
+                            record['duplicate_settlement_ack']=accepted
+                        if i==200 and a.fault in ('ev-ack-duplicate','ev-ack-energy'):
+                            require(not accepted['ok'] and accepted['latched'] and accepted['reason']=='ev_settlement_rejected','settlement rejection')
+                            stopped_frame=frame;report['fault_observed']=accepted['reason'];break
+                        require(accepted['ok'] and not accepted['awaiting_ev_settlement'],'settlement ack')
+                    if i==a.ticks:
+                        record['terminal_settlement']=True
+                        report['final_settlement']=settlement
+                        break
                 for field in ('sensor_wheel','returned_wheel'):
                     value = native[field]
                     if value is None:
@@ -138,7 +182,8 @@ def main():
                 record['staged'] = staged
                 if not staged['ok']:
                     record['rejection'] = staged['reason']
-                    require(i == 200 and a.fault in ('credit','command') and staged['latched'], 'unexpected server rejection')
+                    require(i == 200 and a.fault in ('credit','command','ev-ack-missing') and staged['latched'], 'unexpected server rejection')
+                    if a.fault=='ev-ack-missing': require(staged['reason']=='ev_settlement_required','missing settlement gate')
                     # Query, don't retry stage/advance after rejection.
                     report['fault_observed'] = staged['reason']
                     stopped_frame = frame
@@ -178,7 +223,12 @@ def main():
                         abs(receipt['simulation_end_seconds']-end-.01)<1e-6, 'receipt interval')
                 require(int(receipt['logical_begin_ns']) == ns and int(receipt['logical_end_ns']) == ns+10000000, 'whole interval')
                 require(receipt['original_actual']['native'] == proof and receipt['inputs_cleared_after_physics'] and
-                        not receipt['interval_work_valid'] and not receipt['solver_substep_work_observed'], 'original actual/completion/work')
+                        receipt['interval_work_valid'] == a.solver_work and receipt['solver_substep_work_observed'] == a.solver_work, 'original actual/completion/work')
+                if a.solver_work:
+                    work = receipt['solver_work']
+                    validate_work(record)
+                    for j in range(4): work_sum[j] += work['motor_work_j'][j]
+                    if not work['forward_energy_eligible']: ineligible.append(i)
                 applied = receipt['original_actual']['admitted_actual']
                 for k in ('angle_rad','torque_nm','pressure_pa','oldest_actuator_ns','oldest_dependency_ns','exclusive_expiry_ns','normal'):
                     require(applied[k] == native['admission'][k], 'server/native admission disagreement '+k)
@@ -201,12 +251,13 @@ def main():
                 raw.write(json.dumps(record,separators=(',',':'))+'\n');raw.flush()
         if a.fault == 'none':
             case('native_closed_loop_complete', count == a.ticks and normal>300 and empty==4)
+            if a.solver_work: case('all_receipts_settled_once',settlements==count)
             case('forward_motion_observed', ph['body_forward_velocity_m_s']>0, final_m_s=ph['body_forward_velocity_m_s'])
             rejected = rpc('stage', frame=str(frame+1))
             case('native_profile_rejects_synthetic_stage', not rejected['ok'] and rejected['latched'] and
                  rejected['reason']=='native_actual_only' and rejected['frame']==str(frame))
-            report['status'] = 'PASS_FUNCTIONAL_NATIVE_ACTUAL'
-        elif a.fault in ('credit','command'):
+            report['status'] = 'PASS_FUNCTIONAL_NATIVE_SOLVER_WORK' if a.solver_work else 'PASS_FUNCTIONAL_NATIVE_ACTUAL'
+        elif a.fault in ('credit','command','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy'):
             case('server_rejection_before_next_tick', stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
             report['status'] = 'PASS_EXPECTED_SERVER_REJECTION'
         else:
@@ -218,6 +269,10 @@ def main():
     finally:
         raw.close()
         report.update(receipts=count, normal_intervals=normal, empty_init_intervals=empty)
+        if a.solver_work:
+            report.update(solver_work_observed_intervals=count, motor_work_j=work_sum,
+                          forward_energy_ineligible_intervals=ineligible, ev_settlement_connected=True,settlements=settlements,
+                          interval_work_valid=count>0)
         try:
             if bound:
                 before = rpc('describe')['frame']
@@ -236,7 +291,7 @@ def main():
                 process.stdin.close()
                 report['native_exit'] = process.wait(timeout=10)
                 process.stdout.close()
-                if report['status'].startswith('PASS'): case('native_clean_exit', report['native_exit']==0)
+                if report['status'].startswith('PASS'): case('native_expected_exit', report['native_exit']==(1 if a.fault in ('work-missing','work-duplicate') else 0))
             if world and original and not bound:
                 if actor: actor.destroy()
                 world.apply_settings(original)

@@ -19,16 +19,83 @@ struct ActuatorElectrical::State {
     std::array<std::uint32_t,5> applied_epoch{};
     power::CoilCommand coils{};
     bool power_watchdog=false;
+    bool solver_work=false;
+    Time last_work_frame=0;
+    std::optional<SolverWork> work;
     State(Time start,std::uint32_t application):initial(start),last(start),maximum_application(application) {
         motor.begin(7,start);
         if(!start || !application || !angle.begin(start) || !pressure.begin(start) ||
            !electrical.initialize({7,start,.63,25},0))throw std::invalid_argument("M7 fixture initialization");
     }
 };
-ActuatorElectrical::ActuatorElectrical(Time start,std::uint32_t app):state_(std::make_unique<State>(start,app)) {}
+ActuatorElectrical::ActuatorElectrical(Time start,std::uint32_t app,bool work):state_(std::make_unique<State>(start,app)) {state_->solver_work=work;}
 ActuatorElectrical::~ActuatorElectrical()=default;
 Time ActuatorElectrical::last_success() const {return state_->last;}
 bool ActuatorElectrical::fail(const char* why) {if(error_.empty())error_=why;sensors_.reset();return false;}
+Time ActuatorElectrical::electrical_time() const {return state_->electrical.diagnostic_state().identity.source_time_ns;}
+double ActuatorElectrical::settled_work() const {return state_->electrical.diagnostic_state().mechanical_j;}
+void ActuatorElectrical::commit_work_frame() {checkpoint_.reset();}
+bool ActuatorElectrical::begin_work_frame(const SolverWork& work) {
+    if(!ok())return false;
+    if(!state_->solver_work || checkpoint_ || state_->work || !work.valid() || work.begin!=electrical_time() ||
+       (state_->last_work_frame && work.frame!=state_->last_work_frame+1))return fail("M7 solver work frame binding/completeness");
+    checkpoint_=std::make_unique<State>(*state_);
+    checkpoint_audit_=audit_;
+    state_->work=work;
+    return true;
+}
+void ActuatorElectrical::abort_work_frame() {
+    if(checkpoint_) {state_=std::move(checkpoint_);audit_=checkpoint_audit_;}
+    fail("M7 solver work frame aborted");
+}
+bool ActuatorElectrical::settle(State& s,Time end) {
+    const auto begin=s.electrical.diagnostic_state().identity.source_time_ns;
+    if(!s.work || begin<s.work->begin || end>s.work->end || end<=begin || end-begin>ms)
+        return fail("M7 solver work coverage");
+    const auto& w=*s.work;
+    const auto& previous=s.electrical.power_state();
+    const bool enabled=(previous.contactors.positive && previous.contactors.negative && previous.bus_voltage_v>=300) || w.torque!=0;
+    // This is the physical applied setter witness at the original frame begin,
+    // with the original CAN/wheel dependency retained. It is not restamped CAN.
+    const battery::ModelIdentity applied{7,static_cast<std::uint32_t>(w.frame),w.begin};
+    const auto sequence=s.electrical.diagnostic_state().identity.sequence;
+    const battery::ModelIdentity environment{7,sequence,begin};
+    const EvPowerInputs input{Wheel{w.torque,applied,w.oldest},w.wheel,
+        battery::ModelMeasurement<EvElectricalEnvironment>{{.25,enabled},environment,begin}};
+    const IntegratedMotorWork work{{7,sequence+1,end},begin,end,w.oldest,w.work(begin,end)};
+    const auto result=s.electrical.step_integrated_motion({begin,end,input,s.coils},work);
+    if(result.fault!=EvPowerFault::None)return fail("M7 integrated EV input/interval/energy rejection");
+    return true;
+}
+void ActuatorElectrical::capture_electrical(State& s,OwnerSensors& measured) {
+    measured.power=s.electrical.power_observation();measured.battery=s.electrical.battery_observation();
+    const auto& power=s.electrical.power_state();
+    const auto& id=s.electrical.diagnostic_state().identity;
+    if(measured.power)measured.drive.hv=battery::ModelMeasurement<drive::HvFeedback>{{power.bus_voltage_v,
+        power.contactors.positive && power.contactors.negative && power.bus_voltage_v>=300,false},
+        id,measured.power->input_time_ns};
+}
+bool ActuatorElectrical::finish_work_frame(Time end) {
+    if(!ok() || !checkpoint_ || !state_->work || state_->work->end!=end) {abort_work_frame();return false;}
+    auto next=std::make_unique<State>(*state_);
+    const auto begin=next->electrical.diagnostic_state().identity.source_time_ns;
+    const double before=next->electrical.diagnostic_state().mechanical_j;
+    if(begin<end && !settle(*next,end)) {abort_work_frame();return false;}
+    if(begin>end) {abort_work_frame();return false;}
+    const auto& energy=next->electrical.diagnostic_state();
+    const auto& w=*next->work;
+    audit_={begin,end,w.wheel.identity.source_time_ns,w.oldest,w.wheel.value,w.torque,
+        energy.mechanical_j-before,energy.mechanical_j,next->electrical.battery_state().soc,energy.balance_error_j};
+    const auto& battery=next->electrical.battery_state();
+    audit_.motor_loss_j=energy.motor_loss_j;audit_.auxiliary_j=battery.auxiliary_j;audit_.ohmic_j=battery.ohmic_loss_j;
+    audit_.capacitor_delta_j=energy.capacitor_j-energy.initial_capacitor_j;
+    audit_.circuit_loss_j=energy.precharge_loss_j+energy.main_loss_j+energy.discharge_loss_j;
+    audit_.chemical_j=battery.initial_energy_j-battery.energy_j;
+    if(sensors_)capture_electrical(*next,*sensors_);
+    next->last_work_frame=w.frame;next->work.reset();
+    state_=std::move(next);
+    return true;
+}
 bool ActuatorElectrical::step(Time now,const std::optional<Wheel>& wheel,
     const std::array<std::optional<OwnerActuation>,5>& outputs,std::uint32_t released,bool protect) {
     if(!ok())return false;
@@ -46,8 +113,13 @@ bool ActuatorElectrical::step(Time now,const std::optional<Wheel>& wheel,
     const bool enabled=(previous.contactors.positive && previous.contactors.negative && previous.bus_voltage_v>=300) || std::abs(torque)>1e-9;
     const EvPowerInputs input{Wheel{torque,id,s.last},wheel,
         battery::ModelMeasurement<EvElectricalEnvironment>{{.25,enabled},id,s.last}};
-    const auto result=s.electrical.step({s.last,now,input,s.coils});
-    if(result.fault!=EvPowerFault::None)return fail("M7 EV input/interval/energy rejection");
+    const auto energy_begin=s.electrical.diagnostic_state().identity.source_time_ns;
+    if(s.solver_work) {
+        if(!settle(s,now))return false;
+    } else {
+        const auto result=s.electrical.step({s.last,now,input,s.coils});
+        if(result.fault!=EvPowerFault::None)return fail("M7 EV input/interval/energy rejection");
+    }
     if(!s.motor.advance(now,false) || !s.angle.advance(now) || !s.pressure.advance(now))return fail("M7 actuator advance");
     OwnerSensors measured;measured.source_ns=now;
     measured.angle=s.angle.capture();measured.pressure=s.pressure.capture();measured.torque=s.motor.capture(now);
@@ -58,6 +130,7 @@ bool ActuatorElectrical::step(Time now,const std::optional<Wheel>& wheel,
     measured.drive.hv=battery::ModelMeasurement<drive::HvFeedback>{{power.bus_voltage_v,
         power.contactors.positive && power.contactors.negative && power.bus_voltage_v>=300,false},
         {7,s.sequence,now},measured.power->input_time_ns};
+    if(s.solver_work)capture_electrical(s,measured);
 
     for(unsigned i=0;i<5;++i) {
         const auto& out=outputs[i];
@@ -113,7 +186,9 @@ bool ActuatorElectrical::step(Time now,const std::optional<Wheel>& wheel,
     if(protect && (!s.angle.hold(now) || !s.pressure.request_protection(1000000,now) ||
                   !s.motor.apply({drive::ActuationMode::Zero,0,std::nullopt,now})))return fail("M7 protection");
     const auto& energy=s.electrical.diagnostic_state();
-    const ElectricalAudit audit{s.last,now,wheel->identity.source_time_ns,wheel->input_time_ns,wheel->value,torque,
+    const auto& energy_wheel=s.solver_work?s.work->wheel:*wheel;
+    const ElectricalAudit audit{energy_begin,now,energy_wheel.identity.source_time_ns,
+        s.solver_work?s.work->oldest:wheel->input_time_ns,energy_wheel.value,s.solver_work?s.work->torque:torque,
         energy.mechanical_j-state_->electrical.diagnostic_state().mechanical_j,energy.mechanical_j,
         s.electrical.battery_state().soc,energy.balance_error_j};
     s.last=now;++s.sequence;

@@ -63,7 +63,7 @@ def frame(r, role, actual):
     return result
 
 
-def audit(directory, model, corrupt=None):
+def audit(directory, model, corrupt=None, work_mode=False):
     report=json.loads((directory/'result.json').read_text())
     b=report['binding'];initial=round(b['simulation_seconds']*1e9)
     path=directory/'trace.jsonl'
@@ -84,6 +84,7 @@ def audit(directory, model, corrupt=None):
                   math.isfinite(w['solver_omega_rad_s']) for w in wheels),'solver source')
             history[ns]=(wheels[2]['solver_omega_rad_s']+wheels[3]['solver_omega_rad_s'])/2
             if 'receipt' not in row:
+                if work_mode and row.get('terminal_settlement'): continue
                 check(row['index']==200 and report['fault']!='none','unexpected incomplete interval');continue
             n=row['native'];proof=n['native_export'];r=row['receipt'];out=r['original_actual']['admitted_actual']
             check(n['now_ns']==ns and proof['observed_ns']==str(ns),'native original clock')
@@ -95,7 +96,7 @@ def audit(directory, model, corrupt=None):
             submitted=copy.deepcopy(proof)
             for k in ('service_mask','credit_mask','release_mask'):submitted[k]=str(n[k])
             check(r['original_actual']['native']==submitted,'original proof preserved')
-            check(r['inputs_cleared_after_physics'] and not r['interval_work_valid'] and not r['solver_substep_work_observed'],'completion/work')
+            check(r['inputs_cleared_after_physics'] and r['interval_work_valid']==work_mode and r['solver_substep_work_observed']==work_mode,'completion/work')
             check(r['physics_generation']==row['physics']['generation']==b['physics']['generation']==r['physics']['generation'],'generation')
             check(r['physics']['vehicle_substeps_low']==r['physics']['vehicle_substeps_high']==320,'profile')
             for key in ('sensor_wheel','returned_wheel'):
@@ -172,7 +173,7 @@ def audit(directory, model, corrupt=None):
     check(count==report['receipts'] and normal==report['normal_intervals'] and empty==report['empty_init_intervals'],'reported counts')
     return dict(status='PASS_INDEPENDENT_FUNCTIONAL_AUDIT',receipts=count,normal_intervals=normal,empty_init_intervals=empty,
                 max_whole_interval_source_age_ns=max_age,min_command_expiry_margin_ns=min_margin,max_wheel_quantization_error_rad_s=max_quant,
-                torque_nm_range=[min(torques),max(torques)],final_forward_velocity_m_s=speed[-1],interval_work_valid=False)
+                torque_nm_range=[min(torques),max(torques)],final_forward_velocity_m_s=speed[-1],interval_work_valid=work_mode)
 
 
 def main():
