@@ -1,0 +1,56 @@
+{
+  "status": "COMPLETE_ISOLATED_RUN",
+  "argv": [
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-game",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-carla-rpc-port=2200",
+    "-quality-level=Low",
+    "-carla-settings=/d/shin/stratadrive-tools/m7-source/m7-1q-legacy-zero/CarlaSettings.ini",
+    "-StrataM7ZeroProbe",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput"
+  ],
+  "started_utc": "2026-10-27T07:17:33.363191+00:00",
+  "normal_driving_enabled": false,
+  "owner_key": "ephemeral child environment; value never recorded",
+  "executed_artifact_sha256": {
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py": "6ef841ffc589c1911305dcfa145f9aa6ffdf25e371c92a8a088453193422a663",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1m_effort.py": "5e9d4db3eb16c94fbe923f216148fd81f729c846c304c0fe3ece27ac7143fe0a",
+    "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture": "2ad36fdfab9c9230a70f1ec8b288faf0774dbcaa2f578f445c127ffb9db673f3",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so": "fdfc9afbc2b8f3c97c493c2dc1cc00a11ed1c1be3787badd8d9b8a2dc048bae7",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so": "caac52be19aee8372025ed6adc10e754c4da9b90be12b98ea88be71553af8f55"
+  },
+  "pid": 989098,
+  "probe_argv": [
+    "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1k_server_probe.py",
+    "--fixture",
+    "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+    "--output",
+    "/d/shin/StrataDrive/docs/test-plan/evidence/m7_carla_1q/legacy-zero",
+    "--expected-version",
+    "294096e-dirty"
+  ],
+  "probe_exit": 0,
+  "stop_requested": "SIGINT to owned process group after probe",
+  "server_exit": 130,
+  "elapsed_wall_seconds": 25.667005417999462,
+  "logs": {
+    "server.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-1q-legacy-zero/server.log",
+      "sha256": "8ba9fd922e878aaa2107509baa0788c6f0ce0b2ab22b6fc04ed16d40701fdfe7"
+    },
+    "client.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-1q-legacy-zero/client.log",
+      "sha256": "b375d82567887031881c3e61131163c5132a4f2441c6e1d79d4e98e2fbbef7a5"
+    }
+  }
+}

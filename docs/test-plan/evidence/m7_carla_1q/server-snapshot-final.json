@@ -1,0 +1,69 @@
+{
+  "status": "COMPLETE_ISOLATED_RUN",
+  "argv": [
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-game",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-carla-rpc-port=2200",
+    "-quality-level=Low",
+    "-carla-settings=/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/CarlaSettings.ini",
+    "-StrataM7NativeProbe",
+    "-StrataM7V1Substeps320",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput"
+  ],
+  "started_utc": "2026-10-27T07:11:37.942956+00:00",
+  "normal_driving_enabled": false,
+  "owner_key": "ephemeral child environment; value never recorded",
+  "executed_artifact_sha256": {
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py": "6ef841ffc589c1911305dcfa145f9aa6ffdf25e371c92a8a088453193422a663",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1m_effort.py": "5e9d4db3eb16c94fbe923f216148fd81f729c846c304c0fe3ece27ac7143fe0a",
+    "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture": "2ad36fdfab9c9230a70f1ec8b288faf0774dbcaa2f578f445c127ffb9db673f3",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so": "e48e6b97d9c711804d0223c6ba7aae0831d4546559350c80afd1d37c32a89196",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so": "caac52be19aee8372025ed6adc10e754c4da9b90be12b98ea88be71553af8f55",
+    "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_wheel_shadow": "aff62383b99808941ab6da3cf2f2cac9d4bc7f2541b5941a5f6b22e91ada338e",
+    "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_1q_probe.py": "3656ac76f25f9c7eafe3a980e8e0ed1d5d5f13632e213268b7f3513542af9741",
+    "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_1p_bridge.py": "b7ea563b44d0554b6cd5dae62c422b3852bb690d423ec498d339122e3d873e1d",
+    "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_1k_server_probe.py": "6bd28bf1002d84498f861aa0d33b8c2af1a07fce0ba97d395cd34dc60f8336d1"
+  },
+  "native_source_snapshots": {
+    "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow": "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_wheel_shadow",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1q_probe.py": "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_1q_probe.py",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1p_bridge.py": "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_1p_bridge.py",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_1k_server_probe.py": "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_1k_server_probe.py"
+  },
+  "pid": 982790,
+  "probe_argv": [
+    "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+    "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_1q_probe.py",
+    "--native",
+    "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/probe/m7_wheel_shadow",
+    "--model",
+    "/d/shin/StrataDrive/tools/carla/m7_nodrive/virtual_ev_v1.json",
+    "--output",
+    "/d/shin/StrataDrive/docs/test-plan/evidence/m7_carla_1q/snapshot-final",
+    "--fault",
+    "snapshot"
+  ],
+  "probe_exit": 0,
+  "stop_requested": "SIGINT to owned process group after probe",
+  "server_exit": 130,
+  "elapsed_wall_seconds": 39.74104264700145,
+  "logs": {
+    "server.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/server.log",
+      "sha256": "f149d656bf1d7c71425661de4c757f3b951ccc290e1e1cd4e74f98f3c20b536a"
+    },
+    "client.log": {
+      "path": "/d/shin/stratadrive-tools/m7-source/m7-1q-snapshot-final/client.log",
+      "sha256": "d39be4217c15efd25c637fe1c8653287dcf22206910293395e21f189542db604"
+    }
+  }
+}

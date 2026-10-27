@@ -561,6 +561,7 @@ if(STRATADRIVE_M7_FUNCTIONAL_TESTS)
     add_subdirectory(tests/integration/carla/m7_1f)
     add_subdirectory(tests/integration/carla/m7_1g)
     add_subdirectory(tests/integration/carla/m7_1h)
+    add_subdirectory(tests/integration/carla/m7_1q)
 endif()
 
 # Isolated public PhysX SDK probe; not the CARLA server or an M6 runtime backend.

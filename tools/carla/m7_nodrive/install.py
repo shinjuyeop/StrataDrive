@@ -46,6 +46,8 @@ STEMS = {
     "steering": ["steering_angle_codec", "steering_frame_codec", "steering_receiver"],
     "brake": ["brake_pressure_codec", "brake_frame_codec", "brake_receiver"],
     "drive": ["drive_value_codec", "drive_frame_codec", "drive_receiver"],
+    "bms": ["bms_value_codec", "bms_frame_codec", "bms_receiver"],
+    "remote": ["owner_wire"],
 }
 
 
@@ -145,6 +147,10 @@ def main():
     s = replace(s, 'void ACarlaWheeledVehicle::FlushVehicleControl()\n{',
                 'void ACarlaWheeledVehicle::FlushVehicleControl()\n{\n  auto* M7 = Cast<UM7NoDriveMovement>(GetVehicleMovementComponent());\n  if (M7 && M7->IsZeroProbe()) return;')
     output[str(path)] = s.encode()
+    # Explicit dependencies exposed by UE's changed unity partition. The pinned
+    # upstream file otherwise relies on a different .cpp's incidental includes.
+    path = PLUGIN / "Util/BoundingBoxCalculator.cpp"
+    patch(path, '#include "Carla.h"', '#include "Carla.h"\n#include "Carla/Actor/CarlaActor.h"\n#include "Carla/Game/CarlaEpisode.h"')
     path = PLUGIN / "Server/CarlaServer.cpp"
     s = base(path)
     s = replace(s, '#include "Carla.h"', '#include "Carla.h"\n#include "Carla/M7NoDrive/M7NoDrivePort.h"')
@@ -185,11 +191,14 @@ def main():
     for name in ("M7Native.Build.cs", "M7Native.cpp"):
         output[str(NATIVE / name)] = (own / name).read_bytes()
     native_hashes = {}
+    headers = {p.name: p for p in (project / "interfaces").rglob("*.hpp")}
+    pending_headers = []
     for domain, stems in STEMS.items():
         for stem in stems:
             for suffix in ("hpp", "cpp"):
                 source = project / "interfaces" / domain / f"{stem}.{suffix}"
                 data = source.read_bytes()
+                pending_headers.extend(re.findall(r'#include "([^"]+)"', data.decode()))
                 native_hashes[str(source.relative_to(project))] = sha(data)
                 if suffix == "hpp":
                     output[str(NATIVE / "Native" / source.name)] = data
@@ -198,6 +207,18 @@ def main():
                     output[str(target)] = data
                     wrapper = f'#pragma GCC visibility push(default)\n#include "Native/{stem}.inc"\n#pragma GCC visibility pop\n'
                     output[str(NATIVE / f"Native_{stem}.cpp")] = wrapper.encode()
+    # Transitive project type headers, copied unchanged; never vendor engine code.
+    while pending_headers:
+        name = pending_headers.pop()
+        source = headers[name]
+        relative = str(source.relative_to(project))
+        if relative in native_hashes:
+            continue
+        data = source.read_bytes()
+        native_hashes[relative] = sha(data)
+        output[str(NATIVE / "Native" / name)] = data
+        pending_headers.extend(re.findall(r'#include "([^"]+)"', data.decode()))
+    output[str(NATIVE / "Native/native_admission.hpp")] = (own / "native_admission.hpp").read_bytes()
     # No writes until every original and every integration anchor has been checked.
     removals = []
     if previous:

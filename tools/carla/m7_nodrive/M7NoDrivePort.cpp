@@ -18,6 +18,7 @@
 #include "steering_receiver.hpp"
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
+#include "native_admission.hpp"
 #pragma GCC visibility pop
 #include <compiler/enable-ue4-macros.h>
 
@@ -37,7 +38,9 @@ struct State {
   uint64 BaseFrame = 0, NextTicket = 0, Ticket = 0, Frame = 0, Begin = 0;
   uint64 PhysicsGeneration = 0;
   double SimBegin = 0;
-  bool V1 = false;
+  bool V1 = false, Native = false;
+  std::unique_ptr<stratadrive::m7_native::Admission> NativeGate;
+  uint32 Application = 0;
   FM7WheelEffort Effort;
   bool Locked = false, Staged = false, Queued = false, InFlight = false, Latched = false;
   FString Reason;
@@ -82,7 +85,7 @@ Json Response(bool Ok, const FString& Reason)
   R->SetStringField(TEXT("schema"), TEXT("m7-nodrive-zero-probe-v1"));
   R->SetBoolField(TEXT("normal_driving_enabled"), false);
   R->SetBoolField(TEXT("interval_work_valid"), false);
-  R->SetStringField(TEXT("effort_profile"), S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only"));
+  R->SetStringField(TEXT("effort_profile"), S.Native ? TEXT("virtual-ev-v1-native-functional") : (S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only")));
   if (S.V1) {
     R->SetStringField(TEXT("model_id"), UTF8_TO_TCHAR(M7V1::Id));
     R->SetStringField(TEXT("model_sha256"), UTF8_TO_TCHAR(M7V1::Sha));
@@ -91,7 +94,7 @@ Json Response(bool Ok, const FString& Reason)
   R->SetStringField(TEXT("session"), Dec(S.Session));
   R->SetStringField(TEXT("run"), S.Run);
   R->SetStringField(TEXT("actor"), Dec(S.ActorId));
-  R->SetStringField(TEXT("clock_domain"), TEXT("m7-zero-probe-logical-frame"));
+  R->SetStringField(TEXT("clock_domain"), S.Native ? TEXT("m7-native-simulation-elapsed") : TEXT("m7-zero-probe-logical-frame"));
   R->SetBoolField(TEXT("locked"), S.Locked);
   R->SetBoolField(TEXT("latched"), S.Latched);
   R->SetBoolField(TEXT("staged"), S.Staged);
@@ -113,13 +116,53 @@ bool Settings(const UCarlaEpisode& Episode)
     E.FixedDeltaSeconds.GetValue() == .01 && E.bSubstepping &&
     E.MaxSubstepDeltaTime > 0 && E.MaxSubstepDeltaTime * E.MaxSubsteps >= .01;
 }
-uint64 Now() { return LogicalOrigin + (FCarlaEngine::GetFrameCounter() - S.BaseFrame) * Step; }
+uint64 Now(const UCarlaEpisode& Episode) {
+  return S.Native ? static_cast<uint64>(std::llround(Episode.GetElapsedGameTime()*1e9)) :
+    LogicalOrigin + (FCarlaEngine::GetFrameCounter() - S.BaseFrame) * Step;
+}
 Json Physics()
 {
   Json P;
   if (S.Movement.IsValid())
     FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S.Movement->DescribePhysics()), P);
   return P.IsValid() ? P : Object();
+}
+bool ReadPacket(const TSharedPtr<FJsonValue>& Value, stratadrive::m7_native::Packet& Out)
+{
+  if (!Value.IsValid()) return false;
+  if (Value->Type == EJson::Null) { Out.reset(); return true; }
+  FString Hex;
+  if (!Value->TryGetString(Hex) || Hex.IsEmpty() || Hex.Len()%2 || Hex.Len()>1024) return false;
+  stratadrive::remote::OwnerPacket P;
+  P.size = Hex.Len()/2;
+  auto Nibble = [](TCHAR C) { return C>='0' && C<='9' ? C-'0' : (C>='a' && C<='f' ? C-'a'+10 : -1); };
+  for (unsigned I=0; I<P.size; ++I) {
+    const int A=Nibble(Hex[2*I]), B=Nibble(Hex[2*I+1]);
+    if (A<0 || B<0) return false;
+    P.bytes[I]=static_cast<uint8>(A*16+B);
+  }
+  Out=P; return true;
+}
+template<std::size_t N>
+bool ReadPackets(const Json& J, const TCHAR* Key, std::array<stratadrive::m7_native::Packet,N>& Out)
+{
+  const TArray<TSharedPtr<FJsonValue>>* Values=nullptr;
+  if (!J->TryGetArrayField(Key, Values) || Values->Num()!=N) return false;
+  for (unsigned I=0; I<N; ++I) if (!ReadPacket((*Values)[I],Out[I])) return false;
+  return true;
+}
+bool ReadNative(const Json& J, stratadrive::m7_native::Input& Out)
+{
+  uint64 Service, Credit, Release, Observed, Enable;
+  if (!Number(J,TEXT("observed_ns"),Observed) || !Number(J,TEXT("enable_ns"),Enable) ||
+      !J->TryGetBoolField(TEXT("normal"),Out.normal) || !Number(J,TEXT("service_mask"),Service) ||
+      !Number(J,TEXT("credit_mask"),Credit) || !Number(J,TEXT("release_mask"),Release) ||
+      Service>255 || Credit>255 || Release>255 || !J->HasField(TEXT("permission"))) return false;
+  Out.observed=Observed; Out.enable=Enable;
+  Out.service_mask=Service; Out.credit_mask=Credit; Out.release_mask=Release;
+  return ReadPackets(J,TEXT("actual"),Out.actual) && ReadPackets(J,TEXT("commands"),Out.commands) &&
+    ReadPackets(J,TEXT("release"),Out.release) && ReadPackets(J,TEXT("credit"),Out.credit) &&
+    ReadPacket(J->TryGetField(TEXT("permission")),Out.permission);
 }
 template <typename Frame>
 bool ReadFrame(const Json& Request, const TCHAR* Role, Frame& Out, uint64 NowNs,
@@ -171,6 +214,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   Tick = false;
   const bool ZeroFlag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7ZeroProbe"));
   const bool V1Flag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7V1Probe"));
+  const bool NativeFlag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7NativeProbe"));
   unsigned VehicleSubsteps = 0;
   for (unsigned Candidate : {20u, 40u, 80u, 160u, 320u, 640u}) {
     const FString Flag = FString::Printf(TEXT("StrataM7V1Substeps%u"), Candidate);
@@ -179,10 +223,11 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
       VehicleSubsteps = Candidate;
     }
   }
-  if (VehicleSubsteps && !V1Flag) return Encode(Response(false, TEXT("numerical_profile_requires_v1")));
-  if (ZeroFlag && V1Flag) return Encode(Response(false, TEXT("ambiguous_profile")));
-  if (!ZeroFlag && !V1Flag)
+  if (VehicleSubsteps && !V1Flag && !NativeFlag) return Encode(Response(false, TEXT("numerical_profile_requires_v1")));
+  if (unsigned(ZeroFlag) + unsigned(V1Flag) + unsigned(NativeFlag) > 1) return Encode(Response(false, TEXT("ambiguous_profile")));
+  if (!ZeroFlag && !V1Flag && !NativeFlag)
     return Encode(Response(false, TEXT("disabled")));
+  if (NativeFlag && VehicleSubsteps != 320) return Encode(Response(false, TEXT("native_requires_vehicle320")));
   Json J;
   if (Input.size() > 16384 || Input.find('\0') != std::string::npos || !FJsonSerializer::Deserialize(
         TJsonReaderFactory<>::Create(UTF8_TO_TCHAR(Input.c_str())), J) || !J.IsValid())
@@ -191,13 +236,13 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   if (!Text(J, TEXT("op"), Op)) return Encode(Response(false, TEXT("operation")));
   if (Op == TEXT("describe")) {
     auto R = Response(true, TEXT("diagnostic_only"));
-    R->SetStringField(TEXT("clock_domain"), TEXT("m7-zero-probe-logical-frame; NOT native wall"));
-    R->SetStringField(TEXT("provenance"), TEXT("synthetic CAN/P05 fixture only; NOT native eight-role authority"));
+    R->SetStringField(TEXT("clock_domain"), NativeFlag ? TEXT("m7-native-simulation-elapsed; NOT wall") : TEXT("m7-zero-probe-logical-frame; NOT native wall"));
+    R->SetStringField(TEXT("provenance"), NativeFlag ? TEXT("trusted local eight-role native owner; original CAN/P05 and owner-wire") : TEXT("synthetic CAN/P05 fixture only; NOT native eight-role authority"));
     R->SetObjectField(TEXT("physics"), Physics());
     auto Denied = Object();
     for (const auto& Item : S.Denied) Denied->SetStringField(Item.Key, Dec(Item.Value));
     R->SetObjectField(TEXT("denied_legacy_rpc"), Denied);
-    if (S.Locked) R->SetStringField(TEXT("logical_begin_ns"), Dec(Now()));
+    if (S.Locked) R->SetStringField(TEXT("logical_begin_ns"), Dec(Now(Episode)));
     return Encode(R);
   }
   const FString Key = FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M7_OWNER_KEY"));
@@ -205,10 +250,12 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   if (Key.Len() < 32 || !Text(J, TEXT("owner_key"), Presented) || Presented != Key)
     return Encode(Response(false, TEXT("owner")));
   if (Op == TEXT("bind")) {
-    uint64 Id;
+    uint64 Id, Application = 0;
+    if (NativeFlag && (!Number(J, TEXT("application"), Application) || !Application || Application > MAX_uint32))
+      return Encode(Response(false, TEXT("native_application")));
     if (S.Locked) return Encode(Response(false, TEXT("already_bound")));
     FString Model;
-    if (V1Flag && (!Text(J, TEXT("model_sha256"), Model) || Model != UTF8_TO_TCHAR(M7V1::Sha)))
+    if ((V1Flag || NativeFlag) && (!Text(J, TEXT("model_sha256"), Model) || Model != UTF8_TO_TCHAR(M7V1::Sha)))
       return Encode(Response(false, TEXT("model_identity")));
     if (!Settings(Episode) || !Number(J, TEXT("actor"), Id) || Id > MAX_uint32 ||
         S.Session == MAX_uint32) return Encode(Response(false, TEXT("init")));
@@ -219,7 +266,10 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.Actor = Actor;
     S.ActorId = static_cast<uint32>(Id);
     S.Movement = Movement;
-    S.V1 = V1Flag;
+    S.V1 = V1Flag || NativeFlag;
+    S.Native = NativeFlag;
+    S.Application = static_cast<uint32>(Application);
+    S.NativeGate.reset(NativeFlag ? new stratadrive::m7_native::Admission(S.Application, Now(Episode)) : nullptr);
     S.Effort = FM7WheelEffort();
     S.Locked = true; // Failure during conversion remains contained until close.
     S.Latched = S.Staged = S.Queued = S.InFlight = false;
@@ -242,7 +292,9 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     }
     auto R = Response(true, S.V1 ? TEXT("bound_virtual_v1_diagnostic") : TEXT("bound_zero_only"));
     R->SetObjectField(TEXT("physics"), Physics());
-    R->SetStringField(TEXT("logical_begin_ns"), Dec(Now()));
+    R->SetStringField(TEXT("logical_begin_ns"), Dec(Now(Episode)));
+    R->SetNumberField(TEXT("simulation_seconds"), Episode.GetElapsedGameTime());
+    R->SetStringField(TEXT("application"), Dec(S.Application));
     return Encode(R);
   }
   uint64 Session;
@@ -297,7 +349,45 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
       !S.Movement->InputsAreZero() || S.Movement->PhysicsGeneration() != S.PhysicsGeneration) {
     Latch(TEXT("plant_changed")); return Encode(Response(false, S.Reason));
   }
+  if (Op == TEXT("stage_native")) {
+    uint64 Frame;
+    if (!S.Native || !S.NativeGate) return Encode(Response(false, TEXT("native_profile_required")));
+    if (S.Staged || S.Queued || S.InFlight) return Encode(Response(false, TEXT("pending")));
+    const Json* Proof = nullptr;
+    stratadrive::m7_native::Input Native;
+    stratadrive::m7_native::Output Actual;
+    if (!Number(J, TEXT("frame"), Frame) || Frame != FCarlaEngine::GetFrameCounter()+1 ||
+        S.NextTicket == MAX_uint64 || !J->TryGetObjectField(TEXT("native"), Proof) ||
+        !ReadNative(*Proof, Native)) {
+      Latch(TEXT("native_envelope")); return Encode(Response(false, S.Reason));
+    }
+    const uint64 Begin = Now(Episode);
+    if (!S.NativeGate->accept(Native, Begin, Actual)) {
+      Latch(UTF8_TO_TCHAR(S.NativeGate->error().c_str())); return Encode(Response(false, S.Reason));
+    }
+    FM7WheelEffort Effort;
+    if (!Actual.empty && !S.Movement->PrepareV1(Actual.angle, Actual.torque, Actual.pressure, Effort)) {
+      Latch(TEXT("native_model_range_or_geometry")); return Encode(Response(false, S.Reason));
+    }
+    S.Frame = Frame; S.Begin = Begin; S.SimBegin = Episode.GetElapsedGameTime();
+    S.Ticket = ++S.NextTicket; S.Effort = Effort;
+    S.Pending = Object(); S.Pending->SetObjectField(TEXT("native"), *Proof);
+    auto Applied = Object();
+    Applied->SetBoolField(TEXT("empty_init"), Actual.empty);
+    Applied->SetBoolField(TEXT("normal"), Actual.normal);
+    Applied->SetNumberField(TEXT("angle_rad"), Actual.angle);
+    Applied->SetNumberField(TEXT("torque_nm"), Actual.torque);
+    Applied->SetNumberField(TEXT("pressure_pa"), Actual.pressure);
+    Applied->SetStringField(TEXT("oldest_actuator_ns"), Dec(Actual.oldest_actuator));
+    Applied->SetStringField(TEXT("oldest_dependency_ns"), Dec(Actual.oldest_dependency));
+    Applied->SetStringField(TEXT("exclusive_expiry_ns"), Dec(Actual.exclusive_expiry));
+    S.Pending->SetObjectField(TEXT("admitted_actual"), Applied);
+    S.Staged = true;
+    auto R = Response(true, TEXT("staged_native_not_applied"));
+    R->SetStringField(TEXT("ticket"), Dec(S.Ticket)); return Encode(R);
+  }
   if (Op == TEXT("stage")) {
+    if (S.Native) { Latch(TEXT("native_actual_only")); return Encode(Response(false, S.Reason)); }
     uint64 Frame;
     if (S.Staged || S.Queued || S.InFlight) return Encode(Response(false, TEXT("pending")));
     if (S.NextTicket == MAX_uint64) {
@@ -307,7 +397,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
       return Encode(Response(false, TEXT("frame")));
     SteeringFrame Steering; BrakeFrame Brake; DriveFrame Drive;
     uint64 O[3];
-    const uint64 Begin = Now();
+    const uint64 Begin = Now(Episode);
     if (!ReadFrame(J, TEXT("steering"), Steering, Begin, O[0]) ||
         !ReadFrame(J, TEXT("brake"), Brake, Begin, O[1]) ||
         !ReadFrame(J, TEXT("drive"), Drive, Begin, O[2]) ||
@@ -393,8 +483,8 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   R->SetStringField(TEXT("run"), S.Run);
   R->SetStringField(TEXT("actor"), Dec(S.ActorId));
   R->SetStringField(TEXT("physics_generation"), Dec(S.PhysicsGeneration));
-  R->SetStringField(TEXT("clock_domain"), TEXT("m7-zero-probe-logical-frame"));
-  R->SetStringField(TEXT("source_identity"), TEXT("synthetic-steering/brake/drive-CAN-P05-fixture; NOT native authority"));
+  R->SetStringField(TEXT("clock_domain"), S.Native ? TEXT("m7-native-simulation-elapsed") : TEXT("m7-zero-probe-logical-frame"));
+  R->SetStringField(TEXT("source_identity"), S.Native ? TEXT("native-eight-role-CAN-P05-Actual; authenticated-local-owner") : TEXT("synthetic-steering/brake/drive-CAN-P05-fixture; NOT native authority"));
   R->SetStringField(TEXT("ticket"), Dec(S.Ticket));
   R->SetStringField(TEXT("frame"), Dec(Frame));
   R->SetStringField(TEXT("logical_begin_ns"), Dec(S.Begin));
@@ -402,12 +492,13 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   R->SetNumberField(TEXT("simulation_begin_seconds"), S.SimBegin);
   R->SetNumberField(TEXT("simulation_end_seconds"), Episode.GetElapsedGameTime());
   R->SetObjectField(TEXT("original_actual"), S.Pending);
+  if (S.Native) R->SetStringField(TEXT("application"), Dec(S.Application));
   R->SetObjectField(TEXT("physics"), Physics());
   bool Zero = true;
   for (unsigned W = 0; W != 4; ++W)
     Zero = Zero && S.Effort.Drive[W] == 0 && S.Effort.Brake[W] == 0 && S.Effort.Steer[W] == 0;
   R->SetBoolField(TEXT("applied_zero_effort"), Zero);
-  R->SetStringField(TEXT("effort_profile"), S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only"));
+  R->SetStringField(TEXT("effort_profile"), S.Native ? TEXT("virtual-ev-v1-native-functional") : (S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only")));
   if (S.V1) {
     R->SetStringField(TEXT("model_id"), UTF8_TO_TCHAR(M7V1::Id));
     R->SetStringField(TEXT("model_sha256"), UTF8_TO_TCHAR(M7V1::Sha));

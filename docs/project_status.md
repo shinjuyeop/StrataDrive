@@ -34,7 +34,8 @@ Updated: **2026-10-27**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1n | 동일 binary·동일 원래 Actual 대조: 기본3/1에서 rear 음수487frame 재현, 내부20/20 새2서버는 각각3frame(출발 첫 tick)으로 감소하나 native forward gate FAIL. 각1,621receipt/42검사·손상10/10 거부.20분할 정상 미채택 | [대조·실패](test-plan/evidence/m7_carla_1n/README.md) |
 | M7-1o | 저속 tire 반력/명시적 적분의 출발 진동 확인. 정착·response 입력·40/80분할 FAIL 보존.320분할과 직접 solver ω 읽기로 새2서버 stress 및 response 입력 각1,621frame 음수0. 공개 getter의 저속 보정과 solver 원천 분리. 정상8-role/work/wall 미연결 | [원인·수정·검증](test-plan/evidence/m7_carla_1o/README.md) |
 | M7-1p | 직접 solver→기존 native 센서/CAN·Rear·Central 반환 한정 연결. 새320분할 step/response 서버 각1,621관측·1,609반환, 다음 구간 끝 age 최대20ms. 실제20분할 음수/주입 snapshot 누락 시 다음 tick 차단. Normal/ASan 각60/60, metadata 손상29종 거부. 최초 snapshot 수신 지연/정리 검사 FAIL 보존. full Actual actuation/work/wall은 미완료 | [실행·실패·제한](test-plan/evidence/m7_carla_1p/README.md) |
-| M7 후속–M13 | PLANNED / NOT RUN; 정상 CARLA 주행 연결 BLOCKED | [로드맵](roadmap.md) |
+| M7-1q | native8-role Actual/Release·credit·부모 명령 전체 구간을 서버에서 검사하고 NoDrive에 실제 적용. 새2서버 각400tick/319정상 구간·최대 source age20ms. Normal/ASan 각64/64. 제한된 기능 연결 완료, solver work/단일 EV·wall 수용 미완료 | [실행·실패·제한](test-plan/evidence/m7_carla_1q/README.md) |
+| M7 후속–M13 | PLANNED / NOT RUN; 전체 정상 주행 수용은 work/EV·wall gate OPEN | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
 
@@ -68,20 +69,20 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 
 ## 다음 작업
 
-**M7-1p에서 직접 solver wheel의 native Actual 반환을 한정 검증했다.
-정상 주행은 full Actual actuation/authority·work/wall gate로 계속 BLOCKED다.**
-[M7-1p](test-plan/evidence/m7_carla_1p/README.md)의 새320분할 step/response 서버는 각1,621개 원천을
-기존8-role fixture에 공급하고1,609개 DriveActual 반환을 확인했다. source를 새로 찍지 않고
-다음10ms 구간 끝 age 최대20ms로30ms 요구를 유지한다.20분할의 실제 출발 음수와200번째 snapshot
-전달 누락 주입은 다음 tick을 차단했다. pause/reset 뒤 기존 bridge는 폐기하고 새 INIT를 요구한다.
-CARLA actuation은 여전히 격리 합성 Actual이며 native 반환 torque를 CARLA에 적용한 결과가 아니다.
-[M7-1o](test-plan/evidence/m7_carla_1o/README.md)는 타이어 반력에 의한 내부 회전 부호 진동을
-계측하고 물리 계수 변경 없이 적분 간격을 줄였다. 최종320분할의 새2서버와 기존 response
-모델 입력은 각1,621frame/4wheel 직접 solver 음수0이다. 앞바퀴 중간 계산의 미세 음수는 보존했다.
-기존 `omega_rad_s` 공개 API는 무구동·저속 보정값일 수 있어 새 `solver_omega_rad_s`와 구분한다.
-다음은 실제8-role full Actual interval/authority를 서버 적용 gate에 연결 →
-solver 구간 work/단일 EV → wall timing이다.320분할은 이 후속 격리 통합 후보이며 기본 asset3/1,
-M6 코드·수용·30ms freshness는 유지한다.
+**M7-1q에서 실제 native Actual을 CARLA에 적용하는 기능 경로를 연결했다.
+전체 정상 주행 수용은 solver work/단일 EV·wall gate가 남아 있다.**
+[M7-1q](test-plan/evidence/m7_carla_1q/README.md)의 새2서버는 각각400tick/319정상 권한 구간,
+최종 전진 약0.291m/s를 확인했다. 원래 CAN/P05·8-role Release ACK·Run credit·부모 명령과
+permission을 전달하고 서버가 전체 다음10ms를 검사한다. 물리 입력은 반환된 Actual뿐이다.
+M7 전용 INIT offset8ms로 작업 위상만 맞췄고 Controller20ms/Zone·vECU10ms·Drive30ms,
+source timestamp/기존 expiry는 유지한다. 최종 Normal/ASan 각64/64, 원본 wire/물리 독립 검사를 기록했다.
+최소 명령 expiry 여유1ns는 functional clock 경계의 통과이며 wall jitter 수용이 아니다.
+이번 연결은 Town03_Opt/단일 V1 ego/내부320분할의 고정 입력 출발 범위다. 일반 주행·제동 시나리오,
+solver 구간 work와 모델 전기의 일치, wall2/4ms 및 renderer 안정성은 별도 검증해야 한다.
+다음 **M7-1r**은 완전한 solver 구간 work 관측 가능성·누락 검출 → 단일 EV owner 정산 →
+실패 시 원자적 중단 검증 순서다. `interval_work_valid=false`를 유지하며 AI/Jetson은 착수하지 않는다.
+[M7-1p](test-plan/evidence/m7_carla_1p/README.md)의 센서 반환·실제 음수/누락 차단 및
+[M7-1o](test-plan/evidence/m7_carla_1o/README.md)의 직접 solver 원천/내부 적분 조사 결과는 보존한다.
 [M7-1m](test-plan/evidence/m7_carla_1m/README.md)는 M6 합산0.001Nm/Pa의 가상 law를4륜 균등 배분하고,
 기존1l geometry에 고정한 이상 Ackermann/rear50:50 모델을 별도 서버 옵션으로 적용했다.
 각1,621receipt의 두 새 서버에서 출발·음수 motor 감속·마찰 정지·hold/release·좌우 조향을 관측했다.

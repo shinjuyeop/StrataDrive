@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-27, `m7-plant-draft-v13`. **직접 solver의 native sensor/Actual 반환 한정 연결 / 정상 주행 미연결**.
+2026-10-27, `m7-plant-draft-v14`. **native Actual→CARLA 기능 연결 한정 검증 / 전체 정상 주행 미수용**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -586,6 +586,45 @@ native barrier 성공만 다음 진단 tick 진행을 허용한다. 부재/비�
 실제20분할 음수와 snapshot 누락 주입에서 containment를 검증했다. 실제8-role full Actual의
 authority/interval→NoDrive 적용, solver work/EV, wall 성능은 별도 후속 gate다.
 
+**M7-1q native Actual 적용 경계:** [구현·실행·실패](../test-plan/evidence/m7_carla_1q/README.md).
+별도 `-StrataM7NativeProbe -StrataM7V1Substeps320`로만 활성화한다. 기존 zero/V1 합성 진단과
+상호 배타적이며 일반 `stage`는 거부·latch한다. `stage_native`는 반환된 원본 CAN/P05와
+native authority를 검사한 뒤 single-use ticket을 발급한다. `advance` 한 번에 한 구간만 적용하고
+post-physics receipt/clear 후 다음 관측으로 진행한다. 일반 CARLA writer/tick RPC는 계속 차단한다.
+
+- 원본 native mailbox의 **수신 완료 hook**에서 Zone→Central Actual과 Zone→vECU 명령/permission을
+  읽기만 한다. 메시지를 pop/대체/재발급하거나 ACK를 대신 만들지 않는다. current receiver 표본의
+  epoch/sequence/source 및 Actual.causal_sequence에 맞는 원본 command를 선택한다.
+- 실제 coordinator가 수용한8개 Release ACK,7개 remote RunLease 및 Central local credit을 포함한
+ 8-role service/credit mask를 전달한다. server는 original owner-wire route/domain/CRC32C와
+  session plan/ACK·동일 credit/60ms expiry를 검사한다. CRC는 인증이 아니다. owner key와 fresh local
+  process의 신뢰 경계 안에서만 사용하며 Host IPC/SOME-IP 또는 Target authority로 전용하지 않는다.
+- CARLA run UUID/session/actor/physics generation/model/profile은 외부 binding으로 고정한다.
+  native application42/fixture scope(1,42,7)는 fresh process의 실제 INIT로 시작한다. native 시각은
+  동일 snapshot의 원래 simulation elapsed seconds를 ns 반올림한 `m7-native-simulation-elapsed`다.
+  기존 합성 profile의 logical-origin 시각은 사용하지 않는다. 이전 binding의 packet 재사용은 금지한다.
+- 새 모드만 최초 관측+8ms에 INIT을 요청한다. 현재 native owner 순서에서 enable은+29ms,
+  Controller/management 첫 위상은 enable+14ms다. 주기20/10ms·IO200µs·physical1ms 및 모든
+  freshness/expiry는 그대로다. 기존 immediate INIT은 Actual 반환 후 부모 명령의 여유가5ms인
+  구간에서 다음10ms를 덮지 못했다. offset은 실제 job의 실행 시점을 바꾸며 source를 재발급하지 않는다.
+- Actual3개는 원본 receiver로 decode/P05/cursor 검사하고 source·Drive wheel의 **구간 끝 age≤30ms**,
+  skew≤10ms를 요구한다. Normal/Degraded NormalPath만 정상 적용하며 causal command/root age30ms,
+  dependency70ms, 원래 context expiry를 **전체 다음10ms**에 검사한다. 원래 BMS permission의
+  source50ms/dependency70ms·parent와 grant expiry·Drive capability quality도 검사한다.
+  동일 held packet은 새 표본으로 수신 처리하지 않고 기존 receiver의 current_sample로 검증한다.
+- 최초4tick은 native Actual이 아직 없는 명시적 INIT 무입력 관측이다(최대80ms, 정상 권한 없음).
+  이후 실제 Init/NoAcceptedInput Actual만 torque0 조건으로 적용하며 angle/brake를0으로 만들지 않는다.
+  최초 정상 진입 후 INIT/empty로 돌아가거나 누락을 cache로 채우는 것은 거부·latch한다.
+- native external owner가 기존 actuator 응답과 전기 ZOH **예측**만 소유하고 차량 운동은 CARLA만 적분한다.
+  모델 전기는 적용 receipt/solver 적분 work를 정산한 값이 아니다. `MODEL_ZOH_PREDICTION_NOT_CARLA_WORK`,
+  `interval_work_valid=false`이며 일반 정상 주행/에너지 수용 flag는 열지 않는다.
+
+최종 새 서버400tick/319정상 권한 구간 및 독립 wire/physics 검사에서 원래 source의 구간 끝 age는
+최대20ms다. 최소 명령 expiry 여유1ns는 기존 exclusive expiry 경계이며 wall jitter나 불확실성의
+여유가 아니다. pause/reset/오류는 setter clear·latch 후 fresh process/새 INIT를 요구한다.
+현재 시험은 고정 VehicleRequest(0.2m/s², curvature0.02/m)의 제한된 출발이며 일반 시나리오·센서
+영상/AI·전체 ODD·wall deadline은 포함하지 않는다. 다음은 solver work/단일 EV·원자적 실패 처리다.
+
 **결정:** actual-only 경로·단일 actuation writer,10ms world/state·50ms 영상·단일 tick owner,
 20/10ms 기존 rate·freshness/권한 보존, 중복 motion/actuator/energy 금지, metadata/좌표 의미,
 GT 격리, pause/reset containment, M7-1 비제어 관측 범위. 별도 opt-in functional clock/8-role
@@ -595,7 +634,7 @@ barrier는1f, 직접 omega→native Actual 반환은1g, actuator/electrical 분�
 정지 sensor의 임의 오차 보정은 미채택이다. 정상 CARLA driving 수용은 아니다.
 
 **미결정:** smoke 외 server/client 조합의 안정성, V1 외 vehicle geometry/실차 역변환 calibration,
-wheel 정지 잡음/전체 ODD validity·wall clock mapping·full Actual interval·native guard 연동, energy telemetry/원자적 실패 처리,
+wheel 정지 잡음/전체 ODD validity·wall clock mapping·일반 시나리오의 Actual interval·native wall guard 연동, energy telemetry/원자적 실패 처리,
 Host–Target transport/배치, M10 AI shape/history. 소유자·gate는 기존 TBD-02/03/04/07/09
 (energy는 기존 TBD-13)이며 [로드맵](../roadmap.md)에 연결한다. 이번 문서는 주행 통합 승인이나
 interface binary freeze가 아니다.

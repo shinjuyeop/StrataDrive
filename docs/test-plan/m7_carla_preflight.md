@@ -367,3 +367,16 @@ Normal/ASan 각60/60, frozen replay 각1,621개와 손상29종 거부·독립 li
 cached receipt로 회복하지 못했으며6개 소유 서버 모두 설정/actor 정리 후 SIGINT130이었다.
 native sensor 반환만 연결했고 CARLA actuation은 합성 Actual이다. 다음은 full Actual/authority 적용
 gate → solver work/단일 EV → wall 검증이며 renderer·AI/Jetson·M6 전체 회귀는 이번에 실행하지 않았다.
+
+## 2026-10-27 후속 — M7-1q 실제 native Actual의 서버 적용
+
+[실행·실패·제한](evidence/m7_carla_1q/README.md): 원본 Actual/CAN/P05, 실제8-role Release ACK·
+Run credit, 인과 명령과 permission의 전체 다음10ms 유효성을 검사하는 별도 서버 모드를 구현했다.
+새2서버 각400tick/319정상 권한 구간, 최종 약0.291m/s 전진을 확인했다. 값·source 재발급이나
+명령 우회 없이 native→CARLA 기능 경로를 연결했다. M7 전용 INIT offset8ms로 기존20/10ms 위상을
+맞췄고 Drive30ms/기존 expiry는 유지한다. 초기 즉시 INIT의 구간 coverage FAIL을 보존했다.
+Normal/ASan 각64/64, 원본 wire/physics 독립 검사와 권한·명령·snapshot 누락 시 다음 tick 차단을 기록한다.
+최소 command expiry 여유1ns는 고정 simulation clock 경계이며 wall2/4ms 수용이 아니다.
+다음 M7-1r은 solver 구간 work의 완전성/누락 검출 → 단일 EV 정산 → 원자적 실패 처리다.
+모델 전기는 ZOH 예측으로만 표기하고 `interval_work_valid=false`를 유지한다. M6/engine 원본·V1 계수는
+변경하지 않았으며 일반 주행 시나리오/renderer·AI 학습·Jetson·M6 전체 회귀는 이번에 실행하지 않았다.

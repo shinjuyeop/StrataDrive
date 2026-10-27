@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import shutil
 import signal
 import socket
 import subprocess
@@ -29,6 +30,8 @@ def main():
     p.add_argument("--vehicle-substeps", type=int, choices=(0, 20, 40, 80, 160, 320, 640), default=20)
     p.add_argument("--settle-mode", choices=("fixed100", "sleep"), default="fixed100")
     p.add_argument("--zero", action="store_true")
+    p.add_argument("--native-actual", type=Path)
+    p.add_argument("--native-fault", choices=("none","credit","command","snapshot"), default="none")
     p.add_argument("--response-fixture", type=Path)
     p.add_argument("--require-solver-wheel", action="store_true")
     p.add_argument("--native-wheel-bridge", type=Path)
@@ -36,6 +39,8 @@ def main():
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
     a = p.parse_args()
+    if a.native_actual and (a.zero or a.response_fixture or a.native_wheel_bridge or a.flag_check or a.vehicle_substeps != 320):
+        p.error("native Actual requires exclusive vehicle320 profile")
     root = Path(__file__).resolve().parents[3]
     # Refuse another process's ports before any server mutation.
     guards = []
@@ -57,7 +62,7 @@ def main():
             str(a.source/"Unreal/CarlaUE4/CarlaUE4.uproject"), "/Game/Carla/Maps/Town03_Opt",
             "-game", "-RenderOffScreen", "-nosound", "-unattended", "-nosplash", "-carla-server",
             "-carla-rpc-port=2200", "-quality-level=Low", "-carla-settings="+str(settings),
-            "-StrataM7ZeroProbe" if a.zero else "-StrataM7V1Probe"]
+            "-StrataM7NativeProbe" if a.native_actual else ("-StrataM7ZeroProbe" if a.zero else "-StrataM7V1Probe")]
     if a.vehicle_substeps and not a.zero:
         argv.append(f"-StrataM7V1Substeps{a.vehicle_substeps}")
     if a.flag_check == "ambiguous":
@@ -81,6 +86,19 @@ def main():
             Path(__file__), Path(__file__).with_name("m7_1m_effort.py"), a.fixture,
             a.source/"Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so",
             a.source/"Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so")}
+    if a.native_actual:
+        # Freeze exact child inputs before server startup; a subsequent IDE build
+        # must not silently change the executable behind the recorded hash.
+        snapshot = a.runtime/"probe"
+        snapshot.mkdir()
+        report["native_source_snapshots"] = {}
+        for path in (a.native_actual, Path(__file__).with_name("m7_1q_probe.py"),
+                     Path(__file__).with_name("m7_1p_bridge.py"), Path(__file__).with_name("m7_1k_server_probe.py")):
+            dest = snapshot/path.name
+            shutil.copy2(path, dest)
+            report["executed_artifact_sha256"][str(dest)] = sha(dest)
+            report["native_source_snapshots"][str(path)] = str(dest)
+        a.native_actual = snapshot/a.native_actual.name
     if a.response_fixture:
         report["executed_artifact_sha256"][str(a.response_fixture)] = sha(a.response_fixture)
     if a.native_wheel_bridge:
@@ -120,6 +138,10 @@ def main():
                 cmd += ["--native-wheel-bridge", str(a.native_wheel_bridge)]
             if a.bridge_drop_snapshot:
                 cmd += ["--bridge-drop-snapshot"]
+        if a.native_actual:
+            cmd = [str(a.python), str(a.runtime/"probe/m7_1q_probe.py"), "--native", str(a.native_actual),
+                   "--model", str(root/"tools/carla/m7_nodrive/virtual_ev_v1.json"), "--output", str(a.output),
+                   "--fault", a.native_fault]
         if a.flag_check:
             expected = {"ambiguous": "ambiguous_numerical_profile", "requires-v1": "numerical_profile_requires_v1",
                         "disabled": "disabled"}[a.flag_check]

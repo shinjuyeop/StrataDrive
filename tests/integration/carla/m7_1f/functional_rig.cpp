@@ -92,9 +92,18 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     bool wheel_mode=false;
     std::optional<WheelSample> wheel;
     std::deque<WheelSample> pending_wheels;
+    bool export_actual=false;
+    bool coordinator_started=false;
+    std::array<DeliveredCapture<transport::Feedback>,2> feedback_capture;
+    std::array<DeliveredCapture<transport::LeafRequest>,5> command_capture;
+    std::array<std::optional<session::Ack>,8> release_acks;
 
-    Native(Scope s,Time initial,PlantMode mode):scope(s),start(initial),next_io(initial),next_physical(initial) {
+    Native(Scope s,Time initial,PlantMode mode,bool exporting):scope(s),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
         clock.logical=initial;
+        if(export_actual) {
+            for(unsigned i=0;i<2;++i)zones[i].feedback.delivery(&feedback_capture[i]);
+            for(unsigned i=0;i<5;++i)leaves[i].work.delivery(&command_capture[i]);
+        }
         if(mode==PlantMode::ExternalWheelZoh)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application);
         else physical=std::make_unique<simulation::m4_detail::PhysicalOwner>(clock,gates[7],fixture_sensors,outputs,start,events,override_signal,s.application,false);
         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
@@ -108,7 +117,10 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             participants[i+2]=std::make_unique<CreditedActor>(static_cast<Role>(i+2),*leaf[i],gates[i+2]);
         }
         participants[7]=std::make_unique<CreditedActor>(Role::CentralIngress,ingress,gates[7]);
-        require(coordinator.begin(s.application,initial),"begin trusted fixture session");
+        if(!export_actual) {
+            require(coordinator.begin(s.application,initial),"begin trusted fixture session");
+            coordinator_started=true;
+        }
     }
     Time now_ns() noexcept override {return clock.now_ns();}
     bool quiesce_central() noexcept override {gates[7].close();core.request_protection(now_ns());port.protect();return true;}
@@ -124,6 +136,13 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     }
     void cycle(Time now) {
         clock.logical=now;
+        // M7 applied path only: delayed INIT puts 10ms leaf acquisitions near
+        // the end of each CARLA frame. It changes phase, not any native rate,
+        // original timestamp, parent expiry, or session deadline budget.
+        if(!coordinator_started && now>=start+8*ms) {
+            require(coordinator.begin(scope.application,now),"begin aligned native session");
+            coordinator_started=true;
+        }
         if(now==next_physical) {
             if(physical){physical->step();require(physical->ok(),"fixture physical failure");}
             else if(now>start) {
@@ -173,8 +192,10 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             const auto a=acks.front();acks.pop_front();
             const auto m=wire({a.role,Role::CentralIngress,domain,a});
             const auto result=coordinator.receive(std::get<session::Ack>(m.payload),now);
-            if(result==session::AckResult::Accepted && a.accepted && a.phase==session::Phase::Release)
+            if(result==session::AckResult::Accepted && a.accepted && a.phase==session::Phase::Release) {
                 release_mask|=1U<<static_cast<unsigned>(a.role);
+                release_acks[static_cast<unsigned>(a.role)]=a;
+            }
         }
         coordinator.poll(now);
         require(coordinator.state()!=session::State::Failed,"coordinator failure");
@@ -237,11 +258,58 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             r.actual_interval=r.actual_interval && *bounds.second-*bounds.first<=10*ms;
         }
         if(r.armed)require(r.credit_mask==255 && r.actual_interval,"shadow Actual interval missing/stale");
+        if(export_actual) {
+            NativeExport e;e.observed=observed;e.enable=feedback.session_enable_ns;e.normal=r.armed;
+            for(unsigned i=0;i<8;++i)if(release_acks[i])
+                e.release[i]=remote::encode_owner_message({static_cast<Role>(i),Role::CentralIngress,domain,*release_acks[i]});
+            for(unsigned i=0;i<7;++i)if(participants[i]->credit.accepted())
+                e.credit[i]=remote::encode_owner_message({Role::CentralIngress,static_cast<Role>(i),domain,*participants[i]->credit.accepted()});
+            const auto capture=[&](unsigned i,const auto& message) {
+                if(!message)return;
+                const unsigned z=i<2?0:1;
+                const auto raw=feedback_capture[z].find([&](const transport::Feedback& f) {
+                    const auto meta=std::visit([](const auto& frame)->std::optional<can::ActuatorMetadata> {
+                        using F=std::decay_t<decltype(frame)>;
+                        if constexpr(std::is_same_v<F,can::SteeringFrame>) {auto v=can::decode_steering_frame(frame);if(v)return can::ActuatorMetadata{v->sequence,v->epoch,v->source_time_ns,v->causal_sequence,v->local_state,v->origin};}
+                        if constexpr(std::is_same_v<F,can::BrakeFrame>) {auto v=can::decode_brake_frame(frame);if(v)return can::ActuatorMetadata{v->sequence,v->epoch,v->source_time_ns,v->causal_sequence,v->local_state,v->origin};}
+                        if constexpr(std::is_same_v<F,can::DriveFrame>) {auto v=can::decode_drive_frame(frame);if(v)return can::ActuatorMetadata{v->sequence,v->epoch,v->source_time_ns,v->causal_sequence,v->local_state,v->origin};}
+                        return {};
+                    },f);
+                    return f.index()==i && meta && meta->epoch==message->epoch && meta->sequence==message->sequence && meta->source_time_ns==message->source_time_ns;
+                });
+                if(raw)e.actual[i]=remote::encode_owner_message({static_cast<Role>(z),Role::CentralIngress,domain,*raw});
+                const auto command=command_capture[i].find([&](const transport::LeafRequest& q) {
+                    if(!q.command || q.operation!=transport::LeafOperation::Frame)return false;
+                    const auto seq=std::visit([](const auto& f)->std::optional<std::uint32_t> {
+                        using F=std::decay_t<decltype(f)>;
+                        if constexpr(std::is_same_v<F,can::SteeringFrame>) {auto v=can::decode_steering_frame(f);if(v)return v->sequence;}
+                        if constexpr(std::is_same_v<F,can::BrakeFrame>) {auto v=can::decode_brake_frame(f);if(v)return v->sequence;}
+                        if constexpr(std::is_same_v<F,can::DriveFrame>) {auto v=can::decode_drive_frame(f);if(v)return v->sequence;}
+                        return {};
+                    },q.frame);
+                    return q.epoch==message->epoch && seq && *seq==message->causal_sequence;
+                });
+                if(command)e.commands[i]=remote::encode_owner_message({static_cast<Role>(z),static_cast<Role>(i+2),domain,*command});
+                if((message->local_state!=can::ActuatorLocalState::Normal && message->local_state!=can::ActuatorLocalState::Degraded) || message->origin!=can::ActuatorOrigin::NormalPath)e.normal=false;
+            };
+            capture(0,feedback.front.steering_actual);capture(1,feedback.front.brake_actual);capture(2,feedback.rear.drive_actual);
+            const auto permission=port.current_permission();
+            if(permission) {
+                const auto q=command_capture[2].find([&](const transport::LeafRequest& q) {
+                    const auto* f=std::get_if<can::BmsFrame>(&q.frame);const auto m=f?can::decode_bms_frame(*f):std::nullopt;
+                    return m && m->kind==can::BmsFrameKind::DrivePermission && m->epoch==permission->message.epoch && m->sequence==permission->message.sequence && m->source_time_ns==permission->message.source_time_ns;
+                });
+                if(q)e.permission=remote::encode_owner_message({Role::RearZone,Role::Drive,domain,*q});
+            }
+            for(unsigned i=0;i<3;++i)e.normal=e.normal && bool(e.actual[i]) && bool(e.commands[i]);
+            e.normal=e.normal && bool(e.permission);
+            r.native_export=std::move(e);
+        }
         return r;
     }
 };
 
-FunctionalRig::FunctionalRig(Scope scope,std::uint32_t actor,PlantMode mode):scope_(scope),clock_(scope),wheel_actor_(actor),plant_mode_(mode) {
+FunctionalRig::FunctionalRig(Scope scope,std::uint32_t actor,PlantMode mode,bool exporting):scope_(scope),clock_(scope),wheel_actor_(actor),plant_mode_(mode),export_actual_(exporting) {
     // Native PhysicalOwner's immutable fixture epoch is 7. Do not pretend a
     // packet can choose a new physical plant identity or an axle calibration.
     require(!actor || scope.plant==7,"wheel fixture plant binding");
@@ -264,7 +332,7 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
             const auto assessed=m7_external::assess(wheel->omega);
             require(bool(assessed.forward_rad_s),m7_external::reason(assessed.validity));
         }
-        if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_);
+        if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_);
         native_->wheel_mode=wheel_actor_!=0;
         if(wheel) {
             // An original floating timestamp may precede the next native job

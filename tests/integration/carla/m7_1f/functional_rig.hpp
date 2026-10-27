@@ -1,6 +1,7 @@
 #pragma once
 #include "frame_clock.hpp"
 #include "actuator_electrical.hpp"
+#include "native_export.hpp"
 #include <array>
 #include <memory>
 #include <optional>
@@ -29,6 +30,7 @@ struct Report {
     std::optional<m7_external::ElectricalAudit> electrical;
     std::array<m7_external::ElectricalAudit,11> electrical_steps{};
     unsigned electrical_count=0;
+    std::optional<NativeExport> native_export;
 };
 // Real native actors/session/credit + M6 actuator/electrical fixture. Optional
 // M7-1g mode replaces only the ECU sensor. M7-1h explicitly selects a separate
@@ -36,7 +38,7 @@ struct Report {
 // port or a claim that predicted electrical work was applied to the vehicle.
 class FunctionalRig {
 public:
-    explicit FunctionalRig(Scope scope,std::uint32_t trusted_wheel_actor=0,PlantMode mode=PlantMode::StationaryFixture);
+    explicit FunctionalRig(Scope scope,std::uint32_t trusted_wheel_actor=0,PlantMode mode=PlantMode::StationaryFixture,bool export_actual=false);
     ~FunctionalRig();
     FunctionalRig(const FunctionalRig&)=delete;
     FunctionalRig& operator=(const FunctionalRig&)=delete;
@@ -53,6 +55,7 @@ private:
     Scope scope_;FrameClock clock_;std::unique_ptr<Native> native_;
     std::uint32_t wheel_actor_;
     PlantMode plant_mode_;
+    bool export_actual_;
     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
 };
 } // namespace stratadrive::m7_functional
