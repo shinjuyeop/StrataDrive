@@ -465,3 +465,13 @@ adapter pause 이후 frame 불변을 확인한다. `audit_m7_wall.py`가 CSV/원
 기존 normal900/영상·functional 보호400 회귀와 원본 비교도 함께 수행한다.
 실행 중단/강제 종료, TSan 초기 실행 실패와 process-local ASLR 해제 후 결과는
 [해당 실행 근거](evidence/m7_carla_wall_guard/README.md)에 분리 기록한다.
+
+## Actuator/EV 독립 진행 선결 검사 (2026-10-28)
+
+`M7DeferredWork.*`는 work 부재 중 response 지속·원래 취득 시각 유지, 과거 coil 기반 지연 정산과
+signed EV 장부 동등성, fractional tail, 정산 실패/중복의 actuator rollback 금지, stale current의
+opening dwell 금지, wheel identity 변조와 coupled/deferred 혼합 거부를 검사한다.
+원래 M7 전체 CTest와 ASan/UBSan 검사를 실행하고 `replay_m7_native.py`로 기존 정상/보호
+trace의 WORK/WHEEL/PROTECT 입력을 재생해 모든 native 출력을 비교한다. replay는 새 CARLA
+실행이 아니며 원래 physics/센서/종료 PASS 분모에 합산하지 않는다.
+[실행·오류·제한](evidence/m7_carla_wall_guard/deferred-response/README.md)을 따른다.

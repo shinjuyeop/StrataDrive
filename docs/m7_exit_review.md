@@ -57,14 +57,14 @@ Plant Adapter는 정상 credit을 다시 열지 않고 같은 Release/epoch의 L
 
 ## 남은 문제를 닫는 작업
 
-**남은 주 작업은 wall owner 실행 구조와 wall fault 이후 실제 보호 Actual의 연속 적용이다.**
+**남은 주 작업은 wall owner 실행 구조에 분리된 actuator/EV 경로를 연결하고, wall fault 이후 실제 보호 Actual을 연속 적용하는 것이다.**
 현재 Python/RPC/전체 solver JSON 진단 loop의 지연을 단순 timeout 증가로 해결할 수 없다.
 
 - native owner/감시의 wall 실행을 CARLA 응답 대기와 분리한다. 실제2ms 실행 기회·4ms 완료를
   monotonic 기준으로 계측하고, 지연 시 normal 권한을 닫는 경로를 검증한다. trace는 비동기 수집하되
   frame별 work 정산 증거를 잃지 않아야 한다. 최적화 전후 동일 시나리오의 물리/work 비교를 유지한다.
 - 독립 wall 지연 검출→native 보호 선택→다음 tick 차단은 아래 한정 시험으로 연결했다.
-  다음은 지연 이후에도 원래 측정·Actual을 생성하는 actuator/전기 owner 분리다.
+  actuator/전기 진행 분리는 아래 component에서 완료했다. native timer/수신 경로 연결은 남는다.
   Actual/work 자체가 없을 때는 다음 tick 차단을 유지하며 그 차단을 물리 안전 정지로 수용하지 않는다.
 
 현 loop의 native 요청 응답 시간은 짧아도, RPC/trace 대기 중 owner를 호출하지 않는 구조는 남는다.
@@ -86,12 +86,32 @@ credit0·local selection mask255를 읽었다. 이 mask는 원격 ProtectionAck�
 마지막 완료 barrier의 logical time은 유지하고 다음 frame 권한을 영구 차단했다.
 시험 입력에 `PROTECT`/압력값을 넣지 않았으며, 별도 wall→simulation 시각 변환도 만들지 않았다.
 
-**이번에 분리한 것은 감시 실행이며 owner 실행 자체는 아직 CARLA 대기에 묶여 있다.**
-현재 `ActuatorElectrical::step()`은 `settle()`로 관측 work가 있어야 actuator도 진행한다.
-따라서 wall fault 후 work 없이 보호 압력을 계산하거나 이전 Actual을 새 취득으로 보내면 계약 위반이다.
-다음 구현은 actuator1ms 응답·원래 ECU service를 work 수신과 분리하고, 단일 EV 정산과 HV/BMS
-측정은 실제 work 시간·출처를 유지하는 구조다. 그 다음 clock mapping/불확실성·in-flight fault를
-검증해야 한다. 이번 진단은 완료된 barrier에서만 수행했으며 RPC 진행 중 차단/연속 제동 수용은 아니다.
+**native runner의 owner 실행 자체는 아직 CARLA 대기에 묶여 있다.**
+기존 coupled `ActuatorElectrical::step()`은 work가 있어야 actuator도 진행한다.
+아래 새 경로는 실제 response 모델을 독립 진행하므로 work 없이도 새로운 actuator 취득을 만들 수 있다.
+이전 Actual을 restamp하거나 관측 work 없이 전기 정산을 진행하는 것은 허용하지 않는다.
+다음은 원래 ECU service/timer에 새 경로를 연결하고 clock mapping/불확실성·in-flight fault를
+검증하는 작업이다. 위 wall 진단은 완료 barrier에서만 수행했으며 RPC 진행 중 차단/연속 제동 수용은 아니다.
+
+## Actuator 응답과 관측 EV 정산 분리
+
+[구현·검사·기존 출력 재생](test-plan/evidence/m7_carla_wall_guard/deferred-response/README.md).
+M7 모델 계층에 `DeferredObservedWork`를 추가했다. `advance_actuators()`는 work 수신을 기다리지
+않고 원래 Steering/Brake/Drive response를1ms 이하 구간으로 진행한다. `settle_observed_frame()`은
+완료된 work와 해당 과거 구간의 실제 coil 이력으로 단일 EV만 정산한다. 전체 frame의 EV commit은
+원자적이며 실패해도 이미 진행한 actuator를 되돌리지 않는다. 두 API의 mutation owner는 하나다.
+
+work가 없는250개1ms 구간에서도 보호 response를 계속하며 모델 시각의230ms 안에 torque0·pressure1MPa를
+검사했다. EV/HV/BMS 값과 시각은 동결하고 wheel 부재를0으로 채우지 않았다.128개 이력 슬롯이
+넘치면 전기 정산은 실패로 고정하지만 actuator 보호는 계속한다.128은 저장 공간 상한이며
+freshness 완화가 아니다. Power의 기존50/70ms source/dependency 경계 밖 전류는 opening dwell에
+쓰지 않는다. 잘못된/중복 work·혼합 모드·sensor identity 변조 및 재개도 거부한다.
+
+30ms 단위 지연 정산 component 대조에서 원래 방식과 SOC·signed motor work·손실·전압·전류가
+정확히 일치했다. 원래 native 실행 모드는 유지했으며 기록된 정상900구간과 보호400구간의 입력을
+재생한 모든 native 출력(terminal 포함901/401개)도 정확히 일치했다.
+이는 **모델 계층 분리 완료**이며 새 모드를 실제8-role wall runner/Plant Adapter에 연결한 결과는 아니다.
+새 CARLA 실행·2ms/4ms 수용·wall fault 이후 CARLA 물리 제동 완료를 주장하지 않는다.
 
 대화 중단으로 camera 실행기가 사라진 실행은 미완료로 보존했다. 남은 전용 서버에 SIGINT를
 보냈지만30초 안에 종료하지 않아 강제 종료했다. 기존 로딩 중 RPC 교착 수정으로 이 별도

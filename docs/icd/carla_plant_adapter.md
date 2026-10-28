@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-28, `m7-plant-draft-v19`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
+2026-10-28, `m7-plant-draft-v20`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -797,3 +797,27 @@ RPC 진행 중 fault, 연속 wall 정상 실행, clock agreement, 지연 뒤 물
 현재 actuator/EV가 관측 solver work 수신에 함께 종속되므로 이 진단은 독립 감시를 연결한 것이며
 독립 actuator 실행을 구현한 것이 아니다. 원래 pressure/torque Actual 없이 brake를 직접 적용하지 않는다.
 [현재 결과/남은 구조](../m7_exit_review.md#wall-guard-후속-결과)를 따른다.
+
+### 독립 response / deferred observed work (draft-v20)
+
+`PlantExecution::DeferredObservedWork`는 M7 모델 계층의 별도 선택이다. 기존 bool 생성자와
+ZOH/coupled solver 경로의 동작·실행 결과는 유지한다. 실제 native runner의 기본 모드를 변경하지 않는다.
+두 API는 한 mutation owner에서 호출하며, 수신 thread가 모델을 동시에 변경할 수 없다.
+현재 API의 시간은 caller가 선언한 한 model clock이다. simulation→wall 변환/불확실성 수용을 포함하지 않는다.
+
+| 동작 | 계약 |
+| --- | --- |
+| `advance_actuators(now, wheel, outputs, released, protect)` | work 없이 원래 응답 모델을(0,1ms]만큼 진행하고 새 angle/pressure/torque 취득. 원래 output source/epoch·30ms watchdog 유지. wheel 부재는 null이며 새0/abs/clamp로 채우지 않음 |
+| electrical/HV/BMS 취득 | 마지막 실제 정산 시각/oldest 유지. envelope source가 새 actuator 취득 시각이어도 개별 electrical 취득을 restamp하지 않음. 초기 power 부재는 그대로 unavailable |
+| coil history | 해당 response 구간 시작에 적용된 coil을128개 고정 슬롯에 보관. 과거 work에 현재 coil을 소급하지 않음. 부분 frame tail은 같은 원래 구간을 잘라 다음 work에 한 번만 사용 |
+| `settle_observed_frame(work)` | 기존 검증된 receipt에서 유래한 완전한 work, frame/wheel sequence, 연속 energy 시간, 이미 진행한 response 범위, 원래 dt/oldest를 검사. 원래 signed work 적분만 단일 EV로 반영하고 whole-frame commit |
+| 정산 실패/중복/이력 초과 | EV/장부는 마지막 성공 시점 유지, electrical 센서는 unavailable. actuator 상태는 rollback하지 않음. 이후 response는 보호를 계속하고 새 정상 output·정산 재개를 허용하지 않음 |
+| 보호 선택 | terminal latch. 원래 response 모델이 torque0/pressure floor를 생성하며 CARLA 직접 적용은 하지 않음. 원래 ECU 취득→CAN/P05 Actual 경로는 별도 runtime 연결 필요 |
+| Power watchdog | 기존 PowerControllerConfig의 source50ms/dependency70ms·current dwell을 재사용. 현재 전류가 만료되면 보관된 low-current로 접촉기 opening dwell을 채우지 않음. Drive freshness30ms와 구분 |
+
+`begin_work_frame/step/finish/commit/abort` coupled API와 독립 API의 혼합은 거부한다.
+새 모드의 실패 시 actuator는 이미 진행했으므로 coupled checkpoint로 과거 상태를 복원할 수 없다.
+`advance_actuators()` 성공은 response 진행 성공일 뿐 normal 권한이 아니다. 후속 native owner는
+`electrical_ok()==false`를 원래 LocalProtection 선택에 전달하고, 정상 credit/Actual 권한을 열지 않아야 한다.
+Native 정상 권한·CARLA stage/advance·scope/Actual/work ACK 계약은 개정하지 않았다.
+component 결과는 [현재 검토](../m7_exit_review.md#actuator-응답과-관측-ev-정산-분리)를 따른다.
