@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-28, `m7-plant-draft-v24`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
+2026-10-28, `m7-plant-draft-v25`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -945,3 +945,43 @@ wheel/work 생산자와 실제 Host timer/IO thread를 연결한 **native runtim
 CARLA가 새 wall-domain work를 생산하거나 wall Actual을 적용한 시험은 아니다. 실제 CARLA
 simulation dt·EV work와 wall acquisition의 명시적 연결, queued/in-flight RPC 차단 및
 wall-origin 보호 Actual의 연속 CARLA 적용은 여전히 미구현·미수용이다.
+
+
+### 실제 CARLA와 wall owner 연결 (draft-v25)
+
+**구현된 실험 경계이며 정상 주행 수용 아님.** [실행·실패](../test-plan/evidence/m7_carla_wall_guard/carla-runtime/README.md).
+기존 functional 프로필과 별개로 `--wall-native`/`-StrataM7WallNative`를 명시한다.
+같은 Linux kernel CLOCK_MONOTONIC의 새 INIT와 `M7MONO01` owner-wire domain만 허용한다.
+다른 Host clock agreement를 제공하지 않으며, CARLA simulation elapsed를 wall로 환산하지 않는다.
+
+- `CarlaWork`는 원래 frame/model begin/end/320-bin solver work와 **별도의** applied/acquired begin/end,
+  oldest dependency, 적용 당시 Power coil bits/source를 운반한다. EV는 원래 model10ms 안에서
+  1ms 정산하고 actuator response/ECU는 실제 wall timer에서 진행한다. 정산 자체의 늦은 도착을
+  새 센서 시각으로 쓰지 않는다. 전기 관측은 완료된 physics 취득 identity로 한 번 생성한다.
+- model-domain `SolverWork.oldest=begin`은 해당 solver 구간의 적용 witness다. 원래 wall dependency는
+  별도 `CarlaWork.oldest/coil_source`에 보존하고 전기/Drive sensor oldest에 전파한다. 누락 work를
+  예측/0으로 채우거나 EV를 이중 진행하지 않는다. 대기 중 EV 모델 시각/관측은 동결한다.
+- 공유 ABI2는 같은 빌드/Host·0600 소유 파일의 magic/size/run/session/actor/physics generation/
+  application/model origin을 확인한다. 실패 실험의 ABI1은 최종 연결에서 거부한다.
+  방향마다3개 exclusive slot, 단일 reader/writer이며 payload ownership은 acquire/release exchange로
+  이전한다. 원본 CAN/P05·owner-wire를 그대로 전달한다. 외부 네트워크/보안 채널 계약이 아니다.
+- native FIFO18 owner는 실제1ms wake마다 한 번 service한다. 과거 job catch-up은 없다.
+  원래2ms opportunity/4ms deadline을10owner에 독립 계측한다. IO는 GET/STOP/보호 요청만 처리한다.
+  새 CARLA 모드에서만 생성한 Drive owner가 센서 ingress를 control body보다 먼저 수행한다.
+  원래 Drive monitor·10ms 제어·freshness·CAN source는 바꾸지 않고 M6 원본은 그대로 컴파일한다.
+- game thread의 `PumpWall`만 물리를 발급한다. external advance/stage/EV ACK와 legacy writer는
+  잠금 중 거부한다. 다음 실제10ms를 덮는 원래 Actual/Command/permission/credit만 선택한다.
+  선택 preview에는 추가4ms 여유를 요구하며 기존 expiry를 늘리지 않는다. 물리 직전 다시 확인한다.
+  완료된 원본 work는 fault 후에도 한 번 정산하고 ACK 전 다음 물리를 금지한다.
+- 정상 승인 후의 terminal protection은 세션/Release 불변·선택 mask255·credit0·새 LocalProtection
+  Actual 전체를 요구한다. torque는 정확히0만 허용한다. 이0 torque의 적용에는 stale wheel을
+  유효한 값으로 승격하지 않는다. 정상/nonzero/regen에는 원래 wheel30ms gate가 그대로 필요하다.
+  초기화 실패의 unavailable Actual에는 적용 권한이 없다. M6의 명령 없는 진단 Actual 계약 유지.
+- pause/reset/close는 기존 latch·input clear·새 INIT 경계를 유지한다. receipt cache/공유 슬롯을 읽어도
+  원래 acquisition/source가 변하지 않는다. RGB/GT50ms·TRAIN_EVAL_ONLY 계약은 그대로다.
+
+native executable의 유한 horizon은19s(원래 schedule10000 slot 이내), server receipt 한도는950,
+raw solver journal은1024다. 시험 request의 마지막 phase만 wall 유한 horizon까지 hold하며
+그 값을 새 Actual로 만들지 않는다. 이는 Reference AI/정상 wall 수용 또는 freshness 예외가 아니다.
+완료 기준은 같은 실제 runtime의 정상/영상 및 고장·보호 정지·에너지·writer/lifecycle suite다.
+현재 실제 wall 시도는 INIT 이후 Drive 원천 만료로 실패했으며 다음 stage 차단까지만 관측했다.

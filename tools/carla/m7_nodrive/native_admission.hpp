@@ -35,16 +35,29 @@ struct Output {
 inline bool same(const Packet& a,const Packet& b) {
     return a && b && a->size==b->size && std::equal(a->bytes.begin(),a->bytes.begin()+a->size,b->bytes.begin());
 }
+enum class ClockPolicy { Functional, HostMonotonic };
 class Admission {
 public:
-    Admission(std::uint32_t application,Time initial):application_(application),initial_(initial) {}
+    Admission(std::uint32_t application,Time initial,ClockPolicy clock=ClockPolicy::Functional)
+        :application_(application),initial_(initial),clock_(clock) {}
+    // Read-only scheduling eligibility. All receiver cursors and latches in the
+    // real admission are untouched; the server still checks the final proof.
+    bool eligible(const Input& in,Time now,Output& output,std::string* why=nullptr,Time reserve=0) const {
+        Admission copy(application_,initial_,clock_);copy.reserve_=reserve;
+        copy.last_=last_;copy.enable_=enable_;copy.protection_since_=protection_since_;copy.normal_observed_=normal_observed_;
+        copy.started_=started_;copy.normal_=normal_;copy.error_=error_;copy.cached_=cached_;
+        copy.release_=release_;copy.permission_packet_=permission_packet_;copy.credit_=credit_;
+        copy.steering_.reset(new can::SteeringReceiver(*steering_));copy.brake_.reset(new can::BrakeReceiver(*brake_));
+        copy.drive_.reset(new can::DriveReceiver(*drive_));copy.permission_.reset(new can::BmsReceiver(*permission_));
+        const bool ok=copy.accept(in,now,output);if(why)*why=copy.error();return ok;
+    }
     bool accept(const Input& in,Time now,Output& output) {
         if(!error_.empty())return false;
-        if(!application_ || !initial_ || now>UINT64_MAX-step || in.observed!=now ||
-           now<initial_ || (last_ && (now<=last_ || now-last_<step-999 || now-last_>step+999)) ||
+        if(!application_ || !initial_ || reserve_>4000000 || now>UINT64_MAX-step-reserve_ || (wall()? (in.observed>now || now-in.observed>4000000):in.observed!=now) ||
+           now<initial_ || (last_ && (now<=last_ || (!wall() && (now-last_<step-999 || now-last_>step+999)))) ||
            in.service_mask!=255)return fail("native_clock_or_service");
         last_=now;
-        const Time end=now+step;
+        const Time end=now+step+reserve_;
         const bool empty=std::all_of(in.actual.begin(),in.actual.end(),[](const Packet& p){return !p;});
         if(empty) {
             if(started_ || normal_ || in.normal || in.protection_since || in.protection_selected_mask || now-initial_>=80000000)return fail("bootstrap_missing_actual");
@@ -87,13 +100,20 @@ public:
         // Local protection is terminal authority, not an invented normal lease.
         // This is the exclusive freshness limit of the ORIGINAL Actual samples.
         out.exclusive_expiry=protecting?*bounds.first+age+1:credit_->expires_at_ns;
-        if(!d->wheel_speed || !covers(d->wheel_speed->source_time_ns,now,end,age))return fail("native_wheel_interval");
-        out.oldest_actuator=std::min(out.oldest_actuator,d->wheel_speed->source_time_ns);
+        // In the explicit wall terminal path, zero physical torque has no
+        // wheel-speed dependency. This NEVER marks a stale wheel usable, never
+        // permits nonzero/regen torque, and does not change DriveReceiver rules.
+        const bool zero_protection=wall() && protecting && out.torque==0;
+        if(!zero_protection) {
+            if(!d->wheel_speed || !covers(d->wheel_speed->source_time_ns,now,end,age))return fail("native_wheel_interval");
+            out.oldest_actuator=std::min(out.oldest_actuator,d->wheel_speed->source_time_ns);
+        }
         out.oldest_dependency=out.oldest_actuator;
         if(protecting) {
             if(!protection_mode(*s) || !protection_mode(*b) || !protection_mode(*d) ||
                *bounds.first<protection_since_)return fail("native_protection_actual");
-            out.exclusive_expiry=std::min(out.exclusive_expiry,d->wheel_speed->source_time_ns+age+1);
+            if(wall() && out.torque!=0)return fail("wall_protection_requires_zero_torque");
+            if(!zero_protection)out.exclusive_expiry=std::min(out.exclusive_expiry,d->wheel_speed->source_time_ns+age+1);
         } else if(in.normal) {
             if(in.permission && !grant(in.permission,now,end,out,true))return false;
             if(!normal_mode(*s) || !normal_mode(*b) || !normal_mode(*d))return fail("native_actual_mode");
@@ -113,6 +133,7 @@ public:
     }
     const std::string& error() const {return error_;}
 private:
+    bool wall() const {return clock_==ClockPolicy::HostMonotonic;}
     bool fail(const char* why) {if(error_.empty())error_=why;return false;}
     bool covers(Time source,Time now,Time end,Time budget) const {
         return source>=enable_ && source<=now && end>=source && end-source<=budget;
@@ -129,7 +150,7 @@ private:
     }
     template<class T> std::optional<T> decode(const Packet& p,session::Role from,session::Role to) {
         const auto m=p?remote::decode_owner_message(p->bytes.data(),p->size):std::nullopt;
-        if(!m || m->clock_domain!=domain || m->from!=from || m->to!=to || !std::holds_alternative<T>(m->payload)) {
+        if(!m || m->clock_domain!=(wall()?0x4d374d4f4e4f3031ULL:domain) || m->from!=from || m->to!=to || !std::holds_alternative<T>(m->payload)) {
             fail("native_owner_wire_route_crc");return {};
         }
         return std::get<T>(m->payload);
@@ -142,8 +163,8 @@ private:
             const auto a=decode<session::Ack>(in.release[i],static_cast<session::Role>(i),session::Role::CentralIngress);
             if(!a)return false;
             if(!a->accepted || a->phase!=session::Phase::Release || a->role!=static_cast<session::Role>(i) ||
-               a->plan.epoch!=application_ || a->plan.requested_ns!=initial_+init_offset ||
-               a->plan.prepare_deadline_ns!=initial_+init_offset+session::kPrepareBudgetNs || a->plan.enable_ns!=in.enable ||
+               a->plan.epoch!=application_ || (wall()?(a->plan.requested_ns<initial_ || a->plan.requested_ns-initial_>=80000000):a->plan.requested_ns!=initial_+init_offset) ||
+               a->plan.prepare_deadline_ns!=a->plan.requested_ns+session::kPrepareBudgetNs || a->plan.enable_ns!=in.enable ||
                a->plan.commit_deadline_ns!=in.enable+session::kInitWindowNs || a->source_ns<in.enable ||
                a->plan.enable_ns<a->plan.requested_ns+session::kInitLeadNs ||
                a->plan.commit_deadline_ns>a->plan.prepare_deadline_ns ||
@@ -212,6 +233,7 @@ private:
         out.exclusive_expiry=std::min(out.exclusive_expiry,grant.expires_at_ns);return true;
     }
     std::uint32_t application_;Time initial_,last_=0,enable_=0,protection_since_=0,normal_observed_=0;bool started_=false,normal_=false;
+    ClockPolicy clock_;Time reserve_=0;
     std::string error_;
     std::array<Packet,3> cached_;std::array<Packet,8> release_;Packet permission_packet_;
     std::optional<remote::RunLease> credit_;

@@ -12,6 +12,11 @@
 #include "Misc/Parse.h"
 #include "HAL/PlatformMisc.h"
 #include <time.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include "wall_signal.hpp"
 
 #include <compiler/disable-ue4-macros.h>
 #include <memory>
@@ -20,6 +25,7 @@
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
 #include "native_admission.hpp"
+#include "wall_bridge.hpp"
 #include "held_steer_sleep.hpp"
 #include "solver_journal.hpp"
 #pragma GCC visibility pop
@@ -47,6 +53,21 @@ struct State {
   double TotalMotorWork = 0;
   std::unique_ptr<stratadrive::m7_native::Admission> NativeGate;
   uint32 Application = 0;
+  bool Wall = false;
+  const stratadrive::m7_native::WallSignal* Signal = nullptr;
+  uint64 WallProof = 0, WallExpiry = 0, AppliedWall = 0;
+  bool WallProtection = false, Pumping = false;
+  stratadrive::m7_native::WallBridge* Bridge = nullptr;
+  stratadrive::m7_native::SharedReader<stratadrive::m7_native::SharedProof> ProofReader;
+  stratadrive::m7_native::SharedWriter<stratadrive::m7_native::SharedReceipt> ReceiptWriter;
+  stratadrive::m7_native::SharedProof AppliedProof;
+  uint64 NextDue = 0, WallFrames = 0, WallLimit = 0, GapUntil = 0, WallNormal=0, WallProtected=0;
+  uint64 RpcBegin=0,MaxRpc=0,LastPump=0,MaxPumpGap=0;
+  double WheelBegin = 0;
+  FString WallWait;
+  TArray<Json> WallReceipts, WallSettlements;
+  void CloseSignal() {if(Signal){munmap(const_cast<stratadrive::m7_native::WallSignal*>(Signal),Bridge?sizeof(*Bridge):sizeof(*Signal));Signal=nullptr;Bridge=nullptr;}}
+  ~State() {CloseSignal();}
   FM7WheelEffort Effort, LastEffort;
   bool ProtectionEffort = false, LastProtection = false, KeptSteerSleep = false;
   bool Locked = false, Staged = false, Queued = false, InFlight = false, Latched = false;
@@ -61,6 +82,7 @@ struct State {
 };
 State S;
 
+uint64 WallNow() {timespec T{};return clock_gettime(CLOCK_MONOTONIC,&T)==0?uint64(T.tv_sec)*1000000000+uint64(T.tv_nsec):0;}
 FString Dec(uint64 V) { return FString::Printf(TEXT("%llu"), static_cast<unsigned long long>(V)); }
 bool Text(const Json& J, const TCHAR* Key, FString& V) { return J->TryGetStringField(Key, V); }
 bool Number(const Json& J, const TCHAR* Key, uint64& V)
@@ -92,7 +114,7 @@ Json Response(bool Ok, const FString& Reason)
   R->SetStringField(TEXT("schema"), TEXT("m7-nodrive-zero-probe-v1"));
   R->SetBoolField(TEXT("normal_driving_enabled"), false);
   R->SetBoolField(TEXT("interval_work_valid"), false);
-  R->SetStringField(TEXT("effort_profile"), S.Native ? TEXT("virtual-ev-v1-native-functional") : (S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only")));
+  R->SetStringField(TEXT("effort_profile"), S.Wall ? TEXT("virtual-ev-v1-native-wall-experimental") : (S.Native ? TEXT("virtual-ev-v1-native-functional") : (S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only"))));
   if (S.V1) {
     R->SetStringField(TEXT("model_id"), UTF8_TO_TCHAR(M7V1::Id));
     R->SetStringField(TEXT("model_sha256"), UTF8_TO_TCHAR(M7V1::Sha));
@@ -104,9 +126,15 @@ Json Response(bool Ok, const FString& Reason)
   R->SetStringField(TEXT("clock_domain"), S.Native ? TEXT("m7-native-simulation-elapsed") : TEXT("m7-zero-probe-logical-frame"));
   R->SetBoolField(TEXT("locked"), S.Locked);
   R->SetBoolField(TEXT("latched"), S.Latched);
+  R->SetStringField(TEXT("latched_reason"),S.Reason);
   R->SetBoolField(TEXT("staged"), S.Staged);
   R->SetBoolField(TEXT("in_flight"), S.InFlight || S.Queued);
   R->SetBoolField(TEXT("awaiting_ev_settlement"), S.AwaitSettlement);
+  if(S.Wall){R->SetStringField(TEXT("wall_frames"),Dec(S.WallFrames));R->SetStringField(TEXT("wall_wait"),S.WallWait);
+    R->SetStringField(TEXT("native_clock_domain"),TEXT("host_CLOCK_MONOTONIC; separate_CARLA_model_time"));
+    R->SetStringField(TEXT("max_rpc_window_ns"),Dec(S.MaxRpc));R->SetStringField(TEXT("max_pump_gap_ns"),Dec(S.MaxPumpGap));
+    R->SetStringField(TEXT("wall_normal_intervals"),Dec(S.WallNormal));R->SetStringField(TEXT("wall_protected_intervals"),Dec(S.WallProtected));
+    R->SetBoolField(TEXT("wall_terminal"),S.Signal && stratadrive::m7_native::wall_fault(S.Signal));}
   return R;
 }
 void Latch(const FString& Reason)
@@ -247,6 +275,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     return Encode(Response(false, TEXT("malformed")));
   FString Op;
   if (!Text(J, TEXT("op"), Op)) return Encode(Response(false, TEXT("operation")));
+  if (Op == TEXT("wall_status")) return Encode(Response(true,TEXT("status_only")));
   if (Op == TEXT("describe")) {
     auto R = Response(true, TEXT("diagnostic_only"));
     R->SetStringField(TEXT("clock_domain"), NativeFlag ? TEXT("m7-native-simulation-elapsed; NOT wall") : TEXT("m7-zero-probe-logical-frame; NOT native wall"));
@@ -281,8 +310,13 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.Movement = Movement;
     S.V1 = V1Flag || NativeFlag;
     S.Native = NativeFlag;
+    S.Wall = NativeFlag && FParse::Param(FCommandLine::Get(),TEXT("StrataM7WallNative"));
+    S.CloseSignal();S.WallProof=S.WallExpiry=S.AppliedWall=0;S.WallProtection=false;
+    S.WallFrames=S.WallLimit=S.GapUntil=S.NextDue=S.WallNormal=S.WallProtected=0;S.WallReceipts.Empty(950);S.WallSettlements.Empty(950);
+    S.ProofReader={};S.ReceiptWriter={};S.WallWait.Empty();
     S.Work = NativeFlag && FParse::Param(FCommandLine::Get(), TEXT("StrataM7SolverWork"));
     const bool Compact = FParse::Param(FCommandLine::Get(), TEXT("StrataM7CompactWork"));
+    if(S.Wall && (!S.Work || !Compact))return Encode(Response(false,TEXT("wall_requires_compact_solver_work")));
     if (Compact && !S.Work) return Encode(Response(false, TEXT("compact_requires_native_work")));
     S.Journal.reset(Compact ? new stratadrive::m7_native::SolverJournal<1024> : nullptr);
     S.AwaitSettlement = false; S.TotalMotorWork = 0;
@@ -323,6 +357,39 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   if (!S.Locked || !Number(J, TEXT("session"), Session) || Session != S.Session ||
       !Text(J, TEXT("run"), Run) || Run != S.Run)
     return Encode(Response(false, TEXT("session")));
+  if (Op == TEXT("wall_start")) {
+    uint64 Initial,Limit;FString Path;
+    if(!S.Wall || S.Signal || S.Receipt.IsValid() || !Number(J,TEXT("limit"),Limit) || Limit<1 || Limit>950 || !Number(J,TEXT("initial"),Initial) ||
+       !Text(J,TEXT("signal_path"),Path) || Initial>WallNow() || WallNow()-Initial>40000000)
+      return Encode(Response(false,TEXT("wall_start_context")));
+    const int Fd=open(TCHAR_TO_UTF8(*Path),O_RDWR|O_NOFOLLOW);
+    struct stat Info{};
+    if(Fd<0)return Encode(Response(false,TEXT("wall_signal_open")));
+    if(fstat(Fd,&Info) || !S_ISREG(Info.st_mode) || Info.st_uid!=getuid() || Info.st_size!=sizeof(stratadrive::m7_native::WallBridge)) {
+      close(Fd);return Encode(Response(false,TEXT("wall_signal_file")));
+    }
+    void* M=mmap(nullptr,sizeof(stratadrive::m7_native::WallBridge),PROT_READ|PROT_WRITE,MAP_SHARED,Fd,0);close(Fd);
+    if(M==MAP_FAILED)return Encode(Response(false,TEXT("wall_signal_map")));
+    S.Bridge=static_cast<stratadrive::m7_native::WallBridge*>(M);S.Signal=&S.Bridge->signal;
+    if(!stratadrive::m7_native::bridge_identity(*S.Bridge,S.Application,Initial,S.ActorId,Now(Episode),
+       S.Session,S.PhysicsGeneration,TCHAR_TO_UTF8(*S.Run))) {
+      S.CloseSignal();return Encode(Response(false,TEXT("wall_signal_identity")));
+    }
+    S.WallLimit=Limit;S.NextDue=Initial+Step;
+    S.MaxRpc=S.LastPump=S.MaxPumpGap=0;
+    S.NativeGate.reset(new stratadrive::m7_native::Admission(S.Application,Initial,stratadrive::m7_native::ClockPolicy::HostMonotonic));
+    auto R=Response(true,TEXT("same_host_monotonic_new_init"));R->SetStringField(TEXT("wall_now_ns"),Dec(WallNow()));return Encode(R);
+  }
+  if(Op==TEXT("wall_gap")) {
+    if(!S.Bridge || S.GapUntil)return Encode(Response(false,TEXT("wall_gap_context")));
+    S.GapUntil=WallNow()+100000000;return Encode(Response(true,TEXT("withheld_physics_100ms_no_restamp")));
+  }
+  if(Op==TEXT("wall_trace")) {
+    uint64 Index;
+    if(!S.Bridge || !Number(J,TEXT("index"),Index) || Index>=uint64(S.WallReceipts.Num()))return Encode(Response(false,TEXT("wall_trace_index")));
+    auto R=Response(true,TEXT("immutable_wall_receipt"));R->SetObjectField(TEXT("receipt"),S.WallReceipts[Index]);
+    if(Index<uint64(S.WallSettlements.Num()))R->SetObjectField(TEXT("settlement"),S.WallSettlements[Index]);return Encode(R);
+  }
   if (Op == TEXT("receipt")) {
     auto R = Response(true, TEXT("query_only"));
     if (S.Receipt.IsValid()) R->SetObjectField(TEXT("receipt"), S.Receipt);
@@ -374,7 +441,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
       Actor->SetActorState(carla::rpc::ActorState::PendingKill);
       if (!Episode.DestroyActor(S.ActorId)) return Encode(Response(false, TEXT("destroy_failed")));
     }
-    S.Actor.Reset(); S.Movement.Reset(); S.Locked = false;
+    S.Actor.Reset(); S.Movement.Reset(); S.Locked = false;S.CloseSignal();
     auto R = Response(true, TEXT("closed_actor_destroyed"));
     R->SetBoolField(TEXT("registry_actor_present"), Episode.FindCarlaActor(S.ActorId) != nullptr);
     return Encode(R);
@@ -384,6 +451,8 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
       !S.Movement->InputsAreZero() || S.Movement->PhysicsGeneration() != S.PhysicsGeneration) {
     Latch(TEXT("plant_changed")); return Encode(Response(false, S.Reason));
   }
+  if(S.Bridge && !S.Pumping && (Op==TEXT("settle_work") || Op==TEXT("stage_native") || Op==TEXT("advance")))
+    return Encode(Response(false,TEXT("wall_single_tick_owner")));
   if (Op == TEXT("settle_work")) {
     uint64 Ticket, Frame, End;
     double Total = 0, Balance = 0;
@@ -419,13 +488,22 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
       Latch(TEXT("native_envelope")); return Encode(Response(false, S.Reason));
     }
     const uint64 Begin = Now(Episode);
-    if (!S.NativeGate->accept(Native, Begin, Actual)) {
+    const uint64 AdmissionNow=S.Wall?WallNow():Begin;
+    if(S.Wall && (!S.Signal || (stratadrive::m7_native::wall_fault(S.Signal) && !Native.protection_since)))
+      return Encode(Response(false,TEXT("wall_normal_closed")));
+    if(S.Pumping) {
+      std::string Why;
+      if(!S.NativeGate->eligible(Native,AdmissionNow,Actual,&Why,4000000)){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return Encode(Response(false,S.WallWait));}
+    }
+    if (!S.NativeGate->accept(Native, AdmissionNow, Actual)) {
       Latch(UTF8_TO_TCHAR(S.NativeGate->error().c_str())); return Encode(Response(false, S.Reason));
     }
     FM7WheelEffort Effort;
     if (!Actual.empty && !S.Movement->PrepareV1(Actual.angle, Actual.torque, Actual.pressure, Effort)) {
       Latch(TEXT("native_model_range_or_geometry")); return Encode(Response(false, S.Reason));
     }
+    S.WallProof=Native.observed;S.WallExpiry=Actual.empty?AdmissionNow+Step+4000001:std::min<uint64>(Actual.exclusive_expiry,Actual.oldest_actuator+Age+1);
+    S.WallProtection=Actual.protection;
     S.Frame = Frame; S.Begin = Begin; S.SimBegin = Episode.GetElapsedGameTime();
     S.Ticket = ++S.NextTicket; S.Effort = Effort;
     S.ProtectionEffort = Actual.protection && Actual.torque == 0 && Actual.pressure >= 1000000;
@@ -509,6 +587,61 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   return Encode(Response(false, TEXT("operation")));
 }
 
+void RpcWindow(bool Begin) {
+  if(!S.Bridge)return;
+  const uint64 Now=WallNow();
+  if(Begin)S.RpcBegin=Now;
+  else if(S.RpcBegin && Now>=S.RpcBegin)S.MaxRpc=FMath::Max(S.MaxRpc,Now-S.RpcBegin);
+}
+bool PumpWall(UCarlaEpisode& Episode) {
+  using namespace stratadrive::m7_native;
+  if(S.Bridge){const uint64 Now=WallNow();if(S.LastPump)S.MaxPumpGap=FMath::Max(S.MaxPumpGap,Now-S.LastPump);S.LastPump=Now;}
+  if(!S.Bridge || S.Latched || !S.Locked || S.InFlight || S.Staged || S.Queued)return false;
+  SharedProof Shared;if(!S.ProofReader.read(S.Bridge->proof,Shared))return false;
+  const uint64 Now=WallNow();
+  if(S.AwaitSettlement) {
+    if(Shared.energy_end!=static_cast<uint64>(std::llround(Episode.GetElapsedGameTime()*1e9)))return false;
+    if(!FMath::IsFinite(Shared.total_mechanical) || !FMath::IsFinite(Shared.balance) ||
+       FMath::Abs(Shared.total_mechanical-S.TotalMotorWork)>256*2.220446049250313e-16*(1+FMath::Abs(Shared.total_mechanical)+double(S.Ticket)) ||
+       FMath::Abs(Shared.balance)>.00072) {Latch(TEXT("shared_ev_settlement_rejected"));return false;}
+    auto Ack=Object();Ack->SetStringField(TEXT("end_ns"),Dec(Shared.energy_end));Ack->SetStringField(TEXT("observed_ns"),Dec(Shared.observed));
+    Ack->SetNumberField(TEXT("total_mechanical_j"),Shared.total_mechanical);Ack->SetNumberField(TEXT("balance_j"),Shared.balance);
+    Ack->SetNumberField(TEXT("soc"),Shared.soc);Ack->SetNumberField(TEXT("chemical_j"),Shared.chemical);Ack->SetNumberField(TEXT("motor_loss_j"),Shared.motor_loss);
+    Ack->SetNumberField(TEXT("auxiliary_j"),Shared.auxiliary);Ack->SetNumberField(TEXT("ohmic_j"),Shared.ohmic);
+    Ack->SetNumberField(TEXT("capacitor_delta_j"),Shared.capacitor);Ack->SetNumberField(TEXT("circuit_loss_j"),Shared.circuit);
+    S.WallSettlements.Add(Ack);S.AwaitSettlement=false;
+  }
+  if(__atomic_load_n(&S.Bridge->stop,__ATOMIC_ACQUIRE) || S.WallFrames>=S.WallLimit || Now<S.NextDue || Now<S.GapUntil)return false;
+  Input Native;Output Actual;std::string Why;
+  if(!restore(Shared,Native)){Latch(TEXT("shared_proof_format"));return false;}
+  if((wall_fault(S.Signal) || __atomic_load_n(&S.Bridge->server_trip,__ATOMIC_ACQUIRE)) && !Native.protection_since){S.WallWait=TEXT("wall_normal_closed");return false;}
+  // Eligibility does not consume a receiver or turn a rejected candidate into
+  // a permission. The selected proof is checked again by the original gate.
+  if(!S.NativeGate->eligible(Native,Now,Actual,&Why,4000000)){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return false;}
+  const auto PacketJson=[](const Packet& P)->TSharedPtr<FJsonValue> {
+    if(!P)return MakeShared<FJsonValueNull>();
+    FString Hex;Hex.Reserve(int(P->size)*2);
+    for(std::size_t I=0;I<P->size;++I)Hex+=FString::Printf(TEXT("%02x"),unsigned(P->bytes[I]));
+    return MakeShared<FJsonValueString>(Hex);
+  };
+  const auto Packets=[&](const auto& Values){TArray<TSharedPtr<FJsonValue>> Out;for(const auto& P:Values)Out.Add(PacketJson(P));return Out;};
+  auto Proof=Object();Proof->SetStringField(TEXT("observed_ns"),Dec(Native.observed));Proof->SetStringField(TEXT("enable_ns"),Dec(Native.enable));
+  Proof->SetBoolField(TEXT("normal"),Native.normal);Proof->SetStringField(TEXT("protection_since_ns"),Dec(Native.protection_since));
+  Proof->SetStringField(TEXT("protection_selected_mask"),Dec(Native.protection_selected_mask));
+  Proof->SetStringField(TEXT("service_mask"),Dec(Native.service_mask));Proof->SetStringField(TEXT("credit_mask"),Dec(Native.credit_mask));
+  Proof->SetStringField(TEXT("release_mask"),Dec(Native.release_mask));
+  Proof->SetArrayField(TEXT("actual"),Packets(Native.actual));Proof->SetArrayField(TEXT("commands"),Packets(Native.commands));
+  Proof->SetArrayField(TEXT("release"),Packets(Native.release));Proof->SetArrayField(TEXT("credit"),Packets(Native.credit));
+  Proof->SetField(TEXT("permission"),PacketJson(Native.permission));
+  auto RequestJson=Object();RequestJson->SetStringField(TEXT("op"),TEXT("stage_native"));RequestJson->SetStringField(TEXT("frame"),Dec(FCarlaEngine::GetFrameCounter()+1));
+  RequestJson->SetStringField(TEXT("session"),Dec(S.Session));RequestJson->SetStringField(TEXT("run"),S.Run);
+  RequestJson->SetStringField(TEXT("owner_key"),FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M7_OWNER_KEY")));
+  RequestJson->SetObjectField(TEXT("native"),Proof);
+  bool Tick=false;S.Pumping=true;Request(Episode,Encode(RequestJson),Tick);S.Pumping=false;
+  if(!S.Staged)return false;
+  S.AppliedProof=Shared;S.Queued=true;S.WallWait.Empty();return true;
+}
+
 bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
 {
   if (!S.Locked) return true;
@@ -518,6 +651,17 @@ bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
       S.Movement->PhysicsGeneration() != S.PhysicsGeneration ||
       FMath::Abs(Episode.GetElapsedGameTime() - S.SimBegin) > 1e-9) {
     Latch(TEXT("prephysics_guard")); return false;
+  }
+  if(S.Wall) {
+    const uint64 Now=WallNow();
+    if(!S.Signal || !Now || Now<S.WallProof || Now-S.WallProof>4000000 ||
+       Now+Step>=S.WallExpiry || ((stratadrive::m7_native::wall_fault(S.Signal) ||
+       __atomic_load_n(&S.Bridge->server_trip,__ATOMIC_ACQUIRE)) && !S.WallProtection)) {
+      S.Staged=S.Queued=false;S.Pending.Reset();S.Reason=TEXT("wall_prephysics_contained");return false;
+    }
+    S.AppliedWall=Now;
+    const auto P=Physics();const auto& Wheels=P->GetArrayField(TEXT("wheels"));
+    S.WheelBegin=(Wheels[2]->AsObject()->GetNumberField(TEXT("solver_omega_rad_s"))+Wheels[3]->AsObject()->GetNumberField(TEXT("solver_omega_rad_s")))/2;
   }
   if (S.Journal && (S.Journal->full() || S.Journal->failed())) { Latch(TEXT("solver_journal_full")); return false; }
   if (!S.Movement->NumericalProfileMatches() || (S.V1 && !S.Movement->ValidateV1()) || !S.Movement->ApplyEffort(S.Effort)) {
@@ -558,10 +702,16 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   R->SetNumberField(TEXT("simulation_begin_seconds"), S.SimBegin);
   R->SetNumberField(TEXT("simulation_end_seconds"), Episode.GetElapsedGameTime());
   R->SetObjectField(TEXT("original_actual"), S.Pending);
+  if(S.Wall) {
+    R->SetStringField(TEXT("native_clock_domain"),TEXT("host_CLOCK_MONOTONIC; separate_CARLA_model_time"));
+    R->SetStringField(TEXT("wall_applied_ns"),Dec(S.AppliedWall));
+    R->SetBoolField(TEXT("wall_fault_after_physics"),stratadrive::m7_native::wall_fault(S.Signal));
+  }
   if (S.Native) R->SetStringField(TEXT("application"), Dec(S.Application));
   // Bracket this NEW post-physics acquisition on the same host monotonic
   // clock as the runner. Cached receipt queries retain both original values.
-  // This is evidence for a future clock contract, NOT a CAN source rewrite.
+  // Wall mode uses this original acquisition coordinate. Model/solver time
+  // remains separate; querying a cached receipt never changes either clock.
   timespec SampleBegin{}, SampleEnd{};
   const bool BeginOk = clock_gettime(CLOCK_MONOTONIC, &SampleBegin) == 0;
   R->SetObjectField(TEXT("physics"), Physics());
@@ -575,7 +725,7 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
     Zero = Zero && S.Effort.Drive[W] == 0 && S.Effort.Brake[W] == 0 && S.Effort.Steer[W] == 0;
   R->SetBoolField(TEXT("applied_zero_effort"), Zero);
   R->SetBoolField(TEXT("protected_held_steer_sleep"), S.KeptSteerSleep);
-  R->SetStringField(TEXT("effort_profile"), S.Native ? TEXT("virtual-ev-v1-native-functional") : (S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only")));
+  R->SetStringField(TEXT("effort_profile"), S.Wall ? TEXT("virtual-ev-v1-native-wall-experimental") : (S.Native ? TEXT("virtual-ev-v1-native-functional") : (S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only"))));
   if (S.V1) {
     R->SetStringField(TEXT("model_id"), UTF8_TO_TCHAR(M7V1::Id));
     R->SetStringField(TEXT("model_sha256"), UTF8_TO_TCHAR(M7V1::Sha));
@@ -599,6 +749,29 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   if (!S.Movement->InputsAreZero()) { Latch(TEXT("clear_failed")); return; }
   R->SetBoolField(TEXT("inputs_cleared_after_physics"), true);
   S.Receipt = R;
+  if(S.Bridge && WorkValid) {
+    using namespace stratadrive::m7_native;
+    SharedReceipt Completed;Completed.frame=Frame;Completed.begin=S.Begin;Completed.end=Now(Episode);
+    Completed.applied=S.AppliedWall;Completed.acquired_begin=uint64(SampleBegin.tv_sec)*1000000000+uint64(SampleBegin.tv_nsec);
+    Completed.acquired_end=uint64(SampleEnd.tv_sec)*1000000000+uint64(SampleEnd.tv_nsec);
+    const auto Admitted=S.Pending->GetObjectField(TEXT("admitted_actual"));
+    uint64 Oldest=0;Number(Admitted,TEXT("oldest_actuator_ns"),Oldest);Completed.oldest=Oldest?Oldest:S.AppliedWall;
+    Completed.coil_source=S.AppliedProof.coil_source;Completed.coils=S.AppliedProof.coils;Completed.wheel_begin=S.WheelBegin;
+    Completed.torque=Admitted->GetNumberField(TEXT("torque_nm"));Completed.dt=double(.01f*(1.f/320.f));
+    const auto Work=R->GetObjectField(TEXT("solver_work"));Completed.sleeping=uint64(Work->GetNumberField(TEXT("sleeping")));
+    const auto& Means=Work->GetArrayField(TEXT("rear_mean_rad_s"));
+    if((Completed.sleeping && Means.Num()!=0) || (!Completed.sleeping && Means.Num()!=320)){Latch(TEXT("shared_work_count"));return;}
+    for(int I=0;I<Means.Num();++I)Completed.means[I]=Means[I]->AsNumber();
+    const auto& Wheels=R->GetObjectField(TEXT("physics"))->GetArrayField(TEXT("wheels"));
+    for(unsigned I=0;I<4;++I)Completed.omega[I]=Wheels[I]->AsObject()->GetNumberField(TEXT("solver_omega_rad_s"));
+    R->SetStringField(TEXT("coil_source_ns"),Dec(Completed.coil_source));R->SetStringField(TEXT("coil_bits"),Dec(Completed.coils));
+    const bool Expired=Completed.acquired_end>=S.WallExpiry;
+    R->SetBoolField(TEXT("wall_authority_expired_during_physics"),Expired);
+    if(Expired)__atomic_store_n(&S.Bridge->server_trip,1ULL,__ATOMIC_RELEASE);
+    S.WallReceipts.Add(R);++S.WallFrames;
+    S.WallNormal+=Admitted->GetBoolField(TEXT("normal"))?1:0;S.WallProtected+=Admitted->GetBoolField(TEXT("protection"))?1:0;S.NextDue=S.AppliedWall+Step;
+    S.ReceiptWriter.publish(S.Bridge->receipt,Completed);
+  }
   if (S.Work && !WorkValid) { Latch(TEXT("solver_work_incomplete")); return; }
   S.LastProtection = S.ProtectionEffort; S.LastEffort = S.Effort;
   S.Pending.Reset();

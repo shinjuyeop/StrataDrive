@@ -10,6 +10,7 @@ struct WallReceipt {
     WheelSample wheel;
     m7_external::SolverWork work;
     Time clock=0;
+    std::optional<m7_external::CarlaWork> carla{};
 };
 struct WallReport {
     Report native;
@@ -22,7 +23,7 @@ struct WallReport {
 // ECU jobs. Receipt parsing/blocking IO belongs outside this owner.
 class WallRig {
 public:
-    WallRig(Scope scope,std::uint32_t actor,Time initial);
+    WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial=0);
     ~WallRig();
     WallRig(const WallRig&)=delete;
     WallRig& operator=(const WallRig&)=delete;
@@ -34,6 +35,7 @@ private:
     std::unique_ptr<FunctionalRig::Native> native_;
     Scope scope_;
     std::uint32_t actor_;
+    Time model_initial_=0;
     Time initial_,last_=0,last_frame_=0,last_source_=0;
     std::thread::id owner_=std::this_thread::get_id();
     std::string failure_;

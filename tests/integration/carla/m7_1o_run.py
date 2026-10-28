@@ -37,6 +37,12 @@ def main():
     p.add_argument("--native-actual", type=Path)
     p.add_argument("--solver-work", action="store_true")
     p.add_argument("--compact-work", action="store_true")
+    p.add_argument("--wall-native", action="store_true")
+    p.add_argument("--rpc-nodelay",type=Path)
+    p.add_argument("--wall-server-priority",type=int,choices=(0,10),default=0)
+    p.add_argument("--wall-warmup-ticks",type=int,choices=(0,150),default=0)
+    p.add_argument("--wall-nullrhi",action="store_true",help="diagnostic only; disables renderer and cannot validate cameras")
+    p.add_argument("--wall-inline-render",action="store_true",help="experimental owned server render scheduling; budgets unchanged")
     p.add_argument("--scenario", type=Path)
     p.add_argument("--cameras", action="store_true")
     p.add_argument("--terminal-response", action="store_true")
@@ -52,6 +58,13 @@ def main():
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
     a = p.parse_args()
+    if a.wall_native and not (a.native_actual and a.solver_work and a.compact_work and a.scenario):
+        p.error("wall native requires explicit native/work/compact/scenario")
+    if a.wall_native and a.native_fault not in ('none','wall-gap','protection'):
+        p.error("this fault is not implemented for the experimental wall runtime")
+    if a.wall_nullrhi and (not a.wall_native or a.cameras):
+        p.error("null RHI requires wall-native without cameras")
+    if a.wall_inline_render and not a.wall_native:p.error("inline render is a wall-only experiment")
     if a.compact_work and (not a.native_actual or not a.solver_work or a.native_fault=="client-loss"):
         p.error("compact work requires native solver work and surviving probe")
     if a.held_steer_sleep and not (a.native_actual and a.solver_work):
@@ -100,6 +113,11 @@ def main():
         argv.append("-StrataM7SolverWork")
     if a.compact_work:
         argv.append("-StrataM7CompactWork")
+    if a.wall_native:
+        argv.append("-StrataM7WallNative")
+    if a.wall_nullrhi:
+        argv.append("-nullrhi")
+    if a.wall_inline_render:argv.append("-norenderthread")
     if a.held_steer_sleep:
         argv.append("-StrataM7HeldSteerSleep")
     if a.flag_check == "ambiguous":
@@ -110,6 +128,10 @@ def main():
         argv = [v for v in argv if not v.startswith("-StrataM7")]
     argv += ["-log", "-stdout", "-FullStdOutLogOutput"]
     env = dict(os.environ, STRATADRIVE_M7_OWNER_KEY=secrets.token_hex(32))
+    if a.rpc_nodelay:
+        if not a.rpc_nodelay.is_file():raise FileNotFoundError(a.rpc_nodelay)
+        if env.get("LD_PRELOAD"):raise RuntimeError("refuse to replace existing LD_PRELOAD")
+        env["LD_PRELOAD"]=str(a.rpc_nodelay.resolve())
     report = dict(status="FAIL", argv=argv, started_utc=datetime.now(timezone.utc).isoformat(),
                   normal_driving_enabled=False, owner_key="ephemeral child environment; value never recorded")
     def sha(path):
@@ -124,13 +146,15 @@ def main():
             a.engine/"Engine/Plugins/Runtime/PhysXVehicles/Binaries/Linux/libUE4Editor-PhysXVehicles.so",
             a.source/"Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so",
             a.source/"Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so")}
+    if a.rpc_nodelay:
+        report["executed_artifact_sha256"][str(a.rpc_nodelay.resolve())]=sha(a.rpc_nodelay)
     if a.native_actual:
         # Freeze exact child inputs before server startup; a subsequent IDE build
         # must not silently change the executable behind the recorded hash.
         snapshot = a.runtime/"probe"
         snapshot.mkdir()
         report["native_source_snapshots"] = {}
-        for path in (a.native_actual, Path(__file__).with_name("m7_1q_probe.py"),
+        for path in (a.native_actual, Path(__file__).with_name("m7_1q_probe.py"),Path(__file__).with_name("m7_wall_carla_probe.py"),
                      Path(__file__).with_name("audit_m7_1r_work.py"), Path(__file__).with_name("audit_m7_1q_native.py"),
                      Path(__file__).with_name("m7_1p_bridge.py"), Path(__file__).with_name("m7_1k_server_probe.py"),
                      Path(__file__).with_name("m7_sensor_capture.py")):
@@ -229,6 +253,15 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
             report["world_readiness"] = json.loads(readiness.read_text())
         if ready.returncode:
             raise RuntimeError("world snapshot not ready within startup deadline")
+        if a.wall_server_priority:
+            if not a.wall_native:raise RuntimeError("game thread priority is limited to the wall experiment")
+            tid=server.pid
+            before=os.sched_getscheduler(tid)
+            name=Path(f"/proc/{tid}/task/{tid}/comm").read_text().strip()
+            os.sched_setscheduler(tid,os.SCHED_FIFO,os.sched_param(a.wall_server_priority))
+            report["game_thread_schedule"]={"tid":tid,"name":name,"before_policy":before,
+                "policy":os.sched_getscheduler(tid),"priority":os.sched_getparam(tid).sched_priority,
+                "scope":"owned existing main thread only; child worker policies unchanged"}
         probe = "m7_1k_server_probe.py" if a.zero else "m7_1m_effort.py"
         cmd = [str(a.python), str(Path(__file__).with_name(probe)), "--fixture", str(a.fixture),
                "--output", str(a.output)]
@@ -245,7 +278,12 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
                 cmd += ["--native-wheel-bridge", str(a.native_wheel_bridge)]
             if a.bridge_drop_snapshot:
                 cmd += ["--bridge-drop-snapshot"]
-        if a.native_actual:
+        if a.wall_native:
+            cmd = [str(a.python),str(a.runtime/"probe/m7_wall_carla_probe.py"),"--native",str(a.native_actual),
+                   "--model",str(root/"tools/carla/m7_nodrive/virtual_ev_v1.json"),"--output",str(a.output),
+                   "--scenario",str(a.scenario),"--ticks",str(a.ticks),"--fault",a.native_fault,"--warmup-ticks",str(a.wall_warmup_ticks)]
+            if a.cameras:cmd += ["--cameras"]
+        elif a.native_actual:
             cmd = [str(a.python), str(a.runtime/"probe/m7_1q_probe.py"), "--native", str(a.native_actual),
                    "--model", str(root/"tools/carla/m7_nodrive/virtual_ev_v1.json"), "--output", str(a.output),
                    "--fault", a.native_fault,"--ticks",str(a.ticks)]

@@ -16,7 +16,15 @@ struct ElectricalAudit {
     double wheel_rad_s=0,torque_nm=0,mechanical_j=0,total_mechanical_j=0,soc=0,balance_j=0;
     double motor_loss_j=0,auxiliary_j=0,ohmic_j=0,capacitor_delta_j=0,circuit_loss_j=0,chemical_j=0;
 };
-enum class PlantExecution { Zoh, CoupledObservedWork, DeferredObservedWork };
+enum class PlantExecution { Zoh, CoupledObservedWork, DeferredObservedWork, CarlaObservedWork };
+// Two explicit coordinates, never an offset conversion. `work` retains CARLA
+// model time and raw solver dt. The other times are original host acquisitions.
+// The coil witness is sampled by the one response owner before physics starts.
+struct CarlaWork {
+    SolverWork work;
+    Time applied=0, acquired_begin=0, acquired_end=0, oldest=0, coil_source=0;
+    power::CoilCommand coils{};
+};
 // Separate M7 test owner: actuator response + circuit/battery, NO motion model.
 // Values reuse the named M6 functional fixture, not CARLA/OEM calibration.
 // Legacy mode uses beginning-speed ZOH prediction. Both observed-work modes
@@ -26,7 +34,7 @@ enum class PlantExecution { Zoh, CoupledObservedWork, DeferredObservedWork };
 class ActuatorElectrical {
 public:
     ActuatorElectrical(Time start,std::uint32_t first_application,bool solver_work=false);
-    ActuatorElectrical(Time start,std::uint32_t first_application,PlantExecution execution);
+    ActuatorElectrical(Time start,std::uint32_t first_application,PlantExecution execution,Time model_start=0);
     ~ActuatorElectrical();
     ActuatorElectrical(const ActuatorElectrical&)=delete;
     ActuatorElectrical& operator=(const ActuatorElectrical&)=delete;
@@ -56,6 +64,9 @@ public:
     // back response state. Bad/replayed/missing-history work latches an energy
     // fault; subsequent actuator steps continue terminal protection, no rearm.
     bool settle_observed_frame(const SolverWork& work);
+    bool settle_carla_frame(const CarlaWork& frame);
+    Time electrical_acquisition() const;
+    Time applied_coil_source() const;
     bool actuators_ok() const {return error_.empty();}
     bool electrical_ok() const {return error_.empty() && electrical_error_.empty();}
     // One-way terminal handoff after a committed coupled frame. Keeps the same
@@ -80,6 +91,8 @@ private:
     std::string error_;
     std::string electrical_error_;
     bool deferred_=false,protection_latched_=false,terminal_=false;
+    bool carla_=false;
+    Time acquired_=0,dependency_=0,last_applied_=0;
     std::optional<Wheel> last_wheel_;
     struct CoilInterval {Time begin=0,end=0;power::CoilCommand coils{};};
     // Bounded applied-output history, not a freshness allowance. Overflow

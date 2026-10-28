@@ -1,5 +1,6 @@
 #include "functional_rig.hpp"
 #include "wall_rig.hpp"
+#include "wall_leaf_owner.hpp"
 #include "m4_owner_network.hpp"
 #include "run_lease_issuer.hpp"
 #include "wheel_contract.hpp"
@@ -78,6 +79,11 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::array<std::unique_ptr<zone::AsyncZoneOwner>,2> zone;
     std::array<std::unique_ptr<simulation::m4_detail::ZoneSession>,2> zone_sessions;
     std::array<std::unique_ptr<simulation::AsyncLeafOwner>,5> leaf;
+    std::unique_ptr<simulation::WallLeafOwner> wall_drive;
+    template<class F> auto leaf_call(unsigned i,F&& f) {
+        if(i==2 && wall_drive)return f(*wall_drive);
+        return f(*leaf[i]);
+    }
     simulation::m4_detail::CentralIngress ingress{port,clock,sensors[7]};
     std::array<std::unique_ptr<CreditedActor>,8> participants;
     std::array<std::deque<session::Control>,8> controls;
@@ -108,13 +114,13 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::array<DeliveredCapture<transport::LeafRequest>,5> command_capture;
     std::array<std::optional<session::Ack>,8> release_acks;
 
-    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
+    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
         clock.logical=initial;
         if(export_actual) {
             for(unsigned i=0;i<2;++i)zones[i].feedback.delivery(&feedback_capture[i]);
             for(unsigned i=0;i<5;++i)leaves[i].work.delivery(&command_capture[i]);
         }
-        if(wall)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application,m7_external::PlantExecution::DeferredObservedWork);
+        if(wall)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application,model_initial?m7_external::PlantExecution::CarlaObservedWork:m7_external::PlantExecution::DeferredObservedWork,model_initial);
         else if(mode!=PlantMode::StationaryFixture)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application,mode==PlantMode::ExternalSolverWork);
         else physical=std::make_unique<simulation::m4_detail::PhysicalOwner>(clock,gates[7],fixture_sensors,outputs,start,events,override_signal,s.application,false);
         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
@@ -125,7 +131,11 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         }
         for(unsigned i=0;i<5;++i) {
             leaf[i]=std::make_unique<simulation::AsyncLeafOwner>(static_cast<transport::Leaf>(i),clock,gates[i+2],leaves[i],sensors[i+2],outputs[i],bms);
-            participants[i+2]=std::make_unique<CreditedActor>(static_cast<Role>(i+2),*leaf[i],gates[i+2],domain);
+            if(i==2 && model_initial) {
+                wall_drive=std::make_unique<simulation::WallLeafOwner>(transport::Leaf::Drive,clock,gates[4],leaves[2],sensors[4],outputs[2],bms);
+                leaf[i].reset();
+                participants[i+2]=std::make_unique<CreditedActor>(Role::Drive,*wall_drive,gates[4],domain);
+            } else participants[i+2]=std::make_unique<CreditedActor>(static_cast<Role>(i+2),*leaf[i],gates[i+2],domain);
         }
         participants[7]=std::make_unique<CreditedActor>(Role::CentralIngress,ingress,gates[7],domain);
         if(!export_actual) {
@@ -160,7 +170,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         // After one completed work receipt, choose a phase at least one original
         // 2ms opportunity after its acquisition. This is phase, not extra age.
         const bool init_ready=wall_mode?
-            (wheel && external->electrical_time()>=wheel->source && now>=wheel->source && now-wheel->source>=2*ms):
+            (wheel && external->electrical_acquisition()>=wheel->source && now>=wheel->source && now-wheel->source>=2*ms):
             now>=start+8*ms;
         if(!coordinator_started && !protection_since && init_ready) {
             require(coordinator.begin(scope.application,now),"begin aligned native session");
@@ -237,7 +247,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
                 const auto m=wire({Role::CentralIngress,static_cast<Role>(i),domain,c});
                 ack(participant.receive(std::get<session::Control>(m.payload),now));
             }
-            if(i>=2 && i<=4)leaf[i-2]->drop_actual=drop_actual;
+            if(i>=2 && i<=4)leaf_call(i-2,[&](auto& owner){owner.drop_actual=drop_actual;});
             ack(participant.poll(now));
             if(wall_mode && participant.fault()!=session::ParticipantFault::None)select_wall_protection(now,"participant failure");
             else require(participant.fault()==session::ParticipantFault::None,"participant failure");
@@ -303,8 +313,8 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     void select_wall_protection(Time now,const char* reason) {
         if(!wall_mode || protection_since)return;
         wall_failure=reason;protection_since=now;
-        for(unsigned i=0;i<5;++i)if(leaf[i]->faulted())
-            wall_failure+=" leaf="+std::to_string(i)+" code="+std::to_string(leaf[i]->fault_code());
+        for(unsigned i=0;i<5;++i)if(leaf_call(i,[](auto& owner){return owner.faulted();}))
+            wall_failure+=" leaf="+std::to_string(i)+" code="+std::to_string(leaf_call(i,[](auto& owner){return owner.fault_code();}));
         for(unsigned i=0;i<8;++i)if(participants[i]->participant_.fault()!=session::ParticipantFault::None)
             wall_failure+=" participant="+std::to_string(i)+" code="+std::to_string(static_cast<unsigned>(participants[i]->participant_.fault()));
         protect_central();for(auto& p:participants)p->select_protection();
@@ -322,6 +332,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     Report report(Time observed) {
         Report r;r.now=observed;r.release_mask=release_mask;r.armed=core.decision().normal_armed;
         if(external && external->last_success()>start)r.electrical=external->audit();
+        if(external) {r.coils=external->applied_coils();r.coil_source=external->applied_coil_source();r.electrical_acquired=external->electrical_acquisition();}
         r.electrical_steps=electrical_steps;r.electrical_count=electrical_count;
         if(wheel)r.sensor_wheel=WheelAudit{wheel->source,(wheel->omega[2]+wheel->omega[3])/2};
         r.controller_releases=controller_releases;
@@ -329,7 +340,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             if(static_cast<int>(i)!=omitted)r.service_mask|=1U<<i;
             if(participants[i]->allowed())r.credit_mask|=1U<<i;
         }
-        for(unsigned i=0;i<5;++i){r.commands[i]=leaf[i]->received_commands();r.leaf_body[i]=leaf[i]->last_body_ns();}
+        for(unsigned i=0;i<5;++i)leaf_call(i,[&](auto& owner){r.commands[i]=owner.received_commands();r.leaf_body[i]=owner.last_body_ns();});
         if(const auto& lease=participants[7]->credit.accepted();lease){r.lease_source=lease->source_time_ns;r.lease_expiry=lease->expires_at_ns;}
         const auto feedback=port.feedback();
         if(feedback.rear.drive_actual) {
@@ -544,17 +555,19 @@ BarrierStop FunctionalRig::stop_at_barrier() {
     return result;
 }
 
-WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial)
-    :scope_(scope),actor_(actor),initial_(initial) {
+WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial)
+    :scope_(scope),actor_(actor),model_initial_(model_initial),initial_(initial) {
     require(scope.run && scope.application && scope.plant==7 && actor && initial,"wall INIT scope");
-    native_=std::make_unique<FunctionalRig::Native>(scope,initial,PlantMode::ExternalSolverWork,true,true);
+    native_=std::make_unique<FunctionalRig::Native>(scope,initial,PlantMode::ExternalSolverWork,true,true,model_initial);
     native_->wheel_mode=true;
 }
 WallRig::~WallRig()=default;
 void WallRig::request_profile(std::vector<RequestPhase> profile) {
     require(owner_==std::this_thread::get_id() && !last_,"wall profile before service");
     FunctionalRig validator(scope_,actor_,PlantMode::ExternalSolverWork,true);
-    validator.request_profile(profile);native_->profile=std::move(profile);
+    validator.request_profile(profile);
+    if(model_initial_)profile.back().end_ms=30000;
+    native_->profile=std::move(profile);
 }
 void WallRig::execution_watch(WallExecutionWatch* watch) {
     require(owner_==std::this_thread::get_id() && !last_,"wall watch before service");
@@ -567,7 +580,7 @@ void WallRig::protect(const char* reason) {
 }
 WallReport WallRig::service(Time now,const std::optional<WallReceipt>& receipt) {
     require(owner_==std::this_thread::get_id(),"wall mutation owner");
-    require(now>=initial_ && (!last_ || now>last_) && now-initial_<=10000*ms,"wall monotonic horizon");
+    require(now>=initial_ && (!last_ || now>last_) && now-initial_<=(model_initial_?30000:10000)*ms,"wall monotonic horizon");
     auto& n=*native_;
     bool valid_receipt=false;
     if(receipt) {
@@ -578,7 +591,9 @@ WallReport WallRig::service(Time now,const std::optional<WallReceipt>& receipt) 
         if(receipt->clock!=wall_domain || w.actor!=actor_ || w.frame>UINT32_MAX || !w.frame || w.source>now || w.source<initial_ ||
            (last_frame_ && (w.frame!=last_frame_+1 || w.source<=last_source_)) ||
            !m7_external::assess(w.omega).forward_rad_s ||
-           work.frame!=w.frame || work.end!=w.source || !work.valid()) {
+           work.frame!=w.frame || !work.valid() || bool(receipt->carla)!=bool(model_initial_) ||
+           (receipt->carla ? (receipt->carla->acquired_begin!=w.source || receipt->carla->acquired_end>now ||
+                             receipt->carla->work.frame!=work.frame) : work.end!=w.source)) {
             protect("wall receipt identity/clock/value");
         } else {
             n.wheel=w;n.wheel_history.push_back(w);
@@ -594,7 +609,7 @@ WallReport WallRig::service(Time now,const std::optional<WallReceipt>& receipt) 
     n.cycle(now,[&] {
         // A normal-authority fault does not erase already executed physics.
         if(valid_receipt) {
-            if(!n.external->settle_observed_frame(receipt->work))protect(n.external->error().c_str());
+            if(!(receipt->carla?n.external->settle_carla_frame(*receipt->carla):n.external->settle_observed_frame(receipt->work)))protect(n.external->error().c_str());
             if(n.external->sensors())for(auto& s:n.fixture_sensors)s.publish(*n.external->sensors());
         }
     });

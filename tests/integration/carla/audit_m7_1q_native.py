@@ -31,7 +31,7 @@ class Reader:
         check(len(value)==n,'wire length');return value
 
 
-def wire(value, source, target, tag):
+def wire(value, source, target, tag, domain=0x4d3746554e435449):
     check(value is not None,'missing original owner packet')
     data=bytes.fromhex(value);crc=0xffffffff
     for b in data[:-4]:
@@ -39,11 +39,11 @@ def wire(value, source, target, tag):
         for _ in range(8): crc=(crc>>1)^(0x82f63b78 if crc&1 else 0)
     check(crc^0xffffffff == int.from_bytes(data[-4:],'little'),'owner CRC32C')
     r=Reader(data[:-4])
-    check(r.get('IHHIIQB') == (0x56524453,1,0,source,target,0x4d3746554e435449,tag),'wire identity/route')
+    check(r.get('IHHIIQB') == (0x56524453,1,0,source,target,domain,tag),'wire identity/route')
     return r
 
 
-def frame(r, role, actual):
+def frame(r, role, actual, require_wheel=True):
     check(r.get('B')==role,'frame role')
     can,fd,flags,length=r.get('IBBB')
     check(can==(0x280 if actual else 0x180)+role and fd==1 and flags&~4==0 and
@@ -57,7 +57,8 @@ def frame(r, role, actual):
     value=int.from_bytes(payload[:2],'little',signed=role!=1)*(.0001,1000,.1)[role]
     result=dict(seq=seq,epoch=epoch,source=source,causal=causal,value=value,state=payload[24],origin=payload[25],counter=payload[31])
     if role==2 and actual:
-        check(payload[34]==1,'wheel validity')
+        check(payload[34] in ((1,) if require_wheel else (0,1)),'wheel validity')
+        result['wheel_valid']=payload[34]==1
         result.update(wheel=int.from_bytes(payload[32:34],'little')*.01,wheel_source=int.from_bytes(payload[40:48],'little'),
                       capability_source=int.from_bytes(payload[48:56],'little'),oldest=int.from_bytes(payload[56:64],'little'))
     return result

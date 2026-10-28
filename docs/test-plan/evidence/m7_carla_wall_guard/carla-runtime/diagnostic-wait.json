@@ -1,0 +1,36 @@
+{
+  "status": "DIAGNOSTIC_CANDIDATES_ONLY",
+  "acceptance": false,
+  "method": "500us signal IP sample; return-address candidates from executable mappings in 64 stack words, not a proven unwound call chain",
+  "raw_stack_archived": false,
+  "reason": "raw sampled stack words are excluded; only code locations are recorded",
+  "samples_in_wait": 45,
+  "repeated_candidates": 44,
+  "elf_adjustment": "UE executable LOAD p_vaddr-p_offset=0x1000; original unadjusted symbol analysis is invalid",
+  "locations": [
+    {
+      "library": "libc.so.6",
+      "vaddr": "0x910d7",
+      "symbol": "__futex_abstimed_wait_common64"
+    },
+    {
+      "library": "libUE4Editor-Core.so",
+      "vaddr": "0x641b5d",
+      "symbol": "FPThreadEvent::Wait(unsigned int, bool)"
+    },
+    {
+      "library": "libUE4Editor-Core.so",
+      "vaddr": "0x608f94",
+      "symbol": "FNamedTaskThread::ProcessTasksUntilIdle(int)"
+    },
+    {
+      "library": "libUE4Editor-RenderCore.so",
+      "vaddr": "0x16daac",
+      "symbol": "GameThreadWaitForTask(TRefCountPtr<FGraphEvent> const&, ENamedThreads::Type, bool)"
+    }
+  ],
+  "local_raw_sha256": {
+    "/d/shin/stratadrive-tools/m7-source/m7-wall-carla/run19-pc.csv.2685531": "8c11be7fabac57f451b1d4db356ab5cbd9d5f5a32139f459f0ff8f96328daa23",
+    "/d/shin/stratadrive-tools/m7-source/m7-wall-carla/run19-pc.csv.2685531.maps": "e097f1eaa5f94e1daf690c125c3a975c794f8161d5fbbae41814edd278ac4bed"
+  }
+}

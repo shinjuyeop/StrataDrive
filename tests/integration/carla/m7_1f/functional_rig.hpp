@@ -34,6 +34,8 @@ struct Report {
     std::optional<m7_external::ElectricalAudit> electrical;
     std::array<m7_external::ElectricalAudit,12> electrical_steps{};
     unsigned electrical_count=0;
+    power::CoilCommand coils{};
+    Time coil_source=0,electrical_acquired=0;
     std::optional<NativeExport> native_export;
 };
 // Real native actors/session/credit + M6 actuator/electrical fixture. Optional

@@ -1,0 +1,11 @@
+{
+  "status": "FAIL",
+  "scope": "dual-clock experiment; acceptance requires separate audit",
+  "fault": "none",
+  "versions": [
+    "294096e-dirty",
+    "294096e-dirty"
+  ],
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/stratadrive-tools/m7-source/m7-wall-carla/runtime09/probe/m7_wall_carla_probe.py\", line 68, in main\n    control=actor.get_control();require(control.throttle==control.brake==control.steer==0,'unbound warmup requires untouched zero control')\n  File \"/d/shin/stratadrive-tools/m7-source/m7-wall-carla/runtime09/probe/m7_1p_bridge.py\", line 21, in require\n    raise RuntimeError(reason)\nRuntimeError: unbound warmup requires untouched zero control\n",
+  "receipts": 0
+}

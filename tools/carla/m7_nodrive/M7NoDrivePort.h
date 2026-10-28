@@ -10,6 +10,8 @@ namespace M7NoDrive {
   bool IsLocked();
   bool RejectLegacyRpc(const char* Name);
   std::string Request(UCarlaEpisode& Episode, const std::string& Json, bool& Tick);
+  bool PumpWall(UCarlaEpisode& Episode);
+  void RpcWindow(bool Begin);
   bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds);
   void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds);
   void EndEpisode();

@@ -25,7 +25,7 @@ M8 route-following Controller나 AI 주행을 구현한 것은 아니다.
 | 고정 환경·모델·단일 writer | CARLA0.9.16 source/Client `294096e-dirty`, UE4.26.2 pin, Town03_Opt/mkz_2020, V1 모델 hash 고정. 외부 writer/tick·synthetic stage 거부 유지 |
 | 정상 주행·제동·에너지 | 9s/900구간에서 좌조향 가속→signed 회생→마찰 제동/휠 정지→우조향 재출발 관측. 독립 raw-wire·solver 방정식·work/EV 장부 감사. Reference 전체 속도/ODD 수용 아님 |
 | 영상·state·lifecycle | 통합 evidence의 실제 실행별 판정 적용. RGB/학습·평가 GT 분리, frame/source timestamp 검증, 누락 차단·pause/reset/새 INIT 확인 |
-| 실시간2ms/4ms·clock | **NOT ACCEPTED.** 실제 owner 호출별 계측과 독립 monitor, deadline 위반→보호 선택→다음 tick 차단을 검증했다. 새 wall-domain INIT·독립 owner/수신은 아래 합성 원천 component에서 검증했다. 실제 CARLA clock/work 연결·연속 정상 wall 실행 수용은 미완료 |
+| 실시간2ms/4ms·clock | **NOT ACCEPTED.** 실제 owner 호출별 계측과 독립 monitor, deadline 위반→보호 선택→다음 tick 차단을 검증했다. 새 wall-domain INIT·독립 owner/수신은 아래 합성 원천 component에서 검증했다. 실제 CARLA 두 시간축/work 공유 전달은 구현했으나 엔진 프레임 공백으로 정상 wall 주행 전에 차단됨; 연속 정상 wall 실행은 미수용 |
 | 보호 Actual 제동 | **기능 경로 검증 완료.** trusted safety 요청 후 원래 LocalProtection Actual로200개 physics 구간·EV 정산을 계속하며 감속·휠 정지 관측. 정상 재개·누락·stale/future/다른 출처 거부. 명시적 opt-in 보호 hold에서 차체 자연 완전 정지까지 한정 검증. wall fault 자동 연동은 OPEN |
 | 시작·종료 안정성 | 준비 후 네트워크 경합 수정은 M7-1s FIXED_LIMITED 유지. 별도 sync RPC/game-thread 종료 교착을 재현·수정하고 로딩 중 SIGINT30s 내 종료 확인: **FIXED_LIMITED**. client-loss 동기 tick 대기도 수정 후 영상 유/무 종료 확인. 원래180s 준비 timeout/강제−9와 renderer 별도 원인은 보존 |
 | Reference 경로 | 54m 직선 후보 좌표/곡률·맵 hash 고정. M8의30km/h 적합성·추종/정지 시험은 NOT RUN |
@@ -236,3 +236,33 @@ OTHER0 대조 중 monitor slot2개가 누락된 실행은 실패로 유지한다
 실제 CARLA simulation dt·EV work와 wall acquisition을 연결하지 않았으며 이 출력으로 CARLA
 tick을 발급하지 않는다. 남은 구현은 그 clock/work 경계와 queued/in-flight RPC 차단,
 wall-origin 보호 Actual의 연속 CARLA 적용이다. 새 CARLA 시험을 실행한 것으로 기록하지 않는다.
+
+
+## 실제 CARLA 두 시간축·공유 전달 연결 결과
+
+[이번 실행·실패 원본](test-plan/evidence/m7_carla_wall_guard/carla-runtime/README.md),
+[ICD draft-v25](icd/carla_plant_adapter.md#실제-carla와-wall-owner-연결-draft-v25).
+새 opt-in 경로에서 원래 CARLA frame/10ms model dt·320-bin signed work를 단일 EV에 정산하고,
+물리 취득의 원래 CLOCK_MONOTONIC bracket을 native 센서 원천으로 사용했다. 두 시간을
+상수 offset으로 바꾸지 않는다. cached 관측의 timestamp/sequence와 원래 dependency를 유지한다.
+
+Python/RPC가 native owner를 멈추지 않도록 같은 Host의 유한 공유 mailbox를 연결했다.
+서버 game thread만 원본8-role 권한/CAN/P05 Actual을 검사하고 다음 물리를 발급한다.
+완료 work 정산 ACK 전 다음 tick은 금지하고, 물리 직전/직후의 expiry·terminal latch를 확인한다.
+M7 전용 Drive owner는 새 센서를 ingress에서 원래 monitor에 먼저 전달한다. 제어20/10ms와
+원래4ms owner deadline·30ms source-age를 그대로 유지하며 M6 원본 owner는 수정하지 않았다.
+
+**결과는 정상 wall 주행 FAIL이다.** 실제 취득→native 정산 지연은 분리했지만 엔진 프레임
+사이 공백이 남았다. 새 입력이 없으면 원래 Drive monitor가 보호를 선택한다. render fence 대기
+위치를 진단에서 관측했지만 FIFO/예열/null-RHI/inline-render 대조는 원인 제거를 증명하지 못했다.
+일반/ASan 각113/113, TSan 경계26/26, 기존 정상901/보호401개 출력의 정확 재생은 component와
+회귀 근거다. CARLA의 정상 wall/보호 주행 수용으로 대체하지 않는다.
+
+초기화 중 명령을 한 번도 받지 못한 Steering/Brake는 기존 계약상 유효한 보호 측정값을
+내보내지 않는다. 이를 허용하려던 후보는 폐기했고, NULL/진단 Actual을 실제 브레이크 값으로
+대체하지 않았다. 따라서 이번 실제 wall 실패를 **보호 제동 성공**으로 기록할 수 없다.
+
+**남은 필수 gate는 두 개다:** (1) 엔진 프레임 공백을 해결하고 원래 freshness/expiry 안에서
+정상·영상 wall 실행을 유지하는 것, (2) 정상 세션의 wall fault→원래 LocalProtection Actual→실제
+CARLA 제동/정지 및 in-flight work·sensor/writer/pause/reset 통합 검증. 별도 새 milestone을
+늘리지 않는다. M7은 NOT CLOSED, M6 종료 판정과 기존 functional 검증은 그대로다.

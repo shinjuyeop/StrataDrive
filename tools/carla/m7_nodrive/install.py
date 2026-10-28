@@ -190,6 +190,11 @@ def main():
     output.update(rpc_shutdown_patches(base, replace))
     output.update(sensor_patches(base, replace))
 
+    engine_path = str(PLUGIN / "Game/CarlaEngine.cpp")
+    engine_text=output[engine_path].decode()
+    engine_text=replace(engine_text,"      while ((bSynchronousMode && !Server.TickCueReceived()) ||", "      while ((bSynchronousMode && !(CurrentEpisode && M7NoDrive::PumpWall(*CurrentEpisode)) && !Server.TickCueReceived()) ||")
+    engine_text=replace(engine_text,"        Server.RunSome(1u);\n        if (CancelForExit()) return;\n      }\n      while ((bSynchronousMode", "        M7NoDrive::RpcWindow(true);\n        Server.RunSome(1u);\n        M7NoDrive::RpcWindow(false);\n        if (CancelForExit()) return;\n      }\n      while ((bSynchronousMode")
+    output[engine_path]=engine_text.encode()
     integration = {path: {"original_utf8": original[path], "original_sha256": sha(original[path].encode()),
                           "installed_sha256": sha(data)} for path, data in output.items()}
     # Copy only project-owned code. No engine implementation is vendored here.
@@ -199,6 +204,8 @@ def main():
     output[str(PLUGIN / "M7NoDrive/M7SolverTrace.h")] = (own / "M7SolverTrace.h").read_bytes()
     output[str(PLUGIN / "M7NoDrive/held_steer_sleep.hpp")] = (own / "held_steer_sleep.hpp").read_bytes()
     output[str(PLUGIN / "M7NoDrive/solver_journal.hpp")] = (own / "solver_journal.hpp").read_bytes()
+    output[str(PLUGIN / "M7NoDrive/wall_bridge.hpp")] = (own / "wall_bridge.hpp").read_bytes()
+    output[str(PLUGIN / "M7NoDrive/wall_signal.hpp")] = (own / "wall_signal.hpp").read_bytes()
     for name in ("M7Native.Build.cs", "M7Native.cpp"):
         output[str(NATIVE / name)] = (own / name).read_bytes()
     native_hashes = {}

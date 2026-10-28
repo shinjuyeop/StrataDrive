@@ -22,16 +22,19 @@ struct ActuatorElectrical::State {
     bool solver_work=false;
     Time last_work_frame=0;
     std::optional<SolverWork> work;
-    State(Time start,std::uint32_t application):initial(start),last(start),maximum_application(application) {
+    State(Time start,std::uint32_t application,Time model_start=0):initial(start),last(start),maximum_application(application) {
         motor.begin(7,start);
         if(!start || !application || !angle.begin(start) || !pressure.begin(start) ||
-           !electrical.initialize({7,start,.63,25},0))throw std::invalid_argument("M7 fixture initialization");
+           !electrical.initialize({7,model_start?model_start:start,.63,25},0))throw std::invalid_argument("M7 fixture initialization");
     }
 };
 ActuatorElectrical::ActuatorElectrical(Time start,std::uint32_t app,bool work)
     :ActuatorElectrical(start,app,work?PlantExecution::CoupledObservedWork:PlantExecution::Zoh) {}
-ActuatorElectrical::ActuatorElectrical(Time start,std::uint32_t app,PlantExecution execution)
-    :state_(std::make_unique<State>(start,app)),deferred_(execution==PlantExecution::DeferredObservedWork) {
+ActuatorElectrical::ActuatorElectrical(Time start,std::uint32_t app,PlantExecution execution,Time model_start)
+    :state_(std::make_unique<State>(start,app,model_start)),
+     deferred_(execution==PlantExecution::DeferredObservedWork || execution==PlantExecution::CarlaObservedWork),
+     carla_(execution==PlantExecution::CarlaObservedWork) {
+    if(carla_!=bool(model_start))throw std::invalid_argument("explicit CARLA model origin required");
     state_->solver_work=execution!=PlantExecution::Zoh;
 }
 ActuatorElectrical::~ActuatorElectrical()=default;
@@ -43,6 +46,8 @@ bool ActuatorElectrical::fail_electrical(const char* why) {
     return false;
 }
 Time ActuatorElectrical::last_success() const {return state_->last;}
+Time ActuatorElectrical::electrical_acquisition() const {return carla_?acquired_:electrical_time();}
+Time ActuatorElectrical::applied_coil_source() const {return state_->applied[4];}
 power::CoilCommand ActuatorElectrical::applied_coils() const {return state_->coils;}
 bool ActuatorElectrical::fail(const char* why) {if(error_.empty())error_=why;sensors_.reset();return false;}
 Time ActuatorElectrical::electrical_time() const {return state_->electrical.diagnostic_state().identity.source_time_ns;}
@@ -95,7 +100,7 @@ bool ActuatorElectrical::settle(State& s,Time end,const power::CoilCommand& coil
     return true;
 }
 void ActuatorElectrical::capture_electrical(State& s,OwnerSensors& measured) {
-    if(deferred_ && !electrical_ok()) {
+    if(deferred_ && (!electrical_ok() || (carla_ && !acquired_))) {
         measured.power.reset();measured.battery={};measured.drive.hv.reset();return;
     }
     measured.power=s.electrical.power_observation();measured.battery=s.electrical.battery_observation();
@@ -104,6 +109,17 @@ void ActuatorElectrical::capture_electrical(State& s,OwnerSensors& measured) {
     if(measured.power)measured.drive.hv=battery::ModelMeasurement<drive::HvFeedback>{{power.bus_voltage_v,
         power.contactors.positive && power.contactors.negative && power.bus_voltage_v>=300,false},
         id,measured.power->input_time_ns};
+    if(carla_) {
+        // A new derived acquisition from ONE completed CARLA frame. Keep the
+        // model ledger in its own domain; cached publications use these SAME
+        // original acquisition/dependency values, never the caller's now.
+        const battery::ModelIdentity observed{7,static_cast<std::uint32_t>(s.last_work_frame),acquired_};
+        if(measured.power) {measured.power->identity=observed;measured.power->input_time_ns=dependency_;}
+        measured.battery.batch=observed;
+        const auto map=[&](auto& value){if(value){value->identity=observed;value->input_time_ns=dependency_;}};
+        map(measured.battery.soc);map(measured.battery.electrical);map(measured.battery.temperature);
+        map(measured.battery.cell_voltage);map(measured.battery.cell_temperature);map(measured.drive.hv);
+    }
 }
 bool ActuatorElectrical::finish_work_frame(Time end) {
     if(deferred_)return fail_electrical("M7 deferred mode requires complete settlement");
@@ -262,7 +278,7 @@ bool ActuatorElectrical::advance_actuators(Time now,const std::optional<Wheel>& 
            (wheel->identity.sequence<=old.identity.sequence || wheel->identity.source_time_ns<=old.identity.source_time_ns))
             return fail("M7 deferred wheel mutation/regression");
     }
-    if(history_count_==history_.size())fail_electrical("M7 applied coil history overflow");
+    if(!carla_ && history_count_==history_.size())fail_electrical("M7 applied coil history overflow");
     protection_latched_=protection_latched_ || protect;
     auto next=std::make_unique<State>(*state_);
     next->maximum_application=std::max(next->maximum_application,released);
@@ -272,7 +288,7 @@ bool ActuatorElectrical::advance_actuators(Time now,const std::optional<Wheel>& 
     // changes. Existing output watchdogs remain, without stale-current dwell.
     if(!advance_response(*next,now,wheel,electrical_ok()?outputs:withheld,released,
                          protection_latched_,measured))return false;
-    if(electrical_ok()) {
+    if(electrical_ok() && !carla_) {
         const auto index=(history_head_+history_count_)%history_.size();
         history_[index]={state_->last,now,state_->coils};++history_count_;
     }
@@ -280,6 +296,7 @@ bool ActuatorElectrical::advance_actuators(Time now,const std::optional<Wheel>& 
     return true;
 }
 bool ActuatorElectrical::settle_observed_frame(const SolverWork& work) {
+    if(carla_)return fail_electrical("CARLA requires explicit dual-clock receipt");
     if(terminal_)return fail_electrical("M7 terminal branch cannot accept solver work");
     if(!deferred_)return fail("M7 deferred settlement requires independent mode");
     if(!ok())return false;
@@ -316,6 +333,43 @@ bool ActuatorElectrical::settle_observed_frame(const SolverWork& work) {
         if(interval.end>work.end) {if(interval.begin<work.end)interval.begin=work.end;break;}
         history_head_=(history_head_+1)%history_.size();--history_count_;
     }
+    if(sensors_)capture_electrical(*state_,*sensors_);
+    return true;
+}
+bool ActuatorElectrical::settle_carla_frame(const CarlaWork& frame) {
+    if(!carla_)return fail_electrical("CARLA receipt requires dual-clock model");
+    if(!ok())return false;
+    const auto& work=frame.work;
+    if(!work.valid() || work.oldest!=work.begin || Time(work.wheel.identity.sequence)+1!=work.frame ||
+       work.begin!=electrical_time() || (state_->last_work_frame && work.frame!=state_->last_work_frame+1) ||
+       frame.applied<state_->initial || frame.applied<=last_applied_ || frame.applied>frame.acquired_begin ||
+       frame.acquired_begin<=acquired_ || frame.acquired_end<frame.acquired_begin || frame.acquired_end>state_->last ||
+       frame.oldest<state_->initial || frame.oldest>frame.applied ||
+       frame.coil_source>frame.applied || (frame.coil_source && frame.coil_source<state_->initial))
+        return fail_electrical("CARLA model/wall provenance");
+    // Coils are latched for this MODEL interval, exactly like the CARLA Actual
+    // effort. This is not a backwards hold over an arbitrary wall interval.
+    auto candidate=std::make_unique<State>(*state_);
+    candidate->work=work;
+    const auto before=candidate->electrical.diagnostic_state().mechanical_j;
+    for(auto cursor=work.begin;cursor<work.end;) {
+        const auto end=std::min(cursor+ms,work.end);
+        if(!settle(*candidate,end,frame.coils))return false;
+        cursor=end;
+    }
+    const auto& energy=candidate->electrical.diagnostic_state();
+    const auto& battery=candidate->electrical.battery_state();
+    ElectricalAudit audit{work.begin,work.end,work.wheel.identity.source_time_ns,work.oldest,
+        work.wheel.value,work.torque,energy.mechanical_j-before,energy.mechanical_j,
+        battery.soc,energy.balance_error_j};
+    audit.motor_loss_j=energy.motor_loss_j;audit.auxiliary_j=battery.auxiliary_j;audit.ohmic_j=battery.ohmic_loss_j;
+    audit.capacitor_delta_j=energy.capacitor_j-energy.initial_capacitor_j;
+    audit.circuit_loss_j=energy.precharge_loss_j+energy.main_loss_j+energy.discharge_loss_j;
+    audit.chemical_j=battery.initial_energy_j-battery.energy_j;
+    candidate->last_work_frame=work.frame;candidate->work.reset();
+    state_=std::move(candidate);audit_=audit;
+    acquired_=frame.acquired_begin;dependency_=std::min(frame.oldest,frame.coil_source?frame.coil_source:frame.applied);
+    last_applied_=frame.applied;
     if(sensors_)capture_electrical(*state_,*sensors_);
     return true;
 }
