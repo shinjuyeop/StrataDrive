@@ -25,7 +25,7 @@ M8 route-following Controller나 AI 주행을 구현한 것은 아니다.
 | 고정 환경·모델·단일 writer | CARLA0.9.16 source/Client `294096e-dirty`, UE4.26.2 pin, Town03_Opt/mkz_2020, V1 모델 hash 고정. 외부 writer/tick·synthetic stage 거부 유지 |
 | 정상 주행·제동·에너지 | 9s/900구간에서 좌조향 가속→signed 회생→마찰 제동/휠 정지→우조향 재출발 관측. 독립 raw-wire·solver 방정식·work/EV 장부 감사. Reference 전체 속도/ODD 수용 아님 |
 | 영상·state·lifecycle | 통합 evidence의 실제 실행별 판정 적용. RGB/학습·평가 GT 분리, frame/source timestamp 검증, 누락 차단·pause/reset/새 INIT 확인 |
-| 실시간2ms/4ms·clock | **NOT ACCEPTED.** 실제 owner 호출별 계측과 독립 monitor를 추가하고, 의도적으로 입력을 보류한 구간에서 원래2ms/4ms deadline 위반→native 보호 선택→다음 tick 차단을 검증했다. CARLA 대기 중 owner 실행·simulation↔wall uncertainty·연속 정상 wall 실행은 미완료 |
+| 실시간2ms/4ms·clock | **NOT ACCEPTED.** 실제 owner 호출별 계측과 독립 monitor, deadline 위반→보호 선택→다음 tick 차단을 검증했다. 새 wall-domain INIT·독립 owner/수신은 아래 합성 원천 component에서 검증했다. 실제 CARLA clock/work 연결·연속 정상 wall 실행 수용은 미완료 |
 | 보호 Actual 제동 | **기능 경로 검증 완료.** trusted safety 요청 후 원래 LocalProtection Actual로200개 physics 구간·EV 정산을 계속하며 감속·휠 정지 관측. 정상 재개·누락·stale/future/다른 출처 거부. 명시적 opt-in 보호 hold에서 차체 자연 완전 정지까지 한정 검증. wall fault 자동 연동은 OPEN |
 | 시작·종료 안정성 | 준비 후 네트워크 경합 수정은 M7-1s FIXED_LIMITED 유지. 별도 sync RPC/game-thread 종료 교착을 재현·수정하고 로딩 중 SIGINT30s 내 종료 확인: **FIXED_LIMITED**. client-loss 동기 tick 대기도 수정 후 영상 유/무 종료 확인. 원래180s 준비 timeout/강제−9와 renderer 별도 원인은 보존 |
 | Reference 경로 | 54m 직선 후보 좌표/곡률·맵 hash 고정. M8의30km/h 적합성·추종/정지 시험은 NOT RUN |
@@ -211,3 +211,28 @@ functional admission을 유지하고10개는 원래 검사에서 거부됐다. �
 시간 관계, in-flight fault containment, wall-origin 보호 Actual의 CARLA 연속 적용이다.
 이번 변경은 그 선행 IO 병목을 줄였으며 해당 runtime 자체를 구현했다고 표시하지 않는다.
 구체 경계는 [ICD draft-v23](icd/carla_plant_adapter.md#다음-wall-runtime의-구현-경계)을 따른다.
+
+## 새 wall owner/IO 분리 구현
+
+[실행·실패 원본](test-plan/evidence/m7_carla_wall_guard/wall-owner/README.md),
+[ICD draft-v24](icd/carla_plant_adapter.md#새-wall-owner의-구현-범위-draft-v24).
+새 monotonic INIT의8-role owner와8개 고정 receipt mailbox를 구현했다. owner는 입력을 기다리지
+않고 실제 timer에서 한 번씩 실행하며, 지연 후 과거 job을 재생하지 않는다. 입력 단절 후에도
+원래 모델의 새 LocalProtection Actual이 계속 생성된다. 완료 work는 보호 선택 뒤에도 한 번 정산한다.
+
+실제 timer 시험에서 정산을 ECU 처리 뒤에 반영하던 순서와 INIT/source 경계 위상 문제를 찾았다.
+정산을 sensor 소비 전에 옮기고 새 wall INIT만 첫 완료 관측 이후로 배치했다. 기존 reset20ms,
+Drive30ms·message age·commit deadline은 그대로다. 지연으로 안전한 INIT 근거가 없으면
+원래 window 안에서 실패한다. 실패 로그/초기 verifier의 즉시 전체 ACK 가정 오류도 보존했다.
+
+합성 stationary wheel/work를 쓰는 FIFO18의 정상2회·수신 단절2회·owner 정지1회는5/5
+case 검사 통과다. 정상/수신 단절은 각7,480개의 판정 가능한 원래2ms/4ms slot에서 누락/late0,
+owner 정지 주입은36개 미완료 slot을 보존하고 보호를 선택했다. 단절 검출 약22ms,
+새 보호 Actual의 torque0·pressure1MPa는 선택 후 약211ms를 관측했다. 일반/ASan 각103/103,
+TSan 관련16/16을 확인했다. 짧은 native component이며 실시간 보장 상한·CARLA 주행 수용은 아니다.
+OTHER0 대조 중 monitor slot2개가 누락된 실행은 실패로 유지한다.
+
+**M7은 계속 NOT CLOSED다.** 새 WallRig는 같은 monotonic domain의 wheel/10ms work만 받는다.
+실제 CARLA simulation dt·EV work와 wall acquisition을 연결하지 않았으며 이 출력으로 CARLA
+tick을 발급하지 않는다. 남은 구현은 그 clock/work 경계와 queued/in-flight RPC 차단,
+wall-origin 보호 Actual의 연속 CARLA 적용이다. 새 CARLA 시험을 실행한 것으로 기록하지 않는다.

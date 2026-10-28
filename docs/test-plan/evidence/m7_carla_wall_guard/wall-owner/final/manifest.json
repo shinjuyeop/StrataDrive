@@ -1,0 +1,61 @@
+{
+  "binary": "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wall_owner_probe",
+  "sha256": "424b590cfb39f402c5c2251482c8e02098a6c3d3990e906988ada84d687b753e",
+  "scope": "synthetic plant / real wall owner; no CARLA",
+  "cases": [
+    {
+      "mode": "normal",
+      "argv": [
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wall_owner_probe",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/final/normal",
+        "normal"
+      ],
+      "exit": 0,
+      "audit_argv": [
+        "python3",
+        "tests/integration/carla/audit_m7_wall_owner.py",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/final/normal",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/final/normal-audit.json"
+      ],
+      "audit_exit": 0,
+      "elapsed_ns": 1681158836
+    },
+    {
+      "mode": "gap",
+      "argv": [
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wall_owner_probe",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/final/gap",
+        "gap"
+      ],
+      "exit": 0,
+      "audit_argv": [
+        "python3",
+        "tests/integration/carla/audit_m7_wall_owner.py",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/final/gap",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/final/gap-audit.json"
+      ],
+      "audit_exit": 1,
+      "elapsed_ns": 1681558049
+    },
+    {
+      "mode": "owner-stall",
+      "argv": [
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wall_owner_probe",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/final/owner-stall",
+        "owner-stall"
+      ],
+      "exit": 0,
+      "audit_argv": [
+        "python3",
+        "tests/integration/carla/audit_m7_wall_owner.py",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/final/owner-stall",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/final/owner-stall-audit.json"
+      ],
+      "audit_exit": 0,
+      "elapsed_ns": 1681339917
+    }
+  ]
+}

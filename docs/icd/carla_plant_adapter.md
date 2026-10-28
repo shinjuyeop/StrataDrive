@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-28, `m7-plant-draft-v23`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
+2026-10-28, `m7-plant-draft-v24`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -915,3 +915,33 @@ actuator response의 실제 elapsed, CARLA의10ms model dt, 관측 solver work�
 queued/in-flight fault 시 정상 권한을 닫고 이미 실행한 구간은 원본 work로 정산해야 하며,
 그 이후 새 LocalProtection Actual만 적용해야 한다. 기존 terminal local branch를 그대로
 서버 stage에 전달하는 것은 여전히 금지한다. 이 절은 **설계 경계이며 구현/실행 완료가 아니다**.
+
+### 새 wall owner의 구현 범위 (draft-v24)
+
+`WallRig`는 새 `M7MONO01` domain/INIT에서 같은 native Controller·Zone·leaf·CAN/P05와
+deferred actuator/EV owner를 실행한다. `service(now)`는 실제 monotonic 시각에서 한 번만
+각 owner를 호출한다. Controller20ms/management10ms/Zone·leaf10ms/BMS20ms를 유지하고,
+과거 runnable/owner completion을 재생하지 않는다. 응답 모델의1ms 이하 내부 적분은 ECU job이 아니다.
+
+입력 parser/IO는 단일 생산자, native mutation은 단일 소비자다. 고정8개 receipt mailbox는
+덮어쓰지 않으며 overflow를 latch한다. normal 권한이 닫혀도 이미 완료된 유효 work는 한 번 정산한다.
+새 model response 이후, **ECU가 sensor를 읽기 전**에 완료 work를 commit한다. local fault 뒤에도
+owner service·보호 Actual을 계속한다. held wheel/EV 시각은 보존하고, 이후 전기 이력 용량 초과는
+기존 deferred 규칙대로 전기 validity를 닫으며 actuator 보호는 지속한다.
+
+wall INIT은 첫 work가 정산되고 원래 취득에서2ms 이상 지난 위상에서 Prepare를 시작한다.
+Initialize 전달은 기존20ms reset-evidence 검사에 적합한 시점까지 기다릴 수 있으나 원래
+Control source/enable·30ms message age·20ms commit window를 변경하지 않는다. 거부된 INIT는
+재시도하지 않는다. 준비되지 않으면 기존 deadline에서 실패한다. functional 모드의8ms offset과
+14ms Controller phase는 그대로다. 보호 선택도 현재 invocation 시각부터이며 과거 응답 적분에 소급하지 않는다.
+
+현재 `WallReceipt`는 **wheel과 완전한 SolverWork가 모두 같은 monotonic domain**인 경우만
+받는다. 원래 SolverWork10ms 범위·freshness·identity 검사를 그대로 사용한다. 시뮬레이션 시각,
+다른 domain, duplicate/future/잘못된 frame을 도착 시각으로 고쳐 받지 않는다. 출력의 next-frame
+권한은 항상0이며 기존 CARLA admission domain과 다르다.
+
+[현재 근거](../test-plan/evidence/m7_carla_wall_guard/wall-owner/README.md)는 합성 stationary
+wheel/work 생산자와 실제 Host timer/IO thread를 연결한 **native runtime component**다.
+CARLA가 새 wall-domain work를 생산하거나 wall Actual을 적용한 시험은 아니다. 실제 CARLA
+simulation dt·EV work와 wall acquisition의 명시적 연결, queued/in-flight RPC 차단 및
+wall-origin 보호 Actual의 연속 CARLA 적용은 여전히 미구현·미수용이다.

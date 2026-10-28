@@ -37,7 +37,7 @@ Updated: **2026-10-28**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1q | native8-role Actual/Release·credit·부모 명령 전체 구간을 서버에서 검사하고 NoDrive에 실제 적용. 새2서버 각400tick/319정상 구간·최대 source age20ms. Normal/ASan 각64/64. 제한된 기능 연결 완료, solver work/단일 EV·wall 수용 미완료 | [실행·실패·제한](test-plan/evidence/m7_carla_1q/README.md) |
 | M7-1r | 완전한 solver work→단일 EV 정산 연결. 최종 새2서버 각400receipt/400정산·319정상 구간, Normal/ASan 각69/69. 누락·중복·불일치 시 다음 tick 차단; 일반 주행/회생·wall 미수용 | [실행·실패·제한](test-plan/evidence/m7_carla_1r/README.md) |
 | M7-1s | secondary-server accept/close 경합 TSan 재현·종료 순서 수정. component Normal/ASan·UBSan/TSan 각6/6, native 각69/69. 준비 확인 후 새12서버 SIGINT130. 최초 cold-load timeout/강제−9 1회 보존 | [원인·실행·제한](test-plan/evidence/m7_carla_1s/README.md) |
-| M7 통합 검증 | 정상 Actual/solver-work 경로의 가속·회생·제동·휠 정지·재출발 검증. 보호 Actual 기능 경로·cold-loading RPC 종료 교착 수정 검증. 전체 **NOT CLOSED**; 독립 wall fault→local 보호 선택/다음 tick 차단 및 actuator/EV 독립 진행 component 검증, terminal wall8-role/보호 Actual 지속, 고정 시나리오 자연 완전 정지·client-loss 종료 수정 검증; solver raw journal/compact 전달·동등성·phase42개 조사를 추가. 정상 wall 실행·clock·wall fault 이후 CARLA 연속 제동 OPEN | [통합 종료 검토](m7_exit_review.md), [원본](test-plan/evidence/m7_carla_integrated/README.md) |
+| M7 통합 검증 | 정상 Actual/solver-work 경로의 가속·회생·제동·휠 정지·재출발 검증. 보호 Actual 기능 경로·cold-loading RPC 종료 교착 수정 검증. 전체 **NOT CLOSED**; 독립 wall fault→local 보호 선택/다음 tick 차단 및 actuator/EV 독립 진행 component 검증, terminal wall8-role/보호 Actual 지속, 고정 시나리오 자연 완전 정지·client-loss 종료 수정 검증; solver raw journal/compact 전달·동등성·phase42개 조사 및 새 wall owner component를 추가. 실제 CARLA clock/work 연결·wall fault 이후 연속 제동 OPEN | [통합 종료 검토](m7_exit_review.md), [원본](test-plan/evidence/m7_carla_integrated/README.md) |
 | M8–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
@@ -76,10 +76,11 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 ## 다음 작업
 
 현재 결정과 남은 gate는 [M7 통합 종료 검토](m7_exit_review.md)에 모았다.
-독립 wall 감시·actuator/EV 분리와 **terminal 상태의 실제8-role service·보호 Actual 지속**을 연결했다.
-다음은 정상 실행에서도 수신 대기와 owner timer를 분리하고, 원래 acquisition의 clock agreement를
-검증한 뒤 wall fault 이후 CARLA에 보호 Actual을 연속 적용하는 것이다. 이번 terminal branch는
-CARLA clock 변환이 아니며 정상 권한/다음 tick을 발급하지 않는다. 주기/freshness/expiry는 유지한다.
+새 wall-domain INIT·수신/owner 분리와 보호 Actual 지속을 [native runtime component](test-plan/evidence/m7_carla_wall_guard/wall-owner/README.md)로 구현·검증했다.
+다음은 CARLA simulation dt/EV work와 원래 wall acquisition을 연결하고, queued/in-flight fault를
+차단하면서 wall-origin 보호 Actual을 CARLA에 연속 적용하는 것이다. 현재 WallRig의 입력은
+같은 monotonic domain의 합성 wheel/work이며 CARLA clock 변환·다음 tick 권한을 제공하지 않는다.
+주기/freshness/expiry·M6 구현과 기존 functional 결과는 유지한다.
 정상 기능 시험의 성공을 전체 M7 실시간·안전 정지 수용으로 확대하지 않는다.
 
 ## 과거 M7 단계별 경위

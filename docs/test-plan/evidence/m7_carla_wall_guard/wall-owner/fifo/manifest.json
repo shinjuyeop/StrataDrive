@@ -1,0 +1,105 @@
+{
+  "sha256": "bbfbfcc301faf5f8238d139b5efc622c30bf535617548e22e7a04301f3c5a08d",
+  "cases": [
+    {
+      "name": "1-normal",
+      "argv": [
+        "chrt",
+        "-f",
+        "18",
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wall_owner_probe",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/1-normal",
+        "normal"
+      ],
+      "exit": 0,
+      "audit_argv": [
+        "python3",
+        "tests/integration/carla/audit_m7_wall_owner.py",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/1-normal",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/1-normal-audit.json"
+      ],
+      "audit_exit": 0
+    },
+    {
+      "name": "2-gap",
+      "argv": [
+        "chrt",
+        "-f",
+        "18",
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wall_owner_probe",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/2-gap",
+        "gap"
+      ],
+      "exit": 0,
+      "audit_argv": [
+        "python3",
+        "tests/integration/carla/audit_m7_wall_owner.py",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/2-gap",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/2-gap-audit.json"
+      ],
+      "audit_exit": 0
+    },
+    {
+      "name": "3-owner-stall",
+      "argv": [
+        "chrt",
+        "-f",
+        "18",
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wall_owner_probe",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/3-owner-stall",
+        "owner-stall"
+      ],
+      "exit": 0,
+      "audit_argv": [
+        "python3",
+        "tests/integration/carla/audit_m7_wall_owner.py",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/3-owner-stall",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/3-owner-stall-audit.json"
+      ],
+      "audit_exit": 0
+    },
+    {
+      "name": "4-normal",
+      "argv": [
+        "chrt",
+        "-f",
+        "18",
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wall_owner_probe",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/4-normal",
+        "normal"
+      ],
+      "exit": 0,
+      "audit_argv": [
+        "python3",
+        "tests/integration/carla/audit_m7_wall_owner.py",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/4-normal",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/4-normal-audit.json"
+      ],
+      "audit_exit": 0
+    },
+    {
+      "name": "5-gap",
+      "argv": [
+        "chrt",
+        "-f",
+        "18",
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wall_owner_probe",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/5-gap",
+        "gap"
+      ],
+      "exit": 0,
+      "audit_argv": [
+        "python3",
+        "tests/integration/carla/audit_m7_wall_owner.py",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/5-gap",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-owner/fifo/5-gap-audit.json"
+      ],
+      "audit_exit": 0
+    }
+  ]
+}

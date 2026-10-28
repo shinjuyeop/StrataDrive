@@ -20,6 +20,9 @@ CARLA 입력 대기 중에도 원래8-role service·보호 CAN Actual을 계속�
 보호 hold의 자연 완전 정지와 client-loss 종료 교착도 [일괄 재현·수정](docs/test-plan/evidence/m7_carla_recovery/batch-closeout/README.md)했다.
 [solver 증거 전달 경로](docs/test-plan/evidence/m7_carla_wall_guard/pipeline/README.md)를 최적화하고 물리·에너지 동등성을 확인했다.
 정상 wall 실행과 CARLA에 다시 적용할 clock agreement는 남아 있다.
+새 wall-domain INIT·수신/owner 분리·입력 단절 중 보호 Actual 지속을
+[native runtime component](docs/test-plan/evidence/m7_carla_wall_guard/wall-owner/README.md)로 검증했다.
+이 모드의 실제 CARLA clock/work 연결과 보호 제동 적용은 아직 남아 있다.
 현재 계약은 [Plant Adapter ICD](docs/icd/carla_plant_adapter.md), 과거 단계별 결과는 상태 문서를 따른다.
 
 [현재 상태·OPEN·다음 작업](docs/project_status.md) · [단계/TBD](docs/roadmap.md) · [학습 안내](docs/learning/README.md)

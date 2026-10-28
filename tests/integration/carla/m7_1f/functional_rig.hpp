@@ -71,6 +71,7 @@ public:
     void begin_terminal_response(Time monotonic_ns);
     Report service_terminal_response(Time monotonic_ns);
 private:
+    friend class WallRig;
     struct Native;
     Report observe_impl(const Observation&,const std::optional<WheelSample>&);
     Scope scope_;FrameClock clock_;std::unique_ptr<Native> native_;
