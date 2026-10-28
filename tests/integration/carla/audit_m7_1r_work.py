@@ -47,6 +47,12 @@ def validate(row, previous=None):
     validate_hold(row,previous)
     check(w['solver_dt_s']==f32(.01),'solver world interval')
     steps = w['steps']
+    if 'trace_delivery' in w:
+        check(w['trace_delivery']=='bounded_raw_journal; drain_before_close','compact trace provenance')
+        reply=row['solver_trace_binding']
+        check(reply['ok'] and reply['ticket']==r['ticket'] and reply['trace_frame']==r['frame'] and
+              all(reply[k]==r[k] for k in ('run','session','actor','physics_generation')),'raw journal scope')
+        check(w['rear_mean_rad_s']==[(q['after_rad_s'][2]+q['after_rad_s'][3])/2 for q in steps],'compact means equal original solver')
     sleeping = w['sleeping']==1
     check((sleeping and w['count']==len(steps)==0) or
           (w['sleeping']==0 and w['count']==len(steps)==320),'complete substeps')
@@ -159,6 +165,14 @@ def main():
         try: validate(bad)
         except ValueError as e: checks[name]=str(e)
         else: raise ValueError('accepted corruption: '+name)
+    if 'trace_delivery' in sample['receipt']['solver_work']:
+        for name in ('ticket','trace_frame','session','physics_generation','compact_mean'):
+            bad=copy.deepcopy(sample)
+            if name=='compact_mean':bad['receipt']['solver_work']['rear_mean_rad_s'][10]+=1e-12
+            else:bad['solver_trace_binding'][name]=str(int(bad['solver_trace_binding'][name])+1)
+            try:validate(bad)
+            except ValueError as error:checks['journal_'+name]=str(error)
+            else:raise ValueError('accepted journal corruption '+name)
     energy_checks={}
     if connected:
         check(report['settlements']==accepted_acks,'reported accepted ACK count')

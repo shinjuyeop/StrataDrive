@@ -183,3 +183,31 @@ agreement/uncertainty + in-flight fault 차단 + CARLA 보호 Actual 연속 적�
 동일 suite의 정상/영상·고장·정지·에너지 회귀와 원래2ms/4ms·30ms를 함께 판정한다.
 현재 functional 시간의 native 입력을 wall로 재표기하거나 terminal local Actual을 서버에 넘기는
 단축 경로는 구현하지 않았다. M7 전체는 계속 NOT CLOSED이며 별도 새 milestone을 추가하지 않는다.
+
+
+## Solver 전달 경로 분리와 wall 전환 가능성 조사
+
+[현재 실행·보존 원본](test-plan/evidence/m7_carla_wall_guard/pipeline/README.md).
+기존 전체 solver trace의 즉시 JSON 생성/전송/감사를 유한 raw journal 회수로 분리했다.
+원래320개 solver 값과 signed work는 모두 보존하며, 실제 physics 전 capacity guard 및
+회수 후 raw/compact·wire·EV 교차 검증을 수행한다. cached source/Actual/expiry는 바꾸지 않는다.
+
+새 CARLA suite6/6(정상·영상·보호 정지·wall-gap·work 누락·snapshot 누락), 최종 동일 바이너리의
+기존/compact 영상 대조 각1/1, 일반/ASan 각93/93을 확인했다. 정상4실행의900구간과 보호400구간의
+physics(generation 제외)·solver steps·motor work·Actual 값이 기존 reference와 정확히 같았다.
+기본 native 경로의 기존 입력 replay도901/401개 출력이 정확히 같았다. 실패 build/phase 후보는 보존한다.
+
+동일 바이너리의 연속 영상 대조에서 pause를 제외한 취득→다음 native 처리 평균은38.215→15.845ms,
+P95는67.893→41.179ms였다. 최대값은103.017→166.566ms로 개선되지 않았고, compact에서도
+266/898구간이30ms를 넘었다. 이는 진단 loop 관측으로 개별 ECU job latency/CAN source-age나
+실시간 보장 상한이 아니다. 현재 정상 wall 수용은 계속 NOT ACCEPTED다.
+
+Controller/management 시작 위상0..20ms × 정수/분수 clock42개 component 조합 중32개는
+functional admission을 유지하고10개는 원래 검사에서 거부됐다. 유지된 조합도 최소 expiry
+여유가 모두1ns였다. 따라서 기본14ms 위상을 유지하며 expiry/source-age를 늘리지 않는다.
+같은 simulation barrier를 wall로 이름만 바꾸는 경로는 사용할 수 없다.
+
+**실제로 남은 구현:** 새 wall-domain INIT·native owner/수신 분리, actuator/model dt와 EV work의
+시간 관계, in-flight fault containment, wall-origin 보호 Actual의 CARLA 연속 적용이다.
+이번 변경은 그 선행 IO 병목을 줄였으며 해당 runtime 자체를 구현했다고 표시하지 않는다.
+구체 경계는 [ICD draft-v23](icd/carla_plant_adapter.md#다음-wall-runtime의-구현-경계)을 따른다.

@@ -508,3 +508,17 @@ client-loss-cameras loading-abort wall-gap zero disabled`에 기존 engine/sourc
 
 일반/ASan M7 회귀와 기존 정상900구간의 physics/solver 대조를 함께 기록한다. 초기 실패는
 최종 성공으로 덮지 않는다. M8/AI/Jetson이나 M6 재수용을 이 묶음에 추가하지 않는다.
+
+
+## Solver 기록 경로 분리 검증
+
+기존 suite에 `--compact-work`를 추가하고 normal-a/camera-a/protected-sleep/wall-gap/work-missing/
+snapshot-stop을 실행한다. journal 원시 steps·compact mean·원래 frame/ticket/scope를 교차 검사한다.
+완전 trace 회수 후 기존 Actual/wire/P05·solver 방정식·EV 장부 감사와 body 정지 검사를 유지한다.
+추가5종의 journal ticket/frame/session/generation/mean 변조를 거부한다. capacity/원본 복사/중복·
+skipped frame/ABI 오류는 CTest에서 검사한다. default-off와 compact 영상을 동일 바이너리로
+연속 실행하고 physics/solver/work의 정확한 동등성 및 원래 monotonic 통계를 비교한다.
+
+`m7_phase_probe`의42개 synthetic 조합은 원래 admission/expiry 규칙을 유지한 시작 위상 조사다.
+실패 조합을 PASS로 합산하지 않는다. 일반/ASan 회귀와 기존 native901/401개 출력 replay를
+함께 수행한다. [실행 결과](evidence/m7_carla_wall_guard/pipeline/README.md)의 정상 wall gate는 계속 OPEN이다.

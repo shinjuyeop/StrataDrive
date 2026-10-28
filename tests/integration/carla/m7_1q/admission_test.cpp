@@ -163,3 +163,12 @@ TEST(M7NativeAdmission, ProtectionKeepsOriginalReceiversAndFrozenSelectionTime) 
     }
 }
 } // namespace
+
+TEST(M7NativePhase, RejectsChangesAfterInitAndUnsupportedGridWithoutChangingPeriods) {
+    FunctionalRig rig(scope,99,PlantMode::ExternalWheelZoh,true);
+    EXPECT_THROW(rig.controller_phase(1),std::runtime_error);
+    EXPECT_THROW(rig.controller_phase(21*ms),std::runtime_error);
+    rig.controller_phase(12*ms);
+    rig.observe({scope,domain,100,1,.01},{99,100,1000000000,{0,0,0,0}});
+    EXPECT_THROW(rig.controller_phase(14*ms),std::runtime_error);
+}

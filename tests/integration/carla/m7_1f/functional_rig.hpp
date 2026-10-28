@@ -53,6 +53,8 @@ public:
     // never counted as an ACK. Credit loss keeps the original native age rules.
     // Fixed before INIT; evaluated at each original 20ms Controller release.
     void request_profile(std::vector<RequestPhase> phases);
+    // M7-only scheduling phase study; periods/expiry rules remain unchanged.
+    void controller_phase(Time delay_after_enable);
     void omit_role(int role);
     void stop_credit(bool value);
     void drop_actual(bool value);
@@ -77,6 +79,7 @@ private:
     bool export_actual_;
     std::optional<m7_external::SolverWork> work_;
     std::vector<RequestPhase> profile_;
+    Time controller_phase_=14*ms;
     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
     bool protect_=false;
     WallExecutionWatch* watch_=nullptr;

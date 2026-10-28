@@ -1,0 +1,134 @@
+{
+  "comparisons": [
+    {
+      "reference": "/d/shin/StrataDrive/docs/test-plan/evidence/m7_carla_recovery/batch-closeout/suite-v2/camera-a/trace.jsonl.gz",
+      "new": "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/compact/normal-a/trace.jsonl",
+      "exact_physics_except_generation": 900,
+      "exact_solver_steps": 900,
+      "exact_motor_work": 900,
+      "exact_actual_values": 900
+    },
+    {
+      "reference": "/d/shin/StrataDrive/docs/test-plan/evidence/m7_carla_recovery/batch-closeout/suite-v2/camera-a/trace.jsonl.gz",
+      "new": "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/compact/camera-a/trace.jsonl",
+      "exact_physics_except_generation": 900,
+      "exact_solver_steps": 900,
+      "exact_motor_work": 900,
+      "exact_actual_values": 900
+    },
+    {
+      "reference": "/d/shin/StrataDrive/docs/test-plan/evidence/m7_carla_recovery/batch-closeout/suite-v2/camera-a/trace.jsonl.gz",
+      "new": "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/legacy-final/camera-a/trace.jsonl",
+      "exact_physics_except_generation": 900,
+      "exact_solver_steps": 900,
+      "exact_motor_work": 900,
+      "exact_actual_values": 900
+    },
+    {
+      "reference": "/d/shin/StrataDrive/docs/test-plan/evidence/m7_carla_recovery/batch-closeout/suite-v2/camera-a/trace.jsonl.gz",
+      "new": "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/compact-final/camera-a/trace.jsonl",
+      "exact_physics_except_generation": 900,
+      "exact_solver_steps": 900,
+      "exact_motor_work": 900,
+      "exact_actual_values": 900
+    }
+  ],
+  "protected_comparison": {
+    "reference": "/d/shin/StrataDrive/docs/test-plan/evidence/m7_carla_recovery/batch-closeout/suite-v3/protected-sleep/trace.jsonl.gz",
+    "new": "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/compact/protected-sleep/trace.jsonl",
+    "exact_physics_except_generation": 400,
+    "exact_solver_steps": 400,
+    "exact_motor_work": 400,
+    "exact_actual_values": 400
+  },
+  "timing": {
+    "compact/normal-a": {
+      "excluded_intentional_pause_after_index": 150,
+      "excludes_terminal_no_receipt_row": true,
+      "acquisition_to_next_native_end": {
+        "count": 898,
+        "mean_ms": 6.943354027839644,
+        "median_ms": 3.321966,
+        "p95_ms": 28.167891,
+        "max_ms": 41.032476,
+        "over_30ms": 8
+      },
+      "postphysics_period": {
+        "count": 898,
+        "mean_ms": 8.305771094654789,
+        "median_ms": 4.598348,
+        "p95_ms": 30.048798,
+        "max_ms": 42.736036,
+        "over_30ms": 48
+      },
+      "diagnostic_model_to_wall_rate": 1.2039821331502307,
+      "hard_real_time_accepted": false
+    },
+    "compact/camera-a": {
+      "excluded_intentional_pause_after_index": 150,
+      "excludes_terminal_no_receipt_row": true,
+      "acquisition_to_next_native_end": {
+        "count": 898,
+        "mean_ms": 14.83784246325167,
+        "median_ms": 5.085221,
+        "p95_ms": 39.824751,
+        "max_ms": 160.234966,
+        "over_30ms": 230
+      },
+      "postphysics_period": {
+        "count": 898,
+        "mean_ms": 16.745937722717148,
+        "median_ms": 6.994188,
+        "p95_ms": 41.801327,
+        "max_ms": 162.112842,
+        "over_30ms": 287
+      },
+      "diagnostic_model_to_wall_rate": 0.5971597509546589,
+      "hard_real_time_accepted": false
+    },
+    "legacy-final/camera-a": {
+      "excluded_intentional_pause_after_index": 150,
+      "excludes_terminal_no_receipt_row": true,
+      "acquisition_to_next_native_end": {
+        "count": 898,
+        "mean_ms": 38.21549107683742,
+        "median_ms": 32.288906,
+        "p95_ms": 67.892544,
+        "max_ms": 103.017393,
+        "over_30ms": 678
+      },
+      "postphysics_period": {
+        "count": 898,
+        "mean_ms": 40.26299833296214,
+        "median_ms": 34.206366,
+        "p95_ms": 70.093202,
+        "max_ms": 147.441984,
+        "over_30ms": 764
+      },
+      "diagnostic_model_to_wall_rate": 0.24836699734339687,
+      "hard_real_time_accepted": false
+    },
+    "compact-final/camera-a": {
+      "excluded_intentional_pause_after_index": 150,
+      "excludes_terminal_no_receipt_row": true,
+      "acquisition_to_next_native_end": {
+        "count": 898,
+        "mean_ms": 15.845374115812918,
+        "median_ms": 5.28863,
+        "p95_ms": 41.17865,
+        "max_ms": 166.565578,
+        "over_30ms": 266
+      },
+      "postphysics_period": {
+        "count": 898,
+        "mean_ms": 17.93521515256125,
+        "median_ms": 7.333104,
+        "p95_ms": 43.145995,
+        "max_ms": 168.108077,
+        "over_30ms": 289
+      },
+      "diagnostic_model_to_wall_rate": 0.5575623105124526,
+      "hard_real_time_accepted": false
+    }
+  }
+}

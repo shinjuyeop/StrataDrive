@@ -21,6 +21,7 @@
 #include "drive_receiver.hpp"
 #include "native_admission.hpp"
 #include "held_steer_sleep.hpp"
+#include "solver_journal.hpp"
 #pragma GCC visibility pop
 #include <compiler/enable-ue4-macros.h>
 
@@ -41,6 +42,7 @@ struct State {
   uint64 PhysicsGeneration = 0;
   double SimBegin = 0;
   bool V1 = false, Native = false, Work = false;
+  std::unique_ptr<stratadrive::m7_native::SolverJournal<1024>> Journal;
   bool AwaitSettlement = false;
   double TotalMotorWork = 0;
   std::unique_ptr<stratadrive::m7_native::Admission> NativeGate;
@@ -280,6 +282,9 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.V1 = V1Flag || NativeFlag;
     S.Native = NativeFlag;
     S.Work = NativeFlag && FParse::Param(FCommandLine::Get(), TEXT("StrataM7SolverWork"));
+    const bool Compact = FParse::Param(FCommandLine::Get(), TEXT("StrataM7CompactWork"));
+    if (Compact && !S.Work) return Encode(Response(false, TEXT("compact_requires_native_work")));
+    S.Journal.reset(Compact ? new stratadrive::m7_native::SolverJournal<1024> : nullptr);
     S.AwaitSettlement = false; S.TotalMotorWork = 0;
     S.Application = static_cast<uint32>(Application);
     S.NativeGate.reset(NativeFlag ? new stratadrive::m7_native::Admission(S.Application, Now(Episode)) : nullptr);
@@ -307,6 +312,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     auto R = Response(true, S.V1 ? TEXT("bound_virtual_v1_diagnostic") : TEXT("bound_zero_only"));
     R->SetObjectField(TEXT("physics"), Physics());
     R->SetBoolField(TEXT("protected_hold_history_valid"), S.LastProtection);
+    R->SetBoolField(TEXT("compact_solver_work"), bool(S.Journal));
     R->SetStringField(TEXT("logical_begin_ns"), Dec(Now(Episode)));
     R->SetNumberField(TEXT("simulation_seconds"), Episode.GetElapsedGameTime());
     R->SetStringField(TEXT("application"), Dec(S.Application));
@@ -320,6 +326,20 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   if (Op == TEXT("receipt")) {
     auto R = Response(true, TEXT("query_only"));
     if (S.Receipt.IsValid()) R->SetObjectField(TEXT("receipt"), S.Receipt);
+    return Encode(R);
+  }
+  if (Op == TEXT("solver_trace")) {
+    uint64 Ticket;
+    if (!S.Journal || !Number(J, TEXT("ticket"), Ticket)) return Encode(Response(false, TEXT("trace_ticket")));
+    const auto* Entry = S.Journal->find(Ticket);
+    if (!Entry) return Encode(Response(false, TEXT("trace_missing")));
+    Json Trace;
+    FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(UM7NoDriveMovement::SolverTraceSteps(Entry->trace)), Trace);
+    auto R = Response(true, TEXT("immutable_raw_solver_trace"));
+    R->SetObjectField(TEXT("trace"), Trace);
+    R->SetStringField(TEXT("ticket"), Dec(Entry->ticket));
+    R->SetStringField(TEXT("trace_frame"), Dec(Entry->frame));
+    R->SetStringField(TEXT("physics_generation"), Dec(S.PhysicsGeneration));
     return Encode(R);
   }
   if (Op == TEXT("geometry")) {
@@ -499,6 +519,7 @@ bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
       FMath::Abs(Episode.GetElapsedGameTime() - S.SimBegin) > 1e-9) {
     Latch(TEXT("prephysics_guard")); return false;
   }
+  if (S.Journal && (S.Journal->full() || S.Journal->failed())) { Latch(TEXT("solver_journal_full")); return false; }
   if (!S.Movement->NumericalProfileMatches() || (S.V1 && !S.Movement->ValidateV1()) || !S.Movement->ApplyEffort(S.Effort)) {
     Latch(TEXT("effort_apply")); return false;
   }
@@ -562,7 +583,9 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   bool WorkValid = false;
   if (S.Work) {
     Json Work;
-    FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S.Movement->FinishSolverWork(WorkValid)), Work);
+    M7SolverTrace Saved{};
+    FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S.Movement->FinishSolverWork(WorkValid, S.Journal ? &Saved : nullptr)), Work);
+    if (WorkValid && S.Journal && !S.Journal->append(Frame, S.Ticket, Saved)) { Latch(TEXT("solver_journal_rejected")); return; }
     R->SetObjectField(TEXT("solver_work"), Work);
     if (WorkValid) {
       for (const auto& J : Work->GetArrayField(TEXT("motor_work_j"))) S.TotalMotorWork += J->AsNumber();

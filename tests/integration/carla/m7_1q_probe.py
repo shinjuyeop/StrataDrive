@@ -31,11 +31,13 @@ def main():
     p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap','client-loss'), default='none')
     p.add_argument('--ticks', type=int, default=400)
     p.add_argument('--solver-work', action='store_true')
+    p.add_argument('--compact-work', action='store_true')
     p.add_argument('--scenario', type=Path)
     p.add_argument('--cameras', action='store_true')
     p.add_argument('--terminal-response', action='store_true')
     a = p.parse_args()
     require(150 <= a.ticks <= 950, 'bounded functional horizon')
+    require(not a.compact_work or (a.solver_work and a.fault!='client-loss'), 'compact journal requires surviving owner and work')
     require(a.fault!='rgb-drop' or a.cameras, 'RGB fault requires cameras')
     require(not a.scenario or a.solver_work, 'scenario requires settled work')
     require(a.fault!='protection' or (a.solver_work and a.ticks==400), 'protection case requires 400 settled intervals')
@@ -61,6 +63,8 @@ def main():
     settlements = 0
     stopped_frame = None
     raw = (a.output/'trace.jsonl').open('w')
+    deferred_records = []
+    report['compact_solver_work']=a.compact_work
 
     def case(name, ok, **kw):
         report['cases'].append(dict(name=name, status='PASS' if ok else 'FAIL', **kw))
@@ -104,6 +108,7 @@ def main():
         binding = rpc('bind', actor=str(actor.id), application='42', model_sha256=model_hash)
         bound, session, run = binding['locked'], binding['session'], binding['run']
         report['binding'] = binding
+        case('compact_work_binding',binding.get('compact_solver_work',False)==a.compact_work)
         case('native_binding', binding['ok'] and binding['effort_profile'] == 'virtual-ev-v1-native-functional' and
              binding['model_sha256'] == model_hash and binding['application'] == '42' and binding['physics']['inputs_zero'])
         frame, end = int(binding['frame']), binding['simulation_seconds']
@@ -156,8 +161,8 @@ def main():
                 record['native_input'] = line
                 if a.solver_work and receipt:
                     work = receipt['solver_work']
-                    means = [(s['after_rad_s'][2]+s['after_rad_s'][3])/2 for s in work['steps']]
-                    solver_dt=f32(f32(.01)*f32(1/320)) if work['sleeping'] else work['steps'][0]['dt_s']
+                    means = work['rear_mean_rad_s'] if a.compact_work else [(s['after_rad_s'][2]+s['after_rad_s'][3])/2 for s in work['steps']]
+                    solver_dt=f32(f32(.01)*f32(1/320)) if a.compact_work or work['sleeping'] else work['steps'][0]['dt_s']
                     packet = (f"WORK {frame} {receipt['logical_begin_ns']} {ns} "
                               f"{solver_dt:.17g} "
                               f"{work['sleeping']} {len(means)} "+' '.join(f'{v:.17g}' for v in means))
@@ -316,7 +321,11 @@ def main():
                         receipt['interval_work_valid'] == a.solver_work and receipt['solver_substep_work_observed'] == a.solver_work, 'original actual/completion/work')
                 if a.solver_work:
                     work = receipt['solver_work']
-                    validate_work(record, previous_work_record)
+                    if a.compact_work:
+                        require(work['valid'] and work['abi']==2 and work['count']==len(work['rear_mean_rad_s']) and
+                                work['count']==(0 if work['sleeping'] else 320) and
+                                all(math.isfinite(v) for v in work['rear_mean_rad_s']), 'compact complete work header')
+                    else:validate_work(record, previous_work_record)
                     previous_work_record = record
                     for j in range(4): work_sum[j] += work['motor_work_j'][j]
                     if not work['forward_energy_eligible']: ineligible.append(i)
@@ -340,7 +349,8 @@ def main():
                 raise
             finally:
                 record['wall_end_ns']=time.monotonic_ns()
-                raw.write(json.dumps(record,separators=(',',':'))+'\n');raw.flush()
+                if a.compact_work:deferred_records.append(record)
+                else:raw.write(json.dumps(record,separators=(',',':'))+'\n');raw.flush()
         if a.fault == 'none':
             case('native_closed_loop_complete', count == a.ticks and normal>300 and empty==4)
             if a.solver_work: case('all_receipts_settled_once',settlements==count)
@@ -374,6 +384,25 @@ def main():
         if a.fault == 'snapshot' and count==200 and 'snapshot missing/skipped' in report['error']:
             report['status'] = 'PASS_EXPECTED_SNAPSHOT_STOP'
     finally:
+        if a.compact_work:
+            try:
+                previous=None;drained=0
+                for record in deferred_records:
+                    if 'receipt' not in record:continue
+                    r=record['receipt'];reply=rpc('solver_trace',record=False,ticket=r['ticket'])
+                    require(reply['ok'] and reply['ticket']==r['ticket'] and reply['trace_frame']==r['frame'] and
+                            all(reply[k]==r[k] for k in ('actor','session','run','physics_generation')), 'journal scope binding')
+                    steps=reply['trace']['steps'];work=r['solver_work']
+                    require(work['rear_mean_rad_s']==[(q['after_rad_s'][2]+q['after_rad_s'][3])/2 for q in steps], 'compact means equal raw solver')
+                    work['steps']=steps
+                    record['solver_trace_binding']={k:v for k,v in reply.items() if k!='trace'}
+                    validate_work(record,previous);previous=record;drained+=1
+                case('complete_raw_journal_drain',drained==count)
+                report['journal_drained']=drained
+            except Exception:
+                report['journal_error']=traceback.format_exc();report['status']='FAIL'
+            finally:
+                for record in deferred_records:raw.write(json.dumps(record,separators=(',',':'))+'\n')
         raw.close()
         if capture:
             try:

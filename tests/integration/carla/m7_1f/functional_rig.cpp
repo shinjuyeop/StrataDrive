@@ -87,7 +87,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::deque<WheelSample> wheel_history;
     std::array<m7_external::ElectricalAudit,12> electrical_steps{};
     unsigned electrical_count=0;
-    Time next_management=0,next_controller=0,last_lease=0;
+    Time next_management=0,next_controller=0,last_lease=0,controller_phase=14*ms;
     std::uint32_t lifecycle_seq=0,vehicle_seq=0;
     unsigned release_mask=0;std::size_t controller_releases=0;
     bool running=false,stop_credit=false,drop_actual=false;int omitted=-1;
@@ -228,7 +228,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         // safety selection. No root requests, normal credits or re-arm here.
         if(protection_since)return;
         if(!coordinator.run_enabled())return;
-        if(!running){running=true;next_management=coordinator.plan().enable_ns+14*ms;next_controller=next_management;}
+        if(!running){running=true;next_management=coordinator.plan().enable_ns+controller_phase;next_controller=next_management;}
         if(!stop_credit && (!last_lease || now-last_lease>=10*ms)) {
             const auto lease=issuer.issue(now);require(bool(lease),"lease issuer");
             for(unsigned i=0;i<8;++i) {
@@ -386,6 +386,7 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         require(plant_mode_==PlantMode::ExternalSolverWork ? (initial?!work_:bool(work_)) : !work_,"missing/unexpected solver work");
         if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_);
         native_->profile=profile_;
+        native_->controller_phase=controller_phase_;
         native_->watch=watch_;
         if(work_) {
             require(work_->frame==o.frame && work_->end==now && native_->external->begin_work_frame(*work_),"solver work admission");
@@ -435,6 +436,10 @@ void FunctionalRig::request_profile(std::vector<RequestPhase> phases) {
         previous=p.end_ms;
     }
     profile_=std::move(phases);
+}
+void FunctionalRig::controller_phase(Time delay) {
+    require(!native_ && delay<=20*ms && delay%200000==0,"controller phase must be set before INIT on existing ingress grid");
+    controller_phase_=delay;
 }
 void FunctionalRig::omit_role(int role) {omitted_=role;}
 void FunctionalRig::stop_credit(bool value) {stop_credit_=value;}

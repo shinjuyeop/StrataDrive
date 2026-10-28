@@ -36,6 +36,7 @@ def main():
     p.add_argument("--zero", action="store_true")
     p.add_argument("--native-actual", type=Path)
     p.add_argument("--solver-work", action="store_true")
+    p.add_argument("--compact-work", action="store_true")
     p.add_argument("--scenario", type=Path)
     p.add_argument("--cameras", action="store_true")
     p.add_argument("--terminal-response", action="store_true")
@@ -51,6 +52,8 @@ def main():
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
     a = p.parse_args()
+    if a.compact_work and (not a.native_actual or not a.solver_work or a.native_fault=="client-loss"):
+        p.error("compact work requires native solver work and surviving probe")
     if a.held_steer_sleep and not (a.native_actual and a.solver_work):
         p.error("held steering sleep requires native solver work")
     if a.terminal_response and (not a.solver_work or a.native_fault!="wall-gap"):
@@ -95,6 +98,8 @@ def main():
         argv.append("-StrataM7SensorFrame5")
     if a.solver_work:
         argv.append("-StrataM7SolverWork")
+    if a.compact_work:
+        argv.append("-StrataM7CompactWork")
     if a.held_steer_sleep:
         argv.append("-StrataM7HeldSteerSleep")
     if a.flag_check == "ambiguous":
@@ -252,6 +257,8 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
                 cmd += ["--terminal-response"]
             if a.solver_work:
                 cmd += ["--solver-work"]
+            if a.compact_work:
+                cmd += ["--compact-work"]
         if a.flag_check:
             expected = {"ambiguous": "ambiguous_numerical_profile", "requires-v1": "numerical_profile_requires_v1",
                         "disabled": "disabled"}[a.flag_check]

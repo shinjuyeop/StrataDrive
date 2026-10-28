@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-28, `m7-plant-draft-v22`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
+2026-10-28, `m7-plant-draft-v23`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -872,3 +872,46 @@ engine exit가 요청된 경우에만 game-thread synchronous wait를 취소한�
 입력을 지운 뒤 world physics 등록을 막으며 post-tick receipt/snapshot을 발행하지 않는다.
 그 뒤 서버를 종료한다. client-loss 자체의 자동 안전 제동 계약은 아니며, SIGINT 종료 응답과
 원래 frame 유지 시험이다. 상세 판정은 [일괄 검증](../test-plan/evidence/m7_carla_recovery/batch-closeout/README.md)을 따른다.
+
+
+### Solver 증거 전달 비용 분리 (draft-v23)
+
+`--compact-work`/`-StrataM7CompactWork`는 별도 opt-in native solver-work 진단 프로필이다.
+물리/단일 EV/원래 source·Actual·authority 검사는 유지한다. AfterTick에서 모든320개 원시
+solver 값의 finite·연속성·applied torque·최종 wheel·work 합 검사를 그대로 수행하되, 세부 JSON
+직렬화는 실행 경로에서 분리한다. 정산에 필요한 원래 rear mean320개와 동일한 signed work만
+즉시 전달한다. 새 wheel 취득이나 work 예측을 만드는 것이 아니다.
+
+bind 시 game-thread 단독 소유의1024-entry journal을 미리 할당한다. 각 entry는 ABI2 원시
+POD trace·원래 frame/ticket의 독립 복사다. 다음 solver invocation이 원본을 재사용해도 변하지
+않으며 overwrite/eviction이 없다. 용량이 차면 다음 physics 전에 latch한다. 실제 indefinite
+운영용 logger/백그라운드 IO 구현은 아니며 유한 시험 구간의 직렬화 지연이다.
+
+인증된 같은 run/session/actor에서 `solver_trace(ticket)`로 원본 steps를 읽는다. 반환의
+trace_frame/physics_generation도 원래 receipt와 같아야 한다. 조회는 tick/Actual/취득 시각을
+갱신하지 않는다. 시험기는950tick 이내로 제한하고 close/reset 전에 모든 원본을 회수한다.
+raw steps→compact mean의 정확한 일치, 기존 solver 방정식·EV·wire 감사 후에만 시험을 통과시킨다.
+누락·scope 불일치·overflow·회수 실패는 FAIL이다. raw trace를 얻지 못한 abrupt client-loss를
+이 모드의 PASS로 처리하지 않으며 runner는 그 조합을 거부한다. RAM journal은 crash-durable
+로그가 아니고, 비정상 process 손실 때 완전 증거 수용을 보장하지 않는다.
+
+[실행·동등성·시간 결과](../test-plan/evidence/m7_carla_wall_guard/pipeline/README.md)를 따른다.
+현재 `FunctionalRig.observe()`의 simulation-time barrier를 wall owner로 바꾼 것은 아니다.
+별도 component phase probe는 Controller/management의 enable 후 시작 위상만0..20ms로 조사한다.
+기존20ms/10ms 주기와 expiry 검사를 유지하며, 정상 native 실행의 기본14ms 위상은 불변이다.
+수용 가능한 조합도 최소 expiry 여유1ns이므로 위상 변경을 실시간 해결안으로 채택하지 않았다.
+
+### 다음 wall runtime의 구현 경계
+
+정상 wall 연결은 새 INIT부터 같은 Host CLOCK_MONOTONIC을 쓰는 native mutation owner와,
+CARLA tick/RPC/증거 기록을 담당하는 IO owner를 분리해야 한다. 과거 logical subjob을 뒤늦게
+재생하거나 같은 simulation time으로 반복 poll한 것을 실제 실행 기회로 세면 안 된다.
+새 post-physics의 원시 monotonic 취득 bracket과 원래 frame/simulation elapsed는 각각 보존한다.
+상수 offset으로 기존 functional CAN을 wall CAN처럼 재표기하지 않는다.
+
+actuator response의 실제 elapsed, CARLA의10ms model dt, 관측 solver work의 단일 EV 정산 및
+각 sensor의 취득/dependency 시각을 별도로 정의하고 검증해야 한다. 현재 `SolverWork`의
+10ms 단일-domain 입력에 wall jitter를 그대로 넣거나 duration 범위를 넓히는 변경은 미채택이다.
+queued/in-flight fault 시 정상 권한을 닫고 이미 실행한 구간은 원본 work로 정산해야 하며,
+그 이후 새 LocalProtection Actual만 적용해야 한다. 기존 terminal local branch를 그대로
+서버 stage에 전달하는 것은 여전히 금지한다. 이 절은 **설계 경계이며 구현/실행 완료가 아니다**.

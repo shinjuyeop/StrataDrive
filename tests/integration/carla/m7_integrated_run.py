@@ -17,8 +17,11 @@ def main():
     for name in ('engine','source','python','fixture','native','runtime','output'):
         p.add_argument('--'+name,type=Path,required=True)
     p.add_argument('--held-steer-sleep',action='store_true')
+    p.add_argument('--compact-work',action='store_true')
     p.add_argument('--cases',nargs='+',choices=CASES,default=list(CASES))
     a=p.parse_args();root=Path(__file__).resolve().parents[3];here=Path(__file__).resolve().parent
+    if a.compact_work and any(name.startswith('client-loss') for name in a.cases):
+        p.error('compact journal requires drain before close; exclude client-loss cases')
     a.output.mkdir(parents=True,exist_ok=False);a.runtime.mkdir(parents=True,exist_ok=False)
     frozen=a.output/'sources';frozen.mkdir()
     for path in [Path(__file__),here/'m7_1o_run.py',here/'m7_1q_probe.py',here/'m7_sensor_capture.py',
@@ -37,6 +40,7 @@ def main():
             if name=='loading-abort':command+=['--abort-on-port']
         else:
             command+=['--native-actual',str(a.native),'--solver-work']
+            if a.compact_work:command+=['--compact-work']
             if a.held_steer_sleep or name=='protected-sleep':command+=['--held-steer-sleep']
             if name.startswith('client-loss'):
                 command+=['--native-fault','client-loss','--scenario',str(here/'scenarios/m7_integrated_v1.txt')]

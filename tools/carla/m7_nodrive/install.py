@@ -198,6 +198,7 @@ def main():
     output[str(PLUGIN / "M7NoDrive/M7NoDriveModelConstants.h")] = generate()
     output[str(PLUGIN / "M7NoDrive/M7SolverTrace.h")] = (own / "M7SolverTrace.h").read_bytes()
     output[str(PLUGIN / "M7NoDrive/held_steer_sleep.hpp")] = (own / "held_steer_sleep.hpp").read_bytes()
+    output[str(PLUGIN / "M7NoDrive/solver_journal.hpp")] = (own / "solver_journal.hpp").read_bytes()
     for name in ("M7Native.Build.cs", "M7Native.cpp"):
         output[str(NATIVE / name)] = (own / name).read_bytes()
     native_hashes = {}

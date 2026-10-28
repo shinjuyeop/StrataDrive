@@ -1,0 +1,86 @@
+{
+  "status": "COMPLETE_BOUNDED_SUITE",
+  "cases": [
+    {
+      "name": "camera-a",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/legacy-final-runtime/camera-a",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/legacy-final/camera-a",
+        "--vehicle-substeps",
+        "320",
+        "--native-actual",
+        "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--solver-work",
+        "--held-steer-sleep",
+        "--scenario",
+        "/d/shin/StrataDrive/tests/integration/carla/scenarios/m7_integrated_v1.txt",
+        "--ticks",
+        "900",
+        "--cameras"
+      ],
+      "audits": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1r_work.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/legacy-final/camera-a",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/legacy-final/camera-a-audit_m7_1r_work.json"
+          ],
+          "exit": 0
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_integrated.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/legacy-final/camera-a",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/legacy-final/camera-a-audit_m7_integrated.json"
+          ],
+          "exit": 0
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_closeout.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/legacy-final/camera-a",
+            "--kind",
+            "clock",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-wall-pipeline/legacy-final/camera-a-closeout.json"
+          ],
+          "exit": 0
+        }
+      ],
+      "exit": 0,
+      "elapsed_seconds": 64.90913054000703,
+      "status": "PASS_CASE_ONLY"
+    }
+  ],
+  "source_sha256": {
+    "m7_integrated_v1.txt": "eabd242463209abf9b62d3b296e82bde14fd62d40dfafe9745f3ac537e21a0ce",
+    "m7_1q_probe.py": "d6e23e694f502710fbd749d7d754cf592ed1321bacbc6f629ca1f4d69000152b",
+    "audit_m7_integrated.py": "a20dfb7545221a3b6605febaece6c412a311eb7543807cd3812fba689f1fcbf8",
+    "m7_sensor_capture.py": "7694044e0b2ca556437752087f5b4ed5fad0679eed3c7160b3061ee73cc0bd1d",
+    "audit_m7_1r_work.py": "d25a150b03d0c9ece669fdd9a041fb2798709cfc36e0a0ae542938d64b7c6060",
+    "audit_m7_protection.py": "a6a431c57265db5c05f4ca35e78911545a25529478591d0bf2ee93dcd6f48e84",
+    "audit_m7_closeout.py": "0b8fe1e48f8607c5a0baaeb7bbaab62269ce3edbb98243ea7b4981d3dbe145df",
+    "m7_1o_run.py": "9a74453668a33e2928095605193c470665e9bdea63196cc420382fc261bed9d8",
+    "audit_m7_1q_native.py": "00491d9b9f5518c59599d3bfed495609fe58a8758ab3ae7e84834969d5e22ec2",
+    "m7_integrated_run.py": "28ddd2ed6e129283a67f055b7ec567fff5c50528a2f43936f4830ebc57394476",
+    "audit_m7_wall.py": "6dbfc230a30a59337c833011b27715b68c9c540964dc1a7bfa3fd3dbb3585841"
+  },
+  "full_m7_closed": false
+}

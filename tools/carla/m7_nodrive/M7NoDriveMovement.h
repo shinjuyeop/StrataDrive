@@ -4,6 +4,8 @@
 #include "WheeledVehicleMovementComponent4W.h"
 #include "M7NoDriveMovement.generated.h"
 
+struct M7SolverTrace;
+
 struct FM7WheelEffort {
   double Drive[4] = {}, Brake[4] = {}, Steer[4] = {};
 };
@@ -28,7 +30,8 @@ public:
   bool EffortMatches(const FM7WheelEffort& Effort) const;
   bool NumericalProfileMatches() const;
   bool BeginSolverWork(bool KeepProtectedSteerSleep = false);
-  FString FinishSolverWork(bool& Valid);
+  FString FinishSolverWork(bool& Valid, M7SolverTrace* Saved = nullptr);
+  static FString SolverTraceSteps(const M7SolverTrace& Trace);
   virtual void GenerateTireForces(UVehicleWheel* Wheel, const FTireShaderInput& Input, FTireShaderOutput& Output) override;
 protected:
   virtual void SetupVehicleDrive(physx::PxVehicleWheelsSimData* Data) override;

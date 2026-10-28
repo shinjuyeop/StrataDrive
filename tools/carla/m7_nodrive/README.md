@@ -134,3 +134,14 @@ runner는 각 case마다 새 서버를 띄우고 원래 종료30s/준비180s 한
 `protected-sleep`는400구간/정산 후 pause/reset/close와 새 INIT의 hold 이력 초기화도 확인한다.
 `audit_m7_closeout.py`는 exact body/pose·sleep/work·종료 frame·원래 취득 clock bracket을 검사하며,
 PASS는 요청된 한정 범위뿐이다. wall timing/clock agreement는 이 suite로 자동 수용되지 않는다.
+
+
+`--compact-work`를 native solver-work runner/suite에 추가하면 원시 solver journal을 사용한다.
+기본 모드는 불변이며 원본 observer ABI2도 그대로다. 이 변경은 CARLA module만 재설치·빌드한다.
+정산에는 원래320개 rear mean을 쓰고, 독립 감사는 시험 종료 전 journal의 전체 원시 steps를
+회수한 뒤 수행한다. 최대1024entry이며 runner는950tick 이하로 제한한다. buffer full/readback
+실패는 FAIL이다. close/new bind 후 이전 journal을 복구하거나 crash-durable 기록을 보장하지 않는다.
+`client-loss`와의 조합은 거부한다. [측정 결과·재현](../../../docs/test-plan/evidence/m7_carla_wall_guard/pipeline/README.md)을 따른다.
+
+`m7_phase_probe`는 stationary synthetic wheel의 Controller/management 시작 위상을 조사하는
+component 도구다. CARLA 실행이나 wall clock 수용이 아니며 정상 runner 기본14ms를 바꾸지 않는다.

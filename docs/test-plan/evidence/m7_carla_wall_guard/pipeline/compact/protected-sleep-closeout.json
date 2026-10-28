@@ -1,0 +1,44 @@
+{
+  "clock": {
+    "samples": 400,
+    "acquisition_bracket_max_ns": 16416368,
+    "acquisition_to_next_native_end_max_ns": 280966722,
+    "acquisition_to_next_native_end_over_30ms": 10,
+    "native_input_gaps_over_2ms": 335,
+    "native_input_gap_max_ns": 293771843,
+    "excluding_intentional_pause": {
+      "excluded_left_index": 150,
+      "samples": 399,
+      "acquisition_to_next_native_end_max_ns": 40281859,
+      "acquisition_to_next_native_end_over_30ms": 9,
+      "native_input_gap_max_ns": 40357810,
+      "native_input_gaps_over_2ms": 334
+    },
+    "constant_offset_intersection_ns": [
+      190554462692982,
+      190552846143961
+    ],
+    "constant_offset_possible": false,
+    "clock_mapping_accepted": false,
+    "normal_wall_runtime_accepted": false,
+    "note": "offset intervals are mapping candidates only; ages use same-host monotonic pairs; no CAN rewrite"
+  },
+  "stop": {
+    "status": "PASS_EXACT_NATURAL_STOP_FIXED_SCENARIO",
+    "first_sleep_index": 278,
+    "sustained_sleep_intervals": 122,
+    "exact_stationary_tail_intervals": 100,
+    "held_policy_intervals": 179,
+    "velocity_epsilon_used": false,
+    "forced_sleep_or_pose_setter_used": false
+  },
+  "rejected_stop_corruptions": {
+    "residual_body": "exact natural body sleep persists",
+    "changed_pose": "stationary pose unchanged",
+    "missing_solver_hold": "server/solver held-steer agreement",
+    "changed_previous_effort": "identical preceding protected effort",
+    "missing_previous_protection": "held policy original protective Actual"
+  },
+  "rejected_clock_corruption": "original acquisition bracket/order",
+  "status": "PASS_REQUESTED_SCOPE_ONLY"
+}
