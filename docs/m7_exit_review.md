@@ -42,6 +42,9 @@ M8 route-following Controller나 AI 주행을 구현한 것은 아니다.
 ## 종료 교착·보호 Actual 후속 수정
 
 [실행·실패·독립 감사](test-plan/evidence/m7_carla_recovery/README.md).
+보호 요청의 인과 검증은 [순서 보완 후 실행](test-plan/evidence/m7_carla_recovery/causal-followup/README.md)이
+최신 근거다. 이전3회는 요청을 physics 완료 후 주입했으므로 요청 인과 검증 근거에서 제외하고
+물리 응답 관측 자료로 보존한다. 보완 후에는 advance 전에 요청하고 이후 native 선택/Actual을 검증했다.
 RPC worker가 game thread의 sync callback을 기다리는 중에 game thread가 worker join을 기다리던
 교착을 수정했다. 종료 신호로 대기를 먼저 취소하며, 대기 중인 mutation을 실행하지 않는다.
 실제 pinned header component 원본 TIMEOUT/수정5개 통과와 fresh CARLA 로딩 중단을 대조했다.

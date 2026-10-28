@@ -7,6 +7,16 @@ import json
 from pathlib import Path
 from audit_m7_1q_native import audit,check
 
+def validate_request(applied):
+    requests=[r for r in applied if 'protection_request' in r]
+    check(len(requests)==1 and requests[0]['index']==199,'one request before protected interval')
+    requested=requests[0];request=requested['protection_request']
+    check(request['frame']==requested['frame'] and request['source_ns']==requested['native']['now_ns'] and
+          requested['wall_native_end_ns']<=request['wall_sent_ns']<=requested['wall_advance_begin_ns']<requested['wall_receipt_ns'],
+          'request precedes physics, no retroactive injection')
+    check(int(applied[200]['native']['native_export']['protection_since_ns'])>request['source_ns'],
+          'selection follows original request source')
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('directory',type=Path);p.add_argument('--output',type=Path,required=True)
@@ -18,6 +28,18 @@ def main():
     with opening(path,'rt') as f:rows=[json.loads(line) for line in f]
     applied=[r for r in rows if 'receipt' in r]
     check(len(applied)==400 and result['protection_intervals']==200,'400 intervals, 200 protection')
+    validate_request(applied)
+    order_rejected={}
+    for fault in ('late_delivery','wrong_source','wrong_frame','backdated_selection'):
+        bad=list(applied);bad[199]=copy.deepcopy(applied[199]);bad[200]=copy.deepcopy(applied[200])
+        request=bad[199]['protection_request']
+        if fault=='late_delivery':request['wall_sent_ns']=bad[199]['wall_receipt_ns']+1
+        if fault=='wrong_source':request['source_ns']+=1
+        if fault=='wrong_frame':request['frame']+=1
+        if fault=='backdated_selection':bad[200]['native']['native_export']['protection_since_ns']=str(request['source_ns'])
+        try:validate_request(bad)
+        except ValueError as error:order_rejected[fault]=str(error)
+        else:raise AssertionError('request-order corruption escaped '+fault)
     before=applied[199]['receipt']['physics'];last=applied[-1]['receipt']['physics']
     check(before['body_forward_velocity_m_s']>0,'actual initial motion')
     check(abs(last['body_forward_velocity_m_s'])<before['body_forward_velocity_m_s'],'observed deceleration')
@@ -45,6 +67,8 @@ def main():
     result.update(status='PASS_FUNCTIONAL_PROTECTION_CONTINUATION',before_protection_m_s=before['body_forward_velocity_m_s'],
                   final_m_s=last['body_forward_velocity_m_s'],last_100_body_velocity_range_m_s=[min(tail),max(tail)],
                   exact_zero_wheel_intervals_last_100=100,corruptions_rejected=rejected,
+                  request_before_physics_verified=True,
+                  request_order_corruptions_rejected=order_rejected,
                   full_body_stationary_accepted=False,wall_deadlines_accepted=False)
     a.output.write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result))
 

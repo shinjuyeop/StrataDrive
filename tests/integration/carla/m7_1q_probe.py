@@ -37,6 +37,7 @@ def main():
     require(150 <= a.ticks <= 950, 'bounded functional horizon')
     require(a.fault!='rgb-drop' or a.cameras, 'RGB fault requires cameras')
     require(not a.scenario or a.solver_work, 'scenario requires settled work')
+    require(a.fault!='protection' or (a.solver_work and a.ticks==400), 'protection case requires 400 settled intervals')
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(status='FAIL', normal_driving_enabled=False, interval_work_valid=False,
                   mode='native eight-role functional Actual connection', fault=a.fault, cases=[])
@@ -158,9 +159,6 @@ def main():
                     record['work_input']=packet
                     process.stdin.write(packet+'\n')
                     if i==200 and a.fault=='work-duplicate': process.stdin.write(packet+'\n')
-                if i==200 and a.fault=='protection':
-                    process.stdin.write('PROTECT\n')
-                    record['protection_request']='trusted local safety selection; no brake value'
                 record['wall_native_begin_ns']=time.monotonic_ns()
                 process.stdin.write(line+'\n');process.stdin.flush()
                 require(bool(select.select([process.stdout],[],[],10)[0]), 'native reply timeout')
@@ -241,6 +239,14 @@ def main():
                         caught = str(exc)
                     case('foreign_tick_denied', caught is not None and 'M7 exclusive zero-probe owner' in caught and
                          rpc('describe')['frame']==str(frame), error=caught)
+                if i==199 and a.fault=='protection':
+                    # Submit while native and CARLA still share this frame,
+                    # BEFORE physics advances. The next native subjob can then
+                    # select protection causally within the following interval.
+                    # Sending at i=200 would retroactively affect replayed jobs.
+                    process.stdin.write('PROTECT\n');process.stdin.flush()
+                    record['protection_request']=dict(kind='trusted local safety selection; no brake value',
+                        source_ns=ns,frame=frame,wall_sent_ns=time.monotonic_ns())
                 record['wall_advance_begin_ns']=time.monotonic_ns()
                 queued = rpc('advance', record=False, ticket=staged['ticket'])
                 require(queued['ok'], 'advance not accepted; never retry')

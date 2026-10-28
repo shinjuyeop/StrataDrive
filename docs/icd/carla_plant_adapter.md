@@ -746,6 +746,10 @@ interface binary freeze가 아니다.
 - trusted local `PROTECT`는 안전 선택 요청일 뿐 pressure/torque/angle 값을 전달하지 않는다.
   기존 Central/Zone/leaf의 보호 선택, 모델의 유한 응답, CAN/P05 Actual 반환을 거친다.
   선택 뒤 새 VehicleRequest/normal credit 발급을 멈추고 기존 owner/feedback service는 계속한다.
+  시험 요청은 현재 native/CARLA frame이 같은 상태에서 다음 physics advance **전에** 전송한다.
+  완료된 physics 구간 뒤에 요청해 native subjob에 소급 적용하는 fixture는 인과 검증 근거에서 제외한다.
+  [보완 실행](../test-plan/evidence/m7_carla_recovery/causal-followup/README.md)은 원래 request source/frame과
+  wall 전송→advance→receipt 순서, request source 이후 protection selection을 검사한다.
 - M7 전용 proof의 `protection_since_ns`는 native owner가 보호를 요청한 원래 simulation 시각이다.
   `protection_selected_mask=255`는 두 Zone·다섯 leaf의 원래 protection acknowledgement와
   Central fault/closed gate의 **현재 관측**이다. 이 mask를 M6 원격 ProtectionAck 또는 실제 선택 시각으로 꾸미지 않는다.
