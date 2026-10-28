@@ -475,3 +475,15 @@ opening dwell 금지, wheel identity 변조와 coupled/deferred 혼합 거부를
 trace의 WORK/WHEEL/PROTECT 입력을 재생해 모든 native 출력을 비교한다. replay는 새 CARLA
 실행이 아니며 원래 physics/센서/종료 PASS 분모에 합산하지 않는다.
 [실행·오류·제한](evidence/m7_carla_wall_guard/deferred-response/README.md)을 따른다.
+
+## Terminal native service 후속 검사 (2026-10-28)
+
+`M7TerminalResponse.*`는 동일 native8-role 상태의 보호 Actual 지속·EV/wheel 원시 시각 동결,
+fractional barrier handoff, 정상 재진입/다른 thread/역행 시간 거부를 검사한다.
+`probe_m7_terminal.py`는 기존 raw 입력200개를 정확히 재생한 뒤 stdin을 열린 채 보류하여
+독립 wall fault를 유발한다. 새 CARLA 실행은 `m7_1o_run.py --solver-work --native-fault wall-gap
+--terminal-response --vehicle-substeps 320`과 기존 source/engine/python/fixture/native 인자로 수행한다.
+`audit_m7_terminal.py`는 원본 wire/P05·Actual provenance·clock/EV 불변·실제 wall CSV 및8종 손상을
+검사한다. 순수 idle 전용 `audit_m7_wall.py`와 구분하며, terminal service의 누락/late도 그대로 보고한다.
+정상/ASan 회귀·TSan과 기존901/401개 출력 replay를 별도 기록하고 CARLA physics 분모에 합산하지 않는다.
+[실행·실패·재현](evidence/m7_carla_wall_guard/terminal-response/README.md)을 따른다.

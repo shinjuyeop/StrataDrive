@@ -63,6 +63,11 @@ public:
     // Terminal local selection at the LAST completed barrier. No replay, new
     // acquisition, model advance, Actual export, or further observe is allowed.
     BarrierStop stop_at_barrier();
+    // Terminal diagnostic branch only: local response time advances by actual
+    // monotonic elapsed time from a completed barrier. Not a CARLA clock mapping
+    // and never yields another tick. Same thread owns models and all ECU calls.
+    void begin_terminal_response(Time monotonic_ns);
+    Report service_terminal_response(Time monotonic_ns);
 private:
     struct Native;
     Report observe_impl(const Observation&,const std::optional<WheelSample>&);
@@ -75,5 +80,7 @@ private:
     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
     bool protect_=false;
     WallExecutionWatch* watch_=nullptr;
+    Time terminal_wall_=0,terminal_local_=0,last_terminal_wall_=0;
+    std::thread::id owner_=std::this_thread::get_id();
 };
 } // namespace stratadrive::m7_functional

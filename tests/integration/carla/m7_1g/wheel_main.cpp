@@ -45,21 +45,21 @@ void audit(const std::optional<WheelAudit>& w) {
     if(w)std::cout<<"{\"source_ns\":"<<w->source<<",\"rad_s\":"<<w->rad_s<<'}';
     else std::cout<<"null";
 }
-void packet(const std::optional<stratadrive::remote::OwnerPacket>& p) {
-    if(!p){std::cout<<"null";return;}
-    std::cout<<'"'<<std::hex<<std::setfill('0');
-    for(std::size_t i=0;i<p->size;++i)std::cout<<std::setw(2)<<unsigned(p->bytes[i]);
-    std::cout<<std::dec<<'"';
+void packet(const std::optional<stratadrive::remote::OwnerPacket>& p,std::ostream& out=std::cout) {
+    if(!p){out<<"null";return;}
+    out<<'"'<<std::hex<<std::setfill('0');
+    for(std::size_t i=0;i<p->size;++i)out<<std::setw(2)<<unsigned(p->bytes[i]);
+    out<<std::dec<<'"';
 }
-template<std::size_t N> void packets(const std::array<std::optional<stratadrive::remote::OwnerPacket>,N>& values) {
-    std::cout<<'[';for(std::size_t i=0;i<N;++i){if(i)std::cout<<',';packet(values[i]);}std::cout<<']';
+template<std::size_t N> void packets(const std::array<std::optional<stratadrive::remote::OwnerPacket>,N>& values,std::ostream& out=std::cout) {
+    out<<'[';for(std::size_t i=0;i<N;++i){if(i)out<<',';packet(values[i],out);}out<<']';
 }
 }
 int main(int argc,char** argv) {
     std::unique_ptr<WallExecutionWatch> wall_watch;
-    std::string wall_path;
+    std::string wall_path,response_path;
     try {
-        if((argc<6 || argc>10 || argc%2!=0) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
+        if((argc<6 || argc>12 || argc%2!=0) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
             throw std::runtime_error("requires --wheel-shadow or --external-wheel-plant run application plant actor; no general driving acceptance");
         const auto run=std::stoull(argv[2]),app=std::stoull(argv[3]),plant=std::stoull(argv[4]),actor=std::stoull(argv[5]);
         if(!actor || actor>UINT32_MAX || app>UINT32_MAX || plant>UINT32_MAX)throw std::runtime_error("identity range");
@@ -71,6 +71,10 @@ int main(int argc,char** argv) {
         bool scenario_loaded=false;
         for(int arg=6;arg<argc;arg+=2) {
             if(!solver_work)throw std::runtime_error("options require solver-work mode");
+            if(std::string(argv[arg])=="--wall-response") {
+                if(!response_path.empty())throw std::runtime_error("duplicate wall response");
+                response_path=argv[arg+1];continue;
+            }
             if(std::string(argv[arg])=="--wall-watch") {
                 if(!wall_path.empty())throw std::runtime_error("duplicate wall watch");
                 wall_path=argv[arg+1];continue;
@@ -88,6 +92,7 @@ int main(int argc,char** argv) {
             }
             rig.request_profile(std::move(phases));
         }
+        if(!response_path.empty() && wall_path.empty())throw std::runtime_error("wall response requires wall watch");
         std::cout<<std::setprecision(17);
         std::string line;
         std::unique_ptr<stratadrive::m7_native::Admission> admission;
@@ -97,13 +102,54 @@ int main(int argc,char** argv) {
         Input lines;
         const auto stop_if_fault=[&] {
             if(wall_watch && wall_watch->faulted()) {
-                const auto selected=rig.stop_at_barrier();
-                const auto selected_wall=WallExecutionWatch::now();
-                wall_watch->write(wall_path);
+                BarrierStop selected{};
+                Time selected_wall=0;
+                const auto emit_stop=[&] {
                 std::cout<<"{\"status\":\"WALL_GUARD_STOP\",\"next_frame\":null,\"normal\":"<<(selected.normal?"true":"false")
                     <<",\"credit_mask\":"<<selected.credit_mask<<",\"selected_mask\":"<<selected.selected_mask
                     <<",\"logical_barrier_ns\":"<<selected.logical_ns<<",\"wall_selected_ns\":"<<selected_wall
                     <<",\"actual_exported\":false,\"physical_braking_accepted\":false}"<<std::endl;
+                };
+                if(response_path.empty()) {
+                    selected=rig.stop_at_barrier();selected_wall=WallExecutionWatch::now();
+                } else {
+                    // Bounded terminal probe, no input/read or synchronous trace
+                    // writes on this service path. Never sends these branch-local
+                    // timestamps to CARLA or requests another physics tick.
+                    struct Record {Time wall;Report report;};
+                    std::vector<Record> records;records.reserve(1024);
+                    const auto anchor=WallExecutionWatch::now();
+                    rig.begin_terminal_response(anchor);
+                    auto wake=anchor+ms;
+                    do {
+                        stratadrive::simulation::runtime_support::sleep_until(wake);
+                        const auto now=WallExecutionWatch::now();
+                        auto r=rig.service_terminal_response(now);
+                        if(records.empty()) {
+                            selected_wall=WallExecutionWatch::now();
+                            selected={r.now-(now-anchor),r.native_export->protection_selected_mask,r.credit_mask,r.armed};
+                            emit_stop(); // Let adapter contain immediately, before the probe completes.
+                        }
+                        records.push_back({now,std::move(r)});
+                        const auto finished=WallExecutionWatch::now();
+                        wake=anchor+((finished-anchor)/ms+1)*ms;
+                    } while(WallExecutionWatch::now()-anchor<300*ms && records.size()<1024);
+                    std::ofstream trace(response_path);trace<<std::setprecision(17);
+                    for(const auto& v:records) {
+                        const auto& r=v.report;const auto& e=*r.native_export;
+                        trace<<"{\"clock\":\"LOCAL_TERMINAL_RESPONSE_NOT_CARLA\",\"wall_ns\":"<<v.wall
+                            <<",\"wall_anchor_ns\":"<<anchor<<",\"barrier_ns\":"<<selected.logical_ns
+                            <<",\"local_ns\":"<<r.now<<",\"next_frame\":null,\"normal\":false,\"credit_mask\":"<<r.credit_mask
+                            <<",\"service_mask\":"<<r.service_mask<<",\"selected_mask\":"<<e.protection_selected_mask
+                            <<",\"selection_ns\":"<<e.protection_since<<",\"controller_releases\":"<<r.controller_releases
+                            <<",\"energy_end_ns\":"<<r.electrical->end<<",\"mechanical_j\":"<<r.electrical->total_mechanical_j
+                            <<",\"soc\":"<<r.electrical->soc<<",\"wheel_source_ns\":"<<r.sensor_wheel->source
+                            <<",\"actual\":";packets(e.actual,trace);trace<<"}\n";
+                    }
+                    if(!trace)throw std::runtime_error("terminal response trace write");
+                }
+                wall_watch->write(wall_path);
+                if(response_path.empty())emit_stop();
                 return true;
             }
             return false;

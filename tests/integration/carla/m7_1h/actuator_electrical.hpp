@@ -58,6 +58,9 @@ public:
     bool settle_observed_frame(const SolverWork& work);
     bool actuators_ok() const {return error_.empty();}
     bool electrical_ok() const {return error_.empty() && electrical_error_.empty();}
+    // One-way terminal handoff after a committed coupled frame. Keeps the same
+    // response/EV state; no new work or normal authority belongs to this branch.
+    bool begin_terminal_response();
     std::size_t pending_intervals() const {return history_count_;}
     power::CoilCommand applied_coils() const;
 private:
@@ -76,7 +79,7 @@ private:
     ElectricalAudit checkpoint_audit_{};
     std::string error_;
     std::string electrical_error_;
-    bool deferred_=false,protection_latched_=false;
+    bool deferred_=false,protection_latched_=false,terminal_=false;
     std::optional<Wheel> last_wheel_;
     struct CoilInterval {Time begin=0,end=0;power::CoilCommand coils{};};
     // Bounded applied-output history, not a freshness allowance. Overflow

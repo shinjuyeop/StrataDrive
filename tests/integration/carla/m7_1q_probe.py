@@ -33,12 +33,14 @@ def main():
     p.add_argument('--solver-work', action='store_true')
     p.add_argument('--scenario', type=Path)
     p.add_argument('--cameras', action='store_true')
+    p.add_argument('--terminal-response', action='store_true')
     a = p.parse_args()
     require(150 <= a.ticks <= 950, 'bounded functional horizon')
     require(a.fault!='rgb-drop' or a.cameras, 'RGB fault requires cameras')
     require(not a.scenario or a.solver_work, 'scenario requires settled work')
     require(a.fault!='protection' or (a.solver_work and a.ticks==400), 'protection case requires 400 settled intervals')
     require(a.fault!='wall-gap' or a.solver_work, 'wall gap requires observed work')
+    require(not a.terminal_response or a.fault=='wall-gap', 'terminal response requires wall gap')
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(status='FAIL', normal_driving_enabled=False, interval_work_valid=False,
                   mode='native eight-role functional Actual connection', fault=a.fault, cases=[])
@@ -112,7 +114,8 @@ def main():
              math.floor(end*1e9+.5) == int(binding['logical_begin_ns']))
         stderr = (a.output/'native.stderr').open('w')
         process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else [])+
-                                   (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else []),
+                                   (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else [])+
+                                   (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else []),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
         receipt = None
         for i in range(a.ticks+int(a.solver_work)):

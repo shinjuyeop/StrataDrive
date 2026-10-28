@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-28, `m7-plant-draft-v20`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
+2026-10-28, `m7-plant-draft-v21`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -821,3 +821,29 @@ ZOH/coupled solver 경로의 동작·실행 결과는 유지한다. 실제 nativ
 `electrical_ok()==false`를 원래 LocalProtection 선택에 전달하고, 정상 credit/Actual 권한을 열지 않아야 한다.
 Native 정상 권한·CARLA stage/advance·scope/Actual/work ACK 계약은 개정하지 않았다.
 component 결과는 [현재 검토](../m7_exit_review.md#actuator-응답과-관측-ev-정산-분리)를 따른다.
+
+### Terminal wall response 연결 (draft-v21)
+
+`--wall-watch <csv> --wall-response <jsonl>`는 solver-work 모드의 별도 terminal 진단이다.
+`WALL_ARM` 이후 원래 monitor가 fault를 검출하면, 완료된 정상 barrier의 동일 native/EV/응답
+객체를 `begin_terminal_response()`로 일방향 전환한다. 미정산 checkpoint·ZOH·미초기화·중복 전환은 거부한다.
+원래 Central/Zone/leaf 보호 선택 시각은 handoff anchor다. 그 뒤 service에서 생성되는 output을
+이전 응답 substep에 적용하지 않는다. 기존 coupled 기본 경로와 M6 코드는 유지한다.
+
+- 한 mutation thread가 실제 monotonic wake마다 owner cycle을 한 번 호출한다.1ms wake는
+  검사용 service 기회이며 원래 ECU20/10/20ms·감시2ms/4ms 설정을 바꾸지 않는다.
+  지연 시 release를 건너뛰며 과거 owner poll로 slot을 채우지 않는다. 응답 모델의 내부1ms 이하
+  분할은 별도 owner job이 아니다. 독립 monitor는 계속 실행한다.
+- local time은 `barrier + (monotonic - handoff_anchor)`이며 **CARLA 시각 변환/동기 계약이 아니다**.
+  raw CAN/P05는 해당 terminal branch의 진단이며 외부 stage/advance로 전송하지 않는다.
+  기존 FrameClock은 전환 즉시 영구 차단한다. 정상 credit/Controller request/lease 재발급은 없다.
+- wheel과 electrical acquisition의 기존 시각을 유지한다. work 정산/정상 복귀는 금지한다.
+ 128개 이력 슬롯 소진 시 electrical unavailable로 고정되지만 response·원래 ECU service는 계속한다.
+  슬롯 수는 freshness 여유가 아니다. 새 Actual은 원래 vECU→Zone→Central 경로에서만 얻는다.
+- 최초 보호 선택 readback 후 `WALL_GUARD_STOP`을 즉시 전달해 adapter가 기존 pause로 차단한다.
+  trace는 메모리에 유한 보관한 뒤 기록한다. 시험은300ms 관측 후 exit2이며 API의1s 상한도
+  시험 자원 상한일 뿐 source-age/보호 시간 요구를 완화하는 값이 아니다. 지속 배포 runtime이 아니다.
+
+[실행 판정](../m7_exit_review.md#terminal-wall-service와-보호-actual-지속)은 native terminal
+응답 한정이다. 정상 wall owner/수신 분리·clock uncertainty·in-flight RPC 차단과 CARLA 물리 제동을
+수용하려면 별도 연결이 필요하다. 이 경로의 Actual로 freshness/clock 검사를 우회하지 않는다.

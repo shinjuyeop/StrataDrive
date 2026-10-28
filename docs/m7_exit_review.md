@@ -57,14 +57,15 @@ Plant Adapter는 정상 credit을 다시 열지 않고 같은 Release/epoch의 L
 
 ## 남은 문제를 닫는 작업
 
-**남은 주 작업은 wall owner 실행 구조에 분리된 actuator/EV 경로를 연결하고, wall fault 이후 실제 보호 Actual을 연속 적용하는 것이다.**
+**남은 주 작업은 정상 wall owner/수신 실행과 clock agreement를 연결하고, wall fault 이후 CARLA에 보호 Actual을 연속 적용하는 것이다.**
+terminal native 응답은 아래 후속 실행에서 연결했다.
 현재 Python/RPC/전체 solver JSON 진단 loop의 지연을 단순 timeout 증가로 해결할 수 없다.
 
 - native owner/감시의 wall 실행을 CARLA 응답 대기와 분리한다. 실제2ms 실행 기회·4ms 완료를
   monotonic 기준으로 계측하고, 지연 시 normal 권한을 닫는 경로를 검증한다. trace는 비동기 수집하되
   frame별 work 정산 증거를 잃지 않아야 한다. 최적화 전후 동일 시나리오의 물리/work 비교를 유지한다.
 - 독립 wall 지연 검출→native 보호 선택→다음 tick 차단은 아래 한정 시험으로 연결했다.
-  actuator/전기 진행 분리는 아래 component에서 완료했다. native timer/수신 경로 연결은 남는다.
+  actuator/전기 분리와 terminal native timer/service 연결은 아래 후속 결과를 따른다. 정상 수신 경로 연결은 남는다.
   Actual/work 자체가 없을 때는 다음 tick 차단을 유지하며 그 차단을 물리 안전 정지로 수용하지 않는다.
 
 현 loop의 native 요청 응답 시간은 짧아도, RPC/trace 대기 중 owner를 호출하지 않는 구조는 남는다.
@@ -86,7 +87,7 @@ credit0·local selection mask255를 읽었다. 이 mask는 원격 ProtectionAck�
 마지막 완료 barrier의 logical time은 유지하고 다음 frame 권한을 영구 차단했다.
 시험 입력에 `PROTECT`/압력값을 넣지 않았으며, 별도 wall→simulation 시각 변환도 만들지 않았다.
 
-**native runner의 owner 실행 자체는 아직 CARLA 대기에 묶여 있다.**
+**기존 정상 runner의 owner 실행은 아직 CARLA 대기에 묶여 있다.** 아래 terminal 후속 모드만 독립 진행한다.
 기존 coupled `ActuatorElectrical::step()`은 work가 있어야 actuator도 진행한다.
 아래 새 경로는 실제 response 모델을 독립 진행하므로 work 없이도 새로운 actuator 취득을 만들 수 있다.
 이전 Actual을 restamp하거나 관측 work 없이 전기 정산을 진행하는 것은 허용하지 않는다.
@@ -110,8 +111,36 @@ freshness 완화가 아니다. Power의 기존50/70ms source/dependency 경계 �
 30ms 단위 지연 정산 component 대조에서 원래 방식과 SOC·signed motor work·손실·전압·전류가
 정확히 일치했다. 원래 native 실행 모드는 유지했으며 기록된 정상900구간과 보호400구간의 입력을
 재생한 모든 native 출력(terminal 포함901/401개)도 정확히 일치했다.
-이는 **모델 계층 분리 완료**이며 새 모드를 실제8-role wall runner/Plant Adapter에 연결한 결과는 아니다.
+이 당시 결과는 **모델 계층 분리 완료**이며 아래 terminal wall 후속 실행과 구분한다.
 새 CARLA 실행·2ms/4ms 수용·wall fault 이후 CARLA 물리 제동 완료를 주장하지 않는다.
+
+## Terminal wall service와 보호 Actual 지속
+
+[실행·실패·독립 감사](test-plan/evidence/m7_carla_wall_guard/terminal-response/README.md).
+`--wall-response` opt-in은 기존 wall fault 이후 **같은 native 세션/모델**을 terminal 분기로 넘긴다.
+원래 Central/Zone/leaf 보호를 먼저 선택하고 single mutation owner가 monotonic timer로
+8-role service와 response를 실행한다. 입력 read/WORK 수신을 기다리지 않는다. 응답 적분의1ms 이하
+내부 분할을 ECU job으로 세지 않으며 지연 뒤 과거 owner poll을 재생하지 않는다.
+원래 Controller20ms/Zone·leaf10ms/BMS20ms 설정과 CAN/P05 source·epoch를 유지한다.
+
+fresh CARLA199구간/199정산 후 입력 보류→독립 deadline 검출→native 보호 선택→adapter pause를
+실행했다. 이후300ms 동안 steering/brake/drive의 새 LocalProtection Actual을 각각30회 관측했다.
+토크0·압력1MPa 첫 동시 관측은209.053ms였다. 이는 native 응답 모델 관측이며 CARLA 차체 제동이 아니다.
+EV time/장부와 마지막 wheel 시각은 유지하고, 만료한 wheel을 새 취득으로 발행하지 않았다.
+해당 terminal 구간에서 owner0..9 각각150개 완료, 완전한 구간의 누락/late0을 관측했다.
+단일 짧은 구간이며 정상 전체 실행의 실시간 수용이나 보장 상한으로 확대하지 않는다.
+
+일반/ASan 각86/86, TSan6/6 및 실제 terminal process 검사에서 race 경고는 없었다.
+TSan process에서는 owner0..3의 완료 누락을 각각6/7/2/1개 관측·보존했다. sanitizer 통과와 timing
+통과를 구분하며 그 누락을 뒤늦은 poll로 채우지 않았다. 기존 정상/보호 입력 재생901/401개 출력은
+정확히 같았다. 최초 fractional clock 시험에서 새 보호 output을 이전 substep에 넣어 거부된 오류를
+수정했다. handoff anchor에서 먼저 보호를 선택해 source 이후에만 적용하며 실패 로그도 보존했다.
+
+**Clock/적용 경계:** terminal local time은 마지막 barrier + handoff 이후 실제 monotonic 경과다.
+`LOCAL_TERMINAL_RESPONSE_NOT_CARLA`로 분리 기록하며 simulation clock과 동기됐다고 주장하지 않는다.
+기존 FrameClock은 terminal latch로 닫고, 이 Actual을 서버 stage/advance에 전달하지 않는다.
+따라서 정상 wall loop/clock uncertainty, in-flight RPC fault, CARLA 연속 보호 제동은 OPEN이다.
+이번 서버는 정상 cleanup 후 SIGINT 약2.920s에 종료했다. client-loss 종료 문제의 해결 근거는 아니다.
 
 대화 중단으로 camera 실행기가 사라진 실행은 미완료로 보존했다. 남은 전용 서버에 SIGINT를
 보냈지만30초 안에 종료하지 않아 강제 종료했다. 기존 로딩 중 RPC 교착 수정으로 이 별도

@@ -91,7 +91,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::uint32_t lifecycle_seq=0,vehicle_seq=0;
     unsigned release_mask=0;std::size_t controller_releases=0;
     bool running=false,stop_credit=false,drop_actual=false;int omitted=-1;
-    bool protection_requested=false;
+    bool protection_requested=false,terminal_response=false;
     Time protection_since=0;
     bool wheel_mode=false;
     std::vector<RequestPhase> profile;
@@ -155,7 +155,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             require(coordinator.begin(scope.application,now),"begin aligned native session");
             coordinator_started=true;
         }
-        if(now==next_physical) {
+        if(terminal_response || now==next_physical) {
             const auto wall_job=watch && (physical || now>start)?watch->begin(8):std::nullopt;
             if(physical){physical->step();require(physical->ok(),"fixture physical failure");}
             else if(now>start) {
@@ -168,10 +168,19 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
                         {7,static_cast<std::uint32_t>(w.frame),w.source},w.source};
                 std::array<std::optional<simulation::OwnerActuation>,5> out{};
                 for(unsigned i=0;i<5;++i)out[i]=outputs[i].read();
-                if(!external->step(now,input,out,gates[7].epoch(),override_signal.pending(scope.application)))
-                    throw std::runtime_error(external->error());
-                require(electrical_count<electrical_steps.size(),"M7 interval audit overflow");
-                electrical_steps[electrical_count++]=external->audit();
+                if(terminal_response) {
+                    // Integrator substeps are NOT owner execution opportunities.
+                    // Only this complete invocation is measured by wall watch.
+                    while(external->last_success()<now) {
+                        const auto end=std::min(now,external->last_success()+ms);
+                        if(!external->advance_actuators(end,input,out,0,true))throw std::runtime_error(external->error());
+                    }
+                } else {
+                    if(!external->step(now,input,out,gates[7].epoch(),override_signal.pending(scope.application)))
+                        throw std::runtime_error(external->error());
+                    require(electrical_count<electrical_steps.size(),"M7 interval audit overflow");
+                    electrical_steps[electrical_count++]=external->audit();
+                }
                 if(external->sensors())for(auto& channel:fixture_sensors)channel.publish(*external->sensors());
             }
             next_physical+=ms;
@@ -259,6 +268,9 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         // feeds ECU sensors only; actuator/electrical models remain a fixture.
         while(next_io<=observed){cycle(next_io);next_io+=200000;}
         clock.logical=observed;
+        return report(observed);
+    }
+    Report report(Time observed) {
         Report r;r.now=observed;r.release_mask=release_mask;r.armed=core.decision().normal_armed;
         if(external && external->last_success()>start)r.electrical=external->audit();
         r.electrical_steps=electrical_steps;r.electrical_count=electrical_count;
@@ -409,7 +421,7 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         if(plant_mode_==PlantMode::ExternalSolverWork)native_->external->commit_work_frame();
         return r;
     } catch(...) {
-        if(native_ && plant_mode_==PlantMode::ExternalSolverWork)native_->external->abort_work_frame();
+        if(native_ && !terminal_wall_ && plant_mode_==PlantMode::ExternalSolverWork)native_->external->abort_work_frame();
         clock_.fail();throw;
     }
 }
@@ -429,6 +441,39 @@ void FunctionalRig::stop_credit(bool value) {stop_credit_=value;}
 void FunctionalRig::drop_actual(bool value) {drop_actual_=value;}
 void FunctionalRig::request_protection() {protect_=true;}
 void FunctionalRig::execution_watch(WallExecutionWatch* watch) {watch_=watch;}
+void FunctionalRig::begin_terminal_response(Time wall) {
+    require(owner_==std::this_thread::get_id(),"terminal mutation owner");
+    require(!terminal_wall_ && wall && native_ && !work_ &&
+        plant_mode_==PlantMode::ExternalSolverWork && native_->external &&
+        native_->running && native_->core.decision().normal_armed,
+        "terminal response requires settled normal solver barrier");
+    require(native_->external->electrical_time()==native_->clock.logical &&
+        native_->external->begin_terminal_response(),"terminal model handoff");
+    terminal_wall_=last_terminal_wall_=wall;terminal_local_=native_->clock.logical;
+    native_->terminal_response=true;
+    // Select at the handoff anchor, before any elapsed response integration.
+    // A later service must not feed its newly issued outputs to earlier substeps.
+    native_->protection_since=terminal_local_;
+    native_->protect_central();
+    for(auto& p:native_->participants)p->select_protection();
+    native_->watch=watch_;
+    clock_.fail(); // Irreversible: never map this local branch back into CARLA.
+}
+Report FunctionalRig::service_terminal_response(Time wall) {
+    require(owner_==std::this_thread::get_id(),"terminal mutation owner");
+    require(terminal_wall_ && wall>last_terminal_wall_ && wall-terminal_wall_<=1000*ms &&
+        terminal_local_<=UINT64_MAX-(wall-terminal_wall_),"terminal monotonic interval/horizon");
+    const auto local=terminal_local_+(wall-terminal_wall_);
+    // No catch-up ECU polls. Original timer owners see the actual elapsed time
+    // once; missed wall opportunities stay missing in the original monitor.
+    native_->electrical_count=0;
+    native_->cycle(local);
+    last_terminal_wall_=wall;
+    auto report=native_->report(local);
+    report.next_frame=0;
+    require(!report.armed && !report.credit_mask,"terminal authority reopened");
+    return report;
+}
 BarrierStop FunctionalRig::stop_at_barrier() {
     require(bool(native_),"wall stop requires a completed barrier");
     auto& n=*native_;

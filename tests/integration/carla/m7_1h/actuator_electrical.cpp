@@ -47,6 +47,15 @@ power::CoilCommand ActuatorElectrical::applied_coils() const {return state_->coi
 bool ActuatorElectrical::fail(const char* why) {if(error_.empty())error_=why;sensors_.reset();return false;}
 Time ActuatorElectrical::electrical_time() const {return state_->electrical.diagnostic_state().identity.source_time_ns;}
 double ActuatorElectrical::settled_work() const {return state_->electrical.diagnostic_state().mechanical_j;}
+bool ActuatorElectrical::begin_terminal_response() {
+    if(!ok() || deferred_ || !state_->solver_work || checkpoint_ || state_->work ||
+       !state_->last_work_frame || state_->last>electrical_time())return false;
+    deferred_=true;protection_latched_=true;
+    // No more energy can be attributed to the stopped CARLA timeline. Retain
+    // its last measured values/times; disallow receipts without clearing them.
+    terminal_=true;
+    return true;
+}
 void ActuatorElectrical::commit_work_frame() {
     if(deferred_){fail_electrical("M7 deferred mode has no coupled commit");return;}
     checkpoint_.reset();
@@ -271,6 +280,7 @@ bool ActuatorElectrical::advance_actuators(Time now,const std::optional<Wheel>& 
     return true;
 }
 bool ActuatorElectrical::settle_observed_frame(const SolverWork& work) {
+    if(terminal_)return fail_electrical("M7 terminal branch cannot accept solver work");
     if(!deferred_)return fail("M7 deferred settlement requires independent mode");
     if(!ok())return false;
     if(!work.valid() || Time(work.wheel.identity.sequence)+1!=work.frame ||

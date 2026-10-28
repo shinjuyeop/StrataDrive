@@ -38,6 +38,7 @@ def main():
     p.add_argument("--solver-work", action="store_true")
     p.add_argument("--scenario", type=Path)
     p.add_argument("--cameras", action="store_true")
+    p.add_argument("--terminal-response", action="store_true")
     p.add_argument("--abort-on-port", action="store_true", help="Interrupt owned server before world readiness; no ego or ticks")
     p.add_argument("--shutdown-diagnostic", action="store_true", help="Owned loading-abort only: capture blocked shutdown stacks within original 30s budget")
     p.add_argument("--ticks", type=int, default=400)
@@ -49,6 +50,8 @@ def main():
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
     a = p.parse_args()
+    if a.terminal_response and (not a.solver_work or a.native_fault!="wall-gap"):
+        p.error("terminal response requires solver-work wall-gap")
     if a.shutdown_diagnostic and not a.abort_on_port:
         p.error("shutdown diagnostic is limited to loading-abort")
     if a.cameras and not a.native_actual:
@@ -240,6 +243,8 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
                 cmd += ["--cameras"]
             if a.scenario:
                 cmd += ["--scenario",str(a.scenario)]
+            if a.terminal_response:
+                cmd += ["--terminal-response"]
             if a.solver_work:
                 cmd += ["--solver-work"]
         if a.flag_check:
