@@ -28,7 +28,7 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--native', type=Path, required=True)
     p.add_argument('--model', type=Path, required=True)
-    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap'), default='none')
+    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap','client-loss'), default='none')
     p.add_argument('--ticks', type=int, default=400)
     p.add_argument('--solver-work', action='store_true')
     p.add_argument('--scenario', type=Path)
@@ -118,6 +118,7 @@ def main():
                                    (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else []),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
         receipt = None
+        previous_work_record = None
         for i in range(a.ticks+int(a.solver_work)):
             record = dict(index=i, frame=frame, simulation_seconds=end, physics=ph,
                           wall_begin_ns=time.monotonic_ns())
@@ -211,6 +212,20 @@ def main():
                     stopped_frame=frame
                     report['fault_observed']='RGB missing frame; no reuse or timestamp rewrite; next tick blocked'
                     break
+                if i==199 and a.fault=='client-loss':
+                    require(native['admission']['normal'] and settlements==count==199,
+                            'client loss requires a settled normal barrier')
+                    record['client_loss']=dict(exit_code=73,native_pid=process.pid,
+                        synchronous_mode=world.get_settings().synchronous_mode,
+                        no_stage_pending=True,no_cleanup=True)
+                    record['wall_end_ns']=time.monotonic_ns()
+                    raw.write(json.dumps(record,separators=(',',':'))+'\n');raw.flush()
+                    report.update(status='CLIENT_LOSS_INJECTED_NOT_CLEANUP',receipts=count,
+                        settlements=settlements,client_loss=record['client_loss'],frame=frame)
+                    (a.output/'result.json').write_text(json.dumps(report,indent=2)+'\n')
+                    # Deliberate process loss: no finally, pause/reset/close,
+                    # apply_settings, sensor cleanup, or extra tick.
+                    os._exit(73)
                 if i==199 and a.fault=='wall-gap':
                     # Completed receipt+EV settlement; no new stage/advance is
                     # outstanding. The test withholds the next native input.
@@ -301,7 +316,8 @@ def main():
                         receipt['interval_work_valid'] == a.solver_work and receipt['solver_substep_work_observed'] == a.solver_work, 'original actual/completion/work')
                 if a.solver_work:
                     work = receipt['solver_work']
-                    validate_work(record)
+                    validate_work(record, previous_work_record)
+                    previous_work_record = record
                     for j in range(4): work_sum[j] += work['motor_work_j'][j]
                     if not work['forward_energy_eligible']: ineligible.append(i)
                 applied = receipt['original_actual']['admitted_actual']
@@ -386,6 +402,19 @@ def main():
                 closed = rpc('close')
                 case('ego_destroyed', closed['ok'] and not closed['locked'] and not closed['registry_actor_present'])
                 bound, actor = False, None
+                if a.fault=='protection' and report['status'].startswith('PASS'):
+                    actor=world.spawn_actor(blueprint,spawn)
+                    rebound=rpc('bind',actor=str(actor.id),application='42',model_sha256=model_hash)
+                    old_session=session
+                    bound,session,run=rebound['locked'],rebound['session'],rebound['run']
+                    case('protection_history_cleared_on_new_init',rebound['ok'] and bound and
+                         int(session)>int(old_session) and not rebound['protected_hold_history_valid'] and
+                         rebound['physics']['inputs_zero'])
+                    rejected=rpc('advance',ticket='0')
+                    case('new_init_requires_new_stage',not rejected['ok'] and rejected['frame']==rebound['frame'])
+                    closed=rpc('close')
+                    case('rebound_ego_destroyed',closed['ok'] and not closed['registry_actor_present'])
+                    bound,actor=False,None
             if capture: capture.destroy()
             if process:
                 process.stdin.close()

@@ -1,7 +1,8 @@
 # M7 통합 검증 및 종료 검토
 
 2026-10-28. **전체 M7 NOT CLOSED.** 고정 시나리오의 native Actual→CARLA→solver work→단일 EV
-기능 연결에 보호 Actual의 연속 적용과 로딩 중 RPC 종료 교착 수정을 추가 검증했다.
+기능 연결에 보호 Actual의 연속 적용·고정 시나리오의 자연 완전 정지와
+로딩/클라이언트 단절 시 종료 교착 수정을 추가 검증했다.
 실시간 실행 기회와 wall fault→보호 전환 수용은 완료되지 않았다.
 하위 단계를 계속 늘리는 대신 이 문서의 남은 gate를 기준으로 관리한다.
 M6 Host quiet SIL/Python MIL의 구현·계약·결과·종료 판정은 변경하지 않는다.
@@ -25,8 +26,8 @@ M8 route-following Controller나 AI 주행을 구현한 것은 아니다.
 | 정상 주행·제동·에너지 | 9s/900구간에서 좌조향 가속→signed 회생→마찰 제동/휠 정지→우조향 재출발 관측. 독립 raw-wire·solver 방정식·work/EV 장부 감사. Reference 전체 속도/ODD 수용 아님 |
 | 영상·state·lifecycle | 통합 evidence의 실제 실행별 판정 적용. RGB/학습·평가 GT 분리, frame/source timestamp 검증, 누락 차단·pause/reset/새 INIT 확인 |
 | 실시간2ms/4ms·clock | **NOT ACCEPTED.** 실제 owner 호출별 계측과 독립 monitor를 추가하고, 의도적으로 입력을 보류한 구간에서 원래2ms/4ms deadline 위반→native 보호 선택→다음 tick 차단을 검증했다. CARLA 대기 중 owner 실행·simulation↔wall uncertainty·연속 정상 wall 실행은 미완료 |
-| 보호 Actual 제동 | **기능 경로 검증 완료.** trusted safety 요청 후 원래 LocalProtection Actual로200개 physics 구간·EV 정산을 계속하며 감속·휠 정지 관측. 정상 재개·누락·stale/future/다른 출처 거부. wall fault 자동 연동·차체 완전 정지 수용은 OPEN |
-| 시작·종료 안정성 | 준비 후 네트워크 경합 수정은 M7-1s FIXED_LIMITED 유지. 별도 sync RPC/game-thread 종료 교착을 재현·수정하고 로딩 중 SIGINT30s 내 종료 확인: **FIXED_LIMITED**. 원래180s 준비 timeout/강제−9와 renderer 별도 원인은 보존 |
+| 보호 Actual 제동 | **기능 경로 검증 완료.** trusted safety 요청 후 원래 LocalProtection Actual로200개 physics 구간·EV 정산을 계속하며 감속·휠 정지 관측. 정상 재개·누락·stale/future/다른 출처 거부. 명시적 opt-in 보호 hold에서 차체 자연 완전 정지까지 한정 검증. wall fault 자동 연동은 OPEN |
+| 시작·종료 안정성 | 준비 후 네트워크 경합 수정은 M7-1s FIXED_LIMITED 유지. 별도 sync RPC/game-thread 종료 교착을 재현·수정하고 로딩 중 SIGINT30s 내 종료 확인: **FIXED_LIMITED**. client-loss 동기 tick 대기도 수정 후 영상 유/무 종료 확인. 원래180s 준비 timeout/강제−9와 renderer 별도 원인은 보존 |
 | Reference 경로 | 54m 직선 후보 좌표/곡률·맵 hash 고정. M8의30km/h 적합성·추종/정지 시험은 NOT RUN |
 
 ## 이번에 해결한 문제
@@ -140,11 +141,11 @@ TSan process에서는 owner0..3의 완료 누락을 각각6/7/2/1개 관측·보
 `LOCAL_TERMINAL_RESPONSE_NOT_CARLA`로 분리 기록하며 simulation clock과 동기됐다고 주장하지 않는다.
 기존 FrameClock은 terminal latch로 닫고, 이 Actual을 서버 stage/advance에 전달하지 않는다.
 따라서 정상 wall loop/clock uncertainty, in-flight RPC fault, CARLA 연속 보호 제동은 OPEN이다.
-이번 서버는 정상 cleanup 후 SIGINT 약2.920s에 종료했다. client-loss 종료 문제의 해결 근거는 아니다.
+이번 서버는 정상 cleanup 후 SIGINT 약2.920s에 종료했다. 이 당시 결과는 client-loss 종료 문제의 해결 근거가 아니며 아래 일괄 검증과 구분한다.
 
 대화 중단으로 camera 실행기가 사라진 실행은 미완료로 보존했다. 남은 전용 서버에 SIGINT를
-보냈지만30초 안에 종료하지 않아 강제 종료했다. 기존 로딩 중 RPC 교착 수정으로 이 별도
-client-loss/동기 대기 종료 문제까지 해결됐다고 보지 않는다.
+보냈지만30초 안에 종료하지 않아 강제 종료했다. 기존 로딩 중 RPC 교착 수정은 이 별도
+client-loss/동기 대기 종료 문제의 해결 근거가 아니었다. 아래에서 별도 재현·수정했다.
 
 원래 renderer Distance Field crash 원인은 여전히 미확정이다. 이번 짧은 영상 시험이 성공해도
 모든 content/장시간 안정성을 주장하지 않는다. 정지 시 휠 회전0과 차체의 작은 잔류 속도는
@@ -152,3 +153,33 @@ client-loss/동기 대기 종료 문제까지 해결됐다고 보지 않는다.
 
 M8 Controller/30km/h 경로 적합성, M9 diagnostics, AI 학습·Jetson 배포는 각 후속 milestone의
 범위이며 M7 검증을 진행할 때마다 새 선행 작업으로 추가하지 않는다.
+
+## 종료·정지·clock 일괄 검증 (2026-10-28)
+
+[수정 전 실패·중간 실패·최종 실행 및 재현](test-plan/evidence/m7_carla_recovery/batch-closeout/README.md).
+
+- **client-loss 종료 FIXED_LIMITED:** 정상199구간/정산 후 probe를 cleanup 없이 exit73으로
+  종료했다. 수정 전에는 SIGINT30s 후 강제−9가 필요했다. game thread의 synchronous tick 대기가
+  engine exit를 확인하도록 수정하고 종료 시에만 world physics 등록과 post-tick 발행을 차단했다.
+  없는 client의 tick을 조작해 만들지 않는다. 수정 후 영상 유/무 모두 원래 frame을 유지하며 종료했다.
+- **보호 정지 FIXED_LIMITED:** PhysX NoDrive는 같은 비영 조향각도 매번 wake 입력으로 취급했다.
+  `--held-steer-sleep`에서 연속한 두 구간 모두 원래 보호 Actual이며 drive0·동일 steer·동일 양의
+  friction brake인 경우에만 그 wake 조건을 생략한다. 힘/속도/pose/타이어식은 바꾸지 않는다.
+  자연 수면 후 기존 steer 유지가 재기동시키던 문제를 고정 Town03/V1 시나리오에서 해결했다.
+  400receipt/400정산, 첫 sleep index278부터122구간 body/wheel exact0, 마지막100구간 pose 동일.
+  이는 PhysX sleep 모델의 정지이며 연속체의 엄밀 정지/OEM·전체 ODD 수용은 아니다.
+- **work 증거:** 최초 수정은 sleeping zero-work 검증기의 기존 steer0 조건에 걸려 index279에서
+  fail-closed했다. observer ABI2에 보호 hold witness를 추가하고 server/solver 및 이전 구간의
+  원래 Actual/동일 effort를 독립 검사했다. ABI1 과거 evidence는 원래 규칙으로 검사한다.
+  미세 잔류 속도·pose 변조·hold 누락·이전 effort/보호 변조5종을 거부했다.
+- **clock은 미수용:** 새 post-physics 취득을 Host CLOCK_MONOTONIC begin/end로 감쌌다.
+  cached receipt도 최초 bracket을 유지하며 simulation/CAN 시각을 바꾸지 않았다. 이 bracket은
+  clock mapping 후보 관측일 뿐이다. 고정 offset의 교집합은 없고, 의도적 pause를 제외해도
+  현재 RPC/전체 trace 경로의 취득→다음 native 처리와 owner 호출 공백이 원래 budget을 초과한다.
+  단순 offset·heartbeat·timeout 증가로 정상 wall 연결을 승인할 수 없다.
+
+남은 필수 작업은 하나의 통합 작업으로 수행한다: **정상 wall owner/수신 분리 + 원천별 clock
+agreement/uncertainty + in-flight fault 차단 + CARLA 보호 Actual 연속 적용**. 이를 연결한 다음
+동일 suite의 정상/영상·고장·정지·에너지 회귀와 원래2ms/4ms·30ms를 함께 판정한다.
+현재 functional 시간의 native 입력을 wall로 재표기하거나 terminal local Actual을 서버에 넘기는
+단축 경로는 구현하지 않았다. M7 전체는 계속 NOT CLOSED이며 별도 새 milestone을 추가하지 않는다.

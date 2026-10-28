@@ -14,6 +14,7 @@ from model_header import generate
 from shutdown_patch import apply as shutdown_patches
 from sensor_patch import apply as sensor_patches
 from rpc_shutdown_patch import apply as rpc_shutdown_patches
+from engine_exit_patch import apply as engine_exit_patch
 
 PIN = "294096eb1c38eabf246e4f3a9cdab704e33a7f4c"
 ENGINE_PIN = "e9d9e60c85f643e10eeb03f42f61554d18dcb30f"
@@ -183,7 +184,7 @@ def main():
                 '      while ((bSynchronousMode && !Server.TickCueReceived()) ||\n        (CurrentEpisode && !M7NoDrive::BeforeTick(*CurrentEpisode, GetFrameCounter() + 1, DeltaSeconds)));')
     s = replace(s, '    // send the worldsnapshot',
                 '    M7NoDrive::AfterTick(*CurrentEpisode, GetFrameCounter(), DeltaSeconds);\n\n    // send the worldsnapshot')
-    output[str(path)] = s.encode()
+    output[str(path)] = engine_exit_patch(s, replace).encode()
 
     output.update(shutdown_patches(base, replace))
     output.update(rpc_shutdown_patches(base, replace))
@@ -196,6 +197,7 @@ def main():
         output[str(PLUGIN / "M7NoDrive" / source.name)] = source.read_bytes()
     output[str(PLUGIN / "M7NoDrive/M7NoDriveModelConstants.h")] = generate()
     output[str(PLUGIN / "M7NoDrive/M7SolverTrace.h")] = (own / "M7SolverTrace.h").read_bytes()
+    output[str(PLUGIN / "M7NoDrive/held_steer_sleep.hpp")] = (own / "held_steer_sleep.hpp").read_bytes()
     for name in ("M7Native.Build.cs", "M7Native.cpp"):
         output[str(NATIVE / name)] = (own / name).read_bytes()
     native_hashes = {}

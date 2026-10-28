@@ -1,4 +1,4 @@
-add_executable(m7_native_admission_test admission_test.cpp)
+add_executable(m7_native_admission_test admission_test.cpp held_sleep_test.cpp)
 target_link_libraries(m7_native_admission_test PRIVATE m7_functional_fixture GTest::gtest_main)
 target_include_directories(m7_native_admission_test PRIVATE ${PROJECT_SOURCE_DIR}/tools/carla/m7_nodrive)
 stratadrive_quality(m7_native_admission_test)

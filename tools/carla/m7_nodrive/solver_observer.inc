@@ -1,9 +1,12 @@
 // Compiled only into an external, pinned copy of PxVehicleUpdate.cpp.
+// Optional guarded protected-hold policy only suppresses unchanged steer wakeup.
 // One bound diagnostic vehicle; registration occurs outside physics execution.
 #include "M7SolverTrace.h"
 namespace {
 const void* m7_vehicle = 0;
 M7SolverTrace m7_trace = {};
+bool m7_keep_steer_sleep = false;
+bool m7_steer_wakes(const void* v) { return v != m7_vehicle || !m7_keep_steer_sleep; }
 void m7_begin(const void* v, unsigned wheels, float dt) {
   if (v != m7_vehicle) return;
   ++m7_trace.begins; m7_trace.wheels = wheels; m7_trace.dt = dt;
@@ -26,9 +29,14 @@ void m7_step(const void* v, unsigned k, unsigned n, unsigned block, float dt,
 }
 }
 extern "C" void M7SolverStart(const void* vehicle) {
-  m7_vehicle=vehicle; m7_trace=M7SolverTrace{}; m7_trace.abi=1;
+  m7_vehicle=vehicle; m7_trace=M7SolverTrace{}; m7_trace.abi=2; m7_keep_steer_sleep=false;
 }
 extern "C" const M7SolverTrace* M7SolverFinish(const void* vehicle) {
   if (!vehicle || vehicle != m7_vehicle) return 0;
   m7_vehicle=0; return &m7_trace;
+}
+
+extern "C" bool M7SolverKeepProtectedSteerSleep(const void* vehicle) {
+  if (!vehicle || vehicle != m7_vehicle || m7_trace.begins) return false;
+  m7_keep_steer_sleep=true; m7_trace.protected_steer_hold=1; return true;
 }

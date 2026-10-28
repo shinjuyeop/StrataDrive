@@ -111,3 +111,26 @@ work coverage가 아니다. 앞바퀴 중간값의 미세 음수도 원본 그�
 실행하고 소유 프로세스만 종료한다.320 후보는 `--vehicle-substeps 320 --require-solver-wheel`,
 response 입력은 추가 `--response-fixture <m7-1o-actuator-fixture>`다. 전체 인수와 실행 바이너리
 hash는 evidence의 `server-*.json`에 남긴다. owner key는 자식 환경에만 생성하며 로그에 저장하지 않는다.
+
+
+종료/보호 정지 후속은 [일괄 검증 근거](../../../docs/test-plan/evidence/m7_carla_recovery/batch-closeout/README.md)를 따른다.
+`--held-steer-sleep`는 native+solver-work에만 허용하며, 동일한 보호 effort를 유지할 때
+비영 steer만으로 자연 sleep이 해제되는 것을 막는다. 기본은 off다. module ABI2와 CARLA
+`M7NoDriveWork.cpp`를 함께 설치/빌드해야 한다. ABI1 module은 새 서버에서 거부한다.
+
+```bash
+python3 tools/carla/m7_nodrive/install.py --carla <carla-source> --engine <UE4-root> --manifest <external-manifest>
+# 실행 중인 UE4Editor가 없는 상태에서 CARLA module과 observer를 빌드한다.
+# CARLA source root: UE4_ROOT=<UE4-root> bash Util/BuildTools/BuildCarlaUE4.sh --build --no-simready
+python3 tools/carla/m7_nodrive/build_solver_observer.py --engine <UE4-root> --output <new-external-build> --install
+python3 tests/integration/carla/m7_integrated_run.py \
+  --engine <UE4-root> --source <carla-source> --python <venv-python> \
+  --fixture <fixture> --native <m7-wheel-shadow> --runtime <new-runtime-dir> --output <new-output-dir> \
+  --held-steer-sleep --cases client-loss protected-sleep camera-a client-loss-cameras loading-abort wall-gap zero disabled
+```
+
+runner는 각 case마다 새 서버를 띄우고 원래 종료30s/준비180s 한도를 유지한다.
+`client-loss`는 실제 probe process를 exit73으로 끊으며 cleanup 없이 SIGINT 종료를 검사한다.
+`protected-sleep`는400구간/정산 후 pause/reset/close와 새 INIT의 hold 이력 초기화도 확인한다.
+`audit_m7_closeout.py`는 exact body/pose·sleep/work·종료 frame·원래 취득 clock bracket을 검사하며,
+PASS는 요청된 한정 범위뿐이다. wall timing/clock agreement는 이 suite로 자동 수용되지 않는다.

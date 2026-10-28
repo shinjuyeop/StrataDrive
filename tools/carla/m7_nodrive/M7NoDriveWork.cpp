@@ -7,14 +7,15 @@
 #include "Serialization/JsonSerializer.h"
 
 // Other diagnostic profiles can still load an uninstrumented engine.
+extern "C" bool M7SolverKeepProtectedSteerSleep(const void*) __attribute__((weak));
 extern "C" void M7SolverStart(const void*) __attribute__((weak));
 extern "C" const M7SolverTrace* M7SolverFinish(const void*) __attribute__((weak));
 
-bool UM7NoDriveMovement::BeginSolverWork()
+bool UM7NoDriveMovement::BeginSolverWork(bool KeepProtectedSteerSleep)
 {
   if (!HasNoDrive() || DiagnosticSubsteps != 320 || !M7SolverStart || !M7SolverFinish) return false;
   M7SolverStart(PVehicle);
-  return true;
+  return !KeepProtectedSteerSleep || (M7SolverKeepProtectedSteerSleep && M7SolverKeepProtectedSteerSleep(PVehicle));
 }
 
 FString UM7NoDriveMovement::FinishSolverWork(bool& Valid)
@@ -26,6 +27,8 @@ FString UM7NoDriveMovement::FinishSolverWork(bool& Valid)
   auto* T = HasNoDrive() && M7SolverFinish ? M7SolverFinish(PVehicle) : nullptr;
   if (T) {
     R->SetNumberField(TEXT("abi"), T->abi);
+    const bool HeldSteer = T->abi == 2 && T->protected_steer_hold == 1;
+    R->SetBoolField(TEXT("protected_steer_hold"), HeldSteer);
     R->SetNumberField(TEXT("begins"), T->begins);
     R->SetNumberField(TEXT("ends"), T->ends);
     R->SetNumberField(TEXT("sleeping"), T->sleeping);
@@ -33,7 +36,7 @@ FString UM7NoDriveMovement::FinishSolverWork(bool& Valid)
     R->SetNumberField(TEXT("count"), T->count);
     R->SetNumberField(TEXT("overflow"), T->overflow);
     R->SetNumberField(TEXT("solver_dt_s"), T->dt);
-    Valid = T->abi == 1 && T->begins == 1 && T->ends == 1 && T->wheels == 4 &&
+    Valid = T->abi == 2 && T->protected_steer_hold <= 1 && T->begins == 1 && T->ends == 1 && T->wheels == 4 &&
       T->overflow == 0 && T->dt == .01f &&
       ((T->sleeping == 0 && T->count == 320) || (T->sleeping == 1 && T->count == 0));
     const auto* V = static_cast<const physx::PxVehicleNoDrive*>(PVehicle);
@@ -75,7 +78,8 @@ FString UM7NoDriveMovement::FinishSolverWork(bool& Valid)
     for (unsigned W=0; W<4; ++W) {
       const auto* Block = PVehicle->mWheelsDynData.getWheel4DynData();
       Valid = Valid && FMath::IsFinite(Work[W]) && (T->sleeping ?
-        (V->getDriveTorque(W) == 0 && V->getSteerAngle(W) == 0 && Block[0].mWheelSpeeds[W] == 0) :
+        (V->getDriveTorque(W) == 0 && (V->getSteerAngle(W) == 0 || HeldSteer) &&
+         PVehicle->getRigidDynamicActor()->isSleeping() && Block[0].mWheelSpeeds[W] == 0) :
         (T->count == 320 && Block[0].mWheelSpeeds[W] == T->steps[319].after[W]));
       if (FMath::IsFinite(Work[W])) WorkJson.Add(MakeShared<FJsonValueNumber>(Work[W]));
       else WorkJson.Add(MakeShared<FJsonValueString>(FString::Printf(TEXT("%g"), Work[W])));

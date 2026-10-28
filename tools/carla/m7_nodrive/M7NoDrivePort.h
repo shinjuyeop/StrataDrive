@@ -13,4 +13,5 @@ namespace M7NoDrive {
   bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds);
   void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds);
   void EndEpisode();
+  void Shutdown();
 }

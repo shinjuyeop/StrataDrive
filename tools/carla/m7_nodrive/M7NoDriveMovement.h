@@ -27,7 +27,7 @@ public:
   bool ApplyEffort(const FM7WheelEffort& Effort);
   bool EffortMatches(const FM7WheelEffort& Effort) const;
   bool NumericalProfileMatches() const;
-  bool BeginSolverWork();
+  bool BeginSolverWork(bool KeepProtectedSteerSleep = false);
   FString FinishSolverWork(bool& Valid);
   virtual void GenerateTireForces(UVehicleWheel* Wheel, const FTireShaderInput& Input, FTireShaderOutput& Output) override;
 protected:

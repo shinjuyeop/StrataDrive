@@ -487,3 +487,24 @@ fractional barrier handoff, 정상 재진입/다른 thread/역행 시간 거부�
 검사한다. 순수 idle 전용 `audit_m7_wall.py`와 구분하며, terminal service의 누락/late도 그대로 보고한다.
 정상/ASan 회귀·TSan과 기존901/401개 출력 replay를 별도 기록하고 CARLA physics 분모에 합산하지 않는다.
 [실행·실패·재현](evidence/m7_carla_wall_guard/terminal-response/README.md)을 따른다.
+
+
+## 종료·보호 정지·clock 일괄 후속 검사 (2026-10-28)
+
+[원본/실패/판정](evidence/m7_carla_recovery/batch-closeout/README.md)의 단일 suite를 사용한다.
+`m7_integrated_run.py --held-steer-sleep --cases client-loss protected-sleep camera-a
+client-loss-cameras loading-abort wall-gap zero disabled`에 기존 engine/source/python/fixture/native
+및 새 runtime/output 경로를 전달한다. 컴파일된 서버/observer ABI2를 함께 사용한다.
+
+- client-loss: 정상199receipt/정산 후 실제 process exit73, cleanup 없음. SIGINT30s 내 종료 및
+  원래 frame 유지, physics 등록 차단 로그를 검사한다. 영상 유/무 모두 실행한다.
+- protected-sleep: 기존400구간/보호200구간의 Actual/wire/완전 solver/EV 감사를 유지한다.
+  자연 sleep 이후 body/wheel exact0 지속, 마지막100구간 pose/quaternion 동일을 검사한다.
+  hold의 직전 완료 구간/동일 effort/원래 보호 Actual을 확인하고5종 변조를 거부한다.
+  pause/reset/close 후 새 INIT의 보호 hold 이력 부재와 이전 stage 재사용 차단을 확인한다.
+- clock: 실제 post-physics 취득 bracket과 다음 native 처리의 같은 Host monotonic 순서만
+  검사한다. index150의 의도적250ms pause 포함/제외 통계를 분리하며 기존 CAN 시각은 불변이다.
+  offset 교집합·지연 관측은 정상 wall 수용 증거가 아니다.
+
+일반/ASan M7 회귀와 기존 정상900구간의 physics/solver 대조를 함께 기록한다. 초기 실패는
+최종 성공으로 덮지 않는다. M8/AI/Jetson이나 M6 재수용을 이 묶음에 추가하지 않는다.

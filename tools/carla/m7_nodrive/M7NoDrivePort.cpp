@@ -11,6 +11,7 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "HAL/PlatformMisc.h"
+#include <time.h>
 
 #include <compiler/disable-ue4-macros.h>
 #include <memory>
@@ -19,6 +20,7 @@
 #include "brake_receiver.hpp"
 #include "drive_receiver.hpp"
 #include "native_admission.hpp"
+#include "held_steer_sleep.hpp"
 #pragma GCC visibility pop
 #include <compiler/enable-ue4-macros.h>
 
@@ -43,7 +45,8 @@ struct State {
   double TotalMotorWork = 0;
   std::unique_ptr<stratadrive::m7_native::Admission> NativeGate;
   uint32 Application = 0;
-  FM7WheelEffort Effort;
+  FM7WheelEffort Effort, LastEffort;
+  bool ProtectionEffort = false, LastProtection = false, KeptSteerSleep = false;
   bool Locked = false, Staged = false, Queued = false, InFlight = false, Latched = false;
   FString Reason;
   FString Run;
@@ -280,7 +283,8 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.AwaitSettlement = false; S.TotalMotorWork = 0;
     S.Application = static_cast<uint32>(Application);
     S.NativeGate.reset(NativeFlag ? new stratadrive::m7_native::Admission(S.Application, Now(Episode)) : nullptr);
-    S.Effort = FM7WheelEffort();
+    S.Effort = FM7WheelEffort(); S.LastEffort = FM7WheelEffort();
+    S.ProtectionEffort = S.LastProtection = S.KeptSteerSleep = false;
     S.Locked = true; // Failure during conversion remains contained until close.
     S.Latched = S.Staged = S.Queued = S.InFlight = false;
     S.Receipt.Reset(); S.Pending.Reset();
@@ -302,6 +306,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     }
     auto R = Response(true, S.V1 ? TEXT("bound_virtual_v1_diagnostic") : TEXT("bound_zero_only"));
     R->SetObjectField(TEXT("physics"), Physics());
+    R->SetBoolField(TEXT("protected_hold_history_valid"), S.LastProtection);
     R->SetStringField(TEXT("logical_begin_ns"), Dec(Now(Episode)));
     R->SetNumberField(TEXT("simulation_seconds"), Episode.GetElapsedGameTime());
     R->SetStringField(TEXT("application"), Dec(S.Application));
@@ -403,6 +408,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     }
     S.Frame = Frame; S.Begin = Begin; S.SimBegin = Episode.GetElapsedGameTime();
     S.Ticket = ++S.NextTicket; S.Effort = Effort;
+    S.ProtectionEffort = Actual.protection && Actual.torque == 0 && Actual.pressure >= 1000000;
     S.Pending = Object(); S.Pending->SetObjectField(TEXT("native"), *Proof);
     auto Applied = Object();
     Applied->SetBoolField(TEXT("empty_init"), Actual.empty);
@@ -497,7 +503,12 @@ bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
     Latch(TEXT("effort_apply")); return false;
   }
   S.Staged = S.Queued = false;
-  if (S.Work && !S.Movement->BeginSolverWork()) { Latch(TEXT("solver_observer_unavailable")); return false; }
+  S.KeptSteerSleep = S.Native && S.Work &&
+    FParse::Param(FCommandLine::Get(), TEXT("StrataM7HeldSteerSleep")) &&
+    stratadrive::m7_native::held_protection(S.LastProtection, S.ProtectionEffort,
+      S.LastEffort.Steer, S.Effort.Steer, S.LastEffort.Drive, S.Effort.Drive,
+      S.LastEffort.Brake, S.Effort.Brake);
+  if (S.Work && !S.Movement->BeginSolverWork(S.KeptSteerSleep)) { Latch(TEXT("solver_observer_unavailable")); return false; }
   S.InFlight = true;
   return true;
 }
@@ -527,11 +538,22 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   R->SetNumberField(TEXT("simulation_end_seconds"), Episode.GetElapsedGameTime());
   R->SetObjectField(TEXT("original_actual"), S.Pending);
   if (S.Native) R->SetStringField(TEXT("application"), Dec(S.Application));
+  // Bracket this NEW post-physics acquisition on the same host monotonic
+  // clock as the runner. Cached receipt queries retain both original values.
+  // This is evidence for a future clock contract, NOT a CAN source rewrite.
+  timespec SampleBegin{}, SampleEnd{};
+  const bool BeginOk = clock_gettime(CLOCK_MONOTONIC, &SampleBegin) == 0;
   R->SetObjectField(TEXT("physics"), Physics());
+  const bool EndOk = clock_gettime(CLOCK_MONOTONIC, &SampleEnd) == 0;
+  if (!BeginOk || !EndOk) { Latch(TEXT("acquisition_clock")); return; }
+  R->SetStringField(TEXT("physics_acquisition_clock"), TEXT("host_CLOCK_MONOTONIC; diagnostic_not_CAN_mapping"));
+  R->SetStringField(TEXT("physics_acquisition_begin_ns"), Dec(uint64(SampleBegin.tv_sec)*1000000000+uint64(SampleBegin.tv_nsec)));
+  R->SetStringField(TEXT("physics_acquisition_end_ns"), Dec(uint64(SampleEnd.tv_sec)*1000000000+uint64(SampleEnd.tv_nsec)));
   bool Zero = true;
   for (unsigned W = 0; W != 4; ++W)
     Zero = Zero && S.Effort.Drive[W] == 0 && S.Effort.Brake[W] == 0 && S.Effort.Steer[W] == 0;
   R->SetBoolField(TEXT("applied_zero_effort"), Zero);
+  R->SetBoolField(TEXT("protected_held_steer_sleep"), S.KeptSteerSleep);
   R->SetStringField(TEXT("effort_profile"), S.Native ? TEXT("virtual-ev-v1-native-functional") : (S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only")));
   if (S.V1) {
     R->SetStringField(TEXT("model_id"), UTF8_TO_TCHAR(M7V1::Id));
@@ -555,8 +577,15 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   R->SetBoolField(TEXT("inputs_cleared_after_physics"), true);
   S.Receipt = R;
   if (S.Work && !WorkValid) { Latch(TEXT("solver_work_incomplete")); return; }
+  S.LastProtection = S.ProtectionEffort; S.LastEffort = S.Effort;
   S.Pending.Reset();
   S.InFlight = false;
+}
+
+void Shutdown()
+{
+  check(IsInGameThread());
+  if (S.Locked) Latch(TEXT("engine_exit"));
 }
 
 void EndEpisode()

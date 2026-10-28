@@ -39,10 +39,11 @@ def main():
     p.add_argument("--scenario", type=Path)
     p.add_argument("--cameras", action="store_true")
     p.add_argument("--terminal-response", action="store_true")
+    p.add_argument("--held-steer-sleep", action="store_true")
     p.add_argument("--abort-on-port", action="store_true", help="Interrupt owned server before world readiness; no ego or ticks")
     p.add_argument("--shutdown-diagnostic", action="store_true", help="Owned loading-abort only: capture blocked shutdown stacks within original 30s budget")
     p.add_argument("--ticks", type=int, default=400)
-    p.add_argument("--native-fault", choices=("none","credit","command","snapshot","work-missing","work-duplicate","ev-ack-missing","ev-ack-duplicate","ev-ack-energy","rgb-drop","protection","wall-gap"), default="none")
+    p.add_argument("--native-fault", choices=("none","credit","command","snapshot","work-missing","work-duplicate","ev-ack-missing","ev-ack-duplicate","ev-ack-energy","rgb-drop","protection","wall-gap","client-loss"), default="none")
     p.add_argument("--response-fixture", type=Path)
     p.add_argument("--require-solver-wheel", action="store_true")
     p.add_argument("--native-wheel-bridge", type=Path)
@@ -50,10 +51,12 @@ def main():
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
     a = p.parse_args()
+    if a.held_steer_sleep and not (a.native_actual and a.solver_work):
+        p.error("held steering sleep requires native solver work")
     if a.terminal_response and (not a.solver_work or a.native_fault!="wall-gap"):
         p.error("terminal response requires solver-work wall-gap")
-    if a.shutdown_diagnostic and not a.abort_on_port:
-        p.error("shutdown diagnostic is limited to loading-abort")
+    if a.shutdown_diagnostic and not (a.abort_on_port or a.native_fault=="client-loss"):
+        p.error("shutdown diagnostic is limited to loading-abort/client-loss")
     if a.cameras and not a.native_actual:
         p.error("camera integration requires native Actual")
     if a.scenario and not a.solver_work:
@@ -92,6 +95,8 @@ def main():
         argv.append("-StrataM7SensorFrame5")
     if a.solver_work:
         argv.append("-StrataM7SolverWork")
+    if a.held_steer_sleep:
+        argv.append("-StrataM7HeldSteerSleep")
     if a.flag_check == "ambiguous":
         argv.append("-StrataM7V1Substeps40" if a.vehicle_substeps == 20 else "-StrataM7V1Substeps20")
     elif a.flag_check == "requires-v1":
@@ -265,6 +270,12 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
             proc = subprocess.run(cmd, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=300)
         report["probe_exit"] = proc.returncode
         report["status"] = "COMPLETE_ISOLATED_RUN" if proc.returncode == 0 else "PROBE_FAIL"
+        if a.native_fault=="client-loss":
+            loss=json.loads((a.output/'result.json').read_text())
+            if proc.returncode==73 and loss['status']=='CLIENT_LOSS_INJECTED_NOT_CLEANUP' and \
+               loss['receipts']==loss['settlements']==199 and loss['client_loss']['synchronous_mode']:
+                report['status']='COMPLETE_CLIENT_LOSS_SHUTDOWN'
+                report['client_loss']=loss['client_loss']
     except LoadingAbort:
         report["status"]="COMPLETE_LOADING_ABORT" if report["abort_observation"]["status"]=="LOADING_ABORT_REQUESTED" else "NOT_COVERED_ALREADY_READY"
     except Exception:
@@ -309,7 +320,7 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
                 report["logs"][name] = dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest())
         (a.output.parent/("server-"+a.output.name+".json")).write_text(json.dumps(report, indent=2)+"\n")
     print(json.dumps(report))
-    return 0 if report["status"] in ("COMPLETE_ISOLATED_RUN","COMPLETE_LOADING_ABORT") and "forced_stop" not in report else 1
+    return 0 if report["status"] in ("COMPLETE_ISOLATED_RUN","COMPLETE_LOADING_ABORT","COMPLETE_CLIENT_LOSS_SHUTDOWN") and "forced_stop" not in report else 1
 
 
 if __name__ == "__main__":

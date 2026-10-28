@@ -14,12 +14,37 @@ def f32(x):
     return struct.unpack('<f',struct.pack('<f',x))[0]
 
 
-def validate(row):
+def validate_hold(row, previous):
+    r=row['receipt'];w=r['solver_work']
+    held=w.get('protected_steer_hold',False)
+    check(type(held) is bool,'typed held-steer witness')
+    if w['abi']==1:
+        check(not held and not r.get('protected_held_steer_sleep',False),'legacy observer cannot attest held steer')
+    else:
+        check(type(r.get('protected_held_steer_sleep')) is bool and
+              held==r['protected_held_steer_sleep'],'server/solver held-steer agreement')
+    if not held:return
+    check(previous is not None,'held policy needs preceding completed interval')
+    prev=previous['receipt']
+    check(int(prev['frame'])+1==int(r['frame']) and
+          all(prev[k]==r[k] for k in ('actor','run','session','physics_generation')),'held predecessor identity')
+    for q in (prev,r):
+        act=q['original_actual']['admitted_actual']
+        check(act['protection'] and not act['normal'] and act['torque_nm']==0 and
+              act['pressure_pa']>=1000000,'held policy original protective Actual')
+    for old,new in zip(prev['physics']['wheels'],r['physics']['wheels']):
+        check(old['set_drive_nm']==new['set_drive_nm']==0 and
+              0<old['set_friction_nm']==new['set_friction_nm'] and
+              old['set_steer_right_rad']==new['set_steer_right_rad'],'identical preceding protected effort')
+
+
+def validate(row, previous=None):
     r = row['receipt']
     w = r['solver_work']
     check(w['source']=='PhysX3.4.NoDrive.integrator.postOmega.v1','solver identity')
     check(r['interval_work_valid'] and r['solver_substep_work_observed'] and w['valid'],'work validity')
-    check((w['abi'],w['begins'],w['ends'],w['wheels'],w['overflow'])==(1,1,1,4,0),'whole invocation')
+    check(w['abi'] in (1,2) and (w['begins'],w['ends'],w['wheels'],w['overflow'])==(1,1,4,0),'whole invocation')
+    validate_hold(row,previous)
     check(w['solver_dt_s']==f32(.01),'solver world interval')
     steps = w['steps']
     sleeping = w['sleeping']==1
@@ -51,7 +76,8 @@ def validate(row):
             sums[j]+=s['drive_nm'][j]*s['after_rad_s'][j]*s['dt_s']
         if effort[2] or effort[3]: minimum=min(minimum,(s['after_rad_s'][2]+s['after_rad_s'][3])/2)
     if sleeping:
-        check(all(q['set_drive_nm']==q['set_steer_right_rad']==q['solver_omega_rad_s']==0 for q in final),'explicit sleeping zero-work witness')
+        check(r['physics']['sleeping'] and all(q['set_drive_nm']==q['solver_omega_rad_s']==0 and
+              (q['set_steer_right_rad']==0 or w.get('protected_steer_hold',False)) for q in final),'explicit sleeping zero-work witness')
     check(len(w['motor_work_j'])==4 and all(math.isclose(a,b,rel_tol=1e-13,abs_tol=1e-15) for a,b in zip(sums,w['motor_work_j'])),'signed work sum')
     eligible = all(s['drive_nm'][0]==s['drive_nm'][1]==0 and s['drive_nm'][2]==s['drive_nm'][3] and
                    (not s['drive_nm'][2] or 0 <= (s['after_rad_s'][2]+s['after_rad_s'][3])/2 <= 100) for s in steps)
@@ -108,7 +134,7 @@ def main():
                 max_balance=max(max_balance,abs(row['native']['settlement']['balance_j']))
                 if row['index']==150:settlement_sample=(copy.deepcopy(row),copy.deepcopy(previous),sum(totals))
             if 'receipt' not in row: continue
-            sums,m,e=validate(row)
+            sums,m,e=validate(row,previous)
             count+=1;totals=[x+y for x,y in zip(totals,sums)];minimum=min(minimum,m);residual=max(residual,e)
             if m<0: negative.append(row['index'])
             if row['index']==150: sample=row

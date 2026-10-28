@@ -17,6 +17,7 @@ native Actual→CARLA→관측 solver work→단일 EV 경로에서 가속·회�
 [독립 wall 감시→local 보호 선택→다음 tick 차단](docs/test-plan/evidence/m7_carla_wall_guard/README.md)을 추가 검증했다.
 연속 실시간2ms/4ms 실행과 wall fault 이후 실제 보호 제동 수용은 남아 있다.
 CARLA 입력 대기 중에도 원래8-role service·보호 CAN Actual을 계속하는 terminal wall 경로를 검증했다.
+보호 hold의 자연 완전 정지와 client-loss 종료 교착도 [일괄 재현·수정](docs/test-plan/evidence/m7_carla_recovery/batch-closeout/README.md)했다.
 정상 wall 실행과 CARLA에 다시 적용할 clock agreement는 남아 있다.
 현재 계약은 [Plant Adapter ICD](docs/icd/carla_plant_adapter.md), 과거 단계별 결과는 상태 문서를 따른다.
 

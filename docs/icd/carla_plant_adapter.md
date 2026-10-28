@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-28, `m7-plant-draft-v21`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
+2026-10-28, `m7-plant-draft-v22`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -847,3 +847,28 @@ component 결과는 [현재 검토](../m7_exit_review.md#actuator-응답과-관�
 [실행 판정](../m7_exit_review.md#terminal-wall-service와-보호-actual-지속)은 native terminal
 응답 한정이다. 정상 wall owner/수신 분리·clock uncertainty·in-flight RPC 차단과 CARLA 물리 제동을
 수용하려면 별도 연결이 필요하다. 이 경로의 Actual로 freshness/clock 검사를 우회하지 않는다.
+
+### 보호 hold·종료·취득 clock 증거 (draft-v22)
+
+`-StrataM7HeldSteerSleep`는 native+solver-work 진단 프로필에 한정한다. 직전 완료 구간과 현재
+구간이 모두 원래 보호 Actual(torque0, pressure≥1MPa)이고 네 바퀴의 적용 steer/friction이 정확히
+같으며 friction>0·drive0일 때만 NoDrive의 비영 steer wake 조건을 생략한다. 자연 sleep 진입을
+강제하지 않으며 drive/외부 접촉의 wake, 실제 effort, pose/속도, 타이어 법칙은 유지한다.
+다른 차량·일반 프로필에는 적용하지 않는다. 이전 구간 증거는 pause/reset/새 bind 상태를 넘지 않는다.
+
+observer ABI2의 `protected_steer_hold`와 receipt의 `protected_held_steer_sleep`는 같아야 한다.
+독립 감사는 이전 frame/run/session/actor/generation, 두 원래 Actual과 모든 wheel effort도 확인한다.
+sleeping zero-work는 실제 actor sleep·직접 solver wheel0·drive0 및 steer0 또는 검증된 hold를
+요구한다. 단순 flag만으로 임의 steer/sleep/work0을 수용하지 않는다. ABI1 과거 자료는 기존
+steer0 규칙을 유지하며 새 서버에서 ABI1 observer는 fail-closed한다. V1 모델 계수는 불변이고
+이 옵션은 별도의 수치 정책으로 실행 argv/observer module hash와 함께 보존한다.
+
+`physics_acquisition_begin_ns/end_ns`는 새 Physics 취득을 감싼 같은 Host의 CLOCK_MONOTONIC
+원시 bracket(string uint64)이며 `physics_acquisition_clock`에 진단 출처를 기록한다. cached receipt
+조회 시 갱신하지 않는다. 기존 simulation/frame/CAN timestamp와 별개이며 wall mapping/새 CAN
+source로 쓰지 않는다. uncertainty·clock agreement 수용 전에는 정상 wall 권한을 만들 수 없다.
+
+engine exit가 요청된 경우에만 game-thread synchronous wait를 취소한다. adapter를 latch하고
+입력을 지운 뒤 world physics 등록을 막으며 post-tick receipt/snapshot을 발행하지 않는다.
+그 뒤 서버를 종료한다. client-loss 자체의 자동 안전 제동 계약은 아니며, SIGINT 종료 응답과
+원래 frame 유지 시험이다. 상세 판정은 [일괄 검증](../test-plan/evidence/m7_carla_recovery/batch-closeout/README.md)을 따른다.

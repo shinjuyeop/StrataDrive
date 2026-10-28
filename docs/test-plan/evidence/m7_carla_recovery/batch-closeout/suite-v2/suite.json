@@ -1,0 +1,331 @@
+{
+  "status": "COMPLETE_BOUNDED_SUITE",
+  "cases": [
+    {
+      "name": "client-loss",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2-runtime/client-loss",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/client-loss",
+        "--vehicle-substeps",
+        "320",
+        "--native-actual",
+        "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--solver-work",
+        "--held-steer-sleep",
+        "--native-fault",
+        "client-loss",
+        "--scenario",
+        "/d/shin/StrataDrive/tests/integration/carla/scenarios/m7_integrated_v1.txt"
+      ],
+      "audits": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_closeout.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/client-loss",
+            "--kind",
+            "client-loss",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/client-loss-closeout.json"
+          ],
+          "exit": 0
+        }
+      ],
+      "exit": 0,
+      "elapsed_seconds": 38.43803055799799,
+      "status": "PASS_CASE_ONLY"
+    },
+    {
+      "name": "protected-sleep",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2-runtime/protected-sleep",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/protected-sleep",
+        "--vehicle-substeps",
+        "320",
+        "--native-actual",
+        "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--solver-work",
+        "--held-steer-sleep",
+        "--native-fault",
+        "protection",
+        "--ticks",
+        "400",
+        "--scenario",
+        "/d/shin/StrataDrive/tests/integration/carla/scenarios/m7_integrated_v1.txt"
+      ],
+      "audits": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1r_work.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/protected-sleep",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/protected-sleep-audit_m7_1r_work.json"
+          ],
+          "exit": 0
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_protection.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/protected-sleep",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/protected-sleep-audit_m7_protection.json"
+          ],
+          "exit": 0
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_closeout.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/protected-sleep",
+            "--kind",
+            "sleep",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/protected-sleep-closeout.json"
+          ],
+          "exit": 0
+        }
+      ],
+      "exit": 0,
+      "elapsed_seconds": 38.30845910098287,
+      "status": "PASS_CASE_ONLY"
+    },
+    {
+      "name": "camera-a",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2-runtime/camera-a",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/camera-a",
+        "--vehicle-substeps",
+        "320",
+        "--native-actual",
+        "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--solver-work",
+        "--held-steer-sleep",
+        "--scenario",
+        "/d/shin/StrataDrive/tests/integration/carla/scenarios/m7_integrated_v1.txt",
+        "--ticks",
+        "900",
+        "--cameras"
+      ],
+      "audits": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1r_work.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/camera-a",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/camera-a-audit_m7_1r_work.json"
+          ],
+          "exit": 0
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_integrated.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/camera-a",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/camera-a-audit_m7_integrated.json"
+          ],
+          "exit": 0
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_closeout.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/camera-a",
+            "--kind",
+            "clock",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/camera-a-closeout.json"
+          ],
+          "exit": 0
+        }
+      ],
+      "exit": 0,
+      "elapsed_seconds": 65.82106593900244,
+      "status": "PASS_CASE_ONLY"
+    },
+    {
+      "name": "client-loss-cameras",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2-runtime/client-loss-cameras",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/client-loss-cameras",
+        "--vehicle-substeps",
+        "320",
+        "--native-actual",
+        "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--solver-work",
+        "--held-steer-sleep",
+        "--native-fault",
+        "client-loss",
+        "--scenario",
+        "/d/shin/StrataDrive/tests/integration/carla/scenarios/m7_integrated_v1.txt",
+        "--cameras"
+      ],
+      "audits": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_closeout.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/client-loss-cameras",
+            "--kind",
+            "client-loss",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/client-loss-cameras-closeout.json"
+          ],
+          "exit": 0
+        }
+      ],
+      "exit": 0,
+      "elapsed_seconds": 37.11000241601141,
+      "status": "PASS_CASE_ONLY"
+    },
+    {
+      "name": "loading-abort",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2-runtime/loading-abort",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/loading-abort",
+        "--vehicle-substeps",
+        "320",
+        "--flag-check",
+        "disabled",
+        "--abort-on-port"
+      ],
+      "audits": [],
+      "exit": 0,
+      "elapsed_seconds": 27.620847254002,
+      "status": "PASS_CASE_ONLY"
+    },
+    {
+      "name": "wall-gap",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2-runtime/wall-gap",
+        "--output",
+        "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/wall-gap",
+        "--vehicle-substeps",
+        "320",
+        "--native-actual",
+        "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--solver-work",
+        "--held-steer-sleep",
+        "--native-fault",
+        "wall-gap",
+        "--scenario",
+        "/d/shin/StrataDrive/tests/integration/carla/scenarios/m7_integrated_v1.txt"
+      ],
+      "audits": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_wall.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/wall-gap",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/wall-gap-audit.json"
+          ],
+          "exit": 0
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_closeout.py",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/wall-gap",
+            "--kind",
+            "clock",
+            "--output",
+            "/d/shin/stratadrive-tools/m7-source/m7-batch-close/suite-v2/wall-gap-closeout.json"
+          ],
+          "exit": 0
+        }
+      ],
+      "exit": 0,
+      "elapsed_seconds": 35.90056190500036,
+      "status": "PASS_CASE_ONLY"
+    }
+  ],
+  "source_sha256": {
+    "m7_integrated_v1.txt": "eabd242463209abf9b62d3b296e82bde14fd62d40dfafe9745f3ac537e21a0ce",
+    "m7_1q_probe.py": "3a917d6855077047432587e37359168a6ce9a968ae14218550763e42d3818821",
+    "audit_m7_integrated.py": "a20dfb7545221a3b6605febaece6c412a311eb7543807cd3812fba689f1fcbf8",
+    "m7_sensor_capture.py": "7694044e0b2ca556437752087f5b4ed5fad0679eed3c7160b3061ee73cc0bd1d",
+    "audit_m7_1r_work.py": "453155077ae4bbbd0fe1f510966457c401c7058c4f7eab7b7a69b998b41ff5ca",
+    "audit_m7_protection.py": "a6a431c57265db5c05f4ca35e78911545a25529478591d0bf2ee93dcd6f48e84",
+    "audit_m7_closeout.py": "0b8fe1e48f8607c5a0baaeb7bbaab62269ce3edbb98243ea7b4981d3dbe145df",
+    "m7_1o_run.py": "f8563eaa3c7826c1fb53a6407d65a28b1a7c23cbdbb88e60c4c4b06c212dac41",
+    "audit_m7_1q_native.py": "00491d9b9f5518c59599d3bfed495609fe58a8758ab3ae7e84834969d5e22ec2",
+    "m7_integrated_run.py": "eb4f54045313987d5d82076eeb8a98340d323f9d76fdc2ea0e773f834a91faf3",
+    "audit_m7_wall.py": "6dbfc230a30a59337c833011b27715b68c9c540964dc1a7bfa3fd3dbb3585841"
+  },
+  "full_m7_closed": false
+}

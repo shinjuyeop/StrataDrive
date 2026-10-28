@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a read-only NoDrive observer from pinned external UE sources.
+"""Build a NoDrive observer and opt-in protected held-steer sleep hook from pinned external UE sources.
 
 Engine sources and static archives stay untouched. --install atomically replaces
 only the PhysXVehicles module, preserving its original binary for --restore.
@@ -62,6 +62,7 @@ def main():
     end = s.index('\n}\n', begin)+2
     body = s[begin:end]
     body = once(body, '\n\tPX_SIMD_GUARD;', '\n\tm7_begin(vehNoDrive, vehNoDrive->mWheelsSimData.getNbWheels(), timestep);\n\tPX_SIMD_GUARD;')
+    body = once(body, 'if(vehNoDrive->getSteerAngle(i)!=0.0f)', 'if(vehNoDrive->getSteerAngle(i)!=0.0f && m7_steer_wakes(vehNoDrive))')
     body = once(body, '\t\t\t\treturn;', '\t\t\t\tm7_end(vehNoDrive, true);\n\t\t\t\treturn;')
     body = once(body, '\t\t\tintegrateNoDriveWheelSpeeds(', '\t\t\tfloat m7_before[4];\n\t\t\tfor (unsigned j=0;j<4;++j) m7_before[j]=wheels4DynData.mWheelSpeeds[j];\n\t\t\tintegrateNoDriveWheelSpeeds(')
     body = once(body, '\n\t\t\tintegrateNoDriveWheelRotationAngles(', '\n\t\t\tm7_step(vehNoDrive, k, numSubSteps, i, subTimestep, m7_before, wheels4DynData.mWheelSpeeds, rawDriveTorques, brakeTorques, outputData.tireTorques, wheelDampingRates);\n\n\t\t\tintegrateNoDriveWheelRotationAngles(')

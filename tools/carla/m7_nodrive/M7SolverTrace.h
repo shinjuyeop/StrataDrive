@@ -9,8 +9,10 @@ struct M7SolverTrace {
   uint32_t abi, begins, ends, sleeping, wheels, count, overflow;
   float dt;
   M7SolverStep steps[320];
+  uint32_t protected_steer_hold; // ABI2: guarded hold; no forced sleep/velocity write
 };
 extern "C" {
+__attribute__((visibility("default"))) bool M7SolverKeepProtectedSteerSleep(const void* vehicle);
 __attribute__((visibility("default"))) void M7SolverStart(const void* vehicle);
 __attribute__((visibility("default"))) const M7SolverTrace* M7SolverFinish(const void* vehicle);
 }
