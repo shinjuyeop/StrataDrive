@@ -1,5 +1,9 @@
 #include "functional_rig.hpp"
 #include "native_admission.hpp"
+#include "wall_execution_watch.hpp"
+#include <cerrno>
+#include <poll.h>
+#include <unistd.h>
 #include <iomanip>
 #include <fstream>
 #include <iostream>
@@ -7,6 +11,36 @@
 #include <string>
 using namespace stratadrive::m7_functional;
 namespace {
+// Bounded, interruptible input; std::getline can hide buffered WORK/WHEEL lines
+// from poll(). Waiting here is NOT an owner execution opportunity.
+class Input {
+    std::string pending_;
+    bool eof_=false;
+public:
+    enum class Result {Line,Wait,End};
+    Result read(std::string& line) {
+        auto take=[&] {
+            const auto end=pending_.find('\n');
+            if(end==std::string::npos)return false;
+            if(end>20000)throw std::runtime_error("input line bound");
+            line=pending_.substr(0,end);pending_.erase(0,end+1);return true;
+        };
+        if(take())return Result::Line;
+        if(pending_.size()>20000)throw std::runtime_error("input line bound");
+        if(eof_) {
+            if(!pending_.empty())throw std::runtime_error("unterminated input");
+            return Result::End;
+        }
+        pollfd fd{STDIN_FILENO,POLLIN,0};
+        const int ready=::poll(&fd,1,1);
+        if(ready<0 && errno!=EINTR)throw std::runtime_error("input poll");
+        if(ready<=0)return Result::Wait;
+        char bytes[4096];const auto size=::read(STDIN_FILENO,bytes,sizeof(bytes));
+        if(size<0) {if(errno==EINTR)return Result::Wait;throw std::runtime_error("input read");}
+        if(!size)eof_=true;else pending_.append(bytes,static_cast<std::size_t>(size));
+        return take()?Result::Line:Result::Wait;
+    }
+};
 void audit(const std::optional<WheelAudit>& w) {
     if(w)std::cout<<"{\"source_ns\":"<<w->source<<",\"rad_s\":"<<w->rad_s<<'}';
     else std::cout<<"null";
@@ -22,8 +56,10 @@ template<std::size_t N> void packets(const std::array<std::optional<stratadrive:
 }
 }
 int main(int argc,char** argv) {
+    std::unique_ptr<WallExecutionWatch> wall_watch;
+    std::string wall_path;
     try {
-        if((argc!=6 && argc!=8) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
+        if((argc<6 || argc>10 || argc%2!=0) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
             throw std::runtime_error("requires --wheel-shadow or --external-wheel-plant run application plant actor; no general driving acceptance");
         const auto run=std::stoull(argv[2]),app=std::stoull(argv[3]),plant=std::stoull(argv[4]),actor=std::stoull(argv[5]);
         if(!actor || actor>UINT32_MAX || app>UINT32_MAX || plant>UINT32_MAX)throw std::runtime_error("identity range");
@@ -32,9 +68,16 @@ int main(int argc,char** argv) {
         const bool external=std::string(argv[1])=="--external-wheel-plant" || exporting;
         FunctionalRig rig({run,static_cast<std::uint32_t>(app),static_cast<std::uint32_t>(plant)},static_cast<std::uint32_t>(actor),
             solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting);
-        if(argc==8) {
-            if(!solver_work || std::string(argv[6])!="--scenario")throw std::runtime_error("scenario requires solver-work mode");
-            std::ifstream file(argv[7]);if(!file)throw std::runtime_error("scenario open");
+        bool scenario_loaded=false;
+        for(int arg=6;arg<argc;arg+=2) {
+            if(!solver_work)throw std::runtime_error("options require solver-work mode");
+            if(std::string(argv[arg])=="--wall-watch") {
+                if(!wall_path.empty())throw std::runtime_error("duplicate wall watch");
+                wall_path=argv[arg+1];continue;
+            }
+            if(std::string(argv[arg])!="--scenario" || scenario_loaded)throw std::runtime_error("invalid/duplicate scenario");
+            scenario_loaded=true;
+            std::ifstream file(argv[arg+1]);if(!file)throw std::runtime_error("scenario open");
             std::vector<RequestPhase> phases;std::string row;
             while(std::getline(file,row)) {
                 if(row.empty() || row[0]=='#')continue;
@@ -51,7 +94,36 @@ int main(int argc,char** argv) {
         std::optional<stratadrive::m7_external::SolverWork> work;
         std::optional<WheelSample> previous_wheel;
         stratadrive::m7_native::Output previous_admission;
-        while(std::getline(std::cin,line)) {
+        Input lines;
+        const auto stop_if_fault=[&] {
+            if(wall_watch && wall_watch->faulted()) {
+                const auto selected=rig.stop_at_barrier();
+                const auto selected_wall=WallExecutionWatch::now();
+                wall_watch->write(wall_path);
+                std::cout<<"{\"status\":\"WALL_GUARD_STOP\",\"next_frame\":null,\"normal\":"<<(selected.normal?"true":"false")
+                    <<",\"credit_mask\":"<<selected.credit_mask<<",\"selected_mask\":"<<selected.selected_mask
+                    <<",\"logical_barrier_ns\":"<<selected.logical_ns<<",\"wall_selected_ns\":"<<selected_wall
+                    <<",\"actual_exported\":false,\"physical_braking_accepted\":false}"<<std::endl;
+                return true;
+            }
+            return false;
+        };
+        for(;;) {
+            if(stop_if_fault())return 2;
+            const auto read=lines.read(line);
+            if(stop_if_fault())return 2;
+            if(read==Input::Result::End)break;
+            if(read==Input::Result::Wait)continue;
+            if(line=="WALL_ARM") {
+                if(wall_path.empty() || wall_watch || work || !previous_admission.normal)
+                    throw std::runtime_error("wall arm requires settled normal barrier and opt-in output");
+                // Declared diagnostic window; preceding INIT is NOT monitored.
+                wall_watch=std::make_unique<WallExecutionWatch>(WallExecutionWatch::now()+100000000);
+                rig.execution_watch(wall_watch.get());
+                std::cout<<"{\"status\":\"WALL_GUARD_ARMED\",\"first_release_ns\":"<<wall_watch->first_release()
+                    <<",\"period_ns\":2000000,\"deadline_ns\":4000000}"<<std::endl;
+                continue;
+            }
             if(line=="PROTECT") {
                 if(!solver_work || !previous_admission.normal)throw std::runtime_error("protection request context");
                 rig.request_protection();continue;
@@ -79,6 +151,7 @@ int main(int argc,char** argv) {
                op!="WHEEL" || (in>>extra))throw std::runtime_error("invalid WHEEL");
             if(solver_work && previous_wheel && !work)throw std::runtime_error("missing solver work receipt");
             const auto r=work?rig.observe(o,w,*work):rig.observe(o,w);
+            if(stop_if_fault())return 2;
             const bool settled=bool(work);
             work.reset();previous_wheel=w;
             bool admission_good=true;
@@ -136,10 +209,14 @@ int main(int argc,char** argv) {
                     <<",\"circuit_loss_j\":"<<r.electrical->circuit_loss_j<<",\"chemical_j\":"<<r.electrical->chemical_j<<'}';
             }
             std::cout<<"}"<<std::endl;
-            if(!admission_good)return 1;
+            if(!admission_good) {if(wall_watch)wall_watch->write(wall_path);return 1;}
         }
+        if(wall_watch)wall_watch->write(wall_path);
         return 0;
     } catch(const std::exception& e) {
+        if(wall_watch) {
+            try {wall_watch->write(wall_path);}catch(const std::exception& failure) {std::cerr<<failure.what()<<'\n';}
+        }
         std::cerr<<e.what()<<'\n';
         std::cout<<"{\"status\":\"FAIL\",\"driving\":false,\"next_frame\":null}"<<std::endl;
         return 1;

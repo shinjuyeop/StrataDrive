@@ -1,0 +1,32 @@
+{
+  "base_commit": "355ed25f844aecd439cbfc2f63acffb4df9b260a",
+  "source_sha256": {
+    "tests/integration/carla/m7_1f/wall_execution_watch.hpp": "e84cd66ea9ebacfd0d3c02c11a39ce38be7f0956fc89ac979f7dea6ed5e95309",
+    "tests/integration/carla/m7_1f/functional_rig.hpp": "af43ccddb4e365b8323e620ae80a2d3ec7ce9b1c3dfe3430cfca364644600dab",
+    "tests/integration/carla/m7_1f/functional_rig.cpp": "a5e121501d05d30fc0df9beddcdb55a6b5b803c142b13493b51b70ed94ad2233",
+    "tests/integration/carla/m7_1g/wheel_main.cpp": "1d84fd2965e79e381efdad85bb6e0f6592de66307ebacbf44b7bb29da653fed0",
+    "tests/integration/carla/m7_1g/wheel_test.cpp": "e02abc0452e510971fe986b8ab9aeb6f4666d05a864df30434e8997640873d84",
+    "simulation/runtime/m4_execution_watch.hpp": "71d3f8bbec9e407701a9f0598b0ddb24e83835d61d793e0516b744dbc3f81e84",
+    "simulation/runtime/m4_execution_watch.cpp": "de8214d7ad06331f741536c2a0654dbd8ac43036cc23c65b349ff945b19c7ac1",
+    "vecu/common/periodic_task.hpp": "b68c1f36fb5bb5895ee13792cc17d49b323b7af95112c60d93c9913389e9ddc4",
+    "vecu/common/periodic_task.cpp": "f851b4f121baacca10a9b520488425093873d5ff3713353c6e491f6fddca041f"
+  },
+  "binary_sha256": {
+    "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow": "51e13b1d90d47a1ff1dfe9c493300fd6a85d3266f3f9ccbe193eea09b1cf6923",
+    "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_test": "04c9482275342203f60b331626f4cbd0d4117271efb0e9d98ca68249467c490a",
+    "build/m7-functional-asan/tests/integration/carla/m7_1g/m7_wheel_test": "d1b9940472a8057bcf5f400683ef73070caf626f7b61bb05d6bd047402ca3869",
+    "build/m7-wall-tsan/tests/integration/carla/m7_1g/m7_wheel_test": "7bf0a8deb4d9ac4d754f8c805f6a034a254af75064e27b90b97e444fefdb38fe"
+  },
+  "normal_tests": 76,
+  "asan_ubsan_tests": 76,
+  "tsan_tests": 3,
+  "tsan_command": "setarch x86_64 -R build/m7-wall-tsan/tests/integration/carla/m7_1g/m7_wheel_test --gtest_filter=M7WallWatch.*",
+  "tsan_initial_execution": "FATAL unexpected memory mapping; no test executed",
+  "tsan_initial_build": "M7 opt-in flag absent; target not generated; corrected using STRATADRIVE_M7_FUNCTIONAL_TESTS=ON",
+  "m6_source_unchanged": true,
+  "unchanged_server_modules": {
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Plugins/Runtime/PhysXVehicles/Binaries/Linux/libUE4Editor-PhysXVehicles.so": true,
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so": true,
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so": true
+  }
+}

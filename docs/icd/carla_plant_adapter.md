@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-28, `m7-plant-draft-v18`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
+2026-10-28, `m7-plant-draft-v19`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -774,3 +774,26 @@ Restart/concurrent Stop/worker-thread Stop은 지원 범위 밖이다. 준비180
 
 이 변경은 functional clock의 보호 경로를 연결한 것이다. wall 실행 기회2ms·job4ms와
 simulation↔wall mapping은 미수용이며, native stdin 대기의 wall 공백을 heartbeat로 숨기지 않는다.
+
+### 독립 wall 감시와 terminal barrier 선택 (draft-v19)
+
+M7 fixture의 opt-in `--wall-watch <csv>`와 `WALL_ARM`은 **진단 모드**다.
+정상 입증·완료된 solver work barrier에서만 arm할 수 있으며, 첫 wall release를100ms 뒤로 명시한다.
+앞선 INIT/정상 경로는 이 감시의 검증 범위가 아니다. 기존 `M4ExecutionWatch`의2ms release/4ms
+deadline·누락 slot·late completion latch를 유지하며 최대2s 진단 창 만료도 fail closed다.
+원래8-role participant poll과 physical step의 실제 monotonic 시작/완료를 계측한다.
+별도 monitor(9)는0..8을, physical(8)은 monitor를 관찰한다. stdin polling은 job이 아니다.
+
+deadline 위반은 별도 monitor의 latch로 전달된다. native 입력 대기는 bounded poll로 끊고,
+마지막 완료 barrier에서 원래 Central·Zone·leaf 보호 함수를 호출한다. 모델 시간을 진행하거나
+취득/Actual을 만들지 않으며 이후 observe/frame 허가를 영구 차단하고 native exit2로 끝낸다.
+`WALL_GUARD_STOP`의 `logical_barrier_ns`와 `wall_selected_ns`는 각각 별도 domain이며 서로 빼지 않는다.
+`selected_mask`는 local 선택 상태 readback이며 remote ACK/새 P05 Actual을 대체하지 않는다.
+adapter는 해당 terminal 결과를 받으면 다음 stage/advance 없이 기존 서버 pause로 입력을 지운다.
+새 INIT/별도 process 없이는 정상 복귀할 수 없다.
+
+검증된 범위는199 physics 구간·EV 정산 뒤 **in-flight 요청이 없는 경계에서의 input gap**이다.
+RPC 진행 중 fault, 연속 wall 정상 실행, clock agreement, 지연 뒤 물리 제동은 미수용이다.
+현재 actuator/EV가 관측 solver work 수신에 함께 종속되므로 이 진단은 독립 감시를 연결한 것이며
+독립 actuator 실행을 구현한 것이 아니다. 원래 pressure/torque Actual 없이 brake를 직접 적용하지 않는다.
+[현재 결과/남은 구조](../m7_exit_review.md#wall-guard-후속-결과)를 따른다.

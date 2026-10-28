@@ -2,6 +2,7 @@
 #include "m4_owner_network.hpp"
 #include "run_lease_issuer.hpp"
 #include "wheel_contract.hpp"
+#include "wall_execution_watch.hpp"
 #include <deque>
 
 namespace stratadrive::m7_functional {
@@ -98,6 +99,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::deque<WheelSample> pending_wheels;
     bool export_actual=false;
     bool coordinator_started=false;
+    WallExecutionWatch* watch=nullptr;
     std::array<DeliveredCapture<transport::Feedback>,2> feedback_capture;
     std::array<DeliveredCapture<transport::LeafRequest>,5> command_capture;
     std::array<std::optional<session::Ack>,8> release_acks;
@@ -154,6 +156,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             coordinator_started=true;
         }
         if(now==next_physical) {
+            const auto wall_job=watch && (physical || now>start)?watch->begin(8):std::nullopt;
             if(physical){physical->step();require(physical->ok(),"fixture physical failure");}
             else if(now>start) {
                 std::optional<m7_external::Wheel> input;
@@ -172,6 +175,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
                 if(external->sensors())for(auto& channel:fixture_sensors)channel.publish(*external->sensors());
             }
             next_physical+=ms;
+            if(watch)watch->finish(8,wall_job);
         }
         while(!pending_wheels.empty() && pending_wheels.front().source<=now) {
             wheel=pending_wheels.front();pending_wheels.pop_front();
@@ -188,6 +192,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             sensors[i].publish(*s);
         }
         for(unsigned i=0;i<8;++i)if(static_cast<int>(i)!=omitted) {
+            const auto wall_job=watch?watch->begin(i):std::nullopt;
             auto& participant=participants[i]->participant_;
             while(!controls[i].empty()) {
                 const auto c=controls[i].front();controls[i].pop_front();
@@ -197,6 +202,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             if(i>=2 && i<=4)leaf[i-2]->drop_actual=drop_actual;
             ack(participant.poll(now));
             require(participant.fault()==session::ParticipantFault::None,"participant failure");
+            if(watch)watch->finish(i,wall_job);
         }
         while(!acks.empty()) {
             const auto a=acks.front();acks.pop_front();
@@ -368,6 +374,7 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         require(plant_mode_==PlantMode::ExternalSolverWork ? (initial?!work_:bool(work_)) : !work_,"missing/unexpected solver work");
         if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_);
         native_->profile=profile_;
+        native_->watch=watch_;
         if(work_) {
             require(work_->frame==o.frame && work_->end==now && native_->external->begin_work_frame(*work_),"solver work admission");
         }
@@ -421,4 +428,20 @@ void FunctionalRig::omit_role(int role) {omitted_=role;}
 void FunctionalRig::stop_credit(bool value) {stop_credit_=value;}
 void FunctionalRig::drop_actual(bool value) {drop_actual_=value;}
 void FunctionalRig::request_protection() {protect_=true;}
+void FunctionalRig::execution_watch(WallExecutionWatch* watch) {watch_=watch;}
+BarrierStop FunctionalRig::stop_at_barrier() {
+    require(bool(native_),"wall stop requires a completed barrier");
+    auto& n=*native_;
+    n.protect_central();
+    for(auto& p:n.participants)p->select_protection();
+    BarrierStop result{n.clock.logical,0,0,n.core.decision().normal_armed};
+    // Local readback, NOT a fabricated remote ProtectionAck. No service/replay
+    // is needed to observe that the original Zone selected its leaf protection.
+    for(unsigned i=0;i<2;++i)if(n.zone[i]->protected_selected())result.selected_mask|=1U<<i;
+    for(unsigned i=0;i<5;++i)if(n.leaves[i].protection.acknowledged(scope_.application))result.selected_mask|=1U<<(i+2);
+    if(n.core.decision().fault!=central::CoordinatorFault::None && !n.gates[7].allows(scope_.application))result.selected_mask|=128;
+    for(unsigned i=0;i<8;++i)if(n.participants[i]->allowed())result.credit_mask|=1U<<i;
+    clock_.fail(); // A fresh snapshot cannot heal this terminal wall stop.
+    return result;
+}
 } // namespace stratadrive::m7_functional

@@ -14,7 +14,8 @@ native Actual→CARLA→관측 solver work→단일 EV 경로에서 가속·회�
 영상/고장/lifecycle 실행 결과와 실패는 [통합 근거](docs/test-plan/evidence/m7_carla_integrated/README.md)에 모았다.
 [종료 교착 수정](docs/test-plan/evidence/m7_carla_recovery/README.md)과
 [요청 순서를 보완한 보호 Actual 검증](docs/test-plan/evidence/m7_carla_recovery/causal-followup/README.md)을 추가했다.
-실시간2ms/4ms와 wall fault의 보호 전환 수용은 남아 있다.
+[독립 wall 감시→local 보호 선택→다음 tick 차단](docs/test-plan/evidence/m7_carla_wall_guard/README.md)을 추가 검증했다.
+연속 실시간2ms/4ms 실행과 wall fault 이후 실제 보호 제동 수용은 남아 있다.
 현재 계약은 [Plant Adapter ICD](docs/icd/carla_plant_adapter.md), 과거 단계별 결과는 상태 문서를 따른다.
 
 [현재 상태·OPEN·다음 작업](docs/project_status.md) · [단계/TBD](docs/roadmap.md) · [학습 안내](docs/learning/README.md)

@@ -452,3 +452,16 @@ M6 코드·40개 native 복사 원본·UE tracked source·V1 계수·freshness/e
 회귀를 재현할 수 있다. 보호 case는 원래 native 안전 선택 후200개 physics 구간과 단일 EV 정산을
 이어간다. 원래 Actual/P05/freshness/출처를 독립 감사하고 보호 proof 손상·정상 재개를 거부한다.
 원래 M6 판정, 과거 실패, wall2/4ms 미수용·차체 완전 정지 미수용은 유지한다.
+
+## 독립 wall guard 검증 (2026-10-28)
+
+`m7_integrated_run.py --cases wall-gap camera-a protection`으로 실행한다.
+wall-gap은199 physics 구간과 모든 EV 정산을 완료한 뒤 다음 입력을 보류한다.
+native가 선언한 첫 release 이후 실제 owner0..8의 미완료를 독립 monitor가 검출해야 한다.
+원래2ms/4ms·latched fault를 유지하고, late finish/heartbeat/동일 slot 중복으로 누락을 숨기지 않는다.
+명시적 PROTECT/압력 주입 없이 native local 보호 선택·credit0·다음 frame 없음·동일 barrier time과
+adapter pause 이후 frame 불변을 확인한다. `audit_m7_wall.py`가 CSV/원본 trace 및5종 손상을 검사한다.
+물리 제동 PASS가 아니며, in-flight RPC fault·연속 owner scheduling/clock mapping은 후속 시험이다.
+기존 normal900/영상·functional 보호400 회귀와 원본 비교도 함께 수행한다.
+실행 중단/강제 종료, TSan 초기 실행 실패와 process-local ASLR 해제 후 결과는
+[해당 실행 근거](evidence/m7_carla_wall_guard/README.md)에 분리 기록한다.

@@ -24,7 +24,7 @@ M8 route-following Controller나 AI 주행을 구현한 것은 아니다.
 | 고정 환경·모델·단일 writer | CARLA0.9.16 source/Client `294096e-dirty`, UE4.26.2 pin, Town03_Opt/mkz_2020, V1 모델 hash 고정. 외부 writer/tick·synthetic stage 거부 유지 |
 | 정상 주행·제동·에너지 | 9s/900구간에서 좌조향 가속→signed 회생→마찰 제동/휠 정지→우조향 재출발 관측. 독립 raw-wire·solver 방정식·work/EV 장부 감사. Reference 전체 속도/ODD 수용 아님 |
 | 영상·state·lifecycle | 통합 evidence의 실제 실행별 판정 적용. RGB/학습·평가 GT 분리, frame/source timestamp 검증, 누락 차단·pause/reset/새 INIT 확인 |
-| 실시간2ms/4ms·clock | **NOT ACCEPTED.** 현재 native runner는 CARLA 응답 대기 중 owner를 실행하지 않는다. monotonic 계측에서2ms를 넘는 실행 공백 관측. 개별 job4ms deadline·simulation↔wall uncertainty 수용은 미완료 |
+| 실시간2ms/4ms·clock | **NOT ACCEPTED.** 실제 owner 호출별 계측과 독립 monitor를 추가하고, 의도적으로 입력을 보류한 구간에서 원래2ms/4ms deadline 위반→native 보호 선택→다음 tick 차단을 검증했다. CARLA 대기 중 owner 실행·simulation↔wall uncertainty·연속 정상 wall 실행은 미완료 |
 | 보호 Actual 제동 | **기능 경로 검증 완료.** trusted safety 요청 후 원래 LocalProtection Actual로200개 physics 구간·EV 정산을 계속하며 감속·휠 정지 관측. 정상 재개·누락·stale/future/다른 출처 거부. wall fault 자동 연동·차체 완전 정지 수용은 OPEN |
 | 시작·종료 안정성 | 준비 후 네트워크 경합 수정은 M7-1s FIXED_LIMITED 유지. 별도 sync RPC/game-thread 종료 교착을 재현·수정하고 로딩 중 SIGINT30s 내 종료 확인: **FIXED_LIMITED**. 원래180s 준비 timeout/강제−9와 renderer 별도 원인은 보존 |
 | Reference 경로 | 54m 직선 후보 좌표/곡률·맵 hash 고정. M8의30km/h 적합성·추종/정지 시험은 NOT RUN |
@@ -57,19 +57,45 @@ Plant Adapter는 정상 credit을 다시 열지 않고 같은 Release/epoch의 L
 
 ## 남은 문제를 닫는 작업
 
-**남은 주 작업은 wall 실행 구조와 이미 연결한 보호 Actual 경로의 wall fault 연동이다.**
+**남은 주 작업은 wall owner 실행 구조와 wall fault 이후 실제 보호 Actual의 연속 적용이다.**
 현재 Python/RPC/전체 solver JSON 진단 loop의 지연을 단순 timeout 증가로 해결할 수 없다.
 
 - native owner/감시의 wall 실행을 CARLA 응답 대기와 분리한다. 실제2ms 실행 기회·4ms 완료를
   monotonic 기준으로 계측하고, 지연 시 normal 권한을 닫는 경로를 검증한다. trace는 비동기 수집하되
   frame별 work 정산 증거를 잃지 않아야 한다. 최적화 전후 동일 시나리오의 물리/work 비교를 유지한다.
-- wall 지연 검출을 native 보호 선택에 연결한다. 이번 local safety 요청 시험을 deadline miss 자동
-  연동 시험으로 바꾸어 부르지 않는다. Actual/work 자체가 없을 때는 다음 tick 차단을 유지하며
-  그 차단을 물리 안전 정지로 수용하지 않는다.
+- 독립 wall 지연 검출→native 보호 선택→다음 tick 차단은 아래 한정 시험으로 연결했다.
+  다음은 지연 이후에도 원래 측정·Actual을 생성하는 actuator/전기 owner 분리다.
+  Actual/work 자체가 없을 때는 다음 tick 차단을 유지하며 그 차단을 물리 안전 정지로 수용하지 않는다.
 
 현 loop의 native 요청 응답 시간은 짧아도, RPC/trace 대기 중 owner를 호출하지 않는 구조는 남는다.
 단순 heartbeat만 추가하거나 멈춘 simulation clock으로 wall freshness를 갱신해서는 해결되지 않는다.
 새 wall runtime은 원래 clock agreement·source provenance와 실제 job 실행 증거가 필요하다.
+
+## Wall guard 후속 결과
+
+[실행 원본·중단·sanitizer 제한](test-plan/evidence/m7_carla_wall_guard/README.md).
+별도 opt-in `WALL_ARM` 진단에서 기존 M4 schedule/deadline monitor를 그대로 사용했다.
+원래8-role poll 및 physical step의 실제 CLOCK_MONOTONIC 시작/완료만 기록하고,
+stdin polling/monitor heartbeat/과거 logical subjob을 실행 기회로 채우지 않는다.
+선언한 첫 release 전100ms는 진단 준비 구간이며 이전 INIT/정상 실행을 감시했다고 주장하지 않는다.
+
+실제 CARLA199구간·199정산 후 다음 입력을 보류하자 독립 monitor가9개 owner의 미완료를 검출했다.
+검출→local 보호 선택0.961ms, 검출→adapter pause 확인4.722ms를 관측했다.
+이는1회 관측치이며 보장 상한이 아니다. native가 자체적으로 기존 Central/Zone/leaf 보호를 선택하고
+credit0·local selection mask255를 읽었다. 이 mask는 원격 ProtectionAck나 새 Actual이 아니다.
+마지막 완료 barrier의 logical time은 유지하고 다음 frame 권한을 영구 차단했다.
+시험 입력에 `PROTECT`/압력값을 넣지 않았으며, 별도 wall→simulation 시각 변환도 만들지 않았다.
+
+**이번에 분리한 것은 감시 실행이며 owner 실행 자체는 아직 CARLA 대기에 묶여 있다.**
+현재 `ActuatorElectrical::step()`은 `settle()`로 관측 work가 있어야 actuator도 진행한다.
+따라서 wall fault 후 work 없이 보호 압력을 계산하거나 이전 Actual을 새 취득으로 보내면 계약 위반이다.
+다음 구현은 actuator1ms 응답·원래 ECU service를 work 수신과 분리하고, 단일 EV 정산과 HV/BMS
+측정은 실제 work 시간·출처를 유지하는 구조다. 그 다음 clock mapping/불확실성·in-flight fault를
+검증해야 한다. 이번 진단은 완료된 barrier에서만 수행했으며 RPC 진행 중 차단/연속 제동 수용은 아니다.
+
+대화 중단으로 camera 실행기가 사라진 실행은 미완료로 보존했다. 남은 전용 서버에 SIGINT를
+보냈지만30초 안에 종료하지 않아 강제 종료했다. 기존 로딩 중 RPC 교착 수정으로 이 별도
+client-loss/동기 대기 종료 문제까지 해결됐다고 보지 않는다.
 
 원래 renderer Distance Field crash 원인은 여전히 미확정이다. 이번 짧은 영상 시험이 성공해도
 모든 content/장시간 안정성을 주장하지 않는다. 정지 시 휠 회전0과 차체의 작은 잔류 속도는

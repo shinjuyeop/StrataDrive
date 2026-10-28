@@ -9,7 +9,7 @@ import subprocess
 import sys
 import time
 
-CASES=('normal-a','normal-b','camera-a','camera-b','protection','rgb-drop','snapshot-stop','work-missing','zero','disabled','loading-abort')
+CASES=('normal-a','normal-b','camera-a','camera-b','protection','wall-gap','rgb-drop','snapshot-stop','work-missing','zero','disabled','loading-abort')
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     frozen=a.output/'sources';frozen.mkdir()
     for path in [Path(__file__),here/'m7_1o_run.py',here/'m7_1q_probe.py',here/'m7_sensor_capture.py',
                  here/'audit_m7_integrated.py',here/'audit_m7_1r_work.py',here/'audit_m7_1q_native.py',
-                 here/'audit_m7_protection.py',
+                 here/'audit_m7_protection.py',here/'audit_m7_wall.py',
                  here/'scenarios/m7_integrated_v1.txt']:
         shutil.copy2(path,frozen/path.name)
     report=dict(status='RUNNING',cases=[],source_sha256={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in frozen.iterdir()})
@@ -42,13 +42,20 @@ def main():
             if name=='rgb-drop':command+=['--native-fault','rgb-drop']
             if name=='snapshot-stop':command+=['--native-fault','snapshot']
             if name=='work-missing':command+=['--native-fault','work-missing']
+            if name=='wall-gap':command+=['--native-fault','wall-gap','--scenario',str(here/'scenarios/m7_integrated_v1.txt')]
             if name=='protection':command+=['--native-fault','protection','--ticks','400',
                                          '--scenario',str(here/'scenarios/m7_integrated_v1.txt')]
         started=time.monotonic();entry=dict(name=name,argv=command,audits=[])
         with (a.output/(name+'-runner.log')).open('w') as log:
             completed=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT)
         entry.update(exit=completed.returncode,elapsed_seconds=time.monotonic()-started)
-        if completed.returncode==0 and name not in ('zero','disabled','loading-abort','snapshot-stop','work-missing'):
+        if completed.returncode==0 and name=='wall-gap':
+            out=a.output/'wall-gap-audit.json'
+            cmd=[sys.executable,str(here/'audit_m7_wall.py'),str(a.output/name),'--output',str(out)]
+            with out.with_suffix('.log').open('w') as log:
+                r=subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT)
+            entry['audits'].append(dict(argv=cmd,exit=r.returncode))
+        if completed.returncode==0 and name not in ('zero','disabled','loading-abort','snapshot-stop','work-missing','wall-gap'):
             for audit in ('audit_m7_1r_work.py','audit_m7_protection.py' if name=='protection' else 'audit_m7_integrated.py'):
                 out=a.output/(name+'-'+audit.removesuffix('.py')+'.json')
                 cmd=[sys.executable,str(here/audit),str(a.output/name),'--output',str(out)]

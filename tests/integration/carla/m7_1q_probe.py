@@ -28,7 +28,7 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--native', type=Path, required=True)
     p.add_argument('--model', type=Path, required=True)
-    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection'), default='none')
+    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap'), default='none')
     p.add_argument('--ticks', type=int, default=400)
     p.add_argument('--solver-work', action='store_true')
     p.add_argument('--scenario', type=Path)
@@ -38,6 +38,7 @@ def main():
     require(a.fault!='rgb-drop' or a.cameras, 'RGB fault requires cameras')
     require(not a.scenario or a.solver_work, 'scenario requires settled work')
     require(a.fault!='protection' or (a.solver_work and a.ticks==400), 'protection case requires 400 settled intervals')
+    require(a.fault!='wall-gap' or a.solver_work, 'wall gap requires observed work')
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(status='FAIL', normal_driving_enabled=False, interval_work_valid=False,
                   mode='native eight-role functional Actual connection', fault=a.fault, cases=[])
@@ -110,7 +111,8 @@ def main():
         case('initial_clock', snapshot.timestamp.elapsed_seconds == end and
              math.floor(end*1e9+.5) == int(binding['logical_begin_ns']))
         stderr = (a.output/'native.stderr').open('w')
-        process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else []),
+        process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else [])+
+                                   (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else []),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
         receipt = None
         for i in range(a.ticks+int(a.solver_work)):
@@ -205,6 +207,31 @@ def main():
                     require(a.fault=='rgb-drop' and capture.snapshot()['dropped'], 'unexpected camera delivery gap')
                     stopped_frame=frame
                     report['fault_observed']='RGB missing frame; no reuse or timestamp rewrite; next tick blocked'
+                    break
+                if i==199 and a.fault=='wall-gap':
+                    # Completed receipt+EV settlement; no new stage/advance is
+                    # outstanding. The test withholds the next native input.
+                    # Independent C++ monitor detects real missing owner slots;
+                    # Python never sends PROTECT or a synthetic brake value.
+                    require(native['admission']['normal'] and settlements==count, 'wall diagnostic established barrier')
+                    process.stdin.write('WALL_ARM\n');process.stdin.flush()
+                    require(bool(select.select([process.stdout],[],[],2)[0]), 'wall arm response')
+                    arm=json.loads(process.stdout.readline());record['wall_guard_arm']=arm
+                    require(arm['status']=='WALL_GUARD_ARMED', 'wall guard window')
+                    require(bool(select.select([process.stdout],[],[],2)[0]), 'independent wall fault response')
+                    stop=json.loads(process.stdout.readline());record['wall_guard_stop']=stop
+                    require(stop['status']=='WALL_GUARD_STOP' and stop['next_frame'] is None and
+                            not stop['normal'] and stop['credit_mask']==0 and stop['selected_mask']==255 and
+                            stop['logical_barrier_ns']==ns and not stop['actual_exported'], 'terminal native selection without replay')
+                    record['wall_stop_received_ns']=time.monotonic_ns()
+                    before=rpc('describe');paused=rpc('pause');after=rpc('describe')
+                    require(before['frame']==after['frame']==str(frame) and paused['latched'] and
+                            after['physics']['inputs_zero'], 'wall containment without another tick')
+                    record['wall_containment_ns']=time.monotonic_ns()
+                    stopped_frame=frame
+                    report['fault_observed']='independent native owner deadline miss; local protection selected; next tick blocked'
+                    report['wall_runtime_accepted']=False
+                    report['physical_protection_braking_accepted']=False
                     break
                 proof = copy.deepcopy(native['native_export'])
                 for k in ('service_mask','credit_mask','release_mask'):
@@ -311,6 +338,10 @@ def main():
             report['final_body_forward_m_s']=ph['body_forward_velocity_m_s']
             report['final_signed_solver_wheels_rad_s']=[w['solver_omega_rad_s'] for w in ph['wheels']]
             report['status']='PASS_FUNCTIONAL_PROTECTION_ACTUAL'
+        elif a.fault=='wall-gap':
+            case('wall_fault_no_next_tick',stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
+            case('wall_stop_no_outstanding_work',count==settlements==199)
+            report['status']='PASS_EXPECTED_WALL_CONTAINMENT'
         elif a.fault=='rgb-drop':
             case('rgb_drop_before_next_tick',stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
             report['status']='PASS_EXPECTED_SENSOR_STOP'
@@ -357,7 +388,7 @@ def main():
                 process.stdin.close()
                 report['native_exit'] = process.wait(timeout=10)
                 process.stdout.close()
-                if report['status'].startswith('PASS'): case('native_expected_exit', report['native_exit']==(1 if a.fault in ('work-missing','work-duplicate') else 0))
+                if report['status'].startswith('PASS'): case('native_expected_exit', report['native_exit']==(2 if a.fault=='wall-gap' else 1 if a.fault in ('work-missing','work-duplicate') else 0))
             if world and original and not bound:
                 if actor: actor.destroy()
                 world.apply_settings(original)

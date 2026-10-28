@@ -8,6 +8,8 @@
 #include <vector>
 
 namespace stratadrive::m7_functional {
+class WallExecutionWatch;
+struct BarrierStop {Time logical_ns;unsigned selected_mask,credit_mask;bool normal;};
 // Trusted local sensor binding, not a CAN command/actuation permission. The
 // source is one PhysX telemetry RPC bracketed by the same CARLA snapshot frame.
 struct WheelSample {
@@ -56,6 +58,11 @@ public:
     void drop_actual(bool value);
     // Trusted local safety request; original actors produce the protection Actual.
     void request_protection();
+    // Diagnostic instrumentation only, never a clock conversion or tick permit.
+    void execution_watch(WallExecutionWatch* watch);
+    // Terminal local selection at the LAST completed barrier. No replay, new
+    // acquisition, model advance, Actual export, or further observe is allowed.
+    BarrierStop stop_at_barrier();
 private:
     struct Native;
     Report observe_impl(const Observation&,const std::optional<WheelSample>&);
@@ -67,5 +74,6 @@ private:
     std::vector<RequestPhase> profile_;
     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
     bool protect_=false;
+    WallExecutionWatch* watch_=nullptr;
 };
 } // namespace stratadrive::m7_functional
