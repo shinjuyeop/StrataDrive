@@ -63,7 +63,7 @@ def frame(r, role, actual):
     return result
 
 
-def audit(directory, model, corrupt=None, work_mode=False):
+def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
     report=json.loads((directory/'result.json').read_text())
     b=report['binding'];initial=round(b['simulation_seconds']*1e9)
     path=directory/'trace.jsonl'
@@ -71,12 +71,13 @@ def audit(directory, model, corrupt=None, work_mode=False):
     if not path.exists():path=path.with_suffix('.jsonl.gz')
     history={};count=normal=empty=0;max_age=0;min_margin=10**12;max_quant=0;last_frame=int(b['frame'])
     last_end=b['simulation_seconds'];cursors={};torques=[];speed=[]
+    protection_since=0;protection_count=0;release_packets=None
     L=model['wheels'][0]['offset_x_m']-model['wheels'][2]['offset_x_m']
     half=(model['wheels'][1]['offset_y_right_m']-model['wheels'][0]['offset_y_right_m'])/2
     with opening(path,'rt') as f:
         for line in f:
             row=json.loads(line)
-            if corrupt and row['index']==150: corrupt(row)
+            if corrupt and row['index']==corrupt_index: corrupt(row)
             ns=math.floor(row['simulation_seconds']*1e9+.5)
             check(row['frame']==last_frame and row['simulation_seconds']==last_end,'input continuity')
             wheels=row['physics']['wheels']
@@ -110,7 +111,18 @@ def audit(directory, model, corrupt=None, work_mode=False):
                 check(all(v is None for v in proof['actual']) and not proof['normal'] and ns-initial<80000000,'empty INIT')
                 values=[0,0,0];empty+=1
             else:
-                check(n['release_mask']==n['credit_mask']==n['service_mask']==255,'eight-role masks')
+                protecting=int(proof.get('protection_since_ns',0))!=0
+                check(n['release_mask']==n['service_mask']==255,'eight-role masks')
+                if release_packets is not None:check(proof['release']==release_packets,'immutable released session')
+                release_packets=proof['release']
+                if protecting:
+                    since=int(proof['protection_since_ns'])
+                    check(normal>0 and not proof['normal'] and n['credit_mask']==0 and proof['protection_selected_mask']==255,
+                          'terminal local protection authority')
+                    check(int(proof['enable_ns'])<=since<=ns and (not protection_since or protection_since==since),'protection identity')
+                    protection_since=since;protection_count+=1
+                else:check(not protection_since and n['credit_mask']==255 and not proof.get('protection_selected_mask',0),'normal authority cannot reopen')
+                check(out.get('protection',False)==protecting,'applied protection mode')
                 plan=None
                 for role,packet in enumerate(proof['release']):
                     q=wire(packet,role,7,1);rr,phase=q.get('II');pp=q.get('IQQQQ');ack,accepted=q.get('QB')
@@ -119,7 +131,7 @@ def audit(directory, model, corrupt=None, work_mode=False):
                           pp[3]<=ack<=ns and ack<pp[4] and pp[4]<=pp[2],'Release ACK')
                     check(plan is None or plan==pp,'same plan');plan=pp
                 credit=None
-                for role,packet in enumerate(proof['credit']):
+                for role,packet in enumerate(proof['credit'] if not protecting else []):
                     q=wire(packet,7,role,2);pp=q.get('IQQQQ');cc=q.get('IQQ')
                     check(pp==plan and cc[1]<=ns and cc[2]==cc[1]+60000000 and cc[2]>ns+10000000,'run credit')
                     check(credit is None or credit==cc,'same credit');credit=cc
@@ -161,6 +173,9 @@ def audit(directory, model, corrupt=None, work_mode=False):
                               ns+10000000-parent_source<=30000000 and ns+10000000-command['source']<=30000000 and ns+10000000-oldest<=70000000 and
                               ns+10000000<expiry<=min(parent_expiry,command['source']+30000001,parent_source+30000001,oldest+70000001),'command whole interval')
                         min_margin=min(min_margin,expiry-(ns+10000000))
+                elif protecting:
+                    check(all(x['state']==3 and x['origin']==2 and x['source']>=protection_since for x in actuals),'original LocalProtection Actual')
+                    check(int(out['exclusive_expiry_ns'])==min(*sources,drive['wheel_source'])+30000001,'protection original freshness limit')
                 else:check(all(x['state']==0 and x['origin']==0 for x in actuals) and values[2]==0,'bootstrap actual state')
             angle,pressure,torque=values
             check(all(abs(out[k]-v)<1e-12 for k,v in zip(('angle_rad','pressure_pa','torque_nm'),values)),'decoded Actual applied')
@@ -175,7 +190,8 @@ def audit(directory, model, corrupt=None, work_mode=False):
     check(count==report['receipts'] and normal==report['normal_intervals'] and empty==report['empty_init_intervals'],'reported counts')
     return dict(status='PASS_INDEPENDENT_FUNCTIONAL_AUDIT',receipts=count,normal_intervals=normal,empty_init_intervals=empty,
                 max_whole_interval_source_age_ns=max_age,min_command_expiry_margin_ns=min_margin,max_wheel_quantization_error_rad_s=max_quant,
-                torque_nm_range=[min(torques),max(torques)],final_forward_velocity_m_s=speed[-1],interval_work_valid=work_mode)
+                torque_nm_range=[min(torques),max(torques)],final_forward_velocity_m_s=speed[-1],interval_work_valid=work_mode,
+                protection_intervals=protection_count)
 
 
 def main():

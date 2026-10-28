@@ -1,0 +1,54 @@
+{
+  "status": "PASS_SOLVER_WORK_SINGLE_EV",
+  "intervals": 400,
+  "motor_work_j": [
+    0.0,
+    0.0,
+    95.68478605604963,
+    98.54426202604911
+  ],
+  "minimum_loaded_rear_mean_rad_s": 0.0001117169413191732,
+  "forward_ineligible": [],
+  "maximum_equation_residual_rad_s": 1.1913432973464921e-07,
+  "rejected_corruptions": {
+    "missing_step": "complete substeps",
+    "duplicate_ordinal": "ordered unique substeps",
+    "missing_end": "whole invocation",
+    "overflow": "whole invocation",
+    "wrong_dt": "actual solver dt",
+    "torque": "applied torque binding",
+    "omega": "integrator equation",
+    "nonfinite": "finite complete wheel tuple",
+    "sum": "signed work sum",
+    "source": "solver identity",
+    "false_sleep": "complete substeps"
+  },
+  "ev_settlement_connected": true,
+  "independently_verified_settlements": 400,
+  "max_abs_energy_balance_j": 8.963297659647651e-09,
+  "rejected_energy_corruptions": {
+    "duplicate_energy_interval": "complete native energy coverage",
+    "missing_energy_interval": "complete native energy coverage",
+    "restamped_wheel": "original source and applied torque",
+    "predicted_work": "single EV basis",
+    "changed_work_total": "solver/EV work conservation",
+    "changed_SOC": "SOC/chemical energy",
+    "changed_loss": "independent energy ledger"
+  },
+  "native_actual_audit": {
+    "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+    "receipts": 400,
+    "normal_intervals": 119,
+    "empty_init_intervals": 4,
+    "max_whole_interval_source_age_ns": 20000000,
+    "min_command_expiry_margin_ns": 1,
+    "max_wheel_quantization_error_rad_s": 0.004975137710571342,
+    "torque_nm_range": [
+      0,
+      300.0
+    ],
+    "final_forward_velocity_m_s": -5.432376638054848e-06,
+    "interval_work_valid": true,
+    "protection_intervals": 200
+  }
+}

@@ -27,6 +27,8 @@ private:
 struct NativeExport {
     std::uint64_t observed=0,enable=0;
     bool normal=false;
+    std::uint64_t protection_since=0;
+    unsigned protection_selected_mask=0;
     std::array<std::optional<remote::OwnerPacket>,3> actual,commands;
     std::array<std::optional<remote::OwnerPacket>,8> release;
     std::array<std::optional<remote::OwnerPacket>,7> credit;

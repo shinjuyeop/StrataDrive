@@ -18,6 +18,8 @@ using Packet=std::optional<remote::OwnerPacket>;
 struct Input {
     Time observed=0,enable=0;
     bool normal=false;
+    Time protection_since=0;
+    unsigned protection_selected_mask=0;
     unsigned service_mask=0,credit_mask=0,release_mask=0;
     std::array<Packet,3> actual,commands;
     std::array<Packet,8> release;
@@ -25,7 +27,7 @@ struct Input {
     Packet permission;
 };
 struct Output {
-    bool empty=true,normal=false;
+    bool empty=true,normal=false,protection=false;
     double angle=0,torque=0,pressure=0;
     std::array<Time,3> sources{};
     Time oldest_actuator=0,oldest_dependency=0,exclusive_expiry=0;
@@ -45,10 +47,21 @@ public:
         const Time end=now+step;
         const bool empty=std::all_of(in.actual.begin(),in.actual.end(),[](const Packet& p){return !p;});
         if(empty) {
-            if(started_ || normal_ || in.normal || now-initial_>=80000000)return fail("bootstrap_missing_actual");
+            if(started_ || normal_ || in.normal || in.protection_since || in.protection_selected_mask || now-initial_>=80000000)return fail("bootstrap_missing_actual");
             output={};return true; // bounded INIT tick with NO actuation, not a synthetic Actual
         }
-        if(!authority(in,now,end))return false;
+        const bool protecting=in.protection_since!=0;
+        if(protecting) {
+            if(!normal_ || in.normal || in.credit_mask!=0 || in.release_mask!=255 || now>UINT64_MAX-age-1 ||
+               in.protection_selected_mask!=255 || in.protection_since<enable_ || in.protection_since>now ||
+               (!protection_since_ && in.protection_since<=normal_observed_) ||
+               (protection_since_ && in.protection_since!=protection_since_))return fail("native_protection_authority");
+            for(unsigned i=0;i<8;++i)if(!same(in.release[i],release_[i]))return fail("native_protection_session");
+            protection_since_=in.protection_since;
+        } else {
+            if(protection_since_ || in.protection_selected_mask)return fail("native_protection_terminal");
+            if(!authority(in,now,end))return false;
+        }
         if(!started_) {
             if(!in.enable || in.enable<initial_ || in.enable>now ||
                !steering_->start_session(application_,in.enable) || !brake_->start_session(application_,in.enable) ||
@@ -64,18 +77,25 @@ public:
            (!same(in.actual[2],cached_[2]) && drive_->receive(df,now).decision!=accepted))return fail("native_actual_receiver");
         auto s=steering_->current_sample(now);auto b=brake_->current_sample(now);auto d=drive_->current_sample(now);
         if(!s || !b || !d)return fail("native_current_actual_missing");
-        Output out;out.empty=false;out.normal=in.normal;
+        Output out;out.empty=false;out.normal=in.normal;out.protection=protecting;
         out.angle=*s->angle_rad;out.pressure=*b->pressure_pa;out.torque=*d->torque_nm;
         out.sources={s->source_time_ns,b->source_time_ns,d->source_time_ns};
         const auto bounds=std::minmax_element(out.sources.begin(),out.sources.end());
         if(*bounds.second-*bounds.first>10000000)return fail("native_actual_skew");
         for(auto source:out.sources)if(!covers(source,now,end,age))return fail("native_actual_interval");
-        out.oldest_actuator=*bounds.first;out.exclusive_expiry=credit_->expires_at_ns;
+        out.oldest_actuator=*bounds.first;
+        // Local protection is terminal authority, not an invented normal lease.
+        // This is the exclusive freshness limit of the ORIGINAL Actual samples.
+        out.exclusive_expiry=protecting?*bounds.first+age+1:credit_->expires_at_ns;
         if(!d->wheel_speed || !covers(d->wheel_speed->source_time_ns,now,end,age))return fail("native_wheel_interval");
         out.oldest_actuator=std::min(out.oldest_actuator,d->wheel_speed->source_time_ns);
         out.oldest_dependency=out.oldest_actuator;
-        if(in.permission && !grant(in.permission,now,end,out,in.normal))return false;
-        if(in.normal) {
+        if(protecting) {
+            if(!protection_mode(*s) || !protection_mode(*b) || !protection_mode(*d) ||
+               *bounds.first<protection_since_)return fail("native_protection_actual");
+            out.exclusive_expiry=std::min(out.exclusive_expiry,d->wheel_speed->source_time_ns+age+1);
+        } else if(in.normal) {
+            if(in.permission && !grant(in.permission,now,end,out,true))return false;
             if(!normal_mode(*s) || !normal_mode(*b) || !normal_mode(*d))return fail("native_actual_mode");
             if(!in.permission)return fail("native_permission_missing");
             if(!command(in.commands[0],0,*s,now,end,out) || !command(in.commands[1],1,*b,now,end,out) ||
@@ -83,9 +103,12 @@ public:
             if(!d->regen_capability || !covers(d->regen_capability->source_time_ns,now,end,age) ||
                !covers(d->regen_capability->input_time_ns,now,end,70000000))return fail("native_capability_interval");
             out.oldest_dependency=std::min(out.oldest_dependency,d->regen_capability->input_time_ns);
-            normal_=true;
-        } else if(normal_ || out.torque!=0 || !init_mode(*s) || !init_mode(*b) || !init_mode(*d))
-            return fail("bootstrap_cannot_drive_or_resume");
+            normal_=true;normal_observed_=now;
+        } else {
+            if(in.permission && !grant(in.permission,now,end,out,false))return false;
+            if(normal_ || out.torque!=0 || !init_mode(*s) || !init_mode(*b) || !init_mode(*d))
+                return fail("bootstrap_cannot_drive_or_resume");
+        }
         cached_=in.actual;output=out;return true;
     }
     const std::string& error() const {return error_;}
@@ -100,6 +123,9 @@ private:
     }
     template<class T> static bool init_mode(const T& m) {
         return m.origin==can::ActuatorOrigin::NoAcceptedInput && m.local_state==can::ActuatorLocalState::Init;
+    }
+    template<class T> static bool protection_mode(const T& m) {
+        return m.origin==can::ActuatorOrigin::LocalProtection && m.local_state==can::ActuatorLocalState::FailSafe;
     }
     template<class T> std::optional<T> decode(const Packet& p,session::Role from,session::Role to) {
         const auto m=p?remote::decode_owner_message(p->bytes.data(),p->size):std::nullopt;
@@ -185,7 +211,7 @@ private:
         out.oldest_dependency=std::min(out.oldest_dependency,grant.input_time_ns);
         out.exclusive_expiry=std::min(out.exclusive_expiry,grant.expires_at_ns);return true;
     }
-    std::uint32_t application_;Time initial_,last_=0,enable_=0;bool started_=false,normal_=false;
+    std::uint32_t application_;Time initial_,last_=0,enable_=0,protection_since_=0,normal_observed_=0;bool started_=false,normal_=false;
     std::string error_;
     std::array<Packet,3> cached_;std::array<Packet,8> release_;Packet permission_packet_;
     std::optional<remote::RunLease> credit_;

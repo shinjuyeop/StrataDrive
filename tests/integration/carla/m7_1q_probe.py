@@ -28,7 +28,7 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--native', type=Path, required=True)
     p.add_argument('--model', type=Path, required=True)
-    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop'), default='none')
+    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection'), default='none')
     p.add_argument('--ticks', type=int, default=400)
     p.add_argument('--solver-work', action='store_true')
     p.add_argument('--scenario', type=Path)
@@ -158,6 +158,9 @@ def main():
                     record['work_input']=packet
                     process.stdin.write(packet+'\n')
                     if i==200 and a.fault=='work-duplicate': process.stdin.write(packet+'\n')
+                if i==200 and a.fault=='protection':
+                    process.stdin.write('PROTECT\n')
+                    record['protection_request']='trusted local safety selection; no brake value'
                 record['wall_native_begin_ns']=time.monotonic_ns()
                 process.stdin.write(line+'\n');process.stdin.flush()
                 require(bool(select.select([process.stdout],[],[],10)[0]), 'native reply timeout')
@@ -266,7 +269,7 @@ def main():
                     for j in range(4): work_sum[j] += work['motor_work_j'][j]
                     if not work['forward_energy_eligible']: ineligible.append(i)
                 applied = receipt['original_actual']['admitted_actual']
-                for k in ('angle_rad','torque_nm','pressure_pa','oldest_actuator_ns','oldest_dependency_ns','exclusive_expiry_ns','normal'):
+                for k in ('angle_rad','torque_nm','pressure_pa','oldest_actuator_ns','oldest_dependency_ns','exclusive_expiry_ns','normal','protection'):
                     require(applied[k] == native['admission'][k], 'server/native admission disagreement '+k)
                 require(applied['empty_init'] == native['admission']['empty'], 'INIT admission')
                 for j,w in enumerate(receipt['physics']['wheels']):
@@ -294,6 +297,14 @@ def main():
             case('native_profile_rejects_synthetic_stage', not rejected['ok'] and rejected['latched'] and
                  rejected['reason']=='native_actual_only' and rejected['frame']==str(frame))
             report['status'] = 'PASS_FUNCTIONAL_NATIVE_SOLVER_WORK' if a.solver_work else 'PASS_FUNCTIONAL_NATIVE_ACTUAL'
+        elif a.fault=='protection':
+            case('protection_continues_physics',count==a.ticks and normal>100 and normal<200 and empty==4)
+            case('protection_actual_at_end',native['admission']['protection'] and not native['admission']['normal'] and
+                 native['admission']['torque_nm']==0 and native['admission']['pressure_pa']>=1000000)
+            case('all_protection_receipts_settled',settlements==count)
+            report['final_body_forward_m_s']=ph['body_forward_velocity_m_s']
+            report['final_signed_solver_wheels_rad_s']=[w['solver_omega_rad_s'] for w in ph['wheels']]
+            report['status']='PASS_FUNCTIONAL_PROTECTION_ACTUAL'
         elif a.fault=='rgb-drop':
             case('rgb_drop_before_next_tick',stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
             report['status']='PASS_EXPECTED_SENSOR_STOP'

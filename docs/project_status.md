@@ -1,6 +1,6 @@
 # Project status
 
-Updated: **2026-10-27**. 현재 구현·수용 범위의 대표 문서다.
+Updated: **2026-10-28**. 현재 구현·수용 범위의 대표 문서다.
 단계/TBD는 [로드맵](roadmap.md), 종료 판단은 아래 review, 실행 원본·과거 분모는 각 evidence와
 [품질 이력](quality_policy.md)을 따른다. 이력의 당시 미구현/FAIL을 현재 상태로 해석하지 않는다.
 
@@ -37,7 +37,7 @@ Updated: **2026-10-27**. 현재 구현·수용 범위의 대표 문서다.
 | M7-1q | native8-role Actual/Release·credit·부모 명령 전체 구간을 서버에서 검사하고 NoDrive에 실제 적용. 새2서버 각400tick/319정상 구간·최대 source age20ms. Normal/ASan 각64/64. 제한된 기능 연결 완료, solver work/단일 EV·wall 수용 미완료 | [실행·실패·제한](test-plan/evidence/m7_carla_1q/README.md) |
 | M7-1r | 완전한 solver work→단일 EV 정산 연결. 최종 새2서버 각400receipt/400정산·319정상 구간, Normal/ASan 각69/69. 누락·중복·불일치 시 다음 tick 차단; 일반 주행/회생·wall 미수용 | [실행·실패·제한](test-plan/evidence/m7_carla_1r/README.md) |
 | M7-1s | secondary-server accept/close 경합 TSan 재현·종료 순서 수정. component Normal/ASan·UBSan/TSan 각6/6, native 각69/69. 준비 확인 후 새12서버 SIGINT130. 최초 cold-load timeout/강제−9 1회 보존 | [원인·실행·제한](test-plan/evidence/m7_carla_1s/README.md) |
-| M7 통합 검증 | 정상 Actual/solver-work 경로의 가속·회생·제동·휠 정지·재출발 검증. 전체 **NOT CLOSED**; wall·실제 보호 제동·cold-loading 종료 OPEN | [통합 종료 검토](m7_exit_review.md), [원본](test-plan/evidence/m7_carla_integrated/README.md) |
+| M7 통합 검증 | 정상 Actual/solver-work 경로의 가속·회생·제동·휠 정지·재출발 검증. 보호 Actual 기능 경로·cold-loading RPC 종료 교착 수정 검증. 전체 **NOT CLOSED**; wall2/4ms·wall fault 연동 OPEN | [통합 종료 검토](m7_exit_review.md), [원본](test-plan/evidence/m7_carla_integrated/README.md) |
 | M8–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 ## 구현·시험한 범위
@@ -67,7 +67,7 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 | OPEN-M6-ENERGY-01 | 현재 모델/응답 판정 불일치 범위 해소. 옛100ms FAIL·옛1MPa 미관측은 보존 |
 | OPEN-M6-ENERGY-02 | 실제 instrumented SDK의 wall/송수신·SDK 오류/기능 미완료 OPEN. 경계 sanitizer PASS로 대체하지 않음; [원본](test-plan/evidence/m6_vehicle_energy/README.md) |
 | OPEN-M7-1R-EXIT-01 | **FIXED_LIMITED (M7-1s):** accept/close data race를 실제 source TSan으로 재현·수정하고 준비 후 새12서버 SIGINT130 확인. [원본 실패](test-plan/evidence/m7_carla_1r/README.md)는 보존; UE 전체/다른 종료 원인 수용 아님. [수정 근거](test-plan/evidence/m7_carla_1s/README.md) |
-| OPEN-M7-1S-COLD-01 | 최초 cold-load 중 get_world10초 timeout 뒤 SIGINT30초 한도 초과/강제−9. 포트와 world 준비를 구분해 runner 보완; cold-load 중단 자체의 종료 한도 수용은 OPEN. [실패/경계](test-plan/evidence/m7_carla_1s/README.md) |
+| OPEN-M7-1S-COLD-01 | **FIXED_LIMITED:** 로딩 중 sync RPC→game-thread 대기와 종료 worker join의 교착 재현. join 전 대기 취소 수정 후 원래30초 안에 SIGINT130 종료. 원본 강제−9·renderer 별도 원인은 보존. [수정/실행 근거](test-plan/evidence/m7_carla_recovery/README.md) |
 | M4·M3 과거 timing/FIFO/native/physical pause | 역사적 OPEN 유지. 후속 통과로 과거 원인 해소를 주장하지 않음; [M4 검토](m4_exit_review.md), [native 근거](test-plan/evidence/m5_someip_native_watch/README.md) |
 | DDS | **정규 제어 gate CLOSED, adapter 미착수**. 종료/20ms/TSan FAIL·접근 제한 이력 보존; [DDS 후속](test-plan/evidence/m5_dds_shutdown_followup/README.md). 제한된 작업을 우회·재시도하지 않음 |
 | Target/전체 시스템 | Jetson·실제 IO·Host–Target 검증,32req/29system TC는 NOT RUN. 학습자 설명/수용은 기술 판정과 별도 |
@@ -75,8 +75,8 @@ M6는 quiet 범위이며 M5의 제한된 부하 수용을 다른 workload로 확
 ## 다음 작업
 
 현재 결정과 남은 gate는 [M7 통합 종료 검토](m7_exit_review.md)에 모았다.
-고정 입력 출발 단계는 넘어섰으며, 다음은 **wall owner/감시 실행 분리 + fault 이후 실제 보호 Actual
-경로 + cold-loading 종료 검증**을 한 묶음으로 진행한다. 주기/freshness/expiry 완화는 하지 않는다.
+고정 입력 출발 단계는 넘어섰으며, 다음은 **wall owner/감시 실행 분리 + 이미 연결한 보호 Actual
+경로의 wall fault 연동**이다. 주기/freshness/expiry 완화는 하지 않는다.
 정상 기능 시험의 성공을 전체 M7 실시간·안전 정지 수용으로 확대하지 않는다.
 
 ## 과거 M7 단계별 경위

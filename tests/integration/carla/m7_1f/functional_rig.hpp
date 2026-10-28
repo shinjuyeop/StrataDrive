@@ -54,6 +54,8 @@ public:
     void omit_role(int role);
     void stop_credit(bool value);
     void drop_actual(bool value);
+    // Trusted local safety request; original actors produce the protection Actual.
+    void request_protection();
 private:
     struct Native;
     Report observe_impl(const Observation&,const std::optional<WheelSample>&);
@@ -64,5 +66,6 @@ private:
     std::optional<m7_external::SolverWork> work_;
     std::vector<RequestPhase> profile_;
     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
+    bool protect_=false;
 };
 } // namespace stratadrive::m7_functional

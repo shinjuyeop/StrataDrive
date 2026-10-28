@@ -441,3 +441,14 @@ M6 코드·40개 native 복사 원본·UE tracked source·V1 계수·freshness/e
 최종 기능 성공은 전체 M7 종료가 아니다. native owner 대기 공백>2ms, 실제 보호 Actual 적용 경로
 미구현, cold-loading의 준비180s/종료30s 실패가 남는다. 원래 renderer crash 원인도 미확정이다.
 계측 비용과 clock domain·동일 scope·성공/실패를 분리한 현재 판정은 통합 종료 검토를 따른다.
+
+
+## 종료/보호 연결 후속 검증 (2026-10-28)
+
+[원본·실패·실행 명령](evidence/m7_carla_recovery/README.md)을 따른다.
+동기 RPC가 아직 game thread에 dispatch되지 않은 상태에서 Stop을 호출하는 component 재현과,
+실제 fresh CARLA 로딩 중 SIGINT→30s 내 종료를 검사한다. 기존 네트워크 경합 수정과 구분한다.
+`m7_integrated_run.py --cases protection camera-a work-missing loading-abort`로 정상/보호/영상/누락/종료
+회귀를 재현할 수 있다. 보호 case는 원래 native 안전 선택 후200개 physics 구간과 단일 EV 정산을
+이어간다. 원래 Actual/P05/freshness/출처를 독립 감사하고 보호 proof 손상·정상 재개를 거부한다.
+원래 M6 판정, 과거 실패, wall2/4ms 미수용·차체 완전 정지 미수용은 유지한다.

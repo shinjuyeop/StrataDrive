@@ -1,7 +1,8 @@
 # M7 통합 검증 및 종료 검토
 
-2026-10-27. **전체 M7 NOT CLOSED.** 고정 시나리오의 native Actual→CARLA→solver work→단일 EV
-기능 연결은 검증했다. 실시간 실행 기회와 fault 이후 실제 보호 제동의 수용은 완료되지 않았다.
+2026-10-28. **전체 M7 NOT CLOSED.** 고정 시나리오의 native Actual→CARLA→solver work→단일 EV
+기능 연결에 보호 Actual의 연속 적용과 로딩 중 RPC 종료 교착 수정을 추가 검증했다.
+실시간 실행 기회와 wall fault→보호 전환 수용은 완료되지 않았다.
 하위 단계를 계속 늘리는 대신 이 문서의 남은 gate를 기준으로 관리한다.
 M6 Host quiet SIL/Python MIL의 구현·계약·결과·종료 판정은 변경하지 않는다.
 
@@ -24,8 +25,8 @@ M8 route-following Controller나 AI 주행을 구현한 것은 아니다.
 | 정상 주행·제동·에너지 | 9s/900구간에서 좌조향 가속→signed 회생→마찰 제동/휠 정지→우조향 재출발 관측. 독립 raw-wire·solver 방정식·work/EV 장부 감사. Reference 전체 속도/ODD 수용 아님 |
 | 영상·state·lifecycle | 통합 evidence의 실제 실행별 판정 적용. RGB/학습·평가 GT 분리, frame/source timestamp 검증, 누락 차단·pause/reset/새 INIT 확인 |
 | 실시간2ms/4ms·clock | **NOT ACCEPTED.** 현재 native runner는 CARLA 응답 대기 중 owner를 실행하지 않는다. monotonic 계측에서2ms를 넘는 실행 공백 관측. 개별 job4ms deadline·simulation↔wall uncertainty 수용은 미완료 |
-| fault 이후 실제 보호 제동 | **OPEN.** 누락/잘못된 권한/정산은 다음 physics tick 차단·latch. 정상 연결의 native admission은 arm 후 비정상 mode를 거부한다. fault 중 실제 보호 Actual을 계속 적용해 감속/정지하는 경로는 아직 없음 |
-| 시작·종료 안정성 | 준비 후 종료 경합 수정은 M7-1s FIXED_LIMITED 유지. 새 빌드 최초180s 준비 timeout과 SIGINT30s 초과/강제−9 재현. cold-loading abort 정상 종료 보장은 OPEN |
+| 보호 Actual 제동 | **기능 경로 검증 완료.** trusted safety 요청 후 원래 LocalProtection Actual로200개 physics 구간·EV 정산을 계속하며 감속·휠 정지 관측. 정상 재개·누락·stale/future/다른 출처 거부. wall fault 자동 연동·차체 완전 정지 수용은 OPEN |
+| 시작·종료 안정성 | 준비 후 네트워크 경합 수정은 M7-1s FIXED_LIMITED 유지. 별도 sync RPC/game-thread 종료 교착을 재현·수정하고 로딩 중 SIGINT30s 내 종료 확인: **FIXED_LIMITED**. 원래180s 준비 timeout/강제−9와 renderer 별도 원인은 보존 |
 | Reference 경로 | 54m 직선 후보 좌표/곡률·맵 hash 고정. M8의30km/h 적합성·추종/정지 시험은 NOT RUN |
 
 ## 이번에 해결한 문제
@@ -38,19 +39,34 @@ M8 route-following Controller나 AI 주행을 구현한 것은 아니다.
    기본 CARLA 센서 동작은 이 opt-in 조건 밖에서 유지된다. 내부 센서 스케줄을 조정했으며
    native/M6 계약·차량 운동·에너지 코드는 변경하지 않았다.
 
+## 종료 교착·보호 Actual 후속 수정
+
+[실행·실패·독립 감사](test-plan/evidence/m7_carla_recovery/README.md).
+RPC worker가 game thread의 sync callback을 기다리는 중에 game thread가 worker join을 기다리던
+교착을 수정했다. 종료 신호로 대기를 먼저 취소하며, 대기 중인 mutation을 실행하지 않는다.
+실제 pinned header component 원본 TIMEOUT/수정5개 통과와 fresh CARLA 로딩 중단을 대조했다.
+
+M7 native fixture는 보호를 선택한 뒤에도 기존 owner/Actual service를 계속한다.
+Plant Adapter는 정상 credit을 다시 열지 않고 같은 Release/epoch의 LocalProtection Actual만
+별도 검사·적용한다. 이전 normal proof, 합성 명령, 갱신한 sensor timestamp로 대체하지 않는다.
+원래 wire/P05·source age·solver/단일 EV 장부와 single writer 경계를 독립 감사했다.
+정상900구간·RGB/GT 각180개 회귀도 확인했다. M6는 변경하지 않았다.
+
 ## 남은 문제를 닫는 작업
 
-**다음 작업은 wall 실행 구조와 보호 Actual 경로를 함께 해결하는 한 묶음이다.**
+**남은 주 작업은 wall 실행 구조와 이미 연결한 보호 Actual 경로의 wall fault 연동이다.**
 현재 Python/RPC/전체 solver JSON 진단 loop의 지연을 단순 timeout 증가로 해결할 수 없다.
 
 - native owner/감시의 wall 실행을 CARLA 응답 대기와 분리한다. 실제2ms 실행 기회·4ms 완료를
   monotonic 기준으로 계측하고, 지연 시 normal 권한을 닫는 경로를 검증한다. trace는 비동기 수집하되
   frame별 work 정산 증거를 잃지 않아야 한다. 최적화 전후 동일 시나리오의 물리/work 비교를 유지한다.
-- normal 권한이 닫힌 뒤 LocalProtection Actual의 원래 origin/epoch/source/sequence·authority를
-  검증하는 별도 보호 적용 계약과 실행 경로를 구현한다. stale normal을 재사용하거나 명령값으로
-  brake를 만드는 것은 금지한다. world freeze를 실제 감속/정지로 수용하지 않는다.
-- cold loading 중 cancellation이30s 안에 끝나지 않는 engine 작업을 식별한다. 현재 강제 종료는
-  실패 containment일 뿐 정상 shutdown PASS가 아니다. 기존180s/30s 한도를 조용히 늘리지 않는다.
+- wall 지연 검출을 native 보호 선택에 연결한다. 이번 local safety 요청 시험을 deadline miss 자동
+  연동 시험으로 바꾸어 부르지 않는다. Actual/work 자체가 없을 때는 다음 tick 차단을 유지하며
+  그 차단을 물리 안전 정지로 수용하지 않는다.
+
+현 loop의 native 요청 응답 시간은 짧아도, RPC/trace 대기 중 owner를 호출하지 않는 구조는 남는다.
+단순 heartbeat만 추가하거나 멈춘 simulation clock으로 wall freshness를 갱신해서는 해결되지 않는다.
+새 wall runtime은 원래 clock agreement·source provenance와 실제 job 실행 증거가 필요하다.
 
 원래 renderer Distance Field crash 원인은 여전히 미확정이다. 이번 짧은 영상 시험이 성공해도
 모든 content/장시간 안정성을 주장하지 않는다. 정지 시 휠 회전0과 차체의 작은 잔류 속도는

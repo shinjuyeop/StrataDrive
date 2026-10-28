@@ -12,7 +12,8 @@ actual 기반 차량/EV 에너지와 유한 물리 응답을 연결했다. M4 �
 **M7 정상 기능 통합 검증 진행, 전체 NOT CLOSED** — [통합 종료 검토](docs/m7_exit_review.md).
 native Actual→CARLA→관측 solver work→단일 EV 경로에서 가속·회생·마찰 제동·휠 정지·재출발을 검증했다.
 영상/고장/lifecycle 실행 결과와 실패는 [통합 근거](docs/test-plan/evidence/m7_carla_integrated/README.md)에 모았다.
-실시간2ms/4ms, fault 이후 실제 보호 제동 경로, cold-loading 종료 한도는 남아 있다.
+[종료 교착 수정·보호 Actual 검증](docs/test-plan/evidence/m7_carla_recovery/README.md)을 추가했다.
+실시간2ms/4ms와 wall fault의 보호 전환 수용은 남아 있다.
 현재 계약은 [Plant Adapter ICD](docs/icd/carla_plant_adapter.md), 과거 단계별 결과는 상태 문서를 따른다.
 
 [현재 상태·OPEN·다음 작업](docs/project_status.md) · [단계/TBD](docs/roadmap.md) · [학습 안내](docs/learning/README.md)

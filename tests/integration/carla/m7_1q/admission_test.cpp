@@ -9,15 +9,17 @@ using namespace m7_functional;
 constexpr Scope scope{1,42,7};
 struct Trace {
     std::vector<native::Input> inputs;
-    explicit Trace(bool fractional=false) {
+    explicit Trace(bool fractional=false,bool protect=false) {
         FunctionalRig rig(scope,99,PlantMode::ExternalWheelZoh,true);
         for(unsigned i=0;i<400;++i) {
+            if(protect && i==200)rig.request_protection();
             const double time=fractional?3.997146773152053+i*.009999999776482582:1+i*.01;
             const auto ns=static_cast<Time>(std::llround(time*1e9));
             const auto r=rig.observe({scope,domain,100+i,time,.01},{99,100+i,ns,{0,0,0,0}});
             const auto& e=*r.native_export;
             native::Input in;
             in.observed=e.observed;in.enable=e.enable;in.normal=e.normal;
+            in.protection_since=e.protection_since;in.protection_selected_mask=e.protection_selected_mask;
             in.actual=e.actual;in.commands=e.commands;in.release=e.release;in.credit=e.credit;in.permission=e.permission;
             in.service_mask=r.service_mask;in.release_mask=r.release_mask;in.credit_mask=r.credit_mask;
             inputs.push_back(in);
@@ -109,5 +111,55 @@ TEST(M7NativeAdmission, ReleaseAckAtExclusiveCommitDeadlineIsRejected) {
     auto bad=trace.inputs[5];
     mutate(bad.release[0],[](auto& m){auto& ack=std::get<session::Ack>(m.payload);ack.source_ns=ack.plan.commit_deadline_ns;});
     EXPECT_FALSE(gate.accept(bad,bad.observed,out));EXPECT_EQ(gate.error(),"native_release_ack");
+}
+TEST(M7NativeAdmission, TerminalProtectionUsesOriginalActualAfterNormalCreditsClose) {
+    Trace trace(false,true);native::Admission gate(42,trace.inputs.front().observed);native::Output out;
+    for(unsigned i=0;i<trace.inputs.size();++i) {
+        const auto& in=trace.inputs[i];ASSERT_TRUE(gate.accept(in,in.observed,out))<<gate.error()<<" index="<<i;
+        if(i>=200) {
+            EXPECT_TRUE(out.protection);EXPECT_FALSE(out.normal);EXPECT_EQ(in.credit_mask,0U);
+            EXPECT_LE(in.observed+native::step-out.oldest_actuator,30*ms);
+            if(i>220){EXPECT_EQ(out.torque,0);EXPECT_GE(out.pressure,1000000);}
+        }
+    }
+}
+TEST(M7NativeAdmission, ProtectionCannotHideMissingOriginSessionOrReopenNormal) {
+    Trace trace(false,true),normal;
+    std::vector<std::function<void(native::Input&)>> faults={
+        [](auto& x){x.protection_selected_mask=127;},
+        [](auto& x){x.credit_mask=255;},
+        [](auto& x){x.protection_since=x.observed+1;},
+        [](auto& x){x.protection_since=1;},
+        [](auto& x){x.protection_since=x.enable;},
+        [](auto& x){x.release[0].reset();},
+        [](auto& x){x.actual[1].reset();},
+        [&](auto& x){x.actual=normal.inputs[200].actual;},
+        [](auto& x){x.normal=true;},
+        [](auto& x){x.service_mask=0;}
+    };
+    for(const auto& fault:faults) {
+        native::Admission gate(42,trace.inputs.front().observed);native::Output out;
+        for(unsigned i=0;i<200;++i)ASSERT_TRUE(gate.accept(trace.inputs[i],trace.inputs[i].observed,out))<<gate.error();
+        auto bad=trace.inputs[200];fault(bad);EXPECT_FALSE(gate.accept(bad,bad.observed,out));
+        EXPECT_FALSE(gate.accept(trace.inputs[201],trace.inputs[201].observed,out));
+    }
+    native::Admission gate(42,trace.inputs.front().observed);native::Output out;
+    for(unsigned i=0;i<=200;++i)ASSERT_TRUE(gate.accept(trace.inputs[i],trace.inputs[i].observed,out))<<gate.error();
+    EXPECT_FALSE(gate.accept(normal.inputs[201],normal.inputs[201].observed,out));
+    EXPECT_EQ(gate.error(),"native_protection_terminal");
+}
+TEST(M7NativeAdmission, ProtectionKeepsOriginalReceiversAndFrozenSelectionTime) {
+    Trace trace(false,true);
+    for(unsigned fault=0;fault<4;++fault) {
+        native::Admission gate(42,trace.inputs.front().observed);native::Output out;
+        for(unsigned i=0;i<220;++i)ASSERT_TRUE(gate.accept(trace.inputs[i],trace.inputs[i].observed,out))<<gate.error();
+        auto bad=trace.inputs[220];
+        if(fault==0)bad.actual=trace.inputs[200].actual; // replay/stale, valid CRC/P05
+        if(fault==1)bad.actual=trace.inputs[221].actual; // future original source
+        if(fault==2)++bad.protection_since;
+        if(fault==3)mutate(bad.actual[1],[](auto& m){m.from=session::Role::RearZone;});
+        EXPECT_FALSE(gate.accept(bad,bad.observed,out))<<fault;
+        EXPECT_FALSE(gate.accept(trace.inputs[221],trace.inputs[221].observed,out));
+    }
 }
 } // namespace

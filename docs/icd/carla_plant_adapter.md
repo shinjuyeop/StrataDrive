@@ -1,6 +1,6 @@
 # CARLA Plant Adapter / Vehicle Plant Interface 초안
 
-2026-10-27, `m7-plant-draft-v17`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
+2026-10-28, `m7-plant-draft-v18`. **복합 주행/회생·센서 기능 통합 검증 / 전체 M7 NOT CLOSED**.
 [시간 계약](../requirements/timing_requirements.md)의 M7 world/state 주기는 M7-1d 사용자 승인에 따라
 50→10ms로 개정했다. M7-1f는 별도 opt-in functional clock 검증이며 wall 계약 개정이 아니다.
 기존 [공통 ICD](interface_overview.md), [owner-wire](owner_wire_v1.md),
@@ -736,3 +736,37 @@ interface binary freeze가 아니다.
 따라서 현재 fault 정책은 다음 physics tick 차단이며 **실제 native LocalProtection Actual을
 계속 적용하는 안전 정지 경로가 아니다**. 그 경로와 wall guard 연동, cold-loading 중30초 종료,
 원래 renderer crash 원인/장시간 안정성이 남은 gate다. M6 계약·V1 계수는 변경하지 않았다.
+
+
+## 보호 Actual 연속 적용과 RPC 종료 수정 (2026-10-28)
+
+[수정·실행 근거](../test-plan/evidence/m7_carla_recovery/README.md). M6 코드·상수·수용은 변경하지 않는다.
+정상 admission 검사는 유지하고, 이미 정상 운전한 같은 native 세션에 terminal protection 경로를 추가한다.
+
+- trusted local `PROTECT`는 안전 선택 요청일 뿐 pressure/torque/angle 값을 전달하지 않는다.
+  기존 Central/Zone/leaf의 보호 선택, 모델의 유한 응답, CAN/P05 Actual 반환을 거친다.
+  선택 뒤 새 VehicleRequest/normal credit 발급을 멈추고 기존 owner/feedback service는 계속한다.
+- M7 전용 proof의 `protection_since_ns`는 native owner가 보호를 요청한 원래 simulation 시각이다.
+  `protection_selected_mask=255`는 두 Zone·다섯 leaf의 원래 protection acknowledgement와
+  Central fault/closed gate의 **현재 관측**이다. 이 mask를 M6 원격 ProtectionAck 또는 실제 선택 시각으로 꾸미지 않는다.
+  기존 인증된 local owner 경계 안의 증거이며 공개 네트워크 인증을 대체하지 않는다.
+- 첫 보호 시각은 마지막 정상 admission보다 뒤여야 하며 이후 고정된다. 원래8개 Release ACK와
+  enable/epoch를 유지하고 normal=false, credit mask=0, 전체 service/selection mask=255를 요구한다.
+  같은 세션의 정상 재개는 금지한다. 새 INIT는 기존 reset/session 절차를 따른다.
+- 세 Actual 모두 `FailSafe/LocalProtection`, 원래 sequence/P05/route/source와30ms whole-interval
+  age·10ms skew·Drive wheel provenance를 검사한다. 보호 선택 전 Actual, stale/future/replay,
+  다른 Zone·epoch, 누락은 거부하며 receiver를 reset하지 않는다. 명령에서 Actual을 만들지 않는다.
+- 보호에서는 종료된 정상 command/permission/RunLease를 권한으로 사용하지 않는다.
+  `exclusive_expiry_ns`는 원래 Actual·wheel source 중 최솟값+30ms+1ns인 **측정 freshness의
+  exclusive 끝**이며 normal RunLease 연장이 아니다. 실제 적용 effort는 항상 raw Actual에서만 읽는다.
+- solver work→단일 EV 정산·ACK 후 다음 stage, single writer, pause/reset latch는 유지한다.
+  Actual/work 자체가 없거나 admission이 이미 실패한 경우에는 여전히 다음 tick을 차단한다.
+  그런 누락에서 감속을 보장하거나 값을 합성해 보호 진행을 강제하지 않는다.
+
+RPC shutdown은 game-thread owner에서 terminal Stop을 호출한다. sync callback을 기다리는 worker에
+종료를 알린 **뒤** worker join을 수행한다. queued mutation을 실행해서 join을 풀지 않으며,
+종료 후 새/queued sync 호출도 거부한다. 정상 dispatch는 game thread에서 그대로 수행한다.
+Restart/concurrent Stop/worker-thread Stop은 지원 범위 밖이다. 준비180s·종료30s 한도는 유지한다.
+
+이 변경은 functional clock의 보호 경로를 연결한 것이다. wall 실행 기회2ms·job4ms와
+simulation↔wall mapping은 미수용이며, native stdin 대기의 wall 공백을 heartbeat로 숨기지 않는다.

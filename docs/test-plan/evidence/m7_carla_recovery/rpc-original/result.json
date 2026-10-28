@@ -1,0 +1,49 @@
+{
+  "pin": "294096eb1c38eabf246e4f3a9cdab704e33a7f4c",
+  "patched": false,
+  "sanitized": false,
+  "build_argv": [
+    "clang++-14",
+    "-std=c++14",
+    "-pthread",
+    "-O1",
+    "-g",
+    "-fno-omit-frame-pointer",
+    "-DBOOST_ERROR_CODE_HEADER_ONLY",
+    "-I/d/shin/stratadrive-tools/m7-source/m7-recovery/rpc-original/LibCarla/source",
+    "-I/d/shin/stratadrive-tools/m7-source/carla-0.9.16/LibCarla/source",
+    "-isystem",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/rpclib-v2.2.1_c5-c10-libstdcxx-install/include",
+    "-isystem",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/boost-1.84.0-c10-install/include",
+    "/d/shin/stratadrive-tools/m7-source/m7-recovery/rpc-original/probe.cpp",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Build/rpclib-v2.2.1_c5-c10-libstdcxx-install/lib/librpc.a",
+    "-o",
+    "/d/shin/stratadrive-tools/m7-source/m7-recovery/rpc-original/probe"
+  ],
+  "header_sha256": "dc40af145d410b994e0cd6f02fd66744a9f24b8671e8c5997467402394585f75",
+  "harness_sha256": "65d88d29478af9fc2cb68b7c2c0933970a9e8702badf4f251ee0cfa61798bc75",
+  "cases": [
+    {
+      "case": "normal",
+      "exit": 0
+    },
+    {
+      "case": "queued",
+      "exit": "TIMEOUT"
+    },
+    {
+      "case": "ignored",
+      "exit": -6
+    },
+    {
+      "case": "late",
+      "exit": -6
+    },
+    {
+      "case": "network",
+      "exit": "TIMEOUT"
+    }
+  ],
+  "build_exit": 0
+}

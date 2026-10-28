@@ -1,0 +1,184 @@
+{
+  "status": "COMPLETE_BOUNDED_SUITE",
+  "cases": [
+    {
+      "name": "protection",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-recovery/final/protection",
+        "--output",
+        "docs/test-plan/evidence/m7_carla_recovery/final/protection",
+        "--vehicle-substeps",
+        "320",
+        "--native-actual",
+        "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--solver-work",
+        "--native-fault",
+        "protection",
+        "--ticks",
+        "400",
+        "--scenario",
+        "/d/shin/StrataDrive/tests/integration/carla/scenarios/m7_integrated_v1.txt"
+      ],
+      "audits": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1r_work.py",
+            "docs/test-plan/evidence/m7_carla_recovery/final/protection",
+            "--output",
+            "docs/test-plan/evidence/m7_carla_recovery/final/protection-audit_m7_1r_work.json"
+          ],
+          "exit": 0
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_protection.py",
+            "docs/test-plan/evidence/m7_carla_recovery/final/protection",
+            "--output",
+            "docs/test-plan/evidence/m7_carla_recovery/final/protection-audit_m7_protection.json"
+          ],
+          "exit": 0
+        }
+      ],
+      "exit": 0,
+      "elapsed_seconds": 42.07255814198288,
+      "status": "PASS_CASE_ONLY"
+    },
+    {
+      "name": "camera-a",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-recovery/final/camera-a",
+        "--output",
+        "docs/test-plan/evidence/m7_carla_recovery/final/camera-a",
+        "--vehicle-substeps",
+        "320",
+        "--native-actual",
+        "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--solver-work",
+        "--scenario",
+        "/d/shin/StrataDrive/tests/integration/carla/scenarios/m7_integrated_v1.txt",
+        "--ticks",
+        "900",
+        "--cameras"
+      ],
+      "audits": [
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1r_work.py",
+            "docs/test-plan/evidence/m7_carla_recovery/final/camera-a",
+            "--output",
+            "docs/test-plan/evidence/m7_carla_recovery/final/camera-a-audit_m7_1r_work.json"
+          ],
+          "exit": 0
+        },
+        {
+          "argv": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/carla/audit_m7_integrated.py",
+            "docs/test-plan/evidence/m7_carla_recovery/final/camera-a",
+            "--output",
+            "docs/test-plan/evidence/m7_carla_recovery/final/camera-a-audit_m7_integrated.json"
+          ],
+          "exit": 0
+        }
+      ],
+      "exit": 0,
+      "elapsed_seconds": 63.21061906500836,
+      "status": "PASS_CASE_ONLY"
+    },
+    {
+      "name": "work-missing",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-recovery/final/work-missing",
+        "--output",
+        "docs/test-plan/evidence/m7_carla_recovery/final/work-missing",
+        "--vehicle-substeps",
+        "320",
+        "--native-actual",
+        "build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--solver-work",
+        "--native-fault",
+        "work-missing"
+      ],
+      "audits": [],
+      "exit": 0,
+      "elapsed_seconds": 38.00483125902247,
+      "status": "PASS_CASE_ONLY"
+    },
+    {
+      "name": "loading-abort",
+      "argv": [
+        "/usr/bin/python3",
+        "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+        "--engine",
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+        "--source",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+        "--python",
+        "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+        "--fixture",
+        "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+        "--runtime",
+        "/d/shin/stratadrive-tools/m7-source/m7-recovery/final/loading-abort",
+        "--output",
+        "docs/test-plan/evidence/m7_carla_recovery/final/loading-abort",
+        "--vehicle-substeps",
+        "320",
+        "--flag-check",
+        "disabled",
+        "--abort-on-port"
+      ],
+      "audits": [],
+      "exit": 0,
+      "elapsed_seconds": 27.31649261401617,
+      "status": "PASS_CASE_ONLY"
+    }
+  ],
+  "source_sha256": {
+    "m7_integrated_v1.txt": "eabd242463209abf9b62d3b296e82bde14fd62d40dfafe9745f3ac537e21a0ce",
+    "m7_1q_probe.py": "24b03d918a3a2a7e93f44b42e93d518f97b07245974b2546e99154bc049f1b71",
+    "audit_m7_integrated.py": "a20dfb7545221a3b6605febaece6c412a311eb7543807cd3812fba689f1fcbf8",
+    "m7_sensor_capture.py": "7694044e0b2ca556437752087f5b4ed5fad0679eed3c7160b3061ee73cc0bd1d",
+    "audit_m7_1r_work.py": "a0df67b1725cddb214d445f369e576774e44b04707968f49b5f2a779f993f68b",
+    "audit_m7_protection.py": "7dc3d0049fdae216492aa9a93e068cfe85918bc810f567825f69bd9e59fca4f1",
+    "m7_1o_run.py": "2d95a394df5c1c3ccd8e5fc5deec65d16d69f6a07a25e9386f2a2e444dd9c1cf",
+    "audit_m7_1q_native.py": "00491d9b9f5518c59599d3bfed495609fe58a8758ab3ae7e84834969d5e22ec2",
+    "m7_integrated_run.py": "089f57975d84fd352ab1062bf88d4097308ba16a2ad60075995a26a5bc3ccb3c"
+  },
+  "full_m7_closed": false
+}

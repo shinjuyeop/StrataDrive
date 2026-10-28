@@ -41,7 +41,7 @@ def main():
     p.add_argument("--abort-on-port", action="store_true", help="Interrupt owned server before world readiness; no ego or ticks")
     p.add_argument("--shutdown-diagnostic", action="store_true", help="Owned loading-abort only: capture blocked shutdown stacks within original 30s budget")
     p.add_argument("--ticks", type=int, default=400)
-    p.add_argument("--native-fault", choices=("none","credit","command","snapshot","work-missing","work-duplicate","ev-ack-missing","ev-ack-duplicate","ev-ack-energy","rgb-drop"), default="none")
+    p.add_argument("--native-fault", choices=("none","credit","command","snapshot","work-missing","work-duplicate","ev-ack-missing","ev-ack-duplicate","ev-ack-energy","rgb-drop","protection"), default="none")
     p.add_argument("--response-fixture", type=Path)
     p.add_argument("--require-solver-wheel", action="store_true")
     p.add_argument("--native-wheel-bridge", type=Path)
@@ -278,8 +278,11 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
                             report['shutdown_diagnostic']='owned process stack snapshot; timing is diagnostic only'
                             with (a.runtime/'shutdown-gdb.log').open('w') as log:
                                 try:
-                                    debug=subprocess.run(['gdb','-q','-batch','-ex','set pagination off','-ex','set print frame-arguments none',
-                                        '-p',str(server.pid),'-ex','thread apply all bt','-ex','detach'],stdout=log,stderr=subprocess.STDOUT,
+                                    debug=subprocess.run(['gdb','-nx','-q','-batch',
+                                        '-iex','set auto-solib-add off','-iex','set debuginfod enabled off',
+                                        '-ex','set pagination off','-ex','set print frame-arguments none',
+                                        '-ex','attach '+str(server.pid),'-ex','info sharedlibrary',
+                                        '-ex','thread apply all bt 24','-ex','detach'],stdout=log,stderr=subprocess.STDOUT,
                                         timeout=min(10,max(.1,deadline-time.monotonic())))
                                     report['debugger_exit']=debug.returncode
                                 except subprocess.TimeoutExpired:report['debugger_error']='bounded stack capture timeout'

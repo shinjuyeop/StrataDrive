@@ -26,6 +26,7 @@ public:
         :actor_(actor),gate_(gate),participant_(role,*this) {}
     session::SessionParticipant participant_;
     remote::RunLeaseGate credit;
+    void select_protection() {protect();}
     bool allowed() {return !protected_ && credit.allows(participant_,now_ns()) && gate_.allows(epoch_);}
     bool lease(const remote::RunLease& lease) {
         if(protected_ || !credit.receive(lease,domain,participant_,now_ns()))return false;
@@ -89,6 +90,8 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::uint32_t lifecycle_seq=0,vehicle_seq=0;
     unsigned release_mask=0;std::size_t controller_releases=0;
     bool running=false,stop_credit=false,drop_actual=false;int omitted=-1;
+    bool protection_requested=false;
+    Time protection_since=0;
     bool wheel_mode=false;
     std::vector<RequestPhase> profile;
     std::optional<WheelSample> wheel;
@@ -137,6 +140,12 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     }
     void cycle(Time now) {
         clock.logical=now;
+        if(protection_requested && !protection_since) {
+            require(running && core.decision().normal_armed,"protection requires established normal session");
+            protection_since=now;
+            protect_central();
+            for(auto& p:participants)p->select_protection();
+        }
         // M7 applied path only: delayed INIT puts 10ms leaf acquisitions near
         // the end of each CARLA frame. It changes phase, not any native rate,
         // original timestamp, parent expiry, or session deadline budget.
@@ -200,6 +209,9 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         }
         coordinator.poll(now);
         require(coordinator.state()!=session::State::Failed,"coordinator failure");
+        // Keep servicing original leaf/Zone/Central feedback after the terminal
+        // safety selection. No root requests, normal credits or re-arm here.
+        if(protection_since)return;
         if(!coordinator.run_enabled())return;
         if(!running){running=true;next_management=coordinator.plan().enable_ns+14*ms;next_controller=next_management;}
         if(!stop_credit && (!last_lease || now-last_lease>=10*ms)) {
@@ -270,6 +282,12 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         if(r.armed)require(r.credit_mask==255 && r.actual_interval,"shadow Actual interval missing/stale");
         if(export_actual) {
             NativeExport e;e.observed=observed;e.enable=feedback.session_enable_ns;e.normal=r.armed;
+            e.protection_since=protection_since;
+            if(protection_since) {
+                for(unsigned i=0;i<2;++i)if(zones[i].protection.acknowledged(scope.application))e.protection_selected_mask|=1U<<i;
+                for(unsigned i=0;i<5;++i)if(leaves[i].protection.acknowledged(scope.application))e.protection_selected_mask|=1U<<(i+2);
+                if(core.decision().fault!=central::CoordinatorFault::None && !gates[7].allows(scope.application))e.protection_selected_mask|=128;
+            }
             for(unsigned i=0;i<8;++i)if(release_acks[i])
                 e.release[i]=remote::encode_owner_message({static_cast<Role>(i),Role::CentralIngress,domain,*release_acks[i]});
             for(unsigned i=0;i<7;++i)if(participants[i]->credit.accepted())
@@ -366,6 +384,7 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
             if(native_->wheel_history.size()>5)native_->wheel_history.pop_front();
         }
         native_->omitted=omitted_;native_->stop_credit=stop_credit_;native_->drop_actual=drop_actual_;
+        native_->protection_requested=protect_;
         auto r=native_->advance(now);
         if(work_) {
             require(native_->external->finish_work_frame(now),native_->external->error().c_str());
@@ -401,4 +420,5 @@ void FunctionalRig::request_profile(std::vector<RequestPhase> phases) {
 void FunctionalRig::omit_role(int role) {omitted_=role;}
 void FunctionalRig::stop_credit(bool value) {stop_credit_=value;}
 void FunctionalRig::drop_actual(bool value) {drop_actual_=value;}
+void FunctionalRig::request_protection() {protect_=true;}
 } // namespace stratadrive::m7_functional

@@ -52,6 +52,10 @@ int main(int argc,char** argv) {
         std::optional<WheelSample> previous_wheel;
         stratadrive::m7_native::Output previous_admission;
         while(std::getline(std::cin,line)) {
+            if(line=="PROTECT") {
+                if(!solver_work || !previous_admission.normal)throw std::runtime_error("protection request context");
+                rig.request_protection();continue;
+            }
             if(line.size()>(solver_work?20000U:1024U))throw std::runtime_error("input size");
             if(line.rfind("WORK ",0)==0) {
                 if(!solver_work || work || !previous_wheel || !admission)throw std::runtime_error("unexpected work");
@@ -95,10 +99,12 @@ int main(int argc,char** argv) {
                 std::cout<<",\"commands\":";packets(e.commands);
                 std::cout<<",\"release\":";packets(e.release);
                 std::cout<<",\"credit\":";packets(e.credit);
-                std::cout<<",\"permission\":";packet(e.permission);std::cout<<'}';
+                std::cout<<",\"permission\":";packet(e.permission);
+                std::cout<<",\"protection_since_ns\":\""<<e.protection_since<<"\",\"protection_selected_mask\":"<<e.protection_selected_mask<<'}';
                 if(!admission)admission=std::make_unique<stratadrive::m7_native::Admission>(static_cast<std::uint32_t>(app),r.now);
                 stratadrive::m7_native::Input input;
                 input.observed=e.observed;input.enable=e.enable;input.normal=e.normal;
+                input.protection_since=e.protection_since;input.protection_selected_mask=e.protection_selected_mask;
                 input.actual=e.actual;input.commands=e.commands;input.release=e.release;input.credit=e.credit;input.permission=e.permission;
                 input.service_mask=r.service_mask;input.credit_mask=r.credit_mask;input.release_mask=r.release_mask;
                 stratadrive::m7_native::Output out;
@@ -107,7 +113,7 @@ int main(int argc,char** argv) {
                 previous_admission=out;
                 std::cout<<",\"admission\":{\"ok\":"<<(good?"true":"false")<<",\"reason\":\""<<admission->error()
                     <<"\",\"empty\":"<<(out.empty?"true":"false")<<",\"normal\":"<<(out.normal?"true":"false")
-                    <<",\"angle_rad\":"<<out.angle<<",\"torque_nm\":"<<out.torque<<",\"pressure_pa\":"<<out.pressure
+                    <<",\"protection\":"<<(out.protection?"true":"false")<<",\"angle_rad\":"<<out.angle<<",\"torque_nm\":"<<out.torque<<",\"pressure_pa\":"<<out.pressure
                     <<",\"oldest_actuator_ns\":\""<<out.oldest_actuator<<"\",\"oldest_dependency_ns\":\""<<out.oldest_dependency
                     <<"\",\"exclusive_expiry_ns\":\""<<out.exclusive_expiry<<"\"}";
             }
