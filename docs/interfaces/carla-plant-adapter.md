@@ -1,6 +1,6 @@
 # CARLA Plant Adapter 계약
 
-기준: `m7-plant-draft-v26`. **시뮬레이션 기능 수용과 실제 wall 실시간 gate를 분리한다.**
+기준: `m7-plant-draft-v27`. **시뮬레이션 기능 수용과 실제 wall 실시간 gate를 분리한다.**
 이 문서는 현재 적용하는 소유권·actuation·clock·solver/EV·센서 계약을 정리한다.
 구현/수용 결과는 [프로젝트 상태](../project-status.md), 실행은 [CARLA 안내](../carla-guide.md),
 이전 제안·실패·개정 이유는 [계약 이력](../archive/carla-history.md#icd)에 있다.
@@ -200,3 +200,29 @@ Wall snapshot에서는 중복 저속 tire callback JSON만 제외한다. 실제3
 원본 solver journal, work 및 단일 EV 정산은 유지한다. NullRHI/inline render는 해당 비영상
 실행 옵션이며 영상 경로의 지연 해결을 의미하지 않는다. 짧은 비영상 시험을 장시간·영상·
 전체 wall fault 수용으로 확대하지 않는다. 실제 결과는 [프로젝트 상태](../project-status.md)를 따른다.
+
+### CARLA 파생 HV 입력 예산 재조정
+
+2026-10-29 사용자 요청에 따라 `wall5-hv50-v1`을 별도 opt-in으로 정의한다.
+`--wall-native --wall-step-ms 5 --wall-hv-dependency-ms 50`에만 적용하며 기본값은30ms다.
+M6 원본 DriveController·계약·과거 판정은 변경하지 않는다. M7 전용 생성 controller에서
+기존 알고리즘의 HV dependency 검사만 분리한다. 원본 변경 시 생성 anchor 불일치는 빌드 실패다.
+
+| 입력/감시 | 기존 | 새 profile | 이유 |
+| --- | --- | --- | --- |
+| Wheel 취득/source 및 input age | 30ms | 30ms | 차량 운동 관측의 직접 freshness |
+| HV 취득/source age | 30ms | 30ms | 새 물리 work 취득 없이 전압 관측 갱신 금지 |
+| HV 계산의 oldest input dependency age | 30ms | **50ms** | 30ms 직접 원천 예산에 한 Controller 주기20ms의 계산·전달 여유를 별도 배정 |
+| Local wheel/HV source skew | 20ms | 20ms | 두 관측의 시간 정렬 유지 |
+| Actual·명령·부모 expiry·RunLease·owner2ms/4ms | 기존값 | 동일 | 권한과 실행 감시를 HV 계산 예산과 분리 |
+
+50ms는 CARLA용 engineering allocation이며 OEM calibration/차량 전체 안전 한계가 아니다.
+입력의 원래 source·dependency·sequence는 보존하고, 이전 sample의 만료를 새 sample로 숨기지
+않는다. `age == limit`은 허용, 초과는 기존 보호 latch/새 INIT 규칙을 따른다.
+100ms physics loss는 이 예산으로 정상 처리하지 않는다. 영상·M6·기능 simulation profile에는
+적용하지 않는다. 전체 실시간 성공을 위해 다른 기준을 연쇄적으로 늘리지 않는다.
+
+새 실행 전 고정한 검증은 source30ms/dependency50ms 경계 및+1ns 거부, wheel/M6 기존30ms,
+cached identity 불변·늦은 새 입력의 fault 은폐 거부, 정상900구간2회 및100ms gap/명시적
+보호 각1회다. 원본 CAN/work·HV 시각·owner timing·서버 종료를 모두 검사하며 과거 실패의
+재채점으로 PASS를 만들지 않는다. 장시간·고속·영상·실차 수용은 이 시험 범위 밖이다.

@@ -23,7 +23,7 @@ struct WallReport {
 // ECU jobs. Receipt parsing/blocking IO belongs outside this owner.
 class WallRig {
 public:
-    WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial=0,Time model_step=10000000);
+    WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial=0,Time model_step=10000000,Time hv_dependency_ns=30000000);
     ~WallRig();
     WallRig(const WallRig&)=delete;
     WallRig& operator=(const WallRig&)=delete;

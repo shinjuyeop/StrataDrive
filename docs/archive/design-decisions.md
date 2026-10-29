@@ -4926,3 +4926,24 @@ M6 wall/통신/안전/모델 계약·수치·종료 판정은 유지한다. 실�
 
 [현재 계약](../interfaces/carla-plant-adapter.md#시뮬레이션-시간-연속-실행),
 [현재 판정](../project-status.md), [보존한 wall 실패](../test-plan/evidence/m7_carla_wall_guard/carla-runtime/README.md).
+
+<a id="adr-0066"></a>
+
+## ADR-0066: CARLA 파생 HV freshness 예산 분리
+
+Date: 2026-10-29. Status: **사용자 재조정 요청에 따른 CARLA 전용 결정 / 실시간 전체 수용 별도**.
+
+사용자가 프로젝트 진행을 불필요하게 막는 과도한 timing 조건의 재조정을 요청했다.
+원래30ms는 현재 fixture의 engineering starting point이며 모든 입력에 대한 실차 한계가 아니다.
+[CARLA 공식 문서](https://carla.readthedocs.io/en/0.9.16/adv_synchrony_timestep/)는 model step과
+실제 처리 시간을 구분한다. 아래50ms는 공식 CARLA 보장값이 아닌 프로젝트의 예산 결정이다.
+기존 wall 반복 실패는 HV 취득 지연과 별개인 oldest dependency30.010378ms에서 재현됐다.
+`wall5-hv50-v1`은 HV 취득30ms와 계산 dependency50ms를 분리한다. 추가20ms는 한 Controller
+주기의 계산·전달 예산이다. Wheel/Actual/명령·원래 expiry·owner2ms/4ms와 원본 시각은 유지한다.
+M6 소스와 기본30ms profile은 변경하지 않으며 기존 실패를 재채점하지 않는다.
+
+값은 새 실제 시험 전에 고정하고 경계·보호·반복 실행으로 검증한다. 부족한 다른 예산을
+자동으로 늘리지 않는다. 기능 개발은 ADR-0065에 따라 계속하고 wall 안정화를 M8의
+선행 조건으로 추가하지 않는다. OEM/고속·영상·장시간 적합성은 별도다.
+[개정 계약과 검증 범위](../interfaces/carla-plant-adapter.md#carla-파생-hv-입력-예산-재조정),
+[현재 판정](../project-status.md)을 따른다.

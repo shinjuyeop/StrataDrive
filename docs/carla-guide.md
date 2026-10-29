@@ -58,9 +58,13 @@ python3 tests/integration/carla/m7_integrated_run.py \
 
 ## 비영상 wall5ms 실험 재실행
 
-이 profile은 반복 안정화 중이며 전체 실시간 수용은 OPEN이다. 기본10ms 기능 실행과 구분한다.
-원본 시각·30ms freshness·owner2ms/4ms를 유지하고 카메라는 사용할 수 없다.
-[실제 성공·실패와 빌드 식별](test-plan/evidence/m7_carla_wall_guard/carla-runtime/nonvideo-wall5/README.md)을 먼저 확인한다.
+`wall5-hv50-v1`의 단기 정상/보호4회는 통과했으며 전체 실시간 수용은 OPEN이다. 기본10ms 기능 실행과 구분한다.
+원본 시각·source30ms·owner2ms/4ms를 유지하고 카메라는 사용할 수 없다.
+아래는 `wall5-hv50-v1` 명령이다. 파생 HV의 oldest dependency만50ms이며,
+`--wall-hv-dependency-ms 50` 옵션 생략 시 기존30ms다.
+[적용 범위와 근거](interfaces/carla-plant-adapter.md#carla-파생-hv-입력-예산-재조정)를 따른다.
+[개정 후 실제 결과·빌드 식별](test-plan/evidence/m7_carla_wall_guard/carla-runtime/hv-budget-v1/README.md)과
+[이전 성공·실패](test-plan/evidence/m7_carla_wall_guard/carla-runtime/nonvideo-wall5/README.md)를 구분한다.
 
 ```sh
 cmake --build build/m7-functional --target m7_carla_wall_owner --parallel 2
@@ -74,7 +78,8 @@ python3 tests/integration/carla/m7_1o_run.py \
   --runtime "$run_dir/runtime" --output "$run_dir/result" \
   --scenario tests/integration/carla/scenarios/m7_integrated_v1.txt \
   --vehicle-substeps 320 --solver-work --compact-work --held-steer-sleep \
-  --wall-native --wall-step-ms 5 --wall-nullrhi --wall-inline-render --ticks 900
+  --wall-native --wall-step-ms 5 --wall-hv-dependency-ms 50 \
+  --wall-nullrhi --wall-inline-render --ticks 900
 python3 tests/integration/carla/audit_m7_wall_carla.py \
   "$run_dir/result" --output "$run_dir/audit.json"
 ```

@@ -57,7 +57,7 @@ Normal/ASan 각114/114, 연속성·session·숨은 reset·timestamp·정상 권�
 | 독립 wall 감시 | 2ms/4ms 감시 → 로컬 보호 선택 → 다음 tick 차단. Terminal native owner는 입력 단절 뒤에도 보호 Actual 생성 | [wall guard](test-plan/evidence/m7_carla_wall_guard/README.md) · [terminal 응답](test-plan/evidence/m7_carla_wall_guard/terminal-response/README.md) |
 | 증거 전달 최적화 | Raw solver journal 회수와 compact 전달을 분리하고 기존 physics/work/Actual 동등성 검증. 정상 wall timing 수용은 아님 | [전달 경로](test-plan/evidence/m7_carla_wall_guard/pipeline/README.md) |
 | Wall owner component | 실제 monotonic timer·분리된 IO·유한 mailbox, 원래8-role service와 보호·완료 work 정산 검증. 합성 stationary 입력 범위 | [component 실행](test-plan/evidence/m7_carla_wall_guard/wall-owner/README.md) |
-| 실제 CARLA wall 연결 | model/wall을 분리하고 비영상5ms profile에서 짧은 정상 주행·실제 보호 정지 확인. 반복 중 EV 입력 만료·서버 종료 실패가 남아 **안정화 OPEN** | [비영상 개선·반복 실패](test-plan/evidence/m7_carla_wall_guard/carla-runtime/nonvideo-wall5/README.md) · [이전10ms 실패](test-plan/evidence/m7_carla_wall_guard/carla-runtime/README.md) |
+| 실제 CARLA wall 연결 | `wall5-hv50-v1`에서 파생 HV 예산을 분리한 뒤 정상2회·보호2회, 각900구간과 서버 종료 **4/4 통과**. 단기 비영상 한정이며 전체 실시간 수용은 OPEN | [HV 재조정·실행](test-plan/evidence/m7_carla_wall_guard/carla-runtime/hv-budget-v1/README.md) · [이전 실패 보존](test-plan/evidence/m7_carla_wall_guard/carla-runtime/nonvideo-wall5/README.md) |
 
 이전 기능 시험의 정상5실행은 각각900구간, 약4.77215m 이동·최대 전방 속도 약1.259m/s다.
 영상2실행은 각각 RGB180/GT180이다. Reference 30km/h 추종이나 전체 ODD 검증은 아니다.
@@ -70,9 +70,9 @@ component/회귀 근거이며 실제 wall 주행 성공을 뜻하지 않는다.
 | --- | --- |
 | 엔진 프레임 공백 | 최소 state 경로의10ms 요청1000구간은 source/공식 패키지 모두 최대 약10.83ms. RGB+GT에서는30ms 초과가 source200/1000·패키지17/1000으로 재현됨. 영상 경로의 지연 기여를 확인했으며 세부 blocking 원인은 미확정. 패키지 종료−11 실패 별도 보존. [대조 시험](test-plan/evidence/m7_carla_wall_guard/carla-runtime/frame-diagnostic/README.md) |
 | Clock·실시간 실행 | simulation elapsed와 CLOCK_MONOTONIC을 분리. 고정 offset·heartbeat·timeout 증가로 2ms/4ms·30ms 수용을 대신할 수 없음 |
-| 비영상 wall 반복 안정성 | 5ms plant·수신/physics 분리·중복 JSON 제거로 실제 속도에 가까운 정상 주행 가능성을 확인. 반복 중 이전 EV/HV 입력 의존성이30ms를 넘는 사례가 남음. 실제 원본 시각 재생으로 거부 원인을 확인했으며 source/timeout을 바꾸지 않음 |
+| 비영상 wall 반복 안정성 | ADR-0066의 HV source30ms/dependency50ms 분리 후 정상2회 모두900구간 완료. 실제 취득 age 최대13.595ms, dependency 최대31.661ms로 원인에 맞는 여유를 확인. M6·wheel/Actual·명령30ms·owner2ms/4ms 유지. 장시간·고속·영상으로 확대하지 않음 |
 | Wall fault 후 실제 제동 | 정상 세션 이후 새 LocalProtection Actual의 실제 제동·자연 정지를 짧은 비영상 시험에서 확인.100ms physics 보류는 game thread 자체 정지가 아니며 장시간·전체 wall fault 수용은 OPEN |
-| Source 서버 종료 | 비영상 반복 중 UE thread pool 종료에서SIGSEGV. actor 정리·물리 감사와 server 정상 종료를 분리하며 해당 전체 case는 FAIL |
+| Source 서버 종료 | 과거 UE thread pool 종료SIGSEGV와 해당 FAIL 유지. 이번4회는 모두 정상 종료했으나 종료 코드 자체를 수정하지 않았으므로 원인 해결로 세지 않음 |
 | Renderer | 카메라 없이 rendering만 켠 기본 source 경로는 최대16.66ms, RGB+GT의10ms 요청에서는 최대65.08ms/5frame 반복 지연. 영상 capture/render/readback과 물리 진행의 결합을 우선 조사. 과거 Distance Field SIGSEGV·전체 content/장시간 안정성은 미해결 |
 | 과거 M3/M4·SDK | timing/FIFO·native·SDK sanitizer 기능 미완료 OPEN은 각 당시 분모·실패와 함께 보존 |
 | DDS | 정규 제어 gate CLOSED, adapter 미착수. 기존 종료·20ms·TSan FAIL 및 접근 제한 이력 유지 |
@@ -84,8 +84,9 @@ component/회귀 근거이며 실제 wall 주행 성공을 뜻하지 않는다.
 보호 Actual 자연 정지·센서/work 누락·Host 정지 차단·Actual-only/single writer·pause/reset/새 INIT를
 실행·독립 검사했다. 고정 VehicleRequest 시험이며 M8 경로 추종·Reference30km/h·AI 수용은 아니다.
 
-실제 wall 전체 수용은 **별도 OPEN**이다. 비영상5ms의 짧은 정상·보호 정지 근거를 확보했지만
-정상 반복 실패·EV 입력 전달 여유·서버 종료 안정성·영상·장시간 검증이 남는다.
+실제 wall 전체 수용은 **별도 OPEN**이다. 비영상 `wall5-hv50-v1`의 짧은 정상 반복·보호 정지는
+4/4 통과했다. Normal/ASan·UBSan 각123/123, HV 예산/시각 손상6/6 거부를 확인했다.
+실행 범위의 HV 예산 충돌은 해소했으며 서버 종료 원인·영상·장시간/고속 적합성은 남는다.
 M6 wall 계약·수치·수용은 그대로이며 기존 wall 실패도 보존한다. source30ms·expiry는
 기능 profile의 동일 simulation domain에서 유지하고 timestamp를 고쳐 쓰지 않는다.
 상세 계약은 [시뮬레이션 시간 연속 실행](interfaces/carla-plant-adapter.md#시뮬레이션-시간-연속-실행)에 있다.

@@ -20,6 +20,7 @@
 | Wall owner timer·IO component | [Wall owner](evidence/m7_carla_wall_guard/wall-owner/README.md) |
 | 실제 CARLA wall10ms 연결 실패 | [CARLA runtime](evidence/m7_carla_wall_guard/carla-runtime/README.md) |
 | 비영상 wall5ms 정상·보호 정지와 반복/종료 실패 | [비영상 wall 개선](evidence/m7_carla_wall_guard/carla-runtime/nonvideo-wall5/README.md) |
+| CARLA HV source/dependency 예산 분리·정상2/보호2 실행 | [wall5-hv50-v1 결과](evidence/m7_carla_wall_guard/carla-runtime/hv-budget-v1/README.md) |
 | CARLA 기본 state·영상·확장 경로 지연 대조 | [Frame 진단](evidence/m7_carla_wall_guard/carla-runtime/frame-diagnostic/README.md) |
 | DDS 제어 gate CLOSED의 근거 | [DDS shutdown 후속](evidence/m5_dds_shutdown_followup/README.md) |
 

@@ -57,6 +57,14 @@ M6 실행 profile/모델·과거 검증 및 native2ms/4ms guard는 변경하지 
 기존10ms 경로의 admission/feedback 대기 결합을 해소하기 위한 별도 profile이며,
 Controller20ms·Zone/vECU10ms·source30ms·owner2ms/4ms의 완화가 아니다.
 
+2026-10-29 사용자 요청의 `wall5-hv50-v1`은 **CARLA 파생 HV dependency만30→50ms**로
+분리한다. 취득/source는30ms이며 wheel·Actual·명령·M6 기본값은 그대로다.
+추가20ms는 한 Controller 주기의 계산·전달 예산이며 실차 안전 보장값이 아니다.
+원본 시각을 보존하고 이전 sample 만료·새 INIT 규칙을 유지한다.
+[개정 계약·경계 시험](../interfaces/carla-plant-adapter.md#carla-파생-hv-입력-예산-재조정)을 따른다.
+실시간 wall 안정화는 M8 기능 개발의 진입 조건이 아니다. 제어·AI 기능은 수용된
+simulation-time profile로 진행하고 Host/Target 실시간 수용은 별도 측정한다.
+
 ## Terms
 
 2026-10-29 M7 범위 결정: [ADR-0065](../archive/design-decisions.md#adr-0065)에

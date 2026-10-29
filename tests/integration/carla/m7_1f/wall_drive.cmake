@@ -1,0 +1,33 @@
+# M7-only sensor policy variant. M6 controller sources/defaults remain unchanged.
+# Keep the shared algorithm; fail configuration if an expected anchor changes.
+function(wall_replace variable before after)
+  string(FIND "${${variable}}" "${before}" found)
+  if(found LESS 0)
+    message(FATAL_ERROR "M7 wall Drive anchor missing: ${before}")
+  endif()
+  string(REPLACE "${before}" "${after}" result "${${variable}}")
+  set(${variable} "${result}" PARENT_SCOPE)
+endfunction()
+set(drive_base "${PROJECT_SOURCE_DIR}/vecu/drive/drive_controller")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${drive_base}.hpp" "${drive_base}.cpp")
+file(READ "${drive_base}.hpp" drive_header)
+string(FIND "${drive_header}" "class DriveController {" begin)
+if(begin LESS 0)
+  message(FATAL_ERROR "M7 wall Drive class anchor missing")
+endif()
+string(SUBSTRING "${drive_header}" ${begin} -1 drive_header)
+string(REPLACE "DriveController" "WallDriveController" drive_header "${drive_header}")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/wall_drive_controller.hpp"
+  "#pragma once\n#include \"drive_controller.hpp\"\nnamespace stratadrive::vecu {\nstruct WallDriveControllerConfig : DriveControllerConfig {\n    std::uint64_t hv_dependency_age_ns{30000000};\n};\n${drive_header}")
+file(READ "${drive_base}.cpp" drive_source)
+wall_replace(drive_source "#include \"drive_controller.hpp\"" "#include \"wall_drive_controller.hpp\"")
+wall_replace(drive_source "age_ns; };" "age_ns, dependency_age_ns; };")
+wall_replace(drive_source "context.now_ns-x.input_time_ns > context.age_ns" "context.now_ns-x.input_time_ns > context.dependency_age_ns")
+wall_replace(drive_source "config.local_skew_ns > config.local_age_ns ||"
+  "config.local_skew_ns > config.local_age_ns || (config.hv_dependency_age_ns != 30000000 && config.hv_dependency_age_ns != 50000000) ||")
+wall_replace(drive_source "now_ns-hv_->input_time_ns <= config_.local_age_ns" "now_ns-hv_->input_time_ns <= config_.hv_dependency_age_ns")
+wall_replace(drive_source "now_ns, config_.local_age_ns};" "now_ns, config_.local_age_ns, config_.local_age_ns};")
+wall_replace(drive_source "check(*sensors.hv, hv_cursor_, context)"
+  "check(*sensors.hv, hv_cursor_, SensorContext{model_epoch_, enable_ns_, now_ns, config_.local_age_ns, config_.hv_dependency_age_ns})")
+string(REPLACE "DriveController" "WallDriveController" drive_source "${drive_source}")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/wall_drive_controller.cpp" "${drive_source}")

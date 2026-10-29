@@ -36,6 +36,7 @@ struct Report {
     unsigned electrical_count=0;
     power::CoilCommand coils{};
     Time coil_source=0,electrical_acquired=0;
+    Time hv_source=0,hv_dependency=0;
     std::optional<NativeExport> native_export;
 };
 // Real native actors/session/credit + M6 actuator/electrical fixture. Optional

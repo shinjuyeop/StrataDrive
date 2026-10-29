@@ -1,0 +1,56 @@
+[
+  {
+    "case": "unknown_budget",
+    "exit": 1,
+    "result": {
+      "status": "FAIL_AUDIT",
+      "error": "explicit HV dependency policy",
+      "full_m7_closed": false
+    }
+  },
+  {
+    "case": "mismatched_budget",
+    "exit": 1,
+    "result": {
+      "status": "FAIL_AUDIT",
+      "error": "probe/native HV policy identity",
+      "full_m7_closed": false
+    }
+  },
+  {
+    "case": "hidden_policy",
+    "exit": 1,
+    "result": {
+      "status": "FAIL_AUDIT",
+      "error": "no hidden HV policy",
+      "full_m7_closed": false
+    }
+  },
+  {
+    "case": "restamped_source",
+    "exit": 1,
+    "result": {
+      "status": "FAIL_AUDIT",
+      "error": "HV timing derives from original work/coil, no restamping",
+      "full_m7_closed": false
+    }
+  },
+  {
+    "case": "restamped_dependency",
+    "exit": 1,
+    "result": {
+      "status": "FAIL_AUDIT",
+      "error": "HV timing derives from original work/coil, no restamping",
+      "full_m7_closed": false
+    }
+  },
+  {
+    "case": "strict30_counterfactual",
+    "exit": 1,
+    "result": {
+      "status": "FAIL_AUDIT",
+      "error": "normal HV source/dependency budget including preceding sample",
+      "full_m7_closed": false
+    }
+  }
+]

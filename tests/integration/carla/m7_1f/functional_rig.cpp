@@ -115,7 +115,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::array<DeliveredCapture<transport::LeafRequest>,5> command_capture;
     std::array<std::optional<session::Ack>,8> release_acks;
 
-    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0,Time horizon=10000,Time model_step=10000000):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),horizon_ms(horizon),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
+    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0,Time horizon=10000,Time model_step=10000000,Time hv_dependency_ns=30000000):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),horizon_ms(horizon),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
         clock.logical=initial;
         if(export_actual) {
             for(unsigned i=0;i<2;++i)zones[i].feedback.delivery(&feedback_capture[i]);
@@ -133,7 +133,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         for(unsigned i=0;i<5;++i) {
             leaf[i]=std::make_unique<simulation::AsyncLeafOwner>(static_cast<transport::Leaf>(i),clock,gates[i+2],leaves[i],sensors[i+2],outputs[i],bms);
             if(i==2 && model_initial) {
-                wall_drive=std::make_unique<simulation::WallLeafOwner>(transport::Leaf::Drive,clock,gates[4],leaves[2],sensors[4],outputs[2],bms);
+                wall_drive=std::make_unique<simulation::WallLeafOwner>(transport::Leaf::Drive,clock,gates[4],leaves[2],sensors[4],outputs[2],bms,hv_dependency_ns);
                 leaf[i].reset();
                 participants[i+2]=std::make_unique<CreditedActor>(Role::Drive,*wall_drive,gates[4],domain);
             } else participants[i+2]=std::make_unique<CreditedActor>(static_cast<Role>(i+2),*leaf[i],gates[i+2],domain);
@@ -334,6 +334,10 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         Report r;r.now=observed;r.release_mask=release_mask;r.armed=core.decision().normal_armed;
         if(external && external->last_success()>start)r.electrical=external->audit();
         if(external) {r.coils=external->applied_coils();r.coil_source=external->applied_coil_source();r.electrical_acquired=external->electrical_acquisition();}
+        if(external && external->sensors() && external->sensors()->drive.hv) {
+            const auto& hv=*external->sensors()->drive.hv;
+            r.hv_source=hv.identity.source_time_ns;r.hv_dependency=hv.input_time_ns;
+        }
         r.electrical_steps=electrical_steps;r.electrical_count=electrical_count;
         if(wheel)r.sensor_wheel=WheelAudit{wheel->source,(wheel->omega[2]+wheel->omega[3])/2};
         r.controller_releases=controller_releases;
@@ -558,11 +562,12 @@ BarrierStop FunctionalRig::stop_at_barrier() {
     return result;
 }
 
-WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial,Time model_step)
+WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial,Time model_step,Time hv_dependency_ns)
     :scope_(scope),actor_(actor),model_initial_(model_initial),model_step_(model_step),initial_(initial) {
     require(scope.run && scope.application && scope.plant==7 && actor && initial,"wall INIT scope");
     require(model_step==10000000 || (model_initial && model_step==5000000),"wall model step profile");
-    native_=std::make_unique<FunctionalRig::Native>(scope,initial,PlantMode::ExternalSolverWork,true,true,model_initial,10000,model_step);
+    require(hv_dependency_ns==30000000 || (model_initial && model_step==5000000 && hv_dependency_ns==50000000),"wall HV dependency profile");
+    native_=std::make_unique<FunctionalRig::Native>(scope,initial,PlantMode::ExternalSolverWork,true,true,model_initial,10000,model_step,hv_dependency_ns);
     native_->wheel_mode=true;
 }
 WallRig::~WallRig()=default;

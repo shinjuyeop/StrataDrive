@@ -7,7 +7,7 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M7 · 기능 범위 CLOSED | [시뮬레이션 시간 기능 수용](project-status.md#m7-종료-조건). 짧은 비영상 wall 주행·보호 정지 근거 확보; 반복 안정화·영상·장시간 wall 수용 OPEN |
+| M7 · 기능 범위 CLOSED | [시뮬레이션 시간 기능 수용](project-status.md#m7-종료-조건). HV 예산 분리 후 비영상 wall 정상2/보호2 통과;영상·장시간 wall 수용은 기능 개발과 별도 |
 | M8 | M6 종방향 모델의 C++ 구현·공통 vector 동등성, 실제 차량 폐루프, route/waypoint·횡방향 제어와 Reference 30km/h 시험 |
 | M9 | Fault event → 검출 → 보호 → actual response → DTC 통합. 기존 로컬 보호는 계속 유지 |
 | M10–M11 | Perception·temporal learned planner, Safety Supervisor·classical fallback, 인식/판단 한계와 scenario 검토 |
@@ -28,7 +28,7 @@ Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revis
 | TBD-01 | CAN layout·scaling·Data ID·sequence / 통신 | M1 Host DBC/P05 구현됨. Wire/schema 변경 시 재검증 |
 | TBD-02 | 차체·차륜 geometry, 단위·부호·actuation mapping / 모델·interface | M6 모델과 M7 V1 선택됨. 실제 차량 calibration·다른 blueprint는 후속 |
 | TBD-03 | actuator 응답·보호·저속 hold·물리 오차 / plant | M6 fixture·M7 가상 EV 범위 결정. OEM·전체 ODD 수용은 별도 |
-| TBD-04 | clock·freshness·job/monitor deadline·측정 / timing | M7 기능은 simulation domain 수용(ADR-0065). 비영상 wall5ms는 별도 실험 profile;2ms/4ms·Drive30ms 유지. EV 입력 전달 여유·반복 안정화 OPEN |
+| TBD-04 | clock·freshness·job/monitor deadline·측정 / timing | M7 기능은 simulation domain 수용(ADR-0065). CARLA wall5-hv50-v1은 HV source30ms/dependency50ms 분리(ADR-0066);wheel/Actual·owner2ms/4ms·M6 유지. 전체 wall 안정화는 M8 진입 조건이 아님 |
 | TBD-05 | middleware·격리·bridge/discovery / 통신 | Host vSomeIP3.7.6 한정 사용; DDS 제어 gate CLOSED. Target은 배포 전 결정 |
 | TBD-06 | 배분·충돌/가용성·local protection·DEGRADED / 차량 제어 | M4 component 구현. M8 전 회생/마찰 전환·차량 envelope 검증 |
 | TBD-07 | CARLA/UE/client·map/route·tick·fidelity / simulation | 고정 source/Town03/V1의 simulation 기능 수용. 비영상 wall5ms는 제한 검증;영상·서버 종료·전체 renderer 안정성·M8 경로 적합성 OPEN |

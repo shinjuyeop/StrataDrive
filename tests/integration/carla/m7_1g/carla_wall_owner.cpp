@@ -55,9 +55,11 @@ void emit(const Report& r,bool ready,const m7_native::Output& out,const std::str
 }
 int main(int argc,char** argv) {
     try {
-        if(argc!=4 && argc!=5)throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario [5|10]");
-        const Time model_step=argc==5?std::stoull(argv[4])*ms:10*ms;
+        if(argc<4 || argc>6)throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario [5|10] [30|50 HV dependency ms]");
+        const Time model_step=argc>=5?std::stoull(argv[4])*ms:10*ms;
+        const Time hv_dependency=argc==6?std::stoull(argv[5])*ms:30*ms;
         if(model_step!=5*ms && model_step!=10*ms)throw std::runtime_error("wall model step");
+        if(hv_dependency!=30*ms && !(model_step==5*ms && hv_dependency==50*ms))throw std::runtime_error("wall HV policy");
         std::ifstream profile(argv[3]);std::vector<RequestPhase> phases;std::string line;
         while(std::getline(profile,line)) {
             if(line.empty() || line[0]=='#')continue;
@@ -80,17 +82,17 @@ int main(int argc,char** argv) {
         bridge->signal={m7_native::wall_signal_magic,initial,42,0};bridge->actor=actor;bridge->model_initial=model;
         bridge->model_step=model_step;
         bridge->session=session;bridge->generation=generation;std::memcpy(bridge->run,run.c_str(),37);
-        WallRig rig({1,42,7},actor,initial,model,model_step);rig.request_profile(std::move(phases));
+        WallRig rig({1,42,7},actor,initial,model,model_step,hv_dependency);rig.request_profile(std::move(phases));
         runtime::LatestSnapshot<Report> latest;
         std::atomic<bool> done{false},trip{false};
         WallExecutionWatch watch(initial+ms,19000*ms);rig.execution_watch(&watch);
         m7_native::SharedReader<m7_native::SharedReceipt> reader;
         m7_native::SharedWriter<m7_native::SharedProof> writer;
-        struct Row {Time now,energy,source,protect;bool armed;};
+        struct Row {Time now,energy,source,protect;bool armed;Time hv_source,hv_dependency;};
         std::vector<Row> rows;rows.reserve(20000);std::string failure;
         simulation::runtime_support::ThreadInfo owner_info,io_info;owner_info.capture();
         simulation::runtime_support::sleep_until(initial);
-        std::cout<<"{\"initial\":"<<initial<<",\"bridge_bytes\":"<<sizeof(*bridge)<<",\"model_step_ns\":"<<model_step<<"}"<<std::endl;
+        std::cout<<"{\"initial\":"<<initial<<",\"bridge_bytes\":"<<sizeof(*bridge)<<",\"model_step_ns\":"<<model_step<<",\"hv_dependency_ns\":"<<hv_dependency<<"}"<<std::endl;
         std::thread io([&] {
             io_info.capture();
             try {
@@ -139,15 +141,15 @@ int main(int argc,char** argv) {
                     const auto& e=*n.electrical;shared.soc=e.soc;shared.chemical=e.chemical_j;shared.motor_loss=e.motor_loss_j;
                     shared.auxiliary=e.auxiliary_j;shared.ohmic=e.ohmic_j;shared.capacitor=e.capacitor_delta_j;shared.circuit=e.circuit_loss_j;}
                 writer.publish(bridge->proof,shared);latest.publish(n);
-                rows.push_back({now,shared.energy_end,n.sensor_wheel?n.sensor_wheel->source:0,r.protected_at,n.armed});
+                rows.push_back({now,shared.energy_end,n.sensor_wheel?n.sensor_wheel->source:0,r.protected_at,n.armed,n.hv_source,n.hv_dependency});
                 wake=initial+((WallExecutionWatch::now()-initial)/ms+1)*ms;
             }
         }catch(const std::exception& e){failure=std::string("owner exception: ")+e.what();}
         __atomic_store_n(&bridge->stop,1ULL,__ATOMIC_RELEASE);m7_native::wall_trip(&bridge->signal);done.store(true);io.join();
         watch.write(std::string(argv[2])+"-wall.csv");
-        std::ofstream trace(std::string(argv[2])+".csv");trace<<"now,energy_end,wheel_source,protection,armed\n";
-        for(const auto& r:rows)trace<<r.now<<','<<r.energy<<','<<r.source<<','<<r.protect<<','<<r.armed<<'\n';
-        std::ofstream meta(std::string(argv[2])+".json");meta<<"{\"first_fault\":\""<<failure<<"\",\"initial\":"<<initial<<",\"owner\":";
+        std::ofstream trace(std::string(argv[2])+".csv");trace<<"now,energy_end,wheel_source,protection,armed,hv_source,hv_dependency\n";
+        for(const auto& r:rows)trace<<r.now<<','<<r.energy<<','<<r.source<<','<<r.protect<<','<<r.armed<<','<<r.hv_source<<','<<r.hv_dependency<<'\n';
+        std::ofstream meta(std::string(argv[2])+".json");meta<<"{\"first_fault\":\""<<failure<<"\",\"initial\":"<<initial<<",\"hv_dependency_ns\":"<<hv_dependency<<",\"owner\":";
         owner_info.write_json(meta);meta<<",\"io\":";io_info.write_json(meta);meta<<"}\n";
         munmap(bridge,sizeof(m7_native::WallBridge));return 0;
     }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}

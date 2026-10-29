@@ -25,8 +25,11 @@ def main():
     p.add_argument('--cameras',action='store_true')
     p.add_argument('--warmup-ticks',type=int,choices=(0,150),default=0)
     p.add_argument('--step-ms',type=int,choices=(5,10),default=10)
+    p.add_argument('--hv-dependency-ms',type=int,choices=(30,50),default=30)
     a=p.parse_args();a.output.mkdir(parents=True,exist_ok=False)
+    if a.hv_dependency_ms==50 and (a.step_ms!=5 or a.cameras):p.error('HV50 requires noncamera wall5 profile')
     report={'status':'FAIL','scope':'dual-clock experiment; acceptance requires separate audit','fault':a.fault,'model_step_ns':a.step_ms*1000000}
+    report['hv_dependency_ns']=a.hv_dependency_ms*1000000
     rows=[];events=[];waits=[];process=actor=world=original=None;bound=False;session=run=None
     capture=Capture(a.output) if a.cameras else None
     c=carla.Client('127.0.0.1',2200);c.set_timeout(10)
@@ -67,7 +70,7 @@ def main():
         model=int(binding['logical_begin_ns'])
         signal=(a.output/'wall-signal').resolve()
         stderr=(a.output/'native.stderr').open('w')
-        process=subprocess.Popen(['chrt','-f','18',str(a.native.resolve()),str(signal),str((a.output/'native').resolve()),str(a.scenario.resolve()),str(a.step_ms)],
+        process=subprocess.Popen(['chrt','-f','18',str(a.native.resolve()),str(signal),str((a.output/'native').resolve()),str(a.scenario.resolve()),str(a.step_ms),str(a.hv_dependency_ms)],
             stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=stderr,text=True)
         started=native(f'START {actor.id} {model} {session} {binding["physics"]["generation"]} {run}');report['native_initial']=started
         require(rpc('wall_start',initial=str(started['initial']),signal_path=str(signal),limit=str(a.ticks))['ok'],'same host wall start')
