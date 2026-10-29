@@ -1,0 +1,59 @@
+[
+  {
+    "name": "tsan-functional",
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/m7-wall-tsan/tests/integration/carla/m7_1f/m7_functional_test",
+      "--gtest_filter=M7WallWatch.*"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-wheel",
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/m7-wall-tsan/tests/integration/carla/m7_1g/m7_wheel_test",
+      "--gtest_filter=M7WallOwner.*:M7WallMailbox.*:M7TerminalResponse.*:M7CarlaClock.*:M7WallHv.*"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-admission",
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/m7-wall-tsan/tests/integration/carla/m7_1q/m7_native_admission_test",
+      "--gtest_filter=M7WallAdmission.*:M7SharedChannel.*"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "normal-wall",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build/m7-functional",
+      "-L",
+      "runtime.wall",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-wall",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build/m7-functional-asan",
+      "-L",
+      "runtime.wall",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  }
+]

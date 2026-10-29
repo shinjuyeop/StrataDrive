@@ -30,7 +30,9 @@ def fingerprint():
     digest = hashlib.sha256()
     for name in sorted(set(files)):
         p = Path(name)
-        if name == "CMakeLists.txt" or p.parts[0] in SOURCE_DIRS:
+        # ls-files includes unstaged deletions. Hash the actual build inputs;
+        # removing a file changes the digest before and after staging alike.
+        if (ROOT / name).is_file() and (name == "CMakeLists.txt" or p.parts[0] in SOURCE_DIRS):
             digest.update(name.encode()); digest.update((ROOT / name).read_bytes())
     return digest.hexdigest()
 

@@ -1,6 +1,4 @@
-include(wall_leaf.cmake)
-add_library(m7_functional_fixture STATIC functional_rig.cpp ${CMAKE_CURRENT_BINARY_DIR}/wall_leaf_owner.cpp ${CMAKE_CURRENT_BINARY_DIR}/wall_drive_controller.cpp)
-target_include_directories(m7_functional_fixture PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+add_library(m7_functional_fixture STATIC functional_rig.cpp)
 target_include_directories(m7_functional_fixture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(m7_functional_fixture PUBLIC m4_async_runtime run_lease_issuer)
 stratadrive_quality(m7_functional_fixture)

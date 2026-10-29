@@ -1,0 +1,29 @@
+[
+  {
+    "name": "tsan-watch",
+    "argv": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/m7-wall-tsan/tests/integration/carla/m7_1g/m7_wheel_test",
+      "--gtest_filter=M7WallWatch.*"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "audit-benchmark",
+    "argv": [
+      "python3",
+      "build/pre-m8-refactor/benchmark_audits.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "streaming-rejection",
+    "argv": [
+      "python3",
+      "build/pre-m8-refactor/check_streaming_rejection.py"
+    ],
+    "exit": 0
+  }
+]

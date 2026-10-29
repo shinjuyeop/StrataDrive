@@ -22,6 +22,7 @@
 | 비영상 wall5ms 정상·보호 정지와 반복/종료 실패 | [비영상 wall 개선](evidence/m7_carla_wall_guard/carla-runtime/nonvideo-wall5/README.md) |
 | CARLA HV source/dependency 예산 분리·정상2/보호2 실행 | [wall5-hv50-v1 결과](evidence/m7_carla_wall_guard/carla-runtime/hv-budget-v1/README.md) |
 | CARLA 기본 state·영상·확장 경로 지연 대조 | [Frame 진단](evidence/m7_carla_wall_guard/carla-runtime/frame-diagnostic/README.md) |
+| M8 전 공통 구현·빌드·감사 reader 정리와 회귀 | [리팩터링 검증](evidence/pre-m8-refactor/README.md) |
 | DDS 제어 gate CLOSED의 근거 | [DDS shutdown 후속](evidence/m5_dds_shutdown_followup/README.md) |
 
 ## Evidence 보관 규칙

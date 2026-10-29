@@ -2,24 +2,21 @@
 """Audit natural protected stop, client-loss shutdown, and clock feasibility together."""
 import argparse
 import copy
-import gzip
 import json
 from pathlib import Path
 import re
 from audit_m7_1q_native import check
+from evidence_io import open_text, json_rows
 
 
 def load_rows(directory, retain_steps=True):
-    path=directory/'trace.jsonl'
-    with (path.open() if path.exists() else gzip.open(str(path)+'.gz','rt')) as stream:
-        rows=[]
-        for line in stream:
-            row=json.loads(line)
-            if not retain_steps:
-                work=row.get('receipt',{}).get('solver_work',{})
-                work.pop('steps',None);work.pop('rear_mean_rad_s',None)
-            rows.append(row)
-        return rows
+    rows=[]
+    for row in json_rows(directory/'trace.jsonl'):
+        if not retain_steps:
+            work=row.get('receipt',{}).get('solver_work',{})
+            work.pop('steps',None);work.pop('rear_mean_rad_s',None)
+        rows.append(row)
+    return rows
 
 
 def clock_evidence(rows):
@@ -89,7 +86,7 @@ def client_loss(directory,server):
     check(0<elapsed<=30000000000,'original 30s shutdown bound')
     archived=directory.parent/(directory.name+'-runtime')/'server.log'
     path=archived if archived.exists() or Path(str(archived)+'.gz').exists() else Path(server['logs']['server.log']['path'])
-    with (path.open() if path.exists() else gzip.open(str(path)+'.gz','rt')) as f:log=f.read()
+    with open_text(path) as f:log=f.read()
     frames=re.findall(r'M7Shutdown: cancelled tick wait; frame=(\d+); physics disabled',log)
     check(frames and all(int(x)==result['frame'] for x in frames),'exit wait cancelled without advancing frame')
     return dict(status='PASS_CLIENT_LOSS_SHUTDOWN_LIMITED',server_exit=130,shutdown_elapsed_ns=elapsed,

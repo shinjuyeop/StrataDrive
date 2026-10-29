@@ -31,11 +31,17 @@ struct OwnerActuation {
     std::optional<power::CoilCommand> coils;
 };
 using BmsGateChannel=runtime::LatestSnapshot<std::optional<power::BmsSafetyGate>>;
+enum class DriveSensorIngress { ControlTick, BeforeIo };
+struct LeafOwnerConfig {
+    DriveSensorIngress drive_sensor_ingress{DriveSensorIngress::ControlTick};
+    std::optional<std::uint64_t> hv_dependency_age_ns;
+};
 class AsyncLeafOwner final : public session::ParticipantPort {
 public:
     void transport_trace(transport::TransportTrace* sink) { trace_=sink; } // before launch only
     AsyncLeafOwner(transport::Leaf leaf,transport::Clock& clock,transport::RunGate& gate,transport::LeafLink& link,
-        runtime::LatestSnapshot<OwnerSensors>& sensors,runtime::LatestSnapshot<OwnerActuation>& output,BmsGateChannel& bms_gate);
+        runtime::LatestSnapshot<OwnerSensors>& sensors,runtime::LatestSnapshot<OwnerActuation>& output,BmsGateChannel& bms_gate,
+        LeafOwnerConfig config={});
     std::uint64_t now_ns() noexcept override { return clock_.now_ns(); }
     session::Preparation prepare(const session::Plan& plan) noexcept override;
     bool initialize(const session::Plan& plan) noexcept override;
@@ -54,7 +60,7 @@ private:
     transport::TransportTrace* trace_{nullptr};
     std::optional<transport::LeafRequest> traced_command_; // owner-local, diagnostic only
     using Actor=std::variant<vecu::SteeringActuator,vecu::BrakeActuator,vecu::DriveController,vecu::BmsController,vecu::PowerController>;
-    static Actor make_actor(transport::Leaf leaf);
+    static Actor make_actor(transport::Leaf leaf,const LeafOwnerConfig& config);
     void handle(const transport::LeafRequest& request);
     void publish(const transport::Feedback& feedback);
     bool receive(const transport::LeafRequest& request);
@@ -63,6 +69,7 @@ private:
     void service_impl();
     transport::Leaf leaf_; transport::Clock& clock_; transport::RunGate& gate_; transport::LeafLink& link_;
     runtime::LatestSnapshot<OwnerSensors>& sensors_; runtime::LatestSnapshot<OwnerActuation>& output_; BmsGateChannel& bms_gate_;
+    const LeafOwnerConfig config_;
     Actor actor_; std::uint32_t epoch_{0},quiesced_{0}; std::uint64_t enable_{0},last_body_{0},next_body_{0}; bool started_{false}; std::size_t commands_{0};
     can::BmsTxState bms_tx_{can::BmsFrameKind::PowerLimits},power_tx_{can::BmsFrameKind::PowerStatus};
     std::vector<M4Event> input_events_;

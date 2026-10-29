@@ -41,6 +41,17 @@ Dispatcher만 검사하고 도메인 구현 전체를 검사했다고 표시하�
 `BUILD_TESTING=OFF`는 library/예제만 빌드하고 단위·통합 TX/RX target을 제외한다.
 세부 TC·모델 동등성·결과 형식은 [검증 전략](test-plan/verification-strategy.md)에 있다.
 
+루트 `CMakeLists.txt`는 옵션과 구성 순서를 관리하고, 공통 library/demo는
+`cmake/CoreTargets.cmake`, Linux runtime은 `cmake/LinuxTargets.cmake`, 기본 시험은
+`cmake/CoreTests.cmake`에 둔다. 공통 시험 선언은 `stratadrive_unit_test`를 사용하며
+기존 이름·label·timeout과 opt-in 통합 시험 경계를 유지한다. Source fingerprint는
+삭제된 파일을 제외하고 추적·미추적 `.cmake`와 `CMakeLists.txt` 변경을 포함한다.
+
+CARLA 감사 도구의 plain/gzip 입력은 `tests/integration/carla/evidence_io.py`를 공유한다.
+원본 solver substep 검사가 끝난 뒤에만 메모리에서 큰 payload를 버린다. 감사 도구를
+배포하거나 source snapshot으로 보관할 때 공통 reader도 포함한다. 과거 정상·실패 기록의
+판정 동등성을 검사하고, 메모리 절약을 검증 축소나 physics 성능 향상으로 해석하지 않는다.
+
 ## 표준과 개발 방법의 적용 범위
 
 | 활동 | 현재 방향과 후속 범위 |

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Scenario, sensor-source, and wall-gap audit supplementing the raw-wire/work oracle."""
 import argparse
-import gzip
 import json
 import math
 from pathlib import Path
 from audit_m7_1q_native import check, wire, frame
+from evidence_io import json_rows
 
 
 def stats(values):
@@ -20,18 +20,13 @@ def stats(values):
 def audit(directory):
     result=json.loads((directory/'result.json').read_text())
     check(result['status'].startswith('PASS'),'runtime did not pass')
-    path=directory/'trace.jsonl'
-    opening=open if path.exists() else gzip.open
-    if not path.exists():path=path.with_suffix('.jsonl.gz')
     rows=[]
-    with opening(path,'rt') as f:
-        for line in f:
-            row=json.loads(line)
-            # Raw substeps are independently streamed by audit_m7_1r_work.
-            # This scenario audit only needs the signed frame work totals.
-            work=row.get('receipt',{}).get('solver_work',{})
-            work.pop('steps',None);work.pop('rear_mean_rad_s',None)
-            rows.append(row)
+    for row in json_rows(directory/'trace.jsonl'):
+        # Raw substeps are independently streamed by audit_m7_1r_work.
+        # This scenario audit only needs the signed frame work totals.
+        work=row.get('receipt',{}).get('solver_work',{})
+        work.pop('steps',None);work.pop('rear_mean_rad_s',None)
+        rows.append(row)
     complete=[r for r in rows if 'receipt' in r]
     phase_checks=[]
     if 'scenario' in result:

@@ -188,7 +188,7 @@ def main():
         require(digest(Path(path))==expected, 'RTOS linked archive changed: '+path)
     output.mkdir(parents=True, exist_ok=False)
     tracked = subprocess.check_output(['git', 'ls-files', '-co', '--exclude-standard'], cwd=ROOT, text=True).splitlines()
-    sources = {p: digest(ROOT / p) for p in sorted(set(tracked)) if (ROOT / p).is_file() and (Path(p).suffix in ('.c','.cpp','.h','.hpp','.py','.json','.oil','.in','.yaml') or p == 'CMakeLists.txt')}
+    sources = {p: digest(ROOT / p) for p in sorted(set(tracked)) if (ROOT / p).is_file() and (Path(p).suffix in ('.c','.cpp','.h','.hpp','.py','.json','.oil','.in','.yaml','.cmake') or Path(p).name == 'CMakeLists.txt')}
     env = dict(utc_started=datetime.now(timezone.utc).isoformat(), commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
                source_sha256=sources, rtos_build=built,
                plant_binary_sha256=digest(build / 'actuator_demo'), linux_kernel=os.uname().release, allowed_cpus=sorted(os.sched_getaffinity(0)))

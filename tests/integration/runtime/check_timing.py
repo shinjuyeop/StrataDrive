@@ -918,7 +918,8 @@ def trace_comparison(reports, family, require_controls=False):
 
 def environment(build, binary, family):
     tracked = subprocess.check_output(["git", "ls-files", "-co", "--exclude-standard"], cwd=ROOT, text=True).splitlines()
-    sources = sorted({name for name in tracked if name.endswith((".cpp", ".hpp", ".yaml", ".py")) or name == "CMakeLists.txt"})
+    sources = sorted({name for name in tracked if (ROOT/name).is_file() and
+                      (name.endswith((".cpp", ".hpp", ".yaml", ".py", ".cmake")) or Path(name).name == "CMakeLists.txt")})
     cache = (build / "CMakeCache.txt").read_text()
     selected = {line.split(":", 1)[0]: line.split("=", 1)[1] for line in cache.splitlines()
                 if "=" in line and line.startswith(("CMAKE_BUILD_TYPE:", "CMAKE_CXX_COMPILER:", "CMAKE_CXX_FLAGS:", "CMAKE_CXX_FLAGS_DEBUG:", "CMAKE_CXX_FLAGS_RELEASE:", "STRATADRIVE_SANITIZERS:", "BUILD_TESTING:"))}

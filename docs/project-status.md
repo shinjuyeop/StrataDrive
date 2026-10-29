@@ -72,7 +72,7 @@ component/회귀 근거이며 실제 wall 주행 성공을 뜻하지 않는다.
 | Clock·실시간 실행 | simulation elapsed와 CLOCK_MONOTONIC을 분리. 고정 offset·heartbeat·timeout 증가로 2ms/4ms·30ms 수용을 대신할 수 없음 |
 | 비영상 wall 반복 안정성 | ADR-0066의 HV source30ms/dependency50ms 분리 후 정상2회 모두900구간 완료. 실제 취득 age 최대13.595ms, dependency 최대31.661ms로 원인에 맞는 여유를 확인. M6·wheel/Actual·명령30ms·owner2ms/4ms 유지. 장시간·고속·영상으로 확대하지 않음 |
 | Wall fault 후 실제 제동 | 정상 세션 이후 새 LocalProtection Actual의 실제 제동·자연 정지를 짧은 비영상 시험에서 확인.100ms physics 보류는 game thread 자체 정지가 아니며 장시간·전체 wall fault 수용은 OPEN |
-| Source 서버 종료 | 과거 UE thread pool 종료SIGSEGV와 해당 FAIL 유지. 이번4회는 모두 정상 종료했으나 종료 코드 자체를 수정하지 않았으므로 원인 해결로 세지 않음 |
+| Source 서버 종료 | 과거 UE 종료SIGSEGV와 해당 FAIL 유지. HV 예산 시험4회는 정상 종료했지만 M8 전 정리 회귀의 정상 주행 뒤 UE GC 경로에서 종료−11을 다시 관측. 엔진 바이너리는 동일하며 원인 해결로 세지 않음 |
 | Renderer | 카메라 없이 rendering만 켠 기본 source 경로는 최대16.66ms, RGB+GT의10ms 요청에서는 최대65.08ms/5frame 반복 지연. 영상 capture/render/readback과 물리 진행의 결합을 우선 조사. 과거 Distance Field SIGSEGV·전체 content/장시간 안정성은 미해결 |
 | 과거 M3/M4·SDK | timing/FIFO·native·SDK sanitizer 기능 미완료 OPEN은 각 당시 분모·실패와 함께 보존 |
 | DDS | 정규 제어 gate CLOSED, adapter 미착수. 기존 종료·20ms·TSan FAIL 및 접근 제한 이력 유지 |
@@ -90,6 +90,12 @@ component/회귀 근거이며 실제 wall 주행 성공을 뜻하지 않는다.
 M6 wall 계약·수치·수용은 그대로이며 기존 wall 실패도 보존한다. source30ms·expiry는
 기능 profile의 동일 simulation domain에서 유지하고 timestamp를 고쳐 쓰지 않는다.
 상세 계약은 [시뮬레이션 시간 연속 실행](interfaces/carla-plant-adapter.md#시뮬레이션-시간-연속-실행)에 있다.
+
+M8 전 공통 controller/owner·CMake·감사 reader 정리를 완료했다. Normal/ASan 각1170/1170,
+지정 TSan 경계36/36, Python201/201, 기존 감사 결과19개 일치와 정상901/보호401개
+native replay를 확인했다. 실제 CARLA 회귀는4개 중3개 전체 통과, 정상 wall 주행1개는
+900구간 검사 통과 후 UE 종료−11로 실패다. [변경·원본·한계](test-plan/evidence/pre-m8-refactor/README.md)를
+보존하며 M6/M7 수용 범위를 확대하지 않는다.
 
 **다음 작업은 M8의 종방향 모델→C++ 공통 vector 동등성 및 속도 폐루프**다.
 이후 경로/횡제어·Reference 속도 시험을 진행한다. wall 실시간 gate는 기능 개발과 별도로 추적한다.

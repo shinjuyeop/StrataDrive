@@ -5,10 +5,10 @@ Wire, solver equations, energy and scenario behavior have separate auditors.
 This audit never converts simulation ages into host real-time acceptance.
 """
 import argparse
-import gzip
 import json
 from pathlib import Path
 from audit_m7_1q_native import check
+from evidence_io import json_rows
 
 
 def audit(directory, case, corrupt=None):
@@ -26,25 +26,22 @@ def audit(directory, case, corrupt=None):
     check(all(checks.get(k)=='PASS' for k in required),'writer/lifecycle coverage')
     binding=result['binding'];start=int(binding['frame']);count=0;normal=0;seen_normal=False
     last=None;terminal=None;first_wall=None;end_wall=None
-    path=directory/'trace.jsonl'
-    with (path.open() if path.exists() else gzip.open(str(path)+'.gz','rt')) as stream:
-        for index,line in enumerate(stream):
-            row=json.loads(line)
-            if corrupt and index==200:corrupt(row)
-            terminal=row
-            check(row['index']==index and row['frame']==start+index,'continuous source sequence')
-            if first_wall is None:first_wall=row['wall_begin_ns']
-            end_wall=row['wall_end_ns']
-            if 'receipt' not in row:continue
-            q=row['receipt'];count+=1
-            check(int(q['frame'])==start+count,'no skipped/duplicate physics')
-            check(all(q[k]==binding[k] for k in ('run','session','actor','application','model_sha256')),'one original session')
-            check(q['physics']['generation']==binding['physics']['generation'],'no hidden reset between cycles')
-            if last:check(q['simulation_begin_seconds']==last['simulation_end_seconds'],'time continuity')
-            check(abs(q['simulation_end_seconds']-q['simulation_begin_seconds']-.01)<1e-6,'original 10ms simulation step')
-            actual=q['original_actual']['admitted_actual'];normal+=actual['normal']
-            if case.startswith('continuous') and seen_normal:check(actual['normal'] and not actual['protection'],'uninterrupted normal authority')
-            seen_normal|=actual['normal'];last=q
+    for index,row in enumerate(json_rows(directory/'trace.jsonl')):
+        if corrupt and index==200:corrupt(row)
+        terminal=row
+        check(row['index']==index and row['frame']==start+index,'continuous source sequence')
+        if first_wall is None:first_wall=row['wall_begin_ns']
+        end_wall=row['wall_end_ns']
+        if 'receipt' not in row:continue
+        q=row['receipt'];count+=1
+        check(int(q['frame'])==start+count,'no skipped/duplicate physics')
+        check(all(q[k]==binding[k] for k in ('run','session','actor','application','model_sha256')),'one original session')
+        check(q['physics']['generation']==binding['physics']['generation'],'no hidden reset between cycles')
+        if last:check(q['simulation_begin_seconds']==last['simulation_end_seconds'],'time continuity')
+        check(abs(q['simulation_end_seconds']-q['simulation_begin_seconds']-.01)<1e-6,'original 10ms simulation step')
+        actual=q['original_actual']['admitted_actual'];normal+=actual['normal']
+        if case.startswith('continuous') and seen_normal:check(actual['normal'] and not actual['protection'],'uninterrupted normal authority')
+        seen_normal|=actual['normal'];last=q
     check(count==result['receipts'] and normal==result['normal_intervals'],'reported original counts')
     final_frame=start+count
     pause=next(e for e in events if e['request']['op']=='pause')

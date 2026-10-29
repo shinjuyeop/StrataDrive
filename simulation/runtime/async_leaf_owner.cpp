@@ -4,11 +4,14 @@
 
 namespace stratadrive::simulation {
 SessionResetEvidence reset_evidence(const OwnerSensors& s) { return {s.drive.wheel_speed,s.torque,s.power}; }
-AsyncLeafOwner::Actor AsyncLeafOwner::make_actor(transport::Leaf leaf) {
+AsyncLeafOwner::Actor AsyncLeafOwner::make_actor(transport::Leaf leaf,const LeafOwnerConfig& config) {
+    if((config.drive_sensor_ingress!=DriveSensorIngress::ControlTick && config.drive_sensor_ingress!=DriveSensorIngress::BeforeIo) ||
+       (leaf!=transport::Leaf::Drive && (config.drive_sensor_ingress!=DriveSensorIngress::ControlTick || config.hv_dependency_age_ns)))
+        throw std::invalid_argument("Drive-specific leaf configuration");
     switch(leaf) {
     case transport::Leaf::Steering: { auto c=vecu::SteeringActuatorConfig{-.5,.5,-.3,.3,.1,1,50000000}; c.period_ns=1000000; return Actor{std::in_place_type<vecu::SteeringActuator>,c}; }
     case transport::Leaf::Brake: { auto c=vecu::BrakeActuatorConfig{2000000,1500000,200000,5000000,10000000,1000000,50000000}; c.period_ns=1000000; return Actor{std::in_place_type<vecu::BrakeActuator>,c}; }
-    case transport::Leaf::Drive: { auto c=vecu::DriveControllerConfig{}; c.period_ns=1000000; return Actor{std::in_place_type<vecu::DriveController>,c}; }
+    case transport::Leaf::Drive: { auto c=vecu::DriveControllerConfig{}; c.period_ns=1000000; c.hv_dependency_age_ns=config.hv_dependency_age_ns; return Actor{std::in_place_type<vecu::DriveController>,c}; }
     case transport::Leaf::Bms: return Actor{std::in_place_type<vecu::BmsController>,multirate_fixture::bms_config()};
     case transport::Leaf::Power: { auto c=vecu::PowerControllerConfig{}; c.period_ns=1000000; return Actor{std::in_place_type<vecu::PowerController>,c}; }
     case transport::Leaf::Count: break;
@@ -16,8 +19,8 @@ AsyncLeafOwner::Actor AsyncLeafOwner::make_actor(transport::Leaf leaf) {
     throw std::invalid_argument("Leaf role");
 }
 AsyncLeafOwner::AsyncLeafOwner(transport::Leaf leaf,transport::Clock& clock,transport::RunGate& gate,transport::LeafLink& link,
-    runtime::LatestSnapshot<OwnerSensors>& sensors,runtime::LatestSnapshot<OwnerActuation>& output,BmsGateChannel& bms_gate)
-    :leaf_(leaf),clock_(clock),gate_(gate),link_(link),sensors_(sensors),output_(output),bms_gate_(bms_gate),actor_(make_actor(leaf)) { input_events_.reserve(12000); }
+    runtime::LatestSnapshot<OwnerSensors>& sensors,runtime::LatestSnapshot<OwnerActuation>& output,BmsGateChannel& bms_gate,LeafOwnerConfig config)
+    :leaf_(leaf),clock_(clock),gate_(gate),link_(link),sensors_(sensors),output_(output),bms_gate_(bms_gate),config_(config),actor_(make_actor(leaf,config)) { input_events_.reserve(12000); }
 session::Preparation AsyncLeafOwner::prepare(const session::Plan& plan) noexcept {
     if(plan.epoch!=quiesced_) {
         quiesced_=plan.epoch; if(epoch_!=0) protect();
@@ -198,7 +201,11 @@ void AsyncLeafOwner::service_impl() {
     // Ready ACK guarantees old work is quiescent. Keep the session observer
     // running, but never advance an old actor across the agreed INIT boundary.
     if(prepared_epoch_>epoch_) return;
+    std::optional<OwnerSensors> s;
+    const bool early=config_.drive_sensor_ingress==DriveSensorIngress::BeforeIo;
+    if(early) s=sensors_.read();
     const auto ingress_now=now_ns();
+    if(early && started_ && s) std::get<vecu::DriveController>(actor_).observe_local(s->drive,ingress_now);
     if(command_expiry_ns_ && ingress_now>=command_expiry_ns_ && !expiry_reported_) {
         expiry_reported_=true;
         if(input_events_.size()<input_events_.capacity()) input_events_.push_back({ingress_now,"command-expired",static_cast<std::size_t>(leaf_)+2,epoch_,command_source_ns_,command_expiry_ns_,command_expiry_ns_,0});
@@ -206,7 +213,8 @@ void AsyncLeafOwner::service_impl() {
     }
     if(link_.failed() || link_.protection.pending(epoch_)) protect();
     for(std::size_t i=0;i<transport::kBudget;++i) { const auto r=link_.work.pop(); if(!r) break; handle(*r); }
-    const auto s=sensors_.read(); const auto now=now_ns(); const auto period=leaf_==transport::Leaf::Bms?20000000ULL:10000000ULL;
+    if(!early) s=sensors_.read();
+    const auto now=now_ns(); const auto period=leaf_==transport::Leaf::Bms?20000000ULL:10000000ULL;
     if(now<last_body_) { protect(); return; }
     if(now<next_body_) return;
     // During fresh INIT, wait for acquisitions/dependencies after enable. Once

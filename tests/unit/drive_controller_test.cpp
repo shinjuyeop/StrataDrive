@@ -93,6 +93,14 @@ TEST(DriveControllerConfig, ExplicitApplicationAndPhysicalEpochMappingIsRequired
     ASSERT_TRUE(c.start_session(1, 7, kStart)); EXPECT_FALSE(c.start_session(1, 7, kStart));
     EXPECT_FALSE(c.start_session(2, 6, kStart));
 }
+TEST(DriveControllerConfig, UnsetHvBudgetPreservesCustomizedLocalAge) {
+    for(const auto extra:{0ULL,1ULL}) {
+        vecu::DriveControllerConfig config;config.local_age_ns=10000000;config.local_skew_ns=10000000;
+        vecu::DriveController c(config);ASSERT_TRUE(c.start_session({1,7,kStart}));
+        auto s=local(20);s.hv->input_time_ns=time_ns(10)-extra;
+        EXPECT_EQ(c.observe_local(s,time_ns(20)).hv,extra?drive::SensorDecision::Time:drive::SensorDecision::Accepted);
+    }
+}
 TEST_F(DriveControllerTest, InitReportsKnownModelTorqueButUnknownCapabilityUntilInputsArrive) {
     tick(10); ASSERT_TRUE(actual.torque_nm); EXPECT_EQ(*actual.torque_nm, 0);
     EXPECT_EQ(actual.local_state, can::ActuatorLocalState::Init); EXPECT_FALSE(actual.wheel_speed); EXPECT_FALSE(actual.regen_capability);

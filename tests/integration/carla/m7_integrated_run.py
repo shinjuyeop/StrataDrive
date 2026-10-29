@@ -34,7 +34,7 @@ def main():
     frozen=a.output/'sources';frozen.mkdir()
     for path in [Path(__file__),here/'m7_1o_run.py',here/'m7_1q_probe.py',here/'m7_sensor_capture.py',
                  here/'audit_m7_integrated.py',here/'audit_m7_1r_work.py',here/'audit_m7_1q_native.py',
-                 here/'audit_m7_protection.py',here/'audit_m7_wall.py',here/'audit_m7_closeout.py',
+                 here/'audit_m7_protection.py',here/'audit_m7_wall.py',here/'audit_m7_closeout.py',here/'evidence_io.py',
                  here/'scenarios/m7_integrated_v1.txt',here/'scenarios/m7_continuous_v1.txt',here/'audit_m7_simulation.py']:
         shutil.copy2(path,frozen/path.name)
     report=dict(status='RUNNING',execution_profile='m7-simulation-time-v1' if a.simulation_time else 'legacy-bounded',cases=[],source_sha256={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in frozen.iterdir()})

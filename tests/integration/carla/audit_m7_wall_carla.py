@@ -2,8 +2,6 @@
 """Independent raw wall-wire, solver, energy, source and actual job audit."""
 import argparse
 import binascii
-import csv
-import gzip
 import hashlib
 import json
 import math
@@ -11,19 +9,16 @@ from pathlib import Path
 import struct
 from audit_m7_1q_native import check, frame, wire as decode_wire
 from audit_m7_1r_work import validate as validate_work
+from evidence_io import read_json, json_rows, integer_csv_rows
 WALL=0x4d374d4f4e4f3031
 
 def wire(value, source, target, tag):return decode_wire(value,source,target,tag,WALL)
 
-def read(path):
-    if path.exists():return path.read_text()
-    with gzip.open(str(path)+'.gz','rt') as f:return f.read()
-
 def audit(directory):
-    result=json.loads(read(directory/'result.json'));meta=json.loads(read(directory/'native.json'))
-    rows=[json.loads(s) for s in read(directory/'trace.jsonl').splitlines()]
-    jobs=[{k:int(v) for k,v in r.items()} for r in csv.DictReader(read(directory/'native-wall.csv').splitlines())]
-    owner=[{k:int(v) for k,v in r.items()} for r in csv.DictReader(read(directory/'native.csv').splitlines())]
+    result=read_json(directory/'result.json');meta=read_json(directory/'native.json')
+    rows=[]
+    jobs=list(integer_csv_rows(directory/'native-wall.csv'))
+    owner=list(integer_csv_rows(directory/'native.csv'))
     b=result['binding'];initial=meta['initial'];last_frame=int(b['frame']);model=int(b['logical_begin_ns'])
     step=result.get('model_step_ns',10000000)
     check(step in (5000000,10000000),'explicit wall model step')
@@ -43,7 +38,7 @@ def audit(directory):
     history={};previous=None;normal=protection=empty=0;since=0;releases=None;total=0.;cursors={};max_age=0;min_margin=10**18
     latencies=[];commit_latencies=[];protected_pressure=[];max_balance=0.;expired=0;terminal=False
     ingress_path=directory/'ingress.json'
-    ingress=json.loads(read(ingress_path)) if ingress_path.exists() or Path(str(ingress_path)+'.gz').exists() else []
+    ingress=read_json(ingress_path) if ingress_path.exists() or Path(str(ingress_path)+'.gz').exists() else []
     ingress_cursor=0;last_ingress=0;permission_cursor=None
     def actual_cursor(role,packet):
         act=frame(wire(packet,0 if role<2 else 1,7,9),role,True,False)
@@ -76,7 +71,7 @@ def audit(directory):
             permission_cursor=(seq,source,payload[31],e['permission'])
     first_commit={}
     for sample in owner:first_commit.setdefault(sample['energy_end'],sample['now'])
-    for row in rows:
+    for row in json_rows(directory/'trace.jsonl'):
         r=row['receipt'];proof=r['original_actual']['native'];out=r['original_actual']['admitted_actual']
         ns=int(r['wall_applied_ns']);end=ns+step
         acq=int(r['physics_acquisition_begin_ns']);upper=int(r['physics_acquisition_end_ns'])
@@ -186,7 +181,10 @@ def audit(directory):
         commit_latencies.append(committed-acq)
         latencies.append(int(settled['observed_ns'])-acq);max_balance=max(max_balance,abs(settled['balance_j']))
         history[acq]=(r['physics']['wheels'][2]['solver_omega_rad_s']+r['physics']['wheels'][3]['solver_omega_rad_s'])/2
-        last_frame+=1;model=int(r['work_end_ns']);previous=row
+        # Validate every raw substep before releasing its memory. Later checks
+        # need only receipts; held-steer validation needs the preceding receipt.
+        r['solver_work'].pop('steps',None);r['solver_work'].pop('rear_mean_rad_s',None)
+        last_frame+=1;model=int(r['work_end_ns']);previous={'receipt':r};rows.append(previous)
     check(rows and owner and len(rows)==result['receipts'],'complete original records')
     hv_source_max=hv_dependency_max=0
     if hv_audit:
@@ -225,7 +223,7 @@ def audit(directory):
         'reset invalidates old physics; never evidence of protective stopping')
     sensors=None
     if (directory/'sensors.json').exists() or (directory/'sensors.json.gz').exists():
-        s=json.loads(read(directory/'sensors.json'));check(not s['gt_control_use'] and not s['errors'] and not s['dropped'],'GT isolation/camera integrity')
+        s=read_json(directory/'sensors.json');check(not s['gt_control_use'] and not s['errors'] and not s['dropped'],'GT isolation/camera integrity')
         expected=list(range((int(b['frame'])//5+1)*5,last_frame+1,5));times={int(x['receipt']['frame']):x['receipt']['simulation_end_seconds'] for x in rows}
         for name,stream in s['streams'].items():
             check([x['frame'] for x in stream]==expected,'50ms camera completeness')
@@ -242,10 +240,11 @@ def audit(directory):
               all(writer_checks[k] for k in ('batch_denied','tick_denied','external_stage_denied')),'active writer rejection')
     if result['fault']=='none':accepted=requested and normal>100 and not protection and not meta['first_fault'] and not missing and not late and not expired
     else:accepted=requested and result.get('fault_request',{}).get('kind')==result['fault'] and normal>=50 and protection>100 and bool(since) and bool(protected_pressure) and not missing and not late and not expired
-    stopped=[x for x in rows if x['receipt']['physics']['sleeping'] and
-             all(v==0 for k in ('com_velocity_world_m_s','angular_velocity_world_rad_s') for v in x['receipt']['physics'][k]) and
-             all(w['solver_omega_rad_s']==0 for w in x['receipt']['physics']['wheels'])]
-    stable_tail=len(rows)>=100 and all(x in stopped and all(x['receipt']['physics'][k]==rows[-1]['receipt']['physics'][k]
+    def stationary(row):
+        p=row['receipt']['physics']
+        return p['sleeping'] and all(v==0 for k in ('com_velocity_world_m_s','angular_velocity_world_rad_s') for v in p[k]) and all(w['solver_omega_rad_s']==0 for w in p['wheels'])
+    stopped=[x for x in rows if stationary(x)]
+    stable_tail=len(rows)>=100 and all(stationary(x) and all(x['receipt']['physics'][k]==rows[-1]['receipt']['physics'][k]
                for k in ('body_world_position_m','body_quaternion_xyzw')) for x in rows[-100:])
     if result['fault']!='none':accepted=accepted and stable_tail
     if since:

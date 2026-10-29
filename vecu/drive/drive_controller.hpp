@@ -23,6 +23,9 @@ struct DriveControllerConfig {
     double minimum_hv_v{300}, maximum_hv_v{450}, maximum_bms_power_w{100000};
     std::uint64_t period_ns{10000000}, max_tick_gap_ns{30000000};
     std::uint64_t local_age_ns{30000000}, local_skew_ns{20000000};
+    // Unset preserves the local_age_ns contract. The explicit CARLA profile
+    // separates derived HV dependency age from its unchanged acquisition age.
+    std::optional<std::uint64_t> hv_dependency_age_ns;
 };
 enum class DriveGateFault {
     None, CommandUnavailable, LimitsUnavailable, PermissionUnavailable, PermissionInhibit,
@@ -78,6 +81,7 @@ private:
     Inputs monitor(std::uint64_t now_ns);
     void calculate(const Inputs& inputs);
     const DriveControllerConfig config_;
+    const std::uint64_t hv_dependency_age_ns_;
     can::DriveReceiver command_;
     can::BmsReceiver limits_, permission_;
     TorqueFeedback feedback_;

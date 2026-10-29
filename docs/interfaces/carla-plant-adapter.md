@@ -1,6 +1,6 @@
 # CARLA Plant Adapter 계약
 
-기준: `m7-plant-draft-v27`. **시뮬레이션 기능 수용과 실제 wall 실시간 gate를 분리한다.**
+기준: `m7-plant-draft-v28`. **시뮬레이션 기능 수용과 실제 wall 실시간 gate를 분리한다.**
 이 문서는 현재 적용하는 소유권·actuation·clock·solver/EV·센서 계약을 정리한다.
 구현/수용 결과는 [프로젝트 상태](../project-status.md), 실행은 [CARLA 안내](../carla-guide.md),
 이전 제안·실패·개정 이유는 [계약 이력](../archive/carla-history.md#icd)에 있다.
@@ -205,8 +205,11 @@ Wall snapshot에서는 중복 저속 tire callback JSON만 제외한다. 실제3
 
 2026-10-29 사용자 요청에 따라 `wall5-hv50-v1`을 별도 opt-in으로 정의한다.
 `--wall-native --wall-step-ms 5 --wall-hv-dependency-ms 50`에만 적용하며 기본값은30ms다.
-M6 원본 DriveController·계약·과거 판정은 변경하지 않는다. M7 전용 생성 controller에서
-기존 알고리즘의 HV dependency 검사만 분리한다. 원본 변경 시 생성 anchor 불일치는 빌드 실패다.
+M6 기본 동작·계약·과거 판정은 유지한다. M8 전 정리에서 문자열 치환으로 생성하던 M7
+controller/owner 복사본을 공통 `DriveController`/`AsyncLeafOwner`의 명시적 설정으로 합쳤다.
+`hv_dependency_age_ns` 미설정은 기존 `local_age_ns`를 따르며 명시적 값은30/50ms만 허용한다.
+Drive의 `BeforeIo` 센서 관측은 wall rig에서만 선택하고 기본 `ControlTick` 순서는 유지한다.
+이 설정으로 새 timestamp를 만들거나 이전 sample의 만료 검사를 생략하지 않는다.
 
 | 입력/감시 | 기존 | 새 profile | 이유 |
 | --- | --- | --- | --- |

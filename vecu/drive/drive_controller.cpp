@@ -13,12 +13,12 @@ bool equal(double a, double b) { return a == b; }
 bool equal(drive::HvFeedback a, drive::HvFeedback b) {
     return a.bus_voltage_v == b.bus_voltage_v && a.inverter_ready == b.inverter_ready && a.local_fault == b.local_fault;
 }
-struct SensorContext { std::uint32_t epoch; std::uint64_t enable_ns, now_ns, age_ns; };
+struct SensorContext { std::uint32_t epoch; std::uint64_t enable_ns, now_ns, age_ns, dependency_age_ns; };
 template <typename T> drive::SensorDecision check(const battery::ModelMeasurement<T>& x,
         const std::optional<battery::ModelMeasurement<T>>& old, const SensorContext& context) {
     if (x.identity.epoch != context.epoch) return drive::SensorDecision::Identity;
     if (x.input_time_ns < context.enable_ns || x.input_time_ns > x.identity.source_time_ns || x.identity.source_time_ns > context.now_ns ||
-        context.now_ns-x.identity.source_time_ns > context.age_ns || context.now_ns-x.input_time_ns > context.age_ns) return drive::SensorDecision::Time;
+        context.now_ns-x.identity.source_time_ns > context.age_ns || context.now_ns-x.input_time_ns > context.dependency_age_ns) return drive::SensorDecision::Time;
     if (old) {
         const bool cached = x.identity.sequence == old->identity.sequence;
         if (x.identity.sequence < old->identity.sequence || x.input_time_ns < old->input_time_ns ||
@@ -36,6 +36,7 @@ bool operational(const can::BmsMessage& limits) {
 }  // namespace
 
 DriveController::DriveController(DriveControllerConfig config) : config_(config),
+    hv_dependency_age_ns_(config.hv_dependency_age_ns.value_or(config.local_age_ns)),
     command_({can::DriveFrameKind::Command, config.command_nm, can::kDriveWheelSpeedWireMaxRadS, -config.command_nm.minimum}),
     limits_({can::BmsFrameKind::DriveBatteryLimits, {{0, 1000}, {-3000, 3000}, {-50, 150}, config.maximum_bms_power_w}}),
     permission_({can::BmsFrameKind::DrivePermission, {{0, 1000}, {-3000, 3000}, {-50, 150}, config.maximum_bms_power_w}}) {
@@ -56,6 +57,7 @@ DriveController::DriveController(DriveControllerConfig config) : config_(config)
         config.period_ns > 30000000 || config.max_tick_gap_ns < config.period_ns || config.max_tick_gap_ns > 30000000 ||
         config.response.delay_ns > config.period_ns*100 || config.local_age_ns == 0 || config.local_age_ns > 30000000 ||
         config.local_skew_ns > config.local_age_ns ||
+        (config.hv_dependency_age_ns && *config.hv_dependency_age_ns != 30000000 && *config.hv_dependency_age_ns != 50000000) ||
         !std::isfinite(std::pow(config.max_wheel_speed_rad_s/config.motoring_efficiency_lower_bound, 2)+
             4*config.copper_loss_w_per_nm2*config.maximum_bms_power_w)) throw std::invalid_argument("DriveController configuration");
 }
@@ -120,7 +122,7 @@ DriveController::Inputs DriveController::monitor(std::uint64_t now_ns) {
     if (command_monitoring_) in.command = command_.current_sample(now_ns);
     in.limits = limits_.current_sample(now_ns); in.permission = permission_.current_sample(now_ns);
     if (speed_ && now_ns-speed_->identity.source_time_ns <= config_.local_age_ns && now_ns-speed_->input_time_ns <= config_.local_age_ns) in.speed = speed_;
-    if (hv_ && now_ns-hv_->identity.source_time_ns <= config_.local_age_ns && now_ns-hv_->input_time_ns <= config_.local_age_ns) in.hv = hv_;
+    if (hv_ && now_ns-hv_->identity.source_time_ns <= config_.local_age_ns && now_ns-hv_->input_time_ns <= hv_dependency_age_ns_) in.hv = hv_;
     if (in.speed && in.hv && std::max(in.speed->identity.source_time_ns, in.hv->identity.source_time_ns)-
         std::min(in.speed->identity.source_time_ns, in.hv->identity.source_time_ns) > config_.local_skew_ns) in.hv.reset();
     const bool limits_known = in.limits && in.limits->quality[0] == can::BmsFieldQuality::Usable && in.limits->quality[1] == can::BmsFieldQuality::Usable;
@@ -189,7 +191,7 @@ drive::SensorResult DriveController::observe_local(const drive::LocalSensors& se
         const auto reason = epoch_ == 0 ? SensorDecision::NotInitialized : SensorDecision::ClockError; return {reason, reason};
     }
     monitor(now_ns);
-    const SensorContext context{model_epoch_, enable_ns_, now_ns, config_.local_age_ns};
+    const SensorContext context{model_epoch_, enable_ns_, now_ns, config_.local_age_ns, config_.local_age_ns};
     drive::SensorResult result{SensorDecision::Unavailable, SensorDecision::Unavailable};
     speed_.reset(); hv_.reset();
     if (sensors.wheel_speed) {
@@ -198,7 +200,7 @@ drive::SensorResult DriveController::observe_local(const drive::LocalSensors& se
         if (result.wheel_speed == SensorDecision::Accepted) speed_ = speed_cursor_ = sensors.wheel_speed;
     }
     if (sensors.hv) {
-        result.hv = check(*sensors.hv, hv_cursor_, context);
+        result.hv = check(*sensors.hv, hv_cursor_, SensorContext{model_epoch_, enable_ns_, now_ns, config_.local_age_ns, hv_dependency_age_ns_});
         if (!std::isfinite(sensors.hv->value.bus_voltage_v) || sensors.hv->value.bus_voltage_v < 0 || sensors.hv->value.bus_voltage_v > 1000) result.hv = SensorDecision::Value;
         if (result.hv == SensorDecision::Accepted) hv_ = hv_cursor_ = sensors.hv;
     }

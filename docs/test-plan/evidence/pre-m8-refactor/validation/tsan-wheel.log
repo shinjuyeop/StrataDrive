@@ -1,0 +1,72 @@
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M7WallOwner.*:M7WallMailbox.*:M7TerminalResponse.*:M7CarlaClock.*:M7WallHv.*
+[==========] Running 25 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from M7TerminalResponse
+[ RUN      ] M7TerminalResponse.SameEightOwnersKeepActualFeedbackWithoutWheelOrWork
+[       OK ] M7TerminalResponse.SameEightOwnersKeepActualFeedbackWithoutWheelOrWork (3798 ms)
+[ RUN      ] M7TerminalResponse.NoReplayPollsAfterLateServiceAndNoBackwardClock
+[       OK ] M7TerminalResponse.NoReplayPollsAfterLateServiceAndNoBackwardClock (1689 ms)
+[ RUN      ] M7TerminalResponse.HandoffRequiresSettledNormalObservedWork
+[       OK ] M7TerminalResponse.HandoffRequiresSettledNormalObservedWork (1677 ms)
+[----------] 3 tests from M7TerminalResponse (7165 ms total)
+
+[----------] 8 tests from M7WallOwner
+[ RUN      ] M7WallOwner.NewInitRunsAtOriginalRatesWithoutLogicalReplay
+[       OK ] M7WallOwner.NewInitRunsAtOriginalRatesWithoutLogicalReplay (1344 ms)
+[ RUN      ] M7WallOwner.MissingReceiptKeepsServiceAndProtectiveResponseRunning
+[       OK ] M7WallOwner.MissingReceiptKeepsServiceAndProtectiveResponseRunning (1603 ms)
+[ RUN      ] M7WallOwner.SimulationTimestampAndDuplicateReceiptCannotBecomeWallSensors
+[       OK ] M7WallOwner.SimulationTimestampAndDuplicateReceiptCannotBecomeWallSensors (12 ms)
+[ RUN      ] M7WallOwner.NoCatchupControllerReleasesAndSingleMutationOwner
+[       OK ] M7WallOwner.NoCatchupControllerReleasesAndSingleMutationOwner (1004 ms)
+[ RUN      ] M7WallOwner.FaultDoesNotDiscardCompletedWorkOrReopenNormalAuthority
+[       OK ] M7WallOwner.FaultDoesNotDiscardCompletedWorkOrReopenNormalAuthority (1097 ms)
+[ RUN      ] M7WallOwner.CompletedWorkIsVisibleBeforeOwnerServiceWithTimerJitter
+[       OK ] M7WallOwner.CompletedWorkIsVisibleBeforeOwnerServiceWithTimerJitter (11659 ms)
+[ RUN      ] M7WallOwner.InitPhaseStartsAfterSettledWorkWithoutChangingReceiptTimes
+[       OK ] M7WallOwner.InitPhaseStartsAfterSettledWorkWithoutChangingReceiptTimes (1464 ms)
+[ RUN      ] M7WallOwner.MissingSafeInitEvidenceNeverExtendsDeadlineOrCreatesAck
+[       OK ] M7WallOwner.MissingSafeInitEvidenceNeverExtendsDeadlineOrCreatesAck (21 ms)
+[----------] 8 tests from M7WallOwner (18208 ms total)
+
+[----------] 2 tests from M7WallMailbox
+[ RUN      ] M7WallMailbox.OverflowLatchesWithoutOverwritingUnsettledReceipts
+[       OK ] M7WallMailbox.OverflowLatchesWithoutOverwritingUnsettledReceipts (0 ms)
+[ RUN      ] M7WallMailbox.ConcurrentDeliveryPreservesReceiptContentsAndOrder
+[       OK ] M7WallMailbox.ConcurrentDeliveryPreservesReceiptContentsAndOrder (4 ms)
+[----------] 2 tests from M7WallMailbox (4 ms total)
+
+[----------] 6 tests from M7CarlaClock
+[ RUN      ] M7CarlaClock.ModelDtAndWallAcquisitionRemainDistinctAndCached
+[       OK ] M7CarlaClock.ModelDtAndWallAcquisitionRemainDistinctAndCached (2 ms)
+[ RUN      ] M7CarlaClock.RejectsFutureReplayedAndMixedClockReceipts
+[       OK ] M7CarlaClock.RejectsFutureReplayedAndMixedClockReceipts (2 ms)
+[ RUN      ] M7CarlaClock.NoElectricalAcquisitionWithoutCompletedPhysics
+[       OK ] M7CarlaClock.NoElectricalAcquisitionWithoutCompletedPhysics (7 ms)
+[ RUN      ] M7CarlaClock.NativeUsesOriginalAcquisitionInsteadOfModelTimestamp
+[       OK ] M7CarlaClock.NativeUsesOriginalAcquisitionInsteadOfModelTimestamp (71 ms)
+[ RUN      ] M7CarlaClock.SensorIngressHandlesDriftingPhysicsPhaseWithoutExtraControlJobs
+[       OK ] M7CarlaClock.SensorIngressHandlesDriftingPhysicsPhaseWithoutExtraControlJobs (1570 ms)
+[ RUN      ] M7CarlaClock.FiveMsWorkRequiresMatchingExplicitCarlaProfile
+[       OK ] M7CarlaClock.FiveMsWorkRequiresMatchingExplicitCarlaProfile (0 ms)
+[----------] 6 tests from M7CarlaClock (1655 ms total)
+
+[----------] 6 tests from M7WallHv
+[ RUN      ] M7WallHv.DependencyBudgetIsExplicitAndBoundaryInclusive
+[       OK ] M7WallHv.DependencyBudgetIsExplicitAndBoundaryInclusive (0 ms)
+[ RUN      ] M7WallHv.SourceAndWheelStayAtThirtyMs
+[       OK ] M7WallHv.SourceAndWheelStayAtThirtyMs (0 ms)
+[ RUN      ] M7WallHv.CachedIdentityCannotAcquireNewTimes
+[       OK ] M7WallHv.CachedIdentityCannotAcquireNewTimes (0 ms)
+[ RUN      ] M7WallHv.FreshReplacementCannotHidePreviousExpiry
+[       OK ] M7WallHv.FreshReplacementCannotHidePreviousExpiry (0 ms)
+[ RUN      ] M7WallHv.InvalidOrUnscopedBudgetIsRejected
+[       OK ] M7WallHv.InvalidOrUnscopedBudgetIsRejected (0 ms)
+[ RUN      ] M7WallHv.OwnerOptionsCannotChangeAnotherLeafOrUseUnknownIngress
+[       OK ] M7WallHv.OwnerOptionsCannotChangeAnotherLeafOrUseUnknownIngress (0 ms)
+[----------] 6 tests from M7WallHv (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 25 tests from 5 test suites ran. (27036 ms total)
+[  PASSED  ] 25 tests.
