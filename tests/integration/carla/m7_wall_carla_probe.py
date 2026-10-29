@@ -24,8 +24,9 @@ def main():
     p.add_argument('--fault',choices=('none','wall-gap','protection'),default='none')
     p.add_argument('--cameras',action='store_true')
     p.add_argument('--warmup-ticks',type=int,choices=(0,150),default=0)
+    p.add_argument('--step-ms',type=int,choices=(5,10),default=10)
     a=p.parse_args();a.output.mkdir(parents=True,exist_ok=False)
-    report={'status':'FAIL','scope':'dual-clock experiment; acceptance requires separate audit','fault':a.fault}
+    report={'status':'FAIL','scope':'dual-clock experiment; acceptance requires separate audit','fault':a.fault,'model_step_ns':a.step_ms*1000000}
     rows=[];events=[];waits=[];process=actor=world=original=None;bound=False;session=run=None
     capture=Capture(a.output) if a.cameras else None
     c=carla.Client('127.0.0.1',2200);c.set_timeout(10)
@@ -47,7 +48,7 @@ def main():
         world=c.get_world();require(world.get_map().name.endswith('/Town03_Opt'),'map')
         require(not list(world.get_actors().filter('vehicle.*')),'dedicated world')
         original=world.get_settings();settings=world.get_settings()
-        settings.synchronous_mode=True;settings.fixed_delta_seconds=.01;settings.no_rendering_mode=not a.cameras
+        settings.synchronous_mode=True;settings.fixed_delta_seconds=a.step_ms/1000;settings.no_rendering_mode=not a.cameras
         settings.substepping=True;settings.max_substep_delta_time=.01;settings.max_substeps=10
         world.apply_settings(settings);world.tick()
         bp=world.get_blueprint_library().find('vehicle.lincoln.mkz_2020');bp.set_attribute('role_name','m7_wall_actual')
@@ -66,18 +67,34 @@ def main():
         model=int(binding['logical_begin_ns'])
         signal=(a.output/'wall-signal').resolve()
         stderr=(a.output/'native.stderr').open('w')
-        process=subprocess.Popen(['chrt','-f','18',str(a.native.resolve()),str(signal),str((a.output/'native').resolve()),str(a.scenario.resolve())],
+        process=subprocess.Popen(['chrt','-f','18',str(a.native.resolve()),str(signal),str((a.output/'native').resolve()),str(a.scenario.resolve()),str(a.step_ms)],
             stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=stderr,text=True)
         started=native(f'START {actor.id} {model} {session} {binding["physics"]["generation"]} {run}');report['native_initial']=started
         require(rpc('wall_start',initial=str(started['initial']),signal_path=str(signal),limit=str(a.ticks))['ok'],'same host wall start')
         report['wall_clock_contract']='host CLOCK_MONOTONIC acquisition; separate original CARLA model dt; no offset conversion'
-        fault_sent=False;deadline=time.monotonic()+18
+        fault_sent=False;writers_checked=False;deadline=time.monotonic()+18
         last_progress=time.monotonic();last_count=0
         while time.monotonic()<deadline:
             status=rpc('wall_status');count=int(status['wall_frames'])
             r=native('GET');report['last_native']=r
+            events.append({'op':'native_get','wall_ns':time.monotonic_ns(),'response':r})
             if count!=last_count:last_progress=time.monotonic();last_count=count
             if count>=a.ticks and not status['awaiting_ev_settlement']:break
+            if a.step_ms==5 and int(status.get('wall_normal_intervals','0'))>=10 and not writers_checked:
+                foreign=carla.Client('127.0.0.1',2200);foreign.set_timeout(10)
+                checks={'begin_ns':time.monotonic_ns(),'normal_before':int(status['wall_normal_intervals'])}
+                blocked=foreign.apply_batch_sync([carla.command.ApplyVehicleControl(actor.id,carla.VehicleControl(throttle=1))],False)
+                checks['batch_denied']=len(blocked)==1 and blocked[0].has_error() and 'M7 exclusive zero-probe owner' in blocked[0].error
+                caught=None
+                try:foreign.get_world().tick()
+                except RuntimeError as error:caught=str(error)
+                checks['tick_error']=caught
+                checks['tick_denied']=caught is not None and 'M7 exclusive zero-probe owner' in caught
+                stage=rpc('stage_native')
+                checks['external_stage_denied']=not stage['ok'] and stage['reason']=='wall_single_tick_owner'
+                checks['end_ns']=time.monotonic_ns();report['writer_checks']=checks
+                require(all(checks[k] for k in ('batch_denied','tick_denied','external_stage_denied')),'active wall single writer')
+                writers_checked=True
             if int(status.get('wall_normal_intervals','0'))>=50 and a.fault!='none' and not fault_sent:
                 report['fault_request']={'wall_ns':time.monotonic_ns(),'completed_frames':count,'kind':a.fault}
                 fault_sent=True
@@ -105,7 +122,12 @@ def main():
             stderr.close()
         if bound:
             try:
-                count=int(rpc('describe')['wall_frames']);report['completed_physics']=count
+                final=rpc('describe');count=int(final['wall_frames']);report['completed_physics']=count
+                ingress=[]
+                for index in range(int(final.get('wall_ingress_count','0'))):
+                    reply=rpc('wall_ingress',index=str(index));require(reply['ok'],'complete CAN ingress history')
+                    ingress.append(reply)
+                (a.output/'ingress.json').write_text(json.dumps(ingress,indent=2)+'\n')
                 previous=binding['physics']
                 for index in range(count):
                     reply=rpc('wall_trace',index=str(index));require(reply['ok'],'complete receipt history')

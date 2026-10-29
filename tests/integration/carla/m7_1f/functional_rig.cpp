@@ -115,13 +115,13 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::array<DeliveredCapture<transport::LeafRequest>,5> command_capture;
     std::array<std::optional<session::Ack>,8> release_acks;
 
-    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0,Time horizon=10000):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),horizon_ms(horizon),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
+    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0,Time horizon=10000,Time model_step=10000000):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),horizon_ms(horizon),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
         clock.logical=initial;
         if(export_actual) {
             for(unsigned i=0;i<2;++i)zones[i].feedback.delivery(&feedback_capture[i]);
             for(unsigned i=0;i<5;++i)leaves[i].work.delivery(&command_capture[i]);
         }
-        if(wall)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application,model_initial?m7_external::PlantExecution::CarlaObservedWork:m7_external::PlantExecution::DeferredObservedWork,model_initial);
+        if(wall)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application,model_initial?m7_external::PlantExecution::CarlaObservedWork:m7_external::PlantExecution::DeferredObservedWork,model_initial,model_step);
         else if(mode!=PlantMode::StationaryFixture)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application,mode==PlantMode::ExternalSolverWork);
         else physical=std::make_unique<simulation::m4_detail::PhysicalOwner>(clock,gates[7],fixture_sensors,outputs,start,events,override_signal,s.application,false);
         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
@@ -558,10 +558,11 @@ BarrierStop FunctionalRig::stop_at_barrier() {
     return result;
 }
 
-WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial)
-    :scope_(scope),actor_(actor),model_initial_(model_initial),initial_(initial) {
+WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial,Time model_step)
+    :scope_(scope),actor_(actor),model_initial_(model_initial),model_step_(model_step),initial_(initial) {
     require(scope.run && scope.application && scope.plant==7 && actor && initial,"wall INIT scope");
-    native_=std::make_unique<FunctionalRig::Native>(scope,initial,PlantMode::ExternalSolverWork,true,true,model_initial);
+    require(model_step==10000000 || (model_initial && model_step==5000000),"wall model step profile");
+    native_=std::make_unique<FunctionalRig::Native>(scope,initial,PlantMode::ExternalSolverWork,true,true,model_initial,10000,model_step);
     native_->wheel_mode=true;
 }
 WallRig::~WallRig()=default;
@@ -594,7 +595,7 @@ WallReport WallRig::service(Time now,const std::optional<WallReceipt>& receipt) 
         if(receipt->clock!=wall_domain || w.actor!=actor_ || w.frame>UINT32_MAX || !w.frame || w.source>now || w.source<initial_ ||
            (last_frame_ && (w.frame!=last_frame_+1 || w.source<=last_source_)) ||
            !m7_external::assess(w.omega).forward_rad_s ||
-           work.frame!=w.frame || !work.valid() || bool(receipt->carla)!=bool(model_initial_) ||
+           work.frame!=w.frame || !work.valid(model_step_) || bool(receipt->carla)!=bool(model_initial_) ||
            (receipt->carla ? (receipt->carla->acquired_begin!=w.source || receipt->carla->acquired_end>now ||
                              receipt->carla->work.frame!=work.frame) : work.end!=w.source)) {
             protect("wall receipt identity/clock/value");

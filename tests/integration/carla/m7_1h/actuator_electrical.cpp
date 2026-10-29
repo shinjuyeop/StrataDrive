@@ -30,11 +30,12 @@ struct ActuatorElectrical::State {
 };
 ActuatorElectrical::ActuatorElectrical(Time start,std::uint32_t app,bool work)
     :ActuatorElectrical(start,app,work?PlantExecution::CoupledObservedWork:PlantExecution::Zoh) {}
-ActuatorElectrical::ActuatorElectrical(Time start,std::uint32_t app,PlantExecution execution,Time model_start)
+ActuatorElectrical::ActuatorElectrical(Time start,std::uint32_t app,PlantExecution execution,Time model_start,Time model_step)
     :state_(std::make_unique<State>(start,app,model_start)),
      deferred_(execution==PlantExecution::DeferredObservedWork || execution==PlantExecution::CarlaObservedWork),
-     carla_(execution==PlantExecution::CarlaObservedWork) {
+     carla_(execution==PlantExecution::CarlaObservedWork),carla_step_(model_step) {
     if(carla_!=bool(model_start))throw std::invalid_argument("explicit CARLA model origin required");
+    if(model_step!=10000000 && (!carla_ || model_step!=5000000))throw std::invalid_argument("unsupported CARLA model step");
     state_->solver_work=execution!=PlantExecution::Zoh;
 }
 ActuatorElectrical::~ActuatorElectrical()=default;
@@ -340,7 +341,7 @@ bool ActuatorElectrical::settle_carla_frame(const CarlaWork& frame) {
     if(!carla_)return fail_electrical("CARLA receipt requires dual-clock model");
     if(!ok())return false;
     const auto& work=frame.work;
-    if(!work.valid() || work.oldest!=work.begin || Time(work.wheel.identity.sequence)+1!=work.frame ||
+    if(!work.valid(carla_step_) || work.oldest!=work.begin || Time(work.wheel.identity.sequence)+1!=work.frame ||
        work.begin!=electrical_time() || (state_->last_work_frame && work.frame!=state_->last_work_frame+1) ||
        frame.applied<state_->initial || frame.applied<=last_applied_ || frame.applied>frame.acquired_begin ||
        frame.acquired_begin<=acquired_ || frame.acquired_end<frame.acquired_begin || frame.acquired_end>state_->last ||

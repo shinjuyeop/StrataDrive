@@ -38,14 +38,15 @@ def validate_hold(row, previous):
               old['set_steer_right_rad']==new['set_steer_right_rad'],'identical preceding protected effort')
 
 
-def validate(row, previous=None):
+def validate(row, previous=None, interval_seconds=.01):
+    check(interval_seconds in (.005,.01),'explicit solver interval profile')
     r = row['receipt']
     w = r['solver_work']
     check(w['source']=='PhysX3.4.NoDrive.integrator.postOmega.v1','solver identity')
     check(r['interval_work_valid'] and r['solver_substep_work_observed'] and w['valid'],'work validity')
     check(w['abi'] in (1,2) and (w['begins'],w['ends'],w['wheels'],w['overflow'])==(1,1,4,0),'whole invocation')
     validate_hold(row,previous)
-    check(w['solver_dt_s']==f32(.01),'solver world interval')
+    check(w['solver_dt_s']==f32(interval_seconds),'solver world interval')
     steps = w['steps']
     if 'trace_delivery' in w:
         check(w['trace_delivery']=='bounded_raw_journal; drain_before_close','compact trace provenance')
@@ -63,7 +64,7 @@ def validate(row, previous=None):
     maximum_residual = 0.
     for k,s in enumerate(steps):
         check((s['ordinal'],s['count'],s['block'])==(k,320,0),'ordered unique substeps')
-        check(s['dt_s']==f32(f32(.01)*f32(1/320)),'actual solver dt')
+        check(s['dt_s']==f32(f32(interval_seconds)*f32(1/320)),'actual solver dt')
         for field in ('before_rad_s','after_rad_s','drive_nm','brake_nm','tire_nm','damping_nm_s'):
             check(len(s[field])==4 and all(type(v) in (int,float) and math.isfinite(v) for v in s[field]),'finite complete wheel tuple')
         for j in range(4):

@@ -13,10 +13,10 @@ struct SolverWork {
     bool sleeping=false;
     battery::ModelMeasurement<double> wheel{}; // original interval-begin wheel
     std::array<double,320> rear_mean{};
-    bool valid() const {
-        if(!frame || frame>UINT32_MAX || !begin || end<=begin || end-begin<9999001 || end-begin>10000999 ||
+    bool valid(std::uint64_t interval=10000000) const {
+        if((interval!=10000000 && interval!=5000000) || !frame || frame>UINT32_MAX || !begin || end<=begin || end-begin<interval-999 || end-begin>interval+999 ||
            !oldest || oldest>begin || end-oldest>30000000 || !std::isfinite(torque) || torque < -200 || torque>300 ||
-           dt!=double(.01f*(1.f/320.f)) || wheel.identity.epoch!=7 ||
+           dt!=double((interval==5000000?.005f:.01f)*(1.f/320.f)) || wheel.identity.epoch!=7 ||
            wheel.identity.source_time_ns!=begin || wheel.input_time_ns!=begin ||
            !std::isfinite(wheel.value) || wheel.value<0 || wheel.value>100 || (sleeping && torque!=0))return false;
         for(double omega:rear_mean)if(!std::isfinite(omega) ||

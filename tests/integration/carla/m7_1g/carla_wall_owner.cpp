@@ -55,7 +55,9 @@ void emit(const Report& r,bool ready,const m7_native::Output& out,const std::str
 }
 int main(int argc,char** argv) {
     try {
-        if(argc!=4)throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario");
+        if(argc!=4 && argc!=5)throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario [5|10]");
+        const Time model_step=argc==5?std::stoull(argv[4])*ms:10*ms;
+        if(model_step!=5*ms && model_step!=10*ms)throw std::runtime_error("wall model step");
         std::ifstream profile(argv[3]);std::vector<RequestPhase> phases;std::string line;
         while(std::getline(profile,line)) {
             if(line.empty() || line[0]=='#')continue;
@@ -76,8 +78,9 @@ int main(int argc,char** argv) {
         auto* bridge=new(memory) m7_native::WallBridge;
         const auto initial=WallExecutionWatch::now()+50*ms;
         bridge->signal={m7_native::wall_signal_magic,initial,42,0};bridge->actor=actor;bridge->model_initial=model;
+        bridge->model_step=model_step;
         bridge->session=session;bridge->generation=generation;std::memcpy(bridge->run,run.c_str(),37);
-        WallRig rig({1,42,7},actor,initial,model);rig.request_profile(std::move(phases));
+        WallRig rig({1,42,7},actor,initial,model,model_step);rig.request_profile(std::move(phases));
         runtime::LatestSnapshot<Report> latest;
         std::atomic<bool> done{false},trip{false};
         WallExecutionWatch watch(initial+ms,19000*ms);rig.execution_watch(&watch);
@@ -87,7 +90,7 @@ int main(int argc,char** argv) {
         std::vector<Row> rows;rows.reserve(20000);std::string failure;
         simulation::runtime_support::ThreadInfo owner_info,io_info;owner_info.capture();
         simulation::runtime_support::sleep_until(initial);
-        std::cout<<"{\"initial\":"<<initial<<",\"bridge_bytes\":"<<sizeof(*bridge)<<"}"<<std::endl;
+        std::cout<<"{\"initial\":"<<initial<<",\"bridge_bytes\":"<<sizeof(*bridge)<<",\"model_step_ns\":"<<model_step<<"}"<<std::endl;
         std::thread io([&] {
             io_info.capture();
             try {

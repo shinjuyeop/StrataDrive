@@ -56,6 +56,34 @@ python3 tests/integration/carla/m7_integrated_run.py \
 실제 실행 시간은 더 길다. 원본 work trace 저장 공간이 필요하다.
 실행 분모·한계와 저장 증거 복원은 [연속 실행 증거](test-plan/evidence/m7_carla_integrated/simulation-time/README.md)를 따른다.
 
+## 비영상 wall5ms 실험 재실행
+
+이 profile은 반복 안정화 중이며 전체 실시간 수용은 OPEN이다. 기본10ms 기능 실행과 구분한다.
+원본 시각·30ms freshness·owner2ms/4ms를 유지하고 카메라는 사용할 수 없다.
+[실제 성공·실패와 빌드 식별](test-plan/evidence/m7_carla_wall_guard/carla-runtime/nonvideo-wall5/README.md)을 먼저 확인한다.
+
+```sh
+cmake --build build/m7-functional --target m7_carla_wall_owner --parallel 2
+run_dir="$PWD/build/carla-wall5-$(date +%Y%m%d-%H%M%S)"
+python3 tests/integration/carla/m7_1o_run.py \
+  --engine /d/shin/stratadrive-tools/UnrealEngine_4.26 \
+  --source /d/shin/stratadrive-tools/m7-source/carla-0.9.16 \
+  --python /d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python \
+  --fixture /d/shin/stratadrive-tools/m7-source/m7-1m-fixture \
+  --native-actual "$PWD/build/m7-functional/tests/integration/carla/m7_1g/m7_carla_wall_owner" \
+  --runtime "$run_dir/runtime" --output "$run_dir/result" \
+  --scenario tests/integration/carla/scenarios/m7_integrated_v1.txt \
+  --vehicle-substeps 320 --solver-work --compact-work --held-steer-sleep \
+  --wall-native --wall-step-ms 5 --wall-nullrhi --wall-inline-render --ticks 900
+python3 tests/integration/carla/audit_m7_wall_carla.py \
+  "$run_dir/result" --output "$run_dir/audit.json"
+```
+
+공유 ABI3와 같은5ms 서버 모듈이 필요하다. Native만 빌드하고 이전 서버 모듈과 혼용하지 않는다.
+`--native-fault wall-gap`은 physics만100ms 보류하고, `--native-fault protection`은 명시적
+보호 요청이다. 두 시험 모두 정상50구간 이후 요청해야 하며, 그 전에 자연 보호가 발생하면
+의도한 fault 시험을 통과한 것이 아니다. Raw 감사와 별도로 runner의 server exit도 확인한다.
+
 ## 화면 확인
 
 현재 시험 runner는 `-RenderOffScreen`으로 실행해 CARLA 게임 창을 띄우지 않는다.

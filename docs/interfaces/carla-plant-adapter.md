@@ -150,7 +150,7 @@ Host 응답 정지는 기존10s native/receipt 한도와 supervisor로 검출한
 완료 physics의 work를 잃은 경우 미정산 구간도 그대로 남긴다. 유효 LocalProtection Actual로
 물리를 계속 진행한 별도 시험에서만 reset 이전 자연 제동/정지를 수용한다.
 
-실제 wall30ms·owner2ms/4ms·wall fault 후 실제 제동은 아래 별도 OPEN이다.
+실제 wall30ms·owner2ms/4ms·wall fault 후 실제 제동은 아래 별도 profile에서 검증한다.
 이 profile은 해당 수치의 면제나 M6 계약 변경이 아니다. 최신 검증과 종료 범위는
 [프로젝트 상태](../project-status.md)를 따른다.
 
@@ -159,22 +159,44 @@ Host 응답 정지는 기존10s native/receipt 한도와 supervisor로 검출한
 `--wall-native`/`-StrataM7WallNative`는 functional과 별도 opt-in이다.
 같은 Linux kernel CLOCK_MONOTONIC의 새 INIT·`M7MONO01` domain만 허용한다.
 
-1. `CarlaWork`는 원래 frame/model10ms/320-bin work와 **별도 applied/acquired monotonic bracket**,
+1. `CarlaWork`는 원래 frame/model step/320-bin work와 **별도 applied/acquired monotonic bracket**,
    oldest dependency·적용 Power coil bits/source를 전달한다. Model-domain oldest와 wall dependency를 섞지 않는다.
-2. EV는 원래 model10ms에서1ms 정산, actuator/ECU는 실제 wall timer에서 진행한다.
+2. EV는 원래 model step에서1ms 정산, actuator/ECU는 실제 wall timer에서 진행한다.
    대기 중 EV time/관측은 동결한다. 완료 work를 한 번 정산하고 늦은 도착을 새 sensor 시각으로 쓰지 않는다.
-3. 공유 ABI2는 같은 build/Host·0600 파일의 magic/size/run/session/actor/generation/application/model origin을 검사한다.
+3. 공유 ABI3는 같은 build/Host·0600 파일의 magic/size/run/session/actor/generation/application/model origin과
+   model step을 검사한다. ABI1/2 또는5ms/10ms 혼합 연결은 거부한다.
    방향마다3 exclusive slot·단일 reader/writer·acquire/release 소유권 교환이다. 외부 보안 채널 계약은 아니다.
 4. FIFO18 native owner는 실제1ms wake마다 service한다. 과거 job catch-up 없이10owner의2ms/4ms를 독립 계측한다.
    Receipt/sensor ingress를 ECU 소비 전에 반영한다. IO는 owner mutation을 멈추지 않는다.
 5. Game thread `PumpWall`만 physics를 발급한다. External stage/advance/EV ACK·legacy writer는 잠금 중 거부한다.
-   다음10ms coverage와 선택 preview의 추가4ms 여유·물리 직전/직후 expiry/latch를 검사한다.
+   다음 model step coverage와 선택 preview의 추가4ms 여유·물리 직전/직후 expiry/latch를 검사한다.
 6. Fault 뒤에도 이미 완료된 work는 한 번 정산하며 ACK 전 다음 물리는 금지한다.
    정상 승인 뒤 terminal protection은 같은 session/Release·mask255·credit0·새 LocalProtection Actual을 요구한다.
    Torque는 정확히0만 허용한다. Stale wheel을 fresh로 바꾸지 않으며 normal/nonzero/regen은 원래30ms gate를 유지한다.
 7. 초기화 실패에서 unavailable Steering/Brake Actual에 적용 권한을 주지 않는다.
    Pause/reset/close는 원래 clear/latch·새 INIT 경계다. Cached 조회는 acquisition을 갱신하지 않는다.
+8. Wall 수신은 physics 승인 여부와 분리한다. 원래 session/Release와4ms 이내 proof를 확인하고
+   원본 Actual/permission을 CAN/P05 receiver에 전달한다. 수신만으로 actuation 권한을 주지 않는다.
+   수신 이력은 최대4096개의 사전 할당 원본 byte/timestamp로 기록하고 종료 후 JSON으로 회수한다.
+   Physics를100ms 보류하는 fault에서도 game thread 수신은 계속된다. Game thread 자체가 멈추면
+   수신을 대신 실행하거나 과거 counter를 합성하지 않는다.
 
 Native horizon19s·원래 schedule10000 slot 이내이며 model/receipt/journal 한도는 그대로다.
-현재 실제 wall 실행은 Drive 원천 만료로 정상 주행 전에 실패했다.
-정상·영상 및 wall fault·보호 정지·work/sensor/writer/lifecycle의 같은 runtime 검증 전에는 수용하지 않는다.
+
+### 비영상 wall5ms profile
+
+기본 world10ms와 기능 profile은 유지한다. `--wall-step-ms 5`/`-StrataM7Wall5ms`는
+nonvideo wall-native에만 허용하는 별도200Hz plant다. Controller20ms·Zone/vECU10ms·
+owner2ms/4ms·Drive30ms는 그대로다. 영상 동시 사용과 functional5ms는 거부한다.
+Physics/원본320-bin solver dt/EV interval/공유 identity/독립 감사가 모두 같은5ms를 사용한다.
+
+Plant release는 `initial + (frame_index+1)×5ms`다. 예정 시각 전 실행은 없으며 늦어진
+physics는 이전 work 정산과 현재 원본 Actual의 전 구간 유효성이 모두 충족될 때만 진행한다.
+이것은 과거 ECU job 재생이나 source timestamp 변경이 아니다. 실제 적용→취득 종료가5ms를
+넘으면 독립 감사는 더 긴 실제 구간으로 age/expiry를 검사한다. 모델 시간과 wall 시간,
+실제 진행 비율을 별도로 보고한다.
+
+Wall snapshot에서는 중복 저속 tire callback JSON만 제외한다. 실제320 substep의 force/omega/dt와
+원본 solver journal, work 및 단일 EV 정산은 유지한다. NullRHI/inline render는 해당 비영상
+실행 옵션이며 영상 경로의 지연 해결을 의미하지 않는다. 짧은 비영상 시험을 장시간·영상·
+전체 wall fault 수용으로 확대하지 않는다. 실제 결과는 [프로젝트 상태](../project-status.md)를 따른다.

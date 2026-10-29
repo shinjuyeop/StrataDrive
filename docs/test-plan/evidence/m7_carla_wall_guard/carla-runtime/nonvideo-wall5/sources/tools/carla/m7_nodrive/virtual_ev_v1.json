@@ -1,0 +1,76 @@
+{
+  "schema": "m7-virtual-ev-v1",
+  "id": "stratadrive-v1-equal4-mkz-rest-v1",
+  "approval": "ACCEPTED_VIRTUAL_MODEL_ONLY",
+  "approval_basis": "User: \uadf8\ub798 \uadf8\ub807\uac8c \uac00\uc790; following explicit V1 proposal; 2026-10-27 KST",
+  "real_vehicle_calibration": false,
+  "aggregate_friction_nm_per_pa": 0.001,
+  "brake_fractions": [
+    0.25,
+    0.25,
+    0.25,
+    0.25
+  ],
+  "motor_fractions": [
+    0,
+    0,
+    0.5,
+    0.5
+  ],
+  "pressure_range_pa": [
+    0,
+    1500000
+  ],
+  "drive_range_nm": [
+    -200,
+    300
+  ],
+  "steering_range_left_rad": [
+    -0.3,
+    0.3
+  ],
+  "steering_model": "ideal Ackermann using measured front track/wheelbase; project left positive -> UE right negative",
+  "mass_kg": 1696,
+  "wheels": [
+    {
+      "index": 0,
+      "bone": "Wheel_Front_Left",
+      "radius_m": 0.355,
+      "max_brake_nm": 800,
+      "max_steer_rad": 1.2217304706573486,
+      "offset_x_m": 1.2594692993164063,
+      "offset_y_right_m": -0.7967538452148437
+    },
+    {
+      "index": 1,
+      "bone": "Wheel_Front_Right",
+      "radius_m": 0.355,
+      "max_brake_nm": 800,
+      "max_steer_rad": 1.2217304706573486,
+      "offset_x_m": 1.2594692993164063,
+      "offset_y_right_m": 0.796165771484375
+    },
+    {
+      "index": 2,
+      "bone": "Wheel_Rear_Left",
+      "radius_m": 0.355,
+      "max_brake_nm": 800,
+      "max_steer_rad": 0,
+      "offset_x_m": -1.6010015869140626,
+      "offset_y_right_m": -0.7967538452148437
+    },
+    {
+      "index": 3,
+      "bone": "Wheel_Rear_Right",
+      "radius_m": 0.355,
+      "max_brake_nm": 800,
+      "max_steer_rad": 0,
+      "offset_x_m": -1.6010015869140626,
+      "offset_y_right_m": 0.796165771484375
+    }
+  ],
+  "geometry_reference": "docs/test-plan/evidence/m7_carla_1l/geometry02/result.json; exact PhysX COM offsets, not contact patch",
+  "law_reference": "unchanged simulation/vehicle/simple_vehicle.hpp aggregate gain; new approved equal4 allocation",
+  "interval_work_valid": false,
+  "normal_driving_enabled": false
+}

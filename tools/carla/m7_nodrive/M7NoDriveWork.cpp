@@ -5,6 +5,8 @@
 #include "PxVehicleSuspWheelTire4.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 // Other diagnostic profiles can still load an uninstrumented engine.
 extern "C" bool M7SolverKeepProtectedSteerSleep(const void*) __attribute__((weak));
@@ -68,7 +70,7 @@ FString UM7NoDriveMovement::FinishSolverWork(bool& Valid, M7SolverTrace* Saved)
     R->SetNumberField(TEXT("overflow"), T->overflow);
     R->SetNumberField(TEXT("solver_dt_s"), T->dt);
     Valid = T->abi == 2 && T->protected_steer_hold <= 1 && T->begins == 1 && T->ends == 1 && T->wheels == 4 &&
-      T->overflow == 0 && T->dt == .01f &&
+      T->overflow == 0 && T->dt == (FParse::Param(FCommandLine::Get(), TEXT("StrataM7Wall5ms")) ? .005f : .01f) &&
       ((T->sleeping == 0 && T->count == 320) || (T->sleeping == 1 && T->count == 0));
     const auto* V = static_cast<const physx::PxVehicleNoDrive*>(PVehicle);
     double Work[4] = {};

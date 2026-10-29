@@ -25,22 +25,65 @@ def audit(directory):
     jobs=[{k:int(v) for k,v in r.items()} for r in csv.DictReader(read(directory/'native-wall.csv').splitlines())]
     owner=[{k:int(v) for k,v in r.items()} for r in csv.DictReader(read(directory/'native.csv').splitlines())]
     b=result['binding'];initial=meta['initial'];last_frame=int(b['frame']);model=int(b['logical_begin_ns'])
+    step=result.get('model_step_ns',10000000)
+    check(step in (5000000,10000000),'explicit wall model step')
+    if step==5000000:
+        check(int(b['model_step_ns'])==step==result['native_initial']['model_step_ns'],'server/native step identity')
     model_file=Path(__file__).resolve().parents[3]/'tools/carla/m7_nodrive/virtual_ev_v1.json'
     check(hashlib.sha256(model_file.read_bytes()).hexdigest()==b['model_sha256'],'accepted V1 model identity')
     vehicle=json.loads(model_file.read_text());L=vehicle['wheels'][0]['offset_x_m']-vehicle['wheels'][2]['offset_x_m']
     half=(vehicle['wheels'][1]['offset_y_right_m']-vehicle['wheels'][0]['offset_y_right_m'])/2
     history={};previous=None;normal=protection=empty=0;since=0;releases=None;total=0.;cursors={};max_age=0;min_margin=10**18
     latencies=[];commit_latencies=[];protected_pressure=[];max_balance=0.;expired=0;terminal=False
+    ingress_path=directory/'ingress.json'
+    ingress=json.loads(read(ingress_path)) if ingress_path.exists() or Path(str(ingress_path)+'.gz').exists() else []
+    ingress_cursor=0;last_ingress=0;permission_cursor=None
+    def actual_cursor(role,packet):
+        act=frame(wire(packet,0 if role<2 else 1,7,9),role,True,False)
+        prev=cursors.get(role)
+        if prev:
+            if act['seq']==prev['seq']:check(packet==prev['packet'],'cached Actual bytes immutable')
+            else:check(act['seq']>prev['seq'] and act['source']>=prev['source'] and
+                       0<(act['counter']-prev['counter'])%256<=10,'CAN cursor/P05 progression')
+        act['packet']=packet;cursors[role]=act
+        return act
+    def consume_ingress(reply,upper):
+        nonlocal last_ingress,permission_cursor
+        check(reply['ok'] and all(reply[k]==b[k] for k in ('run','session','actor')),'ingress scope')
+        e=reply['ingress'];at=int(e['at_ns']);observed=int(e['observed_ns']);enable=int(e['enable_ns'])
+        check(e['accepted'] and initial<=enable<=observed<=at<=upper and at>last_ingress and at-observed<=4000000,'original ingress clock')
+        last_ingress=at
+        for role,packet in enumerate(e['actual']):
+            act=actual_cursor(role,packet)
+            check(act['epoch']==42 and enable<=act['source']<=at and at-act['source']<=30000000,'received original Actual age')
+        if e['permission']:
+            q=wire(e['permission'],1,4,5);epoch,token,sent,deadline,op=q.get('IQQQI')
+            check(epoch==42 and op==0 and q.get('B')==3 and q.get('IBBB')==(0x194,1,0,64),'ingress permission route')
+            payload=q.take(64);seq,epoch,source=struct.unpack_from('<IIQ',payload,4)
+            check(binascii.crc_hqx(payload[:29]+payload[31:]+struct.pack('<H',0x1204),0xffff)==int.from_bytes(payload[29:31],'little') and
+                  epoch==42 and enable<=source<=at and at-source<=50000000,'ingress permission P05/source')
+            if permission_cursor:
+                ps,pt,pc,pp=permission_cursor
+                check((seq==ps and e['permission']==pp) or
+                      (seq>ps and source>=pt and 0<(payload[31]-pc)%256<=10),'permission ingress progression')
+            permission_cursor=(seq,source,payload[31],e['permission'])
     first_commit={}
     for sample in owner:first_commit.setdefault(sample['energy_end'],sample['now'])
     for row in rows:
         r=row['receipt'];proof=r['original_actual']['native'];out=r['original_actual']['admitted_actual']
-        ns=int(r['wall_applied_ns']);end=ns+10000000
+        ns=int(r['wall_applied_ns']);end=ns+step
         acq=int(r['physics_acquisition_begin_ns']);upper=int(r['physics_acquisition_end_ns'])
+        end=max(end,upper)  # include any actual wall overrun, never hide it behind model dt
         check(initial<=int(proof['observed_ns'])<=ns<=acq<=upper,'same host clock/order')
         check(ns-int(proof['observed_ns'])<=4000000,'original proof job completion age')
         check(int(r['frame'])==last_frame+1 and int(r['logical_begin_ns'])==model and
-              int(r['logical_end_ns'])==model+10000000,'original CARLA frame/model time')
+              int(r['logical_end_ns'])==model+step,'original CARLA frame/model time')
+        upto=int(r.get('wall_ingress_count','0'))
+        check(ingress_cursor<=upto<=len(ingress),'bounded ingress reference')
+        while ingress_cursor<upto:
+            consume_ingress(ingress[ingress_cursor],ns);ingress_cursor+=1
+        if step==5000000:
+            check(int(r['model_step_ns'])==step and ns>=initial+(row['index']+1)*step,'original absolute plant release; no early step')
         check(r['native_clock_domain']=='host_CLOCK_MONOTONIC; separate_CARLA_model_time','explicit two coordinates')
         check(all(r[k]==b[k] for k in ('actor','run','session','application','model_sha256','model_id')),'scope binding')
         check(r['inputs_cleared_after_physics'],'exclusive effort cleared')
@@ -77,10 +120,9 @@ def audit(directory):
             for role,packet in enumerate(proof['actual']):
                 q=wire(packet,0 if role<2 else 1,7,9);act=frame(q,role,True,not protecting)
                 check(act['epoch']==42 and int(proof['enable_ns'])<=act['source']<=ns and end-act['source']<=30000000,'Actual original 30ms whole interval')
-                prev=cursors.get(role)
-                if prev and act['seq']!=prev['seq']:
-                    check(act['seq']>prev['seq'] and act['source']>=prev['source'] and 0<(act['counter']-prev['counter'])%256<=10,'CAN cursor/P05 progression')
-                cursors[role]=act;sources.append(act['source']);values.append(act['value']);actuals.append(act);max_age=max(max_age,end-act['source'])
+                if upto:check(cursors[role]['packet']==packet,'applied Actual matches latest original ingress')
+                actual_cursor(role,packet)
+                sources.append(act['source']);values.append(act['value']);actuals.append(act);max_age=max(max_age,end-act['source'])
             check(max(sources)-min(sources)<=10000000,'original Actual skew')
             drive=actuals[2]
             if not protecting:
@@ -123,7 +165,7 @@ def audit(directory):
             if i>=2:check(w['solver_omega_rad_s']>=0,'raw rear negative')
         raw=row['raw_solver'];row['solver_trace_binding']={k:v for k,v in raw.items() if k!='trace'}
         r['solver_work']['steps']=raw['trace']['steps']
-        sums,_,_=validate_work(row,previous);total+=sum(sums)
+        sums,_,_=validate_work(row,previous,step/1e9);total+=sum(sums)
         settled=row['settlement'];check(settled is not None,'no lost/in-flight completed work')
         check(int(settled['end_ns'])==int(r['work_end_ns']),'one EV frame commit')
         check(math.isclose(settled['total_mechanical_j'],total,rel_tol=1e-13,abs_tol=1e-11),'all raw signed work counted exactly once')
@@ -139,6 +181,8 @@ def audit(directory):
         history[acq]=(r['physics']['wheels'][2]['solver_omega_rad_s']+r['physics']['wheels'][3]['solver_omega_rad_s'])/2
         last_frame+=1;model=int(r['work_end_ns']);previous=row
     check(rows and owner and len(rows)==result['receipts'],'complete original records')
+    while ingress_cursor<len(ingress):
+        consume_ingress(ingress[ingress_cursor],owner[-1]['now']+4000000);ingress_cursor+=1
     stop=owner[-1]['now'];complete=[r for r in jobs if r['deadline_ns']<=stop]
     check({r['owner'] for r in complete}==set(range(10)),'all ten owners measured')
     check(all(r['release_ns']==initial+1000000+r['slot']*2000000 and r['deadline_ns']==r['release_ns']+4000000 for r in complete),'original 2ms/4ms grid')
@@ -161,18 +205,34 @@ def audit(directory):
                 if name=='gt':check(x['use']=='TRAIN_EVAL_ONLY','GT never control')
         sensors={k:len(v) for k,v in s['streams'].items()}
     requested=result['status']=='EXECUTED_REQUIRES_AUDIT'
+    check(result.get('native_exit')==0 and not result.get('native_forced_stop') and not result.get('cleanup_error'),'native clean lifecycle')
+    writer_checks=result.get('writer_checks')
+    if step==5000000:check(writer_checks and ingress,'wall5 requires original ingress and active writer evidence')
+    if writer_checks:
+        check(writer_checks['normal_before']>=10 and writer_checks['begin_ns']<=writer_checks['end_ns'] and
+              all(writer_checks[k] for k in ('batch_denied','tick_denied','external_stage_denied')),'active writer rejection')
     if result['fault']=='none':accepted=requested and normal>100 and not protection and not meta['first_fault'] and not missing and not late and not expired
-    else:accepted=requested and normal>=50 and protection>100 and bool(since) and bool(protected_pressure) and not missing and not late
+    else:accepted=requested and result.get('fault_request',{}).get('kind')==result['fault'] and normal>=50 and protection>100 and bool(since) and bool(protected_pressure) and not missing and not late and not expired
     stopped=[x for x in rows if x['receipt']['physics']['sleeping'] and
              all(v==0 for k in ('com_velocity_world_m_s','angular_velocity_world_rad_s') for v in x['receipt']['physics'][k]) and
              all(w['solver_omega_rad_s']==0 for w in x['receipt']['physics']['wheels'])]
     stable_tail=len(rows)>=100 and all(x in stopped and all(x['receipt']['physics'][k]==rows[-1]['receipt']['physics'][k]
                for k in ('body_world_position_m','body_quaternion_xyzw')) for x in rows[-100:])
     if result['fault']!='none':accepted=accepted and stable_tail
+    if since:
+        check(result.get('fault_request',{}).get('wall_ns',since)<=since,'protection follows actual fault request')
+    speeds=[abs(x['receipt']['physics']['body_forward_velocity_m_s']) for x in rows]
+    first_stop=next((x for x in stopped if int(x['receipt']['wall_applied_ns'])>=since),None) if since else None
+    first_protection=next((x for x in rows if x['receipt']['original_actual']['admitted_actual']['protection']),None)
     return dict(status='PASS_CASE_ONLY' if accepted else 'NOT_ACCEPTED',receipts=len(rows),normal=normal,protection=protection,
         empty=empty,missing_slots=missing,late_slots=late,eligible_slots=len(complete),expired_physics=expired,
         max_whole_interval_age_ns=max_age,min_command_margin_ns=min_margin if normal else None,
         max_receipt_to_ack_proof_ns=max(latencies),max_receipt_to_native_commit_ns=max(commit_latencies),
+        model_step_ns=step,model_seconds=len(rows)*step/1e9,
+        wall_seconds=(int(rows[-1]['receipt']['physics_acquisition_end_ns'])-initial)/1e9,
+        maximum_forward_speed_m_s=max(speeds),active_writer_checks=bool(writer_checks),original_ingress_records=len(ingress),
+        first_protective_physics_after_selection_ns=int(first_protection['receipt']['wall_applied_ns'])-since if first_protection else None,
+        first_natural_stop_after_selection_ns=int(first_stop['receipt']['physics_acquisition_end_ns'])-since if first_stop else None,
         max_energy_balance_j=max_balance,first_fault=meta['first_fault'],stationary_frames=len(stopped),sensors=sensors,
         stable_last100_pose=stable_tail,first_full_brake_after_selection_ns=protected_pressure[0]-since if protected_pressure else None,full_m7_closed=False)
 

@@ -8,6 +8,8 @@
 #include "VehicleWheel.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 bool UM7NoDriveMovement::HasNoDrive() const
 {
@@ -163,7 +165,12 @@ FString UM7NoDriveMovement::DescribePhysics() const
     Object->SetArrayField(TEXT("body_quaternion_xyzw"), {MakeShared<FJsonValueNumber>(Pose.q.x),
       MakeShared<FJsonValueNumber>(Pose.q.y), MakeShared<FJsonValueNumber>(Pose.q.z), MakeShared<FJsonValueNumber>(Pose.q.w)});
     // Save detailed callbacks only at low-speed nonzero effort, including every failing launch.
-    if (DiagnosticSubsteps && Body->getLinearVelocity().magnitude() < 25.0f &&
+    // Wall feedback needs the original state promptly. The separate immutable
+    // solver journal already retains every wheel force/omega/substep. These
+    // legacy low-speed callback JSON objects duplicate that diagnostic evidence
+    // and are deliberately excluded from the deadline-sensitive wall snapshot.
+    if (!FParse::Param(FCommandLine::Get(), TEXT("StrataM7WallNative")) &&
+        DiagnosticSubsteps && Body->getLinearVelocity().magnitude() < 25.0f &&
         (NoDrive->getDriveTorque(2) != 0 || NoDrive->getDriveTorque(3) != 0)) {
       TArray<TSharedPtr<FJsonValue>> Trace;
       for (const auto& T : TireObservations) {

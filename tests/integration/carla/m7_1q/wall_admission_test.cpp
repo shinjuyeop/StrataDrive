@@ -78,9 +78,74 @@ TEST(M7SharedChannel, BoundIdentityRejectsOtherRunSessionGenerationAndOldAbi) {
     ++b.session;EXPECT_FALSE(valid());--b.session;
     ++b.generation;EXPECT_FALSE(valid());--b.generation;
     b.run[0]='f';EXPECT_FALSE(valid());b.run[0]='0';
-    b.abi=1;EXPECT_FALSE(valid());b.abi=2;
+    b.abi=1;EXPECT_FALSE(valid());b.abi=2;EXPECT_FALSE(valid());b.abi=3;
+    b.model_step=5000000;EXPECT_FALSE(valid());
+    EXPECT_TRUE(m7_native::bridge_identity(b,42,start,99,1000000000,3,5,run,5000000));
+    b.model_step=10000000;
     ++b.actor;EXPECT_FALSE(valid());--b.actor;
     ++b.model_initial;EXPECT_FALSE(valid());--b.model_initial;
     EXPECT_TRUE(valid());m7_native::wall_trip(&b.signal);EXPECT_FALSE(valid());
+}
+// The old standalone owner tests supplied a new receipt even when admission
+// would have refused physics. Here a receipt exists ONLY after an accepted
+// step. This exposes the feedback/admission circular wait without an engine.
+TEST(M7WallAdmission, CoupledFiveMsPlantProgressWithoutRelaxingNativeBudgets) {
+    for(const Time step:{10*ms,5*ms}) {
+        constexpr Time model=1000000000;
+        WallRig rig({1,42,7},99,start,model,step);
+        m7_native::Admission gate(42,start,m7_native::ClockPolicy::HostMonotonic,step);
+        std::optional<WallReceipt> pending;
+        Time due=start+step;unsigned frames=0,normal=0;WallReport r;
+        for(unsigned i=1;i<=4000;++i) {
+            const auto now=start+i*ms+50000+(i*7919U)%20000;
+            r=rig.service(now,pending);pending.reset();
+            if(r.failed)break;
+            if(now<due)continue;
+            const auto in=input(r.native);m7_native::Output out;
+            if(!gate.eligible(in,now,out,nullptr,4*ms))continue;
+            ASSERT_TRUE(gate.accept(in,now,out))<<gate.error();
+            ++frames;normal+=out.normal;
+            if(!out.empty){EXPECT_LE(now+step-out.oldest_actuator,30*ms);}
+            // 5ms is an absolute plant release grid; the native owner above
+            // still runs exactly once at NOW, never replays ECU invocations.
+            due=step==5*ms?start+(frames+1)*step:now+step;
+            m7_external::CarlaWork c;auto& w=c.work;
+            w.frame=100+frames;w.begin=model+(frames-1)*step;w.end=w.begin+step;w.oldest=w.begin;
+            w.dt=double((step==5*ms?.005f:.01f)*(1.f/320.f));
+            w.wheel={0,{7,99+frames,w.begin},w.begin};w.torque=out.torque;
+            c.applied=now;c.acquired_begin=now+500000;c.acquired_end=c.acquired_begin+1000;
+            c.oldest=out.oldest_actuator?out.oldest_actuator:now;c.coils=r.native.coils;c.coil_source=r.native.coil_source;
+            pending=WallReceipt{{99,w.frame,c.acquired_begin,{0,0,0,0}},w,wall_domain,c};
+        }
+        if(step==5*ms) {
+            EXPECT_FALSE(r.failed)<<r.reason;EXPECT_EQ(frames,800U);EXPECT_GT(normal,600U);
+            EXPECT_LE(r.native.controller_releases,200U);
+        } else {EXPECT_TRUE(r.failed);EXPECT_EQ(normal,0U);}
+    }
+}
+TEST(M7WallAdmission, FiveMsIsNotAnImplicitFunctionalClockChange) {
+    m7_native::Admission gate(42,start,m7_native::ClockPolicy::Functional,5*ms);
+    m7_native::Input in;in.observed=start;in.service_mask=255;m7_native::Output out;
+    EXPECT_FALSE(gate.accept(in,start,out));
+    EXPECT_THROW(WallRig(Scope{1,42,7},99,start,0,5*ms),std::runtime_error);
+}
+TEST(M7WallAdmission, ReceptionContinuesAcrossPlantGapWithoutGrantingTicks) {
+    WallRig rig({1,42,7},99,start);m7_native::Admission gate(42,start,m7_native::ClockPolicy::HostMonotonic,5*ms);
+    unsigned normal=0,protected_frames=0,ingress=0;Time old_source=0;
+    for(unsigned i=1;i<=1800;++i) {
+        if(i==1501)rig.protect("test physics withholding");
+        const auto r=rig.service(start+i*ms,i<=1500 && i%10==0?std::optional<WallReceipt>(sample(i/10)):std::nullopt);
+        const auto in=input(r.native);m7_native::Output out;
+        if(gate.started()){ASSERT_TRUE(gate.ingest(in,start+i*ms))<<gate.error();++ingress;}
+        if(i==1500)old_source=r.native.sensor_wheel->source;
+        if(i>1500 && i<=1600)continue; // receive, but deliberately no physics admission
+        if(!gate.eligible(in,start+i*ms,out,nullptr,4*ms))continue;
+        ASSERT_TRUE(gate.accept(in,start+i*ms,out))<<gate.error();
+        normal+=out.normal;protected_frames+=out.protection;
+        if(i>1600 && out.protection) {
+            EXPECT_EQ(out.torque,0);EXPECT_EQ(r.native.sensor_wheel->source,old_source);
+        }
+    }
+    EXPECT_GT(normal,100U);EXPECT_GT(protected_frames,100U);EXPECT_GT(ingress,1500U);
 }
 }

@@ -38,6 +38,7 @@ def main():
     p.add_argument("--solver-work", action="store_true")
     p.add_argument("--compact-work", action="store_true")
     p.add_argument("--wall-native", action="store_true")
+    p.add_argument("--wall-step-ms", type=int, choices=(5,10), default=10)
     p.add_argument("--rpc-nodelay",type=Path)
     p.add_argument("--wall-server-priority",type=int,choices=(0,10),default=0)
     p.add_argument("--wall-warmup-ticks",type=int,choices=(0,150),default=0)
@@ -69,6 +70,7 @@ def main():
     if a.wall_nullrhi and (not a.wall_native or a.cameras):
         p.error("null RHI requires wall-native without cameras")
     if a.wall_inline_render and not a.wall_native:p.error("inline render is a wall-only experiment")
+    if a.wall_step_ms==5 and (not a.wall_native or a.cameras):p.error("5ms profile requires noncamera wall native")
     if a.compact_work and (not a.native_actual or not a.solver_work or a.native_fault=="client-loss"):
         p.error("compact work requires native solver work and surviving probe")
     if a.held_steer_sleep and not (a.native_actual and a.solver_work):
@@ -119,6 +121,7 @@ def main():
         argv.append("-StrataM7CompactWork")
     if a.wall_native:
         argv.append("-StrataM7WallNative")
+    if a.wall_step_ms==5:argv.append("-StrataM7Wall5ms")
     if a.wall_nullrhi:
         argv.append("-nullrhi")
     if a.wall_inline_render:argv.append("-norenderthread")
@@ -285,7 +288,7 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
         if a.wall_native:
             cmd = [str(a.python),str(a.runtime/"probe/m7_wall_carla_probe.py"),"--native",str(a.native_actual),
                    "--model",str(root/"tools/carla/m7_nodrive/virtual_ev_v1.json"),"--output",str(a.output),
-                   "--scenario",str(a.scenario),"--ticks",str(a.ticks),"--fault",a.native_fault,"--warmup-ticks",str(a.wall_warmup_ticks)]
+                   "--scenario",str(a.scenario),"--ticks",str(a.ticks),"--fault",a.native_fault,"--warmup-ticks",str(a.wall_warmup_ticks),"--step-ms",str(a.wall_step_ms)]
             if a.cameras:cmd += ["--cameras"]
         elif a.native_actual:
             cmd = [str(a.python), str(a.runtime/"probe/m7_1q_probe.py"), "--native", str(a.native_actual),

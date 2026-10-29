@@ -18,7 +18,8 @@
 | Wall 감시·입력 단절 뒤 native 보호 | [wall guard](evidence/m7_carla_wall_guard/README.md) · [terminal 응답](evidence/m7_carla_wall_guard/terminal-response/README.md) |
 | Solver 전달 분리·physics/work 동등성 | [Pipeline](evidence/m7_carla_wall_guard/pipeline/README.md) |
 | Wall owner timer·IO component | [Wall owner](evidence/m7_carla_wall_guard/wall-owner/README.md) |
-| 최신 실제 CARLA wall 연결 실패 | [CARLA runtime](evidence/m7_carla_wall_guard/carla-runtime/README.md) |
+| 실제 CARLA wall10ms 연결 실패 | [CARLA runtime](evidence/m7_carla_wall_guard/carla-runtime/README.md) |
+| 비영상 wall5ms 정상·보호 정지와 반복/종료 실패 | [비영상 wall 개선](evidence/m7_carla_wall_guard/carla-runtime/nonvideo-wall5/README.md) |
 | CARLA 기본 state·영상·확장 경로 지연 대조 | [Frame 진단](evidence/m7_carla_wall_guard/carla-runtime/frame-diagnostic/README.md) |
 | DDS 제어 gate CLOSED의 근거 | [DDS shutdown 후속](evidence/m5_dds_shutdown_followup/README.md) |
 

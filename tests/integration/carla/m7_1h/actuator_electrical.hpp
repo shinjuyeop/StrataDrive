@@ -34,7 +34,7 @@ struct CarlaWork {
 class ActuatorElectrical {
 public:
     ActuatorElectrical(Time start,std::uint32_t first_application,bool solver_work=false);
-    ActuatorElectrical(Time start,std::uint32_t first_application,PlantExecution execution,Time model_start=0);
+    ActuatorElectrical(Time start,std::uint32_t first_application,PlantExecution execution,Time model_start=0,Time model_step=10000000);
     ~ActuatorElectrical();
     ActuatorElectrical(const ActuatorElectrical&)=delete;
     ActuatorElectrical& operator=(const ActuatorElectrical&)=delete;
@@ -92,6 +92,7 @@ private:
     std::string electrical_error_;
     bool deferred_=false,protection_latched_=false,terminal_=false;
     bool carla_=false;
+    Time carla_step_=10000000;
     Time acquired_=0,dependency_=0,last_applied_=0;
     std::optional<Wheel> last_wheel_;
     struct CoilInterval {Time begin=0,end=0;power::CoilCommand coils{};};

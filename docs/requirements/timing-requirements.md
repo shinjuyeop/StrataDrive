@@ -10,6 +10,7 @@ M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. 
 | 단계 | Rate | Period | 적용 의미 |
 | --- | --- | --- | --- |
 | CARLA world / Vehicle State (M7-1d 개정) | 100 Hz | 10 ms | 단일 Host tick owner; 매 frame 새 snapshot, 실제 wheel feedback 적합성은 미확정 |
+| CARLA 비영상 wall5ms (별도 opt-in) | 200 Hz | 5 ms | wall-native 전용 plant/work 간격; 기본 기능 profile·ECU 주기는 유지 |
 | CARLA RGB / Semantic GT | 20 Hz | 50 ms | world5frame마다 capture; GT는 학습/평가 전용 |
 | Planner | 20 Hz | 50 ms | 최신 유효 state snapshot 사용 |
 | Vehicle Controller (Classical Controller) | 50 Hz | 20 ms | 센서 frame 재사용 가능; 원천 age 보존 |
@@ -50,6 +51,11 @@ M6 실행 profile/모델·과거 검증 및 native2ms/4ms guard는 변경하지 
 [Plant Adapter ICD](../archive/carla-history.md#icd-5-clock과-m7-multirate-개정-m7-1d)에 범위를 둔다.
 동시 release의 순서/queue/substep 구현과 plant aliasing 검증은 M3/M6/M7(TBD-04/07)이다.
 이 논리 schedule을 실측 CPU schedule로 주장하지 않는다.
+
+비영상 wall5ms의 절대 plant release·원본 ingress·model/wall 분리 계약은
+[현재 CARLA ICD](../interfaces/carla-plant-adapter.md#비영상-wall5ms-profile)를 따른다.
+기존10ms 경로의 admission/feedback 대기 결합을 해소하기 위한 별도 profile이며,
+Controller20ms·Zone/vECU10ms·source30ms·owner2ms/4ms의 완화가 아니다.
 
 ## Terms
 

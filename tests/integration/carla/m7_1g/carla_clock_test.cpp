@@ -89,5 +89,21 @@ TEST(M7CarlaClock, SensorIngressHandlesDriftingPhysicsPhaseWithoutExtraControlJo
     EXPECT_TRUE(r.native.armed);EXPECT_LE(r.native.controller_releases,75U);
     EXPECT_EQ(r.native.electrical->end,model+frames*10*ms);
 }
+TEST(M7CarlaClock, FiveMsWorkRequiresMatchingExplicitCarlaProfile) {
+    auto c=frame(1,wall+6*ms);c.work.end=c.work.begin+5*ms;
+    c.work.dt=double(.005f*(1.f/320.f));c.applied=wall+5*ms;c.oldest=c.applied;
+    EXPECT_FALSE(c.work.valid());EXPECT_TRUE(c.work.valid(5*ms));
+    for(const auto step:{5*ms,10*ms}) {
+        m7_external::ActuatorElectrical m(wall,42,m7_external::PlantExecution::CarlaObservedWork,model,step);
+        std::array<std::optional<simulation::OwnerActuation>,5> outputs{};
+        for(unsigned i=1;i<=7;++i)ASSERT_TRUE(m.advance_actuators(wall+i*ms,{},outputs,0));
+        EXPECT_EQ(m.settle_carla_frame(c),step==5*ms);
+        if(step==5*ms) {
+            EXPECT_EQ(m.electrical_time(),model+5*ms);EXPECT_EQ(m.electrical_acquisition(),wall+6*ms);
+            EXPECT_FALSE(m.settle_carla_frame(c));
+        }
+    }
+    EXPECT_THROW(m7_external::ActuatorElectrical(wall,42,m7_external::PlantExecution::DeferredObservedWork,0,5*ms),std::invalid_argument);
+}
 
 }

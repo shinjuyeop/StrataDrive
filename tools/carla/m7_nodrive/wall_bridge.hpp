@@ -43,15 +43,17 @@ struct SharedReceipt {
 };
 struct WallBridge {
     WallSignal signal{}; // original terminal latch at offset zero
-    std::uint64_t abi=2,bytes=sizeof(WallBridge),actor=0,model_initial=0,session=0,generation=0,stop=0,server_trip=0;
+    std::uint64_t abi=3,bytes=sizeof(WallBridge),actor=0,model_initial=0,session=0,generation=0,stop=0,server_trip=0;
+    std::uint64_t model_step=10000000;
     char run[37]{}; // canonical CARLA run UUID, including terminator
     SharedLatest<SharedProof> proof;
     SharedLatest<SharedReceipt> receipt;
 };
 inline bool bridge_identity(const WallBridge& b,std::uint64_t application,std::uint64_t initial,
-    std::uint64_t actor,std::uint64_t model,std::uint64_t session,std::uint64_t generation,const std::string& run) {
+    std::uint64_t actor,std::uint64_t model,std::uint64_t session,std::uint64_t generation,const std::string& run,std::uint64_t step=10000000) {
     return run.size()==36 && b.signal.magic==wall_signal_magic && b.signal.initial==initial &&
-        b.signal.application==application && b.abi==2 && b.bytes==sizeof(b) && b.actor==actor &&
+        b.signal.application==application && b.abi==3 && b.bytes==sizeof(b) && b.actor==actor &&
+        (step==10000000 || step==5000000) && b.model_step==step &&
         b.model_initial==model && b.session==session && b.generation==generation &&
         std::memcmp(b.run,run.c_str(),37)==0 && !wall_fault(&b.signal);
 }

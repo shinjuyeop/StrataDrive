@@ -1,0 +1,147 @@
+{
+  "status": "PASS_BOUNDED_INTEGRATED_AUDIT",
+  "receipts": 900,
+  "phases": [
+    {
+      "name": "acceleration_left",
+      "cycle": 1,
+      "frames": 250,
+      "speed_m_s_range": [
+        0.002346028387546539,
+        1.1568444061279297
+      ],
+      "actual_torque_nm_range": [
+        49,
+        300
+      ],
+      "pressure_pa_range": [
+        0,
+        0
+      ],
+      "negative_motor_work_frames": 0,
+      "motor_work_j": 1192.8064806033742,
+      "zero_wheel_frames": 0,
+      "zero_wheel_body_velocity_m_s_range": null
+    },
+    {
+      "name": "regeneration",
+      "cycle": 1,
+      "frames": 100,
+      "speed_m_s_range": [
+        1.1616385650634766,
+        1.2590347290039063
+      ],
+      "actual_torque_nm_range": [
+        -86.4,
+        300
+      ],
+      "pressure_pa_range": [
+        0,
+        3000
+      ],
+      "negative_motor_work_frames": 63,
+      "motor_work_j": 49.604664395150365,
+      "zero_wheel_frames": 0,
+      "zero_wheel_body_velocity_m_s_range": null
+    },
+    {
+      "name": "friction_hold",
+      "cycle": 1,
+      "frames": 200,
+      "speed_m_s_range": [
+        -0.0011051642894744874,
+        1.1674827575683593
+      ],
+      "actual_torque_nm_range": [
+        -85.7,
+        0
+      ],
+      "pressure_pa_range": [
+        3000,
+        750000
+      ],
+      "negative_motor_work_frames": 51,
+      "motor_work_j": -78.6993085695514,
+      "zero_wheel_frames": 92,
+      "zero_wheel_body_velocity_m_s_range": [
+        -0.0011051642894744874,
+        0.001908327043056488
+      ]
+    },
+    {
+      "name": "restart_right",
+      "cycle": 1,
+      "frames": 250,
+      "speed_m_s_range": [
+        -0.00027318673208355905,
+        1.036387710571289
+      ],
+      "actual_torque_nm_range": [
+        0,
+        300
+      ],
+      "pressure_pa_range": [
+        0,
+        750000
+      ],
+      "negative_motor_work_frames": 0,
+      "motor_work_j": 957.0672980724771,
+      "zero_wheel_frames": 21,
+      "zero_wheel_body_velocity_m_s_range": [
+        -0.00027318673208355905,
+        0
+      ]
+    }
+  ],
+  "sensors": {
+    "rgb": 180,
+    "gt": 180,
+    "intentional_drops": 0,
+    "first_frame": 55,
+    "last_frame": 950,
+    "original_timestamp_match": true,
+    "gt_control_use": false
+  },
+  "wall": {
+    "clock": "host CLOCK_MONOTONIC; no simulation-to-wall subtraction",
+    "native_roundtrip": {
+      "count": 901,
+      "mean_ms": 1.9551351487236406,
+      "p95_ms": 2.6051,
+      "p99_ms": 2.806346,
+      "max_ms": 3.782546,
+      "above_2ms": 302,
+      "above_4ms": 0
+    },
+    "native_idle_lower_bound": {
+      "count": 900,
+      "mean_ms": 17.95125241888889,
+      "p95_ms": 48.098971,
+      "p99_ms": 52.00598,
+      "max_ms": 299.242187,
+      "above_2ms": 900,
+      "above_4ms": 891
+    },
+    "advance_to_receipt": {
+      "count": 900,
+      "mean_ms": 16.46018366222222,
+      "p95_ms": 46.896612,
+      "p99_ms": 50.644379,
+      "max_ms": 261.627665,
+      "above_2ms": 900,
+      "above_4ms": 709
+    },
+    "production_2ms_4ms_gate": "NOT_ACCEPTED",
+    "per_job_4ms_deadlines": "NOT_INSTRUMENTED",
+    "observed_native_opportunity_gap_violation": true,
+    "includes_json_solver_trace_and_explicit_250ms_pause": true,
+    "simulation_progress": {
+      "simulated_seconds": 8.999999798834324,
+      "execution_wall_seconds": 17.918335682,
+      "simulated_per_wall_second": 0.5022787807170809,
+      "includes_trace_validation_and_intentional_pause": true
+    }
+  },
+  "full_m7_closed": false,
+  "body_stationary_acceptance": false
+}

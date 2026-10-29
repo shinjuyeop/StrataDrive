@@ -38,12 +38,12 @@ inline bool same(const Packet& a,const Packet& b) {
 enum class ClockPolicy { Functional, HostMonotonic };
 class Admission {
 public:
-    Admission(std::uint32_t application,Time initial,ClockPolicy clock=ClockPolicy::Functional)
-        :application_(application),initial_(initial),clock_(clock) {}
+    Admission(std::uint32_t application,Time initial,ClockPolicy clock=ClockPolicy::Functional,Time interval=step)
+        :application_(application),initial_(initial),clock_(clock),interval_(interval) {}
     // Read-only scheduling eligibility. All receiver cursors and latches in the
     // real admission are untouched; the server still checks the final proof.
     bool eligible(const Input& in,Time now,Output& output,std::string* why=nullptr,Time reserve=0) const {
-        Admission copy(application_,initial_,clock_);copy.reserve_=reserve;
+        Admission copy(application_,initial_,clock_,interval_);copy.reserve_=reserve;
         copy.last_=last_;copy.enable_=enable_;copy.protection_since_=protection_since_;copy.normal_observed_=normal_observed_;
         copy.started_=started_;copy.normal_=normal_;copy.error_=error_;copy.cached_=cached_;
         copy.release_=release_;copy.permission_packet_=permission_packet_;copy.credit_=credit_;
@@ -53,11 +53,11 @@ public:
     }
     bool accept(const Input& in,Time now,Output& output) {
         if(!error_.empty())return false;
-        if(!application_ || !initial_ || reserve_>4000000 || now>UINT64_MAX-step-reserve_ || (wall()? (in.observed>now || now-in.observed>4000000):in.observed!=now) ||
+        if((interval_!=step && (!wall() || interval_!=5000000)) || !application_ || !initial_ || reserve_>4000000 || now>UINT64_MAX-interval_-reserve_ || (wall()? (in.observed>now || now-in.observed>4000000):in.observed!=now) ||
            now<initial_ || (last_ && (now<=last_ || (!wall() && (now-last_<step-999 || now-last_>step+999)))) ||
            in.service_mask!=255)return fail("native_clock_or_service");
         last_=now;
-        const Time end=now+step+reserve_;
+        const Time end=now+interval_+reserve_;
         const bool empty=std::all_of(in.actual.begin(),in.actual.end(),[](const Packet& p){return !p;});
         if(empty) {
             if(started_ || normal_ || in.normal || in.protection_since || in.protection_selected_mask || now-initial_>=80000000)return fail("bootstrap_missing_actual");
@@ -132,6 +132,25 @@ public:
         cached_=in.actual;output=out;return true;
     }
     const std::string& error() const {return error_;}
+    bool started() const {return started_;}
+    // Transport reception continues even when the plant has no release (or an
+    // injected pause). This updates only canonical CAN/P05 receiver history;
+    // it grants no normal/protective actuation and never changes a source time.
+    bool ingest(const Input& in,Time now) {
+        if(!error_.empty())return false;
+        if(!wall() || !started_ || in.enable!=enable_ || in.service_mask!=255 ||
+           in.observed>now || now-in.observed>4000000)return fail("native_ingress_context");
+        for(unsigned i=0;i<8;++i)if(!same(in.release[i],release_[i]))return fail("native_ingress_session");
+        can::SteeringFrame sf;can::BrakeFrame bf;can::DriveFrame df;
+        if(!actual(in.actual[0],0,sf) || !actual(in.actual[1],1,bf) || !actual(in.actual[2],2,df))return false;
+        const auto accepted=can::ActuatorReceiveDecision::Accepted;
+        if((!same(in.actual[0],cached_[0]) && steering_->receive(sf,now).decision!=accepted) ||
+           (!same(in.actual[1],cached_[1]) && brake_->receive(bf,now).decision!=accepted) ||
+           (!same(in.actual[2],cached_[2]) && drive_->receive(df,now).decision!=accepted))return fail("native_ingress_actual_receiver");
+        Output unused;
+        if(in.permission && !grant(in.permission,now,now,unused,false))return false;
+        cached_=in.actual;return true;
+    }
 private:
     bool wall() const {return clock_==ClockPolicy::HostMonotonic;}
     bool fail(const char* why) {if(error_.empty())error_=why;return false;}
@@ -233,7 +252,7 @@ private:
         out.exclusive_expiry=std::min(out.exclusive_expiry,grant.expires_at_ns);return true;
     }
     std::uint32_t application_;Time initial_,last_=0,enable_=0,protection_since_=0,normal_observed_=0;bool started_=false,normal_=false;
-    ClockPolicy clock_;Time reserve_=0;
+    ClockPolicy clock_;Time interval_=step,reserve_=0;
     std::string error_;
     std::array<Packet,3> cached_;std::array<Packet,8> release_;Packet permission_packet_;
     std::optional<remote::RunLease> credit_;

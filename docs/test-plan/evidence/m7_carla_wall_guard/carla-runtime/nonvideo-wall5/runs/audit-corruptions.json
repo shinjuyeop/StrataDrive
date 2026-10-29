@@ -1,0 +1,56 @@
+{
+  "scope": "independent auditor corruption checks; unchanged original run06",
+  "baseline": "PASS_CASE_ONLY",
+  "checks": [
+    {
+      "name": "ingress_crc",
+      "rejected": true,
+      "reason": "owner CRC32C"
+    },
+    {
+      "name": "ingress_future",
+      "rejected": true,
+      "reason": "original ingress clock"
+    },
+    {
+      "name": "missing_ingress",
+      "rejected": true,
+      "reason": "original ingress clock"
+    },
+    {
+      "name": "mixed_step",
+      "rejected": true,
+      "reason": "original CARLA frame/model time"
+    },
+    {
+      "name": "writer_not_denied",
+      "rejected": true,
+      "reason": "active writer rejection"
+    },
+    {
+      "name": "native_exit_failure",
+      "rejected": true,
+      "reason": "native clean lifecycle"
+    },
+    {
+      "name": "owner_late",
+      "rejected": true,
+      "reason": "NOT_ACCEPTED"
+    },
+    {
+      "name": "applied_without_latest_ingress",
+      "rejected": true,
+      "reason": "Actual original 30ms whole interval"
+    },
+    {
+      "name": "solver_dt",
+      "rejected": true,
+      "reason": "actual solver dt"
+    },
+    {
+      "name": "acquisition_restamp",
+      "rejected": true,
+      "reason": "original wheel acquisition retained"
+    }
+  ]
+}
