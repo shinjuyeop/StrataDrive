@@ -1,0 +1,438 @@
+{
+  "status": "DIAGNOSTIC_COMPARISON",
+  "cases": [
+    {
+      "case": "package-camera-a",
+      "status": "EXCLUDED_FAILED_ATTEMPT",
+      "result_status": "FAIL",
+      "server_status": "SERVER_EXIT_FAIL",
+      "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_frame_baseline.py\", line 65, in probe\n    if not report['map'].endswith('/Town03_Opt'):raise ValueError('wrong map')\nValueError: wrong map\n"
+    },
+    {
+      "case": "package-camera-paced-b",
+      "status": "VERIFIED_SAMPLES_WITH_SERVER_FAILURE",
+      "server_status": "SERVER_EXIT_FAIL",
+      "server_exit": -11,
+      "backend": "package",
+      "cameras": true,
+      "render": true,
+      "pace_ms": 10,
+      "simulated_seconds": 9.999999776482582,
+      "wall_seconds": 10.956511566,
+      "rtf": 0.9126992397392576,
+      "measurements": {
+        "server_platform_gap": {
+          "count": 1000,
+          "mean_ms": 10.958319068013225,
+          "p99_ms": 33.05272199213505,
+          "max_ms": 44.259409012738615,
+          "over_30ms": 17
+        },
+        "tick_roundtrip": {
+          "count": 1000,
+          "mean_ms": 4.224443075999999,
+          "p99_ms": 24.131375,
+          "max_ms": 35.262568,
+          "over_30ms": 3
+        },
+        "client_arrival_gap": {
+          "count": 999,
+          "mean_ms": 10.96233547547547,
+          "p99_ms": 33.490244,
+          "max_ms": 44.329217,
+          "over_30ms": 18
+        }
+      },
+      "sensors": {
+        "rgb": {
+          "count": 200,
+          "frame_residues": [
+            1
+          ],
+          "gaps": []
+        },
+        "gt": {
+          "count": 200,
+          "frame_residues": [
+            1
+          ],
+          "gaps": []
+        }
+      },
+      "slow_frame_modulo5": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 17,
+        "4": 0
+      },
+      "stationary_only": true,
+      "wall_driving_accepted": false
+    },
+    {
+      "case": "package-paced-b",
+      "status": "VERIFIED_SAMPLES_WITH_SERVER_FAILURE",
+      "server_status": "SERVER_EXIT_FAIL",
+      "server_exit": -11,
+      "backend": "package",
+      "cameras": false,
+      "render": false,
+      "pace_ms": 10,
+      "simulated_seconds": 9.999999776482582,
+      "wall_seconds": 10.075126063,
+      "rtf": 0.9925433899240911,
+      "measurements": {
+        "server_platform_gap": {
+          "count": 1000,
+          "mean_ms": 10.076007220020983,
+          "p99_ms": 10.55799302412197,
+          "max_ms": 10.826209967490286,
+          "over_30ms": 0
+        },
+        "tick_roundtrip": {
+          "count": 1000,
+          "mean_ms": 0.7722987929999994,
+          "p99_ms": 1.300948,
+          "max_ms": 3.140254,
+          "over_30ms": 0
+        },
+        "client_arrival_gap": {
+          "count": 999,
+          "mean_ms": 10.084720489489486,
+          "p99_ms": 10.673932,
+          "max_ms": 12.432513,
+          "over_30ms": 0
+        }
+      },
+      "sensors": {
+        "rgb": {
+          "count": 0,
+          "frame_residues": [],
+          "gaps": []
+        },
+        "gt": {
+          "count": 0,
+          "frame_residues": [],
+          "gaps": []
+        }
+      },
+      "slow_frame_modulo5": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "stationary_only": true,
+      "wall_driving_accepted": false
+    },
+    {
+      "case": "package-state-a",
+      "status": "EXCLUDED_FAILED_ATTEMPT",
+      "result_status": "FAIL",
+      "server_status": "PROBE_FAIL",
+      "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/carla/m7_frame_baseline.py\", line 63, in probe\n    if not world.get_map().name.endswith('/Town03_Opt'):raise ValueError('wrong map')\nValueError: wrong map\n"
+    },
+    {
+      "case": "source-camera-a",
+      "status": "VERIFIED_DIAGNOSTIC_ONLY",
+      "server_status": "COMPLETE_DIAGNOSTIC",
+      "server_exit": 130,
+      "backend": "source",
+      "cameras": true,
+      "render": true,
+      "pace_ms": 0,
+      "simulated_seconds": 9.999999776482582,
+      "wall_seconds": 13.863892591,
+      "rtf": 0.7212981282741807,
+      "measurements": {
+        "server_platform_gap": {
+          "count": 1000,
+          "mean_ms": 13.864894718979485,
+          "p99_ms": 51.20379797881469,
+          "max_ms": 71.15974195767194,
+          "over_30ms": 200
+        },
+        "tick_roundtrip": {
+          "count": 1000,
+          "mean_ms": 13.813868692999995,
+          "p99_ms": 51.802408,
+          "max_ms": 71.065618,
+          "over_30ms": 200
+        },
+        "client_arrival_gap": {
+          "count": 999,
+          "mean_ms": 13.871578254254247,
+          "p99_ms": 52.37492,
+          "max_ms": 71.165481,
+          "over_30ms": 200
+        }
+      },
+      "sensors": {
+        "rgb": {
+          "count": 200,
+          "frame_residues": [
+            0
+          ],
+          "gaps": []
+        },
+        "gt": {
+          "count": 200,
+          "frame_residues": [
+            0
+          ],
+          "gaps": []
+        }
+      },
+      "slow_frame_modulo5": {
+        "0": 0,
+        "1": 0,
+        "2": 200,
+        "3": 0,
+        "4": 0
+      },
+      "stationary_only": true,
+      "wall_driving_accepted": false
+    },
+    {
+      "case": "source-camera-paced-a",
+      "status": "VERIFIED_DIAGNOSTIC_ONLY",
+      "server_status": "COMPLETE_DIAGNOSTIC",
+      "server_exit": 130,
+      "backend": "source",
+      "cameras": true,
+      "render": true,
+      "pace_ms": 10,
+      "simulated_seconds": 9.999999776482582,
+      "wall_seconds": 14.440433175,
+      "rtf": 0.6924999863435594,
+      "measurements": {
+        "server_platform_gap": {
+          "count": 1000,
+          "mean_ms": 14.441377613984514,
+          "p99_ms": 49.746912030968815,
+          "max_ms": 65.07820001570508,
+          "over_30ms": 200
+        },
+        "tick_roundtrip": {
+          "count": 1000,
+          "mean_ms": 8.317165155,
+          "p99_ms": 41.915199,
+          "max_ms": 59.082223,
+          "over_30ms": 111
+        },
+        "client_arrival_gap": {
+          "count": 999,
+          "mean_ms": 14.447944457457456,
+          "p99_ms": 51.0532,
+          "max_ms": 65.087639,
+          "over_30ms": 200
+        }
+      },
+      "sensors": {
+        "rgb": {
+          "count": 200,
+          "frame_residues": [
+            0
+          ],
+          "gaps": []
+        },
+        "gt": {
+          "count": 200,
+          "frame_residues": [
+            0
+          ],
+          "gaps": []
+        }
+      },
+      "slow_frame_modulo5": {
+        "0": 0,
+        "1": 0,
+        "2": 200,
+        "3": 0,
+        "4": 0
+      },
+      "stationary_only": true,
+      "wall_driving_accepted": false
+    },
+    {
+      "case": "source-paced-a",
+      "status": "VERIFIED_DIAGNOSTIC_ONLY",
+      "server_status": "COMPLETE_DIAGNOSTIC",
+      "server_exit": 130,
+      "backend": "source",
+      "cameras": false,
+      "render": false,
+      "pace_ms": 10,
+      "simulated_seconds": 9.999999776482582,
+      "wall_seconds": 10.0762381,
+      "rtf": 0.992433850534217,
+      "measurements": {
+        "server_platform_gap": {
+          "count": 1000,
+          "mean_ms": 10.077111912018154,
+          "p99_ms": 10.493146954104304,
+          "max_ms": 10.830462968442589,
+          "over_30ms": 0
+        },
+        "tick_roundtrip": {
+          "count": 1000,
+          "mean_ms": 0.8482356879999999,
+          "p99_ms": 1.384498,
+          "max_ms": 1.626878,
+          "over_30ms": 0
+        },
+        "client_arrival_gap": {
+          "count": 999,
+          "mean_ms": 10.085855525525519,
+          "p99_ms": 10.544925,
+          "max_ms": 10.903349,
+          "over_30ms": 0
+        }
+      },
+      "sensors": {
+        "rgb": {
+          "count": 0,
+          "frame_residues": [],
+          "gaps": []
+        },
+        "gt": {
+          "count": 0,
+          "frame_residues": [],
+          "gaps": []
+        }
+      },
+      "slow_frame_modulo5": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "stationary_only": true,
+      "wall_driving_accepted": false
+    },
+    {
+      "case": "source-render-a",
+      "status": "VERIFIED_DIAGNOSTIC_ONLY",
+      "server_status": "COMPLETE_DIAGNOSTIC",
+      "server_exit": 130,
+      "backend": "source",
+      "cameras": false,
+      "render": true,
+      "pace_ms": 0,
+      "simulated_seconds": 9.999999776482582,
+      "wall_seconds": 6.760113548,
+      "rtf": 1.4792650604872033,
+      "measurements": {
+        "server_platform_gap": {
+          "count": 1000,
+          "mean_ms": 6.7618716260185465,
+          "p99_ms": 10.461900033988059,
+          "max_ms": 16.661914996802807,
+          "over_30ms": 0
+        },
+        "tick_roundtrip": {
+          "count": 1000,
+          "mean_ms": 6.703044901999997,
+          "p99_ms": 10.747531,
+          "max_ms": 16.631294,
+          "over_30ms": 0
+        },
+        "client_arrival_gap": {
+          "count": 999,
+          "mean_ms": 6.7617006286286365,
+          "p99_ms": 10.821541,
+          "max_ms": 16.678002,
+          "over_30ms": 0
+        }
+      },
+      "sensors": {
+        "rgb": {
+          "count": 0,
+          "frame_residues": [],
+          "gaps": []
+        },
+        "gt": {
+          "count": 0,
+          "frame_residues": [],
+          "gaps": []
+        }
+      },
+      "slow_frame_modulo5": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "stationary_only": true,
+      "wall_driving_accepted": false
+    },
+    {
+      "case": "source-state-a",
+      "status": "EXCLUDED_FAILED_ATTEMPT",
+      "result_status": "FAIL",
+      "server_status": "PROBE_FAIL",
+      "error": null
+    },
+    {
+      "case": "source-state-b",
+      "status": "VERIFIED_DIAGNOSTIC_ONLY",
+      "server_status": "COMPLETE_DIAGNOSTIC",
+      "server_exit": 130,
+      "backend": "source",
+      "cameras": false,
+      "render": false,
+      "pace_ms": 0,
+      "simulated_seconds": 9.999999776482582,
+      "wall_seconds": 0.823802899,
+      "rtf": 12.1388256688844,
+      "measurements": {
+        "server_platform_gap": {
+          "count": 1000,
+          "mean_ms": 0.8244522290187888,
+          "p99_ms": 1.6936560277827084,
+          "max_ms": 2.954091993160546,
+          "over_30ms": 0
+        },
+        "tick_roundtrip": {
+          "count": 1000,
+          "mean_ms": 0.8081828850000002,
+          "p99_ms": 1.692601,
+          "max_ms": 2.996957,
+          "over_30ms": 0
+        },
+        "client_arrival_gap": {
+          "count": 999,
+          "mean_ms": 0.8241979699699694,
+          "p99_ms": 1.799857,
+          "max_ms": 3.077323,
+          "over_30ms": 0
+        }
+      },
+      "sensors": {
+        "rgb": {
+          "count": 0,
+          "frame_residues": [],
+          "gaps": []
+        },
+        "gt": {
+          "count": 0,
+          "frame_residues": [],
+          "gaps": []
+        }
+      },
+      "slow_frame_modulo5": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "stationary_only": true,
+      "wall_driving_accepted": false
+    }
+  ],
+  "acceptance": "no real-time or driving acceptance"
+}

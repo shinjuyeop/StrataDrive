@@ -1,0 +1,46 @@
+{
+  "status": "PROBE_FAIL",
+  "backend": "source",
+  "argv": [
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-game",
+    "-FixedSeed",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-carla-rpc-port=2300",
+    "-quality-level=Low",
+    "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+    "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-log"
+  ],
+  "executable_sha256": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+  "probe_sha256": "f3004f8aaef24b8f2aec1f44a861542e514a99a8e2edaa1d3cd74fc1fece352f",
+  "module_sha256": {
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Plugins/Runtime/PhysXVehicles/Binaries/Linux/libUE4Editor-PhysXVehicles.so": "f036d6c03ac51347d076e64dc827787f693685da5451cd552cde536227a6b3ce",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so": "bec783f10084ed93ee7c831dac1f2a4ddef5de398d174862247fefcd5bee205f"
+  },
+  "vulkan_icd": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+  "pid": 3620731,
+  "probe_argv": [
+    "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_frame_baseline.py",
+    "--probe",
+    "--backend",
+    "source",
+    "--output",
+    "/d/shin/stratadrive-tools/m7-source/m7-frame-diagnostic/source-state-a",
+    "--ticks",
+    "1000",
+    "--warmup",
+    "150"
+  ],
+  "probe_exit": -2,
+  "server_exit": 130
+}

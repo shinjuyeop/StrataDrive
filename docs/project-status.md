@@ -68,10 +68,10 @@ component/회귀 근거이며 실제 wall 주행 성공을 뜻하지 않는다.
 
 | 항목 | 현재 처리 |
 | --- | --- |
-| 엔진 프레임 공백 | 정상 wall 주행의 직접 차단 원인. Render fence 대기는 관측했지만 FIFO·예열·null-RHI·inline-render 비교로 원인 제거를 증명하지 못함 |
+| 엔진 프레임 공백 | 최소 state 경로의10ms 요청1000구간은 source/공식 패키지 모두 최대 약10.83ms. RGB+GT에서는30ms 초과가 source200/1000·패키지17/1000으로 재현됨. 영상 경로의 지연 기여를 확인했으며 세부 blocking 원인은 미확정. 패키지 종료−11 실패 별도 보존. [대조 시험](test-plan/evidence/m7_carla_wall_guard/carla-runtime/frame-diagnostic/README.md) |
 | Clock·실시간 실행 | simulation elapsed와 CLOCK_MONOTONIC을 분리. 고정 offset·heartbeat·timeout 증가로 2ms/4ms·30ms 수용을 대신할 수 없음 |
 | Wall fault 후 실제 제동 | 정상 wall 세션 → LocalProtection Actual → CARLA 연속 적용·정지의 통합 수용 OPEN. 초기화 실패에서 unavailable Actual을 만들어 적용하지 않음 |
-| Renderer | 과거 Distance Field SIGSEGV 원인 미확정. 짧은 영상 성공을 전체 content/장시간 안정성으로 확대하지 않음 |
+| Renderer | 카메라 없이 rendering만 켠 기본 source 경로는 최대16.66ms, RGB+GT의10ms 요청에서는 최대65.08ms/5frame 반복 지연. 영상 capture/render/readback과 물리 진행의 결합을 우선 조사. 과거 Distance Field SIGSEGV·전체 content/장시간 안정성은 미해결 |
 | 과거 M3/M4·SDK | timing/FIFO·native·SDK sanitizer 기능 미완료 OPEN은 각 당시 분모·실패와 함께 보존 |
 | DDS | 정규 제어 gate CLOSED, adapter 미착수. 기존 종료·20ms·TSan FAIL 및 접근 제한 이력 유지 |
 | 전체 시스템·Target | 32개 요구/29개 system TC, Jetson·실제 IO·Host–Target 검증은 NOT RUN. C++ 제어/AI도 후속 |

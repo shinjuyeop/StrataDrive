@@ -1,0 +1,41 @@
+{
+  "status": "PROBE_FAIL",
+  "backend": "package",
+  "argv": [
+    "/d/shin/stratadrive-tools/carla-0.9.16/server/CarlaUE4/Binaries/Linux/CarlaUE4-Linux-Shipping",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-game",
+    "-FixedSeed",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-carla-rpc-port=2300",
+    "-quality-level=Low",
+    "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+    "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-log"
+  ],
+  "executable_sha256": "03bcd413615fa1fc61a5b846342dbdc4e6b3541320a40d6bf17ff927039731f9",
+  "probe_sha256": "469e9c045f59911bfa50a01916ac09a12d225d20aa039c5bc0a985301f41250e",
+  "vulkan_icd": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+  "pid": 3623911,
+  "probe_argv": [
+    "/d/shin/stratadrive-tools/carla-0.9.16/venv-bundled/bin/python",
+    "/d/shin/StrataDrive/tests/integration/carla/m7_frame_baseline.py",
+    "--probe",
+    "--backend",
+    "package",
+    "--output",
+    "/d/shin/stratadrive-tools/m7-source/m7-frame-diagnostic/package-state-a",
+    "--ticks",
+    "1000",
+    "--warmup",
+    "150"
+  ],
+  "probe_exit": 1,
+  "server_exit": -11
+}

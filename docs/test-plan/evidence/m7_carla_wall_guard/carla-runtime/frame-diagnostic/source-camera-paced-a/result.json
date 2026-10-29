@@ -1,0 +1,125 @@
+{
+  "status": "COMPLETE_DIAGNOSTIC",
+  "scope": "stationary diagnostic; no normal driving acceptance",
+  "backend": "source",
+  "cameras": true,
+  "render": true,
+  "warmup_ticks": 150,
+  "ticks": 1000,
+  "pace_ms": 10,
+  "actuation_calls": 0,
+  "probe_sha256": "146da51269a6b065bb36dcafcdc3c5186cbd6c50351fc98e7587422c970c9e87",
+  "client_version": "294096e-dirty",
+  "server_version": "294096e-dirty",
+  "map": "Carla/Maps/Town03_Opt",
+  "extension_describe": {
+    "ok": false,
+    "reason": "disabled",
+    "schema": "m7-nodrive-zero-probe-v1",
+    "normal_driving_enabled": false,
+    "interval_work_valid": false,
+    "effort_profile": "zero-only",
+    "frame": "21",
+    "session": "0",
+    "run": "",
+    "actor": "0",
+    "clock_domain": "m7-zero-probe-logical-frame",
+    "locked": false,
+    "latched": false,
+    "latched_reason": "",
+    "staged": false,
+    "in_flight": false,
+    "awaiting_ev_settlement": false
+  },
+  "original_settings": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "settings": {
+    "synchronous_mode": true,
+    "fixed_delta_seconds": 0.01,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "fixture": {
+    "map": "Carla/Maps/Town03_Opt",
+    "spawn_index": 0,
+    "ego_id": 86,
+    "opendrive_sha256": "abf177bcd9b66cfefb7ac4919f6456815f1384f4229f1343c8a6a90bbb7713c9",
+    "blueprint": "vehicle.lincoln.mkz_2020",
+    "weather": "ClearNoon",
+    "traffic": false,
+    "vehicle_model": "unmodified asset; no V1 or solver observer enabled"
+  },
+  "start": {
+    "frame": 178,
+    "sim_seconds": 1.9972677393816411,
+    "platform_seconds": 266872.76374192
+  },
+  "resources_before": {
+    "/proc/pressure/io": "some avg10=1.04 avg60=3.14 avg300=12.09 total=1771073843\nfull avg10=0.96 avg60=2.93 avg300=11.65 total=1686440464\n",
+    "/proc/pressure/memory": "some avg10=0.00 avg60=0.41 avg300=0.74 total=39355361\nfull avg10=0.00 avg60=0.38 avg300=0.71 total=37567041\n",
+    "/proc/3633903/stat": "3633903 (UE4Editor) S 3633902 3633903 3633903 0 -1 4194304 2109352 33276 0 0 2741 722 28 9 20 0 90 0 26684498 12375052288 1197484 18446744073709551615 2306592 2599168 140727650400432 0 0 0 0 1073396224 1073825023 0 0 0 17 6 0 0 0 0 0 2608896 2613152 519372800 140727650403390 140727650403927 140727650403927 140727650410412 0\n",
+    "/proc/3633903/io": "rchar: 3011291170\nwchar: 195149403\nsyscr: 576182\nsyscw: 2889\nread_bytes: 1228800\nwrite_bytes: 195432448\ncancelled_write_bytes: 0\n"
+  },
+  "resources_after": {
+    "/proc/pressure/io": "some avg10=0.25 avg60=2.49 avg300=11.52 total=1771126003\nfull avg10=0.23 avg60=2.32 avg300=11.10 total=1686485501\n",
+    "/proc/pressure/memory": "some avg10=0.00 avg60=0.32 avg300=0.71 total=39355394\nfull avg10=0.00 avg60=0.30 avg300=0.67 total=37567073\n",
+    "/proc/3633903/stat": "3633903 (UE4Editor) R 3633902 3633903 3633903 0 -1 4194304 2172476 33276 0 0 6390 1113 28 9 20 0 90 0 26684498 12385538048 1203246 18446744073709551615 2306592 2599168 140727650400432 0 0 0 0 1073396224 1073825023 0 0 0 17 8 0 0 0 0 0 2608896 2613152 519372800 140727650403390 140727650403927 140727650403927 140727650410412 0\n",
+    "/proc/3633903/io": "rchar: 3018576955\nwchar: 195149403\nsyscr: 578225\nsyscw: 2889\nread_bytes: 1413120\nwrite_bytes: 195432448\ncancelled_write_bytes: 0\n"
+  },
+  "sensor_counts": {
+    "rgb": 200,
+    "gt": 200
+  },
+  "tick_roundtrip": {
+    "count": 1000,
+    "mean_ms": 8.317165155,
+    "p50_ms": 1.566212,
+    "p99_ms": 41.915199,
+    "max_ms": 59.082223,
+    "over_10ms": 200,
+    "over_20ms": 200,
+    "over_30ms": 111
+  },
+  "server_platform_gap": {
+    "count": 1000,
+    "mean_ms": 14.441377613984514,
+    "p50_ms": 9.676027984824032,
+    "p99_ms": 49.746912030968815,
+    "max_ms": 65.07820001570508,
+    "over_10ms": 399,
+    "over_20ms": 200,
+    "over_30ms": 200
+  },
+  "client_arrival_gap": {
+    "count": 999,
+    "mean_ms": 14.447944457457456,
+    "p50_ms": 9.673619,
+    "p99_ms": 51.0532,
+    "max_ms": 65.087639,
+    "over_10ms": 392,
+    "over_20ms": 200,
+    "over_30ms": 200
+  },
+  "simulated_seconds": 9.999999776482582,
+  "wall_seconds": 14.440433175,
+  "rtf": 0.6924999863435594,
+  "ego_destroyed": true,
+  "restored_settings": {
+    "synchronous_mode": false,
+    "fixed_delta_seconds": null,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "remaining_owned_actors": [],
+  "cleanup_errors": []
+}
