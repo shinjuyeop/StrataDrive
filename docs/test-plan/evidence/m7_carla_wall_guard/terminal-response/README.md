@@ -55,4 +55,4 @@ python3 tests/integration/carla/audit_m7_terminal.py \
 
 `archive-manifest.json`은 원본/압축 SHA와 무손실 readback, `source-and-validation.json`은 최종
 source/binary·검사 범위를 기록한다. binary·credentials는 보관하지 않는다. 부모 evidence와 이전
-실패는 수정하지 않았다. 현 남은 작업은 [통합 종료 검토](../../../../m7_exit_review.md)를 따른다.
+실패는 수정하지 않았다. 현 남은 작업은 [통합 종료 검토](../../../../project-status.md#m7-종료-조건)를 따른다.

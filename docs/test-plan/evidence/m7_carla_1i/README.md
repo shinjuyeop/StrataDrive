@@ -72,7 +72,7 @@ PhysX update의 brake lock/vehicle sleep은 실제 물리 상태를0으로 만�
 receipt가 없고, 현재 음수가 부동소수점 오차인지 실제 미세 역회전인지 확정할 근거도 없다.
 원래 source/값을 보존한 strict rejection을 유지한다. **brake 적용 시 해결된다는 live 결과는 없다.**
 
-[ICD v6](../../../icd/carla_plant_adapter.md#m7-1i--직접-wheel-effort-확장안)에
+[ICD v6](../../../archive/carla-history.md#icd-m7-1i--직접-wheel-effort-확장안)에
 stage ACK와 post-physics receipt 구분, single-use frame token, expiry·pause/reset,
 signed motor work/friction loss 분리와 단일 EV owner 전환 조건을 정리했다.
 1h의 `MODEL_ZOH_UNAPPLIED`는 여전히 예측이다. interval work와 SOC/회생 수용은 NOT RUN이다.

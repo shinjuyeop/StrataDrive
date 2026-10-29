@@ -5,8 +5,8 @@
 사용자 변경 없음. 최종 실행 소스 **`d242861`**이며 구현 `07563b8`, receiver 수정 `b3424de`다.
 기존 M5 한정 수용·M6 첫 MIL·DDS/과거 FAIL/OPEN은 변경하지 않았다.
 
-[사전 protocol/수정별 비교](protocol.md), [에너지 경계](../../../icd/vehicle_energy.md),
-[ADR-0064](../../../adr/ADR-0064-vehicle-ev-interval-energy.md),
+[사전 protocol/수정별 비교](protocol.md), [에너지 경계](../../../interfaces/vehicle-energy.md),
+[ADR-0064](../../../archive/design-decisions.md#adr-0064),
 [기계 판독 전체 결과](results-summary.json), [실제 SDK12회](results.csv),
 [에너지 항과 전체 runtime 판정](energy-accounting.csv), [시간축](timeline.csv),
 [갱신 여유](renewal-margins.csv), [Normal 실패 축](failure-axis.json),

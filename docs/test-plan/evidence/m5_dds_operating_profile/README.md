@@ -24,9 +24,9 @@ SDK 경고를 억제하거나 동기화/커널/sudoers/모델 접근 설정을 �
 | QoS | 메시지 종류별 QoS/큐는 TBD-05/15 | 양 방향 VOLATILE/RELIABLE/KEEP_ALL, resources8/1/8, blocking0 | 양쪽 reader/writer public readback 일치. KEEP_ALL depth8은 읽혔지만 depth는 KEEP_ALL에서 용량 의미가 없음 |
 | 시간/세션 | 원래 source/parent/expiry, 새 durable Epoch/full handshake | 공통 kernel CLOCK_MONOTONIC, 고정 진단 grant42/43·token·route/CRC 검사 | 모든 accepted ingress/result의 판정 시각 < 원래20ms deadline 및 inner30ms expiry. Echo는 실제 ACK/Actual·보호 결과가 아님 |
 
-대조한 기준: [status](../../../project_status.md), [Host 수용](../../../m4_host_acceptance_review.md),
-[M4 종료](../../../m4_exit_review.md), [배포](../../../architecture/deployment_architecture.md),
-[DDS 의미 계약](../../../icd/ethernet_dds_icd.md), [owner-wire](../../../icd/owner_wire_v1.md),
+대조한 기준: [status](../../../project-status.md), [Host 수용](../../../archive/milestone-reviews.md#m4-host),
+[M4 종료](../../../archive/milestone-reviews.md#m4), [배포](../../../architecture/README.md),
+[DDS 의미 계약](../../../interfaces/ethernet-dds.md), [owner-wire](../../../interfaces/owner-wire-v1.md),
 [reference.yaml](../../../../profiles/reference.yaml), `dds_channel.c`와 lifecycle runner/probe.
 **reference.yaml은 설계 데이터이며 loader가 없다.** 실제 설정은 C++ 상수/환경 변수,
 runner의 taskset·CYCLONEDDS_URI다. 오래된 ICD의 “runtime planned”는 정규 배포를 뜻하고,
@@ -79,7 +79,7 @@ FIFO로 높이거나 queue를 늘리지 않았다. 후보 D는 별도 물리 코
 | 세션/credit | Prepare→INIT→Release의 전체8-role ACK, 새 durable Epoch·원래 단계 deadline. 중복 idempotence·재시도 budget은 별도 lane에서 검증. DDS 자동 discovery/reconnect나 이번 readiness가 authority를 부여하지 않음 |
 | 보호 | 정상 lane 포화와 독립 전달·로컬 감시 필요. 원래20ms·issuer/Epoch/token 불변. actor 선택 뒤에만 ACK;8개 identity tombstone/issuer/Epoch 보존, 가득 차도 보호 선택·새 ACK 미발행. 만료 재시도 거부, 새 INIT 전 자동 복구 금지 |
 
-위 요구는 [ADR-0058](../../../adr/ADR-0058-remote-owner-authority-and-dds-probe.md)/owner-wire에서
+위 요구는 [ADR-0058](../../../archive/design-decisions.md#adr-0058)/owner-wire에서
 온 것이다. 보호 ACK identity8개는 DDS resource8과 별개다. 모든 종류를 현재 두 topic에
 섞어 같은 QoS로 처리하는 운용 설계는 미완료다. 8이 충분한 capacity라는 분석도 없다.
 

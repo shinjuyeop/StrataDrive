@@ -19,7 +19,7 @@ M6 구현·계약·검증 수치/판정, V1 계수, 기존20/10ms 주기·Drive3
   함께 수행하지 않고 SimpleVehicle을 만들지 않는다. 기존 actuator 응답은 그대로1ms에서 계산한다.
   work 총량을 보존해1ms 모델 경계에 배분하고 마지막1ms 미만 잔여도 해당 frame 안에서 정산한다.
   원래 wheel/CAN 취득 시각·oldest dependency는 유지한다. 실제 setter 적용 witness와 CAN Actual의
-  source를 구분하며 새 CAN Actual을 만들지 않는다. 상세 계약은 [ICD v15](../../../icd/carla_plant_adapter.md).
+  source를 구분하며 새 CAN Actual을 만들지 않는다. 상세 계약은 [ICD v15](../../../interfaces/carla-plant-adapter.md).
 - frame checkpoint로 actuator/EV 모델 상태·cursor·장부를 함께 복원한다. 이미 실행한 CARLA physics나
   native 내부 메시지를 되돌리는 것은 아니다. 실패하면 그 rig를 폐기하고 새 process/INIT가 필요하다.
   서버는 receipt 뒤 `settle_work` ACK가 올 때까지 다음 stage를 막고 누락·중복·J/identity 불일치를 latch한다.

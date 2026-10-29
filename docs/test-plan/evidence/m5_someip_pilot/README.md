@@ -13,8 +13,8 @@ Jetson/전체 시스템 NOT RUN을 유지한다.
 ## 구현과 실제 경계
 
 [코드](../../../../tests/integration/someip/pilot.cpp), [빌드 도구](../../../../tests/integration/someip/build.py),
-[runner](../../../../tests/integration/someip/run.py), [wire 표/ICD](../../../icd/someip_pilot.md),
-[ADR-0060](../../../adr/ADR-0060-someip-host-component-pilot.md)를 함께 본다.
+[runner](../../../../tests/integration/someip/run.py), [wire 표/ICD](../../../interfaces/someip-pilot.md),
+[ADR-0060](../../../archive/design-decisions.md#adr-0060)를 함께 본다.
 
 - 공식 vSomeIP3.7.6 / `4187431d2815bd351845a09d01aa85b2a3163cab`, Boost1.85.0을
   ignored build 아래 고정했다. SOME/IP와 vSomeIP, DDS와 Cyclone DDS는 각각 protocol과

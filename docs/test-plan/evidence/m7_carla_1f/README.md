@@ -116,7 +116,7 @@ native exit1은 기대한 거부다. 초반 startup에는 NON_DRIVING tick만 �
 
 Host가 느려도 source timestamp를 바꾸거나30ms를 늘리지 않고 원래 ECU/권한 기능을 검증할
 실행 경로를 확보했다. **실제 차량 정상 주행까지 해결한 상태는 아니다.**
-다음은 [ICD의 M7-1g wheel 계획](../../../icd/carla_plant_adapter.md#m7-1g-wheel-검증-계획)에 따라
+다음은 [ICD의 M7-1g wheel 계획](../../../archive/carla-history.md#icd-m7-1g-wheel-검증-계획)에 따라
 무동력 회전 관측·단위/부호/wrap·구간 평균 각속도와 oldest dependency 의미를 확인한다.
 이후 actuator-only port 분리 → 차종별 rad/Nm/Pa calibration → full Actual admission/apply ACK/tick
 연결을 각 작은 작업으로 수행한다. 패키지 telemetry로 불가능하면 서버 확장 또는 SIL motion

@@ -2,8 +2,8 @@
 
 Baseline:29b8221, clean worktree. Previous966-test/timing/native/SDK TSan evidence is
 unchanged in [m4_contract_review](../m4_contract_review/README.md).
-[ADR-0059](../../../adr/ADR-0059-pending-command-allocation-settlement.md) defines the
-pending/expiry contract; [prospective protocol](../../m4_settlement_protocol.md)
+[ADR-0059](../../../archive/design-decisions.md#adr-0059) defines the
+pending/expiry contract; [prospective protocol](../../../archive/m4-test-protocols.md#m4_settlement_protocol)
 fixes the40 diagnostic and48 timing runs before execution.
 
 ## Reproduction before correction
@@ -70,7 +70,7 @@ The unchanged48-run timing collector returns0 when export completes; its
 
 ## Time and physical response
 
-[ADR-0059's table](../../../adr/ADR-0059-pending-command-allocation-settlement.md)
+[ADR-0059's table](../../../archive/design-decisions.md#adr-0059)
 places source, CAN creation/initial sent, Front/Rear receive/result, Leaf handling,
 applied expiry, nominal next release and protection on the same logical clock.
 [command-timeline.csv](command-timeline.csv) includes original absolute ns and

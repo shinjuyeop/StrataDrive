@@ -1,7 +1,7 @@
 # M4 owner 비동기 통합 — 최소 공유 검증 근거
 
 Result: **RES-M4-ASYNC-20261019**, Host component PASS. 전체 system32요구/29 TC **NOT RUN**.
-현재 상태의 기준은 [project_status](../../../project_status.md)이며 [설계](../../../adr/ADR-0055-asynchronous-normal-owner-integration.md)와 [읽는 순서·CLI](../../../learning/m4_async_owners.md)를 함께 본다.
+현재 상태의 기준은 [project_status](../../../project-status.md)이며 [설계](../../../archive/design-decisions.md#adr-0055)와 [읽는 순서·CLI](../../../learning/vehicle-lifecycle-guide.md)를 함께 본다.
 
 ## 대상·환경·입력
 
@@ -99,7 +99,7 @@ cmake --build build/m4-readiness -j 4
 STRATADRIVE_M4_RESULTS="$PWD/build/m4-async-reproduce/normal" ctest --test-dir build/m4-readiness --output-on-failure --output-junit "$PWD/build/m4-async-reproduce/normal/unit.xml"
 ```
 
-논리 개별 재현·native 실행은 [기존 actuator_demo의 m4-async](../../../learning/m4_async_owners.md)를 사용한다.
+논리 개별 재현·native 실행은 [기존 actuator_demo의 m4-async](../../../learning/vehicle-lifecycle-guide.md)를 사용한다.
 위 raw 결과를 추출만 다시 할 때는 같은 명령에 `--reuse`를 추가한다. 코드 SHA256이 달라지면 거부한다.
 Docs-only 후속 commit에서도 `results.json`의 **원래 시험 commit**을 유지한다. Wall 수치는 다음 실행과 같을 필요가 없으며 같은 oracle로 다시 판정한다.
 `component_results.csv`는 추적표에 두 JUnit의 실제 test verdict를 붙인 최소 표다. 재추출은 다음과 같다.
@@ -108,7 +108,7 @@ Docs-only 후속 commit에서도 `results.json`의 **원래 시험 commit**을 �
 python3 - <<'PY'
 import csv, pathlib, xml.etree.ElementTree as ET
 raw = pathlib.Path('build/m4-async-reproduce')
-rows = list(csv.DictReader(open('docs/test-plan/component_traceability.csv')))
+rows = list(csv.DictReader(open('docs/test-plan/component-traceability.csv')))
 for profile in ('normal', 'sanitized'):
     tests = {c.attrib['name']: 'FAIL' if c.find('failure') is not None or c.find('error') is not None else 'NOT RUN' if c.find('skipped') is not None else 'PASS' for c in ET.parse(raw/profile/'unit.xml').getroot().findall('.//testcase')}
     for row in rows: row[profile] = tests[row['test']]

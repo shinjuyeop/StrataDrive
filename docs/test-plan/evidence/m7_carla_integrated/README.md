@@ -1,7 +1,7 @@
 # M7 통합 검증 — 정상 기능, 센서, fault와 종료 판정
 
 2026-10-27. 기준 commit `06284e5`. **전체 M7 NOT CLOSED**;
-[종료 검토](../../../m7_exit_review.md)가 현재 판정을 대표한다.
+[종료 검토](../../../project-status.md#m7-종료-조건)가 현재 판정을 대표한다.
 M6 구현·계약·수용 수치, V1 계수, 기존 Controller20ms/Zone·vECU10ms/Drive30ms/expiry는 불변이다.
 
 ## 실행 결과

@@ -39,7 +39,7 @@ BO_ 641 BrakeActual: 32 BrakeVecu
  SG_ E2ECrc : 232|16@1+ (1,0) [0|65535] "" Zone
  SG_ E2ECounter : 248|8@1+ (1,0) [0|255] "" Zone
 
-CM_ "Design proposal only. See docs/icd/brake_frame_draft.md. Not six-frame baseline or runtime validation.";
+CM_ "Design proposal only. See docs/interfaces/brake-frame.md. Not six-frame baseline or runtime validation.";
 CM_ BO_ 385 "Zone demand. Standard 11-bit CAN FD, 32-byte payload, DLC 13, BRS=0, ESI=0. Logical period 10 ms.";
 CM_ BO_ 641 "Independent actual model sample; not command echo. Same frame format as command.";
 CM_ SG_ 385 Pressure "Effective aggregate brake pressure demand, nonnegative. Raw 65535 (FF FF) reserved invalid; 0 is valid release. 1000 Pa resolution is a project draft, not OEM calibration. Wire maximum is not a physical limit.";

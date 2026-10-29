@@ -109,7 +109,7 @@ analysis source identity separately from capture identity.
 
 ## Next observation and remaining limits
 
-Use the [compact-v2 sudo command](../../m4_kernel_capture.md) for one newly
+Use the [compact-v2 sudo command](../../../archive/m4-test-protocols.md#m4_kernel_capture) for one newly
 declared OFF→ON pair, keeping both outcomes and checking losses/cleanup/clock
 alignment before interpreting timer, runnable and in-body intervals. Do not
 retry silently until a passing sample appears.

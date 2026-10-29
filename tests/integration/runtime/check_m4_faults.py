@@ -173,8 +173,8 @@ def timing_run(folder, profile, policy, loaded, case, repetition):
 def cohort(directory):
     directory.mkdir(parents=True, exist_ok=False)
     metadata = {'source_commit': subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(), 'source_digest': BASE['fingerprint'](),
-                'protocol_sha256': hashlib.sha256((ROOT/'docs/test-plan/m4_fault_timing_protocol.md').read_bytes()).hexdigest(),
-                'followup_protocol_sha256': hashlib.sha256((ROOT/'docs/test-plan/m4_followup_protocol.md').read_bytes()).hexdigest(),
+                'protocol_sha256': hashlib.sha256((ROOT/'docs/archive/protocols/m4-fault-timing-protocol.md').read_bytes()).hexdigest(),
+                'followup_protocol_sha256': hashlib.sha256((ROOT/'docs/archive/protocols/m4-follow-up-protocol.md').read_bytes()).hexdigest(),
                 'utc': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'planned_runs':48, 'duration_ns':2540000000, 'guard_lead_ns':100000000,
                 'period_ns':2000000, 'deadline_ns':4000000, 'guard_slots_per_owner':1211, 'tail_ns':20000000, 'cpus':[0,1], 'repetitions':3}
     (directory/'metadata.json').write_text(json.dumps(metadata,indent=2)+'\n')
@@ -226,7 +226,7 @@ def export(raw, output, timing):
                 for metric in json.loads(p.read_text()): owners.append({**{k:trial[k] for k in ('profile','policy','loaded','case','repetition')},**metric})
         save_csv(output/'owner-timing.csv',owners)
         report['timing']={'metadata':tm,'counts':{v:sum(row['verdict']==v for row in rows) for v in ('PASS','FAIL','BLOCKED')},'requested':tm['planned_runs'],'recorded':len(rows),'not_run':tm['planned_runs']-len(rows)}
-    mapping=list(csv.DictReader((ROOT/'docs/test-plan/component_traceability.csv').open()))
+    mapping=list(csv.DictReader((ROOT/'docs/test-plan/component-traceability.csv').open()))
     for profile in PROFILES:
         tests=BASE['junit'](raw/profile/'unit.xml')
         for row in mapping: row[profile]=tests[row['test']]

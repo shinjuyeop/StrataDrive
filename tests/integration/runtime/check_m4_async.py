@@ -55,7 +55,7 @@ def junit(path):
 
 def export(raw, output, metadata):
     output.mkdir(parents=True, exist_ok=True)
-    mapping = list(csv.DictReader((ROOT / "docs/test-plan/component_traceability.csv").open()))
+    mapping = list(csv.DictReader((ROOT / "docs/test-plan/component-traceability.csv").open()))
     results = {p: junit(raw / p / "unit.xml") for p in PROFILES}
     for profile, tests in results.items():
         if any(value != "PASS" for value in tests.values()):

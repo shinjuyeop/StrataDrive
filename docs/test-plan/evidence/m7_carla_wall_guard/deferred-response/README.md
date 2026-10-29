@@ -63,5 +63,5 @@ hash와 argv가 있다. 재생용 executable은 런타임 폴더에 동결했으
 상위 evidence의 기존99개 checksum 대상은 변경하지 않았다. 이 후속 폴더는 별도 `SHA256SUMS`로
 자신을 제외한 staged Git blob을 검증한다.
 
-다음 작업은 [현재 종료 검토](../../../../m7_exit_review.md#actuator-응답과-관측-ev-정산-분리)의
+다음 작업은 [현재 종료 검토](../../../../archive/carla-history.md#m7-review-actuator-응답과-관측-ev-정산-분리)의
 native timer/수신 분리와 새 경로 배선이다. **전체 M7 NOT CLOSED**를 유지한다.

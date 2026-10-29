@@ -96,8 +96,8 @@ wall runtime에는 새 domain의 INIT와 실제 monotonic owner service, bounded
 CARLA frame/model10ms와 actuator response elapsed/EV work·취득 provenance의 관계도 명시해야 한다.
 기존 SolverWork duration 범위 완화, cached source restamp, 일반 heartbeat를 owner job으로 세는
 방법, 기존 terminal-local Actual을 그대로 서버에 적용하는 방법은 채택하지 않았다.
-[ICD 설계 경계](../../../../icd/carla_plant_adapter.md#다음-wall-runtime의-구현-경계)와
-[종료 검토](../../../../m7_exit_review.md)에 **미구현 상태**를 명시했다.
+[ICD 설계 경계](../../../../archive/carla-history.md#icd-다음-wall-runtime의-구현-경계)와
+[종료 검토](../../../../project-status.md#m7-종료-조건)에 **미구현 상태**를 명시했다.
 
 ## 재현
 

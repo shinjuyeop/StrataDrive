@@ -63,4 +63,4 @@ TSan은 `-DSTRATADRIVE_TSAN=ON -DSTRATADRIVE_M7_FUNCTIONAL_TESTS=ON`으로 구�
 `archive-manifest.json`은37개 gzip의 원본/압축 SHA·해제 readback 검증이다. 압축은 무손실이며
 중단 trace·실패 로그도 포함한다. 실행 binary 자체는 커밋하지 않는다. `SHA256SUMS`는 자신을
 제외한 이 디렉터리의 Git staged blob을 검증한다.
-현재 남은 구현은 [통합 종료 검토](../../../m7_exit_review.md#wall-guard-후속-결과)를 따른다.
+현재 남은 구현은 [통합 종료 검토](../../../archive/carla-history.md#m7-review-wall-guard-후속-결과)를 따른다.

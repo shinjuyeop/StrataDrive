@@ -1,8 +1,8 @@
 # M7-1c — Actual-only / single writer / Drive freshness 논리 경계
 
 2026-10-23 (Asia/Seoul), 기준 `7a2b0fa` + 미커밋 M7-1a/b와 이 변경.
-**M7-1c fake-backend 논리 범위 완료**다. [M7 계획](../../m7_carla_preflight.md),
-[Plant Adapter 초안](../../../icd/carla_plant_adapter.md)의07~09를 아래 한정 범위로 검사했다.
+**M7-1c fake-backend 논리 범위 완료**다. [M7 계획](../../../carla-guide.md),
+[Plant Adapter 초안](../../../interfaces/carla-plant-adapter.md)의07~09를 아래 한정 범위로 검사했다.
 기존 M6 source/계약·CAN/P05 bytes·수치·수용을 변경하지 않았다. 새 코드는 test-only이며
 CARLA SDK link/서버 실행·actuation·source build, 실제8-role 전송 연결은 없다.
 

@@ -7,8 +7,8 @@ This document preserves the earlier767d334 cohort and its then-current boundarie
 2026-10-21. **Conditional adoption for this Host functional SIL profile**;
 unrestricted Host/native timing adoption remains pending. Implemented and executed
 real session/control/protection/rejoin, not a grant-file pilot. See
-[ADR-0061](../../../adr/ADR-0061-someip-front-owner-adapter.md) and
-[binding/ownership/limits](../../../icd/someip_front_adapter.md).
+[ADR-0061](../../../archive/design-decisions.md#adr-0061) and
+[binding/ownership/limits](../../../interfaces/someip-front-adapter.md).
 M4 Host native IO/FIFO limited acceptance / whole NOT CLOSED, DDS CLOSED and all
 historical DDS FAIL/OPEN records remain unchanged. Rear network/Jetson are NOT RUN.
 

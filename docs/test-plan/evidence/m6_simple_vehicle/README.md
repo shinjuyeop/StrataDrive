@@ -7,8 +7,8 @@
 모델/도구 계약 `bf152b2`. 최종 Normal SDK cohort는 커밋 직전에 실행했으며
 `plan.json`의 실제 source hash·바이너리 SHA가 동일 C++ 내용임을 식별한다([63개 파일/바이너리 대조](source-content-match.json)).
 
-[사전 protocol/수정별 비교](protocol.md), [ICD](../../../icd/simple_vehicle.md),
-[ADR-0063](../../../adr/ADR-0063-simple-vehicle-and-longitudinal-mil.md),
+[사전 protocol/수정별 비교](protocol.md), [ICD](../../../interfaces/simple-vehicle-model.md),
+[ADR-0063](../../../archive/design-decisions.md#adr-0063),
 [기계 판독 결과](results-summary.json), [전체 SDK9회](results.csv),
 [시간축](timeline.csv), [Leaf 갱신 여유](renewal-margins.csv),
 [MIL과 실제 runtime 그래프](model-and-runtime.svg), [SDK 경고 원문 위치](sdk-warnings.csv).

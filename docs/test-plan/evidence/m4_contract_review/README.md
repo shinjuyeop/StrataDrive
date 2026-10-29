@@ -201,7 +201,7 @@ next20ms allocation and old command expiry, without simply increasing timeouts.
 
 ## New-source timing: all48 and the additional FIFO failure
 
-The [fixed protocol](../../m4_contract_review_protocol.md) was selected before execution.
+The [fixed protocol](../../../archive/m4-test-protocols.md#m4_contract_review_protocol) was selected before execution.
 Same48-run conditions: normal/ASan, CPUs0/1, OTHER/FIFO, quiet or7ms/10ms contention,
 normal/Drive pause/Monitor6ms overrun, three repetitions,2.54s duration,
 2ms opportunities/4ms completion deadlines,1211 slots per owner (12110/run).
@@ -257,7 +257,7 @@ miss must be explained and retested under fixed conditions; normal pending-resul
 settlement and SDK sanitizer evidence also need review. Requested next conditions
 are same-Host timer/wakeup/switch/TID/IRQ capture permission, supported DDS atomic/
 reclamation instrumentation, and compatible instrumented Rust/toolchain provenance.
-No support profile is narrowed automatically. [Exit review](../../../m4_exit_review.md)
+No support profile is narrowed automatically. [Exit review](../../../archive/milestone-reviews.md#m4)
 keeps M4 NOT CLOSED and M5 not started.
 
 NOT RUN in this follow-up: full966 TSan, new middleware runtime tests, full Rust TSan,

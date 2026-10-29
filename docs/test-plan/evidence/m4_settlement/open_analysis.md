@@ -1,7 +1,7 @@
 # Remaining causal and acceptance questions
 
 Source: `97afb35`. The pending-allocation code defect is corrected by
-[ADR-0059](../../../adr/ADR-0059-pending-command-allocation-settlement.md).
+[ADR-0059](../../../archive/design-decisions.md#adr-0059).
 That finding does not identify the cause of the untraced `d7115ff` native TSan
 CommandDelivery failure.
 

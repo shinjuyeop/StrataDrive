@@ -13,7 +13,7 @@ unchanged actuator binary
 `4736b40e8b5b2b67c4cf603ff96a7b1516d619541fdb10a8de80ff01b8f76347`.
 Ubuntu22.04, kernel6.8.0-138-generic. All22 source/binary records remain stable.
 
-User executed the [fixed sudo command](../../../m4_kernel_capture.md) once:
+User executed the [fixed sudo command](../../../../archive/m4-test-protocols.md#m4_kernel_capture) once:
 OTHER loaded OFF→ON one pair, FIFO monitor-overrun OFF→ON ten pairs, normal
 build,2540ms each, no retries/exclusions/warm-up removal. Collection took85.090s,
 recorded1,222,462,910 bytes under the360s/3GiB limits. Analysis ran afterward as

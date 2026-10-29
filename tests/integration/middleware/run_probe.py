@@ -140,7 +140,7 @@ def child(folder, binary, condition):
         return result
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--child',nargs=3);p.add_argument('--output',type=Path);p.add_argument('--protocol',type=Path,default=ROOT/'docs/test-plan/m4_middleware_probe_protocol_v2.md');p.add_argument('--build',type=Path,default=ROOT/'build/m4-middleware-probes/tests/integration/middleware');a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--child',nargs=3);p.add_argument('--output',type=Path);p.add_argument('--protocol',type=Path,default=ROOT/'docs/archive/protocols/m4-middleware-probe-protocol-v2.md');p.add_argument('--build',type=Path,default=ROOT/'build/m4-middleware-probes/tests/integration/middleware');a=p.parse_args()
     if a.child:
         folder=Path(a.child[0]);folder.mkdir(parents=True,exist_ok=True)
         try:

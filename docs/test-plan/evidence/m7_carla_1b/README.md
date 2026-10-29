@@ -1,7 +1,7 @@
 # M7-1b — 비주행 RGB / Semantic GT / Vehicle State 수집
 
 2026-10-23 (Asia/Seoul). `7a2b0fa` + 미커밋 M7-1a와 이 M7-1b 변경에서 실행했다.
-[M7 계획](../../m7_carla_preflight.md), [Plant Adapter 초안](../../../icd/carla_plant_adapter.md)을 따른다.
+[M7 계획](../../../carla-guide.md), [Plant Adapter 초안](../../../interfaces/carla-plant-adapter.md)을 따른다.
 **수집·센서 lifecycle·50ms tick·제한된 fault/pause/reset 범위 완료**다. 정상 주행·M6 runtime·
 AI inference/학습·Jetson·source build는 실행하지 않았다. 실제 ECU30ms freshness 해결 증거가 아니다.
 

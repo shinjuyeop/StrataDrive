@@ -48,7 +48,7 @@ BO_ 642 DriveActual: 64 DriveVecu
  SG_ CapabilitySourceTimeNs : 384|64@1+ (1,0) [0|18446744073709551615] "ns" Zone
  SG_ CapabilityInputTimeNs : 448|64@1+ (1,0) [0|18446744073709551615] "ns" Zone
 
-CM_ "RG-01 wire draft. Model, blending and vehicle runtime are separate. See docs/icd/drive_frame_draft.md.";
+CM_ "RG-01 wire draft. Model, blending and vehicle runtime are separate. See docs/interfaces/drive-frame.md.";
 CM_ BO_ 386 "Standard 11-bit CAN FD, DLC 13 (32 bytes), 10 ms logical period. BRS=0, ESI=0.";
 CM_ BO_ 642 "DLC 15 (64 bytes). Independent actual torque plus wheel speed and regenerative capability. Not command echo.";
 CM_ SG_ 386 Torque "Aggregate driven-wheel demand: positive propulsion, negative forward regenerative braking, valid 0 no torque demand. Raw -32768 reserved invalid. Scaling/range are project wire choices, not OEM calibration.";

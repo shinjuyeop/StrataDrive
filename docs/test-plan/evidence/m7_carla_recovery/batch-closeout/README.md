@@ -77,7 +77,7 @@ RGB/GT는 각각180개, 기존 frame/source/identity와 TRAIN_EVAL_ONLY 분리�
 ## 재현 및 보존
 
 설치/실행 명령은 [도구 설명](../../../../../tools/carla/m7_nodrive/README.md), 판정 계약은
-[ICD](../../../../icd/carla_plant_adapter.md), gate는 [종료 검토](../../../../m7_exit_review.md)를 따른다.
+[ICD](../../../../interfaces/carla-plant-adapter.md), gate는 [종료 검토](../../../../project-status.md#m7-종료-조건)를 따른다.
 CARLA294096e/UE4.26.2 pin, Town03_Opt/mkz_2020/ClearNoon, fixed seed, world10ms/영상50ms/
 Controller20ms/Zone·leaf10ms/Drive30ms, V1 계수와320 내부 분할은 유지했다.
 

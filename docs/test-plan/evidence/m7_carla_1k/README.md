@@ -7,7 +7,7 @@ M6 구현·계약·종료 판정, 원래 요구 주기/freshness 및 과거 evid
 ## 구현과 환경
 
 [설치 도구/구체 RPC 계약](../../../../tools/carla/m7_nodrive/README.md),
-[ICD v8](../../../icd/carla_plant_adapter.md)을 따른다.
+[ICD v8](../../../interfaces/carla-plant-adapter.md)을 따른다.
 고정 CARLA commit `294096eb1c38eabf246e4f3a9cdab704e33a7f4c`,
 UE4.26.2 `e9d9e60c85f643e10eeb03f42f61554d18dcb30f`다.
 관측 Client/Server identity는 둘 다 **`294096e-dirty`**이며 wheel 배포 이름0.9.16과 구분한다.

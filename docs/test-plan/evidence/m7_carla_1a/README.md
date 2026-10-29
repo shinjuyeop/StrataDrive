@@ -2,7 +2,7 @@
 
 2026-10-23 (Asia/Seoul). 실행 기준 `7a2b0fa` + 이 변경의
 [m7_1a_smoke.py](../../../../tests/integration/carla/m7_1a_smoke.py).
-[M7 사전 계획](../../m7_carla_preflight.md)의 M7-1a 범위다.
+[M7 사전 계획](../../../carla-guide.md)의 M7-1a 범위다.
 서버 패키지와 venv는 저장소 밖 `/d/shin/stratadrive-tools/carla-0.9.16/`에 둔다.
 source build/ScenarioRunner/정상 주행/실제 M6 runtime 연결은 수행하지 않는다.
 

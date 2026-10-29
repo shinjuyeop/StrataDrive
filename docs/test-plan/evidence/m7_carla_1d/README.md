@@ -7,8 +7,8 @@
 
 ## 결정과 재현 조건
 
-- [ICD](../../../icd/carla_plant_adapter.md), [시간 계약](../../../requirements/timing_requirements.md),
-  [ADR-0001 후속](../../../adr/ADR-0001-simulator-selection.md)에 world/state100Hz·영상20Hz를 채택했다.
+- [ICD](../../../interfaces/carla-plant-adapter.md), [시간 계약](../../../requirements/timing-requirements.md),
+  [ADR-0001 후속](../../../archive/design-decisions.md#adr-0001)에 world/state100Hz·영상20Hz를 채택했다.
   Controller20ms·Zone/vECU10ms·Drive30ms·native2ms/4ms 및20ms transport 계약은 유지한다.
   `profiles/reference.yaml`의 미사용 `simulation_sensor` 의미 항목만 world/state/camera로 분리했다.
   기존 M6 executable profile이나 이전50ms 실행 결과를 소급 변경하지 않았다.

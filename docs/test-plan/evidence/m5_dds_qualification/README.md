@@ -12,7 +12,7 @@
 sources in [provenance](provenance.json) and each archived cohort's metadata.
 **User approved B: Host native IO/FIFO component LIMITED ACCEPTANCE.**
 **M4 whole NOT CLOSED; DDS regular control gate CLOSED; no control adapter.**
-[Scope](../../../m4_host_acceptance_review.md), [gate decisions](gate.json).
+[Scope](../../../archive/milestone-reviews.md#m4-host), [gate decisions](gate.json).
 
 This work uses unchanged CycloneDDS11.0.1/e54e991, the same normal/full-ASan/
 full-TSan SDK libraries as the preceding evidence. No SDK source patch, dependency

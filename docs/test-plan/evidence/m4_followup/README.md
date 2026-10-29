@@ -1,6 +1,6 @@
 # M4 follow-up evidence — timing audit, refactor, remote contracts
 
-Date: 2026-10-20. **현재 상태는 [project_status](../../../project_status.md)**, [M4 exit](../../../m4_exit_review.md)는 NOT CLOSED다.
+Date: 2026-10-20. **현재 상태는 [project_status](../../../project-status.md)**, [M4 exit](../../../archive/milestone-reviews.md#m4)는 NOT CLOSED다.
 Component functional PASS, native timing FAIL, race-warning 부재, 학습자 REVIEW PENDING과 system32req/29TC·Target NOT RUN을 구분한다.
 원래 [m4_faults](../m4_faults/README.md) 결과/41 PASS·7 FAIL은 수정하지 않았다.
 
@@ -91,11 +91,11 @@ cmake --build build/reproduce-probes --target dds_candidate_probe zenoh_candidat
 python3 tests/integration/middleware/run_probe.py --build build/reproduce-probes/tests/integration/middleware --output build/reproduce-middleware
 ```
 
-[고정 v1](../../m4_middleware_probe_protocol.md)/[별도 v2](../../m4_middleware_probe_protocol_v2.md)를 따른다. `unshare -Urnm`/veth/tc 사용이 막히면 해당 run은 BLOCKED로 남고 기존 결과를 성공으로 대체하지 않는다.
+[고정 v1](../../../archive/m4-test-protocols.md#m4_middleware_probe_protocol)/[별도 v2](../../../archive/protocols/m4-middleware-probe-protocol-v2.md)를 따른다. `unshare -Urnm`/veth/tc 사용이 막히면 해당 run은 BLOCKED로 남고 기존 결과를 성공으로 대체하지 않는다.
 Dependency 입력은 공식 [Cyclone release](https://github.com/eclipse-cyclonedds/cyclonedds/releases/tag/11.0.1)/[Zenoh-C release](https://github.com/eclipse-zenoh/zenoh-c/releases/tag/1.10.1)와 pinned URL/SHA를 기록한다. DDS [QoS API](https://cyclonedds.io/docs/cyclonedds/latest/api/qos.html)의 수용은 application expiry나 ECU ACK를 대신하지 않는다.
 
 ## 미해결/미실행
 
 OPEN-M4-TIM-01과 기존 OPEN-M3-01/02, OPEN-M4-TSAN-01·OPEN-M4-MWTSAN-01 유지. SDK 경고는 false positive나 실제 제품 race로 확정하지 않았다. 억제 없이 원본 stack을 보존한다. DDS의 progress-based bucket reclamation/TSan happens-before 해석을 검토해야 한다. Zenoh 전체 Rust 계측은 cargo/Rust toolchain 부재로 미실행이다. Kernel timer/wakeup/switch trace는 권한 제약으로 미실행이다.
 다른-kernel clock/Target/RTOS·Zenoh 내부 sanitizer·Host bridge·전체 Central/Front/Rear/Leaf 원격 제어/rejoin·시스템TC는 미실행이다.
-M4 technical exit/첫 M5 controller adapter는 [검토의 차단 항목과 선택지](../../../m4_exit_review.md#남은-차단과-필요한-결정)를 따른다. 학습자 검토가 완료됐다고 기록하지 않는다.
+M4 technical exit/첫 M5 controller adapter는 [검토의 차단 항목과 선택지](../../../archive/milestone-reviews.md#m4-남은-차단과-필요한-결정)를 따른다. 학습자 검토가 완료됐다고 기록하지 않는다.

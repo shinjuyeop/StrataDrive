@@ -6,7 +6,7 @@ No runtime/scheduler/authority/SDK algorithm or default dependency change.
 The new SDK build is an isolated ASan/UBSan build of the same11.0.1 source,
 not an upgrade. [Metadata](metadata.json), [source/loader hashes](provenance.json),
 [raw commands/logs/cache](raw.tar.gz), [artifact audit](audit.json),
-[Host acceptance proposal](../../../m4_host_acceptance_review.md).
+[Host acceptance proposal](../../../archive/milestone-reviews.md#m4-host).
 
 ## What was actually corrected
 
@@ -142,7 +142,7 @@ Extract `raw.tar.gz` into a new directory. It contains `build-plan.json`,
 input, SDK CMake cache/compiler commands and loader/library hashes. The scripts
 use this workspace's absolute paths: choose a new output root consistently;
 never overwrite an existing cohort. SDK inputs are the same pinned source/install
-from the [preceding protocol](../../m4_middleware_probe_protocol_v2.md).
+from the [preceding protocol](../../../archive/protocols/m4-middleware-probe-protocol-v2.md).
 The build sequence instruments a new isolated SDK with `SANITIZER=address,undefined`,
 then compiles only the optional probes. The existing normal/TSan installs and
 production C++ binaries are reused unchanged. Hold `build/.m4-exclusive.lock`

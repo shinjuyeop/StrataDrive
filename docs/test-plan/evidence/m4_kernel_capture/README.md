@@ -1,6 +1,6 @@
 # M4 kernel capture preparation evidence
 
-The [capture protocol and exact sudo commands](../../m4_kernel_capture.md)
+The [capture protocol and exact sudo commands](../../../archive/m4-test-protocols.md#m4_kernel_capture)
 define a separate diagnostic OFF/ON pair. **Actual privileged inventory/capture,
 real tracefs cleanup and kernel attribution are NOT RUN.** Interactive root
 access was reported successful by the user; the agent's noninteractive probe

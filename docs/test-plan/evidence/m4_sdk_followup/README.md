@@ -131,7 +131,7 @@ Those scripts record this workspace's absolute paths; select a new
 `build/m4-sdk-followup` root in a separate checkout, or change that output root
 consistently. Existing fixed cohort directories must not be overwritten.
 Prerequisites are the pinned DDS install/probe build from the
-[prior SDK protocol](../../m4_middleware_probe_protocol_v2.md).
+[prior SDK protocol](../../../archive/protocols/m4-middleware-probe-protocol-v2.md).
 
 For an existing built SDK/probe, each preserved `command.json` is directly
 replayable after replacing only its output directory. The full Rust build uses
@@ -153,6 +153,6 @@ does not qualify bucket/proxy/WHC or the entire SDK.
 Still pending: old native failure's actual failed transaction; the remaining DDS
 publication/GC families; qualification of the pinned fully instrumented Zenoh
 configuration/default-feature scope and original warning provenance.
-The [limited Host acceptance proposal](../../../m4_host_acceptance_review.md)
+The [limited Host acceptance proposal](../../../archive/milestone-reviews.md#m4-host)
 is PROPOSED, not an approved scope change. Target/system/learner review remain
 NOT RUN/REVIEW PENDING; all historical counts in this evidence are unchanged.

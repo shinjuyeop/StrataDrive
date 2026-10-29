@@ -1,161 +1,47 @@
-# Milestone roadmap
+# 로드맵과 미결정 항목
 
-현재 구현·수용·OPEN은 [project_status](project_status.md), 실행 이력은 각 evidence와
-[품질 기록](quality_policy.md)을 따른다. 이 문서는 단계별 산출물과 TBD의 대표 문서다.
-**M6 Host quiet SIL/Python MIL 범위 CLOSED**: [종료 검토표](m6_exit_review.md).
-기존 M4 전체 NOT CLOSED, M5 Host FIFO 한정 수용, SDK sanitizer OPEN·Target/system NOT RUN은 유지한다.
+현재 구현·검증·OPEN은 [프로젝트 상태](project-status.md)에서 관리한다.
+이 문서는 남은 단계의 산출물과 결정할 항목만 다룬다.
 
-| Milestone | 산출물 / 현재 gate |
+## 후속 단계
+
+| 단계 | 산출물 |
 | --- | --- |
-| M0 | Architecture/requirement/ICD baseline — BASELINED |
-| M1/M2 | DBC/vCAN·actuator/EV component — 기술 검사 완료, 학습자 review 별도 |
-| M3 | 실행 감시·FIFO 기준 — 과거 timing 예외/전체 수용 OPEN |
-| M4 | Central·양 Zone·owner/session/protection — Host IO/FIFO component 한정 수용, 전체 NOT CLOSED |
-| M5 | 실제 Central↔Front/Rear SOME/IP IP 경계·8참여자·보호/재가입 — 해당 Host FIFO 기능 한정 수용, DDS CLOSED |
-| M6 | Simple Vehicle+EV actual/lifecycle/energy·물리 응답·종방향 모델/MIL — **Host quiet SIL/MIL 범위 CLOSED** |
-| M7 | 정상 native Actual→CARLA→관측 solver work/단일 EV의 가속·회생·제동·휠 정지·재출발 및 센서/lifecycle 통합 검증. **전체 NOT CLOSED**: wall2/4ms·wall fault 연동 OPEN. 보호 Actual 기능 경로와 cold-loading RPC 종료 교착 수정은 [추가 근거](test-plan/evidence/m7_carla_recovery/README.md)로 검증. [통합 종료 검토](m7_exit_review.md)와 [실행 원본](test-plan/evidence/m7_carla_integrated/README.md) 참조 |
-| M8 | Classical driving, M6 종방향 모델→C++ 공통 vector 동등성/차량 SIL, route/waypoint·lateral control — NOT RUN |
-| M9 | Fault/Diagnostics/DTC 통합. Local fault 보호는 이미 각 component에서 구현 |
-| M10/M11 | Physical AI perception/temporal planner·classical fallback |
-| M12 | Thor 또는 Orin의 독립 reference 비교/최적화 |
-| M13 | 전체 SIL/V&V/regression·추적성·제약 공개 |
+| M7 · 진행 중 | [기능 통합 종료 조건](project-status.md#m7-종료-조건): 같은 simulation time의 연속 주행·영상·work/EV·fault/보호 정지. 실제 wall 주행·보호 제동 수용은 별도 OPEN |
+| M8 | M6 종방향 모델의 C++ 구현·공통 vector 동등성, 실제 차량 폐루프, route/waypoint·횡방향 제어와 Reference 30km/h 시험 |
+| M9 | Fault event → 검출 → 보호 → actual response → DTC 통합. 기존 로컬 보호는 계속 유지 |
+| M10–M11 | Perception·temporal learned planner, Safety Supervisor·classical fallback, 인식/판단 한계와 scenario 검토 |
+| M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
+| M13 | 전체 SIL/V&V·회귀·추적성 검토와 검증된 범위·제약 공개 |
 
-## 다음 작업
-
-실제 CARLA model dt/work와 원래 wall acquisition을 별도 좌표로 연결하고 공유 전달·단일 tick owner를 구현했다.
-실행에서는 엔진 프레임 공백 때문에30ms 근거가 만료되어 정상 wall 주행 전에 차단됐다.
-남은 gate는 프레임/렌더 대기 분리 후 정상 wall 주행과 보호 Actual 연속 적용의 통합 검증이다.
-새 하위 milestone이나 freshness 예외를 추가하지 않는다. [현재 종료 검토](m7_exit_review.md)를 따른다.
-아래는 M7 착수 이후 단계별 이력이며, 당시 미연결 표현을 현재 판정으로 해석하지 않는다.
-
-M7-0의 [환경 조사·M7-1 계획](test-plan/m7_carla_preflight.md)과
-[Plant Adapter ICD 초안](icd/carla_plant_adapter.md)을 기준으로 M7-1a 환경/버전 확인 →
-M7-1b 비주행 RGB/GT/state 수집 → M7-1c actual-only·freshness 거부 시험을 수행한다.
-[M7-1a 실행](test-plan/evidence/m7_carla_1a/README.md)에서0.9.16 package/Client3.10 설치·
-양쪽 버전/연결·ego lifecycle을 확인했다. 실패 원본 보존, CARLA source build 없음.
-[M7-1b](test-plan/evidence/m7_carla_1b/README.md)도 main200세트·tick/lifecycle을 검증했다.
-native reload/server crash OPEN을 보존한다. [M7-1c](test-plan/evidence/m7_carla_1c/README.md)는
-test-only boundary Normal/ASan 각39/39·기존120/120을 확인했다.
-[M7-1d](test-plan/evidence/m7_carla_1d/README.md)는 사용자 승인으로 world/state10ms·영상50ms로 개정했다.
-main state600/600·영상각120/120·drop/pause/reset 한정 검증. startup60ms와 첫 oracle FAIL 보존,
-wall100Hz 미충족·실제 ECU freshness NOT RUN·종료SIGSEGV OPEN-M7-1D-01을 기록했다.
-[M7-1e](test-plan/evidence/m7_carla_1e/README.md)는 wheel 물리 회전각 RPC·metadata 수집의 속도 개선을
-확인했다. clock 고정 offset 불일치·빈 서버 종료139는 남는다.
-[M7-1f](test-plan/evidence/m7_carla_1f/README.md)는 별도 opt-in functional clock과 실제8-role
-native 세션/credit/Actual 경로를 stationary SIL fixture로 실행하고 CARLA 비주행 tick에 barrier를
-연결했다. [M7-1g](test-plan/evidence/m7_carla_1g/README.md)는 직접 PhysX omega를 native Drive 센서에
-연결해 내리막400tick에서 Actual 반환을 확인했다. [M7-1h](test-plan/evidence/m7_carla_1h/README.md)는
-actuator/electrical owner를 분리하고 원래 wheel acquisition으로1ms ZOH 모델 예측을 계산한다.
-평지 미세 음수는 zero-bin 진단만 추가하고 거부를 유지한다. [M7-1i](test-plan/evidence/m7_carla_1i/README.md)는
-NoDrive 직접 effort 서버 확장안을 우선 후보로 결정하고 오프라인 변환/거부 경계를 검증했다.
-[M7-1j](test-plan/evidence/m7_carla_1j/README.md)는 source build 범위로 착수해 공개 PhysX SDK와
-합성 Actual→NoDrive 물리 포트를 검증했다(Normal/ASan 각15/15). 기본 적분 음수45/850 FAIL,
-차량 내부20분할 후보0/850을 모두 보존한다. 후속 Epic 연결·UE4.26.2 전체 make exit0을
-[빌드 근거](test-plan/evidence/m7_carla_1j_ue_build/README.md)에 기록했다. 이전 fork404는 보존한다.
-후속 [CARLA 기본 빌드](test-plan/evidence/m7_carla_1j_carla_build/README.md)도 완료했다.
-세 번의 Client build 실패와 URL/include/PIC 수정 근거를 보존한다.
-[source 실행](test-plan/evidence/m7_carla_1j_source_smoke/README.md)은 Town03 비렌더링
-identity/ego 정상·예외2/2·10ms102샘플을 한정 검증했다. SIGINT130과 자원 정리를 기록했다.
-Town10 준비 한도 초과/강제 종료와 Town03 렌더링 SIGSEGV·harness 초기조건 FAIL은 보존한다.
-후속 [렌더링 조사](test-plan/evidence/m7_carla_1j_render_diagnosis/README.md)에서 잘못된 Distance Field 내부 참조를
-관측했다. 같은 바이너리의 GDB1회·native 같은 서버2회 각30쌍 영상 수신은 한정 확인했으나 원인은 미확정이다.
-후속 [준비/반복 검증](test-plan/evidence/m7_carla_1j_render_followup/README.md)은 실제 장면의 shader/Distance Field
-zero 관측 후 새 native2서버 각30쌍·정리/복원·SIGINT130을 확인했다. 원래 crash 원인은 미확정이며
-광범위 trace timeout과 DDC 대상0/수동 중단을 보존한다.
-[M7-1k](test-plan/evidence/m7_carla_1k/README.md)는 실제 UE NoDrive0 effort 포트·원래 CAN/P05 검사·
-서버 single writer/10ms single-use frame/physics receipt·pause/reset을 한정 검증했다.
-최종156개 검사(반복 포함)·13개 receipt, 독립 손상8/8 거부와 flag-off lifecycle2/2·102샘플이다.
-nonzero effort·실제8-role authority·interval work/정상 주행은 미수용이다.
-[M7-1l](test-plan/evidence/m7_carla_1l/README.md)는5개 INIT 자세의 rest geometry·COM/body/actor/프로젝트 변환을 확인했다.
-공개 COMNudge를 실제 COM과 구분하고 source 단위 가정 audit FAIL을 보존했다. V1(기존 M6 합산 gain·4륜 균등의 가상 EV)과
-H1(식별된 유압 자료) 모델안을 작성했다. 후속 [M7-1m](test-plan/evidence/m7_carla_1m/README.md)에서 사용자가 V1 가상 law를 수용했다.
-별도 opt-in 실제 NoDrive에 합성 Actual nonzero effort/보호 Brake Actual을 적용했다. 각2서버의1,621receipt와
-hold100/100 exact0을 확인했지만 각487frame raw rear 음수로 native forward gate는 FAIL이다.
-[M7-1n](test-plan/evidence/m7_carla_1n/README.md)의 동일 binary/원래 Actual 대조에서 내부20분할은
-rear 음수487→3frame으로 감소했지만 새2서버의 launch 첫 tick FAIL이 재현돼 정상 미채택이다.
-후속 [M7-1o](test-plan/evidence/m7_carla_1o/README.md)에서 정착/response 입력·40/80분할 실패를
-보존하고 저속 tire 반력의 내부 적분 진동을 확인했다.320분할 최종 새2서버와 response 입력은
-각1,621frame/4wheel 직접 solver 음수0이다. 공개 getter의 무구동 저속 보정과 별도로 pinned
-solver `mWheelSpeeds`를 직접 읽는다. 후속 [M7-1p](test-plan/evidence/m7_carla_1p/README.md)에서
-새320분할 step/response 서버 각1,621관측·1,609개 native Actual 반환과 다음 구간 끝 age 최대20ms를
-확인했다. 실제20분할 음수·주입 snapshot 누락은 다음 tick을 차단하며 최초 수신/latch 검사 FAIL은
-보존했다. 후속 [M7-1q](test-plan/evidence/m7_carla_1q/README.md)는 실제8-role Actual/authority·전체10ms 구간을 서버 admission에 연결하고 새2서버 각400tick/319정상 구간을 확인했다. [M7-1r](test-plan/evidence/m7_carla_1r/README.md)은 solver320개 구간 work→단일 EV를 최종 새2서버 각400회 정산했다. [M7-1s](test-plan/evidence/m7_carla_1s/README.md)는 accept/close 경합을 TSan으로 재현·수정하고 준비 후 새12서버 SIGINT130을 확인했다. 최초 cold-load timeout/강제−9는 보존하며 cold-load 중단 한도는 OPEN-M7-1S-COLD-01이다. 후속 통합 검증에서 같은 Actual/단일 EV의 가속·signed 회생·마찰 제동·휠 정지·재출발을 확인했다. 현재 남은 gate는 [통합 종료 검토](m7_exit_review.md)를 따른다.320은 제한된 기능 연결 후보이며 전체 ODD/정상 주행 수용은 아니다.
-epsilon/clamp·freshness 변경은 미채택이다.
-고정 입력의 functional Actual 연결은1q에서 한정 검증했다. solver work/단일 EV 및 고정 복합 시나리오와 명시적 요청 이후 보호 Actual 적용은 후속 검증했다. 독립 wall fault→local 보호 선택/다음 tick 차단도 검증했으며, wall fault 이후 실제 보호 Actual의 연속 적용은 남는다.
-wall 주행에는 source clock mapping/실제 deadline 수용이 추가로 필요하다.
-캐시 restamp·요구 완화·command 우회는 해결안이 아니다. [M6 선행 조건](m6_exit_review.md#다음-한-단계--m7-최초-접속-계약과-환경-확인)을 유지하고,
-SDK/M4/DDS의 역사적 OPEN 전체를 이 첫 비주행 시험의 선행 조건으로 추가하지 않는다.
-Jetson BSP/ABI/권한/NIC·clock/실제 배포 검증은 별도 후속이다.
-
-## Engineering activities
-
-[개발·학습 계획](engineering_plan.md)을 기존 milestone에 연결한다. 아래 표는 학습과
-검토 활동의 배치이며 위 milestone의 번호·구현 범위·기존 acceptance를 변경하지 않는다.
-추가 안전 분석과 RTE/BSW·Target pilot은 **PLANNED**다. Host의 [Steering OS 파일럿](learning/m3_rtos_pilot.md)은 별도로 구현했다. M0 exit review의 PASS에 포함하지 않는다.
-Steering의 [AUTOSAR R25-11 P05 Protect/Check](learning/m1_autosar_e2e_profile5.md)는
-M1 Host에서 직접 구현·시험했다. 이 부분 결과를 전체 AUTOSAR pilot 완료로 확대하지 않는다.
-[ADR-0022](adr/ADR-0022-leaf-classic-development-methodology.md)로 Leaf의 Classic 개발 체계를
-채택했다. Steering부터 ECU 소프트웨어와 SIL 물리 모델 경계를 설계하고 Brake/Drive/BMS로 확장한다.
-ECU/SIL 코드 분리는 완료했다. 실제 Classic stack 채택·RTE/BSW pilot은 후속이며 기존 component 결과를 전체 stack pilot PASS로 바꾸지 않는다.
-
-| 관련 단계 | 함께 수행할 학습·검토 | 남길 근거 |
-| --- | --- | --- |
-| M1 준비 / M1 | Item Definition 초안과 첫 HARA 사례 검토; Steering interface와 AUTOSAR 개념 대응; toolchain 타당성 조사 | 가정·열린 질문, SWC/Port/Runnable/Task 대응, toolchain 지원·제약과 wire 계약 영향 |
-| M2–M4 | Leaf의 ECU/물리 모델 경계와 Steering SWC/Port/Runnable/Event/Task 설계; local protection 검토; 작은 AUTOSAR pilot과 stack 채택 여부 검토 | 설계 대응·입출력 계약, actuator response/fault/timing 증거, 설정·생성·실행 기록, 채택·보류 ADR |
-| M6–M8 | MBD 종방향 제어 pilot: 제어 모델/plant·MIL→C++ 구현→동등성/차량 SIL; 자동 생성은 선택 후속 | 모델/parameter·sample time/solver·공통 vector·수치/상태 비교·추종/제약·fault 결과; 도구 TBD-16 |
-| M5–M8 | 선택한 배포 환경과 closed-loop에서 계약 검증; 차량 거동으로 안전 분석의 가정 재검토 | clock/통신/plant 한계와 실제 관측 구간, 변경된 가정 및 requirement revision |
-| M9 | local protection과 diagnostics를 연결하고 분석한 fault의 coverage 검토 | fault→검출→보호→actual response→DTC 연결과 미검증 경로 |
-| M10–M11 | SOTIF 관점의 인식·판단 한계, triggering condition, fallback 검토 | scenario/ODD 범위, AI 출력 검증과 fallback의 실제 결과 |
-| M12–M13 | compute profile 변경의 timing·보호 동작 영향과 최종 추적성 검토 | profile별 regression, 검증된 범위와 남은 위험·제약 |
-
-AUTOSAR 도구가 미확보되거나 Target 호환성이 부족하면 pilot의 보류 근거를 기록한다.
-기존 Linux vECU 개발을 AUTOSAR 적용 완료로 표시하지 않는다. 안전 분석에서 새로운
-요구사항이나 architecture 변경이 필요하면 기존 revision 절차로 검토한다.
+M8은 모델/코드 동등성과 차량 성능을 따로 판정한다. AI는 trajectory/target speed/risk를
+제안하고 safety 검사·Classical Controller를 거친다. Actuator를 직접 제어하지 않는다.
+Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revision을 먼저 고정한다.
 
 ## Open M0 Decisions
 
-모든 owner의 최종 책임은 **학습자(project owner)**다. 아래 역할 표시는 별도 인력/위임을
-뜻하지 않는다. 남은 상세값은 **TBD**이며 각 gate에서 해소한다. TBD-15의 topology/owner는 부분 결정했다.
-해당 milestone 전까지 보류할 수 있는 상세값이며 M0 계층/경로/의미 계약의 미결정은 아니다.
-문서/YAML의 미결정 값은 아래 ID에 귀속된다. Template의 `TBD`는 향후 기록 필드이지
-별도의 design decision이 아니다.
+기존 TBD ID를 유지한다. 최종 결정 책임은 학습자(project owner)에게 있고 역할 표시는 담당 분야다.
+부분 결정은 해당 Host/모델 범위에만 유효하다. 후속 수치·도구·Target 선택까지 CLOSED로 올리지 않는다.
 
-| ID | 미결정 사항 / owner 역할 | 결정 milestone / gate | 보류 rationale / 영향 |
-| --- | --- | --- | --- |
-| TBD-01 | CAN ID/DLC/layout/scaling/ranges, CRC/counter/epoch/source-age metadata, queue/restart/startup handshake, timeout threshold / interface 담당 | **M1**, DBC/codec 및 vector test 전; task 검증 M2/M3 | M0는 의미/검출 상한을 고정하고 encoding을 M1 산출물로 유지; 100 ms에 polling/실행 margin 포함 |
-| TBD-02 | units의 raw scaling, allocation/calibration 값, frame/geometry 변환, feedback skew/age 한계, dynamics 중복 방지 / plant·interface 담당 | **M1** wire 범위; **M2** actuator 의미 구현; **M6** simple mapping; **M7** CARLA mapping 전 | M6 SIL geometry/force·actual mapping은 종료 검토의 부분 결정; M7 좌표/SI 의미·actual-only port는 [ICD 초안](icd/carla_plant_adapter.md)으로 결정. M7-1c prototype의 source/oldest/expiry 보존과 interval 검사만 검증. M7-1g 직접 rad/s·rear 평균·원래 CAN0.01rad/s 반환을 한정 검증. 1h에서 정지 부근 음수를 zero-bin 진단 후 unavailable로 결정, 음수→0 보정은 미채택. 1i 이상 Ackermann·rear50/50·per-wheel pressure table 수학 prototype 검증, 합성 test 값은 calibration 아님. 1j 공개 SDK의 geometry/좌우 조향·rear torque·합성 brake 물리 적용만 한정 검증. 1l 실제 mkz rest geometry5자세·nominal rear/COM/body/actor 변환 검증. 공개 COMNudge와 실제 COM을 분리. 동적 기준점/조향 actuation 부호·pressure table·측정 오차/OEM calibration은 미결정.0 effort 외 정상 apply gate 유지. 1m 사용자 수용 V1 가상 law·고정 geometry/이상 Ackermann/rear50:50의 실제 setter/SI/좌우 회전 한정 검증. OEM calibration 아님; raw rear 음수·native gate FAIL. 1n20분할의 launch rear 약−.256rad/s를 보존, native forward unavailable 유지. 1o 공개 getter의 저속 보정 의미를 정정하고 pinned mWheelSpeeds 직접 source를 추가.320분할 세 실행 각1,621frame 직접4wheel 음수0. 1p 직접 source의 native rear 평균/CAN 양자화/Actual 반환을 새 step·response 서버 각1,609개에서 확인. OEM/전체 ODD 수용 아님. 1q는 별도 native-functional 프로필에서 원본 owner-wire/CAN·실제8-role 권한과 CARLA run/session/generation을 결합했다. 원본 Command는 적용 입력이 아니며 일반 Host–Target 배포 계약은 미변경. 1r opt-in은 원본 run/session/actor/generation/ticket에 solver work와 EV ACK를 결부한다. 기존 CAN/owner-wire 계약은 불변이다.  **현재 통합:** 통합 검증에서 원래 Actual/요청 source와 V1 mapping을 재확인; OEM calibration 아님. 새 wall opt-in은 model frame와 원래 monotonic acquisition을 별도 필드로 운반하며 CAN 계약을 유지한다. [종료 검토](m7_exit_review.md). |
-| TBD-03 | actuator delay/saturation/dynamics/초기값, Steering/Brake timeout 물리 출력, Drive zero-target 후 torque 감소/ramp/반응 deadline, recovery dwell / vECU 담당 | **M2**, 각 actuator 정상/fault test 전; M6/M7 재검증 | M6 현재 모델의 finite 응답/standing hold·230ms 물리 budget 확정; M7 actuator 응답은 기존 physical owner, 차량 운동은 CARLA로 소유권 결정. 1h에서 기존 응답 모델을 합성한 별도 M7 actuator/electrical owner 구현, 차량 운동 중복 적분 없음. output loss 모델 응답 검사. 1i NoDrive 서버 확장을 우선 후보로 정해 stock engine/gear/filter 제거 방향 결정. 1j 독립 SDK 포트·합성 brake-hold/출발/정지 한정 검증. 1k 실제 NoDrive0 effort/stock engine 배제 한정 검증. 1l V1(기존 M6 합산0.001Nm/Pa·4륜 균등 가상 law)/H1(실측 유압 식별) 제안, 명시적 수용·자료 전 계수 미채택. nonzero effort·brake-hold·work·외부 응답 budget은 미검증, raw fallback/무제한 torque 유지 금지. 1m V1 합산0.001Nm/Pa·4륜 균등 가상 모델 수용, 각375Nm 상한·LocalProtection Brake Actual/hold100frame exact0을 격리 검증. 기존 M6 응답 수용 승계 없음; 출발 wheel 음수 OPEN. 1n은 내부 적분만 비교하며 adapter ramp/delay를 추가하지 않음.20분할 hold/정지는 한정 통과해도 launch FAIL 유지. 1o 기존 response 모델의1ms 물리 응답을 별도 합성 trajectory로 재사용. Adapter ramp 추가 없음; full actuator/authority budget 수용 아님. 1q는 기존 actuator Actual→V1 직접 effort만 적용하며 모델 응답을 중복하지 않는다. 고정 입력 출발만 검증했고 실제 solver work/EV 일치는 미수용. 1r은 직접 적분의 signed motor work만 기존 단일 EV owner에 전달하고 ZOH 중복 계산을 하지 않는다. 일반 제동/회생 검증은 후속이다.  **현재 통합:** 통합900구간에서 signed 회생·마찰 제동·휠 정지·재출발 관측. 보호 Actual→CARLA 감속·휠 정지를 추가 검증했다. wall fault의 local 보호 선택/다음 tick 차단과 work 없는 actuator 보호 진행·과거 coil 기반 단일 EV 정산 component를 추가 검증. 명시적 보호 hold opt-in에서 차체 자연 완전 정지까지 한정 검증. wall fault 이후 연속 제동 수용은 OPEN. 실제 두 시간축 경로는 work/coil 적용을 단일 EV에 정산하나 정상 wall 주행 전에 원천 만료로 실패했다. [종료 검토](m7_exit_review.md). |
-| TBD-04 | task/E2E deadline/budget, source-age 한계, clock sync/uncertainty, trace/overhead/queue schedule, watchdog 독립성, priority/affinity, multirate ordering, timing warmup/duration/repetitions / timing 담당 | **M1** timeout encoding budget; **M3** 측정 protocol/task budget; **M5/M7** cross-node/E2E 전 | 부분 결정: ADR-0033/0034 Host task 10/20/2 ms·deadline 5/8/3 ms, monitor/plant 2 ms와 RX threshold 80 ms·검출 <=100 ms; ADR-0035/37 부하·배치와 ADR-0038의 whole-cycle/CPU·1221개 기회·RX 대응 기록; ADR-0039 Host owner deadline 4 ms·1211 guard slots·교차 보호·이중 수신 감시 채택; ADR-0042 Host FIFO fixture 비교 수행; M7-1d world/state10ms·영상50ms·단일 owner로 개정, Controller20/Zone10ms·Drive30ms 유지. [ICD](icd/carla_plant_adapter.md)의 wheel 원천·clock/Actual interval·native guard gate OPEN. M7-1c 원래 Drive40ms 보호·latch 검증. M7-1e platform→monotonic 상수 offset 불일치. M7-1f 별도 opt-in logical clock/8-role native shadow 구현·검증; source30ms/credit60ms 유지, wall deadline 수용과 구분. M7-1g 원래 wheel source 보존·future 입력 금지·반환 age<=10ms 한정 검증, fractional timestamp pending 손실 수정. 1h 전기1ms 구간 begin 이전 wheel 선택·source/oldest·원래30ms age/10ms skew 보존. 1i frame별 single-use effort와 staged ACK/post-physics receipt·expiry/pause/reset 의미 설계. 1j 독립 SDK10ms single-use stage/tick·pause/ambiguous 거부 검사, 차량 내부20분할 후보이며 world/ECU rate 개정 아님. 후속 source 비렌더링102샘플의10ms frame/timestamp만 검증, wall/native timing 수용 아님. 1k 서버 single-use10ms frame·원래 source/expiry·post-physics receipt·pause/실제 reset·latch 한정 검증. 진단 logical clock이며 native wall 요구 유지, transport timeout 실주입·full Actual 연동과 차량/Target E2E 미검증. 1m nonzero도 원래10ms 구간/source/expiry·single-use/후 physics receipt/clear 유지, pause/reset nonzero pending 폐기. native/wall gate 유지. 1n 내부20분할은 world10ms/원래 source/ECU rate와 별개이며 wall2/4ms 미수용. 1o320분할(31.25µs 내부)은 world10ms와 별개.30ms freshness/expiry 유지, 추가 계측 포함 wall2/4ms 수용은 NOT RUN. 1p 실제 원천 시각 보존·다음 구간 끝 age 최대20ms와 음수/누락 시 다음 tick 차단 검증. receipt보다 늦은 snapshot은 같은 frame만 조회 대기하며10s 수신 한도를 source freshness/wall deadline으로 전용하지 않음. 1q 전용 INIT offset8ms로20/10ms 위상을 맞춰 기존30ms/expiry를 보존했다. 전체 구간 최대 source age20ms, 최소 command expiry 여유1ns. wall2/4ms·clock uncertainty 수용 아님. 1r은 원래 solver dt/취득 source를 보존하며 discrete work 총량을 native1ms 경계로 배분한다. 끝 잔여 정산/ACK 전 다음 stage를 차단하고 wall 요구는 미변경이다.  **현재 통합:** 통합 monotonic 계측에서 native 대기 공백>2ms 관측; 독립2ms/4ms monitor→local 보호 선택→다음 tick 차단을 추가 검증. actuator/EV 분리 API를 terminal wall runner의 실제8-role/보호 Actual에 연결했다. 새 wall owner에 실제 CARLA 원본 model work/monotonic acquisition을 공유 메모리로 연결했으나 엔진 프레임 공백으로 정상 wall 주행은 실패했다. 새 post-physics monotonic 취득 bracket은 원래 시각을 유지하며 고정 offset 불가·pause 제외 전달 지연을 확인한 진단 근거이고 clock agreement가 아니다. bounded raw journal로 solver 직렬화/감사를 tick 경로에서 분리하고 완전 증거·물리 동등성을 재검증했다. phase42개 조사에서도 최소 expiry1ns 문제는 남아 기본 위상을 유지한다. 연속 owner 실행/clock mapping/실제 보호 제동 wall gate는 NOT ACCEPTED. M7 camera는 전용 frame5 취득 옵션으로50ms를 유지; timestamp restamp 없음. [종료 검토](m7_exit_review.md). |
-| TBD-05 | middleware 구현체/API·schema/integrity·격리·bridge/discovery / communication 담당 | M5 Host 적용; M7 Target 연결 전 재검증 | Host SOME/IP/vSomeIP3.7.6 direct C++·netns/veth/owner-wire는 ADR-0060→0061→0062로 한정 채택. DDS/Cyclone 종료·TSan gate CLOSED는 별도 보존; Target은 미검증 |
-| TBD-06 | Central allocation/conflict arbitration, availability/rejoin/local protection 상세, DEGRADED envelope, local↔Central state reconcile / Central VCU·Zone safety 담당 | **M4**, local fault/재연결 시험 전 | 정상 torque/brake 충돌과 actuator availability 검증 필요; critical loss는 M0에서 FAIL_SAFE로 고정 |
-| TBD-07 | exact CARLA/Ubuntu/Python/ScenarioRunner 호환 build, map/route/seed/geometry/curve, Host GPU, tick/apply ordering 및 fidelity / simulation 담당 | **M7 통합 전**, route suitability M8 확인 | M7-0 Host Ubuntu22.04.5/RTX3090 24GB 확인, CARLA0.9.16·Client0.9.16/Python3.10·ScenarioRunner v0.9.16 후보. UE5 전환 보류. [공식 근거/실측](test-plan/m7_carla_preflight.md); M7-1a artifact/연결·M7-1b 카메라800×600/FOV90/20Hz smoke 검증. bundled wheel 별도 venv·fresh client reset 경로 한정, 동일 client native reload/server crash OPEN, M7-1d SIGTERM 중 native crash OPEN-M7-1D-01 추가. Town10HD_Opt/mkz_2020 smoke 사용. M7-1d world/state10ms·영상50ms 개정. M7-1e physics-on wheel 회전각 RPC 확인, no-render/render/camera/audit 비용 비교. M7-1f 비주행 native shadow/tick barrier 검증. M7-1g 직접 omega RPC 원천·Town03_Opt 무동력 wheel/반환 경로 확인. timestamp는 single-owner frame bracket으로 결부하며 서버 내장 아님. 1h 별도 actuator/electrical 포트로 내리막400tick 재검증. 1i stock package의 직접 effort/receipt 부재 확인, NoDrive 확장 우선 후보·오프라인 검증. 1j source build 착수·public SDK build/물리 시험만 완료, 후속 Epic 연결·UE4.26.2 make exit0/ldd missing0. 후속 Client/서버 module build exit0·Client import·module ldd missing0. 후속 Town03 비렌더링 source 연결/ego/10ms 한정 통과·SIGINT130 및 자원 정리. Town10 cold 준비 한도 초과/강제 종료·Town03 distance field 렌더링 SIGSEGV OPEN. 후속 RGB/GT320×240 최소 수신(GDB1회/native 같은 서버2회 각30쌍) 한정 확인, 잘못된 Distance Field 참조 관측·원인/재질 준비 OPEN. 후속 shader/Distance Field 준비 후 새 native2서버의 비주행30쌍·정리/복원·SIGINT130 한정 확인. 원래 crash 원인·전체 asset/ODD OPEN. 1k UE/Client 확장 build 및 Town03 실제 NoDrive0 effort·직접 foreign writer/일반 tick 거부·pause/reset·default-off lifecycle 한정 검증. 1l read-only geometry5자세·변환/identity 손상7종 거부·reset 무효화와 새 binary의1k 회귀156개/13receipt 확인. nonzero effort·brake calibration·평지 보호 brake 후 관측·wall timing OPEN, ODD 유지. 1m 별도 V1 서버 flag·고정 모델 hash/geometry로 실제 nonzero effort를 새2서버에서 한정 검증. 각487frame rear 음수 FAIL; 기존 zero-only/default-off 회귀와 구분. 1n 내부20분할을 별도 서버 옵션으로 대조했으나 출발3frame 음수 FAIL로 정상 미채택.40분할은 NOT RUN. 1o40/80 FAIL 보존, 저속 tire/적분 진동 확인 후320분할 직접 solver 음수0을 한정 검증. UE commit/header hash에 묶인 읽기 전용 내부 accessor이며 타 엔진 ABI/전체 ODD 수용 아님. 1p 같은 source binary/320분할의 native 센서 반환 연결과 실제20분할 음수·주입 snapshot 누락 containment 확인. 서버6회 모두 SIGINT130; 정상 actuation/renderer 수용 아님. 1q는 별도 local native-functional 옵션에서 Actual/ACK/credit/인과 명령·permission 검사를 서버에 연결했다. 새2서버 각400tick·권한/명령/센서 누락 차단 한정 검증. 전체 solver work/단일 EV·wall gate OPEN. 1r은 pinned UE 원본 source/archive를 보존한 계측 module로 완전한 NoDrive work를 관측했다. 최종 새2서버 각400정산과 기존 모드 회귀를 확인했으며 타 엔진/renderer/전체 ODD로 확대하지 않는다. 기존 native 회귀의 종료−11 원본은 보존한다. 1s는 accept/close 경합을 TSan 재현·수정하고 새12서버 종료130으로 OPEN-M7-1R-EXIT-01을 FIXED_LIMITED로 판단한다. 최초 cold-load 중단 강제−9는 별도 OPEN-M7-1S-COLD-01이며 준비 확인 보완을 종료 한도 수용으로 확대하지 않는다.  **현재 통합:** 통합 근거의 Town03_Opt54m 직선 후보/좌표/곡률·ClearNoon·고정 요청 일정을 동결. M8 30km/h 적합성 NOT RUN. cold-loading180s/종료30s 실패 보존. 후속 sync RPC 대기 취소로 로딩 중 종료 교착을 수정·재검증했다. 별도 camera client-loss 후 SIGINT30s 실패를 재현하고 동기 tick 대기의 exit 취소를 수정·영상 유/무 재검증했다. 원래 실패는 보존한다. [종료 검토](m7_exit_review.md). |
-| TBD-08 | DTC code/debounce/persistence/clear, diagnostic aggregation cadence/storage / diagnostics 담당 | **M9**, event→DTC 통합 전 | local fault/protection은 M2/M4부터 구현, DTC 통합이 선행 조건 아님 |
-| TBD-09 | board/RAM/platform stack/power/cooling, reference AI model/checksum/input/precision/feature, profile override, accuracy/resource threshold와 benchmark protocol / compute·AI 담당 | **M5** 첫 Target 호환 stack; **M10** model/reference workload; **M12** board별 비교 전 | 두 보드 독립 배포 원칙 유지. M7-0 Host 자원만 조사; GT는 학습/평가 전용, M7-1 camera smoke 설정은 AI Reference 확정 아님. 1j public SDK/clang14 Host build는 UE/Target ABI 호환 증거가 아님. 1k native receiver 모듈은 UE clang10/libc++ C++17로 빌드·Host 실행했으나 Jetson·model/feature·동일 binary/engine/JetPack 호환 미검증. 1m은 Host UE 물리 진단만 수행하며 AI/Jetson 배포·benchmark는 NOT RUN.  **현재 통합:** 통합 RGB320×240/FOV90/50ms와 TRAIN_EVAL_ONLY GT는 AI Reference 확정/학습이 아님. [종료 검토](m7_exit_review.md). |
-| TBD-10 | perception/learned-planner shape/risk/history/calibration, AI fallback timing/feasibility/recovery / AI·safety 담당 | **M10/M11**, AI 통합 시험 전 | classical M8 baseline 후 확장; AI로 actuator 직접 제어 금지는 확정 |
-| TBD-11 | C++ standard/compiler/CI/test tool versions, artifact size/license/storage policy; control 알고리즘/tuning, speed transition slope/duration, scenario repetitions / toolchain·control 담당 | **M1** 첫 code/tool 전; **M8** control/정상 시험 전; **M10** 첫 model fixture 전 | 작은 변경과 설명 가능한 도구 선택; 5 s settling + 10 s steady window와 수치 requirement 변경은 revision 필요 |
-| TBD-12 | EV 전원 sequence/주행 허가/INIT handshake, LV·충전 연결·interlock와 고장별 torque/power reaction, shutdown/복구 threshold·budget / vehicle management·safety 담당 | **M1** 의미/handshake; **M2** power component 시험 전; **M4/M6** gate/vehicle 검증 전 | M6 SIL의 실제8-role startup/RunLease/arm·정상 stop/HV-off·재가입 검증 완료. 외부 차량/LV/charging/Target 반응은 후속; READY≠권한≠물리 완료 |
-| TBD-13 | battery usable capacity/initial SOC, pack·셀 극값 voltage/thermal 모델·threshold/dwell, charge/discharge 곡선·효율/부하/에너지 오차, motor power→torque / model 담당 | **M2** Battery/BMS/Drive 시험 전; **M6/M7** 일관성/매핑 재검증 | M6 SIL의 Battery/BMS·회로·vehicle 구간 work/장부 및 charge-zero 검증 완료. M7-1h 원래 wheel 기반 ZOH 모델 예측 포트·원자적 commit 구현. 1i equal rear torque와 평균 wheel speed의 power conjugacy·signed motor/friction 분리 설계. CARLA applied work/전체 에너지 보존은 미수용. 차량 chemistry/thermal/OEM calibration·M7 mapping은 미결정; 단일 owner/clock 유지 1r은 기존 M6 EV 모델/계수/오차 기준 그대로 solver work·SOC/손실 장부를 연결했다. signed 회생/일반 정지·전체 기계 에너지 보존·OEM 적합성은 미수용이다. |
-| TBD-14 | EV wire 수용·coordinator, trusted startup/parent·model identity 전달, clock/각 hop budget, DDS/Host status / interface·timing 담당 | **M1** wire/session 수용 전; **M2/M3** sampler/task/timing; **M5** DDS/Host bridge 전 | **부분 구현:** ADR-0016/17 6개 frame/P05와 항목별 receiver Host 검사; source 50/input 70/RX 80 ms 초안, Drive input age opt-in 분리와 local vCAN 36개 검사 완료; Host 독립3-vECU/실제 session·원천 전달은 구현; 다른 kernel/Target budget은 남음 |
-| TBD-15 | 남은 Central–Zone schema/QoS/queue/clock/skew/source-age·monitor budget/INIT-rejoin/routing config / architecture·communication 담당 | **M4** 각 Zone/local test 전, **M5/M6** DDS/plant 통합 검증 전 | **부분 결정:** ZON-01 Front/Rear, 후륜 구동 packaging, Central 별도 단일 coordinator 및 Host typed8-role Prepare/INIT/Release(ADR-0054)·방향별 bounded SPSC/정상 owner 연결(ADR-0055); owner-wire v1/global60ms credit·30ms source age·20ms receipt·common kernel monotonic·원천 CAN/P05/parent/expiry/역방향 ACK 계약 component 검사. Host SOME/IP 3-vECU 세션/격리는 한정 수용; 다른 kernel clock/Target·DDS는 별도 gate, calibration TBD-02/07; 별도 하드웨어 불필요 |
-| TBD-16 | MBD 모델 도구/license·model artifact/Host harness·solver/sample time/numeric 설정·모델/코드 동등성 기준·선택적 generator / control·model·toolchain 담당 | **M6** MIL pilot 시작 전 도구/모델 설정; **M8** C++ 비교 실행 전 tolerance/초기 상태/공통 vector, 자동 생성 채택 전 재생성/호환 확인 | M6 Python/binary64·독립 plant·solver/sample/reference/초기 상태·MIL을 ADR-0063으로 결정/검증. M8 C++ 동등성 tolerance·generator 도입은 미결정; M6 종료 검토 참조 |
+| ID | 결정할 내용 / 담당 | 결정 시점·현재 경계 |
+| --- | --- | --- |
+| TBD-01 | CAN layout·scaling·Data ID·sequence / 통신 | M1 Host DBC/P05 구현됨. Wire/schema 변경 시 재검증 |
+| TBD-02 | 차체·차륜 geometry, 단위·부호·actuation mapping / 모델·interface | M6 모델과 M7 V1 선택됨. 실제 차량 calibration·다른 blueprint는 후속 |
+| TBD-03 | actuator 응답·보호·저속 hold·물리 오차 / plant | M6 fixture·M7 가상 EV 범위 결정. OEM·전체 ODD 수용은 별도 |
+| TBD-04 | clock·freshness·job/monitor deadline·측정 / timing | M7 wall 통합 전. 2ms/4ms·Drive30ms 유지; 정상 wall 수용 OPEN |
+| TBD-05 | middleware·격리·bridge/discovery / 통신 | Host vSomeIP3.7.6 한정 사용; DDS 제어 gate CLOSED. Target은 배포 전 결정 |
+| TBD-06 | 배분·충돌/가용성·local protection·DEGRADED / 차량 제어 | M4 component 구현. M8 전 회생/마찰 전환·차량 envelope 검증 |
+| TBD-07 | CARLA/UE/client·map/route·tick·fidelity / simulation | 고정 source build·Town03/V1 사용. M7 wall·renderer와 M8 경로 적합성 OPEN |
+| TBD-08 | DTC code·debounce·persistence·clear / diagnostics | M9 event→DTC 통합 전 |
+| TBD-09 | Jetson board/RAM·platform stack·모델/workload·측정 / compute·AI | M10 model fixture·M12 독립 보드 비교 전 |
+| TBD-10 | perception/planner shape·history·risk·fallback / AI·safety | M10–M11 통합 전 |
+| TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. M8 제어·M10 모델 도입 전 갱신 |
+| TBD-12 | 전원 sequence·INIT/permission·shutdown/복구 / vehicle management | M6 startup/RunLease/stop/HV-off 검증. 실차 LV/충전/Target 반응은 후속 |
+| TBD-13 | battery/thermal·limits·efficiency·energy 오차 / 모델 | M6 계수·M7 단일 EV work 정산 사용. Chemistry/OEM 적합성은 미결정 |
+| TBD-14 | BMS/EV wire·원천/dependency·hop budget / interface·timing | Host P05·receiver·원천 전달 검증. 다른 kernel/Target clock은 후속 |
+| TBD-15 | Central–Zone schema/QoS·queue·INIT/rejoin·배치 / architecture·통신 | Front/Rear·8-role·owner-wire·SOME/IP 한정 결정. Target/system TC 후속 |
+| TBD-16 | MBD 도구·solver/sample·공통 vector·numeric tolerance·generator / model·control | M6 Python/binary64 MIL 완료. M8 C++ 동등성 기준·선택적 생성 도구 결정 전 |
 
-RG-01의 추가 상세값도 기존 owner/gate에 귀속된다. 범위 결정으로 TBD가 해소되지는 않는다.
-
-| 기존 ID | 회생 설계에서 결정할 항목 / gate |
-| --- | --- |
-| TBD-01 | M1 Drive signed scaling/범위/layout/Data ID, capability validity/reason/source freshness와 frame 구성 |
-| TBD-02 | M2/M6 공통 wheel 기준/geometry, 압력→마찰 torque calibration, capability age/skew와 에너지 산출 단위 변환 1q는 별도 native-functional 프로필에서 원본 owner-wire/CAN·실제8-role 권한과 CARLA run/session/generation을 결합했다. 원본 Command는 적용 입력이 아니며 일반 Host–Target 배포 계약은 미변경. 1r opt-in은 원본 run/session/actor/generation/ticket에 solver work와 EV ACK를 결부한다. 기존 CAN/owner-wire 계약은 불변이다.  **현재 통합:** 통합 검증에서 원래 Actual/요청 source와 V1 mapping을 재확인; OEM calibration 아님. 새 wall opt-in은 model frame와 원래 monotonic acquisition을 별도 필드로 운반하며 CAN 계약을 유지한다. [종료 검토](m7_exit_review.md). |
-| TBD-03 | M2 양·음수 motor response/zero-target ramp, 속도별 회생 한계, 충전 수용/효율 fixture, 저속 hold와 energy integration 오차 1q는 기존 actuator Actual→V1 직접 effort만 적용하며 모델 응답을 중복하지 않는다. 고정 입력 출발만 검증했고 실제 solver work/EV 일치는 미수용. 1r은 직접 적분의 signed motor work만 기존 단일 EV owner에 전달하고 ZOH 중복 계산을 하지 않는다. 일반 제동/회생 검증은 후속이다.  **현재 통합:** 통합900구간에서 signed 회생·마찰 제동·휠 정지·재출발 관측. 보호 Actual→CARLA 감속·휠 정지를 추가 검증했다. wall fault의 local 보호 선택/다음 tick 차단과 work 없는 actuator 보호 진행·과거 coil 기반 단일 EV 정산 component를 추가 검증. 명시적 보호 hold opt-in에서 차체 자연 완전 정지까지 한정 검증. wall fault 이후 연속 제동 수용은 OPEN. 실제 두 시간축 경로는 work/coil 적용을 단일 EV에 정산하나 정상 wall 주행 전에 원천 만료로 실패했다. [종료 검토](m7_exit_review.md). |
-| TBD-04 | M1/M3 capability freshness/monitor timing budget; critical loss 검출 상한 유지 1q 전용 INIT offset8ms로20/10ms 위상을 맞춰 기존30ms/expiry를 보존했다. 전체 구간 최대 source age20ms, 최소 command expiry 여유1ns. wall2/4ms·clock uncertainty 수용 아님. 1r은 원래 solver dt/취득 source를 보존하며 discrete work 총량을 native1ms 경계로 배분한다. 끝 잔여 정산/ACK 전 다음 stage를 차단하고 wall 요구는 미변경이다.  **현재 통합:** 통합 monotonic 계측에서 native 대기 공백>2ms 관측; 독립2ms/4ms monitor→local 보호 선택→다음 tick 차단을 추가 검증. actuator/EV 분리 API를 terminal wall runner의 실제8-role/보호 Actual에 연결했다. 새 wall owner에 실제 CARLA 원본 model work/monotonic acquisition을 공유 메모리로 연결했으나 엔진 프레임 공백으로 정상 wall 주행은 실패했다. 새 post-physics monotonic 취득 bracket은 원래 시각을 유지하며 고정 offset 불가·pause 제외 전달 지연을 확인한 진단 근거이고 clock agreement가 아니다. bounded raw journal로 solver 직렬화/감사를 tick 경로에서 분리하고 완전 증거·물리 동등성을 재검증했다. phase42개 조사에서도 최소 expiry1ns 문제는 남아 기본 위상을 유지한다. 연속 owner 실행/clock mapping/실제 보호 제동 wall gate는 NOT ACCEPTED. M7 camera는 전용 frame5 취득 옵션으로50ms를 유지; timestamp restamp 없음. [종료 검토](m7_exit_review.md). |
-| TBD-05 | M5 vehicle state→Zone→Drive 속도 입력/원천 metadata 전달과 ZoneStatus capability schema |
-| TBD-06 | M4 회생/마찰 전환/arbitration, actual 보정, 감속 부족·과다/전환 budget와 local protection envelope |
-| TBD-07 | M7 signed Drive Actual과 friction Brake Actual을 한 번씩 적용하는 CARLA mapping 및 에너지 모델 fidelity 1q는 별도 local native-functional 옵션에서 Actual/ACK/credit/인과 명령·permission 검사를 서버에 연결했다. 새2서버 각400tick·권한/명령/센서 누락 차단 한정 검증. 전체 solver work/단일 EV·wall gate OPEN. 1r은 pinned UE 원본 source/archive를 보존한 계측 module로 완전한 NoDrive work를 관측했다. 최종 새2서버 각400정산과 기존 모드 회귀를 확인했으며 타 엔진/renderer/전체 ODD로 확대하지 않는다. 기존 native 회귀의 종료−11 원본은 보존한다. 1s는 accept/close 경합을 TSan 재현·수정하고 새12서버 종료130으로 OPEN-M7-1R-EXIT-01을 FIXED_LIMITED로 판단한다. 최초 cold-load 중단 강제−9는 별도 OPEN-M7-1S-COLD-01이며 준비 확인 보완을 종료 한도 수용으로 확대하지 않는다.  **현재 통합:** 통합 근거의 Town03_Opt54m 직선 후보/좌표/곡률·ClearNoon·고정 요청 일정을 동결. M8 30km/h 적합성 NOT RUN. cold-loading180s/종료30s 실패 보존. 후속 sync RPC 대기 취소로 로딩 중 종료 교착을 수정·재검증했다. 별도 camera client-loss 후 SIGINT30s 실패를 재현하고 동기 tick 대기의 exit 취소를 수정·영상 유/무 재검증했다. 원래 실패는 보존한다. [종료 검토](m7_exit_review.md). |
-
-추가 TBD는 owner / 결정 milestone / rationale을 이 표에 등록한다. M3/M6/M7/M8 evidence로
-수치 변경 시 [requirement revision](requirements/system_requirements.md)에 이전/새 값과
-rationale/Result/영향 test를 기록하고 profile/ICD/scenario를 함께 갱신한다.
-
-
-TBD-02/03/07/12/13/16의 **M6 결정값·소유권·근거와 M7 이후 gate의 구분**은
-[M6 종료 검토](m6_exit_review.md#tbd의-m6-결정과-후속-경계)에 모았다. ID 전체를 CLOSED로
-덮어쓰지 않는다. 새 수치/범위 변경은 원래 requirement revision·profile/ICD/evidence 절차를 따른다.
+M6에서 결정된 수치·소유권과 후속 gate의 상세 구분은 [M6 검토](archive/milestone-reviews.md#m6)에 있다.
+수치 변경은 이전/새 값·이유·영향 requirement/ICD/profile/test·결과를 함께 기록한다.
+문서/YAML의 `TBD`·`null`을 0·default·disabled로 해석하지 않는다.

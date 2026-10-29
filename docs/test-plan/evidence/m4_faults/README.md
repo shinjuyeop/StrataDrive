@@ -1,8 +1,8 @@
 # M4 고장·복구와 M3 독립 감시 — 공유 실행 근거
 
 Result: **RES-M4-FAULT-20261020**. Host component 기능/회귀 PASS, native timing **41/48 PASS·7 FAIL**.
-현재 상태는 [project_status](../../../project_status.md), 설계는 [ADR-0056](../../../adr/ADR-0056-m4-faults-and-independent-execution-watch.md),
-실행 계획은 [사전 프로토콜](../../m4_fault_timing_protocol.md)이다. 학습자의 직접 재현·이해 확인은 **PENDING**,
+현재 상태는 [project_status](../../../project-status.md), 설계는 [ADR-0056](../../../archive/design-decisions.md#adr-0056),
+실행 계획은 [사전 프로토콜](../../../archive/protocols/m4-fault-timing-protocol.md)이다. 학습자의 직접 재현·이해 확인은 **PENDING**,
 32개 requirement/29개 전체 system TC는 **NOT RUN**이다.
 
 ## 대상과 환경
@@ -86,7 +86,7 @@ Native 대표는 actual1202.384ms 주입,1211.773ms live 검출,3116.080ms 재�
 
 ## M3 독립 감시·48회 timing
 
-[protocol](../../m4_fault_timing_protocol.md)의 내용 SHA는 results.json timing metadata에 고정했다.
+[protocol](../../../archive/protocols/m4-fault-timing-protocol.md)의 내용 SHA는 results.json timing metadata에 고정했다.
 Run2540ms·guard lead100ms·period2ms·deadline4ms·owner당1211 slots·20ms tail이다.
 CPU0=Front/Rear/Physical/Monitor, CPU1=Central/다섯 Leaf이며 FIFO priorities는18/18/10/10/10/9/10/11/19/20이다.
 별도 OTHER CPU1 load process는10ms 중7ms busy, 실제 CPU≥100ms·affinity·policy·생존/window를 대조했다.
@@ -164,7 +164,7 @@ Timed wait_for를 가진 표준 CV 예제도 같은 경고를 냈고 atomic 장�
 vCAN은 `build/m4-fault-gateway-{normal,sanitized}.log`, read-only preflight는 `build/m4-fault-preflight/`에 있다.
 실행 명령은 각각 `clang-tidy-14 -p build/m4-readiness`의 analyzer/bugprone10개 파일, `cppcheck --project=build/m4-fault-cppcheck.json` production8개,
 `cmake -S . -B build/m4-release-final -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF`/build,
-[기존 vCAN namespace 명령](../../../learning/m4_zone_gateway.md), `tools/runtime_diagnostics.py --probe-only --fifo-priority 20 --output-dir NEW_DIR`다.
+[기존 vCAN namespace 명령](../../../learning/vehicle-lifecycle-guide.md), `tools/runtime_diagnostics.py --probe-only --fifo-priority 20 --output-dir NEW_DIR`다.
 
 ## 완료 범위와 다음 단위
 

@@ -2,8 +2,8 @@
 
 Review base `1a4afe5`. Application binary unchanged:
 `4736b40e8b5b2b67c4cf603ff96a7b1516d619541fdb10a8de80ff01b8f76347`.
-Current state is maintained in [project status](../../../project_status.md).
-The [prospective protocol and exact sudo command](../../m4_kernel_capture.md)
+Current state is maintained in [project status](../../../project-status.md).
+The [prospective protocol and exact sudo command](../../../archive/m4-test-protocols.md#m4_kernel_capture)
 fix OTHER1 + FIFO10 OFF/ON pairs, normal build, no retries.
 
 Latest: the separate `d3e7f6d` campaign **213425 completed11/11 valid pairs**.
@@ -149,7 +149,7 @@ python3 tools/m4_kernel_campaign_analysis.py \
 # Expected exit2; original trace loss must remain INVALID.
 ```
 
-For the corrected collector, run the same [fixed sudo command](../../m4_kernel_capture.md)
+For the corrected collector, run the same [fixed sudo command](../../../archive/m4-test-protocols.md#m4_kernel_capture)
 once into a new timestamped directory. It is a **separate campaign**, not a
 replacement for these2 failed workloads/20 NOT RUN entries. M4 stays NOT CLOSED;
 historical FIFO/native/DDS issues and Target/system/learner status remain open.

@@ -28,7 +28,7 @@ duration·값·dependency 검사를 그대로 사용한다. CARLA sim timestamp�
 실제 CARLA simulation dt/EV work와 wall acquisition의 연결은 아직 없다. 이 API에 CARLA
 receipt의 시각만 교체해 넣을 수 없고, `next_frame=0`이며 기존 server admission domain과 다르다.
 queued/in-flight RPC containment 및 wall-origin Actual의 실제 CARLA 제동 수용도 남아 있다.
-[ICD draft-v24](../../../../icd/carla_plant_adapter.md#새-wall-owner의-구현-범위-draft-v24)를 따른다.
+[ICD draft-v24](../../../../archive/carla-history.md#icd-새-wall-owner의-구현-범위-draft-v24)를 따른다.
 
 ## 최종 실행 결과
 

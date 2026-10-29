@@ -11,7 +11,7 @@ import sys
 try:
     import cantools
 except ImportError:
-    raise SystemExit("cantools가 필요합니다. docs/learning/m1_steering_frame_codec.md를 참고하세요.")
+    raise SystemExit("cantools가 필요합니다. docs/learning/communication-guide.md를 참고하세요.")
 
 
 ROOT = Path(__file__).resolve().parent.parent

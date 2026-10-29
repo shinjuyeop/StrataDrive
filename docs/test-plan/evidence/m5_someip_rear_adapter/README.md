@@ -8,7 +8,7 @@
 남긴다. 실제 sanitizer 오류는 면제하지 않았고 관측된 memory/UB/race 경고는0이다.
 모든 필수 시험이 PASS라고 주장하지 않는다. 전체 M4·Jetson·M6·전체 시스템 수용은 아니다.
 
-[사전 protocol과 수정별 비교 조건](protocol.md), [ICD/소유권](../../../icd/someip_rear_adapter.md),
+[사전 protocol과 수정별 비교 조건](protocol.md), [ICD/소유권](../../../interfaces/someip-rear-adapter.md),
 [기계 판독 집계](results-summary.json), [전체41회 결과표](results.csv),
 [Leaf 갱신 여유](renewal-margins.csv), [세션·보호 시간축](timeline.csv),
 [고장별 요약/실제 PID](fault-timeline.json), [남은 TSan 실패 시간축](tsan-expiry-axis.json).

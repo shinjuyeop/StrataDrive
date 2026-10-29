@@ -113,7 +113,7 @@ def main():
                 'affinity': sorted(os.sched_getaffinity(0)), 'policy': os.sched_getscheduler(0),
                 'planned': 40, 'repetitions_per_profile': 20, 'test': TEST, 'duration_ns': 1800000000,
                 'load': 'none', 'guards': False, 'transport_trace': True, 'process_aslr': 'setarch -R',
-                'protocol': 'docs/test-plan/m4_settlement_protocol.md'}
+                'protocol': 'docs/archive/m4-test-protocols.md#m4_settlement_protocol'}
     (out/'metadata.json').write_text(json.dumps(metadata, indent=2)+'\n')
     rows = []
     for repetition in range(1,21):
