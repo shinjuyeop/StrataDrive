@@ -23,7 +23,15 @@ def audit(directory):
     path=directory/'trace.jsonl'
     opening=open if path.exists() else gzip.open
     if not path.exists():path=path.with_suffix('.jsonl.gz')
-    with opening(path,'rt') as f:rows=[json.loads(line) for line in f]
+    rows=[]
+    with opening(path,'rt') as f:
+        for line in f:
+            row=json.loads(line)
+            # Raw substeps are independently streamed by audit_m7_1r_work.
+            # This scenario audit only needs the signed frame work totals.
+            work=row.get('receipt',{}).get('solver_work',{})
+            work.pop('steps',None);work.pop('rear_mean_rad_s',None)
+            rows.append(row)
     complete=[r for r in rows if 'receipt' in r]
     phase_checks=[]
     if 'scenario' in result:
@@ -39,7 +47,14 @@ def audit(directory):
                 phase=next(p for p in phases if source-initial<p[0]*1000000)
                 check([accel,curvature,braking,hold]==phase[1:],'controller request phase/source mismatch')
         if result['fault']=='none':
-            for lo,hi,name in ((100,350,'acceleration_left'),(350,450,'regeneration'),(450,650,'friction_hold'),(650,900,'restart_right')):
+            continuous=result.get('continuous_simulation',False)
+            ranges=[]
+            for cycle in range(6 if continuous else 1):
+                stages=((100,350,'acceleration_left'),(350,450,'regeneration'),(450,650,'friction_hold'),
+                        (650,850 if continuous else 900,'restart_right'))
+                if continuous:stages+=((850,1000,'cycle_end_brake'),)
+                ranges.extend((lo+cycle*1000,hi+cycle*1000,name,cycle) for lo,hi,name in stages)
+            for lo,hi,name,cycle in ranges:
                 part=[r['receipt'] for r in complete if lo<=r['index']<hi]
                 check(len(part)==hi-lo,'scenario phase coverage')
                 actual=[r['original_actual']['admitted_actual'] for r in part]
@@ -48,9 +63,9 @@ def audit(directory):
                 zero=[r for r in part if all(w['solver_omega_rad_s']==0 for w in r['physics']['wheels'])]
                 if name=='acceleration_left':check(speed[-1]>speed[0] and any(a['angle_rad']>0 for a in actual),'acceleration/left Actual')
                 if name=='regeneration':check(any(a['torque_nm']<0 for a in actual) and min(work)<0,'signed regeneration not observed')
-                if name=='friction_hold':check(zero and any(a['pressure_pa']>0 for a in actual),'friction/wheel stop not observed')
+                if name in ('friction_hold','cycle_end_brake'):check(zero and any(a['pressure_pa']>0 for a in actual),'friction/wheel stop not observed')
                 if name=='restart_right':check(speed[-1]>speed[0] and any(a['angle_rad']<0 for a in actual),'restart/right Actual')
-                phase_checks.append(dict(name=name,frames=len(part),speed_m_s_range=[min(speed),max(speed)],
+                phase_checks.append(dict(name=name,cycle=cycle+1,frames=len(part),speed_m_s_range=[min(speed),max(speed)],
                     actual_torque_nm_range=[min(a['torque_nm'] for a in actual),max(a['torque_nm'] for a in actual)],
                     pressure_pa_range=[min(a['pressure_pa'] for a in actual),max(a['pressure_pa'] for a in actual)],
                     negative_motor_work_frames=sum(v<0 for v in work),motor_work_j=sum(work),zero_wheel_frames=len(zero),
@@ -94,6 +109,10 @@ def audit(directory):
               production_2ms_4ms_gate='NOT_ACCEPTED',per_job_4ms_deadlines='NOT_INSTRUMENTED',
               observed_native_opportunity_gap_violation=any(v>2000000 for v in gaps),
               includes_json_solver_trace_and_explicit_250ms_pause=True)
+    elapsed=(rows[-1]['wall_end_ns']-rows[0]['wall_begin_ns'])/1e9
+    simulated=sum(r['receipt']['simulation_end_seconds']-r['receipt']['simulation_begin_seconds'] for r in complete)
+    wall['simulation_progress']=dict(simulated_seconds=simulated,execution_wall_seconds=elapsed,
+        simulated_per_wall_second=simulated/elapsed,includes_trace_validation_and_intentional_pause=True)
     return dict(status='PASS_BOUNDED_INTEGRATED_AUDIT',receipts=len(complete),phases=phase_checks,sensors=sensors,wall=wall,
                 full_m7_closed=False,body_stationary_acceptance=False)
 

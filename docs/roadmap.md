@@ -7,7 +7,7 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M7 · 진행 중 | [기능 통합 종료 조건](project-status.md#m7-종료-조건): 같은 simulation time의 연속 주행·영상·work/EV·fault/보호 정지. 실제 wall 주행·보호 제동 수용은 별도 OPEN |
+| M7 · 기능 범위 CLOSED | [시뮬레이션 시간 기능 수용](project-status.md#m7-종료-조건). 실제 wall 정상 주행·오류 후 실제 제동은 별도 OPEN |
 | M8 | M6 종방향 모델의 C++ 구현·공통 vector 동등성, 실제 차량 폐루프, route/waypoint·횡방향 제어와 Reference 30km/h 시험 |
 | M9 | Fault event → 검출 → 보호 → actual response → DTC 통합. 기존 로컬 보호는 계속 유지 |
 | M10–M11 | Perception·temporal learned planner, Safety Supervisor·classical fallback, 인식/판단 한계와 scenario 검토 |
@@ -28,10 +28,10 @@ Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revis
 | TBD-01 | CAN layout·scaling·Data ID·sequence / 통신 | M1 Host DBC/P05 구현됨. Wire/schema 변경 시 재검증 |
 | TBD-02 | 차체·차륜 geometry, 단위·부호·actuation mapping / 모델·interface | M6 모델과 M7 V1 선택됨. 실제 차량 calibration·다른 blueprint는 후속 |
 | TBD-03 | actuator 응답·보호·저속 hold·물리 오차 / plant | M6 fixture·M7 가상 EV 범위 결정. OEM·전체 ODD 수용은 별도 |
-| TBD-04 | clock·freshness·job/monitor deadline·측정 / timing | M7 wall 통합 전. 2ms/4ms·Drive30ms 유지; 정상 wall 수용 OPEN |
+| TBD-04 | clock·freshness·job/monitor deadline·측정 / timing | M7 기능은 명시적 simulation domain에서 수용(ADR-0065). 2ms/4ms·Drive30ms 유지; 실제 wall 수용 별도 OPEN |
 | TBD-05 | middleware·격리·bridge/discovery / 통신 | Host vSomeIP3.7.6 한정 사용; DDS 제어 gate CLOSED. Target은 배포 전 결정 |
 | TBD-06 | 배분·충돌/가용성·local protection·DEGRADED / 차량 제어 | M4 component 구현. M8 전 회생/마찰 전환·차량 envelope 검증 |
-| TBD-07 | CARLA/UE/client·map/route·tick·fidelity / simulation | 고정 source build·Town03/V1 사용. M7 wall·renderer와 M8 경로 적합성 OPEN |
+| TBD-07 | CARLA/UE/client·map/route·tick·fidelity / simulation | 고정 source/Town03/V1의 simulation 기능 수용. 실제 wall·전체 renderer 안정성·M8 경로 적합성 OPEN |
 | TBD-08 | DTC code·debounce·persistence·clear / diagnostics | M9 event→DTC 통합 전 |
 | TBD-09 | Jetson board/RAM·platform stack·모델/workload·측정 / compute·AI | M10 model fixture·M12 독립 보드 비교 전 |
 | TBD-10 | perception/planner shape·history·risk·fallback / AI·safety | M10–M11 통합 전 |

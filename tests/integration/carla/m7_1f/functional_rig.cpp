@@ -65,6 +65,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     Scope scope;
     const Time domain;
     const bool wall_mode;
+    const Time horizon_ms;
     simulation::m4_detail::Clock clock{false};
     Time start,next_io,next_physical;
     std::array<transport::RunGate,8> gates;
@@ -114,7 +115,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::array<DeliveredCapture<transport::LeafRequest>,5> command_capture;
     std::array<std::optional<session::Ack>,8> release_acks;
 
-    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
+    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0,Time horizon=10000):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),horizon_ms(horizon),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
         clock.logical=initial;
         if(export_actual) {
             for(unsigned i=0;i<2;++i)zones[i].feedback.delivery(&feedback_capture[i]);
@@ -320,7 +321,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         protect_central();for(auto& p:participants)p->select_protection();
     }
     Report advance(Time observed) {
-        require(observed>=clock.logical && observed-start<=10'000*ms,"finite logical horizon");
+        require(observed>=clock.logical && observed-start<=horizon_ms*ms,"finite logical horizon");
         electrical_count=0;
         // Jobs are scheduled on the existing 0.2ms ingress/1ms fixture grids.
         // No observation is used before its timestamp. The optional real wheel
@@ -415,11 +416,13 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     }
 };
 
-FunctionalRig::FunctionalRig(Scope scope,std::uint32_t actor,PlantMode mode,bool exporting):scope_(scope),clock_(scope),wheel_actor_(actor),plant_mode_(mode),export_actual_(exporting) {
+FunctionalRig::FunctionalRig(Scope scope,std::uint32_t actor,PlantMode mode,bool exporting,Time horizon):scope_(scope),clock_(scope),wheel_actor_(actor),plant_mode_(mode),export_actual_(exporting),horizon_ms_(horizon) {
     // Native PhysicalOwner's immutable fixture epoch is 7. Do not pretend a
     // packet can choose a new physical plant identity or an axle calibration.
     require(!actor || scope.plant==7,"wheel fixture plant binding");
     require(mode==PlantMode::StationaryFixture || actor!=0,"external plant requires wheel binding");
+    require(horizon>=10000 && horizon<=60000 &&
+            (horizon==10000 || (mode==PlantMode::ExternalSolverWork && exporting)),"bounded simulation-only horizon");
 }
 FunctionalRig::~FunctionalRig()=default;
 Report FunctionalRig::observe(const Observation& o) {
@@ -444,7 +447,7 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         }
         const bool initial=!native_;
         require(plant_mode_==PlantMode::ExternalSolverWork ? (initial?!work_:bool(work_)) : !work_,"missing/unexpected solver work");
-        if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_);
+        if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_,false,0,horizon_ms_);
         native_->profile=profile_;
         native_->controller_phase=controller_phase_;
         native_->watch=watch_;
@@ -490,7 +493,7 @@ void FunctionalRig::request_profile(std::vector<RequestPhase> phases) {
     require(!native_ && !phases.empty() && phases.size()<=32,"profile must be bounded and set before INIT");
     Time previous=0;
     for(const auto& p:phases) {
-        require(p.end_ms>previous && p.end_ms<=10000 && std::isfinite(p.acceleration) &&
+        require(p.end_ms>previous && p.end_ms<=horizon_ms_ && std::isfinite(p.acceleration) &&
             p.acceleration>=-5 && p.acceleration<=2 && std::isfinite(p.curvature) &&
             std::abs(p.curvature)<=1 && std::isfinite(p.braking) && p.braking>=0 && p.braking<=1,"invalid request profile");
         previous=p.end_ms;

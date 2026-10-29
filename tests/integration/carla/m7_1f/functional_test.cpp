@@ -128,4 +128,37 @@ TEST(M7FunctionalNative, ScenarioCannotRewritePastOrAcceptInvalidSchedule) {
     rig.observe(observation());
     EXPECT_THROW(rig.request_profile({{1000,1,0,0,false}}),std::runtime_error);
 }
+TEST(M7FunctionalNative, ExtendedHorizonIsExplicitSolverOnlyAndCannotChangeOldDefault) {
+    EXPECT_THROW(FunctionalRig(scope,0,PlantMode::StationaryFixture,false,60000),std::runtime_error);
+    EXPECT_THROW(FunctionalRig(scope,99,PlantMode::ExternalSolverWork,true,60001),std::runtime_error);
+    FunctionalRig original(scope,99,PlantMode::ExternalSolverWork,true);
+    EXPECT_THROW(original.request_profile({{10001,0,0,.5,true}}),std::runtime_error);
+    FunctionalRig extended(scope,99,PlantMode::ExternalSolverWork,true,60000);
+    EXPECT_NO_THROW(extended.request_profile({{60000,0,0,.5,true}}));
+    EXPECT_THROW(extended.request_profile({{60001,0,0,.5,true}}),std::runtime_error);
+    // Original 30ms lease loss still closes the extended session.
+    Report r;
+    for(unsigned i=0;i<=1100;++i) {
+        const Time source=1000000000ULL+i*tick_ns;
+        const WheelSample wheel{99,100+i,source,{0,0,0,0}};
+        if(!i)r=extended.observe(observation(i),wheel);
+        else {
+            stratadrive::m7_external::SolverWork work;
+            work.frame=100+i;work.begin=source-tick_ns;work.end=source;work.oldest=work.begin;
+            work.dt=double(.01f*(1.f/320.f));work.wheel={0,{7,99+i,work.begin},work.begin};
+            r=extended.observe(observation(i),wheel,work);
+        }
+    }
+    EXPECT_TRUE(r.armed);EXPECT_EQ(r.credit_mask,255U);EXPECT_LE(r.now+tick_ns-r.returned_wheel->source,30*ms);
+    extended.stop_credit(true);bool rejected=false;
+    for(unsigned i=1101;i<=1105;++i) {
+        const Time source=1000000000ULL+i*tick_ns;
+        stratadrive::m7_external::SolverWork work;
+        work.frame=100+i;work.begin=source-tick_ns;work.end=source;work.oldest=work.begin;
+        work.dt=double(.01f*(1.f/320.f));work.wheel={0,{7,99+i,work.begin},work.begin};
+        try {extended.observe(observation(i),{99,100+i,source,{0,0,0,0}},work);}
+        catch(const std::runtime_error&) {rejected=true;break;}
+    }
+    EXPECT_TRUE(rejected);
+}
 } // namespace

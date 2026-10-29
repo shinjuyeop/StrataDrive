@@ -44,7 +44,7 @@ struct Report {
 // observed solver work; the external adapter remains the sole CARLA writer.
 class FunctionalRig {
 public:
-    explicit FunctionalRig(Scope scope,std::uint32_t trusted_wheel_actor=0,PlantMode mode=PlantMode::StationaryFixture,bool export_actual=false);
+    explicit FunctionalRig(Scope scope,std::uint32_t trusted_wheel_actor=0,PlantMode mode=PlantMode::StationaryFixture,bool export_actual=false,Time horizon_ms=10000);
     ~FunctionalRig();
     FunctionalRig(const FunctionalRig&)=delete;
     FunctionalRig& operator=(const FunctionalRig&)=delete;
@@ -80,6 +80,7 @@ private:
     std::uint32_t wheel_actor_;
     PlantMode plant_mode_;
     bool export_actual_;
+    const Time horizon_ms_;
     std::optional<m7_external::SolverWork> work_;
     std::vector<RequestPhase> profile_;
     Time controller_phase_=14*ms;

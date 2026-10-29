@@ -51,6 +51,11 @@ python3 tests/integration/carla/m7_integrated_run.py \
 전체 기본 suite에는 고장·중단 case가 포함된다. 위 명령은 기능 clock의 고정 시나리오이며
 정상 wall 주행이나 Reference 30km/h 폐루프 시험이 아니다. 동작 중인 외부 서버를 별도로 시작할 필요는 없다.
 
+시뮬레이션 시간의 연속 주행·영상·보호·고장 7개 시험은 위 명령의 `--cases camera-a`를
+`--simulation-time --held-steer-sleep`으로 바꿔 실행한다. 연속 case는 각각 시뮬레이션60초이며
+실제 실행 시간은 더 길다. 원본 work trace 저장 공간이 필요하다.
+실행 분모·한계와 저장 증거 복원은 [연속 실행 증거](test-plan/evidence/m7_carla_integrated/simulation-time/README.md)를 따른다.
+
 ## 화면 확인
 
 현재 시험 runner는 `-RenderOffScreen`으로 실행해 CARLA 게임 창을 띄우지 않는다.

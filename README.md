@@ -3,8 +3,8 @@
 Central → Front/Rear Zone → Leaf ECU 구조의 차량 소프트웨어를 만들고 검증하는 SIL 프로젝트다.
 Host에서 통신·세션·actuator/EV 모델을 연결했고, CARLA 통합을 진행하고 있다.
 
-**현재: M6 Host quiet SIL/Python MIL 완료, M7 CARLA 통합 진행 중.**
-고정 시나리오의 가속·회생·제동은 검증했지만 정상 실시간 주행은 아직 수용하지 못했다.
+**현재: M6 Host quiet SIL/Python MIL과 M7 시뮬레이션 시간 기능 통합 완료.**
+CARLA 연속 주행·영상·보호 정지를 검증했다. 실제 시간 기준 실시간 연동은 별도 미완료다.
 최신 판정과 다음 작업은 [프로젝트 상태](docs/project-status.md) 한곳에서 관리한다.
 
 ## 시작하기

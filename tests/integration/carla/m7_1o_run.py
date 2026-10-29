@@ -49,8 +49,9 @@ def main():
     p.add_argument("--held-steer-sleep", action="store_true")
     p.add_argument("--abort-on-port", action="store_true", help="Interrupt owned server before world readiness; no ego or ticks")
     p.add_argument("--shutdown-diagnostic", action="store_true", help="Owned loading-abort only: capture blocked shutdown stacks within original 30s budget")
+    p.add_argument("--simulation-continuous", action="store_true")
     p.add_argument("--ticks", type=int, default=400)
-    p.add_argument("--native-fault", choices=("none","credit","command","snapshot","work-missing","work-duplicate","ev-ack-missing","ev-ack-duplicate","ev-ack-energy","rgb-drop","protection","wall-gap","client-loss"), default="none")
+    p.add_argument("--native-fault", choices=("none","credit","command","snapshot","work-missing","work-duplicate","ev-ack-missing","ev-ack-duplicate","ev-ack-energy","rgb-drop","protection","wall-gap","client-loss","native-stall"), default="none")
     p.add_argument("--response-fixture", type=Path)
     p.add_argument("--require-solver-wheel", action="store_true")
     p.add_argument("--native-wheel-bridge", type=Path)
@@ -58,6 +59,9 @@ def main():
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
     a = p.parse_args()
+    if a.simulation_continuous and not (a.native_actual and a.solver_work and a.scenario and
+                                       not a.wall_native and not a.compact_work and a.native_fault=="none" and 150<=a.ticks<=6000):
+        p.error("continuous simulation requires explicit functional native/work/scenario; max 6000 ticks")
     if a.wall_native and not (a.native_actual and a.solver_work and a.compact_work and a.scenario):
         p.error("wall native requires explicit native/work/compact/scenario")
     if a.wall_native and a.native_fault not in ('none','wall-gap','protection'):
@@ -297,6 +301,7 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
                 cmd += ["--solver-work"]
             if a.compact_work:
                 cmd += ["--compact-work"]
+        if a.simulation_continuous:cmd += ["--simulation-continuous"]
         if a.flag_check:
             expected = {"ambiguous": "ambiguous_numerical_profile", "requires-v1": "numerical_profile_requires_v1",
                         "disabled": "disabled"}[a.flag_check]
@@ -312,7 +317,7 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
             cmd = [str(a.python), "-c", code, str(a.output), expected]
         report["probe_argv"] = cmd
         with (a.runtime/"client.log").open("w") as log:
-            proc = subprocess.run(cmd, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=300)
+            proc = subprocess.run(cmd, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=1200 if a.simulation_continuous else 300)
         report["probe_exit"] = proc.returncode
         report["status"] = "COMPLETE_ISOLATED_RUN" if proc.returncode == 0 else "PROBE_FAIL"
         if a.native_fault=="client-loss":

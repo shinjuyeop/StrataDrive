@@ -12,6 +12,7 @@
 | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
 | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |
 | M7 기능 주행·회생·제동·영상 | [통합 실행](evidence/m7_carla_integrated/README.md) |
+| M7 시뮬레이션 시간 연속 주행·영상·보호·고장 7개 시험 | [연속 실행](evidence/m7_carla_integrated/simulation-time/README.md) |
 | M7 보호 Actual·로딩 중 종료 | [Recovery](evidence/m7_carla_recovery/README.md) · [요청 인과 보완](evidence/m7_carla_recovery/causal-followup/README.md) |
 | M7 보호 hold 정지·client-loss 종료 | [일괄 검증](evidence/m7_carla_recovery/batch-closeout/README.md) |
 | Wall 감시·입력 단절 뒤 native 보호 | [wall guard](evidence/m7_carla_wall_guard/README.md) · [terminal 응답](evidence/m7_carla_wall_guard/terminal-response/README.md) |

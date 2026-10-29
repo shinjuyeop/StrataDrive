@@ -1,0 +1,56 @@
+{
+  "status": "PASS_BOUNDED_INTEGRATED_AUDIT",
+  "receipts": 400,
+  "phases": [],
+  "sensors": {
+    "rgb": 80,
+    "gt": 80,
+    "intentional_drops": 0,
+    "first_frame": 55,
+    "last_frame": 450,
+    "original_timestamp_match": true,
+    "gt_control_use": false
+  },
+  "wall": {
+    "clock": "host CLOCK_MONOTONIC; no simulation-to-wall subtraction",
+    "native_roundtrip": {
+      "count": 401,
+      "mean_ms": 1.362209511221945,
+      "p95_ms": 1.873735,
+      "p99_ms": 2.233284,
+      "max_ms": 2.748371,
+      "above_2ms": 11,
+      "above_4ms": 0
+    },
+    "native_idle_lower_bound": {
+      "count": 400,
+      "mean_ms": 33.9142277275,
+      "p95_ms": 71.955796,
+      "p99_ms": 82.332663,
+      "max_ms": 333.771207,
+      "above_2ms": 400,
+      "above_4ms": 392
+    },
+    "advance_to_receipt": {
+      "count": 400,
+      "mean_ms": 26.2784069725,
+      "p95_ms": 55.679512,
+      "p99_ms": 62.992964,
+      "max_ms": 167.700598,
+      "above_2ms": 400,
+      "above_4ms": 342
+    },
+    "production_2ms_4ms_gate": "NOT_ACCEPTED",
+    "per_job_4ms_deadlines": "NOT_INSTRUMENTED",
+    "observed_native_opportunity_gap_violation": true,
+    "includes_json_solver_trace_and_explicit_250ms_pause": true,
+    "simulation_progress": {
+      "simulated_seconds": 3.999999910593033,
+      "execution_wall_seconds": 14.112307764,
+      "simulated_per_wall_second": 0.28344052422077215,
+      "includes_trace_validation_and_intentional_pause": true
+    }
+  },
+  "full_m7_closed": false,
+  "body_stationary_acceptance": false
+}

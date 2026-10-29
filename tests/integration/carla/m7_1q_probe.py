@@ -6,12 +6,14 @@ no corrected-wheel fallback, no timestamp repair, no general driving acceptance.
 """
 import argparse
 import copy
+import gzip
 import hashlib
 import json
 import math
 import os
 from pathlib import Path
 import select
+import signal
 import subprocess
 import time
 import traceback
@@ -28,15 +30,18 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--native', type=Path, required=True)
     p.add_argument('--model', type=Path, required=True)
-    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap','client-loss'), default='none')
+    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap','client-loss','native-stall'), default='none')
     p.add_argument('--ticks', type=int, default=400)
     p.add_argument('--solver-work', action='store_true')
     p.add_argument('--compact-work', action='store_true')
     p.add_argument('--scenario', type=Path)
     p.add_argument('--cameras', action='store_true')
     p.add_argument('--terminal-response', action='store_true')
+    p.add_argument('--simulation-continuous', action='store_true')
     a = p.parse_args()
-    require(150 <= a.ticks <= 950, 'bounded functional horizon')
+    require(150 <= a.ticks <= (6000 if a.simulation_continuous else 950), 'bounded functional horizon')
+    require(not a.simulation_continuous or (a.solver_work and a.scenario and not a.compact_work and a.fault=='none'),
+            'continuous simulation requires original work/scenario and streaming raw trace')
     require(not a.compact_work or (a.solver_work and a.fault!='client-loss'), 'compact journal requires surviving owner and work')
     require(a.fault!='rgb-drop' or a.cameras, 'RGB fault requires cameras')
     require(not a.scenario or a.solver_work, 'scenario requires settled work')
@@ -46,13 +51,17 @@ def main():
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(status='FAIL', normal_driving_enabled=False, interval_work_valid=False,
                   mode='native eight-role functional Actual connection', fault=a.fault, cases=[])
+    report['execution_profile']='m7-simulation-time-v1'
+    report['continuous_simulation']=a.simulation_continuous
+    report['requested_ticks']=a.ticks
+    report['wall_runtime_accepted']=False
     if a.scenario:
         report['scenario'] = dict(path=str(a.scenario),sha256=hashlib.sha256(a.scenario.read_bytes()).hexdigest(),text=a.scenario.read_text())
     events = []
     client = carla.Client('127.0.0.1', 2200)
     client.set_timeout(10)
     world = original = actor = process = stderr = None
-    capture = Capture(a.output,a.fault=='rgb-drop') if a.cameras else None
+    capture = Capture(a.output,a.fault=='rgb-drop',1201 if a.simulation_continuous else 256) if a.cameras else None
     bound = False
     session, run = '0', ''
     key = os.environ['STRATADRIVE_M7_OWNER_KEY']
@@ -62,8 +71,9 @@ def main():
     ineligible = []
     settlements = 0
     stopped_frame = None
-    raw = (a.output/'trace.jsonl').open('w')
+    raw = gzip.open(a.output/'trace.jsonl.gz','wt',compresslevel=1) if a.simulation_continuous else (a.output/'trace.jsonl').open('w')
     deferred_records = []
+    native_stopped=False
     report['compact_solver_work']=a.compact_work
 
     def case(name, ok, **kw):
@@ -119,6 +129,7 @@ def main():
              math.floor(end*1e9+.5) == int(binding['logical_begin_ns']))
         stderr = (a.output/'native.stderr').open('w')
         process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else [])+
+                                   (['--sim-horizon-ms','60000'] if a.simulation_continuous else [])+
                                    (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else [])+
                                    (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else []),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
@@ -128,6 +139,18 @@ def main():
             record = dict(index=i, frame=frame, simulation_seconds=end, physics=ph,
                           wall_begin_ns=time.monotonic_ns())
             try:
+                if i==200 and a.fault=='native-stall':
+                    # Stop ONLY our child at a completed physics barrier. No
+                    # further input is sent, so resuming for cleanup cannot drive.
+                    process.send_signal(signal.SIGSTOP);native_stopped=True
+                    begin=time.monotonic_ns()
+                    require(not select.select([process.stdout],[],[],10)[0], 'stalled native produced a reply')
+                    record['host_watchdog']=dict(begin_ns=begin,detected_ns=time.monotonic_ns(),timeout_seconds=10,
+                        fault='owned native process SIGSTOP; no input/tick while waiting')
+                    stopped_frame=frame
+                    case('host_watchdog_no_tick',rpc('describe')['frame']==str(frame))
+                    report['fault_observed']='host liveness timeout; no fabricated Actual or physical stop claim'
+                    break
                 if a.fault == 'snapshot' and i == 200:
                     record['fault'] = 'withheld current snapshot; previous object and timestamp retained'
                     # Explicit local delivery fault; no extra tick or timestamp repair.
@@ -354,7 +377,10 @@ def main():
         if a.fault == 'none':
             case('native_closed_loop_complete', count == a.ticks and normal>300 and empty==4)
             if a.solver_work: case('all_receipts_settled_once',settlements==count)
-            case('forward_motion_observed', ph['body_forward_velocity_m_s']>0, final_m_s=ph['body_forward_velocity_m_s'])
+            if not a.simulation_continuous:
+                case('forward_motion_observed', ph['body_forward_velocity_m_s']>0, final_m_s=ph['body_forward_velocity_m_s'])
+            else:
+                case('continuous_final_wheel_stop',all(w['solver_omega_rad_s']==0 for w in ph['wheels']))
             rejected = rpc('stage', frame=str(frame+1))
             case('native_profile_rejects_synthetic_stage', not rejected['ok'] and rejected['latched'] and
                  rejected['reason']=='native_actual_only' and rejected['frame']==str(frame))
@@ -374,6 +400,9 @@ def main():
         elif a.fault=='rgb-drop':
             case('rgb_drop_before_next_tick',stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
             report['status']='PASS_EXPECTED_SENSOR_STOP'
+        elif a.fault=='native-stall':
+            case('host_stall_before_next_tick',count==200 and stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
+            report['status']='PASS_EXPECTED_HOST_LIVENESS_STOP'
         elif a.fault in ('credit','command','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy'):
             case('server_rejection_before_next_tick', stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
             report['status'] = 'PASS_EXPECTED_SERVER_REJECTION'
@@ -446,6 +475,7 @@ def main():
                     bound,actor=False,None
             if capture: capture.destroy()
             if process:
+                if native_stopped:process.send_signal(signal.SIGCONT)
                 process.stdin.close()
                 report['native_exit'] = process.wait(timeout=10)
                 process.stdout.close()

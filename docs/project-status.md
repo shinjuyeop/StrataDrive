@@ -1,6 +1,6 @@
 # 프로젝트 상태
 
-정리 기준: **2026-10-29**, 검증 근거: 2026-10-28까지 저장된 실행 결과. 작업 중인 10-29 변경은 별도 표시한다.
+정리 기준·최신 검증: **2026-10-29**.
 이 문서가 현재 구현·수용 범위와 다음 작업의 기준이다. 실행 중인 미기록 변경은 완료로 세지 않는다.
 
 ## 단계별 현재 판정
@@ -13,7 +13,7 @@
 | M4 | Host IO/FIFO component 한정 수용; 전체 NOT CLOSED | [Host 수용](archive/milestone-reviews.md#m4-host) · [종료 검토](archive/milestone-reviews.md#m4) |
 | M5 | Central↔Front/Rear 3-process SOME/IP Host FIFO 기능 한정 수용 | [실행 근거](test-plan/evidence/m5_someip_rear_adapter/README.md) |
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
-| M7 | **시뮬레이션 시간 기능 통합 검증 진행; 실시간 수용은 별도 OPEN** | 아래 결과·종료 조건과 [ADR-0065](archive/design-decisions.md#adr-0065) |
+| M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -34,6 +34,21 @@ M6에서는 persistent physical process가 actuator·SimpleVehicle·EV/Battery�
 
 ## M7 CARLA 통합 결과
 
+사용자 승인 [ADR-0065](archive/design-decisions.md#adr-0065)에 따라 M7 기능 종료와 wall 실시간 수용을
+분리한다. `m7-simulation-time-v1`의 실제7개 case가 통과했다. 비영상·영상 각각 한 세션60s/
+6000 physics·6000 EV 정산, INIT 이후 정상5919구간, 가속·회생·제동·재출발6주기다.
+영상은 RGB/GT 각1200개이며 원본 frame/timestamp 일치·누락0이다.
+보호 시험은400구간 중 index278부터 자연 sleep122구간, 마지막100구간 동일 pose를 확인했다.
+RGB 누락·stale snapshot·불완전 work·native SIGSTOP/실제10s 응답 감시 모두 다음 tick을 차단했다.
+마지막 세 고장에는 완료 physics1구간의 EV 미정산을 남겼으며 완전한 에너지 정산이나 실제 정지로 세지 않는다.
+
+Normal/ASan 각114/114, 연속성·session·숨은 reset·timestamp·정상 권한 손상6/6 거부.
+비영상/영상60s의 실제 loop는 약213.88/244.37s였다. 원본320 substep 기록·검증과 의도적 pause를
+포함한 관측값이며 CARLA 단독 성능 benchmark나 실시간 보장이 아니다.
+[전체 원본·분모·재현](test-plan/evidence/m7_carla_integrated/simulation-time/README.md)을 따른다.
+
+아래는 이전 통합과 별도 실시간 경로의 근거다. 새 기능 수용으로 과거 실패를 바꾸지 않는다.
+
 | 범위 | 확인한 결과 | 실행 근거 |
 | --- | --- | --- |
 | 기능 주행·에너지·영상 | 고정 VehicleRequest → 실제8-role Actual → NoDrive → solver work → 단일 EV. 가속·회생·마찰 제동·휠 정지·재출발과 RGB/GT 검증 | [통합 실행](test-plan/evidence/m7_carla_integrated/README.md) |
@@ -44,7 +59,7 @@ M6에서는 persistent physical process가 actuator·SimpleVehicle·EV/Battery�
 | Wall owner component | 실제 monotonic timer·분리된 IO·유한 mailbox, 원래8-role service와 보호·완료 work 정산 검증. 합성 stationary 입력 범위 | [component 실행](test-plan/evidence/m7_carla_wall_guard/wall-owner/README.md) |
 | 실제 CARLA wall 연결 | model10ms work와 원래 monotonic 취득을 분리해 공유 전달. **엔진 프레임 공백으로 Drive30ms 근거 만료, 정상 wall 주행 FAIL** | [최신 실행·실패](test-plan/evidence/m7_carla_wall_guard/carla-runtime/README.md) |
 
-기능 시험의 정상5실행은 각각900구간, 약4.77215m 이동·최대 전방 속도 약1.259m/s다.
+이전 기능 시험의 정상5실행은 각각900구간, 약4.77215m 이동·최대 전방 속도 약1.259m/s다.
 영상2실행은 각각 RGB180/GT180이다. Reference 30km/h 추종이나 전체 ODD 검증은 아니다.
 마지막 wall 연결의 Normal/ASan 각113/113·TSan 경계26/26과 정상901/보호401개 replay 일치는
 component/회귀 근거이며 실제 wall 주행 성공을 뜻하지 않는다.
@@ -63,19 +78,15 @@ component/회귀 근거이며 실제 wall 주행 성공을 뜻하지 않는다.
 
 ## M7 종료 조건
 
-[ADR-0065](archive/design-decisions.md#adr-0065)는 같은 simulation time의 기능 통합을 먼저 완성하고
-실제 시간 연동을 별도 검증하는 순서다. 작업 트리에 `--simulation-time`/연속 실행 구현이 추가되고
-있지만 **새 실행 근거가 저장되기 전에는 수용 완료로 세지 않는다.**
+**m7-simulation-time-v1의 고정 Town03/V1 기능 범위는 CLOSED**다. 연속 정상·영상·원본 work/EV·
+보호 Actual 자연 정지·센서/work 누락·Host 정지 차단·Actual-only/single writer·pause/reset/새 INIT를
+실행·독립 검사했다. 고정 VehicleRequest 시험이며 M8 경로 추종·Reference30km/h·AI 수용은 아니다.
 
-1. 같은 세션의 연속 정상·영상 실행에서 원래8-role Actual·단일 writer·완전한 solver work/단일 EV 정산을 검증한다.
-2. 보호 Actual의 자연 제동·정지, sensor/work 누락·pause/reset·응답 정지 시 차단/정리와 기존 회귀를 함께 판정한다.
-
-Controller20ms·Zone/vECU10ms·world10ms·영상50ms·source30ms·exclusive expiry를 원래
-simulation domain에서 유지한다. 늦은 실행을 새 source로 restamp하거나 가짜 Actual·두 번째 plant로
-메우지 않는다. 실제 실행 지연과 watchdog/종료 결과를 따로 기록한다.
+실제 wall 기준 정상/영상 주행, wall fault → LocalProtection Actual → CARLA 실제 제동/정지는
+**별도 OPEN**이다. 엔진 프레임 공백을 해결한 뒤 같은 runtime에서 검증해야 한다.
+M6 wall 계약·수치·수용은 그대로이며 기존 wall 실패도 보존한다. source30ms·expiry는
+기능 profile의 동일 simulation domain에서 유지하고 timestamp를 고쳐 쓰지 않는다.
 상세 계약은 [시뮬레이션 시간 연속 실행](interfaces/carla-plant-adapter.md#시뮬레이션-시간-연속-실행)에 있다.
 
-**다음 작업은 이 기능 profile의 연속 실행·fault 검증과 근거 수집**이다. 실제 wall30ms·owner2ms/4ms,
-정상 wall 세션의 보호 제동/정지는 별도 OPEN으로 유지한다. 이 후속에서는 엔진 프레임 공백을
-해결한 정상·영상 wall 실행과 queued/in-flight work·sensor/writer/lifecycle을 함께 검증해야 한다.
-기존 wall FAIL과 M6 구현·수용 기준은 바꾸지 않는다.
+**다음 작업은 M8의 종방향 모델→C++ 공통 vector 동등성 및 속도 폐루프**다.
+이후 경로/횡제어·Reference 속도 시험을 진행한다. wall 실시간 gate는 기능 개발과 별도로 추적한다.

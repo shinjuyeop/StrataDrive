@@ -59,17 +59,27 @@ int main(int argc,char** argv) {
     std::unique_ptr<WallExecutionWatch> wall_watch;
     std::string wall_path,response_path;
     try {
-        if((argc<6 || argc>12 || argc%2!=0) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
+        if((argc<6 || argc>14 || argc%2!=0) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
             throw std::runtime_error("requires --wheel-shadow or --external-wheel-plant run application plant actor; no general driving acceptance");
         const auto run=std::stoull(argv[2]),app=std::stoull(argv[3]),plant=std::stoull(argv[4]),actor=std::stoull(argv[5]);
         if(!actor || actor>UINT32_MAX || app>UINT32_MAX || plant>UINT32_MAX)throw std::runtime_error("identity range");
         const bool solver_work=std::string(argv[1])=="--native-solver-work";
         const bool exporting=std::string(argv[1])=="--native-actual-export" || solver_work;
         const bool external=std::string(argv[1])=="--external-wheel-plant" || exporting;
+        Time horizon=10000;bool horizon_set=false;
+        for(int arg=6;arg<argc;arg+=2)if(std::string(argv[arg])=="--sim-horizon-ms") {
+            if(horizon_set || !solver_work)throw std::runtime_error("duplicate/non-solver simulation horizon");
+            std::string value=argv[arg+1];std::size_t used=0;horizon=std::stoull(value,&used);
+            if(used!=value.size())throw std::runtime_error("invalid simulation horizon");
+            horizon_set=true;
+        }
+        if(horizon_set && argc>10)throw std::runtime_error("simulation horizon cannot combine with wall watch");
         FunctionalRig rig({run,static_cast<std::uint32_t>(app),static_cast<std::uint32_t>(plant)},static_cast<std::uint32_t>(actor),
-            solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting);
+            solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting,horizon);
         bool scenario_loaded=false;
         for(int arg=6;arg<argc;arg+=2) {
+            if(std::string(argv[arg])=="--sim-horizon-ms")continue;
+            if(horizon_set && std::string(argv[arg])!="--scenario")throw std::runtime_error("simulation horizon excludes wall policy");
             if(!solver_work)throw std::runtime_error("options require solver-work mode");
             if(std::string(argv[arg])=="--wall-response") {
                 if(!response_path.empty())throw std::runtime_error("duplicate wall response");

@@ -6,7 +6,10 @@ import time
 
 
 class Capture:
-    def __init__(self, output, drop_rgb=False):
+    def __init__(self, output, drop_rgb=False, capacity=256):
+        if not 1 <= capacity <= 1201:
+            raise ValueError('bounded sensor recording capacity')
+        self.capacity = capacity
         self.output = output
         self.drop_rgb = drop_rgb
         self.lock = threading.Lock()
@@ -34,7 +37,7 @@ class Capture:
                        use='perception record' if name=='rgb' else 'TRAIN_EVAL_ONLY',
                        sha256=hashlib.sha256(data).hexdigest(),bytes=len(data),arrival_monotonic_ns=time.monotonic_ns())
             with self.lock:
-                if len(self.rows[name])>=256:
+                if len(self.rows[name])>=self.capacity:
                     self.errors.append('bounded camera buffer overflow');return
                 if self.drop_rgb and name=='rgb' and len(self.rows[name])==40 and not self.dropped:
                     row['validity']='INJECTED_DELIVERY_DROP';self.dropped.append(row);return

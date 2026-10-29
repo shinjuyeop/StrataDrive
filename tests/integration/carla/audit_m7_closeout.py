@@ -9,10 +9,17 @@ import re
 from audit_m7_1q_native import check
 
 
-def load_rows(directory):
+def load_rows(directory, retain_steps=True):
     path=directory/'trace.jsonl'
     with (path.open() if path.exists() else gzip.open(str(path)+'.gz','rt')) as stream:
-        return [json.loads(line) for line in stream]
+        rows=[]
+        for line in stream:
+            row=json.loads(line)
+            if not retain_steps:
+                work=row.get('receipt',{}).get('solver_work',{})
+                work.pop('steps',None);work.pop('rear_mean_rad_s',None)
+            rows.append(row)
+        return rows
 
 
 def clock_evidence(rows):
@@ -94,7 +101,7 @@ def main():
     p.add_argument('--kind',choices=('clock','sleep','client-loss'),required=True);p.add_argument('--output',type=Path,required=True)
     a=p.parse_args();result=dict(status='FAIL')
     try:
-        rows=load_rows(a.directory)
+        rows=load_rows(a.directory, a.kind=='sleep')
         result={'clock':clock_evidence(rows)}
         if a.kind=='sleep':
             result['stop']=natural_stop(rows)
