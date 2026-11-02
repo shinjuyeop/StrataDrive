@@ -89,16 +89,55 @@ python3 tests/integration/carla/audit_m7_wall_carla.py \
 보호 요청이다. 두 시험 모두 정상50구간 이후 요청해야 하며, 그 전에 자연 보호가 발생하면
 의도한 fault 시험을 통과한 것이 아니다. Raw 감사와 별도로 runner의 server exit도 확인한다.
 
-## 화면 확인
+## 주행 영상 보기
 
-현재 시험 runner는 `-RenderOffScreen`으로 실행해 CARLA 게임 창을 띄우지 않는다.
-카메라 payload는 RGB/GT 첫 BGRA 프레임만 저장하고 나머지는 metadata/hash를 기록한다.
-기존 결과는 전체 동영상이나 실시간 뷰어가 아니다.
+실행 중 차량을 보려면 준비된 Linux Host의 데스크톱 터미널에서 다음 명령을 실행한다.
 
-- 바로 열 수 있는 [기존 전방 카메라 PNG](test-plan/evidence/m7_carla_1j_render_followup/native02-camera/first-rgb.png)는 과거 비주행 준비 시험의 정지 화면이다.
-- 새 실행의 `camera-a/rgb-first.bgra.gz`는 첫 RGB 원본이다. 크기·format은 `camera-a/sensors.json`에 있다.
-- 차량 움직임을 실시간으로 보려면 기존 단일 tick/writer를 유지하면서 camera/spectator 출력 경로를 연결해야 한다.
-  `-RenderOffScreen`만 제거한다고 시험 차량을 추적하는 뷰어가 완성되지는 않는다.
+```sh
+bash tools/carla/view_stop30.sh
+```
+
+맵 로딩이 끝나면 `StrataDrive CARLA LIVE — STOP30` 창에960×540 차량 뒤쪽 카메라와
+현재 속도가 표시된다. 가속→30km/h 유지→제동→정지/HV-off까지 실행 후 창이 닫힌다.
+시뮬레이션60초의 계산은 실제로 더 오래 걸릴 수 있다. 창의 닫기 버튼은 표시만 끄고,
+터미널의 `Ctrl+C`는 실행을 중단한다. 창을 열려면 SDK Python의 tkinter와 사용 가능한
+`DISPLAY`가 필요하다. 도구 설치 위치가 다르면 `STRATADRIVE_TOOLS`로 지정한다.
+
+이는 실행 중 생성되는 RGB를 표시하는 창이다. 최신 프레임 하나만 보관하며 GUI가
+CARLA tick이나 제어 명령을 보내지 않는다. 결과는 매번 `build/carla-live-*`에 저장된다.
+아래 runner를 직접 쓸 때는 `--cameras --live-view`를 추가하면 된다.
+`bash tools/carla/view_stop30.sh --record-video`로 표시와 원본 녹화를 함께 사용할 수도 있다.
+
+시험 runner는 `-RenderOffScreen`으로 실행한다. `--cameras`만 사용하면 기존320×240
+전방 RGB/GT 첫 프레임과 전체 metadata/hash를 저장한다. **`--cameras --record-video`**는
+고정 STOP30 profile의 RGB를960×540·20Hz 차량 뒤쪽 시점으로 녹화한다. 제어기·단일 tick/writer 경로는 유지한다.
+화면용 녹화이며 M8의 기존 수용 증거를 덮어쓰지 않는다. 녹화 옵션만으로는 화면 창이 뜨지 않는다.
+
+30km/h 가속→정지/HV-off를60초 MP4로 만드는 명령이다. 준비된 Host 경로와 FFmpeg가 필요하다.
+실제 실행에는 로딩·rendering·원본 기록 시간이 들며 영상 재생보다 오래 걸릴 수 있다.
+
+```sh
+run_dir="$PWD/build/carla-video-$(date +%Y%m%d-%H%M%S)"
+python3 tests/integration/carla/m7_1o_run.py \
+  --engine /d/shin/stratadrive-tools/UnrealEngine_4.26 \
+  --source /d/shin/stratadrive-tools/m7-source/carla-0.9.16 \
+  --python /d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python \
+  --fixture /d/shin/stratadrive-tools/m7-source/m7-1m-fixture \
+  --native-actual "$PWD/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow" \
+  --runtime "$run_dir/runtime" --output "$run_dir/run" \
+  --vehicle-substeps 320 --solver-work --held-steer-sleep --simulation-continuous \
+  --route-profile tests/integration/carla/scenarios/m8_stop30_v1.json \
+  --route-startup-seconds 600 --ticks 6000 --cameras --record-video
+python3 tools/carla/encode_video.py "$run_dir/run" --output "$run_dir/drive-stop.mp4"
+```
+
+`drive-stop.mp4`를 영상 플레이어로 연다. 카메라의 원본 frame/hash/time을 검사한 뒤
+20fps로 인코딩하며, 속도·가속/제동/정지/HV-off 표시는 같은 frame의 물리/native 로그에서
+가져온다. `camera-original.mp4`에는 자막 없는 카메라 영상, `video.json`에는 프레임 수와
+길이·인코딩 검사가 남는다. 60초의 raw BGRA 저장에 약2.5GB가 필요하다.
+
+기존 결과의 첫 정지 화면은 [전방 카메라 PNG](test-plan/evidence/m7_carla_1j_render_followup/native02-camera/first-rgb.png)에서
+볼 수 있다. 녹화 옵션 도입 이전의 M8 실행에는 전체 카메라 동영상이 없다.
 
 ## 결과를 읽는 순서
 

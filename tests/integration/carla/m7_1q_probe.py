@@ -36,6 +36,8 @@ def main():
     p.add_argument('--compact-work', action='store_true')
     p.add_argument('--scenario', type=Path)
     p.add_argument('--cameras', action='store_true')
+    p.add_argument('--record-video', action='store_true')
+    p.add_argument('--live-view', action='store_true')
     p.add_argument('--terminal-response', action='store_true')
     p.add_argument('--simulation-continuous', action='store_true')
     p.add_argument('--speed-loop', action='store_true')
@@ -43,10 +45,12 @@ def main():
     p.add_argument('--propulsion-aware', action='store_true')
     p.add_argument("--speed-terminal",choices=("none","normal-stop","input-loss","stop-protection"),default="none")
     a = p.parse_args()
+    require(not (a.record_video or a.live_view) or (a.cameras and a.fault=='none'), 'video requires nominal cameras')
     require(a.speed_terminal=="none" or (a.speed_loop and a.fault=="none"),"terminal speed scope")
     from m8_route_contract import load_route, pose_from_snapshot
     route=load_route(a.route_profile) if a.route_profile else None
     stop30=route is not None and route['schema']=='m8-normal-stop30-v1'
+    require(not (a.record_video or a.live_view) or stop30, 'video requires fixed STOP30 profile')
     if stop30:
         require(not a.propulsion_aware and a.fault=='none' and a.speed_terminal=='none','stop30 frozen nominal scope')
         a.speed_terminal='normal-stop30'
@@ -77,6 +81,8 @@ def main():
     report['propulsion_aware']=a.propulsion_aware
     if feasibility:report['reference_feasibility']=feasibility
     report['speed_terminal']=a.speed_terminal
+    if a.record_video:report['video_profile']='chase-rgb-960x540-20hz-v1'
+    if a.live_view:report['live_view_profile']='chase-rgb-960x540-latest-frame-v1'
     report['speed_loop']=a.speed_loop
     report['continuous_simulation']=a.simulation_continuous
     report['requested_ticks']=a.ticks
@@ -87,7 +93,7 @@ def main():
     client = carla.Client('127.0.0.1', 2200)
     client.set_timeout(10)
     world = original = actor = process = stderr = None
-    capture = Capture(a.output,a.fault=='rgb-drop',1201 if a.simulation_continuous else 256) if a.cameras else None
+    capture = Capture(a.output,a.fault=='rgb-drop',1201 if a.simulation_continuous else 256,a.record_video,a.live_view) if a.cameras else None
     bound = False
     session, run = '0', ''
     key = os.environ['STRATADRIVE_M7_OWNER_KEY']
@@ -214,6 +220,9 @@ def main():
                         position_ue_m=[transform.location.x,transform.location.y,transform.location.z],
                         rotation_ue_deg=[transform.rotation.roll,transform.rotation.pitch,transform.rotation.yaw],
                         velocity_ue_m_s=[velocity.x,velocity.y,velocity.z])
+                if capture and a.live_view:
+                    speed = math.sqrt(sum(v*v for v in record['vehicle_state'].get('velocity_ue_m_s', [0,0,0]))) * 3.6
+                    capture.show_live(end, speed)
                 require(snapshot.timestamp.elapsed_seconds == end, 'snapshot source timestamp')
                 require(ph['generation'] == binding['physics']['generation'] and ph['nodrive'], 'generation')
                 require(ph['vehicle_substeps_low'] == ph['vehicle_substeps_high'] == 320, 'profile')
@@ -500,6 +509,8 @@ def main():
             try:
                 time.sleep(.5)  # bounded drain, no tick and no restamping
                 capture.stop()
+                if capture.viewer is not None:
+                    report['live_view_frames_shown'] = capture.viewer.frames_shown
             except Exception:
                 report['sensor_cleanup_error']=traceback.format_exc();report['status']='FAIL'
             finally:

@@ -50,6 +50,8 @@ def main():
     p.add_argument("--propulsion-aware", action="store_true")
     p.add_argument("--route-startup-seconds",type=int,choices=(180,600),default=180)
     p.add_argument("--cameras", action="store_true")
+    p.add_argument("--record-video", action="store_true", help="save960x540 chase RGB frames for the fixed STOP30 nominal camera profile")
+    p.add_argument("--live-view", action="store_true", help="show STOP30 chase camera in a local Tk window; requires DISPLAY and SDK tkinter")
     p.add_argument("--terminal-response", action="store_true")
     p.add_argument("--held-steer-sleep", action="store_true")
     p.add_argument("--abort-on-port", action="store_true", help="Interrupt owned server before world readiness; no ego or ticks")
@@ -66,9 +68,13 @@ def main():
                    help="Read-only describe rejection, without creating an ego")
     p.add_argument("--speed-terminal", choices=("none","normal-stop","input-loss","stop-protection"), default="none")
     a = p.parse_args()
+    if (a.record_video or a.live_view) and not (a.cameras and a.native_actual and not a.wall_native and a.native_fault=="none"):
+        p.error("video recording requires functional nominal native cameras")
     if a.speed_terminal!="none" and not (a.speed_loop and a.native_fault=="none"):p.error("speed terminal requires speed loop without another injected fault")
     from m8_route_contract import load_route
     route_definition=load_route(a.route_profile) if a.route_profile else None
+    if (a.record_video or a.live_view) and (not route_definition or route_definition['schema']!='m8-normal-stop30-v1'):
+        p.error('video recording requires the fixed STOP30 profile')
     if route_definition and route_definition['schema']=='m8-normal-stop30-v1' and (a.propulsion_aware or a.native_fault!='none' or a.speed_terminal!='none'):p.error('stop30 frozen nominal scope')
     if a.propulsion_aware:
         if not route_definition or not route_definition["schema"].startswith("m8-reference-"):p.error("propulsion-aware mode requires reference route")
@@ -323,6 +329,10 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
                    "--fault", a.native_fault,"--ticks",str(a.ticks)]
             if a.cameras:
                 cmd += ["--cameras"]
+            if a.record_video:
+                cmd += ["--record-video"]
+            if a.live_view:
+                cmd += ["--live-view"]
             if a.scenario:
                 cmd += ["--scenario",str(a.scenario)]
             if a.terminal_response:
