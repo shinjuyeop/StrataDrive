@@ -927,3 +927,56 @@ M4/DDS/SDK OPEN 전체 해소나 새로운 극단·복합고장을 이 첫 작�
 - `git diff --check` PASS. C++ 전체/SDK/MIL/48회 타이밍 신규 실행0회.
 
 실패 원본·NOT RUN·OPEN을 삭제/승격하지 않았으며 무시된 build/사용자 측정 자료는 정리하지 않았다.
+
+<a id="m8"></a>
+
+## M8 — 제어기·고정 fixture 기능 SIL 종료 검토
+
+2026-11-02. **기술 판정: 제어기·고정 fixture 기능 SIL 범위 CLOSED**.
+구현·원본 증거 기준 commit은 `457260e`다. 사용자가 현재 작업의 commit/push와 M8 마감을
+요청해 기존 근거를 원래 산출물에 대조했다. 이번 검토에서는 새 CARLA 실행이나 제어 튜닝을 하지 않았다.
+
+원래 로드맵(`5cc77ac`의 `docs/roadmap.md`)은 M8에 종방향 C++ 구현·공통 vector 동등성,
+실제 차량 폐루프, route/waypoint·횡방향 제어와 Reference30km/h 시험을 둔다.
+[ADR-0052](design-decisions.md#adr-0052)는 component 동등성과 차량 SIL·timing/fault 회귀를
+구분한다. 같은 로드맵에서 fault→Actual→DTC 통합은 M9, Planner/AI는 M10–M11,
+보드별 배포는 M12, 전체 SIL/V&V는 M13이다. 이 책임 경계를 기준으로 마감한다.
+
+### 조건과 근거
+
+| 조건 | 판정 / 확인한 범위 | 기존 근거 |
+| --- | --- | --- |
+| 종방향 모델→수작업 C++ | PASS. 독립 Python/C++97case·14523events; 출력/내부 상태·validity/fault/INIT. 고정abs/rel1e-12, 관측 오차0 | [SpeedPI](../test-plan/evidence/m8_speed_pi/README.md), C-M8-L-01–05 |
+| 실제 owner 경로의 속도 폐루프 | PASS. SimpleVehicle의30→20→0km/h·87s·4350controls, NormalStop 및 Actual 손실/명령 중단. CARLA 저속 독립 wire/work/EV 감사 | [SimpleVehicle](../test-plan/evidence/m8_speed_loop/README.md), [CARLA](../test-plan/evidence/m8_carla_speed/README.md), C-M8-L-06–12 |
+| 횡방향 제어와30km/h 주행 | PASS_FIXED_FIXTURE. Pure Pursuit·원본 pose/wheel provenance, S01 직선·S02 곡선·S03 v2 복합 경로의 완료/plateau/overspeed/횡·heading 오차 | [곡선](../test-plan/evidence/m8_route/README.md), [직선·복합](../test-plan/evidence/m8_reference/README.md), C-M8-Y/R |
+| 제약·추진 포화와 참조 필요조건 | PASS_LIMITED. 선택형v2 외부 추진 clipping 적분 억제·v1 호환, S03 v1의 불가능한10s startup 거절·별도20s v2. 동적 가용력 일반 보장 제외 | [포화](../test-plan/evidence/m8_saturation/README.md), C-M8-A |
+| 정지와 보호의 실제 응답 | PASS_LIMITED. 저속 NormalStop/HV-off·현재 속도 입력 손실·정지 인계 후 명시적 보호. 별도30km/h10s profile 정지8.478s/HV-off9.278s | [저속 정지](../test-plan/evidence/m8_stop/README.md), [인계 후 보호](../test-plan/evidence/m8_stop_fault/README.md), [30km/h 정지](../test-plan/evidence/m8_stop30/README.md), C-M8-T/U/V |
+| 회귀·원본 시각·권한·실패 보존 | PASS. 최종C++1217/Python237/영향 ASan33, 기존 저속8002관측 exact replay, 독립 oracle 손상 거절. 실패 실행·감사 교정 원본 유지 | [최종 실행 요약](../test-plan/evidence/m8_stop30/results-summary.json), [마감 무결성](../test-plan/evidence/m8_closeout/README.md) |
+
+S01/S02/S03의 수치 판정은 [시나리오 기준](../test-plan/scenario-baseline.md)의 고정 fixture
+실행 근거다. 최종 S01/S03 v2의20Hz plateau 최대오차는 각각.074798/.074824km/h,
+양수 목표 overspeed는1.4082/3.4838%, 경로 횡오차 P95는.001586/.034181m다.
+S02의20Hz plateau 최대오차는.053917km/h, 횡오차 P95 .027832m다. 각 원본 감사의
+모든 gate와 분모를 사용하며 단일 최댓값만으로 전체 기능을 수용하지 않는다.
+
+정식 TC-CTRL-002–004에는 Planner/Safety/전체 Reference 경로가 포함돼 있다.
+현재 fixed request·ActorSnapshot pose fixture의 성공을 이 system TC의 PASS로 바꾸지 않는다.
+32개 요구/29개 system TC의 Result는 NOT RUN, 원래0–40km/h ODD와 수치 threshold는 유지한다.
+
+### 후속 이관과 마감 경계
+
+| 후속 항목 | 담당 단계 / 완료 조건 |
+| --- | --- |
+| 추가30km/h fault matrix·ACK/전체 통신 손실 | M9. 고장 위치/시점/검출 기점·보호/Actual·DTC를 고정해 함께 검증. 저속 입력 손실이나 명시적 보호 주입을 ACK-loss 검출로 해석하지 않음 |
+| 동적 BMS/도로 저항/경사 기반 참조·제동 측 포화 | 제어 범위 확장 시 별도 model/config/fixture revision과 영향 회귀. 고정20s 참조의 PASS를 일반 타당성 보장으로 확대하지 않음 |
+| Planner/localization·전체 S01–S03 | M10–M11 통합 후 M13 system V&V. 원본 Reference 요구와 NOT RUN 유지 |
+| wall/Target/전체 ODD·UE renderer/GC | M7 실시간 후속·M12/M13. simulation-time 성공으로 과거 timing/종료 실패를 닫지 않음 |
+| 자동 코드 생성·학습자 설명 review | 생성 도구는 선택 pilot. 제어식/동등성·원천 시각·정지 권한 설명은 학습자 review로 기술 시험과 분리 |
+
+30km/h 고장 조합은 이전 작업의 후속 제안이었다. 기존 제어 fault/state 회귀와 이미 실행한
+SimpleVehicle 주행 중 손실·CARLA 저속 보호 근거를 인정하고, 추가 고장 조합을 원래 M9
+진단 통합에서 수행한다. 이를 이번에 실행한 것으로 표시하거나 원래 timeout을 완화하지 않는다.
+M8 범위의 마감 조건에 새 속도/경로/고장 조합을 계속 추가하지 않는다. 현 범위의 버그가
+발견되면 영향 조건을 재개하고 새 원본 증거를 추가한다.
+
+판정은 [ADR-0076](design-decisions.md#adr-0076), 다음 작업은 [로드맵](../roadmap.md#m9-시작-범위)을 따른다.

@@ -4,6 +4,9 @@
 [검증 전략](verification-strategy.md)·[시나리오](scenario-baseline.md)·[추적성](requirements-traceability.md)을 따른다.
 함수/구체 test/판정/evidence 연결은 [component 추적표](component-traceability.csv)에 있다.
 
+M8의 범위별 완료·후속 이관은 [종료 검토표](../archive/milestone-reviews.md#m8),
+source/원본 증거의 최종 대조는 [마감 기록](evidence/m8_closeout/README.md)을 따른다.
+
 ## 대표 실행 결과
 
 | 찾는 내용 | 실행 원본·재현 |

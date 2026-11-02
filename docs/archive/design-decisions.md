@@ -5219,3 +5219,29 @@ body1000/wheel500 plateau,900개20Hz 경로 표본을 독립 감사했다.
 [원본·검사·제약](../test-plan/evidence/m8_stop30/README.md)을 따른다.
 30km/h fault matrix·ACK/전체 통신 손실·Planner/localization·전체 Reference/M8·
 wall/Target 수용과 과거 UE renderer/GC 원인 규명은 후속이다.
+
+<a id="adr-0076"></a>
+
+## ADR-0076: M8 제어기 기능 SIL 마감과 M9 진단 통합 경계
+
+Date: 2026-11-02. Status: **M8 제어기·고정 fixture 기능 SIL 범위 CLOSED**.
+
+사용자가 현재 결과를 commit/push하고 M8을 마무리하도록 요청했다. 구현·증거는
+`457260e`로 보존했다. 원래 로드맵과 ADR-0052의 모델/C++ 동등성·차량 폐루프·횡방향
+제어·30km/h 고정 경로 산출물을 기존 결과에 대조했다. [종료 검토표](milestone-reviews.md#m8)에
+각 판정과 component 추적성을 연결한다. 새 시험·수치 완화 없이 근거와 범위를 정리한다.
+
+현재의 C++ 제어기와 fixed request/ActorSnapshot pose fixture를 포함한 기능 SIL을
+마감한다. 기존 controller fault/state 회귀, SimpleVehicle 주행 중 손실, CARLA 저속
+보호와30km/h 정상 정지는 검증 근거로 유지한다. 추가30km/h timeout·입력 손실·ACK/
+전체 통신 손실 조합은 원래 M9의 event→검출→보호→Actual→DTC 통합으로 이관한다.
+고장별 기대 상태/시점·물리 응답을 사전 고정하고 미실행 항목은 그대로 남긴다.
+
+정식 Reference의 Planner/Safety 전체 경로,32개 system 요구/29개 TC,0–40km/h 전체 ODD,
+실제 wall/Target와 과거 UE 실패는 이번 마감에서 수용하지 않는다. Requirement·profile
+수치와 default5s 정지 계약, 기존 증거·실패 판정은 변경하지 않는다. 정상 고정 fixture의
+성능을 일반 참조 타당성으로 확대하지 않는다. 개인 학습 review도 별도다.
+
+대안인 추가 고장/경로의 계속된 M8 확장은 진단 통합 전에 중복 검증을 늘린다.
+M9에서 고장 검출·보호·물리 응답과 진단 결과를 함께 닫는 쪽을 선택한다.
+[마감 source/증거 대조](../test-plan/evidence/m8_closeout/README.md)를 보존한다.

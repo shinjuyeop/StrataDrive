@@ -26,7 +26,8 @@ Golden/독립 CRC·모델·solver/EV oracle을 구현과 분리하고, source/ex
 
 ## MBD model and code verification
 
-Status: **M6 Host quiet SIL/Python MIL 범위 종료 / M8 SpeedPI 동등성·SimpleVehicle·CARLA 저속·S01/S02/S03 고정 fixture 추종 검증 / 전체 Reference 후속**.
+Status: **M6 Host quiet SIL/Python MIL 범위 종료 / M8 제어기·고정 fixture 기능 SIL 범위 종료 / 전체 Reference 후속**.
+[M8 종료 검토표](../archive/milestone-reviews.md#m8)는 기존 실행 근거를 묶고 추가 고장 통합을 M9로 연결한다.
 [M6 종료 검토표](../archive/milestone-reviews.md#m6)가 기존 근거와 현재 완료/미실행 범위를 구분한다. [ADR-0052](../archive/design-decisions.md#adr-0052)와
 [개발 계획](../development-guide.md)을 따른다. 첫 대상은 Central 종방향 속도 제어기다.
 현재 C++ 단위/plant·Host SIL PASS와 새 제어 모델 MIL·동등성 결과를 구분한다.

@@ -5,6 +5,7 @@ scenario/test → Result 연결이다. 개별 revision은 [시스템 요구사�
 현재 부분 검증과 OPEN은 [프로젝트 상태](../project-status.md), 실제 함수·시험·근거는
 [component 추적표](component-traceability.csv)에서 관리한다.
 
+[M8 종료 검토](../archive/milestone-reviews.md#m8)는 C-M8 component/고정 fixture의 기술 판정이다.
 아래32개 요구와29개 system TC의 전체 runtime Result는 **NOT RUN**이다.
 부분 Host/vCAN·모델·sanitizer 통과를 전체 결과로 올리지 않는다. 실제 실행 후에만
 `RES-<test-suffix>-<run-id>`를 발급한다. 과거 판정은 [단계 검토](../archive/milestone-reviews.md),

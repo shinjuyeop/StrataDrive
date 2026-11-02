@@ -7,7 +7,7 @@
 
 | 문서 | 관리하는 내용 |
 | --- | --- |
-| [현재 상태](project-status.md) | 구현·검증 범위, 남은 문제, M7 종료 조건과 다음 작업 |
+| [현재 상태](project-status.md) | 구현·검증 범위, 남은 문제, 단계별 종료 조건과 다음 작업 |
 | [CARLA 실행](carla-guide.md) | 설치 위치, 재실행 명령, 화면과 결과 확인 방법 |
 | [아키텍처](architecture/README.md) | Central/Zone/Leaf/plant 책임, 실행·배포 경계 |
 | [로드맵](roadmap.md) | 후속 단계와 TBD 담당·결정 시점 |

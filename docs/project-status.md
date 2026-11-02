@@ -14,7 +14,7 @@
 | M5 | Central↔Front/Rear 3-process SOME/IP Host FIFO 기능 한정 수용 | [실행 근거](test-plan/evidence/m5_someip_rear_adapter/README.md) |
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
-| M8 | SpeedPI·속도 폐루프·고정 fixture·추진 포화·저속 정지·인계 후 보호·별도30km/h 정지 검증 / 전체 Reference 후속 | [동등성](test-plan/evidence/m8_speed_pi/README.md) · [SimpleVehicle](test-plan/evidence/m8_speed_loop/README.md) · [저속 CARLA](test-plan/evidence/m8_carla_speed/README.md) · [곡선](test-plan/evidence/m8_route/README.md) · [직선·복합](test-plan/evidence/m8_reference/README.md) · [추진 포화](test-plan/evidence/m8_saturation/README.md) · [정지 응답](test-plan/evidence/m8_stop/README.md) · [인계 후 보호](test-plan/evidence/m8_stop_fault/README.md) · [30km/h 정지](test-plan/evidence/m8_stop30/README.md) |
+| M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -77,7 +77,7 @@ component/회귀 근거이며 실제 wall 주행 성공을 뜻하지 않는다.
 | Renderer | 카메라 없이 rendering만 켠 기본 source 경로는 최대16.66ms, RGB+GT의10ms 요청에서는 최대65.08ms/5frame 반복 지연. 영상 capture/render/readback과 물리 진행의 결합을 우선 조사. 과거 Distance Field SIGSEGV·전체 content/장시간 안정성은 미해결 |
 | 과거 M3/M4·SDK | timing/FIFO·native·SDK sanitizer 기능 미완료 OPEN은 각 당시 분모·실패와 함께 보존 |
 | DDS | 정규 제어 gate CLOSED, adapter 미착수. 기존 종료·20ms·TSan FAIL 및 접근 제한 이력 유지 |
-| 전체 시스템·Target | 32개 요구/29개 system TC, Jetson·실제 IO·Host–Target 검증은 NOT RUN. C++ 제어/AI도 후속 |
+| 전체 시스템·Target | 32개 요구/29개 system TC, Jetson·실제 IO·Host–Target 검증은 NOT RUN. C++ 제어는 M8 고정 fixture 범위 검증; AI는 후속 |
 
 ## M7 종료 조건
 
@@ -97,6 +97,25 @@ M8 전 공통 controller/owner·CMake·감사 reader 정리를 완료했다. Nor
 native replay를 확인했다. 실제 CARLA 회귀는4개 중3개 전체 통과, 정상 wall 주행1개는
 900구간 검사 통과 후 UE 종료−11로 실패다. [변경·원본·한계](test-plan/evidence/pre-m8-refactor/README.md)를
 보존하며 M6/M7 수용 범위를 확대하지 않는다.
+
+## M8 종료 조건
+
+**M8 제어기·고정 fixture 기능 SIL 범위는 CLOSED**다. 원래 M8의 종방향 모델/C++
+동등성, 실제 owner 경로의 속도 폐루프, Pure Pursuit와 고정 S01/S02/S03의30km/h
+추종을 완료했다. 추가로 추진 포화 feedback·저속 고장 응답·30km/h NormalStop/HV-off를
+검증했다. [종료 검토표](archive/milestone-reviews.md#m8)가 각 조건과 원본 근거를 연결한다.
+
+현재 code/test는 마지막 검증 source와 일치한다. C++1217개·Python237개·영향 범위
+ASan/UBSan33개는 보존된 최종 실행 결과다. 이번 마감은 새 물리 시험 없이 근거·추적성·
+source/hash를 검토했다. [마감 기록](test-plan/evidence/m8_closeout/README.md)을 따른다.
+
+다음은 **M9 고장 event→검출→보호→Actual→DTC 통합**이다.30km/h 입력 손실·제동
+시간 초과·ACK/통신 손실의 추가 물리 시험은 이 묶음에서 고정 사건/기점/기대 상태와 함께
+진행한다. 기존 fault latch·timeout·local protection은 계속 유지한다.
+
+Planner/localization을 포함한 정식 S01–S03·32개 system 요구/29개 TC는 NOT RUN을
+유지한다. wall·Target·전체 ODD·동적 가용력 참조·제동 포화와 과거 UE 원인도 별도 OPEN이다.
+기술 마감과 학습자의 제어식·권한 전달 설명 review는 별도다.
 
 ## M8 종방향 제어기와 SimpleVehicle 폐루프
 
@@ -154,7 +173,7 @@ Town04 고정 경로의 rear-axle pose는 원본 ActorSnapshot에서 변환하�
 [계약](interfaces/lateral-route-controller.md), [사전 protocol/실패 이력](test-plan/carla-route-protocol.md),
 [원본·판정·재현](test-plan/evidence/m8_route/README.md)을 따른다.
 S01 직선과 S03 복합 경로·30→20km/h 전환의 후속 결과는 아래 절을 따른다.
-단일 S02 후보의 기능 검증이며 전체 Reference/M8, Planner/localization, wall 실시간,
+단일 S02 후보의 기능 검증이며 전체 Reference, Planner/localization, wall 실시간,
 CARLA NormalStop HV-off 수용으로 표시하지 않는다.
 과거 UE 종료 실패와 wall 기동 실패도 OPEN으로 유지한다.
 
@@ -189,7 +208,7 @@ feedback/anti-windup과 reference 필요조건 검사는 아래 후속 절에서
 [원본·수치·재현](test-plan/evidence/m8_reference/README.md),
 [ADR-0071](archive/design-decisions.md#adr-0071)을 따른다.
 후속 추진 포화와 저속 CARLA NormalStop·입력 누락의 실제 응답은 아래 절을 따른다. 고정 fixture S01/S02/S03의 기능 성능을 확인한 것이며
-Planner/localization·전체 Reference/M8·wall/Target 수용은 별도다.
+Planner/localization·전체 Reference·wall/Target 수용은 별도다.
 
 
 ## M8 추진 배분 포화 feedback과 참조 필요조건
@@ -217,7 +236,7 @@ Python233개, CLI15개가 통과했다. 기존 증거866개와 원본 v1 hash를
 
 저속 주행 중 입력 누락과 CARLA NormalStop의 실제 응답은 아래 절을 따른다.
 동적 BMS/경사/도로 저항을 포함한 일반 참조 타당성, 제동 측 anti-windup,
-Planner/localization·전체 Reference/M8·wall/Target 수용은 OPEN이다.
+Planner/localization·전체 Reference·wall/Target 수용은 OPEN이다.
 
 
 ## M8 저속 NormalStop·속도 입력 누락의 실제 CARLA 응답
@@ -246,7 +265,7 @@ timeout 시험으로 세지 않으며 이 경우 HV-off 완료도 주장하지 �
 [Protocol](test-plan/carla-stop-protocol.md), [원본·판정·재현](test-plan/evidence/m8_stop/README.md),
 [ADR-0073](archive/design-decisions.md#adr-0073)를 따른다. 인계 후 명시적 보호 요청과30km/h 감속/deadline 검토는 아래 후속 절을 따른다.
 ACK/전체 통신 손실의 물리 응답은 후속이다.
-전체 Reference/M8·Planner/localization·wall/Target와 기존 UE renderer/GC 원인은 OPEN이다.
+전체 Reference·Planner/localization·wall/Target와 기존 UE renderer/GC 원인은 OPEN이다.
 
 
 ## M8 정지 인계 후 보호 전환과30km/h 계약 검토
@@ -276,7 +295,7 @@ C++ unit/logical1215개, Python233개, ASan/UBSan41개와 CLI4001관측 검사�
 [Protocol](test-plan/carla-stop-fault-protocol.md), [실행 근거](test-plan/evidence/m8_stop_fault/README.md),
 [30km/h 계약 검토](test-plan/normal-stop-30-contract-review.md),
 [ADR-0074](archive/design-decisions.md#adr-0074)를 따른다. 별도30km/h fixture의
-정지 계약 연결·실제 응답은 아래 후속 절에서 검증했다. ACK/전체 통신 손실의 물리 응답,전체 Reference/M8,
+정지 계약 연결·실제 응답은 아래 후속 절에서 검증했다. ACK/전체 통신 손실의 물리 응답,전체 Reference,
 Planner/localization·wall/Target·UE renderer/GC 원인은 OPEN이다.
 
 
@@ -302,6 +321,6 @@ C++ unit/logical1217개, Python237개, ASan/UBSan 영향 범위33개를 통과�
 이전 M8 evidence1305파일과 원본 v1 hash도 유지했다.
 
 [사전 protocol](test-plan/carla-stop30-protocol.md), [원본·감사·재현](test-plan/evidence/m8_stop30/README.md),
-[ADR-0075](archive/design-decisions.md#adr-0075)를 따른다. 다음은 같은30km/h 참조의
-timeout·입력 손실 및 ACK/통신 손실 고장별 실제 응답이다. 고정 nominal 직선 수용이며
-전체 Reference/M8·Planner/localization·wall/Target와 UE renderer/GC 원인은 OPEN이다.
+[ADR-0075](archive/design-decisions.md#adr-0075)를 따른다. 같은30km/h 참조의
+timeout·입력 손실 및 ACK/통신 손실 고장별 실제 응답은 M9 후속이다. 고정 nominal 직선 수용이며
+전체 Reference·Planner/localization·wall/Target와 UE renderer/GC 원인은 OPEN이다.

@@ -1,10 +1,10 @@
 # StrataDrive
 
 Central → Front/Rear Zone → Leaf ECU 구조의 차량 소프트웨어를 만들고 검증하는 SIL 프로젝트다.
-Host에서 통신·세션·actuator/EV 모델을 연결했고, CARLA 통합을 진행하고 있다.
+Host에서 통신·세션·actuator/EV 모델과 CARLA 제어 폐루프를 연결했다.
 
-**현재: M6 Host quiet SIL/Python MIL과 M7 시뮬레이션 시간 기능 통합 완료.**
-CARLA 연속 주행·영상·보호 정지를 검증했다. 실제 시간 기준 실시간 연동은 별도 미완료다.
+**현재: M8 제어기·고정 fixture 기능 SIL 범위 완료. 다음은 M9 진단 통합이다.**
+C++ 모델 동등성·30km/h 경로 추종·정상 정지를 검증했다. 전체 Reference와 실시간·Target 수용은 후속이다.
 최신 판정과 다음 작업은 [프로젝트 상태](docs/project-status.md) 한곳에서 관리한다.
 
 ## 시작하기
@@ -29,6 +29,9 @@ ctest --test-dir build/m1-angle --output-on-failure
 ./build/m1-angle/actuator_demo --help
 ```
 
+원본 M8 실행 증거를 재현할 때는 Git LFS를 설치한 뒤 `git lfs pull`로 로그를 받고,
+해당 evidence 디렉터리에서 `sha256sum -c SHA256SUMS`로 원본 해시를 확인한다.
+
 ## 실행 구조
 
 ```mermaid
@@ -44,7 +47,7 @@ Leaf는 판단·보호를, 외부 plant는 물리 응답을 맡는다. CARLA에�
 단일 adapter를 통해 차량에 적용하고, 관측한 solver work를 단일 EV 모델에 정산한다.
 
 Reference ODD는 맑은 낮·포장도로·단일 ego·직선/완만한 곡선·0–40km/h다.
-실제 C++ 주행 제어기, AI, Jetson 배포와 전체 system 시험은 후속 범위다.
+C++ 주행 제어기는 고정 fixture에서 검증했다. AI, Jetson 배포와 전체 system 시험은 후속 범위다.
 Thor와 Orin NX는 각각 독립적으로 비교할 배포 대안이다.
 
 ## 파일 배치
