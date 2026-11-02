@@ -15,6 +15,7 @@ struct M4Config {
     M4Scenario scenario{M4Scenario::Normal};
     central::CommandRenewal renewal{central::CommandRenewal::Legacy20ms};
     bool wall_time{false};
+    bool speed_loop{false}; // M8 fixed 87s profile, logical time + Host10ms only
     std::uint64_t duration_ns{1800000000},injection_ns{1200000000},rejoin_ns{2300000000};
     std::uint32_t first_epoch{1},rejoin_epoch{2}; // already issued trusted startup grants
     std::vector<M4Fault> faults;
@@ -34,6 +35,11 @@ struct M4Trace {
     double speed_mps{0},distance_m{0},x_m{0},y_m{0},yaw_rad{0},vehicle_balance_j{0};
     double energy_j{0}; std::uint32_t model_epoch{0},model_sequence{0}; unsigned contacts{0};
 };
+struct SpeedLoopTrace {
+    std::uint64_t now_ns, profile_ns, speed_source_ns, request_expiry_ns;
+    std::uint32_t epoch, sequence;
+    double target_mps, speed_mps, acceleration_mps2, integral;
+};
 struct M4Timing {
     std::string owner;
     std::size_t samples{0},body_over_4ms{0};
@@ -46,6 +52,9 @@ struct M4Result {
     std::uint64_t first_active_ns{0},first_fault_ns{0},all_protected_ns{0},rejoin_active_ns{0};
     std::size_t completed_batches{0},front_frames{0},rear_frames{0};
     std::vector<M4Trace> trace;
+    std::vector<SpeedLoopTrace> speed_trace;
+    std::uint64_t speed_origin_ns{0};
+    int speed_fault{0};
     std::vector<M4Timing> timing;
     std::vector<M4Event> events;
     std::vector<transport::TransportTraceRow> transport_events;
@@ -59,7 +68,8 @@ struct M4Result {
     bool startup_ok{true},timing_ok{true}; std::size_t deadline_misses{0},skipped_opportunities{0};
 };
 // Finite Host SIL harness. Logical execution and independent wall-time owner
-// threads share the same components/links. No DDS, target OS or speed dynamics.
+// threads share the same components/links. Optional M8 logical speed loop uses
+// SimpleVehicle; no DDS, native transport or target OS claim.
 M4Result run_m4_async(const M4Config& config);
 const char* m4_scenario_name(M4Scenario scenario);
 void write_m4_result(const M4Config& config,const M4Result& result,const std::string& directory);

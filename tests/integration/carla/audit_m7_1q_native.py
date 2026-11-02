@@ -73,6 +73,7 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
     history={};count=normal=empty=0;max_age=0;min_margin=10**12;max_quant=0;last_frame=int(b['frame'])
     last_end=b['simulation_seconds'];cursors={};torques=[];speed=[]
     protection_since=0;protection_count=0;release_packets=None
+    stop_lease=None;stop_causal=None;stop_count=0;last_hold_ns=0
     L=model['wheels'][0]['offset_x_m']-model['wheels'][2]['offset_x_m']
     half=(model['wheels'][1]['offset_y_right_m']-model['wheels'][0]['offset_y_right_m'])/2
     with opening(path,'rt') as f:
@@ -121,6 +122,7 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                     check(normal>0 and not proof['normal'] and n['credit_mask']==0 and proof['protection_selected_mask']==255,
                           'terminal local protection authority')
                     check(int(proof['enable_ns'])<=since<=ns and (not protection_since or protection_since==since),'protection identity')
+                    check(since>last_hold_ns and not out.get('normal_stop',False),'protection supersedes prior hold')
                     protection_since=since;protection_count+=1
                 else:check(not protection_since and n['credit_mask']==255 and not proof.get('protection_selected_mask',0),'normal authority cannot reopen')
                 check(out.get('protection',False)==protecting,'applied protection mode')
@@ -149,6 +151,9 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                 drive=actuals[2];check(drive['wheel_source'] in history and ns+10000000-drive['wheel_source']<=30000000 and abs(drive['wheel']-history[drive['wheel_source']])<=.005+1e-12,'CAN wheel source/age')
                 max_age=max(max_age,ns+10000000-drive['wheel_source'])
                 if proof['normal']:
+                    check(stop_lease is None,'normal cannot reopen after stop')
+                    check(stop_lease is None,'no normal resume after terminal hold')
+                    stop_causal=[v['causal'] for v in actuals]
                     normal+=1
                     q=wire(proof['permission'],1,4,5)
                     epoch,token,sent,deadline,op=q.get('IQQQI')
@@ -177,7 +182,12 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                 elif protecting:
                     check(all(x['state']==3 and x['origin']==2 and x['source']>=protection_since for x in actuals),'original LocalProtection Actual')
                     check(int(out['exclusive_expiry_ns'])==min(*sources,drive['wheel_source'])+30000001,'protection original freshness limit')
-                else:check(all(x['state']==0 and x['origin']==0 for x in actuals) and values[2]==0,'bootstrap actual state')
+                elif out.get('normal_stop',False):
+                    from m8_stop_wire import stop_selection
+                    check(report.get('speed_terminal') in ('normal-stop','stop-protection','normal-stop30') and normal>0 and not protecting,'explicit stop profile')
+                    stop_lease=stop_selection(proof,actuals,ns,stop_lease,stop_causal);stop_count+=1;last_hold_ns=ns
+                    check(ns+10000000<int(out['exclusive_expiry_ns'])<=min(credit[2],stop_lease[3],stop_lease[2]+50000001),'stop exclusive authority')
+                else:check(stop_lease is None and all(x['state']==0 and x['origin']==0 for x in actuals) and values[2]==0,'bootstrap actual state')
             angle,pressure,torque=values
             check(all(abs(out[k]-v)<1e-12 for k,v in zip(('angle_rad','pressure_pa','torque_nm'),values)),'decoded Actual applied')
             t=math.tan(angle);steer=[-math.atan2(L*t,L-half*t),-math.atan2(L*t,L+half*t),0,0]
@@ -192,7 +202,7 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
     return dict(status='PASS_INDEPENDENT_FUNCTIONAL_AUDIT',receipts=count,normal_intervals=normal,empty_init_intervals=empty,
                 max_whole_interval_source_age_ns=max_age,min_command_expiry_margin_ns=min_margin,max_wheel_quantization_error_rad_s=max_quant,
                 torque_nm_range=[min(torques),max(torques)],final_forward_velocity_m_s=speed[-1],interval_work_valid=work_mode,
-                protection_intervals=protection_count)
+                protection_intervals=protection_count,normal_stop_intervals=stop_count)
 
 
 def main():

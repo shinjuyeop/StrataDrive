@@ -165,4 +165,50 @@ TEST(NormalStopConfig, InvalidDecelerationOrConfirmationCannotOpenAStopPath) {
     central::NormalStopConfig c; c.deceleration_mps2=0; EXPECT_THROW(central::NormalStop{c},std::invalid_argument);
     c={}; c.confirmation_ns=kMs; EXPECT_THROW(central::NormalStop{c},std::invalid_argument);
 }
+TEST_F(NormalStopTest, DefaultBudgetAcceptsIdealTenKmhButTimesOutIdealThirtyKmh) {
+    // Contract fixture, NOT a vehicle simulation: exact requested 1m/s^2 from
+    // the first job, no lag/grade, and immediate standing pressure at zero.
+    // Even this optimistic 30km/h trace cannot fit the existing 5s budget.
+    for(double initial_kmh:{10.0,30.0}) {
+        central::NormalStopConfig config;
+        ASSERT_DOUBLE_EQ(config.deceleration_mps2,1.0);
+        ASSERT_EQ(config.braking_timeout_ns,5000*kMs);
+        central::NormalStop candidate(config);
+        ASSERT_TRUE(candidate.start_session(3,kStart));
+        ASSERT_TRUE(candidate.begin(request(10),{0,0},ns(10)));
+        bool handoff=false;double last_speed=0;
+        for(std::uint32_t ms=10;ms<=5010;ms+=10) {
+            if(ms>10) { ASSERT_EQ(candidate.receive_request(request(ms),ns(ms)),central::StopReceiveResult::Accepted); }
+            last_speed=std::max(0.0,initial_kmh/3.6-config.deceleration_mps2*(ms-10)/1000.0);
+            auto plan=candidate.tick(inputs(ms,{last_speed/.355,0,last_speed>0?400000.0:100000.0}),management,ns(ms));
+            if(!plan) { EXPECT_EQ(ms,5010U);break; }
+            if(plan->handoff_required) {handoff=true;break;}
+        }
+        if(initial_kmh==10) {
+            EXPECT_TRUE(handoff);EXPECT_EQ(candidate.decision().fault,central::NormalStopFault::None);
+        } else {
+            EXPECT_FALSE(handoff);EXPECT_NEAR(last_speed,30.0/3.6-5,1e-12);
+            EXPECT_EQ(candidate.decision().fault,central::NormalStopFault::BrakingTimeout);
+            EXPECT_TRUE(candidate.decision().protection_required);
+            EXPECT_FALSE(candidate.tick(inputs(5020),management,ns(5020)));
+        }
+    }
+}
+TEST_F(NormalStopTest, ExplicitTenSecondBudgetAllowsIdealThirtyKmhHandoffWithoutChangingDefaults) {
+    central::NormalStopConfig config;config.braking_timeout_ns=10000*kMs;
+    central::NormalStop candidate(config);
+    ASSERT_TRUE(candidate.start_session(3,kStart));
+    ASSERT_TRUE(candidate.begin(request(10),{0,0},ns(10)));
+    std::uint32_t handoff_ms=0;
+    for(std::uint32_t ms=10;ms<=10010;ms+=10) {
+        if(ms>10) {ASSERT_EQ(candidate.receive_request(request(ms),ns(ms)),central::StopReceiveResult::Accepted);}
+        const auto speed=std::max(0.0,30.0/3.6-(ms-10)/1000.0);
+        auto plan=candidate.tick(inputs(ms,{speed/.355,0,speed>0?400000.0:100000.0}),management,ns(ms));
+        ASSERT_TRUE(plan);
+        if(plan->handoff_required) {handoff_ms=ms;break;}
+    }
+    EXPECT_GT(handoff_ms,5010U);EXPECT_LT(handoff_ms,10010U);
+    EXPECT_EQ(candidate.decision().fault,central::NormalStopFault::None);
+    EXPECT_EQ(central::NormalStopConfig{}.braking_timeout_ns,5000*kMs);
+}
 } // namespace

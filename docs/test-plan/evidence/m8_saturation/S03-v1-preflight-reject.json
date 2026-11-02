@@ -1,0 +1,27 @@
+{
+  "status": "PASS_EXPECTED_PREFLIGHT_REJECTION",
+  "argv": [
+    "/usr/bin/python3",
+    "tests/integration/carla/m7_1o_run.py",
+    "--engine",
+    "build/m8-saturation/must-not-exist-engine",
+    "--source",
+    "build/m8-saturation/must-not-exist-source",
+    "--python",
+    "build/m8-saturation/must-not-exist-python",
+    "--fixture",
+    "build/m8-saturation/must-not-exist-fixture",
+    "--runtime",
+    "build/m8-saturation/must-not-exist-runtime",
+    "--output",
+    "build/m8-saturation/must-not-exist-output",
+    "--route-profile",
+    "tests/integration/carla/scenarios/m8_combined_v1.json",
+    "--propulsion-aware"
+  ],
+  "returncode": 2,
+  "stdout": "",
+  "stderr": "usage: m7_1o_run.py [-h] --engine ENGINE --source SOURCE --python PYTHON\n                    --fixture FIXTURE --runtime RUNTIME --output OUTPUT\n                    [--vehicle-substeps {0,20,40,80,160,320,640}]\n                    [--settle-mode {fixed100,sleep}] [--zero]\n                    [--native-actual NATIVE_ACTUAL] [--solver-work]\n                    [--compact-work] [--wall-native] [--wall-step-ms {5,10}]\n                    [--wall-hv-dependency-ms {30,50}]\n                    [--rpc-nodelay RPC_NODELAY]\n                    [--wall-server-priority {0,10}]\n                    [--wall-warmup-ticks {0,150}] [--wall-nullrhi]\n                    [--wall-inline-render] [--scenario SCENARIO]\n                    [--route-profile ROUTE_PROFILE] [--propulsion-aware]\n                    [--route-startup-seconds {180,600}] [--cameras]\n                    [--terminal-response] [--held-steer-sleep]\n                    [--abort-on-port] [--shutdown-diagnostic]\n                    [--simulation-continuous] [--speed-loop] [--ticks TICKS]\n                    [--native-fault {none,credit,command,snapshot,work-missing,work-duplicate,ev-ack-missing,ev-ack-duplicate,ev-ack-energy,rgb-drop,protection,wall-gap,client-loss,native-stall,pose-stale}]\n                    [--response-fixture RESPONSE_FIXTURE]\n                    [--require-solver-wheel]\n                    [--native-wheel-bridge NATIVE_WHEEL_BRIDGE]\n                    [--bridge-drop-snapshot]\n                    [--flag-check {ambiguous,requires-v1,disabled}]\nm7_1o_run.py: error: reference exceeds configured inertial torque capacity\n",
+  "created_paths": [],
+  "physics_executed": false
+}

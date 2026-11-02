@@ -13,6 +13,7 @@ if(STRATADRIVE_SANITIZERS AND STRATADRIVE_TSAN)
 endif()
 option(STRATADRIVE_TRAMPOLINE_PILOT "Build the opt-in Trampoline POSIX Steering bridge" OFF)
 option(STRATADRIVE_SOMEIP_PILOT "Build the isolated Central/Front vSomeIP pilot" OFF)
+option(STRATADRIVE_LONGITUDINAL_EQUIVALENCE "Run SpeedPI equivalence and logical SimpleVehicle speed-loop verification" OFF)
 
 function(stratadrive_quality target)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -32,6 +33,9 @@ endfunction()
 
 include(cmake/CoreTargets.cmake)
 include(CTest)
+if(STRATADRIVE_LONGITUDINAL_EQUIVALENCE AND NOT BUILD_TESTING)
+    message(FATAL_ERROR "STRATADRIVE_LONGITUDINAL_EQUIVALENCE requires BUILD_TESTING")
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     include(cmake/LinuxTargets.cmake)

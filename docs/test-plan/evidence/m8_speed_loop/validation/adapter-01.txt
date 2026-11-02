@@ -1,0 +1,33 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from SpeedRequest
+[ RUN      ] SpeedRequest.PreservesAcquisitionAcrossUnitsAndChildAuthority
+[       OK ] SpeedRequest.PreservesAcquisitionAcrossUnitsAndChildAuthority (0 ms)
+[ RUN      ] SpeedRequest.NewEnvelopeCannotRefreshFrozenWheelAndNewSessionClearsLatch
+/d/shin/StrataDrive/tests/unit/speed_request_test.cpp:31: Failure
+Expected equality of these values:
+  c.state().integral
+    Which is: 0
+  -.012
+    Which is: -0.012
+[  FAILED  ] SpeedRequest.NewEnvelopeCannotRefreshFrozenWheelAndNewSessionClearsLatch (0 ms)
+[ RUN      ] SpeedRequest.PermissionLossLatchesWithoutSuccessfulZero
+[       OK ] SpeedRequest.PermissionLossLatchesWithoutSuccessfulZero (0 ms)
+[ RUN      ] SpeedRequest.MissedOrDuplicateControlReleaseCannotCatchUp
+[       OK ] SpeedRequest.MissedOrDuplicateControlReleaseCannotCatchUp (0 ms)
+[ RUN      ] SpeedRequest.RejectsMissingWrongEpochAndNonfiniteWheel
+[       OK ] SpeedRequest.RejectsMissingWrongEpochAndNonfiniteWheel (0 ms)
+[ RUN      ] SpeedRequest.SourceAgeEnableFutureAndInclusiveBoundary
+[       OK ] SpeedRequest.SourceAgeEnableFutureAndInclusiveBoundary (0 ms)
+[ RUN      ] SpeedRequest.UninitializedAndInvalidTargetFailClosed
+[       OK ] SpeedRequest.UninitializedAndInvalidTargetFailClosed (0 ms)
+[----------] 7 tests from SpeedRequest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 6 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] SpeedRequest.NewEnvelopeCannotRefreshFrozenWheelAndNewSessionClearsLatch
+
+ 1 FAILED TEST

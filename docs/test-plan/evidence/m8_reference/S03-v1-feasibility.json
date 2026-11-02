@@ -1,0 +1,30 @@
+{
+  "status": "FAILED_V1_REFERENCE_FEASIBILITY_DIAGNOSIS",
+  "run": "S03-01",
+  "mass_kg": 1696,
+  "wheel_radius_m": 0.355,
+  "propulsion_limit_nm": 300,
+  "inertial_torque_required_nm": {
+    "10s": 501.7333333333333,
+    "20s": 250.86666666666665
+  },
+  "observed_torque_nm_range": [
+    -4.4,
+    300.0
+  ],
+  "first_body_plateau": {
+    "begin_s": 15.0,
+    "end_s": 25.0,
+    "target_kmh": 30.0,
+    "samples": 1000,
+    "max_error_kmh": 5.3261044921875005
+  },
+  "first_wheel_plateau": {
+    "begin_s": 15.0,
+    "end_s": 25.0,
+    "target_kmh": 30.0,
+    "samples": 500,
+    "max_error_kmh": 4.976759999999995
+  },
+  "inference": "10s acceleration exceeds existing propulsion limit even before road resistance; v2 uses independently validated S01 20s ramp and extended frozen straight. No PI or actuator authority change; general downstream saturation feedback remains open."
+}

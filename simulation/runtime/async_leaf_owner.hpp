@@ -35,6 +35,7 @@ enum class DriveSensorIngress { ControlTick, BeforeIo };
 struct LeafOwnerConfig {
     DriveSensorIngress drive_sensor_ingress{DriveSensorIngress::ControlTick};
     std::optional<std::uint64_t> hv_dependency_age_ns;
+    std::size_t input_event_capacity{12000}; // finite harness budget, allocated before launch
 };
 class AsyncLeafOwner final : public session::ParticipantPort {
 public:
@@ -55,6 +56,7 @@ public:
     bool faulted() const;
     int fault_code() const;
     const std::vector<M4Event>& input_events() const { return input_events_; } // joined only
+    bool input_event_capacity_exhausted() const { return input_events_.size()>=input_events_.capacity(); }
     void execution_deadline(bool enabled) { execution_deadline_=enabled; } // startup only
 private:
     transport::TransportTrace* trace_{nullptr};

@@ -1,0 +1,14 @@
+[  0%] Built target pure_pursuit
+[100%] Building CXX object CMakeFiles/pure_pursuit_test.dir/tests/unit/pure_pursuit_test.cpp.o
+/d/shin/StrataDrive/tests/unit/pure_pursuit_test.cpp: In member function ‘virtual void stratadrive::central::{anonymous}::PurePursuit_MissedTickDuplicateSequenceAndOffRouteAreRejected_Test::TestBody()’:
+/d/shin/StrataDrive/tests/unit/pure_pursuit_test.cpp:59:9: error: this ‘if’ clause does not guard... [-Werror=misleading-indentation]
+   59 |         if(kind==0)now+=dt;if(kind==1)pose.sequence=1;if(kind==2)pose.y_m=1.51;
+      |         ^~
+/d/shin/StrataDrive/tests/unit/pure_pursuit_test.cpp:59:28: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+   59 |         if(kind==0)now+=dt;if(kind==1)pose.sequence=1;if(kind==2)pose.y_m=1.51;
+      |                            ^~
+cc1plus: all warnings being treated as errors
+gmake[3]: *** [CMakeFiles/pure_pursuit_test.dir/build.make:79: CMakeFiles/pure_pursuit_test.dir/tests/unit/pure_pursuit_test.cpp.o] 오류 1
+gmake[2]: *** [CMakeFiles/Makefile2:6873: CMakeFiles/pure_pursuit_test.dir/all] 오류 2
+gmake[1]: *** [CMakeFiles/Makefile2:6880: CMakeFiles/pure_pursuit_test.dir/rule] 오류 2
+gmake: *** [Makefile:2097: pure_pursuit_test] 오류 2

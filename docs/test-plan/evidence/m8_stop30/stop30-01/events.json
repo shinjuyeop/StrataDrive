@@ -1,0 +1,1464 @@
+[
+  {
+    "request": {
+      "op": "bind",
+      "actor": "97",
+      "application": "42",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "bound_virtual_v1_diagnostic",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "47",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed",
+      "locked": true,
+      "latched": false,
+      "latched_reason": "",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": false,
+      "physics": {
+        "nodrive": true,
+        "inputs_zero": true,
+        "generation": "1",
+        "numerical_profile": "vehicle320-diagnostic-v1",
+        "vehicle_substeps_low": 320,
+        "vehicle_substeps_high": 320,
+        "vehicle_substeps_threshold_m_s": 5,
+        "sdk_tolerance_length_cm": 100,
+        "sleeping": false,
+        "body_world_position_m": [
+          179.904453125,
+          251.58699218750002,
+          0.2990201187133789
+        ],
+        "com_velocity_world_m_s": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity_world_rad_s": [
+          0,
+          0,
+          0
+        ],
+        "body_forward_velocity_m_s": 0,
+        "body_quaternion_xyzw": [
+          2.5920599000528455e-11,
+          -8.254996686218874e-11,
+          0.00017057015793398023,
+          1
+        ],
+        "wheels": [
+          {
+            "index": 0,
+            "bone": "Wheel_Front_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 1,
+            "bone": "Wheel_Front_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 2,
+            "bone": "Wheel_Rear_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 3,
+            "bone": "Wheel_Rear_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          }
+        ]
+      },
+      "protected_hold_history_valid": false,
+      "compact_solver_work": false,
+      "logical_begin_ns": "555771617",
+      "simulation_seconds": 0.5557716171024367,
+      "application": "42"
+    }
+  },
+  {
+    "request": {
+      "op": "geometry",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "read_only_rest_geometry",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "47",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed",
+      "locked": true,
+      "latched": false,
+      "latched_reason": "",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": false,
+      "simulation_seconds": 0.5557716171024367,
+      "geometry": {
+        "schema": "m7-rest-geometry-v1",
+        "valid": true,
+        "basis": "UE x-forward y-right z-up; SI m/kg/rad",
+        "kind": "reference/rest geometry; NOT contact patch or calibration",
+        "generation": "1",
+        "root_body_bone": "Vehicle_Base",
+        "actor_world": {
+          "translation_m": [
+            179.904453125,
+            251.58699218750002,
+            0.2990199851989746
+          ],
+          "quaternion_xyzw": [
+            0,
+            0,
+            0.00017057018703781068,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "mesh_world": {
+          "translation_m": [
+            179.904453125,
+            251.58699218750002,
+            0.2990199851989746
+          ],
+          "quaternion_xyzw": [
+            0,
+            0,
+            0.00017057018703781068,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "body_world": {
+          "translation_m": [
+            179.904453125,
+            251.58699218750002,
+            0.2990201187133789
+          ],
+          "quaternion_xyzw": [
+            2.5920599000528455e-11,
+            -8.254996686218874e-11,
+            0.00017057015793398023,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "com_body": {
+          "translation_m": [
+            0.21236934661865234,
+            0.000294086467474699,
+            0.5496930694580078
+          ],
+          "quaternion_xyzw": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "reference_root_body_mesh": {
+          "translation_m": [
+            0,
+            -5.7465899772068954e-08,
+            0
+          ],
+          "quaternion_xyzw": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "mesh_relative_scale": [
+          1,
+          1,
+          1
+        ],
+        "com_nudge_m": [
+          0.3,
+          0,
+          -0.2
+        ],
+        "mass_kg": 1696,
+        "inertia_kg_m2": [
+          531.3122000000001,
+          2683.7478,
+          2915.9918000000002
+        ],
+        "inputs_zero": true,
+        "wheels": [
+          {
+            "index": 0,
+            "bone": "Wheel_Front_Left",
+            "reference_bone_mesh_m": [
+              1.4718386840820312,
+              -0.7964598083496094,
+              0.3595409393310547
+            ],
+            "class_offset_m": [
+              0,
+              0,
+              0
+            ],
+            "setup_offset_m": [
+              0,
+              0,
+              0
+            ],
+            "ue_rest_body_m": [
+              1.4718386840820312,
+              -0.7964597320556641,
+              0.3595409393310547
+            ],
+            "px_rest_com_m": [
+              1.2594692993164063,
+              -0.7967538452148437,
+              -0.19015213012695312
+            ],
+            "px_rest_body_m": [
+              1.4718386840820312,
+              -0.7964597320556641,
+              0.3595409393310547
+            ],
+            "px_rest_world_m": [
+              181.3765625,
+              250.79103515625002,
+              0.6585610961914062
+            ],
+            "px_rest_actor_m": [
+              1.471837615966797,
+              -0.7964591217041016,
+              0.35954109191894534
+            ],
+            "radius_m": 0.355,
+            "max_steer_rad": 1.2217304706573486,
+            "max_brake_nm": 800
+          },
+          {
+            "index": 1,
+            "bone": "Wheel_Front_Right",
+            "reference_bone_mesh_m": [
+              1.4718386840820312,
+              0.7964598083496094,
+              0.3595409393310547
+            ],
+            "class_offset_m": [
+              0,
+              0,
+              0
+            ],
+            "setup_offset_m": [
+              0,
+              0,
+              0
+            ],
+            "ue_rest_body_m": [
+              1.4718386840820312,
+              0.7964598846435547,
+              0.3595409393310547
+            ],
+            "px_rest_com_m": [
+              1.2594692993164063,
+              0.7961657714843751,
+              -0.19015213012695312
+            ],
+            "px_rest_body_m": [
+              1.4718386840820312,
+              0.7964598846435547,
+              0.3595409393310547
+            ],
+            "px_rest_world_m": [
+              181.376015625,
+              252.3839453125,
+              0.6585610961914062
+            ],
+            "px_rest_actor_m": [
+              1.4718342590332032,
+              0.7964510345458985,
+              0.35954109191894534
+            ],
+            "radius_m": 0.355,
+            "max_steer_rad": 1.2217304706573486,
+            "max_brake_nm": 800
+          },
+          {
+            "index": 2,
+            "bone": "Wheel_Rear_Left",
+            "reference_bone_mesh_m": [
+              -1.3886322021484376,
+              -0.7964598083496094,
+              0.3595409393310547
+            ],
+            "class_offset_m": [
+              0,
+              0,
+              0
+            ],
+            "setup_offset_m": [
+              0,
+              0,
+              0
+            ],
+            "ue_rest_body_m": [
+              -1.3886322021484376,
+              -0.7964597320556641,
+              0.3595409393310547
+            ],
+            "px_rest_com_m": [
+              -1.6010015869140626,
+              -0.7967538452148437,
+              -0.19015213012695312
+            ],
+            "px_rest_body_m": [
+              -1.3886322021484376,
+              -0.7964597320556641,
+              0.3595409393310547
+            ],
+            "px_rest_world_m": [
+              178.51609375,
+              250.79005859375002,
+              0.6585610961914062
+            ],
+            "px_rest_actor_m": [
+              -1.3886311340332032,
+              -0.7964598846435547,
+              0.35954109191894534
+            ],
+            "radius_m": 0.355,
+            "max_steer_rad": 0,
+            "max_brake_nm": 800
+          },
+          {
+            "index": 3,
+            "bone": "Wheel_Rear_Right",
+            "reference_bone_mesh_m": [
+              -1.3886322021484376,
+              0.7964598083496094,
+              0.3595409393310547
+            ],
+            "class_offset_m": [
+              0,
+              0,
+              0
+            ],
+            "setup_offset_m": [
+              0,
+              0,
+              0
+            ],
+            "ue_rest_body_m": [
+              -1.3886322021484376,
+              0.7964598846435547,
+              0.3595409393310547
+            ],
+            "px_rest_com_m": [
+              -1.6010015869140626,
+              0.7961657714843751,
+              -0.19015213012695312
+            ],
+            "px_rest_body_m": [
+              -1.3886322021484376,
+              0.7964598846435547,
+              0.3595409393310547
+            ],
+            "px_rest_world_m": [
+              178.515546875,
+              252.38296875,
+              0.6585610961914062
+            ],
+            "px_rest_actor_m": [
+              -1.388634490966797,
+              0.7964502716064453,
+              0.35954109191894534
+            ],
+            "radius_m": 0.355,
+            "max_steer_rad": 0,
+            "max_brake_nm": 800
+          }
+        ]
+      }
+    }
+  },
+  {
+    "request": {
+      "op": "describe"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "diagnostic_only",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "197",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed; NOT wall",
+      "locked": true,
+      "latched": false,
+      "latched_reason": "",
+      "staged": true,
+      "in_flight": false,
+      "awaiting_ev_settlement": false,
+      "provenance": "trusted local eight-role native owner; original CAN/P05 and owner-wire",
+      "physics": {
+        "nodrive": true,
+        "inputs_zero": true,
+        "generation": "1",
+        "numerical_profile": "vehicle320-diagnostic-v1",
+        "vehicle_substeps_low": 320,
+        "vehicle_substeps_high": 320,
+        "vehicle_substeps_threshold_m_s": 5,
+        "sdk_tolerance_length_cm": 100,
+        "sleeping": false,
+        "body_world_position_m": [
+          179.94343750000002,
+          251.58699218750002,
+          -0.005050849914550781
+        ],
+        "com_velocity_world_m_s": [
+          0.18668386459350586,
+          6.3746920786798e-05,
+          0.0011496829986572265
+        ],
+        "angular_velocity_world_rad_s": [
+          3.91461355775391e-07,
+          -0.0012057533022016287,
+          5.735866466238804e-07
+        ],
+        "body_forward_velocity_m_s": 0.18668468475341796,
+        "body_quaternion_xyzw": [
+          8.179218724535531e-08,
+          -0.0003458590363152325,
+          0.00017067146836780012,
+          1
+        ],
+        "wheels": [
+          {
+            "index": 0,
+            "bone": "Wheel_Front_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5276082754135132,
+            "solver_omega_rad_s": 0.5257306098937988,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 1,
+            "bone": "Wheel_Front_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5276056528091431,
+            "solver_omega_rad_s": 0.5257280468940735,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 2,
+            "bone": "Wheel_Rear_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5395572185516357,
+            "solver_omega_rad_s": 0.5395572185516357,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 3,
+            "bone": "Wheel_Rear_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5395542979240417,
+            "solver_omega_rad_s": 0.5395542979240417,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          }
+        ]
+      },
+      "denied_legacy_rpc": {
+        "apply_batch": "1",
+        "tick_cue": "1"
+      },
+      "logical_begin_ns": "2055771584"
+    }
+  },
+  {
+    "request": {
+      "op": "advance",
+      "ticket": "151",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6"
+    },
+    "response": {
+      "ok": false,
+      "model_step_ns": "10000000",
+      "reason": "ticket",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "198",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed",
+      "locked": true,
+      "latched": false,
+      "latched_reason": "",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": true
+    }
+  },
+  {
+    "request": {
+      "op": "describe"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "diagnostic_only",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "198",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed; NOT wall",
+      "locked": true,
+      "latched": false,
+      "latched_reason": "",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": true,
+      "provenance": "trusted local eight-role native owner; original CAN/P05 and owner-wire",
+      "physics": {
+        "nodrive": true,
+        "inputs_zero": true,
+        "generation": "1",
+        "numerical_profile": "vehicle320-diagnostic-v1",
+        "vehicle_substeps_low": 320,
+        "vehicle_substeps_high": 320,
+        "vehicle_substeps_threshold_m_s": 5,
+        "sdk_tolerance_length_cm": 100,
+        "sleeping": false,
+        "body_world_position_m": [
+          179.9453515625,
+          251.58699218750002,
+          -0.005042495727539063
+        ],
+        "com_velocity_world_m_s": [
+          0.19154222488403322,
+          6.532476283609868e-05,
+          0.0010779762268066405
+        ],
+        "angular_velocity_world_rad_s": [
+          -7.887047104304656e-08,
+          -0.0011589808855205774,
+          5.756844529969385e-07
+        ],
+        "body_forward_velocity_m_s": 0.19154300689697265,
+        "body_quaternion_xyzw": [
+          8.040980503665196e-08,
+          -0.0003516539291013032,
+          0.00017067434964701533,
+          1
+        ],
+        "wheels": [
+          {
+            "index": 0,
+            "bone": "Wheel_Front_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5412200093269348,
+            "solver_omega_rad_s": 0.5393404960632324,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 1,
+            "bone": "Wheel_Front_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5412173867225647,
+            "solver_omega_rad_s": 0.5393379330635071,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 2,
+            "bone": "Wheel_Rear_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.553369402885437,
+            "solver_omega_rad_s": 0.553369402885437,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 3,
+            "bone": "Wheel_Rear_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5533668398857117,
+            "solver_omega_rad_s": 0.5533668398857117,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          }
+        ]
+      },
+      "denied_legacy_rpc": {
+        "apply_batch": "1",
+        "tick_cue": "1"
+      },
+      "logical_begin_ns": "2065771583"
+    }
+  },
+  {
+    "request": {
+      "op": "describe"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "diagnostic_only",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "198",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed; NOT wall",
+      "locked": true,
+      "latched": false,
+      "latched_reason": "",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": true,
+      "provenance": "trusted local eight-role native owner; original CAN/P05 and owner-wire",
+      "physics": {
+        "nodrive": true,
+        "inputs_zero": true,
+        "generation": "1",
+        "numerical_profile": "vehicle320-diagnostic-v1",
+        "vehicle_substeps_low": 320,
+        "vehicle_substeps_high": 320,
+        "vehicle_substeps_threshold_m_s": 5,
+        "sdk_tolerance_length_cm": 100,
+        "sleeping": false,
+        "body_world_position_m": [
+          179.9453515625,
+          251.58699218750002,
+          -0.005042495727539063
+        ],
+        "com_velocity_world_m_s": [
+          0.19154222488403322,
+          6.532476283609868e-05,
+          0.0010779762268066405
+        ],
+        "angular_velocity_world_rad_s": [
+          -7.887047104304656e-08,
+          -0.0011589808855205774,
+          5.756844529969385e-07
+        ],
+        "body_forward_velocity_m_s": 0.19154300689697265,
+        "body_quaternion_xyzw": [
+          8.040980503665196e-08,
+          -0.0003516539291013032,
+          0.00017067434964701533,
+          1
+        ],
+        "wheels": [
+          {
+            "index": 0,
+            "bone": "Wheel_Front_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5412200093269348,
+            "solver_omega_rad_s": 0.5393404960632324,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 1,
+            "bone": "Wheel_Front_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5412173867225647,
+            "solver_omega_rad_s": 0.5393379330635071,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 2,
+            "bone": "Wheel_Rear_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.553369402885437,
+            "solver_omega_rad_s": 0.553369402885437,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 3,
+            "bone": "Wheel_Rear_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0.5533668398857117,
+            "solver_omega_rad_s": 0.5533668398857117,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          }
+        ]
+      },
+      "denied_legacy_rpc": {
+        "apply_batch": "1",
+        "tick_cue": "1"
+      },
+      "logical_begin_ns": "2065771583"
+    }
+  },
+  {
+    "request": {
+      "op": "stage",
+      "frame": "6048",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6"
+    },
+    "response": {
+      "ok": false,
+      "model_step_ns": "10000000",
+      "reason": "native_actual_only",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "6047",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed",
+      "locked": true,
+      "latched": true,
+      "latched_reason": "native_actual_only",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": false
+    }
+  },
+  {
+    "request": {
+      "op": "describe"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "diagnostic_only",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "6047",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed; NOT wall",
+      "locked": true,
+      "latched": true,
+      "latched_reason": "native_actual_only",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": false,
+      "provenance": "trusted local eight-role native owner; original CAN/P05 and owner-wire",
+      "physics": {
+        "nodrive": true,
+        "inputs_zero": true,
+        "generation": "1",
+        "numerical_profile": "vehicle320-diagnostic-v1",
+        "vehicle_substeps_low": 320,
+        "vehicle_substeps_high": 320,
+        "vehicle_substeps_threshold_m_s": 5,
+        "sdk_tolerance_length_cm": 100,
+        "sleeping": true,
+        "body_world_position_m": [
+          422.1092578125,
+          251.667890625,
+          -0.004632797241210938
+        ],
+        "com_velocity_world_m_s": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity_world_rad_s": [
+          0,
+          0,
+          0
+        ],
+        "body_forward_velocity_m_s": 0,
+        "body_quaternion_xyzw": [
+          -7.246918443115646e-08,
+          0.00023972635972313583,
+          0.00016336908447556198,
+          1
+        ],
+        "wheels": [
+          {
+            "index": 0,
+            "bone": "Wheel_Front_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 1,
+            "bone": "Wheel_Front_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 2,
+            "bone": "Wheel_Rear_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 3,
+            "bone": "Wheel_Rear_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          }
+        ]
+      },
+      "denied_legacy_rpc": {
+        "apply_batch": "1",
+        "tick_cue": "1"
+      },
+      "logical_begin_ns": "60555770276"
+    }
+  },
+  {
+    "request": {
+      "op": "pause",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "paused_requires_close_and_new_init",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "6047",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed",
+      "locked": true,
+      "latched": true,
+      "latched_reason": "paused_requires_close_and_new_init",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": false
+    }
+  },
+  {
+    "request": {
+      "op": "describe"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "diagnostic_only",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "6047",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed; NOT wall",
+      "locked": true,
+      "latched": true,
+      "latched_reason": "paused_requires_close_and_new_init",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": false,
+      "provenance": "trusted local eight-role native owner; original CAN/P05 and owner-wire",
+      "physics": {
+        "nodrive": true,
+        "inputs_zero": true,
+        "generation": "1",
+        "numerical_profile": "vehicle320-diagnostic-v1",
+        "vehicle_substeps_low": 320,
+        "vehicle_substeps_high": 320,
+        "vehicle_substeps_threshold_m_s": 5,
+        "sdk_tolerance_length_cm": 100,
+        "sleeping": true,
+        "body_world_position_m": [
+          422.1092578125,
+          251.667890625,
+          -0.004632797241210938
+        ],
+        "com_velocity_world_m_s": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity_world_rad_s": [
+          0,
+          0,
+          0
+        ],
+        "body_forward_velocity_m_s": 0,
+        "body_quaternion_xyzw": [
+          -7.246918443115646e-08,
+          0.00023972635972313583,
+          0.00016336908447556198,
+          1
+        ],
+        "wheels": [
+          {
+            "index": 0,
+            "bone": "Wheel_Front_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 1,
+            "bone": "Wheel_Front_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 2,
+            "bone": "Wheel_Rear_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 3,
+            "bone": "Wheel_Rear_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          }
+        ]
+      },
+      "denied_legacy_rpc": {
+        "apply_batch": "1",
+        "tick_cue": "1"
+      },
+      "logical_begin_ns": "60555770276"
+    }
+  },
+  {
+    "request": {
+      "op": "advance",
+      "ticket": "0",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6"
+    },
+    "response": {
+      "ok": false,
+      "model_step_ns": "10000000",
+      "reason": "paused_requires_close_and_new_init",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "6047",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed",
+      "locked": true,
+      "latched": true,
+      "latched_reason": "paused_requires_close_and_new_init",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": false
+    }
+  },
+  {
+    "request": {
+      "op": "reset",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "reset_requires_close_and_new_init",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "6047",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed",
+      "locked": true,
+      "latched": true,
+      "latched_reason": "reset_requires_close_and_new_init",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": false,
+      "physics": {
+        "nodrive": true,
+        "inputs_zero": true,
+        "generation": "2",
+        "numerical_profile": "vehicle320-diagnostic-v1",
+        "vehicle_substeps_low": 320,
+        "vehicle_substeps_high": 320,
+        "vehicle_substeps_threshold_m_s": 5,
+        "sdk_tolerance_length_cm": 100,
+        "sleeping": false,
+        "body_world_position_m": [
+          422.1092578125,
+          251.667890625,
+          -0.004632759094238281
+        ],
+        "com_velocity_world_m_s": [
+          0,
+          0,
+          0
+        ],
+        "angular_velocity_world_rad_s": [
+          0,
+          0,
+          0
+        ],
+        "body_forward_velocity_m_s": 0,
+        "body_quaternion_xyzw": [
+          -7.248763722600415e-08,
+          0.00023972887720447034,
+          0.00016336908447556198,
+          1
+        ],
+        "wheels": [
+          {
+            "index": 0,
+            "bone": "Wheel_Front_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 1,
+            "bone": "Wheel_Front_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 1.2217304706573486,
+            "offset_x_m": 1.2594692993164063,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 2,
+            "bone": "Wheel_Rear_Left",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": -0.7967538452148437,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          },
+          {
+            "index": 3,
+            "bone": "Wheel_Rear_Right",
+            "radius_m": 0.355,
+            "inertia_kg_m2": 1.26025,
+            "damping_nm_s": 0.25,
+            "longitudinal_stiffness_per_gravity": 3000,
+            "max_brake_nm": 800,
+            "max_steer_rad": 0,
+            "offset_x_m": -1.6010015869140626,
+            "offset_y_right_m": 0.796165771484375,
+            "set_drive_nm": 0,
+            "set_friction_nm": 0,
+            "set_steer_right_rad": 0,
+            "omega_rad_s": 0,
+            "solver_omega_rad_s": 0,
+            "solver_omega_source": "PhysX3.4.mWheelSpeeds.direct.v1"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "request": {
+      "op": "close",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6"
+    },
+    "response": {
+      "ok": true,
+      "model_step_ns": "10000000",
+      "reason": "closed_actor_destroyed",
+      "schema": "m7-nodrive-zero-probe-v1",
+      "normal_driving_enabled": false,
+      "interval_work_valid": false,
+      "effort_profile": "virtual-ev-v1-native-functional",
+      "model_id": "stratadrive-v1-equal4-mkz-rest-v1",
+      "model_sha256": "d5f98ebb4a5cecf21a8904090699bfd1b51ad3e59d17019362ff8a27ce6944b8",
+      "frame": "6047",
+      "session": "1",
+      "run": "7B06D9CB-D3FB-4BDF-B56A-D7BD7FD4C1E6",
+      "actor": "97",
+      "clock_domain": "m7-native-simulation-elapsed",
+      "locked": false,
+      "latched": true,
+      "latched_reason": "closed",
+      "staged": false,
+      "in_flight": false,
+      "awaiting_ev_settlement": false,
+      "registry_actor_present": false
+    }
+  }
+]

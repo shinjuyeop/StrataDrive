@@ -46,24 +46,44 @@ def main():
     p.add_argument("--wall-nullrhi",action="store_true",help="diagnostic only; disables renderer and cannot validate cameras")
     p.add_argument("--wall-inline-render",action="store_true",help="experimental owned server render scheduling; budgets unchanged")
     p.add_argument("--scenario", type=Path)
+    p.add_argument("--route-profile", type=Path)
+    p.add_argument("--propulsion-aware", action="store_true")
+    p.add_argument("--route-startup-seconds",type=int,choices=(180,600),default=180)
     p.add_argument("--cameras", action="store_true")
     p.add_argument("--terminal-response", action="store_true")
     p.add_argument("--held-steer-sleep", action="store_true")
     p.add_argument("--abort-on-port", action="store_true", help="Interrupt owned server before world readiness; no ego or ticks")
     p.add_argument("--shutdown-diagnostic", action="store_true", help="Owned loading-abort only: capture blocked shutdown stacks within original 30s budget")
     p.add_argument("--simulation-continuous", action="store_true")
+    p.add_argument("--speed-loop", action="store_true", help="M8 V1 speed profile, simulation-time only")
     p.add_argument("--ticks", type=int, default=400)
-    p.add_argument("--native-fault", choices=("none","credit","command","snapshot","work-missing","work-duplicate","ev-ack-missing","ev-ack-duplicate","ev-ack-energy","rgb-drop","protection","wall-gap","client-loss","native-stall"), default="none")
+    p.add_argument("--native-fault", choices=("none","credit","command","snapshot","work-missing","work-duplicate","ev-ack-missing","ev-ack-duplicate","ev-ack-energy","rgb-drop","protection","wall-gap","client-loss","native-stall","pose-stale"), default="none")
     p.add_argument("--response-fixture", type=Path)
     p.add_argument("--require-solver-wheel", action="store_true")
     p.add_argument("--native-wheel-bridge", type=Path)
     p.add_argument("--bridge-drop-snapshot", action="store_true")
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
+    p.add_argument("--speed-terminal", choices=("none","normal-stop","input-loss","stop-protection"), default="none")
     a = p.parse_args()
-    if a.simulation_continuous and not (a.native_actual and a.solver_work and a.scenario and
-                                       not a.wall_native and not a.compact_work and a.native_fault=="none" and 150<=a.ticks<=6000):
-        p.error("continuous simulation requires explicit functional native/work/scenario; max 6000 ticks")
+    if a.speed_terminal!="none" and not (a.speed_loop and a.native_fault=="none"):p.error("speed terminal requires speed loop without another injected fault")
+    from m8_route_contract import load_route
+    route_definition=load_route(a.route_profile) if a.route_profile else None
+    if route_definition and route_definition['schema']=='m8-normal-stop30-v1' and (a.propulsion_aware or a.native_fault!='none' or a.speed_terminal!='none'):p.error('stop30 frozen nominal scope')
+    if a.propulsion_aware:
+        if not route_definition or not route_definition["schema"].startswith("m8-reference-"):p.error("propulsion-aware mode requires reference route")
+        from m8_reference_feasibility import require_feasible_route
+        try:require_feasible_route(route_definition)
+        except ValueError as e:p.error(str(e))
+    if a.route_profile and not (a.simulation_continuous and not a.speed_loop and not a.scenario and a.ticks==route_definition["ticks"] and a.native_fault in ("none","snapshot","work-missing","pose-stale")):
+        p.error("route requires its frozen tick count and simulation profile")
+    if a.route_startup_seconds!=180 and not a.route_profile:p.error("extended startup is route-only")
+    if a.native_fault=="pose-stale" and not a.route_profile:p.error("pose fault requires route")
+    if a.speed_loop and not (a.simulation_continuous and not a.scenario and a.ticks==4000 and a.native_fault in ("none","snapshot","work-missing")):
+        p.error("speed loop requires 4000-tick functional simulation profile without fixed requests")
+    if a.simulation_continuous and not (a.native_actual and a.solver_work and (a.scenario or a.speed_loop or a.route_profile) and
+                                       not a.wall_native and not a.compact_work and (a.native_fault=="none" or a.speed_loop or a.route_profile) and 150<=a.ticks<=(route_definition["ticks"] if route_definition else 6000)):
+        p.error("continuous simulation requires explicit functional native/work/scenario; bounded frozen horizon")
     if a.wall_native and not (a.native_actual and a.solver_work and a.compact_work and a.scenario):
         p.error("wall native requires explicit native/work/compact/scenario")
     if a.wall_native and a.native_fault not in ('none','wall-gap','protection'):
@@ -107,7 +127,7 @@ def main():
     settings = a.runtime/"CarlaSettings.ini"
     settings.write_text("[CARLA/Server]\nDisableRendering=True\n")
     argv = [str(a.engine/"Engine/Binaries/Linux/UE4Editor"),
-            str(a.source/"Unreal/CarlaUE4/CarlaUE4.uproject"), "/Game/Carla/Maps/Town03_Opt",
+            str(a.source/"Unreal/CarlaUE4/CarlaUE4.uproject"), "/Game/Carla/Maps/"+(route_definition["map"] if route_definition else "Town03_Opt"),
             "-game", "-FixedSeed", "-RenderOffScreen", "-nosound", "-unattended", "-nosplash", "-carla-server",
             "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
             "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
@@ -142,7 +162,7 @@ def main():
         if env.get("LD_PRELOAD"):raise RuntimeError("refuse to replace existing LD_PRELOAD")
         env["LD_PRELOAD"]=str(a.rpc_nodelay.resolve())
     report = dict(status="FAIL", argv=argv, started_utc=datetime.now(timezone.utc).isoformat(),
-                  normal_driving_enabled=False, owner_key="ephemeral child environment; value never recorded")
+                  startup_budget_seconds=a.route_startup_seconds, normal_driving_enabled=False, owner_key="ephemeral child environment; value never recorded")
     def sha(path):
         digest = hashlib.sha256()
         with path.open("rb") as file:
@@ -166,12 +186,17 @@ def main():
         for path in (a.native_actual, Path(__file__).with_name("m7_1q_probe.py"),Path(__file__).with_name("m7_wall_carla_probe.py"),
                      Path(__file__).with_name("audit_m7_1r_work.py"), Path(__file__).with_name("audit_m7_1q_native.py"),
                      Path(__file__).with_name("m7_1p_bridge.py"), Path(__file__).with_name("m7_1k_server_probe.py"),
-                     Path(__file__).with_name("m7_sensor_capture.py")):
+                     Path(__file__).with_name("m7_sensor_capture.py"),Path(__file__).with_name("m8_route_contract.py"),Path(__file__).with_name("m8_reference_feasibility.py"),Path(__file__).with_name("m8_stop_wire.py")):
             dest = snapshot/path.name
             shutil.copy2(path, dest)
             report["executed_artifact_sha256"][str(dest)] = sha(dest)
             report["native_source_snapshots"][str(path)] = str(dest)
         a.native_actual = snapshot/a.native_actual.name
+        if a.route_profile:
+            dest=snapshot/a.route_profile.name
+            shutil.copy2(a.route_profile,dest)
+            report["executed_artifact_sha256"][str(dest)]=sha(dest)
+            a.route_profile=dest
         if a.scenario:
             dest=snapshot/a.scenario.name
             shutil.copy2(a.scenario,dest)
@@ -197,7 +222,7 @@ def main():
             server = subprocess.Popen(argv, env=env, stdout=log, stderr=subprocess.STDOUT,
                                       start_new_session=True,preexec_fn=allow_owned_debugger if a.shutdown_diagnostic else None)
         report["pid"] = server.pid
-        deadline = time.monotonic()+180
+        deadline = time.monotonic()+a.route_startup_seconds
         while time.monotonic() < deadline:
             if server.poll() is not None:
                 raise RuntimeError("server exited before readiness")
@@ -227,7 +252,7 @@ Path(sys.argv[1]).mkdir()
             raise LoadingAbort()
         # A listening RPC port can precede the first usable episode snapshot
         # during cold map loading. Only read state here; never tick or mutate.
-        # Share the existing 180 s startup deadline, not the driving budgets.
+        # Share the explicit startup deadline, not the driving budgets.
         readiness = a.runtime/"readiness.json"
         ready_code = """
 import carla,json,sys,time
@@ -307,6 +332,10 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
             if a.compact_work:
                 cmd += ["--compact-work"]
         if a.simulation_continuous:cmd += ["--simulation-continuous"]
+        if a.speed_loop:cmd += ["--speed-loop"]
+        if a.speed_terminal!="none":cmd += ["--speed-terminal",a.speed_terminal]
+        if a.propulsion_aware:cmd += ["--propulsion-aware"]
+        if a.route_profile:cmd += ["--route-profile",str(a.route_profile)]
         if a.flag_check:
             expected = {"ambiguous": "ambiguous_numerical_profile", "requires-v1": "numerical_profile_requires_v1",
                         "disabled": "disabled"}[a.flag_check]

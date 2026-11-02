@@ -1,0 +1,16 @@
+[ 50%] Building CXX object CMakeFiles/speed_pi.dir/central/longitudinal/speed_pi.cpp.o
+[ 50%] Linking CXX static library libspeed_pi.a
+[ 50%] Built target speed_pi
+[ 50%] Building CXX object CMakeFiles/speed_pi_test.dir/tests/unit/speed_pi_test.cpp.o
+/d/shin/StrataDrive/tests/unit/speed_pi_test.cpp: In member function ‘virtual void stratadrive::central::{anonymous}::SpeedPI_SustainedSaturationAndRecoveryRespectBothLimits_Test::TestBody()’:
+/d/shin/StrataDrive/tests/unit/speed_pi_test.cpp:78:12: error: suggest explicit braces to avoid ambiguous ‘else’ [-Werror=dangling-else]
+   78 |         if (i == 299) EXPECT_DOUBLE_EQ(acceleration, 2);
+      |            ^
+/d/shin/StrataDrive/tests/unit/speed_pi_test.cpp:79:12: error: suggest explicit braces to avoid ambiguous ‘else’ [-Werror=dangling-else]
+   79 |         if (i == 699) EXPECT_DOUBLE_EQ(acceleration, -5);
+      |            ^
+cc1plus: all warnings being treated as errors
+gmake[3]: *** [CMakeFiles/speed_pi_test.dir/build.make:79: CMakeFiles/speed_pi_test.dir/tests/unit/speed_pi_test.cpp.o] 오류 1
+gmake[2]: *** [CMakeFiles/Makefile2:4328: CMakeFiles/speed_pi_test.dir/all] 오류 2
+gmake[1]: *** [CMakeFiles/Makefile2:4335: CMakeFiles/speed_pi_test.dir/rule] 오류 2
+gmake: *** [Makefile:1421: speed_pi_test] 오류 2

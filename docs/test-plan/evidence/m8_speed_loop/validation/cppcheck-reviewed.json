@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "cppcheck",
+    "--project=build/m8-speed-loop/compile_commands.json",
+    "--enable=warning,style,performance,portability",
+    "--error-exitcode=1",
+    "--suppress=missingIncludeSystem",
+    "--suppress=useStlAlgorithm:simulation/runtime/m4_faults.hpp",
+    "--suppress=useStlAlgorithm:simulation/runtime/session_loop.hpp",
+    "--suppress=useStlAlgorithm:simulation/runtime/multirate_fixture.hpp",
+    "--suppress=unusedPrivateFunction:simulation/runtime/m4_owner_network.hpp"
+  ],
+  "start_utc": "2026-10-29T09:29:51.960815+00:00",
+  "end_utc": "2026-10-29T09:29:53.819565+00:00",
+  "returncode": 0
+}

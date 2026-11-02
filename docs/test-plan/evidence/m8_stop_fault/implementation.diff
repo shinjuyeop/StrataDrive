@@ -1,0 +1,802 @@
+--- previous/docs/archive/design-decisions.md
++++ final/docs/archive/design-decisions.md
+@@ -5147,3 +5147,38 @@
+ 정지 인계 중 추가 고장,30km/h stop의 감속/deadline 계약,전체 Reference/M8,
+ wall/Target·Planner/localization·UE renderer/GC 원인은 후속이다.
+ [Protocol](../test-plan/carla-stop-protocol.md), [실행 근거](../test-plan/evidence/m8_stop/README.md)를 따른다.
++
++
++<a id="adr-0074"></a>
++
++## ADR-0074: 정지 hold 권한을 원본 local protection으로 대체
++
++Date: 2026-11-02. Status: **Town03 저속 hold 이후 보호 주입 검증 /30km/h 계약 검토**.
++
++기존 terminal hold guard는 원래 local protection으로의 전환도 거절했다.
++보호는 동일 released session·8-role selected mask255·normal credit0·새 LocalProtection
++Actual을 요구하고, 첫 선택 시각이 마지막 수용 normal/hold 관측보다 뒤여야 한다.
++StopLease packet이 남아 있어도 보호 권한으로 사용하지 않는다. 원래 Actual/wheel
++whole-interval freshness와 exclusive expiry를 유지하며, 보호 이후 normal/hold를
++재개하지 않는다. wall hold 범위는 늘리지 않는다.
++
++별도 SIL `stop-protection`은 원본 ACK로 처음 PowerDown에 들어간100ms 뒤 안전 요청을
++주입한다. actual 고장 검출기나 ACK-loss 경로를 시험했다고 세지 않는다. 정지 상태에서
++원래 actuator/ECU를 계속 실행하고 보호 torque0·brake≥1MPa의 실제 acquisition과
++물리 정지 유지·4000 solver/단일 EV 정산을 독립 감사한다. 실제 응답은5.6/185.6ms다.
++이 경우 NormalStop Complete/HV-off 성공으로 판정하지 않는다.
++
++첫 실행은 C++ 내부 proof에는 있던 StopLease/ACK를 새 mode의 JSON에 넣지 않아
++서버가1898구간 뒤 거절했다. 서버 gate를 완화하지 않고 native 직렬화를 수정했다.
++원본 FAIL과 전체 완료 구간 정산을 보존하고, Release/ASan CLI에4001 원본 입력 재생과
++독립 wire 검사를 추가했다. 수정 binary의 실제4000구간은 통과했다. 기존 두 저속
++시나리오8002관측의 최종 JSON 일치도 확인했다. 실행 전 producer source/hash와
++최종 source는 각각 보관한다.
++
++기본1m/s²/5s로30km/h를 정지시키려는 계약은 낙관적 무지연 입력부터 불가능하다.
++실제 NormalStop에 그 입력을 주어5s BrakingTimeout과 latch를 검증했다. 별도 후보는
++1m/s²/10s 제동/2s shutdown으로 검토하되 기본 설정을 바꾸지 않았다. 이는 고속
++물리 정지 수용이 아니며 새 fixture/config ID·사전 평가 기준으로 후속 검증해야 한다.
++[사전 protocol](../test-plan/carla-stop-fault-protocol.md),
++[계약 비교](../test-plan/normal-stop-30-contract-review.md),
++[원본·실패·판정](../test-plan/evidence/m8_stop_fault/README.md)을 따른다.
+--- previous/docs/interfaces/carla-plant-adapter.md
++++ final/docs/interfaces/carla-plant-adapter.md
+@@ -289,7 +289,7 @@
+ 
+ ## M8 저속 terminal 경로
+ 
+-`--speed-loop --speed-terminal normal-stop|input-loss`는 기존 simulation-continuous/
++`--speed-loop --speed-terminal normal-stop|input-loss|stop-protection`는 기존 simulation-continuous/
+ solver-work/NoDrive320/4000ticks 저속 fixture 전용이다. 첫 PI release+15s에 사건을
+ 고정하며 ordinary PI는 이후 갱신하지 않는다. NormalStop은 기존 owner 경로에20ms
+ NormalStopRequest를 공급한다. 입력 누락은 Central SpeedRequest의 현재 Drive Actual
+@@ -302,7 +302,22 @@
+ 요구한다. 전체 다음10ms의 Actual freshness,8-role release/RunLease,50ms stop source
+ age·exclusive expiry를 계속 검사한다. 정상 운전 재개·만료 lease 부활을 허용하지 않는다.
+ 새 CAN schema나 합성 ACK/Actual은 없다. 이 terminal admission은 functional 전용이며
+-wall에는 허용하지 않는다. 현재 hold에서 추가 protection 전환도 이 시험의 수용 범위가 아니다.
++wall에는 허용하지 않는다. hold 이후 보호 전환의 후속 범위는 아래 절을 따른다.
+ 
+ [사전 기준](../test-plan/carla-stop-protocol.md)과
+ [물리 정지·원본 HV-off 판정](../test-plan/evidence/m8_stop/README.md)을 따른다.
++
++
++## M8 hold 이후 local protection
++
++`stop-protection`은 원본 handoff ACK로 처음 PowerDown에 들어간100ms 뒤 기존8-role
++local protection을 선택하는 SIL 요청 주입이다. native/server admission은 보호 선택
++시각이 마지막 수용 normal/hold보다 뒤이고, 동일 released session·모든 보호 mask·
++normal credit0·새 원본 LocalProtection Actual이 있을 때 hold를 보호로 대체한다.
++원본 Actual/wheel age와 whole-interval 검사는 그대로다. 남아 있는 StopLease/ACK
++packet은 보호 권한을 대신하지 않으며, 보호 이후 normal/hold 재개는 거절한다.
++
++ACK 소실 검출이나 전체 통신 단절을 구현한 시험은 아니다. 두 결함의 물리 응답은 별도다.
++[사전 protocol](../test-plan/carla-stop-fault-protocol.md)과
++[원본·검증](../test-plan/evidence/m8_stop_fault/README.md)을 따른다.
++30km/h의 기본5s 예산 충돌은 [계약 검토](../test-plan/normal-stop-30-contract-review.md)에 기록한다.
+--- previous/docs/project-status.md
++++ final/docs/project-status.md
+@@ -1,6 +1,6 @@
+ # 프로젝트 상태
+ 
+-정리 기준·최신 검증: **2026-11-01**.
++정리 기준·최신 검증: **2026-11-02**.
+ 이 문서가 현재 구현·수용 범위와 다음 작업의 기준이다. 실행 중인 미기록 변경은 완료로 세지 않는다.
+ 
+ ## 단계별 현재 판정
+@@ -14,7 +14,7 @@
+ | M5 | Central↔Front/Rear 3-process SOME/IP Host FIFO 기능 한정 수용 | [실행 근거](test-plan/evidence/m5_someip_rear_adapter/README.md) |
+ | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
+ | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
+-| M8 | SpeedPI·속도 폐루프·고정 fixture·추진 포화·저속 NormalStop/입력 누락 정지 검증 / 전체 Reference 후속 | [동등성](test-plan/evidence/m8_speed_pi/README.md) · [SimpleVehicle](test-plan/evidence/m8_speed_loop/README.md) · [저속 CARLA](test-plan/evidence/m8_carla_speed/README.md) · [곡선](test-plan/evidence/m8_route/README.md) · [직선·복합](test-plan/evidence/m8_reference/README.md) · [추진 포화](test-plan/evidence/m8_saturation/README.md) · [정지 응답](test-plan/evidence/m8_stop/README.md) |
++| M8 | SpeedPI·속도 폐루프·고정 fixture·추진 포화·저속 정지·인계 후 보호 전환 검증 / 전체 Reference 후속 | [동등성](test-plan/evidence/m8_speed_pi/README.md) · [SimpleVehicle](test-plan/evidence/m8_speed_loop/README.md) · [저속 CARLA](test-plan/evidence/m8_carla_speed/README.md) · [곡선](test-plan/evidence/m8_route/README.md) · [직선·복합](test-plan/evidence/m8_reference/README.md) · [추진 포화](test-plan/evidence/m8_saturation/README.md) · [정지 응답](test-plan/evidence/m8_stop/README.md) · [인계 후 보호](test-plan/evidence/m8_stop_fault/README.md) |
+ | M9–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
+ 
+ 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
+@@ -244,6 +244,37 @@
+ 이전 M8 증거1008개와 원본 v1 model hash를 보존했다.
+ 
+ [Protocol](test-plan/carla-stop-protocol.md), [원본·판정·재현](test-plan/evidence/m8_stop/README.md),
+-[ADR-0073](archive/design-decisions.md#adr-0073)를 따른다. 다음은 정지 인계 중 추가 고장·
+-ACK/통신 손실의 물리 응답 범위와30km/h 정지의 감속/deadline 계약 검토다.
++[ADR-0073](archive/design-decisions.md#adr-0073)를 따른다. 인계 후 명시적 보호 요청과30km/h 감속/deadline 검토는 아래 후속 절을 따른다.
++ACK/전체 통신 손실의 물리 응답은 후속이다.
+ 전체 Reference/M8·Planner/localization·wall/Target와 기존 UE renderer/GC 원인은 OPEN이다.
++
++
++## M8 정지 인계 후 보호 전환과30km/h 계약 검토
++
++2026-11-02. 동일 Town03 약10km/h에서 NormalStop의 원본 handoff ACK 이후100ms에
++8-role local protection을 선택했다. 실제 hold10구간을 거친 뒤 보호2092구간으로
++전환했으며 전체4000 physics/4000 EV 정산을 통과했다. 보호 상태 torque0의 원본
++acquisition은 주입 후5.6ms, brake≥1MPa는185.6ms(관측7.6/187.6ms)였다.
++보호 전후 body/네 wheel 정지와 마지막1초 pose drift0을 확인했다. 이 시험은 명시적
++SIL safety request이며 ACK-loss나 통신 단절 검출 시험·NormalStop HV-off 완료가 아니다.
++
++서버는 동일 release/8-role 보호 mask·credit0·마지막 hold보다 뒤인 선택 시각·새 원본
++LocalProtection Actual을 확인해야 보호로 전환한다. 기존 source/whole-interval/expiry는
++유지하며 normal/hold 재개를 거절한다. 첫 실제 실행은 새 mode의 JSON StopLease/ACK
++누락으로1898 physics/EV 뒤 차단됐다. 원본 FAIL을 보존하고 직렬화 회귀를 추가했다.
++수정 후4000구간과 독립 native/work/EV 감사·terminal 변조22종을 통과했다.
++
++C++ unit/logical1215개, Python233개, ASan/UBSan41개와 CLI4001관측 검사를 통과했다.
++기존 NormalStop·입력 누락의8002 원본 관측은 최종 binary에서 JSON 전체가 일치했다.
++이전 M8 증거1135개와 원본 v1 model hash를 보존했다.
++
++30km/h는 기존1m/s²로 이상적 감속만8.333s가 필요해5s 제동 예산과 충돌한다.
++낙관적 무지연 입력의 C++ 시험에서도 정확히5s에 BrakingTimeout을 확인했다.
++기본 설정은 유지하며 다음 후보를 별도30km/h profile의1m/s²·제동10s·shutdown2s로
++정리했다. 실제30km/h 정지는 아직 수행하지 않았다.
++
++[Protocol](test-plan/carla-stop-fault-protocol.md), [실행 근거](test-plan/evidence/m8_stop_fault/README.md),
++[30km/h 계약 검토](test-plan/normal-stop-30-contract-review.md),
++[ADR-0074](archive/design-decisions.md#adr-0074)를 따른다. 다음은 별도30km/h fixture의
++정지 계약 연결·실제 응답 검증이다. ACK/전체 통신 손실의 물리 응답,전체 Reference/M8,
++Planner/localization·wall/Target·UE renderer/GC 원인은 OPEN이다.
+--- previous/docs/roadmap.md
++++ final/docs/roadmap.md
+@@ -8,7 +8,7 @@
+ | 단계 | 산출물 |
+ | --- | --- |
+ | M7 · 기능 범위 CLOSED | [시뮬레이션 시간 기능 수용](project-status.md#m7-종료-조건). HV 예산 분리 후 비영상 wall 정상2/보호2 통과;영상·장시간 wall 수용은 기능 개발과 별도 |
+-| M8 | C++ 동등성·속도 폐루프·S01/S02/S03 고정 fixture 검증. 추진 포화 feedback·관성 참조 필요조건 검증. 저속 NormalStop/HV-off·속도 입력 누락 정지 검증. 다음은 정지 인계 고장·30km/h 정지 계약과 동적 가용력 기반 참조 |
++| M8 | C++ 동등성·속도 폐루프·S01/S02/S03 고정 fixture 검증. 추진 포화 feedback·관성 참조 필요조건 검증. 저속 NormalStop/HV-off·속도 입력 누락 정지 검증. 정지 인계 후 명시적 보호 전환 검증·30km/h 기본 예산 충돌 확인. 다음은 별도30km/h 정지 fixture와 ACK/통신 손실·동적 가용력 기반 참조 |
+ | M9 | Fault event → 검출 → 보호 → actual response → DTC 통합. 기존 로컬 보호는 계속 유지 |
+ | M10–M11 | Perception·temporal learned planner, Safety Supervisor·classical fallback, 인식/판단 한계와 scenario 검토 |
+ | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
+--- previous/docs/test-plan/README.md
++++ final/docs/test-plan/README.md
+@@ -23,6 +23,7 @@
+ | CARLA HV source/dependency 예산 분리·정상2/보호2 실행 | [wall5-hv50-v1 결과](evidence/m7_carla_wall_guard/carla-runtime/hv-budget-v1/README.md) |
+ | CARLA 기본 state·영상·확장 경로 지연 대조 | [Frame 진단](evidence/m7_carla_wall_guard/carla-runtime/frame-diagnostic/README.md) |
+ | M8 전 공통 구현·빌드·감사 reader 정리와 회귀 | [리팩터링 검증](evidence/pre-m8-refactor/README.md) |
++| M8 정지 hold 이후 보호 전환·30km/h 예산 계약 검토 | [실행 근거](evidence/m8_stop_fault/README.md) · [protocol](carla-stop-fault-protocol.md) · [30km/h 검토](normal-stop-30-contract-review.md) |
+ | M8 저속 NormalStop/HV-off·현재 속도 입력 누락의 물리 정지 | [실행 근거](evidence/m8_stop/README.md) · [protocol](carla-stop-protocol.md) |
+ | M8 추진 배분 포화·참조 필요조건 | [실행 근거](evidence/m8_saturation/README.md) · [protocol](propulsion-saturation-protocol.md) |
+ | M8 S01 직선·S03 위치 기반30→20km/h·구동 포화 실패와 v2 | [실행 근거](evidence/m8_reference/README.md) · [protocol](carla-reference-protocol.md) |
+--- previous/docs/test-plan/carla-stop-fault-protocol.md
++++ final/docs/test-plan/carla-stop-fault-protocol.md
+@@ -0,0 +1,33 @@
++# M8 정지 인계 후 보호 전환과30km/h 계약 검토
++
++2026-11-02. 실행 전 고정 기준. 기존 Town03 약10km/h/40s/4000ticks,
++NoDrive320·원본 단일 EV·8-role simulation 경로를 사용한다.
++
++`--speed-loop --speed-terminal stop-protection`은 기존 첫 PI release+15s에
++NormalStop을 요청한다. 원본 세 ECU ACK로 Central이 처음 PowerDown에 들어간
++시각을 H로 기록하고 H+100ms에 기존 local protection을8개 participant 모두에
++선택한다. 이는 명시적인 SIL 안전 요청 주입이다. ACK 소실이나 실제 하드웨어 고장을
++검출했다고 세지 않는다. 다른 ECU/acquisition과 물리/EV 정산은 계속한다.
++
++- 주행 사건 시9–11km/h, PI750 releases의 원본 입력/식 일치.
++- 주입 전에 원본 StopLease/accepted ACK로 실제 hold 물리 구간이 있어야 한다.
++- H는 최초 PowerDown 관측으로 확인하며 주입은 정확히 H+100ms다.
++- 보호 선택은 마지막 수용 hold보다 뒤, 동일 released session의8-role mask255,
++  normal credit0, 원래 LocalProtection Actual/source로 입증한다.
++- source/whole-interval age·wheel freshness·exclusive expiry는 기존 그대로다.
++  과거 hold proof가 export에 남아 있어도 보호 선택의 근거로 사용하지 않는다.
++- 주입 후 torque0·brake≥1MPa acquisition≤230ms, 관측≤260ms.
++- 주입 후 normal/StopLease authority 재개를 거절한다. 잘못된 보호 시각/role mask/
++  credit/session, 누락·거절 ACK와 만료 stop authority를 거절한다.
++- 사건 후5s 이내 body≤.001m/s·네 solver wheel0의 연속1초 정지, 마지막1초 pose
++  drift≤1mm. 주입 전후 정지 유지도 확인한다. HV-off Complete로 판정하지 않는다.
++- 실제4000 physics/4000 EV 정산, original native/work/EV 독립 감사와 서버exit130.
++- 기존 normal-stop/input-loss 원본4001개씩을 최종 native에 재생하여 JSON 전체
++  동등성 확인. replay는 새 물리 실행으로 세지 않는다.
++
++30km/h는 기존 NormalStopConfig의1m/s²·제동5s·확인60ms·shutdown2s를 유지하여
++낙관적인 무지연 일정 감속 입력에서도 BrakingTimeout이 발생함을 C++ 계약 시험으로
++확인한다. 정지 시간 v/a=8.333s, 거리 v²/(2a)=34.722m에 acquisition/actuator/확인
++여유가 별도로 필요하다.10km/h는2.778s/3.858m다. 제동 제한을 늘리거나 감속을
++키우는 대안은 문서로 비교하고, 실제30km/h 성능 수용이나 설정 변경으로 세지 않는다.
++전체 통신 단절·ACK-loss 물리 응답, wall/Target, 전체 Reference/M8는 후속이다.
+--- previous/docs/test-plan/component-traceability.csv
++++ final/docs/test-plan/component-traceability.csv
+@@ -139,3 +139,7 @@
+ C-M8-T-02,SYS-COM-004;SYS-SAFE-002,tools/carla/m7_nodrive/native_admission.hpp;tools/carla/m7_nodrive/M7NoDrivePort.cpp,M8CarlaStop;stop-01,Original StopLease and accepted LeafResult bind stationary Init Actual;whole interval and8-role authority;8 semantic proof mutations rejected,m8_stop/results-summary.json
+ C-M8-T-03,SYS-CTRL-004;SYS-EV-004,tests/integration/carla/audit_m8_stop.py;tests/integration/carla/m8_stop_wire.py,stop-01;input-loss-01,Two4000 physics/EV runs;raw PI and moving event;physical stop and held pose;NormalStop original PowerStatus Off,m8_stop/results-summary.json
+ C-M8-T-04,SYS-COM-004;SYS-SAFE-002,tests/integration/carla/check_m8_stop_corruptions.py;tests/integration/carla/replay_m8_stop.py,terminal-mutations;stop-final-replay,28 raw evidence mutations rejected;4001 exact final native observations replayed without new physics,m8_stop/results-summary.json
++C-M8-U-01,SYS-COM-004;SYS-SAFE-002,tools/carla/m7_nodrive/native_admission.hpp;tests/integration/carla/m7_1f/stop_test.cpp,M8CarlaStop,Original local protection can supersede hold only after last accepted authority;immutable release and8-role mask;no normal or hold reopening,m8_stop_fault/results-summary.json
++C-M8-U-02,SYS-COM-004;SYS-EV-004,tests/integration/carla/m7_1g/wheel_main.cpp;tests/integration/carla/check_m8_stop_cli.py,cli-serialization-02;cli-serialization-asan,Original StopLease and selected ACK survive native JSON transport;4001 replay observations without physics;first missing-packet failure preserved,m8_stop_fault/results-summary.json
++C-M8-U-03,SYS-CTRL-004;SYS-SAFE-002,tests/integration/carla/audit_m8_stop.py;tests/integration/carla/check_m8_stop_corruptions.py,hold-protection-02,Fixed post-handoff100ms SIL protection injection;original protective acquisition and continued stationary physics;not ACK-loss detection,m8_stop_fault/results-summary.json
++C-M8-U-04,SYS-CTRL-004;SYS-CTRL-007,tests/unit/normal_stop_test.cpp,NormalStopTest.DefaultBudgetAcceptsIdealTenKmhButTimesOutIdealThirtyKmh,Ideal1mps2 from30kmh cannot fit existing5s braking budget;timeout remains latched;separate10s candidate only reviewed,m8_stop_fault/contract-review.json
+--- previous/docs/test-plan/normal-stop-30-contract-review.md
++++ final/docs/test-plan/normal-stop-30-contract-review.md
+@@ -0,0 +1,37 @@
++# 30km/h NormalStop의 감속·시간 제한 검토
++
++2026-11-02. 계약 검토와 낙관적 C++ 입력 시험 결과이며30km/h CARLA 정지 수용이 아니다.
++현재 `NormalStopConfig`는 감속1m/s², 제동5s, 정지 확인60ms, shutdown2s다.
++제동 예산에는 실제 감속뿐 아니라 standing-hold 압력 안정과 원천 표본 확인도 들어간다.
++shutdown 예산은 정확한 원본 handoff ACK를 받은 뒤 별도로 시작한다.
++
++| 출발 속도 / 감속 | 이상적 정지 시간 v/a | 이상적 정지 거리 v²/(2a) | 확인60ms까지 최소 시간 | 현재5s 대비 |
++| --- | --- | --- | --- | --- |
++| 10km/h / 1m/s² | 2.7778s | 3.8580m | 2.8378s | 약2.1622s 여유 |
++| 30km/h / 1m/s² | 8.3333s | 34.7222m | 8.3933s | 약3.3933s 부족 |
++| 30km/h / 2m/s² | 4.1667s | 17.3611m | 4.2267s | 약0.7733s 여유 |
++
++위 계산에는 통신/제어 지연, actuator 응답, 회생→마찰 전환, 경사·저항·타이어 특성,
++압력 안정 시간이 없다. 예산 적합성의 필요조건이며 안전 거리나 물리 성능 보장이 아니다.
++5s와 확인60ms만으로 계산한1m/s² 속도 상한17.784km/h도 실제 운용 상한이 아니다.
++
++`NormalStopTest.DefaultBudgetAcceptsIdealTenKmhButTimesOutIdealThirtyKmh`는 현재
++실제 config/controller에10ms마다 갱신된 입력을 넣는다. 무지연1m/s² 감속·wheel0에서
++즉시 hold 압력이라는 낙관적 조건이다.10km/h는 handoff에 도달하고30km/h는 정확히
++제동5s에 BrakingTimeout/보호 요구로 latch한다. 그때 잔여 속도는3.3333m/s(12km/h)다.
++새로운 정지 표본으로 실패를 회복할 수 없는 것도 확인한다. 이를 CARLA 결과로 세지 않는다.
++
++다음 물리 시험의 권장 후보는 **별도30km/h fixture에1m/s²·제동10s·shutdown2s**다.
++기존10km/h/default5s는 유지한다.10s는 최소8.3933s 이후 약1.6067s의 가설적 여유이며
++실측으로 검증해야 한다. 실제 물리 시험 전에 독립 profile/config ID와 고정 평가 기준을
++만들고, native/서버/감사에 사용한 설정과 hash를 기록해야 한다.
++
++2m/s²·5s 대안은 별도 제동력/전력·승차감 계약 검토가 필요하고 남은0.7733s가 작다.
++현재 시험 통과를 위해 감속을 자동으로 높이거나 timeout을 뒤늦게 늘리지 않는다.
++가속은 기존30km/h에서 검증한20s ramp를 사용하고, 충분히 긴 Town06 직선 fixture에서
++plateau 이후 사건 시점을 고정하는 것이 다음 단계다. 곡선/Planner/localization은 별도다.
++
++수용 기준에는 원본 wheel/body 정지·압력 dwell·StopLease/세 ECU ACK·PowerStatus Off,
++전체 solver/단일 EV 정산, 동일 reference의 timeout/입력 손실 고장 결과를 함께 둔다.
++권장10s를 적용하거나 실제30km/h 정지를 수행한 상태는 아니다.
++[정지 인계 보호 시험](carla-stop-fault-protocol.md)과 [실행 근거](evidence/m8_stop_fault/README.md)를 따른다.
+--- previous/docs/test-plan/verification-strategy.md
++++ final/docs/test-plan/verification-strategy.md
+@@ -178,3 +178,18 @@
+ 10km/h 고정 fixture에 한정하며 단순 다음 tick 차단·최종 제어 target0을 물리 정지로
+ 세지 않는다. 정상 정지2102 물리 hold 구간과 마지막 settlement 관측을 구분한다.
+ [Protocol](carla-stop-protocol.md), [결과·실패 이력](evidence/m8_stop/README.md)을 따른다.
++
++
++## M8 정지 인계 후 보호와 고속 예산 계약
++
++`stop-protection`은 원본 handoff ACK 이후100ms의 명시적 SIL safety request다.
++서버까지 전달된 StopLease/ACK와 실제 hold 구간을 먼저 입증하고, 다음 보호 Actual의
++source/동일 session·8-role mask·정지 유지·torque/brake 응답을 검증한다. 입력 일부를
++누락시키거나 고장 검출기를 통과한 시험으로 해석하지 않는다. CLI 직렬화 검사는
++원본 stopped-wheel 입력4001개를 새 모드로 재생하며 독립 wire decoder로 검사한다.
++실제 물리 실행과 replay를 별도 분모로 기록한다.
++
++30km/h는 기존1m/s²/5s의 낙관적 이상 입력에서도 timeout이 발생하는 계약 시험이다.
++설정 변경이나30km/h 실제 정지 수용은 별도다.
++[사전 protocol](carla-stop-fault-protocol.md), [계약 비교](normal-stop-30-contract-review.md),
++[원본·검사](evidence/m8_stop_fault/README.md)를 따른다.
+--- previous/tests/integration/carla/audit_m7_1q_native.py
++++ final/tests/integration/carla/audit_m7_1q_native.py
+@@ -73,7 +73,7 @@
+     history={};count=normal=empty=0;max_age=0;min_margin=10**12;max_quant=0;last_frame=int(b['frame'])
+     last_end=b['simulation_seconds'];cursors={};torques=[];speed=[]
+     protection_since=0;protection_count=0;release_packets=None
+-    stop_lease=None;stop_causal=None;stop_count=0
++    stop_lease=None;stop_causal=None;stop_count=0;last_hold_ns=0
+     L=model['wheels'][0]['offset_x_m']-model['wheels'][2]['offset_x_m']
+     half=(model['wheels'][1]['offset_y_right_m']-model['wheels'][0]['offset_y_right_m'])/2
+     with opening(path,'rt') as f:
+@@ -122,6 +122,7 @@
+                     check(normal>0 and not proof['normal'] and n['credit_mask']==0 and proof['protection_selected_mask']==255,
+                           'terminal local protection authority')
+                     check(int(proof['enable_ns'])<=since<=ns and (not protection_since or protection_since==since),'protection identity')
++                    check(since>last_hold_ns and not out.get('normal_stop',False),'protection supersedes prior hold')
+                     protection_since=since;protection_count+=1
+                 else:check(not protection_since and n['credit_mask']==255 and not proof.get('protection_selected_mask',0),'normal authority cannot reopen')
+                 check(out.get('protection',False)==protecting,'applied protection mode')
+@@ -150,6 +151,7 @@
+                 drive=actuals[2];check(drive['wheel_source'] in history and ns+10000000-drive['wheel_source']<=30000000 and abs(drive['wheel']-history[drive['wheel_source']])<=.005+1e-12,'CAN wheel source/age')
+                 max_age=max(max_age,ns+10000000-drive['wheel_source'])
+                 if proof['normal']:
++                    check(stop_lease is None,'normal cannot reopen after stop')
+                     check(stop_lease is None,'no normal resume after terminal hold')
+                     stop_causal=[v['causal'] for v in actuals]
+                     normal+=1
+@@ -182,8 +184,8 @@
+                     check(int(out['exclusive_expiry_ns'])==min(*sources,drive['wheel_source'])+30000001,'protection original freshness limit')
+                 elif out.get('normal_stop',False):
+                     from m8_stop_wire import stop_selection
+-                    check(report.get('speed_terminal')=='normal-stop' and normal>0 and not protecting,'explicit stop profile')
+-                    stop_lease=stop_selection(proof,actuals,ns,stop_lease,stop_causal);stop_count+=1
++                    check(report.get('speed_terminal') in ('normal-stop','stop-protection') and normal>0 and not protecting,'explicit stop profile')
++                    stop_lease=stop_selection(proof,actuals,ns,stop_lease,stop_causal);stop_count+=1;last_hold_ns=ns
+                     check(ns+10000000<int(out['exclusive_expiry_ns'])<=min(credit[2],stop_lease[3],stop_lease[2]+50000001),'stop exclusive authority')
+                 else:check(stop_lease is None and all(x['state']==0 and x['origin']==0 for x in actuals) and values[2]==0,'bootstrap actual state')
+             angle,pressure,torque=values
+--- previous/tests/integration/carla/audit_m8_stop.py
++++ final/tests/integration/carla/audit_m8_stop.py
+@@ -29,11 +29,11 @@
+ def audit(directory,rows=None):
+     result=json.loads((directory/'result.json').read_text());mode=result['speed_terminal']
+     server=json.loads((directory.parent/('server-'+directory.name+'.json')).read_text())
+-    check(mode in ('normal-stop','input-loss') and result['status'].startswith('PASS') and result['requested_ticks']==4000,'terminal scope/runtime')
++    check(mode in ('normal-stop','input-loss','stop-protection') and result['status'].startswith('PASS') and result['requested_ticks']==4000,'terminal scope/runtime')
+     check(all(c['status']=='PASS' for c in result['cases']) and server['server_exit']==130 and 'forced_stop' not in server,'lifecycle and owned shutdown')
+     check(result['receipts']==result['settlements']==4000 and not result['wall_runtime_accepted'],'complete functional work denominators')
+     c=SpeedPI();c.initialize(42);controls={};physics={};actual_wheel={};origin=trigger=None;count=0
+-    state=[];lease=None;causal=None;held=0;complete_ns=None;hold_ns=None;off=None;response={};trigger_speed=None;stop_point=None;streak=0;max_error=0.
++    state=[];lease=None;causal=None;held=0;complete_ns=None;hold_ns=None;off=None;response={};trigger_speed=None;stop_point=None;streak=0;max_error=0.;handoff=None;injection=None;last_hold=None
+     for i,row in enumerate(json_rows(directory/'trace.jsonl') if rows is None else rows):
+         now=math.floor(row['simulation_seconds']*1e9+.5);n=row['native'];proof=n['native_export'];t=n['speed_terminal'];s=n.get('speed_control');ph=row['physics']
+         check(i==row['index'] and row['frame']==int(result['binding']['frame'])+i,'continuous observation/frame')
+@@ -60,17 +60,32 @@
+             check(t['trigger_ns']==trigger and now>=trigger,'fixed 15s original event')
+             if trigger_speed is None:trigger_speed=v*3.6;check(9<=trigger_speed<=11,'moving at 10km/h event')
+             check(len(controls)==750,'no new PI after terminal event')
+-            if mode=='input-loss':
+-                check(t['detection_ns']==trigger and t['speed_fault']==3,'current speed input rejected in original job')
+-                check(int(proof['protection_since_ns'])==trigger and proof['protection_selected_mask']==255 and n['credit_mask']==0,'local protection selected')
++            if mode=='stop-protection' and n['stop_handoff_ns']:
++                if handoff is None:
++                    check(t['stop_state']==4 and now-10000000<=n['stop_handoff_ns']<=now,'first original PowerDown job')
++                    handoff=n['stop_handoff_ns']
++                check(n['stop_handoff_ns']==handoff and handoff>trigger,'immutable acknowledged handoff')
++                if t['detection_ns']:
++                    check(t['detection_ns']==handoff+100000000 and now>=t['detection_ns'],'fixed handoff protection injection')
++                    injection=t['detection_ns']
++                    check(last_hold is not None and last_hold<injection and held>0,'accepted hold precedes protection')
++                    check(not t['power_off'] and t['stop_state']!=5,'no false NormalStop completion')
++                    check(abs(v)<=.001 and all(w==0 for w in omega),'stationary throughout protection')
++                else:check(now<handoff+100000000,'missing handoff protection injection')
++            if mode=='input-loss' or (mode=='stop-protection' and injection is not None):
++                response_origin=trigger if mode=='input-loss' else injection
++                if mode=='input-loss':check(t['detection_ns']==trigger and t['speed_fault']==3,'current speed input rejected in original job')
++                else:check(t['speed_fault']==0,'separate safety injection from speed input loss')
++                check(int(proof['protection_since_ns'])==response_origin and proof['protection_selected_mask']==255 and n['credit_mask']==0,'local protection selected')
++                check(n['admission']['protection'] and not n['admission']['normal_stop'] and not proof['normal'],'exclusive terminal protection')
+                 for label,j,predicate in [('torque',2,lambda x:x==0),('brake',1,lambda x:x>=1000000)]:
+                     if label not in response and len(a)==3 and a[j]['origin']==2 and predicate(a[j]['value']):
+-                        response[label]=dict(source_delay_ns=a[j]['source']-trigger,observed_delay_ns=now-trigger)
++                        response[label]=dict(source_delay_ns=a[j]['source']-response_origin,observed_delay_ns=now-response_origin)
+             else:
+                 check(t['stop_fault']==t['speed_fault']==0 and t['stop_state'] in (2,3,4,5),'NormalStop state without protection')
+                 if n['admission']['normal_stop']:
+                     if hold_ns is None:hold_ns=now
+-                    lease=stop_selection(proof,a,now,lease,causal);held+=1
++                    lease=stop_selection(proof,a,now,lease,causal);held+=1;last_hold=now
+                     check(lease[2]>=trigger and (lease[2]-trigger)%20000000==0 and lease[1]==(lease[2]-trigger)//20000000,'stop issuer original 20ms roots')
+                 elif proof['normal']:causal=[v['causal'] for v in a]
+                 if t['stop_state']==5:
+@@ -94,12 +109,15 @@
+     if mode=='normal-stop':
+         check(complete_ns is not None and complete_ns-trigger<=7000000000 and hold_ns-trigger<=5000000000,'original braking/shutdown deadlines')
+     else:
++        if mode=='stop-protection':check(handoff is not None and injection is not None and held>0 and complete_ns is None,'complete stop-to-protection evidence')
+         check(set(response)=={'torque','brake'} and all(0<=r['source_delay_ns']<=230000000 and r['observed_delay_ns']<=260000000 for r in response.values()),'physical protection response deadlines')
+-    return dict(status='PASS_M8_CARLA_TERMINAL_RESPONSE',mode=mode,controls=len(controls),physics=count,settlements=result['settlements'],
++    result=dict(status='PASS_M8_CARLA_TERMINAL_RESPONSE',mode=mode,controls=len(controls),physics=count,settlements=result['settlements'],
+         trigger_ns=trigger,trigger_speed_kmh=trigger_speed,stop_delay_s=(stop_point-trigger)*1e-9,final_pose_drift_m=drift,
+         normal_stop_intervals=held,hold_delay_s=None if hold_ns is None else (hold_ns-trigger)*1e-9,
+         complete_delay_s=None if complete_ns is None else (complete_ns-trigger)*1e-9,power_off=off,protection_response=response,max_pi_error=max_error,
+         wall_realtime_accepted=False)
++    if mode=='stop-protection':result.update(handoff_ns=handoff,injection_ns=injection,last_hold_ns=last_hold)
++    return result
+ 
+ 
+ def main():
+--- previous/tests/integration/carla/check_m8_stop_cli.py
++++ final/tests/integration/carla/check_m8_stop_cli.py
+@@ -0,0 +1,58 @@
++#!/usr/bin/env python3
++"""Check terminal CLI serialization with prior stopped-wheel inputs; no physics."""
++import argparse
++import hashlib
++import json
++from pathlib import Path
++import subprocess
++from evidence_io import json_rows
++from audit_m7_1q_native import frame, wire
++from m8_stop_wire import stop_selection
++
++p = argparse.ArgumentParser(description=__doc__)
++p.add_argument('directory', type=Path)
++p.add_argument('binary', type=Path)
++p.add_argument('--output', required=True, type=Path)
++a = p.parse_args()
++result = json.loads((a.directory / 'result.json').read_text())
++inputs = []
++for row in json_rows(a.directory / 'trace.jsonl'):
++    if row.get('work_input'):
++        inputs.append(row['work_input'])
++    inputs.append(row['native_input'])
++cmd = [str(a.binary.resolve()), '--native-solver-work', '1', '42', '7',
++       str(result['binding']['actor']), '--sim-horizon-ms', '60000',
++       '--speed-profile', 'v1-stop-protection']
++run = subprocess.run(cmd, input='\n'.join(inputs) + '\n', text=True,
++                     capture_output=True, timeout=60)
++assert run.returncode == 0, run.stderr
++rows = [json.loads(s) for s in run.stdout.splitlines()]
++assert len(rows) == 4001
++held = protected = 0
++lease = causal = None
++for row in rows:
++    proof = row['native_export']
++    admission = row['admission']
++    assert admission['ok']
++    assert len(proof['stop_requests']) == len(proof['stop_results']) == 3
++    if proof['normal'] or admission['normal_stop']:
++        actuals = [frame(wire(packet, 0 if j < 2 else 1, 7, 9), j, True,
++                        require_wheel=False) for j, packet in enumerate(proof['actual'])]
++        if proof['normal']:
++            assert not held and not protected
++            causal = [v['causal'] for v in actuals]
++        else:
++            assert not protected
++            lease = stop_selection(proof, actuals, row['now_ns'], lease, causal)
++            held += 1
++    if admission['protection']:
++        assert held and not admission['normal_stop'] and row['credit_mask'] == 0
++        assert row['speed_terminal']['detection_ns'] == row['stop_handoff_ns'] + 100000000
++        protected += 1
++assert held >= 1 and protected >= 100
++report = dict(status='PASS_TERMINAL_CLI_SERIALIZATION', observations=len(rows),
++              held_observations=held, protected_observations=protected,
++              binary_sha256=hashlib.sha256(a.binary.read_bytes()).hexdigest(),
++              physics_executed=False, argv=cmd)
++a.output.write_text(json.dumps(report, indent=2) + '\n')
++print(json.dumps(report))
+--- previous/tests/integration/carla/check_m8_stop_corruptions.py
++++ final/tests/integration/carla/check_m8_stop_corruptions.py
+@@ -34,9 +34,8 @@
+         'stop_pose_drift':(tail,lambda r:r['vehicle_state']['position_ue_m'].__setitem__(0,999)),
+         'pose_source_changed':(tail,lambda r:r['vehicle_state'].update(timestamp=0)),
+     }
+-    if mode=='normal-stop':
++    if mode in ('normal-stop','stop-protection'):
+         hold=next(i for i,r in enumerate(rows) if r['native']['admission']['normal_stop'])
+-        complete=next(i for i,r in enumerate(rows) if r['native']['speed_terminal']['stop_state']==5)
+         def req(field,fmt,value):
+             def change(r):
+                 q=r['native']['native_export']['stop_requests'];q[0]=rewrite(q[0],field,fmt,value)
+@@ -50,9 +49,25 @@
+             'changed_lease_identity_valid_crc':(hold,req(-24,'I',999)),
+             'expired_lease_valid_crc':(hold,req(-12,'Q',0)),
+             'future_lease_valid_crc':(hold,req(-20,'Q',999999999999)),
+-            'false_HV_confirmation':(complete,lambda r:r['native']['speed_terminal'].update(power_off=False)),
+-            'missing_original_PowerStatus':(complete,lambda r:r['native']['speed_terminal'].update(power_status=None)),
+         })
++        if mode=='normal-stop':
++            complete=next(i for i,r in enumerate(rows) if r['native']['speed_terminal']['stop_state']==5)
++            changes.update({
++                'false_HV_confirmation':(complete,lambda r:r['native']['speed_terminal'].update(power_off=False)),
++                'missing_original_PowerStatus':(complete,lambda r:r['native']['speed_terminal'].update(power_status=None)),
++            })
++        else:
++            injected=next(i for i,r in enumerate(rows) if r['native']['speed_terminal']['detection_ns'])
++            changes.update({
++                'handoff_restamp':(injected,lambda r:r['native'].update(stop_handoff_ns=1)),
++                'missing_injection':(injected,lambda r:r['native']['speed_terminal'].update(detection_ns=0)),
++                'early_injection':(injected,lambda r:r['native']['speed_terminal'].update(detection_ns=r['native']['stop_handoff_ns'])),
++                'reopened_credit':(injected,lambda r:r['native'].update(credit_mask=255)),
++                'missing_protection_owner':(injected,lambda r:r['native']['native_export'].update(protection_selected_mask=127)),
++                'reopened_hold':(injected,lambda r:r['native']['admission'].update(normal_stop=True)),
++                'false_complete':(injected,lambda r:r['native']['speed_terminal'].update(stop_state=5,power_off=True)),
++                'moving_during_protection':(injected,lambda r:r['physics'].update(body_forward_velocity_m_s=.1)),
++            })
+     else:
+         changes.update({
+             'missing_speed_fault':(trigger,lambda r:r['native']['speed_terminal'].update(speed_fault=0)),
+--- previous/tests/integration/carla/m7_1f/functional_rig.cpp
++++ final/tests/integration/carla/m7_1f/functional_rig.cpp
+@@ -122,7 +122,7 @@
+     unsigned release_mask=0;std::size_t controller_releases=0;
+     bool running=false,stop_credit=false,drop_actual=false;int omitted=-1;
+     SpeedTerminal terminal_mode=SpeedTerminal::None;
+-    Time trigger_ns=0,detection_ns=0;std::uint32_t stop_seq=0;
++    Time trigger_ns=0,detection_ns=0,handoff_ns=0;std::uint32_t stop_seq=0;
+     bool protection_requested=false,terminal_response=false;
+     Time protection_since=0;
+     bool wheel_mode=false;
+@@ -183,6 +183,11 @@
+     }
+     void cycle(Time now,const std::function<void()>& completed_work={}) {
+         clock.logical=now;
++        // Fixed SIL injection: 100ms after original handoff ACK, before HV-off.
++        if(terminal_mode==SpeedTerminal::StopProtection && handoff_ns && !protection_since && now>=handoff_ns+100*ms) {
++            detection_ns=now;protection_since=now;protect_central();
++            for(auto& p:participants)p->select_protection();
++        }
+         if(protection_requested && !protection_since && !wall_mode) {
+             require(running && core.decision().normal_armed,"protection requires established normal session");
+             protection_since=now;
+@@ -317,7 +322,7 @@
+         const bool controller_due=now>=next_controller;
+         if(controller_due && speed_origin && now-speed_origin>=15000*ms && terminal_mode!=SpeedTerminal::None) {
+             if(!trigger_ns)trigger_ns=now;
+-            if(terminal_mode==SpeedTerminal::NormalStop)
++            if(terminal_mode==SpeedTerminal::NormalStop || terminal_mode==SpeedTerminal::StopProtection)
+                 require(core.receive_stop({{scope.application,stop_seq++,now,now+60*ms},0},now)==central::CoordinatorReceive::Accepted,"normal stop request rejected");
+         }
+         if(controller_due && !core.decision().stopping) {
+@@ -374,6 +379,7 @@
+         const bool due=now>=next_management;
+         if(due)next_management=wall_mode?next_management+((now-next_management)/(10*ms)+1)*(10*ms):next_management+10*ms;
+         core.tick(port.feedback(),now,due);
++        if(terminal_mode==SpeedTerminal::StopProtection && !handoff_ns && core.decision().stop.state==central::NormalStopState::PowerDown)handoff_ns=now;
+         if(wall_mode && core.decision().fault!=central::CoordinatorFault::None)select_wall_protection(now,"native control protection");
+         else require(core.decision().fault==central::CoordinatorFault::None,"native control protection");
+     }
+@@ -398,7 +404,7 @@
+         return report(observed);
+     }
+     Report report(Time observed) {
+-        Report r;r.terminal_mode=terminal_mode;r.trigger_ns=trigger_ns;r.detection_ns=detection_ns;
++        Report r;r.terminal_mode=terminal_mode;r.trigger_ns=trigger_ns;r.detection_ns=detection_ns;r.handoff_ns=handoff_ns;
+         r.speed_fault=static_cast<int>(speed_request.fault());r.stop_state=core.decision().stop.state;r.stop_fault=static_cast<int>(core.decision().stop.fault);r.power_off=core.decision().management.power_off_confirmed;
+         r.propulsion_antiwindup=antiwindup;r.saturation_used=saturation_used;r.speed_selection=speed_selection;
+         r.allocation_selection=core.decision().allocation.propulsion_selection;
+@@ -486,7 +492,7 @@
+                 if((message->local_state!=can::ActuatorLocalState::Normal && message->local_state!=can::ActuatorLocalState::Degraded) || message->origin!=can::ActuatorOrigin::NormalPath)e.normal=false;
+             };
+             capture(0,feedback.front.steering_actual);capture(1,feedback.front.brake_actual);capture(2,feedback.rear.drive_actual);
+-            if(terminal_mode==SpeedTerminal::NormalStop && core.decision().stop.state>=central::NormalStopState::HandoffPending) {
++            if((terminal_mode==SpeedTerminal::NormalStop || terminal_mode==SpeedTerminal::StopProtection) && core.decision().stop.state>=central::NormalStopState::HandoffPending) {
+                 for(unsigned i=0;i<3;++i) {
+                     const auto q=command_capture[i].find([](const transport::LeafRequest& q){return q.operation==transport::LeafOperation::Stop;});
+                     if(!q)continue;
+@@ -605,7 +611,7 @@
+     profile_=std::move(phases);
+ }
+ void FunctionalRig::speed_profile(SpeedTerminal terminal) {
+-    require(terminal==SpeedTerminal::None || terminal==SpeedTerminal::NormalStop || terminal==SpeedTerminal::SpeedInputLoss,"unknown terminal profile");
++    require(terminal==SpeedTerminal::None || terminal==SpeedTerminal::NormalStop || terminal==SpeedTerminal::SpeedInputLoss || terminal==SpeedTerminal::StopProtection,"unknown terminal profile");
+     require(!native_ && profile_.empty() && !speed_profile_ && export_actual_ &&
+         plant_mode_==PlantMode::ExternalSolverWork && horizon_ms_==60000,"speed profile requires solver simulation scope");
+     speed_profile_=true;terminal_mode_=terminal;
+--- previous/tests/integration/carla/m7_1f/functional_rig.hpp
++++ final/tests/integration/carla/m7_1f/functional_rig.hpp
+@@ -31,10 +31,10 @@
+     double requested_mps;
+     std::optional<Time> slow_elapsed_ns,stop_elapsed_ns;
+ };
+-enum class SpeedTerminal { None, NormalStop, SpeedInputLoss };
++enum class SpeedTerminal { None, NormalStop, SpeedInputLoss, StopProtection };
+ struct Report {
+     SpeedTerminal terminal_mode=SpeedTerminal::None;
+-    Time trigger_ns=0,detection_ns=0;
++    Time trigger_ns=0,detection_ns=0,handoff_ns=0;
+     central::NormalStopState stop_state=central::NormalStopState::NotInitialized;
+     bool power_off=false;
+     int stop_fault=0,speed_fault=0;
+--- previous/tests/integration/carla/m7_1f/stop_test.cpp
++++ final/tests/integration/carla/m7_1f/stop_test.cpp
+@@ -5,12 +5,12 @@
+ using namespace stratadrive;
+ using namespace m7_functional;
+ TEST(M8CarlaStop, SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof) {
+-    for(auto mode:{SpeedTerminal::NormalStop,SpeedTerminal::SpeedInputLoss}) {
++    for(auto mode:{SpeedTerminal::NormalStop,SpeedTerminal::SpeedInputLoss,SpeedTerminal::StopProtection}) {
+         FunctionalRig rig({1,42,7},99,PlantMode::ExternalSolverWork,true,60000);rig.speed_profile(mode);
+         EXPECT_THROW(rig.speed_profile(SpeedTerminal::None),std::runtime_error);
+         EXPECT_THROW(rig.speed_profile(static_cast<SpeedTerminal>(99)),std::runtime_error);
+         std::unique_ptr<m7_native::Admission> admission;
+-        m7_native::Output prior;Time previous=0;bool held=false,protected_actual=false,complete=false,corrupted=false;
++        m7_native::Output prior;m7_native::Input held_input;Time previous=0;bool held=false,protected_actual=false,complete=false,corrupted=false;
+         for(unsigned i=0;i<=2300;++i) {
+             const double seconds=3.997146773152053+i*.009999999776482582;
+             const auto now=static_cast<Time>(std::llround(seconds*1e9));
+@@ -28,7 +28,7 @@
+             in.protection_since=e.protection_since;in.protection_selected_mask=e.protection_selected_mask;
+             in.service_mask=r.service_mask;in.credit_mask=r.credit_mask;in.release_mask=r.release_mask;
+             if(!admission)admission=std::make_unique<m7_native::Admission>(42,now);
+-            if(!in.normal && in.stop_requests[0] && !corrupted) {
++            if(!in.normal && !in.protection_since && in.stop_requests[0] && !corrupted) {
+                 for(unsigned fault=0;fault<8;++fault) {
+                     auto bad=in;m7_native::Output unused;
+                     if(fault==0)bad.stop_results[1].reset();
+@@ -52,15 +52,37 @@
+                 }
+                 corrupted=true;
+             }
++            if(mode==SpeedTerminal::StopProtection && in.protection_since) {
++                EXPECT_EQ(r.detection_ns,r.handoff_ns+100*ms);EXPECT_GT(r.handoff_ns,r.trigger_ns);
++                EXPECT_FALSE(r.power_off);
++                for(unsigned fault=0;fault<4;++fault) {
++                    auto bad=in;m7_native::Output unused;
++                    if(fault==0)bad.protection_since=r.handoff_ns; // predates accepted hold
++                    if(fault==1)bad.protection_selected_mask=127;
++                    if(fault==2)bad.credit_mask=255;
++                    if(fault==3)bad.release[0].reset();
++                    EXPECT_FALSE(admission->eligible(bad,now,unused))<<"protection fault="<<fault;
++                }
++                if(protected_actual) {
++                    auto reopen=in;m7_native::Output unused;std::string reason;
++                    reopen.protection_since=0;reopen.protection_selected_mask=0;reopen.credit_mask=255;
++                    // Replay the actual prior hold packets, even after the
++                    // live export has aged them out of its capture buffers.
++                    reopen.stop_requests=held_input.stop_requests;reopen.stop_results=held_input.stop_results;
++                    EXPECT_FALSE(admission->eligible(reopen,now,unused,&reason));
++                    EXPECT_EQ(reason,"native_protection_terminal");
++                }
++            }
+             if(held) {auto resume=in;resume.normal=true;resume.stop_requests={};resume.stop_results={};m7_native::Output unused;
+                 EXPECT_FALSE(admission->eligible(resume,now,unused));}
+             ASSERT_TRUE(admission->accept(in,now,prior))<<admission->error()<<" frame="<<i<<" stop="<<static_cast<int>(r.stop_state);
++            if(prior.normal_stop)held_input=in;
+             held|=prior.normal_stop;protected_actual|=prior.protection;
+             complete|=r.stop_state==central::NormalStopState::Complete && r.power_off;
+             previous=now;
+         }
+-        EXPECT_EQ(held,mode==SpeedTerminal::NormalStop);EXPECT_EQ(complete,mode==SpeedTerminal::NormalStop);
+-        EXPECT_EQ(protected_actual,mode==SpeedTerminal::SpeedInputLoss);
++        EXPECT_EQ(held,mode!=SpeedTerminal::SpeedInputLoss);EXPECT_EQ(complete,mode==SpeedTerminal::NormalStop);
++        EXPECT_EQ(protected_actual,mode!=SpeedTerminal::NormalStop);
+     }
+ }
+ }
+--- previous/tests/integration/carla/m7_1g/wheel_main.cpp
++++ final/tests/integration/carla/m7_1g/wheel_main.cpp
+@@ -107,8 +107,8 @@
+             }
+             if(std::string(argv[arg])=="--speed-profile") {
+                 const std::string v=argv[arg+1];
+-                if(!horizon_set || (v!="v1" && v!="v1-stop" && v!="v1-input-loss"))throw std::runtime_error("invalid speed profile");
+-                rig.speed_profile(v=="v1-stop"?SpeedTerminal::NormalStop:v=="v1-input-loss"?SpeedTerminal::SpeedInputLoss:SpeedTerminal::None);continue;
++                if(!horizon_set || (v!="v1" && v!="v1-stop" && v!="v1-input-loss" && v!="v1-stop-protection"))throw std::runtime_error("invalid speed profile");
++                rig.speed_profile(v=="v1-stop"?SpeedTerminal::NormalStop:v=="v1-input-loss"?SpeedTerminal::SpeedInputLoss:v=="v1-stop-protection"?SpeedTerminal::StopProtection:SpeedTerminal::None);continue;
+             }
+             if(std::string(argv[arg])=="--wall-response") {
+                 if(!response_path.empty())throw std::runtime_error("duplicate wall response");
+@@ -255,6 +255,7 @@
+             if(r.returned_torque)std::cout<<*r.returned_torque;else std::cout<<"null";
+             std::cout<<",\"regen_oldest_ns\":";
+             if(r.regen_oldest)std::cout<<*r.regen_oldest;else std::cout<<"null";
++            if(r.terminal_mode==SpeedTerminal::StopProtection)std::cout<<",\"stop_handoff_ns\":"<<r.handoff_ns;
+             if(r.terminal_mode!=SpeedTerminal::None) {
+                 std::cout<<",\"speed_terminal\":{\"mode\":"<<static_cast<int>(r.terminal_mode)<<",\"trigger_ns\":"<<r.trigger_ns<<",\"detection_ns\":"<<r.detection_ns
+                     <<",\"speed_fault\":"<<r.speed_fault<<",\"stop_state\":"<<static_cast<int>(r.stop_state)<<",\"stop_fault\":"<<r.stop_fault<<",\"power_off\":"<<(r.power_off?"true":"false")<<",\"power_status\":";packet(r.power_status);std::cout<<'}';
+@@ -293,7 +294,7 @@
+                 std::cout<<",\"native_export\":{\"observed_ns\":\""<<e.observed<<"\",\"enable_ns\":\""<<e.enable
+                     <<"\",\"normal\":"<<(e.normal?"true":"false")<<",\"actual\":";packets(e.actual);
+                 std::cout<<",\"commands\":";packets(e.commands);
+-                if(r.terminal_mode==SpeedTerminal::NormalStop) {std::cout<<",\"stop_requests\":";packets(e.stop_requests);std::cout<<",\"stop_results\":";packets(e.stop_results);}
++                if(r.terminal_mode==SpeedTerminal::NormalStop || r.terminal_mode==SpeedTerminal::StopProtection) {std::cout<<",\"stop_requests\":";packets(e.stop_requests);std::cout<<",\"stop_results\":";packets(e.stop_results);}
+                 std::cout<<",\"release\":";packets(e.release);
+                 std::cout<<",\"credit\":";packets(e.credit);
+                 std::cout<<",\"permission\":";packet(e.permission);
+--- previous/tests/integration/carla/m7_1o_run.py
++++ final/tests/integration/carla/m7_1o_run.py
+@@ -64,7 +64,7 @@
+     p.add_argument("--bridge-drop-snapshot", action="store_true")
+     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
+                    help="Read-only describe rejection, without creating an ego")
+-    p.add_argument("--speed-terminal", choices=("none","normal-stop","input-loss"), default="none")
++    p.add_argument("--speed-terminal", choices=("none","normal-stop","input-loss","stop-protection"), default="none")
+     a = p.parse_args()
+     if a.speed_terminal!="none" and not (a.speed_loop and a.native_fault=="none"):p.error("speed terminal requires speed loop without another injected fault")
+     from m8_route_contract import load_route
+--- previous/tests/integration/carla/m7_1q_probe.py
++++ final/tests/integration/carla/m7_1q_probe.py
+@@ -41,7 +41,7 @@
+     p.add_argument('--speed-loop', action='store_true')
+     p.add_argument('--route-profile', type=Path)
+     p.add_argument('--propulsion-aware', action='store_true')
+-    p.add_argument("--speed-terminal",choices=("none","normal-stop","input-loss"),default="none")
++    p.add_argument("--speed-terminal",choices=("none","normal-stop","input-loss","stop-protection"),default="none")
+     a = p.parse_args()
+     require(a.speed_terminal=="none" or (a.speed_loop and a.fault=="none"),"terminal speed scope")
+     from m8_route_contract import load_route, pose_from_snapshot
+@@ -169,7 +169,7 @@
+         stderr = (a.output/'native.stderr').open('w')
+         process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else [])+
+                                    (['--sim-horizon-ms',str(route['ticks']*10 if route else 60000)] if a.simulation_continuous else [])+
+-                                   (['--speed-profile',{'none':'v1','normal-stop':'v1-stop','input-loss':'v1-input-loss'}[a.speed_terminal]] if a.speed_loop else [])+
++                                   (['--speed-profile',{'none':'v1','normal-stop':'v1-stop','input-loss':'v1-input-loss','stop-protection':'v1-stop-protection'}[a.speed_terminal]] if a.speed_loop else [])+
+                                    (['--route',str(native_route)] if route else [])+
+                                    (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else [])+
+                                    (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else []),
+@@ -438,6 +438,8 @@
+                 terminal=native['speed_terminal']
+                 if a.speed_terminal=='normal-stop':
+                     case('normal_stop_complete_hv_off',terminal['stop_state']==5 and terminal['stop_fault']==0 and terminal['power_off'] and native['admission']['normal_stop'])
++                elif a.speed_terminal=='stop-protection':
++                    case('stop_hold_protection',native['stop_handoff_ns']>terminal['trigger_ns']>0 and terminal['detection_ns']==native['stop_handoff_ns']+100000000 and native['admission']['protection'] and not terminal['power_off'])
+                 else:
+                     case('speed_input_loss_protection',terminal['detection_ns']==terminal['trigger_ns']>0 and native['admission']['protection'] and terminal['speed_fault']==3)
+                 report['terminal_response']=terminal
+--- previous/tests/integration/carla/plot_m8_stop.py
++++ final/tests/integration/carla/plot_m8_stop.py
+@@ -12,9 +12,12 @@
+ p = argparse.ArgumentParser(description=__doc__)
+ p.add_argument('directory', type=Path)
+ p.add_argument('--output', type=Path, required=True)
++p.add_argument('--case', action='append', help='Case basename; repeat for multiple columns')
+ a = p.parse_args()
+-fig, axes = plt.subplots(3, 2, figsize=(11, 8), sharex=True, constrained_layout=True)
+-for column, name in enumerate(('stop-01', 'input-loss-01')):
++cases = a.case or ('stop-01', 'input-loss-01')
++fig, axes = plt.subplots(3, len(cases), figsize=(5.5 * len(cases), 8), sharex=True,
++                         squeeze=False, constrained_layout=True)
++for column, name in enumerate(cases):
+     report = json.loads((a.directory / (name + '-audit.json')).read_text())
+     data = []
+     for row in json_rows(a.directory / name / 'trace.jsonl'):
+@@ -32,6 +35,9 @@
+         axis.plot(t, values)
+         axis.axvline(0, color='black', linestyle='--', alpha=.5)
+         axis.axvline(report['stop_delay_s'], color='green', linestyle=':', label='Physical stop')
++        if 'injection_ns' in report:
++            axis.axvline((report['injection_ns'] - report['trigger_ns']) * 1e-9,
++                         color='red', linestyle='-.', label='Protection injection')
+         axis.set_ylabel(label)
+         axis.grid(alpha=.25)
+     axes[0, column].set_title(report['mode'] + ' | Town03, simulation time')
+--- previous/tests/unit/normal_stop_test.cpp
++++ final/tests/unit/normal_stop_test.cpp
+@@ -165,4 +165,33 @@
+     central::NormalStopConfig c; c.deceleration_mps2=0; EXPECT_THROW(central::NormalStop{c},std::invalid_argument);
+     c={}; c.confirmation_ns=kMs; EXPECT_THROW(central::NormalStop{c},std::invalid_argument);
+ }
++TEST_F(NormalStopTest, DefaultBudgetAcceptsIdealTenKmhButTimesOutIdealThirtyKmh) {
++    // Contract fixture, NOT a vehicle simulation: exact requested 1m/s^2 from
++    // the first job, no lag/grade, and immediate standing pressure at zero.
++    // Even this optimistic 30km/h trace cannot fit the existing 5s budget.
++    for(double initial_kmh:{10.0,30.0}) {
++        central::NormalStopConfig config;
++        ASSERT_DOUBLE_EQ(config.deceleration_mps2,1.0);
++        ASSERT_EQ(config.braking_timeout_ns,5000*kMs);
++        central::NormalStop candidate(config);
++        ASSERT_TRUE(candidate.start_session(3,kStart));
++        ASSERT_TRUE(candidate.begin(request(10),{0,0},ns(10)));
++        bool handoff=false;double last_speed=0;
++        for(std::uint32_t ms=10;ms<=5010;ms+=10) {
++            if(ms>10) { ASSERT_EQ(candidate.receive_request(request(ms),ns(ms)),central::StopReceiveResult::Accepted); }
++            last_speed=std::max(0.0,initial_kmh/3.6-config.deceleration_mps2*(ms-10)/1000.0);
++            auto plan=candidate.tick(inputs(ms,{last_speed/.355,0,last_speed>0?400000.0:100000.0}),management,ns(ms));
++            if(!plan) { EXPECT_EQ(ms,5010U);break; }
++            if(plan->handoff_required) {handoff=true;break;}
++        }
++        if(initial_kmh==10) {
++            EXPECT_TRUE(handoff);EXPECT_EQ(candidate.decision().fault,central::NormalStopFault::None);
++        } else {
++            EXPECT_FALSE(handoff);EXPECT_NEAR(last_speed,30.0/3.6-5,1e-12);
++            EXPECT_EQ(candidate.decision().fault,central::NormalStopFault::BrakingTimeout);
++            EXPECT_TRUE(candidate.decision().protection_required);
++            EXPECT_FALSE(candidate.tick(inputs(5020),management,ns(5020)));
++        }
++    }
++}
+ } // namespace
+--- previous/tools/carla/m7_nodrive/native_admission.hpp
++++ final/tools/carla/m7_nodrive/native_admission.hpp
+@@ -45,7 +45,7 @@
+     bool eligible(const Input& in,Time now,Output& output,std::string* why=nullptr,Time reserve=0) const {
+         Admission copy(application_,initial_,clock_,interval_);copy.reserve_=reserve;
+         copy.last_=last_;copy.enable_=enable_;copy.protection_since_=protection_since_;copy.normal_observed_=normal_observed_;
+-        copy.stop_=stop_;copy.holding_=holding_;copy.stop_causal_=stop_causal_;
++        copy.stop_=stop_;copy.holding_=holding_;copy.stop_causal_=stop_causal_;copy.stop_observed_=stop_observed_;
+         copy.started_=started_;copy.normal_=normal_;copy.error_=error_;copy.cached_=cached_;
+         copy.release_=release_;copy.permission_packet_=permission_packet_;copy.credit_=credit_;
+         copy.steering_.reset(new can::SteeringReceiver(*steering_));copy.brake_.reset(new can::BrakeReceiver(*brake_));
+@@ -65,13 +65,14 @@
+             output={};return true; // bounded INIT tick with NO actuation, not a synthetic Actual
+         }
+         const bool protecting=in.protection_since!=0;
+-        const bool holding=!in.normal && std::any_of(in.stop_requests.begin(),in.stop_requests.end(),[](const Packet& p){return bool(p);});
++        const bool holding=!protecting && !in.normal && std::any_of(in.stop_requests.begin(),in.stop_requests.end(),[](const Packet& p){return bool(p);});
+         if(holding && (wall() || protecting || !normal_))return fail("normal_stop_scope");
+-        if(holding_ && !holding)return fail("normal_stop_terminal");
++        // Original local protection can supersede a stop lease. It cannot reopen it.
++        if(holding_ && !holding && !protecting)return fail("normal_stop_terminal");
+         if(protecting) {
+             if(!normal_ || in.normal || in.credit_mask!=0 || in.release_mask!=255 || now>UINT64_MAX-age-1 ||
+                in.protection_selected_mask!=255 || in.protection_since<enable_ || in.protection_since>now ||
+-               (!protection_since_ && in.protection_since<=normal_observed_) ||
++               (!protection_since_ && in.protection_since<=std::max(normal_observed_,stop_observed_)) ||
+                (protection_since_ && in.protection_since!=protection_since_))return fail("native_protection_authority");
+             for(unsigned i=0;i<8;++i)if(!same(in.release[i],release_[i]))return fail("native_protection_session");
+             protection_since_=in.protection_since;
+@@ -144,7 +145,7 @@
+                out.pressure<kStopPressurePa || !stop_.accept(*lease,application_,now))return fail("normal_stop_stationary_lease");
+             if(in.permission && !grant(in.permission,now,end,out,false))return false;
+             out.exclusive_expiry=std::min({out.exclusive_expiry,lease->expires_at_ns,lease->source_time_ns+50000001});
+-            out.oldest_dependency=std::min(out.oldest_dependency,lease->source_time_ns);holding_=true;
++            out.oldest_dependency=std::min(out.oldest_dependency,lease->source_time_ns);holding_=true;stop_observed_=now;
+         } else if(in.normal) {
+             if(in.permission && !grant(in.permission,now,end,out,true))return false;
+             if(!normal_mode(*s) || !normal_mode(*b) || !normal_mode(*d))return fail("native_actual_mode");
+@@ -284,7 +285,7 @@
+         out.exclusive_expiry=std::min(out.exclusive_expiry,grant.expires_at_ns);return true;
+     }
+     std::uint32_t application_;Time initial_,last_=0,enable_=0,protection_since_=0,normal_observed_=0;bool started_=false,normal_=false;
+-    StopLeaseState stop_;bool holding_=false;std::array<std::uint32_t,3> stop_causal_{};
++    StopLeaseState stop_;bool holding_=false;Time stop_observed_=0;std::array<std::uint32_t,3> stop_causal_{};
+     ClockPolicy clock_;Time interval_=step,reserve_=0;
+     std::string error_;
+     std::array<Packet,3> cached_;std::array<Packet,8> release_;Packet permission_packet_;

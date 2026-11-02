@@ -1,0 +1,55 @@
+Test project /d/shin/StrataDrive/build/m7-functional
+      Start    2: SpeedRequest.PreservesAcquisitionAcrossUnitsAndChildAuthority
+ 1/10 Test    #2: SpeedRequest.PreservesAcquisitionAcrossUnitsAndChildAuthority ..........................   Passed    0.00 sec
+      Start    3: SpeedRequest.NewEnvelopeCannotRefreshFrozenWheelAndNewSessionClearsLatch
+ 2/10 Test    #3: SpeedRequest.NewEnvelopeCannotRefreshFrozenWheelAndNewSessionClearsLatch ...............   Passed    0.00 sec
+      Start    4: SpeedRequest.PermissionLossLatchesWithoutSuccessfulZero
+ 3/10 Test    #4: SpeedRequest.PermissionLossLatchesWithoutSuccessfulZero ................................   Passed    0.00 sec
+      Start    5: SpeedRequest.MissedOrDuplicateControlReleaseCannotCatchUp
+ 4/10 Test    #5: SpeedRequest.MissedOrDuplicateControlReleaseCannotCatchUp ..............................   Passed    0.00 sec
+      Start    6: SpeedRequest.RejectsMissingWrongEpochAndNonfiniteWheel
+ 5/10 Test    #6: SpeedRequest.RejectsMissingWrongEpochAndNonfiniteWheel .................................   Passed    0.00 sec
+      Start    7: SpeedRequest.SourceAgeEnableFutureAndInclusiveBoundary
+ 6/10 Test    #7: SpeedRequest.SourceAgeEnableFutureAndInclusiveBoundary .................................   Passed    0.00 sec
+      Start    8: SpeedRequest.ExplicitRadiusUsesPhysicalCalibrationAndRejectsInvalidConfiguration
+ 7/10 Test    #8: SpeedRequest.ExplicitRadiusUsesPhysicalCalibrationAndRejectsInvalidConfiguration .......   Passed    0.00 sec
+      Start    9: SpeedRequest.UninitializedAndInvalidTargetFailClosed
+ 8/10 Test    #9: SpeedRequest.UninitializedAndInvalidTargetFailClosed ...................................   Passed    0.00 sec
+      Start 1102: M8CarlaSpeed.ExplicitSolverProfileCannotMixFixedRequestsOrLegacyScope
+ 9/10 Test #1102: M8CarlaSpeed.ExplicitSolverProfileCannotMixFixedRequestsOrLegacyScope ..................   Passed    0.00 sec
+      Start 1103: M8CarlaSpeed.OriginalFractionalSourcesSupportWholeIntervalsAndCreditLossBlocksResume
+10/10 Test #1103: M8CarlaSpeed.OriginalFractionalSourcesSupportWholeIntervalsAndCreditLossBlocksResume ...***Failed    0.01 sec
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M8CarlaSpeed.OriginalFractionalSourcesSupportWholeIntervalsAndCreditLossBlocksResume
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M8CarlaSpeed
+[ RUN      ] M8CarlaSpeed.OriginalFractionalSourcesSupportWholeIntervalsAndCreditLossBlocksResume
+/d/shin/StrataDrive/tests/integration/carla/m7_1f/speed_test.cpp:48: Failure
+Value of: admission->accept(in,now,prior)
+  Actual: false
+Expected: true
+native_command_interval_or_causal frame=81
+[  FAILED  ] M8CarlaSpeed.OriginalFractionalSourcesSupportWholeIntervalsAndCreditLossBlocksResume (12 ms)
+[----------] 1 test from M8CarlaSpeed (12 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (12 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] M8CarlaSpeed.OriginalFractionalSourcesSupportWholeIntervalsAndCreditLossBlocksResume
+
+ 1 FAILED TEST
+
+
+90% tests passed, 1 tests failed out of 10
+
+Label Time Summary:
+integration.logical    =   0.02 sec*proc (2 tests)
+unit                   =   0.01 sec*proc (8 tests)
+
+Total Test time (real) =   0.17 sec
+
+The following tests FAILED:
+	1103 - M8CarlaSpeed.OriginalFractionalSourcesSupportWholeIntervalsAndCreditLossBlocksResume (Failed) integration.logical
+Errors while running CTest

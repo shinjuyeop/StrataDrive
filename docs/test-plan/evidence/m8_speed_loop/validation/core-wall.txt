@@ -1,0 +1,52 @@
+Test project /d/shin/StrataDrive/build/m8-speed-pi/normal
+    Start 405: M4AsyncWall.IndependentOwnersRunActualNormalPath
+1/9 Test #405: M4AsyncWall.IndependentOwnersRunActualNormalPath .................................   Passed    1.81 sec
+    Start 406: M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse
+2/9 Test #406: M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse .................   Passed    1.81 sec
+    Start 447: M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory
+3/9 Test #447: M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory .......................   Passed    4.23 sec
+    Start 448: M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction
+4/9 Test #448: M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction ....................   Passed    1.82 sec
+    Start 449: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"drive"
+5/9 Test #449: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"drive" ......   Passed    1.82 sec
+    Start 450: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"monitor"
+6/9 Test #450: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"monitor" ....   Passed    1.82 sec
+    Start 451: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"physical"
+7/9 Test #451: Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"physical" ...***Failed    1.82 sec
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/2
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Independent/M4GuardWall
+[ RUN      ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/2
+/d/shin/StrataDrive/tests/unit/m4_fault_test.cpp:181: Failure
+Value of: r.passed
+  Actual: false
+Expected: true
+scenario=fault core=12 session=8 management=7 vm_fault=14 allocation=13 stop=1 physical=1 active=0 fault=137467348 selected=137467348 transport=0 op=-1 front=0 rear=0 energy=0 leaf=9 leaf=9 leaf=14 leaf=2 leaf=14
+[  FAILED  ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/2, where GetParam() = "physical" (1814 ms)
+[----------] 1 test from Independent/M4GuardWall (1814 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1814 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/2, where GetParam() = "physical"
+
+ 1 FAILED TEST
+
+    Start 490: SessionLoops.EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes
+8/9 Test #490: SessionLoops.EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes ..............   Passed    0.00 sec
+    Start 511: LatestSnapshot.ConcurrentOwnerCopiesCannotTearOrRegressAnAcquisition
+9/9 Test #511: LatestSnapshot.ConcurrentOwnerCopiesCannotTearOrRegressAnAcquisition .............   Passed    0.01 sec
+
+89% tests passed, 1 tests failed out of 9
+
+Label Time Summary:
+runtime.wall    =  15.14 sec*proc (9 tests)
+
+Total Test time (real) =  15.16 sec
+
+The following tests FAILED:
+	451 - Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/"physical" (Failed) runtime.wall
+Errors while running CTest

@@ -229,3 +229,114 @@ Drive의 `BeforeIo` 센서 관측은 wall rig에서만 선택하고 기본 `Cont
 cached identity 불변·늦은 새 입력의 fault 은폐 거부, 정상900구간2회 및100ms gap/명시적
 보호 각1회다. 원본 CAN/work·HV 시각·owner timing·서버 종료를 모두 검사하며 과거 실패의
 재채점으로 PASS를 만들지 않는다. 장시간·고속·영상·실차 수용은 이 시험 범위 밖이다.
+
+## M8 simulation-time 속도 제어
+
+`m7_1o_run.py --simulation-continuous --speed-loop --ticks 4000`은 V1 전용
+0→10→0km/h profile이다. Solver-work/native Actual 및320 substeps가 필수이며 wall과
+고정 VehicleRequest scenario를 섞지 않는다. Calibration은1696kg/0.355m이며,
+현재 Drive Actual wheel을0.355m로 환산해20ms PI에 입력한다. 차체 속도는 사후 판정에만 쓴다.
+
+원래 wheel source `s`와 계산 release `r`을 구분한다. `0 ≤ r-s ≤ 30ms`를 수신 시
+검사하고 input expiry는`s+60ms+1ns`, request.source는`r`, request.expiry는
+`min(r+30ms+1ns, input expiry)`다. 이는 기존 PI의 입력 수명과 request 수명을
+각각 보존하는 typed in-process 계약이다. Allocation은 기존 CommandContext의
+oldest를`s` 이하로, expiry를 input expiry 이하로 제한한다. 모든 원래 permission·
+feedback·command 제한과 remote/server admission도 동시에 적용한다. Wire ABI는 같다.
+
+중복 request의 dependency 변경과 새 sequence로 frozen source를 재사용하는 것은
+거부한다. 새 원천이 늦게 도착해 기존 만료를 숨기는 것도 허용하지 않는다.
+SimpleVehicle sensor-root30ms와 wall HV50ms profile은 별도이며 이 계약을 자동 적용하지 않는다.
+
+[프로토콜](../test-plan/carla-speed-protocol.md), [실행 근거](../test-plan/evidence/m8_carla_speed/README.md),
+[ADR-0069](../archive/design-decisions.md#adr-0069)를 따른다. 실제 wheel 정지·hold와
+barrier 정리를 검증했다. 이 저속 단계의 경로/30km/h 후속 결과는 아래 고정 경로 절을
+따른다. 저속 NormalStop HV-off의 후속 검증은 아래 정지 절을 따른다. 전체 Reference는 남아 있다.
+
+## M8 고정 경로 연결
+
+후속 `--route-profile`은 [Pure Pursuit 계약](lateral-route-controller.md)과
+[곡선30km/h protocol](../test-plan/carla-route-protocol.md)을 사용한다. ActorSnapshot의
+원천 frame/source와 실제 rear-axle 변환을 명시적으로 전달한다. 고정 경로 fixture이며
+Planner/localization·전체 Reference·wall 수용은 별도다. 최신 실제 실행과 실패 이력은
+[M8 route evidence](../test-plan/evidence/m8_route/README.md)를 따른다.
+
+Town06 S01/S03 fixture의 추가 계약은 [별도 protocol](../test-plan/carla-reference-protocol.md)을
+따른다. S01은60s, S03은80s이며 확장 native horizon은 S03 profile에만 허용한다.
+원본 pose/wheel,20ms release,30ms ingress/60ms dependency와 solver320은 그대로다.
+S03 v1의10s startup은300Nm 구동 상한에서 첫 plateau에 실패했다. v2는 별도
+경로/hash/header로20s startup과50m 더 긴 시작 직선을 고정한다. 실패 원본과
+성능 기준을 유지하며 검증된 범위를 일반 참조 생성기나 actuator 포화 보상으로 확대하지 않는다.
+
+S01/S03의 실제 실행·실패 이력과 독립 판정은 [M8 reference evidence](../test-plan/evidence/m8_reference/README.md)를 따른다.
+
+## M8 추진 포화 feedback 선택형 실행
+
+`m7_1o_run.py --propulsion-aware --route-profile ...`는 기존 S01/S03 reference
+경로에 한정한다. 서버·runtime 생성 전에 관성 토크 필요조건을 검사하며 native
+`PROFILE S01_AW`/`S03v2_AW`도 동일 조건을 독립 검사한다. `S03_AW`의10초 가속은
+거절한다. 기존 flag 없는 v1 실패 재현 경로는 유지한다.
+
+Native trace의 `allocation_selection`은 성공한 실제 배분의 이력이고,
+`speed_selection`/`saturation_used`는 현재 PI에 사용한 직전 요청의 선택 결과다.
+`audit_m8_saturation.py`는 원본 command CAN/parent와 이력을 연결하고 PI 식을
+독립 계산한다. 기존 `audit_m8_route.py`의 성능·pose/wheel·권한 감사와
+`audit_m7_1r_work.py`의 solver/EV 정산 감사도 모두 필요하다.
+이는 simulation-time 제어 시험이며 물리 Actual이나 permission 경로의 대체물이 아니다.
+[Protocol](../test-plan/propulsion-saturation-protocol.md)과
+[실행 근거](../test-plan/evidence/m8_saturation/README.md)를 따른다.
+
+
+## M8 저속 terminal 경로
+
+`--speed-loop --speed-terminal normal-stop|input-loss|stop-protection`는 기존 simulation-continuous/
+solver-work/NoDrive320/4000ticks 저속 fixture 전용이다. 첫 PI release+15s에 사건을
+고정하며 ordinary PI는 이후 갱신하지 않는다. NormalStop은 기존 owner 경로에20ms
+NormalStopRequest를 공급한다. 입력 누락은 Central SpeedRequest의 현재 Drive Actual
+한 입력을 제거하며 다른 acquisition/ECU traffic은 계속한다.
+
+정지 인계 후 native export의 `stop_requests`/`stop_results`는 기존 wire의 원본
+StopLease 포함 LeafRequest와 accepted LeafResult다. 서버는 세 ECU의 epoch/token/
+operation/lease/ACK source와 현재 Actual을 결합해 인계를 확인한다. NormalPath/Init
+Actual의 마지막 normal causal sequence를 유지하고0Nm·wheel≤.01rad/s·brake≥100kPa를
+요구한다. 전체 다음10ms의 Actual freshness,8-role release/RunLease,50ms stop source
+age·exclusive expiry를 계속 검사한다. 정상 운전 재개·만료 lease 부활을 허용하지 않는다.
+새 CAN schema나 합성 ACK/Actual은 없다. 이 terminal admission은 functional 전용이며
+wall에는 허용하지 않는다. hold 이후 보호 전환의 후속 범위는 아래 절을 따른다.
+
+[사전 기준](../test-plan/carla-stop-protocol.md)과
+[물리 정지·원본 HV-off 판정](../test-plan/evidence/m8_stop/README.md)을 따른다.
+
+
+## M8 hold 이후 local protection
+
+`stop-protection`은 원본 handoff ACK로 처음 PowerDown에 들어간100ms 뒤 기존8-role
+local protection을 선택하는 SIL 요청 주입이다. native/server admission은 보호 선택
+시각이 마지막 수용 normal/hold보다 뒤이고, 동일 released session·모든 보호 mask·
+normal credit0·새 원본 LocalProtection Actual이 있을 때 hold를 보호로 대체한다.
+원본 Actual/wheel age와 whole-interval 검사는 그대로다. 남아 있는 StopLease/ACK
+packet은 보호 권한을 대신하지 않으며, 보호 이후 normal/hold 재개는 거절한다.
+
+ACK 소실 검출이나 전체 통신 단절을 구현한 시험은 아니다. 두 결함의 물리 응답은 별도다.
+[사전 protocol](../test-plan/carla-stop-fault-protocol.md)과
+[원본·검증](../test-plan/evidence/m8_stop_fault/README.md)을 따른다.
+30km/h의 기본5s 예산 충돌은 [계약 검토](../test-plan/normal-stop-30-contract-review.md)에 기록한다.
+
+
+## M8 별도30km/h NormalStop profile
+
+`--route-profile tests/integration/carla/scenarios/m8_stop30_v1.json`은 Town06_Opt의
+고정 직선721점과6000ticks를 사용하는 `m8-normal-stop30-v1`이다. `--speed-loop`나
+별도 `--speed-terminal`을 함께 주지 않는다. native route header는 `PROFILE STOP30`,
+terminal enum은4다. 기존 S01·저속 terminal·v1 PI는 그대로다.
+
+20s의0→30km/h ramp 뒤 첫 PI release+35s에서 NormalStop을 요청한다. 이후 PI를
+발급하지 않으며 기존 NormalStopRequest를20ms마다 갱신한다. coordinator 생성자의
+선택형 네 번째 `NormalStopConfig`로 이 profile만 감속1m/s²·제동10s·확인60ms·
+shutdown2s를 전달한다. 기본값5s를 바꾸거나 실행 중 timeout을 연장하지 않는다.
+원본 StopLease/ACK·Actual·PowerStatus와 기존 functional terminal admission을 사용한다.
+각 native JSON에는 실제 전달한 config와 `normal-stop30-a1-t10-v1` ID를 기록한다.
+
+고정 hash와 scope guard로 다른 ticks, wall, input fault, propulsion anti-windup 조합을
+거절한다. [사전 기준](../test-plan/carla-stop30-protocol.md)과
+[실행·독립 판정](../test-plan/evidence/m8_stop30/README.md)을 따른다.

@@ -21,13 +21,13 @@ struct Input {
     Time protection_since=0;
     unsigned protection_selected_mask=0;
     unsigned service_mask=0,credit_mask=0,release_mask=0;
-    std::array<Packet,3> actual,commands;
+    std::array<Packet,3> actual,commands,stop_requests,stop_results;
     std::array<Packet,8> release;
     std::array<Packet,7> credit;
     Packet permission;
 };
 struct Output {
-    bool empty=true,normal=false,protection=false;
+    bool empty=true,normal=false,protection=false,normal_stop=false;
     double angle=0,torque=0,pressure=0;
     std::array<Time,3> sources{};
     Time oldest_actuator=0,oldest_dependency=0,exclusive_expiry=0;
@@ -45,6 +45,7 @@ public:
     bool eligible(const Input& in,Time now,Output& output,std::string* why=nullptr,Time reserve=0) const {
         Admission copy(application_,initial_,clock_,interval_);copy.reserve_=reserve;
         copy.last_=last_;copy.enable_=enable_;copy.protection_since_=protection_since_;copy.normal_observed_=normal_observed_;
+        copy.stop_=stop_;copy.holding_=holding_;copy.stop_causal_=stop_causal_;copy.stop_observed_=stop_observed_;
         copy.started_=started_;copy.normal_=normal_;copy.error_=error_;copy.cached_=cached_;
         copy.release_=release_;copy.permission_packet_=permission_packet_;copy.credit_=credit_;
         copy.steering_.reset(new can::SteeringReceiver(*steering_));copy.brake_.reset(new can::BrakeReceiver(*brake_));
@@ -64,10 +65,14 @@ public:
             output={};return true; // bounded INIT tick with NO actuation, not a synthetic Actual
         }
         const bool protecting=in.protection_since!=0;
+        const bool holding=!protecting && !in.normal && std::any_of(in.stop_requests.begin(),in.stop_requests.end(),[](const Packet& p){return bool(p);});
+        if(holding && (wall() || protecting || !normal_))return fail("normal_stop_scope");
+        // Original local protection can supersede a stop lease. It cannot reopen it.
+        if(holding_ && !holding && !protecting)return fail("normal_stop_terminal");
         if(protecting) {
             if(!normal_ || in.normal || in.credit_mask!=0 || in.release_mask!=255 || now>UINT64_MAX-age-1 ||
                in.protection_selected_mask!=255 || in.protection_since<enable_ || in.protection_since>now ||
-               (!protection_since_ && in.protection_since<=normal_observed_) ||
+               (!protection_since_ && in.protection_since<=std::max(normal_observed_,stop_observed_)) ||
                (protection_since_ && in.protection_since!=protection_since_))return fail("native_protection_authority");
             for(unsigned i=0;i<8;++i)if(!same(in.release[i],release_[i]))return fail("native_protection_session");
             protection_since_=in.protection_since;
@@ -79,7 +84,7 @@ public:
             if(!in.enable || in.enable<initial_ || in.enable>now ||
                !steering_->start_session(application_,in.enable) || !brake_->start_session(application_,in.enable) ||
                !drive_->start_session(application_,in.enable) || !permission_->start_session(application_,in.enable))return fail("native_receiver_init");
-            enable_=in.enable;started_=true;
+            enable_=in.enable;stop_.reset(enable_);started_=true;
         }
         if(in.enable!=enable_)return fail("native_enable_changed");
         can::SteeringFrame sf;can::BrakeFrame bf;can::DriveFrame df;
@@ -91,6 +96,7 @@ public:
         auto s=steering_->current_sample(now);auto b=brake_->current_sample(now);auto d=drive_->current_sample(now);
         if(!s || !b || !d)return fail("native_current_actual_missing");
         Output out;out.empty=false;out.normal=in.normal;out.protection=protecting;
+        out.normal_stop=holding;
         out.angle=*s->angle_rad;out.pressure=*b->pressure_pa;out.torque=*d->torque_nm;
         out.sources={s->source_time_ns,b->source_time_ns,d->source_time_ns};
         const auto bounds=std::minmax_element(out.sources.begin(),out.sources.end());
@@ -114,6 +120,32 @@ public:
                *bounds.first<protection_since_)return fail("native_protection_actual");
             if(wall() && out.torque!=0)return fail("wall_protection_requires_zero_torque");
             if(!zero_protection)out.exclusive_expiry=std::min(out.exclusive_expiry,d->wheel_speed->source_time_ns+age+1);
+        } else if(holding) {
+            const std::array<can::ActuatorMetadata,3> meta{can::ActuatorMetadata{s->sequence,s->epoch,s->source_time_ns,s->causal_sequence,s->local_state,s->origin},*b,*d};
+            std::optional<ActuatorStopLease> lease;
+            for(unsigned i=0;i<3;++i) {
+                const auto zone=i<2?session::Role::FrontZone:session::Role::RearZone;
+                const auto role=static_cast<session::Role>(i+2);
+                const auto q=decode<transport::LeafRequest>(in.stop_requests[i],zone,role);
+                const auto report=decode<transport::LeafReport>(in.stop_results[i],role,zone);
+                const auto* a=report?std::get_if<transport::LeafResult>(&*report):nullptr;
+                if(!q || !a)return false;
+                if(q->epoch!=application_ || q->operation!=transport::LeafOperation::Stop || !q->lease ||
+                   a->epoch!=q->epoch || a->token!=q->token || a->operation!=q->operation || !a->accepted ||
+                   q->sent_ns<q->lease->source_time_ns || q->sent_ns>a->source_ns ||
+                   a->source_ns>=q->deadline_ns || q->deadline_ns>q->lease->expires_at_ns ||
+                   a->source_ns>meta[i].source_time_ns || q->lease->expires_at_ns<=end ||
+                   !covers(q->lease->source_time_ns,now,end,50000000) ||
+                   (lease && !same_stop_lease(*lease,*q->lease)))return fail("normal_stop_original_selection");
+                if(meta[i].origin!=can::ActuatorOrigin::NormalPath || meta[i].local_state!=can::ActuatorLocalState::Init ||
+                   meta[i].causal_sequence!=stop_causal_[i])return fail("normal_stop_actual_mode");
+                lease=q->lease;
+            }
+            if(out.torque!=0 || d->wheel_speed->value_rad_s>kStopSpeedRadS ||
+               out.pressure<kStopPressurePa || !stop_.accept(*lease,application_,now))return fail("normal_stop_stationary_lease");
+            if(in.permission && !grant(in.permission,now,end,out,false))return false;
+            out.exclusive_expiry=std::min({out.exclusive_expiry,lease->expires_at_ns,lease->source_time_ns+50000001});
+            out.oldest_dependency=std::min(out.oldest_dependency,lease->source_time_ns);holding_=true;stop_observed_=now;
         } else if(in.normal) {
             if(in.permission && !grant(in.permission,now,end,out,true))return false;
             if(!normal_mode(*s) || !normal_mode(*b) || !normal_mode(*d))return fail("native_actual_mode");
@@ -123,6 +155,7 @@ public:
             if(!d->regen_capability || !covers(d->regen_capability->source_time_ns,now,end,age) ||
                !covers(d->regen_capability->input_time_ns,now,end,70000000))return fail("native_capability_interval");
             out.oldest_dependency=std::min(out.oldest_dependency,d->regen_capability->input_time_ns);
+            stop_causal_={s->causal_sequence,b->causal_sequence,d->causal_sequence};
             normal_=true;normal_observed_=now;
         } else {
             if(in.permission && !grant(in.permission,now,end,out,false))return false;
@@ -252,6 +285,7 @@ private:
         out.exclusive_expiry=std::min(out.exclusive_expiry,grant.expires_at_ns);return true;
     }
     std::uint32_t application_;Time initial_,last_=0,enable_=0,protection_since_=0,normal_observed_=0;bool started_=false,normal_=false;
+    StopLeaseState stop_;bool holding_=false;Time stop_observed_=0;std::array<std::uint32_t,3> stop_causal_{};
     ClockPolicy clock_;Time interval_=step,reserve_=0;
     std::string error_;
     std::array<Packet,3> cached_;std::array<Packet,8> release_;Packet permission_packet_;

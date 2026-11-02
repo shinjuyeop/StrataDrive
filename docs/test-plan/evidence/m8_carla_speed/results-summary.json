@@ -1,0 +1,268 @@
+{
+  "status": "PASS_CARLA_SPEED_SIMULATION_ONLY",
+  "scope": "Town03_Opt spawn0 MKZ2020 V1; 40s 0→10→0km/h; no lateral control",
+  "runs": {
+    "nominal": {
+      "status": "PASS_M8_SPEED_SIMULATION_ONLY",
+      "case": "nominal",
+      "receipts": 4000,
+      "normal_intervals": 3919,
+      "controls": 1960,
+      "origin_ns": 1432816967,
+      "wall_realtime_accepted": false,
+      "normal_stop_hv_off_accepted": false,
+      "failures": [],
+      "body": {
+        "samples": 4001,
+        "plateau_samples": 500,
+        "stop_samples": 300,
+        "max_plateau_error_kmh": 0.02472827148437471,
+        "max_stop_error_kmh": 0.0,
+        "max_positive_target_overspeed_percent": 1.425569506816159
+      },
+      "control_wheel": {
+        "samples": 1960,
+        "plateau_samples": 250,
+        "stop_samples": 150,
+        "max_plateau_error_kmh": 0.018820000000000194,
+        "max_stop_error_kmh": 0.0,
+        "max_positive_target_overspeed_percent": 1.072967040030453
+      },
+      "server_clean_exit": true
+    },
+    "snapshot": {
+      "status": "PASS_M8_SPEED_SIMULATION_ONLY",
+      "case": "snapshot",
+      "receipts": 200,
+      "normal_intervals": 119,
+      "controls": 60,
+      "origin_ns": 1411259768,
+      "wall_realtime_accepted": false,
+      "normal_stop_hv_off_accepted": false,
+      "failures": [],
+      "server_clean_exit": true
+    },
+    "work-missing": {
+      "status": "PASS_M8_SPEED_SIMULATION_ONLY",
+      "case": "work-missing",
+      "receipts": 200,
+      "normal_intervals": 119,
+      "controls": 60,
+      "origin_ns": 1463010749,
+      "wall_realtime_accepted": false,
+      "normal_stop_hv_off_accepted": false,
+      "failures": [],
+      "server_clean_exit": true
+    }
+  },
+  "validation": {
+    "normal_unit_and_logical": 1190,
+    "sanitized_affected_tests": 73,
+    "python_unit": 219,
+    "speed_oracle_corruptions_rejected": 12,
+    "simple_speed_loop_normal_cases": 3,
+    "simple_speed_loop_sanitized_cases": 3
+  },
+  "source_model_sha256": "181297fb101d0f7dc69222489956a3bdcc701924556fa2210e4ff5705975e858",
+  "scope_exclusions": [
+    "route completion",
+    "Reference30km/h",
+    "wall real-time acceptance",
+    "CARLA NormalStop HV-off",
+    "physical fault braking completion",
+    "old UE exit and wall startup failures resolved"
+  ],
+  "initial_synthetic_failure": "sensor-root30ms / whole next interval; preserved development/phase binary + validation/native-contracts + phase-study.csv; not counted as CARLA runs",
+  "clock_audit": {
+    "clock": {
+      "samples": 4000,
+      "acquisition_bracket_max_ns": 94692663,
+      "acquisition_to_next_native_end_max_ns": 389386294,
+      "acquisition_to_next_native_end_over_30ms": 1169,
+      "native_input_gaps_over_2ms": 4000,
+      "native_input_gap_max_ns": 393628079,
+      "excluding_intentional_pause": {
+        "excluded_left_index": 150,
+        "samples": 3999,
+        "acquisition_to_next_native_end_max_ns": 389386294,
+        "acquisition_to_next_native_end_over_30ms": 1168,
+        "native_input_gap_max_ns": 393628079,
+        "native_input_gaps_over_2ms": 3999
+      },
+      "constant_offset_intersection_ns": [
+        290969398356731,
+        290889690300612
+      ],
+      "constant_offset_possible": false,
+      "clock_mapping_accepted": false,
+      "normal_wall_runtime_accepted": false,
+      "note": "offset intervals are mapping candidates only; ages use same-host monotonic pairs; no CAN rewrite"
+    },
+    "rejected_clock_corruption": "original acquisition bracket/order",
+    "status": "PASS_REQUESTED_SCOPE_ONLY"
+  },
+  "work": {
+    "nominal": {
+      "status": "PASS_SOLVER_WORK_SINGLE_EV",
+      "intervals": 4000,
+      "motor_work_j": [
+        0.0,
+        0.0,
+        3649.9366151973245,
+        3649.9336795274203
+      ],
+      "minimum_loaded_rear_mean_rad_s": 0.00011150104910484515,
+      "forward_ineligible": [],
+      "maximum_equation_residual_rad_s": 4.785212341928968e-07,
+      "rejected_corruptions": {
+        "missing_step": "complete substeps",
+        "duplicate_ordinal": "ordered unique substeps",
+        "missing_end": "whole invocation",
+        "overflow": "whole invocation",
+        "wrong_dt": "actual solver dt",
+        "torque": "applied torque binding",
+        "omega": "integrator equation",
+        "nonfinite": "finite complete wheel tuple",
+        "sum": "signed work sum",
+        "source": "solver identity",
+        "false_sleep": "complete substeps"
+      },
+      "ev_settlement_connected": true,
+      "independently_verified_settlements": 4000,
+      "max_abs_energy_balance_j": 2.942215360235423e-08,
+      "rejected_energy_corruptions": {
+        "duplicate_energy_interval": "complete native energy coverage",
+        "missing_energy_interval": "complete native energy coverage",
+        "restamped_wheel": "original source and applied torque",
+        "predicted_work": "single EV basis",
+        "changed_work_total": "solver/EV work conservation",
+        "changed_SOC": "SOC/chemical energy",
+        "changed_loss": "independent energy ledger"
+      },
+      "native_actual_audit": {
+        "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+        "receipts": 4000,
+        "normal_intervals": 3919,
+        "empty_init_intervals": 4,
+        "max_whole_interval_source_age_ns": 20000000,
+        "min_command_expiry_margin_ns": 1,
+        "max_wheel_quantization_error_rad_s": 0.0049999427795413,
+        "torque_nm_range": [
+          -11.9,
+          211.70000000000002
+        ],
+        "final_forward_velocity_m_s": 0,
+        "interval_work_valid": true,
+        "protection_intervals": 0
+      }
+    },
+    "snapshot": {
+      "status": "PASS_SOLVER_WORK_SINGLE_EV",
+      "intervals": 200,
+      "motor_work_j": [
+        0.0,
+        0.0,
+        41.0647608432183,
+        41.06460368276326
+      ],
+      "minimum_loaded_rear_mean_rad_s": 0.00011150104910484515,
+      "forward_ineligible": [],
+      "maximum_equation_residual_rad_s": 5.915548373369717e-08,
+      "rejected_corruptions": {
+        "missing_step": "complete substeps",
+        "duplicate_ordinal": "ordered unique substeps",
+        "missing_end": "whole invocation",
+        "overflow": "whole invocation",
+        "wrong_dt": "actual solver dt",
+        "torque": "applied torque binding",
+        "omega": "integrator equation",
+        "nonfinite": "finite complete wheel tuple",
+        "sum": "signed work sum",
+        "source": "solver identity",
+        "false_sleep": "complete substeps"
+      },
+      "ev_settlement_connected": true,
+      "independently_verified_settlements": 199,
+      "max_abs_energy_balance_j": 7.794824341544881e-09,
+      "rejected_energy_corruptions": {
+        "duplicate_energy_interval": "complete native energy coverage",
+        "missing_energy_interval": "complete native energy coverage",
+        "restamped_wheel": "original source and applied torque",
+        "predicted_work": "single EV basis",
+        "changed_work_total": "solver/EV work conservation",
+        "changed_SOC": "SOC/chemical energy",
+        "changed_loss": "independent energy ledger"
+      },
+      "native_actual_audit": {
+        "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+        "receipts": 200,
+        "normal_intervals": 119,
+        "empty_init_intervals": 4,
+        "max_whole_interval_source_age_ns": 20000000,
+        "min_command_expiry_margin_ns": 1,
+        "max_wheel_quantization_error_rad_s": 0.004988379478454652,
+        "torque_nm_range": [
+          0,
+          211.70000000000002
+        ],
+        "final_forward_velocity_m_s": 0.30440971374511716,
+        "interval_work_valid": true,
+        "protection_intervals": 0
+      }
+    },
+    "work-missing": {
+      "status": "PASS_SOLVER_WORK_SINGLE_EV",
+      "intervals": 200,
+      "motor_work_j": [
+        0.0,
+        0.0,
+        41.0647608432183,
+        41.06460368276326
+      ],
+      "minimum_loaded_rear_mean_rad_s": 0.00011150104910484515,
+      "forward_ineligible": [],
+      "maximum_equation_residual_rad_s": 5.915548373369717e-08,
+      "rejected_corruptions": {
+        "missing_step": "complete substeps",
+        "duplicate_ordinal": "ordered unique substeps",
+        "missing_end": "whole invocation",
+        "overflow": "whole invocation",
+        "wrong_dt": "actual solver dt",
+        "torque": "applied torque binding",
+        "omega": "integrator equation",
+        "nonfinite": "finite complete wheel tuple",
+        "sum": "signed work sum",
+        "source": "solver identity",
+        "false_sleep": "complete substeps"
+      },
+      "ev_settlement_connected": true,
+      "independently_verified_settlements": 199,
+      "max_abs_energy_balance_j": 8.813572094368283e-09,
+      "rejected_energy_corruptions": {
+        "duplicate_energy_interval": "complete native energy coverage",
+        "missing_energy_interval": "complete native energy coverage",
+        "restamped_wheel": "original source and applied torque",
+        "predicted_work": "single EV basis",
+        "changed_work_total": "solver/EV work conservation",
+        "changed_SOC": "SOC/chemical energy",
+        "changed_loss": "independent energy ledger"
+      },
+      "native_actual_audit": {
+        "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+        "receipts": 200,
+        "normal_intervals": 119,
+        "empty_init_intervals": 4,
+        "max_whole_interval_source_age_ns": 20000000,
+        "min_command_expiry_margin_ns": 1,
+        "max_wheel_quantization_error_rad_s": 0.004988379478454652,
+        "torque_nm_range": [
+          0,
+          211.70000000000002
+        ],
+        "final_forward_velocity_m_s": 0.30440971374511716,
+        "interval_work_valid": true,
+        "protection_intervals": 0
+      }
+    }
+  }
+}

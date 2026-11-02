@@ -57,4 +57,23 @@ E_next = E_previous - chemical_power*dt
 
 M6의 [차량 모델](../interfaces/simple-vehicle-model.md)·[energy 계약](../interfaces/vehicle-energy.md)과
 CARLA의 [관측 work](../interfaces/carla-plant-adapter.md#solver-work와-단일-ev)는 별도 경계다.
-M6 Python MIL은 `models/longitudinal/`의 독립 모델이며 C++ controller 동등성은 M8 후속이다.
+M6 Python MIL은 `models/longitudinal/`의 독립 모델이다. M8의 `central/longitudinal/`은
+이를 수작업 C++17로 옮긴 순수 SpeedPI component이며 [공통 입력 동등성](../test-plan/evidence/m8_speed_pi/README.md)을
+검증했다. `initialize`/`step`에서 상태와 출력을 비교하며 invalid acceleration은 absent다.
+`SpeedRequest`는 이 component를 검증된 Drive Actual·기존 session/permission에 연결한다.
+20ms마다 bounded acceleration을 만들고 기존 allocation이10ms마다 갱신한다.
+명령이 물리를 직접 바꾸지 않으며 Leaf의 실제 torque/pressure가 차량 입력이다.
+[SimpleVehicle 논리 시간 폐루프](../test-plan/evidence/m8_speed_loop/README.md)는 검증했고,
+[CARLA 저속 속도 폐루프](../test-plan/evidence/m8_carla_speed/README.md)도 검증했다.
+CARLA는0.355m 반경을 쓰며 계산된 요청의 생성 시각과 원래 wheel 취득 시각을 따로 보존한다.
+[Pure Pursuit](../interfaces/lateral-route-controller.md)를 추가해 고정 곡선30km/h의
+[첫 경로 추종](../test-plan/evidence/m8_route/README.md)도 검증했다. 원본 pose를 실제
+rear-axle로 변환하며 전체 Reference와 Planner/localization은 후속이다.
+이 흐름을 설명하는 개인 학습 review는 별도다.
+
+추진 포화는 PI 출력 범위와 실제 배분 범위가 다를 때 중요하다. 예를 들어 PI가
+요청한 가속도에500Nm가 필요해도 배분기는300Nm만 선택할 수 있다. 이때 속도 오차를
+계속 적분하면 제한이 풀린 뒤 과도한 가속을 요청할 수 있다. 선택형 v2는 직전 요청의
+배분 제한을 확인해 양수 적분을 보류한다. 이 정보는 실제 모터 토크나 주행 권한이
+아니다. [구현 계약](../interfaces/simple-vehicle-model.md#m8-추진-배분-포화-feedback-v2)과
+[모델 비교·CARLA 근거](../test-plan/evidence/m8_saturation/README.md)를 함께 읽는다.

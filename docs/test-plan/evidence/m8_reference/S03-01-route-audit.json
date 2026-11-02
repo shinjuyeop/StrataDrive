@@ -1,0 +1,111 @@
+{
+  "status": "FAIL",
+  "case": "nominal",
+  "receipts": 8000,
+  "normal_intervals": 7919,
+  "controls": 3960,
+  "origin_ns": 1446615625,
+  "wall_realtime_accepted": false,
+  "normal_stop_hv_off_accepted": false,
+  "failures": [
+    "body.max_plateau_error_kmh",
+    "body_state20hz.max_plateau_error_kmh",
+    "control_wheel.max_plateau_error_kmh"
+  ],
+  "route": {
+    "samples": 1182,
+    "missing_samples": 0,
+    "first_index": 85,
+    "last_index": 5990,
+    "completion_index": 5994,
+    "completion_seconds": 59.137998661000005,
+    "plateau_samples": [
+      200,
+      200
+    ],
+    "cross_track_p95_m": 0.034529893420007576,
+    "heading_p95_deg": 0.5599582166673643,
+    "cross_track_max_m": 0.09625579956013802,
+    "heading_max_deg": 1.144369662957048,
+    "curve_entry_speed_kmh": 19.9037548828125,
+    "curve_entry_seconds": 37.837999137000004
+  },
+  "reference": {
+    "scenario": "S03",
+    "slow_elapsed_ns": 30300000000,
+    "stop_elapsed_ns": 55760000000
+  },
+  "body": {
+    "samples": 8001,
+    "plateaus": [
+      {
+        "begin_s": 15.0,
+        "end_s": 25.0,
+        "target_kmh": 30.0,
+        "samples": 1000,
+        "max_error_kmh": 5.3261044921875005
+      },
+      {
+        "begin_s": 41.3,
+        "end_s": 51.3,
+        "target_kmh": 20.0,
+        "samples": 1000,
+        "max_error_kmh": 0.03710473632812494
+      }
+    ],
+    "stop_samples": 200,
+    "max_plateau_error_kmh": 5.3261044921875005,
+    "max_stop_error_kmh": 0.0,
+    "max_positive_target_overspeed_percent": 7.397290039062487,
+    "max_tracking_error_kmh": 13.471557138328125
+  },
+  "body_state20hz": {
+    "samples": 1601,
+    "plateaus": [
+      {
+        "begin_s": 15.0,
+        "end_s": 25.0,
+        "target_kmh": 30.0,
+        "samples": 200,
+        "max_error_kmh": 5.263295654296872
+      },
+      {
+        "begin_s": 41.3,
+        "end_s": 51.3,
+        "target_kmh": 20.0,
+        "samples": 200,
+        "max_error_kmh": 0.036047851562500455
+      }
+    ],
+    "stop_samples": 40,
+    "max_plateau_error_kmh": 5.263295654296872,
+    "max_stop_error_kmh": 0.0,
+    "max_positive_target_overspeed_percent": 7.396953124999994,
+    "max_tracking_error_kmh": 13.471557138328125
+  },
+  "control_wheel": {
+    "samples": 3960,
+    "plateaus": [
+      {
+        "begin_s": 15.0,
+        "end_s": 25.0,
+        "target_kmh": 30.0,
+        "samples": 500,
+        "max_error_kmh": 4.976759999999995
+      },
+      {
+        "begin_s": 41.3,
+        "end_s": 51.3,
+        "target_kmh": 20.0,
+        "samples": 500,
+        "max_error_kmh": 0.05181999999999931
+      }
+    ],
+    "stop_samples": 100,
+    "max_plateau_error_kmh": 4.976759999999995,
+    "max_stop_error_kmh": 0.0,
+    "max_positive_target_overspeed_percent": 7.607599999999981,
+    "max_tracking_error_kmh": 13.222199277000001
+  },
+  "server_clean_exit": true
+}

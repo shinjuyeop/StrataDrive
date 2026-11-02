@@ -8,7 +8,7 @@
 | 단계 | 산출물 |
 | --- | --- |
 | M7 · 기능 범위 CLOSED | [시뮬레이션 시간 기능 수용](project-status.md#m7-종료-조건). HV 예산 분리 후 비영상 wall 정상2/보호2 통과;영상·장시간 wall 수용은 기능 개발과 별도 |
-| M8 | M6 종방향 모델의 C++ 구현·공통 vector 동등성, 실제 차량 폐루프, route/waypoint·횡방향 제어와 Reference 30km/h 시험 |
+| M8 | C++ 동등성·속도 폐루프·S01/S02/S03 고정 fixture 검증. 추진 포화 feedback·관성 참조 필요조건 검증. 저속 NormalStop/HV-off·속도 입력 누락 정지 검증. 정지 인계 후 명시적 보호 전환 검증·30km/h 기본 예산 충돌 확인. 별도30km/h 명시적10s 제동·HV-off 검증. 다음은30km/h fault matrix와 ACK/통신 손실·동적 가용력 기반 참조 |
 | M9 | Fault event → 검출 → 보호 → actual response → DTC 통합. 기존 로컬 보호는 계속 유지 |
 | M10–M11 | Perception·temporal learned planner, Safety Supervisor·classical fallback, 인식/판단 한계와 scenario 검토 |
 | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
@@ -35,12 +35,12 @@ Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revis
 | TBD-08 | DTC code·debounce·persistence·clear / diagnostics | M9 event→DTC 통합 전 |
 | TBD-09 | Jetson board/RAM·platform stack·모델/workload·측정 / compute·AI | M10 model fixture·M12 독립 보드 비교 전 |
 | TBD-10 | perception/planner shape·history·risk·fallback / AI·safety | M10–M11 통합 전 |
-| TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. M8 제어·M10 모델 도입 전 갱신 |
+| TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. S03 v1 구동 포화 FAIL 보존; v2 startup20s/감속6s 고정. 추진 포화 feedback·관성 필요조건 검증; 동적 가용력 기반 참조·제동 측 포화 OPEN; M10 모델 도입 전 갱신 |
 | TBD-12 | 전원 sequence·INIT/permission·shutdown/복구 / vehicle management | M6 startup/RunLease/stop/HV-off 검증. 실차 LV/충전/Target 반응은 후속 |
 | TBD-13 | battery/thermal·limits·efficiency·energy 오차 / 모델 | M6 계수·M7 단일 EV work 정산 사용. Chemistry/OEM 적합성은 미결정 |
 | TBD-14 | BMS/EV wire·원천/dependency·hop budget / interface·timing | Host P05·receiver·원천 전달 검증. 다른 kernel/Target clock은 후속 |
 | TBD-15 | Central–Zone schema/QoS·queue·INIT/rejoin·배치 / architecture·통신 | Front/Rear·8-role·owner-wire·SOME/IP 한정 결정. Target/system TC 후속 |
-| TBD-16 | MBD 도구·solver/sample·공통 vector·numeric tolerance·generator / model·control | M6 Python/binary64 MIL 완료. M8 C++ 동등성 기준·선택적 생성 도구 결정 전 |
+| TBD-16 | MBD 도구·solver/sample·공통 vector·numeric tolerance·generator / model·control | M6 Python/binary64 MIL·M8 수작업 C++ 동등성·SimpleVehicle 폐루프 검증. [CARLA 저속 simulation-time 연결](test-plan/carla-speed-protocol.md) 검증. [단일 곡선30km/h](test-plan/evidence/m8_route/README.md)와 [S01/S03 고정 fixture](test-plan/evidence/m8_reference/README.md) 검증; 전체 Reference·선택적 생성 도구 후속 |
 
 M6에서 결정된 수치·소유권과 후속 gate의 상세 구분은 [M6 검토](archive/milestone-reviews.md#m6)에 있다.
 수치 변경은 이전/새 값·이유·영향 requirement/ICD/profile/test·결과를 함께 기록한다.

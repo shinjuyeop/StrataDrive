@@ -1,0 +1,48 @@
+{
+  "protocol": "speed-pi-equivalence-v1",
+  "model": "m6-pi-v1",
+  "seed": 32776,
+  "abs_tolerance": 1e-12,
+  "rel_tolerance": 1e-12,
+  "python": "3.12.12 (main, Dec  2 2025, 19:47:35) [Clang 21.1.4 ]",
+  "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "binary": "/d/shin/StrataDrive/build/m8-speed-pi/release/speed_pi_replay",
+  "binary_sha256": "58589f450ff0873e194b83b0bd90e246a292de353341eb293f3895e0bf6b13ba",
+  "sources": {
+    "models/longitudinal/model.py": "181297fb101d0f7dc69222489956a3bdcc701924556fa2210e4ff5705975e858",
+    "models/longitudinal/mil.py": "d34ad472c240f91aa41809f8a54f0e2e062b091a66c7cba0ee5d84fed69fc3f3",
+    "central/longitudinal/speed_pi.hpp": "fff365bec43db0d162856055890126397a498ea3ca2de15e95653b31afeb12e1",
+    "central/longitudinal/speed_pi.cpp": "d7f06f7fec9f58b6e154bb3fe99a9a0e74d565406d4fefacb3fe1a7581a28b81",
+    "tests/unit/speed_pi_test.cpp": "36b1bf3bec9b9da1cc6274af0663a561a0bca484d29cfd1abd25cea9c9ed1877",
+    "tests/unit/longitudinal_equivalence_test.py": "38729948bbba30f7b304c15ddab8759e3c6a20dd05ebba06a146aa5a5dd28ccb",
+    "tests/integration/longitudinal/speed_pi_vectors.py": "a0dd527beb60d4e4428d060a9991df99419936388e50aa2f01330cd657f92f38",
+    "tests/integration/longitudinal/speed_pi_replay.cpp": "e5cff440c045e97413a1186b6511643517c22568a18dcf29add70c439163e5a4",
+    "tests/integration/longitudinal/check_equivalence.py": "816353aa1237165e442c9261c6cd408c5059c287588a6f1063d2d4978b176a69",
+    "CMakeLists.txt": "6d23d6311954b7dc62d7dcadc7166ff1f492681518cdacea9f7ee9a0cd3e6b10",
+    "cmake/CoreTargets.cmake": "1419430e22071baa83eda74bfefa98a7e610483688a51fe6f1de0016cfd400e3",
+    "cmake/CoreTests.cmake": "ef29d8855cb00d7d41cc45333ea9d7af64e83fc68d419228132a8e25ddfc8834",
+    "docs/test-plan/longitudinal-equivalence-protocol.md": "0d9425b9674dedbf3c580159c7dcce9358e53355ab63e64a9be9a149c7abf5fa"
+  },
+  "argv": [
+    "/d/shin/StrataDrive/tests/integration/longitudinal/check_equivalence.py",
+    "--replay",
+    "/d/shin/StrataDrive/build/m8-speed-pi/release/speed_pi_replay",
+    "--output-root",
+    "/d/shin/StrataDrive/build/m8-speed-pi/release/longitudinal-equivalence"
+  ],
+  "compile_commands": [
+    {
+      "directory": "/d/shin/StrataDrive/build/m8-speed-pi/release",
+      "command": "/usr/bin/c++  -I/d/shin/StrataDrive/central/longitudinal -O3 -DNDEBUG -std=c++17 -Wall -Wextra -Werror -fno-fast-math -ffp-contract=off -o CMakeFiles/speed_pi.dir/central/longitudinal/speed_pi.cpp.o -c /d/shin/StrataDrive/central/longitudinal/speed_pi.cpp",
+      "file": "/d/shin/StrataDrive/central/longitudinal/speed_pi.cpp",
+      "output": "CMakeFiles/speed_pi.dir/central/longitudinal/speed_pi.cpp.o"
+    },
+    {
+      "directory": "/d/shin/StrataDrive/build/m8-speed-pi/release",
+      "command": "/usr/bin/c++  -I/d/shin/StrataDrive/central/longitudinal -O3 -DNDEBUG -std=c++17 -Wall -Wextra -Werror -o CMakeFiles/speed_pi_replay.dir/tests/integration/longitudinal/speed_pi_replay.cpp.o -c /d/shin/StrataDrive/tests/integration/longitudinal/speed_pi_replay.cpp",
+      "file": "/d/shin/StrataDrive/tests/integration/longitudinal/speed_pi_replay.cpp",
+      "output": "CMakeFiles/speed_pi_replay.dir/tests/integration/longitudinal/speed_pi_replay.cpp.o"
+    }
+  ],
+  "input_sha256": "fb81d2333d29aa07627cf7605a30d15ed189da50d22b46788e4cfe9f917caf64"
+}

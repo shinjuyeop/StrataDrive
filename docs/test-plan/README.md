@@ -23,6 +23,15 @@
 | CARLA HV source/dependency 예산 분리·정상2/보호2 실행 | [wall5-hv50-v1 결과](evidence/m7_carla_wall_guard/carla-runtime/hv-budget-v1/README.md) |
 | CARLA 기본 state·영상·확장 경로 지연 대조 | [Frame 진단](evidence/m7_carla_wall_guard/carla-runtime/frame-diagnostic/README.md) |
 | M8 전 공통 구현·빌드·감사 reader 정리와 회귀 | [리팩터링 검증](evidence/pre-m8-refactor/README.md) |
+| M8 별도30km/h NormalStop·10s 제동 계약 | [실행 근거](evidence/m8_stop30/README.md) · [protocol](carla-stop30-protocol.md) |
+| M8 정지 hold 이후 보호 전환·30km/h 예산 계약 검토 | [실행 근거](evidence/m8_stop_fault/README.md) · [protocol](carla-stop-fault-protocol.md) · [30km/h 검토](normal-stop-30-contract-review.md) |
+| M8 저속 NormalStop/HV-off·현재 속도 입력 누락의 물리 정지 | [실행 근거](evidence/m8_stop/README.md) · [protocol](carla-stop-protocol.md) |
+| M8 추진 배분 포화·참조 필요조건 | [실행 근거](evidence/m8_saturation/README.md) · [protocol](propulsion-saturation-protocol.md) |
+| M8 S01 직선·S03 위치 기반30→20km/h·구동 포화 실패와 v2 | [실행 근거](evidence/m8_reference/README.md) · [protocol](carla-reference-protocol.md) |
+| M8 고정 곡선30km/h·Pure Pursuit·pose 시각 불일치 | [실행 근거](evidence/m8_route/README.md) · [protocol](carla-route-protocol.md) |
+| M8 CARLA V1 저속 속도 폐루프·원천/계산 시각·snapshot/work 누락 | [실제 CARLA 실행](evidence/m8_carla_speed/README.md) · [protocol](carla-speed-protocol.md) |
+| M8 SimpleVehicle 속도 폐루프·Actual/명령 손실·NormalStop | [논리 시간 폐루프](evidence/m8_speed_loop/README.md) · [protocol](speed-loop-protocol.md) |
+| M8 종방향 PI의 Python/C++ 출력·상태·고장/INIT 동등성 | [SpeedPI component](evidence/m8_speed_pi/README.md) · [사전 protocol](longitudinal-equivalence-protocol.md) |
 | DDS 제어 gate CLOSED의 근거 | [DDS shutdown 후속](evidence/m5_dds_shutdown_followup/README.md) |
 
 ## Evidence 보관 규칙

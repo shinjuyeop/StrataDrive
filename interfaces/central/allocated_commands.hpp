@@ -7,6 +7,14 @@
 #include <variant>
 
 namespace stratadrive::central {
+// Historical successful Central allocation, not actuator Actual or permission.
+// Used only to suppress positive PI integration on the next control release.
+struct PropulsionSelection {
+    std::uint32_t epoch, request_sequence;
+    std::uint64_t selection_ns;
+    double requested_acceleration_mps2, requested_propulsion_nm, selected_propulsion_nm;
+    bool limited;
+};
 // Shared in-process contracts. These are not DDS IDL or a CAN wire extension.
 // Target speed remains upstream; allocation consumes its bounded acceleration.
 struct VehicleRequest {
@@ -14,6 +22,16 @@ struct VehicleRequest {
     std::uint64_t source_time_ns{0}, expires_at_ns{0};
     double acceleration_mps2{0}, curvature_inv_m{0}, braking_demand{0};
     bool standstill_hold{false}; // explicit request, not inferred from zero acceleration
+};
+// Trusted in-process provenance of a computed request. It is carried to remote
+// owners by CommandContext.oldest_input_time_ns / expires_at_ns, not a new wire
+// field. Request generation never refreshes this original acquisition.
+struct VehicleInputDependency {
+    std::uint64_t source_time_ns{0}, expires_at_ns{0};
+};
+struct DerivedVehicleRequest {
+    VehicleRequest request;
+    VehicleInputDependency input;
 };
 inline bool same_vehicle_request(const VehicleRequest& a, const VehicleRequest& b) {
     return a.epoch == b.epoch && a.sequence == b.sequence && a.source_time_ns == b.source_time_ns &&

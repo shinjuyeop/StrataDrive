@@ -41,6 +41,13 @@ public:
         return take()?Result::Line:Result::Wait;
     }
 };
+void selection(const std::optional<stratadrive::central::PropulsionSelection>& s) {
+    if(!s){std::cout<<"null";return;}
+    std::cout<<"{\"epoch\":"<<s->epoch<<",\"request_sequence\":"<<s->request_sequence
+        <<",\"selection_ns\":"<<s->selection_ns<<",\"requested_acceleration_mps2\":"<<s->requested_acceleration_mps2
+        <<",\"requested_propulsion_nm\":"<<s->requested_propulsion_nm<<",\"selected_propulsion_nm\":"<<s->selected_propulsion_nm
+        <<",\"limited\":"<<(s->limited?"true":"false")<<'}';
+}
 void audit(const std::optional<WheelAudit>& w) {
     if(w)std::cout<<"{\"source_ns\":"<<w->source<<",\"rad_s\":"<<w->rad_s<<'}';
     else std::cout<<"null";
@@ -79,8 +86,30 @@ int main(int argc,char** argv) {
         bool scenario_loaded=false;
         for(int arg=6;arg<argc;arg+=2) {
             if(std::string(argv[arg])=="--sim-horizon-ms")continue;
-            if(horizon_set && std::string(argv[arg])!="--scenario")throw std::runtime_error("simulation horizon excludes wall policy");
+            if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route")throw std::runtime_error("simulation horizon excludes wall policy");
             if(!solver_work)throw std::runtime_error("options require solver-work mode");
+            if(std::string(argv[arg])=="--route") {
+                if(!horizon_set)throw std::runtime_error("route requires simulation horizon");
+                std::ifstream file(argv[arg+1]);if(!file)throw std::runtime_error("route open");
+                std::vector<stratadrive::central::RoutePoint> points;std::string row;
+                auto profile=RouteProfile::Curve30;bool header=false,antiwindup=false;
+                while(std::getline(file,row)) {
+                    if(row.rfind("PROFILE ",0)==0) {
+                        if(row.size()>3 && row.substr(row.size()-3)=="_AW") {antiwindup=true;row.resize(row.size()-3);}
+                        if(header || !points.empty() || (row!="PROFILE S01" && row!="PROFILE S03" && row!="PROFILE S03v2" && row!="PROFILE STOP30"))throw std::runtime_error("route profile header");
+                        header=true;profile=row=="PROFILE STOP30"?RouteProfile::Straight30Stop:row=="PROFILE S01"?RouteProfile::Straight30:row=="PROFILE S03v2"?RouteProfile::CombinedV2:RouteProfile::Combined;continue;
+                    }
+                    stratadrive::central::RoutePoint p{};std::string extra;std::istringstream input(row);
+                    if(!(input>>p.x_m>>p.y_m) || (input>>extra) || points.size()>=2001)throw std::runtime_error("route row");
+                    points.push_back(p);
+                }
+                rig.route_profile(std::move(points),profile,antiwindup);continue;
+            }
+            if(std::string(argv[arg])=="--speed-profile") {
+                const std::string v=argv[arg+1];
+                if(!horizon_set || (v!="v1" && v!="v1-stop" && v!="v1-input-loss" && v!="v1-stop-protection"))throw std::runtime_error("invalid speed profile");
+                rig.speed_profile(v=="v1-stop"?SpeedTerminal::NormalStop:v=="v1-input-loss"?SpeedTerminal::SpeedInputLoss:v=="v1-stop-protection"?SpeedTerminal::StopProtection:SpeedTerminal::None);continue;
+            }
             if(std::string(argv[arg])=="--wall-response") {
                 if(!response_path.empty())throw std::runtime_error("duplicate wall response");
                 response_path=argv[arg+1];continue;
@@ -184,6 +213,11 @@ int main(int argc,char** argv) {
                 if(!solver_work || !previous_admission.normal)throw std::runtime_error("protection request context");
                 rig.request_protection();continue;
             }
+            if(line.rfind("POSE ",0)==0) {
+                stratadrive::central::RoutePose pose{};std::uint32_t actor_id;std::string op,extra;std::istringstream input(line);
+                if(!(input>>op>>actor_id>>pose.epoch>>pose.sequence>>pose.source_ns>>pose.x_m>>pose.y_m>>pose.yaw_rad) || (input>>extra))throw std::runtime_error("invalid POSE");
+                rig.pose(pose,actor_id);continue;
+            }
             if(line.size()>(solver_work?20000U:1024U))throw std::runtime_error("input size");
             if(line.rfind("WORK ",0)==0) {
                 if(!solver_work || work || !previous_wheel || !admission)throw std::runtime_error("unexpected work");
@@ -221,11 +255,50 @@ int main(int argc,char** argv) {
             if(r.returned_torque)std::cout<<*r.returned_torque;else std::cout<<"null";
             std::cout<<",\"regen_oldest_ns\":";
             if(r.regen_oldest)std::cout<<*r.regen_oldest;else std::cout<<"null";
+            if(r.terminal_mode==SpeedTerminal::StopProtection || r.terminal_mode==SpeedTerminal::NormalStop30)std::cout<<",\"stop_handoff_ns\":"<<r.handoff_ns;
+            if(r.terminal_mode==SpeedTerminal::NormalStop30) {
+                const auto& c=r.stop_configuration;
+                std::cout<<",\"stop_configuration\":{\"id\":\"normal-stop30-a1-t10-v1\",\"deceleration_mps2\":"<<c.deceleration_mps2<<",\"braking_timeout_ns\":"<<c.braking_timeout_ns<<",\"confirmation_ns\":"<<c.confirmation_ns<<",\"shutdown_timeout_ns\":"<<c.shutdown_timeout_ns<<'}';
+            }
+            if(r.terminal_mode!=SpeedTerminal::None) {
+                std::cout<<",\"speed_terminal\":{\"mode\":"<<static_cast<int>(r.terminal_mode)<<",\"trigger_ns\":"<<r.trigger_ns<<",\"detection_ns\":"<<r.detection_ns
+                    <<",\"speed_fault\":"<<r.speed_fault<<",\"stop_state\":"<<static_cast<int>(r.stop_state)<<",\"stop_fault\":"<<r.stop_fault<<",\"power_off\":"<<(r.power_off?"true":"false")<<",\"power_status\":";packet(r.power_status);std::cout<<'}';
+            }
+            if(r.propulsion_antiwindup) {
+                std::cout<<",\"allocation_selection\":";selection(r.allocation_selection);
+                std::cout<<",\"speed_selection\":";selection(r.speed_selection);
+                std::cout<<",\"saturation_used\":"<<(r.saturation_used?"true":"false");
+            }
+            if(r.speed_control) {
+                const auto& s=*r.speed_control;
+                std::cout<<",\"speed_control\":{\"release_ns\":"<<s.release_ns<<",\"origin_ns\":"<<s.origin_ns
+                    <<",\"source_ns\":"<<s.source_ns<<",\"expiry_ns\":"<<s.expiry_ns<<",\"sequence\":"<<s.sequence
+                    <<",\"input_expiry_ns\":"<<s.input_expiry_ns
+                    <<",\"target_mps\":"<<s.target_mps<<",\"speed_mps\":"<<s.speed_mps
+                    <<",\"acceleration_mps2\":"<<s.acceleration_mps2<<",\"integral\":"<<s.integral<<'}';
+            }
+            if(r.route_reference) {
+                const auto& reference=*r.route_reference;
+                std::cout<<",\"route_reference\":{\"requested_mps\":"<<reference.requested_mps
+                    <<",\"slow_elapsed_ns\":";
+                if(reference.slow_elapsed_ns)std::cout<<*reference.slow_elapsed_ns;else std::cout<<"null";
+                std::cout<<",\"stop_elapsed_ns\":";
+                if(reference.stop_elapsed_ns)std::cout<<*reference.stop_elapsed_ns;else std::cout<<"null";
+                std::cout<<'}';
+            }
+            if(r.lateral_control) {
+                const auto& l=*r.lateral_control;
+                std::cout<<",\"lateral_control\":{\"curvature_inv_m\":"<<l.curvature_inv_m
+                    <<",\"progress_m\":"<<l.progress_m<<",\"cross_track_m\":"<<l.cross_track_m
+                    <<",\"heading_error_rad\":"<<l.heading_error_rad<<",\"lookahead_m\":"<<l.lookahead_m
+                    <<",\"source_ns\":"<<l.source_ns<<",\"limited\":"<<(l.limited?"true":"false")<<'}';
+            }
             if(r.native_export) {
                 const auto& e=*r.native_export;
                 std::cout<<",\"native_export\":{\"observed_ns\":\""<<e.observed<<"\",\"enable_ns\":\""<<e.enable
                     <<"\",\"normal\":"<<(e.normal?"true":"false")<<",\"actual\":";packets(e.actual);
                 std::cout<<",\"commands\":";packets(e.commands);
+                if(r.terminal_mode==SpeedTerminal::NormalStop || r.terminal_mode==SpeedTerminal::StopProtection || r.terminal_mode==SpeedTerminal::NormalStop30) {std::cout<<",\"stop_requests\":";packets(e.stop_requests);std::cout<<",\"stop_results\":";packets(e.stop_results);}
                 std::cout<<",\"release\":";packets(e.release);
                 std::cout<<",\"credit\":";packets(e.credit);
                 std::cout<<",\"permission\":";packet(e.permission);
@@ -234,6 +307,7 @@ int main(int argc,char** argv) {
                 stratadrive::m7_native::Input input;
                 input.observed=e.observed;input.enable=e.enable;input.normal=e.normal;
                 input.protection_since=e.protection_since;input.protection_selected_mask=e.protection_selected_mask;
+                input.stop_requests=e.stop_requests;input.stop_results=e.stop_results;
                 input.actual=e.actual;input.commands=e.commands;input.release=e.release;input.credit=e.credit;input.permission=e.permission;
                 input.service_mask=r.service_mask;input.credit_mask=r.credit_mask;input.release_mask=r.release_mask;
                 stratadrive::m7_native::Output out;
@@ -242,7 +316,7 @@ int main(int argc,char** argv) {
                 previous_admission=out;
                 std::cout<<",\"admission\":{\"ok\":"<<(good?"true":"false")<<",\"reason\":\""<<admission->error()
                     <<"\",\"empty\":"<<(out.empty?"true":"false")<<",\"normal\":"<<(out.normal?"true":"false")
-                    <<",\"protection\":"<<(out.protection?"true":"false")<<",\"angle_rad\":"<<out.angle<<",\"torque_nm\":"<<out.torque<<",\"pressure_pa\":"<<out.pressure
+                    <<",\"normal_stop\":"<<(out.normal_stop?"true":"false")<<",\"protection\":"<<(out.protection?"true":"false")<<",\"angle_rad\":"<<out.angle<<",\"torque_nm\":"<<out.torque<<",\"pressure_pa\":"<<out.pressure
                     <<",\"oldest_actuator_ns\":\""<<out.oldest_actuator<<"\",\"oldest_dependency_ns\":\""<<out.oldest_dependency
                     <<"\",\"exclusive_expiry_ns\":\""<<out.exclusive_expiry<<"\"}";
             }

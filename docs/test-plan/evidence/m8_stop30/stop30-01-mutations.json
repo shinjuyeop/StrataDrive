@@ -1,0 +1,65 @@
+{
+  "status": "PASS_TERMINAL_ORACLE_MUTATIONS",
+  "baseline": {
+    "status": "PASS_M8_CARLA_TERMINAL_RESPONSE",
+    "mode": "normal-stop30",
+    "controls": 1750,
+    "physics": 6000,
+    "settlements": 6000,
+    "trigger_ns": 36357771617,
+    "trigger_speed_kmh": 29.95268994140625,
+    "stop_delay_s": 8.477998988000001,
+    "final_pose_drift_m": 0.0,
+    "normal_stop_intervals": 1553,
+    "hold_delay_s": 8.677999006,
+    "complete_delay_s": 9.277998992,
+    "power_off": {
+      "source_ns": 45633771617,
+      "input_ns": 45615770610,
+      "off": true,
+      "bus_v": 27.0,
+      "contactors": [
+        0,
+        0,
+        0
+      ]
+    },
+    "protection_response": {},
+    "max_pi_error": 0.0,
+    "wall_realtime_accepted": false,
+    "handoff_ns": 45028171617,
+    "route": {
+      "original_wheel_acquisitions": 1000,
+      "body_plateau_samples": 1000,
+      "wheel_plateau_samples": 500,
+      "body_max_error_kmh": 0.07484179687499903,
+      "wheel_max_error_kmh": 0.03089999999999904,
+      "trajectory_samples": 900,
+      "cross_track_p95_m": 0.001689639444609549,
+      "heading_p95_deg": 0.0078049956167711735,
+      "final_progress_m": 242.20498347723822
+    }
+  },
+  "rejected": {
+    "trigger_shift": "fixed original terminal event",
+    "missing_event": "missing fixed event",
+    "continued_PI": "stop30 held PI/lateral state",
+    "changed_integral": "stop30 held PI/lateral state",
+    "moving_final_body": "stop30 stationary during terminal hold",
+    "moving_final_wheel": "stop30 stationary during terminal hold",
+    "stop_pose_drift": "stop30 rear axle conversion",
+    "pose_source_changed": "stop30 original snapshot",
+    "missing_stop_ACK": "missing original owner packet",
+    "rejected_ACK_valid_crc": "original accepted Stop selection",
+    "wrong_lease_epoch_valid_crc": "original accepted Stop selection",
+    "changed_lease_identity_valid_crc": "same three-leaf stop authority",
+    "expired_lease_valid_crc": "Stop selection whole interval",
+    "future_lease_valid_crc": "Stop selection whole interval",
+    "false_HV_confirmation": "independent terminal HV-off",
+    "missing_original_PowerStatus": "missing original owner packet",
+    "changed_stop_budget": "original stop30 config",
+    "changed_stop_deceleration": "original stop30 config",
+    "pose_wire_restamp": "stop30 pose identity",
+    "lateral_result_mutation": "stop30 held PI/lateral state"
+  }
+}

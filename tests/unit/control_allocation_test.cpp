@@ -75,6 +75,36 @@ protected:
         EXPECT_EQ(allocator.decision().fault, fault); EXPECT_TRUE(allocator.decision().protection_required);
     }
 };
+TEST(ControlAllocationDerived, PreservesOriginalDependencyInEveryChildAndRejectsMutation) {
+    central::ControlAllocation a;ASSERT_TRUE(a.start_session(3,kStart));
+    central::VehicleRequest r{3,0,ns(20),ns(50)+1,.2,0,0,false};
+    central::VehicleInputDependency input{ns(10),ns(70)+1};
+    ASSERT_EQ(a.receive_request(r,ns(20),input),AllocationReceiveDecision::Accepted);
+    EXPECT_EQ(a.receive_request(r,ns(20),input),AllocationReceiveDecision::Unchanged);
+    EXPECT_EQ(a.receive_request(r,ns(20)),AllocationReceiveDecision::MutationRejected);
+    auto changed=input;changed.source_time_ns+=1;
+    EXPECT_EQ(a.receive_request(r,ns(20),changed),AllocationReceiveDecision::MutationRejected);
+    const auto out=a.tick(inputs(20),ns(20));ASSERT_TRUE(out);
+    EXPECT_EQ(out->parent.source_time_ns,ns(20));EXPECT_EQ(out->oldest_input_time_ns,ns(10));
+    EXPECT_LE(out->expires_at_ns,input.expires_at_ns);
+    r.sequence=1;r.source_time_ns=ns(21);
+    EXPECT_EQ(a.receive_request(r,ns(21),input),AllocationReceiveDecision::SequenceRejected);
+}
+TEST(ControlAllocationDerived, RejectsFuturePreSessionStaleWideOrShortInputAuthority) {
+    for(unsigned kind=0;kind<6;++kind) {
+        central::ControlAllocation a;ASSERT_TRUE(a.start_session(3,kStart));
+        central::VehicleRequest r{3,0,ns(20),ns(50)+1,.2,0,0,false};
+        central::VehicleInputDependency input{ns(10),ns(70)+1};
+        if(kind==0)input.source_time_ns=kStart-1;
+        if(kind==1)input.source_time_ns=ns(20)+1;
+        if(kind==2)input.expires_at_ns=ns(70)+2;
+        if(kind==3)input.expires_at_ns=ns(20);
+        if(kind==4)input.expires_at_ns=ns(50);
+        if(kind==5){r.source_time_ns=ns(40)+1;r.expires_at_ns=ns(60);}
+        if(kind==5)a.tick(inputs(20),ns(20)); // test input age, without missing the runnable budget
+        EXPECT_EQ(a.receive_request(r,r.source_time_ns,input),AllocationReceiveDecision::Invalid);
+    }
+}
 TEST(ControlAllocationConfig, RejectsInvalidCalibrationAndWideTiming) {
     central::AllocationConfig c; c.friction_nm_per_pa = 0; EXPECT_THROW(central::ControlAllocation{c}, std::invalid_argument);
     c = {}; c.mass_kg = std::numeric_limits<double>::infinity(); EXPECT_THROW(central::ControlAllocation{c}, std::invalid_argument);
@@ -491,4 +521,17 @@ void response_scenario(int fault) {
 TEST(ControlAllocationResponse, DelayedMotorAndBrakeBlendCapLossRecoveryReleaseAndLaunch) { response_scenario(0); }
 TEST(ControlAllocationResponse, SlowPressureBuildRequestsProtectionAfterTheResponseBudget) { response_scenario(1); }
 TEST(ControlAllocationResponse, StuckPressureDuringReleaseCannotBeReportedAsAValidLaunch) { response_scenario(2); }
+TEST_F(ControlAllocationTest, HistoricalSelectionReportsTorquePowerAndReleaseClipping) {
+    acceleration=2;step(0);ASSERT_TRUE(out);
+    auto f=allocator.decision().propulsion_selection;ASSERT_TRUE(f);
+    EXPECT_EQ(f->request_sequence,out->parent.sequence);EXPECT_EQ(f->selection_ns,ns(0));
+    EXPECT_DOUBLE_EQ(f->requested_propulsion_nm,600);EXPECT_DOUBLE_EQ(f->selected_propulsion_nm,300);EXPECT_TRUE(f->limited);
+    auto limited=inputs(20);std::get<can::BmsPowerLimits>(limited.feedback.rear.power_limits->message.content).discharge_power_w=300;
+    step(20,limited);ASSERT_TRUE(out);f=allocator.decision().propulsion_selection;ASSERT_TRUE(f);
+    EXPECT_LT(f->selected_propulsion_nm,10);EXPECT_TRUE(f->limited);
+    auto brake=inputs(40);brake.feedback.front.brake_actual->pressure_pa=10000;
+    step(40,brake);ASSERT_TRUE(out);f=allocator.decision().propulsion_selection;ASSERT_TRUE(f);
+    EXPECT_EQ(f->selected_propulsion_nm,0);EXPECT_TRUE(f->limited);
+    allocator.mark_continuity_lost(ns(41));EXPECT_FALSE(allocator.decision().propulsion_selection);
+}
 }  // namespace

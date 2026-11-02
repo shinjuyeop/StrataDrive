@@ -1,0 +1,63 @@
+Test project /d/shin/StrataDrive/build/m7-functional
+      Start    2: SpeedRequest.PreservesAcquisitionAcrossUnitsAndChildAuthority
+ 1/14 Test    #2: SpeedRequest.PreservesAcquisitionAcrossUnitsAndChildAuthority ..........................   Passed    0.00 sec
+      Start    3: SpeedRequest.NewEnvelopeCannotRefreshFrozenWheelAndNewSessionClearsLatch
+ 2/14 Test    #3: SpeedRequest.NewEnvelopeCannotRefreshFrozenWheelAndNewSessionClearsLatch ...............   Passed    0.00 sec
+      Start    4: SpeedRequest.PermissionLossLatchesWithoutSuccessfulZero
+ 3/14 Test    #4: SpeedRequest.PermissionLossLatchesWithoutSuccessfulZero ................................   Passed    0.00 sec
+      Start    5: SpeedRequest.MissedOrDuplicateControlReleaseCannotCatchUp
+ 4/14 Test    #5: SpeedRequest.MissedOrDuplicateControlReleaseCannotCatchUp ..............................   Passed    0.00 sec
+      Start    6: SpeedRequest.RejectsMissingWrongEpochAndNonfiniteWheel
+ 5/14 Test    #6: SpeedRequest.RejectsMissingWrongEpochAndNonfiniteWheel .................................   Passed    0.00 sec
+      Start    7: SpeedRequest.SourceAgeEnableFutureAndInclusiveBoundary
+ 6/14 Test    #7: SpeedRequest.SourceAgeEnableFutureAndInclusiveBoundary .................................   Passed    0.00 sec
+      Start    8: SpeedRequest.ExplicitRadiusUsesPhysicalCalibrationAndRejectsInvalidConfiguration
+ 7/14 Test    #8: SpeedRequest.ExplicitRadiusUsesPhysicalCalibrationAndRejectsInvalidConfiguration .......   Passed    0.00 sec
+      Start    9: SpeedRequest.UninitializedAndInvalidTargetFailClosed
+ 8/14 Test    #9: SpeedRequest.UninitializedAndInvalidTargetFailClosed ...................................   Passed    0.00 sec
+      Start   10: SpeedRequest.DerivedRequestRetainsBothClocksAndThirtyMillisecondIngressLimit
+ 9/14 Test   #10: SpeedRequest.DerivedRequestRetainsBothClocksAndThirtyMillisecondIngressLimit ...........   Passed    0.00 sec
+      Start  164: ControlAllocationDerived.PreservesOriginalDependencyInEveryChildAndRejectsMutation
+10/14 Test  #164: ControlAllocationDerived.PreservesOriginalDependencyInEveryChildAndRejectsMutation .....   Passed    0.00 sec
+      Start  165: ControlAllocationDerived.RejectsFuturePreSessionStaleWideOrShortInputAuthority
+11/14 Test  #165: ControlAllocationDerived.RejectsFuturePreSessionStaleWideOrShortInputAuthority .........   Passed    0.00 sec
+      Start  340: Coordinator.ExplicitMassRadiusAndDerivedProvenanceReachAllocation
+12/14 Test  #340: Coordinator.ExplicitMassRadiusAndDerivedProvenanceReachAllocation ......................***Failed    0.00 sec
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = Coordinator.ExplicitMassRadiusAndDerivedProvenanceReachAllocation
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from Coordinator
+[ RUN      ] Coordinator.ExplicitMassRadiusAndDerivedProvenanceReachAllocation
+/d/shin/StrataDrive/tests/unit/vehicle_coordinator_test.cpp:97: Failure
+The difference between *out.drive.torque_nm and .2*config.mass_kg*config.wheel_radius_m is 0.016000000000005343, which exceeds 1e-9, where
+*out.drive.torque_nm evaluates to 120.40000000000001,
+.2*config.mass_kg*config.wheel_radius_m evaluates to 120.41600000000001, and
+1e-9 evaluates to 1.0000000000000001e-09.
+[  FAILED  ] Coordinator.ExplicitMassRadiusAndDerivedProvenanceReachAllocation (0 ms)
+[----------] 1 test from Coordinator (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] Coordinator.ExplicitMassRadiusAndDerivedProvenanceReachAllocation
+
+ 1 FAILED TEST
+
+      Start 1106: M8CarlaSpeed.ExplicitSolverProfileCannotMixFixedRequestsOrLegacyScope
+13/14 Test #1106: M8CarlaSpeed.ExplicitSolverProfileCannotMixFixedRequestsOrLegacyScope ..................   Passed    0.00 sec
+      Start 1107: M8CarlaSpeed.OriginalFractionalSourcesSupportWholeIntervalsAndCreditLossBlocksResume
+14/14 Test #1107: M8CarlaSpeed.OriginalFractionalSourcesSupportWholeIntervalsAndCreditLossBlocksResume ...   Passed    0.14 sec
+
+93% tests passed, 1 tests failed out of 14
+
+Label Time Summary:
+integration.logical    =   0.14 sec*proc (2 tests)
+unit                   =   0.01 sec*proc (12 tests)
+
+Total Test time (real) =   0.21 sec
+
+The following tests FAILED:
+	340 - Coordinator.ExplicitMassRadiusAndDerivedProvenanceReachAllocation (Failed) unit
+Errors while running CTest

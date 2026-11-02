@@ -1,0 +1,167 @@
+{
+  "scope": "M8 SpeedPI component equivalence only",
+  "vehicle_closed_loop": "NOT RUN",
+  "carla": "NOT RUN",
+  "tsan": "not applicable: single-owner pure component",
+  "final_runs": [
+    "normal",
+    "release",
+    "sanitized"
+  ],
+  "equivalence": {
+    "normal-initial": {
+      "passed": true,
+      "cases": 97,
+      "events": 14523,
+      "steps": 14302,
+      "max_absolute_error": 0.0,
+      "input_sha256": "2acb17d8572fc90f1e9b50a0bc3d8f1a1f83af3b9ecfc90a249e996337e04a8f",
+      "reasons": {
+        "normal": 14055,
+        "uninitialized": 2,
+        "permission": 22,
+        "latched": 188,
+        "epoch": 4,
+        "sample-time": 7,
+        "source-age": 4,
+        "invalid-speed": 7,
+        "target": 7,
+        "identity": 6
+      },
+      "malformed_rejected": 16,
+      "malformed_total": 16
+    },
+    "normal": {
+      "passed": true,
+      "cases": 97,
+      "events": 14523,
+      "steps": 14302,
+      "max_absolute_error": 0.0,
+      "input_sha256": "fb81d2333d29aa07627cf7605a30d15ed189da50d22b46788e4cfe9f917caf64",
+      "reasons": {
+        "normal": 13775,
+        "uninitialized": 2,
+        "permission": 22,
+        "latched": 466,
+        "epoch": 4,
+        "sample-time": 7,
+        "source-age": 4,
+        "invalid-speed": 8,
+        "target": 8,
+        "identity": 6
+      },
+      "malformed_rejected": 16,
+      "malformed_total": 16
+    },
+    "release": {
+      "passed": true,
+      "cases": 97,
+      "events": 14523,
+      "steps": 14302,
+      "max_absolute_error": 0.0,
+      "input_sha256": "fb81d2333d29aa07627cf7605a30d15ed189da50d22b46788e4cfe9f917caf64",
+      "reasons": {
+        "normal": 13775,
+        "uninitialized": 2,
+        "permission": 22,
+        "latched": 466,
+        "epoch": 4,
+        "sample-time": 7,
+        "source-age": 4,
+        "invalid-speed": 8,
+        "target": 8,
+        "identity": 6
+      },
+      "malformed_rejected": 16,
+      "malformed_total": 16
+    },
+    "sanitized": {
+      "passed": true,
+      "cases": 97,
+      "events": 14523,
+      "steps": 14302,
+      "max_absolute_error": 0.0,
+      "input_sha256": "fb81d2333d29aa07627cf7605a30d15ed189da50d22b46788e4cfe9f917caf64",
+      "reasons": {
+        "normal": 13775,
+        "uninitialized": 2,
+        "permission": 22,
+        "latched": 466,
+        "epoch": 4,
+        "sample-time": 7,
+        "source-age": 4,
+        "invalid-speed": 8,
+        "target": 8,
+        "identity": 6
+      },
+      "malformed_rejected": 16,
+      "malformed_total": 16
+    }
+  },
+  "validation": {
+    "build-component-normal-fixed": {
+      "returncode": 0
+    },
+    "build-component-normal": {
+      "returncode": 2
+    },
+    "build-component-release": {
+      "returncode": 0
+    },
+    "build-component-sanitized": {
+      "returncode": 0
+    },
+    "build-core-normal": {
+      "returncode": 0
+    },
+    "build-production": {
+      "returncode": 0
+    },
+    "clang-tidy": {
+      "returncode": 0
+    },
+    "component-normal": {
+      "returncode": 0,
+      "ctest_passed": 15
+    },
+    "component-release": {
+      "returncode": 0,
+      "ctest_passed": 15
+    },
+    "component-sanitized": {
+      "returncode": 0,
+      "ctest_passed": 15
+    },
+    "configure-normal": {
+      "returncode": 0
+    },
+    "configure-production": {
+      "returncode": 0
+    },
+    "configure-release": {
+      "returncode": 0
+    },
+    "configure-sanitized": {
+      "returncode": 0
+    },
+    "core-logical-normal": {
+      "returncode": 0,
+      "ctest_passed": 1025
+    },
+    "core-wall-normal": {
+      "returncode": 0,
+      "ctest_passed": 9
+    },
+    "cppcheck": {
+      "returncode": 0
+    },
+    "oracle-tests": {
+      "returncode": 0,
+      "python_tests": 10
+    },
+    "python-regression": {
+      "returncode": 0,
+      "python_tests": 211
+    }
+  }
+}

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1r_work.py", line 208, in <module>
+    if __name__=='__main__':main()
+  File "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1r_work.py", line 203, in main
+    native_actual_audit=audit_native(a.directory,json.loads(a.model.read_text()),work_mode=True))
+  File "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1q_native.py", line 91, in audit
+    check((row['index']==200 and report['fault']!='none') or
+  File "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1q_native.py", line 20, in check
+    if not value: raise ValueError(reason)
+ValueError: unexpected incomplete interval

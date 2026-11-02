@@ -8,7 +8,9 @@ M4Result run_m4_async(const M4Config& config) {
         if(f.target==M4Owner::Monitor && !config.execution_guards) throw std::invalid_argument("monitor injection requires execution guards");
     }
     if((!config.wall_time && (config.fifo || config.cpu_a>=0 || config.cpu_b>=0)) || config.cpu_a < -1 || config.cpu_b < -1) throw std::invalid_argument("native placement requires wall clock");
-    if(config.duration_ns>10000000000ULL || (config.scenario==M4Scenario::Fault && config.faults.empty()) ||
+    if(config.speed_loop && (config.wall_time || config.renewal!=central::CommandRenewal::Host10ms ||
+       (config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::FeedbackLoss && config.scenario!=M4Scenario::CommandLoss))) throw std::invalid_argument("M8 logical speed-loop configuration");
+    if(config.duration_ns>(config.speed_loop?95000000000ULL:10000000000ULL) || (config.scenario==M4Scenario::Fault && config.faults.empty()) ||
        (config.recovery_ns && (config.rejoin_epoch<=config.first_epoch || config.recovery_ns>=config.duration_ns))) throw std::invalid_argument("M4 fault/recovery configuration");
     auto network=std::make_unique<m4_detail::Network>(config);
     if(config.wall_time) m4_detail::execute_native(*network); else m4_detail::execute_logical(*network);

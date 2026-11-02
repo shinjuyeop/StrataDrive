@@ -55,10 +55,11 @@ struct CoordinatorDecision {
 // input. tick uses independently validated current samples from this cycle.
 class VehicleCoordinator {
 public:
-    explicit VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution execution = {});
+    explicit VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution execution = {}, AllocationConfig allocation = {}, NormalStopConfig stop = {});
     bool start_session(CoordinatorSession session);
     CoordinatorReceive receive_lifecycle(const LifecycleRequest& root, std::uint64_t now_ns);
-    CoordinatorReceive receive_vehicle(const VehicleRequest& root, std::uint64_t now_ns);
+    CoordinatorReceive receive_vehicle(const VehicleRequest& root, std::uint64_t now_ns,
+        std::optional<VehicleInputDependency> input = std::nullopt);
     CoordinatorReceive receive_stop(const NormalStopRequest& root, std::uint64_t now_ns);
     void request_protection(std::uint64_t now_ns);
     // 10 ms management; allocation follows the explicit renewal profile. True means
@@ -71,7 +72,7 @@ private:
     bool checkpoint();
     void fail(CoordinatorFault fault);
     bool accept_lifecycle(const LifecycleRequest& root);
-    bool accept_vehicle(const VehicleRequest& root);
+    bool accept_vehicle(const VehicleRequest& root, std::optional<VehicleInputDependency> input = std::nullopt);
     bool allocate(const NormalDriveReadinessInputs& inputs);
     void record_allocation_release();
     OperationStatus progress_handoff();

@@ -1,0 +1,146 @@
+[
+  {
+    "case": "empty",
+    "input": "",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "",
+    "stderr": "event 0: empty or failed stream\n",
+    "passed": true
+  },
+  {
+    "case": "no_case",
+    "input": "init 1\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "",
+    "stderr": "event 0: new case required\n",
+    "passed": true
+  },
+  {
+    "case": "blank",
+    "input": "new a\n\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 1: empty event\n",
+    "passed": true
+  },
+  {
+    "case": "unknown",
+    "input": "new a\nfoo\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 1: unknown or malformed event\n",
+    "passed": true
+  },
+  {
+    "case": "case_name",
+    "input": "new a\"b\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "",
+    "stderr": "event 0: invalid case name\n",
+    "passed": true
+  },
+  {
+    "case": "extra_init",
+    "input": "new a\ninit 1 extra\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 1: unknown or malformed event\n",
+    "passed": true
+  },
+  {
+    "case": "negative_epoch",
+    "input": "new a\ninit -1\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 1: invalid unsigned integer\n",
+    "passed": true
+  },
+  {
+    "case": "epoch_overflow",
+    "input": "new a\ninit 4294967296\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 1: invalid unsigned integer\n",
+    "passed": true
+  },
+  {
+    "case": "negative_time",
+    "input": "new a\ninit 1\nstep -1 0 1 0\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n{\"index\":1,\"case\":\"a\",\"op\":\"init\",\"accepted\":true,\"output\":null,\"state\":{\"epoch\":1,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 2: invalid unsigned integer\n",
+    "passed": true
+  },
+  {
+    "case": "time_overflow",
+    "input": "new a\ninit 1\nstep 18446744073709551616 0 1 0\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n{\"index\":1,\"case\":\"a\",\"op\":\"init\",\"accepted\":true,\"output\":null,\"state\":{\"epoch\":1,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 2: invalid unsigned integer\n",
+    "passed": true
+  },
+  {
+    "case": "bad_double",
+    "input": "new a\ninit 1\nstep 0 nope 1 0\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n{\"index\":1,\"case\":\"a\",\"op\":\"init\",\"accepted\":true,\"output\":null,\"state\":{\"epoch\":1,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 2: invalid double\n",
+    "passed": true
+  },
+  {
+    "case": "bad_bool",
+    "input": "new a\ninit 1\nstep 0 0 2 0\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n{\"index\":1,\"case\":\"a\",\"op\":\"init\",\"accepted\":true,\"output\":null,\"state\":{\"epoch\":1,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 2: invalid boolean\n",
+    "passed": true
+  },
+  {
+    "case": "missing_sample",
+    "input": "new a\ninit 1\nstep 0 0 1 1\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n{\"index\":1,\"case\":\"a\",\"op\":\"init\",\"accepted\":true,\"output\":null,\"state\":{\"epoch\":1,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 2: sample field count\n",
+    "passed": true
+  },
+  {
+    "case": "extra_sample",
+    "input": "new a\ninit 1\nstep 0 0 1 0 1 0 0 0\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n{\"index\":1,\"case\":\"a\",\"op\":\"init\",\"accepted\":true,\"output\":null,\"state\":{\"epoch\":1,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 2: sample field count\n",
+    "passed": true
+  },
+  {
+    "case": "sequence_overflow",
+    "input": "new a\ninit 1\nstep 0 0 1 1 1 18446744073709551616 0 0\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n{\"index\":1,\"case\":\"a\",\"op\":\"init\",\"accepted\":true,\"output\":null,\"state\":{\"epoch\":1,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 2: invalid unsigned integer\n",
+    "passed": true
+  },
+  {
+    "case": "trailing_field",
+    "input": "new a\ninit 1\nstep 0 0 1 1 1 0 0 0 trailing\n",
+    "python_rejected": true,
+    "returncode": 2,
+    "stdout": "{\"index\":0,\"case\":\"a\",\"op\":\"new\",\"accepted\":null,\"output\":null,\"state\":{\"epoch\":0,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n{\"index\":1,\"case\":\"a\",\"op\":\"init\",\"accepted\":true,\"output\":null,\"state\":{\"epoch\":1,\"integral\":0,\"previous\":0,\"last_ns\":null,\"fault\":false,\"target\":null,\"sample\":null}}\n",
+    "stderr": "event 2: unknown or malformed event\n",
+    "passed": true
+  }
+]

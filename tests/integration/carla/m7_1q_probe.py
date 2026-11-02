@@ -30,7 +30,7 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--native', type=Path, required=True)
     p.add_argument('--model', type=Path, required=True)
-    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap','client-loss','native-stall'), default='none')
+    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap','client-loss','native-stall','pose-stale'), default='none')
     p.add_argument('--ticks', type=int, default=400)
     p.add_argument('--solver-work', action='store_true')
     p.add_argument('--compact-work', action='store_true')
@@ -38,9 +38,28 @@ def main():
     p.add_argument('--cameras', action='store_true')
     p.add_argument('--terminal-response', action='store_true')
     p.add_argument('--simulation-continuous', action='store_true')
+    p.add_argument('--speed-loop', action='store_true')
+    p.add_argument('--route-profile', type=Path)
+    p.add_argument('--propulsion-aware', action='store_true')
+    p.add_argument("--speed-terminal",choices=("none","normal-stop","input-loss","stop-protection"),default="none")
     a = p.parse_args()
-    require(150 <= a.ticks <= (6000 if a.simulation_continuous else 950), 'bounded functional horizon')
-    require(not a.simulation_continuous or (a.solver_work and a.scenario and not a.compact_work and a.fault=='none'),
+    require(a.speed_terminal=="none" or (a.speed_loop and a.fault=="none"),"terminal speed scope")
+    from m8_route_contract import load_route, pose_from_snapshot
+    route=load_route(a.route_profile) if a.route_profile else None
+    stop30=route is not None and route['schema']=='m8-normal-stop30-v1'
+    if stop30:
+        require(not a.propulsion_aware and a.fault=='none' and a.speed_terminal=='none','stop30 frozen nominal scope')
+        a.speed_terminal='normal-stop30'
+    feasibility=None
+    if a.propulsion_aware:
+        require(route is not None and route['schema'].startswith('m8-reference-'),'propulsion-aware route scope')
+        from m8_reference_feasibility import require_feasible_route
+        feasibility=require_feasible_route(route)
+    require(not route or (a.simulation_continuous and not a.speed_loop and not a.scenario and a.ticks==route["ticks"] and a.fault in ("none","snapshot","work-missing","pose-stale")), "route scope")
+    require(a.fault!="pose-stale" or route is not None,"pose fault scope")
+    require(150 <= a.ticks <= ((route["ticks"] if route else 6000) if a.simulation_continuous else 950), 'bounded functional horizon')
+    require(not a.speed_loop or (a.simulation_continuous and not a.scenario and a.ticks==4000 and a.fault in ('none','snapshot','work-missing')), 'speed loop scope')
+    require(not a.simulation_continuous or (a.solver_work and (a.scenario or a.speed_loop or route) and not a.compact_work and (a.fault=='none' or a.speed_loop or route)),
             'continuous simulation requires original work/scenario and streaming raw trace')
     require(not a.compact_work or (a.solver_work and a.fault!='client-loss'), 'compact journal requires surviving owner and work')
     require(a.fault!='rgb-drop' or a.cameras, 'RGB fault requires cameras')
@@ -51,7 +70,14 @@ def main():
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(status='FAIL', normal_driving_enabled=False, interval_work_valid=False,
                   mode='native eight-role functional Actual connection', fault=a.fault, cases=[])
-    report['execution_profile']='m7-simulation-time-v1'
+    report['execution_profile']=(route['schema'] if stop30 or route['schema'].startswith('m8-reference-') else 'm8-route-v1') if route else ('m8-speed-v1' if a.speed_loop else 'm7-simulation-time-v1')
+    if route:
+        report['route_profile']=dict(definition=route,sha256=hashlib.sha256(a.route_profile.read_bytes()).hexdigest())
+        (a.output/'frozen-route.json').write_bytes(a.route_profile.read_bytes())
+    report['propulsion_aware']=a.propulsion_aware
+    if feasibility:report['reference_feasibility']=feasibility
+    report['speed_terminal']=a.speed_terminal
+    report['speed_loop']=a.speed_loop
     report['continuous_simulation']=a.simulation_continuous
     report['requested_ticks']=a.ticks
     report['wall_runtime_accepted']=False
@@ -95,7 +121,7 @@ def main():
         report['server_version'] = client.get_server_version()
         case('version', report['client_version'] == report['server_version'] == '294096e-dirty')
         world = client.get_world()
-        case('dedicated_world', world.get_map().name.endswith('/Town03_Opt') and not list(world.get_actors().filter('vehicle.*')))
+        case('dedicated_world', world.get_map().name.endswith('/'+(route['map'] if route else 'Town03_Opt')) and not list(world.get_actors().filter('vehicle.*')))
         original = world.get_settings()
         report['original_settings'] = {k:getattr(original,k) for k in FIELDS}
         settings = world.get_settings()
@@ -106,18 +132,35 @@ def main():
         blueprint = world.get_blueprint_library().find('vehicle.lincoln.mkz_2020')
         blueprint.set_attribute('role_name', 'm7_native_actual_functional')
         spawn = world.get_map().get_spawn_points()[0]
-        report['route_fixture'] = dict(map=world.get_map().name,spawn_index=0,seed=dict(engine_fixed_seed=0,traffic_randomness='none'),
-            weather='ClearNoon',traffic=False,controller='fixed requests; no route following',
+        if route:
+            case('route_map',world.get_map().name.split('/')[-1]==route['map'] and hashlib.sha256(world.get_map().to_opendrive().encode()).hexdigest()==route['xodr_sha256'])
+            first=route['points'][0]
+            spawn=carla.Transform(carla.Location(x=first['x'],y=first['y'],z=first['z']+.3),carla.Rotation(yaw=first['yaw'],pitch=first['pitch']))
+            shift=spawn.transform(carla.Location(x=route['rear_axle_actor_m'][0],y=route['rear_axle_actor_m'][1],z=0))
+            spawn.location.x+=first['x']-shift.x;spawn.location.y+=first['y']-shift.y
+        report['route_fixture'] = dict(map=world.get_map().name,spawn_index=None if route else 0,seed=dict(engine_fixed_seed=0,traffic_randomness='none'),
+            weather='ClearNoon',traffic=False,controller='M8 PurePursuit + SpeedPI' if route else ('M8 SpeedPI; no route following' if a.speed_loop else 'fixed requests; no route following'),
             spawn=dict(x=spawn.location.x,y=spawn.location.y,z=spawn.location.z,
                        roll=spawn.rotation.roll,pitch=spawn.rotation.pitch,yaw=spawn.rotation.yaw),
             opendrive_sha256=hashlib.sha256(world.get_map().to_opendrive().encode()).hexdigest())
         world.set_weather(carla.WeatherParameters.ClearNoon)
         actor = world.spawn_actor(blueprint, spawn)
+        if route:world.tick()  # unbound initialization: obtain original actor snapshot before bind
         if capture: capture.attach(world,actor,carla)
         model_hash = hashlib.sha256(a.model.read_bytes()).hexdigest()
+        if a.speed_loop or route:
+            model=json.loads(a.model.read_text())
+            case('speed_calibration',model['mass_kg']==1696 and all(w['radius_m']==.355 for w in model['wheels']))
         binding = rpc('bind', actor=str(actor.id), application='42', model_sha256=model_hash)
         bound, session, run = binding['locked'], binding['session'], binding['run']
         report['binding'] = binding
+        if route:
+            geometry=rpc('geometry');report['route_geometry']=geometry
+            rear=geometry['geometry']['wheels'][2:]
+            measured=[sum(w['px_rest_actor_m'][j] for w in rear)/2 for j in range(3)]
+            case('route_rear_axle_geometry',geometry['ok'] and geometry['geometry']['valid'] and all(abs(x-y)<.001 for x,y in zip(measured,route['rear_axle_actor_m'])))
+            native_route=a.output/'route.txt'
+            native_route.write_text((('PROFILE '+route['scenario']+('v2' if route['schema']=='m8-reference-v2' else '')+('_AW' if a.propulsion_aware else '')+'\n') if stop30 or route['schema'].startswith('m8-reference-') else '')+''.join(f"{p['x']:.17g} {-p['y']:.17g}\n" for p in route['points']))
         case('compact_work_binding',binding.get('compact_solver_work',False)==a.compact_work)
         case('native_binding', binding['ok'] and binding['effort_profile'] == 'virtual-ev-v1-native-functional' and
              binding['model_sha256'] == model_hash and binding['application'] == '42' and binding['physics']['inputs_zero'])
@@ -129,7 +172,9 @@ def main():
              math.floor(end*1e9+.5) == int(binding['logical_begin_ns']))
         stderr = (a.output/'native.stderr').open('w')
         process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else [])+
-                                   (['--sim-horizon-ms','60000'] if a.simulation_continuous else [])+
+                                   (['--sim-horizon-ms',str(route['ticks']*10 if route else 60000)] if a.simulation_continuous else [])+
+                                   (['--speed-profile',{'none':'v1','normal-stop':'v1-stop','input-loss':'v1-input-loss','stop-protection':'v1-stop-protection'}[a.speed_terminal]] if a.speed_loop else [])+
+                                   (['--route',str(native_route)] if route else [])+
                                    (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else [])+
                                    (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else []),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
@@ -194,15 +239,24 @@ def main():
                     process.stdin.write(packet+'\n')
                     if i==200 and a.fault=='work-duplicate': process.stdin.write(packet+'\n')
                 record['wall_native_begin_ns']=time.monotonic_ns()
+                if route:
+                    require(state is not None,'route requires original ActorSnapshot')
+                    pose=pose_from_snapshot(state.get_transform(),route,carla)
+                    pose.update(actor=actor.id,epoch=42,frame=frame,source_ns=ns)
+                    record['route_pose']=dict(pose)
+                    sent_source=ns-10000000 if i==200 and a.fault=='pose-stale' else ns
+                    pose_line=f"POSE {actor.id} 42 {frame} {sent_source} {pose['x_m']:.17g} {pose['y_m']:.17g} {pose['yaw_rad']:.17g}"
+                    record['pose_input']=pose_line
+                    process.stdin.write(pose_line+'\n')
                 process.stdin.write(line+'\n');process.stdin.flush()
                 require(bool(select.select([process.stdout],[],[],10)[0]), 'native reply timeout')
                 native = json.loads(process.stdout.readline())
                 record['native'] = native
                 record['wall_native_end_ns']=time.monotonic_ns()
-                if i==200 and a.fault in ('work-missing','work-duplicate'):
-                    require(native['status']=='FAIL' and native['next_frame'] is None,'native work fail closed')
+                if i==200 and a.fault in ('work-missing','work-duplicate','pose-stale'):
+                    require(native['status']=='FAIL' and native['next_frame'] is None,'native input fail closed')
                     stopped_frame=frame
-                    report['fault_observed']='native solver work rejected before further model jobs/tick'
+                    report['fault_observed']='native input rejected before further model jobs/tick'
                     break
                 require(native['status'] == 'WHEEL_SHADOW_BARRIER' and native['admission']['ok'], 'native admission')
                 require(native['now_ns'] == ns and native['next_frame'] == frame+1 and native['service_mask'] == 255, 'barrier identity')
@@ -353,8 +407,8 @@ def main():
                     for j in range(4): work_sum[j] += work['motor_work_j'][j]
                     if not work['forward_energy_eligible']: ineligible.append(i)
                 applied = receipt['original_actual']['admitted_actual']
-                for k in ('angle_rad','torque_nm','pressure_pa','oldest_actuator_ns','oldest_dependency_ns','exclusive_expiry_ns','normal','protection'):
-                    require(applied[k] == native['admission'][k], 'server/native admission disagreement '+k)
+                for k in ('angle_rad','torque_nm','pressure_pa','oldest_actuator_ns','oldest_dependency_ns','exclusive_expiry_ns','normal','protection','normal_stop'):
+                    require(applied.get(k,False) == native['admission'].get(k,False), 'server/native admission disagreement '+k)
                 require(applied['empty_init'] == native['admission']['empty'], 'INIT admission')
                 for j,w in enumerate(receipt['physics']['wheels']):
                     require(abs(w['set_drive_nm']-(applied['torque_nm']/2 if j>=2 else 0)) <= 1e-5, 'Actual drive mapping')
@@ -384,6 +438,15 @@ def main():
             rejected = rpc('stage', frame=str(frame+1))
             case('native_profile_rejects_synthetic_stage', not rejected['ok'] and rejected['latched'] and
                  rejected['reason']=='native_actual_only' and rejected['frame']==str(frame))
+            if a.speed_terminal!='none':
+                terminal=native['speed_terminal']
+                if a.speed_terminal in ('normal-stop','normal-stop30'):
+                    case('normal_stop_complete_hv_off',terminal['stop_state']==5 and terminal['stop_fault']==0 and terminal['power_off'] and native['admission']['normal_stop'])
+                elif a.speed_terminal=='stop-protection':
+                    case('stop_hold_protection',native['stop_handoff_ns']>terminal['trigger_ns']>0 and terminal['detection_ns']==native['stop_handoff_ns']+100000000 and native['admission']['protection'] and not terminal['power_off'])
+                else:
+                    case('speed_input_loss_protection',terminal['detection_ns']==terminal['trigger_ns']>0 and native['admission']['protection'] and terminal['speed_fault']==3)
+                report['terminal_response']=terminal
             report['status'] = 'PASS_FUNCTIONAL_NATIVE_SOLVER_WORK' if a.solver_work else 'PASS_FUNCTIONAL_NATIVE_ACTUAL'
         elif a.fault=='protection':
             case('protection_continues_physics',count==a.ticks and normal>100 and normal<200 and empty==4)
@@ -403,7 +466,7 @@ def main():
         elif a.fault=='native-stall':
             case('host_stall_before_next_tick',count==200 and stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
             report['status']='PASS_EXPECTED_HOST_LIVENESS_STOP'
-        elif a.fault in ('credit','command','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy'):
+        elif a.fault in ('credit','command','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','pose-stale'):
             case('server_rejection_before_next_tick', stopped_frame is not None and rpc('describe')['frame']==str(stopped_frame))
             report['status'] = 'PASS_EXPECTED_SERVER_REJECTION'
         else:
@@ -479,7 +542,7 @@ def main():
                 process.stdin.close()
                 report['native_exit'] = process.wait(timeout=10)
                 process.stdout.close()
-                if report['status'].startswith('PASS'): case('native_expected_exit', report['native_exit']==(2 if a.fault=='wall-gap' else 1 if a.fault in ('work-missing','work-duplicate') else 0))
+                if report['status'].startswith('PASS'): case('native_expected_exit', report['native_exit']==(2 if a.fault=='wall-gap' else 1 if a.fault in ('work-missing','work-duplicate','pose-stale') else 0))
             if world and original and not bound:
                 if actor: actor.destroy()
                 world.apply_settings(original)

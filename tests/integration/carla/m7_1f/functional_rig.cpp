@@ -1,4 +1,5 @@
 #include "functional_rig.hpp"
+#include "reference_feasibility.hpp"
 #include "wall_rig.hpp"
 #include "m4_owner_network.hpp"
 #include "run_lease_issuer.hpp"
@@ -10,6 +11,23 @@
 namespace stratadrive::m7_functional {
 namespace {
 using Role=session::Role;
+central::AllocationConfig allocation(bool speed) {
+    central::AllocationConfig c;
+    if(speed) {c.mass_kg=1696;c.wheel_radius_m=.355;c.wheelbase_m=2.860470886230469;}
+    return c;
+}
+central::NormalStopConfig stop_configuration(RouteProfile profile) {
+    central::NormalStopConfig c;
+    if(profile==RouteProfile::Straight30Stop)c.braking_timeout_ns=10000000000ULL;
+    return c;
+}
+double speed_target(Time elapsed) {
+    const double t=static_cast<double>(elapsed)*1e-9;
+    if(t<10)return (10/3.6)*t/10;
+    if(t<20)return 10/3.6;
+    if(t<30)return (10/3.6)*(30-t)/10;
+    return 0;
+}
 void require(bool value,const char* why) {if(!value)throw std::runtime_error(why);}
 remote::OwnerMessage wire(const remote::OwnerMessage& message) {
     const auto packet=remote::encode_owner_message(message);require(bool(packet),"encode");
@@ -75,7 +93,20 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::array<runtime::LatestSnapshot<simulation::OwnerActuation>,5> outputs;
     simulation::BmsGateChannel bms;
     central::AsyncCoordinatorPort port{clock,gates[7],zones[0],zones[1],central::CommandRenewal::Host10ms};
-    central::VehicleCoordinator core{port,{true,central::CommandRenewal::Host10ms}};
+    const central::NormalStopConfig stop_settings;
+    central::VehicleCoordinator core;
+    central::SpeedRequest speed_request;
+    const bool antiwindup;
+    bool saturation_used=false;
+    std::optional<central::PropulsionSelection> speed_selection;
+    const bool speed_enabled;
+    Time speed_origin=0;
+    RouteSpeedProfile route_speed;
+    std::optional<SpeedControlAudit> speed_audit;
+    std::unique_ptr<central::PurePursuit> pursuit;
+    std::deque<central::RoutePose> pending_poses;
+    std::optional<central::RoutePose> pose;
+    std::optional<central::PursuitOutput> lateral_audit;
     std::array<std::unique_ptr<zone::AsyncZoneOwner>,2> zone;
     std::array<std::unique_ptr<simulation::m4_detail::ZoneSession>,2> zone_sessions;
     std::array<std::unique_ptr<simulation::AsyncLeafOwner>,5> leaf;
@@ -96,6 +127,8 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::uint32_t lifecycle_seq=0,vehicle_seq=0;
     unsigned release_mask=0;std::size_t controller_releases=0;
     bool running=false,stop_credit=false,drop_actual=false;int omitted=-1;
+    SpeedTerminal terminal_mode=SpeedTerminal::None;
+    Time trigger_ns=0,detection_ns=0,handoff_ns=0;std::uint32_t stop_seq=0;
     bool protection_requested=false,terminal_response=false;
     Time protection_since=0;
     bool wheel_mode=false;
@@ -107,13 +140,15 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     WallExecutionWatch* watch=nullptr;
     std::array<DeliveredCapture<transport::Feedback>,2> feedback_capture;
     std::array<DeliveredCapture<transport::LeafRequest>,5> command_capture;
+    std::array<DeliveredCapture<transport::LeafReport>,5> result_capture;
     std::array<std::optional<session::Ack>,8> release_acks;
 
-    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0,Time horizon=10000,Time model_step=10000000,Time hv_dependency_ns=30000000):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),horizon_ms(horizon),start(initial),next_io(initial),next_physical(initial),export_actual(exporting) {
+    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0,Time horizon=10000,Time model_step=10000000,Time hv_dependency_ns=30000000,bool speed=false,const std::vector<central::RoutePoint>& route={},RouteProfile route_profile=RouteProfile::Curve30,bool external_aw=false):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),horizon_ms(horizon),start(initial),next_io(initial),next_physical(initial),stop_settings(stop_configuration(route_profile)),core(port,{true,central::CommandRenewal::Host10ms},allocation(speed),stop_settings),speed_request(.355,external_aw),antiwindup(external_aw),speed_enabled(speed),route_speed(route_profile),export_actual(exporting) {
+        if(!route.empty())pursuit=std::make_unique<central::PurePursuit>(route,2.860470886230469);
         clock.logical=initial;
         if(export_actual) {
             for(unsigned i=0;i<2;++i)zones[i].feedback.delivery(&feedback_capture[i]);
-            for(unsigned i=0;i<5;++i)leaves[i].work.delivery(&command_capture[i]);
+            for(unsigned i=0;i<5;++i) {leaves[i].work.delivery(&command_capture[i]);leaves[i].reports.delivery(&result_capture[i]);}
         }
         if(wall)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application,model_initial?m7_external::PlantExecution::CarlaObservedWork:m7_external::PlantExecution::DeferredObservedWork,model_initial,model_step);
         else if(mode!=PlantMode::StationaryFixture)external=std::make_unique<m7_external::ActuatorElectrical>(initial,s.application,mode==PlantMode::ExternalSolverWork);
@@ -126,6 +161,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         }
         for(unsigned i=0;i<5;++i) {
             simulation::LeafOwnerConfig config;
+            if(speed_enabled) config.input_event_capacity=static_cast<std::size_t>(horizon_ms)+12000;
             if(i==2 && model_initial) {
                 config.drive_sensor_ingress=simulation::DriveSensorIngress::BeforeIo;
                 config.hv_dependency_age_ns=hv_dependency_ns;
@@ -141,7 +177,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     }
     Time now_ns() noexcept override {return clock.now_ns();}
     bool quiesce_central() noexcept override {gates[7].close();core.request_protection(now_ns());port.protect();return true;}
-    bool commit_central(central::CoordinatorSession s) noexcept override {return core.start_session(s);}
+    bool commit_central(central::CoordinatorSession s) noexcept override {return core.start_session(s) && (!speed_enabled || speed_request.start_session(s.epoch,s.enable_ns)) && (!pursuit || pursuit->start_session(s.epoch,s.enable_ns));}
     void protect_central() noexcept override {gates[7].close();core.request_protection(now_ns());port.protect();}
     bool send(const session::Control& c) noexcept override {
         const auto i=static_cast<unsigned>(c.role);
@@ -153,6 +189,11 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     }
     void cycle(Time now,const std::function<void()>& completed_work={}) {
         clock.logical=now;
+        // Fixed SIL injection: 100ms after original handoff ACK, before HV-off.
+        if(terminal_mode==SpeedTerminal::StopProtection && handoff_ns && !protection_since && now>=handoff_ns+100*ms) {
+            detection_ns=now;protection_since=now;protect_central();
+            for(auto& p:participants)p->select_protection();
+        }
         if(protection_requested && !protection_since && !wall_mode) {
             require(running && core.decision().normal_armed,"protection requires established normal session");
             protection_since=now;
@@ -211,6 +252,9 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         if(wall_mode && protection_requested)select_wall_protection(now,"wall protection request");
         while(!pending_wheels.empty() && pending_wheels.front().source<=now) {
             wheel=pending_wheels.front();pending_wheels.pop_front();
+        }
+        while(!pending_poses.empty() && pending_poses.front().source_ns<=now) {
+            pose=pending_poses.front();pending_poses.pop_front();
         }
         // One publisher of each actor channel. Pending observations cannot feed
         // earlier subjobs; a held sample keeps its original source AND oldest.
@@ -281,11 +325,17 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             else if(!wall_mode)require(p->allowed(),"native credit/gate closed");
         }
         if(protection_since)return;
-        if(now>=next_controller) {
+        const bool controller_due=now>=next_controller;
+        if(controller_due && speed_origin && now-speed_origin>=(terminal_mode==SpeedTerminal::NormalStop30?35000:15000)*ms && terminal_mode!=SpeedTerminal::None) {
+            if(!trigger_ns)trigger_ns=now;
+            if(terminal_mode==SpeedTerminal::NormalStop || terminal_mode==SpeedTerminal::StopProtection || terminal_mode==SpeedTerminal::NormalStop30)
+                require(core.receive_stop({{scope.application,stop_seq++,now,now+60*ms},0},now)==central::CoordinatorReceive::Accepted,"normal stop request rejected");
+        }
+        if(controller_due && !core.decision().stopping) {
             // Upstream Controller request remains 20ms. Existing Host10ms child
             // allocation/permission renewal is retained, not a new Controller rate.
             core.receive_lifecycle({{scope.application,lifecycle_seq++,now,now+60*ms},can::BmsPowerAction::Enable},now);
-            if(core.decision().normal_armed) {
+            if(core.decision().normal_armed && !speed_enabled) {
                 RequestPhase request{10000,.2,.02,0,false};
                 if(!profile.empty()) {
                     const auto it=std::find_if(profile.begin(),profile.end(),[&](const RequestPhase& phase) {
@@ -296,12 +346,46 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
                 core.receive_vehicle({scope.application,vehicle_seq++,now,now+60*ms,
                     request.acceleration,request.curvature,request.braking,request.hold},now);
             }
-            next_controller=wall_mode?next_controller+((now-next_controller)/(20*ms)+1)*(20*ms):next_controller+20*ms;
-            ++controller_releases;
+        }
+        if(controller_due) {next_controller=wall_mode?next_controller+((now-next_controller)/(20*ms)+1)*(20*ms):next_controller+20*ms;++controller_releases;}
+        if(speed_enabled && core.decision().normal_armed && controller_due && (!trigger_ns || terminal_mode==SpeedTerminal::SpeedInputLoss)) {
+                if(!speed_origin)speed_origin=now;
+                const auto feedback=port.feedback();
+                const auto permission=port.current_permission();
+                const auto* grant=permission?std::get_if<can::BmsDriveGrant>(&permission->message.content):nullptr;
+                const bool allowed=core.decision().management.normal_allowed && grant &&
+                    permission->message.epoch==scope.application &&
+                    grant->permission==can::BmsDrivePermission::AllowNormal && now<grant->expires_at_ns;
+                if(pursuit) {
+                    if(!pose) {protect_central();require(false,"missing route pose");}
+                    require(allowed && feedback.rear.drive_actual && feedback.rear.drive_actual->wheel_speed,"route speed input missing");
+                    lateral_audit=pursuit->step(now,*pose,feedback.rear.drive_actual->wheel_speed->value_rad_s*.355);
+                    if(!lateral_audit) {protect_central();require(false,"route control rejected");}
+                }
+                const auto target=pursuit?route_speed.step(now-speed_origin,lateral_audit->progress_m):speed_target(now-speed_origin);
+                speed_selection=antiwindup && speed_audit?core.decision().allocation.propulsion_selection:std::nullopt;
+                saturation_used=antiwindup && (!speed_audit || (speed_selection && speed_selection->limited));
+                auto derived=speed_request.step_derived(now,target,trigger_ns?std::nullopt:feedback.rear.drive_actual,allowed,speed_selection);
+                if(!derived && terminal_mode==SpeedTerminal::SpeedInputLoss && trigger_ns) {
+                    detection_ns=now;protection_since=now;protect_central();for(auto& p:participants)p->select_protection();return;
+                }
+                if(derived && pursuit) {
+                    derived->request.curvature_inv_m=lateral_audit->curvature_inv_m;
+                    derived->input.source_time_ns=std::min(derived->input.source_time_ns,pose->source_ns);
+                    derived->input.expires_at_ns=derived->input.source_time_ns+60*ms+1;
+                    derived->request.expires_at_ns=std::min(derived->request.expires_at_ns,derived->input.expires_at_ns);
+                }
+                const auto* request=derived?&derived->request:nullptr;
+                if(!request) {protect_central();require(false,"speed request rejected");}
+                require(core.receive_vehicle(*request,now,derived->input)==central::CoordinatorReceive::Accepted,"speed request admission");
+                speed_audit=SpeedControlAudit{now,speed_origin,speed_request.state().sample->source_ns,request->expires_at_ns,derived->input.expires_at_ns,request->sequence,
+                    target,speed_request.state().sample->speed_mps,request->acceleration_mps2,speed_request.state().integral};
+
         }
         const bool due=now>=next_management;
         if(due)next_management=wall_mode?next_management+((now-next_management)/(10*ms)+1)*(10*ms):next_management+10*ms;
         core.tick(port.feedback(),now,due);
+        if((terminal_mode==SpeedTerminal::StopProtection || terminal_mode==SpeedTerminal::NormalStop30) && !handoff_ns && core.decision().stop.state==central::NormalStopState::PowerDown)handoff_ns=now;
         if(wall_mode && core.decision().fault!=central::CoordinatorFault::None)select_wall_protection(now,"native control protection");
         else require(core.decision().fault==central::CoordinatorFault::None,"native control protection");
     }
@@ -326,7 +410,14 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         return report(observed);
     }
     Report report(Time observed) {
-        Report r;r.now=observed;r.release_mask=release_mask;r.armed=core.decision().normal_armed;
+        Report r;r.terminal_mode=terminal_mode;r.trigger_ns=trigger_ns;r.detection_ns=detection_ns;r.handoff_ns=handoff_ns;r.stop_configuration=stop_settings;
+        r.speed_fault=static_cast<int>(speed_request.fault());r.stop_state=core.decision().stop.state;r.stop_fault=static_cast<int>(core.decision().stop.fault);r.power_off=core.decision().management.power_off_confirmed;
+        r.propulsion_antiwindup=antiwindup;r.saturation_used=saturation_used;r.speed_selection=speed_selection;
+        r.allocation_selection=core.decision().allocation.propulsion_selection;
+        r.speed_control=speed_audit;r.lateral_control=lateral_audit;r.now=observed;r.release_mask=release_mask;r.armed=core.decision().normal_armed;
+        if(pursuit && speed_audit)r.route_reference=RouteReferenceAudit{
+            route_speed.requested_mps(speed_audit->target_mps),
+            route_speed.slow_ns(),route_speed.stop_ns()};
         if(external && external->last_success()>start)r.electrical=external->audit();
         if(external) {r.coils=external->applied_coils();r.coil_source=external->applied_coil_source();r.electrical_acquired=external->electrical_acquisition();}
         if(external && external->sensors() && external->sensors()->drive.hv) {
@@ -343,6 +434,14 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         for(unsigned i=0;i<5;++i) {r.commands[i]=leaf[i]->received_commands();r.leaf_body[i]=leaf[i]->last_body_ns();}
         if(const auto& lease=participants[7]->credit.accepted();lease){r.lease_source=lease->source_time_ns;r.lease_expiry=lease->expires_at_ns;}
         const auto feedback=port.feedback();
+        if(terminal_mode!=SpeedTerminal::None && feedback.rear.power_status) {
+            const auto& m=feedback.rear.power_status->message;
+            const auto f=feedback_capture[1].find([&](const transport::Feedback& v) {
+                const auto* raw=std::get_if<can::BmsFrame>(&v);const auto x=raw?can::decode_bms_frame(*raw):std::nullopt;
+                return x && x->kind==m.kind && x->epoch==m.epoch && x->sequence==m.sequence && x->source_time_ns==m.source_time_ns;
+            });
+            if(f)r.power_status=remote::encode_owner_message({Role::RearZone,Role::CentralIngress,domain,*f});
+        }
         if(feedback.rear.drive_actual) {
             const auto& drive=*feedback.rear.drive_actual;
             if(drive.wheel_speed)r.returned_wheel=WheelAudit{drive.wheel_speed->source_time_ns,drive.wheel_speed->value_rad_s};
@@ -399,6 +498,16 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
                 if((message->local_state!=can::ActuatorLocalState::Normal && message->local_state!=can::ActuatorLocalState::Degraded) || message->origin!=can::ActuatorOrigin::NormalPath)e.normal=false;
             };
             capture(0,feedback.front.steering_actual);capture(1,feedback.front.brake_actual);capture(2,feedback.rear.drive_actual);
+            if((terminal_mode==SpeedTerminal::NormalStop || terminal_mode==SpeedTerminal::StopProtection || terminal_mode==SpeedTerminal::NormalStop30) && core.decision().stop.state>=central::NormalStopState::HandoffPending) {
+                for(unsigned i=0;i<3;++i) {
+                    const auto q=command_capture[i].find([](const transport::LeafRequest& q){return q.operation==transport::LeafOperation::Stop;});
+                    if(!q)continue;
+                    const auto a=result_capture[i].find([&](const transport::LeafReport& v){const auto* a=std::get_if<transport::LeafResult>(&v);return a && a->epoch==q->epoch && a->token==q->token && a->operation==q->operation && a->accepted;});
+                    if(!a)continue;
+                    e.stop_requests[i]=remote::encode_owner_message({i<2?Role::FrontZone:Role::RearZone,static_cast<Role>(i+2),domain,*q});
+                    e.stop_results[i]=remote::encode_owner_message({static_cast<Role>(i+2),i<2?Role::FrontZone:Role::RearZone,domain,*a});
+                }
+            }
             const auto permission=port.current_permission();
             if(permission) {
                 const auto q=command_capture[2].find([&](const transport::LeafRequest& q) {
@@ -420,7 +529,7 @@ FunctionalRig::FunctionalRig(Scope scope,std::uint32_t actor,PlantMode mode,bool
     // packet can choose a new physical plant identity or an axle calibration.
     require(!actor || scope.plant==7,"wheel fixture plant binding");
     require(mode==PlantMode::StationaryFixture || actor!=0,"external plant requires wheel binding");
-    require(horizon>=10000 && horizon<=60000 &&
+    require(horizon>=10000 && (horizon<=60000 || horizon==80000) &&
             (horizon==10000 || (mode==PlantMode::ExternalSolverWork && exporting)),"bounded simulation-only horizon");
 }
 FunctionalRig::~FunctionalRig()=default;
@@ -436,7 +545,10 @@ Report FunctionalRig::observe(const Observation& o,const WheelSample& wheel,cons
 }
 Report FunctionalRig::observe_impl(const Observation& o,const std::optional<WheelSample>& wheel) {
     try {
+        require(horizon_ms_!=80000 || (!route_.empty() && (route_profile_==RouteProfile::Combined || route_profile_==RouteProfile::CombinedV2)),"extended route scope");
         const auto now=clock_.accept(o);
+        require(bool(pose_)==!route_.empty(),"missing/unexpected route pose");
+        if(pose_)require(pose_->sequence==o.frame && pose_->source_ns==now,"route pose identity/time");
         require(bool(wheel)==bool(wheel_actor_),"missing/unbound wheel source");
         if(wheel) {
             require(wheel->actor==wheel_actor_ && wheel->frame==o.frame &&
@@ -446,7 +558,12 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         }
         const bool initial=!native_;
         require(plant_mode_==PlantMode::ExternalSolverWork ? (initial?!work_:bool(work_)) : !work_,"missing/unexpected solver work");
-        if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_,false,0,horizon_ms_);
+        if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_,false,0,horizon_ms_,10000000,30000000,speed_profile_,route_,route_profile_,antiwindup_);
+        native_->terminal_mode=terminal_mode_;
+        if(pose_) {
+            require(native_->pending_poses.size()<2,"pose pending overflow");
+            native_->pending_poses.push_back(*pose_);pose_.reset();
+        }
         native_->profile=profile_;
         native_->controller_phase=controller_phase_;
         native_->watch=watch_;
@@ -489,7 +606,7 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
     }
 }
 void FunctionalRig::request_profile(std::vector<RequestPhase> phases) {
-    require(!native_ && !phases.empty() && phases.size()<=32,"profile must be bounded and set before INIT");
+    require(!native_ && !speed_profile_ && !phases.empty() && phases.size()<=32,"profile must be bounded and set before INIT");
     Time previous=0;
     for(const auto& p:phases) {
         require(p.end_ms>previous && p.end_ms<=horizon_ms_ && std::isfinite(p.acceleration) &&
@@ -499,9 +616,37 @@ void FunctionalRig::request_profile(std::vector<RequestPhase> phases) {
     }
     profile_=std::move(phases);
 }
+void FunctionalRig::speed_profile(SpeedTerminal terminal) {
+    require(terminal==SpeedTerminal::None || terminal==SpeedTerminal::NormalStop || terminal==SpeedTerminal::SpeedInputLoss || terminal==SpeedTerminal::StopProtection,"unknown terminal profile");
+    require(!native_ && profile_.empty() && !speed_profile_ && export_actual_ &&
+        plant_mode_==PlantMode::ExternalSolverWork && horizon_ms_==60000,"speed profile requires solver simulation scope");
+    speed_profile_=true;terminal_mode_=terminal;
+}
 void FunctionalRig::controller_phase(Time delay) {
     require(!native_ && delay<=20*ms && delay%200000==0,"controller phase must be set before INIT on existing ingress grid");
     controller_phase_=delay;
+}
+void FunctionalRig::route_profile(std::vector<central::RoutePoint> points,RouteProfile profile,bool antiwindup) {
+    require(profile==RouteProfile::Curve30 || profile==RouteProfile::Straight30 || profile==RouteProfile::Combined || profile==RouteProfile::CombinedV2 || profile==RouteProfile::Straight30Stop,"unknown route profile");
+    require(profile!=RouteProfile::Straight30Stop || !antiwindup,"stop30 uses frozen v1 PI");
+    central::PurePursuit checked(points,2.860470886230469);
+    if(antiwindup) {
+        const auto c=allocation(true);
+        require(central::inertial_ramp_feasible(0,30/3.6,profile==RouteProfile::Combined?10:20,
+            c.mass_kg,c.wheel_radius_m,c.max_propulsion_nm,c.max_service_braking_nm),"infeasible startup reference");
+        const bool combined=profile==RouteProfile::Combined || profile==RouteProfile::CombinedV2;
+        require(central::inertial_ramp_feasible(30/3.6,combined?20/3.6:0,combined?6:15,
+            c.mass_kg,c.wheel_radius_m,c.max_propulsion_nm,c.max_service_braking_nm),"infeasible braking reference");
+        if(combined)require(central::inertial_ramp_feasible(20/3.6,0,8,c.mass_kg,c.wheel_radius_m,c.max_propulsion_nm,c.max_service_braking_nm),"infeasible stop reference");
+    }
+    require(!native_ && profile_.empty() && !speed_profile_ && export_actual_ &&
+        plant_mode_==PlantMode::ExternalSolverWork && horizon_ms_==((profile==RouteProfile::Combined || profile==RouteProfile::CombinedV2)?80000U:60000U),"route profile scope");
+    speed_profile_=true;route_profile_=profile;route_=std::move(points);antiwindup_=antiwindup;
+    if(profile==RouteProfile::Straight30Stop)terminal_mode_=SpeedTerminal::NormalStop30;
+}
+void FunctionalRig::pose(central::RoutePose sample,std::uint32_t actor) {
+    require(!route_.empty() && !pose_ && actor==wheel_actor_ && sample.epoch==scope_.application,"route pose binding");
+    pose_=sample;
 }
 void FunctionalRig::omit_role(int role) {omitted_=role;}
 void FunctionalRig::stop_credit(bool value) {stop_credit_=value;}

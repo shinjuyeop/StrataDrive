@@ -4947,3 +4947,275 @@ M6 소스와 기본30ms profile은 변경하지 않으며 기존 실패를 재�
 선행 조건으로 추가하지 않는다. OEM/고속·영상·장시간 적합성은 별도다.
 [개정 계약과 검증 범위](../interfaces/carla-plant-adapter.md#carla-파생-hv-입력-예산-재조정),
 [현재 판정](../project-status.md)을 따른다.
+
+<a id="adr-0067"></a>
+
+## ADR-0067: 종방향 PI의 수작업 C++ component와 독립 replay
+
+Date: 2026-10-29. Status: **M8 첫 component 구현·검증 결정 / 차량 통합 후속**.
+
+사용자가 M8 시작과 모델 선택 논의 후 진행을 요청했다. 첫 작업은 이미 MIL을 통과한
+`m6-pi-v1`의 동작을 고정하고 C++17 순수 component로 이식하는 것이다.
+기존 Python 모델을 독립 기준으로 유지하며 수작업 구현을 자동 생성 코드로 표시하지 않는다.
+
+정수 표현 영역·binary64 연산 순서·고장 우선순위·INIT·절대/상대 오차와
+고정 vector family를 [사전 protocol](../test-plan/longitudinal-equivalence-protocol.md)에 결정했다.
+공통 입력을 파일로 동결해 두 구현이 각각 읽고, 정상 수치와 invalid/상태를 모두 비교한다.
+CMake에서 독립 Python replay는 명시적 opt-in이며 production library는 Python/plant/SDK에 의존하지 않는다.
+
+이는 TBD-16의 이 component에 한정한 결정이다. 20ms PI와 runtime 갱신 주기,
+실제 speed source·session epoch, permission과 VehicleRequest·NormalStop의 연결은
+차량 폐루프에서 별도 설계·검증한다. 모델의60ms age는 실제 Drive30ms 기준을 대체하지 않는다.
+[실행 근거](../test-plan/evidence/m8_speed_pi/README.md)와 [현재 상태](../project-status.md)를 따른다.
+
+
+<a id="adr-0068"></a>
+
+## ADR-0068: 기존 owner 경로의 SimpleVehicle 논리 시간 속도 폐루프
+
+Date: 2026-10-29. Status: **M8 SimpleVehicle 기능 통합 / CARLA·wall 후속**.
+
+사용자가 component 동등성 다음 단계 진행을 요청했다. `SpeedRequest`를 Central에
+두고 기존 session/permission/VehicleCoordinator→Zone→Leaf→Actual 경로를 재사용한다.
+초기 단계의 transport는 in-process mailbox이며 실제 SOME/IP/RunLease 수용으로 세지 않는다.
+
+제어 입력은 trusted current Drive Actual의 wheel source이고 physical truth는 사후
+검사에만 쓴다. Wire에 별도 wheel sequence/physical epoch가 없으므로 application epoch와
+원래 acquisition timestamp cursor를 사용한다. 매20ms 새 취득을 요구하고 요청 source와
+expiry를 그 취득에 묶는다. 별도 wire 필드를 추가하거나 age30ms를 늘리지 않는다.
+20ms 제어/10ms allocation을 분리하며 정상0 목표는 명시적 hold, profile 종료는 NormalStop이다.
+
+첫 실행은 제어와 Drive publish의 동일 위상에서 한 주기 전 샘플을 사용해 expiry 보호를
+선택했다. 실패를 보존하고 제어 시작을 allocation release+1ms로 옮겼다. age/expiry·
+성능 기준·PI 계수는 그대로다. 장시간 trace는 시작 전 용량을 확보하고 고갈은 실패 처리한다.
+회생 가능한 물리 energy/SOC에 기존 무회전 fixture의 단조 감소 검사를 적용하지 않는다.
+VehicleEvModel의 매 step 보존 gate와 독립 vehicle balance 검사를 사용한다.
+
+[프로토콜](../test-plan/speed-loop-protocol.md), [실행 근거](../test-plan/evidence/m8_speed_loop/README.md),
+[현재 상태](../project-status.md)를 따른다. 초기 입력 시각의 보수적 매핑은 더 느린 센서나
+wall jitter에 대한 일반 해법이 아니며 후속 CARLA 매핑에서 따로 검증한다.
+
+<a id="adr-0069"></a>
+
+## ADR-0069: CARLA 속도 요청의 생성 시각과 센서 의존성 분리
+
+Date: 2026-10-29. Status: **M8 V1 저속 simulation-time 연결 검증 / 경로·Reference 후속**.
+
+사용자가 SimpleVehicle 다음 단계 진행을 요청했다. V1의1696kg/0.355m를 명시적으로
+선택하며 기본1000kg/0.3m와 Python/C++ PI 계수는 유지한다. CARLA의 원래 wheel을
+trusted Drive Actual로 받아 기존20ms Controller에서 속도 요청을 계산한다.
+
+초기 sensor-root30ms 매핑은 합성 native admission의 frame81에서 다음10ms interval을
+덮지 못했다. 원천 취득과 계산 요청을 같은 시각으로 취급하면20ms 제어와10ms ECU
+Actual 전달 지연을 수용하지 못한다. 실패와202개 위상 진단을 보존하고 실제 CARLA
+실행 전에 [프로토콜](../test-plan/carla-speed-protocol.md)을 개정했다.
+
+`step_derived`는 request.source를 실제 계산 release로, 별도 typed input.source를
+원래 wheel acquisition으로 둔다. 현재 feedback 수신과 request age는30ms,
+input validity는 기존 PI 모델의60ms다. request expiry는 두 경계의 최솟값이다.
+Allocation은 input의 session/future/age/expiry와 중복 mutation·frozen cursor를 검사하고,
+기존 CommandContext oldest/expiry로 전달한다. 생성 시각을 바꿔 원천을 갱신하지 않으며
+wire ABI·server admission·ECU 주기·permission/command age를 바꾸지 않는다.
+이60ms는 이 기능 profile의 engineering 계약이며 다른 ODD나 wall 적합성을 뜻하지 않는다.
+
+횡제어가 아직 없으므로 첫 실제 시험은40초0→10→0km/h로 제한했다. body와 control wheel을
+원래 취득 시각에 맞춰 별도 판정하고 native wire/solver work/EV 보존을 독립 감사했다.
+Snapshot/work 누락은 다음 tick 차단으로 판정하며 실제 차량 제동 완료로 세지 않는다.
+종료는 정지·hold 뒤 barrier pause/reset/close이며 NormalStop HV-off는 후속이다.
+[원본·재현·검증](../test-plan/evidence/m8_carla_speed/README.md), [현재 상태](../project-status.md)를 따른다.
+
+<a id="adr-0070"></a>
+
+## ADR-0070: 고정 곡선과 rear-axle Pure Pursuit의 첫 CARLA 연결
+
+Date: 2026-10-29. Status: **M8 구현 / 단일 곡선 simulation-time 검증**.
+
+기존 Town03의54m 후보로는30km/h plateau settling5s+평가10s를 확보할 수 없다.
+로컬 OpenDRIVE에서 Town04의 교차로 없는 lane-1 경로를 선택해721점·map hash·시작 pose·
+completion300m·0→30→0 target을 실행 전에 고정했다. 전체 S01–S03 수용은 아니다.
+
+첫 횡제어는 독립 C++ Pure Pursuit다. Snapshot 원점을 그대로 쓰지 않고 live V1 geometry의
+rear-axle offset을 full rotation으로 변환한다. 이 ActorSnapshot은 명시적인 SIL
+localization fixture이며 인지나 localization 구현으로 세지 않는다. 고정 경로와 속도
+profile도 Planner의 구현으로 세지 않는다.
+
+Pose는 wheel과 같은 원본 frame/source를 가져야 하며 native release보다 미래인
+snapshot을 미리 소비하지 않는다.20ms 계산은 기존 VehicleRequest의 curvature로
+전달하고 wheel/pose 중 가장 오래된 input dependency를 command context에 보존한다.
+Allocation은 실제 wheelbase2.860470886230469m를 사용한다. 직접 actuator setter,
+source restamp, permission·age·solver 경계 변경은 없다.
+
+독립 감사는 원본 ActorSnapshot에서 rear-axle·cross-track·heading을 다시 계산하며,
+20Hz nearest-rank P95와 곡선 plateau10s,300m 완료,100Hz body/50Hz wheel speed,
+control→child→Actual→solver→single EV를 함께 판정한다. pose source 불일치는 다음
+tick 차단으로 시험한다. 결과와 실패 이력은 [실행 근거](../test-plan/evidence/m8_route/README.md),
+상세 계약은 [protocol](../test-plan/carla-route-protocol.md)을 따른다.
+
+30km/h 첫 장시간 실행에서 coupled observed-work audit의 누적값 차분 정밀도 손실을
+발견했다. 실제 EV 입력 구간 적분량을 직접 기록하도록 수정하며 누적 EV state와 기존
+1e-11J 구간 감사 허용오차를 유지한다. 재현 단위시험과 실패 원본을 보존한다.
+맵 초기 로딩 실패와 설정 복원 중 UE renderer SIGSEGV도 별도 실패이며, 후속 실행의
+정상 종료만으로 엔진 문제 해결을 주장하지 않는다.
+
+<a id="adr-0071"></a>
+
+## ADR-0071: S01/S03 위치 기반 속도 fixture와 구동 상한에 맞춘 v2
+
+Date: 2026-10-30. Status: **고정 Town06 S01/S03 simulation-time 검증 / 전체 Reference 후속**.
+
+Town06 road40의 non-junction Driving lane에서 충분히 긴 직선을 선택했다.
+S01은 기존20s startup/30km/h plateau/정지 profile을 사용한다. S03은 직선→곡선→직선과
+위치 기반20km/h 요청을 별도 fixture로 고정한다. 매20ms의 현재 검증된 rear-axle
+projection으로 요청 event를 한 번 latch하고, 요청값과 연속 target을 각각 기록한다.
+독립 감사는 marker 시각을 신뢰하지 않고 원본 ActorSnapshot과 control release에서
+다시 계산한다. 기존 pose/wheel provenance·PI·allocation·NoDrive320·single EV는 유지한다.
+80s horizon은 S03 profile에만 한정하며 다른 simulation/wall 경로의 상한을 늘리지 않는다.
+
+첫 S03 v1의0→30km/h10s는 관성 토크만501.733Nm가 필요해 기존300Nm 상한을 넘었다.
+실제8000구간을 마쳤으나 첫 plateau body5.32610/wheel4.97676km/h 오차로 FAIL이다.
+주행 완료·곡선 성능·에너지 정산 통과로 이 실패를 상쇄하지 않는다.
+
+별도 schema/header/hash의 v2를 실행 전에 고정했다. S01에서 검증한20s startup과
+50m 더 긴 시작 직선으로 변경하고 첫 plateau[25,35)s, 감속230m, 정지380m,
+완료395m를 사용한다. 감속6s·정지8s·두 번째 plateau와 모든 성능 기준은 그대로다.
+PI/최대 토크를 변경하거나 v1 평가 window를 사후 이동시키지 않는다. 가용력에 맞는
+일반 reference 검증과 하위 구동 포화 feedback/anti-windup은 별도 후속 작업이다.
+
+S01과 S03 v2 모두 원본20Hz 경로·100Hz body·50Hz wheel 평가, command/Actual lineage,
+solver work/single EV 정산·최종 wheel 정지·서버 종료를 통과했다. v2 pose-stale는
+200 physics/199 settlements 후 다음 tick 차단을 확인했으며 실제 제동/HV-off 수용은 아니다.
+S01과 S03 v1은 첫 binary, S03 v2와 결함은 개정 binary를 사용하며 각각 source/실행 hash를
+보존한다. [사전 protocol](../test-plan/carla-reference-protocol.md),
+[실행 원본·판정](../test-plan/evidence/m8_reference/README.md)을 따른다.
+Planner/localization·전체 Reference/M8·wall 실시간과 UE renderer 근본 원인은 OPEN이다.
+
+<a id="adr-0072"></a>
+
+## ADR-0072: 이전 추진 배분 선택을 이용한 PI 적분 억제와 관성 필요조건
+
+Date: 2026-11-01. Status: **선택형 v2와 고정 S03 simulation-time 검증**.
+
+하위 배분300Nm/전력/제동 해제 제한은 PI 자체의 가속도·slew 제한으로 표현되지 않는다.
+성공한 배분에 원래 parent request/epoch/selection 시각·요청/선택 양수 토크를 기록하고,
+다음20ms 제어에서 정확히 직전 요청의 이력을 검사한다. 선택값은 CAN 양자화 전 값이다.
+포화 중 양수 error만 추가로 적분을 보류하며 기존 출력 식·계수·상한은 유지한다.
+첫 release는 이전 이력이 없으므로 보수적으로 양수 적분을 보류한다. 이후 누락/불일치는
+latch한다. 이력은 Actual 또는 새로운 permission으로 사용하지 않으며 원래
+wheel/pose source와 request/input/child expiry를 갱신하지 않는다.
+
+원본 Python v1은 동결하고 별도 `model_v2.py`를 둔다. `--propulsion-aware`와
+명시적 native `_AW` profile로 선택하며 기존 실패 재현은 유지한다. 서버 기동 전에
+`m*r*dv/dt`의 고정 관성 필요조건을 검사해 S03 v1의10s 가속501.733Nm를 거절하고,
+v2의20s 가속250.867Nm는 허용한다. 경사·도로 저항·동적 BMS 제한을 보장하거나
+측정 속도에 맞춰 평가 목표를 바꾸는 검사가 아니다.
+
+모델 동등성·합성 제한/복귀 시험, 고정 S03 v2의 기존 성능 기준, 원본 command와
+선택 이력 연결·독립 PI 식·손상 거절, solver/EV 정산과 pose 오류 차단을 검증했다.
+실제 정지/HV-off·제동 측 anti-windup·일반 참조 타당성은 후속이다.
+[사전 protocol](../test-plan/propulsion-saturation-protocol.md),
+[실행 근거](../test-plan/evidence/m8_saturation/README.md)를 따른다.
+
+
+<a id="adr-0073"></a>
+
+## ADR-0073: 원본 StopLease/ACK의 CARLA 정지 인계와 저속 물리 응답
+
+Date: 2026-11-01. Status: **Town03 약10km/h simulation-time terminal 검증**.
+
+정상 command가 끝난 뒤에도 물리를 진행하려면 기존 owner가 실제 선택한 정지 권한을
+입증해야 한다. 기존 StopLease를 가진 LeafRequest와 accepted LeafResult를 export하며
+세 ECU의 동일 lease/epoch/token·선택 source·현재 stationary Actual을 서버에서 검사한다.
+Actual은 기존 NormalPath/Init와 마지막 정상 command causal sequence를 보존한다.
+권한 확인을 위해 원래 CAN schema/Actual에 새 causal 값을 합성하지 않는다.
+8-role RunLease·whole-interval freshness·stop age/expiry와 재생 방지 cursor를 유지한다.
+terminal hold 이후 normal 재개는 거절하며 wall admission 범위는 늘리지 않는다.
+
+기존 NormalStop1m/s²·제동5s·shutdown2s와 PI를 바꾸지 않고 약10km/h에서 먼저 실행한다.
+첫 PI release+15s의 요청 후2.988s 물리 정지·3.778s HV-off(bus27V,접촉기 모두 open)를
+검증했다. 별도 현재 속도 입력 누락은 Central의 해당 job에서 Feedback fault를 선택하고,
+원본 torque0 16ms·brake≥1MPa206ms·물리 정지2.108s를 확인했다. 이 결함은 전체 통신
+단절이나 command-expiry timeout이 아니다. 처음 command withholding 합성 시험은
+기존 whole-interval command expiry gate에서 실패했으며 해당 실패를 보존한다.
+이를 통과시키기 위해 command lifetime이나 물리 시각을 늘리지 않았다.
+
+각4000 physics/EV를 정산하고 원본 wire·PI 식·solver/EV·정지 pose와 손상 거절을 감사했다.
+새 서버 source 설치89개 hash와 빌드를 기록했다. 첫 NormalStop binary 이후
+profile 인수 검증을 상태 변경 앞으로 옮겼으며 최종 binary의4001 원본 관측 replay가
+JSON 전체 일치했다. replay는 두 번째 물리 실행으로 세지 않는다. 입력 누락은 최종
+binary의 실제 물리 실행이다. 두 producer hash와 최종 source를 모두 보관한다.
+
+정지 인계 중 추가 고장,30km/h stop의 감속/deadline 계약,전체 Reference/M8,
+wall/Target·Planner/localization·UE renderer/GC 원인은 후속이다.
+[Protocol](../test-plan/carla-stop-protocol.md), [실행 근거](../test-plan/evidence/m8_stop/README.md)를 따른다.
+
+
+<a id="adr-0074"></a>
+
+## ADR-0074: 정지 hold 권한을 원본 local protection으로 대체
+
+Date: 2026-11-02. Status: **Town03 저속 hold 이후 보호 주입 검증 /30km/h 계약 검토**.
+
+기존 terminal hold guard는 원래 local protection으로의 전환도 거절했다.
+보호는 동일 released session·8-role selected mask255·normal credit0·새 LocalProtection
+Actual을 요구하고, 첫 선택 시각이 마지막 수용 normal/hold 관측보다 뒤여야 한다.
+StopLease packet이 남아 있어도 보호 권한으로 사용하지 않는다. 원래 Actual/wheel
+whole-interval freshness와 exclusive expiry를 유지하며, 보호 이후 normal/hold를
+재개하지 않는다. wall hold 범위는 늘리지 않는다.
+
+별도 SIL `stop-protection`은 원본 ACK로 처음 PowerDown에 들어간100ms 뒤 안전 요청을
+주입한다. actual 고장 검출기나 ACK-loss 경로를 시험했다고 세지 않는다. 정지 상태에서
+원래 actuator/ECU를 계속 실행하고 보호 torque0·brake≥1MPa의 실제 acquisition과
+물리 정지 유지·4000 solver/단일 EV 정산을 독립 감사한다. 실제 응답은5.6/185.6ms다.
+이 경우 NormalStop Complete/HV-off 성공으로 판정하지 않는다.
+
+첫 실행은 C++ 내부 proof에는 있던 StopLease/ACK를 새 mode의 JSON에 넣지 않아
+서버가1898구간 뒤 거절했다. 서버 gate를 완화하지 않고 native 직렬화를 수정했다.
+원본 FAIL과 전체 완료 구간 정산을 보존하고, Release/ASan CLI에4001 원본 입력 재생과
+독립 wire 검사를 추가했다. 수정 binary의 실제4000구간은 통과했다. 기존 두 저속
+시나리오8002관측의 최종 JSON 일치도 확인했다. 실행 전 producer source/hash와
+최종 source는 각각 보관한다.
+
+기본1m/s²/5s로30km/h를 정지시키려는 계약은 낙관적 무지연 입력부터 불가능하다.
+실제 NormalStop에 그 입력을 주어5s BrakingTimeout과 latch를 검증했다. 별도 후보는
+1m/s²/10s 제동/2s shutdown으로 검토하되 기본 설정을 바꾸지 않았다. 이는 고속
+물리 정지 수용이 아니며 새 fixture/config ID·사전 평가 기준으로 후속 검증해야 한다.
+[사전 protocol](../test-plan/carla-stop-fault-protocol.md),
+[계약 비교](../test-plan/normal-stop-30-contract-review.md),
+[원본·실패·판정](../test-plan/evidence/m8_stop_fault/README.md)을 따른다.
+
+
+<a id="adr-0075"></a>
+
+## ADR-0075: 별도30km/h NormalStop에 생성 시10s 제동 예산 전달
+
+Date: 2026-11-02. Status: **Town06 고정 nominal30km/h 정지·HV-off 검증**.
+
+기존 감속1m/s²·제동5s는 이상적30km/h 정지 시간8.333s보다 짧다. 기본 계약을
+변경하지 않고 coordinator 생성자의 선택형 네 번째 `NormalStopConfig`를 추가한다.
+`m8_stop30_v1.json`/`normal-stop30-a1-t10-v1`만 제동10s를 명시적으로 전달한다.
+감속1m/s²·확인60ms·shutdown2s와 원본 NormalStop state machine을 유지하며
+실행 중 예산 연장이나 감속 자동 변경은 하지 않는다.
+
+Town06 S01의 동일721점 직선·20s startup을 사용하되 첫 PI release+35s에 기존
+NormalStopRequest를 발급한다. 새 PI는 멈추고20ms stop root를 갱신한다.
+`PROFILE STOP30`과 terminal enum4를 별도로 사용한다. frozen hash와 nominal scope를
+검사하며 다른 horizon·fault·wall·propulsion anti-windup 조합을 거절한다.
+원본 StopLease/ACK JSON과 기존 server hold admission을 사용하고 서버는 변경하지 않는다.
+
+실제6000 physics/EV 정산에서29.952690km/h→완전 정지8.477999s,
+원본 ACK 후 PowerDown8.6704s·물리 hold8.678s·HV-off9.277999s를 확인했다.
+원본 PowerStatus는 bus27V·세 접촉기 open, 최종 pose drift0m다.1750 PI/Pure Pursuit와
+body1000/wheel500 plateau,900개20Hz 경로 표본을 독립 감사했다.
+기존 저속 두 시나리오는 새 binary로8002관측의 native JSON 전체가 동일했다.
+
+첫 독립 감사는 PI 소비 기록으로 wheel plateau를 집계해 마지막 원본 표본 하나가
+빠진499개를 발견했다. PI 종료 후에도 수집된 원본 Drive acquisition은1000개였다.
+동일[25,35)s에서20ms 구간마다 두 원본100Hz 표본을 요구하고 첫 표본을 선택하는
+50Hz500개 감사로 고쳤다. 물리 producer·시간 구간·허용 오차·분모는 유지했다.
+마지막 표본 누락과 물리 값 불일치를 거절하는 Python 회귀를 추가했다.
+초기 build/component 실패와 감사 실패는 성공 결과와 함께 보존한다.
+
+[Protocol](../test-plan/carla-stop30-protocol.md),
+[원본·검사·제약](../test-plan/evidence/m8_stop30/README.md)을 따른다.
+30km/h fault matrix·ACK/전체 통신 손실·Planner/localization·전체 Reference/M8·
+wall/Target 수용과 과거 UE renderer/GC 원인 규명은 후속이다.

@@ -1,0 +1,50 @@
+{
+  "status": "CONTRACT_REVIEW_ONLY",
+  "model": "Ideal constant deceleration without lag or road forces; no physical acceptance",
+  "current_default_changed": false,
+  "recommended_separate_candidate": {
+    "deceleration_mps2": 1,
+    "braking_timeout_s": 10,
+    "shutdown_timeout_s": 2
+  },
+  "cases": [
+    {
+      "initial_kmh": 10,
+      "deceleration_mps2": 1,
+      "braking_budget_s": 5,
+      "ideal_stop_s": 2.7777777777777777,
+      "ideal_stop_distance_m": 3.8580246913580245,
+      "confirmation_s": 0.06,
+      "ideal_margin_s": 2.1622222222222223
+    },
+    {
+      "initial_kmh": 30,
+      "deceleration_mps2": 1,
+      "braking_budget_s": 5,
+      "ideal_stop_s": 8.333333333333334,
+      "ideal_stop_distance_m": 34.72222222222223,
+      "confirmation_s": 0.06,
+      "ideal_margin_s": -3.393333333333334
+    },
+    {
+      "initial_kmh": 30,
+      "deceleration_mps2": 1,
+      "braking_budget_s": 10,
+      "ideal_stop_s": 8.333333333333334,
+      "ideal_stop_distance_m": 34.72222222222223,
+      "confirmation_s": 0.06,
+      "ideal_margin_s": 1.606666666666666
+    },
+    {
+      "initial_kmh": 30,
+      "deceleration_mps2": 2,
+      "braking_budget_s": 5,
+      "ideal_stop_s": 4.166666666666667,
+      "ideal_stop_distance_m": 17.361111111111114,
+      "confirmation_s": 0.06,
+      "ideal_margin_s": 0.773333333333333
+    }
+  ],
+  "cpp_test": "NormalStopTest.DefaultBudgetAcceptsIdealTenKmhButTimesOutIdealThirtyKmh",
+  "default_30kmh_result": "BrakingTimeout at5s with ideal residual12km/h"
+}

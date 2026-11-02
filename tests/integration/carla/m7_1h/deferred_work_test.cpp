@@ -24,6 +24,25 @@ auto outputs_at(unsigned step) {
     power_out.coils=power::CoilCommand{{step>=1001,true,step<1001},false};outputs[4]=power_out;
     return outputs;
 }
+TEST(M7SolverWork, IntervalAuditRetainsSmallWorkAfterLargeCumulativeEnergy) {
+    ActuatorElectrical p(start,42,true);
+    double maximum_error=0;
+    for(unsigned frame=0;frame<1200;++frame) {
+        auto w=frame_work(frame,frame<110?0:300);
+        w.wheel.value=50;
+        for(unsigned k=0;k<320;++k)w.rear_mean[k]=50.+double(k%7)*.001;
+        ASSERT_TRUE(p.begin_work_frame(w));
+        for(unsigned k=1;k<=10;++k) {
+            const auto step=frame*10+k;const auto now=start+step*ms;
+            ASSERT_TRUE(p.step(now,w.wheel,outputs_at(step),42))<<p.error();
+            const auto& a=p.audit();
+            maximum_error=std::max(maximum_error,std::abs(a.mechanical_j-w.work(a.begin,a.end)));
+        }
+        ASSERT_TRUE(p.finish_work_frame(w.end));p.commit_work_frame();
+    }
+    EXPECT_GT(p.settled_work(),150000);
+    EXPECT_LT(maximum_error,1e-11);
+}
 TEST(M7DeferredWork, MissingWorkDoesNotFreezeProtectionOrRestampElectricalSensors) {
     ActuatorElectrical p(start,42,PlantExecution::DeferredObservedWork);
     for(unsigned i=1;i<=200;++i) {

@@ -14,6 +14,36 @@ endfunction()
 
 # 현재 Host에 설치된 버전 사용. 자동 다운로드/설치하지 않는다.
 find_package(GTest 1.11.0 EXACT CONFIG REQUIRED)
+stratadrive_unit_test(speed_pi_test
+    SOURCES tests/unit/speed_pi_test.cpp
+    LIBRARIES speed_pi)
+stratadrive_unit_test(speed_request_test
+    SOURCES tests/unit/speed_request_test.cpp
+    LIBRARIES speed_request)
+if(STRATADRIVE_LONGITUDINAL_EQUIVALENCE)
+    find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
+    add_executable(speed_loop_run tests/integration/longitudinal/speed_loop_run.cpp)
+    target_link_libraries(speed_loop_run PRIVATE m4_async_runtime)
+    stratadrive_quality(speed_loop_run)
+    add_test(NAME speed_loop_integration
+        COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tests/integration/longitudinal/check_speed_loop.py
+            --runner $<TARGET_FILE:speed_loop_run>
+            --output-root ${CMAKE_CURRENT_BINARY_DIR}/speed-loop)
+    set_tests_properties(speed_loop_integration PROPERTIES LABELS "integration.logical" TIMEOUT 360)
+    add_executable(speed_pi_replay tests/integration/longitudinal/speed_pi_replay.cpp)
+    target_link_libraries(speed_pi_replay PRIVATE speed_pi)
+    stratadrive_quality(speed_pi_replay)
+    add_test(NAME speed_pi_equivalence
+        COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tests/integration/longitudinal/check_equivalence.py
+            --replay $<TARGET_FILE:speed_pi_replay>
+            --output-root ${CMAKE_CURRENT_BINARY_DIR}/longitudinal-equivalence)
+    set_tests_properties(speed_pi_equivalence PROPERTIES LABELS "integration.logical" TIMEOUT 60)
+    add_test(NAME speed_pi_propulsion_equivalence
+        COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tests/integration/longitudinal/check_propulsion_pi.py
+            $<TARGET_FILE:speed_pi_replay>
+            --output-root ${CMAKE_CURRENT_BINARY_DIR}/propulsion-equivalence)
+    set_tests_properties(speed_pi_propulsion_equivalence PROPERTIES LABELS "integration.logical" TIMEOUT 60)
+endif()
 add_executable(steering_angle_codec_test tests/unit/steering_angle_codec_test.cpp)
 target_link_libraries(steering_angle_codec_test PRIVATE steering_angle_codec GTest::gtest_main)
 stratadrive_quality(steering_angle_codec_test)
@@ -164,3 +194,6 @@ if(TARGET actuator_socketcan)
     target_link_libraries(zone_gateway_vcan_test PRIVATE zone_socketcan_gateway rear_power_control front_startup_control steering_receiver brake_receiver drive_receiver GTest::gtest_main)
     stratadrive_quality(zone_gateway_vcan_test)
 endif()
+stratadrive_unit_test(pure_pursuit_test
+    SOURCES tests/unit/pure_pursuit_test.cpp
+    LIBRARIES pure_pursuit)

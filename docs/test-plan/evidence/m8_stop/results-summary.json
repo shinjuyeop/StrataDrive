@@ -1,0 +1,84 @@
+{
+  "status": "PASS_LOW_SPEED_TERMINAL_SIMULATION_ONLY",
+  "date": "2026-11-01",
+  "normal_stop": {
+    "status": "PASS_M8_CARLA_TERMINAL_RESPONSE",
+    "mode": "normal-stop",
+    "controls": 750,
+    "physics": 4000,
+    "settlements": 4000,
+    "trigger_ns": 16379330398,
+    "trigger_speed_kmh": 9.982294189453125,
+    "stop_delay_s": 2.9879995580000003,
+    "final_pose_drift_m": 0.0,
+    "normal_stop_intervals": 2103,
+    "hold_delay_s": 3.1779995750000003,
+    "complete_delay_s": 3.777999562,
+    "power_off": {
+      "source_ns": 20155330398,
+      "input_ns": 20137329960,
+      "off": true,
+      "bus_v": 27.0,
+      "contactors": [
+        0,
+        0,
+        0
+      ]
+    },
+    "protection_response": {},
+    "max_pi_error": 0.0,
+    "wall_realtime_accepted": false
+  },
+  "input_loss": {
+    "status": "PASS_M8_CARLA_TERMINAL_RESPONSE",
+    "mode": "input-loss",
+    "controls": 750,
+    "physics": 4000,
+    "settlements": 4000,
+    "trigger_ns": 16376273991,
+    "trigger_speed_kmh": 9.982294189453125,
+    "stop_delay_s": 2.107999577,
+    "final_pose_drift_m": 0.0,
+    "normal_stop_intervals": 0,
+    "hold_delay_s": null,
+    "complete_delay_s": null,
+    "power_off": null,
+    "protection_response": {
+      "torque": {
+        "source_delay_ns": 16000000,
+        "observed_delay_ns": 17999646
+      },
+      "brake": {
+        "source_delay_ns": 206000000,
+        "observed_delay_ns": 207999642
+      }
+    },
+    "max_pi_error": 0.0,
+    "wall_realtime_accepted": false
+  },
+  "normal_stop_physics_hold_intervals": 2102,
+  "normal_stop_observations_including_final_settlement": 2103,
+  "validation": {
+    "cpp_unit_logical": 1214,
+    "python_unit": 233,
+    "asan_ubsan_distinct_affected_tests": 22,
+    "asan_final_stop_rerun": 1,
+    "cpp_stop_proof_mutations": 8,
+    "terminal_evidence_mutations": 28,
+    "solver_mutations_each_run": 11,
+    "energy_mutations_each_run": 7,
+    "final_native_exact_replay_observations": 4001,
+    "previous_evidence_unchanged": 1008,
+    "installed_generation_files": 89
+  },
+  "limits": [
+    "Town03 fixed approximately10km/h simulation-time fixture",
+    "Central current speed input loss only; other acquisition and ECU traffic continue",
+    "Input-loss HV-off not claimed",
+    "No full communication loss or command-expiry physical-stop acceptance",
+    "No additional protection transition during terminal hold",
+    "30km/h stop and full Reference/M8 remain open",
+    "No wall/Target acceptance or UE renderer/GC root-cause closure"
+  ],
+  "v1_model_sha256": "181297fb101d0f7dc69222489956a3bdcc701924556fa2210e4ff5705975e858"
+}

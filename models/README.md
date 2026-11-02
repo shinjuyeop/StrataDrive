@@ -31,3 +31,10 @@ fixture 전)이다. 보류 이유와 gate는 [TBD register](../docs/roadmap.md#o
 각10KiB 미만, Git diff/review 및 고정 MIL replay가 필요해 정확한 두 경로만 추적한다.
 버전·SHA256은 매 실행 plan.json과 M6 근거 manifest에 기록한다. 생성 CSV·cache는 제외한다.
 도구/수식/한계는 [M6 계약](../docs/interfaces/simple-vehicle-model.md)을 따른다.
+
+2026-11-01 M8 소형 설계 모델 예외: `longitudinal/model_v2.py`(3259 bytes).
+기존 자체 작성 v1에서 외부 추진 포화의 조건부 적분만 확장한 Python source이며
+새 외부 코드/weight/license를 포함하지 않는다. 독립 C++ 동등성·포화 복귀 재현에
+필요해 이 파일만 예외로 추적한다. SHA256은
+`b0f968a9bd4d8940ff245d454462f7041aecc9006080764da5bcd067c7b335ed`다.
+원본 v1은 보존하고 [protocol](../docs/test-plan/propulsion-saturation-protocol.md)을 따른다.

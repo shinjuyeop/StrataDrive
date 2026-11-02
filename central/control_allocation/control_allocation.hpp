@@ -42,6 +42,7 @@ enum class AllocationFault {
 };
 enum class RegenAvailability { Usable, Unavailable, Stale, Invalid, Expiring, LowSpeed };
 struct AllocationDecision {
+    std::optional<PropulsionSelection> propulsion_selection;
     AllocationState state{AllocationState::NotInitialized};
     AllocationFault fault{AllocationFault::None};
     bool protection_required{false}, brake_priority{false}, propulsion_waiting_release{false}, hold_active{false};
@@ -60,7 +61,8 @@ class ControlAllocation {
 public:
     explicit ControlAllocation(const AllocationConfig& config = {});
     bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
-    AllocationReceiveDecision receive_request(const VehicleRequest& request, std::uint64_t now_ns);
+    AllocationReceiveDecision receive_request(const VehicleRequest& request, std::uint64_t now_ns,
+        std::optional<VehicleInputDependency> input = std::nullopt);
     void mark_continuity_lost(std::uint64_t now_ns);
     bool select_normal_stop(const ActuatorStopLease& lease, std::uint64_t now_ns);
     std::uint32_t application_epoch() const { return epoch_; }
@@ -85,6 +87,7 @@ private:
     std::uint64_t enable_ns_{0}, last_observed_ns_{0}, sequence_{0};
     std::optional<std::uint64_t> last_tick_ns_, critical_expiry_ns_, regen_expiry_ns_;
     std::optional<VehicleRequest> request_;
+    std::optional<VehicleInputDependency> request_input_;
     Dwell deficit_, excess_;
     bool armed_{false}, stopped_{false}, braking_{false}, low_speed_{false}, holding_{false};
     double episode_regen_nm_{0}; // nonincreasing until observed release of a braking interval

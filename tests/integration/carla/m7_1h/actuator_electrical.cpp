@@ -127,13 +127,12 @@ bool ActuatorElectrical::finish_work_frame(Time end) {
     if(!ok() || !checkpoint_ || !state_->work || state_->work->end!=end) {abort_work_frame();return false;}
     auto next=std::make_unique<State>(*state_);
     const auto begin=next->electrical.diagnostic_state().identity.source_time_ns;
-    const double before=next->electrical.diagnostic_state().mechanical_j;
     if(begin<end && !settle(*next,end,next->coils)) {abort_work_frame();return false;}
     if(begin>end) {abort_work_frame();return false;}
     const auto& energy=next->electrical.diagnostic_state();
     const auto& w=*next->work;
     audit_={begin,end,w.wheel.identity.source_time_ns,w.oldest,w.wheel.value,w.torque,
-        energy.mechanical_j-before,energy.mechanical_j,next->electrical.battery_state().soc,energy.balance_error_j};
+        w.work(begin,end),energy.mechanical_j,next->electrical.battery_state().soc,energy.balance_error_j};
     const auto& battery=next->electrical.battery_state();
     audit_.motor_loss_j=energy.motor_loss_j;audit_.auxiliary_j=battery.auxiliary_j;audit_.ohmic_j=battery.ohmic_loss_j;
     audit_.capacitor_delta_j=energy.capacitor_j-energy.initial_capacitor_j;
@@ -254,7 +253,9 @@ bool ActuatorElectrical::step(Time now,const std::optional<Wheel>& wheel,
     const auto& energy_wheel=s.solver_work?s.work->wheel:*wheel;
     const ElectricalAudit audit{energy_begin,now,energy_wheel.identity.source_time_ns,
         s.solver_work?s.work->oldest:wheel->input_time_ns,energy_wheel.value,s.solver_work?s.work->torque:torque,
-        energy.mechanical_j-state_->electrical.diagnostic_state().mechanical_j,energy.mechanical_j,
+        // Report the accepted interval measure directly. Subtracting two large
+        // cumulative ledgers loses small-interval precision after long runs.
+        s.solver_work?s.work->work(energy_begin,now):energy.mechanical_j-state_->electrical.diagnostic_state().mechanical_j,energy.mechanical_j,
         s.electrical.battery_state().soc,energy.balance_error_j};
     state_=std::move(next);sensors_=measured;audit_=audit;
     return true;

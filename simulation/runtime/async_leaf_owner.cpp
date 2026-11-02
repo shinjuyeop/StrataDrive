@@ -20,7 +20,7 @@ AsyncLeafOwner::Actor AsyncLeafOwner::make_actor(transport::Leaf leaf,const Leaf
 }
 AsyncLeafOwner::AsyncLeafOwner(transport::Leaf leaf,transport::Clock& clock,transport::RunGate& gate,transport::LeafLink& link,
     runtime::LatestSnapshot<OwnerSensors>& sensors,runtime::LatestSnapshot<OwnerActuation>& output,BmsGateChannel& bms_gate,LeafOwnerConfig config)
-    :leaf_(leaf),clock_(clock),gate_(gate),link_(link),sensors_(sensors),output_(output),bms_gate_(bms_gate),config_(config),actor_(make_actor(leaf,config)) { input_events_.reserve(12000); }
+    :leaf_(leaf),clock_(clock),gate_(gate),link_(link),sensors_(sensors),output_(output),bms_gate_(bms_gate),config_(config),actor_(make_actor(leaf,config)) { input_events_.reserve(config.input_event_capacity); }
 session::Preparation AsyncLeafOwner::prepare(const session::Plan& plan) noexcept {
     if(plan.epoch!=quiesced_) {
         quiesced_=plan.epoch; if(epoch_!=0) protect();

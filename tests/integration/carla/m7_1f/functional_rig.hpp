@@ -2,6 +2,9 @@
 #include "frame_clock.hpp"
 #include "actuator_electrical.hpp"
 #include "native_export.hpp"
+#include "pure_pursuit.hpp"
+#include "route_speed_profile.hpp"
+#include "normal_stop.hpp"
 #include <array>
 #include <memory>
 #include <optional>
@@ -20,7 +23,30 @@ struct WheelSample {
 struct RequestPhase { Time end_ms; double acceleration,curvature,braking; bool hold; };
 struct WheelAudit {Time source;double rad_s;};
 enum class PlantMode { StationaryFixture,ExternalWheelZoh,ExternalSolverWork };
+struct SpeedControlAudit {
+    Time release_ns,origin_ns,source_ns,expiry_ns,input_expiry_ns;
+    std::uint32_t sequence;
+    double target_mps,speed_mps,acceleration_mps2,integral;
+};
+struct RouteReferenceAudit {
+    double requested_mps;
+    std::optional<Time> slow_elapsed_ns,stop_elapsed_ns;
+};
+enum class SpeedTerminal { None, NormalStop, SpeedInputLoss, StopProtection, NormalStop30 };
 struct Report {
+    SpeedTerminal terminal_mode=SpeedTerminal::None;
+    Time trigger_ns=0,detection_ns=0,handoff_ns=0;
+    central::NormalStopState stop_state=central::NormalStopState::NotInitialized;
+    bool power_off=false;
+    central::NormalStopConfig stop_configuration{};
+    int stop_fault=0,speed_fault=0;
+    std::optional<remote::OwnerPacket> power_status;
+    bool propulsion_antiwindup=false;
+    bool saturation_used=false;
+    std::optional<central::PropulsionSelection> allocation_selection,speed_selection;
+    std::optional<SpeedControlAudit> speed_control;
+    std::optional<RouteReferenceAudit> route_reference;
+    std::optional<central::PursuitOutput> lateral_control;
     Time now=0,next_frame=0,lease_source=0,lease_expiry=0;
     unsigned release_mask=0,credit_mask=0,service_mask=0;
     bool armed=false,actual_interval=false;
@@ -56,6 +82,10 @@ public:
     // never counted as an ACK. Credit loss keeps the original native age rules.
     // Fixed before INIT; evaluated at each original 20ms Controller release.
     void request_profile(std::vector<RequestPhase> phases);
+    // M8 fixed V1 0->10->0 km/h profile, simulation time only.
+    void speed_profile(SpeedTerminal terminal=SpeedTerminal::None);
+    void route_profile(std::vector<central::RoutePoint> points,RouteProfile profile=RouteProfile::Curve30,bool antiwindup=false);
+    void pose(central::RoutePose sample,std::uint32_t actor);
     // M7-only scheduling phase study; periods/expiry rules remain unchanged.
     void controller_phase(Time delay_after_enable);
     void omit_role(int role);
@@ -86,6 +116,12 @@ private:
     std::vector<RequestPhase> profile_;
     Time controller_phase_=14*ms;
     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
+    SpeedTerminal terminal_mode_=SpeedTerminal::None;
+    bool speed_profile_=false;
+    std::vector<central::RoutePoint> route_;
+    bool antiwindup_=false;
+    RouteProfile route_profile_=RouteProfile::Curve30;
+    std::optional<central::RoutePose> pose_;
     bool protect_=false;
     WallExecutionWatch* watch_=nullptr;
     Time terminal_wall_=0,terminal_local_=0,last_terminal_wall_=0;

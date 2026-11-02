@@ -211,6 +211,9 @@ bool ReadNative(const Json& J, stratadrive::m7_native::Input& Out)
     if (!Number(J,TEXT("protection_since_ns"),Since) || !Number(J,TEXT("protection_selected_mask"),Selected) || Selected>255) return false;
     Out.protection_since=Since; Out.protection_selected_mask=Selected;
   }
+  if (J->HasField(TEXT("stop_requests")) || J->HasField(TEXT("stop_results"))) {
+    if (!ReadPackets(J,TEXT("stop_requests"),Out.stop_requests) || !ReadPackets(J,TEXT("stop_results"),Out.stop_results)) return false;
+  }
   return ReadPackets(J,TEXT("actual"),Out.actual) && ReadPackets(J,TEXT("commands"),Out.commands) &&
     ReadPackets(J,TEXT("release"),Out.release) && ReadPackets(J,TEXT("credit"),Out.credit) &&
     ReadPacket(J->TryGetField(TEXT("permission")),Out.permission);
@@ -540,6 +543,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     Applied->SetBoolField(TEXT("empty_init"), Actual.empty);
     Applied->SetBoolField(TEXT("normal"), Actual.normal);
     Applied->SetBoolField(TEXT("protection"), Actual.protection);
+    Applied->SetBoolField(TEXT("normal_stop"), Actual.normal_stop);
     Applied->SetNumberField(TEXT("angle_rad"), Actual.angle);
     Applied->SetNumberField(TEXT("torque_nm"), Actual.torque);
     Applied->SetNumberField(TEXT("pressure_pa"), Actual.pressure);

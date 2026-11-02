@@ -1,0 +1,49 @@
+{
+  "status": "PASS_TERMINAL_ORACLE_MUTATIONS",
+  "baseline": {
+    "status": "PASS_M8_CARLA_TERMINAL_RESPONSE",
+    "mode": "normal-stop",
+    "controls": 750,
+    "physics": 4000,
+    "settlements": 4000,
+    "trigger_ns": 16379330398,
+    "trigger_speed_kmh": 9.982294189453125,
+    "stop_delay_s": 2.9879995580000003,
+    "final_pose_drift_m": 0.0,
+    "normal_stop_intervals": 2103,
+    "hold_delay_s": 3.1779995750000003,
+    "complete_delay_s": 3.777999562,
+    "power_off": {
+      "source_ns": 20155330398,
+      "input_ns": 20137329960,
+      "off": true,
+      "bus_v": 27.0,
+      "contactors": [
+        0,
+        0,
+        0
+      ]
+    },
+    "protection_response": {},
+    "max_pi_error": 0.0,
+    "wall_realtime_accepted": false
+  },
+  "rejected": {
+    "trigger_shift": "fixed 15s original event",
+    "missing_event": "missing fixed event",
+    "continued_PI": "original PI grid stops at event",
+    "changed_integral": "unchanged held final PI state",
+    "moving_final_body": "physical stop and pose held",
+    "moving_final_wheel": "physical stop and pose held",
+    "stop_pose_drift": "physical stop and pose held",
+    "pose_source_changed": "original pose for stop",
+    "missing_stop_ACK": "missing original owner packet",
+    "rejected_ACK_valid_crc": "original accepted Stop selection",
+    "wrong_lease_epoch_valid_crc": "original accepted Stop selection",
+    "changed_lease_identity_valid_crc": "same three-leaf stop authority",
+    "expired_lease_valid_crc": "Stop selection whole interval",
+    "future_lease_valid_crc": "Stop selection whole interval",
+    "false_HV_confirmation": "independent terminal HV-off",
+    "missing_original_PowerStatus": "missing original owner packet"
+  }
+}

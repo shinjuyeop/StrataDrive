@@ -29,7 +29,7 @@ struct NativeExport {
     bool normal=false;
     std::uint64_t protection_since=0;
     unsigned protection_selected_mask=0;
-    std::array<std::optional<remote::OwnerPacket>,3> actual,commands;
+    std::array<std::optional<remote::OwnerPacket>,3> actual,commands,stop_requests,stop_results;
     std::array<std::optional<remote::OwnerPacket>,8> release;
     std::array<std::optional<remote::OwnerPacket>,7> credit;
     std::optional<remote::OwnerPacket> permission;

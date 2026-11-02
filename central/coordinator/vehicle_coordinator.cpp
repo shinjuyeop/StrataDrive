@@ -7,10 +7,10 @@ namespace stratadrive::central {
 namespace {
 constexpr std::uint64_t kPeriod=10000000ULL, kGap=30000000ULL;
 VehicleManagementConfig management_config(CoordinatorExecution e) { VehicleManagementConfig c; if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
-AllocationConfig allocation_config(CoordinatorExecution e) { AllocationConfig c; c.minimum_tick_interval_ns=e.external_releases?1000000:allocation_period(e.renewal); return c; }
-NormalStopConfig stop_config(CoordinatorExecution e) { NormalStopConfig c; if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
+AllocationConfig allocation_config(CoordinatorExecution e,AllocationConfig c) { c.minimum_tick_interval_ns=e.external_releases?1000000:allocation_period(e.renewal); return c; }
+NormalStopConfig stop_config(CoordinatorExecution e,NormalStopConfig c) { if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
 }
-VehicleCoordinator::VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution e):port_(port),execution_(e),management_(management_config(e)),allocation_(allocation_config(e)),stop_(stop_config(e)) {}
+VehicleCoordinator::VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution e,AllocationConfig allocation,NormalStopConfig stop):port_(port),execution_(e),management_(management_config(e)),allocation_(allocation_config(e,allocation)),stop_(stop_config(e,stop)) {}
 bool VehicleCoordinator::start_session(CoordinatorSession session) {
     if(session.epoch==0 || session.epoch<=epoch_ || (epoch_!=0 && session.enable_ns<observed_ns_)) return false;
     if(!port_.session_ready(session)) return false;
@@ -55,8 +55,8 @@ bool VehicleCoordinator::accept_lifecycle(const LifecycleRequest& root) {
     }
     return checkpoint();
 }
-bool VehicleCoordinator::accept_vehicle(const VehicleRequest& root) {
-    const auto accepted=allocation_.receive_request(root,observed_ns_);
+bool VehicleCoordinator::accept_vehicle(const VehicleRequest& root,std::optional<VehicleInputDependency> input) {
+    const auto accepted=allocation_.receive_request(root,observed_ns_,input);
     if(accepted!=AllocationReceiveDecision::Accepted && accepted!=AllocationReceiveDecision::Unchanged) {
         if(allocation_.decision().protection_required) fail(CoordinatorFault::Allocation);
         return false;
@@ -76,13 +76,13 @@ CoordinatorReceive VehicleCoordinator::receive_lifecycle(const LifecycleRequest&
     if(!accept_lifecycle(root)) return fault_==CoordinatorFault::None?CoordinatorReceive::Rejected:CoordinatorReceive::Latched;
     return previous && previous->identity.sequence==root.identity.sequence?CoordinatorReceive::Unchanged:CoordinatorReceive::Accepted;
 }
-CoordinatorReceive VehicleCoordinator::receive_vehicle(const VehicleRequest& root,std::uint64_t now) {
+CoordinatorReceive VehicleCoordinator::receive_vehicle(const VehicleRequest& root,std::uint64_t now,std::optional<VehicleInputDependency> input) {
     if(epoch_==0) return CoordinatorReceive::NotInitialized;
     if(!advance(now) || !checkpoint()) return CoordinatorReceive::Latched;
     if(stopping_) return CoordinatorReceive::Stopping;
     if(!normal_armed_ || !management_.decision().normal_allowed) return CoordinatorReceive::NotReady;
     const auto previous=vehicle_;
-    if(!accept_vehicle(root)) return fault_==CoordinatorFault::None?CoordinatorReceive::Rejected:CoordinatorReceive::Latched;
+    if(!accept_vehicle(root,input)) return fault_==CoordinatorFault::None?CoordinatorReceive::Rejected:CoordinatorReceive::Latched;
     return previous && previous->sequence==root.sequence?CoordinatorReceive::Unchanged:CoordinatorReceive::Accepted;
 }
 CoordinatorReceive VehicleCoordinator::receive_stop(const NormalStopRequest& root,std::uint64_t now) {

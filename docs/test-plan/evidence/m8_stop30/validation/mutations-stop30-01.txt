@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/carla/check_m8_stop_corruptions.py", line 94, in <module>
+    if __name__=='__main__':main()
+  File "/d/shin/StrataDrive/tests/integration/carla/check_m8_stop_corruptions.py", line 24, in main
+    baseline=audit(a.directory,rows);mode=baseline['mode']
+  File "/d/shin/StrataDrive/tests/integration/carla/audit_m8_stop.py", line 37, in audit
+    route_audit=audit_route(directory,rows)
+  File "/d/shin/StrataDrive/tests/integration/carla/m8_stop30_oracle.py", line 57, in audit_route
+    check(len(controls)==1750 and len(body)==1000 and len(wheel)==500,'complete stop30 plateau')
+  File "/d/shin/StrataDrive/tests/integration/carla/audit_m7_1q_native.py", line 20, in check
+    if not value: raise ValueError(reason)
+ValueError: complete stop30 plateau

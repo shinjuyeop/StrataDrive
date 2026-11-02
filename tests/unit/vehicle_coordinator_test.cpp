@@ -78,6 +78,27 @@ TEST(Coordinator, BeforeTrustedInitNoPortsOrOutputsAreUsed) {
     EXPECT_EQ(c.receive_lifecycle({{3,0,kStart,kStart+60*kMs},can::BmsPowerAction::Enable},kStart),central::CoordinatorReceive::NotInitialized);
     EXPECT_TRUE(port.events.empty()); EXPECT_FALSE(c.start_session({0,kStart}));
 }
+TEST(Coordinator, ExplicitMassRadiusAndDerivedProvenanceReachAllocation) {
+    for(bool calibrated:{false,true}) {
+        Port port;central::AllocationConfig config;
+        if(calibrated){config.mass_kg=1696;config.wheel_radius_m=.355;}
+        central::VehicleCoordinator c(port,{},config);ASSERT_TRUE(c.start_session({3,kStart}));
+        for(unsigned t=10;t<=40;t+=10) {
+            port.now=ns(t);
+            ASSERT_EQ(c.receive_lifecycle({{3,t/10-1,ns(t),ns(t+60)},can::BmsPowerAction::Enable},port.now),central::CoordinatorReceive::Accepted);
+            auto f=feedback(t,t>=20);f.front.brake_actual->pressure_pa=0;
+            if(port.sent_power){f.rear.power_status->message.causal_sequence=port.sent_power->power_request.sequence;
+                std::get<can::BmsPowerStatus>(f.rear.power_status->message.content).accepted_request_source_time_ns=port.sent_power->power_request.source_time_ns;}
+            ASSERT_TRUE(c.tick(f,port.now));
+            if(t==20){ASSERT_EQ(c.receive_vehicle({3,0,ns(20),ns(50)+1,.2,0,0,false},port.now,
+                central::VehicleInputDependency{ns(10),ns(70)+1}),central::CoordinatorReceive::Accepted);}
+        }
+        ASSERT_FALSE(port.commands.empty());const auto& out=port.commands.back();
+        // 0.2 * 1696 * .355 = 120.416 Nm, encoded on the 0.1 Nm grid.
+        EXPECT_NEAR(*out.drive.torque_nm,calibrated?120.4:60.,1e-9);
+        EXPECT_EQ(out.parent.source_time_ns,ns(20));EXPECT_EQ(out.oldest_input_time_ns,ns(10));
+    }
+}
 TEST_F(CoordinatorTest, StartupPermissionArmAndTwentyMillisecondAllocationFollowOneOwnerOrder) {
     normal(); EXPECT_EQ(port.arms,1U); EXPECT_EQ(port.commands.size(),1U);
     const auto& c=port.commands.front(); EXPECT_EQ(c.parent.sequence,1U); EXPECT_EQ(c.parent.source_time_ns,ns(30)); EXPECT_EQ(c.steering.source_time_ns,ns(40));

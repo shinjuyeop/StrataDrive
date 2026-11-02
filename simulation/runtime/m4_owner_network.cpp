@@ -114,7 +114,11 @@ void PhysicalOwner::step() {
     }
 Network::Network(const M4Config& c):config(c),clock(c.wall_time),start(clock.now_ns()) {
         running_epoch.store(c.first_epoch);
-        for(auto& log:owner_events) log.reserve(24000);
+        for(auto& log:owner_events) log.reserve(std::max<std::size_t>(24000, static_cast<std::size_t>(config.duration_ns/kMs)));
+        if(config.speed_loop) {
+            physical.energy_trace.reserve(static_cast<std::size_t>(config.duration_ns/(10*kMs))+32);
+            result.speed_trace.reserve(static_cast<std::size_t>(config.duration_ns/central::SpeedPI::kPeriodNs)+1);
+        }
         // Finite harness storage is provisioned before any native start gate.
         // This removes known hot-path growth, not a claim about the old miss cause.
         for(std::size_t i=0;i<audit.size();++i) audit[i].durations.reserve(static_cast<std::size_t>(config.duration_ns/(i==9?2*kMs:i==8?kMs:kIoPoll))+32);
@@ -133,7 +137,8 @@ Network::Network(const M4Config& c):config(c),clock(c.wall_time),start(clock.now
             sessions[i]=std::make_unique<SessionOwnerLoop>(static_cast<session::Role>(i),*zone_sessions[i],session_links[i]);
         }
         for(std::size_t i=0;i<transport::kLeaves;++i) {
-            leaf_owners[i]=std::make_unique<AsyncLeafOwner>(static_cast<transport::Leaf>(i),clock,gate,leaves[i],sensors[i+2],outputs[i],bms_gate);
+            leaf_owners[i]=std::make_unique<AsyncLeafOwner>(static_cast<transport::Leaf>(i),clock,gate,leaves[i],sensors[i+2],outputs[i],bms_gate,LeafOwnerConfig{DriveSensorIngress::ControlTick,std::nullopt,
+                config.speed_loop?static_cast<std::size_t>(config.duration_ns/kMs)+12000:12000});
             leaf_owners[i]->execution_deadline(config.execution_guards);
             if(config.transport_trace)leaf_owners[i]->transport_trace(&transport_logs[i+2]);
             sessions[i+2]=std::make_unique<SessionOwnerLoop>(static_cast<session::Role>(i+2),*leaf_owners[i],session_links[i+2]);
@@ -197,7 +202,9 @@ void Network::central_step() {
             const auto epoch=startup.plan().epoch;
             if(active_epoch!=epoch) {
                 active_epoch=epoch; last_tick=last_root=last_vehicle=last_stop=vehicle_release=0; lifecycle_release=0;
-                root_seq=vehicle_seq=stop_seq=0; next_management=startup.plan().enable_ns+14*kMs;
+                root_seq=vehicle_seq=stop_seq=0;
+                if(config.speed_loop) { speed_control.start_session(epoch,startup.plan().enable_ns); next_speed_ns=0; result.speed_origin_ns=0; }
+                next_management=startup.plan().enable_ns+14*kMs;
                 owner_events[7].push_back({now,"run-released",7,epoch,0,0,0,0});
                 running_epoch.store(epoch,std::memory_order_release);
                 if(!monitor_override.pending(epoch)) gate.release(epoch); else core.request_protection(now); // Once per fully released session; a closed gate stays closed in this Epoch.
@@ -205,9 +212,9 @@ void Network::central_step() {
             // Decide the release once. Clock movement during ingress must not
             // execute VM without the root update belonging to that same job.
             const bool management_due=now>=next_management;
-            const bool stopping=(config.scenario==M4Scenario::NormalStop || (config.scenario==M4Scenario::Fault && std::any_of(config.faults.begin(),config.faults.end(),[](const auto& f){return f.phase==FaultPhase::Stop;}))) && elapsed>=config.injection_ns;
+            const bool stopping=(config.speed_loop && result.speed_origin_ns && now-result.speed_origin_ns>=87000000000ULL) || ((config.scenario==M4Scenario::NormalStop || (config.scenario==M4Scenario::Fault && std::any_of(config.faults.begin(),config.faults.end(),[](const auto& f){return f.phase==FaultPhase::Stop;}))) && elapsed>=config.injection_ns);
             if(stopping && (core.decision().normal_armed || core.decision().stopping) && (!last_stop || now-last_stop>=20*kMs)) {
-                core.receive_stop({{epoch,stop_seq++,now,now+60*kMs},.02},now); last_stop=now;
+                core.receive_stop({{epoch,stop_seq++,now,now+60*kMs},config.speed_loop?0:.02},now); last_stop=now;
             }
             now=clock.now_ns();
             const auto lifecycle_slot=now>=startup.plan().enable_ns+4*kMs?(now-startup.plan().enable_ns-4*kMs)/(20*kMs)+1:0;
@@ -217,7 +224,9 @@ void Network::central_step() {
             }
             now=clock.now_ns();
             const bool lose_command=config.scenario==M4Scenario::CommandLoss && elapsed>=config.injection_ns;
-            if(core.decision().normal_armed && !core.decision().stopping && !lose_command && now>=core.next_allocation_ns() && vehicle_release!=core.next_allocation_ns()) {
+            if(config.speed_loop && core.decision().normal_armed && !core.decision().stopping && !lose_command &&
+               (!next_speed_ns ? now>=core.next_allocation_ns()+kMs : now>=next_speed_ns)) speed_step(now);
+            if(!config.speed_loop && core.decision().normal_armed && !core.decision().stopping && !lose_command && now>=core.next_allocation_ns() && vehicle_release!=core.next_allocation_ns()) {
                 vehicle_release=core.next_allocation_ns();
                 core.receive_vehicle({epoch,vehicle_seq++,now,now+60*kMs,.2,.02,0,false},now); last_vehicle=now;
             }
@@ -278,7 +287,7 @@ void Network::step(std::size_t owner,std::uint64_t requested_wake) {
         else {
             if(owner==0) zone_owners[0]->fail_brake_write=elapsed>=config.injection_ns &&
                 (config.scenario==M4Scenario::PartialFront || (config.scenario==M4Scenario::Rejoin && zone_owners[0]->epoch()==config.first_epoch));
-            if(owner==2) leaf_owners[0]->drop_actual=config.scenario==M4Scenario::FeedbackLoss && elapsed>=config.injection_ns;
+            if(owner==(config.speed_loop?4U:2U)) leaf_owners[config.speed_loop?2:0]->drop_actual=config.scenario==M4Scenario::FeedbackLoss && elapsed>=config.injection_ns;
             if(owner==3) leaf_owners[1]->reject_arm=config.scenario==M4Scenario::PartialArm;
             sessions[owner]->step();
             audit[owner].runnable(owner<2?zone_owners[owner]->last_health_ns():leaf_owners[owner-2]->last_body_ns());

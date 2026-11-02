@@ -98,8 +98,9 @@ after guarded execution. Longer transport trace storage is explicitly reserved
 before execution for the longer scenario; control RX/TX capacities remain8.
 
 Results and failure originals are in [the evidence](../test-plan/evidence/m6_vehicle_energy/README.md).
-M7's20Hz external sensor boundary, M8 C++ speed controller/equivalence, Jetson,
-OEM calibration and complete vehicle validation are subsequent scopes.
+M7's20Hz external sensor boundary and M8 control have separate evidence.
+The [M8 logical speed loop](../test-plan/evidence/m8_speed_loop/README.md) uses this physical owner;
+Jetson, OEM calibration and complete vehicle validation remain subsequent scopes.
 
 ## Physical response contract
 

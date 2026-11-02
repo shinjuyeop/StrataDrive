@@ -30,7 +30,10 @@ M4Result Network::finish() {
         }
         result.timing_ok=result.deadline_misses==0;
         for(const auto& log:owner_events) result.events.insert(result.events.end(),log.begin(),log.end());
-        for(const auto& leaf:leaf_owners) result.events.insert(result.events.end(),leaf->input_events().begin(),leaf->input_events().end());
+        for(const auto& leaf:leaf_owners) {
+            result.events.insert(result.events.end(),leaf->input_events().begin(),leaf->input_events().end());
+            if(config.speed_loop && leaf->input_event_capacity_exhausted()) result.event_overflow=true;
+        }
         std::stable_sort(result.events.begin(),result.events.end(),[](const auto& a,const auto& b){ return a.time_ns<b.time_ns; });
         result.physical_ok=physical.ok(); result.completed_batches=port.completed_batches(); result.front_frames=zone_owners[0]->command_frames(); result.rear_frames=zone_owners[1]->command_frames();
         const std::array<const char*,10> names{"FrontZone","RearZone","Steering","Brake","Drive","Bms","Power","Central","Physical","Monitor"};
@@ -48,7 +51,7 @@ M4Result Network::finish() {
             }
             if(!result.trace.empty()) {
                 const auto& old=result.trace.back();
-                if(row.source_ns<=old.source_ns || row.model_epoch!=old.model_epoch || row.model_sequence<=old.model_sequence || row.energy_j>old.energy_j+1e-6 || row.soc>old.soc+1e-12) result.model_preserved=false;
+                if(row.source_ns<=old.source_ns || row.model_epoch!=old.model_epoch || row.model_sequence<=old.model_sequence || (!config.speed_loop && (row.energy_j>old.energy_j+1e-6 || row.soc>old.soc+1e-12))) result.model_preserved=false;
             }
             result.trace.push_back(row);
         }
@@ -58,7 +61,7 @@ M4Result Network::finish() {
         else scenario_ok=result.first_fault_ns==0 && d.fault==central::CoordinatorFault::None && result.first_active_ns!=0;
         if(config.scenario==M4Scenario::Rejoin) scenario_ok=scenario_ok && result.rejoin_active_ns>config.rejoin_ns && d.fault==central::CoordinatorFault::None;
         if(expected_fault && config.scenario!=M4Scenario::PartialArm) scenario_ok=scenario_ok && result.first_fault_ns>=config.injection_ns && result.all_protected_ns<=config.injection_ns+100*kMs;
-        if(config.scenario==M4Scenario::NormalStop) scenario_ok=scenario_ok && d.stop.state==central::NormalStopState::Complete && d.management.power_off_confirmed;
+        if(config.scenario==M4Scenario::NormalStop || (config.speed_loop && !expected_fault)) scenario_ok=scenario_ok && d.stop.state==central::NormalStopState::Complete && d.management.power_off_confirmed;
         if(config.scenario!=M4Scenario::PartialArm) scenario_ok=scenario_ok && result.completed_batches>0;
         if(config.scenario==M4Scenario::PartialArm) scenario_ok=scenario_ok && result.first_active_ns==0 && result.front_frames==0 && result.rear_frames==0;
         if(config.scenario==M4Scenario::Fault) {

@@ -55,18 +55,20 @@ ControlAllocation::ControlAllocation(const AllocationConfig& config) : config_(c
 bool ControlAllocation::start_session(std::uint32_t epoch, std::uint64_t enable) {
     if (epoch == 0 || (epoch_ != 0 && (epoch <= epoch_ || enable < last_observed_ns_))) return false;
     epoch_ = epoch; enable_ns_ = last_observed_ns_ = enable; sequence_ = 0;
-    last_tick_ns_.reset(); critical_expiry_ns_.reset(); regen_expiry_ns_.reset(); request_.reset(); deficit_ = {}; excess_ = {};
+    last_tick_ns_.reset(); critical_expiry_ns_.reset(); regen_expiry_ns_.reset(); request_.reset(); request_input_.reset(); deficit_ = {}; excess_ = {};
     stop_.reset(enable);
     armed_ = stopped_ = braking_ = low_speed_ = holding_ = false; episode_regen_nm_ = 0;
     decision_ = {}; decision_.state = AllocationState::Waiting;
     return true;
 }
 void ControlAllocation::fail(AllocationFault fault) {
+    decision_.propulsion_selection.reset();
     if (decision_.fault == AllocationFault::None || fault == AllocationFault::ClockError) decision_.fault = fault;
     decision_.state = AllocationState::FailSafe; decision_.protection_required = true;
 }
 bool ControlAllocation::live_request(std::uint64_t now) const {
-    return request_ && now < request_->expires_at_ns && now-request_->source_time_ns <= config_.request_source_age_ns;
+    return request_ && now < request_->expires_at_ns && now-request_->source_time_ns <= config_.request_source_age_ns &&
+        (!request_input_ || now<request_input_->expires_at_ns);
 }
 bool ControlAllocation::select_normal_stop(const ActuatorStopLease& lease,std::uint64_t now) {
     if(epoch_==0 || now<last_observed_ns_ || decision_.fault!=AllocationFault::None) return false;
@@ -90,7 +92,8 @@ bool ControlAllocation::advance(std::uint64_t now) {
     }
     return true;
 }
-AllocationReceiveDecision ControlAllocation::receive_request(const VehicleRequest& request, std::uint64_t now) {
+AllocationReceiveDecision ControlAllocation::receive_request(const VehicleRequest& request, std::uint64_t now,
+    std::optional<VehicleInputDependency> input) {
     if (epoch_ == 0) return AllocationReceiveDecision::NotInitialized;
     if (!advance(now) || decision_.state == AllocationState::FailSafe) return AllocationReceiveDecision::Latched;
     if (request.epoch != epoch_) return AllocationReceiveDecision::EpochMismatch;
@@ -102,13 +105,20 @@ AllocationReceiveDecision ControlAllocation::receive_request(const VehicleReques
         return AllocationReceiveDecision::Invalid;
     }
     if (!fresh(request.source_time_ns, enable_ns_, now, config_.request_source_age_ns) || now >= request.expires_at_ns) return AllocationReceiveDecision::Expired;
+    if(input && (input->source_time_ns<enable_ns_ || input->source_time_ns>request.source_time_ns ||
+        request.source_time_ns-input->source_time_ns>30000000ULL || input->expires_at_ns<=request.source_time_ns ||
+        input->expires_at_ns-input->source_time_ns>60000001ULL || request.expires_at_ns>input->expires_at_ns))
+        return AllocationReceiveDecision::Invalid;
     if (request_ && request.sequence == request_->sequence) {
-        return same_vehicle_request(request, *request_) ? AllocationReceiveDecision::Unchanged : AllocationReceiveDecision::MutationRejected;
+        const bool same_input=bool(input)==bool(request_input_) && (!input ||
+            (input->source_time_ns==request_input_->source_time_ns && input->expires_at_ns==request_input_->expires_at_ns));
+        return same_vehicle_request(request, *request_) && same_input ? AllocationReceiveDecision::Unchanged : AllocationReceiveDecision::MutationRejected;
     }
     const auto previous = request_ ? std::optional<std::uint32_t>{request_->sequence} : std::nullopt;
     if (!can::actuator_sequence_progresses(previous, request.sequence) ||
-        (request_ && request.source_time_ns <= request_->source_time_ns)) return AllocationReceiveDecision::SequenceRejected;
-    request_ = request; return AllocationReceiveDecision::Accepted;
+        (request_ && request.source_time_ns <= request_->source_time_ns) ||
+        (input && request_input_ && input->source_time_ns<=request_input_->source_time_ns)) return AllocationReceiveDecision::SequenceRejected;
+    request_ = request; request_input_=input; return AllocationReceiveDecision::Accepted;
 }
 void ControlAllocation::mark_continuity_lost(std::uint64_t now) { if (advance(now)) fail(AllocationFault::ContinuityLost); }
 bool ControlAllocation::Dwell::observe(bool outside, std::uint64_t source, std::uint64_t duration) {
@@ -168,6 +178,10 @@ std::optional<AllocatedCommands> ControlAllocation::tick(const AllocationInputs&
     auto oldest = std::min({*readiness.oldest_input_time_ns, request_->source_time_ns,
         in.permission->message.source_time_ns, in.permission_parent->source_time_ns,
         std::get<can::BmsDriveGrant>(in.permission->message.content).input_time_ns, speed->source_time_ns});
+    if(request_input_) {
+        oldest=std::min(oldest,request_input_->source_time_ns);
+        expiry=std::min(expiry,request_input_->expires_at_ns);
+    }
     const auto bound = [&](std::uint64_t source, std::uint64_t age) {
         expiry = std::min(expiry, add(source, age+1)); oldest = std::min(oldest, source);
     };
@@ -276,6 +290,10 @@ std::optional<AllocatedCommands> ControlAllocation::tick(const AllocationInputs&
     out.steering.angle_rad = std::copysign(floor_to(std::min(std::abs(angle), config_.max_steering_rad), can::kAngleResolutionRad), angle);
     out.brake.pressure_pa = floor_to(std::min(pressure_target, config_.max_pressure_pa), can::kBrakePressureResolutionPa);
     out.drive.torque_nm = std::copysign(floor_to(std::abs(motor_target), can::kDriveTorqueResolutionNm), motor_target);
+    const double wanted_propulsion=std::max(0.0,request_->acceleration_mps2)*mass_radius;
+    const double selected_propulsion=std::max(0.0,motor_target);
+    decision_.propulsion_selection=PropulsionSelection{epoch_,request_->sequence,now,
+        request_->acceleration_mps2,wanted_propulsion,selected_propulsion,wanted_propulsion>selected_propulsion};
     critical_expiry_ns_ = critical_expiry; regen_expiry_ns_ = regen_expiry; ++sequence_; armed_ = true;
     return out;
 }

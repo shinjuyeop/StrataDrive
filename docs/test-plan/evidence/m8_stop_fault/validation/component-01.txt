@@ -1,0 +1,75 @@
+Test project /d/shin/StrataDrive/build/m7-functional
+      Start   60: RemoteLeafTest.ExpiredStopLeaseCannotBeRestampedByTransport
+ 1/20 Test   #60: RemoteLeafTest.ExpiredStopLeaseCannotBeRestampedByTransport ..........................................   Passed    0.00 sec
+      Start  163: NormalStopTest.BrakingKeepsEnableAndUsesBoundedChildrenFromContinuedIssuers
+ 2/20 Test  #163: NormalStopTest.BrakingKeepsEnableAndUsesBoundedChildrenFromContinuedIssuers ..........................   Passed    0.00 sec
+      Start  164: NormalStopTest.FreshStoppedEvidenceAndTrustedExactAckPrecedeShutdownAndPhysicalOffPrecedesComplete
+ 3/20 Test  #164: NormalStopTest.FreshStoppedEvidenceAndTrustedExactAckPrecedeShutdownAndPhysicalOffPrecedesComplete ...   Passed    0.00 sec
+      Start  165: NormalStopTest.CachedActualReadsCannotAdvanceConfirmationDwell
+ 4/20 Test  #165: NormalStopTest.CachedActualReadsCannotAdvanceConfirmationDwell .......................................   Passed    0.00 sec
+      Start  166: NormalStopTest.SpeedTorqueAndPressureEachPreventHandoffWhilePacketsStayFresh
+ 5/20 Test  #166: NormalStopTest.SpeedTorqueAndPressureEachPreventHandoffWhilePacketsStayFresh .........................   Passed    0.00 sec
+      Start  167: NormalStopTest.FallingBrakePressureCannotStartTerminalHoldBeforeSettledDwell
+ 6/20 Test  #167: NormalStopTest.FallingBrakePressureCannotStartTerminalHoldBeforeSettledDwell .........................   Passed    0.00 sec
+      Start  168: NormalStopTest.StableOldBrakingTargetIsNotSettledStandingHold
+ 7/20 Test  #168: NormalStopTest.StableOldBrakingTargetIsNotSettledStandingHold ........................................   Passed    0.00 sec
+      Start  169: NormalStopTest.PriorAuthorityExpiryCannotBeRevivedByAFreshRequest
+ 8/20 Test  #169: NormalStopTest.PriorAuthorityExpiryCannotBeRevivedByAFreshRequest ....................................   Passed    0.00 sec
+      Start  170: NormalStopTest.RequestMutationAndWrongEpochAreRejectedWithoutExtendingLifetime
+ 9/20 Test  #170: NormalStopTest.RequestMutationAndWrongEpochAreRejectedWithoutExtendingLifetime .......................   Passed    0.00 sec
+      Start  171: NormalStopTest.LossAfterConfirmedStopNeverFallsBackToDrivingOrShutdownSuccess
+10/20 Test  #171: NormalStopTest.LossAfterConfirmedStopNeverFallsBackToDrivingOrShutdownSuccess ........................   Passed    0.00 sec
+      Start  172: NormalStopTest.MissingActualAndLocalProtectionFailClosed
+11/20 Test  #172: NormalStopTest.MissingActualAndLocalProtectionFailClosed .............................................   Passed    0.00 sec
+      Start  173: NormalStopTest.ClockRegressionAndFreshRequestCannotHealTheLatch
+12/20 Test  #173: NormalStopTest.ClockRegressionAndFreshRequestCannotHealTheLatch ......................................   Passed    0.00 sec
+      Start  174: NormalStopTest.PendingHandoffCannotBeExtendedByUnrelatedFreshStopRequests
+13/20 Test  #174: NormalStopTest.PendingHandoffCannotBeExtendedByUnrelatedFreshStopRequests ............................   Passed    0.00 sec
+      Start  175: NormalStopTest.ChildIssuersNeverWrapOrRestartAfterExhaustion
+14/20 Test  #175: NormalStopTest.ChildIssuersNeverWrapOrRestartAfterExhaustion .........................................   Passed    0.00 sec
+      Start  176: NormalStopTest.MovingAndPowerDownStagesHaveIndependentFiniteBudgets
+15/20 Test  #176: NormalStopTest.MovingAndPowerDownStagesHaveIndependentFiniteBudgets ..................................   Passed    0.00 sec
+      Start  177: StopLease.DuplicateIdentityCannotExtendExpiryAndLateRenewalCannotHealLoss
+16/20 Test  #177: StopLease.DuplicateIdentityCannotExtendExpiryAndLateRenewalCannotHealLoss ............................   Passed    0.00 sec
+      Start  178: StopLease.FirstTrustedIdentityMayBeLateInIndependentStopStreamButRenewalMustProgress
+17/20 Test  #178: StopLease.FirstTrustedIdentityMayBeLateInIndependentStopStreamButRenewalMustProgress .................   Passed    0.00 sec
+      Start  179: StopLease.PreviousSessionSourceAndFutureSourceAreNotAuthorityForANewInit
+18/20 Test  #179: StopLease.PreviousSessionSourceAndFutureSourceAreNotAuthorityForANewInit .............................   Passed    0.00 sec
+      Start  180: NormalStopConfig.InvalidDecelerationOrConfirmationCannotOpenAStopPath
+19/20 Test  #180: NormalStopConfig.InvalidDecelerationOrConfirmationCannotOpenAStopPath ................................   Passed    0.00 sec
+      Start 1142: M8CarlaStop.SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof
+20/20 Test #1142: M8CarlaStop.SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof ................................***Failed    1.18 sec
+Running main() from ./googletest/src/gtest_main.cc
+Note: Google Test filter = M8CarlaStop.SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from M8CarlaStop
+[ RUN      ] M8CarlaStop.SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof
+/d/shin/StrataDrive/tests/integration/carla/m7_1f/stop_test.cpp:69: Failure
+Value of: admission->accept(in,now,prior)
+  Actual: false
+Expected: true
+bootstrap_cannot_drive_or_resume frame=1625 stop=4
+[  FAILED  ] M8CarlaStop.SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof (1175 ms)
+[----------] 1 test from M8CarlaStop (1175 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1175 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] M8CarlaStop.SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof
+
+ 1 FAILED TEST
+
+
+95% tests passed, 1 tests failed out of 20
+
+Label Time Summary:
+integration.logical    =   1.18 sec*proc (2 tests)
+unit                   =   0.02 sec*proc (18 tests)
+
+Total Test time (real) =   1.23 sec
+
+The following tests FAILED:
+	1142 - M8CarlaStop.SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof (Failed) integration.logical
+Errors while running CTest

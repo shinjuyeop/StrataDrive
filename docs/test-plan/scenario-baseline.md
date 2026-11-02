@@ -48,7 +48,11 @@ state도 원래 simulation 시각을 사용한다. Heading/cross-track은 초기
 정상 PASS 후보는 관련 수치, ODD, route 완료, 모든 경계/invariant 충족이다.
 Runtime fault/run gate/계약 위반으로 조기 종료하면 FAIL이다. 필요한 데이터 누락,
 미고정 route/profile/clock 조건으로 판정 불가면 BLOCKED이며 PASS 처리하지 않는다.
-시작 전 인프라 문제로 실행하지 못한 경우도 원인을 기록한다. 현재 모든 Result는 NOT RUN이다.
+시작 전 인프라 문제로 실행하지 못한 경우도 원인을 기록한다. 아래 정식 Reference Result와
+[M8 고정 곡선](evidence/m8_route/README.md)과 [S01/S03 fixture 실행](evidence/m8_reference/README.md)을
+구분한다. 이들은 제어·차량 성능 검증이며 Planner/localization을 포함한 전체 Reference
+수용이 아니다. S03 v1 첫 plateau FAIL과 별도 v2 개정·판정을 보존한다. 고정 fixture의
+전환 규칙은 [protocol](carla-reference-protocol.md)을 따르며 아래 정식 Reference 결과는 유지한다.
 
 ## S01 — Straight Speed Tracking
 

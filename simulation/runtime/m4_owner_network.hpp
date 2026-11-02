@@ -7,6 +7,7 @@
 #include "session_loop.hpp"
 #include "ev_power_model.hpp"
 #include "simple_vehicle.hpp"
+#include "speed_request.hpp"
 #include "vehicle_ev_model.hpp"
 #include "drive_sil_plant.hpp"
 #include "steering_response.hpp"
@@ -147,7 +148,7 @@ struct Network {
     std::array<std::unique_ptr<SessionOwnerLoop>,session::kRoleCount> sessions;
     std::array<std::vector<M4Event>,10> owner_events;
     transport::Protection monitor_override; std::atomic<std::uint32_t> running_epoch{0};
-    PhysicalOwner physical{clock,gate,sensors,outputs,start,owner_events[8],monitor_override,config.first_epoch}; std::array<Audit,10> audit;
+    PhysicalOwner physical{clock,gate,sensors,outputs,start,owner_events[8],monitor_override,config.first_epoch,config.speed_loop}; std::array<Audit,10> audit;
     std::array<TransportTraceLog,8> transport_logs;
     std::unique_ptr<M4ExecutionWatch> execution_watch;
     std::vector<std::unique_ptr<FaultEvidence>> filters;
@@ -157,6 +158,9 @@ struct Network {
     session::State session_seen{session::State::Quiet}; bool armed_seen{false};
     M4Result result; std::vector<M4Trace> central_trace;
     std::uint64_t last_tick{0},last_root{0},last_vehicle{0},last_stop{0},next_management{0},vehicle_release{0},lifecycle_release{0}; std::uint32_t root_seq{0},vehicle_seq{0},stop_seq{0},active_epoch{0};
+    central::SpeedRequest speed_control;
+    std::uint64_t next_speed_ns{0};
+    void speed_step(std::uint64_t now);
     bool began{false},rejoined{false},old_replayed{false};
     explicit Network(const M4Config& c);
     template<class T,std::size_t N> void bind(session::SessionMailbox<T,N>& mailbox,FaultPath path,std::size_t target) {

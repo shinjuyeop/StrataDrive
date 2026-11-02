@@ -26,10 +26,17 @@ Golden/독립 CRC·모델·solver/EV oracle을 구현과 분리하고, source/ex
 
 ## MBD model and code verification
 
-Status: **M6 Host quiet SIL/Python MIL 범위 종료 / M8 코드 동등성·차량 폐루프 NOT RUN**.
+Status: **M6 Host quiet SIL/Python MIL 범위 종료 / M8 SpeedPI 동등성·SimpleVehicle·CARLA 저속·S01/S02/S03 고정 fixture 추종 검증 / 전체 Reference 후속**.
 [M6 종료 검토표](../archive/milestone-reviews.md#m6)가 기존 근거와 현재 완료/미실행 범위를 구분한다. [ADR-0052](../archive/design-decisions.md#adr-0052)와
 [개발 계획](../development-guide.md)을 따른다. 첫 대상은 Central 종방향 속도 제어기다.
 현재 C++ 단위/plant·Host SIL PASS와 새 제어 모델 MIL·동등성 결과를 구분한다.
+SpeedPI의 사전 기준은 [동등성 protocol](longitudinal-equivalence-protocol.md),
+실제 비교·회귀 결과는 [M8 component 근거](evidence/m8_speed_pi/README.md)를 따른다.
+차량 통합은 [속도 폐루프 protocol](speed-loop-protocol.md)과
+[SimpleVehicle 논리 시간 결과](evidence/m8_speed_loop/README.md)로 별도 판정한다.
+CARLA V1의0→10→0km/h 연결은 [고정 protocol](carla-speed-protocol.md)과
+[실행 근거](evidence/m8_carla_speed/README.md)에 따라 판정한다. 원천 feedback30ms와
+계산 dependency60ms를 분리하며 body/wheel 오차·wire/solver/EV·fault containment를 따로 검사한다.
 
 | 계층 | 실행 대상 / 비교 | 필요한 증거 |
 | --- | --- | --- |
@@ -149,3 +156,57 @@ Verdict는 PASS / FAIL / BLOCKED / NOT RUN이다. Threshold나 환경이 부족�
 M0 review PASS는 runtime TC의 PASS가 아니다. Result ID는 실제 시험 이후에만 부여하고,
 현재 traceability의 Future Result는 모두 NOT RUN으로 유지한다. 학습자의 이해 기록은
 [학습 원칙](../learning/README.md)에 따라 별도로 남긴다.
+
+## M8 추진 포화와 참조 필요조건
+
+외부 추진 포화 v2는 [사전 protocol](propulsion-saturation-protocol.md)에 따라
+독립 Python/C++의 모든 출력·state와 flag=false의 v1 호환성을 비교한다.
+가용량 제한/복귀 합성 plant는 적분 억제 효과를 분리해 검증하며, 실제 CARLA S03 v2는
+동일한 고정 경로·target·성능 window로 별도 판정한다. Selection 이력은 원본 command
+parent/시각/양자화된 토크와 연결하고, 매 PI 적분을 별도 식으로 계산한다.
+Oracle가 missing/wrong parent/future/limited/integral 손상을 거절해야 한다.
+관성 필요조건 통과를 도로 저항·경사·동적 BMS 제한까지 포함한 추종 보장으로 세지 않는다.
+[결과·제약](evidence/m8_saturation/README.md)에 실패를 포함한 원본을 보존한다.
+
+
+## M8 저속 terminal 정지
+
+각4000개 실제 CARLA 물리 구간에 native proof와 solver/EV 독립 감사를 함께 적용한다.
+Central 현재 속도 입력 누락은20ms job의 fault와 원본 torque/brake acquisition 응답으로,
+NormalStop은 원본 StopLease·accepted ACK·stationary Actual·PowerStatus Off로 판정한다.
+body/네 solver wheel 정지5s와 마지막1초 pose drift≤1mm를 별도로 요구한다.
+10km/h 고정 fixture에 한정하며 단순 다음 tick 차단·최종 제어 target0을 물리 정지로
+세지 않는다. 정상 정지2102 물리 hold 구간과 마지막 settlement 관측을 구분한다.
+[Protocol](carla-stop-protocol.md), [결과·실패 이력](evidence/m8_stop/README.md)을 따른다.
+
+
+## M8 정지 인계 후 보호와 고속 예산 계약
+
+`stop-protection`은 원본 handoff ACK 이후100ms의 명시적 SIL safety request다.
+서버까지 전달된 StopLease/ACK와 실제 hold 구간을 먼저 입증하고, 다음 보호 Actual의
+source/동일 session·8-role mask·정지 유지·torque/brake 응답을 검증한다. 입력 일부를
+누락시키거나 고장 검출기를 통과한 시험으로 해석하지 않는다. CLI 직렬화 검사는
+원본 stopped-wheel 입력4001개를 새 모드로 재생하며 독립 wire decoder로 검사한다.
+실제 물리 실행과 replay를 별도 분모로 기록한다.
+
+30km/h는 기존1m/s²/5s의 낙관적 이상 입력에서도 timeout이 발생하는 계약 시험이다.
+이 계약 시험과 별개인 명시적10s profile의 실제 정지는 아래 절을 따른다.
+[사전 protocol](carla-stop-fault-protocol.md), [계약 비교](normal-stop-30-contract-review.md),
+[원본·검사](evidence/m8_stop_fault/README.md)를 따른다.
+
+
+## M8 별도30km/h NormalStop
+
+사전 고정한 `m8_stop30_v1.json`의20s startup·35s 사건·6000ticks와 명시적
+1m/s²·제동10s·shutdown2s를 함께 검증한다. 기존 default5s와 저속 출력 동등성은
+별도 C++ 계약 시험과 두 기존 원본 시나리오 전체 native JSON replay로 확인한다.
+
+1750개의 원본 PI/Pure Pursuit release와 pose/wheel/CAN 시간 연결을 독립 계산한다.
+plateau[25,35)s의 body1000/wheel500 표본, 제어 시작부터 사건 후10s까지20Hz 경로,
+body·네 wheel 연속 정지 시작, 원본 StopLease/ACK 인계, 실제 PowerStatus Off를 검사한다.
+제동10s와 ACK 이후 shutdown2s를 각각 제한하며 최종 pose drift≤1mm를 요구한다.
+전체6000 physics와 단일 EV 정산에 기존 native/solver/energy 감사를 적용한다.
+
+[사전 protocol](carla-stop30-protocol.md), [원본·판정](evidence/m8_stop30/README.md)을 따른다.
+이는 별도 nominal 직선 fixture 수용이다.30km/h fault matrix와 ACK/전체 통신 손실,
+Planner/localization·전체 Reference/M8·wall/Target 수용은 포함하지 않는다.

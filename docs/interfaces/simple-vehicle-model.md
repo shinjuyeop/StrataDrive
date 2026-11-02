@@ -47,7 +47,9 @@ EV electrical은 기존 beginning-speed ZOH power를 쓰므로 두 적분의 qua
 
 TBD-16의 첫 pilot은 Python3 표준 라이브러리/binary64로 선택했다. 설치/license/자동 생성
 없이 diff/replay가 가능하고 모델은 별도 실행된다. MATLAB/Simulink 제품 채택이나 tool
-qualification이 아니다. M8 controller C++ 구현·모델/코드 동등성·차량 SIL은 후속이다.
+qualification이 아니다. M8의 수작업 C++ SpeedPI와 공통 vector 동등성은
+[component 범위](../test-plan/evidence/m8_speed_pi/README.md)에서 검증했다.
+C++의 SimpleVehicle 논리 시간 폐루프는 아래 별도 경계를 따른다.
 
 PI sample20ms, speed acquisition50ms/ZOH/source age60ms, logical plant2ms다.
 `u_raw = d(reference)/dt + Kp*e + integral`, Kp1, Ki0.2. 감속 시만120ms preview
@@ -58,7 +60,8 @@ D 항은 넣지 않았다. 이 noise-free 저차 plant에서 측정 미분 없�
 
 실행 누락·stale/invalid/future/old Epoch/변조 cached sample·permission loss는 invalid output과
 latch를 만든다. 정상 command0으로 성공을 가장하지 않는다. 명시적 새 INIT만 상태를 초기화한다.
-이 model INIT는 실제 시스템 신뢰 경로의 대체물이 아니며 M8 integration 때 연결해야 한다.
+이 model INIT는 실제 시스템 신뢰 경로의 대체물이 아니다. C++ adapter는 기존 session release의
+application epoch/enable로 초기화하며, 물리 모델을 초기화하지 않는다.
 MIL plant/actuator는 독립 Python 근사(50ms delay,torque1000Nm/s,pressure5/10MPa/s)다.
 C++ 실제 actuator/전원 모델을 호출한 것처럼 보고하지 않는다. 상세 case/판정은
 [사전 protocol](../test-plan/evidence/m6_simple_vehicle/protocol.md)을 따른다.
@@ -84,3 +87,49 @@ Drive source-age30ms 검사를 그대로 사용한다. MIL의20Hz sensor/60ms ag
 계약이다. 이것을 실제 Drive freshness로 옮기지 않았다. M7의20Hz CARLA state를30ms
 Drive auxiliary 한계에 그대로 연결할 수 있다고 가정하지 않는다. 해당 sensor/clock 경계와
 원천 시각을 보존하는 multirate 설계는 M7 전에 결정할 후속 항목이다.
+
+
+## C++ 속도 폐루프의 논리 시간 경계
+
+기본 M4 fixture는 유지하고 `M4Config::speed_loop`에서만 SimpleVehicle을 연결한다.
+기존 8 participant의 INIT/ACK/release 이후 Central의 `SpeedRequest`가 검증된
+`DriveReceiver::current_sample`을 받아 wheel rad/s × radius0.3m로 변환한다.
+Drive Actual wire에는 별도 physical epoch/sequence가 없으므로 application epoch와
+원래 wheel source timestamp를 입력 cursor로 사용한다. 매20ms 새 acquisition을
+요구하고, 같은 wheel source를 새 Actual envelope로 갱신해도 거부한다.
+
+VehicleRequest는 wheel source에 보수적으로 rooted되며 expiry는 source+30ms+1ns다.
+이를 통해 기존 CommandContext의 oldest input/expiry 경계를 그대로 사용한다.
+모델 자체의60ms age를 runtime으로 확대하지 않는다. 정상 arm과 receiver의 현재
+AllowNormal grant를 함께 확인하며, 실패하면 acceleration0을 발급하지 않고 보호를 요청한다.
+
+첫 계산은 정상 arm 뒤 allocation release+1ms에 시작해 새 Leaf→Zone→Central
+피드백을 읽는다. PI20ms와 Host10ms allocation은 분리된다. 실제 물리는1ms,
+owner poll0.2ms이며 이는 wall clock 지터를 허용한 scheduler 계약이 아니다.
+목표0은 explicit standstill hold를 요청한다. 87초 profile 후 새 정상 root 생산을
+중단하고 기존 NormalStop으로 인계해 pressure dwell·contactor open·HV off를 확인한다.
+
+[폐루프 프로토콜](../test-plan/speed-loop-protocol.md)과
+[실행 근거](../test-plan/evidence/m8_speed_loop/README.md)를 따른다.
+실제 SOME/IP/vCAN·RunLease 전송과 CARLA 연결은 이 논리 시간 시험 범위 밖이다.
+
+## M8 추진 배분 포화 feedback v2
+
+2026-11-01. 선택형 `model_v2.py`/`SpeedPI::step(..., propulsion_saturated)`는 기존
+출력 계산과 제한을 유지하고, 직전 배분이 양수 추진 요청을 제한했으며 현재 error가
+양수일 때 integral 증가를 보류한다. 음수 error는 기존 내부 제한 조건 아래 적분한다.
+외부 flag=false는 v1과 동일하다. 실제 actuator torque를 추정하는 보상은 아니다.
+
+`SpeedRequest(radius, true)`는 첫 release에서 보수적으로 양수 적분을 보류한다.
+이후 Central의 성공한 `PropulsionSelection`만 사용한다. 같은 epoch·직전 request
+sequence·이전 release 이상 현재 release 미만의 selection 시각·30ms age·단조 cursor,
+이전 acceleration과 유한한 요청/선택 토크·limited 일관성을 확인한다. 누락/불일치는
+출력 없이 latch하며 새 INIT가 필요하다. 선택 이력은 sensor나 permission이 아니므로
+기존 wheel30ms ingress, request30ms/input60ms dependency와 child expiry를 바꾸지 않는다.
+토크는 CAN 반올림 전 배분값이며 양자화 오차만으로 포화 판정을 만들지 않는다.
+
+`inertial_ramp_feasible`은 유한한 전진 목표와 기간에 대해 `m*r*dv/dt`의
+추진/제동 상한 필요조건을 검사한다. CARLA opt-in fixture는1696kg/.355m/300Nm/1500Nm다.
+경사·도로 저항·동적 BMS 제한을 포함한 추종 가능성 보장은 별도다.
+[고정 protocol](../test-plan/propulsion-saturation-protocol.md)과
+[실행 근거](../test-plan/evidence/m8_saturation/README.md)를 따른다.

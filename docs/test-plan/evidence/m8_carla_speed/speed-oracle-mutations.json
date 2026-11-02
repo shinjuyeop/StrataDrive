@@ -1,0 +1,49 @@
+{
+  "status": "PASS_ORACLE_MUTATIONS",
+  "rejected": {
+    "source_restamped": "unchanged held control",
+    "request_expiry_extended": "unchanged held control",
+    "input_expiry_extended": "unchanged held control",
+    "wrong_radius": "unchanged held control",
+    "skipped_release": "control sequence",
+    "nonfinite_integral": "finite control",
+    "wrong_target": "unchanged held control",
+    "physical_overspeed": [
+      "body.max_plateau_error_kmh",
+      "body.max_positive_target_overspeed_percent"
+    ],
+    "physical_not_stopped": [
+      "body.max_stop_error_kmh"
+    ],
+    "hidden_reset": "no reset in trajectory",
+    "missing_terminal_settlement": "40s complete work settlement"
+  },
+  "baseline": {
+    "status": "PASS_M8_SPEED_SIMULATION_ONLY",
+    "case": "nominal",
+    "receipts": 4000,
+    "normal_intervals": 3919,
+    "controls": 1960,
+    "origin_ns": 1432816967,
+    "wall_realtime_accepted": false,
+    "normal_stop_hv_off_accepted": false,
+    "failures": [],
+    "body": {
+      "samples": 4001,
+      "plateau_samples": 500,
+      "stop_samples": 300,
+      "max_plateau_error_kmh": 0.02472827148437471,
+      "max_stop_error_kmh": 0.0,
+      "max_positive_target_overspeed_percent": 1.425569506816159
+    },
+    "control_wheel": {
+      "samples": 1960,
+      "plateau_samples": 250,
+      "stop_samples": 150,
+      "max_plateau_error_kmh": 0.018820000000000194,
+      "max_stop_error_kmh": 0.0,
+      "max_positive_target_overspeed_percent": 1.072967040030453
+    },
+    "server_clean_exit": true
+  }
+}

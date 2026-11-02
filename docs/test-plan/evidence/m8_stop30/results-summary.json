@@ -1,0 +1,165 @@
+{
+  "status": "PASS_SEPARATE_STOP30_NOMINAL_SIMULATION_ONLY",
+  "date": "2026-11-02",
+  "actual": {
+    "status": "PASS_M8_CARLA_TERMINAL_RESPONSE",
+    "mode": "normal-stop30",
+    "controls": 1750,
+    "physics": 6000,
+    "settlements": 6000,
+    "trigger_ns": 36357771617,
+    "trigger_speed_kmh": 29.95268994140625,
+    "stop_delay_s": 8.477998988000001,
+    "final_pose_drift_m": 0.0,
+    "normal_stop_intervals": 1553,
+    "hold_delay_s": 8.677999006,
+    "complete_delay_s": 9.277998992,
+    "power_off": {
+      "source_ns": 45633771617,
+      "input_ns": 45615770610,
+      "off": true,
+      "bus_v": 27.0,
+      "contactors": [
+        0,
+        0,
+        0
+      ]
+    },
+    "protection_response": {},
+    "max_pi_error": 0.0,
+    "wall_realtime_accepted": false,
+    "handoff_ns": 45028171617,
+    "route": {
+      "original_wheel_acquisitions": 1000,
+      "body_plateau_samples": 1000,
+      "wheel_plateau_samples": 500,
+      "body_max_error_kmh": 0.07484179687499903,
+      "wheel_max_error_kmh": 0.03089999999999904,
+      "trajectory_samples": 900,
+      "cross_track_p95_m": 0.001689639444609549,
+      "heading_p95_deg": 0.0078049956167711735,
+      "final_progress_m": 242.20498347723822
+    }
+  },
+  "work": {
+    "status": "PASS_SOLVER_WORK_SINGLE_EV",
+    "intervals": 6000,
+    "motor_work_j": [
+      0.0,
+      0.0,
+      30596.436489292006,
+      30596.42682580919
+    ],
+    "minimum_loaded_rear_mean_rad_s": 0.00011180733417859301,
+    "forward_ineligible": [],
+    "maximum_equation_residual_rad_s": 1.9124251195989928e-06,
+    "rejected_corruptions": {
+      "missing_step": "complete substeps",
+      "duplicate_ordinal": "ordered unique substeps",
+      "missing_end": "whole invocation",
+      "overflow": "whole invocation",
+      "wrong_dt": "actual solver dt",
+      "torque": "applied torque binding",
+      "omega": "integrator equation",
+      "nonfinite": "finite complete wheel tuple",
+      "sum": "signed work sum",
+      "source": "solver identity",
+      "false_sleep": "complete substeps"
+    },
+    "ev_settlement_connected": true,
+    "independently_verified_settlements": 6000,
+    "max_abs_energy_balance_j": 5.6141288951039314e-08,
+    "rejected_energy_corruptions": {
+      "duplicate_energy_interval": "complete native energy coverage",
+      "missing_energy_interval": "complete native energy coverage",
+      "restamped_wheel": "original source and applied torque",
+      "predicted_work": "single EV basis",
+      "changed_work_total": "solver/EV work conservation",
+      "changed_SOC": "SOC/chemical energy",
+      "changed_loss": "independent energy ledger"
+    },
+    "native_actual_audit": {
+      "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+      "receipts": 6000,
+      "normal_intervals": 4367,
+      "empty_init_intervals": 4,
+      "max_whole_interval_source_age_ns": 20000000,
+      "min_command_expiry_margin_ns": 1,
+      "max_wheel_quantization_error_rad_s": 0.004995088577270934,
+      "torque_nm_range": [
+        -200.0,
+        300.0
+      ],
+      "final_forward_velocity_m_s": 0,
+      "interval_work_valid": true,
+      "protection_intervals": 0,
+      "normal_stop_intervals": 1552
+    }
+  },
+  "stop_configuration": {
+    "id": "normal-stop30-a1-t10-v1",
+    "deceleration_mps2": 1,
+    "braking_timeout_ns": 10000000000,
+    "confirmation_ns": 60000000,
+    "shutdown_timeout_ns": 2000000000
+  },
+  "handoff_delay_s": 8.6704,
+  "shutdown_after_handoff_s": 0.6075989919999998,
+  "tests": {
+    "cpp_unit_logical": 1217,
+    "python_unit": 237,
+    "asan_ubsan_affected": 33,
+    "terminal_mutations": 20,
+    "solver_mutations": 11,
+    "ev_mutations": 7,
+    "cli_guards_each_release_asan": 8,
+    "cli_prefix_observations_each_release_asan": 100,
+    "original_scenario_exact_replay_observations": 8002,
+    "previous_evidence_unchanged": 1305
+  },
+  "native_sha256": "7a592bff4afc254661b6892b8c0004ffc8eea8afab73adcb731593d74456e6be",
+  "server_exit": 130,
+  "server_rebuilt": false,
+  "default_braking_budget_changed": false,
+  "audit_correction": {
+    "count": 1000,
+    "first": [
+      [
+        25007999423,
+        29.9691
+      ],
+      [
+        25017999423,
+        29.9691
+      ]
+    ],
+    "last": [
+      [
+        34987999200,
+        29.99466
+      ],
+      [
+        34997999200,
+        29.99466
+      ]
+    ],
+    "max_error_kmh": 0.03089999999999904,
+    "pi_controls": 1750,
+    "pi_consumed_acquisitions_in_window": 499,
+    "body_samples": 1000,
+    "window_ns": [
+      25000000000,
+      35000000000
+    ],
+    "correction": "Select first original Drive acquisition in each20ms bin; require two original100Hz acquisitions per bin and physics quantization. Last acquisition is before terminal event but after final PI consumer.",
+    "physical_run_repeated": false,
+    "acceptance_thresholds_changed": false
+  },
+  "limits": [
+    "Fixed nominal Town06 straight profile only; no30kmh fault injection",
+    "No full Reference/M8 or Planner/localization acceptance",
+    "No wall/Target acceptance",
+    "ACK/full communication loss physical response remains open",
+    "Existing UE renderer/GC root cause remains open"
+  ]
+}
