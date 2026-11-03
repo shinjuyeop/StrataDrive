@@ -88,7 +88,7 @@ M4Result Network::finish() {
             }
             result.trace.push_back(row);
         }
-        const auto d=core.decision(); const bool expected_fault=config.scenario==M4Scenario::PartialFront || config.scenario==M4Scenario::FeedbackLoss || config.scenario==M4Scenario::CommandLoss || config.scenario==M4Scenario::PartialArm || config.scenario==M4Scenario::Rejoin || config.scenario==M4Scenario::SpeedInputLoss;
+        const auto d=core.decision(); const bool expected_fault=config.scenario==M4Scenario::PartialFront || config.scenario==M4Scenario::FeedbackLoss || config.scenario==M4Scenario::CommandLoss || config.scenario==M4Scenario::PartialArm || config.scenario==M4Scenario::Rejoin || config.scenario==M4Scenario::SpeedInputLoss || config.scenario==M4Scenario::BmsInputLoss || config.scenario==M4Scenario::PowerInputLoss;
         bool scenario_ok;
         if(expected_fault) scenario_ok=result.first_fault_ns!=0 && result.all_protected_ns>=result.first_fault_ns && result.all_protected_ns-result.first_fault_ns<=100*kMs;
         else scenario_ok=result.first_fault_ns==0 && d.fault==central::CoordinatorFault::None && result.first_active_ns!=0;
@@ -97,6 +97,16 @@ M4Result Network::finish() {
         if(config.scenario==M4Scenario::NormalStop || (config.speed_loop && !expected_fault)) scenario_ok=scenario_ok && d.stop.state==central::NormalStopState::Complete && d.management.power_off_confirmed;
         if(config.scenario!=M4Scenario::PartialArm) scenario_ok=scenario_ok && result.completed_batches>0;
         if(config.scenario==M4Scenario::PartialArm) scenario_ok=scenario_ok && result.first_active_ns==0 && result.front_frames==0 && result.rear_frames==0;
+        if(config.scenario==M4Scenario::BmsInputLoss || config.scenario==M4Scenario::PowerInputLoss) {
+            const auto owner=config.scenario==M4Scenario::BmsInputLoss?5U:6U;
+            const auto omission=std::find_if(result.events.begin(),result.events.end(),[&](const auto& e){return e.owner==owner && std::string_view(e.kind)=="native-input-unavailable";});
+            scenario_ok=scenario_ok && omission!=result.events.end();
+            if(omission!=result.events.end()) result.effective_injection_ns=omission->time_ns-start;
+            if(config.native_input_restore_ns) scenario_ok=scenario_ok && std::any_of(result.events.begin(),result.events.end(),[&](const auto& e){
+                return e.owner==owner && std::string_view(e.kind)=="native-input-restored" && e.time_ns-start>=config.native_input_restore_ns;});
+            for(const auto& row:result.trace) if(row.elapsed_ns>=config.injection_ns+100*kMs && (!config.recovery_ns || row.elapsed_ns<config.recovery_ns) && row.run_gate) scenario_ok=false;
+            if(config.recovery_ns) scenario_ok=scenario_ok && result.rejoin_active_ns>config.recovery_ns && d.fault==central::CoordinatorFault::None;
+        }
         if(config.scenario==M4Scenario::Fault) {
             const auto is=[](const M4Event& e,const char* value){ return std::string_view(e.kind)==value; };
             bool affected=false,protected_live=false;

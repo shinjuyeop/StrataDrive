@@ -5403,3 +5403,31 @@ Central만 정지한 경우 두 Gateway의 SD-2001과 원본 ACK·물리 응답�
 
 Remote wire/spool·전체 scalar/config 영속 schema·release 전 startup 수집·source 재시작 adoption·
 Clock recovery·전체 차량 BMS/Power fault matrix·CARLA/wall/Target·학습자 수용은 후속이다.
+
+<a id="adr-0083"></a>
+
+## ADR-0083: BMS·Power 자체 입력 손실의 차량 SIL 추적
+
+Date: 2026-11-03. Status: **두 입력 손실 차량 SIL 검증; 전체 M9 OPEN**.
+
+BMS electrical 그룹과 Power current scalar 누락은 별도 logical scenario로 추가한다.
+ECU runnable의 입력 사본만 바꾸며 물리 모델/공유 sensor producer·다른 ECU 입력·CAN/
+권한·controller 기준은 유지한다. Window의 시작과 실제 affected body/원래 acquisition을
+구분하고 event에는 body의 실제 누락/복원 시각을 남긴다. Wall·다른 fault 혼합·모순된 복원/
+recovery window는 거부한다. Native DTC는 기존 registry2를 유지하며 새 code를 만들지 않는다.
+
+SD-3101/3201 각각 한 건의 최초 source와 보호 전달을 구분한다. 최초 검출→local selection→
+원본 Zone ACK log→실제 차량 토크/압력·stationary/HV-off→새 INIT2/정상 source proof를
+대조한다. 기존 joined link 교체·8-role INIT 경로와 물리 model7/position/sequence를 유지한다.
+BMS Passed는 local release dwell/Active이며 Power·차량 readiness와 동일시하지 않는다.
+
+누락 입력을 복원해도 같은 epoch의 latch/gate/DTC Failed는 유지한다. 영구 Power current
+누락은 WaitCurrent/shutdown_blocked와 energized HV를 유지하며 실제 current0·open contactor/
+HV-off를 꾸미지 않는다. 정상 현상과 진단 on/off의 물리/권한은 동일하다. 독립 감사는 journal/
+native snapshot·original input-copy/body·physical 반응/연속성을 대조하고10개 손상을 거부한다.
+최초 감사는 Passed의 state_after를 Fault detail과 같다고 잘못 기대해 실패했다. 기존 event
+계약에 따라 Fault detail과 proof metadata를 구분했으며 제어/검출/응답 budget을 완화하지 않았다.
+[실행·실패·재현](../test-plan/evidence/m9_native_vehicle/README.md)을 따른다.
+
+Release 전 startup 수집·remote wire/spool·source 재시작·Clock 복구·전체 scalar 영속 schema·
+다른 BMS trip/Power fault matrix·CARLA30km/h·wall/Target와 학습자 수용은 후속이다.

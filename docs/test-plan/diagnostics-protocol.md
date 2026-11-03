@@ -181,3 +181,16 @@ Gateway 실제 proof에10개, BMS/Power 실제 proof에 각8개 음성 변형을
 native CSV/ACK/physical 감사와8개 손상 거부를 실행한다. 원본 budget을 완화하지 않는다.
 [결과·실패·재현](evidence/m9_native_causes/README.md)을 따른다. BMS/Power 자체 고장 차량
 SIL·release 이전 startup·remote wire/spool·Clock 복구·wall/Target는 이 실행으로 수용하지 않는다.
+
+## BMS·Power 자체 입력 손실 차량 SIL fixture
+
+실행 전 고정 recipe: logical Host10ms·physical model7·native run5001/registry2,
+24s 실행, elapsed10s부터 BMS electrical 그룹 또는 Power pack-current scalar만 ECU 입력
+사본에서 누락,10.2s 복원,20s 기존 joined link 교체/8-role INIT2다. 원래 plant/current·
+CAN/권한·threshold/dwell/보호 정책은 바꾸지 않는다. 최초 native BMS InputsInvalid→SD-3101,
+Power InputsUnavailable→SD-3201을 기대하며 보호 전달을 자체 root로 만들지 않는다.
+검출은 각각 다음 BMS20ms/Power10ms body 이내, 기존100ms 보호·230ms 토크/제동 응답을
+유지한다. 복원 후 같은 epoch의 latch/gate·Failed 유지, 실제 정지/contacts-open/낮은 bus를
+별도로 확인한다. INIT 자체는 Passed가 아니며 새 정상 BMS Active/release dwell 또는
+Power actual HV Ready·current gate/입력 유효성이 필요하다. Passed 이력/count는 삭제하지 않는다.
+복구 없는 음성 recipe도 실행하며, 진단 on/off에서 원래 입력 주입·제어/물리/권한은 같아야 한다.

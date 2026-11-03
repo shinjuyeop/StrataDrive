@@ -50,6 +50,7 @@ public:
     void protect() noexcept override;
     void service() noexcept override;
     bool drop_actual{false},reject_arm{false};
+    bool omit_native_input{false}; // logical fixture: BMS electrical group / Power current; input copy only
     std::uint32_t epoch() const { return epoch_; }
     transport::Leaf leaf() const { return leaf_; }
     std::uint64_t last_body_ns() const { return last_body_; }
@@ -78,6 +79,7 @@ private:
     bool receive(const transport::LeafRequest& request);
     void runnable(const OwnerSensors& sensors,std::uint64_t now);
     void output(std::uint64_t now);
+    void record_native_input_loss(std::uint64_t now,std::uint64_t source,std::uint64_t dependency);
     void service_impl();
     transport::Leaf leaf_; transport::Clock& clock_; transport::RunGate& gate_; transport::LeafLink& link_;
     runtime::LatestSnapshot<OwnerSensors>& sensors_; runtime::LatestSnapshot<OwnerActuation>& output_; BmsGateChannel& bms_gate_;
@@ -87,6 +89,7 @@ private:
     std::vector<M4Event> input_events_;
     std::uint64_t command_expiry_ns_{0},command_source_ns_{0}; bool expiry_reported_{false};
     std::uint32_t prepared_epoch_{0};
+    bool native_input_omitted_{false};
     bool execution_deadline_{false}; std::uint64_t body_release_{0},body_deadline_{0},receive_begin_{0};
 };
 }  // namespace stratadrive::simulation

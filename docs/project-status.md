@@ -52,7 +52,12 @@ Central pause의 실제 두 Gateway 만료/ACK·물리 응답과 INIT2 뒤 완�
 차량 논리 SIL로 확인했다. BMS 자체 trip/외부 보호와 Power sensor 누락/실제 RC HV Ready
 재도달은 component 범위다. [native 원인·범위와 실패 이력](test-plan/evidence/m9_native_causes/README.md)을 따른다.
 이번 일반/논리1129개·영향 ASan/UBSan206개·기존 wall owner2개가 통과했다.
-다음은 release 전 startup 수집·원격 전송/spool과 BMS/Power 자체 원인의 차량 fault matrix다.
+후속으로 BMS electrical/Power current 누락을 실제 차량 SIL의 detector·local 보호·Zone ACK·
+물리 응답·DTC·INIT2 복구까지 연결했다. 각각 SD-3101/3201 한 건이며 복원만으로 보호가
+풀리지 않는다. 영구 Power current 누락은 차량 정지 후에도 HV-off를 선언하지 않는다.
+[두 입력 손실 차량 검증](test-plan/evidence/m9_native_vehicle/README.md)을 따른다.
+일반/논리1137개·영향 ASan/UBSan59개·기존 wall owner2개가 통과했다.
+다음은 release 전 startup 수집·원격 전송/spool이다. 다른 BMS trip/Power 고장 조합은 후속이다.
 실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.
 30km/h ACK/통신 손실의 실제 주입 recipe와 기대 code·물리 기준은 실행 전에 고정한다.
 TBD-08은 실제 모니터 경계의 code별 복구 predicate·전달/부하 검증·학습자 수용 전 CLOSED로 올리지 않는다.

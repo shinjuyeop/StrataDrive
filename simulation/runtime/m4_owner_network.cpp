@@ -320,6 +320,9 @@ void Network::step(std::size_t owner,std::uint64_t requested_wake) {
                 (config.scenario==M4Scenario::PartialFront || (config.scenario==M4Scenario::Rejoin && zone_owners[0]->epoch()==config.first_epoch));
             if(owner==(config.speed_loop?4U:2U)) leaf_owners[config.speed_loop?2:0]->drop_actual=config.scenario==M4Scenario::FeedbackLoss && elapsed>=config.injection_ns;
             if(owner==3) leaf_owners[1]->reject_arm=config.scenario==M4Scenario::PartialArm;
+            if(owner==5 || owner==6) leaf_owners[owner-2]->omit_native_input=
+                ((owner==5 && config.scenario==M4Scenario::BmsInputLoss) || (owner==6 && config.scenario==M4Scenario::PowerInputLoss)) &&
+                elapsed>=config.injection_ns && (!config.native_input_restore_ns || elapsed<config.native_input_restore_ns);
             sessions[owner]->step();
             audit[owner].runnable(owner<2?zone_owners[owner]->last_health_ns():leaf_owners[owner-2]->last_body_ns());
         }

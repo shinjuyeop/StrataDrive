@@ -48,7 +48,7 @@ bool AsyncLeafOwner::initialize(const session::Plan& plan) noexcept {
         epoch_=plan.epoch; enable_=last_body_=plan.enable_ns; started_=false;
         command_expiry_ns_=command_source_ns_=0; expiry_reported_=false; prepared_epoch_=0; traced_command_.reset();
         accepted_command_.reset(); expiry_observation_.reset(); command_success_.reset();
-        protection_selected_.reset();
+        protection_selected_.reset(); native_input_omitted_=false;
         next_body_=enable_+(leaf_==transport::Leaf::Bms?20000000ULL:10000000ULL);
         e2e::p05_protect_init(bms_tx_.protection); e2e::p05_protect_init(power_tx_.protection);
     }
@@ -179,6 +179,12 @@ void AsyncLeafOwner::output(std::uint64_t now) {
             gate_.allows(epoch_) && !faulted() && command_expiry_ns_ && published<command_expiry_ns_?1:-1);
     }
 }
+void AsyncLeafOwner::record_native_input_loss(std::uint64_t now,std::uint64_t source,std::uint64_t dependency) {
+    if(native_input_omitted_==omit_native_input) return;
+    native_input_omitted_=omit_native_input;
+    if(input_events_.size()<input_events_.capacity()) input_events_.push_back({now,omit_native_input?"native-input-unavailable":"native-input-restored",
+        static_cast<std::size_t>(leaf_)+2,epoch_,source,0,dependency,leaf_==transport::Leaf::Bms?1:2});
+}
 void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
     if(leaf_==transport::Leaf::Steering) {
         auto& actor=std::get<vecu::SteeringActuator>(actor_); if(actor.prepare(now)) { if(const auto f=actor.complete(s.angle,now)) publish(*f); }
@@ -189,11 +195,17 @@ void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
         if(actor.prepare(now)) { if(const auto f=actor.complete(s.torque,now)) publish(*f); }
     } else if(leaf_==transport::Leaf::Bms) {
         auto& actor=std::get<vecu::BmsController>(actor_);
-        if(const auto m=actor.tick(s.battery,now)) { if(const auto f=can::encode_bms_frame(*m,bms_tx_)) publish(*f); }
+        auto input=s.battery;
+        record_native_input_loss(now,input.electrical?input.electrical->identity.source_time_ns:0,input.electrical?input.electrical->input_time_ns:0);
+        if(omit_native_input) input.electrical.reset();
+        if(const auto m=actor.tick(input,now)) { if(const auto f=can::encode_bms_frame(*m,bms_tx_)) publish(*f); }
         bms_gate_.publish(actor.power_gate());
     } else if(leaf_==transport::Leaf::Power) {
         auto& actor=std::get<vecu::PowerController>(actor_); const auto gate=bms_gate_.read();
-        if(const auto m=actor.tick(s.power,gate?*gate:std::nullopt,now)) { if(const auto f=can::encode_bms_frame(*m,power_tx_)) publish(*f); }
+        auto input=s.power;
+        record_native_input_loss(now,input?input->identity.source_time_ns:0,input?input->input_time_ns:0);
+        if(omit_native_input && input) input->pack_current_a.reset();
+        if(const auto m=actor.tick(input,gate?*gate:std::nullopt,now)) { if(const auto f=can::encode_bms_frame(*m,power_tx_)) publish(*f); }
     }
     const auto completed=now_ns(); const bool late=execution_deadline_ && completed>body_deadline_;
     if(execution_deadline_ && input_events_.size()<input_events_.capacity()) input_events_.push_back({completed,"control-completed",static_cast<std::size_t>(leaf_)+2,epoch_,body_release_,body_deadline_,now,late?1:0});

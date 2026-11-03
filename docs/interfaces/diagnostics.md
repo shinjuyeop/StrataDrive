@@ -170,7 +170,7 @@ Clock의 실제 복구 predicate는 아직 연결하지 않는다.
 ## Gateway·BMS·Power native 원인 수집
 
 `native_fault_observation.hpp`의 유한 값 snapshot은 같은 owner에서 최초 native 원인과
-정상 재시험을 보존한다. `native_diagnostics.hpp/.cpp`는 logical Host10ms Normal/Fault의
+정상 재시험을 보존한다. `native_diagnostics.hpp/.cpp`는 logical Host10ms Normal/Fault 및 BmsInputLoss/PowerInputLoss의
 `native_diagnostics_run`으로 연결한다. Front30/Rear31/BMS32/Power33은 각 SPSC producer이며
 monitor6 CommandGateway /7 RearPowerGateway /8 BMS /9 Power다. Global Session은 Central7만
 발행한다. Collector는 global release 이후 같은 application epoch의 source만 읽는다.
@@ -203,6 +203,26 @@ Enable/Ready 재도달이 필요하다. Metadata Observation proof 뒤 기존 oc
 기존 watermark/manifest는 유지한다. Replay도 manifest보다 새 code를 거부하고 지원하지
 않는 registry는 bootstrap하지 않는다. Component 검증과 Gateway 차량 SIL/독립 감사의
 범위는 [native 원인 근거](../test-plan/evidence/m9_native_causes/README.md)를 따른다.
+
+## BMS·Power 입력 손실 차량 연결
+
+`M4Scenario::BmsInputLoss / PowerInputLoss`는 ECU runnable이 읽는 입력 사본에서만 BMS
+`electrical` 그룹 또는 Power `pack_current_a`를 누락한다. Physical producer와 다른 ECU의
+sensor channel·원래 source/identity/sequence·control period를 바꾸지 않는다. 누락/복원 event는
+window 설정 시각이 아닌 **실제 affected body** 시각과 원래 acquisition/dependency를 보존한다.
+Logical speed-loop/Host10ms 전용이며 다른 fault recipe와 혼합하지 않는다. 명시적 복원이
+없으면 손실은 계속된다. Recovery를 요청하는 recipe는 복원이 recovery보다 앞서야 한다.
+
+Run5001·registry2에서 elapsed10s 주입/10.2s 복원/20s 기존 link 교체·실제 INIT2를 사용한다.
+SD-3101 InputsInvalid 한 건 또는 SD-3201 InputsUnavailable 한 건과 원본 local selection,
+Zone ACK log·실제 토크/압력·stationary/HV-off·새 epoch source proof를 대조한다. 전달된
+다른 ECU의 보호는 Observation이다. BMS local Passed는 release dwell/Active 확인이며
+전체 차량의 주행 준비 완료와 구분한다. Power local Passed는 actual HV Ready가 필요하다.
+
+복원만으로 native latch/gate가 풀리지 않는다. 영구 Power current 누락에서는 실제 current를
+0으로 대체하지 않으며 WaitCurrent/shutdown_blocked 상태로 HV를 유지한다. 정지한 차량을
+HV-off로 기록하지 않는다. 두 입력 손실 case의 차량 SIL이며 모든 BMS trip/Power contactor
+고장 matrix를 완료한 것은 아니다. [차량 입력 손실 근거](../test-plan/evidence/m9_native_vehicle/README.md)를 따른다.
 
 ## 책임과 기존 계약
 

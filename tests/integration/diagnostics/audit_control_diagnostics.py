@@ -76,7 +76,7 @@ def event(payload):
                 measured=measured, acknowledged_ns=times[4]['ns'], source_producer=source['producer'],
                 source_sequence=source['sequence'], received_roles=roles,
                 _run=run, _id=identity, _occurrence=occurrence, _enable=enable, _profile=profile,
-                _times=times, _source=source, _unmapped=unmapped, _after=after,
+                _times=times, _source=source, _unmapped=unmapped, _after=after, _before=before, _model=model, _unknown=unknown,
                 _proof_event=proof, _proof=qualification, _latch=latch, _command=command)
 
 

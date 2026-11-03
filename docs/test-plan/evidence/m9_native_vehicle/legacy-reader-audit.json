@@ -1,0 +1,99 @@
+{
+  "m9_control_hooks/normal/input-loss": {
+    "pass_": true,
+    "faults": 1,
+    "events": 15,
+    "detection_ms": 2.0,
+    "selection_ms": 0.2,
+    "central_ack_ms": 3.0,
+    "actual_ms": 209.0,
+    "mutations": {
+      "missing-local-owner": {
+        "rejected": true,
+        "reason": "local role selections"
+      },
+      "ack-as-selection": {
+        "rejected": true,
+        "reason": "local role selections"
+      },
+      "wrong-code": {
+        "rejected": true,
+        "reason": "fault classification"
+      },
+      "retimestamped-fault": {
+        "rejected": true,
+        "reason": "original detection"
+      },
+      "bad-actual-torque": {
+        "rejected": true,
+        "reason": "actual torque"
+      },
+      "stale-actual": {
+        "rejected": true,
+        "reason": "actual acquisition budget"
+      },
+      "wrong-epoch": {
+        "rejected": true,
+        "reason": "identity/domain/profile"
+      },
+      "journal-corruption": {
+        "rejected": true
+      }
+    }
+  },
+  "m9_control_hooks/normal/normal": {
+    "pass_": true,
+    "faults": 0,
+    "events": 12,
+    "controller_samples": 4350
+  },
+  "m9_speed_recovery/normal": {
+    "pass_": true,
+    "events": 51,
+    "clear_transactions": 1,
+    "faults": 2,
+    "qualified_pass_ns": 21781200000,
+    "first_detected_ns": 11002000000,
+    "recurrence_ns": 37001000000,
+    "generation": 2,
+    "physical_samples": 4000,
+    "energy_samples": 4000,
+    "transaction_watermark": 52,
+    "mutations_rejected": [
+      "pass-reference",
+      "clear-moving",
+      "clear-revision",
+      "clear-untrusted",
+      "clear-armed",
+      "cleared-history",
+      "model-reset",
+      "missing-first-selection"
+    ]
+  },
+  "m9_owner_sources/normal/upstream-pause": {
+    "pass_": true,
+    "faults": 5,
+    "command_loss": 3,
+    "zone_deadline": 2,
+    "qualified_passes": 5,
+    "events": 30,
+    "physical_samples": 2400,
+    "first_detected_ns": 11011200000,
+    "first_physical_response_ns": 11221000000,
+    "mutations_rejected": [
+      "wrong-expiry",
+      "unqualified-reference",
+      "early-pass",
+      "false-native-independent",
+      "history-erased",
+      "physical-reset",
+      "stopped-ack"
+    ]
+  },
+  "m9_owner_sources/normal/normal": {
+    "pass_": true,
+    "faults": 0,
+    "physical_samples": 9200,
+    "events": 1
+  }
+}
