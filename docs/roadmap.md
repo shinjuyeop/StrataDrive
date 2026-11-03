@@ -60,7 +60,7 @@ M8에서 제안했던 추가30km/h 고장 조합은 원래 M9의 진단 통합 �
 
 소유자별 [ZoneFeedback/Leaf context expiry 수집·복구](test-plan/evidence/m9_owner_sources/README.md)를
 추가했다. 후속 [Gateway·BMS/Power native 원인](test-plan/evidence/m9_native_causes/README.md)은
-Gateway 차량 논리 SIL·BMS/Power component 복구 범위다. 실제 전송/spool·
+Gateway 차량 논리 SIL·BMS/Power component 복구 범위다.
 다른 BMS/Power 자체 고장 조합은 후속이다.
 [BMS electrical/Power current 누락](test-plan/evidence/m9_native_vehicle/README.md)은 차량 SIL에서
 보호·물리 응답·DTC·새 INIT 복구까지 검증했다. 영구 전류 누락의 energized HV도 구분한다.
@@ -68,8 +68,11 @@ Gateway 차량 논리 SIL·BMS/Power component 복구 범위다. 실제 전송/s
 [Release 전 기동 시도](test-plan/evidence/m9_startup_sources/README.md)는 trusted Attempt와
 실제 Session을 구분해 Prepare/INIT/Release ACK 누락·새8-role handshake 복구를 검증했다.
 [Event-only replica/spool](test-plan/evidence/m9_delivery_spool/README.md)은 실제 별도 process의
-ACK 유실·재시작·순서/중복과 유한 저장을 부분 검증했다. 다음은 실제 DDS/SOME-IP 진단 channel·
-live owner routing·부하/보존 용량이다. Proposal 이전 bootstrap과 Clock 복구도 후속이다.
+ACK 유실·재시작·순서/중복과 유한 저장을 부분 검증했다.
+[SOME/IP 새 logical source](test-plan/evidence/m9_someip_live/README.md)는 실제 TCP·별도 writer와
+live SPSC publish·ACK 유실/replica 재시작을 검증했다. 다음은 native Central/Front/Rear source의
+trusted global context 전달·다중 stream 통합·부하/보존 용량이다. 정규 DDS gate·proposal 이전
+bootstrap·Clock 복구도 후속이다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·
 속도·제어 튜닝은 이 묶음에 추가하지 않으며 변경한 경계의 회귀만 실행한다.

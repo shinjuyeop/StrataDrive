@@ -1,0 +1,46 @@
+{
+  "unicast": "10.89.0.1",
+  "netmask": "255.255.255.252",
+  "network": "sd-m9-publisher",
+  "routing": "diag-source",
+  "applications": [
+    {
+      "name": "diag-source",
+      "id": "0x2211",
+      "threads": 2,
+      "max_dispatchers": 1,
+      "max_dispatch_time": 100
+    }
+  ],
+  "logging": {
+    "level": "warning",
+    "console": "true",
+    "dlt": "false"
+  },
+  "max-payload-size-reliable": 2048,
+  "max-payload-size-local": 4096,
+  "endpoint-queue-limit-external": 16384,
+  "endpoint-queue-limit-local": 16384,
+  "services": [
+    {
+      "service": "0x5d10",
+      "instance": "0x0001",
+      "reliable": {
+        "port": 40510,
+        "enable-magic-cookies": "false"
+      }
+    }
+  ],
+  "service-discovery": {
+    "enable": "true",
+    "multicast": "239.255.9.1",
+    "port": 30499,
+    "protocol": "udp",
+    "initial_delay_min": 10,
+    "initial_delay_max": 50,
+    "repetitions_base_delay": 100,
+    "repetitions_max": 3,
+    "ttl": 3,
+    "cyclic_offer_delay": 500
+  }
+}

@@ -64,7 +64,7 @@ def main():
          '-DCMAKE_PREFIX_PATH='+str(out/'install'),
          '-DSTRATADRIVE_SANITIZERS='+('ON' if a.profile=='asan' else 'OFF'),
          '-DSTRATADRIVE_TSAN='+('ON' if a.profile=='tsan' else 'OFF')])
-    run(['cmake','--build',out/'project','--target','someip_pilot','someip_front_adapter','--parallel','4'])
+    run(['cmake','--build',out/'project','--target','someip_pilot','someip_front_adapter','someip_diagnostics_live','--parallel','4'])
 
 if __name__ == '__main__':
     with open_lock() as lock:

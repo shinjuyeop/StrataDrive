@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | Central·Zone/Leaf·Gateway·BMS/Power·Release 전 기동·replica/spool 부분 검증; live middleware·CARLA fault matrix 후속 | [진단 계약](interfaces/diagnostics.md) · [소유자 경계](test-plan/evidence/m9_owner_sources/README.md) |
+| M9 | Central·Zone/Leaf·Gateway·BMS/Power·기동·spool·SOME/IP logical source 검증; native source merge·CARLA fault matrix 후속 | [진단 계약](interfaces/diagnostics.md) · [소유자 경계](test-plan/evidence/m9_owner_sources/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -68,7 +68,13 @@ commit 후 ACK 유실·양쪽 재시작·원본19개 event replay를 검증했�
 이력을 늘리지 않고, receiver 재시작 뒤 중복 replay는 Unknown을 유지한다. 원격 clear는 없다.
 [wire·spool 범위/실패/감사](test-plan/evidence/m9_delivery_spool/README.md)를 따른다.
 최종 일반/논리1170개·영향 ASan/UBSan234개·별도 process 전송 Normal1/ASan1·기존 wall2개가 통과했다.
-다음은 실제 DDS/SOME-IP 진단 channel과 live owner routing·부하/보존 용량 검증이다.
+실제 SOME/IP 진단 channel에 새 logical owner의 SPSC→별도 writer→TCP→replica 경로를 연결했다.
+Normal4350 controls/DTC0과10s 입력 손실·ACK 유실·replica kill/restart를 원본 detector/selection/
+ACK/Actual·PCAP·journal로 대조했다. 재시작 Unknown과 이력은 유지하며 archived source를
+새 실행으로 세지 않는다. [SOME/IP 실행·실패·한계](test-plan/evidence/m9_someip_live/README.md)를 따른다.
+일반/논리1172개·영향 ASan/UBSan239개·SDK Normal4/ASan4·TSan live loss1·기존 wall2개가 통과했다.
+다음은 native Central/Front/Rear publisher의 trusted global context 전달·다중 source 통합이다.
+정규 DDS gate와 native wall/Target·부하/보존 용량 수용은 아직 후속이다.
 다른 BMS trip/Power 고장 조합·Clock 복구·proposal 이전 bootstrap 실패는 후속이다.
 실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.
 30km/h ACK/통신 손실의 실제 주입 recipe와 기대 code·물리 기준은 실행 전에 고정한다.

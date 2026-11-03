@@ -235,3 +235,30 @@ ACK 유실/receiver 종료·sender 재시작·순서 역전/손상·최종 repla
 canonical bytes·commit watermark·count1/generation1·재시작 Unknown·미삭제 이력이 같아야 한다.
 Unit에서는 작은 capacity·commit 실패/미완성 tail·registry mismatch·mutated duplicate·future
 ACK·stream mismatch·원격 clear 거부를 각각 검사한다. 큐 overflow도 원래 제어를 변경하지 않는다.
+
+## SOME/IP 진단 channel·새 logical owner fixture
+
+사전 고정: pinned vSomeIP3.7.6/4187431d2815bd351845a09d01aa85b2a3163cab을 사용한다.
+기존 control service/queue/권한은 수정하지 않는다. 별도 diagnostic application·service
+0x5d10 Publisher/0x5d11 Replica, instance1/interface1, Data method0x0101/ACK0x0102,
+MT_REQUEST_NO_RETURN/reliable TCP에만 wire v1을 bind한다. Callback queue8·wire2048 bytes,
+SDK payload2048/local4096·queue16384다. Source/replica store7001·registry3는 명시적으로 생성한다.
+Callback은 bounded ingress만 수행하고 journal/fsync는 non-RT writer에서 실행한다.
+
+새 logical SimpleVehicle Central owner/ControlDiagnostics producer7이 SPSC에 publish하는 동안
+writer가 원래 Event를 spool로 회수해 별도 netns/veth의 replica로 전송한다. Archived source를
+입력으로 사용하지 않는다. Normal92s/4350 controls/DTC0과 speed-input-loss13s·elapsed10s 주입/
+SD-1001 한 건을 사용하며 기존100ms 보호·230ms 실제 반응 기준을 유지한다. 수신 측 durable
+prefix와 원본 canonical bytes·원래 detector/selection/ACK/Actual·physical/energy를 대조한다.
+진단 on/off의 전체 physical/권한 표본은 같아야 한다. Simulation과 monotonic 전송 시각은
+별도로 보존하며 이 실행을 native wall 차량 제어 수용으로 올리지 않는다.
+
+손실 case는 최초 Fault commit의 ACK1회 유실→100ms 재시도→Duplicate ACK와, 그 commit 뒤
+replica SIGKILL→새 SDK client ID로 같은 durable store 재시작을 각각 검사한다. 연결 복원만으로
+Passed/clear를 만들지 않는다. SDK send-return은 전달/commit 증거가 아니다. PCAP에서 실제
+TCP의 SOME/IP header와 원본 payload를 복원한다. Process별 /tmp·/dev/shm도 분리해 local IPC
+우회를 막는다. 잘못된 service/method/type/version/direction/stream/registry는 ingress 전 거부한다.
+기본 unit·logical/ASan·SDK 실제 Normal/ASan과 필요한 동시성 경계를 구분해 기록한다.
+Front/Rear의 live source merge·정규 DDS gate·Target·부하/보존 용량 수용은 후속이다.
+Host test pacing은 logical1ms마다20µs sleep이며 logical clock/제어 기준을 변경하지 않는다.
+이는1:1 wall 실행이 아니다. 원본 Fault가 producer 실행 중 spool에 commit된 증거를 요구한다.

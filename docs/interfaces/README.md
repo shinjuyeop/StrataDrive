@@ -33,7 +33,7 @@ Native Actual·solver/EV 기능 경로는 연결했고 정상 wall 수용은 OPE
 | IF-HOST-EV-STATUS | 관측용 BMS/power/energy 정보; wheel actuation 아님 | BMS → CAN → Rear → Central bridge → Host | Physical Ethernet; schema TBD-14/05 |
 | IF-MODEL-BMS | modeled pack 센서, 셀 전압·온도 극값과 실제 전원 상태 | battery/power plant → BMS | SIL 로컬 sensor 경계; validity/time/batch 보존, 모델 TBD-13/07 |
 | IF-MODEL-DRIVE-POWER | modeled Drive local HV bus 실제 센서, source time/validity/identity | power plant → Drive local sensor validation | SIL 로컬 물리 경계; Central permission과 별도, schema/threshold TBD-12/13/14 |
-| IF-FAULT-EVENT | fault occurrence, evidence, local action/state | local monitors → Diagnostics Manager / Host logging | [event/DTC v0.1](diagnostics.md)의 집계/store·Central/Zone/Leaf/Gateway/BMS/Power 부분 수집·code별 일부 복구; 실제 전송/spool TBD-05/08 |
+| IF-FAULT-EVENT | fault occurrence, evidence, local action/state | local monitors → Diagnostics Manager / Host logging | [event/DTC v0.1](diagnostics.md)의 집계/store·부분 source/복구·유한 spool·SOME/IP 새 logical source 부분 검증; native 3-ECU merge·정규 DDS/Target TBD-05/08 |
 
 CAN family ID는 양방향 그룹이며 command와 actual feedback은 별도의 frame/message다.
 각 CAN wire ID는 기존 frame/DBC 계약에 정의돼 있다. Host transport와 Central–Zone DDS가 같다고 가정하지 않는다.

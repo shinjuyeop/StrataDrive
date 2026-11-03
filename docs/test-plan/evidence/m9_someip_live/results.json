@@ -1,0 +1,305 @@
+{
+  "checks": {
+    "normal.xml": {
+      "tests": 1172,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "normal.xml"
+    },
+    "asan.xml": {
+      "tests": 239,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "asan.xml"
+    },
+    "wall.xml": {
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "wall.xml"
+    },
+    "binding.xml": {
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "binding.xml"
+    }
+  },
+  "sdk_campaigns": {
+    "normal": {
+      "cases": 4,
+      "failed": 0,
+      "results": "normal/results.json"
+    },
+    "asan": {
+      "cases": 4,
+      "failed": 0,
+      "results": "asan/results.json"
+    },
+    "tsan": {
+      "cases": 1,
+      "failed": 0,
+      "results": "tsan/results.json"
+    }
+  },
+  "audits": {
+    "normal/normal": {
+      "pass_": true,
+      "case": "normal",
+      "source_events": 12,
+      "intrinsic_dtc": 0,
+      "physical_samples": 9200,
+      "tcp_connections": 2,
+      "someip_messages": 46,
+      "live_commits": 5,
+      "final_condition": "no DTC",
+      "mutations_rejected": [
+        "wire-header",
+        "someip-service",
+        "replica-bytes",
+        "physical-reset",
+        "false-live-source",
+        "source-clock",
+        "missing-ack",
+        "wrong-model"
+      ]
+    },
+    "normal/loss": {
+      "pass_": true,
+      "case": "loss",
+      "source_events": 15,
+      "intrinsic_dtc": 1,
+      "physical_samples": 1300,
+      "tcp_connections": 2,
+      "someip_messages": 68,
+      "live_commits": 3,
+      "final_condition": "Failed",
+      "mutations_rejected": [
+        "wire-header",
+        "someip-service",
+        "replica-bytes",
+        "physical-reset",
+        "false-live-source",
+        "source-clock",
+        "missing-ack",
+        "wrong-model",
+        "erased-record",
+        "false-response"
+      ]
+    },
+    "normal/drop-ack": {
+      "pass_": true,
+      "case": "drop-ack",
+      "source_events": 15,
+      "intrinsic_dtc": 1,
+      "physical_samples": 1300,
+      "tcp_connections": 2,
+      "someip_messages": 59,
+      "live_commits": 3,
+      "final_condition": "Failed",
+      "mutations_rejected": [
+        "wire-header",
+        "someip-service",
+        "replica-bytes",
+        "physical-reset",
+        "false-live-source",
+        "source-clock",
+        "missing-ack",
+        "wrong-model",
+        "erased-record",
+        "false-response"
+      ]
+    },
+    "normal/restart": {
+      "pass_": true,
+      "case": "restart",
+      "source_events": 15,
+      "intrinsic_dtc": 1,
+      "physical_samples": 1300,
+      "tcp_connections": 4,
+      "someip_messages": 57,
+      "live_commits": 3,
+      "final_condition": "Unknown",
+      "mutations_rejected": [
+        "wire-header",
+        "someip-service",
+        "replica-bytes",
+        "physical-reset",
+        "false-live-source",
+        "source-clock",
+        "missing-ack",
+        "wrong-model",
+        "erased-record",
+        "false-response"
+      ]
+    },
+    "asan/normal": {
+      "pass_": true,
+      "case": "normal",
+      "source_events": 12,
+      "intrinsic_dtc": 0,
+      "physical_samples": 9200,
+      "tcp_connections": 2,
+      "someip_messages": 38,
+      "live_commits": 6,
+      "final_condition": "no DTC",
+      "mutations_rejected": [
+        "wire-header",
+        "someip-service",
+        "replica-bytes",
+        "physical-reset",
+        "false-live-source",
+        "source-clock",
+        "missing-ack",
+        "wrong-model"
+      ]
+    },
+    "asan/loss": {
+      "pass_": true,
+      "case": "loss",
+      "source_events": 15,
+      "intrinsic_dtc": 1,
+      "physical_samples": 1300,
+      "tcp_connections": 2,
+      "someip_messages": 64,
+      "live_commits": 5,
+      "final_condition": "Failed",
+      "mutations_rejected": [
+        "wire-header",
+        "someip-service",
+        "replica-bytes",
+        "physical-reset",
+        "false-live-source",
+        "source-clock",
+        "missing-ack",
+        "wrong-model",
+        "erased-record",
+        "false-response"
+      ]
+    },
+    "asan/drop-ack": {
+      "pass_": true,
+      "case": "drop-ack",
+      "source_events": 15,
+      "intrinsic_dtc": 1,
+      "physical_samples": 1300,
+      "tcp_connections": 2,
+      "someip_messages": 55,
+      "live_commits": 4,
+      "final_condition": "Failed",
+      "mutations_rejected": [
+        "wire-header",
+        "someip-service",
+        "replica-bytes",
+        "physical-reset",
+        "false-live-source",
+        "source-clock",
+        "missing-ack",
+        "wrong-model",
+        "erased-record",
+        "false-response"
+      ]
+    },
+    "asan/restart": {
+      "pass_": true,
+      "case": "restart",
+      "source_events": 15,
+      "intrinsic_dtc": 1,
+      "physical_samples": 1300,
+      "tcp_connections": 5,
+      "someip_messages": 53,
+      "live_commits": 4,
+      "final_condition": "Unknown",
+      "mutations_rejected": [
+        "wire-header",
+        "someip-service",
+        "replica-bytes",
+        "physical-reset",
+        "false-live-source",
+        "source-clock",
+        "missing-ack",
+        "wrong-model",
+        "erased-record",
+        "false-response"
+      ]
+    },
+    "tsan/loss": {
+      "pass_": true,
+      "case": "loss",
+      "source_events": 15,
+      "intrinsic_dtc": 1,
+      "physical_samples": 1300,
+      "tcp_connections": 2,
+      "someip_messages": 62,
+      "live_commits": 9,
+      "final_condition": "Failed",
+      "mutations_rejected": [
+        "wire-header",
+        "someip-service",
+        "replica-bytes",
+        "physical-reset",
+        "false-live-source",
+        "source-clock",
+        "missing-ack",
+        "wrong-model",
+        "erased-record",
+        "false-response"
+      ]
+    }
+  },
+  "static": {
+    "translation_units": [
+      "interfaces/someip/diagnostic_transport.cpp",
+      "tests/integration/someip/diagnostics_live.cpp"
+    ],
+    "clang_tidy_exit": 0,
+    "cppcheck_exit": 0
+  },
+  "fingerprint_tests": 2,
+  "identical_profiles": 40,
+  "identical_language_candidates": 72,
+  "previous_evidence": [
+    {
+      "bundle": "m9_diagnostics_component",
+      "files": 43,
+      "exit": 0
+    },
+    {
+      "bundle": "m9_control_hooks",
+      "files": 153,
+      "exit": 0
+    },
+    {
+      "bundle": "m9_speed_recovery",
+      "files": 135,
+      "exit": 0
+    },
+    {
+      "bundle": "m9_owner_sources",
+      "files": 203,
+      "exit": 0
+    },
+    {
+      "bundle": "m9_native_causes",
+      "files": 183,
+      "exit": 0
+    },
+    {
+      "bundle": "m9_native_vehicle",
+      "files": 186,
+      "exit": 0
+    },
+    {
+      "bundle": "m9_startup_sources",
+      "files": 217,
+      "exit": 0
+    },
+    {
+      "bundle": "m9_delivery_spool",
+      "files": 306,
+      "exit": 0
+    }
+  ],
+  "technical_scope": "Live logical source over actual SOMEIP/TCP; native 3-ECU owner merge and DDS gate remain OPEN",
+  "packaged_audit": "9/9 final datasets; normal8/fault10 mutations rejected"
+}

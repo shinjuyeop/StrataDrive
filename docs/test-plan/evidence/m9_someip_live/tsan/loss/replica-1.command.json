@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "ip",
+    "netns",
+    "exec",
+    "replica",
+    "unshare",
+    "-m",
+    "/usr/bin/python3",
+    "/d/shin/StrataDrive/tests/integration/someip/diagnostics_run.py",
+    "--node",
+    "/d/shin/StrataDrive/build/m5-someip-tsan/project/tests/integration/someip/someip_diagnostics_live",
+    "replica",
+    "/d/shin/StrataDrive/build/m9-someip-final-tsan/loss",
+    "loss",
+    "1"
+  ],
+  "env": {
+    "LD_LIBRARY_PATH": "/d/shin/StrataDrive/build/m5-someip-tsan/install/lib",
+    "VSOMEIP_CONFIGURATION": "/d/shin/StrataDrive/build/m9-someip-final-tsan/loss/replica-1.config.json",
+    "VSOMEIP_APPLICATION_NAME": "diag-replica",
+    "ASAN_OPTIONS": "halt_on_error=1:detect_leaks=1",
+    "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1",
+    "TSAN_OPTIONS": "halt_on_error=0:exitcode=66"
+  }
+}

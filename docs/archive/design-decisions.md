@@ -5484,3 +5484,32 @@ cursor checkpoint와 삭제의 crash 원자성 문제를 만들지 않는다. �
 
 실제 DDS/SOME-IP 진단 channel·live owner routing·multi-source merge·clear replication·source
 adoption/인증·용량 운영 정책·wall/Target·CARLA fault matrix와 학습자 이해 수용은 후속이다.
+
+<a id="adr-0086"></a>
+
+## ADR-0086: SOME/IP 진단 전용 binding과 새 logical source의 live writer
+
+Date: 2026-11-03. Status: **실제 TCP/SDK·logical owner 부분 검증; 전체 M9/TBD-08 OPEN**.
+
+정규 DDS gate는 유지한다. 기존 pinned vSomeIP3.7.6에 별도 application/service0x5d10/0x5d11·
+Data0x0101/ACK0x0102·instance/interface1·reliable request-no-return binding을 추가한다.
+Control service/owner-wire/schema·queue·권한은 바꾸지 않는다. Callback은 검증·FIFO8 ingress만
+수행하고 original SPSC와 별도 non-RT writer가 기존 spool/durable ACK를 사용한다. Diagnostic
+SDK payload2048/local4096·queue16384를 명시하며 기존 control512/1024·8192와 구분한다.
+
+새 SimpleVehicle logical owner의 원본 Event를 실행 중 회수한다. Simulation stamp는 그대로,
+writer/SDK monotonic clock은 sidecar다. Normal4350 controls/DTC0·10s 입력 손실 SD-1001·ACK
+유실·replica SIGKILL/새 client ID 재시작을 실제 netns/veth/TCP와 분리/tmp/shm로 검증한다.
+Source Failed/count1과 replica Unknown·미삭제 이력을 유지하며 on/off 전 physical/권한/energy는
+같다. SDK send-return을 durable delivery/physical ACK로 세지 않는다.
+
+첫 SDK compile은 include 경로가 기존 owner_transport 이름을 가려 실패했다. 새 target의
+include root를 분리했다. 최초 전송 probe는 runtime/복제가 통과했으나 기본1.2s 주입을 사용해
+고정10s 독립 감사가 실패했다. Recipe에 맞게 명시적10s를 설정했고 native budget은 유지했다.
+정적 분석의 Clang14/GCC13 C++20 chrono parse 오류는 새 파일럿의 불필요한 C++20 지정을
+제거하고 프로젝트 기본 C++17을 적용해 해결했다. 변경 뒤 SDK 전 cohort를 재실행하고
+원본 journal/physical72개 byte 동등성을 확인했다.
+[실행·실패·한계](../test-plan/evidence/m9_someip_live/README.md)를 따른다.
+
+Native Central/Front/Rear publisher·trusted global context·다중 stream merge/source adoption·
+정규 DDS·부하/보존 용량·Target/CARLA fault matrix·학습자 수용은 후속이다.

@@ -3,7 +3,7 @@
 2026-11-03. **계약 v0.1 / TBD-08 최종 수용 전 OPEN**.
 M9-2의 집계/store에 M9-3 SpeedRequest·NormalStop·Coordinator 관측 adapter를 연결했다.
 SimpleVehicle 논리 시간의 정상 정지/HV-off·speed 입력 누락 및 SD-1001 복구/clear/재고장을 실제 owner 경로와 연결했다.
-CARLA30km/h fault matrix·실제 transport 진단 전송·전체 monitor 통합은 **NOT RUN**이다.
+CARLA30km/h fault matrix·native 3-ECU/wall owner 진단 통합·전체 monitor 수용은 **NOT RUN**이다.
 범위는 Host 기능 SIL의 SYS-DIAG-001, ARCH-DIAG, IF-FAULT-EVENT다.
 전체 UDS/OBD 서비스나 표준 DTC 번호를 정의하지 않는다.
 
@@ -513,11 +513,57 @@ Clock/Deadline의 기동 복구 predicate는 아직 구현하지 않는다.
 [사전 recipe](../test-plan/diagnostics-protocol.md#release-전-기동-시도-진단-fixture)와
 [원본·감사·실패](../test-plan/evidence/m9_startup_sources/README.md)를 따른다.
 
+## SOME/IP 진단 channel과 새 logical owner
+
+`interfaces/someip/diagnostic_binding.hpp`와 `diagnostic_transport.hpp/.cpp`는 선택형
+vSomeIP3.7.6의 별도 application을 사용한다. 기존 owner-wire/control service와 별개인
+Event-only channel이며 SDK dependency는 기존 pinned SDK를 따른다. Runtime queue와
+journal/clear/control 의미를 SDK request/response cache로 바꾸지 않는다.
+
+| Binding | 값과 방향 |
+| --- | --- |
+| Service / instance / interface | Publisher0x5d10, Replica0x5d11 /1 /1 |
+| Method | Data0x0101 → Replica, durable ACK0x0102 → Publisher |
+| Message | reliable TCP / MT_REQUEST_NO_RETURN1 / protocol1 |
+| Payload | 기존 diagnostic wire v1 / 원본 Event schema1 / 명시적 registry1–3 |
+| Application ingress | Callback bounded FIFO8, 최대2048 bytes, overflow/reject/highwater 별도 counter |
+| SDK fixture config | reliable2048/local4096 bytes, external/local queue16384; 기존 control512/1024·8192는 그대로 |
+
+Binding은 service·instance·interface·method·type·reliability·Data/ACK 방향·stream/registry를
+검사한다. 다른 control binding이나 다른 context는 ingress 전에 거부한다. CRC/service ID는
+인증이 아니며 peer trust와 unique stream/producer 할당은 배치 책임이다. Host fixture의 SDK
+client ID Publisher0x2211·Replica0x2221/재시작0x2222는 PCAP에서 대조한다.
+
+Callback은 검증/유한 enqueue만 한다. 원래 logical owner는 기존 SPSC EventQueue에 publish하고,
+별도 non-RT writer만 Outbox/Recorder와 fsync·SDK send를 호출한다. Sender의 send-return은
+전달/commit 증거가 아니다. 수신 writer의 Inbox durable commit 뒤 ACK가 원본 ordinal을
+진행한다. Fixture retry 간격은 monotonic100ms다. SDK 연결 상태를 제어 권한으로 사용하지 않는다.
+
+`someip_diagnostics_live`는 **새로 실행하는 논리 SIL source**다. 기존 SimpleVehicle의
+8-role INIT/full Release·Central Speed/Stop/Coordinator 원본 observer를 사용한다. Archived
+journal을 입력으로 replay하는 fixture와 구분한다. Producer7·test run/stream7001·registry3의
+고정 ID는 독립 netns별 test scope이며 여러 case의 이력을 합치는 production identity가 아니다.
+Host pacing은 logical1ms마다20µs sleep이고1:1 wall 실행이 아니다. Simulation event의 원래
+stamp를 바꾸지 않으며 fsync/SDK의 monotonic 시각은 sidecar CSV에 둔다. Recorded stamp를
+Event에 소급해서 넣지 않는다. 실행 중 Fault commit과 진단 on/off의 전 physical/권한/에너지
+표본 동등성을 요구한다. 실제 control traffic을 IP로 바꾼 native 3-ECU owner 검증은 아니다.
+
+Normal92s는4350 controls/DTC0, 입력 손실13s는 elapsed10s 주입/SD-1001 한 건이다.
+ACK 한 번 유실과 Fault commit 뒤 replica SIGKILL/새 SDK client 재시작을 검사했다.
+Source Failed/count1/generation1과 원본 이력은 유지한다. 재시작 replica의 Unknown은 연결
+복원이나 중복 replay로 Passed가 되지 않는다. Replica가 처음 받는 이력과 현재 물리 readiness도
+구분한다. `/tmp`·`/dev/shm`·netns를 분리하고 PCAP의 TCP/SOME-IP와 journal 원본을 대조한다.
+
+[사전 recipe](../test-plan/diagnostics-protocol.md#someip-진단-channel새-logical-owner-fixture),
+[실행·실패·clock·감사](../test-plan/evidence/m9_someip_live/README.md)를 따른다.
+정규 DDS gate·native Central/Front/Rear source merge·Target·부하/보존 용량 수용은 후속이다.
+
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
-연결하고 Event-only replica/spool을 분리 process에서 부분 검증했다. 다음은 실제 DDS/SOME-IP
-진단 channel·live owner routing·부하/보존 용량과 source 재시작 adoption이다.
+연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
+다음은 native Central/Front/Rear owner의 publisher 통합과 trusted global context 전달·
+다중 stream/source 재시작 adoption이다. Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
-실제 부하의 queue/store 용량 적합성·source 재시작 adoption·Clock 복구는 별도 수용한다.
+실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.
 30km/h fault의 구체 주입 위치·기대 DTC와 물리 판정은 실행 전에 별도 고정한다.
