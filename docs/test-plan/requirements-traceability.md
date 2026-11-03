@@ -40,7 +40,10 @@ SD-5001 clear 차단을 연결한다. 연속성 해소·TBD-08·전체 TC 수용
 C-M9-REVIEW-01–05는 [로컬 연속성 서비스 심사](evidence/m9_continuity_review/README.md)의
 미확인 과거 이력 수용·현재 recording proof·영속 Review/Passed/clear와 writer SIGKILL4경계를
 연결한다. Trusted service component/typed logical fixture이며 실제 native 서비스 인증/인가·
-quiesce/물리 evidence adapter와 SYS-DIAG-001/TC-DIAG-001 전체 수용은 OPEN이다.
+quiesce/물리 evidence 조합과 SYS-DIAG-001/TC-DIAG-001 전체 수용은 OPEN이다.
+C-M9-SERVICE-01–04는 [Linux 로컬 서비스 연결](evidence/m9_continuity_service/README.md)의
+kernel peer/boot 인가·frozen guard·current Actual 취득·별도 clear·실제 Unix writer SIGKILL4컷을
+검증한다. Clock/Actual 주입과 실제3-ECU 서비스 운용/plant 물리 정지 수용은 구분한다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |
 | --- | --- | --- | --- | --- | --- | --- |

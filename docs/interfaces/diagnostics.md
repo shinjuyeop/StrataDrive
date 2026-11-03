@@ -805,18 +805,57 @@ bytes는 idempotent이며 다른 bytes의 충돌·append 실패·용량 초과�
 
 이 API는 인증된 서비스 요청과 실제 최신 정지 상태를 받는 trusted writer-side component다.
 현재 시험은 주입 가능한 logical monotonic clock99의 실제8-participant 객체·accepted credit·원본
-source/replica와 별도 writer process의 SIGKILL4경계다. 실제 native ECU의 서비스 요청 인증/인가·
-quiesce adapter·물리 표본 취득·remote clear/RPC·Target 연결은 후속이며, native 재합류만으로
+source/replica와 별도 writer process의 SIGKILL4경계다. Linux 로컬 요청·인가·Actual adapter 연결은 아래 별도 계약을 따른다. 실제3-ECU의
+owner/SDK quiesce·물리 정지 조합·원격 서비스 운용/Target 연결은 후속이며, native 재합류만으로
 심사가 실행되지 않는다. [고정 recipe](../test-plan/diagnostics-protocol.md#연속성-로컬-서비스-심사-fixture)와
 [실행·한계](../test-plan/evidence/m9_continuity_review/README.md)를 따른다.
+
+## Linux 로컬 서비스 요청과 Actual 취득 연결
+
+`ContinuityService`는 별도 비실시간 단일 writer다. 연결된 AF_UNIX/SOCK_SEQPACKET의
+SO_PEERCRED UID/PID와 provision된16-byte nonzero boot capability를 검사한다. Caller는 private
+listener와 유한 accept scheduling을 소유한다. 원격 네트워크 인증·사용자 계정 체계가 아니며
+수신 요청으로 actor/run/Session/incident/manifest를 만들지 않는다. 매 서비스 lifetime에 새 actor를
+provision하고 같은 producer의 과거 event가 있으면 시작을 거절한다.
+
+| 로컬 v1 packet | 규칙 |
+| --- | --- |
+| 요청76byte | SDS/version1, capability16, 요청번호 uint64, Session(run64/epoch32), incident EventId24, revision64, operation8, disposition8, reserved16=0. 다중 byte 정수는 LE |
+| Review | operation1/AcceptUnknownHistory1. 요청번호 n의 proof/Review/Passed sequence는4n−3/4n−2/4n−1. 정확한 현재 revision만 수용 |
+| Clear | 별도 operation2/disposition0. sequence4n. 이번 서비스의 성공한 Passed ID/현재 revision/동일 전체 stream cut와 새로운 정지 evidence를 요구 |
+| 응답32byte | SDR/version1, 요청번호64, durable watermark64, revision64, status8, stage8, inspector block8, reserved8=0. Receipt는 과거 결과이며 현재 control 권한이 아님 |
+| 유한 재요청 | 번호1..floor(UINT64_MAX/4), 최대32개 증가 요청. 동일 번호/bytes는 원래 receipt, 다른 bytes/역행은 거절. 부팅 capability/actor를 재사용하지 않으며 영속 재요청 DB는 아님 |
+
+물리 evidence는 요청 packet에서 받지 않는다. Trusted `ContinuityCapture::acquire`가 반환한
+`FrozenContinuity` guard가 전체 source/replica/queue/실제 ACK 경계를 검사부터 commit까지
+소유한다. Normal dispatch 차단은 진단 guard 해제와 독립적으로 유지한다. 이 인터페이스만으로
+다른 process의 RT/SDK 생산자를 정지시켰다고 주장하지 않는다. 실제 구성의 adapter가 그 책임을 진다.
+
+`capture_service_evidence`에는 같은 owner cycle에서 받은 `feedback()`/`current_sample(now)`만
+공급한다. last_accepted history를 최신 입력으로 재포장하지 않는다. Trusted run/epoch/enable/clock,
+Actual kind와 wheel/torque/pressure의 존재·원래 acquisition timestamp를 검사한다. 취득 시각을
+서비스 polling now로 대체하지 않고 기존 정지/age30ms/skew20ms를 적용한다. Proof/Review/Passed
+각 commit 전, Clear의 cut 검사와 commit 전에 재취득하며 연속 취득 사이30ms 초과도 거절한다.
+
+Review 성공은 Passed까지 기록하고 clear하지 않는다. 별도 clear가 전 manifest를 재검사하여
+그 사이 source append를 거절한다. 재심사의 부분 commit 뒤 이전 Passed를 재사용하지 않는다.
+Capture 예외/저장 실패는 해당 service lifetime의 후속 동작을 닫는다. 예외 응답의 stage/watermark는
+전체 journal 상태를 보증하지 않으므로 복구 시 committed prefix가 기준이다. Guard는 실패 시에도
+해제된다. 권한/범위/물리 거절을 새 normal dispatch/INIT/actuator 허가로 해석하지 않는다.
+
+현재 검증은 실제 Linux peer/별도 writer process·SIGKILL4컷과 결정적 clock99/Actual 주입이다.
+실제 codec/P05/application receiver의 current_sample을 통과한 원본11쌍 payload와16개 변조를 독립 감사한다.
+실제3-ECU 서비스 운용·물리 plant 정지 검증과 구분한다.
+[Protocol](../test-plan/diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture),
+[근거·분모·초기 실패](../test-plan/evidence/m9_continuity_service/README.md)를 따른다.
 
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
 원격 context admission 뒤 실제 native3-ECU의2개 context/9개 source stream도 기능 검증했다.
-Central/Front/Rear 재기동과 로컬 서비스 심사 뒤에는 실제 native 서비스 요청/인가·quiesce·
-최신 물리 evidence의 adapter와 미결정 고장 조합·원인 연결/복구를 검증한다.
+Central/Front/Rear 재기동과 로컬 Linux 서비스 연결 뒤에는 실제3-ECU 서비스 owner/SDK
+quiesce·새 global Epoch와 물리 정지 취득 조합 및 미결정 고장 조합·원인 연결/복구를 검증한다.
 Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
 실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.

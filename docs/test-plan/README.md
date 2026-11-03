@@ -56,6 +56,9 @@ CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
 | M8 종방향 PI의 Python/C++ 출력·상태·고장/INIT 동등성 | [SpeedPI component](evidence/m8_speed_pi/README.md) · [사전 protocol](longitudinal-equivalence-protocol.md) |
 | DDS 제어 gate CLOSED의 근거 | [DDS shutdown 후속](evidence/m5_dds_shutdown_followup/README.md) |
 
+Linux 로컬 서비스 요청/심사/별도 clear는 [연결 근거](evidence/m9_continuity_service/README.md)와
+[고정 recipe](diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture)를 따른다. 실제3-ECU 서비스 운용은 후속이다.
+
 ## Evidence 보관 규칙
 
 `evidence/`는 과거 실행별 디렉터리다. 이름을 새 단계로 바꾸거나 실패를 최신 통과로 덮어쓰지 않는다.

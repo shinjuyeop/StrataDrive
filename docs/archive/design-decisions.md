@@ -5672,3 +5672,30 @@ frozen source/replica/ACK/queue 검사 뒤에만 현재 Recording proof를 만�
 Event/Clear의 기존 encoding과 wire registry1–3은 유지하고 로컬 service journal registry4/tag2를
 명시적으로 추가한다. 과거 파일을 자동 이주/repair하지 않는다. 별도 writer SIGKILL4경계와
 독립 offline codec/원본/승인/clear 감사로 부분 검증한다. Native runtime의 자동 clear는 계속 없다.
+
+
+<a id="adr-0093"></a>
+
+## ADR-0093: Linux 로컬 서비스 인가와 frozen 검사·Actual 취득의 연결
+
+상태: 로컬 peer/component 연결 구현. 실제3-ECU 서비스 owner/SDK quiesce·물리 정지 조합·
+원격 서비스 운용·TBD-08·native4ms/Target·M9/학습자 수용 OPEN.
+
+심사 API의 호출자를 실제 로컬 peer에 결속한다. Kernel SO_PEERCRED UID/PID와 boot capability,
+고정 run/actor/Session/incident/manifest를 모두 확인한다. 요청에 물리 evidence나 임의 범위/actor를
+싣지 않는다. Private listener/accept scheduling은 caller 책임이며 원격 인증으로 확대 해석하지 않는다.
+새 actor와 최대32 증가 요청의 유한 cache로 동일 bytes의 receipt 재전송을 허용하고 다른 bytes나
+번호 역행을 거절한다. 기존 Event/Clear/Review encoding·SOME/IP Event-only wire는 유지한다.
+
+Acquire부터 모든 commit까지 같은 FrozenContinuity guard를 유지한다. Normal dispatch 차단은
+별도 실제 owner 책임이며 guard 해제로 정상 운행을 재개하지 않는다. Trusted current_sample의
+독립 wheel/torque/pressure acquisition을 보존하고 각 commit 전 재취득한다. 기존 정지/age/skew
+예산을 유지하며 단계 사이30ms 초과도 거절한다. Review 성공은 별도 Passed까지만 기록한다.
+Clear는 새 요청·그 Passed ID·정확한 revision·동일 전체 stream cut·새 물리 evidence를 요구한다.
+부분 재심사/저장 실패/capture 예외 뒤에 이전 Passed를 재사용하지 않는다.
+
+별도 Unix 서버 process와 다른 PID의 거부, 실제 fsynced commit4컷 SIGKILL·보수적 재개,
+11쌍 codec/P05/application-current Actual payload·독립 감사/변조16종으로 부분 검증한다.
+Clock/Actual은 결정적 fixture 주입이다. 이 결과를 실제3-ECU의 RT/SDK quiesce나 plant 물리 정지로
+올리지 않는다. 다음 조합 시험은 실제 owner의 명시적 서비스 진입·새 global Epoch/정지·생산자
+정지/드레인 ACK·fresh Actual 취득을 함께 고정한 뒤 시행한다. 정상 자동 clear는 만들지 않는다.

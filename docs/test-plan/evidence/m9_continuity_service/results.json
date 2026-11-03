@@ -1,0 +1,181 @@
+{
+  "scope": "Linux local peer service only: kernel UID/PID plus boot capability, trusted frozen guard and validated current Actual adapter, separate Review/Passed and explicit clear. Injected clock99/Actuals, producers already stopped; live three-ECU RT/SDK quiesce/plant stop/remote authorization/TBD08/native4ms/Target/M9/learner acceptance OPEN",
+  "core_final": {
+    "passed": 1223,
+    "total": 1223,
+    "failed": []
+  },
+  "wall": {
+    "passed": 9,
+    "total": 9,
+    "failed": []
+  },
+  "service_asan_final": {
+    "passed": 8,
+    "total": 8,
+    "failed": []
+  },
+  "service_tsan_final": {
+    "unit": {
+      "passed": 7,
+      "total": 7,
+      "failed": []
+    },
+    "process": {
+      "passed": 1,
+      "total": 1,
+      "failed": []
+    }
+  },
+  "before_release_and_binding_fix": {
+    "core": {
+      "passed": 1223,
+      "total": 1223,
+      "failed": []
+    },
+    "asan_broad": {
+      "passed": 336,
+      "total": 336,
+      "failed": []
+    },
+    "service_component": {
+      "passed": 8,
+      "total": 8,
+      "failed": []
+    },
+    "tsan_unit": {
+      "passed": 7,
+      "total": 7,
+      "failed": []
+    },
+    "tsan_process": {
+      "passed": 1,
+      "total": 1,
+      "failed": []
+    },
+    "source_archive": "before-release-and-binding-fix.tar.gz",
+    "binary_hash_log": "logs/before-release-and-binding-binaries.json.gz",
+    "note": "Broad ASan336 passed before fixed-size encoder header and immutable proof acquisition change; final affected service8 revalidated, other328 tests unchanged. Exact earlier intermediate iterations are retained as development logs, not final acceptance."
+  },
+  "initial": {
+    "compiler_exit": 2,
+    "component": {
+      "passed": 6,
+      "total": 7,
+      "failed": [
+        "ContinuityServiceTest.NativeUnixPeerAuthorizationAndFourSigkillCommitCutsPreserveTheSameFrozenOriginals"
+      ]
+    },
+    "diagnostic_process_exit": 1,
+    "old_tsan_tree_missing_target_exit": 2,
+    "tsan_default_mapping_launch_exit": 66,
+    "release_warning_exit": 2
+  },
+  "static": [
+    {
+      "command": [
+        "clang-tidy",
+        "central/diagnostics/continuity_service.cpp",
+        "-p",
+        "build/m1-angle",
+        "--extra-arg=-nostdinc++",
+        "--extra-arg=-isystem/usr/include/c++/11",
+        "--extra-arg=-isystem/usr/include/x86_64-linux-gnu/c++/11",
+        "--extra-arg=-isystem/usr/include/c++/11/backward",
+        "--warnings-as-errors=*"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "clang-tidy",
+        "central/diagnostics/service_evidence.cpp",
+        "-p",
+        "build/m1-angle",
+        "--extra-arg=-nostdinc++",
+        "--extra-arg=-isystem/usr/include/c++/11",
+        "--extra-arg=-isystem/usr/include/x86_64-linux-gnu/c++/11",
+        "--extra-arg=-isystem/usr/include/c++/11/backward",
+        "--warnings-as-errors=*"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "cppcheck",
+        "--project=build/m9-continuity-service/compile_commands.cppcheck.json",
+        "--enable=warning,style,performance,portability",
+        "--error-exitcode=1",
+        "--inline-suppr",
+        "--suppress=missingIncludeSystem",
+        "--std=c++17"
+      ],
+      "exit": 0
+    }
+  ],
+  "release_build_testing_off": "PASS",
+  "fingerprint_tests": 2,
+  "service": {
+    "normal": {
+      "archive": "process-core-final.tar.gz",
+      "report": {
+        "pass_": true,
+        "crash_cuts": 4,
+        "actual_release_acks": 16,
+        "actual_credits": 4,
+        "original_actual_pairs": 11,
+        "immutable_unknown_history": true,
+        "automatic_clear": false,
+        "scope": "local Linux peer service; injected logical clock and Actuals, not live three-ECU service",
+        "mutations_rejected": 16
+      }
+    },
+    "asan": {
+      "archive": "process-asan-final.tar.gz",
+      "report": {
+        "pass_": true,
+        "crash_cuts": 4,
+        "actual_release_acks": 16,
+        "actual_credits": 4,
+        "original_actual_pairs": 11,
+        "immutable_unknown_history": true,
+        "automatic_clear": false,
+        "scope": "local Linux peer service; injected logical clock and Actuals, not live three-ECU service",
+        "mutations_rejected": 16
+      }
+    },
+    "tsan": {
+      "archive": "process-tsan-final.tar.gz",
+      "report": {
+        "pass_": true,
+        "crash_cuts": 4,
+        "actual_release_acks": 16,
+        "actual_credits": 4,
+        "original_actual_pairs": 11,
+        "immutable_unknown_history": true,
+        "automatic_clear": false,
+        "scope": "local Linux peer service; injected logical clock and Actuals, not live three-ECU service",
+        "mutations_rejected": 16
+      }
+    }
+  },
+  "mutations_rejected": 48,
+  "native_sdk_campaign": "NOT RERUN: runtime/SDK composition unchanged, prior Normal Central failure remains in prior bundle; local service result does not close native service integration",
+  "prior_evidence": {
+    "m9_central_restart": 87,
+    "m9_continuity_review": 103,
+    "m9_control_hooks": 153,
+    "m9_delivery_restart": 79,
+    "m9_delivery_spool": 306,
+    "m9_diagnostics_component": 43,
+    "m9_native_causes": 183,
+    "m9_native_routing": 157,
+    "m9_native_vehicle": 186,
+    "m9_owner_sources": 203,
+    "m9_producer_adoption": 102,
+    "m9_remote_context": 130,
+    "m9_someip_live": 654,
+    "m9_speed_recovery": 135,
+    "m9_startup_sources": 217
+  }
+}

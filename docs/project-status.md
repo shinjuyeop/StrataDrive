@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | ECU 재기동·발행자 계승·로컬 연속성 심사/clear; native 서비스 연결 후속 | [진단 계약](interfaces/diagnostics.md) · [로컬 서비스 심사](test-plan/evidence/m9_continuity_review/README.md) |
+| M9 | ECU 재기동·발행자 계승·로컬 Linux 서비스 요청/심사/clear; 3-ECU 서비스 조합 후속 | [진단 계약](interfaces/diagnostics.md) · [로컬 서비스 심사](test-plan/evidence/m9_continuity_review/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -110,7 +110,13 @@ suffix를 보존하고 새 Central의 SD-5001은 정상 복귀/replay 뒤에도 
 [로컬 심사·원본·분모·실패](test-plan/evidence/m9_continuity_review/README.md)를 따른다.
 일반1215·기존 wall9·영향 ASan314·service writer4컷씩의 Normal/ASan이 통과했다.
 SDK 회귀 Normal11/12·ASan12/12·TSan3/3이며 Normal Central의88.6ms owner 간격/overflow 실패는 유지한다.
-다음은 실제 native 서비스 요청 인증/인가·quiesce·최신 물리 evidence adapter와 다른 고장 조합·원인 연결/복구다.
+Linux 로컬 서비스는 SO_PEERCRED UID/PID·boot capability·정확한 Session/incident/revision을
+인가한 뒤 frozen guard와 원본 Actual 취득을 연결한다. Review→Passed와 별도 clear 요청을 구분하고,
+재심사 중단/스트림 변경/재요청 충돌·capture 예외/저장 실패 시 clear를 막는다.
+[로컬 서비스 연결·원본·검증 범위](test-plan/evidence/m9_continuity_service/README.md)를 따른다.
+최종 일반1223·기존 wall9·서비스 ASan8/TSan8·독립 변조48개가 통과했다. 앞선 넓은 ASan336개와
+최종 수정 후 서비스8개를 구분한다. 초기 compile/거부 응답 전달/Release 경고·TSan 시작 실패를 보존했다.
+다음은 실제3-ECU 서비스 owner/SDK quiesce·새 global Epoch 후 물리 정지 취득 조합과 다른 고장 원인/복구다.
 Native4ms와 M9 전체 수용은 계속 OPEN이다.
 정규 DDS gate와 native wall/Target·부하/보존 용량 수용은 아직 후속이다.
 다른 BMS trip/Power 고장 조합·Clock 복구·proposal 이전 bootstrap 실패는 후속이다.

@@ -449,3 +449,44 @@ source/replica/stream cut/CRC·explicit disposition·Passed/clear 순서/revisio
 경로는 Review를 자동 발행하지 않고 기존 SD-5001 clear 차단을 유지해야 한다. Compile/초기 test/
 regression 실패·source/binary/config/tool hash와 원본 분모를 모두 보존한다. Native 서비스 요청
 인증/인가·quiesce/최신 물리 evidence 연결·remote RPC·TBD-08·native4ms/Target 수용은 후속이다.
+
+
+## Linux 로컬 연속성 서비스 요청 fixture
+
+실제3-ECU 서비스 운용과 구분하는 연결 component 검증이다. 기존 clock99의 실제8-role
+coordinator/participant·Epoch2→3·두 accepted endpoint credit·source/replica fixture를 쓴다.
+생산자를 끝낸 뒤 실제 Outbox ACK를 보존하고 FileJournal lifetime flock을 별도 서비스 process가
+인수한다. 실행 중인3개 ECU의 RT/SDK 생산자 quiesce를 구현/검증한 것으로 세지 않는다.
+Actual 값은 결정적 주입이며 실제 차량/plant 정지 측정은 아니다.
+
+- Private0700 directory/0600 AF_UNIX SOCK_SEQPACKET listener를 caller가 provision한다.
+  서비스는 SO_PEERCRED의 고정 UID/PID와 nonzero16-byte boot capability를 모두 검사한다.
+  Fixture capability는0x42 반복이며 실사용 비밀이 아니다. 다른 PID child와 잘못된 capability는
+  capture/저장 없이 거절한다. 서비스 actor·run·Session·incident는 수신 packet으로 만들지 않는다.
+- 별도 SDS v1 요청76byte/SDR v1 응답32byte를 사용한다. 진단 SOME/IP Event-only wire는 유지한다.
+  Review 요청은 정확한 revision과 AcceptUnknownHistory, Clear는 별도 요청과 disposition=None이다.
+  요청번호 n의 proof/review/Passed는4n−3/4n−2/4n−1, Clear는4n이다. Actor는 매 lifetime 새로
+  provision한다. 최대32개 증가 요청을 캐시하고 동일 bytes 재요청은 원래 receipt를 반환한다.
+  다른 bytes 재사용·범위/boot/시대 불일치는 거절하며 cache를 퇴거하거나 예산을 늘리지 않는다.
+- FrozenContinuity guard는 acquire부터 모든 commit까지 같은 source/replica/ACK/queue 경계를
+  소유한다. 최신 정상 dispatch 차단·Actual 취득은 trusted adapter 책임이다. 요청에는 물리
+  evidence를 싣지 않는다. Guard가 없거나 완전한 고정 manifest를 검사하지 못하면 쓰지 않는다.
+- Drive/Brake Actual을 실제 codec/E2E/application receiver/current_sample에 통과시킨다.
+  바퀴·torque·pressure 취득 시각은 now보다 각각1000/2000/3000ns 이전이다. 원래 각 시각을
+  보존하며 기존 정지·age30ms·skew20ms 기준을 쓴다. Review는 proof 전/Review 전/Passed 전,
+  Clear는 전체 cut 검사와 commit 전에 다시 취득한다. 연속 취득 간격도30ms를 넘으면 거절한다.
+- Review는 clear를 실행하지 않는다. Clear는 이번 서비스가 성공시킨 Passed ID·정확한 revision·
+  동일한 전체 stream cut와 새 물리 evidence를 재검사한다. 새 source append나 중단된 재심사,
+  capture 예외·저장 실패 뒤에는 이전 Passed로 clear하지 않는다. 정상 dispatch/INIT 권한은 없다.
+- 실제 서비스 writer를 proof/Review/Passed/Clear의 fsynced commit 직후 각각 SIGKILL한다.
+  재개는5+cut개 entry·Unknown condition·원형 unknown incident·cut4에만 clear tombstone을 요구한다.
+  UID/PID 인가 결과·request 원본·11쌍 Actual payload·16 Release ACK·4 accepted credit를 보존한다.
+  독립 Python codec/P05/원본 시각/stream cut/승인 순서 감사와16개 변조 거절을 요구한다.
+
+실행 target은 `remote_diagnostics_context_test`의 ContinuityServiceTest와
+`diagnostics_delivery_process_test`의 실제 Unix peer/SIGKILL case다.
+`STRATADRIVE_CONTINUITY_SERVICE_TEST_DIR`로 새 export directory를 지정한 뒤
+`tests/integration/diagnostics/audit_continuity_service.py <directory> --mutations`로 감사한다.
+일반 전체/ASan 영향 범위·독립 TSan 경계·정적 검사·Release 빌드는 별도 분모로 기록한다.
+실제3-ECU 서비스 owner/SDK quiesce·fresh global Epoch 후 물리 정지 취득 조합·원격 인가/운용,
+TBD-08·native4ms/Target·M9/학습자 수용은 OPEN이다.
