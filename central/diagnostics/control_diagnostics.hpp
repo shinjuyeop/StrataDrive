@@ -18,7 +18,7 @@ struct ControlContext {
 // file IO, allocation, actuator writes, invented clocks or implicit INIT/clear.
 class ControlDiagnostics {
 public:
-    ControlDiagnostics(EventQueue&,ControlContext);
+    ControlDiagnostics(EventQueue&,ControlContext,std::uint64_t first_sequence=1);
     // A native composition with a separate global issuer suppresses this
     // observer's Session; it must already have the actual global Release.
     bool start_session(std::uint32_t epoch,std::uint64_t enable_ns,bool publish_context=true) noexcept;

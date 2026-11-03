@@ -24,13 +24,14 @@ from physical_response import contract
 
 ROOT=pilot.ROOT
 HERE=Path(__file__).resolve()
-CASES=('normal','late','ready-timeout','invalid','delay','command-loss','result-loss','status-loss','lease-loss','overflow','close-full','restart-live','central-stop','owner-pause','monitor-overrun','model-delay')
+CASES=('normal','late','ready-timeout','invalid','delay','command-loss','result-loss','status-loss','lease-loss','overflow','close-full','restart-live','central-rejoin','central-stop','owner-pause','monitor-overrun','model-delay')
 
 def config(role,generation=1,three=False):
     if not 1<=generation<=16:raise ValueError('Host test transport identity generation must be in 1..16; no client-ID reuse')
     c=pilot.config(role)
     base={"central":0x5346,"front":0x5344,"rear":0x5348}[role]
     port={'central':30503,'front':30501,'rear':30505}[role]
+    if role=='central':c['applications'][0]['id']=hex(0x1310+generation)
     if role=='front':c['applications'][0]['id']=hex(0x1421+generation)
     c['services']=[{'service':hex(base+i),'instance':'0x0001','reliable':{'port':port+i,'enable-magic-cookies':'false'}} for i in range(2)]
     if three:
@@ -45,7 +46,7 @@ def config(role,generation=1,three=False):
             if role=='central':services.append(0x5e00+2*z)
             elif role==peer:services.append(0x5e01+2*z)
         for i,(peer,_) in enumerate(sources):
-            generations=range(2) if os.environ.get('STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART') else range(1)
+            generations=range(2) if os.environ.get('STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART') and not os.environ.get('STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART') else range(1)
             for incarnation in generations:
                 if role!='central' and incarnation>=generation:continue
                 base=0x5e10 if incarnation==0 else 0x5e40
@@ -69,7 +70,7 @@ def normal_prerequisite(folder,central):
 
 def inside(folder,binary,case):
     procs=[];streams=[];capture=None;loads=[]
-    three=bool(os.environ.get('STRATADRIVE_THREE_ECU'));target='rear' if os.environ.get('STRATADRIVE_FAULT_REAR') else 'front'
+    three=bool(os.environ.get('STRATADRIVE_THREE_ECU'));target='central' if case=='central-rejoin' else 'rear' if os.environ.get('STRATADRIVE_FAULT_REAR') else 'front'
     peers={};peer_roles=('front','rear') if three else ('front',)
     result={'case':case,'three_ecu':three,'fault_target':target,'pass':False,'processes':[],'forced_cleanup':[],
             'energy_cycle':os.environ.get('STRATADRIVE_ENERGY_CYCLE'),'clock_sample':{'monotonic_ns':time.monotonic_ns(),'wall_ns':time.time_ns(),'utc_offset_s':datetime.now().astimezone().utcoffset().total_seconds()}}
@@ -165,6 +166,9 @@ def inside(folder,binary,case):
                         normal_prerequisite(folder,central)
                         time.sleep(min(.002,(inject_at-time.monotonic_ns())/1e9))
                 normal_prerequisite(folder,central)
+                if case=='central-rejoin':
+                    pilot.wait_for(lambda:(diagnostic_store/'central/central-1.baseline-ready').exists(),3)
+                    shutil.copyfile(folder/'central.runtime.json',folder/'central-1.runtime.json')
                 (folder/'inject').write_text(str(time.monotonic_ns()))
                 if case=='model-delay':(folder/'inject-model-delay').touch()
                 if case=='restart-live':
@@ -186,6 +190,22 @@ def inside(folder,binary,case):
                     result['surviving_central_rejoined']=True
                     result['survivor_pids_after']={'central':central.pid,**{r:p.pid for r,p in peers.items() if r!=target}}
                     snapshot(target,peers[target])
+                elif case=='central-rejoin':
+                    result['injected_crash']={'role':'central','generation':1,'pid':central.pid,'ns':time.monotonic_ns()}
+                    result['survivor_pids_before']={r:p.pid for r,p in peers.items()}
+                    central.kill();central.wait(timeout=2)
+                    for r,p in peers.items():
+                        pilot.wait_for(lambda r=r:(folder/(r+'-protected')).exists(),3)
+                        if p.poll() is not None:raise RuntimeError('surviving '+r+' failed')
+                    pilot.wait_for(lambda:(folder/'physical-protected').exists(),1)
+                    watch_snapshot('after-central-crash')
+                    (folder/'rejoin-request').write_text('trusted explicit operator startup; new durable epoch required')
+                    central=launch('central',2)
+                    pilot.wait_for(lambda:(folder/'central-2-rejoined').exists() or central.poll() is not None,5)
+                    if not (folder/'central-2-rejoined').exists():raise RuntimeError('new Central session did not arm')
+                    result['central_rejoined']=True
+                    result['survivor_pids_after']={r:p.pid for r,p in peers.items()}
+                    snapshot('central',central)
                 elif case=='central-stop':
                     result['injected_crash']={'role':'central','generation':1,'pid':central.pid,'ns':time.monotonic_ns()}
                     central.kill();central.wait(timeout=2)
@@ -209,8 +229,8 @@ def inside(folder,binary,case):
                     # final rejection/protection evidence and returns from SDK stop.
                     for r,p in peers.items():(folder/('stop-'+r)).touch();p.wait(timeout=3)
                     (folder/'stop-central').touch()
-        if case in ('normal','late','invalid','restart-live'):
-            pilot.wait_for(lambda:(folder/'central-1.quiesced').exists() or central.poll() is not None,11 if os.environ.get('STRATADRIVE_ENERGY_CYCLE') else 8)
+        if case in ('normal','late','invalid','restart-live','central-rejoin'):
+            pilot.wait_for(lambda:(folder/('central-2.quiesced' if case=='central-rejoin' else 'central-1.quiesced')).exists() or central.poll() is not None,11 if os.environ.get('STRATADRIVE_ENERGY_CYCLE') else 8)
             if central.poll() is None:
                 for r,p in peers.items():(folder/('stop-'+r)).touch();p.wait(timeout=3)
                 (folder/'stop-central').touch()
@@ -278,7 +298,7 @@ def inside(folder,binary,case):
         except (OSError,ValueError):result['pass']=False
         summaries={r['role']:r.get('summary',{}) for r in result['processes'] if not r.get('expected_abrupt_stop') and (case not in ('close-full','overflow') or r['generation']==1)}
         f=summaries.get('front',{});c=summaries.get('central',{})
-        if case in ('normal','late','invalid','restart-live'):result['pass']=result['pass'] and c.get('pre_shutdown_protection')==0 and c.get('pending_cancelled')==0 and c.get('release_ack_mask')==255 and f.get('pre_shutdown_protection',0)>=c.get('protected_ns',0) and f.get('steering_applied',0)>=10 and f.get('brake_applied',0)>=10
+        if case in ('normal','late','invalid','restart-live','central-rejoin'):result['pass']=result['pass'] and c.get('pre_shutdown_protection')==0 and c.get('pending_cancelled')==0 and c.get('release_ack_mask')==255 and f.get('pre_shutdown_protection',0)>=c.get('protected_ns',0) and f.get('steering_applied',0)>=10 and f.get('brake_applied',0)>=10
         if case=='close-full':result['pass']=result['pass'] and result.get('sender_alive_after_front_close',False) and result.get('post_full_restart',False) and f.get('rx_highwater')==8 and f.get('unprocessed_rejected')==8 and f.get('selected_ns',0)>0 and c.get('diagnostic_sent',0)>0 and c.get('diagnostic_sent')==c.get('diagnostic_rejected',0)+c.get('diagnostic_expired',0)
         if case=='overflow':
             from native_oracle import overflow_counters_ok
@@ -291,6 +311,7 @@ def inside(folder,binary,case):
             result['pass']=result['pass'] and result['overflow_local_cause'] and result['no_prior_central_protection']
         if case=='invalid':result['pass']=result['pass'] and f.get('pre_init_rejected',0)>=9 and f.get('state_violations')==0 and c.get('diagnostic_rejected')==2
         if case=='restart-live':result['pass']=result['pass'] and result.get('surviving_central_rejoined',False) and c.get('epoch',0)>1 and c.get('release_ack_mask')==255 and c.get('diagnostic_rejected')==1 and result.get('survivor_pids_before')==result.get('survivor_pids_after')
+        if case=='central-rejoin':result['pass']=result['pass'] and result.get('central_rejoined',False) and c.get('epoch')==2 and result.get('survivor_pids_before')==result.get('survivor_pids_after')
         if case=='delay':result['pass']=result['pass'] and f.get('expired_rejected',0)>0
         if case=='model-delay':result['pass']=result['pass'] and any(r.get('expected_model_failure') for r in result['processes']) and f.get('pre_shutdown_protection',0)>0 and c.get('pre_shutdown_protection',0)>0
         if case=='central-stop':result['pass']=result['pass'] and f.get('pre_shutdown_protection',0)>0 and f.get('selected_ns',0)>0
@@ -303,7 +324,7 @@ def inside(folder,binary,case):
             result['pass']=result['pass'] and result['native']['pass']
         if os.environ.get('STRATADRIVE_NATIVE_DIAGNOSTICS'):
             try:
-                result['diagnostics']={r:json.loads((folder/'native-diagnostics'/r/(r+('-2.json' if case=='restart-live' and r==target else '-1.json'))).read_text()) for r in ('central','front','rear')}
+                result['diagnostics']={r:json.loads((folder/'native-diagnostics'/r/(r+('-2.json' if case in ('restart-live','central-rejoin') and r==target else '-1.json'))).read_text()) for r in ('central','front','rear')}
                 result['pass']=result['pass'] and all(r['pass'] for r in result['diagnostics'].values())
             except (OSError,ValueError,KeyError) as e:
                 result['pass']=False;result['diagnostic_error']=str(e)
@@ -334,13 +355,15 @@ def main():
     p.add_argument('--cases',nargs='+',choices=CASES,default=['normal']);p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
     if a.fixed_layout and a.profile!='tsan':p.error('fixed-layout is TSan-only')
+    if 'central-rejoin' in a.cases and not a.diagnostics:p.error('central-rejoin requires the declared diagnostics fixture')
     if a.diagnostics:
-        if not a.three or any(c not in ('normal','command-loss','restart-live') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss/restart-live')
+        if not a.three or any(c not in ('normal','command-loss','restart-live','central-rejoin') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss/restart-live')
         if not 0<=a.diagnostic_context_delay_ms<=1500:p.error('diagnostic context delay must be in0..1500ms')
         os.environ['STRATADRIVE_NATIVE_DIAGNOSTICS']='1';os.environ['STRATADRIVE_DIAGNOSTIC_CONTEXT_DELAY_MS']=str(a.diagnostic_context_delay_ms)
-        if 'restart-live' in a.cases:
-            if a.cases!=['restart-live'] or a.diagnostic_restart:p.error('process restart must be an isolated case')
+        if any(c in ('restart-live','central-rejoin') for c in a.cases):
+            if len(a.cases)!=1 or a.diagnostic_restart:p.error('process restart must be an isolated case')
             os.environ['STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART']='1'
+            if a.cases==['central-rejoin']:os.environ['STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART']='1'
         if a.diagnostic_restart:os.environ['STRATADRIVE_DIAGNOSTIC_RESTART']=a.diagnostic_restart
         if a.diagnostic_drop_ack:os.environ['STRATADRIVE_DIAGNOSTIC_DROP_ACK']='1'
     elif a.diagnostic_drop_ack or a.diagnostic_context_delay_ms or a.diagnostic_restart:p.error('diagnostics required')
@@ -354,7 +377,7 @@ def main():
         if not a.three:p.error('simple-vehicle requires three ECUs')
         os.environ['STRATADRIVE_SIMPLE_VEHICLE']='1'
     if a.three:
-        if any(c not in ('normal','command-loss','owner-pause','central-stop','restart-live') for c in a.cases):p.error('three-ECU protocol supports only its declared finite cases')
+        if any(c not in ('normal','command-loss','owner-pause','central-stop','restart-live','central-rejoin') for c in a.cases):p.error('three-ECU protocol supports only its declared finite cases')
         os.environ['STRATADRIVE_THREE_ECU']='1'
     if a.fault_zone=='rear':
         if not a.three:p.error('Rear requires --three')
@@ -369,7 +392,7 @@ def main():
     rows=[]
     with pilot.open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_process_restart':'restart-live' in a.cases and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
+        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()

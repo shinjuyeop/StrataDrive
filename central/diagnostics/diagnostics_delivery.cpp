@@ -66,7 +66,7 @@ std::optional<wire::Bytes> CommittedReplay::next() {
     return wire::encode(wire::Data{journal_.store_id(),in_flight_,journal_.registry_revision(),std::get<Event>(journal_.committed()[in_flight_-1])});
 }
 Result CommittedReplay::acknowledge(const wire::Bytes& bytes) {return accept_ack(journal_,bytes,true,acknowledged_,in_flight_);}
-MergedCollector::MergedCollector(FileJournal& merged,const std::vector<FileJournal*>& replicas)
+MergedCollector::MergedCollector(FileJournal& merged,const std::vector<FileJournal*>& replicas,const std::vector<const FileJournal*>& predecessors)
     :merged_(merged),recorder_(merged) {
     event_only(merged);
     for(std::size_t i=0;i<replicas.size();++i) {
@@ -77,6 +77,14 @@ MergedCollector::MergedCollector(FileJournal& merged,const std::vector<FileJourn
         event_only(*journal);
         if(!journal->writable()) throw std::runtime_error("diagnostic replica incomplete");
     }
+    for(const auto* history:predecessors) {
+        if(!history || history==&merged || history->registry_revision()!=merged.registry_revision())throw std::invalid_argument("diagnostic predecessor manifest");
+        // Validate before mutating destination; an uncommitted suffix is never
+        // imported or repaired. Caller must report unverified continuity.
+        const CommittedReplay checked(*history);(void)checked;
+    }
+    for(const auto* history:predecessors)for(const auto& entry:history->committed())
+        if(!recorder_.record(std::get<Event>(entry)).durable)throw std::runtime_error("diagnostic predecessor import");
     for(auto* journal:replicas) replicas_.push_back({journal,std::make_unique<Inbox>(*journal)});
     if(!healthy()) throw std::runtime_error("diagnostic collector incomplete");
     for(const auto& replica:replicas_)for(const auto& entry:replica.journal->committed()) {

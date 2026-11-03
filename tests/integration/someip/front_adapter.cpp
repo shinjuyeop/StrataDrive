@@ -189,9 +189,10 @@ struct Owners final:session::CoordinatorPort {
         else {protect_central();if(coordinator.state()!=session::State::Failed)coordinator.cancel(now());}
     }
     void ack(const session::Ack& a) {
-        const auto result=coordinator.receive(a,now());
+        const auto received=now();
+        const auto result=coordinator.receive(a,received);
         event("session-ack",static_cast<unsigned>(a.role),static_cast<unsigned>(a.phase)*10+static_cast<unsigned>(result),a.plan.commit_deadline_ns);
-        if(a.phase==session::Phase::Release && a.accepted && result==session::AckResult::Accepted)release_acks|=1ULL<<static_cast<unsigned>(a.role);
+        if(a.phase==session::Phase::Release && a.accepted && result==session::AckResult::Accepted){release_acks|=1ULL<<static_cast<unsigned>(a.role);if(diagnostic_routes)diagnostic_routes->accepted_release(static_cast<unsigned>(a.role),a.plan.epoch,received);}
     }
     void receive(remote::OwnerMessage m) {
         if(remote) {
@@ -445,8 +446,10 @@ int main(int argc,char** argv) {
     std::unique_ptr<someip::test::NativeDiagnosticRoutes> diagnostic_routes;
     bool pass=false;std::string error;std::uint64_t begin=now(),ready_ns=0,closing=0;
     try {
+        const bool fresh_central=!remote && test=="central-rejoin" && generation=="2";
+        if(fresh_central){check(fs::exists(folder/"rejoin-request"),"explicit new Central startup request missing");net.begin_quiescent_transition();}
         if(diagnostics_enabled()) {
-            check(three_enabled() && (test=="normal" || test=="command-loss" || test=="restart-live"),"native diagnostics profile");
+            check(three_enabled() && (test=="normal" || test=="command-loss" || test=="restart-live" || test=="central-rejoin"),"native diagnostics profile");
             diagnostic_routes=std::make_unique<someip::test::NativeDiagnosticRoutes>(ecu,folder,tag);
             diagnostic_routes->start(net);
         } else net.start();
@@ -460,6 +463,7 @@ int main(int argc,char** argv) {
         if(test=="ready-timeout" && !remote){check(net.ready!=net.ready_mask(),"unexpected ready");pass=true;}
         else {
             check(net.ready==net.ready_mask(),"bilateral readiness timeout");
+            if(!remote && test=="central-rejoin" && generation=="2")check(fs::exists(folder/"rejoin-request"),"explicit new Central startup request missing");
             const auto issued_epoch=remote?0:owners->issue_epoch();
             ready_ns=now();owners->start_watch();mark(folder/(tag+".ready"));
             if(!remote && test=="invalid") {
@@ -473,6 +477,7 @@ int main(int argc,char** argv) {
                 while(net.probe_responses[0]==count && now()<deadline)std::this_thread::sleep_for(std::chrono::microseconds(200));
                 check(net.probe_responses[0]>count,"negative binding barrier");
             }
+            if(fresh_central){net.end_quiescent_transition();owners->event("ingress-transition-end",7,issued_epoch);}
             if(!remote)owners->begin(issued_epoch);
             bool injected=false,rejoined=false,invalid_sent=false,rejoin_requested=false;
             std::uint64_t injected_ns=0,paused_until=0,full_sent=0;bool overflow_probe=false;
@@ -543,7 +548,8 @@ int main(int argc,char** argv) {
                     owners->diagnostic(*prior_request);invalid_sent=true;mark(folder/"rejoined");
                 }
                 if(!remote && owners->port.completed_batches()>=10 && owners->pending.empty() && (!three_enabled() || owners->observed_normal_response()))mark(folder/"control-established");
-                const bool healthy_case=test=="normal" || test=="late" || test=="invalid" || (test=="restart-live" && rejoined);
+                if(!remote && test=="central-rejoin" && generation=="2" && owners->armed_ns && owners->release_acks==255 && owners->port.completed_batches()>=10 && !rejoined){mark(folder/"central-2-rejoined");rejoined=true;}
+                const bool healthy_case=test=="normal" || test=="late" || test=="invalid" || (test=="restart-live" && rejoined) || (test=="central-rejoin" && generation=="2");
                 if(!remote && healthy_case && owners->armed_ns && now()-owners->armed_ns>=500*kMs && (!owners->watch || now()-ready_ns>=run_duration()) && (!energy_enabled() || now()-owners->armed_ns>=5000*kMs) && owners->pending.empty()) {
                     check(owners->release_acks==255 && owners->port.completed_batches()>=10 && owners->accepted_results>=20 && owners->actual_count>=20,"normal real control coverage");
                     check(!owners->protected_ns && owners->core.decision().fault==central::CoordinatorFault::None,"normal control fault");
@@ -563,7 +569,7 @@ int main(int argc,char** argv) {
                 else std::this_thread::sleep_for(std::chrono::microseconds(200));
             }
             if(remote)pass=fs::exists(folder/("stop-"+role));
-            else if(test!="normal" && test!="late" && test!="invalid" && test!="restart-live")pass=owners->armed_ns && owners->protected_ns;
+            else if(test!="normal" && test!="late" && test!="invalid" && test!="restart-live" && test!="central-rejoin")pass=owners->armed_ns && owners->protected_ns;
 
             check(pass,"completion condition absent");
         }
@@ -601,7 +607,7 @@ int main(int argc,char** argv) {
         for(const auto& leaf:owners->leaf)if(leaf)for(const auto& e:leaf->input_events())out<<e.time_ns<<','<<e.kind<<','<<e.owner<<','<<e.epoch<<','<<e.source_ns<<','<<e.deadline_ns<<','<<e.reference_ns<<','<<e.code<<'\n';
     }
     if(owners && owners->watch)owners->watch->write((folder/(tag+".native")).string());
-    if(!remote && pass && test!="ready-timeout" && (test=="normal" || test=="late" || test=="invalid" || test=="restart-live")) {
+    if(!remote && pass && test!="ready-timeout" && (test=="normal" || test=="late" || test=="invalid" || test=="restart-live" || test=="central-rejoin")) {
         // Already protected/quiesced; retain the receive endpoint for the peer's
         // final evidence. This handshake never extends a live command deadline.
         mark(folder/(tag+".quiesced"));const auto cleanup_deadline=now()+1000*kMs;

@@ -38,6 +38,7 @@ public:
     bool finish();
     void quiesce() noexcept {producing_=false;}
     bool finished() const noexcept {return finished_.load(std::memory_order_acquire);}
+    void accepted_release(unsigned,std::uint32_t,std::uint64_t) noexcept;
     void central(const session::SessionCoordinator&,const central::VehicleCoordinator&,std::uint64_t);
     void zone(unsigned,const zone::AsyncZoneOwner&,bool gate,const remote::RunLeaseEvidence&,std::uint64_t);
     void leaf(unsigned,const simulation::AsyncLeafOwner&,bool gate,const remote::RunLeaseEvidence&,std::uint64_t);
@@ -64,9 +65,12 @@ private:
     std::array<std::unique_ptr<Source>,18> sources_;
     std::array<std::unique_ptr<diagnostic::Channel>,18> source_channels_;
     std::array<std::unique_ptr<diagnostic::Channel>,2> context_channels_;
-    diagnostics::EventQueue startup_queue_{diagnostic_run,7},central_queue_{diagnostic_run,8};
-    diagnostics::StartupDiagnostics startup_{startup_queue_,{diagnostic_run,7,diagnostics::Domain::Monotonic,kDomain,1},diagnostics::Component::Coordinator,8,true};
-    diagnostics::ControlDiagnostics central_{central_queue_,{diagnostic_run,8,diagnostics::Domain::Monotonic,kDomain,1}};
+    std::unique_ptr<diagnostics::EventQueue> startup_queue_,central_queue_;
+    std::unique_ptr<diagnostics::StartupDiagnostics> startup_;
+    std::unique_ptr<diagnostics::ControlDiagnostics> central_;
+    bool central_restart_{false},central_continuity_{false};
+    struct ReleaseAcks {std::uint32_t epoch{0};std::array<std::uint64_t,8> times{};};
+    ReleaseAcks release_acks_;runtime::LatestSnapshot<ReleaseAcks> accepted_acks_;
     std::uint32_t central_epoch_{0};
     std::atomic<bool> producing_{true},finished_{true};std::thread worker_;bool passed_{false};
 };

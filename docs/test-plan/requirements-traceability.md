@@ -31,7 +31,11 @@ replica/merged crash window·실제 TCP replay를 연결한다. Native 객체 �
 
 C-M9-ADOPT-01–06은 [ECU 발행자 adoption](evidence/m9_producer_adoption/README.md)의 세대 발급·
 read-only prefix·저장 전 손실 미확인 표시·Front/Rear 실제 process kill/rejoin을 연결한다.
-Central 재기동/연속성 clear와 SYS-DIAG-001 전체 수용은 닫지 않는다.
+연속성 clear와 SYS-DIAG-001 전체 수용은 닫지 않는다.
+
+C-M9-CENTRAL-01–05는 [Central 재기동](evidence/m9_central_restart/README.md)의 명시적 issuer
+구간·fresh collector prefix import·실제 Central SDK SIGKILL/새 Epoch2·생존 source ordinal1 replay·
+SD-5001 clear 차단을 연결한다. 연속성 해소·TBD-08·전체 TC 수용은 OPEN이다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |
 | --- | --- | --- | --- | --- | --- | --- |

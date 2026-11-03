@@ -77,8 +77,8 @@ bool same_request(const central::VehicleRequest& a,const central::VehicleRequest
         a.acceleration_mps2==b.acceleration_mps2 && a.curvature_inv_m==b.curvature_inv_m && a.braking_demand==b.braking_demand && a.standstill_hold==b.standstill_hold;
 }
 } // namespace
-ControlDiagnostics::ControlDiagnostics(EventQueue& queue,ControlContext context):queue_(queue),context_(context) {
-    if(!context.run || !context.producer || !context.clock_instance || !context.profile ||
+ControlDiagnostics::ControlDiagnostics(EventQueue& queue,ControlContext context,std::uint64_t first):queue_(queue),context_(context),next_(first) {
+    if(!first || !context.run || !context.producer || !context.clock_instance || !context.profile ||
        (context.domain!=Domain::Simulation && context.domain!=Domain::Monotonic)) throw std::invalid_argument("control diagnostics context");
 }
 Stamp ControlDiagnostics::stamp(std::uint64_t ns,bool trusted) const noexcept {

@@ -214,4 +214,20 @@ TEST_F(DiagnosticsDelivery, ArchivedReplayExportsOnlyVerifiedCommittedPrefixAndP
     EXPECT_EQ(replay.acknowledged(),2U);EXPECT_EQ(s.committed().size(),2U);EXPECT_EQ(std::filesystem::file_size(source/"journal"),length);EXPECT_FALSE(s.writable());
     EXPECT_EQ(replay.acknowledge(ack(session(),1,5678)),Result::Invalid);EXPECT_EQ(replay.acknowledge(ack(fault(),1)),Result::Conflict);
 }
+TEST_F(DiagnosticsDelivery, FreshCollectorImportsOnlyPredecessorCommittedPrefixAndPreservesTailAndUnknown) {
+    init();const auto prior=root/"prior",fresh=root/"fresh";FileJournal::initialize(prior.string(),9000,{},3);FileJournal::initialize(fresh.string(),9001,{},3);
+    {FileJournal j(prior.string());Recorder out(j);ASSERT_TRUE(out.record(session()).durable);ASSERT_TRUE(out.record(fault()).durable);}
+    std::ofstream(prior/"journal",std::ios::app|std::ios::binary)<<"uncommitted predecessor";const auto length=std::filesystem::file_size(prior/"journal");
+    FileJournal history(prior.string()),merged(fresh.string()),replica(dest.string());MergedCollector in(merged,{&replica},{&history});
+    EXPECT_FALSE(history.writable());ASSERT_EQ(merged.committed().size(),2U);EXPECT_EQ(in.ledger().find(fault().key)->condition,Condition::Unknown);
+    for(unsigned ordinal=1;ordinal<=2;++ordinal){const auto r=in.receive(data(std::get<Event>(history.committed()[ordinal-1]),ordinal));EXPECT_TRUE(r.ack);}
+    EXPECT_EQ(in.ledger().find(fault().key)->condition,Condition::Unknown);EXPECT_EQ(in.ledger().find(fault().key)->count,1U);EXPECT_EQ(std::filesystem::file_size(prior/"journal"),length);EXPECT_GT(history.uncommitted_bytes(),0U);
+}
+TEST_F(DiagnosticsDelivery, PredecessorImportRejectsForeignRegistryAndConflictingOriginalWithoutOverwriting) {
+    init();const auto a=root/"a",b=root/"b",fresh=root/"fresh";FileJournal::initialize(a.string(),9000,{},3);FileJournal::initialize(b.string(),9002,{},2);FileJournal::initialize(fresh.string(),9001,{},3);
+    FileJournal history(a.string()),foreign(b.string()),merged(fresh.string()),replica(dest.string());
+    EXPECT_THROW((MergedCollector{merged,{&replica},{&foreign}}),std::invalid_argument);EXPECT_TRUE(merged.committed().empty());
+    {Recorder old(history);ASSERT_TRUE(old.record(session()).durable);} {Recorder now(merged);auto e=session();e.native_reason=42;ASSERT_TRUE(now.record(e).durable);}
+    EXPECT_THROW((MergedCollector{merged,{&replica},{&history}}),std::runtime_error);EXPECT_EQ(encode(merged.committed()[0]),encode([]{auto e=session();e.native_reason=42;return e;}()));EXPECT_FALSE(merged.writable());
+}
 } // namespace

@@ -15,6 +15,9 @@ public:
     std::size_t drain(EventQueue& q,std::size_t budget=EventQueue::kCapacity) { return recorder_.drain(q,budget); }
     std::optional<wire::Bytes> next();
     Result acknowledge(const wire::Bytes&);
+    // Explicit non-RT handover to a fresh replica. Same immutable history;
+    // ACKs cannot skip the new in-flight ordinal. No authority or clear effect.
+    void restart_delivery() noexcept { acknowledged_=0;in_flight_=0; }
     std::uint64_t acknowledged() const noexcept { return acknowledged_; }
     bool healthy() const noexcept { return journal_.writable() && recorder_.ledger().complete(); }
     const Ledger& ledger() const noexcept { return recorder_.ledger(); }
@@ -54,7 +57,8 @@ private:
 // Never ACK until both stores contain the exact original event.
 class MergedCollector {
 public:
-    MergedCollector(FileJournal& merged,const std::vector<FileJournal*>& replicas);
+    MergedCollector(FileJournal& merged,const std::vector<FileJournal*>& replicas,
+                    const std::vector<const FileJournal*>& predecessor_history = {});
     DeliveryReceipt receive(const wire::Bytes&);
     Receipt record(const Event& e) { return recorder_.record(e); }
     bool healthy() const noexcept;

@@ -5627,3 +5627,23 @@ count를 잃은 event 수로 해석하지 않는다. 정상/INIT/원본 replay�
 Epoch2/accepted credit 뒤에 발행한다. Central observer는 같은 issuer를 유지해 Session ID 충돌을
 막는다. Central 자체 process 재기동·host clock 변경·연속성 reconciliation/clear와 임의 반복 재시작
 용량 수용은 후속이다. 기존 native4ms/Target 미통과를 이 기능 검증으로 닫지 않는다.
+
+
+## ADR-0091: Central process 재기동의 명시적 issuer 구간과 fresh collector
+
+상태: Host 기능 구현. M9/TBD-08·native4ms/Target·연속성 reconciliation/clear 수용 OPEN.
+
+Central process는 global Session 발행자도 잃으므로 기존 producer/순번을 새 process에서 재사용하지
+않는다. Private lifecycle9100으로 세대를 발급하고 trusted manifest가 issuer의 Epoch 구간을
+명시한다. 원격 source는 원본 Session과 실제 local accepted credit를 재대조한 뒤 fresh replica로
+ordinal1부터 재전송한다. 수신 packet으로 신뢰 목록이나 새 Epoch를 만들지 않는다.
+
+이전 collector journal을 자동 repair하지 않고 검증된 committed prefix만 fresh merged/replica에
+가져온다. 기존 bytes/suffix는 보존하고 동일 ID 충돌과 저장 실패는 fail closed다. Source producer와
+원래 timestamp를 유지한다. Central 준비/EpochStore IO는 기존 명시적 ingress quiesce 안에서
+수행하고 폐기 수를 기록한 뒤 실제 새 handshake를 시작한다. FIFO/deadline은 유지한다.
+
+재기동/정상 복귀/replay가 저장 전 메모리 손실 여부를 증명하지 못한다. 새 Central observer의
+SD-5001은 original boot/세대·cause_unknown/unmapped로 남기고 clear를 차단한다. 재합류를
+연속성 해소나 임의 Passed의 근거로 삼지 않는다. 두 세대/same-kernel fixture·독립 원본/PCAP 감사와
+변조12개로 부분 검증하며 일반 host 전원/clock 복구·반복 용량·전체 system 수용은 별도다.

@@ -723,12 +723,48 @@ Session을 전달한다. 새 process는 이전 세대 source prefix도 별도 ch
 닫지 않는다. [고정 recipe](../test-plan/diagnostics-protocol.md#ecu-process-재기동과-발행자-adoption-fixture)와
 [실행·한계](../test-plan/evidence/m9_producer_adoption/README.md)를 따른다.
 
+## Central process 재기동과 trusted issuer 계승
+
+`ContextualOutbox`의 명시적 `CentralIssuer` manifest는 최초 Epoch1부터 최대16개의
+`producer/first_epoch` 구간을 고정한다. 경계는 증가하고 발행자는 중복되지 않는다. 수신 packet으로
+발행자를 학습하지 않는다. 기존 단일 발행자 API는 `{producer,1}`과 같다. 새 원본 Session은 해당
+Epoch의 trusted issuer·run/profile/clock·8-role Release와 실제 local accepted RunLease를 모두
+만족해야 한다. 새 issuer context를 durable commit한 뒤에만 sender ACK 메모리를0으로 되돌려
+원래 ordinal1부터 보낸다. 오래된/앞선 ACK는 진행을 건너뛰지 못한다. 원격 producer/sequence와
+원본 times는 유지한다. CRC/manifest는 인증 기능이 아니다.
+
+`MergedCollector`는 명시적으로 전달된 predecessor의 검증 committed prefix를 새 merged store에
+가져오고 현재 replica와 대조한 뒤 live 입력을 받는다. 동일 ID/동일 bytes는 dedup하고 충돌·foreign
+registry·저장 실패는 fail closed다. 원본 suffix/incomplete marker를 고치거나 옮기지 않는다.
+재시작 projection은 Unknown이며 새 Session/재전송만으로 이전 고장을 Passed/cleared로 만들지 않는다.
+
+Native `central-rejoin --diagnostics --three`는 Central1을 실제 SIGKILL하고 같은 kernel/netns에서
+새 Central2 SDK client0x1312로 시작한다. Front/Rear/plant는 계속 살아 있다. 명시적 startup 요청과
+실제 EpochStore의 Epoch2가 필요하다. Central 준비/영속 Epoch 발급 중에는 기존 quiescent ingress
+전환으로 이전 상태 입력을 계수하며 차단한다. 새 handshake 전에 전환을 끝내고 정상 FIFO8을 쓴다.
+새 readiness를 과거 overflow 소거로 만들지 않는다.
+
+Private lifecycle9100은 generation2를 영속 발급한다. Global issuer는7→`(1<<32)|7`, observer는
+8→`(1<<32)|8`이며 trusted 경계는 Epoch2다. 새 observer 순번1의 SD-5001/monitor10/subject8은
+원래 boot 시각·previous/new generation·cause_unknown/unmapped를 기록한다. Central event queue의
+저장 전 손실은 증명할 수 없다. 손실 개수를 추정하지 않고, 새 실제 정상 운전/정지/HV-off와 완전한
+replay도 이 incident의 복구 proof나 clear 허가가 아니다. 연속성 reconciliation/clear 계약은 OPEN이다.
+
+Fixture는9개의 생존 source stream8200–8208을 유지한다. 새 Central replica `source-*-2`, merged
+`merged-2`(store8002), context source `context-*-2`를 사전 provision한다. 이전 merged8000/9개
+replica의 committed 원본을 가져오며 old context source의 원본 Session1은 ordinal1, 새 Session2는
+ordinal2다. 이전 파일·commit·suffix를 보존한다. Control TCP512/진단2048·FIFO8·pending32·retry100ms·
+drain2s·원래100ms 물리 판정은 유지한다. 같은 clock의2세대 유한 fixture이며 host reboot·반복 재기동
+용량·native4ms/Target 수용은 포함하지 않는다.
+[recipe](../test-plan/diagnostics-protocol.md#central-process-재기동-fixture)와
+[원본·검증·실패](../test-plan/evidence/m9_central_restart/README.md)를 따른다.
+
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
 원격 context admission 뒤 실제 native3-ECU의2개 context/9개 source stream도 기능 검증했다.
-Front/Rear process 재기동의 producer adoption·연속성 미확인 전달 뒤에는 Central process 재기동,
+Central/Front/Rear process 재기동의 producer adoption·연속성 미확인 전달 뒤에는
 연속성 reconciliation과 미결정 고장 조합·원인 연결/복구를 검증한다.
 Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.

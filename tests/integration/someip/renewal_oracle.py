@@ -3,7 +3,7 @@ import csv
 from pathlib import Path
 
 
-def renewal_oracle(folder,three=False,epoch=None,target=None):
+def renewal_oracle(folder,three=False,epoch=None,target=None,central_prefix=None):
     folder=Path(folder)
     out={'pass':True,'errors':[],'leaves':[]}
     def require(ok,why):
@@ -12,7 +12,7 @@ def renewal_oracle(folder,three=False,epoch=None,target=None):
         with (folder/name).open() as f:return list(csv.DictReader(f))
     margins=[]
     try:
-        central='central-1-rejoined' if epoch else 'central-1'
+        central=central_prefix or ('central-1-rejoined' if epoch else 'central-1')
         central_rows=read(central+'.transport.csv')
         tx=[r for r in central_rows if r['event']=='central-enqueued' and int(r['operation'])==3]
         accepted={(int(r['epoch']),int(r['payload_source']),int(r['peer'])):r for r in central_rows if r['event']=='central-result-accepted' and int(r['operation'])==3}

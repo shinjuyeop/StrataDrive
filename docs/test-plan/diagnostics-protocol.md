@@ -390,3 +390,30 @@ Session을 commit하고 EventQueue에 원본 fault를 발행한 뒤 writer drain
 기록한다. Root event를 재구성하거나 ACK했다고 표시하지 않는다. Lifecycle wrong manifest/time/
 capacity/lock·read-only prefix/clear 차단은 component 시험한다. 전체 system TC·Central process
 재기동·host clock/power cycle·실제 부하/용량·연속성 reconciliation/clear 수용은 후속이다.
+
+
+## Central process 재기동 fixture
+
+사전 고정: 기존11개 기능 case에 central-process-rejoin(control case central-rejoin)1개를 추가한다.
+실제 정상 control/physical·9개 원격 source 최초 committed prefix·두 context ACK·8개 실제 Release
+ACK의 writer flush 뒤 Central1을 SIGKILL한다. 같은 Front/Rear PID·plant를 유지하고 독립 보호와
+원래100ms torque/brake 반응을 관측한다. 명시적 startup 요청 뒤 Central2의 새 SDK client·실제
+Epoch2/8-role Release·accepted credit18개·새 정상 운전/정지/HV-off를 확인한다.
+
+Trusted issuer 범위는 Epoch1의7과 Epoch2 이상의(1<<32)|7이다. 잘못된 issuer/범위·중복 ID·빈
+manifest·local ID·17개 범위는 거부한다. 실제 새 credit 없이 successor Session을 채택하지 않는다.
+새 issuer 채택 뒤 sender ACK0부터 재전송하며 새 replica는 원본 ordinal1부터 commit/ACK해야 한다.
+Central2의 준비/EpochStore IO에는 기존 ingress quiesce를 적용하고 폐기 수를 남긴다. 정상 제어의
+queue/deadline 예산을 늘리거나 이미 관측한 overflow를 지워 통과시키지 않는다.
+
+이전 merged/9개 replica의 committed prefix를 새 store로 가져온다. 이전 store·suffix·incomplete를
+보존하고 독립 auditor로 watermark/bytes/보고값을 대조한다. 단위 시험은 실제 uncommitted tail,
+foreign registry, 동일 ID 충돌도 검사한다. Source/replica/새 merged의 원형 bytes·DTC 중복 집계 없음·
+SD-5001 uncleared를 확인한다. 정상 복귀와 replay는 unknown volatile loss의 복구 증거가 아니다.
+
+Normal/ASan은12개 case를, SDK TSan은 normal/drop-ack/Central process 재기동을 단독 실행한다.
+모든 실패/timeout/cleanup·source/binary/config/도구 hash를 보존한다. 독립 auditor는 두 실제 process,
+8개 실제 ACK씩의 원래 수신 시각, 원본 Session/credit, 새 client의 모든 remote ordinal ACK와
+fresh replica ordinal1, lifecycle9100의 unclosed start/new generation/explicit close를 확인한다.
+issuer/Release/prefix/tail/gap/boot/credit/fresh ACK/ordinal1/clear/physical/survivor12개 변조를 거부한다.
+Native4ms/Target·host clock 변경·무한 반복·연속성 reconciliation/clear·TBD-08 수용은 OPEN이다.

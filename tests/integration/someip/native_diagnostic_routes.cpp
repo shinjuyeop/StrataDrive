@@ -29,21 +29,35 @@ NativeDiagnosticRoutes::Source::Source(const DiagnosticSource& s,std::uint64_t i
 void NativeDiagnosticRoutes::bootstrap(const fs::path& folder) {
     for(const auto ecu:{Ecu::Central,Ecu::Front,Ecu::Rear})fs::create_directories(home(folder,ecu));
     d::FileJournal::initialize((home(folder,Ecu::Central)/"merged").string(),8000,{},3);
+    const bool central_restart=std::getenv("STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART");
+    if(central_restart) {
+        d::FileJournal::initialize((home(folder,Ecu::Central)/"merged-2").string(),8002,{},3);
+        d::FileJournal::initialize((home(folder,Ecu::Central)/"producer-lifecycle").string(),9100,{},3);
+    }
     for(unsigned z=0;z<2;++z) {
+        if(central_restart)d::FileJournal::initialize((home(folder,Ecu::Central)/("context-"+std::to_string(z)+"-2")).string(),8101+z,{},3);
         d::FileJournal::initialize((home(folder,Ecu::Central)/("context-"+std::to_string(z))).string(),8101+z,{},3);
         d::FileJournal::initialize((home(folder,z?Ecu::Rear:Ecu::Front)/"context").string(),8101+z,{},3);
     }
     const bool process=std::getenv("STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART");
     if(process)for(const auto ecu:{Ecu::Front,Ecu::Rear})d::FileJournal::initialize((home(folder,ecu)/"producer-lifecycle").string(),9100+static_cast<unsigned>(ecu),{},3);
-    for(unsigned i=0;i<(process?18U:9U);++i) {
+    for(unsigned i=0;i<(process && !central_restart?18U:9U);++i) {
         d::FileJournal::initialize((home(folder,diagnostic_sources[i%9].ecu)/source_name(i)).string(),8200+i,{},3);
         d::FileJournal::initialize((home(folder,Ecu::Central)/source_name(i)).string(),8200+i,{},3);
+        if(central_restart)d::FileJournal::initialize((home(folder,Ecu::Central)/(source_name(i)+"-2")).string(),8200+i,{},3);
     }
 }
 NativeDiagnosticRoutes::NativeDiagnosticRoutes(Ecu ecu,const fs::path& folder,const std::string& tag):ecu_(ecu),folder_(home(folder,ecu)),tag_(tag) {
+    central_restart_=std::getenv("STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART");
     if(std::getenv("STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART")) {
-        slots_=18;
-        if(ecu!=Ecu::Central) {boot_ns_=wall();lifecycle_=std::make_unique<d::ProducerLifecycle>((folder_/"producer-lifecycle").string(),manifest(9100+static_cast<unsigned>(ecu)),boot_ns_);generation_=lifecycle_->generation();require(generation_<=2,"native producer fixture supports two incarnations");}
+        slots_=central_restart_?9:18;
+        if(ecu!=Ecu::Central || central_restart_) {boot_ns_=wall();lifecycle_=std::make_unique<d::ProducerLifecycle>((folder_/"producer-lifecycle").string(),manifest(9100+static_cast<unsigned>(ecu)),boot_ns_);generation_=lifecycle_->generation();require(generation_<=2,"native producer fixture supports two incarnations");}
+    }
+    if(ecu==Ecu::Central) {
+        const auto issuer=lifecycle_?lifecycle_->producer(7):7;const auto observer=lifecycle_?lifecycle_->producer(8):8;
+        startup_queue_=std::make_unique<d::EventQueue>(diagnostic_run,issuer);central_queue_=std::make_unique<d::EventQueue>(diagnostic_run,observer);
+        startup_=std::make_unique<d::StartupDiagnostics>(*startup_queue_,manifest(issuer),d::Component::Coordinator,8,true);
+        central_=std::make_unique<d::ControlDiagnostics>(*central_queue_,manifest(observer),lifecycle_ && lifecycle_->previous_unclean()?2:1);
     }
     std::ofstream metadata(folder_/(tag_+".producer.json"));metadata<<"{\"generation\":"<<generation_<<",\"previous_unclean\":"<<(lifecycle_ && lifecycle_->previous_unclean()?"true":"false")<<",\"boot_ns\":"<<boot_ns_<<"}\n";
     for(unsigned i=0;i<slots_;++i)if(ecu==Ecu::Central || (diagnostic_sources[i%9].ecu==ecu && i/9<generation_)) {
@@ -85,11 +99,15 @@ void NativeDiagnosticRoutes::original(Source& s,unsigned monitor,const std::opti
     Source::Original value{*fault,monitor,selected};s.original[slot].publish(value);s.last_original[slot]=value;
 }
 void NativeDiagnosticRoutes::central(const session::SessionCoordinator& boot,const central::VehicleCoordinator& core,std::uint64_t now) {
-    startup_.attempt(boot.plan());startup_.observe(boot.fault_observation(),boot.success_observation(),boot.run_enabled(),boot.run_enabled(),now);
+    startup_->attempt(boot.plan());startup_->observe(boot.fault_observation(),boot.success_observation(),boot.run_enabled(),boot.run_enabled(),now);
     if(boot.run_enabled() && central_epoch_!=boot.plan().epoch) {
-        central_epoch_=boot.plan().epoch;central_.start_session(central_epoch_,boot.plan().enable_ns,false);
+        central_epoch_=boot.plan().epoch;
+        if(lifecycle_ && lifecycle_->previous_unclean() && !central_continuity_) {
+            require(central_queue_->publish(d::continuity_fault(manifest(lifecycle_->producer(8)),8,generation_,d::Component::Coordinator,central_epoch_,boot.plan().enable_ns,boot_ns_,now)),"Central continuity diagnostic queue");central_continuity_=true;
+        }
+        central_->start_session(central_epoch_,boot.plan().enable_ns,false);
     }
-    central_.observe(core,now);
+    central_->observe(core,now);
 }
 void NativeDiagnosticRoutes::zone(unsigned z,const zone::AsyncZoneOwner& actor,bool gate,const remote::RunLeaseEvidence& evidence,std::uint64_t now) {
     auto& owner=*sources_[9*(generation_-1)+z];auto& native=*sources_[9*(generation_-1)+z+5];bind(owner,actor.epoch(),actor.enable_ns(),evidence,now);bind(native,actor.epoch(),actor.enable_ns(),evidence,now);
@@ -121,12 +139,19 @@ void NativeDiagnosticRoutes::leaf(unsigned i,const simulation::AsyncLeafOwner& a
         s.native->selection(d::NativeMonitor::Power,actor.protection_selected_ns(),false);
     }
 }
+void NativeDiagnosticRoutes::accepted_release(unsigned role,std::uint32_t epoch,std::uint64_t at) noexcept {
+    if(role>=8)return;
+    if(release_acks_.epoch!=epoch)release_acks_={epoch,{}};
+    if(!release_acks_.times[role])release_acks_.times[role]=at;
+    accepted_acks_.publish(release_acks_);
+}
 void NativeDiagnosticRoutes::work() {
     std::string error;std::uint64_t events=0,duplicates=0,acked=0,buffered=0,stale_acks=0;bool dropped_ack=false;unsigned restarts=0;
     try {
         simulation::NativeExecutionWatch::configure_thread(15,0);
         simulation::runtime_support::ThreadInfo actual;actual.capture();std::ofstream placement(folder_/(tag_+".writer.json"));actual.write_json(placement);placement.flush();
         std::ofstream log(folder_/(tag_+".delivery.csv"));log<<"wall_ns,action,stream,ordinal,producer,sequence,kind,epoch\n";
+        std::ofstream release_log(folder_/(tag_+".release.csv"));release_log<<"epoch,role,ns\n";ReleaseAcks written_acks;
         std::ofstream credits(folder_/(tag_+".credits.csv"));credits<<"producer,epoch,requested_ns,prepare_deadline_ns,enable_ns,commit_deadline_ns,lease_sequence,source_ns,expiry_ns,captured_ns\n";
         std::ofstream originals(folder_/(tag_+".originals.csv"));originals<<"producer,monitor,epoch,enable_ns,detected_ns,reason,propagation,violation_ns,selected_ns,root_sequence,root_source,root_expiry\n";
         std::array<unsigned,18> credit_epoch{};std::array<std::array<std::optional<Source::Original>,2>,18> raw_seen{};
@@ -143,19 +168,42 @@ void NativeDiagnosticRoutes::work() {
             std::array<std::unique_ptr<d::Outbox>,2> context_out;
             std::array<std::unique_ptr<d::Inbox>,2> context_in;
             std::unique_ptr<d::FileJournal> merged;std::unique_ptr<d::MergedCollector> collector;
-            if(ecu_==Ecu::Central) {merged=std::make_unique<d::FileJournal>((folder_/"merged").string());}
+            const bool successor=central_restart_ && ecu_==Ecu::Central && generation_==2;
+            const auto suffix=successor?"-2":"";
+            if(ecu_==Ecu::Central) {merged=std::make_unique<d::FileJournal>((folder_/("merged"+std::string(suffix))).string());}
             for(unsigned i=0;i<slots_;++i)if(source_channels_[i]) {
-                stores[i]=std::make_unique<d::FileJournal>((folder_/source_name(i)).string());
-                if(!merged && sources_[i])outboxes[i]=std::make_unique<d::ContextualOutbox>(*stores[i],manifest(diagnostic_producer(i)),7);
+                stores[i]=std::make_unique<d::FileJournal>((folder_/(source_name(i)+suffix)).string());
+                if(!merged && sources_[i]) {
+                    const std::vector<d::CentralIssuer> lineage=central_restart_?std::vector<d::CentralIssuer>{{7,1},{(1ULL<<32)|7,2}}:std::vector<d::CentralIssuer>{{7,1}};
+                    outboxes[i]=std::make_unique<d::ContextualOutbox>(*stores[i],manifest(diagnostic_producer(i)),lineage);
+                }
             }
             std::ofstream archive_log(folder_/(tag_+".archives.csv"));archive_log<<"stream,committed,uncommitted_bytes,source_complete\n";
             std::array<std::unique_ptr<d::CommittedReplay>,18> archived;
             for(unsigned i=0;i<slots_;++i)if(stores[i] && !merged && !sources_[i]) {archived[i]=std::make_unique<d::CommittedReplay>(*stores[i]);archive_log<<8200+i<<','<<stores[i]->committed().size()<<','<<stores[i]->uncommitted_bytes()<<','<<archived[i]->source_complete()<<'\n';}
             for(unsigned z=0;z<2;++z)if(context_channels_[z]) {
-                contexts[z]=std::make_unique<d::FileJournal>((folder_/(merged?"context-"+std::to_string(z):"context")).string());
+                contexts[z]=std::make_unique<d::FileJournal>((folder_/(merged?"context-"+std::to_string(z)+suffix:"context")).string());
                 if(merged)context_out[z]=std::make_unique<d::Outbox>(*contexts[z]);else context_in[z]=std::make_unique<d::Inbox>(*contexts[z]);
             }
-            if(merged) {std::vector<d::FileJournal*> replicas;for(const auto& store:stores)if(store)replicas.push_back(store.get());collector=std::make_unique<d::MergedCollector>(*merged,replicas);}
+            std::vector<std::unique_ptr<d::FileJournal>> predecessors;
+            std::vector<const d::FileJournal*> histories;
+            if(successor) {
+                predecessors.push_back(std::make_unique<d::FileJournal>((folder_/"merged").string()));
+                for(unsigned i=0;i<slots_;++i)predecessors.push_back(std::make_unique<d::FileJournal>((folder_/source_name(i)).string()));
+                for(const auto& old:predecessors)histories.push_back(old.get());
+                std::ofstream history_log(folder_/(tag_+".history.csv"));history_log<<"store,committed,uncommitted_bytes,writable\n";
+                for(const auto& old:predecessors)history_log<<old->store_id()<<','<<old->committed().size()<<','<<old->uncommitted_bytes()<<','<<old->writable()<<'\n';
+                // Context streams remain ordinal-compatible. Seed their fresh
+                // stores from original global Sessions, never receipt timestamps.
+                for(unsigned z=0;z<2;++z) {
+                    context_out[z].reset();d::FileJournal old((folder_/("context-"+std::to_string(z))).string());d::Recorder seed(*contexts[z]);
+                    for(const auto& e:old.committed())require(seed.record(std::get<d::Event>(e)).durable,"old context prefix import");
+                    for(const auto* history:histories)for(const auto& entry:history->committed())if(std::get<d::Event>(entry).kind==d::Kind::Session)
+                        require(seed.record(std::get<d::Event>(entry)).durable,"global context original import");
+                    context_out[z]=std::make_unique<d::Outbox>(*contexts[z]);
+                }
+            }
+            if(merged) {std::vector<d::FileJournal*> replicas;for(const auto& store:stores)if(store)replicas.push_back(store.get());collector=std::make_unique<d::MergedCollector>(*merged,replicas,histories);}
             const auto checkpoint=[&](const char* phase) {
                 for(unsigned i=0;i<slots_;++i)if(stores[i]) {
                     unsigned ordinal=0;for(const auto& entry:stores[i]->committed()) {
@@ -169,7 +217,7 @@ void NativeDiagnosticRoutes::work() {
                 restart_log.flush();
             };
             if(restarts)checkpoint("after");
-            bool restarting=false;
+            bool restarting=false,baseline_written=false;
             const auto commit=[&](const d::Event& e) {const auto r=collector->record(e);require(r.durable,"merged diagnostic commit");++events;};
             std::optional<d::Event> global;
             for(const auto& context:contexts)if(context)for(const auto& entry:context->committed()) {
@@ -179,27 +227,39 @@ void NativeDiagnosticRoutes::work() {
             const auto* delay_env=std::getenv("STRATADRIVE_DIAGNOSTIC_CONTEXT_DELAY_MS");const auto delay=delay_env?std::stoull(delay_env)*ms:0;
             std::uint64_t context_due=0;
             const auto transmit=[&](auto& out,diagnostic::Channel& channel,std::uint64_t& last,bool eligible=true) {
-                while(auto bytes=channel.pop()) {const auto r=out.acknowledge(*bytes);require(r==d::Result::Accepted || r==d::Result::Duplicate || (restarts && r==d::Result::NotReady),"diagnostic ACK binding");if(r==d::Result::NotReady)++stale_acks;if(r==d::Result::Accepted){++acked;last=0;}}
+                while(auto bytes=channel.pop()) {const auto r=out.acknowledge(*bytes);require(r==d::Result::Accepted || r==d::Result::Duplicate || ((restarts || central_restart_) && r==d::Result::NotReady),"diagnostic ACK binding");if(r==d::Result::NotReady)++stale_acks;if(r==d::Result::Accepted){++acked;last=0;}}
                 if(eligible && channel.available() && (!last || wall()-last>=100*ms))if(auto bytes=out.next())if(channel.send(*bytes)) {last=wall();note("send",std::get<d::wire::Data>(d::wire::decode(*bytes)));}
             };
             while(!finish_deadline || wall()<finish_deadline) {
                 if(!producing_ && !finish_deadline)finish_deadline=wall()+2000*ms;
                 std::size_t consumed=0;bool complete=true;
                 if(collector) {
-                    for(auto* queue:{&startup_queue_,&central_queue_}) {
+                    if(const auto snapshot=accepted_acks_.read()){
+                        if(written_acks.epoch!=snapshot->epoch)written_acks={snapshot->epoch,{}};
+                        for(unsigned r=0;r<8;++r)if(snapshot->times[r] && !written_acks.times[r]){release_log<<snapshot->epoch<<','<<r<<','<<snapshot->times[r]<<'\n';written_acks.times[r]=snapshot->times[r];}
+                        release_log.flush();
+                    }
+                    for(auto* queue:{startup_queue_.get(),central_queue_.get()}) {
                         const auto h=queue->health();require(!h.dropped && !h.identity_error,"Central diagnostic queue loss");d::Event e;
                         for(unsigned i=0;i<8 && queue->pop(e);++i) {
-                            ++consumed;commit(e);note("local-commit",{8000,merged->committed().size(),3,e});
+                            ++consumed;commit(e);note("local-commit",{merged->store_id(),merged->committed().size(),3,e});
                             if(e.kind==d::Kind::Session) {global=e;context_due=wall()+delay;for(auto& out:context_out)require(out->record(e).durable,"context source commit");}
                         }
                     }
                     for(unsigned i=0;i<slots_;++i)if(source_channels_[i])while(auto bytes=source_channels_[i]->pop()) {
-                        ++consumed;const auto data=std::get<d::wire::Data>(d::wire::decode(*bytes));const auto r=collector->receive(*bytes);require(r.ack.has_value(),"native replica commit");
+                        ++consumed;const auto data=std::get<d::wire::Data>(d::wire::decode(*bytes));const auto r=collector->receive(*bytes);
+                        if(central_restart_ && r.result==d::Result::NotReady) {note("await-prefix-replay",data);continue;}
+                        require(r.ack.has_value(),"native replica commit");
                         ++events;note(r.result==d::Result::Duplicate?"duplicate":"replica-commit",data);if(r.result==d::Result::Duplicate)++duplicates;
                         if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !dropped_ack && data.event.kind==d::Kind::Fault) {dropped_ack=true;note("omit-ack",data);}
                         else if(!source_channels_[i]->send(*r.ack))note("ack-unavailable",data); // sender retains/retries durable prefix
                     }
                     for(unsigned z=0;z<2;++z) {transmit(*context_out[z],*context_channels_[z],context_send[z],global && wall()>=context_due);complete=complete && context_out[z]->healthy() && context_out[z]->acknowledged()==contexts[z]->committed().size();}
+                    if(central_restart_ && generation_==1 && global && !baseline_written) {
+                        bool baseline=std::all_of(written_acks.times.begin(),written_acks.times.end(),[](auto t){return t!=0;});for(const auto& store:stores)if(store)baseline=baseline && !store->committed().empty();
+                        for(unsigned z=0;z<2;++z)baseline=baseline && context_out[z]->acknowledged()==contexts[z]->committed().size();
+                        if(baseline){std::ofstream ready(folder_/(tag_+".baseline-ready"));ready<<global->session.epoch;baseline_written=true;}
+                    }
                     complete=complete && global.has_value();
                     const auto target=std::getenv("STRATADRIVE_FAULT_REAR")?Ecu::Rear:Ecu::Front;
                     for(unsigned i=0;i<slots_;++i)if(i<9 || diagnostic_sources[i%9].ecu==target)complete=complete && !stores[i]->committed().empty();

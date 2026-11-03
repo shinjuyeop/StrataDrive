@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | Front/Rear ECU 재기동의 발행자 세대·prefix 재전송·손실 미확인 표시; Central 재기동·연속성 조정 후속 | [진단 계약](interfaces/diagnostics.md) · [발행자 adoption](test-plan/evidence/m9_producer_adoption/README.md) |
+| M9 | Central/Front/Rear ECU 재기동·발행자 계승·prefix 재전송·손실 미확인; 연속성 조정 후속 | [진단 계약](interfaces/diagnostics.md) · [Central 재기동](test-plan/evidence/m9_central_restart/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -98,7 +98,13 @@ Front/Rear의 실제 ECU/SDK process를 SIGKILL하고 생존2 ECU·plant를 유�
 최종 native Normal11/ASan11·unit/logical/transport1202·영향 ASan301이 통과했다. SDK TSan은3/4이며
 Rear rejoin의 새 정상 제어 구간 보호 선택을 미통과로 남겼다. 기존 wall은 최초8/9 후 실패 항목의
 동일 기준 단독1/1을 구분하며 기존 native4ms/Target 수용을 닫지 않는다.
-다음은 Central process 재기동·연속성 reconciliation/clear와 다른 native 고장 조합·원인 연결/복구다.
+Central process 재기동도 명시적 issuer 구간과 fresh collector에 연결했다. 생존 Front/Rear의
+원본 producer/sequence는 유지하며 실제 Epoch2/credit 뒤 원형 prefix를 재전송한다. 이전 저장소와
+suffix를 보존하고 새 Central의 SD-5001은 정상 복귀/replay 뒤에도 clear를 막는다.
+[Central 재기동·원본·분모·실패](test-plan/evidence/m9_central_restart/README.md)를 따른다.
+최종 native Normal12/ASan12/SDK TSan3·일반1206·기존 wall9·영향 ASan305가 통과했다.
+초기 ingress overflow와 compile/runner 실패는 보존하며 기존 native4ms/Target 수용과 구분한다.
+다음은 연속성 reconciliation/clear와 다른 native 고장 조합·원인 연결/복구다.
 Native4ms와 M9 전체 수용은 계속 OPEN이다.
 정규 DDS gate와 native wall/Target·부하/보존 용량 수용은 아직 후속이다.
 다른 BMS trip/Power 고장 조합·Clock 복구·proposal 이전 bootstrap 실패는 후속이다.

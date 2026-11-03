@@ -4,6 +4,9 @@
 #include "run_lease_gate.hpp"
 
 namespace stratadrive::diagnostics {
+// Trusted manifest entry, never learned from received traffic. Ranges begin at
+// first_epoch and end before the next entry. First range starts at epoch1.
+struct CentralIssuer {std::uint64_t producer;std::uint32_t first_epoch;};
 // Single non-RT writer. The manifest binds the authenticated/trusted Central
 // peer; CRC/this object do not authenticate it. Supply the unmodified Session
 // from that peer and a snapshot copied by the actual local endpoint owner.
@@ -12,6 +15,7 @@ class ContextualOutbox {
 public:
     static constexpr std::size_t kPending=32;
     ContextualOutbox(FileJournal&,ControlContext local,std::uint64_t central_producer);
+    ContextualOutbox(FileJournal&,ControlContext local,std::vector<CentralIssuer> trusted_lineage);
     ~ContextualOutbox();
     ContextualOutbox(const ContextualOutbox&)=delete;
     ContextualOutbox& operator=(const ContextualOutbox&)=delete;
@@ -32,7 +36,8 @@ public:
 private:
     Result commit(const Event&);
     bool matches(const Event&) const noexcept;
-    Outbox outbox_; const ControlContext local_; const std::uint64_t central_;
+    std::uint64_t issuer(std::uint32_t epoch) const noexcept;
+    Outbox outbox_; const ControlContext local_; const std::vector<CentralIssuer> issuers_;
     std::optional<Event> context_,retained_context_; std::vector<Event> pending_;
 };
 } // namespace stratadrive::diagnostics

@@ -272,4 +272,29 @@ TEST_F(RemoteDiagnosticsContext, UncleanContinuityMarkerBlocksClearWithoutClaimi
     EXPECT_THROW(continuity_fault(c,30,1,Component::Front,1,1,1,2),std::invalid_argument);
     EXPECT_THROW(continuity_fault(c,31,2,Component::Front,1,1,1,2),std::invalid_argument);
 }
+TEST_F(RemoteDiagnosticsContext, TrustedCentralSuccessorRequiresNewActualEpochAndReplaysWithoutHealingHistory) {
+    const auto successor=(1ULL<<32)|central_id;release();const auto first=global;const auto old_credit=credit();const auto original=fault();
+    FileJournal source(provision("source").string()),old_replica(provision("old-replica").string());
+    ContextualOutbox out(source,manifest(),std::vector<CentralIssuer>{{central_id,1},{successor,2}});Inbox old(old_replica);
+    ASSERT_EQ(out.context(first,old_credit),Result::Accepted);ASSERT_EQ(out.submit(original),Result::Accepted);
+    while(auto packet=out.next()){auto r=old.receive(*packet);ASSERT_TRUE(r.ack);ASSERT_EQ(out.acknowledge(*r.ack),Result::Accepted);}ASSERT_EQ(out.acknowledged(),2U);
+    release(2);const auto old_issuer_second=global;const auto fresh=credit();
+    EventQueue q(run,successor);StartupDiagnostics next(q,{run,successor,Domain::Monotonic,clock_id,1},Component::Coordinator,8,true);
+    next.attempt(coordinator.plan());next.observe(coordinator.fault_observation(),coordinator.success_observation(),true,true,central.now);
+    Event second,e;while(q.pop(e))if(e.kind==Kind::Session)second=e;
+    EXPECT_EQ(out.context(old_issuer_second,fresh),Result::Invalid);EXPECT_EQ(out.context(second,old_credit),Result::NotReady);EXPECT_EQ(out.acknowledged(),2U);
+    ASSERT_EQ(out.context(second,fresh),Result::Accepted);EXPECT_EQ(out.acknowledged(),0U);EXPECT_EQ(out.ledger().find(original.key)->condition,Condition::Unknown);
+    FileJournal destination(provision("fresh-replica").string());Inbox replica(destination);
+    while(auto packet=out.next()){auto r=replica.receive(*packet);ASSERT_TRUE(r.ack);ASSERT_EQ(out.acknowledge(*r.ack),Result::Accepted);}
+    ASSERT_EQ(source.committed().size(),3U);EXPECT_EQ(source.committed().size(),destination.committed().size());EXPECT_EQ(replica.ledger().find(original.key)->condition,Condition::Unknown);EXPECT_EQ(replica.ledger().find(original.key)->count,1U);
+    EXPECT_EQ(out.context(first,fresh),Result::NotReady);EXPECT_EQ(encode(source.committed()[0]),encode(first));EXPECT_EQ(encode(source.committed()[2]),encode(second));
+}
+TEST_F(RemoteDiagnosticsContext, CentralLineageIsExplicitBoundedAndCannotBeLearnedFromTrafficOrReusedAcrossEpochs) {
+    release();const auto evidence=credit();FileJournal source(provision("source").string());
+    for(const auto& entries:std::vector<std::vector<CentralIssuer>>{{},{{20,2}},{{20,1},{21,1}},{{20,1},{20,2}},{{30,1}},{{0,1}}})
+        EXPECT_THROW((ContextualOutbox{source,manifest(),entries}),std::invalid_argument);
+    EXPECT_THROW((ContextualOutbox{source,manifest(),std::vector<CentralIssuer>(17,{20,1})}),std::invalid_argument);
+    ContextualOutbox out(source,manifest(),std::vector<CentralIssuer>{{20,1},{(1ULL<<32)|20,2}});
+    auto unknown=global;unknown.id.producer=21;unknown.source.producer=21;EXPECT_EQ(out.context(unknown,evidence),Result::Invalid);EXPECT_TRUE(source.committed().empty());EXPECT_TRUE(out.healthy());
+}
 } // namespace
