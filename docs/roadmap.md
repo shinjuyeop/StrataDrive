@@ -70,8 +70,11 @@ Gateway 차량 논리 SIL·BMS/Power component 복구 범위다.
 [Event-only replica/spool](test-plan/evidence/m9_delivery_spool/README.md)은 실제 별도 process의
 ACK 유실·재시작·순서/중복과 유한 저장을 부분 검증했다.
 [SOME/IP 새 logical source](test-plan/evidence/m9_someip_live/README.md)는 실제 TCP·별도 writer와
-live SPSC publish·ACK 유실/replica 재시작을 검증했다. 다음은 native Central/Front/Rear source의
-trusted global context 전달·다중 stream 통합·부하/보존 용량이다. 정규 DDS gate·proposal 이전
+live SPSC publish·ACK 유실/replica 재시작을 검증했다.
+[원격 context component](test-plan/evidence/m9_remote_context/README.md)는 실제 accepted credit와
+Central 원본 Session 대조·유한 대기·두 stream의 동일 원본/독립 ACK를 검증했다.
+다음은 native Central/Front/Rear source에 이 admission을 배선하고 실제 context 전송·다중 stream
+수집·부하/보존 용량을 검증하는 것이다. 정규 DDS gate·proposal 이전
 bootstrap·Clock 복구도 후속이다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·

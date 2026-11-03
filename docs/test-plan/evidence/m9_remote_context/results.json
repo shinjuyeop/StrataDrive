@@ -1,0 +1,74 @@
+{
+  "scope": "Remote context admission component; native multi-ECU SDK routing and source restart adoption remain OPEN",
+  "counts": {
+    "normal_unit_logical": {
+      "passed": 1185,
+      "total": 1185
+    },
+    "asan_ubsan_affected": {
+      "passed": 276,
+      "total": 276
+    },
+    "normal_focused": {
+      "passed": 13,
+      "total": 13
+    },
+    "asan_focused": {
+      "passed": 13,
+      "total": 13
+    },
+    "existing_wall": {
+      "passed": 2,
+      "total": 2
+    }
+  },
+  "audit_normal": {
+    "entries_per_stream": 2,
+    "faults": 2,
+    "mutations_rejected": 4,
+    "pass_": true,
+    "streams": 2,
+    "unique_events": 3
+  },
+  "audit_asan": {
+    "entries_per_stream": 2,
+    "faults": 2,
+    "mutations_rejected": 4,
+    "pass_": true,
+    "streams": 2,
+    "unique_events": 3
+  },
+  "identical_artifacts": [
+    "front/commit",
+    "front/journal",
+    "front/manifest",
+    "front-event.bin",
+    "front-replica/commit",
+    "front-replica/journal",
+    "front-replica/manifest",
+    "global-event.bin",
+    "rear/commit",
+    "rear/journal",
+    "rear/manifest",
+    "rear-event.bin",
+    "rear-replica/commit",
+    "rear-replica/journal",
+    "rear-replica/manifest"
+  ],
+  "static_translation_units": 3,
+  "release_no_tests_library": "PASS",
+  "source_fingerprint_tests": 2,
+  "prior_evidence": {
+    "m9_diagnostics_component": 43,
+    "m9_control_hooks": 153,
+    "m9_speed_recovery": 135,
+    "m9_owner_sources": 203,
+    "m9_native_causes": 183,
+    "m9_native_vehicle": 186,
+    "m9_startup_sources": 217,
+    "m9_delivery_spool": 306,
+    "m9_someip_live": 654
+  },
+  "tsan": "NOT RUN: new component is single writer; SPSC implementation unchanged",
+  "milestone": "M9/TBD-08 OPEN"
+}

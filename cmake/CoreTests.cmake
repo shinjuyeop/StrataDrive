@@ -21,6 +21,9 @@ stratadrive_unit_test(diagnostic_binding_test
     SOURCES tests/unit/diagnostic_binding_test.cpp
     LIBRARIES diagnostics_wire)
 if(TARGET diagnostics_journal)
+    stratadrive_unit_test(remote_diagnostics_context_test
+        SOURCES tests/unit/remote_diagnostics_context_test.cpp
+        LIBRARIES remote_diagnostics_context startup_diagnostics run_lease_issuer)
     stratadrive_unit_test(diagnostics_delivery_test
         SOURCES tests/unit/diagnostics_delivery_test.cpp
         LIBRARIES diagnostics_delivery)

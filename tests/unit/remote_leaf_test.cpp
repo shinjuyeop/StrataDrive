@@ -51,9 +51,11 @@ struct RemoteLeafTest : ::testing::Test {
     }
 };
 TEST_F(RemoteLeafTest, LocalReleaseAndUnarmedCreditCannotApplyACommand) {
-    ready();EXPECT_FALSE(endpoint.allowed());auto r=command();auto rejected=send(r,session::Role::FrontZone);ASSERT_TRUE(rejected);
+    ready();EXPECT_FALSE(endpoint.diagnostic_evidence().accepted);EXPECT_FALSE(endpoint.allowed());auto r=command();auto rejected=send(r,session::Role::FrontZone);ASSERT_TRUE(rejected);
     EXPECT_FALSE(std::get<transport::LeafResult>(std::get<transport::LeafReport>(rejected->payload)).accepted);
-    credit();EXPECT_TRUE(endpoint.allowed());EXPECT_FALSE(send(r,session::Role::FrontZone));endpoint.poll();EXPECT_EQ(actor.received_commands(),0U);
+    credit();ASSERT_TRUE(endpoint.diagnostic_evidence().accepted);EXPECT_EQ(endpoint.diagnostic_evidence().clock.source_domain,kClock);
+    EXPECT_EQ(endpoint.diagnostic_evidence().accepted->plan.epoch,plan.epoch);
+    EXPECT_TRUE(endpoint.allowed());EXPECT_FALSE(send(r,session::Role::FrontZone));endpoint.poll();EXPECT_EQ(actor.received_commands(),0U);
     const auto out=outputs[0].read();if(out && out->steering) { EXPECT_EQ(out->steering->mode,steering::ActuationMode::Hold); }
 }
 TEST_F(RemoteLeafTest, ArmedOriginalFrameProducesOriginalActualAndCompositeExpiryProtects) {
@@ -84,6 +86,7 @@ TEST_F(RemoteLeafTest, CreditSourceAgeAloneProtectsAnUnarmedLiveActor) {
     while(clock.logical<source+30*kMs) step();
     EXPECT_TRUE(endpoint.allowed());EXPECT_FALSE(actor.faulted());step();
     EXPECT_EQ(endpoint.lease_fault(),remote::RunLeaseFault::Expired);EXPECT_TRUE(actor.faulted());EXPECT_FALSE(endpoint.allowed());
+    ASSERT_TRUE(endpoint.diagnostic_evidence().accepted);EXPECT_EQ(endpoint.diagnostic_evidence().accepted->source_time_ns,source);
     credit();EXPECT_EQ(endpoint.lease_fault(),remote::RunLeaseFault::Expired);EXPECT_FALSE(endpoint.allowed());
 }
 TEST_F(RemoteLeafTest, ExplicitProtectionAckIsLeafSelectionAndPreviousEpochCannotProtectNewSession) {
@@ -92,7 +95,7 @@ TEST_F(RemoteLeafTest, ExplicitProtectionAckIsLeafSelectionAndPreviousEpochCanno
     EXPECT_TRUE(std::get<remote::ProtectionAck>(ack->payload).selected);EXPECT_EQ(ack->from,session::Role::Steering);EXPECT_TRUE(actor.faulted());
     const auto selected=std::get<remote::ProtectionAck>(ack->payload).selected_ns;step();ack=send(p);ASSERT_TRUE(ack);EXPECT_EQ(std::get<remote::ProtectionAck>(ack->payload).selected_ns,selected);
     for(unsigned i=0;i<10;++i) { step(); }
-    ready(43);credit();EXPECT_TRUE(endpoint.allowed());EXPECT_FALSE(send(p));EXPECT_TRUE(endpoint.allowed());
+    ready(43);EXPECT_FALSE(endpoint.diagnostic_evidence().accepted);credit();EXPECT_TRUE(endpoint.allowed());EXPECT_FALSE(send(p));EXPECT_TRUE(endpoint.allowed());
     const auto after=sensors[2].read();ASSERT_TRUE(after);ASSERT_TRUE(after->angle);EXPECT_EQ(after->angle->model_epoch,angle->model_epoch);EXPECT_NEAR(after->angle->angle_rad,angle->angle_rad,1e-12);
     auto old=request(transport::LeafOperation::Arm);old.epoch=42;auto rejected=send(old,session::Role::FrontZone);ASSERT_TRUE(rejected);
     EXPECT_FALSE(std::get<transport::LeafResult>(std::get<transport::LeafReport>(rejected->payload)).accepted);EXPECT_TRUE(endpoint.allowed());

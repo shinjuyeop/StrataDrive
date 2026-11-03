@@ -12,6 +12,9 @@ C-M9-TX-01–06은 [Event-only replica/spool](evidence/m9_delivery_spool/README.
 commit/ACK·process 재시작에 대응한다. DDS/SOME-IP live owner 통합 수용과 구분한다.
 C-M9-SIP-01–06은 [SOME/IP 새 logical source](evidence/m9_someip_live/README.md)의 실제 TCP binding·
 SPSC/writer·원본/물리 동등성·ACK 유실/replica 재시작에 대응한다. Native 3-ECU/wall owner 수용은 후속이다.
+C-M9-CTX-01–04는 [원격 context component](evidence/m9_remote_context/README.md)의 accepted
+credit 대조·유한 대기·독립 stream ACK·재시작 Unknown/소급 Proof 거부에 대응한다.
+실제 native publisher의 context 전송과 source 재시작 adoption은 후속이다.
 
 [M8 종료 검토](../archive/milestone-reviews.md#m8)는 C-M8 component/고정 fixture의 기술 판정이다.
 아래32개 요구와29개 system TC의 전체 runtime Result는 **NOT RUN**이다.

@@ -1,0 +1,57 @@
+{
+  "created_utc": "2026-11-03T06:05:08.082093+00:00",
+  "base_commit": "1b2626c0368df1a6bf87a858598aa5d3147a442e",
+  "source_overlay_sha256": {
+    "central/diagnostics/diagnostics_delivery.hpp": "caf10bb19930baf6abf515f950cb40d601ad8cbe59da3f8111c52511af2e7142",
+    "central/diagnostics/remote_diagnostics_context.cpp": "509229884090ba55c315e648a1b38dd01d1b23983f3671a4a3885129d58284ac",
+    "central/diagnostics/remote_diagnostics_context.hpp": "afa5b2ec3426dc9bdcdda29f12c05bb44fe107b1beb63903f33d76a1c770da9d",
+    "cmake/CoreTests.cmake": "32002989d6f9540b4067f5a13cdca8077b839131d6a5522340d1b5a6f2ded8c1",
+    "cmake/LinuxTargets.cmake": "d29c1dd23ec6b223dbcfdf4d9ea7d5a591b026766aed5f39fa8908844f516a26",
+    "docs/archive/design-decisions.md": "7e1e08630cb2db982f918e69610b3b640cba2d4197b04275b9d8371a39afca86",
+    "docs/development-guide.md": "3dae0868ea8ebff7a4e599392548e18244c7a06a3effddd5a086ae1bbd900da3",
+    "docs/interfaces/diagnostics.md": "f71f41129ed44fd00d0131eca5f18abbf196d11791a1e87f01220674bf91e159",
+    "docs/project-status.md": "9447b383a9df01a68eb0d6257f529dc025e5a3af1853c6e8fd8f400f4f23b9ca",
+    "docs/roadmap.md": "cc69f5a698e9fa2b4269dd243f3a65c93151dc8ede97caf9fe026791e2a9cc83",
+    "docs/test-plan/README.md": "ce8fd898b7d06bd640d738501eb0eec2f61461dc67de73972fb6bea95204dd7a",
+    "docs/test-plan/component-traceability.csv": "6d39d71129f5ad0d7ab4cb0f36f7a4ea05d4c3448dd450da371777a97af7cca9",
+    "docs/test-plan/diagnostics-protocol.md": "850bf58c4f00cf963b1597f9ede4a456f040f69d5ad4f483baf21e6db2980ca3",
+    "docs/test-plan/requirements-traceability.md": "5c72c61eb7ce4ec317198023a9cf57d69fd1a3e81a200a5d2c4b86043374ba23",
+    "interfaces/remote/run_lease_gate.hpp": "cd3718f9d34dab77ac74c52ce2e2e0484324be702d92e1b411d5695029c28474",
+    "simulation/runtime/remote_leaf_endpoint.hpp": "0ab876edcac8e876a8f9dcb64296a19848da2c7c45f502cedf76d0315922a116",
+    "simulation/runtime/remote_zone_endpoint.hpp": "31ea2dbe8feeeaa5485c2189af15d3911cb608881668c4c22b2bf0f84a39eacd",
+    "tests/integration/diagnostics/audit_control_diagnostics.py": "63c1ca025765c86363fd429c50973e60baeb404a59f1921de205efccea69c4fb",
+    "tests/integration/diagnostics/audit_remote_context.py": "c54977f29c3238a34b33324a8f1777cbec21fd522f174b66e1df703520d85974",
+    "tests/unit/remote_diagnostics_context_test.cpp": "7a157c58a752c5f9dc7e6a8fe55c24af17623efa83c127da2152d0817e2feec3",
+    "tests/unit/remote_leaf_test.cpp": "2f437b7c7326fff315b4efbee83301c0db0ea0676ba22fd0e391bd6848f5413e",
+    "tests/unit/remote_zone_integration_test.cpp": "4ab9c0dc3f018ebdfd2338331755eb9d54082222c55fdbbd4698c4eec6a464cb"
+  },
+  "build_input_fingerprint": "dc6e42e86de6f4b7efd893a9c1fa803b669c3faa872e09e32259132afb575aad",
+  "binary_sha256": {
+    "build/m1-angle/remote_diagnostics_context_test": "1c7c038a588026df444f146647ae9d97cc5a99841bd111ae5e9f611f7a89867d",
+    "build/m1-angle-sanitized/remote_diagnostics_context_test": "af23b0ad16408ee1e4b7d66d9da0d4ffe5b6f0575bebaaa6aabc2b6521dc92b9",
+    "build/m1-angle/remote_leaf_test": "21e10d219b3775a8d3affd9c180b536d027aca3fff913cf3f290ea3ad9489aeb",
+    "build/m1-angle/remote_contract_test": "b8da43b08b0b4c016cb8159dd8d040d5a27a95fca69e18465b866ab04db56d0c",
+    "build/m9-someip-release/libremote_diagnostics_context.a": "22daa94130edd4508f58adfec37e3afb8ca50d7c95b450f1091cbb410ff11dd1"
+  },
+  "cmake_cache_sha256": {
+    "normal": "decd71e9c950dfbc402223489c36c7733cffef27c980769426e6f605a4bb9a76",
+    "asan": "ad4596b27dbe368624e4f3c215d1c9182a200189c20e8baf1f747e46d4cb26b5",
+    "release": "e7295e545afec3bf21145aa8b8aa43f453349e0c0ed310140d2e0b6b10b977c3"
+  },
+  "commands": {
+    "normal": "ctest --test-dir build/m1-angle -L '^(unit|integration.logical)$' --parallel 3 --output-on-failure",
+    "asan": "ctest --test-dir build/m1-angle-sanitized -L '^(unit|integration.logical)$' -R 'Diagnostic|^NativePower\\.|ControlRecoverySil|Session|M4|RemoteLeaf|RemoteZone|SomeipRearBinding|PeerFixture|RemoteIssuer' --parallel 2 --output-on-failure",
+    "wall": "ctest --test-dir build/m1-angle -R '^M4AsyncWall\\.' --parallel 1 --output-on-failure",
+    "static": "clang-tidy warnings-as-errors with changed-header filter; cppcheck --library=googletest --enable=warning,performance,portability; preserved compile-commands-static.json",
+    "audits": "python3 -B tests/integration/diagnostics/audit_remote_context.py <fresh-export> --mutations"
+  },
+  "tools": {
+    "c++": "c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "cmake version 4.3.2\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "clang-tidy": "Ubuntu LLVM version 14.0.0\n  \n  Optimized build.\n  Default target: x86_64-pc-linux-gnu\n  Host CPU: rocketlake",
+    "cppcheck": "Cppcheck 2.7",
+    "python3": "Python 3.10.12"
+  },
+  "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "scope": "Remote context admission component; native multi-ECU SDK routing and source restart adoption remain OPEN"
+}

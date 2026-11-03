@@ -69,5 +69,6 @@ public:
     }
     void lost(){participant_.continuity_lost(now_ns());}
     unsigned lease_fault() const{return static_cast<unsigned>(credit_.fault());}
+    remote::RunLeaseEvidence diagnostic_evidence() const {return credit_.diagnostic_evidence();}
 };
 }

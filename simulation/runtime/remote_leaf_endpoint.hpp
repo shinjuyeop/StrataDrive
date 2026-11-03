@@ -15,6 +15,8 @@ public:
     void continuity_lost(); // failed channel stays failed until joined replacement
     bool allowed();
     remote::RunLeaseFault lease_fault() const { return credit_.fault(); }
+    // Capture only on this endpoint's owner, then copy to the diagnostic writer.
+    remote::RunLeaseEvidence diagnostic_evidence() const { return credit_.diagnostic_evidence(); }
 private:
     std::uint64_t now_ns() noexcept override { return actor_.now_ns(); }
     session::Preparation prepare(const session::Plan& plan) noexcept override;

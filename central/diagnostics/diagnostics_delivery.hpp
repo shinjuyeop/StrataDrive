@@ -17,6 +17,7 @@ public:
     std::uint64_t acknowledged() const noexcept { return acknowledged_; }
     bool healthy() const noexcept { return journal_.writable() && recorder_.ledger().complete(); }
     const Ledger& ledger() const noexcept { return recorder_.ledger(); }
+    void recording_gap() noexcept { recorder_.recording_gap(); }
 private:
     FileJournal& journal_; Recorder recorder_;
     std::uint64_t acknowledged_{0},in_flight_{0};

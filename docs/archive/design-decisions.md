@@ -5513,3 +5513,31 @@ include root를 분리했다. 최초 전송 probe는 runtime/복제가 통과했
 
 Native Central/Front/Rear publisher·trusted global context·다중 stream merge/source adoption·
 정규 DDS·부하/보존 용량·Target/CARLA fault matrix·학습자 수용은 후속이다.
+
+<a id="adr-0087"></a>
+
+## ADR-0087: 원격 진단 Session은 Central 원본과 실제 accepted credit로 대조한다
+
+Date: 2026-11-03. Status: **context admission component 검증; native 전송 배선·전체 M9/TBD-08 OPEN**.
+
+Remote Zone/Leaf는 자기 RunLeaseGate가 수용한 원본 credit/ClockAgreement를 값으로 복사한다.
+Local Ready/Release ACK만으로 global context를 만들지 않는다. Snapshot은 역사적 수신 근거이며
+권한을 갱신하지 않는다. Non-RT ContextualOutbox는 trusted Central의 원본 Session과 명시적
+issuer/run/profile/clock·full role mask·plan/enable/deadline·Running completion을 대조한다.
+Event ID/stamp/기존 wire·registry·제어 budget은 바꾸지 않으며 이 검사는 인증을 대체하지 않는다.
+
+Context 지연 중 고장은32개까지 원본대로 대기하며 전송 분모에 넣지 않는다. 실제 context를 먼저
+commit한 뒤 로컬 event를 commit한다. Proof/Passed는 context가 없으면 NotReady로 거부하며
+나중에 소급 승인하지 않는다. Queue/identity 손실·capacity·conflicting context·commit 실패와
+미commit 대기의 정상 종료는 incomplete다. Commit 이전 메모리의 abrupt process loss는 이
+component의 영속 보장이 아니다. Source 재시작 adoption/손실 조정은 별도 설계·검증한다.
+
+각 source에 독립 stream/store를 두고 동일 Central Session을 원본 bytes로 기록한다. 병합은
+EventId로 중복 제거하며 ACK는 stream별 ordinal에 묶는다. 실제8-participant handshake의
+SessionCoordinator/StartupDiagnostics/RunLeaseIssuer와 receiver gate를 사용한 component
+검사·두 stream replica·독립 parser/변조 거부를 수행했다. Native endpoint snapshot accessor도
+기존 Leaf 통합 회귀로 확인했다. 연결 복원/중복 replay는 Unknown을 복구하지 않는다.
+[실행·실패·한계](../test-plan/evidence/m9_remote_context/README.md)를 따른다.
+
+실제 native Central/Front/Rear publisher와 context 운반 channel·다중 SDK service 수집·source
+재시작 adoption·부하/보존 용량·정규 DDS·Target/CARLA fault matrix·학습자 수용은 후속이다.

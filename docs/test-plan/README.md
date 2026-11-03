@@ -24,6 +24,7 @@ CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
 | M9 Release 전 Attempt·기동 ACK 누락·최초 deadline·실제 새 Release 복구 | [기동 진단 검증](evidence/m9_startup_sources/README.md) |
 | M9 Event-only wire·유한 spool·commit 후 ACK 유실·송수신 process 재시작 | [전송·spool 검증](evidence/m9_delivery_spool/README.md) |
 | M9 실제 SOME/IP/TCP·새 logical source·live writer·ACK 유실/replica 재시작 | [SOME/IP 진단 검증](evidence/m9_someip_live/README.md) |
+| M9 원격 accepted credit·Central 원본 context 대조·유한 대기·두 stream 독립 ACK | [원격 context component](evidence/m9_remote_context/README.md) |
 | 실제3-process SOME/IP·8-role·부하/고장/재가입 | [M5 Rear adapter](evidence/m5_someip_rear_adapter/README.md) |
 | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
 | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |

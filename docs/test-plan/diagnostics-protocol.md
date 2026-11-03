@@ -262,3 +262,26 @@ TCP의 SOME/IP header와 원본 payload를 복원한다. Process별 /tmp·/dev/s
 Front/Rear의 live source merge·정규 DDS gate·Target·부하/보존 용량 수용은 후속이다.
 Host test pacing은 logical1ms마다20µs sleep이며 logical clock/제어 기준을 변경하지 않는다.
 이는1:1 wall 실행이 아니다. 원본 Fault가 producer 실행 중 spool에 commit된 증거를 요구한다.
+
+## 원격 context admission component fixture
+
+사전 assertion recipe: run10/Central producer20/local Front30·Rear31, profile1/common monotonic
+domain99, stream/store101·102/registry3. 실제 SessionCoordinator와8개 SessionParticipant가
+기존 Prepare/INIT/Release를 수행한다. Central StartupDiagnostics가 생성한 원본 Session과
+RunLeaseIssuer→원래 owner codec→실제 RunLeaseGate의 accepted snapshot을 사용한다.
+Local Ready와7개 Release ACK 상태에는 credit/전역 context가 없어야 한다.
+
+원본 Session 전 로컬 고장은32개까지 대기하고 durable 전송 frame이 없어야 한다.
+미확인 context의 Proof/Passed는 NotReady로 거부하며 지연 Session으로 소급 수용하지 않는다.
+Lease 만료 후 지연 context는 원래 Session→고장 순서로 commit하되 보호/권한은 유지한다. Wrong issuer/
+run/profile/clock/enable/deadline·partial mask는 무기록 거부한다. 다른 bytes의 동일 epoch context,
+queue loss/identity·pending capacity·commit capacity·enable 충돌은 incomplete다. 미해결 과거
+epoch를 건너뛰지 않으며 새 context 뒤 기존 고장은 Unknown이다. 정상 종료의 미commit 대기도
+incomplete로 남긴다. 급작스러운 source 종료의 메모리 손실 복구를 검증했다고 표시하지 않는다.
+
+두 source/replica 쌍은 같은 Central 원본을 각각 보존하고 독립 ACK를 진행한다. 병합 unique
+event3개/고장2개, 원본 Session bytes1종, foreign stream ACK 거부를 기대한다. Source 재개 시
+original duplicate context/fault로 Unknown이 바뀌지 않아야 한다. 일반/ASan export의4개 journal과
+원본3개를 독립 Python parser로 대조하고4개 변조를 거부한다. 기존 native Leaf endpoint의
+Ready/credit/expiry/INIT reset snapshot도 회귀한다. 실제 IP/SDK native owner 배선·wall 차량
+반응·새 고장 matrix는 이 component 검증의 분모가 아니다.

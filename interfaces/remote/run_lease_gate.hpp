@@ -14,6 +14,9 @@ std::optional<TimeBounds> mapped_time(std::uint64_t source,const ClockAgreement&
 bool source_and_expiry_current(std::uint64_t source,std::uint64_t expiry,std::uint64_t now,
     std::uint64_t max_source_age,const ClockAgreement& agreement);
 enum class RunLeaseFault { None,Clock,Session,AcquisitionTimeout,Expired,Protection };
+// Historical same-owner snapshot for diagnostic correlation. It is not a fresh
+// permission and cannot be passed back into a gate to renew authority.
+struct RunLeaseEvidence { ClockAgreement clock; std::optional<RunLease> accepted; };
 // Single local owner. SessionParticipant owns INIT/Release and physical checks;
 // this additional gate owns separately issued global run credit. No atomic bypass.
 class RunLeaseGate {
@@ -27,6 +30,7 @@ public:
     void protect(std::uint32_t epoch);
     RunLeaseFault fault() const { return fault_; }
     const std::optional<RunLease>& accepted() const { return accepted_; }
+    RunLeaseEvidence diagnostic_evidence() const { return {clock_,accepted_}; }
 private:
     bool observe(const session::SessionParticipant& local,std::uint64_t now);
     session::Plan plan_{}; ClockAgreement clock_{};

@@ -558,12 +558,47 @@ Source Failed/count1/generation1과 원본 이력은 유지한다. 재시작 rep
 [실행·실패·clock·감사](../test-plan/evidence/m9_someip_live/README.md)를 따른다.
 정규 DDS gate·native Central/Front/Rear source merge·Target·부하/보존 용량 수용은 후속이다.
 
+## 원격 publisher의 전역 context admission
+
+Linux `ContextualOutbox`는 명시적 run/local producer/Central producer/profile/monotonic clock
+manifest를 사용한다. 실제 remote Zone/Leaf endpoint owner의 `diagnostic_evidence()`는
+RunLeaseGate가 이미 수용한 원본 credit와 고정 ClockAgreement를 값으로 복사한다. INIT의 bind는
+이전 credit를 지운다. 로컬 Ready만으로 accepted credit가 생기지 않는다. Snapshot은 과거 수신
+근거이며 현재 권한이 아니다. 만료/보호 뒤에도 남지만 gate를 갱신하거나 여는 함수는 없다.
+
+Non-RT writer는 trusted Central peer의 **원본 Session Event**를 받아 run/issuer/profile,
+full role masks255, epoch/enable/prepare deadline, 원래 Running completion, clock agreement와
+이미 수용한 credit의 plan/source를 대조한다. 새 Session ID나 수신 시각을 만들어 넣지 않는다.
+CRC와 이 값 비교는 peer 인증을 대신하지 않으며 snapshot의 생성 경로는 배치 책임이다.
+기존 owner-wire·Event schema·code registry·timing/authority budget은 바꾸지 않는다.
+
+로컬 event는 context 전까지 최대32개만 보관한다. `submit`의 Accepted는 메모리 수집 성공이며
+durable ACK가 아니다. Context를 먼저 원래 bytes로 commit한 뒤 일치하는 epoch/enable의
+event를 원래 순서/ID로 commit한다. `next`는 committed prefix만 노출한다.
+Proof/Passed는 context가 아직 일치하지 않으면 NotReady로 거부하며 대기시켜 소급 수용하지 않는다.
+`drain`에서 이미 꺼낸 거부 event는 손실로 표시하므로 source adapter가 이 경계를 지켜야 한다. 오래된 미해결
+event를 건너뛰어 새 context로 가지 않는다. Queue loss/identity 오류·대기 한도·변조된 동일 epoch
+context·commit 실패는 sticky incomplete다. 대기 event를 남긴 정상 종료도 store를 invalidate한다.
+대기/SPSC의 commit 전 메모리는 급작스러운 process 종료에 영속하지 않는다. Source process의
+재시작 adoption/손실 조정은 별도이며 보장된 전달 분모는 durable prefix다.
+
+각 source/replica 쌍은 unique stream/store ID를 쓴다. 두 stream에 같은 Central 원본 Session을
+넣어도 병합 Ledger는 EventId/bytes로 한 건만 수용한다. ACK ordinal은 stream별로 독립이다.
+재시작한 ledger의 Unknown은 같은 Session/fault의 duplicate replay와 context 재대조로 회복하지
+않는다. 지연된 근거는 과거 고장 기록에 사용할 수 있지만 현재 readiness나 Passed/clear를
+생성하지 않는다. 이 모듈은 전역 Session admission을 다루며 Release 이전 Attempt 수집은 별도다.
+
+[component recipe](../test-plan/diagnostics-protocol.md#원격-context-admission-component-fixture)와
+[실행·한계](../test-plan/evidence/m9_remote_context/README.md)를 따른다. 실제 native process 간
+Central context 운반 및 여러 service/stream을 수집하는 SDK 배선은 아직 후속이다.
+
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
-다음은 native Central/Front/Rear owner의 publisher 통합과 trusted global context 전달·
-다중 stream/source 재시작 adoption이다. Local participant Ready를 global Release로 만들지 않는다.
+원격 context admission과 두 source 병합은 component 범위로 추가 검증했다.
+다음은 native Central/Front/Rear owner의 publisher 통합과 실제 trusted global context 전달·
+다중 stream 수집/source 재시작 adoption이다. Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
 실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.
 30km/h fault의 구체 주입 위치·기대 DTC와 물리 판정은 실행 전에 별도 고정한다.

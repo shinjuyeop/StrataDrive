@@ -193,6 +193,7 @@ TEST(SomeipRearBinding, ZoneEndpointCannotAcquirePeerOwnershipOrAuthorityFromWro
     for(unsigned z=0;z<2;++z) {
         const auto role=static_cast<session::Role>(z);
         simulation::RemoteZoneEndpoint endpoint(role,*n->zone_sessions[z],*n->zone_owners[z],n->gate,n->zones[z],clock);
+        EXPECT_FALSE(endpoint.diagnostic_evidence().accepted);
         const auto before=n->gate.epoch();
         EXPECT_FALSE(endpoint.receive({session::Role::CentralIngress,static_cast<session::Role>(1-z),99,transport::ZoneRequest{}}));
         EXPECT_EQ(n->gate.epoch(),before);EXPECT_FALSE(n->zones[z].work.pop());
