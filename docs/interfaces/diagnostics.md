@@ -375,7 +375,65 @@ Committed prefix 밖의 event는 전달·저장 증거가 없으면 `unknown/los
 보존 기간에 따른 자동 aging/삭제는 v0.1에서 **사용하지 않는다**. INIT·HV-off·프로세스
 종료로 지우지 않는다. Clear도 원본 journal/evidence를 물리 삭제하지 않고 tombstone을
 추가한다. Capacity/저장 실패·crash로 이력 전체를 보장할 수 없으면 그 한계와 실패를 남긴다.
-분리 process의 crash-safe local spool/전송 encoding은 후속 구현 항목이며 현재 보장하지 않는다.
+분리 process의 Event-only wire/spool 부분 검증은 아래 경계를 따른다. 실제 DDS/SOME-IP 배치·
+live owner 수집·부하/보존 용량과 compaction 수용은 후속이다.
+
+## Event-only 원격 replica와 유한 spool
+
+`interfaces/diagnostics/diagnostic_wire`는 최대2048-byte datagram의 wire v1을 정의한다.
+C++ padding/원본 시각을 바꾸지 않고 기존 schema1 canonical Event bytes를 그대로 넣는다.
+Entry tag가 Clear인 payload는 decode 전에 거부한다. Data와 durable ACK 두 종류만 있다.
+
+| 필드 | bytes / 의미 |
+| --- | --- |
+| magic/version | 8 / `SDDWIR` +1 +0 |
+| kind/reserved | 1 +3 / Data1 또는 ACK2; reserved0 |
+| registry | 4 / 명시적1–3, 양 끝 manifest와 정확히 같아야 함 |
+| stream / ordinal | 8 +8 / unique source store ID /1부터 시작한 committed journal ordinal |
+| payload length | 4 / 실제 길이와 일치 |
+| payload | Data: 원래 canonical Event; ACK: 해당 Event의 CRC32 4 bytes |
+| CRC32 | 4 / 앞선 header+payload 전체, polynomial0xedb88320, init/final xor0xffffffff |
+
+정수는 little endian이다. 최대 길이·magic/version·reserved·kind·길이·CRC·zero ID/ordinal·
+schema/code registry를 검사한다. CRC는 오류 검출이며 인증이 아니다. 동일 unique stream ID와
+registry로 별도 source/replica store를 명시적으로 provision하고 trusted peer에 바인딩하는 것은
+호출자 책임이다. 기존 store ID 재사용/자동 adoption·공개 원격 서비스·인증은 추가하지 않는다.
+
+Linux `Outbox`/`Inbox`는 단일 non-RT owner가 기존 `FileJournal`을 사용하는 adapter다.
+RT owner는 기존 SPSC publish까지만 수행한다. Outbox writer는 먼저 durable local commit하고
+정확히 다음 한 ordinal을 준비한다. 한 번에 하나의 ACK만 진행하며 stream/registry/ordinal과
+원본 Event CRC가 같아야 한다. 미래/미준비 ACK·다른 stream/direction/registry·손상 ACK는
+watermark를 전진시키지 않는다. ACK 유실은 같은 datagram 재시도로 처리한다. 호출자에게
+재전송 시점/transport I/O를 맡기며 이 adapter가 sleep/block/send를 수행하지 않는다.
+
+Inbox는 다음 ordinal만 commit한다. 미래 ordinal은 ACK 없이 NotReady, 과거 동일 bytes는
+Duplicate ACK다. 과거 ordinal의 다른 bytes나 같은 event ID를 새 ordinal에 재사용하면
+원본을 덮지 않고 sticky incomplete marker를 남긴다. ACK는 해당 Event의 durable commit 뒤에만
+생성한다. 손상 datagram이나 stream/registry mismatch는 저장소를 건드리지 않고 거부하므로
+원본 재시도가 가능하다. 실제 저장 실패·capacity·불완전 tail은 성공 ACK를 만들지 않는다.
+`healthy()`는 journal/집계 완전성만 뜻하며 peer liveness나 source freshness 보장이 아니다.
+
+Source journal 자체가 spool이며 manifest의 유한 events/records/occurrences 용량과 기존64MiB
+상한을 따른다. ACK로 원본을 삭제하거나 capacity를 재사용하지 않는다. 자동 aging/compaction·
+정책적 rotation은 없다. 용량 초과는 incomplete로 남기고 별도 복구/보존 정책을 요구한다.
+ACK cursor는 메모리에만 있다. Sender 재시작 시 ordinal1부터 같은 durable history를 재전송하고
+수신 측이 기존 prefix를 정확히 비교한다. 따라서 crash 사이에 ACK cursor와 데이터 삭제를
+잘못 결합해 미전송 기록을 잃지 않는다. 느린 링크·장기 저장의 용량 적합성은 아직 수용하지 않았다.
+
+하나의 stream은 trusted 집계 writer의 전역 Session/Attempt와 source Event를 순서대로 가진다.
+개별 Leaf가 Session을 발명하거나 여러 독립 store를 하나의 stream으로 합치지 않는다.
+Local Clear tombstone을 가진 store는 Event-only stream으로 채택할 수 없으며 원격 clear
+요청/replication은 없다. Global clear service, multi-source merge와 live owner routing은 후속이다.
+
+Replica ledger는 **원래 source lifecycle의 이력 projection**이다. 처음 전달된 원래 새 epoch
+proof/Passed는 그대로 남기지만 이것은 receiver의 현재 물리 readiness나 링크 freshness가 아니다.
+Receiver 재시작은 current condition을 Unknown으로 만들며, 이미 committed된 중복 replay는
+재평가하거나 Passed를 새로 만들지 않는다. 원격 ACK는 control/physical ACK와 별개다.
+실제 제어 권한·latch·clear 경로에 replica의 상태를 연결하지 않는다.
+
+[프로토콜](../test-plan/diagnostics-protocol.md#원격-진단-wire유한-spool-fixture),
+[서로 다른 프로세스·원본·실패·감사](../test-plan/evidence/m9_delivery_spool/README.md)를 따른다.
+AF_UNIX SOCK_SEQPACKET Host fixture 부분 검증이며 기존 DDS/SOME-IP/차량 wire 적용이 아니다.
 
 ## 해제·삭제와 복구 증거
 
@@ -458,7 +516,8 @@ Clock/Deadline의 기동 복구 predicate는 아직 구현하지 않는다.
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
-연결했다. 다음은 원격 wire/spool의 순서·중복·재시작·유한 용량 계약과 검증이다.
+연결하고 Event-only replica/spool을 분리 process에서 부분 검증했다. 다음은 실제 DDS/SOME-IP
+진단 channel·live owner routing·부하/보존 용량과 source 재시작 adoption이다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
 실제 부하의 queue/store 용량 적합성·source 재시작 adoption·Clock 복구는 별도 수용한다.
 30km/h fault의 구체 주입 위치·기대 DTC와 물리 판정은 실행 전에 별도 고정한다.

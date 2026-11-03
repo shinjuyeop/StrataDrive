@@ -8,6 +8,8 @@ scenario/test → Result 연결이다. 개별 revision은 [시스템 요구사�
 SYS-DIAG-001의 Release 전 기동 수집은 C-M9-BOOT-01–06과
 [기동 진단 증거](evidence/m9_startup_sources/README.md)로 연결한다. 세 ACK phase의 logical
 fixture 부분 검증이며 TC-DIAG-001 전체 runtime Result나 TBD-08 최종 수용을 대체하지 않는다.
+C-M9-TX-01–06은 [Event-only replica/spool](evidence/m9_delivery_spool/README.md)의 순서·중복·
+commit/ACK·process 재시작에 대응한다. DDS/SOME-IP live owner 통합 수용과 구분한다.
 
 [M8 종료 검토](../archive/milestone-reviews.md#m8)는 C-M8 component/고정 fixture의 기술 판정이다.
 아래32개 요구와29개 system TC의 전체 runtime Result는 **NOT RUN**이다.

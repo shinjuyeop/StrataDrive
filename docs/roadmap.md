@@ -67,7 +67,9 @@ Gateway 차량 논리 SIL·BMS/Power component 복구 범위다. 실제 전송/s
 
 [Release 전 기동 시도](test-plan/evidence/m9_startup_sources/README.md)는 trusted Attempt와
 실제 Session을 구분해 Prepare/INIT/Release ACK 누락·새8-role handshake 복구를 검증했다.
-원격 wire/spool의 순서·중복·재시작·용량, proposal 이전 bootstrap과 Clock 복구는 후속이다.
+[Event-only replica/spool](test-plan/evidence/m9_delivery_spool/README.md)은 실제 별도 process의
+ACK 유실·재시작·순서/중복과 유한 저장을 부분 검증했다. 다음은 실제 DDS/SOME-IP 진단 channel·
+live owner routing·부하/보존 용량이다. Proposal 이전 bootstrap과 Clock 복구도 후속이다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·
 속도·제어 튜닝은 이 묶음에 추가하지 않으며 변경한 경계의 회귀만 실행한다.

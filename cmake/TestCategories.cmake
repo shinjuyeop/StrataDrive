@@ -1,6 +1,9 @@
 # Disjoint execution categories; keep exact GTest/CTest names and every assertion.
 function(stratadrive_discover_tests target)
-    if(target STREQUAL "m4_fault_test")
+    if(target STREQUAL "diagnostics_delivery_process_test")
+        gtest_discover_tests(${target} DISCOVERY_MODE PRE_TEST PROPERTIES LABELS "integration.transport" TIMEOUT 30)
+        return()
+    elseif(target STREQUAL "m4_fault_test")
         set(pure "M4FaultContract.*:M4ExecutionWatch.*:M4ReleaseGrid.*")
         set(wall "M4FaultWall.*:Independent/M4GuardWall.*")
     elseif(target STREQUAL "m4_async_runtime_test")

@@ -18,6 +18,13 @@ stratadrive_unit_test(diagnostics_test
     SOURCES tests/unit/diagnostics_test.cpp
     LIBRARIES diagnostics Threads::Threads)
 if(TARGET diagnostics_journal)
+    stratadrive_unit_test(diagnostics_delivery_test
+        SOURCES tests/unit/diagnostics_delivery_test.cpp
+        LIBRARIES diagnostics_delivery)
+    stratadrive_unit_test(diagnostics_delivery_process_test
+        SOURCES tests/unit/diagnostics_delivery_process_test.cpp
+        LIBRARIES diagnostics_delivery)
+    target_compile_definitions(diagnostics_delivery_process_test PRIVATE STRATADRIVE_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
     stratadrive_unit_test(diagnostics_journal_test
         SOURCES tests/unit/diagnostics_journal_test.cpp
         LIBRARIES diagnostics_journal)

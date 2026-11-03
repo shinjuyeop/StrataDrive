@@ -137,6 +137,7 @@ public:
     explicit Recorder(Journal&);
     Receipt record(const Event&);
     Receipt clear(const Clear&);
+    void recording_gap() noexcept;
     std::size_t drain(EventQueue&,std::size_t budget=EventQueue::kCapacity);
     const Ledger& ledger() const noexcept { return ledger_; }
 private:

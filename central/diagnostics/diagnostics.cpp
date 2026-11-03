@@ -360,6 +360,7 @@ Receipt Recorder::clear(const Clear& clear) {
     if(durable) ledger_=std::move(next); else { ledger_.recording_gap(); journal_.invalidate(); }
     return {durable?result:Result::StorageFailure,durable,journal_.committed().size()};
 }
+void Recorder::recording_gap() noexcept { ledger_.recording_gap(); journal_.invalidate(); }
 std::size_t Recorder::drain(EventQueue& queue,std::size_t budget) {
     const auto check_health=[&] {
         const auto h=queue.health();

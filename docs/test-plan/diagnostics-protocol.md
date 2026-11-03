@@ -212,3 +212,26 @@ contacts0/bus≤30V 전 표본을 요구한다. INIT/Release 실패의 기존 �
 독립 journal/native source/600 physical 표본 감사와10개 변조 거부를 세 phase·두 빌드에서
 실행한다. 정상92s/4350 controls는 Attempt1/Session1/DTC0이어야 한다. 연속 실패한 proposal의
 서로 다른 occurrence와 중복 방지도 단위 검사한다. [결과](evidence/m9_startup_sources/README.md).
+
+## 원격 진단 wire·유한 spool fixture
+
+실행 전 고정: diagnostic wire v1은 Event와 durable ACK만 전달한다. 원래 canonical event를
+바꾸지 않고 stream ID=명시적 source/replica store ID, registry1–3, transport sequence는
+source committed journal ordinal이다. 원격 clear/control 명령은 없다. 수신 순서는 정확한
+다음 ordinal만 허용하며 미래 frame은 ACK 없이 재전송을 기다린다. 동일 ordinal/동일 bytes는
+중복 ACK, 다른 bytes는 sticky incomplete다. ACK는 해당 event checksum과 ordinal을 묶고
+수신 journal의 durable commit 뒤에만 생성한다. 손상·잘못된 방향/stream/registry/ACK는
+진행시키지 않는다. CRC는 전송 오류 검출이며 인증을 대신하지 않는다.
+
+Non-RT source writer는 기존 bounded journal에 먼저 commit한다. ACK로 원본을 삭제하거나
+capacity를 재사용하지 않는다. 재시작한 sender는 ordinal1부터 replay하고 replica는 중복으로
+처리한다. Receiver 재시작 시 기존 current condition은 Unknown을 유지한다. 연결 복원·중복
+replay는 physical recovery나 Passed/clear가 아니다. 불완전 source/replica에서는 ACK/전송
+성공을 주장하지 않는다. 실제 middleware 적용·compaction·보존 용량 수용은 후속이다.
+
+시험은 registry3 Attempt1→Startup fault1→Attempt2→실제 Session2→qualified proof/Passed를
+원본 source로 사용한다. Separate Linux process의 AF_UNIX SOCK_SEQPACKET 경계에서 최초
+ACK 유실/receiver 종료·sender 재시작·순서 역전/손상·최종 replay를 주입한다. Source/replica
+canonical bytes·commit watermark·count1/generation1·재시작 Unknown·미삭제 이력이 같아야 한다.
+Unit에서는 작은 capacity·commit 실패/미완성 tail·registry mismatch·mutated duplicate·future
+ACK·stream mismatch·원격 clear 거부를 각각 검사한다. 큐 overflow도 원래 제어를 변경하지 않는다.

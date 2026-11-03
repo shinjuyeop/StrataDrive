@@ -1,0 +1,153 @@
+{
+  "checks": {
+    "normal.xml": {
+      "tests": 1170,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "normal.xml"
+    },
+    "asan.xml": {
+      "tests": 234,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "asan.xml"
+    },
+    "transport-normal.xml": {
+      "tests": 1,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "transport-normal.xml"
+    },
+    "transport-asan.xml": {
+      "tests": 1,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "transport-asan.xml"
+    },
+    "wall.xml": {
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "wall.xml"
+    }
+  },
+  "audits": {
+    "normal": {
+      "pass_": true,
+      "source_events": 19,
+      "actual_datagrams": 81,
+      "lost_acks": 1,
+      "future_frames_rejected": 1,
+      "corrupt_frames_rejected": 1,
+      "fresh_processes": 6,
+      "replica_prefixes": [
+        2,
+        19,
+        19
+      ],
+      "fault_count": 1,
+      "generation": 1,
+      "final_replayed_condition": "Unknown",
+      "history_cleared": false,
+      "mutations_rejected": [
+        "wire-crc",
+        "wrong-stream",
+        "wrong-registry",
+        "future-ack",
+        "changed-event",
+        "ack-before-commit",
+        "duplicate-count",
+        "replay-heals-unknown",
+        "erased-history",
+        "lost-prefix"
+      ]
+    },
+    "asan": {
+      "pass_": true,
+      "source_events": 19,
+      "actual_datagrams": 81,
+      "lost_acks": 1,
+      "future_frames_rejected": 1,
+      "corrupt_frames_rejected": 1,
+      "fresh_processes": 6,
+      "replica_prefixes": [
+        2,
+        19,
+        19
+      ],
+      "fault_count": 1,
+      "generation": 1,
+      "final_replayed_condition": "Unknown",
+      "history_cleared": false,
+      "mutations_rejected": [
+        "wire-crc",
+        "wrong-stream",
+        "wrong-registry",
+        "future-ack",
+        "changed-event",
+        "ack-before-commit",
+        "duplicate-count",
+        "replay-heals-unknown",
+        "erased-history",
+        "lost-prefix"
+      ]
+    }
+  },
+  "static": {
+    "translation_units": [
+      "central/diagnostics/diagnostics.cpp",
+      "interfaces/diagnostics/diagnostic_wire.cpp",
+      "central/diagnostics/diagnostics_delivery.cpp"
+    ],
+    "clang_tidy_exit": 0,
+    "cppcheck_exit": 0
+  },
+  "identical_artifacts": 94,
+  "fingerprint_tests": 2,
+  "previous_evidence": [
+    {
+      "bundle": "m9_diagnostics_component",
+      "files": 43,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_control_hooks",
+      "files": 153,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_speed_recovery",
+      "files": 135,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_owner_sources",
+      "files": 203,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_native_causes",
+      "files": 183,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_native_vehicle",
+      "files": 186,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_startup_sources",
+      "files": 217,
+      "exit": 0,
+      "errors": ""
+    }
+  ],
+  "technical_scope": "Event-only durable replica/spool component and AF_UNIX separate processes; M9/TBD08 OPEN",
+  "packaged_audit": "2/2 datasets; future/corrupt frames rejected; 10 mutations each"
+}

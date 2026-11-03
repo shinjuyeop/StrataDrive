@@ -5457,3 +5457,30 @@ native timeout/보호 budget은 완화하지 않았다. 최종 diff 검토에서
 
 Remote wire/spool·proposal 이전 bootstrap·Clock 복구·전체 scalar 영속 schema·source 재시작·
 전체 BMS/Power 및 CARLA30km/h fault matrix·wall/Target와 학습자 수용은 후속이다.
+
+<a id="adr-0085"></a>
+
+## ADR-0085: Event-only 진단 replica와 원본을 삭제하지 않는 유한 spool
+
+Date: 2026-11-03. Status: **AF_UNIX 별도 process 검증; 전체 M9/TBD-08 OPEN**.
+
+기존 canonical Event/schema1/registry1–3을 wire v1 Data/ACK로 감싼다. Header에 explicit unique
+stream ID·committed journal ordinal·registry·length·CRC를 넣고 packet은2048 bytes로 제한한다.
+CRC는 오류 검출이며 trusted peer/configuration을 대체하지 않는다. 원격 Clear/control은 없다.
+Source/replica는 같은 unique stream ID와 registry로 명시적으로 provision한다.
+
+Source FileJournal 자체가 유한 non-RT spool이다. 먼저 durable commit하고 한 번에 한 ordinal을
+전송한다. Receiver는 정확한 다음 ordinal만 commit 후 ACK한다. 같은 ordinal/bytes는 중복,
+다른 내용이나 event ID의 다른 ordinal 재사용은 sticky incomplete다. ACK는 Event CRC까지
+묶고 미래/잘못된 ACK로 cursor를 진행하지 않는다. Capacity/commit 실패/미완성 tail은 성공이 아니다.
+
+ACK cursor는 메모리이며 ACK로 원본을 지우지 않는다. 재시작 때 ordinal1부터 다시 보내므로
+cursor checkpoint와 삭제의 crash 원자성 문제를 만들지 않는다. 이는 보존 용량/전송 효율의
+완료를 뜻하지 않는다. Compaction/rotation·부하 수용은 후속이다. Replica 상태는 source의
+이력 projection이며 receiver 현재 물리 readiness가 아니다. 재시작 Unknown은 중복 replay로
+회복하지 않는다. 원본19개 native 기동 event의 서로 다른 process6개·datagram81개와 ACK 유실/
+미래 ordinal/CRC 손상을
+독립 감사했다. [실행·실패·재현](../test-plan/evidence/m9_delivery_spool/README.md)을 따른다.
+
+실제 DDS/SOME-IP 진단 channel·live owner routing·multi-source merge·clear replication·source
+adoption/인증·용량 운영 정책·wall/Target·CARLA fault matrix와 학습자 이해 수용은 후속이다.
