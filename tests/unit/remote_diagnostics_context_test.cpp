@@ -261,13 +261,11 @@ TEST_F(RemoteDiagnosticsContext, UncleanContinuityMarkerBlocksClearWithoutClaimi
     ASSERT_TRUE(in.ledger().find(event.key));EXPECT_TRUE(in.ledger().unmapped());EXPECT_EQ(in.ledger().find(event.key)->condition,Condition::Failed);
     auto proof=event;proof.id.sequence=2;proof.kind=Kind::Observation;proof.proof=Proof::Recording;
     ASSERT_EQ(out.submit(proof),Result::Accepted);auto passed=proof;passed.id.sequence=3;passed.kind=Kind::Passed;passed.proof_event=proof.id;
-    ASSERT_EQ(out.submit(passed),Result::Accepted);ASSERT_EQ(out.ledger().find(event.key)->condition,Condition::Passed);
+    ASSERT_EQ(out.submit(passed),Result::Accepted);ASSERT_EQ(out.ledger().find(event.key)->condition,Condition::Failed);
     auto blocked=out.ledger();Clear cleared;cleared.id={run,77,1};cleared.session=global.session;cleared.targets={{event.key,blocked.find(event.key)->revision}};
     const Stamp stopped{Domain::Monotonic,clock_id,central.now,true,true};
     cleared.evidence={stopped,global.session_enable,stopped,stopped,stopped,0,0,100000,true,true};
     EXPECT_EQ(blocked.clear(cleared),Result::NotReady);
-    Ledger known;for(auto item:out.ledger().events()){item.unmapped=false;ASSERT_EQ(known.record(item),Result::Accepted);}
-    EXPECT_EQ(known.clear(cleared),Result::Accepted);
     EXPECT_TRUE(event.cause_unknown);EXPECT_EQ(event.measured,0);EXPECT_EQ(event.times[static_cast<unsigned>(Time::Detected)].ns,central.now-1);
     EXPECT_THROW(continuity_fault(c,30,1,Component::Front,1,1,1,2),std::invalid_argument);
     EXPECT_THROW(continuity_fault(c,31,2,Component::Front,1,1,1,2),std::invalid_argument);

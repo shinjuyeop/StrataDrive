@@ -29,6 +29,7 @@ CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
 | M9 진단 전달 객체 재개·원본 재전송·source/replica/merged SIGKILL 경계 | [전달 이력 복구](evidence/m9_delivery_restart/README.md) |
 | M9 Front/Rear ECU process 재기동·새 발행자 세대·commit 전 손실 미확인 표시 | [발행자 adoption](evidence/m9_producer_adoption/README.md) |
 | M9 Central process 재기동·trusted issuer 계승·fresh collector·연속성 clear 차단 | [Central 재기동 검증](evidence/m9_central_restart/README.md) |
+| M9 미확인 과거 이력 수용·현재 recording proof·영속 서비스 심사/clear·writer SIGKILL4경계 | [로컬 서비스 심사](evidence/m9_continuity_review/README.md) |
 | 실제3-process SOME/IP·8-role·부하/고장/재가입 | [M5 Rear adapter](evidence/m5_someip_rear_adapter/README.md) |
 | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
 | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |

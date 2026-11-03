@@ -148,7 +148,7 @@ TEST_F(DiagnosticsJournal, RegistryTwoReplaysNewCodesAndPreservesUnknownCurrentS
     for(const auto& r:w.ledger().records()) { EXPECT_EQ(r.condition,Condition::Unknown); EXPECT_EQ(r.count,1U); }
 }
 TEST_F(DiagnosticsJournal, UnsupportedRegistryDoesNotCreateAStore) {
-    for(const auto revision:{0U,4U}) { EXPECT_THROW(FileJournal::initialize(path.string(),1234,{},revision),std::invalid_argument); EXPECT_FALSE(std::filesystem::exists(path)); }
+    for(const auto revision:{0U,5U}) { EXPECT_THROW(FileJournal::initialize(path.string(),1234,{},revision),std::invalid_argument); EXPECT_FALSE(std::filesystem::exists(path)); }
 }
 TEST_F(DiagnosticsJournal, ExplicitRegistryThreeRetainsPrereleaseFaultAcrossWriterRestart) {
     FileJournal::initialize(path.string(),1234,{},3); auto a=session(); a.kind=Kind::Attempt; a.session_enable={}; a.source={true,a.id.producer,1,1,stamp(),{}};

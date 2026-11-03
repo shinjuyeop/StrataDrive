@@ -144,27 +144,36 @@ template<class I> void transfer(I& i,Clear& v) {
     v.targets.resize(size);
     for(auto& t:v.targets) i(t.key,t.revision);
 }
+template<class I> void transfer(I& i,ContinuityReview& v) {
+    i(v.id,v.incident,v.proof_event,v.session,v.revision,v.disposition,v.evidence);
+    auto size=static_cast<std::uint32_t>(v.streams.size());i(size);
+    if(!size || size>32)throw std::runtime_error("diagnostics review stream count");
+    v.streams.resize(size);for(auto& cut:v.streams)i(cut.stream,cut.producer,cut.committed,cut.tip,cut.tip_crc);
+}
 } // namespace
+bool stationary_evidence(const ServiceEvidence& e) noexcept {return stationary(e);}
 void validate(Limits l) {
     for(auto v : {l.events,l.records,l.occurrences,l.clears}) if(v==0 || v>4096) throw std::invalid_argument("diagnostics limits");
 }
 std::vector<std::uint8_t> encode(const Entry& entry) {
     Writer w; auto tag=static_cast<std::uint8_t>(entry.index()); w(tag);
     if(tag==0) { auto e=std::get<Event>(entry); w(e); }
-    else { auto c=std::get<Clear>(entry); w(c); }
+    else if(tag==1) { auto c=std::get<Clear>(entry); w(c); }
+    else {auto review=std::get<ContinuityReview>(entry);w(review);}
     return std::move(w.data);
 }
 Entry decode(const std::vector<std::uint8_t>& bytes) {
     Reader r{bytes}; std::uint8_t tag=0; r(tag); Entry entry;
     if(tag==0) { Event e; r(e); entry=e; }
     else if(tag==1) { Clear c; r(c); entry=std::move(c); }
+    else if(tag==2) {ContinuityReview review;r(review);entry=std::move(review);}
     else throw std::runtime_error("diagnostics entry tag");
     if(r.cursor!=bytes.size()) throw std::runtime_error("diagnostics trailing payload");
     return entry;
 }
 Ledger::Ledger(Limits limits):limits_(limits) {
     validate(limits); events_.reserve(limits.events); records_.reserve(limits.records);
-    episodes_.reserve(limits.occurrences); clears_.reserve(limits.clears);
+    episodes_.reserve(limits.occurrences); clears_.reserve(limits.clears);approvals_.reserve(limits.clears);
 }
 const Record* Ledger::find(const Key& key) const noexcept {
     const auto it=std::find_if(records_.begin(),records_.end(),[&](const Record& r){return r.key==key;});
@@ -172,6 +181,7 @@ const Record* Ledger::find(const Key& key) const noexcept {
 }
 Record* Ledger::mutable_record(const Key& key) noexcept { return const_cast<Record*>(std::as_const(*this).find(key)); }
 void Ledger::restarted() noexcept {
+    approval_floor_=approvals_.size();recording_floor_=events_.size();
     for(auto& r:records_) { r.condition=Condition::Unknown; r.latch=Latch::Unknown; r.pass_event={}; }
 }
 void Ledger::recording_gap() noexcept { complete_=false; restarted(); }
@@ -181,6 +191,7 @@ Result Ledger::record(const Event& e) {
         if(encode(*old)==encode(e)) return Result::Duplicate;
         recording_gap(); return Result::Conflict;
     }
+    if(std::any_of(approvals_.begin(),approvals_.end(),[&](const Approval& a){return a.review.id==e.id;})){recording_gap();return Result::Conflict;}
     Ledger next=*this; const auto result=next.apply(e);
     if(result==Result::Accepted) *this=std::move(next); else recording_gap();
     return result;
@@ -218,7 +229,7 @@ Result Ledger::apply(const Event& e) {
         }
     }
     ++revision_; events_.push_back(e);
-    unmapped_=unmapped_ || e.unmapped;
+    unmapped_=unmapped_ || (e.unmapped && !continuity_incident(e));
     if(e.kind==Kind::Gap) { recording_gap(); return Result::Accepted; }
     if(e.kind==Kind::Fault) project(e);
     if(e.kind==Kind::Unavailable) {
@@ -274,6 +285,15 @@ bool Ledger::pass(const Event& e) {
     const auto episode=std::find_if(episodes_.begin(),episodes_.end(),[&](const Episode& p){return p.id==e.occurrence;});
     if(episode==episodes_.end() || !episode->confirmed || episode->generation!=r->generation) return false;
     const auto proof=std::find_if(events_.begin(),events_.end(),[&](const Event& v){return v.id==e.proof_event;});
+    const auto incident=std::find_if(events_.begin(),events_.end(),[&](const Event& v){return v.kind==Kind::Fault && v.occurrence==e.occurrence && v.key==e.key;});
+    if(incident!=events_.end() && continuity_incident(*incident)) {
+        const auto approval=std::find_if(approvals_.begin()+static_cast<std::ptrdiff_t>(approval_floor_),approvals_.end(),[&](const Approval& a){
+            return a.review.id==e.related && a.review.incident==incident->id && a.review.proof_event==e.proof_event && a.review.session==e.session;
+        });
+        if(approval==approvals_.end() || approval->review.id.producer!=e.id.producer || approval->review.id.sequence>=e.id.sequence ||
+           static_cast<std::size_t>(&e-events_.data())<approval->event_floor || !comparable(e.times[static_cast<std::size_t>(Time::Observed)],approval->review.evidence.now) ||
+           e.times[static_cast<std::size_t>(Time::Observed)].ns<approval->review.evidence.now.ns)return false;
+    }
     if(proof==events_.end() || !(proof->key==e.key) || !(proof->session==e.session) || proof->proof!=e.proof ||
         (proof->kind!=Kind::Actual && proof->kind!=Kind::Observation) || proof->id.producer!=e.id.producer || proof->id.sequence>=e.id.sequence ||
         !later(*proof,*r) || !(proof->occurrence==e.occurrence)) return false;
@@ -286,9 +306,10 @@ Result Ledger::clear(const Clear& c) {
         if(encode(*previous)==encode(c)) return Result::Duplicate;
         recording_gap(); return Result::Conflict;
     }
+    if(std::any_of(approvals_.begin(),approvals_.end(),[&](const Approval& a){return a.review.id==c.id;}))return Result::Invalid;
     if(!valid(c.id) || !valid(c.session) || c.id.run!=c.session.run || c.targets.empty() || c.targets.size()>limits_.records) return Result::Invalid;
-    if(!complete_ || !released_ || unmapped_ || !(c.session==session_) || !same_stamp(c.evidence.enable,enable_) || !stationary(c.evidence)) return Result::NotReady;
-    if(clears_.size()>=limits_.clears || revision_==std::numeric_limits<std::uint64_t>::max()) { recording_gap(); return Result::Capacity; }
+    if(!complete_ || !released_ || unmapped() || !(c.session==session_) || !same_stamp(c.evidence.enable,enable_) || !stationary(c.evidence)) return Result::NotReady;
+    if(clears_.size()+approvals_.size()>=limits_.clears || revision_==std::numeric_limits<std::uint64_t>::max()) { recording_gap(); return Result::Capacity; }
     if(c.all && c.targets.size()!=static_cast<std::size_t>(std::count_if(records_.begin(),records_.end(),[](const Record& r){return !r.cleared;}))) return Result::NotReady;
     for(std::size_t i=0;i<c.targets.size();++i) {
         const auto& t=c.targets[i]; const auto* r=find(t.key);
@@ -298,6 +319,52 @@ Result Ledger::clear(const Clear& c) {
     ++revision_;
     for(const auto& t:c.targets) { auto* r=mutable_record(t.key); r->cleared=true; r->revision=revision_; }
     clears_.push_back(c); return Result::Accepted;
+}
+bool continuity_incident(const Event& e) noexcept {
+    const auto& detected=e.times[static_cast<std::size_t>(Time::Detected)];const auto& observed=e.times[static_cast<std::size_t>(Time::Observed)];
+    return e.kind==Kind::Fault && e.key.code==Code::RecordingGap && e.key.monitor==10 && e.key.subject &&
+        e.id.sequence==1 && e.occurrence.sequence==1 && e.occurrence.producer==e.id.producer && e.occurrence.epoch==e.session.epoch &&
+        e.native_reason==1 && e.state_before && e.state_before<std::numeric_limits<std::uint32_t>::max() && e.state_after==e.state_before+1 &&
+        e.id.producer==((static_cast<std::uint64_t>(e.state_before)<<32)|e.key.subject) && e.cause_unknown && e.unmapped &&
+        e.latch==Latch::Unknown && detected.domain==Domain::Monotonic && comparable(detected,observed) && detected.ns<=observed.ns &&
+        comparable(e.session_enable,observed) && e.session_enable.ns<=observed.ns;
+}
+bool Ledger::unmapped() const noexcept {
+    if(unmapped_)return true;
+    return std::any_of(events_.begin(),events_.end(),[&](const Event& e){
+        return continuity_incident(e) && std::none_of(approvals_.begin(),approvals_.end(),[&](const Approval& a){return a.review.incident==e.id;});
+    });
+}
+Result Ledger::review(const ContinuityReview& c) {
+    const auto old=std::find_if(approvals_.begin(),approvals_.end(),[&](const Approval& a){return a.review.id==c.id;});
+    if(old!=approvals_.end()){if(encode(old->review)==encode(c))return Result::Duplicate;recording_gap();return Result::Conflict;}
+    if(!valid(c.id) || !valid(c.session) || c.id.run!=c.session.run || c.disposition!=ContinuityDisposition::AcceptUnknownHistory ||
+       c.streams.empty() || c.streams.size()>32 || !valid(c.incident) || !valid(c.proof_event) || c.id.producer!=c.proof_event.producer || c.id.sequence<=c.proof_event.sequence ||
+       std::any_of(events_.begin(),events_.end(),[&](const Event& e){return e.id==c.id;}) || std::any_of(clears_.begin(),clears_.end(),[&](const Clear& e){return e.id==c.id;}))return Result::Invalid;
+    if(!complete_ || !released_ || !(c.session==session_) || !same_stamp(c.evidence.enable,enable_) || !stationary(c.evidence))return Result::NotReady;
+    const auto incident=std::find_if(events_.begin(),events_.end(),[&](const Event& e){return e.id==c.incident;});
+    const auto proof=std::find_if(events_.begin(),events_.end(),[&](const Event& e){return e.id==c.proof_event;});
+    const auto global=std::find_if(events_.begin(),events_.end(),[&](const Event& e){return e.kind==Kind::Session && e.session==session_;});
+    if(incident==events_.end() || !continuity_incident(*incident) || !(incident->session.run==c.session.run) || !comparable(incident->session_enable,c.evidence.now) || c.session.epoch<=incident->session.epoch ||
+       global==events_.end() || proof==events_.end() || static_cast<std::size_t>(proof-events_.begin())<recording_floor_ || proof->kind!=Kind::Observation || proof->proof!=Proof::Recording || !(proof->related==incident->id) || !(proof->key==incident->key) ||
+       !(proof->occurrence==incident->occurrence) || !(proof->session==session_) || !same_stamp(proof->session_enable,enable_) || proof->unmapped || !proof->cause_unknown || proof->latch!=Latch::Clear || proof->profile!=incident->profile || proof->profile!=global->profile ||
+       !proof->source.present || proof->source.producer!=proof->id.producer || proof->source.epoch!=session_.epoch || !same_stamp(proof->source.source,proof->times[static_cast<std::size_t>(Time::Observed)]) ||
+       !comparable(c.evidence.now,proof->times[static_cast<std::size_t>(Time::Observed)]) || proof->times[static_cast<std::size_t>(Time::Observed)].ns>c.evidence.now.ns ||
+       c.evidence.now.ns-proof->times[static_cast<std::size_t>(Time::Observed)].ns>30000000 || global->expected_roles!=255 || global->received_roles!=255)return Result::NotReady;
+    auto* r=mutable_record(incident->key);
+    const auto episode=std::find_if(episodes_.begin(),episodes_.end(),[&](const Episode& p){return p.id==incident->occurrence;});
+    if(!r || r->cleared || r->revision!=c.revision || episode==episodes_.end() || !episode->confirmed || episode->generation!=r->generation)return Result::NotReady;
+    for(std::size_t i=0;i<c.streams.size();++i){const auto& cut=c.streams[i];
+        if(!cut.stream || !cut.producer || !cut.committed || !valid(cut.tip) || cut.tip.run!=session_.run ||
+           std::any_of(c.streams.begin(),c.streams.begin()+static_cast<std::ptrdiff_t>(i),[&](const StreamCut& v){return v.stream==cut.stream || v.producer==cut.producer;}))return Result::Invalid;
+        const auto tip=std::find_if(events_.begin(),events_.end(),[&](const Event& e){return e.id==cut.tip;});
+        if(tip==events_.end())return Result::NotReady;
+        const auto bytes=encode(*tip);std::uint32_t crc=0xffffffff;
+        for(auto byte:bytes){crc^=byte;for(unsigned bit=0;bit<8;++bit)crc=(crc>>1)^((crc&1)?0xedb88320U:0U);}
+        if((~crc)!=cut.tip_crc)return Result::Conflict;
+    }
+    if(clears_.size()+approvals_.size()>=limits_.clears || revision_==std::numeric_limits<std::uint64_t>::max()){recording_gap();return Result::Capacity;}
+    approvals_.push_back({c,events_.size()});r->revision=++revision_;return Result::Accepted;
 }
 EventQueue::EventQueue(std::uint64_t run,std::uint64_t producer):run_(run),producer_(producer) {
     static_assert(std::atomic<std::size_t>::is_always_lock_free && std::atomic<std::uint64_t>::is_always_lock_free && std::atomic<bool>::is_always_lock_free);
@@ -326,7 +393,7 @@ EventQueue::Health EventQueue::health() const noexcept {
 }
 Recorder::Recorder(Journal& journal):journal_(journal),ledger_(journal.limits()) {
     for(const auto& entry:journal.committed()) {
-        const auto result=std::holds_alternative<Event>(entry)?ledger_.record(std::get<Event>(entry)):ledger_.clear(std::get<Clear>(entry));
+        const auto result=std::holds_alternative<Event>(entry)?ledger_.record(std::get<Event>(entry)):std::holds_alternative<Clear>(entry)?ledger_.clear(std::get<Clear>(entry)):ledger_.review(std::get<ContinuityReview>(entry));
         if(result!=Result::Accepted) throw std::runtime_error("diagnostics invalid journal transaction");
     }
     ledger_.restarted(); if(!journal.writable()) ledger_.recording_gap();
@@ -361,6 +428,14 @@ Receipt Recorder::clear(const Clear& clear) {
     return {durable?result:Result::StorageFailure,durable,journal_.committed().size()};
 }
 void Recorder::recording_gap() noexcept { ledger_.recording_gap(); journal_.invalidate(); }
+Receipt Recorder::review(const ContinuityReview& review) {
+    Ledger next=ledger_;const auto result=next.review(review);
+    if(result==Result::Duplicate)return {result,true,journal_.committed().size()};
+    if(result!=Result::Accepted){if(!next.complete()){ledger_.recording_gap();journal_.invalidate();}return {result,false,journal_.committed().size()};}
+    bool durable=false;if(journal_.writable()){try{durable=journal_.append(review);}catch(...){durable=false;}}
+    if(durable)ledger_=std::move(next);else{ledger_.recording_gap();journal_.invalidate();}
+    return {durable?result:Result::StorageFailure,durable,journal_.committed().size()};
+}
 std::size_t Recorder::drain(EventQueue& queue,std::size_t budget) {
     const auto check_health=[&] {
         const auto h=queue.health();

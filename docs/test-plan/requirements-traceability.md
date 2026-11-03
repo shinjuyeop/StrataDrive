@@ -37,6 +37,11 @@ C-M9-CENTRAL-01–05는 [Central 재기동](evidence/m9_central_restart/README.m
 구간·fresh collector prefix import·실제 Central SDK SIGKILL/새 Epoch2·생존 source ordinal1 replay·
 SD-5001 clear 차단을 연결한다. 연속성 해소·TBD-08·전체 TC 수용은 OPEN이다.
 
+C-M9-REVIEW-01–05는 [로컬 연속성 서비스 심사](evidence/m9_continuity_review/README.md)의
+미확인 과거 이력 수용·현재 recording proof·영속 Review/Passed/clear와 writer SIGKILL4경계를
+연결한다. Trusted service component/typed logical fixture이며 실제 native 서비스 인증/인가·
+quiesce/물리 evidence adapter와 SYS-DIAG-001/TC-DIAG-001 전체 수용은 OPEN이다.
+
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |
 | --- | --- | --- | --- | --- | --- | --- |
 | SYS-ARCH-001 | ARCH-CENTRAL, ARCH-ZONE, ARCH-VECU, ARCH-CENTRAL-ALLOC | IF-CENTRAL-VEHICLE-REQUEST, IF-CAN-STEERING, IF-CAN-BRAKE, IF-CAN-DRIVE, IF-DDS-FRONT-CMD, IF-DDS-REAR-CMD | Deployment | TC-ARCH-001 | M5/M12 | NOT RUN |

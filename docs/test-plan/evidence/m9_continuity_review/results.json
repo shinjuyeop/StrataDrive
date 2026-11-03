@@ -1,0 +1,644 @@
+{
+  "scope": "Local trusted continuity service component: explicit unknown-history acceptance, fresh whole-manifest recording inspection, durable Review then Passed then explicit clear. Native service authorization/quiesce/physical adapter/remote RPC/native4ms/Target/TBD08/M9/learner acceptance OPEN",
+  "core_nonwall": {
+    "passed": 1215,
+    "total": 1215,
+    "failed": []
+  },
+  "wall": {
+    "passed": 9,
+    "total": 9,
+    "failed": []
+  },
+  "asan_ubsan": {
+    "passed": 314,
+    "total": 314,
+    "failed": []
+  },
+  "wire_extension": {
+    "passed": 1,
+    "total": 1,
+    "failed": []
+  },
+  "initial_component": {
+    "passed": 8,
+    "total": 9,
+    "failed": [
+      "ContinuityReviewTest.ReviewRejectsStaleRevisionWrongProofCutAndUnrelatedUnknownCauseWithoutTaintingARefusedRequest"
+    ]
+  },
+  "pre_guard_component": {
+    "passed": 9,
+    "total": 9,
+    "failed": []
+  },
+  "initial_core": {
+    "passed": 1212,
+    "total": 1215,
+    "failed": [
+      "RemoteDiagnosticsContext.UncleanContinuityMarkerBlocksClearWithoutClaimingLostEventCountOrBlockingDelivery",
+      "ContinuityReviewTest.ReviewStorageFailureConflictingIdentityAndLegacyRegistryNeverGrantAServiceClear",
+      "DiagnosticsJournal.UnsupportedRegistryDoesNotCreateAStore"
+    ]
+  },
+  "static": {
+    "clang_tidy_tus": 3,
+    "cppcheck_tus": 3,
+    "result": "PASS",
+    "clang_standard_headers": "GCC11 matches actual compiler"
+  },
+  "release_build_testing_off": "PASS with explicit SDK pilot opt-in retained",
+  "fingerprint_tests": 2,
+  "functional": {
+    "normal": {
+      "passed": 11,
+      "total": 12,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4500,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1907,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "front-loss",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 1940,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "rear-loss",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1986,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2105,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "context-delay",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1944,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "source-restart",
+          "original_store_files_compared": 140
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 1967,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "rear-restart",
+          "original_store_files_compared": 142
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2009,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "collector-restart",
+          "original_store_files_compared": 134
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1994,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "both-restart",
+          "original_store_files_compared": 152
+        },
+        {
+          "pass_": true,
+          "active_streams": 15,
+          "original_credits": 18,
+          "gaps": 4,
+          "merged_events": 37,
+          "tcp_messages": 6589,
+          "connections": 21,
+          "mutations_rejected": 9,
+          "case": "front-process-rejoin",
+          "original_store_files_compared": 220
+        },
+        {
+          "pass_": true,
+          "active_streams": 16,
+          "original_credits": 18,
+          "gaps": 5,
+          "merged_events": 36,
+          "tcp_messages": 6520,
+          "connections": 21,
+          "mutations_rejected": 9,
+          "case": "rear-process-rejoin",
+          "original_store_files_compared": 220
+        }
+      ],
+      "archive": "final-normal.tar.gz",
+      "all_case_original_store_files_compared": {
+        "normal": 132,
+        "front-loss": 132,
+        "rear-loss": 132,
+        "drop-ack": 132,
+        "context-delay": 132,
+        "source-restart": 140,
+        "rear-restart": 142,
+        "collector-restart": 134,
+        "both-restart": 152,
+        "front-process-rejoin": 220,
+        "rear-process-rejoin": 220,
+        "central-process-rejoin": 202
+      }
+    },
+    "asan": {
+      "passed": 12,
+      "total": 12,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4549,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1992,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "front-loss",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 16,
+          "dtc": 1,
+          "tcp_messages": 1967,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "rear-loss",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2005,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2133,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "context-delay",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 18,
+          "dtc": 3,
+          "tcp_messages": 1967,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "source-restart",
+          "original_store_files_compared": 140
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 2020,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "rear-restart",
+          "original_store_files_compared": 142
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1986,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "collector-restart",
+          "original_store_files_compared": 134
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1990,
+          "connections": 14,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "both-restart",
+          "original_store_files_compared": 152
+        },
+        {
+          "pass_": true,
+          "active_streams": 15,
+          "original_credits": 18,
+          "gaps": 4,
+          "merged_events": 37,
+          "tcp_messages": 6566,
+          "connections": 29,
+          "mutations_rejected": 9,
+          "case": "front-process-rejoin",
+          "original_store_files_compared": 220
+        },
+        {
+          "pass_": true,
+          "active_streams": 16,
+          "original_credits": 18,
+          "gaps": 5,
+          "merged_events": 36,
+          "tcp_messages": 6581,
+          "connections": 31,
+          "mutations_rejected": 9,
+          "case": "rear-process-rejoin",
+          "original_store_files_compared": 220
+        },
+        {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 45,
+          "original_credits": 18,
+          "gaps": 1,
+          "tcp_messages": 6734,
+          "connections": 37,
+          "mutations_rejected": 12,
+          "case": "central-process-rejoin",
+          "original_store_files_compared": 202
+        }
+      ],
+      "archive": "final-asan.tar.gz",
+      "all_case_original_store_files_compared": {
+        "normal": 132,
+        "front-loss": 132,
+        "rear-loss": 132,
+        "drop-ack": 132,
+        "context-delay": 132,
+        "source-restart": 140,
+        "rear-restart": 142,
+        "collector-restart": 134,
+        "both-restart": 152,
+        "front-process-rejoin": 220,
+        "rear-process-rejoin": 220,
+        "central-process-rejoin": 202
+      }
+    },
+    "tsan": {
+      "passed": 3,
+      "total": 3,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4546,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1970,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack",
+          "original_store_files_compared": 132
+        },
+        {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 39,
+          "original_credits": 18,
+          "gaps": 1,
+          "tcp_messages": 6814,
+          "connections": 32,
+          "mutations_rejected": 12,
+          "case": "central-process-rejoin",
+          "original_store_files_compared": 202
+        }
+      ],
+      "archive": "final-tsan.tar.gz",
+      "all_case_original_store_files_compared": {
+        "normal": 132,
+        "drop-ack": 132,
+        "central-process-rejoin": 202
+      }
+    }
+  },
+  "service": {
+    "normal": {
+      "archive": "process-core-final.tar.gz",
+      "report": {
+        "pass_": true,
+        "crash_cuts": 4,
+        "actual_release_acks": 16,
+        "actual_credits": 4,
+        "immutable_unknown_history": true,
+        "automatic_clear": false,
+        "mutations_rejected": 12
+      }
+    },
+    "asan": {
+      "archive": "process-asan.tar.gz",
+      "report": {
+        "pass_": true,
+        "crash_cuts": 4,
+        "actual_release_acks": 16,
+        "actual_credits": 4,
+        "immutable_unknown_history": true,
+        "automatic_clear": false,
+        "mutations_rejected": 12
+      }
+    }
+  },
+  "attempts": [
+    {
+      "cohort": "final-normal",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "source-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "rear-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "collector-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "both-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "front-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "rear-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "central-process-rejoin",
+      "exit": 1,
+      "audit_exit": null
+    },
+    {
+      "cohort": "final-asan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "source-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "rear-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "collector-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "both-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "front-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "rear-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "central-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-tsan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-tsan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-tsan",
+      "case": "central-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    }
+  ],
+  "native_failure": {
+    "error": "normal owner selected protection",
+    "epoch": 2,
+    "release_ack_mask": 255,
+    "max_owner_poll_gap_ns": 88577464,
+    "rx_overflow_ns": 719714001926976,
+    "rx_rejected": 16,
+    "normal_stop_complete": 0,
+    "interpretation": "Observed owner gap and overflow; root scheduling cause not established; original FAIL retained; diagnostic commits/ACKs completed; no rerun or budget change"
+  },
+  "prior_evidence": {
+    "m9_central_restart": 87,
+    "m9_control_hooks": 153,
+    "m9_delivery_restart": 79,
+    "m9_delivery_spool": 306,
+    "m9_diagnostics_component": 43,
+    "m9_native_causes": 183,
+    "m9_native_routing": 157,
+    "m9_native_vehicle": 186,
+    "m9_owner_sources": 203,
+    "m9_producer_adoption": 102,
+    "m9_remote_context": 130,
+    "m9_someip_live": 654,
+    "m9_speed_recovery": 135,
+    "m9_startup_sources": 217
+  },
+  "native_source_variants": {
+    "tests/integration/diagnostics/audit_continuity_review.py": {
+      "sha256": "aef9ca8a63e96b49a9a02b54405ecb564d38ede2b689fce2b938c2718c9daab7",
+      "archive": "before-audit-binding-fix.tar.gz",
+      "reason": "Unused service offline auditor was in the native runner broad source inventory; full EventId binding strengthened after native execution; native invoked routing/adoption/central auditors are unchanged"
+    }
+  },
+  "mutations_rejected": 251
+}

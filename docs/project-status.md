@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | Central/Front/Rear ECU 재기동·발행자 계승·prefix 재전송·손실 미확인; 연속성 조정 후속 | [진단 계약](interfaces/diagnostics.md) · [Central 재기동](test-plan/evidence/m9_central_restart/README.md) |
+| M9 | ECU 재기동·발행자 계승·로컬 연속성 심사/clear; native 서비스 연결 후속 | [진단 계약](interfaces/diagnostics.md) · [로컬 서비스 심사](test-plan/evidence/m9_continuity_review/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -104,7 +104,13 @@ suffix를 보존하고 새 Central의 SD-5001은 정상 복귀/replay 뒤에도 
 [Central 재기동·원본·분모·실패](test-plan/evidence/m9_central_restart/README.md)를 따른다.
 최종 native Normal12/ASan12/SDK TSan3·일반1206·기존 wall9·영향 ASan305가 통과했다.
 초기 ingress overflow와 compile/runner 실패는 보존하며 기존 native4ms/Target 수용과 구분한다.
-다음은 연속성 reconciliation/clear와 다른 native 고장 조합·원인 연결/복구다.
+로컬 서비스 심사는 미확인 과거 이력의 명시적 수용과 현재 recording Passed를 분리한다.
+전체 frozen source/replica/ACK·새 실제 Epoch/credit·최신 정지 입력을 확인하고 영속 Review 뒤
+별도 Passed/clear를 요구한다. 재시작 후 과거 proof로 현재 상태를 재활성화하지 않는다.
+[로컬 심사·원본·분모·실패](test-plan/evidence/m9_continuity_review/README.md)를 따른다.
+일반1215·기존 wall9·영향 ASan314·service writer4컷씩의 Normal/ASan이 통과했다.
+SDK 회귀 Normal11/12·ASan12/12·TSan3/3이며 Normal Central의88.6ms owner 간격/overflow 실패는 유지한다.
+다음은 실제 native 서비스 요청 인증/인가·quiesce·최신 물리 evidence adapter와 다른 고장 조합·원인 연결/복구다.
 Native4ms와 M9 전체 수용은 계속 OPEN이다.
 정규 DDS gate와 native wall/Target·부하/보존 용량 수용은 아직 후속이다.
 다른 BMS trip/Power 고장 조합·Clock 복구·proposal 이전 bootstrap 실패는 후속이다.

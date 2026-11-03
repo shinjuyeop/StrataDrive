@@ -49,10 +49,12 @@ TEST(DiagnosticsWire, UnsupportedIdentitySchemaAndDictionaryAreRejected) {
     e=session(); e.kind=static_cast<Kind>(255); EXPECT_THROW(data(e,1),std::exception);
 }
 TEST(DiagnosticsWire, ACanonicalLocalClearTransactionCannotBeEncodedAsRemoteData) {
-    Record r; r.key=fault().key; r.revision=1; const auto payload=encode(clear(r));
-    auto bytes=data(session(),1); bytes.resize(36); bytes[32]=static_cast<std::uint8_t>(payload.size()); bytes[33]=static_cast<std::uint8_t>(payload.size()>>8); bytes[34]=bytes[35]=0;
-    bytes.insert(bytes.end(),payload.begin(),payload.end()); bytes.resize(bytes.size()+4); reseal(bytes);
-    EXPECT_THROW(wire::decode(bytes),std::exception);
+    Record r; r.key=fault().key; r.revision=1;ContinuityReview review;review.streams.push_back({1,2,3,{10,20,1},0});
+    for(const auto& payload:{encode(clear(r)),encode(review)}){
+        auto bytes=data(session(),1); bytes.resize(36); bytes[32]=static_cast<std::uint8_t>(payload.size()); bytes[33]=static_cast<std::uint8_t>(payload.size()>>8); bytes[34]=bytes[35]=0;
+        bytes.insert(bytes.end(),payload.begin(),payload.end()); bytes.resize(bytes.size()+4); reseal(bytes);
+        EXPECT_THROW(wire::decode(bytes),std::exception);
+    }
 }
 class DiagnosticsDelivery : public ::testing::Test {
 protected:

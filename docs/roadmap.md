@@ -81,7 +81,9 @@ ordinal1 재전송·replica-only commit의 merged 복구를 다룬다. Native ow
 실제 ECU process kill/rejoin·새 세대·old prefix replay·저장 전 손실 미확인 표시를 연결한다.
 [Central process 재기동](test-plan/evidence/m9_central_restart/README.md)은 명시적 issuer 계승·
 fresh collector prefix import·생존 source 재전송·미확인 연속성 clear 차단을 연결한다.
-다음은 연속성 reconciliation/clear·native fault matrix와 원인 연결/복구·
+[로컬 연속성 심사](test-plan/evidence/m9_continuity_review/README.md)는 미확인 과거 이력의
+명시적 수용과 현재 recording Passed/clear를 분리한다. 다음은 실제 native 서비스 인증/인가·quiesce·
+최신 물리 evidence adapter와 native fault matrix/원인 연결·복구·
 부하/보존 용량이다. 정규 DDS gate·proposal 이전
 bootstrap·Clock 복구도 후속이다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.

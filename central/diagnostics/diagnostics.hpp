@@ -64,11 +64,24 @@ struct ServiceEvidence {
     double wheel_rad_s{0}, torque_nm{0}, pressure_pa{0};
     bool current_streams_valid{false}, normal_dispatch_inhibited{false};
 };
+bool stationary_evidence(const ServiceEvidence&) noexcept;
 struct Clear {
     EventId id{}; Session session{}; ServiceEvidence evidence{};
     bool all{false}; std::vector<ClearTarget> targets;
 };
-using Entry = std::variant<Event, Clear>;
+// Local service transaction only. Accepting unknown historical loss is explicit;
+// it neither reconstructs missing events nor declares continuity loss-free.
+enum class ContinuityDisposition : std::uint8_t { None, AcceptUnknownHistory };
+struct StreamCut {
+    std::uint64_t stream{0}, producer{0}, committed{0}; EventId tip{}; std::uint32_t tip_crc{0};
+};
+struct ContinuityReview {
+    EventId id{}, incident{}, proof_event{}; Session session{}; std::uint64_t revision{0};
+    ContinuityDisposition disposition{ContinuityDisposition::None}; ServiceEvidence evidence{};
+    std::vector<StreamCut> streams;
+};
+bool continuity_incident(const Event&) noexcept;
+using Entry = std::variant<Event, Clear, ContinuityReview>;
 enum class Result { Accepted, Duplicate, Invalid, Conflict, Capacity, NotReady, StorageFailure };
 
 // Single non-RT consumer. Bounded history, no silent eviction. A loss is sticky:
@@ -78,12 +91,13 @@ public:
     explicit Ledger(Limits limits = {});
     Result record(const Event&);
     Result clear(const Clear&);
+    Result review(const ContinuityReview&);
     const Record* find(const Key&) const noexcept;
     const std::vector<Record>& records() const noexcept { return records_; }
     const std::vector<Event>& events() const noexcept { return events_; }
     Session session() const noexcept { return session_; }
     bool complete() const noexcept { return complete_; }
-    bool unmapped() const noexcept { return unmapped_; }
+    bool unmapped() const noexcept;
     void recording_gap() noexcept;
     void restarted() noexcept;
 private:
@@ -96,7 +110,9 @@ private:
     bool complete_{true}, unmapped_{false}, released_{false};
     Stamp attempt_origin_{}; std::uint64_t attempt_producer_{0};
     std::vector<Event> events_; std::vector<Record> records_;
-    std::vector<Episode> episodes_; std::vector<Clear> clears_;
+    struct Approval { ContinuityReview review; std::size_t event_floor; };
+    std::vector<Episode> episodes_; std::vector<Clear> clears_; std::vector<Approval> approvals_;
+    std::size_t approval_floor_{0},recording_floor_{0};
 };
 
 // Single producer and single consumer, one immutable producer identity per queue.
@@ -137,6 +153,7 @@ public:
     explicit Recorder(Journal&);
     Receipt record(const Event&);
     Receipt clear(const Clear&);
+    Receipt review(const ContinuityReview&);
     // Startup reconciliation is historical, never fresh monitor evidence.
     void restarted() noexcept { ledger_.restarted(); }
     void recording_gap() noexcept;

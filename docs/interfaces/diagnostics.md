@@ -697,7 +697,7 @@ owner가 원본 global context/credit 뒤에 관측한 시각이다. `state_befo
 SD-5001은 `Kind::Fault`이며 transport/storage 무결성 실패인 `Kind::Gap`과 구분한다. 기존
 unmapped 규칙에 따라 clear를 막으면서 영속 전달은 계속한다. 원본 재생·새 INIT·새 source의
 정상만으로 이 marker나 이전 source의 고장에 Passed를 만들지 않는다. 연속인 생존 source의
-기존 recovery는 실제 새 Epoch와 원래 proof로만 처리한다. 연속성 reconciliation/clear는 후속이다.
+기존 recovery는 실제 새 Epoch와 원래 proof로만 처리한다. 로컬 연속성 서비스 심사는 아래 별도 경계를 따르며 native/원격 clear 연결은 후속이다.
 
 `CommittedReplay`는 이전 source의 검증된 committed prefix만 내보내는 별도 read-only API다.
 불완전 suffix가 있어도 frame/commit/semantic 검사를 통과한 prefix를 원래 ID/bytes/ordinal로
@@ -748,7 +748,7 @@ Private lifecycle9100은 generation2를 영속 발급한다. Global issuer는7�
 8→`(1<<32)|8`이며 trusted 경계는 Epoch2다. 새 observer 순번1의 SD-5001/monitor10/subject8은
 원래 boot 시각·previous/new generation·cause_unknown/unmapped를 기록한다. Central event queue의
 저장 전 손실은 증명할 수 없다. 손실 개수를 추정하지 않고, 새 실제 정상 운전/정지/HV-off와 완전한
-replay도 이 incident의 복구 proof나 clear 허가가 아니다. 연속성 reconciliation/clear 계약은 OPEN이다.
+replay도 이 incident의 복구 proof나 clear 허가가 아니다. 원격/native clear 수용은 OPEN이며 로컬 서비스 심사는 아래 별도 계약을 따른다.
 
 Fixture는9개의 생존 source stream8200–8208을 유지한다. 새 Central replica `source-*-2`, merged
 `merged-2`(store8002), context source `context-*-2`를 사전 provision한다. 이전 merged8000/9개
@@ -759,13 +759,64 @@ drain2s·원래100ms 물리 판정은 유지한다. 같은 clock의2세대 유�
 [recipe](../test-plan/diagnostics-protocol.md#central-process-재기동-fixture)와
 [원본·검증·실패](../test-plan/evidence/m9_central_restart/README.md)를 따른다.
 
+## 연속성 미확인 incident의 로컬 서비스 심사
+
+저장 전 손실 여부는 정상 운전/원본 replay로 증명할 수 없다. 이 경계는 과거 손실이 없었다는
+판정을 만들지 않는다. 원래 SD-5001/monitor10/subject=logical producer의 generation·boot·
+`cause_unknown/unmapped`와 원형 event bytes를 영구 보존하고, 서비스 요청의 명시적
+`AcceptUnknownHistory` disposition으로 **미확인 과거 이력을 수용했음**을 별도로 기록한다.
+진단 actor/clock/registry를 임의로 바꾸거나 손실 event 수를 만들어 넣지 않는다.
+
+`ContinuityInspector`는 trusted manifest의 최대32개 고유 stream/producer 전체를 검사하는 단일
+비실시간 소유자다. 호출자는 생산자/전송 사용자를 quiesce하고 검사부터 commit까지 같은 frozen
+journal/queue/ACK 경계를 소유해야 한다. 미등록/누락/alias/중복 source·registry 불일치·incomplete/
+uncommitted suffix·source/replica 원본 불일치·미처리 pending·queue 유실/identity 오류·ACK 미완료는
+거부한다. 각 현재 source에는 새 원본 global Session이 있어야 한다. 실제 endpoint의 accepted
+credit에 따른 원본 context admission은 기존 `ContextualOutbox`가 수행한다. CRC는 인증을 대신하지 않는다.
+
+| 단계 | 필수 근거와 효과 |
+| --- | --- |
+| 현재 recording 검사 | 원래 incident보다 높은 application Epoch의 실제8-role global Release. 원래 run/profile/clock과 최신 정지/normal-dispatch 차단. 모든 source/replica가 semantic 검사를 통과하고 원형 bytes/ordinal/ACK가 같아야 함 |
+| Recording proof | 별도 서비스 producer의 새 Observation/Proof::Recording. 정확한 incident/occurrence·원래 Session enable·현재 관측 시각에 결속. 과거 loss-free를 주장하지 않음 |
+| ContinuityReview | 명시적 AcceptUnknownHistory·현재 Session·incident EventId·record revision·proof EventId·ServiceEvidence·전체 stream의 producer/committed ordinal/tip EventId/CRC. 영속 commit 뒤에만 disposition을 반영 |
+| Passed | proof→review→Passed의 별도 영속 순서. 같은 서비스 producer의 증가 sequence와 review ID를 참조해야 함. 심사 전에 저장한 Passed를 나중에 소급 승격하지 않음 |
+| Clear | 기존 최신 정지 evidence·current Passed·정확한 revision·명시적 대상 목록 필요. Review만으로 clear되지 않으며 normal control/INIT/actuator 권한을 만들지 않음 |
+
+정지 evidence의 기존 기준(바퀴0–.01rad/s·torque 절대값≤.1Nm·pressure100000–1500000Pa·source
+age≤30ms·skew≤20ms)을 재사용한다. Proof도 심사 시점의 같은 clock에서30ms 이내여야 한다.
+다른 run/clock·같은/오래된 Epoch·새 genuine Session 없는 local Ready·stale revision/proof·부분 stream
+범위·유실된 queue·움직임·dispatch 허용 상태·모르는 native 원인은 승인하지 않는다.
+
+`Ledger::unmapped()`는 미심사 원인이 남았는지를 뜻한다. 승인된 canonical continuity incident의
+원본 `unmapped` bytes는 바꾸지 않는다. 일반 CodeNone/unknown reason 등 다른 unmapped 원인은
+sticky 차단을 유지하고, 새 incident나 미심사 incident가 하나라도 있으면 clear를 막는다.
+손상/incomplete를 뜻하는 `Kind::Gap`/`complete=false`는 이 심사로 해소할 수 없다.
+
+재시작 시 disposition 이력과 이미 commit된 clear tombstone은 유지하지만 현재 condition/latch는
+Unknown으로 재평가한다. 과거 proof·Review·Passed의 duplicate 재생은 새 심사를 활성화하지 않는다.
+재시작/새 Session 이후 생성한 새 검사 proof와 명시적 심사가 다시 필요하다. 동일 request ID/동일
+bytes는 idempotent이며 다른 bytes의 충돌·append 실패·용량 초과는 fail closed다. Review와 clear는
+기존 `Limits::clears` 유한 예산64를 **공유**하며 기존 event512/record64/occurrence128을 늘리지 않는다.
+
+로컬 service journal만 manifest registry4와 canonical Entry tag2(ContinuityReview)를 사용한다.
+기존 Event(tag0)/Clear(tag1)의 bytes·schema1와 진단 wire1/registry1–3은 유지한다. Source/replica는
+기존 registry3의 Event-only journal이다. 오래된 registry에 Review를 쓰거나 Review를 원격 Data로
+보내는 것은 거부한다. 기존 파일을 in-place upgrade/repair하지 않고 별도 service journal을 provision한다.
+
+이 API는 인증된 서비스 요청과 실제 최신 정지 상태를 받는 trusted writer-side component다.
+현재 시험은 주입 가능한 logical monotonic clock99의 실제8-participant 객체·accepted credit·원본
+source/replica와 별도 writer process의 SIGKILL4경계다. 실제 native ECU의 서비스 요청 인증/인가·
+quiesce adapter·물리 표본 취득·remote clear/RPC·Target 연결은 후속이며, native 재합류만으로
+심사가 실행되지 않는다. [고정 recipe](../test-plan/diagnostics-protocol.md#연속성-로컬-서비스-심사-fixture)와
+[실행·한계](../test-plan/evidence/m9_continuity_review/README.md)를 따른다.
+
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
 원격 context admission 뒤 실제 native3-ECU의2개 context/9개 source stream도 기능 검증했다.
-Central/Front/Rear process 재기동의 producer adoption·연속성 미확인 전달 뒤에는
-연속성 reconciliation과 미결정 고장 조합·원인 연결/복구를 검증한다.
+Central/Front/Rear 재기동과 로컬 서비스 심사 뒤에는 실제 native 서비스 요청/인가·quiesce·
+최신 물리 evidence의 adapter와 미결정 고장 조합·원인 연결/복구를 검증한다.
 Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
 실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.

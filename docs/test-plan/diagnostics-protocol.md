@@ -417,3 +417,35 @@ Normal/ASan은12개 case를, SDK TSan은 normal/drop-ack/Central process 재기�
 fresh replica ordinal1, lifecycle9100의 unclosed start/new generation/explicit close를 확인한다.
 issuer/Release/prefix/tail/gap/boot/credit/fresh ACK/ordinal1/clear/physical/survivor12개 변조를 거부한다.
 Native4ms/Target·host clock 변경·무한 반복·연속성 reconciliation/clear·TBD-08 수용은 OPEN이다.
+
+
+## 연속성 로컬 서비스 심사 fixture
+
+사전 고정: 별도 service journal9000/registry4에 canonical SD-5001 incident를 원형 보존한다.
+주입 가능한 logical monotonic clock99/run10/profile1을 사용한다. 실제 coordinator/8-participant의
+Epoch2 Release와 두 endpoint의 accepted RunLease 뒤 ContextualOutbox의 source500/501 및 별도
+replica에 원본 context/incident를 commit/ACK한다. Epoch3의 실제8-role handshake/credit 뒤 모든
+stream의 원본 prefix와 ACK가 일치해야 한다. 물리 정지 입력은 service component의 typed fixture
+입력이며 실차/native plant 또는 wall 성능 관측으로 표시하지 않는다.
+
+Trusted 서비스 요청 AcceptUnknownHistory가 있어야 전체 manifest를 검사한다. 누락/중복/foreign
+stream·incomplete/tail·pending·queue 유실·미완료 ACK·stale/moving/dispatch 허용·잘못된 Session/
+clock/revision/proof·미심사 다른 incident·일반 unknown cause·budget 초과는 거부한다. Service
+proof가 과거 loss-free를 뜻하지 않음을 원본 unknown/unmapped bytes와 count1로 확인한다.
+
+로컬 writer child가 Proof/Review/Passed/Clear의 fsynced watermark를 parent에 알린 직후 실제
+SIGKILL한다. 네 독립 case의 새 writer는 committed prefix만 복구하고 condition/latch Unknown·
+count1/generation1·원래 incident bytes·이미 commit된 disposition/clear만 유지해야 한다. Duplicate
+Review나 과거 proof로 현재 Passed를 재활성화하지 않는다. 별도 새 검사/심사/Passed/clear의 성공
+경로도 unit에서 확인한다. 오래된 registry3는 Review를 저장하지 못하고 remote Event Data는 local
+Review/Clear transaction을 수용하지 않아야 한다.
+
+독립 Python reader가 registry4/tag2와 기존 tag0/1·commit watermark·원래8 ACK씩·accepted credit4개·
+source/replica/stream cut/CRC·explicit disposition·Passed/clear 순서/revision·SIGKILL·미확인 원본 보존을
+감사한다. disposition/incident/proof/부분 범위/ordinal/replica/Release/credit/움직임/clear revision/
+가짜 kill/Passed 제거의12개 변조를 거부한다. Normal/ASan4컷씩을 별도로 보관한다.
+
+기존 native12개 Normal/ASan과 SDK TSan normal/drop-ack/Central rejoin3개를 회귀한다. 이들 native
+경로는 Review를 자동 발행하지 않고 기존 SD-5001 clear 차단을 유지해야 한다. Compile/초기 test/
+regression 실패·source/binary/config/tool hash와 원본 분모를 모두 보존한다. Native 서비스 요청
+인증/인가·quiesce/최신 물리 evidence 연결·remote RPC·TBD-08·native4ms/Target 수용은 후속이다.

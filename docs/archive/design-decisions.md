@@ -5647,3 +5647,28 @@ ordinal1부터 재전송한다. 수신 packet으로 신뢰 목록이나 새 Epoc
 SD-5001은 original boot/세대·cause_unknown/unmapped로 남기고 clear를 차단한다. 재합류를
 연속성 해소나 임의 Passed의 근거로 삼지 않는다. 두 세대/same-kernel fixture·독립 원본/PCAP 감사와
 변조12개로 부분 검증하며 일반 host 전원/clock 복구·반복 용량·전체 system 수용은 별도다.
+
+
+## ADR-0092: 미확인 과거 이력 수용과 현재 recording Passed의 분리
+
+상태: 로컬 trusted service component 구현. Native 서비스 adapter/인증/인가·remote clear·
+TBD-08·native4ms/Target·M9/학습자 수용 OPEN.
+
+재기동 후 prefix 재전송은 저장 전 손실 여부를 증명하지 못한다. 과거 미확인 사실을 거짓으로
+해소하지 않고, canonical SD-5001 incident의 immutable bytes를 보존한 채 명시적
+AcceptUnknownHistory disposition을 별도 로컬 transaction에 남긴다. 모르는 모든 native 원인이나
+incomplete store를 일괄 승인하는 API는 만들지 않는다.
+
+원래 incident보다 높은 실제 global Epoch와 최신 정지/dispatch 차단, fixed manifest 전체의
+frozen source/replica/ACK/queue 검사 뒤에만 현재 Recording proof를 만든다. Proof→영속 Review→
+새 Passed→명시적 clear를 구분하고 revision·incident/proof/request ID·stream ordinal/tip CRC로
+결속한다. 과거 loss-free 선언이나 손실 개수 재구성·control/INIT 권한은 아니다.
+
+재시작 뒤에는 기존 disposition/tombstone을 유지하고 현재 Unknown을 새 검사로만 해소한다.
+예전 proof/Review duplicate나 심사 전에 수신한 Passed는 소급 승격하지 않는다. 새 incident·
+일반 unmapped·저장 손상·budget 초과는 차단을 유지한다. Review/clear가 기존64 maintenance
+예산을 공유하며 runtime FIFO·pending·retry·drain·wall/물리 예산은 바꾸지 않는다.
+
+Event/Clear의 기존 encoding과 wire registry1–3은 유지하고 로컬 service journal registry4/tag2를
+명시적으로 추가한다. 과거 파일을 자동 이주/repair하지 않는다. 별도 writer SIGKILL4경계와
+독립 offline codec/원본/승인/clear 감사로 부분 검증한다. Native runtime의 자동 clear는 계속 없다.

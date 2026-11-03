@@ -22,14 +22,14 @@ stratadrive_unit_test(diagnostic_binding_test
     LIBRARIES diagnostics_wire)
 if(TARGET diagnostics_journal)
     stratadrive_unit_test(remote_diagnostics_context_test
-        SOURCES tests/unit/remote_diagnostics_context_test.cpp
-        LIBRARIES remote_diagnostics_context startup_diagnostics run_lease_issuer)
+        SOURCES tests/unit/remote_diagnostics_context_test.cpp tests/unit/continuity_review_test.cpp
+        LIBRARIES continuity_review startup_diagnostics run_lease_issuer)
     stratadrive_unit_test(diagnostics_delivery_test
         SOURCES tests/unit/diagnostics_delivery_test.cpp
         LIBRARIES diagnostics_delivery)
     stratadrive_unit_test(diagnostics_delivery_process_test
-        SOURCES tests/unit/diagnostics_delivery_process_test.cpp
-        LIBRARIES remote_diagnostics_context)
+        SOURCES tests/unit/diagnostics_delivery_process_test.cpp tests/unit/continuity_review_process_test.cpp
+        LIBRARIES continuity_review startup_diagnostics run_lease_issuer)
     target_compile_definitions(diagnostics_delivery_process_test PRIVATE STRATADRIVE_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
     stratadrive_unit_test(diagnostics_journal_test
         SOURCES tests/unit/diagnostics_journal_test.cpp
