@@ -5541,3 +5541,45 @@ SessionCoordinator/StartupDiagnostics/RunLeaseIssuer와 receiver gate를 사용�
 
 실제 native Central/Front/Rear publisher와 context 운반 channel·다중 SDK service 수집·source
 재시작 adoption·부하/보존 용량·정규 DDS·Target/CARLA fault matrix·학습자 수용은 후속이다.
+
+<a id="adr-0088"></a>
+
+## ADR-0088: 실제 native owner의 context 전달과 소유자별 진단 stream 수집
+
+Date: 2026-11-03. Status: **native3-ECU 진단 기능 연결; 전체 M9/TBD-08·wall/Target 수용 OPEN**.
+
+기존 실제8-participant Central/Front/Rear graph에 observer와 별도 writer를 붙인다. 새 logical
+Network나 archived event는 사용하지 않는다. Central Startup7이 원본 Attempt/Session을 발행하며
+Coordinator/Stop8은 자체 Session을 발행하지 않는다. Zone/Leaf20–24와 Gateway/BMS/Power30–33은
+실제 owner의 accepted RunLease·원래 fault/selection/normal predicate를 사용한다. Writer가
+context를 commit하기 전에는 진단 recovery predicate를 열지 않는다. 제어 권한은 바꾸지 않는다.
+
+Context8101/8102와 source8200–8208을 독립 source/replica journal로 운반한다. Central merged
+journal은 원본 EventId/bytes로 중복 제거한다. Remote ACK는 replica와 merged의 durable commit
+뒤에만 발행한다. Central의 CodeNone/Unmapped 원인 미지 관측은 원본대로 두며 원격 root로
+추정하지 않는다. 원격 Clear·source instance의 자동 adoption을 추가하지 않는다.
+
+별도 callback FIFO8의 Channel을 기존 SDK app에 붙인다. Control binding과 큐는 유지한다.
+Diagnostic service0x5e00–03/0x5e10–21·TCP endpoint31610–12만2048을 쓰며 SDK 요구에 따라 새
+opt-in profile의 shared local envelope만1024→2048로 명시한다. Control TCP/wire512·queue8192,
+lane8·retry100ms·context pending32·종료 drain2s는 유지한다. Writer CPU15/SCHED_OTHER0을
+실제 확인한다. Source/replica는 별도 ECU directory이며 `/var/tmp` 새 고유 ext4 store를 명시한다.
+종료/join 후 artifact를 복사하고 원본도 남긴다. Private tmp/shm을 진단 운반 경로로 쓰지 않는다.
+
+실제 보호 전환에서 credit4/Abort4/보호 요청이 겹치면8-slot authority 큐에 이미 불필요해진
+credit가 남을 수 있었다. 유효 Abort/ProtectionRequest만 같은 peer·plan/epoch·clock의 미사용
+RunLease를 송신/수신 큐에서 취소한다. 다른 명령·control·ACK·actor의 accepted evidence는
+지우지 않는다. Capacity를 늘리거나 silent eviction하지 않고 취소/overflow 방향을 별도 계수한다.
+기존 binding/freshness와 실제 participant/physical selection은 계속 필요하다. 종료 cleanup 뒤
+진단 ACK drain 동안의 late control ingress도 별도 retire하며 runnable 완료로 세지 않는다.
+
+고장 주입은 control readiness뿐 아니라 실제 physical trace에 정상 torque/brake 표본이 남은 뒤
+시작한다. 원래 정상 선행 조건·100ms 보호/물리 기준을 유지하며 CAN 확인과10ms physical log
+사이 경합을 제거했다. 원본 unknown 관측을 독립 auditor가 잘못 거부한 부분도 원본 계약에 맞췄다.
+SDK payload 설정·느린 저장의 queue/timeout·최초 물리 선행 조건·제어 queue·guarded deadline
+실패를 보존한다. [실행·실패·검증](../test-plan/evidence/m9_native_routing/README.md)을 따른다.
+
+Normal/Front·Rear command loss/진단 ACK 유실/context 지연과 SDK-instrumented TSan을 기능
+범위로 판정한다. Guarded4ms wall 결과는 별도 분모이며 기능 통과로 덮지 않는다. Source/collector
+재시작 adoption·전체 원인 연결/복구·다른 native/CARLA 고장 matrix·부하/보존 용량·Clock/Target·
+학습자 설명/수용은 후속이다.

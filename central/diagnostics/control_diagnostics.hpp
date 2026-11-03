@@ -19,7 +19,10 @@ struct ControlContext {
 class ControlDiagnostics {
 public:
     ControlDiagnostics(EventQueue&,ControlContext);
-    bool start_session(std::uint32_t epoch,std::uint64_t enable_ns) noexcept;
+    // A native composition with a separate global issuer suppresses this
+    // observer's Session; it must already have the actual global Release.
+    bool start_session(std::uint32_t epoch,std::uint64_t enable_ns,bool publish_context=true) noexcept;
+    void observe(const central::VehicleCoordinator&,std::uint64_t observed_ns) noexcept;
     void observe(const central::SpeedRequest&,const central::VehicleCoordinator&,std::uint64_t observed_ns) noexcept;
     void observe(const central::SpeedRequest&,std::uint64_t observed_ns) noexcept;
     void observe(const central::NormalStop&,std::uint64_t observed_ns) noexcept;

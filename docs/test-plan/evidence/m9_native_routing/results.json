@@ -1,0 +1,634 @@
+{
+  "scope": "Actual native3-ECU functional diagnostics routing; M9/TBD-08 and native4ms wall/Target acceptance OPEN",
+  "core": {
+    "passed": 1188,
+    "total": 1188
+  },
+  "asan_ubsan": {
+    "passed": 279,
+    "total": 279
+  },
+  "existing_m4_wall": {
+    "passed": 2,
+    "total": 2
+  },
+  "source_fingerprint_tests": 2,
+  "native": {
+    "normal": {
+      "passed": 5,
+      "total": 5,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4498,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal",
+          "original_store_files_compared": 120
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1984,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "front-loss",
+          "original_store_files_compared": 120
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 1905,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "rear-loss",
+          "original_store_files_compared": 120
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1984,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack",
+          "original_store_files_compared": 120
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2100,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "context-delay",
+          "original_store_files_compared": 120
+        }
+      ],
+      "archive": "native-normal.tar.gz"
+    },
+    "asan": {
+      "passed": 5,
+      "total": 5,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4515,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal",
+          "original_store_files_compared": 120
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1985,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "front-loss",
+          "original_store_files_compared": 120
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 1932,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "rear-loss",
+          "original_store_files_compared": 120
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1963,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack",
+          "original_store_files_compared": 120
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2147,
+          "connections": 14,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "context-delay",
+          "original_store_files_compared": 120
+        }
+      ],
+      "archive": "native-asan.tar.gz"
+    },
+    "tsan": {
+      "passed": 2,
+      "total": 2,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 20,
+          "dtc": 0,
+          "tcp_messages": 4533,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal",
+          "original_store_files_compared": 120
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1951,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack",
+          "original_store_files_compared": 120
+        }
+      ],
+      "archive": "native-tsan.tar.gz"
+    }
+  },
+  "attempts": [
+    {
+      "cohort": "final-normal",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "front-loss",
+      "exit": 1,
+      "audit_exit": null
+    },
+    {
+      "cohort": "final-normal",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "guarded-final",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "guarded-final",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "guarded-native",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "guarded-native",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "legacy-off",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "legacy-off",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "legacy-off-rear",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-off",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "native-off",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "native-off-rear",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "native-tsan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-tsan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "normal",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "normal",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 1
+    },
+    {
+      "cohort": "normal",
+      "case": "rear-loss",
+      "exit": 1,
+      "audit_exit": null
+    },
+    {
+      "cohort": "normal",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 1
+    },
+    {
+      "cohort": "normal",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 1
+    },
+    {
+      "cohort": "probe-normal",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "probe-normal",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "probe-normal-2",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "probe-normal-2",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "probe-watch",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "probe-watch",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "retirement-asan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-asan",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-asan",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-asan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-asan",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-normal",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-normal",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-normal",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-normal",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-normal",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-tsan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "retirement-tsan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "shutdown-asan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "shutdown-asan",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-asan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-asan",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-asan",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-asan",
+      "case": "drop-ack",
+      "exit": 1,
+      "audit_exit": null
+    },
+    {
+      "cohort": "verified-asan",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-normal",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-normal",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-normal",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-normal",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-normal",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    }
+  ],
+  "static": {
+    "clang_tidy_tus": 3,
+    "cppcheck_tus": 4,
+    "result": "PASS"
+  },
+  "release_no_tests_libraries": "PASS",
+  "prior_evidence": {
+    "m9_control_hooks": 153,
+    "m9_delivery_spool": 306,
+    "m9_diagnostics_component": 43,
+    "m9_native_causes": 183,
+    "m9_native_vehicle": 186,
+    "m9_owner_sources": 203,
+    "m9_remote_context": 130,
+    "m9_someip_live": 654,
+    "m9_speed_recovery": 135,
+    "m9_startup_sources": 217
+  },
+  "native_guarded": [
+    {
+      "cohort": "guarded-final",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "guarded-final",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "guarded-native",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "guarded-native",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "probe-watch",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 1
+    },
+    {
+      "cohort": "probe-watch",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 1
+    }
+  ],
+  "native_off": [
+    {
+      "cohort": "native-off",
+      "case": "normal",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "native-off",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "native-off-rear",
+      "case": "command-loss",
+      "repeat": 1,
+      "exit": 0
+    }
+  ],
+  "mutations_rejected": 87
+}

@@ -556,7 +556,7 @@ Source Failed/count1/generation1과 원본 이력은 유지한다. 재시작 rep
 
 [사전 recipe](../test-plan/diagnostics-protocol.md#someip-진단-channel새-logical-owner-fixture),
 [실행·실패·clock·감사](../test-plan/evidence/m9_someip_live/README.md)를 따른다.
-정규 DDS gate·native Central/Front/Rear source merge·Target·부하/보존 용량 수용은 후속이다.
+정규 DDS gate·Target·부하/보존 용량 수용은 후속이다. Native 배선은 아래 별도 범위를 따른다.
 
 ## 원격 publisher의 전역 context admission
 
@@ -589,16 +589,66 @@ context·commit 실패는 sticky incomplete다. 대기 event를 남긴 정상 �
 생성하지 않는다. 이 모듈은 전역 Session admission을 다루며 Release 이전 Attempt 수집은 별도다.
 
 [component recipe](../test-plan/diagnostics-protocol.md#원격-context-admission-component-fixture)와
-[실행·한계](../test-plan/evidence/m9_remote_context/README.md)를 따른다. 실제 native process 간
-Central context 운반 및 여러 service/stream을 수집하는 SDK 배선은 아직 후속이다.
+[실행·한계](../test-plan/evidence/m9_remote_context/README.md)를 따른다.
+
+## 실제 native Central/Front/Rear 배선
+
+기존 opt-in `someip_front_adapter --three`의 실제8-participant graph에
+`NativeDiagnosticRoutes`를 연결했다. `--diagnostics`에서만 켜지며 새 logical Network나 archived
+event를 source로 사용하지 않는다. Central Startup producer7이 원래 Attempt/Session을 발행하고,
+Coordinator/Stop producer8은 `start_session(..., false)`로 그 global context를 사용한다.
+기존 ControlDiagnostics의 기본 Session 발행은 유지한다. Global Release와 물리 HV/차량 readiness는 별개다.
+
+| 원래 publisher | ECU / producer | source stream |
+| --- | --- | --- |
+| Zone feedback | Front20 / Rear21 | 8200 /8201 |
+| Leaf command authority | Front Steering22·Brake23 / Rear Drive24 | 8202–8204 |
+| Gateway native | Front30 / Rear31 | 8205 /8206 |
+| BMS·Power native | Rear32·33 | 8207 /8208 |
+
+각 observer는 실제 actor의 epoch/enable·최초 fault·선택/ACK·normal predicate를 자기 owner에서
+읽는다. RunLease evidence와 원본 native detector는 lock-free snapshot으로 writer에 복사한다.
+Source는 실제 accepted credit 뒤에 시작한다. Writer가 context를 commit하기 전에는 원래 control
+gate가 열려 있어도 진단 recovery predicate를 열지 않는다. 진단 gate는 제어 권한을 바꾸지 않는다.
+
+Central→Front/Rear context stream8101/8102와9개 source stream은 각각 독립 source/replica
+journal을 쓴다. Central merged store8000은 동일 원본 Session을 한 번만 저장한다. Remote ACK는
+해당 replica와 merged의 durable commit 뒤에만 보낸다. Failed commit·source loss·capacity는
+성공이 아니며 원본 ACK/ordinal을 건너뛰거나 저장 이력을 지우지 않는다. 원격 Clear는 없다.
+Central이 원인 미지로 남긴 CodeNone/Unmapped Observation도 원본대로 보존하며 원격 root로
+추정해 바꾸지 않는다. Source 재시작 adoption과 전체 원인 연결/clear 수용은 후속이다.
+
+`diagnostic::Channel`은 기존 SDK application에 붙는 독립 callback FIFO8이다. Control service와
+data/authority FIFO는 공유하지 않는다. Setup/registered hook은 dispatch 시작 전에 설치한다.
+Context service pair0x5e00–03, source pair0x5e10–21, instance/interface1, reliable Data0x101/
+ACK0x102를 사용한다. Source별 stream/registry와 service 방향을 함께 검사한다. 기존 standalone
+0x5d10/0x5d11 channel은 유지한다. CRC/service/client ID는 peer 인증을 대신하지 않는다.
+
+Control TCP/wire512·queue8192와 lane8은 그대로다. 새 diagnostic endpoint31610–12만 TCP2048을
+사용한다. SDK가 외부 payload 이상을 요구하므로 shared local envelope는 새 opt-in profile에서
+1024→2048로 명시한다. 실제 Data602 bytes, retry100ms, source pending32, 종료 drain2s다.
+Writer만 CPU15/SCHED_OTHER0에서 파일/SDK IO를 수행한다. 실제 배치를 기록하고 source/replica는
+각 ECU의 별도 directory에 둔다. `/var/tmp`의 새 고유 ext4 store 원본을 남기고 종료/join 후
+artifact를 복사한다. Private `/tmp`·`/dev/shm`을 진단 전달 경로로 사용하지 않는다.
+
+보호 burst에서는 유효 Abort/ProtectionRequest가 같은 peer·plan/epoch·clock의 미사용 credit만
+송신/수신 큐에서 취소한다. Control/command/ACK·다른 세션·actor가 이미 수용한 evidence는
+제거하지 않는다. 수신 측 처리는 기존 binding/freshness 검사 뒤, 실제 actor 적용 전에만 한다.
+이는 gate 열기나 보호 ACK가 아니며 retire 수를 별도 기록한다. 종료 후 진단 drain 동안의 late
+control ingress도 별도 계수하고 완료한 runnable로 세지 않는다.
+
+[고정 recipe](../test-plan/diagnostics-protocol.md#native-3-ecu-진단-배선-fixture)와
+[실제 TCP/owner/journal/물리 검증](../test-plan/evidence/m9_native_routing/README.md)을 따른다.
+이 배선의 기동 전 로컬 실패·source/collector 재시작 adoption·BMS/Power의 전체 native fault
+matrix·Clock/Target/부하/보존 용량·CARLA30km/h와 학습자 수용은 OPEN이다.
 
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
-원격 context admission과 두 source 병합은 component 범위로 추가 검증했다.
-다음은 native Central/Front/Rear owner의 publisher 통합과 실제 trusted global context 전달·
-다중 stream 수집/source 재시작 adoption이다. Local participant Ready를 global Release로 만들지 않는다.
+원격 context admission 뒤 실제 native3-ECU의2개 context/9개 source stream도 기능 검증했다.
+다음은 source/collector 재시작 adoption과 미결정 고장 조합·원인 연결/복구를 검증하는 것이다.
+Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
 실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.
 30km/h fault의 구체 주입 위치·기대 DTC와 물리 판정은 실행 전에 별도 고정한다.

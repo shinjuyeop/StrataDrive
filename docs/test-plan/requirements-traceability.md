@@ -11,10 +11,13 @@ fixture 부분 검증이며 TC-DIAG-001 전체 runtime Result나 TBD-08 최종 �
 C-M9-TX-01–06은 [Event-only replica/spool](evidence/m9_delivery_spool/README.md)의 순서·중복·
 commit/ACK·process 재시작에 대응한다. DDS/SOME-IP live owner 통합 수용과 구분한다.
 C-M9-SIP-01–06은 [SOME/IP 새 logical source](evidence/m9_someip_live/README.md)의 실제 TCP binding·
-SPSC/writer·원본/물리 동등성·ACK 유실/replica 재시작에 대응한다. Native 3-ECU/wall owner 수용은 후속이다.
+SPSC/writer·원본/물리 동등성·ACK 유실/replica 재시작에 대응한다. Native3-ECU 연결은 아래 ROUTE 범위이며 wall 수용은 별도다.
 C-M9-CTX-01–04는 [원격 context component](evidence/m9_remote_context/README.md)의 accepted
 credit 대조·유한 대기·독립 stream ACK·재시작 Unknown/소급 Proof 거부에 대응한다.
-실제 native publisher의 context 전송과 source 재시작 adoption은 후속이다.
+Context component 뒤의 실제 전송은 C-M9-ROUTE-01–06에 연결한다.
+C-M9-ROUTE-01–06은 [실제 native3-ECU 진단 배선](evidence/m9_native_routing/README.md)의
+context2/source9·actual accepted credit·원본 detector/ACK·실제 TCP/merged commit·ACK 유실/
+context 지연에 대응한다. Native 전체 fault matrix·재시작 adoption·wall/Target 수용은 후속이다.
 
 [M8 종료 검토](../archive/milestone-reviews.md#m8)는 C-M8 component/고정 fixture의 기술 판정이다.
 아래32개 요구와29개 system TC의 전체 runtime Result는 **NOT RUN**이다.

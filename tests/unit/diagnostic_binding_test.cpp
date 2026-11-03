@@ -31,4 +31,17 @@ TEST(DiagnosticBinding, ControlBindingsUnreliableAndForeignContextsNeverEnterIng
     EXPECT_FALSE(binding(Role::Replica,kReplica,1,kData,1,1,true,d,7001,4));
     EXPECT_FALSE(binding(static_cast<Role>(255),kReplica,1,kData,1,1,true,d,7001,3));
 }
+TEST(DiagnosticBinding, ConfiguredNativeLanesRequireTheirOwnServiceStreamAndDirection) {
+    const diagnostics::wire::Message data=diagnostics::wire::Data{8200,1,3,session()};
+    const diagnostics::wire::Message ack=diagnostics::wire::Ack{8200,1,3,1};
+    const Services services{0x5e10,0x5e11};
+    EXPECT_TRUE(binding(Role::Replica,0x5e11,1,kData,1,1,true,data,8200,3,services));
+    EXPECT_TRUE(binding(Role::Publisher,0x5e10,1,kAck,1,1,true,ack,8200,3,services));
+    EXPECT_FALSE(binding(Role::Replica,kReplica,1,kData,1,1,true,data,8200,3,services));
+    EXPECT_FALSE(binding(Role::Replica,0x5e11,1,kData,1,1,true,data,8201,3,services));
+    EXPECT_FALSE(binding(Role::Replica,0x5e11,1,kData,1,1,true,data,8200,3,{0x5e12,0x5e13}));
+    EXPECT_FALSE(binding(Role::Replica,0x5e11,1,kData,1,1,true,data,8200,3,{0x5344,0x5e11}));
+    EXPECT_FALSE(binding(Role::Replica,0x5e11,1,kData,1,1,true,data,8200,3,{0x5e11,0x5e11}));
+    EXPECT_FALSE(binding(Role::Replica,0x5e11,1,kData,1,1,true,data,8200,3,{0xffff,0x5e11}));
+}
 } // namespace

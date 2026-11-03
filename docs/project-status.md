@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | Central·Zone/Leaf·Gateway·BMS/Power·기동·spool·SOME/IP logical source·원격 context component 검증; native source 배선·CARLA fault matrix 후속 | [진단 계약](interfaces/diagnostics.md) · [원격 context](test-plan/evidence/m9_remote_context/README.md) |
+| M9 | 실제 native3-ECU의 context2/source9 진단 배선 기능 검증; source 재시작 adoption·전체 fault matrix 후속 | [진단 계약](interfaces/diagnostics.md) · [native 배선](test-plan/evidence/m9_native_routing/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -77,7 +77,13 @@ ACK/Actual·PCAP·journal로 대조했다. 재시작 Unknown과 이력은 유지
 ContextualOutbox를 추가했다. Local Ready/7개 ACK는 근거가 아니며 두 source의 원본 context
 중복 제거·독립 durable ACK·지연된 context·재시작 Unknown을 component 범위에서 검증했다.
 [범위·원본·검사](test-plan/evidence/m9_remote_context/README.md)를 따른다.
-다음은 이 경계를 native Central/Front/Rear publisher의 실제 context 전송·다중 source 수집에 연결하는 것이다.
+이 경계를 실제 Central/Front/Rear graph에 연결했다. Central 원본 Session과 실제 endpoint의
+accepted credit를 사용하며9개 owner/native stream을 별도 writer·TCP·replica·merged journal로
+모은다. 정상 DTC0과 Front/Rear 명령 손실·진단 ACK 유실·context 지연을 검증했다.
+[native 배선·원본·실패·한계](test-plan/evidence/m9_native_routing/README.md)를 따른다.
+최종 SDK 기능은 Normal5/ASan5/TSan2, 일반1188·영향 ASan279가 통과했다. Native guarded4ms는
+별도6개 시도 모두 미통과이며 기존 M4AsyncWall2개 통과와 구분한다.
+다음은 source/collector 재시작 adoption·다른 native 고장 조합과 원인 연결/복구다.
 정규 DDS gate와 native wall/Target·부하/보존 용량 수용은 아직 후속이다.
 다른 BMS trip/Power 고장 조합·Clock 복구·proposal 이전 bootstrap 실패는 후속이다.
 실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.

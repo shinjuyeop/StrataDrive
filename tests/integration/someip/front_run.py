@@ -13,6 +13,8 @@ import struct
 import subprocess
 import sys
 import time
+import shutil
+import tempfile
 from datetime import datetime
 from sdk_outcomes import sdk_outcomes
 from renewal_oracle import renewal_oracle
@@ -36,6 +38,21 @@ def config(role,generation=1,three=False):
         if role=='rear':c['applications'][0]['id']=hex(0x1521+generation);c['diagnosis']='0x15'
         if role=='central':
             c['services'] += [{'service':hex(0x534a+i),'instance':'0x0001','reliable':{'port':30507+i,'enable-magic-cookies':'false'}} for i in range(2)]
+    if os.environ.get('STRATADRIVE_NATIVE_DIAGNOSTICS'):
+        sources=[('front',20),('rear',21),('front',22),('front',23),('rear',24),('front',30),('rear',31),('rear',32),('rear',33)]
+        services=[]
+        for z,peer in enumerate(('front','rear')):
+            if role=='central':services.append(0x5e00+2*z)
+            elif role==peer:services.append(0x5e01+2*z)
+        for i,(peer,_) in enumerate(sources):
+            if role=='central':services.append(0x5e11+2*i)
+            elif role==peer:services.append(0x5e10+2*i)
+        diagnostic_port=31610+('central','front','rear').index(role)
+        c['services'] += [{'service':hex(s),'instance':'0x0001','reliable':{'port':diagnostic_port,'enable-magic-cookies':'false'}} for s in services]
+        # Diagnostic TCP endpoints need2048; shared SDK local envelope must be
+        # at least that size. Control TCP512/wire512 and queues8192 are retained.
+        c['max-payload-size-local']=2048
+        c['payload-sizes']=[{'unicast':f'10.88.0.{i+1}','ports':[{'port':31610+i,'max-payload-size':2048}]} for i in range(3)]
     return c
 
 def normal_prerequisite(folder,central):
@@ -44,7 +61,7 @@ def normal_prerequisite(folder,central):
         if (folder/(role+'-protected')).exists():
             raise RuntimeError(role+' selected protection before declared injection')
     if central.poll() is not None:raise RuntimeError('Central exited before declared injection')
-    return (folder/'control-established').exists()
+    return (folder/'control-established').exists() and (not os.environ.get('STRATADRIVE_NATIVE_DIAGNOSTICS') or (folder/'diagnostic-physical-normal').exists())
 
 def inside(folder,binary,case):
     procs=[];streams=[];capture=None;loads=[]
@@ -52,6 +69,13 @@ def inside(folder,binary,case):
     peers={};peer_roles=('front','rear') if three else ('front',)
     result={'case':case,'three_ecu':three,'fault_target':target,'pass':False,'processes':[],'forced_cleanup':[],
             'energy_cycle':os.environ.get('STRATADRIVE_ENERGY_CYCLE'),'clock_sample':{'monotonic_ns':time.monotonic_ns(),'wall_ns':time.time_ns(),'utc_offset_s':datetime.now().astimezone().utcoffset().total_seconds()}}
+    diagnostic_store=None
+    if os.environ.get('STRATADRIVE_NATIVE_DIAGNOSTICS'):
+        # Real persistent local filesystem, outside per-process private /tmp and
+        # /dev/shm. Preserve original stores as well as the post-join artifact copy.
+        diagnostic_store=Path(tempfile.mkdtemp(prefix='stratadrive-native-diagnostics-',dir='/var/tmp'))
+        os.environ['STRATADRIVE_DIAGNOSTIC_STORE_ROOT']=str(diagnostic_store)
+        result['diagnostic_storage']={'path':str(diagnostic_store),'filesystem':json.loads(subprocess.check_output(['findmnt','-T',str(diagnostic_store),'-J'],text=True)),'retained':True}
     # Only the newly qualified M6 cases opt in; earlier M5/other fault profiles retain their verdicts.
     if case not in ('normal','command-loss'):
         for k in ('STRATADRIVE_M6_RESPONSE','STRATADRIVE_M6_BRAKE_FLOOR','STRATADRIVE_M6_TORQUE_TOLERANCE'):os.environ.pop(k,None)
@@ -238,6 +262,8 @@ def inside(folder,binary,case):
                 result['load_control']=result['load_control'] and alive and load.returncode==0 and measured['cpu_ns']>=100_000_000 and measured['affinity']==[cpu] and measured['policy']==0 and measured['priority']==0 and measured['windows']>0
             except (OSError,ValueError,KeyError):result['load_control']=False
         for s in streams:s.close()
+        if diagnostic_store is not None:
+            shutil.copytree(diagnostic_store,folder/'native-diagnostics')
         result['sanitizer_diagnostics']=any(pilot.sanitizer_errors(p.read_text(errors='replace')) for p in folder.glob('*.stderr'))
         result['expected_sdk_faults'],result['unexpected_sdk_errors']=sdk_outcomes(folder,result)
         result['sdk_errors']=bool(result['unexpected_sdk_errors'])
@@ -271,6 +297,12 @@ def inside(folder,binary,case):
             from native_oracle import native_oracle
             result['native']=native_oracle(folder,case,result,os.environ.get('STRATADRIVE_NATIVE_FIFO') is not None)
             result['pass']=result['pass'] and result['native']['pass']
+        if os.environ.get('STRATADRIVE_NATIVE_DIAGNOSTICS'):
+            try:
+                result['diagnostics']={r:json.loads((folder/'native-diagnostics'/r/(r+'-1.json')).read_text()) for r in ('central','front','rear')}
+                result['pass']=result['pass'] and all(r['pass'] for r in result['diagnostics'].values())
+            except (OSError,ValueError,KeyError) as e:
+                result['pass']=False;result['diagnostic_error']=str(e)
         if case=='normal':
             result['renewal']=renewal_oracle(folder,three=three)
             result['pass']=result['pass'] and result['renewal']['pass']
@@ -294,9 +326,16 @@ def main():
     p.add_argument('--energy-cycle',choices=['nominal','no-charge']);p.add_argument('--simple-vehicle',action='store_true');p.add_argument('--three',action='store_true');p.add_argument('--fault-zone',choices=['front','rear'],default='front')
     p.add_argument('--native-watch',action='store_true');p.add_argument('--fifo',action='store_true');p.add_argument('--loaded',action='store_true');p.add_argument('--timing',action='store_true');p.add_argument('--duration-ms',type=int,default=2540)
     p.add_argument('--profile',choices=['normal','asan','tsan'],default='normal');p.add_argument('--fixed-layout',action='store_true')
+    p.add_argument('--diagnostics',action='store_true');p.add_argument('--diagnostic-drop-ack',action='store_true');p.add_argument('--diagnostic-context-delay-ms',type=int,default=0)
     p.add_argument('--cases',nargs='+',choices=CASES,default=['normal']);p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
     if a.fixed_layout and a.profile!='tsan':p.error('fixed-layout is TSan-only')
+    if a.diagnostics:
+        if not a.three or any(c not in ('normal','command-loss') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss')
+        if not 0<=a.diagnostic_context_delay_ms<=1500:p.error('diagnostic context delay must be in0..1500ms')
+        os.environ['STRATADRIVE_NATIVE_DIAGNOSTICS']='1';os.environ['STRATADRIVE_DIAGNOSTIC_CONTEXT_DELAY_MS']=str(a.diagnostic_context_delay_ms)
+        if a.diagnostic_drop_ack:os.environ['STRATADRIVE_DIAGNOSTIC_DROP_ACK']='1'
+    elif a.diagnostic_drop_ack or a.diagnostic_context_delay_ms:p.error('diagnostics required')
     if (a.fifo or a.loaded or a.timing) and not a.native_watch:p.error('native-watch required')
     if a.energy_cycle:
         if not (a.three and a.simple_vehicle and a.native_watch):p.error('energy-cycle requires three/simple-vehicle/native-watch')
@@ -322,7 +361,7 @@ def main():
     rows=[]
     with pilot.open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'fault_target':a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
+        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()

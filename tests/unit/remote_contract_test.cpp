@@ -1,5 +1,6 @@
 #include "owner_wire.hpp"
 #include "run_lease_gate.hpp"
+#include "../../interfaces/someip/owner_credit_retirement.hpp"
 #include "run_lease_issuer.hpp"
 #include "command_admission.hpp"
 #include <gtest/gtest.h>
@@ -249,5 +250,42 @@ TEST(RemoteProtection, MissingOrNegativeAckIsNotASelectionAndCannotOpenRunGate) 
     EXPECT_FALSE(receipt.acknowledged());
     remote::OwnerMessage ack{session::Role::Drive,session::Role::CentralIngress,kClock,remote::ProtectionAck{r,kStart+1*kMs,false}};
     EXPECT_FALSE(receipt.receive(ack,kStart+2*kMs));EXPECT_FALSE(receipt.acknowledged());
+}
+TEST(RemoteEgress, AbortBurstCannotQueueObsoleteCreditAheadOfProtection) {
+    const auto current=plan();std::deque<someip::OwnerEgressPacket> queue;std::deque<remote::OwnerMessage> received;
+    for(const auto role:{session::Role::RearZone,session::Role::Drive,session::Role::Bms,session::Role::Power}) {
+        const auto packet=someip::owner_egress({session::Role::CentralIngress,role,kClock,remote::RunLease{current,1,current.enable_ns,current.enable_ns+60*kMs}});
+        ASSERT_TRUE(packet);queue.push_back(*packet);received.push_back(*remote::decode_owner_message(packet->packet.bytes.data(),packet->packet.size));
+    }
+    unsigned retired=0,received_retired=0;
+    for(const auto role:{session::Role::RearZone,session::Role::Drive,session::Role::Bms,session::Role::Power}) {
+        remote::OwnerMessage abort{session::Role::CentralIngress,role,kClock,session::Control{role,session::Phase::Abort,current,current.enable_ns}};
+        retired+=someip::retire_run_credits(queue,abort);ASSERT_LT(queue.size(),8U);queue.push_back(*someip::owner_egress(abort));
+        received_retired+=someip::retire_received_credits(received,abort);ASSERT_LT(received.size(),8U);received.push_back(abort);
+    }
+    remote::OwnerMessage protect{session::Role::CentralIngress,session::Role::RearZone,kClock,remote::ProtectionRequest{current.epoch,7,current.enable_ns,current.enable_ns+20*kMs}};
+    EXPECT_EQ(someip::retire_run_credits(queue,protect),0U);queue.push_back(*someip::owner_egress(protect));
+    EXPECT_EQ(retired,4U);EXPECT_EQ(queue.size(),5U);
+    EXPECT_EQ(received_retired,4U);EXPECT_EQ(someip::retire_received_credits(received,protect),0U);received.push_back(protect);EXPECT_EQ(received.size(),5U);
+    EXPECT_TRUE(std::none_of(queue.begin(),queue.end(),[](const auto& p){return p.credit.has_value();}));
+    for(const auto& p:queue)EXPECT_TRUE(remote::decode_owner_message(p.packet.bytes.data(),p.packet.size));
+}
+TEST(RemoteEgress, DifferentPeerPlanClockAndNonProtectionNeverRetireOriginalAuthority) {
+    const auto current=plan();const auto source=someip::owner_egress({session::Role::CentralIngress,session::Role::Drive,kClock,remote::RunLease{current,1,current.enable_ns,current.enable_ns+60*kMs}});ASSERT_TRUE(source);
+    for(unsigned variant=0;variant<7;++variant) {
+        std::deque<someip::OwnerEgressPacket> queue{*source};
+        remote::OwnerMessage action{session::Role::CentralIngress,session::Role::Drive,kClock,session::Control{session::Role::Drive,session::Phase::Abort,current,current.enable_ns}};
+        switch(variant) {
+        case 0:action.to=session::Role::Bms;break;case 1:++std::get<session::Control>(action.payload).plan.epoch;break;
+        case 2:++action.clock_domain;break;case 3:std::get<session::Control>(action.payload).phase=session::Phase::Release;break;
+        case 4:++std::get<session::Control>(action.payload).plan.enable_ns;break;
+        case 5:action.from=session::Role::RearZone;break;
+        case 6:action.payload=remote::ProtectionRequest{current.epoch,0,current.enable_ns,current.enable_ns+20*kMs};break;
+        }
+        std::deque<remote::OwnerMessage> received{*remote::decode_owner_message(source->packet.bytes.data(),source->packet.size)};
+        EXPECT_EQ(someip::retire_run_credits(queue,action),0U)<<variant;EXPECT_EQ(someip::retire_received_credits(received,action),0U)<<variant;ASSERT_EQ(queue.size(),1U);EXPECT_EQ(received.size(),1U);EXPECT_EQ(queue[0].packet.bytes,source->packet.bytes);
+    }
+    std::deque<someip::OwnerEgressPacket> queue{*source};remote::OwnerMessage protect{session::Role::CentralIngress,session::Role::Drive,kClock,remote::ProtectionRequest{current.epoch,7,current.enable_ns,current.enable_ns+20*kMs}};
+    EXPECT_EQ(someip::retire_run_credits(queue,protect),1U);EXPECT_TRUE(queue.empty());
 }
 } // namespace

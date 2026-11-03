@@ -100,10 +100,11 @@ EventId ControlDiagnostics::publish(Event e) noexcept {
     if(!queue_.publish(e)) healthy_=false;
     return id;
 }
-bool ControlDiagnostics::start_session(std::uint32_t epoch,std::uint64_t enable) noexcept {
+bool ControlDiagnostics::start_session(std::uint32_t epoch,std::uint64_t enable,bool publish_context) noexcept {
     if(!epoch || epoch<=session_.epoch || (session_.epoch && enable<enable_)) return false;
     session_={context_.run,epoch}; enable_=enable; speed_seen_=coordinator_seen_=response_seen_=false;
     stop_seen_={}; phase_seen_={}; protection_seen_={}; root_={};
+    if(!publish_context) return healthy_;
     auto e=base(enable); e.kind=Kind::Session; return publish(e).sequence!=0 && healthy_;
 }
 void ControlDiagnostics::speed(const central::SpeedRequest& c,const std::optional<central::VehicleRequest>& command,std::uint64_t now) noexcept {
@@ -295,6 +296,9 @@ std::optional<ServiceEvidence> ControlDiagnostics::speed_clear_evidence(const ce
 void ControlDiagnostics::observe(const central::SpeedRequest& speed_control,const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
     if(!session_.epoch) return;
     speed(speed_control,c.last_vehicle_request(),now); stop(c.normal_stop(),now); coordinator(c,now);
+}
+void ControlDiagnostics::observe(const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
+    if(session_.epoch) {stop(c.normal_stop(),now);coordinator(c,now);}
 }
 void ControlDiagnostics::observe(const central::SpeedRequest& c,std::uint64_t now) noexcept {
     if(session_.epoch) speed(c,std::nullopt,now);

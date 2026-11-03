@@ -285,3 +285,47 @@ original duplicate context/fault로 Unknown이 바뀌지 않아야 한다. 일�
 원본3개를 독립 Python parser로 대조하고4개 변조를 거부한다. 기존 native Leaf endpoint의
 Ready/credit/expiry/INIT reset snapshot도 회귀한다. 실제 IP/SDK native owner 배선·wall 차량
 반응·새 고장 matrix는 이 component 검증의 분모가 아니다.
+
+## Native 3-ECU 진단 배선 fixture
+
+실행 전 고정: 기존 실제 Central/Front/Rear process·netns·8 participant/control TCP와 persistent
+plant를 사용한다. 새 logical Network나 archived event를 source로 사용하지 않는다. Run8001,
+registry3/profile1/common kernel monotonic clock `0x53444d4f4e4f`다. Central Startup7이 만든 원본
+Attempt/Session과 Coordinator/Stop8, Front/Rear·Steering/Brake/Drive20–24, native Gateway/BMS/
+Power30–33의 기존 observer를 실제 owner에서 호출한다. Control8은 자체 Session을 만들지 않는다.
+
+Central→Front/Rear context stream8101/8102는 source·receiver journal을 각각 갖는다. 원격9개
+source는 독립 stream8200–8208/source·Central replica journal을 사용한다. Service pairs는
+context0x5e00–03/source0x5e10–21, instance/interface1, Data0x101/ACK0x102, reliable request-no-return다.
+PCAP의 모든 Data/ACK를 source ordinal/원본 bytes와 대조한다. Central merged journal은 동일
+Session을 한 번만 저장하며 remote ACK는 replica와 merged의 durable commit 뒤에만 보낸다.
+
+Owner는 원본 snapshot과 bounded SPSC만 사용한다. SDK application을 공유해도 control lane과
+진단 callback FIFO8·writer는 분리한다. Writer CPU15/SCHED_OTHER0의 실제 배치를 기록한다.
+Control wire/TCP512와 queue8192를 유지한다. Diagnostic endpoint31610–12만 TCP2048을 사용하며
+SDK가 요구하는 shared local envelope는 opt-in profile에서1024→2048로 명시한다. Event-only
+canonical Data는602 bytes다. 기존 off profile의 설정은 바꾸지 않는다.
+유효 Abort/보호 요청은 같은 대상·plan/epoch·clock의 미사용 RunLease만 송신/수신 큐에서
+취소한다. 다른 제어/명령/ACK와 이미 actor가 수용한 credit는 지우지 않는다. Queue8은 그대로다.
+4-role credit→Abort4→보호의 burst와 다른 plan/peer/clock·Release의 음성을 실제 codec으로
+검사한다. 종료 시 보호 cleanup 뒤 진단 ACK를 기다리는 동안 late ingress를 별도 계수해 retire한다.
+정상 physical trace의 선행 표본 timestamp는 plant가 atomic으로 넘기고 별도 non-RT observer가
+주입 prerequisite marker를 쓴다. 새로운 marker 파일 IO를 plant runnable에서 수행하지 않는다.
+
+Source context pending32·retry100ms·종료 drain2s를 유지한다. Durable 저장은 `/var/tmp`의 새
+고유 ext4 directory를 명시하고 원본을 남긴다. Private `/tmp`·`/dev/shm`의 local IPC로 진단을
+운반하지 않는다. 종료/join 뒤 artifact copy와 원본을 대조한다. 느린 `/d` 저장에서 관찰한
+overflow/timeout과 payload 설정 오류는 실패로 보존하며 용량 수용 PASS로 올리지 않는다.
+
+필수 기능 cohort는 normal, Front/Rear command-loss, 최초 Fault ACK1회 유실, context1500ms
+지연의5개다. Normal/ASan과 필요한 SDK-instrumented TSan을 구분한다. 기존 normal readiness/
+정지/HV-off와 command-loss의 정상 제어 선행·원본 만료·모든 ECU 보호·실제100ms 물리 기준을
+유지한다. 정상 DTC0, 손실에는 target 소유 영역의 실제 Gateway/Leaf SD-2001과 원래 native 원인만 기록하고 보호
+전달을 임의 root로 만들지 않는다. ACK 유실은 같은 ordinal의 duplicate와 이력/count1을,
+context 지연은 실제 owner의 accepted credit와 pending 후 원본 context→고장 commit을 요구한다.
+Code2001/2002의 서로 다른 실제 monitor는 별도 key이며 발생하지 않은 code/Passed/clear는 없다.
+Native detector/selection snapshot·control/diagnostic PCAP·journal·physical 원본과 변조 거부를
+독립 감사한다. Off profile 회귀도 실행한다. 결정적 on/off physics byte 동등성은 wall 실행에
+요구하지 않으며 각 실행의 같은 기존 제어·물리 oracle를 적용한다. Guarded4ms wall trial은
+별도 분모이며 실패를 기능 PASS로 바꾸지 않는다. Source kill/rejoin adoption·Clock/Target·부하/
+보존 용량·CARLA 전체 matrix·학습자 수용은 여전히 후속이다.

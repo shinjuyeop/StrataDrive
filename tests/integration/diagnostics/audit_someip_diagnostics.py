@@ -9,7 +9,9 @@ import zlib
 from audit_control_diagnostics import checksum, csv_rows, event, journal, require
 
 
-def pcap(path):
+def pcap(path, ports=(40510, 40511), peer_ips=(b'\x0a\x59\0\x01', b'\x0a\x59\0\x02'), bindings=None):
+    if bindings is None:
+        bindings = {(0x5d11, 0x101): (0x2211,), (0x5d10, 0x102): (0x2221, 0x2222)}
     data = path.read_bytes(); require(data[:4] == b'\xd4\xc3\xb2\xa1', 'pcap format')
     position = 24; connections = {}; active = {}; syns = 0
     while position < len(data):
@@ -22,9 +24,9 @@ def pcap(path):
         if ip[9] != 6: continue
         require(ihl >= 20 and len(ip) >= ihl+20 and not (int.from_bytes(ip[6:8], 'big') & 0x3fff), 'unfragmented TCP')
         tcp = ip[ihl:]; source, destination, sequence = struct.unpack_from('!HHI', tcp)
-        if not ({source, destination} & {40510, 40511}): continue
+        if not ({source, destination} & set(ports)): continue
         pair = (bytes(ip[12:16]), bytes(ip[16:20]), source, destination)
-        require(set(pair[:2]) == {b'\x0a\x59\0\x01', b'\x0a\x59\0\x02'}, 'isolated diagnostic IP peers')
+        require(len(set(pair[:2])) == 2 and set(pair[:2]) <= set(peer_ips), 'isolated diagnostic IP peers')
         if tcp[13] & 2 and not tcp[13] & 16:
             if pair not in active or active[pair][0] != sequence:
                 active[pair] = (sequence, syns); syns += 1
@@ -48,9 +50,9 @@ def pcap(path):
             service, method, length, client, session, protocol, interface, kind, code = struct.unpack_from('!HHIHHBBBB', data, cursor)
             require(8 <= length <= 2056 and cursor+length+8 <= len(data), 'SOME/IP length')
             payload = data[cursor+16:cursor+length+8]; cursor += length+8
-            require((service, method) in ((0x5d11, 0x101), (0x5d10, 0x102)) and protocol == interface == kind == 1 and code == 0 and session != 0,
+            require((service, method) in bindings and protocol == interface == kind == 1 and code == 0 and session != 0,
                     'dedicated reliable request-no-return binding')
-            require(client == 0x2211 if method == 0x101 else client in (0x2221, 0x2222), 'configured SDK client identity')
+            require(client in bindings[(service, method)], 'configured SDK client identity')
             messages.append(dict(service=service, method=method, client=client, payload=payload, flow=key))
     return messages, syns
 

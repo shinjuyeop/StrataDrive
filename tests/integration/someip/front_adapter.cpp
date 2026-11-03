@@ -7,6 +7,7 @@
 #include "run_lease_issuer.hpp"
 #include "epoch_store.hpp"
 #include "native_execution_watch.hpp"
+#include "native_diagnostic_routes.hpp"
 #include <filesystem>
 #include <iostream>
 #include <map>
@@ -22,6 +23,7 @@ bool energy_enabled(){return std::getenv("STRATADRIVE_ENERGY_CYCLE")!=nullptr;}
 bool no_charge(){const auto* p=std::getenv("STRATADRIVE_ENERGY_CYCLE");return p && std::string(p)=="no-charge";}
 bool native_enabled(){return std::getenv("STRATADRIVE_NATIVE_WATCH")!=nullptr;}
 bool three_enabled(){return std::getenv("STRATADRIVE_THREE_ECU")!=nullptr;}
+bool diagnostics_enabled(){return std::getenv("STRATADRIVE_NATIVE_DIAGNOSTICS")!=nullptr;}
 unsigned fault_zone(){return std::getenv("STRATADRIVE_FAULT_REAR")?1:0;}
 bool fifo_enabled(){return std::getenv("STRATADRIVE_NATIVE_FIFO")!=nullptr;}
 std::uint64_t run_duration(){const auto* v=std::getenv("STRATADRIVE_NATIVE_DURATION_MS");return v?std::stoull(v)*kMs:9000*kMs;}
@@ -32,6 +34,24 @@ struct NativeIteration {
     ~NativeIteration(){finish();}
 };
 constexpr remote::ClockAgreement agreement{kDomain,kDomain,0,0,true};
+// Test orchestration metadata only. The plant publishes the original recorded
+// sample time; a non-RT observer writes the prerequisite marker off its runnable.
+class PhysicalPrerequisite {
+    std::atomic<std::uint64_t> source_{0};std::atomic<bool> stop_{false},failed_{false};std::thread writer_;
+public:
+    explicit PhysicalPrerequisite(const fs::path& folder) {
+        if(diagnostics_enabled())writer_=std::thread([this,folder] {
+            try {
+                simulation::NativeExecutionWatch::configure_thread(15,0);
+                while(!stop_ && !source_.load(std::memory_order_acquire))std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                if(const auto source=source_.load(std::memory_order_acquire)) {std::ofstream out(folder/"diagnostic-physical-normal");out<<source<<'\n';if(!out)failed_=true;}
+            } catch(...) {failed_=true;}
+        });
+    }
+    void observe(std::uint64_t ns) {source_.store(ns,std::memory_order_release);}
+    bool failed() const {return failed_.load();}
+    ~PhysicalPrerequisite(){stop_=true;if(writer_.joinable())writer_.join();}
+};
 void mark(const fs::path& p){
     // Main owner only. Each diagnostic transition writes once, never each poll.
     static std::set<fs::path> written;
@@ -80,6 +100,16 @@ struct Owners final:session::CoordinatorPort {
     bool stop_requested=false;std::uint32_t stop_seq=0;std::uint64_t stop_started=0,stop_complete=0,last_stop=0;
     std::atomic<std::uint64_t> monitor_delay{0};
     std::unique_ptr<simulation::NativeExecutionWatch> watch;
+    someip::test::NativeDiagnosticRoutes* diagnostic_routes{nullptr};
+    void sample_diagnostics() {
+        if(!diagnostic_routes)return;
+        const auto observed=now();
+        if(!remote)diagnostic_routes->central(coordinator,core,observed);
+        else {
+            diagnostic_routes->zone(zi,*zone[zi],gate.allows(zone[zi]->epoch()),remote_zone->diagnostic_evidence(),observed);
+            for(unsigned i=0;i<5;++i)if(leaf[i])diagnostic_routes->leaf(i,*leaf[i],leaf_gates[i].allows(leaf[i]->epoch()),remote_leaf[i]->diagnostic_evidence(),observed);
+        }
+    }
     void start_watch() {
         if(!native_enabled())return;
         const auto origin=now();
@@ -98,7 +128,7 @@ struct Owners final:session::CoordinatorPort {
         std::ofstream events(folder/(tag+".events.csv"));events<<"ns,event,epoch,role,value,deadline\n";
         for(const auto& e:event_rows)events<<e.ns<<','<<e.name<<','<<e.epoch<<','<<e.role<<','<<e.value<<','<<e.deadline<<'\n';
     }
-    explicit Owners(Ecu e,Transport& n,const fs::path& d,const std::string& label):ecu(e),remote(e!=Ecu::Central),three(three_enabled()),zi(e==Ecu::Rear?1:0),folder(d),tag(label),net(n),io((d/"sil-io"/"plant.bin").string()),trace(d/(tag+".transport.csv")) {
+    explicit Owners(Ecu e,Transport& n,const fs::path& d,const std::string& label,someip::test::NativeDiagnosticRoutes* diagnostic=nullptr):ecu(e),remote(e!=Ecu::Central),three(three_enabled()),zi(e==Ecu::Rear?1:0),folder(d),tag(label),net(n),io((d/"sil-io"/"plant.bin").string()),trace(d/(tag+".transport.csv")),diagnostic_routes(diagnostic) {
         event_rows.reserve(65536);if(energy_enabled() && !remote)energy_feedback.reserve(2000);
         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
         if(remote || !three) {
@@ -335,6 +365,7 @@ int plant(const fs::path& folder) {
     struct ResponseRow {std::uint64_t before,after;simulation::m4_detail::PhysicalOwner::ResponseSample sample;simulation::OwnerActuation drive,brake;};
     std::vector<ResponseRow> response;response.reserve(1024);bool response_done=false;
 
+    bool diagnostic_normal=false;PhysicalPrerequisite prerequisite(folder);
     try {while(!fs::exists(folder/"stop-plant") && now()-start<18'000*kMs) {
         if(watch)simulation::runtime_support::sleep_until(requested);
         NativeIteration iteration(watch.get(),requested);
@@ -346,6 +377,10 @@ int plant(const fs::path& folder) {
         for(auto& observer:observers)if(const auto e=observer->poll(now()))override_signal.request(e);
         const auto before=now();maximum_gap=std::max(maximum_gap,before-previous);previous=before;
         physical.step();
+        if(diagnostics_enabled() && !diagnostic_normal && !physical.trace.empty()) {
+            const auto& sample=physical.trace.back();
+            if(sample.torque_nm>1 && sample.pressure_pa<1){prerequisite.observe(sample.source_ns);diagnostic_normal=true;}
+        }
         if(timing.size()<timing.capacity())timing.push_back({before,now(),physical.ok()?0ULL:1ULL});
         else {pass=false;fault_time=now();error="plant timing capacity";break;}
         if(!physical.ok()){pass=false;fault_time=now();break;}
@@ -366,6 +401,7 @@ int plant(const fs::path& folder) {
         if(watch)requested=simulation::M4ReleaseGrid{start,500000}.after(now());
         else std::this_thread::sleep_for(std::chrono::microseconds(500));
     }}catch(const std::exception& e){pass=false;fault_time=now();error=e.what();}
+    if(prerequisite.failed()){pass=false;error="physical prerequisite observer failed";}
     if(watch)watch->write((folder/"plant-1.native").string());
     std::ofstream log(folder/"physical.csv");log<<"ns,epoch,angle,pressure,torque,bus,model_epoch,model_sequence,speed_mps,distance_m,x_m,y_m,yaw_rad,vehicle_balance_j\n";
     for(const auto& r:physical.trace)log<<r.source_ns<<','<<r.epoch<<','<<r.angle_rad<<','<<r.pressure_pa<<','<<r.torque_nm<<','<<r.bus_v<<','<<r.model_epoch<<','<<r.model_sequence<<','<<r.speed_mps<<','<<r.distance_m<<','<<r.x_m<<','<<r.y_m<<','<<r.yaw_rad<<','<<r.vehicle_balance_j<<'\n';
@@ -393,6 +429,7 @@ int main(int argc,char** argv) {
     const std::string role=argv[1];const fs::path folder=argv[2];
     if(role=="bootstrap"){
         session::EpochStore::initialize((folder/"epochs").string());
+        if(diagnostics_enabled())someip::test::NativeDiagnosticRoutes::bootstrap(folder);
         for(const auto* name:{"central","front","rear","plant"})if(three_enabled() || std::string(name)!="rear")simulation::NativeWatchChannel channel((folder/"sil-io"/(std::string("watch-")+name+".bin")).string(),true);
         return 0;
     }
@@ -402,10 +439,16 @@ int main(int argc,char** argv) {
     const bool remote=ecu!=Ecu::Central;const std::string test=argv[3],generation=argv[4],tag=role+"-"+generation;
     Transport net(ecu,three_enabled(),(folder/(tag+".sdk-api.csv")).string());
     std::unique_ptr<Owners> owners;
+    std::unique_ptr<someip::test::NativeDiagnosticRoutes> diagnostic_routes;
     bool pass=false;std::string error;std::uint64_t begin=now(),ready_ns=0,closing=0;
     try {
-        net.start();mark(folder/(tag+".started"));
-        owners=std::make_unique<Owners>(ecu,net,folder,tag);
+        if(diagnostics_enabled()) {
+            check(three_enabled() && (test=="normal" || test=="command-loss"),"native diagnostics profile");
+            diagnostic_routes=std::make_unique<someip::test::NativeDiagnosticRoutes>(ecu,folder,tag);
+            diagnostic_routes->start(net);
+        } else net.start();
+        mark(folder/(tag+".started"));
+        owners=std::make_unique<Owners>(ecu,net,folder,tag,diagnostic_routes.get());
         std::uint64_t probe_due=0;
         while(now()-begin<3000*kMs && net.ready!=net.ready_mask()) {
             owners->physical_io();if(now()>=probe_due){net.probe_peer();probe_due=now()+50*kMs;}
@@ -453,6 +496,7 @@ int main(int argc,char** argv) {
                 if(remote && test=="delay" && owners->remote_zone->expired>0)mark(folder/"delay-drained");
                 if(remote && full && net.queued(0)==8)mark(folder/"queue-full");
                 owners->step(fault_phase && test=="command-loss",fault_phase && test=="result-loss",fault_phase && test=="status-loss",fault_phase && test=="lease-loss");
+                owners->sample_diagnostics();
                 if(!remote && full && owners->last_request && full_sent==0) {
                     owners->freeze_normal=true;
                     for(unsigned i=0;i<8;++i){auto r=*owners->last_request;r.epoch+=100;r.token=1000000000ULL+i;owners->diagnostic(r);}
@@ -564,9 +608,24 @@ int main(int argc,char** argv) {
         }
         if(!fs::exists(folder/"stop-central")){pass=false;error="peer shutdown handshake timeout";}
     }
+    std::uint64_t shutdown_rx_retired=0;
+    if(diagnostic_routes) {
+        diagnostic_routes->quiesce();
+        // Authority is already closed and protection cleanup finished. Continue
+        // retiring late control ingress while non-RT durable ACKs drain; these
+        // packets are neither fresh commands nor completed owner jobs.
+        while(!diagnostic_routes->finished()) {
+            for(unsigned lane=0;lane<net.channels();++lane)for(unsigned i=0;i<8;++i)if(net.pop(lane))++shutdown_rx_retired;
+            std::this_thread::sleep_for(std::chrono::microseconds(200));
+        }
+        if(!diagnostic_routes->finish()){pass=false;if(error.empty())error="native diagnostic delivery failed";}
+    }
     closing=now();net.stop();
     std::ofstream summary(folder/(tag+".json"));
     summary<<"{\"pass\":"<<(pass?"true":"false")<<",\"orderly_stop\":true,\"stop_begin\":"<<closing<<",\"stop_return\":"<<net.stop_return_ns<<",\"join_return\":"<<net.join_return_ns
+        <<",\"shutdown_rx_retired\":"<<shutdown_rx_retired<<",\"tx_overflow_ns\":"<<net.tx_overflow_ns<<",\"tx_overflow_lane\":"<<net.tx_overflow_lane<<",\"tx_overflow_method\":"<<net.tx_overflow_method
+        <<",\"retired_run_credits\":"<<net.retired_run_credits
+        <<",\"retired_received_credits\":"<<net.retired_received_credits
         <<",\"pending_cancelled\":"<<pending_cancelled<<",\"pending_expired\":"<<(owners?owners->pending_expired:0)<<",\"pre_shutdown_protection\":"<<pre_shutdown_protection<<",\"unprocessed_rejected\":"<<unprocessed<<",\"diagnostic_sent\":"<<(owners?owners->diagnostic_sent:0)<<",\"diagnostic_rejected\":"<<(owners?owners->diagnostic_rejected:0)<<",\"diagnostic_expired\":"<<(owners?owners->diagnostic_expired:0)<<",\"diagnostic_late\":"<<(owners?owners->diagnostic_late:0)<<",\"state_violations\":"<<(owners?owners->state_violations:0)<<",\"pre_init_rejected\":"<<(owners?owners->pre_init_rejected:0)<<",\"epoch\":"<<(owners?owners->epoch:0)<<",\"release_ack_mask\":"<<(owners?owners->release_acks:0)<<",\"armed_ns\":"<<(owners?owners->armed_ns:0)
         <<",\"protected_ns\":"<<(owners?owners->protected_ns:0)<<",\"selected_ns\":"<<(owners?owners->selected_ns:0)<<",\"last_lease_expiry\":"<<(owners?(remote?owners->remote_zone->last_lease_expiry:owners->last_lease_expiry):0)
         <<",\"batches\":"<<(owners?owners->port.completed_batches():0)<<",\"actual_count\":"<<(owners?owners->actual_count:0)<<",\"result_count\":"<<(owners?owners->result_count:0)

@@ -3,10 +3,12 @@
 #include "owner_wire.hpp"
 #include "wire_binding.hpp"
 #include "owner_message_binding.hpp"
+#include "owner_credit_retirement.hpp"
 #include <atomic>
 #include <chrono>
 #include <deque>
 #include <fstream>
+#include <functional>
 #include <mutex>
 #include <thread>
 
@@ -15,7 +17,7 @@ inline constexpr std::uint64_t kMs=1000000;
 inline std::uint64_t now() { return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
 inline void check(bool ok,const char* why) { if(!ok) throw std::runtime_error(why); }
 class Transport {
-    struct Out { remote::OwnerPacket packet; unsigned method; };
+    using Out=OwnerEgressPacket;
     Ecu ecu_; bool three_;bool transitioning_=false; std::shared_ptr<vsomeip::application> app_;
     std::thread dispatch_,sender_; std::mutex mutex_; std::array<std::deque<remote::OwnerMessage>,4> rx_;
     std::array<std::deque<Out>,4> tx_; std::atomic<bool> sending_{false},closing_{false};
@@ -32,6 +34,9 @@ public:
     std::atomic<bool> overflow{false};
     std::array<std::atomic<unsigned>,4> rx_rejected{},transition_discarded{};
     std::atomic<std::uint64_t> rx_overflow_ns{0},rx_overflow_token{0};
+    std::atomic<std::uint64_t> tx_overflow_ns{0};std::atomic<unsigned> tx_overflow_lane{0},tx_overflow_method{0};
+    std::atomic<std::uint64_t> retired_run_credits{0};
+    std::atomic<std::uint64_t> retired_received_credits{0};
     std::array<std::uint64_t,8> full_tokens{},drained_tokens{};unsigned drained_count=0;
     bool fifo_preserved=true; // callback writes full_tokens under mutex; pop uses same mutex
 
@@ -42,11 +47,16 @@ public:
     }
     unsigned channels() const {return ecu_==Ecu::Central && three_?4:2;}
     unsigned ready_mask() const {return (1U<<channels())-1;}
-    void start() {
+    void outbound_full(unsigned lane,unsigned method) {
+        if(!tx_overflow_ns.load()){tx_overflow_lane=lane;tx_overflow_method=method;tx_overflow_ns=now();}
+        overflow=true;
+    }
+    void start(const std::function<void(const std::shared_ptr<vsomeip::application>&)>& configure={},std::function<void()> registered={}) {
         check(app_->init(),"SDK init");
-        app_->register_state_handler([this](auto s) { if(s==vsomeip::state_type_e::ST_REGISTERED) for(unsigned l=0;l<channels();++l) {
+        if(configure)configure(app_);
+        app_->register_state_handler([this,registered=std::move(registered)](auto s) { if(s==vsomeip::state_type_e::ST_REGISTERED) {for(unsigned l=0;l<channels();++l) {
             app_->offer_service(local(l),1,1,0);app_->request_service(peer(l),1,1,0);
-        }});
+        }if(registered)registered();}});
         for(unsigned l=0;l<channels();++l) {
             app_->register_availability_handler(peer(l),1,[this,l](auto,auto,bool yes){
                 if(yes) available.fetch_or(1U<<l);else {available.fetch_and(~(1U<<l));ready.fetch_and(~(1U<<l));}
@@ -88,6 +98,10 @@ public:
                 }
                 std::lock_guard<std::mutex> lock(mutex_);++rx_count;
                 if(transitioning_){++transition_discarded[l];return;}
+                // A validated Abort/protection request makes queued credit for
+                // that exact role/plan/clock obsolete before the owner sees it.
+                // This grants no authority and never removes a command or ACK.
+                retired_received_credits+=retire_received_credits(rx_[l],*decoded);
                 if(rx_[l].size()==8) {
                     ++rx_rejected[l];
                     if(!rx_overflow_ns.load()) {
@@ -122,8 +136,8 @@ public:
     void send_probe(unsigned lane,ProbeV2 probe) {
         const auto bytes=probe_v2(probe);remote::OwnerPacket packet;packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());
         std::lock_guard<std::mutex> lock(mutex_);
-        if(tx_[lane].size()==8){overflow=true;return;}
-        tx_[lane].push_back({packet,kReady});
+        if(tx_[lane].size()==8){outbound_full(lane,kReady);return;}
+        tx_[lane].push_back({packet,kReady,std::nullopt});
         tx_highwater[lane]=std::max(tx_highwater[lane].load(),static_cast<unsigned>(tx_[lane].size()));
     }
     void probe_peer(bool force=false) {
@@ -146,10 +160,11 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);check(transitioning_,"ingress not quiesced");transitioning_=false;
     }
     bool send(const remote::OwnerMessage& m) {
-        auto p=remote::encode_owner_message(m);if(!p)return false;const auto mid=method(m.payload);const unsigned l=(authority(mid)?1:0)+(ecu_==Ecu::Central && three_ && owns_role(Ecu::Rear,m.to)?2:0);
+        auto p=owner_egress(m);if(!p)return false;const auto mid=p->method;const unsigned l=(authority(mid)?1:0)+(ecu_==Ecu::Central && three_ && owns_role(Ecu::Rear,m.to)?2:0);
         std::lock_guard<std::mutex> lock(mutex_);
-        if(tx_[l].size()==8) {overflow=true;return false;}
-        tx_[l].push_back({*p,mid});tx_highwater[l]=std::max(tx_highwater[l].load(),static_cast<unsigned>(tx_[l].size()));return true;
+        retired_run_credits+=retire_run_credits(tx_[l],m);
+        if(tx_[l].size()==8) {outbound_full(l,mid);return false;}
+        tx_[l].push_back(*p);tx_highwater[l]=std::max(tx_highwater[l].load(),static_cast<unsigned>(tx_[l].size()));return true;
     }
     std::optional<remote::OwnerMessage> pop(unsigned lane) {
         std::lock_guard<std::mutex> lock(mutex_);if(rx_[lane].empty())return {};
