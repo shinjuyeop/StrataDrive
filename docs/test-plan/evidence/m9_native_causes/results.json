@@ -1,0 +1,108 @@
+{
+  "checks": {
+    "normal-verified.xml": {
+      "tests": 1129,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "normal-verified.xml"
+    },
+    "asan-complete.xml": {
+      "tests": 206,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "asan-complete.xml"
+    },
+    "export-verified-normal.xml": {
+      "tests": 3,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "export-verified-normal.xml"
+    },
+    "export-verified-asan.xml": {
+      "tests": 3,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "export-verified-asan.xml"
+    },
+    "wall.xml": {
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "wall.xml"
+    }
+  },
+  "audits": {
+    "normal/central-pause": {
+      "pass_": true,
+      "events": 13,
+      "faults": 2,
+      "qualified_passes": 2,
+      "physical_samples": 2400,
+      "first_detected_ns": 11011200000,
+      "first_response_ns": 11221000000,
+      "mutations_rejected": [
+        "registry",
+        "expiry",
+        "propagation-as-root",
+        "wrong-proof",
+        "early-pass",
+        "partial-send",
+        "history-erased",
+        "physical-reset"
+      ]
+    },
+    "normal/normal": {
+      "pass_": true,
+      "events": 1,
+      "faults": 0,
+      "physical_samples": 9200
+    },
+    "asan/central-pause": {
+      "pass_": true,
+      "events": 13,
+      "faults": 2,
+      "qualified_passes": 2,
+      "physical_samples": 2400,
+      "first_detected_ns": 11011200000,
+      "first_response_ns": 11221000000,
+      "mutations_rejected": [
+        "registry",
+        "expiry",
+        "propagation-as-root",
+        "wrong-proof",
+        "early-pass",
+        "partial-send",
+        "history-erased",
+        "physical-reset"
+      ]
+    },
+    "asan/normal": {
+      "pass_": true,
+      "events": 1,
+      "faults": 0,
+      "physical_samples": 9200
+    }
+  },
+  "static": {
+    "translation_units": [
+      "central/diagnostics/diagnostics.cpp",
+      "central/diagnostics/diagnostics_journal.cpp",
+      "central/diagnostics/native_diagnostics.cpp",
+      "zone/gateway/command_gateway.cpp",
+      "zone/gateway/rear_power_gateway.cpp",
+      "vecu/bms/bms_controller.cpp",
+      "vecu/bms/power_controller.cpp",
+      "simulation/runtime/async_leaf_owner.cpp",
+      "simulation/runtime/m4_async_runtime.cpp",
+      "simulation/runtime/m4_owner_network.cpp",
+      "simulation/runtime/m4_result.cpp"
+    ],
+    "clang_tidy_exit": 0,
+    "cppcheck_style_exit": 1,
+    "cppcheck_quality_exit": 0,
+    "style_review": "8 bounded-loop STL suggestions; 2 unusedPrivateFunction reports for helpers used in member initializers (false positives). Preserved in cppcheck.log; no source change."
+  },
+  "fingerprint_tests": 2,
+  "previous_evidence": "4 bundles SHA verified",
+  "technical_scope": "Gateway vehicle logical SIL and BMS/Power component; M9 OPEN"
+}

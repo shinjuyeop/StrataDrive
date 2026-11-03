@@ -1,0 +1,182 @@
+{
+  "normal": {
+    "tests": 1104,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "verdict": "PASS"
+  },
+  "asan": {
+    "tests": 147,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "verdict": "PASS"
+  },
+  "focused": {
+    "tests": 52,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "verdict": "PASS"
+  },
+  "focused_asan": {
+    "tests": 52,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "verdict": "PASS"
+  },
+  "wall": {
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "verdict": "PASS"
+  },
+  "onoff": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "verdict": "PASS"
+  },
+  "onoff_asan": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "verdict": "PASS"
+  },
+  "static_analysis": {
+    "production_tus": 8,
+    "clang_tidy_exit_code": 0,
+    "cppcheck_exit_code": 1,
+    "existing_findings": [
+      "passedByValue: VehicleCoordinator constructor AllocationConfig allocation"
+    ],
+    "baseline_reproduced": true,
+    "new_source_findings": 0
+  },
+  "python_source_fingerprint": {
+    "tests": 2,
+    "verdict": "PASS"
+  },
+  "release_no_testing": {
+    "verdict": "PASS",
+    "target": "control_diagnostics"
+  },
+  "scope": "Central detector/observer plus logical SimpleVehicle normal/input-loss; full CARLA/transport/recovery/clear integration remains OPEN",
+  "audits": {
+    "normal": {
+      "pass_": true,
+      "faults": 0,
+      "events": 12,
+      "controller_samples": 4350
+    },
+    "input_loss": {
+      "pass_": true,
+      "faults": 1,
+      "events": 15,
+      "detection_ms": 2.0,
+      "selection_ms": 0.2,
+      "central_ack_ms": 3.0,
+      "actual_ms": 209.0,
+      "mutations": {
+        "missing-local-owner": {
+          "rejected": true,
+          "reason": "local role selections"
+        },
+        "ack-as-selection": {
+          "rejected": true,
+          "reason": "local role selections"
+        },
+        "wrong-code": {
+          "rejected": true,
+          "reason": "fault classification"
+        },
+        "retimestamped-fault": {
+          "rejected": true,
+          "reason": "original detection"
+        },
+        "bad-actual-torque": {
+          "rejected": true,
+          "reason": "actual torque"
+        },
+        "stale-actual": {
+          "rejected": true,
+          "reason": "actual acquisition budget"
+        },
+        "wrong-epoch": {
+          "rejected": true,
+          "reason": "identity/domain/profile"
+        },
+        "journal-corruption": {
+          "rejected": true
+        }
+      }
+    },
+    "asan_normal": {
+      "pass_": true,
+      "faults": 0,
+      "events": 12,
+      "controller_samples": 4350
+    },
+    "asan_input_loss": {
+      "pass_": true,
+      "faults": 1,
+      "events": 15,
+      "detection_ms": 2.0,
+      "selection_ms": 0.2,
+      "central_ack_ms": 3.0,
+      "actual_ms": 209.0,
+      "mutations": {
+        "missing-local-owner": {
+          "rejected": true,
+          "reason": "local role selections"
+        },
+        "ack-as-selection": {
+          "rejected": true,
+          "reason": "local role selections"
+        },
+        "wrong-code": {
+          "rejected": true,
+          "reason": "fault classification"
+        },
+        "retimestamped-fault": {
+          "rejected": true,
+          "reason": "original detection"
+        },
+        "bad-actual-torque": {
+          "rejected": true,
+          "reason": "actual torque"
+        },
+        "stale-actual": {
+          "rejected": true,
+          "reason": "actual acquisition budget"
+        },
+        "wrong-epoch": {
+          "rejected": true,
+          "reason": "identity/domain/profile"
+        },
+        "journal-corruption": {
+          "rejected": true
+        }
+      }
+    }
+  },
+  "final_export": {
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "verdict": "PASS"
+  },
+  "final_export_asan": {
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "verdict": "PASS"
+  }
+}

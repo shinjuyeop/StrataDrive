@@ -1,0 +1,80 @@
+{
+  "document_date": "2026-11-02",
+  "base_commit": "1b031a177120486da3b0fb2d507409f073405ee1",
+  "store_schema": 1,
+  "code_registry_revision": 1,
+  "queue_capacity": 256,
+  "default_ledger_limits": {
+    "events": 512,
+    "records": 64,
+    "occurrences": 128,
+    "clears": 64
+  },
+  "source_overlay": [
+    {
+      "path": "central/diagnostics/diagnostics.hpp",
+      "sha256": "8191565498af2f295d152f780cdb5411b323162af73a6f55415fc45bca47ee06"
+    },
+    {
+      "path": "central/diagnostics/diagnostics.cpp",
+      "sha256": "f25f28f8904fda80cfb4c916313d30288b12db77bf38a3a3f78656900451d6c7"
+    },
+    {
+      "path": "central/diagnostics/diagnostics_journal.hpp",
+      "sha256": "28e63d71ec02e7af59e890a459b6f8e76c9d555af31f411659a20381eeb25394"
+    },
+    {
+      "path": "central/diagnostics/diagnostics_journal.cpp",
+      "sha256": "8de4f65a2ac97ae087673063c56ce4fd8bf6aa50e5ea52eda07eebc1a540ff0f"
+    },
+    {
+      "path": "cmake/CoreTargets.cmake",
+      "sha256": "4de60b540ed8de7280ea06216a4f5ade6311f2e17324db8de00fa03983ff144d"
+    },
+    {
+      "path": "cmake/CoreTests.cmake",
+      "sha256": "7d7e473942446f6c72835aef2329296c878b62d12bf290800c185d4645b64739"
+    },
+    {
+      "path": "cmake/LinuxTargets.cmake",
+      "sha256": "ac7a0ecf42c33d6551a9bf89b74c7dea7280335543bcdc62792da5373dbf1df0"
+    },
+    {
+      "path": "cmake/TestCategories.cmake",
+      "sha256": "5f4849031118b46a28d764dae62f299f7a7de73b505f6645f24fdf6956a23444"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "2b6a813b44459dfcf7d926a6dc545254cb9f6fabe0a70d435bd0eb4e63ffda58"
+    },
+    {
+      "path": "tests/unit/diagnostics_fixture.hpp",
+      "sha256": "5bf38f500ec0fd572557a2f8361f9a6ac45c1de6595a4996e26bcdb197eb2b3e"
+    },
+    {
+      "path": "tests/unit/diagnostics_test.cpp",
+      "sha256": "cb9046f2b94b8b0a5d72f3bf81b044608ba5059b18231e909a6537bf30259cb2"
+    },
+    {
+      "path": "tests/unit/diagnostics_journal_test.cpp",
+      "sha256": "b893005bb755f9821726ea843e7b8baf3777b718bb5d722381ad6686349ea45b"
+    },
+    {
+      "path": "docs/interfaces/diagnostics.md",
+      "sha256": "137557cb6b515dec14509065b1e35b069dd36b6deee18278ddf9e6922b51536b"
+    },
+    {
+      "path": "docs/test-plan/diagnostics-protocol.md",
+      "sha256": "125019548d08d4a397d0e340bb75809f36981e9a58c816cdbd373084f4aafd39"
+    },
+    {
+      "path": "docs/test-plan/component-traceability.csv",
+      "sha256": "610e1770dd4aea98a8ab35e65fd9d217e0566974355270d32665f3a153045900"
+    }
+  ],
+  "notes": [
+    "Original XML/log timestamps are retained without rewriting.",
+    "No real monitor hook or CARLA fault run was executed.",
+    "Initial cppcheck file-filter matched no files; corrected to the retained exact compilation subset."
+  ]
+}

@@ -6,6 +6,7 @@
 #include "gateway_messages.hpp"
 #include "bms_receiver.hpp"
 #include "bounded_rx_queue.hpp"
+#include "native_fault_observation.hpp"
 
 namespace stratadrive::zone {
 class RearPowerControlPort : public ProtectionPort {
@@ -41,6 +42,8 @@ public:
     bool normal_stop_selected() const { return stop_.active(); }
     std::uint32_t application_epoch() const { return epoch_; }
     std::uint64_t observed_time_ns() const { return observed_ns_; }
+    const std::optional<NativeObservation>& fault_observation() const { return first_fault_; }
+    const std::optional<NativeObservation>& success_observation() const { return success_; }
     std::size_t dispatch(); // <=8 scans / <=3 independent BMS writes
     RearPowerDecision poll();
     void mark_continuity_lost();
@@ -49,7 +52,8 @@ public:
 private:
     struct SentPower { can::BmsMessage message; std::optional<can::BmsParentContext> parent; std::uint64_t expires_at_ns; };
     bool refresh();
-    void fail(ProtectionCause cause);
+    void fail(ProtectionCause cause,bool propagation=false);
+    NativeObservation observation(ProtectionCause,bool propagation=false) const;
     bool ready() const;
     const SentPower* acknowledged(const can::BmsCurrentSample& status) const;
     bool grant_supported(const can::BmsMessage& grant) const;
@@ -68,5 +72,8 @@ private:
     std::uint32_t epoch_{0};
     std::uint64_t enable_ns_{0}, observed_ns_{0};
     bool normal_armed_{false};
+    std::uint64_t call_ns_{0};
+    std::optional<NativeObservation> first_fault_,success_;
+    std::uint32_t failed_stream_{0};
 };
 }  // namespace stratadrive::zone

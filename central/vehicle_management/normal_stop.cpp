@@ -24,25 +24,37 @@ NormalStop::NormalStop(const NormalStopConfig& config):config_(config) {
 bool NormalStop::start_session(std::uint32_t epoch,std::uint64_t enable) {
     if(epoch==0 || epoch<=epoch_ || (epoch_!=0 && enable<observed_)) return false;
     epoch_=epoch; enable_=observed_=enable; decision_={NormalStopState::Waiting,NormalStopFault::None,false};
-    request_.reset(); pending_request_.reset(); pending_.reset(); last_tick_.reset(); confirmation_start_.reset(); confirmation_pressure_.reset(); last_evidence_.reset(); return true;
+    request_.reset(); pending_request_.reset(); pending_.reset(); last_tick_.reset(); confirmation_start_.reset(); confirmation_pressure_.reset(); last_evidence_.reset(); evidence_={}; faults_={}; phases_={}; return true;
 }
-void NormalStop::fail(NormalStopFault fault) {
+NormalStopObservation NormalStop::observation(NormalStopFault fault,NormalStopState before,NormalStopState after,std::uint64_t now) const {
+    return {fault,before,after,epoch_,enable_,now,phase_start_,config_,request_,pending_,evidence_};
+}
+void NormalStop::phase(NormalStopState before,std::uint64_t now) {
+    const auto state=decision_.state;
+    if(state<NormalStopState::Braking || state>NormalStopState::Complete) return;
+    auto& slot=phases_[static_cast<std::size_t>(state)-static_cast<std::size_t>(NormalStopState::Braking)];
+    if(!slot) slot=observation(NormalStopFault::None,before,state,now);
+}
+void NormalStop::fail(NormalStopFault fault,std::uint64_t now) {
+    const auto snapshot=observation(fault,decision_.state,NormalStopState::FailSafe,now);
+    if(!faults_[0]) faults_[0]=snapshot;
+    else if(fault==NormalStopFault::ClockError && faults_[0]->fault!=fault && !faults_[1]) faults_[1]=snapshot;
     if(decision_.fault==NormalStopFault::None || fault==NormalStopFault::ClockError) decision_.fault=fault;
     decision_.state=NormalStopState::FailSafe; decision_.protection_required=true;
 }
 bool NormalStop::advance(std::uint64_t now) {
     if(epoch_==0) return false;
-    if(now<observed_) { fail(NormalStopFault::ClockError); return false; }
+    if(now<observed_) { fail(NormalStopFault::ClockError,now); return false; }
     observed_=now;
     if(decision_.state==NormalStopState::FailSafe) return false;
-    if(request_ && (now>=request_->identity.expires_at_ns || now-request_->identity.source_time_ns>50*kMs)) fail(NormalStopFault::RequestLost);
-    if(last_tick_ && now-*last_tick_>30*kMs) fail(NormalStopFault::ControlDeadline);
-    if(pending_ && decision_.state==NormalStopState::HandoffPending && now>=pending_->expires_at_ns) fail(NormalStopFault::HandoffExpired);
+    if(request_ && (now>=request_->identity.expires_at_ns || now-request_->identity.source_time_ns>50*kMs)) fail(NormalStopFault::RequestLost,now);
+    if(last_tick_ && now-*last_tick_>30*kMs) fail(NormalStopFault::ControlDeadline,now);
+    if(pending_ && decision_.state==NormalStopState::HandoffPending && now>=pending_->expires_at_ns) fail(NormalStopFault::HandoffExpired,now);
     return decision_.state!=NormalStopState::FailSafe;
 }
 bool NormalStop::begin(const NormalStopRequest& request,StopIssuerSeed seed,std::uint64_t now) {
     if(decision_.state!=NormalStopState::Waiting || receive_request(request,now)!=StopReceiveResult::Accepted) return false;
-    lifecycle_next_=seed.lifecycle_next; vehicle_next_=seed.vehicle_next; phase_start_=now; decision_.state=NormalStopState::Braking; return true;
+    lifecycle_next_=seed.lifecycle_next; vehicle_next_=seed.vehicle_next; phase_start_=now; decision_.state=NormalStopState::Braking; phase(NormalStopState::Waiting,now); return true;
 }
 StopReceiveResult NormalStop::receive_request(const NormalStopRequest& request,std::uint64_t now) {
     if(!advance(now)) return StopReceiveResult::Latched;
@@ -57,25 +69,27 @@ StopReceiveResult NormalStop::receive_request(const NormalStopRequest& request,s
 }
 bool NormalStop::acknowledge_handoff(const ActuatorStopLease& lease,std::uint64_t now) {
     if(!advance(now) || decision_.state!=NormalStopState::HandoffPending || !pending_ || !same_stop_lease(lease,*pending_)) return false;
-    decision_.state=NormalStopState::PowerDown; phase_start_=now; return true;
+    decision_.state=NormalStopState::PowerDown; phase_start_=now; phase(NormalStopState::HandoffPending,now); return true;
 }
 std::optional<NormalStopPlan> NormalStop::tick(const NormalDriveReadinessInputs& in,const VehicleManagementDecision& management,std::uint64_t now) {
+    const auto before=decision_.state;
+    evidence_={now,in.rear.drive_actual,in.front.brake_actual,in.rear.power_status};
     if(!advance(now) || decision_.state==NormalStopState::Waiting) return std::nullopt;
     if(last_tick_ && now-*last_tick_<config_.minimum_tick_interval_ns) return std::nullopt;
     last_tick_=now;
     const bool power_down=decision_.state==NormalStopState::PowerDown || decision_.state==NormalStopState::Complete;
-    if(in.epoch!=epoch_ || in.session_enable_ns!=enable_ || !(power_down?evaluate_vehicle_input_health(in,now):evaluate_normal_drive_readiness(in,now)).ready()) fail(NormalStopFault::FeedbackUnavailable);
-    if(management.fault!=VehicleManagementFault::None || (!power_down && !management.normal_allowed)) fail(NormalStopFault::UpstreamProtection);
+    if(in.epoch!=epoch_ || in.session_enable_ns!=enable_ || !(power_down?evaluate_vehicle_input_health(in,now):evaluate_normal_drive_readiness(in,now)).ready()) fail(NormalStopFault::FeedbackUnavailable,now);
+    if(management.fault!=VehicleManagementFault::None || (!power_down && !management.normal_allowed)) fail(NormalStopFault::UpstreamProtection,now);
     if(decision_.state==NormalStopState::FailSafe) return std::nullopt;
     const auto& d=*in.rear.drive_actual; const auto& b=*in.front.brake_actual;
     if(!d.wheel_speed || !fresh(d.wheel_speed->source_time_ns,enable_,now) || !std::isfinite(d.wheel_speed->value_rad_s) ||
         d.wheel_speed->value_rad_s<0 || d.wheel_speed->value_rad_s>100 || !d.torque_nm || !b.pressure_pa ||
         !can::actuator_value_in_range(*d.torque_nm,{-200,300}) || !can::actuator_value_in_range(*b.pressure_pa,{0,1500000})) {
-        fail(NormalStopFault::FeedbackUnavailable); return std::nullopt;
+        fail(NormalStopFault::FeedbackUnavailable,now); return std::nullopt;
     }
     const auto oldest=std::min({d.wheel_speed->source_time_ns,d.source_time_ns,b.source_time_ns});
     if(std::max({d.wheel_speed->source_time_ns,d.source_time_ns,b.source_time_ns})-oldest>20*kMs || (last_evidence_ && oldest<*last_evidence_)) {
-        fail(NormalStopFault::FeedbackUnavailable); return std::nullopt;
+        fail(NormalStopFault::FeedbackUnavailable,now); return std::nullopt;
     }
     const bool stopped=d.wheel_speed->value_rad_s<=kStopSpeedRadS && std::abs(*d.torque_nm)<=kStopTorqueNm && *b.pressure_pa>=kStopPressurePa;
     if(decision_.state==NormalStopState::Braking) {
@@ -92,17 +106,17 @@ std::optional<NormalStopPlan> NormalStop::tick(const NormalDriveReadinessInputs&
             confirmation_start_=oldest;confirmation_pressure_=*b.pressure_pa;
         }
         if(at_hold && confirmation_start_ && oldest-*confirmation_start_>=config_.confirmation_ns) decision_.state=NormalStopState::HandoffPending;
-        if(now-phase_start_>=config_.braking_timeout_ns) fail(NormalStopFault::BrakingTimeout);
-    } else if(!stopped) fail(NormalStopFault::StopEvidenceLost);
+        if(now-phase_start_>=config_.braking_timeout_ns) fail(NormalStopFault::BrakingTimeout,now);
+    } else if(!stopped) fail(NormalStopFault::StopEvidenceLost,now);
     last_evidence_=oldest;
     if(decision_.state==NormalStopState::PowerDown) {
         const auto& p=std::get<can::BmsPowerStatus>(in.rear.power_status->message.content);
         if(management.state==VehicleManagementState::Stopped && management.power_off_confirmed && p.state==can::BmsPowerState::Off &&
             p.positive_contactor_closed==false && p.negative_contactor_closed==false && p.precharge_contactor_closed==false &&
             p.hv_bus_voltage_v && *p.hv_bus_voltage_v<=30) decision_.state=NormalStopState::Complete;
-        else if(now-phase_start_>=config_.shutdown_timeout_ns) fail(NormalStopFault::ShutdownTimeout);
+        else if(now-phase_start_>=config_.shutdown_timeout_ns) fail(NormalStopFault::ShutdownTimeout,now);
     }
-    if(lifecycle_next_>std::numeric_limits<std::uint32_t>::max() || vehicle_next_>std::numeric_limits<std::uint32_t>::max()) fail(NormalStopFault::SequenceExhausted);
+    if(lifecycle_next_>std::numeric_limits<std::uint32_t>::max() || vehicle_next_>std::numeric_limits<std::uint32_t>::max()) fail(NormalStopFault::SequenceExhausted,now);
     if(decision_.state==NormalStopState::FailSafe) return std::nullopt;
     if(decision_.state==NormalStopState::HandoffPending && !pending_request_) pending_request_=request_;
     const auto& authority=decision_.state==NormalStopState::HandoffPending?*pending_request_:*request_;
@@ -114,6 +128,7 @@ std::optional<NormalStopPlan> NormalStop::tick(const NormalDriveReadinessInputs&
     NormalStopPlan plan{decision_.state,authority,{{epoch_,static_cast<std::uint32_t>(lifecycle_next_++),now,expiry},shutdown?can::BmsPowerAction::Shutdown:can::BmsPowerAction::Enable},std::nullopt,lease,decision_.state!=NormalStopState::Braking};
     if(!shutdown) plan.vehicle=VehicleRequest{epoch_,static_cast<std::uint32_t>(vehicle_next_++),now,expiry,
         d.wheel_speed->value_rad_s>kStopSpeedRadS?-config_.deceleration_mps2:0,authority.curvature_inv_m,0,true};
+    phase(before,now);
     return plan;
 }
 } // namespace stratadrive::central

@@ -12,6 +12,12 @@ double target(std::uint64_t ns) {
     return 0;
 }
 }
+bool Network::speed_input_lost(std::uint64_t now) const noexcept {
+    if(config.scenario!=M4Scenario::SpeedInputLoss || now<start) return false;
+    const auto elapsed=now-start;
+    return (elapsed>=config.injection_ns && (!config.speed_input_restore_ns || elapsed<config.speed_input_restore_ns)) ||
+        (config.speed_input_reinject_ns && elapsed>=config.speed_input_reinject_ns);
+}
 void Network::speed_step(std::uint64_t now) {
     if(!result.speed_origin_ns) result.speed_origin_ns=now;
     const auto elapsed=now-result.speed_origin_ns;
@@ -22,7 +28,8 @@ void Network::speed_step(std::uint64_t now) {
         grant->permission==can::BmsDrivePermission::AllowNormal && now<grant->expires_at_ns &&
         gate.allows(active_epoch) && core.decision().management.normal_allowed &&
         core.decision().fault==central::CoordinatorFault::None;
-    const auto request=speed_control.step(now,target(elapsed),in.rear.drive_actual,permitted);
+    const bool input_loss=speed_input_lost(now);
+    const auto request=speed_control.step(now,target(elapsed),input_loss?std::nullopt:in.rear.drive_actual,permitted);
     next_speed_ns=now+central::SpeedPI::kPeriodNs;
     result.speed_fault=static_cast<int>(speed_control.fault());
     if(!request) { core.request_protection(now); return; }

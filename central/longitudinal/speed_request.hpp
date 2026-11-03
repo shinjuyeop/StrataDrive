@@ -4,6 +4,20 @@
 
 namespace stratadrive::central {
 enum class SpeedRequestFault { None, Session, Permission, Feedback, Source, Controller, Sequence, PropulsionSelection };
+struct SpeedRequestFaultObservation {
+    SpeedRequestFault fault;
+    SpeedPIReason controller_reason;
+    std::uint32_t epoch;
+    std::uint64_t enable_ns, detected_ns;
+    std::optional<can::DriveMessage> input;
+    std::optional<SpeedSample> previous_input;
+};
+struct SpeedRequestSuccessObservation {
+    std::uint32_t epoch;
+    std::uint64_t enable_ns,issued_ns;
+    can::DriveMessage input;
+    VehicleRequest request;
+};
 // Central-owner adapter. Input MUST be the trusted DriveReceiver current_sample,
 // never last_accepted or plant truth. This class grants no driving authority.
 class SpeedRequest {
@@ -18,14 +32,20 @@ public:
         std::optional<PropulsionSelection> selection = std::nullopt) noexcept;
     SpeedRequestFault fault() const noexcept { return fault_; }
     const SpeedPIState& state() const noexcept { return pi_.state(); }
+    const std::optional<SpeedRequestFaultObservation>& fault_observation() const noexcept { return observation_; }
+    const std::optional<SpeedRequestSuccessObservation>& success_observation() const noexcept { return success_; }
     static constexpr double kWheelRadiusM = .3;
     static constexpr std::uint64_t kSourceAgeNs = 30000000;
 private:
+    void fail(SpeedRequestFault, std::uint64_t, const std::optional<can::DriveMessage>&,
+              SpeedPIReason = SpeedPIReason::Normal) noexcept;
     const double wheel_radius_m_;
     const bool propulsion_antiwindup_;
     std::optional<std::uint64_t> last_selection_ns_;
     SpeedPI pi_;
     std::uint64_t enable_ns_{0}, sequence_{0};
     SpeedRequestFault fault_{SpeedRequestFault::None};
+    std::optional<SpeedRequestFaultObservation> observation_;
+    std::optional<SpeedRequestSuccessObservation> success_;
 };
 } // namespace stratadrive::central

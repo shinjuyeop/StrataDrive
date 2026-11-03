@@ -47,6 +47,8 @@ bool AsyncLeafOwner::initialize(const session::Plan& plan) noexcept {
     if(ok) {
         epoch_=plan.epoch; enable_=last_body_=plan.enable_ns; started_=false;
         command_expiry_ns_=command_source_ns_=0; expiry_reported_=false; prepared_epoch_=0; traced_command_.reset();
+        accepted_command_.reset(); expiry_observation_.reset(); command_success_.reset();
+        protection_selected_.reset();
         next_body_=enable_+(leaf_==transport::Leaf::Bms?20000000ULL:10000000ULL);
         e2e::p05_protect_init(bms_tx_.protection); e2e::p05_protect_init(power_tx_.protection);
     }
@@ -90,7 +92,10 @@ void AsyncLeafOwner::protect() noexcept {
     case transport::Leaf::Count: break;
     }
     output(now);
-    if(faulted()) link_.protection.selected.store(epoch_,std::memory_order_release);
+    if(faulted()) {
+        link_.protection.selected.store(epoch_,std::memory_order_release);
+        if(!protection_selected_) protection_selected_=now;
+    }
 }
 void AsyncLeafOwner::publish(const transport::Feedback& f) { if(!drop_actual && !link_.reports.push(transport::LeafReport{f})) protect(); }
 bool AsyncLeafOwner::receive(const transport::LeafRequest& r) {
@@ -126,6 +131,7 @@ void AsyncLeafOwner::handle(const transport::LeafRequest& r) {
     if(ok && r.operation==transport::LeafOperation::Frame) { ok=receive(r); if(ok && r.command) ++commands_; }
     if(ok && r.command) {
         command_expiry_ns_=r.command->expires_at_ns; command_source_ns_=fault_message(r).source; expiry_reported_=false;
+        accepted_command_=r;
         if(trace_) traced_command_=r;
     }
     if(r.operation==transport::LeafOperation::Frame && input_events_.size()<input_events_.capacity()) {
@@ -192,6 +198,8 @@ void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
     const auto completed=now_ns(); const bool late=execution_deadline_ && completed>body_deadline_;
     if(execution_deadline_ && input_events_.size()<input_events_.capacity()) input_events_.push_back({completed,"control-completed",static_cast<std::size_t>(leaf_)+2,epoch_,body_release_,body_deadline_,now,late?1:0});
     if(faulted() || late) protect(); else output(now); // no late normal actuation publication
+    if(!faulted() && !late && gate_.allows(epoch_) && accepted_command_ && command_expiry_ns_>now)
+        command_success_=transport::LeafAuthorityObservation{leaf_,epoch_,enable_,now,*accepted_command_,false};
 }
 void AsyncLeafOwner::service() noexcept {
     try { service_impl(); } catch(...) { protect(); }
@@ -208,6 +216,8 @@ void AsyncLeafOwner::service_impl() {
     if(early && started_ && s) std::get<vecu::DriveController>(actor_).observe_local(s->drive,ingress_now);
     if(command_expiry_ns_ && ingress_now>=command_expiry_ns_ && !expiry_reported_) {
         expiry_reported_=true;
+        if(!expiry_observation_ && accepted_command_) expiry_observation_=transport::LeafAuthorityObservation{
+            leaf_,epoch_,enable_,ingress_now,*accepted_command_,!faulted() && !link_.failed() && !link_.protection.pending(epoch_)};
         if(input_events_.size()<input_events_.capacity()) input_events_.push_back({ingress_now,"command-expired",static_cast<std::size_t>(leaf_)+2,epoch_,command_source_ns_,command_expiry_ns_,command_expiry_ns_,0});
         protect(); // A fresh packet arriving after expiry cannot heal this epoch.
     }

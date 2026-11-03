@@ -84,6 +84,9 @@ TEST_F(ZoneFeedbackTest, AdvancingCallbackClockUsesCompletionTimeAndRechecksChil
     // At invocation age30 ms, the cached child expires during the callback.
     s=tick(40,inputs(10)); EXPECT_EQ(s.phase,zone::ZonePhase::FailSafe); EXPECT_EQ(s.source_time_ns,ns(41));
     EXPECT_EQ(monitor.fault(),zone::ZoneFeedbackFault::InputsUnavailable);
+    ASSERT_TRUE(monitor.fault_observation()); EXPECT_EQ(monitor.fault_observation()->observed_ns,ns(41));
+    ASSERT_TRUE(monitor.fault_observation()->last_healthy.steering);
+    EXPECT_EQ(monitor.fault_observation()->last_healthy.steering->source_time_ns,ns(10));
 }
 TEST_F(ZoneFeedbackTest, GatewayInitCallbackMayCompleteAfterSharedSessionEnableBoundary) {
     port.now=ns(11); ASSERT_TRUE(commands.start_session(4,ns(10))); ASSERT_TRUE(monitor.start_session(4,ns(10)));

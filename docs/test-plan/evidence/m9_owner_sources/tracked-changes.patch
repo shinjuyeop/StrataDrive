@@ -1,0 +1,1560 @@
+diff --git a/README.md b/README.md
+index 8a39b50..f097717 100644
+--- a/README.md
++++ b/README.md
+@@ -3,7 +3,7 @@
+ Central → Front/Rear Zone → Leaf ECU 구조의 차량 소프트웨어를 만들고 검증하는 SIL 프로젝트다.
+ Host에서 통신·세션·actuator/EV 모델과 CARLA 제어 폐루프를 연결했다.
+ 
+-**현재: M8 제어기·고정 fixture 기능 SIL 범위 완료. 다음은 M9 진단 통합이다.**
++**현재: M8 기능 SIL 범위 완료. M9 Central·Zone/Leaf 진단 수집과 일부 코드의 실제 복구를 검증했다.**
+ C++ 모델 동등성·30km/h 경로 추종·정상 정지를 검증했다. 전체 Reference와 실시간·Target 수용은 후속이다.
+ 최신 판정과 다음 작업은 [프로젝트 상태](docs/project-status.md) 한곳에서 관리한다.
+ 
+diff --git a/central/coordinator/vehicle_coordinator.cpp b/central/coordinator/vehicle_coordinator.cpp
+index f7b4d00..b0ba540 100644
+--- a/central/coordinator/vehicle_coordinator.cpp
++++ b/central/coordinator/vehicle_coordinator.cpp
+@@ -22,18 +22,25 @@ bool VehicleCoordinator::start_session(CoordinatorSession session) {
+         !stop_.start_session(session.epoch,session.enable_ns)) return false;
+     epoch_=session.epoch; enable_ns_=session.enable_ns; observed_ns_=now;
+     tick_ns_.reset(); allocation_ns_.reset(); lifecycle_.reset(); vehicle_.reset(); last_power_.reset(); pending_handoff_.reset(); fault_=CoordinatorFault::None;
+-    normal_armed_=stopping_=protection_selected_=protection_attempted_=in_cycle_=false; return true;
++    normal_armed_=stopping_=protection_selected_=protection_attempted_=in_cycle_=false;
++    fault_observation_.reset(); protections_={}; return true;
+ }
+-void VehicleCoordinator::fail(CoordinatorFault fault) {
++void VehicleCoordinator::fail(CoordinatorFault fault,std::optional<std::uint64_t> detected_ns) {
+     const bool first=fault_==CoordinatorFault::None;
++    if(first) fault_observation_=CoordinatorFaultObservation{fault,epoch_,enable_ns_,detected_ns.value_or(observed_ns_),pending_handoff_};
+     if(first || fault==CoordinatorFault::ClockError) fault_=fault;
+     normal_armed_=false;
+     if(first) { management_.mark_continuity_lost(observed_ns_); allocation_.mark_continuity_lost(observed_ns_); }
+-    if(!protection_selected_ && !protection_attempted_) { protection_attempted_=true; protection_selected_=port_.protect(); }
++    if(!protection_selected_ && !protection_attempted_) {
++        protection_attempted_=true; protection_selected_=port_.protect();
++        const ProtectionObservation attempt{epoch_,observed_ns_,port_.now_ns(),protection_selected_};
++        if(!protections_[0]) protections_[0]=attempt;
++        if(protection_selected_ && !protections_[1]) protections_[1]=attempt;
++    }
+ }
+ bool VehicleCoordinator::advance(std::uint64_t now) {
+     if(epoch_==0) return false;
+-    if(now<observed_ns_ || now==std::numeric_limits<std::uint64_t>::max()) { fail(CoordinatorFault::ClockError); return false; }
++    if(now<observed_ns_ || now==std::numeric_limits<std::uint64_t>::max()) { fail(CoordinatorFault::ClockError,now); return false; }
+     observed_ns_=now;
+     if(now-tick_ns_.value_or(enable_ns_)>kGap) fail(CoordinatorFault::ControlDeadline);
+     return fault_==CoordinatorFault::None;
+diff --git a/central/coordinator/vehicle_coordinator.hpp b/central/coordinator/vehicle_coordinator.hpp
+index 84330b7..c376177 100644
+--- a/central/coordinator/vehicle_coordinator.hpp
++++ b/central/coordinator/vehicle_coordinator.hpp
+@@ -50,6 +50,17 @@ struct CoordinatorDecision {
+     AllocationDecision allocation;
+     NormalStopDecision stop;
+ };
++struct CoordinatorFaultObservation {
++    CoordinatorFault fault;
++    std::uint32_t epoch;
++    std::uint64_t enable_ns,detected_ns;
++    std::optional<NormalStopPlan> handoff;
++};
++struct ProtectionObservation {
++    std::uint32_t epoch;
++    std::uint64_t requested_ns,observed_ns;
++    bool accepted;
++};
+ // Owns all three Central state owners; never issues an application Epoch,
+ // advances a plant, resets remote participants or turns cached data into fresh
+ // input. tick uses independently validated current samples from this cycle.
+@@ -66,11 +77,15 @@ public:
+     // a cycle ran (possibly selecting protection); inspect decision().
+     bool tick(const NormalDriveReadinessInputs& feedback, std::uint64_t now_ns,bool management_release = true);
+     CoordinatorDecision decision() const;
++    const NormalStop& normal_stop() const noexcept { return stop_; }
++    const std::optional<VehicleRequest>& last_vehicle_request() const noexcept { return vehicle_; }
++    const std::optional<CoordinatorFaultObservation>& fault_observation() const noexcept { return fault_observation_; }
++    const std::array<std::optional<ProtectionObservation>,2>& protection_observations() const noexcept { return protections_; }
+     std::uint64_t next_allocation_ns() const;
+ private:
+     bool advance(std::uint64_t now_ns);
+     bool checkpoint();
+-    void fail(CoordinatorFault fault);
++    void fail(CoordinatorFault fault,std::optional<std::uint64_t> detected_ns = std::nullopt);
+     bool accept_lifecycle(const LifecycleRequest& root);
+     bool accept_vehicle(const VehicleRequest& root, std::optional<VehicleInputDependency> input = std::nullopt);
+     bool allocate(const NormalDriveReadinessInputs& inputs);
+@@ -90,5 +105,7 @@ private:
+     std::optional<NormalStopPlan> pending_handoff_;
+     CoordinatorFault fault_{CoordinatorFault::None};
+     bool normal_armed_{false}, stopping_{false}, protection_selected_{false}, protection_attempted_{false}, in_cycle_{false};
++    std::optional<CoordinatorFaultObservation> fault_observation_;
++    std::array<std::optional<ProtectionObservation>,2> protections_{};
+ };
+ }  // namespace stratadrive::central
+diff --git a/central/longitudinal/speed_request.cpp b/central/longitudinal/speed_request.cpp
+index b39bc0d..bf73b30 100644
+--- a/central/longitudinal/speed_request.cpp
++++ b/central/longitudinal/speed_request.cpp
+@@ -14,11 +14,19 @@ bool SpeedRequest::start_session(std::uint32_t epoch, std::uint64_t enable) noex
+     sequence_ = 0;
+     last_selection_ns_.reset();
+     fault_ = SpeedRequestFault::None;
++    observation_.reset();
++    success_.reset();
+     return true;
+ }
++void SpeedRequest::fail(SpeedRequestFault fault,std::uint64_t now,const std::optional<can::DriveMessage>& input,SpeedPIReason reason) noexcept {
++    if(!observation_) observation_=SpeedRequestFaultObservation{fault,reason,pi_.state().epoch,enable_ns_,now,input,pi_.state().sample};
++    fault_=fault;
++}
+ std::optional<VehicleRequest> SpeedRequest::step(std::uint64_t now, double target,
+     const std::optional<can::DriveMessage>& current, bool permission,std::optional<PropulsionSelection> selection) noexcept {
+-    const auto fail = [this](SpeedRequestFault fault) -> std::optional<VehicleRequest> { fault_ = fault; return std::nullopt; };
++    const auto fail = [this,now,&current](SpeedRequestFault fault,SpeedPIReason reason=SpeedPIReason::Normal) -> std::optional<VehicleRequest> {
++        this->fail(fault,now,current,reason); return std::nullopt;
++    };
+     if (fault_ != SpeedRequestFault::None) return std::nullopt;
+     if (!pi_.state().epoch || now < enable_ns_) return fail(SpeedRequestFault::Session);
+     if (!permission) return fail(SpeedRequestFault::Permission);
+@@ -49,29 +57,33 @@ std::optional<VehicleRequest> SpeedRequest::step(std::uint64_t now, double targe
+         saturated=selection->limited;
+     } else if(selection) return fail(SpeedRequestFault::PropulsionSelection);
+     const auto out = pi_.step(now, target, sample, permission,saturated);
+-    if (!out.valid) return fail(SpeedRequestFault::Controller);
++    if (!out.valid) return fail(SpeedRequestFault::Controller,out.reason);
+     if(selection)last_selection_ns_=selection->selection_ns;
+     const auto expiry = source > std::numeric_limits<std::uint64_t>::max()-kSourceAgeNs-1 ?
+         std::numeric_limits<std::uint64_t>::max() : source+kSourceAgeNs+1;
+     // Conservatively root authority at the speed acquisition. Allocation and
+     // Zone admission already carry this oldest dependency and bound all children.
+-    return VehicleRequest{current->epoch, static_cast<std::uint32_t>(sequence_++), source, expiry,
++    const VehicleRequest request{current->epoch, static_cast<std::uint32_t>(sequence_++), source, expiry,
+         *out.acceleration_mps2, 0, 0, target == 0};
++    success_=SpeedRequestSuccessObservation{current->epoch,enable_ns_,now,*current,request};
++    return request;
+ }
+ std::optional<DerivedVehicleRequest> SpeedRequest::step_derived(std::uint64_t now,double target,
+     const std::optional<can::DriveMessage>& current,bool permission,std::optional<PropulsionSelection> selection) noexcept {
++    const auto previous_success=success_;
+     auto request=step(now,target,current,permission,selection);
+     if(!request)return std::nullopt;
+     const auto source=request->source_time_ns;
+     if(now>std::numeric_limits<std::uint64_t>::max()-kSourceAgeNs-1 ||
+        source>std::numeric_limits<std::uint64_t>::max()-SpeedPI::kMaxAgeNs-1) {
+-        fault_=SpeedRequestFault::Source;return std::nullopt;
++        fail(SpeedRequestFault::Source,now,current);success_=previous_success;return std::nullopt;
+     }
+     // The 30ms current-feedback gate above remains independent of the model's
+     // 60ms validity for a derived result. Both clocks survive allocation.
+     const VehicleInputDependency input{source,source+SpeedPI::kMaxAgeNs+1};
+     request->source_time_ns=now;
+     request->expires_at_ns=std::min(now+kSourceAgeNs+1,input.expires_at_ns);
++    success_->request=*request;
+     return DerivedVehicleRequest{*request,input};
+ }
+ } // namespace stratadrive::central
+diff --git a/central/longitudinal/speed_request.hpp b/central/longitudinal/speed_request.hpp
+index 9c32f68..714f5f5 100644
+--- a/central/longitudinal/speed_request.hpp
++++ b/central/longitudinal/speed_request.hpp
+@@ -4,6 +4,20 @@
+ 
+ namespace stratadrive::central {
+ enum class SpeedRequestFault { None, Session, Permission, Feedback, Source, Controller, Sequence, PropulsionSelection };
++struct SpeedRequestFaultObservation {
++    SpeedRequestFault fault;
++    SpeedPIReason controller_reason;
++    std::uint32_t epoch;
++    std::uint64_t enable_ns, detected_ns;
++    std::optional<can::DriveMessage> input;
++    std::optional<SpeedSample> previous_input;
++};
++struct SpeedRequestSuccessObservation {
++    std::uint32_t epoch;
++    std::uint64_t enable_ns,issued_ns;
++    can::DriveMessage input;
++    VehicleRequest request;
++};
+ // Central-owner adapter. Input MUST be the trusted DriveReceiver current_sample,
+ // never last_accepted or plant truth. This class grants no driving authority.
+ class SpeedRequest {
+@@ -18,14 +32,20 @@ public:
+         std::optional<PropulsionSelection> selection = std::nullopt) noexcept;
+     SpeedRequestFault fault() const noexcept { return fault_; }
+     const SpeedPIState& state() const noexcept { return pi_.state(); }
++    const std::optional<SpeedRequestFaultObservation>& fault_observation() const noexcept { return observation_; }
++    const std::optional<SpeedRequestSuccessObservation>& success_observation() const noexcept { return success_; }
+     static constexpr double kWheelRadiusM = .3;
+     static constexpr std::uint64_t kSourceAgeNs = 30000000;
+ private:
++    void fail(SpeedRequestFault, std::uint64_t, const std::optional<can::DriveMessage>&,
++              SpeedPIReason = SpeedPIReason::Normal) noexcept;
+     const double wheel_radius_m_;
+     const bool propulsion_antiwindup_;
+     std::optional<std::uint64_t> last_selection_ns_;
+     SpeedPI pi_;
+     std::uint64_t enable_ns_{0}, sequence_{0};
+     SpeedRequestFault fault_{SpeedRequestFault::None};
++    std::optional<SpeedRequestFaultObservation> observation_;
++    std::optional<SpeedRequestSuccessObservation> success_;
+ };
+ } // namespace stratadrive::central
+diff --git a/central/vehicle_management/normal_stop.cpp b/central/vehicle_management/normal_stop.cpp
+index 6659b20..4f359b0 100644
+--- a/central/vehicle_management/normal_stop.cpp
++++ b/central/vehicle_management/normal_stop.cpp
+@@ -24,25 +24,37 @@ NormalStop::NormalStop(const NormalStopConfig& config):config_(config) {
+ bool NormalStop::start_session(std::uint32_t epoch,std::uint64_t enable) {
+     if(epoch==0 || epoch<=epoch_ || (epoch_!=0 && enable<observed_)) return false;
+     epoch_=epoch; enable_=observed_=enable; decision_={NormalStopState::Waiting,NormalStopFault::None,false};
+-    request_.reset(); pending_request_.reset(); pending_.reset(); last_tick_.reset(); confirmation_start_.reset(); confirmation_pressure_.reset(); last_evidence_.reset(); return true;
++    request_.reset(); pending_request_.reset(); pending_.reset(); last_tick_.reset(); confirmation_start_.reset(); confirmation_pressure_.reset(); last_evidence_.reset(); evidence_={}; faults_={}; phases_={}; return true;
+ }
+-void NormalStop::fail(NormalStopFault fault) {
++NormalStopObservation NormalStop::observation(NormalStopFault fault,NormalStopState before,NormalStopState after,std::uint64_t now) const {
++    return {fault,before,after,epoch_,enable_,now,phase_start_,config_,request_,pending_,evidence_};
++}
++void NormalStop::phase(NormalStopState before,std::uint64_t now) {
++    const auto state=decision_.state;
++    if(state<NormalStopState::Braking || state>NormalStopState::Complete) return;
++    auto& slot=phases_[static_cast<std::size_t>(state)-static_cast<std::size_t>(NormalStopState::Braking)];
++    if(!slot) slot=observation(NormalStopFault::None,before,state,now);
++}
++void NormalStop::fail(NormalStopFault fault,std::uint64_t now) {
++    const auto snapshot=observation(fault,decision_.state,NormalStopState::FailSafe,now);
++    if(!faults_[0]) faults_[0]=snapshot;
++    else if(fault==NormalStopFault::ClockError && faults_[0]->fault!=fault && !faults_[1]) faults_[1]=snapshot;
+     if(decision_.fault==NormalStopFault::None || fault==NormalStopFault::ClockError) decision_.fault=fault;
+     decision_.state=NormalStopState::FailSafe; decision_.protection_required=true;
+ }
+ bool NormalStop::advance(std::uint64_t now) {
+     if(epoch_==0) return false;
+-    if(now<observed_) { fail(NormalStopFault::ClockError); return false; }
++    if(now<observed_) { fail(NormalStopFault::ClockError,now); return false; }
+     observed_=now;
+     if(decision_.state==NormalStopState::FailSafe) return false;
+-    if(request_ && (now>=request_->identity.expires_at_ns || now-request_->identity.source_time_ns>50*kMs)) fail(NormalStopFault::RequestLost);
+-    if(last_tick_ && now-*last_tick_>30*kMs) fail(NormalStopFault::ControlDeadline);
+-    if(pending_ && decision_.state==NormalStopState::HandoffPending && now>=pending_->expires_at_ns) fail(NormalStopFault::HandoffExpired);
++    if(request_ && (now>=request_->identity.expires_at_ns || now-request_->identity.source_time_ns>50*kMs)) fail(NormalStopFault::RequestLost,now);
++    if(last_tick_ && now-*last_tick_>30*kMs) fail(NormalStopFault::ControlDeadline,now);
++    if(pending_ && decision_.state==NormalStopState::HandoffPending && now>=pending_->expires_at_ns) fail(NormalStopFault::HandoffExpired,now);
+     return decision_.state!=NormalStopState::FailSafe;
+ }
+ bool NormalStop::begin(const NormalStopRequest& request,StopIssuerSeed seed,std::uint64_t now) {
+     if(decision_.state!=NormalStopState::Waiting || receive_request(request,now)!=StopReceiveResult::Accepted) return false;
+-    lifecycle_next_=seed.lifecycle_next; vehicle_next_=seed.vehicle_next; phase_start_=now; decision_.state=NormalStopState::Braking; return true;
++    lifecycle_next_=seed.lifecycle_next; vehicle_next_=seed.vehicle_next; phase_start_=now; decision_.state=NormalStopState::Braking; phase(NormalStopState::Waiting,now); return true;
+ }
+ StopReceiveResult NormalStop::receive_request(const NormalStopRequest& request,std::uint64_t now) {
+     if(!advance(now)) return StopReceiveResult::Latched;
+@@ -57,25 +69,27 @@ StopReceiveResult NormalStop::receive_request(const NormalStopRequest& request,s
+ }
+ bool NormalStop::acknowledge_handoff(const ActuatorStopLease& lease,std::uint64_t now) {
+     if(!advance(now) || decision_.state!=NormalStopState::HandoffPending || !pending_ || !same_stop_lease(lease,*pending_)) return false;
+-    decision_.state=NormalStopState::PowerDown; phase_start_=now; return true;
++    decision_.state=NormalStopState::PowerDown; phase_start_=now; phase(NormalStopState::HandoffPending,now); return true;
+ }
+ std::optional<NormalStopPlan> NormalStop::tick(const NormalDriveReadinessInputs& in,const VehicleManagementDecision& management,std::uint64_t now) {
++    const auto before=decision_.state;
++    evidence_={now,in.rear.drive_actual,in.front.brake_actual,in.rear.power_status};
+     if(!advance(now) || decision_.state==NormalStopState::Waiting) return std::nullopt;
+     if(last_tick_ && now-*last_tick_<config_.minimum_tick_interval_ns) return std::nullopt;
+     last_tick_=now;
+     const bool power_down=decision_.state==NormalStopState::PowerDown || decision_.state==NormalStopState::Complete;
+-    if(in.epoch!=epoch_ || in.session_enable_ns!=enable_ || !(power_down?evaluate_vehicle_input_health(in,now):evaluate_normal_drive_readiness(in,now)).ready()) fail(NormalStopFault::FeedbackUnavailable);
+-    if(management.fault!=VehicleManagementFault::None || (!power_down && !management.normal_allowed)) fail(NormalStopFault::UpstreamProtection);
++    if(in.epoch!=epoch_ || in.session_enable_ns!=enable_ || !(power_down?evaluate_vehicle_input_health(in,now):evaluate_normal_drive_readiness(in,now)).ready()) fail(NormalStopFault::FeedbackUnavailable,now);
++    if(management.fault!=VehicleManagementFault::None || (!power_down && !management.normal_allowed)) fail(NormalStopFault::UpstreamProtection,now);
+     if(decision_.state==NormalStopState::FailSafe) return std::nullopt;
+     const auto& d=*in.rear.drive_actual; const auto& b=*in.front.brake_actual;
+     if(!d.wheel_speed || !fresh(d.wheel_speed->source_time_ns,enable_,now) || !std::isfinite(d.wheel_speed->value_rad_s) ||
+         d.wheel_speed->value_rad_s<0 || d.wheel_speed->value_rad_s>100 || !d.torque_nm || !b.pressure_pa ||
+         !can::actuator_value_in_range(*d.torque_nm,{-200,300}) || !can::actuator_value_in_range(*b.pressure_pa,{0,1500000})) {
+-        fail(NormalStopFault::FeedbackUnavailable); return std::nullopt;
++        fail(NormalStopFault::FeedbackUnavailable,now); return std::nullopt;
+     }
+     const auto oldest=std::min({d.wheel_speed->source_time_ns,d.source_time_ns,b.source_time_ns});
+     if(std::max({d.wheel_speed->source_time_ns,d.source_time_ns,b.source_time_ns})-oldest>20*kMs || (last_evidence_ && oldest<*last_evidence_)) {
+-        fail(NormalStopFault::FeedbackUnavailable); return std::nullopt;
++        fail(NormalStopFault::FeedbackUnavailable,now); return std::nullopt;
+     }
+     const bool stopped=d.wheel_speed->value_rad_s<=kStopSpeedRadS && std::abs(*d.torque_nm)<=kStopTorqueNm && *b.pressure_pa>=kStopPressurePa;
+     if(decision_.state==NormalStopState::Braking) {
+@@ -92,17 +106,17 @@ std::optional<NormalStopPlan> NormalStop::tick(const NormalDriveReadinessInputs&
+             confirmation_start_=oldest;confirmation_pressure_=*b.pressure_pa;
+         }
+         if(at_hold && confirmation_start_ && oldest-*confirmation_start_>=config_.confirmation_ns) decision_.state=NormalStopState::HandoffPending;
+-        if(now-phase_start_>=config_.braking_timeout_ns) fail(NormalStopFault::BrakingTimeout);
+-    } else if(!stopped) fail(NormalStopFault::StopEvidenceLost);
++        if(now-phase_start_>=config_.braking_timeout_ns) fail(NormalStopFault::BrakingTimeout,now);
++    } else if(!stopped) fail(NormalStopFault::StopEvidenceLost,now);
+     last_evidence_=oldest;
+     if(decision_.state==NormalStopState::PowerDown) {
+         const auto& p=std::get<can::BmsPowerStatus>(in.rear.power_status->message.content);
+         if(management.state==VehicleManagementState::Stopped && management.power_off_confirmed && p.state==can::BmsPowerState::Off &&
+             p.positive_contactor_closed==false && p.negative_contactor_closed==false && p.precharge_contactor_closed==false &&
+             p.hv_bus_voltage_v && *p.hv_bus_voltage_v<=30) decision_.state=NormalStopState::Complete;
+-        else if(now-phase_start_>=config_.shutdown_timeout_ns) fail(NormalStopFault::ShutdownTimeout);
++        else if(now-phase_start_>=config_.shutdown_timeout_ns) fail(NormalStopFault::ShutdownTimeout,now);
+     }
+-    if(lifecycle_next_>std::numeric_limits<std::uint32_t>::max() || vehicle_next_>std::numeric_limits<std::uint32_t>::max()) fail(NormalStopFault::SequenceExhausted);
++    if(lifecycle_next_>std::numeric_limits<std::uint32_t>::max() || vehicle_next_>std::numeric_limits<std::uint32_t>::max()) fail(NormalStopFault::SequenceExhausted,now);
+     if(decision_.state==NormalStopState::FailSafe) return std::nullopt;
+     if(decision_.state==NormalStopState::HandoffPending && !pending_request_) pending_request_=request_;
+     const auto& authority=decision_.state==NormalStopState::HandoffPending?*pending_request_:*request_;
+@@ -114,6 +128,7 @@ std::optional<NormalStopPlan> NormalStop::tick(const NormalDriveReadinessInputs&
+     NormalStopPlan plan{decision_.state,authority,{{epoch_,static_cast<std::uint32_t>(lifecycle_next_++),now,expiry},shutdown?can::BmsPowerAction::Shutdown:can::BmsPowerAction::Enable},std::nullopt,lease,decision_.state!=NormalStopState::Braking};
+     if(!shutdown) plan.vehicle=VehicleRequest{epoch_,static_cast<std::uint32_t>(vehicle_next_++),now,expiry,
+         d.wheel_speed->value_rad_s>kStopSpeedRadS?-config_.deceleration_mps2:0,authority.curvature_inv_m,0,true};
++    phase(before,now);
+     return plan;
+ }
+ } // namespace stratadrive::central
+diff --git a/central/vehicle_management/normal_stop.hpp b/central/vehicle_management/normal_stop.hpp
+index 67abfe2..3dcb24d 100644
+--- a/central/vehicle_management/normal_stop.hpp
++++ b/central/vehicle_management/normal_stop.hpp
+@@ -2,6 +2,7 @@
+ 
+ #include "vehicle_management.hpp"
+ #include "normal_stop_contract.hpp"
++#include <array>
+ 
+ namespace stratadrive::central {
+ // Trusted continuation of the existing lifecycle/vehicle issuers, never learned from CAN.
+@@ -14,6 +15,22 @@ struct NormalStopConfig {
+ enum class NormalStopFault { None, ClockError, ControlDeadline, RequestLost, FeedbackUnavailable, StopEvidenceLost, HandoffExpired, ShutdownTimeout, BrakingTimeout, SequenceExhausted, UpstreamProtection };
+ enum class StopReceiveResult { Accepted, Unchanged, Rejected, Latched };
+ struct NormalStopDecision { NormalStopState state{NormalStopState::NotInitialized}; NormalStopFault fault{NormalStopFault::None}; bool protection_required{false}; };
++struct NormalStopEvidence {
++    std::uint64_t observed_ns{0};
++    std::optional<can::DriveMessage> drive;
++    std::optional<can::BrakeMessage> brake;
++    std::optional<can::BmsCurrentSample> power;
++};
++struct NormalStopObservation {
++    NormalStopFault fault;
++    NormalStopState before,after;
++    std::uint32_t epoch;
++    std::uint64_t enable_ns, observed_ns, phase_start_ns;
++    NormalStopConfig config;
++    std::optional<NormalStopRequest> request;
++    std::optional<ActuatorStopLease> lease;
++    NormalStopEvidence evidence;
++};
+ class NormalStop {
+ public:
+     explicit NormalStop(const NormalStopConfig& config = {});
+@@ -23,9 +40,13 @@ public:
+     std::optional<NormalStopPlan> tick(const NormalDriveReadinessInputs& inputs, const VehicleManagementDecision& management, std::uint64_t now_ns);
+     bool acknowledge_handoff(const ActuatorStopLease& lease, std::uint64_t now_ns);
+     const NormalStopDecision& decision() const { return decision_; }
++    const std::array<std::optional<NormalStopObservation>,2>& fault_observations() const noexcept { return faults_; }
++    const std::array<std::optional<NormalStopObservation>,4>& phase_observations() const noexcept { return phases_; }
+ private:
+     bool advance(std::uint64_t now_ns);
+-    void fail(NormalStopFault fault);
++    void fail(NormalStopFault fault,std::uint64_t now_ns);
++    NormalStopObservation observation(NormalStopFault,NormalStopState,NormalStopState,std::uint64_t) const;
++    void phase(NormalStopState before,std::uint64_t now_ns);
+     const NormalStopConfig config_;
+     NormalStopDecision decision_{};
+     std::optional<NormalStopRequest> request_;
+@@ -35,5 +56,8 @@ private:
+     std::optional<std::uint64_t> last_tick_, confirmation_start_, last_evidence_;
+     std::uint32_t epoch_{0};
+     std::uint64_t enable_{0}, observed_{0}, phase_start_{0}, lifecycle_next_{0}, vehicle_next_{0};
++    NormalStopEvidence evidence_{};
++    std::array<std::optional<NormalStopObservation>,2> faults_{};
++    std::array<std::optional<NormalStopObservation>,4> phases_{};
+ };
+ } // namespace stratadrive::central
+diff --git a/cmake/CoreTargets.cmake b/cmake/CoreTargets.cmake
+index 9694e0a..421d5a0 100644
+--- a/cmake/CoreTargets.cmake
++++ b/cmake/CoreTargets.cmake
+@@ -1,4 +1,7 @@
+ # Shared domain libraries and the consolidated demo. Included from the root.
++add_library(diagnostics STATIC central/diagnostics/diagnostics.cpp)
++target_include_directories(diagnostics PUBLIC central/diagnostics)
++stratadrive_quality(diagnostics)
+ add_library(speed_pi STATIC central/longitudinal/speed_pi.cpp)
+ add_library(pure_pursuit STATIC central/lateral/pure_pursuit.cpp)
+ target_include_directories(pure_pursuit PUBLIC central/lateral)
+@@ -91,6 +94,9 @@ add_library(vehicle_coordinator STATIC central/coordinator/vehicle_coordinator.c
+ target_include_directories(vehicle_coordinator PUBLIC central/coordinator)
+ target_link_libraries(vehicle_coordinator PUBLIC control_allocation normal_stop)
+ stratadrive_quality(vehicle_coordinator)
++add_library(control_diagnostics STATIC central/diagnostics/control_diagnostics.cpp)
++target_link_libraries(control_diagnostics PUBLIC diagnostics speed_request vehicle_coordinator)
++stratadrive_quality(control_diagnostics)
+ add_library(session_contract INTERFACE)
+ target_include_directories(session_contract INTERFACE interfaces/session)
+ add_library(session_participant STATIC interfaces/session/session_participant.cpp)
+@@ -256,9 +262,13 @@ target_link_libraries(vehicle_session_init PUBLIC session_reset session_particip
+ stratadrive_quality(vehicle_session_init)
+ find_package(Threads REQUIRED)
+ add_library(m4_async_runtime STATIC simulation/runtime/speed_loop.cpp simulation/runtime/async_leaf_owner.cpp simulation/runtime/m4_async_runtime.cpp simulation/runtime/m4_owner_network.cpp simulation/runtime/m4_owner_execution.cpp simulation/runtime/m4_result.cpp simulation/runtime/m4_faults.cpp simulation/runtime/m4_execution_watch.cpp)
++add_library(owner_diagnostics STATIC central/diagnostics/owner_diagnostics.cpp)
++target_link_libraries(owner_diagnostics PUBLIC control_diagnostics zone_feedback_monitor owner_messages)
++stratadrive_quality(owner_diagnostics)
+ target_include_directories(m4_async_runtime PUBLIC simulation/runtime vecu/common)
+-target_link_libraries(m4_async_runtime PUBLIC speed_request async_coordinator_port async_zone_owner session_reset session_participant session_coordinator steering_actuator brake_actuator drive_controller bms_controller power_controller ev_power_model simple_vehicle vehicle_ev_model torque_response steering_response brake_pressure_response periodic_task Threads::Threads)
++target_link_libraries(m4_async_runtime PUBLIC control_diagnostics speed_request async_coordinator_port async_zone_owner session_reset session_participant session_coordinator steering_actuator brake_actuator drive_controller bms_controller power_controller ev_power_model simple_vehicle vehicle_ev_model torque_response steering_response brake_pressure_response periodic_task Threads::Threads)
+ stratadrive_quality(m4_async_runtime)
++target_link_libraries(m4_async_runtime PUBLIC owner_diagnostics)
+ add_library(remote_leaf_endpoint STATIC simulation/runtime/remote_leaf_endpoint.cpp)
+ target_link_libraries(remote_leaf_endpoint PUBLIC m4_async_runtime remote_run_gate)
+ stratadrive_quality(remote_leaf_endpoint)
+diff --git a/cmake/CoreTests.cmake b/cmake/CoreTests.cmake
+index 091d46c..4de1b56 100644
+--- a/cmake/CoreTests.cmake
++++ b/cmake/CoreTests.cmake
+@@ -14,12 +14,20 @@ endfunction()
+ 
+ # 현재 Host에 설치된 버전 사용. 자동 다운로드/설치하지 않는다.
+ find_package(GTest 1.11.0 EXACT CONFIG REQUIRED)
++stratadrive_unit_test(diagnostics_test
++    SOURCES tests/unit/diagnostics_test.cpp
++    LIBRARIES diagnostics Threads::Threads)
++if(TARGET diagnostics_journal)
++    stratadrive_unit_test(diagnostics_journal_test
++        SOURCES tests/unit/diagnostics_journal_test.cpp
++        LIBRARIES diagnostics_journal)
++endif()
+ stratadrive_unit_test(speed_pi_test
+     SOURCES tests/unit/speed_pi_test.cpp
+     LIBRARIES speed_pi)
+ stratadrive_unit_test(speed_request_test
+     SOURCES tests/unit/speed_request_test.cpp
+-    LIBRARIES speed_request)
++    LIBRARIES control_diagnostics)
+ if(STRATADRIVE_LONGITUDINAL_EQUIVALENCE)
+     find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
+     add_executable(speed_loop_run tests/integration/longitudinal/speed_loop_run.cpp)
+@@ -73,7 +81,7 @@ stratadrive_unit_test(vehicle_management_test
+     LIBRARIES vehicle_management power_controller power_model)
+ stratadrive_unit_test(normal_stop_test
+     SOURCES tests/unit/normal_stop_test.cpp
+-    LIBRARIES normal_stop)
++    LIBRARIES control_diagnostics)
+ stratadrive_unit_test(control_allocation_test
+     SOURCES tests/unit/control_allocation_test.cpp
+     LIBRARIES control_allocation command_admission torque_response brake_pressure_response steering_receiver brake_receiver drive_receiver)
+@@ -88,7 +96,21 @@ stratadrive_unit_test(rear_power_gateway_test
+     LIBRARIES rear_power_gateway rear_power_control front_startup_control normal_stop_control vehicle_session_init zone_feedback_monitor power_model torque_response steering_response brake_pressure_response)
+ stratadrive_unit_test(vehicle_coordinator_test
+     SOURCES tests/unit/vehicle_coordinator_test.cpp
+-    LIBRARIES vehicle_coordinator)
++    LIBRARIES control_diagnostics)
++if(TARGET diagnostics_journal)
++    stratadrive_unit_test(control_diagnostics_sil_test
++        SOURCES tests/unit/control_diagnostics_sil_test.cpp
++        LIBRARIES diagnostics_journal m4_async_runtime)
++    stratadrive_unit_test(control_recovery_sil_test
++        SOURCES tests/unit/control_recovery_sil_test.cpp
++        LIBRARIES diagnostics_journal m4_async_runtime)
++    stratadrive_unit_test(owner_diagnostics_test
++        SOURCES tests/unit/owner_diagnostics_test.cpp
++        LIBRARIES owner_diagnostics)
++    stratadrive_unit_test(owner_diagnostics_sil_test
++        SOURCES tests/unit/owner_diagnostics_sil_test.cpp
++        LIBRARIES diagnostics_journal m4_async_runtime)
++endif()
+ stratadrive_unit_test(async_owner_test
+     SOURCES tests/unit/async_owner_test.cpp
+     LIBRARIES async_coordinator_port async_zone_owner)
+diff --git a/cmake/LinuxTargets.cmake b/cmake/LinuxTargets.cmake
+index f57e7e0..2ab09be 100644
+--- a/cmake/LinuxTargets.cmake
++++ b/cmake/LinuxTargets.cmake
+@@ -1,4 +1,7 @@
+ # Linux runtime/adapters; called only on Linux.
++add_library(diagnostics_journal STATIC central/diagnostics/diagnostics_journal.cpp)
++target_link_libraries(diagnostics_journal PUBLIC diagnostics)
++stratadrive_quality(diagnostics_journal)
+ add_library(steering_runtime STATIC simulation/runtime/steering_runtime.cpp)
+ target_include_directories(steering_runtime PUBLIC simulation/runtime)
+ target_link_libraries(steering_runtime PUBLIC periodic_task steering_actuator steering_response Threads::Threads)
+diff --git a/cmake/TestCategories.cmake b/cmake/TestCategories.cmake
+index ad070d3..4940473 100644
+--- a/cmake/TestCategories.cmake
++++ b/cmake/TestCategories.cmake
+@@ -14,7 +14,7 @@ function(stratadrive_discover_tests target)
+         gtest_discover_tests(${target} TEST_FILTER "*-${wall}" DISCOVERY_MODE PRE_TEST PROPERTIES LABELS "unit")
+         gtest_discover_tests(${target} TEST_FILTER "${wall}" DISCOVERY_MODE PRE_TEST PROPERTIES LABELS "runtime.wall")
+         return()
+-    elseif(target MATCHES "^(async_owner_test|rear_power_gateway_test|command_gateway_test|remote_leaf_test)$")
++    elseif(target MATCHES "^(async_owner_test|rear_power_gateway_test|command_gateway_test|remote_leaf_test|control_diagnostics_sil_test|control_recovery_sil_test|owner_diagnostics_sil_test)$")
+         gtest_discover_tests(${target} DISCOVERY_MODE PRE_TEST PROPERTIES LABELS "integration.logical")
+         return()
+     else()
+diff --git a/docs/README.md b/docs/README.md
+index 771013f..812eec1 100644
+--- a/docs/README.md
++++ b/docs/README.md
+@@ -20,6 +20,7 @@
+ | --- | --- |
+ | 요구사항 | [시스템](requirements/system-requirements.md) · [시간](requirements/timing-requirements.md) · [안전](requirements/safety-requirements.md) |
+ | Interface | [계약 목록](interfaces/README.md) · [CARLA](interfaces/carla-plant-adapter.md) |
++| M9 진단 | [Fault event/DTC 계약](interfaces/diagnostics.md) · [검증 프로토콜](test-plan/diagnostics-protocol.md) · [SD-1001 복구/clear](test-plan/evidence/m9_speed_recovery/README.md) |
+ | 검증 | [검증 안내](test-plan/README.md) · [전략·TC](test-plan/verification-strategy.md) · [시나리오](test-plan/scenario-baseline.md) · [추적성](test-plan/requirements-traceability.md) |
+ | 안전 분석 학습 | [Item Definition / HARA 초안](safety/concept-study.md) |
+ 
+diff --git a/docs/archive/design-decisions.md b/docs/archive/design-decisions.md
+index 5dd21c8..8e9f902 100644
+--- a/docs/archive/design-decisions.md
++++ b/docs/archive/design-decisions.md
+@@ -5245,3 +5245,134 @@ Date: 2026-11-02. Status: **M8 제어기·고정 fixture 기능 SIL 범위 CLOSE
+ 대안인 추가 고장/경로의 계속된 M8 확장은 진단 통합 전에 중복 검증을 늘린다.
+ M9에서 고장 검출·보호·물리 응답과 진단 결과를 함께 닫는 쪽을 선택한다.
+ [마감 source/증거 대조](../test-plan/evidence/m8_closeout/README.md)를 보존한다.
++
++<a id="adr-0077"></a>
++
++## ADR-0077: M9 진단 계약과 제어 복구·DTC 삭제 분리 제안
++
++Date: 2026-11-02. Status: **PROPOSED / 문서 설계; 구현·통합 NOT RUN**.
++
++M9 첫 작업으로 TBD-08의 [event/DTC 계약 v0.1](../interfaces/diagnostics.md)과
++[component·통합 검증 프로토콜](../test-plan/diagnostics-protocol.md)을 제안한다.
++기존 SpeedRequest/NormalStop·Zone/Leaf monitor 결과를 원본 identity/clock/원인과
++연결하고, 보호 owner와 진단 writer를 분리한다. DTC의 추가 debounce는0이며 기존
++response monitor의 fresh-sample dwell·command timeout을 중복 적용하지 않는다.
++
++원인 해소·새 trusted Epoch의 INIT 복구·기록 삭제는 별도다. INIT/restart로 이력을
++지우지 않고, 재시작 뒤 현재 condition은 Unknown에서 검증한다. Clear는 code별 실제
++재시험·stationary/inhibited 증거와 revision을 확인한 durable tombstone이며 제어 권한을
++발급하지 않는다. 원본 journal은 남기고 손실·overflow·손상은 진단 완전성 실패로 보고한다.
++
++대안인 Diagnostics의 재확정 대기는 보호 기록을 늦추고, fresh packet/자동 aging에
++의한 삭제는 제어 latch와 과거 fault 증거를 혼동시킨다. 원본 검출기와 복구 규칙을
++유지하는 안을 검토한다. 기존 기본5s/별도30km/h10s 정지 config·물리 budget은 바꾸지 않는다.
++TBD-08의 최종 수용과 전체 M9 종료를 선언하지 않으며, unmapped fault와 ACK/통신 손실
++recipe·wire/spool·용량은 해당 구현/실행 전에 명시적으로 확정해야 한다.
++
++<a id="adr-0078"></a>
++
++## ADR-0078: M9 event/DTC 집계와 Linux journal의 component 구현
++
++Date: 2026-11-02. Status: **Host component 구현·검증 / 실제 monitor 통합 후속**.
++
++ADR-0077의 다음 단계로 `central/diagnostics/`에 bounded typed event ledger·SPSC queue,
++writer용 Recorder와 Linux FileJournal을 구현한다. Queue producer는 파일 I/O·할당·제어
++권한 변경을 하지 않는다. 복구 proof는 원본 key/occurrence/session과 source 순서를
++확인하며 현재 상태보다 오래된 증거로 pass시키지 않는다. Unknown·중복·재발·원인 전파를
++구분하고 clear는 qualified pass와 fresh stationary/inhibited 증거를 요구한다.
++
++단일 journal에 fsync만 하고 마지막 완성 frame을 commit으로 추정하는 대신, synced append와
++별도의 atomic/fsynced commit watermark를 사용한다. 미완료 tail은 보존·read-only 격리하며
++기록 손실은 sticky incomplete marker로 유지한다. 명시적 bootstrap·lifetime flock·frame
++length/sequence/CRC32를 검사한다. Clear는 durable tombstone 후에만 성공으로 응답한다.
++
++Numeric dictionary와 qualification은 trusted adapter가 제공해야 한다. 실제 sensor/ACK
++판단·고장 enum 매핑·cross-process spool·실제 부하 용량·30km/h fault matrix는 이번
++component 결과로 수용하지 않는다. 기본 ledger 한계512/64/128/64와256-event queue의
++정의 및 후속은 [현행 계약](../interfaces/diagnostics.md),
++시험·명령·분모는 [실행 근거](../test-plan/evidence/m9_diagnostics_component/README.md)를 따른다.
++
++<a id="adr-0079"></a>
++
++## ADR-0079: M9 Central detector snapshot과 원본 보호 선택·ACK·Actual 연결
++
++Date: 2026-11-02. Status: **Central hook·SimpleVehicle 논리 fixture 검증 / 전체 M9 후속**.
++
++SpeedRequest와 NormalStop의 최초 판정 시각·native reason·원본 입력/권한을 source 내부의
++bounded snapshot에 보존한다. NormalStop은 후속 ClockError와 네 phase의 원본 관측도
++유지한다. 별도 ControlDiagnostics가 같은 Central owner에서 읽고 queue에 발행한다.
++Control module에 logger callback이나 파일 I/O를 넣지 않으며 기존 보호/INIT/출력 기준은 유지한다.
++
++AsyncCoordinatorPort::protect의 true는 Zone ACK를 Central이 확인한 결과다. 이를 실제
++Leaf 선택으로 취급한 최초 연결 시험은 실패했다. 원본 owner log의 Selected와 Central
++callback의 Acknowledged를 분리한다. SimpleVehicle current Drive/Brake receiver의
++fresh LocalProtection Actual을 같은 occurrence에 연결하며 physics truth로 DTC를 검출하지 않는다.
++
++기존 고정 정상87초 제어·NormalStop/HV-off와 별도 current speed argument 누락을 실행했다.
++정상 DTC0, 고장 SD-1001 한 건, 최초 검출→원본 local 선택/ACK→Actual→durable journal과
++hook on/off의 제어·권한·물리·에너지 동일성을 확인했다. 독립 Python reader는 journal/CSV와
++원본 owner/physical 증거를 대조하고8개 손상을 거부한다.
++[원본·실패 이력·검증 범위](../test-plan/evidence/m9_control_hooks/README.md)를 따른다.
++
++SIL writer와 local log 회수는 실행 뒤 수행한다. Live background writer·원격 진단 wire/spool,
++Zone/Leaf 자체 fault publisher·code별 recovery proof/clear, CARLA30km/h timeout·ACK/통신
++손실과 전체 wall/Target 수용은 후속이다. 원본 clock·Budget·기본5s/별도30km/h10s를 바꾸지 않는다.
++
++<a id="adr-0080"></a>
++
++## ADR-0080: SD-1001의 실제 복구 증거와 명시적 안전 clear
++
++Date: 2026-11-02. Status: **SD-1001 SimpleVehicle 연속 논리 SIL 검증 / 전체 M9 후속**.
++
++입력 복원, 제어 latch 복구, DTC 삭제를 구분한다. 실제 SpeedRequest 성공 snapshot의
++원본 input/반환 request가 더 큰 global Epoch의 current receiver/Coordinator accepted
++request와 일치하고 normal readiness/permission까지 확인되어야 Input proof와 Passed를
++발행한다. 최초 fault occurrence는 INIT를 넘어 유지하고 Passed만으로 count/이력을 지우지 않는다.
++
++실제 NormalStop Complete·management Stopped/HV-off·fresh stationary Actual·dispatch
++억제를 수집하는 별도 source API를 둔다. 명시적 key/revision/request ID가 있는 clear만
++non-RT Recorder에 전달한다. 저장 실패는 tombstone을 적용하지 않으며 clear 성공은 제어
++권한을 만들지 않는다. Local source log는 단일 thread 논리 실행에서 cursor로 회수해 INIT
++이전 선택/ACK도 원래 timestamp로 남긴다. Wall thread에서 이 vector를 읽는 경로는 없다.
++
++같은 물리 model epoch7에서 입력 누락→복원/보호 유지→INIT2/실제 정상 요청→Passed/이력
++유지→정상 정지/HV-off→clear→writer 재시작→INIT3→재고장 generation2를 검증했다.
++물리/EV sequence와 기존 에너지 수지식을 보존한다. 최초 검사는 회생 중 chemical energy의
++단조 감소를 잘못 요구해 실패했고 원래 cumulative balance 검사로 교정했다. 허용 오차나
++제동/검출 budget은 바꾸지 않았다. [실행·실패 원본](../test-plan/evidence/m9_speed_recovery/README.md)을 따른다.
++
++이 결정은 계속 살아 있는 source emitter와 writer 재시작 범위다. Emitter 재시작 후 기존
++occurrence 채택, 원격 clear 인증/UI, production background writer·다른 code 복구,
++CARLA30km/h fault matrix·wall/Target와 TBD-08 최종 수용은 후속이다.
++
++<a id="adr-0081"></a>
++
++## ADR-0081: ZoneFeedback와 Leaf authority 소유자별 진단 수집
++
++Date: 2026-11-02. Status: **논리 owner 경계·부분 실제 복구 검증 / 전체 M9 OPEN**.
++
++소유자별 source snapshot/queue를 두고 원본 최초 판정과 정상 재시험을 같은 owner에서 읽는다.
++Global Session은 Central만 발행하며 소유자별 INIT는 이를 재발급하지 않는다. 기존 journal
++encoding v1과 bounded SPSC를 유지하고 producer/monitor dictionary를 추가한다.
++
++ZoneFeedback의 실제 InputsUnavailable/ControlDeadline을 SD-2002/SD-4002로 연결한다.
++Clock의 최초 판정은 untrusted SD-4001이며 Clock 복구는 아직 수용하지 않는다. Leaf wrapper의
++실제 accepted context expiry가 이전 고장/pending 보호 없이 발생한 경우만 SD-2001이다.
++Gateway/child protection 전달을 새 root DTC로 꾸미지 않는다. 명령의 parent/child authority와
++delivery envelope, native successful-body proof와 물리 Actual을 구분한다.
++
++Zone의 서로 다른 key 복구 대기는32개 고정 slot에 유지한다. 새 key의 fault가 이전 key의
++Unknown 이력을 덮어 복구 기회를 잃지 않게 한다. Overflow는 Gap이며 silent eviction이 아니다.
++새 global Epoch의 실제 정상 tick/full input·current dependency 또는 Leaf의 실제 명령 수용/
++healthy body·live context가 필요하다. Proof는 metadata Observation이며 Passed는 이력을
++지우거나 actuator/permission/INIT를 호출하지 않는다.
++
++Central만 정지한 최초 시험에서는 gateway 보호가 먼저였다. 이를 Leaf root로 잘못 기대한
++시험을 음성 case로 유지한다. 별도의 Central/Front/Rear 정지에서는 Leaf 세 곳의 만료와
++재개한 Zone 두 곳의 실제 주기 초과를 각각 기록했다. 실패 link 교체/INIT2 뒤 다섯 기록이
++각각 qualified Passed이고 count/generation은 남는다. 물리 model epoch7과 원래 source/
++제어 budget을 유지한다. [실행·실패 이력](../test-plan/evidence/m9_owner_sources/README.md)을 따른다.
++
++현재 source snapshot은 실제 monitor/owner에서 만들지만 수집/영속화는 in-process 논리
++SIL이다. Gateway admission/send·BMS/Power 자체 원인과 remote wire/spool publisher,
++owner clear service·source 재시작 adoption·Clock 복구·CARLA/wall/Target는 후속이다.
+diff --git a/docs/interfaces/README.md b/docs/interfaces/README.md
+index 342c9b6..da75fa1 100644
+--- a/docs/interfaces/README.md
++++ b/docs/interfaces/README.md
+@@ -33,7 +33,7 @@ Native Actual·solver/EV 기능 경로는 연결했고 정상 wall 수용은 OPE
+ | IF-HOST-EV-STATUS | 관측용 BMS/power/energy 정보; wheel actuation 아님 | BMS → CAN → Rear → Central bridge → Host | Physical Ethernet; schema TBD-14/05 |
+ | IF-MODEL-BMS | modeled pack 센서, 셀 전압·온도 극값과 실제 전원 상태 | battery/power plant → BMS | SIL 로컬 sensor 경계; validity/time/batch 보존, 모델 TBD-13/07 |
+ | IF-MODEL-DRIVE-POWER | modeled Drive local HV bus 실제 센서, source time/validity/identity | power plant → Drive local sensor validation | SIL 로컬 물리 경계; Central permission과 별도, schema/threshold TBD-12/13/14 |
+-| IF-FAULT-EVENT | fault occurrence, evidence, local action/state | local monitors → Diagnostics Manager / Host logging | IPC/DDS/telemetry mapping TBD-05/08 |
++| IF-FAULT-EVENT | fault occurrence, evidence, local action/state | local monitors → Diagnostics Manager / Host logging | [event/DTC v0.1](diagnostics.md)의 집계/store·Central/Zone/Leaf 부분 수집·code별 일부 복구; 실제 전송/spool TBD-05/08 |
+ 
+ CAN family ID는 양방향 그룹이며 command와 actual feedback은 별도의 frame/message다.
+ 각 CAN wire ID는 기존 frame/DBC 계약에 정의돼 있다. Host transport와 Central–Zone DDS가 같다고 가정하지 않는다.
+diff --git a/docs/project-status.md b/docs/project-status.md
+index 7123b71..b55385d 100644
+--- a/docs/project-status.md
++++ b/docs/project-status.md
+@@ -15,10 +15,42 @@
+ | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
+ | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
+ | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
+-| M9–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
++| M9 | Central·Zone/Leaf 부분 진단 수집과 SD-1001/2001/2002/4002 복구 검증; 전체 root/wire·CARLA fault matrix 후속 | [진단 계약](interfaces/diagnostics.md) · [소유자 경계](test-plan/evidence/m9_owner_sources/README.md) |
++| M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
+ 
+ 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
+ 
++## M9 진단 집계·저장과 Central 검출 경로 연결
++
++TBD-08의 [event/DTC 계약 v0.1](interfaces/diagnostics.md)에 따라 유한 SPSC 큐·중복/재발
++집계·원본 clock/인과 보존·Unknown 재평가·trusted clear와 Linux journal을 구현했다.
++Clear는 durable tombstone이며 제어 latch를 변경하지 않는다. 미완료 tail·오류·capacity는
++기록 불완전으로 남기며 자동 복구하지 않는다. 집계/store 자체의
++[이전 component 실행](test-plan/evidence/m9_diagnostics_component/README.md)을 보존한다.
++후속으로 SpeedRequest/NormalStop/Coordinator의 원본 판정·phase·보호 ACK snapshot을 연결했다.
++기존 SimpleVehicle 정상4350회 제어·정지/HV-off의 DTC0과 주행 중 현재 speed 입력만 누락한
++case의 SD-1001 한 건을 실제 검출→Leaf 선택→Central ACK→fresh Actual→journal로 확인했다.
++입력 누락 후 검출2ms, 검출부터 Leaf 선택0.2ms·Central ACK3ms·Actual acquisition209ms다.
++제어·원본 권한·물리·에너지는 hook on/off에서 동일했다. 일반/논리1104개,
++영향 ASan/UBSan147개와 기존 wall owner 회귀2개가 통과했다.
++[명령·source·원본·독립 감사와 실패 이력](test-plan/evidence/m9_control_hooks/README.md)을 따른다.
++이 숫자는 논리 fixture 반응이며 DTC의 wall 실시간 기록 지연 보장이 아니다.
++SD-1001은 입력 복원만으로 보호를 해제하지 않고 INIT2의 실제 정상 요청 수용 뒤 Passed로
++판정한다. 이력은 정상 정지/HV-off와 명시적 durable clear까지 남으며 writer 재시작 후에도
++tombstone을 유지한다. 같은 물리 모델에서 INIT3 뒤 재고장은 generation2로 기록했다.
++[복구·clear·재고장 근거](test-plan/evidence/m9_speed_recovery/README.md)를 따른다.
++이번 일반/논리1109개, 영향 ASan/UBSan152개, 기존 wall owner2개가 통과했다.
++ZoneFeedbackMonitor의 최초 fault/current·last-healthy input과 Leaf의 원래 accepted context
++expiry를 소유자별 queue에 연결했다. SD-2002·SD-4002·SD-2001의 실제 복구 predicate를
++추가하고 보호 전달 Observation과 구분했다. Central·두 Zone 정지→Leaf 자체 만료→재개 후
++Zone 주기 초과→실패 링크 교체/INIT2→qualified Passed·미삭제 이력을 연속 검증했다.
++[소유자별 범위와 실패 이력](test-plan/evidence/m9_owner_sources/README.md)을 따른다.
++이번 일반/논리1118개·영향 ASan/UBSan124개·기존 wall owner2개가 통과했다.
++다음은 gateway admission/send·BMS/Power 자체 원인의 publisher와 실제 전송/spool 경계다. 차량 fault matrix와
++실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.
++30km/h ACK/통신 손실의 실제 주입 recipe와 기대 code·물리 기준은 실행 전에 고정한다.
++TBD-08은 실제 모니터 경계의 code별 복구 predicate·전달/부하 검증·학습자 수용 전 CLOSED로 올리지 않는다.
++
+ ## 구현·검증한 범위
+ 
+ Central은 조정·배분·영속 Epoch·8-role 세션과 RunLease를 소유한다.
+diff --git a/docs/roadmap.md b/docs/roadmap.md
+index 9d76c5f..16d646d 100644
+--- a/docs/roadmap.md
++++ b/docs/roadmap.md
+@@ -32,7 +32,7 @@ Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revis
+ | TBD-05 | middleware·격리·bridge/discovery / 통신 | Host vSomeIP3.7.6 한정 사용; DDS 제어 gate CLOSED. Target은 배포 전 결정 |
+ | TBD-06 | 배분·충돌/가용성·local protection·DEGRADED / 차량 제어 | M4 component 구현. M8 전 회생/마찰 전환·차량 envelope 검증 |
+ | TBD-07 | CARLA/UE/client·map/route·tick·fidelity / simulation | 고정 source/Town03/V1의 simulation 기능 수용. 비영상 wall5ms는 제한 검증;영상·서버 종료·전체 renderer 안정성 OPEN; M8 고정 S01/S02/S03 경로 적합성 검증 |
+-| TBD-08 | DTC code·debounce·persistence·clear / diagnostics | M9 event→DTC 통합 전 |
++| TBD-08 | DTC code·debounce·persistence·clear / diagnostics | [v0.1 집계/store component](interfaces/diagnostics.md) 구현·검증; 실제 monitor의 predicate·전달·부하·수용 전 OPEN |
+ | TBD-09 | Jetson board/RAM·platform stack·모델/workload·측정 / compute·AI | M10 model fixture·M12 독립 보드 비교 전 |
+ | TBD-10 | perception/planner shape·history·risk·fallback / AI·safety | M10–M11 통합 전 |
+ | TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. S03 v1 구동 포화 FAIL 보존; v2 startup20s/감속6s 고정. 추진 포화 feedback·관성 필요조건 검증; 동적 가용력 기반 참조·제동 측 포화 OPEN; M10 모델 도입 전 갱신 |
+@@ -54,10 +54,13 @@ M8에서 제안했던 추가30km/h 고장 조합은 원래 M9의 진단 통합 
+ 
+ | 순서 | 산출물 / 완료 조건 |
+ | --- | --- |
+-| 1. 진단 계약 | TBD-08 event/DTC code·debounce·persistence·clear와 원본 clock/causal ID 정의. 기존 fault latch/INIT 계약 유지 |
+-| 2. 기존 경로 연결 | 이미 검증된 속도 입력 손실·정지 timeout·local protection을 같은 event→DTC 경로로 연결하고 정상 case에 false DTC가 없는지 확인 |
++| 1. 진단 계약·component | [TBD-08 v0.1](interfaces/diagnostics.md): code·debounce·persistence·clear·clock/causal ID 정의. [집계/store component 검증](test-plan/evidence/m9_diagnostics_component/README.md) 완료; 실제 monitor 통합·TBD 최종 수용 전 |
++| 2. 기존 경로 연결 | [SpeedRequest/NormalStop hook·SimpleVehicle 정상/입력 누락](test-plan/evidence/m9_control_hooks/README.md), [SD-1001 복구·명시적 clear·재고장](test-plan/evidence/m9_speed_recovery/README.md) 검증. Timeout/인계 실패는 detector component 연결 검사; 다른 code의 복구·실제 ACK/lane 손실은 후속 |
+ | 3. 고장별 통합 | 동일30km/h 참조의 입력 손실·제동 timeout·Stop ACK 손실 및 통신 단절을 구분해 시험. 검출/보호/물리 응답/정지 여부/에너지 정산/DTC를 각각 판정 |
+ 
++소유자별 [ZoneFeedback/Leaf context expiry 수집·복구](test-plan/evidence/m9_owner_sources/README.md)를
++추가했다. Gateway admission/send·BMS/Power 자체 원인·실제 전송/spool은 아직 범위 밖이다.
++
+ 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
+ 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·
+ 속도·제어 튜닝은 이 묶음에 추가하지 않으며 변경한 경계의 회귀만 실행한다.
+diff --git a/docs/test-plan/README.md b/docs/test-plan/README.md
+index 1932d26..d082cf8 100644
+--- a/docs/test-plan/README.md
++++ b/docs/test-plan/README.md
+@@ -7,10 +7,18 @@
+ M8의 범위별 완료·후속 이관은 [종료 검토표](../archive/milestone-reviews.md#m8),
+ source/원본 증거의 최종 대조는 [마감 기록](evidence/m8_closeout/README.md)을 따른다.
+ 
++M9는 [진단 계약](../interfaces/diagnostics.md)과
++[component·통합 검증 프로토콜](diagnostics-protocol.md)을 따른다. Central hook·SimpleVehicle 연결 뒤
++CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
++
+ ## 대표 실행 결과
+ 
+ | 찾는 내용 | 실행 원본·재현 |
+ | --- | --- |
++| M9 유한 event/DTC 집계·Linux journal·clear·queue TSan | [component 검증](evidence/m9_diagnostics_component/README.md) |
++| M9 SpeedRequest/NormalStop 검출 hook·SimpleVehicle 입력 누락·원본 보호/Actual·DTC | [연결 검증](evidence/m9_control_hooks/README.md) |
++| M9 SD-1001 입력 복원·INIT·Passed·명시적 clear·writer 재시작·재고장 | [연속 복구 검증](evidence/m9_speed_recovery/README.md) |
++| M9 Zone/Leaf 소유자별 원본 검출·전달 구분·SD-2001/2002/4002 복구 | [소유자 경계 검증](evidence/m9_owner_sources/README.md) |
+ | 실제3-process SOME/IP·8-role·부하/고장/재가입 | [M5 Rear adapter](evidence/m5_someip_rear_adapter/README.md) |
+ | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
+ | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |
+diff --git a/docs/test-plan/component-traceability.csv b/docs/test-plan/component-traceability.csv
+index 274c1b6..72559a9 100644
+--- a/docs/test-plan/component-traceability.csv
++++ b/docs/test-plan/component-traceability.csv
+@@ -147,3 +147,30 @@ C-M8-V-01,SYS-CTRL-004;SYS-CTRL-007,central/coordinator/vehicle_coordinator.cpp;
+ C-M8-V-02,SYS-CTRL-003;SYS-CTRL-004;SYS-CTRL-007,tests/integration/carla/m8_stop30_oracle.py;tests/integration/carla/scenarios/m8_stop30_v1.json,stop30-01;Stop30ContractTest,Separate frozen Town06 straight;20s startup35s trigger;1750 independent PI and pursuit controls;body and wheel plateau,m8_stop30/results-summary.json
+ C-M8-V-03,SYS-COM-004;SYS-SAFE-002;SYS-EV-004,tests/integration/carla/audit_m8_stop.py;tests/integration/carla/audit_m7_1r_work.py,stop30-01,Original StopLease ACK stationary Actual PowerStatus Off;separate braking and shutdown deadlines;6000 solver and single EV intervals,m8_stop30/results-summary.json
+ C-M8-V-04,SYS-COM-004;SYS-SAFE-002,tests/integration/carla/check_m8_stop30_cli.py;tests/integration/carla/check_m8_stop_corruptions.py,cli-02;asan-cli-01;stop30-01-mutations,Reject unsupported profile combinations and original evidence mutations;no30kmh injected-fault physical acceptance,m8_stop30/results-summary.json
++C-M9-DIAG-01,SYS-DIAG-001,central/diagnostics/diagnostics.cpp#Ledger::record;central/diagnostics/diagnostics.cpp#Ledger::project,DiagnosticsTest.FirstQualifiedFaultIsImmediateAndPreservesOrigin;DiagnosticsTest.ReplayAndRepeatedOccurrenceNeverIncreaseCount,Qualified typed fault immediately records original detection; replay and polling never increment count,m9_diagnostics_component/results.json
++C-M9-DIAG-02,SYS-DIAG-001;SYS-SAFE-002,central/diagnostics/diagnostics.cpp#Ledger::pass;central/diagnostics/diagnostics.cpp#Ledger::restarted,DiagnosticsTest.LostObservationInvalidatesPassAndRequiresLaterRecoveryEvidence;DiagnosticsTest.LateActualAndPassCanBeCorrelatedWithoutRetimestamping,Unknown invalidates old proof; source-ordered qualified evidence correlates despite collector reordering,m9_diagnostics_component/results.json
++C-M9-DIAG-03,SYS-DIAG-001,central/diagnostics/diagnostics.cpp#Ledger::project,DiagnosticsTest.NewEpisodeWithoutPassOrNewEpochIsAProtocolConflict;DiagnosticsTest.DelayedOlderFaultDoesNotOverwriteLatestOrFirstCausalOrder,No fabricated recurrence while latched; older fault does not replace latest source-ordered state,m9_diagnostics_component/results.json
++C-M9-DIAG-04,SYS-DIAG-001;SYS-SAFE-002,central/diagnostics/diagnostics.cpp#Ledger::clear;central/diagnostics/diagnostics.cpp#Recorder::clear,DiagnosticsTest.ClearRequiresPassedFreshStationaryAndInhibitedEvidence;DiagnosticsTest.ClearUsesTheActualSessionEnableAndAllTargetsAreAtomic,Passed plus fresh stationary inhibited evidence; revision checked atomic clear without altering observed latch,m9_diagnostics_component/results.json
++C-M9-DIAG-05,SYS-DIAG-001,central/diagnostics/diagnostics_journal.cpp#FileJournal::append;central/diagnostics/diagnostics_journal.cpp#FileJournal::Impl,DiagnosticsJournal.DurableClearTombstoneSurvivesReopenAndRequestReplay;DiagnosticsJournal.DataBeyondPreviousWatermarkNeverRestoresAnUncommittedClear,Only committed clear survives replay; uncommitted suffix retained and store read-only,m9_diagnostics_component/results.json
++C-M9-DIAG-06,SYS-DIAG-001,central/diagnostics/diagnostics_journal.cpp#FileJournal::invalidate;central/diagnostics/diagnostics.cpp#Recorder::record,DiagnosticsJournal.FailedCommitKeepsOldWatermarkAndCannotAcknowledgeClear;DiagnosticsJournal.RejectedMutationRemainsIncompleteAfterAProcessRestart,No false durability or clear acknowledgement on failure; sticky incomplete marker survives restart,m9_diagnostics_component/results.json
++C-M9-DIAG-07,SYS-DIAG-001,central/diagnostics/diagnostics.cpp#EventQueue::publish;central/diagnostics/diagnostics.cpp#EventQueue::pop;central/diagnostics/diagnostics.cpp#Recorder::drain,DiagnosticsQueue.SingleProducerConsumerPreserveEveryPayloadThroughWraparound;DiagnosticsRecorder.QueueHealthReachesWriterEvenWhenNoDroppedEventCanBeEnqueued,One producer and consumer transfer20000 immutable payloads; bounded overflow reaches writer health; targeted TSan,m9_diagnostics_component/results.json
++C-M9-DIAG-08,SYS-DIAG-001,central/diagnostics/diagnostics.cpp#encode;central/diagnostics/diagnostics.cpp#decode;central/diagnostics/diagnostics_journal.cpp#FileJournal::Impl,DiagnosticsCodec.CanonicalRoundTripPreservesMetadataAndRejectsTruncation;DiagnosticsJournal.ChecksumsLengthsMagicSequenceAndMetadataAreVerified,Canonical storage encoding roundtrip and truncation rejection; sequence length and CRC verification,m9_diagnostics_component/results.json
++C-M9-CTRL-01,SYS-DIAG-001,central/longitudinal/speed_request.cpp#SpeedRequest::fail;central/diagnostics/control_diagnostics.cpp#ControlDiagnostics::speed,SpeedDiagnostics.FirstSourceFailureRetainsNativeTimeInputAndControllerDetail;SpeedDiagnostics.MissingInputAndPiTargetFailureMapToDifferentCodesWithoutDebounce,Original detector timestamp and native PI detail; SD1001/SD1002 explicit mapping; repeated poll counts once,m9_control_hooks/results.json
++C-M9-CTRL-02,SYS-DIAG-001;SYS-SAFE-002,central/vehicle_management/normal_stop.cpp#NormalStop::fail;central/vehicle_management/normal_stop.cpp#NormalStop::phase,NormalStopTest.DiagnosticsRecordsNativeBrakingAndShutdownBudgetsAtTheirOwnOrigins;NormalStopTest.DiagnosticsSeparatesMissingFeedbackLostHoldRequestAndHandoffExpiry,Keep independent phase origins and pending StopLease despite later requests; no extra debounce,m9_control_hooks/results.json
++C-M9-CTRL-03,SYS-DIAG-001,central/vehicle_management/normal_stop.cpp#NormalStop::fail;central/diagnostics/control_diagnostics.cpp#ControlDiagnostics::stop,NormalStopTest.DiagnosticsPreservesFirstFaultAndSeparateUntrustedClockFailure;NormalStopTest.DiagnosticsNeverTurnsRejectedRequestOrUpstreamProtectionIntoSpecificRoot,Preserve first cause plus separate untrusted rollback; upstream propagation is not a fabricated root,m9_control_hooks/results.json
++C-M9-CTRL-04,SYS-DIAG-001;SYS-SAFE-003,central/coordinator/vehicle_coordinator.cpp#VehicleCoordinator::fail;central/diagnostics/control_diagnostics.cpp#ControlDiagnostics::local_protection,CoordinatorTest.DiagnosticsLinksActualHandoffRejectionAfterProtectionWithoutDuplicatingDtc;ControlDiagnosticsSil.RealInputLossConnectsDetectionProtectionPhysicalResponseAndDurableDtc,Separate original five-Leaf selected timestamps from later Central ACK; stable root occurrence and original identities,m9_control_hooks/results.json
++C-M9-CTRL-05,SYS-DIAG-001;SYS-SAFE-001,central/diagnostics/control_diagnostics.cpp#ControlDiagnostics::observe_response;simulation/runtime/speed_loop.cpp#Network::speed_step,ControlDiagnosticsSil.RealInputLossConnectsDetectionProtectionPhysicalResponseAndDurableDtc,Actual detector and local protection; current receiver wheel torque brake sources;230ms response and model/energy continuity;durable DTC1,m9_control_hooks/results.json
++C-M9-CTRL-06,SYS-DIAG-001;SYS-SAFE-002,central/diagnostics/control_diagnostics.cpp#ControlDiagnostics::actuals;simulation/runtime/m4_owner_network.cpp#Network::central_step,ControlDiagnosticsSil.NormalFullSpeedLoopStopsAndPowersOffWithZeroFalseDtc,4350 normal controls and original stop phases;actual Off bus;zero confirmed DTC,m9_control_hooks/results.json
++C-M9-CTRL-07,SYS-DIAG-001;SYS-SAFE-003,central/diagnostics/control_diagnostics.cpp#ControlDiagnostics::publish;simulation/runtime/m4_owner_network.cpp#Network::central_step,CoordinatorTest.DiagnosticsQueueOverflowCannotDelayExistingProtectionSelection;ControlDiagnosticsSil.HookOnAndOffHaveIdenticalControllerAuthorityPhysicsAndEnergy,Queue failure after original protection;all controller outputs and physical/energy results exactly identical on/off,m9_control_hooks/results.json
++C-M9-CTRL-08,SYS-DIAG-001,tests/integration/diagnostics/audit_control_diagnostics.py#load;tests/integration/diagnostics/audit_control_diagnostics.py#judge;tests/integration/diagnostics/audit_control_diagnostics.py#mutations,normal-journal-audit;input-loss-journal-audit;mutation-rejection8,Independent canonical journal/CRC/CSV/source owner/physical correlation;reject8 corruptions in Normal and ASan evidence,m9_control_hooks/results.json
++C-M9-REC-01,SYS-DIAG-001,central/longitudinal/speed_request.cpp#SpeedRequest::step;central/longitudinal/speed_request.cpp#SpeedRequest::step_derived,SpeedDiagnostics.SuccessfulSnapshotRetainsNativeInputAndExactReturnedDerivedRoot;SpeedDiagnostics.FailedDerivedExpiryNeverPublishesSuccessfulRoot,Preserve actual successful root and native input; no false success on derived overflow,m9_speed_recovery/results.json
++C-M9-REC-02,SYS-DIAG-001;SYS-SAFE-003,central/diagnostics/control_diagnostics.cpp#ControlDiagnostics::observe_speed_recovery,ControlRecoverySil.RestoringInputWithoutNewInitKeepsNativeProtectionAndFailedDtc;ControlRecoverySil.RealRecoveryExplicitSafeClearAndRecurrencePreservePhysicalAndDiagnosticHistory,Input restoration and INIT alone never qualify; newer native accepted root and current readiness qualify Passed once;10 negative gates,m9_speed_recovery/results.json
++C-M9-REC-03,SYS-DIAG-001;SYS-SAFE-003,central/diagnostics/control_diagnostics.cpp#ControlDiagnostics::speed_clear_evidence;central/diagnostics/diagnostics.cpp#Recorder::clear,ControlRecoverySil.RealRecoveryExplicitSafeClearAndRecurrencePreservePhysicalAndDiagnosticHistory,Actual Complete Stopped HV-off and stationary inputs precede explicit revision clear; reject moving stale missing untrusted revision and write failure; no control authority created,m9_speed_recovery/results.json
++C-M9-REC-04,SYS-DIAG-001,simulation/runtime/m4_result.cpp#Network::forward_diagnostic_protection;central/diagnostics/diagnostics_journal.cpp#FileJournal::Impl,ControlRecoverySil.RealRecoveryExplicitSafeClearAndRecurrencePreservePhysicalAndDiagnosticHistory,Writer restart retains clear tombstone; actual INIT3 recurrence generation2; epoch1 selection and full old history retained; same physical model7,m9_speed_recovery/results.json
++C-M9-REC-05,SYS-DIAG-001,tests/integration/diagnostics/audit_speed_recovery.py#judge;tests/integration/diagnostics/audit_speed_recovery.py#mutations,recovery-journal-audit;recovery-mutation-rejection8,Independent committed transaction projection and native control actual source comparison;4000 physical and4000 EV samples;8 mutations rejected in Normal and ASan,m9_speed_recovery/results.json
++C-M9-OWN-01,SYS-DIAG-001,zone/feedback/zone_feedback_monitor.cpp#ZoneFeedbackMonitor::fail;central/diagnostics/owner_diagnostics.cpp#OwnerDiagnostics::zone,OwnerDiagnosticsTest.RealZoneLossRetainsLastHealthySourceAndOnlyNewQualifiedSessionPasses;ZoneFeedbackTest.AdvancingCallbackClockUsesCompletionTimeAndRechecksChildFreshness,Original source current and last-healthy snapshots; first detector/completion clock retained; newer actual tick/full inputs qualify Passed,m9_owner_sources/results.json
++C-M9-OWN-02,SYS-DIAG-001;SYS-SAFE-003,central/diagnostics/owner_diagnostics.cpp#OwnerDiagnostics::zone;central/diagnostics/owner_diagnostics.cpp#OwnerDiagnostics::leaf,OwnerDiagnosticsTest.ProtectedChildAndGatewayPropagationNeverInventFeedbackLoss;OwnerDiagnosticsSil.EarlierZoneGatewayProtectionRemainsPropagationAtLeaf,Separate known propagation from root DTC; do not infer gateway native cause from protected child or elapsed time,m9_owner_sources/results.json
++C-M9-OWN-03,SYS-DIAG-001;SYS-COM-003,simulation/runtime/async_leaf_owner.cpp#AsyncLeafOwner::service_impl;simulation/runtime/async_leaf_owner.cpp#AsyncLeafOwner::runnable,OwnerDiagnosticsSil.UpstreamOwnersPauseLetsRealLeafAuthorityExpireAndNewInitQualifiesRecovery,Actual accepted context expiry at three live Leaves while upstream owners paused; exact authority clocks; native body qualification and8 negative gates per Leaf,m9_owner_sources/results.json
++C-M9-OWN-04,SYS-DIAG-001;SYS-SAFE-003,simulation/runtime/m4_owner_network.cpp#Network::step;central/diagnostics/owner_diagnostics.cpp#OwnerDiagnostics::publish,OwnerDiagnosticsSil.OwnerHookOnOffPreserveEveryPhysicalSampleAndNativeTiming;OwnerDiagnosticsTest.FullDiagnosticQueueCannotChangeNativeZoneProtection,One queue per owner; global Session only Central; hook on/off identical native physics; dropped diagnostic event cannot postpone protection,m9_owner_sources/results.json
++C-M9-OWN-05,SYS-DIAG-001,central/diagnostics/owner_diagnostics.cpp#OwnerDiagnostics::zone,OwnerDiagnosticsTest.LaterDifferentMonitorCannotEraseOlderPendingRecovery;OwnerDiagnosticsTest.MissingStartupAndDeadlineAreDifferentNativeDetections,Independent code/mask recovery slots retain older keys; no silent eviction; source availability and call deadline are distinct,m9_owner_sources/results.json
++C-M9-OWN-06,SYS-DIAG-001;SYS-SAFE-001,tests/integration/diagnostics/audit_owner_diagnostics.py#judge;tests/integration/diagnostics/audit_owner_diagnostics.py#mutations,owner-source-journal-audit;owner-source-mutations7;OwnerDiagnosticsSil.NormalFullProfileHasNoLocalFalseDtcAndConfigurationRejectsMixedRuns,Independent native parent context expiry selection and proof/record correlation; five retained Passed records;2400 physical samples; normal DTC0/4350 controls;7 mutations rejected,m9_owner_sources/results.json
+diff --git a/docs/test-plan/requirements-traceability.md b/docs/test-plan/requirements-traceability.md
+index 5947c4b..f23f01b 100644
+--- a/docs/test-plan/requirements-traceability.md
++++ b/docs/test-plan/requirements-traceability.md
+@@ -36,7 +36,7 @@ scenario/test → Result 연결이다. 개별 revision은 [시스템 요구사
+ | SYS-SAFE-003 | ARCH-ZONE, ARCH-VECU, ARCH-ZONE-FRONT, ARCH-ZONE-REAR | IF-CAN-STEERING, IF-CAN-BRAKE, IF-CAN-DRIVE, IF-FAULT-EVENT, IF-DDS-REAR-CMD, IF-DDS-REAR-STATUS, IF-DDS-REAR-SESSION, IF-DDS-FRONT-CMD, IF-DDS-FRONT-STATUS, IF-DDS-FRONT-SESSION | F02, F03, F04; ZON-F01/F02 | TC-COM-002, TC-COM-003, TC-COM-004, TC-SAFE-001, TC-ZON-002, TC-ZON-003 | M2/M4/M5/M9 | NOT RUN |
+ | SYS-SAFE-004 | ARCH-VECU, ARCH-ZONE | IF-CAN-DRIVE, IF-FAULT-EVENT | F03 양·음수 torque; F04; F02 Drive variant | TC-COM-003, TC-COM-004, TC-COM-002 | M2/M4/M6/M9 | NOT RUN |
+ | SYS-SAFE-005 | ARCH-ZONE, ARCH-VECU, ARCH-ADAPTER, ARCH-CENTRAL-ALLOC | IF-CAN-DRIVE, IF-CAN-BRAKE, IF-DDS-ZONE-STATUS, IF-HOST-ACTUATOR, IF-FAULT-EVENT, IF-DDS-FRONT-STATUS, IF-DDS-REAR-STATUS | RG-01 cap unknown/stale/0 및 부족분 | TC-REG-002, TC-REG-004 | M1/M2/M4/M6/M7 | NOT RUN |
+-| SYS-DIAG-001 | ARCH-DIAG, ARCH-ZONE, ARCH-VECU | IF-FAULT-EVENT | F01–F04 event integration | TC-DIAG-001 | M9 | NOT RUN |
++| SYS-DIAG-001 | ARCH-DIAG, ARCH-ZONE, ARCH-VECU | IF-FAULT-EVENT | F01–F04 event integration; [진단 lifecycle/영속성·clear 검증안](diagnostics-protocol.md) | TC-DIAG-001 | M9; [계약 v0.1 PROPOSED](../interfaces/diagnostics.md) | NOT RUN |
+ | SYS-PERF-001 | ARCH-CENTRAL, ARCH-ZONE, ARCH-VECU, ARCH-ORCH, ARCH-ADAPTER | IF-HOST-SENSOR, IF-CENTRAL-TRAJECTORY, IF-CENTRAL-VEHICLE-REQUEST, IF-CAN-STEERING, IF-CAN-BRAKE, IF-CAN-DRIVE, IF-HOST-ACTUATOR, IF-DDS-FRONT-CMD, IF-DDS-REAR-CMD | Timing/overload; S01–S03 | TC-PERF-001 | M3 partial; M5/M7/M12 E2E | NOT RUN |
+ | SYS-PERF-002 | ARCH-HOST, ARCH-CENTRAL, ARCH-ZONE, ARCH-VECU, ARCH-BMS | IF-HOST-SENSOR, IF-CENTRAL-TRAJECTORY, IF-CENTRAL-VEHICLE-REQUEST, IF-CAN-STEERING, IF-CAN-BRAKE, IF-CAN-DRIVE, IF-CAN-BMS, IF-CAN-DRIVE-CONSTRAINT, IF-DDS-FRONT-CMD, IF-DDS-REAR-CMD | Multirate; S01–S03, EV-F01 | TC-PERF-002, TC-EV-002 | M1 rate 결정; M2/M3/M6/M7 | NOT RUN |
+ | SYS-PERF-003 | ARCH-ORCH, ARCH-CENTRAL, ARCH-ZONE, ARCH-VECU, ARCH-ADAPTER | IF-HOST-SENSOR, IF-CENTRAL-VEHICLE-REQUEST, IF-HOST-ACTUATOR, IF-FAULT-EVENT, IF-DDS-FRONT-CMD, IF-DDS-REAR-CMD | Pause/reset/slow Target; F01–F04 | TC-PERF-001, TC-PERF-002 | M3/M5/M6/M7 | NOT RUN |
+diff --git a/docs/test-plan/verification-strategy.md b/docs/test-plan/verification-strategy.md
+index adc210a..2fa603d 100644
+--- a/docs/test-plan/verification-strategy.md
++++ b/docs/test-plan/verification-strategy.md
+@@ -92,7 +92,7 @@ PIL/HIL·Target timing·안전 표준 적합성 결과는 이 계획으로 추
+ | TC-AI-001 | inference timeout/NaN/stale/infeasible; fallback input 상실 | AI reject→유효 classical fallback 또는 보호 상태; raw actuator 출력 없음; 전환 budget TBD-10 | M11 |
+ | TC-SAFE-001 | F01–F04 및 Brake/Drive actual loss/복합 loss/clear | 가용 actuator에 맞춘 FAIL_SAFE/local action, Central 기록과 독립; 물리 세부값 TBD-03/06 | M2/M4 local; M6/M7/M9 integration |
+ | TC-SAFE-002 | startup missing stream, epoch mismatch, fault clear/new frame/reinitialize | INIT 정상 출력 억제; startup 100 ms unavailable 검출; FAIL_SAFE→NORMAL 자동 복귀 없음; 명시적 INIT gate | M1 handshake; M2/M4/M6/M7 |
+-| TC-DIAG-001 | fault onset/duration 지정 후 clear/reconnect | fault→event/DTC/state correlation, local action, debounce/persistence 규칙 TBD-08 | M9 |
++| TC-DIAG-001 | fault onset/duration 지정 후 clear/reconnect·restart·기록 손실 | fault→event/DTC/state correlation, 독립 local action; [TBD-08 계약 제안](../interfaces/diagnostics.md)·[DG component/통합 검증안](diagnostics-protocol.md) | M9; PROPOSED / NOT RUN |
+ | TC-PERF-001 | timing trace, 고정 workload/overload | endpoint/clock/causal lineage, Mean/P95/P99/Max/sample/drop/miss/uncertainty 보고; deadline TBD-04 | M3 부분; M5/M7/M12 E2E |
+ | TC-PERF-002 | logical multirate trace; simulation pause/reset/slow Target | 20/50/100 Hz logical 설정, source frame 재사용 식별; clock별 age, epoch reset, wall-time miss 숨김 없음 | M3/M6/M7 |
+ 
+diff --git a/simulation/runtime/async_leaf_owner.cpp b/simulation/runtime/async_leaf_owner.cpp
+index fc118da..776806a 100644
+--- a/simulation/runtime/async_leaf_owner.cpp
++++ b/simulation/runtime/async_leaf_owner.cpp
+@@ -47,6 +47,8 @@ bool AsyncLeafOwner::initialize(const session::Plan& plan) noexcept {
+     if(ok) {
+         epoch_=plan.epoch; enable_=last_body_=plan.enable_ns; started_=false;
+         command_expiry_ns_=command_source_ns_=0; expiry_reported_=false; prepared_epoch_=0; traced_command_.reset();
++        accepted_command_.reset(); expiry_observation_.reset(); command_success_.reset();
++        protection_selected_.reset();
+         next_body_=enable_+(leaf_==transport::Leaf::Bms?20000000ULL:10000000ULL);
+         e2e::p05_protect_init(bms_tx_.protection); e2e::p05_protect_init(power_tx_.protection);
+     }
+@@ -90,7 +92,10 @@ void AsyncLeafOwner::protect() noexcept {
+     case transport::Leaf::Count: break;
+     }
+     output(now);
+-    if(faulted()) link_.protection.selected.store(epoch_,std::memory_order_release);
++    if(faulted()) {
++        link_.protection.selected.store(epoch_,std::memory_order_release);
++        if(!protection_selected_) protection_selected_=now;
++    }
+ }
+ void AsyncLeafOwner::publish(const transport::Feedback& f) { if(!drop_actual && !link_.reports.push(transport::LeafReport{f})) protect(); }
+ bool AsyncLeafOwner::receive(const transport::LeafRequest& r) {
+@@ -126,6 +131,7 @@ void AsyncLeafOwner::handle(const transport::LeafRequest& r) {
+     if(ok && r.operation==transport::LeafOperation::Frame) { ok=receive(r); if(ok && r.command) ++commands_; }
+     if(ok && r.command) {
+         command_expiry_ns_=r.command->expires_at_ns; command_source_ns_=fault_message(r).source; expiry_reported_=false;
++        accepted_command_=r;
+         if(trace_) traced_command_=r;
+     }
+     if(r.operation==transport::LeafOperation::Frame && input_events_.size()<input_events_.capacity()) {
+@@ -192,6 +198,8 @@ void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
+     const auto completed=now_ns(); const bool late=execution_deadline_ && completed>body_deadline_;
+     if(execution_deadline_ && input_events_.size()<input_events_.capacity()) input_events_.push_back({completed,"control-completed",static_cast<std::size_t>(leaf_)+2,epoch_,body_release_,body_deadline_,now,late?1:0});
+     if(faulted() || late) protect(); else output(now); // no late normal actuation publication
++    if(!faulted() && !late && gate_.allows(epoch_) && accepted_command_ && command_expiry_ns_>now)
++        command_success_=transport::LeafAuthorityObservation{leaf_,epoch_,enable_,now,*accepted_command_,false};
+ }
+ void AsyncLeafOwner::service() noexcept {
+     try { service_impl(); } catch(...) { protect(); }
+@@ -208,6 +216,8 @@ void AsyncLeafOwner::service_impl() {
+     if(early && started_ && s) std::get<vecu::DriveController>(actor_).observe_local(s->drive,ingress_now);
+     if(command_expiry_ns_ && ingress_now>=command_expiry_ns_ && !expiry_reported_) {
+         expiry_reported_=true;
++        if(!expiry_observation_ && accepted_command_) expiry_observation_=transport::LeafAuthorityObservation{
++            leaf_,epoch_,enable_,ingress_now,*accepted_command_,!faulted() && !link_.failed() && !link_.protection.pending(epoch_)};
+         if(input_events_.size()<input_events_.capacity()) input_events_.push_back({ingress_now,"command-expired",static_cast<std::size_t>(leaf_)+2,epoch_,command_source_ns_,command_expiry_ns_,command_expiry_ns_,0});
+         protect(); // A fresh packet arriving after expiry cannot heal this epoch.
+     }
+diff --git a/simulation/runtime/async_leaf_owner.hpp b/simulation/runtime/async_leaf_owner.hpp
+index b4ebdd5..902f47f 100644
+--- a/simulation/runtime/async_leaf_owner.hpp
++++ b/simulation/runtime/async_leaf_owner.hpp
+@@ -11,6 +11,7 @@
+ #include "bms_controller.hpp"
+ #include "power_controller.hpp"
+ #include "m4_faults.hpp"
++#include "leaf_authority_observation.hpp"
+ 
+ namespace stratadrive::simulation {
+ struct OwnerSensors {
+@@ -55,12 +56,19 @@ public:
+     std::size_t received_commands() const { return commands_; }
+     bool faulted() const;
+     int fault_code() const;
++    const std::optional<transport::LeafAuthorityObservation>& expiry_observation() const { return expiry_observation_; }
++    const std::optional<transport::LeafAuthorityObservation>& command_success_observation() const { return command_success_; }
++    std::uint64_t enable_ns() const { return enable_; }
++    const std::optional<std::uint64_t>& protection_selected_ns() const { return protection_selected_; }
+     const std::vector<M4Event>& input_events() const { return input_events_; } // joined only
+     bool input_event_capacity_exhausted() const { return input_events_.size()>=input_events_.capacity(); }
+     void execution_deadline(bool enabled) { execution_deadline_=enabled; } // startup only
+ private:
+     transport::TransportTrace* trace_{nullptr};
+     std::optional<transport::LeafRequest> traced_command_; // owner-local, diagnostic only
++    std::optional<transport::LeafRequest> accepted_command_;
++    std::optional<transport::LeafAuthorityObservation> expiry_observation_,command_success_;
++    std::optional<std::uint64_t> protection_selected_;
+     using Actor=std::variant<vecu::SteeringActuator,vecu::BrakeActuator,vecu::DriveController,vecu::BmsController,vecu::PowerController>;
+     static Actor make_actor(transport::Leaf leaf,const LeafOwnerConfig& config);
+     void handle(const transport::LeafRequest& request);
+diff --git a/simulation/runtime/m4_async_runtime.cpp b/simulation/runtime/m4_async_runtime.cpp
+index 3b1fb19..96cdbd6 100644
+--- a/simulation/runtime/m4_async_runtime.cpp
++++ b/simulation/runtime/m4_async_runtime.cpp
+@@ -9,7 +9,16 @@ M4Result run_m4_async(const M4Config& config) {
+     }
+     if((!config.wall_time && (config.fifo || config.cpu_a>=0 || config.cpu_b>=0)) || config.cpu_a < -1 || config.cpu_b < -1) throw std::invalid_argument("native placement requires wall clock");
+     if(config.speed_loop && (config.wall_time || config.renewal!=central::CommandRenewal::Host10ms ||
+-       (config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::FeedbackLoss && config.scenario!=M4Scenario::CommandLoss))) throw std::invalid_argument("M8 logical speed-loop configuration");
++       (config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::FeedbackLoss && config.scenario!=M4Scenario::CommandLoss && config.scenario!=M4Scenario::SpeedInputLoss && config.scenario!=M4Scenario::Fault))) throw std::invalid_argument("M8 logical speed-loop configuration");
++    if(config.owner_diagnostics_run && (config.wall_time || !config.speed_loop ||
++       (config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::Fault) ||
++       (config.diagnostics_run && config.diagnostics_run!=config.owner_diagnostics_run))) throw std::invalid_argument("M9 local diagnostics configuration");
++    if((config.diagnostics_run && config.wall_time) || (config.scenario==M4Scenario::SpeedInputLoss && (!config.speed_loop || !config.injection_ns || config.injection_ns>=config.duration_ns))) throw std::invalid_argument("M9 logical diagnostics configuration");
++    if(config.diagnostics_run && config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::NormalStop && config.scenario!=M4Scenario::SpeedInputLoss) throw std::invalid_argument("M9 diagnostic scenario scope");
++    if((config.speed_input_restore_ns || config.speed_input_reinject_ns) &&
++       (config.scenario!=M4Scenario::SpeedInputLoss || config.wall_time || !config.speed_input_restore_ns ||
++        config.speed_input_restore_ns<=config.injection_ns || config.speed_input_restore_ns>=config.duration_ns ||
++        (config.speed_input_reinject_ns && (config.speed_input_reinject_ns<=config.speed_input_restore_ns || config.speed_input_reinject_ns>=config.duration_ns)))) throw std::invalid_argument("M9 speed input windows");
+     if(config.duration_ns>(config.speed_loop?95000000000ULL:10000000000ULL) || (config.scenario==M4Scenario::Fault && config.faults.empty()) ||
+        (config.recovery_ns && (config.rejoin_epoch<=config.first_epoch || config.recovery_ns>=config.duration_ns))) throw std::invalid_argument("M4 fault/recovery configuration");
+     auto network=std::make_unique<m4_detail::Network>(config);
+@@ -22,6 +31,7 @@ const char* m4_scenario_name(M4Scenario s) {
+     case M4Scenario::PartialFront: return "partial-front"; case M4Scenario::FeedbackLoss: return "feedback-loss";
+     case M4Scenario::CommandLoss: return "command-loss"; case M4Scenario::PartialArm: return "partial-arm";
+     case M4Scenario::Rejoin: return "rejoin"; case M4Scenario::OldEpoch: return "old-epoch"; case M4Scenario::Fault: return "fault";
++    case M4Scenario::SpeedInputLoss: return "speed-input-loss";
+     }
+     return "invalid";
+ }
+diff --git a/simulation/runtime/m4_async_runtime.hpp b/simulation/runtime/m4_async_runtime.hpp
+index 366be58..55e1ea4 100644
+--- a/simulation/runtime/m4_async_runtime.hpp
++++ b/simulation/runtime/m4_async_runtime.hpp
+@@ -3,6 +3,7 @@
+ #include "command_renewal.hpp"
+ #include "m4_execution_watch.hpp"
+ #include "transport_trace.hpp"
++#include "diagnostics.hpp"
+ 
+ #include <cstddef>
+ #include <cstdint>
+@@ -10,7 +11,7 @@
+ #include <vector>
+ 
+ namespace stratadrive::simulation {
+-enum class M4Scenario { Normal,NormalStop,PartialFront,FeedbackLoss,CommandLoss,PartialArm,Rejoin,OldEpoch,Fault };
++enum class M4Scenario { Normal,NormalStop,PartialFront,FeedbackLoss,CommandLoss,PartialArm,Rejoin,OldEpoch,Fault,SpeedInputLoss };
+ struct M4Config {
+     M4Scenario scenario{M4Scenario::Normal};
+     central::CommandRenewal renewal{central::CommandRenewal::Legacy20ms};
+@@ -22,6 +23,9 @@ struct M4Config {
+     std::uint64_t recovery_ns{0}; bool replace_links{false};
+     bool execution_guards{false},fifo{false}; int cpu_a{-1},cpu_b{-1};
+     bool transport_trace{false}; // opt-in intrusive diagnostics; separate timing cohort
++    std::uint64_t diagnostics_run{0}; // nonzero = opt-in logical queue; consumer/file IO stays outside each owner step
++    std::uint64_t owner_diagnostics_run{0}; // separate local-source cohort; same run if Central hooks also enabled
++    std::uint64_t speed_input_restore_ns{0},speed_input_reinject_ns{0}; // explicit logical argument-loss windows;0 retains permanent loss
+ };
+ struct M4Trace {
+     std::uint64_t elapsed_ns,source_ns;
+@@ -55,6 +59,8 @@ struct M4Result {
+     std::vector<SpeedLoopTrace> speed_trace;
+     std::uint64_t speed_origin_ns{0};
+     int speed_fault{0};
++    std::vector<diagnostics::Event> diagnostic_events;
++    bool diagnostics_complete{true};
+     std::vector<M4Timing> timing;
+     std::vector<M4Event> events;
+     std::vector<transport::TransportTraceRow> transport_events;
+diff --git a/simulation/runtime/m4_owner_network.cpp b/simulation/runtime/m4_owner_network.cpp
+index 680e5bf..3516200 100644
+--- a/simulation/runtime/m4_owner_network.cpp
++++ b/simulation/runtime/m4_owner_network.cpp
+@@ -114,6 +114,21 @@ void PhysicalOwner::step() {
+     }
+ Network::Network(const M4Config& c):config(c),clock(c.wall_time),start(clock.now_ns()) {
+         running_epoch.store(c.first_epoch);
++        const auto diagnostic_run=c.diagnostics_run?c.diagnostics_run:c.owner_diagnostics_run;
++        if(diagnostic_run) {
++            diagnostic_queue=std::make_unique<diagnostics::EventQueue>(diagnostic_run,7);
++            diagnostic_hook=std::make_unique<diagnostics::ControlDiagnostics>(*diagnostic_queue,
++                diagnostics::ControlContext{diagnostic_run,7,diagnostics::Domain::Simulation,diagnostic_run,1});
++        }
++        if(c.owner_diagnostics_run) {
++            const std::array<diagnostics::Component,5> actors{diagnostics::Component::Front,diagnostics::Component::Rear,
++                diagnostics::Component::Steering,diagnostics::Component::Brake,diagnostics::Component::Drive};
++            for(std::size_t i=0;i<actors.size();++i) {
++                owner_diagnostic_queues[i]=std::make_unique<diagnostics::EventQueue>(c.owner_diagnostics_run,20+i);
++                owner_diagnostic_hooks[i]=std::make_unique<diagnostics::OwnerDiagnostics>(*owner_diagnostic_queues[i],
++                    diagnostics::ControlContext{c.owner_diagnostics_run,20+i,diagnostics::Domain::Simulation,c.owner_diagnostics_run,1},actors[i]);
++            }
++        }
+         for(auto& log:owner_events) log.reserve(std::max<std::size_t>(24000, static_cast<std::size_t>(config.duration_ns/kMs)));
+         if(config.speed_loop) {
+             physical.energy_trace.reserve(static_cast<std::size_t>(config.duration_ns/(10*kMs))+32);
+@@ -204,6 +219,7 @@ void Network::central_step() {
+                 active_epoch=epoch; last_tick=last_root=last_vehicle=last_stop=vehicle_release=0; lifecycle_release=0;
+                 root_seq=vehicle_seq=stop_seq=0;
+                 if(config.speed_loop) { speed_control.start_session(epoch,startup.plan().enable_ns); next_speed_ns=0; result.speed_origin_ns=0; }
++                if(diagnostic_hook) diagnostic_hook->start_session(epoch,startup.plan().enable_ns);
+                 next_management=startup.plan().enable_ns+14*kMs;
+                 owner_events[7].push_back({now,"run-released",7,epoch,0,0,0,0});
+                 running_epoch.store(epoch,std::memory_order_release);
+@@ -240,6 +256,13 @@ void Network::central_step() {
+         } else if(startup.state()==session::State::Failed && core.decision().fault!=central::CoordinatorFault::None && (!last_tick || now-last_tick>=10*kMs)) {
+             last_tick=now; core.tick(port.feedback(),now);
+         }
++        if(diagnostic_hook && config.diagnostics_run) {
++            diagnostic_hook->observe(speed_control,core,clock.now_ns());
++            const auto current=port.feedback();
++            diagnostic_hook->observe_response(current,clock.now_ns());
++            diagnostic_hook->observe_speed_recovery(speed_control,core,current,clock.now_ns());
++            forward_diagnostic_protection();
++        }
+         const auto d=core.decision(); now=clock.now_ns();
+         if(d.normal_armed && !armed_seen) owner_events[7].push_back({now,"normal-authorized",7,active_epoch,0,0,0,0});
+         armed_seen=d.normal_armed;
+@@ -315,6 +338,21 @@ void Network::step(std::size_t owner,std::uint64_t requested_wake) {
+             if(gate_seen[owner] && !enabled) owner_events[owner].push_back({clock.now_ns(),"gate-closed-observed",owner,epoch,0,0,0,0});
+             gate_seen[owner]=enabled;
+         }
++        if(owner<5 && owner_diagnostic_hooks[owner]) {
++            const auto epoch=owner<2?zone_owners[owner]->epoch():leaf_owners[owner-2]->epoch();
++            // Only a globally released session is admissible to this collector.
++            // Logical opt-in only: no cross-thread reads of Central's active_epoch.
++            if(epoch && epoch==active_epoch) {
++                auto& hook=*owner_diagnostic_hooks[owner];
++                if(owner_diagnostic_epochs[owner]!=epoch) {
++                    hook.start_session(epoch,owner<2?zone_owners[owner]->enable_ns():leaf_owners[owner-2]->enable_ns());
++                    owner_diagnostic_epochs[owner]=epoch;
++                }
++                if(owner<2) hook.zone(zone_owners[owner]->feedback_monitor(),gate.allows(epoch),zone_owners[owner]->protection_ack_ns(),clock.now_ns());
++                else hook.leaf(leaf_owners[owner-2]->expiry_observation(),leaf_owners[owner-2]->command_success_observation(),
++                    !leaf_owners[owner-2]->faulted(),gate.allows(epoch),leaf_owners[owner-2]->protection_selected_ns(),clock.now_ns());
++            }
++        }
+         audit[owner].record(wall_now()-body_start);
+         if(execution_watch) execution_watch->finish(owner,job,clock.now_ns(),job?cpu_now()-cpu_start:0);
+     }
+diff --git a/simulation/runtime/m4_owner_network.hpp b/simulation/runtime/m4_owner_network.hpp
+index f9e151d..4a3898b 100644
+--- a/simulation/runtime/m4_owner_network.hpp
++++ b/simulation/runtime/m4_owner_network.hpp
+@@ -8,6 +8,8 @@
+ #include "ev_power_model.hpp"
+ #include "simple_vehicle.hpp"
+ #include "speed_request.hpp"
++#include "control_diagnostics.hpp"
++#include "owner_diagnostics.hpp"
+ #include "vehicle_ev_model.hpp"
+ #include "drive_sil_plant.hpp"
+ #include "steering_response.hpp"
+@@ -159,8 +161,16 @@ struct Network {
+     M4Result result; std::vector<M4Trace> central_trace;
+     std::uint64_t last_tick{0},last_root{0},last_vehicle{0},last_stop{0},next_management{0},vehicle_release{0},lifecycle_release{0}; std::uint32_t root_seq{0},vehicle_seq{0},stop_seq{0},active_epoch{0};
+     central::SpeedRequest speed_control;
++    std::unique_ptr<diagnostics::EventQueue> diagnostic_queue;
++    std::unique_ptr<diagnostics::ControlDiagnostics> diagnostic_hook;
++    std::array<std::unique_ptr<diagnostics::EventQueue>,5> owner_diagnostic_queues;
++    std::array<std::unique_ptr<diagnostics::OwnerDiagnostics>,5> owner_diagnostic_hooks;
++    std::array<std::uint32_t,5> owner_diagnostic_epochs{};
++    std::array<std::size_t,7> diagnostic_cursors_{};
+     std::uint64_t next_speed_ns{0};
+     void speed_step(std::uint64_t now);
++    bool speed_input_lost(std::uint64_t now) const noexcept;
++    void forward_diagnostic_protection();
+     bool began{false},rejoined{false},old_replayed{false};
+     explicit Network(const M4Config& c);
+     template<class T,std::size_t N> void bind(session::SessionMailbox<T,N>& mailbox,FaultPath path,std::size_t target) {
+diff --git a/simulation/runtime/m4_result.cpp b/simulation/runtime/m4_result.cpp
+index 5f90afe..65ac770 100644
+--- a/simulation/runtime/m4_result.cpp
++++ b/simulation/runtime/m4_result.cpp
+@@ -16,7 +16,34 @@ M4Timing Audit::result(std::string name) {
+         r.max_body_us=static_cast<double>(durations.back())/1000; r.max_poll_gap_ms=static_cast<double>(poll_gap)/kMs; r.max_runnable_gap_ms=static_cast<double>(runnable_gap)/kMs;
+         return r;
+     }
++void Network::forward_diagnostic_protection() {
++    if(!diagnostic_hook || !config.diagnostics_run) return;
++    const std::array<diagnostics::Component,7> actors{diagnostics::Component::Front,diagnostics::Component::Rear,
++                diagnostics::Component::Steering,diagnostics::Component::Brake,diagnostics::Component::Drive,diagnostics::Component::Bms,diagnostics::Component::Power};
++    for(std::size_t owner=0;owner<actors.size();++owner) while(diagnostic_cursors_[owner]<owner_events[owner].size()) {
++                const auto& row=owner_events[owner][diagnostic_cursors_[owner]++];
++                const auto kind=std::string_view(row.kind);
++                if(kind=="leaf-protection-selected" || kind=="zone-protection-ack")
++                    diagnostic_hook->local_protection(actors[owner],1U<<owner,row.epoch,row.time_ns,kind=="zone-protection-ack");
++    }
++}
+ M4Result Network::finish() {
++        if(diagnostic_queue) {
++            forward_diagnostic_protection();
++            diagnostics::Event event;
++            while(diagnostic_queue->pop(event)) {
++                result.diagnostic_events.push_back(event);
++                if(event.unmapped) result.diagnostics_complete=false;
++            }
++            const auto health=diagnostic_queue->health();
++            result.diagnostics_complete=result.diagnostics_complete && diagnostic_hook->healthy() && !health.dropped && !health.identity_error;
++        }
++        for(std::size_t i=0;i<owner_diagnostic_queues.size();++i) if(owner_diagnostic_queues[i]) {
++            diagnostics::Event event;
++            while(owner_diagnostic_queues[i]->pop(event)) { result.diagnostic_events.push_back(event); if(event.unmapped) result.diagnostics_complete=false; }
++            const auto h=owner_diagnostic_queues[i]->health();
++            result.diagnostics_complete=result.diagnostics_complete && owner_diagnostic_hooks[i]->healthy() && !h.dropped && !h.identity_error;
++        }
+         collect_filters();
+         for(const auto& log:transport_logs) {
+             result.event_overflow=result.event_overflow || log.overflow;
+@@ -55,7 +82,7 @@ M4Result Network::finish() {
+             }
+             result.trace.push_back(row);
+         }
+-        const auto d=core.decision(); const bool expected_fault=config.scenario==M4Scenario::PartialFront || config.scenario==M4Scenario::FeedbackLoss || config.scenario==M4Scenario::CommandLoss || config.scenario==M4Scenario::PartialArm || config.scenario==M4Scenario::Rejoin;
++        const auto d=core.decision(); const bool expected_fault=config.scenario==M4Scenario::PartialFront || config.scenario==M4Scenario::FeedbackLoss || config.scenario==M4Scenario::CommandLoss || config.scenario==M4Scenario::PartialArm || config.scenario==M4Scenario::Rejoin || config.scenario==M4Scenario::SpeedInputLoss;
+         bool scenario_ok;
+         if(expected_fault) scenario_ok=result.first_fault_ns!=0 && result.all_protected_ns>=result.first_fault_ns && result.all_protected_ns-result.first_fault_ns<=100*kMs;
+         else scenario_ok=result.first_fault_ns==0 && d.fault==central::CoordinatorFault::None && result.first_active_ns!=0;
+@@ -90,7 +117,7 @@ M4Result Network::finish() {
+             if(config.recovery_ns) scenario_ok=scenario_ok && result.rejoin_active_ns>config.recovery_ns && d.fault==central::CoordinatorFault::None;
+         }
+         if(config.execution_guards && !expected_fault && config.scenario!=M4Scenario::Fault) scenario_ok=scenario_ok && result.timing_ok;
+-        result.passed=result.startup_ok && scenario_ok && result.physical_ok && result.ownership_ok && !result.event_overflow && result.model_preserved;
++        result.passed=result.startup_ok && scenario_ok && result.physical_ok && result.ownership_ok && !result.event_overflow && result.model_preserved && result.diagnostics_complete;
+         if(!result.passed) result.reason="scenario="+std::string(m4_scenario_name(config.scenario))+" core="+std::to_string(static_cast<int>(d.fault))+" session="+std::to_string(static_cast<int>(startup.fault()))+" management="+std::to_string(static_cast<int>(d.management.state))+" vm_fault="+std::to_string(static_cast<int>(d.management.fault))+" allocation="+std::to_string(static_cast<int>(d.allocation.fault))+" stop="+std::to_string(static_cast<int>(d.stop.state))+" physical="+std::to_string(result.physical_ok)+" active="+std::to_string(result.first_active_ns)+" fault="+std::to_string(result.first_fault_ns)+" selected="+std::to_string(result.all_protected_ns);
+         if(!result.passed) { result.reason+=" transport="+std::to_string(static_cast<int>(port.fault()))+" op="+std::to_string(port.failed_operation())+" front="+std::to_string(zone_owners[0]->rejection())+" rear="+std::to_string(zone_owners[1]->rejection())+" energy="+std::to_string(physical.fault_code()); for(const auto& l:leaf_owners) result.reason+=" leaf="+std::to_string(l->fault_code()); }
+         return result;
+diff --git a/simulation/runtime/speed_loop.cpp b/simulation/runtime/speed_loop.cpp
+index 3b5fda4..daa1342 100644
+--- a/simulation/runtime/speed_loop.cpp
++++ b/simulation/runtime/speed_loop.cpp
+@@ -12,6 +12,12 @@ double target(std::uint64_t ns) {
+     return 0;
+ }
+ }
++bool Network::speed_input_lost(std::uint64_t now) const noexcept {
++    if(config.scenario!=M4Scenario::SpeedInputLoss || now<start) return false;
++    const auto elapsed=now-start;
++    return (elapsed>=config.injection_ns && (!config.speed_input_restore_ns || elapsed<config.speed_input_restore_ns)) ||
++        (config.speed_input_reinject_ns && elapsed>=config.speed_input_reinject_ns);
++}
+ void Network::speed_step(std::uint64_t now) {
+     if(!result.speed_origin_ns) result.speed_origin_ns=now;
+     const auto elapsed=now-result.speed_origin_ns;
+@@ -22,7 +28,8 @@ void Network::speed_step(std::uint64_t now) {
+         grant->permission==can::BmsDrivePermission::AllowNormal && now<grant->expires_at_ns &&
+         gate.allows(active_epoch) && core.decision().management.normal_allowed &&
+         core.decision().fault==central::CoordinatorFault::None;
+-    const auto request=speed_control.step(now,target(elapsed),in.rear.drive_actual,permitted);
++    const bool input_loss=speed_input_lost(now);
++    const auto request=speed_control.step(now,target(elapsed),input_loss?std::nullopt:in.rear.drive_actual,permitted);
+     next_speed_ns=now+central::SpeedPI::kPeriodNs;
+     result.speed_fault=static_cast<int>(speed_control.fault());
+     if(!request) { core.request_protection(now); return; }
+diff --git a/tests/unit/normal_stop_test.cpp b/tests/unit/normal_stop_test.cpp
+index 6e0a336..6f208c4 100644
+--- a/tests/unit/normal_stop_test.cpp
++++ b/tests/unit/normal_stop_test.cpp
+@@ -1,6 +1,8 @@
+ #include "normal_stop.hpp"
++#include "control_diagnostics.hpp"
+ 
+ #include <gtest/gtest.h>
++#include <algorithm>
+ #include <limits>
+ 
+ namespace {
+@@ -211,4 +213,78 @@ TEST_F(NormalStopTest, ExplicitTenSecondBudgetAllowsIdealThirtyKmhHandoffWithout
+     EXPECT_EQ(candidate.decision().fault,central::NormalStopFault::None);
+     EXPECT_EQ(central::NormalStopConfig{}.braking_timeout_ns,5000*kMs);
+ }
++diagnostics::Ledger diagnosed(diagnostics::EventQueue& queue) {
++    diagnostics::Ledger ledger; diagnostics::Event e;
++    while(queue.pop(e)) EXPECT_EQ(ledger.record(e),diagnostics::Result::Accepted);
++    return ledger;
++}
++TEST_F(NormalStopTest, DiagnosticsRecordsNativeBrakingAndShutdownBudgetsAtTheirOwnOrigins) {
++    for(bool shutdown:{false,true}) {
++        diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++        ASSERT_TRUE(hook.start_session(3,kStart));
++        central::NormalStopConfig config; config.braking_timeout_ns=80*kMs; config.shutdown_timeout_ns=40*kMs;
++        central::NormalStop c(config); ASSERT_TRUE(c.start_session(3,kStart)); ASSERT_TRUE(c.begin(request(10),{0,0},ns(10)));
++        auto owner=management;
++        for(std::uint32_t ms=10;ms<=130;ms+=10) {
++            if(ms>10) { ASSERT_EQ(c.receive_request(request(ms),ns(ms)),central::StopReceiveResult::Accepted); }
++            const auto out=c.tick(inputs(ms,{shutdown?0.:20.}),owner,ns(ms));
++            if(!out) break;
++            if(out->state==central::NormalStopState::HandoffPending) {
++                ASSERT_TRUE(c.acknowledge_handoff(out->lease,ns(ms))); owner.normal_allowed=false; owner.state=central::VehicleManagementState::Stopping;
++            }
++        }
++        hook.observe(c,ns(200)); hook.observe(c,ns(300)); const auto ledger=diagnosed(queue);
++        ASSERT_EQ(ledger.records().size(),1U); const auto& r=ledger.records().front();
++        EXPECT_EQ(r.key.code,shutdown?diagnostics::Code::ShutdownTimeout:diagnostics::Code::BrakingTimeout);
++        EXPECT_EQ(r.first_detected.ns,ns(shutdown?110:90)); EXPECT_EQ(r.count,1U);
++        const auto fault=std::find_if(ledger.events().begin(),ledger.events().end(),[](const auto& e){return e.kind==diagnostics::Kind::Fault;});
++        ASSERT_NE(fault,ledger.events().end()); EXPECT_EQ(fault->times[1].ns,ns(shutdown?110:90));
++        const auto& o=*c.fault_observations()[0]; EXPECT_EQ(o.phase_start_ns,ns(shutdown?70:10));
++        EXPECT_EQ(o.config.braking_timeout_ns,80*kMs); EXPECT_EQ(o.config.shutdown_timeout_ns,40*kMs);
++        EXPECT_TRUE(c.decision().protection_required);
++    }
++}
++TEST_F(NormalStopTest, DiagnosticsSeparatesMissingFeedbackLostHoldRequestAndHandoffExpiry) {
++    for(unsigned kind=0;kind<4;++kind) {
++        diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++        ASSERT_TRUE(hook.start_session(3,kStart)); central::NormalStop c;
++        ASSERT_TRUE(c.start_session(3,kStart)); ASSERT_TRUE(c.begin(request(10),{0,0},ns(10)));
++        if(kind==0) { auto in=inputs(10); in.front.brake_actual.reset(); EXPECT_FALSE(c.tick(in,management,ns(10))); }
++        if(kind==1 || kind==3) {
++            for(std::uint32_t ms=10;ms<=70;ms+=10) {
++                if(ms>10) { ASSERT_EQ(c.receive_request(request(ms),ns(ms)),central::StopReceiveResult::Accepted); }
++                ASSERT_TRUE(c.tick(inputs(ms),management,ns(ms)));
++            }
++            if(kind==1) { ASSERT_EQ(c.receive_request(request(80),ns(80)),central::StopReceiveResult::Accepted); EXPECT_FALSE(c.tick(inputs(80,{1}),management,ns(80))); }
++            else for(std::uint32_t ms=80;ms<=130;ms+=10) { c.receive_request(request(ms),ns(ms)); c.tick(inputs(ms),management,ns(ms)); }
++        }
++        if(kind==2) { ASSERT_TRUE(c.tick(inputs(10),management,ns(10))); EXPECT_EQ(c.receive_request(request(70),ns(70)),central::StopReceiveResult::Latched); }
++        hook.observe(c,ns(200)); const auto ledger=diagnosed(queue); ASSERT_EQ(ledger.records().size(),1U);
++        const auto expected=kind<2?diagnostics::Code::StopEvidence:kind==2?diagnostics::Code::StopRequest:diagnostics::Code::Handoff;
++        EXPECT_EQ(ledger.records().front().key.code,expected); EXPECT_TRUE(c.decision().protection_required);
++        if(kind==3) {
++            const auto fault=std::find_if(ledger.events().begin(),ledger.events().end(),[](const auto& e){return e.kind==diagnostics::Kind::Fault;});
++            ASSERT_NE(fault,ledger.events().end()); EXPECT_EQ(fault->stop_lease.source.ns,ns(70)); EXPECT_EQ(fault->command.source.ns,ns(120));
++        }
++    }
++}
++TEST_F(NormalStopTest, DiagnosticsPreservesFirstFaultAndSeparateUntrustedClockFailure) {
++    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++    ASSERT_TRUE(hook.start_session(3,kStart)); ASSERT_TRUE(stop.tick(inputs(10),management,ns(10)));
++    EXPECT_EQ(stop.receive_request(request(70),ns(70)),central::StopReceiveResult::Latched);
++    EXPECT_FALSE(stop.tick(inputs(9),management,ns(9))); hook.observe(stop,ns(200));
++    const auto ledger=diagnosed(queue); ASSERT_EQ(ledger.records().size(),2U);
++    EXPECT_EQ(ledger.records()[0].key.code,diagnostics::Code::StopRequest); EXPECT_EQ(ledger.records()[0].first_detected.ns,ns(70));
++    EXPECT_EQ(ledger.records()[1].key.code,diagnostics::Code::Clock); EXPECT_EQ(ledger.records()[1].first_detected.ns,ns(9));
++    EXPECT_FALSE(ledger.records()[1].first_detected.trusted);
++}
++TEST_F(NormalStopTest, DiagnosticsNeverTurnsRejectedRequestOrUpstreamProtectionIntoSpecificRoot) {
++    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++    ASSERT_TRUE(hook.start_session(3,kStart)); auto wrong=request(20); wrong.identity.epoch=4;
++    EXPECT_EQ(stop.receive_request(wrong,ns(20)),central::StopReceiveResult::Rejected);
++    auto owner=management; owner.normal_allowed=false; EXPECT_FALSE(stop.tick(inputs(20),owner,ns(20)));
++    hook.observe(stop,ns(30)); const auto ledger=diagnosed(queue);
++    EXPECT_TRUE(ledger.records().empty()); EXPECT_EQ(ledger.events().back().kind,diagnostics::Kind::Observation);
++    EXPECT_TRUE(ledger.events().back().cause_unknown);
++}
+ } // namespace
+diff --git a/tests/unit/speed_request_test.cpp b/tests/unit/speed_request_test.cpp
+index e68044a..3d34b6b 100644
+--- a/tests/unit/speed_request_test.cpp
++++ b/tests/unit/speed_request_test.cpp
+@@ -1,4 +1,5 @@
+ #include "speed_request.hpp"
++#include "control_diagnostics.hpp"
+ #include <gtest/gtest.h>
+ #include <limits>
+ using namespace stratadrive;
+@@ -119,4 +120,59 @@ TEST(SpeedRequest, DerivedRequestRetainsBothClocksAndThirtyMillisecondIngressLim
+     EXPECT_EQ(c.fault(),central::SpeedRequestFault::Source);
+     EXPECT_FALSE(c.step_derived(170*ms,4,sample(170*ms),true));
+ }
++TEST(SpeedDiagnostics, SuccessfulSnapshotRetainsNativeInputAndExactReturnedDerivedRoot) {
++    central::SpeedRequest c; ASSERT_TRUE(c.start_session(3,100*ms));
++    ASSERT_FALSE(c.success_observation()); const auto input=sample(118*ms);
++    const auto request=c.step_derived(120*ms,4,input,true); ASSERT_TRUE(request); ASSERT_TRUE(c.success_observation());
++    const auto original=*c.success_observation(); EXPECT_EQ(original.epoch,3U); EXPECT_EQ(original.enable_ns,100*ms);
++    EXPECT_EQ(original.issued_ns,120*ms); EXPECT_EQ(original.input.wheel_speed->source_time_ns,118*ms);
++    EXPECT_EQ(original.request.source_time_ns,request->request.source_time_ns); EXPECT_EQ(original.request.expires_at_ns,request->request.expires_at_ns);
++    EXPECT_EQ(original.request.sequence,request->request.sequence); EXPECT_DOUBLE_EQ(original.request.acceleration_mps2,request->request.acceleration_mps2);
++    EXPECT_FALSE(c.step(140*ms,4,std::nullopt,true)); EXPECT_EQ(c.success_observation()->issued_ns,original.issued_ns);
++    ASSERT_TRUE(c.start_session(4,140*ms)); EXPECT_FALSE(c.success_observation());
++}
++TEST(SpeedDiagnostics, FailedDerivedExpiryNeverPublishesSuccessfulRoot) {
++    central::SpeedRequest c; const auto end=std::numeric_limits<std::uint64_t>::max();
++    ASSERT_TRUE(c.start_session(3,end-40*ms));
++    EXPECT_FALSE(c.step_derived(end-10*ms,0,sample(end-11*ms),true));
++    EXPECT_EQ(c.fault(),central::SpeedRequestFault::Source); EXPECT_FALSE(c.success_observation());
++}
++TEST(SpeedDiagnostics, FirstSourceFailureRetainsNativeTimeInputAndControllerDetail) {
++    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++    central::SpeedRequest c; ASSERT_TRUE(c.start_session(3,100*ms)); ASSERT_TRUE(hook.start_session(3,100*ms));
++    ASSERT_TRUE(c.step(120*ms,4,sample(118*ms),true));
++    EXPECT_FALSE(c.step(140*ms,4,sample(118*ms),true));
++    ASSERT_TRUE(c.fault_observation()); EXPECT_EQ(c.fault_observation()->detected_ns,140*ms);
++    EXPECT_FALSE(c.step(160*ms,4,sample(158*ms),true)); hook.observe(c,200*ms); hook.observe(c,220*ms);
++    diagnostics::Ledger ledger; diagnostics::Event event;
++    while(queue.pop(event)) ASSERT_EQ(ledger.record(event),diagnostics::Result::Accepted);
++    ASSERT_EQ(ledger.records().size(),1U); const auto& r=ledger.records().front();
++    EXPECT_EQ(r.key.code,diagnostics::Code::SpeedInput); EXPECT_EQ(r.count,1U); EXPECT_EQ(r.first_detected.ns,140*ms);
++    const auto& raw=ledger.events()[1]; EXPECT_EQ(raw.native_reason,4U<<8); EXPECT_EQ(raw.source.source.ns,118*ms);
++    EXPECT_EQ(raw.times[static_cast<std::size_t>(diagnostics::Time::Observed)].ns,200*ms);
++    ASSERT_TRUE(c.start_session(4,220*ms)); EXPECT_FALSE(c.fault_observation());
++}
++TEST(SpeedDiagnostics, MissingInputAndPiTargetFailureMapToDifferentCodesWithoutDebounce) {
++    for(bool missing:{false,true}) {
++        diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++        central::SpeedRequest c; ASSERT_TRUE(c.start_session(3,100*ms)); ASSERT_TRUE(hook.start_session(3,100*ms));
++        EXPECT_FALSE(c.step(120*ms,missing?4:12,missing?std::nullopt:std::optional{sample(118*ms)},true)); hook.observe(c,120*ms);
++        diagnostics::Ledger ledger; diagnostics::Event e;
++        while(queue.pop(e)) ASSERT_EQ(ledger.record(e),diagnostics::Result::Accepted);
++        ASSERT_EQ(ledger.records().size(),1U);
++        EXPECT_EQ(ledger.records().front().key.code,missing?diagnostics::Code::SpeedInput:diagnostics::Code::CentralControl);
++        EXPECT_EQ(ledger.events().back().native_reason,missing?3U<<8:(5U<<8)|5U);
++        EXPECT_EQ(c.fault_observation()->controller_reason,missing?central::SpeedPIReason::Normal:central::SpeedPIReason::Target);
++    }
++}
++TEST(SpeedDiagnostics, SourceBoundaryAndPermissionPropagationNeverInventRootFaults) {
++    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++    central::SpeedRequest c; ASSERT_TRUE(c.start_session(3,100*ms)); ASSERT_TRUE(hook.start_session(3,100*ms));
++    ASSERT_TRUE(c.step(130*ms,4,sample(100*ms),true)); hook.observe(c,130*ms);
++    EXPECT_FALSE(c.step(150*ms,4,sample(150*ms),false)); hook.observe(c,160*ms);
++    diagnostics::Ledger ledger; diagnostics::Event e;
++    while(queue.pop(e)) ASSERT_EQ(ledger.record(e),diagnostics::Result::Accepted);
++    EXPECT_TRUE(ledger.records().empty()); EXPECT_TRUE(ledger.events().back().cause_unknown);
++    EXPECT_EQ(ledger.events().back().native_reason,2U<<8);
++}
+ } // namespace
+diff --git a/tests/unit/vehicle_coordinator_test.cpp b/tests/unit/vehicle_coordinator_test.cpp
+index d825b75..be0ee5c 100644
+--- a/tests/unit/vehicle_coordinator_test.cpp
++++ b/tests/unit/vehicle_coordinator_test.cpp
+@@ -1,4 +1,5 @@
+ #include "vehicle_coordinator.hpp"
++#include "control_diagnostics.hpp"
+ 
+ #include <gtest/gtest.h>
+ #include <string>
+@@ -194,6 +195,44 @@ TEST_F(CoordinatorTest, HandoffFailureNeverAcknowledgesShutdownAndProtectsAllPar
+     EXPECT_EQ(coordinator.decision().fault,central::CoordinatorFault::Handoff); EXPECT_EQ(coordinator.decision().stop.state,central::NormalStopState::HandoffPending);
+     EXPECT_EQ(port.protections,1U); EXPECT_EQ(std::get<can::BmsPowerRequest>(port.sent_power->power_request.content).action,can::BmsPowerAction::Enable);
+ }
++TEST_F(CoordinatorTest, DiagnosticsLinksActualHandoffRejectionAfterProtectionWithoutDuplicatingDtc) {
++    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++    central::SpeedRequest speed; ASSERT_TRUE(hook.start_session(3,kStart)); normal();
++    port.stop_ok=false; port.now=ns(50); ASSERT_EQ(coordinator.receive_stop(stop(50),port.now),central::CoordinatorReceive::Accepted);
++    for(std::uint32_t ms=50;ms<=110;ms+=10) {
++        port.now=ns(ms); if(ms>50) { ASSERT_EQ(coordinator.receive_stop(stop(ms,ms/10-5),port.now),central::CoordinatorReceive::Accepted); }
++        tick(ms);
++    }
++    ASSERT_EQ(port.protections,1U); hook.observe(speed,coordinator,ns(200)); hook.observe(speed,coordinator,ns(210));
++    diagnostics::Ledger ledger; diagnostics::Event e; std::optional<diagnostics::Event> selection;
++    while(queue.pop(e)) { ASSERT_EQ(ledger.record(e),diagnostics::Result::Accepted); if(e.kind==diagnostics::Kind::ProtectionAck) selection=e; }
++    ASSERT_EQ(ledger.records().size(),1U); const auto& r=ledger.records().front();
++    EXPECT_EQ(r.key.code,diagnostics::Code::Handoff); EXPECT_EQ(r.key.component,3U); EXPECT_EQ(r.first_detected.ns,ns(110)); EXPECT_EQ(r.count,1U);
++    ASSERT_TRUE(selection); EXPECT_TRUE(selection->related==r.first_event); EXPECT_EQ(selection->times[4].ns,ns(110)); EXPECT_FALSE(selection->times[3].present);
++    EXPECT_TRUE(selection->stop_lease.present); EXPECT_EQ(coordinator.decision().stop.state,central::NormalStopState::HandoffPending);
++}
++TEST_F(CoordinatorTest, DiagnosticsQueueOverflowCannotDelayExistingProtectionSelection) {
++    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++    central::SpeedRequest speed; ASSERT_TRUE(hook.start_session(3,kStart));
++    for(std::size_t i=1;i<diagnostics::EventQueue::kCapacity;++i) {
++        diagnostics::Event e; e.id={10,20,i+100}; ASSERT_TRUE(queue.publish(e));
++    }
++    normal(); port.stop_ok=false; port.now=ns(50); ASSERT_EQ(coordinator.receive_stop(stop(50),port.now),central::CoordinatorReceive::Accepted);
++    for(std::uint32_t ms=50;ms<=110;ms+=10) {
++        port.now=ns(ms); if(ms>50) { ASSERT_EQ(coordinator.receive_stop(stop(ms,ms/10-5),port.now),central::CoordinatorReceive::Accepted); }
++        tick(ms);
++    }
++    ASSERT_EQ(port.protections,1U); ASSERT_TRUE(coordinator.decision().protection_selected);
++    hook.observe(speed,coordinator,ns(200)); EXPECT_FALSE(hook.healthy()); EXPECT_GT(queue.health().dropped,0U);
++    EXPECT_EQ(coordinator.fault_observation()->detected_ns,ns(110));
++}
++TEST_F(CoordinatorTest, DiagnosticsNeverClaimsSelectionWhenProtectionPortRejects) {
++    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++    central::SpeedRequest speed; ASSERT_TRUE(hook.start_session(3,kStart)); normal();
++    port.protect_ok=false; port.now=ns(50); coordinator.request_protection(port.now); hook.observe(speed,coordinator,ns(60));
++    EXPECT_FALSE(coordinator.decision().protection_selected); diagnostics::Event e;
++    while(queue.pop(e)) EXPECT_NE(e.kind,diagnostics::Kind::ProtectionSelected);
++}
+ TEST_F(CoordinatorTest, LostStopIntentCannotBeRenewedAfterItsPreviousAuthorityExpired) {
+     normal(); port.now=ns(50); ASSERT_EQ(coordinator.receive_stop(stop(50),port.now),central::CoordinatorReceive::Accepted);
+     for(std::uint32_t ms=50;ms<=100;ms+=10) tick(ms);
+diff --git a/tests/unit/zone_feedback_monitor_test.cpp b/tests/unit/zone_feedback_monitor_test.cpp
+index 590985d..08e32aa 100644
+--- a/tests/unit/zone_feedback_monitor_test.cpp
++++ b/tests/unit/zone_feedback_monitor_test.cpp
+@@ -84,6 +84,9 @@ TEST_F(ZoneFeedbackTest, AdvancingCallbackClockUsesCompletionTimeAndRechecksChil
+     // At invocation age30 ms, the cached child expires during the callback.
+     s=tick(40,inputs(10)); EXPECT_EQ(s.phase,zone::ZonePhase::FailSafe); EXPECT_EQ(s.source_time_ns,ns(41));
+     EXPECT_EQ(monitor.fault(),zone::ZoneFeedbackFault::InputsUnavailable);
++    ASSERT_TRUE(monitor.fault_observation()); EXPECT_EQ(monitor.fault_observation()->observed_ns,ns(41));
++    ASSERT_TRUE(monitor.fault_observation()->last_healthy.steering);
++    EXPECT_EQ(monitor.fault_observation()->last_healthy.steering->source_time_ns,ns(10));
+ }
+ TEST_F(ZoneFeedbackTest, GatewayInitCallbackMayCompleteAfterSharedSessionEnableBoundary) {
+     port.now=ns(11); ASSERT_TRUE(commands.start_session(4,ns(10))); ASSERT_TRUE(monitor.start_session(4,ns(10)));
+diff --git a/zone/feedback/zone_feedback_monitor.cpp b/zone/feedback/zone_feedback_monitor.cpp
+index 3811836..0b9d483 100644
+--- a/zone/feedback/zone_feedback_monitor.cpp
++++ b/zone/feedback/zone_feedback_monitor.cpp
+@@ -23,19 +23,30 @@ bool ZoneFeedbackMonitor::start_session(std::uint32_t epoch,std::uint64_t enable
+         (power_ && power_->observed_time_ns()<enable)) return false;
+     epoch_=epoch; enable_ns_=enable;
+     observed_ns_=std::max(commands_.observed_time_ns(),power_?power_->observed_time_ns():enable);
+-    sequence_=0; tick_ns_.reset(); seen_={}; fault_=ZoneFeedbackFault::None; return true;
++    sequence_=0; tick_ns_.reset(); seen_={}; fault_=ZoneFeedbackFault::None;
++    last_healthy_={}; first_fault_.reset(); success_.reset(); return true;
+ }
+-void ZoneFeedbackMonitor::fail(ZoneFeedbackFault fault) {
++ZoneFeedbackObservation ZoneFeedbackMonitor::observation(ZoneFeedbackFault f,std::uint64_t now,const ZoneFeedbackInputs& in) const {
++    const feedback::SourceContext context{epoch_,enable_ns_,now};
++    const std::array<bool,5> healthy{feedback::steering_available(in.steering,context),feedback::brake_available(in.brake,context),
++        feedback::drive_available(in.drive,context),feedback::power_available(in.power_status,context,false),feedback::limits_available(in.power_limits,context,false)};
++    std::uint32_t mask=0; for(std::size_t i=0;i<healthy.size();++i) if(healthy[i]) mask|=1U<<i;
++    return {f,commands_.scope(),epoch_,mask,enable_ns_,now,in,last_healthy_,std::nullopt};
++}
++void ZoneFeedbackMonitor::fail(ZoneFeedbackFault fault,std::uint64_t now,const ZoneFeedbackInputs& in,std::optional<std::uint64_t> violation) {
++    if(!first_fault_) { first_fault_=observation(fault,now,in); first_fault_->violation_ns=violation; }
+     if(fault_==ZoneFeedbackFault::None || fault==ZoneFeedbackFault::ClockError) fault_=fault;
+     commands_.request_protection();
+     if(power_) power_->mark_continuity_lost();
+ }
+ std::optional<ZoneHealthSnapshot> ZoneFeedbackMonitor::tick(const ZoneFeedbackInputs& in,std::uint64_t now) {
+     if(epoch_==0) return std::nullopt;
++    const auto fail=[&](ZoneFeedbackFault f) { this->fail(f,now,in); };
+     if(now<observed_ns_) { fail(ZoneFeedbackFault::ClockError); return std::nullopt; }
+     observed_ns_=now;
+     if(tick_ns_ && now-*tick_ns_<minimum_interval_ns_) return std::nullopt;
+-    if(now-tick_ns_.value_or(enable_ns_)>30000000ULL) fail(ZoneFeedbackFault::ControlDeadline);
++    if(now-tick_ns_.value_or(enable_ns_)>30000000ULL)
++        this->fail(ZoneFeedbackFault::ControlDeadline,now,in,tick_ns_.value_or(enable_ns_)+30000001ULL);
+     tick_ns_=now;
+     const auto gateway=commands_.poll();
+     const bool power_protected=power_ && power_->poll().safety.cause!=ProtectionCause::None;
+@@ -45,23 +56,29 @@ std::optional<ZoneHealthSnapshot> ZoneFeedbackMonitor::tick(const ZoneFeedbackIn
+         fail(ZoneFeedbackFault::ClockError); return std::nullopt;
+     }
+     const auto completed=std::max(commands_.observed_time_ns(),power_?power_->observed_time_ns():now);
++    const auto fail_completed=[&](ZoneFeedbackFault f) { this->fail(f,completed,in); };
+     observed_ns_=completed;
+-    if(completed-now>30000000ULL) fail(ZoneFeedbackFault::ControlDeadline);
++    if(completed-now>30000000ULL) this->fail(ZoneFeedbackFault::ControlDeadline,completed,in,now+30000001ULL);
+     if(commands_.application_epoch()!=epoch_ || (power_ && power_->application_epoch()!=epoch_) ||
+         gateway.safety.cause!=ProtectionCause::None || gateway.admission.state==AdmissionState::NotInitialized ||
+-        gateway.admission.state==AdmissionState::FailSafe || power_protected) fail(ZoneFeedbackFault::GatewayProtection);
++        gateway.admission.state==AdmissionState::FailSafe || power_protected) fail_completed(ZoneFeedbackFault::GatewayProtection);
+     const feedback::SourceContext context{epoch_,enable_ns_,completed};
+     const bool front=commands_.scope()==ZoneScope::Front;
+     const std::array<bool,5> healthy{feedback::steering_available(in.steering,context),feedback::brake_available(in.brake,context),
+         feedback::drive_available(in.drive,context),feedback::power_available(in.power_status,context,false),feedback::limits_available(in.power_limits,context,false)};
+     if(front?(protected_source(in.steering)||protected_source(in.brake)):
+-        (protected_source(in.drive)||protected_source(in.power_status)||protected_source(in.power_limits))) fail(ZoneFeedbackFault::SourceProtection);
++        (protected_source(in.drive)||protected_source(in.power_status)||protected_source(in.power_limits))) fail_completed(ZoneFeedbackFault::SourceProtection);
+     bool all=true;
+     for(std::size_t i=front?0:2;i<(front?2U:5U);++i) {
+-        if(!healthy[i] && (seen_[i] || completed-enable_ns_>=80000000ULL)) fail(ZoneFeedbackFault::InputsUnavailable);
++        if(!healthy[i] && (seen_[i] || completed-enable_ns_>=80000000ULL)) fail_completed(ZoneFeedbackFault::InputsUnavailable);
+         seen_[i]=seen_[i]||healthy[i]; all=all&&healthy[i];
+     }
+-    if(sequence_>std::numeric_limits<std::uint32_t>::max()) { fail(ZoneFeedbackFault::SequenceExhausted); return std::nullopt; }
++    if(healthy[0]) last_healthy_.steering=in.steering;
++    if(healthy[1]) last_healthy_.brake=in.brake;
++    if(healthy[2]) last_healthy_.drive=in.drive;
++    if(healthy[3]) last_healthy_.power_status=in.power_status;
++    if(healthy[4]) last_healthy_.power_limits=in.power_limits;
++    if(sequence_>std::numeric_limits<std::uint32_t>::max()) { fail_completed(ZoneFeedbackFault::SequenceExhausted); return std::nullopt; }
+     ZoneHealthSnapshot result;
+     result.scope=commands_.scope(); result.epoch=epoch_; result.sequence=static_cast<std::uint32_t>(sequence_++); result.source_time_ns=completed;
+     if(fault_!=ZoneFeedbackFault::None) {
+@@ -71,13 +88,14 @@ std::optional<ZoneHealthSnapshot> ZoneFeedbackMonitor::tick(const ZoneFeedbackIn
+     } else {
+         const bool terminal=commands_.normal_stop_selected();
+         if(power_ && power_->normal_stop_selected()!=terminal) {
+-            fail(ZoneFeedbackFault::GatewayProtection);
++            fail_completed(ZoneFeedbackFault::GatewayProtection);
+             result.phase=ZonePhase::FailSafe; result.local_state=can::ActuatorLocalState::FailSafe; result.origin=can::ActuatorOrigin::LocalProtection;
+             return result;
+         }
+         result.phase=terminal?ZonePhase::Terminal:gateway.admission.state==AdmissionState::Idle?ZonePhase::Ready:ZonePhase::Active;
+         result.ready_for_normal=!terminal; result.local_state=can::ActuatorLocalState::Normal; result.origin=can::ActuatorOrigin::NormalPath;
+     }
++    if(fault_==ZoneFeedbackFault::None && all) success_=observation(ZoneFeedbackFault::None,completed,in);
+     return result;
+ }
+ }  // namespace stratadrive::zone
+diff --git a/zone/feedback/zone_feedback_monitor.hpp b/zone/feedback/zone_feedback_monitor.hpp
+index c6cd507..6571980 100644
+--- a/zone/feedback/zone_feedback_monitor.hpp
++++ b/zone/feedback/zone_feedback_monitor.hpp
+@@ -12,6 +12,14 @@ struct ZoneFeedbackInputs {
+     std::optional<can::BmsCurrentSample> power_status, power_limits;
+ };
+ enum class ZoneFeedbackFault { None, ClockError, ControlDeadline, InputsUnavailable, SourceProtection, GatewayProtection, SequenceExhausted };
++struct ZoneFeedbackObservation {
++    ZoneFeedbackFault fault{ZoneFeedbackFault::None};
++    ZoneScope scope{ZoneScope::Front};
++    std::uint32_t epoch{0},healthy_mask{0};
++    std::uint64_t enable_ns{0},observed_ns{0};
++    ZoneFeedbackInputs inputs,last_healthy;
++    std::optional<std::uint64_t> violation_ns;
++};
+ // Single owner, 10 ms runnable. Feedback must come from independent receiver
+ // current_sample(now), never diagnostic last_accepted(). Gateway polling and
+ // protection use the same owner's clock. Does not reset any remote controller.
+@@ -21,8 +29,11 @@ public:
+     bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
+     std::optional<ZoneHealthSnapshot> tick(const ZoneFeedbackInputs& inputs, std::uint64_t now_ns);
+     ZoneFeedbackFault fault() const { return fault_; }
++    const std::optional<ZoneFeedbackObservation>& fault_observation() const { return first_fault_; }
++    const std::optional<ZoneFeedbackObservation>& success_observation() const { return success_; }
+ private:
+-    void fail(ZoneFeedbackFault fault);
++    void fail(ZoneFeedbackFault fault,std::uint64_t now,const ZoneFeedbackInputs&,std::optional<std::uint64_t> violation=std::nullopt);
++    ZoneFeedbackObservation observation(ZoneFeedbackFault,std::uint64_t,const ZoneFeedbackInputs&) const;
+     CommandGateway& commands_;
+     RearPowerGateway* power_;
+     const std::uint64_t minimum_interval_ns_;
+@@ -31,5 +42,7 @@ private:
+     std::optional<std::uint64_t> tick_ns_;
+     std::array<bool,5> seen_{};
+     ZoneFeedbackFault fault_{ZoneFeedbackFault::None};
++    ZoneFeedbackInputs last_healthy_;
++    std::optional<ZoneFeedbackObservation> first_fault_,success_;
+ };
+ }  // namespace stratadrive::zone
+diff --git a/zone/gateway/async_zone_owner.cpp b/zone/gateway/async_zone_owner.cpp
+index 7e4036f..ac91c75 100644
+--- a/zone/gateway/async_zone_owner.cpp
++++ b/zone/gateway/async_zone_owner.cpp
+@@ -11,6 +11,7 @@ bool AsyncZoneOwner::initialize(std::uint32_t epoch,std::uint64_t enable) {
+     if(!commands_.start_session(epoch,enable) || (power_ && !power_->start_session(epoch,enable)) ||
+         !steering_.start_session(epoch,enable) || !brake_.start_session(epoch,enable) || !drive_.start_session(epoch,enable) || !health_.start_session(epoch,enable)) return false;
+     epoch_=epoch; enable_=enable; observed_=now_ns(); last_health_=enable; last_inputs_={}; failed_=false; rejection_=0; pending_.reset(); leaf_ack_={}; drive_arm_ack_=false;
++    protection_ack_.reset();
+     return true;
+ }
+ std::pair<std::size_t,std::size_t> AsyncZoneOwner::leaf_range() const { return scope_==ZoneScope::Front?std::pair<std::size_t,std::size_t>{0,2}:std::pair<std::size_t,std::size_t>{2,5}; }
+@@ -181,6 +182,9 @@ void AsyncZoneOwner::service() {
+             if(const auto health=health_.tick(in,last_health_)) forward(*health);
+         }
+     }
+-    if(protected_selected()) central_.protection.selected.store(epoch_,std::memory_order_release);
++    if(protected_selected()) {
++        central_.protection.selected.store(epoch_,std::memory_order_release);
++        if(!protection_ack_) protection_ack_=now_ns();
++    }
+ }
+ }  // namespace stratadrive::zone
+diff --git a/zone/gateway/async_zone_owner.hpp b/zone/gateway/async_zone_owner.hpp
+index f579538..b7b589b 100644
+--- a/zone/gateway/async_zone_owner.hpp
++++ b/zone/gateway/async_zone_owner.hpp
+@@ -23,6 +23,9 @@ public:
+     void quiesce();
+     bool protected_selected() const;
+     std::uint32_t epoch() const { return epoch_; }
++    std::uint64_t enable_ns() const { return enable_; }
++    const ZoneFeedbackMonitor& feedback_monitor() const { return health_; }
++    const std::optional<std::uint64_t>& protection_ack_ns() const { return protection_ack_; }
+     bool faulted() const { return failed_; }
+     int rejection() const { return rejection_; }
+     std::size_t command_frames() const { return command_frames_; }
+@@ -59,6 +62,7 @@ private:
+     bool failed_{false},drive_arm_ack_{false}; std::size_t command_frames_{0};
+     int rejection_{0};
+     std::optional<transport::ZoneRequest> pending_;
++    std::optional<std::uint64_t> protection_ack_;
+     std::array<bool,transport::kLeaves> leaf_ack_{};
+ };
+ }  // namespace stratadrive::zone

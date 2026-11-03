@@ -11,6 +11,7 @@
 #include "bms_controller.hpp"
 #include "power_controller.hpp"
 #include "m4_faults.hpp"
+#include "leaf_authority_observation.hpp"
 
 namespace stratadrive::simulation {
 struct OwnerSensors {
@@ -55,12 +56,21 @@ public:
     std::size_t received_commands() const { return commands_; }
     bool faulted() const;
     int fault_code() const;
+    const std::optional<transport::LeafAuthorityObservation>& expiry_observation() const { return expiry_observation_; }
+    const std::optional<transport::LeafAuthorityObservation>& command_success_observation() const { return command_success_; }
+    std::uint64_t enable_ns() const { return enable_; }
+    const std::optional<std::uint64_t>& protection_selected_ns() const { return protection_selected_; }
+    const vecu::BmsController* bms_controller() const { return std::get_if<vecu::BmsController>(&actor_); }
+    const vecu::PowerController* power_controller() const { return std::get_if<vecu::PowerController>(&actor_); }
     const std::vector<M4Event>& input_events() const { return input_events_; } // joined only
     bool input_event_capacity_exhausted() const { return input_events_.size()>=input_events_.capacity(); }
     void execution_deadline(bool enabled) { execution_deadline_=enabled; } // startup only
 private:
     transport::TransportTrace* trace_{nullptr};
     std::optional<transport::LeafRequest> traced_command_; // owner-local, diagnostic only
+    std::optional<transport::LeafRequest> accepted_command_;
+    std::optional<transport::LeafAuthorityObservation> expiry_observation_,command_success_;
+    std::optional<std::uint64_t> protection_selected_;
     using Actor=std::variant<vecu::SteeringActuator,vecu::BrakeActuator,vecu::DriveController,vecu::BmsController,vecu::PowerController>;
     static Actor make_actor(transport::Leaf leaf,const LeafOwnerConfig& config);
     void handle(const transport::LeafRequest& request);

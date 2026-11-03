@@ -14,11 +14,19 @@ bool SpeedRequest::start_session(std::uint32_t epoch, std::uint64_t enable) noex
     sequence_ = 0;
     last_selection_ns_.reset();
     fault_ = SpeedRequestFault::None;
+    observation_.reset();
+    success_.reset();
     return true;
+}
+void SpeedRequest::fail(SpeedRequestFault fault,std::uint64_t now,const std::optional<can::DriveMessage>& input,SpeedPIReason reason) noexcept {
+    if(!observation_) observation_=SpeedRequestFaultObservation{fault,reason,pi_.state().epoch,enable_ns_,now,input,pi_.state().sample};
+    fault_=fault;
 }
 std::optional<VehicleRequest> SpeedRequest::step(std::uint64_t now, double target,
     const std::optional<can::DriveMessage>& current, bool permission,std::optional<PropulsionSelection> selection) noexcept {
-    const auto fail = [this](SpeedRequestFault fault) -> std::optional<VehicleRequest> { fault_ = fault; return std::nullopt; };
+    const auto fail = [this,now,&current](SpeedRequestFault fault,SpeedPIReason reason=SpeedPIReason::Normal) -> std::optional<VehicleRequest> {
+        this->fail(fault,now,current,reason); return std::nullopt;
+    };
     if (fault_ != SpeedRequestFault::None) return std::nullopt;
     if (!pi_.state().epoch || now < enable_ns_) return fail(SpeedRequestFault::Session);
     if (!permission) return fail(SpeedRequestFault::Permission);
@@ -49,29 +57,33 @@ std::optional<VehicleRequest> SpeedRequest::step(std::uint64_t now, double targe
         saturated=selection->limited;
     } else if(selection) return fail(SpeedRequestFault::PropulsionSelection);
     const auto out = pi_.step(now, target, sample, permission,saturated);
-    if (!out.valid) return fail(SpeedRequestFault::Controller);
+    if (!out.valid) return fail(SpeedRequestFault::Controller,out.reason);
     if(selection)last_selection_ns_=selection->selection_ns;
     const auto expiry = source > std::numeric_limits<std::uint64_t>::max()-kSourceAgeNs-1 ?
         std::numeric_limits<std::uint64_t>::max() : source+kSourceAgeNs+1;
     // Conservatively root authority at the speed acquisition. Allocation and
     // Zone admission already carry this oldest dependency and bound all children.
-    return VehicleRequest{current->epoch, static_cast<std::uint32_t>(sequence_++), source, expiry,
+    const VehicleRequest request{current->epoch, static_cast<std::uint32_t>(sequence_++), source, expiry,
         *out.acceleration_mps2, 0, 0, target == 0};
+    success_=SpeedRequestSuccessObservation{current->epoch,enable_ns_,now,*current,request};
+    return request;
 }
 std::optional<DerivedVehicleRequest> SpeedRequest::step_derived(std::uint64_t now,double target,
     const std::optional<can::DriveMessage>& current,bool permission,std::optional<PropulsionSelection> selection) noexcept {
+    const auto previous_success=success_;
     auto request=step(now,target,current,permission,selection);
     if(!request)return std::nullopt;
     const auto source=request->source_time_ns;
     if(now>std::numeric_limits<std::uint64_t>::max()-kSourceAgeNs-1 ||
        source>std::numeric_limits<std::uint64_t>::max()-SpeedPI::kMaxAgeNs-1) {
-        fault_=SpeedRequestFault::Source;return std::nullopt;
+        fail(SpeedRequestFault::Source,now,current);success_=previous_success;return std::nullopt;
     }
     // The 30ms current-feedback gate above remains independent of the model's
     // 60ms validity for a derived result. Both clocks survive allocation.
     const VehicleInputDependency input{source,source+SpeedPI::kMaxAgeNs+1};
     request->source_time_ns=now;
     request->expires_at_ns=std::min(now+kSourceAgeNs+1,input.expires_at_ns);
+    success_->request=*request;
     return DerivedVehicleRequest{*request,input};
 }
 } // namespace stratadrive::central

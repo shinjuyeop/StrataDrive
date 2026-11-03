@@ -15,9 +15,47 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
+| M9 | Central·Zone/Leaf·Gateway·BMS/Power 부분 진단·복구 검증; 전체 root/wire·CARLA fault matrix 후속 | [진단 계약](interfaces/diagnostics.md) · [소유자 경계](test-plan/evidence/m9_owner_sources/README.md) |
+| M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
+
+## M9 진단 집계·저장과 Central 검출 경로 연결
+
+TBD-08의 [event/DTC 계약 v0.1](interfaces/diagnostics.md)에 따라 유한 SPSC 큐·중복/재발
+집계·원본 clock/인과 보존·Unknown 재평가·trusted clear와 Linux journal을 구현했다.
+Clear는 durable tombstone이며 제어 latch를 변경하지 않는다. 미완료 tail·오류·capacity는
+기록 불완전으로 남기며 자동 복구하지 않는다. 집계/store 자체의
+[이전 component 실행](test-plan/evidence/m9_diagnostics_component/README.md)을 보존한다.
+후속으로 SpeedRequest/NormalStop/Coordinator의 원본 판정·phase·보호 ACK snapshot을 연결했다.
+기존 SimpleVehicle 정상4350회 제어·정지/HV-off의 DTC0과 주행 중 현재 speed 입력만 누락한
+case의 SD-1001 한 건을 실제 검출→Leaf 선택→Central ACK→fresh Actual→journal로 확인했다.
+입력 누락 후 검출2ms, 검출부터 Leaf 선택0.2ms·Central ACK3ms·Actual acquisition209ms다.
+제어·원본 권한·물리·에너지는 hook on/off에서 동일했다. 일반/논리1104개,
+영향 ASan/UBSan147개와 기존 wall owner 회귀2개가 통과했다.
+[명령·source·원본·독립 감사와 실패 이력](test-plan/evidence/m9_control_hooks/README.md)을 따른다.
+이 숫자는 논리 fixture 반응이며 DTC의 wall 실시간 기록 지연 보장이 아니다.
+SD-1001은 입력 복원만으로 보호를 해제하지 않고 INIT2의 실제 정상 요청 수용 뒤 Passed로
+판정한다. 이력은 정상 정지/HV-off와 명시적 durable clear까지 남으며 writer 재시작 후에도
+tombstone을 유지한다. 같은 물리 모델에서 INIT3 뒤 재고장은 generation2로 기록했다.
+[복구·clear·재고장 근거](test-plan/evidence/m9_speed_recovery/README.md)를 따른다.
+이번 일반/논리1109개, 영향 ASan/UBSan152개, 기존 wall owner2개가 통과했다.
+ZoneFeedbackMonitor의 최초 fault/current·last-healthy input과 Leaf의 원래 accepted context
+expiry를 소유자별 queue에 연결했다. SD-2002·SD-4002·SD-2001의 실제 복구 predicate를
+추가하고 보호 전달 Observation과 구분했다. Central·두 Zone 정지→Leaf 자체 만료→재개 후
+Zone 주기 초과→실패 링크 교체/INIT2→qualified Passed·미삭제 이력을 연속 검증했다.
+[소유자별 범위와 실패 이력](test-plan/evidence/m9_owner_sources/README.md)을 따른다.
+이번 일반/논리1118개·영향 ASan/UBSan124개·기존 wall owner2개가 통과했다.
+Gateway·BMS·Power의 최초 native 원인/보호 전달·실제 정상 재시험을 별도 source publisher로
+연결했다. 새 SD-2101/3101/3201은 명시적 registry2이며 기존 store를 자동 migration하지 않는다.
+Central pause의 실제 두 Gateway 만료/ACK·물리 응답과 INIT2 뒤 완전 dispatch/Passed를
+차량 논리 SIL로 확인했다. BMS 자체 trip/외부 보호와 Power sensor 누락/실제 RC HV Ready
+재도달은 component 범위다. [native 원인·범위와 실패 이력](test-plan/evidence/m9_native_causes/README.md)을 따른다.
+이번 일반/논리1129개·영향 ASan/UBSan206개·기존 wall owner2개가 통과했다.
+다음은 release 전 startup 수집·원격 전송/spool과 BMS/Power 자체 원인의 차량 fault matrix다.
+실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.
+30km/h ACK/통신 손실의 실제 주입 recipe와 기대 code·물리 기준은 실행 전에 고정한다.
+TBD-08은 실제 모니터 경계의 code별 복구 predicate·전달/부하 검증·학습자 수용 전 CLOSED로 올리지 않는다.
 
 ## 구현·검증한 범위
 

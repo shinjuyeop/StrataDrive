@@ -114,6 +114,29 @@ void PhysicalOwner::step() {
     }
 Network::Network(const M4Config& c):config(c),clock(c.wall_time),start(clock.now_ns()) {
         running_epoch.store(c.first_epoch);
+        const auto diagnostic_run=c.diagnostics_run?c.diagnostics_run:c.owner_diagnostics_run?c.owner_diagnostics_run:c.native_diagnostics_run;
+        if(diagnostic_run) {
+            diagnostic_queue=std::make_unique<diagnostics::EventQueue>(diagnostic_run,7);
+            diagnostic_hook=std::make_unique<diagnostics::ControlDiagnostics>(*diagnostic_queue,
+                diagnostics::ControlContext{diagnostic_run,7,diagnostics::Domain::Simulation,diagnostic_run,1});
+        }
+        if(c.owner_diagnostics_run) {
+            const std::array<diagnostics::Component,5> actors{diagnostics::Component::Front,diagnostics::Component::Rear,
+                diagnostics::Component::Steering,diagnostics::Component::Brake,diagnostics::Component::Drive};
+            for(std::size_t i=0;i<actors.size();++i) {
+                owner_diagnostic_queues[i]=std::make_unique<diagnostics::EventQueue>(c.owner_diagnostics_run,20+i);
+                owner_diagnostic_hooks[i]=std::make_unique<diagnostics::OwnerDiagnostics>(*owner_diagnostic_queues[i],
+                    diagnostics::ControlContext{c.owner_diagnostics_run,20+i,diagnostics::Domain::Simulation,c.owner_diagnostics_run,1},actors[i]);
+            }
+        }
+        if(c.native_diagnostics_run) {
+            const std::array<diagnostics::Component,4> actors{diagnostics::Component::Front,diagnostics::Component::Rear,diagnostics::Component::Bms,diagnostics::Component::Power};
+            for(std::size_t i=0;i<actors.size();++i) {
+                native_diagnostic_queues[i]=std::make_unique<diagnostics::EventQueue>(c.native_diagnostics_run,30+i);
+                native_diagnostic_hooks[i]=std::make_unique<diagnostics::NativeDiagnostics>(*native_diagnostic_queues[i],
+                    diagnostics::ControlContext{c.native_diagnostics_run,30+i,diagnostics::Domain::Simulation,c.native_diagnostics_run,1},actors[i]);
+            }
+        }
         for(auto& log:owner_events) log.reserve(std::max<std::size_t>(24000, static_cast<std::size_t>(config.duration_ns/kMs)));
         if(config.speed_loop) {
             physical.energy_trace.reserve(static_cast<std::size_t>(config.duration_ns/(10*kMs))+32);
@@ -204,6 +227,7 @@ void Network::central_step() {
                 active_epoch=epoch; last_tick=last_root=last_vehicle=last_stop=vehicle_release=0; lifecycle_release=0;
                 root_seq=vehicle_seq=stop_seq=0;
                 if(config.speed_loop) { speed_control.start_session(epoch,startup.plan().enable_ns); next_speed_ns=0; result.speed_origin_ns=0; }
+                if(diagnostic_hook) diagnostic_hook->start_session(epoch,startup.plan().enable_ns);
                 next_management=startup.plan().enable_ns+14*kMs;
                 owner_events[7].push_back({now,"run-released",7,epoch,0,0,0,0});
                 running_epoch.store(epoch,std::memory_order_release);
@@ -239,6 +263,13 @@ void Network::central_step() {
             core.tick(in,now,management_due);
         } else if(startup.state()==session::State::Failed && core.decision().fault!=central::CoordinatorFault::None && (!last_tick || now-last_tick>=10*kMs)) {
             last_tick=now; core.tick(port.feedback(),now);
+        }
+        if(diagnostic_hook && config.diagnostics_run) {
+            diagnostic_hook->observe(speed_control,core,clock.now_ns());
+            const auto current=port.feedback();
+            diagnostic_hook->observe_response(current,clock.now_ns());
+            diagnostic_hook->observe_speed_recovery(speed_control,core,current,clock.now_ns());
+            forward_diagnostic_protection();
         }
         const auto d=core.decision(); now=clock.now_ns();
         if(d.normal_armed && !armed_seen) owner_events[7].push_back({now,"normal-authorized",7,active_epoch,0,0,0,0});
@@ -314,6 +345,50 @@ void Network::step(std::size_t owner,std::uint64_t requested_wake) {
             const bool enabled=gate.allows(epoch);
             if(gate_seen[owner] && !enabled) owner_events[owner].push_back({clock.now_ns(),"gate-closed-observed",owner,epoch,0,0,0,0});
             gate_seen[owner]=enabled;
+        }
+        if(owner<5 && owner_diagnostic_hooks[owner]) {
+            const auto epoch=owner<2?zone_owners[owner]->epoch():leaf_owners[owner-2]->epoch();
+            // Only a globally released session is admissible to this collector.
+            // Logical opt-in only: no cross-thread reads of Central's active_epoch.
+            if(epoch && epoch==active_epoch) {
+                auto& hook=*owner_diagnostic_hooks[owner];
+                if(owner_diagnostic_epochs[owner]!=epoch) {
+                    hook.start_session(epoch,owner<2?zone_owners[owner]->enable_ns():leaf_owners[owner-2]->enable_ns());
+                    owner_diagnostic_epochs[owner]=epoch;
+                }
+                if(owner<2) hook.zone(zone_owners[owner]->feedback_monitor(),gate.allows(epoch),zone_owners[owner]->protection_ack_ns(),clock.now_ns());
+                else hook.leaf(leaf_owners[owner-2]->expiry_observation(),leaf_owners[owner-2]->command_success_observation(),
+                    !leaf_owners[owner-2]->faulted(),gate.allows(epoch),leaf_owners[owner-2]->protection_selected_ns(),clock.now_ns());
+            }
+        }
+        if(config.native_diagnostics_run && (owner<2 || owner==5 || owner==6)) {
+            const auto slot=owner<2?owner:owner-3;
+            const auto epoch=owner<2?zone_owners[owner]->epoch():leaf_owners[owner-2]->epoch();
+            if(epoch && epoch==active_epoch) {
+                auto& hook=*native_diagnostic_hooks[slot];
+                if(native_diagnostic_epochs[slot]!=epoch) {
+                    hook.start_session(epoch,owner<2?zone_owners[owner]->enable_ns():leaf_owners[owner-2]->enable_ns()); native_diagnostic_epochs[slot]=epoch;
+                }
+                const auto gate_open=gate.allows(epoch); const auto observed=clock.now_ns();
+                if(owner<2) {
+                    const auto& g=zone_owners[owner]->command_gateway();
+                    hook.observe(diagnostics::NativeMonitor::CommandGateway,g.fault_observation(),std::nullopt,g.success_observation(),!zone_owners[owner]->faulted(),gate_open,observed);
+                    hook.selection(diagnostics::NativeMonitor::CommandGateway,zone_owners[owner]->protection_ack_ns(),true);
+                    if(const auto* p=zone_owners[owner]->power_gateway())
+                        hook.observe(diagnostics::NativeMonitor::RearPowerGateway,p->fault_observation(),std::nullopt,p->success_observation(),!zone_owners[owner]->faulted(),gate_open,observed);
+                    hook.selection(diagnostics::NativeMonitor::RearPowerGateway,zone_owners[owner]->protection_ack_ns(),true);
+                } else if(owner==5) {
+                    const auto& b=*leaf_owners[3]->bms_controller(); const auto& d=b.decision();
+                    hook.observe(diagnostics::NativeMonitor::Bms,b.fault_observation(),b.propagation_observation(),b.success_observation(),
+                        d.fault==vecu::BmsControlFault::None && d.state==vecu::BmsControlState::Active && !d.pending_trips && d.recovery_ready,gate_open,observed);
+                    hook.selection(diagnostics::NativeMonitor::Bms,leaf_owners[3]->protection_selected_ns(),false);
+                } else {
+                    const auto& p=*leaf_owners[4]->power_controller();
+                    hook.observe(diagnostics::NativeMonitor::Power,p.fault_observation(),p.propagation_observation(),p.success_observation(),
+                        p.output().fault==vecu::PowerControlFault::None && p.output().phase==vecu::PowerPhase::Ready,gate_open,observed);
+                    hook.selection(diagnostics::NativeMonitor::Power,leaf_owners[4]->protection_selected_ns(),false);
+                }
+            }
         }
         audit[owner].record(wall_now()-body_start);
         if(execution_watch) execution_watch->finish(owner,job,clock.now_ns(),job?cpu_now()-cpu_start:0);

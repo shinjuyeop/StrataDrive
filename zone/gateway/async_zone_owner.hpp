@@ -23,6 +23,11 @@ public:
     void quiesce();
     bool protected_selected() const;
     std::uint32_t epoch() const { return epoch_; }
+    std::uint64_t enable_ns() const { return enable_; }
+    const ZoneFeedbackMonitor& feedback_monitor() const { return health_; }
+    const CommandGateway& command_gateway() const { return commands_; }
+    const RearPowerGateway* power_gateway() const { return power_?&*power_:nullptr; }
+    const std::optional<std::uint64_t>& protection_ack_ns() const { return protection_ack_; }
     bool faulted() const { return failed_; }
     int rejection() const { return rejection_; }
     std::size_t command_frames() const { return command_frames_; }
@@ -59,6 +64,7 @@ private:
     bool failed_{false},drive_arm_ack_{false}; std::size_t command_frames_{0};
     int rejection_{0};
     std::optional<transport::ZoneRequest> pending_;
+    std::optional<std::uint64_t> protection_ack_;
     std::array<bool,transport::kLeaves> leaf_ack_{};
 };
 }  // namespace stratadrive::zone

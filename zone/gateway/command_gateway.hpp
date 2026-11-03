@@ -4,6 +4,7 @@
 #include "gateway_messages.hpp"
 #include "actuator_stop_lease.hpp"
 #include "bounded_rx_queue.hpp"
+#include "native_fault_observation.hpp"
 
 namespace stratadrive::zone {
 class GatewayPort : public ProtectionPort {
@@ -30,6 +31,8 @@ public:
     ZoneScope scope() const { return scope_; }
     std::uint32_t application_epoch() const { return epoch_; }
     std::uint64_t observed_time_ns() const { return observed_ns_; }
+    const std::optional<NativeObservation>& fault_observation() const { return first_fault_; }
+    const std::optional<NativeObservation>& success_observation() const { return success_; }
     static constexpr std::size_t kCapacity = 8;
     CommandGateway(ZoneScope scope, GatewayPort& port, const AdmissionConfig& config = {});
     bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
@@ -44,7 +47,8 @@ public:
     void request_protection(); // trusted coordinator/protection path, never normal payload
 private:
     bool refresh();
-    void fail(ProtectionCause cause);
+    void fail(ProtectionCause cause,bool propagation=false);
+    NativeObservation observation(ProtectionCause,bool propagation=false) const;
     const ZoneScope scope_;
     GatewayPort& port_;
     CommandAdmission admission_;
@@ -56,5 +60,10 @@ private:
     StopLeaseState stop_;
     std::uint32_t epoch_{0};
     std::uint64_t observed_ns_{0};
+    std::uint64_t enable_ns_{0},call_ns_{0},armed_since_{0};
+    const AdmissionConfig config_;
+    std::optional<central::CommandContext> last_context_;
+    std::optional<NativeObservation> first_fault_,success_;
+    std::uint32_t writes_in_dispatch_{0};
 };
 }  // namespace stratadrive::zone

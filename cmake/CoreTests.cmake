@@ -14,12 +14,20 @@ endfunction()
 
 # 현재 Host에 설치된 버전 사용. 자동 다운로드/설치하지 않는다.
 find_package(GTest 1.11.0 EXACT CONFIG REQUIRED)
+stratadrive_unit_test(diagnostics_test
+    SOURCES tests/unit/diagnostics_test.cpp
+    LIBRARIES diagnostics Threads::Threads)
+if(TARGET diagnostics_journal)
+    stratadrive_unit_test(diagnostics_journal_test
+        SOURCES tests/unit/diagnostics_journal_test.cpp
+        LIBRARIES diagnostics_journal)
+endif()
 stratadrive_unit_test(speed_pi_test
     SOURCES tests/unit/speed_pi_test.cpp
     LIBRARIES speed_pi)
 stratadrive_unit_test(speed_request_test
     SOURCES tests/unit/speed_request_test.cpp
-    LIBRARIES speed_request)
+    LIBRARIES control_diagnostics)
 if(STRATADRIVE_LONGITUDINAL_EQUIVALENCE)
     find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
     add_executable(speed_loop_run tests/integration/longitudinal/speed_loop_run.cpp)
@@ -73,7 +81,7 @@ stratadrive_unit_test(vehicle_management_test
     LIBRARIES vehicle_management power_controller power_model)
 stratadrive_unit_test(normal_stop_test
     SOURCES tests/unit/normal_stop_test.cpp
-    LIBRARIES normal_stop)
+    LIBRARIES control_diagnostics)
 stratadrive_unit_test(control_allocation_test
     SOURCES tests/unit/control_allocation_test.cpp
     LIBRARIES control_allocation command_admission torque_response brake_pressure_response steering_receiver brake_receiver drive_receiver)
@@ -88,7 +96,28 @@ stratadrive_unit_test(rear_power_gateway_test
     LIBRARIES rear_power_gateway rear_power_control front_startup_control normal_stop_control vehicle_session_init zone_feedback_monitor power_model torque_response steering_response brake_pressure_response)
 stratadrive_unit_test(vehicle_coordinator_test
     SOURCES tests/unit/vehicle_coordinator_test.cpp
-    LIBRARIES vehicle_coordinator)
+    LIBRARIES control_diagnostics)
+if(TARGET diagnostics_journal)
+    stratadrive_unit_test(control_diagnostics_sil_test
+        SOURCES tests/unit/control_diagnostics_sil_test.cpp
+        LIBRARIES diagnostics_journal m4_async_runtime)
+    stratadrive_unit_test(control_recovery_sil_test
+        SOURCES tests/unit/control_recovery_sil_test.cpp
+        LIBRARIES diagnostics_journal m4_async_runtime)
+    stratadrive_unit_test(owner_diagnostics_test
+        SOURCES tests/unit/owner_diagnostics_test.cpp
+        LIBRARIES owner_diagnostics)
+    stratadrive_unit_test(native_diagnostics_test
+        SOURCES tests/unit/native_diagnostics_test.cpp
+        LIBRARIES native_diagnostics power_model)
+    target_include_directories(native_diagnostics_test PRIVATE simulation/runtime)
+    stratadrive_unit_test(native_diagnostics_sil_test
+        SOURCES tests/unit/native_diagnostics_sil_test.cpp
+        LIBRARIES diagnostics_journal m4_async_runtime)
+    stratadrive_unit_test(owner_diagnostics_sil_test
+        SOURCES tests/unit/owner_diagnostics_sil_test.cpp
+        LIBRARIES diagnostics_journal m4_async_runtime)
+endif()
 stratadrive_unit_test(async_owner_test
     SOURCES tests/unit/async_owner_test.cpp
     LIBRARIES async_coordinator_port async_zone_owner)

@@ -8,6 +8,9 @@
 #include "ev_power_model.hpp"
 #include "simple_vehicle.hpp"
 #include "speed_request.hpp"
+#include "control_diagnostics.hpp"
+#include "owner_diagnostics.hpp"
+#include "native_diagnostics.hpp"
 #include "vehicle_ev_model.hpp"
 #include "drive_sil_plant.hpp"
 #include "steering_response.hpp"
@@ -159,8 +162,19 @@ struct Network {
     M4Result result; std::vector<M4Trace> central_trace;
     std::uint64_t last_tick{0},last_root{0},last_vehicle{0},last_stop{0},next_management{0},vehicle_release{0},lifecycle_release{0}; std::uint32_t root_seq{0},vehicle_seq{0},stop_seq{0},active_epoch{0};
     central::SpeedRequest speed_control;
+    std::unique_ptr<diagnostics::EventQueue> diagnostic_queue;
+    std::unique_ptr<diagnostics::ControlDiagnostics> diagnostic_hook;
+    std::array<std::unique_ptr<diagnostics::EventQueue>,5> owner_diagnostic_queues;
+    std::array<std::unique_ptr<diagnostics::OwnerDiagnostics>,5> owner_diagnostic_hooks;
+    std::array<std::uint32_t,5> owner_diagnostic_epochs{};
+    std::array<std::unique_ptr<diagnostics::EventQueue>,4> native_diagnostic_queues;
+    std::array<std::unique_ptr<diagnostics::NativeDiagnostics>,4> native_diagnostic_hooks;
+    std::array<std::uint32_t,4> native_diagnostic_epochs{};
+    std::array<std::size_t,7> diagnostic_cursors_{};
     std::uint64_t next_speed_ns{0};
     void speed_step(std::uint64_t now);
+    bool speed_input_lost(std::uint64_t now) const noexcept;
+    void forward_diagnostic_protection();
     bool began{false},rejoined{false},old_replayed{false};
     explicit Network(const M4Config& c);
     template<class T,std::size_t N> void bind(session::SessionMailbox<T,N>& mailbox,FaultPath path,std::size_t target) {

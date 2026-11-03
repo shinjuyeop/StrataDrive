@@ -1,4 +1,7 @@
 # Linux runtime/adapters; called only on Linux.
+add_library(diagnostics_journal STATIC central/diagnostics/diagnostics_journal.cpp)
+target_link_libraries(diagnostics_journal PUBLIC diagnostics)
+stratadrive_quality(diagnostics_journal)
 add_library(steering_runtime STATIC simulation/runtime/steering_runtime.cpp)
 target_include_directories(steering_runtime PUBLIC simulation/runtime)
 target_link_libraries(steering_runtime PUBLIC periodic_task steering_actuator steering_response Threads::Threads)

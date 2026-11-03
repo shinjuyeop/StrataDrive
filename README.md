@@ -3,7 +3,7 @@
 Central → Front/Rear Zone → Leaf ECU 구조의 차량 소프트웨어를 만들고 검증하는 SIL 프로젝트다.
 Host에서 통신·세션·actuator/EV 모델과 CARLA 제어 폐루프를 연결했다.
 
-**현재: M8 제어기·고정 fixture 기능 SIL 범위 완료. 다음은 M9 진단 통합이다.**
+**현재: M8 기능 SIL 범위 완료. M9 Central·Zone/Leaf·Gateway·BMS/Power 부분 진단과 코드별 복구를 검증했다.**
 C++ 모델 동등성·30km/h 경로 추종·정상 정지를 검증했다. 전체 Reference와 실시간·Target 수용은 후속이다.
 최신 판정과 다음 작업은 [프로젝트 상태](docs/project-status.md) 한곳에서 관리한다.
 

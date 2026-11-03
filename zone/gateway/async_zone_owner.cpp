@@ -11,6 +11,7 @@ bool AsyncZoneOwner::initialize(std::uint32_t epoch,std::uint64_t enable) {
     if(!commands_.start_session(epoch,enable) || (power_ && !power_->start_session(epoch,enable)) ||
         !steering_.start_session(epoch,enable) || !brake_.start_session(epoch,enable) || !drive_.start_session(epoch,enable) || !health_.start_session(epoch,enable)) return false;
     epoch_=epoch; enable_=enable; observed_=now_ns(); last_health_=enable; last_inputs_={}; failed_=false; rejection_=0; pending_.reset(); leaf_ack_={}; drive_arm_ack_=false;
+    protection_ack_.reset();
     return true;
 }
 std::pair<std::size_t,std::size_t> AsyncZoneOwner::leaf_range() const { return scope_==ZoneScope::Front?std::pair<std::size_t,std::size_t>{0,2}:std::pair<std::size_t,std::size_t>{2,5}; }
@@ -181,6 +182,9 @@ void AsyncZoneOwner::service() {
             if(const auto health=health_.tick(in,last_health_)) forward(*health);
         }
     }
-    if(protected_selected()) central_.protection.selected.store(epoch_,std::memory_order_release);
+    if(protected_selected()) {
+        central_.protection.selected.store(epoch_,std::memory_order_release);
+        if(!protection_ack_) protection_ack_=now_ns();
+    }
 }
 }  // namespace stratadrive::zone

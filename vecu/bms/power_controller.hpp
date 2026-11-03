@@ -2,6 +2,7 @@
 
 #include "bms_receiver.hpp"
 #include "power_sensor_snapshot.hpp"
+#include "native_fault_observation.hpp"
 
 namespace stratadrive::vecu {
 // Host functional-SIL fixture defaults, not vehicle/OEM calibration.
@@ -44,6 +45,9 @@ public:
         const std::optional<power::BmsSafetyGate>& bms, std::uint64_t now_ns);
     const PowerControlOutput& output() const { return output_; }
     std::uint32_t application_epoch() const { return epoch_; }
+    const std::optional<NativeObservation>& fault_observation() const { return first_fault_; }
+    const std::optional<NativeObservation>& propagation_observation() const { return propagation_; }
+    const std::optional<NativeObservation>& success_observation() const { return success_; }
 private:
     struct Dwell {
         std::optional<std::uint64_t> first, last;
@@ -53,6 +57,7 @@ private:
     bool bms_allows(const std::optional<power::BmsSafetyGate>& gate, std::uint64_t now_ns);
     void enter(PowerPhase phase, std::uint64_t now_ns);
     void fail(PowerControlFault fault);
+    NativeObservation observation(PowerControlFault) const;
     void shutdown(PowerControlFault fault, std::uint64_t now_ns, const power::SensorSnapshot* sensor);
     const PowerControllerConfig config_;
     can::BmsReceiver requests_;
@@ -65,5 +70,9 @@ private:
     std::uint64_t enable_ns_{0}, last_observed_ns_{0}, phase_since_ns_{0};
     std::optional<std::uint64_t> last_tick_ns_;
     bool stopped_{false}, qualified_{false};
+    std::uint64_t call_ns_{0};
+    std::optional<power::SensorSnapshot> observed_sensor_;
+    std::optional<power::BmsSafetyGate> observed_gate_;
+    std::optional<NativeObservation> first_fault_,propagation_,success_;
 };
 }  // namespace stratadrive::vecu

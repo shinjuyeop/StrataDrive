@@ -50,6 +50,17 @@ struct CoordinatorDecision {
     AllocationDecision allocation;
     NormalStopDecision stop;
 };
+struct CoordinatorFaultObservation {
+    CoordinatorFault fault;
+    std::uint32_t epoch;
+    std::uint64_t enable_ns,detected_ns;
+    std::optional<NormalStopPlan> handoff;
+};
+struct ProtectionObservation {
+    std::uint32_t epoch;
+    std::uint64_t requested_ns,observed_ns;
+    bool accepted;
+};
 // Owns all three Central state owners; never issues an application Epoch,
 // advances a plant, resets remote participants or turns cached data into fresh
 // input. tick uses independently validated current samples from this cycle.
@@ -66,11 +77,15 @@ public:
     // a cycle ran (possibly selecting protection); inspect decision().
     bool tick(const NormalDriveReadinessInputs& feedback, std::uint64_t now_ns,bool management_release = true);
     CoordinatorDecision decision() const;
+    const NormalStop& normal_stop() const noexcept { return stop_; }
+    const std::optional<VehicleRequest>& last_vehicle_request() const noexcept { return vehicle_; }
+    const std::optional<CoordinatorFaultObservation>& fault_observation() const noexcept { return fault_observation_; }
+    const std::array<std::optional<ProtectionObservation>,2>& protection_observations() const noexcept { return protections_; }
     std::uint64_t next_allocation_ns() const;
 private:
     bool advance(std::uint64_t now_ns);
     bool checkpoint();
-    void fail(CoordinatorFault fault);
+    void fail(CoordinatorFault fault,std::optional<std::uint64_t> detected_ns = std::nullopt);
     bool accept_lifecycle(const LifecycleRequest& root);
     bool accept_vehicle(const VehicleRequest& root, std::optional<VehicleInputDependency> input = std::nullopt);
     bool allocate(const NormalDriveReadinessInputs& inputs);
@@ -90,5 +105,7 @@ private:
     std::optional<NormalStopPlan> pending_handoff_;
     CoordinatorFault fault_{CoordinatorFault::None};
     bool normal_armed_{false}, stopping_{false}, protection_selected_{false}, protection_attempted_{false}, in_cycle_{false};
+    std::optional<CoordinatorFaultObservation> fault_observation_;
+    std::array<std::optional<ProtectionObservation>,2> protections_{};
 };
 }  // namespace stratadrive::central

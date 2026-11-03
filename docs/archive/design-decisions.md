@@ -5245,3 +5245,161 @@ Date: 2026-11-02. Status: **M8 제어기·고정 fixture 기능 SIL 범위 CLOSE
 대안인 추가 고장/경로의 계속된 M8 확장은 진단 통합 전에 중복 검증을 늘린다.
 M9에서 고장 검출·보호·물리 응답과 진단 결과를 함께 닫는 쪽을 선택한다.
 [마감 source/증거 대조](../test-plan/evidence/m8_closeout/README.md)를 보존한다.
+
+<a id="adr-0077"></a>
+
+## ADR-0077: M9 진단 계약과 제어 복구·DTC 삭제 분리 제안
+
+Date: 2026-11-02. Status: **PROPOSED / 문서 설계; 구현·통합 NOT RUN**.
+
+M9 첫 작업으로 TBD-08의 [event/DTC 계약 v0.1](../interfaces/diagnostics.md)과
+[component·통합 검증 프로토콜](../test-plan/diagnostics-protocol.md)을 제안한다.
+기존 SpeedRequest/NormalStop·Zone/Leaf monitor 결과를 원본 identity/clock/원인과
+연결하고, 보호 owner와 진단 writer를 분리한다. DTC의 추가 debounce는0이며 기존
+response monitor의 fresh-sample dwell·command timeout을 중복 적용하지 않는다.
+
+원인 해소·새 trusted Epoch의 INIT 복구·기록 삭제는 별도다. INIT/restart로 이력을
+지우지 않고, 재시작 뒤 현재 condition은 Unknown에서 검증한다. Clear는 code별 실제
+재시험·stationary/inhibited 증거와 revision을 확인한 durable tombstone이며 제어 권한을
+발급하지 않는다. 원본 journal은 남기고 손실·overflow·손상은 진단 완전성 실패로 보고한다.
+
+대안인 Diagnostics의 재확정 대기는 보호 기록을 늦추고, fresh packet/자동 aging에
+의한 삭제는 제어 latch와 과거 fault 증거를 혼동시킨다. 원본 검출기와 복구 규칙을
+유지하는 안을 검토한다. 기존 기본5s/별도30km/h10s 정지 config·물리 budget은 바꾸지 않는다.
+TBD-08의 최종 수용과 전체 M9 종료를 선언하지 않으며, unmapped fault와 ACK/통신 손실
+recipe·wire/spool·용량은 해당 구현/실행 전에 명시적으로 확정해야 한다.
+
+<a id="adr-0078"></a>
+
+## ADR-0078: M9 event/DTC 집계와 Linux journal의 component 구현
+
+Date: 2026-11-02. Status: **Host component 구현·검증 / 실제 monitor 통합 후속**.
+
+ADR-0077의 다음 단계로 `central/diagnostics/`에 bounded typed event ledger·SPSC queue,
+writer용 Recorder와 Linux FileJournal을 구현한다. Queue producer는 파일 I/O·할당·제어
+권한 변경을 하지 않는다. 복구 proof는 원본 key/occurrence/session과 source 순서를
+확인하며 현재 상태보다 오래된 증거로 pass시키지 않는다. Unknown·중복·재발·원인 전파를
+구분하고 clear는 qualified pass와 fresh stationary/inhibited 증거를 요구한다.
+
+단일 journal에 fsync만 하고 마지막 완성 frame을 commit으로 추정하는 대신, synced append와
+별도의 atomic/fsynced commit watermark를 사용한다. 미완료 tail은 보존·read-only 격리하며
+기록 손실은 sticky incomplete marker로 유지한다. 명시적 bootstrap·lifetime flock·frame
+length/sequence/CRC32를 검사한다. Clear는 durable tombstone 후에만 성공으로 응답한다.
+
+Numeric dictionary와 qualification은 trusted adapter가 제공해야 한다. 실제 sensor/ACK
+판단·고장 enum 매핑·cross-process spool·실제 부하 용량·30km/h fault matrix는 이번
+component 결과로 수용하지 않는다. 기본 ledger 한계512/64/128/64와256-event queue의
+정의 및 후속은 [현행 계약](../interfaces/diagnostics.md),
+시험·명령·분모는 [실행 근거](../test-plan/evidence/m9_diagnostics_component/README.md)를 따른다.
+
+<a id="adr-0079"></a>
+
+## ADR-0079: M9 Central detector snapshot과 원본 보호 선택·ACK·Actual 연결
+
+Date: 2026-11-02. Status: **Central hook·SimpleVehicle 논리 fixture 검증 / 전체 M9 후속**.
+
+SpeedRequest와 NormalStop의 최초 판정 시각·native reason·원본 입력/권한을 source 내부의
+bounded snapshot에 보존한다. NormalStop은 후속 ClockError와 네 phase의 원본 관측도
+유지한다. 별도 ControlDiagnostics가 같은 Central owner에서 읽고 queue에 발행한다.
+Control module에 logger callback이나 파일 I/O를 넣지 않으며 기존 보호/INIT/출력 기준은 유지한다.
+
+AsyncCoordinatorPort::protect의 true는 Zone ACK를 Central이 확인한 결과다. 이를 실제
+Leaf 선택으로 취급한 최초 연결 시험은 실패했다. 원본 owner log의 Selected와 Central
+callback의 Acknowledged를 분리한다. SimpleVehicle current Drive/Brake receiver의
+fresh LocalProtection Actual을 같은 occurrence에 연결하며 physics truth로 DTC를 검출하지 않는다.
+
+기존 고정 정상87초 제어·NormalStop/HV-off와 별도 current speed argument 누락을 실행했다.
+정상 DTC0, 고장 SD-1001 한 건, 최초 검출→원본 local 선택/ACK→Actual→durable journal과
+hook on/off의 제어·권한·물리·에너지 동일성을 확인했다. 독립 Python reader는 journal/CSV와
+원본 owner/physical 증거를 대조하고8개 손상을 거부한다.
+[원본·실패 이력·검증 범위](../test-plan/evidence/m9_control_hooks/README.md)를 따른다.
+
+SIL writer와 local log 회수는 실행 뒤 수행한다. Live background writer·원격 진단 wire/spool,
+Zone/Leaf 자체 fault publisher·code별 recovery proof/clear, CARLA30km/h timeout·ACK/통신
+손실과 전체 wall/Target 수용은 후속이다. 원본 clock·Budget·기본5s/별도30km/h10s를 바꾸지 않는다.
+
+<a id="adr-0080"></a>
+
+## ADR-0080: SD-1001의 실제 복구 증거와 명시적 안전 clear
+
+Date: 2026-11-02. Status: **SD-1001 SimpleVehicle 연속 논리 SIL 검증 / 전체 M9 후속**.
+
+입력 복원, 제어 latch 복구, DTC 삭제를 구분한다. 실제 SpeedRequest 성공 snapshot의
+원본 input/반환 request가 더 큰 global Epoch의 current receiver/Coordinator accepted
+request와 일치하고 normal readiness/permission까지 확인되어야 Input proof와 Passed를
+발행한다. 최초 fault occurrence는 INIT를 넘어 유지하고 Passed만으로 count/이력을 지우지 않는다.
+
+실제 NormalStop Complete·management Stopped/HV-off·fresh stationary Actual·dispatch
+억제를 수집하는 별도 source API를 둔다. 명시적 key/revision/request ID가 있는 clear만
+non-RT Recorder에 전달한다. 저장 실패는 tombstone을 적용하지 않으며 clear 성공은 제어
+권한을 만들지 않는다. Local source log는 단일 thread 논리 실행에서 cursor로 회수해 INIT
+이전 선택/ACK도 원래 timestamp로 남긴다. Wall thread에서 이 vector를 읽는 경로는 없다.
+
+같은 물리 model epoch7에서 입력 누락→복원/보호 유지→INIT2/실제 정상 요청→Passed/이력
+유지→정상 정지/HV-off→clear→writer 재시작→INIT3→재고장 generation2를 검증했다.
+물리/EV sequence와 기존 에너지 수지식을 보존한다. 최초 검사는 회생 중 chemical energy의
+단조 감소를 잘못 요구해 실패했고 원래 cumulative balance 검사로 교정했다. 허용 오차나
+제동/검출 budget은 바꾸지 않았다. [실행·실패 원본](../test-plan/evidence/m9_speed_recovery/README.md)을 따른다.
+
+이 결정은 계속 살아 있는 source emitter와 writer 재시작 범위다. Emitter 재시작 후 기존
+occurrence 채택, 원격 clear 인증/UI, production background writer·다른 code 복구,
+CARLA30km/h fault matrix·wall/Target와 TBD-08 최종 수용은 후속이다.
+
+<a id="adr-0081"></a>
+
+## ADR-0081: ZoneFeedback와 Leaf authority 소유자별 진단 수집
+
+Date: 2026-11-02. Status: **논리 owner 경계·부분 실제 복구 검증 / 전체 M9 OPEN**.
+
+소유자별 source snapshot/queue를 두고 원본 최초 판정과 정상 재시험을 같은 owner에서 읽는다.
+Global Session은 Central만 발행하며 소유자별 INIT는 이를 재발급하지 않는다. 기존 journal
+encoding v1과 bounded SPSC를 유지하고 producer/monitor dictionary를 추가한다.
+
+ZoneFeedback의 실제 InputsUnavailable/ControlDeadline을 SD-2002/SD-4002로 연결한다.
+Clock의 최초 판정은 untrusted SD-4001이며 Clock 복구는 아직 수용하지 않는다. Leaf wrapper의
+실제 accepted context expiry가 이전 고장/pending 보호 없이 발생한 경우만 SD-2001이다.
+Gateway/child protection 전달을 새 root DTC로 꾸미지 않는다. 명령의 parent/child authority와
+delivery envelope, native successful-body proof와 물리 Actual을 구분한다.
+
+Zone의 서로 다른 key 복구 대기는32개 고정 slot에 유지한다. 새 key의 fault가 이전 key의
+Unknown 이력을 덮어 복구 기회를 잃지 않게 한다. Overflow는 Gap이며 silent eviction이 아니다.
+새 global Epoch의 실제 정상 tick/full input·current dependency 또는 Leaf의 실제 명령 수용/
+healthy body·live context가 필요하다. Proof는 metadata Observation이며 Passed는 이력을
+지우거나 actuator/permission/INIT를 호출하지 않는다.
+
+Central만 정지한 최초 시험에서는 gateway 보호가 먼저였다. 이를 Leaf root로 잘못 기대한
+시험을 음성 case로 유지한다. 별도의 Central/Front/Rear 정지에서는 Leaf 세 곳의 만료와
+재개한 Zone 두 곳의 실제 주기 초과를 각각 기록했다. 실패 link 교체/INIT2 뒤 다섯 기록이
+각각 qualified Passed이고 count/generation은 남는다. 물리 model epoch7과 원래 source/
+제어 budget을 유지한다. [실행·실패 이력](../test-plan/evidence/m9_owner_sources/README.md)을 따른다.
+
+현재 source snapshot은 실제 monitor/owner에서 만들지만 수집/영속화는 in-process 논리
+SIL이다. Gateway admission/send·BMS/Power 자체 원인과 remote wire/spool publisher,
+owner clear service·source 재시작 adoption·Clock 복구·CARLA/wall/Target는 후속이다.
+
+<a id="adr-0082"></a>
+
+## ADR-0082: Gateway·BMS·Power native 원인과 명시적 코드 사전 확장
+
+Date: 2026-11-03. Status: **Gateway logical SIL / BMS·Power component 검증; 전체 M9 OPEN**.
+
+Gateway 최초 native snapshot과 BMS·Power의 intrinsic/propagation 별도 slot을 같은 owner에서
+읽는다. 외부 보호 후 실제 자체 fault가 검출되어도 원본 시각을 보존하며 보호 전달을 root로
+추정하지 않는다. 현재 글로벌 release 이후의 수집 경계를 명시하고 producer30–33·monitor6–9를
+고정한다. 원래 controller의 threshold/dwell/timeout·authority·출력 경로는 유지한다.
+
+SD-2101 Gateway delivery / SD-3101 BMS local / SD-3201 Power local은 registry2에 추가한다.
+기존 binary schema1/default registry1은 유지한다. 명시적 새 store bootstrap만 허용하며
+자동 migration하지 않는다. 새 code의 구 registry append/replay를 거부하고 incomplete와
+watermark 보존을 검증한다. Snapshot의 모든 scalar/config를 journal에 저장하는 schema 확장은
+이번 범위가 아니며 native component 시험과 journal identity 근거를 구분한다.
+
+새 global epoch의 실제 완전 dispatch·BMS release dwell/Active·Power actual HV Ready와
+현재 gate/health/age/expiry가 복구 predicate다. Metadata proof와 실제 torque/brake 응답을
+구분한다. Fixed64 pending key는 이력을 보존하며 Passed는 clear나 제어 복구 명령이 아니다.
+Central만 정지한 경우 두 Gateway의 SD-2001과 원본 ACK·물리 응답·INIT2 뒤 정상 전송/Passed를
+연결했다. BMS trip/외부 보호와 Power sensor 누락/실제 RC 재시작은 component 범위다.
+[실행·실패 근거](../test-plan/evidence/m9_native_causes/README.md)를 따른다.
+
+Remote wire/spool·전체 scalar/config 영속 schema·release 전 startup 수집·source 재시작 adoption·
+Clock recovery·전체 차량 BMS/Power fault matrix·CARLA/wall/Target·학습자 수용은 후속이다.

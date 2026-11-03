@@ -3,6 +3,7 @@
 #include "battery_sensor_snapshot.hpp"
 #include "bms_frame_codec.hpp"
 #include "power_sensor_snapshot.hpp"
+#include "native_fault_observation.hpp"
 
 namespace stratadrive::vecu {
 // The ramp is zero at `zero`, one at `full`, clamped outside those points.
@@ -60,6 +61,9 @@ public:
     std::optional<can::BmsMessage> tick(const battery::SensorSnapshot& inputs, std::uint64_t now_ns);
     const BmsControlDecision& decision() const { return decision_; }
     const std::optional<power::BmsSafetyGate>& power_gate() const { return power_gate_; }
+    const std::optional<NativeObservation>& fault_observation() const { return first_fault_; }
+    const std::optional<NativeObservation>& propagation_observation() const { return propagation_; }
+    const std::optional<NativeObservation>& success_observation() const { return success_; }
 private:
     struct Dwell {
         enum class Kind { Trip, Release };
@@ -68,7 +72,8 @@ private:
     };
     BmsInputIssue validate(const battery::SensorSnapshot& inputs, std::uint64_t now_ns) const;
     void evaluate(const battery::SensorSnapshot& inputs);
-    void latch(BmsControlFault fault);
+    void latch(BmsControlFault fault,std::uint64_t now,bool propagation=false);
+    NativeObservation observation(BmsControlFault,std::uint64_t,bool propagation=false) const;
     const BmsControllerConfig config_;
     BmsControlDecision decision_{};
     std::optional<battery::SensorSnapshot> previous_;
@@ -79,5 +84,7 @@ private:
     std::optional<std::uint64_t> last_tick_ns_;
     bool stopped_{false};
     std::optional<power::BmsSafetyGate> power_gate_;
+    battery::SensorSnapshot observed_input_;
+    std::optional<NativeObservation> first_fault_,propagation_,success_;
 };
 }  // namespace stratadrive::vecu

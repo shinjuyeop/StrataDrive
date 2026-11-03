@@ -32,7 +32,7 @@ Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revis
 | TBD-05 | middleware·격리·bridge/discovery / 통신 | Host vSomeIP3.7.6 한정 사용; DDS 제어 gate CLOSED. Target은 배포 전 결정 |
 | TBD-06 | 배분·충돌/가용성·local protection·DEGRADED / 차량 제어 | M4 component 구현. M8 전 회생/마찰 전환·차량 envelope 검증 |
 | TBD-07 | CARLA/UE/client·map/route·tick·fidelity / simulation | 고정 source/Town03/V1의 simulation 기능 수용. 비영상 wall5ms는 제한 검증;영상·서버 종료·전체 renderer 안정성 OPEN; M8 고정 S01/S02/S03 경로 적합성 검증 |
-| TBD-08 | DTC code·debounce·persistence·clear / diagnostics | M9 event→DTC 통합 전 |
+| TBD-08 | DTC code·debounce·persistence·clear / diagnostics | [v0.1 집계/store component](interfaces/diagnostics.md) 구현·검증; 실제 monitor의 predicate·전달·부하·수용 전 OPEN |
 | TBD-09 | Jetson board/RAM·platform stack·모델/workload·측정 / compute·AI | M10 model fixture·M12 독립 보드 비교 전 |
 | TBD-10 | perception/planner shape·history·risk·fallback / AI·safety | M10–M11 통합 전 |
 | TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. S03 v1 구동 포화 FAIL 보존; v2 startup20s/감속6s 고정. 추진 포화 feedback·관성 필요조건 검증; 동적 가용력 기반 참조·제동 측 포화 OPEN; M10 모델 도입 전 갱신 |
@@ -54,9 +54,14 @@ M8에서 제안했던 추가30km/h 고장 조합은 원래 M9의 진단 통합 �
 
 | 순서 | 산출물 / 완료 조건 |
 | --- | --- |
-| 1. 진단 계약 | TBD-08 event/DTC code·debounce·persistence·clear와 원본 clock/causal ID 정의. 기존 fault latch/INIT 계약 유지 |
-| 2. 기존 경로 연결 | 이미 검증된 속도 입력 손실·정지 timeout·local protection을 같은 event→DTC 경로로 연결하고 정상 case에 false DTC가 없는지 확인 |
+| 1. 진단 계약·component | [TBD-08 v0.1](interfaces/diagnostics.md): code·debounce·persistence·clear·clock/causal ID 정의. [집계/store component 검증](test-plan/evidence/m9_diagnostics_component/README.md) 완료; 실제 monitor 통합·TBD 최종 수용 전 |
+| 2. 기존 경로 연결 | [SpeedRequest/NormalStop hook·SimpleVehicle 정상/입력 누락](test-plan/evidence/m9_control_hooks/README.md), [SD-1001 복구·명시적 clear·재고장](test-plan/evidence/m9_speed_recovery/README.md) 검증. Timeout/인계 실패는 detector component 연결 검사; 다른 code의 복구·실제 ACK/lane 손실은 후속 |
 | 3. 고장별 통합 | 동일30km/h 참조의 입력 손실·제동 timeout·Stop ACK 손실 및 통신 단절을 구분해 시험. 검출/보호/물리 응답/정지 여부/에너지 정산/DTC를 각각 판정 |
+
+소유자별 [ZoneFeedback/Leaf context expiry 수집·복구](test-plan/evidence/m9_owner_sources/README.md)를
+추가했다. 후속 [Gateway·BMS/Power native 원인](test-plan/evidence/m9_native_causes/README.md)은
+Gateway 차량 논리 SIL·BMS/Power component 복구 범위다. Release 전 startup 수집·실제 전송/spool·
+BMS/Power 자체 원인의 전체 차량 fault matrix는 후속이다.
 
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·

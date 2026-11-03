@@ -1,0 +1,27 @@
+{
+  "normal": [
+    "cmake --build build/m1-angle --parallel 2",
+    "ctest --test-dir build/m1-angle -L '^(unit|integration.logical)$' --output-on-failure"
+  ],
+  "asan_targets": [
+    "diagnostics_test",
+    "diagnostics_journal_test",
+    "speed_request_test",
+    "normal_stop_test",
+    "vehicle_coordinator_test",
+    "control_diagnostics_sil_test",
+    "m4_async_runtime_test",
+    "m4_fault_test"
+  ],
+  "asan_filter": "ctest --test-dir build/m1-angle-sanitized -L '^(unit|integration.logical)$' -R '^(Diagnostics|Speed|NormalStop|StopLease|Coordinator|ControlDiagnosticsSil|M4AsyncRuntime|M4Fault|.*M4OwnerStop)' --output-on-failure",
+  "final_focused": "ctest --test-dir BUILD -R 'Diagnostics|ControlDiagnosticsSil' --output-on-failure",
+  "final_export": "STRATADRIVE_M9_CONTROL_EVIDENCE=NEW_OUTPUT ctest --test-dir BUILD -R '^ControlDiagnosticsSil\\.(NormalFull|RealInput)' --output-on-failure",
+  "wall": "ctest --test-dir build/m1-angle -R '^M4AsyncWall\\.' --output-on-failure",
+  "clang_tidy": "clang-tidy -p build/m1-angle central/diagnostics/control_diagnostics.cpp central/longitudinal/speed_request.cpp central/vehicle_management/normal_stop.cpp central/coordinator/vehicle_coordinator.cpp simulation/runtime/m4_async_runtime.cpp simulation/runtime/m4_owner_network.cpp simulation/runtime/m4_result.cpp simulation/runtime/speed_loop.cpp --quiet",
+  "cppcheck": "cppcheck --project=COMPILATION_SUBSET --enable=warning,performance,portability --error-exitcode=1 --inline-suppr --suppress=missingIncludeSystem",
+  "fingerprint": "python3 tests/unit/m4_source_fingerprint_test.py",
+  "audit": [
+    "python3 tests/integration/diagnostics/audit_control_diagnostics.py CASE",
+    "python3 tests/integration/diagnostics/audit_control_diagnostics.py INPUT_LOSS --mutations"
+  ]
+}

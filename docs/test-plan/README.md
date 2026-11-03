@@ -7,10 +7,19 @@
 M8의 범위별 완료·후속 이관은 [종료 검토표](../archive/milestone-reviews.md#m8),
 source/원본 증거의 최종 대조는 [마감 기록](evidence/m8_closeout/README.md)을 따른다.
 
+M9는 [진단 계약](../interfaces/diagnostics.md)과
+[component·통합 검증 프로토콜](diagnostics-protocol.md)을 따른다. Central hook·SimpleVehicle 연결 뒤
+CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
+
 ## 대표 실행 결과
 
 | 찾는 내용 | 실행 원본·재현 |
 | --- | --- |
+| M9 유한 event/DTC 집계·Linux journal·clear·queue TSan | [component 검증](evidence/m9_diagnostics_component/README.md) |
+| M9 SpeedRequest/NormalStop 검출 hook·SimpleVehicle 입력 누락·원본 보호/Actual·DTC | [연결 검증](evidence/m9_control_hooks/README.md) |
+| M9 SD-1001 입력 복원·INIT·Passed·명시적 clear·writer 재시작·재고장 | [연속 복구 검증](evidence/m9_speed_recovery/README.md) |
+| M9 Zone/Leaf 소유자별 원본 검출·전달 구분·SD-2001/2002/4002 복구 | [소유자 경계 검증](evidence/m9_owner_sources/README.md) |
+| M9 Gateway native/ACK/차량 응답·BMS/Power component 복구·registry2 | [native 원인 검증](evidence/m9_native_causes/README.md) |
 | 실제3-process SOME/IP·8-role·부하/고장/재가입 | [M5 Rear adapter](evidence/m5_someip_rear_adapter/README.md) |
 | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
 | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |

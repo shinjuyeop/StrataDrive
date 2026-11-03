@@ -63,14 +63,38 @@ bool PowerController::start_session(std::uint32_t application_epoch, std::uint32
     epoch_ = application_epoch; model_epoch_ = model_epoch; enable_ns_ = last_observed_ns_ = phase_since_ns_ = enable_ns;
     previous_.reset(); previous_gate_.reset(); last_request_.reset(); last_tick_ns_.reset(); dwell_ = {};
     output_ = {}; sequence_ = 0; stopped_ = qualified_ = false; // no plant reset and no coil write at INIT
+    call_ns_=enable_ns; observed_sensor_.reset(); observed_gate_.reset(); first_fault_.reset(); propagation_.reset(); success_.reset();
     return true;
 }
+NativeObservation PowerController::observation(PowerControlFault fault) const {
+    NativeObservation o; o.epoch=epoch_; o.model_epoch=model_epoch_; o.enable_ns=enable_ns_; o.observed_ns=call_ns_;
+    o.reason=static_cast<std::uint32_t>(fault); o.state=static_cast<std::uint32_t>(output_.phase); o.phase_origin_ns=phase_since_ns_;
+    o.propagation=fault==PowerControlFault::ContinuityLost || fault==PowerControlFault::BmsInhibit;
+    o.samples[0]=native_sample(observed_sensor_);
+    if(observed_sensor_) {
+        o.samples[0].values={observed_sensor_->pack_voltage_v,observed_sensor_->bus_voltage_v,observed_sensor_->pack_current_a,{}};
+        if(observed_sensor_->contactors) { const auto& p=*observed_sensor_->contactors; o.detail=static_cast<unsigned>(p.positive)|(static_cast<unsigned>(p.negative)<<1U)|(static_cast<unsigned>(p.precharge)<<2U); }
+    }
+    if(observed_gate_) { const auto& g=*observed_gate_; o.samples[1]={true,g.application_epoch,g.sequence,g.source_time_ns,g.input_time_ns,{}}; }
+    if(last_request_) { const auto& r=*last_request_; const auto* request=std::get_if<can::BmsPowerRequest>(&r.content);
+        if(request) { o.root=NativeRoot{r.epoch,r.sequence,r.source_time_ns,request->expires_at_ns,request->parent_source_time_ns}; o.valid_until_ns=request->expires_at_ns; } }
+    o.trip={config_.minimum_pack_v,config_.maximum_pack_v,config_.off_bus_max_v,config_.precharge_ratio,config_.ready_delta_v,config_.opening_current_max_a};
+    o.timing={config_.period_ns,config_.max_tick_gap_ns,config_.max_source_age_ns,config_.max_dependency_age_ns,config_.checks_timeout_ns,
+        config_.contactor_timeout_ns,config_.precharge_timeout_ns,config_.shutdown_current_timeout_ns,config_.discharge_timeout_ns,config_.ready_dwell_ns};
+    return o;
+}
 void PowerController::fail(PowerControlFault fault) {
+    if(fault!=PowerControlFault::None) {
+        const bool propagated=fault==PowerControlFault::ContinuityLost || fault==PowerControlFault::BmsInhibit;
+        auto& slot=propagated?propagation_:first_fault_;
+        if(!slot) slot=observation(fault);
+    }
     if (fault != PowerControlFault::None && (output_.fault == PowerControlFault::None || fault == PowerControlFault::ClockError ||
         fault == PowerControlFault::ControlDeadline || fault == PowerControlFault::SequenceExhausted)) output_.fault = fault;
     output_.inhibit_drive = true;
 }
 can::BmsReceiveResult PowerController::receive(const can::BmsFrame& frame, std::uint64_t now_ns, const can::BmsParentContext* parent) {
+    call_ns_=now_ns;
     if (epoch_ != 0 && now_ns < last_observed_ns_) { fail(PowerControlFault::ClockError); stopped_ = true; output_.coils.reset(); }
     if (now_ns > last_observed_ns_) last_observed_ns_ = now_ns;
     auto result = requests_.receive(frame, now_ns, parent);
@@ -80,6 +104,7 @@ can::BmsReceiveResult PowerController::receive(const can::BmsFrame& frame, std::
     return result;
 }
 void PowerController::mark_continuity_lost(std::uint64_t now_ns) {
+    call_ns_=now_ns;
     if (now_ns < last_observed_ns_) { fail(PowerControlFault::ClockError); stopped_ = true; output_.coils.reset(); return; }
     last_observed_ns_ = now_ns;
     requests_.mark_continuity_lost(now_ns); fail(PowerControlFault::ContinuityLost);
@@ -148,6 +173,7 @@ void PowerController::shutdown(PowerControlFault fault, std::uint64_t now_ns, co
 std::optional<can::BmsMessage> PowerController::tick(const std::optional<power::SensorSnapshot>& sensors,
         const std::optional<power::BmsSafetyGate>& bms, std::uint64_t now_ns) {
     if (epoch_ == 0 || stopped_) return std::nullopt;
+    call_ns_=now_ns; observed_sensor_=sensors; observed_gate_=bms;
     if (now_ns < last_observed_ns_) { fail(PowerControlFault::ClockError); stopped_ = true; output_.coils.reset(); return std::nullopt; }
     last_observed_ns_ = now_ns;
     if (last_tick_ns_ && now_ns-*last_tick_ns_ < config_.period_ns) return std::nullopt;
@@ -267,6 +293,9 @@ std::optional<can::BmsMessage> PowerController::tick(const std::optional<power::
         status.input_time_ns = 0; status.input_sequence = 0;
     }
     message.content = status;
+    if(output_.fault==PowerControlFault::None && output_.phase==PowerPhase::Ready && s && bms_ok && action==can::BmsPowerAction::Enable) {
+        success_=observation(PowerControlFault::None); success_->qualified=true;
+    }
     return message;
 }
 }  // namespace stratadrive::vecu

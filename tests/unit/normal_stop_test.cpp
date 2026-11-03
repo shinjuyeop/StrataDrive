@@ -1,6 +1,8 @@
 #include "normal_stop.hpp"
+#include "control_diagnostics.hpp"
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <limits>
 
 namespace {
@@ -210,5 +212,79 @@ TEST_F(NormalStopTest, ExplicitTenSecondBudgetAllowsIdealThirtyKmhHandoffWithout
     EXPECT_GT(handoff_ms,5010U);EXPECT_LT(handoff_ms,10010U);
     EXPECT_EQ(candidate.decision().fault,central::NormalStopFault::None);
     EXPECT_EQ(central::NormalStopConfig{}.braking_timeout_ns,5000*kMs);
+}
+diagnostics::Ledger diagnosed(diagnostics::EventQueue& queue) {
+    diagnostics::Ledger ledger; diagnostics::Event e;
+    while(queue.pop(e)) EXPECT_EQ(ledger.record(e),diagnostics::Result::Accepted);
+    return ledger;
+}
+TEST_F(NormalStopTest, DiagnosticsRecordsNativeBrakingAndShutdownBudgetsAtTheirOwnOrigins) {
+    for(bool shutdown:{false,true}) {
+        diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+        ASSERT_TRUE(hook.start_session(3,kStart));
+        central::NormalStopConfig config; config.braking_timeout_ns=80*kMs; config.shutdown_timeout_ns=40*kMs;
+        central::NormalStop c(config); ASSERT_TRUE(c.start_session(3,kStart)); ASSERT_TRUE(c.begin(request(10),{0,0},ns(10)));
+        auto owner=management;
+        for(std::uint32_t ms=10;ms<=130;ms+=10) {
+            if(ms>10) { ASSERT_EQ(c.receive_request(request(ms),ns(ms)),central::StopReceiveResult::Accepted); }
+            const auto out=c.tick(inputs(ms,{shutdown?0.:20.}),owner,ns(ms));
+            if(!out) break;
+            if(out->state==central::NormalStopState::HandoffPending) {
+                ASSERT_TRUE(c.acknowledge_handoff(out->lease,ns(ms))); owner.normal_allowed=false; owner.state=central::VehicleManagementState::Stopping;
+            }
+        }
+        hook.observe(c,ns(200)); hook.observe(c,ns(300)); const auto ledger=diagnosed(queue);
+        ASSERT_EQ(ledger.records().size(),1U); const auto& r=ledger.records().front();
+        EXPECT_EQ(r.key.code,shutdown?diagnostics::Code::ShutdownTimeout:diagnostics::Code::BrakingTimeout);
+        EXPECT_EQ(r.first_detected.ns,ns(shutdown?110:90)); EXPECT_EQ(r.count,1U);
+        const auto fault=std::find_if(ledger.events().begin(),ledger.events().end(),[](const auto& e){return e.kind==diagnostics::Kind::Fault;});
+        ASSERT_NE(fault,ledger.events().end()); EXPECT_EQ(fault->times[1].ns,ns(shutdown?110:90));
+        const auto& o=*c.fault_observations()[0]; EXPECT_EQ(o.phase_start_ns,ns(shutdown?70:10));
+        EXPECT_EQ(o.config.braking_timeout_ns,80*kMs); EXPECT_EQ(o.config.shutdown_timeout_ns,40*kMs);
+        EXPECT_TRUE(c.decision().protection_required);
+    }
+}
+TEST_F(NormalStopTest, DiagnosticsSeparatesMissingFeedbackLostHoldRequestAndHandoffExpiry) {
+    for(unsigned kind=0;kind<4;++kind) {
+        diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+        ASSERT_TRUE(hook.start_session(3,kStart)); central::NormalStop c;
+        ASSERT_TRUE(c.start_session(3,kStart)); ASSERT_TRUE(c.begin(request(10),{0,0},ns(10)));
+        if(kind==0) { auto in=inputs(10); in.front.brake_actual.reset(); EXPECT_FALSE(c.tick(in,management,ns(10))); }
+        if(kind==1 || kind==3) {
+            for(std::uint32_t ms=10;ms<=70;ms+=10) {
+                if(ms>10) { ASSERT_EQ(c.receive_request(request(ms),ns(ms)),central::StopReceiveResult::Accepted); }
+                ASSERT_TRUE(c.tick(inputs(ms),management,ns(ms)));
+            }
+            if(kind==1) { ASSERT_EQ(c.receive_request(request(80),ns(80)),central::StopReceiveResult::Accepted); EXPECT_FALSE(c.tick(inputs(80,{1}),management,ns(80))); }
+            else for(std::uint32_t ms=80;ms<=130;ms+=10) { c.receive_request(request(ms),ns(ms)); c.tick(inputs(ms),management,ns(ms)); }
+        }
+        if(kind==2) { ASSERT_TRUE(c.tick(inputs(10),management,ns(10))); EXPECT_EQ(c.receive_request(request(70),ns(70)),central::StopReceiveResult::Latched); }
+        hook.observe(c,ns(200)); const auto ledger=diagnosed(queue); ASSERT_EQ(ledger.records().size(),1U);
+        const auto expected=kind<2?diagnostics::Code::StopEvidence:kind==2?diagnostics::Code::StopRequest:diagnostics::Code::Handoff;
+        EXPECT_EQ(ledger.records().front().key.code,expected); EXPECT_TRUE(c.decision().protection_required);
+        if(kind==3) {
+            const auto fault=std::find_if(ledger.events().begin(),ledger.events().end(),[](const auto& e){return e.kind==diagnostics::Kind::Fault;});
+            ASSERT_NE(fault,ledger.events().end()); EXPECT_EQ(fault->stop_lease.source.ns,ns(70)); EXPECT_EQ(fault->command.source.ns,ns(120));
+        }
+    }
+}
+TEST_F(NormalStopTest, DiagnosticsPreservesFirstFaultAndSeparateUntrustedClockFailure) {
+    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+    ASSERT_TRUE(hook.start_session(3,kStart)); ASSERT_TRUE(stop.tick(inputs(10),management,ns(10)));
+    EXPECT_EQ(stop.receive_request(request(70),ns(70)),central::StopReceiveResult::Latched);
+    EXPECT_FALSE(stop.tick(inputs(9),management,ns(9))); hook.observe(stop,ns(200));
+    const auto ledger=diagnosed(queue); ASSERT_EQ(ledger.records().size(),2U);
+    EXPECT_EQ(ledger.records()[0].key.code,diagnostics::Code::StopRequest); EXPECT_EQ(ledger.records()[0].first_detected.ns,ns(70));
+    EXPECT_EQ(ledger.records()[1].key.code,diagnostics::Code::Clock); EXPECT_EQ(ledger.records()[1].first_detected.ns,ns(9));
+    EXPECT_FALSE(ledger.records()[1].first_detected.trusted);
+}
+TEST_F(NormalStopTest, DiagnosticsNeverTurnsRejectedRequestOrUpstreamProtectionIntoSpecificRoot) {
+    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+    ASSERT_TRUE(hook.start_session(3,kStart)); auto wrong=request(20); wrong.identity.epoch=4;
+    EXPECT_EQ(stop.receive_request(wrong,ns(20)),central::StopReceiveResult::Rejected);
+    auto owner=management; owner.normal_allowed=false; EXPECT_FALSE(stop.tick(inputs(20),owner,ns(20)));
+    hook.observe(stop,ns(30)); const auto ledger=diagnosed(queue);
+    EXPECT_TRUE(ledger.records().empty()); EXPECT_EQ(ledger.events().back().kind,diagnostics::Kind::Observation);
+    EXPECT_TRUE(ledger.events().back().cause_unknown);
 }
 } // namespace

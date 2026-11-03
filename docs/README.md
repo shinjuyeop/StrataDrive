@@ -20,6 +20,7 @@
 | --- | --- |
 | 요구사항 | [시스템](requirements/system-requirements.md) · [시간](requirements/timing-requirements.md) · [안전](requirements/safety-requirements.md) |
 | Interface | [계약 목록](interfaces/README.md) · [CARLA](interfaces/carla-plant-adapter.md) |
+| M9 진단 | [Fault event/DTC 계약](interfaces/diagnostics.md) · [검증 프로토콜](test-plan/diagnostics-protocol.md) · [native 원인 검증](test-plan/evidence/m9_native_causes/README.md) |
 | 검증 | [검증 안내](test-plan/README.md) · [전략·TC](test-plan/verification-strategy.md) · [시나리오](test-plan/scenario-baseline.md) · [추적성](test-plan/requirements-traceability.md) |
 | 안전 분석 학습 | [Item Definition / HARA 초안](safety/concept-study.md) |
 

@@ -112,6 +112,7 @@ bool BmsController::start_session(std::uint32_t application_epoch, std::uint32_t
     sequence_ = 0; previous_.reset(); last_tick_ns_.reset(); trip_dwell_ = {}; release_dwell_ = {};
     stopped_ = false; decision_ = {}; decision_.state = BmsControlState::InitialChecks;
     power_gate_.reset();
+    observed_input_={}; first_fault_.reset(); propagation_.reset(); success_.reset();
     return true;
 }
 bool BmsController::Dwell::observe(bool condition, std::uint64_t source_ns, const BmsControllerConfig& config, Kind kind) {
@@ -120,14 +121,37 @@ bool BmsController::Dwell::observe(bool condition, std::uint64_t source_ns, cons
     last = source_ns;
     return source_ns-*first >= (kind == Kind::Trip ? config.trip_dwell_ns : config.release_dwell_ns);
 }
-void BmsController::latch(BmsControlFault fault) {
+NativeObservation BmsController::observation(BmsControlFault fault,std::uint64_t now,bool propagation) const {
+    NativeObservation o; o.epoch=application_epoch_; o.model_epoch=model_epoch_; o.enable_ns=enable_ns_; o.observed_ns=now;
+    o.reason=static_cast<std::uint32_t>(fault); o.state=static_cast<std::uint32_t>(decision_.state);
+    o.detail=fault==BmsControlFault::InputsInvalid?static_cast<std::uint32_t>(decision_.input_issue):decision_.latched_trips;
+    o.propagation=propagation && fault!=BmsControlFault::ClockError;
+    o.samples={native_sample(observed_input_.soc),native_sample(observed_input_.electrical),native_sample(observed_input_.temperature),
+        native_sample(observed_input_.cell_voltage),native_sample(observed_input_.cell_temperature)};
+    if(observed_input_.soc) o.samples[0].values[0]=observed_input_.soc->value;
+    if(observed_input_.electrical) { o.samples[1].values[0]=observed_input_.electrical->value.voltage_v; o.samples[1].values[1]=observed_input_.electrical->value.current_a; }
+    if(observed_input_.temperature) o.samples[2].values[0]=observed_input_.temperature->value;
+    if(observed_input_.cell_voltage) { o.samples[3].values[0]=observed_input_.cell_voltage->value.minimum; o.samples[3].values[1]=observed_input_.cell_voltage->value.maximum; }
+    if(observed_input_.cell_temperature) { o.samples[4].values[0]=observed_input_.cell_temperature->value.minimum; o.samples[4].values[1]=observed_input_.cell_temperature->value.maximum; }
+    o.trip={config_.cell_v.trip_low,config_.cell_v.trip_high,config_.pack_v.trip_low,config_.pack_v.trip_high,config_.temperature_c.trip_low,config_.temperature_c.trip_high,config_.current_a.trip_low,config_.current_a.trip_high};
+    o.release={config_.cell_v.release_low,config_.cell_v.release_high,config_.pack_v.release_low,config_.pack_v.release_high,config_.temperature_c.release_low,config_.temperature_c.release_high,config_.current_a.release_low,config_.current_a.release_high};
+    o.timing={config_.period_ns,config_.max_tick_gap_ns,config_.max_source_age_ns,config_.max_dependency_age_ns,config_.trip_dwell_ns,config_.release_dwell_ns,config_.max_sensor_skew_ns};
+    if(fault==BmsControlFault::Protection && !propagation) for(std::size_t i=0;i<trip_dwell_.size();++i)
+        if((decision_.latched_trips&(1U<<i)) && trip_dwell_[i].first && (!o.violation_ns || *trip_dwell_[i].first<*o.violation_ns)) o.violation_ns=trip_dwell_[i].first;
+    if(fault==BmsControlFault::ControlDeadline) o.violation_ns=last_tick_ns_.value_or(enable_ns_)+config_.max_tick_gap_ns+1;
+    return o;
+}
+void BmsController::latch(BmsControlFault fault,std::uint64_t now,bool propagation) {
+    const bool propagated=propagation && fault!=BmsControlFault::ClockError;
+    auto& slot=propagated?propagation_:first_fault_;
+    if(!slot) slot=observation(fault,now,propagation);
     if (decision_.fault == BmsControlFault::None || fault == BmsControlFault::ClockError ||
         fault == BmsControlFault::ControlDeadline || fault == BmsControlFault::SequenceExhausted) decision_.fault = fault;
     decision_.state = BmsControlState::Latched;
 }
 void BmsController::request_local_protection(std::uint64_t now_ns) {
     if(application_epoch_==0) return;
-    latch(now_ns<last_observed_ns_?BmsControlFault::ClockError:BmsControlFault::Protection);
+    latch(now_ns<last_observed_ns_?BmsControlFault::ClockError:BmsControlFault::Protection,now_ns,true);
     if(now_ns>=last_observed_ns_) last_observed_ns_=now_ns;
     decision_.limits={}; decision_.inhibit_requested=true;
     power_gate_.reset();
@@ -191,9 +215,11 @@ void BmsController::evaluate(const battery::SensorSnapshot& s) {
         if (violations[i]) decision_.pending_trips |= bit;
         if (trip_dwell_[i].observe(violations[i], sources[i], config_)) {
             decision_.latched_trips |= bit;
-            latch(BmsControlFault::Protection);
+            latch(BmsControlFault::Protection,last_observed_ns_);
         }
     }
+    if(first_fault_ && first_fault_->reason==static_cast<std::uint32_t>(BmsControlFault::Protection) && first_fault_->observed_ns==last_observed_ns_)
+        first_fault_->detail=decision_.latched_trips;
     const auto safe_source = std::min({s.soc->identity.source_time_ns, s.electrical->identity.source_time_ns,
         s.temperature->identity.source_time_ns, s.cell_voltage->identity.source_time_ns, s.cell_temperature->identity.source_time_ns});
     const bool safe = in_release(cv.minimum, cv.maximum, config_.cell_v) &&
@@ -221,8 +247,9 @@ void BmsController::evaluate(const battery::SensorSnapshot& s) {
 }
 std::optional<can::BmsMessage> BmsController::tick(const battery::SensorSnapshot& inputs, std::uint64_t now_ns) {
     if (application_epoch_ == 0 || stopped_) return std::nullopt;
+    observed_input_=inputs;
     if (now_ns < last_observed_ns_) {
-        latch(BmsControlFault::ClockError); decision_.limits = {}; decision_.charge_current_a.reset();
+        latch(BmsControlFault::ClockError,now_ns); decision_.limits = {}; decision_.charge_current_a.reset();
         decision_.pending_trips = 0;
         decision_.discharge_current_a.reset(); decision_.inhibit_requested = true; decision_.recovery_ready = false; stopped_ = true;
         power_gate_.reset();
@@ -230,7 +257,7 @@ std::optional<can::BmsMessage> BmsController::tick(const battery::SensorSnapshot
     }
     last_observed_ns_ = now_ns;
     if (last_tick_ns_ && now_ns-*last_tick_ns_ < config_.period_ns) return std::nullopt;
-    if (now_ns-last_tick_ns_.value_or(enable_ns_) > config_.max_tick_gap_ns) latch(BmsControlFault::ControlDeadline);
+    if (now_ns-last_tick_ns_.value_or(enable_ns_) > config_.max_tick_gap_ns) latch(BmsControlFault::ControlDeadline,now_ns);
     last_tick_ns_ = now_ns;
     decision_.input_issue = validate(inputs, now_ns);
     decision_.limits = {}; decision_.charge_current_a.reset(); decision_.discharge_current_a.reset();
@@ -238,13 +265,13 @@ std::optional<can::BmsMessage> BmsController::tick(const battery::SensorSnapshot
     decision_.inhibit_requested = true; decision_.recovery_ready = false;
     if (decision_.input_issue != BmsInputIssue::None) {
         release_dwell_ = {}; trip_dwell_ = {}; decision_.pending_trips = 0;
-        if (decision_.state == BmsControlState::Active || decision_.input_issue != BmsInputIssue::Unavailable) latch(BmsControlFault::InputsInvalid);
+        if (decision_.state == BmsControlState::Active || decision_.input_issue != BmsInputIssue::Unavailable) latch(BmsControlFault::InputsInvalid,now_ns);
     } else {
         previous_ = inputs;
         if (decision_.fault != BmsControlFault::ControlDeadline) evaluate(inputs);
     }
     if (sequence_ == std::numeric_limits<std::uint32_t>::max()) {
-        latch(BmsControlFault::SequenceExhausted); decision_.limits = {}; decision_.inhibit_requested = true;
+        latch(BmsControlFault::SequenceExhausted,now_ns); decision_.limits = {}; decision_.inhibit_requested = true;
         decision_.charge_current_a.reset(); decision_.discharge_current_a.reset(); decision_.recovery_ready = false;
         power_gate_.reset(); stopped_ = true; return std::nullopt;
     }
@@ -262,6 +289,9 @@ std::optional<can::BmsMessage> BmsController::tick(const battery::SensorSnapshot
     power_gate_ = power::BmsSafetyGate{application_epoch_, message.sequence, now_ns, decision_.limits.input_time_ns,
         decision_.limits.charge_power_w && decision_.limits.discharge_power_w ?
             std::optional<bool>{decision_.inhibit_requested} : std::nullopt};
+    if(decision_.fault==BmsControlFault::None && decision_.state==BmsControlState::Active && decision_.recovery_ready && !decision_.pending_trips) {
+        success_=observation(BmsControlFault::None,now_ns); success_->qualified=true;
+    }
     return message;
 }
 }  // namespace stratadrive::vecu

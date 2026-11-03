@@ -16,7 +16,40 @@ M4Timing Audit::result(std::string name) {
         r.max_body_us=static_cast<double>(durations.back())/1000; r.max_poll_gap_ms=static_cast<double>(poll_gap)/kMs; r.max_runnable_gap_ms=static_cast<double>(runnable_gap)/kMs;
         return r;
     }
+void Network::forward_diagnostic_protection() {
+    if(!diagnostic_hook || !config.diagnostics_run) return;
+    const std::array<diagnostics::Component,7> actors{diagnostics::Component::Front,diagnostics::Component::Rear,
+                diagnostics::Component::Steering,diagnostics::Component::Brake,diagnostics::Component::Drive,diagnostics::Component::Bms,diagnostics::Component::Power};
+    for(std::size_t owner=0;owner<actors.size();++owner) while(diagnostic_cursors_[owner]<owner_events[owner].size()) {
+                const auto& row=owner_events[owner][diagnostic_cursors_[owner]++];
+                const auto kind=std::string_view(row.kind);
+                if(kind=="leaf-protection-selected" || kind=="zone-protection-ack")
+                    diagnostic_hook->local_protection(actors[owner],1U<<owner,row.epoch,row.time_ns,kind=="zone-protection-ack");
+    }
+}
 M4Result Network::finish() {
+        if(diagnostic_queue) {
+            forward_diagnostic_protection();
+            diagnostics::Event event;
+            while(diagnostic_queue->pop(event)) {
+                result.diagnostic_events.push_back(event);
+                if(event.unmapped) result.diagnostics_complete=false;
+            }
+            const auto health=diagnostic_queue->health();
+            result.diagnostics_complete=result.diagnostics_complete && diagnostic_hook->healthy() && !health.dropped && !health.identity_error;
+        }
+        for(std::size_t i=0;i<owner_diagnostic_queues.size();++i) if(owner_diagnostic_queues[i]) {
+            diagnostics::Event event;
+            while(owner_diagnostic_queues[i]->pop(event)) { result.diagnostic_events.push_back(event); if(event.unmapped) result.diagnostics_complete=false; }
+            const auto h=owner_diagnostic_queues[i]->health();
+            result.diagnostics_complete=result.diagnostics_complete && owner_diagnostic_hooks[i]->healthy() && !h.dropped && !h.identity_error;
+        }
+        for(std::size_t i=0;i<native_diagnostic_queues.size();++i) if(native_diagnostic_queues[i]) {
+            diagnostics::Event e;
+            while(native_diagnostic_queues[i]->pop(e)) { result.diagnostic_events.push_back(e); if(e.unmapped) result.diagnostics_complete=false; }
+            const auto h=native_diagnostic_queues[i]->health();
+            result.diagnostics_complete=result.diagnostics_complete && native_diagnostic_hooks[i]->healthy() && !h.dropped && !h.identity_error;
+        }
         collect_filters();
         for(const auto& log:transport_logs) {
             result.event_overflow=result.event_overflow || log.overflow;
@@ -55,7 +88,7 @@ M4Result Network::finish() {
             }
             result.trace.push_back(row);
         }
-        const auto d=core.decision(); const bool expected_fault=config.scenario==M4Scenario::PartialFront || config.scenario==M4Scenario::FeedbackLoss || config.scenario==M4Scenario::CommandLoss || config.scenario==M4Scenario::PartialArm || config.scenario==M4Scenario::Rejoin;
+        const auto d=core.decision(); const bool expected_fault=config.scenario==M4Scenario::PartialFront || config.scenario==M4Scenario::FeedbackLoss || config.scenario==M4Scenario::CommandLoss || config.scenario==M4Scenario::PartialArm || config.scenario==M4Scenario::Rejoin || config.scenario==M4Scenario::SpeedInputLoss;
         bool scenario_ok;
         if(expected_fault) scenario_ok=result.first_fault_ns!=0 && result.all_protected_ns>=result.first_fault_ns && result.all_protected_ns-result.first_fault_ns<=100*kMs;
         else scenario_ok=result.first_fault_ns==0 && d.fault==central::CoordinatorFault::None && result.first_active_ns!=0;
@@ -90,7 +123,7 @@ M4Result Network::finish() {
             if(config.recovery_ns) scenario_ok=scenario_ok && result.rejoin_active_ns>config.recovery_ns && d.fault==central::CoordinatorFault::None;
         }
         if(config.execution_guards && !expected_fault && config.scenario!=M4Scenario::Fault) scenario_ok=scenario_ok && result.timing_ok;
-        result.passed=result.startup_ok && scenario_ok && result.physical_ok && result.ownership_ok && !result.event_overflow && result.model_preserved;
+        result.passed=result.startup_ok && scenario_ok && result.physical_ok && result.ownership_ok && !result.event_overflow && result.model_preserved && result.diagnostics_complete;
         if(!result.passed) result.reason="scenario="+std::string(m4_scenario_name(config.scenario))+" core="+std::to_string(static_cast<int>(d.fault))+" session="+std::to_string(static_cast<int>(startup.fault()))+" management="+std::to_string(static_cast<int>(d.management.state))+" vm_fault="+std::to_string(static_cast<int>(d.management.fault))+" allocation="+std::to_string(static_cast<int>(d.allocation.fault))+" stop="+std::to_string(static_cast<int>(d.stop.state))+" physical="+std::to_string(result.physical_ok)+" active="+std::to_string(result.first_active_ns)+" fault="+std::to_string(result.first_fault_ns)+" selected="+std::to_string(result.all_protected_ns);
         if(!result.passed) { result.reason+=" transport="+std::to_string(static_cast<int>(port.fault()))+" op="+std::to_string(port.failed_operation())+" front="+std::to_string(zone_owners[0]->rejection())+" rear="+std::to_string(zone_owners[1]->rejection())+" energy="+std::to_string(physical.fault_code()); for(const auto& l:leaf_owners) result.reason+=" leaf="+std::to_string(l->fault_code()); }
         return result;

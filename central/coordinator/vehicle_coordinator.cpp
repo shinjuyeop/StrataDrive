@@ -22,18 +22,25 @@ bool VehicleCoordinator::start_session(CoordinatorSession session) {
         !stop_.start_session(session.epoch,session.enable_ns)) return false;
     epoch_=session.epoch; enable_ns_=session.enable_ns; observed_ns_=now;
     tick_ns_.reset(); allocation_ns_.reset(); lifecycle_.reset(); vehicle_.reset(); last_power_.reset(); pending_handoff_.reset(); fault_=CoordinatorFault::None;
-    normal_armed_=stopping_=protection_selected_=protection_attempted_=in_cycle_=false; return true;
+    normal_armed_=stopping_=protection_selected_=protection_attempted_=in_cycle_=false;
+    fault_observation_.reset(); protections_={}; return true;
 }
-void VehicleCoordinator::fail(CoordinatorFault fault) {
+void VehicleCoordinator::fail(CoordinatorFault fault,std::optional<std::uint64_t> detected_ns) {
     const bool first=fault_==CoordinatorFault::None;
+    if(first) fault_observation_=CoordinatorFaultObservation{fault,epoch_,enable_ns_,detected_ns.value_or(observed_ns_),pending_handoff_};
     if(first || fault==CoordinatorFault::ClockError) fault_=fault;
     normal_armed_=false;
     if(first) { management_.mark_continuity_lost(observed_ns_); allocation_.mark_continuity_lost(observed_ns_); }
-    if(!protection_selected_ && !protection_attempted_) { protection_attempted_=true; protection_selected_=port_.protect(); }
+    if(!protection_selected_ && !protection_attempted_) {
+        protection_attempted_=true; protection_selected_=port_.protect();
+        const ProtectionObservation attempt{epoch_,observed_ns_,port_.now_ns(),protection_selected_};
+        if(!protections_[0]) protections_[0]=attempt;
+        if(protection_selected_ && !protections_[1]) protections_[1]=attempt;
+    }
 }
 bool VehicleCoordinator::advance(std::uint64_t now) {
     if(epoch_==0) return false;
-    if(now<observed_ns_ || now==std::numeric_limits<std::uint64_t>::max()) { fail(CoordinatorFault::ClockError); return false; }
+    if(now<observed_ns_ || now==std::numeric_limits<std::uint64_t>::max()) { fail(CoordinatorFault::ClockError,now); return false; }
     observed_ns_=now;
     if(now-tick_ns_.value_or(enable_ns_)>kGap) fail(CoordinatorFault::ControlDeadline);
     return fault_==CoordinatorFault::None;

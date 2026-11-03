@@ -132,6 +132,10 @@ TEST_F(RearPowerGatewayTest, ReadyAcknowledgementAllowsOneTrustedArmAndBoundedGr
     EXPECT_EQ(gateway.enqueue_permission(permission(20,1,true)),RearPowerResult::Accepted);
     EXPECT_EQ(gateway.dispatch(),3U); EXPECT_EQ(port.sent.back().delivery.message.kind,can::BmsFrameKind::DrivePermission);
     EXPECT_EQ(port.sent.back().delivery.parent->sequence,1U); EXPECT_EQ(port.sent.back().delivery.expires_at_ns,ns(50));
+    ASSERT_TRUE(gateway.success_observation()); const auto& native=*gateway.success_observation();
+    EXPECT_TRUE(native.qualified); EXPECT_EQ(native.writes,3U); EXPECT_EQ(native.observed_ns,ns(20));
+    ASSERT_TRUE(native.root); EXPECT_EQ(native.root->sequence,1U); EXPECT_EQ(native.root->expiry_ns,ns(80));
+    EXPECT_EQ(native.valid_until_ns,ns(50));
 }
 TEST_F(RearPowerGatewayTest, ReadyBitsCannotArmWithDegradedStatusOrInitLimits) {
     seed(); port.now=ns(20); root(20,1);
@@ -155,6 +159,12 @@ TEST_F(RearPowerGatewayTest, FailedLeafArmLatchesInsteadOfForwardingAllow) {
     seed(); observe(20,1,true); root(20,1); port.arm_ok=false;
     EXPECT_FALSE(gateway.arm_normal_commands()); EXPECT_EQ(gateway.poll().safety.cause,zone::ProtectionCause::UpstreamLost);
     EXPECT_EQ(gateway.enqueue_permission(permission(20,1,true)),RearPowerResult::Latched);
+}
+TEST_F(RearPowerGatewayTest, ExternalContinuityLossNeverBecomesAnIntrinsicRootOnLaterPoll) {
+    seed(); port.now=ns(20); gateway.mark_continuity_lost();
+    ASSERT_TRUE(gateway.fault_observation()); EXPECT_TRUE(gateway.fault_observation()->propagation);
+    const auto first=gateway.fault_observation()->observed_ns; port.now=ns(90); gateway.poll();
+    EXPECT_TRUE(gateway.fault_observation()->propagation); EXPECT_EQ(gateway.fault_observation()->observed_ns,first);
 }
 TEST_F(RearPowerGatewayTest, MissingAnyCriticalStreamLatchesBeforeLateFreshData) {
     seed(); port.now=ns(50); EXPECT_EQ(gateway.poll().safety.cause,zone::ProtectionCause::CommandExpired);
@@ -198,6 +208,10 @@ TEST(RearPowerSources, EachMissingSourceLatchesWhileTheOtherThreeKeepUpdating) {
             g.dispatch();
         }
         EXPECT_TRUE(lost); EXPECT_EQ(port.protections,1U);
+        ASSERT_TRUE(g.fault_observation()); const auto& native=*g.fault_observation();
+        EXPECT_FALSE(native.propagation); EXPECT_EQ(native.detail,1U<<missing); EXPECT_EQ(native.epoch,3U);
+        EXPECT_EQ(native.samples[missing].source_ns,ns(10)); EXPECT_EQ(native.observed_ns,port.now);
+        ASSERT_TRUE(native.violation_ns); EXPECT_LE(*native.violation_ns,native.observed_ns);
     }
 }
 TEST_F(RearPowerGatewayTest, LossOfActualReadyRevokesNormalEvenWhilePacketsRemainFresh) {

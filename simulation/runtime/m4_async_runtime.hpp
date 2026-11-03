@@ -3,6 +3,7 @@
 #include "command_renewal.hpp"
 #include "m4_execution_watch.hpp"
 #include "transport_trace.hpp"
+#include "diagnostics.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -10,7 +11,7 @@
 #include <vector>
 
 namespace stratadrive::simulation {
-enum class M4Scenario { Normal,NormalStop,PartialFront,FeedbackLoss,CommandLoss,PartialArm,Rejoin,OldEpoch,Fault };
+enum class M4Scenario { Normal,NormalStop,PartialFront,FeedbackLoss,CommandLoss,PartialArm,Rejoin,OldEpoch,Fault,SpeedInputLoss };
 struct M4Config {
     M4Scenario scenario{M4Scenario::Normal};
     central::CommandRenewal renewal{central::CommandRenewal::Legacy20ms};
@@ -22,6 +23,10 @@ struct M4Config {
     std::uint64_t recovery_ns{0}; bool replace_links{false};
     bool execution_guards{false},fifo{false}; int cpu_a{-1},cpu_b{-1};
     bool transport_trace{false}; // opt-in intrusive diagnostics; separate timing cohort
+    std::uint64_t diagnostics_run{0}; // nonzero = opt-in logical queue; consumer/file IO stays outside each owner step
+    std::uint64_t owner_diagnostics_run{0}; // separate local-source cohort; same run if Central hooks also enabled
+    std::uint64_t native_diagnostics_run{0}; // gateway/BMS/Power registry-v2 cohort; logical Normal/Fault only
+    std::uint64_t speed_input_restore_ns{0},speed_input_reinject_ns{0}; // explicit logical argument-loss windows;0 retains permanent loss
 };
 struct M4Trace {
     std::uint64_t elapsed_ns,source_ns;
@@ -55,6 +60,8 @@ struct M4Result {
     std::vector<SpeedLoopTrace> speed_trace;
     std::uint64_t speed_origin_ns{0};
     int speed_fault{0};
+    std::vector<diagnostics::Event> diagnostic_events;
+    bool diagnostics_complete{true};
     std::vector<M4Timing> timing;
     std::vector<M4Event> events;
     std::vector<transport::TransportTraceRow> transport_events;

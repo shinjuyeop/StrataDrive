@@ -1,4 +1,5 @@
 #include "vehicle_coordinator.hpp"
+#include "control_diagnostics.hpp"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -193,6 +194,44 @@ TEST_F(CoordinatorTest, HandoffFailureNeverAcknowledgesShutdownAndProtectsAllPar
     }
     EXPECT_EQ(coordinator.decision().fault,central::CoordinatorFault::Handoff); EXPECT_EQ(coordinator.decision().stop.state,central::NormalStopState::HandoffPending);
     EXPECT_EQ(port.protections,1U); EXPECT_EQ(std::get<can::BmsPowerRequest>(port.sent_power->power_request.content).action,can::BmsPowerAction::Enable);
+}
+TEST_F(CoordinatorTest, DiagnosticsLinksActualHandoffRejectionAfterProtectionWithoutDuplicatingDtc) {
+    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+    central::SpeedRequest speed; ASSERT_TRUE(hook.start_session(3,kStart)); normal();
+    port.stop_ok=false; port.now=ns(50); ASSERT_EQ(coordinator.receive_stop(stop(50),port.now),central::CoordinatorReceive::Accepted);
+    for(std::uint32_t ms=50;ms<=110;ms+=10) {
+        port.now=ns(ms); if(ms>50) { ASSERT_EQ(coordinator.receive_stop(stop(ms,ms/10-5),port.now),central::CoordinatorReceive::Accepted); }
+        tick(ms);
+    }
+    ASSERT_EQ(port.protections,1U); hook.observe(speed,coordinator,ns(200)); hook.observe(speed,coordinator,ns(210));
+    diagnostics::Ledger ledger; diagnostics::Event e; std::optional<diagnostics::Event> selection;
+    while(queue.pop(e)) { ASSERT_EQ(ledger.record(e),diagnostics::Result::Accepted); if(e.kind==diagnostics::Kind::ProtectionAck) selection=e; }
+    ASSERT_EQ(ledger.records().size(),1U); const auto& r=ledger.records().front();
+    EXPECT_EQ(r.key.code,diagnostics::Code::Handoff); EXPECT_EQ(r.key.component,3U); EXPECT_EQ(r.first_detected.ns,ns(110)); EXPECT_EQ(r.count,1U);
+    ASSERT_TRUE(selection); EXPECT_TRUE(selection->related==r.first_event); EXPECT_EQ(selection->times[4].ns,ns(110)); EXPECT_FALSE(selection->times[3].present);
+    EXPECT_TRUE(selection->stop_lease.present); EXPECT_EQ(coordinator.decision().stop.state,central::NormalStopState::HandoffPending);
+}
+TEST_F(CoordinatorTest, DiagnosticsQueueOverflowCannotDelayExistingProtectionSelection) {
+    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+    central::SpeedRequest speed; ASSERT_TRUE(hook.start_session(3,kStart));
+    for(std::size_t i=1;i<diagnostics::EventQueue::kCapacity;++i) {
+        diagnostics::Event e; e.id={10,20,i+100}; ASSERT_TRUE(queue.publish(e));
+    }
+    normal(); port.stop_ok=false; port.now=ns(50); ASSERT_EQ(coordinator.receive_stop(stop(50),port.now),central::CoordinatorReceive::Accepted);
+    for(std::uint32_t ms=50;ms<=110;ms+=10) {
+        port.now=ns(ms); if(ms>50) { ASSERT_EQ(coordinator.receive_stop(stop(ms,ms/10-5),port.now),central::CoordinatorReceive::Accepted); }
+        tick(ms);
+    }
+    ASSERT_EQ(port.protections,1U); ASSERT_TRUE(coordinator.decision().protection_selected);
+    hook.observe(speed,coordinator,ns(200)); EXPECT_FALSE(hook.healthy()); EXPECT_GT(queue.health().dropped,0U);
+    EXPECT_EQ(coordinator.fault_observation()->detected_ns,ns(110));
+}
+TEST_F(CoordinatorTest, DiagnosticsNeverClaimsSelectionWhenProtectionPortRejects) {
+    diagnostics::EventQueue queue(10,20); diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+    central::SpeedRequest speed; ASSERT_TRUE(hook.start_session(3,kStart)); normal();
+    port.protect_ok=false; port.now=ns(50); coordinator.request_protection(port.now); hook.observe(speed,coordinator,ns(60));
+    EXPECT_FALSE(coordinator.decision().protection_selected); diagnostics::Event e;
+    while(queue.pop(e)) EXPECT_NE(e.kind,diagnostics::Kind::ProtectionSelected);
 }
 TEST_F(CoordinatorTest, LostStopIntentCannotBeRenewedAfterItsPreviousAuthorityExpired) {
     normal(); port.now=ns(50); ASSERT_EQ(coordinator.receive_stop(stop(50),port.now),central::CoordinatorReceive::Accepted);

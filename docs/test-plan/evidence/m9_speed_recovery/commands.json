@@ -1,0 +1,14 @@
+{
+  "normal_build": "cmake --build build/m1-angle -j 4",
+  "normal_test": "ctest --test-dir build/m1-angle -L '^(unit|integration.logical)$' --output-on-failure --output-junit build/m9-recovery-work/normal.xml -j 4",
+  "asan_configure": "cmake -S . -B build/m1-angle-sanitized -DCMAKE_BUILD_TYPE=Debug -DSTRATADRIVE_SANITIZERS=ON",
+  "asan_build": "cmake --build build/m1-angle-sanitized --target control_recovery_sil_test control_diagnostics_sil_test speed_request_test vehicle_coordinator_test normal_stop_test diagnostics_test diagnostics_journal_test m4_async_runtime_test m4_fault_test -j 4",
+  "asan_test": "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1 ctest --test-dir build/m1-angle-sanitized -L '^(unit|integration.logical)$' -R '^(Diagnostics|Speed|NormalStop|StopLease|Coordinator|ControlDiagnosticsSil|ControlRecoverySil|M4AsyncRuntime|M4Fault|.*M4OwnerStop)' --output-on-failure -j 2",
+  "export": "STRATADRIVE_M9_RECOVERY_EVIDENCE=NEW_OUTPUT BUILD/control_recovery_sil_test --gtest_output=xml:NEW_XML",
+  "audit": "python3 tests/integration/diagnostics/audit_speed_recovery.py NEW_OUTPUT --mutations",
+  "wall": "ctest --test-dir build/m1-angle -R '^M4AsyncWall\\.' --output-on-failure",
+  "clang_tidy": "clang-tidy -p build/m1-angle central/diagnostics/control_diagnostics.cpp central/longitudinal/speed_request.cpp simulation/runtime/m4_async_runtime.cpp simulation/runtime/m4_owner_network.cpp simulation/runtime/m4_result.cpp simulation/runtime/speed_loop.cpp --quiet",
+  "cppcheck": "cppcheck --project=build/m9-recovery-work/compilation-subset.json --enable=warning,performance,portability --error-exitcode=1 --inline-suppr --suppress=missingIncludeSystem",
+  "release": "cmake -S . -B build/m9-diagnostics-release -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release; then cmake --build build/m9-diagnostics-release --target control_diagnostics diagnostics_journal m4_async_runtime -j 4",
+  "fingerprint": "python3 tests/unit/m4_source_fingerprint_test.py"
+}
