@@ -10,11 +10,15 @@ bool transition(ParticipantState state) {
 }
 }
 void SessionParticipant::fail(ParticipantFault fault) {
+    if(!first_fault_) first_fault_=Observation{plan_,call_ns_,previous_ns_,
+        state_==ParticipantState::Preparing || state_==ParticipantState::Prepared?plan_.prepare_deadline_ns:plan_.commit_deadline_ns,
+        static_cast<std::uint32_t>(state_),static_cast<std::uint32_t>(fault),0};
     const bool first=state_!=ParticipantState::Failed; state_=ParticipantState::Failed;
     if(first || fault==ParticipantFault::Clock) fault_=fault;
     if(first) port_.protect();
 }
 bool SessionParticipant::observe(std::uint64_t now) {
+    call_ns_=now; previous_ns_=observed_ns_;
     if(now<observed_ns_ || now==std::numeric_limits<std::uint64_t>::max()) { fail(ParticipantFault::Clock); return false; }
     const auto gap=now-observed_ns_; observed_ns_=now;
     if(transition(state_) && gap>kOwnerGapNs) fail(ParticipantFault::OwnerGap);
@@ -43,6 +47,7 @@ std::optional<Ack> SessionParticipant::progress() {
     return std::nullopt;
 }
 std::optional<Ack> SessionParticipant::receive(const Control& c,std::uint64_t now) {
+    call_ns_=now; previous_ns_=observed_ns_;
     // Clock rollback is never hidden by a newer proposal.
     if(now<observed_ns_ || c.role!=role_) { if(now<observed_ns_) fail(ParticipantFault::Clock); return std::nullopt; }
     const auto p=static_cast<std::size_t>(c.phase);
@@ -56,6 +61,7 @@ std::optional<Ack> SessionParticipant::receive(const Control& c,std::uint64_t no
     if(c.phase==Phase::Prepare && c.plan.epoch>highest_epoch_) {
         if(c.plan.enable_ns!=0 || c.plan.commit_deadline_ns!=0 || c.plan.prepare_deadline_ns<=now ||
             c.plan.prepare_deadline_ns<=c.plan.requested_ns || c.plan.prepare_deadline_ns-c.plan.requested_ns>kPrepareBudgetNs) return std::nullopt;
+        first_fault_.reset(); success_.reset();
         highest_epoch_=c.plan.epoch; observed_ns_=now; plan_=c.plan; state_=ParticipantState::Preparing;
         fault_=ParticipantFault::None; controls_={}; acks_={}; controls_[p]=c;
         return progress();
@@ -73,7 +79,9 @@ std::optional<Ack> SessionParticipant::receive(const Control& c,std::uint64_t no
     }
     if(c.phase==Phase::Release && state_==ParticipantState::Initialized && same_plan(c.plan,plan_) &&
         c.source_ns>=plan_.enable_ns && now<plan_.commit_deadline_ns) {
-        controls_[p]=c; state_=ParticipantState::Ready; return ack(Phase::Release,true);
+        controls_[p]=c; state_=ParticipantState::Ready;
+        success_=Observation{plan_,observed_ns_,previous_ns_,plan_.commit_deadline_ns,static_cast<std::uint32_t>(state_),0,1U<<static_cast<unsigned>(role_)};
+        return ack(Phase::Release,true);
     }
     return std::nullopt;
 }

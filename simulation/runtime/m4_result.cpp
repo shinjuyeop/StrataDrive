@@ -36,7 +36,13 @@ M4Result Network::finish() {
                 if(event.unmapped) result.diagnostics_complete=false;
             }
             const auto health=diagnostic_queue->health();
-            result.diagnostics_complete=result.diagnostics_complete && diagnostic_hook->healthy() && !health.dropped && !health.identity_error;
+            result.diagnostics_complete=result.diagnostics_complete && (diagnostic_hook?diagnostic_hook->healthy():startup_diagnostic_hook->healthy()) && !health.dropped && !health.identity_error;
+        }
+        for(std::size_t i=0;i<startup_diagnostic_queues.size();++i) if(startup_diagnostic_queues[i]) {
+            diagnostics::Event event;
+            while(startup_diagnostic_queues[i]->pop(event)) { result.diagnostic_events.push_back(event); if(event.unmapped) result.diagnostics_complete=false; }
+            const auto h=startup_diagnostic_queues[i]->health();
+            result.diagnostics_complete=result.diagnostics_complete && startup_diagnostic_hooks[i]->healthy() && !h.dropped && !h.identity_error;
         }
         for(std::size_t i=0;i<owner_diagnostic_queues.size();++i) if(owner_diagnostic_queues[i]) {
             diagnostics::Event event;
@@ -127,8 +133,17 @@ M4Result Network::finish() {
             result.missing_selection_mask=124U & ~result.live_selection_mask;
             bool early_fault=false;
             for(const auto& e:result.events) if((is(e,"fault-observed") || is(e,"deadline-detected") || is(e,"session-failed")) && e.time_ns-start<result.effective_injection_ns) early_fault=true;
-            scenario_ok=affected && !early_fault && result.gate_latched && result.stopped_ack_violations==0 && (protected_live || result.first_active_ns==0) && result.live_fault_ns && result.normal_blocked_ns;
             const bool preparing=std::any_of(config.faults.begin(),config.faults.end(),[](const auto& f){return f.phase==FaultPhase::Prepare;});
+            // An unreleased prepare failure has no initialized actor from which
+            // to demand a protection receipt. Require the original failed plan,
+            // absence of any release, and actual inhibited physical history.
+            const bool failed_before_init=preparing && std::any_of(result.events.begin(),result.events.end(),[&](const auto& e){
+                return is(e,"session-failed") && e.epoch==config.first_epoch && e.reference_ns==0;
+            }) && std::none_of(result.events.begin(),result.events.end(),[&](const auto& e){return is(e,"run-released") && e.epoch==config.first_epoch;}) &&
+                std::all_of(result.trace.begin(),result.trace.end(),[&](const auto& row){return config.recovery_ns && row.elapsed_ns>=config.recovery_ns?true:
+                    !row.run_gate && std::abs(row.torque_nm)<=.1 && row.contacts==0 && row.bus_v<=30;});
+            scenario_ok=affected && !early_fault && result.gate_latched && result.stopped_ack_violations==0 &&
+                (protected_live || result.first_active_ns==0 || failed_before_init) && result.live_fault_ns && result.normal_blocked_ns;
             if(!preparing && result.effective_injection_ns) scenario_ok=scenario_ok && result.live_fault_ns<=result.effective_injection_ns+100*kMs && result.normal_blocked_ns<=result.effective_injection_ns+100*kMs;
             if(config.recovery_ns) scenario_ok=scenario_ok && result.rejoin_active_ns>config.recovery_ns && d.fault==central::CoordinatorFault::None;
         }

@@ -23,6 +23,8 @@ public:
     }
     bool run_enabled() const { return participant_.run_enabled() && !link_.failed(); }
     session::ParticipantFault fault() const { return participant_.fault(); }
+    const std::optional<session::Observation>& fault_observation() const { return participant_.fault_observation(); }
+    const std::optional<session::Observation>& success_observation() const { return participant_.success_observation(); }
 private:
     void publish(const std::optional<session::Ack>& ack) {
         if(ack && !link_.acks.push(*ack)) participant_.continuity_lost(port_.now_ns());
@@ -60,6 +62,8 @@ public:
     session::State state() const { return coordinator_.state(); }
     session::Fault fault() const { return coordinator_.fault(); }
     const session::Plan& plan() const { return coordinator_.plan(); }
+    const std::optional<session::Observation>& fault_observation() const { return coordinator_.fault_observation(); }
+    const std::optional<session::Observation>& success_observation() const { return coordinator_.success_observation(); }
 private:
     std::uint64_t now_ns() noexcept override { return port_.now_ns(); }
     bool quiesce_central() noexcept override { return port_.quiesce_central(); }

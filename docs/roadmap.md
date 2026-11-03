@@ -60,11 +60,14 @@ M8에서 제안했던 추가30km/h 고장 조합은 원래 M9의 진단 통합 �
 
 소유자별 [ZoneFeedback/Leaf context expiry 수집·복구](test-plan/evidence/m9_owner_sources/README.md)를
 추가했다. 후속 [Gateway·BMS/Power native 원인](test-plan/evidence/m9_native_causes/README.md)은
-Gateway 차량 논리 SIL·BMS/Power component 복구 범위다. Release 전 startup 수집·실제 전송/spool·
+Gateway 차량 논리 SIL·BMS/Power component 복구 범위다. 실제 전송/spool·
 다른 BMS/Power 자체 고장 조합은 후속이다.
 [BMS electrical/Power current 누락](test-plan/evidence/m9_native_vehicle/README.md)은 차량 SIL에서
 보호·물리 응답·DTC·새 INIT 복구까지 검증했다. 영구 전류 누락의 energized HV도 구분한다.
 
+[Release 전 기동 시도](test-plan/evidence/m9_startup_sources/README.md)는 trusted Attempt와
+실제 Session을 구분해 Prepare/INIT/Release ACK 누락·새8-role handshake 복구를 검증했다.
+원격 wire/spool의 순서·중복·재시작·용량, proposal 이전 bootstrap과 Clock 복구는 후속이다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·
 속도·제어 튜닝은 이 묶음에 추가하지 않으며 변경한 경계의 회귀만 실행한다.

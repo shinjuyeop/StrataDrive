@@ -266,6 +266,7 @@ INIT는 DTC를 지우지 않고 DTC clear는 INIT·permission·RunLease·정상 
 | SD-3001 ACTUATOR_RESPONSE_FAULT | `BrakeMonitorFault::ResponseError`, `SteeringMonitorFault::TrackingError` | 기존 delay/rate/tolerance·fresh-sample dwell 확정 뒤 기록 |
 | SD-4001 CLOCK_ERROR | 해당 scope owner/monitor의 `ClockError` | 최초 판정; 비교 불가능한 시각을 함께 표시 |
 | SD-4002 CONTROL_DEADLINE | 해당 scope owner의 `ControlDeadline`, session participant `OwnerGap` | 최초 판정; job/owner와 적용 budget 명시 |
+| SD-4101 SESSION_STARTUP_FAILURE | session participant/coordinator의 Timeout·Rejected·Initialize·Quiesce·Send·Continuity·CentralCommit 중 해당 native reason | trusted Attempt부터 최초 기록; 실제 새 전역 Release와 해당 source 정상 completion만 기동 복구 증거 |
 | SD-5001 DIAGNOSTIC_RECORDING_GAP | event overflow, journal/store 오류, 손상·누락·같은 ID의 내용 변조 | 기록 경로 고장; 차량 보호 동작을 새로 발명하지 않으며 진단 완전성 판정은 실패 |
 
 `None`, `NotInitialized`, 정상 startup wait, 정상 완료, 유효한 regen capability0,
@@ -312,7 +313,7 @@ Event는 immutable하다. 검출 후 보호 ACK/Actual이 늦게 도착하면 �
 | --- | --- |
 | `schema_version`, `event_id` | v1; event ID=`run_id / producer_instance / event_sequence`. Sequence wrap 금지, process 재시작 시 instance 재사용 금지 |
 | `occurrence_id`, `related_event_id` | 확정 episode ID=`origin run / producer instance / application epoch / monitor / occurrence_sequence`; 최초 fault부터 보호·Actual·clear까지 유지. 관계가 미상이면 null+reason |
-| `kind` | Observation, FaultConfirmed, ProtectionSelected, ProtectionAcknowledged, ActualObserved, ConditionPassed, ConditionUnknown, SessionInitialized, ClearRequested, ClearCommitted, RecordingGap. 구현의 `Fault/Passed/Unavailable/Session/Gap`과 clear transaction에 각각 대응 |
+| `kind` | Observation, FaultConfirmed, ProtectionSelected, ProtectionAcknowledged, ActualObserved, ConditionPassed, ConditionUnknown, SessionInitialized, ClearRequested, ClearCommitted, RecordingGap, StartupAttempt. 구현의 `Fault/Passed/Unavailable/Session/Gap/Attempt`과 clear transaction에 각각 대응 |
 | `origin_component`, `monitor_id`, `subject_id`, `code`, `native_reason`, `severity` | 관측 owner/대상·코드·원래 enum/reason. Severity는 원본 정책/영향 설명이며 DTC가 보호 우선순위를 변경하지 않음 |
 | `run_id`, `application_epoch`, `model_epoch`, `session_enable`, `profile_id` | application 복구와 물리 model reset을 구분. 해당하지 않거나 미관측이면 null+reason |
 | `requirement_ids`, `interface_ids` | 해당 SYS/IF 추적성; scenario/test ID는 Host가 별도 연결 |
@@ -412,11 +413,52 @@ Clear 뒤 새 fault는 새 record generation/count1로 시작하고 tombstone �
 지연 도착한 과거 event는 과거 이력에 추가할 뿐 새 generation을 열지 않는다. 현재 상태가
 불확실해진 경우 Unknown으로 막고 재검증한다. Clear 성공은 제어 latch 해제·주행 허가가 아니다.
 
+## Release 전 기동 시도와 실제 Session
+
+`startup_diagnostics_run`은 logical Host10ms Normal/Fault speed-loop 전용 수집 모드다.
+기존 control/owner/native 수집 모드와 혼합하거나 wall 실행하지 않는다. 이미 검증한
+기존 모드의 global Release 이후 수집 경계는 유지한다. 이 모드에서는 Central이 실제
+허가한 proposal의 `Attempt`부터, 각 owner가 실제 local INIT를 마친 native 관측까지 수집한다.
+EpochStore/journal bootstrap 또는 trusted proposal 이전의 실패는 이 경계에 포함하지 않는다.
+
+`Kind::Attempt=9`는 진단 context를 만들며 제어 권한을 주지 않는다. Run/epoch와 동일한
+issuer의 trusted proposal source가 필요하고 미래 enable을 알 수 없으므로 session_enable은
+absent다. Ledger의 session accessor는 이 진단 context도 반환하므로 RunGate로 사용하지 않는다.
+새 Attempt는 epoch가 증가해야 하며 과거 condition을 Unknown으로 재평가한다. 실제 Session은
+같은 issuer/run/epoch·8-role mask255·proposal 이후의 comparable enable일 때만 같은 epoch를
+승격할 수 있다. 승격 자체는 이미 기록한 Failed를 지우거나 Unknown으로 바꾸지 않는다.
+기존 Attempt 없는 상위 epoch Session 경로는 호환을 유지한다.
+
+Release 전 Proof/Passed와 clear 요청은 NotReady로 거절한다. 미리 받은 proof를 나중에
+소급 적용하지 않는다. SD-4101의 Passed는 occurrence보다 큰 epoch의 실제 전역 Release와
+동일 source의 정상 handshake completion을 요구한다. Local completion은 실제 Ready,
+Central은 Running이어야 하며 원래 enable/commit deadline·30ms age·역할 mask를 만족한다.
+INIT 요청·ACK 경로 복원·새 Attempt만으로는 Passed가 아니다. Passed는 이력/count/generation을
+남기며 latch 해제 명령이나 물리 차량/HV readiness 증거가 아니다. 기존 native DTC 복구는
+원래 actual dispatch/BMS Active/Power HV Ready 등의 추가 predicate를 계속 요구한다.
+
+새 `Code::Startup=0x4101`과 Attempt는 **registry3**가 필요하다. 새 store를
+`FileJournal::initialize(..., limits, 3)`로 명시적으로 생성한다. Binary schema1·기존 기본
+registry1·registry2는 유지하며 자동 migration하지 않는다. Registry2에 CodeNone인 Attempt도
+append할 수 없다. 이전 reader는 manifest revision을 먼저 거부한다.
+
+최초 source snapshot은 `session::Observation`으로 plan·원래 call/previous clock·deadline·
+실패 직전 state·accepted role mask를 보존한다. Observer용 추가 clock read는 없다.
+Central producer7/monitor10/subject9, local producer40–47/monitor11/subject1–8 순서는
+Front/Rear/Steering/Brake/Drive/BMS/Power/Central participant다. Timeout/Rejected/Initialize/
+Quiesce/Send/Continuity/CentralCommit은 SD-4101, Clock은 기존 clock code, OwnerGap은 기존
+Deadline code다. Participant/Cancelled 또는 Aborted 보호 전달은 root DTC가 아닌 Observation이다.
+미지 native reason은 unmapped로 남긴다. 각 observer의 fixed32 pending key는 무단 eviction하지
+않으며 초과/queue 손실은 sticky incomplete다. 연속 실패한 proposal도 각각 별도 occurrence다.
+Clock/Deadline의 기동 복구 predicate는 아직 구현하지 않는다.
+
+[사전 recipe](../test-plan/diagnostics-protocol.md#release-전-기동-시도-진단-fixture)와
+[원본·감사·실패](../test-plan/evidence/m9_startup_sources/README.md)를 따른다.
+
 ## 다음 구현 경계
 
-집계/store와 SpeedRequest·NormalStop의 원본 snapshot·adapter 및 SimpleVehicle 연결을 검증했다.
-다음은 [진단 검증 프로토콜](../test-plan/diagnostics-protocol.md)에 따라
-code별 복구 evidence와 Zone/Leaf 자체 fault publisher·실제 transport 수집 경계를 연결하는 것이다.
+진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
+연결했다. 다음은 원격 wire/spool의 순서·중복·재시작·유한 용량 계약과 검증이다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
-실제 부하의 queue/store 용량 적합성·wire extension·spool은 경계 통합 전에 고정한다.
+실제 부하의 queue/store 용량 적합성·source 재시작 adoption·Clock 복구는 별도 수용한다.
 30km/h fault의 구체 주입 위치·기대 DTC와 물리 판정은 실행 전에 별도 고정한다.

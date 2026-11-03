@@ -120,6 +120,18 @@ Network::Network(const M4Config& c):config(c),clock(c.wall_time),start(clock.now
             diagnostic_hook=std::make_unique<diagnostics::ControlDiagnostics>(*diagnostic_queue,
                 diagnostics::ControlContext{diagnostic_run,7,diagnostics::Domain::Simulation,diagnostic_run,1});
         }
+        if(c.startup_diagnostics_run) {
+            diagnostic_queue=std::make_unique<diagnostics::EventQueue>(c.startup_diagnostics_run,7);
+            startup_diagnostic_hook=std::make_unique<diagnostics::StartupDiagnostics>(*diagnostic_queue,
+                diagnostics::ControlContext{c.startup_diagnostics_run,7,diagnostics::Domain::Simulation,c.startup_diagnostics_run,1},diagnostics::Component::Coordinator,8,true);
+            const std::array<diagnostics::Component,8> actors{diagnostics::Component::Front,diagnostics::Component::Rear,diagnostics::Component::Steering,
+                diagnostics::Component::Brake,diagnostics::Component::Drive,diagnostics::Component::Bms,diagnostics::Component::Power,diagnostics::Component::Coordinator};
+            for(std::size_t i=0;i<8;++i) {
+                startup_diagnostic_queues[i]=std::make_unique<diagnostics::EventQueue>(c.startup_diagnostics_run,40+i);
+                startup_diagnostic_hooks[i]=std::make_unique<diagnostics::StartupDiagnostics>(*startup_diagnostic_queues[i],
+                    diagnostics::ControlContext{c.startup_diagnostics_run,40+i,diagnostics::Domain::Simulation,c.startup_diagnostics_run,1},actors[i],i);
+            }
+        }
         if(c.owner_diagnostics_run) {
             const std::array<diagnostics::Component,5> actors{diagnostics::Component::Front,diagnostics::Component::Rear,
                 diagnostics::Component::Steering,diagnostics::Component::Brake,diagnostics::Component::Drive};
@@ -129,12 +141,13 @@ Network::Network(const M4Config& c):config(c),clock(c.wall_time),start(clock.now
                     diagnostics::ControlContext{c.owner_diagnostics_run,20+i,diagnostics::Domain::Simulation,c.owner_diagnostics_run,1},actors[i]);
             }
         }
-        if(c.native_diagnostics_run) {
+        if(c.native_diagnostics_run || c.startup_diagnostics_run) {
+            const auto run=c.native_diagnostics_run?c.native_diagnostics_run:c.startup_diagnostics_run;
             const std::array<diagnostics::Component,4> actors{diagnostics::Component::Front,diagnostics::Component::Rear,diagnostics::Component::Bms,diagnostics::Component::Power};
             for(std::size_t i=0;i<actors.size();++i) {
-                native_diagnostic_queues[i]=std::make_unique<diagnostics::EventQueue>(c.native_diagnostics_run,30+i);
+                native_diagnostic_queues[i]=std::make_unique<diagnostics::EventQueue>(run,30+i);
                 native_diagnostic_hooks[i]=std::make_unique<diagnostics::NativeDiagnostics>(*native_diagnostic_queues[i],
-                    diagnostics::ControlContext{c.native_diagnostics_run,30+i,diagnostics::Domain::Simulation,c.native_diagnostics_run,1},actors[i]);
+                    diagnostics::ControlContext{run,30+i,diagnostics::Domain::Simulation,run,1},actors[i]);
             }
         }
         for(auto& log:owner_events) log.reserve(std::max<std::size_t>(24000, static_cast<std::size_t>(config.duration_ns/kMs)));
@@ -216,7 +229,9 @@ void Network::central_step() {
             rejoined=true; gate.close(); startup.cancel(now); startup.begin(config.rejoin_epoch,clock.now_ns());
             owner_events[7].push_back({clock.now_ns(),"recovery-request",7,config.rejoin_epoch,0,0,0,0});
         }
+        if(startup_diagnostic_hook) startup_diagnostic_hook->attempt(startup.plan());
         sessions[7]->step(); startup.step(); now=clock.now_ns();
+        if(startup_diagnostic_hook) startup_diagnostic_hook->observe(startup.fault_observation(),startup.success_observation(),startup.run_enabled(),startup.run_enabled(),now);
         if(session_seen!=startup.state()) {
             session_seen=startup.state(); const auto& plan=startup.plan();
             owner_events[7].push_back({now,session_seen==session::State::Failed?"session-failed":"session-phase",7,plan.epoch,plan.requested_ns,plan.enable_ns?plan.commit_deadline_ns:plan.prepare_deadline_ns,plan.enable_ns,session_seen==session::State::Failed?static_cast<int>(startup.fault()):static_cast<int>(session_seen)});
@@ -364,10 +379,15 @@ void Network::step(std::size_t owner,std::uint64_t requested_wake) {
                     !leaf_owners[owner-2]->faulted(),gate.allows(epoch),leaf_owners[owner-2]->protection_selected_ns(),clock.now_ns());
             }
         }
-        if(config.native_diagnostics_run && (owner<2 || owner==5 || owner==6)) {
+        if(owner<8 && startup_diagnostic_hooks[owner]) {
+            startup_diagnostic_hooks[owner]->attempt(startup.plan());
+            startup_diagnostic_hooks[owner]->observe(sessions[owner]->fault_observation(),sessions[owner]->success_observation(),
+                sessions[owner]->run_enabled(),startup.run_enabled(),clock.now_ns());
+        }
+        if((config.native_diagnostics_run || config.startup_diagnostics_run) && (owner<2 || owner==5 || owner==6)) {
             const auto slot=owner<2?owner:owner-3;
             const auto epoch=owner<2?zone_owners[owner]->epoch():leaf_owners[owner-2]->epoch();
-            if(epoch && epoch==active_epoch) {
+            if(epoch && (epoch==active_epoch || (config.startup_diagnostics_run && epoch==startup.plan().epoch))) {
                 auto& hook=*native_diagnostic_hooks[slot];
                 if(native_diagnostic_epochs[slot]!=epoch) {
                     hook.start_session(epoch,owner<2?zone_owners[owner]->enable_ns():leaf_owners[owner-2]->enable_ns()); native_diagnostic_epochs[slot]=epoch;

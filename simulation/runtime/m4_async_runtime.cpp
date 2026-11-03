@@ -8,6 +8,9 @@ M4Result run_m4_async(const M4Config& config) {
         if(f.target==M4Owner::Monitor && !config.execution_guards) throw std::invalid_argument("monitor injection requires execution guards");
     }
     if((!config.wall_time && (config.fifo || config.cpu_a>=0 || config.cpu_b>=0)) || config.cpu_a < -1 || config.cpu_b < -1) throw std::invalid_argument("native placement requires wall clock");
+    if(config.startup_diagnostics_run && (config.wall_time || !config.speed_loop ||
+       (config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::Fault) || config.diagnostics_run || config.owner_diagnostics_run || config.native_diagnostics_run))
+        throw std::invalid_argument("M9 startup diagnostics configuration");
     const bool native_loss=config.scenario==M4Scenario::BmsInputLoss || config.scenario==M4Scenario::PowerInputLoss;
     if(config.speed_loop && (config.wall_time || config.renewal!=central::CommandRenewal::Host10ms ||
        (config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::FeedbackLoss && config.scenario!=M4Scenario::CommandLoss && config.scenario!=M4Scenario::SpeedInputLoss && config.scenario!=M4Scenario::Fault && !native_loss))) throw std::invalid_argument("M8 logical speed-loop configuration");

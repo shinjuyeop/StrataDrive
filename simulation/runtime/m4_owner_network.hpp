@@ -11,6 +11,7 @@
 #include "control_diagnostics.hpp"
 #include "owner_diagnostics.hpp"
 #include "native_diagnostics.hpp"
+#include "startup_diagnostics.hpp"
 #include "vehicle_ev_model.hpp"
 #include "drive_sil_plant.hpp"
 #include "steering_response.hpp"
@@ -164,6 +165,9 @@ struct Network {
     central::SpeedRequest speed_control;
     std::unique_ptr<diagnostics::EventQueue> diagnostic_queue;
     std::unique_ptr<diagnostics::ControlDiagnostics> diagnostic_hook;
+    std::unique_ptr<diagnostics::StartupDiagnostics> startup_diagnostic_hook;
+    std::array<std::unique_ptr<diagnostics::EventQueue>,8> startup_diagnostic_queues;
+    std::array<std::unique_ptr<diagnostics::StartupDiagnostics>,8> startup_diagnostic_hooks;
     std::array<std::unique_ptr<diagnostics::EventQueue>,5> owner_diagnostic_queues;
     std::array<std::unique_ptr<diagnostics::OwnerDiagnostics>,5> owner_diagnostic_hooks;
     std::array<std::uint32_t,5> owner_diagnostic_epochs{};

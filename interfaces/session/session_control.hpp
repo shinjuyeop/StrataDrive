@@ -13,6 +13,12 @@ struct Plan {
     std::uint32_t epoch{0};
     std::uint64_t requested_ns{0}, prepare_deadline_ns{0}, enable_ns{0}, commit_deadline_ns{0};
 };
+// Owner-local immutable evidence; numeric state/reason use the owning source enum.
+struct Observation {
+    Plan plan;
+    std::uint64_t observed_ns{0},previous_ns{0},deadline_ns{0};
+    std::uint32_t state{0},reason{0},accepted_roles{0};
+};
 inline bool same_proposal(const Plan& a,const Plan& b) {
     return a.epoch==b.epoch && a.requested_ns==b.requested_ns && a.prepare_deadline_ns==b.prepare_deadline_ns;
 }

@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | Central·Zone/Leaf·Gateway·BMS/Power 부분 진단·복구 검증; 전체 root/wire·CARLA fault matrix 후속 | [진단 계약](interfaces/diagnostics.md) · [소유자 경계](test-plan/evidence/m9_owner_sources/README.md) |
+| M9 | Central·Zone/Leaf·Gateway·BMS/Power·Release 전 기동 진단 검증; remote wire·CARLA fault matrix 후속 | [진단 계약](interfaces/diagnostics.md) · [소유자 경계](test-plan/evidence/m9_owner_sources/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -57,7 +57,14 @@ Central pause의 실제 두 Gateway 만료/ACK·물리 응답과 INIT2 뒤 완�
 풀리지 않는다. 영구 Power current 누락은 차량 정지 후에도 HV-off를 선언하지 않는다.
 [두 입력 손실 차량 검증](test-plan/evidence/m9_native_vehicle/README.md)을 따른다.
 일반/논리1137개·영향 ASan/UBSan59개·기존 wall owner2개가 통과했다.
-다음은 release 전 startup 수집·원격 전송/spool이다. 다른 BMS trip/Power 고장 조합은 후속이다.
+Release 전에는 실제 제어 Session과 별개인 trusted Attempt로 최초 기동 고장을 수집한다.
+명시적 registry3·SD-4101로 Prepare/INIT/Release ACK 누락을 원래 detector/deadline/ACK mask와
+연결했다. 실패한 epoch의 Session/Passed는 없으며 새 실제8-role Release 뒤에만 기동 복구를
+인정한다. 기동 handshake 성공은 물리 HV/차량 readiness와 다르다.
+[기동 시도·독립 감사·실패 이력](test-plan/evidence/m9_startup_sources/README.md)을 따른다.
+최종 일반/논리1154개·영향 ASan/UBSan218개·기존 wall owner2개가 통과했다.
+다음은 원격 진단 wire/spool의 순서·중복·재시작·유한 용량 계약과 검증이다.
+다른 BMS trip/Power 고장 조합·Clock 복구·proposal 이전 bootstrap 실패는 후속이다.
 실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.
 30km/h ACK/통신 손실의 실제 주입 recipe와 기대 code·물리 기준은 실행 전에 고정한다.
 TBD-08은 실제 모니터 경계의 code별 복구 predicate·전달/부하 검증·학습자 수용 전 CLOSED로 올리지 않는다.

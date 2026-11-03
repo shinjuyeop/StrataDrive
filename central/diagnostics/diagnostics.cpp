@@ -11,6 +11,7 @@
 namespace stratadrive::diagnostics {
 std::uint32_t code_registry_revision(Code code) noexcept {
     switch(code) {
+    case Code::Startup: return 3;
     case Code::Gateway: case Code::BmsLocal: case Code::PowerLocal: return 2;
     case Code::None: case Code::SpeedInput: case Code::CentralControl: case Code::BrakingTimeout:
     case Code::Handoff: case Code::StopEvidence: case Code::ShutdownTimeout: case Code::StopRequest:
@@ -33,7 +34,7 @@ bool known(Code code) {
     case Code::SpeedInput: case Code::CentralControl: case Code::BrakingTimeout: case Code::Handoff:
     case Code::StopEvidence: case Code::ShutdownTimeout: case Code::StopRequest: case Code::CommandLoss:
     case Code::FeedbackLoss: case Code::Gateway: case Code::BmsLocal: case Code::PowerLocal:
-    case Code::Response: case Code::Clock: case Code::Deadline: case Code::RecordingGap: return true;
+    case Code::Response: case Code::Clock: case Code::Deadline: case Code::Startup: case Code::RecordingGap: return true;
     default: return false;
     }
 }
@@ -50,10 +51,12 @@ bool same_stamp(const Stamp& a,const Stamp& b) {
 bool valid(const Identity& i) { return valid(i.source) && valid(i.expiry) && (!i.present || (i.producer && i.epoch)); }
 bool valid(const Event& e) {
     if(e.schema!=1 || !valid(e.id) || !valid(e.session) || e.id.run!=e.session.run ||
-       e.kind>Kind::Unavailable || e.latch>Latch::Clear || e.proof>Proof::Recording ||
+       e.kind>Kind::Attempt || e.latch>Latch::Clear || e.proof>Proof::Recording ||
        !valid(e.session_enable) || !valid(e.source) || !valid(e.command) || !valid(e.stop_lease) ||
        !std::isfinite(e.measured) || !std::isfinite(e.expected_min) || !std::isfinite(e.expected_max)) return false;
     if(!std::all_of(e.times.begin(),e.times.end(),[](const Stamp& s){return valid(s);})) return false;
+    if(e.kind==Kind::Attempt) return e.key.code==Code::None && !e.session_enable.present && e.source.present &&
+        e.source.producer==e.id.producer && e.source.epoch==e.session.epoch && comparable(e.source.source,e.source.source);
     if(e.kind==Kind::Session) return e.key.code==Code::None && comparable(e.session_enable,e.session_enable);
     if(e.kind==Kind::Fault || e.kind==Kind::Passed) {
         if(!valid(e.key) || !valid(e.occurrence) || e.occurrence.monitor!=e.key.monitor) return false;
@@ -65,7 +68,7 @@ bool valid(const Event& e) {
 Proof required(Code c) {
     switch(c) {
     case Code::SpeedInput: case Code::CommandLoss: case Code::FeedbackLoss: case Code::StopRequest: return Proof::Input;
-    case Code::CentralControl: case Code::Clock: case Code::Deadline: case Code::Gateway: case Code::PowerLocal: return Proof::Control;
+    case Code::CentralControl: case Code::Clock: case Code::Deadline: case Code::Gateway: case Code::PowerLocal: case Code::Startup: return Proof::Control;
     case Code::BmsLocal: return Proof::Input;
     case Code::BrakingTimeout: return Proof::Stop;
     case Code::Handoff: return Proof::Handoff;
@@ -185,10 +188,19 @@ Result Ledger::record(const Event& e) {
 Result Ledger::apply(const Event& e) {
     if(!valid(e)) return Result::Invalid;
     if(events_.size()>=limits_.events || revision_==std::numeric_limits<std::uint64_t>::max()) return Result::Capacity;
-    if(e.kind==Kind::Session) {
+    if(e.kind==Kind::Attempt) {
         if(e.session.epoch<=session_.epoch) return Result::Invalid;
-        session_=e.session; enable_=e.session_enable; restarted();
+        session_=e.session; enable_={}; released_=false; attempt_origin_=e.source.source; attempt_producer_=e.id.producer; restarted();
+    } else if(e.kind==Kind::Session) {
+        if(e.session.epoch==session_.epoch) {
+            if(released_ || e.expected_roles!=255 || e.received_roles!=255 || !(e.session==session_) || e.id.producer!=attempt_producer_ || !comparable(e.session_enable,attempt_origin_) || e.session_enable.ns<attempt_origin_.ns) return Result::Invalid;
+        } else {
+            if(e.session.epoch<session_.epoch) return Result::Invalid;
+            session_=e.session; restarted();
+        }
+        enable_=e.session_enable; released_=true; attempt_origin_={}; attempt_producer_=0;
     } else if(!valid(session_) || e.session.epoch>session_.epoch || (e.session.epoch==session_.epoch && !(e.session==session_))) return Result::Invalid;
+    if(!released_ && (e.kind==Kind::Passed || e.proof!=Proof::None)) return Result::NotReady;
     if(e.kind==Kind::Fault && !mutable_record(e.key) && records_.size()>=limits_.records) return Result::Capacity;
     if((e.kind==Kind::Fault || e.kind==Kind::Passed || e.kind==Kind::Unavailable) && e.session==session_) {
         const auto* current=find(e.key);
@@ -255,7 +267,8 @@ void Ledger::project(const Event& e) {
     }
 }
 bool Ledger::pass(const Event& e) {
-    if(!complete_ || !(e.session==session_) || e.proof!=required(e.key.code) || e.proof==Proof::None || !valid(e.proof_event)) return false;
+    if(!complete_ || !released_ || !(e.session==session_) || e.proof!=required(e.key.code) || e.proof==Proof::None || !valid(e.proof_event)) return false;
+    if(e.key.code==Code::Startup && e.session.epoch<=e.occurrence.epoch) return false;
     auto* r=mutable_record(e.key);
     if(!r || r->cleared || !later(e,*r)) return false;
     const auto episode=std::find_if(episodes_.begin(),episodes_.end(),[&](const Episode& p){return p.id==e.occurrence;});
@@ -274,7 +287,7 @@ Result Ledger::clear(const Clear& c) {
         recording_gap(); return Result::Conflict;
     }
     if(!valid(c.id) || !valid(c.session) || c.id.run!=c.session.run || c.targets.empty() || c.targets.size()>limits_.records) return Result::Invalid;
-    if(!complete_ || unmapped_ || !(c.session==session_) || !same_stamp(c.evidence.enable,enable_) || !stationary(c.evidence)) return Result::NotReady;
+    if(!complete_ || !released_ || unmapped_ || !(c.session==session_) || !same_stamp(c.evidence.enable,enable_) || !stationary(c.evidence)) return Result::NotReady;
     if(clears_.size()>=limits_.clears || revision_==std::numeric_limits<std::uint64_t>::max()) { recording_gap(); return Result::Capacity; }
     if(c.all && c.targets.size()!=static_cast<std::size_t>(std::count_if(records_.begin(),records_.end(),[](const Record& r){return !r.cleared;}))) return Result::NotReady;
     for(std::size_t i=0;i<c.targets.size();++i) {

@@ -104,7 +104,7 @@ Bytes small_file(int dir,const char* name,std::size_t length) {
 } // namespace
 namespace {
 std::uint32_t required_registry(const Entry& entry) {
-    if(const auto* e=std::get_if<Event>(&entry)) return code_registry_revision(e->key.code);
+    if(const auto* e=std::get_if<Event>(&entry)) return std::max(e->kind==Kind::Attempt?3U:1U,code_registry_revision(e->key.code));
     std::uint32_t required=1;
     for(const auto& t:std::get<Clear>(entry).targets) required=std::max(required,code_registry_revision(t.key.code));
     return required;
@@ -122,7 +122,7 @@ struct FileJournal::Impl {
         if(flock(lock.fd(),LOCK_EX|LOCK_NB)!=0) failure("diagnostics store busy");
         const auto m=small_file(directory.fd(),"manifest",40); check(m,kManifest);
         id=get(m,8,8); registry=static_cast<std::uint32_t>(get(m,32,4));
-        if(id==0 || registry<1 || registry>2) throw std::runtime_error("diagnostics manifest version");
+        if(id==0 || registry<1 || registry>3) throw std::runtime_error("diagnostics manifest version");
         limits={static_cast<std::uint32_t>(get(m,16,4)),static_cast<std::uint32_t>(get(m,20,4)),
             static_cast<std::uint32_t>(get(m,24,4)),static_cast<std::uint32_t>(get(m,28,4))};
         validate(limits); entries.reserve(limits.events+limits.clears);
@@ -152,7 +152,7 @@ struct FileJournal::Impl {
     }
 };
 void FileJournal::initialize(const std::string& p,std::uint64_t id,Limits limits,std::uint32_t registry) {
-    path_ok(p); validate(limits); if(!id || registry<1 || registry>2) throw std::invalid_argument("diagnostics store id/registry");
+    path_ok(p); validate(limits); if(!id || registry<1 || registry>3) throw std::invalid_argument("diagnostics store id/registry");
     if(mkdir(p.c_str(),0700)!=0) failure("diagnostics explicit bootstrap");
     File directory(open(p.c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW));
     File lock(openat(directory.fd(),"lock",O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW,0600));

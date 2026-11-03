@@ -1,0 +1,224 @@
+{
+  "checks": {
+    "normal.xml": {
+      "tests": 1154,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "normal.xml"
+    },
+    "asan.xml": {
+      "tests": 218,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "asan.xml"
+    },
+    "export-normal.xml": {
+      "tests": 8,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "export-normal.xml"
+    },
+    "export-asan.xml": {
+      "tests": 8,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "export-asan.xml"
+    },
+    "wall-final.xml": {
+      "tests": 2,
+      "failures": 0,
+      "skipped": 0,
+      "xml": "wall-final.xml"
+    }
+  },
+  "audits": {
+    "normal/prepare": {
+      "pass_": true,
+      "phase": "prepare",
+      "events": 30,
+      "faults": 9,
+      "qualified_passes": 9,
+      "attempts": 2,
+      "releases": 1,
+      "physical_samples": 600,
+      "mutations_rejected": [
+        "legacy-registry",
+        "attempt-claims-enable",
+        "false-epoch1-release",
+        "false-timeout",
+        "wrong-source-mask",
+        "wrong-proof",
+        "early-pass",
+        "erased-history",
+        "early-gate",
+        "physical-reset"
+      ]
+    },
+    "normal/init": {
+      "pass_": true,
+      "phase": "init",
+      "events": 35,
+      "faults": 9,
+      "qualified_passes": 9,
+      "attempts": 2,
+      "releases": 1,
+      "physical_samples": 600,
+      "mutations_rejected": [
+        "legacy-registry",
+        "attempt-claims-enable",
+        "false-epoch1-release",
+        "false-timeout",
+        "wrong-source-mask",
+        "wrong-proof",
+        "early-pass",
+        "erased-history",
+        "early-gate",
+        "physical-reset"
+      ]
+    },
+    "normal/release": {
+      "pass_": true,
+      "phase": "release",
+      "events": 19,
+      "faults": 1,
+      "qualified_passes": 1,
+      "attempts": 2,
+      "releases": 1,
+      "physical_samples": 600,
+      "mutations_rejected": [
+        "legacy-registry",
+        "attempt-claims-enable",
+        "false-epoch1-release",
+        "false-timeout",
+        "wrong-source-mask",
+        "wrong-proof",
+        "early-pass",
+        "erased-history",
+        "early-gate",
+        "physical-reset"
+      ]
+    },
+    "asan/prepare": {
+      "pass_": true,
+      "phase": "prepare",
+      "events": 30,
+      "faults": 9,
+      "qualified_passes": 9,
+      "attempts": 2,
+      "releases": 1,
+      "physical_samples": 600,
+      "mutations_rejected": [
+        "legacy-registry",
+        "attempt-claims-enable",
+        "false-epoch1-release",
+        "false-timeout",
+        "wrong-source-mask",
+        "wrong-proof",
+        "early-pass",
+        "erased-history",
+        "early-gate",
+        "physical-reset"
+      ]
+    },
+    "asan/init": {
+      "pass_": true,
+      "phase": "init",
+      "events": 35,
+      "faults": 9,
+      "qualified_passes": 9,
+      "attempts": 2,
+      "releases": 1,
+      "physical_samples": 600,
+      "mutations_rejected": [
+        "legacy-registry",
+        "attempt-claims-enable",
+        "false-epoch1-release",
+        "false-timeout",
+        "wrong-source-mask",
+        "wrong-proof",
+        "early-pass",
+        "erased-history",
+        "early-gate",
+        "physical-reset"
+      ]
+    },
+    "asan/release": {
+      "pass_": true,
+      "phase": "release",
+      "events": 19,
+      "faults": 1,
+      "qualified_passes": 1,
+      "attempts": 2,
+      "releases": 1,
+      "physical_samples": 600,
+      "mutations_rejected": [
+        "legacy-registry",
+        "attempt-claims-enable",
+        "false-epoch1-release",
+        "false-timeout",
+        "wrong-source-mask",
+        "wrong-proof",
+        "early-pass",
+        "erased-history",
+        "early-gate",
+        "physical-reset"
+      ]
+    }
+  },
+  "static": {
+    "translation_units": [
+      "central/diagnostics/diagnostics.cpp",
+      "central/diagnostics/diagnostics_journal.cpp",
+      "central/diagnostics/startup_diagnostics.cpp",
+      "central/session/session_coordinator.cpp",
+      "interfaces/session/session_participant.cpp",
+      "simulation/runtime/m4_async_runtime.cpp",
+      "simulation/runtime/m4_owner_network.cpp",
+      "simulation/runtime/m4_result.cpp"
+    ],
+    "clang_tidy_exit": 0,
+    "cppcheck_exit": 0
+  },
+  "identical_artifacts": 24,
+  "fingerprint_tests": 2,
+  "previous_evidence": [
+    {
+      "bundle": "m9_diagnostics_component",
+      "files": 43,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_control_hooks",
+      "files": 153,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_speed_recovery",
+      "files": 135,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_owner_sources",
+      "files": 203,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_native_causes",
+      "files": 183,
+      "exit": 0,
+      "errors": ""
+    },
+    {
+      "bundle": "m9_native_vehicle",
+      "files": 186,
+      "exit": 0,
+      "errors": ""
+    }
+  ],
+  "technical_scope": "pre-Release startup attempts and three ACK phase failures; startup protocol recovery distinct from vehicle readiness; M9/TBD08 OPEN",
+  "packaged_audit": "6/6 datasets; 10 corruptions rejected per dataset"
+}

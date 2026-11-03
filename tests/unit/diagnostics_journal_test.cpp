@@ -148,6 +148,17 @@ TEST_F(DiagnosticsJournal, RegistryTwoReplaysNewCodesAndPreservesUnknownCurrentS
     for(const auto& r:w.ledger().records()) { EXPECT_EQ(r.condition,Condition::Unknown); EXPECT_EQ(r.count,1U); }
 }
 TEST_F(DiagnosticsJournal, UnsupportedRegistryDoesNotCreateAStore) {
-    for(const auto revision:{0U,3U}) { EXPECT_THROW(FileJournal::initialize(path.string(),1234,{},revision),std::invalid_argument); EXPECT_FALSE(std::filesystem::exists(path)); }
+    for(const auto revision:{0U,4U}) { EXPECT_THROW(FileJournal::initialize(path.string(),1234,{},revision),std::invalid_argument); EXPECT_FALSE(std::filesystem::exists(path)); }
+}
+TEST_F(DiagnosticsJournal, ExplicitRegistryThreeRetainsPrereleaseFaultAcrossWriterRestart) {
+    FileJournal::initialize(path.string(),1234,{},3); auto a=session(); a.kind=Kind::Attempt; a.session_enable={}; a.source={true,a.id.producer,1,1,stamp(),{}};
+    auto f=fault(2,Code::Startup); f.session_enable={};
+    { FileJournal j(path.string()); Recorder w(j); ASSERT_TRUE(w.record(a).durable); ASSERT_TRUE(w.record(f).durable); EXPECT_EQ(w.ledger().find(f.key)->condition,Condition::Failed); }
+    FileJournal j(path.string()); Recorder w(j); EXPECT_EQ(j.registry_revision(),3U); ASSERT_EQ(w.ledger().records().size(),1U);
+    EXPECT_EQ(w.ledger().find(f.key)->condition,Condition::Unknown); EXPECT_EQ(w.clear(clear(*w.ledger().find(f.key))).result,Result::NotReady);
+}
+TEST_F(DiagnosticsJournal, RegistryTwoRefusesAttemptEvenWithoutANewCode) {
+    FileJournal::initialize(path.string(),1234,{},2); auto a=session(); a.kind=Kind::Attempt; a.session_enable={}; a.source={true,a.id.producer,1,1,stamp(),{}};
+    FileJournal j(path.string()); Recorder w(j); const auto r=w.record(a); EXPECT_FALSE(r.durable); EXPECT_FALSE(j.writable()); EXPECT_TRUE(j.committed().empty());
 }
 } // namespace

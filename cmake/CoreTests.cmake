@@ -111,6 +111,12 @@ if(TARGET diagnostics_journal)
         SOURCES tests/unit/native_diagnostics_test.cpp
         LIBRARIES native_diagnostics power_model)
     target_include_directories(native_diagnostics_test PRIVATE simulation/runtime)
+    stratadrive_unit_test(startup_diagnostics_test
+        SOURCES tests/unit/startup_diagnostics_test.cpp
+        LIBRARIES startup_diagnostics)
+    stratadrive_unit_test(startup_diagnostics_sil_test
+        SOURCES tests/unit/startup_diagnostics_sil_test.cpp
+        LIBRARIES diagnostics_journal m4_async_runtime)
     stratadrive_unit_test(native_diagnostics_sil_test
         SOURCES tests/unit/native_diagnostics_sil_test.cpp
         LIBRARIES diagnostics_journal m4_async_runtime)

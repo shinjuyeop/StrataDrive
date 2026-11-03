@@ -30,7 +30,11 @@ public:
     bool run_enabled() const { return state_==ParticipantState::Ready; }
     ParticipantState state() const { return state_; }
     ParticipantFault fault() const { return fault_; }
+    const std::optional<Observation>& fault_observation() const { return first_fault_; }
+    const std::optional<Observation>& success_observation() const { return success_; }
 private:
+    std::optional<Observation> first_fault_,success_;
+    std::uint64_t call_ns_{0},previous_ns_{0};
     bool observe(std::uint64_t now_ns);
     bool checkpoint();
     void fail(ParticipantFault fault);

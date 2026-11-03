@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="7" failures="1" disabled="0" errors="0" time="3.632" timestamp="2026-11-03T13:09:46.427" name="AllTests">
+  <testsuite name="StartupDiagnosticsConfiguration" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-11-03T13:09:46.427">
+    <testcase name="RejectsWallAndMixedCollectors" status="run" result="completed" time="0" timestamp="2026-11-03T13:09:46.427" classname="StartupDiagnosticsConfiguration" />
+  </testsuite>
+  <testsuite name="Phases/StartupDiagnosticsSil" tests="6" failures="1" disabled="0" skipped="0" errors="0" time="3.632" timestamp="2026-11-03T13:09:46.427">
+    <testcase name="FailedAttemptIsDurableWithoutReleaseAndOnlyFullNewHandshakeQualifies/0" value_param="&quot;prepare&quot;" status="run" result="completed" time="0.522" timestamp="2026-11-03T13:09:46.427" classname="Phases/StartupDiagnosticsSil">
+      <failure message="/d/shin/StrataDrive/tests/unit/startup_diagnostics_sil_test.cpp:70&#x0A;Value of: r.passed&#x0A;  Actual: false&#x0A;Expected: true&#x0A;scenario=fault core=0 session=0 management=4 vm_fault=0 allocation=0 stop=1 physical=1 active=3774200000 fault=0 selected=0 transport=0 op=-1 front=0 rear=0 energy=0 leaf=0 leaf=0 leaf=0 leaf=0 leaf=0" type=""><![CDATA[/d/shin/StrataDrive/tests/unit/startup_diagnostics_sil_test.cpp:70
+Value of: r.passed
+  Actual: false
+Expected: true
+scenario=fault core=0 session=0 management=4 vm_fault=0 allocation=0 stop=1 physical=1 active=3774200000 fault=0 selected=0 transport=0 op=-1 front=0 rear=0 energy=0 leaf=0 leaf=0 leaf=0 leaf=0 leaf=0]]></failure>
+    </testcase>
+    <testcase name="FailedAttemptIsDurableWithoutReleaseAndOnlyFullNewHandshakeQualifies/1" value_param="&quot;init&quot;" status="run" result="completed" time="0.662" timestamp="2026-11-03T13:09:46.950" classname="Phases/StartupDiagnosticsSil" />
+    <testcase name="FailedAttemptIsDurableWithoutReleaseAndOnlyFullNewHandshakeQualifies/2" value_param="&quot;release&quot;" status="run" result="completed" time="0.636" timestamp="2026-11-03T13:09:47.612" classname="Phases/StartupDiagnosticsSil" />
+    <testcase name="RestoredAckWithoutNewAttemptCannotHealAndHookLeavesPhysicalHistoryUnchanged/0" value_param="&quot;prepare&quot;" status="run" result="completed" time="0.334" timestamp="2026-11-03T13:09:48.248" classname="Phases/StartupDiagnosticsSil" />
+    <testcase name="RestoredAckWithoutNewAttemptCannotHealAndHookLeavesPhysicalHistoryUnchanged/1" value_param="&quot;init&quot;" status="run" result="completed" time="0.741" timestamp="2026-11-03T13:09:48.583" classname="Phases/StartupDiagnosticsSil" />
+    <testcase name="RestoredAckWithoutNewAttemptCannotHealAndHookLeavesPhysicalHistoryUnchanged/2" value_param="&quot;release&quot;" status="run" result="completed" time="0.735" timestamp="2026-11-03T13:09:49.324" classname="Phases/StartupDiagnosticsSil" />
+  </testsuite>
+</testsuites>

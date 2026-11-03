@@ -21,6 +21,7 @@ CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
 | M9 Zone/Leaf 소유자별 원본 검출·전달 구분·SD-2001/2002/4002 복구 | [소유자 경계 검증](evidence/m9_owner_sources/README.md) |
 | M9 Gateway native/ACK/차량 응답·BMS/Power component 복구·registry2 | [native 원인 검증](evidence/m9_native_causes/README.md) |
 | M9 BMS electrical/Power current 누락·차량 보호/정지/HV·새 INIT 복구 | [차량 입력 손실 검증](evidence/m9_native_vehicle/README.md) |
+| M9 Release 전 Attempt·기동 ACK 누락·최초 deadline·실제 새 Release 복구 | [기동 진단 검증](evidence/m9_startup_sources/README.md) |
 | 실제3-process SOME/IP·8-role·부하/고장/재가입 | [M5 Rear adapter](evidence/m5_someip_rear_adapter/README.md) |
 | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
 | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |

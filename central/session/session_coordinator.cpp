@@ -9,6 +9,11 @@ bool transitioning(State state) { return state==State::Preparing || state==State
 Phase phase(State state) { return state==State::Preparing?Phase::Prepare:state==State::Initializing?Phase::Initialize:Phase::Release; }
 }
 void SessionCoordinator::fail(Fault fault) {
+    if(!first_fault_) {
+        std::uint32_t mask=0; for(std::size_t i=0;i<accepted_.size();++i) if(accepted_[i]) mask|=1U<<i;
+        first_fault_=Observation{plan_,call_ns_,previous_ns_,state_==State::Preparing?plan_.prepare_deadline_ns:plan_.commit_deadline_ns,
+            static_cast<std::uint32_t>(state_),static_cast<std::uint32_t>(fault),mask};
+    }
     const bool first=state_!=State::Failed;
     state_=State::Failed;
     if(first || fault==Fault::Clock) fault_=fault;
@@ -19,6 +24,7 @@ void SessionCoordinator::fail(Fault fault) {
     for(std::size_t i=0;i<kRoleCount;++i) port_.send({static_cast<Role>(i),Phase::Abort,plan_,observed_ns_});
 }
 bool SessionCoordinator::observe(std::uint64_t now) {
+    call_ns_=now; previous_ns_=observed_ns_;
     if(now<observed_ns_ || now==std::numeric_limits<std::uint64_t>::max()) { fail(Fault::Clock); return false; }
     const auto gap=now-observed_ns_; observed_ns_=now;
     if(transitioning(state_) && gap>kOwnerGapNs) fail(Fault::OwnerGap);
@@ -38,6 +44,7 @@ bool SessionCoordinator::broadcast(Phase p) {
 bool SessionCoordinator::begin(std::uint32_t epoch,std::uint64_t now) {
     if(epoch==0 || epoch<=highest_epoch_ || transitioning(state_) || state_==State::Running || now<observed_ns_ ||
         now>std::numeric_limits<std::uint64_t>::max()-kPrepareBudgetNs) return false;
+    first_fault_.reset(); success_.reset(); call_ns_=now; previous_ns_=observed_ns_;
     highest_epoch_=epoch; observed_ns_=now; accepted_={}; fault_=Fault::None;
     plan_={epoch,now,now+kPrepareBudgetNs,0,0}; state_=State::Preparing;
     if(!port_.quiesce_central()) { fail(Fault::Quiesce); return false; }
@@ -58,7 +65,10 @@ void SessionCoordinator::next_phase() {
         if(!port_.commit_central({plan_.epoch,plan_.enable_ns})) { fail(Fault::CentralCommit); return; }
         if(!checkpoint()) return;
         state_=State::Releasing; accepted_={}; broadcast(Phase::Release);
-    } else if(state_==State::Releasing) state_=State::Running;
+    } else if(state_==State::Releasing) {
+        state_=State::Running;
+        success_=Observation{plan_,observed_ns_,previous_ns_,plan_.commit_deadline_ns,static_cast<std::uint32_t>(state_),0,255};
+    }
 }
 AckResult SessionCoordinator::receive(const Ack& ack,std::uint64_t now) {
     if(!observe(now)) return AckResult::Latched;

@@ -5431,3 +5431,29 @@ native snapshot·original input-copy/body·physical 반응/연속성을 대조�
 
 Release 전 startup 수집·remote wire/spool·source 재시작·Clock 복구·전체 scalar 영속 schema·
 다른 BMS trip/Power fault matrix·CARLA30km/h·wall/Target와 학습자 수용은 후속이다.
+
+<a id="adr-0084"></a>
+
+## ADR-0084: 기동 Attempt와 실제 전역 Release를 분리한 진단 수집
+
+Date: 2026-11-03. Status: **세 기동 phase logical SIL 검증; 전체 M9/TBD-08 OPEN**.
+
+완전 Release 이전의 기동 실패를 기록하기 위해 권한 없는 trusted Attempt를 추가한다.
+Attempt에는 미래 enable을 만들지 않으며 명시적 registry3/Kind9와 SD-4101을 사용한다.
+기존 binary schema1/default registry1/registry2와 원래 제어/clock/budget을 유지한다.
+같은 issuer의 실제8-role Release만 같은 epoch를 Session으로 승격하며 이전 Failed를 보존한다.
+Release 전 proof/Passed/clear를 거절해 사후 소급 증명을 막는다.
+
+원래 participant/coordinator가 최초 plan·실패 state·call/previous/deadline·ACK mask를 보존한다.
+Local producer40–47와 Central7은 자기 owner에서만 읽고 native INIT 뒤의 source도 연결한다.
+Prepare/INIT/Release의 Drive ACK 누락을 고정했다. Propagation은 root로 추정하지 않으며,
+새 epoch의 실제 handshake만 Startup 복구 proof로 쓴다. 물리 HV/차량 readiness와 구분한다.
+
+최초 Prepare fixture는 INIT 이전에도 보호 ACK를 요구하는 공통 verdict 때문에 실패했다.
+원본 실패 plan·Release 부재·실제 inhibited physical history로 그 경우를 판정하도록 고쳤으며
+native timeout/보호 budget은 완화하지 않았다. 최종 diff 검토에서 성공 Release 없는 연속
+로컬 실패가 두 번째 proposal을 놓칠 수 있어 epoch 증가 관측 조건과 재발 검사를 추가했다.
+실패·수정 전 통과·최종 실행을 [증거 묶음](../test-plan/evidence/m9_startup_sources/README.md)에 구분한다.
+
+Remote wire/spool·proposal 이전 bootstrap·Clock 복구·전체 scalar 영속 schema·source 재시작·
+전체 BMS/Power 및 CARLA30km/h fault matrix·wall/Target와 학습자 수용은 후속이다.

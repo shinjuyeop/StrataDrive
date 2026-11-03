@@ -12,9 +12,9 @@ enum class Code : std::uint16_t {
     None=0, SpeedInput=0x1001, CentralControl=0x1002, BrakingTimeout=0x1101,
     Handoff=0x1102, StopEvidence=0x1103, ShutdownTimeout=0x1104, StopRequest=0x1105,
     CommandLoss=0x2001, FeedbackLoss=0x2002, Gateway=0x2101, Response=0x3001, BmsLocal=0x3101, PowerLocal=0x3201,
-    Clock=0x4001, Deadline=0x4002, RecordingGap=0x5001
+    Clock=0x4001, Deadline=0x4002, Startup=0x4101, RecordingGap=0x5001
 };
-enum class Kind : std::uint8_t { Observation, Fault, ProtectionSelected, ProtectionAck, Actual, Passed, Session, Gap, Unavailable };
+enum class Kind : std::uint8_t { Observation, Fault, ProtectionSelected, ProtectionAck, Actual, Passed, Session, Gap, Unavailable, Attempt };
 enum class Condition : std::uint8_t { Unknown, Failed, Passed };
 enum class Latch : std::uint8_t { Unknown, Set, Clear };
 enum class Domain : std::uint8_t { Unknown, Simulation, Monotonic };
@@ -93,7 +93,8 @@ private:
     bool pass(const Event&);
     Record* mutable_record(const Key&) noexcept;
     Limits limits_; Session session_{}; Stamp enable_{}; std::uint64_t revision_{0};
-    bool complete_{true}, unmapped_{false};
+    bool complete_{true}, unmapped_{false}, released_{false};
+    Stamp attempt_origin_{}; std::uint64_t attempt_producer_{0};
     std::vector<Event> events_; std::vector<Record> records_;
     std::vector<Episode> episodes_; std::vector<Clear> clears_;
 };

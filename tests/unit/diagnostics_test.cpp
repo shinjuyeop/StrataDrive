@@ -237,4 +237,41 @@ TEST(DiagnosticsQueue, SingleProducerConsumerPreserveEveryPayloadThroughWraparou
     for(std::uint64_t n=1;n<=count;++n) { auto e=session(n); e.profile=n*7; while(!queue.publish(e)) std::this_thread::yield(); }
     consumer.join(); EXPECT_FALSE(mismatch.load());
 }
+Event startup_attempt(std::uint64_t seq=1,std::uint32_t epoch=1) {
+    auto e=session(seq,epoch); e.kind=Kind::Attempt; e.session_enable={};
+    e.source={true,e.id.producer,epoch,epoch,stamp(),{}}; return e;
+}
+TEST(DiagnosticsStartup, AttemptAdmitsFailureWithoutPretendingReleaseAndPromotionPreservesIt) {
+    Ledger ledger; ASSERT_EQ(ledger.record(startup_attempt()),Result::Accepted);
+    auto f=fault(2,Code::Startup); f.session_enable={}; ASSERT_EQ(ledger.record(f),Result::Accepted);
+    ASSERT_EQ(ledger.find(f.key)->condition,Condition::Failed);
+    auto release=session(3); release.expected_roles=release.received_roles=255;
+    ASSERT_EQ(ledger.record(release),Result::Accepted); EXPECT_EQ(ledger.find(f.key)->condition,Condition::Failed);
+    auto p=proof(f,4,Proof::Control); p.session_enable=stamp(); ASSERT_EQ(ledger.record(p),Result::Accepted);
+    ASSERT_EQ(ledger.record(passed(p,5)),Result::Accepted); EXPECT_EQ(ledger.find(f.key)->condition,Condition::Failed);
+}
+TEST(DiagnosticsStartup, PrereleaseProofCannotBeStoredForRetroactivePassingOrCleared) {
+    Ledger ledger; ASSERT_EQ(ledger.record(startup_attempt()),Result::Accepted); auto f=fault(2,Code::Startup); f.session_enable={};
+    ASSERT_EQ(ledger.record(f),Result::Accepted); auto copy=ledger;
+    EXPECT_EQ(copy.record(proof(f,3,Proof::Control)),Result::NotReady);
+    EXPECT_EQ(ledger.clear(clear(*ledger.find(f.key))),Result::NotReady);
+    EXPECT_EQ(ledger.events().size(),2U);
+}
+TEST(DiagnosticsStartup, ReleaseRequiresSameIssuerAndFullRoleMaskAndMonotonicEnable) {
+    for(unsigned variant=0;variant<3;++variant) {
+        Ledger ledger; ASSERT_EQ(ledger.record(startup_attempt()),Result::Accepted); auto release=session(2); release.expected_roles=release.received_roles=255;
+        if(variant==0) release.id.producer=99;
+        if(variant==1) release.received_roles=127;
+        if(variant==2) release.session_enable=stamp(999999999);
+        EXPECT_EQ(ledger.record(release),Result::Invalid);
+    }
+}
+TEST(DiagnosticsStartup, NewAttemptMakesHistoryUnknownAndFullNewReleasePermitsNewProof) {
+    Ledger ledger; ASSERT_EQ(ledger.record(startup_attempt()),Result::Accepted); auto f=fault(2,Code::Startup); f.session_enable={};
+    ASSERT_EQ(ledger.record(f),Result::Accepted); ASSERT_EQ(ledger.record(startup_attempt(3,2)),Result::Accepted);
+    EXPECT_EQ(ledger.find(f.key)->condition,Condition::Unknown); auto release=session(4,2); release.expected_roles=release.received_roles=255;
+    ASSERT_EQ(ledger.record(release),Result::Accepted); auto p=proof(f,5,Proof::Control,2); p.session_enable=stamp();
+    ASSERT_EQ(ledger.record(p),Result::Accepted); ASSERT_EQ(ledger.record(passed(p,6)),Result::Accepted);
+    EXPECT_EQ(ledger.find(f.key)->condition,Condition::Passed); EXPECT_EQ(ledger.find(f.key)->count,1U);
+}
 } // namespace

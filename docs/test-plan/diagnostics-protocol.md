@@ -194,3 +194,21 @@ Power InputsUnavailable→SD-3201을 기대하며 보호 전달을 자체 root�
 별도로 확인한다. INIT 자체는 Passed가 아니며 새 정상 BMS Active/release dwell 또는
 Power actual HV Ready·current gate/입력 유효성이 필요하다. Passed 이력/count는 삭제하지 않는다.
 복구 없는 음성 recipe도 실행하며, 진단 on/off에서 원래 입력 주입·제어/물리/권한은 같아야 한다.
+
+## Release 전 기동 시도 진단 fixture
+
+사전 고정: logical Host10ms·startup run6001·store registry3, session-ack Drive의 prepare/init/
+release ACK를 elapsed0–2.5s에 각각 누락한다. Native phase budget(Prepare2s·Init lead20ms/
+commit window20ms·owner gap30ms)은 유지한다. 전체 Release 전에도 trusted Attempt와 최초
+session detector를 기록한다. Prepare/Init에서는8개 participant Timeout과 Central Timeout,
+Release에서는Central Timeout을 기대한다. Abort는 보호 전달이다. 실패한 epoch1의 Session/
+Passed·주행 gate는 없어야 한다.3s 기존 joined link 교체·실제 INIT2/full8-role Release 후에만
+기동 진단 Control proof/Passed를 허용한다. Native DTC의 기존 positive predicate도 유지한다.
+ACK 경로 복원만으로 회복하지 않는 음성 fixture와 collector on/off 동등성을 검사한다.
+
+Prepare 실패로 어떤 actor도 초기화되지 않은 경우 존재하지 않는 보호 ACK를 요구하지 않는다.
+원래 실패 plan의 enable0·첫 epoch Release 부재·복구 전 실제 gate closed/torque≤.1Nm/
+contacts0/bus≤30V 전 표본을 요구한다. INIT/Release 실패의 기존 보호 기준은 유지한다.
+독립 journal/native source/600 physical 표본 감사와10개 변조 거부를 세 phase·두 빌드에서
+실행한다. 정상92s/4350 controls는 Attempt1/Session1/DTC0이어야 한다. 연속 실패한 proposal의
+서로 다른 occurrence와 중복 방지도 단위 검사한다. [결과](evidence/m9_startup_sources/README.md).
