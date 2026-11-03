@@ -8,7 +8,7 @@ namespace stratadrive::diagnostics {
 // Central; per-owner INIT never masquerades as a new global session.
 class OwnerDiagnostics {
 public:
-    OwnerDiagnostics(EventQueue&,ControlContext,Component);
+    OwnerDiagnostics(EventQueue&,ControlContext,Component,std::uint64_t first_sequence=1);
     bool start_session(std::uint32_t epoch,std::uint64_t enable) noexcept;
     void zone(const zone::ZoneFeedbackMonitor&,bool normal_gate,std::optional<std::uint64_t> ack,std::uint64_t now) noexcept;
     void leaf(const std::optional<transport::LeafAuthorityObservation>& expired,

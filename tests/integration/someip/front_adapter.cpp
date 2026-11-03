@@ -360,8 +360,11 @@ int plant(const fs::path& folder) {
     bool pass=true,delayed=false;std::string error;std::uint64_t previous=now(),maximum_gap=0,fault_time=0,requested=now(),injection=0;
     std::vector<std::array<std::uint64_t,3>> timing;timing.reserve(40000);
     const bool response_enabled=std::getenv("STRATADRIVE_M6_RESPONSE")!=nullptr;
-    const double response_floor=response_enabled?std::stod(std::getenv("STRATADRIVE_M6_BRAKE_FLOOR")):100000;
-    const double response_tolerance=response_enabled?std::stod(std::getenv("STRATADRIVE_M6_TORQUE_TOLERANCE")):1;
+    const auto* floor_config=std::getenv("STRATADRIVE_M6_BRAKE_FLOOR");
+    const auto* tolerance_config=std::getenv("STRATADRIVE_M6_TORQUE_TOLERANCE");
+    check(!response_enabled || (floor_config && tolerance_config),"M6 response configuration missing");
+    const double response_floor=response_enabled?std::stod(floor_config):100000;
+    const double response_tolerance=response_enabled?std::stod(tolerance_config):1;
     struct ResponseRow {std::uint64_t before,after;simulation::m4_detail::PhysicalOwner::ResponseSample sample;simulation::OwnerActuation drive,brake;};
     std::vector<ResponseRow> response;response.reserve(1024);bool response_done=false;
 
@@ -443,7 +446,7 @@ int main(int argc,char** argv) {
     bool pass=false;std::string error;std::uint64_t begin=now(),ready_ns=0,closing=0;
     try {
         if(diagnostics_enabled()) {
-            check(three_enabled() && (test=="normal" || test=="command-loss"),"native diagnostics profile");
+            check(three_enabled() && (test=="normal" || test=="command-loss" || test=="restart-live"),"native diagnostics profile");
             diagnostic_routes=std::make_unique<someip::test::NativeDiagnosticRoutes>(ecu,folder,tag);
             diagnostic_routes->start(net);
         } else net.start();
@@ -531,7 +534,7 @@ int main(int argc,char** argv) {
                         for(const auto& item:owners->pending)owners->event("retired-pending",7,item.first,item.second.deadline_ns);
                         net.begin_quiescent_transition();
                         iteration.finish();owners.reset(); // single owner stopped; all old mailbox users are gone
-                        owners=std::make_unique<Owners>(Ecu::Central,net,folder,tag+"-rejoined");
+                        owners=std::make_unique<Owners>(Ecu::Central,net,folder,tag+"-rejoined",diagnostic_routes.get());
                         const auto issued_epoch=owners->issue_epoch();
                         owners->start_watch();net.end_quiescent_transition();owners->event("ingress-transition-end",7,issued_epoch);owners->begin(issued_epoch);rejoined=true;
                     }

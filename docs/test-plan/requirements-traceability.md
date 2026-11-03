@@ -29,6 +29,10 @@ C-M9-RESTART-01–04는 [진단 전달 이력 복구](evidence/m9_delivery_resta
 replica/merged crash window·실제 TCP replay를 연결한다. Native 객체 재개와 별도 process SIGKILL을
 구분하며 전체 ECU 재기동/producer adoption 및 SYS-DIAG-001 수용은 닫지 않는다.
 
+C-M9-ADOPT-01–06은 [ECU 발행자 adoption](evidence/m9_producer_adoption/README.md)의 세대 발급·
+read-only prefix·저장 전 손실 미확인 표시·Front/Rear 실제 process kill/rejoin을 연결한다.
+Central 재기동/연속성 clear와 SYS-DIAG-001 전체 수용은 닫지 않는다.
+
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |
 | --- | --- | --- | --- | --- | --- | --- |
 | SYS-ARCH-001 | ARCH-CENTRAL, ARCH-ZONE, ARCH-VECU, ARCH-CENTRAL-ALLOC | IF-CENTRAL-VEHICLE-REQUEST, IF-CAN-STEERING, IF-CAN-BRAKE, IF-CAN-DRIVE, IF-DDS-FRONT-CMD, IF-DDS-REAR-CMD | Deployment | TC-ARCH-001 | M5/M12 | NOT RUN |

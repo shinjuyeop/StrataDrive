@@ -1,0 +1,742 @@
+{
+  "scope": "Actual Front/Rear full ECU process kill/rejoin; unique producer generations and unverified volatile loss; Central process restart/reconciliation/clear/native4ms/Target OPEN",
+  "core": {
+    "passed": 1210,
+    "total": 1211,
+    "failed": [
+      "Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/\"physical\""
+    ]
+  },
+  "nonwall": {
+    "passed": 1202,
+    "total": 1202
+  },
+  "initial_existing_wall": {
+    "passed": 8,
+    "total": 9
+  },
+  "isolated_wall": {
+    "passed": 1,
+    "total": 1,
+    "failed": []
+  },
+  "asan_ubsan": {
+    "passed": 301,
+    "total": 301,
+    "failed": []
+  },
+  "volatile_normal": {
+    "passed": 1,
+    "total": 1,
+    "failed": []
+  },
+  "volatile_asan": {
+    "passed": 1,
+    "total": 1,
+    "failed": []
+  },
+  "functional": {
+    "normal": {
+      "passed": 11,
+      "total": 11,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4496,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1931,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "front-loss",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 1964,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "rear-loss",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1954,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2107,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "context-delay",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1972,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "source-restart",
+          "original_store_files_compared": 137
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 1969,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "rear-restart",
+          "original_store_files_compared": 139
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1971,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "collector-restart",
+          "original_store_files_compared": 131
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1984,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "both-restart",
+          "original_store_files_compared": 149
+        },
+        {
+          "pass_": true,
+          "active_streams": 15,
+          "original_credits": 18,
+          "gaps": 4,
+          "merged_events": 37,
+          "tcp_messages": 6547,
+          "connections": 21,
+          "mutations_rejected": 9,
+          "case": "front-process-rejoin",
+          "original_store_files_compared": 216
+        },
+        {
+          "pass_": true,
+          "active_streams": 16,
+          "original_credits": 18,
+          "gaps": 5,
+          "merged_events": 36,
+          "tcp_messages": 6501,
+          "connections": 21,
+          "mutations_rejected": 9,
+          "case": "rear-process-rejoin",
+          "original_store_files_compared": 216
+        }
+      ],
+      "archive": "final-normal.tar.gz",
+      "all_case_original_store_files_compared": {
+        "normal": 129,
+        "front-loss": 129,
+        "rear-loss": 129,
+        "drop-ack": 129,
+        "context-delay": 129,
+        "source-restart": 137,
+        "rear-restart": 139,
+        "collector-restart": 131,
+        "both-restart": 149,
+        "front-process-rejoin": 216,
+        "rear-process-rejoin": 216
+      }
+    },
+    "asan": {
+      "passed": 11,
+      "total": 11,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4509,
+          "connections": 14,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1983,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "front-loss",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 1985,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "rear-loss",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1982,
+          "connections": 13,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2112,
+          "connections": 17,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "context-delay",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1994,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "source-restart",
+          "original_store_files_compared": 137
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 2016,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "rear-restart",
+          "original_store_files_compared": 139
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1970,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "collector-restart",
+          "original_store_files_compared": 131
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1983,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "both-restart",
+          "original_store_files_compared": 149
+        },
+        {
+          "pass_": true,
+          "active_streams": 15,
+          "original_credits": 18,
+          "gaps": 4,
+          "merged_events": 37,
+          "tcp_messages": 6570,
+          "connections": 30,
+          "mutations_rejected": 9,
+          "case": "front-process-rejoin",
+          "original_store_files_compared": 216
+        },
+        {
+          "pass_": true,
+          "active_streams": 16,
+          "original_credits": 18,
+          "gaps": 5,
+          "merged_events": 36,
+          "tcp_messages": 6592,
+          "connections": 32,
+          "mutations_rejected": 9,
+          "case": "rear-process-rejoin",
+          "original_store_files_compared": 216
+        }
+      ],
+      "archive": "final-asan.tar.gz",
+      "all_case_original_store_files_compared": {
+        "normal": 129,
+        "front-loss": 129,
+        "rear-loss": 129,
+        "drop-ack": 129,
+        "context-delay": 129,
+        "source-restart": 137,
+        "rear-restart": 139,
+        "collector-restart": 131,
+        "both-restart": 149,
+        "front-process-rejoin": 216,
+        "rear-process-rejoin": 216
+      }
+    },
+    "tsan": {
+      "passed": 3,
+      "total": 4,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4557,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1986,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack",
+          "original_store_files_compared": 129
+        },
+        {
+          "pass_": true,
+          "active_streams": 15,
+          "original_credits": 18,
+          "gaps": 4,
+          "merged_events": 38,
+          "tcp_messages": 6593,
+          "connections": 21,
+          "mutations_rejected": 9,
+          "case": "front-process-rejoin",
+          "original_store_files_compared": 216
+        }
+      ],
+      "archive": "final-tsan.tar.gz",
+      "all_case_original_store_files_compared": {
+        "normal": 129,
+        "drop-ack": 129,
+        "front-process-rejoin": 216,
+        "rear-process-rejoin": 216
+      }
+    }
+  },
+  "attempts": [
+    {
+      "cohort": "probe-front",
+      "case": "restart-live",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "probe-rear",
+      "case": "restart-live",
+      "repeat": 1,
+      "exit": 0
+    },
+    {
+      "cohort": "verified-normal",
+      "case": "front-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-normal",
+      "case": "rear-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-normal",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "verified-normal",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "source-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "rear-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "collector-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "both-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "front-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-normal",
+      "case": "rear-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "source-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "rear-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "collector-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "both-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "native-asan",
+      "case": "front-process-rejoin",
+      "exit": 1,
+      "audit_exit": null
+    },
+    {
+      "cohort": "native-asan",
+      "case": "rear-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "source-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "rear-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "collector-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "both-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "front-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-normal",
+      "case": "rear-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "front-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "rear-loss",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "context-delay",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "source-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "rear-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "collector-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "both-restart",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "front-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-asan",
+      "case": "rear-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-tsan",
+      "case": "normal",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-tsan",
+      "case": "drop-ack",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-tsan",
+      "case": "front-process-rejoin",
+      "exit": 0,
+      "audit_exit": 0
+    },
+    {
+      "cohort": "final-tsan",
+      "case": "rear-process-rejoin",
+      "exit": 1,
+      "audit_exit": null
+    }
+  ],
+  "static": {
+    "clang_tidy_tus": 6,
+    "cppcheck_tus": 6,
+    "result": "PASS",
+    "clang_standard_headers": "GCC11 explicit matching actual compiler; initial GCC13 mismatch retained"
+  },
+  "release_libraries": "PASS",
+  "fingerprint_tests": 2,
+  "mutations_rejected": 212,
+  "prior_evidence": {
+    "m9_control_hooks": 153,
+    "m9_delivery_restart": 79,
+    "m9_delivery_spool": 306,
+    "m9_diagnostics_component": 43,
+    "m9_native_causes": 183,
+    "m9_native_routing": 157,
+    "m9_native_vehicle": 186,
+    "m9_owner_sources": 203,
+    "m9_remote_context": 130,
+    "m9_someip_live": 654,
+    "m9_speed_recovery": 135,
+    "m9_startup_sources": 217
+  }
+}

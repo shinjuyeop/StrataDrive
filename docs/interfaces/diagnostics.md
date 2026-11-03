@@ -673,13 +673,63 @@ kill/rejoin·새 producer incarnation/sequence adoption·commit 전 SPSC/pending
 [고정 recipe](../test-plan/diagnostics-protocol.md#진단-전달-재개와-crash-window-fixture)와
 [결과·원본](../test-plan/evidence/m9_delivery_restart/README.md)을 따른다.
 
+## ECU process 재기동의 발행자 세대와 연속성
+
+`ProducerLifecycle`은 명시적으로 provision한 private journal을 process 수명 동안 독점 잠근다.
+Manifest store ID는 해당 ECU lifecycle identity와 같고 registry3/run/profile/common monotonic clock을
+검사한다. 원본 start/clean-close transaction의 순서·bytes·시각을 대조하고 새 generation의 start를
+file/directory fsync로 commit한 뒤에만 발행자 ID를 반환한다. ID는
+`((generation - 1) << 32) | logical_source`다. Logical source는 nonzero uint32이며 첫 세대의 기존
+ID20–33을 유지한다. 새 프로세스는 새 ID에서 event sequence1을 시작한다. Generation wrap·용량·
+commit 실패·변조·clock regression·동일 store 동시 점유는 발행자 권한을 주지 않는다.
+Private lifecycle의 epoch는 process generation이며 wire/global Session이 아니다.
+
+Destructor는 clean-close를 쓰지 않는다. Owner 생산을 종료하고 진단 queue/pending·ACK drain이
+완료된 뒤에만 호출자가 명시적으로 close한다. 마지막 start가 닫히지 않았다면 다음 process는
+`previous_unclean`이다. Commit 전 SPSC/pending은 사라질 수 있으므로 손실 개수·원인 event를
+추정해 복원하지 않는다. 새 실제 Session과 local accepted credit 뒤에 각 재기동 source는 최초
+sequence1로 SD-5001/monitor10/subject=logical_source/native_reason1(`UnverifiedContinuity`)를
+기록한다. Detected는 새 process가 unclean 상태를 발견한 원래 boot 시각, Observed는 해당
+owner가 원본 global context/credit 뒤에 관측한 시각이다. `state_before/after`는 이전/새 generation,
+`cause_unknown`·`unmapped`는 true이며 measured0은 손실 개수가 아니다. 이력 incident count1은
+연속성 미확인 incident 한 건을 뜻한다. 정상 observer의 첫 순번은2로 예약한다.
+
+SD-5001은 `Kind::Fault`이며 transport/storage 무결성 실패인 `Kind::Gap`과 구분한다. 기존
+unmapped 규칙에 따라 clear를 막으면서 영속 전달은 계속한다. 원본 재생·새 INIT·새 source의
+정상만으로 이 marker나 이전 source의 고장에 Passed를 만들지 않는다. 연속인 생존 source의
+기존 recovery는 실제 새 Epoch와 원래 proof로만 처리한다. 연속성 reconciliation/clear는 후속이다.
+
+`CommittedReplay`는 이전 source의 검증된 committed prefix만 내보내는 별도 read-only API다.
+불완전 suffix가 있어도 frame/commit/semantic 검사를 통과한 prefix를 원래 ID/bytes/ordinal로
+재전송할 수 있다. Append/repair/clear API가 없으며 suffix/incomplete marker는 삭제하지 않는다.
+`source_complete`를 별도 보고한다. 이 전송 성공은 이전 source가 완전했다는 근거나 readiness가
+아니다. 새 source의 unverified continuity 표시가 필요하다. 일반 Outbox는 기존대로 incomplete
+store의 전송/기록을 차단한다. Event/ACK wire/schema·registry revision은 바꾸지 않는다.
+
+Native `restart-live --diagnostics --three`는 Front 또는 Rear의 실제 ECU/SDK process를 SIGKILL하고
+같은 netns에서 새 SDK client ID로 재시작한다. 생존 Central·다른 Zone·plant를 다시 시작하지
+않는다. 기존 명시적 rejoin과 영속 EpochStore의 실제 Epoch2·8-role Release/accepted credit가
+필요하다. 새 observer가 이전 Session/Ready를 재활용하지 않는다. Central owner 재구성 뒤에도
+동일 진단 issuer를 연결해 원본 Attempt/Session의 sequence를 유지한다.
+
+Fixture는 명시적 두 process generation만 provision한다. 기본 source streams8200–8208/service
+pairs0x5e10–21, 두 번째 streams8209–8217/pairs0x5e40–51이며 두 세대 모두 독립 source/replica를
+갖는다. 재기동 대상의 두 번째 세대만 활성화한다. Context8101/8102는 원래 ordinal1/2의 두
+Session을 전달한다. 새 process는 이전 세대 source prefix도 별도 channel로 원형 재전송한다.
+모든 원격 ACK는 기존 replica/merged commit 뒤다. Manifest/CRC는 peer 인증을 대신하지 않는다.
+
+이 범위는 같은 kernel/clock instance의 Front/Rear ECU process 재기동이다. Central process
+재기동·host 전원/clock 변경·임의 반복 재시작과 저장 용량 수용·연속성 reconciliation/원격 clear는
+닫지 않는다. [고정 recipe](../test-plan/diagnostics-protocol.md#ecu-process-재기동과-발행자-adoption-fixture)와
+[실행·한계](../test-plan/evidence/m9_producer_adoption/README.md)를 따른다.
+
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
 원격 context admission 뒤 실제 native3-ECU의2개 context/9개 source stream도 기능 검증했다.
-진단 전달 객체의 재개·durable prefix 복구 뒤에는 전체 ECU 재기동의 producer adoption과
-미결정 고장 조합·원인 연결/복구를 검증한다.
+Front/Rear process 재기동의 producer adoption·연속성 미확인 전달 뒤에는 Central process 재기동,
+연속성 reconciliation과 미결정 고장 조합·원인 연결/복구를 검증한다.
 Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
 실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.

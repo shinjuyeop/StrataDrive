@@ -204,4 +204,14 @@ TEST_F(DiagnosticsDelivery, CollectorConflictingReplicaHistoryFailsClosedAndKeep
     auto changed=session(); changed.native_reason=42; ASSERT_TRUE(in.receive(data(changed,1)).ack);
     EXPECT_THROW((MergedCollector{m,{&d}}),std::runtime_error); EXPECT_EQ(m.committed().size(),1U); EXPECT_EQ(encode(m.committed()[0]),encode(session())); EXPECT_FALSE(m.writable());
 }
+TEST_F(DiagnosticsDelivery, ArchivedReplayExportsOnlyVerifiedCommittedPrefixAndPreservesUncommittedTail) {
+    init();{FileJournal s(source.string());Outbox out(s);ASSERT_TRUE(out.record(session()).durable);ASSERT_TRUE(out.record(fault()).durable);}
+    std::ofstream(source/"journal",std::ios::app|std::ios::binary)<<"original uncommitted bytes";
+    const auto length=std::filesystem::file_size(source/"journal");FileJournal s(source.string()),d(dest.string());CommittedReplay replay(s);Inbox in(d);
+    EXPECT_FALSE(replay.source_complete());EXPECT_GT(s.uncommitted_bytes(),0U);EXPECT_EQ(replay.acknowledge(ack(session(),1)),Result::NotReady);
+    EXPECT_EQ(replay.acknowledge(ack(fault(),2)),Result::NotReady);
+    while(auto packet=replay.next()){const auto got=in.receive(*packet);ASSERT_TRUE(got.ack);ASSERT_EQ(replay.acknowledge(*got.ack),Result::Accepted);}
+    EXPECT_EQ(replay.acknowledged(),2U);EXPECT_EQ(s.committed().size(),2U);EXPECT_EQ(std::filesystem::file_size(source/"journal"),length);EXPECT_FALSE(s.writable());
+    EXPECT_EQ(replay.acknowledge(ack(session(),1,5678)),Result::Invalid);EXPECT_EQ(replay.acknowledge(ack(fault(),1)),Result::Conflict);
+}
 } // namespace

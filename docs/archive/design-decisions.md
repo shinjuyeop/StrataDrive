@@ -5602,3 +5602,28 @@ Native campaign은 실제 SDK/owner를 유지한 진단 전달 객체 reopen과 
 재전송/종료 drain·4ms/물리 한도를 늘리지 않는다. 초기 독립 auditor의 service 변조 누락은
 중복 packet에서도 검출하도록 보강하고 실패 원본을 보존한다. Native4ms/Clock/Target 및 M9
 전체 수용은 이 기능 재개 시험으로 닫지 않는다.
+
+
+## ADR-0090 — ECU 재기동은 새 발행자 세대와 미확인 연속성으로 기록한다
+
+2026-11-03. 전달 객체만 다시 열 때와 달리 ECU process 종료는 observer의 next sequence와
+commit 전 SPSC/pending을 잃는다. 이전 ID에서1부터 기록하거나 마지막 durable sequence 뒤를
+이어 쓰면 사라진 이벤트를 모른 채 동일 발생 ID를 재사용할 수 있다.
+
+Private lifetime-locked journal에 새 process generation을 fsync한 뒤
+`((generation-1)<<32)|logical_source`를 발급한다. 새 ID에서 sequence1을 시작하며 원래 global
+Session은 기존 Central/EpochStore/8-role handshake가 발급한다. Private lifecycle epoch와 global
+Epoch를 합치지 않는다. Destructor가 clean marker를 쓰지 않으며 전체 진단 drain 뒤 명시적 close만
+기록한다. Manifest/clock/commit/용량/lock 오류는 새 발행자 발급을 거부한다.
+
+Unclosed 이전 process는 저장 전 손실 여부/개수를 알 수 없다. 새 source의 최초 SD-5001 Fault는
+원래 boot 시각과 이전/새 generation을 담고 cause_unknown/unmapped로 clear를 막는다. Incident
+count를 잃은 event 수로 해석하지 않는다. 정상/INIT/원본 replay로 marker를 해제하지 않는다.
+일반 Outbox의 incomplete 차단을 유지하고 별도 read-only CommittedReplay로 이전 검증 prefix만
+전달한다. 원본 suffix/incomplete를 지우지 않고 완전성은 별도 보고한다.
+
+실제 Front/Rear SDK process SIGKILL/rejoin에서는 두 세대의 독립 stream과 새 SDK client를 쓴다.
+생존 ECU/plant·control/진단 예산·물리 oracle를 유지한다. 재기동 process의 새 source는 실제
+Epoch2/accepted credit 뒤에 발행한다. Central observer는 같은 issuer를 유지해 Session ID 충돌을
+막는다. Central 자체 process 재기동·host clock 변경·연속성 reconciliation/clear와 임의 반복 재시작
+용량 수용은 후속이다. 기존 native4ms/Target 미통과를 이 기능 검증으로 닫지 않는다.

@@ -7,7 +7,7 @@ enum class NativeMonitor : std::uint32_t { CommandGateway=6,RearPowerGateway=7,B
 // Same-owner bounded publisher. Native reason/config evidence is not a command.
 class NativeDiagnostics {
 public:
-    NativeDiagnostics(EventQueue&,ControlContext,Component);
+    NativeDiagnostics(EventQueue&,ControlContext,Component,std::uint64_t first_sequence=1);
     bool start_session(std::uint32_t,std::uint64_t) noexcept;
     void selection(NativeMonitor,std::optional<std::uint64_t>,bool acknowledgement) noexcept;
     void observe(NativeMonitor,const std::optional<NativeObservation>& fault,const std::optional<NativeObservation>& propagation,

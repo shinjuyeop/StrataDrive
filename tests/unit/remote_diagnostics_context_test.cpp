@@ -1,4 +1,5 @@
 #include "remote_diagnostics_context.hpp"
+#include "producer_lifecycle.hpp"
 #include "startup_diagnostics.hpp"
 #include "run_lease_issuer.hpp"
 #include <gtest/gtest.h>
@@ -233,5 +234,42 @@ TEST_F(RemoteDiagnosticsContext, RestartRequiresActualAcceptedEvidenceAndReplays
 TEST_F(RemoteDiagnosticsContext, EmptyRestartCannotAdoptSessionFromLocalReadyOrAcceptedCreditAlone) {
     release();const auto evidence=credit();FileJournal j(provision("empty").string());ContextualOutbox out(j,manifest(),central_id);
     EXPECT_EQ(out.restore(evidence),Result::NotReady);EXPECT_TRUE(j.committed().empty());EXPECT_FALSE(out.next());
+}
+TEST_F(RemoteDiagnosticsContext, ProducerIncarnationsAreDurableUniqueAndNeverBecomeGlobalSessions) {
+    const auto path=provision("lifecycle",9001);const auto c=manifest(9001);
+    {ProducerLifecycle life(path.string(),c,100);EXPECT_EQ(life.generation(),1U);EXPECT_FALSE(life.previous_unclean());EXPECT_EQ(life.producer(30),30U);
+     EXPECT_THROW((ProducerLifecycle{path.string(),c,101}),std::exception);EXPECT_EQ(life.close(99),Result::Invalid);EXPECT_EQ(life.close(101),Result::Accepted);EXPECT_EQ(life.close(102),Result::Duplicate);}
+    {ProducerLifecycle life(path.string(),c,103);EXPECT_EQ(life.generation(),2U);EXPECT_FALSE(life.previous_unclean());EXPECT_EQ(life.producer(30),(1ULL<<32)|30);EXPECT_THROW(life.producer(0),std::invalid_argument);}
+    {ProducerLifecycle life(path.string(),c,104);EXPECT_EQ(life.generation(),3U);EXPECT_TRUE(life.previous_unclean());EXPECT_EQ(life.producer(30),(2ULL<<32)|30);EXPECT_EQ(life.close(105),Result::Accepted);}
+    FileJournal j(path.string());ASSERT_EQ(j.committed().size(),5U);for(const auto& e:j.committed())EXPECT_NE(std::get<Event>(e).kind,Kind::Session);
+}
+TEST_F(RemoteDiagnosticsContext, ProducerForeignManifestRegressedClockIncompleteAndCapacityFailWithoutIdentityReuse) {
+    const auto path=provision("lifecycle",9001,{2,1,1,1});const auto c=manifest(9001);
+    {ProducerLifecycle life(path.string(),c,100);ASSERT_EQ(life.close(101),Result::Accepted);}
+    EXPECT_THROW((ProducerLifecycle{path.string(),manifest(9002),102}),std::invalid_argument);
+    EXPECT_THROW((ProducerLifecycle{path.string(),c,100}),std::invalid_argument);
+    EXPECT_THROW((ProducerLifecycle{path.string(),c,102}),std::runtime_error);
+    FileJournal j(path.string());EXPECT_EQ(j.committed().size(),2U);EXPECT_FALSE(j.writable());
+}
+TEST_F(RemoteDiagnosticsContext, UncleanContinuityMarkerBlocksClearWithoutClaimingLostEventCountOrBlockingDelivery) {
+    release();const auto evidence=credit();const auto producer=(1ULL<<32)|30;const auto c=manifest(producer);
+    FileJournal source(provision("source").string()),replica(provision("replica").string());ContextualOutbox out(source,c,central_id);Inbox in(replica);
+    ASSERT_EQ(out.context(global,evidence),Result::Accepted);
+    const auto event=continuity_fault(c,30,2,Component::Front,global.session.epoch,global.session_enable.ns,central.now-1,central.now);
+    ASSERT_EQ(out.submit(event),Result::Accepted);EXPECT_TRUE(out.healthy());EXPECT_TRUE(out.ledger().unmapped());EXPECT_EQ(out.ledger().find(event.key)->count,1U);
+    while(auto packet=out.next()){const auto receipt=in.receive(*packet);ASSERT_TRUE(receipt.ack);ASSERT_EQ(out.acknowledge(*receipt.ack),Result::Accepted);}
+    ASSERT_TRUE(in.ledger().find(event.key));EXPECT_TRUE(in.ledger().unmapped());EXPECT_EQ(in.ledger().find(event.key)->condition,Condition::Failed);
+    auto proof=event;proof.id.sequence=2;proof.kind=Kind::Observation;proof.proof=Proof::Recording;
+    ASSERT_EQ(out.submit(proof),Result::Accepted);auto passed=proof;passed.id.sequence=3;passed.kind=Kind::Passed;passed.proof_event=proof.id;
+    ASSERT_EQ(out.submit(passed),Result::Accepted);ASSERT_EQ(out.ledger().find(event.key)->condition,Condition::Passed);
+    auto blocked=out.ledger();Clear cleared;cleared.id={run,77,1};cleared.session=global.session;cleared.targets={{event.key,blocked.find(event.key)->revision}};
+    const Stamp stopped{Domain::Monotonic,clock_id,central.now,true,true};
+    cleared.evidence={stopped,global.session_enable,stopped,stopped,stopped,0,0,100000,true,true};
+    EXPECT_EQ(blocked.clear(cleared),Result::NotReady);
+    Ledger known;for(auto item:out.ledger().events()){item.unmapped=false;ASSERT_EQ(known.record(item),Result::Accepted);}
+    EXPECT_EQ(known.clear(cleared),Result::Accepted);
+    EXPECT_TRUE(event.cause_unknown);EXPECT_EQ(event.measured,0);EXPECT_EQ(event.times[static_cast<unsigned>(Time::Detected)].ns,central.now-1);
+    EXPECT_THROW(continuity_fault(c,30,1,Component::Front,1,1,1,2),std::invalid_argument);
+    EXPECT_THROW(continuity_fault(c,31,2,Component::Front,1,1,1,2),std::invalid_argument);
 }
 } // namespace

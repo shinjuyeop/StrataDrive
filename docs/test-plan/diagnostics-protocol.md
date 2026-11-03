@@ -354,3 +354,39 @@ commit, merged reconciliation 완료의3개 경계를 순서대로 중단한다.
 다시 열어 정확한 원본 bytes·독립 ordinal·중복 count1·Unknown을 유지해야 한다. 새 event emitter를
 자동 채택하거나 commit 전 메모리 손실을 복구했다고 판정하지 않는다. Foreign manifest/충돌/
 merged 저장 실패와 ACK 차단은 별도 단위 검사한다. 실패/중간 audit 결과도 보존한다.
+
+
+## ECU process 재기동과 발행자 adoption fixture
+
+실행 전 고정: 기존 native9개 기능 cohort에 front-process-rejoin/rear-process-rejoin2개를 추가한다.
+3-ECU `restart-live`의 실제 normal control/physical 선행 표본 뒤 대상 generation1 process를
+SIGKILL한다. 생존2 ECU와 plant를 유지하고 독립 보호/기존100ms torque·brake 기준을 확인한 뒤
+같은 netns에서 새 process/client ID로 시작한다. 명시적 rejoin 요청과 원래 EpochStore의 새
+Epoch2·모든8역할 Release ACK·원래 endpoint의 accepted credit 뒤에만 새 source를 발행한다.
+Control/진단 queue·retry100ms·drain2s·clock/4ms·물리 기준은 그대로다.
+
+별도 lifecycle store9101/9102는 process lifetime flock과 fsynced generation 발급을 사용한다.
+마지막 unclosed start는 previous_unclean이다. 새 source ID의 상위32bit는 generation-1, 하위는
+기존 logical source다. 새 순번1은 Code5001/monitor10의 연속성 미확인 incident로 예약하며 원래
+boot 시각과 이전/새 세대를 기록한다. 손실 개수를 발명하지 않고 unmapped로 clear를 막는다.
+계속 살아 있는 source만 원래 proof로 새 Epoch의 recovery를 발행할 수 있다.
+
+Fixture는2개 process generation의 독립18개 source/replica와2개 context stream을 provision한다.
+미사용 생존 ECU의 두 번째 세대 store는 비어 있어야 한다. 새 client는 이전 세대의 검증된
+committed prefix를 원형 재전송하고 uncommitted suffix는 byte 그대로 남겨야 한다. Collector는
+동일 원본 Session/EventId/bytes를 dedup하고 두 store commit 뒤에만 stream별 ACK한다. 이전
+source의 complete/tail 보고와 실제 journal을 독립 비교한다. 기본 Outbox의 incomplete 차단은 유지한다.
+
+Normal/ASan은11개 기능 cohort, SDK TSan은 normal/drop-ack와 두 process rejoin을 구분해 실행한다.
+기존 객체 reopen은 별도이며 full process 성공으로 바꾸지 않는다. 독립 auditor는 실제 old PID의
+SIGKILL·생존 PID 동일·두 원본 Release·accepted credit18개·source producer/sequence·새 SDK
+client의 old ordinal1 replay·원형 source/replica/merged와 물리 보호/새 정상 정지·HV-off를 비교한다.
+발행자 재사용/marker 제거/원래 boot 변조/credit/두 번째 handshake/old replay/물리/lifecycle/tail
+보고의9개 변조를 거부한다. Unverified continuity의 root 원인을 임의로 차량 고장에 연결하지 않는다.
+
+별도 `KilledVolatileQueueGetsFreshProducerAndExplicitUnverifiedContinuity`는 실제 child가 lifecycle/
+Session을 commit하고 EventQueue에 원본 fault를 발행한 뒤 writer drain 전에 SIGKILL한다. 이 event는
+어느 source journal에도 나타나지 않아야 한다. 새 generation은 ID를 재사용하지 않고 별도 marker만
+기록한다. Root event를 재구성하거나 ACK했다고 표시하지 않는다. Lifecycle wrong manifest/time/
+capacity/lock·read-only prefix/clear 차단은 component 시험한다. 전체 system TC·Central process
+재기동·host clock/power cycle·실제 부하/용량·연속성 reconciliation/clear 수용은 후속이다.

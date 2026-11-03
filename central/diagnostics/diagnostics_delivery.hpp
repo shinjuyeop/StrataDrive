@@ -33,6 +33,21 @@ public:
 private:
     FileJournal& journal_; Recorder recorder_;
 };
+// Historical committed prefix only, including a valid prefix of an unclean
+// source with an uncommitted tail. No append/repair/clear API. The caller must
+// report unverified continuity in the new producer's stream; delivery does not
+// certify completeness of the old source or qualify current readiness.
+class CommittedReplay {
+public:
+    explicit CommittedReplay(const FileJournal&);
+    std::optional<wire::Bytes> next();
+    Result acknowledge(const wire::Bytes&);
+    std::uint64_t acknowledged() const noexcept { return acknowledged_; }
+    bool source_complete() const noexcept;
+private:
+    const FileJournal& journal_; Ledger checked_;
+    std::uint64_t acknowledged_{0},in_flight_{0};
+};
 // One non-RT owner, one merged recorder, all explicitly provisioned replicas.
 // Construct before live input. Reconcile durable replica prefixes left by a
 // crash between replica and merged commit; reset current projections to Unknown.

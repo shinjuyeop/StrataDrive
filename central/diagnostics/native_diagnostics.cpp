@@ -44,8 +44,8 @@ Proof required(Code code,NativeMonitor monitor) {
     (void)monitor; return Proof::None;
 }
 }
-NativeDiagnostics::NativeDiagnostics(EventQueue& q,ControlContext c,Component actor):queue_(q),context_(c),actor_(actor) {
-    if(!c.run || !c.producer || !c.clock_instance || !c.profile || (c.domain!=Domain::Simulation && c.domain!=Domain::Monotonic) ||
+NativeDiagnostics::NativeDiagnostics(EventQueue& q,ControlContext c,Component actor,std::uint64_t first):queue_(q),context_(c),actor_(actor),next_(first) {
+    if(!first || !c.run || !c.producer || !c.clock_instance || !c.profile || (c.domain!=Domain::Simulation && c.domain!=Domain::Monotonic) ||
        (actor!=Component::Front && actor!=Component::Rear && actor!=Component::Bms && actor!=Component::Power)) throw std::invalid_argument("native diagnostic context");
 }
 Stamp NativeDiagnostics::stamp(std::uint64_t ns,bool trusted) const noexcept { return {context_.domain,context_.clock_instance,ns,true,trusted}; }

@@ -77,8 +77,10 @@ Central 원본 Session 대조·유한 대기·두 stream의 동일 원본/독립
 stream을 연결하고 정상·Front/Rear 명령 손실·ACK 유실·context 지연을 기능 검증했다.
 [진단 전달 객체 재개](test-plan/evidence/m9_delivery_restart/README.md)는 원본 Session 재대조·
 ordinal1 재전송·replica-only commit의 merged 복구를 다룬다. Native owner/SDK 연속 객체 재개와
-별도 process SIGKILL을 구분한다. 다음은 전체 ECU producer adoption·commit 전 메모리 손실 조정·
-native fault matrix와 원인 연결/복구·부하/보존 용량이다. 정규 DDS gate·proposal 이전
+별도 process SIGKILL을 구분한다. [Front/Rear 발행자 adoption](test-plan/evidence/m9_producer_adoption/README.md)은
+실제 ECU process kill/rejoin·새 세대·old prefix replay·저장 전 손실 미확인 표시를 연결한다.
+다음은 Central process 재기동·연속성 reconciliation/clear·native fault matrix와 원인 연결/복구·
+부하/보존 용량이다. 정규 DDS gate·proposal 이전
 bootstrap·Clock 복구도 후속이다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·

@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | native3-ECU 진단 전달 객체 재개·durable prefix 복구; 전체 ECU producer adoption·fault matrix 후속 | [진단 계약](interfaces/diagnostics.md) · [전달 이력 복구](test-plan/evidence/m9_delivery_restart/README.md) |
+| M9 | Front/Rear ECU 재기동의 발행자 세대·prefix 재전송·손실 미확인 표시; Central 재기동·연속성 조정 후속 | [진단 계약](interfaces/diagnostics.md) · [발행자 adoption](test-plan/evidence/m9_producer_adoption/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -90,8 +90,16 @@ credit에 재대조하고 ordinal1부터 재전송한다. Collector는 replica-o
 [전달 재개·원본·분모·실패](test-plan/evidence/m9_delivery_restart/README.md)를 따른다.
 기본1206·영향 ASan296·native Normal9/ASan9가 통과했다. 단독 SDK TSan은5/6이며1개는
 고장 주입 전 정상 선행 조건/cleanup 실패로 남겼다. 동시 실행 TSan2/6과 초기 감사 실패도 보존한다.
-다음은 전체 native ECU 재기동의 producer identity/sequence adoption·commit 전 메모리 손실 조정과
-다른 native 고장 조합·원인 연결/복구다. Native4ms와 M9 전체 수용은 계속 OPEN이다.
+Front/Rear의 실제 ECU/SDK process를 SIGKILL하고 생존2 ECU·plant를 유지한 새 Epoch2 재합류를
+연결했다. Private lifecycle journal이 새 발행자 세대를 영속 발급하고 별도 stream에서 순번1을
+시작한다. 이전 committed prefix는 새 SDK client로 원형 재전송한다. Commit 전 메모리는 복구한
+것으로 세지 않고 SD-5001의 cause_unknown/unmapped incident로 표시해 clear를 막는다.
+[발행자 세대·손실 미확인·독립 감사·실패](test-plan/evidence/m9_producer_adoption/README.md)를 따른다.
+최종 native Normal11/ASan11·unit/logical/transport1202·영향 ASan301이 통과했다. SDK TSan은3/4이며
+Rear rejoin의 새 정상 제어 구간 보호 선택을 미통과로 남겼다. 기존 wall은 최초8/9 후 실패 항목의
+동일 기준 단독1/1을 구분하며 기존 native4ms/Target 수용을 닫지 않는다.
+다음은 Central process 재기동·연속성 reconciliation/clear와 다른 native 고장 조합·원인 연결/복구다.
+Native4ms와 M9 전체 수용은 계속 OPEN이다.
 정규 DDS gate와 native wall/Target·부하/보존 용량 수용은 아직 후속이다.
 다른 BMS trip/Power 고장 조합·Clock 복구·proposal 이전 bootstrap 실패는 후속이다.
 실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.

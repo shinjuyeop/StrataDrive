@@ -32,8 +32,8 @@ std::uint64_t component(unsigned stream) {
     constexpr std::uint64_t ids[]{9,5,4,6,10}; return ids[stream];
 }
 }
-OwnerDiagnostics::OwnerDiagnostics(EventQueue& q,ControlContext c,Component actor):queue_(q),context_(c),actor_(actor) {
-    if(!c.run || !c.producer || !c.clock_instance || !c.profile ||
+OwnerDiagnostics::OwnerDiagnostics(EventQueue& q,ControlContext c,Component actor,std::uint64_t first):queue_(q),context_(c),actor_(actor),next_(first) {
+    if(!first || !c.run || !c.producer || !c.clock_instance || !c.profile ||
        (c.domain!=Domain::Simulation && c.domain!=Domain::Monotonic) ||
        (actor!=Component::Front && actor!=Component::Rear && actor!=Component::Steering && actor!=Component::Brake && actor!=Component::Drive))
         throw std::invalid_argument("owner diagnostics context");

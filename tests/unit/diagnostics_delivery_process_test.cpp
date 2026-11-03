@@ -1,4 +1,5 @@
 #include "diagnostics_delivery.hpp"
+#include "producer_lifecycle.hpp"
 #include "diagnostics_fixture.hpp"
 #include <gtest/gtest.h>
 #include <sys/socket.h>
@@ -184,5 +185,28 @@ TEST_F(DiagnosticsDeliveryProcess, SigkillAtSourceReplicaAndMergedCommitCutsReta
     const auto& record=*in.ledger().find(f.key);
     std::ofstream(root/"restart-projection.csv")<<"condition,count,generation,cleared\n"<<static_cast<unsigned>(record.condition)<<','<<record.count<<','<<record.generation<<','<<record.cleared<<'\n';
     if(const auto* target=std::getenv("STRATADRIVE_M9_RESTART_EVIDENCE")) {ASSERT_FALSE(std::filesystem::exists(target));std::filesystem::copy(root,target,std::filesystem::copy_options::recursive);}
+}
+TEST_F(DiagnosticsDeliveryProcess, KilledVolatileQueueGetsFreshProducerAndExplicitUnverifiedContinuity) {
+    const auto lifecycle=root/"producer-lifecycle",old=root/"old-source",fresh=root/"new-source";
+    FileJournal::initialize(lifecycle.string(),9001,{},3);FileJournal::initialize(old.string(),6002,{},3);FileJournal::initialize(fresh.string(),6003,{},3);
+    const ControlContext identity{10,9001,Domain::Monotonic,99,1};
+    auto context=diagnostics_fixture::session();context.profile=1;context.session_enable={Domain::Monotonic,99,1000000000,true,true};
+    auto lost=diagnostics_fixture::fault();lost.id.producer=30;lost.occurrence.producer=30;lost.session_enable=context.session_enable;
+    lost.times[static_cast<unsigned>(Time::Detected)]={Domain::Monotonic,99,1000000002,true,true};
+    write_bytes(root/"volatile-event.bin",encode(lost));std::ofstream(root/"cuts.csv")<<"phase,pid,committed,signal\n";
+    ASSERT_EQ(kill_at_commit([&] {
+        ProducerLifecycle life(lifecycle.string(),identity,100);FileJournal j(old.string());Outbox out(j);if(!out.record(context).durable)throw std::runtime_error("old context commit");
+        EventQueue q(10,life.producer(30));if(!q.publish(lost))throw std::runtime_error("volatile queue publish");
+    },root/"cuts.csv","volatile-queued"),SIGKILL);
+    ProducerLifecycle life(lifecycle.string(),identity,101);ASSERT_TRUE(life.previous_unclean());ASSERT_EQ(life.generation(),2U);EXPECT_NE(life.producer(30),lost.id.producer);
+    FileJournal prior(old.string()),j(fresh.string());CommittedReplay history(prior);ASSERT_EQ(prior.committed().size(),1U);Outbox out(j);
+    context.id.sequence=2;context.session.epoch=2;ASSERT_TRUE(out.record(context).durable);
+    const ControlContext producer{10,life.producer(30),Domain::Monotonic,99,1};
+    const auto gap=continuity_fault(producer,30,2,Component::Front,2,context.session_enable.ns,101,1000000010);
+    ASSERT_TRUE(out.record(gap).durable);EXPECT_TRUE(out.healthy());EXPECT_TRUE(out.ledger().unmapped());EXPECT_EQ(out.ledger().find(gap.key)->count,1U);
+    for(const auto& entry:prior.committed())EXPECT_FALSE(std::get<Event>(entry).id==lost.id);
+    for(const auto& entry:j.committed())EXPECT_FALSE(std::get<Event>(entry).id==lost.id);
+    EXPECT_EQ(life.close(1000000020),Result::Accepted);
+    if(const auto* target=std::getenv("STRATADRIVE_M9_VOLATILE_EVIDENCE")) {ASSERT_FALSE(std::filesystem::exists(target));std::filesystem::copy(root,target,std::filesystem::copy_options::recursive);}
 }
 } // namespace

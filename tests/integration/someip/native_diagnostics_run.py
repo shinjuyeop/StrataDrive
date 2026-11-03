@@ -9,7 +9,7 @@ import sys
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-CASES = ('normal', 'front-loss', 'rear-loss', 'drop-ack', 'context-delay', 'source-restart', 'rear-restart', 'collector-restart', 'both-restart')
+CASES = ('normal', 'front-loss', 'rear-loss', 'drop-ack', 'context-delay', 'source-restart', 'rear-restart', 'collector-restart', 'both-restart', 'front-process-rejoin', 'rear-process-rejoin')
 
 
 def main():
@@ -24,16 +24,16 @@ def main():
     for case in a.cases:
         destination = output/case
         command = [sys.executable, '-B', str(HERE/'front_run.py'), str(destination), '--three', '--diagnostics', '--profile', a.profile,
-                   '--cases', 'normal' if case == 'normal' else 'command-loss']
+                   '--cases', 'restart-live' if case.endswith('process-rejoin') else 'normal' if case == 'normal' else 'command-loss']
         if case in ('source-restart', 'rear-restart', 'collector-restart', 'both-restart'): command += ['--diagnostic-restart', {'source-restart':'front', 'rear-restart':'rear', 'collector-restart':'central', 'both-restart':'all'}[case], '--diagnostic-drop-ack']
-        if case in ('rear-loss', 'rear-restart'): command += ['--fault-zone', 'rear']
+        if case in ('rear-loss', 'rear-restart', 'rear-process-rejoin'): command += ['--fault-zone', 'rear']
         if case == 'drop-ack': command += ['--diagnostic-drop-ack']
         if case == 'context-delay': command += ['--diagnostic-context-delay-ms', '1500']
         if a.fixed_layout: command += ['--fixed-layout']
         with (output/(case+'.run.log')).open('w') as log:
             code = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=False).returncode
-        audit_command = [sys.executable, '-B', str(ROOT/'tests/integration/diagnostics/audit_native_routing.py'),
-                         str(destination/('normal-1' if case == 'normal' else 'command-loss-1')), '--mutations']
+        audit_command = [sys.executable, '-B', str(ROOT/'tests/integration/diagnostics'/('audit_native_adoption.py' if case.endswith('process-rejoin') else 'audit_native_routing.py')),
+                         str(destination/('restart-live-1' if case.endswith('process-rejoin') else 'normal-1' if case == 'normal' else 'command-loss-1')), '--mutations']
         with (output/(case+'.audit.json')).open('w') as log, (output/(case+'.audit.stderr')).open('w') as err:
             audit = subprocess.run(audit_command, cwd=ROOT, stdout=log, stderr=err, check=False).returncode if code == 0 else None
         rows.append(dict(case=case, exit=code, audit_exit=audit, command=command, audit_command=audit_command))

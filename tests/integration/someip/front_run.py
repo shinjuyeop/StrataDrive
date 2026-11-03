@@ -45,8 +45,12 @@ def config(role,generation=1,three=False):
             if role=='central':services.append(0x5e00+2*z)
             elif role==peer:services.append(0x5e01+2*z)
         for i,(peer,_) in enumerate(sources):
-            if role=='central':services.append(0x5e11+2*i)
-            elif role==peer:services.append(0x5e10+2*i)
+            generations=range(2) if os.environ.get('STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART') else range(1)
+            for incarnation in generations:
+                if role!='central' and incarnation>=generation:continue
+                base=0x5e10 if incarnation==0 else 0x5e40
+                if role=='central':services.append(base+1+2*i)
+                elif role==peer:services.append(base+2*i)
         diagnostic_port=31610+('central','front','rear').index(role)
         c['services'] += [{'service':hex(s),'instance':'0x0001','reliable':{'port':diagnostic_port,'enable-magic-cookies':'false'}} for s in services]
         # Diagnostic TCP endpoints need2048; shared SDK local envelope must be
@@ -299,7 +303,7 @@ def inside(folder,binary,case):
             result['pass']=result['pass'] and result['native']['pass']
         if os.environ.get('STRATADRIVE_NATIVE_DIAGNOSTICS'):
             try:
-                result['diagnostics']={r:json.loads((folder/'native-diagnostics'/r/(r+'-1.json')).read_text()) for r in ('central','front','rear')}
+                result['diagnostics']={r:json.loads((folder/'native-diagnostics'/r/(r+('-2.json' if case=='restart-live' and r==target else '-1.json'))).read_text()) for r in ('central','front','rear')}
                 result['pass']=result['pass'] and all(r['pass'] for r in result['diagnostics'].values())
             except (OSError,ValueError,KeyError) as e:
                 result['pass']=False;result['diagnostic_error']=str(e)
@@ -331,9 +335,12 @@ def main():
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
     if a.fixed_layout and a.profile!='tsan':p.error('fixed-layout is TSan-only')
     if a.diagnostics:
-        if not a.three or any(c not in ('normal','command-loss') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss')
+        if not a.three or any(c not in ('normal','command-loss','restart-live') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss/restart-live')
         if not 0<=a.diagnostic_context_delay_ms<=1500:p.error('diagnostic context delay must be in0..1500ms')
         os.environ['STRATADRIVE_NATIVE_DIAGNOSTICS']='1';os.environ['STRATADRIVE_DIAGNOSTIC_CONTEXT_DELAY_MS']=str(a.diagnostic_context_delay_ms)
+        if 'restart-live' in a.cases:
+            if a.cases!=['restart-live'] or a.diagnostic_restart:p.error('process restart must be an isolated case')
+            os.environ['STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART']='1'
         if a.diagnostic_restart:os.environ['STRATADRIVE_DIAGNOSTIC_RESTART']=a.diagnostic_restart
         if a.diagnostic_drop_ack:os.environ['STRATADRIVE_DIAGNOSTIC_DROP_ACK']='1'
     elif a.diagnostic_drop_ack or a.diagnostic_context_delay_ms or a.diagnostic_restart:p.error('diagnostics required')
@@ -362,7 +369,7 @@ def main():
     rows=[]
     with pilot.open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
+        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_process_restart':'restart-live' in a.cases and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()

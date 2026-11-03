@@ -2,6 +2,7 @@
 #include "someip/diagnostic_channel.hpp"
 #include "someip/owner_message_binding.hpp"
 #include "remote_diagnostics_context.hpp"
+#include "producer_lifecycle.hpp"
 #include "startup_diagnostics.hpp"
 #include "native_diagnostics.hpp"
 #include "owner_diagnostics.hpp"
@@ -22,7 +23,8 @@ inline constexpr std::array<DiagnosticSource,9> diagnostic_sources{{
     {33,Ecu::Rear,diagnostics::Component::Power,true}}};
 inline constexpr std::uint64_t diagnostic_run=8001;
 inline constexpr diagnostic::Services context_services(unsigned z) {return {static_cast<std::uint16_t>(0x5e00+2*z),static_cast<std::uint16_t>(0x5e01+2*z)};}
-inline constexpr diagnostic::Services source_services(unsigned i) {return {static_cast<std::uint16_t>(0x5e10+2*i),static_cast<std::uint16_t>(0x5e11+2*i)};}
+inline constexpr std::uint64_t diagnostic_producer(unsigned slot) {return (static_cast<std::uint64_t>(slot/9)<<32)|diagnostic_sources[slot%9].producer;}
+inline constexpr diagnostic::Services source_services(unsigned i) {const auto base=i<9?0x5e10:0x5e40;return {static_cast<std::uint16_t>(base+2*(i%9)),static_cast<std::uint16_t>(base+1+2*(i%9))};}
 // Composition adapter for the existing native 3-ECU opt-in harness. Capture
 // methods run solely on the actual ECU owner; worker owns all store/SDK IO.
 class NativeDiagnosticRoutes {
@@ -50,14 +52,17 @@ private:
         std::unique_ptr<diagnostics::OwnerDiagnostics> owner;
         std::unique_ptr<diagnostics::NativeDiagnostics> native;
         std::uint32_t epoch{0};std::atomic<std::uint32_t> admitted{0};
-        Source(const DiagnosticSource&);
+        const std::uint64_t producer;const unsigned logical;const diagnostics::Component component;bool continuity_emitted{false};
+        Source(const DiagnosticSource&,std::uint64_t,bool reserve_continuity);
     };
     void bind(Source&,std::uint32_t,std::uint64_t,const remote::RunLeaseEvidence&,std::uint64_t);
     void original(Source&,unsigned,const std::optional<NativeObservation>&,std::optional<std::uint64_t>);
     void work();
     const Ecu ecu_;const std::filesystem::path folder_;const std::string tag_;
-    std::array<std::unique_ptr<Source>,9> sources_;
-    std::array<std::unique_ptr<diagnostic::Channel>,9> source_channels_;
+    unsigned slots_{9},generation_{1};std::uint64_t boot_ns_{0};
+    std::unique_ptr<diagnostics::ProducerLifecycle> lifecycle_;
+    std::array<std::unique_ptr<Source>,18> sources_;
+    std::array<std::unique_ptr<diagnostic::Channel>,18> source_channels_;
     std::array<std::unique_ptr<diagnostic::Channel>,2> context_channels_;
     diagnostics::EventQueue startup_queue_{diagnostic_run,7},central_queue_{diagnostic_run,8};
     diagnostics::StartupDiagnostics startup_{startup_queue_,{diagnostic_run,7,diagnostics::Domain::Monotonic,kDomain,1},diagnostics::Component::Coordinator,8,true};

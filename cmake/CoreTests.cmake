@@ -29,7 +29,7 @@ if(TARGET diagnostics_journal)
         LIBRARIES diagnostics_delivery)
     stratadrive_unit_test(diagnostics_delivery_process_test
         SOURCES tests/unit/diagnostics_delivery_process_test.cpp
-        LIBRARIES diagnostics_delivery)
+        LIBRARIES remote_diagnostics_context)
     target_compile_definitions(diagnostics_delivery_process_test PRIVATE STRATADRIVE_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
     stratadrive_unit_test(diagnostics_journal_test
         SOURCES tests/unit/diagnostics_journal_test.cpp
