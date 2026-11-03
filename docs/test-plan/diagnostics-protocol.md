@@ -490,3 +490,47 @@ Actual 값은 결정적 주입이며 실제 차량/plant 정지 측정은 아니
 일반 전체/ASan 영향 범위·독립 TSan 경계·정적 검사·Release 빌드는 별도 분모로 기록한다.
 실제3-ECU 서비스 owner/SDK quiesce·fresh global Epoch 후 물리 정지 취득 조합·원격 인가/운용,
 TBD-08·native4ms/Target·M9/학습자 수용은 OPEN이다.
+
+## Native3-ECU terminal 연속성 서비스 fixture
+
+Linux local service component를 실제 SOME/IP3.7.6 ECU/owner/plant 경로에 연결한다.
+`front_run.py --three --simple-vehicle --diagnostics --diagnostic-service --cases central-rejoin`
+전용 opt-in이다. 기존 native-watch4ms/RT 수용과 구분하며 control FIFO8·ACK/RunLease·
+18ms permission·10ms renewal·2500ms NormalStop·2000ms diagnostic drain 예산은 유지한다.
+
+- Central1을 실제 SIGKILL하고 생존 Front/Rear·SimpleVehicle을 유지한다. 기존100ms 물리 보호
+  기준과 원래9개 source/2개 context의 replay/ACK를 검사한다. 새 Central2의 Epoch2/실제8 ACK·
+  accepted credit 뒤 정상 운전·NormalStop/HV-off를 완료한다.
+- 별도 명시적 operator startup 요청으로 같은 Central process/SDK에서 Epoch3를 발급한다.
+  보호 ACK 후 EpochStore IO는 비실시간 작업에서 수행하고 기존 owner가 수신을 계속 처리한다.
+  실제8-role handshake·전 source accepted credit 뒤 다시 정상 운전·NormalStop/HV-off를
+  완료한다. 서비스 Review가 INIT/Epoch/actuator 권한을 발행하지 않는다.
+- Central이 명시적으로 보호를 요청한 뒤 Front13/Rear114/Central128의 실제 normal gate를
+  닫고 원래 보호 선택을 확인한다. 각 owner가 마지막 진단 capture 뒤 quiesce한다. Front/Rear
+  queue/pending/실제 ACK를 끝낸 후에만 Central collector를 quiesce한다. 원래2s drain을 넘기지 않는다.
+  SDK/제어 owner/plant는 보호 상태에서 Actual을 계속 생산한다. 진단 생산자의 재개는 허용하지 않는다.
+- 원래 source/replica/merged file의 lifetime flock을 비실시간 service writer(CPU15/SCHED_OTHER)가
+  인수한다. 실제 freeze report의 epoch/stream/producer/watermark/ACK/queue health를 검사하고,
+  고정9개 source와 exact replica 전체를 hold한다. 기존 merged는 Event-only로 보존하고 별도
+  registry4/store8900 service journal에 원형 prefix만 가져온다. 이전 저장소/suffix를 repair하지 않는다.
+- 최신 current_sample의 wheel/torque/pressure가 전 writer의 freeze보다 뒤에서 취득됐는지
+  확인한다. Service 준비에서 최대200ms 기다릴 수 있으나 evidence age30ms/skew20ms·정지 값은
+  그대로다. 이후 request window2s·연결당 packet readiness100ms·최대16 connection의 유한 fixture다.
+  Owner snapshot 시각을 현재로 가장하지 않고 서비스의 독립 monotonic now로 age를 재평가한다.
+- Private0700 storage/0600 Unix socket·SO_PEERCRED의 supervisor UID/PID·별도 boot capability를
+  쓴다. 실제 다른 PID·잘못된 capability·미명시 disposition·과거 Epoch·stale revision을 거절한다.
+  명시적 Review3의 proof9→Review10→Passed11 뒤 동일 요청은 같은 receipt, 다른 bytes는 Conflict다.
+  별도 Clear4/ID16만 같은 cut/Passed revision·새 정지 evidence를 재검사해 SD-5001 한 건을 해제한다.
+  다른 DTC와 원형 unknown history/count/generation은 보존한다. 전체 service journal 증분은 정확히4다.
+- 독립 감사는 PCAP의 owner CRC32C·CAN P05와 원래 Drive/Brake Actual의 값/취득 시각,
+  서비스 구간의 유한40000개 acquisition 기록에서 물리 producer의 동일 timestamp를 서비스5개 관측과 연결한다. 물리→CAN 양자화는 원래
+  resolution의 절반(.05Nm/.005rad/s/500Pa)만 허용하며 현재 stationary wheel/body는0이어야 한다.
+  실제3개 global Session·24 Release ACK·27 accepted credit·11 stream 전체 Data/ACK·원형 prefix,
+  source→collector freeze 순서·closed role mask·exact9 cuts·local 인가/duplicate/별도 clear를 감사한다.
+  변조17종을 각 정상 자료에서 모두 거절해야 한다.
+
+Normal/ASan·SDK TSan을 독립 실행하고 기존 native12개 Normal/ASan 및 TSan normal/drop-ack/
+Central rejoin3개를 회귀한다. 새 service/기존 campaign의 실패·timeout·강제 cleanup·raw PCAP·
+원본 persistent store와 artifact copy·당시 source/binary/config/tool hash를 모두 보존한다.
+Terminal service 뒤에는 ECU/SDK를 정상 종료한다. Service 후 정상운행 재개·일반 production
+service/RPC·다른 host/clock/반복 세대·TBD-08·native4ms/Target·M9/학습자 수용은 OPEN이다.

@@ -697,7 +697,7 @@ owner가 원본 global context/credit 뒤에 관측한 시각이다. `state_befo
 SD-5001은 `Kind::Fault`이며 transport/storage 무결성 실패인 `Kind::Gap`과 구분한다. 기존
 unmapped 규칙에 따라 clear를 막으면서 영속 전달은 계속한다. 원본 재생·새 INIT·새 source의
 정상만으로 이 marker나 이전 source의 고장에 Passed를 만들지 않는다. 연속인 생존 source의
-기존 recovery는 실제 새 Epoch와 원래 proof로만 처리한다. 로컬 연속성 서비스 심사는 아래 별도 경계를 따르며 native/원격 clear 연결은 후속이다.
+기존 recovery는 실제 새 Epoch와 원래 proof로만 처리한다. 로컬 심사와 한정된 terminal native 연결은 아래 별도 경계를 따르며 일반 원격 clear 운용은 후속이다.
 
 `CommittedReplay`는 이전 source의 검증된 committed prefix만 내보내는 별도 read-only API다.
 불완전 suffix가 있어도 frame/commit/semantic 검사를 통과한 prefix를 원래 ID/bytes/ordinal로
@@ -748,7 +748,7 @@ Private lifecycle9100은 generation2를 영속 발급한다. Global issuer는7�
 8→`(1<<32)|8`이며 trusted 경계는 Epoch2다. 새 observer 순번1의 SD-5001/monitor10/subject8은
 원래 boot 시각·previous/new generation·cause_unknown/unmapped를 기록한다. Central event queue의
 저장 전 손실은 증명할 수 없다. 손실 개수를 추정하지 않고, 새 실제 정상 운전/정지/HV-off와 완전한
-replay도 이 incident의 복구 proof나 clear 허가가 아니다. 원격/native clear 수용은 OPEN이며 로컬 서비스 심사는 아래 별도 계약을 따른다.
+replay도 이 incident의 복구 proof나 clear 허가가 아니다. 일반 원격/native clear 수용은 OPEN이며 아래 로컬 심사·terminal fixture와 구분한다.
 
 Fixture는9개의 생존 source stream8200–8208을 유지한다. 새 Central replica `source-*-2`, merged
 `merged-2`(store8002), context source `context-*-2`를 사전 provision한다. 이전 merged8000/9개
@@ -806,7 +806,7 @@ bytes는 idempotent이며 다른 bytes의 충돌·append 실패·용량 초과�
 이 API는 인증된 서비스 요청과 실제 최신 정지 상태를 받는 trusted writer-side component다.
 현재 시험은 주입 가능한 logical monotonic clock99의 실제8-participant 객체·accepted credit·원본
 source/replica와 별도 writer process의 SIGKILL4경계다. Linux 로컬 요청·인가·Actual adapter 연결은 아래 별도 계약을 따른다. 실제3-ECU의
-owner/SDK quiesce·물리 정지 조합·원격 서비스 운용/Target 연결은 후속이며, native 재합류만으로
+terminal owner/SDK quiesce·물리 정지는 아래 조합 계약을 따르고 일반 원격 운용/Target은 후속이다. Native 재합류만으로
 심사가 실행되지 않는다. [고정 recipe](../test-plan/diagnostics-protocol.md#연속성-로컬-서비스-심사-fixture)와
 [실행·한계](../test-plan/evidence/m9_continuity_review/README.md)를 따른다.
 
@@ -849,13 +849,56 @@ Capture 예외/저장 실패는 해당 service lifetime의 후속 동작을 닫�
 [Protocol](../test-plan/diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture),
 [근거·분모·초기 실패](../test-plan/evidence/m9_continuity_service/README.md)를 따른다.
 
+## 실제3-ECU terminal 서비스 연결
+
+Host native3-ECU opt-in 구성은 동일 Central process/SDK에서 Epoch2의 실제 NormalStop/HV-off 뒤
+별도 operator startup 요청으로 Epoch3를 연다. 실제8-role Release와9개 source accepted credit를
+다시 확보한다. Review/clear 요청이 Epoch·INIT를 발급하지 않는다. Source producer/sequence와
+physical model epoch는 유지한다. 새 source 세대를 임의로 만들지 않는다.
+
+EpochStore IO는 기존 session의 normal authority를 닫고 실제 Front/Rear 보호 ACK를 받은 뒤
+CPU15/SCHED_OTHER 작업에서 수행한다. 기존 owner는 수신/보호 처리를 계속하며 old owner graph는
+새 graph와 분리해 join 이후 폐기한다. 새 Epoch의 실제 handshake 전에는 정상 dispatch를 열지 않는다.
+기존 control FIFO8·10ms renewal/18ms support·NormalStop2500ms·diagnostic drain2000ms는 유지한다.
+
+Epoch3 정상 운전/NormalStop/HV-off 뒤 명시적 보호를 선택한다. Front13/Rear114/Central128의
+normal gate를 모두 닫고 마지막 진단 capture 뒤 `quiesce`한다. Front/Rear source의 queue/pending와
+실제 durable ACK를 먼저 끝내고 collector를 멈춘다. 이후 실제 journal lifetime flock을 서비스가
+인수해 같은9개 source/replica/merged cut을 심사/commit 동안 소유한다. SDK callback이 늦은 복사본을
+전달해도 journal writer를 재개하지 않는다. Source/collector/report의 health와 정확한 ordinal을 대조한다.
+
+Control owner/SDK/plant는 보호 상태에서 현재 Actual만 계속 제공한다. 서비스는 owner의 현재
+feedback/current_sample을 받아 자체 monotonic now로 age를 다시 평가한다. Wheel/drive/brake 취득은
+전 writer freeze 이후여야 하며 polling 시각으로 바꾸지 않는다. 준비 시 최대200ms 기다리지만
+기존 stationary/age30ms/skew20ms는 유지한다. 요청 window2s·packet readiness100ms·16 connection은
+이 terminal 서비스 fixture의 별도 유한 경계이며 control deadline을 연장하지 않는다.
+
+기존 Event-only merged와 source/replica bytes는 보존한다. Fresh registry4/store8900에 원형 prefix를
+가져오고 서비스 actor64를 사용한다. 고정 local peer/boot/Session/incident/revision 인가 뒤
+Review3의 proof9→Review10→Passed11과 별도 Clear4/ID16만 추가한다. 정확히4 entry가 증가한다.
+잘못된 PID/capability·미명시 disposition·old Epoch·stale revision·ID 충돌은 거절한다. Duplicate는
+원래 receipt이며 추가 commit이 아니다. Canonical SD-5001 한 건만 해제하며 다른 DTC와 immutable
+unknown history/count/generation은 보존한다. 전체 DTC 해소나 과거 loss-free 선언이 아니다.
+
+독립 감사는 실제3개 global Session·24 Release ACK·27 accepted credit·11 stream의 원형 Data/ACK,
+source→collector freeze 순서·closed role mask·exact9 cut·실제 local 인가와 별도 clear를 검사한다.
+PCAP의 owner CRC32C/CAN P05와 원래 Actual의 값·시각을 별도 physical acquisition 기록에 대조한다.
+단순화 차량 모델은 실제로 이동한 뒤 정지하며17개 변조를 거절한다. 기존10ms physical trace는
+유지하고 서비스 구간의 acquisition만 별도 유한40000 기록에 남긴다.
+[Recipe](../test-plan/diagnostics-protocol.md#native3-ecu-terminal-연속성-서비스-fixture),
+[실행·분모·실패](../test-plan/evidence/m9_native_service/README.md)를 따른다.
+
+이는 same-kernel2세대/one-shot terminal maintenance fixture다. Service 뒤 normal 운행을 재개하지
+않고 ECU/SDK를 종료한다. 실행 중인 native-watch4ms profile/Target, 일반 service/RPC·다른 host/clock·
+반복 세대·서비스 중 새 고장의 실제 거절 수용은 OPEN이다.
+
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
 원격 context admission 뒤 실제 native3-ECU의2개 context/9개 source stream도 기능 검증했다.
-Central/Front/Rear 재기동과 로컬 Linux 서비스 연결 뒤에는 실제3-ECU 서비스 owner/SDK
-quiesce·새 global Epoch와 물리 정지 취득 조합 및 미결정 고장 조합·원인 연결/복구를 검증한다.
+Central/Front/Rear 재기동과 terminal native 서비스 뒤에는 서비스 중 ACK/Actual 누락·정지 실패/
+시간초과에서의 실제 clear 거절 및 미결정 고장 조합·원인 연결/복구를 검증한다.
 Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
 실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.

@@ -45,11 +45,11 @@ def rear_oracle(folder,case,result):
             c=live['central'];f=live['front'];r=live['rear']
             require(c.get('release_ack_mask')==255 and c.get('armed_ns',0)>0,'missing real eight-participant release/arm')
             require(c.get('normal_stop_complete',0)>c.get('normal_stop_started',0)>c.get('armed_ns',0),'normal stop did not complete')
-            require(c.get('pre_shutdown_protection')==0 and c.get('pending_cancelled')==0 and c.get('pending_expired')==0,'normal command/protection failure')
+            require((c.get('pre_shutdown_protection',0)>=c['normal_stop_complete'] if result.get('service') else c.get('pre_shutdown_protection')==0) and c.get('pending_cancelled')==0 and c.get('pending_expired')==0,'normal command/protection failure')
             for role,s in [('front',f),('rear',r)]:
                 require(s.get('pre_shutdown_protection',0)>=c.get('protected_ns',0),'premature protection '+role)
             require(r.get('drive_applied',0)>=10,'missing actual Drive commands')
-            prefix='central-2' if case=='central-rejoin' else 'central-1-rejoined' if case=='restart-live' else 'central-1'
+            prefix=('central-2-service' if result.get('service') else 'central-2') if case=='central-rejoin' else 'central-1-rejoined' if case=='restart-live' else 'central-1'
             events=rows(prefix+'.events.csv')
             released={int(e['role']) for e in events if e['event']=='session-ack' and int(e['value'])==20}
             require(released==set(range(8)),'missing individual accepted Release ACKs')
@@ -61,7 +61,7 @@ def rear_oracle(folder,case,result):
             require(bool(final) and any(float(p['bus'])<=30 and abs(float(p['torque']))<=1 for p in final),'actual HV/torque not down after normal stop')
             if case=='central-rejoin':
                 require(result.get('survivor_pids_before')==result.get('survivor_pids_after') and len(result.get('survivor_pids_before',{}))==2,'surviving ECU restarted')
-                out['renewal']=renewal_oracle(folder,three=True,epoch=c['epoch'],central_prefix='central-2')
+                out['renewal']=renewal_oracle(folder,three=True,epoch=c['epoch'],central_prefix=prefix)
                 require(out['renewal']['pass'],'new Central epoch Leaf renewal: '+str(out['renewal']['errors']))
                 protected_actual=[p for p in physical if injection<=int(p['ns'])<=injection+100_000_000 and abs(float(p['torque']))<=1 and float(p['pressure'])>=100000]
                 require(bool(protected_actual),'original100ms response after Central crash missing')

@@ -57,7 +57,7 @@ CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
 | DDS 제어 gate CLOSED의 근거 | [DDS shutdown 후속](evidence/m5_dds_shutdown_followup/README.md) |
 
 Linux 로컬 서비스 요청/심사/별도 clear는 [연결 근거](evidence/m9_continuity_service/README.md)와
-[고정 recipe](diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture)를 따른다. 실제3-ECU 서비스 운용은 후속이다.
+[고정 recipe](diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture)를 따른다. [실제3-ECU terminal 서비스 조합](evidence/m9_native_service/README.md)은 별도 부분 검증이며 서비스 중 고장 거절/일반 운용은 후속이다.
 
 ## Evidence 보관 규칙
 

@@ -38,6 +38,8 @@ public:
     bool finish();
     void quiesce() noexcept {producing_=false;}
     bool finished() const noexcept {return finished_.load(std::memory_order_acquire);}
+    bool drained() const noexcept {return finished() && passed_;}
+    bool admitted(std::uint32_t epoch) const noexcept;
     void accepted_release(unsigned,std::uint32_t,std::uint64_t) noexcept;
     void central(const session::SessionCoordinator&,const central::VehicleCoordinator&,std::uint64_t);
     void zone(unsigned,const zone::AsyncZoneOwner&,bool gate,const remote::RunLeaseEvidence&,std::uint64_t);

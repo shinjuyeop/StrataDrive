@@ -14,6 +14,7 @@ import subprocess
 import sys
 import time
 import shutil
+import secrets
 import tempfile
 from datetime import datetime
 from sdk_outcomes import sdk_outcomes
@@ -74,6 +75,9 @@ def inside(folder,binary,case):
     peers={};peer_roles=('front','rear') if three else ('front',)
     result={'case':case,'three_ecu':three,'fault_target':target,'pass':False,'processes':[],'forced_cleanup':[],
             'energy_cycle':os.environ.get('STRATADRIVE_ENERGY_CYCLE'),'clock_sample':{'monotonic_ns':time.monotonic_ns(),'wall_ns':time.time_ns(),'utc_offset_s':datetime.now().astimezone().utcoffset().total_seconds()}}
+    service_profile=bool(os.environ.get('STRATADRIVE_DIAGNOSTIC_SERVICE'))
+    if service_profile:
+        os.environ.update(STRATADRIVE_SERVICE_PID=str(os.getpid()),STRATADRIVE_SERVICE_UID=str(os.getuid()),STRATADRIVE_SERVICE_CAPABILITY=secrets.token_hex(16))
     diagnostic_store=None
     if os.environ.get('STRATADRIVE_NATIVE_DIAGNOSTICS'):
         # Real persistent local filesystem, outside per-process private /tmp and
@@ -206,6 +210,9 @@ def inside(folder,binary,case):
                     result['central_rejoined']=True
                     result['survivor_pids_after']={r:p.pid for r,p in peers.items()}
                     snapshot('central',central)
+                    if service_profile:
+                        from native_service_client import run as run_service
+                        result['service']=run_service(folder,central)
                 elif case=='central-stop':
                     result['injected_crash']={'role':'central','generation':1,'pid':central.pid,'ns':time.monotonic_ns()}
                     central.kill();central.wait(timeout=2)
@@ -298,7 +305,7 @@ def inside(folder,binary,case):
         except (OSError,ValueError):result['pass']=False
         summaries={r['role']:r.get('summary',{}) for r in result['processes'] if not r.get('expected_abrupt_stop') and (case not in ('close-full','overflow') or r['generation']==1)}
         f=summaries.get('front',{});c=summaries.get('central',{})
-        if case in ('normal','late','invalid','restart-live','central-rejoin'):result['pass']=result['pass'] and c.get('pre_shutdown_protection')==0 and c.get('pending_cancelled')==0 and c.get('release_ack_mask')==255 and f.get('pre_shutdown_protection',0)>=c.get('protected_ns',0) and f.get('steering_applied',0)>=10 and f.get('brake_applied',0)>=10
+        if case in ('normal','late','invalid','restart-live','central-rejoin'):result['pass']=result['pass'] and (c.get('pre_shutdown_protection',0)>=c.get('normal_stop_complete',0)>0 if service_profile else c.get('pre_shutdown_protection')==0) and c.get('pending_cancelled')==0 and c.get('release_ack_mask')==255 and f.get('pre_shutdown_protection',0)>=c.get('protected_ns',0) and f.get('steering_applied',0)>=10 and f.get('brake_applied',0)>=10
         if case=='close-full':result['pass']=result['pass'] and result.get('sender_alive_after_front_close',False) and result.get('post_full_restart',False) and f.get('rx_highwater')==8 and f.get('unprocessed_rejected')==8 and f.get('selected_ns',0)>0 and c.get('diagnostic_sent',0)>0 and c.get('diagnostic_sent')==c.get('diagnostic_rejected',0)+c.get('diagnostic_expired',0)
         if case=='overflow':
             from native_oracle import overflow_counters_ok
@@ -311,7 +318,7 @@ def inside(folder,binary,case):
             result['pass']=result['pass'] and result['overflow_local_cause'] and result['no_prior_central_protection']
         if case=='invalid':result['pass']=result['pass'] and f.get('pre_init_rejected',0)>=9 and f.get('state_violations')==0 and c.get('diagnostic_rejected')==2
         if case=='restart-live':result['pass']=result['pass'] and result.get('surviving_central_rejoined',False) and c.get('epoch',0)>1 and c.get('release_ack_mask')==255 and c.get('diagnostic_rejected')==1 and result.get('survivor_pids_before')==result.get('survivor_pids_after')
-        if case=='central-rejoin':result['pass']=result['pass'] and result.get('central_rejoined',False) and c.get('epoch')==2 and result.get('survivor_pids_before')==result.get('survivor_pids_after')
+        if case=='central-rejoin':result['pass']=result['pass'] and result.get('central_rejoined',False) and c.get('epoch')==(3 if service_profile else 2) and result.get('survivor_pids_before')==result.get('survivor_pids_after')
         if case=='delay':result['pass']=result['pass'] and f.get('expired_rejected',0)>0
         if case=='model-delay':result['pass']=result['pass'] and any(r.get('expected_model_failure') for r in result['processes']) and f.get('pre_shutdown_protection',0)>0 and c.get('pre_shutdown_protection',0)>0
         if case=='central-stop':result['pass']=result['pass'] and f.get('pre_shutdown_protection',0)>0 and f.get('selected_ns',0)>0
@@ -351,11 +358,14 @@ def main():
     p.add_argument('--energy-cycle',choices=['nominal','no-charge']);p.add_argument('--simple-vehicle',action='store_true');p.add_argument('--three',action='store_true');p.add_argument('--fault-zone',choices=['front','rear'],default='front')
     p.add_argument('--native-watch',action='store_true');p.add_argument('--fifo',action='store_true');p.add_argument('--loaded',action='store_true');p.add_argument('--timing',action='store_true');p.add_argument('--duration-ms',type=int,default=2540)
     p.add_argument('--profile',choices=['normal','asan','tsan'],default='normal');p.add_argument('--fixed-layout',action='store_true')
-    p.add_argument('--diagnostics',action='store_true');p.add_argument('--diagnostic-drop-ack',action='store_true');p.add_argument('--diagnostic-context-delay-ms',type=int,default=0);p.add_argument('--diagnostic-restart',choices=['central','front','rear','all'])
+    p.add_argument('--diagnostic-service',action='store_true');p.add_argument('--diagnostics',action='store_true');p.add_argument('--diagnostic-drop-ack',action='store_true');p.add_argument('--diagnostic-context-delay-ms',type=int,default=0);p.add_argument('--diagnostic-restart',choices=['central','front','rear','all'])
     p.add_argument('--cases',nargs='+',choices=CASES,default=['normal']);p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
     if a.fixed_layout and a.profile!='tsan':p.error('fixed-layout is TSan-only')
     if 'central-rejoin' in a.cases and not a.diagnostics:p.error('central-rejoin requires the declared diagnostics fixture')
+    if a.diagnostic_service:
+        if not a.diagnostics or a.cases!=['central-rejoin'] or a.native_watch or not a.simple_vehicle:p.error('terminal service requires isolated diagnostics central-rejoin with simple-vehicle and without native-watch')
+        os.environ['STRATADRIVE_DIAGNOSTIC_SERVICE']='1'
     if a.diagnostics:
         if not a.three or any(c not in ('normal','command-loss','restart-live','central-rejoin') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss/restart-live')
         if not 0<=a.diagnostic_context_delay_ms<=1500:p.error('diagnostic context delay must be in0..1500ms')
@@ -392,7 +402,7 @@ def main():
     rows=[]
     with pilot.open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
+        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()

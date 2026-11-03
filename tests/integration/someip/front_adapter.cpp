@@ -8,7 +8,9 @@
 #include "epoch_store.hpp"
 #include "native_execution_watch.hpp"
 #include "native_diagnostic_routes.hpp"
+#include "native_continuity_service.hpp"
 #include <filesystem>
+#include <future>
 #include <iostream>
 #include <map>
 #include <set>
@@ -369,6 +371,9 @@ int plant(const fs::path& folder) {
     struct ResponseRow {std::uint64_t before,after;simulation::m4_detail::PhysicalOwner::ResponseSample sample;simulation::OwnerActuation drive,brake;};
     std::vector<ResponseRow> response;response.reserve(1024);bool response_done=false;
 
+    const bool service_physics=std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")!=nullptr;
+    struct ServicePhysical {std::uint64_t ns,wheel_source,drive_source,brake_source;double wheel,torque,pressure;};
+    std::vector<ServicePhysical> service_physical;if(service_physics)service_physical.reserve(40000);
     bool diagnostic_normal=false;PhysicalPrerequisite prerequisite(folder);
     try {while(!fs::exists(folder/"stop-plant") && now()-start<18'000*kMs) {
         if(watch)simulation::runtime_support::sleep_until(requested);
@@ -400,7 +405,14 @@ int plant(const fs::path& folder) {
                 (sample.source_ns>=injection && std::abs(sample.torque_nm)<=1 && sample.pressure_pa>=100000);
             if(injection && complete && (!response_enabled || !response_done)){mark(folder/"physical-protected");response_done=true;}
         }
-        io.update([&](PlantState& state){if(auto sample=sensors[0].read())state.sensors=*sample;});
+        io.update([&](PlantState& state){if(auto sample=sensors[0].read()){
+            state.sensors=*sample;
+            if(service_physics && fs::exists(folder/"service-stop-ready") && sample->drive.wheel_speed && sample->torque && sample->pressure){
+                check(service_physical.size()<service_physical.capacity(),"service physical acquisition capacity");
+                service_physical.push_back({sample->source_ns,sample->drive.wheel_speed->identity.source_time_ns,sample->torque->source_time_ns,sample->pressure->source_time_ns,
+                    sample->drive.wheel_speed->value,sample->torque->torque_nm,sample->pressure->pressure_pa});
+            }
+        }});
         iteration.finish();
         if(watch)requested=simulation::M4ReleaseGrid{start,500000}.after(now());
         else std::this_thread::sleep_for(std::chrono::microseconds(500));
@@ -409,6 +421,8 @@ int plant(const fs::path& folder) {
     if(watch)watch->write((folder/"plant-1.native").string());
     std::ofstream log(folder/"physical.csv");log<<"ns,epoch,angle,pressure,torque,bus,model_epoch,model_sequence,speed_mps,distance_m,x_m,y_m,yaw_rad,vehicle_balance_j\n";
     for(const auto& r:physical.trace)log<<r.source_ns<<','<<r.epoch<<','<<r.angle_rad<<','<<r.pressure_pa<<','<<r.torque_nm<<','<<r.bus_v<<','<<r.model_epoch<<','<<r.model_sequence<<','<<r.speed_mps<<','<<r.distance_m<<','<<r.x_m<<','<<r.y_m<<','<<r.yaw_rad<<','<<r.vehicle_balance_j<<'\n';
+    if(service_physics){std::ofstream samples(folder/"service-physical.csv");samples<<std::setprecision(17)<<"ns,wheel_source,drive_source,brake_source,wheel_rad_s,torque_nm,pressure_pa\n";
+        for(const auto& row:service_physical)samples<<row.ns<<','<<row.wheel_source<<','<<row.drive_source<<','<<row.brake_source<<','<<row.wheel<<','<<row.torque<<','<<row.pressure<<'\n';}
     if(physical.vehicle()) {
         std::ofstream e(folder/"energy.csv");e<<std::setprecision(17)<<"begin_ns,end_ns,input_ns,epoch,model_epoch,sequence,torque_nm,pressure_pa,wheel_speed_rad_s,kinetic_j,motor_work_j,friction_j,road_j,electrical_mechanical_j,motor_loss_j,battery_draw_j,received_dc_j,auxiliary_j,ohmic_j,capacitor_delta_j,circuit_loss_j,soc,vehicle_balance_j,coupling_balance_j,combined_balance_j\n";
         for(const auto& row:physical.energy_trace){const auto& v=row.state;e<<v.begin_ns<<','<<v.end_ns<<','<<v.input_ns<<','<<row.epoch<<','<<v.model_epoch<<','<<v.sequence<<','<<v.torque_nm<<','<<v.pressure_pa<<','<<v.wheel_speed_rad_s<<','<<v.kinetic_j<<','<<v.motor_work_j<<','<<v.friction_j<<','<<v.road_j<<','<<v.electrical_mechanical_j<<','<<v.motor_loss_j<<','<<v.battery_draw_j<<','<<v.received_dc_j<<','<<v.auxiliary_j<<','<<v.ohmic_j<<','<<v.capacitor_delta_j<<','<<v.circuit_loss_j<<','<<v.soc<<','<<v.vehicle_balance_j<<','<<v.coupling_balance_j<<','<<v.combined_balance_j<<'\n';}
@@ -442,8 +456,11 @@ int main(int argc,char** argv) {
     const Ecu ecu=role=="central"?Ecu::Central:role=="front"?Ecu::Front:Ecu::Rear;
     const bool remote=ecu!=Ecu::Central;const std::string test=argv[3],generation=argv[4],tag=role+"-"+generation;
     Transport net(ecu,three_enabled(),(folder/(tag+".sdk-api.csv")).string());
-    std::unique_ptr<Owners> owners;
+    std::unique_ptr<Owners> owners,retired_service_owner;
+    std::future<std::uint32_t> service_epoch;
     std::unique_ptr<someip::test::NativeDiagnosticRoutes> diagnostic_routes;
+    const bool service_profile=std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")!=nullptr;
+    std::unique_ptr<someip::test::NativeContinuityService> service;
     bool pass=false;std::string error;std::uint64_t begin=now(),ready_ns=0,closing=0;
     try {
         const bool fresh_central=!remote && test=="central-rejoin" && generation=="2";
@@ -453,6 +470,8 @@ int main(int argc,char** argv) {
             diagnostic_routes=std::make_unique<someip::test::NativeDiagnosticRoutes>(ecu,folder,tag);
             diagnostic_routes->start(net);
         } else net.start();
+        if(service_profile){check(diagnostic_routes && !native_enabled(),"terminal service profile requires diagnostics without native watch");
+            if(fresh_central)service=std::make_unique<someip::test::NativeContinuityService>(folder);}
         mark(folder/(tag+".started"));
         owners=std::make_unique<Owners>(ecu,net,folder,tag,diagnostic_routes.get());
         std::uint64_t probe_due=0;
@@ -479,6 +498,7 @@ int main(int argc,char** argv) {
             }
             if(fresh_central){net.end_quiescent_transition();owners->event("ingress-transition-end",7,issued_epoch);}
             if(!remote)owners->begin(issued_epoch);
+            bool service_mode=false,diagnostic_frozen=false,freeze_marked=false,service_started=false,service_startup_requested=false;
             bool injected=false,rejoined=false,invalid_sent=false,rejoin_requested=false;
             std::uint64_t injected_ns=0,paused_until=0,full_sent=0;bool overflow_probe=false;
             std::optional<transport::ZoneRequest> prior_request;
@@ -504,7 +524,23 @@ int main(int argc,char** argv) {
                 if(remote && test=="delay" && owners->remote_zone->expired>0)mark(folder/"delay-drained");
                 if(remote && full && net.queued(0)==8)mark(folder/"queue-full");
                 owners->step(fault_phase && test=="command-loss",fault_phase && test=="result-loss",fault_phase && test=="status-loss",fault_phase && test=="lease-loss");
-                owners->sample_diagnostics();
+                if(!diagnostic_frozen)owners->sample_diagnostics();
+                if(service_mode && !remote && service){
+                    owners->port.service();const auto observed=now();const auto& plan=owners->coordinator.plan();
+                    const diagnostics::Stamp clock{diagnostics::Domain::Monotonic,kDomain,observed,true,true};
+                    const diagnostics::Stamp enable{diagnostics::Domain::Monotonic,kDomain,plan.enable_ns,true,true};
+                    service->publish(diagnostics::capture_service_evidence({someip::test::diagnostic_run,64,diagnostics::Domain::Monotonic,kDomain,1},
+                        {someip::test::diagnostic_run,owners->epoch},enable,owners->port.feedback(),clock,owners->freeze_normal && !owners->gate.allows(owners->epoch) && owners->stop_complete));
+                }
+                if(service_profile && owners->epoch==3){
+                    bool closed=!owners->gate.allows(3);
+                    if(remote){closed=closed && owners->zone[owners->zi]->protected_selected();for(unsigned i=0;i<5;++i)if(owners->leaf[i])closed=closed && !owners->leaf_gates[i].allows(3) && owners->leaf[i]->protection_selected_ns().has_value();}
+                    const bool requested=remote?fs::exists(folder/"service-freeze"):fs::exists(folder/"service-collector-freeze");
+                    if(requested && closed && diagnostic_routes->admitted(3) && !diagnostic_frozen){owners->event("service-capture-stop",remote?owners->zi:7,remote?(owners->zi?114:13):128);diagnostic_routes->quiesce();diagnostic_frozen=true;}
+                    if(diagnostic_frozen && diagnostic_routes->finished() && !freeze_marked){check(diagnostic_routes->drained(),"terminal service diagnostic drain");mark(folder/(role+".service-frozen"));freeze_marked=true;}
+                    if(!remote && freeze_marked && !service_started){service->start();service_started=true;}
+                    if(!remote && service_started && service->done()){check(service->passed(),"native service review/clear failed");pass=true;break;}
+                }
                 if(!remote && full && owners->last_request && full_sent==0) {
                     owners->freeze_normal=true;
                     for(unsigned i=0;i<8;++i){auto r=*owners->last_request;r.epoch+=100;r.token=1000000000ULL+i;owners->diagnostic(r);}
@@ -550,7 +586,7 @@ int main(int argc,char** argv) {
                 if(!remote && owners->port.completed_batches()>=10 && owners->pending.empty() && (!three_enabled() || owners->observed_normal_response()))mark(folder/"control-established");
                 if(!remote && test=="central-rejoin" && generation=="2" && owners->armed_ns && owners->release_acks==255 && owners->port.completed_batches()>=10 && !rejoined){mark(folder/"central-2-rejoined");rejoined=true;}
                 const bool healthy_case=test=="normal" || test=="late" || test=="invalid" || (test=="restart-live" && rejoined) || (test=="central-rejoin" && generation=="2");
-                if(!remote && healthy_case && owners->armed_ns && now()-owners->armed_ns>=500*kMs && (!owners->watch || now()-ready_ns>=run_duration()) && (!energy_enabled() || now()-owners->armed_ns>=5000*kMs) && owners->pending.empty()) {
+                if(!remote && healthy_case && !service_mode && !service_startup_requested && owners->armed_ns && now()-owners->armed_ns>=500*kMs && (!owners->watch || now()-ready_ns>=run_duration()) && (!energy_enabled() || now()-owners->armed_ns>=5000*kMs) && owners->pending.empty()) {
                     check(owners->release_acks==255 && owners->port.completed_batches()>=10 && owners->accepted_results>=20 && owners->actual_count>=20,"normal real control coverage");
                     check(!owners->protected_ns && owners->core.decision().fault==central::CoordinatorFault::None,"normal control fault");
                     if(test=="invalid")check(invalid_sent && owners->diagnostic_rejected==2,"invalid replay evidence");
@@ -558,9 +594,27 @@ int main(int argc,char** argv) {
                     if(!three_enabled()){pass=true;break;}
                     if(!owners->stop_requested){owners->stop_requested=true;owners->stop_started=now();owners->event("normal-stop-requested",7);}
                 }
-                if(!remote && three_enabled() && owners->stop_complete && owners->pending.empty()) {pass=true;break;}
-                if(!remote && three_enabled() && owners->stop_started && now()-owners->stop_started>2500*kMs)throw std::runtime_error("normal stop completion missing");
-                if(!remote && owners->protected_ns && healthy_case)throw std::runtime_error("normal owner selected protection");
+                if(!remote && three_enabled() && owners->stop_complete && owners->pending.empty()) {
+                    if(service_profile && generation=="2"){
+                        if(owners->epoch==2){mark(folder/"service-epoch-ready");
+                            if(fs::exists(folder/"service-epoch-request") && !service_startup_requested){
+                                owners->event("service-new-startup-request",7);owners->freeze_normal=true;owners->fail("service-startup-protection");service_startup_requested=true;
+                            }
+                            if(service_startup_requested && owners->zones[0].protection.acknowledged(2) && owners->zones[1].protection.acknowledged(2) && !service_epoch.valid()){
+                                owners->event("epoch-store-begin",7);const auto path=(folder/"epochs").string();
+                                service_epoch=std::async(std::launch::async,[path]{simulation::NativeExecutionWatch::configure_thread(15,0);return session::EpochStore(path).issue();});
+                            }
+                            if(service_epoch.valid() && service_epoch.wait_for(std::chrono::seconds(0))==std::future_status::ready){
+                                const auto fresh_epoch=service_epoch.get();owners->event("epoch-store-return",7,fresh_epoch);check(fresh_epoch==3,"service explicit epoch3");
+                                net.begin_quiescent_transition();iteration.finish();retired_service_owner=std::move(owners);
+                                owners=std::make_unique<Owners>(Ecu::Central,net,folder,tag+"-service",diagnostic_routes.get());
+                                net.end_quiescent_transition();owners->event("ingress-transition-end",7,fresh_epoch);owners->begin(fresh_epoch);service_startup_requested=false;
+                            }
+                        }else if(!service_mode){owners->freeze_normal=true;owners->fail("service-entry");service_mode=true;mark(folder/"service-stop-ready");}
+                    }else {pass=true;break;}
+                }
+                if(!remote && three_enabled() && owners->stop_started && !owners->stop_complete && now()-owners->stop_started>2500*kMs)throw std::runtime_error("normal stop completion missing");
+                if(!remote && owners->protected_ns && healthy_case && !service_mode && !service_startup_requested)throw std::runtime_error("normal owner selected protection");
                 if(!remote && owners->coordinator.state()==session::State::Failed && !owners->armed_ns)throw std::runtime_error("session failed before arm");
                 if(remote && owners->selected_ns)mark(folder/(role+"-protected"));
                 if(!remote && test=="close-full" && injected && t-injected_ns>=250*kMs){pass=owners->protected_ns && owners->diagnostic_pending.empty();break;}

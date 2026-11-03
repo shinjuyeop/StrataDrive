@@ -28,16 +28,19 @@ def load(root):
         for method in (0x10, 0x20, 0x40, 0x50, 0x60, 0x70, 0x80): bindings[(sid, method)] = clients[sender]
     messages, syns = pcap(root/'traffic.pcap', (*range(30501, 30509), 31610, 31611, 31612), tuple(IPS.values()), bindings)
     tags = [('central', 'central-1'), ('central', 'central-2'), ('front', 'front-1'), ('rear', 'rear-1')]
+    release_rows=[csv_rows(central/(tag+'.release.csv')) for tag in ('central-1','central-2')]
+    if json.loads((root.parent/'plan.json').read_text()).get('diagnostic_service'):release_rows=[release_rows[0],*[ [r for r in release_rows[1] if int(r['epoch'])==e] for e in (2,3)]]
     return dict(result=json.loads((root/'result.json').read_text()), plan=json.loads((root.parent/'plan.json').read_text()), streams=streams,
                 merged=journal(central/'merged-2', bytes), old=prefix(central/'merged', True), records=csv_rows(central/'records.csv'),
-                history=csv_rows(central/'central-2.history.csv'), releases=[csv_rows(central/(tag+'.release.csv')) for tag in ('central-1', 'central-2')],
+                history=csv_rows(central/'central-2.history.csv'), releases=release_rows,
                 delivery=csv_rows(central/'central-2.delivery.csv'), credits=[row for r in ('front', 'rear') for row in csv_rows(home/r/(r+'-1.credits.csv'))],
                 metadata=json.loads((central/'central-2.producer.json').read_text()), lifecycle={r: journal(home/r/'producer-lifecycle', bytes) for r in ROLES},
                 placements=[json.loads((home/r/(tag+'.writer.json')).read_text()) for r, tag in tags],
                 physical=csv_rows(root/'physical.csv'), messages=messages, syns=syns, injection=int((root/'inject').read_text()))
 
 
-def judge(d):
+def judge(d, service=False):
+    epochs=(1,2,3) if service else (1,2)
     r = d['result']; streams = d['streams']; crash = r['injected_crash']
     require(r['pass'] and r['rear']['pass'] and not r['forced_cleanup'] and not r['sanitizer_diagnostics'] and not r['sdk_errors'], 'original runtime/physical verdict')
     require(d['plan']['diagnostic_central_restart'] and r['case'] == 'central-rejoin' and crash['role'] == 'central', 'explicit Central process restart')
@@ -48,7 +51,7 @@ def judge(d):
     merged = [event(raw) for raw in d['merged']]; ids = [e['_id'] for e in merged]
     require(len(set(ids)) == len(ids), 'unique merged identities')
     sessions = {e['epoch']: (raw, e) for raw, e in zip(d['merged'], merged) if e['kind'] == 6}
-    require(set(sessions) == {1, 2} and sum(e['kind'] == 6 for e in merged) == 2, 'two original global Sessions')
+    require(set(sessions) == set(epochs) and sum(e['kind'] == 6 for e in merged) == len(epochs), 'two original global Sessions')
     for epoch, releases in enumerate(d['releases'], 1):
         raw, e = sessions[epoch]
         require(e['_id'][:2] == (8001, 7 if epoch == 1 else SUCCESSOR) and e['source_producer'] == e['_id'][1] and e['received_roles'] == 255 and int.from_bytes(raw[-34:-30], 'little') == 255, 'explicit issuer lineage and complete global masks')
@@ -60,7 +63,7 @@ def judge(d):
         require(rows == s['replica']['rows'] and rows and s['source']['stream'] == s['replica']['stream'] == sid and s['source']['registry'] == s['replica']['registry'] == 3, 'fresh exact replica and canonical manifest')
         require(s['old']['rows'] and rows[:len(s['old']['rows'])] == s['old']['rows'], 'old committed prefix retained unmodified')
         require(rows[0] == sessions[1][0] and sessions[2][0] in rows, 'original contexts precede actual epoch events')
-        if sid < 8200: require(rows == [sessions[i][0] for i in (1, 2)], 'fresh context source imports old ordinal before new Session')
+        if sid < 8200: require(rows == [sessions[i][0] for i in epochs], 'fresh context source imports old ordinal before new Session')
         else:
             own = [event(raw) for raw in rows if event(raw)['kind'] != 6]
             require(all(e['_id'][1] == SOURCES[sid-8200][0] for e in own) and [e['event_sequence'] for e in own] == list(range(1, len(own)+1)), 'surviving source producer and sequence unchanged')
@@ -88,7 +91,7 @@ def judge(d):
     all_rows = {(sid, i+1) for sid, s in streams.items() for i in range(len(s['source']['rows']))}
     require(data_seen == ack_seen == all_rows and fresh_acks == {p for p in all_rows if p[0] >= 8200}, 'every surviving source ordinal replayed and ACKed by new SDK client')
     require({int(a['stream']) for a in d['delivery'] if a['action'] == 'replica-commit' and a['ordinal'] == '1'} == set(range(8200, 8209)), 'fresh collector starts every replica at original ordinal1')
-    require(len(d['credits']) == 18, 'two actual credits for every surviving source')
+    require(len(d['credits']) == 9*len(epochs), 'two actual credits for every surviving source')
     for row in d['credits']:
         role = next(s[2] for s in SOURCES if s[0] == int(row['producer']))
         values = tuple(int(row[k]) for k in ('epoch', 'requested_ns', 'prepare_deadline_ns', 'enable_ns', 'commit_deadline_ns', 'lease_sequence', 'source_ns', 'expiry_ns'))
@@ -104,7 +107,7 @@ def judge(d):
     require(all(a['cleared'] == '0' for a in d['records']) and any(int(a['code']) == 0x5001 for a in d['records']), 'successful rejoin/replay cannot clear continuity DTC')
     require(not any(e['_id'][1] == OBSERVER and e['code'] == 0x5001 and e['kind'] != 1 for e in merged), 'no automatic Passed or recovery for unknown loss')
     require(any(d['injection'] <= int(p['ns']) <= d['injection']+100_000_000 and abs(float(p['torque'])) <= 1 and float(p['pressure']) >= 100000 for p in d['physical']), 'original100ms physical protection')
-    require(all(e['_run'] == 8001 and e['_profile'] == 1 and e['epoch'] in (1, 2) for e in merged), 'original run/profile/epochs')
+    require(all(e['_run'] == 8001 and e['_profile'] == 1 and e['epoch'] in epochs for e in merged), 'original run/profile/epochs')
     return dict(pass_=True, active_streams=len(streams), merged_events=len(merged), original_credits=len(d['credits']), gaps=len(gaps), tcp_messages=len(d['messages']), connections=d['syns'])
 
 

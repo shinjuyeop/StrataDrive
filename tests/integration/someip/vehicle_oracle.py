@@ -18,10 +18,10 @@ def vehicle_oracle(folder,case):
         if not all(int(b['model_sequence'])>int(a['model_sequence']) for a,b in zip(rows,rows[1:])):raise ValueError('physical sequence reset/regressed')
         if max(v[0] for v in values)<=.01 or values[-1][1]<=.001:raise ValueError('no actual vehicle motion')
         if max(abs(v[5]) for v in values)>1e-5:raise ValueError('vehicle work/kinetic energy residual')
-        c=json.loads((folder/'central-1.json').read_text())
+        c=json.loads((folder/('central-2.json' if case=='central-rejoin' else 'central-1.json')).read_text())
         if c.get('max_validated_wheel_speed',0)<=.01 or c.get('wheel_speed_samples',0)<10:raise ValueError('no validated remote wheel-speed feedback')
-        if case in ('normal','restart-live'):
-            path=folder/'central-1.json'
+        if case in ('normal','restart-live','central-rejoin'):
+            path=folder/('central-2.json' if case=='central-rejoin' else 'central-1.json')
             c=json.loads(path.read_text())
             final=[v for r,v in zip(rows,values) if int(r['ns'])>=c['normal_stop_complete']]
             if not final or max(v[0] for v in final)>.15:raise ValueError('normal stop without actual low speed')

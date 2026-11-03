@@ -1,0 +1,930 @@
+{
+  "scope": "Same-kernel two-generation terminal three-ECU service with actual SimpleVehicle, explicit Epoch3, real source/collector quiesce and independent current physical sources. Latest Normal/ASan PASS; latest TSan Allocation precondition FAIL before service, no entries or clears. Previous successful TSan cohorts retained separately. General online service/RPC/repeated generations/TBD08/native4ms/Target/M9/learner acceptance OPEN",
+  "core": {
+    "passed": 1223,
+    "total": 1223,
+    "failed": []
+  },
+  "wall": {
+    "passed": 9,
+    "total": 9,
+    "failed": []
+  },
+  "asan_component": {
+    "passed": 17,
+    "total": 17,
+    "failed": []
+  },
+  "python_tests": 24,
+  "fingerprint_tests": 2,
+  "static": {
+    "commands": [
+      {
+        "command": [
+          "cppcheck",
+          "--enable=warning,style,performance,portability",
+          "--inline-suppr",
+          "--suppress=missingIncludeSystem",
+          "--std=c++20",
+          "--template={file}:{line}:{severity}:{id}:{message}",
+          "--project=build/m9-native-service/compile_commands.baseline.json"
+        ],
+        "exit": 0
+      },
+      {
+        "command": [
+          "cppcheck",
+          "--enable=warning,style,performance,portability",
+          "--inline-suppr",
+          "--suppress=missingIncludeSystem",
+          "--std=c++20",
+          "--template={file}:{line}:{severity}:{id}:{message}",
+          "--project=build/m9-native-service/compile_commands.cppcheck.json"
+        ],
+        "exit": 0
+      },
+      {
+        "command": [
+          "clang-tidy",
+          "tests/integration/someip/native_continuity_service.cpp",
+          "-p",
+          "build/m5-someip-normal/project",
+          "--extra-arg=-nostdinc++",
+          "--extra-arg=-isystem/usr/include/c++/11",
+          "--extra-arg=-isystem/usr/include/x86_64-linux-gnu/c++/11",
+          "--extra-arg=-isystem/usr/include/c++/11/backward",
+          "--warnings-as-errors=*"
+        ],
+        "exit": 0
+      },
+      {
+        "command": [
+          "clang-tidy",
+          "tests/integration/someip/native_diagnostic_routes.cpp",
+          "-p",
+          "build/m5-someip-normal/project",
+          "--extra-arg=-nostdinc++",
+          "--extra-arg=-isystem/usr/include/c++/11",
+          "--extra-arg=-isystem/usr/include/x86_64-linux-gnu/c++/11",
+          "--extra-arg=-isystem/usr/include/c++/11/backward",
+          "--warnings-as-errors=*"
+        ],
+        "exit": 0
+      },
+      {
+        "command": [
+          "clang-tidy",
+          "tests/integration/someip/front_adapter.cpp",
+          "-p",
+          "build/m5-someip-normal/project",
+          "--extra-arg=-nostdinc++",
+          "--extra-arg=-isystem/usr/include/c++/11",
+          "--extra-arg=-isystem/usr/include/x86_64-linux-gnu/c++/11",
+          "--extra-arg=-isystem/usr/include/c++/11/backward",
+          "--warnings-as-errors=*"
+        ],
+        "exit": 0
+      }
+    ],
+    "baseline_diagnostics": [
+      [
+        "front_adapter.cpp",
+        "style",
+        "constParameter",
+        "Parameter 'argv' can be declared with const"
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "shadowVariable",
+        "Local variable 'issued_epoch' shadows outer variable"
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::accumulate algorithm instead of a raw loop."
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "variableScope",
+        "The scope of the variable 'delayed' can be reduced."
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "variableScope",
+        "The scope of the variable 'diagnostic_normal' can be reduced."
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "variableScope",
+        "The scope of the variable 'response_done' can be reduced."
+      ],
+      [
+        "m4_faults.hpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::any_of, std::all_of, std::none_of, or std::accumulate algorithm instead of a raw loop."
+      ],
+      [
+        "native_diagnostic_routes.cpp",
+        "style",
+        "knownConditionTrueFalse",
+        "Condition 'requested' is always true"
+      ],
+      [
+        "native_diagnostic_routes.cpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::accumulate algorithm instead of a raw loop."
+      ],
+      [
+        "native_diagnostic_routes.cpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::transform algorithm instead of a raw loop."
+      ],
+      [
+        "native_execution_watch.hpp",
+        "style",
+        "constVariable",
+        "Variable 's' can be declared with const"
+      ],
+      [
+        "owner_transport.hpp",
+        "style",
+        "shadowVariable",
+        "Local variable 'p' shadows outer variable"
+      ],
+      [
+        "remote_zone_endpoint.hpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::find_if algorithm instead of a raw loop."
+      ],
+      [
+        "session_loop.hpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::any_of algorithm instead of a raw loop."
+      ]
+    ],
+    "current_diagnostics": [
+      [
+        "front_adapter.cpp",
+        "style",
+        "constParameter",
+        "Parameter 'argv' can be declared with const"
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "shadowVariable",
+        "Local variable 'issued_epoch' shadows outer variable"
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::accumulate algorithm instead of a raw loop."
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "variableScope",
+        "The scope of the variable 'delayed' can be reduced."
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "variableScope",
+        "The scope of the variable 'diagnostic_normal' can be reduced."
+      ],
+      [
+        "front_adapter.cpp",
+        "style",
+        "variableScope",
+        "The scope of the variable 'response_done' can be reduced."
+      ],
+      [
+        "m4_faults.hpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::any_of, std::all_of, std::none_of, or std::accumulate algorithm instead of a raw loop."
+      ],
+      [
+        "native_diagnostic_routes.cpp",
+        "style",
+        "knownConditionTrueFalse",
+        "Condition 'requested' is always true"
+      ],
+      [
+        "native_diagnostic_routes.cpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::accumulate algorithm instead of a raw loop."
+      ],
+      [
+        "native_diagnostic_routes.cpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::transform algorithm instead of a raw loop."
+      ],
+      [
+        "native_execution_watch.hpp",
+        "style",
+        "constVariable",
+        "Variable 's' can be declared with const"
+      ],
+      [
+        "owner_transport.hpp",
+        "style",
+        "shadowVariable",
+        "Local variable 'p' shadows outer variable"
+      ],
+      [
+        "remote_zone_endpoint.hpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::find_if algorithm instead of a raw loop."
+      ],
+      [
+        "session_loop.hpp",
+        "style",
+        "useStlAlgorithm",
+        "Consider using std::any_of algorithm instead of a raw loop."
+      ]
+    ],
+    "new_diagnostics": []
+  },
+  "release_sdk_opt_in_build_testing_off": "PASS",
+  "failure": {
+    "stage": "Epoch2 NormalStop before explicit service Epoch3 startup",
+    "error": "RuntimeError: Central exited before service startup request",
+    "coordinator_fault": 5,
+    "coordinator_fault_name": "Allocation",
+    "normal_stop_started": 730158300094743,
+    "normal_stop_complete": 0,
+    "epoch": 2,
+    "release_ack_mask": 255,
+    "max_owner_poll_gap_ns": 1685421,
+    "rx_overflow_ns": 0,
+    "tx_overflow_ns": 0,
+    "sanitizer_diagnostics": false,
+    "sdk_errors": false,
+    "service_entries": 0,
+    "service_ready": false,
+    "all_dtcs_uncleared": true,
+    "interpretation": "Root cause not established. Actual FAIL retained, not a passed service qualification; no retry or budget change. Earlier TSan feature path passed in separate source cohorts. The failed precondition did not open service or clear a DTC."
+  },
+  "prior_evidence": {
+    "m9_central_restart": 87,
+    "m9_continuity_review": 103,
+    "m9_continuity_service": 128,
+    "m9_control_hooks": 153,
+    "m9_delivery_restart": 79,
+    "m9_delivery_spool": 306,
+    "m9_diagnostics_component": 43,
+    "m9_native_causes": 183,
+    "m9_native_routing": 157,
+    "m9_native_vehicle": 186,
+    "m9_owner_sources": 203,
+    "m9_producer_adoption": 102,
+    "m9_remote_context": 130,
+    "m9_someip_live": 654,
+    "m9_speed_recovery": 135,
+    "m9_startup_sources": 217
+  },
+  "service_complete": {
+    "normal": {
+      "archive": "complete-normal.tar.gz",
+      "exit": 0,
+      "audit_exit": 0,
+      "report": {
+        "pass_": true,
+        "active_streams": 11,
+        "merged_events": 70,
+        "original_credits": 27,
+        "gaps": 1,
+        "tcp_messages": 12819,
+        "connections": 30,
+        "service_transactions": 4,
+        "physical_samples": 5,
+        "source_cuts": 9,
+        "admission_requests": 9,
+        "mutations_rejected": 17
+      },
+      "binary_sha256": "7fa3507e1800ba1021e093e3b5984f6e474d46c21ac2379cbbbbc8469724aa6d"
+    },
+    "asan": {
+      "archive": "complete-asan.tar.gz",
+      "exit": 0,
+      "audit_exit": 0,
+      "report": {
+        "pass_": true,
+        "active_streams": 11,
+        "merged_events": 70,
+        "original_credits": 27,
+        "gaps": 1,
+        "tcp_messages": 12962,
+        "connections": 44,
+        "service_transactions": 4,
+        "physical_samples": 5,
+        "source_cuts": 9,
+        "admission_requests": 9,
+        "mutations_rejected": 17
+      },
+      "binary_sha256": "e328880497fdf8298f98c83de5014329bb112a218fc8decb5c0a014f674ca8cd"
+    },
+    "tsan": {
+      "archive": "complete-tsan.tar.gz",
+      "exit": 1,
+      "audit_exit": null,
+      "report": null,
+      "binary_sha256": "579bf4c4d11ddf289cd236b619e5e6e3fb9bff2ccea46370c8c918ae36c38dcc"
+    }
+  },
+  "previous_service": {
+    "verified": {
+      "normal": {
+        "archive": "verified-normal.tar.gz",
+        "exit": 0,
+        "audit_exit": 0,
+        "report": {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 70,
+          "original_credits": 27,
+          "gaps": 1,
+          "tcp_messages": 12643,
+          "connections": 30,
+          "service_transactions": 4,
+          "physical_samples": 5,
+          "source_cuts": 9,
+          "admission_requests": 9,
+          "mutations_rejected": 17
+        },
+        "binary_sha256": "2bb8309590a7276e8513bcf2a37b42544d92543826743cc225ffb5789637b30e"
+      },
+      "asan": {
+        "archive": "verified-asan.tar.gz",
+        "exit": 0,
+        "audit_exit": 0,
+        "report": {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 70,
+          "original_credits": 27,
+          "gaps": 1,
+          "tcp_messages": 12613,
+          "connections": 37,
+          "service_transactions": 4,
+          "physical_samples": 5,
+          "source_cuts": 9,
+          "admission_requests": 9,
+          "mutations_rejected": 17
+        },
+        "binary_sha256": "a51cde2906c7f4b7b19f67e76958cb4f077c280a1ab017dbd1ce121afc38fbcf"
+      },
+      "tsan": {
+        "archive": "verified-tsan.tar.gz",
+        "exit": 0,
+        "audit_exit": 0,
+        "report": {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 63,
+          "original_credits": 27,
+          "gaps": 1,
+          "tcp_messages": 12733,
+          "connections": 38,
+          "service_transactions": 4,
+          "physical_samples": 5,
+          "source_cuts": 9,
+          "admission_requests": 9,
+          "mutations_rejected": 17
+        },
+        "binary_sha256": "818d1979958a09dc9b86d0d1d687f034b5abf374e52bc3d32caa7e11b9b52896"
+      }
+    },
+    "accepted": {
+      "normal": {
+        "archive": "accepted-normal.tar.gz",
+        "exit": 0,
+        "audit_exit": 0,
+        "report": {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 70,
+          "original_credits": 27,
+          "gaps": 1,
+          "tcp_messages": 12679,
+          "connections": 30,
+          "service_transactions": 4,
+          "physical_samples": 5,
+          "source_cuts": 9,
+          "admission_requests": 9,
+          "mutations_rejected": 17
+        },
+        "binary_sha256": "3e45e59c40c9fe94990d5b7637253d10681438ab35d2e9f3a5122acc358d120e"
+      },
+      "asan": {
+        "archive": "accepted-asan.tar.gz",
+        "exit": 0,
+        "audit_exit": 0,
+        "report": {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 70,
+          "original_credits": 27,
+          "gaps": 1,
+          "tcp_messages": 12565,
+          "connections": 31,
+          "service_transactions": 4,
+          "physical_samples": 5,
+          "source_cuts": 9,
+          "admission_requests": 9,
+          "mutations_rejected": 17
+        },
+        "binary_sha256": "97daa689bd3107b8891cfc110248d3b553fa1c4125e0cfa84e5ff5ffc8c9b891"
+      },
+      "tsan": {
+        "archive": "accepted-tsan.tar.gz",
+        "exit": 0,
+        "audit_exit": 0,
+        "report": {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 63,
+          "original_credits": 27,
+          "gaps": 1,
+          "tcp_messages": 12716,
+          "connections": 38,
+          "service_transactions": 4,
+          "physical_samples": 5,
+          "source_cuts": 9,
+          "admission_requests": 9,
+          "mutations_rejected": 17
+        },
+        "binary_sha256": "9ce88efb5a45e0d59e95879394c12fd14e7d8c127331b759354413b3dcfa082a"
+      }
+    }
+  },
+  "regression": {
+    "normal": {
+      "archive": "regression-normal.tar.gz",
+      "passed": 12,
+      "total": 12,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4523,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1959,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "front-loss"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 1940,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "rear-loss"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1942,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2126,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "context-delay"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1944,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "source-restart"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 2007,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "rear-restart"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1965,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "collector-restart"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1996,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "both-restart"
+        },
+        {
+          "pass_": true,
+          "active_streams": 15,
+          "original_credits": 18,
+          "gaps": 4,
+          "merged_events": 37,
+          "tcp_messages": 6546,
+          "connections": 21,
+          "mutations_rejected": 9,
+          "case": "front-process-rejoin"
+        },
+        {
+          "pass_": true,
+          "active_streams": 16,
+          "original_credits": 18,
+          "gaps": 5,
+          "merged_events": 36,
+          "tcp_messages": 6584,
+          "connections": 21,
+          "mutations_rejected": 9,
+          "case": "rear-process-rejoin"
+        },
+        {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 45,
+          "original_credits": 18,
+          "gaps": 1,
+          "tcp_messages": 6820,
+          "connections": 30,
+          "mutations_rejected": 12,
+          "case": "central-process-rejoin"
+        }
+      ]
+    },
+    "asan": {
+      "archive": "regression-asan.tar.gz",
+      "passed": 12,
+      "total": 12,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 19,
+          "dtc": 0,
+          "tcp_messages": 4531,
+          "connections": 13,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1972,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "front-loss"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 23,
+          "dtc": 4,
+          "tcp_messages": 1985,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "rear-loss"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1988,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2133,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "context-delay"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1963,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "source-restart"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 22,
+          "dtc": 3,
+          "tcp_messages": 1984,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "rear-restart"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1986,
+          "connections": 15,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "collector-restart"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 2020,
+          "connections": 14,
+          "original_credits": 9,
+          "mutations_rejected": 10,
+          "case": "both-restart"
+        },
+        {
+          "pass_": true,
+          "active_streams": 15,
+          "original_credits": 18,
+          "gaps": 4,
+          "merged_events": 37,
+          "tcp_messages": 6550,
+          "connections": 24,
+          "mutations_rejected": 9,
+          "case": "front-process-rejoin"
+        },
+        {
+          "pass_": true,
+          "active_streams": 16,
+          "original_credits": 18,
+          "gaps": 5,
+          "merged_events": 36,
+          "tcp_messages": 6599,
+          "connections": 32,
+          "mutations_rejected": 9,
+          "case": "rear-process-rejoin"
+        },
+        {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 45,
+          "original_credits": 18,
+          "gaps": 1,
+          "tcp_messages": 6775,
+          "connections": 39,
+          "mutations_rejected": 12,
+          "case": "central-process-rejoin"
+        }
+      ]
+    },
+    "tsan": {
+      "archive": "regression-tsan.tar.gz",
+      "passed": 3,
+      "total": 3,
+      "reports": [
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 20,
+          "dtc": 0,
+          "tcp_messages": 4572,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 5,
+          "case": "normal"
+        },
+        {
+          "pass_": true,
+          "streams": 11,
+          "merged_events": 17,
+          "dtc": 2,
+          "tcp_messages": 1986,
+          "connections": 12,
+          "original_credits": 9,
+          "mutations_rejected": 8,
+          "case": "drop-ack"
+        },
+        {
+          "pass_": true,
+          "active_streams": 11,
+          "merged_events": 46,
+          "original_credits": 18,
+          "gaps": 1,
+          "tcp_messages": 6795,
+          "connections": 32,
+          "mutations_rejected": 12,
+          "case": "central-process-rejoin"
+        }
+      ]
+    }
+  },
+  "mutations_rejected": 375,
+  "source_variants": {
+    "tests/integration/someip/front_adapter.cpp:3d1a67fecdca796ae3cd1c46b01813d471db47de779ad954b187959fdaa3f32b": {
+      "archive": "before-style-fix.tar.gz",
+      "reason": "Service-only std algorithm and/or local bool declaration scope; current final cohort rebuilt and affected service path revalidated. Prior regression/code/binary inventory retained."
+    },
+    "tests/integration/someip/native_diagnostic_routes.cpp:269bd5f1b856298a52546d7044f62c1fc534fdde161da1b52b13136393799504": {
+      "archive": "before-style-fix.tar.gz",
+      "reason": "Service-only std algorithm and/or local bool declaration scope; current final cohort rebuilt and affected service path revalidated. Prior regression/code/binary inventory retained."
+    },
+    "tests/integration/someip/front_adapter.cpp:58e735c495c68a5531babe8710382c51878781a178af02f895bcfe6f2105098d": {
+      "archive": "before-last-scope-fix.tar.gz",
+      "reason": "Service-only std algorithm and/or local bool declaration scope; current final cohort rebuilt and affected service path revalidated. Prior regression/code/binary inventory retained."
+    }
+  },
+  "initial_service_attempts": [
+    {
+      "mode": "normal",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-native-service/final-normal",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "normal"
+      ],
+      "exit": 0,
+      "audit_command": [
+        "/usr/bin/python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service.py",
+        "build/m9-native-service/final-normal/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 1
+    },
+    {
+      "mode": "asan",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-native-service/final-asan",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "asan"
+      ],
+      "exit": 1,
+      "audit_command": [
+        "/usr/bin/python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service.py",
+        "build/m9-native-service/final-asan/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": null
+    },
+    {
+      "mode": "tsan",
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-native-service/final-tsan",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "tsan",
+        "--fixed-layout"
+      ],
+      "exit": 0,
+      "audit_command": [
+        "/usr/bin/python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service.py",
+        "build/m9-native-service/final-tsan/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 1
+    }
+  ],
+  "original_store_regular_files_compared": {
+    "verified-normal/central-rejoin-1": 209,
+    "verified-asan/central-rejoin-1": 209,
+    "verified-tsan/central-rejoin-1": 209,
+    "accepted-normal/central-rejoin-1": 209,
+    "accepted-asan/central-rejoin-1": 209,
+    "accepted-tsan/central-rejoin-1": 209,
+    "complete-normal/central-rejoin-1": 209,
+    "complete-asan/central-rejoin-1": 209,
+    "complete-tsan/central-rejoin-1": 209,
+    "regression-normal/normal/normal-1": 132,
+    "regression-normal/front-loss/command-loss-1": 132,
+    "regression-normal/rear-loss/command-loss-1": 132,
+    "regression-normal/drop-ack/command-loss-1": 132,
+    "regression-normal/context-delay/command-loss-1": 132,
+    "regression-normal/source-restart/command-loss-1": 140,
+    "regression-normal/rear-restart/command-loss-1": 142,
+    "regression-normal/collector-restart/command-loss-1": 134,
+    "regression-normal/both-restart/command-loss-1": 152,
+    "regression-normal/front-process-rejoin/restart-live-1": 220,
+    "regression-normal/rear-process-rejoin/restart-live-1": 220,
+    "regression-normal/central-process-rejoin/central-rejoin-1": 202,
+    "regression-asan/normal/normal-1": 132,
+    "regression-asan/front-loss/command-loss-1": 132,
+    "regression-asan/rear-loss/command-loss-1": 132,
+    "regression-asan/drop-ack/command-loss-1": 132,
+    "regression-asan/context-delay/command-loss-1": 132,
+    "regression-asan/source-restart/command-loss-1": 140,
+    "regression-asan/rear-restart/command-loss-1": 142,
+    "regression-asan/collector-restart/command-loss-1": 134,
+    "regression-asan/both-restart/command-loss-1": 152,
+    "regression-asan/front-process-rejoin/restart-live-1": 220,
+    "regression-asan/rear-process-rejoin/restart-live-1": 220,
+    "regression-asan/central-process-rejoin/central-rejoin-1": 202,
+    "regression-tsan/normal/normal-1": 132,
+    "regression-tsan/drop-ack/command-loss-1": 132,
+    "regression-tsan/central-process-rejoin/central-rejoin-1": 202
+  }
+}

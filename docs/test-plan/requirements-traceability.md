@@ -44,6 +44,9 @@ quiesce/물리 evidence 조합과 SYS-DIAG-001/TC-DIAG-001 전체 수용은 OPEN
 C-M9-SERVICE-01–04는 [Linux 로컬 서비스 연결](evidence/m9_continuity_service/README.md)의
 kernel peer/boot 인가·frozen guard·current Actual 취득·별도 clear·실제 Unix writer SIGKILL4컷을
 검증한다. Clock/Actual 주입과 실제3-ECU 서비스 운용/plant 물리 정지 수용은 구분한다.
+C-M9-NATIVE-SERVICE-01–04는 [terminal native 서비스](evidence/m9_native_service/README.md)의
+실제3 global Session/27 accepted credit·9 source/collector freeze·원본 physical/CAN/PCAP·인가와
+별도 clear를 연결한다. Terminal fixture이며 서비스 후 운행 재개·고장 거절 matrix·Target/전체 TC 수용은 OPEN이다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -5699,3 +5699,35 @@ Clear는 새 요청·그 Passed ID·정확한 revision·동일 전체 stream cut
 Clock/Actual은 결정적 fixture 주입이다. 이 결과를 실제3-ECU의 RT/SDK quiesce나 plant 물리 정지로
 올리지 않는다. 다음 조합 시험은 실제 owner의 명시적 서비스 진입·새 global Epoch/정지·생산자
 정지/드레인 ACK·fresh Actual 취득을 함께 고정한 뒤 시행한다. 정상 자동 clear는 만들지 않는다.
+
+
+<a id="adr-0094"></a>
+
+## ADR-0094: 실제3-ECU terminal 서비스와 보호 상태의 비실시간 Epoch IO
+
+상태: same-kernel2세대/terminal fixture 부분 구현·검증. 일반 service 운용·서비스 중 고장 거절·
+TBD-08·native4ms/Target·M9/학습자 수용 OPEN.
+
+실제 Central 재기동의 unknown continuity incident보다 높은 실제 application Epoch가 필요하다.
+Epoch2 NormalStop/HV-off 후 operator가 별도로 Epoch3 startup을 요청한다. Review는 startup 권한을
+발급하지 않는다. 실제 보호 ACK를 받은 뒤 EpochStore fsync를 비실시간 작업에 맡기고 owner는
+수신을 계속한다. Old graph는 단일 owner 사용이 끝난 후 보유만 하며 새 graph와 구분하고 SDK join
+후 폐기한다. 초기 ASan에서 동기 fsync 동안 발생한 remote TX overflow/INIT 실패가 이 결정의 근거다.
+FIFO/renewal/permission/handshake/정지/drain budget을 늘려 통과시키지 않는다.
+
+Epoch3 실제 Release/운전/정지 뒤 전체 normal gate와 진단 capture를 닫는다. Source의 queue/pending/
+실제 ACK를 먼저 끝낸 뒤 collector를 닫고 original FileJournal lifetime flock을 service writer가
+인수한다. SDK/제어/plant는 보호 상태의 최신 Actual만 계속 제공한다. 실제 freeze report와 고정9개
+source/replica를 검사부터 commit까지 소유하고 서비스 증분은 별도 registry4/store8900에만 둔다.
+Terminal maintenance이며 capture/normal 운행을 재개하지 않는다. 일반적인 온라인 진단 정지는 아니다.
+
+물리 취득은 마지막 freeze보다 뒤여야 한다. Trusted current_sample과 서비스의 독립 monotonic now를
+사용하고 원래 age30ms/skew20ms·정지 값을 유지한다. 준비200ms/요청2s/packet100ms/16연결은 새
+fixture 경계다. Physical producer의 별도 acquisition 기록과 PCAP/CAN 원본으로 같은 시각/값을
+검사하며 기존10ms trace를 보간해 취득 원본으로 가장하지 않는다. Queue/소스 유실·미완료 ACK·
+불완전/충돌 store·인가/시대/revision 불일치와 실제 증거 누락은 fail closed다.
+
+고정 local peer/boot로 Review와 별도 clear를 구분한다. Unknown history 원형은 그대로 남고 정확한
+canonical incident 한 건만 해제한다. 다른 fault/이전 미심사 원인·운행 권한을 일괄 해소하지 않는다.
+실제 SimpleVehicle 이동/정지와 three-ECU/SDK의 기능·sanitizer 결과를 native4ms/실차/일반 운용
+수용으로 올리지 않는다. 새 고장 조합·서비스 중 evidence/ACK 실패의 실제 거절은 다음 단계다.

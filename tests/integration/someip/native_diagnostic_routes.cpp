@@ -1,6 +1,7 @@
 #include "native_diagnostic_routes.hpp"
 #include "someip/owner_transport.hpp"
 #include "native_execution_watch.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 
@@ -31,6 +32,7 @@ void NativeDiagnosticRoutes::bootstrap(const fs::path& folder) {
     d::FileJournal::initialize((home(folder,Ecu::Central)/"merged").string(),8000,{},3);
     const bool central_restart=std::getenv("STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART");
     if(central_restart) {
+        if(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE"))d::FileJournal::initialize((home(folder,Ecu::Central)/"service-case").string(),8900,{},4);
         d::FileJournal::initialize((home(folder,Ecu::Central)/"merged-2").string(),8002,{},3);
         d::FileJournal::initialize((home(folder,Ecu::Central)/"producer-lifecycle").string(),9100,{},3);
     }
@@ -83,6 +85,10 @@ void NativeDiagnosticRoutes::start(Transport& net) {
     catch(...) {finished_=true;throw;}
 }
 bool NativeDiagnosticRoutes::finish() {producing_=false;if(worker_.joinable())worker_.join();if(passed_ && lifecycle_) {const auto r=lifecycle_->close(wall());passed_=r==d::Result::Accepted || r==d::Result::Duplicate;}return passed_;}
+bool NativeDiagnosticRoutes::admitted(std::uint32_t epoch) const noexcept {
+    if(ecu_==Ecu::Central)return central_epoch_==epoch;
+    return std::none_of(sources_.begin(),sources_.end(),[epoch](const auto& source){return source && source->admitted.load()!=epoch;});
+}
 void NativeDiagnosticRoutes::bind(Source& s,std::uint32_t epoch,std::uint64_t enable,const remote::RunLeaseEvidence& evidence,std::uint64_t captured) {
     if(!epoch || !evidence.accepted || evidence.accepted->plan.epoch!=epoch || s.epoch==epoch)return;
     s.evidence.publish({evidence,captured});s.epoch=epoch;
@@ -99,6 +105,7 @@ void NativeDiagnosticRoutes::original(Source& s,unsigned monitor,const std::opti
     Source::Original value{*fault,monitor,selected};s.original[slot].publish(value);s.last_original[slot]=value;
 }
 void NativeDiagnosticRoutes::central(const session::SessionCoordinator& boot,const central::VehicleCoordinator& core,std::uint64_t now) {
+    if(!producing_)return;
     startup_->attempt(boot.plan());startup_->observe(boot.fault_observation(),boot.success_observation(),boot.run_enabled(),boot.run_enabled(),now);
     if(boot.run_enabled() && central_epoch_!=boot.plan().epoch) {
         central_epoch_=boot.plan().epoch;
@@ -110,6 +117,7 @@ void NativeDiagnosticRoutes::central(const session::SessionCoordinator& boot,con
     central_->observe(core,now);
 }
 void NativeDiagnosticRoutes::zone(unsigned z,const zone::AsyncZoneOwner& actor,bool gate,const remote::RunLeaseEvidence& evidence,std::uint64_t now) {
+    if(!producing_)return;
     auto& owner=*sources_[9*(generation_-1)+z];auto& native=*sources_[9*(generation_-1)+z+5];bind(owner,actor.epoch(),actor.enable_ns(),evidence,now);bind(native,actor.epoch(),actor.enable_ns(),evidence,now);
     if(!owner.epoch || owner.epoch!=actor.epoch())return;
     owner.owner->zone(actor.feedback_monitor(),gate && owner.admitted.load()==actor.epoch(),actor.protection_ack_ns(),now);
@@ -124,6 +132,7 @@ void NativeDiagnosticRoutes::zone(unsigned z,const zone::AsyncZoneOwner& actor,b
     }
 }
 void NativeDiagnosticRoutes::leaf(unsigned i,const simulation::AsyncLeafOwner& actor,bool gate,const remote::RunLeaseEvidence& evidence,std::uint64_t now) {
+    if(!producing_)return;
     const unsigned slot=9*(generation_-1)+(i<3?i+2:i+4);auto& s=*sources_[slot];bind(s,actor.epoch(),actor.enable_ns(),evidence,now);
     if(!s.epoch || s.epoch!=actor.epoch())return;
     const bool normal=gate && s.admitted.load()==actor.epoch();
@@ -304,6 +313,16 @@ void NativeDiagnosticRoutes::work() {
             if(restarting) {++restarts;continue;}
             require(!requested || restarts==1,"requested diagnostic restart not reached");
             require(passed_,"native diagnostic drain timeout");
+            if(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")) {
+                require(global.has_value(),"service freeze global context");
+                std::ofstream freeze(folder_/(tag_+".freeze.csv"));
+                freeze<<"ns,epoch,stream,producer,committed,acknowledged,pending,dropped,first_lost,identity_error\n";
+                for(unsigned i=0;i<slots_;++i)if(outboxes[i]){const auto h=sources_[i]->queue.health();
+                    freeze<<wall()<<','<<global->session.epoch<<','<<8200+i<<','<<sources_[i]->producer<<','<<stores[i]->committed().size()<<','<<outboxes[i]->acknowledged()<<','<<outboxes[i]->pending()<<','<<h.dropped<<','<<h.first_lost_sequence<<','<<h.identity_error<<'\n';
+                }
+                for(unsigned z=0;z<2;++z)if(context_out[z])freeze<<wall()<<','<<global->session.epoch<<','<<8101+z<<",0,"<<contexts[z]->committed().size()<<','<<context_out[z]->acknowledged()<<",0,0,0,0\n";
+                freeze.flush();require(freeze.good(),"service freeze report");
+            }
             if(collector) {require(collector->ledger().complete(),"merged diagnostic recording incomplete");rows(folder_/"records.csv",collector->ledger());}
             else for(unsigned i=0;i<slots_;++i)if(outboxes[i])rows(folder_/(source_name(i)+"-records.csv"),outboxes[i]->ledger());
             break;
