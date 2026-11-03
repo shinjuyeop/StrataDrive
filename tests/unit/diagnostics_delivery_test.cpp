@@ -161,4 +161,47 @@ TEST_F(DiagnosticsDelivery, ALocalStoreWithClearTombstoneCannotBeAdoptedAsAnEven
     EXPECT_THROW(Inbox{s},std::invalid_argument);
     EXPECT_TRUE(s.writable()); EXPECT_EQ(s.committed().size(),5U);
 }
+TEST_F(DiagnosticsDelivery, CollectorRepairsReplicaOnlyCommitBeforeAcknowledgingAndKeepsUnknown) {
+    init(); const auto merged=root/"merged"; FileJournal::initialize(merged.string(),9000,{},3);
+    { FileJournal d(dest.string()); Inbox in(d); ASSERT_TRUE(in.receive(data(session(),1)).ack); ASSERT_TRUE(in.receive(data(fault(),2)).ack); }
+    FileJournal d(dest.string()),m(merged.string()); MergedCollector in(m,{&d});
+    ASSERT_EQ(m.committed().size(),2U); EXPECT_EQ(encode(m.committed()[1]),encode(fault()));
+    ASSERT_TRUE(in.ledger().find(fault().key)); EXPECT_EQ(in.ledger().find(fault().key)->condition,Condition::Unknown);
+    const auto got=in.receive(data(fault(),2)); ASSERT_TRUE(got.ack); EXPECT_EQ(got.result,Result::Duplicate);
+    EXPECT_EQ(in.ledger().find(fault().key)->condition,Condition::Unknown); EXPECT_EQ(in.ledger().find(fault().key)->count,1U);
+}
+TEST_F(DiagnosticsDelivery, CollectorCannotAckReplicaWhenMergedCommitFails) {
+    init(); const auto merged=root/"merged"; FileJournal::initialize(merged.string(),9000,{},3);
+    FileJournal d(dest.string()),m(merged.string()); MergedCollector in(m,{&d});
+    ASSERT_TRUE(in.receive(data(session(),1)).ack); std::filesystem::create_directory(merged/"pending");
+    const auto got=in.receive(data(fault(),2)); EXPECT_FALSE(got.ack); EXPECT_EQ(got.result,Result::StorageFailure);
+    EXPECT_EQ(d.committed().size(),2U); EXPECT_EQ(m.committed().size(),1U); EXPECT_FALSE(in.healthy());
+    EXPECT_FALSE(in.receive(data(fault(),2)).ack);
+}
+TEST_F(DiagnosticsDelivery, CollectorDeduplicatesSharedSessionAndKeepsIndependentOrdinalsAcrossRestart) {
+    init(); const auto merged=root/"merged",other=root/"other"; FileJournal::initialize(merged.string(),9000,{},3); FileJournal::initialize(other.string(),5678,{},3);
+    for(unsigned round=0;round<2;++round) {
+        FileJournal d(dest.string()),o(other.string()),m(merged.string()); MergedCollector in(m,{&d,&o});
+        EXPECT_TRUE(in.receive(data(session(),1)).ack); EXPECT_TRUE(in.receive(data(session(),1,5678)).ack);
+        EXPECT_TRUE(in.receive(data(fault(),2)).ack); EXPECT_EQ(m.committed().size(),2U);
+        EXPECT_EQ(in.ledger().find(fault().key)->condition,round?Condition::Unknown:Condition::Failed);
+        EXPECT_EQ(in.ledger().find(fault().key)->count,1U); EXPECT_EQ(in.ledger().find(fault().key)->generation,1U);
+    }
+}
+TEST_F(DiagnosticsDelivery, CollectorRejectsForeignRegistryDuplicateStreamAndUnknownDataWithoutMutation) {
+    init(); const auto merged=root/"merged",other=root/"other"; FileJournal::initialize(merged.string(),9000,{},3); FileJournal::initialize(other.string(),5678,{},2);
+    FileJournal d(dest.string()),o(other.string()),m(merged.string());
+    EXPECT_THROW((MergedCollector{m,{&d,&d}}),std::invalid_argument);
+    EXPECT_THROW((MergedCollector{m,{&o}}),std::invalid_argument);
+    EXPECT_THROW((MergedCollector{m,{&m}}),std::invalid_argument);
+    EXPECT_THROW((MergedCollector{m,{nullptr}}),std::invalid_argument);
+    MergedCollector in(m,{&d}); EXPECT_FALSE(in.receive(data(session(),1,5678)).ack);
+    EXPECT_FALSE(in.receive(data(session(),1,1234,2)).ack); EXPECT_TRUE(d.committed().empty()); EXPECT_TRUE(m.committed().empty()); EXPECT_TRUE(in.healthy());
+}
+TEST_F(DiagnosticsDelivery, CollectorConflictingReplicaHistoryFailsClosedAndKeepsOriginalMergedBytes) {
+    init(); const auto merged=root/"merged"; FileJournal::initialize(merged.string(),9000,{},3);
+    FileJournal d(dest.string()),m(merged.string()); Inbox in(d); Recorder original(m); ASSERT_TRUE(original.record(session()).durable);
+    auto changed=session(); changed.native_reason=42; ASSERT_TRUE(in.receive(data(changed,1)).ack);
+    EXPECT_THROW((MergedCollector{m,{&d}}),std::runtime_error); EXPECT_EQ(m.committed().size(),1U); EXPECT_EQ(encode(m.committed()[0]),encode(session())); EXPECT_FALSE(m.writable());
+}
 } // namespace

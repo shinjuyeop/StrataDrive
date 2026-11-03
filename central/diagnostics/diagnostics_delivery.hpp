@@ -2,6 +2,7 @@
 #include "diagnostic_wire.hpp"
 #include "diagnostics_journal.hpp"
 #include <optional>
+#include <memory>
 
 namespace stratadrive::diagnostics {
 // One non-RT owner per object/store. Explicitly provision both journals with
@@ -31,5 +32,20 @@ public:
     const Ledger& ledger() const noexcept { return recorder_.ledger(); }
 private:
     FileJournal& journal_; Recorder recorder_;
+};
+// One non-RT owner, one merged recorder, all explicitly provisioned replicas.
+// Construct before live input. Reconcile durable replica prefixes left by a
+// crash between replica and merged commit; reset current projections to Unknown.
+// Never ACK until both stores contain the exact original event.
+class MergedCollector {
+public:
+    MergedCollector(FileJournal& merged,const std::vector<FileJournal*>& replicas);
+    DeliveryReceipt receive(const wire::Bytes&);
+    Receipt record(const Event& e) { return recorder_.record(e); }
+    bool healthy() const noexcept;
+    const Ledger& ledger() const noexcept { return recorder_.ledger(); }
+private:
+    struct Replica { FileJournal* journal; std::unique_ptr<Inbox> inbox; };
+    FileJournal& merged_; Recorder recorder_; std::vector<Replica> replicas_;
 };
 } // namespace stratadrive::diagnostics

@@ -214,4 +214,24 @@ TEST_F(RemoteDiagnosticsContext, UnboundRecoveryIsNeverBufferedForRetroactiveQua
     EXPECT_EQ(source.pending(),0U);EXPECT_TRUE(j.committed().empty());EXPECT_TRUE(source.healthy());
     EXPECT_EQ(source.context(global,evidence),Result::Accepted);EXPECT_EQ(j.committed().size(),1U);EXPECT_TRUE(source.ledger().records().empty());
 }
+TEST_F(RemoteDiagnosticsContext, RestartRequiresActualAcceptedEvidenceAndReplaysOriginalBytesWithoutHealingUnknown) {
+    release();const auto evidence=credit();const auto path=provision("source");const auto original=fault();
+    {FileJournal j(path.string());ContextualOutbox out(j,manifest(),central_id);ASSERT_EQ(out.context(global,evidence),Result::Accepted);ASSERT_EQ(out.submit(original),Result::Accepted);}
+    FileJournal j(path.string());ContextualOutbox out(j,manifest(),central_id);
+    EXPECT_EQ(out.acknowledged(),0U);EXPECT_EQ(out.ledger().find(original.key)->condition,Condition::Unknown);
+    auto proof=original;proof.id.sequence=2;proof.kind=Kind::Passed;
+    EXPECT_EQ(out.submit(proof),Result::NotReady);EXPECT_EQ(out.restore({}),Result::Invalid);
+    auto missing=evidence;missing.accepted.reset();EXPECT_EQ(out.restore(missing),Result::NotReady);
+    auto wrong=evidence;wrong.accepted->plan.enable_ns++;EXPECT_EQ(out.restore(wrong),Result::Invalid);
+    // Expired credit remains original historical evidence and cannot be renewed.
+    central.now=evidence.accepted->expires_at_ns;EXPECT_FALSE(peers[0].credit.allows(*actors[0],central.now));
+    EXPECT_EQ(out.restore(peers[0].credit.diagnostic_evidence()),Result::Duplicate);
+    EXPECT_EQ(out.ledger().find(original.key)->condition,Condition::Unknown);EXPECT_EQ(out.ledger().find(original.key)->count,1U);
+    ASSERT_TRUE(out.next());EXPECT_EQ(encode(std::get<wire::Data>(wire::decode(*out.next())).event),encode(global));
+    EXPECT_EQ(j.committed().size(),2U);EXPECT_EQ(encode(j.committed()[1]),encode(original));EXPECT_FALSE(peers[0].credit.allows(*actors[0],central.now));
+}
+TEST_F(RemoteDiagnosticsContext, EmptyRestartCannotAdoptSessionFromLocalReadyOrAcceptedCreditAlone) {
+    release();const auto evidence=credit();FileJournal j(provision("empty").string());ContextualOutbox out(j,manifest(),central_id);
+    EXPECT_EQ(out.restore(evidence),Result::NotReady);EXPECT_TRUE(j.committed().empty());EXPECT_FALSE(out.next());
+}
 } // namespace

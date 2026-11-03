@@ -329,3 +329,28 @@ Native detector/selection snapshot·control/diagnostic PCAP·journal·physical �
 요구하지 않으며 각 실행의 같은 기존 제어·물리 oracle를 적용한다. Guarded4ms wall trial은
 별도 분모이며 실패를 기능 PASS로 바꾸지 않는다. Source kill/rejoin adoption·Clock/Target·부하/
 보존 용량·CARLA 전체 matrix·학습자 수용은 여전히 후속이다.
+
+
+## 진단 전달 재개와 crash window fixture
+
+실행 전 고정: 위 native5개 기본 cohort에 source-restart(Front), rear-restart(Rear), collector-restart
+(Central), both-restart(세 ECU 전달 객체)의4개를 추가한다. 추가4개는 같은 기존 command-loss와
+최초 Fault ACK 유실을 함께 사용한다. 실제 고장 committed prefix가 생긴 뒤 객체를 다시 열고,
+`all` 중 무고장 peer는 기존 owner quiesce 뒤에 연다. 제어 process/SDK/observer는 연속이며
+전체 ECU 재기동 시험이 아니다. Pending32·FIFO8·retry100ms·종료 drain2s와 기존100ms 물리 판정은
+그대로다. Source context admission을 리셋해 실제 accepted evidence와 원본 Session을 다시 대조한다.
+
+Normal/ASan은9개, SDK-instrumented TSan은 normal/drop-ack과 추가4개를 실행한다. PCAP/원본
+검출/control credit·physical/journal 기준은 위와 같다. Reopen checkpoint 전후의 stream/ordinal/
+canonical bytes가 같고 최종 journal에도 그 prefix가 남아야 한다. Remote source는 실제 TCP로
+ordinal1을 다시 보내야 한다. 재개 직후 모든 기존 record는 Unknown/count1/generation1/uncleared다.
+Collector 재개 전의 고장 key는 duplicate retry 뒤에도 Unknown이고 새 고장만 원래 Fault 판정을
+반영한다. ACK는 두 journal의 durable commit 뒤에만 허용한다. Service 번호를 바꾼 중복 packet도
+검출해야 한다. Restart bytes/상태를 바꾸는 변조를 추가한다.
+
+별도 `DiagnosticsDeliveryProcess.SigkillAtSourceReplicaAndMergedCommitCutsRetainsBytesAndNeverRecounts`
+시험은 parent가 실제 commit을 확인한 뒤 child에 SIGKILL을 보낸다. Source commit, replica만
+commit, merged reconciliation 완료의3개 경계를 순서대로 중단한다. 새 process가 같은 store를
+다시 열어 정확한 원본 bytes·독립 ordinal·중복 count1·Unknown을 유지해야 한다. 새 event emitter를
+자동 채택하거나 commit 전 메모리 손실을 복구했다고 판정하지 않는다. Foreign manifest/충돌/
+merged 저장 실패와 ACK 차단은 별도 단위 검사한다. 실패/중간 audit 결과도 보존한다.

@@ -53,8 +53,15 @@ def load(root):
     for sid, sender in [(0x5344, 'central'), (0x5345, 'central'), (0x5348, 'central'), (0x5349, 'central'),
                         (0x5346, 'front'), (0x5347, 'front'), (0x534a, 'rear'), (0x534b, 'rear')]:
         for mid in (0x10, 0x20, 0x40, 0x50, 0x60, 0x70, 0x80): bindings[(sid, mid)] = (CLIENTS[sender],)
+    restarts = {}
+    for role in ROLES:
+        trace = home/role/(role+'-1.restart.csv')
+        after = home/role/'restart-after-records.csv'
+        restarts[role] = dict(rows=csv_rows(trace) if trace.exists() else [],
+                              after_records=csv_rows(after) if after.exists() else [],
+                              source_records={p.name: csv_rows(p) for p in (home/role).glob('restart-after-source-*-records.csv')})
     packets, syns = pcap(root/'traffic.pcap', (*range(30501, 30509), 31610, 31611, 31612), tuple(IPS.values()), bindings)
-    return dict(result=result, plan=json.loads((root.parent/'plan.json').read_text()), streams=streams,
+    return dict(result=result, restarts=restarts, plan=json.loads((root.parent/'plan.json').read_text()), streams=streams,
                 merged=journal(home/'central'/'merged', bytes), records=csv_rows(home/'central'/'records.csv'),
                 boot=csv_rows(root/'central-1.events.csv'), physical=csv_rows(root/'physical.csv'),
                 credits=[r for role in ('front', 'rear') for r in csv_rows(home/role/(role+'-1.credits.csv'))],
@@ -105,6 +112,7 @@ def judge(d):
     for m in d['messages']:
         if m['method'] == 0x50:
             value = lease(m['payload']); require(value is not None, 'canonical native RunLease'); leases.add(value)
+        if m['method'] in (0x101, 0x102): require(m['service'] >= 0x5d00, 'diagnostic method requires diagnostic service')
         if m['service'] < 0x5d00: continue
         kind, stream, ordinal, payload = wire(m['payload']); require(stream in streams, 'provisioned wire stream')
         s = streams[stream]; require(ordinal <= len(s['source']), 'bounded committed ordinal')
@@ -121,7 +129,8 @@ def judge(d):
         values = tuple(int(r[k]) for k in ('epoch', 'requested_ns', 'prepare_deadline_ns', 'enable_ns', 'commit_deadline_ns', 'lease_sequence', 'source_ns', 'expiry_ns'))
         require((role, *values) in leases and int(r['enable_ns']) == enable and completed <= int(r['source_ns']) <= int(r['captured_ns']) < int(r['expiry_ns']), 'original accepted credit matches actual issuer/control TCP and global completion')
     faults = [e for e in merged if e['kind'] == 1]
-    require(all(int(r['count']) == int(r['generation']) == 1 and r['cleared'] == '0' and r['condition'] == '1' for r in d['records']), 'DTC history and failed condition retained')
+    restored = {tuple(r[k] for k in ('code','component','monitor','subject')) for r in d['restarts']['central']['after_records']}
+    require(all(int(r['count']) == int(r['generation']) == 1 and r['cleared'] == '0' and r['condition'] == ('0' if tuple(r[k] for k in ('code','component','monitor','subject')) in restored else '1') for r in d['records']), 'DTC history and failed condition retained')
     require(len(faults) == len(d['records']), 'one original occurrence per record')
     if normal:
         require(not faults, 'normal zero false DTC')
@@ -144,11 +153,29 @@ def judge(d):
         require(any(r['action'] == 'duplicate' and r['stream'] == omitted[0]['stream'] and r['ordinal'] == omitted[0]['ordinal'] for r in d['delivery']), 'same committed ordinal duplicate retry')
     if d['plan']['diagnostic_context_delay_ms']:
         require(max(r['pending_highwater'] for r in result['diagnostics'].values()) > 0, 'actual source buffered before delayed context')
+    requested = d['plan'].get('diagnostic_restart')
+    for role in ROLES:
+        expected_restart = requested in (role, 'all')
+        require(result['diagnostics'][role].get('restarts', 0) == int(expected_restart), 'requested store/service reopen count')
+        r = d['restarts'][role]; before = [row for row in r['rows'] if row['phase'] == 'before']; after = [row for row in r['rows'] if row['phase'] == 'after']
+        if not expected_restart:
+            require(not before and not after, 'no undeclared restart'); continue
+        require(before and before == [dict(row, phase='before') for row in after], 'reopened committed source/replica prefix exact bytes')
+        for row in after:
+            stream, ordinal = int(row['stream']), int(row['ordinal'])
+            require(bytes.fromhex(row['bytes']) == streams[stream]['source'][ordinal-1], 'restarted prefix remains original final history')
+        require(all(row['condition'] == '0' and row['count'] == row['generation'] == '1' and row['cleared'] == '0'
+                    for rows in [r['after_records'], *r['source_records'].values()] for row in rows), 'restart restores Unknown with original occurrence count')
+        if role != 'central':
+            sent = [m for m in d['messages'] if m['method'] == 0x101 and m['service'] >= 0x5d00]
+            for stream in {int(row['stream']) for row in after}:
+                require(sum(wire(m['payload'])[1:3] == (stream, 1) for m in sent) >= 2, 'restarted sender replays original ordinal1 over TCP')
     return dict(pass_=True, streams=len(streams), merged_events=len(merged), dtc=len(faults), tcp_messages=len(d['messages']), connections=d['syns'], original_credits=len(d['credits']))
 
 
 def mutations(data):
-    for name in ('wire-stream', 'service', 'replica', 'erase-record', 'missing-ack', 'accepted-credit', 'detector', 'physical'):
+    rejected = 0
+    for name in ('wire-stream', 'service', 'replica', 'erase-record', 'missing-ack', 'accepted-credit', 'detector', 'physical', 'restart-bytes', 'restart-condition'):
         d = copy.deepcopy(data)
         if name == 'wire-stream':
             m = next(m for m in d['messages'] if m['service'] >= 0x5d00); raw = bytearray(m['payload']); raw[16] ^= 1; raw[-4:] = zlib.crc32(raw[:-4]).to_bytes(4, 'little'); m['payload'] = bytes(raw)
@@ -162,13 +189,21 @@ def mutations(data):
         elif name == 'detector':
             if not d['records']: continue
             for r in d['originals']: r['detected_ns'] = '0'
-        else:
+        elif name == 'physical':
             if not d['records']: continue
             for r in d['physical']: r['pressure'] = '0'
+        elif name == 'restart-bytes':
+            candidates = [r for role in ROLES for r in d['restarts'][role]['rows'] if r['phase'] == 'after']
+            if not candidates: continue
+            candidates[0]['bytes'] = '00'
+        else:
+            candidates = [r for role in ROLES for rows in [d['restarts'][role]['after_records'], *d['restarts'][role]['source_records'].values()] for r in rows]
+            if not candidates: continue
+            candidates[0]['condition'] = '2'
         try: judge(d)
-        except (ValueError, KeyError): continue
+        except (ValueError, KeyError): rejected += 1; continue
         raise ValueError('mutation accepted: '+name)
-    return 5 if not data['records'] else 8
+    return rejected
 
 
 if __name__ == '__main__':

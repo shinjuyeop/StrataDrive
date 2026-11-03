@@ -49,4 +49,40 @@ DeliveryReceipt Inbox::receive(const wire::Bytes& bytes) {
     if(recorded.result!=Result::Accepted || recorded.watermark!=d->sequence) { recorder_.recording_gap(); return receipt(Result::Conflict); }
     return receipt(Result::Accepted,wire::encode(wire::Ack{d->stream,d->sequence,d->registry,wire::event_crc(d->event)}));
 }
+MergedCollector::MergedCollector(FileJournal& merged,const std::vector<FileJournal*>& replicas)
+    :merged_(merged),recorder_(merged) {
+    event_only(merged);
+    for(std::size_t i=0;i<replicas.size();++i) {
+        const auto* journal=replicas[i];
+        if(!journal || journal->store_id()==merged.store_id() || journal->registry_revision()!=merged.registry_revision() ||
+           std::any_of(replicas.begin(),replicas.begin()+static_cast<std::ptrdiff_t>(i),[&](const auto* old){return old->store_id()==journal->store_id();}))
+            throw std::invalid_argument("diagnostic collector manifest");
+        event_only(*journal);
+        if(!journal->writable()) throw std::runtime_error("diagnostic replica incomplete");
+    }
+    for(auto* journal:replicas) replicas_.push_back({journal,std::make_unique<Inbox>(*journal)});
+    if(!healthy()) throw std::runtime_error("diagnostic collector incomplete");
+    for(const auto& replica:replicas_)for(const auto& entry:replica.journal->committed()) {
+        if(!recorder_.record(std::get<Event>(entry)).durable) throw std::runtime_error("diagnostic merged reconciliation");
+    }
+    recorder_.restarted();
+}
+bool MergedCollector::healthy() const noexcept {
+    return merged_.writable() && recorder_.ledger().complete() &&
+        std::all_of(replicas_.begin(),replicas_.end(),[](const Replica& r){return r.inbox->healthy();});
+}
+DeliveryReceipt MergedCollector::receive(const wire::Bytes& bytes) {
+    wire::Message message;
+    try {message=wire::decode(bytes);} catch(const std::exception&) {return {Result::Invalid,std::nullopt,0};}
+    const auto* data=std::get_if<wire::Data>(&message);
+    if(!data) return {Result::Invalid,std::nullopt,0};
+    const auto replica=std::find_if(replicas_.begin(),replicas_.end(),[&](const Replica& r){return r.journal->store_id()==data->stream;});
+    if(replica==replicas_.end()) return {Result::Invalid,std::nullopt,0};
+    if(!healthy()) return {Result::NotReady,std::nullopt,replica->journal->committed().size()};
+    auto receipt=replica->inbox->receive(bytes);
+    if(!receipt.ack) return receipt;
+    const auto merged=recorder_.record(data->event);
+    if(!merged.durable) {receipt.result=merged.result==Result::Accepted?Result::StorageFailure:merged.result;receipt.ack.reset();}
+    return receipt;
+}
 } // namespace stratadrive::diagnostics

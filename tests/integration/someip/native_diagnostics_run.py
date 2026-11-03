@@ -9,7 +9,7 @@ import sys
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-CASES = ('normal', 'front-loss', 'rear-loss', 'drop-ack', 'context-delay')
+CASES = ('normal', 'front-loss', 'rear-loss', 'drop-ack', 'context-delay', 'source-restart', 'rear-restart', 'collector-restart', 'both-restart')
 
 
 def main():
@@ -25,7 +25,8 @@ def main():
         destination = output/case
         command = [sys.executable, '-B', str(HERE/'front_run.py'), str(destination), '--three', '--diagnostics', '--profile', a.profile,
                    '--cases', 'normal' if case == 'normal' else 'command-loss']
-        if case == 'rear-loss': command += ['--fault-zone', 'rear']
+        if case in ('source-restart', 'rear-restart', 'collector-restart', 'both-restart'): command += ['--diagnostic-restart', {'source-restart':'front', 'rear-restart':'rear', 'collector-restart':'central', 'both-restart':'all'}[case], '--diagnostic-drop-ack']
+        if case in ('rear-loss', 'rear-restart'): command += ['--fault-zone', 'rear']
         if case == 'drop-ack': command += ['--diagnostic-drop-ack']
         if case == 'context-delay': command += ['--diagnostic-context-delay-ms', '1500']
         if a.fixed_layout: command += ['--fixed-layout']

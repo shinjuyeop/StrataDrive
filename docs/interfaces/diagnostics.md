@@ -642,12 +642,44 @@ control ingress도 별도 계수하고 완료한 runnable로 세지 않는다.
 이 배선의 기동 전 로컬 실패·source/collector 재시작 adoption·BMS/Power의 전체 native fault
 matrix·Clock/Target/부하/보존 용량·CARLA30km/h와 학습자 수용은 OPEN이다.
 
+## 진단 전달 계층의 저장 이력 재개
+
+`ContextualOutbox::restore`는 source journal의 마지막 원본 Central Session을 실제 local endpoint의
+accepted RunLease evidence에 다시 대조한다. 빈 journal·credit만으로 Session을 만들지 않는다.
+기존 plan/clock/role/profile 검사와 원래 EventId/시각을 유지한다. 재개한 Outbox의 ACK watermark는0이고
+ordinal1부터 durable prefix를 재전송한다. Context 중복 수용으로 restart Unknown을 정상/Failed로
+바꾸거나 lease를 연장하지 않는다. 새 Passed는 여전히 실제 monitor의 별도 근거를 요구한다.
+
+`MergedCollector`는 명시적으로 제공한 모든 replica와 merged journal을 한 non-RT owner에서
+소유한다. Store ID 중복/merged alias·registry 불일치·event-only 위반·incomplete store는 거부한다.
+기동 시 durable replica prefix를 merged의 EventId/bytes에 대조하고 누락된 transaction을 commit한다.
+이 복구는 과거 이력이므로 완료 후 projection은 Unknown이다. 동일 ID의 다른 bytes나 저장 실패는
+sticky incomplete로 거부하며 원본을 덮지 않는다. 수신 ACK는 replica와 merged 양쪽 commit 뒤에만
+만든다. Replica만 commit한 crash window도 ACK 없이 재개·대조할 수 있다. 여러 source에 공유된
+Session은 merged에 한 번만 남고 각 stream ordinal은 독립이다. 원격 Clear는 추가하지 않는다.
+
+Native fixture의 `--diagnostic-restart central|front|rear|all`은 실제 제어 owner/observer/SPSC와 SDK
+application을 유지하면서 non-RT store·Outbox/Inbox/collector 객체를 닫고 다시 연다. Source의
+context-admitted flag를 먼저 내리고 기존 endpoint evidence와 저장된 context를 재대조한다.
+진행 중이던 종료 drain2s를 재시작으로 연장하지 않는다. 이전 객체로 향하던 future ACK는
+watermark를 진행시키지 않고 별도 stale counter로 남긴다. 재개 전후 prefix bytes와 Unknown/count/
+generation을 기록하고 실제 TCP의 ordinal1 재전송을 독립 감사한다. `all`에서 고장이 없는 ECU는
+원래 owner가 quiesce된 후 재개한다. 제어 gate/권한·예산·물리 oracle는 바꾸지 않는다.
+
+이 범위는 **진단 전달 객체의 재개와 durable prefix 복구**다. 별도 process 시험의 실제 SIGKILL은
+source commit·replica-only commit·merged reconciliation 직후에 주입한다. 전체 native ECU process
+kill/rejoin·새 producer incarnation/sequence adoption·commit 전 SPSC/pending 메모리 손실 조정은
+후속이다. Source observer가 연속인 시험을 전체 ECU 재기동 수용으로 표시하지 않는다.
+[고정 recipe](../test-plan/diagnostics-protocol.md#진단-전달-재개와-crash-window-fixture)와
+[결과·원본](../test-plan/evidence/m9_delivery_restart/README.md)을 따른다.
+
 ## 다음 구현 경계
 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
 원격 context admission 뒤 실제 native3-ECU의2개 context/9개 source stream도 기능 검증했다.
-다음은 source/collector 재시작 adoption과 미결정 고장 조합·원인 연결/복구를 검증하는 것이다.
+진단 전달 객체의 재개·durable prefix 복구 뒤에는 전체 ECU 재기동의 producer adoption과
+미결정 고장 조합·원인 연결/복구를 검증한다.
 Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
 실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.

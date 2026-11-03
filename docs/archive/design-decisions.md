@@ -5583,3 +5583,22 @@ Normal/Front·Rear command loss/진단 ACK 유실/context 지연과 SDK-instrume
 범위로 판정한다. Guarded4ms wall 결과는 별도 분모이며 기능 통과로 덮지 않는다. Source/collector
 재시작 adoption·전체 원인 연결/복구·다른 native/CARLA 고장 matrix·부하/보존 용량·Clock/Target·
 학습자 설명/수용은 후속이다.
+
+
+## ADR-0089 — 진단 durable prefix 재개와 replica/merged crash 경계
+
+2026-11-03. Source Outbox는 이미 ordinal1부터 재전송할 수 있지만 remote source가 저장한 전역
+Session의 재대조와 replica-only commit의 merged 복구가 native composition에 없었다.
+
+`ContextualOutbox::restore`는 보존된 원본 Session과 실제 endpoint의 accepted evidence를 다시
+검사한다. 저장 이력만으로 제어 authority/readiness/Passed를 발행하지 않는다. `MergedCollector`는
+한 owner가 모든 replica와 하나의 merged Recorder를 관리하며 기동 시 committed prefix를
+대조·보충한다. 복구 후 current condition은 Unknown이다. 두 store에 원본 bytes가 영속되기
+전에는 ACK하지 않는다. Conflict/incomplete는 원본 보존 상태에서 거부한다.
+
+Native campaign은 실제 SDK/owner를 유지한 진단 전달 객체 reopen과 원본 TCP replay를 시험한다.
+별도 process에서는 source/replica/merged 경계의 실제 SIGKILL을 시험한다. 전체 native ECU kill/
+새 producer sequence adoption·commit 전 pending/SPSC 손실 조정과 구분한다. 기존 FIFO/대기/
+재전송/종료 drain·4ms/물리 한도를 늘리지 않는다. 초기 독립 auditor의 service 변조 누락은
+중복 packet에서도 검출하도록 보강하고 실패 원본을 보존한다. Native4ms/Clock/Target 및 M9
+전체 수용은 이 기능 재개 시험으로 닫지 않는다.

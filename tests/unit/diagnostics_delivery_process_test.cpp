@@ -1,4 +1,5 @@
 #include "diagnostics_delivery.hpp"
+#include "diagnostics_fixture.hpp"
 #include <gtest/gtest.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -36,6 +37,20 @@ template<class F> int sender_process(F run) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     return WIFEXITED(status)?WEXITSTATUS(status):-1;
+}
+// Parent observes an fsynced transaction boundary before an actual SIGKILL.
+// No child destructor/clean shutdown is allowed to repair either journal.
+template<class F> int kill_at_commit(F run,const std::filesystem::path& log,const char* phase) {
+    int pipefd[2]{};if(pipe(pipefd)!=0)throw std::runtime_error("crash pipe");
+    const auto pid=fork();if(pid<0)throw std::runtime_error("crash fork");
+    if(pid==0) {
+        close(pipefd[0]);try {run();const char ready='R';if(write(pipefd[1],&ready,1)!=1)_exit(96);for(;;)pause();}catch(...){_exit(97);}
+    }
+    close(pipefd[1]);pollfd pending{pipefd[0],POLLIN,0};char ready=0;
+    const bool committed=poll(&pending,1,5000)>0 && read(pipefd[0],&ready,1)==1 && ready=='R';close(pipefd[0]);
+    kill(pid,SIGKILL);int status=0;waitpid(pid,&status,0);
+    const int signal=committed && WIFSIGNALED(status)?WTERMSIG(status):0;
+    std::ofstream(log,std::ios::app)<<phase<<','<<pid<<','<<committed<<','<<signal<<'\n';return signal;
 }
 class Peer {
 public:
@@ -142,5 +157,32 @@ TEST_F(DiagnosticsDeliveryProcess, LostAckAndBothProcessRestartsKeepOriginalHist
     if(const auto* target=std::getenv("STRATADRIVE_M9_DELIVERY_EVIDENCE")) {
         ASSERT_FALSE(std::filesystem::exists(target)); std::filesystem::copy(root,target,std::filesystem::copy_options::recursive);
     }
+}
+TEST_F(DiagnosticsDeliveryProcess, SigkillAtSourceReplicaAndMergedCommitCutsRetainsBytesAndNeverRecounts) {
+    using diagnostics_fixture::session;using diagnostics_fixture::fault;
+    const auto merged=root/"merged";FileJournal::initialize(merged.string(),9000,{},3);
+    const auto fresh=root/"fresh";FileJournal::initialize(fresh.string(),6001,{},3);
+    const auto s=session(),f=fault();std::ofstream(root/"cuts.csv")<<"phase,pid,committed,signal\n";
+    ASSERT_EQ(kill_at_commit([&] {FileJournal j(fresh.string());Outbox out(j);if(!out.record(s).durable || !out.record(f).durable)throw std::runtime_error("source commit");},root/"cuts.csv","source"),SIGKILL);
+    ASSERT_EQ(kill_at_commit([&] {
+        FileJournal j(replica.string());Inbox in(j);
+        if(!in.receive(wire::encode(wire::Data{6001,1,3,s})).ack || !in.receive(wire::encode(wire::Data{6001,2,3,f})).ack)throw std::runtime_error("replica commit");
+    },root/"cuts.csv","replica"),SIGKILL);
+    std::filesystem::copy(replica,root/"replica-before-reconcile",std::filesystem::copy_options::recursive);
+    ASSERT_EQ(kill_at_commit([&] {
+        FileJournal r(replica.string()),m(merged.string());MergedCollector in(m,{&r});
+        if(m.committed().size()!=2 || in.ledger().find(f.key)->condition!=Condition::Unknown)throw std::runtime_error("merged reconcile");
+    },root/"cuts.csv","merged"),SIGKILL);
+    FileJournal j(fresh.string()),r(replica.string()),m(merged.string());Outbox out(j);MergedCollector in(m,{&r});
+    EXPECT_EQ(in.ledger().find(f.key)->condition,Condition::Unknown);
+    while(const auto packet=out.next()) {
+        capture_packet(*packet,"data",4);const auto receipt=in.receive(*packet);ASSERT_TRUE(receipt.ack);capture_packet(*receipt.ack,"ack",4);EXPECT_EQ(receipt.result,Result::Duplicate);ASSERT_EQ(out.acknowledge(*receipt.ack),Result::Accepted);
+    }
+    ASSERT_EQ(m.committed().size(),2U);ASSERT_EQ(r.committed().size(),2U);ASSERT_EQ(j.committed().size(),2U);
+    for(unsigned i=0;i<2;++i){EXPECT_EQ(encode(j.committed()[i]),encode(r.committed()[i]));EXPECT_EQ(encode(j.committed()[i]),encode(m.committed()[i]));}
+    EXPECT_EQ(in.ledger().find(f.key)->condition,Condition::Unknown);EXPECT_EQ(in.ledger().find(f.key)->count,1U);EXPECT_EQ(in.ledger().find(f.key)->generation,1U);EXPECT_FALSE(in.ledger().find(f.key)->cleared);
+    const auto& record=*in.ledger().find(f.key);
+    std::ofstream(root/"restart-projection.csv")<<"condition,count,generation,cleared\n"<<static_cast<unsigned>(record.condition)<<','<<record.count<<','<<record.generation<<','<<record.cleared<<'\n';
+    if(const auto* target=std::getenv("STRATADRIVE_M9_RESTART_EVIDENCE")) {ASSERT_FALSE(std::filesystem::exists(target));std::filesystem::copy(root,target,std::filesystem::copy_options::recursive);}
 }
 } // namespace

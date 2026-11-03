@@ -25,6 +25,10 @@ context 지연에 대응한다. Native 전체 fault matrix·재시작 adoption·
 `RES-<test-suffix>-<run-id>`를 발급한다. 과거 판정은 [단계 검토](../archive/milestone-reviews.md),
 실행별 원본·분모는 [evidence 안내](README.md)를 따른다.
 
+C-M9-RESTART-01–04는 [진단 전달 이력 복구](evidence/m9_delivery_restart/README.md)의 context 재대조·
+replica/merged crash window·실제 TCP replay를 연결한다. Native 객체 재개와 별도 process SIGKILL을
+구분하며 전체 ECU 재기동/producer adoption 및 SYS-DIAG-001 수용은 닫지 않는다.
+
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |
 | --- | --- | --- | --- | --- | --- | --- |
 | SYS-ARCH-001 | ARCH-CENTRAL, ARCH-ZONE, ARCH-VECU, ARCH-CENTRAL-ALLOC | IF-CENTRAL-VEHICLE-REQUEST, IF-CAN-STEERING, IF-CAN-BRAKE, IF-CAN-DRIVE, IF-DDS-FRONT-CMD, IF-DDS-REAR-CMD | Deployment | TC-ARCH-001 | M5/M12 | NOT RUN |

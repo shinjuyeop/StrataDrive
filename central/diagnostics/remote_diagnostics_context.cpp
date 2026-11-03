@@ -14,7 +14,11 @@ ContextualOutbox::ContextualOutbox(FileJournal& j,ControlContext c,std::uint64_t
            e.session_enable.domain!=c.domain || e.session_enable.instance!=c.clock_instance ||
            (e.kind==Kind::Session?e.id.producer!=central:e.id.producer!=c.producer))
             throw std::invalid_argument("remote diagnostic store manifest");
+        if(e.kind==Kind::Session) retained_context_=e;
     }
+}
+Result ContextualOutbox::restore(const remote::RunLeaseEvidence& evidence) {
+    return retained_context_?context(*retained_context_,evidence):Result::NotReady;
 }
 ContextualOutbox::~ContextualOutbox() { if(!pending_.empty()) outbox_.recording_gap(); }
 bool ContextualOutbox::matches(const Event& e) const noexcept {
@@ -55,7 +59,7 @@ Result ContextualOutbox::context(const Event& e,const remote::RunLeaseEvidence& 
        std::any_of(pending_.begin(),pending_.end(),[&](const Event& item){return item.session.epoch<e.session.epoch;})) return Result::NotReady;
     const auto result=commit(e);
     if(result!=Result::Accepted && result!=Result::Duplicate) return result;
-    context_=e;
+    context_=e;retained_context_=e;
     while(!pending_.empty() && pending_.front().session==e.session) {
         if(!matches(pending_.front())) { outbox_.recording_gap(); return Result::Conflict; }
         const auto r=commit(pending_.front());

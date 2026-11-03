@@ -111,99 +111,131 @@ void NativeDiagnosticRoutes::leaf(unsigned i,const simulation::AsyncLeafOwner& a
     }
 }
 void NativeDiagnosticRoutes::work() {
-    std::string error;std::uint64_t events=0,duplicates=0,acked=0,buffered=0;bool dropped_ack=false;
+    std::string error;std::uint64_t events=0,duplicates=0,acked=0,buffered=0,stale_acks=0;bool dropped_ack=false;unsigned restarts=0;
     try {
         simulation::NativeExecutionWatch::configure_thread(15,0);
         simulation::runtime_support::ThreadInfo actual;actual.capture();std::ofstream placement(folder_/(tag_+".writer.json"));actual.write_json(placement);
-        std::array<std::unique_ptr<d::FileJournal>,9> stores;
-        std::array<std::unique_ptr<d::Inbox>,9> inboxes;
-        std::array<std::unique_ptr<d::ContextualOutbox>,9> outboxes;
-        std::array<std::unique_ptr<d::FileJournal>,2> contexts;
-        std::array<std::unique_ptr<d::Outbox>,2> context_out;
-        std::array<std::unique_ptr<d::Inbox>,2> context_in;
-        std::unique_ptr<d::FileJournal> merged;std::unique_ptr<d::Recorder> collector;
-        if(ecu_==Ecu::Central) {merged=std::make_unique<d::FileJournal>((folder_/"merged").string());collector=std::make_unique<d::Recorder>(*merged);}
-        for(unsigned i=0;i<9;++i)if(source_channels_[i]) {
-            stores[i]=std::make_unique<d::FileJournal>((folder_/source_name(i)).string());
-            if(collector)inboxes[i]=std::make_unique<d::Inbox>(*stores[i]);
-            else outboxes[i]=std::make_unique<d::ContextualOutbox>(*stores[i],manifest(diagnostic_sources[i].producer),7);
-        }
-        for(unsigned z=0;z<2;++z)if(context_channels_[z]) {
-            contexts[z]=std::make_unique<d::FileJournal>((folder_/(collector?"context-"+std::to_string(z):"context")).string());
-            if(collector)context_out[z]=std::make_unique<d::Outbox>(*contexts[z]);else context_in[z]=std::make_unique<d::Inbox>(*contexts[z]);
-        }
         std::ofstream log(folder_/(tag_+".delivery.csv"));log<<"wall_ns,action,stream,ordinal,producer,sequence,kind,epoch\n";
         std::ofstream credits(folder_/(tag_+".credits.csv"));credits<<"producer,epoch,requested_ns,prepare_deadline_ns,enable_ns,commit_deadline_ns,lease_sequence,source_ns,expiry_ns,captured_ns\n";
         std::ofstream originals(folder_/(tag_+".originals.csv"));originals<<"producer,monitor,epoch,enable_ns,detected_ns,reason,propagation,violation_ns,selected_ns,root_sequence,root_source,root_expiry\n";
         std::array<unsigned,9> credit_epoch{};std::array<std::array<std::optional<Source::Original>,2>,9> raw_seen{};
         const auto note=[&](const char* action,const d::wire::Data& data) {log<<wall()<<','<<action<<','<<data.stream<<','<<data.sequence<<','<<data.event.id.producer<<','<<data.event.id.sequence<<','<<static_cast<unsigned>(data.event.kind)<<','<<data.event.session.epoch<<'\n';};
-        const auto commit=[&](const d::Event& e) {const auto r=collector->record(e);require(r.durable,"merged diagnostic commit");++events;};
-        std::optional<d::Event> global;
-        std::array<std::uint64_t,9> last_send{};std::array<std::uint64_t,2> context_send{};
-        const auto* delay_env=std::getenv("STRATADRIVE_DIAGNOSTIC_CONTEXT_DELAY_MS");const auto delay=delay_env?std::stoull(delay_env)*ms:0;
-        std::uint64_t context_due=0,finish_deadline=0;
-        const auto transmit=[&](auto& out,diagnostic::Channel& channel,std::uint64_t& last,bool eligible=true) {
-            while(auto bytes=channel.pop()) {const auto r=out.acknowledge(*bytes);require(r==d::Result::Accepted || r==d::Result::Duplicate,"diagnostic ACK binding");if(r==d::Result::Accepted){++acked;last=0;}}
-            if(eligible && channel.available() && (!last || wall()-last>=100*ms))if(auto bytes=out.next())if(channel.send(*bytes)) {last=wall();note("send",std::get<d::wire::Data>(d::wire::decode(*bytes)));}
-        };
-        while(!finish_deadline || wall()<finish_deadline) {
-            if(!producing_ && !finish_deadline)finish_deadline=wall()+2000*ms;
-            std::size_t consumed=0;bool complete=true;
-            if(collector) {
-                for(auto* queue:{&startup_queue_,&central_queue_}) {
-                    const auto h=queue->health();require(!h.dropped && !h.identity_error,"Central diagnostic queue loss");d::Event e;
-                    for(unsigned i=0;i<8 && queue->pop(e);++i) {
-                        ++consumed;commit(e);note("local-commit",{8000,merged->committed().size(),3,e});
-                        if(e.kind==d::Kind::Session) {global=e;context_due=wall()+delay;for(auto& out:context_out)require(out->record(e).durable,"context source commit");}
+        std::ofstream restart_log(folder_/(tag_+".restart.csv"));restart_log<<"phase,stream,ordinal,bytes\n";
+        const auto* restart_env=std::getenv("STRATADRIVE_DIAGNOSTIC_RESTART");
+        const std::string ecu_name=ecu_==Ecu::Central?"central":ecu_==Ecu::Front?"front":"rear";
+        const bool requested=restart_env && (restart_env==ecu_name || std::string(restart_env)=="all");
+        std::uint64_t finish_deadline=0;
+        for(;;) {
+            std::array<std::unique_ptr<d::FileJournal>,9> stores;
+            std::array<std::unique_ptr<d::ContextualOutbox>,9> outboxes;
+            std::array<std::unique_ptr<d::FileJournal>,2> contexts;
+            std::array<std::unique_ptr<d::Outbox>,2> context_out;
+            std::array<std::unique_ptr<d::Inbox>,2> context_in;
+            std::unique_ptr<d::FileJournal> merged;std::unique_ptr<d::MergedCollector> collector;
+            if(ecu_==Ecu::Central) {merged=std::make_unique<d::FileJournal>((folder_/"merged").string());}
+            for(unsigned i=0;i<9;++i)if(source_channels_[i]) {
+                stores[i]=std::make_unique<d::FileJournal>((folder_/source_name(i)).string());
+                if(!merged)outboxes[i]=std::make_unique<d::ContextualOutbox>(*stores[i],manifest(diagnostic_sources[i].producer),7);
+            }
+            for(unsigned z=0;z<2;++z)if(context_channels_[z]) {
+                contexts[z]=std::make_unique<d::FileJournal>((folder_/(merged?"context-"+std::to_string(z):"context")).string());
+                if(merged)context_out[z]=std::make_unique<d::Outbox>(*contexts[z]);else context_in[z]=std::make_unique<d::Inbox>(*contexts[z]);
+            }
+            if(merged) {std::vector<d::FileJournal*> replicas;for(const auto& store:stores)replicas.push_back(store.get());collector=std::make_unique<d::MergedCollector>(*merged,replicas);}
+            const auto checkpoint=[&](const char* phase) {
+                for(unsigned i=0;i<9;++i)if(stores[i]) {
+                    unsigned ordinal=0;for(const auto& entry:stores[i]->committed()) {
+                        restart_log<<phase<<','<<8200+i<<','<<++ordinal<<',';
+                        for(const auto byte:d::encode(entry))restart_log<<std::hex<<std::setw(2)<<std::setfill('0')<<static_cast<unsigned>(byte);
+                        restart_log<<std::dec<<'\n';
                     }
+                    if(outboxes[i])rows(folder_/(std::string("restart-")+phase+"-"+source_name(i)+"-records.csv"),outboxes[i]->ledger());
                 }
-                for(unsigned i=0;i<9;++i)while(auto bytes=source_channels_[i]->pop()) {
-                    ++consumed;const auto data=std::get<d::wire::Data>(d::wire::decode(*bytes));const auto r=inboxes[i]->receive(*bytes);require(r.ack.has_value(),"native replica commit");
-                    commit(data.event);note(r.result==d::Result::Duplicate?"duplicate":"replica-commit",data);if(r.result==d::Result::Duplicate)++duplicates;
-                    if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !dropped_ack && data.event.kind==d::Kind::Fault) {dropped_ack=true;note("omit-ack",data);}
-                    else if(!source_channels_[i]->send(*r.ack))note("ack-unavailable",data); // sender retains/retries durable prefix
-                }
-                for(unsigned z=0;z<2;++z) {transmit(*context_out[z],*context_channels_[z],context_send[z],global && wall()>=context_due);complete=complete && context_out[z]->healthy() && context_out[z]->acknowledged()==contexts[z]->committed().size();}
-                complete=complete && global.has_value();for(const auto& store:stores)complete=complete && !store->committed().empty();
-            } else {
-                const unsigned z=ecu_==Ecu::Rear?1:0;
-                while(auto bytes=context_channels_[z]->pop()) {
-                    ++consumed;const auto data=std::get<d::wire::Data>(d::wire::decode(*bytes));require(data.event.kind==d::Kind::Session,"native context event kind");
-                    const auto r=context_in[z]->receive(*bytes);require(r.ack.has_value(),"native global context commit");
-                    global=data.event;note("context-commit",data);if(!context_channels_[z]->send(*r.ack))note("context-ack-unavailable",data);
-                }
-                for(unsigned i=0;i<9;++i)if(outboxes[i]) {
-                    auto& out=*outboxes[i];auto& source=*sources_[i];
-                    if(global && source.admitted.load()!=global->session.epoch)if(const auto evidence=source.evidence.read()) {
-                        const auto& lease=*evidence->credit.accepted;const auto& p=lease.plan;
-                        if(credit_epoch[i]!=p.epoch) {credit_epoch[i]=p.epoch;credits<<diagnostic_sources[i].producer<<','<<p.epoch<<','<<p.requested_ns<<','<<p.prepare_deadline_ns<<','<<p.enable_ns<<','<<p.commit_deadline_ns<<','<<lease.sequence<<','<<lease.source_time_ns<<','<<lease.expires_at_ns<<','<<evidence->captured_ns<<'\n';}
-                        const auto r=out.context(*global,evidence->credit);require(r==d::Result::Accepted || r==d::Result::Duplicate || r==d::Result::NotReady,"native context admission");
-                        if(r!=d::Result::NotReady)source.admitted=global->session.epoch;
-                    }
-                    for(unsigned j=0;j<2;++j)if(const auto original=source.original[j].read()) {
-                        const auto& old=raw_seen[i][j];const auto& o=original->fault;
-                        if(!old || old->fault.epoch!=o.epoch || old->fault.observed_ns!=o.observed_ns || old->selected!=original->selected) {
-                            originals<<diagnostic_sources[i].producer<<','<<original->monitor<<','<<o.epoch<<','<<o.enable_ns<<','<<o.observed_ns<<','<<o.reason<<','<<o.propagation<<','<<o.violation_ns.value_or(0)<<','<<original->selected.value_or(0)<<','<<(o.root?o.root->sequence:0)<<','<<(o.root?o.root->source_ns:0)<<','<<(o.root?o.root->expiry_ns:0)<<'\n';raw_seen[i][j]=original;
+                if(collector)rows(folder_/(std::string("restart-")+phase+"-records.csv"),collector->ledger());
+                restart_log.flush();
+            };
+            if(restarts)checkpoint("after");
+            bool restarting=false;
+            const auto commit=[&](const d::Event& e) {const auto r=collector->record(e);require(r.durable,"merged diagnostic commit");++events;};
+            std::optional<d::Event> global;
+            for(const auto& context:contexts)if(context)for(const auto& entry:context->committed()) {
+                const auto& e=std::get<d::Event>(entry);require(e.kind==d::Kind::Session,"retained native context event kind");global=e;
+            }
+            std::array<std::uint64_t,9> last_send{};std::array<std::uint64_t,2> context_send{};
+            const auto* delay_env=std::getenv("STRATADRIVE_DIAGNOSTIC_CONTEXT_DELAY_MS");const auto delay=delay_env?std::stoull(delay_env)*ms:0;
+            std::uint64_t context_due=0;
+            const auto transmit=[&](auto& out,diagnostic::Channel& channel,std::uint64_t& last,bool eligible=true) {
+                while(auto bytes=channel.pop()) {const auto r=out.acknowledge(*bytes);require(r==d::Result::Accepted || r==d::Result::Duplicate || (restarts && r==d::Result::NotReady),"diagnostic ACK binding");if(r==d::Result::NotReady)++stale_acks;if(r==d::Result::Accepted){++acked;last=0;}}
+                if(eligible && channel.available() && (!last || wall()-last>=100*ms))if(auto bytes=out.next())if(channel.send(*bytes)) {last=wall();note("send",std::get<d::wire::Data>(d::wire::decode(*bytes)));}
+            };
+            while(!finish_deadline || wall()<finish_deadline) {
+                if(!producing_ && !finish_deadline)finish_deadline=wall()+2000*ms;
+                std::size_t consumed=0;bool complete=true;
+                if(collector) {
+                    for(auto* queue:{&startup_queue_,&central_queue_}) {
+                        const auto h=queue->health();require(!h.dropped && !h.identity_error,"Central diagnostic queue loss");d::Event e;
+                        for(unsigned i=0;i<8 && queue->pop(e);++i) {
+                            ++consumed;commit(e);note("local-commit",{8000,merged->committed().size(),3,e});
+                            if(e.kind==d::Kind::Session) {global=e;context_due=wall()+delay;for(auto& out:context_out)require(out->record(e).durable,"context source commit");}
                         }
                     }
-                    consumed+=out.drain(source.queue,8);buffered=std::max<std::uint64_t>(buffered,out.pending());require(out.healthy(),"native source recording incomplete");
-                    transmit(out,*source_channels_[i],last_send[i]);
-                    complete=complete && source.admitted.load()!=0 && out.pending()==0 && out.acknowledged()==stores[i]->committed().size();
+                    for(unsigned i=0;i<9;++i)while(auto bytes=source_channels_[i]->pop()) {
+                        ++consumed;const auto data=std::get<d::wire::Data>(d::wire::decode(*bytes));const auto r=collector->receive(*bytes);require(r.ack.has_value(),"native replica commit");
+                        ++events;note(r.result==d::Result::Duplicate?"duplicate":"replica-commit",data);if(r.result==d::Result::Duplicate)++duplicates;
+                        if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !dropped_ack && data.event.kind==d::Kind::Fault) {dropped_ack=true;note("omit-ack",data);}
+                        else if(!source_channels_[i]->send(*r.ack))note("ack-unavailable",data); // sender retains/retries durable prefix
+                    }
+                    for(unsigned z=0;z<2;++z) {transmit(*context_out[z],*context_channels_[z],context_send[z],global && wall()>=context_due);complete=complete && context_out[z]->healthy() && context_out[z]->acknowledged()==contexts[z]->committed().size();}
+                    complete=complete && global.has_value();for(const auto& store:stores)complete=complete && !store->committed().empty();
+                } else {
+                    const unsigned z=ecu_==Ecu::Rear?1:0;
+                    while(auto bytes=context_channels_[z]->pop()) {
+                        ++consumed;const auto data=std::get<d::wire::Data>(d::wire::decode(*bytes));require(data.event.kind==d::Kind::Session,"native context event kind");
+                        const auto r=context_in[z]->receive(*bytes);require(r.ack.has_value(),"native global context commit");
+                        global=data.event;note("context-commit",data);if(!context_channels_[z]->send(*r.ack))note("context-ack-unavailable",data);
+                    }
+                    for(unsigned i=0;i<9;++i)if(outboxes[i]) {
+                        auto& out=*outboxes[i];auto& source=*sources_[i];
+                        if(global && source.admitted.load()!=global->session.epoch)if(const auto evidence=source.evidence.read()) {
+                            const auto& lease=*evidence->credit.accepted;const auto& p=lease.plan;
+                            if(credit_epoch[i]!=p.epoch) {credit_epoch[i]=p.epoch;credits<<diagnostic_sources[i].producer<<','<<p.epoch<<','<<p.requested_ns<<','<<p.prepare_deadline_ns<<','<<p.enable_ns<<','<<p.commit_deadline_ns<<','<<lease.sequence<<','<<lease.source_time_ns<<','<<lease.expires_at_ns<<','<<evidence->captured_ns<<'\n';}
+                            if(restarts) {const auto restored=out.restore(evidence->credit);require(restored==d::Result::Accepted || restored==d::Result::Duplicate || restored==d::Result::NotReady,"retained source context admission");}
+                            const auto r=out.context(*global,evidence->credit);require(r==d::Result::Accepted || r==d::Result::Duplicate || r==d::Result::NotReady,"native context admission");
+                            if(r!=d::Result::NotReady)source.admitted=global->session.epoch;
+                        }
+                        for(unsigned j=0;j<2;++j)if(const auto original=source.original[j].read()) {
+                            const auto& old=raw_seen[i][j];const auto& o=original->fault;
+                            if(!old || old->fault.epoch!=o.epoch || old->fault.observed_ns!=o.observed_ns || old->selected!=original->selected) {
+                                originals<<diagnostic_sources[i].producer<<','<<original->monitor<<','<<o.epoch<<','<<o.enable_ns<<','<<o.observed_ns<<','<<o.reason<<','<<o.propagation<<','<<o.violation_ns.value_or(0)<<','<<original->selected.value_or(0)<<','<<(o.root?o.root->sequence:0)<<','<<(o.root?o.root->source_ns:0)<<','<<(o.root?o.root->expiry_ns:0)<<'\n';raw_seen[i][j]=original;
+                            }
+                        }
+                        consumed+=out.drain(source.queue,8);buffered=std::max<std::uint64_t>(buffered,out.pending());require(out.healthy(),"native source recording incomplete");
+                        transmit(out,*source_channels_[i],last_send[i]);
+                        complete=complete && source.admitted.load()!=0 && out.pending()==0 && out.acknowledged()==stores[i]->committed().size();
+                    }
                 }
+                for(const auto& c:context_channels_)if(c)require(c->stats().dropped==0,"context SDK ingress loss");
+                for(const auto& c:source_channels_)if(c)require(c->stats().dropped==0,"source SDK ingress loss");
+                if(requested && !restarts) {
+                    const bool fault=std::any_of(stores.begin(),stores.end(),[](const auto& store){return store && std::any_of(store->committed().begin(),store->committed().end(),[](const auto& entry){return std::get<d::Event>(entry).kind==d::Kind::Fault;});});
+                    const bool pending=std::any_of(outboxes.begin(),outboxes.end(),[](const auto& out){return out && out->pending()!=0;});
+                    if((fault || (requested && std::string(restart_env)=="all" && !producing_)) && !pending) {checkpoint("before");restarting=true;for(auto& source:sources_)if(source)source->admitted=0;break;}
+                }
+                if(finish_deadline && complete && !consumed) {passed_=true;break;}
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
-            for(const auto& c:context_channels_)if(c)require(c->stats().dropped==0,"context SDK ingress loss");
-            for(const auto& c:source_channels_)if(c)require(c->stats().dropped==0,"source SDK ingress loss");
-            if(finish_deadline && complete && !consumed) {passed_=true;break;}
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            if(restarting) {++restarts;continue;}
+            require(!requested || restarts==1,"requested diagnostic restart not reached");
+            require(passed_,"native diagnostic drain timeout");
+            if(collector) {require(collector->ledger().complete(),"merged diagnostic recording incomplete");rows(folder_/"records.csv",collector->ledger());}
+            else for(unsigned i=0;i<9;++i)if(outboxes[i])rows(folder_/(source_name(i)+"-records.csv"),outboxes[i]->ledger());
+            break;
         }
-        require(passed_,"native diagnostic drain timeout");
-        if(collector) {require(collector->ledger().complete(),"merged diagnostic recording incomplete");rows(folder_/"records.csv",collector->ledger());}
-        else for(unsigned i=0;i<9;++i)if(outboxes[i])rows(folder_/(source_name(i)+"-records.csv"),outboxes[i]->ledger());
     } catch(const std::exception& e) {passed_=false;error=e.what();}
     std::ofstream channels(folder_/(tag_+".channels.csv"));channels<<"stream,received,rejected,sent,dropped,highwater\n";
     const auto stats=[&](unsigned stream,const diagnostic::Channel& c) {const auto s=c.stats();channels<<stream<<','<<s.received<<','<<s.rejected<<','<<s.send_returned<<','<<s.dropped<<','<<s.highwater<<'\n';};
     for(unsigned i=0;i<9;++i)if(source_channels_[i])stats(8200+i,*source_channels_[i]);
     for(unsigned z=0;z<2;++z)if(context_channels_[z])stats(8101+z,*context_channels_[z]);
-    std::ofstream out(folder_/(tag_+".json"));out<<"{\"pass\":"<<(passed_?"true":"false")<<",\"events_seen\":"<<events<<",\"duplicates\":"<<duplicates<<",\"acks_accepted\":"<<acked<<",\"pending_highwater\":"<<buffered<<",\"ack_omitted\":"<<(dropped_ack?"true":"false")<<",\"writer_cpu\":15,\"error\":"<<std::quoted(error)<<"}\n";
+    std::ofstream out(folder_/(tag_+".json"));out<<"{\"pass\":"<<(passed_?"true":"false")<<",\"events_seen\":"<<events<<",\"duplicates\":"<<duplicates<<",\"acks_accepted\":"<<acked<<",\"pending_highwater\":"<<buffered<<",\"ack_omitted\":"<<(dropped_ack?"true":"false")<<",\"stale_acks\":"<<stale_acks<<",\"restarts\":"<<restarts<<",\"writer_cpu\":15,\"error\":"<<std::quoted(error)<<"}\n";
 }
 } // namespace stratadrive::someip::test

@@ -16,6 +16,9 @@ public:
     ContextualOutbox(const ContextualOutbox&)=delete;
     ContextualOutbox& operator=(const ContextualOutbox&)=delete;
     Result context(const Event& central_session,const remote::RunLeaseEvidence&);
+    // Re-admit the original durable Session only against evidence captured by
+    // the still-authoritative local endpoint. Never creates/renews RunLease.
+    Result restore(const remote::RunLeaseEvidence&);
     // Accepted means queued or committed, not a durable delivery receipt.
     // Only next() exposes committed events. Pending events retain original IDs.
     Result submit(const Event& local_event);
@@ -30,6 +33,6 @@ private:
     Result commit(const Event&);
     bool matches(const Event&) const noexcept;
     Outbox outbox_; const ControlContext local_; const std::uint64_t central_;
-    std::optional<Event> context_; std::vector<Event> pending_;
+    std::optional<Event> context_,retained_context_; std::vector<Event> pending_;
 };
 } // namespace stratadrive::diagnostics
