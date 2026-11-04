@@ -5859,3 +5859,24 @@ SDK send 직전/직후 wall/thread CPU 시각을 직접 읽고 return 뒤 두 �
 SDK 내부 잠금과 OS scheduling 대기는 별도 추적 없이는 구분하지 않는다.
 제어 주기·source age·expiry·queue·CPU/policy·SDK 구현은 유지한다. 고정 반복과 이전
 실패 분모를 별도로 보존하며 계측 개선 자체를 지연 전체 해결로 올리지 않는다.
+
+<a id="adr-0101"></a>
+
+## ADR-0101: 커널·SDK 구간 관측과 단일 I/O 후보의 미채택
+
+상태: [구간 관측 및 후보 비교](../test-plan/evidence/m9_sdk_stages/README.md). 응답 지연 OPEN.
+기본 SDK를 수정하지 않고 pinned source의 별도 복제에 TCP 수신/파싱, application enqueue,
+dispatcher 실행, TCP send 관측을 추가한다. 원래 SOME/IP identity와 전체 payload/CRC로
+세 ECU의 TCP 재조립 및 adapter 시각을 연결한다. 미저장 SIGKILL 구간과 반복 CRC는
+완전 end-to-end 기록으로 만들지 않는다. 기록 슬롯은 사전 할당하고 join 뒤 읽는다.
+
+SO_TIMESTAMPNS_NEW의 realtime 시각과 매 frame monotonic/realtime bracket을 모두 남긴다.
+전체 관측 offset envelope100µs 초과는 정밀 kernel 분석 실패로 유지한다. 그 실행의
+SDK monotonic 기록은 별도로 읽을 수 있지만 kernel 지연 수치를 보완하거나 정밀 판정을
+통과로 바꾸지 않는다. Thread CPU·context switch만으로 lock/runnable 대기를 단정하지 않는다.
+
+I/O2개를 같은 CPU에서1개로 줄이는 명시적 실험 옵션을 추가했으나 기본값은2다.
+A/B/B/A 고정8건에서 A2/4·B3/4이며 B의 연결 종료 오류와 정밀 시계 미통과가 남았다.
+후보 채택 조건을 만족하지 못했으므로 비계측30건을 후보 통과 근거로 실행하지 않았다.
+기한·source·expiry·오류 판정을 유지하고 기존28/30을 이 실험의 결과로 덮어쓰지 않는다.
+갱신 실패의 Power ACK→VM snapshot→grant 연쇄가 다음 조사 경계다.

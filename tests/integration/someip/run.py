@@ -211,10 +211,15 @@ def inside(folder, binary, case):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--inside',nargs=3);p.add_argument('--node',nargs=5);p.add_argument('--capture',type=Path)
+    p.add_argument('--kernel-timestamps',action='store_true');p.add_argument('--capture-device',default='sdc')
     p.add_argument('--profile',choices=['normal','asan','tsan'],default='normal');p.add_argument('--cases',nargs='+',choices=CASES,default=list(CASES))
     p.add_argument('--fixed-layout',action='store_true',help='TSan only: process-local setarch -R, no kernel setting changes')
     p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
-    if a.capture:return capture_packets(a.capture)
+    if a.capture:
+        if a.kernel_timestamps:
+            from kernel_capture import capture
+            return capture(a.capture,a.capture_device)
+        return capture_packets(a.capture)
     if a.node:
         subprocess.run(['mount','-t','tmpfs','tmpfs','/tmp'],check=True)
         subprocess.run(['mount','-t','tmpfs','tmpfs','/dev/shm'],check=True)

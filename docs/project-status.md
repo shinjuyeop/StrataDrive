@@ -42,8 +42,14 @@ BMS9개 trip mask와 Power8개 물리 고장 조합은 electrical component 수�
 
 **응답 지연은 미해결이다.** 최종 TSan2건은 선행 정상 정지 중 새 명령이 기존 expiry보다
 Front0.216ms/Rear0.428ms 늦게 도착했다. 기록 잠금을 제외해도 SDK send→callback에
-약4.047ms/3.230ms가 남는다. SDK IO/dispatcher와 OS scheduling 대기를 분리하는 후속이
-필요하다. 기한을 늘리거나 SDK 오류 판정을 완화하지 않았다. 온도/부하를 통제한 성능 개선을
+약4.047ms/3.230ms가 남는다. 후속 [SDK 구간 관측](test-plan/evidence/m9_sdk_stages/README.md)은
+별도 계측 SDK와3개 커널 캡처를 연결했다. 최초6건 서비스6/6·정밀 시계5/6,
+I/O thread2→1→1→2 비교는 서비스5/8·정밀 시계4/8이다. 기존2개 설정에서 갱신 실패2건,
+1개 후보에서 연결 종료 오류1건이 남아 기본2개를 유지한다. 정상 요청3.000ms 중
+2.344–2.422ms의 커널 관측→SDK 수신 대기를 확인했지만 OS runnable/lock 대기를 완전히
+구분하지는 못했다. 재현된 갱신 실패는 AcknowledgedPower support 부족으로 한 회차를
+건너뛰고 새 Front command가21.471µs/101.949µs 늦은 연쇄다. Power ACK 수신과 VM 입력
+snapshot 경계 시각을 추가로 연결해야 한다. 기한·SDK 오류 판정은 유지했다. 온도/부하를 통제한 성능 개선을
 주장하지 않는다. 첫 후보 관련 C++152개씩, 최종 trace3개씩 Normal/ASan·UBSan/TSan,
 Python30개 및 변경 TU 정적 검사를 통과했다. 전체 root/CARLA/Target 재검증은 별도다.
 

@@ -31,6 +31,7 @@ CASES=('normal','late','ready-timeout','invalid','delay','command-loss','result-
 def config(role,generation=1,three=False):
     if not 1<=generation<=16:raise ValueError('Host test transport identity generation must be in 1..16; no client-ID reuse')
     c=pilot.config(role)
+    c['applications'][0]['threads']=int(os.environ.get('STRATADRIVE_SDK_IO_THREADS','2'))
     base={"central":0x5346,"front":0x5344,"rear":0x5348}[role]
     port={'central':30503,'front':30501,'rear':30505}[role]
     if role=='central':c['applications'][0]['id']=hex(0x1310+generation)
@@ -71,7 +72,8 @@ def normal_prerequisite(folder,central):
     return (folder/'control-established').exists() and (not os.environ.get('STRATADRIVE_NATIVE_DIAGNOSTICS') or (folder/'diagnostic-physical-normal').exists())
 
 def inside(folder,binary,case):
-    procs=[];streams=[];capture=None;loads=[]
+    procs=[];streams=[];capture=None;loads=[];observation_captures=[]
+    observing=bool(os.environ.get('STRATADRIVE_SDK_OBSERVATION'))
     three=bool(os.environ.get('STRATADRIVE_THREE_ECU'));target='central' if case=='central-rejoin' else 'rear' if os.environ.get('STRATADRIVE_FAULT_REAR') else 'front'
     peers={};peer_roles=('front','rear') if three else ('front',)
     result={'case':case,'three_ecu':three,'fault_target':target,'pass':False,'processes':[],'forced_cleanup':[],
@@ -95,6 +97,7 @@ def inside(folder,binary,case):
     def launch(role,generation=1,test_override=None):
         prefix=folder/f'{role}-{generation}'
         env=dict(os.environ,LD_LIBRARY_PATH=os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB',str(binary.parents[4]/'install/lib')),ASAN_OPTIONS='halt_on_error=1:detect_leaks=1',UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1',TSAN_OPTIONS='halt_on_error=0:exitcode=66')
+        if observing and role!='plant':env['STRATADRIVE_SDK_TRACE']=str(prefix)+'.sdk-internal.csv'
         if role=='plant':cmd=['taskset','-c',('14' if three else '6') if os.environ.get('STRATADRIVE_NATIVE_WATCH') else '3',str(binary),role,str(folder)]
         else:
             cfg=folder/f'{role}.config.json';pilot.save(cfg,config(role,generation,three))
@@ -146,8 +149,15 @@ def inside(folder,binary,case):
                 for args in (['link','set','lo','up'],['addr','add',address,'dev',dev],['link','set',dev,'up'],['route','add','224.0.0.0/4','dev',dev]):call(['ip','netns','exec',role,'ip',*args])
                 (folder/f'{role}.network.txt').write_text(call(['ip','netns','exec',role,'ip','-details','addr']))
         caperr=(folder/'capture.stderr').open('w');streams.append(caperr)
-        capture=subprocess.Popen(['ip','netns','exec','central',sys.executable,str(pilot.HERE),'--capture',str(folder)],stdout=subprocess.DEVNULL,stderr=caperr)
+        capture=subprocess.Popen(['ip','netns','exec','central',*(['taskset','-c','0'] if observing else []),sys.executable,str(pilot.HERE),'--capture',str(folder),*(['--kernel-timestamps'] if observing else [])],stdout=subprocess.DEVNULL,stderr=caperr)
         pilot.wait_for(lambda:(folder/'capture.ready').exists())
+        if observing:
+            for peer_role in peer_roles:
+                dest=folder/('capture-'+peer_role);dest.mkdir()
+                err=(dest/'capture.stderr').open('w');streams.append(err)
+                cap=subprocess.Popen(['ip','netns','exec',peer_role,'taskset','-c','0',sys.executable,str(pilot.HERE),
+                                      '--capture',str(dest),'--kernel-timestamps','--capture-device',{'front':'sdf','rear':'sdr'}[peer_role]],stdout=subprocess.DEVNULL,stderr=err)
+                observation_captures.append((dest,cap));pilot.wait_for(lambda:(dest/'capture.ready').exists())
         env=dict(os.environ,LD_LIBRARY_PATH=os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB',str(binary.parents[4]/'install/lib')))
         with (folder/'bootstrap.txt').open('w') as log:subprocess.run([str(binary),'bootstrap',str(folder)],env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
         if os.environ.get('STRATADRIVE_NATIVE_LOADED'):
@@ -296,6 +306,21 @@ def inside(folder,binary,case):
             capture.send_signal(signal.SIGINT)
             try:capture.wait(timeout=2)
             except subprocess.TimeoutExpired:capture.kill();capture.wait();result['capture_forced_cleanup']=True
+        if observing:
+            for dest,cap in observation_captures:
+                if cap.poll() is None:cap.send_signal(signal.SIGINT)
+                try:cap.wait(timeout=2)
+                except subprocess.TimeoutExpired:cap.kill();cap.wait();result['capture_forced_cleanup']=True
+            try:
+                traces=[json.loads((folder/f'{r["role"]}-{r["generation"]}.sdk-internal.csv.json').read_text())
+                        for r in result['processes'] if r['role']!='plant' and not r.get('expected_abrupt_stop')]
+                captures=[json.loads((dest/'capture.json').read_text()) for dest in [folder,*(d for d,_ in observation_captures)]]
+                result['sdk_observation']={'traces':traces,'captures':captures,
+                    'complete':bool(traces) and len(captures)==len(peer_roles)+1 and all(t['complete'] and t['rows']>0 for t in traces)
+                               and all(c['normal_exit'] and c['socket_drops']==0 for c in captures)
+                               and capture is not None and capture.returncode==0 and all(c.returncode==0 for _,c in observation_captures)}
+            except (OSError,ValueError,KeyError) as exc:result['sdk_observation']={'complete':False,'error':str(exc)}
+            result['pass']=result['pass'] and result['sdk_observation']['complete']
         result['load_control']=True
         for cpu,load in loads:
             alive=load.poll() is None;load.terminate()
@@ -371,6 +396,8 @@ def inside(folder,binary,case):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--inside',nargs=3)
+    p.add_argument('--sdk-observation',action='store_true',help='isolated observation SDK plus three kernel packet captures')
+    p.add_argument('--sdk-io-threads',type=int,choices=(1,2),default=2,help='declared SDK IO threads on each existing SDK CPU')
     p.add_argument('--energy-cycle',choices=['nominal','no-charge']);p.add_argument('--simple-vehicle',action='store_true');p.add_argument('--three',action='store_true');p.add_argument('--fault-zone',choices=['front','rear'],default='front')
     p.add_argument('--isolated-ecus',action='store_true',help='functional profile: separate Central/Front/Rear on CPU1/2/7; plant3 and diagnostic writer15')
     p.add_argument('--split-owner-io',action='store_true',help='functional profile: SDK CPU4/5/6 and original owners1/2/7; SCHED_OTHER without native-watch')
@@ -383,6 +410,12 @@ def main():
     p.add_argument('--diagnostic-service',action='store_true');p.add_argument('--diagnostics',action='store_true');p.add_argument('--diagnostic-drop-ack',action='store_true');p.add_argument('--diagnostic-context-delay-ms',type=int,default=0);p.add_argument('--diagnostic-restart',choices=['central','front','rear','all'])
     p.add_argument('--cases',nargs='+',choices=CASES,default=['normal']);p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
+    if a.sdk_io_threads!=2 and not a.split_owner_io:p.error('sdk-io-threads=1 requires split-owner-io')
+    os.environ['STRATADRIVE_SDK_IO_THREADS']=str(a.sdk_io_threads)
+    if a.sdk_observation:
+        if not a.split_owner_io or not os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'):
+            p.error('sdk-observation requires split-owner-io and an isolated observation library path')
+        os.environ['STRATADRIVE_SDK_OBSERVATION']='1'
     if a.fixed_layout and a.profile!='tsan':p.error('fixed-layout is TSan-only')
     if a.isolated_ecus:
         if not a.three or a.native_watch:p.error('isolated-ecus requires three ECUs without native-watch')
@@ -447,11 +480,20 @@ def main():
         if a.loaded:os.environ['STRATADRIVE_NATIVE_LOADED']='1'
         if a.timing:os.environ['STRATADRIVE_NATIVE_TIMING']='1'
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
+    if a.sdk_observation:
+        libraries={}
+        for directory in os.environ['STRATADRIVE_SOMEIP_OBSERVATION_LIB'].split(':'):
+            for library in sorted(Path(directory).glob('*.so*')):
+                if library.is_file() and library.name not in libraries:
+                    libraries[library.name]={'path':str(library.resolve()),'sha256':hashlib.sha256(library.read_bytes()).hexdigest()}
+        pilot.save(out/'observation-plan.json',{'mode':'sdk-stages-v1','libraries':libraries,
+            'capture_cpu':0,'timestamp':'SO_TIMESTAMPNS_NEW','per_frame_clock_bracket':True,
+            'complete_traces_exclude_only_declared_SIGKILL':True})
     binary=ROOT/f'build/m5-someip-{a.profile}/project/tests/integration/someip/someip_front_adapter'
     rows=[]
     with pilot.open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'isolated_ecus':a.isolated_ecus,'split_owner_io':a.split_owner_io,'auxiliary_placement':placement,'owner_fifo':a.owner_fifo,'service_fault':a.service_fault,'signal_write_delay_ms':a.signal_write_delay_ms,'fixture_signal_poll_ns':1000000,'fixture_signal_observation':'role-subscriptions-v1','functional_owner_idle_wait_us':1000,'sender_wakeup':'enqueue-notification','diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'central/coordinator').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
+        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'isolated_ecus':a.isolated_ecus,'split_owner_io':a.split_owner_io,'auxiliary_placement':placement,'owner_fifo':a.owner_fifo,'service_fault':a.service_fault,'signal_write_delay_ms':a.signal_write_delay_ms,'fixture_signal_poll_ns':1000000,'fixture_signal_observation':'role-subscriptions-v1','functional_owner_idle_wait_us':1000,'sender_wakeup':'enqueue-notification','diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'sdk_io_threads':a.sdk_io_threads,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'central/coordinator').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()

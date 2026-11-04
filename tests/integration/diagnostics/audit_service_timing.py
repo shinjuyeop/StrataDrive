@@ -4,6 +4,7 @@ import argparse
 import copy
 import csv
 import json
+import re
 from pathlib import Path
 
 
@@ -21,6 +22,13 @@ def load(root):
             'signals':list(csv.DictReader((root/'central-2.signals.csv').open())),
             'epoch2_events':list(csv.DictReader((root/'central-2.events.csv').open())),
             'summary':json.loads((root/'central-2.json').read_text())}
+
+
+def io_threads(threads,expected,cpu):
+    require(expected in (1,2),'declared SDK IO thread count')
+    found=[t for t in threads if re.fullmatch(r'[0-9a-f]{4}_io [0-9]+',t['name'])]
+    require(len(found)==expected and len({t['tid'] for t in found})==expected,'actual SDK IO thread count')
+    require(all(t['affinity']==[cpu] and t['policy']==t['priority']==0 for t in found),'actual SDK IO placement')
 
 
 def judge(data):
@@ -45,6 +53,7 @@ def judge(data):
         require(info['allowed_cpus']==[owner] and info['policy']==policy and info['priority']==priority,'actual declared owner CPU and policy')
         require(info['tid']==process['pid'],'owner placement must describe the actual process main thread')
         threads=process['threads']
+        io_threads(threads,data['plan'].get('sdk_io_threads',2),sdk)
         require(any(t['tid']==info['tid'] and t['affinity']==[owner] for t in threads),'independent process snapshot confirms owner CPU')
         require(any(t['tid']!=info['tid'] and t['affinity']==[sdk] for t in threads),'live SDK threads on separate declared CPU')
         require(all(t['affinity'] in ([owner],[sdk],[auxiliary]) and
@@ -73,6 +82,7 @@ def judge(data):
 
 def mutations(data):
     changes=[lambda d:d['owner']['central'].__setitem__('allowed_cpus',[4]),
+             lambda d:d['plan'].__setitem__('sdk_io_threads',3-data['plan'].get('sdk_io_threads',2)),
              lambda d:d['writer'].clear(),
              lambda d:d['signals'].clear(),
              lambda d:d['diagnostic_writers'][0].__setitem__('allowed_cpus',[7])]

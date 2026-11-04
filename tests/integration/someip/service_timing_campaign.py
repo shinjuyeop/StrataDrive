@@ -18,6 +18,7 @@ def main():
     parser.add_argument('--split-owner-io',action='store_true')
     parser.add_argument('--separate-aux-io',action='store_true')
     parser.add_argument('--owner-fifo',action='store_true')
+    parser.add_argument('--sdk-io-threads',type=int,choices=(1,2),default=2)
     parser.add_argument('--tsan-repeats',type=int,choices=(1,3),default=1)
     parser.add_argument('--response-audit',action='store_true')
     parser.add_argument('--defer-audits',action='store_true',help='finish every fixed runtime before CPU-intensive offline readers')
@@ -28,7 +29,8 @@ def main():
     cases=[(p,f,0,1) for p in ('normal','asan','tsan') for f in faults]
     cases += [(p,'normal',250,1) for p in ('normal','asan','tsan')]
     for repeat in range(2,args.tsan_repeats+1):cases += [('tsan',f,0,repeat) for f in faults]+[('tsan','normal',250,repeat)]
-    files=[HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',Path(__file__),
+    files=[HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',HERE/'run.py',Path(__file__),
+           HERE/'kernel_capture.py',ROOT/'docs/test-plan/sdk-io-threads-protocol.md',ROOT/'tests/unit/sdk_stages_test.py',
            HERE/'sdk_outcomes.py',HERE/'native_oracle.py',HERE/'fixture_placement.hpp',HERE/'fixture_placement.py',
            HERE/'native_diagnostic_routes.cpp',HERE/'native_continuity_service.cpp',
            HERE.parent/'diagnostics/audit_central_restart.py',ROOT/'tests/unit/someip_pilot_test.py',
@@ -43,7 +45,7 @@ def main():
            HERE.parent/'diagnostics/audit_service_timing.py',
            HERE.parent/'diagnostics/audit_service_response.py',
            HERE.parent/'diagnostics/audit_native_service.py',HERE.parent/'diagnostics/audit_native_service_faults.py']
-    manifest={'base':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+    manifest={'base':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'sdk_io_threads':args.sdk_io_threads,
               'audit_phase':'after-all-runtimes' if args.defer_audits else 'interleaved',
               'cases':cases,'sources':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
               'binaries':{p:hashlib.sha256((ROOT/f'build/m5-someip-{p}/project/tests/integration/someip/someip_front_adapter').read_bytes()).hexdigest() for p in ('normal','asan','tsan')}}
@@ -76,6 +78,7 @@ def main():
         if args.split_owner_io:command+=['--split-owner-io']
         if args.separate_aux_io:command+=['--separate-aux-io']
         if args.owner_fifo:command+=['--owner-fifo']
+        command+=['--sdk-io-threads',str(args.sdk_io_threads)]
         if fault!='normal':command+=['--service-fault',fault]
         if delay:command+=['--signal-write-delay-ms',str(delay)]
         with (out/(name+'.runtime.log')).open('w') as log:

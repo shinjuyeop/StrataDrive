@@ -1,0 +1,110 @@
+[
+  {
+    "name": "python-bookkeeping",
+    "command": [
+      "python3",
+      "tests/unit/someip_pilot_test.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "python-stages",
+    "command": [
+      "python3",
+      "tests/unit/sdk_stages_test.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "python-compile",
+    "command": [
+      "python3",
+      "-m",
+      "py_compile",
+      "/d/shin/StrataDrive/tests/integration/someip/run.py",
+      "/d/shin/StrataDrive/tests/integration/someip/renewal_oracle.py",
+      "/d/shin/StrataDrive/tests/integration/someip/sdk_stages_campaign.py",
+      "/d/shin/StrataDrive/tests/integration/someip/sdk_outcomes.py",
+      "/d/shin/StrataDrive/tests/integration/someip/native_service_client.py",
+      "/d/shin/StrataDrive/tests/integration/someip/vehicle_oracle.py",
+      "/d/shin/StrataDrive/tests/integration/someip/native_oracle.py",
+      "/d/shin/StrataDrive/tests/integration/someip/rear_oracle.py",
+      "/d/shin/StrataDrive/tests/integration/someip/observe_sdk.py",
+      "/d/shin/StrataDrive/tests/integration/someip/build_sdk_observation.py",
+      "/d/shin/StrataDrive/tests/integration/someip/diagnostics_run.py",
+      "/d/shin/StrataDrive/tests/integration/someip/native_campaign.py",
+      "/d/shin/StrataDrive/tests/integration/someip/build.py",
+      "/d/shin/StrataDrive/tests/integration/someip/fixture_placement.py",
+      "/d/shin/StrataDrive/tests/integration/someip/kernel_capture.py",
+      "/d/shin/StrataDrive/tests/integration/someip/energy_oracle.py",
+      "/d/shin/StrataDrive/tests/integration/someip/physical_response.py",
+      "/d/shin/StrataDrive/tests/integration/someip/native_diagnostics_run.py",
+      "/d/shin/StrataDrive/tests/integration/someip/service_timing_campaign.py",
+      "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+      "tests/integration/diagnostics/audit_sdk_stages.py",
+      "tests/integration/diagnostics/audit_service_timing.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tcp_client_endpoint_impl",
+    "command": [
+      "clang-tidy",
+      "/d/shin/StrataDrive/build/m9-sdk-stages/sdk-tsan-v2/source/implementation/endpoints/src/tcp_client_endpoint_impl.cpp",
+      "-p",
+      "build/m9-sdk-stages/static-compatible-v2",
+      "--header-filter=sdk_observation.hpp|concurrent_trace_buffer.hpp",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/x86_64-linux-gnu/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11/backward"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tcp_server_endpoint_impl",
+    "command": [
+      "clang-tidy",
+      "/d/shin/StrataDrive/build/m9-sdk-stages/sdk-tsan-v2/source/implementation/endpoints/src/tcp_server_endpoint_impl.cpp",
+      "-p",
+      "build/m9-sdk-stages/static-compatible-v2",
+      "--header-filter=sdk_observation.hpp|concurrent_trace_buffer.hpp",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/x86_64-linux-gnu/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11/backward"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "application_impl",
+    "command": [
+      "clang-tidy",
+      "/d/shin/StrataDrive/build/m9-sdk-stages/sdk-tsan-v2/source/implementation/runtime/src/application_impl.cpp",
+      "-p",
+      "build/m9-sdk-stages/static-compatible-v2",
+      "--header-filter=sdk_observation.hpp|concurrent_trace_buffer.hpp",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/x86_64-linux-gnu/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11/backward"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "helper-cppcheck",
+    "exit": 0,
+    "log": "helper-cppcheck.txt"
+  },
+  {
+    "name": "SDK-cppcheck-baseline-comparison",
+    "report": "cppcheck-comparison.json",
+    "new_diagnostics": []
+  }
+]

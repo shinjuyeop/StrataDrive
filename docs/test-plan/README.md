@@ -75,3 +75,6 @@ M7-1a–1s는 환경/센서 → clock·native 반환 → source/NoDrive → geom
 [실행 안내](../carla-guide.md)를 따른다.
 
 [M9 후속 구현·검증](evidence/m9_completion/README.md): 실제 서비스 고장 거절, CARLA30 fault/물리 응답/DTC, 최초 native 원인, stop 복구·명시적 clear, BMS/Power component 조합과 기본512-event capacity. 원래 실패와 전체 미수용 항목을 함께 보존한다.
+
+[SDK 구간 관측](evidence/m9_sdk_stages/README.md): 격리 계측 SDK·3개 kernel capture,
+고정6건 및 I/O thread A/B/B/A8건, 갱신 실패2건의 Power ACK/support/원래 만료 연쇄.

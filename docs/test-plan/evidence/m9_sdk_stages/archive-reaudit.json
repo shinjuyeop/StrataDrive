@@ -1,0 +1,191 @@
+{
+  "source_files_verified": 46,
+  "checks": [
+    {
+      "archive": "cohort-1-tsan-ack-loss-r1.tar.gz",
+      "archive_sha256": "ecc8490176bb6217095ddb2891a094a3f6fc3b17146905f003b2dd348edd5dea",
+      "audit": "service",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_native_service_faults.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/cohort-1/tsan-ack-loss-r1/central-rejoin-1",
+        "--mutations"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "log": "cohort-1-tsan-ack-loss-r1.service.txt",
+      "log_sha256": "623abd78c91a5a6f075aa8f55f72cb162483a928ae073b265d35364b77a7905b"
+    },
+    {
+      "archive": "cohort-1-tsan-ack-loss-r1.tar.gz",
+      "archive_sha256": "ecc8490176bb6217095ddb2891a094a3f6fc3b17146905f003b2dd348edd5dea",
+      "audit": "stages",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_sdk_stages.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/cohort-1/tsan-ack-loss-r1/central-rejoin-1"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "log": "cohort-1-tsan-ack-loss-r1.stages.txt",
+      "log_sha256": "d131ff235bb87ee23e153aa3ead2f0bde01c002911c66977ffd0ed6436c1b17f",
+      "observation_complete": true,
+      "matches_final_report": true
+    },
+    {
+      "archive": "cohort-1-tsan-ack-loss-r1.tar.gz",
+      "archive_sha256": "ecc8490176bb6217095ddb2891a094a3f6fc3b17146905f003b2dd348edd5dea",
+      "audit": "timing",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_service_timing.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/cohort-1/tsan-ack-loss-r1/central-rejoin-1",
+        "--mutations"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "log": "cohort-1-tsan-ack-loss-r1.timing.txt",
+      "log_sha256": "7c7fb1ee9722bb69a0fc62e24986291924fb20172854765eb5a5b7489a386dc6"
+    },
+    {
+      "archive": "compare-io-tsan-stop-ack-loss-r1.tar.gz",
+      "archive_sha256": "b254299c17e2c2537b68399cf1b2a23bd5ce00fa6748f7633330f12c1d73cf00",
+      "audit": "service",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_native_service_faults.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/compare-io/tsan-stop-ack-loss-r1/central-rejoin-1",
+        "--mutations"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "log": "compare-io-tsan-stop-ack-loss-r1.service.txt",
+      "log_sha256": "40056ccde1156d0b41c60c15808f99e46aa3f14532b69737c23f3907e398dab4",
+      "same_failure_reason": true
+    },
+    {
+      "archive": "compare-io-tsan-stop-ack-loss-r1.tar.gz",
+      "archive_sha256": "b254299c17e2c2537b68399cf1b2a23bd5ce00fa6748f7633330f12c1d73cf00",
+      "audit": "stages",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_sdk_stages.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/compare-io/tsan-stop-ack-loss-r1/central-rejoin-1"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "log": "compare-io-tsan-stop-ack-loss-r1.stages.txt",
+      "log_sha256": "d29f54988a9aa11048350abdaaf864880177cd7612e5d01c6da7ae4a147ec5a9",
+      "observation_complete": true,
+      "matches_final_report": true
+    },
+    {
+      "archive": "compare-io-tsan-stop-ack-loss-r1.tar.gz",
+      "archive_sha256": "b254299c17e2c2537b68399cf1b2a23bd5ce00fa6748f7633330f12c1d73cf00",
+      "audit": "timing",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_service_timing.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/compare-io/tsan-stop-ack-loss-r1/central-rejoin-1",
+        "--mutations"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "log": "compare-io-tsan-stop-ack-loss-r1.timing.txt",
+      "log_sha256": "f50354d041480fe2814276221b59566868e84fac538b745d86bb6533326ecb9e"
+    },
+    {
+      "archive": "compare-io-tsan-ack-loss-r2.tar.gz",
+      "archive_sha256": "194fd7677f9813d91bfa8a73b44c587551e9215291a8ce4b78e653cf1a9bcad5",
+      "audit": "service",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_native_service_faults.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/compare-io/tsan-ack-loss-r2/central-rejoin-1",
+        "--mutations"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "log": "compare-io-tsan-ack-loss-r2.service.txt",
+      "log_sha256": "623abd78c91a5a6f075aa8f55f72cb162483a928ae073b265d35364b77a7905b"
+    },
+    {
+      "archive": "compare-io-tsan-ack-loss-r2.tar.gz",
+      "archive_sha256": "194fd7677f9813d91bfa8a73b44c587551e9215291a8ce4b78e653cf1a9bcad5",
+      "audit": "stages",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_sdk_stages.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/compare-io/tsan-ack-loss-r2/central-rejoin-1"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "log": "compare-io-tsan-ack-loss-r2.stages.txt",
+      "log_sha256": "1c7b0aba3721ec5d3dbcffbdd2f850d9f124ae625381ebd96b6189d5a0312756",
+      "observation_complete": false,
+      "matches_final_report": true
+    },
+    {
+      "archive": "compare-io-tsan-ack-loss-r2.tar.gz",
+      "archive_sha256": "194fd7677f9813d91bfa8a73b44c587551e9215291a8ce4b78e653cf1a9bcad5",
+      "audit": "timing",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_service_timing.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/compare-io/tsan-ack-loss-r2/central-rejoin-1",
+        "--mutations"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "log": "compare-io-tsan-ack-loss-r2.timing.txt",
+      "log_sha256": "d0f8fabfad8347b02a37476515fcbb9a7be607c7482a6bd1a9571230cbbe3c3c"
+    },
+    {
+      "archive": "compare-io-tsan-stop-ack-loss-r3.tar.gz",
+      "archive_sha256": "98f32fe98822813a586092c01c86576ea326f4d5850eae348705912b01e96670",
+      "audit": "service",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_native_service_faults.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/compare-io/tsan-stop-ack-loss-r3/central-rejoin-1",
+        "--mutations"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "log": "compare-io-tsan-stop-ack-loss-r3.service.txt",
+      "log_sha256": "40056ccde1156d0b41c60c15808f99e46aa3f14532b69737c23f3907e398dab4",
+      "same_failure_reason": true
+    },
+    {
+      "archive": "compare-io-tsan-stop-ack-loss-r3.tar.gz",
+      "archive_sha256": "98f32fe98822813a586092c01c86576ea326f4d5850eae348705912b01e96670",
+      "audit": "stages",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_sdk_stages.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/compare-io/tsan-stop-ack-loss-r3/central-rejoin-1"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "log": "compare-io-tsan-stop-ack-loss-r3.stages.txt",
+      "log_sha256": "3e1f187f223603fea579c60cb9b9b4b5ba09ee03edc769f4c81a0b2eef0ab578",
+      "observation_complete": false,
+      "matches_final_report": true
+    },
+    {
+      "archive": "compare-io-tsan-stop-ack-loss-r3.tar.gz",
+      "archive_sha256": "98f32fe98822813a586092c01c86576ea326f4d5850eae348705912b01e96670",
+      "audit": "timing",
+      "command": [
+        "python3",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/tests/integration/diagnostics/audit_service_timing.py",
+        "/tmp/stratadrive-sdk-reaudit-gxc_hvln/compare-io/tsan-stop-ack-loss-r3/central-rejoin-1",
+        "--mutations"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "log": "compare-io-tsan-stop-ack-loss-r3.timing.txt",
+      "log_sha256": "c231a3ca8b0b8c8461a93d65893cd6b82d05a93aae183ca87a774ff26d97be93"
+    }
+  ]
+}

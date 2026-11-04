@@ -1,0 +1,991 @@
+{
+  "cohort-1": [
+    {
+      "name": "tsan-ack-loss-r1",
+      "sdk_io_threads": 2,
+      "service_qualified": true,
+      "kernel_calibration_qualified": true,
+      "calibration": {
+        "central": {
+          "rows": 26201,
+          "offset_low_ns": 1792981521110452031,
+          "offset_high_ns": 1792981521110487832,
+          "uncertainty_ns": 35801,
+          "qualified": true
+        },
+        "front": {
+          "rows": 10244,
+          "offset_low_ns": 1792981521110437585,
+          "offset_high_ns": 1792981521110487785,
+          "uncertainty_ns": 50200,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 16046,
+          "offset_low_ns": 1792981521110421489,
+          "offset_high_ns": 1792981521110499963,
+          "uncertainty_ns": 78474,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 12122,
+      "partial_chains": 1360,
+      "normal_chains": 6468,
+      "normal_maxima": {
+        "dispatch_wait_ns": 1042735,
+        "enqueue_cpu_ns": 34358,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 445203,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 76605,
+        "handler_involuntary": 1,
+        "handler_ns": 919526,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 2422130,
+        "kernel_to_io_low_ns": 2343656,
+        "routing_ns": 1251740,
+        "send_to_handler_ns": 3000398,
+        "send_to_tcp_ns": 1424306,
+        "tcp_cpu_ns": 25418,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 980099,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-stop-ack-loss-r1",
+      "sdk_io_threads": 2,
+      "service_qualified": true,
+      "kernel_calibration_qualified": false,
+      "calibration": {
+        "central": {
+          "rows": 21423,
+          "offset_low_ns": 1792981521110450670,
+          "offset_high_ns": 1792981521110496828,
+          "uncertainty_ns": 46158,
+          "qualified": true
+        },
+        "front": {
+          "rows": 8203,
+          "offset_low_ns": 1792981521110408224,
+          "offset_high_ns": 1792981521110534266,
+          "uncertainty_ns": 126042,
+          "qualified": false
+        },
+        "rear": {
+          "rows": 13304,
+          "offset_low_ns": 1792981521110455693,
+          "offset_high_ns": 1792981521110641120,
+          "uncertainty_ns": 185427,
+          "qualified": false
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 9567,
+      "partial_chains": 1357,
+      "normal_chains": 5263,
+      "normal_maxima": {
+        "dispatch_wait_ns": 997755,
+        "enqueue_cpu_ns": 42210,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 548140,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 47684,
+        "handler_involuntary": 1,
+        "handler_ns": 231285,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 1262322,
+        "kernel_to_io_low_ns": 1216164,
+        "routing_ns": 1395681,
+        "send_to_handler_ns": 1929959,
+        "send_to_tcp_ns": 1371936,
+        "tcp_cpu_ns": 23874,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 1102920,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [
+        {
+          "ns": "818120892621913",
+          "event": "central-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "12",
+          "deadline": "7",
+          "file": "central-2-service.events.csv"
+        },
+        {
+          "ns": "818120892622326",
+          "event": "central-allocation-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "0",
+          "deadline": "4",
+          "file": "central-2-service.events.csv"
+        }
+      ],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-ack-loss-r2",
+      "sdk_io_threads": 2,
+      "service_qualified": true,
+      "kernel_calibration_qualified": true,
+      "calibration": {
+        "central": {
+          "rows": 25961,
+          "offset_low_ns": 1792981521110431959,
+          "offset_high_ns": 1792981521110510079,
+          "uncertainty_ns": 78120,
+          "qualified": true
+        },
+        "front": {
+          "rows": 10122,
+          "offset_low_ns": 1792981521110438510,
+          "offset_high_ns": 1792981521110489131,
+          "uncertainty_ns": 50621,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 15931,
+          "offset_low_ns": 1792981521110446603,
+          "offset_high_ns": 1792981521110488871,
+          "uncertainty_ns": 42268,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 12016,
+      "partial_chains": 1378,
+      "normal_chains": 6501,
+      "normal_maxima": {
+        "dispatch_wait_ns": 971045,
+        "enqueue_cpu_ns": 40923,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 900405,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 56756,
+        "handler_involuntary": 2,
+        "handler_ns": 299581,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 1116641,
+        "kernel_to_io_low_ns": 1038521,
+        "routing_ns": 1250070,
+        "send_to_handler_ns": 2275661,
+        "send_to_tcp_ns": 1847122,
+        "tcp_cpu_ns": 37081,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 912870,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-stop-ack-loss-r2",
+      "sdk_io_threads": 2,
+      "service_qualified": true,
+      "kernel_calibration_qualified": true,
+      "calibration": {
+        "central": {
+          "rows": 21720,
+          "offset_low_ns": 1792981521110417376,
+          "offset_high_ns": 1792981521110488939,
+          "uncertainty_ns": 71563,
+          "qualified": true
+        },
+        "front": {
+          "rows": 8316,
+          "offset_low_ns": 1792981521110451904,
+          "offset_high_ns": 1792981521110491689,
+          "uncertainty_ns": 39785,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 13479,
+          "offset_low_ns": 1792981521110452558,
+          "offset_high_ns": 1792981521110496843,
+          "uncertainty_ns": 44285,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 9801,
+      "partial_chains": 1380,
+      "normal_chains": 5241,
+      "normal_maxima": {
+        "dispatch_wait_ns": 1144446,
+        "enqueue_cpu_ns": 31556,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 478933,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 53200,
+        "handler_involuntary": 1,
+        "handler_ns": 593266,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 3541051,
+        "kernel_to_io_low_ns": 3469488,
+        "routing_ns": 1320628,
+        "send_to_handler_ns": 4474166,
+        "send_to_tcp_ns": 1462931,
+        "tcp_cpu_ns": 37487,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 1091254,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [
+        {
+          "ns": "818139886120762",
+          "event": "central-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "12",
+          "deadline": "7",
+          "file": "central-2-service.events.csv"
+        },
+        {
+          "ns": "818139886121222",
+          "event": "central-allocation-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "0",
+          "deadline": "4",
+          "file": "central-2-service.events.csv"
+        }
+      ],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-ack-loss-r3",
+      "sdk_io_threads": 2,
+      "service_qualified": true,
+      "kernel_calibration_qualified": true,
+      "calibration": {
+        "central": {
+          "rows": 26107,
+          "offset_low_ns": 1792981521110434720,
+          "offset_high_ns": 1792981521110494466,
+          "uncertainty_ns": 59746,
+          "qualified": true
+        },
+        "front": {
+          "rows": 10169,
+          "offset_low_ns": 1792981521110438437,
+          "offset_high_ns": 1792981521110490460,
+          "uncertainty_ns": 52023,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 16035,
+          "offset_low_ns": 1792981521110414225,
+          "offset_high_ns": 1792981521110498096,
+          "uncertainty_ns": 83871,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 12138,
+      "partial_chains": 1360,
+      "normal_chains": 6426,
+      "normal_maxima": {
+        "dispatch_wait_ns": 1115855,
+        "enqueue_cpu_ns": 41667,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 842752,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 46807,
+        "handler_involuntary": 1,
+        "handler_ns": 291977,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 2934244,
+        "kernel_to_io_low_ns": 2850373,
+        "routing_ns": 1487112,
+        "send_to_handler_ns": 4079646,
+        "send_to_tcp_ns": 1583091,
+        "tcp_cpu_ns": 39389,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 757465,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-stop-ack-loss-r3",
+      "sdk_io_threads": 2,
+      "service_qualified": true,
+      "kernel_calibration_qualified": true,
+      "calibration": {
+        "central": {
+          "rows": 21474,
+          "offset_low_ns": 1792981521110454558,
+          "offset_high_ns": 1792981521110497842,
+          "uncertainty_ns": 43284,
+          "qualified": true
+        },
+        "front": {
+          "rows": 8240,
+          "offset_low_ns": 1792981521110455832,
+          "offset_high_ns": 1792981521110488349,
+          "uncertainty_ns": 32517,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 13315,
+          "offset_low_ns": 1792981521110455301,
+          "offset_high_ns": 1792981521110487903,
+          "uncertainty_ns": 32602,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 9680,
+      "partial_chains": 1360,
+      "normal_chains": 5219,
+      "normal_maxima": {
+        "dispatch_wait_ns": 911024,
+        "enqueue_cpu_ns": 31908,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 197408,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 51210,
+        "handler_involuntary": 1,
+        "handler_ns": 607160,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 1032667,
+        "kernel_to_io_low_ns": 1000065,
+        "routing_ns": 1271216,
+        "send_to_handler_ns": 1852236,
+        "send_to_tcp_ns": 1413678,
+        "tcp_cpu_ns": 37687,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 144493,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [
+        {
+          "ns": "818158531382245",
+          "event": "central-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "11",
+          "deadline": "7",
+          "file": "central-2-service.events.csv"
+        },
+        {
+          "ns": "818158531382653",
+          "event": "central-allocation-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "0",
+          "deadline": "4",
+          "file": "central-2-service.events.csv"
+        }
+      ],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    }
+  ],
+  "compare-io": [
+    {
+      "name": "tsan-ack-loss-r1",
+      "sdk_io_threads": 2,
+      "service_qualified": true,
+      "kernel_calibration_qualified": true,
+      "calibration": {
+        "central": {
+          "rows": 26371,
+          "offset_low_ns": 1792981521110441613,
+          "offset_high_ns": 1792981521110507933,
+          "uncertainty_ns": 66320,
+          "qualified": true
+        },
+        "front": {
+          "rows": 10307,
+          "offset_low_ns": 1792981521110455161,
+          "offset_high_ns": 1792981521110489844,
+          "uncertainty_ns": 34683,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 16159,
+          "offset_low_ns": 1792981521110437133,
+          "offset_high_ns": 1792981521110500955,
+          "uncertainty_ns": 63822,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 12331,
+      "partial_chains": 1360,
+      "normal_chains": 6458,
+      "normal_maxima": {
+        "dispatch_wait_ns": 1156873,
+        "enqueue_cpu_ns": 30743,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 748904,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 53587,
+        "handler_involuntary": 1,
+        "handler_ns": 309745,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 1279989,
+        "kernel_to_io_low_ns": 1213669,
+        "routing_ns": 1262708,
+        "send_to_handler_ns": 2248747,
+        "send_to_tcp_ns": 1944015,
+        "tcp_cpu_ns": 38329,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 486229,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-stop-ack-loss-r1",
+      "sdk_io_threads": 2,
+      "service_qualified": false,
+      "kernel_calibration_qualified": true,
+      "calibration": {
+        "central": {
+          "rows": 20559,
+          "offset_low_ns": 1792981521110443158,
+          "offset_high_ns": 1792981521110518041,
+          "uncertainty_ns": 74883,
+          "qualified": true
+        },
+        "front": {
+          "rows": 7867,
+          "offset_low_ns": 1792981521110455544,
+          "offset_high_ns": 1792981521110489058,
+          "uncertainty_ns": 33514,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 12760,
+          "offset_low_ns": 1792981521110454993,
+          "offset_high_ns": 1792981521110494405,
+          "uncertainty_ns": 39412,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 9179,
+      "partial_chains": 1362,
+      "normal_chains": 4769,
+      "normal_maxima": {
+        "dispatch_wait_ns": 836110,
+        "enqueue_cpu_ns": 33609,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 806657,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 53386,
+        "handler_involuntary": 1,
+        "handler_ns": 383546,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 1230680,
+        "kernel_to_io_low_ns": 1155797,
+        "routing_ns": 1230399,
+        "send_to_handler_ns": 1908576,
+        "send_to_tcp_ns": 1166166,
+        "tcp_cpu_ns": 23852,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 736497,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [
+        {
+          "ns": "818961122514195",
+          "event": "central-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "12",
+          "deadline": "6",
+          "file": "central-2-service.events.csv"
+        },
+        {
+          "ns": "818961122514808",
+          "event": "central-allocation-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "13",
+          "deadline": "3",
+          "file": "central-2-service.events.csv"
+        }
+      ],
+      "unexpected_sdk_errors": [
+        {
+          "file": "rear-1.stdout",
+          "line": 25,
+          "text": "2026-11-04 22:54:37.965340 rear [error] tcei::write_completion_condition: Broken pipe(32) bytes transferred: 0 bytes to sent: 117 remote:10.88.0.1:30507 (1522): [534a.0070.0373]"
+        }
+      ],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-ack-loss-r2",
+      "sdk_io_threads": 1,
+      "service_qualified": true,
+      "kernel_calibration_qualified": false,
+      "calibration": {
+        "central": {
+          "rows": 24960,
+          "offset_low_ns": 1792981521110442515,
+          "offset_high_ns": 1792981521110491618,
+          "uncertainty_ns": 49103,
+          "qualified": true
+        },
+        "front": {
+          "rows": 9686,
+          "offset_low_ns": 1792981521110453934,
+          "offset_high_ns": 1792981521110488338,
+          "uncertainty_ns": 34404,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 15364,
+          "offset_low_ns": 1792981521110342502,
+          "offset_high_ns": 1792981521110510475,
+          "uncertainty_ns": 167973,
+          "qualified": false
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 11948,
+      "partial_chains": 1378,
+      "normal_chains": 6476,
+      "normal_maxima": {
+        "dispatch_wait_ns": 1070412,
+        "enqueue_cpu_ns": 39540,
+        "enqueue_involuntary": 0,
+        "enqueue_ns": 56876,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 60875,
+        "handler_involuntary": 1,
+        "handler_ns": 530111,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 2824443,
+        "kernel_to_io_low_ns": 2790039,
+        "routing_ns": 627008,
+        "send_to_handler_ns": 3791420,
+        "send_to_tcp_ns": 1413826,
+        "tcp_cpu_ns": 37911,
+        "tcp_involuntary": 0,
+        "tcp_parse_ns": 38261,
+        "tcp_voluntary": 0
+      },
+      "first_faults": [],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-stop-ack-loss-r2",
+      "sdk_io_threads": 1,
+      "service_qualified": true,
+      "kernel_calibration_qualified": false,
+      "calibration": {
+        "central": {
+          "rows": 20726,
+          "offset_low_ns": 1792981521110449365,
+          "offset_high_ns": 1792981521110497904,
+          "uncertainty_ns": 48539,
+          "qualified": true
+        },
+        "front": {
+          "rows": 7935,
+          "offset_low_ns": 1792981521110454680,
+          "offset_high_ns": 1792981521110487982,
+          "uncertainty_ns": 33302,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 12866,
+          "offset_low_ns": 1792981521110375470,
+          "offset_high_ns": 1792981521110557464,
+          "uncertainty_ns": 181994,
+          "qualified": false
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 9650,
+      "partial_chains": 1360,
+      "normal_chains": 5219,
+      "normal_maxima": {
+        "dispatch_wait_ns": 975782,
+        "enqueue_cpu_ns": 38133,
+        "enqueue_involuntary": 0,
+        "enqueue_ns": 61153,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 51186,
+        "handler_involuntary": 1,
+        "handler_ns": 413093,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 1531304,
+        "kernel_to_io_low_ns": 1498002,
+        "routing_ns": 772199,
+        "send_to_handler_ns": 2517291,
+        "send_to_tcp_ns": 2281840,
+        "tcp_cpu_ns": 36581,
+        "tcp_involuntary": 0,
+        "tcp_parse_ns": 36592,
+        "tcp_voluntary": 0
+      },
+      "first_faults": [
+        {
+          "ns": "818979775054114",
+          "event": "central-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "12",
+          "deadline": "7",
+          "file": "central-2-service.events.csv"
+        },
+        {
+          "ns": "818979775054567",
+          "event": "central-allocation-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "0",
+          "deadline": "4",
+          "file": "central-2-service.events.csv"
+        }
+      ],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-ack-loss-r3",
+      "sdk_io_threads": 1,
+      "service_qualified": true,
+      "kernel_calibration_qualified": true,
+      "calibration": {
+        "central": {
+          "rows": 25065,
+          "offset_low_ns": 1792981521110435085,
+          "offset_high_ns": 1792981521110503664,
+          "uncertainty_ns": 68579,
+          "qualified": true
+        },
+        "front": {
+          "rows": 9759,
+          "offset_low_ns": 1792981521110445069,
+          "offset_high_ns": 1792981521110538238,
+          "uncertainty_ns": 93169,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 15399,
+          "offset_low_ns": 1792981521110445219,
+          "offset_high_ns": 1792981521110502060,
+          "uncertainty_ns": 56841,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 11994,
+      "partial_chains": 1354,
+      "normal_chains": 6483,
+      "normal_maxima": {
+        "dispatch_wait_ns": 2481150,
+        "enqueue_cpu_ns": 29258,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 69065,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 54090,
+        "handler_involuntary": 1,
+        "handler_ns": 290504,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 3418975,
+        "kernel_to_io_low_ns": 3362134,
+        "routing_ns": 2611007,
+        "send_to_handler_ns": 4078566,
+        "send_to_tcp_ns": 1243376,
+        "tcp_cpu_ns": 38491,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 38810,
+        "tcp_voluntary": 0
+      },
+      "first_faults": [],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-stop-ack-loss-r3",
+      "sdk_io_threads": 1,
+      "service_qualified": false,
+      "kernel_calibration_qualified": false,
+      "calibration": {
+        "central": {
+          "rows": 20731,
+          "offset_low_ns": 1792981521110433639,
+          "offset_high_ns": 1792981521110547625,
+          "uncertainty_ns": 113986,
+          "qualified": false
+        },
+        "front": {
+          "rows": 7920,
+          "offset_low_ns": 1792981521110450061,
+          "offset_high_ns": 1792981521110491910,
+          "uncertainty_ns": 41849,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 12895,
+          "offset_low_ns": 1792981521110457649,
+          "offset_high_ns": 1792981521110493956,
+          "uncertainty_ns": 36307,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 9663,
+      "partial_chains": 1354,
+      "normal_chains": 5267,
+      "normal_maxima": {
+        "dispatch_wait_ns": 1338463,
+        "enqueue_cpu_ns": 27056,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 221079,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 186018,
+        "handler_involuntary": 1,
+        "handler_ns": 350579,
+        "handler_voluntary": 2,
+        "kernel_to_io_high_ns": 3324678,
+        "kernel_to_io_low_ns": 3288371,
+        "routing_ns": 708056,
+        "send_to_handler_ns": 3675035,
+        "send_to_tcp_ns": 1575574,
+        "tcp_cpu_ns": 37874,
+        "tcp_involuntary": 0,
+        "tcp_parse_ns": 38258,
+        "tcp_voluntary": 0
+      },
+      "first_faults": [
+        {
+          "ns": "818998744602457",
+          "event": "central-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "11",
+          "deadline": "7",
+          "file": "central-2-service.events.csv"
+        },
+        {
+          "ns": "818998744602892",
+          "event": "central-allocation-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "0",
+          "deadline": "4",
+          "file": "central-2-service.events.csv"
+        }
+      ],
+      "unexpected_sdk_errors": [
+        {
+          "file": "rear-1.stdout",
+          "line": 88,
+          "text": "2026-11-04 22:55:15.482649 rear [error] tcei::write_completion_condition: Broken pipe(32) bytes transferred: 0 bytes to sent: 117 remote:10.88.0.1:30507 (1522): [534a.0070.036e]"
+        }
+      ],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-ack-loss-r4",
+      "sdk_io_threads": 2,
+      "service_qualified": true,
+      "kernel_calibration_qualified": false,
+      "calibration": {
+        "central": {
+          "rows": 25858,
+          "offset_low_ns": 1792981521110447682,
+          "offset_high_ns": 1792981521110493410,
+          "uncertainty_ns": 45728,
+          "qualified": true
+        },
+        "front": {
+          "rows": 10066,
+          "offset_low_ns": 1792981521110432279,
+          "offset_high_ns": 1792981521110489258,
+          "uncertainty_ns": 56979,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 15883,
+          "offset_low_ns": 1792981521110403055,
+          "offset_high_ns": 1792981521110518552,
+          "uncertainty_ns": 115497,
+          "qualified": false
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 11974,
+      "partial_chains": 1351,
+      "normal_chains": 6463,
+      "normal_maxima": {
+        "dispatch_wait_ns": 1020480,
+        "enqueue_cpu_ns": 39379,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 605063,
+        "enqueue_voluntary": 1,
+        "handler_cpu_ns": 49268,
+        "handler_involuntary": 1,
+        "handler_ns": 625051,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 1382471,
+        "kernel_to_io_low_ns": 1336743,
+        "routing_ns": 1320639,
+        "send_to_handler_ns": 2112805,
+        "send_to_tcp_ns": 1481266,
+        "tcp_cpu_ns": 36100,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 968976,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    },
+    {
+      "name": "tsan-stop-ack-loss-r4",
+      "sdk_io_threads": 2,
+      "service_qualified": false,
+      "kernel_calibration_qualified": true,
+      "calibration": {
+        "central": {
+          "rows": 20528,
+          "offset_low_ns": 1792981521110427477,
+          "offset_high_ns": 1792981521110499719,
+          "uncertainty_ns": 72242,
+          "qualified": true
+        },
+        "front": {
+          "rows": 7830,
+          "offset_low_ns": 1792981521110456084,
+          "offset_high_ns": 1792981521110489004,
+          "uncertainty_ns": 32920,
+          "qualified": true
+        },
+        "rear": {
+          "rows": 12765,
+          "offset_low_ns": 1792981521110442721,
+          "offset_high_ns": 1792981521110524546,
+          "uncertainty_ns": 81825,
+          "qualified": true
+        }
+      },
+      "sdk_loaded_from_isolated_build": {
+        "central": true,
+        "front": true,
+        "rear": true
+      },
+      "complete_chains": 9205,
+      "partial_chains": 1352,
+      "normal_chains": 4769,
+      "normal_maxima": {
+        "dispatch_wait_ns": 1013906,
+        "enqueue_cpu_ns": 41610,
+        "enqueue_involuntary": 1,
+        "enqueue_ns": 251289,
+        "enqueue_voluntary": 2,
+        "handler_cpu_ns": 57041,
+        "handler_involuntary": 1,
+        "handler_ns": 820613,
+        "handler_voluntary": 3,
+        "kernel_to_io_high_ns": 2208922,
+        "kernel_to_io_low_ns": 2127097,
+        "routing_ns": 1290998,
+        "send_to_handler_ns": 2506771,
+        "send_to_tcp_ns": 1960819,
+        "tcp_cpu_ns": 25519,
+        "tcp_involuntary": 1,
+        "tcp_parse_ns": 573613,
+        "tcp_voluntary": 1
+      },
+      "first_faults": [
+        {
+          "ns": "819017406502665",
+          "event": "central-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "12",
+          "deadline": "6",
+          "file": "central-2-service.events.csv"
+        },
+        {
+          "ns": "819017406503204",
+          "event": "central-allocation-fault",
+          "epoch": "3",
+          "role": "7",
+          "value": "13",
+          "deadline": "3",
+          "file": "central-2-service.events.csv"
+        }
+      ],
+      "unexpected_sdk_errors": [],
+      "sanitizer_diagnostics": false
+    }
+  ]
+}
