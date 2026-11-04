@@ -101,6 +101,53 @@ TEST_F(AsyncOwnerTest, PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch)
     ack(*front,*f,true,2);port.service();EXPECT_FALSE(port.transport_fault());EXPECT_FALSE(gate.allows(4));
     EXPECT_FALSE(rear->work.pop());EXPECT_TRUE(port.commands_settled());
 }
+TEST_F(AsyncOwnerTest, NewVehicleAuthorityCannotOvertakeRearOfAnInFlightBatch) {
+    initialize();central::AllocatedCommands commands;
+    commands.parent={3,20,kStart,kStart+60*kMs};commands.expires_at_ns=kStart+40*kMs;
+    ASSERT_TRUE(port.deliver_commands(commands));const auto f=front->work.pop();ASSERT_TRUE(f);
+    clock.now=kStart+6*kMs;
+    const central::VehicleRequest next{3,21,clock.now,clock.now+60*kMs};
+    ASSERT_TRUE(port.authorize_vehicle(next));EXPECT_FALSE(front->work.pop());EXPECT_FALSE(rear->work.pop());
+    clock.now=kStart+10*kMs;ack(*front,*f,true,2);port.service();
+    const auto r=rear->work.pop();ASSERT_TRUE(r);
+    ASSERT_TRUE(std::holds_alternative<central::ScopedCommands>(r->work));
+    const auto& old=std::get<central::RearCommands>(std::get<central::ScopedCommands>(r->work));
+    EXPECT_EQ(old.parent.sequence,20U);EXPECT_FALSE(front->work.pop());EXPECT_FALSE(rear->work.pop());
+    clock.now=kStart+15*kMs;ack(*rear,*r,true,1);port.service();
+    const auto nf=front->work.pop(),nr=rear->work.pop();ASSERT_TRUE(nf);ASSERT_TRUE(nr);
+    for(const auto& request:{*nf,*nr}) {
+        ASSERT_TRUE(std::holds_alternative<central::VehicleRequest>(request.work));
+        EXPECT_TRUE(central::same_vehicle_request(std::get<central::VehicleRequest>(request.work),next));
+        EXPECT_GT(request.token,r->token);EXPECT_EQ(request.sent_ns,kStart+6*kMs);
+        EXPECT_EQ(request.deadline_ns,kStart+26*kMs); // not flush time +20ms
+    }
+    EXPECT_TRUE(port.commands_settled());EXPECT_EQ(port.completed_batches(),1U);
+    EXPECT_FALSE(port.transport_fault());
+}
+TEST_F(AsyncOwnerTest, DeferredAuthorityExpiresWithoutRenewalOrLateResurrection) {
+    initialize();central::AllocatedCommands commands;
+    commands.parent={3,20,kStart,kStart+60*kMs};commands.expires_at_ns=kStart+40*kMs;
+    ASSERT_TRUE(port.deliver_commands(commands));const auto f=front->work.pop();ASSERT_TRUE(f);
+    clock.now=kStart+kMs;ASSERT_TRUE(port.authorize_vehicle({3,21,clock.now,clock.now+60*kMs}));
+    clock.now=kStart+10*kMs;ack(*front,*f,true,2);port.service();const auto r=rear->work.pop();ASSERT_TRUE(r);
+    clock.now=kStart+21*kMs-1;port.service();EXPECT_FALSE(port.transport_fault());
+    clock.now++;port.service();EXPECT_TRUE(port.transport_fault());EXPECT_FALSE(gate.allows(3));
+    EXPECT_FALSE(front->work.pop());EXPECT_FALSE(rear->work.pop());
+    ack(*rear,*r,true,1);port.service();EXPECT_FALSE(front->work.pop());EXPECT_FALSE(rear->work.pop());
+    clock.now++;ASSERT_TRUE(port.initialize({4,clock.now}));gate.release(4);port.service();
+    EXPECT_TRUE(port.commands_settled());EXPECT_FALSE(front->work.pop());EXPECT_FALSE(rear->work.pop());
+}
+TEST_F(AsyncOwnerTest, DeferredAuthorityQueueIsBoundedAndNeverOverwritesAnEarlierRoot) {
+    initialize();central::AllocatedCommands commands;
+    commands.parent={3,0,kStart,kStart+60*kMs};commands.expires_at_ns=kStart+30*kMs;
+    ASSERT_TRUE(port.deliver_commands(commands));const auto f=front->work.pop();ASSERT_TRUE(f);
+    for(unsigned i=1;i<=transport::kBudget;++i) {
+        ++clock.now;ASSERT_TRUE(port.authorize_vehicle({3,i,clock.now,clock.now+60*kMs}));
+    }
+    ++clock.now;EXPECT_FALSE(port.authorize_vehicle({3,99,clock.now,clock.now+60*kMs}));
+    EXPECT_TRUE(port.transport_fault());EXPECT_FALSE(gate.allows(3));
+    ack(*front,*f,true,2);port.service();EXPECT_FALSE(front->work.pop());EXPECT_FALSE(rear->work.pop());
+}
 TEST_F(AsyncOwnerTest, NewEpochDiscardsOldResultWithoutReopeningGate) {
     initialize(); port.arm_status(3); const auto old=front->work.pop(); ASSERT_TRUE(old); gate.close(); clock.now+=kMs;
     ASSERT_TRUE(port.initialize({4,clock.now})); ack(*front,*old); port.service();

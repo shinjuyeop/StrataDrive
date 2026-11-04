@@ -39,7 +39,7 @@ public:
     void observe_permission(const PermissionSupport&,const can::BmsMessage&) noexcept override;
     bool deliver_power(const VehicleManagementOutput& output) noexcept override;
     bool allocation_ready(const VehicleManagementOutput& output,std::uint64_t release_ns) noexcept override;
-    bool commands_settled() const noexcept override { return !commands_; }
+    bool commands_settled() const noexcept override { return !commands_ && deferred_vehicle_count_==0; }
     std::optional<can::BmsCurrentSample> current_permission() noexcept override;
     std::optional<can::BmsParentContext> received_permission_parent() noexcept override;
     bool deliver_commands(const AllocatedCommands& commands) noexcept override;
@@ -50,7 +50,8 @@ private:
     transport::TransportTrace* trace_{nullptr};
     struct Pending { transport::ZoneRequest request; std::size_t zone; };
     struct IssuedPermission { can::BmsMessage message; std::optional<can::BmsParentContext> parent; };
-    bool post(std::size_t zone,const transport::ZoneWork& work,std::uint64_t expiry) noexcept;
+    bool post(std::size_t zone,const transport::ZoneWork& work,std::uint64_t expiry,
+              std::optional<std::uint64_t> original_sent=std::nullopt) noexcept;
     void result(std::size_t zone,const transport::TxResult& result);
     void receive(std::size_t zone,const transport::Feedback& value);
     void fail(AsyncTransportFault fault = AsyncTransportFault::Send,const Pending* pending=nullptr);
@@ -65,6 +66,9 @@ private:
     std::array<std::optional<Pending>,16> pending_{};
     std::array<std::optional<IssuedPermission>,16> issued_{}; std::size_t issued_next_{0};
     std::optional<AllocatedCommands> commands_;
+    struct DeferredVehicle { VehicleRequest root; std::uint64_t sent_ns,deadline_ns; };
+    std::array<DeferredVehicle,transport::kBudget> deferred_vehicles_{};
+    std::size_t deferred_vehicle_count_{0};
     std::array<bool,2> armed_{},stopped_{}; bool arm_sent_{false}; std::optional<ActuatorStopLease> stop_;
     can::SteeringReceiver steering_{{can::SteeringFrameKind::Actual,-.3,.3}};
     can::BrakeReceiver brake_{{can::BrakeFrameKind::Actual,0,1500000}};

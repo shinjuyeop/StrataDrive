@@ -17,6 +17,7 @@ bool AsyncCoordinatorPort::initialize(CoordinatorSession s) {
         !status_.start_session(s.epoch,s.enable_ns) || !limits_.start_session(s.epoch,s.enable_ns) || !permission_.start_session(s.epoch,s.enable_ns) ||
         !front_.start_session(s.epoch,s.enable_ns) || !rear_.start_session(s.epoch,s.enable_ns)) return false;
     session_=s; observed_=now; failed_=false; fault_=AsyncTransportFault::None; fault_observation_.reset(); failed_operation_=-1; pending_={}; issued_={}; issued_next_=0; commands_.reset();
+    deferred_vehicle_count_=0;
     armed_={}; stopped_={}; arm_sent_=false; stop_.reset(); command_source_ns_=0; command_root_sequence_=0; traced_release_=command_expiry_ns_=0; traced_permission_=0; traced_readiness_=-1; return true;
 }
 bool AsyncCoordinatorPort::session_ready(CoordinatorSession s) noexcept {
@@ -38,7 +39,7 @@ bool AsyncCoordinatorPort::protect() noexcept {
     for(auto* link:links_) link->protection.request(session_.epoch);
     return links_[0]->protection.acknowledged(session_.epoch) && links_[1]->protection.acknowledged(session_.epoch);
 }
-bool AsyncCoordinatorPort::post(std::size_t zone,const transport::ZoneWork& work,std::uint64_t expiry) noexcept {
+bool AsyncCoordinatorPort::post(std::size_t zone,const transport::ZoneWork& work,std::uint64_t expiry,std::optional<std::uint64_t> original_sent) noexcept {
     const auto now=now_ns();
     if(failed_ || !gate_.allows(session_.epoch) || expiry<=now || next_token_==std::numeric_limits<std::uint64_t>::max()) {
         if(trace_) {
@@ -54,7 +55,7 @@ bool AsyncCoordinatorPort::post(std::size_t zone,const transport::ZoneWork& work
         if(trace_)transport::trace(trace_,"central-post-full",now_ns(),zone,transport::ZoneRequest{session_.epoch,next_token_,now,deadline,work},-1);
         fail(); return false;
     }
-    transport::ZoneRequest request{session_.epoch,next_token_++,now,deadline,work};
+    transport::ZoneRequest request{session_.epoch,next_token_++,original_sent.value_or(now),deadline,work};
     *slot=Pending{request,zone};
     const bool queued=links_[zone]->work.push(request);
     if(trace_) transport::trace(trace_,"central-enqueued",now_ns(),zone,request,queued?1:-1);
@@ -63,6 +64,18 @@ bool AsyncCoordinatorPort::post(std::size_t zone,const transport::ZoneWork& work
 }
 bool AsyncCoordinatorPort::authorize_lifecycle(const LifecycleRequest& root) noexcept { return post(1,root,root.identity.expires_at_ns); }
 bool AsyncCoordinatorPort::authorize_vehicle(const VehicleRequest& root) noexcept {
+    // Front success precedes the Rear command. A new root must not overtake
+    // that command and revoke its parent at Rear while the batch is in flight.
+    if(commands_ || deferred_vehicle_count_) {
+        const auto now=now_ns();
+        if(failed_ || !gate_.allows(session_.epoch) || root.epoch!=session_.epoch || root.expires_at_ns<=now)return false;
+        if(deferred_vehicle_count_==deferred_vehicles_.size()){fail();return false;}
+        const auto deadline=now+std::min(transport::kResultBudgetNs,root.expires_at_ns-now);
+        deferred_vehicles_[deferred_vehicle_count_++]={root,now,deadline};
+        if(trace_)transport::trace(trace_,"vehicle-authorization-deferred",now,7,
+            transport::ZoneRequest{session_.epoch,0,now,deadline,root});
+        return true;
+    }
     return post(0,root,root.expires_at_ns) && post(1,root,root.expires_at_ns);
 }
 OperationStatus AsyncCoordinatorPort::arm_status(std::uint32_t epoch) noexcept {
@@ -99,7 +112,7 @@ bool AsyncCoordinatorPort::deliver_power(const VehicleManagementOutput& out) noe
     return true;
 }
 bool AsyncCoordinatorPort::deliver_commands(const AllocatedCommands& commands) noexcept {
-    if(commands_ || commands.parent.epoch!=session_.epoch) {
+    if(!commands_settled() || commands.parent.epoch!=session_.epoch) {
         if(trace_) {
             const transport::ZoneRequest attempted{session_.epoch,0,now_ns(),commands.expires_at_ns,ScopedCommands{front_commands(commands)}};
             if(trace_) transport::trace(trace_,"command-submit-rejected",now_ns(),0,attempted,commands_?1:2);
@@ -116,7 +129,7 @@ bool AsyncCoordinatorPort::deliver_commands(const AllocatedCommands& commands) n
 bool AsyncCoordinatorPort::allocation_ready(const VehicleManagementOutput& out,std::uint64_t release) noexcept {
     // Keep the existing transaction trace and do not poll permission while a
     // batch is still in flight. These rows retain the real request token.
-    if(commands_) {
+    if(!commands_settled()) {
         if(trace_) for(const auto& p:pending_) if(p && transport::operation(p->request.work)==transport::Operation::Commands)
             transport::trace(trace_,"allocation-deferred",now_ns(),p->zone,p->request);
         return false;
@@ -210,6 +223,23 @@ void AsyncCoordinatorPort::service() {
         for(std::size_t i=0;i<transport::kBudget;++i) { const auto f=links_[z]->feedback.pop(); if(!f) break; receive(z,*f); }
     }
     for(const auto& p:pending_) if(p && now_ns()>=p->request.deadline_ns) { if(!failed_) failed_operation_=static_cast<int>(transport::operation(p->request.work)); if(trace_ && !failed_) transport::trace(trace_,"central-result-timeout",now_ns(),p->zone,p->request,-1); fail(AsyncTransportFault::ResultTimeout,&*p); }
+    // The original queue-entry time/result budget survives staging. Tokens are
+    // assigned only at actual enqueue, preserving each peer's monotonic order.
+    for(std::size_t i=0;i<deferred_vehicle_count_;++i) {
+        const auto& root=deferred_vehicles_[i];
+        if(now_ns()>=root.deadline_ns && !failed_) {
+            if(trace_)transport::trace(trace_,"vehicle-authorization-expired",now_ns(),7,
+                transport::ZoneRequest{session_.epoch,0,root.sent_ns,root.deadline_ns,root.root},-1);
+            fail();
+        }
+    }
+    if(!failed_ && !commands_) {
+        for(std::size_t i=0;i<deferred_vehicle_count_;++i) {
+            const auto& root=deferred_vehicles_[i];
+            if(!post(0,root.root,root.deadline_ns,root.sent_ns) || !post(1,root.root,root.deadline_ns,root.sent_ns)){fail();break;}
+        }
+        if(!failed_)deferred_vehicle_count_=0;
+    }
 }
 NormalDriveReadinessInputs AsyncCoordinatorPort::feedback() {
     const auto now=now_ns(); NormalDriveReadinessInputs in; in.epoch=session_.epoch; in.session_enable_ns=session_.enable_ns;

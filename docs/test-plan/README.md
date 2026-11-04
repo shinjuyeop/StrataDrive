@@ -9,7 +9,8 @@ source/원본 증거의 최종 대조는 [마감 기록](evidence/m8_closeout/RE
 
 M9는 [진단 계약](../interfaces/diagnostics.md)과
 [component·통합 검증 프로토콜](diagnostics-protocol.md)을 따른다. Central hook·SimpleVehicle 연결 뒤
-CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
+CARLA30km/h 정상·고장5개 시나리오와 실제 transport 진단 수집은 아래 후속 근거의 범위에서 부분 검증했다.
+남은 전체 수용 조건은 프로젝트 상태를 따른다.
 
 ## 대표 실행 결과
 
@@ -30,6 +31,7 @@ CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
 | M9 Front/Rear ECU process 재기동·새 발행자 세대·commit 전 손실 미확인 표시 | [발행자 adoption](evidence/m9_producer_adoption/README.md) |
 | M9 Central process 재기동·trusted issuer 계승·fresh collector·연속성 clear 차단 | [Central 재기동 검증](evidence/m9_central_restart/README.md) |
 | M9 미확인 과거 이력 수용·현재 recording proof·영속 서비스 심사/clear·writer SIGKILL4경계 | [로컬 서비스 심사](evidence/m9_continuity_review/README.md) |
+| M9 서비스 명령 부모 순서·marker IO 분리·고정18개씩4회·TSan timing 미통과 | [원본·수정·남은 실패](evidence/m9_service_timing/README.md) · [사전 protocol](service-timing-protocol.md) |
 | 실제3-process SOME/IP·8-role·부하/고장/재가입 | [M5 Rear adapter](evidence/m5_someip_rear_adapter/README.md) |
 | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
 | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |
@@ -57,7 +59,7 @@ CARLA30km/h fault matrix와 실제 transport 진단 수집은 후속이다.
 | DDS 제어 gate CLOSED의 근거 | [DDS shutdown 후속](evidence/m5_dds_shutdown_followup/README.md) |
 
 Linux 로컬 서비스 요청/심사/별도 clear는 [연결 근거](evidence/m9_continuity_service/README.md)와
-[고정 recipe](diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture)를 따른다. [실제3-ECU terminal 서비스 조합](evidence/m9_native_service/README.md)은 별도 부분 검증이며 서비스 중 고장 거절/일반 운용은 후속이다.
+[고정 recipe](diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture)를 따른다. [실제3-ECU terminal 서비스 조합](evidence/m9_native_service/README.md) 뒤 서비스 고장 거절을 후속 검증했으며, 최신 전체 수용과 남은 timing 실패는 [서비스 후속](evidence/m9_service_timing/README.md)을 따른다.
 
 ## Evidence 보관 규칙
 

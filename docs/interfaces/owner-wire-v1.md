@@ -55,6 +55,15 @@ CRC detects accidental corruption and parsing errors; it authenticates neither p
    grid resumes. An already applied command can expire before that response:
    Zone/Leaf protection remains authoritative and a late success cannot reopen
    the gate. Pending alone is not a negative TX result.
+   [ADR-0096](../archive/design-decisions.md#adr-0096) also orders parent
+   authorization across that batch. A newly accepted VehicleRequest waits in a
+   bounded8-entry Central FIFO until the previous Front and Rear results settle.
+   The queue preserves the exact root and original enqueue time; its result
+   deadline is `min(root.expiry, original_enqueue + 20ms)` and is monitored while
+   waiting. Actual transmission assigns a new monotonic token without refreshing
+   sent/deadline. No next command or Stop handoff bypasses unsent parents. Queue
+   full or expiry closes normal control; old roots are never evicted or revived
+   by late ACK. A successful new Epoch discards this retired queue.
 6. Stop passes the existing `ActuatorStopLease` unchanged. Actor checks fresh sensors/arm/current demand and original lease bounds; late stop is not restamped. Credit continues during normal stop/HV shutdown. Missing credit overrides a stop with local protection; terminal expiry remains active.
 7. Explicit protection uses epoch32, token64, source64, exclusive deadline64(≤20ms). Local Leaf validates source/clock/role/current epoch, selects real actor protection, then ACKs selection with the same request and immutable selection timestamp per issuer/Epoch/token. The endpoint retains up to **8 distinct tokens per issuer per Epoch** (Central and assigned Zone independently). Tokens need not be monotonic. A→B→A returns A's original request and selection time; changing source/deadline under the same token is rejected. Expired retransmissions are rejected. Records remain as identity tombstones after expiry, so no same-Epoch token rebinding is possible. Full capacity still selects protection but emits no new ACK and never evicts an existing record; only successful larger-Epoch INIT clears the cache. No stopped owner can generate an ACK. `ProtectionReceipt` checks exact role/domain/identity/deadline/positive selection; receipt never opens permission. A new ACK does not prove physical angle/pressure/torque/HV response.
 8. Resume/new traffic does not reopen a latch. Rejoin requires larger **durable** Epoch, physical reset evidence, complete new session/credit/readiness/arm. Failed FIFO cannot heal on Epoch change; stop/join the owner before replacing links. Endpoint component test uses explicit trusted grants42/43; existing CLI tests separately prove durable storage. Remote durable grant distribution/restart is still M5 work.

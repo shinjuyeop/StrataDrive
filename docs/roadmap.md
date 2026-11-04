@@ -89,7 +89,10 @@ quiesce·새 global Epoch/물리 정지 조합은 [terminal native 서비스](te
 부분 검증했다. [이번 후속](test-plan/evidence/m9_completion/README.md)은 최초 TSan support expiry의
 원본 원인, 서비스 중 실제 ACK/Actual 손실·Stop 실패 거절, CARLA30 고장4종과 기본 저장 capacity,
 BMS9/Power8 component 조합·동일 설정 NormalStop 복구/clear를 다룬다. 실패 분모도 함께 보존한다.
-남은 완료 조건은 silent packet loss의 실제 CARLA subinterval 연결, trusted Clock 복구,
+[서비스 순서·시험 IO 후속](test-plan/evidence/m9_service_timing/README.md)에서 진행 중 명령의
+부모 추월과 owner의 marker 파일 IO를 수정했다. 최종 Normal/ASan 각5/5, TSan2/5이며
+250ms 지연을 포함한 전체14/18이다. 원본 순서/배치 감사18/18과 서비스 전체 수용을 구분한다.
+남은 완료 조건은 native 서비스 TSan timing, silent packet loss의 실제 CARLA subinterval 연결, trusted Clock 복구,
 proposal 이전 bootstrap incident, 전체8-role native fault matrix, 실제 부하/장기 보존 정책과
 학습자 수용이다. DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.

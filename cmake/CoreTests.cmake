@@ -21,6 +21,9 @@ stratadrive_unit_test(diagnostic_binding_test
     SOURCES tests/unit/diagnostic_binding_test.cpp
     LIBRARIES diagnostics_wire)
 if(TARGET diagnostics_journal)
+    stratadrive_unit_test(fixture_signals_test
+        SOURCES tests/unit/fixture_signals_test.cpp
+        LIBRARIES Threads::Threads)
     stratadrive_unit_test(remote_diagnostics_context_test
         SOURCES tests/unit/remote_diagnostics_context_test.cpp tests/unit/continuity_review_test.cpp tests/unit/continuity_service_test.cpp
         LIBRARIES continuity_review startup_diagnostics run_lease_issuer drive_receiver brake_receiver)

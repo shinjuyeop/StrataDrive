@@ -5756,3 +5756,25 @@ physics frame에 적용한다. 서버 receipt의 실제 적용 벡터가 증거�
 
 SCHED_OTHER TSan 실행의 실제 support expiry는 보호 조건이며 race 부재와 기능 수용을 구분한다.
 CPU 분리·fixture trace 용량·실패 시 orderly drain을 기록하고 실패한 이전 분모를 삭제하지 않는다.
+
+<a id="adr-0096"></a>
+
+## ADR-0096: 비동기 명령 batch와 다음 부모 요청의 순서 보존
+
+상태: 구현. 기능·sanitizer 수용 범위는 [후속 근거](../test-plan/evidence/m9_service_timing/README.md)를 따른다.
+
+Central은 Front의 정상 명령 결과를 받은 뒤 같은 batch의 Rear 명령을 보낸다. 그 사이 다음
+VehicleRequest를 두 Zone에 먼저 보내면 Rear의 최신 부모가 교체되어, 아직 유효한 이전 batch가
+ParentMismatch로 거절된다. 실제 TSan 실행2개에서 원본 수신/전송 순서로 확인했다.
+
+다음 VehicleRequest를 유한8-entry FIFO에 보류하고 이전 batch의 양쪽 결과가 확정된 뒤 원래
+순서로 발행한다. 접수 시점의20ms 결과 기한과 원본 payload/source/expiry를 유지한다. 아직
+발행하지 않은 요청에는 전송 token을 가장하지 않고 실제 enqueue 때만 증가하는 token을 부여한다.
+원본 기한 만료·full은 보호로 닫으며, 늦은 ACK나 더 새 요청으로 앞선 손실을 숨기지 않는다.
+기존8-entry 원격 mailbox·16 pending·10ms grid·18ms support·Actual age는 바꾸지 않는다.
+
+별도로 시험용 파일을 owner에서 쓰거나 존재 확인하는 경로를 비실시간 observer로 옮긴다.
+등록된32개 신호만 atomic slot으로 교환하고 실제 IO 실패를 시험 실패로 남긴다. Writer의
+원본 request 시각과 실제 시작/종료, CPU/policy를 기록한다. 250ms marker 지연 시험으로
+IO 대기와 제어 진행을 분리해 확인한다. 원본에 syscall 시간이 없는 이전 큰 poll gap을
+디스크가 유일한 원인이었다고 소급 확정하지 않는다.

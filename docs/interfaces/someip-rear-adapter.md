@@ -68,6 +68,14 @@ allocation, management10ms/+4ms, permission support through next release+8ms,
 original20ms envelope, 2ms opportunities/4ms deadline and original controller grids.
 No stale field is restamped and no retry extends validity.
 
+The Host fixture's marker writes and file-existence polling run on a separate
+non-RT observer; in the diagnostic profile it uses CPU15. Owners exchange fixed
+registered signal slots using atomics. A marker records its original request
+time separately from actual write begin/end. The observer checks IO failures and
+joins after owner quiescence. These orchestration files never grant authority or
+replace physical sources, native fault evidence, or durable diagnostic receipts.
+See the [service timing protocol](../test-plan/service-timing-protocol.md).
+
 During protected rejoin, Central explicitly closes ingress before old graph artifact
 teardown and durable Epoch IO; queued and arriving old messages are counted per lane.
 The overflow latch is never reset. Reopening precedes a fresh actual handshake.

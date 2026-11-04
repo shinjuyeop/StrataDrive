@@ -1,0 +1,68 @@
+{
+  "checks": [
+    {
+      "case": "normal-normal",
+      "reader": "audit_service_ordering.py",
+      "exit": 0,
+      "expected": 0,
+      "output": "{\"authorizations_staged\": 0, \"commands_checked\": 410, \"mutations_rejected\": 1}\n"
+    },
+    {
+      "case": "normal-normal",
+      "reader": "audit_service_timing.py",
+      "exit": 0,
+      "expected": 0,
+      "output": "{\"delayed\": false, \"final_epoch_owner_max_poll_gap_ns\": 294016, \"marker_write_ns\": 72531, \"mutations_rejected\": 3, \"split_owner_io\": true}\n"
+    },
+    {
+      "case": "normal-normal",
+      "reader": "audit_native_service.py",
+      "exit": 0,
+      "expected": 0,
+      "output": "{\"active_streams\": 11, \"admission_requests\": 9, \"connections\": 30, \"gaps\": 1, \"merged_events\": 70, \"mutations_rejected\": 17, \"original_credits\": 27, \"pass_\": true, \"physical_samples\": 5, \"service_transactions\": 4, \"source_cuts\": 9, \"tcp_messages\": 13184}\n"
+    },
+    {
+      "case": "tsan-normal",
+      "reader": "audit_service_ordering.py",
+      "exit": 0,
+      "expected": 0,
+      "output": "{\"authorizations_staged\": 1, \"commands_checked\": 168, \"mutations_rejected\": 2}\n"
+    },
+    {
+      "case": "tsan-normal",
+      "reader": "audit_service_timing.py",
+      "exit": 0,
+      "expected": 0,
+      "output": "{\"delayed\": false, \"final_epoch_owner_max_poll_gap_ns\": 1886655, \"marker_write_ns\": 111578, \"mutations_rejected\": 3, \"split_owner_io\": true}\n"
+    },
+    {
+      "case": "tsan-normal",
+      "reader": "audit_native_service.py",
+      "exit": 1,
+      "expected": 1,
+      "output": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/diagnostics/audit_native_service.py\", line 133, in <module>\n    p=argparse.ArgumentParser(description=__doc__);p.add_argument('directory',type=Path);p.add_argument('--mutations',action='store_true');a=p.parse_args();d=load(a.directory);r=judge(d)\n  File \"/d/shin/StrataDrive/tests/integration/diagnostics/audit_native_service.py\", line 18, in load\n    ready=json.loads((root/'service-ready.json').read_text()), client=json.loads((root/'service-client.json').read_text()),\n  File \"/usr/lib/python3.10/pathlib.py\", line 1134, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n  File \"/usr/lib/python3.10/pathlib.py\", line 1119, in open\n    return self._accessor.open(self, mode, buffering, encoding, errors,\nFileNotFoundError: [Errno 2] No such file or directory: '<extracted-evidence>/fifo-campaign/tsan-normal/central-rejoin-1/service-ready.json'\n"
+    },
+    {
+      "case": "tsan-normal-slow-signals",
+      "reader": "audit_service_ordering.py",
+      "exit": 0,
+      "expected": 0,
+      "output": "{\"authorizations_staged\": 1, \"commands_checked\": 390, \"mutations_rejected\": 2}\n"
+    },
+    {
+      "case": "tsan-normal-slow-signals",
+      "reader": "audit_service_timing.py",
+      "exit": 0,
+      "expected": 0,
+      "output": "{\"delayed\": true, \"final_epoch_owner_max_poll_gap_ns\": 1754132, \"marker_write_ns\": 293783317, \"mutations_rejected\": 4, \"split_owner_io\": true}\n"
+    },
+    {
+      "case": "tsan-normal-slow-signals",
+      "reader": "audit_native_service.py",
+      "exit": 1,
+      "expected": 1,
+      "output": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/diagnostics/audit_native_service.py\", line 133, in <module>\n    p=argparse.ArgumentParser(description=__doc__);p.add_argument('directory',type=Path);p.add_argument('--mutations',action='store_true');a=p.parse_args();d=load(a.directory);r=judge(d)\n  File \"/d/shin/StrataDrive/tests/integration/diagnostics/audit_native_service.py\", line 18, in load\n    ready=json.loads((root/'service-ready.json').read_text()), client=json.loads((root/'service-client.json').read_text()),\n  File \"/usr/lib/python3.10/pathlib.py\", line 1134, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n  File \"/usr/lib/python3.10/pathlib.py\", line 1119, in open\n    return self._accessor.open(self, mode, buffering, encoding, errors,\nFileNotFoundError: [Errno 2] No such file or directory: '<extracted-evidence>/fifo-campaign/tsan-normal-slow-signals/central-rejoin-1/service-ready.json'\n"
+    }
+  ],
+  "sha256_verified_before_extraction": true
+}
