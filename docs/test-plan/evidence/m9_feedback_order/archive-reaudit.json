@@ -1,0 +1,50 @@
+[
+  {
+    "case": "normal-normal",
+    "reader": "audit_native_service.py",
+    "exit": 0,
+    "expected": 0
+  },
+  {
+    "case": "normal-normal",
+    "reader": "audit_service_timing.py",
+    "exit": 0,
+    "expected": 0
+  },
+  {
+    "case": "normal-normal",
+    "reader": "audit_service_response.py",
+    "exit": 0,
+    "expected": 0
+  },
+  {
+    "case": "tsan-actual-loss",
+    "reader": "audit_native_service_faults.py",
+    "exit": 1,
+    "expected": 1
+  },
+  {
+    "case": "tsan-actual-loss",
+    "reader": "audit_service_response.py",
+    "exit": 0,
+    "expected": 0
+  },
+  {
+    "case": "normal-close-full",
+    "close_full": {
+      "pass": true,
+      "initial_rejected": 8,
+      "late_rejected": 8
+    },
+    "unexpected_sdk_errors": 0
+  },
+  {
+    "case": "asan-close-full",
+    "close_full": {
+      "pass": true,
+      "initial_rejected": 8,
+      "late_rejected": 8
+    },
+    "unexpected_sdk_errors": 0
+  }
+]

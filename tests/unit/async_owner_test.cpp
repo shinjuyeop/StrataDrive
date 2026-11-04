@@ -43,6 +43,41 @@ TEST_F(AsyncOwnerTest, SessionAndGlobalGatePrecedeAllNormalIngress) {
     gate.release(3); EXPECT_TRUE(port.authorize_lifecycle(root)); EXPECT_TRUE(rear->work.pop());
     gate.close(); EXPECT_FALSE(port.authorize_lifecycle(root)); EXPECT_FALSE(front->work.pop());
 }
+TEST_F(AsyncOwnerTest, FeedbackServicesThisIterationBeforeTakingTheManagementSnapshot) {
+    initialize();
+    can::SteeringTxState tx{can::SteeringFrameKind::Actual};
+    can::SteeringMessage actual;actual.kind=can::SteeringFrameKind::Actual;actual.epoch=3;
+    actual.source_time_ns=kStart;actual.local_state=can::ActuatorLocalState::Normal;
+    actual.origin=can::ActuatorOrigin::NormalPath;actual.angle_rad=0;
+    const auto old=can::encode_steering_frame(actual,tx);ASSERT_TRUE(old);
+    ASSERT_TRUE(front->feedback.push(*old));port.service();
+    clock.now=kStart+16*kMs;
+    actual.sequence=1;actual.source_time_ns=kStart+10*kMs;actual.angle_rad=.1;
+    const auto fresh=can::encode_steering_frame(actual,tx);ASSERT_TRUE(fresh);
+    ASSERT_TRUE(front->feedback.push(*fresh));
+    // Same order as the native owner: receive -> feedback -> coordinator tick.
+    // Previously healthy() consumed this frame only AFTER the snapshot, so a
+    // management release could issue another grant limited by the old Actual.
+    const auto snapshot=port.feedback();ASSERT_TRUE(snapshot.front.steering_actual);
+    EXPECT_EQ(snapshot.front.steering_actual->source_time_ns,kStart+10*kMs);
+    EXPECT_EQ(snapshot.front.steering_actual->sequence,1U);
+    EXPECT_TRUE(port.healthy(3));
+    // Reading again cannot turn the packet into a newly timed measurement.
+    ++clock.now;const auto again=port.feedback();ASSERT_TRUE(again.front.steering_actual);
+    EXPECT_EQ(again.front.steering_actual->source_time_ns,actual.source_time_ns);
+    clock.now=actual.source_time_ns+30*kMs+1;
+    EXPECT_FALSE(port.feedback().front.steering_actual);
+}
+TEST_F(AsyncOwnerTest, FeedbackServiceStillRejectsAResultAtItsOriginalDeadline) {
+    initialize();ASSERT_EQ(port.arm_status(3),central::OperationStatus::Pending);
+    const auto request=front->work.pop();ASSERT_TRUE(request);
+    clock.now=request->deadline_ns;ack(*front,*request);
+    const auto snapshot=port.feedback();
+    EXPECT_EQ(snapshot.epoch,3U);EXPECT_TRUE(port.transport_fault());
+    EXPECT_EQ(port.fault(),central::AsyncTransportFault::ResultLate);
+    EXPECT_FALSE(gate.allows(3));EXPECT_TRUE(front->protection.pending(3));
+    EXPECT_TRUE(rear->protection.pending(3));EXPECT_FALSE(port.healthy(3));
+}
 TEST_F(AsyncOwnerTest, ArmNeedsTwoCorrelatedAcksAndDoesNotResendWhilePending) {
     initialize(); EXPECT_EQ(port.arm_status(3),central::OperationStatus::Pending);
     const auto f=front->work.pop(),r=rear->work.pop(); ASSERT_TRUE(f); ASSERT_TRUE(r);

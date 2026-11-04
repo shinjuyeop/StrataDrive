@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [보조 IO 개선·고정 반복·남은 실패](test-plan/evidence/m9_auxiliary_io/README.md) |
+| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [입력/종료 수정·SDK 직접 계측·남은 실패](test-plan/evidence/m9_timing_trace/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -29,25 +29,23 @@ NormalStop은 새 동일 설정의 실제 전체 cycle/Complete 후에만 Passed
 stationary/HV-off 증거와 명시적 요청으로 clear한다. Clock은 이 predicate에서 제외한다.
 BMS9개 trip mask와 Power8개 물리 고장 조합은 electrical component 수준으로 확장했다.
 
-진행 중 Front→Rear 명령의 부모 추월과 marker 파일 IO는 [이전 후속](test-plan/evidence/m9_service_timing/README.md)에서 수정했다.
-이번에는 SDK sender의 빈 큐 polling과 functional owner의 반복 대기를 enqueue/RX 알림으로
-바꾸고 SDK timing 파일 쓰기를 join 뒤로 옮겼다. GCC11 TSan이 계측하는 monotonic 조건변수로
-lost wake·spurious wake/원래 timeout을 검증했다. 원래18ms support/20ms result/30ms Actual
-기한과8개 mailbox를 유지한다. Native-watch wake grid는 변경하지 않았다.
+부모 추월·marker IO·SDK polling 및 보조 IO 배치는 이전 후속에서 수정했고 당시 실패는
+보존한다. 이번에는 Central이 이번 회차의 수신을 처리한 뒤 입력 snapshot을 만들도록
+수정했다. Full-queue 종료는 기존20ms cleanup 동안 추가8건까지 거부하고 endpoint를 닫는다.
+16건 negative 결과·원래 시각/기한·sender 생존·새 Epoch 재시작을 대조한다.
+[첫 후보](test-plan/evidence/m9_feedback_order/README.md)는 서비스29/30·기능12/12였다.
 
-[이전 응답 지연 근거](test-plan/evidence/m9_response_latency/README.md)의17/30과 전체 실패는 보존한다.
-[보조 IO 분리·관측 축소](test-plan/evidence/m9_auxiliary_io/README.md)에서는 Rear7과 SMT를 공유하던
-IO15를 별도 물리 코어8로 옮기는 옵션을 추가하고 실제 affinity/topology를 감사한다.
-같은 binary의 A/B/B/A 비교는 기존6/8·분리7/8이었다. Marker 관측을 역할별4~8개로 줄인
-최종 고정30개는 Normal6/6·ASan6/6·TSan15/18, 전체27/30이다. 배치 비교와 후속30개를
-합쳐 통과로 세지 않으며 외부 부하/냉각이 통제된 전체 성능 개선을 주장하지 않는다.
+후속으로 SDK timing의 공용 기록 mutex를 고정 슬롯으로 바꾸고 SDK 호출 직전/직후 시각을
+직접 측정했다. [최종 후보](test-plan/evidence/m9_timing_trace/README.md)는 서비스28/30
+(Normal6/6·ASan6/6·TSan16/18), overflow/close-full4/4다. 두 후보를 합친 통과율을 만들지 않는다.
+종료 SDK 오류는 이번 두 후보의 Normal/ASan 재시험에서 발생하지 않았고 엄격한 판정을 통과했다.
 
-남은 TSan3개는 갱신/지원 기한 위반이다. 한 실패에서는 새 Front 명령 전달이0.592ms였지만
-기존 명령 expiry보다0.101ms 늦게 도착했다. 최종 실패3개 모두 전후25ms의 모든 CPU1–7이
-800MHz인 표본은 없었다. 온도만으로 설명하지 않고 선행 permission/command 갱신 연쇄를
-추적해야 한다. 기능 회귀는11/12이며 close-full의 추가 시험 패킷/상대 종료 경합 SDK 오류도
-미해결로 보존한다. Python29개, fixture 단위 Normal/ASan/TSan 각5개와 실제 변경 TU 정적
-검사는 통과했다. 전체 timing은 OPEN이며 Native4ms/Target·장기 부하·CARLA 수용은 별도다.
+**응답 지연은 미해결이다.** 최종 TSan2건은 선행 정상 정지 중 새 명령이 기존 expiry보다
+Front0.216ms/Rear0.428ms 늦게 도착했다. 기록 잠금을 제외해도 SDK send→callback에
+약4.047ms/3.230ms가 남는다. SDK IO/dispatcher와 OS scheduling 대기를 분리하는 후속이
+필요하다. 기한을 늘리거나 SDK 오류 판정을 완화하지 않았다. 온도/부하를 통제한 성능 개선을
+주장하지 않는다. 첫 후보 관련 C++152개씩, 최종 trace3개씩 Normal/ASan·UBSan/TSan,
+Python30개 및 변경 TU 정적 검사를 통과했다. 전체 root/CARLA/Target 재검증은 별도다.
 
 **M9 전체 완료는 아직 아니다.** Native 서비스 timing, silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
 재검증, proposal 이전 bootstrap incident 계약, 전체8-role BMS/Power matrix와 실제 부하/장기 보존

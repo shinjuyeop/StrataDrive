@@ -24,6 +24,9 @@ if(TARGET diagnostics_journal)
     stratadrive_unit_test(monotonic_condition_test
         SOURCES tests/unit/monotonic_condition_test.cpp
         LIBRARIES Threads::Threads)
+    stratadrive_unit_test(concurrent_trace_buffer_test
+        SOURCES tests/unit/concurrent_trace_buffer_test.cpp
+        LIBRARIES Threads::Threads)
     stratadrive_unit_test(fixture_signals_test
         SOURCES tests/unit/fixture_signals_test.cpp
         LIBRARIES Threads::Threads)

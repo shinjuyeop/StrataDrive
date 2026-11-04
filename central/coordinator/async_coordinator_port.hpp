@@ -17,6 +17,8 @@ public:
     AsyncCoordinatorPort(transport::Clock& clock,transport::RunGate& gate,transport::ZoneLink& front,transport::ZoneLink& rear,CommandRenewal renewal=CommandRenewal::Legacy20ms);
     bool initialize(CoordinatorSession session);
     void service();
+    // Central-owner operation: service bounded ingress/deadlines, then snapshot
+    // validated samples at actual now. Original packet timestamps are retained.
     NormalDriveReadinessInputs feedback();
     bool transport_fault() const { return failed_; }
     AsyncTransportFault fault() const { return fault_; }

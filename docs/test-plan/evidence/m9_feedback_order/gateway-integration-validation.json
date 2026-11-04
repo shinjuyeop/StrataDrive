@@ -1,0 +1,80 @@
+[
+  {
+    "profile": "normal",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--target",
+      "rear_power_gateway_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "normal",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle",
+      "-R",
+      "CoordinatorIntegration",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "asan",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle-sanitized",
+      "--target",
+      "rear_power_gateway_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "asan",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle-sanitized",
+      "-R",
+      "CoordinatorIntegration",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "tsan",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m9-service-timing/tsan-unit",
+      "--target",
+      "rear_power_gateway_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "tsan",
+    "command": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "ctest",
+      "--test-dir",
+      "build/m9-service-timing/tsan-unit",
+      "-R",
+      "CoordinatorIntegration",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  }
+]

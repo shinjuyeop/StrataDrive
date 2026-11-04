@@ -1,0 +1,132 @@
+[
+  {
+    "name": "normal-control-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--target",
+      "vehicle_management_test",
+      "control_allocation_test",
+      "vehicle_coordinator_test",
+      "m4_async_runtime_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "normal-control",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle",
+      "-R",
+      "VehicleManagement|ControlAllocation|Coordinator|M4Async|M4Refresh",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-control-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle-sanitized",
+      "--target",
+      "vehicle_management_test",
+      "control_allocation_test",
+      "vehicle_coordinator_test",
+      "m4_async_runtime_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-control",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle-sanitized",
+      "-R",
+      "VehicleManagement|ControlAllocation|Coordinator|M4Async|M4Refresh",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-control-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m9-service-timing/tsan-unit",
+      "--target",
+      "vehicle_management_test",
+      "control_allocation_test",
+      "vehicle_coordinator_test",
+      "m4_async_runtime_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-control",
+    "command": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "ctest",
+      "--test-dir",
+      "build/m9-service-timing/tsan-unit",
+      "-R",
+      "VehicleManagement|ControlAllocation|Coordinator|M4Async|M4Refresh",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "cppcheck",
+    "command": [
+      "cppcheck",
+      "--project=build/m9-feedback-order/compile_commands.json",
+      "--enable=warning,performance,portability",
+      "--error-exitcode=1",
+      "--suppress=missingIncludeSystem"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "clang-tidy-async_coordinator_port",
+    "command": [
+      "clang-tidy",
+      "central/coordinator/async_coordinator_port.cpp",
+      "-p",
+      "build/m5-someip-normal/project",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/x86_64-linux-gnu/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11/backward"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "clang-tidy-front_adapter",
+    "command": [
+      "clang-tidy",
+      "tests/integration/someip/front_adapter.cpp",
+      "-p",
+      "build/m5-someip-normal/project",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/x86_64-linux-gnu/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11/backward"
+    ],
+    "exit": 0
+  }
+]

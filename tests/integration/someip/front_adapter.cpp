@@ -671,7 +671,8 @@ int main(int argc,char** argv) {
         }
     } catch(const std::exception& e){error=e.what();}
     const auto pre_shutdown_protection=owners?owners->protected_ns:0;
-    std::uint64_t unprocessed=0,pending_cancelled=0;
+    std::uint64_t unprocessed=0,pending_cancelled=0,shutdown_late_rejected=0;
+    std::uint64_t shutdown_drain_begin=0,shutdown_drain_end=0,shutdown_drain_deadline=0;
     if(owners){
         owners->fail("shutdown-protection");
         if(remote)while(auto m=net.pop(0)) {
@@ -680,17 +681,31 @@ int main(int argc,char** argv) {
                 owners->event("shutdown-unprocessed-rejected",0,r->token,r->deadline_ns);
             }
         }
-        const auto until=now()+20*kMs;
+        const auto cleanup_begin=now(),until=cleanup_begin+20*kMs;
+        const bool full_close=remote && test=="close-full";
+        if(full_close){shutdown_drain_begin=cleanup_begin;shutdown_drain_deadline=until;owners->event("shutdown-drain-begin",0,unprocessed,until);}
         auto cleanup_wake=owners->watch?owners->watch->next_wake(now()):now();
         do {
             if(owners->watch)simulation::runtime_support::sleep_until(cleanup_wake);
             NativeIteration iteration(owners->watch.get(),cleanup_wake);
-            for(unsigned lane=0;lane<net.channels();++lane)for(unsigned i=0;i<8;++i){auto m=net.pop(lane);if(!m)break;owners->receive(*m);}
+            for(unsigned lane=0;lane<net.channels();++lane)for(unsigned i=0;i<8;++i){
+                auto m=net.pop(lane);if(!m)break;
+                if(full_close)if(auto* r=std::get_if<transport::ZoneRequest>(&m->payload)) {
+                    // Closed owner admission, but the endpoint remains available
+                    // for the existing bounded cleanup interval. A second peer
+                    // window is rejected, never dispatched or restamped.
+                    ++shutdown_late_rejected;
+                    owners->emit(remote::OwnerMessage{static_cast<Role>(owners->zi),Role::CentralIngress,kDomain,transport::TxResult{r->epoch,r->token,now(),transport::operation(r->work),false,0}});
+                    owners->event("shutdown-late-rejected",0,r->token,r->deadline_ns);continue;
+                }
+                owners->receive(*m);
+            }
             owners->step();owners->physical_io();
-            if(remote?owners->zone[owners->zi]->protected_selected():(owners->zones[0].protection.acknowledged(owners->epoch) && (!three_enabled() || owners->zones[1].protection.acknowledged(owners->epoch))))break;
+            if(!full_close && (remote?owners->zone[owners->zi]->protected_selected():(owners->zones[0].protection.acknowledged(owners->epoch) && (!three_enabled() || owners->zones[1].protection.acknowledged(owners->epoch)))))break;
             iteration.finish();
             if(owners->watch)cleanup_wake=owners->watch->next_wake(now());else std::this_thread::sleep_for(std::chrono::microseconds(200));
         }while(now()<until);
+        if(full_close){shutdown_drain_end=now();owners->event("shutdown-drain-end",0,shutdown_late_rejected,until);}
         for(const auto& item:owners->pending){++pending_cancelled;owners->event("cancelled-on-protection",0,item.first,item.second.deadline_ns);}
         owners->pending.clear();
         if(owners->trace.overflow || owners->event_overflow || owners->energy_feedback_overflow){pass=false;error="trace capacity exceeded";}
@@ -731,6 +746,7 @@ int main(int argc,char** argv) {
     signals.finish();if(signals.failed()){pass=false;if(error.empty())error="fixture signal IO failed";}
     std::ofstream summary(folder/(tag+".json"));
     summary<<"{\"pass\":"<<(pass?"true":"false")<<",\"orderly_stop\":true,\"stop_begin\":"<<closing<<",\"stop_return\":"<<net.stop_return_ns<<",\"join_return\":"<<net.join_return_ns
+        <<",\"shutdown_late_rejected\":"<<shutdown_late_rejected<<",\"shutdown_drain_begin\":"<<shutdown_drain_begin<<",\"shutdown_drain_end\":"<<shutdown_drain_end<<",\"shutdown_drain_deadline\":"<<shutdown_drain_deadline
         <<",\"shutdown_rx_retired\":"<<shutdown_rx_retired<<",\"tx_overflow_ns\":"<<net.tx_overflow_ns<<",\"tx_overflow_lane\":"<<net.tx_overflow_lane<<",\"tx_overflow_method\":"<<net.tx_overflow_method
         <<",\"retired_run_credits\":"<<net.retired_run_credits
         <<",\"retired_received_credits\":"<<net.retired_received_credits

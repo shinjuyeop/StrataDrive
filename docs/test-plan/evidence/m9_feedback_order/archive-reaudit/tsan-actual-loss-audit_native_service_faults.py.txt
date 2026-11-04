@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/diagnostics/audit_native_service_faults.py", line 113, in <module>
+    data=load(a.directory);report=judge(data)
+  File "/d/shin/StrataDrive/tests/integration/diagnostics/audit_native_service_faults.py", line 37, in judge
+    require([e['epoch'] for e in sessions]==[1,2,3] and all(e['received_roles']==255 for e in sessions), 'three actual global Release completions before fault')
+  File "/d/shin/StrataDrive/tests/integration/diagnostics/audit_control_diagnostics.py", line 17, in require
+    raise ValueError(message)
+ValueError: three actual global Release completions before fault

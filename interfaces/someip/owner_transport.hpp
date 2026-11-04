@@ -5,6 +5,7 @@
 #include "owner_message_binding.hpp"
 #include "owner_credit_retirement.hpp"
 #include "../common/monotonic_condition.hpp"
+#include "../common/concurrent_trace_buffer.hpp"
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -29,16 +30,14 @@ class Transport {
     std::array<std::deque<Out>,4> tx_; std::atomic<bool> sending_{false},closing_{false};
     std::ofstream trace_;
     struct TimingRow {std::uint64_t ns;const char* event;unsigned lane,method;std::size_t bytes;std::uint32_t crc;std::uint64_t cpu_ns;};
-    std::mutex trace_mutex_;std::vector<TimingRow> timing_;bool trace_overflow_=false;
+    runtime::ConcurrentTraceBuffer<TimingRow> timing_{131072};
     static std::uint64_t thread_cpu() {timespec t{};clock_gettime(CLOCK_THREAD_CPUTIME_ID,&t);return std::uint64_t(t.tv_sec)*1000000000+t.tv_nsec;}
     void record(const char* event,unsigned lane,unsigned method,const std::uint8_t* bytes,std::size_t size,std::uint64_t stamp=0,std::uint64_t cpu=0) {
         // The canonical packet's trailing CRC correlates the same immutable
         // bytes at queue, SDK call and callback. No hashing/formatting/file IO.
         std::uint32_t crc=0;
         if(size>=4)for(unsigned i=0;i<4;++i)crc|=std::uint32_t(bytes[size-4+i])<<(8*i);
-        const auto ns=stamp?stamp:now();std::lock_guard<std::mutex> lock(trace_mutex_);
-        if(timing_.size()==timing_.capacity()){trace_overflow_=true;return;}
-        timing_.push_back({ns,event,lane,method,size,crc,cpu?cpu:thread_cpu()});
+        timing_.append({stamp?stamp:now(),event,lane,method,size,crc,cpu?cpu:thread_cpu()});
     }
     unsigned local(unsigned lane) const { return ecu_==Ecu::Central?(lane<2?0x5346+lane:0x534a+lane-2):(ecu_==Ecu::Front?0x5344:0x5348)+lane; }
     unsigned peer(unsigned lane) const { return ecu_==Ecu::Central?(lane<2?0x5344+lane:0x5348+lane-2):(ecu_==Ecu::Front?0x5346:0x534a)+lane; }
@@ -61,7 +60,7 @@ public:
     std::uint64_t stop_return_ns=0,join_return_ns=0;
     Transport(bool front,const std::string& trace):Transport(front?Ecu::Front:Ecu::Central,false,trace) {}
     explicit Transport(Ecu ecu,bool three,const std::string& trace):ecu_(ecu),three_(three),app_(vsomeip::runtime::get()->create_application(ecu==Ecu::Central?"central":ecu==Ecu::Front?"front":"rear")),trace_(trace) {
-        timing_.reserve(131072);trace_<<"ns,event,lane,method,bytes,crc,cpu_ns\n";
+        trace_<<"ns,event,lane,method,bytes,crc,cpu_ns\n";
     }
     unsigned channels() const {return ecu_==Ecu::Central && three_?4:2;}
     unsigned ready_mask() const {return (1U<<channels())-1;}
@@ -150,9 +149,13 @@ public:
                     auto m=vsomeip::runtime::get()->create_request(true);m->set_service(peer(l));m->set_instance(1);m->set_method(o->method);
                     m->set_interface_version(1);m->set_message_type(vsomeip::message_type_e::MT_REQUEST_NO_RETURN);
                     auto p=vsomeip::runtime::get()->create_payload();p->set_data(o->packet.bytes.data(),o->packet.size);m->set_payload(p);
-                    record("send-begin",l,o->method,o->packet.bytes.data(),o->packet.size);
-                    app_->send(m);++send_returned;
-                    record("send-return",l,o->method,o->packet.bytes.data(),o->packet.size);
+                    const auto send_begin=now(),cpu_begin=thread_cpu();
+                    app_->send(m);
+                    const auto send_end=now(),cpu_end=thread_cpu();++send_returned;
+                    // Record after the call, with the original bracketing clocks.
+                    // Trace reservation/copy time cannot inflate SDK call time.
+                    record("send-begin",l,o->method,o->packet.bytes.data(),o->packet.size,send_begin,cpu_begin);
+                    record("send-return",l,o->method,o->packet.bytes.data(),o->packet.size,send_end,cpu_end);
                 }
                 if(closing_) {std::lock_guard<std::mutex> lock(mutex_);if(std::all_of(tx_.begin(),tx_.end(),[](const auto& q){return q.empty();}))break;}
             }
@@ -222,10 +225,10 @@ public:
         if(!dispatch_.joinable())return;
         for(unsigned l=0;l<channels();++l){app_->stop_offer_service(local(l),1,1,0);app_->release_service(peer(l),1);}
         app_->clear_all_handler();app_->stop();stop_return_ns=now();dispatch_.join();join_return_ns=now();
-        for(const auto& r:timing_)trace_<<r.ns<<','<<r.event<<','<<r.lane<<','<<r.method<<','<<r.bytes<<','<<r.crc<<','<<r.cpu_ns<<'\n';
+        for(std::size_t i=0;i<timing_.size();++i){const auto& r=timing_[i];trace_<<r.ns<<','<<r.event<<','<<r.lane<<','<<r.method<<','<<r.bytes<<','<<r.crc<<','<<r.cpu_ns<<'\n';}
         trace_<<stop_return_ns<<",stop-return,0,0,0\n"<<join_return_ns<<",join-return,0,0,0\n";trace_.flush();
     }
-    bool trace_ok() const {return !trace_overflow_ && static_cast<bool>(trace_);}
+    bool trace_ok() const {return !timing_.overflowed() && static_cast<bool>(trace_);}
     ~Transport(){stop();}
 };
 }

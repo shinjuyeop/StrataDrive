@@ -5821,3 +5821,41 @@ Marker는 inotify 한도에 의존하지 않고 역할별 읽기 이름을 시�
 초기 snapshot·1ms 관측·원본 요청 시각과 쓰기 실패/지연 처리는 유지한다. 미등록 읽기는
 오류이며 쓰기만 하는 등록 marker도 정상적으로 저장한다. 구독 변경은 명시적 코드 수정과
 회귀 대상이다. IO 부하 감소가 지원/명령 갱신 연쇄의 전체 기한 충족을 보장하지는 않는다.
+
+<a id="adr-0099"></a>
+
+## ADR-0099: Central 입력 처리 후 snapshot과 full-queue 종료 drain
+
+상태: 구현·범위별 검증. [실행 근거](../test-plan/evidence/m9_feedback_order/README.md)의
+고정 분모와 남은 실패를 따른다. 이전27/30·11/12 기록은 보존한다.
+
+Central owner는 `feedback()`에서 bounded ingress와 원래 result deadline을 처리한 뒤
+validated input snapshot을 만든다. 이전에는 복사 후 `tick()`의 `healthy()`에서 입력을
+처리해 관리 주기에서 이전 Actual/ACK를 사용할 수 있었다. 새 단위 시험으로 수정 전
+stale snapshot을 재현한다. Snapshot 이후 도착한 패킷은 다음 owner 회차의 입력이다.
+VM10ms/+4ms·allocation10ms·18ms support·30ms Actual·원래 expiry를 바꾸지 않는다.
+네트워크/SDK 내부 전달이나 OS 스케줄링 지연 전체가 제거된 것은 아니다.
+
+`close-full`은 첫8개 거부를 받은 peer가 추가8개를 보내는 유한 fault fixture다.
+Front는 보호 ACK 직후 endpoint를 닫던 early exit 대신 기존20ms cleanup 구간을
+사용해 추가 요청도 직접 거부한다. Owner admission은 이미 닫혀 있고 Leaf에 전달하지
+않는다. 무한 peer 대기를 추가하지 않는다. 원래 cleanup deadline·실제 end/stop/join을
+기록하며 Host overshoot를 숨기지 않는다. 두 owner의16개 original token/source/expiry와
+negative result, sender 생존 및 새 Epoch 재시작을 함께 검사한다. Timeout 집계만으로
+통과하지 않으며 SDK 오류 예외를 넓히지 않는다.
+
+<a id="adr-0100"></a>
+
+## ADR-0100: SDK timing의 독립 슬롯과 호출 직전/직후 시각
+
+상태: [별도 후보 검증](../test-plan/evidence/m9_timing_trace/README.md).
+앞선29/30 후보의 send 구간에는 trace mutex 대기가 섞일 수 있었다. Recording mutex를
+preallocated131072개 슬롯의 atomic reservation으로 바꾸고 모든 writer join 뒤에만
+읽는다. Reservation을 publication으로 해석하지 않는다. 포화 시 원본을 덮거나 count를
+wrap하지 않고 trace 오류를 유지한다. Lock-free가 wait-free/실시간 상한 보장은 아니다.
+
+SDK send 직전/직후 wall/thread CPU 시각을 직접 읽고 return 뒤 두 행을 기록한다.
+계측 기록 시간을 SDK 호출 시간에 포함하지 않는다. 두 clock의 순차 읽기 비용은 남는다.
+SDK 내부 잠금과 OS scheduling 대기는 별도 추적 없이는 구분하지 않는다.
+제어 주기·source age·expiry·queue·CPU/policy·SDK 구현은 유지한다. 고정 반복과 이전
+실패 분모를 별도로 보존하며 계측 개선 자체를 지연 전체 해결로 올리지 않는다.

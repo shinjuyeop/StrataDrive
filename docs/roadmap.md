@@ -92,10 +92,12 @@ BMS9/Power8 component 조합·동일 설정 NormalStop 복구/clear를 다룬다
 [서비스 순서·시험 IO 후속](test-plan/evidence/m9_service_timing/README.md)의 부모 순서 수정 뒤,
 [응답 지연 후속](test-plan/evidence/m9_response_latency/README.md)은 enqueue/RX 알림·SDK trace 버퍼와
 monotonic wait를 적용했다. [보조 IO 후속](test-plan/evidence/m9_auxiliary_io/README.md)은 물리 코어
-분리와 역할별 marker 조회로 고정30개 중27개를 통과했다. 남은 TSan3개의 permission/command
-갱신 연쇄와 close-full 회귀의 종료 중 SDK 오류를 해결하고 같은 고정 cohort에서 재검증한다.
-Host 온도/주파수는 함께 관측하되 단일 원인으로 확정하지 않는다. Accepted token 통계나
-순서/배치 감사 통과를 전체 서비스 수용으로 올리지 않는다.
+분리와 역할별 marker 조회로 고정30개 중27개를 통과했다. 후속 [입력 snapshot/종료 수정](test-plan/evidence/m9_feedback_order/README.md)은 서비스29/30·기능12/12,
+[SDK 직접 계측](test-plan/evidence/m9_timing_trace/README.md)은 서비스28/30·overflow/close-full4/4다.
+종료 경합은 이번 Normal/ASan 재시험에서 통과했지만 최종 TSan2개의 원래 command 만료 위반은
+남는다. 기록 잠금을 제거해도 SDK send→callback 수ms가 관측돼 SDK IO/dispatcher와 OS scheduling
+대기를 분리하는 후속이 필요하다. Host 온도/주파수는 함께 관측하되 단일 원인으로 확정하지 않는다.
+Accepted token 통계나 순서/배치 감사 통과를 전체 서비스 수용으로 올리지 않는다.
 남은 완료 조건은 native 서비스 TSan timing, silent packet loss의 실제 CARLA subinterval 연결, trusted Clock 복구,
 proposal 이전 bootstrap incident, 전체8-role native fault matrix, 실제 부하/장기 보존 정책과
 학습자 수용이다. DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.

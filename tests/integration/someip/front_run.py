@@ -319,7 +319,10 @@ def inside(folder,binary,case):
         summaries={r['role']:r.get('summary',{}) for r in result['processes'] if not r.get('expected_abrupt_stop') and (case not in ('close-full','overflow') or r['generation']==1)}
         f=summaries.get('front',{});c=summaries.get('central',{})
         if case in ('normal','late','invalid','restart-live','central-rejoin'):result['pass']=result['pass'] and (c.get('pre_shutdown_protection',0)>=c.get('normal_stop_complete',0)>0 if service_profile else c.get('pre_shutdown_protection')==0) and c.get('pending_cancelled')==0 and c.get('release_ack_mask')==255 and f.get('pre_shutdown_protection',0)>=c.get('protected_ns',0) and f.get('steering_applied',0)>=10 and f.get('brake_applied',0)>=10
-        if case=='close-full':result['pass']=result['pass'] and result.get('sender_alive_after_front_close',False) and result.get('post_full_restart',False) and f.get('rx_highwater')==8 and f.get('unprocessed_rejected')==8 and f.get('selected_ns',0)>0 and c.get('diagnostic_sent',0)>0 and c.get('diagnostic_sent')==c.get('diagnostic_rejected',0)+c.get('diagnostic_expired',0)
+        if case=='close-full':
+            from native_oracle import close_full_oracle
+            result['close_full']=close_full_oracle(folder,f,c,result)
+            result['pass']=result['pass'] and result['close_full']['pass']
         if case=='overflow':
             from native_oracle import overflow_counters_ok
             result['pass']=result['pass'] and overflow_counters_ok(f,c,result.get('post_full_restart',False))

@@ -1,0 +1,639 @@
+{
+  "service-campaign": {
+    "attempted": 30,
+    "qualified": 28,
+    "host": {
+      "samples": 24907,
+      "max_millidegrees": 100000,
+      "thermal_count_delta": 814
+    },
+    "failures": [
+      {
+        "name": "tsan-ack-loss-r2",
+        "first_faults": [
+          {
+            "ns": "805028037107124",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "12",
+            "deadline": "6",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "805028037107755",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "renewals": [
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "805028013795872",
+              "peer": "7",
+              "epoch": "3",
+              "token": "459",
+              "sent": "805028013307544",
+              "deadline": "805028033307544",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "805028010648971",
+              "inner_deadline": "805028034155767",
+              "payload_source": "805028013288725"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "805028013852107",
+              "peer": "7",
+              "epoch": "3",
+              "token": "459",
+              "sent": "805028013307544",
+              "deadline": "805028033307544",
+              "operation": "3",
+              "decision": "1",
+              "source": "805028013850144",
+              "original_source": "805028010648971",
+              "inner_deadline": "805028034155767",
+              "payload_source": "805028013288725"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "805028004423431",
+              "peer": "7",
+              "epoch": "3",
+              "token": "453",
+              "sent": "805028003798860",
+              "deadline": "805028023798860",
+              "operation": "3",
+              "decision": "1",
+              "source": "805028004421385",
+              "original_source": "805028000676619",
+              "inner_deadline": "805028026066112",
+              "payload_source": "805028003778774"
+            },
+            "sent_to_received_ns": 488328,
+            "arrival_after_previous_expiry_ns": -12270240
+          },
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "805028034372035",
+              "peer": "7",
+              "epoch": "3",
+              "token": "469",
+              "sent": "805028033835567",
+              "deadline": "805028053835567",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "805028030539813",
+              "inner_deadline": "805028054997204",
+              "payload_source": "805028033815526"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "805028034392414",
+              "peer": "7",
+              "epoch": "3",
+              "token": "469",
+              "sent": "805028033835567",
+              "deadline": "805028053835567",
+              "operation": "3",
+              "decision": "-1",
+              "source": "805028034390309",
+              "original_source": "805028030539813",
+              "inner_deadline": "805028054997204",
+              "payload_source": "805028033815526"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "805028013852107",
+              "peer": "7",
+              "epoch": "3",
+              "token": "459",
+              "sent": "805028013307544",
+              "deadline": "805028033307544",
+              "operation": "3",
+              "decision": "1",
+              "source": "805028013850144",
+              "original_source": "805028010648971",
+              "inner_deadline": "805028034155767",
+              "payload_source": "805028013288725"
+            },
+            "sent_to_received_ns": 536468,
+            "arrival_after_previous_expiry_ns": 216268
+          },
+          {
+            "role": "rear",
+            "received": {
+              "event": "zone-received",
+              "ns": "805028014876408",
+              "peer": "7",
+              "epoch": "3",
+              "token": "460",
+              "sent": "805028014399752",
+              "deadline": "805028034155767",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "805028010648971",
+              "inner_deadline": "805028034155767",
+              "payload_source": "805028013288725"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "805028014904883",
+              "peer": "7",
+              "epoch": "3",
+              "token": "460",
+              "sent": "805028014399752",
+              "deadline": "805028034155767",
+              "operation": "3",
+              "decision": "1",
+              "source": "805028014903484",
+              "original_source": "805028010648971",
+              "inner_deadline": "805028034155767",
+              "payload_source": "805028013288725"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "805028005742428",
+              "peer": "7",
+              "epoch": "3",
+              "token": "454",
+              "sent": "805028005165014",
+              "deadline": "805028025165014",
+              "operation": "3",
+              "decision": "1",
+              "source": "805028005740435",
+              "original_source": "805028000676619",
+              "inner_deadline": "805028026066112",
+              "payload_source": "805028003778774"
+            },
+            "sent_to_received_ns": 476656,
+            "arrival_after_previous_expiry_ns": -11189704
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 4,
+          "max_millidegrees": 88000,
+          "thermal_count_delta": 0,
+          "minimum_khz": {
+            "1": 3662107,
+            "2": 2829025,
+            "3": 3632801,
+            "4": 4289148,
+            "5": 2537070,
+            "6": 2602338,
+            "7": 4161750
+          },
+          "all_seven_at_or_below_810mhz": 0
+        },
+        "longest_sdk_chains_near_fault": [
+          {
+            "method": 112,
+            "crc": 1198517078,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 805028018703664,
+              "send-begin": 805028018799870,
+              "send-return": 805028018809003,
+              "rx-enter": 805028022847229,
+              "rx-queued": 805028022858977
+            },
+            "send_queue_ns": 96206,
+            "send_call_ns": 9133,
+            "send_to_callback_ns": 4047359,
+            "callback_to_queue_ns": 11748,
+            "send_call_thread_cpu_delta_ns": 9152,
+            "callback_thread_cpu_delta_ns": 11746
+          },
+          {
+            "method": 112,
+            "crc": 231071365,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 805028018690960,
+              "send-begin": 805028018774708,
+              "send-return": 805028018789201,
+              "rx-enter": 805028022816363,
+              "rx-queued": 805028022834069
+            },
+            "send_queue_ns": 83748,
+            "send_call_ns": 14493,
+            "send_to_callback_ns": 4041655,
+            "callback_to_queue_ns": 17706,
+            "send_call_thread_cpu_delta_ns": 14515,
+            "callback_thread_cpu_delta_ns": 17606
+          },
+          {
+            "method": 112,
+            "crc": 242299168,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 805028018640036,
+              "send-begin": 805028018698551,
+              "send-return": 805028018735907,
+              "rx-enter": 805028022125427,
+              "rx-queued": 805028022140501
+            },
+            "send_queue_ns": 58515,
+            "send_call_ns": 37356,
+            "send_to_callback_ns": 3426876,
+            "callback_to_queue_ns": 15074,
+            "send_call_thread_cpu_delta_ns": 37042,
+            "callback_thread_cpu_delta_ns": 15062
+          },
+          {
+            "method": 112,
+            "crc": 597403080,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 805028018665830,
+              "send-begin": 805028018752151,
+              "send-return": 805028018763205,
+              "rx-enter": 805028022173902,
+              "rx-queued": 805028022793129
+            },
+            "send_queue_ns": 86321,
+            "send_call_ns": 11054,
+            "send_to_callback_ns": 3421751,
+            "callback_to_queue_ns": 619227,
+            "send_call_thread_cpu_delta_ns": 11035,
+            "callback_thread_cpu_delta_ns": 20406
+          },
+          {
+            "method": 112,
+            "crc": 3848931857,
+            "sender": "front-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 805028018979565,
+              "send-begin": 805028019070320,
+              "send-return": 805028019081186,
+              "rx-enter": 805028022151989,
+              "rx-queued": 805028022163124
+            },
+            "send_queue_ns": 90755,
+            "send_call_ns": 10866,
+            "send_to_callback_ns": 3081669,
+            "callback_to_queue_ns": 11135,
+            "send_call_thread_cpu_delta_ns": 10892,
+            "callback_thread_cpu_delta_ns": 11131
+          }
+        ],
+        "ambiguous_stage_keys": 0
+      },
+      {
+        "name": "tsan-stop-ack-loss-r2",
+        "first_faults": [
+          {
+            "ns": "805056166785981",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "12",
+            "deadline": "6",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "805056166786628",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "renewals": [
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "805056155409068",
+              "peer": "7",
+              "epoch": "3",
+              "token": "448",
+              "sent": "805056151910897",
+              "deadline": "805056165785772",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "805056149452040",
+              "inner_deadline": "805056165785772",
+              "payload_source": "805056151892388"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "805056155453229",
+              "peer": "7",
+              "epoch": "3",
+              "token": "448",
+              "sent": "805056151910897",
+              "deadline": "805056165785772",
+              "operation": "3",
+              "decision": "1",
+              "source": "805056155451929",
+              "original_source": "805056149452040",
+              "inner_deadline": "805056165785772",
+              "payload_source": "805056151892388"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "805056142253291",
+              "peer": "7",
+              "epoch": "3",
+              "token": "442",
+              "sent": "805056141368444",
+              "deadline": "805056161368444",
+              "operation": "3",
+              "decision": "1",
+              "source": "805056142252128",
+              "original_source": "805056139349401",
+              "inner_deadline": "805056165785772",
+              "payload_source": "805056141351112"
+            },
+            "sent_to_received_ns": 3498171,
+            "arrival_after_previous_expiry_ns": -10376704
+          },
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "805056165252494",
+              "peer": "7",
+              "epoch": "3",
+              "token": "454",
+              "sent": "805056164801723",
+              "deadline": "805056184801723",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "805056160073142",
+              "inner_deadline": "805056185067728",
+              "payload_source": "805056164783531"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "805056165287235",
+              "peer": "7",
+              "epoch": "3",
+              "token": "454",
+              "sent": "805056164801723",
+              "deadline": "805056184801723",
+              "operation": "3",
+              "decision": "1",
+              "source": "805056165286085",
+              "original_source": "805056160073142",
+              "inner_deadline": "805056185067728",
+              "payload_source": "805056164783531"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "805056155453229",
+              "peer": "7",
+              "epoch": "3",
+              "token": "448",
+              "sent": "805056151910897",
+              "deadline": "805056165785772",
+              "operation": "3",
+              "decision": "1",
+              "source": "805056155451929",
+              "original_source": "805056149452040",
+              "inner_deadline": "805056165785772",
+              "payload_source": "805056151892388"
+            },
+            "sent_to_received_ns": 450771,
+            "arrival_after_previous_expiry_ns": -533278
+          },
+          {
+            "role": "rear",
+            "received": {
+              "event": "zone-received",
+              "ns": "805056156455133",
+              "peer": "7",
+              "epoch": "3",
+              "token": "449",
+              "sent": "805056155950957",
+              "deadline": "805056165785772",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "805056149452040",
+              "inner_deadline": "805056165785772",
+              "payload_source": "805056151892388"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "805056156481111",
+              "peer": "7",
+              "epoch": "3",
+              "token": "449",
+              "sent": "805056155950957",
+              "deadline": "805056165785772",
+              "operation": "3",
+              "decision": "1",
+              "source": "805056156479884",
+              "original_source": "805056149452040",
+              "inner_deadline": "805056165785772",
+              "payload_source": "805056151892388"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "805056145992466",
+              "peer": "7",
+              "epoch": "3",
+              "token": "443",
+              "sent": "805056145260467",
+              "deadline": "805056165260467",
+              "operation": "3",
+              "decision": "1",
+              "source": "805056145991174",
+              "original_source": "805056139349401",
+              "inner_deadline": "805056165785772",
+              "payload_source": "805056141351112"
+            },
+            "sent_to_received_ns": 504176,
+            "arrival_after_previous_expiry_ns": -9330639
+          },
+          {
+            "role": "rear",
+            "received": {
+              "event": "zone-received",
+              "ns": "805056166214080",
+              "peer": "7",
+              "epoch": "3",
+              "token": "455",
+              "sent": "805056165755447",
+              "deadline": "805056185067728",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "805056160073142",
+              "inner_deadline": "805056185067728",
+              "payload_source": "805056164783531"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "805056166223757",
+              "peer": "7",
+              "epoch": "3",
+              "token": "455",
+              "sent": "805056165755447",
+              "deadline": "805056185067728",
+              "operation": "3",
+              "decision": "-1",
+              "source": "805056166222373",
+              "original_source": "805056160073142",
+              "inner_deadline": "805056185067728",
+              "payload_source": "805056164783531"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "805056156481111",
+              "peer": "7",
+              "epoch": "3",
+              "token": "449",
+              "sent": "805056155950957",
+              "deadline": "805056165785772",
+              "operation": "3",
+              "decision": "1",
+              "source": "805056156479884",
+              "original_source": "805056149452040",
+              "inner_deadline": "805056165785772",
+              "payload_source": "805056151892388"
+            },
+            "sent_to_received_ns": 458633,
+            "arrival_after_previous_expiry_ns": 428308
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 5,
+          "max_millidegrees": 88000,
+          "thermal_count_delta": 0,
+          "minimum_khz": {
+            "1": 4159376,
+            "2": 2531873,
+            "3": 3337130,
+            "4": 4271173,
+            "5": 3906956,
+            "6": 4126583,
+            "7": 3900522
+          },
+          "all_seven_at_or_below_810mhz": 0
+        },
+        "longest_sdk_chains_near_fault": [
+          {
+            "method": 32,
+            "crc": 3022081024,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 805056163510180,
+              "rx-queued": 805056163532269,
+              "tx-queued": 805056160215107,
+              "send-begin": 805056160279930,
+              "send-return": 805056160291802
+            },
+            "send_queue_ns": 64823,
+            "send_call_ns": 11872,
+            "send_to_callback_ns": 3230250,
+            "callback_to_queue_ns": 22089,
+            "send_call_thread_cpu_delta_ns": 11886,
+            "callback_thread_cpu_delta_ns": 22037
+          },
+          {
+            "method": 32,
+            "crc": 2714948164,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 805056163465143,
+              "rx-queued": 805056163482695,
+              "tx-queued": 805056160189252,
+              "send-begin": 805056160256214,
+              "send-return": 805056160267786
+            },
+            "send_queue_ns": 66962,
+            "send_call_ns": 11572,
+            "send_to_callback_ns": 3208929,
+            "callback_to_queue_ns": 17552,
+            "send_call_thread_cpu_delta_ns": 11568,
+            "callback_thread_cpu_delta_ns": 17297
+          },
+          {
+            "method": 32,
+            "crc": 2649818030,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "front-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 805056163390280,
+              "rx-queued": 805056163408808,
+              "tx-queued": 805056160168862,
+              "send-begin": 805056160208250,
+              "send-return": 805056160238600
+            },
+            "send_queue_ns": 39388,
+            "send_call_ns": 30350,
+            "send_to_callback_ns": 3182030,
+            "callback_to_queue_ns": 18528,
+            "send_call_thread_cpu_delta_ns": 30258,
+            "callback_thread_cpu_delta_ns": 18188
+          },
+          {
+            "method": 128,
+            "crc": 3859570856,
+            "sender": "front-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 805056142324975,
+              "send-begin": 805056142377047,
+              "send-return": 805056142410567,
+              "rx-enter": 805056145184328,
+              "rx-queued": 805056145201106
+            },
+            "send_queue_ns": 52072,
+            "send_call_ns": 33520,
+            "send_to_callback_ns": 2807281,
+            "callback_to_queue_ns": 16778,
+            "send_call_thread_cpu_delta_ns": 33220,
+            "callback_thread_cpu_delta_ns": 16504
+          },
+          {
+            "method": 112,
+            "crc": 1156251805,
+            "sender": "front-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 805056146864240,
+              "send-begin": 805056146933169,
+              "send-return": 805056146968922,
+              "rx-enter": 805056149730884,
+              "rx-queued": 805056149748747
+            },
+            "send_queue_ns": 68929,
+            "send_call_ns": 35753,
+            "send_to_callback_ns": 2797715,
+            "callback_to_queue_ns": 17863,
+            "send_call_thread_cpu_delta_ns": 35487,
+            "callback_thread_cpu_delta_ns": 17766
+          }
+        ],
+        "ambiguous_stage_keys": 0
+      }
+    ]
+  }
+}

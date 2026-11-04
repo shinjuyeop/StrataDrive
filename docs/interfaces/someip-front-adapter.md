@@ -20,6 +20,13 @@ eventgroups/subscriptions. All methods below use `MT_REQUEST_NO_RETURN` (0x01),
 including the reverse direction; application identity and correlation are in the
 canonical bytes. No SDK request/response target cache is needed.
 
+Central's `AsyncCoordinatorPort::feedback()` services the bounded result/feedback
+queues and original deadlines before copying the validated input snapshot. This
+is a Central-owner operation. A subsequent `healthy()` check does not refresh an
+already copied snapshot; inputs received after the snapshot wait for the next
+owner iteration. Source timestamps, authority bounds and management phase remain
+unchanged. See [the follow-up protocol](../test-plan/feedback-order-protocol.md).
+
 | Method | Direction / service / TCP port | Exact payload / purpose |
 | --- | --- | --- |
 | 0x0010 | Both directions on each service below | v2 transport probe, exact16 bytes; no authority |
@@ -126,6 +133,14 @@ Overflow rejects the extra arrival without overwriting queued items, latches fau
 and selects local protection independently of Central's command queue. Full queue
 shutdown and actual overflow have separate verdicts.
 
+The `close-full` fixture keeps closed owner admission and uses the existing20ms
+cleanup interval to reject one additional finite window of8 requests before SDK
+teardown. It does not exit cleanup on the first protection ACK. The first8 queued
+and next8 late requests must each have a correlated negative result at Central
+before Front stop; timeout accounting alone is insufficient. Original request
+deadlines remain recorded, and no late request reaches a Leaf. Actual cleanup
+end/SDK stop/join times remain evidence; scheduling overshoot is not hidden.
+
 At the original native review, only measured normal FIFO quiet/loaded performance
 (3/3each) was positive profile evidence. Those functional/fault cohorts contain
 failures and their operational adoption was pending; the new profile below has
@@ -162,3 +177,11 @@ runner correlates every Central emitted command to accepted Steering/Brake/Drive
 source/Epoch/original expiry and rejects missing or late handover. Functional results,
 normal timing, and intentional fault protection remain separate. See the linked
 qualification for finite scope, all original failures and the immutable source/SDK pins.
+
+SDK timing uses131072 slots allocated and initialized before launch. Concurrent
+writers reserve distinct slots; only after sender/SDK join may the records be read
+and written to disk. Full capacity latches a trace failure without overwriting or
+wrapping. SDK send wall/thread CPU clocks bracket the call directly; both records
+are appended after return, so trace recording is outside that interval. These are
+observations, not kernel scheduling attribution or a real-time guarantee. See
+[the timing trace protocol](../test-plan/timing-trace-protocol.md).

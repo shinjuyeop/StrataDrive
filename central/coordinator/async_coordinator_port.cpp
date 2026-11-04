@@ -242,6 +242,10 @@ void AsyncCoordinatorPort::service() {
     }
 }
 NormalDriveReadinessInputs AsyncCoordinatorPort::feedback() {
+    // Consume this owner's bounded ingress before capturing VM/allocation
+    // inputs. Servicing only in healthy() inside tick() leaves the already
+    // copied snapshot one iteration behind, potentially a whole VM period.
+    service();
     const auto now=now_ns(); NormalDriveReadinessInputs in; in.epoch=session_.epoch; in.session_enable_ns=session_.enable_ns;
     in.front={front_.current_sample(now),steering_.current_sample(now),brake_.current_sample(now)};
     in.rear={rear_.current_sample(now),drive_.current_sample(now),status_.current_sample(now),limits_.current_sample(now)};

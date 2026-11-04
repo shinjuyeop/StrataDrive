@@ -29,15 +29,16 @@ def main():
     cases += [(p,'normal',250,1) for p in ('normal','asan','tsan')]
     for repeat in range(2,args.tsan_repeats+1):cases += [('tsan',f,0,repeat) for f in faults]+[('tsan','normal',250,repeat)]
     files=[HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',Path(__file__),
-           HERE/'sdk_outcomes.py',HERE/'fixture_placement.hpp',HERE/'fixture_placement.py',
+           HERE/'sdk_outcomes.py',HERE/'native_oracle.py',HERE/'fixture_placement.hpp',HERE/'fixture_placement.py',
            HERE/'native_diagnostic_routes.cpp',HERE/'native_continuity_service.cpp',
            HERE.parent/'diagnostics/audit_central_restart.py',ROOT/'tests/unit/someip_pilot_test.py',
            ROOT/'central/coordinator/async_coordinator_port.cpp',ROOT/'central/coordinator/async_coordinator_port.hpp',
            ROOT/'tests/unit/async_owner_test.cpp',ROOT/'tests/unit/fixture_signals_test.cpp',
            ROOT/'interfaces/someip/owner_transport.hpp',ROOT/'interfaces/common/monotonic_condition.hpp',
+           ROOT/'interfaces/common/concurrent_trace_buffer.hpp',ROOT/'tests/unit/concurrent_trace_buffer_test.cpp',
            ROOT/'tests/unit/monotonic_condition_test.cpp',ROOT/'cmake/CoreTests.cmake',
            ROOT/'docs/test-plan/service-response-protocol.md',ROOT/'docs/test-plan/auxiliary-io-protocol.md',
-           ROOT/'docs/test-plan/service-timing-protocol.md',
+           ROOT/'docs/test-plan/service-timing-protocol.md',ROOT/'docs/test-plan/feedback-order-protocol.md',ROOT/'docs/test-plan/timing-trace-protocol.md',
            HERE.parent/'diagnostics/audit_service_ordering.py',
            HERE.parent/'diagnostics/audit_service_timing.py',
            HERE.parent/'diagnostics/audit_service_response.py',

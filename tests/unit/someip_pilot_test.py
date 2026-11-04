@@ -351,4 +351,37 @@ class NativeWatchBookkeepingTest(unittest.TestCase):
             self.assertFalse(m.overflow_counters_ok(bad,c,True))
         self.assertFalse(m.overflow_counters_ok(f,dict(c,diagnostic_expired=7),True))
 
+    def test_close_full_requires_both_windows_and_the_original_cleanup_interval(self):
+        m=self.module()
+        f={'rx_highwater':8,'unprocessed_rejected':8,'shutdown_late_rejected':8,'selected_ns':9,
+           'shutdown_drain_begin':10,'shutdown_drain_deadline':20_000_010,
+           'shutdown_drain_end':20_000_100,'stop_begin':20_000_200}
+        c={'diagnostic_sent':16,'diagnostic_rejected':16,'diagnostic_expired':0,'diagnostic_late':0}
+        result={'sender_alive_at_front_close':True,'sender_alive_after_front_close':True,'post_full_restart':True}
+        self.assertTrue(m.close_full_counters_ok(f,c,result))
+        for key in f:
+            self.assertFalse(m.close_full_counters_ok(dict(f,**{key:0}),c,result),key)
+        for key in result:
+            self.assertFalse(m.close_full_counters_ok(f,c,dict(result,**{key:False})),key)
+        for bad in (dict(c,diagnostic_sent=8,diagnostic_rejected=8),dict(c,diagnostic_rejected=8,diagnostic_expired=8),dict(c,diagnostic_late=1)):
+            self.assertFalse(m.close_full_counters_ok(f,bad,result))
+        self.assertFalse(m.close_full_counters_ok(dict(f,shutdown_drain_end=19_000_000),c,result))
+        self.assertFalse(m.close_full_counters_ok(dict(f,shutdown_drain_deadline=20_000_011),c,result))
+        import csv
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);first=[];sent=[];received=[]
+            for i in range(16):
+                token=1_000_000_000+i;stamp=9 if i<8 else 100
+                first.append([stamp,'shutdown-unprocessed-rejected' if i<8 else 'shutdown-late-rejected',1,0,token,1000])
+                sent.append([1,'diagnostic-send',1,0,token,1000])
+                received.append([stamp+1,'diagnostic-result',1,0,token,stamp])
+            def save(name,rows):
+                with (root/name).open('w') as stream:
+                    writer=csv.writer(stream);writer.writerow(['ns','event','epoch','role','value','deadline']);writer.writerows(rows)
+            save('front-1.events.csv',first);save('central-1.events.csv',sent+received)
+            self.assertTrue(m.close_full_oracle(root,f,c,result)['pass'])
+            save('front-1.events.csv',first[:-1]);self.assertFalse(m.close_full_oracle(root,f,c,result)['pass'])
+            first[-1][-1]=1001;save('front-1.events.csv',first)
+            self.assertFalse(m.close_full_oracle(root,f,c,result)['pass'])
+
 if __name__=='__main__':unittest.main()

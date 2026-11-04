@@ -1,0 +1,119 @@
+[
+  {
+    "profile": "normal",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--target",
+      "async_owner_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "normal",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle",
+      "-R",
+      "AsyncOwnerTest|AsyncZoneOwner",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "normal",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m5-someip-normal/project",
+      "--target",
+      "someip_front_adapter",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "asan",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle-sanitized",
+      "--target",
+      "async_owner_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "asan",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle-sanitized",
+      "-R",
+      "AsyncOwnerTest|AsyncZoneOwner",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "asan",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m5-someip-asan/project",
+      "--target",
+      "someip_front_adapter",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "tsan",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m9-service-timing/tsan-unit",
+      "--target",
+      "async_owner_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "tsan",
+    "command": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "ctest",
+      "--test-dir",
+      "build/m9-service-timing/tsan-unit",
+      "-R",
+      "AsyncOwnerTest|AsyncZoneOwner",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "profile": "tsan",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m5-someip-tsan/project",
+      "--target",
+      "someip_front_adapter",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  }
+]

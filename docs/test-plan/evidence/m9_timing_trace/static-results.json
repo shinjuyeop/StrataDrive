@@ -1,0 +1,69 @@
+[
+  {
+    "name": "cppcheck",
+    "command": [
+      "cppcheck",
+      "--project=build/m9-trace-slots/compile_commands.json",
+      "--enable=warning,performance,portability",
+      "--error-exitcode=1",
+      "--suppress=missingIncludeSystem"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "clang-tidy-front_adapter",
+    "command": [
+      "clang-tidy",
+      "tests/integration/someip/front_adapter.cpp",
+      "-p",
+      "build/m5-someip-normal/project",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/x86_64-linux-gnu/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11/backward"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "clang-tidy-native_diagnostic_routes",
+    "command": [
+      "clang-tidy",
+      "tests/integration/someip/native_diagnostic_routes.cpp",
+      "-p",
+      "build/m5-someip-normal/project",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/x86_64-linux-gnu/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11/backward"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "clang-tidy-native_continuity_service",
+    "command": [
+      "clang-tidy",
+      "tests/integration/someip/native_continuity_service.cpp",
+      "-p",
+      "build/m5-someip-normal/project",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/x86_64-linux-gnu/c++/11",
+      "--extra-arg=-isystem",
+      "--extra-arg=/usr/include/c++/11/backward"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "python-unit",
+    "command": [
+      "python3",
+      "tests/unit/someip_pilot_test.py"
+    ],
+    "exit": 0
+  }
+]

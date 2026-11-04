@@ -60,6 +60,49 @@ def native_oracle(folder,case,result,fifo):
     except (OSError,ValueError,KeyError,StopIteration) as e:require(False,'native evidence missing: '+str(e))
     return out
 
+def close_full_counters_ok(front,central,result):
+    """Both finite windows must be rejected before orderly endpoint teardown."""
+    begin=front.get('shutdown_drain_begin',0);deadline=front.get('shutdown_drain_deadline',0)
+    end=front.get('shutdown_drain_end',0)
+    return (result.get('sender_alive_at_front_close') is True and
+            result.get('sender_alive_after_front_close') is True and result.get('post_full_restart') is True and
+            front.get('rx_highwater')==8 and front.get('unprocessed_rejected')==8 and
+            front.get('shutdown_late_rejected')==8 and front.get('selected_ns',0)>0 and
+            0<begin<deadline<=end<=front.get('stop_begin',0) and deadline-begin==20_000_000 and
+            central.get('diagnostic_sent')==16 and central.get('diagnostic_rejected')==16 and
+            central.get('diagnostic_expired')==0 and central.get('diagnostic_late')==0)
+
+
+def close_full_oracle(folder,front,central,result):
+    """Cross-check the two owners' original tokens and rejection timestamps."""
+    try:
+        if not close_full_counters_ok(front,central,result):raise ValueError('full shutdown counters/interval')
+        with (Path(folder)/'front-1.events.csv').open() as stream:remote=list(csv.DictReader(stream))
+        with (Path(folder)/'central-1.events.csv').open() as stream:local=list(csv.DictReader(stream))
+        def indexed(rows,name,tokens):
+            selected=[r for r in rows if r['event']==name]
+            if len(selected)!=len(tokens) or sorted(int(r['value']) for r in selected)!=list(tokens):
+                raise ValueError('exact original tokens: '+name)
+            return {int(r['value']):r for r in selected}
+        first=indexed(remote,'shutdown-unprocessed-rejected',range(1000000000,1000000008))
+        late=indexed(remote,'shutdown-late-rejected',range(1000000008,1000000016))
+        sent=indexed(local,'diagnostic-send',range(1000000000,1000000016))
+        received=indexed(local,'diagnostic-result',range(1000000000,1000000016))
+        for rejection in first.values():
+            if int(rejection['ns'])>front['shutdown_drain_begin']:raise ValueError('initial drain order')
+        for rejection in late.values():
+            if not front['shutdown_drain_begin']<=int(rejection['ns'])<=front['shutdown_drain_end']:
+                raise ValueError('late rejection outside original cleanup')
+        for token,rejection in {**first,**late}.items():
+            source=int(received[token]['deadline'])
+            if not (sent[token]['deadline']==rejection['deadline'] and
+                    int(sent[token]['ns'])<=source<=int(rejection['ns'])<front['stop_begin'] and
+                    source<=int(received[token]['ns'])<front['stop_begin']):
+                raise ValueError('original rejection source/deadline correlation')
+        return {'pass':True,'initial_rejected':len(first),'late_rejected':len(late)}
+    except (OSError,ValueError,KeyError) as error:return {'pass':False,'error':str(error)}
+
+
 def overflow_counters_ok(front,central,restarted):
     return (front.get('rx_highwater')==8 and front.get('overflow') is True
             and front.get('rx_rejected')==1 and front.get('rx_overflow_token')==1000000008
