@@ -69,8 +69,19 @@ original20ms envelope, 2ms opportunities/4ms deadline and original controller gr
 No stale field is restamped and no retry extends validity.
 
 The Host fixture's marker writes and file-existence polling run on a separate
-non-RT observer; in the diagnostic profile it uses CPU15. Owners exchange fixed
-registered signal slots using atomics. A marker records its original request
+non-RT observer. Existing diagnostic/native-watch profiles use CPU15. The split
+functional profile accepts `--separate-aux-io`: before startup it selects an allowed
+CPU whose package/core differs from owners1/2/7, plant3 and SDK4/5/6 (CPU8 on the
+measured Host). Missing topology or a separate core prevents startup. All marker,
+diagnostic, Epoch, physical-prerequisite and service IO use this CPU with
+SCHED_OTHER/priority0. Requested and independently observed topology/affinity are
+recorded and audited; this does not reserve the core against unrelated OS work.
+
+Owners exchange fixed registered signal slots using atomics. Each role registers
+its observed names before startup (Plant4, Central8, Front/Rear5 each), with an
+initial snapshot and the existing1ms worker period. Reads of unobserved names fail;
+all registered writes retain the existing bounded interface. See the
+[auxiliary IO protocol](../test-plan/auxiliary-io-protocol.md). A marker records its original request
 time separately from actual write begin/end. The observer checks IO failures and
 joins after owner quiescence. These orchestration files never grant authority or
 replace physical sources, native fault evidence, or durable diagnostic receipts.

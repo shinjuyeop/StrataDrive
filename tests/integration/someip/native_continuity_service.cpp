@@ -1,3 +1,4 @@
+#include "fixture_placement.hpp"
 #include "native_continuity_service.hpp"
 #include "native_diagnostic_routes.hpp"
 #include "native_execution_watch.hpp"
@@ -60,7 +61,7 @@ void NativeContinuityService::start(){require(!worker_.joinable(),"service alrea
 void NativeContinuityService::work(){
     std::string error;std::uint64_t base=0;std::string socket_path;
     try {
-        simulation::NativeExecutionWatch::configure_thread(15,0);simulation::runtime_support::ThreadInfo placement;placement.capture();std::ofstream where(folder_/"service-writer.json");placement.write_json(where);
+        simulation::NativeExecutionWatch::configure_thread(stratadrive::someip::test::auxiliary_io_cpu(),0);simulation::runtime_support::ThreadInfo placement;placement.capture();std::ofstream where(folder_/"service-writer.json");placement.write_json(where);
         const auto* configured=std::getenv("STRATADRIVE_DIAGNOSTIC_STORE_ROOT");require(configured,"service storage provision missing");const fs::path storage(configured);const auto central=storage/"central";
         Capture capture(current_,folder_);std::vector<d::StreamBinding> bindings;
         const auto contexts=report(central/"central-2.freeze.csv");require(contexts.size()==2,"collector freeze coverage");

@@ -33,6 +33,7 @@ CARLA30km/h 정상·고장5개 시나리오와 실제 transport 진단 수집은
 | M9 미확인 과거 이력 수용·현재 recording proof·영속 서비스 심사/clear·writer SIGKILL4경계 | [로컬 서비스 심사](evidence/m9_continuity_review/README.md) |
 | M9 서비스 명령 부모 순서·marker IO 분리·고정18개씩4회·TSan timing 미통과 | [원본·수정·남은 실패](evidence/m9_service_timing/README.md) · [사전 protocol](service-timing-protocol.md) |
 | M9 응답 enqueue/RX 알림·monotonic 대기·SDK 시각·host 주파수와 전체 실패 보존 | [지연 후속](evidence/m9_response_latency/README.md) · [사전 protocol](service-response-protocol.md) |
+| M9 보조 IO 물리 코어 분리·역할별 marker 조회·갱신 기한/종료 오류 보존 | [배치·관측 후속](evidence/m9_auxiliary_io/README.md) · [사전 protocol](auxiliary-io-protocol.md) |
 | 실제3-process SOME/IP·8-role·부하/고장/재가입 | [M5 Rear adapter](evidence/m5_someip_rear_adapter/README.md) |
 | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
 | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |
@@ -60,7 +61,7 @@ CARLA30km/h 정상·고장5개 시나리오와 실제 transport 진단 수집은
 | DDS 제어 gate CLOSED의 근거 | [DDS shutdown 후속](evidence/m5_dds_shutdown_followup/README.md) |
 
 Linux 로컬 서비스 요청/심사/별도 clear는 [연결 근거](evidence/m9_continuity_service/README.md)와
-[고정 recipe](diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture)를 따른다. [실제3-ECU terminal 서비스 조합](evidence/m9_native_service/README.md) 뒤 서비스 고장 거절을 후속 검증했으며, 최신 전체 수용과 남은 timing 실패는 [응답 지연 후속](evidence/m9_response_latency/README.md)을 따른다.
+[고정 recipe](diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture)를 따른다. [실제3-ECU terminal 서비스 조합](evidence/m9_native_service/README.md) 뒤 서비스 고장 거절을 후속 검증했으며, 최신 전체 수용과 남은 timing 실패는 [보조 IO 후속](evidence/m9_auxiliary_io/README.md)을 따른다.
 
 ## Evidence 보관 규칙
 

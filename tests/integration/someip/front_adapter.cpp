@@ -1,3 +1,4 @@
+#include "fixture_placement.hpp"
 // Opt-in Host adapter. Eight real participants; no pilot grants or synthetic feedback.
 #include "adapter_transport.hpp"
 #include "plant_io.hpp"
@@ -46,7 +47,7 @@ public:
     explicit PhysicalPrerequisite(const fs::path& folder) {
         if(diagnostics_enabled())writer_=std::thread([this,folder] {
             try {
-                simulation::NativeExecutionWatch::configure_thread(15,0);
+                simulation::NativeExecutionWatch::configure_thread(stratadrive::someip::test::auxiliary_io_cpu(),0);
                 while(!stop_ && !source_.load(std::memory_order_acquire))std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 if(const auto source=source_.load(std::memory_order_acquire)) {std::ofstream out(folder/"diagnostic-physical-normal");out<<source<<'\n';if(!out)failed_=true;}
             } catch(...) {failed_=true;}
@@ -473,7 +474,7 @@ int main(int argc,char** argv) {
     }
     const auto signal_tag=role+"-"+(argc==5?std::string(argv[4]):"1");
     someip::test::FixtureSignals signals(folder,signal_tag,[folder,signal_tag]{
-            if(diagnostics_enabled() || native_enabled())simulation::NativeExecutionWatch::configure_thread(15,0);
+            if(diagnostics_enabled() || native_enabled())simulation::NativeExecutionWatch::configure_thread(stratadrive::someip::test::auxiliary_io_cpu(),0);
             simulation::runtime_support::ThreadInfo actual;actual.capture();
             std::ofstream out(folder/(signal_tag+".signals.runtime.json"));actual.write_json(out);
             if(!out)throw std::runtime_error("fixture signal placement write failed");
@@ -481,7 +482,7 @@ int main(int argc,char** argv) {
         [](const fs::path& path){
             if(const auto* delay=std::getenv("STRATADRIVE_SIGNAL_WRITE_DELAY_MS");delay && path.filename()=="armed")
                 std::this_thread::sleep_for(std::chrono::milliseconds(std::stoul(delay)));
-        });
+        },someip::test::fixture_observations(role));
     if(role=="plant"){try{return plant(folder,signals);}catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}
     if(argc!=5)return 2;
     const Ecu ecu=role=="central"?Ecu::Central:role=="front"?Ecu::Front:Ecu::Rear;
@@ -643,7 +644,7 @@ int main(int argc,char** argv) {
                             }
                             if(service_startup_requested && owners->zones[0].protection.acknowledged(2) && owners->zones[1].protection.acknowledged(2) && !service_epoch.valid()){
                                 owners->event("epoch-store-begin",7);const auto path=(folder/"epochs").string();
-                                service_epoch=std::async(std::launch::async,[path]{simulation::NativeExecutionWatch::configure_thread(15,0);return session::EpochStore(path).issue();});
+                                service_epoch=std::async(std::launch::async,[path]{simulation::NativeExecutionWatch::configure_thread(stratadrive::someip::test::auxiliary_io_cpu(),0);return session::EpochStore(path).issue();});
                             }
                             if(service_epoch.valid() && service_epoch.wait_for(std::chrono::seconds(0))==std::future_status::ready){
                                 const auto fresh_epoch=service_epoch.get();owners->event("epoch-store-return",7,fresh_epoch);check(fresh_epoch==3,"service explicit epoch3");

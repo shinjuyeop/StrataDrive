@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [응답 지연 개선·고정 반복·남은 실패](test-plan/evidence/m9_response_latency/README.md) |
+| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [보조 IO 개선·고정 반복·남은 실패](test-plan/evidence/m9_auxiliary_io/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -35,14 +35,19 @@ BMS9개 trip mask와 Power8개 물리 고장 조합은 electrical component 수�
 lost wake·spurious wake/원래 timeout을 검증했다. 원래18ms support/20ms result/30ms Actual
 기한과8개 mailbox를 유지한다. Native-watch wake grid는 변경하지 않았다.
 
-[응답 지연 후속 근거](test-plan/evidence/m9_response_latency/README.md)에 성공·실패·host 온도/주파수와
-원본 TCP/owner/SDK 시각을 보존한다. 최종 고정30개는 Normal6/6·ASan5/6·TSan6/18로
-전체17/30이다. 이전24/30·23/30도 보존한다. 여러 TSan 실패 구간에서 CPU1–7의 동시 약800MHz 하락을
-관측했고 시험 전체에100°C와 thermal counter 증가가 있었다. 개별 실패의 단일 원인으로
-온도를 확정하지 않으며 환경 확인과 SDK/owner 지연 원인 분석·같은 고정 cohort의 재검증이 필요하다. 전체 timing은
-OPEN이다. 정상 명령 완료/pause handshake를 추가한 큐 포화 회귀는 Normal/ASan12/12다.
-일반1256개, monotonic ASan/TSan 각3개를 검증했으며 현재 변경 뒤 signal/monotonic 회귀6개도
-통과했다. Native4ms/Target·장기 부하나 실제 CARLA 재실행 수용은 아니다.
+[이전 응답 지연 근거](test-plan/evidence/m9_response_latency/README.md)의17/30과 전체 실패는 보존한다.
+[보조 IO 분리·관측 축소](test-plan/evidence/m9_auxiliary_io/README.md)에서는 Rear7과 SMT를 공유하던
+IO15를 별도 물리 코어8로 옮기는 옵션을 추가하고 실제 affinity/topology를 감사한다.
+같은 binary의 A/B/B/A 비교는 기존6/8·분리7/8이었다. Marker 관측을 역할별4~8개로 줄인
+최종 고정30개는 Normal6/6·ASan6/6·TSan15/18, 전체27/30이다. 배치 비교와 후속30개를
+합쳐 통과로 세지 않으며 외부 부하/냉각이 통제된 전체 성능 개선을 주장하지 않는다.
+
+남은 TSan3개는 갱신/지원 기한 위반이다. 한 실패에서는 새 Front 명령 전달이0.592ms였지만
+기존 명령 expiry보다0.101ms 늦게 도착했다. 최종 실패3개 모두 전후25ms의 모든 CPU1–7이
+800MHz인 표본은 없었다. 온도만으로 설명하지 않고 선행 permission/command 갱신 연쇄를
+추적해야 한다. 기능 회귀는11/12이며 close-full의 추가 시험 패킷/상대 종료 경합 SDK 오류도
+미해결로 보존한다. Python29개, fixture 단위 Normal/ASan/TSan 각5개와 실제 변경 TU 정적
+검사는 통과했다. 전체 timing은 OPEN이며 Native4ms/Target·장기 부하·CARLA 수용은 별도다.
 
 **M9 전체 완료는 아직 아니다.** Native 서비스 timing, silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
 재검증, proposal 이전 bootstrap incident 계약, 전체8-role BMS/Power matrix와 실제 부하/장기 보존

@@ -1,3 +1,4 @@
+#include "fixture_placement.hpp"
 #include "native_diagnostic_routes.hpp"
 #include "someip/owner_transport.hpp"
 #include "native_execution_watch.hpp"
@@ -155,9 +156,9 @@ void NativeDiagnosticRoutes::accepted_release(unsigned role,std::uint32_t epoch,
     accepted_acks_.publish(release_acks_);
 }
 void NativeDiagnosticRoutes::work() {
-    std::string error;std::uint64_t events=0,duplicates=0,acked=0,buffered=0,stale_acks=0;bool dropped_ack=false;unsigned restarts=0;
+    std::string error;std::uint64_t events=0,duplicates=0,acked=0,buffered=0,stale_acks=0;bool dropped_ack=false;unsigned restarts=0;int writer_cpu=-1;
     try {
-        simulation::NativeExecutionWatch::configure_thread(15,0);
+        writer_cpu=auxiliary_io_cpu();simulation::NativeExecutionWatch::configure_thread(writer_cpu,0);
         simulation::runtime_support::ThreadInfo actual;actual.capture();std::ofstream placement(folder_/(tag_+".writer.json"));actual.write_json(placement);placement.flush();
         std::ofstream log(folder_/(tag_+".delivery.csv"));log<<"wall_ns,action,stream,ordinal,producer,sequence,kind,epoch\n";
         std::ofstream release_log(folder_/(tag_+".release.csv"));release_log<<"epoch,role,ns\n";ReleaseAcks written_acks;
@@ -334,6 +335,6 @@ void NativeDiagnosticRoutes::work() {
     const auto stats=[&](unsigned stream,const diagnostic::Channel& c) {const auto s=c.stats();channels<<stream<<','<<s.received<<','<<s.rejected<<','<<s.send_returned<<','<<s.dropped<<','<<s.highwater<<'\n';};
     for(unsigned i=0;i<slots_;++i)if(source_channels_[i])stats(8200+i,*source_channels_[i]);
     for(unsigned z=0;z<2;++z)if(context_channels_[z])stats(8101+z,*context_channels_[z]);
-    std::ofstream out(folder_/(tag_+".json"));out<<"{\"pass\":"<<(passed_?"true":"false")<<",\"events_seen\":"<<events<<",\"duplicates\":"<<duplicates<<",\"acks_accepted\":"<<acked<<",\"pending_highwater\":"<<buffered<<",\"ack_omitted\":"<<(dropped_ack?"true":"false")<<",\"stale_acks\":"<<stale_acks<<",\"restarts\":"<<restarts<<",\"producer_generation\":"<<generation_<<",\"previous_unclean\":"<<(lifecycle_ && lifecycle_->previous_unclean()?"true":"false")<<",\"writer_cpu\":15,\"error\":"<<std::quoted(error)<<"}\n";
+    std::ofstream out(folder_/(tag_+".json"));out<<"{\"pass\":"<<(passed_?"true":"false")<<",\"events_seen\":"<<events<<",\"duplicates\":"<<duplicates<<",\"acks_accepted\":"<<acked<<",\"pending_highwater\":"<<buffered<<",\"ack_omitted\":"<<(dropped_ack?"true":"false")<<",\"stale_acks\":"<<stale_acks<<",\"restarts\":"<<restarts<<",\"producer_generation\":"<<generation_<<",\"previous_unclean\":"<<(lifecycle_ && lifecycle_->previous_unclean()?"true":"false")<<",\"writer_cpu\":"<<writer_cpu<<",\"error\":"<<std::quoted(error)<<"}\n";
 }
 } // namespace stratadrive::someip::test

@@ -47,7 +47,7 @@ def judge(d, service=False):
     processes = [p for p in r['processes'] if p['role'] == 'central']
     require(len(processes) == 2 and processes[0]['expected_abrupt_stop'] and processes[0]['exit'] == -9 and processes[1]['exit'] == 0, 'actual Central SIGKILL and new successful process')
     require(r['central_rejoined'] and r['survivor_pids_before'] == r['survivor_pids_after'] and set(r['survivor_pids_after']) == {'front', 'rear'} and crash['pid'] not in r['survivor_pids_after'].values(), 'surviving ECU PIDs unchanged')
-    require(all(p['allowed_cpus'] == [15] and p['policy'] == p['priority'] == 0 for p in d['placements']), 'actual non-RT writer placement')
+    require(all(p['allowed_cpus'] == [(d['plan'].get('auxiliary_placement') or {}).get('cpu',15)] and p['policy'] == p['priority'] == 0 for p in d['placements']), 'actual non-RT writer placement')
     merged = [event(raw) for raw in d['merged']]; ids = [e['_id'] for e in merged]
     require(len(set(ids)) == len(ids), 'unique merged identities')
     sessions = {e['epoch']: (raw, e) for raw, e in zip(d['merged'], merged) if e['kind'] == 6}

@@ -1,0 +1,44 @@
+[
+  {
+    "case": "normal-normal",
+    "reader": "audit_native_service.py",
+    "expected_exit": 0,
+    "actual_exit": 0
+  },
+  {
+    "case": "normal-normal",
+    "reader": "audit_service_timing.py",
+    "expected_exit": 0,
+    "actual_exit": 0
+  },
+  {
+    "case": "normal-normal",
+    "reader": "audit_service_response.py",
+    "expected_exit": 0,
+    "actual_exit": 0
+  },
+  {
+    "case": "tsan-normal",
+    "reader": "audit_native_service.py",
+    "expected_exit": 1,
+    "actual_exit": 1
+  },
+  {
+    "case": "tsan-normal",
+    "reader": "audit_service_timing.py",
+    "expected_exit": 0,
+    "actual_exit": 0
+  },
+  {
+    "case": "normal-close-full",
+    "unexpected_sdk_error_reproduced": true,
+    "original_pass": false,
+    "errors": [
+      {
+        "file": "central-1.stdout",
+        "line": 5,
+        "text": "2026-11-04 18:08:20.901136 central [error] tcei::write_completion_condition: Connection reset by peer(104) bytes transferred: 0 bytes to sent: 222 remote:10.88.0.2:30501 (1311): [5344.0020.012b]"
+      }
+    ]
+  }
+]

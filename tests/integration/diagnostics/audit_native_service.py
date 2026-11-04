@@ -58,7 +58,7 @@ def actuals(messages):
 
 
 def judge(d):
-    report=judge_restart(d,True);require(d['placement']['allowed_cpus']==[15] and d['placement']['policy']==d['placement']['priority']==0,'actual non-RT service writer placement');require(d['plan']['diagnostic_service'] and d['plan']['simple_vehicle'] and d['result']['vehicle']['pass'] and d['result']['service']['pass_'] and d['service']['pass'], 'actual service and moving SimpleVehicle profile')
+    report=judge_restart(d,True);require(d['placement']['allowed_cpus']==[(d['plan'].get('auxiliary_placement') or {}).get('cpu',15)] and d['placement']['policy']==d['placement']['priority']==0,'actual non-RT service writer placement');require(d['plan']['diagnostic_service'] and d['plan']['simple_vehicle'] and d['result']['vehicle']['pass'] and d['result']['service']['pass_'] and d['service']['pass'], 'actual service and moving SimpleVehicle profile')
     require(d['result']['vehicle']['max_speed_mps']>.01 and d['result']['vehicle']['distance_m']>.001 and d['result']['vehicle']['final_speed_mps']==0, 'real model motion and final physical standstill')
     all_rows=[]
     for role,mask in [('central',128),('front',13),('rear',114)]:

@@ -1,0 +1,1550 @@
+{
+  "placement-comparison": {
+    "attempted": 16,
+    "qualified": 13,
+    "host": {
+      "samples": 12487,
+      "max_millidegrees": 100000,
+      "thermal_count_delta": 367
+    },
+    "failures": [
+      {
+        "name": "normal-0-1-shared",
+        "first_faults": [
+          {
+            "ns": "800803568764635",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "12",
+            "deadline": "6",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "800803568765244",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "renewals": [
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "800803545533664",
+              "peer": "7",
+              "epoch": "2",
+              "token": "430",
+              "sent": "800803544985578",
+              "deadline": "800803564913972",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "800803542536267",
+              "inner_deadline": "800803564913972",
+              "payload_source": "800803544963171"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "800803545577883",
+              "peer": "7",
+              "epoch": "2",
+              "token": "430",
+              "sent": "800803544985578",
+              "deadline": "800803564913972",
+              "operation": "3",
+              "decision": "1",
+              "source": "800803545576577",
+              "original_source": "800803542536267",
+              "inner_deadline": "800803564913972",
+              "payload_source": "800803544963171"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "800803535136329",
+              "peer": "7",
+              "epoch": "2",
+              "token": "424",
+              "sent": "800803534647516",
+              "deadline": "800803554647516",
+              "operation": "3",
+              "decision": "1",
+              "source": "800803535135215",
+              "original_source": "800803532569170",
+              "inner_deadline": "800803558791914",
+              "payload_source": "800803534630504"
+            },
+            "sent_to_received_ns": 548086,
+            "arrival_after_previous_expiry_ns": -13258250
+          },
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "800803565044644",
+              "peer": "7",
+              "epoch": "2",
+              "token": "440",
+              "sent": "800803564586869",
+              "deadline": "800803584586869",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "800803562498660",
+              "inner_deadline": "800803585643654",
+              "payload_source": "800803564567919"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "800803565053919",
+              "peer": "7",
+              "epoch": "2",
+              "token": "440",
+              "sent": "800803564586869",
+              "deadline": "800803584586869",
+              "operation": "3",
+              "decision": "-1",
+              "source": "800803565052628",
+              "original_source": "800803562498660",
+              "inner_deadline": "800803585643654",
+              "payload_source": "800803564567919"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "800803545577883",
+              "peer": "7",
+              "epoch": "2",
+              "token": "430",
+              "sent": "800803544985578",
+              "deadline": "800803564913972",
+              "operation": "3",
+              "decision": "1",
+              "source": "800803545576577",
+              "original_source": "800803542536267",
+              "inner_deadline": "800803564913972",
+              "payload_source": "800803544963171"
+            },
+            "sent_to_received_ns": 457775,
+            "arrival_after_previous_expiry_ns": 130672
+          },
+          {
+            "role": "rear",
+            "received": {
+              "event": "zone-received",
+              "ns": "800803546639737",
+              "peer": "7",
+              "epoch": "2",
+              "token": "431",
+              "sent": "800803546084748",
+              "deadline": "800803564913972",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "800803542536267",
+              "inner_deadline": "800803564913972",
+              "payload_source": "800803544963171"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "800803546679439",
+              "peer": "7",
+              "epoch": "2",
+              "token": "431",
+              "sent": "800803546084748",
+              "deadline": "800803564913972",
+              "operation": "3",
+              "decision": "1",
+              "source": "800803546677453",
+              "original_source": "800803542536267",
+              "inner_deadline": "800803564913972",
+              "payload_source": "800803544963171"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "800803536135920",
+              "peer": "7",
+              "epoch": "2",
+              "token": "425",
+              "sent": "800803535636036",
+              "deadline": "800803555636036",
+              "operation": "3",
+              "decision": "1",
+              "source": "800803536134676",
+              "original_source": "800803532569170",
+              "inner_deadline": "800803558791914",
+              "payload_source": "800803534630504"
+            },
+            "sent_to_received_ns": 554989,
+            "arrival_after_previous_expiry_ns": -12152177
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 4,
+          "max_millidegrees": 75000,
+          "thermal_count_delta": 0,
+          "minimum_khz": {
+            "1": 3789566,
+            "2": 3186870,
+            "3": 3591105,
+            "4": 2276806,
+            "5": 801909,
+            "6": 1804066,
+            "7": 4326514
+          },
+          "all_seven_at_or_below_810mhz": 0
+        },
+        "longest_sdk_chains_near_fault": [
+          {
+            "method": 32,
+            "crc": 1714688946,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 800803563394665,
+              "rx-queued": 800803563407911,
+              "tx-queued": 800803562666246,
+              "send-begin": 800803562752995,
+              "send-return": 800803562764685
+            },
+            "send_queue_ns": 86749,
+            "send_call_ns": 11690,
+            "send_to_callback_ns": 641670,
+            "callback_to_queue_ns": 13246,
+            "send_call_thread_cpu_delta_ns": 11738,
+            "callback_thread_cpu_delta_ns": 13457
+          },
+          {
+            "method": 32,
+            "crc": 3550060620,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 800803563355115,
+              "rx-queued": 800803563379085,
+              "tx-queued": 800803562648397,
+              "send-begin": 800803562728575,
+              "send-return": 800803562741437
+            },
+            "send_queue_ns": 80178,
+            "send_call_ns": 12862,
+            "send_to_callback_ns": 626540,
+            "callback_to_queue_ns": 23970,
+            "send_call_thread_cpu_delta_ns": 12864,
+            "callback_thread_cpu_delta_ns": 24109
+          },
+          {
+            "method": 32,
+            "crc": 1844377990,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 800803552891986,
+              "rx-queued": 800803552905558,
+              "tx-queued": 800803552262444,
+              "send-begin": 800803552315751,
+              "send-return": 800803552331746
+            },
+            "send_queue_ns": 53307,
+            "send_call_ns": 15995,
+            "send_to_callback_ns": 576235,
+            "callback_to_queue_ns": 13572,
+            "send_call_thread_cpu_delta_ns": 16006,
+            "callback_thread_cpu_delta_ns": 13791
+          },
+          {
+            "method": 32,
+            "crc": 3799994371,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 800803552852707,
+              "rx-queued": 800803552876973,
+              "tx-queued": 800803552236160,
+              "send-begin": 800803552290121,
+              "send-return": 800803552303548
+            },
+            "send_queue_ns": 53961,
+            "send_call_ns": 13427,
+            "send_to_callback_ns": 562586,
+            "callback_to_queue_ns": 24266,
+            "send_call_thread_cpu_delta_ns": 13364,
+            "callback_thread_cpu_delta_ns": 24456
+          },
+          {
+            "method": 128,
+            "crc": 423560974,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 800803544046692,
+              "send-begin": 800803544154886,
+              "send-return": 800803544165979,
+              "rx-enter": 800803544678370,
+              "rx-queued": 800803544691165
+            },
+            "send_queue_ns": 108194,
+            "send_call_ns": 11093,
+            "send_to_callback_ns": 523484,
+            "callback_to_queue_ns": 12795,
+            "send_call_thread_cpu_delta_ns": 11032,
+            "callback_thread_cpu_delta_ns": 12954
+          }
+        ],
+        "ambiguous_stage_keys": 0
+      },
+      {
+        "name": "actual-loss-0-3-separate",
+        "first_faults": [
+          {
+            "ns": "800888229461746",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "800888229462308",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "renewals": [
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "800888206710850",
+              "peer": "7",
+              "epoch": "2",
+              "token": "170",
+              "sent": "800888206257728",
+              "deadline": "800888226257728",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "800888201526011",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888206240952"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "800888206744586",
+              "peer": "7",
+              "epoch": "2",
+              "token": "170",
+              "sent": "800888206257728",
+              "deadline": "800888226257728",
+              "operation": "3",
+              "decision": "1",
+              "source": "800888206743466",
+              "original_source": "800888201526011",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888206240952"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "800888197749747",
+              "peer": "7",
+              "epoch": "2",
+              "token": "164",
+              "sent": "800888197213971",
+              "deadline": "800888217213971",
+              "operation": "3",
+              "decision": "1",
+              "source": "800888197748526",
+              "original_source": "800888191306463",
+              "inner_deadline": "800888219479215",
+              "payload_source": "800888197197340"
+            },
+            "sent_to_received_ns": 453122,
+            "arrival_after_previous_expiry_ns": -12768365
+          },
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "800888218030582",
+              "peer": "7",
+              "epoch": "2",
+              "token": "175",
+              "sent": "800888217553040",
+              "deadline": "800888229382992",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "800888211525776",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888217534658"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "800888218076965",
+              "peer": "7",
+              "epoch": "2",
+              "token": "175",
+              "sent": "800888217553040",
+              "deadline": "800888229382992",
+              "operation": "3",
+              "decision": "1",
+              "source": "800888218075702",
+              "original_source": "800888211525776",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888217534658"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "800888206744586",
+              "peer": "7",
+              "epoch": "2",
+              "token": "170",
+              "sent": "800888206257728",
+              "deadline": "800888226257728",
+              "operation": "3",
+              "decision": "1",
+              "source": "800888206743466",
+              "original_source": "800888201526011",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888206240952"
+            },
+            "sent_to_received_ns": 477542,
+            "arrival_after_previous_expiry_ns": -11352410
+          },
+          {
+            "role": "rear",
+            "received": {
+              "event": "zone-received",
+              "ns": "800888207644632",
+              "peer": "7",
+              "epoch": "2",
+              "token": "171",
+              "sent": "800888207224749",
+              "deadline": "800888227224749",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "800888201526011",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888206240952"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "800888207671064",
+              "peer": "7",
+              "epoch": "2",
+              "token": "171",
+              "sent": "800888207224749",
+              "deadline": "800888227224749",
+              "operation": "3",
+              "decision": "1",
+              "source": "800888207669775",
+              "original_source": "800888201526011",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888206240952"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "800888198767214",
+              "peer": "7",
+              "epoch": "2",
+              "token": "165",
+              "sent": "800888198241893",
+              "deadline": "800888218241893",
+              "operation": "3",
+              "decision": "1",
+              "source": "800888198766015",
+              "original_source": "800888191306463",
+              "inner_deadline": "800888219479215",
+              "payload_source": "800888197197340"
+            },
+            "sent_to_received_ns": 419883,
+            "arrival_after_previous_expiry_ns": -11834583
+          },
+          {
+            "role": "rear",
+            "received": {
+              "event": "zone-received",
+              "ns": "800888219019355",
+              "peer": "7",
+              "epoch": "2",
+              "token": "176",
+              "sent": "800888218532733",
+              "deadline": "800888229382992",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "800888211525776",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888217534658"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "800888219052533",
+              "peer": "7",
+              "epoch": "2",
+              "token": "176",
+              "sent": "800888218532733",
+              "deadline": "800888229382992",
+              "operation": "3",
+              "decision": "1",
+              "source": "800888219051317",
+              "original_source": "800888211525776",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888217534658"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "800888207671064",
+              "peer": "7",
+              "epoch": "2",
+              "token": "171",
+              "sent": "800888207224749",
+              "deadline": "800888227224749",
+              "operation": "3",
+              "decision": "1",
+              "source": "800888207669775",
+              "original_source": "800888201526011",
+              "inner_deadline": "800888229382992",
+              "payload_source": "800888206240952"
+            },
+            "sent_to_received_ns": 486622,
+            "arrival_after_previous_expiry_ns": -10363637
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 5,
+          "max_millidegrees": 89000,
+          "thermal_count_delta": 0,
+          "minimum_khz": {
+            "1": 3388189,
+            "2": 4301187,
+            "3": 3174080,
+            "4": 4373862,
+            "5": 2616296,
+            "6": 816548,
+            "7": 1086604
+          },
+          "all_seven_at_or_below_810mhz": 0
+        },
+        "longest_sdk_chains_near_fault": [
+          {
+            "method": 128,
+            "crc": 2239792203,
+            "sender": "front-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 800888212170178,
+              "send-begin": 800888212255845,
+              "send-return": 800888212292511,
+              "rx-enter": 800888216432643,
+              "rx-queued": 800888216450319
+            },
+            "send_queue_ns": 85667,
+            "send_call_ns": 36666,
+            "send_to_callback_ns": 4176798,
+            "callback_to_queue_ns": 17676,
+            "send_call_thread_cpu_delta_ns": 36164,
+            "callback_thread_cpu_delta_ns": 17891
+          },
+          {
+            "method": 32,
+            "crc": 1170404644,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 800888215506966,
+              "rx-queued": 800888215531506,
+              "tx-queued": 800888211607688,
+              "send-begin": 800888211825497,
+              "send-return": 800888211841472
+            },
+            "send_queue_ns": 217809,
+            "send_call_ns": 15975,
+            "send_to_callback_ns": 3681469,
+            "callback_to_queue_ns": 24540,
+            "send_call_thread_cpu_delta_ns": 15757,
+            "callback_thread_cpu_delta_ns": 24742
+          },
+          {
+            "method": 128,
+            "crc": 1496671775,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 800888226223502,
+              "send-begin": 800888226246041,
+              "send-return": 800888226277224,
+              "rx-enter": 800888229324193,
+              "rx-queued": 800888229340713
+            },
+            "send_queue_ns": 22539,
+            "send_call_ns": 31183,
+            "send_to_callback_ns": 3078152,
+            "callback_to_queue_ns": 16520,
+            "send_call_thread_cpu_delta_ns": 31062,
+            "callback_thread_cpu_delta_ns": 16620
+          },
+          {
+            "method": 128,
+            "crc": 3764536121,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 800888226645327,
+              "send-begin": 800888226666883,
+              "send-return": 800888226819017,
+              "rx-enter": 800888229359230,
+              "rx-queued": 800888229370857
+            },
+            "send_queue_ns": 21556,
+            "send_call_ns": 152134,
+            "send_to_callback_ns": 2692347,
+            "callback_to_queue_ns": 11627,
+            "send_call_thread_cpu_delta_ns": 36698,
+            "callback_thread_cpu_delta_ns": 11965
+          },
+          {
+            "method": 128,
+            "crc": 3633003496,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 800888215687293,
+              "send-begin": 800888215708123,
+              "send-return": 800888215736671,
+              "rx-enter": 800888216635174,
+              "rx-queued": 800888216644101
+            },
+            "send_queue_ns": 20830,
+            "send_call_ns": 28548,
+            "send_to_callback_ns": 927051,
+            "callback_to_queue_ns": 8927,
+            "send_call_thread_cpu_delta_ns": 28455,
+            "callback_thread_cpu_delta_ns": 9113
+          }
+        ],
+        "ambiguous_stage_keys": 0
+      },
+      {
+        "name": "normal-250-1-shared",
+        "first_faults": [
+          {
+            "ns": "800903289774915",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "12",
+            "deadline": "7",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "800903289776740",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "0",
+            "deadline": "4",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "renewals": [],
+        "host_25ms_each_side": {
+          "samples": 4,
+          "max_millidegrees": 100000,
+          "thermal_count_delta": 0,
+          "minimum_khz": {
+            "1": 799986,
+            "2": 799990,
+            "3": 800000,
+            "4": 799975,
+            "5": 799112,
+            "6": 799975,
+            "7": 799830
+          },
+          "all_seven_at_or_below_810mhz": 4
+        },
+        "longest_sdk_chains_near_fault": [
+          {
+            "method": 32,
+            "crc": 3306953071,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 800903283283290,
+              "rx-queued": 800903283463183,
+              "tx-queued": 800903269603753,
+              "send-begin": 800903274518428,
+              "send-return": 800903274566234
+            },
+            "send_queue_ns": 4914675,
+            "send_call_ns": 47806,
+            "send_to_callback_ns": 8764862,
+            "callback_to_queue_ns": 179893,
+            "send_call_thread_cpu_delta_ns": 47933,
+            "callback_thread_cpu_delta_ns": 101004
+          },
+          {
+            "method": 32,
+            "crc": 1192113406,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 800903282935720,
+              "rx-queued": 800903283059709,
+              "tx-queued": 800903269510920,
+              "send-begin": 800903274415879,
+              "send-return": 800903274465476
+            },
+            "send_queue_ns": 4904959,
+            "send_call_ns": 49597,
+            "send_to_callback_ns": 8519841,
+            "callback_to_queue_ns": 123989,
+            "send_call_thread_cpu_delta_ns": 49769,
+            "callback_thread_cpu_delta_ns": 125559
+          },
+          {
+            "method": 32,
+            "crc": 3240489980,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 800903282574120,
+              "rx-queued": 800903282673372,
+              "tx-queued": 800903269384860,
+              "send-begin": 800903274275331,
+              "send-return": 800903274360930
+            },
+            "send_queue_ns": 4890471,
+            "send_call_ns": 85599,
+            "send_to_callback_ns": 8298789,
+            "callback_to_queue_ns": 99252,
+            "send_call_thread_cpu_delta_ns": 85899,
+            "callback_thread_cpu_delta_ns": 100210
+          },
+          {
+            "method": 32,
+            "crc": 1395323547,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "front-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 800903281259675,
+              "rx-queued": 800903281355712,
+              "tx-queued": 800903269274890,
+              "send-begin": 800903274144603,
+              "send-return": 800903274196021
+            },
+            "send_queue_ns": 4869713,
+            "send_call_ns": 51418,
+            "send_to_callback_ns": 7115072,
+            "callback_to_queue_ns": 96037,
+            "send_call_thread_cpu_delta_ns": 51662,
+            "callback_thread_cpu_delta_ns": 97623
+          },
+          {
+            "method": 128,
+            "crc": 57711746,
+            "sender": "front-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 800903283572029,
+              "send-begin": 800903283764951,
+              "send-return": 800903283958920,
+              "rx-enter": 800903285912610,
+              "rx-queued": 800903285997152
+            },
+            "send_queue_ns": 192922,
+            "send_call_ns": 193969,
+            "send_to_callback_ns": 2147659,
+            "callback_to_queue_ns": 84542,
+            "send_call_thread_cpu_delta_ns": 191489,
+            "callback_thread_cpu_delta_ns": 99350
+          }
+        ],
+        "ambiguous_stage_keys": 0
+      }
+    ]
+  },
+  "subscribed-campaign": {
+    "attempted": 30,
+    "qualified": 27,
+    "host": {
+      "samples": 24924,
+      "max_millidegrees": 100000,
+      "thermal_count_delta": 757
+    },
+    "failures": [
+      {
+        "name": "tsan-normal",
+        "first_faults": [
+          {
+            "ns": "801317995567479",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "7",
+            "deadline": "6",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "801317995568069",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "renewals": [
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "801317971199336",
+              "peer": "7",
+              "epoch": "3",
+              "token": "140",
+              "sent": "801317970705959",
+              "deadline": "801317990705959",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "801317965702899",
+              "inner_deadline": "801317992463420",
+              "payload_source": "801317970686505"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "801317971236115",
+              "peer": "7",
+              "epoch": "3",
+              "token": "140",
+              "sent": "801317970705959",
+              "deadline": "801317990705959",
+              "operation": "3",
+              "decision": "1",
+              "source": "801317971234811",
+              "original_source": "801317965702899",
+              "inner_deadline": "801317992463420",
+              "payload_source": "801317970686505"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "801317961781051",
+              "peer": "7",
+              "epoch": "3",
+              "token": "134",
+              "sent": "801317961262149",
+              "deadline": "801317981262149",
+              "operation": "3",
+              "decision": "1",
+              "source": "801317961779899",
+              "original_source": "801317954836866",
+              "inner_deadline": "801317983485950",
+              "payload_source": "801317961244589"
+            },
+            "sent_to_received_ns": 493377,
+            "arrival_after_previous_expiry_ns": -12286614
+          },
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "801317992564814",
+              "peer": "7",
+              "epoch": "3",
+              "token": "147",
+              "sent": "801317991973181",
+              "deadline": "801318003989766",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "801317975498574",
+              "inner_deadline": "801318003989766",
+              "payload_source": "801317991954372"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "801317992575568",
+              "peer": "7",
+              "epoch": "3",
+              "token": "147",
+              "sent": "801317991973181",
+              "deadline": "801318003989766",
+              "operation": "3",
+              "decision": "-1",
+              "source": "801317992574308",
+              "original_source": "801317975498574",
+              "inner_deadline": "801318003989766",
+              "payload_source": "801317991954372"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "801317971236115",
+              "peer": "7",
+              "epoch": "3",
+              "token": "140",
+              "sent": "801317970705959",
+              "deadline": "801317990705959",
+              "operation": "3",
+              "decision": "1",
+              "source": "801317971234811",
+              "original_source": "801317965702899",
+              "inner_deadline": "801317992463420",
+              "payload_source": "801317970686505"
+            },
+            "sent_to_received_ns": 591633,
+            "arrival_after_previous_expiry_ns": 101394
+          },
+          {
+            "role": "rear",
+            "received": {
+              "event": "zone-received",
+              "ns": "801317972397714",
+              "peer": "7",
+              "epoch": "3",
+              "token": "141",
+              "sent": "801317971843544",
+              "deadline": "801317991843544",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "801317965702899",
+              "inner_deadline": "801317992463420",
+              "payload_source": "801317970686505"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "801317972459340",
+              "peer": "7",
+              "epoch": "3",
+              "token": "141",
+              "sent": "801317971843544",
+              "deadline": "801317991843544",
+              "operation": "3",
+              "decision": "1",
+              "source": "801317972457339",
+              "original_source": "801317965702899",
+              "inner_deadline": "801317992463420",
+              "payload_source": "801317970686505"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "801317962773732",
+              "peer": "7",
+              "epoch": "3",
+              "token": "135",
+              "sent": "801317962271901",
+              "deadline": "801317982271901",
+              "operation": "3",
+              "decision": "1",
+              "source": "801317962772573",
+              "original_source": "801317954836866",
+              "inner_deadline": "801317983485950",
+              "payload_source": "801317961244589"
+            },
+            "sent_to_received_ns": 554170,
+            "arrival_after_previous_expiry_ns": -11088236
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 5,
+          "max_millidegrees": 84000,
+          "thermal_count_delta": 0,
+          "minimum_khz": {
+            "1": 3651729,
+            "2": 3032163,
+            "3": 3971743,
+            "4": 3242567,
+            "5": 1209781,
+            "6": 2600351,
+            "7": 2240744
+          },
+          "all_seven_at_or_below_810mhz": 0
+        },
+        "longest_sdk_chains_near_fault": [
+          {
+            "method": 32,
+            "crc": 613113897,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "front-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801317980162438,
+              "rx-queued": 801317980187435,
+              "tx-queued": 801317975645534,
+              "send-begin": 801317976237816,
+              "send-return": 801317976247133
+            },
+            "send_queue_ns": 592282,
+            "send_call_ns": 9317,
+            "send_to_callback_ns": 3924622,
+            "callback_to_queue_ns": 24997,
+            "send_call_thread_cpu_delta_ns": 9309,
+            "callback_thread_cpu_delta_ns": 18121
+          },
+          {
+            "method": 32,
+            "crc": 968025855,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801317980024955,
+              "rx-queued": 801317980052748,
+              "tx-queued": 801317975661298,
+              "send-begin": 801317976257614,
+              "send-return": 801317976274895
+            },
+            "send_queue_ns": 596316,
+            "send_call_ns": 17281,
+            "send_to_callback_ns": 3767341,
+            "callback_to_queue_ns": 27793,
+            "send_call_thread_cpu_delta_ns": 17316,
+            "callback_thread_cpu_delta_ns": 27911
+          },
+          {
+            "method": 32,
+            "crc": 2463732490,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801317980932051,
+              "rx-queued": 801317980956774,
+              "tx-queued": 801317979203394,
+              "send-begin": 801317980253782,
+              "send-return": 801317980290801
+            },
+            "send_queue_ns": 1050388,
+            "send_call_ns": 37019,
+            "send_to_callback_ns": 678269,
+            "callback_to_queue_ns": 24723,
+            "send_call_thread_cpu_delta_ns": 36643,
+            "callback_thread_cpu_delta_ns": 24875
+          },
+          {
+            "method": 32,
+            "crc": 2316518223,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801317990666028,
+              "rx-queued": 801317990694164,
+              "tx-queued": 801317989444001,
+              "send-begin": 801317990084884,
+              "send-return": 801317990111600
+            },
+            "send_queue_ns": 640883,
+            "send_call_ns": 26716,
+            "send_to_callback_ns": 581144,
+            "callback_to_queue_ns": 28136,
+            "send_call_thread_cpu_delta_ns": 26718,
+            "callback_thread_cpu_delta_ns": 28346
+          },
+          {
+            "method": 32,
+            "crc": 2602450639,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801317990582222,
+              "rx-queued": 801317990596388,
+              "tx-queued": 801317989412263,
+              "send-begin": 801317990035031,
+              "send-return": 801317990068708
+            },
+            "send_queue_ns": 622768,
+            "send_call_ns": 33677,
+            "send_to_callback_ns": 547191,
+            "callback_to_queue_ns": 14166,
+            "send_call_thread_cpu_delta_ns": 33651,
+            "callback_thread_cpu_delta_ns": 14338
+          }
+        ],
+        "ambiguous_stage_keys": 0
+      },
+      {
+        "name": "tsan-normal-slow-signals-r2",
+        "first_faults": [
+          {
+            "ns": "801431683593069",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "12",
+            "deadline": "6",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "801431683593684",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "renewals": [],
+        "host_25ms_each_side": {
+          "samples": 4,
+          "max_millidegrees": 97000,
+          "thermal_count_delta": 0,
+          "minimum_khz": {
+            "1": 3515966,
+            "2": 3304143,
+            "3": 3496815,
+            "4": 798123,
+            "5": 1867114,
+            "6": 798998,
+            "7": 3857608
+          },
+          "all_seven_at_or_below_810mhz": 0
+        },
+        "longest_sdk_chains_near_fault": [
+          {
+            "method": 128,
+            "crc": 874772037,
+            "sender": "front-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 801431669012918,
+              "send-begin": 801431669263828,
+              "send-return": 801431669294342,
+              "rx-enter": 801431670778524,
+              "rx-queued": 801431670797654
+            },
+            "send_queue_ns": 250910,
+            "send_call_ns": 30514,
+            "send_to_callback_ns": 1514696,
+            "callback_to_queue_ns": 19130,
+            "send_call_thread_cpu_delta_ns": 30216,
+            "callback_thread_cpu_delta_ns": 19150
+          },
+          {
+            "method": 128,
+            "crc": 366003755,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 801431663068579,
+              "send-begin": 801431663137872,
+              "send-return": 801431663169955,
+              "rx-enter": 801431663603130,
+              "rx-queued": 801431663619959
+            },
+            "send_queue_ns": 69293,
+            "send_call_ns": 32083,
+            "send_to_callback_ns": 465258,
+            "callback_to_queue_ns": 16829,
+            "send_call_thread_cpu_delta_ns": 31850,
+            "callback_thread_cpu_delta_ns": 16897
+          },
+          {
+            "method": 128,
+            "crc": 2399073281,
+            "sender": "rear-1.sdk-api.csv",
+            "receiver": "central-2.sdk-api.csv",
+            "stamps": {
+              "tx-queued": 801431669099262,
+              "send-begin": 801431669121175,
+              "send-return": 801431669150219,
+              "rx-enter": 801431669572706,
+              "rx-queued": 801431669589216
+            },
+            "send_queue_ns": 21913,
+            "send_call_ns": 29044,
+            "send_to_callback_ns": 451531,
+            "callback_to_queue_ns": 16510,
+            "send_call_thread_cpu_delta_ns": 28968,
+            "callback_thread_cpu_delta_ns": 16632
+          },
+          {
+            "method": 32,
+            "crc": 2351174911,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "front-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801431668870968,
+              "rx-queued": 801431668890079,
+              "tx-queued": 801431668459067,
+              "send-begin": 801431668489166,
+              "send-return": 801431668523395
+            },
+            "send_queue_ns": 30099,
+            "send_call_ns": 34229,
+            "send_to_callback_ns": 381802,
+            "callback_to_queue_ns": 19111,
+            "send_call_thread_cpu_delta_ns": 33767,
+            "callback_thread_cpu_delta_ns": 19222
+          },
+          {
+            "method": 32,
+            "crc": 2635138365,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801431668865405,
+              "rx-queued": 801431668882657,
+              "tx-queued": 801431668482520,
+              "send-begin": 801431668540487,
+              "send-return": 801431668553866
+            },
+            "send_queue_ns": 57967,
+            "send_call_ns": 13379,
+            "send_to_callback_ns": 324918,
+            "callback_to_queue_ns": 17252,
+            "send_call_thread_cpu_delta_ns": 13303,
+            "callback_thread_cpu_delta_ns": 17372
+          }
+        ],
+        "ambiguous_stage_keys": 0
+      },
+      {
+        "name": "tsan-stop-request-loss-r3",
+        "first_faults": [
+          {
+            "ns": "801469386318580",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "801469386319229",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "renewals": [
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "801469362736249",
+              "peer": "7",
+              "epoch": "3",
+              "token": "405",
+              "sent": "801469362314902",
+              "deadline": "801469382314902",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "801469360071168",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469362297133"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "801469362769883",
+              "peer": "7",
+              "epoch": "3",
+              "token": "405",
+              "sent": "801469362314902",
+              "deadline": "801469382314902",
+              "operation": "3",
+              "decision": "1",
+              "source": "801469362768758",
+              "original_source": "801469360071168",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469362297133"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "801469352924024",
+              "peer": "7",
+              "epoch": "3",
+              "token": "399",
+              "sent": "801469352465767",
+              "deadline": "801469372465767",
+              "operation": "3",
+              "decision": "1",
+              "source": "801469352922861",
+              "original_source": "801469350321311",
+              "inner_deadline": "801469375746713",
+              "payload_source": "801469352446792"
+            },
+            "sent_to_received_ns": 421347,
+            "arrival_after_previous_expiry_ns": -13010464
+          },
+          {
+            "role": "front",
+            "received": {
+              "event": "zone-received",
+              "ns": "801469373017456",
+              "peer": "7",
+              "epoch": "3",
+              "token": "411",
+              "sent": "801469372500485",
+              "deadline": "801469385737356",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "801469369616669",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469372482369"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "801469373052855",
+              "peer": "7",
+              "epoch": "3",
+              "token": "411",
+              "sent": "801469372500485",
+              "deadline": "801469385737356",
+              "operation": "3",
+              "decision": "1",
+              "source": "801469373051683",
+              "original_source": "801469369616669",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469372482369"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "801469362769883",
+              "peer": "7",
+              "epoch": "3",
+              "token": "405",
+              "sent": "801469362314902",
+              "deadline": "801469382314902",
+              "operation": "3",
+              "decision": "1",
+              "source": "801469362768758",
+              "original_source": "801469360071168",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469362297133"
+            },
+            "sent_to_received_ns": 516971,
+            "arrival_after_previous_expiry_ns": -12719900
+          },
+          {
+            "role": "rear",
+            "received": {
+              "event": "zone-received",
+              "ns": "801469363705707",
+              "peer": "7",
+              "epoch": "3",
+              "token": "406",
+              "sent": "801469363194291",
+              "deadline": "801469383194291",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "801469360071168",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469362297133"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "801469363732892",
+              "peer": "7",
+              "epoch": "3",
+              "token": "406",
+              "sent": "801469363194291",
+              "deadline": "801469383194291",
+              "operation": "3",
+              "decision": "1",
+              "source": "801469363731692",
+              "original_source": "801469360071168",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469362297133"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "801469353903394",
+              "peer": "7",
+              "epoch": "3",
+              "token": "400",
+              "sent": "801469353375169",
+              "deadline": "801469373375169",
+              "operation": "3",
+              "decision": "1",
+              "source": "801469353902240",
+              "original_source": "801469350321311",
+              "inner_deadline": "801469375746713",
+              "payload_source": "801469352446792"
+            },
+            "sent_to_received_ns": 511416,
+            "arrival_after_previous_expiry_ns": -12041006
+          },
+          {
+            "role": "rear",
+            "received": {
+              "event": "zone-received",
+              "ns": "801469374076544",
+              "peer": "7",
+              "epoch": "3",
+              "token": "412",
+              "sent": "801469373585295",
+              "deadline": "801469385737356",
+              "operation": "3",
+              "decision": "0",
+              "source": "0",
+              "original_source": "801469369616669",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469372482369"
+            },
+            "result": {
+              "event": "zone-result-enqueued",
+              "ns": "801469374105754",
+              "peer": "7",
+              "epoch": "3",
+              "token": "412",
+              "sent": "801469373585295",
+              "deadline": "801469385737356",
+              "operation": "3",
+              "decision": "1",
+              "source": "801469374104561",
+              "original_source": "801469369616669",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469372482369"
+            },
+            "previous_success": {
+              "event": "zone-result-enqueued",
+              "ns": "801469363732892",
+              "peer": "7",
+              "epoch": "3",
+              "token": "406",
+              "sent": "801469363194291",
+              "deadline": "801469383194291",
+              "operation": "3",
+              "decision": "1",
+              "source": "801469363731692",
+              "original_source": "801469360071168",
+              "inner_deadline": "801469385737356",
+              "payload_source": "801469362297133"
+            },
+            "sent_to_received_ns": 491249,
+            "arrival_after_previous_expiry_ns": -11660812
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 5,
+          "max_millidegrees": 88000,
+          "thermal_count_delta": 2,
+          "minimum_khz": {
+            "1": 3749289,
+            "2": 2637037,
+            "3": 3407446,
+            "4": 799215,
+            "5": 2326153,
+            "6": 4365846,
+            "7": 2835316
+          },
+          "all_seven_at_or_below_810mhz": 0
+        },
+        "longest_sdk_chains_near_fault": [
+          {
+            "method": 32,
+            "crc": 220106974,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801469371311282,
+              "rx-queued": 801469371323994,
+              "tx-queued": 801469369778413,
+              "send-begin": 801469369987755,
+              "send-return": 801469369996466
+            },
+            "send_queue_ns": 209342,
+            "send_call_ns": 8711,
+            "send_to_callback_ns": 1323527,
+            "callback_to_queue_ns": 12712,
+            "send_call_thread_cpu_delta_ns": 8716,
+            "callback_thread_cpu_delta_ns": 12919
+          },
+          {
+            "method": 32,
+            "crc": 3524415379,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801469371240642,
+              "rx-queued": 801469371262320,
+              "tx-queued": 801469369762262,
+              "send-begin": 801469369954378,
+              "send-return": 801469369974779
+            },
+            "send_queue_ns": 192116,
+            "send_call_ns": 20401,
+            "send_to_callback_ns": 1286264,
+            "callback_to_queue_ns": 21678,
+            "send_call_thread_cpu_delta_ns": 20457,
+            "callback_thread_cpu_delta_ns": 21931
+          },
+          {
+            "method": 32,
+            "crc": 4063854679,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801469371206074,
+              "rx-queued": 801469371220580,
+              "tx-queued": 801469369730248,
+              "send-begin": 801469369935657,
+              "send-return": 801469369944712
+            },
+            "send_queue_ns": 205409,
+            "send_call_ns": 9055,
+            "send_to_callback_ns": 1270417,
+            "callback_to_queue_ns": 14506,
+            "send_call_thread_cpu_delta_ns": 9064,
+            "callback_thread_cpu_delta_ns": 14825
+          },
+          {
+            "method": 32,
+            "crc": 3708394284,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "rear-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801469381754857,
+              "rx-queued": 801469381768236,
+              "tx-queued": 801469380398573,
+              "send-begin": 801469380501566,
+              "send-return": 801469380517463
+            },
+            "send_queue_ns": 102993,
+            "send_call_ns": 15897,
+            "send_to_callback_ns": 1253291,
+            "callback_to_queue_ns": 13379,
+            "send_call_thread_cpu_delta_ns": 15921,
+            "callback_thread_cpu_delta_ns": 13608
+          },
+          {
+            "method": 32,
+            "crc": 746184881,
+            "sender": "central-2.sdk-api.csv",
+            "receiver": "front-1.sdk-api.csv",
+            "stamps": {
+              "rx-enter": 801469371008695,
+              "rx-queued": 801469371032812,
+              "tx-queued": 801469369713894,
+              "send-begin": 801469369915396,
+              "send-return": 801469369925100
+            },
+            "send_queue_ns": 201502,
+            "send_call_ns": 9704,
+            "send_to_callback_ns": 1093299,
+            "callback_to_queue_ns": 24117,
+            "send_call_thread_cpu_delta_ns": 9700,
+            "callback_thread_cpu_delta_ns": 24603
+          }
+        ],
+        "ambiguous_stage_keys": 0
+      }
+    ]
+  }
+}

@@ -11,6 +11,36 @@ from unittest import mock
 ROOT=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('someip_runner',ROOT/'tests/integration/someip/run.py')
 runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
+placement_spec=importlib.util.spec_from_file_location('fixture_placement',ROOT/'tests/integration/someip/fixture_placement.py')
+placement=importlib.util.module_from_spec(placement_spec);placement_spec.loader.exec_module(placement)
+
+
+class FixturePlacementTest(unittest.TestCase):
+    def setUp(self):
+        self.topology={str(cpu):{'package':0,'core':cpu%8,'siblings':f'{cpu%8},{cpu%8+8}'} for cpu in range(16)}
+
+    def test_legacy_sibling_and_separate_physical_core(self):
+        old=placement.auxiliary_placement(set(range(16)),self.topology,False)
+        new=placement.auxiliary_placement(set(range(16)),self.topology,True)
+        self.assertEqual(old['cpu'],15);self.assertFalse(old['separate_observed'])
+        self.assertEqual(new['cpu'],8);self.assertTrue(new['separate_observed'])
+
+    def test_no_available_physical_core_cannot_fall_back_to_sibling(self):
+        with self.assertRaisesRegex(ValueError,'no auxiliary physical core'):
+            placement.auxiliary_placement(set(range(1,8))|set(range(9,16)),self.topology,True)
+
+    def test_package_and_affinity_both_count(self):
+        self.topology['15']['package']=1
+        result=placement.auxiliary_placement(set(range(1,8))|{15},self.topology,True)
+        self.assertEqual(result['cpu'],15);self.assertTrue(result['separate_observed'])
+        with self.assertRaisesRegex(ValueError,'placement unavailable'):
+            placement.auxiliary_placement({0,8},self.topology,True)
+
+    def test_missing_topology_is_an_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(OSError):placement.read_topology({0},Path(tmp))
+        del self.topology['8']
+        with self.assertRaises(KeyError):placement.auxiliary_placement(set(range(16)),self.topology,True)
 
 class SomeipPilotTest(unittest.TestCase):
     def test_lock_without_build_directory(self):

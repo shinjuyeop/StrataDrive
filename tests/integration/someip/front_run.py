@@ -18,6 +18,7 @@ import secrets
 import tempfile
 from datetime import datetime
 from sdk_outcomes import sdk_outcomes
+from fixture_placement import read_topology, auxiliary_placement
 from renewal_oracle import renewal_oracle
 import run as pilot
 
@@ -120,6 +121,8 @@ def inside(folder,binary,case):
         for t in sorted(Path(f'/proc/{p.pid}/task').iterdir()):
             try:record['threads'].append({'tid':int(t.name),'name':(t/'comm').read_text().strip(),'affinity':sorted(os.sched_getaffinity(int(t.name))),'policy':os.sched_getscheduler(int(t.name)),'priority':os.sched_getparam(int(t.name)).sched_priority})
             except ProcessLookupError:pass
+        if os.environ.get('STRATADRIVE_SPLIT_OWNER_IO'):
+            record['cpu_topology']=read_topology({cpu for thread in record['threads'] for cpu in thread['affinity']})
         pilot.save(folder/f'{role}.runtime.json',record)
         (folder/f'{role}.maps').write_text(Path(f'/proc/{p.pid}/maps').read_text())
         if role!='plant':(folder/f'{role}.sockets.txt').write_text(call(['ip','netns','exec',role,'ss','-antup']))
@@ -368,6 +371,7 @@ def main():
     p.add_argument('--energy-cycle',choices=['nominal','no-charge']);p.add_argument('--simple-vehicle',action='store_true');p.add_argument('--three',action='store_true');p.add_argument('--fault-zone',choices=['front','rear'],default='front')
     p.add_argument('--isolated-ecus',action='store_true',help='functional profile: separate Central/Front/Rear on CPU1/2/7; plant3 and diagnostic writer15')
     p.add_argument('--split-owner-io',action='store_true',help='functional profile: SDK CPU4/5/6 and original owners1/2/7; SCHED_OTHER without native-watch')
+    p.add_argument('--separate-aux-io',action='store_true',help='split profile: put all auxiliary IO on a physical core separate from owners, plant and SDK')
     p.add_argument('--owner-fifo',action='store_true',help='split functional profile with Central FIFO11 and Zone FIFO18; SDK/IO remain SCHED_OTHER')
     p.add_argument('--service-fault',choices=['ack-loss','actual-loss','stop-request-loss','stop-ack-loss'])
     p.add_argument('--signal-write-delay-ms',type=int,default=0,help='declared fixture-only armed marker write delay on the IO thread')
@@ -379,12 +383,22 @@ def main():
     if a.fixed_layout and a.profile!='tsan':p.error('fixed-layout is TSan-only')
     if a.isolated_ecus:
         if not a.three or a.native_watch:p.error('isolated-ecus requires three ECUs without native-watch')
-        if not {1,2,3,7,15}.issubset(os.sched_getaffinity(0)):p.error('isolated-ecus CPU placement unavailable')
+        required={1,2,3,7} | (set() if a.separate_aux_io else {15})
+        if not required.issubset(os.sched_getaffinity(0)):p.error('isolated-ecus CPU placement unavailable')
         os.environ['STRATADRIVE_ISOLATED_ECUS']='1'
     if a.split_owner_io:
         if not a.isolated_ecus or not a.diagnostic_service:p.error('split-owner-io requires isolated terminal service')
-        if not {1,2,3,4,5,6,7,15}.issubset(os.sched_getaffinity(0)):p.error('split owner/SDK CPU placement unavailable')
+        if not {1,2,3,4,5,6,7}.issubset(os.sched_getaffinity(0)):p.error('split owner/SDK CPU placement unavailable')
         os.environ['STRATADRIVE_SPLIT_OWNER_IO']='1'
+    placement=None
+    os.environ.pop('STRATADRIVE_AUX_IO_CPU',None)
+    if a.separate_aux_io and not a.split_owner_io:p.error('separate-aux-io requires split-owner-io')
+    if a.split_owner_io:
+        try:
+            allowed=os.sched_getaffinity(0)
+            placement=auxiliary_placement(allowed,read_topology(allowed),a.separate_aux_io)
+        except (OSError,ValueError,KeyError) as error:p.error(str(error))
+        os.environ['STRATADRIVE_AUX_IO_CPU']=str(placement['cpu'])
     if a.owner_fifo:
         if not a.split_owner_io:p.error('owner-fifo requires split-owner-io')
         os.environ['STRATADRIVE_OWNER_FIFO']='1'
@@ -434,7 +448,7 @@ def main():
     rows=[]
     with pilot.open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'isolated_ecus':a.isolated_ecus,'split_owner_io':a.split_owner_io,'owner_fifo':a.owner_fifo,'service_fault':a.service_fault,'signal_write_delay_ms':a.signal_write_delay_ms,'fixture_signal_poll_ns':1000000,'functional_owner_idle_wait_us':1000,'sender_wakeup':'enqueue-notification','diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'central/coordinator').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
+        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'isolated_ecus':a.isolated_ecus,'split_owner_io':a.split_owner_io,'auxiliary_placement':placement,'owner_fifo':a.owner_fifo,'service_fault':a.service_fault,'signal_write_delay_ms':a.signal_write_delay_ms,'fixture_signal_poll_ns':1000000,'fixture_signal_observation':'role-subscriptions-v1','functional_owner_idle_wait_us':1000,'sender_wakeup':'enqueue-notification','diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'central/coordinator').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()

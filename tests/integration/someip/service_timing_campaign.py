@@ -16,22 +16,27 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output',type=Path)
     parser.add_argument('--split-owner-io',action='store_true')
+    parser.add_argument('--separate-aux-io',action='store_true')
     parser.add_argument('--owner-fifo',action='store_true')
     parser.add_argument('--tsan-repeats',type=int,choices=(1,3),default=1)
     parser.add_argument('--response-audit',action='store_true')
     parser.add_argument('--defer-audits',action='store_true',help='finish every fixed runtime before CPU-intensive offline readers')
-    args=parser.parse_args();out=args.output.resolve();out.mkdir(parents=True,exist_ok=False)
+    args=parser.parse_args()
+    if args.separate_aux_io and not args.split_owner_io:parser.error('separate-aux-io requires split-owner-io')
+    out=args.output.resolve();out.mkdir(parents=True,exist_ok=False)
     faults=('normal','ack-loss','actual-loss','stop-request-loss','stop-ack-loss')
     cases=[(p,f,0,1) for p in ('normal','asan','tsan') for f in faults]
     cases += [(p,'normal',250,1) for p in ('normal','asan','tsan')]
     for repeat in range(2,args.tsan_repeats+1):cases += [('tsan',f,0,repeat) for f in faults]+[('tsan','normal',250,repeat)]
     files=[HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',Path(__file__),
-           HERE/'sdk_outcomes.py',ROOT/'tests/unit/someip_pilot_test.py',
+           HERE/'sdk_outcomes.py',HERE/'fixture_placement.hpp',HERE/'fixture_placement.py',
+           HERE/'native_diagnostic_routes.cpp',HERE/'native_continuity_service.cpp',
+           HERE.parent/'diagnostics/audit_central_restart.py',ROOT/'tests/unit/someip_pilot_test.py',
            ROOT/'central/coordinator/async_coordinator_port.cpp',ROOT/'central/coordinator/async_coordinator_port.hpp',
            ROOT/'tests/unit/async_owner_test.cpp',ROOT/'tests/unit/fixture_signals_test.cpp',
            ROOT/'interfaces/someip/owner_transport.hpp',ROOT/'interfaces/common/monotonic_condition.hpp',
            ROOT/'tests/unit/monotonic_condition_test.cpp',ROOT/'cmake/CoreTests.cmake',
-           ROOT/'docs/test-plan/service-response-protocol.md',
+           ROOT/'docs/test-plan/service-response-protocol.md',ROOT/'docs/test-plan/auxiliary-io-protocol.md',
            ROOT/'docs/test-plan/service-timing-protocol.md',
            HERE.parent/'diagnostics/audit_service_ordering.py',
            HERE.parent/'diagnostics/audit_service_timing.py',
@@ -59,6 +64,8 @@ def main():
         binary=ROOT/f'build/m5-someip-{profile}/project/tests/integration/someip/someip_front_adapter'
         if hashlib.sha256(binary.read_bytes()).hexdigest()!=manifest['binaries'][profile]:
             raise RuntimeError('binary changed during fixed campaign: '+profile)
+        for source,digest in manifest['sources'].items():
+            if hashlib.sha256((ROOT/source).read_bytes()).hexdigest()!=digest:raise RuntimeError('source changed during fixed campaign: '+source)
         name=f'{profile}-{fault}'+('-slow-signals' if delay else '')+(f'-r{repeat}' if repeat>1 else '')
         directory=out/name
         command=[sys.executable,str(HERE/'front_run.py'),str(directory),'--profile',profile,
@@ -66,6 +73,7 @@ def main():
                  '--cases','central-rejoin']
         if profile=='tsan':command+=['--fixed-layout']
         if args.split_owner_io:command+=['--split-owner-io']
+        if args.separate_aux_io:command+=['--separate-aux-io']
         if args.owner_fifo:command+=['--owner-fifo']
         if fault!='normal':command+=['--service-fault',fault]
         if delay:command+=['--signal-write-delay-ms',str(delay)]

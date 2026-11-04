@@ -1,0 +1,2036 @@
+{
+  "placement-comparison": {
+    "manifest": {
+      "base": "bbcb86a478944734d032df2725d856f3a555c2de",
+      "cases": [
+        [
+          "normal",
+          0,
+          "shared",
+          1
+        ],
+        [
+          "normal",
+          0,
+          "separate",
+          2
+        ],
+        [
+          "normal",
+          0,
+          "separate",
+          3
+        ],
+        [
+          "normal",
+          0,
+          "shared",
+          4
+        ],
+        [
+          "ack-loss",
+          0,
+          "shared",
+          1
+        ],
+        [
+          "ack-loss",
+          0,
+          "separate",
+          2
+        ],
+        [
+          "ack-loss",
+          0,
+          "separate",
+          3
+        ],
+        [
+          "ack-loss",
+          0,
+          "shared",
+          4
+        ],
+        [
+          "actual-loss",
+          0,
+          "shared",
+          1
+        ],
+        [
+          "actual-loss",
+          0,
+          "separate",
+          2
+        ],
+        [
+          "actual-loss",
+          0,
+          "separate",
+          3
+        ],
+        [
+          "actual-loss",
+          0,
+          "shared",
+          4
+        ],
+        [
+          "normal",
+          250,
+          "shared",
+          1
+        ],
+        [
+          "normal",
+          250,
+          "separate",
+          2
+        ],
+        [
+          "normal",
+          250,
+          "separate",
+          3
+        ],
+        [
+          "normal",
+          250,
+          "shared",
+          4
+        ]
+      ],
+      "binary_sha256": "53b89d5887b79dda37c0cfc69c5dff5ebabd1794ac26c19a2cb05ac95f4e8c85",
+      "sources": {
+        "docs/test-plan/auxiliary-io-protocol.md": "c13a5b0953ecaafd8ec198bb4eb1ef2545fc26037b5df74e90557f577ec723c2",
+        "interfaces/someip/owner_transport.hpp": "ad86ad7b51af57882525d7bdd22b8c3fe5a4ba61a8d0276ab972a79e117c7675",
+        "tests/integration/diagnostics/audit_central_restart.py": "5df7b891f418fbc1862026e0e691e2ff14ecafbff1ae446b532da75e7650a7f6",
+        "tests/integration/diagnostics/audit_native_service.py": "d1715c3d294eb69b1de68d2d135c82ce8884bca39dd342b695241d6e5b29f9e2",
+        "tests/integration/diagnostics/audit_native_service_faults.py": "88154ad00d49d8d765c4b5af038726481ab7cdac80af119de2dced6e04c4a82d",
+        "tests/integration/diagnostics/audit_service_ordering.py": "85259495fcaa83cb10cf0ad161d31ad46a181da63ff0b378efd3a6e5ac15aa64",
+        "tests/integration/diagnostics/audit_service_response.py": "52c303ea04282f2155b4e75dc7aaea35f3f01009f31bc17d8e1f5fd180de78fb",
+        "tests/integration/diagnostics/audit_service_timing.py": "31b8f7ee94b62badc8a5b0fd873f423e43ed5be83d46c68473c1f428cc9c17c3",
+        "tests/integration/someip/fixture_placement.hpp": "e88d589a81edf9d29ad3d8cdd80431e23c689bcfe2d4ded35ea62cd85cb4ce10",
+        "tests/integration/someip/fixture_placement.py": "1c83422e421a5163f66a2b4565f3619a95c959bd280f2e20ab5291bc9937112c",
+        "tests/integration/someip/fixture_signals.hpp": "ac642427177045318f357c620960f7574e4900518fae01f9601ba8619415f2a9",
+        "tests/integration/someip/front_adapter.cpp": "ccb4272b52ac4c7829462435f9c77b7764d0305d7b99b9b46c3b586a5bdc4fb8",
+        "tests/integration/someip/front_run.py": "dcb5a440a8e632d76a109094d9fc120576edf9c32ce354f5f33281ba4ce8b091",
+        "tests/integration/someip/native_continuity_service.cpp": "5a351afe3b2f6f681e821cdadfda6f399510db76a7fe8922b2a9caffa472f907",
+        "tests/integration/someip/native_diagnostic_routes.cpp": "f3688feb094b4414d98ad3ac6697f3e03a2c6ee638b6d4e6409e8c9459e63ebe",
+        "tests/integration/someip/service_timing_campaign.py": "8c72f0d85169dbad0d1e9d0dde473a07f34f26824c73292a30383436e53049cc",
+        "tests/unit/someip_pilot_test.py": "53e8941fc2be63b53ab043e04b721780f78da876d6f6cc4bab473ab5c1577ef9"
+      }
+    },
+    "results": [
+      {
+        "name": "normal-0-1-shared",
+        "layout": "shared",
+        "fault": "normal",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/normal-0-1-shared",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin"
+        ],
+        "begin_ns": 800799760003158,
+        "end_ns": 800803947774392,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service.py": 1,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": false
+      },
+      {
+        "name": "normal-0-2-separate",
+        "layout": "separate",
+        "fault": "normal",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/normal-0-2-separate",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--separate-aux-io"
+        ],
+        "begin_ns": 800803965741842,
+        "end_ns": 800811708543298,
+        "runtime_exit": 0,
+        "audits": {
+          "audit_native_service.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "normal-0-3-separate",
+        "layout": "separate",
+        "fault": "normal",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/normal-0-3-separate",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--separate-aux-io"
+        ],
+        "begin_ns": 800811726297051,
+        "end_ns": 800819470360559,
+        "runtime_exit": 0,
+        "audits": {
+          "audit_native_service.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "normal-0-4-shared",
+        "layout": "shared",
+        "fault": "normal",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/normal-0-4-shared",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin"
+        ],
+        "begin_ns": 800819488369077,
+        "end_ns": 800827234454716,
+        "runtime_exit": 0,
+        "audits": {
+          "audit_native_service.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "ack-loss-0-1-shared",
+        "layout": "shared",
+        "fault": "ack-loss",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/ack-loss-0-1-shared",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "begin_ns": 800827252597908,
+        "end_ns": 800836700475792,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service_faults.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "ack-loss-0-2-separate",
+        "layout": "separate",
+        "fault": "ack-loss",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/ack-loss-0-2-separate",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--separate-aux-io",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "begin_ns": 800836718611795,
+        "end_ns": 800846217802944,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service_faults.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "ack-loss-0-3-separate",
+        "layout": "separate",
+        "fault": "ack-loss",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/ack-loss-0-3-separate",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--separate-aux-io",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "begin_ns": 800846235888090,
+        "end_ns": 800855731819597,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service_faults.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "ack-loss-0-4-shared",
+        "layout": "shared",
+        "fault": "ack-loss",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/ack-loss-0-4-shared",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "begin_ns": 800855750081670,
+        "end_ns": 800865247861533,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service_faults.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "actual-loss-0-1-shared",
+        "layout": "shared",
+        "fault": "actual-loss",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/actual-loss-0-1-shared",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "begin_ns": 800865265989235,
+        "end_ns": 800875014178731,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service_faults.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "actual-loss-0-2-separate",
+        "layout": "separate",
+        "fault": "actual-loss",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/actual-loss-0-2-separate",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--separate-aux-io",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "begin_ns": 800875032479109,
+        "end_ns": 800884830391019,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service_faults.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "actual-loss-0-3-separate",
+        "layout": "separate",
+        "fault": "actual-loss",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/actual-loss-0-3-separate",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--separate-aux-io",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "begin_ns": 800884848583297,
+        "end_ns": 800888584969827,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service_faults.py": 1,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": false
+      },
+      {
+        "name": "actual-loss-0-4-shared",
+        "layout": "shared",
+        "fault": "actual-loss",
+        "delay_ms": 0,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/actual-loss-0-4-shared",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "begin_ns": 800888603064581,
+        "end_ns": 800898953772342,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service_faults.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "normal-250-1-shared",
+        "layout": "shared",
+        "fault": "normal",
+        "delay_ms": 250,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/normal-250-1-shared",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "begin_ns": 800898971802598,
+        "end_ns": 800904239212371,
+        "runtime_exit": 1,
+        "audits": {
+          "audit_native_service.py": 1,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": false
+      },
+      {
+        "name": "normal-250-2-separate",
+        "layout": "separate",
+        "fault": "normal",
+        "delay_ms": 250,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/normal-250-2-separate",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--separate-aux-io",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "begin_ns": 800904257294077,
+        "end_ns": 800912652699165,
+        "runtime_exit": 0,
+        "audits": {
+          "audit_native_service.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "normal-250-3-separate",
+        "layout": "separate",
+        "fault": "normal",
+        "delay_ms": 250,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/normal-250-3-separate",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--separate-aux-io",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "begin_ns": 800912670725085,
+        "end_ns": 800920465414822,
+        "runtime_exit": 0,
+        "audits": {
+          "audit_native_service.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      },
+      {
+        "name": "normal-250-4-shared",
+        "layout": "shared",
+        "fault": "normal",
+        "delay_ms": 250,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/placement-comparison/normal-250-4-shared",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--split-owner-io",
+          "--owner-fifo",
+          "--fixed-layout",
+          "--cases",
+          "central-rejoin",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "begin_ns": 800920483701422,
+        "end_ns": 800928528207946,
+        "runtime_exit": 0,
+        "audits": {
+          "audit_native_service.py": 0,
+          "audit_service_ordering.py": 0,
+          "audit_service_timing.py": 0,
+          "audit_service_response.py": 0
+        },
+        "qualified": true
+      }
+    ]
+  },
+  "subscribed-campaign": {
+    "manifest": {
+      "base": "bbcb86a478944734d032df2725d856f3a555c2de",
+      "audit_phase": "after-all-runtimes",
+      "cases": [
+        [
+          "normal",
+          "normal",
+          0,
+          1
+        ],
+        [
+          "normal",
+          "ack-loss",
+          0,
+          1
+        ],
+        [
+          "normal",
+          "actual-loss",
+          0,
+          1
+        ],
+        [
+          "normal",
+          "stop-request-loss",
+          0,
+          1
+        ],
+        [
+          "normal",
+          "stop-ack-loss",
+          0,
+          1
+        ],
+        [
+          "asan",
+          "normal",
+          0,
+          1
+        ],
+        [
+          "asan",
+          "ack-loss",
+          0,
+          1
+        ],
+        [
+          "asan",
+          "actual-loss",
+          0,
+          1
+        ],
+        [
+          "asan",
+          "stop-request-loss",
+          0,
+          1
+        ],
+        [
+          "asan",
+          "stop-ack-loss",
+          0,
+          1
+        ],
+        [
+          "tsan",
+          "normal",
+          0,
+          1
+        ],
+        [
+          "tsan",
+          "ack-loss",
+          0,
+          1
+        ],
+        [
+          "tsan",
+          "actual-loss",
+          0,
+          1
+        ],
+        [
+          "tsan",
+          "stop-request-loss",
+          0,
+          1
+        ],
+        [
+          "tsan",
+          "stop-ack-loss",
+          0,
+          1
+        ],
+        [
+          "normal",
+          "normal",
+          250,
+          1
+        ],
+        [
+          "asan",
+          "normal",
+          250,
+          1
+        ],
+        [
+          "tsan",
+          "normal",
+          250,
+          1
+        ],
+        [
+          "tsan",
+          "normal",
+          0,
+          2
+        ],
+        [
+          "tsan",
+          "ack-loss",
+          0,
+          2
+        ],
+        [
+          "tsan",
+          "actual-loss",
+          0,
+          2
+        ],
+        [
+          "tsan",
+          "stop-request-loss",
+          0,
+          2
+        ],
+        [
+          "tsan",
+          "stop-ack-loss",
+          0,
+          2
+        ],
+        [
+          "tsan",
+          "normal",
+          250,
+          2
+        ],
+        [
+          "tsan",
+          "normal",
+          0,
+          3
+        ],
+        [
+          "tsan",
+          "ack-loss",
+          0,
+          3
+        ],
+        [
+          "tsan",
+          "actual-loss",
+          0,
+          3
+        ],
+        [
+          "tsan",
+          "stop-request-loss",
+          0,
+          3
+        ],
+        [
+          "tsan",
+          "stop-ack-loss",
+          0,
+          3
+        ],
+        [
+          "tsan",
+          "normal",
+          250,
+          3
+        ]
+      ],
+      "sources": {
+        "tests/integration/someip/front_adapter.cpp": "8d287ff8471ccc9336f6fd19ff388733c7775b06744438de6777ba1134e31b10",
+        "tests/integration/someip/fixture_signals.hpp": "3a35f06f15702ca8b36a692678e06b08a2e900a44b17758a86c57219447dfaed",
+        "tests/integration/someip/front_run.py": "05f5f6a484b18df51ab3142ffc9dd3ea1fe380edaf7e6667710fe474895b91ab",
+        "tests/integration/someip/service_timing_campaign.py": "8c72f0d85169dbad0d1e9d0dde473a07f34f26824c73292a30383436e53049cc",
+        "tests/integration/someip/sdk_outcomes.py": "9e0c4f83e2ec0952b2bbefaf9ca12db69cc9e8e9598093de2c78194fd0519a97",
+        "tests/integration/someip/fixture_placement.hpp": "e88d589a81edf9d29ad3d8cdd80431e23c689bcfe2d4ded35ea62cd85cb4ce10",
+        "tests/integration/someip/fixture_placement.py": "1c83422e421a5163f66a2b4565f3619a95c959bd280f2e20ab5291bc9937112c",
+        "tests/integration/someip/native_diagnostic_routes.cpp": "f3688feb094b4414d98ad3ac6697f3e03a2c6ee638b6d4e6409e8c9459e63ebe",
+        "tests/integration/someip/native_continuity_service.cpp": "5a351afe3b2f6f681e821cdadfda6f399510db76a7fe8922b2a9caffa472f907",
+        "tests/integration/diagnostics/audit_central_restart.py": "5df7b891f418fbc1862026e0e691e2ff14ecafbff1ae446b532da75e7650a7f6",
+        "tests/unit/someip_pilot_test.py": "53e8941fc2be63b53ab043e04b721780f78da876d6f6cc4bab473ab5c1577ef9",
+        "central/coordinator/async_coordinator_port.cpp": "6291b968f939e139ca341658d9748d964c73dc11a8a9de67e555240e3d02cbc0",
+        "central/coordinator/async_coordinator_port.hpp": "5a33af19cdee0aafca7ec8b181cb70322d6e42e182ec91494fd3dfb09382d4e1",
+        "tests/unit/async_owner_test.cpp": "e497102a0fb48b2ff8637caa9a8c12174f147e6a0d2154cb65653717fe91d16e",
+        "tests/unit/fixture_signals_test.cpp": "5a917b0a658c279e536c3815e17a1ee509a15ee12ccb6c68a2f657bb37b868c6",
+        "interfaces/someip/owner_transport.hpp": "ad86ad7b51af57882525d7bdd22b8c3fe5a4ba61a8d0276ab972a79e117c7675",
+        "interfaces/common/monotonic_condition.hpp": "8e111ba241e837c3d0a2ec00ec75da64ed5f8e326794c11d497934b221e4cabf",
+        "tests/unit/monotonic_condition_test.cpp": "1f8aae8b5bc39516393b8be95f1eab87a950c54c32c9f0da74e8a9721e91be40",
+        "cmake/CoreTests.cmake": "7d0043af3e65aaa6371d9de13e5541e80934e696e8e3b6e2bd7ff0552f644465",
+        "docs/test-plan/service-response-protocol.md": "03a621b9912948d1574e1bea4233cb1159efd3fb03186199623a91872cee7bff",
+        "docs/test-plan/auxiliary-io-protocol.md": "c304437ce07b1cfb80396ecf13817249b1e30a04539f7b4e6a4594f5099c2208",
+        "docs/test-plan/service-timing-protocol.md": "89f8e7aa6e9a9255737ef0fa262e647bd5861ae2124fc07eea1b1b0cbcaaaf03",
+        "tests/integration/diagnostics/audit_service_ordering.py": "85259495fcaa83cb10cf0ad161d31ad46a181da63ff0b378efd3a6e5ac15aa64",
+        "tests/integration/diagnostics/audit_service_timing.py": "31b8f7ee94b62badc8a5b0fd873f423e43ed5be83d46c68473c1f428cc9c17c3",
+        "tests/integration/diagnostics/audit_service_response.py": "52c303ea04282f2155b4e75dc7aaea35f3f01009f31bc17d8e1f5fd180de78fb",
+        "tests/integration/diagnostics/audit_native_service.py": "d1715c3d294eb69b1de68d2d135c82ce8884bca39dd342b695241d6e5b29f9e2",
+        "tests/integration/diagnostics/audit_native_service_faults.py": "88154ad00d49d8d765c4b5af038726481ab7cdac80af119de2dced6e04c4a82d"
+      },
+      "binaries": {
+        "normal": "4848b70b7f859eed4fd5e230c6996d9a47e57430f73fc874ec02442082e673ba",
+        "asan": "01abb484eef16a47dd61d2b4f6a5a6bcf0f506cad29cdeaa963a34963100f45e",
+        "tsan": "97caa4416b930f00b787f518ba3452fd59e808425fc9585cfb8f43da31142faa"
+      }
+    },
+    "results": [
+      {
+        "name": "normal-normal",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/normal-normal",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-ack-loss",
+        "fault": "ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/normal-ack-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-actual-loss",
+        "fault": "actual-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/normal-actual-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-stop-request-loss",
+        "fault": "stop-request-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/normal-stop-request-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-request-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-stop-ack-loss",
+        "fault": "stop-ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/normal-stop-ack-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "asan-normal",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/asan-normal",
+          "--profile",
+          "asan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "asan-ack-loss",
+        "fault": "ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/asan-ack-loss",
+          "--profile",
+          "asan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "asan-actual-loss",
+        "fault": "actual-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/asan-actual-loss",
+          "--profile",
+          "asan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "asan-stop-request-loss",
+        "fault": "stop-request-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/asan-stop-request-loss",
+          "--profile",
+          "asan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-request-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "asan-stop-ack-loss",
+        "fault": "stop-ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/asan-stop-ack-loss",
+          "--profile",
+          "asan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-normal",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-normal",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 1,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-ack-loss",
+        "fault": "ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-ack-loss",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-actual-loss",
+        "fault": "actual-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-actual-loss",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-stop-request-loss",
+        "fault": "stop-request-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-stop-request-loss",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-request-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-stop-ack-loss",
+        "fault": "stop-ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-stop-ack-loss",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-normal-slow-signals",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/normal-normal-slow-signals",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "asan-normal-slow-signals",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/asan-normal-slow-signals",
+          "--profile",
+          "asan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-normal-slow-signals",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-normal-slow-signals",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-normal-r2",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-normal-r2",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-ack-loss-r2",
+        "fault": "ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-ack-loss-r2",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-actual-loss-r2",
+        "fault": "actual-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-actual-loss-r2",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-stop-request-loss-r2",
+        "fault": "stop-request-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-stop-request-loss-r2",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-request-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-stop-ack-loss-r2",
+        "fault": "stop-ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-stop-ack-loss-r2",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-normal-slow-signals-r2",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-normal-slow-signals-r2",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 1,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-normal-r3",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-normal-r3",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-ack-loss-r3",
+        "fault": "ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-ack-loss-r3",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-actual-loss-r3",
+        "fault": "actual-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-actual-loss-r3",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-stop-request-loss-r3",
+        "fault": "stop-request-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-stop-request-loss-r3",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-request-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 1,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-stop-ack-loss-r3",
+        "fault": "stop-ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-stop-ack-loss-r3",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--service-fault",
+          "stop-ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "tsan-normal-slow-signals-r3",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-campaign/tsan-normal-slow-signals-r3",
+          "--profile",
+          "tsan",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--fixed-layout",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      }
+    ]
+  },
+  "subscribed-regressions": {
+    "manifest": {
+      "base": "bbcb86a478944734d032df2725d856f3a555c2de",
+      "cases": [
+        [
+          "normal",
+          "normal",
+          true
+        ],
+        [
+          "normal",
+          "command-loss",
+          true
+        ],
+        [
+          "normal",
+          "restart-live",
+          true
+        ],
+        [
+          "normal",
+          "delay",
+          false
+        ],
+        [
+          "normal",
+          "overflow",
+          false
+        ],
+        [
+          "normal",
+          "close-full",
+          false
+        ],
+        [
+          "asan",
+          "normal",
+          true
+        ],
+        [
+          "asan",
+          "command-loss",
+          true
+        ],
+        [
+          "asan",
+          "restart-live",
+          true
+        ],
+        [
+          "asan",
+          "delay",
+          false
+        ],
+        [
+          "asan",
+          "overflow",
+          false
+        ],
+        [
+          "asan",
+          "close-full",
+          false
+        ]
+      ],
+      "sources": {
+        "interfaces/someip/owner_transport.hpp": "ad86ad7b51af57882525d7bdd22b8c3fe5a4ba61a8d0276ab972a79e117c7675",
+        "interfaces/common/monotonic_condition.hpp": "8e111ba241e837c3d0a2ec00ec75da64ed5f8e326794c11d497934b221e4cabf",
+        "tests/integration/someip/front_adapter.cpp": "8d287ff8471ccc9336f6fd19ff388733c7775b06744438de6777ba1134e31b10",
+        "tests/integration/someip/front_run.py": "05f5f6a484b18df51ab3142ffc9dd3ea1fe380edaf7e6667710fe474895b91ab",
+        "tests/integration/someip/sdk_outcomes.py": "9e0c4f83e2ec0952b2bbefaf9ca12db69cc9e8e9598093de2c78194fd0519a97",
+        "tests/integration/someip/fixture_signals.hpp": "3a35f06f15702ca8b36a692678e06b08a2e900a44b17758a86c57219447dfaed",
+        "tests/integration/someip/fixture_placement.hpp": "e88d589a81edf9d29ad3d8cdd80431e23c689bcfe2d4ded35ea62cd85cb4ce10",
+        "tests/integration/someip/fixture_placement.py": "1c83422e421a5163f66a2b4565f3619a95c959bd280f2e20ab5291bc9937112c",
+        "tests/integration/someip/native_diagnostic_routes.cpp": "f3688feb094b4414d98ad3ac6697f3e03a2c6ee638b6d4e6409e8c9459e63ebe",
+        "tests/integration/someip/native_continuity_service.cpp": "5a351afe3b2f6f681e821cdadfda6f399510db76a7fe8922b2a9caffa472f907"
+      },
+      "binaries": {
+        "normal": "4848b70b7f859eed4fd5e230c6996d9a47e57430f73fc874ec02442082e673ba",
+        "asan": "01abb484eef16a47dd61d2b4f6a5a6bcf0f506cad29cdeaa963a34963100f45e"
+      }
+    },
+    "results": [
+      {
+        "name": "normal-normal",
+        "three": true,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/normal-normal",
+          "--profile",
+          "normal",
+          "--cases",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--isolated-ecus"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "normal-command-loss",
+        "three": true,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/normal-command-loss",
+          "--profile",
+          "normal",
+          "--cases",
+          "command-loss",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--isolated-ecus"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "normal-restart-live",
+        "three": true,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/normal-restart-live",
+          "--profile",
+          "normal",
+          "--cases",
+          "restart-live",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--isolated-ecus"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "normal-delay",
+        "three": false,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/normal-delay",
+          "--profile",
+          "normal",
+          "--cases",
+          "delay"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "normal-overflow",
+        "three": false,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/normal-overflow",
+          "--profile",
+          "normal",
+          "--cases",
+          "overflow"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "normal-close-full",
+        "three": false,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/normal-close-full",
+          "--profile",
+          "normal",
+          "--cases",
+          "close-full"
+        ],
+        "exit": 1
+      },
+      {
+        "name": "asan-normal",
+        "three": true,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/asan-normal",
+          "--profile",
+          "asan",
+          "--cases",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--isolated-ecus"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "asan-command-loss",
+        "three": true,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/asan-command-loss",
+          "--profile",
+          "asan",
+          "--cases",
+          "command-loss",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--isolated-ecus"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "asan-restart-live",
+        "three": true,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/asan-restart-live",
+          "--profile",
+          "asan",
+          "--cases",
+          "restart-live",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--isolated-ecus"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "asan-delay",
+        "three": false,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/asan-delay",
+          "--profile",
+          "asan",
+          "--cases",
+          "delay"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "asan-overflow",
+        "three": false,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/asan-overflow",
+          "--profile",
+          "asan",
+          "--cases",
+          "overflow"
+        ],
+        "exit": 0
+      },
+      {
+        "name": "asan-close-full",
+        "three": false,
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-aux-io/subscribed-regressions/asan-close-full",
+          "--profile",
+          "asan",
+          "--cases",
+          "close-full"
+        ],
+        "exit": 0
+      }
+    ]
+  }
+}

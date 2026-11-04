@@ -5803,3 +5803,21 @@ GCC11 TSan의 `pthread_cond_clockwait` 미계측은 독립 handshake로 재현�
 Spurious wake는 최초 absolute timeout을 갱신하지 않는다. SDK FIFO 변경만으로 충분하지
 않았던 실험과 CPU 주파수 하락·temperature 관측도 원본으로 남긴다. 시스템 governor나
 thermal 보호는 변경하지 않는다. Host 수용과 Native4ms/Target·장기 부하 수용은 별도다.
+
+<a id="adr-0098"></a>
+
+## ADR-0098: Host 보조 IO의 물리 코어 분리와 명시적 marker 관측
+
+상태: 구현·부분 검증. [실행 근거](../test-plan/evidence/m9_auxiliary_io/README.md)의27/30과
+회귀11/12를 전체 timing 수용으로 올리지 않는다.
+
+CPU 번호만 분리하면 SMT sibling인 Rear7/IO15가 같은 물리 코어를 공유한다.
+Split functional profile의 명시적 `--separate-aux-io`에서 허용된 CPU의 package/core를
+읽고 owner/SDK/plant와 공유하지 않는 코어를 선택한다. 그런 코어가 없으면 실행을 거절한다.
+기존 native-watch profile은 유지한다. 모든 보조 writer의 실제 배치와 process별 topology를
+독립 기록해 선언만으로 분리됐다고 판단하지 않는다. 시스템 governor·thermal 보호는 바꾸지 않는다.
+
+Marker는 inotify 한도에 의존하지 않고 역할별 읽기 이름을 시작 전에 등록한다.
+초기 snapshot·1ms 관측·원본 요청 시각과 쓰기 실패/지연 처리는 유지한다. 미등록 읽기는
+오류이며 쓰기만 하는 등록 marker도 정상적으로 저장한다. 구독 변경은 명시적 코드 수정과
+회귀 대상이다. IO 부하 감소가 지원/명령 갱신 연쇄의 전체 기한 충족을 보장하지는 않는다.

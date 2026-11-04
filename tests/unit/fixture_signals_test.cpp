@@ -52,4 +52,27 @@ TEST_F(FixtureSignalsTest,FailedWriteCannotBeReportedAsSuccess) {
     signals.mark(folder/"armed",123);signals.finish();EXPECT_TRUE(signals.failed());
     EXPECT_TRUE(fs::is_directory(folder/"armed"));
 }
+TEST_F(FixtureSignalsTest,SubscribedReadsSkipUnrelatedPathsAndKeepWrites) {
+    // An unread marker cannot impose filesystem work (or an ELOOP failure).
+    fs::create_symlink("stop-front",folder/"stop-front");
+    FixtureSignals signals(folder,"plant",{},{},stratadrive::someip::test::fixture_observations("plant"));
+    signals.mark(folder/"plant-ready",456);
+    EXPECT_THROW(signals.exists(folder/"stop-front"),std::invalid_argument);
+    std::ofstream(folder/"incoming")<<1;
+    fs::rename(folder/"incoming",folder/"stop-plant");
+    EXPECT_TRUE(until([&]{return signals.exists(folder/"stop-plant");}));
+    fs::rename(folder/"stop-plant",folder/"removed");
+    EXPECT_TRUE(until([&]{return !signals.exists(folder/"stop-plant");}));
+    signals.finish();EXPECT_FALSE(signals.failed());
+    std::uint64_t source=0;std::ifstream(folder/"plant-ready")>>source;EXPECT_EQ(source,456U);
+}
+TEST_F(FixtureSignalsTest,InvalidSubscriptionsFailBeforeWorkerStarts) {
+    EXPECT_THROW((FixtureSignals(folder,"central",{},{},{"misspelled-marker"})),std::invalid_argument);
+    EXPECT_THROW(stratadrive::someip::test::fixture_observations("unknown"),std::invalid_argument);
+    std::ofstream(folder/"rejoin-request")<<1;
+    FixtureSignals signals(folder,"central",{},{},stratadrive::someip::test::fixture_observations("central"));
+    EXPECT_TRUE(signals.exists(folder/"rejoin-request"));
+    EXPECT_THROW(signals.exists(folder/"armed"),std::invalid_argument);
+    signals.finish();EXPECT_FALSE(signals.failed());
+}
 } // namespace

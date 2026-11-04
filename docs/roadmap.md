@@ -91,9 +91,11 @@ quiesce·새 global Epoch/물리 정지 조합은 [terminal native 서비스](te
 BMS9/Power8 component 조합·동일 설정 NormalStop 복구/clear를 다룬다. 실패 분모도 함께 보존한다.
 [서비스 순서·시험 IO 후속](test-plan/evidence/m9_service_timing/README.md)의 부모 순서 수정 뒤,
 [응답 지연 후속](test-plan/evidence/m9_response_latency/README.md)은 enqueue/RX 알림·SDK trace 버퍼와
-monotonic wait를 적용했다. 실제 service 반복에서 TSan 기한 초과가 남았고 저주파 구간과 겹친다.
-먼저 냉각/전원·실제 CPU 실행 조건을 안정화하고 같은 고정 cohort에서 전체 서비스 기한을
-재검증한다. Accepted token 통계나 순서/배치 감사 통과를 전체 서비스 수용으로 올리지 않는다.
+monotonic wait를 적용했다. [보조 IO 후속](test-plan/evidence/m9_auxiliary_io/README.md)은 물리 코어
+분리와 역할별 marker 조회로 고정30개 중27개를 통과했다. 남은 TSan3개의 permission/command
+갱신 연쇄와 close-full 회귀의 종료 중 SDK 오류를 해결하고 같은 고정 cohort에서 재검증한다.
+Host 온도/주파수는 함께 관측하되 단일 원인으로 확정하지 않는다. Accepted token 통계나
+순서/배치 감사 통과를 전체 서비스 수용으로 올리지 않는다.
 남은 완료 조건은 native 서비스 TSan timing, silent packet loss의 실제 CARLA subinterval 연결, trusted Clock 복구,
 proposal 이전 bootstrap incident, 전체8-role native fault matrix, 실제 부하/장기 보존 정책과
 학습자 수용이다. DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.

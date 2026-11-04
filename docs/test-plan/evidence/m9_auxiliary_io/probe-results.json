@@ -1,0 +1,66 @@
+[
+  {
+    "name": "all",
+    "command": [
+      "build/m9-aux-io/signal_probe"
+    ],
+    "exit": 0,
+    "measurement": {
+      "worker_cpu_ns": 69875542,
+      "wall_seconds": 2,
+      "observed": 34
+    }
+  },
+  {
+    "name": "subscribed",
+    "command": [
+      "build/m9-aux-io/signal_probe",
+      "subscribed"
+    ],
+    "exit": 0,
+    "measurement": {
+      "worker_cpu_ns": 41763153,
+      "wall_seconds": 2,
+      "observed": 8
+    }
+  },
+  {
+    "name": "all-strace",
+    "command": [
+      "strace",
+      "-f",
+      "-c",
+      "-e",
+      "trace=newfstatat",
+      "-o",
+      "build/m9-aux-io/all-strace.txt",
+      "build/m9-aux-io/signal_probe"
+    ],
+    "exit": 0,
+    "measurement": {
+      "worker_cpu_ns": 175659726,
+      "wall_seconds": 2,
+      "observed": 34
+    }
+  },
+  {
+    "name": "subscribed-strace",
+    "command": [
+      "strace",
+      "-f",
+      "-c",
+      "-e",
+      "trace=newfstatat",
+      "-o",
+      "build/m9-aux-io/subscribed-strace.txt",
+      "build/m9-aux-io/signal_probe",
+      "subscribed"
+    ],
+    "exit": 0,
+    "measurement": {
+      "worker_cpu_ns": 80409796,
+      "wall_seconds": 2,
+      "observed": 8
+    }
+  }
+]
