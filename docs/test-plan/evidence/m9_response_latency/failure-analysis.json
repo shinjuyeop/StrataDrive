@@ -1,0 +1,1121 @@
+{
+  "final-campaign": {
+    "results": {
+      "normal": {
+        "passed": 6,
+        "attempted": 6
+      },
+      "asan": {
+        "passed": 5,
+        "attempted": 6
+      },
+      "tsan": {
+        "passed": 13,
+        "attempted": 18
+      }
+    },
+    "host": {
+      "samples": 160781,
+      "runtime_samples": 160781,
+      "runtime_maximum_temperature_millidegrees": 100000,
+      "maximum_temperature_millidegrees": 100000,
+      "thermal_counter_delta_all": 15710,
+      "thermal_counter_delta_through_runtime": 15710
+    },
+    "failures": [
+      {
+        "name": "asan-stop-request-loss",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "794656462602496",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "794656462602706",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "4",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 22,
+          "maximum_temperature_millidegrees": 78000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 898693,
+            "2": 1201543,
+            "3": 873176,
+            "4": 799186,
+            "5": 799376,
+            "6": 797768,
+            "7": 887484
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 0
+        }
+      },
+      {
+        "name": "tsan-ack-loss",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "794688997450718",
+            "event": "central-fault",
+            "epoch": "1",
+            "role": "7",
+            "value": "7",
+            "deadline": "7",
+            "file": "central-1.events.csv"
+          },
+          {
+            "ns": "794688997452925",
+            "event": "central-allocation-fault",
+            "epoch": "1",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-1.events.csv"
+          },
+          {
+            "ns": "794688997455944",
+            "event": "central-protection",
+            "epoch": "1",
+            "role": "7",
+            "value": "0",
+            "deadline": "0",
+            "file": "central-1.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 15,
+          "maximum_temperature_millidegrees": 78000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799688,
+            "2": 799779,
+            "3": 799967,
+            "4": 799991,
+            "5": 799669,
+            "6": 799983,
+            "7": 799973
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 15
+        }
+      },
+      {
+        "name": "tsan-normal-slow-signals",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "794764043807381",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "11",
+            "deadline": "7",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "794764043809766",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "0",
+            "deadline": "4",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 15,
+          "maximum_temperature_millidegrees": 84000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799967,
+            "2": 799896,
+            "3": 799948,
+            "4": 799991,
+            "5": 799898,
+            "6": 799420,
+            "7": 799924
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 15
+        }
+      },
+      {
+        "name": "tsan-ack-loss-r2",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "794785251528369",
+            "event": "central-fault",
+            "epoch": "1",
+            "role": "7",
+            "value": "12",
+            "deadline": "0",
+            "file": "central-1.events.csv"
+          },
+          {
+            "ns": "794785251532028",
+            "event": "central-allocation-fault",
+            "epoch": "1",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-1.events.csv"
+          },
+          {
+            "ns": "794785251536842",
+            "event": "central-protection",
+            "epoch": "1",
+            "role": "7",
+            "value": "0",
+            "deadline": "0",
+            "file": "central-1.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 15,
+          "maximum_temperature_millidegrees": 91000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799827,
+            "2": 799743,
+            "3": 799934,
+            "4": 799989,
+            "5": 799973,
+            "6": 799976,
+            "7": 799750
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 15
+        }
+      },
+      {
+        "name": "tsan-normal-r3",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "794843126838831",
+            "event": "central-fault",
+            "epoch": "1",
+            "role": "7",
+            "value": "12",
+            "deadline": "7",
+            "file": "central-1.events.csv"
+          },
+          {
+            "ns": "794843126841304",
+            "event": "central-allocation-fault",
+            "epoch": "1",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-1.events.csv"
+          },
+          {
+            "ns": "794843126844354",
+            "event": "central-protection",
+            "epoch": "1",
+            "role": "7",
+            "value": "0",
+            "deadline": "0",
+            "file": "central-1.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 78000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799950,
+            "2": 799852,
+            "3": 799982,
+            "4": 799991,
+            "5": 799672,
+            "6": 799991,
+            "7": 799960
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 16
+        }
+      },
+      {
+        "name": "tsan-actual-loss-r3",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "794864462548934",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "6",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "794864462549902",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 22,
+          "maximum_temperature_millidegrees": 87000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 3581991,
+            "2": 1829959,
+            "3": 3502132,
+            "4": 800000,
+            "5": 799268,
+            "6": 1571969,
+            "7": 3712170
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 0
+        }
+      }
+    ]
+  },
+  "quiet-campaign": {
+    "results": {
+      "normal": {
+        "passed": 6,
+        "attempted": 6
+      },
+      "asan": {
+        "passed": 6,
+        "attempted": 6
+      },
+      "tsan": {
+        "passed": 11,
+        "attempted": 18
+      }
+    },
+    "host": {
+      "samples": 175619,
+      "runtime_samples": 107979,
+      "runtime_maximum_temperature_millidegrees": 100000,
+      "maximum_temperature_millidegrees": 100000,
+      "thermal_counter_delta_all": 5704,
+      "thermal_counter_delta_through_runtime": 636
+    },
+    "failures": [
+      {
+        "name": "tsan-stop-ack-loss",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "795384651940638",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "795384651944062",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 100000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799943,
+            "2": 799991,
+            "3": 799985,
+            "4": 799346,
+            "5": 799991,
+            "6": 799975,
+            "7": 799944
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 12
+        }
+      },
+      {
+        "name": "tsan-normal-slow-signals",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "795410678251804",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "795410678255634",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 17,
+          "maximum_temperature_millidegrees": 89000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799859,
+            "2": 799896,
+            "3": 799959,
+            "4": 799975,
+            "5": 799602,
+            "6": 800000,
+            "7": 799982
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 13
+        }
+      },
+      {
+        "name": "tsan-stop-ack-loss-r2",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "795455725331469",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "795455725335071",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 90000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799969,
+            "2": 799937,
+            "3": 799948,
+            "4": 799976,
+            "5": 799967,
+            "6": 799582,
+            "7": 799922
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 12
+        }
+      },
+      {
+        "name": "tsan-normal-slow-signals-r2",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "795462751073993",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "4",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "795462751077498",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 15,
+          "maximum_temperature_millidegrees": 91000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799970,
+            "2": 799985,
+            "3": 799947,
+            "4": 799987,
+            "5": 799186,
+            "6": 799934,
+            "7": 799932
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 15
+        }
+      },
+      {
+        "name": "tsan-ack-loss-r3",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "795477761889544",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "11",
+            "deadline": "7",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "795477761893105",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "0",
+            "deadline": "4",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 15,
+          "maximum_temperature_millidegrees": 87000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799934,
+            "2": 799912,
+            "3": 799965,
+            "4": 799991,
+            "5": 798407,
+            "6": 799429,
+            "7": 799946
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 15
+        }
+      },
+      {
+        "name": "tsan-stop-ack-loss-r3",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "795500775267931",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "795500775272115",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 91000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799948,
+            "2": 799972,
+            "3": 799973,
+            "4": 799961,
+            "5": 799224,
+            "6": 799991,
+            "7": 799892
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 15
+        }
+      },
+      {
+        "name": "tsan-normal-slow-signals-r3",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "795508779248670",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "12",
+            "deadline": "7",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "795508779251110",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 91000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799942,
+            "2": 799779,
+            "3": 799923,
+            "4": 799967,
+            "5": 799989,
+            "6": 799975,
+            "7": 799911
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 13
+        }
+      }
+    ]
+  },
+  "capacity-campaign": {
+    "results": {
+      "normal": {
+        "passed": 6,
+        "attempted": 6
+      },
+      "asan": {
+        "passed": 5,
+        "attempted": 6
+      },
+      "tsan": {
+        "passed": 6,
+        "attempted": 18
+      }
+    },
+    "host": {
+      "samples": 152959,
+      "runtime_samples": 96136,
+      "runtime_maximum_temperature_millidegrees": 100000,
+      "maximum_temperature_millidegrees": 100000,
+      "thermal_counter_delta_all": 5820,
+      "thermal_counter_delta_through_runtime": 549
+    },
+    "failures": [
+      {
+        "name": "asan-stop-request-loss",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796199384023584",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "796199384023760",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "4",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 22,
+          "maximum_temperature_millidegrees": 81000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 2387746,
+            "2": 1729173,
+            "3": 1336243,
+            "4": 800000,
+            "5": 799186,
+            "6": 800000,
+            "7": 2944650
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 0
+        }
+      },
+      {
+        "name": "tsan-ack-loss",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796218989470429",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "796218989471042",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 23,
+          "maximum_temperature_millidegrees": 89000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 3231931,
+            "2": 3519966,
+            "3": 3493793,
+            "4": 800000,
+            "5": 4018157,
+            "6": 800000,
+            "7": 3882773
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 0
+        }
+      },
+      {
+        "name": "tsan-stop-ack-loss",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796241527670629",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "11",
+            "deadline": "7",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "796241527672826",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "0",
+            "deadline": "4",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 90000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799816,
+            "2": 799973,
+            "3": 799982,
+            "4": 800000,
+            "5": 799975,
+            "6": 799990,
+            "7": 799759
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 6
+        }
+      },
+      {
+        "name": "tsan-normal-slow-signals",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796263539299000",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "12",
+            "deadline": "7",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "796263539301465",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 90000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799926,
+            "2": 799973,
+            "3": 799966,
+            "4": 799991,
+            "5": 799991,
+            "6": 799972,
+            "7": 799846
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 13
+        }
+      },
+      {
+        "name": "tsan-normal-r2",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796270555028042",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "12",
+            "deadline": "7",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "796270555031476",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "0",
+            "deadline": "4",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 15,
+          "maximum_temperature_millidegrees": 89000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799917,
+            "2": 799479,
+            "3": 799982,
+            "4": 799983,
+            "5": 799991,
+            "6": 799983,
+            "7": 799965
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 15
+        }
+      },
+      {
+        "name": "tsan-ack-loss-r2",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796277574797750",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "12",
+            "deadline": "5",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "796277574801252",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 15,
+          "maximum_temperature_millidegrees": 88000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799945,
+            "2": 799884,
+            "3": 799976,
+            "4": 800000,
+            "5": 799838,
+            "6": 799975,
+            "7": 799919
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 15
+        }
+      },
+      {
+        "name": "tsan-actual-loss-r2",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796285589492645",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "12",
+            "deadline": "7",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "796285589495356",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 89000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799972,
+            "2": 799882,
+            "3": 799923,
+            "4": 799975,
+            "5": 799772,
+            "6": 799767,
+            "7": 799981
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 16
+        }
+      },
+      {
+        "name": "tsan-stop-ack-loss-r2",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796300597295796",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "12",
+            "deadline": "5",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "796300597299394",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 89000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799892,
+            "2": 799928,
+            "3": 799948,
+            "4": 799984,
+            "5": 799991,
+            "6": 799975,
+            "7": 799919
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 16
+        }
+      },
+      {
+        "name": "tsan-normal-slow-signals-r2",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796307581199248",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "796307581202466",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 17,
+          "maximum_temperature_millidegrees": 90000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799924,
+            "2": 799930,
+            "3": 799937,
+            "4": 799262,
+            "5": 799913,
+            "6": 799281,
+            "7": 799886
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 13
+        }
+      },
+      {
+        "name": "tsan-normal-r3",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796313643304607",
+            "event": "central-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "12",
+            "deadline": "0",
+            "file": "central-2-service.events.csv"
+          },
+          {
+            "ns": "796313643307744",
+            "event": "central-allocation-fault",
+            "epoch": "3",
+            "role": "7",
+            "value": "13",
+            "deadline": "3",
+            "file": "central-2-service.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 15,
+          "maximum_temperature_millidegrees": 91000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799974,
+            "2": 799939,
+            "3": 799930,
+            "4": 799991,
+            "5": 799987,
+            "6": 798746,
+            "7": 799929
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 15
+        }
+      },
+      {
+        "name": "tsan-ack-loss-r3",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796319611434664",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "11",
+            "deadline": "7",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "796319611436598",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "0",
+            "deadline": "4",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 90000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799959,
+            "2": 799368,
+            "3": 799982,
+            "4": 799975,
+            "5": 799709,
+            "6": 800000,
+            "7": 799955
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 16
+        }
+      },
+      {
+        "name": "tsan-actual-loss-r3",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796325602519729",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "12",
+            "deadline": "7",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "796325602521728",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 16,
+          "maximum_temperature_millidegrees": 91000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799942,
+            "2": 799957,
+            "3": 799959,
+            "4": 799991,
+            "5": 799989,
+            "6": 799983,
+            "7": 799979
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 14
+        }
+      },
+      {
+        "name": "tsan-normal-slow-signals-r3",
+        "audit_exit": 1,
+        "events": [
+          {
+            "ns": "796345615259821",
+            "event": "central-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "5",
+            "deadline": "0",
+            "file": "central-2.events.csv"
+          },
+          {
+            "ns": "796345615263351",
+            "event": "central-allocation-fault",
+            "epoch": "2",
+            "role": "7",
+            "value": "5",
+            "deadline": "3",
+            "file": "central-2.events.csv"
+          }
+        ],
+        "host_25ms_each_side": {
+          "samples": 17,
+          "maximum_temperature_millidegrees": 90000,
+          "thermal_count_delta": 0,
+          "minimum_cpu_khz": {
+            "1": 799898,
+            "2": 799957,
+            "3": 799981,
+            "4": 799991,
+            "5": 799724,
+            "6": 799991,
+            "7": 799914
+          },
+          "all_7_cpus_at_or_below_810mhz_samples": 13
+        }
+      }
+    ]
+  }
+}

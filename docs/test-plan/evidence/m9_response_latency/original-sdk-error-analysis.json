@@ -1,0 +1,15 @@
+{
+  "original_verdict_unchanged": true,
+  "original_error": {
+    "file": "front-1.stdout",
+    "line": 89,
+    "text": "2026-11-04 16:09:33.469093 front [error] tcei::write_completion_condition: Broken pipe(32) bytes transferred: 0 bytes to sent: 85 remote:10.88.0.1:30503 (1422): [5346.0070.01fa]"
+  },
+  "causal_analysis": {
+    "classification": "expected injected Central crash: protected Front Actual to retired generation",
+    "event_monotonic_ns": 794652358618779,
+    "protection_ns": 794652266195558,
+    "successor_boot_ns": 794652391981389,
+    "bytes_not_sent": 85
+  }
+}

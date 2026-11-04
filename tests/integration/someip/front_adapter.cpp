@@ -96,7 +96,7 @@ struct Owners final:session::CoordinatorPort {
     struct EnergyFeedback {std::uint64_t now,source;std::uint32_t epoch;double torque,speed,capability,charge;bool cap_present,charge_present;};
     std::vector<EnergyFeedback> energy_feedback;bool energy_feedback_overflow=false;const char* energy_phase=nullptr;
     int observed_regen=-1;
-    bool freeze_normal=false;std::array<remote::ProtectionReceipt,2> receipt;
+    bool freeze_normal=false,full_fixture_quiesced=false;std::array<remote::ProtectionReceipt,2> receipt;
     bool stop_requested=false;std::uint32_t stop_seq=0;std::uint64_t stop_started=0,stop_complete=0,last_stop=0;
     std::atomic<std::uint64_t> monitor_delay{0};
     std::unique_ptr<simulation::NativeExecutionWatch> watch;
@@ -304,7 +304,10 @@ struct Owners final:session::CoordinatorPort {
                     }
                 }
             }
-            core.tick(feedback,now(),due);
+            // Capacity fixtures stop creating work before the consumer pauses.
+            // Existing requests still finish through port.feedback()/service()
+            // with their original deadlines; the real capacity fault protects.
+            if(!full_fixture_quiesced)core.tick(feedback,now(),due);
             if(energy_enabled() && static_cast<int>(core.decision().allocation.regen)!=observed_regen) {
                 observed_regen=static_cast<int>(core.decision().allocation.regen);
                 const auto cap=feedback.rear.drive_actual?feedback.rear.drive_actual->regen_capability:std::nullopt;
@@ -543,7 +546,10 @@ int main(int argc,char** argv) {
                 if(t>=probe_due){net.probe_peer();probe_due=t+50*kMs;}
                 if(fault_phase && !injected){owners->event("injection",remote?0:7);injected=true;injected_ns=t;paused_until=(remote && test=="delay")?0:t+30*kMs;}
                 if(remote && fault_phase && test=="delay" && !paused_until && net.queued(0)>0){paused_until=t+30*kMs;owners->event("consumer-paused",0,net.queued(0),paused_until);}
-                const bool full=fault_phase && (test=="overflow" || test=="close-full");
+                const bool full_case=fault_phase && (test=="overflow" || test=="close-full");
+                if(full_case && !remote){owners->freeze_normal=true;owners->full_fixture_quiesced=true;}
+                const bool full=full_case && (!remote || signals.exists(folder/"full-pause-request"));
+                if(remote && full)signals.mark(folder/"full-pause-ack");
                 for(const unsigned lane:{1U,3U,0U,2U}) {
                     if(lane>=net.channels())continue;
                     if(remote && lane==0 && (full || (fault_phase && test=="delay" && (!paused_until || t<paused_until))))continue;
@@ -569,11 +575,16 @@ int main(int argc,char** argv) {
                     if(!remote && freeze_marked && !service_started){service->start();service_started=true;}
                     if(!remote && service_started && service->done()){check(service->passed(),"native service review/clear failed");pass=true;break;}
                 }
-                if(!remote && full && owners->last_request && full_sent==0) {
-                    owners->freeze_normal=true;
+                if(!remote && full && full_sent==0 && owners->pending.empty() && owners->port.commands_settled())
+                    signals.mark(folder/"full-pause-request");
+                if(!remote && full && owners->last_request && full_sent==0 && signals.exists(folder/"full-pause-ack")) {
+                    check(owners->pending.empty() && owners->port.commands_settled() && !owners->protected_ns,"capacity injection before normal drain");
+                    owners->event("full-fixture-normal-drained",7);
                     for(unsigned i=0;i<8;++i){auto r=*owners->last_request;r.epoch+=100;r.token=1000000000ULL+i;owners->diagnostic(r);}
                     full_sent=8;
                 }
+                if(!remote && full && test=="overflow" && signals.exists(folder/"front-protected") && !owners->protected_ns)
+                    owners->fail("peer-full-queue-protection");
                 if(!remote && test=="close-full" && signals.exists(folder/"queue-full") && !owners->protected_ns)owners->fail("full-queue-protection-request");
                 if(!remote && test=="overflow" && full_sent==8 && signals.exists(folder/"queue-full") && !overflow_probe) {
                     // Test-only finite ninth arrival, not a larger normal pending window.
@@ -650,7 +661,7 @@ int main(int argc,char** argv) {
                 if(!remote && test=="close-full" && injected && t-injected_ns>=250*kMs){pass=owners->protected_ns && owners->diagnostic_pending.empty();break;}
                 iteration.finish();
                 if(owners->watch)requested_wake=owners->watch->next_wake(now());
-                else std::this_thread::sleep_for(std::chrono::microseconds(200));
+                else net.wait_for_ingress(std::chrono::microseconds(1000));
             }
             if(remote)pass=signals.exists(folder/("stop-"+role));
             else if(test!="normal" && test!="late" && test!="invalid" && test!="restart-live" && test!="central-rejoin")pass=owners->armed_ns && owners->protected_ns;
@@ -715,6 +726,7 @@ int main(int argc,char** argv) {
         if(!diagnostic_routes->finish()){pass=false;if(error.empty())error="native diagnostic delivery failed";}
     }
     closing=now();net.stop();
+    if(!net.trace_ok()){pass=false;if(error.empty())error="SDK timing trace incomplete";}
     signals.finish();if(signals.failed()){pass=false;if(error.empty())error="fixture signal IO failed";}
     std::ofstream summary(folder/(tag+".json"));
     summary<<"{\"pass\":"<<(pass?"true":"false")<<",\"orderly_stop\":true,\"stop_begin\":"<<closing<<",\"stop_return\":"<<net.stop_return_ns<<",\"join_return\":"<<net.join_return_ns

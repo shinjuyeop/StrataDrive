@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/diagnostics/audit_native_service.py", line 133, in <module>
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('directory',type=Path);p.add_argument('--mutations',action='store_true');a=p.parse_args();d=load(a.directory);r=judge(d)
+  File "/d/shin/StrataDrive/tests/integration/diagnostics/audit_native_service.py", line 18, in load
+    ready=json.loads((root/'service-ready.json').read_text()), client=json.loads((root/'service-client.json').read_text()),
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/m9-response-archive-dblfflsp/capacity-campaign/tsan-normal-r3/central-rejoin-1/service-ready.json'

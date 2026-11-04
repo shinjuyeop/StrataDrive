@@ -76,6 +76,18 @@ joins after owner quiescence. These orchestration files never grant authority or
 replace physical sources, native fault evidence, or durable diagnostic receipts.
 See the [service timing protocol](../test-plan/service-timing-protocol.md).
 
+The sender waits for an enqueue notification instead of polling an empty queue.
+The functional owner wakes on ingress and requests a1ms idle timeout, so local
+sensor/clock/expiry checks continue even when the peer is silent. Actual wake
+latency also depends on the scheduler. The native-watch
+release grid is unchanged. Queue capacity, lane priority, drain budgets and all
+original validity deadlines remain unchanged. SDK timing is buffered with a fixed
+capacity and written only after SDK join; a trace overflow/write failure fails
+the fixture. Source timestamps and authority are never adjusted by these records.
+The monotonic timed wait uses `pthread_cond_timedwait` with a CLOCK_MONOTONIC
+condition, including on GCC11 TSan, which does not intercept `pthread_cond_clockwait`.
+See the [response protocol](../test-plan/service-response-protocol.md).
+
 During protected rejoin, Central explicitly closes ingress before old graph artifact
 teardown and durable Epoch IO; queued and arriving old messages are counted per lane.
 The overflow latch is never reset. Reopening precedes a fresh actual handshake.

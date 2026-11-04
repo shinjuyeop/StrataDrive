@@ -21,6 +21,9 @@ stratadrive_unit_test(diagnostic_binding_test
     SOURCES tests/unit/diagnostic_binding_test.cpp
     LIBRARIES diagnostics_wire)
 if(TARGET diagnostics_journal)
+    stratadrive_unit_test(monotonic_condition_test
+        SOURCES tests/unit/monotonic_condition_test.cpp
+        LIBRARIES Threads::Threads)
     stratadrive_unit_test(fixture_signals_test
         SOURCES tests/unit/fixture_signals_test.cpp
         LIBRARIES Threads::Threads)

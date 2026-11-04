@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[2]
@@ -16,26 +17,49 @@ def main():
     parser.add_argument('output',type=Path)
     parser.add_argument('--split-owner-io',action='store_true')
     parser.add_argument('--owner-fifo',action='store_true')
+    parser.add_argument('--tsan-repeats',type=int,choices=(1,3),default=1)
+    parser.add_argument('--response-audit',action='store_true')
+    parser.add_argument('--defer-audits',action='store_true',help='finish every fixed runtime before CPU-intensive offline readers')
     args=parser.parse_args();out=args.output.resolve();out.mkdir(parents=True,exist_ok=False)
-    cases=[(p,f,0) for p in ('normal','asan','tsan') for f in ('normal','ack-loss','actual-loss','stop-request-loss','stop-ack-loss')]
-    cases += [(p,'normal',250) for p in ('normal','asan','tsan')]
+    faults=('normal','ack-loss','actual-loss','stop-request-loss','stop-ack-loss')
+    cases=[(p,f,0,1) for p in ('normal','asan','tsan') for f in faults]
+    cases += [(p,'normal',250,1) for p in ('normal','asan','tsan')]
+    for repeat in range(2,args.tsan_repeats+1):cases += [('tsan',f,0,repeat) for f in faults]+[('tsan','normal',250,repeat)]
     files=[HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',Path(__file__),
+           HERE/'sdk_outcomes.py',ROOT/'tests/unit/someip_pilot_test.py',
            ROOT/'central/coordinator/async_coordinator_port.cpp',ROOT/'central/coordinator/async_coordinator_port.hpp',
            ROOT/'tests/unit/async_owner_test.cpp',ROOT/'tests/unit/fixture_signals_test.cpp',
+           ROOT/'interfaces/someip/owner_transport.hpp',ROOT/'interfaces/common/monotonic_condition.hpp',
+           ROOT/'tests/unit/monotonic_condition_test.cpp',ROOT/'cmake/CoreTests.cmake',
+           ROOT/'docs/test-plan/service-response-protocol.md',
            ROOT/'docs/test-plan/service-timing-protocol.md',
            HERE.parent/'diagnostics/audit_service_ordering.py',
            HERE.parent/'diagnostics/audit_service_timing.py',
+           HERE.parent/'diagnostics/audit_service_response.py',
            HERE.parent/'diagnostics/audit_native_service.py',HERE.parent/'diagnostics/audit_native_service_faults.py']
     manifest={'base':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+              'audit_phase':'after-all-runtimes' if args.defer_audits else 'interleaved',
               'cases':cases,'sources':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
               'binaries':{p:hashlib.sha256((ROOT/f'build/m5-someip-{p}/project/tests/integration/someip/someip_front_adapter').read_bytes()).hexdigest() for p in ('normal','asan','tsan')}}
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     results=[]
-    for profile,fault,delay in cases:
+    def audit_result(row):
+        directory=out/row['name'];fault=row['fault']
+        readers=[('audit_exit','audit','audit_native_service.py' if fault=='normal' else 'audit_native_service_faults.py'),
+                 ('ordering_exit','ordering','audit_service_ordering.py')]
+        if args.split_owner_io:readers.append(('timing_exit','timing','audit_service_timing.py'))
+        if args.response_audit:readers.append(('response_exit','response','audit_service_response.py'))
+        row.update(timing_exit=0,response_exit=0)
+        for field,tag,script in readers:
+            with (out/(row['name']+'.'+tag+'.log')).open('w') as log:
+                row[field]=subprocess.run([sys.executable,str(HERE.parent/'diagnostics'/script),str(directory/'central-rejoin-1'),'--mutations'],stdout=log,stderr=subprocess.STDOUT,check=False).returncode
+        (out/'results.json').write_text(json.dumps(results,indent=2)+'\n')
+        print(json.dumps(row),flush=True)
+    for profile,fault,delay,repeat in cases:
         binary=ROOT/f'build/m5-someip-{profile}/project/tests/integration/someip/someip_front_adapter'
         if hashlib.sha256(binary.read_bytes()).hexdigest()!=manifest['binaries'][profile]:
             raise RuntimeError('binary changed during fixed campaign: '+profile)
-        name=f'{profile}-{fault}'+('-slow-signals' if delay else '')
+        name=f'{profile}-{fault}'+('-slow-signals' if delay else '')+(f'-r{repeat}' if repeat>1 else '')
         directory=out/name
         command=[sys.executable,str(HERE/'front_run.py'),str(directory),'--profile',profile,
                  '--three','--simple-vehicle','--diagnostics','--diagnostic-service','--isolated-ecus',
@@ -47,19 +71,14 @@ def main():
         if delay:command+=['--signal-write-delay-ms',str(delay)]
         with (out/(name+'.runtime.log')).open('w') as log:
             runtime=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT,check=False).returncode
-        audit=HERE.parent/'diagnostics'/('audit_native_service.py' if fault=='normal' else 'audit_native_service_faults.py')
-        with (out/(name+'.audit.log')).open('w') as log:
-            qualified=subprocess.run([sys.executable,str(audit),str(directory/'central-rejoin-1'),'--mutations'],stdout=log,stderr=subprocess.STDOUT,check=False).returncode
-        with (out/(name+'.ordering.log')).open('w') as log:
-            ordering=subprocess.run([sys.executable,str(HERE.parent/'diagnostics/audit_service_ordering.py'),str(directory/'central-rejoin-1'),'--mutations'],stdout=log,stderr=subprocess.STDOUT,check=False).returncode
-        timing=0
-        if args.split_owner_io:
-            with (out/(name+'.timing.log')).open('w') as log:
-                timing=subprocess.run([sys.executable,str(HERE.parent/'diagnostics/audit_service_timing.py'),str(directory/'central-rejoin-1'),'--mutations'],stdout=log,stderr=subprocess.STDOUT,check=False).returncode
-        results.append({'name':name,'command':command,'runtime_exit':runtime,'audit_exit':qualified,'ordering_exit':ordering,'timing_exit':timing})
+        results.append({'name':name,'fault':fault,'command':command,'runtime_exit':runtime,'audit_exit':None,'ordering_exit':None,'timing_exit':None,'response_exit':None})
         (out/'results.json').write_text(json.dumps(results,indent=2)+'\n')
-        print(json.dumps(results[-1]),flush=True)
-    return int(any(r['audit_exit'] or r['ordering_exit'] or r['timing_exit'] for r in results))
+        if not args.defer_audits:audit_result(results[-1])
+        else:print(json.dumps(results[-1]),flush=True)
+    (out/'runtime-complete.json').write_text(json.dumps({'monotonic_ns':time.monotonic_ns(),'runtimes':len(results)})+'\n')
+    if args.defer_audits:
+        for row in results:audit_result(row)
+    return int(any(r['audit_exit'] or r['ordering_exit'] or r['timing_exit'] or r['response_exit'] for r in results))
 
 
 if __name__=='__main__':sys.exit(main())

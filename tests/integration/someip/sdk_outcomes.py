@@ -2,11 +2,13 @@
 No sanitizer output is classified here. No log is removed or rewritten.
 """
 import csv
+import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import re
 
 RESET = re.compile(r'\[error\] tcei::write_completion_condition: Connection reset by peer\(104\) bytes transferred: 0 bytes to sent: 101 remote:10\.88\.0\.2:30502 \(1311\): \[5345\.0050\.[0-9a-fA-F]{4}\]$')
+OLD_CENTRAL = re.compile(r'\[error\] tcei::write_completion_condition: Broken pipe\(32\) bytes transferred: 0 bytes to sent: 85 remote:10\.88\.0\.1:30503 \(1422\): \[5346\.0070\.[0-9a-fA-F]{4}\]$')
 
 def expected_injected_lease_reset(line, filename, result, folder):
     if result.get('case')!='restart-live' or filename!='central-1.stdout' or not RESET.search(line):return None
@@ -34,13 +36,39 @@ def expected_injected_lease_reset(line, filename, result, folder):
                 'original_credit_expiry_ns':int(credit['deadline']),'bytes_not_sent':101}
     except (KeyError,ValueError,OSError):return None
 
+def expected_old_central_actual(line,filename,result,folder):
+    """Only the declared killed generation's protected Actual lane may fail.
+
+    The causal interval ends at the new issuer's original boot, not an enlarged
+    elapsed-time tolerance. Normal/new-session delivery errors stay unexpected.
+    """
+    if result.get('case')!='central-rejoin' or filename!='front-1.stdout' or not OLD_CENTRAL.search(line):return None
+    crash=result.get('injected_crash',{})
+    if crash.get('role')!='central' or crash.get('generation')!=1 or result.get('forced_cleanup'):return None
+    rows=result.get('processes',[])
+    if not any(r.get('role')=='central' and r.get('generation')==1 and r.get('expected_abrupt_stop') is True and r.get('exit')==-9 for r in rows):return None
+    front=next((r for r in rows if r.get('role')=='front' and r.get('generation')==1),{})
+    if front.get('exit')!=0 or front.get('summary',{}).get('pass') is not True:return None
+    if not result.get('central_rejoined') or result.get('survivor_pids_before')!=result.get('survivor_pids_after') or set(result.get('survivor_pids_after',{}))!={'front','rear'}:return None
+    try:
+        sample=result['clock_sample'];root=Path(folder)
+        stamp=datetime.strptime(line[:26],'%Y-%m-%d %H:%M:%S.%f').replace(tzinfo=timezone(timedelta(seconds=sample['utc_offset_s'])))
+        ns=int(stamp.timestamp()*1e9)-sample['wall_ns']+sample['monotonic_ns']
+        protected=int((root/'front-protected').read_text())
+        successor=json.loads((root/'native-diagnostics/central/central-2.producer.json').read_text())
+        if not (successor['generation']==2 and successor['previous_unclean'] is True and crash['ns']<=protected<=ns<successor['boot_ns']):return None
+        return {'classification':'expected injected Central crash: protected Front Actual to retired generation',
+                'event_monotonic_ns':ns,'protection_ns':protected,'successor_boot_ns':successor['boot_ns'],'bytes_not_sent':85}
+    except (KeyError,ValueError,OSError):return None
+
+
 def sdk_outcomes(folder,result):
     expected=[];unexpected=[]
     for path in sorted(Path(folder).glob('*.stdout')):
         for number,line in enumerate(path.read_text(errors='replace').splitlines(),1):
             if '[error]' not in line:continue
             row={'file':path.name,'line':number,'text':line}
-            reason=expected_injected_lease_reset(line,path.name,result,folder)
+            reason=expected_injected_lease_reset(line,path.name,result,folder) or expected_old_central_actual(line,path.name,result,folder)
             if reason:expected.append(dict(row,**reason))
             else:unexpected.append(row)
     return expected,unexpected

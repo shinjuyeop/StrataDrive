@@ -5778,3 +5778,28 @@ ParentMismatch로 거절된다. 실제 TSan 실행2개에서 원본 수신/전�
 원본 request 시각과 실제 시작/종료, CPU/policy를 기록한다. 250ms marker 지연 시험으로
 IO 대기와 제어 진행을 분리해 확인한다. 원본에 syscall 시간이 없는 이전 큰 poll gap을
 디스크가 유일한 원인이었다고 소급 확정하지 않는다.
+
+<a id="adr-0097"></a>
+
+## ADR-0097: SDK enqueue/ingress 알림과 단조 시계 idle 대기
+
+상태: 구현. 수용 범위는 [응답 지연 후속 근거](../test-plan/evidence/m9_response_latency/README.md)를 따른다.
+
+Sender가200us마다 빈 큐를 확인하고 functional owner도 같은 주기로 전체 graph를 검사하던
+경로를 enqueue/RX 알림 기반 대기로 바꾼다. Owner의 요청 idle timeout은1ms이며 실제 wake
+지연은 scheduler에 의존한다. Local clock/expiry와
+센서 처리를 계속한다. Native-watch의 기존 wake grid·각 controller의 주기/기한은 유지한다.
+보호/authority lane 우선순위·8개 queue·drain budget·원본 payload/sequence/expiry는 바꾸지 않는다.
+조건 검사는 queue와 같은 mutex 안에서 하므로 notify 전에 도착한 입력도 놓치지 않는다.
+Stop은 대기 sender를 깨워 원래 queue를 드레인한 뒤 join한다.
+
+SDK 파일 출력도 고정 용량 메모리에 모아 join 후 저장한다. 원본 CRC를 이용해 실제
+TCP bytes·owner token과 enqueue→SDK call→callback→owner를 독립 대조한다. 통계의
+accepted prefix를 전체 scenario 성공으로 올리지 않는다. SIGKILL된 process의 미저장
+메모리나 누락 trace를 복원한 증거로 세지 않는다.
+
+GCC11 TSan의 `pthread_cond_clockwait` 미계측은 독립 handshake로 재현했다. 경고를
+억제하지 않고 CLOCK_MONOTONIC 조건변수의 `pthread_cond_timedwait`를 사용한다.
+Spurious wake는 최초 absolute timeout을 갱신하지 않는다. SDK FIFO 변경만으로 충분하지
+않았던 실험과 CPU 주파수 하락·temperature 관측도 원본으로 남긴다. 시스템 governor나
+thermal 보호는 변경하지 않는다. Host 수용과 Native4ms/Target·장기 부하 수용은 별도다.

@@ -1,0 +1,110 @@
+{
+  "extracted_to": "/tmp/m9-response-archive-dblfflsp",
+  "readers": [
+    {
+      "case": "normal-normal",
+      "reader": "audit_native_service.py",
+      "expected_exit": 0,
+      "actual_exit": 0
+    },
+    {
+      "case": "normal-normal",
+      "reader": "audit_service_ordering.py",
+      "expected_exit": 0,
+      "actual_exit": 0
+    },
+    {
+      "case": "normal-normal",
+      "reader": "audit_service_timing.py",
+      "expected_exit": 0,
+      "actual_exit": 0
+    },
+    {
+      "case": "normal-normal",
+      "reader": "audit_service_response.py",
+      "expected_exit": 0,
+      "actual_exit": 0
+    },
+    {
+      "case": "normal-ack-loss",
+      "reader": "audit_native_service_faults.py",
+      "expected_exit": 0,
+      "actual_exit": 0
+    },
+    {
+      "case": "normal-ack-loss",
+      "reader": "audit_service_response.py",
+      "expected_exit": 0,
+      "actual_exit": 0
+    },
+    {
+      "case": "tsan-normal-r3",
+      "reader": "audit_native_service.py",
+      "expected_exit": 1,
+      "actual_exit": 1
+    },
+    {
+      "case": "tsan-normal-r3",
+      "reader": "audit_service_response.py",
+      "expected_exit": 0,
+      "actual_exit": 0
+    }
+  ],
+  "source_snapshot_checks": [
+    {
+      "archive": "final-campaign.tar.gz",
+      "source_files": 19,
+      "match": true
+    },
+    {
+      "archive": "cpu-observed-fifo.tar.gz",
+      "source_files": 4,
+      "match": true
+    },
+    {
+      "archive": "frequency-observed-fifo.tar.gz",
+      "source_files": 4,
+      "match": true
+    },
+    {
+      "archive": "capacity-regressions.tar.gz",
+      "source_files": 6,
+      "match": true
+    },
+    {
+      "archive": "observed-other.tar.gz",
+      "source_files": 4,
+      "match": true
+    },
+    {
+      "archive": "quiet-campaign.tar.gz",
+      "source_files": 21,
+      "match": true
+    },
+    {
+      "archive": "event-monotonic-other.tar.gz",
+      "source_files": 7,
+      "match": true
+    },
+    {
+      "archive": "observed-fifo.tar.gz",
+      "source_files": 4,
+      "match": true
+    },
+    {
+      "archive": "regressions.tar.gz",
+      "source_files": 5,
+      "match": true
+    },
+    {
+      "archive": "capacity-campaign.tar.gz",
+      "source_files": 21,
+      "match": true
+    },
+    {
+      "archive": "event-other.tar.gz",
+      "source_files": 4,
+      "match": true
+    }
+  ]
+}

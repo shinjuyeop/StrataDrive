@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [서비스 순서·IO 수정과 남은 실패](test-plan/evidence/m9_service_timing/README.md) |
+| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [응답 지연 개선·고정 반복·남은 실패](test-plan/evidence/m9_response_latency/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -29,14 +29,20 @@ NormalStop은 새 동일 설정의 실제 전체 cycle/Complete 후에만 Passed
 stationary/HV-off 증거와 명시적 요청으로 clear한다. Clock은 이 predicate에서 제외한다.
 BMS9개 trip mask와 Power8개 물리 고장 조합은 electrical component 수준으로 확장했다.
 
-Native 서비스 후속에서 다음 VehicleRequest가 진행 중 Front→Rear 명령을 추월하던 결함을
-수정했다. 유한 FIFO가 원래 source/expiry·20ms 결과 기한을 유지한다. 시험 marker 파일 IO도
-owner에서 별도 worker로 옮겼다. [원본·실패·독립 감사](test-plan/evidence/m9_service_timing/README.md)는
-초기 탐색1개와 고정18개씩4개 cohort 전체를 보존한다. 최종 split CPU/FIFO 조건은
-Normal5/5·ASan5/5·TSan2/5,250ms marker 지연의 전체 service는2/3으로 총14/18이다.
-명령 순서와 실제 CPU/marker 시각 감사는18/18이지만 TSan 지원/결과 기한 초과4개가 남았다.
-기한을 늘리거나 실패를 성공으로 재분류하지 않았다. 일반1253·영향 ASan22·signal TSan3·
-CARLA 논리135개가 통과했다. CARLA 실제 재실행이나 Native4ms/Target 수용은 아니다.
+진행 중 Front→Rear 명령의 부모 추월과 marker 파일 IO는 [이전 후속](test-plan/evidence/m9_service_timing/README.md)에서 수정했다.
+이번에는 SDK sender의 빈 큐 polling과 functional owner의 반복 대기를 enqueue/RX 알림으로
+바꾸고 SDK timing 파일 쓰기를 join 뒤로 옮겼다. GCC11 TSan이 계측하는 monotonic 조건변수로
+lost wake·spurious wake/원래 timeout을 검증했다. 원래18ms support/20ms result/30ms Actual
+기한과8개 mailbox를 유지한다. Native-watch wake grid는 변경하지 않았다.
+
+[응답 지연 후속 근거](test-plan/evidence/m9_response_latency/README.md)에 성공·실패·host 온도/주파수와
+원본 TCP/owner/SDK 시각을 보존한다. 최종 고정30개는 Normal6/6·ASan5/6·TSan6/18로
+전체17/30이다. 이전24/30·23/30도 보존한다. 여러 TSan 실패 구간에서 CPU1–7의 동시 약800MHz 하락을
+관측했고 시험 전체에100°C와 thermal counter 증가가 있었다. 개별 실패의 단일 원인으로
+온도를 확정하지 않으며 환경 확인과 SDK/owner 지연 원인 분석·같은 고정 cohort의 재검증이 필요하다. 전체 timing은
+OPEN이다. 정상 명령 완료/pause handshake를 추가한 큐 포화 회귀는 Normal/ASan12/12다.
+일반1256개, monotonic ASan/TSan 각3개를 검증했으며 현재 변경 뒤 signal/monotonic 회귀6개도
+통과했다. Native4ms/Target·장기 부하나 실제 CARLA 재실행 수용은 아니다.
 
 **M9 전체 완료는 아직 아니다.** Native 서비스 timing, silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
 재검증, proposal 이전 bootstrap incident 계약, 전체8-role BMS/Power matrix와 실제 부하/장기 보존

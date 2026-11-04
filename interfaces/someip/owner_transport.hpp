@@ -4,13 +4,18 @@
 #include "wire_binding.hpp"
 #include "owner_message_binding.hpp"
 #include "owner_credit_retirement.hpp"
+#include "../common/monotonic_condition.hpp"
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <deque>
 #include <fstream>
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <vector>
+#include <pthread.h>
+#include <time.h>
 
 namespace stratadrive::someip {
 inline constexpr std::uint64_t kMs=1000000;
@@ -20,8 +25,21 @@ class Transport {
     using Out=OwnerEgressPacket;
     Ecu ecu_; bool three_;bool transitioning_=false; std::shared_ptr<vsomeip::application> app_;
     std::thread dispatch_,sender_; std::mutex mutex_; std::array<std::deque<remote::OwnerMessage>,4> rx_;
+    std::condition_variable tx_ready_;runtime::MonotonicCondition rx_ready_;
     std::array<std::deque<Out>,4> tx_; std::atomic<bool> sending_{false},closing_{false};
     std::ofstream trace_;
+    struct TimingRow {std::uint64_t ns;const char* event;unsigned lane,method;std::size_t bytes;std::uint32_t crc;std::uint64_t cpu_ns;};
+    std::mutex trace_mutex_;std::vector<TimingRow> timing_;bool trace_overflow_=false;
+    static std::uint64_t thread_cpu() {timespec t{};clock_gettime(CLOCK_THREAD_CPUTIME_ID,&t);return std::uint64_t(t.tv_sec)*1000000000+t.tv_nsec;}
+    void record(const char* event,unsigned lane,unsigned method,const std::uint8_t* bytes,std::size_t size,std::uint64_t stamp=0,std::uint64_t cpu=0) {
+        // The canonical packet's trailing CRC correlates the same immutable
+        // bytes at queue, SDK call and callback. No hashing/formatting/file IO.
+        std::uint32_t crc=0;
+        if(size>=4)for(unsigned i=0;i<4;++i)crc|=std::uint32_t(bytes[size-4+i])<<(8*i);
+        const auto ns=stamp?stamp:now();std::lock_guard<std::mutex> lock(trace_mutex_);
+        if(timing_.size()==timing_.capacity()){trace_overflow_=true;return;}
+        timing_.push_back({ns,event,lane,method,size,crc,cpu?cpu:thread_cpu()});
+    }
     unsigned local(unsigned lane) const { return ecu_==Ecu::Central?(lane<2?0x5346+lane:0x534a+lane-2):(ecu_==Ecu::Front?0x5344:0x5348)+lane; }
     unsigned peer(unsigned lane) const { return ecu_==Ecu::Central?(lane<2?0x5344+lane:0x5348+lane-2):(ecu_==Ecu::Front?0x5346:0x534a)+lane; }
 public:
@@ -43,7 +61,7 @@ public:
     std::uint64_t stop_return_ns=0,join_return_ns=0;
     Transport(bool front,const std::string& trace):Transport(front?Ecu::Front:Ecu::Central,false,trace) {}
     explicit Transport(Ecu ecu,bool three,const std::string& trace):ecu_(ecu),three_(three),app_(vsomeip::runtime::get()->create_application(ecu==Ecu::Central?"central":ecu==Ecu::Front?"front":"rear")),trace_(trace) {
-        trace_<<"ns,event,lane,method,bytes\n";
+        timing_.reserve(131072);trace_<<"ns,event,lane,method,bytes,crc,cpu_ns\n";
     }
     unsigned channels() const {return ecu_==Ecu::Central && three_?4:2;}
     unsigned ready_mask() const {return (1U<<channels())-1;}
@@ -62,6 +80,7 @@ public:
                 if(yes) available.fetch_or(1U<<l);else {available.fetch_and(~(1U<<l));ready.fetch_and(~(1U<<l));}
             },1,0);
             for(const auto sid:{local(l),peer(l)}) app_->register_message_handler(sid,1,vsomeip::ANY_METHOD,[this,l](const auto& message) {
+                const auto entered=now(),entered_cpu=thread_cpu();
                 const auto p=message->get_payload();
                 const auto type=message->get_message_type();const auto mid=message->get_method();
                 if(p && mid==kReady && message->get_interface_version()==1 &&
@@ -80,6 +99,7 @@ public:
                 }
                 const auto decoded=p?remote::decode_owner_message(p->get_data(),p->get_length()):std::nullopt;
                 if(!decoded || !binding(ecu_,message->get_service(),message->get_instance(),mid,static_cast<unsigned>(type),message->get_interface_version(),*decoded)) {++rejected;return;}
+                record("rx-enter",l,mid,p->get_data(),p->get_length(),entered,entered_cpu);
                 // Prequeue admission only. Publish this cache solely from a real
                 // positive local INIT ACK; it grants no Release/credit/arm authority.
                 // Disconnected SDK buffering must not fill a fresh process's queue
@@ -112,11 +132,16 @@ public:
                     overflow=true;return;
                 }
                 rx_[l].push_back(*decoded);highwater[l]=std::max(highwater[l].load(),static_cast<unsigned>(rx_[l].size()));
+                record("rx-queued",l,mid,p->get_data(),p->get_length());
+                rx_ready_.notify_one();
             });
         }
         dispatch_=std::thread([this]{app_->start();});sending_=true;
         sender_=std::thread([this]{
+            pthread_setname_np(pthread_self(),"sd_owner_tx");
             while(sending_) {
+                {std::unique_lock<std::mutex> lock(mutex_);
+                    tx_ready_.wait(lock,[this]{return closing_ || std::any_of(tx_.begin(),tx_.end(),[](const auto& q){return !q.empty();});});}
                 for(const unsigned l:{1U,3U,0U,2U}) for(unsigned i=0;i<8;++i) {
                     if(l>=channels())break;
                     std::optional<Out> o;
@@ -125,11 +150,11 @@ public:
                     auto m=vsomeip::runtime::get()->create_request(true);m->set_service(peer(l));m->set_instance(1);m->set_method(o->method);
                     m->set_interface_version(1);m->set_message_type(vsomeip::message_type_e::MT_REQUEST_NO_RETURN);
                     auto p=vsomeip::runtime::get()->create_payload();p->set_data(o->packet.bytes.data(),o->packet.size);m->set_payload(p);
+                    record("send-begin",l,o->method,o->packet.bytes.data(),o->packet.size);
                     app_->send(m);++send_returned;
-                    trace_<<now()<<",send-return,"<<l<<','<<o->method<<','<<o->packet.size<<'\n';
+                    record("send-return",l,o->method,o->packet.bytes.data(),o->packet.size);
                 }
                 if(closing_) {std::lock_guard<std::mutex> lock(mutex_);if(std::all_of(tx_.begin(),tx_.end(),[](const auto& q){return q.empty();}))break;}
-                std::this_thread::sleep_for(std::chrono::microseconds(200));
             }
         });
     }
@@ -139,6 +164,7 @@ public:
         if(tx_[lane].size()==8){outbound_full(lane,kReady);return;}
         tx_[lane].push_back({packet,kReady,std::nullopt});
         tx_highwater[lane]=std::max(tx_highwater[lane].load(),static_cast<unsigned>(tx_[lane].size()));
+        tx_ready_.notify_one();
     }
     void probe_peer(bool force=false) {
         for(unsigned l=0;l<channels();++l) if((available.load()&(1U<<l)) && (force || !(ready.load()&(1U<<l)))) {
@@ -164,7 +190,8 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);
         retired_run_credits+=retire_run_credits(tx_[l],m);
         if(tx_[l].size()==8) {outbound_full(l,mid);return false;}
-        tx_[l].push_back(*p);tx_highwater[l]=std::max(tx_highwater[l].load(),static_cast<unsigned>(tx_[l].size()));return true;
+        tx_[l].push_back(*p);tx_highwater[l]=std::max(tx_highwater[l].load(),static_cast<unsigned>(tx_[l].size()));
+        record("tx-queued",l,mid,p->packet.bytes.data(),p->packet.size);tx_ready_.notify_one();return true;
     }
     std::optional<remote::OwnerMessage> pop(unsigned lane) {
         std::lock_guard<std::mutex> lock(mutex_);if(rx_[lane].empty())return {};
@@ -183,13 +210,22 @@ public:
     }
 #endif
     std::size_t queued(unsigned lane){std::lock_guard<std::mutex> lock(mutex_);return rx_[lane].size();}
+    // Host functional owner: wake immediately for actual ingress; a bounded
+    // idle wait keeps local clock/expiry/sensor work alive without a busy poll.
+    void wait_for_ingress(std::chrono::microseconds maximum) {
+        std::unique_lock<std::mutex> lock(mutex_);
+        rx_ready_.wait_for(lock,maximum,[this]{return overflow || closing_ || std::any_of(rx_.begin(),rx_.end(),[](const auto& q){return !q.empty();});});
+    }
     void stop() {
-        closing_=true;if(sender_.joinable())sender_.join();sending_=false;
+        {std::lock_guard<std::mutex> lock(mutex_);closing_=true;}
+        tx_ready_.notify_one();rx_ready_.notify_one();if(sender_.joinable())sender_.join();sending_=false;
         if(!dispatch_.joinable())return;
         for(unsigned l=0;l<channels();++l){app_->stop_offer_service(local(l),1,1,0);app_->release_service(peer(l),1);}
         app_->clear_all_handler();app_->stop();stop_return_ns=now();dispatch_.join();join_return_ns=now();
+        for(const auto& r:timing_)trace_<<r.ns<<','<<r.event<<','<<r.lane<<','<<r.method<<','<<r.bytes<<','<<r.crc<<','<<r.cpu_ns<<'\n';
         trace_<<stop_return_ns<<",stop-return,0,0,0\n"<<join_return_ns<<",join-return,0,0,0\n";trace_.flush();
     }
+    bool trace_ok() const {return !trace_overflow_ && static_cast<bool>(trace_);}
     ~Transport(){stop();}
 };
 }

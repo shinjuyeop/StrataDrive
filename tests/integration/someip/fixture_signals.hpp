@@ -44,7 +44,7 @@ public:
             "service-freeze","service-collector-freeze","service-epoch-ready","service-epoch-request",
             "rejoin-request","rejoined","central-2-rejoined","control-established",
             "central-protected","front-protected","rear-protected","physical-protected",
-            "diagnostics-settled","delay-drained","queue-full",
+            "diagnostics-settled","delay-drained","queue-full","full-pause-request","full-pause-ack",
             "central.service-frozen","front.service-frozen","rear.service-frozen",
             tag+".started",tag+".ready",tag+".failed",tag+".quiesced"};
         for(const auto& name:names) {
