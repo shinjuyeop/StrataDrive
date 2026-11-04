@@ -1,0 +1,525 @@
+[
+  {
+    "name": "verified-normal-stop-ack-loss",
+    "error": "RuntimeError: new Central session did not arm",
+    "sanitizer": false,
+    "sdk": false,
+    "forced": [],
+    "central_events": [
+      {
+        "file": "central-2.events.csv",
+        "ns": "783689670576340",
+        "event": "epoch-store-begin",
+        "epoch": "0",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783689732149570",
+        "event": "epoch-store-return",
+        "epoch": "0",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783689732195784",
+        "event": "epoch-issued",
+        "epoch": "2",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      }
+    ],
+    "dtcs": [
+      {
+        "code": 20481,
+        "native_reason": 1,
+        "epoch": 2,
+        "detected_ns": 783689616618846,
+        "observed_ns": 783690150017497
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783689548512569,
+        "observed_ns": 783689548517238
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783689548475369,
+        "observed_ns": 783689548483249
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783689548476049,
+        "observed_ns": 783689548483249
+      }
+    ]
+  },
+  {
+    "name": "verified-asan-actual-loss",
+    "error": "RuntimeError: new Central session did not arm",
+    "sanitizer": false,
+    "sdk": false,
+    "forced": [],
+    "central_events": [
+      {
+        "file": "central-2.events.csv",
+        "ns": "783721187837639",
+        "event": "epoch-store-begin",
+        "epoch": "0",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783721245163542",
+        "event": "epoch-store-return",
+        "epoch": "0",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783721245293407",
+        "event": "epoch-issued",
+        "epoch": "2",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      }
+    ],
+    "dtcs": [
+      {
+        "code": 20481,
+        "native_reason": 1,
+        "epoch": 2,
+        "detected_ns": 783721064749555,
+        "observed_ns": 783721548387144
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783720946264390,
+        "observed_ns": 783720946303758
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783720946453540,
+        "observed_ns": 783720946513677
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783720946465253,
+        "observed_ns": 783720946513677
+      }
+    ]
+  },
+  {
+    "name": "verified-tsan-normal",
+    "error": "RuntimeError: new Central session did not arm",
+    "sanitizer": false,
+    "sdk": false,
+    "forced": [],
+    "central_events": [
+      {
+        "file": "central-2.events.csv",
+        "ns": "783742406722580",
+        "event": "epoch-store-begin",
+        "epoch": "0",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783742458748962",
+        "event": "epoch-store-return",
+        "epoch": "0",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783742458981314",
+        "event": "epoch-issued",
+        "epoch": "2",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      }
+    ],
+    "dtcs": [
+      {
+        "code": 20481,
+        "native_reason": 1,
+        "epoch": 2,
+        "detected_ns": 783742342049614,
+        "observed_ns": 783742865236133
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783742269191582,
+        "observed_ns": 783742269280412
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783742269280692,
+        "observed_ns": 783742269424571
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783742269289820,
+        "observed_ns": 783742269424571
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 2,
+        "detected_ns": 783743634410053,
+        "observed_ns": 783743634470917
+      }
+    ]
+  },
+  {
+    "name": "verified-tsan-stop-request-loss",
+    "error": "RuntimeError: Central exited before Epoch3 normal stop",
+    "sanitizer": false,
+    "sdk": false,
+    "forced": [],
+    "central_events": [
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "783772233971169",
+        "event": "epoch-issued",
+        "epoch": "3",
+        "role": "7",
+        "value": "3",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "783773532952026",
+        "event": "normal-stop-requested",
+        "epoch": "3",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "783773583918829",
+        "event": "central-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "12",
+        "deadline": "5"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "783773583919568",
+        "event": "central-allocation-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "4",
+        "deadline": "3"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783769605295467",
+        "event": "epoch-store-begin",
+        "epoch": "0",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783769666340135",
+        "event": "epoch-store-return",
+        "epoch": "0",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783769666571832",
+        "event": "epoch-issued",
+        "epoch": "2",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783771283491395",
+        "event": "normal-stop-requested",
+        "epoch": "2",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783772158074555",
+        "event": "normal-stop-complete",
+        "epoch": "2",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783772166602316",
+        "event": "epoch-store-begin",
+        "epoch": "2",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783772233524445",
+        "event": "epoch-store-return",
+        "epoch": "2",
+        "role": "7",
+        "value": "3",
+        "deadline": "0"
+      }
+    ],
+    "dtcs": [
+      {
+        "code": 20481,
+        "native_reason": 1,
+        "epoch": 2,
+        "detected_ns": 783769488910028,
+        "observed_ns": 783770018412782
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783769411463980,
+        "observed_ns": 783769411524670
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783769411739556,
+        "observed_ns": 783769411822940
+      },
+      {
+        "code": 4098,
+        "native_reason": 131077,
+        "epoch": 3,
+        "detected_ns": 783773583871196,
+        "observed_ns": 783773584041850
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 3,
+        "detected_ns": 783773583545355,
+        "observed_ns": 783773583601751
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 3,
+        "detected_ns": 783773583539842,
+        "observed_ns": 783773583625220
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 3,
+        "detected_ns": 783773583550096,
+        "observed_ns": 783773583625220
+      }
+    ]
+  },
+  {
+    "name": "verified-tsan-stop-ack-loss",
+    "error": "RuntimeError: Central exited before Epoch3 normal stop",
+    "sanitizer": false,
+    "sdk": false,
+    "forced": [],
+    "central_events": [
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "783778814393894",
+        "event": "epoch-issued",
+        "epoch": "3",
+        "role": "7",
+        "value": "3",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "783780128877407",
+        "event": "normal-stop-requested",
+        "epoch": "3",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "783780186737654",
+        "event": "central-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "12",
+        "deadline": "6"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "783780186738435",
+        "event": "central-allocation-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "13",
+        "deadline": "3"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783776143194207",
+        "event": "epoch-store-begin",
+        "epoch": "0",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783776204042908",
+        "event": "epoch-store-return",
+        "epoch": "0",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783776204270769",
+        "event": "epoch-issued",
+        "epoch": "2",
+        "role": "7",
+        "value": "2",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783777870685098",
+        "event": "normal-stop-requested",
+        "epoch": "2",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783778749364098",
+        "event": "normal-stop-complete",
+        "epoch": "2",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783778756724096",
+        "event": "epoch-store-begin",
+        "epoch": "2",
+        "role": "7",
+        "value": "0",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "783778813928141",
+        "event": "epoch-store-return",
+        "epoch": "2",
+        "role": "7",
+        "value": "3",
+        "deadline": "0"
+      }
+    ],
+    "dtcs": [
+      {
+        "code": 20481,
+        "native_reason": 1,
+        "epoch": 2,
+        "detected_ns": 783776075142160,
+        "observed_ns": 783776599094449
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783775994597336,
+        "observed_ns": 783775994693361
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783775994347554,
+        "observed_ns": 783775994435069
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 1,
+        "detected_ns": 783775994358162,
+        "observed_ns": 783775994435069
+      },
+      {
+        "code": 4098,
+        "native_reason": 131078,
+        "epoch": 3,
+        "detected_ns": 783780185985659,
+        "observed_ns": 783780186992990
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 3,
+        "detected_ns": 783780184878052,
+        "observed_ns": 783780185033789
+      },
+      {
+        "code": 8193,
+        "native_reason": 2,
+        "epoch": 3,
+        "detected_ns": 783780184675766,
+        "observed_ns": 783780184781858
+      }
+    ]
+  }
+]

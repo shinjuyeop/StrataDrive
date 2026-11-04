@@ -124,7 +124,7 @@ void ControlDiagnostics::speed(const central::SpeedRequest& c,const std::optiona
     if(command) e.command={true,value(Component::Speed),command->sequence,command->epoch,stamp(command->source_time_ns),stamp(command->expires_at_ns)};
     const auto id=publish(e); e.id=id;
     if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
-    if(code==Code::SpeedInput) { speed_recovery_target_=e; speed_recovered_=false; }
+    if(code==Code::SpeedInput || code==Code::CentralControl) { speed_recovery_target_=e; speed_recovered_=false; }
     if(!has_root(root_)) root_=e;
 }
 void ControlDiagnostics::stop(const central::NormalStop& c,std::uint64_t now) noexcept {
@@ -157,13 +157,74 @@ void ControlDiagnostics::stop(const central::NormalStop& c,std::uint64_t now) no
         if(has_root(root_)) e.related=root_.id;
         const auto id=publish(e); e.id=id;
         if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
+        if(e.kind==Kind::Fault) remember_stop_recovery(e,o.config);
         if(!has_root(root_)) root_=e;
+    }
+}
+void ControlDiagnostics::remember_stop_recovery(const Event& event,const central::NormalStopConfig& config) noexcept {
+    switch(event.key.code) {
+    case Code::BrakingTimeout: case Code::Handoff: case Code::StopEvidence:
+    case Code::ShutdownTimeout: case Code::StopRequest: case Code::CentralControl: case Code::Deadline: break;
+    default: return; // Clock recovery requires separate trusted clock qualification.
+    }
+    for(auto& target:stop_recovery_targets_) if(target && target->fault.key==event.key) {
+        target=StopRecovery{event,config,false}; return;
+    }
+    for(auto& target:stop_recovery_targets_) if(!target) {target=StopRecovery{event,config,false}; return;}
+    healthy_=false; // Bounded history cannot silently evict an unresolved occurrence.
+}
+void ControlDiagnostics::stop_recovery(const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
+    const auto decision=c.decision();const auto& phases=c.normal_stop().phase_observations();
+    if(!healthy_ || decision.fault!=central::CoordinatorFault::None || decision.normal_armed ||
+       !decision.stopping || decision.stop.fault!=central::NormalStopFault::None ||
+       decision.stop.state!=central::NormalStopState::Complete || decision.management.normal_allowed ||
+       decision.management.state!=central::VehicleManagementState::Stopped || !decision.management.power_off_confirmed) return;
+    std::uint64_t previous=enable_;
+    for(const auto& phase:phases) {
+        if(!phase || phase->epoch!=session_.epoch || phase->enable_ns!=enable_ ||
+           phase->observed_ns<previous || phase->observed_ns>now) return;
+        previous=phase->observed_ns;
+    }
+    const auto& complete=*phases[3];const auto& handoff=*phases[1];const auto& ack=*phases[2];
+    if(now-previous>30000000 || now==std::numeric_limits<std::uint64_t>::max() ||
+       !handoff.lease || !ack.lease || !same_stop_lease(*handoff.lease,*ack.lease) ||
+       ack.observed_ns>=ack.lease->expires_at_ns || ack.lease->epoch!=session_.epoch ||
+       handoff.observed_ns-phases[0]->observed_ns>=complete.config.braking_timeout_ns ||
+       complete.observed_ns-ack.observed_ns>=complete.config.shutdown_timeout_ns ||
+       !complete.evidence.drive || !complete.evidence.drive->wheel_speed ||
+       !complete.evidence.brake || !complete.evidence.power) return;
+    const auto& cfg=complete.config;
+    for(auto& target:stop_recovery_targets_) {
+        if(!target || target->passed || target->fault.session.epoch>=session_.epoch || target->fault.profile!=context_.profile) continue;
+        const auto& old=target->config;
+        if(old.deceleration_mps2!=cfg.deceleration_mps2 || old.confirmation_ns!=cfg.confirmation_ns ||
+           old.braking_timeout_ns!=cfg.braking_timeout_ns || old.shutdown_timeout_ns!=cfg.shutdown_timeout_ns ||
+           old.minimum_tick_interval_ns!=cfg.minimum_tick_interval_ns) continue;
+        auto e=base(now);e.kind=Kind::Observation;e.key=target->fault.key;e.occurrence=target->fault.occurrence;
+        e.related=target->fault.id;e.latch=Latch::Clear;
+        switch(e.key.code) {
+        case Code::BrakingTimeout:e.proof=Proof::Stop;break;
+        case Code::Handoff:e.proof=Proof::Handoff;break;
+        case Code::StopEvidence:e.proof=Proof::Hold;break;
+        case Code::ShutdownTimeout:e.proof=Proof::Shutdown;break;
+        case Code::StopRequest:e.proof=Proof::Input;break;
+        default:e.proof=Proof::Control;break;
+        }
+        e.state_after=static_cast<std::uint32_t>(complete.after);
+        e.stop_lease={true,value(Component::Stop),ack.lease->sequence,ack.lease->epoch,stamp(ack.lease->source_time_ns),stamp(ack.lease->expires_at_ns)};
+        e.times[static_cast<std::size_t>(Time::Acknowledged)]=stamp(ack.observed_ns);
+        e.times[static_cast<std::size_t>(Time::Actual)]=stamp(complete.evidence.drive->wheel_speed->source_time_ns);
+        e.measured=complete.evidence.drive->wheel_speed->value_rad_s;
+        const auto proof=publish(e);actuals(complete,e,proof,now);
+        if(!healthy_) return;
+        e.kind=Kind::Passed;e.proof_event=proof;publish(e);target->passed=true;
     }
 }
 void ControlDiagnostics::actuals(const central::NormalStopObservation& o,const Event& phase,EventId parent,std::uint64_t now) noexcept {
     const auto emit=[&](Component component,Subject subject,const can::ActuatorMetadata& metadata,std::uint64_t source,double measured) {
         if(!std::isfinite(measured)) { healthy_=false; return; }
-        auto e=phase; e.kind=Kind::Actual; e.related=parent; e.key.subject=static_cast<std::uint32_t>(subject);
+        auto e=phase; e.kind=Kind::Actual; e.related=parent;
+        if(e.key.code==Code::None) e.key.subject=static_cast<std::uint32_t>(subject);
         e.source={true,value(component),subject==Subject::Wheel?source:metadata.sequence,metadata.epoch,stamp(source),{}};
         e.measured=measured; e.times[static_cast<std::size_t>(Time::Actual)]=stamp(source);
         e.times[static_cast<std::size_t>(Time::Observed)]=stamp(o.evidence.observed_ns);
@@ -187,15 +248,35 @@ void ControlDiagnostics::coordinator(const central::VehicleCoordinator& c,std::u
     const auto& fault=c.fault_observation();
     if(!coordinator_seen_ && fault && fault->epoch==session_.epoch && fault->enable_ns==enable_) {
         coordinator_seen_=true; const auto& o=*fault; auto e=base(now);
-        e.native_reason=coordinator_reason(o.fault); const bool handoff=o.fault==central::CoordinatorFault::Handoff;
-        e.kind=handoff?Kind::Fault:Kind::Observation;
-        e.key=key(handoff?Code::Handoff:Code::None,Component::Coordinator,Monitor::Coordinator,handoff?Subject::Handoff:Subject::Protection);
-        e.latch=Latch::Set; e.times[static_cast<std::size_t>(Time::Detected)]=stamp(o.detected_ns,o.fault!=central::CoordinatorFault::ClockError);
-        e.related=root_.id; e.cause_unknown=!has_root(root_);
-        e.unmapped=!handoff && !has_root(root_) && o.fault!=central::CoordinatorFault::LocalProtection;
+        e.native_reason=coordinator_reason(o.fault); bool handoff=o.fault==central::CoordinatorFault::Handoff;
+        const bool transport=o.transport && o.transport->session.epoch==session_.epoch && o.transport->session.enable_ns==enable_ && o.transport->fault!=central::AsyncTransportFault::None;
+        const bool allocation=o.fault==central::CoordinatorFault::Allocation && o.allocation_fault!=central::AllocationFault::None && o.allocation_fault!=central::AllocationFault::ContinuityLost;
+        auto code=handoff?Code::Handoff:Code::None;
+        if(allocation){
+            code=o.allocation_fault==central::AllocationFault::ClockError?Code::Clock:
+                 o.allocation_fault==central::AllocationFault::ControlDeadline?Code::Deadline:Code::CentralControl;
+            // Explicit native reason namespace: bit16 marks the allocator; the
+            // low16 bits retain AllocationFault from BEFORE protection changes.
+            e.native_reason=0x10000U|static_cast<std::uint32_t>(o.allocation_fault);
+            if(o.vehicle){const auto& r=*o.vehicle;e.command={true,value(Component::Coordinator),r.sequence,r.epoch,stamp(r.source_time_ns),stamp(r.expires_at_ns)};}
+        }
+        if(transport){
+            const auto& t=*o.transport;handoff=t.stop_handoff;
+            code=t.fault==central::AsyncTransportFault::Clock?Code::Clock:handoff?Code::Handoff:Code::CentralControl;
+            e.native_reason=0x20000U|static_cast<std::uint32_t>(t.fault);
+            if(t.token)e.command={true,value(Component::Coordinator),t.token,t.session.epoch,stamp(t.sent_ns,code!=Code::Clock),stamp(t.deadline_ns,code!=Code::Clock)};
+            if(t.fault==central::AsyncTransportFault::ResultTimeout)e.times[static_cast<std::size_t>(Time::Violation)]=stamp(t.deadline_ns);
+        }
+        const bool confirmed=code!=Code::None;
+        e.kind=confirmed?Kind::Fault:Kind::Observation;
+        e.key=key(code,Component::Coordinator,Monitor::Coordinator,handoff?Subject::Handoff:allocation?Subject::Torque:Subject::Protection);
+        e.latch=Latch::Set; e.times[static_cast<std::size_t>(Time::Detected)]=stamp(transport?o.transport->detected_ns:o.detected_ns,o.fault!=central::CoordinatorFault::ClockError && code!=Code::Clock);
+        e.related=root_.id; e.cause_unknown=!confirmed && !has_root(root_);
+        e.unmapped=!confirmed && !has_root(root_) && o.fault!=central::CoordinatorFault::LocalProtection;
         if(o.handoff) { const auto& l=o.handoff->lease; e.stop_lease={true,value(Component::Stop),l.sequence,l.epoch,stamp(l.source_time_ns),stamp(l.expires_at_ns)}; }
         const auto id=publish(e); e.id=id;
-        if(handoff) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
+        if(confirmed) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
+        if(e.kind==Kind::Fault) remember_stop_recovery(e,c.normal_stop().configuration());
         if(!has_root(root_)) root_=e;
     }
     const auto& selections=c.protection_observations();
@@ -259,7 +340,7 @@ void ControlDiagnostics::observe_speed_recovery(const central::SpeedRequest& spe
        !d.normal_armed || d.stopping || d.fault!=central::CoordinatorFault::None ||
        !d.management.normal_allowed || d.management.fault!=central::VehicleManagementFault::None ||
        d.management.permission_support.expiry_ns<=now) return;
-    auto e=base(now); e.kind=Kind::Actual; e.proof=Proof::Input; e.key=speed_recovery_target_->key;
+    auto e=base(now); e.kind=Kind::Actual; e.proof=speed_recovery_target_->key.code==Code::SpeedInput?Proof::Input:Proof::Control; e.key=speed_recovery_target_->key;
     e.occurrence=speed_recovery_target_->occurrence; e.related=speed_recovery_target_->id; e.latch=Latch::Clear;
     e.source={true,value(Component::DriveWheel),o.input.wheel_speed->source_time_ns,o.epoch,stamp(o.input.wheel_speed->source_time_ns),{}};
     e.command={true,value(Component::Speed),o.request.sequence,o.request.epoch,stamp(o.request.source_time_ns),stamp(o.request.expires_at_ns)};
@@ -271,8 +352,18 @@ void ControlDiagnostics::observe_speed_recovery(const central::SpeedRequest& spe
 std::optional<ServiceEvidence> ControlDiagnostics::speed_clear_evidence(const central::SpeedRequest& speed_control,
     const central::VehicleCoordinator& c,const central::NormalDriveReadinessInputs& in,
     const std::optional<can::DriveMessage>& input,std::uint64_t now) const noexcept {
-    if(!healthy_ || !speed_recovered_ || !speed_recovery_target_ || in.epoch!=session_.epoch || in.session_enable_ns!=enable_ ||
-       speed_control.fault()!=central::SpeedRequestFault::None || speed_control.state().epoch!=session_.epoch ||
+    if(!speed_recovered_ || !speed_recovery_target_ || speed_control.fault()!=central::SpeedRequestFault::None ||
+       speed_control.state().epoch!=session_.epoch) return std::nullopt;
+    return stationary_evidence(c,in,input,now);
+}
+std::optional<ServiceEvidence> ControlDiagnostics::stop_clear_evidence(const central::VehicleCoordinator& c,
+    const central::NormalDriveReadinessInputs& in,std::uint64_t now) const noexcept {
+    if(std::none_of(stop_recovery_targets_.begin(),stop_recovery_targets_.end(),[](const auto& t){return t && t->passed;})) return std::nullopt;
+    return stationary_evidence(c,in,in.rear.drive_actual,now);
+}
+std::optional<ServiceEvidence> ControlDiagnostics::stationary_evidence(const central::VehicleCoordinator& c,
+    const central::NormalDriveReadinessInputs& in,const std::optional<can::DriveMessage>& input,std::uint64_t now) const noexcept {
+    if(!healthy_ || in.epoch!=session_.epoch || in.session_enable_ns!=enable_ ||
        !input || !in.rear.drive_actual || !same_input(*input,*in.rear.drive_actual) || !input->wheel_speed ||
        !in.front.brake_actual || !input->torque_nm || !in.front.brake_actual->pressure_pa || !in.rear.power_status ||
        now<enable_ || now==std::numeric_limits<std::uint64_t>::max() || !central::evaluate_vehicle_input_health(in,now).ready()) return std::nullopt;
@@ -295,10 +386,10 @@ std::optional<ServiceEvidence> ControlDiagnostics::speed_clear_evidence(const ce
 }
 void ControlDiagnostics::observe(const central::SpeedRequest& speed_control,const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
     if(!session_.epoch) return;
-    speed(speed_control,c.last_vehicle_request(),now); stop(c.normal_stop(),now); coordinator(c,now);
+    speed(speed_control,c.last_vehicle_request(),now); stop(c.normal_stop(),now); coordinator(c,now); stop_recovery(c,now);
 }
 void ControlDiagnostics::observe(const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
-    if(session_.epoch) {stop(c.normal_stop(),now);coordinator(c,now);}
+    if(session_.epoch) {stop(c.normal_stop(),now);coordinator(c,now);stop_recovery(c,now);}
 }
 void ControlDiagnostics::observe(const central::SpeedRequest& c,std::uint64_t now) noexcept {
     if(session_.epoch) speed(c,std::nullopt,now);

@@ -10,14 +10,20 @@ from pathlib import Path
 def run(folder, central):
     from run import wait_for
     folder = Path(folder)
-    wait_for(lambda: (folder/'service-epoch-ready').exists() or central.poll() is not None, 5)
-    if central.poll() is not None: raise RuntimeError('Central exited before service startup request')
+    def failed():
+        return central.poll() is not None or (folder/'central-2.failed').exists()
+    wait_for(lambda: (folder/'service-epoch-ready').exists() or failed(), 5)
+    if failed(): raise RuntimeError('Central exited before service startup request')
     (folder/'service-epoch-request').write_text('explicit operator startup after Epoch2 NormalStop; service review never issues INIT')
-    wait_for(lambda: (folder/'service-stop-ready').exists() or central.poll() is not None, 5)
-    if central.poll() is not None: raise RuntimeError('Central exited before Epoch3 normal stop')
+    wait_for(lambda: (folder/'service-stop-ready').exists() or failed(), 5)
+    if failed(): raise RuntimeError('Central exited before Epoch3 normal stop')
     (folder/'service-freeze').write_text(str(time.monotonic_ns()))
     for role in ('front', 'rear'):
-        wait_for(lambda role=role: (folder/(role+'.service-frozen')).exists() or central.poll() is not None, 3)
+        # A failed source drain is terminal. Do not keep all control owners
+        # running until a supervisor timeout after the source has already failed.
+        failed=Path(os.environ['STRATADRIVE_DIAGNOSTIC_STORE_ROOT'])/role/(role+'-1.drain-failed.csv')
+        wait_for(lambda role=role: (folder/(role+'.service-frozen')).exists() or failed.exists() or central.poll() is not None, 3)
+        if failed.exists():raise RuntimeError('source service drain failed '+role)
         if not (folder/(role+'.service-frozen')).exists(): raise RuntimeError('source service freeze missing '+role)
     (folder/'service-collector-freeze').write_text(str(time.monotonic_ns()))
     wait_for(lambda: (folder/'service-ready.json').exists() or central.poll() is not None, 3)
@@ -33,6 +39,18 @@ def run(folder, central):
         if reserved: raise RuntimeError('service response reserved')
         return dict(number=number, watermark=watermark, revision=revision, status=status, stage=stage, blocked=blocked)
     rows = []
+    if os.environ.get('STRATADRIVE_SERVICE_FAULT') == 'actual-loss':
+        (folder/'service-fault-inject').write_text(str(time.monotonic_ns()))
+        # Drop actual Brake feedback at the Front TCP emitter. Let its original
+        # 30ms acquisition validity expire; do not edit a service snapshot.
+        time.sleep(.05)
+        for label, raw, expected in [
+            ('stale-actual-review', request(1, ready['revision']), 6),
+            ('clear-without-review', request(2, ready['revision'], op=2, disposition=0), 11)]:
+            reply = exchange(raw);rows.append(dict(label=label, request=raw.hex(), reply=reply))
+            (folder/'service-client.json').write_text(json.dumps(dict(pid=os.getpid(), ready=ready, requests=rows), indent=2)+'\n')
+            if reply['status'] != expected or reply['stage'] != 0: raise RuntimeError('negative service verdict '+str(reply))
+        return dict(pass_=False, expected_rejection=True, requests=len(rows))
     child = os.fork()
     if child == 0:
         try: ok = exchange(request(1, ready['revision']))['status'] == 1

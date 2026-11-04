@@ -137,6 +137,29 @@ TEST_F(ControlAllocationTest, PendingPollPreservesExclusiveSupportExpiryAndLatch
     EXPECT_TRUE(allocator.decision().protection_required);
     EXPECT_TRUE(allocator.start_session(4,expiry+1));EXPECT_FALSE(allocator.decision().protection_required);
 }
+TEST(ControlAllocationSession, FreshGrantCannotBridgeExpiredSupportDuringNativeStopRenewal) {
+    // Native TSan evidence: command at371501184, support expiry390823384,
+    // matching next grant ready390857467. Preserve those relative instants.
+    constexpr std::uint64_t support=19322200,late=34083;
+    for(const auto delay:{-1LL,0LL,static_cast<long long>(late)}) {
+        central::AllocationConfig config;config.minimum_tick_interval_ns=1000000;
+        central::ControlAllocation a(config);ASSERT_TRUE(a.start_session(3,kStart));
+        central::VehicleRequest root{3,0,ns(20),ns(80),0,0,0,true};
+        ASSERT_EQ(a.receive_request(root,ns(20)),AllocationReceiveDecision::Accepted);
+        auto previous=inputs(20);
+        std::get<can::BmsDriveGrant>(previous.permission->message.content).expires_at_ns=ns(20)+support;
+        ASSERT_TRUE(a.tick(previous,ns(20)));
+        const auto arrived=static_cast<std::uint64_t>(static_cast<long long>(ns(20)+support)+delay);
+        const auto output=a.tick(inputs(39),arrived);
+        EXPECT_EQ(output.has_value(),delay<0);
+        EXPECT_EQ(a.decision().fault,delay<0?AllocationFault::None:AllocationFault::SupportExpired);
+        if(delay>=0) {
+            root.sequence=1;root.source_time_ns=arrived;root.expires_at_ns=arrived+60*kMs;
+            EXPECT_EQ(a.receive_request(root,arrived),AllocationReceiveDecision::Latched);
+            EXPECT_TRUE(a.decision().protection_required);
+        }
+    }
+}
 TEST_F(ControlAllocationTest, PendingPollDoesNotCountAsAnAllocationTick) {
     EXPECT_FALSE(allocator.tick(inputs(20),ns(20))); // no root, still monitors runnable gap
     allocator.poll(ns(40));allocator.poll(ns(50));

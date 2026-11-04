@@ -1,0 +1,34 @@
+[
+  {
+    "argv": [
+      "clang-tidy",
+      "-p",
+      "build/m7-functional",
+      "tests/integration/carla/m7_1f/functional_rig.cpp",
+      "--warnings-as-errors=*"
+    ],
+    "exit": 0
+  },
+  {
+    "argv": [
+      "clang-tidy",
+      "-p",
+      "build/m7-functional",
+      "tests/integration/carla/m7_1g/wheel_main.cpp",
+      "--warnings-as-errors=*"
+    ],
+    "exit": 1
+  },
+  {
+    "argv": [
+      "cppcheck",
+      "--project=build/m9-completion/static-compile-commands.json",
+      "--enable=warning,performance,portability",
+      "--error-exitcode=1",
+      "--inline-suppr",
+      "--suppress=missingIncludeSystem",
+      "--suppress=passedByValue:*central/coordinator/vehicle_coordinator.cpp"
+    ],
+    "exit": 0
+  }
+]

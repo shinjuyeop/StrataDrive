@@ -32,7 +32,7 @@ public:
                           std::uint64_t original_ns,bool acknowledgement) noexcept;
     void observe_response(const central::NormalDriveReadinessInputs&,std::uint64_t observed_ns) noexcept;
     // Only a newer global Epoch with a healthy accepted native speed request
-    // qualifies SD-1001. Input restoration or INIT alone cannot publish Passed.
+    // qualifies SD-1001/Speed monitor SD-1002. Input restoration or INIT alone cannot publish Passed.
     void observe_speed_recovery(const central::SpeedRequest&,const central::VehicleCoordinator&,
                                 const central::NormalDriveReadinessInputs&,std::uint64_t observed_ns) noexcept;
     // Capture on the Central owner; pass this immutable evidence to the non-RT
@@ -40,14 +40,20 @@ public:
     std::optional<ServiceEvidence> speed_clear_evidence(const central::SpeedRequest&,
         const central::VehicleCoordinator&,const central::NormalDriveReadinessInputs&,
         const std::optional<can::DriveMessage>& current_speed_input,std::uint64_t now_ns) const noexcept;
+    std::optional<ServiceEvidence> stop_clear_evidence(const central::VehicleCoordinator&,
+        const central::NormalDriveReadinessInputs&,std::uint64_t now_ns) const noexcept;
     bool healthy() const noexcept { return healthy_; }
 private:
+    std::optional<ServiceEvidence> stationary_evidence(const central::VehicleCoordinator&,
+        const central::NormalDriveReadinessInputs&,const std::optional<can::DriveMessage>&,std::uint64_t) const noexcept;
     Stamp stamp(std::uint64_t,bool trusted=true) const noexcept;
     Event base(std::uint64_t observed_ns) const noexcept;
     EventId publish(Event) noexcept;
     void speed(const central::SpeedRequest&,const std::optional<central::VehicleRequest>&,std::uint64_t) noexcept;
     void stop(const central::NormalStop&,std::uint64_t) noexcept;
     void coordinator(const central::VehicleCoordinator&,std::uint64_t) noexcept;
+    void remember_stop_recovery(const Event&,const central::NormalStopConfig&) noexcept;
+    void stop_recovery(const central::VehicleCoordinator&,std::uint64_t) noexcept;
     void actuals(const central::NormalStopObservation&,const Event&,EventId,std::uint64_t) noexcept;
     EventQueue& queue_; const ControlContext context_;
     Session session_{}; std::uint64_t enable_{0},next_{1}; bool healthy_{true};
@@ -58,5 +64,7 @@ private:
     // source emitter itself is continuous. No process-restart adoption here.
     std::optional<Event> speed_recovery_target_;
     bool speed_recovered_{false};
+    struct StopRecovery { Event fault; central::NormalStopConfig config; bool passed{false}; };
+    std::array<std::optional<StopRecovery>,8> stop_recovery_targets_{};
 };
 } // namespace stratadrive::diagnostics

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iterator>
 #include <system_error>
+#include <chrono>
 
 namespace {
 using namespace diagnostics_fixture;
@@ -50,6 +51,40 @@ TEST_F(DiagnosticsJournal, CommittedEventsReplayWithUnknownCurrentConditionAndId
         ASSERT_NE(r,nullptr); EXPECT_EQ(r->count,1U); EXPECT_EQ(r->condition,Condition::Unknown); EXPECT_EQ(r->latch,Latch::Unknown);
         const auto result=recorder.record(f); EXPECT_EQ(result.result,Result::Duplicate); EXPECT_TRUE(result.durable);
         EXPECT_EQ(result.watermark,2U); EXPECT_EQ(recorder.ledger().find(f.key)->condition,Condition::Unknown);
+    }
+}
+TEST_F(DiagnosticsJournal, FullDefaultRetentionPreservesEveryByteAndPermanentlyBlocksClearAfterOverflow) {
+    initialize();const auto f=fault();std::vector<char> full;std::uint64_t elapsed=0;
+    {
+        FileJournal journal(path.string());Recorder recorder(journal);
+        const auto began=std::chrono::steady_clock::now();
+        ASSERT_TRUE(recorder.record(session()).durable);ASSERT_TRUE(recorder.record(f).durable);
+        ASSERT_TRUE(recorder.record(proof(f)).durable);ASSERT_TRUE(recorder.record(passed(proof(f))).durable);
+        for(std::uint64_t i=5;i<=journal.limits().events;++i){
+            auto e=proof(f,i);e.kind=Kind::Observation;e.proof=Proof::None;
+            const auto receipt=recorder.record(e);ASSERT_TRUE(receipt.durable);ASSERT_EQ(receipt.watermark,i);
+        }
+        elapsed=static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-began).count());
+        ASSERT_EQ(journal.committed().size(),512U);full=read("journal");
+        const auto checkpoint=read("commit");const auto target=*recorder.ledger().find(f.key);
+        auto extra=proof(f,513);extra.kind=Kind::Observation;extra.proof=Proof::None;
+        const auto rejected=recorder.record(extra);EXPECT_EQ(rejected.result,Result::Capacity);EXPECT_FALSE(rejected.durable);
+        EXPECT_FALSE(recorder.ledger().complete());EXPECT_FALSE(journal.writable());
+        EXPECT_FALSE(recorder.clear(clear(target)).durable);
+        EXPECT_EQ(read("journal"),full);EXPECT_EQ(read("commit"),checkpoint);
+    }
+    {
+        FileJournal journal(path.string());Recorder recorder(journal);
+        EXPECT_EQ(journal.committed().size(),512U);EXPECT_EQ(read("journal"),full);
+        EXPECT_FALSE(journal.writable());EXPECT_FALSE(recorder.ledger().complete());
+        const auto* record=recorder.ledger().find(f.key);ASSERT_NE(record,nullptr);
+        EXPECT_EQ(record->condition,Condition::Unknown);EXPECT_EQ(record->count,1U);EXPECT_FALSE(record->cleared);
+        EXPECT_FALSE(recorder.clear(clear(*record)).durable);
+    }
+    if(const auto* destination=std::getenv("STRATADRIVE_M9_CAPACITY_EVIDENCE")){
+        const std::filesystem::path out(destination);ASSERT_FALSE(std::filesystem::exists(out));
+        std::filesystem::create_directories(out);std::filesystem::copy(path,out/"store",std::filesystem::copy_options::recursive);
+        std::ofstream(out/"result.json")<<"{\"events\":512,\"overflow_event\":513,\"journal_bytes\":"<<full.size()<<",\"durable_write_ns\":"<<elapsed<<",\"prefix_unchanged\":true,\"clear_blocked_after_reopen\":true}\n";
     }
 }
 TEST_F(DiagnosticsJournal, DurableClearTombstoneSurvivesReopenAndRequestReplay) {

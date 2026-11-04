@@ -29,6 +29,21 @@ double speed_target(Time elapsed) {
     return 0;
 }
 void require(bool value,const char* why) {if(!value)throw std::runtime_error(why);}
+template<class T> class OmitDelivery final:public session::MailboxDelivery<T> {
+public:
+    const Time& trigger;const DiagnosticFault& fault;std::uint64_t count=0;
+    OmitDelivery(const Time& t,const DiagnosticFault& f):trigger(t),fault(f) {}
+    session::Delivery send(const T& value) noexcept override {
+        bool drop=false;
+        if constexpr(std::is_same_v<T,transport::ZoneRequest>)drop=fault==DiagnosticFault::FrontCommandLoss;
+        else drop=fault==DiagnosticFault::StopAckLoss && value.operation==transport::Operation::Stop;
+        if(trigger && drop){++count;return {true,0};}return {};
+    }
+    bool blocked() noexcept override {return false;}
+    std::uint64_t now_ns() const noexcept override {return 0;}
+    void delivered(const T&) noexcept override {}
+    void overflow(const T&) noexcept override {}
+};
 remote::OwnerMessage wire(const remote::OwnerMessage& message) {
     const auto packet=remote::encode_owner_message(message);require(bool(packet),"encode");
     const auto decoded=remote::decode_owner_message(packet->bytes.data(),packet->size);
@@ -129,6 +144,13 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     bool running=false,stop_credit=false,drop_actual=false;int omitted=-1;
     SpeedTerminal terminal_mode=SpeedTerminal::None;
     Time trigger_ns=0,detection_ns=0,handoff_ns=0;std::uint32_t stop_seq=0;
+    DiagnosticFault diagnostic_fault=DiagnosticFault::Disabled;
+    OmitDelivery<transport::ZoneRequest> command_omission{trigger_ns,diagnostic_fault};
+    OmitDelivery<transport::TxResult> ack_omission{trigger_ns,diagnostic_fault};
+    std::unique_ptr<diagnostics::EventQueue> startup_events,control_events;
+    std::unique_ptr<diagnostics::StartupDiagnostics> startup_diagnostics;
+    std::unique_ptr<diagnostics::ControlDiagnostics> control_diagnostics;
+    bool diagnostic_session=false;std::array<bool,7> diagnostic_selected{};
     bool protection_requested=false,terminal_response=false;
     Time protection_since=0;
     bool wheel_mode=false;
@@ -187,8 +209,39 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     void ack(const std::optional<session::Ack>& a) {
         if(a){require(acks.size()<64,"ACK queue overflow");acks.push_back(*a);}
     }
+    void enable_diagnostics(DiagnosticFault fault) {
+        diagnostic_fault=fault;
+        startup_events=std::make_unique<diagnostics::EventQueue>(scope.run,7);
+        control_events=std::make_unique<diagnostics::EventQueue>(scope.run,8);
+        const diagnostics::ControlContext context{scope.run,7,diagnostics::Domain::Simulation,domain,1};
+        startup_diagnostics=std::make_unique<diagnostics::StartupDiagnostics>(*startup_events,context,diagnostics::Component::Coordinator,8,true);
+        auto control_context=context;control_context.producer=8;
+        control_diagnostics=std::make_unique<diagnostics::ControlDiagnostics>(*control_events,control_context);
+        zones[0].work.delivery(&command_omission);zones[0].results.delivery(&ack_omission);
+    }
+    void sample_diagnostics(Time now) {
+        if(!control_diagnostics)return;
+        startup_diagnostics->attempt(coordinator.plan());
+        startup_diagnostics->observe(coordinator.fault_observation(),coordinator.success_observation(),coordinator.run_enabled(),coordinator.run_enabled(),now);
+        if(!diagnostic_session && coordinator.run_enabled())diagnostic_session=control_diagnostics->start_session(scope.application,coordinator.plan().enable_ns,false);
+        if(!diagnostic_session)return;
+        control_diagnostics->observe(speed_request,core,now);
+        const auto feedback=port.feedback();control_diagnostics->observe_response(feedback,now);
+        for(unsigned i=0;i<7;++i) {
+            const auto selected=i<2?zone[i]->protection_ack_ns():leaf[i-2]->protection_selected_ns();
+            if(selected && !diagnostic_selected[i]) {
+                const std::array<diagnostics::Component,7> actors{diagnostics::Component::Front,diagnostics::Component::Rear,diagnostics::Component::Steering,diagnostics::Component::Brake,diagnostics::Component::Drive,diagnostics::Component::Bms,diagnostics::Component::Power};
+                control_diagnostics->local_protection(actors[i],1U<<i,scope.application,*selected,i<2);diagnostic_selected[i]=true;
+            }
+        }
+    }
+    void select_diagnostic_protection(Time now) {
+        if(protection_since)return;
+        detection_ns=now;protection_since=now;protect_central();for(auto& p:participants)p->select_protection();
+    }
     void cycle(Time now,const std::function<void()>& completed_work={}) {
         clock.logical=now;
+        struct DiagnosticSample {Native& owner;Time now;~DiagnosticSample(){owner.sample_diagnostics(now);}} diagnostic_sample{*this,now};
         // Fixed SIL injection: 100ms after original handoff ACK, before HV-off.
         if(terminal_mode==SpeedTerminal::StopProtection && handoff_ns && !protection_since && now>=handoff_ns+100*ms) {
             detection_ns=now;protection_since=now;protect_central();
@@ -322,13 +375,14 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         }
         for(auto& p:participants) {
             if(wall_mode && !p->allowed())select_wall_protection(now,"native credit/gate closed");
+            else if(!wall_mode && diagnostic_session && trigger_ns && !p->allowed())select_diagnostic_protection(now);
             else if(!wall_mode)require(p->allowed(),"native credit/gate closed");
         }
         if(protection_since)return;
         const bool controller_due=now>=next_controller;
         if(controller_due && speed_origin && now-speed_origin>=(terminal_mode==SpeedTerminal::NormalStop30?35000:15000)*ms && terminal_mode!=SpeedTerminal::None) {
-            if(!trigger_ns)trigger_ns=now;
-            if(terminal_mode==SpeedTerminal::NormalStop || terminal_mode==SpeedTerminal::StopProtection || terminal_mode==SpeedTerminal::NormalStop30)
+            if(!trigger_ns){trigger_ns=now;if(diagnostic_fault==DiagnosticFault::FrontLinkFailure)zones[0].work.close();}
+            if((terminal_mode==SpeedTerminal::NormalStop || terminal_mode==SpeedTerminal::StopProtection || terminal_mode==SpeedTerminal::NormalStop30) && diagnostic_fault!=DiagnosticFault::SpeedInputLoss && diagnostic_fault!=DiagnosticFault::FrontCommandLoss && diagnostic_fault!=DiagnosticFault::FrontLinkFailure)
                 require(core.receive_stop({{scope.application,stop_seq++,now,now+60*ms},0},now)==central::CoordinatorReceive::Accepted,"normal stop request rejected");
         }
         if(controller_due && !core.decision().stopping) {
@@ -348,7 +402,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             }
         }
         if(controller_due) {next_controller=wall_mode?next_controller+((now-next_controller)/(20*ms)+1)*(20*ms):next_controller+20*ms;++controller_releases;}
-        if(speed_enabled && core.decision().normal_armed && controller_due && (!trigger_ns || terminal_mode==SpeedTerminal::SpeedInputLoss)) {
+        if(speed_enabled && core.decision().normal_armed && controller_due && (!trigger_ns || terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss || diagnostic_fault==DiagnosticFault::FrontCommandLoss)) {
                 if(!speed_origin)speed_origin=now;
                 const auto feedback=port.feedback();
                 const auto permission=port.current_permission();
@@ -365,8 +419,9 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
                 const auto target=pursuit?route_speed.step(now-speed_origin,lateral_audit->progress_m):speed_target(now-speed_origin);
                 speed_selection=antiwindup && speed_audit?core.decision().allocation.propulsion_selection:std::nullopt;
                 saturation_used=antiwindup && (!speed_audit || (speed_selection && speed_selection->limited));
-                auto derived=speed_request.step_derived(now,target,trigger_ns?std::nullopt:feedback.rear.drive_actual,allowed,speed_selection);
-                if(!derived && terminal_mode==SpeedTerminal::SpeedInputLoss && trigger_ns) {
+                const bool omit_speed=trigger_ns && (terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss);
+                auto derived=speed_request.step_derived(now,target,omit_speed?std::nullopt:feedback.rear.drive_actual,allowed,speed_selection);
+                if(!derived && (terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss) && trigger_ns) {
                     detection_ns=now;protection_since=now;protect_central();for(auto& p:participants)p->select_protection();return;
                 }
                 if(derived && pursuit) {
@@ -376,7 +431,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
                     derived->request.expires_at_ns=std::min(derived->request.expires_at_ns,derived->input.expires_at_ns);
                 }
                 const auto* request=derived?&derived->request:nullptr;
-                if(!request) {protect_central();require(false,"speed request rejected");}
+                if(!request) {protect_central();throw std::runtime_error("speed request rejected");}
                 require(core.receive_vehicle(*request,now,derived->input)==central::CoordinatorReceive::Accepted,"speed request admission");
                 speed_audit=SpeedControlAudit{now,speed_origin,speed_request.state().sample->source_ns,request->expires_at_ns,derived->input.expires_at_ns,request->sequence,
                     target,speed_request.state().sample->speed_mps,request->acceleration_mps2,speed_request.state().integral};
@@ -387,6 +442,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         core.tick(port.feedback(),now,due);
         if((terminal_mode==SpeedTerminal::StopProtection || terminal_mode==SpeedTerminal::NormalStop30) && !handoff_ns && core.decision().stop.state==central::NormalStopState::PowerDown)handoff_ns=now;
         if(wall_mode && core.decision().fault!=central::CoordinatorFault::None)select_wall_protection(now,"native control protection");
+        else if(diagnostic_session && trigger_ns && core.decision().fault!=central::CoordinatorFault::None)select_diagnostic_protection(now);
         else require(core.decision().fault==central::CoordinatorFault::None,"native control protection");
     }
     std::string wall_failure;
@@ -411,6 +467,13 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     }
     Report report(Time observed) {
         Report r;r.terminal_mode=terminal_mode;r.trigger_ns=trigger_ns;r.detection_ns=detection_ns;r.handoff_ns=handoff_ns;r.stop_configuration=stop_settings;
+        r.diagnostic_fault=diagnostic_fault;r.fault_omissions=command_omission.count+ack_omission.count+(diagnostic_fault==DiagnosticFault::FrontLinkFailure && trigger_ns?1:0);
+        if(control_diagnostics) {
+            require(control_diagnostics->healthy() && startup_diagnostics->healthy(),"diagnostic capture incomplete");
+            std::vector<diagnostics::Event> batch;diagnostics::Event event;
+            for(auto* queue:{startup_events.get(),control_events.get()})while(queue->pop(event))batch.push_back(event);
+            if(!batch.empty())r.diagnostic_events=std::make_shared<const std::vector<diagnostics::Event>>(std::move(batch));
+        }
         r.speed_fault=static_cast<int>(speed_request.fault());r.stop_state=core.decision().stop.state;r.stop_fault=static_cast<int>(core.decision().stop.fault);r.power_off=core.decision().management.power_off_confirmed;
         r.propulsion_antiwindup=antiwindup;r.saturation_used=saturation_used;r.speed_selection=speed_selection;
         r.allocation_selection=core.decision().allocation.propulsion_selection;
@@ -558,7 +621,9 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         }
         const bool initial=!native_;
         require(plant_mode_==PlantMode::ExternalSolverWork ? (initial?!work_:bool(work_)) : !work_,"missing/unexpected solver work");
-        if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_,false,0,horizon_ms_,10000000,30000000,speed_profile_,route_,route_profile_,antiwindup_);
+        if(!native_){native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_,false,0,horizon_ms_,10000000,30000000,speed_profile_,route_,route_profile_,antiwindup_);
+            if(diagnostic_fault_!=DiagnosticFault::Disabled)native_->enable_diagnostics(diagnostic_fault_);
+        }
         native_->terminal_mode=terminal_mode_;
         if(pose_) {
             require(native_->pending_poses.size()<2,"pose pending overflow");
@@ -651,6 +716,10 @@ void FunctionalRig::pose(central::RoutePose sample,std::uint32_t actor) {
 void FunctionalRig::omit_role(int role) {omitted_=role;}
 void FunctionalRig::stop_credit(bool value) {stop_credit_=value;}
 void FunctionalRig::drop_actual(bool value) {drop_actual_=value;}
+void FunctionalRig::diagnostic_profile(DiagnosticFault fault) {
+    require(!native_ && !watch_ && fault>=DiagnosticFault::None && fault<=DiagnosticFault::FrontLinkFailure && route_profile_==RouteProfile::Straight30Stop && !route_.empty(),"diagnostic profile requires frozen STOP30 before INIT");
+    diagnostic_fault_=fault;
+}
 void FunctionalRig::request_protection() {protect_=true;}
 void FunctionalRig::execution_watch(WallExecutionWatch* watch) {watch_=watch;}
 void FunctionalRig::begin_terminal_response(Time wall) {

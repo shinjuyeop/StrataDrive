@@ -16,14 +16,22 @@ bool AsyncCoordinatorPort::initialize(CoordinatorSession s) {
     if(!steering_.start_session(s.epoch,s.enable_ns) || !brake_.start_session(s.epoch,s.enable_ns) || !drive_.start_session(s.epoch,s.enable_ns) ||
         !status_.start_session(s.epoch,s.enable_ns) || !limits_.start_session(s.epoch,s.enable_ns) || !permission_.start_session(s.epoch,s.enable_ns) ||
         !front_.start_session(s.epoch,s.enable_ns) || !rear_.start_session(s.epoch,s.enable_ns)) return false;
-    session_=s; observed_=now; failed_=false; fault_=AsyncTransportFault::None; failed_operation_=-1; pending_={}; issued_={}; issued_next_=0; commands_.reset();
+    session_=s; observed_=now; failed_=false; fault_=AsyncTransportFault::None; fault_observation_.reset(); failed_operation_=-1; pending_={}; issued_={}; issued_next_=0; commands_.reset();
     armed_={}; stopped_={}; arm_sent_=false; stop_.reset(); command_source_ns_=0; command_root_sequence_=0; traced_release_=command_expiry_ns_=0; traced_permission_=0; traced_readiness_=-1; return true;
 }
 bool AsyncCoordinatorPort::session_ready(CoordinatorSession s) noexcept {
     return !failed_ && s.epoch!=0 && s.epoch==session_.epoch && s.enable_ns==session_.enable_ns && !gate_.allows(s.epoch) &&
         !links_[0]->failed() && !links_[1]->failed();
 }
-void AsyncCoordinatorPort::fail(AsyncTransportFault fault) { if(!failed_) fault_=fault; failed_=true; gate_.close(); protect(); }
+void AsyncCoordinatorPort::fail(AsyncTransportFault fault,const Pending* pending) {
+    if(!failed_) {
+        fault_=fault;
+        TransportFaultObservation o{fault,session_,now_ns()};
+        if(pending){const auto& r=pending->request;o.operation=static_cast<int>(transport::operation(r.work));o.token=r.token;o.sent_ns=r.sent_ns;o.deadline_ns=r.deadline_ns;o.stop_handoff=transport::operation(r.work)==transport::Operation::Stop;}
+        fault_observation_=o;
+    }
+    failed_=true; gate_.close(); protect();
+}
 bool AsyncCoordinatorPort::protect() noexcept {
     if(session_.epoch==0) return false;
     gate_.close();
@@ -50,7 +58,7 @@ bool AsyncCoordinatorPort::post(std::size_t zone,const transport::ZoneWork& work
     *slot=Pending{request,zone};
     const bool queued=links_[zone]->work.push(request);
     if(trace_) transport::trace(trace_,"central-enqueued",now_ns(),zone,request,queued?1:-1);
-    if(!queued) { fail(); return false; }
+    if(!queued) { fail(AsyncTransportFault::Send,&**slot); return false; }
     return true;
 }
 bool AsyncCoordinatorPort::authorize_lifecycle(const LifecycleRequest& root) noexcept { return post(1,root,root.identity.expires_at_ns); }
@@ -154,15 +162,15 @@ void AsyncCoordinatorPort::result(std::size_t zone,const transport::TxResult& r)
     if(zone!=p.zone || r.operation!=transport::operation(p.request.work) || r.source_ns<p.request.sent_ns || r.source_ns>now || now>=p.request.deadline_ns || !r.accepted) {
         if(!failed_) failed_operation_=static_cast<int>(r.operation);
         if(trace_) transport::trace(trace_,"central-result-rejected",now_ns(),zone,p.request,-1,r.source_ns);
-        fail(now>=p.request.deadline_ns?AsyncTransportFault::ResultLate:!r.accepted?AsyncTransportFault::ResultRejected:AsyncTransportFault::ResultMismatch); return;
+        fail(now>=p.request.deadline_ns?AsyncTransportFault::ResultLate:!r.accepted?AsyncTransportFault::ResultRejected:AsyncTransportFault::ResultMismatch,&p); return;
     }
     if(trace_) transport::trace(trace_,"central-result-accepted",now_ns(),zone,p.request,1,r.source_ns);
     slot->reset();
     if(r.operation==transport::Operation::Arm) armed_[zone]=true;
     if(r.operation==transport::Operation::Stop) stopped_[zone]=true;
-    if(r.operation==transport::Operation::Power && (r.frames<2 || r.frames>3)) { fail(AsyncTransportFault::FrameCount); return; }
+    if(r.operation==transport::Operation::Power && (r.frames<2 || r.frames>3)) { fail(AsyncTransportFault::FrameCount,&p); return; }
     if(r.operation==transport::Operation::Commands) {
-        if(!commands_ || r.frames!=(zone==0?2U:1U)) { fail(); return; }
+        if(!commands_ || r.frames!=(zone==0?2U:1U)) { fail(AsyncTransportFault::FrameCount,&p); return; }
         if(zone==0) {
             if(!post(1,ScopedCommands{rear_commands(*commands_)},commands_->expires_at_ns)) fail();
         } else { commands_.reset(); ++completed_batches_; }
@@ -201,7 +209,7 @@ void AsyncCoordinatorPort::service() {
         for(std::size_t i=0;i<transport::kBudget;++i) { const auto r=links_[z]->results.pop(); if(!r) break; result(z,*r); }
         for(std::size_t i=0;i<transport::kBudget;++i) { const auto f=links_[z]->feedback.pop(); if(!f) break; receive(z,*f); }
     }
-    for(const auto& p:pending_) if(p && now_ns()>=p->request.deadline_ns) { if(!failed_) failed_operation_=static_cast<int>(transport::operation(p->request.work)); if(trace_ && !failed_) transport::trace(trace_,"central-result-timeout",now_ns(),p->zone,p->request,-1); fail(AsyncTransportFault::ResultTimeout); }
+    for(const auto& p:pending_) if(p && now_ns()>=p->request.deadline_ns) { if(!failed_) failed_operation_=static_cast<int>(transport::operation(p->request.work)); if(trace_ && !failed_) transport::trace(trace_,"central-result-timeout",now_ns(),p->zone,p->request,-1); fail(AsyncTransportFault::ResultTimeout,&*p); }
 }
 NormalDriveReadinessInputs AsyncCoordinatorPort::feedback() {
     const auto now=now_ns(); NormalDriveReadinessInputs in; in.epoch=session_.epoch; in.session_enable_ns=session_.enable_ns;

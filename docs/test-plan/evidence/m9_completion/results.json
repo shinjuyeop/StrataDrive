@@ -1,0 +1,812 @@
+{
+  "m9_complete": false,
+  "regression": {
+    "core_non_wall": 1238,
+    "wall": 9,
+    "asan_unit": 1025,
+    "carla": 135,
+    "silent_interval_boundary": 1
+  },
+  "carla_cases": {
+    "nominal-01": {
+      "diagnostics": {
+        "events": 13,
+        "faults": 0,
+        "mutations_rejected": 2,
+        "physical_stopped": true,
+        "physics": 6000,
+        "plateau_max_error_kmh": 0.07484179687499903,
+        "recipe": 1,
+        "settlements": 6000
+      },
+      "work": {
+        "status": "PASS_SOLVER_WORK_SINGLE_EV",
+        "intervals": 6000,
+        "motor_work_j": [
+          0.0,
+          0.0,
+          30596.436489292006,
+          30596.42682580919
+        ],
+        "minimum_loaded_rear_mean_rad_s": 0.00011180733417859301,
+        "forward_ineligible": [],
+        "maximum_equation_residual_rad_s": 1.9124251195989928e-06,
+        "rejected_corruptions": {
+          "missing_step": "complete substeps",
+          "duplicate_ordinal": "ordered unique substeps",
+          "missing_end": "whole invocation",
+          "overflow": "whole invocation",
+          "wrong_dt": "actual solver dt",
+          "torque": "applied torque binding",
+          "omega": "integrator equation",
+          "nonfinite": "finite complete wheel tuple",
+          "sum": "signed work sum",
+          "source": "solver identity",
+          "false_sleep": "complete substeps"
+        },
+        "ev_settlement_connected": true,
+        "independently_verified_settlements": 6000,
+        "max_abs_energy_balance_j": 5.6141288951039314e-08,
+        "rejected_energy_corruptions": {
+          "duplicate_energy_interval": "complete native energy coverage",
+          "missing_energy_interval": "complete native energy coverage",
+          "restamped_wheel": "original source and applied torque",
+          "predicted_work": "single EV basis",
+          "changed_work_total": "solver/EV work conservation",
+          "changed_SOC": "SOC/chemical energy",
+          "changed_loss": "independent energy ledger"
+        },
+        "native_actual_audit": {
+          "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+          "receipts": 6000,
+          "normal_intervals": 4367,
+          "empty_init_intervals": 4,
+          "max_whole_interval_source_age_ns": 20000000,
+          "min_command_expiry_margin_ns": 1,
+          "max_wheel_quantization_error_rad_s": 0.004995088577270934,
+          "torque_nm_range": [
+            -200.0,
+            300.0
+          ],
+          "final_forward_velocity_m_s": 0,
+          "interval_work_valid": true,
+          "protection_intervals": 0,
+          "normal_stop_intervals": 1552
+        }
+      }
+    },
+    "input-loss-01": {
+      "diagnostics": {
+        "events": 15,
+        "faults": 1,
+        "mutations_rejected": 5,
+        "physical_stopped": true,
+        "physics": 6000,
+        "plateau_max_error_kmh": 0.07484179687499903,
+        "recipe": 2,
+        "settlements": 6000
+      },
+      "work": {
+        "status": "PASS_SOLVER_WORK_SINGLE_EV",
+        "intervals": 6000,
+        "motor_work_j": [
+          0.0,
+          0.0,
+          39632.92368498487,
+          39632.93460806273
+        ],
+        "minimum_loaded_rear_mean_rad_s": 0.00011180733417859301,
+        "forward_ineligible": [],
+        "maximum_equation_residual_rad_s": 1.9124251195989928e-06,
+        "rejected_corruptions": {
+          "missing_step": "complete substeps",
+          "duplicate_ordinal": "ordered unique substeps",
+          "missing_end": "whole invocation",
+          "overflow": "whole invocation",
+          "wrong_dt": "actual solver dt",
+          "torque": "applied torque binding",
+          "omega": "integrator equation",
+          "nonfinite": "finite complete wheel tuple",
+          "sum": "signed work sum",
+          "source": "solver identity",
+          "false_sleep": "complete substeps"
+        },
+        "ev_settlement_connected": true,
+        "independently_verified_settlements": 6000,
+        "max_abs_energy_balance_j": 3.2057869248092175e-08,
+        "rejected_energy_corruptions": {
+          "duplicate_energy_interval": "complete native energy coverage",
+          "missing_energy_interval": "complete native energy coverage",
+          "restamped_wheel": "original source and applied torque",
+          "predicted_work": "single EV basis",
+          "changed_work_total": "solver/EV work conservation",
+          "changed_SOC": "SOC/chemical energy",
+          "changed_loss": "independent energy ledger"
+        },
+        "native_actual_audit": {
+          "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+          "receipts": 6000,
+          "normal_intervals": 3500,
+          "empty_init_intervals": 4,
+          "max_whole_interval_source_age_ns": 20000000,
+          "min_command_expiry_margin_ns": 1,
+          "max_wheel_quantization_error_rad_s": 0.004997329711912357,
+          "torque_nm_range": [
+            0,
+            300.0
+          ],
+          "final_forward_velocity_m_s": 0,
+          "interval_work_valid": true,
+          "protection_intervals": 2419,
+          "normal_stop_intervals": 0
+        }
+      }
+    },
+    "stop-ack-loss-01": {
+      "diagnostics": {
+        "events": 19,
+        "faults": 1,
+        "mutations_rejected": 5,
+        "physical_stopped": true,
+        "physics": 6000,
+        "plateau_max_error_kmh": 0.07484179687499903,
+        "recipe": 3,
+        "settlements": 6000
+      },
+      "work": {
+        "status": "PASS_SOLVER_WORK_SINGLE_EV",
+        "intervals": 6000,
+        "motor_work_j": [
+          0.0,
+          0.0,
+          30596.436489292006,
+          30596.42682580919
+        ],
+        "minimum_loaded_rear_mean_rad_s": 0.00011180733417859301,
+        "forward_ineligible": [],
+        "maximum_equation_residual_rad_s": 1.9124251195989928e-06,
+        "rejected_corruptions": {
+          "missing_step": "complete substeps",
+          "duplicate_ordinal": "ordered unique substeps",
+          "missing_end": "whole invocation",
+          "overflow": "whole invocation",
+          "wrong_dt": "actual solver dt",
+          "torque": "applied torque binding",
+          "omega": "integrator equation",
+          "nonfinite": "finite complete wheel tuple",
+          "sum": "signed work sum",
+          "source": "solver identity",
+          "false_sleep": "complete substeps"
+        },
+        "ev_settlement_connected": true,
+        "independently_verified_settlements": 6000,
+        "max_abs_energy_balance_j": 5.615584086626768e-08,
+        "rejected_energy_corruptions": {
+          "duplicate_energy_interval": "complete native energy coverage",
+          "missing_energy_interval": "complete native energy coverage",
+          "restamped_wheel": "original source and applied torque",
+          "predicted_work": "single EV basis",
+          "changed_work_total": "solver/EV work conservation",
+          "changed_SOC": "SOC/chemical energy",
+          "changed_loss": "independent energy ledger"
+        },
+        "native_actual_audit": {
+          "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+          "receipts": 6000,
+          "normal_intervals": 4367,
+          "empty_init_intervals": 4,
+          "max_whole_interval_source_age_ns": 20000000,
+          "min_command_expiry_margin_ns": 1,
+          "max_wheel_quantization_error_rad_s": 0.004995088577270934,
+          "torque_nm_range": [
+            -200.0,
+            300.0
+          ],
+          "final_forward_velocity_m_s": 0,
+          "interval_work_valid": true,
+          "protection_intervals": 1550,
+          "normal_stop_intervals": 2
+        }
+      }
+    },
+    "front-link-failure-01": {
+      "diagnostics": {
+        "events": 14,
+        "faults": 1,
+        "mutations_rejected": 5,
+        "physical_stopped": true,
+        "physics": 6000,
+        "plateau_max_error_kmh": 0.07484179687499903,
+        "recipe": 6,
+        "settlements": 6000
+      },
+      "work": {
+        "status": "PASS_SOLVER_WORK_SINGLE_EV",
+        "intervals": 6000,
+        "motor_work_j": [
+          0.0,
+          0.0,
+          39632.92368498487,
+          39632.93460806273
+        ],
+        "minimum_loaded_rear_mean_rad_s": 0.00011180733417859301,
+        "forward_ineligible": [],
+        "maximum_equation_residual_rad_s": 1.9124251195989928e-06,
+        "rejected_corruptions": {
+          "missing_step": "complete substeps",
+          "duplicate_ordinal": "ordered unique substeps",
+          "missing_end": "whole invocation",
+          "overflow": "whole invocation",
+          "wrong_dt": "actual solver dt",
+          "torque": "applied torque binding",
+          "omega": "integrator equation",
+          "nonfinite": "finite complete wheel tuple",
+          "sum": "signed work sum",
+          "source": "solver identity",
+          "false_sleep": "complete substeps"
+        },
+        "ev_settlement_connected": true,
+        "independently_verified_settlements": 6000,
+        "max_abs_energy_balance_j": 3.208697307854891e-08,
+        "rejected_energy_corruptions": {
+          "duplicate_energy_interval": "complete native energy coverage",
+          "missing_energy_interval": "complete native energy coverage",
+          "restamped_wheel": "original source and applied torque",
+          "predicted_work": "single EV basis",
+          "changed_work_total": "solver/EV work conservation",
+          "changed_SOC": "SOC/chemical energy",
+          "changed_loss": "independent energy ledger"
+        },
+        "native_actual_audit": {
+          "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+          "receipts": 6000,
+          "normal_intervals": 3500,
+          "empty_init_intervals": 4,
+          "max_whole_interval_source_age_ns": 20000000,
+          "min_command_expiry_margin_ns": 1,
+          "max_wheel_quantization_error_rad_s": 0.004997329711912357,
+          "torque_nm_range": [
+            0,
+            300.0
+          ],
+          "final_forward_velocity_m_s": 0,
+          "interval_work_valid": true,
+          "protection_intervals": 2419,
+          "normal_stop_intervals": 0
+        }
+      }
+    },
+    "braking-timeout-02": {
+      "diagnostics": {
+        "events": 16,
+        "faults": 1,
+        "mutations_rejected": 5,
+        "physical_stopped": true,
+        "physics": 6000,
+        "plateau_max_error_kmh": 0.07484179687499903,
+        "recipe": 5,
+        "settlements": 6000
+      },
+      "work": {
+        "status": "PASS_SOLVER_WORK_SINGLE_EV",
+        "intervals": 6000,
+        "motor_work_j": [
+          0.0,
+          0.0,
+          16641.10863700628,
+          16641.06838191972
+        ],
+        "minimum_loaded_rear_mean_rad_s": 0.00011180733417859301,
+        "forward_ineligible": [],
+        "maximum_equation_residual_rad_s": 1.9124251195989928e-06,
+        "rejected_corruptions": {
+          "missing_step": "complete substeps",
+          "duplicate_ordinal": "ordered unique substeps",
+          "missing_end": "whole invocation",
+          "overflow": "whole invocation",
+          "wrong_dt": "actual solver dt",
+          "torque": "applied torque binding",
+          "omega": "integrator equation",
+          "nonfinite": "finite complete wheel tuple",
+          "sum": "signed work sum",
+          "source": "solver identity",
+          "false_sleep": "complete substeps"
+        },
+        "ev_settlement_connected": true,
+        "independently_verified_settlements": 6000,
+        "max_abs_energy_balance_j": 5.708716344088316e-08,
+        "rejected_energy_corruptions": {
+          "duplicate_energy_interval": "complete native energy coverage",
+          "missing_energy_interval": "complete native energy coverage",
+          "restamped_wheel": "original source and applied torque",
+          "predicted_work": "single EV basis",
+          "changed_work_total": "solver/EV work conservation",
+          "changed_SOC": "SOC/chemical energy",
+          "changed_loss": "independent energy ledger"
+        },
+        "native_actual_audit": {
+          "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+          "receipts": 6000,
+          "normal_intervals": 4500,
+          "empty_init_intervals": 4,
+          "max_whole_interval_source_age_ns": 20000000,
+          "min_command_expiry_margin_ns": 1,
+          "max_wheel_quantization_error_rad_s": 0.004997959136963104,
+          "torque_nm_range": [
+            -200.0,
+            300.0
+          ],
+          "final_forward_velocity_m_s": -0.00023234762251377104,
+          "interval_work_valid": true,
+          "protection_intervals": 1419,
+          "normal_stop_intervals": 0
+        }
+      }
+    }
+  },
+  "native_final": [
+    {
+      "name": "verified-normal-normal",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-normal-normal",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "normal"
+      ],
+      "runtime_exit": 0,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service.py",
+        "build/m9-completion/verified-normal-normal/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-normal-ack-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-normal-ack-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "normal",
+        "--service-fault",
+        "ack-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-normal-ack-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-normal-actual-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-normal-actual-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "normal",
+        "--service-fault",
+        "actual-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-normal-actual-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-normal-stop-request-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-normal-stop-request-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "normal",
+        "--service-fault",
+        "stop-request-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-normal-stop-request-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-normal-stop-ack-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-normal-stop-ack-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "normal",
+        "--service-fault",
+        "stop-ack-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-normal-stop-ack-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 1,
+      "original_audit_exit": 1
+    },
+    {
+      "name": "verified-asan-normal",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-asan-normal",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "asan"
+      ],
+      "runtime_exit": 0,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service.py",
+        "build/m9-completion/verified-asan-normal/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-asan-ack-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-asan-ack-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "asan",
+        "--service-fault",
+        "ack-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-asan-ack-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-asan-actual-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-asan-actual-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "asan",
+        "--service-fault",
+        "actual-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-asan-actual-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 1,
+      "original_audit_exit": 1
+    },
+    {
+      "name": "verified-asan-stop-request-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-asan-stop-request-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "asan",
+        "--service-fault",
+        "stop-request-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-asan-stop-request-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-asan-stop-ack-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-asan-stop-ack-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "asan",
+        "--service-fault",
+        "stop-ack-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-asan-stop-ack-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-tsan-normal",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-tsan-normal",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "tsan",
+        "--fixed-layout"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service.py",
+        "build/m9-completion/verified-tsan-normal/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 1,
+      "original_audit_exit": 1
+    },
+    {
+      "name": "verified-tsan-ack-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-tsan-ack-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "tsan",
+        "--fixed-layout",
+        "--service-fault",
+        "ack-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-tsan-ack-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-tsan-actual-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-tsan-actual-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "tsan",
+        "--fixed-layout",
+        "--service-fault",
+        "actual-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-tsan-actual-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 0
+    },
+    {
+      "name": "verified-tsan-stop-request-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-tsan-stop-request-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "tsan",
+        "--fixed-layout",
+        "--service-fault",
+        "stop-request-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-tsan-stop-request-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 0,
+      "original_audit_exit": 1,
+      "requalified_by": "logs/verified-tsan-stop-request-loss-audit-2.txt",
+      "reason": "Original ResultLate at the unchanged unrenewed stop authority expiry; token and original Braking request independently matched."
+    },
+    {
+      "name": "verified-tsan-stop-ack-loss",
+      "argv": [
+        "python3",
+        "-B",
+        "tests/integration/someip/front_run.py",
+        "build/m9-completion/verified-tsan-stop-ack-loss",
+        "--three",
+        "--simple-vehicle",
+        "--diagnostics",
+        "--diagnostic-service",
+        "--isolated-ecus",
+        "--cases",
+        "central-rejoin",
+        "--profile",
+        "tsan",
+        "--fixed-layout",
+        "--service-fault",
+        "stop-ack-loss"
+      ],
+      "runtime_exit": 1,
+      "audit_argv": [
+        "python3",
+        "-B",
+        "tests/integration/diagnostics/audit_native_service_faults.py",
+        "build/m9-completion/verified-tsan-stop-ack-loss/central-rejoin-1",
+        "--mutations"
+      ],
+      "audit_exit": 1,
+      "original_audit_exit": 1
+    }
+  ],
+  "native_final_qualified": 11,
+  "native_final_runs": 15,
+  "source": "source-final-manifest.json",
+  "remaining": [
+    "native service startup/stop timing stability",
+    "silent packet loss CARLA subinterval adapter",
+    "trusted Clock requalification",
+    "preproposal bootstrap incident contract",
+    "full eight-role BMS/Power vehicle matrix",
+    "production load and long-term retention acceptance",
+    "learner explanation review"
+  ]
+}

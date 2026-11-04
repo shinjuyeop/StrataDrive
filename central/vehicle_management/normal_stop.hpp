@@ -39,6 +39,7 @@ public:
     StopReceiveResult receive_request(const NormalStopRequest& request, std::uint64_t now_ns);
     std::optional<NormalStopPlan> tick(const NormalDriveReadinessInputs& inputs, const VehicleManagementDecision& management, std::uint64_t now_ns);
     bool acknowledge_handoff(const ActuatorStopLease& lease, std::uint64_t now_ns);
+    const NormalStopConfig& configuration() const noexcept { return config_; }
     const NormalStopDecision& decision() const { return decision_; }
     const std::array<std::optional<NormalStopObservation>,2>& fault_observations() const noexcept { return faults_; }
     const std::array<std::optional<NormalStopObservation>,4>& phase_observations() const noexcept { return phases_; }

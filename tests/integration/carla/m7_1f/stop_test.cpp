@@ -5,17 +5,21 @@ namespace {
 using namespace stratadrive;
 using namespace m7_functional;
 TEST(M8CarlaStop, SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof) {
-    for(auto mode:{SpeedTerminal::NormalStop,SpeedTerminal::SpeedInputLoss,SpeedTerminal::StopProtection,SpeedTerminal::NormalStop30}) {
+    using Case=std::pair<SpeedTerminal,DiagnosticFault>;
+    for(const auto& [mode,fault]:{Case{SpeedTerminal::NormalStop,DiagnosticFault::Disabled},Case{SpeedTerminal::SpeedInputLoss,DiagnosticFault::Disabled},Case{SpeedTerminal::StopProtection,DiagnosticFault::Disabled},Case{SpeedTerminal::NormalStop30,DiagnosticFault::Disabled},Case{SpeedTerminal::NormalStop30,DiagnosticFault::None},Case{SpeedTerminal::NormalStop30,DiagnosticFault::SpeedInputLoss},Case{SpeedTerminal::NormalStop30,DiagnosticFault::StopAckLoss},Case{SpeedTerminal::NormalStop30,DiagnosticFault::FrontLinkFailure},Case{SpeedTerminal::NormalStop30,DiagnosticFault::FrontCommandLoss}}) {
+        SCOPED_TRACE("mode="+std::to_string(static_cast<int>(mode))+" fault="+std::to_string(static_cast<int>(fault)));
         FunctionalRig rig({1,42,7},99,PlantMode::ExternalSolverWork,true,60000);
         const bool high=mode==SpeedTerminal::NormalStop30;
         if(high) {
             rig.route_profile({{0,0},{5,0}},RouteProfile::Straight30Stop);
             EXPECT_THROW(rig.route_profile({{0,0},{5,0}},RouteProfile::Straight30),std::runtime_error);
         } else rig.speed_profile(mode);
+        if(fault!=DiagnosticFault::Disabled)rig.diagnostic_profile(fault);
+        diagnostics::Ledger ledger;
         EXPECT_THROW(rig.speed_profile(SpeedTerminal::None),std::runtime_error);
         EXPECT_THROW(rig.speed_profile(static_cast<SpeedTerminal>(99)),std::runtime_error);
         std::unique_ptr<m7_native::Admission> admission;
-        m7_native::Output prior;m7_native::Input held_input;Time previous=0;bool held=false,protected_actual=false,complete=false,corrupted=false;
+        m7_native::Output prior;m7_native::Input held_input;Time previous=0;bool held=false,protected_actual=false,complete=false,corrupted=false,interval_refused=false;
         for(unsigned i=0;i<=(high?4300U:2300U);++i) {
             const double seconds=3.997146773152053+i*.009999999776482582;
             const auto now=static_cast<Time>(std::llround(seconds*1e9));
@@ -27,6 +31,7 @@ TEST(M8CarlaStop, SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof) {
             Report r;
             ASSERT_NO_THROW(r=i?rig.observe(o,wheel,work):rig.observe(o,wheel))<<"frame="<<i<<" mode="<<static_cast<int>(mode);
             EXPECT_EQ(r.terminal_mode,mode);
+            if(r.diagnostic_events) { for(const auto& event:*r.diagnostic_events) { ASSERT_EQ(ledger.record(event),diagnostics::Result::Accepted); } }
             EXPECT_EQ(r.stop_configuration.braking_timeout_ns,(high?10000:5000)*ms);
             if(r.trigger_ns && r.speed_control) {EXPECT_EQ(r.trigger_ns,r.speed_control->origin_ns+(high?35000:15000)*ms);}
             const auto& e=*r.native_export;m7_native::Input in;
@@ -83,14 +88,30 @@ TEST(M8CarlaStop, SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof) {
             }
             if(held) {auto resume=in;resume.normal=true;resume.stop_requests={};resume.stop_results={};m7_native::Output unused;
                 EXPECT_FALSE(admission->eligible(resume,now,unused));}
-            ASSERT_TRUE(admission->accept(in,now,prior))<<admission->error()<<" frame="<<i<<" stop="<<static_cast<int>(r.stop_state);
+            const bool accepted=admission->accept(in,now,prior);
+            if(!accepted && fault==DiagnosticFault::FrontCommandLoss) {
+                EXPECT_EQ(admission->error(),"native_command_interval_or_causal");interval_refused=true;break;
+            }
+            ASSERT_TRUE(accepted)<<admission->error()<<" frame="<<i<<" stop="<<static_cast<int>(r.stop_state);
             if(prior.normal_stop)held_input=in;
             held|=prior.normal_stop;protected_actual|=prior.protection;
             complete|=r.stop_state==central::NormalStopState::Complete && r.power_off;
             previous=now;
         }
-        EXPECT_EQ(held,mode!=SpeedTerminal::SpeedInputLoss);EXPECT_EQ(complete,mode==SpeedTerminal::NormalStop || high);
-        EXPECT_EQ(protected_actual,mode==SpeedTerminal::SpeedInputLoss || mode==SpeedTerminal::StopProtection);
+        if(fault==DiagnosticFault::FrontCommandLoss) {
+            // Current whole-10ms adapter refuses before the silent-loss timeout.
+            // No further physics is authorized; this is NOT a physical stop.
+            EXPECT_TRUE(interval_refused);EXPECT_FALSE(complete);EXPECT_FALSE(protected_actual);continue;
+        }
+        const bool injected=fault!=DiagnosticFault::Disabled && fault!=DiagnosticFault::None;
+        EXPECT_EQ(held,mode!=SpeedTerminal::SpeedInputLoss && fault!=DiagnosticFault::SpeedInputLoss && fault!=DiagnosticFault::FrontLinkFailure);
+        EXPECT_EQ(complete,mode==SpeedTerminal::NormalStop || (high && !injected));
+        EXPECT_EQ(protected_actual,mode==SpeedTerminal::SpeedInputLoss || mode==SpeedTerminal::StopProtection || injected);
+        if(fault!=DiagnosticFault::Disabled){
+            if(!injected)EXPECT_TRUE(ledger.records().empty());
+            else {ASSERT_FALSE(ledger.records().empty());const auto code=fault==DiagnosticFault::SpeedInputLoss?diagnostics::Code::SpeedInput:fault==DiagnosticFault::StopAckLoss?diagnostics::Code::Handoff:diagnostics::Code::CentralControl;
+                EXPECT_TRUE(std::any_of(ledger.records().begin(),ledger.records().end(),[&](const auto& record){return record.key.code==code && record.count==1 && record.condition==diagnostics::Condition::Failed;}));}
+        }
     }
 }
 }

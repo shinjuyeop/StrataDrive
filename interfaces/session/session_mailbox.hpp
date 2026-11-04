@@ -44,6 +44,9 @@ public:
         return failed()?std::nullopt:std::optional<T>{item};
     }
     bool failed() const noexcept { return failed_.load(std::memory_order_acquire); }
+    // A transport disconnect is sticky just like overflow. Existing queued
+    // traffic cannot revive this instance; replace it after both owners join.
+    void close() noexcept { failed_.store(true,std::memory_order_release); }
 private:
     std::array<T,Capacity+1> items_{};
     std::array<std::uint64_t,Capacity+1> available_{};

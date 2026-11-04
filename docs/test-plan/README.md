@@ -69,3 +69,5 @@ M7-1a–1s는 환경/센서 → clock·native 반환 → source/NoDrive → geom
 당시 개별 시험이다. 세부 재현이 필요할 때 해당 `evidence/m7_carla_1*/README.md`를 찾는다.
 과거 사전 계획은 [보관 문서](../archive/README.md)로 이동했고, 현재 CARLA 재실행은
 [실행 안내](../carla-guide.md)를 따른다.
+
+[M9 후속 구현·검증](evidence/m9_completion/README.md): 실제 서비스 고장 거절, CARLA30 fault/물리 응답/DTC, 최초 native 원인, stop 복구·명시적 clear, BMS/Power component 조합과 기본512-event capacity. 원래 실패와 전체 미수용 항목을 함께 보존한다.

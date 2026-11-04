@@ -14,6 +14,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <string_view>
 
 namespace fs=std::filesystem;
 using namespace stratadrive;
@@ -26,6 +27,7 @@ bool no_charge(){const auto* p=std::getenv("STRATADRIVE_ENERGY_CYCLE");return p 
 bool native_enabled(){return std::getenv("STRATADRIVE_NATIVE_WATCH")!=nullptr;}
 bool three_enabled(){return std::getenv("STRATADRIVE_THREE_ECU")!=nullptr;}
 bool diagnostics_enabled(){return std::getenv("STRATADRIVE_NATIVE_DIAGNOSTICS")!=nullptr;}
+bool service_fault(const std::string_view& name){const auto* value=std::getenv("STRATADRIVE_SERVICE_FAULT");return value && name==value;}
 unsigned fault_zone(){return std::getenv("STRATADRIVE_FAULT_REAR")?1:0;}
 bool fifo_enabled(){return std::getenv("STRATADRIVE_NATIVE_FIFO")!=nullptr;}
 std::uint64_t run_duration(){const auto* v=std::getenv("STRATADRIVE_NATIVE_DURATION_MS");return v?std::stoull(v)*kMs:9000*kMs;}
@@ -61,7 +63,7 @@ void mark(const fs::path& p){
 }
 struct Trace final:transport::TransportTrace {
     std::ofstream out;std::vector<transport::TransportTraceRow> rows;bool overflow=false;
-    explicit Trace(const fs::path& p):out(p){rows.reserve(energy_enabled()?196608:65536);}
+    explicit Trace(const fs::path& p):out(p){rows.reserve(energy_enabled() || std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")?196608:65536);}
     ~Trace(){out<<"event,ns,peer,epoch,token,sent,deadline,operation,decision,source,original_source,inner_deadline,payload_source\n";
         for(const auto& r:rows)out<<r.stage<<','<<r.time_ns<<','<<r.peer<<','<<r.epoch<<','<<r.token<<','<<r.sent_ns<<','<<r.deadline_ns<<','<<r.operation<<','<<r.outcome<<','<<r.result_source_ns<<','<<r.original_source_ns<<','<<r.inner_deadline_ns<<','<<r.payload_source_ns<<'\n';}
     void record(transport::TransportTraceRow r) noexcept override;
@@ -131,7 +133,7 @@ struct Owners final:session::CoordinatorPort {
         for(const auto& e:event_rows)events<<e.ns<<','<<e.name<<','<<e.epoch<<','<<e.role<<','<<e.value<<','<<e.deadline<<'\n';
     }
     explicit Owners(Ecu e,Transport& n,const fs::path& d,const std::string& label,someip::test::NativeDiagnosticRoutes* diagnostic=nullptr):ecu(e),remote(e!=Ecu::Central),three(three_enabled()),zi(e==Ecu::Rear?1:0),folder(d),tag(label),net(n),io((d/"sil-io"/"plant.bin").string()),trace(d/(tag+".transport.csv")),diagnostic_routes(diagnostic) {
-        event_rows.reserve(65536);if(energy_enabled() && !remote)energy_feedback.reserve(2000);
+        event_rows.reserve(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")?196608:65536);if(energy_enabled() && !remote)energy_feedback.reserve(2000);
         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
         if(remote || !three) {
             const unsigned z=remote?zi:1;
@@ -252,9 +254,13 @@ struct Owners final:session::CoordinatorPort {
             if(zone[zi]->protected_selected() && !selected_ns){selected_ns=now();event("leaf-protection-selected",zi);}
             while(auto r=zones[zi].results.pop()) {
                 event("result-produced",0,r->token,r->source_ns);
-                if(!drop_results)emit(remote::OwnerMessage{static_cast<Role>(zi),Role::CentralIngress,kDomain,*r});
+                if(epoch==3 && zi==0 && service_fault("stop-ack-loss") && r->operation==transport::Operation::Stop)event("service-stop-ack-omitted",zi,r->token,r->source_ns);
+                else if(!drop_results)emit(remote::OwnerMessage{static_cast<Role>(zi),Role::CentralIngress,kDomain,*r});
             }
-            while(auto f=zones[zi].feedback.pop())if(!drop_status)emit(remote::OwnerMessage{static_cast<Role>(zi),Role::CentralIngress,kDomain,*f});
+            while(auto f=zones[zi].feedback.pop()){
+                if(epoch==3 && zi==0 && service_fault("actual-loss") && fs::exists(folder/"service-fault-inject") && std::holds_alternative<can::BrakeFrame>(*f))event("service-actual-omitted",zi);
+                else if(!drop_status)emit(remote::OwnerMessage{static_cast<Role>(zi),Role::CentralIngress,kDomain,*f});
+            }
             return;
         }
         for(unsigned i=0;i<8;++i)if(sessions[i])sessions[i]->step();
@@ -266,7 +272,7 @@ struct Owners final:session::CoordinatorPort {
             if(!drop_lease && !stop_credit && gate.allows(epoch) && (!last_credit || t-last_credit>=10*kMs)) {
                 if(auto lease=issuer.issue(t)) {for(unsigned i=0;i<7;++i)if(is_remote(static_cast<Role>(i)))emit(remote::OwnerMessage{Role::CentralIngress,static_cast<Role>(i),kDomain,*lease});last_credit=t;last_lease_expiry=lease->expires_at_ns;event("credit-issued",7,lease->sequence,lease->expires_at_ns);}
             }
-            if(stop_requested && (!last_stop || t-last_stop>=20*kMs)) {
+            if(stop_requested && (!last_stop || t-last_stop>=20*kMs) && !(epoch==3 && last_stop && service_fault("stop-request-loss"))) {
                 const auto accepted=core.receive_stop({{epoch,stop_seq++,t,t+60*kMs},.02},now());
                 check(accepted==central::CoordinatorReceive::Accepted,"normal stop request rejected");last_stop=t;
             }
@@ -340,7 +346,11 @@ struct Owners final:session::CoordinatorPort {
         emit(remote::OwnerMessage{Role::CentralIngress,static_cast<Role>(fault_zone()),kDomain,r});
         event("diagnostic-send",0,r.token,r.deadline_ns);
     }
-    void event_first_fault(){if(!protected_ns)event("central-fault",7,static_cast<unsigned>(core.decision().fault),static_cast<unsigned>(port.fault()));}
+    void event_first_fault(){if(!protected_ns){
+        const auto decision=core.decision();
+        event("central-fault",7,static_cast<unsigned>(decision.fault),static_cast<unsigned>(port.fault()));
+        event("central-allocation-fault",7,static_cast<unsigned>(decision.allocation.fault),static_cast<unsigned>(decision.allocation.state));
+    }}
 };
 void Trace::record(transport::TransportTraceRow r) noexcept {
     if(rows.size()<rows.capacity())rows.push_back(r);else overflow=true;
@@ -592,7 +602,9 @@ int main(int argc,char** argv) {
                     if(test=="invalid")check(invalid_sent && owners->diagnostic_rejected==2,"invalid replay evidence");
                     if(test=="restart-live")check(invalid_sent && owners->diagnostic_rejected==1,"prior session rejection missing");
                     if(!three_enabled()){pass=true;break;}
-                    if(!owners->stop_requested){owners->stop_requested=true;owners->stop_started=now();owners->event("normal-stop-requested",7);}
+                    if(!owners->stop_requested){owners->stop_requested=true;owners->stop_started=now();owners->event("normal-stop-requested",7);
+                        if(owners->epoch==3 && service_fault("stop-request-loss"))owners->event("service-stop-renewal-omitted",7);
+                    }
                 }
                 if(!remote && three_enabled() && owners->stop_complete && owners->pending.empty()) {
                     if(service_profile && generation=="2"){
@@ -661,15 +673,16 @@ int main(int argc,char** argv) {
         for(const auto& leaf:owners->leaf)if(leaf)for(const auto& e:leaf->input_events())out<<e.time_ns<<','<<e.kind<<','<<e.owner<<','<<e.epoch<<','<<e.source_ns<<','<<e.deadline_ns<<','<<e.reference_ns<<','<<e.code<<'\n';
     }
     if(owners && owners->watch)owners->watch->write((folder/(tag+".native")).string());
-    if(!remote && pass && test!="ready-timeout" && (test=="normal" || test=="late" || test=="invalid" || test=="restart-live" || test=="central-rejoin")) {
+    if(!remote && (pass || service_profile) && test!="ready-timeout" && (test=="normal" || test=="late" || test=="invalid" || test=="restart-live" || test=="central-rejoin")) {
         // Already protected/quiesced; retain the receive endpoint for the peer's
         // final evidence. This handshake never extends a live command deadline.
-        mark(folder/(tag+".quiesced"));const auto cleanup_deadline=now()+1000*kMs;
+        if(!error.empty())mark(folder/(tag+".failed"));
+        mark(folder/(tag+".quiesced"));const auto cleanup_deadline=now()+(service_profile && !pass?3000:1000)*kMs;
         while(!fs::exists(folder/"stop-central") && now()<cleanup_deadline) {
             for(unsigned lane=0;lane<net.channels();++lane)for(unsigned i=0;i<8;++i){auto m=net.pop(lane);if(!m)break;owners->receive(*m);}
             owners->step();std::this_thread::sleep_for(std::chrono::microseconds(200));
         }
-        if(!fs::exists(folder/"stop-central")){pass=false;error="peer shutdown handshake timeout";}
+        if(!fs::exists(folder/"stop-central")){pass=false;if(error.empty())error="peer shutdown handshake timeout";}
     }
     std::uint64_t shutdown_rx_retired=0;
     if(diagnostic_routes) {

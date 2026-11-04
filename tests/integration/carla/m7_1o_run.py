@@ -67,12 +67,14 @@ def main():
     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
                    help="Read-only describe rejection, without creating an ego")
     p.add_argument("--speed-terminal", choices=("none","normal-stop","input-loss","stop-protection"), default="none")
+    p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
     a = p.parse_args()
     if (a.record_video or a.live_view) and not (a.cameras and a.native_actual and not a.wall_native and a.native_fault=="none"):
         p.error("video recording requires functional nominal native cameras")
     if a.speed_terminal!="none" and not (a.speed_loop and a.native_fault=="none"):p.error("speed terminal requires speed loop without another injected fault")
     from m8_route_contract import load_route
     route_definition=load_route(a.route_profile) if a.route_profile else None
+    if a.diagnostic_fault is not None and not (route_definition and route_definition['schema']=='m8-normal-stop30-v1' and a.native_fault=='none' and a.speed_terminal=='none' and not a.wall_native):p.error('diagnostics require the frozen simulation STOP30 profile')
     if (a.record_video or a.live_view) and (not route_definition or route_definition['schema']!='m8-normal-stop30-v1'):
         p.error('video recording requires the fixed STOP30 profile')
     if route_definition and route_definition['schema']=='m8-normal-stop30-v1' and (a.propulsion_aware or a.native_fault!='none' or a.speed_terminal!='none'):p.error('stop30 frozen nominal scope')
@@ -149,6 +151,7 @@ def main():
         argv.append("-StrataM7CompactWork")
     if a.wall_native:
         argv.append("-StrataM7WallNative")
+    if a.diagnostic_fault=="braking-timeout":argv.append("-StrataM9ExternalLoad")
     if a.wall_step_ms==5:argv.append("-StrataM7Wall5ms")
     if a.wall_nullrhi:
         argv.append("-nullrhi")
@@ -344,6 +347,7 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
         if a.simulation_continuous:cmd += ["--simulation-continuous"]
         if a.speed_loop:cmd += ["--speed-loop"]
         if a.speed_terminal!="none":cmd += ["--speed-terminal",a.speed_terminal]
+        if a.diagnostic_fault is not None:cmd += ['--diagnostic-fault',a.diagnostic_fault]
         if a.propulsion_aware:cmd += ["--propulsion-aware"]
         if a.route_profile:cmd += ["--route-profile",str(a.route_profile)]
         if a.flag_check:

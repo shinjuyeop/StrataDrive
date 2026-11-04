@@ -556,7 +556,7 @@ Source Failed/count1/generation1과 원본 이력은 유지한다. 재시작 rep
 
 [사전 recipe](../test-plan/diagnostics-protocol.md#someip-진단-channel새-logical-owner-fixture),
 [실행·실패·clock·감사](../test-plan/evidence/m9_someip_live/README.md)를 따른다.
-정규 DDS gate·Target·부하/보존 용량 수용은 후속이다. Native 배선은 아래 별도 범위를 따른다.
+DDS control gate는 CLOSED인 별도 대안이다. Target·실제 부하/장기 보존 수용은 후속이다. Native 배선은 아래 별도 범위를 따른다.
 
 ## 원격 publisher의 전역 context admission
 
@@ -897,9 +897,36 @@ PCAP의 owner CRC32C/CAN P05와 원래 Actual의 값·시각을 별도 physical 
 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
 원격 context admission 뒤 실제 native3-ECU의2개 context/9개 source stream도 기능 검증했다.
-Central/Front/Rear 재기동과 terminal native 서비스 뒤에는 서비스 중 ACK/Actual 누락·정지 실패/
-시간초과에서의 실제 clear 거절 및 미결정 고장 조합·원인 연결/복구를 검증한다.
+Central/Front/Rear 재기동과 terminal native 서비스의 ACK/Actual 누락·정지 실패 거절 및
+CARLA30 고장 통합의 후속 결과는 아래 M9 후속 근거를 따른다. 미결정 조합과 Clock은 별도다.
 Local participant Ready를 global Release로 만들지 않는다.
 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
 실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.
-30km/h fault의 구체 주입 위치·기대 DTC와 물리 판정은 실행 전에 별도 고정한다.
+30km/h fault의 구체 주입 위치·기대 DTC와 물리 판정은 [CARLA 진단 protocol](../test-plan/carla-diagnostics-protocol.md)에 고정한다.
+
+
+## M9 allocator/transport 원인과 NormalStop 재검증
+
+`CoordinatorFaultObservation`은 보호로 allocator 상태를 변경하기 **전** native allocation fault,
+원본 VehicleRequest와 AsyncTransportFault의 최초 검출 snapshot을 보존한다. Transport는 실제
+operation/token/sent/exclusive deadline과 Stop 인계 여부를 포함한다. 뒤늦은 ACK·재관측·추가
+clock 오류로 최초 원인을 덮어쓰지 않는다. `native_reason`의 `0x10000 | AllocationFault`는
+allocator, `0x20000 | AsyncTransportFault`는 transport namespace다. Stop operation의 실제 ACK
+timeout은 SD-1102, 다른 transport/allocator 고장은 SD-1002이며 각 실제 Clock/Deadline은
+SD-4001/4002다. Native NormalStop reason 번호를 만들어 넣지 않는다.
+
+Central 단일 owner의 observer는 미해제 정지 고장의 key별 최근 occurrence를 최대8개 보관한다.
+용량 초과 시 observer를 불완전하게 표시하며 미해제 이력을 퇴출하지 않는다. 새 실제 coordinator
+Session에서 동일 profile 및 NormalStop의 모든 설정값으로 Braking→HandoffPending→PowerDown→
+Complete를 통과해야 복구 proof를 발행한다. 동일 lease의 실제 accepted handoff, 원래 braking/
+shutdown deadline, 실제 stopped/hold/PowerStatus Off 증거와 원본 Complete의 age≤30ms를 확인한다.
+이는 SD-1101/1102/1103/1104/1105 및 해당 Central allocator/transport·Stop deadline 경로의
+재검증이다. Speed monitor SD-1002는 기존 정상 SpeedRequest의 실제 accepted 입력/출력 재검증을
+사용한다. Clock 오류에는 적용하지 않는다.
+
+Passed는 삭제가 아니다. `stop_clear_evidence`는 Passed 후보가 있고 현재 원본 wheel·torque·brake,
+HV Off·normal dispatch 억제가 유효할 때만 값 복사를 반환한다. Recorder는 명시적인 요청의
+key/revision/현재 session과 해당 record의 Passed를 다시 검사하고 durable tombstone을 기록한다.
+새 INIT만 수행한 경우, 다른 설정의 성공, 오래된 Complete, 해제 중 새 고장은 성공으로 세지 않는다.
+
+이번 실제 시험 범위·실패 분모·미수용 항목은 [M9 후속 근거](../test-plan/evidence/m9_completion/README.md)를 따른다.

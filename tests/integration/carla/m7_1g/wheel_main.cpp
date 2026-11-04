@@ -1,6 +1,8 @@
 #include "functional_rig.hpp"
 #include "native_admission.hpp"
 #include "wall_execution_watch.hpp"
+#include "diagnostics_journal.hpp"
+#include <algorithm>
 #include <cerrno>
 #include <poll.h>
 #include <unistd.h>
@@ -66,6 +68,20 @@ int main(int argc,char** argv) {
     std::unique_ptr<WallExecutionWatch> wall_watch;
     std::string wall_path,response_path;
     try {
+        if(argc==3 && std::string(argv[1])=="--record-diagnostics") {
+            namespace d=stratadrive::diagnostics;
+            d::FileJournal::initialize(argv[2],9401,{},4);d::FileJournal journal(argv[2]);d::Recorder recorder(journal);
+            std::string line;std::size_t count=0;
+            while(std::getline(std::cin,line)) {
+                if(line.empty() || line.size()>8192 || line.size()%2 || line.find_first_not_of("0123456789abcdef")!=std::string::npos)throw std::runtime_error("canonical diagnostic input");
+                std::vector<std::uint8_t> bytes;bytes.reserve(line.size()/2);
+                for(std::size_t i=0;i<line.size();i+=2)bytes.push_back(static_cast<std::uint8_t>(std::stoul(line.substr(i,2),nullptr,16)));
+                const auto entry=d::decode(bytes);const auto* event=std::get_if<d::Event>(&entry);
+                if(!event || d::encode(entry)!=bytes || !recorder.record(*event).durable)throw std::runtime_error("diagnostic durable commit");
+                std::cout<<++count<<std::endl;
+            }
+            return recorder.ledger().complete()?0:1;
+        }
         if((argc<6 || argc>14 || argc%2!=0) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
             throw std::runtime_error("requires --wheel-shadow or --external-wheel-plant run application plant actor; no general driving acceptance");
         const auto run=std::stoull(argv[2]),app=std::stoull(argv[3]),plant=std::stoull(argv[4]),actor=std::stoull(argv[5]);
@@ -80,14 +96,20 @@ int main(int argc,char** argv) {
             if(used!=value.size())throw std::runtime_error("invalid simulation horizon");
             horizon_set=true;
         }
-        if(horizon_set && argc>10)throw std::runtime_error("simulation horizon cannot combine with wall watch");
+        if(horizon_set && argc>12)throw std::runtime_error("simulation horizon option bound");
         FunctionalRig rig({run,static_cast<std::uint32_t>(app),static_cast<std::uint32_t>(plant)},static_cast<std::uint32_t>(actor),
             solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting,horizon);
         bool scenario_loaded=false;
         for(int arg=6;arg<argc;arg+=2) {
             if(std::string(argv[arg])=="--sim-horizon-ms")continue;
-            if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route")throw std::runtime_error("simulation horizon excludes wall policy");
+            if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route" && std::string(argv[arg])!="--diagnostic-fault")throw std::runtime_error("simulation horizon excludes wall policy");
             if(!solver_work)throw std::runtime_error("options require solver-work mode");
+            if(std::string(argv[arg])=="--diagnostic-fault") {
+                const std::array<std::string,6> names{"none","input-loss","stop-ack-loss","front-command-loss","braking-timeout","front-link-failure"};
+                const auto found=std::find(names.begin(),names.end(),argv[arg+1]);
+                if(found==names.end())throw std::runtime_error("diagnostic fault recipe");
+                rig.diagnostic_profile(static_cast<DiagnosticFault>(1+std::distance(names.begin(),found)));continue;
+            }
             if(std::string(argv[arg])=="--route") {
                 if(!horizon_set)throw std::runtime_error("route requires simulation horizon");
                 std::ifstream file(argv[arg+1]);if(!file)throw std::runtime_error("route open");
@@ -263,6 +285,13 @@ int main(int argc,char** argv) {
             if(r.terminal_mode!=SpeedTerminal::None) {
                 std::cout<<",\"speed_terminal\":{\"mode\":"<<static_cast<int>(r.terminal_mode)<<",\"trigger_ns\":"<<r.trigger_ns<<",\"detection_ns\":"<<r.detection_ns
                     <<",\"speed_fault\":"<<r.speed_fault<<",\"stop_state\":"<<static_cast<int>(r.stop_state)<<",\"stop_fault\":"<<r.stop_fault<<",\"power_off\":"<<(r.power_off?"true":"false")<<",\"power_status\":";packet(r.power_status);std::cout<<'}';
+            }
+            if(r.diagnostic_fault!=DiagnosticFault::Disabled) {
+                std::cout<<",\"diagnostics\":{\"fault\":"<<static_cast<unsigned>(r.diagnostic_fault)<<",\"omissions\":"<<r.fault_omissions<<",\"events\":[";
+                bool comma=false;if(r.diagnostic_events) { for(const auto& e:*r.diagnostic_events){if(comma)std::cout<<',';comma=true;std::cout<<'"';
+                    for(auto byte:stratadrive::diagnostics::encode(e))std::cout<<std::hex<<std::setw(2)<<std::setfill('0')<<static_cast<unsigned>(byte);
+                    std::cout<<std::dec<<'"';} }
+                std::cout<<"]}";
             }
             if(r.propulsion_antiwindup) {
                 std::cout<<",\"allocation_selection\":";selection(r.allocation_selection);

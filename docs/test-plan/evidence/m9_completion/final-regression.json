@@ -1,0 +1,38 @@
+[
+  {
+    "name": "core-final",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle",
+      "--output-on-failure",
+      "-LE",
+      "runtime.wall"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-final",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle-sanitized",
+      "--output-on-failure",
+      "-L",
+      "unit"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "carla-final",
+    "argv": [
+      "ctest",
+      "--test-dir",
+      "build/m7-functional",
+      "--output-on-failure",
+      "-R",
+      "M7|M8"
+    ],
+    "exit": 0
+  }
+]

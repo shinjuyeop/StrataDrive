@@ -1,0 +1,86 @@
+[
+  {
+    "case": "ack-loss",
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/service-ack-loss-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--service-fault",
+      "ack-loss",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal"
+    ],
+    "exit": 1
+  },
+  {
+    "case": "actual-loss",
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/service-actual-loss-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--service-fault",
+      "actual-loss",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal"
+    ],
+    "exit": 1
+  },
+  {
+    "case": "stop-request-loss",
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/service-stop-request-loss-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--service-fault",
+      "stop-request-loss",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal"
+    ],
+    "exit": 1
+  },
+  {
+    "case": "stop-ack-loss",
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/service-stop-ack-loss-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--service-fault",
+      "stop-ack-loss",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal"
+    ],
+    "exit": 1
+  }
+]

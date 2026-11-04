@@ -2,6 +2,7 @@
 #include "control_diagnostics.hpp"
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -18,6 +19,8 @@ public:
     std::optional<central::VehicleManagementOutput> sent_power;
     std::vector<central::AllocatedCommands> commands;
     std::vector<central::LifecycleRequest> lifecycles; std::vector<central::VehicleRequest> vehicles;
+    std::optional<central::TransportFaultObservation> transport;
+    std::optional<central::TransportFaultObservation> transport_observation() const noexcept override { return transport; }
     std::uint64_t now_ns() noexcept override { return now; }
     bool session_ready(central::CoordinatorSession s) noexcept override { return ready && s.epoch==epoch; }
     bool healthy(std::uint32_t e) noexcept override { events.emplace_back("health"); now+=health_delay_ns; return health && e==epoch; }
@@ -251,5 +254,112 @@ TEST_F(CoordinatorTest, ExpiredAllocationSupportIsPropagatedImmediatelyWhenANewR
     normal(); request(50); tick(50); tick(60); port.now=ns(61);
     EXPECT_EQ(coordinator.receive_vehicle(vehicle(61,2),port.now),central::CoordinatorReceive::Latched);
     EXPECT_EQ(coordinator.decision().fault,central::CoordinatorFault::Allocation); EXPECT_EQ(port.protections,1U);
+    ASSERT_TRUE(coordinator.fault_observation());
+    EXPECT_EQ(coordinator.fault_observation()->allocation_fault,central::AllocationFault::RequestLost);
+    diagnostics::EventQueue queue(10,20);diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+    ASSERT_TRUE(hook.start_session(3,kStart));hook.observe(coordinator,ns(80));hook.observe(coordinator,ns(90));
+    diagnostics::Ledger ledger;diagnostics::Event event;
+    while(queue.pop(event))ASSERT_EQ(ledger.record(event),diagnostics::Result::Accepted);
+    ASSERT_EQ(ledger.records().size(),1U);const auto& record=ledger.records().front();
+    EXPECT_EQ(record.key.code,diagnostics::Code::CentralControl);EXPECT_EQ(record.count,1U);
+    EXPECT_EQ(record.first_detected.ns,ns(61));
+    const auto found=std::find_if(ledger.events().begin(),ledger.events().end(),[](const auto& e){return e.kind==diagnostics::Kind::Fault;});
+    ASSERT_NE(found,ledger.events().end());EXPECT_EQ(found->native_reason,0x10004U);EXPECT_FALSE(found->unmapped);EXPECT_FALSE(found->cause_unknown);
+    EXPECT_TRUE(found->command.present);EXPECT_EQ(found->command.source.ns,ns(30));
+}
+TEST_F(CoordinatorTest, TransportFirstStopAckTimeoutKeepsOriginalCauseAndTimestamp) {
+    normal();port.now=ns(51);
+    port.transport=central::TransportFaultObservation{central::AsyncTransportFault::ResultTimeout,{3,kStart},ns(50),6,123,ns(30),ns(50),true};
+    coordinator.request_protection(port.now);
+    diagnostics::EventQueue queue(10,20);diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+    ASSERT_TRUE(hook.start_session(3,kStart));hook.observe(coordinator,ns(80));
+    diagnostics::Event event;unsigned faults=0;
+    while(queue.pop(event))if(event.kind==diagnostics::Kind::Fault){
+        ++faults;EXPECT_EQ(event.key.code,diagnostics::Code::Handoff);EXPECT_EQ(event.native_reason,0x20007U);
+        EXPECT_EQ(event.times[static_cast<unsigned>(diagnostics::Time::Detected)].ns,ns(50));
+        EXPECT_EQ(event.times[static_cast<unsigned>(diagnostics::Time::Violation)].ns,ns(50));
+        EXPECT_TRUE(event.command.present);EXPECT_EQ(event.command.sequence,123U);
+        EXPECT_EQ(event.command.source.ns,ns(30));EXPECT_EQ(event.command.expiry.ns,ns(50));EXPECT_FALSE(event.unmapped);EXPECT_FALSE(event.cause_unknown);
+    }
+    EXPECT_EQ(faults,1U);
+}
+TEST(CoordinatorDiagnosticsRecovery, NativeStopFailuresRequireNewEpochCompleteAndIdenticalConfiguration) {
+    using F=central::NormalStopFault;
+    for(const auto fault:{F::RequestLost,F::BrakingTimeout,F::HandoffExpired,F::StopEvidenceLost,F::ShutdownTimeout,F::ControlDeadline,F::ClockError}) {
+        SCOPED_TRACE(static_cast<int>(fault));
+        const central::NormalStopConfig cfg{1,60*kMs,200*kMs,100*kMs,10*kMs};
+        central::NormalStop failed(cfg);ASSERT_TRUE(failed.start_session(3,kStart));
+        const auto old_request=[](unsigned t){return central::NormalStopRequest{{3,t/10,ns(t),ns(t+60)},0};};
+        ASSERT_TRUE(failed.begin(old_request(10),{1,1},ns(10)));
+        central::VehicleManagementDecision management;management.state=central::VehicleManagementState::Normal;management.normal_allowed=true;
+        for(unsigned t=10;t<=220 && failed.decision().fault==F::None;t+=10) {
+            if(t>10 && fault!=F::RequestLost)failed.receive_request(old_request(t),ns(t));
+            auto in=feedback(t,true);
+            if(fault==F::BrakingTimeout || (fault==F::StopEvidenceLost && t>=80))in.rear.drive_actual->wheel_speed->value_rad_s=10;
+            const auto plan=failed.tick(in,management,ns(t));
+            if(t==10 && fault==F::ClockError){failed.tick(in,management,ns(9));break;}
+            if(t==10 && fault==F::ControlDeadline){failed.tick(feedback(41,true),management,ns(41));break;}
+            if(plan && plan->state==central::NormalStopState::HandoffPending && fault==F::ShutdownTimeout) {
+                ASSERT_TRUE(failed.acknowledge_handoff(plan->lease,ns(t)));management.normal_allowed=false;management.state=central::VehicleManagementState::Stopping;
+            }
+        }
+        ASSERT_EQ(failed.decision().fault,fault);
+        for(unsigned variant=0;variant<4;++variant) {
+            SCOPED_TRACE(variant);
+            diagnostics::EventQueue q(10,20);diagnostics::ControlDiagnostics hook(q,{10,20,diagnostics::Domain::Simulation,7,1});
+            diagnostics::Ledger ledger;diagnostics::Event e;std::optional<diagnostics::Key> key;
+            auto drain=[&] {while(q.pop(e)){EXPECT_EQ(ledger.record(e),diagnostics::Result::Accepted);if(e.kind==diagnostics::Kind::Fault)key=e.key;}};
+            ASSERT_TRUE(hook.start_session(3,kStart));hook.observe(failed,ns(230));drain();ASSERT_TRUE(key);
+            Port port;port.epoch=4;port.now=ns(1000);auto next_cfg=cfg;if(variant==1)next_cfg.braking_timeout_ns+=kMs;
+            central::VehicleCoordinator core(port,{}, {},next_cfg);ASSERT_TRUE(core.start_session({4,ns(1000)}));
+            if(variant!=2) { ASSERT_TRUE(hook.start_session(4,ns(1000))); }
+            hook.observe(core,ns(1000));drain();EXPECT_NE(ledger.find(*key)->condition,diagnostics::Condition::Passed);
+            central::NormalDriveReadinessInputs current;
+            for(unsigned t=1010;t<=1140;t+=10) {
+                port.now=ns(t);auto in=feedback(t,t<1120 && t>=1020);in.epoch=4;in.session_enable_ns=ns(1000);
+                in.front.health->epoch=in.rear.health->epoch=in.front.steering_actual->epoch=in.front.brake_actual->epoch=in.rear.drive_actual->epoch=4;
+                in.rear.power_status->message.epoch=in.rear.power_limits->message.epoch=4;
+                if(port.sent_power){in.rear.power_status->message.causal_sequence=port.sent_power->power_request.sequence;
+                    std::get<can::BmsPowerStatus>(in.rear.power_status->message.content).accepted_request_source_time_ns=port.sent_power->power_request.source_time_ns;}
+                if(t<1050) {
+                    ASSERT_EQ(core.receive_lifecycle({{4,t/10-101,ns(t),ns(t+60)},can::BmsPowerAction::Enable},port.now),central::CoordinatorReceive::Accepted);
+                } else ASSERT_EQ(core.receive_stop({{4,t/10-105,ns(t),ns(t+60)},0},port.now),central::CoordinatorReceive::Accepted);
+                ASSERT_TRUE(core.tick(in,port.now));current=in;
+                if(t==1020 || t==1030) { ASSERT_EQ(core.receive_vehicle({4,t/10-102,ns(t),ns(t+60),.2,0,0,false},port.now),central::CoordinatorReceive::Accepted); }
+                if(t<1120 || variant!=3) {hook.observe(core,port.now);drain();}
+                if(t<1120) { EXPECT_NE(ledger.find(*key)->condition,diagnostics::Condition::Passed); }
+            }
+            ASSERT_EQ(core.decision().stop.state,central::NormalStopState::Complete);
+            if(variant==3){hook.observe(core,ns(1200));drain();}
+            EXPECT_EQ(ledger.find(*key)->condition==diagnostics::Condition::Passed,variant==0 && fault!=F::ClockError);
+            EXPECT_FALSE(ledger.find(*key)->cleared);EXPECT_EQ(ledger.find(*key)->count,1U);EXPECT_TRUE(ledger.complete());
+            const auto evidence=hook.stop_clear_evidence(core,current,ns(1140));
+            EXPECT_EQ(bool(evidence),variant==0 && fault!=F::ClockError);
+            auto missing=current;missing.front.brake_actual.reset();EXPECT_FALSE(hook.stop_clear_evidence(core,missing,ns(1140)));
+            EXPECT_FALSE(hook.stop_clear_evidence(core,current,ns(1200)));
+            if(evidence) {
+                diagnostics::Clear clear{{10,99,1},{10,4},*evidence,false,{{*key,ledger.find(*key)->revision}}};
+                EXPECT_EQ(ledger.clear(clear),diagnostics::Result::Accepted);EXPECT_TRUE(ledger.find(*key)->cleared);
+                EXPECT_EQ(core.decision().stop.state,central::NormalStopState::Complete);EXPECT_FALSE(core.decision().normal_armed);
+            }
+        }
+    }
+}
+TEST_F(CoordinatorTest, SpeedControlRecoveryRequiresAcceptedNativeRequestAfterNewSession) {
+    diagnostics::EventQueue q(10,20);diagnostics::ControlDiagnostics hook(q,{10,20,diagnostics::Domain::Simulation,7,1});
+    central::SpeedRequest failed;ASSERT_TRUE(failed.start_session(2,kStart));
+    auto old=*feedback(10,true).rear.drive_actual;old.epoch=2;
+    EXPECT_FALSE(failed.step(ns(10),12,old,true));ASSERT_EQ(failed.fault(),central::SpeedRequestFault::Controller);
+    ASSERT_TRUE(hook.start_session(2,kStart));hook.observe(failed,ns(10));
+    diagnostics::Ledger ledger;diagnostics::Event e;std::optional<diagnostics::Key> key;
+    auto drain=[&] {while(q.pop(e)){ASSERT_EQ(ledger.record(e),diagnostics::Result::Accepted);if(e.kind==diagnostics::Kind::Fault)key=e.key;}};
+    drain();ASSERT_TRUE(key);ASSERT_EQ(key->code,diagnostics::Code::CentralControl);
+    ASSERT_TRUE(hook.start_session(3,kStart));request(10);tick(10,false);request(20);tick(20);
+    central::SpeedRequest current;ASSERT_TRUE(current.start_session(3,kStart));const auto in=inputs(20);
+    const auto accepted=current.step(ns(20),0,in.rear.drive_actual,true);ASSERT_TRUE(accepted);
+    hook.observe_speed_recovery(current,coordinator,in,ns(20));drain();EXPECT_NE(ledger.find(*key)->condition,diagnostics::Condition::Passed);
+    ASSERT_EQ(coordinator.receive_vehicle(*accepted,ns(20)),central::CoordinatorReceive::Accepted);
+    hook.observe_speed_recovery(current,coordinator,in,ns(20));drain();EXPECT_EQ(ledger.find(*key)->condition,diagnostics::Condition::Passed);
+    EXPECT_FALSE(ledger.find(*key)->cleared);EXPECT_EQ(ledger.find(*key)->count,1U);EXPECT_TRUE(ledger.complete());
 }
 }  // namespace

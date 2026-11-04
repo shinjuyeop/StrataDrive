@@ -86,9 +86,12 @@ fresh collector prefix import·생존 source 재전송·미확인 연속성 clea
 [Linux 로컬 서비스 연결](test-plan/evidence/m9_continuity_service/README.md)은 kernel peer 인가·
 frozen guard·원본 Actual adapter·별도 clear 요청을 연결한다. 실제3-ECU 서비스 owner/SDK
 quiesce·새 global Epoch/물리 정지 조합은 [terminal native 서비스](test-plan/evidence/m9_native_service/README.md)에서
-부분 검증했다. 최신 TSan의 정지 선행 실패 원인과 서비스 중 ACK/Actual 누락·정지 실패/시간초과 거절, native fault matrix/원인 연결·복구·
-부하/보존 용량이다. 정규 DDS gate·proposal 이전
-bootstrap·Clock 복구도 후속이다.
+부분 검증했다. [이번 후속](test-plan/evidence/m9_completion/README.md)은 최초 TSan support expiry의
+원본 원인, 서비스 중 실제 ACK/Actual 손실·Stop 실패 거절, CARLA30 고장4종과 기본 저장 capacity,
+BMS9/Power8 component 조합·동일 설정 NormalStop 복구/clear를 다룬다. 실패 분모도 함께 보존한다.
+남은 완료 조건은 silent packet loss의 실제 CARLA subinterval 연결, trusted Clock 복구,
+proposal 이전 bootstrap incident, 전체8-role native fault matrix, 실제 부하/장기 보존 정책과
+학습자 수용이다. DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·
 속도·제어 튜닝은 이 묶음에 추가하지 않으며 변경한 경계의 회귀만 실행한다.

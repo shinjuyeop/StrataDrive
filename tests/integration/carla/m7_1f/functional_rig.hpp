@@ -5,6 +5,7 @@
 #include "pure_pursuit.hpp"
 #include "route_speed_profile.hpp"
 #include "normal_stop.hpp"
+#include "diagnostics.hpp"
 #include <array>
 #include <memory>
 #include <optional>
@@ -33,7 +34,12 @@ struct RouteReferenceAudit {
     std::optional<Time> slow_elapsed_ns,stop_elapsed_ns;
 };
 enum class SpeedTerminal { None, NormalStop, SpeedInputLoss, StopProtection, NormalStop30 };
+enum class DiagnosticFault { Disabled, None, SpeedInputLoss, StopAckLoss, FrontCommandLoss, BrakingTimeout, FrontLinkFailure };
 struct Report {
+    DiagnosticFault diagnostic_fault=DiagnosticFault::Disabled;
+    std::uint64_t fault_omissions=0;
+    // Absent in wall mode; immutable batch keeps Report noexcept-copyable.
+    std::shared_ptr<const std::vector<diagnostics::Event>> diagnostic_events;
     SpeedTerminal terminal_mode=SpeedTerminal::None;
     Time trigger_ns=0,detection_ns=0,handoff_ns=0;
     central::NormalStopState stop_state=central::NormalStopState::NotInitialized;
@@ -91,6 +97,9 @@ public:
     void omit_role(int role);
     void stop_credit(bool value);
     void drop_actual(bool value);
+    // Fixed STOP30 diagnostic campaign; select before INIT. Each omission acts
+    // at its actual consumer/transport boundary, never on a diagnostic record.
+    void diagnostic_profile(DiagnosticFault fault);
     // Trusted local safety request; original actors produce the protection Actual.
     void request_protection();
     // Diagnostic instrumentation only, never a clock conversion or tick permit.
@@ -117,6 +126,7 @@ private:
     Time controller_phase_=14*ms;
     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
     SpeedTerminal terminal_mode_=SpeedTerminal::None;
+    DiagnosticFault diagnostic_fault_=DiagnosticFault::Disabled;
     bool speed_profile_=false;
     std::vector<central::RoutePoint> route_;
     bool antiwindup_=false;

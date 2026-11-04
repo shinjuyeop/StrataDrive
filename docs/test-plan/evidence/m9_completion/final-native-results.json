@@ -1,0 +1,451 @@
+[
+  {
+    "profile": "normal",
+    "case": "normal",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-normal-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal"
+    ],
+    "runtime_exit": 0,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service.py",
+      "build/m9-completion/final-normal-normal/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "normal",
+    "case": "ack-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-normal-ack-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal",
+      "--service-fault",
+      "ack-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-normal-ack-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "normal",
+    "case": "actual-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-normal-actual-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal",
+      "--service-fault",
+      "actual-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-normal-actual-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "normal",
+    "case": "stop-request-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-normal-stop-request-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal",
+      "--service-fault",
+      "stop-request-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-normal-stop-request-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "normal",
+    "case": "stop-ack-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-normal-stop-ack-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal",
+      "--service-fault",
+      "stop-ack-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-normal-stop-ack-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "asan",
+    "case": "normal",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-asan-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "asan"
+    ],
+    "runtime_exit": 0,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service.py",
+      "build/m9-completion/final-asan-normal/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "asan",
+    "case": "ack-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-asan-ack-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "asan",
+      "--service-fault",
+      "ack-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-asan-ack-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "asan",
+    "case": "actual-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-asan-actual-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "asan",
+      "--service-fault",
+      "actual-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-asan-actual-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 1
+  },
+  {
+    "profile": "asan",
+    "case": "stop-request-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-asan-stop-request-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "asan",
+      "--service-fault",
+      "stop-request-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-asan-stop-request-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "asan",
+    "case": "stop-ack-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-asan-stop-ack-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "asan",
+      "--service-fault",
+      "stop-ack-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-asan-stop-ack-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "tsan",
+    "case": "normal",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-tsan-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "tsan",
+      "--fixed-layout"
+    ],
+    "runtime_exit": 0,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service.py",
+      "build/m9-completion/final-tsan-normal/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "tsan",
+    "case": "ack-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-tsan-ack-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "tsan",
+      "--fixed-layout",
+      "--service-fault",
+      "ack-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-tsan-ack-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "tsan",
+    "case": "actual-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-tsan-actual-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "tsan",
+      "--fixed-layout",
+      "--service-fault",
+      "actual-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-tsan-actual-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 1
+  },
+  {
+    "profile": "tsan",
+    "case": "stop-request-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-tsan-stop-request-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "tsan",
+      "--fixed-layout",
+      "--service-fault",
+      "stop-request-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-tsan-stop-request-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 0
+  },
+  {
+    "profile": "tsan",
+    "case": "stop-ack-loss",
+    "argv": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/final-tsan-stop-ack-loss",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "tsan",
+      "--fixed-layout",
+      "--service-fault",
+      "stop-ack-loss"
+    ],
+    "runtime_exit": 1,
+    "audit_argv": [
+      "python3",
+      "-B",
+      "tests/integration/diagnostics/audit_native_service_faults.py",
+      "build/m9-completion/final-tsan-stop-ack-loss/central-rejoin-1",
+      "--mutations"
+    ],
+    "audit_exit": 1
+  }
+]

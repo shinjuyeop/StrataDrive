@@ -44,12 +44,14 @@ def main():
     p.add_argument('--route-profile', type=Path)
     p.add_argument('--propulsion-aware', action='store_true')
     p.add_argument("--speed-terminal",choices=("none","normal-stop","input-loss","stop-protection"),default="none")
+    p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
     a = p.parse_args()
     require(not (a.record_video or a.live_view) or (a.cameras and a.fault=='none'), 'video requires nominal cameras')
     require(a.speed_terminal=="none" or (a.speed_loop and a.fault=="none"),"terminal speed scope")
     from m8_route_contract import load_route, pose_from_snapshot
     route=load_route(a.route_profile) if a.route_profile else None
     stop30=route is not None and route['schema']=='m8-normal-stop30-v1'
+    require(a.diagnostic_fault is None or (stop30 and a.fault=='none' and a.speed_terminal=='none'),'diagnostic STOP30 scope')
     require(not (a.record_video or a.live_view) or stop30, 'video requires fixed STOP30 profile')
     if stop30:
         require(not a.propulsion_aware and a.fault=='none' and a.speed_terminal=='none','stop30 frozen nominal scope')
@@ -92,7 +94,8 @@ def main():
     events = []
     client = carla.Client('127.0.0.1', 2200)
     client.set_timeout(10)
-    world = original = actor = process = stderr = None
+    world = original = actor = process = stderr = collector = collector_stderr = None
+    diagnostic_count=0
     capture = Capture(a.output,a.fault=='rgb-drop',1201 if a.simulation_continuous else 256,a.record_video,a.live_view) if a.cameras else None
     bound = False
     session, run = '0', ''
@@ -177,10 +180,14 @@ def main():
         case('initial_clock', snapshot.timestamp.elapsed_seconds == end and
              math.floor(end*1e9+.5) == int(binding['logical_begin_ns']))
         stderr = (a.output/'native.stderr').open('w')
+        if a.diagnostic_fault is not None:
+            collector_stderr=(a.output/'diagnostic-collector.stderr').open('w')
+            collector=subprocess.Popen([str(a.native.resolve()),'--record-diagnostics',str(a.output/'diagnostic-store')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=collector_stderr,text=True)
         process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else [])+
                                    (['--sim-horizon-ms',str(route['ticks']*10 if route else 60000)] if a.simulation_continuous else [])+
                                    (['--speed-profile',{'none':'v1','normal-stop':'v1-stop','input-loss':'v1-input-loss','stop-protection':'v1-stop-protection'}[a.speed_terminal]] if a.speed_loop else [])+
                                    (['--route',str(native_route)] if route else [])+
+                                   (['--diagnostic-fault',a.diagnostic_fault] if a.diagnostic_fault is not None else [])+
                                    (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else [])+
                                    (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else []),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
@@ -261,6 +268,13 @@ def main():
                 require(bool(select.select([process.stdout],[],[],10)[0]), 'native reply timeout')
                 native = json.loads(process.stdout.readline())
                 record['native'] = native
+                if collector and 'diagnostics' in native:
+                    for event in native['diagnostics']['events']:
+                        collector.stdin.write(event+'\n');collector.stdin.flush()
+                        require(bool(select.select([collector.stdout],[],[],10)[0]),'bounded diagnostic commit receipt')
+                        diagnostic_count+=1
+                        require(collector.stdout.readline().strip()==str(diagnostic_count),'original event durable commit')
+                    record['diagnostic_committed']=diagnostic_count
                 record['wall_native_end_ns']=time.monotonic_ns()
                 if i==200 and a.fault in ('work-missing','work-duplicate','pose-stale'):
                     require(native['status']=='FAIL' and native['next_frame'] is None,'native input fail closed')
@@ -349,7 +363,8 @@ def main():
                     if a.fault == 'credit': proof['credit'][3] = None
                     else: proof['commands'][0] = None
                     record['fault'] = 'withheld original '+a.fault+' packet; no substitute'
-                staged = rpc('stage_native', record=False, frame=str(frame+1), native=proof)
+                load=dict(diagnostic_load=bool(native['speed_terminal']['trigger_ns'])) if a.diagnostic_fault=='braking-timeout' else {}
+                staged = rpc('stage_native', record=False, frame=str(frame+1), native=proof, **load)
                 record['staged'] = staged
                 if not staged['ok']:
                     record['rejection'] = staged['reason']
@@ -442,14 +457,18 @@ def main():
             if a.solver_work: case('all_receipts_settled_once',settlements==count)
             if not a.simulation_continuous:
                 case('forward_motion_observed', ph['body_forward_velocity_m_s']>0, final_m_s=ph['body_forward_velocity_m_s'])
-            else:
+            elif a.diagnostic_fault!='braking-timeout':
                 case('continuous_final_wheel_stop',all(w['solver_omega_rad_s']==0 for w in ph['wheels']))
             rejected = rpc('stage', frame=str(frame+1))
             case('native_profile_rejects_synthetic_stage', not rejected['ok'] and rejected['latched'] and
                  rejected['reason']=='native_actual_only' and rejected['frame']==str(frame))
             if a.speed_terminal!='none':
                 terminal=native['speed_terminal']
-                if a.speed_terminal in ('normal-stop','normal-stop30'):
+                if a.diagnostic_fault not in (None,'none'):
+                    case('diagnostic_protection_selected',terminal['detection_ns']>=terminal['trigger_ns']>0 and native['admission']['protection'])
+                    report['diagnostic_fault']=a.diagnostic_fault
+                    report['physical_stopped_at_end']=all(w['solver_omega_rad_s']==0 for w in ph['wheels']) and abs(ph['body_forward_velocity_m_s'])<=.001
+                elif a.speed_terminal in ('normal-stop','normal-stop30'):
                     case('normal_stop_complete_hv_off',terminal['stop_state']==5 and terminal['stop_fault']==0 and terminal['power_off'] and native['admission']['normal_stop'])
                 elif a.speed_terminal=='stop-protection':
                     case('stop_hold_protection',native['stop_handoff_ns']>terminal['trigger_ns']>0 and terminal['detection_ns']==native['stop_handoff_ns']+100000000 and native['admission']['protection'] and not terminal['power_off'])
@@ -554,6 +573,10 @@ def main():
                 report['native_exit'] = process.wait(timeout=10)
                 process.stdout.close()
                 if report['status'].startswith('PASS'): case('native_expected_exit', report['native_exit']==(2 if a.fault=='wall-gap' else 1 if a.fault in ('work-missing','work-duplicate','pose-stale') else 0))
+            if collector:
+                collector.stdin.close();report['diagnostic_collector_exit']=collector.wait(timeout=10);collector.stdout.close()
+                report['diagnostic_events_committed']=diagnostic_count
+                case('diagnostic_durable_recording',report['diagnostic_collector_exit']==0)
             if world and original and not bound:
                 if actor: actor.destroy()
                 world.apply_settings(original)
@@ -563,7 +586,10 @@ def main():
             report['cleanup_error'] = traceback.format_exc();report['status']='FAIL'
             if process and process.poll() is None:
                 process.kill();process.wait(timeout=5);report['forced_native_stop']=True
+            if collector and collector.poll() is None:
+                collector.kill();collector.wait(timeout=5);report['forced_diagnostic_stop']=True
         if stderr: stderr.close()
+        if collector_stderr:collector_stderr.close()
         (a.output/'events.json').write_text(json.dumps(events,indent=2)+'\n')
         (a.output/'result.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report))

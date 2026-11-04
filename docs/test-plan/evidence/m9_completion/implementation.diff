@@ -1,0 +1,1812 @@
+diff --git a/.gitattributes b/.gitattributes
+index 3658972..f950fae 100644
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -32,3 +32,6 @@ docs/test-plan/evidence/m7_carla_wall_guard/** -text -whitespace
+ docs/test-plan/evidence/pre-m8-refactor/** -text -whitespace
+ docs/test-plan/evidence/m8_*/** -text -whitespace
+ docs/test-plan/evidence/m8_*/**/trace.jsonl.gz filter=lfs diff=lfs merge=lfs -text
++
++docs/test-plan/evidence/m9_completion/** -text -whitespace
++docs/test-plan/evidence/m9_completion/**/trace.jsonl.gz filter=lfs diff=lfs merge=lfs -text
+diff --git a/central/coordinator/async_coordinator_port.cpp b/central/coordinator/async_coordinator_port.cpp
+index f3a3310..ea31ba1 100644
+--- a/central/coordinator/async_coordinator_port.cpp
++++ b/central/coordinator/async_coordinator_port.cpp
+@@ -16,14 +16,22 @@ bool AsyncCoordinatorPort::initialize(CoordinatorSession s) {
+     if(!steering_.start_session(s.epoch,s.enable_ns) || !brake_.start_session(s.epoch,s.enable_ns) || !drive_.start_session(s.epoch,s.enable_ns) ||
+         !status_.start_session(s.epoch,s.enable_ns) || !limits_.start_session(s.epoch,s.enable_ns) || !permission_.start_session(s.epoch,s.enable_ns) ||
+         !front_.start_session(s.epoch,s.enable_ns) || !rear_.start_session(s.epoch,s.enable_ns)) return false;
+-    session_=s; observed_=now; failed_=false; fault_=AsyncTransportFault::None; failed_operation_=-1; pending_={}; issued_={}; issued_next_=0; commands_.reset();
++    session_=s; observed_=now; failed_=false; fault_=AsyncTransportFault::None; fault_observation_.reset(); failed_operation_=-1; pending_={}; issued_={}; issued_next_=0; commands_.reset();
+     armed_={}; stopped_={}; arm_sent_=false; stop_.reset(); command_source_ns_=0; command_root_sequence_=0; traced_release_=command_expiry_ns_=0; traced_permission_=0; traced_readiness_=-1; return true;
+ }
+ bool AsyncCoordinatorPort::session_ready(CoordinatorSession s) noexcept {
+     return !failed_ && s.epoch!=0 && s.epoch==session_.epoch && s.enable_ns==session_.enable_ns && !gate_.allows(s.epoch) &&
+         !links_[0]->failed() && !links_[1]->failed();
+ }
+-void AsyncCoordinatorPort::fail(AsyncTransportFault fault) { if(!failed_) fault_=fault; failed_=true; gate_.close(); protect(); }
++void AsyncCoordinatorPort::fail(AsyncTransportFault fault,const Pending* pending) {
++    if(!failed_) {
++        fault_=fault;
++        TransportFaultObservation o{fault,session_,now_ns()};
++        if(pending){const auto& r=pending->request;o.operation=static_cast<int>(transport::operation(r.work));o.token=r.token;o.sent_ns=r.sent_ns;o.deadline_ns=r.deadline_ns;o.stop_handoff=transport::operation(r.work)==transport::Operation::Stop;}
++        fault_observation_=o;
++    }
++    failed_=true; gate_.close(); protect();
++}
+ bool AsyncCoordinatorPort::protect() noexcept {
+     if(session_.epoch==0) return false;
+     gate_.close();
+@@ -50,7 +58,7 @@ bool AsyncCoordinatorPort::post(std::size_t zone,const transport::ZoneWork& work
+     *slot=Pending{request,zone};
+     const bool queued=links_[zone]->work.push(request);
+     if(trace_) transport::trace(trace_,"central-enqueued",now_ns(),zone,request,queued?1:-1);
+-    if(!queued) { fail(); return false; }
++    if(!queued) { fail(AsyncTransportFault::Send,&**slot); return false; }
+     return true;
+ }
+ bool AsyncCoordinatorPort::authorize_lifecycle(const LifecycleRequest& root) noexcept { return post(1,root,root.identity.expires_at_ns); }
+@@ -154,15 +162,15 @@ void AsyncCoordinatorPort::result(std::size_t zone,const transport::TxResult& r)
+     if(zone!=p.zone || r.operation!=transport::operation(p.request.work) || r.source_ns<p.request.sent_ns || r.source_ns>now || now>=p.request.deadline_ns || !r.accepted) {
+         if(!failed_) failed_operation_=static_cast<int>(r.operation);
+         if(trace_) transport::trace(trace_,"central-result-rejected",now_ns(),zone,p.request,-1,r.source_ns);
+-        fail(now>=p.request.deadline_ns?AsyncTransportFault::ResultLate:!r.accepted?AsyncTransportFault::ResultRejected:AsyncTransportFault::ResultMismatch); return;
++        fail(now>=p.request.deadline_ns?AsyncTransportFault::ResultLate:!r.accepted?AsyncTransportFault::ResultRejected:AsyncTransportFault::ResultMismatch,&p); return;
+     }
+     if(trace_) transport::trace(trace_,"central-result-accepted",now_ns(),zone,p.request,1,r.source_ns);
+     slot->reset();
+     if(r.operation==transport::Operation::Arm) armed_[zone]=true;
+     if(r.operation==transport::Operation::Stop) stopped_[zone]=true;
+-    if(r.operation==transport::Operation::Power && (r.frames<2 || r.frames>3)) { fail(AsyncTransportFault::FrameCount); return; }
++    if(r.operation==transport::Operation::Power && (r.frames<2 || r.frames>3)) { fail(AsyncTransportFault::FrameCount,&p); return; }
+     if(r.operation==transport::Operation::Commands) {
+-        if(!commands_ || r.frames!=(zone==0?2U:1U)) { fail(); return; }
++        if(!commands_ || r.frames!=(zone==0?2U:1U)) { fail(AsyncTransportFault::FrameCount,&p); return; }
+         if(zone==0) {
+             if(!post(1,ScopedCommands{rear_commands(*commands_)},commands_->expires_at_ns)) fail();
+         } else { commands_.reset(); ++completed_batches_; }
+@@ -201,7 +209,7 @@ void AsyncCoordinatorPort::service() {
+         for(std::size_t i=0;i<transport::kBudget;++i) { const auto r=links_[z]->results.pop(); if(!r) break; result(z,*r); }
+         for(std::size_t i=0;i<transport::kBudget;++i) { const auto f=links_[z]->feedback.pop(); if(!f) break; receive(z,*f); }
+     }
+-    for(const auto& p:pending_) if(p && now_ns()>=p->request.deadline_ns) { if(!failed_) failed_operation_=static_cast<int>(transport::operation(p->request.work)); if(trace_ && !failed_) transport::trace(trace_,"central-result-timeout",now_ns(),p->zone,p->request,-1); fail(AsyncTransportFault::ResultTimeout); }
++    for(const auto& p:pending_) if(p && now_ns()>=p->request.deadline_ns) { if(!failed_) failed_operation_=static_cast<int>(transport::operation(p->request.work)); if(trace_ && !failed_) transport::trace(trace_,"central-result-timeout",now_ns(),p->zone,p->request,-1); fail(AsyncTransportFault::ResultTimeout,&*p); }
+ }
+ NormalDriveReadinessInputs AsyncCoordinatorPort::feedback() {
+     const auto now=now_ns(); NormalDriveReadinessInputs in; in.epoch=session_.epoch; in.session_enable_ns=session_.enable_ns;
+diff --git a/central/coordinator/async_coordinator_port.hpp b/central/coordinator/async_coordinator_port.hpp
+index f1ada4d..3c3793e 100644
+--- a/central/coordinator/async_coordinator_port.hpp
++++ b/central/coordinator/async_coordinator_port.hpp
+@@ -8,7 +8,6 @@
+ #include "drive_receiver.hpp"
+ 
+ namespace stratadrive::central {
+-enum class AsyncTransportFault { None,Clock,Continuity,Send,ResultMismatch,ResultLate,ResultRejected,ResultTimeout,FrameCount };
+ // Central owner only. No references to remote gateways/controllers. A successful
+ // delivery callback means transport enqueue; independently correlated TX results
+ // and original deadlines are monitored even when no new request arrives.
+@@ -21,6 +20,7 @@ public:
+     NormalDriveReadinessInputs feedback();
+     bool transport_fault() const { return failed_; }
+     AsyncTransportFault fault() const { return fault_; }
++    std::optional<TransportFaultObservation> transport_observation() const noexcept override { return fault_observation_; }
+     int failed_operation() const { return failed_operation_; }
+     std::uint64_t completed_batches() const { return completed_batches_; }
+     std::uint64_t command_source_ns() const { return command_source_ns_; }
+@@ -53,12 +53,13 @@ private:
+     bool post(std::size_t zone,const transport::ZoneWork& work,std::uint64_t expiry) noexcept;
+     void result(std::size_t zone,const transport::TxResult& result);
+     void receive(std::size_t zone,const transport::Feedback& value);
+-    void fail(AsyncTransportFault fault = AsyncTransportFault::Send);
++    void fail(AsyncTransportFault fault = AsyncTransportFault::Send,const Pending* pending=nullptr);
+     const CommandRenewal renewal_;
+     transport::Clock& clock_; transport::RunGate& gate_;
+     std::array<transport::ZoneLink*,2> links_;
+     CoordinatorSession session_{}; std::uint64_t observed_{0},next_token_{1},completed_batches_{0}; bool failed_{false};
+     AsyncTransportFault fault_{AsyncTransportFault::None}; int failed_operation_{-1};
++    std::optional<TransportFaultObservation> fault_observation_;
+     std::uint64_t traced_release_{0},command_expiry_ns_{0}; std::uint32_t traced_permission_{0}; int traced_readiness_{-1};
+     std::uint64_t command_source_ns_{0}; std::uint32_t command_root_sequence_{0};
+     std::array<std::optional<Pending>,16> pending_{};
+diff --git a/central/coordinator/vehicle_coordinator.cpp b/central/coordinator/vehicle_coordinator.cpp
+index b0ba540..5c7a28f 100644
+--- a/central/coordinator/vehicle_coordinator.cpp
++++ b/central/coordinator/vehicle_coordinator.cpp
+@@ -27,7 +27,7 @@ bool VehicleCoordinator::start_session(CoordinatorSession session) {
+ }
+ void VehicleCoordinator::fail(CoordinatorFault fault,std::optional<std::uint64_t> detected_ns) {
+     const bool first=fault_==CoordinatorFault::None;
+-    if(first) fault_observation_=CoordinatorFaultObservation{fault,epoch_,enable_ns_,detected_ns.value_or(observed_ns_),pending_handoff_};
++    if(first) fault_observation_=CoordinatorFaultObservation{fault,epoch_,enable_ns_,detected_ns.value_or(observed_ns_),pending_handoff_,allocation_.decision().fault,vehicle_,port_.transport_observation()};
+     if(first || fault==CoordinatorFault::ClockError) fault_=fault;
+     normal_armed_=false;
+     if(first) { management_.mark_continuity_lost(observed_ns_); allocation_.mark_continuity_lost(observed_ns_); }
+diff --git a/central/coordinator/vehicle_coordinator.hpp b/central/coordinator/vehicle_coordinator.hpp
+index c376177..070a5d6 100644
+--- a/central/coordinator/vehicle_coordinator.hpp
++++ b/central/coordinator/vehicle_coordinator.hpp
+@@ -8,6 +8,17 @@ namespace stratadrive::central {
+ struct CoordinatorSession { std::uint32_t epoch; std::uint64_t enable_ns; };
+ struct CoordinatorExecution { bool external_releases{false}; CommandRenewal renewal{CommandRenewal::Legacy20ms}; };
+ enum class OperationStatus { Pending, Accepted, Rejected };
++enum class AsyncTransportFault { None,Clock,Continuity,Send,ResultMismatch,ResultLate,ResultRejected,ResultTimeout,FrameCount };
++// Original transport detector state, captured before closing authority. A
++// missing request is explicit; no lifecycle/vehicle root is synthesized.
++struct TransportFaultObservation {
++    AsyncTransportFault fault;
++    CoordinatorSession session;
++    std::uint64_t detected_ns;
++    int operation{-1};
++    std::uint64_t token{0},sent_ns{0},deadline_ns{0};
++    bool stop_handoff{false};
++};
+ // Trusted single-owner adapter. Callbacks are bounded, nonblocking and must
+ // retain original roots/expiry. ACK means output selection/enqueue, not physics.
+ class CoordinatorPort {
+@@ -16,6 +27,7 @@ public:
+     virtual std::uint64_t now_ns() noexcept = 0;
+     virtual bool session_ready(CoordinatorSession session) noexcept = 0;
+     virtual bool healthy(std::uint32_t epoch) noexcept = 0;
++    virtual std::optional<TransportFaultObservation> transport_observation() const noexcept { return std::nullopt; }
+     virtual bool authorize_lifecycle(const LifecycleRequest& root) noexcept = 0;
+     virtual bool authorize_vehicle(const VehicleRequest& root) noexcept = 0;
+     virtual bool arm(std::uint32_t epoch) noexcept = 0;
+@@ -55,6 +67,9 @@ struct CoordinatorFaultObservation {
+     std::uint32_t epoch;
+     std::uint64_t enable_ns,detected_ns;
+     std::optional<NormalStopPlan> handoff;
++    AllocationFault allocation_fault{AllocationFault::None};
++    std::optional<VehicleRequest> vehicle;
++    std::optional<TransportFaultObservation> transport;
+ };
+ struct ProtectionObservation {
+     std::uint32_t epoch;
+diff --git a/central/diagnostics/control_diagnostics.cpp b/central/diagnostics/control_diagnostics.cpp
+index fa283c7..7d00aeb 100644
+--- a/central/diagnostics/control_diagnostics.cpp
++++ b/central/diagnostics/control_diagnostics.cpp
+@@ -124,7 +124,7 @@ void ControlDiagnostics::speed(const central::SpeedRequest& c,const std::optiona
+     if(command) e.command={true,value(Component::Speed),command->sequence,command->epoch,stamp(command->source_time_ns),stamp(command->expires_at_ns)};
+     const auto id=publish(e); e.id=id;
+     if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
+-    if(code==Code::SpeedInput) { speed_recovery_target_=e; speed_recovered_=false; }
++    if(code==Code::SpeedInput || code==Code::CentralControl) { speed_recovery_target_=e; speed_recovered_=false; }
+     if(!has_root(root_)) root_=e;
+ }
+ void ControlDiagnostics::stop(const central::NormalStop& c,std::uint64_t now) noexcept {
+@@ -157,13 +157,74 @@ void ControlDiagnostics::stop(const central::NormalStop& c,std::uint64_t now) no
+         if(has_root(root_)) e.related=root_.id;
+         const auto id=publish(e); e.id=id;
+         if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
++        if(e.kind==Kind::Fault) remember_stop_recovery(e,o.config);
+         if(!has_root(root_)) root_=e;
+     }
+ }
++void ControlDiagnostics::remember_stop_recovery(const Event& event,const central::NormalStopConfig& config) noexcept {
++    switch(event.key.code) {
++    case Code::BrakingTimeout: case Code::Handoff: case Code::StopEvidence:
++    case Code::ShutdownTimeout: case Code::StopRequest: case Code::CentralControl: case Code::Deadline: break;
++    default: return; // Clock recovery requires separate trusted clock qualification.
++    }
++    for(auto& target:stop_recovery_targets_) if(target && target->fault.key==event.key) {
++        target=StopRecovery{event,config,false}; return;
++    }
++    for(auto& target:stop_recovery_targets_) if(!target) {target=StopRecovery{event,config,false}; return;}
++    healthy_=false; // Bounded history cannot silently evict an unresolved occurrence.
++}
++void ControlDiagnostics::stop_recovery(const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
++    const auto decision=c.decision();const auto& phases=c.normal_stop().phase_observations();
++    if(!healthy_ || decision.fault!=central::CoordinatorFault::None || decision.normal_armed ||
++       !decision.stopping || decision.stop.fault!=central::NormalStopFault::None ||
++       decision.stop.state!=central::NormalStopState::Complete || decision.management.normal_allowed ||
++       decision.management.state!=central::VehicleManagementState::Stopped || !decision.management.power_off_confirmed) return;
++    std::uint64_t previous=enable_;
++    for(const auto& phase:phases) {
++        if(!phase || phase->epoch!=session_.epoch || phase->enable_ns!=enable_ ||
++           phase->observed_ns<previous || phase->observed_ns>now) return;
++        previous=phase->observed_ns;
++    }
++    const auto& complete=*phases[3];const auto& handoff=*phases[1];const auto& ack=*phases[2];
++    if(now-previous>30000000 || now==std::numeric_limits<std::uint64_t>::max() ||
++       !handoff.lease || !ack.lease || !same_stop_lease(*handoff.lease,*ack.lease) ||
++       ack.observed_ns>=ack.lease->expires_at_ns || ack.lease->epoch!=session_.epoch ||
++       handoff.observed_ns-phases[0]->observed_ns>=complete.config.braking_timeout_ns ||
++       complete.observed_ns-ack.observed_ns>=complete.config.shutdown_timeout_ns ||
++       !complete.evidence.drive || !complete.evidence.drive->wheel_speed ||
++       !complete.evidence.brake || !complete.evidence.power) return;
++    const auto& cfg=complete.config;
++    for(auto& target:stop_recovery_targets_) {
++        if(!target || target->passed || target->fault.session.epoch>=session_.epoch || target->fault.profile!=context_.profile) continue;
++        const auto& old=target->config;
++        if(old.deceleration_mps2!=cfg.deceleration_mps2 || old.confirmation_ns!=cfg.confirmation_ns ||
++           old.braking_timeout_ns!=cfg.braking_timeout_ns || old.shutdown_timeout_ns!=cfg.shutdown_timeout_ns ||
++           old.minimum_tick_interval_ns!=cfg.minimum_tick_interval_ns) continue;
++        auto e=base(now);e.kind=Kind::Observation;e.key=target->fault.key;e.occurrence=target->fault.occurrence;
++        e.related=target->fault.id;e.latch=Latch::Clear;
++        switch(e.key.code) {
++        case Code::BrakingTimeout:e.proof=Proof::Stop;break;
++        case Code::Handoff:e.proof=Proof::Handoff;break;
++        case Code::StopEvidence:e.proof=Proof::Hold;break;
++        case Code::ShutdownTimeout:e.proof=Proof::Shutdown;break;
++        case Code::StopRequest:e.proof=Proof::Input;break;
++        default:e.proof=Proof::Control;break;
++        }
++        e.state_after=static_cast<std::uint32_t>(complete.after);
++        e.stop_lease={true,value(Component::Stop),ack.lease->sequence,ack.lease->epoch,stamp(ack.lease->source_time_ns),stamp(ack.lease->expires_at_ns)};
++        e.times[static_cast<std::size_t>(Time::Acknowledged)]=stamp(ack.observed_ns);
++        e.times[static_cast<std::size_t>(Time::Actual)]=stamp(complete.evidence.drive->wheel_speed->source_time_ns);
++        e.measured=complete.evidence.drive->wheel_speed->value_rad_s;
++        const auto proof=publish(e);actuals(complete,e,proof,now);
++        if(!healthy_) return;
++        e.kind=Kind::Passed;e.proof_event=proof;publish(e);target->passed=true;
++    }
++}
+ void ControlDiagnostics::actuals(const central::NormalStopObservation& o,const Event& phase,EventId parent,std::uint64_t now) noexcept {
+     const auto emit=[&](Component component,Subject subject,const can::ActuatorMetadata& metadata,std::uint64_t source,double measured) {
+         if(!std::isfinite(measured)) { healthy_=false; return; }
+-        auto e=phase; e.kind=Kind::Actual; e.related=parent; e.key.subject=static_cast<std::uint32_t>(subject);
++        auto e=phase; e.kind=Kind::Actual; e.related=parent;
++        if(e.key.code==Code::None) e.key.subject=static_cast<std::uint32_t>(subject);
+         e.source={true,value(component),subject==Subject::Wheel?source:metadata.sequence,metadata.epoch,stamp(source),{}};
+         e.measured=measured; e.times[static_cast<std::size_t>(Time::Actual)]=stamp(source);
+         e.times[static_cast<std::size_t>(Time::Observed)]=stamp(o.evidence.observed_ns);
+@@ -187,15 +248,35 @@ void ControlDiagnostics::coordinator(const central::VehicleCoordinator& c,std::u
+     const auto& fault=c.fault_observation();
+     if(!coordinator_seen_ && fault && fault->epoch==session_.epoch && fault->enable_ns==enable_) {
+         coordinator_seen_=true; const auto& o=*fault; auto e=base(now);
+-        e.native_reason=coordinator_reason(o.fault); const bool handoff=o.fault==central::CoordinatorFault::Handoff;
+-        e.kind=handoff?Kind::Fault:Kind::Observation;
+-        e.key=key(handoff?Code::Handoff:Code::None,Component::Coordinator,Monitor::Coordinator,handoff?Subject::Handoff:Subject::Protection);
+-        e.latch=Latch::Set; e.times[static_cast<std::size_t>(Time::Detected)]=stamp(o.detected_ns,o.fault!=central::CoordinatorFault::ClockError);
+-        e.related=root_.id; e.cause_unknown=!has_root(root_);
+-        e.unmapped=!handoff && !has_root(root_) && o.fault!=central::CoordinatorFault::LocalProtection;
++        e.native_reason=coordinator_reason(o.fault); bool handoff=o.fault==central::CoordinatorFault::Handoff;
++        const bool transport=o.transport && o.transport->session.epoch==session_.epoch && o.transport->session.enable_ns==enable_ && o.transport->fault!=central::AsyncTransportFault::None;
++        const bool allocation=o.fault==central::CoordinatorFault::Allocation && o.allocation_fault!=central::AllocationFault::None && o.allocation_fault!=central::AllocationFault::ContinuityLost;
++        auto code=handoff?Code::Handoff:Code::None;
++        if(allocation){
++            code=o.allocation_fault==central::AllocationFault::ClockError?Code::Clock:
++                 o.allocation_fault==central::AllocationFault::ControlDeadline?Code::Deadline:Code::CentralControl;
++            // Explicit native reason namespace: bit16 marks the allocator; the
++            // low16 bits retain AllocationFault from BEFORE protection changes.
++            e.native_reason=0x10000U|static_cast<std::uint32_t>(o.allocation_fault);
++            if(o.vehicle){const auto& r=*o.vehicle;e.command={true,value(Component::Coordinator),r.sequence,r.epoch,stamp(r.source_time_ns),stamp(r.expires_at_ns)};}
++        }
++        if(transport){
++            const auto& t=*o.transport;handoff=t.stop_handoff;
++            code=t.fault==central::AsyncTransportFault::Clock?Code::Clock:handoff?Code::Handoff:Code::CentralControl;
++            e.native_reason=0x20000U|static_cast<std::uint32_t>(t.fault);
++            if(t.token)e.command={true,value(Component::Coordinator),t.token,t.session.epoch,stamp(t.sent_ns,code!=Code::Clock),stamp(t.deadline_ns,code!=Code::Clock)};
++            if(t.fault==central::AsyncTransportFault::ResultTimeout)e.times[static_cast<std::size_t>(Time::Violation)]=stamp(t.deadline_ns);
++        }
++        const bool confirmed=code!=Code::None;
++        e.kind=confirmed?Kind::Fault:Kind::Observation;
++        e.key=key(code,Component::Coordinator,Monitor::Coordinator,handoff?Subject::Handoff:allocation?Subject::Torque:Subject::Protection);
++        e.latch=Latch::Set; e.times[static_cast<std::size_t>(Time::Detected)]=stamp(transport?o.transport->detected_ns:o.detected_ns,o.fault!=central::CoordinatorFault::ClockError && code!=Code::Clock);
++        e.related=root_.id; e.cause_unknown=!confirmed && !has_root(root_);
++        e.unmapped=!confirmed && !has_root(root_) && o.fault!=central::CoordinatorFault::LocalProtection;
+         if(o.handoff) { const auto& l=o.handoff->lease; e.stop_lease={true,value(Component::Stop),l.sequence,l.epoch,stamp(l.source_time_ns),stamp(l.expires_at_ns)}; }
+         const auto id=publish(e); e.id=id;
+-        if(handoff) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
++        if(confirmed) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
++        if(e.kind==Kind::Fault) remember_stop_recovery(e,c.normal_stop().configuration());
+         if(!has_root(root_)) root_=e;
+     }
+     const auto& selections=c.protection_observations();
+@@ -259,7 +340,7 @@ void ControlDiagnostics::observe_speed_recovery(const central::SpeedRequest& spe
+        !d.normal_armed || d.stopping || d.fault!=central::CoordinatorFault::None ||
+        !d.management.normal_allowed || d.management.fault!=central::VehicleManagementFault::None ||
+        d.management.permission_support.expiry_ns<=now) return;
+-    auto e=base(now); e.kind=Kind::Actual; e.proof=Proof::Input; e.key=speed_recovery_target_->key;
++    auto e=base(now); e.kind=Kind::Actual; e.proof=speed_recovery_target_->key.code==Code::SpeedInput?Proof::Input:Proof::Control; e.key=speed_recovery_target_->key;
+     e.occurrence=speed_recovery_target_->occurrence; e.related=speed_recovery_target_->id; e.latch=Latch::Clear;
+     e.source={true,value(Component::DriveWheel),o.input.wheel_speed->source_time_ns,o.epoch,stamp(o.input.wheel_speed->source_time_ns),{}};
+     e.command={true,value(Component::Speed),o.request.sequence,o.request.epoch,stamp(o.request.source_time_ns),stamp(o.request.expires_at_ns)};
+@@ -271,8 +352,18 @@ void ControlDiagnostics::observe_speed_recovery(const central::SpeedRequest& spe
+ std::optional<ServiceEvidence> ControlDiagnostics::speed_clear_evidence(const central::SpeedRequest& speed_control,
+     const central::VehicleCoordinator& c,const central::NormalDriveReadinessInputs& in,
+     const std::optional<can::DriveMessage>& input,std::uint64_t now) const noexcept {
+-    if(!healthy_ || !speed_recovered_ || !speed_recovery_target_ || in.epoch!=session_.epoch || in.session_enable_ns!=enable_ ||
+-       speed_control.fault()!=central::SpeedRequestFault::None || speed_control.state().epoch!=session_.epoch ||
++    if(!speed_recovered_ || !speed_recovery_target_ || speed_control.fault()!=central::SpeedRequestFault::None ||
++       speed_control.state().epoch!=session_.epoch) return std::nullopt;
++    return stationary_evidence(c,in,input,now);
++}
++std::optional<ServiceEvidence> ControlDiagnostics::stop_clear_evidence(const central::VehicleCoordinator& c,
++    const central::NormalDriveReadinessInputs& in,std::uint64_t now) const noexcept {
++    if(std::none_of(stop_recovery_targets_.begin(),stop_recovery_targets_.end(),[](const auto& t){return t && t->passed;})) return std::nullopt;
++    return stationary_evidence(c,in,in.rear.drive_actual,now);
++}
++std::optional<ServiceEvidence> ControlDiagnostics::stationary_evidence(const central::VehicleCoordinator& c,
++    const central::NormalDriveReadinessInputs& in,const std::optional<can::DriveMessage>& input,std::uint64_t now) const noexcept {
++    if(!healthy_ || in.epoch!=session_.epoch || in.session_enable_ns!=enable_ ||
+        !input || !in.rear.drive_actual || !same_input(*input,*in.rear.drive_actual) || !input->wheel_speed ||
+        !in.front.brake_actual || !input->torque_nm || !in.front.brake_actual->pressure_pa || !in.rear.power_status ||
+        now<enable_ || now==std::numeric_limits<std::uint64_t>::max() || !central::evaluate_vehicle_input_health(in,now).ready()) return std::nullopt;
+@@ -295,10 +386,10 @@ std::optional<ServiceEvidence> ControlDiagnostics::speed_clear_evidence(const ce
+ }
+ void ControlDiagnostics::observe(const central::SpeedRequest& speed_control,const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
+     if(!session_.epoch) return;
+-    speed(speed_control,c.last_vehicle_request(),now); stop(c.normal_stop(),now); coordinator(c,now);
++    speed(speed_control,c.last_vehicle_request(),now); stop(c.normal_stop(),now); coordinator(c,now); stop_recovery(c,now);
+ }
+ void ControlDiagnostics::observe(const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
+-    if(session_.epoch) {stop(c.normal_stop(),now);coordinator(c,now);}
++    if(session_.epoch) {stop(c.normal_stop(),now);coordinator(c,now);stop_recovery(c,now);}
+ }
+ void ControlDiagnostics::observe(const central::SpeedRequest& c,std::uint64_t now) noexcept {
+     if(session_.epoch) speed(c,std::nullopt,now);
+diff --git a/central/diagnostics/control_diagnostics.hpp b/central/diagnostics/control_diagnostics.hpp
+index 84ced5c..899aa32 100644
+--- a/central/diagnostics/control_diagnostics.hpp
++++ b/central/diagnostics/control_diagnostics.hpp
+@@ -32,7 +32,7 @@ public:
+                           std::uint64_t original_ns,bool acknowledgement) noexcept;
+     void observe_response(const central::NormalDriveReadinessInputs&,std::uint64_t observed_ns) noexcept;
+     // Only a newer global Epoch with a healthy accepted native speed request
+-    // qualifies SD-1001. Input restoration or INIT alone cannot publish Passed.
++    // qualifies SD-1001/Speed monitor SD-1002. Input restoration or INIT alone cannot publish Passed.
+     void observe_speed_recovery(const central::SpeedRequest&,const central::VehicleCoordinator&,
+                                 const central::NormalDriveReadinessInputs&,std::uint64_t observed_ns) noexcept;
+     // Capture on the Central owner; pass this immutable evidence to the non-RT
+@@ -40,14 +40,20 @@ public:
+     std::optional<ServiceEvidence> speed_clear_evidence(const central::SpeedRequest&,
+         const central::VehicleCoordinator&,const central::NormalDriveReadinessInputs&,
+         const std::optional<can::DriveMessage>& current_speed_input,std::uint64_t now_ns) const noexcept;
++    std::optional<ServiceEvidence> stop_clear_evidence(const central::VehicleCoordinator&,
++        const central::NormalDriveReadinessInputs&,std::uint64_t now_ns) const noexcept;
+     bool healthy() const noexcept { return healthy_; }
+ private:
++    std::optional<ServiceEvidence> stationary_evidence(const central::VehicleCoordinator&,
++        const central::NormalDriveReadinessInputs&,const std::optional<can::DriveMessage>&,std::uint64_t) const noexcept;
+     Stamp stamp(std::uint64_t,bool trusted=true) const noexcept;
+     Event base(std::uint64_t observed_ns) const noexcept;
+     EventId publish(Event) noexcept;
+     void speed(const central::SpeedRequest&,const std::optional<central::VehicleRequest>&,std::uint64_t) noexcept;
+     void stop(const central::NormalStop&,std::uint64_t) noexcept;
+     void coordinator(const central::VehicleCoordinator&,std::uint64_t) noexcept;
++    void remember_stop_recovery(const Event&,const central::NormalStopConfig&) noexcept;
++    void stop_recovery(const central::VehicleCoordinator&,std::uint64_t) noexcept;
+     void actuals(const central::NormalStopObservation&,const Event&,EventId,std::uint64_t) noexcept;
+     EventQueue& queue_; const ControlContext context_;
+     Session session_{}; std::uint64_t enable_{0},next_{1}; bool healthy_{true};
+@@ -58,5 +64,7 @@ private:
+     // source emitter itself is continuous. No process-restart adoption here.
+     std::optional<Event> speed_recovery_target_;
+     bool speed_recovered_{false};
++    struct StopRecovery { Event fault; central::NormalStopConfig config; bool passed{false}; };
++    std::array<std::optional<StopRecovery>,8> stop_recovery_targets_{};
+ };
+ } // namespace stratadrive::diagnostics
+diff --git a/central/vehicle_management/normal_stop.hpp b/central/vehicle_management/normal_stop.hpp
+index 3dcb24d..8aa9772 100644
+--- a/central/vehicle_management/normal_stop.hpp
++++ b/central/vehicle_management/normal_stop.hpp
+@@ -39,6 +39,7 @@ public:
+     StopReceiveResult receive_request(const NormalStopRequest& request, std::uint64_t now_ns);
+     std::optional<NormalStopPlan> tick(const NormalDriveReadinessInputs& inputs, const VehicleManagementDecision& management, std::uint64_t now_ns);
+     bool acknowledge_handoff(const ActuatorStopLease& lease, std::uint64_t now_ns);
++    const NormalStopConfig& configuration() const noexcept { return config_; }
+     const NormalStopDecision& decision() const { return decision_; }
+     const std::array<std::optional<NormalStopObservation>,2>& fault_observations() const noexcept { return faults_; }
+     const std::array<std::optional<NormalStopObservation>,4>& phase_observations() const noexcept { return phases_; }
+diff --git a/docs/archive/design-decisions.md b/docs/archive/design-decisions.md
+index 8c3b901..d60b9e2 100644
+--- a/docs/archive/design-decisions.md
++++ b/docs/archive/design-decisions.md
+@@ -5731,3 +5731,28 @@ fixture 경계다. Physical producer의 별도 acquisition 기록과 PCAP/CAN 
+ canonical incident 한 건만 해제한다. 다른 fault/이전 미심사 원인·운행 권한을 일괄 해소하지 않는다.
+ 실제 SimpleVehicle 이동/정지와 three-ECU/SDK의 기능·sanitizer 결과를 native4ms/실차/일반 운용
+ 수용으로 올리지 않는다. 새 고장 조합·서비스 중 evidence/ACK 실패의 실제 거절은 다음 단계다.
++
++
++<a id="adr-0095"></a>
++
++## ADR-0095: 최초 native 원인 보존과 실제 fault 주입·복구의 분리
++
++상태: M9 후속 구현·기능 검증. 전체 M9/학습자/Target 수용은 별도.
++
++실제 서비스의 정지 요청 갱신 손실은 NormalStop보다 allocator가 먼저 검출할 수 있다.
++Stop ACK 유실 역시 async transport의 exclusive deadline이 먼저 만료될 수 있다. 보호 후 상태에서
++원인을 재구성하지 않고 최초 detector의 원본 enum·시각·token/authority를 snapshot한다. 별도 reason
++namespace로 원인을 보존하며 기존 protection/expiry/18ms support 기준은 변경하지 않는다.
++
++새 NormalStop의 전체 native cycle이 동일 설정으로 실제 Complete에 도달한 뒤에만 해당 정지/control
++고장의 Passed를 발행한다. 오래된 occurrence는 같은 key로 연결하고 명시적인 clear와 구분한다.
++Clock은 이 정상 cycle만으로 신뢰성을 증명할 수 없어 자동 Passed 대상에서 제외한다.
++
++CARLA 고장 진단은 원래8-role owner/CAN Actual과 별도 durable writer를 연결한다. 외력 주입은 기존
++legacy RPC 차단을 우회하지 않고 opt-in 전용 simulation/work 서버에서 authenticated stage와 동일
++physics frame에 적용한다. 서버 receipt의 실제 적용 벡터가 증거다. 기존 외력 RPC가 차단된 첫
++실패를 보존한다. Silent packet loss에서 whole-interval expiry가 먼저 닫히는 결과는 물리 정지
++성공이 아니다. 명시적 link failure와 구분하며 기존 whole-interval gate를 완화하지 않는다.
++
++SCHED_OTHER TSan 실행의 실제 support expiry는 보호 조건이며 race 부재와 기능 수용을 구분한다.
++CPU 분리·fixture trace 용량·실패 시 orderly drain을 기록하고 실패한 이전 분모를 삭제하지 않는다.
+diff --git a/docs/interfaces/diagnostics.md b/docs/interfaces/diagnostics.md
+index 77bb872..b2eb860 100644
+--- a/docs/interfaces/diagnostics.md
++++ b/docs/interfaces/diagnostics.md
+@@ -556,7 +556,7 @@ Source Failed/count1/generation1과 원본 이력은 유지한다. 재시작 rep
+ 
+ [사전 recipe](../test-plan/diagnostics-protocol.md#someip-진단-channel새-logical-owner-fixture),
+ [실행·실패·clock·감사](../test-plan/evidence/m9_someip_live/README.md)를 따른다.
+-정규 DDS gate·Target·부하/보존 용량 수용은 후속이다. Native 배선은 아래 별도 범위를 따른다.
++DDS control gate는 CLOSED인 별도 대안이다. Target·실제 부하/장기 보존 수용은 후속이다. Native 배선은 아래 별도 범위를 따른다.
+ 
+ ## 원격 publisher의 전역 context admission
+ 
+@@ -897,9 +897,36 @@ PCAP의 owner CRC32C/CAN P05와 원래 Actual의 값·시각을 별도 physical
+ 진단 store와 Central·Zone/Leaf·Gateway·BMS/Power·기동 관측을 제한된 logical fixture에서
+ 연결하고 Event-only replica/spool과 실제 SOME/IP channel의 새 logical owner를 검증했다.
+ 원격 context admission 뒤 실제 native3-ECU의2개 context/9개 source stream도 기능 검증했다.
+-Central/Front/Rear 재기동과 terminal native 서비스 뒤에는 서비스 중 ACK/Actual 누락·정지 실패/
+-시간초과에서의 실제 clear 거절 및 미결정 고장 조합·원인 연결/복구를 검증한다.
++Central/Front/Rear 재기동과 terminal native 서비스의 ACK/Actual 누락·정지 실패 거절 및
++CARLA30 고장 통합의 후속 결과는 아래 M9 후속 근거를 따른다. 미결정 조합과 Clock은 별도다.
+ Local participant Ready를 global Release로 만들지 않는다.
+ 원본 owner의 최초 판정/선택/ACK를 유지하며 polling 시각이나 aggregate FAIL_SAFE로 대체하지 않는다.
+ 실제 부하의 queue/store 용량 적합성·Clock 복구는 별도 수용한다.
+-30km/h fault의 구체 주입 위치·기대 DTC와 물리 판정은 실행 전에 별도 고정한다.
++30km/h fault의 구체 주입 위치·기대 DTC와 물리 판정은 [CARLA 진단 protocol](../test-plan/carla-diagnostics-protocol.md)에 고정한다.
++
++
++## M9 allocator/transport 원인과 NormalStop 재검증
++
++`CoordinatorFaultObservation`은 보호로 allocator 상태를 변경하기 **전** native allocation fault,
++원본 VehicleRequest와 AsyncTransportFault의 최초 검출 snapshot을 보존한다. Transport는 실제
++operation/token/sent/exclusive deadline과 Stop 인계 여부를 포함한다. 뒤늦은 ACK·재관측·추가
++clock 오류로 최초 원인을 덮어쓰지 않는다. `native_reason`의 `0x10000 | AllocationFault`는
++allocator, `0x20000 | AsyncTransportFault`는 transport namespace다. Stop operation의 실제 ACK
++timeout은 SD-1102, 다른 transport/allocator 고장은 SD-1002이며 각 실제 Clock/Deadline은
++SD-4001/4002다. Native NormalStop reason 번호를 만들어 넣지 않는다.
++
++Central 단일 owner의 observer는 미해제 정지 고장의 key별 최근 occurrence를 최대8개 보관한다.
++용량 초과 시 observer를 불완전하게 표시하며 미해제 이력을 퇴출하지 않는다. 새 실제 coordinator
++Session에서 동일 profile 및 NormalStop의 모든 설정값으로 Braking→HandoffPending→PowerDown→
++Complete를 통과해야 복구 proof를 발행한다. 동일 lease의 실제 accepted handoff, 원래 braking/
++shutdown deadline, 실제 stopped/hold/PowerStatus Off 증거와 원본 Complete의 age≤30ms를 확인한다.
++이는 SD-1101/1102/1103/1104/1105 및 해당 Central allocator/transport·Stop deadline 경로의
++재검증이다. Speed monitor SD-1002는 기존 정상 SpeedRequest의 실제 accepted 입력/출력 재검증을
++사용한다. Clock 오류에는 적용하지 않는다.
++
++Passed는 삭제가 아니다. `stop_clear_evidence`는 Passed 후보가 있고 현재 원본 wheel·torque·brake,
++HV Off·normal dispatch 억제가 유효할 때만 값 복사를 반환한다. Recorder는 명시적인 요청의
++key/revision/현재 session과 해당 record의 Passed를 다시 검사하고 durable tombstone을 기록한다.
++새 INIT만 수행한 경우, 다른 설정의 성공, 오래된 Complete, 해제 중 새 고장은 성공으로 세지 않는다.
++
++이번 실제 시험 범위·실패 분모·미수용 항목은 [M9 후속 근거](../test-plan/evidence/m9_completion/README.md)를 따른다.
+diff --git a/docs/project-status.md b/docs/project-status.md
+index 5ba2300..5c130dd 100644
+--- a/docs/project-status.md
++++ b/docs/project-status.md
+@@ -15,11 +15,26 @@
+ | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
+ | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
+ | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
+-| M9 | ECU 재기동·발행자 계승·실제3-ECU terminal 서비스 심사/clear; 서비스 고장 주입 후속 | [진단 계약](interfaces/diagnostics.md) · [Native 서비스 조합](test-plan/evidence/m9_native_service/README.md) |
++| M9 | CARLA30 고장→보호→물리 반응→DTC와 native 서비스 거절·정지 복구 후속 검증 | [진단 계약](interfaces/diagnostics.md) · [Native 서비스 조합](test-plan/evidence/m9_native_service/README.md) |
+ | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
+ 
+ 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
+ 
++## M9 이번 후속 구현
++
++[M9 후속 근거](test-plan/evidence/m9_completion/README.md)에 실제 CARLA30 정상·입력 손실·
++Stop ACK 손실·명시적 전륜 link failure·제동10s timeout의 원본 trace와 독립 감사를 묶었다.
++최초 native allocator/async transport의 원인·시각·token/expiry를 보호 상태 전환 전에 보존한다.
++NormalStop은 새 동일 설정의 실제 전체 cycle/Complete 후에만 Passed를 발행하고 별도 현재
++stationary/HV-off 증거와 명시적 요청으로 clear한다. Clock은 이 predicate에서 제외한다.
++BMS9개 trip mask와 Power8개 물리 고장 조합은 electrical component 수준으로 확장했다.
++
++**M9 전체 완료는 아직 아니다.** Silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
++재검증, proposal 이전 bootstrap incident 계약, 전체8-role BMS/Power matrix와 실제 부하/장기 보존
++수용이 남는다. 기본512-event 저장 경계는 원본 보존·초과 시 clear 차단까지 검증했으며 장기 보존
++운용을 대신하지 않는다. Native4ms/Target과 학습자 이해 review는 기능 시험 통과와 별도다.
++아래 과거 근거의 당시 범위/실패는 그대로 유지한다.
++
+ ## M9 진단 집계·저장과 Central 검출 경로 연결
+ 
+ TBD-08의 [event/DTC 계약 v0.1](interfaces/diagnostics.md)에 따라 유한 SPSC 큐·중복/재발
+@@ -126,12 +141,12 @@ Epoch3를 발급하고 실제8-role Release·운전/정지·보호 뒤9개 sourc
+ 일반1223·wall9·로컬 ASan17·Python24·변경3 TU 정적/Release 검사를 확인했다.
+ EpochStore fsync 동안 owner가 멈춘 초기 ASan 실패는 보호 ACK 후 비실시간 IO/계속 수신과
+ old owner의 지연 폐기로 수정했다. 초기 소켓 정리·독립 감사/취득 기록·compile 실패도 보존했다.
+-다음은 TSan Allocation 선행 실패 원인과 서비스 중 ACK/Actual 누락·정지 실패/시간초과의 실제 clear 거절이다.
++TSan Allocation 원인 분석과 실제 서비스 고장 거절의 이번 결과는 위 M9 후속 근거에 기록한다.
+ Native4ms와 M9 전체 수용은 계속 OPEN이다.
+-정규 DDS gate와 native wall/Target·부하/보존 용량 수용은 아직 후속이다.
+-다른 BMS trip/Power 고장 조합·Clock 복구·proposal 이전 bootstrap 실패는 후속이다.
++DDS 제어 gate는 CLOSED인 별도 대안이며 M9 SOME/IP 완료 조건이 아니다. Native wall/Target과 실제 부하/장기 보존 수용은 별도다.
++BMS/Power 조합의 최신 component 확장은 위 후속 근거를 따른다. 전체 차량 조합·Clock 복구·proposal 이전 bootstrap은 남는다.
+ 실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.
+-30km/h ACK/통신 손실의 실제 주입 recipe와 기대 code·물리 기준은 실행 전에 고정한다.
++이번30km/h recipe와 기대 code·물리 기준은 [사전 protocol](test-plan/carla-diagnostics-protocol.md)에 고정했다.
+ TBD-08은 실제 모니터 경계의 code별 복구 predicate·전달/부하 검증·학습자 수용 전 CLOSED로 올리지 않는다.
+ 
+ ## 구현·검증한 범위
+diff --git a/docs/roadmap.md b/docs/roadmap.md
+index 2088c8e..3d78354 100644
+--- a/docs/roadmap.md
++++ b/docs/roadmap.md
+@@ -86,9 +86,12 @@ fresh collector prefix import·생존 source 재전송·미확인 연속성 clea
+ [Linux 로컬 서비스 연결](test-plan/evidence/m9_continuity_service/README.md)은 kernel peer 인가·
+ frozen guard·원본 Actual adapter·별도 clear 요청을 연결한다. 실제3-ECU 서비스 owner/SDK
+ quiesce·새 global Epoch/물리 정지 조합은 [terminal native 서비스](test-plan/evidence/m9_native_service/README.md)에서
+-부분 검증했다. 최신 TSan의 정지 선행 실패 원인과 서비스 중 ACK/Actual 누락·정지 실패/시간초과 거절, native fault matrix/원인 연결·복구·
+-부하/보존 용량이다. 정규 DDS gate·proposal 이전
+-bootstrap·Clock 복구도 후속이다.
++부분 검증했다. [이번 후속](test-plan/evidence/m9_completion/README.md)은 최초 TSan support expiry의
++원본 원인, 서비스 중 실제 ACK/Actual 손실·Stop 실패 거절, CARLA30 고장4종과 기본 저장 capacity,
++BMS9/Power8 component 조합·동일 설정 NormalStop 복구/clear를 다룬다. 실패 분모도 함께 보존한다.
++남은 완료 조건은 silent packet loss의 실제 CARLA subinterval 연결, trusted Clock 복구,
++proposal 이전 bootstrap incident, 전체8-role native fault matrix, 실제 부하/장기 보존 정책과
++학습자 수용이다. DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.
+ 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
+ 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·
+ 속도·제어 튜닝은 이 묶음에 추가하지 않으며 변경한 경계의 회귀만 실행한다.
+diff --git a/docs/test-plan/README.md b/docs/test-plan/README.md
+index 25c9c42..062ebe6 100644
+--- a/docs/test-plan/README.md
++++ b/docs/test-plan/README.md
+@@ -69,3 +69,5 @@ M7-1a–1s는 환경/센서 → clock·native 반환 → source/NoDrive → geom
+ 당시 개별 시험이다. 세부 재현이 필요할 때 해당 `evidence/m7_carla_1*/README.md`를 찾는다.
+ 과거 사전 계획은 [보관 문서](../archive/README.md)로 이동했고, 현재 CARLA 재실행은
+ [실행 안내](../carla-guide.md)를 따른다.
++
++[M9 후속 구현·검증](evidence/m9_completion/README.md): 실제 서비스 고장 거절, CARLA30 fault/물리 응답/DTC, 최초 native 원인, stop 복구·명시적 clear, BMS/Power component 조합과 기본512-event capacity. 원래 실패와 전체 미수용 항목을 함께 보존한다.
+diff --git a/docs/test-plan/component-traceability.csv b/docs/test-plan/component-traceability.csv
+index cd46205..c5a5d23 100644
+--- a/docs/test-plan/component-traceability.csv
++++ b/docs/test-plan/component-traceability.csv
+@@ -242,3 +242,7 @@ C-M9-NATIVE-SERVICE-01,SYS-DIAG-001,tests/integration/someip/front_adapter.cpp;t
+ C-M9-NATIVE-SERVICE-02,SYS-DIAG-001,tests/integration/someip/native_continuity_service.cpp;tests/integration/someip/native_service_client.py,native-service-admission;native-service-mutations17,Fixed local kernel peer and boot capability;scope/revision/disposition checks;duplicate receipt;separate explicit clear with exactly4 local transactions and immutable unknown history,m9_native_service/results.json
+ C-M9-NATIVE-SERVICE-03,SYS-DIAG-001,tests/integration/diagnostics/audit_native_service.py;tests/integration/someip/front_adapter.cpp,native-service-physical;native-service-mutations17,Independent PCAP owner CRC32C/CAN P05 and original model acquisition/value;after whole frozen cut;current stationary age/skew;SimpleVehicle motion then standstill;no polling timestamp substitution,m9_native_service/results.json
+ C-M9-NATIVE-SERVICE-04,SYS-DIAG-001,tests/integration/someip/front_adapter.cpp,native-service-epoch-io;native-service-regression,Close authority and receive real protection ACK before nonRT EpochStore IO;owner continues receive;old graph disposal after join;no FIFO or timing budget enlargement,m9_native_service/results.json
++C-M9-COMPLETE-01,SYS-DIAG-001,central/coordinator/async_coordinator_port.cpp;central/diagnostics/control_diagnostics.cpp,CoordinatorTest.TransportFirstStopAckTimeoutKeepsOriginalCauseAndTimestamp;CoordinatorDiagnosticsRecovery.NativeStopFailuresRequireNewEpochCompleteAndIdenticalConfiguration,Original detector snapshot before protection;new identical-config native complete;explicit current stationary clear;masks never replace clock qualification,m9_completion/results.json
++C-M9-COMPLETE-02,SYS-DIAG-001,tests/integration/diagnostics/audit_native_service_faults.py,native-service-ack-loss;native-service-actual-loss;native-service-stop-request-loss;native-service-stop-ack-loss,Original runtime FAIL and clean expected refusal audited separately;no service commit when preconditions fail,m9_completion/results.json
++C-M9-COMPLETE-03,SYS-DIAG-001,tests/integration/carla/audit_m9_diagnostics.py,carla30-input-loss;carla30-stop-ack-loss;carla30-front-link-failure;carla30-braking-timeout,Original8-role simulation acquisition;6000 physics and EV settlements;separate durable writer;fixed deadlines;server external force receipt,m9_completion/results.json
++C-M9-COMPLETE-04,SYS-DIAG-001,tests/unit/native_diagnostics_test.cpp;tests/unit/diagnostics_journal_test.cpp,NativePowerMatrix;BmsTripMatrix;FullDefaultRetentionPreservesEveryByteAndPermanentlyBlocksClearAfterOverflow,Native electrical model faults and new-epoch recovery;512 original durable entries unchanged on513th;component scope only,m9_completion/results.json
+diff --git a/docs/test-plan/requirements-traceability.md b/docs/test-plan/requirements-traceability.md
+index 9230851..9cc0896 100644
+--- a/docs/test-plan/requirements-traceability.md
++++ b/docs/test-plan/requirements-traceability.md
+@@ -92,3 +92,5 @@ scenario/test oracle 갱신 → 해당 milestone에서 실행 → Result ID/arti
+ 같은 test의 component-only/plant/board별 run은 별도 결과로 보존한다. 미구현이나 TBD를
+ 빈 결과나 0 ms로 대체하지 않는다. 모든 required variant와 환경 조건을 검증하기 전에는
+ 일부 PASS만으로 requirement 전체를 VERIFIED로 변경하지 않는다.
++
++C-M9-COMPLETE-01–04는 [M9 후속](evidence/m9_completion/README.md)의 최초 native 원인·동일 설정 정지 복구/clear·서비스 거절·CARLA30 실제 물리/DTC·component 고장 조합·저장 capacity를 연결한다. Clock/bootstrap/silent-loss subinterval·전체 matrix·부하/장기 보존·학습자 수용 전 전체 TC를 닫지 않는다.
+diff --git a/interfaces/session/session_mailbox.hpp b/interfaces/session/session_mailbox.hpp
+index 86a9848..4156175 100644
+--- a/interfaces/session/session_mailbox.hpp
++++ b/interfaces/session/session_mailbox.hpp
+@@ -44,6 +44,9 @@ public:
+         return failed()?std::nullopt:std::optional<T>{item};
+     }
+     bool failed() const noexcept { return failed_.load(std::memory_order_acquire); }
++    // A transport disconnect is sticky just like overflow. Existing queued
++    // traffic cannot revive this instance; replace it after both owners join.
++    void close() noexcept { failed_.store(true,std::memory_order_release); }
+ private:
+     std::array<T,Capacity+1> items_{};
+     std::array<std::uint64_t,Capacity+1> available_{};
+diff --git a/tests/integration/carla/m7_1f/functional_rig.cpp b/tests/integration/carla/m7_1f/functional_rig.cpp
+index 7040960..c132ce9 100644
+--- a/tests/integration/carla/m7_1f/functional_rig.cpp
++++ b/tests/integration/carla/m7_1f/functional_rig.cpp
+@@ -29,6 +29,21 @@ double speed_target(Time elapsed) {
+     return 0;
+ }
+ void require(bool value,const char* why) {if(!value)throw std::runtime_error(why);}
++template<class T> class OmitDelivery final:public session::MailboxDelivery<T> {
++public:
++    const Time& trigger;const DiagnosticFault& fault;std::uint64_t count=0;
++    OmitDelivery(const Time& t,const DiagnosticFault& f):trigger(t),fault(f) {}
++    session::Delivery send(const T& value) noexcept override {
++        bool drop=false;
++        if constexpr(std::is_same_v<T,transport::ZoneRequest>)drop=fault==DiagnosticFault::FrontCommandLoss;
++        else drop=fault==DiagnosticFault::StopAckLoss && value.operation==transport::Operation::Stop;
++        if(trigger && drop){++count;return {true,0};}return {};
++    }
++    bool blocked() noexcept override {return false;}
++    std::uint64_t now_ns() const noexcept override {return 0;}
++    void delivered(const T&) noexcept override {}
++    void overflow(const T&) noexcept override {}
++};
+ remote::OwnerMessage wire(const remote::OwnerMessage& message) {
+     const auto packet=remote::encode_owner_message(message);require(bool(packet),"encode");
+     const auto decoded=remote::decode_owner_message(packet->bytes.data(),packet->size);
+@@ -129,6 +144,13 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
+     bool running=false,stop_credit=false,drop_actual=false;int omitted=-1;
+     SpeedTerminal terminal_mode=SpeedTerminal::None;
+     Time trigger_ns=0,detection_ns=0,handoff_ns=0;std::uint32_t stop_seq=0;
++    DiagnosticFault diagnostic_fault=DiagnosticFault::Disabled;
++    OmitDelivery<transport::ZoneRequest> command_omission{trigger_ns,diagnostic_fault};
++    OmitDelivery<transport::TxResult> ack_omission{trigger_ns,diagnostic_fault};
++    std::unique_ptr<diagnostics::EventQueue> startup_events,control_events;
++    std::unique_ptr<diagnostics::StartupDiagnostics> startup_diagnostics;
++    std::unique_ptr<diagnostics::ControlDiagnostics> control_diagnostics;
++    bool diagnostic_session=false;std::array<bool,7> diagnostic_selected{};
+     bool protection_requested=false,terminal_response=false;
+     Time protection_since=0;
+     bool wheel_mode=false;
+@@ -187,8 +209,39 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
+     void ack(const std::optional<session::Ack>& a) {
+         if(a){require(acks.size()<64,"ACK queue overflow");acks.push_back(*a);}
+     }
++    void enable_diagnostics(DiagnosticFault fault) {
++        diagnostic_fault=fault;
++        startup_events=std::make_unique<diagnostics::EventQueue>(scope.run,7);
++        control_events=std::make_unique<diagnostics::EventQueue>(scope.run,8);
++        const diagnostics::ControlContext context{scope.run,7,diagnostics::Domain::Simulation,domain,1};
++        startup_diagnostics=std::make_unique<diagnostics::StartupDiagnostics>(*startup_events,context,diagnostics::Component::Coordinator,8,true);
++        auto control_context=context;control_context.producer=8;
++        control_diagnostics=std::make_unique<diagnostics::ControlDiagnostics>(*control_events,control_context);
++        zones[0].work.delivery(&command_omission);zones[0].results.delivery(&ack_omission);
++    }
++    void sample_diagnostics(Time now) {
++        if(!control_diagnostics)return;
++        startup_diagnostics->attempt(coordinator.plan());
++        startup_diagnostics->observe(coordinator.fault_observation(),coordinator.success_observation(),coordinator.run_enabled(),coordinator.run_enabled(),now);
++        if(!diagnostic_session && coordinator.run_enabled())diagnostic_session=control_diagnostics->start_session(scope.application,coordinator.plan().enable_ns,false);
++        if(!diagnostic_session)return;
++        control_diagnostics->observe(speed_request,core,now);
++        const auto feedback=port.feedback();control_diagnostics->observe_response(feedback,now);
++        for(unsigned i=0;i<7;++i) {
++            const auto selected=i<2?zone[i]->protection_ack_ns():leaf[i-2]->protection_selected_ns();
++            if(selected && !diagnostic_selected[i]) {
++                const std::array<diagnostics::Component,7> actors{diagnostics::Component::Front,diagnostics::Component::Rear,diagnostics::Component::Steering,diagnostics::Component::Brake,diagnostics::Component::Drive,diagnostics::Component::Bms,diagnostics::Component::Power};
++                control_diagnostics->local_protection(actors[i],1U<<i,scope.application,*selected,i<2);diagnostic_selected[i]=true;
++            }
++        }
++    }
++    void select_diagnostic_protection(Time now) {
++        if(protection_since)return;
++        detection_ns=now;protection_since=now;protect_central();for(auto& p:participants)p->select_protection();
++    }
+     void cycle(Time now,const std::function<void()>& completed_work={}) {
+         clock.logical=now;
++        struct DiagnosticSample {Native& owner;Time now;~DiagnosticSample(){owner.sample_diagnostics(now);}} diagnostic_sample{*this,now};
+         // Fixed SIL injection: 100ms after original handoff ACK, before HV-off.
+         if(terminal_mode==SpeedTerminal::StopProtection && handoff_ns && !protection_since && now>=handoff_ns+100*ms) {
+             detection_ns=now;protection_since=now;protect_central();
+@@ -322,13 +375,14 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
+         }
+         for(auto& p:participants) {
+             if(wall_mode && !p->allowed())select_wall_protection(now,"native credit/gate closed");
++            else if(!wall_mode && diagnostic_session && trigger_ns && !p->allowed())select_diagnostic_protection(now);
+             else if(!wall_mode)require(p->allowed(),"native credit/gate closed");
+         }
+         if(protection_since)return;
+         const bool controller_due=now>=next_controller;
+         if(controller_due && speed_origin && now-speed_origin>=(terminal_mode==SpeedTerminal::NormalStop30?35000:15000)*ms && terminal_mode!=SpeedTerminal::None) {
+-            if(!trigger_ns)trigger_ns=now;
+-            if(terminal_mode==SpeedTerminal::NormalStop || terminal_mode==SpeedTerminal::StopProtection || terminal_mode==SpeedTerminal::NormalStop30)
++            if(!trigger_ns){trigger_ns=now;if(diagnostic_fault==DiagnosticFault::FrontLinkFailure)zones[0].work.close();}
++            if((terminal_mode==SpeedTerminal::NormalStop || terminal_mode==SpeedTerminal::StopProtection || terminal_mode==SpeedTerminal::NormalStop30) && diagnostic_fault!=DiagnosticFault::SpeedInputLoss && diagnostic_fault!=DiagnosticFault::FrontCommandLoss && diagnostic_fault!=DiagnosticFault::FrontLinkFailure)
+                 require(core.receive_stop({{scope.application,stop_seq++,now,now+60*ms},0},now)==central::CoordinatorReceive::Accepted,"normal stop request rejected");
+         }
+         if(controller_due && !core.decision().stopping) {
+@@ -348,7 +402,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
+             }
+         }
+         if(controller_due) {next_controller=wall_mode?next_controller+((now-next_controller)/(20*ms)+1)*(20*ms):next_controller+20*ms;++controller_releases;}
+-        if(speed_enabled && core.decision().normal_armed && controller_due && (!trigger_ns || terminal_mode==SpeedTerminal::SpeedInputLoss)) {
++        if(speed_enabled && core.decision().normal_armed && controller_due && (!trigger_ns || terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss || diagnostic_fault==DiagnosticFault::FrontCommandLoss)) {
+                 if(!speed_origin)speed_origin=now;
+                 const auto feedback=port.feedback();
+                 const auto permission=port.current_permission();
+@@ -365,8 +419,9 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
+                 const auto target=pursuit?route_speed.step(now-speed_origin,lateral_audit->progress_m):speed_target(now-speed_origin);
+                 speed_selection=antiwindup && speed_audit?core.decision().allocation.propulsion_selection:std::nullopt;
+                 saturation_used=antiwindup && (!speed_audit || (speed_selection && speed_selection->limited));
+-                auto derived=speed_request.step_derived(now,target,trigger_ns?std::nullopt:feedback.rear.drive_actual,allowed,speed_selection);
+-                if(!derived && terminal_mode==SpeedTerminal::SpeedInputLoss && trigger_ns) {
++                const bool omit_speed=trigger_ns && (terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss);
++                auto derived=speed_request.step_derived(now,target,omit_speed?std::nullopt:feedback.rear.drive_actual,allowed,speed_selection);
++                if(!derived && (terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss) && trigger_ns) {
+                     detection_ns=now;protection_since=now;protect_central();for(auto& p:participants)p->select_protection();return;
+                 }
+                 if(derived && pursuit) {
+@@ -376,7 +431,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
+                     derived->request.expires_at_ns=std::min(derived->request.expires_at_ns,derived->input.expires_at_ns);
+                 }
+                 const auto* request=derived?&derived->request:nullptr;
+-                if(!request) {protect_central();require(false,"speed request rejected");}
++                if(!request) {protect_central();throw std::runtime_error("speed request rejected");}
+                 require(core.receive_vehicle(*request,now,derived->input)==central::CoordinatorReceive::Accepted,"speed request admission");
+                 speed_audit=SpeedControlAudit{now,speed_origin,speed_request.state().sample->source_ns,request->expires_at_ns,derived->input.expires_at_ns,request->sequence,
+                     target,speed_request.state().sample->speed_mps,request->acceleration_mps2,speed_request.state().integral};
+@@ -387,6 +442,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
+         core.tick(port.feedback(),now,due);
+         if((terminal_mode==SpeedTerminal::StopProtection || terminal_mode==SpeedTerminal::NormalStop30) && !handoff_ns && core.decision().stop.state==central::NormalStopState::PowerDown)handoff_ns=now;
+         if(wall_mode && core.decision().fault!=central::CoordinatorFault::None)select_wall_protection(now,"native control protection");
++        else if(diagnostic_session && trigger_ns && core.decision().fault!=central::CoordinatorFault::None)select_diagnostic_protection(now);
+         else require(core.decision().fault==central::CoordinatorFault::None,"native control protection");
+     }
+     std::string wall_failure;
+@@ -411,6 +467,13 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
+     }
+     Report report(Time observed) {
+         Report r;r.terminal_mode=terminal_mode;r.trigger_ns=trigger_ns;r.detection_ns=detection_ns;r.handoff_ns=handoff_ns;r.stop_configuration=stop_settings;
++        r.diagnostic_fault=diagnostic_fault;r.fault_omissions=command_omission.count+ack_omission.count+(diagnostic_fault==DiagnosticFault::FrontLinkFailure && trigger_ns?1:0);
++        if(control_diagnostics) {
++            require(control_diagnostics->healthy() && startup_diagnostics->healthy(),"diagnostic capture incomplete");
++            std::vector<diagnostics::Event> batch;diagnostics::Event event;
++            for(auto* queue:{startup_events.get(),control_events.get()})while(queue->pop(event))batch.push_back(event);
++            if(!batch.empty())r.diagnostic_events=std::make_shared<const std::vector<diagnostics::Event>>(std::move(batch));
++        }
+         r.speed_fault=static_cast<int>(speed_request.fault());r.stop_state=core.decision().stop.state;r.stop_fault=static_cast<int>(core.decision().stop.fault);r.power_off=core.decision().management.power_off_confirmed;
+         r.propulsion_antiwindup=antiwindup;r.saturation_used=saturation_used;r.speed_selection=speed_selection;
+         r.allocation_selection=core.decision().allocation.propulsion_selection;
+@@ -558,7 +621,9 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
+         }
+         const bool initial=!native_;
+         require(plant_mode_==PlantMode::ExternalSolverWork ? (initial?!work_:bool(work_)) : !work_,"missing/unexpected solver work");
+-        if(!native_)native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_,false,0,horizon_ms_,10000000,30000000,speed_profile_,route_,route_profile_,antiwindup_);
++        if(!native_){native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_,false,0,horizon_ms_,10000000,30000000,speed_profile_,route_,route_profile_,antiwindup_);
++            if(diagnostic_fault_!=DiagnosticFault::Disabled)native_->enable_diagnostics(diagnostic_fault_);
++        }
+         native_->terminal_mode=terminal_mode_;
+         if(pose_) {
+             require(native_->pending_poses.size()<2,"pose pending overflow");
+@@ -651,6 +716,10 @@ void FunctionalRig::pose(central::RoutePose sample,std::uint32_t actor) {
+ void FunctionalRig::omit_role(int role) {omitted_=role;}
+ void FunctionalRig::stop_credit(bool value) {stop_credit_=value;}
+ void FunctionalRig::drop_actual(bool value) {drop_actual_=value;}
++void FunctionalRig::diagnostic_profile(DiagnosticFault fault) {
++    require(!native_ && !watch_ && fault>=DiagnosticFault::None && fault<=DiagnosticFault::FrontLinkFailure && route_profile_==RouteProfile::Straight30Stop && !route_.empty(),"diagnostic profile requires frozen STOP30 before INIT");
++    diagnostic_fault_=fault;
++}
+ void FunctionalRig::request_protection() {protect_=true;}
+ void FunctionalRig::execution_watch(WallExecutionWatch* watch) {watch_=watch;}
+ void FunctionalRig::begin_terminal_response(Time wall) {
+diff --git a/tests/integration/carla/m7_1f/functional_rig.hpp b/tests/integration/carla/m7_1f/functional_rig.hpp
+index 6234342..3521460 100644
+--- a/tests/integration/carla/m7_1f/functional_rig.hpp
++++ b/tests/integration/carla/m7_1f/functional_rig.hpp
+@@ -5,6 +5,7 @@
+ #include "pure_pursuit.hpp"
+ #include "route_speed_profile.hpp"
+ #include "normal_stop.hpp"
++#include "diagnostics.hpp"
+ #include <array>
+ #include <memory>
+ #include <optional>
+@@ -33,7 +34,12 @@ struct RouteReferenceAudit {
+     std::optional<Time> slow_elapsed_ns,stop_elapsed_ns;
+ };
+ enum class SpeedTerminal { None, NormalStop, SpeedInputLoss, StopProtection, NormalStop30 };
++enum class DiagnosticFault { Disabled, None, SpeedInputLoss, StopAckLoss, FrontCommandLoss, BrakingTimeout, FrontLinkFailure };
+ struct Report {
++    DiagnosticFault diagnostic_fault=DiagnosticFault::Disabled;
++    std::uint64_t fault_omissions=0;
++    // Absent in wall mode; immutable batch keeps Report noexcept-copyable.
++    std::shared_ptr<const std::vector<diagnostics::Event>> diagnostic_events;
+     SpeedTerminal terminal_mode=SpeedTerminal::None;
+     Time trigger_ns=0,detection_ns=0,handoff_ns=0;
+     central::NormalStopState stop_state=central::NormalStopState::NotInitialized;
+@@ -91,6 +97,9 @@ public:
+     void omit_role(int role);
+     void stop_credit(bool value);
+     void drop_actual(bool value);
++    // Fixed STOP30 diagnostic campaign; select before INIT. Each omission acts
++    // at its actual consumer/transport boundary, never on a diagnostic record.
++    void diagnostic_profile(DiagnosticFault fault);
+     // Trusted local safety request; original actors produce the protection Actual.
+     void request_protection();
+     // Diagnostic instrumentation only, never a clock conversion or tick permit.
+@@ -117,6 +126,7 @@ private:
+     Time controller_phase_=14*ms;
+     int omitted_=-1;bool stop_credit_=false,drop_actual_=false;
+     SpeedTerminal terminal_mode_=SpeedTerminal::None;
++    DiagnosticFault diagnostic_fault_=DiagnosticFault::Disabled;
+     bool speed_profile_=false;
+     std::vector<central::RoutePoint> route_;
+     bool antiwindup_=false;
+diff --git a/tests/integration/carla/m7_1f/stop_test.cpp b/tests/integration/carla/m7_1f/stop_test.cpp
+index 5b55958..9191dce 100644
+--- a/tests/integration/carla/m7_1f/stop_test.cpp
++++ b/tests/integration/carla/m7_1f/stop_test.cpp
+@@ -5,17 +5,21 @@ namespace {
+ using namespace stratadrive;
+ using namespace m7_functional;
+ TEST(M8CarlaStop, SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof) {
+-    for(auto mode:{SpeedTerminal::NormalStop,SpeedTerminal::SpeedInputLoss,SpeedTerminal::StopProtection,SpeedTerminal::NormalStop30}) {
++    using Case=std::pair<SpeedTerminal,DiagnosticFault>;
++    for(const auto& [mode,fault]:{Case{SpeedTerminal::NormalStop,DiagnosticFault::Disabled},Case{SpeedTerminal::SpeedInputLoss,DiagnosticFault::Disabled},Case{SpeedTerminal::StopProtection,DiagnosticFault::Disabled},Case{SpeedTerminal::NormalStop30,DiagnosticFault::Disabled},Case{SpeedTerminal::NormalStop30,DiagnosticFault::None},Case{SpeedTerminal::NormalStop30,DiagnosticFault::SpeedInputLoss},Case{SpeedTerminal::NormalStop30,DiagnosticFault::StopAckLoss},Case{SpeedTerminal::NormalStop30,DiagnosticFault::FrontLinkFailure},Case{SpeedTerminal::NormalStop30,DiagnosticFault::FrontCommandLoss}}) {
++        SCOPED_TRACE("mode="+std::to_string(static_cast<int>(mode))+" fault="+std::to_string(static_cast<int>(fault)));
+         FunctionalRig rig({1,42,7},99,PlantMode::ExternalSolverWork,true,60000);
+         const bool high=mode==SpeedTerminal::NormalStop30;
+         if(high) {
+             rig.route_profile({{0,0},{5,0}},RouteProfile::Straight30Stop);
+             EXPECT_THROW(rig.route_profile({{0,0},{5,0}},RouteProfile::Straight30),std::runtime_error);
+         } else rig.speed_profile(mode);
++        if(fault!=DiagnosticFault::Disabled)rig.diagnostic_profile(fault);
++        diagnostics::Ledger ledger;
+         EXPECT_THROW(rig.speed_profile(SpeedTerminal::None),std::runtime_error);
+         EXPECT_THROW(rig.speed_profile(static_cast<SpeedTerminal>(99)),std::runtime_error);
+         std::unique_ptr<m7_native::Admission> admission;
+-        m7_native::Output prior;m7_native::Input held_input;Time previous=0;bool held=false,protected_actual=false,complete=false,corrupted=false;
++        m7_native::Output prior;m7_native::Input held_input;Time previous=0;bool held=false,protected_actual=false,complete=false,corrupted=false,interval_refused=false;
+         for(unsigned i=0;i<=(high?4300U:2300U);++i) {
+             const double seconds=3.997146773152053+i*.009999999776482582;
+             const auto now=static_cast<Time>(std::llround(seconds*1e9));
+@@ -27,6 +31,7 @@ TEST(M8CarlaStop, SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof) {
+             Report r;
+             ASSERT_NO_THROW(r=i?rig.observe(o,wheel,work):rig.observe(o,wheel))<<"frame="<<i<<" mode="<<static_cast<int>(mode);
+             EXPECT_EQ(r.terminal_mode,mode);
++            if(r.diagnostic_events) { for(const auto& event:*r.diagnostic_events) { ASSERT_EQ(ledger.record(event),diagnostics::Result::Accepted); } }
+             EXPECT_EQ(r.stop_configuration.braking_timeout_ns,(high?10000:5000)*ms);
+             if(r.trigger_ns && r.speed_control) {EXPECT_EQ(r.trigger_ns,r.speed_control->origin_ns+(high?35000:15000)*ms);}
+             const auto& e=*r.native_export;m7_native::Input in;
+@@ -83,14 +88,30 @@ TEST(M8CarlaStop, SameOwnersSelectTerminalHoldOrProtectionWithOriginalProof) {
+             }
+             if(held) {auto resume=in;resume.normal=true;resume.stop_requests={};resume.stop_results={};m7_native::Output unused;
+                 EXPECT_FALSE(admission->eligible(resume,now,unused));}
+-            ASSERT_TRUE(admission->accept(in,now,prior))<<admission->error()<<" frame="<<i<<" stop="<<static_cast<int>(r.stop_state);
++            const bool accepted=admission->accept(in,now,prior);
++            if(!accepted && fault==DiagnosticFault::FrontCommandLoss) {
++                EXPECT_EQ(admission->error(),"native_command_interval_or_causal");interval_refused=true;break;
++            }
++            ASSERT_TRUE(accepted)<<admission->error()<<" frame="<<i<<" stop="<<static_cast<int>(r.stop_state);
+             if(prior.normal_stop)held_input=in;
+             held|=prior.normal_stop;protected_actual|=prior.protection;
+             complete|=r.stop_state==central::NormalStopState::Complete && r.power_off;
+             previous=now;
+         }
+-        EXPECT_EQ(held,mode!=SpeedTerminal::SpeedInputLoss);EXPECT_EQ(complete,mode==SpeedTerminal::NormalStop || high);
+-        EXPECT_EQ(protected_actual,mode==SpeedTerminal::SpeedInputLoss || mode==SpeedTerminal::StopProtection);
++        if(fault==DiagnosticFault::FrontCommandLoss) {
++            // Current whole-10ms adapter refuses before the silent-loss timeout.
++            // No further physics is authorized; this is NOT a physical stop.
++            EXPECT_TRUE(interval_refused);EXPECT_FALSE(complete);EXPECT_FALSE(protected_actual);continue;
++        }
++        const bool injected=fault!=DiagnosticFault::Disabled && fault!=DiagnosticFault::None;
++        EXPECT_EQ(held,mode!=SpeedTerminal::SpeedInputLoss && fault!=DiagnosticFault::SpeedInputLoss && fault!=DiagnosticFault::FrontLinkFailure);
++        EXPECT_EQ(complete,mode==SpeedTerminal::NormalStop || (high && !injected));
++        EXPECT_EQ(protected_actual,mode==SpeedTerminal::SpeedInputLoss || mode==SpeedTerminal::StopProtection || injected);
++        if(fault!=DiagnosticFault::Disabled){
++            if(!injected)EXPECT_TRUE(ledger.records().empty());
++            else {ASSERT_FALSE(ledger.records().empty());const auto code=fault==DiagnosticFault::SpeedInputLoss?diagnostics::Code::SpeedInput:fault==DiagnosticFault::StopAckLoss?diagnostics::Code::Handoff:diagnostics::Code::CentralControl;
++                EXPECT_TRUE(std::any_of(ledger.records().begin(),ledger.records().end(),[&](const auto& record){return record.key.code==code && record.count==1 && record.condition==diagnostics::Condition::Failed;}));}
++        }
+     }
+ }
+ }
+diff --git a/tests/integration/carla/m7_1g/CMakeLists.txt b/tests/integration/carla/m7_1g/CMakeLists.txt
+index 695bdaf..0137d55 100644
+--- a/tests/integration/carla/m7_1g/CMakeLists.txt
++++ b/tests/integration/carla/m7_1g/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ add_executable(m7_wheel_shadow wheel_main.cpp)
+-target_link_libraries(m7_wheel_shadow PRIVATE m7_functional_fixture)
++target_link_libraries(m7_wheel_shadow PRIVATE m7_functional_fixture diagnostics_journal)
+ target_include_directories(m7_wheel_shadow PRIVATE ${PROJECT_SOURCE_DIR}/tools/carla/m7_nodrive)
+ stratadrive_quality(m7_wheel_shadow)
+ add_executable(m7_wheel_test wheel_test.cpp terminal_response_test.cpp wall_owner_test.cpp carla_clock_test.cpp wall_hv_test.cpp)
+diff --git a/tests/integration/carla/m7_1g/wheel_main.cpp b/tests/integration/carla/m7_1g/wheel_main.cpp
+index 1fe8fc8..f2a3756 100644
+--- a/tests/integration/carla/m7_1g/wheel_main.cpp
++++ b/tests/integration/carla/m7_1g/wheel_main.cpp
+@@ -1,6 +1,8 @@
+ #include "functional_rig.hpp"
+ #include "native_admission.hpp"
+ #include "wall_execution_watch.hpp"
++#include "diagnostics_journal.hpp"
++#include <algorithm>
+ #include <cerrno>
+ #include <poll.h>
+ #include <unistd.h>
+@@ -66,6 +68,20 @@ int main(int argc,char** argv) {
+     std::unique_ptr<WallExecutionWatch> wall_watch;
+     std::string wall_path,response_path;
+     try {
++        if(argc==3 && std::string(argv[1])=="--record-diagnostics") {
++            namespace d=stratadrive::diagnostics;
++            d::FileJournal::initialize(argv[2],9401,{},4);d::FileJournal journal(argv[2]);d::Recorder recorder(journal);
++            std::string line;std::size_t count=0;
++            while(std::getline(std::cin,line)) {
++                if(line.empty() || line.size()>8192 || line.size()%2 || line.find_first_not_of("0123456789abcdef")!=std::string::npos)throw std::runtime_error("canonical diagnostic input");
++                std::vector<std::uint8_t> bytes;bytes.reserve(line.size()/2);
++                for(std::size_t i=0;i<line.size();i+=2)bytes.push_back(static_cast<std::uint8_t>(std::stoul(line.substr(i,2),nullptr,16)));
++                const auto entry=d::decode(bytes);const auto* event=std::get_if<d::Event>(&entry);
++                if(!event || d::encode(entry)!=bytes || !recorder.record(*event).durable)throw std::runtime_error("diagnostic durable commit");
++                std::cout<<++count<<std::endl;
++            }
++            return recorder.ledger().complete()?0:1;
++        }
+         if((argc<6 || argc>14 || argc%2!=0) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
+             throw std::runtime_error("requires --wheel-shadow or --external-wheel-plant run application plant actor; no general driving acceptance");
+         const auto run=std::stoull(argv[2]),app=std::stoull(argv[3]),plant=std::stoull(argv[4]),actor=std::stoull(argv[5]);
+@@ -80,14 +96,20 @@ int main(int argc,char** argv) {
+             if(used!=value.size())throw std::runtime_error("invalid simulation horizon");
+             horizon_set=true;
+         }
+-        if(horizon_set && argc>10)throw std::runtime_error("simulation horizon cannot combine with wall watch");
++        if(horizon_set && argc>12)throw std::runtime_error("simulation horizon option bound");
+         FunctionalRig rig({run,static_cast<std::uint32_t>(app),static_cast<std::uint32_t>(plant)},static_cast<std::uint32_t>(actor),
+             solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting,horizon);
+         bool scenario_loaded=false;
+         for(int arg=6;arg<argc;arg+=2) {
+             if(std::string(argv[arg])=="--sim-horizon-ms")continue;
+-            if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route")throw std::runtime_error("simulation horizon excludes wall policy");
++            if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route" && std::string(argv[arg])!="--diagnostic-fault")throw std::runtime_error("simulation horizon excludes wall policy");
+             if(!solver_work)throw std::runtime_error("options require solver-work mode");
++            if(std::string(argv[arg])=="--diagnostic-fault") {
++                const std::array<std::string,6> names{"none","input-loss","stop-ack-loss","front-command-loss","braking-timeout","front-link-failure"};
++                const auto found=std::find(names.begin(),names.end(),argv[arg+1]);
++                if(found==names.end())throw std::runtime_error("diagnostic fault recipe");
++                rig.diagnostic_profile(static_cast<DiagnosticFault>(1+std::distance(names.begin(),found)));continue;
++            }
+             if(std::string(argv[arg])=="--route") {
+                 if(!horizon_set)throw std::runtime_error("route requires simulation horizon");
+                 std::ifstream file(argv[arg+1]);if(!file)throw std::runtime_error("route open");
+@@ -264,6 +286,13 @@ int main(int argc,char** argv) {
+                 std::cout<<",\"speed_terminal\":{\"mode\":"<<static_cast<int>(r.terminal_mode)<<",\"trigger_ns\":"<<r.trigger_ns<<",\"detection_ns\":"<<r.detection_ns
+                     <<",\"speed_fault\":"<<r.speed_fault<<",\"stop_state\":"<<static_cast<int>(r.stop_state)<<",\"stop_fault\":"<<r.stop_fault<<",\"power_off\":"<<(r.power_off?"true":"false")<<",\"power_status\":";packet(r.power_status);std::cout<<'}';
+             }
++            if(r.diagnostic_fault!=DiagnosticFault::Disabled) {
++                std::cout<<",\"diagnostics\":{\"fault\":"<<static_cast<unsigned>(r.diagnostic_fault)<<",\"omissions\":"<<r.fault_omissions<<",\"events\":[";
++                bool comma=false;if(r.diagnostic_events) { for(const auto& e:*r.diagnostic_events){if(comma)std::cout<<',';comma=true;std::cout<<'"';
++                    for(auto byte:stratadrive::diagnostics::encode(e))std::cout<<std::hex<<std::setw(2)<<std::setfill('0')<<static_cast<unsigned>(byte);
++                    std::cout<<std::dec<<'"';} }
++                std::cout<<"]}";
++            }
+             if(r.propulsion_antiwindup) {
+                 std::cout<<",\"allocation_selection\":";selection(r.allocation_selection);
+                 std::cout<<",\"speed_selection\":";selection(r.speed_selection);
+diff --git a/tests/integration/carla/m7_1o_run.py b/tests/integration/carla/m7_1o_run.py
+index 5d13c25..75a1f7d 100644
+--- a/tests/integration/carla/m7_1o_run.py
++++ b/tests/integration/carla/m7_1o_run.py
+@@ -67,12 +67,14 @@ def main():
+     p.add_argument("--flag-check", choices=("ambiguous", "requires-v1", "disabled"),
+                    help="Read-only describe rejection, without creating an ego")
+     p.add_argument("--speed-terminal", choices=("none","normal-stop","input-loss","stop-protection"), default="none")
++    p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
+     a = p.parse_args()
+     if (a.record_video or a.live_view) and not (a.cameras and a.native_actual and not a.wall_native and a.native_fault=="none"):
+         p.error("video recording requires functional nominal native cameras")
+     if a.speed_terminal!="none" and not (a.speed_loop and a.native_fault=="none"):p.error("speed terminal requires speed loop without another injected fault")
+     from m8_route_contract import load_route
+     route_definition=load_route(a.route_profile) if a.route_profile else None
++    if a.diagnostic_fault is not None and not (route_definition and route_definition['schema']=='m8-normal-stop30-v1' and a.native_fault=='none' and a.speed_terminal=='none' and not a.wall_native):p.error('diagnostics require the frozen simulation STOP30 profile')
+     if (a.record_video or a.live_view) and (not route_definition or route_definition['schema']!='m8-normal-stop30-v1'):
+         p.error('video recording requires the fixed STOP30 profile')
+     if route_definition and route_definition['schema']=='m8-normal-stop30-v1' and (a.propulsion_aware or a.native_fault!='none' or a.speed_terminal!='none'):p.error('stop30 frozen nominal scope')
+@@ -149,6 +151,7 @@ def main():
+         argv.append("-StrataM7CompactWork")
+     if a.wall_native:
+         argv.append("-StrataM7WallNative")
++    if a.diagnostic_fault=="braking-timeout":argv.append("-StrataM9ExternalLoad")
+     if a.wall_step_ms==5:argv.append("-StrataM7Wall5ms")
+     if a.wall_nullrhi:
+         argv.append("-nullrhi")
+@@ -344,6 +347,7 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
+         if a.simulation_continuous:cmd += ["--simulation-continuous"]
+         if a.speed_loop:cmd += ["--speed-loop"]
+         if a.speed_terminal!="none":cmd += ["--speed-terminal",a.speed_terminal]
++        if a.diagnostic_fault is not None:cmd += ['--diagnostic-fault',a.diagnostic_fault]
+         if a.propulsion_aware:cmd += ["--propulsion-aware"]
+         if a.route_profile:cmd += ["--route-profile",str(a.route_profile)]
+         if a.flag_check:
+diff --git a/tests/integration/carla/m7_1q_probe.py b/tests/integration/carla/m7_1q_probe.py
+index 81d1d92..3089e8d 100644
+--- a/tests/integration/carla/m7_1q_probe.py
++++ b/tests/integration/carla/m7_1q_probe.py
+@@ -44,12 +44,14 @@ def main():
+     p.add_argument('--route-profile', type=Path)
+     p.add_argument('--propulsion-aware', action='store_true')
+     p.add_argument("--speed-terminal",choices=("none","normal-stop","input-loss","stop-protection"),default="none")
++    p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
+     a = p.parse_args()
+     require(not (a.record_video or a.live_view) or (a.cameras and a.fault=='none'), 'video requires nominal cameras')
+     require(a.speed_terminal=="none" or (a.speed_loop and a.fault=="none"),"terminal speed scope")
+     from m8_route_contract import load_route, pose_from_snapshot
+     route=load_route(a.route_profile) if a.route_profile else None
+     stop30=route is not None and route['schema']=='m8-normal-stop30-v1'
++    require(a.diagnostic_fault is None or (stop30 and a.fault=='none' and a.speed_terminal=='none'),'diagnostic STOP30 scope')
+     require(not (a.record_video or a.live_view) or stop30, 'video requires fixed STOP30 profile')
+     if stop30:
+         require(not a.propulsion_aware and a.fault=='none' and a.speed_terminal=='none','stop30 frozen nominal scope')
+@@ -92,7 +94,8 @@ def main():
+     events = []
+     client = carla.Client('127.0.0.1', 2200)
+     client.set_timeout(10)
+-    world = original = actor = process = stderr = None
++    world = original = actor = process = stderr = collector = collector_stderr = None
++    diagnostic_count=0
+     capture = Capture(a.output,a.fault=='rgb-drop',1201 if a.simulation_continuous else 256,a.record_video,a.live_view) if a.cameras else None
+     bound = False
+     session, run = '0', ''
+@@ -177,10 +180,14 @@ def main():
+         case('initial_clock', snapshot.timestamp.elapsed_seconds == end and
+              math.floor(end*1e9+.5) == int(binding['logical_begin_ns']))
+         stderr = (a.output/'native.stderr').open('w')
++        if a.diagnostic_fault is not None:
++            collector_stderr=(a.output/'diagnostic-collector.stderr').open('w')
++            collector=subprocess.Popen([str(a.native.resolve()),'--record-diagnostics',str(a.output/'diagnostic-store')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=collector_stderr,text=True)
+         process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else [])+
+                                    (['--sim-horizon-ms',str(route['ticks']*10 if route else 60000)] if a.simulation_continuous else [])+
+                                    (['--speed-profile',{'none':'v1','normal-stop':'v1-stop','input-loss':'v1-input-loss','stop-protection':'v1-stop-protection'}[a.speed_terminal]] if a.speed_loop else [])+
+                                    (['--route',str(native_route)] if route else [])+
++                                   (['--diagnostic-fault',a.diagnostic_fault] if a.diagnostic_fault is not None else [])+
+                                    (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else [])+
+                                    (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else []),
+                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
+@@ -261,6 +268,13 @@ def main():
+                 require(bool(select.select([process.stdout],[],[],10)[0]), 'native reply timeout')
+                 native = json.loads(process.stdout.readline())
+                 record['native'] = native
++                if collector and 'diagnostics' in native:
++                    for event in native['diagnostics']['events']:
++                        collector.stdin.write(event+'\n');collector.stdin.flush()
++                        require(bool(select.select([collector.stdout],[],[],10)[0]),'bounded diagnostic commit receipt')
++                        diagnostic_count+=1
++                        require(collector.stdout.readline().strip()==str(diagnostic_count),'original event durable commit')
++                    record['diagnostic_committed']=diagnostic_count
+                 record['wall_native_end_ns']=time.monotonic_ns()
+                 if i==200 and a.fault in ('work-missing','work-duplicate','pose-stale'):
+                     require(native['status']=='FAIL' and native['next_frame'] is None,'native input fail closed')
+@@ -349,7 +363,8 @@ def main():
+                     if a.fault == 'credit': proof['credit'][3] = None
+                     else: proof['commands'][0] = None
+                     record['fault'] = 'withheld original '+a.fault+' packet; no substitute'
+-                staged = rpc('stage_native', record=False, frame=str(frame+1), native=proof)
++                load=dict(diagnostic_load=bool(native['speed_terminal']['trigger_ns'])) if a.diagnostic_fault=='braking-timeout' else {}
++                staged = rpc('stage_native', record=False, frame=str(frame+1), native=proof, **load)
+                 record['staged'] = staged
+                 if not staged['ok']:
+                     record['rejection'] = staged['reason']
+@@ -442,14 +457,18 @@ def main():
+             if a.solver_work: case('all_receipts_settled_once',settlements==count)
+             if not a.simulation_continuous:
+                 case('forward_motion_observed', ph['body_forward_velocity_m_s']>0, final_m_s=ph['body_forward_velocity_m_s'])
+-            else:
++            elif a.diagnostic_fault!='braking-timeout':
+                 case('continuous_final_wheel_stop',all(w['solver_omega_rad_s']==0 for w in ph['wheels']))
+             rejected = rpc('stage', frame=str(frame+1))
+             case('native_profile_rejects_synthetic_stage', not rejected['ok'] and rejected['latched'] and
+                  rejected['reason']=='native_actual_only' and rejected['frame']==str(frame))
+             if a.speed_terminal!='none':
+                 terminal=native['speed_terminal']
+-                if a.speed_terminal in ('normal-stop','normal-stop30'):
++                if a.diagnostic_fault not in (None,'none'):
++                    case('diagnostic_protection_selected',terminal['detection_ns']>=terminal['trigger_ns']>0 and native['admission']['protection'])
++                    report['diagnostic_fault']=a.diagnostic_fault
++                    report['physical_stopped_at_end']=all(w['solver_omega_rad_s']==0 for w in ph['wheels']) and abs(ph['body_forward_velocity_m_s'])<=.001
++                elif a.speed_terminal in ('normal-stop','normal-stop30'):
+                     case('normal_stop_complete_hv_off',terminal['stop_state']==5 and terminal['stop_fault']==0 and terminal['power_off'] and native['admission']['normal_stop'])
+                 elif a.speed_terminal=='stop-protection':
+                     case('stop_hold_protection',native['stop_handoff_ns']>terminal['trigger_ns']>0 and terminal['detection_ns']==native['stop_handoff_ns']+100000000 and native['admission']['protection'] and not terminal['power_off'])
+@@ -554,6 +573,10 @@ def main():
+                 report['native_exit'] = process.wait(timeout=10)
+                 process.stdout.close()
+                 if report['status'].startswith('PASS'): case('native_expected_exit', report['native_exit']==(2 if a.fault=='wall-gap' else 1 if a.fault in ('work-missing','work-duplicate','pose-stale') else 0))
++            if collector:
++                collector.stdin.close();report['diagnostic_collector_exit']=collector.wait(timeout=10);collector.stdout.close()
++                report['diagnostic_events_committed']=diagnostic_count
++                case('diagnostic_durable_recording',report['diagnostic_collector_exit']==0)
+             if world and original and not bound:
+                 if actor: actor.destroy()
+                 world.apply_settings(original)
+@@ -563,7 +586,10 @@ def main():
+             report['cleanup_error'] = traceback.format_exc();report['status']='FAIL'
+             if process and process.poll() is None:
+                 process.kill();process.wait(timeout=5);report['forced_native_stop']=True
++            if collector and collector.poll() is None:
++                collector.kill();collector.wait(timeout=5);report['forced_diagnostic_stop']=True
+         if stderr: stderr.close()
++        if collector_stderr:collector_stderr.close()
+         (a.output/'events.json').write_text(json.dumps(events,indent=2)+'\n')
+         (a.output/'result.json').write_text(json.dumps(report,indent=2)+'\n')
+     print(json.dumps(report))
+diff --git a/tests/integration/someip/front_adapter.cpp b/tests/integration/someip/front_adapter.cpp
+index 9ef1511..a67a871 100644
+--- a/tests/integration/someip/front_adapter.cpp
++++ b/tests/integration/someip/front_adapter.cpp
+@@ -14,6 +14,7 @@
+ #include <iostream>
+ #include <map>
+ #include <set>
++#include <string_view>
+ 
+ namespace fs=std::filesystem;
+ using namespace stratadrive;
+@@ -26,6 +27,7 @@ bool no_charge(){const auto* p=std::getenv("STRATADRIVE_ENERGY_CYCLE");return p
+ bool native_enabled(){return std::getenv("STRATADRIVE_NATIVE_WATCH")!=nullptr;}
+ bool three_enabled(){return std::getenv("STRATADRIVE_THREE_ECU")!=nullptr;}
+ bool diagnostics_enabled(){return std::getenv("STRATADRIVE_NATIVE_DIAGNOSTICS")!=nullptr;}
++bool service_fault(const std::string_view& name){const auto* value=std::getenv("STRATADRIVE_SERVICE_FAULT");return value && name==value;}
+ unsigned fault_zone(){return std::getenv("STRATADRIVE_FAULT_REAR")?1:0;}
+ bool fifo_enabled(){return std::getenv("STRATADRIVE_NATIVE_FIFO")!=nullptr;}
+ std::uint64_t run_duration(){const auto* v=std::getenv("STRATADRIVE_NATIVE_DURATION_MS");return v?std::stoull(v)*kMs:9000*kMs;}
+@@ -61,7 +63,7 @@ void mark(const fs::path& p){
+ }
+ struct Trace final:transport::TransportTrace {
+     std::ofstream out;std::vector<transport::TransportTraceRow> rows;bool overflow=false;
+-    explicit Trace(const fs::path& p):out(p){rows.reserve(energy_enabled()?196608:65536);}
++    explicit Trace(const fs::path& p):out(p){rows.reserve(energy_enabled() || std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")?196608:65536);}
+     ~Trace(){out<<"event,ns,peer,epoch,token,sent,deadline,operation,decision,source,original_source,inner_deadline,payload_source\n";
+         for(const auto& r:rows)out<<r.stage<<','<<r.time_ns<<','<<r.peer<<','<<r.epoch<<','<<r.token<<','<<r.sent_ns<<','<<r.deadline_ns<<','<<r.operation<<','<<r.outcome<<','<<r.result_source_ns<<','<<r.original_source_ns<<','<<r.inner_deadline_ns<<','<<r.payload_source_ns<<'\n';}
+     void record(transport::TransportTraceRow r) noexcept override;
+@@ -131,7 +133,7 @@ struct Owners final:session::CoordinatorPort {
+         for(const auto& e:event_rows)events<<e.ns<<','<<e.name<<','<<e.epoch<<','<<e.role<<','<<e.value<<','<<e.deadline<<'\n';
+     }
+     explicit Owners(Ecu e,Transport& n,const fs::path& d,const std::string& label,someip::test::NativeDiagnosticRoutes* diagnostic=nullptr):ecu(e),remote(e!=Ecu::Central),three(three_enabled()),zi(e==Ecu::Rear?1:0),folder(d),tag(label),net(n),io((d/"sil-io"/"plant.bin").string()),trace(d/(tag+".transport.csv")),diagnostic_routes(diagnostic) {
+-        event_rows.reserve(65536);if(energy_enabled() && !remote)energy_feedback.reserve(2000);
++        event_rows.reserve(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")?196608:65536);if(energy_enabled() && !remote)energy_feedback.reserve(2000);
+         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
+         if(remote || !three) {
+             const unsigned z=remote?zi:1;
+@@ -252,9 +254,13 @@ struct Owners final:session::CoordinatorPort {
+             if(zone[zi]->protected_selected() && !selected_ns){selected_ns=now();event("leaf-protection-selected",zi);}
+             while(auto r=zones[zi].results.pop()) {
+                 event("result-produced",0,r->token,r->source_ns);
+-                if(!drop_results)emit(remote::OwnerMessage{static_cast<Role>(zi),Role::CentralIngress,kDomain,*r});
++                if(epoch==3 && zi==0 && service_fault("stop-ack-loss") && r->operation==transport::Operation::Stop)event("service-stop-ack-omitted",zi,r->token,r->source_ns);
++                else if(!drop_results)emit(remote::OwnerMessage{static_cast<Role>(zi),Role::CentralIngress,kDomain,*r});
++            }
++            while(auto f=zones[zi].feedback.pop()){
++                if(epoch==3 && zi==0 && service_fault("actual-loss") && fs::exists(folder/"service-fault-inject") && std::holds_alternative<can::BrakeFrame>(*f))event("service-actual-omitted",zi);
++                else if(!drop_status)emit(remote::OwnerMessage{static_cast<Role>(zi),Role::CentralIngress,kDomain,*f});
+             }
+-            while(auto f=zones[zi].feedback.pop())if(!drop_status)emit(remote::OwnerMessage{static_cast<Role>(zi),Role::CentralIngress,kDomain,*f});
+             return;
+         }
+         for(unsigned i=0;i<8;++i)if(sessions[i])sessions[i]->step();
+@@ -266,7 +272,7 @@ struct Owners final:session::CoordinatorPort {
+             if(!drop_lease && !stop_credit && gate.allows(epoch) && (!last_credit || t-last_credit>=10*kMs)) {
+                 if(auto lease=issuer.issue(t)) {for(unsigned i=0;i<7;++i)if(is_remote(static_cast<Role>(i)))emit(remote::OwnerMessage{Role::CentralIngress,static_cast<Role>(i),kDomain,*lease});last_credit=t;last_lease_expiry=lease->expires_at_ns;event("credit-issued",7,lease->sequence,lease->expires_at_ns);}
+             }
+-            if(stop_requested && (!last_stop || t-last_stop>=20*kMs)) {
++            if(stop_requested && (!last_stop || t-last_stop>=20*kMs) && !(epoch==3 && last_stop && service_fault("stop-request-loss"))) {
+                 const auto accepted=core.receive_stop({{epoch,stop_seq++,t,t+60*kMs},.02},now());
+                 check(accepted==central::CoordinatorReceive::Accepted,"normal stop request rejected");last_stop=t;
+             }
+@@ -340,7 +346,11 @@ struct Owners final:session::CoordinatorPort {
+         emit(remote::OwnerMessage{Role::CentralIngress,static_cast<Role>(fault_zone()),kDomain,r});
+         event("diagnostic-send",0,r.token,r.deadline_ns);
+     }
+-    void event_first_fault(){if(!protected_ns)event("central-fault",7,static_cast<unsigned>(core.decision().fault),static_cast<unsigned>(port.fault()));}
++    void event_first_fault(){if(!protected_ns){
++        const auto decision=core.decision();
++        event("central-fault",7,static_cast<unsigned>(decision.fault),static_cast<unsigned>(port.fault()));
++        event("central-allocation-fault",7,static_cast<unsigned>(decision.allocation.fault),static_cast<unsigned>(decision.allocation.state));
++    }}
+ };
+ void Trace::record(transport::TransportTraceRow r) noexcept {
+     if(rows.size()<rows.capacity())rows.push_back(r);else overflow=true;
+@@ -592,7 +602,9 @@ int main(int argc,char** argv) {
+                     if(test=="invalid")check(invalid_sent && owners->diagnostic_rejected==2,"invalid replay evidence");
+                     if(test=="restart-live")check(invalid_sent && owners->diagnostic_rejected==1,"prior session rejection missing");
+                     if(!three_enabled()){pass=true;break;}
+-                    if(!owners->stop_requested){owners->stop_requested=true;owners->stop_started=now();owners->event("normal-stop-requested",7);}
++                    if(!owners->stop_requested){owners->stop_requested=true;owners->stop_started=now();owners->event("normal-stop-requested",7);
++                        if(owners->epoch==3 && service_fault("stop-request-loss"))owners->event("service-stop-renewal-omitted",7);
++                    }
+                 }
+                 if(!remote && three_enabled() && owners->stop_complete && owners->pending.empty()) {
+                     if(service_profile && generation=="2"){
+@@ -661,15 +673,16 @@ int main(int argc,char** argv) {
+         for(const auto& leaf:owners->leaf)if(leaf)for(const auto& e:leaf->input_events())out<<e.time_ns<<','<<e.kind<<','<<e.owner<<','<<e.epoch<<','<<e.source_ns<<','<<e.deadline_ns<<','<<e.reference_ns<<','<<e.code<<'\n';
+     }
+     if(owners && owners->watch)owners->watch->write((folder/(tag+".native")).string());
+-    if(!remote && pass && test!="ready-timeout" && (test=="normal" || test=="late" || test=="invalid" || test=="restart-live" || test=="central-rejoin")) {
++    if(!remote && (pass || service_profile) && test!="ready-timeout" && (test=="normal" || test=="late" || test=="invalid" || test=="restart-live" || test=="central-rejoin")) {
+         // Already protected/quiesced; retain the receive endpoint for the peer's
+         // final evidence. This handshake never extends a live command deadline.
+-        mark(folder/(tag+".quiesced"));const auto cleanup_deadline=now()+1000*kMs;
++        if(!error.empty())mark(folder/(tag+".failed"));
++        mark(folder/(tag+".quiesced"));const auto cleanup_deadline=now()+(service_profile && !pass?3000:1000)*kMs;
+         while(!fs::exists(folder/"stop-central") && now()<cleanup_deadline) {
+             for(unsigned lane=0;lane<net.channels();++lane)for(unsigned i=0;i<8;++i){auto m=net.pop(lane);if(!m)break;owners->receive(*m);}
+             owners->step();std::this_thread::sleep_for(std::chrono::microseconds(200));
+         }
+-        if(!fs::exists(folder/"stop-central")){pass=false;error="peer shutdown handshake timeout";}
++        if(!fs::exists(folder/"stop-central")){pass=false;if(error.empty())error="peer shutdown handshake timeout";}
+     }
+     std::uint64_t shutdown_rx_retired=0;
+     if(diagnostic_routes) {
+diff --git a/tests/integration/someip/front_run.py b/tests/integration/someip/front_run.py
+index cbf43d0..bd4322e 100644
+--- a/tests/integration/someip/front_run.py
++++ b/tests/integration/someip/front_run.py
+@@ -98,7 +98,9 @@ def inside(folder,binary,case):
+         else:
+             cfg=folder/f'{role}.config.json';pilot.save(cfg,config(role,generation,three))
+             env.update(VSOMEIP_CONFIGURATION=str(cfg),VSOMEIP_APPLICATION_NAME=role)
+-            cmd=['ip','netns','exec',role,'unshare','-m','taskset','-c',({'central':'4','front':'5','rear':'6'}[role] if os.environ.get('STRATADRIVE_NATIVE_WATCH') else ('1' if role=='central' else '2')),sys.executable,str(pilot.HERE),'--node',str(binary),role,str(folder),test_override or case,str(generation)]
++            cpu=({'central':'4','front':'5','rear':'6'}[role] if os.environ.get('STRATADRIVE_NATIVE_WATCH') else
++                 {'central':'1','front':'2','rear':'7'}[role] if os.environ.get('STRATADRIVE_ISOLATED_ECUS') else ('1' if role=='central' else '2'))
++            cmd=['ip','netns','exec',role,'unshare','-m','taskset','-c',cpu,sys.executable,str(pilot.HERE),'--node',str(binary),role,str(folder),test_override or case,str(generation)]
+         pilot.save(Path(str(prefix)+'.command.json'),{'argv':cmd,'env':{k:env[k] for k in env if k.startswith(('VSOMEIP','LD_LIBRARY','ASAN','UBSAN','TSAN','STRATADRIVE_'))}})
+         out=open(str(prefix)+'.stdout','w');err=open(str(prefix)+'.stderr','w');streams.extend([out,err])
+         p=subprocess.Popen(cmd,env=env,stdout=out,stderr=err);procs.append((role,generation,p));return p
+@@ -260,7 +262,15 @@ def inside(folder,binary,case):
+     finally:
+         # Failure stays failure. Request orderly cleanup first so failed-run evidence
+         # is flushed; only an unresponsive process is killed and marked forced.
+-        for role in (*peer_roles,'central','plant'):(folder/('stop-'+role)).touch()
++        for role in peer_roles:(folder/('stop-'+role)).touch()
++        # Retain the failed Central's protected receive endpoint while remote
++        # durable publishers finish their bounded final ACK drain.
++        if service_profile:
++            for p in peers.values():
++                if p.poll() is None:
++                    try:p.wait(timeout=3)
++                    except subprocess.TimeoutExpired:pass
++        for role in ('central','plant'):(folder/('stop-'+role)).touch()
+         for role,generation,p in procs:
+             if p.poll() is None:
+                 try:p.wait(timeout=2)
+@@ -356,16 +366,25 @@ def inside(folder,binary,case):
+ def main():
+     p=argparse.ArgumentParser();p.add_argument('--inside',nargs=3)
+     p.add_argument('--energy-cycle',choices=['nominal','no-charge']);p.add_argument('--simple-vehicle',action='store_true');p.add_argument('--three',action='store_true');p.add_argument('--fault-zone',choices=['front','rear'],default='front')
++    p.add_argument('--isolated-ecus',action='store_true',help='functional profile: separate Central/Front/Rear on CPU1/2/7; plant3 and diagnostic writer15')
++    p.add_argument('--service-fault',choices=['ack-loss','actual-loss','stop-request-loss','stop-ack-loss'])
+     p.add_argument('--native-watch',action='store_true');p.add_argument('--fifo',action='store_true');p.add_argument('--loaded',action='store_true');p.add_argument('--timing',action='store_true');p.add_argument('--duration-ms',type=int,default=2540)
+     p.add_argument('--profile',choices=['normal','asan','tsan'],default='normal');p.add_argument('--fixed-layout',action='store_true')
+     p.add_argument('--diagnostic-service',action='store_true');p.add_argument('--diagnostics',action='store_true');p.add_argument('--diagnostic-drop-ack',action='store_true');p.add_argument('--diagnostic-context-delay-ms',type=int,default=0);p.add_argument('--diagnostic-restart',choices=['central','front','rear','all'])
+     p.add_argument('--cases',nargs='+',choices=CASES,default=['normal']);p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
+     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
+     if a.fixed_layout and a.profile!='tsan':p.error('fixed-layout is TSan-only')
++    if a.isolated_ecus:
++        if not a.three or a.native_watch:p.error('isolated-ecus requires three ECUs without native-watch')
++        if not {1,2,3,7,15}.issubset(os.sched_getaffinity(0)):p.error('isolated-ecus CPU placement unavailable')
++        os.environ['STRATADRIVE_ISOLATED_ECUS']='1'
+     if 'central-rejoin' in a.cases and not a.diagnostics:p.error('central-rejoin requires the declared diagnostics fixture')
+     if a.diagnostic_service:
+         if not a.diagnostics or a.cases!=['central-rejoin'] or a.native_watch or not a.simple_vehicle:p.error('terminal service requires isolated diagnostics central-rejoin with simple-vehicle and without native-watch')
+         os.environ['STRATADRIVE_DIAGNOSTIC_SERVICE']='1'
++    if a.service_fault:
++        if not a.diagnostic_service:p.error('service-fault requires diagnostic-service')
++        os.environ['STRATADRIVE_SERVICE_FAULT']=a.service_fault
+     if a.diagnostics:
+         if not a.three or any(c not in ('normal','command-loss','restart-live','central-rejoin') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss/restart-live')
+         if not 0<=a.diagnostic_context_delay_ms<=1500:p.error('diagnostic context delay must be in0..1500ms')
+@@ -402,7 +421,7 @@ def main():
+     rows=[]
+     with pilot.open_lock() as lock:
+         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+-        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
++        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'isolated_ecus':a.isolated_ecus,'service_fault':a.service_fault,'diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'central/coordinator').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
+         for case in a.cases:
+             for repeat in range(a.normal_repeats if case=='normal' else 1):
+                 dest=out/f'{case}-{repeat+1}';dest.mkdir()
+diff --git a/tests/integration/someip/native_diagnostic_routes.cpp b/tests/integration/someip/native_diagnostic_routes.cpp
+index de92b13..312104e 100644
+--- a/tests/integration/someip/native_diagnostic_routes.cpp
++++ b/tests/integration/someip/native_diagnostic_routes.cpp
+@@ -260,7 +260,9 @@ void NativeDiagnosticRoutes::work() {
+                         if(central_restart_ && r.result==d::Result::NotReady) {note("await-prefix-replay",data);continue;}
+                         require(r.ack.has_value(),"native replica commit");
+                         ++events;note(r.result==d::Result::Duplicate?"duplicate":"replica-commit",data);if(r.result==d::Result::Duplicate)++duplicates;
+-                        if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !dropped_ack && data.event.kind==d::Kind::Fault) {dropped_ack=true;note("omit-ack",data);}
++                        const auto* service_fault=std::getenv("STRATADRIVE_SERVICE_FAULT");
++                        if(service_fault && std::string(service_fault)=="ack-loss" && i==0 && data.event.session.epoch==3) {dropped_ack=true;note("service-omit-ack",data);}
++                        else if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !dropped_ack && data.event.kind==d::Kind::Fault) {dropped_ack=true;note("omit-ack",data);}
+                         else if(!source_channels_[i]->send(*r.ack))note("ack-unavailable",data); // sender retains/retries durable prefix
+                     }
+                     for(unsigned z=0;z<2;++z) {transmit(*context_out[z],*context_channels_[z],context_send[z],global && wall()>=context_due);complete=complete && context_out[z]->healthy() && context_out[z]->acknowledged()==contexts[z]->committed().size();}
+@@ -312,10 +314,9 @@ void NativeDiagnosticRoutes::work() {
+             }
+             if(restarting) {++restarts;continue;}
+             require(!requested || restarts==1,"requested diagnostic restart not reached");
+-            require(passed_,"native diagnostic drain timeout");
+             if(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")) {
+                 require(global.has_value(),"service freeze global context");
+-                std::ofstream freeze(folder_/(tag_+".freeze.csv"));
++                std::ofstream freeze(folder_/(tag_+(passed_?".freeze.csv":".drain-failed.csv")));
+                 freeze<<"ns,epoch,stream,producer,committed,acknowledged,pending,dropped,first_lost,identity_error\n";
+                 for(unsigned i=0;i<slots_;++i)if(outboxes[i]){const auto h=sources_[i]->queue.health();
+                     freeze<<wall()<<','<<global->session.epoch<<','<<8200+i<<','<<sources_[i]->producer<<','<<stores[i]->committed().size()<<','<<outboxes[i]->acknowledged()<<','<<outboxes[i]->pending()<<','<<h.dropped<<','<<h.first_lost_sequence<<','<<h.identity_error<<'\n';
+@@ -323,6 +324,7 @@ void NativeDiagnosticRoutes::work() {
+                 for(unsigned z=0;z<2;++z)if(context_out[z])freeze<<wall()<<','<<global->session.epoch<<','<<8101+z<<",0,"<<contexts[z]->committed().size()<<','<<context_out[z]->acknowledged()<<",0,0,0,0\n";
+                 freeze.flush();require(freeze.good(),"service freeze report");
+             }
++            require(passed_,"native diagnostic drain timeout");
+             if(collector) {require(collector->ledger().complete(),"merged diagnostic recording incomplete");rows(folder_/"records.csv",collector->ledger());}
+             else for(unsigned i=0;i<slots_;++i)if(outboxes[i])rows(folder_/(source_name(i)+"-records.csv"),outboxes[i]->ledger());
+             break;
+diff --git a/tests/integration/someip/native_service_client.py b/tests/integration/someip/native_service_client.py
+index eb06d64..29bcf50 100644
+--- a/tests/integration/someip/native_service_client.py
++++ b/tests/integration/someip/native_service_client.py
+@@ -10,14 +10,20 @@ from pathlib import Path
+ def run(folder, central):
+     from run import wait_for
+     folder = Path(folder)
+-    wait_for(lambda: (folder/'service-epoch-ready').exists() or central.poll() is not None, 5)
+-    if central.poll() is not None: raise RuntimeError('Central exited before service startup request')
++    def failed():
++        return central.poll() is not None or (folder/'central-2.failed').exists()
++    wait_for(lambda: (folder/'service-epoch-ready').exists() or failed(), 5)
++    if failed(): raise RuntimeError('Central exited before service startup request')
+     (folder/'service-epoch-request').write_text('explicit operator startup after Epoch2 NormalStop; service review never issues INIT')
+-    wait_for(lambda: (folder/'service-stop-ready').exists() or central.poll() is not None, 5)
+-    if central.poll() is not None: raise RuntimeError('Central exited before Epoch3 normal stop')
++    wait_for(lambda: (folder/'service-stop-ready').exists() or failed(), 5)
++    if failed(): raise RuntimeError('Central exited before Epoch3 normal stop')
+     (folder/'service-freeze').write_text(str(time.monotonic_ns()))
+     for role in ('front', 'rear'):
+-        wait_for(lambda role=role: (folder/(role+'.service-frozen')).exists() or central.poll() is not None, 3)
++        # A failed source drain is terminal. Do not keep all control owners
++        # running until a supervisor timeout after the source has already failed.
++        failed=Path(os.environ['STRATADRIVE_DIAGNOSTIC_STORE_ROOT'])/role/(role+'-1.drain-failed.csv')
++        wait_for(lambda role=role: (folder/(role+'.service-frozen')).exists() or failed.exists() or central.poll() is not None, 3)
++        if failed.exists():raise RuntimeError('source service drain failed '+role)
+         if not (folder/(role+'.service-frozen')).exists(): raise RuntimeError('source service freeze missing '+role)
+     (folder/'service-collector-freeze').write_text(str(time.monotonic_ns()))
+     wait_for(lambda: (folder/'service-ready.json').exists() or central.poll() is not None, 3)
+@@ -33,6 +39,18 @@ def run(folder, central):
+         if reserved: raise RuntimeError('service response reserved')
+         return dict(number=number, watermark=watermark, revision=revision, status=status, stage=stage, blocked=blocked)
+     rows = []
++    if os.environ.get('STRATADRIVE_SERVICE_FAULT') == 'actual-loss':
++        (folder/'service-fault-inject').write_text(str(time.monotonic_ns()))
++        # Drop actual Brake feedback at the Front TCP emitter. Let its original
++        # 30ms acquisition validity expire; do not edit a service snapshot.
++        time.sleep(.05)
++        for label, raw, expected in [
++            ('stale-actual-review', request(1, ready['revision']), 6),
++            ('clear-without-review', request(2, ready['revision'], op=2, disposition=0), 11)]:
++            reply = exchange(raw);rows.append(dict(label=label, request=raw.hex(), reply=reply))
++            (folder/'service-client.json').write_text(json.dumps(dict(pid=os.getpid(), ready=ready, requests=rows), indent=2)+'\n')
++            if reply['status'] != expected or reply['stage'] != 0: raise RuntimeError('negative service verdict '+str(reply))
++        return dict(pass_=False, expected_rejection=True, requests=len(rows))
+     child = os.fork()
+     if child == 0:
+         try: ok = exchange(request(1, ready['revision']))['status'] == 1
+diff --git a/tests/unit/async_owner_test.cpp b/tests/unit/async_owner_test.cpp
+index 18d80f5..ddfe68b 100644
+--- a/tests/unit/async_owner_test.cpp
++++ b/tests/unit/async_owner_test.cpp
+@@ -59,6 +59,20 @@ TEST_F(AsyncOwnerTest, MissingOrLateTxResultCannotRenewTheOriginalDeadline) {
+     initialize(); port.arm_status(3); const auto f=front->work.pop(); ASSERT_TRUE(f);
+     clock.now=f->deadline_ns; ack(*front,*f); port.service(); EXPECT_TRUE(port.transport_fault()); EXPECT_FALSE(gate.allows(3));
+ }
++TEST_F(AsyncOwnerTest, StopAckTimeoutPreservesOriginalTransportDetectorAcrossLateAckAndClockFailure) {
++    initialize();central::NormalStopPlan plan{};plan.lease={3,4,kStart,kStart+60*kMs};
++    ASSERT_EQ(port.stop_status(plan),central::OperationStatus::Pending);
++    const auto f=front->work.pop(),r=rear->work.pop();ASSERT_TRUE(f);ASSERT_TRUE(r);
++    ack(*rear,*r);port.service();clock.now=f->deadline_ns-1;port.service();
++    EXPECT_FALSE(port.transport_observation());EXPECT_TRUE(gate.allows(3));
++    clock.now=f->deadline_ns;port.service();const auto fault=port.transport_observation();ASSERT_TRUE(fault);
++    EXPECT_EQ(fault->fault,central::AsyncTransportFault::ResultTimeout);EXPECT_TRUE(fault->stop_handoff);
++    EXPECT_EQ(fault->detected_ns,f->deadline_ns);EXPECT_EQ(fault->token,f->token);
++    EXPECT_EQ(fault->sent_ns,f->sent_ns);EXPECT_EQ(fault->deadline_ns,f->deadline_ns);
++    EXPECT_FALSE(gate.allows(3));ack(*front,*f);port.service();clock.now=kStart-1;port.service();
++    ASSERT_TRUE(port.transport_observation());EXPECT_EQ(port.transport_observation()->fault,fault->fault);
++    EXPECT_EQ(port.transport_observation()->detected_ns,fault->detected_ns);
++}
+ TEST_F(AsyncOwnerTest, WrongZoneOrOperationResultLatchesProtection) {
+     initialize(); port.arm_status(3); const auto f=front->work.pop(); ASSERT_TRUE(f);
+     ack(*rear,*f); port.service(); EXPECT_TRUE(port.transport_fault());
+diff --git a/tests/unit/control_allocation_test.cpp b/tests/unit/control_allocation_test.cpp
+index ff14594..94e45ed 100644
+--- a/tests/unit/control_allocation_test.cpp
++++ b/tests/unit/control_allocation_test.cpp
+@@ -137,6 +137,29 @@ TEST_F(ControlAllocationTest, PendingPollPreservesExclusiveSupportExpiryAndLatch
+     EXPECT_TRUE(allocator.decision().protection_required);
+     EXPECT_TRUE(allocator.start_session(4,expiry+1));EXPECT_FALSE(allocator.decision().protection_required);
+ }
++TEST(ControlAllocationSession, FreshGrantCannotBridgeExpiredSupportDuringNativeStopRenewal) {
++    // Native TSan evidence: command at371501184, support expiry390823384,
++    // matching next grant ready390857467. Preserve those relative instants.
++    constexpr std::uint64_t support=19322200,late=34083;
++    for(const auto delay:{-1LL,0LL,static_cast<long long>(late)}) {
++        central::AllocationConfig config;config.minimum_tick_interval_ns=1000000;
++        central::ControlAllocation a(config);ASSERT_TRUE(a.start_session(3,kStart));
++        central::VehicleRequest root{3,0,ns(20),ns(80),0,0,0,true};
++        ASSERT_EQ(a.receive_request(root,ns(20)),AllocationReceiveDecision::Accepted);
++        auto previous=inputs(20);
++        std::get<can::BmsDriveGrant>(previous.permission->message.content).expires_at_ns=ns(20)+support;
++        ASSERT_TRUE(a.tick(previous,ns(20)));
++        const auto arrived=static_cast<std::uint64_t>(static_cast<long long>(ns(20)+support)+delay);
++        const auto output=a.tick(inputs(39),arrived);
++        EXPECT_EQ(output.has_value(),delay<0);
++        EXPECT_EQ(a.decision().fault,delay<0?AllocationFault::None:AllocationFault::SupportExpired);
++        if(delay>=0) {
++            root.sequence=1;root.source_time_ns=arrived;root.expires_at_ns=arrived+60*kMs;
++            EXPECT_EQ(a.receive_request(root,arrived),AllocationReceiveDecision::Latched);
++            EXPECT_TRUE(a.decision().protection_required);
++        }
++    }
++}
+ TEST_F(ControlAllocationTest, PendingPollDoesNotCountAsAnAllocationTick) {
+     EXPECT_FALSE(allocator.tick(inputs(20),ns(20))); // no root, still monitors runnable gap
+     allocator.poll(ns(40));allocator.poll(ns(50));
+diff --git a/tests/unit/diagnostics_journal_test.cpp b/tests/unit/diagnostics_journal_test.cpp
+index f83a494..8b2bc6e 100644
+--- a/tests/unit/diagnostics_journal_test.cpp
++++ b/tests/unit/diagnostics_journal_test.cpp
+@@ -7,6 +7,7 @@
+ #include <fstream>
+ #include <iterator>
+ #include <system_error>
++#include <chrono>
+ 
+ namespace {
+ using namespace diagnostics_fixture;
+@@ -52,6 +53,40 @@ TEST_F(DiagnosticsJournal, CommittedEventsReplayWithUnknownCurrentConditionAndId
+         EXPECT_EQ(result.watermark,2U); EXPECT_EQ(recorder.ledger().find(f.key)->condition,Condition::Unknown);
+     }
+ }
++TEST_F(DiagnosticsJournal, FullDefaultRetentionPreservesEveryByteAndPermanentlyBlocksClearAfterOverflow) {
++    initialize();const auto f=fault();std::vector<char> full;std::uint64_t elapsed=0;
++    {
++        FileJournal journal(path.string());Recorder recorder(journal);
++        const auto began=std::chrono::steady_clock::now();
++        ASSERT_TRUE(recorder.record(session()).durable);ASSERT_TRUE(recorder.record(f).durable);
++        ASSERT_TRUE(recorder.record(proof(f)).durable);ASSERT_TRUE(recorder.record(passed(proof(f))).durable);
++        for(std::uint64_t i=5;i<=journal.limits().events;++i){
++            auto e=proof(f,i);e.kind=Kind::Observation;e.proof=Proof::None;
++            const auto receipt=recorder.record(e);ASSERT_TRUE(receipt.durable);ASSERT_EQ(receipt.watermark,i);
++        }
++        elapsed=static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-began).count());
++        ASSERT_EQ(journal.committed().size(),512U);full=read("journal");
++        const auto checkpoint=read("commit");const auto target=*recorder.ledger().find(f.key);
++        auto extra=proof(f,513);extra.kind=Kind::Observation;extra.proof=Proof::None;
++        const auto rejected=recorder.record(extra);EXPECT_EQ(rejected.result,Result::Capacity);EXPECT_FALSE(rejected.durable);
++        EXPECT_FALSE(recorder.ledger().complete());EXPECT_FALSE(journal.writable());
++        EXPECT_FALSE(recorder.clear(clear(target)).durable);
++        EXPECT_EQ(read("journal"),full);EXPECT_EQ(read("commit"),checkpoint);
++    }
++    {
++        FileJournal journal(path.string());Recorder recorder(journal);
++        EXPECT_EQ(journal.committed().size(),512U);EXPECT_EQ(read("journal"),full);
++        EXPECT_FALSE(journal.writable());EXPECT_FALSE(recorder.ledger().complete());
++        const auto* record=recorder.ledger().find(f.key);ASSERT_NE(record,nullptr);
++        EXPECT_EQ(record->condition,Condition::Unknown);EXPECT_EQ(record->count,1U);EXPECT_FALSE(record->cleared);
++        EXPECT_FALSE(recorder.clear(clear(*record)).durable);
++    }
++    if(const auto* destination=std::getenv("STRATADRIVE_M9_CAPACITY_EVIDENCE")){
++        const std::filesystem::path out(destination);ASSERT_FALSE(std::filesystem::exists(out));
++        std::filesystem::create_directories(out);std::filesystem::copy(path,out/"store",std::filesystem::copy_options::recursive);
++        std::ofstream(out/"result.json")<<"{\"events\":512,\"overflow_event\":513,\"journal_bytes\":"<<full.size()<<",\"durable_write_ns\":"<<elapsed<<",\"prefix_unchanged\":true,\"clear_blocked_after_reopen\":true}\n";
++    }
++}
+ TEST_F(DiagnosticsJournal, DurableClearTombstoneSurvivesReopenAndRequestReplay) {
+     initialize(); const auto f=fault(); Clear request;
+     {
+diff --git a/tests/unit/native_diagnostics_test.cpp b/tests/unit/native_diagnostics_test.cpp
+index 6048a64..4979eb5 100644
+--- a/tests/unit/native_diagnostics_test.cpp
++++ b/tests/unit/native_diagnostics_test.cpp
+@@ -110,14 +110,28 @@ battery::SensorSnapshot battery_sample(std::uint64_t now) {
+         battery::ModelMeasurement<battery::CellExtrema>{{24,26},id,now}};
+ }
+ TEST(NativeDiagnostics, ActualBmsTripRetainsRawThresholdDwellAndRecoveryReadyNeverClearsLatch) {
++    for(const unsigned mask:{1U,2U,4U,8U,16U,32U,64U,128U,170U}) {
++    SCOPED_TRACE("trip mask="+std::to_string(mask));
+     vecu::BmsController b{simulation::multirate_fixture::bms_config()}; Capture c(diagnostics::Component::Bms);
+     ASSERT_TRUE(b.start_session(1,7,start)); c.session(1,start);
+     for(unsigned t=0;t<=100;t+=20) ASSERT_TRUE(b.tick(battery_sample(start+t*ms),start+t*ms));
+     ASSERT_EQ(b.decision().state,vecu::BmsControlState::Active);
+-    for(unsigned t=120;t<=160;t+=20) { auto s=battery_sample(start+t*ms); s.cell_voltage->value.maximum=4.3; ASSERT_TRUE(b.tick(s,start+t*ms)); }
++    for(unsigned t=120;t<=160;t+=20) {
++        auto s=battery_sample(start+t*ms);
++        if(mask&1U)s.cell_voltage->value.minimum=2.7;
++        if(mask&2U)s.cell_voltage->value.maximum=4.3;
++        if(mask&4U){s.electrical->value.voltage_v=279;s.cell_voltage->value={2.805,2.81};}
++        if(mask&8U){s.electrical->value.voltage_v=426;if(!(mask&2U))s.cell_voltage->value={4.2,4.24};}
++        if(mask&16U)s.cell_temperature->value.minimum=-35;
++        if(mask&32U)s.cell_temperature->value.maximum=65;
++        if(mask&64U)s.electrical->value.current_a=-110;
++        if(mask&128U)s.electrical->value.current_a=260;
++        ASSERT_TRUE(b.tick(s,start+t*ms));
++    }
+     ASSERT_TRUE(b.fault_observation()); const auto first=*b.fault_observation();
+-    EXPECT_EQ(first.detail,vecu::CellOverVoltage); EXPECT_EQ(first.violation_ns,start+120*ms); EXPECT_EQ(first.observed_ns,start+160*ms);
+-    EXPECT_EQ(first.trip[1],4.25); EXPECT_EQ(first.timing[4],40*ms); EXPECT_EQ(first.samples[3].values[1],4.3);
++    EXPECT_EQ(first.detail,mask); EXPECT_EQ(first.violation_ns,start+120*ms); EXPECT_EQ(first.observed_ns,start+160*ms);
++    EXPECT_EQ(first.trip[1],4.25); EXPECT_EQ(first.timing[4],40*ms);
++    if(mask&2U){EXPECT_EQ(first.samples[3].values[1],4.3);}
+     c.hook.observe(diagnostics::NativeMonitor::Bms,b.fault_observation(),b.propagation_observation(),b.success_observation(),false,true,start+160*ms); c.drain();
+     ASSERT_EQ(c.ledger.records().size(),1U); const auto key=c.ledger.records()[0].key; EXPECT_EQ(key.code,diagnostics::Code::BmsLocal);
+     for(unsigned t=180;t<=300;t+=20) ASSERT_TRUE(b.tick(battery_sample(start+t*ms),start+t*ms));
+@@ -132,6 +146,7 @@ TEST(NativeDiagnostics, ActualBmsTripRetainsRawThresholdDwellAndRecoveryReadyNev
+     }
+     EXPECT_EQ(c.ledger.find(key)->condition,diagnostics::Condition::Passed); EXPECT_EQ(c.ledger.find(key)->count,1U);
+     ASSERT_TRUE(b.success_observation()); reject_invalid_input_proofs(diagnostics::Component::Bms,diagnostics::NativeMonitor::Bms,first,*b.success_observation(),start+420*ms);
++    }
+ }
+ TEST(NativeDiagnostics, PropagatedBmsProtectionDoesNotMaskLaterRealTrip) {
+     vecu::BmsController b{simulation::multirate_fixture::bms_config()}; Capture c(diagnostics::Component::Bms);
+@@ -150,15 +165,17 @@ protected:
+     simulation::PowerModel plant{{.002,50,.02,100,1000,500}};
+     vecu::PowerController p{{}}; Capture capture{diagnostics::Component::Power};
+     can::BmsTxState tx{can::BmsFrameKind::PowerRequest}; unsigned epoch=1,sequence=0,index=0; bool missing=false;
++    simulation::PowerEnvironment environment{400,0,true,true,true,false,false};
++    simulation::PowerFaultInjection injection;
++    bool renew=true;can::BmsPowerAction action=can::BmsPowerAction::Enable;
+     void SetUp() override { ASSERT_TRUE(plant.initialize({7,0,start},0)); ASSERT_TRUE(p.start_session(1,7,start)); capture.session(1,start); }
+     void step() {
+         const auto begin=start+index*10*ms,now=begin+10*ms;
+-        const simulation::PowerEnvironment env{400,0,true,true,true,false,false};
+-        ASSERT_EQ(plant.step({begin,now,{env,{7,index,begin},begin},p.output().coils.value_or(power::CoilCommand{})}),simulation::PowerModelFault::None);
++        ASSERT_EQ(plant.step({begin,now,{environment,{7,index,begin},begin},p.output().coils.value_or(power::CoilCommand{})},injection),simulation::PowerModelFault::None);
+         can::BmsMessage r; r.kind=can::BmsFrameKind::PowerRequest; r.epoch=epoch; r.sequence=sequence++; r.source_time_ns=now; r.causal_sequence=r.sequence; r.origin=can::ActuatorOrigin::NormalPath;
+-        r.content=can::BmsPowerRequest{can::BmsPowerAction::Enable,now+60*ms,now};
++        r.content=can::BmsPowerRequest{action,now+60*ms,now};
+         const can::BmsParentContext parent{epoch,r.sequence,now,now+60*ms}; const auto f=can::encode_bms_frame(r,tx); ASSERT_TRUE(f);
+-        p.receive(*f,now,&parent); auto sensor=plant.observation(); if(missing && sensor) sensor->pack_current_a.reset();
++        if(renew){p.receive(*f,now,&parent);} auto sensor=plant.observation(); if(missing && sensor) sensor->pack_current_a.reset();
+         ASSERT_TRUE(p.tick(sensor,power::BmsSafetyGate{epoch,index,now,now,false},now));
+         capture.hook.observe(diagnostics::NativeMonitor::Power,p.fault_observation(),p.propagation_observation(),p.success_observation(),p.output().fault==vecu::PowerControlFault::None && p.output().phase==vecu::PowerPhase::Ready,true,now);
+         capture.drain(); ++index;
+@@ -183,4 +200,44 @@ TEST_F(NativePower, RealRcReadyAndNewSequenceAreRequiredAfterInputFailure) {
+     ASSERT_TRUE(p.success_observation()); reject_invalid_input_proofs(diagnostics::Component::Power,diagnostics::NativeMonitor::Power,first,*p.success_observation(),start+index*10*ms);
+     EXPECT_GT(plant.diagnostic_state().identity.sequence,sequence_before); EXPECT_EQ(plant.diagnostic_state().identity.epoch,7U);
+ }
++class NativePowerFaults : public NativePower,public ::testing::WithParamInterface<vecu::PowerControlFault> {};
++TEST_P(NativePowerFaults, PhysicalFaultKeepsNativeCauseAndOnlyFreshReadyEpochQualifiesRecovery) {
++    using F=vecu::PowerControlFault;const auto expected=GetParam();
++    if(expected==F::ContactorResponse)injection.contactors[1]=simulation::ContactorFailure::StuckOpen;
++    else if(expected==F::PrechargeTimeout)injection.contactors[2]=simulation::ContactorFailure::StuckOpen;
++    else {
++        while(p.output().phase!=vecu::PowerPhase::Ready && index<200){ASSERT_NO_FATAL_FAILURE(step());}
++        ASSERT_EQ(p.output().phase,vecu::PowerPhase::Ready);
++        if(expected==F::ConditionsUnsafe)environment.charger_connected=true;
++        if(expected==F::RequestLost)renew=false;
++        if(expected==F::BusNotReady)environment.bus_load_current_a=300;
++        if(expected==F::ShutdownCurrentBlocked){environment.bus_load_current_a=20;action=can::BmsPowerAction::Shutdown;}
++        if(expected==F::DischargeTimeout){environment.bus_load_current_a=-4;action=can::BmsPowerAction::Shutdown;}
++        if(expected==F::StartupEnergized){++epoch;const auto enable=start+index*10*ms;ASSERT_TRUE(p.start_session(epoch,7,enable));capture.session(epoch,enable);}
++    }
++    const auto limit=index+400;
++    while(!p.fault_observation() && index<limit){ASSERT_NO_FATAL_FAILURE(step());}
++    ASSERT_TRUE(p.fault_observation());const auto first=*p.fault_observation();
++    ASSERT_EQ(first.reason,static_cast<unsigned>(expected));ASSERT_EQ(capture.ledger.records().size(),1U);
++    const auto key=capture.ledger.records()[0].key;EXPECT_EQ(key.code,diagnostics::Code::PowerLocal);
++    EXPECT_EQ(capture.ledger.find(key)->first_detected.ns,first.observed_ns);
++    injection={};environment.charger_connected=false;environment.bus_load_current_a=0;renew=true;action=can::BmsPowerAction::Shutdown;
++    const auto off_limit=index+400;
++    while(p.output().phase!=vecu::PowerPhase::Off && index<off_limit){ASSERT_NO_FATAL_FAILURE(step());}
++    ASSERT_EQ(p.output().phase,vecu::PowerPhase::Off);EXPECT_EQ(capture.ledger.find(key)->condition,diagnostics::Condition::Failed);
++    const auto physical_sequence=plant.diagnostic_state().identity.sequence;
++    ++epoch;sequence=0;e2e::p05_protect_init(tx.protection);const auto enable=start+index*10*ms;
++    ASSERT_TRUE(p.start_session(epoch,7,enable));capture.session(epoch,enable);action=can::BmsPowerAction::Enable;
++    EXPECT_EQ(capture.ledger.find(key)->condition,diagnostics::Condition::Unknown);EXPECT_FALSE(p.success_observation());
++    const auto ready_limit=index+200;
++    while(p.output().phase!=vecu::PowerPhase::Ready && index<ready_limit){ASSERT_NO_FATAL_FAILURE(step());}
++    ASSERT_EQ(p.output().phase,vecu::PowerPhase::Ready);ASSERT_TRUE(p.success_observation());
++    EXPECT_GT(plant.diagnostic_state().identity.sequence,physical_sequence);EXPECT_EQ(plant.diagnostic_state().identity.epoch,7U);
++    EXPECT_EQ(capture.ledger.find(key)->condition,diagnostics::Condition::Passed);EXPECT_EQ(capture.ledger.find(key)->count,1U);EXPECT_FALSE(capture.ledger.find(key)->cleared);
++    reject_invalid_input_proofs(diagnostics::Component::Power,diagnostics::NativeMonitor::Power,first,*p.success_observation(),start+index*10*ms);
++}
++INSTANTIATE_TEST_SUITE_P(NativePowerMatrix,NativePowerFaults,::testing::Values(
++    vecu::PowerControlFault::ContactorResponse,vecu::PowerControlFault::PrechargeTimeout,vecu::PowerControlFault::ConditionsUnsafe,
++    vecu::PowerControlFault::RequestLost,vecu::PowerControlFault::ShutdownCurrentBlocked,vecu::PowerControlFault::StartupEnergized,
++    vecu::PowerControlFault::BusNotReady,vecu::PowerControlFault::DischargeTimeout));
+ } // namespace
+diff --git a/tests/unit/session_coordinator_test.cpp b/tests/unit/session_coordinator_test.cpp
+index c891302..1ee5d79 100644
+--- a/tests/unit/session_coordinator_test.cpp
++++ b/tests/unit/session_coordinator_test.cpp
+@@ -247,6 +247,13 @@ TEST(SessionMailbox, WraparoundPreservesOrderAndFullCapacity) {
+         EXPECT_FALSE(queue.pop());
+     }
+ }
++TEST(SessionMailbox, ExplicitDisconnectRetiresQueuedTrafficAndCannotReopen) {
++    SessionMailbox<Ack,3> queue;Ack message{};
++    ASSERT_TRUE(queue.push(message));queue.close();EXPECT_TRUE(queue.failed());
++    EXPECT_FALSE(queue.pop());EXPECT_FALSE(queue.push(message));queue.close();
++    EXPECT_TRUE(queue.failed());EXPECT_FALSE(queue.pop());
++    SessionMailbox<Ack,3> replacement;EXPECT_TRUE(replacement.push(message));EXPECT_TRUE(replacement.pop());
++}
+ TEST(SessionLoops, EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes) {
+     Scenario s; std::mutex mutex; std::condition_variable cv;
+     unsigned generation=0,completed=0; bool stopping=false; std::vector<std::thread> threads;
+diff --git a/tests/unit/vehicle_coordinator_test.cpp b/tests/unit/vehicle_coordinator_test.cpp
+index be0ee5c..13dce1e 100644
+--- a/tests/unit/vehicle_coordinator_test.cpp
++++ b/tests/unit/vehicle_coordinator_test.cpp
+@@ -2,6 +2,7 @@
+ #include "control_diagnostics.hpp"
+ 
+ #include <gtest/gtest.h>
++#include <algorithm>
+ #include <string>
+ #include <vector>
+ 
+@@ -18,6 +19,8 @@ public:
+     std::optional<central::VehicleManagementOutput> sent_power;
+     std::vector<central::AllocatedCommands> commands;
+     std::vector<central::LifecycleRequest> lifecycles; std::vector<central::VehicleRequest> vehicles;
++    std::optional<central::TransportFaultObservation> transport;
++    std::optional<central::TransportFaultObservation> transport_observation() const noexcept override { return transport; }
+     std::uint64_t now_ns() noexcept override { return now; }
+     bool session_ready(central::CoordinatorSession s) noexcept override { return ready && s.epoch==epoch; }
+     bool healthy(std::uint32_t e) noexcept override { events.emplace_back("health"); now+=health_delay_ns; return health && e==epoch; }
+@@ -251,5 +254,112 @@ TEST_F(CoordinatorTest, ExpiredAllocationSupportIsPropagatedImmediatelyWhenANewR
+     normal(); request(50); tick(50); tick(60); port.now=ns(61);
+     EXPECT_EQ(coordinator.receive_vehicle(vehicle(61,2),port.now),central::CoordinatorReceive::Latched);
+     EXPECT_EQ(coordinator.decision().fault,central::CoordinatorFault::Allocation); EXPECT_EQ(port.protections,1U);
++    ASSERT_TRUE(coordinator.fault_observation());
++    EXPECT_EQ(coordinator.fault_observation()->allocation_fault,central::AllocationFault::RequestLost);
++    diagnostics::EventQueue queue(10,20);diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++    ASSERT_TRUE(hook.start_session(3,kStart));hook.observe(coordinator,ns(80));hook.observe(coordinator,ns(90));
++    diagnostics::Ledger ledger;diagnostics::Event event;
++    while(queue.pop(event))ASSERT_EQ(ledger.record(event),diagnostics::Result::Accepted);
++    ASSERT_EQ(ledger.records().size(),1U);const auto& record=ledger.records().front();
++    EXPECT_EQ(record.key.code,diagnostics::Code::CentralControl);EXPECT_EQ(record.count,1U);
++    EXPECT_EQ(record.first_detected.ns,ns(61));
++    const auto found=std::find_if(ledger.events().begin(),ledger.events().end(),[](const auto& e){return e.kind==diagnostics::Kind::Fault;});
++    ASSERT_NE(found,ledger.events().end());EXPECT_EQ(found->native_reason,0x10004U);EXPECT_FALSE(found->unmapped);EXPECT_FALSE(found->cause_unknown);
++    EXPECT_TRUE(found->command.present);EXPECT_EQ(found->command.source.ns,ns(30));
++}
++TEST_F(CoordinatorTest, TransportFirstStopAckTimeoutKeepsOriginalCauseAndTimestamp) {
++    normal();port.now=ns(51);
++    port.transport=central::TransportFaultObservation{central::AsyncTransportFault::ResultTimeout,{3,kStart},ns(50),6,123,ns(30),ns(50),true};
++    coordinator.request_protection(port.now);
++    diagnostics::EventQueue queue(10,20);diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
++    ASSERT_TRUE(hook.start_session(3,kStart));hook.observe(coordinator,ns(80));
++    diagnostics::Event event;unsigned faults=0;
++    while(queue.pop(event))if(event.kind==diagnostics::Kind::Fault){
++        ++faults;EXPECT_EQ(event.key.code,diagnostics::Code::Handoff);EXPECT_EQ(event.native_reason,0x20007U);
++        EXPECT_EQ(event.times[static_cast<unsigned>(diagnostics::Time::Detected)].ns,ns(50));
++        EXPECT_EQ(event.times[static_cast<unsigned>(diagnostics::Time::Violation)].ns,ns(50));
++        EXPECT_TRUE(event.command.present);EXPECT_EQ(event.command.sequence,123U);
++        EXPECT_EQ(event.command.source.ns,ns(30));EXPECT_EQ(event.command.expiry.ns,ns(50));EXPECT_FALSE(event.unmapped);EXPECT_FALSE(event.cause_unknown);
++    }
++    EXPECT_EQ(faults,1U);
++}
++TEST(CoordinatorDiagnosticsRecovery, NativeStopFailuresRequireNewEpochCompleteAndIdenticalConfiguration) {
++    using F=central::NormalStopFault;
++    for(const auto fault:{F::RequestLost,F::BrakingTimeout,F::HandoffExpired,F::StopEvidenceLost,F::ShutdownTimeout,F::ControlDeadline,F::ClockError}) {
++        SCOPED_TRACE(static_cast<int>(fault));
++        const central::NormalStopConfig cfg{1,60*kMs,200*kMs,100*kMs,10*kMs};
++        central::NormalStop failed(cfg);ASSERT_TRUE(failed.start_session(3,kStart));
++        const auto old_request=[](unsigned t){return central::NormalStopRequest{{3,t/10,ns(t),ns(t+60)},0};};
++        ASSERT_TRUE(failed.begin(old_request(10),{1,1},ns(10)));
++        central::VehicleManagementDecision management;management.state=central::VehicleManagementState::Normal;management.normal_allowed=true;
++        for(unsigned t=10;t<=220 && failed.decision().fault==F::None;t+=10) {
++            if(t>10 && fault!=F::RequestLost)failed.receive_request(old_request(t),ns(t));
++            auto in=feedback(t,true);
++            if(fault==F::BrakingTimeout || (fault==F::StopEvidenceLost && t>=80))in.rear.drive_actual->wheel_speed->value_rad_s=10;
++            const auto plan=failed.tick(in,management,ns(t));
++            if(t==10 && fault==F::ClockError){failed.tick(in,management,ns(9));break;}
++            if(t==10 && fault==F::ControlDeadline){failed.tick(feedback(41,true),management,ns(41));break;}
++            if(plan && plan->state==central::NormalStopState::HandoffPending && fault==F::ShutdownTimeout) {
++                ASSERT_TRUE(failed.acknowledge_handoff(plan->lease,ns(t)));management.normal_allowed=false;management.state=central::VehicleManagementState::Stopping;
++            }
++        }
++        ASSERT_EQ(failed.decision().fault,fault);
++        for(unsigned variant=0;variant<4;++variant) {
++            SCOPED_TRACE(variant);
++            diagnostics::EventQueue q(10,20);diagnostics::ControlDiagnostics hook(q,{10,20,diagnostics::Domain::Simulation,7,1});
++            diagnostics::Ledger ledger;diagnostics::Event e;std::optional<diagnostics::Key> key;
++            auto drain=[&] {while(q.pop(e)){EXPECT_EQ(ledger.record(e),diagnostics::Result::Accepted);if(e.kind==diagnostics::Kind::Fault)key=e.key;}};
++            ASSERT_TRUE(hook.start_session(3,kStart));hook.observe(failed,ns(230));drain();ASSERT_TRUE(key);
++            Port port;port.epoch=4;port.now=ns(1000);auto next_cfg=cfg;if(variant==1)next_cfg.braking_timeout_ns+=kMs;
++            central::VehicleCoordinator core(port,{}, {},next_cfg);ASSERT_TRUE(core.start_session({4,ns(1000)}));
++            if(variant!=2) { ASSERT_TRUE(hook.start_session(4,ns(1000))); }
++            hook.observe(core,ns(1000));drain();EXPECT_NE(ledger.find(*key)->condition,diagnostics::Condition::Passed);
++            central::NormalDriveReadinessInputs current;
++            for(unsigned t=1010;t<=1140;t+=10) {
++                port.now=ns(t);auto in=feedback(t,t<1120 && t>=1020);in.epoch=4;in.session_enable_ns=ns(1000);
++                in.front.health->epoch=in.rear.health->epoch=in.front.steering_actual->epoch=in.front.brake_actual->epoch=in.rear.drive_actual->epoch=4;
++                in.rear.power_status->message.epoch=in.rear.power_limits->message.epoch=4;
++                if(port.sent_power){in.rear.power_status->message.causal_sequence=port.sent_power->power_request.sequence;
++                    std::get<can::BmsPowerStatus>(in.rear.power_status->message.content).accepted_request_source_time_ns=port.sent_power->power_request.source_time_ns;}
++                if(t<1050) {
++                    ASSERT_EQ(core.receive_lifecycle({{4,t/10-101,ns(t),ns(t+60)},can::BmsPowerAction::Enable},port.now),central::CoordinatorReceive::Accepted);
++                } else ASSERT_EQ(core.receive_stop({{4,t/10-105,ns(t),ns(t+60)},0},port.now),central::CoordinatorReceive::Accepted);
++                ASSERT_TRUE(core.tick(in,port.now));current=in;
++                if(t==1020 || t==1030) { ASSERT_EQ(core.receive_vehicle({4,t/10-102,ns(t),ns(t+60),.2,0,0,false},port.now),central::CoordinatorReceive::Accepted); }
++                if(t<1120 || variant!=3) {hook.observe(core,port.now);drain();}
++                if(t<1120) { EXPECT_NE(ledger.find(*key)->condition,diagnostics::Condition::Passed); }
++            }
++            ASSERT_EQ(core.decision().stop.state,central::NormalStopState::Complete);
++            if(variant==3){hook.observe(core,ns(1200));drain();}
++            EXPECT_EQ(ledger.find(*key)->condition==diagnostics::Condition::Passed,variant==0 && fault!=F::ClockError);
++            EXPECT_FALSE(ledger.find(*key)->cleared);EXPECT_EQ(ledger.find(*key)->count,1U);EXPECT_TRUE(ledger.complete());
++            const auto evidence=hook.stop_clear_evidence(core,current,ns(1140));
++            EXPECT_EQ(bool(evidence),variant==0 && fault!=F::ClockError);
++            auto missing=current;missing.front.brake_actual.reset();EXPECT_FALSE(hook.stop_clear_evidence(core,missing,ns(1140)));
++            EXPECT_FALSE(hook.stop_clear_evidence(core,current,ns(1200)));
++            if(evidence) {
++                diagnostics::Clear clear{{10,99,1},{10,4},*evidence,false,{{*key,ledger.find(*key)->revision}}};
++                EXPECT_EQ(ledger.clear(clear),diagnostics::Result::Accepted);EXPECT_TRUE(ledger.find(*key)->cleared);
++                EXPECT_EQ(core.decision().stop.state,central::NormalStopState::Complete);EXPECT_FALSE(core.decision().normal_armed);
++            }
++        }
++    }
++}
++TEST_F(CoordinatorTest, SpeedControlRecoveryRequiresAcceptedNativeRequestAfterNewSession) {
++    diagnostics::EventQueue q(10,20);diagnostics::ControlDiagnostics hook(q,{10,20,diagnostics::Domain::Simulation,7,1});
++    central::SpeedRequest failed;ASSERT_TRUE(failed.start_session(2,kStart));
++    auto old=*feedback(10,true).rear.drive_actual;old.epoch=2;
++    EXPECT_FALSE(failed.step(ns(10),12,old,true));ASSERT_EQ(failed.fault(),central::SpeedRequestFault::Controller);
++    ASSERT_TRUE(hook.start_session(2,kStart));hook.observe(failed,ns(10));
++    diagnostics::Ledger ledger;diagnostics::Event e;std::optional<diagnostics::Key> key;
++    auto drain=[&] {while(q.pop(e)){ASSERT_EQ(ledger.record(e),diagnostics::Result::Accepted);if(e.kind==diagnostics::Kind::Fault)key=e.key;}};
++    drain();ASSERT_TRUE(key);ASSERT_EQ(key->code,diagnostics::Code::CentralControl);
++    ASSERT_TRUE(hook.start_session(3,kStart));request(10);tick(10,false);request(20);tick(20);
++    central::SpeedRequest current;ASSERT_TRUE(current.start_session(3,kStart));const auto in=inputs(20);
++    const auto accepted=current.step(ns(20),0,in.rear.drive_actual,true);ASSERT_TRUE(accepted);
++    hook.observe_speed_recovery(current,coordinator,in,ns(20));drain();EXPECT_NE(ledger.find(*key)->condition,diagnostics::Condition::Passed);
++    ASSERT_EQ(coordinator.receive_vehicle(*accepted,ns(20)),central::CoordinatorReceive::Accepted);
++    hook.observe_speed_recovery(current,coordinator,in,ns(20));drain();EXPECT_EQ(ledger.find(*key)->condition,diagnostics::Condition::Passed);
++    EXPECT_FALSE(ledger.find(*key)->cleared);EXPECT_EQ(ledger.find(*key)->count,1U);EXPECT_TRUE(ledger.complete());
+ }
+ }  // namespace
+diff --git a/tools/carla/m7_nodrive/M7NoDrivePort.cpp b/tools/carla/m7_nodrive/M7NoDrivePort.cpp
+index 9b5a3e8..3e76afc 100644
+--- a/tools/carla/m7_nodrive/M7NoDrivePort.cpp
++++ b/tools/carla/m7_nodrive/M7NoDrivePort.cpp
+@@ -10,6 +10,7 @@
+ #include "Serialization/JsonSerializer.h"
+ #include "Misc/CommandLine.h"
+ #include "Misc/Parse.h"
++#include "Components/PrimitiveComponent.h"
+ #include "HAL/PlatformMisc.h"
+ #include <time.h>
+ #include <fcntl.h>
+@@ -53,6 +54,8 @@ struct State {
+   uint64 PhysicsGeneration = 0;
+   double SimBegin = 0;
+   bool V1 = false, Native = false, Work = false;
++  bool DiagnosticLoad = false;
++  FVector DiagnosticForce = FVector::ZeroVector;
+   std::unique_ptr<stratadrive::m7_native::SolverJournal<1024>> Journal;
+   bool AwaitSettlement = false;
+   double TotalMotorWork = 0;
+@@ -510,6 +513,12 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
+     if (!S.Native || !S.NativeGate) return Encode(Response(false, TEXT("native_profile_required")));
+     if (S.AwaitSettlement) { Latch(TEXT("ev_settlement_required")); return Encode(Response(false,S.Reason)); }
+     if (S.Staged || S.Queued || S.InFlight) return Encode(Response(false, TEXT("pending")));
++    bool Load = false;
++    if (J->HasField(TEXT("diagnostic_load")) &&
++        (!J->TryGetBoolField(TEXT("diagnostic_load"), Load) || !S.Work || S.Wall ||
++         !FParse::Param(FCommandLine::Get(), TEXT("StrataM9ExternalLoad")))) {
++      Latch(TEXT("diagnostic_load_profile")); return Encode(Response(false, S.Reason));
++    }
+     const Json* Proof = nullptr;
+     stratadrive::m7_native::Input Native;
+     stratadrive::m7_native::Output Actual;
+@@ -536,7 +545,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
+     S.WallProof=Native.observed;S.WallExpiry=Actual.empty?AdmissionNow+StepNs()+4000001:std::min<uint64>(Actual.exclusive_expiry,Actual.oldest_actuator+Age+1);
+     S.WallProtection=Actual.protection;
+     S.Frame = Frame; S.Begin = Begin; S.SimBegin = Episode.GetElapsedGameTime();
+-    S.Ticket = ++S.NextTicket; S.Effort = Effort;
++    S.Ticket = ++S.NextTicket; S.Effort = Effort; S.DiagnosticLoad = Load;
+     S.ProtectionEffort = Actual.protection && Actual.torque == 0 && Actual.pressure >= 1000000;
+     S.Pending = Object(); S.Pending->SetObjectField(TEXT("native"), *Proof);
+     auto Applied = Object();
+@@ -720,6 +729,14 @@ bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
+   if (!S.Movement->NumericalProfileMatches() || (S.V1 && !S.Movement->ValidateV1()) || !S.Movement->ApplyEffort(S.Effort)) {
+     Latch(TEXT("effort_apply")); return false;
+   }
++  S.DiagnosticForce = FVector::ZeroVector;
++  if (S.DiagnosticLoad) {
++    auto* Root = S.Actor.IsValid() ? Cast<UPrimitiveComponent>(S.Actor->GetRootComponent()) : nullptr;
++    if (!Root) { Latch(TEXT("diagnostic_load_actor")); return false; }
++    const auto Forward = S.Actor->GetActorForwardVector();
++    S.DiagnosticForce = FVector(Forward.X, Forward.Y, 0).GetSafeNormal() * 1800.0f;
++    Root->AddForce(S.DiagnosticForce * 100.0f, NAME_None, false); // N to UE cm force units
++  }
+   S.Staged = S.Queued = false;
+   S.KeptSteerSleep = S.Native && S.Work &&
+     FParse::Param(FCommandLine::Get(), TEXT("StrataM7HeldSteerSleep")) &&
+@@ -779,6 +796,13 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
+   for (unsigned W = 0; W != 4; ++W)
+     Zero = Zero && S.Effort.Drive[W] == 0 && S.Effort.Brake[W] == 0 && S.Effort.Steer[W] == 0;
+   R->SetBoolField(TEXT("applied_zero_effort"), Zero);
++  if (S.DiagnosticLoad) {
++    TArray<TSharedPtr<FJsonValue>> Force;
++    Force.Add(MakeShared<FJsonValueNumber>(S.DiagnosticForce.X));
++    Force.Add(MakeShared<FJsonValueNumber>(S.DiagnosticForce.Y));
++    Force.Add(MakeShared<FJsonValueNumber>(S.DiagnosticForce.Z));
++    R->SetArrayField(TEXT("diagnostic_external_force_n"), Force);
++  }
+   R->SetBoolField(TEXT("protected_held_steer_sleep"), S.KeptSteerSleep);
+   R->SetStringField(TEXT("effort_profile"), S.Wall ? TEXT("virtual-ev-v1-native-wall-experimental") : (S.Native ? TEXT("virtual-ev-v1-native-functional") : (S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only"))));
+   if (S.V1) {

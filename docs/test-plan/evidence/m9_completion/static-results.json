@@ -1,0 +1,83 @@
+[
+  {
+    "argv": [
+      "clang-tidy",
+      "-p",
+      "build/m1-angle",
+      "central/coordinator/async_coordinator_port.cpp",
+      "--warnings-as-errors=*"
+    ],
+    "exit": 0
+  },
+  {
+    "argv": [
+      "clang-tidy",
+      "-p",
+      "build/m1-angle",
+      "central/coordinator/vehicle_coordinator.cpp",
+      "--warnings-as-errors=*"
+    ],
+    "exit": 0
+  },
+  {
+    "argv": [
+      "clang-tidy",
+      "-p",
+      "build/m1-angle",
+      "central/diagnostics/control_diagnostics.cpp",
+      "--warnings-as-errors=*"
+    ],
+    "exit": 0
+  },
+  {
+    "argv": [
+      "clang-tidy",
+      "-p",
+      "build/m5-someip-normal/project",
+      "tests/integration/someip/front_adapter.cpp",
+      "--warnings-as-errors=*"
+    ],
+    "exit": 1
+  },
+  {
+    "argv": [
+      "clang-tidy",
+      "-p",
+      "build/m5-someip-normal/project",
+      "tests/integration/someip/native_diagnostic_routes.cpp",
+      "--warnings-as-errors=*"
+    ],
+    "exit": 0
+  },
+  {
+    "argv": [
+      "clang-tidy",
+      "-p",
+      "build/m7-functional",
+      "tests/integration/carla/m7_1f/functional_rig.cpp",
+      "--warnings-as-errors=*"
+    ],
+    "exit": 0
+  },
+  {
+    "argv": [
+      "clang-tidy",
+      "-p",
+      "build/m7-functional",
+      "tests/integration/carla/m7_1g/wheel_main.cpp",
+      "--warnings-as-errors=*"
+    ],
+    "exit": 0
+  },
+  {
+    "argv": [
+      "cppcheck",
+      "--project=/d/shin/StrataDrive/build/m9-completion/static-compile-commands.json",
+      "--enable=warning,performance,portability",
+      "--error-exitcode=1",
+      "--inline-suppr",
+      "--suppress=missingIncludeSystem"
+    ],
+    "exit": 1
+  }
+]

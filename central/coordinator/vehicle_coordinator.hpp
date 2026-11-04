@@ -8,6 +8,17 @@ namespace stratadrive::central {
 struct CoordinatorSession { std::uint32_t epoch; std::uint64_t enable_ns; };
 struct CoordinatorExecution { bool external_releases{false}; CommandRenewal renewal{CommandRenewal::Legacy20ms}; };
 enum class OperationStatus { Pending, Accepted, Rejected };
+enum class AsyncTransportFault { None,Clock,Continuity,Send,ResultMismatch,ResultLate,ResultRejected,ResultTimeout,FrameCount };
+// Original transport detector state, captured before closing authority. A
+// missing request is explicit; no lifecycle/vehicle root is synthesized.
+struct TransportFaultObservation {
+    AsyncTransportFault fault;
+    CoordinatorSession session;
+    std::uint64_t detected_ns;
+    int operation{-1};
+    std::uint64_t token{0},sent_ns{0},deadline_ns{0};
+    bool stop_handoff{false};
+};
 // Trusted single-owner adapter. Callbacks are bounded, nonblocking and must
 // retain original roots/expiry. ACK means output selection/enqueue, not physics.
 class CoordinatorPort {
@@ -16,6 +27,7 @@ public:
     virtual std::uint64_t now_ns() noexcept = 0;
     virtual bool session_ready(CoordinatorSession session) noexcept = 0;
     virtual bool healthy(std::uint32_t epoch) noexcept = 0;
+    virtual std::optional<TransportFaultObservation> transport_observation() const noexcept { return std::nullopt; }
     virtual bool authorize_lifecycle(const LifecycleRequest& root) noexcept = 0;
     virtual bool authorize_vehicle(const VehicleRequest& root) noexcept = 0;
     virtual bool arm(std::uint32_t epoch) noexcept = 0;
@@ -55,6 +67,9 @@ struct CoordinatorFaultObservation {
     std::uint32_t epoch;
     std::uint64_t enable_ns,detected_ns;
     std::optional<NormalStopPlan> handoff;
+    AllocationFault allocation_fault{AllocationFault::None};
+    std::optional<VehicleRequest> vehicle;
+    std::optional<TransportFaultObservation> transport;
 };
 struct ProtectionObservation {
     std::uint32_t epoch;

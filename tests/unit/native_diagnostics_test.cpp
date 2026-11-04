@@ -110,14 +110,28 @@ battery::SensorSnapshot battery_sample(std::uint64_t now) {
         battery::ModelMeasurement<battery::CellExtrema>{{24,26},id,now}};
 }
 TEST(NativeDiagnostics, ActualBmsTripRetainsRawThresholdDwellAndRecoveryReadyNeverClearsLatch) {
+    for(const unsigned mask:{1U,2U,4U,8U,16U,32U,64U,128U,170U}) {
+    SCOPED_TRACE("trip mask="+std::to_string(mask));
     vecu::BmsController b{simulation::multirate_fixture::bms_config()}; Capture c(diagnostics::Component::Bms);
     ASSERT_TRUE(b.start_session(1,7,start)); c.session(1,start);
     for(unsigned t=0;t<=100;t+=20) ASSERT_TRUE(b.tick(battery_sample(start+t*ms),start+t*ms));
     ASSERT_EQ(b.decision().state,vecu::BmsControlState::Active);
-    for(unsigned t=120;t<=160;t+=20) { auto s=battery_sample(start+t*ms); s.cell_voltage->value.maximum=4.3; ASSERT_TRUE(b.tick(s,start+t*ms)); }
+    for(unsigned t=120;t<=160;t+=20) {
+        auto s=battery_sample(start+t*ms);
+        if(mask&1U)s.cell_voltage->value.minimum=2.7;
+        if(mask&2U)s.cell_voltage->value.maximum=4.3;
+        if(mask&4U){s.electrical->value.voltage_v=279;s.cell_voltage->value={2.805,2.81};}
+        if(mask&8U){s.electrical->value.voltage_v=426;if(!(mask&2U))s.cell_voltage->value={4.2,4.24};}
+        if(mask&16U)s.cell_temperature->value.minimum=-35;
+        if(mask&32U)s.cell_temperature->value.maximum=65;
+        if(mask&64U)s.electrical->value.current_a=-110;
+        if(mask&128U)s.electrical->value.current_a=260;
+        ASSERT_TRUE(b.tick(s,start+t*ms));
+    }
     ASSERT_TRUE(b.fault_observation()); const auto first=*b.fault_observation();
-    EXPECT_EQ(first.detail,vecu::CellOverVoltage); EXPECT_EQ(first.violation_ns,start+120*ms); EXPECT_EQ(first.observed_ns,start+160*ms);
-    EXPECT_EQ(first.trip[1],4.25); EXPECT_EQ(first.timing[4],40*ms); EXPECT_EQ(first.samples[3].values[1],4.3);
+    EXPECT_EQ(first.detail,mask); EXPECT_EQ(first.violation_ns,start+120*ms); EXPECT_EQ(first.observed_ns,start+160*ms);
+    EXPECT_EQ(first.trip[1],4.25); EXPECT_EQ(first.timing[4],40*ms);
+    if(mask&2U){EXPECT_EQ(first.samples[3].values[1],4.3);}
     c.hook.observe(diagnostics::NativeMonitor::Bms,b.fault_observation(),b.propagation_observation(),b.success_observation(),false,true,start+160*ms); c.drain();
     ASSERT_EQ(c.ledger.records().size(),1U); const auto key=c.ledger.records()[0].key; EXPECT_EQ(key.code,diagnostics::Code::BmsLocal);
     for(unsigned t=180;t<=300;t+=20) ASSERT_TRUE(b.tick(battery_sample(start+t*ms),start+t*ms));
@@ -132,6 +146,7 @@ TEST(NativeDiagnostics, ActualBmsTripRetainsRawThresholdDwellAndRecoveryReadyNev
     }
     EXPECT_EQ(c.ledger.find(key)->condition,diagnostics::Condition::Passed); EXPECT_EQ(c.ledger.find(key)->count,1U);
     ASSERT_TRUE(b.success_observation()); reject_invalid_input_proofs(diagnostics::Component::Bms,diagnostics::NativeMonitor::Bms,first,*b.success_observation(),start+420*ms);
+    }
 }
 TEST(NativeDiagnostics, PropagatedBmsProtectionDoesNotMaskLaterRealTrip) {
     vecu::BmsController b{simulation::multirate_fixture::bms_config()}; Capture c(diagnostics::Component::Bms);
@@ -150,15 +165,17 @@ protected:
     simulation::PowerModel plant{{.002,50,.02,100,1000,500}};
     vecu::PowerController p{{}}; Capture capture{diagnostics::Component::Power};
     can::BmsTxState tx{can::BmsFrameKind::PowerRequest}; unsigned epoch=1,sequence=0,index=0; bool missing=false;
+    simulation::PowerEnvironment environment{400,0,true,true,true,false,false};
+    simulation::PowerFaultInjection injection;
+    bool renew=true;can::BmsPowerAction action=can::BmsPowerAction::Enable;
     void SetUp() override { ASSERT_TRUE(plant.initialize({7,0,start},0)); ASSERT_TRUE(p.start_session(1,7,start)); capture.session(1,start); }
     void step() {
         const auto begin=start+index*10*ms,now=begin+10*ms;
-        const simulation::PowerEnvironment env{400,0,true,true,true,false,false};
-        ASSERT_EQ(plant.step({begin,now,{env,{7,index,begin},begin},p.output().coils.value_or(power::CoilCommand{})}),simulation::PowerModelFault::None);
+        ASSERT_EQ(plant.step({begin,now,{environment,{7,index,begin},begin},p.output().coils.value_or(power::CoilCommand{})},injection),simulation::PowerModelFault::None);
         can::BmsMessage r; r.kind=can::BmsFrameKind::PowerRequest; r.epoch=epoch; r.sequence=sequence++; r.source_time_ns=now; r.causal_sequence=r.sequence; r.origin=can::ActuatorOrigin::NormalPath;
-        r.content=can::BmsPowerRequest{can::BmsPowerAction::Enable,now+60*ms,now};
+        r.content=can::BmsPowerRequest{action,now+60*ms,now};
         const can::BmsParentContext parent{epoch,r.sequence,now,now+60*ms}; const auto f=can::encode_bms_frame(r,tx); ASSERT_TRUE(f);
-        p.receive(*f,now,&parent); auto sensor=plant.observation(); if(missing && sensor) sensor->pack_current_a.reset();
+        if(renew){p.receive(*f,now,&parent);} auto sensor=plant.observation(); if(missing && sensor) sensor->pack_current_a.reset();
         ASSERT_TRUE(p.tick(sensor,power::BmsSafetyGate{epoch,index,now,now,false},now));
         capture.hook.observe(diagnostics::NativeMonitor::Power,p.fault_observation(),p.propagation_observation(),p.success_observation(),p.output().fault==vecu::PowerControlFault::None && p.output().phase==vecu::PowerPhase::Ready,true,now);
         capture.drain(); ++index;
@@ -183,4 +200,44 @@ TEST_F(NativePower, RealRcReadyAndNewSequenceAreRequiredAfterInputFailure) {
     ASSERT_TRUE(p.success_observation()); reject_invalid_input_proofs(diagnostics::Component::Power,diagnostics::NativeMonitor::Power,first,*p.success_observation(),start+index*10*ms);
     EXPECT_GT(plant.diagnostic_state().identity.sequence,sequence_before); EXPECT_EQ(plant.diagnostic_state().identity.epoch,7U);
 }
+class NativePowerFaults : public NativePower,public ::testing::WithParamInterface<vecu::PowerControlFault> {};
+TEST_P(NativePowerFaults, PhysicalFaultKeepsNativeCauseAndOnlyFreshReadyEpochQualifiesRecovery) {
+    using F=vecu::PowerControlFault;const auto expected=GetParam();
+    if(expected==F::ContactorResponse)injection.contactors[1]=simulation::ContactorFailure::StuckOpen;
+    else if(expected==F::PrechargeTimeout)injection.contactors[2]=simulation::ContactorFailure::StuckOpen;
+    else {
+        while(p.output().phase!=vecu::PowerPhase::Ready && index<200){ASSERT_NO_FATAL_FAILURE(step());}
+        ASSERT_EQ(p.output().phase,vecu::PowerPhase::Ready);
+        if(expected==F::ConditionsUnsafe)environment.charger_connected=true;
+        if(expected==F::RequestLost)renew=false;
+        if(expected==F::BusNotReady)environment.bus_load_current_a=300;
+        if(expected==F::ShutdownCurrentBlocked){environment.bus_load_current_a=20;action=can::BmsPowerAction::Shutdown;}
+        if(expected==F::DischargeTimeout){environment.bus_load_current_a=-4;action=can::BmsPowerAction::Shutdown;}
+        if(expected==F::StartupEnergized){++epoch;const auto enable=start+index*10*ms;ASSERT_TRUE(p.start_session(epoch,7,enable));capture.session(epoch,enable);}
+    }
+    const auto limit=index+400;
+    while(!p.fault_observation() && index<limit){ASSERT_NO_FATAL_FAILURE(step());}
+    ASSERT_TRUE(p.fault_observation());const auto first=*p.fault_observation();
+    ASSERT_EQ(first.reason,static_cast<unsigned>(expected));ASSERT_EQ(capture.ledger.records().size(),1U);
+    const auto key=capture.ledger.records()[0].key;EXPECT_EQ(key.code,diagnostics::Code::PowerLocal);
+    EXPECT_EQ(capture.ledger.find(key)->first_detected.ns,first.observed_ns);
+    injection={};environment.charger_connected=false;environment.bus_load_current_a=0;renew=true;action=can::BmsPowerAction::Shutdown;
+    const auto off_limit=index+400;
+    while(p.output().phase!=vecu::PowerPhase::Off && index<off_limit){ASSERT_NO_FATAL_FAILURE(step());}
+    ASSERT_EQ(p.output().phase,vecu::PowerPhase::Off);EXPECT_EQ(capture.ledger.find(key)->condition,diagnostics::Condition::Failed);
+    const auto physical_sequence=plant.diagnostic_state().identity.sequence;
+    ++epoch;sequence=0;e2e::p05_protect_init(tx.protection);const auto enable=start+index*10*ms;
+    ASSERT_TRUE(p.start_session(epoch,7,enable));capture.session(epoch,enable);action=can::BmsPowerAction::Enable;
+    EXPECT_EQ(capture.ledger.find(key)->condition,diagnostics::Condition::Unknown);EXPECT_FALSE(p.success_observation());
+    const auto ready_limit=index+200;
+    while(p.output().phase!=vecu::PowerPhase::Ready && index<ready_limit){ASSERT_NO_FATAL_FAILURE(step());}
+    ASSERT_EQ(p.output().phase,vecu::PowerPhase::Ready);ASSERT_TRUE(p.success_observation());
+    EXPECT_GT(plant.diagnostic_state().identity.sequence,physical_sequence);EXPECT_EQ(plant.diagnostic_state().identity.epoch,7U);
+    EXPECT_EQ(capture.ledger.find(key)->condition,diagnostics::Condition::Passed);EXPECT_EQ(capture.ledger.find(key)->count,1U);EXPECT_FALSE(capture.ledger.find(key)->cleared);
+    reject_invalid_input_proofs(diagnostics::Component::Power,diagnostics::NativeMonitor::Power,first,*p.success_observation(),start+index*10*ms);
+}
+INSTANTIATE_TEST_SUITE_P(NativePowerMatrix,NativePowerFaults,::testing::Values(
+    vecu::PowerControlFault::ContactorResponse,vecu::PowerControlFault::PrechargeTimeout,vecu::PowerControlFault::ConditionsUnsafe,
+    vecu::PowerControlFault::RequestLost,vecu::PowerControlFault::ShutdownCurrentBlocked,vecu::PowerControlFault::StartupEnergized,
+    vecu::PowerControlFault::BusNotReady,vecu::PowerControlFault::DischargeTimeout));
 } // namespace

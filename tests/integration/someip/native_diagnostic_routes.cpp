@@ -260,7 +260,9 @@ void NativeDiagnosticRoutes::work() {
                         if(central_restart_ && r.result==d::Result::NotReady) {note("await-prefix-replay",data);continue;}
                         require(r.ack.has_value(),"native replica commit");
                         ++events;note(r.result==d::Result::Duplicate?"duplicate":"replica-commit",data);if(r.result==d::Result::Duplicate)++duplicates;
-                        if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !dropped_ack && data.event.kind==d::Kind::Fault) {dropped_ack=true;note("omit-ack",data);}
+                        const auto* service_fault=std::getenv("STRATADRIVE_SERVICE_FAULT");
+                        if(service_fault && std::string(service_fault)=="ack-loss" && i==0 && data.event.session.epoch==3) {dropped_ack=true;note("service-omit-ack",data);}
+                        else if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !dropped_ack && data.event.kind==d::Kind::Fault) {dropped_ack=true;note("omit-ack",data);}
                         else if(!source_channels_[i]->send(*r.ack))note("ack-unavailable",data); // sender retains/retries durable prefix
                     }
                     for(unsigned z=0;z<2;++z) {transmit(*context_out[z],*context_channels_[z],context_send[z],global && wall()>=context_due);complete=complete && context_out[z]->healthy() && context_out[z]->acknowledged()==contexts[z]->committed().size();}
@@ -312,10 +314,9 @@ void NativeDiagnosticRoutes::work() {
             }
             if(restarting) {++restarts;continue;}
             require(!requested || restarts==1,"requested diagnostic restart not reached");
-            require(passed_,"native diagnostic drain timeout");
             if(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")) {
                 require(global.has_value(),"service freeze global context");
-                std::ofstream freeze(folder_/(tag_+".freeze.csv"));
+                std::ofstream freeze(folder_/(tag_+(passed_?".freeze.csv":".drain-failed.csv")));
                 freeze<<"ns,epoch,stream,producer,committed,acknowledged,pending,dropped,first_lost,identity_error\n";
                 for(unsigned i=0;i<slots_;++i)if(outboxes[i]){const auto h=sources_[i]->queue.health();
                     freeze<<wall()<<','<<global->session.epoch<<','<<8200+i<<','<<sources_[i]->producer<<','<<stores[i]->committed().size()<<','<<outboxes[i]->acknowledged()<<','<<outboxes[i]->pending()<<','<<h.dropped<<','<<h.first_lost_sequence<<','<<h.identity_error<<'\n';
@@ -323,6 +324,7 @@ void NativeDiagnosticRoutes::work() {
                 for(unsigned z=0;z<2;++z)if(context_out[z])freeze<<wall()<<','<<global->session.epoch<<','<<8101+z<<",0,"<<contexts[z]->committed().size()<<','<<context_out[z]->acknowledged()<<",0,0,0,0\n";
                 freeze.flush();require(freeze.good(),"service freeze report");
             }
+            require(passed_,"native diagnostic drain timeout");
             if(collector) {require(collector->ledger().complete(),"merged diagnostic recording incomplete");rows(folder_/"records.csv",collector->ledger());}
             else for(unsigned i=0;i<slots_;++i)if(outboxes[i])rows(folder_/(source_name(i)+"-records.csv"),outboxes[i]->ledger());
             break;

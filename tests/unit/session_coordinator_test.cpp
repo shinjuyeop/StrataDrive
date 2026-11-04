@@ -247,6 +247,13 @@ TEST(SessionMailbox, WraparoundPreservesOrderAndFullCapacity) {
         EXPECT_FALSE(queue.pop());
     }
 }
+TEST(SessionMailbox, ExplicitDisconnectRetiresQueuedTrafficAndCannotReopen) {
+    SessionMailbox<Ack,3> queue;Ack message{};
+    ASSERT_TRUE(queue.push(message));queue.close();EXPECT_TRUE(queue.failed());
+    EXPECT_FALSE(queue.pop());EXPECT_FALSE(queue.push(message));queue.close();
+    EXPECT_TRUE(queue.failed());EXPECT_FALSE(queue.pop());
+    SessionMailbox<Ack,3> replacement;EXPECT_TRUE(replacement.push(message));EXPECT_TRUE(replacement.pop());
+}
 TEST(SessionLoops, EightIndependentOwnerThreadsExchangeOnlyTypedMailboxes) {
     Scenario s; std::mutex mutex; std::condition_variable cv;
     unsigned generation=0,completed=0; bool stopping=false; std::vector<std::thread> threads;

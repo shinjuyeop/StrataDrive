@@ -15,10 +15,25 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | ECU 재기동·발행자 계승·실제3-ECU terminal 서비스 심사/clear; 서비스 고장 주입 후속 | [진단 계약](interfaces/diagnostics.md) · [Native 서비스 조합](test-plan/evidence/m9_native_service/README.md) |
+| M9 | CARLA30 고장→보호→물리 반응→DTC와 native 서비스 거절·정지 복구 후속 검증 | [진단 계약](interfaces/diagnostics.md) · [Native 서비스 조합](test-plan/evidence/m9_native_service/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
+
+## M9 이번 후속 구현
+
+[M9 후속 근거](test-plan/evidence/m9_completion/README.md)에 실제 CARLA30 정상·입력 손실·
+Stop ACK 손실·명시적 전륜 link failure·제동10s timeout의 원본 trace와 독립 감사를 묶었다.
+최초 native allocator/async transport의 원인·시각·token/expiry를 보호 상태 전환 전에 보존한다.
+NormalStop은 새 동일 설정의 실제 전체 cycle/Complete 후에만 Passed를 발행하고 별도 현재
+stationary/HV-off 증거와 명시적 요청으로 clear한다. Clock은 이 predicate에서 제외한다.
+BMS9개 trip mask와 Power8개 물리 고장 조합은 electrical component 수준으로 확장했다.
+
+**M9 전체 완료는 아직 아니다.** Silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
+재검증, proposal 이전 bootstrap incident 계약, 전체8-role BMS/Power matrix와 실제 부하/장기 보존
+수용이 남는다. 기본512-event 저장 경계는 원본 보존·초과 시 clear 차단까지 검증했으며 장기 보존
+운용을 대신하지 않는다. Native4ms/Target과 학습자 이해 review는 기능 시험 통과와 별도다.
+아래 과거 근거의 당시 범위/실패는 그대로 유지한다.
 
 ## M9 진단 집계·저장과 Central 검출 경로 연결
 
@@ -126,12 +141,12 @@ Epoch3를 발급하고 실제8-role Release·운전/정지·보호 뒤9개 sourc
 일반1223·wall9·로컬 ASan17·Python24·변경3 TU 정적/Release 검사를 확인했다.
 EpochStore fsync 동안 owner가 멈춘 초기 ASan 실패는 보호 ACK 후 비실시간 IO/계속 수신과
 old owner의 지연 폐기로 수정했다. 초기 소켓 정리·독립 감사/취득 기록·compile 실패도 보존했다.
-다음은 TSan Allocation 선행 실패 원인과 서비스 중 ACK/Actual 누락·정지 실패/시간초과의 실제 clear 거절이다.
+TSan Allocation 원인 분석과 실제 서비스 고장 거절의 이번 결과는 위 M9 후속 근거에 기록한다.
 Native4ms와 M9 전체 수용은 계속 OPEN이다.
-정규 DDS gate와 native wall/Target·부하/보존 용량 수용은 아직 후속이다.
-다른 BMS trip/Power 고장 조합·Clock 복구·proposal 이전 bootstrap 실패는 후속이다.
+DDS 제어 gate는 CLOSED인 별도 대안이며 M9 SOME/IP 완료 조건이 아니다. Native wall/Target과 실제 부하/장기 보존 수용은 별도다.
+BMS/Power 조합의 최신 component 확장은 위 후속 근거를 따른다. 전체 차량 조합·Clock 복구·proposal 이전 bootstrap은 남는다.
 실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.
-30km/h ACK/통신 손실의 실제 주입 recipe와 기대 code·물리 기준은 실행 전에 고정한다.
+이번30km/h recipe와 기대 code·물리 기준은 [사전 protocol](test-plan/carla-diagnostics-protocol.md)에 고정했다.
 TBD-08은 실제 모니터 경계의 code별 복구 predicate·전달/부하 검증·학습자 수용 전 CLOSED로 올리지 않는다.
 
 ## 구현·검증한 범위

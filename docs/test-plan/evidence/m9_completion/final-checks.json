@@ -1,0 +1,32 @@
+{
+  "clang_tidy": {
+    "translation_units": 7,
+    "default_compdb": [
+      "central/coordinator/async_coordinator_port.cpp",
+      "central/coordinator/vehicle_coordinator.cpp",
+      "central/diagnostics/control_diagnostics.cpp",
+      "tests/integration/someip/native_diagnostic_routes.cpp",
+      "tests/integration/carla/m7_1f/functional_rig.cpp",
+      "tests/integration/carla/m7_1g/wheel_main.cpp"
+    ],
+    "front_adapter_extra_args": [
+      "-nostdinc++",
+      "-isystem/usr/include/c++/11",
+      "-isystem/usr/include/x86_64-linux-gnu/c++/11",
+      "-isystem/usr/include/c++/11/backward"
+    ],
+    "exit": 0
+  },
+  "cppcheck": {
+    "exit": 0,
+    "baseline_suppression": "passedByValue:*central/coordinator/vehicle_coordinator.cpp"
+  },
+  "python_syntax": {
+    "files": 6,
+    "exit": 0
+  },
+  "silent_refusal_test": {
+    "exit": 0,
+    "physical_stop_claim": false
+  }
+}

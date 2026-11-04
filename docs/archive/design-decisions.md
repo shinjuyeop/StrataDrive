@@ -5731,3 +5731,28 @@ fixture 경계다. Physical producer의 별도 acquisition 기록과 PCAP/CAN �
 canonical incident 한 건만 해제한다. 다른 fault/이전 미심사 원인·운행 권한을 일괄 해소하지 않는다.
 실제 SimpleVehicle 이동/정지와 three-ECU/SDK의 기능·sanitizer 결과를 native4ms/실차/일반 운용
 수용으로 올리지 않는다. 새 고장 조합·서비스 중 evidence/ACK 실패의 실제 거절은 다음 단계다.
+
+
+<a id="adr-0095"></a>
+
+## ADR-0095: 최초 native 원인 보존과 실제 fault 주입·복구의 분리
+
+상태: M9 후속 구현·기능 검증. 전체 M9/학습자/Target 수용은 별도.
+
+실제 서비스의 정지 요청 갱신 손실은 NormalStop보다 allocator가 먼저 검출할 수 있다.
+Stop ACK 유실 역시 async transport의 exclusive deadline이 먼저 만료될 수 있다. 보호 후 상태에서
+원인을 재구성하지 않고 최초 detector의 원본 enum·시각·token/authority를 snapshot한다. 별도 reason
+namespace로 원인을 보존하며 기존 protection/expiry/18ms support 기준은 변경하지 않는다.
+
+새 NormalStop의 전체 native cycle이 동일 설정으로 실제 Complete에 도달한 뒤에만 해당 정지/control
+고장의 Passed를 발행한다. 오래된 occurrence는 같은 key로 연결하고 명시적인 clear와 구분한다.
+Clock은 이 정상 cycle만으로 신뢰성을 증명할 수 없어 자동 Passed 대상에서 제외한다.
+
+CARLA 고장 진단은 원래8-role owner/CAN Actual과 별도 durable writer를 연결한다. 외력 주입은 기존
+legacy RPC 차단을 우회하지 않고 opt-in 전용 simulation/work 서버에서 authenticated stage와 동일
+physics frame에 적용한다. 서버 receipt의 실제 적용 벡터가 증거다. 기존 외력 RPC가 차단된 첫
+실패를 보존한다. Silent packet loss에서 whole-interval expiry가 먼저 닫히는 결과는 물리 정지
+성공이 아니다. 명시적 link failure와 구분하며 기존 whole-interval gate를 완화하지 않는다.
+
+SCHED_OTHER TSan 실행의 실제 support expiry는 보호 조건이며 race 부재와 기능 수용을 구분한다.
+CPU 분리·fixture trace 용량·실패 시 orderly drain을 기록하고 실패한 이전 분모를 삭제하지 않는다.

@@ -27,7 +27,7 @@ bool VehicleCoordinator::start_session(CoordinatorSession session) {
 }
 void VehicleCoordinator::fail(CoordinatorFault fault,std::optional<std::uint64_t> detected_ns) {
     const bool first=fault_==CoordinatorFault::None;
-    if(first) fault_observation_=CoordinatorFaultObservation{fault,epoch_,enable_ns_,detected_ns.value_or(observed_ns_),pending_handoff_};
+    if(first) fault_observation_=CoordinatorFaultObservation{fault,epoch_,enable_ns_,detected_ns.value_or(observed_ns_),pending_handoff_,allocation_.decision().fault,vehicle_,port_.transport_observation()};
     if(first || fault==CoordinatorFault::ClockError) fault_=fault;
     normal_armed_=false;
     if(first) { management_.mark_continuity_lost(observed_ns_); allocation_.mark_continuity_lost(observed_ns_); }

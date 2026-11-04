@@ -59,6 +59,20 @@ TEST_F(AsyncOwnerTest, MissingOrLateTxResultCannotRenewTheOriginalDeadline) {
     initialize(); port.arm_status(3); const auto f=front->work.pop(); ASSERT_TRUE(f);
     clock.now=f->deadline_ns; ack(*front,*f); port.service(); EXPECT_TRUE(port.transport_fault()); EXPECT_FALSE(gate.allows(3));
 }
+TEST_F(AsyncOwnerTest, StopAckTimeoutPreservesOriginalTransportDetectorAcrossLateAckAndClockFailure) {
+    initialize();central::NormalStopPlan plan{};plan.lease={3,4,kStart,kStart+60*kMs};
+    ASSERT_EQ(port.stop_status(plan),central::OperationStatus::Pending);
+    const auto f=front->work.pop(),r=rear->work.pop();ASSERT_TRUE(f);ASSERT_TRUE(r);
+    ack(*rear,*r);port.service();clock.now=f->deadline_ns-1;port.service();
+    EXPECT_FALSE(port.transport_observation());EXPECT_TRUE(gate.allows(3));
+    clock.now=f->deadline_ns;port.service();const auto fault=port.transport_observation();ASSERT_TRUE(fault);
+    EXPECT_EQ(fault->fault,central::AsyncTransportFault::ResultTimeout);EXPECT_TRUE(fault->stop_handoff);
+    EXPECT_EQ(fault->detected_ns,f->deadline_ns);EXPECT_EQ(fault->token,f->token);
+    EXPECT_EQ(fault->sent_ns,f->sent_ns);EXPECT_EQ(fault->deadline_ns,f->deadline_ns);
+    EXPECT_FALSE(gate.allows(3));ack(*front,*f);port.service();clock.now=kStart-1;port.service();
+    ASSERT_TRUE(port.transport_observation());EXPECT_EQ(port.transport_observation()->fault,fault->fault);
+    EXPECT_EQ(port.transport_observation()->detected_ns,fault->detected_ns);
+}
 TEST_F(AsyncOwnerTest, WrongZoneOrOperationResultLatchesProtection) {
     initialize(); port.arm_status(3); const auto f=front->work.pop(); ASSERT_TRUE(f);
     ack(*rear,*f); port.service(); EXPECT_TRUE(port.transport_fault());

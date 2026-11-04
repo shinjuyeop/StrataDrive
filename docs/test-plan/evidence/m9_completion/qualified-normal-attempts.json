@@ -1,0 +1,105 @@
+[
+  {
+    "case": "normal",
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/qualified-normal-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal"
+    ],
+    "exit": 0
+  },
+  {
+    "case": "ack-loss",
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/qualified-ack-loss-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal",
+      "--service-fault",
+      "ack-loss"
+    ],
+    "exit": 1
+  },
+  {
+    "case": "actual-loss",
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/qualified-actual-loss-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal",
+      "--service-fault",
+      "actual-loss"
+    ],
+    "exit": 1
+  },
+  {
+    "case": "stop-request-loss",
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/qualified-stop-request-loss-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal",
+      "--service-fault",
+      "stop-request-loss"
+    ],
+    "exit": 1
+  },
+  {
+    "case": "stop-ack-loss",
+    "command": [
+      "python3",
+      "-B",
+      "tests/integration/someip/front_run.py",
+      "build/m9-completion/qualified-stop-ack-loss-normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--profile",
+      "normal",
+      "--service-fault",
+      "stop-ack-loss"
+    ],
+    "exit": 1
+  }
+]

@@ -1,0 +1,85 @@
+[
+  {
+    "name": "core",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m1-angle-sanitized",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "carla",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m7-functional",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native-normal",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m5-someip-normal/project",
+      "--parallel",
+      "2",
+      "--target",
+      "someip_front_adapter"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native-asan",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m5-someip-asan/project",
+      "--parallel",
+      "2",
+      "--target",
+      "someip_front_adapter"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native-tsan",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m5-someip-tsan/project",
+      "--parallel",
+      "2",
+      "--target",
+      "someip_front_adapter"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "release",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m9-someip-release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  }
+]

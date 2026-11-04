@@ -1,0 +1,35 @@
+[
+  {
+    "name": "core",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m1-angle-sanitized",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "carla",
+    "argv": [
+      "cmake",
+      "--build",
+      "build/m7-functional",
+      "--parallel",
+      "2"
+    ],
+    "exit": 2
+  }
+]

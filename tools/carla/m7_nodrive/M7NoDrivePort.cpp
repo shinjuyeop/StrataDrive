@@ -10,6 +10,7 @@
 #include "Serialization/JsonSerializer.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Components/PrimitiveComponent.h"
 #include "HAL/PlatformMisc.h"
 #include <time.h>
 #include <fcntl.h>
@@ -53,6 +54,8 @@ struct State {
   uint64 PhysicsGeneration = 0;
   double SimBegin = 0;
   bool V1 = false, Native = false, Work = false;
+  bool DiagnosticLoad = false;
+  FVector DiagnosticForce = FVector::ZeroVector;
   std::unique_ptr<stratadrive::m7_native::SolverJournal<1024>> Journal;
   bool AwaitSettlement = false;
   double TotalMotorWork = 0;
@@ -510,6 +513,12 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     if (!S.Native || !S.NativeGate) return Encode(Response(false, TEXT("native_profile_required")));
     if (S.AwaitSettlement) { Latch(TEXT("ev_settlement_required")); return Encode(Response(false,S.Reason)); }
     if (S.Staged || S.Queued || S.InFlight) return Encode(Response(false, TEXT("pending")));
+    bool Load = false;
+    if (J->HasField(TEXT("diagnostic_load")) &&
+        (!J->TryGetBoolField(TEXT("diagnostic_load"), Load) || !S.Work || S.Wall ||
+         !FParse::Param(FCommandLine::Get(), TEXT("StrataM9ExternalLoad")))) {
+      Latch(TEXT("diagnostic_load_profile")); return Encode(Response(false, S.Reason));
+    }
     const Json* Proof = nullptr;
     stratadrive::m7_native::Input Native;
     stratadrive::m7_native::Output Actual;
@@ -536,7 +545,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.WallProof=Native.observed;S.WallExpiry=Actual.empty?AdmissionNow+StepNs()+4000001:std::min<uint64>(Actual.exclusive_expiry,Actual.oldest_actuator+Age+1);
     S.WallProtection=Actual.protection;
     S.Frame = Frame; S.Begin = Begin; S.SimBegin = Episode.GetElapsedGameTime();
-    S.Ticket = ++S.NextTicket; S.Effort = Effort;
+    S.Ticket = ++S.NextTicket; S.Effort = Effort; S.DiagnosticLoad = Load;
     S.ProtectionEffort = Actual.protection && Actual.torque == 0 && Actual.pressure >= 1000000;
     S.Pending = Object(); S.Pending->SetObjectField(TEXT("native"), *Proof);
     auto Applied = Object();
@@ -720,6 +729,14 @@ bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   if (!S.Movement->NumericalProfileMatches() || (S.V1 && !S.Movement->ValidateV1()) || !S.Movement->ApplyEffort(S.Effort)) {
     Latch(TEXT("effort_apply")); return false;
   }
+  S.DiagnosticForce = FVector::ZeroVector;
+  if (S.DiagnosticLoad) {
+    auto* Root = S.Actor.IsValid() ? Cast<UPrimitiveComponent>(S.Actor->GetRootComponent()) : nullptr;
+    if (!Root) { Latch(TEXT("diagnostic_load_actor")); return false; }
+    const auto Forward = S.Actor->GetActorForwardVector();
+    S.DiagnosticForce = FVector(Forward.X, Forward.Y, 0).GetSafeNormal() * 1800.0f;
+    Root->AddForce(S.DiagnosticForce * 100.0f, NAME_None, false); // N to UE cm force units
+  }
   S.Staged = S.Queued = false;
   S.KeptSteerSleep = S.Native && S.Work &&
     FParse::Param(FCommandLine::Get(), TEXT("StrataM7HeldSteerSleep")) &&
@@ -779,6 +796,13 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   for (unsigned W = 0; W != 4; ++W)
     Zero = Zero && S.Effort.Drive[W] == 0 && S.Effort.Brake[W] == 0 && S.Effort.Steer[W] == 0;
   R->SetBoolField(TEXT("applied_zero_effort"), Zero);
+  if (S.DiagnosticLoad) {
+    TArray<TSharedPtr<FJsonValue>> Force;
+    Force.Add(MakeShared<FJsonValueNumber>(S.DiagnosticForce.X));
+    Force.Add(MakeShared<FJsonValueNumber>(S.DiagnosticForce.Y));
+    Force.Add(MakeShared<FJsonValueNumber>(S.DiagnosticForce.Z));
+    R->SetArrayField(TEXT("diagnostic_external_force_n"), Force);
+  }
   R->SetBoolField(TEXT("protected_held_steer_sleep"), S.KeptSteerSleep);
   R->SetStringField(TEXT("effort_profile"), S.Wall ? TEXT("virtual-ev-v1-native-wall-experimental") : (S.Native ? TEXT("virtual-ev-v1-native-functional") : (S.V1 ? TEXT("virtual-ev-v1-diagnostic") : TEXT("zero-only"))));
   if (S.V1) {

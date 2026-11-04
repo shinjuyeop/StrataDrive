@@ -92,3 +92,5 @@ scenario/test oracle 갱신 → 해당 milestone에서 실행 → Result ID/arti
 같은 test의 component-only/plant/board별 run은 별도 결과로 보존한다. 미구현이나 TBD를
 빈 결과나 0 ms로 대체하지 않는다. 모든 required variant와 환경 조건을 검증하기 전에는
 일부 PASS만으로 requirement 전체를 VERIFIED로 변경하지 않는다.
+
+C-M9-COMPLETE-01–04는 [M9 후속](evidence/m9_completion/README.md)의 최초 native 원인·동일 설정 정지 복구/clear·서비스 거절·CARLA30 실제 물리/DTC·component 고장 조합·저장 capacity를 연결한다. Clock/bootstrap/silent-loss subinterval·전체 matrix·부하/장기 보존·학습자 수용 전 전체 TC를 닫지 않는다.
