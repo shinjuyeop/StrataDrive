@@ -1,0 +1,24 @@
+{
+  "scope": "causal analysis only; no verdict or SDK whitelist changed",
+  "errors": [
+    {
+      "case": "asan-ack-loss",
+      "file": "rear-1.stdout",
+      "line": "2026-11-05 14:06:40.992535 rear [error] tcei::write_completion_condition: Connection reset by peer(104) bytes transferred: 0 bytes to sent: 117 remote:10.88.0.1:30507 (1522): [534a.0070.0378]",
+      "event_ns": 873679882059775,
+      "crash_ns": 873679872615425,
+      "after_crash_ns": 9444350,
+      "successor_boot_ns": 873680014703261,
+      "before_successor": true,
+      "survivor_protection_ns": 873679891033080,
+      "same_survivors": true,
+      "original_runtime_pass": false,
+      "original_sdk_errors": true
+    }
+  ],
+  "sdk_source": "build/m5-someip-deps/vsomeip/implementation/endpoints/src/tcp_client_endpoint_impl.cpp",
+  "sdk_source_sha256": "b410295da5329763d6cccb880992a2191ff4439354114647ba56712f87e36290",
+  "sdk_behavior": "write_completion_condition logs every OS send error before send_cbk notifies disconnect/restarts endpoint",
+  "limitation": "one captured wall/monotonic pair maps log times; not an independent clock agreement",
+  "remaining_requirement": "zero unexpected SDK error in a cohort that deliberately SIGKILLs a live TCP peer"
+}

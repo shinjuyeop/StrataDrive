@@ -19,6 +19,9 @@ inline unsigned method(const remote::OwnerPayload& p) {
     return 0x20;
 }
 inline bool authority(unsigned m) { return m==0x40 || m==0x50 || m==0x60; }
+// Processing results share the bounded priority connection, not telemetry FIFO.
+// They remain observations: priority does not grant session/control authority.
+inline bool priority_lane(unsigned m) { return authority(m) || m==0x80; }
 // Service identity binds each Zone/Leaf payload to its one owning ECU.
 inline bool binding(Ecu ecu,std::uint16_t sid,std::uint16_t iid,std::uint16_t mid,
                     unsigned type,unsigned version,const remote::OwnerMessage& m) {
@@ -26,7 +29,7 @@ inline bool binding(Ecu ecu,std::uint16_t sid,std::uint16_t iid,std::uint16_t mi
     const auto zone=ecu==Ecu::Rear || (ecu==Ecu::Central && sid>=0x534a)?Ecu::Rear:Ecu::Front;
     const auto base=(front?0x5344:0x5346)+(zone==Ecu::Rear?4:0);
     if(version!=1 || iid!=1 || type!=1 || m.clock_domain!=kDomain || mid!=method(m.payload) ||
-       sid!=base+(authority(mid)?1:0)) return false;
+       sid!=base+(priority_lane(mid)?1:0)) return false;
     if(front) {
         if(m.from!=session::Role::CentralIngress || !owns_role(zone,m.to)) return false;
         if(const auto* c=std::get_if<session::Control>(&m.payload)) return c->role==m.to;

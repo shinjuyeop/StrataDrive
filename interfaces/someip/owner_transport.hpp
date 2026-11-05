@@ -52,7 +52,7 @@ public:
     std::array<std::atomic<unsigned>,4> rx_rejected{},transition_discarded{};
     std::atomic<std::uint64_t> rx_overflow_ns{0},rx_overflow_token{0};
     std::atomic<std::uint64_t> tx_overflow_ns{0};std::atomic<unsigned> tx_overflow_lane{0},tx_overflow_method{0};
-    std::atomic<std::uint64_t> retired_run_credits{0};
+    std::atomic<std::uint64_t> retired_run_credits{0},unavailable_rejected{0};
     std::atomic<std::uint64_t> retired_received_credits{0};
     std::array<std::uint64_t,8> full_tokens{},drained_tokens{};unsigned drained_count=0;
     bool fifo_preserved=true; // callback writes full_tokens under mutex; pop uses same mutex
@@ -146,6 +146,9 @@ public:
                     std::optional<Out> o;
                     {std::lock_guard<std::mutex> lock(mutex_);if(!tx_[l].empty()){o=tx_[l].front();tx_[l].pop_front();}}
                     if(!o) break;
+                    if(!(available.load()&(1U<<l))) {
+                        ++unavailable_rejected;record("tx-unavailable",l,o->method,o->packet.bytes.data(),o->packet.size);continue;
+                    }
                     auto m=vsomeip::runtime::get()->create_request(true);m->set_service(peer(l));m->set_instance(1);m->set_method(o->method);
                     m->set_interface_version(1);m->set_message_type(vsomeip::message_type_e::MT_REQUEST_NO_RETURN);
                     auto p=vsomeip::runtime::get()->create_payload();p->set_data(o->packet.bytes.data(),o->packet.size);m->set_payload(p);
@@ -189,11 +192,15 @@ public:
         std::lock_guard<std::mutex> lock(mutex_);check(transitioning_,"ingress not quiesced");transitioning_=false;
     }
     bool send(const remote::OwnerMessage& m) {
-        auto p=owner_egress(m);if(!p)return false;const auto mid=p->method;const unsigned l=(authority(mid)?1:0)+(ecu_==Ecu::Central && three_ && owns_role(Ecu::Rear,m.to)?2:0);
+        auto p=owner_egress(m);if(!p)return false;const auto mid=p->method;const unsigned l=(priority_lane(mid)?1:0)+(ecu_==Ecu::Central && three_ && owns_role(Ecu::Rear,m.to)?2:0);
         std::lock_guard<std::mutex> lock(mutex_);
-        retired_run_credits+=retire_run_credits(tx_[l],m);
-        if(tx_[l].size()==8) {outbound_full(l,mid);return false;}
-        tx_[l].push_back(*p);tx_highwater[l]=std::max(tx_highwater[l].load(),static_cast<unsigned>(tx_[l].size()));
+        const auto admission=enqueue_owner_egress(tx_[l],m,*p,(available.load()&(1U<<l))!=0);
+        retired_run_credits+=admission.retired;
+        if(admission.result==EgressResult::PeerUnavailable) {
+            ++unavailable_rejected;record("tx-unavailable",l,mid,p->packet.bytes.data(),p->packet.size);return false;
+        }
+        if(admission.result==EgressResult::Full) {outbound_full(l,mid);return false;}
+        tx_highwater[l]=std::max(tx_highwater[l].load(),static_cast<unsigned>(tx_[l].size()));
         record("tx-queued",l,mid,p->packet.bytes.data(),p->packet.size);tx_ready_.notify_one();return true;
     }
     std::optional<remote::OwnerMessage> pop(unsigned lane) {

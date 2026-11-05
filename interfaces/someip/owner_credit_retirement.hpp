@@ -26,6 +26,17 @@ inline bool superseded_credit(const QueuedCredit& c,const remote::OwnerMessage& 
 inline std::size_t retire_run_credits(std::deque<OwnerEgressPacket>& queue,const remote::OwnerMessage& action) {
     const auto count=queue.size();queue.erase(std::remove_if(queue.begin(),queue.end(),[&](const auto& p){return p.credit && superseded_credit(*p.credit,action);}),queue.end());return count-queue.size();
 }
+enum class EgressResult { Queued, PeerUnavailable, Full };
+struct EgressAdmission { EgressResult result;std::size_t retired; };
+inline EgressAdmission enqueue_owner_egress(std::deque<OwnerEgressPacket>& queue,
+        const remote::OwnerMessage& message,const OwnerEgressPacket& packet,bool available) {
+    // Availability loss must not feed the SDK's disconnected-endpoint backlog.
+    // No packet is acknowledged, re-stamped or retained for a later peer here.
+    if(!available)return {EgressResult::PeerUnavailable,0};
+    const auto retired=retire_run_credits(queue,message);
+    if(queue.size()>=8)return {EgressResult::Full,retired};
+    queue.push_back(packet);return {EgressResult::Queued,retired};
+}
 inline std::size_t retire_received_credits(std::deque<remote::OwnerMessage>& queue,const remote::OwnerMessage& action) {
     const auto count=queue.size();
     queue.erase(std::remove_if(queue.begin(),queue.end(),[&](const auto& p) {

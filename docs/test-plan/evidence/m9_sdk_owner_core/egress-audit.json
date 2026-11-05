@@ -1,0 +1,555 @@
+{
+  "scope": "transport trace consistency; original scenario verdicts are independent",
+  "cases": 30,
+  "rows": [
+    {
+      "case": "normal-normal",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 42,
+          "priority_results": 472
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 42,
+          "priority_results": 1396
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1485,
+      "sdk_errors": []
+    },
+    {
+      "case": "normal-ack-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 30,
+          "priority_results": 477
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 30,
+          "priority_results": 1397
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1485,
+      "sdk_errors": []
+    },
+    {
+      "case": "normal-actual-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 30,
+          "priority_results": 477
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 30,
+          "priority_results": 1400
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1490,
+      "sdk_errors": []
+    },
+    {
+      "case": "normal-stop-request-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 30,
+          "priority_results": 399
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 30,
+          "priority_results": 1155
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1165,
+      "sdk_errors": []
+    },
+    {
+      "case": "normal-stop-ack-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 51,
+          "priority_results": 442
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 50,
+          "priority_results": 1243
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1294,
+      "sdk_errors": []
+    },
+    {
+      "case": "asan-normal",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 60,
+          "priority_results": 476
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 59,
+          "priority_results": 1400
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1487,
+      "sdk_errors": []
+    },
+    {
+      "case": "asan-ack-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 54,
+          "priority_results": 475
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 54,
+          "priority_results": 1397
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1482,
+      "sdk_errors": [
+        {
+          "file": "rear-1.stdout",
+          "line": 21,
+          "text": "2026-11-05 14:06:40.992535 rear [error] tcei::write_completion_condition: Connection reset by peer(104) bytes transferred: 0 bytes to sent: 117 remote:10.88.0.1:30507 (1522): [534a.0070.0378]"
+        }
+      ]
+    },
+    {
+      "case": "asan-actual-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 60,
+          "priority_results": 471
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 61,
+          "priority_results": 1388
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1477,
+      "sdk_errors": []
+    },
+    {
+      "case": "asan-stop-request-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 60,
+          "priority_results": 399
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 60,
+          "priority_results": 1150
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1162,
+      "sdk_errors": []
+    },
+    {
+      "case": "asan-stop-ack-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 60,
+          "priority_results": 445
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 59,
+          "priority_results": 1253
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1309,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-normal",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 48,
+          "priority_results": 477
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 48,
+          "priority_results": 1405
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1493,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-ack-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 45,
+          "priority_results": 414
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 45,
+          "priority_results": 1193
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1225,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-actual-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 54,
+          "priority_results": 475
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 54,
+          "priority_results": 1399
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1483,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-stop-request-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 51,
+          "priority_results": 399
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 50,
+          "priority_results": 1152
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1164,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-stop-ack-loss",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 51,
+          "priority_results": 447
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 51,
+          "priority_results": 1254
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1311,
+      "sdk_errors": []
+    },
+    {
+      "case": "normal-normal-slow-signals",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 30,
+          "priority_results": 474
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 30,
+          "priority_results": 1393
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1477,
+      "sdk_errors": []
+    },
+    {
+      "case": "asan-normal-slow-signals",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 57,
+          "priority_results": 473
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 59,
+          "priority_results": 1397
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1478,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-normal-slow-signals",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 51,
+          "priority_results": 474
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 52,
+          "priority_results": 1395
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1483,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-normal-r2",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 48,
+          "priority_results": 477
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 48,
+          "priority_results": 1405
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1492,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-ack-loss-r2",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 48,
+          "priority_results": 472
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 48,
+          "priority_results": 1400
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1480,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-actual-loss-r2",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 0,
+          "priority_results": 0
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 0,
+          "priority_results": 25
+        }
+      ],
+      "coverage_complete": false,
+      "central_priority_results": 0,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-stop-request-loss-r2",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 54,
+          "priority_results": 398
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 54,
+          "priority_results": 1155
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1164,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-stop-ack-loss-r2",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 0,
+          "priority_results": 3
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 0,
+          "priority_results": 120
+        }
+      ],
+      "coverage_complete": false,
+      "central_priority_results": 0,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-normal-slow-signals-r2",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 57,
+          "priority_results": 472
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 57,
+          "priority_results": 1393
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1479,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-normal-r3",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 45,
+          "priority_results": 474
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 45,
+          "priority_results": 1393
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1480,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-ack-loss-r3",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 72,
+          "priority_results": 355
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 72,
+          "priority_results": 1078
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1044,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-actual-loss-r3",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 51,
+          "priority_results": 173
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 48,
+          "priority_results": 531
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 315,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-stop-request-loss-r3",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 45,
+          "priority_results": 370
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 48,
+          "priority_results": 1107
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1085,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-stop-ack-loss-r3",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 51,
+          "priority_results": 447
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 52,
+          "priority_results": 1258
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1315,
+      "sdk_errors": []
+    },
+    {
+      "case": "tsan-normal-slow-signals-r3",
+      "owners": [
+        {
+          "role": "front",
+          "disconnected_rejections": 51,
+          "priority_results": 477
+        },
+        {
+          "role": "rear",
+          "disconnected_rejections": 52,
+          "priority_results": 1401
+        }
+      ],
+      "coverage_complete": true,
+      "central_priority_results": 1489,
+      "sdk_errors": []
+    }
+  ],
+  "queue_overflow_cases": 0,
+  "unavailable_rejections": 2774,
+  "priority_results": 48317
+}

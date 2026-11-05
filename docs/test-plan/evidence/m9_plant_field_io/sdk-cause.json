@@ -1,0 +1,66 @@
+{
+  "scope": "causal analysis only; no verdict or SDK whitelist changed",
+  "errors": [
+    {
+      "case": "asan-normal",
+      "file": "front-1.stdout",
+      "line": "2026-11-05 02:05:39.081226 front [error] tcei::write_completion_condition: Broken pipe(32) bytes transferred: 0 bytes to sent: 85 remote:10.88.0.1:30503 (1422): [5346.0070.01fa]",
+      "event_ns": 830417970750861,
+      "crash_ns": 830417861575700,
+      "after_crash_ns": 109175161,
+      "successor_boot_ns": 830418006246734,
+      "before_successor": true,
+      "survivor_protection_ns": 830417879327092,
+      "same_survivors": true,
+      "original_runtime_pass": false,
+      "original_sdk_errors": true
+    },
+    {
+      "case": "asan-normal",
+      "file": "rear-1.stdout",
+      "line": "2026-11-05 02:05:39.081207 rear [error] tcei::write_completion_condition: Broken pipe(32) bytes transferred: 0 bytes to sent: 117 remote:10.88.0.1:30507 (1522): [534a.0070.037d]",
+      "event_ns": 830417970731861,
+      "crash_ns": 830417861575700,
+      "after_crash_ns": 109156161,
+      "successor_boot_ns": 830418006246734,
+      "before_successor": true,
+      "survivor_protection_ns": 830417879410519,
+      "same_survivors": true,
+      "original_runtime_pass": false,
+      "original_sdk_errors": true
+    },
+    {
+      "case": "asan-stop-request-loss",
+      "file": "front-1.stdout",
+      "line": "2026-11-05 02:06:06.941569 front [error] tcei::write_completion_condition: Connection reset by peer(104) bytes transferred: 0 bytes to sent: 85 remote:10.88.0.1:30503 (1422): [5346.0070.01f5]",
+      "event_ns": 830445831095168,
+      "crash_ns": 830445822900715,
+      "after_crash_ns": 8194453,
+      "successor_boot_ns": 830445965520458,
+      "before_successor": true,
+      "survivor_protection_ns": 830445840008764,
+      "same_survivors": true,
+      "original_runtime_pass": false,
+      "original_sdk_errors": true
+    },
+    {
+      "case": "asan-normal-slow-signals",
+      "file": "rear-1.stdout",
+      "line": "2026-11-05 02:07:09.584773 rear [error] tcei::write_completion_condition: Connection reset by peer(104) bytes transferred: 0 bytes to sent: 117 remote:10.88.0.1:30507 (1522): [534a.0070.0378]",
+      "event_ns": 830508474298958,
+      "crash_ns": 830508465872164,
+      "after_crash_ns": 8426794,
+      "successor_boot_ns": 830508602017247,
+      "before_successor": true,
+      "survivor_protection_ns": 830508482323547,
+      "same_survivors": true,
+      "original_runtime_pass": false,
+      "original_sdk_errors": true
+    }
+  ],
+  "sdk_source": "build/m5-someip-deps/vsomeip/implementation/endpoints/src/tcp_client_endpoint_impl.cpp",
+  "sdk_source_sha256": "b410295da5329763d6cccb880992a2191ff4439354114647ba56712f87e36290",
+  "sdk_behavior": "write_completion_condition logs every OS send error before send_cbk notifies disconnect/restarts endpoint",
+  "limitation": "one captured wall/monotonic pair maps log times; not an independent clock agreement",
+  "remaining_requirement": "zero unexpected SDK error in a cohort that deliberately SIGKILLs a live TCP peer"
+}

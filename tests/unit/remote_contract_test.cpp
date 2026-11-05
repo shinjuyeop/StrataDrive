@@ -48,6 +48,48 @@ remote::OwnerMessage sample(std::size_t kind) {
 }
 std::string hex(const remote::OwnerPacket& p) { std::string out;const char* digits="0123456789abcdef";for(std::size_t i=0;i<p.size;++i){out+=digits[p.bytes[i]>>4];out+=digits[p.bytes[i]&15];}return out; }
 void repair_crc(remote::OwnerPacket& p) {const auto crc=remote::owner_crc32c(p.bytes.data(),p.size-4);for(unsigned i=0;i<4;++i)p.bytes[p.size-4+i]=static_cast<std::uint8_t>(crc>>(8*i));}
+TEST(RemoteEgress, DisconnectedTelemetryCannotAccumulateOrReplayOnReconnect) {
+    std::deque<someip::OwnerEgressPacket> queue;const auto message=sample(9);
+    const auto packet=someip::owner_egress(message);ASSERT_TRUE(packet);
+    for(unsigned i=0;i<1000;++i)
+        EXPECT_EQ(someip::enqueue_owner_egress(queue,message,*packet,false).result,someip::EgressResult::PeerUnavailable);
+    EXPECT_TRUE(queue.empty());
+    auto next=message;std::get<zone::ZoneHealthSnapshot>(std::get<transport::Feedback>(next.payload)).epoch=43;
+    const auto fresh=someip::owner_egress(next);ASSERT_TRUE(fresh);
+    EXPECT_EQ(someip::enqueue_owner_egress(queue,next,*fresh,true).result,someip::EgressResult::Queued);
+    ASSERT_EQ(queue.size(),1U);EXPECT_EQ(queue.front().packet.bytes,fresh->packet.bytes);
+}
+TEST(RemoteEgress, DisconnectedAuthorityDoesNotRetireOrReplaceAlreadyQueuedCredit) {
+    std::deque<someip::OwnerEgressPacket> queue;const auto credit=sample(2);const auto packet=someip::owner_egress(credit);ASSERT_TRUE(packet);
+    queue.push_back(*packet);auto protect=sample(7);
+    std::get<remote::ProtectionRequest>(protect.payload)={42,55,plan().enable_ns,plan().enable_ns+20*kMs};
+    const auto action=someip::owner_egress(protect);ASSERT_TRUE(action);
+    const auto rejected=someip::enqueue_owner_egress(queue,protect,*action,false);
+    EXPECT_EQ(rejected.result,someip::EgressResult::PeerUnavailable);EXPECT_EQ(rejected.retired,0U);
+    ASSERT_EQ(queue.size(),1U);EXPECT_EQ(queue.front().packet.bytes,packet->packet.bytes);
+    const auto accepted=someip::enqueue_owner_egress(queue,protect,*action,true);
+    EXPECT_EQ(accepted.result,someip::EgressResult::Queued);EXPECT_EQ(accepted.retired,1U);
+    ASSERT_EQ(queue.size(),1U);EXPECT_EQ(queue.front().packet.bytes,action->packet.bytes);
+}
+TEST(RemoteEgress, FullQueueStillFailsWithoutIncreasingCapacityOrRewritingPayload) {
+    std::deque<someip::OwnerEgressPacket> queue;const auto message=sample(3);const auto packet=someip::owner_egress(message);ASSERT_TRUE(packet);
+    for(unsigned i=0;i<8;++i)EXPECT_EQ(someip::enqueue_owner_egress(queue,message,*packet,true).result,someip::EgressResult::Queued);
+    EXPECT_EQ(someip::enqueue_owner_egress(queue,message,*packet,true).result,someip::EgressResult::Full);
+    EXPECT_EQ(queue.size(),8U);for(const auto& value:queue)EXPECT_EQ(value.packet.bytes,packet->packet.bytes);
+}
+TEST(RemoteEgress, ProcessingResultsUsePriorityBindingWithoutBecomingAuthority) {
+    auto message=sample(4);message.clock_domain=someip::kDomain;
+    EXPECT_TRUE(someip::priority_lane(0x80));EXPECT_FALSE(someip::authority(0x80));
+    EXPECT_TRUE(someip::binding(someip::Ecu::Central,0x5347,1,0x80,1,1,message));
+    EXPECT_FALSE(someip::binding(someip::Ecu::Central,0x5346,1,0x80,1,1,message));
+    message.from=session::Role::RearZone;
+    EXPECT_TRUE(someip::binding(someip::Ecu::Central,0x534b,1,0x80,1,1,message));
+    EXPECT_FALSE(someip::binding(someip::Ecu::Central,0x534a,1,0x80,1,1,message));
+    message=sample(9);message.clock_domain=someip::kDomain;
+    EXPECT_FALSE(someip::priority_lane(0x70));
+    EXPECT_TRUE(someip::binding(someip::Ecu::Central,0x5346,1,0x70,1,1,message));
+    EXPECT_FALSE(someip::binding(someip::Ecu::Central,0x5347,1,0x70,1,1,message));
+}
 TEST(RemoteWire, Crc32cMatchesPublishedCheckVector) {const char* text="123456789";EXPECT_EQ(remote::owner_crc32c(reinterpret_cast<const std::uint8_t*>(text),9),0xe3069283U);}
 TEST(RemoteWire, IndependentLittleEndianGoldenKeepsOriginalIdentityAndBinary64) {
     const auto p=remote::encode_owner_message(sample(3));ASSERT_TRUE(p);

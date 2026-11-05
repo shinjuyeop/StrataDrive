@@ -37,7 +37,7 @@ unchanged. See [the follow-up protocol](../test-plan/feedback-order-protocol.md)
 | 0x0060 | Central→Front, 0x5345:30502 | ProtectionRequest on the separate authority lane |
 | 0x0060 | Front→Central, 0x5347:30504 | Actual ProtectionAck, checked by ProtectionReceipt |
 | 0x0070 | Front→Central, 0x5346:30503 | Existing Feedback: Actual/health/status, validated by Central |
-| 0x0080 | Front→Central, 0x5346:30503 | Existing TxResult, original Epoch/token/operation correlation |
+| 0x0080 | Front→Central, 0x5347:30504 | Existing TxResult, original Epoch/token/operation correlation |
 
 Payload is exactly [owner-wire v1](owner-wire-v1.md) `OwnerPacket.bytes[0:size]`,
 maximum512 bytes; no C++ layout, padding or new size prefix. vSomeIP serializes its
@@ -185,3 +185,13 @@ wrapping. SDK send wall/thread CPU clocks bracket the call directly; both record
 are appended after return, so trace recording is outside that interval. These are
 observations, not kernel scheduling attribution or a real-time guarantee. See
 [the timing trace protocol](../test-plan/timing-trace-protocol.md).
+
+Processing results use the priority TCP connection with session/protection traffic.
+This changes transport routing only; a TxResult grants no control authority.
+Telemetry remains on the data connection. Once SDK availability is lost, new
+owner packets are rejected; the sender also rejects queued packets if the peer
+is unavailable at its check. These rejections are accounted as `tx-unavailable`
+and are not retained for later replay. Original
+pending work still fails through its unchanged deadline/protection path.
+Already handed-to-SDK bytes cannot be recalled by this guard; a disconnect
+racing the SDK call can still return an OS transport error.

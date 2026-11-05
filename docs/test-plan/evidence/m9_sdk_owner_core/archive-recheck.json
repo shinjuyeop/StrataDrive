@@ -1,0 +1,26 @@
+[
+  {
+    "archive": "normal-r1.tar.gz",
+    "folder": "m9_egress",
+    "case": "normal-normal",
+    "reader": "tests/integration/diagnostics/audit_native_service.py",
+    "exit": 0,
+    "expected": 0
+  },
+  {
+    "archive": "asan-r1.tar.gz",
+    "folder": "m9_egress",
+    "case": "asan-stop-ack-loss",
+    "reader": "tests/integration/diagnostics/audit_native_service_faults.py",
+    "exit": 1,
+    "expected": 1
+  },
+  {
+    "archive": "normal-r1.tar.gz",
+    "folder": "m9_sdk_owner_core",
+    "case": "normal-normal",
+    "reader": "build/m9-sdk-owner-core/archive-recheck/2/audit_service_timing.py",
+    "exit": 0,
+    "expected": 0
+  }
+]

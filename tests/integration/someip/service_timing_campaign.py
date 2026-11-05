@@ -29,7 +29,9 @@ def main():
     cases=[(p,f,0,1) for p in ('normal','asan','tsan') for f in faults]
     cases += [(p,'normal',250,1) for p in ('normal','asan','tsan')]
     for repeat in range(2,args.tsan_repeats+1):cases += [('tsan',f,0,repeat) for f in faults]+[('tsan','normal',250,repeat)]
-    files=[HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',HERE/'run.py',Path(__file__),
+    files=[ROOT/'interfaces/someip/owner_credit_retirement.hpp',ROOT/'interfaces/someip/owner_message_binding.hpp',
+           ROOT/'tests/unit/remote_contract_test.cpp',ROOT/'docs/test-plan/egress-availability-protocol.md',ROOT/'simulation/runtime/plant_io.hpp',HERE/'plant_io.hpp',ROOT/'tests/unit/plant_io_test.cpp',
+           ROOT/'docs/test-plan/plant-field-io-protocol.md',HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',HERE/'run.py',Path(__file__),
            HERE/'owner_schedule.hpp',ROOT/'tests/unit/owner_schedule_test.cpp',ROOT/'docs/test-plan/owner-input-phase-protocol.md',
            ROOT/'central/coordinator/vehicle_coordinator.cpp',ROOT/'central/coordinator/vehicle_coordinator.hpp',
            ROOT/'tests/unit/vehicle_coordinator_test.cpp',ROOT/'docs/test-plan/allocation-release-protocol.md',

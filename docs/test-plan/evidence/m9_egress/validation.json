@@ -1,0 +1,163 @@
+[
+  {
+    "name": "normal-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--parallel",
+      "2",
+      "--target",
+      "remote_contract_test",
+      "plant_io_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "normal-remote_contract_test",
+    "command": [
+      "build/m1-angle/remote_contract_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "normal-plant_io_test",
+    "command": [
+      "build/m1-angle/plant_io_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "normal-adapter",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m5-someip-normal/project",
+      "--parallel",
+      "2",
+      "--target",
+      "someip_front_adapter"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle-sanitized",
+      "--parallel",
+      "2",
+      "--target",
+      "remote_contract_test",
+      "plant_io_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-remote_contract_test",
+    "command": [
+      "build/m1-angle-sanitized/remote_contract_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-plant_io_test",
+    "command": [
+      "build/m1-angle-sanitized/plant_io_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-adapter",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m5-someip-asan/project",
+      "--parallel",
+      "2",
+      "--target",
+      "someip_front_adapter"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m9-service-timing/tsan-unit",
+      "--parallel",
+      "2",
+      "--target",
+      "remote_contract_test",
+      "plant_io_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-remote_contract_test",
+    "command": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/m9-service-timing/tsan-unit/remote_contract_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-plant_io_test",
+    "command": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "build/m9-service-timing/tsan-unit/plant_io_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-adapter",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m5-someip-tsan/project",
+      "--parallel",
+      "2",
+      "--target",
+      "someip_front_adapter"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "static",
+    "command": [
+      "python3",
+      "build/m9-egress/static.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "sdk-stages-python",
+    "command": [
+      "python3",
+      "tests/unit/sdk_stages_test.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "source-snapshot",
+    "command": [
+      "python3",
+      "build/m9-egress/snapshot.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native-cohorts",
+    "command": [
+      "python3",
+      "build/m9-egress/run-cohorts.py"
+    ],
+    "exit": 1
+  }
+]

@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [현재 회차·정지 진단 수정·최종 실패](test-plan/evidence/m9_deferred_grant/README.md) |
+| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [IO·egress 수정과 남은 실패](test-plan/evidence/m9_egress/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -41,23 +41,33 @@ NormalStop의 원래 만료를 관리 주기 사이에서도 poll해 SD-1105를 
 기능12/12·서비스 최초25/30, 사후 원본 재감사27/30이다. 이전4개 후보의 fault80건도
 대조했으며 예상한 최초 detector 보완 외의 판정 변경은 없다.
 
-[최신 권한 후보](test-plan/evidence/m9_deferred_grant/README.md)는 원래 기다리는 due 이후의
+[선행 권한 후보](test-plan/evidence/m9_deferred_grant/README.md)는 원래 기다리는 due 이후의
 새 grant인지와 현재 실행 회차부터 기존18ms support가 남았는지를 따로 확인한다.
 이미 처리한 권한 재사용·기한 연장은 거절한다. 전체 Debug1273·ASan/UBSan1273,
 관련 TSan112·Python42·CARLA adapter 논리162·변경 구현 정적 검사가 통과했다.
 실제 CARLA 서버 재실행이나 native4ms·Target 검사로 해석하지 않는다.
 
-**최신 native 기능12/12, 서비스26/30으로 전체 미수용이다.** Normal5/6·ASan3/6·TSan18/18이다.
-4478개 command의 회차/권한 대조는 위반0이지만, Normal의 의도된 고장 주입 전에
-Front Brake 피드백 불가 SD-2002→보호→새 VehicleRequest 거절/SD-1002가 발생했다.
-피드백이 불가해진 세부 경로는 아직 확정하지 않았다. ASan3건에는 peer 종료 시 SDK
-Broken pipe/Connection reset 오류가 남는다. 이 실패를 기한 완화나 SDK 오류 허용으로 닫지 않는다.
-사전에 선언한 조건부 TSan60건은 기본 cohort 실패로 NOT RUN이다.
+[물리 전달 후보](test-plan/evidence/m9_plant_field_io/README.md)는 센서·각 Leaf 출력·Release의
+파일 잠금을 분리하고 Leaf 실행 직후 출력을 전달한다. 선행 Brake Actual은 누락이 아니라
+유효 Degraded952000Pa였다. 원래 detector/tolerance를 유지했으며 기능12/12·서비스28/30이다.
+전체 Debug/ASan·UBSan 각1277개는 통과했다. 관련 TSan은115/116이며, 새 IO를 사용하지
+않는 기존 메모리 M4 wall 정상 시험1건의 기한 초과는 그대로 OPEN이다.
 
-[SDK SMT 후보](test-plan/evidence/m9_sdk_smt/README.md)는25/30으로 미채택했다.
-현재 SDK I/O2·단일 논리 CPU 배치를 유지한다. 각 후보는 별도 source/binary·고정 분모이며
-서로 합친 통과율이나 성공할 때까지 반복한 결과를 만들지 않는다. 원본 checksum·압축 해제
-재감사와 실패 분모를 각 evidence에 보존한다.
+**현재 활성 native 후보는 기능12/12·서비스27/30이다.** [Egress 후보](test-plan/evidence/m9_egress/README.md)는
+SDK availability 소실 뒤 enqueue를 거절하고 sender도 다시 확인한다. 원래 CRC/시각을
+기록한 미전송2908건과 우선 연결 TxResult52331건을 대조했고 큐 포화는0건이다.
+TxResult의 처리 의미·원래20ms 기한을 유지하며 권한으로 취급하지 않는다. 변경 transport36개와
+PlantIO4개가 Debug/ASan/TSan 각각 통과했고, header 포함 정적 검사·Python38개도 통과했다.
+
+남은 활성 후보 실패는 ASan stop-ack-loss의 의도한 Central1 SIGKILL9.593246ms 뒤 TCP
+reset104 한 건과 TSan actual-loss-r2/stop-request-loss-r3의 원래 command 갱신 만료2건이다.
+강제 종료와 재가입 사이의 reset만 별도 주입 결과로 판정할지는 사용자에게 질문한 상태이며
+**아직 기준을 변경하지 않았다.** 이 질문과 실제 기한 위반은 별개다. 원본 실패를 삭제하지 않는다.
+
+[SDK owner 코어 공유 실험](test-plan/evidence/m9_sdk_owner_core/README.md)은 같은 binary에서23/30으로
+미채택했다. Launcher/감사를 활성 egress 소스로 복원하고2453개 source 일치를 확인했다.
+현재 SDK I/O2·단일 CPU4/5/6을 유지한다. 이전 SDK SMT25/30도 미채택이다. 후보별 분모와
+source/binary를 보존하며 성공할 때까지 반복하거나 후보 결과를 합친 통과율을 만들지 않는다.
 
 **M9 전체 완료는 아직 아니다.** Native 서비스 timing, silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
 재검증, proposal 이전 bootstrap incident 계약, 전체8-role BMS/Power matrix와 실제 부하/장기 보존

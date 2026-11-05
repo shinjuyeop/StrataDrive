@@ -2,6 +2,7 @@
 // Opt-in Host adapter. Eight real participants; no pilot grants or synthetic feedback.
 #include "adapter_transport.hpp"
 #include "plant_io.hpp"
+#include "m4_owner_network.hpp"
 #include "energy_scenario.hpp"
 #include "remote_leaf_endpoint.hpp"
 #include "remote_zone_endpoint.hpp"
@@ -179,12 +180,16 @@ struct Owners final:session::CoordinatorPort {
         event("epoch-store-return",7,e);return e;
     }
     void begin(std::uint32_t e){epoch=e;event("host-renewal-period",7,central::allocation_period(central::CommandRenewal::Host10ms),central::permission_support(central::CommandRenewal::Host10ms));check(coordinator.begin(e,now()),"real session begin");event("epoch-issued",7,e);}
+    std::array<std::uint64_t,5> physical_output_source{};
+    void publish_physical_outputs() {
+        for(unsigned i=0;i<5;++i)if(leaf[i])if(auto value=outputs[i].read())
+            if(value->source_ns!=physical_output_source[i] && io.write_output(i,*value))
+                physical_output_source[i]=value->source_ns;
+    }
     void physical_io() {
-        io.update([this](PlantState& s){
-            for(auto& snapshot:sensors)snapshot.publish(s.sensors);
-            for(unsigned i=0;i<5;++i)if(leaf[i])if(auto v=outputs[i].read())s.outputs[i]=*v;
-            if(!remote && released)s.released_epoch=static_cast<std::uint32_t>(released);
-        });
+        if(auto sample=io.read_sensors())for(auto& snapshot:sensors)snapshot.publish(*sample);
+        publish_physical_outputs(); // retry only originals not yet transferred
+        if(!remote && released)io.write_release(static_cast<std::uint32_t>(released));
     }
     void emit(const std::optional<remote::OwnerMessage>& m){
         if(m && std::holds_alternative<session::Ack>(m->payload)){const auto& a=std::get<session::Ack>(m->payload);if(a.accepted && a.phase==session::Phase::Initialize) {
@@ -193,7 +198,7 @@ struct Owners final:session::CoordinatorPort {
             // after this actual Zone owner initialized successfully at enable time.
             if(remote && a.role==static_cast<Role>(zi)){event("initialized-diagnostic-reset",zi,protected_ns,selected_ns);protected_ns=selected_ns=0;}
         }event("local-ack-produced",static_cast<unsigned>(a.role),static_cast<unsigned>(a.phase),a.accepted);}
-        if(m && !net.send(*m))fail("outbound-full");
+        if(m && !net.send(*m))fail(net.overflow?"outbound-full":"outbound-unavailable");
     }
     void fail(const char* why) {
         if(!protected_ns){protected_ns=now();event(why,remote?zi:7);}
@@ -265,6 +270,7 @@ struct Owners final:session::CoordinatorPort {
         if(remote) {
             // This priority path remains active even when normal receive consumption stops.
             emit(remote_zone->poll());for(auto& e:remote_leaf)if(e)emit(e->poll());
+            publish_physical_outputs(); // publish this turn before sleeping for ingress
             if(zone[zi]->faulted() && !protected_ns){protected_ns=now();event("local-protection-service",zi,observed,protected_ns);event("local-protection",zi,remote_zone->lease_fault(),remote_zone->last_lease_expiry);
                 for(unsigned i=0;i<5;++i)if(leaf[i])event("leaf-first-fault",i+2,leaf[i]->fault_code());}
             if(zone[zi]->protected_selected() && !selected_ns){selected_ns=now();event("leaf-protection-selected",zi);}
@@ -420,10 +426,8 @@ int plant(const fs::path& folder,someip::test::FixtureSignals& signals) {
         if(watch)simulation::runtime_support::sleep_until(requested);
         NativeIteration iteration(watch.get(),requested);
         if(!delayed && signals.exists(folder/"inject-model-delay")){delayed=true;events.push_back({now(),"model-delay-injected",8,gate.epoch(),0,0,61000000,0});simulation::runtime_support::sleep_until(now()+61*kMs);}
-        io.update([&](PlantState& state){
-            for(unsigned i=0;i<5;++i)if(state.outputs[i].source_ns)outputs[i].publish(state.outputs[i]);
-            if(state.released_epoch){gate.release(state.released_epoch);if(watch)watch->epoch(state.released_epoch);}
-        });
+        for(unsigned i=0;i<5;++i)if(auto value=io.read_output(i);value && value->source_ns)outputs[i].publish(*value);
+        if(auto release=io.read_release();release && *release){gate.release(*release);if(watch)watch->epoch(*release);}
         for(auto& observer:observers)if(const auto e=observer->poll(now()))override_signal.request(e);
         const auto before=now();maximum_gap=std::max(maximum_gap,before-previous);previous=before;
         physical.step();
@@ -446,14 +450,13 @@ int plant(const fs::path& folder,someip::test::FixtureSignals& signals) {
                 (sample.source_ns>=injection && std::abs(sample.torque_nm)<=1 && sample.pressure_pa>=100000);
             if(injection && complete && (!response_enabled || !response_done)){signals.mark(folder/"physical-protected");response_done=true;}
         }
-        io.update([&](PlantState& state){if(auto sample=sensors[0].read()){
-            state.sensors=*sample;
+        if(auto sample=sensors[0].read();sample && io.write_sensors(*sample)){
             if(service_physics && signals.exists(folder/"service-stop-ready") && sample->drive.wheel_speed && sample->torque && sample->pressure){
                 check(service_physical.size()<service_physical.capacity(),"service physical acquisition capacity");
                 service_physical.push_back({sample->source_ns,sample->drive.wheel_speed->identity.source_time_ns,sample->torque->source_time_ns,sample->pressure->source_time_ns,
                     sample->drive.wheel_speed->value,sample->torque->torque_nm,sample->pressure->pressure_pa});
             }
-        }});
+        }
         iteration.finish();
         if(watch)requested=simulation::M4ReleaseGrid{start,500000}.after(now());
         else std::this_thread::sleep_for(std::chrono::microseconds(500));
@@ -770,7 +773,7 @@ int main(int argc,char** argv) {
     summary<<"{\"pass\":"<<(pass?"true":"false")<<",\"orderly_stop\":true,\"stop_begin\":"<<closing<<",\"stop_return\":"<<net.stop_return_ns<<",\"join_return\":"<<net.join_return_ns
         <<",\"shutdown_late_rejected\":"<<shutdown_late_rejected<<",\"shutdown_drain_begin\":"<<shutdown_drain_begin<<",\"shutdown_drain_end\":"<<shutdown_drain_end<<",\"shutdown_drain_deadline\":"<<shutdown_drain_deadline
         <<",\"shutdown_rx_retired\":"<<shutdown_rx_retired<<",\"tx_overflow_ns\":"<<net.tx_overflow_ns<<",\"tx_overflow_lane\":"<<net.tx_overflow_lane<<",\"tx_overflow_method\":"<<net.tx_overflow_method
-        <<",\"retired_run_credits\":"<<net.retired_run_credits
+        <<",\"unavailable_rejected\":"<<net.unavailable_rejected<<",\"retired_run_credits\":"<<net.retired_run_credits
         <<",\"retired_received_credits\":"<<net.retired_received_credits
         <<",\"pending_cancelled\":"<<pending_cancelled<<",\"pending_expired\":"<<(owners?owners->pending_expired:0)<<",\"pre_shutdown_protection\":"<<pre_shutdown_protection<<",\"unprocessed_rejected\":"<<unprocessed<<",\"diagnostic_sent\":"<<(owners?owners->diagnostic_sent:0)<<",\"diagnostic_rejected\":"<<(owners?owners->diagnostic_rejected:0)<<",\"diagnostic_expired\":"<<(owners?owners->diagnostic_expired:0)<<",\"diagnostic_late\":"<<(owners?owners->diagnostic_late:0)<<",\"state_violations\":"<<(owners?owners->state_violations:0)<<",\"pre_init_rejected\":"<<(owners?owners->pre_init_rejected:0)<<",\"epoch\":"<<(owners?owners->epoch:0)<<",\"release_ack_mask\":"<<(owners?owners->release_acks:0)<<",\"armed_ns\":"<<(owners?owners->armed_ns:0)
         <<",\"protected_ns\":"<<(owners?owners->protected_ns:0)<<",\"selected_ns\":"<<(owners?owners->selected_ns:0)<<",\"last_lease_expiry\":"<<(owners?(remote?owners->remote_zone->last_lease_expiry:owners->last_lease_expiry):0)

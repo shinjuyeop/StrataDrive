@@ -38,6 +38,9 @@ CARLA30km/h 정상·고장5개 시나리오와 실제 transport 진단 수집은
 | M9 SDK SMT 배치 비교·미채택·실패 보존 | [고정30건](evidence/m9_sdk_smt/README.md) · [protocol](sdk-smt-protocol.md) |
 | M9 관리 주기 사이 StopRequest 만료·SD-1105 원본·복수 원인 감사 | [poll·80건 재감사](evidence/m9_stop_deadline/README.md) · [protocol](stop-deadline-poll-protocol.md) |
 | M9 지연 수신 grant의 due freshness와 현재 회차 support 분리 | [수정·고정 cohort](evidence/m9_deferred_grant/README.md) · [protocol](deferred-grant-protocol.md) |
+| M9 물리 센서/출력 필드별 IO·동일 turn 출력 전달 | [고정42건·실패 보존](evidence/m9_plant_field_io/README.md) · [protocol](plant-field-io-protocol.md) |
+| M9 연결 불가 egress·TxResult 우선 연결 | [현재 후보·원본27/30](evidence/m9_egress/README.md) · [protocol](egress-availability-protocol.md) |
+| M9 SDK owner 코어 공유 비교·미채택·복원 | [고정30건23/30](evidence/m9_sdk_owner_core/README.md) · [protocol](sdk-owner-core-protocol.md) |
 | 실제3-process SOME/IP·8-role·부하/고장/재가입 | [M5 Rear adapter](evidence/m5_someip_rear_adapter/README.md) |
 | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
 | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |
@@ -65,7 +68,7 @@ CARLA30km/h 정상·고장5개 시나리오와 실제 transport 진단 수집은
 | DDS 제어 gate CLOSED의 근거 | [DDS shutdown 후속](evidence/m5_dds_shutdown_followup/README.md) |
 
 Linux 로컬 서비스 요청/심사/별도 clear는 [연결 근거](evidence/m9_continuity_service/README.md)와
-[고정 recipe](diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture)를 따른다. [실제3-ECU terminal 서비스 조합](evidence/m9_native_service/README.md) 뒤 서비스 고장 거절을 후속 검증했으며, 최신 수용 범위와 남은 실패는 [지연 권한 후보](evidence/m9_deferred_grant/README.md)를 따른다.
+[고정 recipe](diagnostics-protocol.md#linux-로컬-연속성-서비스-요청-fixture)를 따른다. [실제3-ECU terminal 서비스 조합](evidence/m9_native_service/README.md) 뒤 서비스 고장 거절을 후속 검증했으며, 최신 수용 범위와 남은 실패는 [egress 후보](evidence/m9_egress/README.md)를 따른다.
 
 ## Evidence 보관 규칙
 

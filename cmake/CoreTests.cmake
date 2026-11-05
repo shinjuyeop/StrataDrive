@@ -24,6 +24,9 @@ stratadrive_unit_test(diagnostic_binding_test
     SOURCES tests/unit/diagnostic_binding_test.cpp
     LIBRARIES diagnostics_wire)
 if(TARGET diagnostics_journal)
+    stratadrive_unit_test(plant_io_test
+        SOURCES tests/unit/plant_io_test.cpp
+        LIBRARIES m4_async_runtime)
     stratadrive_unit_test(monotonic_condition_test
         SOURCES tests/unit/monotonic_condition_test.cpp
         LIBRARIES Threads::Threads)

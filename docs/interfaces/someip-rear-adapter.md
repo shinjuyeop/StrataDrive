@@ -50,7 +50,7 @@ Front services0x5344..0x5347/ports30501..30504 retain their meanings.
 | 0x0040 | Rear→Central / 0x534b / 30508 | Actual participant ACK |
 | 0x0060 | Rear→Central / 0x534b / 30508 | ProtectionAck only after actual local selection |
 | 0x0070 | Rear→Central / 0x534a / 30507 | Actual/health Feedback from RearZone |
-| 0x0080 | Rear→Central / 0x534a / 30507 | TxResult with original identity/operation |
+| 0x0080 | Rear→Central / 0x534b / 30508 | TxResult with original identity/operation |
 | 0x0010 | Both directions on each ordinary/authority service | Existing exact16-byte probe v2; origin1 means the bound remote Zone |
 
 All services instance1/major1/minor0, message type `MT_REQUEST_NO_RETURN` (0x01).
@@ -129,3 +129,13 @@ store issue a new Epoch. All eight real participants prepare/initialize/release
 again, new credit and arm are required, and old packet bytes must be rejected.
 The restarted SDK client has a new transport identity; this never substitutes for
 application Epoch. The plant keeps physical state through the rejoin.
+
+Processing results use the priority TCP connection with session/protection traffic.
+This changes transport routing only; a TxResult grants no control authority.
+Telemetry remains on the data connection. Once SDK availability is lost, new
+owner packets are rejected; the sender also rejects queued packets if the peer
+is unavailable at its check. These rejections are accounted as `tx-unavailable`
+and are not retained for later replay. Original
+pending work still fails through its unchanged deadline/protection path.
+Already handed-to-SDK bytes cannot be recalled by this guard; a disconnect
+racing the SDK call can still return an OS transport error.
