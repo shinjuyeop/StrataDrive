@@ -1,0 +1,34 @@
+{
+  "native_archives": [
+    {
+      "archive": "normal-r1.tar.gz",
+      "files_compared": 2094,
+      "sha256": "62629e3d51f312d2879416296f6f4e507e0bf878d8cb3f591c063751f9d331e8"
+    },
+    {
+      "archive": "normal-r2.tar.gz",
+      "files_compared": 2094,
+      "sha256": "f3ee3f4e571e66bbb5142cefac6d4de14d4ac9e042dede10536658e5a86bf90e"
+    },
+    {
+      "archive": "normal-r3.tar.gz",
+      "files_compared": 2094,
+      "sha256": "94db8df90daa7bd2253a21f5f5c447a78537b00152f7de0a868ed8d68f300a01"
+    }
+  ],
+  "file_count": 6282,
+  "archive_rechecks": [
+    {
+      "archive": "normal-r1.tar.gz",
+      "case": "normal-normal",
+      "reader": "audit_native_service.py",
+      "exit": 0
+    },
+    {
+      "archive": "normal-r3.tar.gz",
+      "case": "normal-stop-ack-loss-r3",
+      "reader": "audit_native_service_faults.py",
+      "exit": 0
+    }
+  ]
+}

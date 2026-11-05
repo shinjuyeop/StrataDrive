@@ -1,0 +1,558 @@
+[
+  {
+    "name": "normal-normal",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "3a687c6f668ed3a3d33fc74c62310486bbe40cdca8a286dd74248d2f22fd24b7",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 57,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12592,
+      "connections": 30,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "normal-ack-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "b8c74467f8f0b2afdd764f39d4f7797b0b3c4e91c5691d0bf1db464abbda6aac",
+    "new_audit_report": {
+      "fault": "ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "normal-actual-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "be9e4c44e383a7cc12c427233a32a5de83d0f33bc1c86cf3aa8f2489f20834c0",
+    "new_audit_report": {
+      "fault": "actual-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "normal-stop-request-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "6a3de56c53eb9638b1d79db9a0de29fbe80ab8a27f43c2d4126d670df98a5dcb",
+    "new_audit_report": {
+      "fault": "stop-request-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "normal-stop-ack-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "7c53f69596c4d21b325368cf9afa58f68fa801ead91dd3b5b084930c0532f60d",
+    "new_audit_report": {
+      "fault": "stop-ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "asan-normal",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "54e5d12cf88f5aee8bb6354d976e1e39e92c952eab3b29ba3f88e1509c81ecb4",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 70,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12432,
+      "connections": 39,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "asan-ack-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "45d561ac09a44c3d198c509897fba6bf93590da956d9060f8320b21df5f8ecd0",
+    "new_audit_report": {
+      "fault": "ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "asan-actual-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "ad6a3ff2e94319551edd4ad6bd6364b1b4a612cdf1ec06a4933e24dc0aa0ab37",
+    "new_audit_report": {
+      "fault": "actual-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "asan-stop-request-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "fdba362554785dffaf4742597c88225f841702780e4403820791bfa5d39eadc4",
+    "new_audit_report": {
+      "fault": "stop-request-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "asan-stop-ack-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": true,
+    "original_audit_exit": 1,
+    "new_expected": [
+      {
+        "file": "front-1.stdout",
+        "line": 26,
+        "text": "2026-11-05 13:54:35.498404 front [error] tcei::write_completion_condition: Connection reset by peer(104) bytes transferred: 0 bytes to sent: 85 remote:10.88.0.1:30503 (1422): [5346.0070.01f4]",
+        "classification": "expected injected Central crash: feedback to retired generation",
+        "event_monotonic_ns": 872954387930651,
+        "protection_ns": {
+          "front": 872954396906031,
+          "rear": 872954397123538
+        },
+        "physical_protection_ns": 872954431550685,
+        "successor_boot_ns": 872954520152209,
+        "bytes_not_sent": 85,
+        "rule": "retired-central-feedback-v2"
+      }
+    ],
+    "new_unexpected": [],
+    "original_result_sha256": "9605dd2fa0c1f86053c9f5648c151c55bf7dfb3e870474941016730c3d24e3dd",
+    "new_audit_report": {
+      "fault": "stop-ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-normal",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "6ef9cfc38eda51b731e57764fdffd0a9d53454072d538aeeb14535ea1811dcbb",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 57,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12424,
+      "connections": 35,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-ack-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "8e146e69d5353808efae48de300bda38c9809bae8f4bce0aba0750eaabab87b3",
+    "new_audit_report": {
+      "fault": "ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-actual-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "2966bd80f45a4684294d672fad62b0584741c4f888ddebbe6b67aca5f11aa7c4",
+    "new_audit_report": {
+      "fault": "actual-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-stop-request-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "c4fe628a9811d06e42a7cb496af565c824e818c0eb877e703dfb5f0db770de8e",
+    "new_audit_report": {
+      "fault": "stop-request-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-stop-ack-loss",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "ad6a180c631b7738c6a2d1badf939e833c846c40ccb7260dcb19d293213492e5",
+    "new_audit_report": {
+      "fault": "stop-ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "normal-normal-slow-signals",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "4e4b0e20bd80a6b294a429b7d3ca5781f846621873db793742b953c72b1531fa",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 57,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12563,
+      "connections": 30,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "asan-normal-slow-signals",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "58d58c6a1e841eccf9553d7ce86cc30825cef0029d394d17bb1f356cd3f90e16",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 70,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12529,
+      "connections": 32,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-normal-slow-signals",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "11a23801d28442a83f76fd4c496b73e4a3eb734c1934ae8721378c99bec12356",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 57,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12506,
+      "connections": 31,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-normal-r2",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "9f66e3265429864c1338b3d224f25b7dfde648f394e293bf29303e8a37afa03f",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 57,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12448,
+      "connections": 33,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-ack-loss-r2",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "d437ddca5cb6fe509d7b11afdb2ebe367c505d318600796257d4d6d0ef24415d",
+    "new_audit_report": {
+      "fault": "ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-actual-loss-r2",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 1,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "97aed836bf05204d01ae66dac19533ea91b598637dd0c6ba372d978fff4c38a3",
+    "new_audit_exit": 1,
+    "new_audit_error": "three actual global Release completions before fault"
+  },
+  {
+    "name": "tsan-stop-request-loss-r2",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "552764f02a1c24fe8767aed07c0b876bc7748037436c98672b39af4e212fd559",
+    "new_audit_report": {
+      "fault": "stop-request-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-stop-ack-loss-r2",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "dada196ee91ba81a85a303febf0f8dd2e8e25670d819e10b836162e105d87342",
+    "new_audit_report": {
+      "fault": "stop-ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-normal-slow-signals-r2",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "0771ca523537552b0928e7a2d13d7edf47d2f3feac0c1aa9731fd2e500cabb44",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 57,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12948,
+      "connections": 33,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-normal-r3",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "d9a1533e5bea3f2293500a650476b639c8effd6a501a991a3425da9fc35b6742",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 57,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12991,
+      "connections": 32,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-ack-loss-r3",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "d1d8e5cad1c8d77fa57551bdf75b43c5d8330526cf67d3128b5b4584bc98fd97",
+    "new_audit_report": {
+      "fault": "ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-actual-loss-r3",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "86df1e7c39414cffa82008c47f9d8d2a401e1ce87ddca16fd4a9d55a158375aa",
+    "new_audit_report": {
+      "fault": "actual-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-stop-request-loss-r3",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 1,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "96a850f8851b60d94c683b49ddc447c9d0a2a1e99e9a0629b1fa6d51747c9e43",
+    "new_audit_exit": 1,
+    "new_audit_error": "original stop detector DTC"
+  },
+  {
+    "name": "tsan-stop-ack-loss-r3",
+    "original_runtime_pass": false,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "42dd981be59dbcf531bbbdb68718b08fde163bc25f750d8f058fdc45be20e605",
+    "new_audit_report": {
+      "fault": "stop-ack-loss",
+      "expected_rejection": true,
+      "runtime_pass": false,
+      "service_commits": 0
+    },
+    "new_audit_exit": 0
+  },
+  {
+    "name": "tsan-normal-slow-signals-r3",
+    "original_runtime_pass": true,
+    "original_sdk_errors": false,
+    "original_audit_exit": 0,
+    "new_expected": [],
+    "new_unexpected": [],
+    "original_result_sha256": "5a972b0f77b988d32aa24c2e88f91dc47b4f0540fc9d28a91d64b9cc1c18308f",
+    "new_audit_report": {
+      "pass_": true,
+      "active_streams": 11,
+      "merged_events": 57,
+      "original_credits": 27,
+      "gaps": 1,
+      "tcp_messages": 12951,
+      "connections": 33,
+      "service_transactions": 4,
+      "physical_samples": 5,
+      "source_cuts": 9,
+      "admission_requests": 9
+    },
+    "new_audit_exit": 0
+  }
+]

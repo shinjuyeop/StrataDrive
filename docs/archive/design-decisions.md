@@ -5880,3 +5880,25 @@ A/B/B/A 고정8건에서 A2/4·B3/4이며 B의 연결 종료 오류와 정밀 �
 후보 채택 조건을 만족하지 못했으므로 비계측30건을 후보 통과 근거로 실행하지 않았다.
 기한·source·expiry·오류 판정을 유지하고 기존28/30을 이 실험의 결과로 덮어쓰지 않는다.
 갱신 실패의 Power ACK→VM snapshot→grant 연쇄가 다음 조사 경계다.
+
+## ADR-0102: M9 서비스 수용에서 sanitizer와 wall 성능을 분리
+
+2026-11-05. 사용자는 지나치게 엄격한 시험 조건을 조정해 진행하도록 승인했다.
+TSan 계측 native의 정상 운행 기한 충족과 비계측 제품의 실행 시간 보장을 하나의
+성공 분모로 요구하던 조건을 분리한다. 이전 실패와 원본은 보존한다.
+
+`split-v1`은 비계측 normal6조건×3회와 ASan/UBSan·TSan의 고정 component/
+논리 SIL·실제 동시성 suite를 각각 필수로 둔다. 두 M4 wall 시험은 비계측으로
+검증한다. 논리 clock/실제 runtime의 source·expiry·20ms/18ms/30ms 계약은 유지한다.
+실행 중 정상 운행이 실패하면 해당 native 시나리오는 계속 실패다. TSan 경고0만으로
+실행되지 못한 고장 경로를 수용하지 않는다. 시험 목록/분모는 실행 전에 고정한다.
+
+Central1 SIGKILL 뒤 첫 feedback write reset/broken pipe는 local protection보다
+먼저 기록될 수 있다. 정확한 이전 연결과 successor boot 이전 구간, surviving PID,
+원래100ms 보호/물리 반응, 새 Epoch 실제 재가입을 확인해 주입 결과로 분리한다.
+새 세션/다른 오류·큐 포화·sanitizer 경고는 면제하지 않는다. 분류만으로 서비스나
+DTC 성공을 만들지 않으며 원문/원래 판정과 새 독립 감사를 별도 보존한다.
+
+[실행 전 protocol](../test-plan/service-validation-protocol.md)과
+[검증 전략](../test-plan/verification-strategy.md)을 따른다. 이 결정은 Host 서비스
+기능 범위이며, 전체 M9/Clock/CARLA/Target·부하/장기 보존 완료를 뜻하지 않는다.

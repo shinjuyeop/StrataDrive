@@ -12,6 +12,28 @@ HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[2]
 
 
+def validate_native_build(cache):
+    values=dict(line.split('=',1) for line in cache.splitlines() if '=' in line and not line.startswith(('//','#')))
+    if (values.get('CMAKE_BUILD_TYPE:STRING')!='RelWithDebInfo' or
+        values.get('STRATADRIVE_SANITIZERS:BOOL')!='OFF' or values.get('STRATADRIVE_TSAN:BOOL')!='OFF' or
+        any('-fsanitize' in v for k,v in values.items() if k.startswith('CMAKE_CXX_FLAGS'))):
+        raise ValueError('split-v1 requires the noninstrumented RelWithDebInfo build')
+
+
+def case_matrix(validation_profile, tsan_repeats=1):
+    faults=('normal','ack-loss','actual-loss','stop-request-loss','stop-ack-loss')
+    if validation_profile=='split-v1':
+        if tsan_repeats!=1:raise ValueError('split-v1 has no instrumented native repeat gate')
+        return [('normal',f,d,r) for r in (1,2,3)
+                for f,d in [*((f,0) for f in faults),('normal',250)]]
+    if validation_profile!='legacy-mixed' or tsan_repeats not in (1,3):
+        raise ValueError('unknown validation profile/repeat count')
+    cases=[(p,f,0,1) for p in ('normal','asan','tsan') for f in faults]
+    cases += [(p,'normal',250,1) for p in ('normal','asan','tsan')]
+    for repeat in range(2,tsan_repeats+1):cases += [('tsan',f,0,repeat) for f in faults]+[('tsan','normal',250,repeat)]
+    return cases
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output',type=Path)
@@ -22,14 +44,17 @@ def main():
     parser.add_argument('--tsan-repeats',type=int,choices=(1,3),default=1)
     parser.add_argument('--response-audit',action='store_true')
     parser.add_argument('--defer-audits',action='store_true',help='finish every fixed runtime before CPU-intensive offline readers')
+    parser.add_argument('--validation-profile',choices=('legacy-mixed','split-v1'),default='legacy-mixed',
+                        help='split-v1: 18 noninstrumented service runs; sanitizer component suite is a separate required gate')
     args=parser.parse_args()
     if args.separate_aux_io and not args.split_owner_io:parser.error('separate-aux-io requires split-owner-io')
+    if args.validation_profile=='split-v1' and (args.tsan_repeats!=1 or args.sdk_io_threads!=2 or not all((args.split_owner_io,args.separate_aux_io,args.owner_fifo,args.response_audit,args.defer_audits))):
+        parser.error('split-v1 requires fixed split/FIFO/aux placement, response/deferred audits and no tsan-repeats')
+    if args.validation_profile=='split-v1':validate_native_build((ROOT/'build/m5-someip-normal/project/CMakeCache.txt').read_text())
     out=args.output.resolve();out.mkdir(parents=True,exist_ok=False)
-    faults=('normal','ack-loss','actual-loss','stop-request-loss','stop-ack-loss')
-    cases=[(p,f,0,1) for p in ('normal','asan','tsan') for f in faults]
-    cases += [(p,'normal',250,1) for p in ('normal','asan','tsan')]
-    for repeat in range(2,args.tsan_repeats+1):cases += [('tsan',f,0,repeat) for f in faults]+[('tsan','normal',250,repeat)]
-    files=[ROOT/'interfaces/someip/owner_credit_retirement.hpp',ROOT/'interfaces/someip/owner_message_binding.hpp',
+    cases=case_matrix(args.validation_profile,args.tsan_repeats)
+    files=[ROOT/'docs/test-plan/service-validation-protocol.md',ROOT/'tests/unit/service_validation_test.py',
+           HERE.parent/'diagnostics/service_sanitizer_suite.py',ROOT/'interfaces/someip/owner_credit_retirement.hpp',ROOT/'interfaces/someip/owner_message_binding.hpp',
            ROOT/'tests/unit/remote_contract_test.cpp',ROOT/'docs/test-plan/egress-availability-protocol.md',ROOT/'simulation/runtime/plant_io.hpp',HERE/'plant_io.hpp',ROOT/'tests/unit/plant_io_test.cpp',
            ROOT/'docs/test-plan/plant-field-io-protocol.md',HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',HERE/'run.py',Path(__file__),
            HERE/'owner_schedule.hpp',ROOT/'tests/unit/owner_schedule_test.cpp',ROOT/'docs/test-plan/owner-input-phase-protocol.md',
@@ -55,9 +80,10 @@ def main():
            HERE.parent/'diagnostics/audit_service_response.py',
            HERE.parent/'diagnostics/audit_native_service.py',HERE.parent/'diagnostics/audit_native_service_faults.py']
     manifest={'base':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'sdk_io_threads':args.sdk_io_threads,
+              'validation_profile':args.validation_profile,'scope':'native service; separate sanitizer gate required' if args.validation_profile=='split-v1' else 'legacy mixed instrumentation',
               'audit_phase':'after-all-runtimes' if args.defer_audits else 'interleaved',
               'cases':cases,'sources':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
-              'binaries':{p:hashlib.sha256((ROOT/f'build/m5-someip-{p}/project/tests/integration/someip/someip_front_adapter').read_bytes()).hexdigest() for p in ('normal','asan','tsan')}}
+              'binaries':{p:hashlib.sha256((ROOT/f'build/m5-someip-{p}/project/tests/integration/someip/someip_front_adapter').read_bytes()).hexdigest() for p in sorted({c[0] for c in cases})}}
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     results=[]
     def audit_result(row):

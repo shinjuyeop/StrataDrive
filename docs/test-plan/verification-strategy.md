@@ -19,6 +19,14 @@ Logical clock의 상태/expiry와 monotonic wall 실행을 따로 판정한다.
 송신 enqueue·RX·dispatch·처리/선택 ACK·결과 수신·실제 actuator 적용은 서로 다른 관측점이다.
 Miss/skip·timeout·설정 실패와 원래 분모를 보존한다. Sanitizer 경고0은 기능/timing 통과가 아니다.
 
+M9 Host 서비스의 사용자 승인 `split-v1`은 비계측 빌드의 실제 서비스/시간 검사와
+ASan/UBSan·TSan의 component·논리 SIL·동시성 검사를 별도 필수 조건으로 삼는다.
+계측 overhead까지 제품의 정상 wall 운행 보장으로 요구하지 않는다. 원래 deadline은
+논리 경계 시험과 비계측 실행에서 유지한다. 의도한 peer SIGKILL의 이전 연결 오류도
+원인·보호·물리 반응·재가입을 확인해 분리하며, 나머지 SDK 오류와 sanitizer 경고는
+계속 실패다. [사전 protocol](service-validation-protocol.md)을 따른다. 과거 계측 시험의
+미완료 경로와 deadline miss를 성공으로 재작성하거나 전체 SDK/Target 수용으로 올리지 않는다.
+
 Scenario/config/seed·source/dirty/binary/tool version과 환경을 고정하고 정상/fault·실패·정리를 기록한다.
 `--reuse`는 원본 source fingerprint와 실제 시험 commit이 같을 때만 추출에 사용한다.
 Golden/독립 CRC·모델·solver/EV oracle을 구현과 분리하고, source/expiry를 바꿔 실패를 감추지 않는다.

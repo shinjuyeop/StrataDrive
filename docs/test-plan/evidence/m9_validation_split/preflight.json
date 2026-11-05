@@ -1,0 +1,127 @@
+[
+  {
+    "name": "asan-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle-sanitized",
+      "--parallel",
+      "2",
+      "--target",
+      "remote_contract_test",
+      "async_owner_test",
+      "vehicle_coordinator_test",
+      "normal_stop_test",
+      "owner_schedule_test",
+      "m4_async_runtime_test",
+      "plant_io_test",
+      "concurrent_trace_buffer_test",
+      "monotonic_condition_test",
+      "fixture_signals_test",
+      "diagnostics_test",
+      "diagnostic_binding_test",
+      "native_diagnostics_test",
+      "remote_diagnostics_context_test",
+      "diagnostics_delivery_test",
+      "diagnostics_delivery_process_test",
+      "diagnostics_journal_test",
+      "control_diagnostics_sil_test",
+      "native_diagnostics_sil_test",
+      "startup_diagnostics_sil_test",
+      "owner_diagnostics_sil_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m9-service-timing/tsan-unit",
+      "--parallel",
+      "2",
+      "--target",
+      "remote_contract_test",
+      "async_owner_test",
+      "vehicle_coordinator_test",
+      "normal_stop_test",
+      "owner_schedule_test",
+      "m4_async_runtime_test",
+      "plant_io_test",
+      "concurrent_trace_buffer_test",
+      "monotonic_condition_test",
+      "fixture_signals_test",
+      "diagnostics_test",
+      "diagnostic_binding_test",
+      "native_diagnostics_test",
+      "remote_diagnostics_context_test",
+      "diagnostics_delivery_test",
+      "diagnostics_delivery_process_test",
+      "diagnostics_journal_test",
+      "control_diagnostics_sil_test",
+      "native_diagnostics_sil_test",
+      "startup_diagnostics_sil_test",
+      "owner_diagnostics_sil_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-suite",
+    "command": [
+      "python3",
+      "tests/integration/diagnostics/service_sanitizer_suite.py",
+      "build/m9-validation-split/asan-suite",
+      "--build",
+      "build/m1-angle-sanitized",
+      "--profile",
+      "asan"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-suite",
+    "command": [
+      "python3",
+      "tests/integration/diagnostics/service_sanitizer_suite.py",
+      "build/m9-validation-split/tsan-suite",
+      "--build",
+      "build/m9-service-timing/tsan-unit",
+      "--profile",
+      "tsan"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "normal-wall",
+    "command": [
+      "build/m1-angle/m4_async_runtime_test",
+      "--gtest_filter=M4AsyncWall.*",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/normal-wall.xml"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "service_validation_test.py",
+    "command": [
+      "python3",
+      "tests/unit/service_validation_test.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "someip_pilot_test.py",
+    "command": [
+      "python3",
+      "tests/unit/someip_pilot_test.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "sdk_stages_test.py",
+    "command": [
+      "python3",
+      "tests/unit/sdk_stages_test.py"
+    ],
+    "exit": 0
+  }
+]

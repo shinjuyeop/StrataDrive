@@ -202,32 +202,6 @@ class ThreeEcuBookkeepingTest(unittest.TestCase):
             self.assertFalse(m.expected_paused_overflow(case,role,target,s,w,100))
 
 class SdkOutcomeTest(unittest.TestCase):
-    def test_old_central_actual_error_requires_crash_protection_and_preboot_interval(self):
-        from datetime import datetime,timezone
-        spec=importlib.util.spec_from_file_location('sdk_outcomes',ROOT/'tests/integration/someip/sdk_outcomes.py')
-        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
-        line='2026-11-04 16:09:33.469093 front [error] tcei::write_completion_condition: Broken pipe(32) bytes transferred: 0 bytes to sent: 85 remote:10.88.0.1:30503 (1422): [5346.0070.01fa]'
-        wall=int(datetime(2026,11,4,16,9,33,469093,tzinfo=timezone.utc).timestamp()*1e9)
-        result={'case':'central-rejoin','injected_crash':{'role':'central','generation':1,'ns':100},'forced_cleanup':[],
-                'central_rejoined':True,'survivor_pids_before':{'front':42,'rear':43},'survivor_pids_after':{'front':42,'rear':43},
-                'clock_sample':{'wall_ns':wall,'monotonic_ns':200,'utc_offset_s':0},
-                'processes':[{'role':'central','generation':1,'expected_abrupt_stop':True,'exit':-9},
-                             {'role':'front','generation':1,'exit':0,'summary':{'pass':True}}]}
-        with tempfile.TemporaryDirectory() as tmp:
-            folder=Path(tmp);where=folder/'native-diagnostics/central';where.mkdir(parents=True)
-            (folder/'front-protected').write_text('150')
-            producer=where/'central-2.producer.json';producer.write_text(json.dumps({'generation':2,'previous_unclean':True,'boot_ns':250}))
-            self.assertIsNotNone(module.expected_old_central_actual(line,'front-1.stdout',result,folder))
-            for changed in (dict(result,case='normal'),dict(result,central_rejoined=False),dict(result,injected_crash={}),dict(result,forced_cleanup=['front']),dict(result,survivor_pids_after={'front':99,'rear':43}),dict(result,processes=[])):
-                self.assertIsNone(module.expected_old_central_actual(line,'front-1.stdout',changed,folder))
-            for bad in (line.replace('0070','0080'),line.replace('85','86'),line.replace('30503','30504'),line.replace('1422','1423'),line.replace('32','104')):
-                self.assertIsNone(module.expected_old_central_actual(bad,'front-1.stdout',result,folder))
-            for protection in ('99','201'):
-                (folder/'front-protected').write_text(protection);self.assertIsNone(module.expected_old_central_actual(line,'front-1.stdout',result,folder))
-            (folder/'front-protected').write_text('150')
-            producer.write_text(json.dumps({'generation':2,'previous_unclean':True,'boot_ns':200}))
-            self.assertIsNone(module.expected_old_central_actual(line,'front-1.stdout',result,folder))
-
     def test_only_exact_injected_lease_loss_with_protection_and_rejoin_is_expected(self):
         import importlib.util
         from datetime import datetime

@@ -1,0 +1,677 @@
+{
+  "scope": "M9 Host quiet native service, separate sanitizer component/logical gates; not whole M9/Target",
+  "native_cases": 18,
+  "native_pass": 18,
+  "sanitizers": {
+    "asan": {
+      "targets": 21,
+      "tests": 309,
+      "pass": true,
+      "result": [
+        {
+          "target": "remote_contract_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/remote_contract_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/remote_contract_test.xml"
+          ],
+          "exit": 0,
+          "tests": 36,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "async_owner_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/async_owner_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/async_owner_test.xml"
+          ],
+          "exit": 0,
+          "tests": 24,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "vehicle_coordinator_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/vehicle_coordinator_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/vehicle_coordinator_test.xml"
+          ],
+          "exit": 0,
+          "tests": 31,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "normal_stop_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/normal_stop_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/normal_stop_test.xml"
+          ],
+          "exit": 0,
+          "tests": 25,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "owner_schedule_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/owner_schedule_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/owner_schedule_test.xml"
+          ],
+          "exit": 0,
+          "tests": 4,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "m4_async_runtime_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/m4_async_runtime_test",
+            "--gtest_filter=-M4AsyncWall.*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/m4_async_runtime_test.xml"
+          ],
+          "exit": 0,
+          "tests": 20,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "plant_io_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/plant_io_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/plant_io_test.xml"
+          ],
+          "exit": 0,
+          "tests": 4,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "concurrent_trace_buffer_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/concurrent_trace_buffer_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/concurrent_trace_buffer_test.xml"
+          ],
+          "exit": 0,
+          "tests": 3,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "monotonic_condition_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/monotonic_condition_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/monotonic_condition_test.xml"
+          ],
+          "exit": 0,
+          "tests": 3,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "fixture_signals_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/fixture_signals_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/fixture_signals_test.xml"
+          ],
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostics_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/diagnostics_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/diagnostics_test.xml"
+          ],
+          "exit": 0,
+          "tests": 32,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostic_binding_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/diagnostic_binding_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/diagnostic_binding_test.xml"
+          ],
+          "exit": 0,
+          "tests": 3,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "native_diagnostics_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/native_diagnostics_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/native_diagnostics_test.xml"
+          ],
+          "exit": 0,
+          "tests": 12,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "remote_diagnostics_context_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/remote_diagnostics_context_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/remote_diagnostics_context_test.xml"
+          ],
+          "exit": 0,
+          "tests": 35,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostics_delivery_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/diagnostics_delivery_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/diagnostics_delivery_test.xml"
+          ],
+          "exit": 0,
+          "tests": 24,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostics_delivery_process_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/diagnostics_delivery_process_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/diagnostics_delivery_process_test.xml"
+          ],
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostics_journal_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/diagnostics_journal_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/diagnostics_journal_test.xml"
+          ],
+          "exit": 0,
+          "tests": 16,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "control_diagnostics_sil_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/control_diagnostics_sil_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/control_diagnostics_sil_test.xml"
+          ],
+          "exit": 0,
+          "tests": 4,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "native_diagnostics_sil_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/native_diagnostics_sil_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/native_diagnostics_sil_test.xml"
+          ],
+          "exit": 0,
+          "tests": 11,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "startup_diagnostics_sil_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/startup_diagnostics_sil_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/startup_diagnostics_sil_test.xml"
+          ],
+          "exit": 0,
+          "tests": 8,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "owner_diagnostics_sil_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/owner_diagnostics_sil_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/asan-suite/owner_diagnostics_sil_test.xml"
+          ],
+          "exit": 0,
+          "tests": 4,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        }
+      ]
+    },
+    "tsan": {
+      "targets": 21,
+      "tests": 309,
+      "pass": true,
+      "result": [
+        {
+          "target": "remote_contract_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/remote_contract_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/remote_contract_test.xml"
+          ],
+          "exit": 0,
+          "tests": 36,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "async_owner_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/async_owner_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/async_owner_test.xml"
+          ],
+          "exit": 0,
+          "tests": 24,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "vehicle_coordinator_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/vehicle_coordinator_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/vehicle_coordinator_test.xml"
+          ],
+          "exit": 0,
+          "tests": 31,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "normal_stop_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/normal_stop_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/normal_stop_test.xml"
+          ],
+          "exit": 0,
+          "tests": 25,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "owner_schedule_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/owner_schedule_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/owner_schedule_test.xml"
+          ],
+          "exit": 0,
+          "tests": 4,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "m4_async_runtime_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/m4_async_runtime_test",
+            "--gtest_filter=-M4AsyncWall.*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/m4_async_runtime_test.xml"
+          ],
+          "exit": 0,
+          "tests": 20,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "plant_io_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/plant_io_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/plant_io_test.xml"
+          ],
+          "exit": 0,
+          "tests": 4,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "concurrent_trace_buffer_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/concurrent_trace_buffer_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/concurrent_trace_buffer_test.xml"
+          ],
+          "exit": 0,
+          "tests": 3,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "monotonic_condition_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/monotonic_condition_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/monotonic_condition_test.xml"
+          ],
+          "exit": 0,
+          "tests": 3,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "fixture_signals_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/fixture_signals_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/fixture_signals_test.xml"
+          ],
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostics_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/diagnostics_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/diagnostics_test.xml"
+          ],
+          "exit": 0,
+          "tests": 32,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostic_binding_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/diagnostic_binding_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/diagnostic_binding_test.xml"
+          ],
+          "exit": 0,
+          "tests": 3,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "native_diagnostics_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/native_diagnostics_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/native_diagnostics_test.xml"
+          ],
+          "exit": 0,
+          "tests": 12,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "remote_diagnostics_context_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/remote_diagnostics_context_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/remote_diagnostics_context_test.xml"
+          ],
+          "exit": 0,
+          "tests": 35,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostics_delivery_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/diagnostics_delivery_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/diagnostics_delivery_test.xml"
+          ],
+          "exit": 0,
+          "tests": 24,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostics_delivery_process_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/diagnostics_delivery_process_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/diagnostics_delivery_process_test.xml"
+          ],
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "diagnostics_journal_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/diagnostics_journal_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/diagnostics_journal_test.xml"
+          ],
+          "exit": 0,
+          "tests": 16,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "control_diagnostics_sil_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/control_diagnostics_sil_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/control_diagnostics_sil_test.xml"
+          ],
+          "exit": 0,
+          "tests": 4,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "native_diagnostics_sil_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/native_diagnostics_sil_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/native_diagnostics_sil_test.xml"
+          ],
+          "exit": 0,
+          "tests": 11,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "startup_diagnostics_sil_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/startup_diagnostics_sil_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/startup_diagnostics_sil_test.xml"
+          ],
+          "exit": 0,
+          "tests": 8,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "owner_diagnostics_sil_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/owner_diagnostics_sil_test",
+            "--gtest_filter=*",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-validation-split/tsan-suite/owner_diagnostics_sil_test.xml"
+          ],
+          "exit": 0,
+          "tests": 4,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        }
+      ]
+    }
+  },
+  "noninstrumented_wall_tests": 2,
+  "noninstrumented_wall_failures": 0,
+  "unchanged_cpp_cmake_files": 1020,
+  "unchanged_native_binary": true,
+  "sources_verified": 2456
+}

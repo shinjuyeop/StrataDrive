@@ -1,0 +1,45 @@
+{
+  "native": {
+    "cache_sha256": "393959fa023d0f5fb04570bc837162881e5e0f9fe15834c90da7cf9c9b8f2510",
+    "build_flags": [
+      "CMAKE_BUILD_TYPE:STRING=RelWithDebInfo",
+      "CMAKE_CXX_FLAGS:STRING=-O1 -g -fno-omit-frame-pointer",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG",
+      "STRATADRIVE_SANITIZERS:BOOL=OFF",
+      "STRATADRIVE_TSAN:BOOL=OFF"
+    ]
+  },
+  "wall": {
+    "cache_sha256": "decd71e9c950dfbc402223489c36c7733cffef27c980769426e6f605a4bb9a76",
+    "build_flags": [
+      "CMAKE_BUILD_TYPE:STRING=Debug",
+      "CMAKE_CXX_FLAGS:STRING=",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG",
+      "STRATADRIVE_SANITIZERS:BOOL=OFF",
+      "STRATADRIVE_TSAN:BOOL=OFF"
+    ],
+    "binary_sha256": "d3fe88ef11547dfccdf8eb6e427bc577dae7aefe0f5055233dbf01cddd5a4f24"
+  },
+  "asan": {
+    "cache_sha256": "ad4596b27dbe368624e4f3c215d1c9182a200189c20e8baf1f747e46d4cb26b5",
+    "build_flags": [
+      "CMAKE_BUILD_TYPE:STRING=Debug",
+      "CMAKE_CXX_FLAGS:STRING=",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG",
+      "STRATADRIVE_SANITIZERS:BOOL=ON",
+      "STRATADRIVE_TSAN:BOOL=OFF"
+    ]
+  },
+  "tsan": {
+    "cache_sha256": "8a1e64a5795f6e858d5bf28746e04006014a577a5e2950e03bc533dedf9da3fd",
+    "build_flags": [
+      "CMAKE_BUILD_TYPE:STRING=Debug",
+      "CMAKE_CXX_FLAGS:STRING=",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG",
+      "STRATADRIVE_SANITIZERS:BOOL=OFF",
+      "STRATADRIVE_TSAN:BOOL=ON"
+    ]
+  },
+  "compiler": "c++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0",
+  "python": "Python 3.10.12"
+}
