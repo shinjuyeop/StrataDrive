@@ -240,6 +240,33 @@ TEST_F(AsyncOwnerTest, ReadinessRequiresCurrentUsableGrantWithoutRestamping) {
     EXPECT_FALSE(can::bms_permission_allows_normal(*port.current_permission()));
     EXPECT_EQ(std::get<can::BmsDriveGrant>(out.drive_permission.content).expires_at_ns,kStart+30*kMs);
 }
+TEST_F(AsyncOwnerTest, LateUnusedGrantKeepsDueFreshnessAndCurrentSlotSupportSeparate) {
+    central::AsyncCoordinatorPort delayed{clock,gate,*front,*rear,central::CommandRenewal::Host10ms};
+    ASSERT_TRUE(delayed.initialize({3,kStart}));gate.release(3);
+    central::VehicleManagementOutput out;
+    clock.now=kStart+5*kMs;
+    for(auto* m:{&out.power_request,&out.drive_permission}) {
+        m->epoch=3;m->source_time_ns=clock.now;m->local_state=can::ActuatorLocalState::Normal;
+        m->origin=can::ActuatorOrigin::NormalPath;
+    }
+    out.power_request.kind=can::BmsFrameKind::PowerRequest;out.drive_permission.kind=can::BmsFrameKind::DrivePermission;
+    out.power_request.content=can::BmsPowerRequest{can::BmsPowerAction::Enable,kStart+65*kMs,clock.now};
+    out.drive_permission.content=can::BmsDriveGrant{can::BmsDrivePermission::AllowNormal,0,clock.now,clock.now,kStart+30*kMs};
+    out.power_parent=out.permission_parent=can::BmsParentContext{3,0,clock.now,kStart+65*kMs};
+    ASSERT_TRUE(delayed.deliver_power(out));const auto request=rear->work.pop();ASSERT_TRUE(request);
+    can::BmsTxState tx{can::BmsFrameKind::DrivePermission};const auto frame=can::encode_bms_frame(out.drive_permission,tx);ASSERT_TRUE(frame);
+    clock.now=kStart+11*kMs;ack(*rear,*request,true,2);ASSERT_TRUE(rear->feedback.push(*frame));delayed.service();
+    ASSERT_TRUE(delayed.current_permission());
+    EXPECT_TRUE(delayed.allocation_ready(out,kStart+10*kMs,kStart));
+    EXPECT_FALSE(delayed.allocation_ready(out,kStart+10*kMs)); // Legacy caller remains conservative.
+    EXPECT_FALSE(delayed.allocation_ready(out,kStart+10*kMs,kStart+6*kMs)); // Not fresh for this due job.
+    EXPECT_FALSE(delayed.allocation_ready(out,kStart+10*kMs,kStart+11*kMs)); // Invalid release ordering.
+    clock.now=kStart+12*kMs;
+    EXPECT_FALSE(delayed.allocation_ready(out,clock.now,kStart)); // Exactly18ms is insufficient.
+    EXPECT_EQ(delayed.current_permission()->message.source_time_ns,kStart+5*kMs);
+    EXPECT_EQ(std::get<can::BmsDriveGrant>(delayed.current_permission()->message.content).expires_at_ns,kStart+30*kMs);
+    EXPECT_TRUE(gate.allows(3));EXPECT_FALSE(front->work.pop());EXPECT_FALSE(rear->work.pop());
+}
 TEST_F(AsyncOwnerTest, RecordedInsufficientGrantCannotCoverNextTwentyMillisecondRelease) {
     constexpr std::uint64_t release=532747851408166,source=532747855410737,expiry=532747871338563;
     EXPECT_EQ(release+20*kMs-expiry,69603U);

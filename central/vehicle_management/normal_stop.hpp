@@ -37,6 +37,9 @@ public:
     bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
     bool begin(const NormalStopRequest& request, StopIssuerSeed seed, std::uint64_t now_ns);
     StopReceiveResult receive_request(const NormalStopRequest& request, std::uint64_t now_ns);
+    // Observe original deadlines between management releases. This neither
+    // executes a control job nor refreshes its last-tick/authority timestamps.
+    void poll(std::uint64_t now_ns) { advance(now_ns); }
     std::optional<NormalStopPlan> tick(const NormalDriveReadinessInputs& inputs, const VehicleManagementDecision& management, std::uint64_t now_ns);
     bool acknowledge_handoff(const ActuatorStopLease& lease, std::uint64_t now_ns);
     const NormalStopConfig& configuration() const noexcept { return config_; }

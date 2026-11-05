@@ -58,25 +58,65 @@ def judge(d):
             require(cut and int(cut['committed'])>int(cut['acknowledged']) and cut['dropped']==cut['identity_error']=='0','durable unacknowledged source at drain timeout')
             require(result.get('error')=='RuntimeError: source service drain failed front','failure detected from source drain report')
         else:
-            # Allocator's derived request expires between management releases.
-            # It detects native RequestLost first; do not relabel it as a later
-            # NormalStop::RequestLost that never executed.
-            code=0x1002 if fault=='stop-request-loss' else 0x1102
-            roots=[e for e in events if e['kind']==1 and e['epoch']==3 and e['code']==code]
-            require(len(roots)==1 and roots[0]['detected_ns']>=int(stops[0]['ns']), 'original stop detector DTC')
-            root=roots[0];require(not root['_unmapped'],'mapped original detector')
-            if root['native_reason'] in (0x20005,0x20007):
-                detector='central-result-timeout' if root['native_reason']==0x20007 else 'central-result-rejected'
-                matches=[r for r in d['transport'] if r['event']==detector and int(r['token'])==root['_command']['sequence'] and int(r['epoch'])==3]
-                require(len(matches)==1,'original pending transport timeout')
-                original=matches[0]
-                require(int(original['sent'])==root['command_source_ns'] and int(original['deadline'])==root['command_expiry_ns']<=int(original['ns'])<=root['detected_ns'],'original transport token and exclusive deadline')
-                if root['native_reason']==0x20005:
-                    require(fault=='stop-request-loss','late result only qualifies expired original stop authority')
+            # The actual first detector depends on release phase: allocation/
+            # transport can expire first, or NormalStop can observe its root's
+            # original50ms age at the management release. Prove that detector;
+            # never relabel the record or accept an unrelated early fault.
+            codes=(0x1002,0x1105) if fault=='stop-request-loss' else (0x1102,)
+            roots=[e for e in events if e['kind']==1 and e['epoch']==3 and e['code'] in codes]
+            require(1<=len(roots)<=(2 if fault=='stop-request-loss' else 1) and
+                    all(e['detected_ns']>=int(stops[0]['ns']) for e in roots), 'original stop detector DTC')
+            if len(roots)==2:
+                require({(e['code'],e['component'],e['monitor']) for e in roots}==
+                        {(0x1105,2,2),(0x1002,3,3)},'distinct Stop and transport detector records')
+                stop_root=next(e for e in roots if e['code']==0x1105)
+                transport_root=next(e for e in roots if e['code']==0x1002)
+                require(transport_root['native_reason'] in (0x20005,0x20007) and
+                        transport_root['detected_ns']<=stop_root['detected_ns'] and
+                        transport_root['command_expiry_ns']==min(stop_root['command_expiry_ns'],stop_root['command_source_ns']+50000001) and
+                        transport_root['_id'][:2]==stop_root['_id'][:2] and
+                        transport_root['related_sequence']==stop_root['event_sequence'],
+                        'original transport cause precedes and relates to the same Stop observation')
+            for root in roots:
+                require(not root['_unmapped'],'mapped original detector')
+                if root['code']==0x1105:
+                    require(fault=='stop-request-loss' and root['component']==2 and root['monitor']==2 and
+                            root['native_reason']==3 and root['_before']==2 and root['_after']==6,'native NormalStop RequestLost identity/state')
                     starts=[e for e in events if e['epoch']==3 and e['component']==2 and e['kind']==0 and e['_after']==2]
-                    require(len(starts)==1 and root['command_expiry_ns']==min(starts[0]['command_expiry_ns'],starts[0]['command_source_ns']+50000001),'late result bound to original unrenewed stop request')
-                if fault=='stop-ack-loss':require(original['operation']=='5','timeout belongs to actual Stop operation')
-            elif fault=='stop-request-loss':require(root['native_reason']==0x10004,'actual allocator RequestLost root')
+                    issued=[r for r in boot if r['event']=='stop-root-issued' and r['epoch']=='3']
+                    require(len(starts)==len(issued)==1 and root['_command']==starts[0]['_command'],'one original unrenewed stop root')
+                    request=issued[0];source=int(request['value']);expiry=int(request['deadline'])
+                    require(root['command_source_ns']==source and root['command_expiry_ns']==expiry==source+60000000 and
+                            int(stops[0]['ns'])<=source<=int(request['ns'])<=root['detected_ns'] and
+                            root['detected_ns']>=min(expiry,source+50000001),'original StopRequest source/expiry and age violation')
+                    owner=[r for r in boot if r['event']=='central-fault' and r['epoch']=='3']
+                    require(len(owner)==1 and owner[0]['value']=='6' and int(owner[0]['ns'])>=root['detected_ns'],'actual coordinator Stop propagation')
+                elif root['native_reason'] in (0x20005,0x20007):
+                    detector='central-result-timeout' if root['native_reason']==0x20007 else 'central-result-rejected'
+                    matches=[r for r in d['transport'] if r['event']==detector and int(r['token'])==root['_command']['sequence'] and int(r['epoch'])==3]
+                    require(len(matches)==1,'original pending transport timeout')
+                    original=matches[0]
+                    require(int(original['sent'])==root['command_source_ns'] and int(original['deadline'])==root['command_expiry_ns']<=int(original['ns'])<=root['detected_ns'],'original transport token and exclusive deadline')
+                    if root['native_reason']==0x20005:
+                        require(fault=='stop-request-loss','late result only qualifies expired original stop authority')
+                        starts=[e for e in events if e['epoch']==3 and e['component']==2 and e['kind']==0 and e['_after']==2]
+                        require(len(starts)==1 and root['command_expiry_ns']==min(starts[0]['command_expiry_ns'],starts[0]['command_source_ns']+50000001),'late result bound to original unrenewed stop request')
+                    if fault=='stop-ack-loss':require(original['operation']=='5','timeout belongs to actual Stop operation')
+                elif fault=='stop-request-loss':require(root['native_reason']==0x10004,'actual allocator RequestLost root')
+            if fault=='stop-request-loss':
+                stop_roots=[e for e in roots if e['code']==0x1105]
+                owner=[r for r in boot if r['event']=='central-fault' and r['epoch']=='3']
+                if any(r['value']=='6' for r in owner):
+                    require(len(stop_roots)==1,'actual Coordinator Stop must retain its native Stop DTC')
+                if stop_roots:
+                    stop_root=stop_roots[0]
+                    cut=min(stop_root['command_expiry_ns'],stop_root['command_source_ns']+50000001)
+                    earlier=[r for r in d['transport'] if r['event'] in ('central-result-rejected','central-result-timeout') and
+                             r['epoch']=='3' and int(r['deadline'])==cut and cut<=int(r['ns'])<=stop_root['detected_ns']]
+                    if earlier:
+                        first=min(earlier,key=lambda r:int(r['ns']))
+                        require(any(e['code']==0x1002 and e['_command']['sequence']==int(first['token']) for e in roots),
+                                'earlier original transport failure must not disappear from diagnostic history')
             name='service-stop-renewal-omitted' if fault=='stop-request-loss' else 'service-stop-ack-omitted'
             owner='central' if fault=='stop-request-loss' else 'front'
             require(any(r['event']==name and r['epoch']=='3' for r in d['owners'][owner]), 'actual declared stop lane injection')
@@ -100,6 +140,20 @@ def mutations(data):
     if fault=='stop-request-loss' and any(event(b)['native_reason']==0x20005 for b in data['merged']['rows']):
         changes += [('original-deadline',lambda d:[r.__setitem__('deadline',str(int(r['deadline'])+1)) for r in d['transport']]),
                     ('before-expiry',lambda d:[r.__setitem__('ns',str(max(0,int(r['deadline'])-1))) for r in d['transport']])]
+    if fault=='stop-request-loss' and any(event(b)['code']==0x1105 for b in data['merged']['rows']):
+        changes += [('stop-source',lambda d:[r.__setitem__('value',str(int(r['value'])+1)) for r in d['owners']['central'] if r['event']=='stop-root-issued']),
+                    ('stop-expiry',lambda d:[r.__setitem__('deadline',str(int(r['deadline'])+1)) for r in d['owners']['central'] if r['event']=='stop-root-issued']),
+                    ('stop-repeated',lambda d:d['owners']['central'].extend(copy.deepcopy([r for r in d['owners']['central'] if r['event']=='stop-root-issued']))),
+                    ('wrong-propagation',lambda d:[r.__setitem__('value','12') for r in d['owners']['central'] if r['event']=='central-fault'])]
+    epoch_roots=[event(b) for b in data['merged']['rows'] if event(b)['epoch']==3 and event(b)['kind']==1]
+    if fault=='stop-request-loss' and {0x1002,0x1105}.issubset({e['code'] for e in epoch_roots}):
+        def remove_root(d,code):
+            d['merged']['rows']=[b for b in d['merged']['rows'] if not
+                                (event(b)['epoch']==3 and event(b)['kind']==1 and event(b)['code']==code)]
+        changes += [('missing-stop-root',lambda d:remove_root(d,0x1105)),
+                    ('missing-transport-root',lambda d:remove_root(d,0x1002)),
+                    ('duplicate-stop-root',lambda d:d['merged']['rows'].append(next(b for b in d['merged']['rows'] if
+                     event(b)['epoch']==3 and event(b)['kind']==1 and event(b)['code']==0x1105)))]
     for name,mutate in changes:
         changed=copy.deepcopy(data);mutate(changed)
         try:judge(changed)

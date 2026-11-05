@@ -17,6 +17,9 @@ find_package(GTest 1.11.0 EXACT CONFIG REQUIRED)
 stratadrive_unit_test(diagnostics_test
     SOURCES tests/unit/diagnostics_test.cpp
     LIBRARIES diagnostics Threads::Threads)
+stratadrive_unit_test(owner_schedule_test
+    SOURCES tests/unit/owner_schedule_test.cpp
+    LIBRARIES Threads::Threads)
 stratadrive_unit_test(diagnostic_binding_test
     SOURCES tests/unit/diagnostic_binding_test.cpp
     LIBRARIES diagnostics_wire)

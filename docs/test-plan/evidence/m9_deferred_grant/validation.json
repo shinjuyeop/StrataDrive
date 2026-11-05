@@ -1,0 +1,148 @@
+[
+  {
+    "name": "normal-configure",
+    "command": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build/m1-angle"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "normal-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "normal-test",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-configure",
+    "command": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build/m1-angle-sanitized"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle-sanitized",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-test",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle-sanitized",
+      "--output-on-failure"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-configure",
+    "command": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build/m9-service-timing/tsan-unit"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m9-service-timing/tsan-unit",
+      "--parallel",
+      "2",
+      "--target",
+      "vehicle_coordinator_test",
+      "normal_stop_test",
+      "m4_async_runtime_test",
+      "async_owner_test",
+      "owner_schedule_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-test",
+    "command": [
+      "setarch",
+      "x86_64",
+      "-R",
+      "ctest",
+      "--test-dir",
+      "build/m9-service-timing/tsan-unit",
+      "--output-on-failure",
+      "-R",
+      "Coordinator|NormalStop|M4Async|M4Refresh|OwnerSchedule|AsyncOwnerTest|AsyncZoneOwnerTest"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "normal-adapter",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m5-someip-normal/project",
+      "--target",
+      "someip_front_adapter",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "asan-adapter",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m5-someip-asan/project",
+      "--target",
+      "someip_front_adapter",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tsan-adapter",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m5-someip-tsan/project",
+      "--target",
+      "someip_front_adapter",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  }
+]

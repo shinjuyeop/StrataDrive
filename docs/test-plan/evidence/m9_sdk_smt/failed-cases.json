@@ -1,0 +1,532 @@
+[
+  {
+    "cohort": "m9-release-slot",
+    "case": "tsan-ack-loss-r2",
+    "error": "RuntimeError: Central exited before service startup request",
+    "sdk_errors": [],
+    "owner_faults": [
+      {
+        "file": "central-2.events.csv",
+        "ns": "825524904286485",
+        "event": "central-fault",
+        "epoch": "2",
+        "role": "7",
+        "value": "12",
+        "deadline": "6"
+      },
+      {
+        "file": "central-2.events.csv",
+        "ns": "825524904287083",
+        "event": "central-allocation-fault",
+        "epoch": "2",
+        "role": "7",
+        "value": "13",
+        "deadline": "3"
+      }
+    ],
+    "transport_faults": [
+      {
+        "file": "central-2.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "825524903275715",
+        "peer": "1",
+        "epoch": "2",
+        "token": "484",
+        "sent": "825524902352630",
+        "deadline": "825524922352630",
+        "operation": "3",
+        "decision": "-1",
+        "source": "825524902832835",
+        "original_source": "825524898708084",
+        "inner_deadline": "825524924398137",
+        "payload_source": "825524901424185"
+      }
+    ]
+  },
+  {
+    "cohort": "m9-release-slot",
+    "case": "tsan-normal-r3",
+    "error": "RuntimeError: Central exited before Epoch3 normal stop",
+    "sdk_errors": [],
+    "owner_faults": [
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "825567348341480",
+        "event": "central-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "12",
+        "deadline": "6"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "825567348342176",
+        "event": "central-allocation-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "13",
+        "deadline": "3"
+      }
+    ],
+    "transport_faults": [
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "825567348319641",
+        "peer": "1",
+        "epoch": "3",
+        "token": "460",
+        "sent": "825567347342144",
+        "deadline": "825567358705548",
+        "operation": "3",
+        "decision": "-1",
+        "source": "825567347742673",
+        "original_source": "825567341683963",
+        "inner_deadline": "825567358705548",
+        "payload_source": "825567346172077"
+      }
+    ]
+  },
+  {
+    "cohort": "m9-release-slot",
+    "case": "tsan-stop-request-loss-r3",
+    "error": "RuntimeError: Central exited before Epoch3 normal stop",
+    "sdk_errors": [],
+    "owner_faults": [
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "825595988111863",
+        "event": "central-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "9",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "825595988112542",
+        "event": "central-allocation-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "4",
+        "deadline": "3"
+      }
+    ],
+    "transport_faults": [
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-timeout",
+        "ns": "825595988469977",
+        "peer": "1",
+        "epoch": "3",
+        "token": "420",
+        "sent": "825595988032777",
+        "deadline": "825595988076614",
+        "operation": "0",
+        "decision": "-1",
+        "source": "0",
+        "original_source": "825595988017901",
+        "inner_deadline": "825595988076614",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "825595990193696",
+        "peer": "1",
+        "epoch": "3",
+        "token": "420",
+        "sent": "825595988032777",
+        "deadline": "825595988076614",
+        "operation": "0",
+        "decision": "-1",
+        "source": "825595989468553",
+        "original_source": "825595988017901",
+        "inner_deadline": "825595988076614",
+        "payload_source": "0"
+      }
+    ]
+  },
+  {
+    "cohort": "m9-sdk-smt",
+    "case": "tsan-normal",
+    "error": null,
+    "sdk_errors": [
+      {
+        "file": "rear-1.stdout",
+        "line": 70,
+        "text": "2026-11-05 00:53:55.530080 rear [error] tcei::write_completion_condition: Broken pipe(32) bytes transferred: 0 bytes to sent: 117 remote:10.88.0.1:30507 (1522): [534a.0070.0373]"
+      }
+    ],
+    "owner_faults": [],
+    "transport_faults": []
+  },
+  {
+    "cohort": "m9-sdk-smt",
+    "case": "tsan-stop-request-loss",
+    "error": "RuntimeError: Central exited before Epoch3 normal stop",
+    "sdk_errors": [],
+    "owner_faults": [
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "826145707077325",
+        "event": "central-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "9",
+        "deadline": "0"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "826145707078099",
+        "event": "central-allocation-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "13",
+        "deadline": "3"
+      }
+    ],
+    "transport_faults": [
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-timeout",
+        "ns": "826145707433920",
+        "peer": "1",
+        "epoch": "3",
+        "token": "423",
+        "sent": "826145707016824",
+        "deadline": "826145707061525",
+        "operation": "0",
+        "decision": "-1",
+        "source": "0",
+        "original_source": "826145706999994",
+        "inner_deadline": "826145707061525",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826145709091983",
+        "peer": "1",
+        "epoch": "3",
+        "token": "423",
+        "sent": "826145707016824",
+        "deadline": "826145707061525",
+        "operation": "0",
+        "decision": "-1",
+        "source": "826145708380983",
+        "original_source": "826145706999994",
+        "inner_deadline": "826145707061525",
+        "payload_source": "0"
+      }
+    ]
+  },
+  {
+    "cohort": "m9-sdk-smt",
+    "case": "tsan-normal-slow-signals-r2",
+    "error": "RuntimeError: Central exited before Epoch3 normal stop",
+    "sdk_errors": [],
+    "owner_faults": [
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "826222459785371",
+        "event": "central-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "12",
+        "deadline": "6"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "826222459786068",
+        "event": "central-allocation-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "13",
+        "deadline": "3"
+      }
+    ],
+    "transport_faults": [
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826222459759983",
+        "peer": "1",
+        "epoch": "3",
+        "token": "328",
+        "sent": "826222456010230",
+        "deadline": "826222476010230",
+        "operation": "1",
+        "decision": "-1",
+        "source": "826222459329158",
+        "original_source": "826222455991166",
+        "inner_deadline": "826222515991166",
+        "payload_source": "0"
+      }
+    ]
+  },
+  {
+    "cohort": "m9-sdk-smt",
+    "case": "tsan-ack-loss-r3",
+    "error": "RuntimeError: Central exited before Epoch3 normal stop",
+    "sdk_errors": [],
+    "owner_faults": [
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "826237101564448",
+        "event": "central-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "11",
+        "deadline": "7"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "826237101593440",
+        "event": "central-allocation-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "0",
+        "deadline": "4"
+      }
+    ],
+    "transport_faults": [
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-timeout",
+        "ns": "826237101420035",
+        "peer": "1",
+        "epoch": "3",
+        "token": "565",
+        "sent": "826237088407550",
+        "deadline": "826237101289221",
+        "operation": "2",
+        "decision": "-1",
+        "source": "0",
+        "original_source": "826237088229374",
+        "inner_deadline": "826237137543546",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826237110178930",
+        "peer": "1",
+        "epoch": "3",
+        "token": "564",
+        "sent": "826237088203039",
+        "deadline": "826237108203039",
+        "operation": "0",
+        "decision": "-1",
+        "source": "826237099662284",
+        "original_source": "826237088120211",
+        "inner_deadline": "826237137543546",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826237110670295",
+        "peer": "1",
+        "epoch": "3",
+        "token": "565",
+        "sent": "826237088407550",
+        "deadline": "826237101289221",
+        "operation": "2",
+        "decision": "-1",
+        "source": "826237101414183",
+        "original_source": "826237088229374",
+        "inner_deadline": "826237137543546",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826237113546161",
+        "peer": "1",
+        "epoch": "3",
+        "token": "567",
+        "sent": "826237088481898",
+        "deadline": "826237108481898",
+        "operation": "1",
+        "decision": "-1",
+        "source": "826237101485843",
+        "original_source": "826237088120211",
+        "inner_deadline": "826237137543546",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826237116352716",
+        "peer": "1",
+        "epoch": "3",
+        "token": "568",
+        "sent": "826237097485590",
+        "deadline": "826237117485590",
+        "operation": "0",
+        "decision": "-1",
+        "source": "826237103357982",
+        "original_source": "826237097393771",
+        "inner_deadline": "826237137543546",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826237117219677",
+        "peer": "1",
+        "epoch": "3",
+        "token": "569",
+        "sent": "826237097690834",
+        "deadline": "826237113199044",
+        "operation": "2",
+        "decision": "-1",
+        "source": "826237105239229",
+        "original_source": "826237097514166",
+        "inner_deadline": "826237137543546",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826237118964041",
+        "peer": "1",
+        "epoch": "3",
+        "token": "571",
+        "sent": "826237097777244",
+        "deadline": "826237117777244",
+        "operation": "5",
+        "decision": "-1",
+        "source": "826237106863710",
+        "original_source": "826237087543545",
+        "inner_deadline": "826237137543546",
+        "payload_source": "0"
+      }
+    ]
+  },
+  {
+    "cohort": "m9-sdk-smt",
+    "case": "tsan-actual-loss-r3",
+    "error": "RuntimeError: Central exited before Epoch3 normal stop",
+    "sdk_errors": [],
+    "owner_faults": [
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "826246117938281",
+        "event": "central-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "12",
+        "deadline": "7"
+      },
+      {
+        "file": "central-2-service.events.csv",
+        "ns": "826246117941337",
+        "event": "central-allocation-fault",
+        "epoch": "3",
+        "role": "7",
+        "value": "0",
+        "deadline": "4"
+      }
+    ],
+    "transport_faults": [
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-timeout",
+        "ns": "826246117691055",
+        "peer": "1",
+        "epoch": "3",
+        "token": "638",
+        "sent": "826246097270001",
+        "deadline": "826246117270001",
+        "operation": "0",
+        "decision": "-1",
+        "source": "0",
+        "original_source": "826246097194904",
+        "inner_deadline": "826246136969324",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826246119583058",
+        "peer": "1",
+        "epoch": "3",
+        "token": "638",
+        "sent": "826246097270001",
+        "deadline": "826246117270001",
+        "operation": "0",
+        "decision": "-1",
+        "source": "826246105730942",
+        "original_source": "826246097194904",
+        "inner_deadline": "826246136969324",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826246119603443",
+        "peer": "1",
+        "epoch": "3",
+        "token": "639",
+        "sent": "826246097404728",
+        "deadline": "826246117404728",
+        "operation": "2",
+        "decision": "-1",
+        "source": "826246106586398",
+        "original_source": "826246097298304",
+        "inner_deadline": "826246136969324",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826246128045012",
+        "peer": "1",
+        "epoch": "3",
+        "token": "640",
+        "sent": "826246107353607",
+        "deadline": "826246127353607",
+        "operation": "0",
+        "decision": "-1",
+        "source": "826246117123020",
+        "original_source": "826246107280002",
+        "inner_deadline": "826246157194214",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826246132402616",
+        "peer": "1",
+        "epoch": "3",
+        "token": "641",
+        "sent": "826246107489104",
+        "deadline": "826246127489104",
+        "operation": "2",
+        "decision": "-1",
+        "source": "826246120297756",
+        "original_source": "826246107382863",
+        "inner_deadline": "826246157194214",
+        "payload_source": "0"
+      },
+      {
+        "file": "central-2-service.transport.csv",
+        "event": "central-result-rejected",
+        "ns": "826246133481909",
+        "peer": "1",
+        "epoch": "3",
+        "token": "643",
+        "sent": "826246107596794",
+        "deadline": "826246127596794",
+        "operation": "5",
+        "decision": "-1",
+        "source": "826246123500786",
+        "original_source": "826246107194213",
+        "inner_deadline": "826246157194214",
+        "payload_source": "0"
+      }
+    ]
+  }
+]

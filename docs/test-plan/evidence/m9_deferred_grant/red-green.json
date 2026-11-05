@@ -1,0 +1,51 @@
+[
+  {
+    "name": "red-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--target",
+      "async_owner_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "red",
+    "command": [
+      "build/m1-angle/async_owner_test",
+      "--gtest_filter=AsyncOwnerTest.LateUnusedGrant*"
+    ],
+    "exit": 1
+  },
+  {
+    "name": "green-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--target",
+      "async_owner_test",
+      "vehicle_coordinator_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "green-async",
+    "command": [
+      "build/m1-angle/async_owner_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "green-coordinator",
+    "command": [
+      "build/m1-angle/vehicle_coordinator_test"
+    ],
+    "exit": 0
+  }
+]

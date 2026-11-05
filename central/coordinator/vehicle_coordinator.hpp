@@ -37,9 +37,16 @@ public:
     virtual void observe_permission(const PermissionSupport&,const can::BmsMessage&) noexcept {}
     virtual bool deliver_power(const VehicleManagementOutput& output) noexcept = 0;
     // False defers this due release without constructing/queueing a replacement
-    // command. Resume from current inputs; do not advance nominal release or
-    // renew transport/command authority while waiting.
+    // command. Resume from current inputs and qualify the current nominal slot
+    // after missed releases; never renew transport/command authority while waiting.
     virtual bool allocation_ready(const VehicleManagementOutput&,std::uint64_t) noexcept { return true; }
+    // Freshness is measured from the original waiting release; remaining
+    // authority must support the current execution slot. Existing ports keep
+    // their conservative single-release check unless they implement both.
+    virtual bool allocation_ready(const VehicleManagementOutput& output,std::uint64_t current_release,
+                                  std::uint64_t /*due_release*/) noexcept {
+        return allocation_ready(output,current_release);
+    }
     virtual bool commands_settled() const noexcept { return true; }
     virtual std::optional<can::BmsCurrentSample> current_permission() noexcept = 0;
     // Async ingress can still contain an older issued grant. Its independently
@@ -81,7 +88,7 @@ struct ProtectionObservation {
 // input. tick uses independently validated current samples from this cycle.
 class VehicleCoordinator {
 public:
-    explicit VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution execution = {}, AllocationConfig allocation = {}, NormalStopConfig stop = {});
+    explicit VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution execution = {}, const AllocationConfig& allocation = {}, NormalStopConfig stop = {});
     bool start_session(CoordinatorSession session);
     CoordinatorReceive receive_lifecycle(const LifecycleRequest& root, std::uint64_t now_ns);
     CoordinatorReceive receive_vehicle(const VehicleRequest& root, std::uint64_t now_ns,

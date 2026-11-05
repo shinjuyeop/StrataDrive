@@ -1,0 +1,51 @@
+[
+  {
+    "name": "red-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--target",
+      "vehicle_coordinator_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "red",
+    "command": [
+      "build/m1-angle/vehicle_coordinator_test",
+      "--gtest_filter=CoordinatorTest.StopAgeBetweenManagement*"
+    ],
+    "exit": 1
+  },
+  {
+    "name": "green-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m1-angle",
+      "--target",
+      "vehicle_coordinator_test",
+      "normal_stop_test",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "green-coordinator",
+    "command": [
+      "build/m1-angle/vehicle_coordinator_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "green-stop",
+    "command": [
+      "build/m1-angle/normal_stop_test"
+    ],
+    "exit": 0
+  }
+]

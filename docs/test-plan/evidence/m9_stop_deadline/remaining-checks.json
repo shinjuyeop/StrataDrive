@@ -1,0 +1,63 @@
+[
+  {
+    "name": "static",
+    "command": [
+      "python3",
+      "build/m9-stop-poll/static.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "sdk-stages-python",
+    "command": [
+      "python3",
+      "tests/unit/sdk_stages_test.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "carla-python",
+    "command": [
+      "python3",
+      "tests/unit/carla_evidence_test.py"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "carla-configure",
+    "command": [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build/m7-functional"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "carla-build",
+    "command": [
+      "cmake",
+      "--build",
+      "build/m7-functional",
+      "--parallel",
+      "2",
+      "--target",
+      "m7_functional_test",
+      "m7_wheel_test",
+      "m7_external_test",
+      "m7_native_admission_test",
+      "m7_plant_contract_test",
+      "m7_effort_contract_test"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "carla-test",
+    "command": [
+      "python3",
+      "build/m9-stop-poll/carla-all-targets.py"
+    ],
+    "exit": 0
+  }
+]

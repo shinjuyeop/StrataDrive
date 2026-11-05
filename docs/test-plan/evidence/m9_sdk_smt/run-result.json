@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python3",
+    "tests/integration/someip/service_timing_campaign.py",
+    "build/m9-sdk-smt/service-campaign",
+    "--split-owner-io",
+    "--separate-aux-io",
+    "--owner-fifo",
+    "--sdk-smt",
+    "--tsan-repeats",
+    "3",
+    "--response-audit",
+    "--defer-audits"
+  ],
+  "begin_ns": 826029911730881,
+  "end_ns": 826430969263818,
+  "exit": 1
+}

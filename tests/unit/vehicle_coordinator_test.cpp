@@ -82,6 +82,141 @@ TEST(Coordinator, BeforeTrustedInitNoPortsOrOutputsAreUsed) {
     EXPECT_EQ(c.receive_lifecycle({{3,0,kStart,kStart+60*kMs},can::BmsPowerAction::Enable},kStart),central::CoordinatorReceive::NotInitialized);
     EXPECT_TRUE(port.events.empty()); EXPECT_FALSE(c.start_session({0,kStart}));
 }
+TEST_F(CoordinatorTest, StopAgeBetweenManagementReleasesKeepsOriginalRootAndImmediateDiagnosticCause) {
+    diagnostics::EventQueue queue(10,20);diagnostics::ControlDiagnostics hook(queue,{10,20,diagnostics::Domain::Simulation,7,1});
+    ASSERT_TRUE(hook.start_session(3,kStart));
+    normal();port.now=ns(41);const auto original=stop(41);
+    ASSERT_EQ(coordinator.receive_stop(original,port.now),central::CoordinatorReceive::Accepted);
+    for(unsigned t:{50U,60U,70U,80U,90U})tick(t);
+    ASSERT_EQ(coordinator.decision().fault,central::CoordinatorFault::None);
+    const auto jobs=port.commands.size(),powers=port.lifecycles.size();
+    port.now=ns(91);coordinator.tick(inputs(91),port.now,false);
+    EXPECT_EQ(coordinator.decision().fault,central::CoordinatorFault::None);
+    // No new management job is due. The original50ms age is exclusive here.
+    port.now=ns(91)+1;coordinator.tick(inputs(91),port.now,false);
+    EXPECT_EQ(coordinator.decision().fault,central::CoordinatorFault::Stop);
+    EXPECT_EQ(coordinator.decision().stop.fault,central::NormalStopFault::RequestLost);
+    EXPECT_TRUE(coordinator.decision().protection_selected);
+    EXPECT_EQ(port.commands.size(),jobs);EXPECT_EQ(port.lifecycles.size(),powers);
+    const auto& fault=coordinator.normal_stop().fault_observations()[0];
+    ASSERT_TRUE(fault);ASSERT_TRUE(fault->request);
+    EXPECT_EQ(fault->observed_ns,ns(91)+1);
+    EXPECT_EQ(fault->request->identity.source_time_ns,original.identity.source_time_ns);
+    EXPECT_EQ(fault->request->identity.expires_at_ns,original.identity.expires_at_ns);
+    hook.observe(coordinator,ns(92));hook.observe(coordinator,ns(93));
+    diagnostics::Ledger ledger;diagnostics::Event event;std::optional<diagnostics::Event> root_event;
+    while(queue.pop(event)) {
+        ASSERT_EQ(ledger.record(event),diagnostics::Result::Accepted);
+        if(event.kind==diagnostics::Kind::Fault)root_event=event;
+    }
+    ASSERT_EQ(ledger.records().size(),1U);ASSERT_TRUE(root_event);
+    EXPECT_EQ(static_cast<unsigned>(root_event->key.code),0x1105U);
+    EXPECT_EQ(root_event->times[2].ns,ns(91)+1);
+    EXPECT_EQ(root_event->command.source.ns,original.identity.source_time_ns);
+    EXPECT_EQ(root_event->command.expiry.ns,original.identity.expires_at_ns);
+    EXPECT_EQ(ledger.records()[0].count,1U);
+}
+TEST(Coordinator, DeferredExternalAllocationCannotAdmitAStaleReleaseAndThenSkipTheCurrentSlot) {
+    struct DeferredPort final:Port {
+        bool withheld{false};std::uint64_t checked_release{0};
+        bool allocation_ready(const central::VehicleManagementOutput& out,std::uint64_t release) noexcept override {
+            checked_release=release;
+            const auto& grant=std::get<can::BmsDriveGrant>(out.drive_permission.content);
+            return !withheld && grant.expires_at_ns>release+18*kMs;
+        }
+    } port;
+    central::VehicleCoordinator core(port,{true,central::CommandRenewal::Host10ms});
+    ASSERT_TRUE(core.start_session({3,kStart}));
+    for(unsigned t:{10U,20U}) {
+        port.withheld=t==20;port.now=ns(t);
+        ASSERT_EQ(core.receive_lifecycle({{3,t/10-1,ns(t),ns(t+60)},can::BmsPowerAction::Enable},port.now),central::CoordinatorReceive::Accepted);
+        auto in=feedback(t,t==20);
+        if(t==20)in.front.steering_actual->source_time_ns=ns(9);
+        if(port.sent_power){in.rear.power_status->message.causal_sequence=port.sent_power->power_request.sequence;
+            std::get<can::BmsPowerStatus>(in.rear.power_status->message.content).accepted_request_source_time_ns=port.sent_power->power_request.source_time_ns;}
+        ASSERT_TRUE(core.tick(in,port.now));
+    }
+    ASSERT_TRUE(core.decision().normal_armed);
+    ASSERT_EQ(core.receive_vehicle({3,0,ns(20),ns(80),.2,0,0,false},port.now),central::CoordinatorReceive::Accepted);
+    // The 20ms grant is delivered only after the 30ms allocation slot starts.
+    // Its original39ms+1 expiry supports20ms+18ms but not30ms+18ms.
+    // It must not qualify against the older waiting slot and then record30ms.
+    ASSERT_EQ(std::get<can::BmsDriveGrant>(port.sent_power->drive_permission.content).expires_at_ns,ns(39)+1);
+    port.withheld=false;port.now=ns(34);
+    core.tick(feedback(34,true),port.now,false);
+    EXPECT_EQ(port.checked_release,ns(30));
+    EXPECT_TRUE(port.commands.empty());
+    EXPECT_EQ(core.decision().fault,central::CoordinatorFault::None);
+    // A genuinely new management grant and request can serve the current slot.
+    port.now=ns(36);
+    ASSERT_EQ(core.receive_lifecycle({{3,2,ns(36),ns(96)},can::BmsPowerAction::Enable},port.now),central::CoordinatorReceive::Accepted);
+    ASSERT_EQ(core.receive_vehicle({3,1,ns(36),ns(96),.2,0,0,false},port.now),central::CoordinatorReceive::Accepted);
+    auto in=feedback(36,true);in.rear.power_status->message.causal_sequence=port.sent_power->power_request.sequence;
+    std::get<can::BmsPowerStatus>(in.rear.power_status->message.content).accepted_request_source_time_ns=port.sent_power->power_request.source_time_ns;
+    core.tick(in,port.now);
+    ASSERT_EQ(port.commands.size(),1U);EXPECT_EQ(port.checked_release,ns(30));
+    EXPECT_EQ(port.commands.back().parent.source_time_ns,ns(36));
+    EXPECT_EQ(core.next_allocation_ns(),ns(40));
+}
+TEST(Coordinator, DeferredAllocationPassesOriginalDueAndCurrentReleaseWithoutReusingACompletedJob) {
+    struct DelayedPort final:Port {
+        bool withheld{false};std::uint64_t checked_due{0},checked_release{0};
+        bool allocation_ready(const central::VehicleManagementOutput& out,std::uint64_t release,std::uint64_t due) noexcept override {
+            checked_due=due;checked_release=release;
+            return !withheld && out.drive_permission.source_time_ns>=due &&
+                std::get<can::BmsDriveGrant>(out.drive_permission.content).expires_at_ns>release+18*kMs;
+        }
+    } port;
+    central::VehicleCoordinator core(port,{true,central::CommandRenewal::Host10ms});
+    ASSERT_TRUE(core.start_session({3,kStart}));
+    for(unsigned t:{10U,20U}) {
+        port.withheld=t==20;port.now=ns(t);
+        ASSERT_EQ(core.receive_lifecycle({{3,t/10-1,ns(t),ns(t+60)},can::BmsPowerAction::Enable},port.now),central::CoordinatorReceive::Accepted);
+        auto in=feedback(t,t==20);
+        if(port.sent_power){in.rear.power_status->message.causal_sequence=port.sent_power->power_request.sequence;
+            std::get<can::BmsPowerStatus>(in.rear.power_status->message.content).accepted_request_source_time_ns=port.sent_power->power_request.source_time_ns;}
+        core.tick(in,port.now);
+    }
+    ASSERT_TRUE(core.decision().normal_armed);
+    ASSERT_EQ(core.receive_vehicle({3,0,ns(20),ns(80),.2,0,0,false},port.now),central::CoordinatorReceive::Accepted);
+    port.withheld=false;port.now=ns(34);core.tick(feedback(34,true),port.now,false);
+    EXPECT_EQ(port.checked_due,ns(20));EXPECT_EQ(port.checked_release,ns(30));
+    EXPECT_GT(std::get<can::BmsDriveGrant>(port.sent_power->drive_permission.content).expires_at_ns,ns(48));
+    EXPECT_EQ(core.decision().fault,central::CoordinatorFault::None);
+    ASSERT_EQ(port.commands.size(),1U);EXPECT_EQ(port.checked_due,ns(20));EXPECT_EQ(port.checked_release,ns(30));
+    EXPECT_EQ(core.next_allocation_ns(),ns(40));
+    EXPECT_EQ(port.commands.back().parent.source_time_ns,ns(20));
+    port.now=ns(40);core.tick(feedback(40,true),port.now,false);
+    EXPECT_EQ(port.checked_due,ns(40));EXPECT_EQ(port.commands.size(),1U);
+}
+TEST(Coordinator, PermissionCallbackCrossingAReleaseCannotMoveAnAlreadyCheckedJobToThatSlot) {
+    struct DelayedPort final:Port {
+        std::uint64_t delay{0};
+        std::optional<can::BmsCurrentSample> current_permission() noexcept override {
+            auto sample=Port::current_permission();now+=delay;return sample;
+        }
+    } port;
+    central::VehicleCoordinator core(port,{true,central::CommandRenewal::Host10ms});
+    ASSERT_TRUE(core.start_session({3,kStart}));
+    const auto input=[&](unsigned t) {
+        auto in=feedback(t,t>=20);
+        if(port.sent_power){in.rear.power_status->message.causal_sequence=port.sent_power->power_request.sequence;
+            std::get<can::BmsPowerStatus>(in.rear.power_status->message.content).accepted_request_source_time_ns=port.sent_power->power_request.source_time_ns;}
+        return in;
+    };
+    for(unsigned t:{10U,20U}) {
+        port.now=ns(t);
+        ASSERT_EQ(core.receive_lifecycle({{3,t/10-1,ns(t),ns(t+60)},can::BmsPowerAction::Enable},port.now),central::CoordinatorReceive::Accepted);
+        core.tick(input(t),port.now);
+    }
+    ASSERT_TRUE(core.decision().normal_armed);
+    ASSERT_EQ(core.receive_vehicle({3,0,ns(20),ns(80),.2,0,0,false},port.now),central::CoordinatorReceive::Accepted);
+    port.now=ns(34);port.delay=7*kMs;
+    core.tick(input(34),port.now);
+    EXPECT_EQ(port.now,ns(41));EXPECT_TRUE(port.commands.empty());
+    EXPECT_EQ(core.decision().fault,central::CoordinatorFault::None);
+    EXPECT_EQ(core.next_allocation_ns(),ns(30));
+}
 TEST(Coordinator, ExplicitMassRadiusAndDerivedProvenanceReachAllocation) {
     for(bool calibrated:{false,true}) {
         Port port;central::AllocationConfig config;

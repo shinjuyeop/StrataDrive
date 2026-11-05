@@ -1,0 +1,30 @@
+[
+  {
+    "archive": "m9_deferred_grant/tsan-r1.tar.gz",
+    "case": "tsan-normal",
+    "reader": "audit_native_service.py",
+    "expected_exit": 0,
+    "exit": 0
+  },
+  {
+    "archive": "m9_deferred_grant/tsan-r2.tar.gz",
+    "case": "tsan-stop-request-loss-r2",
+    "reader": "audit_native_service_faults.py",
+    "expected_exit": 0,
+    "exit": 0
+  },
+  {
+    "archive": "m9_deferred_grant/asan-r1.tar.gz",
+    "case": "asan-normal",
+    "reader": "audit_native_service.py",
+    "expected_exit": 1,
+    "exit": 1
+  },
+  {
+    "archive": "m9_stop_deadline/tsan-r2.tar.gz",
+    "case": "tsan-actual-loss-r2",
+    "reader": "audit_service_response.py",
+    "expected_exit": 1,
+    "exit": 1
+  }
+]

@@ -30,6 +30,13 @@ def main():
     cases += [(p,'normal',250,1) for p in ('normal','asan','tsan')]
     for repeat in range(2,args.tsan_repeats+1):cases += [('tsan',f,0,repeat) for f in faults]+[('tsan','normal',250,repeat)]
     files=[HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',HERE/'run.py',Path(__file__),
+           HERE/'owner_schedule.hpp',ROOT/'tests/unit/owner_schedule_test.cpp',ROOT/'docs/test-plan/owner-input-phase-protocol.md',
+           ROOT/'central/coordinator/vehicle_coordinator.cpp',ROOT/'central/coordinator/vehicle_coordinator.hpp',
+           ROOT/'tests/unit/vehicle_coordinator_test.cpp',ROOT/'docs/test-plan/allocation-release-protocol.md',
+           ROOT/'central/vehicle_management/normal_stop.hpp',ROOT/'tests/unit/normal_stop_test.cpp',
+           ROOT/'docs/test-plan/stop-deadline-poll-protocol.md',
+           ROOT/'docs/test-plan/deferred-grant-protocol.md',ROOT/'tests/unit/async_owner_test.cpp',
+           ROOT/'docs/test-plan/deferred-grant-confirmation-protocol.md',
            HERE/'kernel_capture.py',ROOT/'docs/test-plan/sdk-io-threads-protocol.md',ROOT/'tests/unit/sdk_stages_test.py',
            HERE/'sdk_outcomes.py',HERE/'native_oracle.py',HERE/'fixture_placement.hpp',HERE/'fixture_placement.py',
            HERE/'native_diagnostic_routes.cpp',HERE/'native_continuity_service.cpp',

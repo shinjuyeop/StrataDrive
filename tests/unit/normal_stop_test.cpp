@@ -52,6 +52,18 @@ TEST_F(NormalStopTest, BrakingKeepsEnableAndUsesBoundedChildrenFromContinuedIssu
     EXPECT_LT(out.vehicle->acceleration_mps2,0); EXPECT_TRUE(out.vehicle->standstill_hold); EXPECT_FALSE(out.handoff_required);
     EXPECT_LE(out.lifecycle.identity.expires_at_ns,out.ancestor.identity.expires_at_ns); EXPECT_EQ(out.ancestor.identity.source_time_ns,ns(10));
 }
+TEST_F(NormalStopTest, DeadlinePollingDoesNotReplaceManagementExecutionOrRenewAuthority) {
+    const auto first=step(10,inputs(10,{20,50,0}));
+    for(unsigned t=11;t<=40;++t)stop.poll(ns(t));
+    EXPECT_EQ(stop.decision().fault,central::NormalStopFault::None);
+    stop.poll(ns(40)+1);
+    EXPECT_EQ(stop.decision().fault,central::NormalStopFault::ControlDeadline);
+    const auto& fault=stop.fault_observations()[0];ASSERT_TRUE(fault);ASSERT_TRUE(fault->request);
+    EXPECT_EQ(fault->observed_ns,ns(40)+1);
+    EXPECT_EQ(fault->request->identity.source_time_ns,first.ancestor.identity.source_time_ns);
+    EXPECT_EQ(fault->request->identity.expires_at_ns,first.ancestor.identity.expires_at_ns);
+    EXPECT_FALSE(stop.tick(inputs(41),management,ns(41)));
+}
 TEST_F(NormalStopTest, FreshStoppedEvidenceAndTrustedExactAckPrecedeShutdownAndPhysicalOffPrecedesComplete) {
     const auto pending=confirm(); EXPECT_EQ(pending.state,central::NormalStopState::HandoffPending); EXPECT_EQ(pending.lifecycle.action,can::BmsPowerAction::Enable);
     auto wrong=pending.lease; ++wrong.sequence; EXPECT_FALSE(stop.acknowledge_handoff(wrong,ns(70)));

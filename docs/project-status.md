@@ -1,6 +1,6 @@
 # 프로젝트 상태
 
-정리 기준·최신 검증: **2026-11-04**.
+정리 기준·최신 검증: **2026-11-05**.
 이 문서가 현재 구현·수용 범위와 다음 작업의 기준이다. 실행 중인 미기록 변경은 완료로 세지 않는다.
 
 ## 단계별 현재 판정
@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [입력/종료 수정·SDK 직접 계측·남은 실패](test-plan/evidence/m9_timing_trace/README.md) |
+| M9 | 기능 부분 검증; native 서비스 timing 및 전체 완료 OPEN | [진단 계약](interfaces/diagnostics.md) · [현재 회차·정지 진단 수정·최종 실패](test-plan/evidence/m9_deferred_grant/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -29,29 +29,35 @@ NormalStop은 새 동일 설정의 실제 전체 cycle/Complete 후에만 Passed
 stationary/HV-off 증거와 명시적 요청으로 clear한다. Clock은 이 predicate에서 제외한다.
 BMS9개 trip mask와 Power8개 물리 고장 조합은 electrical component 수준으로 확장했다.
 
-부모 추월·marker IO·SDK polling 및 보조 IO 배치는 이전 후속에서 수정했고 당시 실패는
-보존한다. 이번에는 Central이 이번 회차의 수신을 처리한 뒤 입력 snapshot을 만들도록
-수정했다. Full-queue 종료는 기존20ms cleanup 동안 추가8건까지 거부하고 endpoint를 닫는다.
-16건 negative 결과·원래 시각/기한·sender 생존·새 Epoch 재시작을 대조한다.
-[첫 후보](test-plan/evidence/m9_feedback_order/README.md)는 서비스29/30·기능12/12였다.
+이번에는 두 차례의 bounded ingress가 같은 lane별8건 budget을 공유하도록 하고,
+StopRequest 발행을 VM의+4ms grid에 맞췄다. 놓친 job은 재생하지 않고 원래 source/expiry를
+보존한다. 지연된 allocation이 이전 회차로 grant를 심사한 뒤 현재 회차를 완료로 기록해
+다음 release보다405611ns 앞서 command가 만료되던 결함도 수정했다.
+[입력/회차 후보](test-plan/evidence/m9_allocation_release/README.md)의 원본과 실패를 보존한다.
 
-후속으로 SDK timing의 공용 기록 mutex를 고정 슬롯으로 바꾸고 SDK 호출 직전/직후 시각을
-직접 측정했다. [최종 후보](test-plan/evidence/m9_timing_trace/README.md)는 서비스28/30
-(Normal6/6·ASan6/6·TSan16/18), overflow/close-full4/4다. 두 후보를 합친 통과율을 만들지 않는다.
-종료 SDK 오류는 이번 두 후보의 Normal/ASan 재시험에서 발생하지 않았고 엄격한 판정을 통과했다.
+NormalStop의 원래 만료를 관리 주기 사이에서도 poll해 SD-1105를 누락하지 않게 했다.
+동시에 실제 transport 원인도 존재할 때 두 원본 DTC의 시간·token·공통 만료·관련 event를
+검증하도록 감사기를 보완했다. [정지 만료 후보](test-plan/evidence/m9_stop_deadline/README.md)는
+기능12/12·서비스 최초25/30, 사후 원본 재감사27/30이다. 이전4개 후보의 fault80건도
+대조했으며 예상한 최초 detector 보완 외의 판정 변경은 없다.
 
-**응답 지연은 미해결이다.** 최종 TSan2건은 선행 정상 정지 중 새 명령이 기존 expiry보다
-Front0.216ms/Rear0.428ms 늦게 도착했다. 기록 잠금을 제외해도 SDK send→callback에
-약4.047ms/3.230ms가 남는다. 후속 [SDK 구간 관측](test-plan/evidence/m9_sdk_stages/README.md)은
-별도 계측 SDK와3개 커널 캡처를 연결했다. 최초6건 서비스6/6·정밀 시계5/6,
-I/O thread2→1→1→2 비교는 서비스5/8·정밀 시계4/8이다. 기존2개 설정에서 갱신 실패2건,
-1개 후보에서 연결 종료 오류1건이 남아 기본2개를 유지한다. 정상 요청3.000ms 중
-2.344–2.422ms의 커널 관측→SDK 수신 대기를 확인했지만 OS runnable/lock 대기를 완전히
-구분하지는 못했다. 재현된 갱신 실패는 AcknowledgedPower support 부족으로 한 회차를
-건너뛰고 새 Front command가21.471µs/101.949µs 늦은 연쇄다. Power ACK 수신과 VM 입력
-snapshot 경계 시각을 추가로 연결해야 한다. 기한·SDK 오류 판정은 유지했다. 온도/부하를 통제한 성능 개선을
-주장하지 않는다. 첫 후보 관련 C++152개씩, 최종 trace3개씩 Normal/ASan·UBSan/TSan,
-Python30개 및 변경 TU 정적 검사를 통과했다. 전체 root/CARLA/Target 재검증은 별도다.
+[최신 권한 후보](test-plan/evidence/m9_deferred_grant/README.md)는 원래 기다리는 due 이후의
+새 grant인지와 현재 실행 회차부터 기존18ms support가 남았는지를 따로 확인한다.
+이미 처리한 권한 재사용·기한 연장은 거절한다. 전체 Debug1273·ASan/UBSan1273,
+관련 TSan112·Python42·CARLA adapter 논리162·변경 구현 정적 검사가 통과했다.
+실제 CARLA 서버 재실행이나 native4ms·Target 검사로 해석하지 않는다.
+
+**최신 native 기능12/12, 서비스26/30으로 전체 미수용이다.** Normal5/6·ASan3/6·TSan18/18이다.
+4478개 command의 회차/권한 대조는 위반0이지만, Normal의 의도된 고장 주입 전에
+Front Brake 피드백 불가 SD-2002→보호→새 VehicleRequest 거절/SD-1002가 발생했다.
+피드백이 불가해진 세부 경로는 아직 확정하지 않았다. ASan3건에는 peer 종료 시 SDK
+Broken pipe/Connection reset 오류가 남는다. 이 실패를 기한 완화나 SDK 오류 허용으로 닫지 않는다.
+사전에 선언한 조건부 TSan60건은 기본 cohort 실패로 NOT RUN이다.
+
+[SDK SMT 후보](test-plan/evidence/m9_sdk_smt/README.md)는25/30으로 미채택했다.
+현재 SDK I/O2·단일 논리 CPU 배치를 유지한다. 각 후보는 별도 source/binary·고정 분모이며
+서로 합친 통과율이나 성공할 때까지 반복한 결과를 만들지 않는다. 원본 checksum·압축 해제
+재감사와 실패 분모를 각 evidence에 보존한다.
 
 **M9 전체 완료는 아직 아니다.** Native 서비스 timing, silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
 재검증, proposal 이전 bootstrap incident 계약, 전체8-role BMS/Power matrix와 실제 부하/장기 보존

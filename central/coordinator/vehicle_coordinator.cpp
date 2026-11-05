@@ -10,7 +10,7 @@ VehicleManagementConfig management_config(CoordinatorExecution e) { VehicleManag
 AllocationConfig allocation_config(CoordinatorExecution e,AllocationConfig c) { c.minimum_tick_interval_ns=e.external_releases?1000000:allocation_period(e.renewal); return c; }
 NormalStopConfig stop_config(CoordinatorExecution e,NormalStopConfig c) { if(e.external_releases) c.minimum_tick_interval_ns=1000000; return c; }
 }
-VehicleCoordinator::VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution e,AllocationConfig allocation,NormalStopConfig stop):port_(port),execution_(e),management_(management_config(e)),allocation_(allocation_config(e,allocation)),stop_(stop_config(e,stop)) {}
+VehicleCoordinator::VehicleCoordinator(CoordinatorPort& port,CoordinatorExecution e,const AllocationConfig& allocation,NormalStopConfig stop):port_(port),execution_(e),management_(management_config(e)),allocation_(allocation_config(e,allocation)),stop_(stop_config(e,stop)) {}
 bool VehicleCoordinator::start_session(CoordinatorSession session) {
     if(session.epoch==0 || session.epoch<=epoch_ || (epoch_!=0 && session.enable_ns<observed_ns_)) return false;
     if(!port_.session_ready(session)) return false;
@@ -43,6 +43,10 @@ bool VehicleCoordinator::advance(std::uint64_t now) {
     if(now<observed_ns_ || now==std::numeric_limits<std::uint64_t>::max()) { fail(CoordinatorFault::ClockError,now); return false; }
     observed_ns_=now;
     if(now-tick_ns_.value_or(enable_ns_)>kGap) fail(CoordinatorFault::ControlDeadline);
+    if(stopping_ && fault_==CoordinatorFault::None) {
+        stop_.poll(now);
+        if(stop_.decision().protection_required)fail(CoordinatorFault::Stop);
+    }
     return fault_==CoordinatorFault::None;
 }
 bool VehicleCoordinator::checkpoint() {
@@ -116,7 +120,17 @@ std::uint64_t VehicleCoordinator::next_allocation_ns() const {
     return previous>std::numeric_limits<std::uint64_t>::max()-period?std::numeric_limits<std::uint64_t>::max():previous+period;
 }
 bool VehicleCoordinator::allocate(const NormalDriveReadinessInputs& in) {
-    if(!last_power_ || !port_.allocation_ready(*last_power_,next_allocation_ns())) {
+    // A deferred external job may have crossed another nominal release. Check
+    // authority for the slot we will actually record, never the older waiting
+    // slot: otherwise its short grant can expire before the next release.
+    const auto due_release=next_allocation_ns();
+    const auto current_release=[&] {
+        if(!execution_.external_releases)return next_allocation_ns();
+        const auto period=allocation_period(execution_.renewal);
+        return std::max(next_allocation_ns(),enable_ns_+((observed_ns_-enable_ns_)/period)*period);
+    };
+    const auto release=current_release();
+    if(!last_power_ || !port_.allocation_ready(*last_power_,release,due_release)) {
         allocation_.poll(observed_ns_);
         if(allocation_.decision().protection_required) fail(CoordinatorFault::Allocation);
         return false;
@@ -125,6 +139,11 @@ bool VehicleCoordinator::allocate(const NormalDriveReadinessInputs& in) {
     const auto received_parent=port_.received_permission_parent();
     AllocationInputs inputs{in,management_.decision(),port_.current_permission(),received_parent?received_parent:last_power_->permission_parent};
     if(!checkpoint()) return false;
+    if(current_release()!=release) {
+        allocation_.poll(observed_ns_);
+        if(allocation_.decision().protection_required)fail(CoordinatorFault::Allocation);
+        return false;
+    }
     record_allocation_release();
     const auto commands=allocation_.tick(inputs,observed_ns_);
     if(allocation_.decision().protection_required) { fail(CoordinatorFault::Allocation); return false; }

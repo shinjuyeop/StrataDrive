@@ -15,6 +15,7 @@
 #include <iostream>
 #include <map>
 #include "fixture_signals.hpp"
+#include "owner_schedule.hpp"
 #include <string_view>
 
 namespace fs=std::filesystem;
@@ -99,6 +100,7 @@ struct Owners final:session::CoordinatorPort {
     int observed_regen=-1;
     bool freeze_normal=false,full_fixture_quiesced=false;std::array<remote::ProtectionReceipt,2> receipt;
     bool stop_requested=false;std::uint32_t stop_seq=0;std::uint64_t stop_started=0,stop_complete=0,last_stop=0;
+    someip::test::StopRequestRelease stop_release;
     std::atomic<std::uint64_t> monitor_delay{0};
     std::unique_ptr<simulation::NativeExecutionWatch> watch;
     someip::test::NativeDiagnosticRoutes* diagnostic_routes{nullptr};
@@ -235,6 +237,12 @@ struct Owners final:session::CoordinatorPort {
             }
             if(!zones[static_cast<unsigned>(m.from)].results.push(*r))fail("result-overflow");
         } else if(auto* f=std::get_if<transport::Feedback>(&m.payload)) {
+            if(const auto* frame=std::get_if<can::BmsFrame>(f))if(const auto message=can::decode_bms_frame(*frame))
+                if(const auto* status=std::get_if<can::BmsPowerStatus>(&message->content)) {
+                    transport::TransportTraceRow row;row.stage="power-owner-ingress";row.time_ns=now();row.epoch=message->epoch;
+                    row.peer=message->sequence;row.token=message->causal_sequence;row.operation=-1;
+                    row.original_source_ns=message->source_time_ns;row.payload_source_ns=status->accepted_request_source_time_ns;trace.record(row);
+                }
             if(energy_enabled())if(const auto* frame=std::get_if<can::DriveFrame>(f)) {
                 const auto actual=can::decode_drive_frame(*frame);
                 if(actual && actual->regen_capability)event("wire-capability",7,actual->regen_capability->source_time_ns,actual->regen_capability->input_time_ns);
@@ -250,6 +258,8 @@ struct Owners final:session::CoordinatorPort {
     void step(bool drop_commands=false,bool drop_results=false,bool drop_status=false,bool drop_lease=false) {
         const auto observed=now();if(last_step)max_poll_gap=std::max(max_poll_gap,observed-last_step);last_step=observed;
         physical_io();
+        someip::test::IngressTurn ingress_turn;
+        if(!remote)ingress_turn.drain(net,[this](const auto& message){receive(message);});
         if(watch){watch->epoch(epoch);if(watch->faulted())fail("native-watch-protection");}
         if(net.overflow)fail("transport-overflow");
         if(remote) {
@@ -278,15 +288,17 @@ struct Owners final:session::CoordinatorPort {
             if(!drop_lease && !stop_credit && gate.allows(epoch) && (!last_credit || t-last_credit>=10*kMs)) {
                 if(auto lease=issuer.issue(t)) {for(unsigned i=0;i<7;++i)if(is_remote(static_cast<Role>(i)))emit(remote::OwnerMessage{Role::CentralIngress,static_cast<Role>(i),kDomain,*lease});last_credit=t;last_lease_expiry=lease->expires_at_ns;event("credit-issued",7,lease->sequence,lease->expires_at_ns);}
             }
-            if(stop_requested && (!last_stop || t-last_stop>=20*kMs) && !(epoch==3 && last_stop && service_fault("stop-request-loss"))) {
+            const bool due=t>=next_management;
+            if(stop_requested && stop_release.due(plan.enable_ns,t,due) && !(epoch==3 && last_stop && service_fault("stop-request-loss"))) {
                 const auto accepted=core.receive_stop({{epoch,stop_seq++,t,t+60*kMs},.02},now());
                 check(accepted==central::CoordinatorReceive::Accepted,"normal stop request rejected");last_stop=t;
+                event("stop-root-issued",7,t,t+60*kMs);
             }
-            const bool due=t>=next_management;
             const auto slot=t>=plan.enable_ns+4*kMs?(t-plan.enable_ns-4*kMs)/(20*kMs)+1:0;
             if(!stop_requested && !freeze_normal && due && slot!=lifecycle_slot){lifecycle_slot=slot;core.receive_lifecycle({{epoch,root_seq++,t,t+60*kMs},can::BmsPowerAction::Enable},now());}
-            if(!stop_requested && !freeze_normal && core.decision().normal_armed && t>=core.next_allocation_ns() && vehicle_release!=core.next_allocation_ns()) {
-                vehicle_release=core.next_allocation_ns();
+            const auto allocation_release=plan.enable_ns+((t-plan.enable_ns)/(10*kMs))*(10*kMs);
+            if(!stop_requested && !freeze_normal && core.decision().normal_armed && t>=core.next_allocation_ns() && vehicle_release!=allocation_release) {
+                vehicle_release=allocation_release;
                 auto demand=someip::test::EnergyDemand{"fixed",.2,false};
                 if(energy_enabled() && armed_ns) {
                     demand=someip::test::energy_demand(t-armed_ns);
@@ -295,7 +307,16 @@ struct Owners final:session::CoordinatorPort {
                 core.receive_vehicle({epoch,vehicle_seq++,t,t+60*kMs,demand.acceleration,.02,0,demand.hold},now());
             }
             if(due)next_management=plan.enable_ns+4*kMs+((t-plan.enable_ns-4*kMs)/(10*kMs)+1)*(10*kMs);
+            ingress_turn.drain(net,[this](const auto& message){receive(message);});
             const auto feedback=port.feedback();
+            if(due && feedback.rear.power_status) {
+                const auto& message=feedback.rear.power_status->message;
+                if(const auto* status=std::get_if<can::BmsPowerStatus>(&message.content)) {
+                    transport::TransportTraceRow row;row.stage="power-vm-snapshot";row.time_ns=now();row.epoch=message.epoch;
+                    row.peer=message.sequence;row.token=message.causal_sequence;row.operation=-1;
+                    row.original_source_ns=message.source_time_ns;row.payload_source_ns=status->accepted_request_source_time_ns;trace.record(row);
+                }
+            }
             if(feedback.rear.drive_actual && feedback.rear.drive_actual->wheel_speed) {
                 const auto& wheel=*feedback.rear.drive_actual->wheel_speed;
                 if(wheel.source_time_ns>last_wheel_source){last_wheel_source=wheel.source_time_ns;++wheel_speed_samples;max_validated_wheel_speed=std::max(max_validated_wheel_speed,wheel.value_rad_s);
@@ -552,6 +573,7 @@ int main(int argc,char** argv) {
                 const bool full=full_case && (!remote || signals.exists(folder/"full-pause-request"));
                 if(remote && full)signals.mark(folder/"full-pause-ack");
                 for(const unsigned lane:{1U,3U,0U,2U}) {
+                    if(!remote)break; // Central drains after sensor IO and before its input snapshot.
                     if(lane>=net.channels())continue;
                     if(remote && lane==0 && (full || (fault_phase && test=="delay" && (!paused_until || t<paused_until))))continue;
                     for(unsigned i=0;i<8;++i){auto m=net.pop(lane);if(!m)break;owners->receive(*m);}

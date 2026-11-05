@@ -41,6 +41,8 @@ public:
     void observe_permission(const PermissionSupport&,const can::BmsMessage&) noexcept override;
     bool deliver_power(const VehicleManagementOutput& output) noexcept override;
     bool allocation_ready(const VehicleManagementOutput& output,std::uint64_t release_ns) noexcept override;
+    bool allocation_ready(const VehicleManagementOutput& output,std::uint64_t current_release_ns,
+                          std::uint64_t due_release_ns) noexcept override;
     bool commands_settled() const noexcept override { return !commands_ && deferred_vehicle_count_==0; }
     std::optional<can::BmsCurrentSample> current_permission() noexcept override;
     std::optional<can::BmsParentContext> received_permission_parent() noexcept override;

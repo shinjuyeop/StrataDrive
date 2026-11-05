@@ -50,9 +50,15 @@ caller 책임이다. 집계기는 stationary 값·원본 age30ms/skew20ms·실�
 
 NormalStop은 최초 고장과 후속 최초 ClockError 두 slot, Braking/HandoffPending/
 PowerDown/Complete 네 phase slot을 보존한다. 원본 request, 실제 pending StopLease,
-적용 config·phase 기점과 해당 call의 Drive/Brake/Power input을 함께 남긴다.
+적용 config·phase 기점과 마지막으로 보존한 Drive/Brake/Power input을 함께 남긴다.
 Snapshot capture는 bounded value copy이며 파일 I/O·callback·추가 debounce를 수행하지 않는다.
 Observer는 이 자료를 같은 Central owner에서 읽는다. 다른 thread가 snapshot을 직접 읽는 API가 아니다.
+
+Coordinator는 관리 release 사이에도 실제 관측 시각으로 NormalStop의 원래 만료 검사를
+poll한다. 원본 request의50ms inclusive age 또는 exclusive expiry 위반을 관측하면
+RequestLost/SD-1105와 보호 선택을 연결한다. Poll은 control tick·새 grant/child 발행·
+last_tick 갱신이 아니며30ms control deadline을 연장하지 않는다. 새로운 물리 입력을
+취득했다고 표시하지 않고 저장된 evidence의 원래 취득 시각을 유지한다.
 
 | 관측 | 이벤트와 시각의 의미 |
 | --- | --- |
