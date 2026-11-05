@@ -10,6 +10,7 @@
 #include "async_zone_owner.hpp"
 #include "latest_snapshot.hpp"
 #include <filesystem>
+#include <future>
 #include <thread>
 
 namespace stratadrive::someip {class Transport;}
@@ -75,5 +76,6 @@ private:
     ReleaseAcks release_acks_;runtime::LatestSnapshot<ReleaseAcks> accepted_acks_;
     std::uint32_t central_epoch_{0};
     std::atomic<bool> producing_{true},finished_{true};std::thread worker_;bool passed_{false};
+    std::promise<void> startup_ready_;
 };
 } // namespace stratadrive::someip::test

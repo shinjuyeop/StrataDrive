@@ -82,6 +82,11 @@ def inside(folder,binary,case):
     if service_profile:
         os.environ.update(STRATADRIVE_SERVICE_PID=str(os.getpid()),STRATADRIVE_SERVICE_UID=str(os.getuid()),STRATADRIVE_SERVICE_CAPABILITY=secrets.token_hex(16))
     diagnostic_store=None
+    # Separate durable local spool: it must survive diagnostic-store failure.
+    bootstrap_parent=Path(tempfile.mkdtemp(prefix='stratadrive-bootstrap-',dir='/var/tmp'))
+    bootstrap_store=bootstrap_parent/'incidents'
+    os.environ['STRATADRIVE_BOOTSTRAP_STORE_ROOT']=str(bootstrap_store)
+    result['bootstrap_storage']={'path':str(bootstrap_store),'retained':True}
     if os.environ.get('STRATADRIVE_NATIVE_DIAGNOSTICS'):
         # Real persistent local filesystem, outside per-process private /tmp and
         # /dev/shm. Preserve original stores as well as the post-join artifact copy.
@@ -159,7 +164,9 @@ def inside(folder,binary,case):
                                       '--capture',str(dest),'--kernel-timestamps','--capture-device',{'front':'sdf','rear':'sdr'}[peer_role]],stdout=subprocess.DEVNULL,stderr=err)
                 observation_captures.append((dest,cap));pilot.wait_for(lambda:(dest/'capture.ready').exists())
         env=dict(os.environ,LD_LIBRARY_PATH=os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB',str(binary.parents[4]/'install/lib')))
-        with (folder/'bootstrap.txt').open('w') as log:subprocess.run([str(binary),'bootstrap',str(folder)],env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+        with (folder/'bootstrap.txt').open('w') as log:
+            subprocess.run([str(binary),'bootstrap-log-init',str(folder)],env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+            subprocess.run([str(binary),'bootstrap',str(folder)],env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
         if os.environ.get('STRATADRIVE_NATIVE_LOADED'):
             for cpu in ((1,2,7) if three else (1,2)):
                 d=folder/f'load-{cpu}';d.mkdir();err=(d/'stderr').open('w');streams.append(err)
@@ -333,6 +340,12 @@ def inside(folder,binary,case):
         for s in streams:s.close()
         if diagnostic_store is not None:
             shutil.copytree(diagnostic_store,folder/'native-diagnostics')
+        if bootstrap_store.exists():
+            shutil.copytree(bootstrap_store,folder/'bootstrap-incidents')
+            audit=subprocess.run([sys.executable,str(HERE.parent.parent/'diagnostics/audit_bootstrap_incidents.py'),str(bootstrap_store)],capture_output=True,text=True)
+            try:result['bootstrap_audit']=json.loads(audit.stdout)
+            except ValueError:result['bootstrap_audit']={'integrity':False,'error':audit.stderr}
+            result['pass']=result['pass'] and audit.returncode==0 and result['bootstrap_audit'].get('all_succeeded',False)
         result['sanitizer_diagnostics']=any(pilot.sanitizer_errors(p.read_text(errors='replace')) for p in folder.glob('*.stderr'))
         result['expected_sdk_faults'],result['unexpected_sdk_errors']=sdk_outcomes(folder,result)
         result['sdk_errors']=bool(result['unexpected_sdk_errors'])

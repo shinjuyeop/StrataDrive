@@ -486,13 +486,34 @@ Clear 뒤 새 fault는 새 record generation/count1로 시작하고 tombstone �
 지연 도착한 과거 event는 과거 이력에 추가할 뿐 새 generation을 열지 않는다. 현재 상태가
 불확실해진 경우 Unknown으로 막고 재검증한다. Clear 성공은 제어 latch 해제·주행 허가가 아니다.
 
+## Proposal 이전 기동 incident
+
+`BootstrapJournal`은 EpochStore initialize/issue와 native journal initialize/open을
+별도 startup-only 영구 spool에 기록한다. DTC Event/Attempt/Session을 만들지 않으며
+application epoch는 absent다. 식별자는 kernel boot UUID·무작위128-bit attempt·PID와
+원래 CLOCK_MONOTONIC begin/outcome이다. 성공한 재시도는 이전 실패/중단을 복구·해제하지 않는다.
+
+명시적 fresh initialize 뒤 각 작업 전에 begin file/디렉터리를 fsync하고, 작업 결과도 별도
+immutable outcome으로 확정한 뒤에만 다음 단계로 반환한다. 오류·미완료 tail은 보존한다.
+Epoch issue 뒤 outcome 기록이 실패하면 해당 Epoch를 반환하지 않으며 다음 issue는 건너뛴다.
+Spool 자체 오류도 기동을 중단한다. 이때 영구 기록 성공을 보장할 수 없으며 stderr/supervisor
+실패만 남을 수 있다. 자동 초기화·truncation·DTC clear·제어 권한 허가는 없다.
+
+실제 launcher는 DTC store와 다른 `/var/tmp/stratadrive-bootstrap-*/incidents`를 유지한다.
+Native `start()`는 writer의 초기 active source/context/collector 검증 완료를 기다린다.
+이 실패는 해당 process의 owner 생성·새 proposal 경로 이전에 반환되어야 한다. 세션 도중 worker 오류는 기존
+diagnostic 전달/보호 경계이며 bootstrap 성공으로 소급 덮지 않는다.
+같은 디스크 전체 장애·전원 차단·장기 보존/운영 reconciliation은 별도다.
+[wire/저장 계약과 시험](../test-plan/bootstrap-incidents-protocol.md),
+[실행 근거](../test-plan/evidence/m9_bootstrap/README.md)를 따른다.
+
 ## Release 전 기동 시도와 실제 Session
 
 `startup_diagnostics_run`은 logical Host10ms Normal/Fault speed-loop 전용 수집 모드다.
 기존 control/owner/native 수집 모드와 혼합하거나 wall 실행하지 않는다. 이미 검증한
 기존 모드의 global Release 이후 수집 경계는 유지한다. 이 모드에서는 Central이 실제
 허가한 proposal의 `Attempt`부터, 각 owner가 실제 local INIT를 마친 native 관측까지 수집한다.
-EpochStore/journal bootstrap 또는 trusted proposal 이전의 실패는 이 경계에 포함하지 않는다.
+EpochStore/journal bootstrap 또는 trusted proposal 이전의 실패는 위 별도 incident 경계를 따른다.
 
 `Kind::Attempt=9`는 진단 context를 만들며 제어 권한을 주지 않는다. Run/epoch와 동일한
 issuer의 trusted proposal source가 필요하고 미래 enable을 알 수 없으므로 session_enable은

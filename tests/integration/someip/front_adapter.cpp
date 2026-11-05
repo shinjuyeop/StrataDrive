@@ -8,6 +8,7 @@
 #include "remote_zone_endpoint.hpp"
 #include "run_lease_issuer.hpp"
 #include "epoch_store.hpp"
+#include "bootstrap_journal.hpp"
 #include "native_execution_watch.hpp"
 #include "native_diagnostic_routes.hpp"
 #include "native_continuity_service.hpp"
@@ -30,6 +31,7 @@ bool no_charge(){const auto* p=std::getenv("STRATADRIVE_ENERGY_CYCLE");return p 
 bool native_enabled(){return std::getenv("STRATADRIVE_NATIVE_WATCH")!=nullptr;}
 bool three_enabled(){return std::getenv("STRATADRIVE_THREE_ECU")!=nullptr;}
 bool diagnostics_enabled(){return std::getenv("STRATADRIVE_NATIVE_DIAGNOSTICS")!=nullptr;}
+std::string boot_store(const fs::path& folder){const auto* p=std::getenv("STRATADRIVE_BOOTSTRAP_STORE_ROOT");return p?std::string(p):(folder/"bootstrap-incidents").string();}
 bool service_fault(const std::string_view& name){const auto* value=std::getenv("STRATADRIVE_SERVICE_FAULT");return value && name==value;}
 unsigned fault_zone(){return std::getenv("STRATADRIVE_FAULT_REAR")?1:0;}
 bool fifo_enabled(){return std::getenv("STRATADRIVE_NATIVE_FIFO")!=nullptr;}
@@ -176,7 +178,8 @@ struct Owners final:session::CoordinatorPort {
         // Durable storage can block in fsync. No control authority exists yet;
         // finish it before enabling this generation's native execution guard.
         event("epoch-store-begin",7);
-        const auto e=session::EpochStore((folder/"epochs").string()).issue();
+        const auto e=diagnostics::record_bootstrap(boot_store(folder),diagnostics::BootRole::Central,diagnostics::BootOperation::EpochIssue,
+            [&]{return session::EpochStore((folder/"epochs").string()).issue();});
         event("epoch-store-return",7,e);return e;
     }
     void begin(std::uint32_t e){epoch=e;event("host-renewal-period",7,central::allocation_period(central::CommandRenewal::Host10ms),central::permission_support(central::CommandRenewal::Host10ms));check(coordinator.begin(e,now()),"real session begin");event("epoch-issued",7,e);}
@@ -490,12 +493,15 @@ int plant(const fs::path& folder,someip::test::FixtureSignals& signals) {
 int main(int argc,char** argv) {
     if(argc<3)return 2;
     const std::string role=argv[1];const fs::path folder=argv[2];
-    if(role=="bootstrap"){
-        session::EpochStore::initialize((folder/"epochs").string());
-        if(diagnostics_enabled())someip::test::NativeDiagnosticRoutes::bootstrap(folder);
+    if(role=="bootstrap-log-init" || role=="bootstrap")try {
+        if(role=="bootstrap-log-init"){diagnostics::BootstrapJournal::initialize(boot_store(folder));return 0;}
+        diagnostics::record_bootstrap(boot_store(folder),diagnostics::BootRole::Supervisor,diagnostics::BootOperation::EpochInitialize,
+            [&]{session::EpochStore::initialize((folder/"epochs").string());});
+        if(diagnostics_enabled())diagnostics::record_bootstrap(boot_store(folder),diagnostics::BootRole::Supervisor,diagnostics::BootOperation::JournalInitialize,
+            [&]{someip::test::NativeDiagnosticRoutes::bootstrap(folder);});
         for(const auto* name:{"central","front","rear","plant"})if(three_enabled() || std::string(name)!="rear")simulation::NativeWatchChannel channel((folder/"sil-io"/(std::string("watch-")+name+".bin")).string(),true);
         return 0;
-    }
+    } catch(const std::exception& e){std::cerr<<"bootstrap failed: "<<e.what()<<'\n';return 1;}
     const auto signal_tag=role+"-"+(argc==5?std::string(argv[4]):"1");
     someip::test::FixtureSignals signals(folder,signal_tag,[folder,signal_tag]{
             if(diagnostics_enabled() || native_enabled())simulation::NativeExecutionWatch::configure_thread(stratadrive::someip::test::auxiliary_io_cpu(),0);
@@ -523,8 +529,11 @@ int main(int argc,char** argv) {
         if(fresh_central){check(signals.exists(folder/"rejoin-request"),"explicit new Central startup request missing");net.begin_quiescent_transition();}
         if(diagnostics_enabled()) {
             check(three_enabled() && (test=="normal" || test=="command-loss" || test=="restart-live" || test=="central-rejoin"),"native diagnostics profile");
-            diagnostic_routes=std::make_unique<someip::test::NativeDiagnosticRoutes>(ecu,folder,tag);
-            diagnostic_routes->start(net);
+            diagnostics::record_bootstrap(boot_store(folder),remote?(ecu==Ecu::Front?diagnostics::BootRole::Front:diagnostics::BootRole::Rear):diagnostics::BootRole::Central,
+                diagnostics::BootOperation::JournalOpen,[&]{
+                    diagnostic_routes=std::make_unique<someip::test::NativeDiagnosticRoutes>(ecu,folder,tag);
+                    diagnostic_routes->start(net);
+                });
         } else net.start();
         if(service_profile){check(diagnostic_routes && !native_enabled(),"terminal service profile requires diagnostics without native watch");
             if(fresh_central)service=std::make_unique<someip::test::NativeContinuityService>(folder);}
@@ -669,7 +678,10 @@ int main(int argc,char** argv) {
                             }
                             if(service_startup_requested && owners->zones[0].protection.acknowledged(2) && owners->zones[1].protection.acknowledged(2) && !service_epoch.valid()){
                                 owners->event("epoch-store-begin",7);const auto path=(folder/"epochs").string();
-                                service_epoch=std::async(std::launch::async,[path]{simulation::NativeExecutionWatch::configure_thread(stratadrive::someip::test::auxiliary_io_cpu(),0);return session::EpochStore(path).issue();});
+                                service_epoch=std::async(std::launch::async,[path,store=boot_store(folder)]{
+                                    simulation::NativeExecutionWatch::configure_thread(stratadrive::someip::test::auxiliary_io_cpu(),0);
+                                    return diagnostics::record_bootstrap(store,diagnostics::BootRole::Central,diagnostics::BootOperation::EpochIssue,[&]{return session::EpochStore(path).issue();});
+                                });
                             }
                             if(service_epoch.valid() && service_epoch.wait_for(std::chrono::seconds(0))==std::future_status::ready){
                                 const auto fresh_epoch=service_epoch.get();owners->event("epoch-store-return",7,fresh_epoch);check(fresh_epoch==3,"service explicit epoch3");
@@ -743,7 +755,7 @@ int main(int argc,char** argv) {
         for(const auto& leaf:owners->leaf)if(leaf)for(const auto& e:leaf->input_events())out<<e.time_ns<<','<<e.kind<<','<<e.owner<<','<<e.epoch<<','<<e.source_ns<<','<<e.deadline_ns<<','<<e.reference_ns<<','<<e.code<<'\n';
     }
     if(owners && owners->watch)owners->watch->write((folder/(tag+".native")).string());
-    if(!remote && (pass || service_profile) && test!="ready-timeout" && (test=="normal" || test=="late" || test=="invalid" || test=="restart-live" || test=="central-rejoin")) {
+    if(owners && !remote && (pass || service_profile) && test!="ready-timeout" && (test=="normal" || test=="late" || test=="invalid" || test=="restart-live" || test=="central-rejoin")) {
         // Already protected/quiesced; retain the receive endpoint for the peer's
         // final evidence. This handshake never extends a live command deadline.
         if(!error.empty())signals.mark(folder/(tag+".failed"));

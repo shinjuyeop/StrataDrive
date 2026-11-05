@@ -83,8 +83,14 @@ Python 판정/SDK/배치49/49다. Sanitizer의 두 M4 wall 시험만 비계측 �
 Power contactor timeout과 자체 bus-low 미확정의 차이도 확인했다. 센서 소비 사본의 고장
 시험이며 electrical plant 자체 고장·실제 CARLA·native wall matrix로 확대하지 않는다.
 
+**Proposal 이전 기동 기록을 연결했다.** [Bootstrap incident](test-plan/evidence/m9_bootstrap/README.md)는
+EpochStore/journal 실패를 별도 영구 spool에 기록하며 가짜 application Epoch를 만들지 않는다.
+초기 journal 검증 실패는 해당 process의 owner/proposal 전에 반환한다. 중단·실패 이력은 새 기동 성공 뒤에도
+유지하며 자동 Passed/Clear하지 않는다. Spool 자체 장애는 기동을 막고, 전체 디스크/전원 장애와
+장기 운영 보존은 별도 범위로 남긴다.
+
 **M9 전체 완료는 아직 아니다.** 부하·장시간 native 서비스 timing, silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
-재검증, proposal 이전 bootstrap incident 계약, Power precharge/request-loss/shutdown-current/startup-energized/discharge의8-role 통합과 실제 부하/장기 보존
+재검증, Power precharge/request-loss/shutdown-current/startup-energized/discharge의8-role 통합과 실제 부하/장기 보존
 수용이 남는다. 기본512-event 저장 경계는 원본 보존·초과 시 clear 차단까지 검증했으며 장기 보존
 운용을 대신하지 않는다. Native4ms/Target과 학습자 이해 review는 기능 시험 통과와 별도다.
 아래 과거 근거의 당시 범위/실패는 그대로 유지한다.

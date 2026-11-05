@@ -104,8 +104,10 @@ BMS9/Power8 component 조합·동일 설정 NormalStop 복구/clear를 다룬다
 기본 I/O2·단일 CPU를 유지한다. 상세 범위·분모는 프로젝트 상태를 따른다.
 [8-role 센서 matrix](test-plan/evidence/m9_sensor_matrix/README.md)는 BMS9·Power3·동시3조건의
 원본 검출·물리 응답·복원만 한 latch 유지·새 Release 이후 Passed를 검증했다.
+[Proposal 이전 bootstrap](test-plan/evidence/m9_bootstrap/README.md)는 Epoch가 없는 별도 영구
+incident와 기동 차단·재시도 이력 보존으로 연결했다.
 남은 완료 조건은 부하/장시간 native timing, silent packet loss의 실제 CARLA subinterval 연결, trusted Clock 복구,
-proposal 이전 bootstrap incident, Power precharge/request-loss/shutdown-current/startup-energized/discharge의8-role 통합, 실제 부하/장기 보존 정책과
+Power precharge/request-loss/shutdown-current/startup-energized/discharge의8-role 통합, 실제 부하/장기 보존 정책과
 학습자 수용이다. DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·

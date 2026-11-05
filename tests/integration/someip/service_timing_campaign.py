@@ -54,6 +54,8 @@ def main():
     out=args.output.resolve();out.mkdir(parents=True,exist_ok=False)
     cases=case_matrix(args.validation_profile,args.tsan_repeats)
     files=[ROOT/'docs/test-plan/service-validation-protocol.md',ROOT/'tests/unit/service_validation_test.py',
+           ROOT/'central/diagnostics/bootstrap_journal.hpp',ROOT/'central/diagnostics/bootstrap_journal.cpp',
+           HERE.parent/'diagnostics/audit_bootstrap_incidents.py',
            HERE.parent/'diagnostics/service_sanitizer_suite.py',ROOT/'interfaces/someip/owner_credit_retirement.hpp',ROOT/'interfaces/someip/owner_message_binding.hpp',
            ROOT/'tests/unit/remote_contract_test.cpp',ROOT/'docs/test-plan/egress-availability-protocol.md',ROOT/'simulation/runtime/plant_io.hpp',HERE/'plant_io.hpp',ROOT/'tests/unit/plant_io_test.cpp',
            ROOT/'docs/test-plan/plant-field-io-protocol.md',HERE/'front_adapter.cpp',HERE/'fixture_signals.hpp',HERE/'front_run.py',HERE/'run.py',Path(__file__),

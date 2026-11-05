@@ -82,8 +82,13 @@ void NativeDiagnosticRoutes::registered() {
 void NativeDiagnosticRoutes::start(Transport& net) {
     require(!worker_.joinable(),"diagnostic worker already started");
     net.start([this](const auto& app){configure(app);},[this]{registered();});finished_=false;
-    try {worker_=std::thread([this]{work();finished_.store(true,std::memory_order_release);});}
-    catch(...) {finished_=true;throw;}
+    try {
+        auto ready=startup_ready_.get_future();
+        worker_=std::thread([this]{work();finished_.store(true,std::memory_order_release);});
+        // Storage initialization is startup work. No proposal/owner execution
+        // may race an initial journal-open failure on the writer thread.
+        ready.get();
+    } catch(...) {if(worker_.joinable())worker_.join();finished_=true;throw;}
 }
 bool NativeDiagnosticRoutes::finish() {producing_=false;if(worker_.joinable())worker_.join();if(passed_ && lifecycle_) {const auto r=lifecycle_->close(wall());passed_=r==d::Result::Accepted || r==d::Result::Duplicate;}return passed_;}
 bool NativeDiagnosticRoutes::admitted(std::uint32_t epoch) const noexcept {
@@ -156,6 +161,7 @@ void NativeDiagnosticRoutes::accepted_release(unsigned role,std::uint32_t epoch,
     accepted_acks_.publish(release_acks_);
 }
 void NativeDiagnosticRoutes::work() {
+    bool startup_reported=false;
     std::string error;std::uint64_t events=0,duplicates=0,acked=0,buffered=0,stale_acks=0;bool dropped_ack=false;unsigned restarts=0;int writer_cpu=-1;
     try {
         writer_cpu=auxiliary_io_cpu();simulation::NativeExecutionWatch::configure_thread(writer_cpu,0);
@@ -186,6 +192,7 @@ void NativeDiagnosticRoutes::work() {
                 if(!merged && sources_[i]) {
                     const std::vector<d::CentralIssuer> lineage=central_restart_?std::vector<d::CentralIssuer>{{7,1},{(1ULL<<32)|7,2}}:std::vector<d::CentralIssuer>{{7,1}};
                     outboxes[i]=std::make_unique<d::ContextualOutbox>(*stores[i],manifest(diagnostic_producer(i)),lineage);
+                    require(outboxes[i]->healthy(),"native diagnostic source startup incomplete");
                 }
             }
             std::ofstream archive_log(folder_/(tag_+".archives.csv"));archive_log<<"stream,committed,uncommitted_bytes,source_complete\n";
@@ -194,6 +201,7 @@ void NativeDiagnosticRoutes::work() {
             for(unsigned z=0;z<2;++z)if(context_channels_[z]) {
                 contexts[z]=std::make_unique<d::FileJournal>((folder_/(merged?"context-"+std::to_string(z)+suffix:"context")).string());
                 if(merged)context_out[z]=std::make_unique<d::Outbox>(*contexts[z]);else context_in[z]=std::make_unique<d::Inbox>(*contexts[z]);
+                require(contexts[z]->writable(),"native diagnostic context startup incomplete");
             }
             std::vector<std::unique_ptr<d::FileJournal>> predecessors;
             std::vector<const d::FileJournal*> histories;
@@ -214,6 +222,7 @@ void NativeDiagnosticRoutes::work() {
                 }
             }
             if(merged) {std::vector<d::FileJournal*> replicas;for(const auto& store:stores)if(store)replicas.push_back(store.get());collector=std::make_unique<d::MergedCollector>(*merged,replicas,histories);}
+            if(!startup_reported){startup_ready_.set_value();startup_reported=true;}
             const auto checkpoint=[&](const char* phase) {
                 for(unsigned i=0;i<slots_;++i)if(stores[i]) {
                     unsigned ordinal=0;for(const auto& entry:stores[i]->committed()) {
@@ -330,7 +339,10 @@ void NativeDiagnosticRoutes::work() {
             else for(unsigned i=0;i<slots_;++i)if(outboxes[i])rows(folder_/(source_name(i)+"-records.csv"),outboxes[i]->ledger());
             break;
         }
-    } catch(const std::exception& e) {passed_=false;error=e.what();}
+    } catch(const std::exception& e) {
+        passed_=false;error=e.what();
+        if(!startup_reported){startup_ready_.set_exception(std::current_exception());startup_reported=true;}
+    }
     std::ofstream channels(folder_/(tag_+".channels.csv"));channels<<"stream,received,rejected,sent,dropped,highwater\n";
     const auto stats=[&](unsigned stream,const diagnostic::Channel& c) {const auto s=c.stats();channels<<stream<<','<<s.received<<','<<s.rejected<<','<<s.send_returned<<','<<s.dropped<<','<<s.highwater<<'\n';};
     for(unsigned i=0;i<slots_;++i)if(source_channels_[i])stats(8200+i,*source_channels_[i]);

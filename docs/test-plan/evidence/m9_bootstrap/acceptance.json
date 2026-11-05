@@ -1,0 +1,80 @@
+{
+  "scope": "Linux Host pre-proposal EpochStore/journal incident persistence; not all M9",
+  "base_commit": "2187a2a6d91603f74efb905181fa37e962394018",
+  "component": {
+    "debug": {
+      "tests": 11,
+      "failures_errors_disabled": 0,
+      "skipped": 0,
+      "sanitizer_errors": false,
+      "pass": true
+    },
+    "asan": {
+      "tests": 11,
+      "failures_errors_disabled": 0,
+      "skipped": 0,
+      "sanitizer_errors": false,
+      "pass": true
+    },
+    "tsan": {
+      "tests": 11,
+      "failures_errors_disabled": 0,
+      "skipped": 0,
+      "sanitizer_errors": false,
+      "pass": true
+    }
+  },
+  "component_spool_audits": 33,
+  "expected_invalid_spools": 6,
+  "native_startup": {
+    "profiles": [
+      "normal",
+      "asan",
+      "tsan"
+    ],
+    "conditions_per_profile": 7,
+    "explicit_retry_per_profile": 1,
+    "processes_per_profile": 17,
+    "pass": true
+  },
+  "quiet_service": {
+    "runs": 1,
+    "pass": true,
+    "bootstrap_attempts": 9,
+    "auditors": 4,
+    "mutations_rejected": 29,
+    "unchanged_deadlines": true
+  },
+  "related_ctest": {
+    "passed": 32,
+    "failed": 0,
+    "scope": "initial bootstrap tests plus existing journal/startup regression; strengthened epoch nonreuse test rerun in final component suite"
+  },
+  "python_tests": 43,
+  "reader_mutations_rejected": 17,
+  "static": {
+    "translation_units": 3,
+    "clang_tidy_exit": 0,
+    "cppcheck_exit": 0,
+    "front_adapter_analysis_headers": "libstdc++11 compatibility workaround for clang14; production compiler retains libstdc++13"
+  },
+  "service_source_changes_after_run": {
+    "files": [
+      "tests/integration/someip/bootstrap_incidents_run.py"
+    ],
+    "reason": "standalone startup failure runner gained sanitizer launch options; not used by service runtime",
+    "cpp_and_service_launcher_unchanged": true
+  },
+  "previous_attempts_retained": [
+    "initial GTest compile failed: two EXPECT_THROW macros shared a line; fixed",
+    "initial clang14/libstdc++13 chrono parse error; rerun with existing libstdc++11 analysis include workaround",
+    "initial cppcheck string_view passedByValue finding; changed to const reference",
+    "initial 3-profile component and 5-case/7-case native startup passes retained separately"
+  ],
+  "limits": [
+    "No physical power-cut or whole-disk redundancy claim",
+    "No startup spool rotation/remote reconciliation/long-term capacity policy",
+    "First issue failure injected at real EpochStore component; native full-service regression exercises successful issue/re-INIT",
+    "Clock recovery, CARLA silent-loss subinterval, five remaining Power vehicle causes, loaded/long-duration timing and retention remain open"
+  ]
+}

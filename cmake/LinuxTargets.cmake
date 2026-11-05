@@ -1,4 +1,7 @@
 # Linux runtime/adapters; called only on Linux.
+add_library(bootstrap_journal STATIC central/diagnostics/bootstrap_journal.cpp)
+target_include_directories(bootstrap_journal PUBLIC central/diagnostics)
+stratadrive_quality(bootstrap_journal)
 add_library(diagnostics_journal STATIC central/diagnostics/diagnostics_journal.cpp)
 target_link_libraries(diagnostics_journal PUBLIC diagnostics)
 stratadrive_quality(diagnostics_journal)

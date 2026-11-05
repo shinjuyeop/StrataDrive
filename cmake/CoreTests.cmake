@@ -24,6 +24,9 @@ stratadrive_unit_test(diagnostic_binding_test
     SOURCES tests/unit/diagnostic_binding_test.cpp
     LIBRARIES diagnostics_wire)
 if(TARGET diagnostics_journal)
+    stratadrive_unit_test(bootstrap_journal_test
+        SOURCES tests/unit/bootstrap_journal_test.cpp
+        LIBRARIES bootstrap_journal epoch_store diagnostics_journal)
     stratadrive_unit_test(plant_io_test
         SOURCES tests/unit/plant_io_test.cpp
         LIBRARIES m4_async_runtime)
