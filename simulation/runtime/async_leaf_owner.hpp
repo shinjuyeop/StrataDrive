@@ -54,6 +54,7 @@ public:
     bool omit_native_input{false}; // logical fixture: BMS electrical group / Power current; input copy only
     unsigned native_bms_trip_mask{0};
     PowerSensorFault native_power_fault{PowerSensorFault::None};
+    PowerLifecycleSensorFault native_power_lifecycle_fault{PowerLifecycleSensorFault::None};
     std::uint32_t epoch() const { return epoch_; }
     transport::Leaf leaf() const { return leaf_; }
     std::uint64_t last_body_ns() const { return last_body_; }

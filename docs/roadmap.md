@@ -106,9 +106,14 @@ BMS9/Power8 component 조합·동일 설정 NormalStop 복구/clear를 다룬다
 원본 검출·물리 응답·복원만 한 latch 유지·새 Release 이후 Passed를 검증했다.
 [Proposal 이전 bootstrap](test-plan/evidence/m9_bootstrap/README.md)는 Epoch가 없는 별도 영구
 incident와 기동 차단·재시도 이력 보존으로 연결했다.
-남은 완료 조건은 부하/장시간 native timing, silent packet loss의 실제 CARLA subinterval 연결, trusted Clock 복구,
-Power precharge/request-loss/shutdown-current/startup-energized/discharge의8-role 통합, 실제 부하/장기 보존 정책과
-학습자 수용이다. DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.
+[Clock·Power lifecycle·유한 운용 후속](test-plan/evidence/m9_remaining/README.md)은 명시적
+trusted Clock 재검증/100ms 정상 source와 Power5조건의8-role 차량 복원·새 세션 복구를
+연결한다. Debug/ASan·UBSan/TSan 각각88개와 차량12조건이 통과했다. 비활성 store의
+독점 잠금 archive/새 directory 복원은 실제36개 journal의 byte 동일성과 독립 재감사를 검증했다.
+긴 native 서비스/CPU 부하의 고정 cohort 판정과 초기 실패는 같은 근거에서 관리한다.
+남은 기능은 부하 시 명령 갱신 지연과 silent packet loss의 실제 CARLA subinterval 연결이다. 자동 장기 상태 이관·
+용량 회수, 다른 kernel/Target Clock 운영과 학습자 수용은 이번 유한 Host 검증과 구분한다.
+DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·
 속도·제어 튜닝은 이 묶음에 추가하지 않으며 변경한 경계의 회귀만 실행한다.

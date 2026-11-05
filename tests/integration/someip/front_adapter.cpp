@@ -36,6 +36,18 @@ bool service_fault(const std::string_view& name){const auto* value=std::getenv("
 unsigned fault_zone(){return std::getenv("STRATADRIVE_FAULT_REAR")?1:0;}
 bool fifo_enabled(){return std::getenv("STRATADRIVE_NATIVE_FIFO")!=nullptr;}
 std::uint64_t run_duration(){const auto* v=std::getenv("STRATADRIVE_NATIVE_DURATION_MS");return v?std::stoull(v)*kMs:9000*kMs;}
+// Fixture observation duration only; no control/protection/lease deadline changes.
+std::uint64_t service_hold_ns() {
+    static const auto value=[] {
+        const auto* text=std::getenv("STRATADRIVE_SERVICE_HOLD_MS");
+        const auto ms=text?std::stoull(text):500ULL;
+        if(ms<500 || ms>60000 || (text && !std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")))throw std::invalid_argument("service hold range/profile");
+        return ms*kMs;
+    }();
+    return value;
+}
+std::uint64_t service_extra_ns(){return 2*(service_hold_ns()-500*kMs);}
+std::size_t service_trace_capacity(){return 196608+static_cast<std::size_t>(service_extra_ns()/kMs)*16;}
 struct NativeIteration {
     simulation::NativeExecutionWatch* watch;std::optional<std::size_t> job;std::uint64_t cpu;
     NativeIteration(simulation::NativeExecutionWatch* w,std::uint64_t requested):watch(w),cpu(w?w->m4_cpu():0){if(w)job=w->begin(requested);}
@@ -63,7 +75,7 @@ public:
 };
 struct Trace final:transport::TransportTrace {
     std::ofstream out;std::vector<transport::TransportTraceRow> rows;bool overflow=false;
-    explicit Trace(const fs::path& p):out(p){rows.reserve(energy_enabled() || std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")?196608:65536);}
+    explicit Trace(const fs::path& p):out(p){rows.reserve(energy_enabled() || std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")?service_trace_capacity():65536);}
     ~Trace(){out<<"event,ns,peer,epoch,token,sent,deadline,operation,decision,source,original_source,inner_deadline,payload_source\n";
         for(const auto& r:rows)out<<r.stage<<','<<r.time_ns<<','<<r.peer<<','<<r.epoch<<','<<r.token<<','<<r.sent_ns<<','<<r.deadline_ns<<','<<r.operation<<','<<r.outcome<<','<<r.result_source_ns<<','<<r.original_source_ns<<','<<r.inner_deadline_ns<<','<<r.payload_source_ns<<'\n';}
     void record(transport::TransportTraceRow r) noexcept override;
@@ -144,7 +156,7 @@ struct Owners final:session::CoordinatorPort {
         for(const auto& e:event_rows)events<<e.ns<<','<<e.name<<','<<e.epoch<<','<<e.role<<','<<e.value<<','<<e.deadline<<'\n';
     }
     explicit Owners(someip::test::FixtureSignals& files,Ecu e,Transport& n,const fs::path& d,const std::string& label,someip::test::NativeDiagnosticRoutes* diagnostic=nullptr):signals(files),ecu(e),remote(e!=Ecu::Central),three(three_enabled()),zi(e==Ecu::Rear?1:0),folder(d),tag(label),net(n),io((d/"sil-io"/"plant.bin").string()),trace(d/(tag+".transport.csv")),diagnostic_routes(diagnostic) {
-        event_rows.reserve(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")?196608:65536);if(energy_enabled() && !remote)energy_feedback.reserve(2000);
+        event_rows.reserve(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")?service_trace_capacity():65536);if(energy_enabled() && !remote)energy_feedback.reserve(2000);
         std::array<transport::LeafLink*,5> ptr{};for(unsigned i=0;i<5;++i)ptr[i]=&leaves[i];
         if(remote || !three) {
             const unsigned z=remote?zi:1;
@@ -154,7 +166,9 @@ struct Owners final:session::CoordinatorPort {
             if(remote)remote_zone=std::make_unique<simulation::RemoteZoneEndpoint>(static_cast<Role>(zi),*zone_session[z],*zone[z],gate,zones[z],agreement);
             else sessions[1]=std::make_unique<simulation::SessionOwnerLoop>(Role::RearZone,*zone_session[1],links[1]);
             for(unsigned i=z==0?0:2;i<(z==0?2:5);++i) {
-                leaf[i]=std::make_unique<simulation::AsyncLeafOwner>(static_cast<transport::Leaf>(i),clock,remote?leaf_gates[i]:gate,leaves[i],sensors[i+2],outputs[i],bms);
+                simulation::LeafOwnerConfig leaf_config;
+                if(service_extra_ns())leaf_config.input_event_capacity=12000+service_extra_ns()/kMs;
+                leaf[i]=std::make_unique<simulation::AsyncLeafOwner>(static_cast<transport::Leaf>(i),clock,remote?leaf_gates[i]:gate,leaves[i],sensors[i+2],outputs[i],bms,leaf_config);
                 leaf[i]->transport_trace(&trace);
                 if(remote)remote_leaf[i]=std::make_unique<simulation::RemoteLeafEndpoint>(static_cast<Role>(i+2),*leaf[i],leaf_gates[i],leaves[i],agreement);
                 else sessions[i+2]=std::make_unique<simulation::SessionOwnerLoop>(static_cast<Role>(i+2),*leaf[i],links[i+2]);
@@ -309,6 +323,11 @@ struct Owners final:session::CoordinatorPort {
             if(!stop_requested && !freeze_normal && core.decision().normal_armed && t>=core.next_allocation_ns() && vehicle_release!=allocation_release) {
                 vehicle_release=allocation_release;
                 auto demand=someip::test::EnergyDemand{"fixed",.2,false};
+                if(service_extra_ns()) {
+                    const auto feedback=port.feedback();
+                    if(feedback.rear.drive_actual && feedback.rear.drive_actual->wheel_speed)
+                        demand.acceleration=std::clamp(.5*(.5-.3*feedback.rear.drive_actual->wheel_speed->value_rad_s),-.2,.2);
+                }
                 if(energy_enabled() && armed_ns) {
                     demand=someip::test::energy_demand(t-armed_ns);
                     if(energy_phase!=demand.phase){energy_phase=demand.phase;event(demand.phase,7,t-armed_ns);}
@@ -399,7 +418,7 @@ int plant(const fs::path& folder,someip::test::FixtureSignals& signals) {
     std::array<runtime::LatestSnapshot<simulation::OwnerSensors>,8> sensors;
     std::array<runtime::LatestSnapshot<simulation::OwnerActuation>,5> outputs;
     std::vector<simulation::M4Event> events;events.reserve(4000);const auto start=now();
-    simulation::m4_detail::PhysicalOwner physical{clock,gate,sensors,outputs,start,events,override_signal,1,std::getenv("STRATADRIVE_SIMPLE_VEHICLE")!=nullptr,no_charge()?.96:.63};physical.trace.reserve(4000);
+    simulation::m4_detail::PhysicalOwner physical{clock,gate,sensors,outputs,start,events,override_signal,1,std::getenv("STRATADRIVE_SIMPLE_VEHICLE")!=nullptr,no_charge()?.96:.63};physical.trace.reserve(4000+service_extra_ns()/(10*kMs));physical.energy_trace.reserve(4000+service_extra_ns()/(10*kMs));
     PlantIO io((folder/"sil-io"/"plant.bin").string(),true);
     std::unique_ptr<simulation::NativeExecutionWatch> watch;
     std::vector<std::unique_ptr<simulation::NativeMonitorObserver>> observers;
@@ -410,7 +429,7 @@ int plant(const fs::path& folder,someip::test::FixtureSignals& signals) {
     }
     signals.mark(folder/"plant-ready");
     bool pass=true,delayed=false;std::string error;std::uint64_t previous=now(),maximum_gap=0,fault_time=0,requested=now(),injection=0;
-    std::vector<std::array<std::uint64_t,3>> timing;timing.reserve(40000);
+    std::vector<std::array<std::uint64_t,3>> timing;timing.reserve(40000+service_extra_ns()/100000);
     const bool response_enabled=std::getenv("STRATADRIVE_M6_RESPONSE")!=nullptr;
     const auto* floor_config=std::getenv("STRATADRIVE_M6_BRAKE_FLOOR");
     const auto* tolerance_config=std::getenv("STRATADRIVE_M6_TORQUE_TOLERANCE");
@@ -422,9 +441,9 @@ int plant(const fs::path& folder,someip::test::FixtureSignals& signals) {
 
     const bool service_physics=std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")!=nullptr;
     struct ServicePhysical {std::uint64_t ns,wheel_source,drive_source,brake_source;double wheel,torque,pressure;};
-    std::vector<ServicePhysical> service_physical;if(service_physics)service_physical.reserve(40000);
+    std::vector<ServicePhysical> service_physical;if(service_physics)service_physical.reserve(40000+service_extra_ns()/100000);
     bool diagnostic_normal=false;PhysicalPrerequisite prerequisite(folder);
-    try {while(!signals.exists(folder/"stop-plant") && now()-start<18'000*kMs) {
+    try {while(!signals.exists(folder/"stop-plant") && now()-start<18'000*kMs+service_extra_ns()) {
         check(!signals.failed(),"fixture signal IO failed");
         if(watch)simulation::runtime_support::sleep_until(requested);
         NativeIteration iteration(watch.get(),requested);
@@ -517,7 +536,7 @@ int main(int argc,char** argv) {
     if(argc!=5)return 2;
     const Ecu ecu=role=="central"?Ecu::Central:role=="front"?Ecu::Front:Ecu::Rear;
     const bool remote=ecu!=Ecu::Central;const std::string test=argv[3],generation=argv[4],tag=role+"-"+generation;
-    Transport net(ecu,three_enabled(),(folder/(tag+".sdk-api.csv")).string());
+    Transport net(ecu,three_enabled(),(folder/(tag+".sdk-api.csv")).string(),service_extra_ns()?service_trace_capacity():131072);
     std::unique_ptr<Owners> owners,retired_service_owner;
     std::future<std::uint32_t> service_epoch;
     std::unique_ptr<someip::test::NativeDiagnosticRoutes> diagnostic_routes;
@@ -568,7 +587,7 @@ int main(int argc,char** argv) {
             std::uint64_t injected_ns=0,paused_until=0,full_sent=0;bool overflow_probe=false;
             std::optional<transport::ZoneRequest> prior_request;
             std::uint64_t requested_wake=owners->watch?owners->watch->next_wake(now()):now();bool native_injected=false;
-            while(!signals.exists(folder/("stop-"+role)) && now()-ready_ns<(energy_enabled()?13000:9000)*kMs) {
+            while(!signals.exists(folder/("stop-"+role)) && now()-ready_ns<(energy_enabled()?13000:9000)*kMs+service_extra_ns()) {
                 if(owners->watch)simulation::runtime_support::sleep_until(requested_wake);
                 NativeIteration iteration(owners->watch.get(),requested_wake);
                 const auto t=now();check(!signals.failed(),"fixture signal IO failed");
@@ -660,7 +679,7 @@ int main(int argc,char** argv) {
                 if(!remote && owners->port.completed_batches()>=10 && owners->pending.empty() && (!three_enabled() || owners->observed_normal_response()))signals.mark(folder/"control-established");
                 if(!remote && test=="central-rejoin" && generation=="2" && owners->armed_ns && owners->release_acks==255 && owners->port.completed_batches()>=10 && !rejoined){signals.mark(folder/"central-2-rejoined");rejoined=true;}
                 const bool healthy_case=test=="normal" || test=="late" || test=="invalid" || (test=="restart-live" && rejoined) || (test=="central-rejoin" && generation=="2");
-                if(!remote && healthy_case && !service_mode && !service_startup_requested && owners->armed_ns && now()-owners->armed_ns>=500*kMs && (!owners->watch || now()-ready_ns>=run_duration()) && (!energy_enabled() || now()-owners->armed_ns>=5000*kMs) && owners->pending.empty()) {
+                if(!remote && healthy_case && !service_mode && !service_startup_requested && owners->armed_ns && now()-owners->armed_ns>=service_hold_ns() && (!owners->watch || now()-ready_ns>=run_duration()) && (!energy_enabled() || now()-owners->armed_ns>=5000*kMs) && owners->pending.empty()) {
                     check(owners->release_acks==255 && owners->port.completed_batches()>=10 && owners->accepted_results>=20 && owners->actual_count>=20,"normal real control coverage");
                     check(!owners->protected_ns && owners->core.decision().fault==central::CoordinatorFault::None,"normal control fault");
                     if(test=="invalid")check(invalid_sent && owners->diagnostic_rejected==2,"invalid replay evidence");
@@ -745,7 +764,8 @@ int main(int argc,char** argv) {
         if(full_close){shutdown_drain_end=now();owners->event("shutdown-drain-end",0,shutdown_late_rejected,until);}
         for(const auto& item:owners->pending){++pending_cancelled;owners->event("cancelled-on-protection",0,item.first,item.second.deadline_ns);}
         owners->pending.clear();
-        if(owners->trace.overflow || owners->event_overflow || owners->energy_feedback_overflow){pass=false;error="trace capacity exceeded";}
+        if(owners->trace.overflow || owners->event_overflow || owners->energy_feedback_overflow ||
+           std::any_of(owners->leaf.begin(),owners->leaf.end(),[](const auto& leaf){return leaf && leaf->input_event_capacity_exhausted();})){pass=false;error="trace capacity exceeded";}
     }
     // Controller work has selected protection and finished cleanup. Artifact IO
     // and SDK teardown are outside the guarded owner lifetime.

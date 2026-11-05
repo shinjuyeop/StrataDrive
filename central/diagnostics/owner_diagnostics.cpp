@@ -50,6 +50,10 @@ EventId OwnerDiagnostics::publish(Event e) noexcept {
     else ++next_;
     if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,e.id.sequence};
     if(!queue_.publish(e)) healthy_=false;
+    if(!clock_recovery_.remember(e)) {
+        healthy_=false;
+        auto gap=e;gap.kind=Kind::Gap;gap.key={};gap.occurrence={};publish(gap);
+    }
     return e.id;
 }
 bool OwnerDiagnostics::start_session(std::uint32_t epoch,std::uint64_t enable) noexcept {

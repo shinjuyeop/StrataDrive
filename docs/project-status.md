@@ -15,7 +15,7 @@
 | M6 | **Host quiet SIL/Python MIL 범위 CLOSED** | [종료 검토](archive/milestone-reviews.md#m6) · [최종 물리 응답](test-plan/evidence/m6_physical_response/README.md) |
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
-| M9 | **Host quiet 서비스 분리 판정 통과 / 전체 완료 OPEN** | [진단 계약](interfaces/diagnostics.md) · [비계측18건·sanitizer 분리 검증](test-plan/evidence/m9_validation_split/README.md) |
+| M9 | **Clock·Power 차량 복구·유한 quiet 서비스/보존 검증 / 전체 완료 OPEN** | [진단 계약](interfaces/diagnostics.md) · [최신 구현·원본·남은 실패](test-plan/evidence/m9_remaining/README.md) |
 | M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -89,10 +89,27 @@ EpochStore/journal 실패를 별도 영구 spool에 기록하며 가짜 applicat
 유지하며 자동 Passed/Clear하지 않는다. Spool 자체 장애는 기동을 막고, 전체 디스크/전원 장애와
 장기 운영 보존은 별도 범위로 남긴다.
 
-**M9 전체 완료는 아직 아니다.** 부하·장시간 native 서비스 timing, silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
-재검증, Power precharge/request-loss/shutdown-current/startup-energized/discharge의8-role 통합과 실제 부하/장기 보존
-수용이 남는다. 기본512-event 저장 경계는 원본 보존·초과 시 clear 차단까지 검증했으며 장기 보존
-운용을 대신하지 않는다. Native4ms/Target과 학습자 이해 review는 기능 시험 통과와 별도다.
+**Clock 복구·Power lifecycle·비활성 기록 보존을 연결했다.**
+[이번 근거](test-plan/evidence/m9_remaining/README.md)는 명시적 trusted Clock 재검증과
+새8-role Release 뒤100ms의 정상 source 진행을 요구한다. 실제 rollback 후 INIT만 한
+대조군은 Unknown을 유지한다. Power precharge/request-loss/shutdown-current/startup-energized/
+discharge5조건은 복원만 한 경우와 새 세션 복구를 모두 검증했다. RequestLost는 상위
+CommandLoss가 먼저 보호한 원본 순서를 보존하며 도달하지 않은 Power DTC를 만들지 않는다.
+Debug/ASan·UBSan/TSan 각각 영향88개·차량12조건·변조94개, 전체 Debug1336개가 통과했다.
+비활성 store의 독점 잠금 아래 원형 archive/새 directory 복원을 구현하고 실제 journal36개를
+byte 동일하게 복원·독립 재감사했다. 자동 clear나 용량 회수는 하지 않는다.
+
+긴 native 서비스는 기준500ms1회와 Epoch2/3 각각60s의 quiet3회가 독립 감사까지 통과했다.
+Owner CPU1/2/7의70% busy demand 부하에서는 첫 실행이 Drive command expiry로 보호 전환했다.
+Front 응답 대기7.138ms 뒤 Rear에 전달했고 다음 Rear command가 기존 만료보다1.572ms 늦게
+enqueue됐다. 최초 검출과 실제 정지·영속 SD-2001은 보존했으나 정상 서비스 완료로 세지 않는다.
+최종 cohort는6/7(기준+quiet4/4, loaded2/3)이며 통과6건은 네 독립 감사도 통과했다.
+초기 후보의 실패·중단과 부하 실패의 원본은 위 후속 근거에 함께 보존한다.
+
+**M9 전체 완료는 아직 아니다.** 부하 시 명령 갱신 지연과 silent packet loss의 CARLA
+subinterval 물리 연결이 남는다. 기본512-event 경계와
+비활성 archive/restore는 유한 운용 범위이며 자동 장기 상태 이관·용량 회수는 별도다.
+Native4ms/Target과 학습자 이해 review는 기능 시험 통과와 별도다.
 아래 과거 근거의 당시 범위/실패는 그대로 유지한다.
 
 ## M9 진단 집계·저장과 Central 검출 경로 연결
@@ -204,7 +221,7 @@ old owner의 지연 폐기로 수정했다. 초기 소켓 정리·독립 감사/
 TSan Allocation 원인 분석과 실제 서비스 고장 거절의 이번 결과는 위 M9 후속 근거에 기록한다.
 Native4ms와 M9 전체 수용은 계속 OPEN이다.
 DDS 제어 gate는 CLOSED인 별도 대안이며 M9 SOME/IP 완료 조건이 아니다. Native wall/Target과 실제 부하/장기 보존 수용은 별도다.
-BMS/Power 조합의 최신 component 확장은 위 후속 근거를 따른다. 전체 차량 조합·Clock 복구·proposal 이전 bootstrap은 남는다.
+BMS/Power 차량 조합·명시적 Clock 복구·proposal 이전 bootstrap의 최신 검증은 위 후속 근거를 따른다.
 실제 ACK/통신 손실의 주입 recipe·기대 결과는 사전 고정 후 검증한다.
 이번30km/h recipe와 기대 code·물리 기준은 [사전 protocol](test-plan/carla-diagnostics-protocol.md)에 고정했다.
 TBD-08은 실제 모니터 경계의 code별 복구 predicate·전달/부하 검증·학습자 수용 전 CLOSED로 올리지 않는다.

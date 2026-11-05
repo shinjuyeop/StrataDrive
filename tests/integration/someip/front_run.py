@@ -154,7 +154,7 @@ def inside(folder,binary,case):
                 for args in (['link','set','lo','up'],['addr','add',address,'dev',dev],['link','set',dev,'up'],['route','add','224.0.0.0/4','dev',dev]):call(['ip','netns','exec',role,'ip',*args])
                 (folder/f'{role}.network.txt').write_text(call(['ip','netns','exec',role,'ip','-details','addr']))
         caperr=(folder/'capture.stderr').open('w');streams.append(caperr)
-        capture=subprocess.Popen(['ip','netns','exec','central',*(['taskset','-c','0'] if observing else []),sys.executable,str(pilot.HERE),'--capture',str(folder),*(['--kernel-timestamps'] if observing else [])],stdout=subprocess.DEVNULL,stderr=caperr)
+        capture=subprocess.Popen(['ip','netns','exec','central',*(['taskset','-c','0'] if observing or service_profile else []),sys.executable,str(pilot.HERE),'--capture',str(folder),*(['--kernel-timestamps'] if observing else [])],stdout=subprocess.DEVNULL,stderr=caperr)
         pilot.wait_for(lambda:(folder/'capture.ready').exists())
         if observing:
             for peer_role in peer_roles:
@@ -311,7 +311,7 @@ def inside(folder,binary,case):
             result['processes'].append(row)
         if capture:
             capture.send_signal(signal.SIGINT)
-            try:capture.wait(timeout=2)
+            try:capture.wait(timeout=5 if service_profile else 2)
             except subprocess.TimeoutExpired:capture.kill();capture.wait();result['capture_forced_cleanup']=True
         if observing:
             for dest,cap in observation_captures:
@@ -351,7 +351,9 @@ def inside(folder,binary,case):
         result['sdk_errors']=bool(result['unexpected_sdk_errors'])
         result['pass']=result['pass'] and result['load_control'] and not result.get('capture_forced_cleanup') and not result['forced_cleanup'] and not result['sanitizer_diagnostics'] and not result['sdk_errors'] and all(r.get('expected_abrupt_stop') or r.get('expected_model_failure') or (r['exit']==0 and r.get('summary',{}).get('pass') is True and (r['role']=='plant' or r.get('summary',{}).get('orderly_stop') is True)) for r in result['processes'])
         try:
-            result['ip_data_packets']=json.loads((folder/'capture.json').read_text())['ip_data_packets']
+            result['packet_capture']=json.loads((folder/'capture.json').read_text())
+            result['ip_data_packets']=result['packet_capture']['ip_data_packets']
+            result['pass']=result['pass'] and result['packet_capture']['normal_exit'] and result['packet_capture'].get('socket_drops',0)==0 and not result['packet_capture'].get('overflow',False)
             if case!='ready-timeout' and result['ip_data_packets']<4:result['pass']=False
         except (OSError,ValueError):result['pass']=False
         summaries={r['role']:r.get('summary',{}) for r in result['processes'] if not r.get('expected_abrupt_stop') and (case not in ('close-full','overflow') or r['generation']==1)}
@@ -420,6 +422,7 @@ def main():
     p.add_argument('--signal-write-delay-ms',type=int,default=0,help='declared fixture-only armed marker write delay on the IO thread')
     p.add_argument('--native-watch',action='store_true');p.add_argument('--fifo',action='store_true');p.add_argument('--loaded',action='store_true');p.add_argument('--timing',action='store_true');p.add_argument('--duration-ms',type=int,default=2540)
     p.add_argument('--profile',choices=['normal','asan','tsan'],default='normal');p.add_argument('--fixed-layout',action='store_true')
+    p.add_argument('--service-hold-ms',type=int,default=500,help='terminal service observation per normal epoch, 500..60000ms; original control budgets stay fixed')
     p.add_argument('--diagnostic-service',action='store_true');p.add_argument('--diagnostics',action='store_true');p.add_argument('--diagnostic-drop-ack',action='store_true');p.add_argument('--diagnostic-context-delay-ms',type=int,default=0);p.add_argument('--diagnostic-restart',choices=['central','front','rear','all'])
     p.add_argument('--cases',nargs='+',choices=CASES,default=['normal']);p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
@@ -455,6 +458,8 @@ def main():
     if a.diagnostic_service:
         if not a.diagnostics or a.cases!=['central-rejoin'] or a.native_watch or not a.simple_vehicle:p.error('terminal service requires isolated diagnostics central-rejoin with simple-vehicle and without native-watch')
         os.environ['STRATADRIVE_DIAGNOSTIC_SERVICE']='1'
+    if not 500<=a.service_hold_ms<=60000 or (a.service_hold_ms!=500 and not a.diagnostic_service):p.error('service-hold-ms requires terminal service and 500..60000ms')
+    if a.diagnostic_service:os.environ['STRATADRIVE_SERVICE_HOLD_MS']=str(a.service_hold_ms)
     if a.service_fault:
         if not a.diagnostic_service:p.error('service-fault requires diagnostic-service')
         os.environ['STRATADRIVE_SERVICE_FAULT']=a.service_fault
@@ -472,7 +477,10 @@ def main():
         if a.diagnostic_restart:os.environ['STRATADRIVE_DIAGNOSTIC_RESTART']=a.diagnostic_restart
         if a.diagnostic_drop_ack:os.environ['STRATADRIVE_DIAGNOSTIC_DROP_ACK']='1'
     elif a.diagnostic_drop_ack or a.diagnostic_context_delay_ms or a.diagnostic_restart:p.error('diagnostics required')
-    if (a.fifo or a.loaded or a.timing) and not a.native_watch:p.error('native-watch required')
+    if (a.fifo or a.timing or (a.loaded and not a.diagnostic_service)) and not a.native_watch:p.error('native-watch required')
+    if a.loaded and a.diagnostic_service:
+        if not a.owner_fifo or a.profile!='normal':p.error('loaded terminal service requires normal profile and owner-fifo')
+        os.environ['STRATADRIVE_NATIVE_LOADED']='1'
     if a.energy_cycle:
         if not (a.three and a.simple_vehicle and a.native_watch):p.error('energy-cycle requires three/simple-vehicle/native-watch')
         if a.duration_ms not in (2540,8000):p.error('energy-cycle-v1 has a fixed 8000ms observation')
@@ -506,12 +514,12 @@ def main():
     rows=[]
     with pilot.open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'isolated_ecus':a.isolated_ecus,'split_owner_io':a.split_owner_io,'auxiliary_placement':placement,'owner_fifo':a.owner_fifo,'service_fault':a.service_fault,'signal_write_delay_ms':a.signal_write_delay_ms,'fixture_signal_poll_ns':1000000,'fixture_signal_observation':'role-subscriptions-v1','functional_owner_idle_wait_us':1000,'sender_wakeup':'enqueue-notification','diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':25 if a.energy_cycle else 20,'fixed_layout':a.fixed_layout,'sdk_io_threads':a.sdk_io_threads,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'central/coordinator').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
+        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'isolated_ecus':a.isolated_ecus,'split_owner_io':a.split_owner_io,'auxiliary_placement':placement,'owner_fifo':a.owner_fifo,'service_fault':a.service_fault,'service_hold_ms':a.service_hold_ms,'signal_write_delay_ms':a.signal_write_delay_ms,'fixture_signal_poll_ns':1000000,'fixture_signal_observation':'role-subscriptions-v1','functional_owner_idle_wait_us':1000,'sender_wakeup':'enqueue-notification','diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':(25 if a.energy_cycle else 20)+2*(a.service_hold_ms-500)/1000,'fixed_layout':a.fixed_layout,'sdk_io_threads':a.sdk_io_threads,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'central/coordinator').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()
                 cmd=['unshare','-Urnm',sys.executable,str(HERE),'--inside',str(dest),str(binary),case]
                 if a.fixed_layout:cmd=['setarch','x86_64','-R',*cmd]
-                code=pilot.supervise(cmd,dest,25 if a.energy_cycle else 20);rows.append({'case':case,'repeat':repeat+1,'exit':code});pilot.save(out/'results.json',rows)
+                code=pilot.supervise(cmd,dest,(25 if a.energy_cycle else 20)+2*(a.service_hold_ms-500)/1000);rows.append({'case':case,'repeat':repeat+1,'exit':code});pilot.save(out/'results.json',rows)
     return 0 if all(r['exit']==0 for r in rows) else 1
 if __name__=='__main__':sys.exit(main())

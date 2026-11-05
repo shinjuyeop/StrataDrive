@@ -1,6 +1,7 @@
 #pragma once
 #include <vsomeip/vsomeip.hpp>
 #include "owner_wire.hpp"
+#include "owner_trace_identity.hpp"
 #include "wire_binding.hpp"
 #include "owner_message_binding.hpp"
 #include "owner_credit_retirement.hpp"
@@ -29,15 +30,15 @@ class Transport {
     std::condition_variable tx_ready_;runtime::MonotonicCondition rx_ready_;
     std::array<std::deque<Out>,4> tx_; std::atomic<bool> sending_{false},closing_{false};
     std::ofstream trace_;
-    struct TimingRow {std::uint64_t ns;const char* event;unsigned lane,method;std::size_t bytes;std::uint32_t crc;std::uint64_t cpu_ns;};
-    runtime::ConcurrentTraceBuffer<TimingRow> timing_{131072};
+    struct TimingRow {std::uint64_t ns;const char* event;unsigned lane,method;std::size_t bytes;std::uint32_t crc;std::uint64_t cpu_ns;remote::OwnerTraceIdentity owner;};
+    runtime::ConcurrentTraceBuffer<TimingRow> timing_;
     static std::uint64_t thread_cpu() {timespec t{};clock_gettime(CLOCK_THREAD_CPUTIME_ID,&t);return std::uint64_t(t.tv_sec)*1000000000+t.tv_nsec;}
     void record(const char* event,unsigned lane,unsigned method,const std::uint8_t* bytes,std::size_t size,std::uint64_t stamp=0,std::uint64_t cpu=0) {
-        // The canonical packet's trailing CRC correlates the same immutable
-        // bytes at queue, SDK call and callback. No hashing/formatting/file IO.
+        // Retain the original bounded identity as well as CRC: long captures
+        // can contain a CRC collision. No hashing/formatting/file IO.
         std::uint32_t crc=0;
         if(size>=4)for(unsigned i=0;i<4;++i)crc|=std::uint32_t(bytes[size-4+i])<<(8*i);
-        timing_.append({stamp?stamp:now(),event,lane,method,size,crc,cpu?cpu:thread_cpu()});
+        timing_.append({stamp?stamp:now(),event,lane,method,size,crc,cpu?cpu:thread_cpu(),remote::owner_trace_identity(bytes,size)});
     }
     unsigned local(unsigned lane) const { return ecu_==Ecu::Central?(lane<2?0x5346+lane:0x534a+lane-2):(ecu_==Ecu::Front?0x5344:0x5348)+lane; }
     unsigned peer(unsigned lane) const { return ecu_==Ecu::Central?(lane<2?0x5344+lane:0x5348+lane-2):(ecu_==Ecu::Front?0x5346:0x534a)+lane; }
@@ -59,8 +60,8 @@ public:
 
     std::uint64_t stop_return_ns=0,join_return_ns=0;
     Transport(bool front,const std::string& trace):Transport(front?Ecu::Front:Ecu::Central,false,trace) {}
-    explicit Transport(Ecu ecu,bool three,const std::string& trace):ecu_(ecu),three_(three),app_(vsomeip::runtime::get()->create_application(ecu==Ecu::Central?"central":ecu==Ecu::Front?"front":"rear")),trace_(trace) {
-        trace_<<"ns,event,lane,method,bytes,crc,cpu_ns\n";
+    explicit Transport(Ecu ecu,bool three,const std::string& trace,std::size_t trace_capacity=131072):ecu_(ecu),three_(three),app_(vsomeip::runtime::get()->create_application(ecu==Ecu::Central?"central":ecu==Ecu::Front?"front":"rear")),trace_(trace),timing_(trace_capacity) {
+        trace_<<"ns,event,lane,method,bytes,crc,cpu_ns,owner_epoch,owner_token,owner_sender,owner_receiver\n";
     }
     unsigned channels() const {return ecu_==Ecu::Central && three_?4:2;}
     unsigned ready_mask() const {return (1U<<channels())-1;}
@@ -232,7 +233,7 @@ public:
         if(!dispatch_.joinable())return;
         for(unsigned l=0;l<channels();++l){app_->stop_offer_service(local(l),1,1,0);app_->release_service(peer(l),1);}
         app_->clear_all_handler();app_->stop();stop_return_ns=now();dispatch_.join();join_return_ns=now();
-        for(std::size_t i=0;i<timing_.size();++i){const auto& r=timing_[i];trace_<<r.ns<<','<<r.event<<','<<r.lane<<','<<r.method<<','<<r.bytes<<','<<r.crc<<','<<r.cpu_ns<<'\n';}
+        for(std::size_t i=0;i<timing_.size();++i){const auto& r=timing_[i];trace_<<r.ns<<','<<r.event<<','<<r.lane<<','<<r.method<<','<<r.bytes<<','<<r.crc<<','<<r.cpu_ns<<','<<r.owner.epoch<<','<<r.owner.token<<','<<r.owner.sender<<','<<r.owner.receiver<<'\n';}
         trace_<<stop_return_ns<<",stop-return,0,0,0\n"<<join_return_ns<<",join-return,0,0,0\n";trace_.flush();
     }
     bool trace_ok() const {return !timing_.overflowed() && static_cast<bool>(trace_);}

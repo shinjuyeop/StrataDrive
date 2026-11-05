@@ -160,6 +160,26 @@ TEST(NativeDiagnostics, PropagatedBmsProtectionDoesNotMaskLaterRealTrip) {
     ASSERT_EQ(c.ledger.records().size(),1U); EXPECT_EQ(c.ledger.records()[0].key.code,diagnostics::Code::BmsLocal);
     EXPECT_EQ(b.propagation_observation()->observed_ns,start+110*ms); EXPECT_EQ(b.fault_observation()->observed_ns,start+160*ms);
 }
+TEST(NativeDiagnostics, RealBmsClockRollbackUsesSeparateExplicitRecoveryPredicate) {
+    vecu::BmsController b{simulation::multirate_fixture::bms_config()};Capture c(diagnostics::Component::Bms);
+    ASSERT_TRUE(b.start_session(1,7,start));c.session(1,start);
+    for(unsigned t=0;t<=100;t+=20){ASSERT_TRUE(b.tick(battery_sample(start+t*ms),start+t*ms));}
+    b.tick(battery_sample(start+80*ms),start+80*ms);ASSERT_TRUE(b.fault_observation());
+    ASSERT_EQ(b.fault_observation()->reason,static_cast<unsigned>(vecu::BmsControlFault::ClockError));
+    c.hook.observe(diagnostics::NativeMonitor::Bms,b.fault_observation(),std::nullopt,std::nullopt,false,false,start+80*ms);c.drain();
+    ASSERT_EQ(c.ledger.records().size(),1U);const auto key=c.ledger.records()[0].key;ASSERT_EQ(key.code,diagnostics::Code::Clock);
+    const auto stamp=[](std::uint64_t now){return diagnostics::Stamp{diagnostics::Domain::Simulation,run,now,true,true};};
+    ASSERT_TRUE(c.hook.revalidate_clock({{run,run,0,0,true},stamp(start+170*ms),1,2}));
+    const session::Plan plan{2,start+180*ms,start+2180*ms,start+200*ms,start+220*ms};
+    ASSERT_TRUE(b.start_session(2,7,plan.enable_ns));c.session(2,plan.enable_ns);
+    for(unsigned t=200;t<=400;t+=20) {
+        ASSERT_TRUE(b.tick(battery_sample(start+t*ms),start+t*ms));const auto good=b.success_observation();
+        c.hook.observe(diagnostics::NativeMonitor::Bms,std::nullopt,std::nullopt,good,b.decision().state==vecu::BmsControlState::Active,true,start+t*ms);
+        c.hook.observe_clock({{run,2},plan,255,true,b.decision().state==vecu::BmsControlState::Active,stamp(start+t*ms),good?stamp(good->observed_ns):diagnostics::Stamp{}});c.drain();
+        EXPECT_EQ(c.ledger.find(key)->condition,t<400?diagnostics::Condition::Unknown:diagnostics::Condition::Passed);
+    }
+    EXPECT_EQ(c.ledger.find(key)->count,1U);EXPECT_FALSE(c.ledger.find(key)->cleared);
+}
 class NativePower : public ::testing::Test {
 protected:
     simulation::PowerModel plant{{.002,50,.02,100,1000,500}};

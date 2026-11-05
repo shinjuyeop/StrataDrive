@@ -93,4 +93,10 @@ scenario/test oracle 갱신 → 해당 milestone에서 실행 → Result ID/arti
 빈 결과나 0 ms로 대체하지 않는다. 모든 required variant와 환경 조건을 검증하기 전에는
 일부 PASS만으로 requirement 전체를 VERIFIED로 변경하지 않는다.
 
-C-M9-COMPLETE-01–04는 [M9 후속](evidence/m9_completion/README.md)의 최초 native 원인·동일 설정 정지 복구/clear·서비스 거절·CARLA30 실제 물리/DTC·component 고장 조합·저장 capacity를 연결한다. Clock/bootstrap/silent-loss subinterval·전체 matrix·부하/장기 보존·학습자 수용 전 전체 TC를 닫지 않는다.
+C-M9-COMPLETE-01–04는 [M9 후속](evidence/m9_completion/README.md)의 최초 native 원인·동일 설정 정지 복구/clear·서비스 거절·CARLA30 실제 물리/DTC·component 고장 조합·저장 capacity를 연결한다. 당시 미완료 항목의 후속 검증은 최신 프로젝트 상태를 따른다.
+
+C-M9-CLOCK-01/C-M9-POWER-01/C-M9-RETENTION-01/C-M9-SOAK-01은
+[Clock·Power lifecycle·유한 운용](evidence/m9_remaining/README.md)의 명시적 Clock 재검증,
+Power5조건의8-role 차량 복구, 비활성 store의 원형 보관/복원과 고정 native 서비스 반복을
+연결한다. Source/expiry·보호 기한·과거 고장을 유지한다. Silent-loss의 실제 CARLA subinterval,
+자동 장기 상태 이관/용량 회수와 학습자 수용까지 검증한 전체 TC 결과로 올리지 않는다.

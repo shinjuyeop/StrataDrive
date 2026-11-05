@@ -6,6 +6,15 @@ namespace stratadrive::simulation {
 // Logical SIL sensor faults. Only values in the consuming ECU's input copy
 // change; acquisition identity, source/dependency clocks and plant stay intact.
 enum class PowerSensorFault { None, ChargerConnected, ContactorMismatch, BusLow };
+// Lifecycle fixtures select these on the owner thread at their declared phase;
+// they preserve acquisition metadata and never alter the shared physical model.
+enum class PowerLifecycleSensorFault { None, PrechargeStall, StartupEnergized, CurrentHeld, DischargeHeld };
+inline void inject_power_lifecycle(power::SensorSnapshot& s,PowerLifecycleSensorFault fault) {
+    if(fault==PowerLifecycleSensorFault::PrechargeStall) s.bus_voltage_v=0;
+    if(fault==PowerLifecycleSensorFault::StartupEnergized && s.contactors) s.contactors->positive=true;
+    if(fault==PowerLifecycleSensorFault::CurrentHeld) s.pack_current_a=20;
+    if(fault==PowerLifecycleSensorFault::DischargeHeld) s.bus_voltage_v=100;
+}
 inline void inject_bms_trips(battery::SensorSnapshot& s,unsigned mask) {
     if(mask&1U) s.cell_voltage->value.minimum=2.7;
     if(mask&2U) s.cell_voltage->value.maximum=4.3;

@@ -20,6 +20,10 @@ EventId StartupDiagnostics::publish(Event e) noexcept {
     if(next_==std::numeric_limits<std::uint64_t>::max()) { next_=0; healthy_=false; e.kind=Kind::Gap; e.key={}; e.occurrence={}; } else ++next_;
     if(e.kind==Kind::Fault) e.occurrence={context_.run,context_.producer,e.session.epoch,e.key.monitor,e.id.sequence};
     if(!queue_.publish(e)) { healthy_=false; }
+    if(!clock_recovery_.remember(e)) {
+        healthy_=false;
+        auto gap=e;gap.kind=Kind::Gap;gap.key={};gap.occurrence={};publish(gap);
+    }
     return e.id;
 }
 void StartupDiagnostics::attempt(const session::Plan& p) noexcept {

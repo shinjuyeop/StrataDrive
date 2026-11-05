@@ -1,5 +1,6 @@
 #pragma once
 #include "diagnostics.hpp"
+#include "clock_recovery.hpp"
 #include "speed_request.hpp"
 #include "vehicle_coordinator.hpp"
 
@@ -43,7 +44,19 @@ public:
     std::optional<ServiceEvidence> stop_clear_evidence(const central::VehicleCoordinator&,
         const central::NormalDriveReadinessInputs&,std::uint64_t now_ns) const noexcept;
     bool healthy() const noexcept { return healthy_; }
+    bool revalidate_clock(const ClockRevalidation& check) noexcept {return clock_recovery_.revalidate(check,context_.domain,context_.clock_instance);}
+    void observe_clock(const ClockRecoverySample& sample) noexcept {
+        if(!healthy_)return;
+        auto checked=sample;checked.native_healthy=checked.native_healthy && (sample.session==session_ && sample.released.enable_ns==enable_);
+        clock_recovery_.observe(checked);
+        while(auto e=clock_recovery_.take_ready()) {
+            const auto id=publish(*e);
+            if(!healthy_)return;
+            e->kind=Kind::Passed;e->proof_event=id;publish(*e);
+        }
+    }
 private:
+    ClockRecovery clock_recovery_;
     std::optional<ServiceEvidence> stationary_evidence(const central::VehicleCoordinator&,
         const central::NormalDriveReadinessInputs&,const std::optional<can::DriveMessage>&,std::uint64_t) const noexcept;
     Stamp stamp(std::uint64_t,bool trusted=true) const noexcept;

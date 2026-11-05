@@ -91,13 +91,17 @@ Event ControlDiagnostics::base(std::uint64_t now) const noexcept {
 }
 EventId ControlDiagnostics::publish(Event e) noexcept {
     if(next_==0) { healthy_=false; return {}; }
-    e.id.sequence=next_;
+    e.id={context_.run,context_.producer,next_};
     if(next_==std::numeric_limits<std::uint64_t>::max()) {
         e.kind=Kind::Gap; e.key={}; e.occurrence={}; e.native_reason=1; healthy_=false; next_=0;
     } else ++next_;
     const auto id=e.id;
     if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
     if(!queue_.publish(e)) healthy_=false;
+    if(!clock_recovery_.remember(e)) {
+        healthy_=false;
+        auto gap=e;gap.kind=Kind::Gap;gap.key={};gap.occurrence={};publish(gap);
+    }
     return id;
 }
 bool ControlDiagnostics::start_session(std::uint32_t epoch,std::uint64_t enable,bool publish_context) noexcept {

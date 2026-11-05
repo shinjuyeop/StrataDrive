@@ -44,6 +44,7 @@ CARLA30km/h 정상·고장5개 시나리오와 실제 transport 진단 수집은
 | M9 SDK owner 코어 공유 비교·미채택·복원 | [고정30건23/30](evidence/m9_sdk_owner_core/README.md) · [protocol](sdk-owner-core-protocol.md) |
 | M9 사용자 승인 서비스/성능·sanitizer 분리 판정 | [비계측18/18·ASan/TSan 각309](evidence/m9_validation_split/README.md) · [protocol](service-validation-protocol.md) |
 | M9 proposal 이전 EpochStore/journal incident·기동 차단 | [실행·중단/재시도](evidence/m9_bootstrap/README.md) · [protocol](bootstrap-incidents-protocol.md) |
+| M9 trusted Clock 복구·Power lifecycle5조건·유한 native 부하/보존 | [차량36건·원본/실패·고정 native cohort](evidence/m9_remaining/README.md) · [Clock](clock-recovery-protocol.md) · [Power](power-lifecycle-vehicle-protocol.md) · [soak](service-soak-protocol.md) · [보존](diagnostic-retention-protocol.md) |
 | 실제3-process SOME/IP·8-role·부하/고장/재가입 | [M5 Rear adapter](evidence/m5_someip_rear_adapter/README.md) |
 | M6 모델·Python MIL | [SimpleVehicle](evidence/m6_simple_vehicle/README.md) |
 | M6 에너지·회로·물리 응답 최종 판정 | [물리 응답](evidence/m6_physical_response/README.md) · [이전 energy 실패 포함](evidence/m6_vehicle_energy/README.md) |

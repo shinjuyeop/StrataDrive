@@ -208,6 +208,7 @@ void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
         record_native_input_loss(now,input?input->identity.source_time_ns:0,input?input->input_time_ns:0);
         if(omit_native_input && input) input->pack_current_a.reset();
         if(input) inject_power_sensor(*input,native_power_fault);
+        if(input) inject_power_lifecycle(*input,native_power_lifecycle_fault);
         if(const auto m=actor.tick(input,gate?*gate:std::nullopt,now)) { if(const auto f=can::encode_bms_frame(*m,power_tx_)) publish(*f); }
     }
     const auto completed=now_ns(); const bool late=execution_deadline_ && completed>body_deadline_;

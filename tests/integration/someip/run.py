@@ -72,7 +72,13 @@ def capture_packets(folder):
         active=False
     signal.signal(signal.SIGINT,stop)
     sock=socket.socket(socket.AF_PACKET,socket.SOCK_RAW,socket.htons(3))
+    buffered=bool(os.environ.get('STRATADRIVE_DIAGNOSTIC_SERVICE'))
+    requested_buffer=8*1024*1024
+    sock.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,requested_buffer)
+    effective_buffer=sock.getsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF)
     sock.bind(('sdc',0));sock.settimeout(.1)
+    sock.getsockopt(263,6,8) # reset Linux PACKET_STATISTICS after bind
+    saved=[];saved_bytes=0;capture_overflow=False
     with (folder/'traffic.pcap').open('wb') as output:
         output.write(struct.pack('<IHHIIII',0xa1b2c3d4,2,4,0,0,65535,1))
         (folder/'capture.ready').touch()
@@ -80,7 +86,13 @@ def capture_packets(folder):
             try: frame=sock.recv(65535)
             except socket.timeout:continue
             if len(frame)<34 or frame[12:14]!=b'\x08\x00':continue
-            stamp=time.time_ns();output.write(struct.pack('<IIII',stamp//10**9,(stamp//1000)%10**6,len(frame),len(frame)));output.write(frame)
+            stamp=time.time_ns()
+            header=struct.pack('<IIII',stamp//10**9,(stamp//1000)%10**6,len(frame),len(frame))
+            if buffered:
+                if saved_bytes+16+len(frame)>256*1024*1024 or len(saved)>=2_000_000:
+                    capture_overflow=True;active=False;continue
+                saved.append((header,frame));saved_bytes+=16+len(frame)
+            else:output.write(header);output.write(frame)
             iplen=(frame[14]&15)*4
             if frame[23]==6 and len(frame)>=14+iplen+20:
                 tcp=14+iplen;ports=struct.unpack('!HH',frame[tcp:tcp+4])
@@ -89,7 +101,12 @@ def capture_packets(folder):
                 if size>0:
                     for address in [socket.inet_ntoa(frame[26:30]),socket.inet_ntoa(frame[30:34])]:
                         if address in ('10.88.0.2','10.88.0.3'):peer_counts[address]=peer_counts.get(address,0)+1
-    sock.close();save(folder/'capture.json',{'ip_data_packets':count,'peer_data_packets':peer_counts,'interface':'sdc','normal_exit':True})
+        for header,frame in saved:output.write(header);output.write(frame)
+    packets,dropped=struct.unpack('=II',sock.getsockopt(263,6,8))
+    sock.close();save(folder/'capture.json',{'ip_data_packets':count,'peer_data_packets':peer_counts,'interface':'sdc','normal_exit':not capture_overflow,
+        'socket_packets':packets,'socket_drops':dropped,'requested_receive_buffer':requested_buffer,'effective_receive_buffer':effective_buffer,
+        'buffered':buffered,'buffered_bytes':saved_bytes,'capacity_bytes':256*1024*1024,'overflow':capture_overflow,'affinity':sorted(os.sched_getaffinity(0))})
+    if capture_overflow or dropped:raise RuntimeError('incomplete packet capture')
 
 def inside(folder, binary, case):
     folder=folder.resolve(); processes=[]; streams=[]; capture=None

@@ -10,12 +10,13 @@ from pathlib import Path
 def run(folder, central):
     from run import wait_for
     folder = Path(folder)
+    hold_seconds=int(os.environ.get('STRATADRIVE_SERVICE_HOLD_MS','500'))/1000
     def failed():
         return central.poll() is not None or (folder/'central-2.failed').exists()
-    wait_for(lambda: (folder/'service-epoch-ready').exists() or failed(), 5)
+    wait_for(lambda: (folder/'service-epoch-ready').exists() or failed(), 5+hold_seconds)
     if failed(): raise RuntimeError('Central exited before service startup request')
     (folder/'service-epoch-request').write_text('explicit operator startup after Epoch2 NormalStop; service review never issues INIT')
-    wait_for(lambda: (folder/'service-stop-ready').exists() or failed(), 5)
+    wait_for(lambda: (folder/'service-stop-ready').exists() or failed(), 5+hold_seconds)
     if failed(): raise RuntimeError('Central exited before Epoch3 normal stop')
     (folder/'service-freeze').write_text(str(time.monotonic_ns()))
     for role in ('front', 'rear'):

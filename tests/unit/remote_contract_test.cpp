@@ -1,4 +1,5 @@
 #include "owner_wire.hpp"
+#include "owner_trace_identity.hpp"
 #include "run_lease_gate.hpp"
 #include "../../interfaces/someip/owner_credit_retirement.hpp"
 #include "run_lease_issuer.hpp"
@@ -48,6 +49,19 @@ remote::OwnerMessage sample(std::size_t kind) {
 }
 std::string hex(const remote::OwnerPacket& p) { std::string out;const char* digits="0123456789abcdef";for(std::size_t i=0;i<p.size;++i){out+=digits[p.bytes[i]>>4];out+=digits[p.bytes[i]&15];}return out; }
 void repair_crc(remote::OwnerPacket& p) {const auto crc=remote::owner_crc32c(p.bytes.data(),p.size-4);for(unsigned i=0;i<4;++i)p.bytes[p.size-4+i]=static_cast<std::uint8_t>(crc>>(8*i));}
+TEST(OwnerTraceIdentity, OriginalRequestAndResultTokensRemainDistinctEvenWithEqualCrc) {
+    for(const auto kind:{3U,4U}) {
+        auto message=sample(kind);const auto packet=remote::encode_owner_message(message);ASSERT_TRUE(packet);
+        const auto identity=remote::owner_trace_identity(packet->bytes.data(),packet->size);
+        EXPECT_EQ(identity.epoch,42U);EXPECT_EQ(identity.token,kind==3?0x0102030405060708ULL:55ULL);
+        EXPECT_EQ(identity.sender,static_cast<unsigned>(message.from));EXPECT_EQ(identity.receiver,static_cast<unsigned>(message.to));
+        auto other=*packet;other.bytes[29]^=1; // same trailing CRC, distinct original token (not an admissible packet)
+        EXPECT_NE(remote::owner_trace_identity(other.bytes.data(),other.size).token,identity.token);
+        for(unsigned size=0;size<58;++size){EXPECT_EQ(remote::owner_trace_identity(packet->bytes.data(),size).token,0U);}
+    }
+    EXPECT_EQ(remote::owner_trace_identity(nullptr,100).token,0U);
+}
+
 TEST(RemoteEgress, DisconnectedTelemetryCannotAccumulateOrReplayOnReconnect) {
     std::deque<someip::OwnerEgressPacket> queue;const auto message=sample(9);
     const auto packet=someip::owner_egress(message);ASSERT_TRUE(packet);

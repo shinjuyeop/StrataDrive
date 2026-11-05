@@ -163,7 +163,7 @@ SD-2002/SD-4002는 더 큰 global Epoch에서 해당 Zone monitor가 실제 정�
 epoch의 실제 명령 수용 뒤 healthy native control body/output과 살아 있는 context가 필요하다.
 기존 child input dependency70ms·원본 command expiry·current body30ms를 각각 검사한다.
 INIT만·단순 traffic 재개·오래된 body·닫힌 gate·faulted actor로는 Passed를 발행하지 않는다.
-Clock의 실제 복구 predicate는 아직 연결하지 않는다.
+Clock은 아래 명시적 trusted 재검증 predicate로만 복구하며 일반 zone/leaf 복구로 넘기지 않는다.
 
 복구 proof는 원본 source identity와 native 판정의 **Observation**이다. 비어 있는 measured0을
 물리 Actual로 발급하지 않는다. 실제 토크/제동/차량 상태는 원본 physical evidence와 별도로
@@ -201,7 +201,7 @@ Journal에는 native reason/detail/state·identity/시각과 sample identity Obs
 Front2/Rear1 전송, RearPowerGateway는 arm 이후 유효 네 stream과 실제 전송, BMS는
 release-band dwell 뒤 Active/pending trip0, Power는 유효 actual sensor/BMS gate와 실제
 Enable/Ready 재도달이 필요하다. Metadata Observation proof 뒤 기존 occurrence의 Passed를
-발행하며 clear·권한 발급·plant reset을 하지 않는다. Clock recovery는 계속 OPEN이다.
+발행하며 clear·권한 발급·plant reset을 하지 않는다. Clock은 아래 별도 trusted 재검증을 따른다.
 
 새 SD-2101/3101/3201은 **code registry revision2**다. Binary transaction schema1은 유지하고
 `FileJournal::initialize(..., limits, 2)`로 새 store를 명시적으로 만든다. 기존 기본 registry1을
@@ -544,7 +544,7 @@ Quiesce/Send/Continuity/CentralCommit은 SD-4101, Clock은 기존 clock code, Ow
 Deadline code다. Participant/Cancelled 또는 Aborted 보호 전달은 root DTC가 아닌 Observation이다.
 미지 native reason은 unmapped로 남긴다. 각 observer의 fixed32 pending key는 무단 eviction하지
 않으며 초과/queue 손실은 sticky incomplete다. 연속 실패한 proposal도 각각 별도 occurrence다.
-Clock/Deadline의 기동 복구 predicate는 아직 구현하지 않는다.
+Clock은 아래 별도 trusted 재검증을 사용한다. Deadline의 기동 복구 predicate는 별도다.
 
 [사전 recipe](../test-plan/diagnostics-protocol.md#release-전-기동-시도-진단-fixture)와
 [원본·감사·실패](../test-plan/evidence/m9_startup_sources/README.md)를 따른다.
@@ -966,3 +966,37 @@ key/revision/현재 session과 해당 record의 Passed를 다시 검사하고 du
 새 INIT만 수행한 경우, 다른 설정의 성공, 오래된 Complete, 해제 중 새 고장은 성공으로 세지 않는다.
 
 이번 실제 시험 범위·실패 분모·미수용 항목은 [M9 후속 근거](../test-plan/evidence/m9_completion/README.md)를 따른다.
+
+## 명시적 trusted Clock 재검증
+
+`ControlDiagnostics`/`OwnerDiagnostics`/`NativeDiagnostics`/`StartupDiagnostics`는 같은 owner에서
+`revalidate_clock`와 `observe_clock`를 제공한다. 이는 신뢰된 로컬 composition API다.
+수신 timestamp/정상 packet/INIT 자체가 재검증 권한을 주지 않는다. `ClockRevalidation`은
+새 revision·더 큰 recovery epoch·신뢰된 checked Stamp·동일 domain/instance의 established
+zero-offset/zero-uncertainty agreement를 요구한다. 다른 kernel/host mapping은 이 경계 밖이다.
+
+새 실제 full8-role Release plan/mask255와 현재 정상 gate/native health를 함께 전달한다.
+원래20ms INIT lead/window·2s prepare budget을 유지한다. 해당 same-clock source가100ms
+연속 전진하고 age/gap≤30ms인 구간만 수용한다. Cached source는 창을 늘리지 않고 누락·
+역행·stale/future·부분 Release·native failure는 창을 만족시키지 않는다. Observed clock
+역행/instance 변경 또는 새 Clock fault는 trust를 무효화하여 새 명시적 revision을 요구한다.
+
+원래 Clock occurrence·관련 Fault EventId·발생 횟수·untrusted 검출 시각은 유지한다.
+새 Observation/Passed는 ProofControl, `times[Violation]`에 정상 관측창의 첫 source,
+`source.source`에 마지막 source, `times[Observed]`에 실제 관측 시각, `measured`에 연속 ns,
+`expected_min`에100000000, `state_before`와 proof source sequence에 trust revision을 둔다.
+이 source sequence는 로컬 clock-revalidation proof 식별자이며 원본 CAN sequence가 아니다.
+자동 clear/권한 발급은 없다. Queue/pending 손실은 기존 sticky Gap/clear 차단을 유지한다.
+
+[사전 protocol](../test-plan/clock-recovery-protocol.md)의 실제 BMS native rollback와
+8-role SessionParticipant rollback을 검증한다. Native host의 remote clock-administration
+service·hardware clock 복구를 수용한 것으로 확대하지 않는다.
+
+## 비활성 journal 보관·복원
+
+[운영 protocol](../test-plan/diagnostic-retention-protocol.md)의 `tools/archive_diagnostics.py`는
+inactive store의 lifetime flock을 독점 확보해 committed prefix·미확정 suffix·incomplete와
+pending을 원형으로 보관한다. 새 목적지로만 복원하며 active store/기존 archive를 덮어쓰지
+않는다. 용량·ordinal·파일별 hash/size를 공개하고 복원 후 native 의미 재검증을 요구한다.
+Archive가 event 용량 회수나 DTC clear를 뜻하지 않는다. 기본512와 명시적 최대4096은
+그대로이며 자동 rollover/장기 무제한 retention 수용은 별도다.

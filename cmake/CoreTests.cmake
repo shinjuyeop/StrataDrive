@@ -151,6 +151,15 @@ if(TARGET diagnostics_journal)
     stratadrive_unit_test(native_diagnostics_sil_test
         SOURCES tests/unit/native_diagnostics_sil_test.cpp
         LIBRARIES diagnostics_journal m4_async_runtime)
+    stratadrive_unit_test(clock_recovery_test
+        SOURCES tests/unit/clock_recovery_test.cpp
+        LIBRARIES clock_recovery)
+    stratadrive_unit_test(clock_recovery_vehicle_test
+        SOURCES tests/unit/clock_recovery_vehicle_test.cpp
+        LIBRARIES m4_async_runtime diagnostics_journal)
+    stratadrive_unit_test(power_lifecycle_vehicle_test
+        SOURCES tests/unit/power_lifecycle_vehicle_test.cpp
+        LIBRARIES m4_async_runtime diagnostics_journal)
     stratadrive_unit_test(native_sensor_matrix_test
         SOURCES tests/unit/native_sensor_matrix_test.cpp
         LIBRARIES diagnostics_journal m4_async_runtime)

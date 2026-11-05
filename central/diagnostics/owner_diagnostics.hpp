@@ -15,7 +15,19 @@ public:
         const std::optional<transport::LeafAuthorityObservation>& success,bool healthy,bool normal_gate,
         std::optional<std::uint64_t> selected,std::uint64_t now) noexcept;
     bool healthy() const noexcept { return healthy_; }
+    bool revalidate_clock(const ClockRevalidation& check) noexcept {return clock_recovery_.revalidate(check,context_.domain,context_.clock_instance);}
+    void observe_clock(const ClockRecoverySample& sample) noexcept {
+        if(!healthy_)return;
+        auto checked=sample;checked.native_healthy=checked.native_healthy && (sample.session==session_ && sample.released.enable_ns==enable_);
+        clock_recovery_.observe(checked);
+        while(auto e=clock_recovery_.take_ready()) {
+            const auto id=publish(*e);
+            if(!healthy_)return;
+            e->kind=Kind::Passed;e->proof_event=id;publish(*e);
+        }
+    }
 private:
+    ClockRecovery clock_recovery_;
     Stamp stamp(std::uint64_t,bool trusted=true) const noexcept;
     Event base(std::uint64_t) const noexcept;
     EventId publish(Event) noexcept;

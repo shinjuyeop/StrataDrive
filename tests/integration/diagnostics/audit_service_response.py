@@ -30,24 +30,35 @@ def load(root):
             'owners':{p.name:list(csv.DictReader(p.open())) for p in root.glob('*.transport.csv')}}
 
 
+def crc32c_table():
+    table=[]
+    for value in range(256):
+        for _ in range(8):value=(value>>1)^(0x82f63b78 if value&1 else 0)
+        table.append(value)
+    return tuple(table)
+
+
+CRC32C=crc32c_table()
+
+
 def crc32c(raw):
     crc=0xffffffff
-    for byte in raw:
-        crc^=byte
-        for _ in range(8):crc=(crc>>1)^(0x82f63b78 if crc&1 else 0)
+    for byte in raw:crc=CRC32C[(crc^byte)&255]^(crc>>8)
     return crc^0xffffffff
 
 
 def judge(data):
     packets={};requests={};results={};stages={}
+    identified=all('owner_epoch' in row for rows in data['timing'].values() for row in rows)
     for message in data['wire']:
         raw=message['payload'];method=message['method']
         require(len(raw)>=58 and raw[:8]==b'SDRV\x01\0\0\0','canonical owner header')
         crc=int.from_bytes(raw[-4:],'little');require(crc32c(raw[:-4])==crc,'original owner CRC32C')
-        key=(method,crc);require(key not in packets or packets[key]==raw,'no ambiguous CRC correlation');packets[key]=raw
         sender,receiver,domain=struct.unpack_from('<IIQ',raw,8)
         require(domain==DOMAIN,'original Host clock domain')
         epoch,token=struct.unpack_from('<IQ',raw,25)
+        key=(method,crc,epoch,token,sender,receiver) if identified else (method,crc)
+        require(key not in packets or packets[key]==raw,'no ambiguous original packet correlation');packets[key]=raw
         if epoch not in (2,3):continue
         if method==0x20:
             require(raw[24]==3 and sender==7 and receiver in (0,1) and message['client']==0x1312,'new Central request identity')
@@ -59,7 +70,9 @@ def judge(data):
     for name,rows in data['timing'].items():
         for row in rows:
             if row['event'] not in ('tx-queued','send-begin','send-return','rx-enter','rx-queued') or int(row['method']) not in (32,128):continue
-            key=(int(row['method']),int(row['crc']));events=stages.setdefault(key,{})
+            key=(int(row['method']),int(row['crc']))
+            if identified:key+=tuple(int(row[k]) for k in ('owner_epoch','owner_token','owner_sender','owner_receiver'))
+            events=stages.setdefault(key,{})
             require(row['event'] not in events,'unambiguous original timing stage')
             events[row['event']]={**row,'file':name}
     accepted=[r for name,rows in data['owners'].items() if name.startswith('central-2') for r in rows if r['event']=='central-result-accepted']
@@ -104,6 +117,8 @@ def mutations(data):
              lambda d:[r.__setitem__('deadline',str(int(r['deadline'])+1)) for name,rows in d['owners'].items() if name.startswith('central-2') for r in rows if r['event']=='central-result-accepted'],
              lambda d:[r.__setitem__('ns','0') for rows in d['timing'].values() for r in rows if r['event']=='rx-enter'],
              lambda d:[rows.__setitem__(slice(None),[r for r in rows if r['event']!='rx-queued']) for rows in d['timing'].values()]]
+    if all('owner_epoch' in r for rows in data['timing'].values() for r in rows):
+        changes.append(lambda d:[r.__setitem__('owner_token',str(int(r['owner_token'])+1)) for rows in d['timing'].values() for r in rows if r['event']=='rx-enter' and int(r['method']) in (32,128)])
     for change in changes:
         changed=copy.deepcopy(data);change(changed)
         try:judge(changed)

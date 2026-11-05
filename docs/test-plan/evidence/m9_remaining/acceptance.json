@@ -1,0 +1,1925 @@
+{
+  "base": "158ff4c1cd70a3e937556bfc152d61c3d538829e",
+  "scope": "Clock/Power logical integration; finite quiet Host service soak; offline journal retention; loaded timing and full M9 remain open",
+  "logical": {
+    "debug": {
+      "targets": [
+        {
+          "target": "clock_recovery_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle/clock_recovery_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/debug-validation/clock_recovery_test.xml"
+          ],
+          "sha256": "8bc5c75b7cb7af2eff000a53485fe347cea6b592120b659d50c90ed3c56ad6e1",
+          "exit": 0,
+          "tests": 30,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "clock_recovery_vehicle_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle/clock_recovery_vehicle_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/debug-validation/clock_recovery_vehicle_test.xml"
+          ],
+          "sha256": "14275bcb833a1b2526eb285526e6b07ca1ba875072a4aebbfc80e097a94d3d75",
+          "exit": 0,
+          "tests": 1,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "power_lifecycle_vehicle_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle/power_lifecycle_vehicle_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/debug-validation/power_lifecycle_vehicle_test.xml"
+          ],
+          "sha256": "52cb863e7c9e1ab0563d80150f16e480404ed23573a6386fd98b2c43386c6146",
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "native_diagnostics_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle/native_diagnostics_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/debug-validation/native_diagnostics_test.xml"
+          ],
+          "sha256": "1dbeaff21fa8aa204490ea5c87a9b87bd0e7f7e6cb52952e01a61954879eee4b",
+          "exit": 0,
+          "tests": 13,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "owner_diagnostics_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle/owner_diagnostics_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/debug-validation/owner_diagnostics_test.xml"
+          ],
+          "sha256": "b51b4cff94b3f41d9eb69e7f07b3a70de32b11649503686cc89dd866df8cf378",
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "startup_diagnostics_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle/startup_diagnostics_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/debug-validation/startup_diagnostics_test.xml"
+          ],
+          "sha256": "6e7e6e53f1c86d18fa66f6281e3c00f075f78d10ba70257500a37394156e122d",
+          "exit": 0,
+          "tests": 3,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "vehicle_coordinator_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle/vehicle_coordinator_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/debug-validation/vehicle_coordinator_test.xml"
+          ],
+          "sha256": "710a5ccb5c31d81b27d2082d46084401ab0adb30c16277d859f4c6d88138b6a7",
+          "exit": 0,
+          "tests": 31,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        }
+      ],
+      "vehicle_cases": 12,
+      "audits_passed": 12,
+      "mutations_rejected": 94
+    },
+    "asan": {
+      "targets": [
+        {
+          "target": "clock_recovery_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/clock_recovery_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/asan-validation/clock_recovery_test.xml"
+          ],
+          "sha256": "f109b115b0ba2abb6e30905de4c3f832cfb26a663d7c92ca115ec80dd12c23c2",
+          "exit": 0,
+          "tests": 30,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "clock_recovery_vehicle_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/clock_recovery_vehicle_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/asan-validation/clock_recovery_vehicle_test.xml"
+          ],
+          "sha256": "f7801cdc488f48ad82744341b3438afab6464440da84c008c1e233aef35d61fb",
+          "exit": 0,
+          "tests": 1,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "power_lifecycle_vehicle_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/power_lifecycle_vehicle_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/asan-validation/power_lifecycle_vehicle_test.xml"
+          ],
+          "sha256": "1709a35be62da06a495208697637856718a548b0a823a8062053ecb54868ceb1",
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "native_diagnostics_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/native_diagnostics_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/asan-validation/native_diagnostics_test.xml"
+          ],
+          "sha256": "5161e069aaad2cbc21a42100ea21c8d73cd77b7722159f97c99ca6d62dbedb46",
+          "exit": 0,
+          "tests": 13,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "owner_diagnostics_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/owner_diagnostics_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/asan-validation/owner_diagnostics_test.xml"
+          ],
+          "sha256": "a7abe22000740bc56fb083ce0e5464e5bee6bc7fabea7e6846256e3563676c76",
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "startup_diagnostics_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/startup_diagnostics_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/asan-validation/startup_diagnostics_test.xml"
+          ],
+          "sha256": "ee5021c41eb3e352b167d677b6e64f769d6753306beb5b8e95b60029c3e1be24",
+          "exit": 0,
+          "tests": 3,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "vehicle_coordinator_test",
+          "command": [
+            "/d/shin/StrataDrive/build/m1-angle-sanitized/vehicle_coordinator_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/asan-validation/vehicle_coordinator_test.xml"
+          ],
+          "sha256": "bad81b6773e1db71fbbffb0514343f0a9be05a326e7a972ce6282b8e0b4d87d2",
+          "exit": 0,
+          "tests": 31,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        }
+      ],
+      "vehicle_cases": 12,
+      "audits_passed": 12,
+      "mutations_rejected": 94
+    },
+    "tsan": {
+      "targets": [
+        {
+          "target": "clock_recovery_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/clock_recovery_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/tsan-validation/clock_recovery_test.xml"
+          ],
+          "sha256": "9075410229bea1da639a6b18d294a4cff9d8b32e4db5956920ada426b3ff0006",
+          "exit": 0,
+          "tests": 30,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "clock_recovery_vehicle_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/clock_recovery_vehicle_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/tsan-validation/clock_recovery_vehicle_test.xml"
+          ],
+          "sha256": "609493255dc73c77b44a9aeea4c733fa9b3f1710a29b5a580569634547eb20f3",
+          "exit": 0,
+          "tests": 1,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "power_lifecycle_vehicle_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/power_lifecycle_vehicle_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/tsan-validation/power_lifecycle_vehicle_test.xml"
+          ],
+          "sha256": "f40a3328ecbaaa598c267f553286b156daf1dbac9716b5b0c41f162b6b23ff02",
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "native_diagnostics_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/native_diagnostics_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/tsan-validation/native_diagnostics_test.xml"
+          ],
+          "sha256": "2211114855c9e3fab26049257850e1a9fdac0da6ba7b7180536b5a330a835495",
+          "exit": 0,
+          "tests": 13,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "owner_diagnostics_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/owner_diagnostics_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/tsan-validation/owner_diagnostics_test.xml"
+          ],
+          "sha256": "5a9b9e5f93157dde830736dc52746633bfe8d9220876e4f5c61519a507e5bf1d",
+          "exit": 0,
+          "tests": 5,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "startup_diagnostics_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/startup_diagnostics_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/tsan-validation/startup_diagnostics_test.xml"
+          ],
+          "sha256": "ba67b8a4e86df234668b48ddbc4e21a144fe3d804e9c2cd012f8c2661ac33e85",
+          "exit": 0,
+          "tests": 3,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        },
+        {
+          "target": "vehicle_coordinator_test",
+          "command": [
+            "setarch",
+            "x86_64",
+            "-R",
+            "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/vehicle_coordinator_test",
+            "--gtest_output=xml:/d/shin/StrataDrive/build/m9-remaining/tsan-validation/vehicle_coordinator_test.xml"
+          ],
+          "sha256": "86163544bef439941a5dc1c8494c2d96453bdd702f3b60c4c4e8183725ac228b",
+          "exit": 0,
+          "tests": 31,
+          "failures_errors_disabled": 0,
+          "skipped": 0,
+          "sanitizer_errors": false,
+          "pass": true
+        }
+      ],
+      "vehicle_cases": 12,
+      "audits_passed": 12,
+      "mutations_rejected": 94
+    }
+  },
+  "native": {
+    "fixed_cohort": {
+      "protocol": {
+        "cases": [
+          [
+            "baseline",
+            500,
+            false
+          ],
+          [
+            "quiet-1",
+            60000,
+            false
+          ],
+          [
+            "quiet-2",
+            60000,
+            false
+          ],
+          [
+            "quiet-3",
+            60000,
+            false
+          ],
+          [
+            "loaded-1",
+            60000,
+            true
+          ],
+          [
+            "loaded-2",
+            60000,
+            true
+          ],
+          [
+            "loaded-3",
+            60000,
+            true
+          ]
+        ],
+        "binary_sha256": "720bd33a373abb35d3cfb4a7e88b5b8b5e888c8c010f7ef467e9b621ff6f6d3b",
+        "profile": "normal",
+        "scope": "finite Host service soak"
+      },
+      "reports": [
+        {
+          "case": "baseline",
+          "hold_ms": 500,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v4/baseline",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "500"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              500973265,
+              500496209
+            ],
+            "loads": []
+          },
+          "passed": true
+        },
+        {
+          "case": "quiet-1",
+          "hold_ms": 60000,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v4/quiet-1",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              60001605988,
+              60001383161
+            ],
+            "loads": []
+          },
+          "passed": true
+        },
+        {
+          "case": "quiet-2",
+          "hold_ms": 60000,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v4/quiet-2",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              60001009372,
+              60000142560
+            ],
+            "loads": []
+          },
+          "passed": true
+        },
+        {
+          "case": "quiet-3",
+          "hold_ms": 60000,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v4/quiet-3",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              60001418996,
+              60000584906
+            ],
+            "loads": []
+          },
+          "passed": true
+        },
+        {
+          "case": "loaded-1",
+          "hold_ms": 60000,
+          "loaded": true,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v4/loaded-1",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000",
+            "--loaded"
+          ],
+          "exit": 1,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 1
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": false,
+            "error": "runtime/load control"
+          },
+          "passed": false
+        },
+        {
+          "case": "loaded-2",
+          "hold_ms": 60000,
+          "loaded": true,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v4/loaded-2",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000",
+            "--loaded"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              60000354929,
+              60000321313
+            ],
+            "loads": [
+              {
+                "cpu": 1,
+                "policy": 0,
+                "priority": 0,
+                "affinity": [
+                  1
+                ],
+                "cpu_ns": 86213670344,
+                "wall_ns": 127718849187,
+                "windows": 12647,
+                "busy_ns": 7000000,
+                "period_ns": 10000000
+              },
+              {
+                "cpu": 2,
+                "policy": 0,
+                "priority": 0,
+                "affinity": [
+                  2
+                ],
+                "cpu_ns": 87536177592,
+                "wall_ns": 127695538079,
+                "windows": 12671,
+                "busy_ns": 7000000,
+                "period_ns": 10000000
+              },
+              {
+                "cpu": 7,
+                "policy": 0,
+                "priority": 0,
+                "affinity": [
+                  7
+                ],
+                "cpu_ns": 86953699785,
+                "wall_ns": 127671754098,
+                "windows": 12656,
+                "busy_ns": 7000000,
+                "period_ns": 10000000
+              }
+            ]
+          },
+          "passed": true
+        },
+        {
+          "case": "loaded-3",
+          "hold_ms": 60000,
+          "loaded": true,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v4/loaded-3",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000",
+            "--loaded"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              60000807273,
+              60000107972
+            ],
+            "loads": [
+              {
+                "cpu": 1,
+                "policy": 0,
+                "priority": 0,
+                "affinity": [
+                  1
+                ],
+                "cpu_ns": 86185209040,
+                "wall_ns": 127748878914,
+                "windows": 12650,
+                "busy_ns": 7000000,
+                "period_ns": 10000000
+              },
+              {
+                "cpu": 2,
+                "policy": 0,
+                "priority": 0,
+                "affinity": [
+                  2
+                ],
+                "cpu_ns": 87558720811,
+                "wall_ns": 127727260145,
+                "windows": 12674,
+                "busy_ns": 7000000,
+                "period_ns": 10000000
+              },
+              {
+                "cpu": 7,
+                "policy": 0,
+                "priority": 0,
+                "affinity": [
+                  7
+                ],
+                "cpu_ns": 86946460284,
+                "wall_ns": 127694868948,
+                "windows": 12658,
+                "busy_ns": 7000000,
+                "period_ns": 10000000
+              }
+            ]
+          },
+          "passed": true
+        }
+      ],
+      "planned": 7,
+      "executed_runtime": 7,
+      "passed": 6,
+      "quiet_passed": true,
+      "loaded_passed": false,
+      "response_summary": [
+        {
+          "case": "baseline",
+          "passed": true,
+          "accepted_requests": 1480,
+          "roundtrip_ns": {
+            "min": 97237,
+            "p50": 296336,
+            "p99": 1504863,
+            "max": 2264346
+          },
+          "remaining_margin_ns": {
+            "min": 17735654,
+            "p50": 19703946,
+            "p99": 19881604,
+            "max": 19902763
+          },
+          "capture": {
+            "ip_data_packets": 479,
+            "peer_data_packets": {
+              "10.88.0.2": 4605,
+              "10.88.0.3": 7874
+            },
+            "interface": "sdc",
+            "normal_exit": true,
+            "socket_packets": 21366,
+            "socket_drops": 0,
+            "requested_receive_buffer": 8388608,
+            "effective_receive_buffer": 425984,
+            "buffered": true,
+            "buffered_bytes": 3156306,
+            "capacity_bytes": 268435456,
+            "overflow": false,
+            "affinity": [
+              0
+            ]
+          },
+          "response_mutations_rejected": 5
+        },
+        {
+          "case": "quiet-1",
+          "passed": true,
+          "accepted_requests": 67214,
+          "roundtrip_ns": {
+            "min": 96157,
+            "p50": 290343,
+            "p99": 492001,
+            "max": 2851203
+          },
+          "remaining_margin_ns": {
+            "min": 14690839,
+            "p50": 19709655,
+            "p99": 19887783,
+            "max": 19903843
+          },
+          "capture": {
+            "ip_data_packets": 24374,
+            "peer_data_packets": {
+              "10.88.0.3": 190923,
+              "10.88.0.2": 122406
+            },
+            "interface": "sdc",
+            "normal_exit": true,
+            "socket_packets": 548287,
+            "socket_drops": 0,
+            "requested_receive_buffer": 8388608,
+            "effective_receive_buffer": 425984,
+            "buffered": true,
+            "buffered_bytes": 79951977,
+            "capacity_bytes": 268435456,
+            "overflow": false,
+            "affinity": [
+              0
+            ]
+          },
+          "response_mutations_rejected": 5
+        },
+        {
+          "case": "quiet-2",
+          "passed": true,
+          "accepted_requests": 67226,
+          "roundtrip_ns": {
+            "min": 93739,
+            "p50": 300496,
+            "p99": 500059,
+            "max": 4224805
+          },
+          "remaining_margin_ns": {
+            "min": 15775195,
+            "p50": 19699501,
+            "p99": 19887735,
+            "max": 19906261
+          },
+          "capture": {
+            "ip_data_packets": 24378,
+            "peer_data_packets": {
+              "10.88.0.2": 122427,
+              "10.88.0.3": 190962
+            },
+            "interface": "sdc",
+            "normal_exit": true,
+            "socket_packets": 546432,
+            "socket_drops": 0,
+            "requested_receive_buffer": 8388608,
+            "effective_receive_buffer": 425984,
+            "buffered": true,
+            "buffered_bytes": 79806205,
+            "capacity_bytes": 268435456,
+            "overflow": false,
+            "affinity": [
+              0
+            ]
+          },
+          "response_mutations_rejected": 5
+        },
+        {
+          "case": "quiet-3",
+          "passed": true,
+          "accepted_requests": 67216,
+          "roundtrip_ns": {
+            "min": 92426,
+            "p50": 288859,
+            "p99": 487424,
+            "max": 3672644
+          },
+          "remaining_margin_ns": {
+            "min": 15525028,
+            "p50": 19711136,
+            "p99": 19887171,
+            "max": 19907574
+          },
+          "capture": {
+            "ip_data_packets": 24372,
+            "peer_data_packets": {
+              "10.88.0.2": 122422,
+              "10.88.0.3": 190955
+            },
+            "interface": "sdc",
+            "normal_exit": true,
+            "socket_packets": 547468,
+            "socket_drops": 0,
+            "requested_receive_buffer": 8388608,
+            "effective_receive_buffer": 425984,
+            "buffered": true,
+            "buffered_bytes": 79889902,
+            "capacity_bytes": 268435456,
+            "overflow": false,
+            "affinity": [
+              0
+            ]
+          },
+          "response_mutations_rejected": 5
+        },
+        {
+          "case": "loaded-1",
+          "passed": false,
+          "accepted_requests": 1930,
+          "roundtrip_ns": {
+            "min": 97180,
+            "p50": 248168,
+            "p99": 1829351,
+            "max": 10950543
+          },
+          "remaining_margin_ns": {
+            "min": 1418773,
+            "p50": 19751977,
+            "p99": 19893164,
+            "max": 19902820
+          },
+          "capture": {
+            "ip_data_packets": 765,
+            "peer_data_packets": {
+              "10.88.0.2": 4913,
+              "10.88.0.3": 7849
+            },
+            "interface": "sdc",
+            "normal_exit": true,
+            "socket_packets": 22444,
+            "socket_drops": 0,
+            "requested_receive_buffer": 8388608,
+            "effective_receive_buffer": 425984,
+            "buffered": true,
+            "buffered_bytes": 3290312,
+            "capacity_bytes": 268435456,
+            "overflow": false,
+            "affinity": [
+              0
+            ]
+          },
+          "response_mutations_rejected": 5
+        },
+        {
+          "case": "loaded-2",
+          "passed": true,
+          "accepted_requests": 67219,
+          "roundtrip_ns": {
+            "min": 90569,
+            "p50": 272673,
+            "p99": 497210,
+            "max": 5079296
+          },
+          "remaining_margin_ns": {
+            "min": 14150463,
+            "p50": 19727258,
+            "p99": 19889351,
+            "max": 19909431
+          },
+          "capture": {
+            "ip_data_packets": 24370,
+            "peer_data_packets": {
+              "10.88.0.2": 122806,
+              "10.88.0.3": 191485
+            },
+            "interface": "sdc",
+            "normal_exit": true,
+            "socket_packets": 541174,
+            "socket_drops": 0,
+            "requested_receive_buffer": 8388608,
+            "effective_receive_buffer": 425984,
+            "buffered": true,
+            "buffered_bytes": 79465628,
+            "capacity_bytes": 268435456,
+            "overflow": false,
+            "affinity": [
+              0
+            ]
+          },
+          "response_mutations_rejected": 5
+        },
+        {
+          "case": "loaded-3",
+          "passed": true,
+          "accepted_requests": 67218,
+          "roundtrip_ns": {
+            "min": 95729,
+            "p50": 271150,
+            "p99": 1101322,
+            "max": 6661104
+          },
+          "remaining_margin_ns": {
+            "min": 9630564,
+            "p50": 19728817,
+            "p99": 19890256,
+            "max": 19904271
+          },
+          "capture": {
+            "ip_data_packets": 24372,
+            "peer_data_packets": {
+              "10.88.0.2": 122838,
+              "10.88.0.3": 191530
+            },
+            "interface": "sdc",
+            "normal_exit": true,
+            "socket_packets": 542594,
+            "socket_drops": 0,
+            "requested_receive_buffer": 8388608,
+            "effective_receive_buffer": 425984,
+            "buffered": true,
+            "buffered_bytes": 79590048,
+            "capacity_bytes": 268435456,
+            "overflow": false,
+            "affinity": [
+              0
+            ]
+          },
+          "response_mutations_rejected": 5
+        }
+      ]
+    },
+    "remaining": "loaded-1 original Drive command expiry; Front/Rear sequential dispatch and later renewal; failed normal/service run retained; no expiry extension"
+  },
+  "initial": {
+    "service-soak": {
+      "protocol": {
+        "cases": [
+          [
+            "baseline",
+            500,
+            false
+          ],
+          [
+            "quiet-1",
+            60000,
+            false
+          ],
+          [
+            "quiet-2",
+            60000,
+            false
+          ],
+          [
+            "quiet-3",
+            60000,
+            false
+          ],
+          [
+            "loaded-1",
+            60000,
+            true
+          ],
+          [
+            "loaded-2",
+            60000,
+            true
+          ],
+          [
+            "loaded-3",
+            60000,
+            true
+          ]
+        ],
+        "binary_sha256": "3181375ca1dbe5d62bf3c5a552da15f9e8b96601e8e1c12af0a0cf9a2cfe835c",
+        "profile": "normal",
+        "scope": "finite Host service soak"
+      },
+      "reports": [
+        {
+          "case": "baseline",
+          "hold_ms": 500,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak/baseline",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "500"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              501333991,
+              500498830
+            ],
+            "loads": []
+          },
+          "passed": true
+        },
+        {
+          "case": "quiet-1",
+          "hold_ms": 60000,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak/quiet-1",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000"
+          ],
+          "exit": 1,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 1
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 1
+            }
+          ],
+          "duration": {
+            "passed": false,
+            "error": "runtime/load control"
+          },
+          "passed": false
+        },
+        {
+          "case": "quiet-2",
+          "hold_ms": 60000,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak/quiet-2",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000"
+          ],
+          "exit": 1,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 1
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 1
+            }
+          ],
+          "duration": {
+            "passed": false,
+            "error": "runtime/load control"
+          },
+          "passed": false
+        },
+        {
+          "case": "quiet-3",
+          "hold_ms": 60000,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak/quiet-3",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000"
+          ],
+          "exit": 1,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 1
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 1
+            }
+          ],
+          "duration": {
+            "passed": false,
+            "error": "runtime/load control"
+          },
+          "passed": false
+        },
+        {
+          "case": "loaded-1",
+          "hold_ms": 60000,
+          "loaded": true,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak/loaded-1",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000",
+            "--loaded"
+          ],
+          "exit": 1,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 1
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 1
+            }
+          ],
+          "duration": {
+            "passed": false,
+            "error": "runtime/load control"
+          },
+          "passed": false
+        },
+        {
+          "case": "loaded-2",
+          "hold_ms": 60000,
+          "loaded": true,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak/loaded-2",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000",
+            "--loaded"
+          ],
+          "exit": 1,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 1
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 1
+            }
+          ],
+          "duration": {
+            "passed": false,
+            "error": "runtime/load control"
+          },
+          "passed": false
+        },
+        {
+          "case": "loaded-3",
+          "hold_ms": 60000,
+          "loaded": true,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak/loaded-3",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000",
+            "--loaded"
+          ],
+          "exit": 1,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 1
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 1
+            }
+          ],
+          "duration": {
+            "passed": false,
+            "error": "runtime/load control"
+          },
+          "passed": false
+        }
+      ],
+      "planned": 7,
+      "executed_runtime": 7
+    },
+    "service-soak-v2": {
+      "protocol": {
+        "cases": [
+          [
+            "baseline",
+            500,
+            false
+          ],
+          [
+            "quiet-1",
+            60000,
+            false
+          ],
+          [
+            "quiet-2",
+            60000,
+            false
+          ],
+          [
+            "quiet-3",
+            60000,
+            false
+          ],
+          [
+            "loaded-1",
+            60000,
+            true
+          ],
+          [
+            "loaded-2",
+            60000,
+            true
+          ],
+          [
+            "loaded-3",
+            60000,
+            true
+          ]
+        ],
+        "binary_sha256": "c8a80d98ed77af2a916581b393ba3fb8976039ce31bfa255f591df25892b2c8f",
+        "profile": "normal",
+        "scope": "finite Host service soak"
+      },
+      "reports": [
+        {
+          "case": "baseline",
+          "hold_ms": 500,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v2/baseline",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "500"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              501596917,
+              500709854
+            ],
+            "loads": []
+          },
+          "passed": true
+        }
+      ],
+      "planned": 7,
+      "executed_runtime": 2,
+      "aborted": {
+        "planned_cases": 7,
+        "completed_reports": [
+          "baseline"
+        ],
+        "executed_runtime_cases": [
+          "baseline",
+          "quiet-1"
+        ],
+        "not_run": [
+          "quiet-2",
+          "quiet-3",
+          "loaded-1",
+          "loaded-2",
+          "loaded-3"
+        ],
+        "reason": "Quiet-1 actual controllers/service/physical passed but Leaf input trace capped at12000, invalidating renewal evidence. Abort before additional runtime; response mutation audit interrupted. Preserve all raw and repair declared trace budget before new cohort.",
+        "abort_ns": 1793879232012581555
+      }
+    },
+    "service-soak-v3": {
+      "protocol": {
+        "cases": [
+          [
+            "baseline",
+            500,
+            false
+          ],
+          [
+            "quiet-1",
+            60000,
+            false
+          ],
+          [
+            "quiet-2",
+            60000,
+            false
+          ],
+          [
+            "quiet-3",
+            60000,
+            false
+          ],
+          [
+            "loaded-1",
+            60000,
+            true
+          ],
+          [
+            "loaded-2",
+            60000,
+            true
+          ],
+          [
+            "loaded-3",
+            60000,
+            true
+          ]
+        ],
+        "binary_sha256": "720bd33a373abb35d3cfb4a7e88b5b8b5e888c8c010f7ef467e9b621ff6f6d3b",
+        "profile": "normal",
+        "scope": "finite Host service soak"
+      },
+      "reports": [
+        {
+          "case": "baseline",
+          "hold_ms": 500,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v3/baseline",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "500"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 0
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              500873112,
+              500067763
+            ],
+            "loads": []
+          },
+          "passed": true
+        },
+        {
+          "case": "quiet-1",
+          "hold_ms": 60000,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v3/quiet-1",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 1
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 1
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              60001622112,
+              60000823548
+            ],
+            "loads": []
+          },
+          "passed": false
+        },
+        {
+          "case": "quiet-2",
+          "hold_ms": 60000,
+          "loaded": false,
+          "command": [
+            "/usr/bin/python3",
+            "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+            "/d/shin/StrataDrive/build/m9-remaining/service-soak-v3/quiet-2",
+            "--profile",
+            "normal",
+            "--three",
+            "--simple-vehicle",
+            "--diagnostics",
+            "--diagnostic-service",
+            "--isolated-ecus",
+            "--cases",
+            "central-rejoin",
+            "--split-owner-io",
+            "--separate-aux-io",
+            "--owner-fifo",
+            "--sdk-io-threads",
+            "2",
+            "--service-hold-ms",
+            "60000"
+          ],
+          "exit": 0,
+          "audits": [
+            {
+              "tool": "audit_native_service",
+              "exit": 1
+            },
+            {
+              "tool": "audit_service_ordering",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_timing",
+              "exit": 0
+            },
+            {
+              "tool": "audit_service_response",
+              "exit": 1
+            }
+          ],
+          "duration": {
+            "passed": true,
+            "normal_duration_ns": [
+              60001293856,
+              60001587651
+            ],
+            "loads": []
+          },
+          "passed": false
+        }
+      ],
+      "planned": 7,
+      "executed_runtime": 4,
+      "aborted": {
+        "planned_cases": 7,
+        "completed_reports": [
+          "baseline",
+          "quiet-1",
+          "quiet-2"
+        ],
+        "executed_runtime_cases": [
+          "baseline",
+          "quiet-1",
+          "quiet-2",
+          "quiet-3"
+        ],
+        "not_run": [
+          "loaded-1",
+          "loaded-2",
+          "loaded-3"
+        ],
+        "reason": "Actual runtime/duration pass; quiet1/2 TCP capture has a gap. Pause campaign scheduler only, let quiet3 ECU run finish normally, then stop campaign before load runs for capture diagnosis. Quiet3 audits deferred.",
+        "parent": 1086790,
+        "child": 1092027,
+        "child_command": "/usr/bin/python3 /d/shin/StrataDrive/tests/integration/someip/front_run.py /d/shin/StrataDrive/build/m9-remaining/service-soak-v3/quiet-3 --profile normal --three --simple-vehicle --diagnostics --diagnostic-service --isolated-ecus --cases central-rejoin --split-owner-io --separate-aux-io --owner-fifo --sdk-io-threads 2 --service-hold-ms 60000 "
+      }
+    },
+    "power": {
+      "gtests": 5,
+      "passed": 4,
+      "failed": 1,
+      "exported_cases": 9,
+      "binary_hash_available": false
+    },
+    "clock": {
+      "vehicle_gtests": 1,
+      "failed": 1,
+      "cause": "registry2 rejects startup Attempt before any durable append",
+      "binary_hash_available": false
+    }
+  },
+  "retention": {
+    "actual_canonical_roundtrips": 36,
+    "byte_equal": true,
+    "source_modified": false,
+    "capacity_reclaimed": false
+  },
+  "debug_regression": {
+    "tests": 1336,
+    "passed": 1336,
+    "scope": "unit+integration.logical+integration.transport"
+  },
+  "later_trace_boundary": {
+    "debug": 37,
+    "asan_ubsan": 37,
+    "tsan": 37
+  },
+  "python": {
+    "service_and_crc": 14,
+    "pilot": 29,
+    "retention": 8,
+    "capture": 2,
+    "crc_reference_vectors": 1026
+  },
+  "source_files": 654,
+  "static_analysis": {
+    "core_tus": 6,
+    "clang_tidy": true,
+    "cppcheck": true,
+    "SDK_TU": "clang-tidy14 C++17 compatibility parse; actual GCC13 C++20 build; original header error retained"
+  }
+}
