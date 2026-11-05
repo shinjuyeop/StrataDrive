@@ -12,6 +12,7 @@
 #include "power_controller.hpp"
 #include "m4_faults.hpp"
 #include "leaf_authority_observation.hpp"
+#include "native_sensor_fault.hpp"
 
 namespace stratadrive::simulation {
 struct OwnerSensors {
@@ -51,6 +52,8 @@ public:
     void service() noexcept override;
     bool drop_actual{false},reject_arm{false};
     bool omit_native_input{false}; // logical fixture: BMS electrical group / Power current; input copy only
+    unsigned native_bms_trip_mask{0};
+    PowerSensorFault native_power_fault{PowerSensorFault::None};
     std::uint32_t epoch() const { return epoch_; }
     transport::Leaf leaf() const { return leaf_; }
     std::uint64_t last_body_ns() const { return last_body_; }

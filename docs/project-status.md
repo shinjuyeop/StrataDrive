@@ -61,7 +61,7 @@ ASan/UBSan와 TSan은 각각21 targets **309/309**, 비계측 M4 wall2/2,
 Python 판정/SDK/배치49/49다. Sanitizer의 두 M4 wall 시험만 비계측 검사로 옮겼으며
 논리 SIL의 만료·보호 경계와 실제 동시성 검사는 유지한다. SDK 전체 sanitizer 수용은 별도다.
 
-C++/header/CMake1020개와 native normal binary는 선행 egress 후보와 같다.
+이 분리 판정에 사용한 C++/header/CMake1020개와 native normal binary는 선행 egress 후보와 같다.
 20ms envelope·10ms 갱신/18ms support·원래 source/expiry·물리 보호 기준은 늘리지 않았다.
 이번 native18건의 SDK 오류는0이다. 계측 지연 자체를 제거했다고 주장하지 않는다.
 [사전 protocol](test-plan/service-validation-protocol.md)과
@@ -76,8 +76,15 @@ C++/header/CMake1020개와 native normal binary는 선행 egress 후보와 같�
 [SDK owner 코어 공유23/30](test-plan/evidence/m9_sdk_owner_core/README.md)과 이전 SMT 후보는
 미채택이다. SDK I/O2·단일 CPU4/5/6을 유지한다. 후보별 분모·실패·source/binary를 보존한다.
 
+**BMS/Power8-role 센서 고장 조합을 추가 검증했다.**
+[센서 matrix](test-plan/evidence/m9_sensor_matrix/README.md)는 BMS9·Power3·동시3조건을
+입력 복원만 하는14s와 새 세션 복구24s로 각각 실행한다. 기존 검출·보호·실제 torque/brake·
+정지/HV-off·durable DTC·Passed를 연결하며 자동 clear하지 않는다. 선행 BMS inhibition 뒤
+Power contactor timeout과 자체 bus-low 미확정의 차이도 확인했다. 센서 소비 사본의 고장
+시험이며 electrical plant 자체 고장·실제 CARLA·native wall matrix로 확대하지 않는다.
+
 **M9 전체 완료는 아직 아니다.** 부하·장시간 native 서비스 timing, silent packet loss의 CARLA subinterval 물리 연결, trusted Clock
-재검증, proposal 이전 bootstrap incident 계약, 전체8-role BMS/Power matrix와 실제 부하/장기 보존
+재검증, proposal 이전 bootstrap incident 계약, Power precharge/request-loss/shutdown-current/startup-energized/discharge의8-role 통합과 실제 부하/장기 보존
 수용이 남는다. 기본512-event 저장 경계는 원본 보존·초과 시 clear 차단까지 검증했으며 장기 보존
 운용을 대신하지 않는다. Native4ms/Target과 학습자 이해 review는 기능 시험 통과와 별도다.
 아래 과거 근거의 당시 범위/실패는 그대로 유지한다.

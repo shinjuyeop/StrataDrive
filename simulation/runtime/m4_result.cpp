@@ -94,7 +94,7 @@ M4Result Network::finish() {
             }
             result.trace.push_back(row);
         }
-        const auto d=core.decision(); const bool expected_fault=config.scenario==M4Scenario::PartialFront || config.scenario==M4Scenario::FeedbackLoss || config.scenario==M4Scenario::CommandLoss || config.scenario==M4Scenario::PartialArm || config.scenario==M4Scenario::Rejoin || config.scenario==M4Scenario::SpeedInputLoss || config.scenario==M4Scenario::BmsInputLoss || config.scenario==M4Scenario::PowerInputLoss;
+        const auto d=core.decision(); const bool expected_fault=config.scenario==M4Scenario::PartialFront || config.scenario==M4Scenario::FeedbackLoss || config.scenario==M4Scenario::CommandLoss || config.scenario==M4Scenario::PartialArm || config.scenario==M4Scenario::Rejoin || config.scenario==M4Scenario::SpeedInputLoss || config.scenario==M4Scenario::BmsInputLoss || config.scenario==M4Scenario::PowerInputLoss || config.scenario==M4Scenario::NativeSensorFault;
         bool scenario_ok;
         if(expected_fault) scenario_ok=result.first_fault_ns!=0 && result.all_protected_ns>=result.first_fault_ns && result.all_protected_ns-result.first_fault_ns<=100*kMs;
         else scenario_ok=result.first_fault_ns==0 && d.fault==central::CoordinatorFault::None && result.first_active_ns!=0;
@@ -110,6 +110,20 @@ M4Result Network::finish() {
             if(omission!=result.events.end()) result.effective_injection_ns=omission->time_ns-start;
             if(config.native_input_restore_ns) scenario_ok=scenario_ok && std::any_of(result.events.begin(),result.events.end(),[&](const auto& e){
                 return e.owner==owner && std::string_view(e.kind)=="native-input-restored" && e.time_ns-start>=config.native_input_restore_ns;});
+            for(const auto& row:result.trace) if(row.elapsed_ns>=config.injection_ns+100*kMs && (!config.recovery_ns || row.elapsed_ns<config.recovery_ns) && row.run_gate) scenario_ok=false;
+            if(config.recovery_ns) scenario_ok=scenario_ok && result.rejoin_active_ns>config.recovery_ns && d.fault==central::CoordinatorFault::None;
+        }
+        if(config.scenario==M4Scenario::NativeSensorFault) {
+            for(const auto owner:{5U,6U}) {
+                const bool needed=owner==5?config.native_bms_trip_mask!=0:config.native_power_fault!=PowerSensorFault::None;
+                if(!needed) continue;
+                const auto injection=std::find_if(result.events.begin(),result.events.end(),[&](const auto& e){
+                    return e.owner==owner && std::string_view(e.kind)=="native-sensor-fault" && e.time_ns-start==config.injection_ns;});
+                scenario_ok=scenario_ok && injection!=result.events.end();
+                if(config.native_input_restore_ns) scenario_ok=scenario_ok && std::any_of(result.events.begin(),result.events.end(),[&](const auto& e){
+                    return e.owner==owner && std::string_view(e.kind)=="native-sensor-restored" && e.time_ns-start==config.native_input_restore_ns;});
+            }
+            result.effective_injection_ns=config.injection_ns;
             for(const auto& row:result.trace) if(row.elapsed_ns>=config.injection_ns+100*kMs && (!config.recovery_ns || row.elapsed_ns<config.recovery_ns) && row.run_gate) scenario_ok=false;
             if(config.recovery_ns) scenario_ok=scenario_ok && result.rejoin_active_ns>config.recovery_ns && d.fault==central::CoordinatorFault::None;
         }
@@ -181,6 +195,7 @@ void write_m4_result(const M4Config& config,const M4Result& r,const std::string&
         for(std::size_t k=0;k<t.affinity.size();++k) { if(k) summary<<','; summary<<t.affinity[k]; } summary<<"]}";
     }
     summary<<"],\"transport_trace_enabled\":"<<config.transport_trace<<",\"guards_enabled\":"<<config.execution_guards<<",\"fifo_requested\":"<<config.fifo<<",\"startup_ok\":"<<r.startup_ok<<",\"timing_ok\":"<<r.timing_ok<<",\"deadline_misses\":"<<r.deadline_misses<<",\"skipped_opportunities\":"<<r.skipped_opportunities;
+    summary<<",\"native_bms_trip_mask\":"<<config.native_bms_trip_mask<<",\"native_power_sensor_fault\":"<<static_cast<unsigned>(config.native_power_fault)<<",\"native_input_restore_ns\":"<<config.native_input_restore_ns;
     summary<<",\"faults\":[";
     for(std::size_t i=0;i<config.faults.size();++i) {
         const auto& f=config.faults[i]; if(i) summary<<',';

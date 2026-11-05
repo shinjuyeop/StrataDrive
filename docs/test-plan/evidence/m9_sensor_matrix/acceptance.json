@@ -1,0 +1,152 @@
+{
+  "base": "835717c67d2bfd125c7e5e530ecea30b277332d3",
+  "scope": "8-role logical sensor-fault SIL; no CARLA/native wall matrix or full M9 completion",
+  "recipes": 15,
+  "runs_per_profile": 30,
+  "profiles": {
+    "debug": {
+      "pass": 30,
+      "total": 30,
+      "root_dtc": 34,
+      "qualified_passes": 17,
+      "mutations_rejected": 285
+    },
+    "asan": {
+      "pass": 30,
+      "total": 30,
+      "root_dtc": 34,
+      "qualified_passes": 17,
+      "mutations_rejected": 285
+    },
+    "tsan": {
+      "pass": 30,
+      "total": 30,
+      "root_dtc": 34,
+      "qualified_passes": 17,
+      "mutations_rejected": 285
+    }
+  },
+  "sanitizers": {
+    "asan": [
+      {
+        "target": "native_sensor_matrix_test",
+        "command": [
+          "/d/shin/StrataDrive/build/m1-angle-sanitized/native_sensor_matrix_test",
+          "--gtest_output=xml:/d/shin/StrataDrive/build/m9-sensor-matrix/asan-validation/native_sensor_matrix_test.xml"
+        ],
+        "sha256": "785e08688b7e72fa495e99fbb04e1fbd920d22f7660a4d18efa8e21ce751a046",
+        "exit": 0,
+        "tests": 16,
+        "failures_errors_disabled": 0,
+        "skipped": 0,
+        "sanitizer_errors": false,
+        "pass": true
+      },
+      {
+        "target": "native_diagnostics_sil_test",
+        "command": [
+          "/d/shin/StrataDrive/build/m1-angle-sanitized/native_diagnostics_sil_test",
+          "--gtest_output=xml:/d/shin/StrataDrive/build/m9-sensor-matrix/asan-validation/native_diagnostics_sil_test.xml"
+        ],
+        "sha256": "aeb6daeaef21cfdaffefd3cf159ebe8d331df0ae22e1a9250128cdb9b763d57b",
+        "exit": 0,
+        "tests": 11,
+        "failures_errors_disabled": 0,
+        "skipped": 0,
+        "sanitizer_errors": false,
+        "pass": true
+      },
+      {
+        "target": "async_owner_test",
+        "command": [
+          "/d/shin/StrataDrive/build/m1-angle-sanitized/async_owner_test",
+          "--gtest_output=xml:/d/shin/StrataDrive/build/m9-sensor-matrix/asan-validation/async_owner_test.xml"
+        ],
+        "sha256": "5840cc8869189d1e99e7ce623b8fced2d4517023edb2f68dd4141c92b5e47a99",
+        "exit": 0,
+        "tests": 24,
+        "failures_errors_disabled": 0,
+        "skipped": 0,
+        "sanitizer_errors": false,
+        "pass": true
+      }
+    ],
+    "tsan": [
+      {
+        "target": "native_sensor_matrix_test",
+        "command": [
+          "setarch",
+          "x86_64",
+          "-R",
+          "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/native_sensor_matrix_test",
+          "--gtest_output=xml:/d/shin/StrataDrive/build/m9-sensor-matrix/tsan-validation/native_sensor_matrix_test.xml"
+        ],
+        "sha256": "352caaee36ed3ecfc1fb69f396a9fbb80fb18d42e77e6b696f5f67c17559046d",
+        "exit": 0,
+        "tests": 16,
+        "failures_errors_disabled": 0,
+        "skipped": 0,
+        "sanitizer_errors": false,
+        "pass": true
+      },
+      {
+        "target": "native_diagnostics_sil_test",
+        "command": [
+          "setarch",
+          "x86_64",
+          "-R",
+          "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/native_diagnostics_sil_test",
+          "--gtest_output=xml:/d/shin/StrataDrive/build/m9-sensor-matrix/tsan-validation/native_diagnostics_sil_test.xml"
+        ],
+        "sha256": "eb1a1cb4b4e6bb65b5d73bfdcc10a7779eecad290a0e28c570416473892b9215",
+        "exit": 0,
+        "tests": 11,
+        "failures_errors_disabled": 0,
+        "skipped": 0,
+        "sanitizer_errors": false,
+        "pass": true
+      },
+      {
+        "target": "async_owner_test",
+        "command": [
+          "setarch",
+          "x86_64",
+          "-R",
+          "/d/shin/StrataDrive/build/m9-service-timing/tsan-unit/async_owner_test",
+          "--gtest_output=xml:/d/shin/StrataDrive/build/m9-sensor-matrix/tsan-validation/async_owner_test.xml"
+        ],
+        "sha256": "05e176377563de6112fa6d8c473f5f96483f10ef581e0f3069725fb1454a3d5a",
+        "exit": 0,
+        "tests": 24,
+        "failures_errors_disabled": 0,
+        "skipped": 0,
+        "sanitizer_errors": false,
+        "pass": true
+      }
+    ]
+  },
+  "debug_checks": {
+    "unique_total": 1297,
+    "matrix": 16,
+    "regression": 1272,
+    "quiet_wall": 9,
+    "first_regression_pass": 1271,
+    "first_regression_fail": 1,
+    "corrected_binding_target_pass": 24
+  },
+  "python_unittests": 41,
+  "static_analysis": "4 affected TUs clang-tidy and cppcheck; no project findings",
+  "initial_debug": {
+    "gtests": 16,
+    "pass": 14,
+    "fail": 2,
+    "exported_cases": 28,
+    "binary_hash_available": false
+  },
+  "source_changes_after_matrix_build": [
+    "tests/integration/diagnostics/audit_native_sensor_matrix.py",
+    "tests/unit/remote_zone_integration_test.cpp"
+  ],
+  "debug_matrix_binary_sha256": "e91791d2f1081efda9d894dca47f6dd1c280aa4d385758b692503dfc1b166d31",
+  "source_count": 2459
+}

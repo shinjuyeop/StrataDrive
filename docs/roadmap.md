@@ -98,12 +98,14 @@ BMS9/Power8 component 조합·동일 설정 NormalStop 복구/clear를 다룬다
 [연결 불가 egress·ACK 우선 연결](test-plan/evidence/m9_egress/README.md)을 구현했다.
 사용자 승인 [분리 판정](test-plan/evidence/m9_validation_split/README.md)으로 Host quiet 서비스
 비계측18/18·ASan/UBSan와 TSan 각각309/309·비계측 M4 wall2/2를 통과했다.
-C++/native binary·제어 기한은 그대로다. 계측 지연을 제품 성능과 분리하고, 의도한 이전
+이 분리 판정에서 C++/native binary·제어 기한은 그대로였다. 계측 지연을 제품 성능과 분리하고, 의도한 이전
 연결 오류는 원래 보호/물리 반응·실제 재가입까지 확인해 분류한다. 선행27/30과 TSan
 만료2건·M4 wall 실패는 원래 기록으로 남긴다. SDK owner 코어 공유와 SMT 후보는 미채택이며
 기본 I/O2·단일 CPU를 유지한다. 상세 범위·분모는 프로젝트 상태를 따른다.
+[8-role 센서 matrix](test-plan/evidence/m9_sensor_matrix/README.md)는 BMS9·Power3·동시3조건의
+원본 검출·물리 응답·복원만 한 latch 유지·새 Release 이후 Passed를 검증했다.
 남은 완료 조건은 부하/장시간 native timing, silent packet loss의 실제 CARLA subinterval 연결, trusted Clock 복구,
-proposal 이전 bootstrap incident, 전체8-role native fault matrix, 실제 부하/장기 보존 정책과
+proposal 이전 bootstrap incident, Power precharge/request-loss/shutdown-current/startup-energized/discharge의8-role 통합, 실제 부하/장기 보존 정책과
 학습자 수용이다. DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·

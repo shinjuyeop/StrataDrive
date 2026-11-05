@@ -11,7 +11,13 @@ M4Result run_m4_async(const M4Config& config) {
     if(config.startup_diagnostics_run && (config.wall_time || !config.speed_loop ||
        (config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::Fault) || config.diagnostics_run || config.owner_diagnostics_run || config.native_diagnostics_run))
         throw std::invalid_argument("M9 startup diagnostics configuration");
-    const bool native_loss=config.scenario==M4Scenario::BmsInputLoss || config.scenario==M4Scenario::PowerInputLoss;
+    const bool sensor_fault=config.scenario==M4Scenario::NativeSensorFault;
+    const bool native_loss=config.scenario==M4Scenario::BmsInputLoss || config.scenario==M4Scenario::PowerInputLoss || sensor_fault;
+    const auto mask=config.native_bms_trip_mask;
+    const bool valid_mask=!mask || mask==170 || (mask<=128 && (mask&(mask-1))==0);
+    if(!valid_mask || static_cast<unsigned>(config.native_power_fault)>static_cast<unsigned>(PowerSensorFault::BusLow) ||
+       (sensor_fault != (mask!=0 || config.native_power_fault!=PowerSensorFault::None)))
+        throw std::invalid_argument("M9 native sensor recipe");
     if(config.speed_loop && (config.wall_time || config.renewal!=central::CommandRenewal::Host10ms ||
        (config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::FeedbackLoss && config.scenario!=M4Scenario::CommandLoss && config.scenario!=M4Scenario::SpeedInputLoss && config.scenario!=M4Scenario::Fault && !native_loss))) throw std::invalid_argument("M8 logical speed-loop configuration");
     if(config.owner_diagnostics_run && (config.wall_time || !config.speed_loop ||
@@ -45,6 +51,7 @@ const char* m4_scenario_name(M4Scenario s) {
     case M4Scenario::Rejoin: return "rejoin"; case M4Scenario::OldEpoch: return "old-epoch"; case M4Scenario::Fault: return "fault";
     case M4Scenario::SpeedInputLoss: return "speed-input-loss";
     case M4Scenario::BmsInputLoss: return "bms-input-loss"; case M4Scenario::PowerInputLoss: return "power-input-loss";
+    case M4Scenario::NativeSensorFault: return "native-sensor-fault";
     }
     return "invalid";
 }

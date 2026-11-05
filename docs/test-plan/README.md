@@ -22,6 +22,7 @@ CARLA30km/h 정상·고장5개 시나리오와 실제 transport 진단 수집은
 | M9 Zone/Leaf 소유자별 원본 검출·전달 구분·SD-2001/2002/4002 복구 | [소유자 경계 검증](evidence/m9_owner_sources/README.md) |
 | M9 Gateway native/ACK/차량 응답·BMS/Power component 복구·registry2 | [native 원인 검증](evidence/m9_native_causes/README.md) |
 | M9 BMS electrical/Power current 누락·차량 보호/정지/HV·새 INIT 복구 | [차량 입력 손실 검증](evidence/m9_native_vehicle/README.md) |
+| M9 BMS9·Power3·동시3 센서 고장·8-role 보호/물리/DTC·복구 | [센서 matrix](evidence/m9_sensor_matrix/README.md) · [protocol](native-sensor-matrix-protocol.md) |
 | M9 Release 전 Attempt·기동 ACK 누락·최초 deadline·실제 새 Release 복구 | [기동 진단 검증](evidence/m9_startup_sources/README.md) |
 | M9 Event-only wire·유한 spool·commit 후 ACK 유실·송수신 process 재시작 | [전송·spool 검증](evidence/m9_delivery_spool/README.md) |
 | M9 실제 SOME/IP/TCP·새 logical source·live writer·ACK 유실/replica 재시작 | [SOME/IP 진단 검증](evidence/m9_someip_live/README.md) |

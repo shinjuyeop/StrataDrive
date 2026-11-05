@@ -198,6 +198,8 @@ void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
         auto input=s.battery;
         record_native_input_loss(now,input.electrical?input.electrical->identity.source_time_ns:0,input.electrical?input.electrical->input_time_ns:0);
         if(omit_native_input) input.electrical.reset();
+        if(native_bms_trip_mask && input.electrical && input.cell_voltage && input.cell_temperature)
+            inject_bms_trips(input,native_bms_trip_mask);
         if(const auto m=actor.tick(input,now)) { if(const auto f=can::encode_bms_frame(*m,bms_tx_)) publish(*f); }
         bms_gate_.publish(actor.power_gate());
     } else if(leaf_==transport::Leaf::Power) {
@@ -205,6 +207,7 @@ void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
         auto input=s.power;
         record_native_input_loss(now,input?input->identity.source_time_ns:0,input?input->input_time_ns:0);
         if(omit_native_input && input) input->pack_current_a.reset();
+        if(input) inject_power_sensor(*input,native_power_fault);
         if(const auto m=actor.tick(input,gate?*gate:std::nullopt,now)) { if(const auto f=can::encode_bms_frame(*m,power_tx_)) publish(*f); }
     }
     const auto completed=now_ns(); const bool late=execution_deadline_ && completed>body_deadline_;

@@ -338,6 +338,18 @@ void Network::step(std::size_t owner,std::uint64_t requested_wake) {
             if(owner==5 || owner==6) leaf_owners[owner-2]->omit_native_input=
                 ((owner==5 && config.scenario==M4Scenario::BmsInputLoss) || (owner==6 && config.scenario==M4Scenario::PowerInputLoss)) &&
                 elapsed>=config.injection_ns && (!config.native_input_restore_ns || elapsed<config.native_input_restore_ns);
+            if((owner==5 || owner==6) && config.scenario==M4Scenario::NativeSensorFault) {
+                auto& leaf=*leaf_owners[owner-2];
+                const bool active=elapsed>=config.injection_ns && (!config.native_input_restore_ns || elapsed<config.native_input_restore_ns);
+                const unsigned mask=owner==5 && active?config.native_bms_trip_mask:0;
+                const auto power=owner==6 && active?config.native_power_fault:PowerSensorFault::None;
+                if(leaf.native_bms_trip_mask!=mask || leaf.native_power_fault!=power) {
+                    const auto raw=sensors[owner].read();
+                    owner_events[owner].push_back({now,active?"native-sensor-fault":"native-sensor-restored",owner,leaf.epoch(),
+                        raw?raw->source_ns:0,0,0,static_cast<int>(owner==5?mask:static_cast<unsigned>(power))});
+                }
+                leaf.native_bms_trip_mask=mask; leaf.native_power_fault=power;
+            }
             sessions[owner]->step();
             audit[owner].runnable(owner<2?zone_owners[owner]->last_health_ns():leaf_owners[owner-2]->last_body_ns());
         }

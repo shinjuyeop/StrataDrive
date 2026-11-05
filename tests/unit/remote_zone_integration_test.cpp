@@ -177,9 +177,10 @@ TEST(SomeipRearBinding, ServicesRolesAndPayloadAreBoundToOneEcu) {
             EXPECT_EQ(someip::binding(Ecu::Central,rear?0x534b:0x5347,1,0x40,1,1,m),someip::owns_role(ecu,role));
         }
         remote::OwnerMessage m{zone,Role::CentralIngress,someip::kDomain,transport::TxResult{}};
-        EXPECT_TRUE(someip::binding(Ecu::Central,rear?0x534a:0x5346,1,0x80,1,1,m));
-        m.from=rear?Role::Drive:Role::Steering;
+        EXPECT_TRUE(someip::binding(Ecu::Central,rear?0x534b:0x5347,1,0x80,1,1,m));
         EXPECT_FALSE(someip::binding(Ecu::Central,rear?0x534a:0x5346,1,0x80,1,1,m));
+        m.from=rear?Role::Drive:Role::Steering;
+        EXPECT_FALSE(someip::binding(Ecu::Central,rear?0x534b:0x5347,1,0x80,1,1,m));
         m={Role::CentralIngress,zone,someip::kDomain,transport::ZoneRequest{}};
         EXPECT_TRUE(someip::binding(ecu,rear?0x5348:0x5344,1,0x20,1,1,m));
         if(rear){EXPECT_FALSE(someip::binding(true,0x5348,1,0x20,1,1,m));} // opt-in only

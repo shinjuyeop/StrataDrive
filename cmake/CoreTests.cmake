@@ -148,6 +148,9 @@ if(TARGET diagnostics_journal)
     stratadrive_unit_test(native_diagnostics_sil_test
         SOURCES tests/unit/native_diagnostics_sil_test.cpp
         LIBRARIES diagnostics_journal m4_async_runtime)
+    stratadrive_unit_test(native_sensor_matrix_test
+        SOURCES tests/unit/native_sensor_matrix_test.cpp
+        LIBRARIES diagnostics_journal m4_async_runtime)
     stratadrive_unit_test(owner_diagnostics_sil_test
         SOURCES tests/unit/owner_diagnostics_sil_test.cpp
         LIBRARIES diagnostics_journal m4_async_runtime)

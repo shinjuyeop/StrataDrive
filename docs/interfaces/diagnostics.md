@@ -225,6 +225,15 @@ Zone ACK log·실제 토크/압력·stationary/HV-off·새 epoch source proof를
 다른 ECU의 보호는 Observation이다. BMS local Passed는 release dwell/Active 확인이며
 전체 차량의 주행 준비 완료와 구분한다. Power local Passed는 actual HV Ready가 필요하다.
 
+`M4Scenario::NativeSensorFault`는 같은8-role 논리 차량에서 BMS trip mask9종,
+Power charger-connected/contact feedback/bus-low3종 및 BMS170과의 동시3종을 검사한다.
+값만 해당 ECU 소비 사본에서 바꾸며 원래 source/dependency·model identity를 보존한다.
+복원만 한14s와 새 Release를 거친24s를 각각 실행한다. BMS pending trip이 먼저 Power를
+정지시키면 실제 BmsInhibit를 전달 Observation으로 남긴다. 이후 contactor timeout이 실제
+발생한 경우만 별도 SD-3201을 발행하며, 감시가 성립하지 않은 Ready bus-low를 합성하지 않는다.
+[사전 조건과 최초 기대값 교정](../test-plan/native-sensor-matrix-protocol.md),
+[원본·검증](../test-plan/evidence/m9_sensor_matrix/README.md)을 따른다.
+
 복원만으로 native latch/gate가 풀리지 않는다. 영구 Power current 누락에서는 실제 current를
 0으로 대체하지 않으며 WaitCurrent/shutdown_blocked 상태로 HV를 유지한다. 정지한 차량을
 HV-off로 기록하지 않는다. 두 입력 손실 case의 차량 SIL이며 모든 BMS trip/Power contactor
