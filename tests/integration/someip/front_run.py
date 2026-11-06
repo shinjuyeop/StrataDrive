@@ -49,7 +49,7 @@ def config(role,generation=1,three=False):
             if role=='central':services.append(0x5e00+2*z)
             elif role==peer:services.append(0x5e01+2*z)
         for i,(peer,_) in enumerate(sources):
-            generations=range(2) if os.environ.get('STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART') and not os.environ.get('STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART') else range(1)
+            generations=range(2) if os.environ.get('STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART') and not (os.environ.get('STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART') or os.environ.get('STRATADRIVE_DIAGNOSTIC_EPOCHS')) else range(1)
             for incarnation in generations:
                 if role!='central' and incarnation>=generation:continue
                 base=0x5e10 if incarnation==0 else 0x5e40
@@ -200,6 +200,9 @@ def inside(folder,binary,case):
                 if case=='central-rejoin':
                     pilot.wait_for(lambda:(diagnostic_store/'central/central-1.baseline-ready').exists(),3)
                     shutil.copyfile(folder/'central.runtime.json',folder/'central-1.runtime.json')
+                if case=='restart-live' and os.environ.get('STRATADRIVE_DIAGNOSTIC_EPOCHS'):
+                    pilot.wait_for(lambda:all((diagnostic_store/r/(r+'-1.prefix-ready')).exists() for r in ('central','front','rear')),3)
+                    normal_prerequisite(folder,central)
                 (folder/'inject').write_text(str(time.monotonic_ns()))
                 if case=='model-delay':(folder/'inject-model-delay').touch()
                 if case=='restart-live':
@@ -207,6 +210,8 @@ def inside(folder,binary,case):
                     result['injected_crash']={'role':target,'generation':1,'pid':victim.pid,'ns':time.monotonic_ns()}
                     result['survivor_pids_before']={'central':central.pid,**{r:p.pid for r,p in peers.items() if r!=target}}
                     victim.kill();victim.wait(timeout=2)
+                    if os.environ.get('STRATADRIVE_DIAGNOSTIC_EPOCHS'):
+                        shutil.copytree(diagnostic_store/target,folder/(target+'-before-restart'))
                     pilot.wait_for(lambda:(folder/'central-protected').exists() or central.poll() is not None,3)
                     if central.poll() is not None:raise RuntimeError('surviving Central failed')
                     for r,p in peers.items():
@@ -430,6 +435,7 @@ def main():
     p.add_argument('--profile',choices=['normal','asan','tsan'],default='normal');p.add_argument('--fixed-layout',action='store_true')
     p.add_argument('--service-hold-ms',type=int,default=500,help='terminal service observation per normal epoch, 500..60000ms; original control budgets stay fixed')
     p.add_argument('--diagnostic-service',action='store_true');p.add_argument('--diagnostics',action='store_true');p.add_argument('--diagnostic-drop-ack',action='store_true');p.add_argument('--diagnostic-context-delay-ms',type=int,default=0);p.add_argument('--diagnostic-restart',choices=['central','front','rear','all'])
+    p.add_argument('--diagnostic-epochs',action='store_true',help='fixed logical streams with epoch families; Front/Rear process replacement only')
     p.add_argument('--cases',nargs='+',choices=CASES,default=['normal']);p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
     os.environ.pop('STRATADRIVE_SDK_FIFO',None)
@@ -477,6 +483,10 @@ def main():
     if a.signal_write_delay_ms:
         if not a.diagnostic_service or not 1<=a.signal_write_delay_ms<=1000:p.error('signal delay requires terminal service and 1..1000ms')
         os.environ['STRATADRIVE_SIGNAL_WRITE_DELAY_MS']=str(a.signal_write_delay_ms)
+    if a.diagnostic_epochs:
+        if not a.diagnostics or a.diagnostic_service or a.diagnostic_restart or a.diagnostic_context_delay_ms or 'central-rejoin' in a.cases:
+            p.error('diagnostic-epochs requires diagnostics without Central/service/writer restart or context delay')
+        os.environ['STRATADRIVE_DIAGNOSTIC_EPOCHS']='1'
     if a.diagnostics:
         if not a.three or any(c not in ('normal','command-loss','restart-live','central-rejoin') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss/restart-live')
         if not 0<=a.diagnostic_context_delay_ms<=1500:p.error('diagnostic context delay must be in0..1500ms')
@@ -525,7 +535,7 @@ def main():
     rows=[]
     with pilot.open_lock() as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_service':a.diagnostic_service,'isolated_ecus':a.isolated_ecus,'split_owner_io':a.split_owner_io,'auxiliary_placement':placement,'owner_fifo':a.owner_fifo,'sdk_fifo':a.sdk_fifo,'service_fault':a.service_fault,'service_hold_ms':a.service_hold_ms,'signal_write_delay_ms':a.signal_write_delay_ms,'fixture_signal_poll_ns':1000000,'fixture_signal_observation':'role-subscriptions-v1','functional_owner_idle_wait_us':1000,'sender_wakeup':'enqueue-notification','diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':(25 if a.energy_cycle else 20)+2*(a.service_hold_ms-500)/1000,'fixed_layout':a.fixed_layout,'sdk_io_threads':a.sdk_io_threads,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'central/coordinator').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
+        pilot.save(out/'plan.json',{'physical_response_cases':['normal','command-loss'] if a.energy_cycle else [],'physical_response':contract() if a.energy_cycle else None,'energy_cycle':a.energy_cycle,'simple_vehicle':a.simple_vehicle,'three_ecu':a.three,'diagnostics':a.diagnostics,'diagnostic_epochs':a.diagnostic_epochs,'diagnostic_service':a.diagnostic_service,'isolated_ecus':a.isolated_ecus,'split_owner_io':a.split_owner_io,'auxiliary_placement':placement,'owner_fifo':a.owner_fifo,'sdk_fifo':a.sdk_fifo,'service_fault':a.service_fault,'service_hold_ms':a.service_hold_ms,'signal_write_delay_ms':a.signal_write_delay_ms,'fixture_signal_poll_ns':1000000,'fixture_signal_observation':'role-subscriptions-v1','functional_owner_idle_wait_us':1000,'sender_wakeup':'enqueue-notification','diagnostic_central_restart':'central-rejoin' in a.cases and a.diagnostics,'diagnostic_process_restart':any(c in ('restart-live','central-rejoin') for c in a.cases) and a.diagnostics,'diagnostic_drop_ack':a.diagnostic_drop_ack,'diagnostic_restart':a.diagnostic_restart,'diagnostic_context_delay_ms':a.diagnostic_context_delay_ms,'fault_target':'central' if 'central-rejoin' in a.cases else a.fault_zone,'shutdown_tail_ms':2500 if a.three else 0,'command_renewal':'host10-v1','allocation_period_ns':10_000_000,'permission_support_ns':18_000_000,'management_period_ns':10_000_000,'management_phase_ns':4_000_000,'native_watch':a.native_watch,'fifo':a.fifo,'loaded':a.loaded,'timing':a.timing,'duration_ms':a.duration_ms,'rtprio':list(resource.getrlimit(resource.RLIMIT_RTPRIO)),'allowed_cpus':sorted(os.sched_getaffinity(0)),'profile':a.profile,'cases':a.cases,'normal_repeats':a.normal_repeats,'timeout_s':(25 if a.energy_cycle else 20)+2*(a.service_hold_ms-500)/1000,'fixed_layout':a.fixed_layout,'sdk_io_threads':a.sdk_io_threads,'observation_library':os.environ.get('STRATADRIVE_SOMEIP_OBSERVATION_LIB'),'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'start_ns':time.time_ns(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted([*HERE.parent.glob('*'),*(ROOT/'central/diagnostics').glob('*'),*(ROOT/'central/coordinator').glob('*'),*(ROOT/'tests/integration/diagnostics').glob('*.py'),*(ROOT/'interfaces/someip').glob('*'),*(ROOT/'simulation/runtime').glob('*.hpp'),*(ROOT/'simulation/runtime').glob('*.cpp'),*(ROOT/'simulation/vehicle').glob('*'),*(ROOT/'simulation/power').glob('*'),*(ROOT/'central/control_allocation').glob('*')]) if p.is_file()}})
         for case in a.cases:
             for repeat in range(a.normal_repeats if case=='normal' else 1):
                 dest=out/f'{case}-{repeat+1}';dest.mkdir()

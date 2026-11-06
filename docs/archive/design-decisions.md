@@ -1,4 +1,4 @@
-# 설계 결정 기록 · ADR-0001–0110
+# 설계 결정 기록 · ADR-0001–0111
 
 이 문서는 당시 결정과 검토를 보존한 기록이다. 현재 상태는 [프로젝트 상태](../project-status.md), 현재 계약은 [문서 안내](../README.md)를 따른다. 과거의 “다음 작업/미구현”은 현재 지시가 아니다.
 
@@ -112,6 +112,7 @@
 - [ADR-0108: Native 속도 감독의 원천별 유효기간과 보호 연결](#adr-0108)
 - [ADR-0109: 감독 요청의 qualified 복구와 세션별 송수신 기록](#adr-0109)
 - [ADR-0110: 고정 송신원 집합의 원본 epoch 장벽](#adr-0110)
+- [ADR-0111: 고정 역할 stream의 live producer 교체와 owner 종료 경계](#adr-0111)
 
 <a id="adr-0001"></a>
 
@@ -6089,3 +6090,22 @@ Central의 context 배포는 merged ACK와 독립적이어야 한다. 준비 실
 live native 런타임은 이전 producer 종료 증거/동적 membership 연결 뒤 적용한다.
 실제 SOME/IP 시험은 논리 native 원본의 세 stream이며 live 제어 timing 판정과 구분한다.
 [계약](../interfaces/epoch-retention.md)과 [실행 근거](../test-plan/evidence/epoch-merge/README.md)를 따른다.
+
+<a id="adr-0111"></a>
+
+## ADR-0111: 고정 역할 stream의 live producer 교체와 owner 종료 경계
+
+2026-11-06. ADR-0110의 live 적용은 동적 membership 대신 고정 역할 stream으로 연결한다.
+Front/Rear 교체 프로세스는 같은 family를 독점 개방하고 이전 원본 prefix를 ordinal1부터 재전송한다.
+원본 producer ID는 durable lifecycle의 새 generation이며 locally provisioned epoch lineage를 따른다.
+실제 새 INIT/RunLease 없이 이전 context를 자신의 운행·복구 근거로 사용할 수 없다.
+
+Central startup/observer는 별도 local spool에 합친다. 실제 이전 owner 파괴 뒤 공개된 cut을
+acquire한 후 두 queue를 비우고 새 경계를 commit한다. 원격 endpoint의 새 evidence도 queue drain
+전에 acquire한다. Context 배포는 merged ACK와 독립적이다. 이전 event를 timestamp 수정·삭제하거나
+응답 없는 역할을 timeout으로 제외하지 않는다.
+
+강제 종료의 volatile 유실 가능성은 명시적 continuity incident로 남는다. Pending/incomplete family의
+자동 수리, 실제 역할 증감, Central 프로세스 교체/service 이관은 이번 profile 밖이다. 원래 finite
+경로는 유지하고 선택형 `--diagnostic-epochs`로 적용한다.
+[계약](../interfaces/epoch-retention.md)과 [검증](../test-plan/evidence/native-epoch-replacement/README.md)을 따른다.

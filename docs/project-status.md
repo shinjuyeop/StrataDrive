@@ -95,8 +95,10 @@ Supervisor→governor→기존 PI/배분 연결을 추가했다. [검증과 제�
   DTC 상태와 원본 이력을 보존하며 활성 창을 회수한다. Outbox/Inbox 및 전용 SOME/IP의 세션 전환·
   수신기 강제 종료/재시작을 연결했다. 고정 membership의 세션 순서 장벽과 ContextualOutbox family,
   실제 SOME/IP 원본 세 stream의 재시작 병합도 [검증](test-plan/evidence/epoch-merge/README.md)했다.
-  동적 producer 교체를 포함한 기본 live 런타임 전환, 단일 epoch 무중단 회전,
-  디스크 삭제/외부 보존 정책과
+  선택형 live 3-ECU 경로의 Front/Rear 교체와 Central spool도
+  [검증](test-plan/evidence/native-epoch-replacement/README.md)했다. 역할별 stream을 고정하고
+  실제 새 INIT에서 producer 세대를 전환한다. Central 프로세스 교체·service의 family 적용,
+  단일 epoch 무중단 회전, 디스크 삭제/외부 보존 정책과
   전체 매체/전원 장애, 다른 kernel의 Clock 운영은 별도다. syscall 저장 오류와 프로세스
   중단 검증은 추가했지만 실제 전원 차단/캐시 소실 시험을 대신하지 않는다.
 - 과거 M3/M4·SDK timing/sanitizer 실패와 미채택 후보는 당시 분모로 보존한다.
@@ -121,9 +123,9 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 M10의 상태 기반 Host 속도 제안 입출력·history·risk·fallback 경계는 첫 프로파일로 고정했다.
 [감독 DTC의 qualified 복구·해제와 EpochRecorder 송수신 연결](test-plan/evidence/supervised-recovery-delivery/README.md)을 추가했다.
 고정 송신원 집합의 [세션 순서 장벽과 family 병합](test-plan/evidence/epoch-merge/README.md)을 추가했다.
-다음은 실제 producer 교체/종료 증거와 Central spool을 포함한 live 다중 ECU 전환,
-CARLA에서 새 감독 제어의 복구 주행 검증이다. CARLA는 현재 단일 application scope를
-고정하므로 실제 새 INIT와 관측·NoDrive 권한의 epoch 전환을 먼저 연결해야 한다.
+이어서 [live Front/Rear 교체·Central spool·원본 prefix 재전송](test-plan/evidence/native-epoch-replacement/README.md)을
+연결했다. 다음은 CARLA에서 새 감독 제어의 복구 주행 검증과 Central 프로세스 교체/service의
+family 적용이다. CARLA는 현재 단일 application scope를 고정하므로 실제 새 INIT와 관측·NoDrive 권한의 epoch 전환을 먼저 연결해야 한다.
 인지/학습 모델과 온라인 저항 추정은 공통 scenario/seed에서 별도 검증한다.
 구체 산출물과 TBD 담당·결정 시점은 [로드맵](roadmap.md)에서 관리한다.
 진행한 시도별 상세 경과와 과거 실행 목록은 [구현·검증 이력](archive/implementation-history.md)에서 찾는다.

@@ -30,6 +30,21 @@ NativeDiagnosticRoutes::Source::Source(const DiagnosticSource& s,std::uint64_t i
 }
 void NativeDiagnosticRoutes::bootstrap(const fs::path& folder) {
     for(const auto ecu:{Ecu::Central,Ecu::Front,Ecu::Rear})fs::create_directories(home(folder,ecu));
+    if(std::getenv("STRATADRIVE_DIAGNOSTIC_EPOCHS")) {
+        const auto init=[](const fs::path& path,std::uint64_t id){d::EpochRecorder::initialize(path.string(),id,{{512,64,128,64},1,64});};
+        init(home(folder,Ecu::Central)/"merged",8000);
+        init(home(folder,Ecu::Central)/"central-source",8300);init(home(folder,Ecu::Central)/"central-replica",8300);
+        for(unsigned z=0;z<2;++z) {
+            init(home(folder,Ecu::Central)/("context-"+std::to_string(z)),8101+z);
+            init(home(folder,z?Ecu::Rear:Ecu::Front)/"context",8101+z);
+        }
+        if(std::getenv("STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART"))for(const auto ecu:{Ecu::Front,Ecu::Rear})
+            d::FileJournal::initialize((home(folder,ecu)/"producer-lifecycle").string(),9100+static_cast<unsigned>(ecu),{},3);
+        for(unsigned i=0;i<9;++i) {
+            init(home(folder,diagnostic_sources[i].ecu)/source_name(i),8200+i);init(home(folder,Ecu::Central)/source_name(i),8200+i);
+        }
+        return;
+    }
     d::FileJournal::initialize((home(folder,Ecu::Central)/"merged").string(),8000,{},3);
     const bool central_restart=std::getenv("STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART");
     if(central_restart) {
@@ -51,9 +66,11 @@ void NativeDiagnosticRoutes::bootstrap(const fs::path& folder) {
     }
 }
 NativeDiagnosticRoutes::NativeDiagnosticRoutes(Ecu ecu,const fs::path& folder,const std::string& tag):ecu_(ecu),folder_(home(folder,ecu)),tag_(tag) {
+    epochs_=std::getenv("STRATADRIVE_DIAGNOSTIC_EPOCHS");
     central_restart_=std::getenv("STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART");
+    require(!epochs_ || (!central_restart_ && !std::getenv("STRATADRIVE_DIAGNOSTIC_RESTART") && !std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")),"epoch diagnostic profile scope");
     if(std::getenv("STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART")) {
-        slots_=central_restart_?9:18;
+        slots_=central_restart_ || epochs_?9:18;
         if(ecu!=Ecu::Central || central_restart_) {boot_ns_=wall();lifecycle_=std::make_unique<d::ProducerLifecycle>((folder_/"producer-lifecycle").string(),manifest(9100+static_cast<unsigned>(ecu)),boot_ns_);generation_=lifecycle_->generation();require(generation_<=2,"native producer fixture supports two incarnations");}
     }
     if(ecu==Ecu::Central) {
@@ -64,11 +81,11 @@ NativeDiagnosticRoutes::NativeDiagnosticRoutes(Ecu ecu,const fs::path& folder,co
     }
     std::ofstream metadata(folder_/(tag_+".producer.json"));metadata<<"{\"generation\":"<<generation_<<",\"previous_unclean\":"<<(lifecycle_ && lifecycle_->previous_unclean()?"true":"false")<<",\"boot_ns\":"<<boot_ns_<<"}\n";
     for(unsigned i=0;i<slots_;++i)if(ecu==Ecu::Central || (diagnostic_sources[i%9].ecu==ecu && i/9<generation_)) {
-        source_channels_[i]=std::make_unique<diagnostic::Channel>(ecu==Ecu::Central?diagnostic::Role::Replica:diagnostic::Role::Publisher,8200+i,3,source_services(i));
-        if(ecu!=Ecu::Central && i/9+1==generation_)sources_[i]=std::make_unique<Source>(diagnostic_sources[i%9],diagnostic_producer(i),lifecycle_ && lifecycle_->previous_unclean());
+        source_channels_[i]=std::make_unique<diagnostic::Channel>(ecu==Ecu::Central?diagnostic::Role::Replica:diagnostic::Role::Publisher,8200+i,epochs_?4:3,source_services(i));
+        if(ecu!=Ecu::Central && (epochs_ || i/9+1==generation_))sources_[i]=std::make_unique<Source>(diagnostic_sources[i%9],epochs_ && lifecycle_?lifecycle_->producer(diagnostic_sources[i].producer):diagnostic_producer(i),lifecycle_ && lifecycle_->previous_unclean());
     }
     for(unsigned z=0;z<2;++z)if(ecu==Ecu::Central || ecu==(z?Ecu::Rear:Ecu::Front))
-        context_channels_[z]=std::make_unique<diagnostic::Channel>(ecu==Ecu::Central?diagnostic::Role::Publisher:diagnostic::Role::Replica,8101+z,3,context_services(z));
+        context_channels_[z]=std::make_unique<diagnostic::Channel>(ecu==Ecu::Central?diagnostic::Role::Publisher:diagnostic::Role::Replica,8101+z,epochs_?4:3,context_services(z));
 }
 NativeDiagnosticRoutes::~NativeDiagnosticRoutes() {finish();}
 void NativeDiagnosticRoutes::configure(const std::shared_ptr<vsomeip::application>& app) {
@@ -84,7 +101,7 @@ void NativeDiagnosticRoutes::start(Transport& net) {
     net.start([this](const auto& app){configure(app);},[this]{registered();});finished_=false;
     try {
         auto ready=startup_ready_.get_future();
-        worker_=std::thread([this]{work();finished_.store(true,std::memory_order_release);});
+        worker_=std::thread([this]{if(epochs_)work_epochs();else work();finished_.store(true,std::memory_order_release);});
         // Storage initialization is startup work. No proposal/owner execution
         // may race an initial journal-open failure on the writer thread.
         ready.get();
@@ -120,11 +137,15 @@ void NativeDiagnosticRoutes::central(const session::SessionCoordinator& boot,con
         }
         central_->start_session(central_epoch_,boot.plan().enable_ns,false);
     }
-    central_->observe(core,now);
+    if(!epochs_ || central_epoch_>retired_central_.load(std::memory_order_acquire))central_->observe(core,now);
+}
+void NativeDiagnosticRoutes::retired_central(std::uint32_t epoch) noexcept {
+    if(epochs_)retired_central_.store(epoch,std::memory_order_release);
 }
 void NativeDiagnosticRoutes::zone(unsigned z,const zone::AsyncZoneOwner& actor,bool gate,const remote::RunLeaseEvidence& evidence,std::uint64_t now) {
     if(!producing_)return;
-    auto& owner=*sources_[9*(generation_-1)+z];auto& native=*sources_[9*(generation_-1)+z+5];bind(owner,actor.epoch(),actor.enable_ns(),evidence,now);bind(native,actor.epoch(),actor.enable_ns(),evidence,now);
+    const unsigned offset=epochs_?0:9*(generation_-1);
+    auto& owner=*sources_[offset+z];auto& native=*sources_[offset+z+5];bind(owner,actor.epoch(),actor.enable_ns(),evidence,now);bind(native,actor.epoch(),actor.enable_ns(),evidence,now);
     if(!owner.epoch || owner.epoch!=actor.epoch())return;
     owner.owner->zone(actor.feedback_monitor(),gate && owner.admitted.load()==actor.epoch(),actor.protection_ack_ns(),now);
     const auto& g=actor.command_gateway();
@@ -139,7 +160,7 @@ void NativeDiagnosticRoutes::zone(unsigned z,const zone::AsyncZoneOwner& actor,b
 }
 void NativeDiagnosticRoutes::leaf(unsigned i,const simulation::AsyncLeafOwner& actor,bool gate,const remote::RunLeaseEvidence& evidence,std::uint64_t now) {
     if(!producing_)return;
-    const unsigned slot=9*(generation_-1)+(i<3?i+2:i+4);auto& s=*sources_[slot];bind(s,actor.epoch(),actor.enable_ns(),evidence,now);
+    const unsigned slot=(epochs_?0:9*(generation_-1))+(i<3?i+2:i+4);auto& s=*sources_[slot];bind(s,actor.epoch(),actor.enable_ns(),evidence,now);
     if(!s.epoch || s.epoch!=actor.epoch())return;
     const bool normal=gate && s.admitted.load()==actor.epoch();
     if(s.owner)s.owner->leaf(actor.expiry_observation(),actor.command_success_observation(),!actor.faulted(),normal,actor.protection_selected_ns(),now);

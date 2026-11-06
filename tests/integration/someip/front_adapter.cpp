@@ -667,7 +667,9 @@ int main(int argc,char** argv) {
                         owners->event("ingress-transition-begin",7,owners->pending.size());
                         for(const auto& item:owners->pending)owners->event("retired-pending",7,item.first,item.second.deadline_ns);
                         net.begin_quiescent_transition();
+                        const auto retired_epoch=owners->epoch;
                         iteration.finish();owners.reset(); // single owner stopped; all old mailbox users are gone
+                        if(diagnostic_routes)diagnostic_routes->retired_central(retired_epoch);
                         owners=std::make_unique<Owners>(signals,Ecu::Central,net,folder,tag+"-rejoined",diagnostic_routes.get());
                         const auto issued_epoch=owners->issue_epoch();
                         owners->start_watch();net.end_quiescent_transition();owners->event("ingress-transition-end",7,issued_epoch);owners->begin(issued_epoch);rejoined=true;

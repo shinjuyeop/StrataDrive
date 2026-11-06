@@ -6,7 +6,8 @@
 namespace stratadrive::diagnostics {
 // Trusted manifest entry, never learned from received traffic. Ranges begin at
 // first_epoch and end before the next entry. First range starts at epoch1.
-struct CentralIssuer {std::uint64_t producer;std::uint32_t first_epoch;};
+struct EpochProducer {std::uint64_t producer;std::uint32_t first_epoch;};
+using CentralIssuer=EpochProducer;
 // Single non-RT writer. The manifest binds the authenticated/trusted Central
 // peer; CRC/this object do not authenticate it. Supply the unmodified Session
 // from that peer and a snapshot copied by the actual local endpoint owner.
@@ -18,6 +19,10 @@ public:
     ContextualOutbox(FileJournal&,ControlContext local,std::vector<CentralIssuer> trusted_lineage);
     ContextualOutbox(EpochRecorder&,ControlContext local,std::uint64_t central_producer);
     ContextualOutbox(EpochRecorder&,ControlContext local,std::vector<CentralIssuer> trusted_lineage);
+    // Stable logical stream across process replacement. Both lineages are
+    // provisioned locally, never inferred from an incoming producer identity.
+    ContextualOutbox(EpochRecorder&,ControlContext local,std::vector<CentralIssuer> central_lineage,
+                     std::vector<EpochProducer> local_lineage);
     ~ContextualOutbox();
     ContextualOutbox(const ContextualOutbox&)=delete;
     ContextualOutbox& operator=(const ContextualOutbox&)=delete;
@@ -40,7 +45,9 @@ private:
     Result commit(const Event&);
     bool matches(const Event&) const noexcept;
     std::uint64_t issuer(std::uint32_t epoch) const noexcept;
+    std::uint64_t producer(std::uint32_t epoch) const noexcept;
     Outbox outbox_; const ControlContext local_; const std::vector<CentralIssuer> issuers_;
+    const std::vector<EpochProducer> producers_;
     std::optional<Event> context_,retained_context_; std::vector<Event> pending_;
 };
 } // namespace stratadrive::diagnostics

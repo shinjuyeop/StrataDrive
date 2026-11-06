@@ -4,7 +4,8 @@
 SOME/IP Outbox/Inbox의 stream ID·ordinal·ACK 계약은 유지한다. Outbox/Inbox가 family를
 선택할 수 있고 전용 SOME/IP `epoch-restart` 시험에 연결했다. ContextualOutbox도 family를
 선택할 수 있다. 고정 송신원 집합의 `EpochMergedCollector`와 전용 `epoch-merge-restart` 시험을
-추가했다. 기본 다중 ECU 런타임의 기존 MergedCollector는 유한 저장기를 사용한다.
+추가했다. 선택형 `--diagnostic-epochs`는 실제 3-ECU 런타임의 Front/Rear 교체까지 연결한다.
+기본 경로의 기존 MergedCollector는 유한 저장기를 사용한다.
 
 ## 이관 조건과 보존
 
@@ -117,15 +118,50 @@ Accepted ACK에100ms로 돌아온다. SD availability만으로 TCP 재접속 완
 SDK queue8·원래 제어 기한은 그대로이며 overflow는 실패다. 기존 native 런타임의 retry 정책을
 일괄 변경한 것은 아니다.
 
+## Live ECU 교체와 Central spool
+
+`front_run.py --three --diagnostics --diagnostic-epochs --isolated-ecus`는 고정된 역할9개와
+Central spool1개의 family를 병합한다. Front/Rear 프로세스 교체에도 역할별 root stream을 유지한다.
+프로세스 generation을 포함하는 원본 producer ID는 바뀌지만 stream이나 원본 ordinal은 늘리지 않는다.
+아직 기동하지 않은 미래 producer를 membership에 추가해 기다리는 문제가 없다.
+
+`ContextualOutbox`는 사전에 지정한 로컬 producer/epoch lineage와 Central issuer lineage를 각각 검사한다.
+같은 family의 독점 writer 잠금이 선행 프로세스와 동시 append를 막는다. 후속 프로세스는 이전 prefix를
+ordinal1부터 그대로 재전송하고, 자신의 epoch에 해당하는 원본 Session과 실제 endpoint RunLease를
+확인해야 새 기록을 받는다. 이전 세션 복원만으로 새 프로세스에 운행·복구 권한을 주지 않는다.
+
+강제 종료 전 memory/queue 유실 가능성은 기존 producer lifecycle의 continuity fault로 남긴다.
+저장소의 CRC/원본이 일치해도 잃은 event 개수를 추측하거나 이 incident를 자동 해제하지 않는다.
+이전 family에 pending/incomplete가 있으면 새 세대로 덮어쓰거나 자동 수리하지 않고 실패한다.
+교체 시험은 정상 운행과 initial durable receipt 이후에 SIGKILL을 주입한다. 임의 fsync 도중
+SIGKILL을 정상 복구 가능한 것으로 주장하지 않는다.
+
+Central은 `EpochLocalSpool`에서 startup·control observer의 두 SPSC queue를 합친다. 실제 이전
+owner를 파괴한 **뒤** retirement cut을 publish하고, writer는 이를 acquire한 뒤 두 queue를 읽는다.
+이전 tail을 모두 기록한 다음에만 새 Attempt/Session을 commit한다. Cut이 없으면 새 경계는 기다리며,
+뒤늦은 과거 event·queue 유실·pending 포기는 incomplete다. Session 배포는 local spool의 committed
+원본을 읽어 merged ACK와 독립적으로 진행한다. 원격 writer도 새 endpoint evidence를 먼저 acquire한
+뒤 queue를 비우고 context를 수락해 이전 관측이 새 checkpoint 뒤로 넘어가지 않게 한다.
+
+```sh
+cmake --build build/m5-someip-normal/project --target someip_front_adapter
+python3 tests/integration/someip/front_run.py build/new-live-epochs --three --diagnostics --diagnostic-epochs --isolated-ecus --cases restart-live --fault-zone front
+python3 tests/integration/diagnostics/audit_native_epochs.py build/new-live-epochs/restart-live-1 --mutations
+```
+
+이 profile은 normal/command-loss/Front 또는 Rear restart-live를 지원한다. Context 지연 주입,
+writer 단독 재시작, Central 프로세스 교체와 terminal service는 거절한다. 새 profile의 retry는
+100→200→400→800→1000ms backoff이며 queue8·원래 제어/보호 기한을 유지한다.
+[실행·독립 감사](../test-plan/evidence/native-epoch-replacement/README.md)에 실제 source/replica/merged
+원문, 교체 전 copy, TCP Data/ACK, 두 INIT의 Release8개와 accepted RunLease를 보존한다.
+
 ## 남는 경계
 
 회수하는 것은 **활성 메모리·event/service 창**이다. 원본 파일을 자동 삭제해 디스크를 비우지
 않는다. 기본 segment 상한1024, 설정 가능 최대10000에서 증거를 보존하며 Capacity로 실패한다.
 이력 조회/재시작 비용은 보관량에 비례하고 실시간 작업이 아니다. 기존 단일-store archive 도구는
 family/checkpoint 형식을 받지 않는다. Family 보관·외부 이관/삭제 정책, 단일 장시간 epoch 중
-무중단 회전과 실제 전원/매체 검증은 후속이다. 새 장벽은 고정 membership 전용이다. 기존 native
-런타임의18개 이전/후속 producer slot을 그대로 참여자로 넣으면 아직 시작하지 않은 송신원까지
-기다리게 된다. 실제 producer 교체·이전 prefix 종료 증거·Central local spool/context 배포를 연결한
-동적 membership과 live 런타임 전환은 별도로 구현·검증해야 한다. 이를 timeout으로 우회하지 않는다.
+무중단 회전과 실제 전원/매체 검증은 후속이다. 새 장벽은 고정 역할 membership 전용이다.
+실제 역할 추가/제거, Central 프로세스 교체와 service의 family 적용은 별도다. 응답하지 않는 역할을 timeout으로 제외하지 않는다.
 
 [구현·시험 근거](../test-plan/evidence/remaining-improvements/README.md)를 따른다.

@@ -43,6 +43,8 @@ public:
     bool drained() const noexcept {return finished() && passed_;}
     bool admitted(std::uint32_t epoch) const noexcept;
     void accepted_release(unsigned,std::uint32_t,std::uint64_t) noexcept;
+    // Call only after the actual previous Central owner has been destroyed.
+    void retired_central(std::uint32_t epoch) noexcept;
     void central(const session::SessionCoordinator&,const central::VehicleCoordinator&,std::uint64_t);
     void zone(unsigned,const zone::AsyncZoneOwner&,bool gate,const remote::RunLeaseEvidence&,std::uint64_t);
     void leaf(unsigned,const simulation::AsyncLeafOwner&,bool gate,const remote::RunLeaseEvidence&,std::uint64_t);
@@ -63,6 +65,7 @@ private:
     void bind(Source&,std::uint32_t,std::uint64_t,const remote::RunLeaseEvidence&,std::uint64_t);
     void original(Source&,unsigned,const std::optional<NativeObservation>&,std::optional<std::uint64_t>);
     void work();
+    void work_epochs();
     const Ecu ecu_;const std::filesystem::path folder_;const std::string tag_;
     unsigned slots_{9},generation_{1};std::uint64_t boot_ns_{0};
     std::unique_ptr<diagnostics::ProducerLifecycle> lifecycle_;
@@ -72,7 +75,8 @@ private:
     std::unique_ptr<diagnostics::EventQueue> startup_queue_,central_queue_;
     std::unique_ptr<diagnostics::StartupDiagnostics> startup_;
     std::unique_ptr<diagnostics::ControlDiagnostics> central_;
-    bool central_restart_{false},central_continuity_{false};
+    bool central_restart_{false},central_continuity_{false},epochs_{false};
+    std::atomic<std::uint32_t> retired_central_{0};
     struct ReleaseAcks {std::uint32_t epoch{0};std::array<std::uint64_t,8> times{};};
     ReleaseAcks release_acks_;runtime::LatestSnapshot<ReleaseAcks> accepted_acks_;
     std::uint32_t central_epoch_{0};

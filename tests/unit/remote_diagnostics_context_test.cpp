@@ -322,4 +322,54 @@ TEST_F(RemoteDiagnosticsContext, EpochFamilyRestoresOriginalContextAndReplaysGlo
     EXPECT_EQ(ordinal,6U);EXPECT_EQ(out.ledger().find(first_fault.key)->count,3U);
     EXPECT_EQ(out.ledger().find(first_fault.key)->condition,Condition::Unknown);
 }
+TEST_F(RemoteDiagnosticsContext, ReplacedProducerReplaysStableFamilyButNeedsItsOwnNewActualEpoch) {
+    const auto path=root/"family";const auto successor=(1ULL<<32)|30;
+    const std::vector<EpochProducer> lineage{{30,1},{successor,2}};
+    EpochRecorder::initialize(path.string(),101,{{32,8,8,8},1,8});
+    release();const auto first=global;const auto old_credit=credit();const auto original=fault();
+    {
+        EpochRecorder store(path.string());ContextualOutbox out(store,manifest(),{{central_id,1}},lineage);
+        ASSERT_EQ(out.context(first,old_credit),Result::Accepted);ASSERT_EQ(out.submit(original),Result::Accepted);
+        EXPECT_THROW((EpochRecorder{path.string()}),std::exception);
+    }
+    EpochRecorder store(path.string());ContextualOutbox out(store,manifest(successor),{{central_id,1}},lineage);
+    EXPECT_EQ(out.restore(old_credit),Result::NotReady);EXPECT_EQ(out.context(first,old_credit),Result::NotReady);
+    EXPECT_EQ(out.submit(fault(successor,1,1)),Result::Invalid);
+    EXPECT_EQ(out.ledger().find(original.key)->condition,Condition::Unknown);EXPECT_EQ(out.acknowledged(),0U);
+    release(2);const auto fresh=credit();EXPECT_EQ(out.context(global,old_credit),Result::NotReady);
+    ASSERT_EQ(out.context(global,fresh),Result::Accepted);
+    const auto gap=continuity_fault(manifest(successor),30,2,Component::Front,2,global.session_enable.ns,central.now-1,central.now);
+    ASSERT_EQ(out.submit(gap),Result::Accepted);EXPECT_TRUE(out.ledger().unmapped());
+    EXPECT_EQ(out.submit(fault(30,2,2)),Result::Invalid);
+    ASSERT_EQ(store.segment(),2U);ASSERT_EQ(store.watermark(),4U);
+    EXPECT_EQ(encode(store.committed(1)),encode(first));EXPECT_EQ(encode(store.committed(2)),encode(original));
+    EXPECT_EQ(out.ledger().find(original.key)->count,1U);EXPECT_EQ(out.ledger().find(original.key)->condition,Condition::Unknown);
+    for(unsigned ordinal=1;ordinal<=4;++ordinal) {
+        ASSERT_TRUE(out.next());const auto data=std::get<wire::Data>(wire::decode(*out.next()));
+        EXPECT_EQ(data.stream,101U);EXPECT_EQ(data.sequence,ordinal);EXPECT_EQ(data.registry,4U);
+        EXPECT_EQ(encode(data.event),encode(store.committed(ordinal)));
+        EXPECT_EQ(out.acknowledge(wire::encode(wire::Ack{101,ordinal,4,wire::event_crc(data.event)})),Result::Accepted);
+    }
+    EXPECT_FALSE(out.next());EXPECT_TRUE(out.healthy());
+}
+TEST_F(RemoteDiagnosticsContext, ProducerLineageCannotReuseIdentityOverlapIssuerOrRewriteCommittedHistory) {
+    const auto path=root/"family";EpochRecorder::initialize(path.string(),101,{{32,8,8,8},1,8});EpochRecorder store(path.string());
+    for(const auto& entries:std::vector<std::vector<EpochProducer>>{{},{{30,2}},{{30,1},{31,1}},{{30,1},{30,2}},{{30,1},{20,2}},{{31,1}},{{0,1}}})
+        EXPECT_THROW((ContextualOutbox{store,manifest(),{{central_id,1}},entries}),std::invalid_argument);
+    EXPECT_THROW((ContextualOutbox{store,manifest(),{{central_id,1}},std::vector<EpochProducer>(17,{30,1})}),std::invalid_argument);
+    release();const auto evidence=credit();
+    {ContextualOutbox out(store,manifest(),central_id);ASSERT_EQ(out.context(global,evidence),Result::Accepted);ASSERT_EQ(out.submit(fault()),Result::Accepted);}
+    EXPECT_THROW((ContextualOutbox{store,manifest(31),{{central_id,1}},{{31,1}}}),std::invalid_argument);
+    ContextualOutbox old(store,manifest(),{{central_id,1}},{{30,1},{31,2}});
+    release(2);EXPECT_EQ(old.context(global,credit()),Result::NotReady);EXPECT_EQ(old.submit(fault(30,2,2)),Result::Invalid);
+    EXPECT_EQ(store.watermark(),2U);EXPECT_TRUE(old.healthy());
+}
+TEST_F(RemoteDiagnosticsContext, ReplacementDoesNotRepairAnIncompleteFamily) {
+    const auto path=root/"family";EpochRecorder::initialize(path.string(),101,{{32,8,8,8},1,8});
+    release();const auto original=fault();
+    {EpochRecorder store(path.string());ContextualOutbox old(store,manifest(),central_id);ASSERT_EQ(old.submit(original),Result::Accepted);}
+    EpochRecorder store(path.string());ContextualOutbox next(store,manifest(31),{{central_id,1}},{{30,1},{31,2}});
+    EXPECT_FALSE(next.healthy());release(2);EXPECT_EQ(next.context(global,credit()),Result::NotReady);
+    EXPECT_FALSE(next.next());EXPECT_EQ(store.watermark(),0U);
+}
 } // namespace

@@ -4,39 +4,50 @@
 #include <utility>
 
 namespace stratadrive::diagnostics {
+namespace {
+std::uint64_t select(const std::vector<EpochProducer>& lineage,std::uint32_t epoch) noexcept {
+    std::uint64_t producer=0;for(const auto& entry:lineage)if(epoch>=entry.first_epoch)producer=entry.producer;else break;return producer;
+}
+void validate(const std::vector<EpochProducer>& lineage) {
+    if(lineage.empty() || lineage.size()>16 || lineage.front().first_epoch!=1)throw std::invalid_argument("remote producer lineage");
+    for(std::size_t i=0;i<lineage.size();++i)if(!lineage[i].producer || !lineage[i].first_epoch ||
+        (i && lineage[i].first_epoch<=lineage[i-1].first_epoch) ||
+        std::any_of(lineage.begin(),lineage.begin()+static_cast<std::ptrdiff_t>(i),[&](const auto& old){return old.producer==lineage[i].producer;}))
+        throw std::invalid_argument("remote producer lineage");
+}
+}
 ContextualOutbox::ContextualOutbox(FileJournal& j,ControlContext c,std::uint64_t central)
     :ContextualOutbox(j,c,std::vector<CentralIssuer>{{central,1}}) {}
 ContextualOutbox::ContextualOutbox(FileJournal& j,ControlContext c,std::vector<CentralIssuer> lineage)
-    :outbox_(j),local_(c),issuers_(std::move(lineage)) {initialize();}
+    :outbox_(j),local_(c),issuers_(std::move(lineage)),producers_{{c.producer,1}} {initialize();}
 ContextualOutbox::ContextualOutbox(EpochRecorder& j,ControlContext c,std::uint64_t central)
     :ContextualOutbox(j,c,std::vector<CentralIssuer>{{central,1}}) {}
 ContextualOutbox::ContextualOutbox(EpochRecorder& j,ControlContext c,std::vector<CentralIssuer> lineage)
-    :outbox_(j),local_(c),issuers_(std::move(lineage)) {initialize();}
+    :ContextualOutbox(j,c,std::move(lineage),{{c.producer,1}}) {}
+ContextualOutbox::ContextualOutbox(EpochRecorder& j,ControlContext c,std::vector<CentralIssuer> lineage,std::vector<EpochProducer> local)
+    :outbox_(j),local_(c),issuers_(std::move(lineage)),producers_(std::move(local)) {initialize();}
 void ContextualOutbox::initialize() {
     const auto& c=local_;
     if(!c.run || !c.producer || !c.clock_instance || !c.profile || c.domain!=Domain::Monotonic)
         throw std::invalid_argument("remote diagnostic manifest");
-    if(issuers_.empty() || issuers_.size()>16 || issuers_.front().first_epoch!=1)throw std::invalid_argument("remote Central lineage");
-    for(std::size_t i=0;i<issuers_.size();++i) {
-        const auto& item=issuers_[i];
-        if(!item.producer || item.producer==c.producer || !item.first_epoch ||
-           (i && item.first_epoch<=issuers_[i-1].first_epoch) ||
-           std::any_of(issuers_.begin(),issuers_.begin()+static_cast<std::ptrdiff_t>(i),[&](const auto& old){return old.producer==item.producer;}))
-            throw std::invalid_argument("remote Central lineage");
-    }
+    validate(issuers_);validate(producers_);
+    if(std::none_of(producers_.begin(),producers_.end(),[&](const auto& p){return p.producer==c.producer;}) ||
+       std::any_of(producers_.begin(),producers_.end(),[&](const auto& p){return std::any_of(issuers_.begin(),issuers_.end(),[&](const auto& i){return p.producer==i.producer;});}))
+        throw std::invalid_argument("remote producer/issuer binding");
     pending_.reserve(kPending);
     for(std::uint64_t ordinal=1;ordinal<=outbox_.size();++ordinal) {
         const auto e=outbox_.event(ordinal);
         if(e.id.run!=c.run || e.profile!=c.profile || !e.session_enable.present ||
            e.session_enable.domain!=c.domain || e.session_enable.instance!=c.clock_instance ||
-           (e.kind==Kind::Session?e.id.producer!=issuer(e.session.epoch):e.id.producer!=c.producer))
+           (e.kind==Kind::Session?e.id.producer!=issuer(e.session.epoch):e.id.producer!=producer(e.session.epoch)))
             throw std::invalid_argument("remote diagnostic store manifest");
         if(e.kind==Kind::Session) retained_context_=e;
     }
 }
 std::uint64_t ContextualOutbox::issuer(std::uint32_t epoch) const noexcept {
-    std::uint64_t producer=0;for(const auto& entry:issuers_)if(epoch>=entry.first_epoch)producer=entry.producer;else break;return producer;
+    return select(issuers_,epoch);
 }
+std::uint64_t ContextualOutbox::producer(std::uint32_t epoch) const noexcept {return select(producers_,epoch);}
 Result ContextualOutbox::restore(const remote::RunLeaseEvidence& evidence) {
     return retained_context_?context(*retained_context_,evidence):Result::NotReady;
 }
@@ -61,6 +72,7 @@ Result ContextualOutbox::context(const Event& e,const remote::RunLeaseEvidence& 
        !trusted(e.session_enable) || !e.source.present || e.source.producer!=issuer(e.session.epoch) ||
        e.source.epoch!=e.session.epoch || e.source.sequence!=e.session.epoch ||
        !trusted(e.source.source) || !trusted(e.source.expiry) || !trusted(e.times[static_cast<std::size_t>(Time::Observed)])) return Result::Invalid;
+    if(producer(e.session.epoch)!=local_.producer)return Result::NotReady;
     const auto& a=evidence.clock;
     if(!a.established || a.local_domain!=local_.clock_instance || a.source_domain!=a.local_domain || a.offset_ns || a.uncertainty_ns)
         return Result::Invalid;
@@ -93,7 +105,7 @@ Result ContextualOutbox::context(const Event& e,const remote::RunLeaseEvidence& 
 }
 Result ContextualOutbox::submit(const Event& e) {
     if(!outbox_.healthy()) return Result::NotReady;
-    if(e.id.run!=local_.run || e.id.producer!=local_.producer || !e.id.sequence || e.session.run!=local_.run || !e.session.epoch ||
+    if(e.id.run!=local_.run || e.id.producer!=local_.producer || e.id.producer!=producer(e.session.epoch) || !e.id.sequence || e.session.run!=local_.run || !e.session.epoch ||
        e.profile!=local_.profile || e.kind==Kind::Session || e.kind==Kind::Attempt) return Result::Invalid;
     // A delayed Session may release historical faults, never retroactively
     // qualify recovery produced before this writer admitted the global context.
