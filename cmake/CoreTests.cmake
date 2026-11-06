@@ -24,6 +24,10 @@ stratadrive_unit_test(diagnostic_binding_test
     SOURCES tests/unit/diagnostic_binding_test.cpp
     LIBRARIES diagnostics_wire)
 if(TARGET diagnostics_journal)
+    stratadrive_unit_test(epoch_recorder_test
+        SOURCES tests/unit/epoch_recorder_test.cpp
+        LIBRARIES epoch_recorder)
+    target_link_options(epoch_recorder_test PRIVATE -Wl,--wrap=fsync -Wl,--wrap=renameat)
     stratadrive_unit_test(bootstrap_journal_test
         SOURCES tests/unit/bootstrap_journal_test.cpp
         LIBRARIES bootstrap_journal epoch_store diagnostics_journal)
@@ -61,6 +65,9 @@ endif()
 stratadrive_unit_test(speed_pi_test
     SOURCES tests/unit/speed_pi_test.cpp
     LIBRARIES speed_pi)
+stratadrive_unit_test(speed_supervisor_test
+    SOURCES tests/unit/speed_supervisor_test.cpp
+    LIBRARIES speed_supervisor control_allocation)
 stratadrive_unit_test(speed_request_test
     SOURCES tests/unit/speed_request_test.cpp
     LIBRARIES control_diagnostics)

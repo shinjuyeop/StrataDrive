@@ -1,0 +1,75 @@
+{
+  "status": "PASS_HOST_COMPONENTS_AND_CLI_NOT_SYSTEM_CLOSEOUT",
+  "baseline": "3de8efb48b70a8a77e7468ab6e493fb19b4c0bb8",
+  "tests": {
+    "debug_regression": 1507,
+    "debug_extra_recurrent": 1,
+    "debug_unique_total": 1508,
+    "debug_categories": {
+      "unit": 1156,
+      "logical": 347,
+      "transport": 5
+    },
+    "asan_ubsan_regression": 217,
+    "asan_ubsan_extra_recurrent": 1,
+    "asan_ubsan_unique_total": 218,
+    "clang_tidy_translation_units": 7,
+    "syscall_boundaries": {
+      "sync_boundaries": 16,
+      "rename_boundaries": 3
+    },
+    "syscall_fault_injections": 38,
+    "long_retention": {
+      "sessions": 100,
+      "entries": 1500,
+      "active_limit": 16
+    },
+    "recurrent_fault": {
+      "sessions": 40,
+      "entries": 160,
+      "count": 40,
+      "occurrence_limit": 8,
+      "active_events_max": 5
+    },
+    "synthetic_fixture_steps": 5000,
+    "synthetic_fixture_step_ns": 20000000,
+    "real_allocator_ticks": 10,
+    "canonical_cli_entries": 15
+  },
+  "scope": [
+    "opt-in Linux local epoch checkpoint/rollover, original history and cold receipts retained",
+    "active bounded window reclamation at a real new epoch",
+    "robust available-force reference host component",
+    "state-only M10 proposal contract, adapter, supervisor and existing PI/allocation connection"
+  ],
+  "not_closed": [
+    "single-epoch rollover, SOME/IP stream/ACK runtime integration and disk archival/deletion policy",
+    "actual force/road-load producer adapter and CARLA/Target validation",
+    "image perception, trained temporal planner, model latency and system fallback physical validation",
+    "M3/M4 historical timing/SDK root causes; current kernel trace/perf/sudo permissions blocked",
+    "M7 complete wall and renderer stability; full ODD; hardware power cuts/media faults; M12/M13"
+  ],
+  "binaries": {
+    "build/m1-angle/diagnostic_epoch_store": "11393eba3b645c352c1e2b2c254a9ccdd5d002c8be0e0f3b0b0d5ef23a7e9b69",
+    "build/m1-angle/epoch_recorder_test": "b8d6431355475eb9fd80cd39a6bdaf22c7e09d2c16419b4be7d55ea5e8ab0153",
+    "build/m1-angle/speed_supervisor_test": "8c04a64ec8fd1f2d8598a90b9afc600370cf323b0c48ff464314fae05155c801",
+    "build/m1-angle-sanitized/epoch_recorder_test": "ec3878aabb548e44ddd04632a95bd0da9d20f86abf2588d8d6e3aee996b2210d",
+    "build/m1-angle-sanitized/speed_supervisor_test": "e4bdc5a93939fce301506076ed8825fefccd7c631f5ba56885e30320b9f0772d"
+  },
+  "source_files": 25,
+  "raw_validation_files": 49,
+  "artifacts": {
+    "sources.json": {
+      "sha256": "6cb980dedf8750bade36d5dbe06fb45d6549c5516910ab0867312786eb37e17c",
+      "bytes": 3999
+    },
+    "sources.tar.gz": {
+      "sha256": "a0c98cf8bdf52af3e36e1cf5be319079a1b39d93a4440ad73bc80d08dfad40e7",
+      "bytes": 233341
+    },
+    "validation.tar.gz": {
+      "sha256": "8b3e3a10c7ccea2ad32beef19b7bdaf30f90994d7406ad592f4d369f508b741c",
+      "bytes": 105184
+    }
+  }
+}

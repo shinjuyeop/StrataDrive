@@ -112,6 +112,10 @@ template<class I> void transfer(I& i,Event& v) {
 template<class I> void transfer(I& i,ServiceEvidence& v) {
     i(v.now,v.enable,v.wheel,v.drive,v.brake,v.wheel_rad_s,v.torque_nm,v.pressure_pa,v.current_streams_valid,v.normal_dispatch_inhibited);
 }
+template<class I> void transfer(I& i,Record& v) {
+    i(v.key,v.generation,v.revision,v.count,v.first,v.last,v.first_event,v.last_event,
+      v.first_detected,v.last_detected,v.state_session,v.state_event,v.condition,v.latch,v.cleared,v.pass_event);
+}
 template<class I> void transfer(I&,Clear&);
 struct Writer {
     std::vector<std::uint8_t> data;
@@ -175,6 +179,64 @@ Ledger::Ledger(Limits limits):limits_(limits) {
     validate(limits); events_.reserve(limits.events); records_.reserve(limits.records);
     episodes_.reserve(limits.occurrences); clears_.reserve(limits.clears);approvals_.reserve(limits.clears);
 }
+std::vector<std::uint8_t> encode_checkpoint(const EpochCheckpoint& checkpoint) {
+    Writer w;std::uint32_t schema=1;w(schema);
+    auto c=checkpoint;w(c.previous,c.revision);
+    auto records=static_cast<std::uint32_t>(c.records.size()),faults=static_cast<std::uint32_t>(c.faults.size());
+    if(records>4096 || faults>4096) throw std::invalid_argument("checkpoint bounds");
+    w(records);for(auto& r:c.records)w(r);
+    w(faults);for(auto& e:c.faults)w(e);
+    return std::move(w.data);
+}
+EpochCheckpoint decode_checkpoint(const std::vector<std::uint8_t>& bytes) {
+    Reader r{bytes};EpochCheckpoint c;std::uint32_t schema=0,count=0;r(schema);
+    if(schema!=1)throw std::runtime_error("checkpoint schema");
+    r(c.previous,c.revision,count);if(count>4096)throw std::runtime_error("checkpoint records");
+    c.records.resize(count);for(auto& v:c.records)r(v);
+    r(count);if(count>4096)throw std::runtime_error("checkpoint faults");
+    c.faults.resize(count);for(auto& v:c.faults)r(v);
+    if(r.cursor!=bytes.size())throw std::runtime_error("checkpoint trailing bytes");
+    return c;
+}
+EpochCheckpoint Ledger::checkpoint() const {
+    if(!complete_ || unmapped() || !valid(session_))throw std::runtime_error("checkpoint incomplete history");
+    EpochCheckpoint c{session_,revision_,records_,{}};
+    for(auto& r:c.records) {
+        r.condition=Condition::Unknown;r.latch=Latch::Unknown;r.pass_event={};
+        if(r.cleared)continue;
+        const auto fault=std::find_if(events_.begin(),events_.end(),[&](const Event& e){
+            return e.kind==Kind::Fault && e.occurrence==r.last && e.key==r.key;
+        });
+        if(fault==events_.end() || continuity_incident(*fault))throw std::runtime_error("checkpoint needs continuity review/clear");
+        c.faults.push_back(*fault);
+    }
+    return c;
+}
+Ledger::Ledger(const EpochCheckpoint& c,Limits limits):Ledger(limits) {
+    if(!valid(c.previous) || !c.revision || c.records.size()>limits.records || c.faults.size()>limits.occurrences ||
+       c.faults.size()>=limits.events)throw std::invalid_argument("checkpoint bounds/session");
+    session_=c.previous;revision_=c.revision;historical_epoch_floor_=c.previous.epoch;
+    for(const auto& r:c.records) {
+        if(!valid(r.key) || !r.generation || !r.count || !r.revision || r.revision>c.revision ||
+           !valid(r.first) || !valid(r.last) || !valid(r.first_event) || !valid(r.last_event) ||
+           ((!valid(r.state_session) || !valid(r.state_event)) && (!(r.state_session==Session{}) || !(r.state_event==EventId{}))) ||
+           r.state_session.epoch>session_.epoch ||
+           !valid(r.first_detected) || !valid(r.last_detected) || r.condition!=Condition::Unknown || r.latch!=Latch::Unknown ||
+           !(r.pass_event==EventId{}) || find(r.key))throw std::invalid_argument("checkpoint record");
+        records_.push_back(r);
+    }
+    for(const auto& e:c.faults) {
+        const auto* r=find(e.key);
+        if(!valid(e) || e.kind!=Kind::Fault || e.unmapped || continuity_incident(e) || e.session.epoch>session_.epoch ||
+           !r || r->cleared || !(r->last==e.occurrence) || !(r->last_event==e.id) ||
+           std::any_of(events_.begin(),events_.end(),[&](const Event& old){return old.key==e.key || old.id==e.id;}))
+            throw std::invalid_argument("checkpoint fault");
+        events_.push_back(e);episodes_.push_back({e.occurrence,e.key,r->generation,true});
+    }
+    if(c.faults.size()!=static_cast<std::size_t>(std::count_if(records_.begin(),records_.end(),[](const Record& r){return !r.cleared;})))
+        throw std::invalid_argument("checkpoint missing fault");
+    restarted();
+}
 const Record* Ledger::find(const Key& key) const noexcept {
     const auto it=std::find_if(records_.begin(),records_.end(),[&](const Record& r){return r.key==key;});
     return it==records_.end()?nullptr:&*it;
@@ -198,6 +260,7 @@ Result Ledger::record(const Event& e) {
 }
 Result Ledger::apply(const Event& e) {
     if(!valid(e)) return Result::Invalid;
+    if(e.session.epoch<=historical_epoch_floor_)return Result::NotReady;
     if(events_.size()>=limits_.events || revision_==std::numeric_limits<std::uint64_t>::max()) return Result::Capacity;
     if(e.kind==Kind::Attempt) {
         if(e.session.epoch<=session_.epoch) return Result::Invalid;
@@ -392,11 +455,17 @@ EventQueue::Health EventQueue::health() const noexcept {
     return {count,first_lost_.load(std::memory_order_relaxed),identity_error_.load(std::memory_order_acquire)};
 }
 Recorder::Recorder(Journal& journal):journal_(journal),ledger_(journal.limits()) {
-    for(const auto& entry:journal.committed()) {
+    replay();
+}
+Recorder::Recorder(Journal& journal,const EpochCheckpoint& checkpoint):journal_(journal),ledger_(checkpoint,journal.limits()) {
+    replay();
+}
+void Recorder::replay() {
+    for(const auto& entry:journal_.committed()) {
         const auto result=std::holds_alternative<Event>(entry)?ledger_.record(std::get<Event>(entry)):std::holds_alternative<Clear>(entry)?ledger_.clear(std::get<Clear>(entry)):ledger_.review(std::get<ContinuityReview>(entry));
         if(result!=Result::Accepted) throw std::runtime_error("diagnostics invalid journal transaction");
     }
-    ledger_.restarted(); if(!journal.writable()) ledger_.recording_gap();
+    ledger_.restarted(); if(!journal_.writable()) ledger_.recording_gap();
 }
 Receipt Recorder::record(const Event& event) {
     const auto result=ledger_.record(event);

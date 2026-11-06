@@ -1,5 +1,8 @@
 # Diagnostic offline retention operations
 
+새 선택형 [세션 경계 이관](../interfaces/epoch-retention.md)은 활성 창의 상태 이관·회수를 제공한다.
+아래 단일-store archive/restore 계약과 형식은 유지하며 family 자동 삭제/통신 통합은 후속이다.
+
 유한 journal의 기본512-event/64-service-entry 용량과 초과 시 incomplete/clear 차단을 유지한다.
 보존은 비활성 store를 독점 flock으로 확보하여 manifest/commit/journal/lock과 존재하는
 incomplete/pending을 byte 그대로 보관하는 명시적 운영 작업이다. 살아 있는 writer가 있거나

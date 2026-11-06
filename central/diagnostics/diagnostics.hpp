@@ -84,11 +84,24 @@ bool continuity_incident(const Event&) noexcept;
 using Entry = std::variant<Event, Clear, ContinuityReview>;
 enum class Result { Accepted, Duplicate, Invalid, Conflict, Capacity, NotReady, StorageFailure };
 
+// State carried ONLY across a newer application epoch. Raw entries and service
+// receipts stay in the predecessor archive. No fresh/pass authority is carried.
+struct EpochCheckpoint {
+    Session previous{};
+    std::uint64_t revision{0};
+    std::vector<Record> records;
+    std::vector<Event> faults;
+};
+std::vector<std::uint8_t> encode_checkpoint(const EpochCheckpoint&);
+EpochCheckpoint decode_checkpoint(const std::vector<std::uint8_t>&);
+
 // Single non-RT consumer. Bounded history, no silent eviction. A loss is sticky:
 // create/reconcile a complete store before allowing further clears.
 class Ledger {
 public:
     explicit Ledger(Limits limits = {});
+    Ledger(const EpochCheckpoint&,Limits limits);
+    EpochCheckpoint checkpoint() const;
     Result record(const Event&);
     Result clear(const Clear&);
     Result review(const ContinuityReview&);
@@ -113,6 +126,7 @@ private:
     struct Approval { ContinuityReview review; std::size_t event_floor; };
     std::vector<Episode> episodes_; std::vector<Clear> clears_; std::vector<Approval> approvals_;
     std::size_t approval_floor_{0},recording_floor_{0};
+    std::uint32_t historical_epoch_floor_{0};
 };
 
 // Single producer and single consumer, one immutable producer identity per queue.
@@ -151,6 +165,7 @@ struct Receipt { Result result; bool durable; std::uint64_t watermark; };
 class Recorder {
 public:
     explicit Recorder(Journal&);
+    Recorder(Journal&,const EpochCheckpoint&);
     Receipt record(const Event&);
     Receipt clear(const Clear&);
     Receipt review(const ContinuityReview&);
@@ -160,6 +175,7 @@ public:
     std::size_t drain(EventQueue&,std::size_t budget=EventQueue::kCapacity);
     const Ledger& ledger() const noexcept { return ledger_; }
 private:
+    void replay();
     Journal& journal_; Ledger ledger_;
 };
 } // namespace stratadrive::diagnostics

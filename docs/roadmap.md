@@ -31,8 +31,8 @@ Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revis
 | TBD-07 | CARLA/UE/client·map/route·tick·fidelity / simulation | 고정 source/Town03/V1의 simulation 기능 수용. 비영상 wall5ms는 제한 검증;영상·서버 종료·전체 renderer 안정성 OPEN; M8 고정 S01/S02/S03 경로 적합성 검증 |
 | TBD-08 | DTC code·debounce·persistence·clear / diagnostics | [계약](interfaces/diagnostics.md)과 실제 monitor·전달·유한 부하·simulation10ms 기능 [M9 기술 검증](test-plan/evidence/m9_followup/README.md) 완료; 학습자 최종 수용·wall/Target·무제한 보존 별도 |
 | TBD-09 | Jetson board/RAM·platform stack·모델/workload·측정 / compute·AI | M10 model fixture·M12 독립 보드 비교 전 |
-| TBD-10 | perception/planner shape·history·risk·fallback / AI·safety | M10–M11 통합 전 |
-| TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. S03 v1 구동 포화 FAIL 보존; v2 startup20s/감속6s 고정. 추진 포화 feedback·관성 필요조건 검증; [제동 피드백 v3의 component/입력 재생·새 S03](test-plan/evidence/milestone-followup/README.md) 검증; 동적 가용력 기반 참조·전체 ODD OPEN; M10 모델 도입 전 갱신 |
+| TBD-10 | perception/planner shape·history·risk·fallback / AI·safety | [Host 상태 기반 속도 제안 계약](interfaces/supervised-speed-proposal.md)·Supervisor 구현. 이미지 인지/학습 모델 shape·보정·실제 통합은 후속 |
+| TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. S03 v1 구동 포화 FAIL 보존; v2 startup20s/감속6s 고정. 추진 포화 feedback·관성 필요조건 검증; [제동 피드백 v3의 component/입력 재생·새 S03](test-plan/evidence/milestone-followup/README.md) 검증; 가용력 governor Host component 구현; 실제 추정 adapter·전체 ODD OPEN; M10 모델 도입 전 갱신 |
 | TBD-12 | 전원 sequence·INIT/permission·shutdown/복구 / vehicle management | M6 startup/RunLease/stop/HV-off 검증. 실차 LV/충전/Target 반응은 후속 |
 | TBD-13 | battery/thermal·limits·efficiency·energy 오차 / 모델 | M6 계수·M7 단일 EV work 정산 사용. Chemistry/OEM 적합성은 미결정 |
 | TBD-14 | BMS/EV wire·원천/dependency·hop budget / interface·timing | Host P05·receiver·원천 전달 검증. 다른 kernel/Target clock은 후속 |
@@ -50,10 +50,10 @@ M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](proj
 [마감 검증](test-plan/evidence/m9_followup/README.md)을 기준으로 종료했다.
 기존 검출·보호·Actual·진단 계약은 다음 단계의 회귀 기준으로 유지한다.
 
-- 모델 입출력 shape·단위·history·risk와 실패/누락 표현을 확정한다.
-- AI 제안과 Safety Supervisor·classical fallback의 책임 및 검증 경계를 고정한다.
+- 상태 기반 Host 속도 제안의 `[4,6]` 입력·`[16]` 출력·history/risk/fallback은 [첫 계약](interfaces/supervised-speed-proposal.md)으로 구현했다. 인지/학습 모델의 계약과 검증은 후속이다.
+- 선택형 Supervisor→가용력 governor→기존 PI/배분 연결을 구현했다. 실제 모델/가용력 adapter와 고장 시 coordinator 보호 연결을 통합 검증한다.
 - 공통 scenario/seed·sensor/model/precision·SW revision과 실행 시간 측정 조건을 정한다.
 - 실제 ACK/통신 손실의 주입 위치·기대 물리 반응을 먼저 정하고, tick 차단과 차량 정지를 구분한다.
-- 다른 kernel/Target, 자동 장기 상태 이관·용량 회수와 학습자 최종 수용은 별도 gate로 관리한다.
+- 다른 kernel/Target, 세션 내 무중단 기록 이관·통신 통합·디스크 보존 정책과 학습자 최종 수용은 별도 gate로 관리한다.
 
 M7–M9의 구현 경과·중간 실패·미채택 후보는 [보관 이력](archive/implementation-history.md)을 따른다.

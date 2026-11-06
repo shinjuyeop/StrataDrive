@@ -107,6 +107,8 @@
 - [ADR-0103: 전용 SDK CPU의 명시적 FIFO1과 유한 부하 수용](#adr-0103)
 - [ADR-0104: M9 CARLA 응답의 명시적10ms sample/hold 수용](#adr-0104)
 - [ADR-0105: 방향별 배분 피드백과 영속적인 journal 쓰기 의도](#adr-0105)
+- [ADR-0106: 세션 경계의 진단 상태 이관과 활성 창 회수](#adr-0106)
+- [ADR-0107: 가용력 목표와 상태 기반 M10 Host 속도 제안](#adr-0107)
 
 <a id="adr-0001"></a>
 
@@ -6009,3 +6011,27 @@ FileJournal은 pending 의도를 먼저 fsync한 다음 data를 쓰고 commit으
 구별한다. 오류/프로세스 종료 시험은 실제 전원 차단·자동 journal rollover를 대신하지 않는다.
 [사전 기준](../test-plan/milestone-followup-protocol.md)과
 [실행 근거](../test-plan/evidence/milestone-followup/README.md)를 따른다.
+
+<a id="adr-0106"></a>
+
+## ADR-0106: 세션 경계의 진단 상태 이관과 활성 창 회수
+
+2026-11-06. M7 전체 wall 연동을 후순위로 두고 남은 소프트웨어를 개선한다.
+선택형 EpochRecorder는 실제 새 Session/Attempt에서 원본 segment와 DTC count/generation/identity를
+보존하며 활성 event/service 창을 회수한다. 새 세션의 조건은 Unknown이며 fresh proof와 명시적
+clear가 필요하다. Root intent→successor/checkpoint/새 session commit→current rename/fsync
+순서를 사용한다. 미완료 이관·변조·과거 미기록 event는 정상 이력으로 취급하지 않는다.
+기존 source/replica의 stream ordinal과 wire 계약은 변경하지 않는다. 단일 epoch 무중단 회전,
+통신 runtime 적용과 디스크의 원본 삭제 정책은 별도다. [계약](../interfaces/epoch-retention.md)을 따른다.
+
+<a id="adr-0107"></a>
+
+## ADR-0107: 가용력 목표와 상태 기반 M10 Host 속도 제안
+
+2026-11-06. 현재 힘과 저항 범위의 교집합으로20ms 목표 증가를 제한한다. 입력의 원래
+source/expiry·epoch·동일 ID 불변성과 실제 속도 주변의 추종 차이를 검사한다. 정속조차
+보장할 수 없으면 정상 요청을 내지 않는다. 기존 PI/배분의 보호·시간 예산은 유지한다.
+M10 첫 Host profile은 상태 `[4,6]`→속도 `[16]`·risk·valid다. Trusted adapter가 시각/identity와
+route ceiling을 공급하고 모델 오류에는 fresh classical fallback, 유효한 위험 또는 fallback
+불가에는 보호를 요구한다. 이미지 인지·실제 학습 모델·Target/CARLA 통합을 완료로 세지 않는다.
+[계약](../interfaces/supervised-speed-proposal.md)과 [검증](../test-plan/evidence/remaining-improvements/README.md)을 따른다.

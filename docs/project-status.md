@@ -16,7 +16,8 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
+| M10–M11 | Host 속도 제안 계약·Supervisor 착수; 인지/학습 모델·전체 통합 NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
+| M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 
@@ -59,6 +60,11 @@ clear 조건은 유지한다. 독립 모델 동등성, 실제 allocator 연결, 
 저장된 S03의 native 재생과 새 서버 S03 실제 실행을 따로 기록했다. 실제 전원 차단/자동 용량 회수와
 과거 timing·renderer 원인 규명을 완료한 것으로 올리지 않는다.
 
+후속으로 [세션 경계 EpochRecorder](interfaces/epoch-retention.md)의 활성 기록 창 회수·DTC 상태
+이관과 CLI, [가용력 목표·M10 Host 속도 제안](interfaces/supervised-speed-proposal.md)의
+Supervisor→governor→기존 PI/배분 연결을 추가했다. [검증과 제한](test-plan/evidence/remaining-improvements/README.md)을
+따른다. 기존 통신/CARLA 기본 경로는 변경하지 않는다. M7 전체 wall 연동은 사용자가 후순위로 두었다.
+
 ## 현재 구현과 수용 경계
 
 | 영역 | 현재 범위 | 상세 근거 |
@@ -78,12 +84,17 @@ clear 조건은 유지한다. 독립 모델 동등성, 실제 allocator 연결, 
   `wall5-hv50-v1` 실행을 장시간·영상·고속 보장으로 확대하지 않는다.
 - UE renderer/GC·로딩 중 종료와 일부 과거 서버 종료 실패의 근본 원인은 남아 있다.
   완료된 M9 네 서버의 정상 종료와 구분한다.
-- 전체 Reference ODD, Planner/localization, 동적 가용력 기반 참조는 후속이다.
+- 전체 Reference ODD, Planner/localization과 가용력 추정의 실제 runtime 연결은 후속이다.
+  가용력 기반 governor·Host 속도 제안/Supervisor는 선택형 component와 합성/배분 연결을 검증한다.
   제동 피드백 v3는 component/원본 입력 재생과 새 고정 S03 실행을 통과했다. 전체 ODD 수용은 별도다.
-- 기본512-event 경계, 비활성 archive/restore는 유한 운용이다. 자동 상태 이관·용량 회수와
+- 기본512-event 경계, 비활성 archive/restore는 유한 운용이다. 새 EpochRecorder는 새 세션에서
+  DTC 상태와 원본 이력을 보존하며 활성 창을 회수한다. 단일 epoch 중 무중단 회전·통신 runtime
+  통합·디스크 삭제/외부 보존 정책과
   전체 매체/전원 장애, 다른 kernel의 Clock 운영은 별도다. syscall 저장 오류와 프로세스
   중단 검증은 추가했지만 실제 전원 차단/캐시 소실 시험을 대신하지 않는다.
 - 과거 M3/M4·SDK timing/sanitizer 실패와 미채택 후보는 당시 분모로 보존한다.
+  최신 환경 probe에서도 FIFO는 가능하나 tracefs/perf 접근이 차단되고 비대화형 sudo 권한이 없다.
+  따라서 과거 timer→wakeup→switch/IRQ 원인을 새로 규명한 것으로 올리지 않는다.
   기술 검사 통과로 학습자 설명·최종 수용을 대신하지 않는다.
 
 ## M7 종료 조건
@@ -100,6 +111,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-M10 착수 전에 모델 입출력·history·risk·fallback 경계와 공통 scenario/seed 및 측정 조건을
-확정한다. 구체 산출물과 TBD 담당·결정 시점은 [로드맵](roadmap.md)에서 관리한다.
+M10의 상태 기반 Host 속도 제안 입출력·history·risk·fallback 경계는 첫 프로파일로 고정했다.
+실제 인지/학습 모델·가용력 adapter와 통신 기록 이관을 연결하고 공통 scenario/seed에서 검증한다.
+구체 산출물과 TBD 담당·결정 시점은 [로드맵](roadmap.md)에서 관리한다.
 진행한 시도별 상세 경과와 과거 실행 목록은 [구현·검증 이력](archive/implementation-history.md)에서 찾는다.
