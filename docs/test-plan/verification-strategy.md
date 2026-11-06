@@ -1,7 +1,7 @@
 # 검증 전략
 
 현재 구현·수용은 [프로젝트 상태](../project-status.md), 대표 실행은 [검증 안내](README.md)를 따른다.
-아래29개 system TC는 정의된 계약이며 전체 runtime Result는 **NOT RUN**이다.
+아래29개 system TC는 정의된 계약이며 전체 system/Target runtime Result는 **NOT RUN**이다.
 Component/Host 부분 통과와 전체 system·Target 판정을 구분한다. 과거 실행 집계를 이 문서에 누적하지 않는다.
 
 ## 검증 계층
@@ -100,7 +100,7 @@ PIL/HIL·Target timing·안전 표준 적합성 결과는 이 계획으로 추�
 | TC-AI-001 | inference timeout/NaN/stale/infeasible; fallback input 상실 | AI reject→유효 classical fallback 또는 보호 상태; raw actuator 출력 없음; 전환 budget TBD-10 | M11 |
 | TC-SAFE-001 | F01–F04 및 Brake/Drive actual loss/복합 loss/clear | 가용 actuator에 맞춘 FAIL_SAFE/local action, Central 기록과 독립; 물리 세부값 TBD-03/06 | M2/M4 local; M6/M7/M9 integration |
 | TC-SAFE-002 | startup missing stream, epoch mismatch, fault clear/new frame/reinitialize | INIT 정상 출력 억제; startup 100 ms unavailable 검출; FAIL_SAFE→NORMAL 자동 복귀 없음; 명시적 INIT gate | M1 handshake; M2/M4/M6/M7 |
-| TC-DIAG-001 | fault onset/duration 지정 후 clear/reconnect·restart·기록 손실 | fault→event/DTC/state correlation, 독립 local action; [TBD-08 계약 제안](../interfaces/diagnostics.md)·[DG component/통합 검증안](diagnostics-protocol.md) | M9; PROPOSED / NOT RUN |
+| TC-DIAG-001 | fault onset/duration 지정 후 clear/reconnect·restart·기록 손실 | fault→event/DTC/state correlation, 독립 local action; [진단 계약](../interfaces/diagnostics.md)·[component/통합 프로토콜](diagnostics-protocol.md) | M9 유한 Host·simulation10ms [기능 검증](evidence/m9_followup/README.md); 전체 system/Target 별도 |
 | TC-PERF-001 | timing trace, 고정 workload/overload | endpoint/clock/causal lineage, Mean/P95/P99/Max/sample/drop/miss/uncertainty 보고; deadline TBD-04 | M3 부분; M5/M7/M12 E2E |
 | TC-PERF-002 | logical multirate trace; simulation pause/reset/slow Target | 20/50/100 Hz logical 설정, source frame 재사용 식별; clock별 age, epoch reset, wall-time miss 숨김 없음 | M3/M6/M7 |
 

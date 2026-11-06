@@ -3,8 +3,8 @@
 Central → Front/Rear Zone → Leaf ECU 구조의 차량 소프트웨어를 만들고 검증하는 SIL 프로젝트다.
 Host에서 통신·세션·actuator/EV 모델과 CARLA 제어 폐루프를 연결했다.
 
-**현재: M8 기능 SIL 범위 완료. M9 Central·Zone/Leaf·Gateway·BMS/Power 부분 진단과 코드별 복구를 검증했다.**
-C++ 모델 동등성·30km/h 경로 추종·정상 정지를 검증했다. 전체 Reference와 실시간·Target 수용은 후속이다.
+**현재: M9의 유한 Host·10ms 시뮬레이션 기능 범위까지 완료했다.**
+검출 → 보호 → 실제 차량 응답 → DTC 기록·복구·명시적 해제를 연결했다. 전체 Reference와 실시간·Target 수용은 후속이다.
 최신 판정과 다음 작업은 [프로젝트 상태](docs/project-status.md) 한곳에서 관리한다.
 
 ## 시작하기
@@ -29,7 +29,7 @@ ctest --test-dir build/m1-angle --output-on-failure
 ./build/m1-angle/actuator_demo --help
 ```
 
-원본 M8 실행 증거를 재현할 때는 Git LFS를 설치한 뒤 `git lfs pull`로 로그를 받고,
+원본 실행 증거를 재현할 때는 Git LFS를 설치한 뒤 `git lfs pull`로 로그를 받고,
 해당 evidence 디렉터리에서 `sha256sum -c SHA256SUMS`로 원본 해시를 확인한다.
 
 ## 실행 구조

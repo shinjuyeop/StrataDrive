@@ -63,8 +63,8 @@ if(STRATADRIVE_M7_CONTRACT_TESTS)
     add_subdirectory(tests/integration/carla/m7_1i)
 endif()
 
-# Separate functional-clock experiment. Never enabled by an M6 profile.
-option(STRATADRIVE_M7_FUNCTIONAL_TESTS "Build M7 simulation-clock shadow harness (no driving)" OFF)
+# Opt-in simulation-clock native harness and admission tests; no CARLA server.
+option(STRATADRIVE_M7_FUNCTIONAL_TESTS "Build simulation-clock native harness and CARLA admission tests" OFF)
 if(STRATADRIVE_M7_FUNCTIONAL_TESTS)
     if(NOT BUILD_TESTING)
         message(FATAL_ERROR "STRATADRIVE_M7_FUNCTIONAL_TESTS requires BUILD_TESTING")

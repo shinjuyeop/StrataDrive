@@ -5,48 +5,17 @@ scenario/test → Result 연결이다. 개별 revision은 [시스템 요구사�
 현재 부분 검증과 OPEN은 [프로젝트 상태](../project-status.md), 실제 함수·시험·근거는
 [component 추적표](component-traceability.csv)에서 관리한다.
 
-SYS-DIAG-001의 Release 전 기동 수집은 C-M9-BOOT-01–06과
-[기동 진단 증거](evidence/m9_startup_sources/README.md)로 연결한다. 세 ACK phase의 logical
-fixture 부분 검증이며 TC-DIAG-001 전체 runtime Result나 TBD-08 최종 수용을 대체하지 않는다.
-C-M9-TX-01–06은 [Event-only replica/spool](evidence/m9_delivery_spool/README.md)의 순서·중복·
-commit/ACK·process 재시작에 대응한다. DDS/SOME-IP live owner 통합 수용과 구분한다.
-C-M9-SIP-01–06은 [SOME/IP 새 logical source](evidence/m9_someip_live/README.md)의 실제 TCP binding·
-SPSC/writer·원본/물리 동등성·ACK 유실/replica 재시작에 대응한다. Native3-ECU 연결은 아래 ROUTE 범위이며 wall 수용은 별도다.
-C-M9-CTX-01–04는 [원격 context component](evidence/m9_remote_context/README.md)의 accepted
-credit 대조·유한 대기·독립 stream ACK·재시작 Unknown/소급 Proof 거부에 대응한다.
-Context component 뒤의 실제 전송은 C-M9-ROUTE-01–06에 연결한다.
-C-M9-ROUTE-01–06은 [실제 native3-ECU 진단 배선](evidence/m9_native_routing/README.md)의
-context2/source9·actual accepted credit·원본 detector/ACK·실제 TCP/merged commit·ACK 유실/
-context 지연에 대응한다. Native 전체 fault matrix·재시작 adoption·wall/Target 수용은 후속이다.
+SYS-DIAG-001의 검출·보호·Actual·DTC와 복구·clear는 C-M9-*의 구체 시험·원본에 연결한다.
+기동/전달/발행자 재기동·로컬/native 서비스·Clock/Power·유한 보존의 분야별 근거는
+[검증 안내](README.md#진단-분야별-근거), 선언한 유한 Host·simulation10ms의 종료 판정은
+[프로젝트 상태](../project-status.md)를 따른다. 이전 component 실행 당시의 미구현 경계는
+각 evidence에 보존하며 최신 통합 상태와 구분한다.
 
 [M8 종료 검토](../archive/milestone-reviews.md#m8)는 C-M8 component/고정 fixture의 기술 판정이다.
-아래32개 요구와29개 system TC의 전체 runtime Result는 **NOT RUN**이다.
+아래32개 요구와29개 system TC의 **전체 system/Target runtime Result는 NOT RUN**이다.
 부분 Host/vCAN·모델·sanitizer 통과를 전체 결과로 올리지 않는다. 실제 실행 후에만
 `RES-<test-suffix>-<run-id>`를 발급한다. 과거 판정은 [단계 검토](../archive/milestone-reviews.md),
 실행별 원본·분모는 [evidence 안내](README.md)를 따른다.
-
-C-M9-RESTART-01–04는 [진단 전달 이력 복구](evidence/m9_delivery_restart/README.md)의 context 재대조·
-replica/merged crash window·실제 TCP replay를 연결한다. Native 객체 재개와 별도 process SIGKILL을
-구분하며 전체 ECU 재기동/producer adoption 및 SYS-DIAG-001 수용은 닫지 않는다.
-
-C-M9-ADOPT-01–06은 [ECU 발행자 adoption](evidence/m9_producer_adoption/README.md)의 세대 발급·
-read-only prefix·저장 전 손실 미확인 표시·Front/Rear 실제 process kill/rejoin을 연결한다.
-연속성 clear와 SYS-DIAG-001 전체 수용은 닫지 않는다.
-
-C-M9-CENTRAL-01–05는 [Central 재기동](evidence/m9_central_restart/README.md)의 명시적 issuer
-구간·fresh collector prefix import·실제 Central SDK SIGKILL/새 Epoch2·생존 source ordinal1 replay·
-SD-5001 clear 차단을 연결한다. 연속성 해소·TBD-08·전체 TC 수용은 OPEN이다.
-
-C-M9-REVIEW-01–05는 [로컬 연속성 서비스 심사](evidence/m9_continuity_review/README.md)의
-미확인 과거 이력 수용·현재 recording proof·영속 Review/Passed/clear와 writer SIGKILL4경계를
-연결한다. Trusted service component/typed logical fixture이며 실제 native 서비스 인증/인가·
-quiesce/물리 evidence 조합과 SYS-DIAG-001/TC-DIAG-001 전체 수용은 OPEN이다.
-C-M9-SERVICE-01–04는 [Linux 로컬 서비스 연결](evidence/m9_continuity_service/README.md)의
-kernel peer/boot 인가·frozen guard·current Actual 취득·별도 clear·실제 Unix writer SIGKILL4컷을
-검증한다. Clock/Actual 주입과 실제3-ECU 서비스 운용/plant 물리 정지 수용은 구분한다.
-C-M9-NATIVE-SERVICE-01–04는 [terminal native 서비스](evidence/m9_native_service/README.md)의
-실제3 global Session/27 accepted credit·9 source/collector freeze·원본 physical/CAN/PCAP·인가와
-별도 clear를 연결한다. Terminal fixture이며 서비스 후 운행 재개·고장 거절 matrix·Target/전체 TC 수용은 OPEN이다.
 
 | Requirement | Component | Interface | Scenario / variant | Test Case | Future verification | Future Result |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -73,7 +42,7 @@ C-M9-NATIVE-SERVICE-01–04는 [terminal native 서비스](evidence/m9_native_se
 | SYS-SAFE-003 | ARCH-ZONE, ARCH-VECU, ARCH-ZONE-FRONT, ARCH-ZONE-REAR | IF-CAN-STEERING, IF-CAN-BRAKE, IF-CAN-DRIVE, IF-FAULT-EVENT, IF-DDS-REAR-CMD, IF-DDS-REAR-STATUS, IF-DDS-REAR-SESSION, IF-DDS-FRONT-CMD, IF-DDS-FRONT-STATUS, IF-DDS-FRONT-SESSION | F02, F03, F04; ZON-F01/F02 | TC-COM-002, TC-COM-003, TC-COM-004, TC-SAFE-001, TC-ZON-002, TC-ZON-003 | M2/M4/M5/M9 | NOT RUN |
 | SYS-SAFE-004 | ARCH-VECU, ARCH-ZONE | IF-CAN-DRIVE, IF-FAULT-EVENT | F03 양·음수 torque; F04; F02 Drive variant | TC-COM-003, TC-COM-004, TC-COM-002 | M2/M4/M6/M9 | NOT RUN |
 | SYS-SAFE-005 | ARCH-ZONE, ARCH-VECU, ARCH-ADAPTER, ARCH-CENTRAL-ALLOC | IF-CAN-DRIVE, IF-CAN-BRAKE, IF-DDS-ZONE-STATUS, IF-HOST-ACTUATOR, IF-FAULT-EVENT, IF-DDS-FRONT-STATUS, IF-DDS-REAR-STATUS | RG-01 cap unknown/stale/0 및 부족분 | TC-REG-002, TC-REG-004 | M1/M2/M4/M6/M7 | NOT RUN |
-| SYS-DIAG-001 | ARCH-DIAG, ARCH-ZONE, ARCH-VECU | IF-FAULT-EVENT | F01–F04 event integration; [진단 lifecycle/영속성·clear 검증안](diagnostics-protocol.md) | TC-DIAG-001 | M9; [계약 v0.1 PROPOSED](../interfaces/diagnostics.md) | NOT RUN |
+| SYS-DIAG-001 | ARCH-DIAG, ARCH-ZONE, ARCH-VECU | IF-FAULT-EVENT | F01–F04 event integration; [진단 lifecycle/영속성·clear 프로토콜](diagnostics-protocol.md) | TC-DIAG-001 | M9; [계약 v0.1](../interfaces/diagnostics.md) | 전체 system/Target NOT RUN; [유한 M9 기능 검증](evidence/m9_followup/README.md) |
 | SYS-PERF-001 | ARCH-CENTRAL, ARCH-ZONE, ARCH-VECU, ARCH-ORCH, ARCH-ADAPTER | IF-HOST-SENSOR, IF-CENTRAL-TRAJECTORY, IF-CENTRAL-VEHICLE-REQUEST, IF-CAN-STEERING, IF-CAN-BRAKE, IF-CAN-DRIVE, IF-HOST-ACTUATOR, IF-DDS-FRONT-CMD, IF-DDS-REAR-CMD | Timing/overload; S01–S03 | TC-PERF-001 | M3 partial; M5/M7/M12 E2E | NOT RUN |
 | SYS-PERF-002 | ARCH-HOST, ARCH-CENTRAL, ARCH-ZONE, ARCH-VECU, ARCH-BMS | IF-HOST-SENSOR, IF-CENTRAL-TRAJECTORY, IF-CENTRAL-VEHICLE-REQUEST, IF-CAN-STEERING, IF-CAN-BRAKE, IF-CAN-DRIVE, IF-CAN-BMS, IF-CAN-DRIVE-CONSTRAINT, IF-DDS-FRONT-CMD, IF-DDS-REAR-CMD | Multirate; S01–S03, EV-F01 | TC-PERF-002, TC-EV-002 | M1 rate 결정; M2/M3/M6/M7 | NOT RUN |
 | SYS-PERF-003 | ARCH-ORCH, ARCH-CENTRAL, ARCH-ZONE, ARCH-VECU, ARCH-ADAPTER | IF-HOST-SENSOR, IF-CENTRAL-VEHICLE-REQUEST, IF-HOST-ACTUATOR, IF-FAULT-EVENT, IF-DDS-FRONT-CMD, IF-DDS-REAR-CMD | Pause/reset/slow Target; F01–F04 | TC-PERF-001, TC-PERF-002 | M3/M5/M6/M7 | NOT RUN |

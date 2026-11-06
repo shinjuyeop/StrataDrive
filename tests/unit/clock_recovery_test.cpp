@@ -1,5 +1,7 @@
 #include "clock_recovery.hpp"
+#include "diagnostic_publisher.hpp"
 #include <gtest/gtest.h>
+#include <limits>
 
 namespace {
 using namespace stratadrive;
@@ -64,5 +66,40 @@ TEST(ClockRecovery, BoundedRetentionNeverEvictsAnOldClockIncident) {
     auto extra=fault(1,33);extra.key.subject=33;EXPECT_FALSE(c.remember(extra));
     ASSERT_TRUE(c.revalidate(check(),Domain::Simulation,run));feed(c,0,100);
     unsigned count=0;while(c.take_ready())++count;EXPECT_EQ(count,32U);
+}
+TEST(DiagnosticPublication, SequenceExhaustionRecordsGapAndCannotWrapOrPublishAgain) {
+    for(bool control:{false,true}) {
+        EventQueue queue(run,45);
+        DiagnosticPublisher publisher(queue,{run,45,Domain::Simulation,run,1},
+            std::numeric_limits<std::uint64_t>::max(),"test context",control?std::optional<std::uint32_t>{1}:std::nullopt);
+        auto original=fault();original.native_reason=77;
+        const auto id=publisher.publish(original,original.session);
+        EXPECT_EQ(id.sequence,std::numeric_limits<std::uint64_t>::max());
+        EXPECT_FALSE(publisher.healthy());
+        Event recorded;ASSERT_TRUE(queue.pop(recorded));
+        EXPECT_EQ(recorded.kind,Kind::Gap);EXPECT_EQ(recorded.key.code,Code::None);
+        EXPECT_EQ(recorded.occurrence.sequence,0U);EXPECT_EQ(recorded.native_reason,control?1U:77U);
+        EXPECT_EQ(publisher.publish(original,original.session).sequence,0U);
+        EXPECT_FALSE(queue.pop(recorded));EXPECT_FALSE(queue.health().identity_error);
+    }
+}
+TEST(DiagnosticPublication, RetentionFailureKeepsEveryOriginalFaultAndBlocksRecoveryPublication) {
+    EventQueue queue(run,45);DiagnosticPublisher publisher(queue,{run,45,Domain::Simulation,run,1},1,"test context");
+    for(unsigned i=1;i<=33;++i) {
+        auto original=fault();original.key.subject=i;
+        EXPECT_EQ(publisher.publish(original,original.session).sequence,i);
+    }
+    EXPECT_FALSE(publisher.healthy());
+    ASSERT_TRUE(publisher.revalidate_clock(check()));
+    for(unsigned t=0;t<=100;t+=10)publisher.observe_clock(sample(t),true);
+    Event recorded;unsigned faults=0,gaps=0;
+    while(queue.pop(recorded)) {
+        if(recorded.kind==Kind::Gap) {++gaps;EXPECT_EQ(recorded.id.sequence,34U);}
+        else {
+            ASSERT_EQ(recorded.kind,Kind::Fault);++faults;
+            EXPECT_EQ(recorded.id.sequence,faults);EXPECT_EQ(recorded.key.subject,faults);
+        }
+    }
+    EXPECT_EQ(faults,33U);EXPECT_EQ(gaps,1U);EXPECT_EQ(queue.health().dropped,0U);
 }
 } // namespace

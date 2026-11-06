@@ -7,9 +7,6 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M7 · 기능 범위 CLOSED | [시뮬레이션 시간 기능 수용](project-status.md#m7-종료-조건). HV 예산 분리 후 비영상 wall 정상2/보호2 통과;영상·장시간 wall 수용은 기능 개발과 별도 |
-| M8 · 기능 범위 CLOSED | [종료 검토](archive/milestone-reviews.md#m8): 모델/C++ 동등성·속도/경로 폐루프·고정30km/h fixture·추진 포화·정상 정지. 전체 Reference 수용은 후속 통합 |
-| M9 | Fault event → 검출 → 보호 → actual response → DTC 통합. TBD-08 계약 고정 후30km/h 입력 손실·제동 timeout·ACK/통신 손실을 같은 추적 형식으로 검증. 기존 로컬 보호 유지 |
 | M10–M11 | Perception·temporal learned planner, Safety Supervisor·classical fallback, 인식/판단 한계와 scenario 검토 |
 | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
 | M13 | 전체 SIL/V&V·회귀·추적성 검토와 검증된 범위·제약 공개 |
@@ -28,9 +25,9 @@ Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revis
 | TBD-01 | CAN layout·scaling·Data ID·sequence / 통신 | M1 Host DBC/P05 구현됨. Wire/schema 변경 시 재검증 |
 | TBD-02 | 차체·차륜 geometry, 단위·부호·actuation mapping / 모델·interface | M6 모델과 M7 V1 선택됨. 실제 차량 calibration·다른 blueprint는 후속 |
 | TBD-03 | actuator 응답·보호·저속 hold·물리 오차 / plant | M6 fixture·M7 가상 EV 범위 결정. OEM·전체 ODD 수용은 별도 |
-| TBD-04 | clock·freshness·job/monitor deadline·측정 / timing | M7 기능은 simulation domain 수용(ADR-0065). CARLA wall5-hv50-v1은 HV source30ms/dependency50ms 분리(ADR-0066);wheel/Actual·owner2ms/4ms·M6 유지. 전체 wall 안정화는 M8 진입 조건이 아님 |
+| TBD-04 | clock·freshness·job/monitor deadline·측정 / timing | M7 기능은 simulation domain 수용(ADR-0065). CARLA wall5-hv50-v1은 HV source30ms/dependency50ms 분리(ADR-0066);wheel/Actual·owner2ms/4ms·M6 유지. 전체 wall 안정화는 기능 수용과 별도 |
 | TBD-05 | middleware·격리·bridge/discovery / 통신 | Host vSomeIP3.7.6 한정 사용; DDS 제어 gate CLOSED. Target은 배포 전 결정 |
-| TBD-06 | 배분·충돌/가용성·local protection·DEGRADED / 차량 제어 | M4 component 구현. M8 전 회생/마찰 전환·차량 envelope 검증 |
+| TBD-06 | 배분·충돌/가용성·local protection·DEGRADED / 차량 제어 | M4 component와 M8 고정 fixture의 회생/마찰 전환·차량 응답 검증. 전체 Reference·Target envelope는 후속 |
 | TBD-07 | CARLA/UE/client·map/route·tick·fidelity / simulation | 고정 source/Town03/V1의 simulation 기능 수용. 비영상 wall5ms는 제한 검증;영상·서버 종료·전체 renderer 안정성 OPEN; M8 고정 S01/S02/S03 경로 적합성 검증 |
 | TBD-08 | DTC code·debounce·persistence·clear / diagnostics | [계약](interfaces/diagnostics.md)과 실제 monitor·전달·유한 부하·simulation10ms 기능 [M9 기술 검증](test-plan/evidence/m9_followup/README.md) 완료; 학습자 최종 수용·wall/Target·무제한 보존 별도 |
 | TBD-09 | Jetson board/RAM·platform stack·모델/workload·측정 / compute·AI | M10 model fixture·M12 독립 보드 비교 전 |
@@ -47,77 +44,16 @@ M6에서 결정된 수치·소유권과 후속 gate의 상세 구분은 [M6 검�
 문서/YAML의 `TBD`·`null`을 0·default·disabled로 해석하지 않는다.
 
 
-## M9 시작 범위
+## M10 착수 준비
 
-M8에서 제안했던 추가30km/h 고장 조합은 원래 M9의 진단 통합 범위로 관리한다.
-실행 전 고장별 검출 기점·보호 선택·Actual 응답·DTC 기대값을 고정하고 한 묶음으로 판정한다.
+M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](project-status.md)와
+[마감 검증](test-plan/evidence/m9_followup/README.md)을 기준으로 종료했다.
+기존 검출·보호·Actual·진단 계약은 다음 단계의 회귀 기준으로 유지한다.
 
-| 순서 | 산출물 / 완료 조건 |
-| --- | --- |
-| 1. 진단 계약·component | [TBD-08 v0.1](interfaces/diagnostics.md): code·debounce·persistence·clear·clock/causal ID 정의. [집계/store component 검증](test-plan/evidence/m9_diagnostics_component/README.md) 완료; 실제 monitor 통합·TBD 최종 수용 전 |
-| 2. 기존 경로 연결 | [SpeedRequest/NormalStop hook·SimpleVehicle 정상/입력 누락](test-plan/evidence/m9_control_hooks/README.md), [SD-1001 복구·명시적 clear·재고장](test-plan/evidence/m9_speed_recovery/README.md) 검증. Timeout/인계 실패는 detector component 연결 검사; 다른 code의 복구·실제 ACK/lane 손실은 후속 |
-| 3. 고장별 통합 | 동일30km/h 참조의 입력 손실·제동 timeout·Stop ACK 손실 및 통신 단절을 구분해 시험. 검출/보호/물리 응답/정지 여부/에너지 정산/DTC를 각각 판정 |
+- 모델 입출력 shape·단위·history·risk와 실패/누락 표현을 확정한다.
+- AI 제안과 Safety Supervisor·classical fallback의 책임 및 검증 경계를 고정한다.
+- 공통 scenario/seed·sensor/model/precision·SW revision과 실행 시간 측정 조건을 정한다.
+- 실제 ACK/통신 손실의 주입 위치·기대 물리 반응을 먼저 정하고, tick 차단과 차량 정지를 구분한다.
+- 다른 kernel/Target, 자동 장기 상태 이관·용량 회수와 학습자 최종 수용은 별도 gate로 관리한다.
 
-소유자별 [ZoneFeedback/Leaf context expiry 수집·복구](test-plan/evidence/m9_owner_sources/README.md)를
-추가했다. 후속 [Gateway·BMS/Power native 원인](test-plan/evidence/m9_native_causes/README.md)은
-Gateway 차량 논리 SIL·BMS/Power component 복구 범위다.
-다른 BMS/Power 자체 고장 조합은 후속이다.
-[BMS electrical/Power current 누락](test-plan/evidence/m9_native_vehicle/README.md)은 차량 SIL에서
-보호·물리 응답·DTC·새 INIT 복구까지 검증했다. 영구 전류 누락의 energized HV도 구분한다.
-
-[Release 전 기동 시도](test-plan/evidence/m9_startup_sources/README.md)는 trusted Attempt와
-실제 Session을 구분해 Prepare/INIT/Release ACK 누락·새8-role handshake 복구를 검증했다.
-[Event-only replica/spool](test-plan/evidence/m9_delivery_spool/README.md)은 실제 별도 process의
-ACK 유실·재시작·순서/중복과 유한 저장을 부분 검증했다.
-[SOME/IP 새 logical source](test-plan/evidence/m9_someip_live/README.md)는 실제 TCP·별도 writer와
-live SPSC publish·ACK 유실/replica 재시작을 검증했다.
-[원격 context component](test-plan/evidence/m9_remote_context/README.md)는 실제 accepted credit와
-Central 원본 Session 대조·유한 대기·두 stream의 동일 원본/독립 ACK를 검증했다.
-[실제 native3-ECU 배선](test-plan/evidence/m9_native_routing/README.md)은2개 context와9개 source
-stream을 연결하고 정상·Front/Rear 명령 손실·ACK 유실·context 지연을 기능 검증했다.
-[진단 전달 객체 재개](test-plan/evidence/m9_delivery_restart/README.md)는 원본 Session 재대조·
-ordinal1 재전송·replica-only commit의 merged 복구를 다룬다. Native owner/SDK 연속 객체 재개와
-별도 process SIGKILL을 구분한다. [Front/Rear 발행자 adoption](test-plan/evidence/m9_producer_adoption/README.md)은
-실제 ECU process kill/rejoin·새 세대·old prefix replay·저장 전 손실 미확인 표시를 연결한다.
-[Central process 재기동](test-plan/evidence/m9_central_restart/README.md)은 명시적 issuer 계승·
-fresh collector prefix import·생존 source 재전송·미확인 연속성 clear 차단을 연결한다.
-[로컬 연속성 심사](test-plan/evidence/m9_continuity_review/README.md)는 미확인 과거 이력의
-명시적 수용과 현재 recording Passed/clear를 분리한다.
-[Linux 로컬 서비스 연결](test-plan/evidence/m9_continuity_service/README.md)은 kernel peer 인가·
-frozen guard·원본 Actual adapter·별도 clear 요청을 연결한다. 실제3-ECU 서비스 owner/SDK
-quiesce·새 global Epoch/물리 정지 조합은 [terminal native 서비스](test-plan/evidence/m9_native_service/README.md)에서
-부분 검증했다. [이번 후속](test-plan/evidence/m9_completion/README.md)은 최초 TSan support expiry의
-원본 원인, 서비스 중 실제 ACK/Actual 손실·Stop 실패 거절, CARLA30 고장4종과 기본 저장 capacity,
-BMS9/Power8 component 조합·동일 설정 NormalStop 복구/clear를 다룬다. 실패 분모도 함께 보존한다.
-[서비스 순서·시험 IO 후속](test-plan/evidence/m9_service_timing/README.md),
-[응답 지연](test-plan/evidence/m9_response_latency/README.md),
-[입력/현재 회차 수정](test-plan/evidence/m9_allocation_release/README.md)과
-[관리 주기 사이 정지 진단](test-plan/evidence/m9_stop_deadline/README.md)의 실패·원본을 보존한다.
-[due/current grant 수정](test-plan/evidence/m9_deferred_grant/README.md) 뒤
-[물리 IO 경합 분리](test-plan/evidence/m9_plant_field_io/README.md)와
-[연결 불가 egress·ACK 우선 연결](test-plan/evidence/m9_egress/README.md)을 구현했다.
-사용자 승인 [분리 판정](test-plan/evidence/m9_validation_split/README.md)으로 Host quiet 서비스
-비계측18/18·ASan/UBSan와 TSan 각각309/309·비계측 M4 wall2/2를 통과했다.
-이 분리 판정에서 C++/native binary·제어 기한은 그대로였다. 계측 지연을 제품 성능과 분리하고, 의도한 이전
-연결 오류는 원래 보호/물리 반응·실제 재가입까지 확인해 분류한다. 선행27/30과 TSan
-만료2건·M4 wall 실패는 원래 기록으로 남긴다. SDK owner 코어 공유와 SMT 후보는 미채택이며
-기본 I/O2·단일 CPU를 유지한다. 상세 범위·분모는 프로젝트 상태를 따른다.
-[8-role 센서 matrix](test-plan/evidence/m9_sensor_matrix/README.md)는 BMS9·Power3·동시3조건의
-원본 검출·물리 응답·복원만 한 latch 유지·새 Release 이후 Passed를 검증했다.
-[Proposal 이전 bootstrap](test-plan/evidence/m9_bootstrap/README.md)는 Epoch가 없는 별도 영구
-incident와 기동 차단·재시도 이력 보존으로 연결했다.
-[Clock·Power lifecycle·유한 운용 후속](test-plan/evidence/m9_remaining/README.md)은 명시적
-trusted Clock 재검증/100ms 정상 source와 Power5조건의8-role 차량 복원·새 세션 복구를
-연결한다. Debug/ASan·UBSan/TSan 각각88개와 차량12조건이 통과했다. 비활성 store의
-독점 잠금 archive/새 directory 복원은 실제36개 journal의 byte 동일성과 독립 재감사를 검증했다.
-긴 native 서비스/CPU 부하의 고정 cohort 판정과 초기 실패는 같은 근거에서 관리한다.
-[M9 마감 근거](test-plan/evidence/m9_followup/README.md)는 SDK FIFO1의 고정 finite soak7/7과
-서비스18/18, 실제 CARLA 기본 정상1·sampled 정상1·silent loss2의4/4를 검증했다.
-원래 source/expiry와 native watchdog은 유지하고 CARLA 물리는 명시적10ms sample/hold로
-수용한다. 실제 native SD-2001·fresh Actual·차량 정지·durable journal·동일 native 관측
-재현을 연결했다. 선언한 M9 Host/기능 범위는 CLOSED다. 자동 장기 상태 이관·용량 회수,
-다른 kernel/Target Clock 운영과 학습자 수용은 별도다. 다음은 M10의 모델 경계와 수용 조건 확정이다.
-DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.
-실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
-단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·
-속도·제어 튜닝은 이 묶음에 추가하지 않으며 변경한 경계의 회귀만 실행한다.
+M7–M9의 구현 경과·중간 실패·미채택 후보는 [보관 이력](archive/implementation-history.md)을 따른다.

@@ -1,4 +1,4 @@
-# 설계 결정 기록 · ADR-0001–0065
+# 설계 결정 기록 · ADR-0001–0104
 
 이 문서는 당시 결정과 검토를 보존한 기록이다. 현재 상태는 [프로젝트 상태](../project-status.md), 현재 계약은 [문서 안내](../README.md)를 따른다. 과거의 “다음 작업/미구현”은 현재 지시가 아니다.
 
@@ -66,8 +66,46 @@
 - [ADR-0062: Host Central–Front/Rear SOME/IP owner separation](#adr-0062)
 - [ADR-0063: M6 actual 기반 Simple Vehicle와 첫 종방향 MIL](#adr-0063)
 - [ADR-0064: 차량 운동과 EV의 구간 에너지 결합](#adr-0064)
-
 - [ADR-0065: M7 시뮬레이션 기능 통합과 실시간 수용 분리](#adr-0065)
+- [ADR-0066: CARLA 파생 HV freshness 예산 분리](#adr-0066)
+- [ADR-0067: 종방향 PI의 수작업 C++ component와 독립 replay](#adr-0067)
+- [ADR-0068: 기존 owner 경로의 SimpleVehicle 논리 시간 속도 폐루프](#adr-0068)
+- [ADR-0069: CARLA 속도 요청의 생성 시각과 센서 의존성 분리](#adr-0069)
+- [ADR-0070: 고정 곡선과 rear-axle Pure Pursuit의 첫 CARLA 연결](#adr-0070)
+- [ADR-0071: S01/S03 위치 기반 속도 fixture와 구동 상한에 맞춘 v2](#adr-0071)
+- [ADR-0072: 이전 추진 배분 선택을 이용한 PI 적분 억제와 관성 필요조건](#adr-0072)
+- [ADR-0073: 원본 StopLease/ACK의 CARLA 정지 인계와 저속 물리 응답](#adr-0073)
+- [ADR-0074: 정지 hold 권한을 원본 local protection으로 대체](#adr-0074)
+- [ADR-0075: 별도30km/h NormalStop에 생성 시10s 제동 예산 전달](#adr-0075)
+- [ADR-0076: M8 제어기 기능 SIL 마감과 M9 진단 통합 경계](#adr-0076)
+- [ADR-0077: M9 진단 계약과 제어 복구·DTC 삭제 분리 제안](#adr-0077)
+- [ADR-0078: M9 event/DTC 집계와 Linux journal의 component 구현](#adr-0078)
+- [ADR-0079: M9 Central detector snapshot과 원본 보호 선택·ACK·Actual 연결](#adr-0079)
+- [ADR-0080: SD-1001의 실제 복구 증거와 명시적 안전 clear](#adr-0080)
+- [ADR-0081: ZoneFeedback와 Leaf authority 소유자별 진단 수집](#adr-0081)
+- [ADR-0082: Gateway·BMS·Power native 원인과 명시적 코드 사전 확장](#adr-0082)
+- [ADR-0083: BMS·Power 자체 입력 손실의 차량 SIL 추적](#adr-0083)
+- [ADR-0084: 기동 Attempt와 실제 전역 Release를 분리한 진단 수집](#adr-0084)
+- [ADR-0085: Event-only 진단 replica와 원본을 삭제하지 않는 유한 spool](#adr-0085)
+- [ADR-0086: SOME/IP 진단 전용 binding과 새 logical source의 live writer](#adr-0086)
+- [ADR-0087: 원격 진단 Session은 Central 원본과 실제 accepted credit로 대조한다](#adr-0087)
+- [ADR-0088: 실제 native owner의 context 전달과 소유자별 진단 stream 수집](#adr-0088)
+- [ADR-0089 — 진단 durable prefix 재개와 replica/merged crash 경계](#adr-0089)
+- [ADR-0090 — ECU 재기동은 새 발행자 세대와 미확인 연속성으로 기록한다](#adr-0090)
+- [ADR-0091: Central process 재기동의 명시적 issuer 구간과 fresh collector](#adr-0091)
+- [ADR-0092: 미확인 과거 이력 수용과 현재 recording Passed의 분리](#adr-0092)
+- [ADR-0093: Linux 로컬 서비스 인가와 frozen 검사·Actual 취득의 연결](#adr-0093)
+- [ADR-0094: 실제3-ECU terminal 서비스와 보호 상태의 비실시간 Epoch IO](#adr-0094)
+- [ADR-0095: 최초 native 원인 보존과 실제 fault 주입·복구의 분리](#adr-0095)
+- [ADR-0096: 비동기 명령 batch와 다음 부모 요청의 순서 보존](#adr-0096)
+- [ADR-0097: SDK enqueue/ingress 알림과 단조 시계 idle 대기](#adr-0097)
+- [ADR-0098: Host 보조 IO의 물리 코어 분리와 명시적 marker 관측](#adr-0098)
+- [ADR-0099: Central 입력 처리 후 snapshot과 full-queue 종료 drain](#adr-0099)
+- [ADR-0100: SDK timing의 독립 슬롯과 호출 직전/직후 시각](#adr-0100)
+- [ADR-0101: 커널·SDK 구간 관측과 단일 I/O 후보의 미채택](#adr-0101)
+- [ADR-0102: M9 서비스 수용에서 sanitizer와 wall 성능을 분리](#adr-0102)
+- [ADR-0103: 전용 SDK CPU의 명시적 FIFO1과 유한 부하 수용](#adr-0103)
+- [ADR-0104: M9 CARLA 응답의 명시적10ms sample/hold 수용](#adr-0104)
 
 <a id="adr-0001"></a>
 
@@ -5585,6 +5623,8 @@ Normal/Front·Rear command loss/진단 ACK 유실/context 지연과 SDK-instrume
 학습자 설명/수용은 후속이다.
 
 
+<a id="adr-0089"></a>
+
 ## ADR-0089 — 진단 durable prefix 재개와 replica/merged crash 경계
 
 2026-11-03. Source Outbox는 이미 ordinal1부터 재전송할 수 있지만 remote source가 저장한 전역
@@ -5603,6 +5643,8 @@ Native campaign은 실제 SDK/owner를 유지한 진단 전달 객체 reopen과 
 중복 packet에서도 검출하도록 보강하고 실패 원본을 보존한다. Native4ms/Clock/Target 및 M9
 전체 수용은 이 기능 재개 시험으로 닫지 않는다.
 
+
+<a id="adr-0090"></a>
 
 ## ADR-0090 — ECU 재기동은 새 발행자 세대와 미확인 연속성으로 기록한다
 
@@ -5629,6 +5671,8 @@ Epoch2/accepted credit 뒤에 발행한다. Central observer는 같은 issuer를
 용량 수용은 후속이다. 기존 native4ms/Target 미통과를 이 기능 검증으로 닫지 않는다.
 
 
+<a id="adr-0091"></a>
+
 ## ADR-0091: Central process 재기동의 명시적 issuer 구간과 fresh collector
 
 상태: Host 기능 구현. M9/TBD-08·native4ms/Target·연속성 reconciliation/clear 수용 OPEN.
@@ -5648,6 +5692,8 @@ SD-5001은 original boot/세대·cause_unknown/unmapped로 남기고 clear를 �
 연속성 해소나 임의 Passed의 근거로 삼지 않는다. 두 세대/same-kernel fixture·독립 원본/PCAP 감사와
 변조12개로 부분 검증하며 일반 host 전원/clock 복구·반복 용량·전체 system 수용은 별도다.
 
+
+<a id="adr-0092"></a>
 
 ## ADR-0092: 미확인 과거 이력 수용과 현재 recording Passed의 분리
 
@@ -5880,6 +5926,8 @@ A/B/B/A 고정8건에서 A2/4·B3/4이며 B의 연결 종료 오류와 정밀 �
 후보 채택 조건을 만족하지 못했으므로 비계측30건을 후보 통과 근거로 실행하지 않았다.
 기한·source·expiry·오류 판정을 유지하고 기존28/30을 이 실험의 결과로 덮어쓰지 않는다.
 갱신 실패의 Power ACK→VM snapshot→grant 연쇄가 다음 조사 경계다.
+
+<a id="adr-0102"></a>
 
 ## ADR-0102: M9 서비스 수용에서 sanitizer와 wall 성능을 분리
 

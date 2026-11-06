@@ -3,6 +3,7 @@
 #include "someip/owner_message_binding.hpp"
 #include "remote_diagnostics_context.hpp"
 #include "producer_lifecycle.hpp"
+#include "control_diagnostics.hpp"
 #include "startup_diagnostics.hpp"
 #include "native_diagnostics.hpp"
 #include "owner_diagnostics.hpp"

@@ -1,5 +1,5 @@
 #pragma once
-#include "control_diagnostics.hpp"
+#include "diagnostic_publisher.hpp"
 #include "leaf_authority_observation.hpp"
 #include "zone_feedback_monitor.hpp"
 
@@ -14,28 +14,23 @@ public:
     void leaf(const std::optional<transport::LeafAuthorityObservation>& expired,
         const std::optional<transport::LeafAuthorityObservation>& success,bool healthy,bool normal_gate,
         std::optional<std::uint64_t> selected,std::uint64_t now) noexcept;
-    bool healthy() const noexcept { return healthy_; }
-    bool revalidate_clock(const ClockRevalidation& check) noexcept {return clock_recovery_.revalidate(check,context_.domain,context_.clock_instance);}
+    bool healthy() const noexcept { return publisher_.healthy(); }
+    bool revalidate_clock(const ClockRevalidation& check) noexcept { return publisher_.revalidate_clock(check); }
     void observe_clock(const ClockRecoverySample& sample) noexcept {
-        if(!healthy_)return;
-        auto checked=sample;checked.native_healthy=checked.native_healthy && (sample.session==session_ && sample.released.enable_ns==enable_);
-        clock_recovery_.observe(checked);
-        while(auto e=clock_recovery_.take_ready()) {
-            const auto id=publish(*e);
-            if(!healthy_)return;
-            e->kind=Kind::Passed;e->proof_event=id;publish(*e);
-        }
+        publisher_.observe_clock(sample,sample.session==session_ && sample.released.enable_ns==enable_);
     }
+
 private:
-    ClockRecovery clock_recovery_;
-    Stamp stamp(std::uint64_t,bool trusted=true) const noexcept;
+    DiagnosticPublisher publisher_;
+    const ControlContext& capture_context() const noexcept { return publisher_.context(); }
+    Stamp stamp(std::uint64_t ns,bool trusted=true) const noexcept { return publisher_.stamp(ns,trusted); }
     Event base(std::uint64_t) const noexcept;
-    EventId publish(Event) noexcept;
+    EventId publish(const Event& e) noexcept { return publisher_.publish(e,session_); }
     void selection(std::optional<std::uint64_t>,bool ack) noexcept;
     void passed(Event) noexcept;
-    EventQueue& queue_; const ControlContext context_; const Component actor_;
-    Session session_{}; std::uint64_t enable_{0},next_{1};
-    bool healthy_{true},seen_{false},selected_{false},recovered_{false};
+    const Component actor_;
+    Session session_{}; std::uint64_t enable_{0};
+    bool seen_{false},selected_{false},recovered_{false};
     std::optional<Event> target_;
     struct Pending { Event event; bool recovered{false}; };
     // Different missing-stream masks/codes remain separate retained records.

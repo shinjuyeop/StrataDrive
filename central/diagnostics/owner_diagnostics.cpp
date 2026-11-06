@@ -32,33 +32,18 @@ std::uint64_t component(unsigned stream) {
     constexpr std::uint64_t ids[]{9,5,4,6,10}; return ids[stream];
 }
 }
-OwnerDiagnostics::OwnerDiagnostics(EventQueue& q,ControlContext c,Component actor,std::uint64_t first):queue_(q),context_(c),actor_(actor),next_(first) {
-    if(!first || !c.run || !c.producer || !c.clock_instance || !c.profile ||
-       (c.domain!=Domain::Simulation && c.domain!=Domain::Monotonic) ||
-       (actor!=Component::Front && actor!=Component::Rear && actor!=Component::Steering && actor!=Component::Brake && actor!=Component::Drive))
+OwnerDiagnostics::OwnerDiagnostics(EventQueue& q,ControlContext c,Component actor,std::uint64_t first)
+    :publisher_(q,c,first,"owner diagnostics context"),actor_(actor) {
+    if(actor!=Component::Front && actor!=Component::Rear && actor!=Component::Steering && actor!=Component::Brake && actor!=Component::Drive)
         throw std::invalid_argument("owner diagnostics context");
 }
-Stamp OwnerDiagnostics::stamp(std::uint64_t ns,bool trusted) const noexcept { return {context_.domain,context_.clock_instance,ns,true,trusted}; }
 Event OwnerDiagnostics::base(std::uint64_t now) const noexcept {
-    Event e; e.session=session_; e.session_enable=stamp(enable_); e.profile=context_.profile; e.requirements=e.interfaces=1;
+    Event e; e.session=session_; e.session_enable=stamp(enable_); e.profile=capture_context().profile; e.requirements=e.interfaces=1;
     e.times[6]=stamp(now,now>=enable_ && now!=std::numeric_limits<std::uint64_t>::max()); return e;
-}
-EventId OwnerDiagnostics::publish(Event e) noexcept {
-    if(!next_) { healthy_=false; return {}; }
-    e.id={context_.run,context_.producer,next_};
-    if(next_==std::numeric_limits<std::uint64_t>::max()) { healthy_=false; next_=0; e.kind=Kind::Gap; e.key={}; e.occurrence={}; }
-    else ++next_;
-    if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,e.id.sequence};
-    if(!queue_.publish(e)) healthy_=false;
-    if(!clock_recovery_.remember(e)) {
-        healthy_=false;
-        auto gap=e;gap.kind=Kind::Gap;gap.key={};gap.occurrence={};publish(gap);
-    }
-    return e.id;
 }
 bool OwnerDiagnostics::start_session(std::uint32_t epoch,std::uint64_t enable) noexcept {
     if(!epoch || epoch<=session_.epoch || (session_.epoch && enable<enable_)) return false;
-    session_={context_.run,epoch}; enable_=enable; seen_=selected_=false; return healthy_;
+    session_={capture_context().run,epoch}; enable_=enable; seen_=selected_=false; return healthy();
 }
 void OwnerDiagnostics::selection(std::optional<std::uint64_t> at,bool ack) noexcept {
     if(selected_ || !at || !target_ || target_->session.epoch!=session_.epoch || *at<target_->times[2].ns) return;
@@ -87,11 +72,11 @@ void OwnerDiagnostics::zone(const stratadrive::zone::ZoneFeedbackMonitor& source
         if(o.violation_ns) e.times[1]=stamp(*o.violation_ns);
         const auto id=publish(e); e.id=id;
         if(e.kind==Kind::Fault) {
-            e.occurrence={session_.run,context_.producer,session_.epoch,4,id.sequence}; target_=e; recovered_=false;
+            e.occurrence={session_.run,capture_context().producer,session_.epoch,4,id.sequence}; target_=e; recovered_=false;
             std::optional<Pending>* slot=nullptr;
             for(auto& pending:zone_pending_) if(pending && pending->event.key==e.key) { slot=&pending; break; }
             if(!slot) for(auto& pending:zone_pending_) if(!pending) { slot=&pending; break; }
-            if(!slot) { healthy_=false; auto gap=base(now); gap.kind=Kind::Gap; publish(gap); }
+            if(!slot) { publisher_.incomplete(); auto gap=base(now); gap.kind=Kind::Gap; publish(gap); }
             else slot->emplace(Pending{e,false});
             for(unsigned i=0;i<5;++i) if((e.key.subject&(1U<<i))!=0) {
                 const auto m=metadata(o.last_healthy,i); if(!m.epoch) continue;
@@ -102,7 +87,7 @@ void OwnerDiagnostics::zone(const stratadrive::zone::ZoneFeedbackMonitor& source
     }
     selection(ack,true);
     const auto& good=source.success_observation();
-    if(!healthy_ || !normal_gate || source.fault()!=stratadrive::zone::ZoneFeedbackFault::None || !good ||
+    if(!healthy() || !normal_gate || source.fault()!=stratadrive::zone::ZoneFeedbackFault::None || !good ||
        good->epoch!=session_.epoch || good->enable_ns!=enable_ || (good->healthy_mask&required)!=required ||
        now<good->observed_ns || now-good->observed_ns>30000000 ||
        (good->scope==stratadrive::zone::ZoneScope::Front)!=(actor_==Component::Front)) return;
@@ -146,10 +131,10 @@ void OwnerDiagnostics::leaf(const std::optional<transport::LeafAuthorityObservat
         e.command={true,3,p.sequence,p.epoch,stamp(p.source_time_ns),stamp(c.expires_at_ns)};
         e.source={true,number(actor_),o.accepted.token,o.epoch,stamp(o.accepted.sent_ns),stamp(o.accepted.deadline_ns)};
         const auto id=publish(e); e.id=id;
-        if(e.kind==Kind::Fault) { e.occurrence={session_.run,context_.producer,session_.epoch,5,id.sequence}; target_=e; recovered_=false; }
+        if(e.kind==Kind::Fault) { e.occurrence={session_.run,capture_context().producer,session_.epoch,5,id.sequence}; target_=e; recovered_=false; }
     }
     selection(selected,false);
-    if(!healthy_ || recovered_ || !target_ || target_->key.code!=Code::CommandLoss || !native_healthy || !normal_gate || !success ||
+    if(!healthy() || recovered_ || !target_ || target_->key.code!=Code::CommandLoss || !native_healthy || !normal_gate || !success ||
        session_.epoch<=target_->session.epoch || success->epoch!=session_.epoch || success->enable_ns!=enable_ || success->leaf!=role ||
        !success->accepted.command || success->observed_ns>now || now-success->observed_ns>30000000) return;
     const auto& c=*success->accepted.command; const auto& p=c.parent;

@@ -1,9 +1,10 @@
 # Fault event와 DTC 계약
 
-2026-11-03. **계약 v0.1 / TBD-08 최종 수용 전 OPEN**.
-M9-2의 집계/store에 M9-3 SpeedRequest·NormalStop·Coordinator 관측 adapter를 연결했다.
-SimpleVehicle 논리 시간의 정상 정지/HV-off·speed 입력 누락 및 SD-1001 복구/clear/재고장을 실제 owner 경로와 연결했다.
-CARLA30km/h fault matrix·native 3-ECU/wall owner 진단 통합·전체 monitor 수용은 **NOT RUN**이다.
+2026-11-06. **계약 v0.1 / 선언한 유한 Host·simulation10ms 기능 검증 완료**.
+Control/Owner/Native/Startup의 실제 검출·보호·Actual·DTC와 qualified 복구·명시적 clear를 연결했다.
+CARLA30km/h 고장, native 3-ECU 서비스·유한 부하와 Clock/Power 복구의
+[완료 근거](../test-plan/evidence/m9_followup/README.md)를 따른다.
+TBD-08의 학습자 최종 수용, 전체 wall/Target·무제한 보존은 별도다.
 범위는 Host 기능 SIL의 SYS-DIAG-001, ARCH-DIAG, IF-FAULT-EVENT다.
 전체 UDS/OBD 서비스나 표준 DTC 번호를 정의하지 않는다.
 
@@ -12,8 +13,10 @@ CARLA30km/h fault matrix·native 3-ECU/wall owner 진단 통합·전체 monitor 
 `central/diagnostics/diagnostics.hpp/.cpp`는 순수 집계·유한 SPSC 큐와 writer용 Recorder,
 `diagnostics_journal.hpp/.cpp`는 Linux local-filesystem adapter다.
 [집계/store 근거](../test-plan/evidence/m9_diagnostics_component/README.md)를 따른다.
-별도 `control_diagnostics.hpp/.cpp`가 실제 Central owner의 snapshot을 읽고 큐에 발행한다.
-집계/store는 controller에 의존하지 않으며 adapter도 actuator/permission을 변경하지 않는다.
+`diagnostic_publisher.hpp`는 공통 numeric dictionary·context·이벤트 ID·큐 발행과 Clock 복구
+발행을 관리한다. Control/Owner/Native/Startup adapter가 각 실제 owner의 snapshot과 검출·복구
+predicate를 소유한다. 집계/store와 공통 발행기는 controller에 의존하지 않으며
+adapter도 actuator/permission을 변경하지 않는다.
 
 Queue는 producer 한 개당256 events다. 기본 ledger 한계는 events512 / records64 /
 occurrences128 / clear requests64이며 각 ledger 한계는1–4096로 명시적으로 설정한다.
@@ -24,9 +27,9 @@ Numeric component/subject/profile/reason·SYS/IF bit dictionary와 실제 config
 run manifest 연결은 hook 통합의 책임이다. 현재 내부 encoding을 CAN/owner-wire로 사용하지 않는다.
 
 Writer의 `Recorder::drain`은 queue health를 먼저/나중에 확인해 drop을 진단 불완전으로
-반영한다. M9-3 logical harness의 Central owner 호출부를 연결했다. 별도 background writer는
-아직 없고 SIL 시험은 실행 뒤 또는 논리 owner step 사이의 별도 writer 구간에서 drain/commit한다. RT owner는 bounded publish만
-호출해야 한다. 큐를 직접 소비하면 동일 health 검사 책임이 있다.
+반영한다. 논리 SIL fixture는 실행 뒤 또는 owner step 사이의 별도 writer 구간에서 drain/commit한다.
+Native 3-ECU는 [별도 비 RT writer와 전송 스트림](../test-plan/evidence/m9_native_routing/README.md)을 사용한다.
+RT owner는 bounded publish만 호출해야 한다. 큐를 직접 소비하면 동일 health 검사 책임이 있다.
 Rejected mutation·capacity·저장 오류는 sticky health와 가능한 경우 durable `incomplete`
 marker로 남긴다. 저장 장치가 실패한 동안 marker 자체의 영속성도 보장하지 않는다.
 SD-5001 event를 임의 producer/시각으로 합성하지 않으며 실제 gap event 발행은 hook에 남긴다.
@@ -71,14 +74,16 @@ last_tick 갱신이 아니며30ms control deadline을 연장하지 않는다. �
 Local selection과 Actual은 같은 root event/occurrence를 참조한다. Front/Rear·각 Leaf의
 role bit는 원본 log의 owner를 유지한다. Torque/brake 도달은 차량 정지나 HV-off가 아니다.
 NormalStop 정상 완료의 measured 증거와 fault 대응 증거를 구분한다. 이 adapter는
-clear를 자동 발행하지 않는다. SD-1001의 qualified `Passed`만 아래 predicate로 발행하며 다른 code의 복구 시험은 후속이다.
+clear를 자동 발행하지 않는다. SD-1001과 다른 code의 qualified `Passed`는 아래 각 실제 adapter의
+복구 predicate와 연결 근거를 따르며 입력 복원이나 INIT만으로 발행하지 않는다.
 
-M9-3 dictionary v1은 component/producer ID1 Speed,2 Stop,3 Coordinator,4 Drive torque,
+공통 dictionary v1의 actor ID는1 Speed,2 Stop,3 Coordinator,4 Drive torque,
 5 Brake,6 Power,7 Front,8 Rear,9 Steering,10 BMS,11 Drive wheel을 쓴다. Monitor1/2/3은
 Speed/Stop/Coordinator, subject1–7은 wheel/stop cycle/handoff/protection/torque/pressure/power다.
 Wheel sequence는 wire envelope가 아닌 acquisition timestamp cursor다. Local protection log의
 sequence도 원본 log timestamp cursor이며 CAN wire sequence를 발명한 것이 아니다.
-Requirement/interface bit0은 SYS-DIAG-001/IF-FAULT-EVENT다.
+Requirement/interface bit0은 SYS-DIAG-001/IF-FAULT-EVENT다. 이 actor ID는 `Event.source.producer`에
+사용하며 `Event.id.producer`의 실제 발행자 식별자나 logical stream ID와 구분한다.
 
 Speed native reason은 `(fault_tag << 8) | pi_reason_tag`다. Fault tag1–7은 기존
 Session/Permission/Feedback/Source/Controller/Sequence/PropulsionSelection 순서,
@@ -96,7 +101,8 @@ traffic과 물리/EV는 계속한다. 이 case를 실제 CAN/전체 통신 단�
 
 현재 durable commit 확인은 비 RT writer에서 수행하며 write-clock `Recorded` 계측은 추가하지 않았다.
 물리 model epoch는 원본 physical evidence에서 검증하며 adapter가 application epoch로
-재발급하지 않는다. Production wire/spool·live writer와 실제 부하의 저장 latency는 후속이다.
+재발급하지 않는다. Event-only wire/spool·native live writer는 아래 전달 계약과 실행 근거를 따른다.
+실제 부하에서 durable commit의 저장 latency 상한은 별도 검증 범위다.
 
 ## SD-1001 복구·명시적 clear
 

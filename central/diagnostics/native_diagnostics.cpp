@@ -2,7 +2,6 @@
 #include "local_safety.hpp"
 #include "bms_controller.hpp"
 #include "power_controller.hpp"
-#include <limits>
 #include <stdexcept>
 
 namespace stratadrive::diagnostics {
@@ -38,35 +37,23 @@ Code mapping(NativeMonitor monitor,std::uint32_t reason,std::uint32_t detail,boo
     }
     known=false; return Code::None;
 }
-Proof required(Code code,NativeMonitor monitor) {
+Proof required(Code code) {
     if(code==Code::BmsLocal || code==Code::CommandLoss || code==Code::FeedbackLoss) return Proof::Input;
     if(code==Code::Deadline || code==Code::Gateway || code==Code::PowerLocal) return Proof::Control;
-    (void)monitor; return Proof::None;
+    return Proof::None;
 }
 }
-NativeDiagnostics::NativeDiagnostics(EventQueue& q,ControlContext c,Component actor,std::uint64_t first):queue_(q),context_(c),actor_(actor),next_(first) {
-    if(!first || !c.run || !c.producer || !c.clock_instance || !c.profile || (c.domain!=Domain::Simulation && c.domain!=Domain::Monotonic) ||
-       (actor!=Component::Front && actor!=Component::Rear && actor!=Component::Bms && actor!=Component::Power)) throw std::invalid_argument("native diagnostic context");
+NativeDiagnostics::NativeDiagnostics(EventQueue& q,ControlContext c,Component actor,std::uint64_t first)
+    :publisher_(q,c,first,"native diagnostic context"),actor_(actor) {
+    if(actor!=Component::Front && actor!=Component::Rear && actor!=Component::Bms && actor!=Component::Power)
+        throw std::invalid_argument("native diagnostic context");
 }
-Stamp NativeDiagnostics::stamp(std::uint64_t ns,bool trusted) const noexcept { return {context_.domain,context_.clock_instance,ns,true,trusted}; }
 Event NativeDiagnostics::base(std::uint64_t now) const noexcept {
-    Event e; e.session=session_; e.session_enable=stamp(enable_); e.profile=context_.profile; e.requirements=e.interfaces=1; e.times[6]=stamp(now,now>=enable_); return e;
-}
-EventId NativeDiagnostics::publish(Event e) noexcept {
-    if(!next_) { healthy_=false; return {}; }
-    e.id={context_.run,context_.producer,next_};
-    if(next_==std::numeric_limits<std::uint64_t>::max()) { next_=0; healthy_=false; e.kind=Kind::Gap; e.key={}; e.occurrence={}; } else ++next_;
-    if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,e.id.sequence};
-    if(!queue_.publish(e)) healthy_=false;
-    if(!clock_recovery_.remember(e)) {
-        healthy_=false;
-        auto gap=e;gap.kind=Kind::Gap;gap.key={};gap.occurrence={};publish(gap);
-    }
-    return e.id;
+    Event e; e.session=session_; e.session_enable=stamp(enable_); e.profile=capture_context().profile; e.requirements=e.interfaces=1; e.times[6]=stamp(now,now>=enable_); return e;
 }
 bool NativeDiagnostics::start_session(std::uint32_t epoch,std::uint64_t enable) noexcept {
     if(!epoch || epoch<=session_.epoch || (session_.epoch && enable<enable_)) return false;
-    session_={context_.run,epoch}; enable_=enable; seen_={}; return healthy_;
+    session_={capture_context().run,epoch}; enable_=enable; seen_={}; return healthy();
 }
 void NativeDiagnostics::failure(NativeMonitor monitor,const NativeObservation& o,std::uint64_t now) noexcept {
     if(o.epoch!=session_.epoch || o.enable_ns!=enable_) return;
@@ -85,11 +72,11 @@ void NativeDiagnostics::failure(NativeMonitor monitor,const NativeObservation& o
     if(o.root) { const auto& r=*o.root; e.command={true,static_cast<std::uint32_t>(actor_),r.sequence,r.epoch,stamp(r.source_ns),stamp(r.expiry_ns)}; }
     const auto id=publish(e); e.id=id;
     if(e.kind==Kind::Fault) {
-        e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
+        e.occurrence={session_.run,capture_context().producer,session_.epoch,e.key.monitor,id.sequence};
         std::optional<Pending>* slot=nullptr;
         for(auto& p:pending_) if(p && p->event.key==e.key) { slot=&p; break; }
         if(!slot) for(auto& p:pending_) if(!p) { slot=&p; break; }
-        if(slot) slot->emplace(Pending{e,false,false}); else { healthy_=false; auto gap=base(now); gap.kind=Kind::Gap; publish(gap); }
+        if(slot) slot->emplace(Pending{e,false,false}); else { publisher_.incomplete(); auto gap=base(now); gap.kind=Kind::Gap; publish(gap); }
         for(std::size_t i=0;i<o.samples.size();++i) if(o.samples[i].present) {
             const auto& s=o.samples[i]; auto evidence=e; evidence.kind=Kind::Observation; evidence.related=id;
             evidence.source={true,i+1,s.sequence,s.epoch,stamp(s.source_ns),{}}; publish(evidence);
@@ -113,7 +100,7 @@ void NativeDiagnostics::observe(NativeMonitor monitor,const std::optional<Native
        (monitor==NativeMonitor::Bms && actor_!=Component::Bms) || (monitor==NativeMonitor::Power && actor_!=Component::Power)) return;
     if(fault) failure(monitor,*fault,now);
     if(propagation) failure(monitor,*propagation,now);
-    if(!healthy_ || !gate || !currently_healthy || !success || !success->qualified || success->reason || success->propagation ||
+    if(!healthy() || !gate || !currently_healthy || !success || !success->qualified || success->reason || success->propagation ||
        success->epoch!=session_.epoch || success->enable_ns!=enable_ || success->observed_ns>now) return;
     const auto& good=*success;
     const auto body_age=(monitor==NativeMonitor::Bms || monitor==NativeMonitor::Power)?good.timing[1]:30000000;
@@ -132,7 +119,7 @@ void NativeDiagnostics::observe(NativeMonitor monitor,const std::optional<Native
         if((monitor==NativeMonitor::Power && i==1) || monitor==NativeMonitor::RearPowerGateway) if(s.epoch!=session_.epoch) return;
     }
     for(auto& pending:pending_) if(pending && !pending->recovered && pending->event.key.monitor==tag && session_.epoch>pending->event.session.epoch) {
-        auto e=base(now); e.kind=Kind::Observation; e.key=pending->event.key; e.proof=required(e.key.code,monitor);
+        auto e=base(now); e.kind=Kind::Observation; e.key=pending->event.key; e.proof=required(e.key.code);
         if(e.proof==Proof::None) continue;
         e.related=pending->event.id; e.occurrence=pending->event.occurrence; e.latch=Latch::Clear;
         e.model_epoch=good.model_epoch; e.state_before=good.state; e.state_after=good.writes;

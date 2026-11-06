@@ -75,7 +75,7 @@ def event(payload):
                 command_source_ns=command['source']['ns'], command_expiry_ns=command['expiry']['ns'],
                 measured=measured, acknowledged_ns=times[4]['ns'], source_producer=source['producer'],
                 source_sequence=source['sequence'], received_roles=roles,
-                _run=run, _id=identity, _occurrence=occurrence, _enable=enable, _profile=profile,
+                _run=run, _id=identity, _related=related, _occurrence=occurrence, _enable=enable, _profile=profile,
                 _times=times, _source=source, _unmapped=unmapped, _after=after, _before=before, _model=model, _unknown=unknown,
                 _proof_event=proof, _proof=qualification, _latch=latch, _command=command)
 

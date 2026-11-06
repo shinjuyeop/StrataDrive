@@ -1,19 +1,9 @@
 #pragma once
-#include "diagnostics.hpp"
-#include "clock_recovery.hpp"
+#include "diagnostic_publisher.hpp"
 #include "speed_request.hpp"
 #include "vehicle_coordinator.hpp"
 
 namespace stratadrive::diagnostics {
-// v1 numeric dictionary, not CAN IDs or producer identities.
-enum class Component : std::uint32_t { Speed=1, Stop=2, Coordinator=3, Drive=4, Brake=5, Power=6, Front=7, Rear=8, Steering=9, Bms=10, DriveWheel=11 };
-enum class Monitor : std::uint32_t { Speed=1, Stop=2, Coordinator=3 };
-enum class Subject : std::uint32_t { Wheel=1, StopCycle=2, Handoff=3, Protection=4, Torque=5, Pressure=6, Power=7 };
-struct ControlContext {
-    std::uint64_t run,producer;
-    Domain domain;
-    std::uint64_t clock_instance,profile;
-};
 // Called by the single Central owner after its existing control/protection work.
 // Reads immutable source snapshots; only publishes bounded queue copies. No
 // file IO, allocation, actuator writes, invented clocks or implicit INIT/clear.
@@ -43,33 +33,27 @@ public:
         const std::optional<can::DriveMessage>& current_speed_input,std::uint64_t now_ns) const noexcept;
     std::optional<ServiceEvidence> stop_clear_evidence(const central::VehicleCoordinator&,
         const central::NormalDriveReadinessInputs&,std::uint64_t now_ns) const noexcept;
-    bool healthy() const noexcept { return healthy_; }
-    bool revalidate_clock(const ClockRevalidation& check) noexcept {return clock_recovery_.revalidate(check,context_.domain,context_.clock_instance);}
+    bool healthy() const noexcept { return publisher_.healthy(); }
+    bool revalidate_clock(const ClockRevalidation& check) noexcept { return publisher_.revalidate_clock(check); }
     void observe_clock(const ClockRecoverySample& sample) noexcept {
-        if(!healthy_)return;
-        auto checked=sample;checked.native_healthy=checked.native_healthy && (sample.session==session_ && sample.released.enable_ns==enable_);
-        clock_recovery_.observe(checked);
-        while(auto e=clock_recovery_.take_ready()) {
-            const auto id=publish(*e);
-            if(!healthy_)return;
-            e->kind=Kind::Passed;e->proof_event=id;publish(*e);
-        }
+        publisher_.observe_clock(sample,sample.session==session_ && sample.released.enable_ns==enable_);
     }
+
 private:
-    ClockRecovery clock_recovery_;
+    DiagnosticPublisher publisher_;
+    const ControlContext& capture_context() const noexcept { return publisher_.context(); }
     std::optional<ServiceEvidence> stationary_evidence(const central::VehicleCoordinator&,
         const central::NormalDriveReadinessInputs&,const std::optional<can::DriveMessage>&,std::uint64_t) const noexcept;
-    Stamp stamp(std::uint64_t,bool trusted=true) const noexcept;
+    Stamp stamp(std::uint64_t ns,bool trusted=true) const noexcept { return publisher_.stamp(ns,trusted); }
     Event base(std::uint64_t observed_ns) const noexcept;
-    EventId publish(Event) noexcept;
+    EventId publish(const Event& e) noexcept { return publisher_.publish(e,session_); }
     void speed(const central::SpeedRequest&,const std::optional<central::VehicleRequest>&,std::uint64_t) noexcept;
     void stop(const central::NormalStop&,std::uint64_t) noexcept;
     void coordinator(const central::VehicleCoordinator&,std::uint64_t) noexcept;
     void remember_stop_recovery(const Event&,const central::NormalStopConfig&) noexcept;
     void stop_recovery(const central::VehicleCoordinator&,std::uint64_t) noexcept;
     void actuals(const central::NormalStopObservation&,const Event&,EventId,std::uint64_t) noexcept;
-    EventQueue& queue_; const ControlContext context_;
-    Session session_{}; std::uint64_t enable_{0},next_{1}; bool healthy_{true};
+    Session session_{}; std::uint64_t enable_{0};
     bool speed_seen_{false},coordinator_seen_{false},response_seen_{false};
     std::array<bool,2> stop_seen_{},protection_seen_{}; std::array<bool,4> phase_seen_{};
     Event root_{};

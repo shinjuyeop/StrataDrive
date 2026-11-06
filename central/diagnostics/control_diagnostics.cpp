@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
-#include <stdexcept>
 
 namespace stratadrive::diagnostics {
 namespace {
@@ -77,39 +76,19 @@ bool same_request(const central::VehicleRequest& a,const central::VehicleRequest
         a.acceleration_mps2==b.acceleration_mps2 && a.curvature_inv_m==b.curvature_inv_m && a.braking_demand==b.braking_demand && a.standstill_hold==b.standstill_hold;
 }
 } // namespace
-ControlDiagnostics::ControlDiagnostics(EventQueue& queue,ControlContext context,std::uint64_t first):queue_(queue),context_(context),next_(first) {
-    if(!first || !context.run || !context.producer || !context.clock_instance || !context.profile ||
-       (context.domain!=Domain::Simulation && context.domain!=Domain::Monotonic)) throw std::invalid_argument("control diagnostics context");
-}
-Stamp ControlDiagnostics::stamp(std::uint64_t ns,bool trusted) const noexcept {
-    return {context_.domain,context_.clock_instance,ns,true,trusted};
-}
+ControlDiagnostics::ControlDiagnostics(EventQueue& queue,ControlContext context,std::uint64_t first)
+    :publisher_(queue,context,first,"control diagnostics context",1) {}
 Event ControlDiagnostics::base(std::uint64_t now) const noexcept {
-    Event e; e.id={context_.run,context_.producer,0}; e.session=session_; e.session_enable=stamp(enable_);
-    e.profile=context_.profile; e.requirements=1; // bit0 = SYS-DIAG-001, interfaces bit0 = IF-FAULT-EVENT
+    Event e; e.id={capture_context().run,capture_context().producer,0}; e.session=session_; e.session_enable=stamp(enable_);
+    e.profile=capture_context().profile; e.requirements=1; // bit0 = SYS-DIAG-001, interfaces bit0 = IF-FAULT-EVENT
     e.interfaces=1; e.times[static_cast<std::size_t>(Time::Observed)]=stamp(now,now>=enable_ && now!=std::numeric_limits<std::uint64_t>::max()); return e;
-}
-EventId ControlDiagnostics::publish(Event e) noexcept {
-    if(next_==0) { healthy_=false; return {}; }
-    e.id={context_.run,context_.producer,next_};
-    if(next_==std::numeric_limits<std::uint64_t>::max()) {
-        e.kind=Kind::Gap; e.key={}; e.occurrence={}; e.native_reason=1; healthy_=false; next_=0;
-    } else ++next_;
-    const auto id=e.id;
-    if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
-    if(!queue_.publish(e)) healthy_=false;
-    if(!clock_recovery_.remember(e)) {
-        healthy_=false;
-        auto gap=e;gap.kind=Kind::Gap;gap.key={};gap.occurrence={};publish(gap);
-    }
-    return id;
 }
 bool ControlDiagnostics::start_session(std::uint32_t epoch,std::uint64_t enable,bool publish_context) noexcept {
     if(!epoch || epoch<=session_.epoch || (session_.epoch && enable<enable_)) return false;
-    session_={context_.run,epoch}; enable_=enable; speed_seen_=coordinator_seen_=response_seen_=false;
+    session_={capture_context().run,epoch}; enable_=enable; speed_seen_=coordinator_seen_=response_seen_=false;
     stop_seen_={}; phase_seen_={}; protection_seen_={}; root_={};
-    if(!publish_context) return healthy_;
-    auto e=base(enable); e.kind=Kind::Session; return publish(e).sequence!=0 && healthy_;
+    if(!publish_context) return healthy();
+    auto e=base(enable); e.kind=Kind::Session; return publish(e).sequence!=0 && healthy();
 }
 void ControlDiagnostics::speed(const central::SpeedRequest& c,const std::optional<central::VehicleRequest>& command,std::uint64_t now) noexcept {
     const auto& observation=c.fault_observation();
@@ -127,7 +106,7 @@ void ControlDiagnostics::speed(const central::SpeedRequest& c,const std::optiona
     }
     if(command) e.command={true,value(Component::Speed),command->sequence,command->epoch,stamp(command->source_time_ns),stamp(command->expires_at_ns)};
     const auto id=publish(e); e.id=id;
-    if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
+    if(e.kind==Kind::Fault) e.occurrence={session_.run,capture_context().producer,session_.epoch,e.key.monitor,id.sequence};
     if(code==Code::SpeedInput || code==Code::CentralControl) { speed_recovery_target_=e; speed_recovered_=false; }
     if(!has_root(root_)) root_=e;
 }
@@ -160,7 +139,7 @@ void ControlDiagnostics::stop(const central::NormalStop& c,std::uint64_t now) no
         if(o.lease) e.stop_lease={true,value(Component::Stop),o.lease->sequence,o.lease->epoch,stamp(o.lease->source_time_ns),stamp(o.lease->expires_at_ns)};
         if(has_root(root_)) e.related=root_.id;
         const auto id=publish(e); e.id=id;
-        if(e.kind==Kind::Fault) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
+        if(e.kind==Kind::Fault) e.occurrence={session_.run,capture_context().producer,session_.epoch,e.key.monitor,id.sequence};
         if(e.kind==Kind::Fault) remember_stop_recovery(e,o.config);
         if(!has_root(root_)) root_=e;
     }
@@ -175,11 +154,11 @@ void ControlDiagnostics::remember_stop_recovery(const Event& event,const central
         target=StopRecovery{event,config,false}; return;
     }
     for(auto& target:stop_recovery_targets_) if(!target) {target=StopRecovery{event,config,false}; return;}
-    healthy_=false; // Bounded history cannot silently evict an unresolved occurrence.
+    publisher_.incomplete(); // Bounded history cannot silently evict an unresolved occurrence.
 }
 void ControlDiagnostics::stop_recovery(const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
     const auto decision=c.decision();const auto& phases=c.normal_stop().phase_observations();
-    if(!healthy_ || decision.fault!=central::CoordinatorFault::None || decision.normal_armed ||
+    if(!healthy() || decision.fault!=central::CoordinatorFault::None || decision.normal_armed ||
        !decision.stopping || decision.stop.fault!=central::NormalStopFault::None ||
        decision.stop.state!=central::NormalStopState::Complete || decision.management.normal_allowed ||
        decision.management.state!=central::VehicleManagementState::Stopped || !decision.management.power_off_confirmed) return;
@@ -199,7 +178,7 @@ void ControlDiagnostics::stop_recovery(const central::VehicleCoordinator& c,std:
        !complete.evidence.brake || !complete.evidence.power) return;
     const auto& cfg=complete.config;
     for(auto& target:stop_recovery_targets_) {
-        if(!target || target->passed || target->fault.session.epoch>=session_.epoch || target->fault.profile!=context_.profile) continue;
+        if(!target || target->passed || target->fault.session.epoch>=session_.epoch || target->fault.profile!=capture_context().profile) continue;
         const auto& old=target->config;
         if(old.deceleration_mps2!=cfg.deceleration_mps2 || old.confirmation_ns!=cfg.confirmation_ns ||
            old.braking_timeout_ns!=cfg.braking_timeout_ns || old.shutdown_timeout_ns!=cfg.shutdown_timeout_ns ||
@@ -220,13 +199,13 @@ void ControlDiagnostics::stop_recovery(const central::VehicleCoordinator& c,std:
         e.times[static_cast<std::size_t>(Time::Actual)]=stamp(complete.evidence.drive->wheel_speed->source_time_ns);
         e.measured=complete.evidence.drive->wheel_speed->value_rad_s;
         const auto proof=publish(e);actuals(complete,e,proof,now);
-        if(!healthy_) return;
+        if(!healthy()) return;
         e.kind=Kind::Passed;e.proof_event=proof;publish(e);target->passed=true;
     }
 }
 void ControlDiagnostics::actuals(const central::NormalStopObservation& o,const Event& phase,EventId parent,std::uint64_t now) noexcept {
     const auto emit=[&](Component component,Subject subject,const can::ActuatorMetadata& metadata,std::uint64_t source,double measured) {
-        if(!std::isfinite(measured)) { healthy_=false; return; }
+        if(!std::isfinite(measured)) { publisher_.incomplete(); return; }
         auto e=phase; e.kind=Kind::Actual; e.related=parent;
         if(e.key.code==Code::None) e.key.subject=static_cast<std::uint32_t>(subject);
         e.source={true,value(component),subject==Subject::Wheel?source:metadata.sequence,metadata.epoch,stamp(source),{}};
@@ -279,7 +258,7 @@ void ControlDiagnostics::coordinator(const central::VehicleCoordinator& c,std::u
         e.unmapped=!confirmed && !has_root(root_) && o.fault!=central::CoordinatorFault::LocalProtection;
         if(o.handoff) { const auto& l=o.handoff->lease; e.stop_lease={true,value(Component::Stop),l.sequence,l.epoch,stamp(l.source_time_ns),stamp(l.expires_at_ns)}; }
         const auto id=publish(e); e.id=id;
-        if(confirmed) e.occurrence={session_.run,context_.producer,session_.epoch,e.key.monitor,id.sequence};
+        if(confirmed) e.occurrence={session_.run,capture_context().producer,session_.epoch,e.key.monitor,id.sequence};
         if(e.kind==Kind::Fault) remember_stop_recovery(e,c.normal_stop().configuration());
         if(!has_root(root_)) root_=e;
     }
@@ -331,8 +310,8 @@ void ControlDiagnostics::observe_response(const central::NormalDriveReadinessInp
 }
 void ControlDiagnostics::observe_speed_recovery(const central::SpeedRequest& speed_control,const central::VehicleCoordinator& c,
     const central::NormalDriveReadinessInputs& in,std::uint64_t now) noexcept {
-    if(!healthy_ || speed_recovered_ || !speed_recovery_target_ || session_.epoch<=speed_recovery_target_->session.epoch ||
-       speed_recovery_target_->profile!=context_.profile || in.epoch!=session_.epoch || in.session_enable_ns!=enable_ ||
+    if(!healthy() || speed_recovered_ || !speed_recovery_target_ || session_.epoch<=speed_recovery_target_->session.epoch ||
+       speed_recovery_target_->profile!=capture_context().profile || in.epoch!=session_.epoch || in.session_enable_ns!=enable_ ||
        speed_control.fault()!=central::SpeedRequestFault::None || speed_control.state().fault ||
        !speed_control.success_observation() || !c.last_vehicle_request() || !in.rear.drive_actual ||
        now<enable_ || now==std::numeric_limits<std::uint64_t>::max()) return;
@@ -367,7 +346,7 @@ std::optional<ServiceEvidence> ControlDiagnostics::stop_clear_evidence(const cen
 }
 std::optional<ServiceEvidence> ControlDiagnostics::stationary_evidence(const central::VehicleCoordinator& c,
     const central::NormalDriveReadinessInputs& in,const std::optional<can::DriveMessage>& input,std::uint64_t now) const noexcept {
-    if(!healthy_ || in.epoch!=session_.epoch || in.session_enable_ns!=enable_ ||
+    if(!healthy() || in.epoch!=session_.epoch || in.session_enable_ns!=enable_ ||
        !input || !in.rear.drive_actual || !same_input(*input,*in.rear.drive_actual) || !input->wheel_speed ||
        !in.front.brake_actual || !input->torque_nm || !in.front.brake_actual->pressure_pa || !in.rear.power_status ||
        now<enable_ || now==std::numeric_limits<std::uint64_t>::max() || !central::evaluate_vehicle_input_health(in,now).ready()) return std::nullopt;

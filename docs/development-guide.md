@@ -52,6 +52,12 @@ CARLA 감사 도구의 plain/gzip 입력은 `tests/integration/carla/evidence_io
 배포하거나 source snapshot으로 보관할 때 공통 reader도 포함한다. 과거 정상·실패 기록의
 판정 동등성을 검사하고, 메모리 절약을 검증 축소나 physics 성능 향상으로 해석하지 않는다.
 
+진단 수집기의 공통 numeric dictionary·context·이벤트 ID·queue 발행·Clock 복구 발행은
+`central/diagnostics/diagnostic_publisher.hpp`에서 관리한다. Control/Owner/Native/Startup
+adapter는 각 실제 감시기의 검출·보호·복구 predicate만 소유하며 서로의 제어 구현을 include하지 않는다.
+감사기는 `audit_control_diagnostics.py`의 공통 decoder가 제공하는 전체 event/related ID와
+occurrence를 사용한다. Sequence 값만으로 서로 다른 producer의 사건을 연결하지 않는다.
+
 ## 표준과 개발 방법의 적용 범위
 
 | 활동 | 현재 방향과 후속 범위 |

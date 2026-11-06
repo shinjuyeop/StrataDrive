@@ -1,0 +1,434 @@
+{
+  "date": "2026-11-06",
+  "base_commit": "3d685f660d23a0dfdcd802bb4f510971f769e83f",
+  "scope": "Post-M9 structural documentation/diagnostic refactor. Original physical deadlines, code mappings, recovery and clear predicates unchanged.",
+  "sources": {
+    "base": "3d685f660d23a0dfdcd802bb4f510971f769e83f",
+    "sources": {
+      "CMakeLists.txt": "0804c22e6024c94449c0bad041ada674f328815e5d9d91ef1994fa02fa1c5d74",
+      "central/diagnostics/control_diagnostics.cpp": "3e129a747dad70d1725dcbf71ad6d9e0f6f8bef81660d5e813237c00aa6a0757",
+      "central/diagnostics/control_diagnostics.hpp": "804b8d5bdc7f9b938ad2d8850b352922bb7119b21f70a49e07062124837fe322",
+      "central/diagnostics/diagnostic_publisher.hpp": "40cbd307d36d7eaa2d7ed7e3c475e5ba2bab802b384edc7b126962ccd89f010f",
+      "central/diagnostics/native_diagnostics.cpp": "bea8bee9a0060e95791101bf22ca4d63c7b3763661582e53201f711639a5d463",
+      "central/diagnostics/native_diagnostics.hpp": "eb4a1f46ab14e4afbf7d0ee845b51bc86a2f78cc9d6a36658dcddba1026147ce",
+      "central/diagnostics/owner_diagnostics.cpp": "e182db06e1a1efc4cff289969bace9b901eb3d8f850dca83592d0e4c85ea2c18",
+      "central/diagnostics/owner_diagnostics.hpp": "a82dcafc586d699d2e0ab1206170d1fb9961b8d462ea22ab1af0cbe78c27689b",
+      "central/diagnostics/startup_diagnostics.cpp": "f74cfa6f2ee7b84180f4bee95e070ba9891cd30eb28c22ae808c4cb07e4ed062",
+      "central/diagnostics/startup_diagnostics.hpp": "0fbee8c1462b2ab7059fc6a4aeae06138bf129db75a0d26aa0f85ed833896ed7",
+      "tests/integration/carla/audit_m9_diagnostics.py": "4ae4ea416f643ede0bba2d19cdf5233f33cbfd834aa6a6123c4dbd70f88c1e39",
+      "tests/integration/diagnostics/audit_control_diagnostics.py": "8810792c213cbb220d5454f02b058cd6e6e6e1c9b242617d993b15d890802448",
+      "tests/integration/someip/native_diagnostic_routes.hpp": "7eb696371ed4f23ecbdaa7836a5eec3ac1c914cfe67f78d77c5780ea30cb0945",
+      "tests/unit/clock_recovery_test.cpp": "3392300e1c2b23d0d07f701893ec6b64e72afe5389e3275b6122fa07b370ed40"
+    }
+  },
+  "builds": [
+    {
+      "profile": "debug",
+      "command": [
+        "cmake",
+        "--build",
+        "build/m1-angle",
+        "--parallel",
+        "2"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "release",
+      "command": [
+        "cmake",
+        "--build",
+        "build/m7-functional",
+        "--target",
+        "m7_wheel_shadow",
+        "m7_functional_test",
+        "m7_native_admission_test",
+        "--parallel",
+        "2"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "native",
+      "command": [
+        "cmake",
+        "--build",
+        "build/m5-someip-normal/project",
+        "--target",
+        "someip_front_adapter",
+        "--parallel",
+        "2"
+      ],
+      "exit": 0
+    }
+  ],
+  "debug": {
+    "tests": 1450,
+    "failures": 0,
+    "skipped": 0,
+    "labels": {
+      "unit": 1098,
+      "integration.transport": 5,
+      "integration.logical": 347
+    },
+    "xml": "debug-final-tests.xml",
+    "log": "debug-final-tests.log",
+    "reproduction_command": [
+      "ctest",
+      "--test-dir",
+      "build/m1-angle",
+      "-LE",
+      "runtime.wall",
+      "--output-on-failure",
+      "--parallel",
+      "2",
+      "--output-junit",
+      "build/post-m9-refactor/debug-final-tests.xml"
+    ]
+  },
+  "sanitizers": {
+    "asan-final": {
+      "targets": 15,
+      "tests": 189,
+      "failures": 0,
+      "errors": 0,
+      "result_file": "asan-final.json"
+    },
+    "tsan-final": {
+      "targets": 15,
+      "tests": 189,
+      "failures": 0,
+      "errors": 0,
+      "result_file": "tsan-final.json"
+    }
+  },
+  "static": [
+    {
+      "tool": "clang-tidy",
+      "file": "/d/shin/StrataDrive/central/diagnostics/control_diagnostics.cpp",
+      "exit": 0,
+      "command": [
+        "clang-tidy",
+        "--quiet",
+        "-p",
+        "/d/shin/StrataDrive/build/m1-angle",
+        "/d/shin/StrataDrive/central/diagnostics/control_diagnostics.cpp"
+      ]
+    },
+    {
+      "tool": "clang-tidy",
+      "file": "/d/shin/StrataDrive/central/diagnostics/owner_diagnostics.cpp",
+      "exit": 0,
+      "command": [
+        "clang-tidy",
+        "--quiet",
+        "-p",
+        "/d/shin/StrataDrive/build/m1-angle",
+        "/d/shin/StrataDrive/central/diagnostics/owner_diagnostics.cpp"
+      ]
+    },
+    {
+      "tool": "clang-tidy",
+      "file": "/d/shin/StrataDrive/central/diagnostics/native_diagnostics.cpp",
+      "exit": 0,
+      "command": [
+        "clang-tidy",
+        "--quiet",
+        "-p",
+        "/d/shin/StrataDrive/build/m1-angle",
+        "/d/shin/StrataDrive/central/diagnostics/native_diagnostics.cpp"
+      ]
+    },
+    {
+      "tool": "clang-tidy",
+      "file": "/d/shin/StrataDrive/central/diagnostics/startup_diagnostics.cpp",
+      "exit": 0,
+      "command": [
+        "clang-tidy",
+        "--quiet",
+        "-p",
+        "/d/shin/StrataDrive/build/m1-angle",
+        "/d/shin/StrataDrive/central/diagnostics/startup_diagnostics.cpp"
+      ]
+    },
+    {
+      "tool": "cppcheck",
+      "exit": 0,
+      "command": [
+        "cppcheck",
+        "--project=/d/shin/StrataDrive/build/post-m9-refactor/static/compile_commands.json",
+        "--enable=warning,performance,portability",
+        "--suppress=missingIncludeSystem",
+        "--inline-suppr",
+        "--error-exitcode=1",
+        "--template=gcc"
+      ]
+    }
+  ],
+  "python": {
+    "carla_evidence_tests": 4,
+    "service_validation_tests": 12,
+    "failures": 0,
+    "commands": [
+      [
+        "python3",
+        "tests/unit/carla_evidence_test.py"
+      ],
+      [
+        "python3",
+        "tests/unit/service_validation_test.py"
+      ]
+    ]
+  },
+  "replay": {
+    "cases": 4,
+    "observations": 24004,
+    "decoder_events": 68,
+    "exact_match": true,
+    "result": {
+      "binary": "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+      "binary_sha256": "a2f78bf7852935b02708fb2c3f02431fffde939423af0545d28b9adc770bc283",
+      "baseline": "3d685f6",
+      "cases": [
+        {
+          "case": "whole-nominal",
+          "observations": 6001,
+          "decoded_original_events": 13,
+          "original_canonical_sha256": "f21f51c44237b1367c4a159545c8ad30483ab730e96c9de0d4c7925cf8713a7f",
+          "refactored_canonical_sha256": "f21f51c44237b1367c4a159545c8ad30483ab730e96c9de0d4c7925cf8713a7f",
+          "passed": true
+        },
+        {
+          "case": "sampled-nominal",
+          "observations": 6001,
+          "decoded_original_events": 13,
+          "original_canonical_sha256": "844a385ae362e735a5cc09f5376278b03048425f0c05bddf07125b47ae55d2eb",
+          "refactored_canonical_sha256": "844a385ae362e735a5cc09f5376278b03048425f0c05bddf07125b47ae55d2eb",
+          "passed": true
+        },
+        {
+          "case": "sampled-silent-1",
+          "observations": 6001,
+          "decoded_original_events": 21,
+          "original_canonical_sha256": "3ccd3e7d52afed0ec3b3d6ffe3d23ad09b50ee4947c39edeebe85fdc136e98b0",
+          "refactored_canonical_sha256": "3ccd3e7d52afed0ec3b3d6ffe3d23ad09b50ee4947c39edeebe85fdc136e98b0",
+          "passed": true
+        },
+        {
+          "case": "sampled-silent-2",
+          "observations": 6001,
+          "decoded_original_events": 21,
+          "original_canonical_sha256": "cae1cb8adb5961188360fd97a9aaddcce0f132db692b1e7e94ee7390d964b40d",
+          "refactored_canonical_sha256": "cae1cb8adb5961188360fd97a9aaddcce0f132db692b1e7e94ee7390d964b40d",
+          "passed": true
+        }
+      ]
+    },
+    "new_carla_server_runs": 0
+  },
+  "native": {
+    "scope": "Three fixed post-refactor functional smoke cases, not another 7/7 loaded or 18/18 service cohort",
+    "normal_success": 1,
+    "expected_fault_refusals": 2,
+    "cases": [
+      {
+        "name": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "build/post-m9-refactor/native/normal",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2"
+        ],
+        "runtime_exit": 0,
+        "expected_runtime_exit": 0,
+        "audits": [
+          {
+            "tool": "audit_native_service",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "passed": true
+      },
+      {
+        "name": "ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "build/post-m9-refactor/native/ack-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "runtime_exit": 1,
+        "expected_runtime_exit": 1,
+        "audits": [
+          {
+            "tool": "audit_native_service_faults",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "passed": true
+      },
+      {
+        "name": "stop-ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "tests/integration/someip/front_run.py",
+          "build/post-m9-refactor/native/stop-ack-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "stop-ack-loss"
+        ],
+        "runtime_exit": 1,
+        "expected_runtime_exit": 1,
+        "audits": [
+          {
+            "tool": "audit_native_service_faults",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "passed": true
+      }
+    ],
+    "binary_sha256": "2a13f1d30aed979ea4504abd641f5d856f0980c681c054b6d7c85dc4812fd63c",
+    "heavy_work_overlaps_runtime": false
+  },
+  "documentation_links": {
+    "files": 13,
+    "links": 788,
+    "errors": []
+  },
+  "documentation": {
+    "rows": 261,
+    "unique_ids": true,
+    "updated_implementation_refs": [
+      {
+        "id": "C-M9-CTRL-07",
+        "requirements": "SYS-DIAG-001;SYS-SAFE-003",
+        "implementation": "central/diagnostics/control_diagnostics.hpp#ControlDiagnostics::publish;central/diagnostics/diagnostic_publisher.hpp#DiagnosticPublisher::publish;simulation/runtime/m4_owner_network.cpp#Network::central_step",
+        "test": "CoordinatorTest.DiagnosticsQueueOverflowCannotDelayExistingProtectionSelection;ControlDiagnosticsSil.HookOnAndOffHaveIdenticalControllerAuthorityPhysicsAndEnergy",
+        "criterion": "Queue failure after original protection;all controller outputs and physical/energy results exactly identical on/off",
+        "evidence": "m9_control_hooks/results.json"
+      },
+      {
+        "id": "C-M9-OWN-04",
+        "requirements": "SYS-DIAG-001;SYS-SAFE-003",
+        "implementation": "simulation/runtime/m4_owner_network.cpp#Network::step;central/diagnostics/owner_diagnostics.hpp#OwnerDiagnostics::publish;central/diagnostics/diagnostic_publisher.hpp#DiagnosticPublisher::publish",
+        "test": "OwnerDiagnosticsSil.OwnerHookOnOffPreserveEveryPhysicalSampleAndNativeTiming;OwnerDiagnosticsTest.FullDiagnosticQueueCannotChangeNativeZoneProtection",
+        "criterion": "One queue per owner; global Session only Central; hook on/off identical native physics; dropped diagnostic event cannot postpone protection",
+        "evidence": "m9_owner_sources/results.json"
+      },
+      {
+        "id": "C-M9-REFACTOR-01",
+        "requirements": "SYS-DIAG-001;SYS-SAFE-003",
+        "implementation": "central/diagnostics/diagnostic_publisher.hpp#DiagnosticPublisher::publish;central/diagnostics/diagnostic_publisher.hpp#DiagnosticPublisher::observe_clock;tests/integration/diagnostics/audit_control_diagnostics.py#event",
+        "test": "DiagnosticPublication.SequenceExhaustionRecordsGapAndCannotWrapOrPublishAgain;DiagnosticPublication.RetentionFailureKeepsEveryOriginalFaultAndBlocksRecoveryPublication;post-m9-exact-replay",
+        "criterion": "Preserved original identity and code mapping;no wrap or eviction;sticky incomplete blocks Clock recovery;all24004 native observations and68 decoded events identical",
+        "evidence": "post-m9-refactor/acceptance.json"
+      }
+    ],
+    "documentation": {
+      "README.md": "4e93c49bffd79b7ff98fd4348df2ea4226fdb479caac7ef8a5a9e668ba0e8ce4",
+      "docs/README.md": "09252f4fe776d3cdd75001953804fbcb8af37d39dbd0bfcbee10c645faf10a70",
+      "docs/archive/README.md": "45461ae45e72e5bf868a7f2455dda92e81e57e3aa7a503d6f221a9ec4ab46ce9",
+      "docs/archive/design-decisions.md": "c418d0eb34a5f5625f8f195154f259ac6163ace93807991fe7d604e673ba1619",
+      "docs/archive/implementation-history.md": "167cd40904670dded9d50f43b79a9861d20db87a648c80765bc85ae30c8e0885",
+      "docs/development-guide.md": "89cb9c7efd52def0af330a84a7fdded2d34de02273a3d4024b4f1278aff22bbd",
+      "docs/interfaces/diagnostics.md": "838f208439fa306d39a589006e8162f0afeddbedc57e88901806f23e6bb6f82f",
+      "docs/project-status.md": "e5a0d3ea0905cd5df84c387b33070c1185a54996e15ccfdc7e2ddb7f4cc5e0ed",
+      "docs/roadmap.md": "9b9c9cf31e7a0959b7d4ddb8de1fcc86c68e51f41ed84296cb353634a389e826",
+      "docs/test-plan/README.md": "7e649504545e56c3f6c18c99e69a26c677480cb763fcdc9a270d4179010ce6a5",
+      "docs/test-plan/component-traceability.csv": "14e3c31225069085208c9a680d8cfcba8ba8281c6bdb60352d93081d82f36450",
+      "docs/test-plan/requirements-traceability.md": "666f8b7a206ab8de2b940fa97dcc3625cc8baa30af0b5808a114bd5f8f195596",
+      "docs/test-plan/verification-strategy.md": "9bba0a2649409643ac6cea736cb549cb31c92ae009d992d59502325db3908a6a"
+    }
+  },
+  "intermediate_results": {
+    "accepted_as_final": false,
+    "initial_compiler_failure": "debug-build-initial.log",
+    "initial_static_warnings": "static-initial/",
+    "initial_by_value_sources": "initial-sources.json",
+    "initial_sanitizers": "sanitizers.json",
+    "interrupted_initial_validator": "initial-validation-abort.json",
+    "initial_replay": "replay-initial-results.json"
+  },
+  "preserved_scope": "All previous evidence/source snapshots and frozen protocols retained. Logical sanitizer checks do not assert native wall timing or Target conformance."
+}

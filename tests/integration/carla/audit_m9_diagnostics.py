@@ -10,14 +10,7 @@ import sys
 from evidence_io import json_rows
 from audit_m7_1q_native import check, frame, wire
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'diagnostics'))
-from audit_control_diagnostics import event, journal, Reader
-
-
-def diagnostic_event(raw):
-    decoded=event(raw)
-    reader=Reader(raw);reader.uint(1);reader.uint(2);reader.identity()
-    decoded['_related']=reader.identity() # Full original run/producer/sequence, not sequence alone.
-    return decoded
+from audit_control_diagnostics import event, journal
 
 
 def load(directory):
@@ -51,7 +44,7 @@ def load(directory):
     check(captured==original,'journal equals every original native event byte in order')
     frozen=directory/'frozen-route.json'
     check(hashlib.sha256(frozen.read_bytes()).hexdigest()==result['route_profile']['sha256'],'frozen route hash')
-    return dict(result=result,server=server,events=[diagnostic_event(raw) for raw in original],samples=samples,actuals=actuals,origin=origin,recipe=recipe)
+    return dict(result=result,server=server,events=[event(raw) for raw in original],samples=samples,actuals=actuals,origin=origin,recipe=recipe)
 
 
 def judge(d):
