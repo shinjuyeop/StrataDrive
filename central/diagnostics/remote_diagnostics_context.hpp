@@ -16,6 +16,8 @@ public:
     static constexpr std::size_t kPending=32;
     ContextualOutbox(FileJournal&,ControlContext local,std::uint64_t central_producer);
     ContextualOutbox(FileJournal&,ControlContext local,std::vector<CentralIssuer> trusted_lineage);
+    ContextualOutbox(EpochRecorder&,ControlContext local,std::uint64_t central_producer);
+    ContextualOutbox(EpochRecorder&,ControlContext local,std::vector<CentralIssuer> trusted_lineage);
     ~ContextualOutbox();
     ContextualOutbox(const ContextualOutbox&)=delete;
     ContextualOutbox& operator=(const ContextualOutbox&)=delete;
@@ -34,6 +36,7 @@ public:
     bool healthy() const noexcept { return outbox_.healthy(); }
     const Ledger& ledger() const noexcept { return outbox_.ledger(); }
 private:
+    void initialize();
     Result commit(const Event&);
     bool matches(const Event&) const noexcept;
     std::uint64_t issuer(std::uint32_t epoch) const noexcept;

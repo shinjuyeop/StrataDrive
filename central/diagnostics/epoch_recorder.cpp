@@ -243,6 +243,25 @@ Receipt EpochRecorder::review(const ContinuityReview& event) {
     catch(...){s.gap();return {Result::StorageFailure,false,s.watermark()};}
 }
 void EpochRecorder::recording_gap() noexcept{impl_->gap();}
+void EpochRecorder::restarted() noexcept{impl_->writer->restarted();}
+void EpochRecorder::bind_merge_sources(std::vector<std::uint64_t> streams) {
+    auto& s=*impl_;std::sort(streams.begin(),streams.end());
+    if(streams.empty() || streams.size()>32 || !streams.front() ||
+       std::binary_search(streams.begin(),streams.end(),s.store_id) ||
+       std::adjacent_find(streams.begin(),streams.end())!=streams.end())
+        throw std::invalid_argument("epoch merge membership");
+    Bytes manifest;put(manifest,1);put(manifest,s.store_id);for(auto stream:streams)put(manifest,stream);
+    // A caller configuration mismatch is recoverable by reopening with the
+    // original manifest. IO errors retain a sticky incomplete marker.
+    if(exists(s.directory.fd,"merge-sources")) {
+        Bytes retained;
+        try{retained=read_file(s.directory.fd,"merge-sources");}catch(...){s.gap();throw;}
+        if(retained!=manifest)throw std::invalid_argument("epoch merge membership changed");
+    } else {
+        if(s.watermark())throw std::invalid_argument("epoch merge membership missing from existing history");
+        try{write_file(s.directory.fd,"merge-sources",manifest);}catch(...){s.gap();throw;}
+    }
+}
 const Ledger& EpochRecorder::ledger() const noexcept{return impl_->writer->ledger();}
 std::uint64_t EpochRecorder::segment() const noexcept{return impl_->generation;}
 std::uint64_t EpochRecorder::watermark() const noexcept{return impl_->watermark();}

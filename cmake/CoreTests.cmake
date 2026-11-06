@@ -47,7 +47,7 @@ if(TARGET diagnostics_journal)
         SOURCES tests/unit/remote_diagnostics_context_test.cpp tests/unit/continuity_review_test.cpp tests/unit/continuity_service_test.cpp
         LIBRARIES continuity_review startup_diagnostics run_lease_issuer drive_receiver brake_receiver)
     stratadrive_unit_test(diagnostics_delivery_test
-        SOURCES tests/unit/diagnostics_delivery_test.cpp
+        SOURCES tests/unit/diagnostics_delivery_test.cpp tests/unit/epoch_merged_collector_test.cpp
         LIBRARIES diagnostics_delivery)
     stratadrive_unit_test(diagnostics_delivery_process_test
         SOURCES tests/unit/diagnostics_delivery_process_test.cpp tests/unit/continuity_review_process_test.cpp tests/unit/continuity_service_process_test.cpp

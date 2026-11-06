@@ -42,6 +42,8 @@ public:
     std::uint64_t acknowledged() const noexcept { return acknowledged_; }
     bool healthy() const noexcept { return store_.healthy(); }
     const Ledger& ledger() const noexcept { return store_.ledger(); }
+    std::uint64_t size() const noexcept { return store_.size(); }
+    Event event(std::uint64_t ordinal) const { return store_.event(ordinal); }
     void recording_gap() noexcept { store_.recording_gap(); }
 private:
     DeliveryStore store_;
@@ -88,5 +90,25 @@ public:
 private:
     struct Replica { FileJournal* journal; std::unique_ptr<Inbox> inbox; };
     FileJournal& merged_; Recorder recorder_; std::vector<Replica> replicas_;
+};
+// Fixed, explicitly provisioned source set; every source must send an ordered
+// Session/Attempt boundary before events of a newer epoch. One unmerged entry
+// per stream, no timeout exclusion, no synthetic Session. All events (including
+// Central startup events) enter through replicas, never direct merged writes.
+// Context distribution must remain independent of these delivery ACKs.
+class EpochMergedCollector {
+public:
+    static constexpr std::size_t kSources=32;
+    EpochMergedCollector(EpochRecorder& merged,const std::vector<EpochRecorder*>& replicas);
+    DeliveryReceipt receive(const wire::Bytes&);
+    bool healthy() const noexcept;
+    const Ledger& ledger() const noexcept { return merged_.ledger(); }
+private:
+    struct Replica {
+        EpochRecorder* store;std::unique_ptr<Inbox> inbox;
+        std::uint64_t consumed{0};std::optional<Event> head;
+    };
+    Result reconcile();
+    EpochRecorder& merged_;std::vector<Replica> replicas_;std::uint32_t epoch_{0};std::uint64_t run_{0};
 };
 } // namespace stratadrive::diagnostics

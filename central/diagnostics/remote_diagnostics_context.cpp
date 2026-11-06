@@ -7,7 +7,13 @@ namespace stratadrive::diagnostics {
 ContextualOutbox::ContextualOutbox(FileJournal& j,ControlContext c,std::uint64_t central)
     :ContextualOutbox(j,c,std::vector<CentralIssuer>{{central,1}}) {}
 ContextualOutbox::ContextualOutbox(FileJournal& j,ControlContext c,std::vector<CentralIssuer> lineage)
-    :outbox_(j),local_(c),issuers_(std::move(lineage)) {
+    :outbox_(j),local_(c),issuers_(std::move(lineage)) {initialize();}
+ContextualOutbox::ContextualOutbox(EpochRecorder& j,ControlContext c,std::uint64_t central)
+    :ContextualOutbox(j,c,std::vector<CentralIssuer>{{central,1}}) {}
+ContextualOutbox::ContextualOutbox(EpochRecorder& j,ControlContext c,std::vector<CentralIssuer> lineage)
+    :outbox_(j),local_(c),issuers_(std::move(lineage)) {initialize();}
+void ContextualOutbox::initialize() {
+    const auto& c=local_;
     if(!c.run || !c.producer || !c.clock_instance || !c.profile || c.domain!=Domain::Monotonic)
         throw std::invalid_argument("remote diagnostic manifest");
     if(issuers_.empty() || issuers_.size()>16 || issuers_.front().first_epoch!=1)throw std::invalid_argument("remote Central lineage");
@@ -19,8 +25,8 @@ ContextualOutbox::ContextualOutbox(FileJournal& j,ControlContext c,std::vector<C
             throw std::invalid_argument("remote Central lineage");
     }
     pending_.reserve(kPending);
-    for(const auto& entry:j.committed()) {
-        const auto& e=std::get<Event>(entry);
+    for(std::uint64_t ordinal=1;ordinal<=outbox_.size();++ordinal) {
+        const auto e=outbox_.event(ordinal);
         if(e.id.run!=c.run || e.profile!=c.profile || !e.session_enable.present ||
            e.session_enable.domain!=c.domain || e.session_enable.instance!=c.clock_instance ||
            (e.kind==Kind::Session?e.id.producer!=issuer(e.session.epoch):e.id.producer!=c.producer))

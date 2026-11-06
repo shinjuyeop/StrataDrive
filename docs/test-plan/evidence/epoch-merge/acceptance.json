@@ -1,0 +1,266 @@
+{
+  "passed": true,
+  "base_commit": "15d1af92b707446ad3dad725070f34fee9bb06e2",
+  "scope": "Fixed-membership epoch merge and frozen native Central/Front/Rear original events over real SOME/IP",
+  "debug": {
+    "tests": 1538,
+    "failures": 0,
+    "excluded_label": "runtime.wall"
+  },
+  "sanitized": {
+    "tests": 99,
+    "asan": true,
+    "ubsan": true,
+    "tsan": false
+  },
+  "python_tests": 280,
+  "clang_tidy_units": 4,
+  "someip": {
+    "ok": true,
+    "streams": [
+      {
+        "stream": 7200,
+        "segments": 2,
+        "entries": 2,
+        "active_entries": 1,
+        "limit": 64
+      },
+      {
+        "stream": 7201,
+        "segments": 2,
+        "entries": 6,
+        "active_entries": 3,
+        "limit": 64
+      },
+      {
+        "stream": 7202,
+        "segments": 2,
+        "entries": 7,
+        "active_entries": 3,
+        "limit": 64
+      }
+    ],
+    "merged": {
+      "stream": 7900,
+      "segments": 2,
+      "entries": 11,
+      "active_entries": 5,
+      "limit": 128
+    },
+    "old_prefix_at_kill": 2,
+    "faults": 2,
+    "passed": 2,
+    "physical_samples": 2400,
+    "scope": "frozen native Central/Front/Rear events over real SOME/IP; fixed membership",
+    "mutations": [
+      {
+        "mutation": "original_changed",
+        "rejected": true,
+        "reason": "original/source/replica prefix mismatch"
+      },
+      {
+        "mutation": "membership_dropped",
+        "rejected": true,
+        "reason": "unpack requires a buffer of 40 bytes"
+      },
+      {
+        "mutation": "missing_old_segment",
+        "rejected": true,
+        "reason": "[Errno 2] No such file or directory: '/tmp/stratadrive-merge-audit-8jt8zc8y/cohort/replica-store/merged/00000001/manifest'"
+      },
+      {
+        "mutation": "premature_ack",
+        "rejected": true,
+        "reason": "ACK before merged epoch commit"
+      },
+      {
+        "mutation": "missing_delayed_tail",
+        "rejected": true,
+        "reason": "delayed old tail missing after restart"
+      },
+      {
+        "mutation": "unexpected_exit",
+        "rejected": true,
+        "reason": "exact injected exits"
+      }
+    ]
+  },
+  "cohorts": [
+    {
+      "name": "someip",
+      "result": {
+        "case": "epoch-merge-restart",
+        "pass": false,
+        "forced_cleanup": [
+          "publisher-1"
+        ],
+        "processes": [
+          {
+            "role": "replica",
+            "generation": 1,
+            "pid": 2304561,
+            "exit": -9
+          },
+          {
+            "role": "publisher",
+            "generation": 1,
+            "pid": 2304562,
+            "exit": -9
+          },
+          {
+            "role": "replica",
+            "generation": 2,
+            "pid": 2304606,
+            "exit": 1
+          }
+        ],
+        "clock_sample": {
+          "wall_ns": 1793952225856919032,
+          "monotonic_ns": 970704746451299
+        },
+        "injected_replica_kill": {
+          "pid": 2304561,
+          "monotonic_ns": 970710989191210
+        },
+        "error": "RuntimeError('replacement failed')",
+        "capture_exit": 0,
+        "sanitizer_errors": []
+      }
+    },
+    {
+      "name": "someip-frozen",
+      "result": {
+        "case": "epoch-merge-restart",
+        "pass": false,
+        "forced_cleanup": [],
+        "processes": [
+          {
+            "role": "replica",
+            "generation": 1,
+            "pid": 2307215,
+            "exit": -9
+          },
+          {
+            "role": "publisher",
+            "generation": 1,
+            "pid": 2307216,
+            "exit": 0
+          },
+          {
+            "role": "replica",
+            "generation": 2,
+            "pid": 2307259,
+            "exit": 1
+          }
+        ],
+        "clock_sample": {
+          "wall_ns": 1793952311342706505,
+          "monotonic_ns": 970790232238413
+        },
+        "injected_replica_kill": {
+          "pid": 2307215,
+          "monotonic_ns": 970796632900069
+        },
+        "capture_exit": 0,
+        "sanitizer_errors": []
+      }
+    },
+    {
+      "name": "someip-backoff",
+      "result": {
+        "case": "epoch-merge-restart",
+        "pass": true,
+        "forced_cleanup": [],
+        "processes": [
+          {
+            "role": "replica",
+            "generation": 1,
+            "pid": 2308574,
+            "exit": -9
+          },
+          {
+            "role": "publisher",
+            "generation": 1,
+            "pid": 2308575,
+            "exit": 0
+          },
+          {
+            "role": "replica",
+            "generation": 2,
+            "pid": 2308604,
+            "exit": 0
+          }
+        ],
+        "clock_sample": {
+          "wall_ns": 1793952394811835801,
+          "monotonic_ns": 970873701367974
+        },
+        "injected_replica_kill": {
+          "pid": 2308574,
+          "monotonic_ns": 970880157122727
+        },
+        "capture_exit": 0,
+        "sanitizer_errors": []
+      }
+    },
+    {
+      "name": "someip-final",
+      "result": {
+        "case": "epoch-merge-restart",
+        "pass": true,
+        "forced_cleanup": [],
+        "processes": [
+          {
+            "role": "replica",
+            "generation": 1,
+            "pid": 2310095,
+            "exit": -9
+          },
+          {
+            "role": "publisher",
+            "generation": 1,
+            "pid": 2310098,
+            "exit": 0
+          },
+          {
+            "role": "replica",
+            "generation": 2,
+            "pid": 2310211,
+            "exit": 0
+          }
+        ],
+        "clock_sample": {
+          "wall_ns": 1793952487320792565,
+          "monotonic_ns": 970966210325336
+        },
+        "injected_replica_kill": {
+          "pid": 2310095,
+          "monotonic_ns": 970972482147436
+        },
+        "capture_exit": 0,
+        "sanitizer_errors": []
+      }
+    }
+  ],
+  "binaries": [
+    {
+      "path": "build/m1-angle/diagnostics_delivery_test",
+      "sha256": "f1909bcce07948b6ea4c338bb1d60c9951d44645f4a8c12a4633cdba8861e096"
+    },
+    {
+      "path": "build/m1-angle/remote_diagnostics_context_test",
+      "sha256": "c3510c826b8ae6aebfb1c9e8cd5bc9fef3cf2cca7fc3190e9c493f99416667ad"
+    },
+    {
+      "path": "build/m5-someip-normal/project/tests/integration/someip/someip_epoch_merge_live",
+      "sha256": "963a0a68d7b7ddb67e575649e65e2f511869da461e52119061717bdf32981ab5"
+    }
+  ],
+  "remaining": [
+    "Dynamic producer membership and old-prefix closure evidence",
+    "Live native runtime Central spool/context/family migration",
+    "CARLA supervised recovery driving and application epoch transition",
+    "Single-epoch rollover and disk lifecycle",
+    "Whole ODD/wall/Target and trained model"
+  ]
+}

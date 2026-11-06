@@ -2,8 +2,9 @@
 
 `EpochRecorder`는 Linux 로컬 단일 writer의 선택형 저장기다. 기존 `FileJournal`과
 SOME/IP Outbox/Inbox의 stream ID·ordinal·ACK 계약은 유지한다. Outbox/Inbox가 family를
-선택할 수 있고 전용 SOME/IP `epoch-restart` 시험에 연결했다. 기본 다중 ECU 런타임의
-ContextualOutbox/MergedCollector는 기존 유한 저장기를 사용한다. 이 문서는 신규 저장기의 적용 가능한 범위를 정의한다.
+선택할 수 있고 전용 SOME/IP `epoch-restart` 시험에 연결했다. ContextualOutbox도 family를
+선택할 수 있다. 고정 송신원 집합의 `EpochMergedCollector`와 전용 `epoch-merge-restart` 시험을
+추가했다. 기본 다중 ECU 런타임의 기존 MergedCollector는 유한 저장기를 사용한다.
 
 ## 이관 조건과 보존
 
@@ -76,14 +77,55 @@ ACK를 주지 않는다. Source/replica의 회전 threshold가 달라도 원본 
 [검증](../test-plan/evidence/supervised-recovery-delivery/README.md)은 40세션의 독립 threshold와
 실제 SOME/IP에서 새 세션 영속화 직후의 SIGKILL·재시작·유실 ACK 재전송을 포함한다.
 
+## 여러 송신원의 세션 순서
+
+`EpochMergedCollector`는 사전에 지정한 최대32개 replica family를 받는다. Root의
+`merge-sources`에 정렬된 stream ID 집합을 CRC·fsync와 함께 저장한다. 기존 history에 목록이
+없거나 재시작 때 목록을 변경하면 거절한다. 수신 traffic이나 timeout으로 참여자를 제외하지 않는다.
+모든 event는 replica 경로를 거치며 Central의 직접 merged append도 허용하지 않는다.
+
+각 stream은 단조 증가하는 epoch의 원본 Session 또는 Attempt로 다음 epoch를 시작한다.
+Collector는 stream당 미병합 entry 한 개만 영속화하고, 현재 epoch의 원본을 먼저 병합한다.
+모든 stream의 다음 entry가 더 새로운 경계에 도달해야 가장 작은 다음 epoch로 이동한다.
+같은 epoch의 Attempt를 Session보다 먼저 처리하므로 Central의 준비 실패 epoch를 건너뛰어
+가짜 global Session을 만들 필요가 없다. 뒤늦은 미기록 과거 epoch는 Conflict/incomplete다.
+
+ACK는 replica와 merged 양쪽에 원문이 영속화된 뒤에만 반환한다. 경계에서 기다리는 replica
+entry에는 NotReady/no ACK를 반환하며 후속 순번도 받지 않는다. 다음 retry에서 ACK를 받을 수 있다.
+프로세스 재시작은 replica별 ordinal1부터 같은 장벽으로 재조정한다. 이미 병합된 원문은 durable
+Duplicate이며, replica에만 남은 원문은 빠진 순서대로 병합한다. Projection은 Unknown으로 시작하고
+재전송으로 DTC count·generation·clear를 바꾸지 않는다. 원본 목록을 무한 vector로 복사하지 않는다.
+
+Central의 원본 Session 배포는 이 ACK 대기와 독립적이어야 한다. ContextualOutbox는 실제
+RunLease evidence로 Session을 수락하고 이전 pending event를 먼저 기록한다. Context 배포까지
+merged ACK에 종속시키면 Central Attempt와 원격 Session이 서로 기다리는 교착이 생긴다.
+
+[검증 근거](../test-plan/evidence/epoch-merge/README.md)는 서로 다른 회전 threshold·12세션
+reconciliation·목록 누락·저장 실패·한도를 검사한다. 실제 SOME/IP 시험은 원래 native
+Central/Front/Rear 관측을 고정한 세 stream의 전송이다. Front의 이전 tail을 지연하고 새 경계의
+ACK를 보류한 채 수집기를 SIGKILL한 뒤 원본을 끝까지 병합한다. 제어 실행은 논리 시간이고,
+3-process native 제어 런타임의 live family 전환이나 wall 수용을 의미하지 않는다.
+
+```sh
+cmake --build build/m5-someip-normal/project --target someip_epoch_merge_live
+python3 tests/integration/someip/diagnostics_run.py build/new-merge-run --cases epoch-merge-restart
+python3 tests/integration/diagnostics/audit_epoch_merge.py build/new-merge-run/epoch-merge-restart --output build/new-merge-audit.json --mutations
+```
+
+새 시험기의 diagnostic retry는 ACK가 없으면100→200→400→800→1000ms로 backoff하고,
+Accepted ACK에100ms로 돌아온다. SD availability만으로 TCP 재접속 완료를 판단하지 않는다.
+SDK queue8·원래 제어 기한은 그대로이며 overflow는 실패다. 기존 native 런타임의 retry 정책을
+일괄 변경한 것은 아니다.
+
 ## 남는 경계
 
 회수하는 것은 **활성 메모리·event/service 창**이다. 원본 파일을 자동 삭제해 디스크를 비우지
 않는다. 기본 segment 상한1024, 설정 가능 최대10000에서 증거를 보존하며 Capacity로 실패한다.
 이력 조회/재시작 비용은 보관량에 비례하고 실시간 작업이 아니다. 기존 단일-store archive 도구는
 family/checkpoint 형식을 받지 않는다. Family 보관·외부 이관/삭제 정책, 단일 장시간 epoch 중
-무중단 회전과 실제 전원/매체 검증은 후속이다. 여러 독립 source가 새 세션과 이전 세션의 미전달
-이력을 섞어 보내는 MergedCollector에는 별도의 세션 순서 장벽이 필요하다. 그 장벽 없이 family를
-대입하면 늦은 과거 event가 checkpoint 경계를 넘을 수 있으므로 기본 다중 ECU 경로를 바꾸지 않았다.
+무중단 회전과 실제 전원/매체 검증은 후속이다. 새 장벽은 고정 membership 전용이다. 기존 native
+런타임의18개 이전/후속 producer slot을 그대로 참여자로 넣으면 아직 시작하지 않은 송신원까지
+기다리게 된다. 실제 producer 교체·이전 prefix 종료 증거·Central local spool/context 배포를 연결한
+동적 membership과 live 런타임 전환은 별도로 구현·검증해야 한다. 이를 timeout으로 우회하지 않는다.
 
 [구현·시험 근거](../test-plan/evidence/remaining-improvements/README.md)를 따른다.

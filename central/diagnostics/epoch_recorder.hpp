@@ -30,6 +30,10 @@ public:
     std::uint64_t store_id() const noexcept;
     static constexpr std::uint32_t registry_revision() noexcept { return 4; }
     Entry committed(std::uint64_t ordinal) const;
+    // Fixed merge membership, persisted before the first merged entry. A
+    // restart cannot silently drop an unavailable source from its barrier.
+    void bind_merge_sources(std::vector<std::uint64_t> streams);
+    void restarted() noexcept;
 private:
     struct Impl;std::unique_ptr<Impl> impl_;
 };

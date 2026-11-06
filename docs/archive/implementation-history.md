@@ -537,6 +537,7 @@ timeout·입력 손실 및 ACK/통신 손실 고장별 실제 응답은 M9 후�
 | M9 BMS9·Power3·동시3 센서 고장·8-role 보호/물리/DTC·복구 | [센서 matrix](../test-plan/evidence/m9_sensor_matrix/README.md) · [protocol](../test-plan/native-sensor-matrix-protocol.md) |
 | M9 Release 전 Attempt·기동 ACK 누락·최초 deadline·실제 새 Release 복구 | [기동 진단 검증](../test-plan/evidence/m9_startup_sources/README.md) |
 | M9 Event-only wire·유한 spool·commit 후 ACK 유실·송수신 process 재시작 | [전송·spool 검증](../test-plan/evidence/m9_delivery_spool/README.md) |
+| M9 고정 source의 epoch 장벽·family·늦은 tail과 실제 SOME/IP 수집기 재시작 | [고정 집합 병합 검증](../test-plan/evidence/epoch-merge/README.md) |
 | M9 실제 SOME/IP/TCP·새 logical source·live writer·ACK 유실/replica 재시작 | [SOME/IP 진단 검증](../test-plan/evidence/m9_someip_live/README.md) |
 | M9 원격 accepted credit·Central 원본 context 대조·유한 대기·두 stream 독립 ACK | [원격 context component](../test-plan/evidence/m9_remote_context/README.md) |
 | M9 실제 native3-ECU·context2/source9·원본 검출/ACK·TCP·merged journal | [native 진단 배선](../test-plan/evidence/m9_native_routing/README.md) |

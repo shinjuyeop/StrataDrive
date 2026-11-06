@@ -17,10 +17,10 @@ import run as base
 
 ROOT = base.ROOT
 HERE = Path(__file__).resolve()
-CASES = ('normal', 'loss', 'drop-ack', 'restart', 'epoch-restart')
+CASES = ('normal', 'loss', 'drop-ack', 'restart', 'epoch-restart', 'epoch-merge-restart')
 
 
-def config(role, generation):
+def config(role, generation, case=''):
     name = 'diag-source' if role == 'publisher' else 'diag-replica'
     return {'unicast': '10.89.0.'+('1' if role == 'publisher' else '2'), 'netmask': '255.255.255.252',
             'network': 'sd-m9-'+role, 'routing': name,
@@ -29,8 +29,9 @@ def config(role, generation):
             'logging': {'level': 'warning', 'console': 'true', 'dlt': 'false'},
             'max-payload-size-reliable': 2048, 'max-payload-size-local': 4096,
             'endpoint-queue-limit-external': 16384, 'endpoint-queue-limit-local': 16384,
-            'services': [{'service': '0x5d10' if role == 'publisher' else '0x5d11', 'instance': '0x0001',
-                          'reliable': {'port': 40510 if role == 'publisher' else 40511, 'enable-magic-cookies': 'false'}}],
+            'services': [{'service': hex((0x5d10 if role == 'publisher' else 0x5d11)+2*i), 'instance': '0x0001',
+                          'reliable': {'port': (40510 if role == 'publisher' else 40511)+2*i, 'enable-magic-cookies': 'false'}}
+                         for i in range(3 if case == 'epoch-merge-restart' else 1)],
             'service-discovery': {'enable': 'true', 'multicast': '239.255.9.1', 'port': 30499, 'protocol': 'udp',
                                   'initial_delay_min': 10, 'initial_delay_max': 50, 'repetitions_base_delay': 100,
                                   'repetitions_max': 3, 'ttl': 3, 'cyclic_offer_delay': 500}}
@@ -60,7 +61,7 @@ def inside(folder, binary, case):
               'clock_sample': {'wall_ns': time.time_ns(), 'monotonic_ns': time.monotonic_ns()}}
     def call(args): return subprocess.check_output(list(map(str, args)), stderr=subprocess.STDOUT, text=True)
     def launch(role, generation=1):
-        name = f'{role}-{generation}'; cfg = folder/(name+'.config.json'); base.save(cfg, config(role, generation))
+        name = f'{role}-{generation}'; cfg = folder/(name+'.config.json'); base.save(cfg, config(role, generation, case))
         env = dict(os.environ, VSOMEIP_CONFIGURATION=str(cfg), VSOMEIP_APPLICATION_NAME='diag-source' if role == 'publisher' else 'diag-replica',
                    LD_LIBRARY_PATH=str(binary.parents[4]/'install/lib'), ASAN_OPTIONS='halt_on_error=1:detect_leaks=1',
                    UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1', TSAN_OPTIONS='halt_on_error=0:exitcode=66')
@@ -100,7 +101,7 @@ def inside(folder, binary, case):
         base.wait_for(lambda: (folder/'capture.ready').exists())
         receiver = launch('replica'); publisher = launch('publisher')
         wait(lambda: (folder/'publisher.csv').exists()); snapshot('publisher', 1, publisher); snapshot('replica', 1, receiver)
-        if case in ('restart', 'epoch-restart'):
+        if case in ('restart', 'epoch-restart', 'epoch-merge-restart'):
             wait(lambda: (folder/'restart-needed').exists(), 30)
             result['injected_replica_kill'] = {'pid': receiver.pid, 'monotonic_ns': time.monotonic_ns()}
             receiver.kill(); receiver.wait(timeout=5)
@@ -132,7 +133,7 @@ def inside(folder, binary, case):
 
 def main():
     parser = argparse.ArgumentParser(); parser.add_argument('--inside', nargs=3); parser.add_argument('--node', nargs=5); parser.add_argument('--capture', type=Path)
-    parser.add_argument('--profile', choices=('normal', 'asan', 'tsan'), default='normal'); parser.add_argument('--cases', nargs='+', choices=CASES, default=list(CASES))
+    parser.add_argument('--profile', choices=('normal', 'asan', 'tsan'), default='normal'); parser.add_argument('--cases', nargs='+', choices=CASES, default=list(CASES[:-1]))
     parser.add_argument('--fixed-layout', action='store_true', help='TSan only: process-local setarch -R; no global kernel changes')
     parser.add_argument('output', nargs='?', type=Path); args = parser.parse_args()
     if args.capture: return capture(args.capture)
@@ -149,8 +150,10 @@ def main():
                                          binary=str(binary), binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest()))
         results = []
         for case in args.cases:
+            selected = binary.with_name('someip_epoch_merge_live') if case == 'epoch-merge-restart' else binary
             dest = folder/case; dest.mkdir()
-            command = ['unshare', '-Urnm', sys.executable, str(HERE), '--inside', str(dest), str(binary), case]
+            base.save(dest/'binary.json', dict(path=str(selected), sha256=hashlib.sha256(selected.read_bytes()).hexdigest()))
+            command = ['unshare', '-Urnm', sys.executable, str(HERE), '--inside', str(dest), str(selected), case]
             if args.fixed_layout: command = ['setarch', 'x86_64', '-R', *command]
             code = base.supervise(command, dest, 80)
             results.append(dict(case=case, exit=code)); base.save(folder/'results.json', results)

@@ -1,0 +1,70 @@
+{
+  "ok": true,
+  "streams": [
+    {
+      "stream": 7200,
+      "segments": 2,
+      "entries": 2,
+      "active_entries": 1,
+      "limit": 64
+    },
+    {
+      "stream": 7201,
+      "segments": 2,
+      "entries": 6,
+      "active_entries": 3,
+      "limit": 64
+    },
+    {
+      "stream": 7202,
+      "segments": 2,
+      "entries": 7,
+      "active_entries": 3,
+      "limit": 64
+    }
+  ],
+  "merged": {
+    "stream": 7900,
+    "segments": 2,
+    "entries": 11,
+    "active_entries": 5,
+    "limit": 128
+  },
+  "old_prefix_at_kill": 2,
+  "faults": 2,
+  "passed": 2,
+  "physical_samples": 2400,
+  "scope": "frozen native Central/Front/Rear events over real SOME/IP; fixed membership",
+  "mutations": [
+    {
+      "mutation": "original_changed",
+      "rejected": true,
+      "reason": "original/source/replica prefix mismatch"
+    },
+    {
+      "mutation": "membership_dropped",
+      "rejected": true,
+      "reason": "unpack requires a buffer of 40 bytes"
+    },
+    {
+      "mutation": "missing_old_segment",
+      "rejected": true,
+      "reason": "[Errno 2] No such file or directory: '/tmp/stratadrive-merge-audit-8jt8zc8y/cohort/replica-store/merged/00000001/manifest'"
+    },
+    {
+      "mutation": "premature_ack",
+      "rejected": true,
+      "reason": "ACK before merged epoch commit"
+    },
+    {
+      "mutation": "missing_delayed_tail",
+      "rejected": true,
+      "reason": "delayed old tail missing after restart"
+    },
+    {
+      "mutation": "unexpected_exit",
+      "rejected": true,
+      "reason": "exact injected exits"
+    }
+  ]
+}

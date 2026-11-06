@@ -1,4 +1,4 @@
-# 설계 결정 기록 · ADR-0001–0109
+# 설계 결정 기록 · ADR-0001–0110
 
 이 문서는 당시 결정과 검토를 보존한 기록이다. 현재 상태는 [프로젝트 상태](../project-status.md), 현재 계약은 [문서 안내](../README.md)를 따른다. 과거의 “다음 작업/미구현”은 현재 지시가 아니다.
 
@@ -111,6 +111,7 @@
 - [ADR-0107: 가용력 목표와 상태 기반 M10 Host 속도 제안](#adr-0107)
 - [ADR-0108: Native 속도 감독의 원천별 유효기간과 보호 연결](#adr-0108)
 - [ADR-0109: 감독 요청의 qualified 복구와 세션별 송수신 기록](#adr-0109)
+- [ADR-0110: 고정 송신원 집합의 원본 epoch 장벽](#adr-0110)
 
 <a id="adr-0001"></a>
 
@@ -6072,3 +6073,19 @@ Outbox/Inbox는 같은 wire format과 registry4로 ACK/retry를 유지한다. �
 wire event로 보내지 않는다. Source/replica가 다른 threshold로 회전해도 exact bytes가 같아야 한다.
 기본 다중 source MergedCollector는 늦은 이전 epoch event에 대한 순서 장벽이 마련될 때 적용한다.
 [계약](../interfaces/epoch-retention.md)과 [실행 근거](../test-plan/evidence/supervised-recovery-delivery/README.md)를 따른다.
+
+<a id="adr-0110"></a>
+
+## ADR-0110: 고정 송신원 집합의 원본 epoch 장벽
+
+2026-11-06. 여러 source의 도착 순서대로 EpochRecorder에 append하면 먼저 도착한 새 Session이
+checkpoint를 만들고 늦은 과거 원본을 거절한다. 새 EpochMergedCollector는 고정 stream 목록을
+영속화하고 각 순서 보장 stream의 실제 다음 Session/Attempt까지 이전 tail을 먼저 병합한다.
+Stream당 대기 entry는 한 개이며 replica와 merged 양쪽 commit 전에는 ACK를 주지 않는다.
+재시작도 같은 순서로 원본을 재조정하고 현재 condition은 Unknown으로 둔다.
+
+Central의 context 배포는 merged ACK와 독립적이어야 한다. 준비 실패 epoch에 remote Session을
+만들지 않으며, 누락된 producer를 timeout으로 제외하지 않는다. 기존 교체 producer18개 manifest와
+live native 런타임은 이전 producer 종료 증거/동적 membership 연결 뒤 적용한다.
+실제 SOME/IP 시험은 논리 native 원본의 세 stream이며 live 제어 timing 판정과 구분한다.
+[계약](../interfaces/epoch-retention.md)과 [실행 근거](../test-plan/evidence/epoch-merge/README.md)를 따른다.

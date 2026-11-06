@@ -295,4 +295,31 @@ TEST_F(RemoteDiagnosticsContext, CentralLineageIsExplicitBoundedAndCannotBeLearn
     ContextualOutbox out(source,manifest(),std::vector<CentralIssuer>{{20,1},{(1ULL<<32)|20,2}});
     auto unknown=global;unknown.id.producer=21;unknown.source.producer=21;EXPECT_EQ(out.context(unknown,evidence),Result::Invalid);EXPECT_TRUE(source.committed().empty());EXPECT_TRUE(out.healthy());
 }
+TEST_F(RemoteDiagnosticsContext, EpochFamilyRestoresOriginalContextAndReplaysGlobalOrdinals) {
+    const auto path=root/"family";
+    EpochRecorder::initialize(path.string(),101,{{32,8,8,8},2,8});
+    Event first_session,first_fault;
+    {
+        EpochRecorder store(path.string());ContextualOutbox out(store,manifest(),central_id);
+        for(unsigned epoch=1;epoch<=3;++epoch) {
+            release(epoch);const auto evidence=credit();const auto original=fault(30,epoch,epoch);
+            EXPECT_EQ(out.submit(original),Result::Accepted);EXPECT_EQ(out.pending(),1U);
+            EXPECT_EQ(out.context(global,evidence),Result::Accepted);EXPECT_EQ(out.pending(),0U);
+            if(epoch==1){first_session=global;first_fault=original;}
+        }
+        EXPECT_EQ(store.segment(),3U);EXPECT_EQ(store.watermark(),6U);
+    }
+    EpochRecorder store(path.string());ContextualOutbox out(store,manifest(),central_id);
+    EXPECT_EQ(out.restore({}),Result::Invalid);
+    EXPECT_EQ(out.restore(credit()),Result::Duplicate);EXPECT_EQ(store.watermark(),6U);
+    ASSERT_TRUE(out.next());EXPECT_EQ(encode(std::get<wire::Data>(wire::decode(*out.next())).event),encode(first_session));
+    std::uint64_t ordinal=0;
+    while(const auto bytes=out.next()) {
+        const auto d=std::get<wire::Data>(wire::decode(*bytes));EXPECT_EQ(d.sequence,++ordinal);EXPECT_EQ(d.registry,4U);
+        if(ordinal==2){EXPECT_EQ(encode(d.event),encode(first_fault));}
+        EXPECT_EQ(out.acknowledge(wire::encode(wire::Ack{d.stream,d.sequence,d.registry,wire::event_crc(d.event)})),Result::Accepted);
+    }
+    EXPECT_EQ(ordinal,6U);EXPECT_EQ(out.ledger().find(first_fault.key)->count,3U);
+    EXPECT_EQ(out.ledger().find(first_fault.key)->condition,Condition::Unknown);
+}
 } // namespace
