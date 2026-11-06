@@ -5,6 +5,9 @@
 #include "run_lease_issuer.hpp"
 #include "wheel_contract.hpp"
 #include "wall_execution_watch.hpp"
+#include "native_diagnostics.hpp"
+#include "owner_diagnostics.hpp"
+#include "diagnostic_response.hpp"
 #include <deque>
 #include <functional>
 
@@ -150,6 +153,10 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::unique_ptr<diagnostics::EventQueue> startup_events,control_events;
     std::unique_ptr<diagnostics::StartupDiagnostics> startup_diagnostics;
     std::unique_ptr<diagnostics::ControlDiagnostics> control_diagnostics;
+    std::array<std::unique_ptr<diagnostics::EventQueue>,5> command_events;
+    std::array<std::unique_ptr<diagnostics::NativeDiagnostics>,2> gateway_diagnostics;
+    std::array<std::unique_ptr<diagnostics::OwnerDiagnostics>,3> leaf_diagnostics;
+    DiagnosticResponse command_response;
     bool diagnostic_session=false;std::array<bool,7> diagnostic_selected{};
     bool protection_requested=false,terminal_response=false;
     Time protection_since=0;
@@ -217,14 +224,35 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         startup_diagnostics=std::make_unique<diagnostics::StartupDiagnostics>(*startup_events,context,diagnostics::Component::Coordinator,8,true);
         auto control_context=context;control_context.producer=8;
         control_diagnostics=std::make_unique<diagnostics::ControlDiagnostics>(*control_events,control_context);
+        const std::array<diagnostics::Component,5> actors{diagnostics::Component::Front,diagnostics::Component::Rear,
+            diagnostics::Component::Steering,diagnostics::Component::Brake,diagnostics::Component::Drive};
+        for(unsigned i=0;i<5;++i) {
+            auto c=context;c.producer=i<2?30+i:20+i;
+            command_events[i]=std::make_unique<diagnostics::EventQueue>(scope.run,c.producer);
+            if(i<2)gateway_diagnostics[i]=std::make_unique<diagnostics::NativeDiagnostics>(*command_events[i],c,actors[i]);
+            else leaf_diagnostics[i-2]=std::make_unique<diagnostics::OwnerDiagnostics>(*command_events[i],c,actors[i]);
+        }
         zones[0].work.delivery(&command_omission);zones[0].results.delivery(&ack_omission);
     }
     void sample_diagnostics(Time now) {
         if(!control_diagnostics)return;
         startup_diagnostics->attempt(coordinator.plan());
         startup_diagnostics->observe(coordinator.fault_observation(),coordinator.success_observation(),coordinator.run_enabled(),coordinator.run_enabled(),now);
-        if(!diagnostic_session && coordinator.run_enabled())diagnostic_session=control_diagnostics->start_session(scope.application,coordinator.plan().enable_ns,false);
+        if(!diagnostic_session && coordinator.run_enabled()) {
+            const auto enable=coordinator.plan().enable_ns;
+            diagnostic_session=control_diagnostics->start_session(scope.application,enable,false);
+            for(auto& d:gateway_diagnostics)require(d->start_session(scope.application,enable),"gateway diagnostic session");
+            for(auto& d:leaf_diagnostics)require(d->start_session(scope.application,enable),"leaf diagnostic session");
+        }
         if(!diagnostic_session)return;
+        for(unsigned i=0;i<2;++i) {
+            const auto& g=zone[i]->command_gateway();auto& d=*gateway_diagnostics[i];
+            d.observe(diagnostics::NativeMonitor::CommandGateway,g.fault_observation(),std::nullopt,g.success_observation(),
+                !zone[i]->faulted(),gates[i].allows(scope.application),now);
+            d.selection(diagnostics::NativeMonitor::CommandGateway,zone[i]->protection_ack_ns(),true);
+        }
+        for(unsigned i=0;i<3;++i)leaf_diagnostics[i]->leaf(leaf[i]->expiry_observation(),leaf[i]->command_success_observation(),
+            !leaf[i]->faulted(),gates[i+2].allows(scope.application),leaf[i]->protection_selected_ns(),now);
         control_diagnostics->observe(speed_request,core,now);
         const auto feedback=port.feedback();control_diagnostics->observe_response(feedback,now);
         for(unsigned i=0;i<7;++i) {
@@ -472,6 +500,11 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             require(control_diagnostics->healthy() && startup_diagnostics->healthy(),"diagnostic capture incomplete");
             std::vector<diagnostics::Event> batch;diagnostics::Event event;
             for(auto* queue:{startup_events.get(),control_events.get()})while(queue->pop(event))batch.push_back(event);
+            for(unsigned i=0;i<5;++i) {
+                require(i<2?gateway_diagnostics[i]->healthy():leaf_diagnostics[i-2]->healthy(),"command diagnostic capture incomplete");
+                while(command_events[i]->pop(event)) {command_response.root(event);batch.push_back(event);}
+            }
+            command_response.observe(port.feedback(),observed,[&](const auto& e){batch.push_back(e);});
             if(!batch.empty())r.diagnostic_events=std::make_shared<const std::vector<diagnostics::Event>>(std::move(batch));
         }
         r.speed_fault=static_cast<int>(speed_request.fault());r.stop_state=core.decision().stop.state;r.stop_fault=static_cast<int>(core.decision().stop.fault);r.power_off=core.decision().management.power_off_confirmed;

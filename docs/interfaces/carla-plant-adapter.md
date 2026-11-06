@@ -57,6 +57,17 @@ Drive와 friction을 분리하고 회생을 friction으로 적용한 뒤 배터�
 덮는지 검사한다. Command는 proof이며 적용 입력은 Actual이다. Arm 후 비정상 mode/authority는 거부한다.
 전용 INIT offset8ms·기본 Controller 시작 위상14ms는 functional 경계이며 wall jitter 여유가 아니다.
 
+M9 STOP30 기능 시험의 명시적 `--sampled-actual` 선택은
+[sampled-actual-v1 계약](../test-plan/carla-sampled-actual-protocol.md)을 따른다.
+이 경우 normal Command와 parent/input의 원래 age·expiry는 현재 barrier에서 검사하고,
+Actual·wheel·capability·permission·RunLease는 계속 전체 다음10ms를 덮어야 한다.
+측정 Actual을10ms 동안 유지하는 물리 모델이므로 command expiry가 그 구간 안에 있을 수
+있으며 원래 만료를 receipt에 그대로 기록한다. Native watchdog 기한은 늘리지 않는다.
+다음 barrier에는 실제 native 결과가 필요하고 보호 전환의 원본 선택·새 Actual 조건은 유지한다.
+Trusted launch에서 INIT 전에 선택하고 native/client/server 선언을 독립 감사한다.
+물리 응답의 해상도는10ms이며 subinterval 연속 물리·wall·Target 수용 근거가 아니다.
+기본 whole-interval gate와 wall profile은 유지한다.
+
 하나의 run/plant/actor/frame/token에4wheel의 steer/motor/friction을 원자적으로 stage한다.
 Pre-physics ACK는 staged 상태일 뿐 적용/에너지 증거가 아니다. 같은 token 재조회는 tick하지 않는다.
 물리 직전 다시 source/expiry·scope/latch를 검사한다. NoDrive setter는 지속 API이므로 post-physics

@@ -32,7 +32,7 @@ Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revis
 | TBD-05 | middleware·격리·bridge/discovery / 통신 | Host vSomeIP3.7.6 한정 사용; DDS 제어 gate CLOSED. Target은 배포 전 결정 |
 | TBD-06 | 배분·충돌/가용성·local protection·DEGRADED / 차량 제어 | M4 component 구현. M8 전 회생/마찰 전환·차량 envelope 검증 |
 | TBD-07 | CARLA/UE/client·map/route·tick·fidelity / simulation | 고정 source/Town03/V1의 simulation 기능 수용. 비영상 wall5ms는 제한 검증;영상·서버 종료·전체 renderer 안정성 OPEN; M8 고정 S01/S02/S03 경로 적합성 검증 |
-| TBD-08 | DTC code·debounce·persistence·clear / diagnostics | [v0.1 집계/store component](interfaces/diagnostics.md) 구현·검증; 실제 monitor의 predicate·전달·부하·수용 전 OPEN |
+| TBD-08 | DTC code·debounce·persistence·clear / diagnostics | [계약](interfaces/diagnostics.md)과 실제 monitor·전달·유한 부하·simulation10ms 기능 [M9 기술 검증](test-plan/evidence/m9_followup/README.md) 완료; 학습자 최종 수용·wall/Target·무제한 보존 별도 |
 | TBD-09 | Jetson board/RAM·platform stack·모델/workload·측정 / compute·AI | M10 model fixture·M12 독립 보드 비교 전 |
 | TBD-10 | perception/planner shape·history·risk·fallback / AI·safety | M10–M11 통합 전 |
 | TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. S03 v1 구동 포화 FAIL 보존; v2 startup20s/감속6s 고정. 추진 포화 feedback·관성 필요조건 검증; 동적 가용력 기반 참조·제동 측 포화 OPEN; M10 모델 도입 전 갱신 |
@@ -111,8 +111,12 @@ trusted Clock 재검증/100ms 정상 source와 Power5조건의8-role 차량 복�
 연결한다. Debug/ASan·UBSan/TSan 각각88개와 차량12조건이 통과했다. 비활성 store의
 독점 잠금 archive/새 directory 복원은 실제36개 journal의 byte 동일성과 독립 재감사를 검증했다.
 긴 native 서비스/CPU 부하의 고정 cohort 판정과 초기 실패는 같은 근거에서 관리한다.
-남은 기능은 부하 시 명령 갱신 지연과 silent packet loss의 실제 CARLA subinterval 연결이다. 자동 장기 상태 이관·
-용량 회수, 다른 kernel/Target Clock 운영과 학습자 수용은 이번 유한 Host 검증과 구분한다.
+[M9 마감 근거](test-plan/evidence/m9_followup/README.md)는 SDK FIFO1의 고정 finite soak7/7과
+서비스18/18, 실제 CARLA 기본 정상1·sampled 정상1·silent loss2의4/4를 검증했다.
+원래 source/expiry와 native watchdog은 유지하고 CARLA 물리는 명시적10ms sample/hold로
+수용한다. 실제 native SD-2001·fresh Actual·차량 정지·durable journal·동일 native 관측
+재현을 연결했다. 선언한 M9 Host/기능 범위는 CLOSED다. 자동 장기 상태 이관·용량 회수,
+다른 kernel/Target Clock 운영과 학습자 수용은 별도다. 다음은 M10의 모델 경계와 수용 조건 확정이다.
 DDS control gate CLOSED는 별도 대안 상태이며 이 SOME/IP 경로의 선행 작업이 아니다.
 실제 ACK/전체 통신 손실의 고장 위치·기대 물리 동작은 시험 전에 확정한다.
 단순 다음 tick 차단을 차량 정지로 세지 않는다. 검증된 정상 fixture와 무관한 새 경로·

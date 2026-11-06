@@ -67,6 +67,10 @@ def frame(r, role, actual, require_wheel=True):
 def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
     report=json.loads((directory/'result.json').read_text())
     b=report['binding'];initial=round(b['simulation_seconds']*1e9)
+    profile=report.get('admission_profile','whole-interval-v1')
+    check(profile in ('whole-interval-v1','sampled-actual-v1') and b.get('admission_profile','whole-interval-v1')==profile,'declared admission profile')
+    sampled=profile=='sampled-actual-v1'
+    if sampled:check(work_mode and report.get('speed_terminal')=='normal-stop30','sampled diagnostic work scope')
     path=directory/'trace.jsonl'
     opening=open if path.exists() else gzip.open
     if not path.exists():path=path.with_suffix('.jsonl.gz')
@@ -92,6 +96,10 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                       (report['fault']=='rgb-drop' and row['native']['admission']['ok'] and 'fault_observed' in report),
                       'unexpected incomplete interval');continue
             n=row['native'];proof=n['native_export'];r=row['receipt'];out=r['original_actual']['admitted_actual']
+            command_end=ns if sampled else ns+10000000
+            if sampled:
+                check(r.get('admission_profile')==n['admission'].get('admission_profile')==profile,'independent sampled profile agreement')
+                check(int(out['command_checked_through_ns'])==int(n['admission']['command_checked_through_ns'])==command_end,'explicit command authority horizon')
             check(n['now_ns']==ns and proof['observed_ns']==str(ns),'native original clock')
             check(all(r[k]==b[k] for k in ('run','session','actor','application','model_id','model_sha256','effort_profile')),'binding')
             check(r['clock_domain']=='m7-native-simulation-elapsed' and r['source_identity']=='native-eight-role-CAN-P05-Actual; authenticated-local-owner','receipt provenance')
@@ -168,6 +176,7 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                     check(pe==epoch==42 and pc==seq and source<=ps<=ns and oldest<=power_source<=ps and
                           ns+10000000-ps<=50000000 and ns+10000000-source<=50000000 and
                           ns+10000000-oldest<=70000000 and ns+10000000<min(expiry,parent_expiry),'permission whole interval')
+                    original_expiry=min(credit[2],expiry)
                     for role,packet in enumerate(proof['commands']):
                         q=wire(packet,0 if role<2 else 1,role+2,5)
                         epoch,token,sent,deadline,op=q.get('IQQQI');command=frame(q,role,False)
@@ -176,9 +185,11 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                         oldest,expiry=q.get('QQ');act=actuals[role]
                         check(act['state'] in (1,2) and act['origin']==1 and act['causal']==command['seq'] and command['causal']==parent_seq,'causal native NormalPath')
                         check(parent_epoch==42 and command['epoch']==42 and oldest<=parent_source<=command['source']<=act['source'] and
-                              ns+10000000-parent_source<=30000000 and ns+10000000-command['source']<=30000000 and ns+10000000-oldest<=70000000 and
-                              ns+10000000<expiry<=min(parent_expiry,command['source']+30000001,parent_source+30000001,oldest+70000001),'command whole interval')
+                              command_end-parent_source<=30000000 and command_end-command['source']<=30000000 and command_end-oldest<=70000000 and
+                              command_end<expiry<=min(parent_expiry,command['source']+30000001,parent_source+30000001,oldest+70000001),'original command authority at declared horizon')
+                        original_expiry=min(original_expiry,expiry)
                         min_margin=min(min_margin,expiry-(ns+10000000))
+                    check(int(out['exclusive_expiry_ns'])==original_expiry,'original expiry retained without renewal')
                 elif protecting:
                     check(all(x['state']==3 and x['origin']==2 and x['source']>=protection_since for x in actuals),'original LocalProtection Actual')
                     check(int(out['exclusive_expiry_ns'])==min(*sources,drive['wheel_source'])+30000001,'protection original freshness limit')
@@ -199,7 +210,7 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
             speed.append(r['physics']['body_forward_velocity_m_s']);torques.append(torque)
             count+=1;last_frame=int(r['frame']);last_end=r['simulation_end_seconds']
     check(count==report['receipts'] and normal==report['normal_intervals'] and empty==report['empty_init_intervals'],'reported counts')
-    return dict(status='PASS_INDEPENDENT_FUNCTIONAL_AUDIT',receipts=count,normal_intervals=normal,empty_init_intervals=empty,
+    return dict(status='PASS_INDEPENDENT_FUNCTIONAL_AUDIT',admission_profile=profile,receipts=count,normal_intervals=normal,empty_init_intervals=empty,
                 max_whole_interval_source_age_ns=max_age,min_command_expiry_margin_ns=min_margin,max_wheel_quantization_error_rad_s=max_quant,
                 torque_nm_range=[min(torques),max(torques)],final_forward_velocity_m_s=speed[-1],interval_work_valid=work_mode,
                 protection_intervals=protection_count,normal_stop_intervals=stop_count)

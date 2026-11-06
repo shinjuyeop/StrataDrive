@@ -96,19 +96,23 @@ int main(int argc,char** argv) {
             if(used!=value.size())throw std::runtime_error("invalid simulation horizon");
             horizon_set=true;
         }
-        if(horizon_set && argc>12)throw std::runtime_error("simulation horizon option bound");
+        if(horizon_set && argc>14)throw std::runtime_error("simulation horizon option bound");
         FunctionalRig rig({run,static_cast<std::uint32_t>(app),static_cast<std::uint32_t>(plant)},static_cast<std::uint32_t>(actor),
             solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting,horizon);
-        bool scenario_loaded=false;
+        bool scenario_loaded=false,sampled_actual=false,diagnostic_selected=false;
         for(int arg=6;arg<argc;arg+=2) {
             if(std::string(argv[arg])=="--sim-horizon-ms")continue;
-            if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route" && std::string(argv[arg])!="--diagnostic-fault")throw std::runtime_error("simulation horizon excludes wall policy");
+            if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route" && std::string(argv[arg])!="--diagnostic-fault" && std::string(argv[arg])!="--admission-profile")throw std::runtime_error("simulation horizon excludes wall policy");
             if(!solver_work)throw std::runtime_error("options require solver-work mode");
+            if(std::string(argv[arg])=="--admission-profile") {
+                if(sampled_actual || !horizon_set || std::string(argv[arg+1])!="sampled-actual-v1")throw std::runtime_error("sampled Actual profile");
+                sampled_actual=true;continue;
+            }
             if(std::string(argv[arg])=="--diagnostic-fault") {
                 const std::array<std::string,6> names{"none","input-loss","stop-ack-loss","front-command-loss","braking-timeout","front-link-failure"};
                 const auto found=std::find(names.begin(),names.end(),argv[arg+1]);
                 if(found==names.end())throw std::runtime_error("diagnostic fault recipe");
-                rig.diagnostic_profile(static_cast<DiagnosticFault>(1+std::distance(names.begin(),found)));continue;
+                rig.diagnostic_profile(static_cast<DiagnosticFault>(1+std::distance(names.begin(),found)));diagnostic_selected=true;continue;
             }
             if(std::string(argv[arg])=="--route") {
                 if(!horizon_set)throw std::runtime_error("route requires simulation horizon");
@@ -154,6 +158,7 @@ int main(int argc,char** argv) {
             rig.request_profile(std::move(phases));
         }
         if(!response_path.empty() && wall_path.empty())throw std::runtime_error("wall response requires wall watch");
+        if(sampled_actual && !diagnostic_selected)throw std::runtime_error("sampled Actual requires diagnostic STOP30 scope");
         std::cout<<std::setprecision(17);
         std::string line;
         std::unique_ptr<stratadrive::m7_native::Admission> admission;
@@ -332,7 +337,8 @@ int main(int argc,char** argv) {
                 std::cout<<",\"credit\":";packets(e.credit);
                 std::cout<<",\"permission\":";packet(e.permission);
                 std::cout<<",\"protection_since_ns\":\""<<e.protection_since<<"\",\"protection_selected_mask\":"<<e.protection_selected_mask<<'}';
-                if(!admission)admission=std::make_unique<stratadrive::m7_native::Admission>(static_cast<std::uint32_t>(app),r.now);
+                if(!admission)admission=std::make_unique<stratadrive::m7_native::Admission>(static_cast<std::uint32_t>(app),r.now,
+                    sampled_actual?stratadrive::m7_native::ClockPolicy::FunctionalSampledActual:stratadrive::m7_native::ClockPolicy::Functional);
                 stratadrive::m7_native::Input input;
                 input.observed=e.observed;input.enable=e.enable;input.normal=e.normal;
                 input.protection_since=e.protection_since;input.protection_selected_mask=e.protection_selected_mask;
@@ -347,7 +353,8 @@ int main(int argc,char** argv) {
                     <<"\",\"empty\":"<<(out.empty?"true":"false")<<",\"normal\":"<<(out.normal?"true":"false")
                     <<",\"normal_stop\":"<<(out.normal_stop?"true":"false")<<",\"protection\":"<<(out.protection?"true":"false")<<",\"angle_rad\":"<<out.angle<<",\"torque_nm\":"<<out.torque<<",\"pressure_pa\":"<<out.pressure
                     <<",\"oldest_actuator_ns\":\""<<out.oldest_actuator<<"\",\"oldest_dependency_ns\":\""<<out.oldest_dependency
-                    <<"\",\"exclusive_expiry_ns\":\""<<out.exclusive_expiry<<"\"}";
+                    <<"\",\"exclusive_expiry_ns\":\""<<out.exclusive_expiry<<"\",\"admission_profile\":\""<<(sampled_actual?"sampled-actual-v1":"whole-interval-v1")
+                    <<"\",\"command_checked_through_ns\":\""<<(sampled_actual?r.now:r.now+stratadrive::m7_native::step)<<"\"}";
             }
             if(external) {
                 std::cout<<",\"energy_basis\":\""<<(solver_work?"OBSERVED_SOLVER_WORK_SINGLE_EV":(exporting?"MODEL_ZOH_PREDICTION_NOT_CARLA_WORK":"MODEL_ZOH_UNAPPLIED"))

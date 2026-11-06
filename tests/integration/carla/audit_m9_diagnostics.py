@@ -10,7 +10,14 @@ import sys
 from evidence_io import json_rows
 from audit_m7_1q_native import check, frame, wire
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'diagnostics'))
-from audit_control_diagnostics import event, journal
+from audit_control_diagnostics import event, journal, Reader
+
+
+def diagnostic_event(raw):
+    decoded=event(raw)
+    reader=Reader(raw);reader.uint(1);reader.uint(2);reader.identity()
+    decoded['_related']=reader.identity() # Full original run/producer/sequence, not sequence alone.
+    return decoded
 
 
 def load(directory):
@@ -44,7 +51,7 @@ def load(directory):
     check(captured==original,'journal equals every original native event byte in order')
     frozen=directory/'frozen-route.json'
     check(hashlib.sha256(frozen.read_bytes()).hexdigest()==result['route_profile']['sha256'],'frozen route hash')
-    return dict(result=result,server=server,events=[event(raw) for raw in original],samples=samples,actuals=actuals,origin=origin,recipe=recipe)
+    return dict(result=result,server=server,events=[diagnostic_event(raw) for raw in original],samples=samples,actuals=actuals,origin=origin,recipe=recipe)
 
 
 def judge(d):
@@ -62,21 +69,26 @@ def judge(d):
     if recipe==1:
         check(not roots and rows[-1]['stop_state']==5,'nominal completion without false DTC')
     else:
-        expected={2:0x1001,3:0x1102,5:0x1101,6:0x1002}
+        expected={2:0x1001,3:0x1102,4:0x2001,5:0x1101,6:0x1002}
         check(recipe in expected,'qualified physical fault recipe')
         matched=[e for e in roots if e['code']==expected[recipe]]
+        if recipe==4:
+            matched=[e for e in matched if {a['source_producer'] for a in events if a['kind']==4 and a['_related']==e['_id'] and a['_occurrence']==e['_occurrence']}>={4,5,11}]
         check(len(matched)==1,'original declared detector DTC')
         root=matched[0];check(root['epoch']==42 and not root['_unmapped'] and root['detected_ns']>=triggered[0]['trigger'],'trusted original occurrence')
         check(not any(e['kind']==5 for e in events),'fault is not automatically Passed')
-        selected=[e for e in events if e['kind'] in (2,3) and e['related_sequence']==root['event_sequence']]
+        selected=[e for e in events if e['kind'] in (2,3) and e['_related']==root['_id'] and e['_occurrence']==root['_occurrence']]
         check(selected and all(max(e['selected_ns'],e['acknowledged_ns'])>=root['detected_ns'] for e in selected),'actual protection follows detection')
         response=[x for x in rows if x['now']>=root['detected_ns'] and x['protection'] and abs(x['torque'])<=1 and x['pressure']>=1_000_000]
         check(response,'original protection Actual response')
-        actual=[e for e in events if e['kind']==4 and e['related_sequence']==root['event_sequence']]
+        actual=[e for e in events if e['kind']==4 and e['_related']==root['_id'] and e['_occurrence']==root['_occurrence']]
         check({e['source_producer'] for e in actual}>={4,5,11},'DTC retains torque pressure and wheel acquisitions')
         check(all(e['actual_source_ns']>=root['detected_ns'] for e in actual),'response acquisition follows original detector')
         check(all(d['actuals'].get((e['source_producer'],e['actual_source_ns']))==e['measured'] for e in actual),'DTC response equals original CAN P05 acquisition')
-        if recipe in (3,6):check(rows[-1]['omissions']>0,'actual transport injection')
+        if recipe in (3,4,6):check(rows[-1]['omissions']>0,'actual transport injection')
+        if recipe==4:
+            check(r.get('admission_profile')=='sampled-actual-v1','silent loss uses declared sampled physical profile')
+            check(root['detected_ns']>triggered[0]['trigger'],'silent loss is detected after actual omission, not preselected protection')
         if recipe==5:
             check(root['native_reason']==8 and root['_times'][1]['ns']==triggered[0]['trigger']+10_000_000_000,'original ten-second braking timeout')
             check(root['_times'][1]['ns']<=root['detected_ns']<=root['_times'][1]['ns']+1_000_000,'original detector invocation')
@@ -93,6 +105,7 @@ def mutations(d):
     checks=[('plateau',lambda x:x['samples'][2600].__setitem__('body',0)),('global-session',lambda x:x['events'].clear())]
     if d['recipe']!=1:
         checks += [('code',lambda x:[e.__setitem__('code',0) for e in x['events'] if e['kind']==1]),
+                   ('foreign-producer-link',lambda x:[e.__setitem__('_related',(e['_related'][0],e['_related'][1]+1,e['_related'][2])) for e in x['events'] if e['kind']==4]),
                    ('physical-response',lambda x:[r.__setitem__('protection',False) for r in x['samples']]),
                    ('detection',lambda x:[e.__setitem__('detected_ns',0) for e in x['events'] if e['kind']==1])]
     for name,change in checks:

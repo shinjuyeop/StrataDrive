@@ -45,7 +45,9 @@ def main():
     p.add_argument('--propulsion-aware', action='store_true')
     p.add_argument("--speed-terminal",choices=("none","normal-stop","input-loss","stop-protection"),default="none")
     p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
+    p.add_argument('--sampled-actual',action='store_true')
     a = p.parse_args()
+    require(not a.sampled_actual or (a.diagnostic_fault is not None and a.solver_work),'sampled Actual diagnostic work scope')
     require(not (a.record_video or a.live_view) or (a.cameras and a.fault=='none'), 'video requires nominal cameras')
     require(a.speed_terminal=="none" or (a.speed_loop and a.fault=="none"),"terminal speed scope")
     from m8_route_contract import load_route, pose_from_snapshot
@@ -163,6 +165,8 @@ def main():
         binding = rpc('bind', actor=str(actor.id), application='42', model_sha256=model_hash)
         bound, session, run = binding['locked'], binding['session'], binding['run']
         report['binding'] = binding
+        report['admission_profile']='sampled-actual-v1' if a.sampled_actual else 'whole-interval-v1'
+        case('admission_profile_binding',binding.get('admission_profile','whole-interval-v1')==report['admission_profile'])
         if route:
             geometry=rpc('geometry');report['route_geometry']=geometry
             rear=geometry['geometry']['wheels'][2:]
@@ -188,6 +192,7 @@ def main():
                                    (['--speed-profile',{'none':'v1','normal-stop':'v1-stop','input-loss':'v1-input-loss','stop-protection':'v1-stop-protection'}[a.speed_terminal]] if a.speed_loop else [])+
                                    (['--route',str(native_route)] if route else [])+
                                    (['--diagnostic-fault',a.diagnostic_fault] if a.diagnostic_fault is not None else [])+
+                                   (['--admission-profile','sampled-actual-v1'] if a.sampled_actual else [])+
                                    (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else [])+
                                    (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else []),
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
@@ -431,6 +436,9 @@ def main():
                     for j in range(4): work_sum[j] += work['motor_work_j'][j]
                     if not work['forward_energy_eligible']: ineligible.append(i)
                 applied = receipt['original_actual']['admitted_actual']
+                if a.sampled_actual:
+                    require(receipt['admission_profile']==native['admission']['admission_profile']==report['admission_profile'], 'sampled profile agreement')
+                    require(int(applied['command_checked_through_ns'])==int(native['admission']['command_checked_through_ns'])==native['now_ns'], 'current command authority barrier')
                 for k in ('angle_rad','torque_nm','pressure_pa','oldest_actuator_ns','oldest_dependency_ns','exclusive_expiry_ns','normal','protection','normal_stop'):
                     require(applied.get(k,False) == native['admission'].get(k,False), 'server/native admission disagreement '+k)
                 require(applied['empty_init'] == native['admission']['empty'], 'INIT admission')

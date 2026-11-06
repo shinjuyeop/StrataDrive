@@ -5898,7 +5898,47 @@ Central1 SIGKILL 뒤 첫 feedback write reset/broken pipe는 local protection보
 원래100ms 보호/물리 반응, 새 Epoch 실제 재가입을 확인해 주입 결과로 분리한다.
 새 세션/다른 오류·큐 포화·sanitizer 경고는 면제하지 않는다. 분류만으로 서비스나
 DTC 성공을 만들지 않으며 원문/원래 판정과 새 독립 감사를 별도 보존한다.
+2026-11-06 사용자도 의도한 SIGKILL 뒤·새 Central 기동 전·정확한 이전 연결의 종료만
+별도 판정하고, 큐 포화·기한 초과·정상 운행 오류를 계속 실패로 유지하도록 재확인했다.
 
 [실행 전 protocol](../test-plan/service-validation-protocol.md)과
 [검증 전략](../test-plan/verification-strategy.md)을 따른다. 이 결정은 Host 서비스
 기능 범위이며, 전체 M9/Clock/CARLA/Target·부하/장기 보존 완료를 뜻하지 않는다.
+
+<a id="adr-0103"></a>
+
+## ADR-0103: 전용 SDK CPU의 명시적 FIFO1과 유한 부하 수용
+
+2026-11-06. 상태: [고정 soak7/7·서비스18/18](../test-plan/evidence/m9_followup/README.md) 한정 수용.
+선행 loaded 실패의 원래 Front 응답7.138ms와 Rear 갱신 만료를 보존한다. SDK/sender를
+기존 전용 CPU4/5/6에서 초기화 전에 FIFO1로 시작하는 `--sdk-fifo`를 명시적으로 선택한다.
+Owner Central/FIFO11·Zone/FIFO18과 보조 IO OTHER0은 유지하고 실제 thread snapshot으로
+독립 검사한다. 별도 물리 코어·비계측 terminal service profile과 인가된 배치가 없으면
+시작하지 않는다. 기본 SDK 정책은 OTHER0이다.
+
+제어20ms envelope·10ms 갱신/18ms support·원래 source/expiry·Front-before-Rear 의존,
+SDK 구현·queue 용량은 유지한다. CPU1/2/7의70% busy demand와 두60s normal 구간을
+고정하고 모든 실패·capture·관측 tail을 보존한다. 관측된 유한 cohort 통과를 무제한 지연
+상한·다른 Host/Target 보장으로 올리지 않는다. [실행 전 계약](../test-plan/sdk-fifo-protocol.md)을 따른다.
+
+<a id="adr-0104"></a>
+
+## ADR-0104: M9 CARLA 응답의 명시적10ms sample/hold 수용
+
+2026-11-06. 사용자는 과도한 수용 조건을 조정해 남은 M9 기능을 진행하도록 승인했다.
+원래 whole-next10ms Command 권한은 silent loss를 native timeout 전 차단하여 실제
+보호 이후 물리를 실행하지 못했다. 기본 gate와 그 예상 거절을 보존한다. 별도 trusted
+launch의 `sampled-actual-v1`은 기존10ms 물리 sample/hold 모델을 기능 수용 범위로 명시한다.
+Normal Command·parent/input은 현재 barrier에서 원래 age/expiry를 만족해야 하고,
+Actual·wheel·capability·permission·RunLease는 계속 전체 다음10ms를 덮어야 한다.
+구간 중 원래 command 만료를 그대로 기록하며 native watchdog 기한은 늘리지 않는다.
+다음 barrier에는 실제 native 결과가 필요하다. 보호 mask·credit0·새 LocalProtection Actual과
+재진입 금지는 유지한다. Wall/Target·subinterval 연속 응답 보장은 별도다.
+
+실제 gateway/Leaf 감시기의 SD-2001이 Central보다 먼저 발생할 수 있다. 해당 원본
+adapter를 같은 released session에 연결하고 독립 관측자가 fresh 원본 torque/pressure/wheel을
+전체 event ID·occurrence로 연결한다. DTC를 만들거나 clear/recovery/actuation을 허가하는
+관측자가 아니다. 기본 정상1·sampled 정상1·silent loss2의 새 서버 **4/4**에서 실제 정지,
+원본 journal byte, 에너지 정산과 native 관측 재현을 검증했다. 실행기 준비 단계 실패와
+수정 전 component 실패는 별도 보존한다. [사전 계약](../test-plan/carla-sampled-actual-protocol.md)과
+[마감 원본·제한](../test-plan/evidence/m9_followup/README.md)을 따른다.

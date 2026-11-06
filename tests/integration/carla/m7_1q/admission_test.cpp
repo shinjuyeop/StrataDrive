@@ -84,6 +84,33 @@ TEST(M7NativeAdmission, OriginalAuthorityAndCausalityCorruptionsLatch) {
         EXPECT_FALSE(gate.accept(trace.inputs[100],trace.inputs[100].observed,out))<<"healed "<<f;
     }
 }
+TEST(M7NativeAdmission, SampledActualKeepsCurrentExpiryAndWholePhysicalSourceCoverage) {
+    Trace trace;
+    for(unsigned fault=0;fault<8;++fault) {
+        native::Admission sampled(42,trace.inputs.front().observed,native::ClockPolicy::FunctionalSampledActual);
+        native::Admission prospective(42,trace.inputs.front().observed);
+        native::Output out;
+        for(unsigned i=0;i<100;++i) {
+            ASSERT_TRUE(sampled.accept(trace.inputs[i],trace.inputs[i].observed,out));
+            ASSERT_TRUE(prospective.accept(trace.inputs[i],trace.inputs[i].observed,out));
+        }
+        auto in=trace.inputs[100];const auto original=in.observed+5*ms;
+        mutate(in.commands[0],[&](auto& m){std::get<transport::LeafRequest>(m.payload).command->expires_at_ns=fault==1?in.observed:original;});
+        if(fault==2)in.actual[2].reset();
+        if(fault==3)in.actual=trace.inputs[98].actual;
+        if(fault==4)in.credit_mask=0;
+        if(fault==5)mutate(in.commands[0],[](auto& m){++std::get<transport::LeafRequest>(m.payload).command->parent.sequence;});
+        if(fault==6)in.actual[0]->bytes[40]^=1;
+        if(fault==7)in.protection_since=in.observed;
+        EXPECT_FALSE(prospective.accept(in,in.observed,out));
+        const bool accepted=sampled.accept(in,in.observed,out);
+        EXPECT_EQ(accepted,fault==0)<<fault;
+        if(accepted) {
+            EXPECT_EQ(out.exclusive_expiry,original); // Never replaces it with the frame end.
+            EXPECT_LE(in.observed+native::step-out.oldest_actuator,30*ms);
+        } else EXPECT_FALSE(sampled.accept(trace.inputs[100],in.observed,out));
+    }
+}
 TEST(M7NativeAdmission, BootstrapCannotHideNormalActualOrSkipObservation) {
     Trace trace;
     for(unsigned kind=0;kind<3;++kind) {

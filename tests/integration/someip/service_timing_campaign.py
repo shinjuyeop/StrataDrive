@@ -40,6 +40,7 @@ def main():
     parser.add_argument('--split-owner-io',action='store_true')
     parser.add_argument('--separate-aux-io',action='store_true')
     parser.add_argument('--owner-fifo',action='store_true')
+    parser.add_argument('--sdk-fifo',action='store_true')
     parser.add_argument('--sdk-io-threads',type=int,choices=(1,2),default=2)
     parser.add_argument('--tsan-repeats',type=int,choices=(1,3),default=1)
     parser.add_argument('--response-audit',action='store_true')
@@ -47,6 +48,7 @@ def main():
     parser.add_argument('--validation-profile',choices=('legacy-mixed','split-v1'),default='legacy-mixed',
                         help='split-v1: 18 noninstrumented service runs; sanitizer component suite is a separate required gate')
     args=parser.parse_args()
+    if args.sdk_fifo and args.validation_profile!='split-v1':parser.error('sdk-fifo requires the split-v1 native-only gate')
     if args.separate_aux_io and not args.split_owner_io:parser.error('separate-aux-io requires split-owner-io')
     if args.validation_profile=='split-v1' and (args.tsan_repeats!=1 or args.sdk_io_threads!=2 or not all((args.split_owner_io,args.separate_aux_io,args.owner_fifo,args.response_audit,args.defer_audits))):
         parser.error('split-v1 requires fixed split/FIFO/aux placement, response/deferred audits and no tsan-repeats')
@@ -81,7 +83,7 @@ def main():
            HERE.parent/'diagnostics/audit_service_timing.py',
            HERE.parent/'diagnostics/audit_service_response.py',
            HERE.parent/'diagnostics/audit_native_service.py',HERE.parent/'diagnostics/audit_native_service_faults.py']
-    manifest={'base':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'sdk_io_threads':args.sdk_io_threads,
+    manifest={'base':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'sdk_io_threads':args.sdk_io_threads,'sdk_fifo':args.sdk_fifo,
               'validation_profile':args.validation_profile,'scope':'native service; separate sanitizer gate required' if args.validation_profile=='split-v1' else 'legacy mixed instrumentation',
               'audit_phase':'after-all-runtimes' if args.defer_audits else 'interleaved',
               'cases':cases,'sources':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
@@ -115,6 +117,7 @@ def main():
         if args.split_owner_io:command+=['--split-owner-io']
         if args.separate_aux_io:command+=['--separate-aux-io']
         if args.owner_fifo:command+=['--owner-fifo']
+        if args.sdk_fifo:command+=['--sdk-fifo']
         command+=['--sdk-io-threads',str(args.sdk_io_threads)]
         if fault!='normal':command+=['--service-fault',fault]
         if delay:command+=['--signal-write-delay-ms',str(delay)]

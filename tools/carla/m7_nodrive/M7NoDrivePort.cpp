@@ -53,7 +53,7 @@ struct State {
   uint64 BaseFrame = 0, NextTicket = 0, Ticket = 0, Frame = 0, Begin = 0;
   uint64 PhysicsGeneration = 0;
   double SimBegin = 0;
-  bool V1 = false, Native = false, Work = false;
+  bool V1 = false, Native = false, Work = false, SampledActual = false;
   bool DiagnosticLoad = false;
   FVector DiagnosticForce = FVector::ZeroVector;
   std::unique_ptr<stratadrive::m7_native::SolverJournal<1024>> Journal;
@@ -122,6 +122,7 @@ Json Response(bool Ok, const FString& Reason)
   auto R = Object();
   R->SetBoolField(TEXT("ok"), Ok);
   R->SetStringField(TEXT("model_step_ns"),Dec(StepNs()));
+  R->SetStringField(TEXT("admission_profile"),S.SampledActual ? TEXT("sampled-actual-v1") : TEXT("whole-interval-v1"));
   R->SetStringField(TEXT("reason"), Reason);
   R->SetStringField(TEXT("schema"), TEXT("m7-nodrive-zero-probe-v1"));
   R->SetBoolField(TEXT("normal_driving_enabled"), false);
@@ -272,6 +273,10 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   const bool ZeroFlag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7ZeroProbe"));
   const bool V1Flag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7V1Probe"));
   const bool NativeFlag = FParse::Param(FCommandLine::Get(), TEXT("StrataM7NativeProbe"));
+  const bool SampledActual = FParse::Param(FCommandLine::Get(), TEXT("StrataM9SampledActual"));
+  if(SampledActual && (!NativeFlag || !FParse::Param(FCommandLine::Get(), TEXT("StrataM7SolverWork")) ||
+      FParse::Param(FCommandLine::Get(), TEXT("StrataM7WallNative")) || StepNs()!=10000000))
+    return Encode(Response(false,TEXT("sampled_actual_requires_functional_solver_work_10ms")));
   unsigned VehicleSubsteps = 0;
   for (unsigned Candidate : {20u, 40u, 80u, 160u, 320u, 640u}) {
     const FString Flag = FString::Printf(TEXT("StrataM7V1Substeps%u"), Candidate);
@@ -328,6 +333,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.Movement = Movement;
     S.V1 = V1Flag || NativeFlag;
     S.Native = NativeFlag;
+    S.SampledActual = SampledActual;
     S.Wall = NativeFlag && FParse::Param(FCommandLine::Get(),TEXT("StrataM7WallNative"));
     S.CloseSignal();S.WallProof=S.WallExpiry=S.AppliedWall=0;S.WallProtection=false;
     S.WallFrames=S.WallLimit=S.GapUntil=S.NextDue=S.WallNormal=S.WallProtected=0;S.WallReceipts.Empty(950);S.WallSettlements.Empty(950);
@@ -339,7 +345,8 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.Journal.reset(Compact ? new stratadrive::m7_native::SolverJournal<1024> : nullptr);
     S.AwaitSettlement = false; S.TotalMotorWork = 0;
     S.Application = static_cast<uint32>(Application);
-    S.NativeGate.reset(NativeFlag ? new stratadrive::m7_native::Admission(S.Application, Now(Episode)) : nullptr);
+    S.NativeGate.reset(NativeFlag ? new stratadrive::m7_native::Admission(S.Application, Now(Episode),
+      SampledActual ? stratadrive::m7_native::ClockPolicy::FunctionalSampledActual : stratadrive::m7_native::ClockPolicy::Functional) : nullptr);
     S.Effort = FM7WheelEffort(); S.LastEffort = FM7WheelEffort();
     S.ProtectionEffort = S.LastProtection = S.KeptSteerSleep = false;
     S.Locked = true; // Failure during conversion remains contained until close.
@@ -559,6 +566,7 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     Applied->SetStringField(TEXT("oldest_actuator_ns"), Dec(Actual.oldest_actuator));
     Applied->SetStringField(TEXT("oldest_dependency_ns"), Dec(Actual.oldest_dependency));
     Applied->SetStringField(TEXT("exclusive_expiry_ns"), Dec(Actual.exclusive_expiry));
+    Applied->SetStringField(TEXT("command_checked_through_ns"),Dec(S.SampledActual ? AdmissionNow : AdmissionNow+StepNs()));
     S.Pending->SetObjectField(TEXT("admitted_actual"), Applied);
     S.Staged = true;
     auto R = Response(true, TEXT("staged_native_not_applied"));
@@ -769,6 +777,7 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   R->SetStringField(TEXT("frame"), Dec(Frame));
   R->SetStringField(TEXT("logical_begin_ns"), Dec(S.Begin));
   R->SetStringField(TEXT("logical_end_ns"), Dec(S.Begin + StepNs()));
+  R->SetStringField(TEXT("admission_profile"),S.SampledActual ? TEXT("sampled-actual-v1") : TEXT("whole-interval-v1"));
   R->SetStringField(TEXT("model_step_ns"),Dec(StepNs()));
   R->SetNumberField(TEXT("simulation_begin_seconds"), S.SimBegin);
   R->SetNumberField(TEXT("simulation_end_seconds"), Episode.GetElapsedGameTime());

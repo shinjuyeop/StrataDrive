@@ -68,7 +68,10 @@ def main():
                    help="Read-only describe rejection, without creating an ego")
     p.add_argument("--speed-terminal", choices=("none","normal-stop","input-loss","stop-protection"), default="none")
     p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
+    p.add_argument('--sampled-actual',action='store_true',help='explicit diagnostic simulation10ms Actual sample/hold; current command authority and original expiries')
     a = p.parse_args()
+    if a.sampled_actual and not (a.diagnostic_fault is not None and a.solver_work and a.native_actual and not a.wall_native):
+        p.error('sampled-actual requires functional diagnostic solver work')
     if (a.record_video or a.live_view) and not (a.cameras and a.native_actual and not a.wall_native and a.native_fault=="none"):
         p.error("video recording requires functional nominal native cameras")
     if a.speed_terminal!="none" and not (a.speed_loop and a.native_fault=="none"):p.error("speed terminal requires speed loop without another injected fault")
@@ -152,6 +155,7 @@ def main():
     if a.wall_native:
         argv.append("-StrataM7WallNative")
     if a.diagnostic_fault=="braking-timeout":argv.append("-StrataM9ExternalLoad")
+    if a.sampled_actual:argv.append("-StrataM9SampledActual")
     if a.wall_step_ms==5:argv.append("-StrataM7Wall5ms")
     if a.wall_nullrhi:
         argv.append("-nullrhi")
@@ -348,6 +352,7 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
         if a.speed_loop:cmd += ["--speed-loop"]
         if a.speed_terminal!="none":cmd += ["--speed-terminal",a.speed_terminal]
         if a.diagnostic_fault is not None:cmd += ['--diagnostic-fault',a.diagnostic_fault]
+        if a.sampled_actual:cmd += ['--sampled-actual']
         if a.propulsion_aware:cmd += ["--propulsion-aware"]
         if a.route_profile:cmd += ["--route-profile",str(a.route_profile)]
         if a.flag_check:

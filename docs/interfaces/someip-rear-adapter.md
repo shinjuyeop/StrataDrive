@@ -77,6 +77,17 @@ diagnostic, Epoch, physical-prerequisite and service IO use this CPU with
 SCHED_OTHER/priority0. Requested and independently observed topology/affinity are
 recorded and audited; this does not reserve the core against unrelated OS work.
 
+The optional finite terminal-service `--sdk-fifo` profile starts SDK/sender
+threads at SCHED_FIFO/priority1 on dedicated CPUs4/5/6 before SDK initialization.
+It requires the normal noninstrumented split-owner/FIFO/separate-auxiliary
+profile. Owners retain their original priorities and all auxiliary writers stay
+OTHER0. Failed scheduler setup prevents startup; independent thread snapshots
+must match the declared policies and topology. The default SDK policy is still
+OTHER0. This changes scheduling only, with no deadline, source-age, expiry,
+queue or Front-before-Rear dependency change. See the
+[fixed candidate protocol](../test-plan/sdk-fifo-protocol.md) for the finite
+loaded-soak and service-fault acceptance scope.
+
 Owners exchange fixed registered signal slots using atomics. Each role registers
 its observed names before startup (Plant4, Central8, Front/Rear5 each), with an
 initial snapshot and the existing1ms worker period. Reads of unobserved names fail;

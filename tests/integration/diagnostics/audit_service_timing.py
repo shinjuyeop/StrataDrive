@@ -24,16 +24,22 @@ def load(root):
             'summary':json.loads((root/'central-2.json').read_text())}
 
 
-def io_threads(threads,expected,cpu):
+def io_threads(threads,expected,cpu,sdk_fifo=False):
     require(expected in (1,2),'declared SDK IO thread count')
     found=[t for t in threads if re.fullmatch(r'[0-9a-f]{4}_io [0-9]+',t['name'])]
     require(len(found)==expected and len({t['tid'] for t in found})==expected,'actual SDK IO thread count')
-    require(all(t['affinity']==[cpu] and t['policy']==t['priority']==0 for t in found),'actual SDK IO placement')
+    priority=1 if sdk_fifo else 0
+    require(all(t['affinity']==[cpu] and t['policy']==t['priority']==priority for t in found),'actual SDK IO placement')
 
 
 def judge(data):
     require(data['plan']['split_owner_io'] and data['plan']['isolated_ecus'],'declared split owner/SDK profile')
     placement=data['plan'].get('auxiliary_placement')
+    sdk_fifo=data['plan'].get('sdk_fifo',False)
+    if sdk_fifo:
+        require(data['plan'].get('owner_fifo') and data['plan'].get('profile')=='normal' and
+                data['plan'].get('diagnostic_service') and placement and placement['separate_requested'],
+                'SDK FIFO1 requires declared noninstrumented isolated service profile')
     auxiliary=placement['cpu'] if placement else 15
     if placement:
         topology=placement['topology']
@@ -53,11 +59,12 @@ def judge(data):
         require(info['allowed_cpus']==[owner] and info['policy']==policy and info['priority']==priority,'actual declared owner CPU and policy')
         require(info['tid']==process['pid'],'owner placement must describe the actual process main thread')
         threads=process['threads']
-        io_threads(threads,data['plan'].get('sdk_io_threads',2),sdk)
+        io_threads(threads,data['plan'].get('sdk_io_threads',2),sdk,sdk_fifo)
         require(any(t['tid']==info['tid'] and t['affinity']==[owner] for t in threads),'independent process snapshot confirms owner CPU')
         require(any(t['tid']!=info['tid'] and t['affinity']==[sdk] for t in threads),'live SDK threads on separate declared CPU')
         require(all(t['affinity'] in ([owner],[sdk],[auxiliary]) and
-                    (t['policy']==policy and t['priority']==priority if t['tid']==info['tid'] else t['policy']==t['priority']==0)
+                    (t['policy']==policy and t['priority']==priority if t['tid']==info['tid'] else
+                     t['policy']==t['priority']==(1 if sdk_fifo and t['affinity']==[sdk] else 0))
                     for t in threads),'no undeclared CPU or priority override')
     require(len(data['writer'])==5,'signal writers for plant, both Central incarnations and both peers')
     require(all(w['allowed_cpus']==[auxiliary] and w['policy']==w['priority']==0 for w in data['writer'].values()),'actual nonRT signal IO placement')
@@ -76,12 +83,13 @@ def judge(data):
         require(delay==250000000 and end-begin>=delay,'declared250ms delay actually executed')
         progress=[r for r in data['epoch2_events'] if r['event']=='command-enqueue' and begin<int(r['ns'])<end]
         require(len(progress)>=2 and not data['summary']['overflow'],'original Epoch2 command progress while marker write blocked')
-    return {'split_owner_io':True,'auxiliary_cpu':auxiliary,'separate_auxiliary_core':placement['separate_observed'] if placement else None,
+    return {'split_owner_io':True,'sdk_fifo':sdk_fifo,'auxiliary_cpu':auxiliary,'separate_auxiliary_core':placement['separate_observed'] if placement else None,
             'marker_write_ns':end-begin,'final_epoch_owner_max_poll_gap_ns':data['summary']['max_owner_poll_gap_ns'],'delayed':bool(delay)}
 
 
 def mutations(data):
     changes=[lambda d:d['owner']['central'].__setitem__('allowed_cpus',[4]),
+             lambda d:d['plan'].__setitem__('sdk_fifo',not d['plan'].get('sdk_fifo',False)),
              lambda d:d['plan'].__setitem__('sdk_io_threads',3-data['plan'].get('sdk_io_threads',2)),
              lambda d:d['writer'].clear(),
              lambda d:d['signals'].clear(),

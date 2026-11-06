@@ -33,3 +33,10 @@ quiet3은 정상 종료시키고 loaded3조건은 시작하지 않았다. 후보
 최대256MiB/2000000 packets를 메모리에 보관한 후 종료 시 파일로 쓴다. SO_RCVBUF 요청/실제값,
 PACKET_STATISTICS drop, 실제 affinity와 overflow를 기록하고 누락이면 수용하지 않는다.
 별도 control/diagnostic queue나 expiry는 변경하지 않는다. 전체 TCP/CRC 감사도 유지한다.
+
+후보4는6/7이었다. Loaded1의 Front 응답7.138ms와 다음 Rear command의 원래 만료 대비
+1.572ms 늦은 enqueue를 보존한다. 후속 [SDK FIFO1 후보](sdk-fifo-protocol.md)는 원래
+dedicated SDK CPU4/5/6에만 명시적 저우선 FIFO1을 적용한다. 고정 기준1·quiet3·loaded3은
+**7/7**, 네 독립 감사와 변조 검사를 모두 통과했다. 후속 서비스6조건×3회도 **18/18**이며
+정상6건 성공과 고장12건의 실제 거절을 구분한다. 원래 제어 기한·Front-before-Rear 순서는
+유지한다. [원본·관측 tail·수용 범위](evidence/m9_followup/README.md)를 따른다.

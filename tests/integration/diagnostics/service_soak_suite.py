@@ -36,14 +36,21 @@ def duration_check(path, hold, loaded):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path);a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('output',type=Path)
+    p.add_argument('--sdk-fifo',action='store_true');a=p.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
     binary=ROOT/'build/m5-someip-normal/project/tests/integration/someip/someip_front_adapter'
     plan=[('baseline',500,False)]+[(f'{kind}-{i}',60000,kind=='loaded') for kind in ('quiet','loaded') for i in range(1,4)]
-    (out/'protocol.json').write_text(json.dumps(dict(cases=plan,binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),profile='normal',scope='finite Host service soak'),indent=2)+'\n')
+    digest=hashlib.sha256(binary.read_bytes()).hexdigest()
+    sources={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in
+             [Path(__file__),ROOT/'tests/integration/someip/front_run.py',ROOT/'tests/integration/diagnostics/audit_service_timing.py',ROOT/'docs/test-plan/sdk-fifo-protocol.md']}
+    (out/'protocol.json').write_text(json.dumps(dict(cases=plan,binary_sha256=digest,sources=sources,sdk_fifo=a.sdk_fifo,profile='normal',scope='finite Host service soak'),indent=2)+'\n')
     results=[]
     for name,hold,loaded in plan:
+        if hashlib.sha256(binary.read_bytes()).hexdigest()!=digest:raise ValueError('binary changed during cohort')
+        if any(hashlib.sha256((ROOT/p).read_bytes()).hexdigest()!=h for p,h in sources.items()):raise ValueError('source changed during cohort')
         command=[sys.executable,str(ROOT/'tests/integration/someip/front_run.py'),str(out/name),'--profile','normal','--three','--simple-vehicle','--diagnostics','--diagnostic-service','--isolated-ecus','--cases','central-rejoin','--split-owner-io','--separate-aux-io','--owner-fifo','--sdk-io-threads','2','--service-hold-ms',str(hold)]
         if loaded:command.append('--loaded')
+        if a.sdk_fifo:command.append('--sdk-fifo')
         row=dict(case=name,hold_ms=hold,loaded=loaded,command=command)
         with (out/(name+'.log')).open('w') as log:
             try:row['exit']=subprocess.run(command,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,timeout=180).returncode

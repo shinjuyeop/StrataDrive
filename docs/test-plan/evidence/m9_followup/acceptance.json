@@ -1,0 +1,3209 @@
+{
+  "base": "3862ded6ece10cd71f9550d7f71502f8542eae8b",
+  "scope": "finite Host SDK FIFO1 and functional simulation10ms sampled Actual M9",
+  "native_soak": {
+    "planned": 7,
+    "passed": 7,
+    "results": [
+      {
+        "case": "baseline",
+        "hold_ms": 500,
+        "loaded": false,
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-soak/baseline",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-hold-ms",
+          "500",
+          "--sdk-fifo"
+        ],
+        "exit": 0,
+        "audits": [
+          {
+            "tool": "audit_native_service",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "duration": {
+          "passed": true,
+          "normal_duration_ns": [
+            500214003,
+            501110055
+          ],
+          "loads": []
+        },
+        "passed": true
+      },
+      {
+        "case": "quiet-1",
+        "hold_ms": 60000,
+        "loaded": false,
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-soak/quiet-1",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-hold-ms",
+          "60000",
+          "--sdk-fifo"
+        ],
+        "exit": 0,
+        "audits": [
+          {
+            "tool": "audit_native_service",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "duration": {
+          "passed": true,
+          "normal_duration_ns": [
+            60000564015,
+            60000876635
+          ],
+          "loads": []
+        },
+        "passed": true
+      },
+      {
+        "case": "quiet-2",
+        "hold_ms": 60000,
+        "loaded": false,
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-soak/quiet-2",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-hold-ms",
+          "60000",
+          "--sdk-fifo"
+        ],
+        "exit": 0,
+        "audits": [
+          {
+            "tool": "audit_native_service",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "duration": {
+          "passed": true,
+          "normal_duration_ns": [
+            60000686127,
+            60000430243
+          ],
+          "loads": []
+        },
+        "passed": true
+      },
+      {
+        "case": "quiet-3",
+        "hold_ms": 60000,
+        "loaded": false,
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-soak/quiet-3",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-hold-ms",
+          "60000",
+          "--sdk-fifo"
+        ],
+        "exit": 0,
+        "audits": [
+          {
+            "tool": "audit_native_service",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "duration": {
+          "passed": true,
+          "normal_duration_ns": [
+            60000712172,
+            60000431171
+          ],
+          "loads": []
+        },
+        "passed": true
+      },
+      {
+        "case": "loaded-1",
+        "hold_ms": 60000,
+        "loaded": true,
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-soak/loaded-1",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-hold-ms",
+          "60000",
+          "--loaded",
+          "--sdk-fifo"
+        ],
+        "exit": 0,
+        "audits": [
+          {
+            "tool": "audit_native_service",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "duration": {
+          "passed": true,
+          "normal_duration_ns": [
+            60000801552,
+            60000935159
+          ],
+          "loads": [
+            {
+              "cpu": 1,
+              "policy": 0,
+              "priority": 0,
+              "affinity": [
+                1
+              ],
+              "cpu_ns": 86277360468,
+              "wall_ns": 127661112474,
+              "windows": 12642,
+              "busy_ns": 7000000,
+              "period_ns": 10000000
+            },
+            {
+              "cpu": 2,
+              "policy": 0,
+              "priority": 0,
+              "affinity": [
+                2
+              ],
+              "cpu_ns": 87466878368,
+              "wall_ns": 127637183217,
+              "windows": 12664,
+              "busy_ns": 7000000,
+              "period_ns": 10000000
+            },
+            {
+              "cpu": 7,
+              "policy": 0,
+              "priority": 0,
+              "affinity": [
+                7
+              ],
+              "cpu_ns": 86931929969,
+              "wall_ns": 127613157680,
+              "windows": 12651,
+              "busy_ns": 7000000,
+              "period_ns": 10000000
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "case": "loaded-2",
+        "hold_ms": 60000,
+        "loaded": true,
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-soak/loaded-2",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-hold-ms",
+          "60000",
+          "--loaded",
+          "--sdk-fifo"
+        ],
+        "exit": 0,
+        "audits": [
+          {
+            "tool": "audit_native_service",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "duration": {
+          "passed": true,
+          "normal_duration_ns": [
+            60000447966,
+            60000355608
+          ],
+          "loads": [
+            {
+              "cpu": 1,
+              "policy": 0,
+              "priority": 0,
+              "affinity": [
+                1
+              ],
+              "cpu_ns": 86483621435,
+              "wall_ns": 127851821668,
+              "windows": 12659,
+              "busy_ns": 7000000,
+              "period_ns": 10000000
+            },
+            {
+              "cpu": 2,
+              "policy": 0,
+              "priority": 0,
+              "affinity": [
+                2
+              ],
+              "cpu_ns": 87676123049,
+              "wall_ns": 127826609738,
+              "windows": 12685,
+              "busy_ns": 7000000,
+              "period_ns": 10000000
+            },
+            {
+              "cpu": 7,
+              "policy": 0,
+              "priority": 0,
+              "affinity": [
+                7
+              ],
+              "cpu_ns": 87110227745,
+              "wall_ns": 127805134042,
+              "windows": 12668,
+              "busy_ns": 7000000,
+              "period_ns": 10000000
+            }
+          ]
+        },
+        "passed": true
+      },
+      {
+        "case": "loaded-3",
+        "hold_ms": 60000,
+        "loaded": true,
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-soak/loaded-3",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-hold-ms",
+          "60000",
+          "--loaded",
+          "--sdk-fifo"
+        ],
+        "exit": 0,
+        "audits": [
+          {
+            "tool": "audit_native_service",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_ordering",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_timing",
+            "exit": 0
+          },
+          {
+            "tool": "audit_service_response",
+            "exit": 0
+          }
+        ],
+        "duration": {
+          "passed": true,
+          "normal_duration_ns": [
+            60000813064,
+            60001252597
+          ],
+          "loads": [
+            {
+              "cpu": 1,
+              "policy": 0,
+              "priority": 0,
+              "affinity": [
+                1
+              ],
+              "cpu_ns": 86381232329,
+              "wall_ns": 127758929864,
+              "windows": 12651,
+              "busy_ns": 7000000,
+              "period_ns": 10000000
+            },
+            {
+              "cpu": 2,
+              "policy": 0,
+              "priority": 0,
+              "affinity": [
+                2
+              ],
+              "cpu_ns": 87647306006,
+              "wall_ns": 127735400176,
+              "windows": 12675,
+              "busy_ns": 7000000,
+              "period_ns": 10000000
+            },
+            {
+              "cpu": 7,
+              "policy": 0,
+              "priority": 0,
+              "affinity": [
+                7
+              ],
+              "cpu_ns": 86983667680,
+              "wall_ns": 127711453004,
+              "windows": 12660,
+              "busy_ns": 7000000,
+              "period_ns": 10000000
+            }
+          ]
+        },
+        "passed": true
+      }
+    ],
+    "response": [
+      {
+        "case": "baseline",
+        "passed": true,
+        "response": {
+          "accepted_requests": 1487,
+          "metrics": {
+            "roundtrip_ns": {
+              "min": 87616,
+              "p50": 309308,
+              "p99": 1455583,
+              "max": 1511109
+            },
+            "margin_ns": {
+              "min": 18488891,
+              "p50": 19690692,
+              "p99": 19906176,
+              "max": 19912384
+            },
+            "request_queue_ns": {
+              "min": 942,
+              "p50": 38971,
+              "p99": 73742,
+              "max": 137248
+            },
+            "request_sdk_callback_ns": {
+              "min": 26451,
+              "p50": 103177,
+              "p99": 169299,
+              "max": 205887
+            },
+            "request_decode_ns": {
+              "min": 1242,
+              "p50": 2631,
+              "p99": 14181,
+              "max": 25310
+            },
+            "request_owner_ns": {
+              "min": 2525,
+              "p50": 27576,
+              "p99": 65040,
+              "max": 87721
+            },
+            "result_queue_ns": {
+              "min": 2008,
+              "p50": 7135,
+              "p99": 77189,
+              "max": 128262
+            },
+            "result_sdk_callback_ns": {
+              "min": 28418,
+              "p50": 65502,
+              "p99": 148758,
+              "max": 185613
+            },
+            "result_decode_ns": {
+              "min": 770,
+              "p50": 1396,
+              "p99": 3894,
+              "max": 17838
+            },
+            "result_owner_ns": {
+              "min": 1963,
+              "p50": 8537,
+              "p99": 50069,
+              "max": 69575
+            }
+          },
+          "worst": [
+            {
+              "epoch": 2,
+              "token": 633,
+              "peer": 1,
+              "roundtrip_ns": 1511109,
+              "margin_ns": 18488891,
+              "request_queue_ns": 43603,
+              "request_sdk_callback_ns": 120963,
+              "request_decode_ns": 1875,
+              "request_owner_ns": 64419,
+              "result_queue_ns": 63372,
+              "result_sdk_callback_ns": 129703,
+              "result_decode_ns": 940,
+              "result_owner_ns": 3644
+            },
+            {
+              "epoch": 2,
+              "token": 632,
+              "peer": 0,
+              "roundtrip_ns": 1511083,
+              "margin_ns": 18488917,
+              "request_queue_ns": 39518,
+              "request_sdk_callback_ns": 120297,
+              "request_decode_ns": 3053,
+              "request_owner_ns": 25733,
+              "result_queue_ns": 128262,
+              "result_sdk_callback_ns": 127629,
+              "result_decode_ns": 2029,
+              "result_owner_ns": 7001
+            },
+            {
+              "epoch": 3,
+              "token": 635,
+              "peer": 0,
+              "roundtrip_ns": 1490179,
+              "margin_ns": 18509821,
+              "request_queue_ns": 42527,
+              "request_sdk_callback_ns": 140092,
+              "request_decode_ns": 3261,
+              "request_owner_ns": 35242,
+              "result_queue_ns": 61712,
+              "result_sdk_callback_ns": 130742,
+              "result_decode_ns": 2476,
+              "result_owner_ns": 9271
+            },
+            {
+              "epoch": 3,
+              "token": 636,
+              "peer": 1,
+              "roundtrip_ns": 1489735,
+              "margin_ns": 18510265,
+              "request_queue_ns": 45885,
+              "request_sdk_callback_ns": 138026,
+              "request_decode_ns": 1685,
+              "request_owner_ns": 46779,
+              "result_queue_ns": 62819,
+              "result_sdk_callback_ns": 128519,
+              "result_decode_ns": 1049,
+              "result_owner_ns": 5511
+            },
+            {
+              "epoch": 2,
+              "token": 579,
+              "peer": 1,
+              "roundtrip_ns": 1489521,
+              "margin_ns": 18510479,
+              "request_queue_ns": 50568,
+              "request_sdk_callback_ns": 137560,
+              "request_decode_ns": 1932,
+              "request_owner_ns": 43258,
+              "result_queue_ns": 38413,
+              "result_sdk_callback_ns": 125979,
+              "result_decode_ns": 946,
+              "result_owner_ns": 18012
+            }
+          ],
+          "mutations_rejected": 5
+        }
+      },
+      {
+        "case": "quiet-1",
+        "passed": true,
+        "response": {
+          "accepted_requests": 67211,
+          "metrics": {
+            "roundtrip_ns": {
+              "min": 87524,
+              "p50": 284449,
+              "p99": 463231,
+              "max": 1565233
+            },
+            "margin_ns": {
+              "min": 18434767,
+              "p50": 19715551,
+              "p99": 19899747,
+              "max": 19912476
+            },
+            "request_queue_ns": {
+              "min": 805,
+              "p50": 33416,
+              "p99": 81824,
+              "max": 1070420
+            },
+            "request_sdk_callback_ns": {
+              "min": 25828,
+              "p50": 100252,
+              "p99": 156654,
+              "max": 1137294
+            },
+            "request_decode_ns": {
+              "min": 891,
+              "p50": 2800,
+              "p99": 10437,
+              "max": 42047
+            },
+            "request_owner_ns": {
+              "min": 2083,
+              "p50": 27159,
+              "p99": 65297,
+              "max": 200708
+            },
+            "result_queue_ns": {
+              "min": 858,
+              "p50": 7085,
+              "p99": 80264,
+              "max": 170474
+            },
+            "result_sdk_callback_ns": {
+              "min": 25447,
+              "p50": 62802,
+              "p99": 157774,
+              "max": 1180087
+            },
+            "result_decode_ns": {
+              "min": 741,
+              "p50": 1500,
+              "p99": 3963,
+              "max": 33129
+            },
+            "result_owner_ns": {
+              "min": 756,
+              "p50": 8752,
+              "p99": 51359,
+              "max": 79881
+            }
+          },
+          "worst": [
+            {
+              "epoch": 3,
+              "token": 33565,
+              "peer": 1,
+              "roundtrip_ns": 1565233,
+              "margin_ns": 18434767,
+              "request_queue_ns": 43569,
+              "request_sdk_callback_ns": 137601,
+              "request_decode_ns": 2040,
+              "request_owner_ns": 40597,
+              "result_queue_ns": 128976,
+              "result_sdk_callback_ns": 125588,
+              "result_decode_ns": 1047,
+              "result_owner_ns": 4196
+            },
+            {
+              "epoch": 3,
+              "token": 33564,
+              "peer": 0,
+              "roundtrip_ns": 1565202,
+              "margin_ns": 18434798,
+              "request_queue_ns": 38550,
+              "request_sdk_callback_ns": 131735,
+              "request_decode_ns": 3066,
+              "request_owner_ns": 26595,
+              "result_queue_ns": 170474,
+              "result_sdk_callback_ns": 123824,
+              "result_decode_ns": 2126,
+              "result_owner_ns": 7697
+            },
+            {
+              "epoch": 3,
+              "token": 33589,
+              "peer": 1,
+              "roundtrip_ns": 1557754,
+              "margin_ns": 18442246,
+              "request_queue_ns": 43179,
+              "request_sdk_callback_ns": 135098,
+              "request_decode_ns": 2572,
+              "request_owner_ns": 44788,
+              "result_queue_ns": 104983,
+              "result_sdk_callback_ns": 125537,
+              "result_decode_ns": 1050,
+              "result_owner_ns": 3438
+            },
+            {
+              "epoch": 3,
+              "token": 33588,
+              "peer": 0,
+              "roundtrip_ns": 1557744,
+              "margin_ns": 18442256,
+              "request_queue_ns": 38864,
+              "request_sdk_callback_ns": 124751,
+              "request_decode_ns": 3484,
+              "request_owner_ns": 30440,
+              "result_queue_ns": 156483,
+              "result_sdk_callback_ns": 120723,
+              "result_decode_ns": 2167,
+              "result_owner_ns": 6876
+            },
+            {
+              "epoch": 3,
+              "token": 33559,
+              "peer": 1,
+              "roundtrip_ns": 1530689,
+              "margin_ns": 18469311,
+              "request_queue_ns": 36908,
+              "request_sdk_callback_ns": 124547,
+              "request_decode_ns": 2020,
+              "request_owner_ns": 38366,
+              "result_queue_ns": 114523,
+              "result_sdk_callback_ns": 113075,
+              "result_decode_ns": 955,
+              "result_owner_ns": 5381
+            }
+          ],
+          "mutations_rejected": 5
+        }
+      },
+      {
+        "case": "quiet-2",
+        "passed": true,
+        "response": {
+          "accepted_requests": 67220,
+          "metrics": {
+            "roundtrip_ns": {
+              "min": 87725,
+              "p50": 284122,
+              "p99": 466794,
+              "max": 1519109
+            },
+            "margin_ns": {
+              "min": 18480891,
+              "p50": 19715878,
+              "p99": 19903315,
+              "max": 19912275
+            },
+            "request_queue_ns": {
+              "min": 701,
+              "p50": 33158,
+              "p99": 79471,
+              "max": 1009552
+            },
+            "request_sdk_callback_ns": {
+              "min": 25624,
+              "p50": 101044,
+              "p99": 156613,
+              "max": 1123907
+            },
+            "request_decode_ns": {
+              "min": 1077,
+              "p50": 2812,
+              "p99": 8755,
+              "max": 45596
+            },
+            "request_owner_ns": {
+              "min": 2189,
+              "p50": 26835,
+              "p99": 65900,
+              "max": 110012
+            },
+            "result_queue_ns": {
+              "min": 937,
+              "p50": 7047,
+              "p99": 80073,
+              "max": 151900
+            },
+            "result_sdk_callback_ns": {
+              "min": 26537,
+              "p50": 62438,
+              "p99": 158789,
+              "max": 1120181
+            },
+            "result_decode_ns": {
+              "min": 739,
+              "p50": 1497,
+              "p99": 4056,
+              "max": 33302
+            },
+            "result_owner_ns": {
+              "min": 693,
+              "p50": 8744,
+              "p99": 51558,
+              "max": 77798
+            }
+          },
+          "worst": [
+            {
+              "epoch": 2,
+              "token": 33472,
+              "peer": 1,
+              "roundtrip_ns": 1519109,
+              "margin_ns": 18480891,
+              "request_queue_ns": 49688,
+              "request_sdk_callback_ns": 134621,
+              "request_decode_ns": 1926,
+              "request_owner_ns": 29168,
+              "result_queue_ns": 90859,
+              "result_sdk_callback_ns": 127695,
+              "result_decode_ns": 1012,
+              "result_owner_ns": 3401
+            },
+            {
+              "epoch": 2,
+              "token": 33471,
+              "peer": 0,
+              "roundtrip_ns": 1519095,
+              "margin_ns": 18480905,
+              "request_queue_ns": 45784,
+              "request_sdk_callback_ns": 100498,
+              "request_decode_ns": 2983,
+              "request_owner_ns": 54973,
+              "result_queue_ns": 110806,
+              "result_sdk_callback_ns": 123421,
+              "result_decode_ns": 2099,
+              "result_owner_ns": 6805
+            },
+            {
+              "epoch": 2,
+              "token": 33568,
+              "peer": 1,
+              "roundtrip_ns": 1512412,
+              "margin_ns": 18487588,
+              "request_queue_ns": 58202,
+              "request_sdk_callback_ns": 127740,
+              "request_decode_ns": 1753,
+              "request_owner_ns": 70491,
+              "result_queue_ns": 14902,
+              "result_sdk_callback_ns": 118021,
+              "result_decode_ns": 1258,
+              "result_owner_ns": 5641
+            },
+            {
+              "epoch": 2,
+              "token": 33567,
+              "peer": 0,
+              "roundtrip_ns": 1510019,
+              "margin_ns": 18489981,
+              "request_queue_ns": 53911,
+              "request_sdk_callback_ns": 126407,
+              "request_decode_ns": 3346,
+              "request_owner_ns": 56363,
+              "result_queue_ns": 73564,
+              "result_sdk_callback_ns": 120927,
+              "result_decode_ns": 2382,
+              "result_owner_ns": 6987
+            },
+            {
+              "epoch": 2,
+              "token": 33519,
+              "peer": 0,
+              "roundtrip_ns": 1508673,
+              "margin_ns": 18491327,
+              "request_queue_ns": 32030,
+              "request_sdk_callback_ns": 131792,
+              "request_decode_ns": 3214,
+              "request_owner_ns": 27641,
+              "result_queue_ns": 128275,
+              "result_sdk_callback_ns": 111600,
+              "result_decode_ns": 2216,
+              "result_owner_ns": 6852
+            }
+          ],
+          "mutations_rejected": 5
+        }
+      },
+      {
+        "case": "quiet-3",
+        "passed": true,
+        "response": {
+          "accepted_requests": 67224,
+          "metrics": {
+            "roundtrip_ns": {
+              "min": 85814,
+              "p50": 279369,
+              "p99": 462357,
+              "max": 1534832
+            },
+            "margin_ns": {
+              "min": 18465168,
+              "p50": 19720632,
+              "p99": 19902645,
+              "max": 19914186
+            },
+            "request_queue_ns": {
+              "min": 792,
+              "p50": 29742,
+              "p99": 79515,
+              "max": 1147380
+            },
+            "request_sdk_callback_ns": {
+              "min": 24926,
+              "p50": 99823,
+              "p99": 157060,
+              "max": 1186259
+            },
+            "request_decode_ns": {
+              "min": 883,
+              "p50": 2855,
+              "p99": 8814,
+              "max": 47752
+            },
+            "request_owner_ns": {
+              "min": 1721,
+              "p50": 26659,
+              "p99": 66669,
+              "max": 145233
+            },
+            "result_queue_ns": {
+              "min": 985,
+              "p50": 7151,
+              "p99": 80664,
+              "max": 247569
+            },
+            "result_sdk_callback_ns": {
+              "min": 26783,
+              "p50": 61812,
+              "p99": 157249,
+              "max": 1135994
+            },
+            "result_decode_ns": {
+              "min": 738,
+              "p50": 1506,
+              "p99": 4143,
+              "max": 33141
+            },
+            "result_owner_ns": {
+              "min": 683,
+              "p50": 8458,
+              "p99": 51405,
+              "max": 87292
+            }
+          },
+          "worst": [
+            {
+              "epoch": 3,
+              "token": 33444,
+              "peer": 0,
+              "roundtrip_ns": 1534832,
+              "margin_ns": 18465168,
+              "request_queue_ns": 42678,
+              "request_sdk_callback_ns": 126749,
+              "request_decode_ns": 2103,
+              "request_owner_ns": 62173,
+              "result_queue_ns": 130880,
+              "result_sdk_callback_ns": 71775,
+              "result_decode_ns": 2133,
+              "result_owner_ns": 12662
+            },
+            {
+              "epoch": 2,
+              "token": 33574,
+              "peer": 0,
+              "roundtrip_ns": 1488534,
+              "margin_ns": 18511466,
+              "request_queue_ns": 111237,
+              "request_sdk_callback_ns": 115348,
+              "request_decode_ns": 3395,
+              "request_owner_ns": 20593,
+              "result_queue_ns": 44709,
+              "result_sdk_callback_ns": 127709,
+              "result_decode_ns": 2438,
+              "result_owner_ns": 26967
+            },
+            {
+              "epoch": 2,
+              "token": 33575,
+              "peer": 1,
+              "roundtrip_ns": 1488041,
+              "margin_ns": 18511959,
+              "request_queue_ns": 63790,
+              "request_sdk_callback_ns": 135238,
+              "request_decode_ns": 1894,
+              "request_owner_ns": 36505,
+              "result_queue_ns": 14690,
+              "result_sdk_callback_ns": 114562,
+              "result_decode_ns": 1208,
+              "result_owner_ns": 23904
+            },
+            {
+              "epoch": 2,
+              "token": 33569,
+              "peer": 1,
+              "roundtrip_ns": 1484434,
+              "margin_ns": 18515566,
+              "request_queue_ns": 39168,
+              "request_sdk_callback_ns": 112257,
+              "request_decode_ns": 1799,
+              "request_owner_ns": 37072,
+              "result_queue_ns": 128693,
+              "result_sdk_callback_ns": 88419,
+              "result_decode_ns": 1010,
+              "result_owner_ns": 4122
+            },
+            {
+              "epoch": 2,
+              "token": 33568,
+              "peer": 0,
+              "roundtrip_ns": 1484405,
+              "margin_ns": 18515595,
+              "request_queue_ns": 33363,
+              "request_sdk_callback_ns": 138187,
+              "request_decode_ns": 3382,
+              "request_owner_ns": 6610,
+              "result_queue_ns": 23077,
+              "result_sdk_callback_ns": 211840,
+              "result_decode_ns": 2525,
+              "result_owner_ns": 7684
+            }
+          ],
+          "mutations_rejected": 5
+        }
+      },
+      {
+        "case": "loaded-1",
+        "passed": true,
+        "response": {
+          "accepted_requests": 67211,
+          "metrics": {
+            "roundtrip_ns": {
+              "min": 88183,
+              "p50": 265480,
+              "p99": 860757,
+              "max": 1557369
+            },
+            "margin_ns": {
+              "min": 18442631,
+              "p50": 19734520,
+              "p99": 19901330,
+              "max": 19911817
+            },
+            "request_queue_ns": {
+              "min": 768,
+              "p50": 33211,
+              "p99": 74542,
+              "max": 1238622
+            },
+            "request_sdk_callback_ns": {
+              "min": 26589,
+              "p50": 103209,
+              "p99": 247355,
+              "max": 1324912
+            },
+            "request_decode_ns": {
+              "min": 1067,
+              "p50": 3038,
+              "p99": 14134,
+              "max": 170110
+            },
+            "request_owner_ns": {
+              "min": 2152,
+              "p50": 8858,
+              "p99": 49401,
+              "max": 160985
+            },
+            "result_queue_ns": {
+              "min": 950,
+              "p50": 6090,
+              "p99": 80995,
+              "max": 265568
+            },
+            "result_sdk_callback_ns": {
+              "min": 27488,
+              "p50": 62739,
+              "p99": 218346,
+              "max": 1224191
+            },
+            "result_decode_ns": {
+              "min": 778,
+              "p50": 1581,
+              "p99": 7441,
+              "max": 113057
+            },
+            "result_owner_ns": {
+              "min": 719,
+              "p50": 8128,
+              "p99": 49927,
+              "max": 151001
+            }
+          },
+          "worst": [
+            {
+              "epoch": 2,
+              "token": 1555,
+              "peer": 1,
+              "roundtrip_ns": 1557369,
+              "margin_ns": 18442631,
+              "request_queue_ns": 83000,
+              "request_sdk_callback_ns": 633243,
+              "request_decode_ns": 170110,
+              "request_owner_ns": 34002,
+              "result_queue_ns": 91270,
+              "result_sdk_callback_ns": 309595,
+              "result_decode_ns": 7319,
+              "result_owner_ns": 57987
+            },
+            {
+              "epoch": 2,
+              "token": 1625,
+              "peer": 1,
+              "roundtrip_ns": 1544233,
+              "margin_ns": 18455767,
+              "request_queue_ns": 46247,
+              "request_sdk_callback_ns": 901205,
+              "request_decode_ns": 9604,
+              "request_owner_ns": 34268,
+              "result_queue_ns": 216150,
+              "result_sdk_callback_ns": 262805,
+              "result_decode_ns": 6146,
+              "result_owner_ns": 35063
+            },
+            {
+              "epoch": 3,
+              "token": 19486,
+              "peer": 1,
+              "roundtrip_ns": 1511797,
+              "margin_ns": 18488203,
+              "request_queue_ns": 49934,
+              "request_sdk_callback_ns": 1324912,
+              "request_decode_ns": 3323,
+              "request_owner_ns": 9621,
+              "result_queue_ns": 4621,
+              "result_sdk_callback_ns": 59807,
+              "result_decode_ns": 2381,
+              "result_owner_ns": 34912
+            },
+            {
+              "epoch": 2,
+              "token": 33468,
+              "peer": 1,
+              "roundtrip_ns": 1506264,
+              "margin_ns": 18493736,
+              "request_queue_ns": 50256,
+              "request_sdk_callback_ns": 172222,
+              "request_decode_ns": 2083,
+              "request_owner_ns": 39628,
+              "result_queue_ns": 40852,
+              "result_sdk_callback_ns": 117939,
+              "result_decode_ns": 2471,
+              "result_owner_ns": 7307
+            },
+            {
+              "epoch": 2,
+              "token": 1850,
+              "peer": 1,
+              "roundtrip_ns": 1467073,
+              "margin_ns": 18532927,
+              "request_queue_ns": 97244,
+              "request_sdk_callback_ns": 587592,
+              "request_decode_ns": 8510,
+              "request_owner_ns": 160985,
+              "result_queue_ns": 27006,
+              "result_sdk_callback_ns": 470604,
+              "result_decode_ns": 5875,
+              "result_owner_ns": 66329
+            }
+          ],
+          "mutations_rejected": 5
+        }
+      },
+      {
+        "case": "loaded-2",
+        "passed": true,
+        "response": {
+          "accepted_requests": 67238,
+          "metrics": {
+            "roundtrip_ns": {
+              "min": 88077,
+              "p50": 261225,
+              "p99": 472284,
+              "max": 2295638
+            },
+            "margin_ns": {
+              "min": 17704362,
+              "p50": 19738783,
+              "p99": 19902715,
+              "max": 19911923
+            },
+            "request_queue_ns": {
+              "min": 832,
+              "p50": 22644,
+              "p99": 69993,
+              "max": 986165
+            },
+            "request_sdk_callback_ns": {
+              "min": 24946,
+              "p50": 103911,
+              "p99": 166809,
+              "max": 1757123
+            },
+            "request_decode_ns": {
+              "min": 1235,
+              "p50": 3035,
+              "p99": 10868,
+              "max": 82050
+            },
+            "request_owner_ns": {
+              "min": 2079,
+              "p50": 8652,
+              "p99": 48906,
+              "max": 183751
+            },
+            "result_queue_ns": {
+              "min": 938,
+              "p50": 6404,
+              "p99": 81248,
+              "max": 451163
+            },
+            "result_sdk_callback_ns": {
+              "min": 27613,
+              "p50": 59884,
+              "p99": 157964,
+              "max": 705217
+            },
+            "result_decode_ns": {
+              "min": 769,
+              "p50": 1482,
+              "p99": 4473,
+              "max": 105727
+            },
+            "result_owner_ns": {
+              "min": 882,
+              "p50": 7853,
+              "p99": 47453,
+              "max": 125970
+            }
+          },
+          "worst": [
+            {
+              "epoch": 2,
+              "token": 235,
+              "peer": 0,
+              "roundtrip_ns": 2295638,
+              "margin_ns": 17704362,
+              "request_queue_ns": 39419,
+              "request_sdk_callback_ns": 1757123,
+              "request_decode_ns": 8261,
+              "request_owner_ns": 30342,
+              "result_queue_ns": 145450,
+              "result_sdk_callback_ns": 265698,
+              "result_decode_ns": 5691,
+              "result_owner_ns": 22588
+            },
+            {
+              "epoch": 2,
+              "token": 117,
+              "peer": 1,
+              "roundtrip_ns": 2113621,
+              "margin_ns": 17884851,
+              "request_queue_ns": 69740,
+              "request_sdk_callback_ns": 426961,
+              "request_decode_ns": 13609,
+              "request_owner_ns": 55262,
+              "result_queue_ns": 44601,
+              "result_sdk_callback_ns": 293037,
+              "result_decode_ns": 7356,
+              "result_owner_ns": 58893
+            },
+            {
+              "epoch": 2,
+              "token": 116,
+              "peer": 0,
+              "roundtrip_ns": 1862936,
+              "margin_ns": 18136803,
+              "request_queue_ns": 42044,
+              "request_sdk_callback_ns": 338082,
+              "request_decode_ns": 11538,
+              "request_owner_ns": 37300,
+              "result_queue_ns": 23665,
+              "result_sdk_callback_ns": 243785,
+              "result_decode_ns": 11846,
+              "result_owner_ns": 81582
+            },
+            {
+              "epoch": 2,
+              "token": 222,
+              "peer": 0,
+              "roundtrip_ns": 1746612,
+              "margin_ns": 18253388,
+              "request_queue_ns": 19549,
+              "request_sdk_callback_ns": 724268,
+              "request_decode_ns": 14599,
+              "request_owner_ns": 32885,
+              "result_queue_ns": 271809,
+              "result_sdk_callback_ns": 554577,
+              "result_decode_ns": 10724,
+              "result_owner_ns": 42595
+            },
+            {
+              "epoch": 3,
+              "token": 33541,
+              "peer": 1,
+              "roundtrip_ns": 1531975,
+              "margin_ns": 18468025,
+              "request_queue_ns": 41708,
+              "request_sdk_callback_ns": 194639,
+              "request_decode_ns": 2229,
+              "request_owner_ns": 31824,
+              "result_queue_ns": 52650,
+              "result_sdk_callback_ns": 126081,
+              "result_decode_ns": 2309,
+              "result_owner_ns": 54453
+            }
+          ],
+          "mutations_rejected": 5
+        }
+      },
+      {
+        "case": "loaded-3",
+        "passed": true,
+        "response": {
+          "accepted_requests": 67230,
+          "metrics": {
+            "roundtrip_ns": {
+              "min": 87498,
+              "p50": 263943,
+              "p99": 608549,
+              "max": 1505130
+            },
+            "margin_ns": {
+              "min": 18494870,
+              "p50": 19736058,
+              "p99": 19901090,
+              "max": 19912502
+            },
+            "request_queue_ns": {
+              "min": 839,
+              "p50": 32671,
+              "p99": 70687,
+              "max": 1055982
+            },
+            "request_sdk_callback_ns": {
+              "min": 26189,
+              "p50": 103752,
+              "p99": 177794,
+              "max": 1260339
+            },
+            "request_decode_ns": {
+              "min": 946,
+              "p50": 2997,
+              "p99": 10198,
+              "max": 45480
+            },
+            "request_owner_ns": {
+              "min": 1647,
+              "p50": 8673,
+              "p99": 48653,
+              "max": 119209
+            },
+            "result_queue_ns": {
+              "min": 929,
+              "p50": 6494,
+              "p99": 80550,
+              "max": 292782
+            },
+            "result_sdk_callback_ns": {
+              "min": 27744,
+              "p50": 61725,
+              "p99": 165174,
+              "max": 1293437
+            },
+            "result_decode_ns": {
+              "min": 774,
+              "p50": 1524,
+              "p99": 5379,
+              "max": 97238
+            },
+            "result_owner_ns": {
+              "min": 831,
+              "p50": 8097,
+              "p99": 48539,
+              "max": 184438
+            }
+          },
+          "worst": [
+            {
+              "epoch": 3,
+              "token": 33559,
+              "peer": 1,
+              "roundtrip_ns": 1505130,
+              "margin_ns": 18494870,
+              "request_queue_ns": 62971,
+              "request_sdk_callback_ns": 137794,
+              "request_decode_ns": 2186,
+              "request_owner_ns": 37078,
+              "result_queue_ns": 57613,
+              "result_sdk_callback_ns": 106249,
+              "result_decode_ns": 1160,
+              "result_owner_ns": 32069
+            },
+            {
+              "epoch": 3,
+              "token": 33558,
+              "peer": 0,
+              "roundtrip_ns": 1505113,
+              "margin_ns": 18494887,
+              "request_queue_ns": 59186,
+              "request_sdk_callback_ns": 130129,
+              "request_decode_ns": 3826,
+              "request_owner_ns": 31937,
+              "result_queue_ns": 62522,
+              "result_sdk_callback_ns": 124992,
+              "result_decode_ns": 2573,
+              "result_owner_ns": 36241
+            },
+            {
+              "epoch": 3,
+              "token": 14815,
+              "peer": 1,
+              "roundtrip_ns": 1493407,
+              "margin_ns": 18506593,
+              "request_queue_ns": 39845,
+              "request_sdk_callback_ns": 117243,
+              "request_decode_ns": 2879,
+              "request_owner_ns": 44591,
+              "result_queue_ns": 8059,
+              "result_sdk_callback_ns": 1266558,
+              "result_decode_ns": 1015,
+              "result_owner_ns": 4510
+            },
+            {
+              "epoch": 3,
+              "token": 14814,
+              "peer": 0,
+              "roundtrip_ns": 1488958,
+              "margin_ns": 18511042,
+              "request_queue_ns": 33168,
+              "request_sdk_callback_ns": 124738,
+              "request_decode_ns": 2920,
+              "request_owner_ns": 10488,
+              "result_queue_ns": 5016,
+              "result_sdk_callback_ns": 1293437,
+              "result_decode_ns": 2295,
+              "result_owner_ns": 10961
+            },
+            {
+              "epoch": 3,
+              "token": 33517,
+              "peer": 1,
+              "roundtrip_ns": 1455535,
+              "margin_ns": 18544465,
+              "request_queue_ns": 43757,
+              "request_sdk_callback_ns": 130266,
+              "request_decode_ns": 1969,
+              "request_owner_ns": 45231,
+              "result_queue_ns": 46836,
+              "result_sdk_callback_ns": 125654,
+              "result_decode_ns": 1172,
+              "result_owner_ns": 4008
+            }
+          ],
+          "mutations_rejected": 5
+        }
+      }
+    ]
+  },
+  "native_service": {
+    "planned": 18,
+    "passed": 18,
+    "results": [
+      {
+        "name": "normal-normal",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-normal",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-ack-loss",
+        "fault": "ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-ack-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-actual-loss",
+        "fault": "actual-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-actual-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-stop-request-loss",
+        "fault": "stop-request-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-stop-request-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "stop-request-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-stop-ack-loss",
+        "fault": "stop-ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-stop-ack-loss",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "stop-ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-normal-slow-signals",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-normal-slow-signals",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-normal-r2",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-normal-r2",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-ack-loss-r2",
+        "fault": "ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-ack-loss-r2",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-actual-loss-r2",
+        "fault": "actual-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-actual-loss-r2",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-stop-request-loss-r2",
+        "fault": "stop-request-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-stop-request-loss-r2",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "stop-request-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-stop-ack-loss-r2",
+        "fault": "stop-ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-stop-ack-loss-r2",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "stop-ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-normal-slow-signals-r2",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-normal-slow-signals-r2",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-normal-r3",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-normal-r3",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-ack-loss-r3",
+        "fault": "ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-ack-loss-r3",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-actual-loss-r3",
+        "fault": "actual-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-actual-loss-r3",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "actual-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-stop-request-loss-r3",
+        "fault": "stop-request-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-stop-request-loss-r3",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "stop-request-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-stop-ack-loss-r3",
+        "fault": "stop-ack-loss",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-stop-ack-loss-r3",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--service-fault",
+          "stop-ack-loss"
+        ],
+        "runtime_exit": 1,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      },
+      {
+        "name": "normal-normal-slow-signals-r3",
+        "fault": "normal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/someip/front_run.py",
+          "/d/shin/StrataDrive/build/m9-followup/sdk-fifo-service/normal-normal-slow-signals-r3",
+          "--profile",
+          "normal",
+          "--three",
+          "--simple-vehicle",
+          "--diagnostics",
+          "--diagnostic-service",
+          "--isolated-ecus",
+          "--cases",
+          "central-rejoin",
+          "--split-owner-io",
+          "--separate-aux-io",
+          "--owner-fifo",
+          "--sdk-fifo",
+          "--sdk-io-threads",
+          "2",
+          "--signal-write-delay-ms",
+          "250"
+        ],
+        "runtime_exit": 0,
+        "audit_exit": 0,
+        "ordering_exit": 0,
+        "timing_exit": 0,
+        "response_exit": 0
+      }
+    ],
+    "expected_runtime_rejections": 12
+  },
+  "carla": {
+    "planned": 4,
+    "passed": 4,
+    "results": [
+      {
+        "name": "whole-nominal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+          "--engine",
+          "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+          "--source",
+          "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+          "--python",
+          "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+          "--fixture",
+          "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+          "--native-actual",
+          "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+          "--runtime",
+          "/d/shin/StrataDrive/build/m9-followup/carla-v2/runtime-whole-nominal",
+          "--output",
+          "/d/shin/StrataDrive/build/m9-followup/carla-v2/whole-nominal",
+          "--vehicle-substeps",
+          "320",
+          "--settle-mode",
+          "sleep",
+          "--solver-work",
+          "--simulation-continuous",
+          "--ticks",
+          "6000",
+          "--route-profile",
+          "/d/shin/StrataDrive/tests/integration/carla/scenarios/m8_stop30_v1.json",
+          "--held-steer-sleep",
+          "--route-startup-seconds",
+          "600",
+          "--diagnostic-fault",
+          "none"
+        ],
+        "sampled": false,
+        "fault": "none",
+        "runtime_exit": 0,
+        "audits": [
+          {
+            "tool": "audit_m7_1r_work.py",
+            "exit": 0
+          },
+          {
+            "tool": "audit_m9_diagnostics.py",
+            "exit": 0
+          }
+        ],
+        "replay": {
+          "passed": true,
+          "observations": 6001,
+          "sha256": "25996be742f8065226cdeb7a67e1d8703c3dbe8ad5506d0c9fe8f2e44b422958",
+          "command": [
+            "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+            "--native-solver-work",
+            "1",
+            "42",
+            "7",
+            "97",
+            "--sim-horizon-ms",
+            "60000",
+            "--route",
+            "/d/shin/StrataDrive/build/m9-followup/carla-v2/whole-nominal/route.txt",
+            "--diagnostic-fault",
+            "none"
+          ]
+        },
+        "passed": true
+      },
+      {
+        "name": "sampled-nominal",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+          "--engine",
+          "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+          "--source",
+          "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+          "--python",
+          "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+          "--fixture",
+          "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+          "--native-actual",
+          "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+          "--runtime",
+          "/d/shin/StrataDrive/build/m9-followup/carla-v2/runtime-sampled-nominal",
+          "--output",
+          "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-nominal",
+          "--vehicle-substeps",
+          "320",
+          "--settle-mode",
+          "sleep",
+          "--solver-work",
+          "--simulation-continuous",
+          "--ticks",
+          "6000",
+          "--route-profile",
+          "/d/shin/StrataDrive/tests/integration/carla/scenarios/m8_stop30_v1.json",
+          "--held-steer-sleep",
+          "--route-startup-seconds",
+          "600",
+          "--diagnostic-fault",
+          "none",
+          "--sampled-actual"
+        ],
+        "sampled": true,
+        "fault": "none",
+        "runtime_exit": 0,
+        "audits": [
+          {
+            "tool": "audit_m7_1r_work.py",
+            "exit": 0
+          },
+          {
+            "tool": "audit_m9_diagnostics.py",
+            "exit": 0
+          }
+        ],
+        "replay": {
+          "passed": true,
+          "observations": 6001,
+          "sha256": "d4382209e095ae0d85aee732f4107c12323684e65e978e890d8eff1c18caf96d",
+          "command": [
+            "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+            "--native-solver-work",
+            "1",
+            "42",
+            "7",
+            "97",
+            "--sim-horizon-ms",
+            "60000",
+            "--route",
+            "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-nominal/route.txt",
+            "--diagnostic-fault",
+            "none",
+            "--admission-profile",
+            "sampled-actual-v1"
+          ]
+        },
+        "sampled_mutations_rejected": 3,
+        "passed": true
+      },
+      {
+        "name": "sampled-silent-1",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+          "--engine",
+          "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+          "--source",
+          "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+          "--python",
+          "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+          "--fixture",
+          "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+          "--native-actual",
+          "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+          "--runtime",
+          "/d/shin/StrataDrive/build/m9-followup/carla-v2/runtime-sampled-silent-1",
+          "--output",
+          "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-silent-1",
+          "--vehicle-substeps",
+          "320",
+          "--settle-mode",
+          "sleep",
+          "--solver-work",
+          "--simulation-continuous",
+          "--ticks",
+          "6000",
+          "--route-profile",
+          "/d/shin/StrataDrive/tests/integration/carla/scenarios/m8_stop30_v1.json",
+          "--held-steer-sleep",
+          "--route-startup-seconds",
+          "600",
+          "--diagnostic-fault",
+          "front-command-loss",
+          "--sampled-actual"
+        ],
+        "sampled": true,
+        "fault": "front-command-loss",
+        "runtime_exit": 0,
+        "audits": [
+          {
+            "tool": "audit_m7_1r_work.py",
+            "exit": 0
+          },
+          {
+            "tool": "audit_m9_diagnostics.py",
+            "exit": 0
+          }
+        ],
+        "replay": {
+          "passed": true,
+          "observations": 6001,
+          "sha256": "8239099156427b523b2b7da84b65fc51850a37dab19d8808c4d6d2ae3ceb97fb",
+          "command": [
+            "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+            "--native-solver-work",
+            "1",
+            "42",
+            "7",
+            "97",
+            "--sim-horizon-ms",
+            "60000",
+            "--route",
+            "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-silent-1/route.txt",
+            "--diagnostic-fault",
+            "front-command-loss",
+            "--admission-profile",
+            "sampled-actual-v1"
+          ]
+        },
+        "sampled_mutations_rejected": 3,
+        "passed": true
+      },
+      {
+        "name": "sampled-silent-2",
+        "command": [
+          "/usr/bin/python3",
+          "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+          "--engine",
+          "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+          "--source",
+          "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+          "--python",
+          "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+          "--fixture",
+          "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+          "--native-actual",
+          "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+          "--runtime",
+          "/d/shin/StrataDrive/build/m9-followup/carla-v2/runtime-sampled-silent-2",
+          "--output",
+          "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-silent-2",
+          "--vehicle-substeps",
+          "320",
+          "--settle-mode",
+          "sleep",
+          "--solver-work",
+          "--simulation-continuous",
+          "--ticks",
+          "6000",
+          "--route-profile",
+          "/d/shin/StrataDrive/tests/integration/carla/scenarios/m8_stop30_v1.json",
+          "--held-steer-sleep",
+          "--route-startup-seconds",
+          "600",
+          "--diagnostic-fault",
+          "front-command-loss",
+          "--sampled-actual"
+        ],
+        "sampled": true,
+        "fault": "front-command-loss",
+        "runtime_exit": 0,
+        "audits": [
+          {
+            "tool": "audit_m7_1r_work.py",
+            "exit": 0
+          },
+          {
+            "tool": "audit_m9_diagnostics.py",
+            "exit": 0
+          }
+        ],
+        "replay": {
+          "passed": true,
+          "observations": 6001,
+          "sha256": "bdb428ba466e3fbd2a05486eaa888a030c970931d7f3f0a16cfa6726c7bab020",
+          "command": [
+            "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+            "--native-solver-work",
+            "1",
+            "42",
+            "7",
+            "97",
+            "--sim-horizon-ms",
+            "60000",
+            "--route",
+            "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-silent-2/route.txt",
+            "--diagnostic-fault",
+            "front-command-loss",
+            "--admission-profile",
+            "sampled-actual-v1"
+          ]
+        },
+        "sampled_mutations_rejected": 3,
+        "passed": true
+      }
+    ]
+  },
+  "component": [
+    {
+      "profile": "release",
+      "command": [
+        "cmake",
+        "--build",
+        "build/m7-functional",
+        "--target",
+        "m7_functional_test",
+        "m7_native_admission_test",
+        "m7_wheel_shadow",
+        "--parallel",
+        "2"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "release",
+      "command": [
+        "build/m7-functional/tests/integration/carla/m7_1f/m7_functional_test"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "release",
+      "command": [
+        "build/m7-functional/tests/integration/carla/m7_1q/m7_native_admission_test"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "debug",
+      "command": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build/m1-angle",
+        "-DSTRATADRIVE_M7_FUNCTIONAL_TESTS=ON"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "debug",
+      "command": [
+        "cmake",
+        "--build",
+        "build/m1-angle",
+        "--target",
+        "m7_functional_test",
+        "m7_native_admission_test",
+        "--parallel",
+        "2"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "debug",
+      "command": [
+        "build/m1-angle/tests/integration/carla/m7_1f/m7_functional_test"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "debug",
+      "command": [
+        "build/m1-angle/tests/integration/carla/m7_1q/m7_native_admission_test"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "asan",
+      "command": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build/m1-angle-sanitized",
+        "-DSTRATADRIVE_M7_FUNCTIONAL_TESTS=ON"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "asan",
+      "command": [
+        "cmake",
+        "--build",
+        "build/m1-angle-sanitized",
+        "--target",
+        "m7_functional_test",
+        "m7_native_admission_test",
+        "--parallel",
+        "2"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "asan",
+      "command": [
+        "build/m1-angle-sanitized/tests/integration/carla/m7_1f/m7_functional_test"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "asan",
+      "command": [
+        "build/m1-angle-sanitized/tests/integration/carla/m7_1q/m7_native_admission_test"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "tsan",
+      "command": [
+        "cmake",
+        "-S",
+        ".",
+        "-B",
+        "build/m9-service-timing/tsan-unit",
+        "-DSTRATADRIVE_M7_FUNCTIONAL_TESTS=ON"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "tsan",
+      "command": [
+        "cmake",
+        "--build",
+        "build/m9-service-timing/tsan-unit",
+        "--target",
+        "m7_functional_test",
+        "m7_native_admission_test",
+        "--parallel",
+        "2"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "tsan",
+      "command": [
+        "setarch",
+        "x86_64",
+        "-R",
+        "build/m9-service-timing/tsan-unit/tests/integration/carla/m7_1f/m7_functional_test"
+      ],
+      "exit": 0
+    },
+    {
+      "profile": "tsan",
+      "command": [
+        "setarch",
+        "x86_64",
+        "-R",
+        "build/m9-service-timing/tsan-unit/tests/integration/carla/m7_1q/m7_native_admission_test"
+      ],
+      "exit": 0
+    }
+  ],
+  "static": [
+    {
+      "tool": "clang-tidy",
+      "file": "tests/integration/carla/m7_1f/functional_rig.cpp",
+      "exit": 0
+    },
+    {
+      "tool": "clang-tidy",
+      "file": "tests/integration/carla/m7_1g/wheel_main.cpp",
+      "exit": 0
+    },
+    {
+      "tool": "cppcheck",
+      "exit": 0
+    }
+  ],
+  "component_identity": {
+    "release": {
+      "binaries": {
+        "build/m7-functional/tests/integration/carla/m7_1f/m7_functional_test": "ad112652af55b045149193ec4d1c71a6575288c91e98f7fa72d4d08204a71d48",
+        "build/m7-functional/tests/integration/carla/m7_1q/m7_native_admission_test": "5e0550e856145e8b0fbdd778fcb9b56804f677ad318cc4e43f0c28985d490d1d"
+      },
+      "cache_sha256": "9c2b21203ef73c5bbd7537770b1f18971f16d0429466dbee18829b14c7a28bb8",
+      "tests": 52
+    },
+    "debug": {
+      "binaries": {
+        "build/m1-angle/tests/integration/carla/m7_1f/m7_functional_test": "84cab2beb71a60fcbd21b366996c8e4321426a374af9cfc603b503e2990c9d11",
+        "build/m1-angle/tests/integration/carla/m7_1q/m7_native_admission_test": "b053e88a16ff75b5828b5c7a5dd5ca4296e9af3de0e73eda1c7c49dbdeb43768"
+      },
+      "cache_sha256": "a78b491855f891a7178f19a62c1d6c711c90a3a52e7bfa2ae376c6560588420e",
+      "tests": 52
+    },
+    "asan_ubsan": {
+      "binaries": {
+        "build/m1-angle-sanitized/tests/integration/carla/m7_1f/m7_functional_test": "b99d3d39e47f89cbf3b06136042ac8d8423d6770dba141f44e333c4ccf74171f",
+        "build/m1-angle-sanitized/tests/integration/carla/m7_1q/m7_native_admission_test": "232a3e95d17abeeee71702b63fcea62f4e29bc9cd2e1ebbdac9d4ef75f816d81"
+      },
+      "cache_sha256": "156e2faadf54dc6a7e37f33e2979af138f4a19e64cb1e4d317c10acc28c8f8c4",
+      "tests": 52
+    },
+    "tsan": {
+      "binaries": {
+        "build/m9-service-timing/tsan-unit/tests/integration/carla/m7_1f/m7_functional_test": "122028d2288a6d7df6e42a5696ab80536e0c6445f4f55c311797a641d77e0e76",
+        "build/m9-service-timing/tsan-unit/tests/integration/carla/m7_1q/m7_native_admission_test": "f8e5a44312ef2c44069f4ea55d72c3af8aa42f526e9f0ad0fc4714090abe0b77"
+      },
+      "cache_sha256": "93a250c3c5b5e6f792a42bc3dc3ff52219a0efafd8e142b7de93e972b041d10c",
+      "tests": 52
+    }
+  },
+  "carla_launcher_failure": {
+    "planned": 4,
+    "started_servers": 2,
+    "completed_driving_runs": 0,
+    "unstarted": 2,
+    "reason": "new suite resolved venv interpreter symlink to /usr/bin/python3.10 without carla; first case failed, second startup interrupted, remaining two not started",
+    "suite_pid": 1223370,
+    "supervisor_pid": 1227493,
+    "owned_server_pid": 1227494,
+    "action": "pause suite; SIGINT owned supervisor for existing finally shutdown; terminate suite after supervisor exits",
+    "first_case": "whole-nominal failed read-only readiness: ModuleNotFoundError carla",
+    "second_case": "sampled-nominal interrupted during startup before probe; supervisor SIGINT sent; process no longer exists, final supervisor report unavailable",
+    "first_server_exit": -9,
+    "first_forced_stop": "SIGKILL after SIGINT timeout",
+    "second_server_exit": null,
+    "second_forced_stop": "not recorded"
+  },
+  "canonical_replay": [
+    {
+      "case": "whole-nominal",
+      "observations": 6001,
+      "original_canonical_sha256": "f21f51c44237b1367c4a159545c8ad30483ab730e96c9de0d4c7925cf8713a7f",
+      "replayed_canonical_sha256": "f21f51c44237b1367c4a159545c8ad30483ab730e96c9de0d4c7925cf8713a7f",
+      "passed": true,
+      "scope": "full native JSON with canonical key ordering, exact number types/values; original text whitespace is not compared"
+    },
+    {
+      "case": "sampled-nominal",
+      "observations": 6001,
+      "original_canonical_sha256": "844a385ae362e735a5cc09f5376278b03048425f0c05bddf07125b47ae55d2eb",
+      "replayed_canonical_sha256": "844a385ae362e735a5cc09f5376278b03048425f0c05bddf07125b47ae55d2eb",
+      "passed": true,
+      "scope": "full native JSON with canonical key ordering, exact number types/values; original text whitespace is not compared"
+    },
+    {
+      "case": "sampled-silent-1",
+      "observations": 6001,
+      "original_canonical_sha256": "3ccd3e7d52afed0ec3b3d6ffe3d23ad09b50ee4947c39edeebe85fdc136e98b0",
+      "replayed_canonical_sha256": "3ccd3e7d52afed0ec3b3d6ffe3d23ad09b50ee4947c39edeebe85fdc136e98b0",
+      "passed": true,
+      "scope": "full native JSON with canonical key ordering, exact number types/values; original text whitespace is not compared"
+    },
+    {
+      "case": "sampled-silent-2",
+      "observations": 6001,
+      "original_canonical_sha256": "cae1cb8adb5961188360fd97a9aaddcce0f132db692b1e7e94ee7390d964b40d",
+      "replayed_canonical_sha256": "cae1cb8adb5961188360fd97a9aaddcce0f132db692b1e7e94ee7390d964b40d",
+      "passed": true,
+      "scope": "full native JSON with canonical key ordering, exact number types/values; original text whitespace is not compared"
+    }
+  ],
+  "diagnostics": [
+    {
+      "case": "whole-nominal",
+      "events": 13,
+      "roots": [],
+      "response": [
+        {
+          "_id": [
+            1,
+            8,
+            3
+          ],
+          "_related": [
+            1,
+            8,
+            2
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 11,
+          "actual_source_ns": 45288591621,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            4
+          ],
+          "_related": [
+            1,
+            8,
+            2
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 4,
+          "actual_source_ns": 45296592615,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            5
+          ],
+          "_related": [
+            1,
+            8,
+            2
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 5,
+          "actual_source_ns": 45296592615,
+          "measured": 100000.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            8
+          ],
+          "_related": [
+            1,
+            8,
+            7
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 11,
+          "actual_source_ns": 45888591607,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            9
+          ],
+          "_related": [
+            1,
+            8,
+            7
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 4,
+          "actual_source_ns": 45896592615,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            10
+          ],
+          "_related": [
+            1,
+            8,
+            7
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 5,
+          "actual_source_ns": 45896592615,
+          "measured": 100000.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            11
+          ],
+          "_related": [
+            1,
+            8,
+            7
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 6,
+          "actual_source_ns": 45896592615,
+          "measured": 28.4
+        }
+      ]
+    },
+    {
+      "case": "sampled-nominal",
+      "events": 13,
+      "roots": [],
+      "response": [
+        {
+          "_id": [
+            1,
+            8,
+            3
+          ],
+          "_related": [
+            1,
+            8,
+            2
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 11,
+          "actual_source_ns": 45114271221,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            4
+          ],
+          "_related": [
+            1,
+            8,
+            2
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 4,
+          "actual_source_ns": 45122272215,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            5
+          ],
+          "_related": [
+            1,
+            8,
+            2
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 5,
+          "actual_source_ns": 45122272215,
+          "measured": 100000.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            8
+          ],
+          "_related": [
+            1,
+            8,
+            7
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 11,
+          "actual_source_ns": 45714271207,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            9
+          ],
+          "_related": [
+            1,
+            8,
+            7
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 4,
+          "actual_source_ns": 45722272215,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            10
+          ],
+          "_related": [
+            1,
+            8,
+            7
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 5,
+          "actual_source_ns": 45722272215,
+          "measured": 100000.0
+        },
+        {
+          "_id": [
+            1,
+            8,
+            11
+          ],
+          "_related": [
+            1,
+            8,
+            7
+          ],
+          "_occurrence": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source_producer": 6,
+          "actual_source_ns": 45722272215,
+          "measured": 28.4
+        }
+      ]
+    },
+    {
+      "case": "sampled-silent-1",
+      "events": 21,
+      "roots": [
+        {
+          "_id": [
+            1,
+            30,
+            1
+          ],
+          "_occurrence": [
+            1,
+            30,
+            42,
+            6,
+            1
+          ],
+          "code": 8193,
+          "component": 7,
+          "monitor": 6,
+          "native_reason": 2,
+          "detected_ns": 36380485587
+        },
+        {
+          "_id": [
+            1,
+            31,
+            1
+          ],
+          "_occurrence": [
+            1,
+            31,
+            42,
+            6,
+            1
+          ],
+          "code": 8193,
+          "component": 8,
+          "monitor": 6,
+          "native_reason": 2,
+          "detected_ns": 36380485587
+        }
+      ],
+      "response": [
+        {
+          "_id": [
+            1,
+            9,
+            1
+          ],
+          "_related": [
+            1,
+            30,
+            1
+          ],
+          "_occurrence": [
+            1,
+            30,
+            42,
+            6,
+            1
+          ],
+          "source_producer": 11,
+          "actual_source_ns": 36580484782,
+          "measured": 22.46
+        },
+        {
+          "_id": [
+            1,
+            9,
+            2
+          ],
+          "_related": [
+            1,
+            30,
+            1
+          ],
+          "_occurrence": [
+            1,
+            30,
+            42,
+            6,
+            1
+          ],
+          "source_producer": 4,
+          "actual_source_ns": 36588485587,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            9,
+            3
+          ],
+          "_related": [
+            1,
+            30,
+            1
+          ],
+          "_occurrence": [
+            1,
+            30,
+            42,
+            6,
+            1
+          ],
+          "source_producer": 5,
+          "actual_source_ns": 36588485587,
+          "measured": 1000000.0
+        }
+      ]
+    },
+    {
+      "case": "sampled-silent-2",
+      "events": 21,
+      "roots": [
+        {
+          "_id": [
+            1,
+            30,
+            1
+          ],
+          "_occurrence": [
+            1,
+            30,
+            42,
+            6,
+            1
+          ],
+          "code": 8193,
+          "component": 7,
+          "monitor": 6,
+          "native_reason": 2,
+          "detected_ns": 36361639079
+        },
+        {
+          "_id": [
+            1,
+            31,
+            1
+          ],
+          "_occurrence": [
+            1,
+            31,
+            42,
+            6,
+            1
+          ],
+          "code": 8193,
+          "component": 8,
+          "monitor": 6,
+          "native_reason": 2,
+          "detected_ns": 36361639079
+        }
+      ],
+      "response": [
+        {
+          "_id": [
+            1,
+            9,
+            1
+          ],
+          "_related": [
+            1,
+            30,
+            1
+          ],
+          "_occurrence": [
+            1,
+            30,
+            42,
+            6,
+            1
+          ],
+          "source_producer": 11,
+          "actual_source_ns": 36561638274,
+          "measured": 22.46
+        },
+        {
+          "_id": [
+            1,
+            9,
+            2
+          ],
+          "_related": [
+            1,
+            30,
+            1
+          ],
+          "_occurrence": [
+            1,
+            30,
+            42,
+            6,
+            1
+          ],
+          "source_producer": 4,
+          "actual_source_ns": 36569639079,
+          "measured": 0.0
+        },
+        {
+          "_id": [
+            1,
+            9,
+            3
+          ],
+          "_related": [
+            1,
+            30,
+            1
+          ],
+          "_occurrence": [
+            1,
+            30,
+            42,
+            6,
+            1
+          ],
+          "source_producer": 5,
+          "actual_source_ns": 36569639079,
+          "measured": 1000000.0
+        }
+      ]
+    }
+  ],
+  "accepted": true
+}

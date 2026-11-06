@@ -37,6 +37,14 @@ class SdkIoThreadTest(unittest.TestCase):
             changed=copy.deepcopy(threads);changed[0][field]=value
             with self.assertRaises(ValueError):timing.io_threads(changed,1,4)
 
+    def test_fifo_is_explicit_and_cannot_accept_wrong_priority_or_cpu(self):
+        threads=[{'name':'1312_io 0','tid':100,'affinity':[4],'policy':1,'priority':1}]
+        timing.io_threads(threads,1,4,True)
+        with self.assertRaises(ValueError):timing.io_threads(threads,1,4)
+        for field,value in [('affinity',[1]),('policy',0),('policy',2),('priority',0),('priority',2)]:
+            changed=copy.deepcopy(threads);changed[0][field]=value
+            with self.assertRaises(ValueError):timing.io_threads(changed,1,4,True)
+
 
 class KernelTimestampTest(unittest.TestCase):
     def test_timestamp_is_kernel_ancillary_not_read_clock(self):

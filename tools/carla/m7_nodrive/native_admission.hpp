@@ -35,7 +35,14 @@ struct Output {
 inline bool same(const Packet& a,const Packet& b) {
     return a && b && a->size==b->size && std::equal(a->bytes.begin(),a->bytes.begin()+a->size,b->bytes.begin());
 }
-enum class ClockPolicy { Functional, HostMonotonic };
+// FunctionalSampledActual is an explicit simulation-only 10ms sample/hold
+// profile. Original normal command authority must be valid at the acquisition
+// barrier. Physical Actual/wheel/permission/credit still cover the whole step.
+// A command may expire during that held interval; its ORIGINAL expiry remains
+// in Output and the native owners must detect it before the next barrier.
+// This profile supplies no command authority past expiry and no sub-10ms
+// physical-response claim. The default prospective-authority gate is unchanged.
+enum class ClockPolicy { Functional, HostMonotonic, FunctionalSampledActual };
 class Admission {
 public:
     Admission(std::uint32_t application,Time initial,ClockPolicy clock=ClockPolicy::Functional,Time interval=step)
@@ -246,6 +253,7 @@ private:
         frame=*p;return true;
     }
     template<class M> bool command(const Packet& packet,unsigned role,const M& actual,Time now,Time end,Output& out) {
+        if(clock_==ClockPolicy::FunctionalSampledActual)end=now;
         const auto q=decode<transport::LeafRequest>(packet,role<2?session::Role::FrontZone:session::Role::RearZone,static_cast<session::Role>(role+2));
         if(!q)return false;
         if(q->epoch!=application_ || q->operation!=transport::LeafOperation::Frame || !q->command)return fail("native_command_context");

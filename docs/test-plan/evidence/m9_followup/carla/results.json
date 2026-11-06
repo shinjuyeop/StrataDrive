@@ -1,0 +1,290 @@
+[
+  {
+    "name": "whole-nominal",
+    "command": [
+      "/usr/bin/python3",
+      "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+      "--engine",
+      "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+      "--source",
+      "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+      "--python",
+      "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+      "--fixture",
+      "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+      "--native-actual",
+      "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+      "--runtime",
+      "/d/shin/StrataDrive/build/m9-followup/carla-v2/runtime-whole-nominal",
+      "--output",
+      "/d/shin/StrataDrive/build/m9-followup/carla-v2/whole-nominal",
+      "--vehicle-substeps",
+      "320",
+      "--settle-mode",
+      "sleep",
+      "--solver-work",
+      "--simulation-continuous",
+      "--ticks",
+      "6000",
+      "--route-profile",
+      "/d/shin/StrataDrive/tests/integration/carla/scenarios/m8_stop30_v1.json",
+      "--held-steer-sleep",
+      "--route-startup-seconds",
+      "600",
+      "--diagnostic-fault",
+      "none"
+    ],
+    "sampled": false,
+    "fault": "none",
+    "runtime_exit": 0,
+    "audits": [
+      {
+        "tool": "audit_m7_1r_work.py",
+        "exit": 0
+      },
+      {
+        "tool": "audit_m9_diagnostics.py",
+        "exit": 0
+      }
+    ],
+    "replay": {
+      "passed": true,
+      "observations": 6001,
+      "sha256": "25996be742f8065226cdeb7a67e1d8703c3dbe8ad5506d0c9fe8f2e44b422958",
+      "command": [
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--native-solver-work",
+        "1",
+        "42",
+        "7",
+        "97",
+        "--sim-horizon-ms",
+        "60000",
+        "--route",
+        "/d/shin/StrataDrive/build/m9-followup/carla-v2/whole-nominal/route.txt",
+        "--diagnostic-fault",
+        "none"
+      ]
+    },
+    "passed": true
+  },
+  {
+    "name": "sampled-nominal",
+    "command": [
+      "/usr/bin/python3",
+      "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+      "--engine",
+      "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+      "--source",
+      "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+      "--python",
+      "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+      "--fixture",
+      "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+      "--native-actual",
+      "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+      "--runtime",
+      "/d/shin/StrataDrive/build/m9-followup/carla-v2/runtime-sampled-nominal",
+      "--output",
+      "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-nominal",
+      "--vehicle-substeps",
+      "320",
+      "--settle-mode",
+      "sleep",
+      "--solver-work",
+      "--simulation-continuous",
+      "--ticks",
+      "6000",
+      "--route-profile",
+      "/d/shin/StrataDrive/tests/integration/carla/scenarios/m8_stop30_v1.json",
+      "--held-steer-sleep",
+      "--route-startup-seconds",
+      "600",
+      "--diagnostic-fault",
+      "none",
+      "--sampled-actual"
+    ],
+    "sampled": true,
+    "fault": "none",
+    "runtime_exit": 0,
+    "audits": [
+      {
+        "tool": "audit_m7_1r_work.py",
+        "exit": 0
+      },
+      {
+        "tool": "audit_m9_diagnostics.py",
+        "exit": 0
+      }
+    ],
+    "replay": {
+      "passed": true,
+      "observations": 6001,
+      "sha256": "d4382209e095ae0d85aee732f4107c12323684e65e978e890d8eff1c18caf96d",
+      "command": [
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--native-solver-work",
+        "1",
+        "42",
+        "7",
+        "97",
+        "--sim-horizon-ms",
+        "60000",
+        "--route",
+        "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-nominal/route.txt",
+        "--diagnostic-fault",
+        "none",
+        "--admission-profile",
+        "sampled-actual-v1"
+      ]
+    },
+    "sampled_mutations_rejected": 3,
+    "passed": true
+  },
+  {
+    "name": "sampled-silent-1",
+    "command": [
+      "/usr/bin/python3",
+      "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+      "--engine",
+      "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+      "--source",
+      "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+      "--python",
+      "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+      "--fixture",
+      "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+      "--native-actual",
+      "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+      "--runtime",
+      "/d/shin/StrataDrive/build/m9-followup/carla-v2/runtime-sampled-silent-1",
+      "--output",
+      "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-silent-1",
+      "--vehicle-substeps",
+      "320",
+      "--settle-mode",
+      "sleep",
+      "--solver-work",
+      "--simulation-continuous",
+      "--ticks",
+      "6000",
+      "--route-profile",
+      "/d/shin/StrataDrive/tests/integration/carla/scenarios/m8_stop30_v1.json",
+      "--held-steer-sleep",
+      "--route-startup-seconds",
+      "600",
+      "--diagnostic-fault",
+      "front-command-loss",
+      "--sampled-actual"
+    ],
+    "sampled": true,
+    "fault": "front-command-loss",
+    "runtime_exit": 0,
+    "audits": [
+      {
+        "tool": "audit_m7_1r_work.py",
+        "exit": 0
+      },
+      {
+        "tool": "audit_m9_diagnostics.py",
+        "exit": 0
+      }
+    ],
+    "replay": {
+      "passed": true,
+      "observations": 6001,
+      "sha256": "8239099156427b523b2b7da84b65fc51850a37dab19d8808c4d6d2ae3ceb97fb",
+      "command": [
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--native-solver-work",
+        "1",
+        "42",
+        "7",
+        "97",
+        "--sim-horizon-ms",
+        "60000",
+        "--route",
+        "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-silent-1/route.txt",
+        "--diagnostic-fault",
+        "front-command-loss",
+        "--admission-profile",
+        "sampled-actual-v1"
+      ]
+    },
+    "sampled_mutations_rejected": 3,
+    "passed": true
+  },
+  {
+    "name": "sampled-silent-2",
+    "command": [
+      "/usr/bin/python3",
+      "/d/shin/StrataDrive/tests/integration/carla/m7_1o_run.py",
+      "--engine",
+      "/d/shin/stratadrive-tools/UnrealEngine_4.26",
+      "--source",
+      "/d/shin/stratadrive-tools/m7-source/carla-0.9.16",
+      "--python",
+      "/d/shin/stratadrive-tools/m7-source/m7-nodrive-venv/bin/python",
+      "--fixture",
+      "/d/shin/stratadrive-tools/m7-source/m7-1m-fixture",
+      "--native-actual",
+      "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+      "--runtime",
+      "/d/shin/StrataDrive/build/m9-followup/carla-v2/runtime-sampled-silent-2",
+      "--output",
+      "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-silent-2",
+      "--vehicle-substeps",
+      "320",
+      "--settle-mode",
+      "sleep",
+      "--solver-work",
+      "--simulation-continuous",
+      "--ticks",
+      "6000",
+      "--route-profile",
+      "/d/shin/StrataDrive/tests/integration/carla/scenarios/m8_stop30_v1.json",
+      "--held-steer-sleep",
+      "--route-startup-seconds",
+      "600",
+      "--diagnostic-fault",
+      "front-command-loss",
+      "--sampled-actual"
+    ],
+    "sampled": true,
+    "fault": "front-command-loss",
+    "runtime_exit": 0,
+    "audits": [
+      {
+        "tool": "audit_m7_1r_work.py",
+        "exit": 0
+      },
+      {
+        "tool": "audit_m9_diagnostics.py",
+        "exit": 0
+      }
+    ],
+    "replay": {
+      "passed": true,
+      "observations": 6001,
+      "sha256": "bdb428ba466e3fbd2a05486eaa888a030c970931d7f3f0a16cfa6726c7bab020",
+      "command": [
+        "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+        "--native-solver-work",
+        "1",
+        "42",
+        "7",
+        "97",
+        "--sim-horizon-ms",
+        "60000",
+        "--route",
+        "/d/shin/StrataDrive/build/m9-followup/carla-v2/sampled-silent-2/route.txt",
+        "--diagnostic-fault",
+        "front-command-loss",
+        "--admission-profile",
+        "sampled-actual-v1"
+      ]
+    },
+    "sampled_mutations_rejected": 3,
+    "passed": true
+  }
+]
