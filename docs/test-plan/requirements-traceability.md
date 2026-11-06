@@ -69,3 +69,9 @@ C-M9-CLOCK-01/C-M9-POWER-01/C-M9-RETENTION-01/C-M9-SOAK-01은
 Power5조건의8-role 차량 복구, 비활성 store의 원형 보관/복원과 고정 native 서비스 반복을
 연결한다. Source/expiry·보호 기한·과거 고장을 유지한다. Silent-loss의 실제 CARLA subinterval,
 자동 장기 상태 이관/용량 회수와 학습자 수용까지 검증한 전체 TC 결과로 올리지 않는다.
+
+C-M8-BRAKING-01/C-M9-STORAGE-01은 [소프트웨어 후속](evidence/milestone-followup/README.md)의
+제동 방향별 적분·실제 allocator ancestry와 저장 syscall 오류/프로세스 중단·복원 실패 경계를
+연결한다. 독립 모델/원본 획득 입력 재생과 실제 CARLA·Target 물리 시험을 구별한다.
+새 CARLA 고정 S03 8000구간도 별도로 검증했으며 실제 전원 차단·무제한 보존·전체
+Reference의 TC 판정은 변경하지 않는다.

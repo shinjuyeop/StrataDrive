@@ -83,6 +83,7 @@ def main():
         report['route_profile']=dict(definition=route,sha256=hashlib.sha256(a.route_profile.read_bytes()).hexdigest())
         (a.output/'frozen-route.json').write_bytes(a.route_profile.read_bytes())
     report['propulsion_aware']=a.propulsion_aware
+    if a.propulsion_aware:report['allocation_feedback_schema']=3
     if feasibility:report['reference_feasibility']=feasibility
     report['speed_terminal']=a.speed_terminal
     if a.record_video:report['video_profile']='chase-rgb-960x540-20hz-v1'

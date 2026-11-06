@@ -1,0 +1,138 @@
+[
+  {
+    "name": "normal",
+    "command": [
+      "/usr/bin/python3",
+      "tests/integration/someip/front_run.py",
+      "build/milestone-followup/native/normal",
+      "--profile",
+      "normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--split-owner-io",
+      "--separate-aux-io",
+      "--owner-fifo",
+      "--sdk-fifo",
+      "--sdk-io-threads",
+      "2"
+    ],
+    "runtime_exit": 0,
+    "expected_runtime_exit": 0,
+    "audits": [
+      {
+        "tool": "audit_native_service",
+        "exit": 0
+      },
+      {
+        "tool": "audit_service_ordering",
+        "exit": 0
+      },
+      {
+        "tool": "audit_service_timing",
+        "exit": 0
+      },
+      {
+        "tool": "audit_service_response",
+        "exit": 0
+      }
+    ],
+    "passed": true
+  },
+  {
+    "name": "ack-loss",
+    "command": [
+      "/usr/bin/python3",
+      "tests/integration/someip/front_run.py",
+      "build/milestone-followup/native/ack-loss",
+      "--profile",
+      "normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--split-owner-io",
+      "--separate-aux-io",
+      "--owner-fifo",
+      "--sdk-fifo",
+      "--sdk-io-threads",
+      "2",
+      "--service-fault",
+      "ack-loss"
+    ],
+    "runtime_exit": 1,
+    "expected_runtime_exit": 1,
+    "audits": [
+      {
+        "tool": "audit_native_service_faults",
+        "exit": 0
+      },
+      {
+        "tool": "audit_service_ordering",
+        "exit": 0
+      },
+      {
+        "tool": "audit_service_timing",
+        "exit": 0
+      },
+      {
+        "tool": "audit_service_response",
+        "exit": 0
+      }
+    ],
+    "passed": true
+  },
+  {
+    "name": "stop-ack-loss",
+    "command": [
+      "/usr/bin/python3",
+      "tests/integration/someip/front_run.py",
+      "build/milestone-followup/native/stop-ack-loss",
+      "--profile",
+      "normal",
+      "--three",
+      "--simple-vehicle",
+      "--diagnostics",
+      "--diagnostic-service",
+      "--isolated-ecus",
+      "--cases",
+      "central-rejoin",
+      "--split-owner-io",
+      "--separate-aux-io",
+      "--owner-fifo",
+      "--sdk-fifo",
+      "--sdk-io-threads",
+      "2",
+      "--service-fault",
+      "stop-ack-loss"
+    ],
+    "runtime_exit": 1,
+    "expected_runtime_exit": 1,
+    "audits": [
+      {
+        "tool": "audit_native_service_faults",
+        "exit": 0
+      },
+      {
+        "tool": "audit_service_ordering",
+        "exit": 0
+      },
+      {
+        "tool": "audit_service_timing",
+        "exit": 0
+      },
+      {
+        "tool": "audit_service_response",
+        "exit": 0
+      }
+    ],
+    "passed": true
+  }
+]

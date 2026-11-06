@@ -8,12 +8,15 @@
 
 namespace stratadrive::central {
 // Historical successful Central allocation, not actuator Actual or permission.
-// Used only to suppress positive PI integration on the next control release.
+// Used only for directional anti-windup on the next control release. The
+// historical type/positive flag names are retained; neither grants authority.
 struct PropulsionSelection {
     std::uint32_t epoch, request_sequence;
     std::uint64_t selection_ns;
     double requested_acceleration_mps2, requested_propulsion_nm, selected_propulsion_nm;
     bool limited;
+    double requested_braking_nm{0}, selected_braking_nm{0};
+    bool braking_limited{false};
 };
 // Shared in-process contracts. These are not DDS IDL or a CAN wire extension.
 // Target speed remains upstream; allocation consumes its bounded acceleration.

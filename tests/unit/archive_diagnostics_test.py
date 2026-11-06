@@ -8,6 +8,7 @@ import struct
 import tarfile
 import tempfile
 import unittest
+from unittest import mock
 import zlib
 
 spec=importlib.util.spec_from_file_location('archive_diagnostics',Path(__file__).resolve().parents[2]/'tools/archive_diagnostics.py')
@@ -81,6 +82,46 @@ class ArchiveDiagnostics(unittest.TestCase):
     def test_unknown_file_is_not_silently_omitted(self):
         p=self.store/'unexpected';p.touch(mode=0o600)
         with self.assertRaises(ValueError):archive.archive_store(self.store,self.output)
+
+    def test_pending_intent_with_no_data_tail_survives_archive_and_restore(self):
+        p=self.store/'pending';p.write_bytes(b'interrupted intent');p.chmod(0o600)
+        metadata=archive.archive_store(self.store,self.output)
+        self.assertEqual(metadata['uncommitted_bytes'],0)
+        restored=self.root/'restored';archive.restore(self.output,restored)
+        self.assertEqual((restored/'pending').read_bytes(),p.read_bytes())
+
+    def test_archive_sync_failure_preserves_source_and_publishes_only_verified_bytes(self):
+        before={p.name:p.read_bytes() for p in self.store.iterdir()};real_sync=os.fsync
+        for boundary in range(2):
+            destination=self.root/f'archive-{boundary}.tar.gz';calls=0
+            def fail(fd):
+                nonlocal calls
+                point=calls;calls+=1
+                if point==boundary:raise OSError(5,'injected fsync failure')
+                real_sync(fd)
+            with mock.patch.object(archive.os,'fsync',side_effect=fail):
+                with self.assertRaises(OSError):archive.archive_store(self.store,destination)
+            self.assertEqual({p.name:p.read_bytes() for p in self.store.iterdir()},before)
+            self.assertEqual(list(self.root.glob('.diagnostic-archive-*')),[])
+            if destination.exists():self.assertEqual(archive.verify(destination)[1],before)
+
+    def test_interrupted_restore_never_exposes_a_lock_before_all_content_is_synced(self):
+        archive.archive_store(self.store,self.output);_,files=archive.verify(self.output);real_sync=os.fsync
+        for boundary in range(9):
+            destination=self.root/f'restored-{boundary}';calls=0
+            def fail(fd):
+                nonlocal calls
+                point=calls;calls+=1
+                if point==boundary:raise OSError(28,'injected storage failure')
+                real_sync(fd)
+            with mock.patch.object(archive.os,'fsync',side_effect=fail):
+                with self.assertRaises(OSError):archive.restore(self.output,destination)
+            if (destination/'lock').exists():
+                self.assertGreaterEqual(boundary,6)
+                self.assertEqual({p.name:p.read_bytes() for p in destination.iterdir()},files)
+            else:self.assertLess(boundary,6)
+            # Preserve the interrupted destination; no automatic repair/reuse.
+            with self.assertRaises(FileExistsError):archive.restore(self.output,destination)
 
 
 if __name__=='__main__':unittest.main()

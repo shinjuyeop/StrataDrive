@@ -1,6 +1,6 @@
 # Model artifact policy
 
-Status: M0 정책이며, 포함하거나 다운로드한 model은 없다.
+Status: 외부 ML weight는 포함하지 않는다. 아래 검토한 소형 자체 설계 모델만 추적한다.
 
 대용량 dataset, weight, export한 ONNX 파일, device별 TensorRT engine은 Git 외부에서
 관리한다. 향후 artifact manifest에 출처/license, checksum, model version, export 설정,
@@ -38,3 +38,10 @@ fixture 전)이다. 보류 이유와 gate는 [TBD register](../docs/roadmap.md#o
 필요해 이 파일만 예외로 추적한다. SHA256은
 `b0f968a9bd4d8940ff245d454462f7041aecc9006080764da5bcd067c7b335ed`다.
 원본 v1은 보존하고 [protocol](../docs/test-plan/propulsion-saturation-protocol.md)을 따른다.
+
+2026-11-06 소형 설계 모델 예외: `longitudinal/model_v3.py`(3334 bytes).
+기존 자체 작성 v2에서 확장했으며 외부 코드/weight/license를 추가하지 않는다.
+독립 C++ 동등성·제동 포화 복귀 재현 때문에 이 파일만 추적한다.
+SHA256은 `3ac64bfc4d15e33b5f7e568d5db2ba5f164d2e7aec46f81bb6ae2b7172471d2b`다.
+기존 v1/v2를 보존하고 제동 한계에서의 음수 적분 보류를 추가한다.
+[검증 기준](../docs/test-plan/milestone-followup-protocol.md)을 따른다.

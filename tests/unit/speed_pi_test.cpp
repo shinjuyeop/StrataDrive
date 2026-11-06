@@ -8,6 +8,21 @@
 
 namespace stratadrive::central {
 namespace {
+TEST(SpeedPIBraking, ExternalClippingFreezesNegativeIntegrationAndAllowsUnwind) {
+    SpeedPI legacy,aware;legacy.initialize(1);aware.initialize(1);
+    for(std::uint64_t i=0;i<500;++i) {
+        SpeedSample x{1,i,i*20000000,1};
+        ASSERT_TRUE(legacy.step(x.source_ns,.5,x,true).valid);
+        ASSERT_TRUE(aware.step(x.source_ns,.5,x,true,false,true).valid);
+    }
+    EXPECT_LT(legacy.state().integral,-.1);EXPECT_DOUBLE_EQ(aware.state().integral,0);
+    const auto before=legacy.state().integral;
+    for(std::uint64_t i=500;i<600;++i) {
+        SpeedSample x{1,i,i*20000000,0};
+        ASSERT_TRUE(legacy.step(x.source_ns,.5,x,true,false,true).valid);
+    }
+    EXPECT_GT(legacy.state().integral,before);
+}
 TEST(SpeedPIPropulsion, ExternalClippingFreezesOnlyPositiveIntegration) {
     SpeedPI legacy,aware;legacy.initialize(1);aware.initialize(1);
     for(std::uint64_t i=0;i<500;++i) {

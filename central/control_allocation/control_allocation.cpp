@@ -292,8 +292,14 @@ std::optional<AllocatedCommands> ControlAllocation::tick(const AllocationInputs&
     out.drive.torque_nm = std::copysign(floor_to(std::abs(motor_target), can::kDriveTorqueResolutionNm), motor_target);
     const double wanted_propulsion=std::max(0.0,request_->acceleration_mps2)*mass_radius;
     const double selected_propulsion=std::max(0.0,motor_target);
+    // Pre-quantization selection, not measured braking. Residual Actual regen
+    // can deliberately defer friction; feedback never substitutes for Actual.
+    const double selected_braking=(pressure_target<=config_.max_pressure_pa && actual_regen<=episode_regen_nm_)?
+        braking:std::min(braking,std::max(0.0,-motor_target)+
+            std::min(pressure_target,config_.max_pressure_pa)*config_.friction_nm_per_pa);
     decision_.propulsion_selection=PropulsionSelection{epoch_,request_->sequence,now,
-        request_->acceleration_mps2,wanted_propulsion,selected_propulsion,wanted_propulsion>selected_propulsion};
+        request_->acceleration_mps2,wanted_propulsion,selected_propulsion,wanted_propulsion>selected_propulsion,
+        braking,selected_braking,braking>selected_braking};
     critical_expiry_ns_ = critical_expiry; regen_expiry_ns_ = regen_expiry; ++sequence_; armed_ = true;
     return out;
 }

@@ -142,7 +142,7 @@ TEST_F(DiagnosticsJournal, FailedCommitKeepsOldWatermarkAndCannotAcknowledgeClea
         EXPECT_EQ(read("commit"),watermark); EXPECT_FALSE(journal.writable());
     }
     FileJournal journal(path.string()); Recorder recorder(journal);
-    EXPECT_EQ(journal.committed().size(),4U); EXPECT_GT(journal.uncommitted_bytes(),0U);
+    EXPECT_EQ(journal.committed().size(),4U); EXPECT_EQ(journal.uncommitted_bytes(),0U);
     EXPECT_FALSE(recorder.ledger().find(f.key)->cleared); EXPECT_FALSE(recorder.ledger().complete());
 }
 TEST_F(DiagnosticsJournal, RejectedMutationRemainsIncompleteAfterAProcessRestart) {

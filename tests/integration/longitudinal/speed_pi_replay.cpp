@@ -117,17 +117,19 @@ int main() {
             } else if (name.empty()) throw std::runtime_error("new case required");
             else if (op == "init" && fields.size() == 2) {
                 accepted = controller.initialize(integer<std::uint32_t>(fields[1]));
-            } else if (op == "step" && (fields.size() == 5 || fields.size() == 9 || fields.size() == 6 || fields.size() == 10)) {
+            } else if (op == "step" && fields.size() >= 5 && fields.size() <= 11) {
                 const auto now = integer<std::uint64_t>(fields[1]);
                 const auto target = number(fields[2]);
                 const auto permission = boolean(fields[3]);
                 const auto present = boolean(fields[4]);
                 const auto expected=present?9U:5U;
-                if (fields.size() != expected && fields.size() != expected+1) throw std::runtime_error("sample field count");
+                if (fields.size() < expected || fields.size() > expected+2) throw std::runtime_error("sample field count");
                 std::optional<SpeedSample> speed;
                 if (present) speed = SpeedSample{integer<std::uint32_t>(fields[5]), integer<std::uint64_t>(fields[6]),
                                                 integer<std::uint64_t>(fields[7]), number(fields[8])};
-                out = controller.step(now, target, speed, permission,fields.size()==expected+1?boolean(fields.back()):false);
+                out = controller.step(now, target, speed, permission,
+                    fields.size()>expected?boolean(fields[expected]):false,
+                    fields.size()>expected+1?boolean(fields[expected+1]):false);
             } else throw std::runtime_error("unknown or malformed event");
             emit(index++, name, op, accepted, out, controller.state());
         }

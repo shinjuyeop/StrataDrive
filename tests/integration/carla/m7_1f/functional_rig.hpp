@@ -48,7 +48,7 @@ struct Report {
     int stop_fault=0,speed_fault=0;
     std::optional<remote::OwnerPacket> power_status;
     bool propulsion_antiwindup=false;
-    bool saturation_used=false;
+    bool saturation_used=false,braking_saturation_used=false;
     std::optional<central::PropulsionSelection> allocation_selection,speed_selection;
     std::optional<SpeedControlAudit> speed_control;
     std::optional<RouteReferenceAudit> route_reference;

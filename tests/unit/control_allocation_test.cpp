@@ -1,4 +1,5 @@
 #include "control_allocation.hpp"
+#include "speed_request.hpp"
 #include "command_admission.hpp"
 #include "drive_sil_plant.hpp"
 #include "brake_pressure_response.hpp"
@@ -556,5 +557,54 @@ TEST_F(ControlAllocationTest, HistoricalSelectionReportsTorquePowerAndReleaseCli
     step(40,brake);ASSERT_TRUE(out);f=allocator.decision().propulsion_selection;ASSERT_TRUE(f);
     EXPECT_EQ(f->selected_propulsion_nm,0);EXPECT_TRUE(f->limited);
     allocator.mark_continuity_lost(ns(41));EXPECT_FALSE(allocator.decision().propulsion_selection);
+}
+TEST(ControlAllocationBraking, RealSelectionFreezesNextSpeedIntegralAndRecovers) {
+    central::AllocationConfig config;config.max_pressure_pa=5000;config.hold_braking_nm=1;
+    central::ControlAllocation allocator(config);central::SpeedRequest speed(.3,true);
+    ASSERT_TRUE(allocator.start_session(3,kStart));ASSERT_TRUE(speed.start_session(3,kStart));
+    std::optional<central::PropulsionSelection> previous;
+    for(std::uint32_t cycle=0;cycle<3;++cycle) {
+        const auto t=cycle*20;auto in=inputs(t);auto& drive=*in.feedback.rear.drive_actual;
+        drive.wheel_speed->value_rad_s=10;
+        drive.regen_capability->torque_limit_nm=0; // friction-only clipping
+        const auto request=speed.step_derived(ns(t),cycle<2?2.98:2.999,drive,true,previous);
+        ASSERT_TRUE(request);
+        EXPECT_EQ(request->input.source_time_ns,ns(t));
+        ASSERT_EQ(allocator.receive_request(request->request,ns(t),request->input),AllocationReceiveDecision::Accepted);
+        ASSERT_TRUE(allocator.tick(in,ns(t)));
+        previous=allocator.decision().propulsion_selection;ASSERT_TRUE(previous);
+        EXPECT_EQ(previous->request_sequence,request->request.sequence);
+        if(cycle<2) {
+            EXPECT_TRUE(previous->braking_limited);EXPECT_DOUBLE_EQ(previous->selected_braking_nm,5);
+            EXPECT_DOUBLE_EQ(speed.state().integral,0);
+        }
+    }
+    // A fresh independent session with sufficient capacity integrates normally
+    // on its second release; no stale selection is carried through INIT.
+    ASSERT_TRUE(speed.start_session(4,ns(60)));
+    auto current=inputs(60).feedback.rear.drive_actual;current->epoch=4;current->wheel_speed->value_rad_s=10;
+    auto first=speed.step_derived(ns(60),2.98,current,true);ASSERT_TRUE(first);
+    central::PropulsionSelection free{4,0,ns(60),first->request.acceleration_mps2,0,0,false,6,6,false};
+    current=inputs(80).feedback.rear.drive_actual;current->epoch=4;current->wheel_speed->value_rad_s=10;
+    ASSERT_TRUE(speed.step_derived(ns(80),2.98,current,true,free));
+    EXPECT_LT(speed.state().integral,0);
+}
+TEST(ControlAllocationBraking, CapacityFaultStillProtectsAndPublishesNoSelection) {
+    central::AllocationConfig config;config.max_pressure_pa=5000;config.hold_braking_nm=1;
+    central::ControlAllocation allocator(config);ASSERT_TRUE(allocator.start_session(3,kStart));
+    auto in=inputs(0);in.feedback.rear.drive_actual->regen_capability->torque_limit_nm=0;
+    ASSERT_EQ(allocator.receive_request({3,0,ns(0),ns(30),-1,0,0,false},ns(0)),AllocationReceiveDecision::Accepted);
+    EXPECT_FALSE(allocator.tick(in,ns(0)));
+    EXPECT_EQ(allocator.decision().fault,AllocationFault::BrakingCapacity);
+    EXPECT_TRUE(allocator.decision().protection_required);EXPECT_FALSE(allocator.decision().propulsion_selection);
+}
+TEST(ControlAllocationBraking, UnclippedFractionalBlendDoesNotManufactureSaturation) {
+    for(unsigned i=1;i<150;++i) {
+        central::ControlAllocation allocator;ASSERT_TRUE(allocator.start_session(3,kStart));
+        ASSERT_EQ(allocator.receive_request({3,0,ns(0),ns(30),-static_cast<double>(i)/100.,0,0,false},ns(0)),AllocationReceiveDecision::Accepted);
+        ASSERT_TRUE(allocator.tick(inputs(0),ns(0)));
+        const auto s=allocator.decision().propulsion_selection;ASSERT_TRUE(s);
+        EXPECT_FALSE(s->braking_limited);EXPECT_DOUBLE_EQ(s->selected_braking_nm,s->requested_braking_nm);
+    }
 }
 }  // namespace

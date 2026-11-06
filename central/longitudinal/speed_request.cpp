@@ -40,9 +40,10 @@ std::optional<VehicleRequest> SpeedRequest::step(std::uint64_t now, double targe
     // Wheel acquisitions have no separate sequence on the wire. Use their
     // original timestamp as the cursor, NOT the renewed Actual envelope sequence.
     const SpeedSample sample{current->epoch, source, source, current->wheel_speed->value_rad_s*wheel_radius_m_};
-    // First release has no previous allocation: conservatively freeze positive
+    // First release has no previous allocation: conservatively freeze both
     // integration. Later feedback must refer to exactly the previous request.
     bool saturated=propulsion_antiwindup_;
+    bool braking_saturated=propulsion_antiwindup_;
     if(propulsion_antiwindup_ && sequence_) {
         if(!selection || selection->epoch!=current->epoch || selection->request_sequence!=sequence_-1 ||
            selection->selection_ns<*pi_.state().last_ns || selection->selection_ns>=now ||
@@ -52,11 +53,17 @@ std::optional<VehicleRequest> SpeedRequest::step(std::uint64_t now, double targe
            !std::isfinite(selection->requested_propulsion_nm) || !std::isfinite(selection->selected_propulsion_nm) ||
            selection->requested_propulsion_nm<0 || selection->selected_propulsion_nm<0 ||
            selection->selected_propulsion_nm>selection->requested_propulsion_nm ||
-           selection->limited!=(selection->requested_propulsion_nm>selection->selected_propulsion_nm))
+           selection->limited!=(selection->requested_propulsion_nm>selection->selected_propulsion_nm) ||
+           !std::isfinite(selection->requested_braking_nm) || !std::isfinite(selection->selected_braking_nm) ||
+           selection->requested_braking_nm<0 || selection->selected_braking_nm<0 ||
+           selection->selected_braking_nm>selection->requested_braking_nm ||
+           (selection->requested_acceleration_mps2<0 && selection->requested_braking_nm==0) ||
+           selection->braking_limited!=(selection->requested_braking_nm>selection->selected_braking_nm))
             return fail(SpeedRequestFault::PropulsionSelection);
         saturated=selection->limited;
+        braking_saturated=selection->braking_limited;
     } else if(selection) return fail(SpeedRequestFault::PropulsionSelection);
-    const auto out = pi_.step(now, target, sample, permission,saturated);
+    const auto out = pi_.step(now, target, sample, permission,saturated,braking_saturated);
     if (!out.valid) return fail(SpeedRequestFault::Controller,out.reason);
     if(selection)last_selection_ns_=selection->selection_ns;
     const auto expiry = source > std::numeric_limits<std::uint64_t>::max()-kSourceAgeNs-1 ?

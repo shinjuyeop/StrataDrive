@@ -283,6 +283,11 @@ S01/S03의 실제 실행·실패 이력과 독립 판정은 [M8 reference eviden
 
 ## M8 추진 포화 feedback 선택형 실행
 
+2026-11-06 후속: 현행 opt-in은 제동 피드백도 반영하는 schema3를 출력한다.
+[방향별 피드백 계약](simple-vehicle-model.md#m8-제동-배분-피드백-v3)을 따른다.
+아래 기존 S03 실제 주행 근거는 schema2다. [v3 후속](../test-plan/evidence/milestone-followup/README.md)은
+입력 재생과 새 서버의 고정 S03 8000구간을 각각 검증했으며 전체 ODD로 확대하지 않는다.
+
 `m7_1o_run.py --propulsion-aware --route-profile ...`는 기존 S01/S03 reference
 경로에 한정한다. 서버·runtime 생성 전에 관성 토크 필요조건을 검사하며 native
 `PROFILE S01_AW`/`S03v2_AW`도 동일 조건을 독립 검사한다. `S03_AW`의10초 가속은

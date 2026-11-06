@@ -1,4 +1,4 @@
-# 설계 결정 기록 · ADR-0001–0104
+# 설계 결정 기록 · ADR-0001–0105
 
 이 문서는 당시 결정과 검토를 보존한 기록이다. 현재 상태는 [프로젝트 상태](../project-status.md), 현재 계약은 [문서 안내](../README.md)를 따른다. 과거의 “다음 작업/미구현”은 현재 지시가 아니다.
 
@@ -106,6 +106,7 @@
 - [ADR-0102: M9 서비스 수용에서 sanitizer와 wall 성능을 분리](#adr-0102)
 - [ADR-0103: 전용 SDK CPU의 명시적 FIFO1과 유한 부하 수용](#adr-0103)
 - [ADR-0104: M9 CARLA 응답의 명시적10ms sample/hold 수용](#adr-0104)
+- [ADR-0105: 방향별 배분 피드백과 영속적인 journal 쓰기 의도](#adr-0105)
 
 <a id="adr-0001"></a>
 
@@ -5990,3 +5991,21 @@ adapter를 같은 released session에 연결하고 독립 관측자가 fresh 원
 원본 journal byte, 에너지 정산과 native 관측 재현을 검증했다. 실행기 준비 단계 실패와
 수정 전 component 실패는 별도 보존한다. [사전 계약](../test-plan/carla-sampled-actual-protocol.md)과
 [마감 원본·제한](../test-plan/evidence/m9_followup/README.md)을 따른다.
+
+<a id="adr-0105"></a>
+
+## ADR-0105: 방향별 배분 피드백과 영속적인 journal 쓰기 의도
+
+2026-11-06. 이전 milestone 미해결 소프트웨어 후속으로 제동 한계에서의 음수 적분 누적과
+journal 쓰기 전 실패/중단의 재시작 식별을 보강한다. v1/v2 모델·원본 실행은 보존하고
+v3에 제동 방향의 조건부 적분만 추가한다. 기존 opt-in의 성공한 배분 이력·원래 request와
+source 검증을 사용하며, Actual/permission을 만들거나 큰 제동 부족의 보호를 해제하지 않는다.
+Trace/result schema3와 독립 감사로 변경을 명시한다. 새 CARLA 고정 S03 8000구간도
+기존 기준으로 검증했으며 전체 Reference/ODD 수용으로 확대하지 않는다.
+
+FileJournal은 pending 의도를 먼저 fsync한 다음 data를 쓰고 commit으로 발표한다.
+남은 pending은 원본 그대로 read-only/incomplete로 복원한다. rename 뒤 응답 유실과
+저장 실패는 새 commit이 보이는 결과도 허용하므로 동일 transaction Duplicate와 새 clear를
+구별한다. 오류/프로세스 종료 시험은 실제 전원 차단·자동 journal rollover를 대신하지 않는다.
+[사전 기준](../test-plan/milestone-followup-protocol.md)과
+[실행 근거](../test-plan/evidence/milestone-followup/README.md)를 따른다.

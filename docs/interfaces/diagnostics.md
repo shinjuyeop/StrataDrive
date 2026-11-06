@@ -35,7 +35,12 @@ marker로 남긴다. 저장 장치가 실패한 동안 marker 자체의 영속�
 SD-5001 event를 임의 producer/시각으로 합성하지 않으며 실제 gap event 발행은 hook에 남긴다.
 
 저장 파일은 `manifest`, `journal`, `commit`, `lock`이다. Committed frame은 sequence·길이·
-CRC32로 검사한다. 미완료 tail은 commit offset 밖에 원형대로 격리하며 해당 store는
+CRC32로 검사한다. Append 전에 새 checkpoint의 `pending`을 fsync(file, directory)하고,
+data append/fsync 이후 pending→commit rename/fsync(directory)를 수행한다.
+재시작 시 `pending`이 남아 있으면 tail0이어도 read-only/incomplete다. 이미 발표된 commit의
+동일 transaction 재전송은 Duplicate로 확인할 수 있지만 incomplete에서 새 clear는 거절한다.
+[오류/중단 경계 계약](../test-plan/milestone-followup-protocol.md)을 따른다.
+미완료 tail은 commit offset 밖에 원형대로 격리하며 해당 store는
 read-only/incomplete다. 자동 truncate·repair·용량 회수는 없다. 명시적 reconciliation은 후속이다.
 CRC는 accidental corruption 검사이며 외부 변조 인증이나 Target durability 수용이 아니다.
 

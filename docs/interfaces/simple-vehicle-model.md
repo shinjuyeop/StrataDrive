@@ -133,3 +133,20 @@ sequence·이전 release 이상 현재 release 미만의 selection 시각·30ms 
 경사·도로 저항·동적 BMS 제한을 포함한 추종 가능성 보장은 별도다.
 [고정 protocol](../test-plan/propulsion-saturation-protocol.md)과
 [실행 근거](../test-plan/evidence/m8_saturation/README.md)를 따른다.
+
+## M8 제동 배분 피드백 v3
+
+2026-11-06. 현행 opt-in `SpeedRequest(radius, true)`와 `--propulsion-aware`는 v3다.
+동결된 v1/v2 모델과 이전 실행 증거는 유지하며, 새 trace/result는
+`allocation_feedback_schema=3`을 명시한다. `SpeedPI::step`의 마지막 선택 인자인
+braking_saturated가 true이고 error<0이면 음수 적분 누적을 보류한다. 기본 false는 기존
+v2와 같고 반대 방향 적분은 기존 내부 제한 조건을 따른다. 첫 release는 양방향 보류다.
+
+성공한 배분의 `requested_braking_nm`, `selected_braking_nm`, `braking_limited`는
+양자화 전 회생+마찰 선택을 나타낸다. 명령 합성·물리 Actual·권한은 구별한다.
+잔류 회생에 의한 마찰 명령 보류도 반영하며, 정상 fractional blend의 부동소수점 왕복
+오차만으로 포화 flag를 만들지 않는다. 기존 BrakingCapacity/Deficit/Excess 보호를 유지한다.
+원래 epoch/직전 request/시각/source 검증과 code reason7은 그대로다.
+[사전 기준](../test-plan/milestone-followup-protocol.md)과
+[component·원본 입력 재생·새 S03 근거](../test-plan/evidence/milestone-followup/README.md)를 따른다.
+새 CARLA 고정 S03 8000구간도 기존 기준을 통과했다. 전체 도로/동적 참조 수용은 별도다.

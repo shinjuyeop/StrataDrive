@@ -131,13 +131,16 @@ TEST_F(DiagnosticsDelivery, CapacityNeverEvictsOrReusesHistoryEvenAfterAcknowled
     auto e=session(3); e.kind=Kind::Observation; const auto got=out.record(e); EXPECT_EQ(got.result,Result::Capacity); EXPECT_FALSE(got.durable);
     EXPECT_EQ(s.committed().size(),2U); EXPECT_FALSE(out.healthy()); EXPECT_FALSE(out.next()); EXPECT_EQ(encode(s.committed()[1]),encode(fault()));
 }
-TEST_F(DiagnosticsDelivery, ReceiverCommitFailureCannotAckOrEraseItsUncommittedTail) {
+TEST_F(DiagnosticsDelivery, ReceiverCommitFailureCannotAckOrEraseUnresolvedIntent) {
     init(); {
         FileJournal d(dest.string()); Inbox in(d); ASSERT_TRUE(in.receive(data(session(),1)).ack); std::filesystem::create_directory(dest/"pending");
-        const auto got=in.receive(data(fault(),2)); EXPECT_EQ(got.result,Result::StorageFailure); EXPECT_FALSE(got.ack); EXPECT_EQ(got.watermark,1U); EXPECT_FALSE(in.healthy()); EXPECT_GT(d.uncommitted_bytes(),0U);
+        const auto bytes=std::filesystem::file_size(dest/"journal");
+        const auto got=in.receive(data(fault(),2)); EXPECT_EQ(got.result,Result::StorageFailure); EXPECT_FALSE(got.ack); EXPECT_EQ(got.watermark,1U); EXPECT_FALSE(in.healthy()); EXPECT_EQ(d.uncommitted_bytes(),0U);
+        EXPECT_EQ(std::filesystem::file_size(dest/"journal"),bytes);EXPECT_TRUE(std::filesystem::is_directory(dest/"pending"));
     }
     const auto bytes=std::filesystem::file_size(dest/"journal"); FileJournal d(dest.string()); Inbox in(d);
-    EXPECT_EQ(d.committed().size(),1U); EXPECT_FALSE(in.receive(data(fault(),2)).ack); EXPECT_EQ(std::filesystem::file_size(dest/"journal"),bytes); EXPECT_GT(d.uncommitted_bytes(),0U);
+    EXPECT_EQ(d.committed().size(),1U); EXPECT_FALSE(in.receive(data(fault(),2)).ack); EXPECT_EQ(std::filesystem::file_size(dest/"journal"),bytes); EXPECT_EQ(d.uncommitted_bytes(),0U);
+    EXPECT_TRUE(std::filesystem::is_directory(dest/"pending"));
 }
 TEST_F(DiagnosticsDelivery, ReceiverCapacityCannotAckAnEventItCannotRetain) {
     FileJournal::initialize(dest.string(),1234,{1,1,1,1},3); FileJournal d(dest.string()); Inbox in(d);

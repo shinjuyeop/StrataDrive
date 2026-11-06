@@ -8,6 +8,7 @@
 
 | 수용 범위 | 원본·재현·제한 |
 | --- | --- |
+| 이전 milestone 소프트웨어 후속 | [제동 피드백·저장 실패/중단 경계](evidence/milestone-followup/README.md) |
 | M9 이후 문서·진단 코드 정리 | [공통 발행기·decoder 동등성·회귀](evidence/post-m9-refactor/README.md) |
 | M9 유한 Host·simulation10ms 마감 | [SDK 부하7/7·서비스18/18·CARLA4/4](evidence/m9_followup/README.md) |
 | M9 Clock/Power 복구·비활성 기록 보존 | [차량 조합·archive/restore·선행 부하 실패](evidence/m9_remaining/README.md) |

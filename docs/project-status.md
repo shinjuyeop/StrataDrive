@@ -50,12 +50,21 @@ Python54개와 잘못된 profile/실행 환경9조건 거절, 변경 C++ 정적 
 기능 범위를 마감한다. Native4ms/wall·Target, 무제한 보존/자동 용량 회수, 다른 kernel의
 Clock 운영과 학습자 review는 별도다. 과거 실패는 당시 분모와 함께 [보관 이력](archive/implementation-history.md)에 유지한다.
 
+## 이전 milestone 소프트웨어 후속
+
+제동 배분 피드백을 PI의 음수 적분 보류까지 연결하고, journal data 쓰기 전에 영속적인
+pending 의도를 남기도록 보강했다. 제동 용량/응답 보호·source/expiry·DTC 코드·명시적
+clear 조건은 유지한다. 독립 모델 동등성, 실제 allocator 연결, 저장 오류/프로세스 중단과
+복원 실패 경계·새 CARLA S03 8000구간은 [후속 검증](test-plan/evidence/milestone-followup/README.md)에 기록한다.
+저장된 S03의 native 재생과 새 서버 S03 실제 실행을 따로 기록했다. 실제 전원 차단/자동 용량 회수와
+과거 timing·renderer 원인 규명을 완료한 것으로 올리지 않는다.
+
 ## 현재 구현과 수용 경계
 
 | 영역 | 현재 범위 | 상세 근거 |
 | --- | --- | --- |
 | 통신·세션 | Central/Front/Rear 3-process SOME/IP, 8-role INIT/Release/RunLease, 원래 source/expiry와 새 Epoch 재가입 | [SOME/IP 계약](interfaces/someip-rear-adapter.md) |
-| 모델·제어 | 독립 종방향 MIL, C++ 모델 동등성, 고정 속도·경로 fixture, 추진 포화와 정상 정지/HV-off | [M8 종료 검토](archive/milestone-reviews.md#m8) |
+| 모델·제어 | 독립 종방향 MIL, C++ 모델 동등성, 고정 속도·경로 fixture, 방향별 배분 포화 피드백과 정상 정지/HV-off | [M8 종료 검토](archive/milestone-reviews.md#m8) |
 | CARLA | 원본 CAN/P05 Actual의 NoDrive 적용, solver work의 단일 EV 정산, simulation-time 기능 | [Plant 계약](interfaces/carla-plant-adapter.md) · [실행 안내](carla-guide.md) |
 | 진단 | 원본 검출·인과 ID·보호·Actual·DTC, qualified 복구와 명시적 clear, 재기동/연속성 심사 | [진단 계약](interfaces/diagnostics.md) |
 | 기록 보존 | 유한 journal, 비활성 store의 독점 잠금 archive/restore, byte 동일한 이력 복원 | [보존 계약](test-plan/diagnostic-retention-protocol.md) |
@@ -69,9 +78,11 @@ Clock 운영과 학습자 review는 별도다. 과거 실패는 당시 분모와
   `wall5-hv50-v1` 실행을 장시간·영상·고속 보장으로 확대하지 않는다.
 - UE renderer/GC·로딩 중 종료와 일부 과거 서버 종료 실패의 근본 원인은 남아 있다.
   완료된 M9 네 서버의 정상 종료와 구분한다.
-- 전체 Reference ODD, Planner/localization, 동적 가용력 기반 참조와 제동 포화는 후속이다.
+- 전체 Reference ODD, Planner/localization, 동적 가용력 기반 참조는 후속이다.
+  제동 피드백 v3는 component/원본 입력 재생과 새 고정 S03 실행을 통과했다. 전체 ODD 수용은 별도다.
 - 기본512-event 경계, 비활성 archive/restore는 유한 운용이다. 자동 상태 이관·용량 회수와
-  전체 디스크/전원 장애, 다른 kernel의 Clock 운영은 별도다.
+  전체 매체/전원 장애, 다른 kernel의 Clock 운영은 별도다. syscall 저장 오류와 프로세스
+  중단 검증은 추가했지만 실제 전원 차단/캐시 소실 시험을 대신하지 않는다.
 - 과거 M3/M4·SDK timing/sanitizer 실패와 미채택 후보는 당시 분모로 보존한다.
   기술 검사 통과로 학습자 설명·최종 수용을 대신하지 않는다.
 

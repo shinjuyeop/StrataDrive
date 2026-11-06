@@ -43,7 +43,8 @@ SpeedPIReason SpeedPI::validate(std::uint64_t now_ns, double target_mps,
 }
 
 SpeedPIOutput SpeedPI::step(std::uint64_t now_ns, double target_mps,
-                           const std::optional<SpeedSample>& sample, bool permission, bool propulsion_saturated) noexcept {
+                           const std::optional<SpeedSample>& sample, bool permission, bool propulsion_saturated,
+                           bool braking_saturated) noexcept {
     const auto reason = validate(now_ns, target_mps, sample, permission);
     if (reason != SpeedPIReason::Normal) {
         state_.fault = true;
@@ -60,7 +61,8 @@ SpeedPIOutput SpeedPI::step(std::uint64_t now_ns, double target_mps,
                                    std::min(state_.previous_mps2 + kSlewMps3 * dt, bounded));
     // Calculate output using the old integral. Both amplitude and slew limits
     // participate in conditional integration, in the same order as the model.
-    if ((raw - output) * error <= 0 && !(propulsion_saturated && error > 0)) state_.integral += kKi * error * dt;
+    if ((raw - output) * error <= 0 && !(propulsion_saturated && error > 0) &&
+        !(braking_saturated && error < 0)) state_.integral += kKi * error * dt;
     state_.target_mps = target_mps;
     state_.last_ns = now_ns;
     state_.previous_mps2 = output;

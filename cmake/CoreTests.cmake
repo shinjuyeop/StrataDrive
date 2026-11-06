@@ -52,6 +52,11 @@ if(TARGET diagnostics_journal)
     stratadrive_unit_test(diagnostics_journal_test
         SOURCES tests/unit/diagnostics_journal_test.cpp
         LIBRARIES diagnostics_journal)
+    stratadrive_unit_test(diagnostics_io_failure_test
+        SOURCES tests/unit/diagnostics_io_failure_test.cpp
+        LIBRARIES diagnostics_journal)
+    target_link_options(diagnostics_io_failure_test PRIVATE
+        -Wl,--wrap=write -Wl,--wrap=fsync -Wl,--wrap=renameat)
 endif()
 stratadrive_unit_test(speed_pi_test
     SOURCES tests/unit/speed_pi_test.cpp
@@ -82,6 +87,11 @@ if(STRATADRIVE_LONGITUDINAL_EQUIVALENCE)
             $<TARGET_FILE:speed_pi_replay>
             --output-root ${CMAKE_CURRENT_BINARY_DIR}/propulsion-equivalence)
     set_tests_properties(speed_pi_propulsion_equivalence PROPERTIES LABELS "integration.logical" TIMEOUT 60)
+    add_test(NAME speed_pi_braking_equivalence
+        COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/tests/integration/longitudinal/check_braking_pi.py
+            $<TARGET_FILE:speed_pi_replay>
+            --output-root ${CMAKE_CURRENT_BINARY_DIR}/braking-equivalence)
+    set_tests_properties(speed_pi_braking_equivalence PROPERTIES LABELS "integration.logical" TIMEOUT 60)
 endif()
 add_executable(steering_angle_codec_test tests/unit/steering_angle_codec_test.cpp)
 target_link_libraries(steering_angle_codec_test PRIVATE steering_angle_codec GTest::gtest_main)
@@ -115,7 +125,7 @@ stratadrive_unit_test(normal_stop_test
     LIBRARIES control_diagnostics)
 stratadrive_unit_test(control_allocation_test
     SOURCES tests/unit/control_allocation_test.cpp
-    LIBRARIES control_allocation command_admission torque_response brake_pressure_response steering_receiver brake_receiver drive_receiver)
+    LIBRARIES control_allocation speed_request command_admission torque_response brake_pressure_response steering_receiver brake_receiver drive_receiver)
 stratadrive_unit_test(command_admission_test
     SOURCES tests/unit/command_admission_test.cpp
     LIBRARIES command_admission)

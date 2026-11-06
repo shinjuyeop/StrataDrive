@@ -51,7 +51,7 @@ public:
     bool initialize(std::uint32_t epoch) noexcept;
     SpeedPIOutput step(std::uint64_t now_ns, double target_mps,
                        const std::optional<SpeedSample>& sample, bool permission,
-                       bool propulsion_saturated = false) noexcept;
+                       bool propulsion_saturated = false, bool braking_saturated = false) noexcept;
     const SpeedPIState& state() const noexcept { return state_; }
 
 private:

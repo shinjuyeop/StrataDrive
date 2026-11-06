@@ -115,7 +115,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     central::VehicleCoordinator core;
     central::SpeedRequest speed_request;
     const bool antiwindup;
-    bool saturation_used=false;
+    bool saturation_used=false,braking_saturation_used=false;
     std::optional<central::PropulsionSelection> speed_selection;
     const bool speed_enabled;
     Time speed_origin=0;
@@ -447,6 +447,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
                 const auto target=pursuit?route_speed.step(now-speed_origin,lateral_audit->progress_m):speed_target(now-speed_origin);
                 speed_selection=antiwindup && speed_audit?core.decision().allocation.propulsion_selection:std::nullopt;
                 saturation_used=antiwindup && (!speed_audit || (speed_selection && speed_selection->limited));
+                braking_saturation_used=antiwindup && (!speed_audit || (speed_selection && speed_selection->braking_limited));
                 const bool omit_speed=trigger_ns && (terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss);
                 auto derived=speed_request.step_derived(now,target,omit_speed?std::nullopt:feedback.rear.drive_actual,allowed,speed_selection);
                 if(!derived && (terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss) && trigger_ns) {
@@ -508,7 +509,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             if(!batch.empty())r.diagnostic_events=std::make_shared<const std::vector<diagnostics::Event>>(std::move(batch));
         }
         r.speed_fault=static_cast<int>(speed_request.fault());r.stop_state=core.decision().stop.state;r.stop_fault=static_cast<int>(core.decision().stop.fault);r.power_off=core.decision().management.power_off_confirmed;
-        r.propulsion_antiwindup=antiwindup;r.saturation_used=saturation_used;r.speed_selection=speed_selection;
+        r.propulsion_antiwindup=antiwindup;r.saturation_used=saturation_used;r.braking_saturation_used=braking_saturation_used;r.speed_selection=speed_selection;
         r.allocation_selection=core.decision().allocation.propulsion_selection;
         r.speed_control=speed_audit;r.lateral_control=lateral_audit;r.now=observed;r.release_mask=release_mask;r.armed=core.decision().normal_armed;
         if(pursuit && speed_audit)r.route_reference=RouteReferenceAudit{

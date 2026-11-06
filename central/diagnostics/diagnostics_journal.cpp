@@ -87,12 +87,14 @@ Bytes manifest(std::uint64_t id,Limits limits,std::uint32_t registry) {
 Bytes commit(std::uint64_t sequence,std::uint64_t offset) {
     Bytes b(kCommit.begin(),kCommit.end()); put(b,sequence,8); put(b,offset,8); seal(b); return b;
 }
-void replace_commit(int dir,const Bytes& bytes) {
-    // A leftover pending file never grants a commit. Keep the old watermark
-    // authoritative until the new journal data and checkpoint are both synced.
-    if(unlinkat(dir,"pending",0)!=0 && errno!=ENOENT) failure("diagnostics remove pending");
+void prepare_commit(int dir,const Bytes& bytes) {
+    // Persist the intent BEFORE touching journal data. A crash/failed write
+    // with zero appended bytes must still be distinguishable on reopen.
+    // Never delete an unresolved intent from an earlier writer.
     File pending(openat(dir,"pending",O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW,0600));
-    write_all(pending.fd(),bytes); sync(pending.fd());
+    write_all(pending.fd(),bytes); sync(pending.fd()); sync(dir);
+}
+void publish_commit(int dir) {
     if(renameat(dir,"pending",dir,"commit")!=0) failure("diagnostics commit rename");
     sync(dir);
 }
@@ -145,9 +147,11 @@ struct FileJournal::Impl {
         }
         if(cursor!=offset) throw std::runtime_error("diagnostics watermark mismatch");
         tail=length-offset; healthy=tail==0;
-        struct stat gap{};
-        if(fstatat(directory.fd(),"incomplete",&gap,AT_SYMLINK_NOFOLLOW)==0) healthy=false;
-        else if(errno!=ENOENT) failure("diagnostics gap marker");
+        for(const auto* marker:{"incomplete","pending"}) {
+            struct stat gap{};
+            if(fstatat(directory.fd(),marker,&gap,AT_SYMLINK_NOFOLLOW)==0) healthy=false;
+            else if(errno!=ENOENT) failure("diagnostics gap marker");
+        }
         // Preserve an uncommitted suffix byte-for-byte. This store is read-only
         // until an explicit reconciliation; opening never silently truncates it.
     }
@@ -161,7 +165,7 @@ void FileJournal::initialize(const std::string& p,std::uint64_t id,Limits limits
     File data(openat(directory.fd(),"journal",O_RDWR|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW,0600));
     File m(openat(directory.fd(),"manifest",O_WRONLY|O_CREAT|O_EXCL|O_CLOEXEC|O_NOFOLLOW,0600));
     write_all(m.fd(),manifest(id,limits,registry)); sync(m.fd()); sync(data.fd()); sync(lock.fd());
-    replace_commit(directory.fd(),commit(0,0));
+    prepare_commit(directory.fd(),commit(0,0)); publish_commit(directory.fd());
     const auto parent=std::filesystem::path(p).parent_path();
     File parent_dir(open(parent.empty()?".":parent.c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC)); sync(parent_dir.fd());
 }
@@ -183,8 +187,9 @@ bool FileJournal::append(const Entry& entry) {
         if(payload.size()>kMaxPayload || size(s.data.fd())!=s.offset || s.offset+payload.size()+24>kMaxBytes) throw std::runtime_error("diagnostics append bounds");
         Bytes frame(kFrame.begin(),kFrame.end()); put(frame,s.entries.size()+1,8); put(frame,payload.size(),4);
         frame.insert(frame.end(),payload.begin(),payload.end()); seal(frame);
+        prepare_commit(s.directory.fd(),commit(s.entries.size()+1,s.offset+frame.size()));
         write_all(s.data.fd(),frame); sync(s.data.fd());
-        replace_commit(s.directory.fd(),commit(s.entries.size()+1,s.offset+frame.size()));
+        publish_commit(s.directory.fd());
         s.offset+=frame.size(); s.entries.push_back(std::move(retained)); return true;
     } catch(...) {
         invalidate();

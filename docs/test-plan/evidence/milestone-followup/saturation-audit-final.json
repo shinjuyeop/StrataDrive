@@ -1,0 +1,155 @@
+{
+  "command": [
+    "/d/shin/StrataDrive/build/m7-functional/tests/integration/carla/m7_1g/m7_wheel_shadow",
+    "--native-solver-work",
+    "1",
+    "42",
+    "7",
+    "97",
+    "--sim-horizon-ms",
+    "80000",
+    "--route",
+    "/d/shin/StrataDrive/docs/test-plan/evidence/m8_saturation/S03/route.txt"
+  ],
+  "binary_sha256": "75d69ef96dcf5a6d3be01496be50dbe71138c80f0c1ecff228a1824f53a32b01",
+  "source": "docs/test-plan/evidence/m8_saturation/S03",
+  "source_trace_sha256": "8819c1616a5a49c7e898bc5fddec3dec615355131297cf16ffc90101b78e08f2",
+  "observations": 8001,
+  "changed_legacy_observations": 8001,
+  "original_canonical_sha256": "08a5548abc556c203a8a8a3dfd01e3b2efe7481389ccfbd542f089f849232823",
+  "replayed_legacy_canonical_sha256": "d569fe7a043494d7b23a9f5566b54382a5bc2b2c70531207af786555caad2e0d",
+  "audit": {
+    "status": "PASS_DIRECTIONAL_SELECTION_AND_PI",
+    "schema": 3,
+    "controls": 3960,
+    "allocations": 7920,
+    "braking_saturated_controls": 3,
+    "negative_integral_freezes": 2,
+    "saturated_controls": 46,
+    "positive_integral_freezes": 39,
+    "negative_integrations_while_limited": 0,
+    "max_pi_error": 0.0
+  },
+  "mutations": {
+    "status": "PASS_PROPULSION_MUTATIONS",
+    "baseline": {
+      "status": "PASS_DIRECTIONAL_SELECTION_AND_PI",
+      "schema": 3,
+      "controls": 3960,
+      "allocations": 7920,
+      "braking_saturated_controls": 3,
+      "negative_integral_freezes": 2,
+      "saturated_controls": 46,
+      "positive_integral_freezes": 39,
+      "negative_integrations_while_limited": 0,
+      "max_pi_error": 0.0
+    },
+    "mutations": [
+      {
+        "case": "missing_feedback",
+        "rejected": true,
+        "reason": "missing previous selection"
+      },
+      {
+        "case": "wrong_epoch",
+        "rejected": true,
+        "reason": "original prior allocation selection"
+      },
+      {
+        "case": "wrong_parent",
+        "rejected": true,
+        "reason": "original prior allocation selection"
+      },
+      {
+        "case": "future_selection",
+        "rejected": true,
+        "reason": "original prior allocation selection"
+      },
+      {
+        "case": "wrong_acceleration",
+        "rejected": true,
+        "reason": "original prior allocation selection"
+      },
+      {
+        "case": "wrong_selected_torque",
+        "rejected": true,
+        "reason": "original prior allocation selection"
+      },
+      {
+        "case": "wrong_limited",
+        "rejected": true,
+        "reason": "original prior allocation selection"
+      },
+      {
+        "case": "wrong_used_flag",
+        "rejected": true,
+        "reason": "saturation input matches selection"
+      },
+      {
+        "case": "wrong_integral",
+        "rejected": true,
+        "reason": "independent PI output/integral"
+      },
+      {
+        "case": "nonfinite_integral",
+        "rejected": true,
+        "reason": "finite PI state"
+      },
+      {
+        "case": "wrong_output",
+        "rejected": true,
+        "reason": "independent PI output/integral"
+      },
+      {
+        "case": "wrong_allocation",
+        "rejected": true,
+        "reason": "positive selection bounds"
+      },
+      {
+        "case": "missing_braking_flag",
+        "rejected": true,
+        "reason": "'braking_saturation_used'"
+      },
+      {
+        "case": "wrong_braking_used",
+        "rejected": true,
+        "reason": "braking saturation input matches selection"
+      },
+      {
+        "case": "wrong_braking_selected",
+        "rejected": true,
+        "reason": "original prior allocation selection"
+      },
+      {
+        "case": "wrong_braking_request",
+        "rejected": true,
+        "reason": "braking limited flag"
+      },
+      {
+        "case": "wrong_braking_limited",
+        "rejected": true,
+        "reason": "original prior allocation selection"
+      },
+      {
+        "case": "downgraded_schema",
+        "rejected": true,
+        "reason": "consistent allocation schema"
+      }
+    ]
+  },
+  "legacy_audit": {
+    "status": "PASS_PROPULSION_SELECTION_AND_PI",
+    "schema": 2,
+    "controls": 3960,
+    "allocations": 7920,
+    "braking_saturated_controls": 0,
+    "negative_integral_freezes": 0,
+    "saturated_controls": 46,
+    "positive_integral_freezes": 39,
+    "negative_integrations_while_limited": 0,
+    "max_pi_error": 0.0
+  },
+  "scope": "offline only",
+  "speed_control_held_observations": 7920,
+  "changed_speed_control_held_observations": 902
+}

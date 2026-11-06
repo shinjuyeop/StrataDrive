@@ -1,0 +1,218 @@
+{
+  "status": "PASS_BOUNDED_M8_BRAKING_M9_STORAGE",
+  "baseline": "ce760dcc464678a2fe86dbed25fdebcd6842b82a",
+  "tests": {
+    "debug": 1478,
+    "asan_ubsan": 137,
+    "python": 280,
+    "syscall_boundaries": 23
+  },
+  "model_comparison_events": 8428,
+  "model_max_absolute_errors": {
+    "state.integral": 0.0,
+    "state.previous": 0.0,
+    "output.acceleration": 0.0,
+    "output.integral": 0.0,
+    "state.sample.speed_mps": 0.0,
+    "state.target": 0.0
+  },
+  "synthetic_braking": {
+    "legacy": {
+      "min_speed_mps": 0.512136070786348,
+      "min_integral": -2.0252688000001027,
+      "final_speed_mps": 1.9997075611487647
+    },
+    "aware": {
+      "min_speed_mps": 1.9931784104353396,
+      "min_integral": -0.08890917707245924,
+      "final_speed_mps": 1.9999959459386867
+    }
+  },
+  "native": {
+    "cases": 3,
+    "expected_refusals": 2,
+    "responses": [
+      {
+        "case": "normal",
+        "requests": 1487,
+        "max_roundtrip_ns": 1603057,
+        "min_margin_ns": 18396943
+      },
+      {
+        "case": "ack-loss",
+        "requests": 1486,
+        "max_roundtrip_ns": 1498003,
+        "min_margin_ns": 18501997
+      },
+      {
+        "case": "stop-ack-loss",
+        "requests": 1299,
+        "max_roundtrip_ns": 1561190,
+        "min_margin_ns": 18438810
+      }
+    ],
+    "archived_files": 1100
+  },
+  "carla": {
+    "actual_server_runs": 1,
+    "physics_intervals": 8000,
+    "ev_settlements": 8000,
+    "server_exit": 130,
+    "route": {
+      "status": "PASS_M8_REFERENCE_SIMULATION_ONLY",
+      "case": "nominal",
+      "receipts": 8000,
+      "normal_intervals": 7919,
+      "controls": 3960,
+      "origin_ns": 1695468610,
+      "wall_realtime_accepted": false,
+      "normal_stop_hv_off_accepted": false,
+      "failures": [],
+      "route": {
+        "samples": 1333,
+        "missing_samples": 0,
+        "first_index": 85,
+        "last_index": 6745,
+        "completion_index": 6749,
+        "completion_seconds": 66.687998492,
+        "plateau_samples": [
+          200,
+          200
+        ],
+        "cross_track_p95_m": 0.03410451762616154,
+        "heading_p95_deg": 0.5349447502330037,
+        "cross_track_max_m": 0.09613863678651371,
+        "heading_max_deg": 1.144079745964867,
+        "curve_entry_speed_kmh": 19.87569580078125,
+        "curve_entry_seconds": 45.387998968000005
+      },
+      "reference": {
+        "scenario": "S03",
+        "revision": "v2",
+        "slow_elapsed_ns": 37800000000,
+        "stop_elapsed_ns": 63320000000
+      },
+      "body": {
+        "samples": 8001,
+        "plateaus": [
+          {
+            "begin_s": 25.0,
+            "end_s": 35.0,
+            "target_kmh": 30.0,
+            "samples": 1000,
+            "max_error_kmh": 0.07718408203124838
+          },
+          {
+            "begin_s": 48.800000000000004,
+            "end_s": 58.800000000000004,
+            "target_kmh": 20.0,
+            "samples": 1000,
+            "max_error_kmh": 0.027827880859373266
+          }
+        ],
+        "stop_samples": 200,
+        "max_plateau_error_kmh": 0.07718408203124838,
+        "max_stop_error_kmh": 0.0,
+        "max_positive_target_overspeed_percent": 3.4830445228372087,
+        "max_tracking_error_kmh": 0.6575989315624963
+      },
+      "body_state20hz": {
+        "samples": 1601,
+        "plateaus": [
+          {
+            "begin_s": 25.0,
+            "end_s": 35.0,
+            "target_kmh": 30.0,
+            "samples": 200,
+            "max_error_kmh": 0.07714013671874653
+          },
+          {
+            "begin_s": 48.800000000000004,
+            "end_s": 58.800000000000004,
+            "target_kmh": 20.0,
+            "samples": 200,
+            "max_error_kmh": 0.027006103515628155
+          }
+        ],
+        "stop_samples": 40,
+        "max_plateau_error_kmh": 0.07714013671874653,
+        "max_stop_error_kmh": 0.0,
+        "max_positive_target_overspeed_percent": 3.472329337826996,
+        "max_tracking_error_kmh": 0.6573120688281232
+      },
+      "control_wheel": {
+        "samples": 3960,
+        "plateaus": [
+          {
+            "begin_s": 25.0,
+            "end_s": 35.0,
+            "target_kmh": 30.0,
+            "samples": 500,
+            "max_error_kmh": 0.03089999999999904
+          },
+          {
+            "begin_s": 48.800000000000004,
+            "end_s": 58.800000000000004,
+            "target_kmh": 20.0,
+            "samples": 500,
+            "max_error_kmh": 0.039039999999999964
+          }
+        ],
+        "stop_samples": 100,
+        "max_plateau_error_kmh": 0.039039999999999964,
+        "max_stop_error_kmh": 0.0,
+        "max_positive_target_overspeed_percent": 2.4823830638044386,
+        "max_tracking_error_kmh": 0.4756363999999948
+      },
+      "server_clean_exit": true
+    },
+    "saturation": {
+      "status": "PASS_DIRECTIONAL_SELECTION_AND_PI",
+      "schema": 3,
+      "controls": 3960,
+      "allocations": 7920,
+      "braking_saturated_controls": 3,
+      "negative_integral_freezes": 2,
+      "saturated_controls": 46,
+      "positive_integral_freezes": 39,
+      "negative_integrations_while_limited": 0,
+      "max_pi_error": 0.0
+    },
+    "saturation_mutations": 18,
+    "work_status": "PASS_SOLVER_WORK_SINGLE_EV",
+    "native_audit": {
+      "status": "PASS_INDEPENDENT_FUNCTIONAL_AUDIT",
+      "admission_profile": "whole-interval-v1",
+      "receipts": 8000,
+      "normal_intervals": 7919,
+      "empty_init_intervals": 4,
+      "max_whole_interval_source_age_ns": 20000000,
+      "min_command_expiry_margin_ns": 1,
+      "max_wheel_quantization_error_rad_s": 0.0049997234344481,
+      "torque_nm_range": [
+        -7.800000000000001,
+        300.0
+      ],
+      "final_forward_velocity_m_s": 0,
+      "interval_work_valid": true,
+      "protection_intervals": 0,
+      "normal_stop_intervals": 0
+    }
+  },
+  "runtime_archive_verified_files": {
+    "carla-runtime.tar.gz": 24
+  },
+  "remaining": [
+    "historical M3/M4 causal evidence and nonselected DDS",
+    "general CARLA renderer/GC/cold shutdown",
+    "dynamic force reference and full ODD",
+    "automatic journal rollover/state transfer/reclamation",
+    "real power-cut/media/other-kernel/Target",
+    "whole wall real time and learner final review"
+  ],
+  "documents": {
+    "files": 12,
+    "links": 603,
+    "errors": []
+  }
+}

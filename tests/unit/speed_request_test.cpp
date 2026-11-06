@@ -39,6 +39,23 @@ TEST(SpeedRequestPropulsion, AcceptedSelectionDoesNotRenewSensorAuthority) {
     EXPECT_EQ(r->input.expires_at_ns,198*ms+1);
     EXPECT_DOUBLE_EQ(c.state().integral,0);
 }
+TEST(SpeedRequestBraking, MalformedBrakingSelectionLatchesWithoutRefreshingAuthority) {
+    for(int fault=0;fault<6;++fault) {
+        central::SpeedRequest c(.3,true);ASSERT_TRUE(c.start_session(3,100*ms));
+        auto first=c.step_derived(120*ms,2.98,sample(118*ms),true);ASSERT_TRUE(first);
+        central::PropulsionSelection f{3,0,130*ms,first->request.acceleration_mps2,0,0,false,6,5,true};
+        if(fault==0)f.requested_braking_nm=std::numeric_limits<double>::quiet_NaN();
+        if(fault==1)f.selected_braking_nm=std::numeric_limits<double>::infinity();
+        if(fault==2)f.selected_braking_nm=-1;
+        if(fault==3)f.selected_braking_nm=7;
+        if(fault==4)f.braking_limited=false;
+        if(fault==5){f.requested_braking_nm=0;f.selected_braking_nm=0;f.braking_limited=false;}
+        EXPECT_FALSE(c.step_derived(140*ms,2.98,sample(138*ms),true,f));
+        EXPECT_EQ(c.fault(),central::SpeedRequestFault::PropulsionSelection);
+        EXPECT_EQ(c.success_observation()->issued_ns,120*ms);
+        EXPECT_FALSE(c.step_derived(160*ms,2.98,sample(158*ms),true,f));
+    }
+}
 TEST(SpeedRequest, PreservesAcquisitionAcrossUnitsAndChildAuthority) {
     central::SpeedRequest c; ASSERT_TRUE(c.start_session(3,100*ms));
     const auto r=c.step(120*ms,4,sample(118*ms),true); ASSERT_TRUE(r);

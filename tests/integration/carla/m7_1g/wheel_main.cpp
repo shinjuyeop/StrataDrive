@@ -48,7 +48,9 @@ void selection(const std::optional<stratadrive::central::PropulsionSelection>& s
     std::cout<<"{\"epoch\":"<<s->epoch<<",\"request_sequence\":"<<s->request_sequence
         <<",\"selection_ns\":"<<s->selection_ns<<",\"requested_acceleration_mps2\":"<<s->requested_acceleration_mps2
         <<",\"requested_propulsion_nm\":"<<s->requested_propulsion_nm<<",\"selected_propulsion_nm\":"<<s->selected_propulsion_nm
-        <<",\"limited\":"<<(s->limited?"true":"false")<<'}';
+        <<",\"limited\":"<<(s->limited?"true":"false")
+        <<",\"requested_braking_nm\":"<<s->requested_braking_nm<<",\"selected_braking_nm\":"<<s->selected_braking_nm
+        <<",\"braking_limited\":"<<(s->braking_limited?"true":"false")<<'}';
 }
 void audit(const std::optional<WheelAudit>& w) {
     if(w)std::cout<<"{\"source_ns\":"<<w->source<<",\"rad_s\":"<<w->rad_s<<'}';
@@ -299,9 +301,11 @@ int main(int argc,char** argv) {
                 std::cout<<"]}";
             }
             if(r.propulsion_antiwindup) {
+                std::cout<<",\"allocation_feedback_schema\":3";
                 std::cout<<",\"allocation_selection\":";selection(r.allocation_selection);
                 std::cout<<",\"speed_selection\":";selection(r.speed_selection);
                 std::cout<<",\"saturation_used\":"<<(r.saturation_used?"true":"false");
+                std::cout<<",\"braking_saturation_used\":"<<(r.braking_saturation_used?"true":"false");
             }
             if(r.speed_control) {
                 const auto& s=*r.speed_control;
