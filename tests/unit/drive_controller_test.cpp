@@ -375,3 +375,15 @@ TEST_F(DriveStartupTest, NormalCommandWaitingBudgetStartsAtExplicitArmAndIsNotEx
     step(1090); EXPECT_EQ(controller.decision().fault,vecu::DriveGateFault::CommandUnavailable);
 }
 }  // namespace
+
+namespace {
+TEST_F(DriveControllerTest, HigherNonDrivingInitDoesNotAttributeOldCommand) {
+    command_nm=0;omega=0;run({10,100});ASSERT_GT(cmd_seq,1U);
+    ASSERT_TRUE(controller.start_session(2,7,time_ns(110),vecu::DriveCommandStartup::NonDriving));
+    auto sample=local(120);sample.wheel_speed->value=0;sample.hv->value={0,false,false};
+    controller.observe_local(sample,time_ns(120));const auto frame=controller.tick(time_ns(120));ASSERT_TRUE(frame);
+    const auto value=can::decode_drive_frame(*frame);ASSERT_TRUE(value);
+    EXPECT_EQ(value->epoch,2U);EXPECT_EQ(value->local_state,can::ActuatorLocalState::Init);
+    EXPECT_EQ(value->origin,can::ActuatorOrigin::NoAcceptedInput);EXPECT_EQ(value->causal_sequence,0U);
+}
+} // namespace

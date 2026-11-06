@@ -10,11 +10,21 @@ from audit_control_diagnostics import csv_rows, event, require
 from audit_central_restart import load as load_restart, judge as judge_restart
 from audit_continuity_review import transaction
 from audit_native_adoption import prefix
+from audit_native_epochs import load as load_epochs, judge as judge_epochs
+from audit_epoch_delivery import family
 from audit_native_routing import SOURCES, DOMAIN
 
 
 def load(root):
-    d = load_restart(root);d.update(case=prefix(root/'native-diagnostics/central/service-case'),
+    epochs = json.loads((root.parent/'plan.json').read_text()).get('diagnostic_epochs', False)
+    if epochs:
+        raw = load_epochs(root)
+        d = dict(raw, epoch_data=raw, streams={sid:dict(s, source=dict(rows=s['source']), replica=dict(rows=s['replica'])) for sid,s in raw['streams'].items()})
+        entries, info = family(root/'native-diagnostics/central/service-case', service=True)
+        store = dict(info, registry=4, rows=entries)
+    else:
+        d = load_restart(root);store = prefix(root/'native-diagnostics/central/service-case')
+    d.update(case=store,
         ready=json.loads((root/'service-ready.json').read_text()), client=json.loads((root/'service-client.json').read_text()),
         service=json.loads((root/'service-result.json').read_text()), samples=csv_rows(root/'service-samples.csv'), requests=csv_rows(root/'service-requests.csv'), placement=json.loads((root/'service-writer.json').read_text()))
     d['freeze']={r:csv_rows(root/'native-diagnostics'/r/(r+('-2' if r=='central' else '-1')+'.freeze.csv')) for r in ('central','front','rear')}
@@ -58,7 +68,7 @@ def actuals(messages):
 
 
 def judge(d):
-    report=judge_restart(d,True);require(d['placement']['allowed_cpus']==[(d['plan'].get('auxiliary_placement') or {}).get('cpu',15)] and d['placement']['policy']==d['placement']['priority']==0,'actual non-RT service writer placement');require(d['plan']['diagnostic_service'] and d['plan']['simple_vehicle'] and d['result']['vehicle']['pass'] and d['result']['service']['pass_'] and d['service']['pass'], 'actual service and moving SimpleVehicle profile')
+    report=judge_epochs(d["epoch_data"]) if "epoch_data" in d else judge_restart(d,True);require(d['placement']['allowed_cpus']==[(d['plan'].get('auxiliary_placement') or {}).get('cpu',15)] and d['placement']['policy']==d['placement']['priority']==0,'actual non-RT service writer placement');require(d['plan']['diagnostic_service'] and d['plan']['simple_vehicle'] and d['result']['vehicle']['pass'] and d['result']['service']['pass_'] and d['service']['pass'], 'actual service and moving SimpleVehicle profile')
     require(d['result']['vehicle']['max_speed_mps']>.01 and d['result']['vehicle']['distance_m']>.001 and d['result']['vehicle']['final_speed_mps']==0, 'real model motion and final physical standstill')
     all_rows=[]
     for role,mask in [('central',128),('front',13),('rear',114)]:

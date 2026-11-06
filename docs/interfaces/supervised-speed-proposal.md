@@ -121,7 +121,13 @@ Writer는 명시적 clear intent/key/expected revision을 별도로 검사한다
 [Native 연결 검증](../test-plan/evidence/runtime-speed-connection/README.md)과
 [초기 Host 검증](../test-plan/evidence/remaining-improvements/README.md)을 구분한다.
 [복구·명시적 해제와 통신 저장소 검증](../test-plan/evidence/supervised-recovery-delivery/README.md)은
-40초 논리 SIL의 새 INIT·정상 제어·안전 정차·해제·재기동·재발을 포함한다. CARLA 복구 주행 시험이나
+40초 논리 SIL의 새 INIT·정상 제어·안전 정차·해제·재기동·재발을 포함한다.
+선택형 `--supervised-recovery`의 CARLA 연결은 같은 차량·물리 owner·EV 원장·관측 frame을 유지하며
+입력 상실15초 → 복원17초 → 명시적 새 INIT25초 → 복구 주행을 수행한다. 새 INIT는 보호 상태의
+현재 wheel/torque·HV off/접촉기 개방을 요구한다. 관측 clock의 실패 latch는 해제하지 않는다.
+NoDrive는 이전 보호 정차 barrier를 닫고 더 높은 application의 실제8-role Release와 새 명령을
+검증한다. 시작 시각은 처음부터 사용한0.2ms native 작업 주기로 계산하며 기한·age를 늘리지 않는다.
+[CARLA 복구와 저장소 서비스 근거](../test-plan/evidence/service-carla-recovery/README.md)를 별도로 보존한다.
 전체 ODD·온라인 저항 추정·실제 학습 모델 검증으로 확대하지 않는다.
 모델 도입 시 scenario/seed, route revision, feature adapter, sensor/calibration, model weights hash,
 precision, software revision, clock instance, 모든20ms 입력/출력·fallback 이유를 고정하고 보존한다.

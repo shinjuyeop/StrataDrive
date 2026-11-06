@@ -515,6 +515,24 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     R->SetNumberField(TEXT("total_mechanical_j"),S.TotalMotorWork);
     return Encode(R);
   }
+  if (Op == TEXT("reinitialize")) {
+    uint64 Application, Barrier;
+    const uint64 Current = Now(Episode);
+    if (!S.Native || !S.NativeGate || !S.Work || S.Wall || S.SampledActual ||
+        S.AwaitSettlement || S.Staged || S.Queued || S.InFlight ||
+        !Number(J,TEXT("application"),Application) || Application > MAX_uint32 || Application <= S.Application ||
+        !Number(J,TEXT("barrier_ns"),Barrier) || Current <= Barrier ||
+        Current-Barrier < StepNs()-999 || Current-Barrier > StepNs()+999 ||
+        !S.NativeGate->reinitialize(static_cast<uint32>(Application),Barrier))
+      return Encode(Response(false,TEXT("reinit_protected_settled_barrier")));
+    // Keep this actor, physics generation, ticket and cumulative solver work.
+    // The next stage still requires the real eight-role new INIT/lease proof.
+    S.Application = static_cast<uint32>(Application);
+    auto R = Response(true,TEXT("higher_application_requires_new_init"));
+    R->SetStringField(TEXT("application"),Dec(S.Application));
+    R->SetStringField(TEXT("barrier_ns"),Dec(Barrier));
+    return Encode(R);
+  }
   if (Op == TEXT("stage_native")) {
     uint64 Frame;
     if (!S.Native || !S.NativeGate) return Encode(Response(false, TEXT("native_profile_required")));

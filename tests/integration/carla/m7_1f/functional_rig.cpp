@@ -103,6 +103,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     const Time horizon_ms;
     simulation::m4_detail::Clock clock{false};
     Time start,next_io,next_physical;
+    Time reinit_after=0;
     std::array<transport::RunGate,8> gates;
     std::array<transport::ZoneLink,2> zones;
     std::array<transport::LeafLink,5> leaves;
@@ -246,7 +247,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         zones[0].work.delivery(&command_omission);zones[0].results.delivery(&ack_omission);
     }
     void sample_diagnostics(Time now) {
-        if(!control_diagnostics)return;
+        if(!control_diagnostics || (reinit_after && !coordinator_started))return;
         startup_diagnostics->attempt(coordinator.plan());
         startup_diagnostics->observe(coordinator.fault_observation(),coordinator.success_observation(),coordinator.run_enabled(),coordinator.run_enabled(),now);
         if(!diagnostic_session && coordinator.run_enabled()) {
@@ -302,8 +303,9 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         // 2ms opportunity after its acquisition. This is phase, not extra age.
         const bool init_ready=wall_mode?
             (wheel && external->electrical_acquisition()>=wheel->source && now>=wheel->source && now-wheel->source>=2*ms):
-            now>=start+8*ms;
+            now>=(reinit_after?reinit_after:start+8*ms);
         if(!coordinator_started && !protection_since && init_ready) {
+            if(reinit_after)coordinator.cancel(now);
             require(coordinator.begin(scope.application,now),"begin aligned native session");
             coordinator_started=true;
         }
@@ -401,7 +403,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         else require(coordinator.state()!=session::State::Failed,"coordinator failure");
         // Keep servicing original leaf/Zone/Central feedback after the terminal
         // safety selection. No root requests, normal credits or re-arm here.
-        if(protection_since)return;
+        if(protection_since || (reinit_after && !coordinator_started))return;
         if(!coordinator.run_enabled())return;
         if(!running){running=true;next_management=coordinator.plan().enable_ns+controller_phase;next_controller=next_management;}
         if(!stop_credit && (!last_lease || now-last_lease>=10*ms)) {
@@ -640,6 +642,9 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             }
             for(unsigned i=0;i<3;++i)e.normal=e.normal && bool(e.actual[i]) && bool(e.commands[i]);
             e.normal=e.normal && bool(e.permission);
+            // Previous-epoch caches cannot authorize the new bootstrap. The
+            // original queues/owners still perform real PREPARE/INIT/Release.
+            if(reinit_after && !running){e=NativeExport{};e.observed=observed;}
             r.native_export=std::move(e);
         }
         return r;
@@ -754,6 +759,27 @@ void FunctionalRig::supervise_speed(central::RoadLoadBounds bounds) {
 }
 void FunctionalRig::omit_force_input(bool value) {
     require(bool(road_load_),"force omission requires supervised path");omit_force_=value;
+}
+void FunctionalRig::reinitialize(std::uint32_t application) {
+    require(owner_==std::this_thread::get_id() && native_ && !clock_.failed() && !work_ && !terminal_wall_ &&
+        !watch_ && road_load_ && route_.empty() && application>scope_.application &&
+        native_->protection_since && native_->external && native_->external->ok(),"reinit protected simulation barrier");
+    auto& n=*native_;const auto now=clock_.now();
+    require(n.external->electrical_time()==now,"reinit fully settled energy barrier");
+    for(unsigned i=0;i<8;++i){const auto sample=n.sensors[i].read();
+        require(!n.gates[i].allows(scope_.application) && sample &&
+            simulation::session_reset_safe(simulation::reset_evidence(*sample),7,now),"reinit stationary HV-off physical evidence");
+    }
+    require(n.wheel && now>=n.wheel->source && now-n.wheel->source<=30*ms &&
+        std::all_of(n.wheel->omega.begin(),n.wheel->omega.end(),[](double v){return std::abs(v)<=.01;}),"reinit stationary original wheel");
+    clock_.application(application);scope_.application=application;n.scope=scope_;
+    n.reinit_after=now+8*ms;n.coordinator_started=false;n.running=false;
+    n.protection_since=0;n.protection_requested=false;protect_=false;
+    n.release_mask=0;n.release_acks={};n.last_lease=0;
+    n.diagnostic_session=false;n.diagnostic_selected={};
+    n.speed_origin=0;n.speed_audit.reset();n.available_force.reset();n.speed_selection.reset();
+    n.lifecycle_seq=0;n.vehicle_seq=0;n.stop_seq=0;n.trigger_ns=0;n.detection_ns=0;n.handoff_ns=0;
+    n.terminal_mode=terminal_mode_=SpeedTerminal::None;omit_force_=false;n.omit_force=false;
 }
 void FunctionalRig::controller_phase(Time delay) {
     require(!native_ && delay<=20*ms && delay%200000==0,"controller phase must be set before INIT on existing ingress grid");

@@ -41,6 +41,12 @@ public:
         check(owner_==std::this_thread::get_id() && !failed_ && pending_ && serviced_==255,"incomplete barrier");
         pending_=false;return frame_+1;
     }
+    // A healthy completed barrier may bind a higher application. Physical
+    // time/frame and every clock-failure latch remain intact.
+    void application(std::uint32_t epoch) {
+        check(owner_==std::this_thread::get_id() && !failed_ && !pending_ && frame_ && epoch>scope_.application,"application handover barrier");
+        scope_.application=epoch;
+    }
     void fail() {failed_=true;}
     Time now() const {return now_;}
     bool failed() const {return failed_;}

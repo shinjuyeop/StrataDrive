@@ -21,20 +21,26 @@ from audit_control_diagnostics import event, journal, require
 def audit(directory, mutate=None):
     result=read_json(directory/'result.json')
     require(result['status']=='PASS_FUNCTIONAL_NATIVE_SOLVER_WORK','runtime did not pass')
-    require(result['execution_profile']=='m10-native-supervised-speed-v1','execution profile')
+    recovery=result['execution_profile']=='m10-native-supervised-recovery-v1'
+    require(recovery or result['execution_profile']=='m10-native-supervised-speed-v1','execution profile')
     require(result['learned_model']=='NOT_RUN_CLASSICAL_FALLBACK','unexpected model claim')
-    fault_case=result['speed_terminal']=='input-loss'
+    fault_case=recovery or result['speed_terminal']=='input-loss'
+    recovered=False;after_speed=0.;controls={};reason=10 if recovery else 8
     count=steps=0;last=None;fault=None;raw=[];maximum_speed=0.;final=None;mutated=False
     for row in json_rows(directory/'trace.jsonl'):
         native=row['native'];s=native['supervised_speed'];control=native.get('speed_control')
+        if row.get('control_input'):controls[row['index']]=row['control_input']
+        transition=recovery and row['index']>=2500
+        if recovery and row['index']==2500:last=None
+        if transition and s['fault_ns'] is None:recovered=True
         if mutate and control and not mutated:
             mutate(native);mutated=True
         require(native['admission']['ok'],'server command admission')
         raw.extend(event(bytes.fromhex(v)) for v in native['diagnostics']['events'])
         if s['fault_ns'] is not None:
-            require(fault_case and s['source']==2 and s['reason']==8,'unexpected supervision fault')
+            require(fault_case and s['source']==2 and s['reason']==reason,'unexpected supervision fault')
             if fault is None:fault=s['fault_ns']
-            require(fault==s['fault_ns'] and native['admission']['protection'] and not native['admission']['normal'],'protection latch')
+            require(fault==s['fault_ns'] and not recovered and (native['admission']['protection'] or (transition and row['index']<2508)) and not native['admission']['normal'],'protection latch')
         elif control and (last is None or control['sequence']!=last['sequence']):
             force=s['force'];reference=s['reference'];now=control['release_ns']
             require(s['source']==1 and s['reason']==1,'classical fallback selection')
@@ -57,26 +63,35 @@ def audit(directory, mutate=None):
                 acceleration=(control['target_mps']-last['target_mps'])/.02
                 require(amin-1e-9<=acceleration<=amax+1e-9,'reference acceleration')
             last=control;steps+=1
-        require(not fault or s['fault_ns']==fault,'restored input resumed normal control')
+        require(transition or not fault or s['fault_ns']==fault,'restored input resumed normal control')
         if row.get('receipt'):
             final=row['receipt']['physics'];maximum_speed=max(maximum_speed,final['body_forward_velocity_m_s'])
+        if transition and row.get('receipt'):after_speed=max(after_speed,final['body_forward_velocity_m_s'])
         count+=1
-    require(count==4001 and steps>500,'finite campaign coverage')
+    require(count==(6001 if recovery else 4001) and steps>500,'finite campaign coverage')
     require(final is not None and maximum_speed>.5 and abs(final['body_forward_velocity_m_s'])<=.001 and
             all(w['solver_omega_rad_s']==0 for w in final['wheels']),'moving vehicle then physical stop')
     require(raw==journal(directory/'diagnostic-store'),'original events differ from durable journal')
     roots=[e for e in raw if e['kind']==1]
     if fault_case:
         root=[e for e in roots if (e['code'],e['component'],e['monitor'],e['subject'])==(0x1002,1,4,4)]
-        require(len(root)==1 and root[0]['detected_ns']==fault and root[0]['native_reason']==8<<8,'supervision DTC root')
+        require(len(root)==1 and root[0]['detected_ns']==fault and root[0]['native_reason']==reason<<8,'supervision DTC root')
         related=[e for e in raw if e['_related']==root[0]['_id']]
         require(any(e['kind']==2 for e in related) and any(e['kind']==3 for e in related) and
                 sum(e['kind']==4 for e in related)>=2,'protection/ACK/Actual chain')
-        require(not any(e['kind']==5 and e['monitor']==4 for e in raw),'unqualified Passed')
+        passed=[e for e in raw if e['kind']==5 and e['monitor']==4]
+        if recovery:
+            require(controls=={1500:['FORCE_INPUT 0'],1700:['FORCE_INPUT 1'],2500:['REINIT 43']} and recovered and after_speed>.5,'explicit recovery campaign and resumed motion')
+            sessions=[e for e in raw if e['kind']==6]
+            require([e['epoch'] for e in sessions]==[42,43] and all(e['received_roles']==255 for e in sessions),'two actual complete INITs')
+            require(len(passed)==1 and passed[0]['epoch']==43 and passed[0]['_related']==root[0]['_id'],'qualified Passed preserves occurrence')
+            proof=next(e for e in raw if e['_id']==passed[0]['_proof_event'])
+            require(proof['epoch']==43 and proof['source_ns']>=sessions[1]['source_ns'] and proof['kind'] in (0,4),'fresh recovery proof after actual INIT')
+        else:require(not passed,'unqualified Passed')
     else:require(not roots and fault is None,'false DTC in nominal run')
     return dict(status='PASS_NATIVE_SUPERVISED_SPEED',observations=count,control_steps=steps,
                 maximum_body_speed_mps=maximum_speed,final_body_speed_mps=final['body_forward_velocity_m_s'],
-                fault_ns=fault,events=len(raw),fault_roots=len(roots),learned_model=False)
+                recovery=recovery,resumed_maximum_speed_mps=after_speed,fault_ns=fault,events=len(raw),fault_roots=len(roots),learned_model=False)
 
 
 def replay(directory,binary,log):
@@ -89,6 +104,7 @@ def replay(directory,binary,log):
         process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=errors,text=True)
         try:
             for row in json_rows(directory/'trace.jsonl'):
+                for control in row.get('control_input',[]):process.stdin.write(control+'\n')
                 for field in ('work_input','native_input'):
                     if row.get(field):process.stdin.write(row[field]+'\n')
                 process.stdin.flush()
@@ -100,7 +116,7 @@ def replay(directory,binary,log):
             if process.poll() is None:process.kill();process.wait(timeout=5)
             process.stdout.close()
             if not process.stdin.closed:process.stdin.close()
-    require(count==4001,'replay coverage')
+    require(count==(6001 if result['execution_profile']=='m10-native-supervised-recovery-v1' else 4001),'replay coverage')
     return dict(observations=count,sha256=digest.hexdigest(),binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest())
 
 

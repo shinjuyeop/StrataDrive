@@ -46,12 +46,26 @@ enum class ClockPolicy { Functional, HostMonotonic, FunctionalSampledActual };
 class Admission {
 public:
     Admission(std::uint32_t application,Time initial,ClockPolicy clock=ClockPolicy::Functional,Time interval=step)
-        :application_(application),initial_(initial),clock_(clock),interval_(interval) {}
+        :application_(application),initial_(initial),grid_origin_(initial),requested_(initial+init_offset),clock_(clock),interval_(interval) {}
+    // Explicit local higher-epoch handover, never a reset of a failed gate.
+    // Only the last accepted protected/stationary barrier can be retired.
+    bool reinitialize(std::uint32_t application,Time barrier) {
+        if(wall() || !error_.empty() || !protection_since_ || application<=application_ || barrier!=last_ || barrier>UINT64_MAX-init_offset-200000)return false;
+        const auto drive=drive_->current_sample(barrier);const auto brake=brake_->current_sample(barrier);
+        if(!drive || !brake || !drive->torque_nm || !drive->wheel_speed || !brake->pressure_pa ||
+           std::abs(*drive->torque_nm)>.1 || std::abs(drive->wheel_speed->value_rad_s)>.01 || *brake->pressure_pa<100000 ||
+           drive->wheel_speed->source_time_ns>barrier || barrier-drive->wheel_speed->source_time_ns>age)return false;
+        Admission next(application,barrier,clock_,interval_);next.last_=barrier;next.grid_origin_=grid_origin_;
+        // Preserve the original 0.2ms native job grid. Rounded CARLA elapsed
+        // timestamps may differ by a few ns; no deadline/age is extended.
+        next.requested_=grid_origin_+((barrier+init_offset-grid_origin_+199999)/200000)*200000;
+        *this=std::move(next);return true;
+    }
     // Read-only scheduling eligibility. All receiver cursors and latches in the
     // real admission are untouched; the server still checks the final proof.
     bool eligible(const Input& in,Time now,Output& output,std::string* why=nullptr,Time reserve=0) const {
         Admission copy(application_,initial_,clock_,interval_);copy.reserve_=reserve;
-        copy.last_=last_;copy.enable_=enable_;copy.protection_since_=protection_since_;copy.normal_observed_=normal_observed_;
+        copy.grid_origin_=grid_origin_;copy.requested_=requested_;copy.last_=last_;copy.enable_=enable_;copy.protection_since_=protection_since_;copy.normal_observed_=normal_observed_;
         copy.stop_=stop_;copy.holding_=holding_;copy.stop_causal_=stop_causal_;copy.stop_observed_=stop_observed_;
         copy.started_=started_;copy.normal_=normal_;copy.error_=error_;copy.cached_=cached_;
         copy.release_=release_;copy.permission_packet_=permission_packet_;copy.credit_=credit_;
@@ -222,7 +236,7 @@ private:
             const auto a=decode<session::Ack>(in.release[i],static_cast<session::Role>(i),session::Role::CentralIngress);
             if(!a)return false;
             if(!a->accepted || a->phase!=session::Phase::Release || a->role!=static_cast<session::Role>(i) ||
-               a->plan.epoch!=application_ || (wall()?(a->plan.requested_ns<initial_ || a->plan.requested_ns-initial_>=80000000):a->plan.requested_ns!=initial_+init_offset) ||
+               a->plan.epoch!=application_ || (wall()?(a->plan.requested_ns<initial_ || a->plan.requested_ns-initial_>=80000000):a->plan.requested_ns!=requested_) ||
                a->plan.prepare_deadline_ns!=a->plan.requested_ns+session::kPrepareBudgetNs || a->plan.enable_ns!=in.enable ||
                a->plan.commit_deadline_ns!=in.enable+session::kInitWindowNs || a->source_ns<in.enable ||
                a->plan.enable_ns<a->plan.requested_ns+session::kInitLeadNs ||
@@ -292,7 +306,7 @@ private:
         out.oldest_dependency=std::min(out.oldest_dependency,grant.input_time_ns);
         out.exclusive_expiry=std::min(out.exclusive_expiry,grant.expires_at_ns);return true;
     }
-    std::uint32_t application_;Time initial_,last_=0,enable_=0,protection_since_=0,normal_observed_=0;bool started_=false,normal_=false;
+    std::uint32_t application_;Time initial_,grid_origin_,requested_,last_=0,enable_=0,protection_since_=0,normal_observed_=0;bool started_=false,normal_=false;
     StopLeaseState stop_;bool holding_=false;Time stop_observed_=0;std::array<std::uint32_t,3> stop_causal_{};
     ClockPolicy clock_;Time interval_=step,reserve_=0;
     std::string error_;

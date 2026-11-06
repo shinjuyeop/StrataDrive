@@ -98,7 +98,7 @@ Supervisor→governor→기존 PI/배분 연결을 추가했다. [검증과 제�
   선택형 live 3-ECU 경로의 Front/Rear 교체와 Central spool도
   [검증](test-plan/evidence/native-epoch-replacement/README.md)했다. 역할별 stream을 고정하고
   실제 새 INIT에서 producer 세대를 전환한다. [Central 프로세스 교체](test-plan/evidence/central-epoch-replacement/README.md)도
-  같은 family에 연결했다. Terminal service의 family 적용,
+  같은 family에 연결했다. [Terminal service의 family 적용](test-plan/evidence/service-carla-recovery/README.md)까지 완료했다.
   단일 epoch 무중단 회전, 디스크 삭제/외부 보존 정책과
   전체 매체/전원 장애, 다른 kernel의 Clock 운영은 별도다. syscall 저장 오류와 프로세스
   중단 검증은 추가했지만 실제 전원 차단/캐시 소실 시험을 대신하지 않는다.
@@ -126,7 +126,9 @@ M10의 상태 기반 Host 속도 제안 입출력·history·risk·fallback 경�
 고정 송신원 집합의 [세션 순서 장벽과 family 병합](test-plan/evidence/epoch-merge/README.md)을 추가했다.
 이어서 [live Front/Rear 교체·Central spool·원본 prefix 재전송](test-plan/evidence/native-epoch-replacement/README.md)을
 연결했다. [Central 교체와 세션 발행자 승계](test-plan/evidence/central-epoch-replacement/README.md)까지
-검증했다. 다음은 CARLA에서 새 감독 제어의 복구 주행 검증과 terminal service의 family 적용이다. CARLA는 현재 단일 application scope를 고정하므로 실제 새 INIT와 관측·NoDrive 권한의 epoch 전환을 먼저 연결해야 한다.
+검증했다. 이어서 [terminal service의 family 적용과 실제 CARLA 복구 주행](test-plan/evidence/service-carla-recovery/README.md)을
+연결했다. 같은 차량·물리/EV 상태를 유지한 실제 새 INIT, 관측·NoDrive 권한 전환과 qualified Passed를
+확인했다. 이 두 후속 항목까지 이번 마감 범위는 완료이며, 아래 확장 범위를 M9 종료 조건에 추가하지 않는다.
 인지/학습 모델과 온라인 저항 추정은 공통 scenario/seed에서 별도 검증한다.
 구체 산출물과 TBD 담당·결정 시점은 [로드맵](roadmap.md)에서 관리한다.
 진행한 시도별 상세 경과와 과거 실행 목록은 [구현·검증 이력](archive/implementation-history.md)에서 찾는다.

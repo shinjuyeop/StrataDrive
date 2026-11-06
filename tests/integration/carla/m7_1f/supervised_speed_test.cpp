@@ -108,3 +108,52 @@ TEST(M10NativeSpeed, LiveBmsReferenceProtectionAndDurableDtc) {
     }
 }
 } // namespace
+
+namespace {
+TEST(M10NativeSpeed, ExplicitHigherInitRetainsPhysicalEnergyAndQualifiesRecovery) {
+    Scope scope{8402,42,7};FunctionalRig rig(scope,99,PlantMode::ExternalSolverWork,true,60000);
+    rig.speed_profile();rig.supervise_speed({0,200});
+    std::unique_ptr<m7_native::Admission> admission;m7_native::Output prior;Time previous=0;
+    std::vector<diagnostics::Event> events;double prior_soc=1;unsigned fresh_normal=0;bool initialized=false,rejected_old=false;std::array<m7_native::Packet,8> old_release;
+    for(unsigned i=0;i<1400;++i){
+        const double seconds=1.000000017+i*.01-(i>=799?1e-9:0);const Time now=static_cast<Time>(std::llround(seconds*1e9));
+        if(i==300){EXPECT_THROW(rig.reinitialize(43),std::runtime_error);EXPECT_FALSE(admission->reinitialize(43,previous));}
+        if(i==400)rig.omit_force_input(true);
+        if(i==450)rig.omit_force_input(false);
+        if(i==800){
+            ASSERT_TRUE(prior.protection);EXPECT_FALSE(admission->reinitialize(42,previous));
+            EXPECT_FALSE(admission->reinitialize(43,previous-1));
+            rig.reinitialize(43);ASSERT_TRUE(admission->reinitialize(43,previous));scope.application=43;initialized=true;
+        }
+        const Observation o{scope,domain,100+i,seconds,.01};const WheelSample wheel{99,100+i,now,{0,0,0,0}};
+        Report r;
+        if(!i)r=rig.observe(o,wheel);
+        else {
+            m7_external::SolverWork w;w.frame=100+i;w.begin=previous;w.end=now;w.oldest=prior.empty?previous:prior.oldest_actuator;
+            w.torque=prior.torque;w.dt=double(.01f*(1.f/320.f));w.wheel={0,{7,99+i,previous},previous};
+            r=rig.observe(o,wheel,w);
+        }
+        if(r.diagnostic_events)events.insert(events.end(),r.diagnostic_events->begin(),r.diagnostic_events->end());
+        if(!admission)admission=std::make_unique<m7_native::Admission>(42,now);
+        const auto& e=*r.native_export;m7_native::Input in;
+        in.observed=e.observed;in.enable=e.enable;in.normal=e.normal;in.actual=e.actual;in.commands=e.commands;
+        in.release=e.release;in.credit=e.credit;in.permission=e.permission;in.protection_since=e.protection_since;in.protection_selected_mask=e.protection_selected_mask;
+        in.service_mask=r.service_mask;in.credit_mask=r.credit_mask;in.release_mask=r.release_mask;
+        if(i==799)old_release=in.release;
+        if(initialized && in.actual[0] && !rejected_old){auto stale=in;stale.release=old_release;m7_native::Output rejected;
+            EXPECT_FALSE(admission->eligible(stale,now,rejected));rejected_old=true;
+        }
+        ASSERT_TRUE(admission->accept(in,now,prior))<<admission->error()<<" frame="<<i;
+        if(i>=450 && i<800){EXPECT_TRUE(prior.protection);EXPECT_FALSE(prior.normal);}
+        if(initialized && prior.normal)++fresh_normal;
+        if(r.electrical){EXPECT_LE(r.electrical->soc,prior_soc);prior_soc=r.electrical->soc;EXPECT_LE(std::abs(r.electrical->balance_j),.00072);}
+        previous=now;
+    }
+    ASSERT_GT(fresh_normal,400U);EXPECT_TRUE(rejected_old);
+    diagnostics::Ledger ledger;for(const auto& e:events)ASSERT_EQ(ledger.record(e),diagnostics::Result::Accepted);
+    ASSERT_TRUE(ledger.complete());const auto* dtc=ledger.find({diagnostics::Code::CentralControl,1,4,4});ASSERT_NE(dtc,nullptr);
+    EXPECT_EQ(dtc->count,1U);EXPECT_EQ(dtc->condition,diagnostics::Condition::Passed);EXPECT_FALSE(dtc->cleared);
+    unsigned sessions=0;for(const auto& e:events)if(e.kind==diagnostics::Kind::Session){++sessions;EXPECT_EQ(e.received_roles,255U);}
+    EXPECT_EQ(sessions,2U);
+}
+} // namespace

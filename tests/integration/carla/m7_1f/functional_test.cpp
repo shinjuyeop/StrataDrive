@@ -9,6 +9,13 @@ using namespace stratadrive::m7_functional;
 const Scope scope{1,42,7};
 Observation observation(unsigned index=0) {return {scope,domain,100+index,1+index*.01,.01};}
 void complete(FrameClock& clock) {for(unsigned i=0;i<8;++i)clock.serviced(i);clock.permit_non_driving_tick();}
+TEST(M7FrameClock, HigherApplicationPreservesPhysicalContinuityAndFailureLatch) {
+    FrameClock clock(scope);clock.accept(observation());complete(clock);clock.application(43);
+    auto next=observation(1);next.scope.application=43;EXPECT_EQ(clock.accept(next),1010000000U);complete(clock);
+    auto stale=observation(2);EXPECT_THROW(clock.accept(stale),std::runtime_error);
+    EXPECT_THROW(clock.application(44),std::runtime_error);EXPECT_TRUE(clock.failed());
+    FrameClock pending(scope);pending.accept(observation());EXPECT_THROW(pending.application(43),std::runtime_error);
+}
 TEST(M7FrameClock, OriginalElapsedRoundedNotArrivalOrNominalGrid) {
     FrameClock clock(scope);auto o=observation();o.elapsed_s+=.000000017;
     EXPECT_EQ(clock.accept(o),1000000017U);complete(clock);

@@ -105,6 +105,9 @@ public:
     void supervise_speed(central::RoadLoadBounds);
     // Explicit consumer-boundary injection. Restoration cannot clear the latch.
     void omit_force_input(bool value);
+    // Explicit trusted local request at a healthy, stationary/HV-off protected
+    // barrier. Keep the same physical owner, energy ledger and diagnostic hooks.
+    void reinitialize(std::uint32_t application);
     void pose(central::RoutePose sample,std::uint32_t actor);
     // M7-only scheduling phase study; periods/expiry rules remain unchanged.
     void controller_phase(Time delay_after_enable);

@@ -71,7 +71,9 @@ def main():
     p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
     p.add_argument('--sampled-actual',action='store_true',help='explicit diagnostic simulation10ms Actual sample/hold; current command authority and original expiries')
     p.add_argument('--supervised-speed',help='opt-in state supervisor/governor, fixed road load minimum:maximum in N')
+    p.add_argument('--supervised-recovery',action='store_true')
     a = p.parse_args()
+    if a.supervised_recovery and not (a.supervised_speed and a.speed_terminal=='none' and a.native_fault=='none' and a.ticks==6000):p.error('supervised recovery requires supervised speed, no terminal override and 6000 ticks')
     if a.supervised_speed:
         try:
             bounds=tuple(map(float,a.supervised_speed.split(':')))
@@ -99,7 +101,7 @@ def main():
         p.error("route requires its frozen tick count and simulation profile")
     if a.route_startup_seconds!=180 and not (a.route_profile or a.speed_loop):p.error("extended startup requires a route or speed simulation profile")
     if a.native_fault=="pose-stale" and not a.route_profile:p.error("pose fault requires route")
-    if a.speed_loop and not (a.simulation_continuous and not a.scenario and a.ticks==4000 and a.native_fault in ("none","snapshot","work-missing")):
+    if a.speed_loop and not (a.simulation_continuous and not a.scenario and a.ticks==(6000 if a.supervised_recovery else 4000) and a.native_fault in ("none","snapshot","work-missing")):
         p.error("speed loop requires 4000-tick functional simulation profile without fixed requests")
     if a.simulation_continuous and not (a.native_actual and a.solver_work and (a.scenario or a.speed_loop or a.route_profile) and
                                        not a.wall_native and not a.compact_work and (a.native_fault=="none" or a.speed_loop or a.route_profile) and 150<=a.ticks<=(route_definition["ticks"] if route_definition else 6000)):
@@ -360,6 +362,7 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
         if a.simulation_continuous:cmd += ["--simulation-continuous"]
         if a.speed_loop:cmd += ["--speed-loop"]
         if a.supervised_speed:cmd += ["--supervised-speed",a.supervised_speed]
+        if a.supervised_recovery:cmd += ["--supervised-recovery"]
         if a.speed_terminal!="none":cmd += ["--speed-terminal",a.speed_terminal]
         if a.diagnostic_fault is not None:cmd += ['--diagnostic-fault',a.diagnostic_fault]
         if a.sampled_actual:cmd += ['--sampled-actual']

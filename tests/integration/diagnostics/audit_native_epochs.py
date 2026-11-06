@@ -47,7 +47,7 @@ def load(root):
     member_bytes = metadata(home/'central/merged/merge-sources')
     central_tags = ['central-1'] + (['central-2'] if replacement and target == 'central' else [])
     releases = [row for tag in central_tags for row in csv_rows(home/'central'/(tag+'.release.csv'))]
-    old_central = {p.name: family(p)[0] for p in (root/'central-before-restart').iterdir() if p.is_dir() and (p/'current').is_file()} if target == 'central' else {}
+    old_central = {p.name: family(p)[0] for p in (root/'central-before-restart').iterdir() if p.name != 'service-case' and p.is_dir() and (p/'current').is_file()} if target == 'central' else {}
     return dict(result=result, plan=json.loads((root.parent/'plan.json').read_text()), streams=streams,
                 merged=merged, merged_info=merged_info, local=local, local_replica=local_replica,
                 membership=struct.unpack('<'+'Q'*(len(member_bytes)//8), member_bytes),
@@ -72,18 +72,20 @@ def judge(d):
     require(result['pass'] and not result['forced_cleanup'] and not result['sanitizer_diagnostics'] and not result['sdk_errors'], 'native runtime verdict')
     require(d['plan']['diagnostic_epochs'] and all(v['epochs'] and v['pass'] for v in result['diagnostics'].values()), 'explicit family profile')
     require(len(set(d['namespaces'])) == 3, 'independent ECU namespaces')
-    require(all(p['allowed_cpus'] == [15] and p['policy'] == p['priority'] == 0 for p in d['placement']), 'non-RT writer placement')
+    require(all(p['allowed_cpus'] == [(d['plan'].get('auxiliary_placement') or {}).get('cpu', 15)] and p['policy'] == p['priority'] == 0 for p in d['placement']), 'non-RT writer placement')
     require(all(int(r['dropped']) == int(r['rejected']) == 0 and 0 < int(r['highwater']) <= 8 for r in d['channels']), 'bounded SDK ingress')
     require(d['membership'] == (1, 8000, *range(8200, 8209), 8300), 'fixed logical membership')
-    expected_epochs = {1, 2} if replacement else {1}
+    terminal = d['plan'].get('diagnostic_service', False)
+    require(not terminal or result['case'] == 'central-rejoin', 'terminal service replacement scope')
+    expected_epochs = {1, 2, 3} if terminal else {1, 2} if replacement else {1}
     merged = [event(raw) for raw in d['merged']]; identities = [e['_id'] for e in merged]
     require(len(set(identities)) == len(identities), 'unique merged identities')
     epochs = [e['epoch'] for e in merged]
-    require(epochs == sorted(epochs) and set(epochs) == expected_epochs and d['merged_info']['segments'] == len(expected_epochs), 'old tails precede new checkpoint')
+    require(epochs == sorted(epochs) and set(epochs) == expected_epochs and d['merged_info']['segments'] == (2 if terminal else len(expected_epochs)), 'old tails precede new checkpoint')
     contexts = {e['epoch']: (raw, e) for raw, e in zip(d['merged'], merged) if e['kind'] == 6}
     require(set(contexts) == expected_epochs and sum(e['kind'] == 6 for e in merged) == len(contexts), 'genuine global Sessions only')
     for epoch in expected_epochs:
-        raw, e = contexts[epoch]; issuer = ((1 << 32) | 7) if target == 'central' and epoch == 2 else 7
+        raw, e = contexts[epoch]; issuer = ((1 << 32) | 7) if target == 'central' and epoch >= 2 else 7
         require(e['_id'][:2] == (8001, issuer) and e['source_producer'] == issuer and e['received_roles'] == 255 and int.from_bytes(raw[-34:-30], 'little') == 255, 'full original Release masks and issuer lineage')
         acks = [r for r in d['releases'] if int(r['epoch']) == epoch]
         require(len(acks) == 8 and {int(r['role']) for r in acks} == set(range(8)), 'actual eight-role Release')
@@ -118,7 +120,7 @@ def judge(d):
     require(len(receipts) == len(d['receipts']) == 12 and set(receipts) == {*streams, 8300}, 'all final durable receipts')
     for stream, r in receipts.items():
         count = len(d['local']) if stream == 8300 else len(streams[stream]['source'])
-        require(int(r['entries']) == int(r['acknowledged']) == count and int(r['segments']) == len(expected_epochs), 'sender fully acknowledged')
+        require(int(r['entries']) == int(r['acknowledged']) == count and int(r['segments']) == (2 if terminal and stream == 8300 else len(expected_epochs)), 'sender fully acknowledged')
     data_seen, ack_seen, replayed, leases, fresh_acks = set(), set(), set(), set(), set()
     for m in d['messages']:
         if m['method'] == 0x50: leases.add(lease(m['payload']))
@@ -148,7 +150,10 @@ def judge(d):
         crash = result['injected_crash']; victims = [p for p in result['processes'] if p['role'] == target]
         require(crash['role'] == target and len(victims) == 2 and victims[0]['exit'] == -9 and victims[0]['expected_abrupt_stop'] and victims[1]['exit'] == 0, 'actual replacement SIGKILL')
         require(result['survivor_pids_before'] == result['survivor_pids_after'] and len(result['survivor_pids_after']) == 2 and crash['pid'] not in result['survivor_pids_after'].values(), 'surviving ECU identities unchanged')
-        require(len(d['cuts']) == 1 and d['cuts'][0]['retired_epoch'] == '1', 'one explicit owner retirement cut')
+        require([r['retired_epoch'] for r in d['cuts']] == (['1', '2'] if terminal else ['1']), 'explicit owner retirement cuts')
+        if terminal:
+            cut3 = int(d['cuts'][1]['observed_ns'])
+            require(all(int(r['wall_ns']) >= cut3 for r in d['delivery'] if r['action'] == 'local-spool' and r['epoch'] == '3'), 'service epoch after sealed old publisher')
         cut = int(d['cuts'][0]['observed_ns'])
         if target == 'central':
             require(d['plan']['diagnostic_central_restart'] and result['central_rejoined'], 'declared new Central startup')
@@ -193,7 +198,7 @@ def judge(d):
         require(e['_run'] == 8001 and e['_profile'] == 1 and e['epoch'] in expected_epochs, 'original run/profile')
         if e['kind'] == 5:
             proof = next((p for p in merged if p['_id'] == e['_proof_event']), None)
-            require(e['epoch'] == 2 and e['_id'][1] < (1 << 32) and proof and proof['_id'][1] == e['_id'][1] and proof['_proof'] == e['_proof'] and proof['epoch'] == 2 and proof['kind'] in (0, 4), 'continuous source recovery needs fresh proof')
+            require(e['epoch'] in ({2, 3} if terminal else {2}) and e['_id'][1] < (1 << 32) and proof and proof['_id'][1] == e['_id'][1] and proof['_proof'] == e['_proof'] and proof['epoch'] == e['epoch'] and proof['kind'] in (0, 4), 'continuous source recovery needs fresh proof')
     return dict(passed=True, streams=len(streams), merged=d['merged_info'], gaps=len(gaps), original_credits=len(d['credits']), tcp_messages=len(d['messages']), connections=d['syns'])
 
 

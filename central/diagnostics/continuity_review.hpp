@@ -1,13 +1,30 @@
 #pragma once
 #include "producer_lifecycle.hpp"
+#include "epoch_recorder.hpp"
 #include <optional>
 
 namespace stratadrive::diagnostics {
 struct StreamBinding {std::uint64_t stream,producer;};
 // Frozen, single-writer observations. Caller quiesces producer/transport users;
 // these references are never read concurrently with a journal mutation.
+class FrozenStream {
+public:
+    FrozenStream()=default;
+    FrozenStream(std::nullptr_t){}
+    FrozenStream(const FileJournal* journal):journal_(journal){}
+    FrozenStream(const EpochRecorder* epochs):epochs_(epochs){}
+    explicit operator bool() const noexcept {return journal_ || epochs_;}
+    bool operator==(const FrozenStream& b) const noexcept {return journal_==b.journal_ && epochs_==b.epochs_;}
+    std::uint64_t store_id() const noexcept;
+    std::uint32_t registry_revision() const noexcept;
+    std::uint64_t size() const noexcept;
+    Entry committed(std::uint64_t ordinal) const;
+    bool verified() const;
+private:
+    const FileJournal* journal_{nullptr};const EpochRecorder* epochs_{nullptr};
+};
 struct StreamState {
-    const FileJournal* source{nullptr};const FileJournal* replica{nullptr};
+    FrozenStream source{},replica{};
     std::uint64_t acknowledged{0},pending{0};EventQueue::Health queue{};
 };
 enum class ReviewBlock { None, Request, Session, Incident, Streams, Pending, Storage };

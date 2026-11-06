@@ -150,7 +150,7 @@ python3 tests/integration/diagnostics/audit_native_epochs.py build/new-live-epoc
 ```
 
 이 profile은 normal/command-loss/Front 또는 Rear restart-live와 Central central-rejoin을 지원한다.
-Context 지연 주입, writer 단독 재시작과 terminal service는 거절한다. 새 profile의 retry는
+Context 지연 주입과 writer 단독 재시작은 거절한다. Terminal service는 아래의 별도 종료 profile로 지원한다. 새 profile의 retry는
 100→200→400→800→1000ms backoff이며 queue8·원래 제어/보호 기한을 유지한다.
 [실행·독립 감사](../test-plan/evidence/native-epoch-replacement/README.md)에 실제 source/replica/merged
 원문, 교체 전 copy, TCP Data/ACK, 두 INIT의 Release8개와 accepted RunLease를 보존한다.
@@ -183,6 +183,26 @@ Central 교체의 ACK 유실은 새 원격 Session의 durable ACK1개를 생략�
 기존 Fault ACK 주입을 유지한다. [실행 근거](../test-plan/evidence/central-epoch-replacement/README.md)에
 초기 미실행 주입과 수정 후 판정을 구분해 보존한다.
 
+## Epoch family의 terminal service
+
+`--diagnostic-service --simple-vehicle --cases central-rejoin`을 epoch profile과 함께 사용할 수 있다.
+실제 epoch2 정상 정지·보호 후 operator가 새 epoch3 INIT를 요청한다. 이전 Central owner는 이후
+capture/tick을 수행하지 않는 상태로 넘긴 뒤 spool에 종료 cut을 공개한다. 서비스 요청 자체가
+INIT나 정상 운행을 허가하지 않는다.
+
+모든 producer와 writer를 정지·drain한 뒤 `FrozenStream`은 원본/복제 family의 누적 ordinal 전체를
+canonical byte로 비교한다. 원래 stream identity·producer·현재 Session·실제 누적 ACK·queue health를
+검사한다. Family의 모든 predecessor/checkpoint는 lifetime lock을 얻을 때 검증되며, 손상·미완료
+이력은 거절한다. 전체 이력을 하나의 유한 Ledger로 평탄화하지 않는다.
+
+별도 `service-case` family에 merged 원문을 그대로 가져와 Proof → Review → Passed → 명시적 Clear를
+기록한다. 전송용 family는 Event-only를 유지한다. Unknown continuity는 원문에 계속 남고,
+미해결 continuity가 있는 segment는 checkpoint 회전을 하지 않는다. 서비스 producer 재사용은
+현재 segment뿐 아니라 모든 보존 transaction에서 검사한다. Commit 전마다 원래 시각의 현재
+Actual을 다시 확인하며 기존 peer/capability/revision·정차·정상 dispatch 차단 조건을 유지한다.
+
+[실행과 독립 감사](../test-plan/evidence/service-carla-recovery/README.md)를 따른다.
+
 ## 남는 경계
 
 회수하는 것은 **활성 메모리·event/service 창**이다. 원본 파일을 자동 삭제해 디스크를 비우지
@@ -190,6 +210,6 @@ Central 교체의 ACK 유실은 새 원격 Session의 durable ACK1개를 생략�
 이력 조회/재시작 비용은 보관량에 비례하고 실시간 작업이 아니다. 기존 단일-store archive 도구는
 family/checkpoint 형식을 받지 않는다. Family 보관·외부 이관/삭제 정책, 단일 장시간 epoch 중
 무중단 회전과 실제 전원/매체 검증은 후속이다. 새 장벽은 고정 역할 membership 전용이다.
-실제 역할 추가/제거와 terminal service의 family 적용은 별도다. 응답하지 않는 역할을 timeout으로 제외하지 않는다.
+실제 역할 추가/제거는 별도다. 응답하지 않는 역할을 timeout으로 제외하지 않는다.
 
 [구현·시험 근거](../test-plan/evidence/remaining-improvements/README.md)를 따른다.

@@ -47,7 +47,9 @@ def main():
     p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
     p.add_argument('--sampled-actual',action='store_true')
     p.add_argument('--supervised-speed',help='opt-in state supervisor/governor, fixed road load minimum:maximum in N')
+    p.add_argument('--supervised-recovery',action='store_true')
     a = p.parse_args()
+    if a.supervised_recovery and not (a.supervised_speed and a.speed_terminal=='none' and a.fault=='none' and a.ticks==6000):p.error('supervised recovery requires supervised speed, no terminal override and 6000 ticks')
     if a.supervised_speed:
         try:
             bounds=tuple(map(float,a.supervised_speed.split(':')))
@@ -74,7 +76,7 @@ def main():
     require(not route or (a.simulation_continuous and not a.speed_loop and not a.scenario and a.ticks==route["ticks"] and a.fault in ("none","snapshot","work-missing","pose-stale")), "route scope")
     require(a.fault!="pose-stale" or route is not None,"pose fault scope")
     require(150 <= a.ticks <= ((route["ticks"] if route else 6000) if a.simulation_continuous else 950), 'bounded functional horizon')
-    require(not a.speed_loop or (a.simulation_continuous and not a.scenario and a.ticks==4000 and a.fault in ('none','snapshot','work-missing')), 'speed loop scope')
+    require(not a.speed_loop or (a.simulation_continuous and not a.scenario and a.ticks==(6000 if a.supervised_recovery else 4000) and a.fault in ('none','snapshot','work-missing')), 'speed loop scope')
     require(not a.simulation_continuous or (a.solver_work and (a.scenario or a.speed_loop or route) and not a.compact_work and (a.fault=='none' or a.speed_loop or route)),
             'continuous simulation requires original work/scenario and streaming raw trace')
     require(not a.compact_work or (a.solver_work and a.fault!='client-loss'), 'compact journal requires surviving owner and work')
@@ -89,7 +91,7 @@ def main():
     report['execution_profile']=(route['schema'] if stop30 or route['schema'].startswith('m8-reference-') else 'm8-route-v1') if route else ('m8-speed-v1' if a.speed_loop else 'm7-simulation-time-v1')
     if a.supervised_speed:
         report['base_execution_profile']=report['execution_profile']
-        report['execution_profile']='m10-native-supervised-speed-v1'
+        report['execution_profile']='m10-native-supervised-recovery-v1' if a.supervised_recovery else 'm10-native-supervised-speed-v1'
         report['road_load_bounds_n']=bounds
         report['learned_model']='NOT_RUN_CLASSICAL_FALLBACK'
     if route:
@@ -178,7 +180,7 @@ def main():
             case('speed_calibration',model['mass_kg']==1696 and all(w['radius_m']==.355 for w in model['wheels']))
         binding = rpc('bind', actor=str(actor.id), application='42', model_sha256=model_hash)
         bound, session, run = binding['locked'], binding['session'], binding['run']
-        report['binding'] = binding
+        report['binding'] = dict(binding)
         report['admission_profile']='sampled-actual-v1' if a.sampled_actual else 'whole-interval-v1'
         case('admission_profile_binding',binding.get('admission_profile','whole-interval-v1')==report['admission_profile'])
         if route:
@@ -213,6 +215,7 @@ def main():
                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
         receipt = None
         previous_work_record = None
+        application=42
         for i in range(a.ticks+int(a.solver_work)):
             record = dict(index=i, frame=frame, simulation_seconds=end, physics=ph,
                           wall_begin_ns=time.monotonic_ns())
@@ -261,7 +264,16 @@ def main():
                 omega = [w['solver_omega_rad_s'] for w in wheels]
                 ns = math.floor(end*1e9+.5)
                 history[ns] = (omega[2]+omega[3])/2
-                line = f'WHEEL 1 42 7 {DOMAIN} {frame} {end:.17g} 0.01 {actor.id} {frame} {ns} ' + ' '.join(f'{v:.17g}' for v in omega)
+                transition=None
+                if a.supervised_recovery:
+                    controls=[]
+                    if i==1500:controls=['FORCE_INPUT 0']
+                    if i==1700:controls=['FORCE_INPUT 1']
+                    if i==2500:
+                        transition=native['now_ns'];controls=['REINIT 43'];application=43
+                    record['control_input']=controls
+                    for control in controls:process.stdin.write(control+'\n')
+                line = f'WHEEL 1 {application} 7 {DOMAIN} {frame} {end:.17g} 0.01 {actor.id} {frame} {ns} ' + ' '.join(f'{v:.17g}' for v in omega)
                 record['native_input'] = line
                 if a.solver_work and receipt:
                     work = receipt['solver_work']
@@ -322,6 +334,11 @@ def main():
                             require(not accepted['ok'] and accepted['latched'] and accepted['reason']=='ev_settlement_rejected','settlement rejection')
                             stopped_frame=frame;report['fault_observed']=accepted['reason'];break
                         require(accepted['ok'] and not accepted['awaiting_ev_settlement'],'settlement ack')
+                    if transition is not None:
+                        changed=rpc('reinitialize',application=str(application),barrier_ns=str(transition))
+                        record['reinitialization']=changed
+                        require(changed['ok'] and changed['application']==str(application),'server explicit higher application')
+                        binding['application']=str(application)
                     if i==a.ticks:
                         record['terminal_settlement']=True
                         report['final_settlement']=settlement
@@ -476,7 +493,7 @@ def main():
                 if a.compact_work:deferred_records.append(record)
                 else:raw.write(json.dumps(record,separators=(',',':'))+'\n');raw.flush()
         if a.fault == 'none':
-            case('native_closed_loop_complete', count == a.ticks and normal>300 and empty==4)
+            case('native_closed_loop_complete', count == a.ticks and normal>300 and empty==(7 if a.supervised_recovery else 4))
             if a.solver_work: case('all_receipts_settled_once',settlements==count)
             if not a.simulation_continuous:
                 case('forward_motion_observed', ph['body_forward_velocity_m_s']>0, final_m_s=ph['body_forward_velocity_m_s'])

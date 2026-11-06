@@ -47,19 +47,32 @@ public:
     virtual ~ContinuityCapture()=default;
     virtual std::unique_ptr<FrozenContinuity> acquire()=0;
 };
+// Local transaction sink, deliberately separate from Event-only delivery.
+class ServiceWriter {
+public:
+    ServiceWriter(Recorder& recorder):recorder_(&recorder){}
+    ServiceWriter(EpochRecorder& epochs):epochs_(&epochs){}
+    const Ledger& ledger() const noexcept {return epochs_?epochs_->ledger():recorder_->ledger();}
+    Receipt record(const Event& e){return epochs_?epochs_->record(e):recorder_->record(e);}
+    Receipt review(const ContinuityReview& r){return epochs_?epochs_->review(r):recorder_->review(r);}
+    Receipt clear(const Clear& c){return epochs_?epochs_->clear(c):recorder_->clear(c);}
+    bool producer_used(std::uint64_t run,std::uint64_t producer) const;
+private:
+    Recorder* recorder_{nullptr};EpochRecorder* epochs_{nullptr};
+};
 // One non-RT owner, one fixed incident/session/authorized kernel peer. No
 // INIT, actuator, repair, restart or normal-dispatch authority. Socket lifetime,
 // private listener provisioning and bounded accept scheduling belong to caller.
 class ContinuityService {
 public:
     static constexpr std::size_t request_budget=32;
-    ContinuityService(Recorder&,std::vector<StreamBinding>,ServicePermit,ContinuityCapture&);
+    ContinuityService(ServiceWriter,std::vector<StreamBinding>,ServicePermit,ContinuityCapture&);
     // Connected AF_UNIX/SOCK_SEQPACKET only. Nonblocking receive/send; duplicate
     // exact requests return the original reply even when its first send failed.
     ServiceReply serve(int connected_socket);
 private:
     ServiceReply apply(const ServiceRequest&);
-    Recorder& writer_;ContinuityInspector inspector_;ServicePermit permit_;ContinuityCapture& capture_;
+    ServiceWriter writer_;ContinuityInspector inspector_;ServicePermit permit_;ContinuityCapture& capture_;
     struct Cached {std::vector<std::uint8_t> bytes;ServiceReply reply;};
     std::vector<Cached> replies_;std::vector<StreamCut> approved_;EventId approved_pass_{};
     std::uint64_t highest_{0};bool failed_{false};

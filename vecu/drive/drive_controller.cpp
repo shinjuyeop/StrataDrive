@@ -291,7 +291,7 @@ std::optional<can::DriveFrame> DriveController::complete(const std::optional<dri
     can::DriveMessage actual; actual.kind = can::DriveFrameKind::Actual; actual.epoch = epoch_; actual.sequence = sequence_;
     actual.source_time_ns = measured.fresh ? measured.fresh->source_time_ns : now_ns;
     if (measured.fresh) actual.torque_nm = measured.fresh->torque_nm;
-    const auto& accepted = command_.last_accepted(); actual.causal_sequence = accepted ? accepted->message.sequence : 0;
+    const auto accepted = (command_monitoring_ || stop_.active()) ? command_.last_accepted() : std::nullopt; actual.causal_sequence = accepted ? accepted->message.sequence : 0;
     actual.local_state = decision_.fault != DriveGateFault::None ? can::ActuatorLocalState::FailSafe : !decision_.active ? can::ActuatorLocalState::Init :
         (decision_.selected_target_nm != *in.command->torque_nm || decision_.actual_outside_envelope ||
          decision_.regen_reason != can::DriveRegenLimitReason::Nominal || in.command->local_state == can::ActuatorLocalState::Degraded) ?

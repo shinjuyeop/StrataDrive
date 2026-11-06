@@ -11,6 +11,22 @@ std::uint32_t crc(const Entry& entry) {
 }
 bool same(const Stamp& a,const Stamp& b){return comparable(a,b) && a.ns==b.ns;}
 }
+std::uint64_t FrozenStream::store_id() const noexcept {return epochs_?epochs_->store_id():journal_->store_id();}
+std::uint32_t FrozenStream::registry_revision() const noexcept {return epochs_?epochs_->registry_revision():journal_->registry_revision();}
+std::uint64_t FrozenStream::size() const noexcept {return epochs_?epochs_->watermark():journal_->committed().size();}
+Entry FrozenStream::committed(std::uint64_t ordinal) const {return epochs_?epochs_->committed(ordinal):journal_->committed().at(static_cast<std::size_t>(ordinal-1));}
+bool FrozenStream::verified() const {
+    // EpochRecorder verifies every retained segment/checkpoint when acquiring
+    // its lifetime lock. Do not flatten that history into a finite Ledger.
+    if(epochs_)return epochs_->ledger().complete();
+    if(!journal_ || !journal_->writable() || journal_->uncommitted_bytes())return false;
+    Ledger checked(journal_->limits());
+    for(const auto& entry:journal_->committed()) {
+        const auto* e=std::get_if<Event>(&entry);
+        if(!e || checked.record(*e)!=Result::Accepted || !checked.complete())return false;
+    }
+    return true;
+}
 ContinuityInspector::ContinuityInspector(ControlContext c,std::vector<StreamBinding> manifest):service_(c),manifest_(std::move(manifest)) {
     if(!c.run || !c.producer || !c.profile || !c.clock_instance || c.domain!=Domain::Monotonic || manifest_.empty() || manifest_.size()>32)
         throw std::invalid_argument("continuity service manifest");
@@ -38,21 +54,23 @@ ReviewPreparation ContinuityInspector::prepare(const Ledger& ledger,EventId iden
     approval.id={service_.run,service_.producer,sequence+1};approval.incident=identity;approval.proof_event={service_.run,service_.producer,sequence};
     approval.session=global.session;approval.revision=record->revision;approval.disposition=disposition;approval.evidence=evidence;
     for(std::size_t i=0;i<streams.size();++i){const auto& state=streams[i];const auto& binding=manifest_[i];
-        if(!state.source || !state.replica || state.source==state.replica || state.source->store_id()!=binding.stream || state.replica->store_id()!=binding.stream ||
-           state.source->registry_revision()!=state.replica->registry_revision())return blocked(ReviewBlock::Streams);
+        if(!state.source || !state.replica || state.source==state.replica || state.source.store_id()!=binding.stream || state.replica.store_id()!=binding.stream ||
+           state.source.registry_revision()!=state.replica.registry_revision())return blocked(ReviewBlock::Streams);
         if(state.pending || state.queue.dropped || state.queue.identity_error || state.queue.first_lost_sequence)return blocked(ReviewBlock::Pending);
-        const auto& source=*state.source;const auto& replica=*state.replica;
-        if(!source.writable() || !replica.writable() || source.uncommitted_bytes() || replica.uncommitted_bytes())return blocked(ReviewBlock::Storage);
-        if(source.committed().empty() || source.committed().size()!=replica.committed().size() || state.acknowledged!=source.committed().size())return blocked(ReviewBlock::Pending);
-        Ledger checked(source.limits());bool context=false;
-        for(std::size_t ordinal=0;ordinal<source.committed().size();++ordinal){
-            const auto* event=std::get_if<Event>(&source.committed()[ordinal]);
-            if(!event || encode(source.committed()[ordinal])!=encode(replica.committed()[ordinal]) || event->id.run!=service_.run || event->profile!=service_.profile ||
-               (event->kind!=Kind::Session && event->id.producer!=binding.producer) || checked.record(*event)!=Result::Accepted || !checked.complete())return blocked(ReviewBlock::Storage);
+        const auto& source=state.source;const auto& replica=state.replica;
+        if(!source.verified() || !replica.verified())return blocked(ReviewBlock::Storage);
+        if(!source.size() || source.size()!=replica.size() || state.acknowledged!=source.size())return blocked(ReviewBlock::Pending);
+        bool context=false;Session last{};Event tip;
+        for(std::uint64_t ordinal=1;ordinal<=source.size();++ordinal){
+            const auto entry=source.committed(ordinal);const auto* event=std::get_if<Event>(&entry);
+            if(!event || encode(entry)!=encode(replica.committed(ordinal)) || event->id.run!=service_.run || event->profile!=service_.profile ||
+               (event->kind!=Kind::Session && event->id.producer!=binding.producer))return blocked(ReviewBlock::Storage);
             if(encode(*event)==encode(global))context=true;
+            if(event->kind==Kind::Session || event->kind==Kind::Attempt)last=event->session;
+            tip=*event;
         }
-        if(!context || !(checked.session()==global.session))return blocked(ReviewBlock::Session);
-        const auto& tip=std::get<Event>(source.committed().back());approval.streams.push_back({binding.stream,binding.producer,source.committed().size(),tip.id,crc(tip)});
+        if(!context || !(last==global.session))return blocked(ReviewBlock::Session);
+        approval.streams.push_back({binding.stream,binding.producer,source.size(),tip.id,crc(tip)});
     }
     auto& proof=plan.proof;proof=*incident;proof.id=approval.proof_event;proof.related=identity;proof.session=global.session;proof.session_enable=global.session_enable;
     proof.kind=Kind::Observation;proof.proof=Proof::Recording;proof.latch=Latch::Clear;proof.unmapped=false;proof.native_reason=2;

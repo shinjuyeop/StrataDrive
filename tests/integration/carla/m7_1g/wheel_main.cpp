@@ -248,6 +248,18 @@ int main(int argc,char** argv) {
                     <<",\"period_ns\":2000000,\"deadline_ns\":4000000}"<<std::endl;
                 continue;
             }
+            if(line=="FORCE_INPUT 0" || line=="FORCE_INPUT 1") {
+                if(!solver_work || work || !previous_wheel)throw std::runtime_error("force input command barrier");
+                rig.omit_force_input(line.back()=='0');continue;
+            }
+            if(line.rfind("REINIT ",0)==0) {
+                std::uint32_t epoch;std::string op,extra;std::istringstream input(line);
+                if(!(input>>op>>epoch) || (input>>extra) || !solver_work || work || !previous_wheel || !admission)
+                    throw std::runtime_error("reinit command barrier");
+                rig.reinitialize(epoch);
+                if(!admission->reinitialize(epoch,previous_wheel->source))throw std::runtime_error("reinit admission barrier");
+                continue;
+            }
             if(line=="PROTECT") {
                 if(!solver_work || !previous_admission.normal)throw std::runtime_error("protection request context");
                 rig.request_protection();continue;

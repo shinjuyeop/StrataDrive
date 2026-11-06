@@ -18,7 +18,7 @@ def metadata(path):
     return raw[8:-8]
 
 
-def family(path):
+def family(path, *, service=False):
     require(not (path/'pending').exists() and not (path/'incomplete').exists(), 'incomplete family')
     manifest = metadata(path/'manifest')
     require(len(manifest) == 56, 'family manifest size')
@@ -36,13 +36,13 @@ def family(path):
         require(struct.unpack_from('<5I', store, 16) == (limit, records, occurrences, clears, 4), 'segment policy')
         require(not (folder/'pending').exists(), 'segment pending intent')
         rows = journal(folder, decoder=lambda payload: payload)
-        require(0 < len(rows) <= limit, 'segment entry bounds')
-        require(all(payload[0] == 0 for payload in rows), 'transport family is event only')
+        require((0 if service and generation == segment == 1 else 1) <= len(rows) <= limit, 'segment entry bounds')
+        require(all(payload[0] in ((0, 1, 2) if service else (0,)) for payload in rows), 'declared family transaction types')
         if segment > 1:
             checkpoint = metadata(folder/'checkpoint')
             require(checkpoint, 'missing checkpoint')
             first = event(rows[0])
-            require(first['kind'] in (6, 9) and first['epoch'] > event(original[-1])['epoch'], 'actual newer session boundary')
+            require(first['kind'] in (6, 9) and first['epoch'] > event(next(raw for raw in reversed(original) if raw[0] == 0))['epoch'], 'actual newer session boundary')
         if segment == generation:
             require(len(original) == base, 'global ordinal base')
         counts.append(len(rows));original.extend(rows)

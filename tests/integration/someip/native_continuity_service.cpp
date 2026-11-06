@@ -34,6 +34,11 @@ class Capture final:public d::ContinuityCapture {
 public:
     runtime::LatestSnapshot<d::ServiceEvidence>& latest;std::ofstream samples;
     d::Event global{};std::vector<d::StreamState> states;std::vector<std::unique_ptr<d::FileJournal>> owned;
+    std::vector<std::unique_ptr<d::EpochRecorder>> families;
+    d::FrozenStream open(const fs::path& path,bool epoch){
+        if(epoch){families.push_back(std::make_unique<d::EpochRecorder>(path.string()));return families.back().get();}
+        owned.push_back(std::make_unique<d::FileJournal>(path.string()));return owned.back().get();
+    }
     bool held{false};std::uint64_t after{0};
     Capture(runtime::LatestSnapshot<d::ServiceEvidence>& input,const fs::path& folder):latest(input),samples(folder/"service-samples.csv"){
         samples<<"now,owner_capture,enable,wheel,drive,brake,wheel_rad_s,torque_nm,pressure_pa,valid,inhibited\n";samples<<std::setprecision(17);
@@ -64,6 +69,7 @@ void NativeContinuityService::work(){
         simulation::NativeExecutionWatch::configure_thread(stratadrive::someip::test::auxiliary_io_cpu(),0);simulation::runtime_support::ThreadInfo placement;placement.capture();std::ofstream where(folder_/"service-writer.json");placement.write_json(where);
         const auto* configured=std::getenv("STRATADRIVE_DIAGNOSTIC_STORE_ROOT");require(configured,"service storage provision missing");const fs::path storage(configured);const auto central=storage/"central";
         Capture capture(current_,folder_);std::vector<d::StreamBinding> bindings;
+        const bool epochs=std::getenv("STRATADRIVE_DIAGNOSTIC_EPOCHS");
         const auto contexts=report(central/"central-2.freeze.csv");require(contexts.size()==2,"collector freeze coverage");
         for(unsigned z=0;z<2;++z){require(contexts[z].epoch==3 && contexts[z].stream==8101+z && contexts[z].committed==3 && contexts[z].acknowledged==3,"collector context ACK cut");capture.after=std::max(capture.after,contexts[z].ns);}
         std::vector<FrozenRow> rows;
@@ -73,15 +79,22 @@ void NativeContinuityService::work(){
             require(found!=rows.end() && found->epoch==3 && !found->pending && !found->dropped && !found->first_lost && !found->identity_error,"source freeze/queue health");
             require(found->ns && found->ns<=wall(),"original freeze report clock");capture.after=std::max(capture.after,found->ns);
             const auto role=source.ecu==Ecu::Front?"front":"rear";const auto name="source-"+std::to_string(source.producer);
-            auto original=std::make_unique<d::FileJournal>((storage/role/name).string());auto replica=std::make_unique<d::FileJournal>((central/(name+"-2")).string());
-            require(found->committed==original->committed().size(),"actual frozen source watermark");
-            capture.states.push_back({original.get(),replica.get(),found->acknowledged,found->pending,{found->dropped,found->first_lost,found->identity_error!=0}});
-            capture.owned.push_back(std::move(original));capture.owned.push_back(std::move(replica));bindings.push_back({8200+i,source.producer});
+            const auto original=capture.open(storage/role/name,epochs);
+            const auto replica=capture.open(central/(name+(epochs?"":"-2")),epochs);
+            require(found->committed==original.size(),"actual frozen source watermark");
+            capture.states.push_back({original,replica,found->acknowledged,found->pending,{found->dropped,found->first_lost,found->identity_error!=0}});
+            bindings.push_back({8200+i,source.producer});
         }
-        d::FileJournal merged((central/"merged-2").string()),local((central/"service-case").string());d::Recorder writer(local);
-        require(local.committed().empty(),"fresh separate service journal required");
-        for(const auto& entry:merged.committed()){const auto& event=std::get<d::Event>(entry);require(writer.record(event).durable,"frozen merged original import");if(event.kind==d::Kind::Session)capture.global=event;}
-        base=local.committed().size();require(capture.global.session.epoch==3,"fresh actual service epoch");
+        const auto merged=capture.open(central/(epochs?"merged":"merged-2"),epochs);
+        std::unique_ptr<d::FileJournal> local;std::unique_ptr<d::Recorder> finite;
+        std::unique_ptr<d::EpochRecorder> family;
+        if(epochs)family=std::make_unique<d::EpochRecorder>((central/"service-case").string());
+        else {local=std::make_unique<d::FileJournal>((central/"service-case").string());finite=std::make_unique<d::Recorder>(*local);}
+        d::ServiceWriter writer=epochs?d::ServiceWriter(*family):d::ServiceWriter(*finite);
+        const auto size=[&]{return epochs?family->watermark():local->committed().size();};
+        require(!size(),"fresh separate service journal required");
+        for(std::uint64_t ordinal=1;ordinal<=merged.size();++ordinal){const auto event=std::get<d::Event>(merged.committed(ordinal));require(writer.record(event).durable,"frozen merged original import");if(event.kind==d::Kind::Session)capture.global=event;}
+        base=size();require(capture.global.session.epoch==3,"fresh actual service epoch");
         d::ServicePermit permit;permit.actor={diagnostic_run,64,d::Domain::Monotonic,kDomain,1};permit.session=capture.global.session;permit.incident={diagnostic_run,(1ULL<<32)|8,1};
         const auto* pid=std::getenv("STRATADRIVE_SERVICE_PID");const auto* uid=std::getenv("STRATADRIVE_SERVICE_UID");const auto* token=std::getenv("STRATADRIVE_SERVICE_CAPABILITY");require(pid && uid && token,"service principal provision missing");
         permit.pid=std::stoi(pid);permit.uid=static_cast<std::uint32_t>(std::stoul(uid));const std::string capability(token);require(capability.size()==32,"service capability length");
@@ -105,7 +118,7 @@ void NativeContinuityService::work(){
             requests<<wall()<<','<<principal.pid<<','<<principal.uid<<','<<hex(bytes)<<','<<hex(d::encode_service_reply(reply))<<'\n';requests.flush();require(requests.good(),"service request evidence write");
             if(reply.status==d::ServiceStatus::Accepted && reply.stage==4){passed_=true;break;}
         }
-        require(passed_,"service review/clear completion missing");require(local.committed().size()==base+4,"service exactly four durable transactions");
+        require(passed_,"service review/clear completion missing");require(size()==base+4,"service exactly four durable transactions");
         const auto* final=writer.ledger().find({d::Code::RecordingGap,static_cast<unsigned>(d::Component::Coordinator),10,8});require(final && final->cleared && final->count==1,"service explicit continuity tombstone");
         std::ofstream result(folder_/"service-records.csv");result<<"code,component,monitor,subject,condition,count,generation,cleared\n";for(const auto& r:writer.ledger().records())result<<static_cast<unsigned>(r.key.code)<<','<<r.key.component<<','<<r.key.monitor<<','<<r.key.subject<<','<<static_cast<unsigned>(r.condition)<<','<<r.count<<','<<r.generation<<','<<r.cleared<<'\n';
     }catch(const std::exception& e){passed_=false;error=e.what();}

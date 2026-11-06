@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from audit_control_diagnostics import csv_rows, event, require
 from audit_native_adoption import prefix
+from audit_epoch_delivery import family
 
 
 def load(root):
@@ -14,7 +15,11 @@ def load(root):
         return csv_rows(path) if path.exists() else []
     def document(path):
         return json.loads(path.read_text()) if path.exists() else None
-    return dict(plan=document(root.parent/'plan.json'), result=document(root/'result.json'),
+    plan=document(root.parent/'plan.json');epochs=plan.get('diagnostic_epochs', False)
+    def store(path, service=False):
+        if not epochs:return prefix(path)
+        entries,info=family(path,service=service);return dict(info,rows=entries,registry=4)
+    return dict(plan=plan, result=document(root/'result.json'),
                 service=document(root/'service-result.json'), client=document(root/'service-client.json'),
                 ready=document(root/'service-ready.json'), samples=rows(root/'service-samples.csv'),
                 requests=rows(root/'service-requests.csv'),
@@ -23,7 +28,7 @@ def load(root):
                         for role in ('central', 'front', 'rear')},
                 drain=rows(home/'front/front-1.drain-failed.csv'),
                 delivery=rows(home/'central/central-2.delivery.csv'),
-                merged=prefix(home/'central/merged-2'), case=prefix(home/'central/service-case'),
+                merged=store(home/('central/merged' if epochs else 'central/merged-2')), case=store(home/'central/service-case',service=True),
                 sources={role: rows(home/role/(role+'-1.freeze.csv')) for role in ('front', 'rear')})
 
 

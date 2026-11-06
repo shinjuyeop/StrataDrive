@@ -1,4 +1,4 @@
-# 설계 결정 기록 · ADR-0001–0112
+# 설계 결정 기록 · ADR-0001–0114
 
 이 문서는 당시 결정과 검토를 보존한 기록이다. 현재 상태는 [프로젝트 상태](../project-status.md), 현재 계약은 [문서 안내](../README.md)를 따른다. 과거의 “다음 작업/미구현”은 현재 지시가 아니다.
 
@@ -114,6 +114,8 @@
 - [ADR-0110: 고정 송신원 집합의 원본 epoch 장벽](#adr-0110)
 - [ADR-0111: 고정 역할 stream의 live producer 교체와 owner 종료 경계](#adr-0111)
 - [ADR-0112: Central 발행자 승계와 기존 family 재개방](#adr-0112)
+- [ADR-0113: Epoch family terminal service](#adr-0113)
+- [ADR-0114: 같은 CARLA 차량의 명시적 application 전환](#adr-0114)
 
 <a id="adr-0001"></a>
 
@@ -6129,3 +6131,31 @@ continuity fault는 원문 prefix가 일치해도 남고 손실 개수를 추측
 거절했다. 이 경로의 주입을 epoch2 Session ACK로 명시하고 실제 생략·동일 ordinal Duplicate retry를
 요구한다. 주입 자체가 없으면 runner도 실패한다. SDK queue나 제어 기한을 완화하지 않는다.
 [계약](../interfaces/epoch-retention.md)과 [검증](../test-plan/evidence/central-epoch-replacement/README.md)을 따른다.
+
+<a id="adr-0113"></a>
+
+## ADR-0113: Epoch family terminal service
+
+2026-11-06. Terminal service는 원본/복제 family 전체의 누적 ordinal과 실제 ACK를 비교한다.
+원본과 transport stream에는 서비스 transaction을 섞지 않는다. 별도 service family가 동일한
+merged prefix 뒤에 Proof/Review/Passed/Clear를 기록하며 현재 Actual을 매 단계 다시 샘플링한다.
+미해결 continuity는 회전을 차단하고 원래 unknown 사실을 보존한다. 해제 후 다음 epoch에서
+회전하더라도 과거 service producer를 재사용할 수 없다. 검토는 INIT나 정상 운행을 허가하지 않는다.
+[계약](../interfaces/epoch-retention.md)과 [검증](../test-plan/evidence/service-carla-recovery/README.md)을 따른다.
+
+<a id="adr-0114"></a>
+
+## ADR-0114: 같은 CARLA 차량의 명시적 application 전환
+
+2026-11-06. 보호 뒤 fresh wheel/torque·HV off·개방된 접촉기가 확인된 완료 barrier에서만 더 높은
+application INIT를 요청할 수 있다. 기존 actuator/EV owner와 진단 observer를 유지해 물리 상태·
+에너지·fault occurrence를 보존한다. FrameClock의 연속 frame과 실패 latch도 유지한다.
+NoDrive는 이전 보호 정차 barrier와 다음 frame을 연결하고 새 원본 Release8개/RunLease/명령을
+검증한다. 과거 proof로 정상 운행을 재개할 수 없고 입력 복원만으로 latch를 해제하지 않는다.
+
+CARLA의 부동소수 elapsed를 반올림한 barrier가 기존 native job grid에서 수 ns 어긋날 수 있다.
+새 INIT는 원래0.2ms grid의 다음 기회에 시작하며 양쪽에서 같은 grid를 계산한다. 이는 시작
+phase의 정의이며 기존 deadline·freshness를 연장하지 않는다. 처음 시도의 거절 기록도 보존한다.
+Drive의 NonDriving INIT에서는 아직 새 명령 수신을 열지 않았으므로 이전 receiver의 accepted
+명령을 Actual 출처/causal sequence로 사용하지 않는다. Steering/Brake와 같은 경계를 적용한다.
+[계약](../interfaces/supervised-speed-proposal.md)과 [검증](../test-plan/evidence/service-carla-recovery/README.md)을 따른다.

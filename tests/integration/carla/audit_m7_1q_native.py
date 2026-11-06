@@ -70,6 +70,8 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
     profile=report.get('admission_profile','whole-interval-v1')
     check(profile in ('whole-interval-v1','sampled-actual-v1') and b.get('admission_profile','whole-interval-v1')==profile,'declared admission profile')
     sampled=profile=='sampled-actual-v1'
+    recovery=report.get('execution_profile')=='m10-native-supervised-recovery-v1'
+    application=42;session_initial=initial;requested=initial+8000000;previous=None;transitions=0
     if sampled:check(work_mode and report.get('speed_terminal')=='normal-stop30','sampled diagnostic work scope')
     path=directory/'trace.jsonl'
     opening=open if path.exists() else gzip.open
@@ -96,12 +98,23 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                       (report['fault']=='rgb-drop' and row['native']['admission']['ok'] and 'fault_observed' in report),
                       'unexpected incomplete interval');continue
             n=row['native'];proof=n['native_export'];r=row['receipt'];out=r['original_actual']['admitted_actual']
+            if row.get('reinitialization'):
+                change=row['reinitialization']
+                check(recovery and row['index']==2500 and transitions==0 and row.get('control_input')==['REINIT 43'] and
+                      change['ok'] and change['application']=='43' and int(change['barrier_ns'])==previous['native']['now_ns'],'explicit higher application barrier')
+                old=previous['receipt']['original_actual']['admitted_actual']
+                check(old['protection'] and old['torque_nm']==0 and old['pressure_pa']>=100000 and
+                      all(w['solver_omega_rad_s']==0 for w in previous['receipt']['physics']['wheels']) and
+                      abs(previous['receipt']['physics']['body_forward_velocity_m_s'])<=.001,'protected stationary predecessor')
+                session_initial=previous['native']['now_ns'];requested=initial+((session_initial+8000000-initial+199999)//200000)*200000;application=43;transitions+=1
+                release_packets=None;cursors={};protection_since=0
             command_end=ns if sampled else ns+10000000
             if sampled:
                 check(r.get('admission_profile')==n['admission'].get('admission_profile')==profile,'independent sampled profile agreement')
                 check(int(out['command_checked_through_ns'])==int(n['admission']['command_checked_through_ns'])==command_end,'explicit command authority horizon')
             check(n['now_ns']==ns and proof['observed_ns']==str(ns),'native original clock')
-            check(all(r[k]==b[k] for k in ('run','session','actor','application','model_id','model_sha256','effort_profile')),'binding')
+            check(all(r[k]==b[k] for k in ('run','session','actor','model_id','model_sha256','effort_profile')),'binding')
+            check(r['application']==str(application),'current application binding')
             check(r['clock_domain']=='m7-native-simulation-elapsed' and r['source_identity']=='native-eight-role-CAN-P05-Actual; authenticated-local-owner','receipt provenance')
             check(int(r['frame'])==last_frame+1 and r['simulation_begin_seconds']==last_end and
                   abs(r['simulation_end_seconds']-last_end-.01)<1e-6,'output continuity')
@@ -118,7 +131,7 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                     error=abs(w['rad_s']-history[w['source_ns']]);max_quant=max(max_quant,error)
                     check(error <= (0 if key=='sensor_wheel' else .005+1e-12),'wheel value/source')
             if out['empty_init']:
-                check(all(v is None for v in proof['actual']) and not proof['normal'] and ns-initial<80000000,'empty INIT')
+                check(all(v is None for v in proof['actual']) and not proof['normal'] and ns-session_initial<80000000,'empty INIT')
                 values=[0,0,0];empty+=1
             else:
                 protecting=int(proof.get('protection_since_ns',0))!=0
@@ -137,7 +150,7 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                 plan=None
                 for role,packet in enumerate(proof['release']):
                     q=wire(packet,role,7,1);rr,phase=q.get('II');pp=q.get('IQQQQ');ack,accepted=q.get('QB')
-                    check((rr,phase,accepted)==(role,2,1) and pp[0]==42 and pp[1]==initial+8000000 and
+                    check((rr,phase,accepted)==(role,2,1) and pp[0]==application and pp[1]==requested and
                           pp[2]==pp[1]+2000000000 and pp[3]==int(proof['enable_ns']) and pp[4]==pp[3]+20000000 and
                           pp[3]<=ack<=ns and ack<pp[4] and pp[4]<=pp[2],'Release ACK')
                     check(plan is None or plan==pp,'same plan');plan=pp
@@ -149,7 +162,7 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                 values=[];sources=[];actuals=[]
                 for role,packet in enumerate(proof['actual']):
                     q=wire(packet,0 if role<2 else 1,7,9);act=frame(q,role,True)
-                    check(act['epoch']==42 and int(proof['enable_ns'])<=act['source']<=ns and ns+10000000-act['source']<=30000000,'Actual whole interval')
+                    check(act['epoch']==application and int(proof['enable_ns'])<=act['source']<=ns and ns+10000000-act['source']<=30000000,'Actual whole interval')
                     prev=cursors.get(role)
                     if prev and act['seq']!=prev['seq']:
                         check(act['seq']>prev['seq'] and act['source']>=prev['source'] and 0<(act['counter']-prev['counter'])%256<=10,'Actual cursor')
@@ -165,7 +178,7 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                     normal+=1
                     q=wire(proof['permission'],1,4,5)
                     epoch,token,sent,deadline,op=q.get('IQQQI')
-                    check(epoch==42 and op==0 and q.get('B')==3 and q.get('IBBB')==(0x194,1,0,64),'permission envelope')
+                    check(epoch==application and op==0 and q.get('B')==3 and q.get('IBBB')==(0x194,1,0,64),'permission envelope')
                     payload=q.take(64)
                     check(binascii.crc_hqx(payload[:29]+payload[31:]+struct.pack('<H',0x1204),0xffff)==int.from_bytes(payload[29:31],'little'),'permission P05')
                     check(payload[:4]==b'\x01\x00\x01\x01' and payload[24] in (1,2) and payload[25]==1,'AllowNormal')
@@ -173,18 +186,18 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                     power_source,oldest,expiry=struct.unpack_from('<QQQ',payload,36)
                     check(q.get('B')==0 and q.get('B')==1,'permission parent present')
                     epoch,seq,source,parent_expiry=q.get('IIQQ')
-                    check(pe==epoch==42 and pc==seq and source<=ps<=ns and oldest<=power_source<=ps and
+                    check(pe==epoch==application and pc==seq and source<=ps<=ns and oldest<=power_source<=ps and
                           ns+10000000-ps<=50000000 and ns+10000000-source<=50000000 and
                           ns+10000000-oldest<=70000000 and ns+10000000<min(expiry,parent_expiry),'permission whole interval')
                     original_expiry=min(credit[2],expiry)
                     for role,packet in enumerate(proof['commands']):
                         q=wire(packet,0 if role<2 else 1,role+2,5)
                         epoch,token,sent,deadline,op=q.get('IQQQI');command=frame(q,role,False)
-                        check(epoch==42 and op==0 and q.get('B')==1,'command context')
+                        check(epoch==application and op==0 and q.get('B')==1,'command context')
                         parent_epoch,parent_seq,parent_source,parent_expiry,accel,curvature,braking,hold=q.get('IIQQdddB')
                         oldest,expiry=q.get('QQ');act=actuals[role]
                         check(act['state'] in (1,2) and act['origin']==1 and act['causal']==command['seq'] and command['causal']==parent_seq,'causal native NormalPath')
-                        check(parent_epoch==42 and command['epoch']==42 and oldest<=parent_source<=command['source']<=act['source'] and
+                        check(parent_epoch==application and command['epoch']==application and oldest<=parent_source<=command['source']<=act['source'] and
                               command_end-parent_source<=30000000 and command_end-command['source']<=30000000 and command_end-oldest<=70000000 and
                               command_end<expiry<=min(parent_expiry,command['source']+30000001,parent_source+30000001,oldest+70000001),'original command authority at declared horizon')
                         original_expiry=min(original_expiry,expiry)
@@ -208,7 +221,9 @@ def audit(directory, model, corrupt=None, work_mode=False, corrupt_index=150):
                 check(w['solver_omega_source']=='PhysX3.4.mWheelSpeeds.direct.v1' and math.isfinite(w['solver_omega_rad_s']),'post solver identity')
                 if i>=2:check(w['solver_omega_rad_s']>=0,'raw rear negative')
             speed.append(r['physics']['body_forward_velocity_m_s']);torques.append(torque)
+            previous=row
             count+=1;last_frame=int(r['frame']);last_end=r['simulation_end_seconds']
+    check(transitions==(1 if recovery else 0),'application transition coverage')
     check(count==report['receipts'] and normal==report['normal_intervals'] and empty==report['empty_init_intervals'],'reported counts')
     return dict(status='PASS_INDEPENDENT_FUNCTIONAL_AUDIT',admission_profile=profile,receipts=count,normal_intervals=normal,empty_init_intervals=empty,
                 max_whole_interval_source_age_ns=max_age,min_command_expiry_margin_ns=min_margin,max_wheel_quantization_error_rad_s=max_quant,

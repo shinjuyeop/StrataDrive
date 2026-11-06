@@ -74,3 +74,68 @@ TEST_F(ContinuityServiceTest, CodecIsCanonicalBoundedAndActualAdapterRejectsFore
     auto foreign=e.now;++foreign.instance;EXPECT_FALSE(capture_service_evidence(context(99),global.session,global.session_enable,input,foreign,true).current_streams_valid);
 }
 } // namespace
+
+namespace continuity_fixture {
+class EpochContinuityServiceTest:public ContinuityServiceTest {
+protected:
+    std::unique_ptr<EpochRecorder> family;
+    std::array<std::unique_ptr<EpochRecorder>,2> original,replica;
+    void families(){
+        release(1);baseline();fresh();
+        const EpochRetention policy{{512,64,128,64},1,16};
+        EpochRecorder::initialize((root/"family").string(),9000,policy);
+        family=std::make_unique<EpochRecorder>((root/"family").string());
+        for(const auto& e:local->committed())ASSERT_TRUE(family->record(std::get<Event>(e)).durable);
+        ASSERT_EQ(family->segment(),2U); // unresolved incident prevents epoch3 checkpoint
+        std::vector<StreamState> states;
+        const auto first=*std::find_if(globals.begin(),globals.end(),[](const Event& e){return e.kind==Kind::Session && e.session.epoch==1;});
+        for(unsigned i=0;i<2;++i){
+            for(const auto* name:{"family-source-","family-replica-"})EpochRecorder::initialize((root/(name+std::to_string(i))).string(),bindings[i].stream,policy);
+            original[i]=std::make_unique<EpochRecorder>((root/("family-source-"+std::to_string(i))).string());
+            replica[i]=std::make_unique<EpochRecorder>((root/("family-replica-"+std::to_string(i))).string());
+            for(auto* store:{original[i].get(),replica[i].get()}){
+                ASSERT_TRUE(store->record(first).durable);
+                for(const auto& e:sources[i]->committed())ASSERT_TRUE(store->record(std::get<Event>(e)).durable);
+                ASSERT_GE(store->segment(),2U);
+            }
+            states.push_back({original[i].get(),replica[i].get(),original[i]->watermark(),0,{}});
+        }
+        capture.frozen_states=states;
+    }
+    ServiceRequest epoch_request(std::uint64_t n=1,ServiceOperation op=ServiceOperation::Review){auto r=request(n,op);r.revision=family->ledger().find(incident.key)->revision;return r;}
+};
+TEST_F(EpochContinuityServiceTest, ReviewsEveryRetainedOrdinalAndExplicitlyClearsSeparateFamily){
+    families();const auto base=family->watermark();const auto fault=encode(incident);
+    ContinuityService service(*family,bindings,permit(),capture);
+    const auto request=epoch_request();const auto reviewed=call(service,request);
+    ASSERT_EQ(reviewed.status,ServiceStatus::Accepted);ASSERT_EQ(reviewed.stage,3);
+    EXPECT_EQ(call(service,request).watermark,reviewed.watermark);
+    const auto cleared=call(service,epoch_request(2,ServiceOperation::Clear));ASSERT_EQ(cleared.stage,4);
+    EXPECT_EQ(family->watermark(),base+4);EXPECT_TRUE(family->ledger().find(incident.key)->cleared);
+    for(unsigned i=0;i<2;++i)EXPECT_EQ(original[i]->watermark(),(*capture.frozen_states)[i].acknowledged);
+    family.reset();family=std::make_unique<EpochRecorder>((root/"family").string());
+    ASSERT_TRUE(family->ledger().complete());EXPECT_TRUE(family->ledger().find(incident.key)->cleared);
+    EXPECT_EQ(family->ledger().find(incident.key)->count,1U);
+    bool retained=false;for(std::uint64_t i=1;i<=family->watermark();++i)if(encode(family->committed(i))==fault)retained=true;
+    EXPECT_TRUE(retained);
+    release(4);for(const auto& e:globals)if(e.session.epoch==4){ASSERT_TRUE(family->record(e).durable);}
+    ASSERT_EQ(family->segment(),3U);
+    // Producer reuse is forbidden even after its service transactions leave
+    // the active segment's Ledger event window.
+    EXPECT_THROW(ContinuityService(*family,bindings,permit(),capture),std::invalid_argument);
+}
+TEST_F(EpochContinuityServiceTest, MissingCumulativeAckCannotApprove){
+    families();--capture.frozen_states->at(0).acknowledged;const auto base=family->watermark();
+    ContinuityService service(*family,bindings,permit(),capture);
+    const auto reply=call(service,epoch_request());EXPECT_EQ(reply.status,ServiceStatus::Inspection);EXPECT_EQ(reply.blocked,ReviewBlock::Pending);EXPECT_EQ(family->watermark(),base);
+}
+TEST_F(EpochContinuityServiceTest, IncompleteFamilyCannotApprove){
+    families();original[0]->recording_gap();const auto base=family->watermark();
+    ContinuityService service(*family,bindings,permit(),capture);
+    const auto reply=call(service,epoch_request());EXPECT_EQ(reply.status,ServiceStatus::Inspection);EXPECT_EQ(reply.blocked,ReviewBlock::Storage);EXPECT_EQ(family->watermark(),base);
+}
+TEST_F(EpochContinuityServiceTest, MissingRetainedSegmentFailsClosed){
+    families();original[0].reset();std::filesystem::remove_all(root/"family-source-0/00000001");
+    EXPECT_THROW(EpochRecorder((root/"family-source-0").string()),std::exception);
+}
+} // namespace continuity_fixture

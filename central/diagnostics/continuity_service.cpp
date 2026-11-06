@@ -40,10 +40,15 @@ ServiceReply decode_service_reply(const std::vector<std::uint8_t>& b){
     if(get(b,p,1) || r.status>ServiceStatus::Transport || r.stage>4 || r.blocked>ReviewBlock::Storage)throw std::invalid_argument("local service reply fields");
     return r;
 }
-ContinuityService::ContinuityService(Recorder& w,std::vector<StreamBinding> manifest,ServicePermit permit,ContinuityCapture& capture):writer_(w),inspector_(permit.actor,std::move(manifest)),permit_(permit),capture_(capture){
+bool ServiceWriter::producer_used(std::uint64_t run,std::uint64_t producer) const {
+    const auto matches=[&](const auto& e){return e.id.run==run && e.id.producer==producer;};
+    if(epochs_){for(std::uint64_t i=1;i<=epochs_->watermark();++i)if(std::visit(matches,epochs_->committed(i)))return true;return false;}
+    return std::any_of(recorder_->ledger().events().begin(),recorder_->ledger().events().end(),matches);
+}
+ContinuityService::ContinuityService(ServiceWriter w,std::vector<StreamBinding> manifest,ServicePermit permit,ContinuityCapture& capture):writer_(w),inspector_(permit.actor,std::move(manifest)),permit_(permit),capture_(capture){
     if(permit.pid<=0 || !permit.actor.run || !permit.actor.producer || permit.session.run!=permit.actor.run || !permit.session.epoch || permit.incident.run!=permit.actor.run || !permit.incident.producer || !permit.incident.sequence ||
        std::all_of(permit.capability.begin(),permit.capability.end(),[](auto b){return b==0;}) ||
-       std::any_of(w.ledger().events().begin(),w.ledger().events().end(),[&](const Event& e){return e.id.run==permit.actor.run && e.id.producer==permit.actor.producer;}))throw std::invalid_argument("local service permit / fresh producer");
+       w.producer_used(permit.actor.run,permit.actor.producer))throw std::invalid_argument("local service permit / fresh producer");
     replies_.reserve(request_budget);
 }
 ServiceReply ContinuityService::serve(int fd){

@@ -489,8 +489,8 @@ def main():
         if not a.diagnostic_service or not 1<=a.signal_write_delay_ms<=1000:p.error('signal delay requires terminal service and 1..1000ms')
         os.environ['STRATADRIVE_SIGNAL_WRITE_DELAY_MS']=str(a.signal_write_delay_ms)
     if a.diagnostic_epochs:
-        if not a.diagnostics or a.diagnostic_service or a.diagnostic_restart or a.diagnostic_context_delay_ms:
-            p.error('diagnostic-epochs requires diagnostics without service/writer restart or context delay')
+        if not a.diagnostics or a.diagnostic_restart or a.diagnostic_context_delay_ms:
+            p.error('diagnostic-epochs requires diagnostics without writer restart or context delay')
         os.environ['STRATADRIVE_DIAGNOSTIC_EPOCHS']='1'
     if a.diagnostics:
         if not a.three or any(c not in ('normal','command-loss','restart-live','central-rejoin') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss/restart-live')

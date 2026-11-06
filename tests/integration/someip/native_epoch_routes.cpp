@@ -128,7 +128,9 @@ void NativeDiagnosticRoutes::work_epochs() {
                     ++events;if(r.result==d::Result::Duplicate)++duplicates;
                     const bool drop_candidate=central_restart_?
                         generation_>1 && data.event.kind==d::Kind::Session && data.event.session.epoch==2:data.event.kind==d::Kind::Fault;
-                    if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !omitted_ack && drop_candidate){omitted_ack=true;note("omit-ack",data);}
+                    const auto* service_fault=std::getenv("STRATADRIVE_SERVICE_FAULT");
+                    if(service_fault && std::string(service_fault)=="ack-loss" && i==0 && data.event.session.epoch==3)note("service-omit-ack",data);
+                    else if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !omitted_ack && drop_candidate){omitted_ack=true;note("omit-ack",data);}
                     else if(!source_channels_[i]->send(*r.ack))note("ack-unavailable",data);
                 }
                 require(collector->healthy(),"epoch merged recording incomplete");
@@ -172,6 +174,16 @@ void NativeDiagnosticRoutes::work_epochs() {
             if(complete && !consumed && !prefix_marked){std::ofstream(folder_/(tag_+".prefix-ready"))<<global->session.epoch;prefix_marked=true;}
             if(deadline && complete && !consumed){passed_=true;break;}
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")) {
+            require(global.has_value(),"service freeze global context");
+            std::ofstream freeze(folder_/(tag_+(passed_?".freeze.csv":".drain-failed.csv")));
+            freeze<<"ns,epoch,stream,producer,committed,acknowledged,pending,dropped,first_lost,identity_error\n";
+            for(unsigned i=0;i<9;++i)if(outboxes[i]){const auto h=sources_[i]->queue.health();
+                freeze<<wall()<<','<<global->session.epoch<<','<<8200+i<<','<<sources_[i]->producer<<','<<stores[i]->watermark()<<','<<outboxes[i]->acknowledged()<<','<<outboxes[i]->pending()<<','<<h.dropped<<','<<h.first_lost_sequence<<','<<h.identity_error<<'\n';
+            }
+            for(unsigned z=0;z<2;++z)if(context_out[z])freeze<<wall()<<','<<global->session.epoch<<','<<8101+z<<",0,"<<contexts[z]->watermark()<<','<<context_out[z]->acknowledged()<<",0,0,0,0\n";
+            freeze.flush();require(freeze.good(),"service freeze report");
         }
         require(passed_,"epoch diagnostic drain timeout");
         std::ofstream receipts(folder_/(tag_+".receipts.csv"));receipts<<"stream,entries,acknowledged,segments\n";

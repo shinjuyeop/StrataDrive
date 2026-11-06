@@ -33,6 +33,7 @@ void NativeDiagnosticRoutes::bootstrap(const fs::path& folder) {
     if(std::getenv("STRATADRIVE_DIAGNOSTIC_EPOCHS")) {
         const auto init=[](const fs::path& path,std::uint64_t id){d::EpochRecorder::initialize(path.string(),id,{{512,64,128,64},1,64});};
         init(home(folder,Ecu::Central)/"merged",8000);
+        if(std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE"))init(home(folder,Ecu::Central)/"service-case",8900);
         init(home(folder,Ecu::Central)/"central-source",8300);init(home(folder,Ecu::Central)/"central-replica",8300);
         for(unsigned z=0;z<2;++z) {
             init(home(folder,Ecu::Central)/("context-"+std::to_string(z)),8101+z);
@@ -70,7 +71,7 @@ void NativeDiagnosticRoutes::bootstrap(const fs::path& folder) {
 NativeDiagnosticRoutes::NativeDiagnosticRoutes(Ecu ecu,const fs::path& folder,const std::string& tag):ecu_(ecu),folder_(home(folder,ecu)),tag_(tag) {
     epochs_=std::getenv("STRATADRIVE_DIAGNOSTIC_EPOCHS");
     central_restart_=std::getenv("STRATADRIVE_DIAGNOSTIC_CENTRAL_RESTART");
-    require(!epochs_ || (!std::getenv("STRATADRIVE_DIAGNOSTIC_RESTART") && !std::getenv("STRATADRIVE_DIAGNOSTIC_SERVICE")),"epoch diagnostic profile scope");
+    require(!epochs_ || !std::getenv("STRATADRIVE_DIAGNOSTIC_RESTART"),"epoch diagnostic profile scope");
     if(std::getenv("STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART")) {
         slots_=central_restart_ || epochs_?9:18;
         if(ecu!=Ecu::Central || central_restart_) {boot_ns_=wall();lifecycle_=std::make_unique<d::ProducerLifecycle>((folder_/"producer-lifecycle").string(),manifest(9100+static_cast<unsigned>(ecu)),boot_ns_);generation_=lifecycle_->generation();require(generation_<=2,"native producer fixture supports two incarnations");}

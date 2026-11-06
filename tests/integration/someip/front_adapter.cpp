@@ -707,6 +707,8 @@ int main(int argc,char** argv) {
                             if(service_epoch.valid() && service_epoch.wait_for(std::chrono::seconds(0))==std::future_status::ready){
                                 const auto fresh_epoch=service_epoch.get();owners->event("epoch-store-return",7,fresh_epoch);check(fresh_epoch==3,"service explicit epoch3");
                                 net.begin_quiescent_transition();iteration.finish();retired_service_owner=std::move(owners);
+                                // No further capture/tick is permitted on the retired owner.
+                                if(diagnostic_routes)diagnostic_routes->retired_central(retired_service_owner->epoch);
                                 owners=std::make_unique<Owners>(signals,Ecu::Central,net,folder,tag+"-service",diagnostic_routes.get());
                                 net.end_quiescent_transition();owners->event("ingress-transition-end",7,fresh_epoch);owners->begin(fresh_epoch);service_startup_requested=false;
                             }
