@@ -5,6 +5,7 @@
 #include "drive_frame_codec.hpp"
 
 #include <variant>
+#include <optional>
 
 namespace stratadrive::central {
 // Historical successful Central allocation, not actuator Actual or permission.
@@ -29,8 +30,14 @@ struct VehicleRequest {
 // Trusted in-process provenance of a computed request. It is carried to remote
 // owners by CommandContext.oldest_input_time_ns / expires_at_ns, not a new wire
 // field. Request generation never refreshes this original acquisition.
+struct PowerInputDependency {
+    std::uint64_t source_time_ns{0}, expires_at_ns{0};
+};
 struct VehicleInputDependency {
     std::uint64_t source_time_ns{0}, expires_at_ns{0};
+    // Optional original BMS physical dependency: separate from the unchanged
+    // 30ms speed/route acquisition gate; BMS already has a 70ms input contract.
+    std::optional<PowerInputDependency> power{};
 };
 struct DerivedVehicleRequest {
     VehicleRequest request;

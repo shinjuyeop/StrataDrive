@@ -8,6 +8,7 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import secrets
@@ -48,7 +49,7 @@ def main():
     p.add_argument("--scenario", type=Path)
     p.add_argument("--route-profile", type=Path)
     p.add_argument("--propulsion-aware", action="store_true")
-    p.add_argument("--route-startup-seconds",type=int,choices=(180,600),default=180)
+    p.add_argument("--route-startup-seconds","--startup-seconds",dest="route_startup_seconds",type=int,choices=(180,600),default=180)
     p.add_argument("--cameras", action="store_true")
     p.add_argument("--record-video", action="store_true", help="save960x540 chase RGB frames for the fixed STOP30 nominal camera profile")
     p.add_argument("--live-view", action="store_true", help="show STOP30 chase camera in a local Tk window; requires DISPLAY and SDK tkinter")
@@ -69,7 +70,15 @@ def main():
     p.add_argument("--speed-terminal", choices=("none","normal-stop","input-loss","stop-protection"), default="none")
     p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
     p.add_argument('--sampled-actual',action='store_true',help='explicit diagnostic simulation10ms Actual sample/hold; current command authority and original expiries')
+    p.add_argument('--supervised-speed',help='opt-in state supervisor/governor, fixed road load minimum:maximum in N')
     a = p.parse_args()
+    if a.supervised_speed:
+        try:
+            bounds=tuple(map(float,a.supervised_speed.split(':')))
+            if len(bounds)!=2 or not all(map(math.isfinite,bounds)) or bounds[0]>bounds[1]:raise ValueError()
+        except ValueError:p.error('supervised-speed requires finite ordered minimum:maximum newtons')
+        if not (a.speed_loop and a.simulation_continuous and a.solver_work and a.speed_terminal in ('none','input-loss')):
+            p.error('supervised-speed currently requires simulation speed loop, nominal or input-loss')
     if a.sampled_actual and not (a.diagnostic_fault is not None and a.solver_work and a.native_actual and not a.wall_native):
         p.error('sampled-actual requires functional diagnostic solver work')
     if (a.record_video or a.live_view) and not (a.cameras and a.native_actual and not a.wall_native and a.native_fault=="none"):
@@ -88,7 +97,7 @@ def main():
         except ValueError as e:p.error(str(e))
     if a.route_profile and not (a.simulation_continuous and not a.speed_loop and not a.scenario and a.ticks==route_definition["ticks"] and a.native_fault in ("none","snapshot","work-missing","pose-stale")):
         p.error("route requires its frozen tick count and simulation profile")
-    if a.route_startup_seconds!=180 and not a.route_profile:p.error("extended startup is route-only")
+    if a.route_startup_seconds!=180 and not (a.route_profile or a.speed_loop):p.error("extended startup requires a route or speed simulation profile")
     if a.native_fault=="pose-stale" and not a.route_profile:p.error("pose fault requires route")
     if a.speed_loop and not (a.simulation_continuous and not a.scenario and a.ticks==4000 and a.native_fault in ("none","snapshot","work-missing")):
         p.error("speed loop requires 4000-tick functional simulation profile without fixed requests")
@@ -350,6 +359,7 @@ sys.exit(0 if report['status']=='READY_READ_ONLY' else 1)
                 cmd += ["--compact-work"]
         if a.simulation_continuous:cmd += ["--simulation-continuous"]
         if a.speed_loop:cmd += ["--speed-loop"]
+        if a.supervised_speed:cmd += ["--supervised-speed",a.supervised_speed]
         if a.speed_terminal!="none":cmd += ["--speed-terminal",a.speed_terminal]
         if a.diagnostic_fault is not None:cmd += ['--diagnostic-fault',a.diagnostic_fault]
         if a.sampled_actual:cmd += ['--sampled-actual']

@@ -67,7 +67,7 @@ stratadrive_unit_test(speed_pi_test
     LIBRARIES speed_pi)
 stratadrive_unit_test(speed_supervisor_test
     SOURCES tests/unit/speed_supervisor_test.cpp
-    LIBRARIES speed_supervisor control_allocation)
+    LIBRARIES speed_supervisor control_allocation available_force_estimator)
 stratadrive_unit_test(speed_request_test
     SOURCES tests/unit/speed_request_test.cpp
     LIBRARIES control_diagnostics)

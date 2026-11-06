@@ -87,29 +87,36 @@ bool SupervisedSpeedRequest::start_session(std::uint32_t epoch,std::uint64_t clo
     if(!s.start_session(epoch,clock,enable) || !g.start_session(epoch,enable) || !c.start_session(epoch,enable)) return false;
     // Supervisor has a const configuration; reconstructing is unnecessary.
     supervisor_.start_session(epoch,clock,enable);governor_.start_session(epoch,enable);controller_.start_session(epoch,enable);
-    decision_={};reference_.reset();last_dependency_.reset();latched_=false;return true;
+    decision_={};reference_.reset();last_dependency_.reset();latched_=false;
+    epoch_=epoch;clock_=clock;enable_=enable;fault_.reset();return true;
 }
 std::optional<DerivedVehicleRequest> SupervisedSpeedRequest::step(std::uint64_t now,const std::optional<PlannerProposal>& p,
-    const ClassicalSpeedProposal& fallback,const std::optional<can::DriveMessage>& current,const AvailableForce& force,
+    const ClassicalSpeedProposal& fallback,const std::optional<can::DriveMessage>& current,const std::optional<AvailableForce>& force,
     bool permission,std::optional<PropulsionSelection> selection) noexcept {
     if(latched_) return std::nullopt;
     decision_=supervisor_.select(now,p,fallback,permission);reference_.reset();
     const auto fail=[&](ProposalReason reason)->std::optional<DerivedVehicleRequest>{
-        decision_.source=ProposalSource::Protection;decision_.reason=reason;decision_.target_mps.reset();latched_=true;return std::nullopt;
+        decision_.source=ProposalSource::Protection;decision_.reason=reason;decision_.target_mps.reset();latched_=true;
+        fault_=SupervisedSpeedFault{epoch_,clock_,enable_,now,reason,governor_.fault()};return std::nullopt;
     };
     if(!decision_.target_mps) return fail(decision_.reason);
+    if(!force) return fail(ProposalReason::CapacityInput);
     if(!current || !current->wheel_speed) return fail(ProposalReason::Reference);
     const auto& wheel=*current->wheel_speed;
-    reference_=governor_.step(now,*decision_.target_mps,{current->epoch,wheel.source_time_ns,wheel.source_time_ns,wheel.value_rad_s*radius_},force);
+    reference_=governor_.step(now,*decision_.target_mps,{current->epoch,wheel.source_time_ns,wheel.source_time_ns,wheel.value_rad_s*radius_},*force);
     if(!reference_) return fail(ProposalReason::Reference);
     auto request=controller_.step_derived(now,reference_->target_mps,current,permission,selection);
     if(!request) return fail(ProposalReason::Controller);
-    request->input.source_time_ns=std::min({request->input.source_time_ns,reference_->oldest_source_ns,decision_.oldest_source_ns});
+    if(force->profile==ForceProfile::ReceiverPowerLimits) {
+        request->input.source_time_ns=std::min(request->input.source_time_ns,decision_.oldest_source_ns);
+        request->input.power=PowerInputDependency{force->source_ns,force->expires_ns};
+    } else request->input.source_time_ns=std::min({request->input.source_time_ns,reference_->oldest_source_ns,decision_.oldest_source_ns});
     request->input.expires_at_ns=std::min({request->input.expires_at_ns,reference_->expires_ns,decision_.expires_ns});
     request->request.expires_at_ns=std::min(request->request.expires_at_ns,request->input.expires_at_ns);
-    if(request->request.expires_at_ns<=now || (last_dependency_ && request->input.source_time_ns<=*last_dependency_))
+    const auto oldest=std::min(request->input.source_time_ns,reference_->oldest_source_ns);
+    if(request->request.expires_at_ns<=now || (last_dependency_ && oldest<=*last_dependency_))
         return fail(ProposalReason::Reference);
-    last_dependency_=request->input.source_time_ns;
+    last_dependency_=oldest;
     return request;
 }
 } // namespace stratadrive::central

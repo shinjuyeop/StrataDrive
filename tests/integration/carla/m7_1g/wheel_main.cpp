@@ -84,7 +84,7 @@ int main(int argc,char** argv) {
             }
             return recorder.ledger().complete()?0:1;
         }
-        if((argc<6 || argc>14 || argc%2!=0) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
+        if((argc<6 || argc>16 || argc%2!=0) || (std::string(argv[1])!="--wheel-shadow" && std::string(argv[1])!="--external-wheel-plant" && std::string(argv[1])!="--native-actual-export" && std::string(argv[1])!="--native-solver-work"))
             throw std::runtime_error("requires --wheel-shadow or --external-wheel-plant run application plant actor; no general driving acceptance");
         const auto run=std::stoull(argv[2]),app=std::stoull(argv[3]),plant=std::stoull(argv[4]),actor=std::stoull(argv[5]);
         if(!actor || actor>UINT32_MAX || app>UINT32_MAX || plant>UINT32_MAX)throw std::runtime_error("identity range");
@@ -98,13 +98,13 @@ int main(int argc,char** argv) {
             if(used!=value.size())throw std::runtime_error("invalid simulation horizon");
             horizon_set=true;
         }
-        if(horizon_set && argc>14)throw std::runtime_error("simulation horizon option bound");
+        if(horizon_set && argc>16)throw std::runtime_error("simulation horizon option bound");
         FunctionalRig rig({run,static_cast<std::uint32_t>(app),static_cast<std::uint32_t>(plant)},static_cast<std::uint32_t>(actor),
             solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting,horizon);
         bool scenario_loaded=false,sampled_actual=false,diagnostic_selected=false;
         for(int arg=6;arg<argc;arg+=2) {
             if(std::string(argv[arg])=="--sim-horizon-ms")continue;
-            if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route" && std::string(argv[arg])!="--diagnostic-fault" && std::string(argv[arg])!="--admission-profile")throw std::runtime_error("simulation horizon excludes wall policy");
+            if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route" && std::string(argv[arg])!="--diagnostic-fault" && std::string(argv[arg])!="--admission-profile" && std::string(argv[arg])!="--supervised-speed")throw std::runtime_error("simulation horizon excludes wall policy");
             if(!solver_work)throw std::runtime_error("options require solver-work mode");
             if(std::string(argv[arg])=="--admission-profile") {
                 if(sampled_actual || !horizon_set || std::string(argv[arg+1])!="sampled-actual-v1")throw std::runtime_error("sampled Actual profile");
@@ -132,6 +132,16 @@ int main(int argc,char** argv) {
                     points.push_back(p);
                 }
                 rig.route_profile(std::move(points),profile,antiwindup);continue;
+            }
+            if(std::string(argv[arg])=="--supervised-speed") {
+                if(!horizon_set)throw std::runtime_error("supervision requires simulation horizon");
+                // Explicit fixed load calibration in newtons, minimum:maximum.
+                std::string value=argv[arg+1];const auto colon=value.find(':');
+                if(colon==std::string::npos)throw std::runtime_error("road load requires min:max newtons");
+                std::size_t a=0,b=0;
+                const double low=std::stod(value.substr(0,colon),&a),high=std::stod(value.substr(colon+1),&b);
+                if(a!=colon || b!=value.size()-colon-1)throw std::runtime_error("road load bounds syntax");
+                rig.supervise_speed({low,high});continue;
             }
             if(std::string(argv[arg])=="--speed-profile") {
                 const std::string v=argv[arg+1];
@@ -306,6 +316,20 @@ int main(int argc,char** argv) {
                 std::cout<<",\"speed_selection\":";selection(r.speed_selection);
                 std::cout<<",\"saturation_used\":"<<(r.saturation_used?"true":"false");
                 std::cout<<",\"braking_saturation_used\":"<<(r.braking_saturation_used?"true":"false");
+            }
+            if(r.supervised_speed) {
+                const auto& s=*r.supervised_speed;
+                std::cout<<",\"supervised_speed\":{\"source\":"<<static_cast<unsigned>(s.decision.source)
+                    <<",\"reason\":"<<static_cast<unsigned>(s.decision.reason)<<",\"force\":";
+                if(s.force) {const auto& f=*s.force;std::cout<<"{\"source_ns\":"<<f.source_ns<<",\"expiry_ns\":"<<f.expires_ns
+                    <<",\"propulsion_n\":"<<f.propulsion_n<<",\"braking_n\":"<<f.braking_n
+                    <<",\"road_load_min_n\":"<<f.road_load_min_n<<",\"road_load_max_n\":"<<f.road_load_max_n<<'}';}
+                else std::cout<<"null";
+                std::cout<<",\"reference\":";
+                if(s.reference) {const auto& f=*s.reference;std::cout<<"{\"target_mps\":"<<f.target_mps<<",\"minimum_acceleration_mps2\":"<<f.minimum_acceleration_mps2
+                    <<",\"maximum_acceleration_mps2\":"<<f.maximum_acceleration_mps2<<",\"source_ns\":"<<f.oldest_source_ns<<",\"expiry_ns\":"<<f.expires_ns<<'}';}
+                else std::cout<<"null";
+                std::cout<<",\"fault_ns\":";if(s.fault)std::cout<<s.fault->detected_ns;else std::cout<<"null";std::cout<<'}';
             }
             if(r.speed_control) {
                 const auto& s=*r.speed_control;

@@ -1,4 +1,4 @@
-# 설계 결정 기록 · ADR-0001–0105
+# 설계 결정 기록 · ADR-0001–0108
 
 이 문서는 당시 결정과 검토를 보존한 기록이다. 현재 상태는 [프로젝트 상태](../project-status.md), 현재 계약은 [문서 안내](../README.md)를 따른다. 과거의 “다음 작업/미구현”은 현재 지시가 아니다.
 
@@ -109,6 +109,7 @@
 - [ADR-0105: 방향별 배분 피드백과 영속적인 journal 쓰기 의도](#adr-0105)
 - [ADR-0106: 세션 경계의 진단 상태 이관과 활성 창 회수](#adr-0106)
 - [ADR-0107: 가용력 목표와 상태 기반 M10 Host 속도 제안](#adr-0107)
+- [ADR-0108: Native 속도 감독의 원천별 유효기간과 보호 연결](#adr-0108)
 
 <a id="adr-0001"></a>
 
@@ -6035,3 +6036,22 @@ M10 첫 Host profile은 상태 `[4,6]`→속도 `[16]`·risk·valid다. Trusted 
 route ceiling을 공급하고 모델 오류에는 fresh classical fallback, 유효한 위험 또는 fallback
 불가에는 보호를 요구한다. 이미지 인지·실제 학습 모델·Target/CARLA 통합을 완료로 세지 않는다.
 [계약](../interfaces/supervised-speed-proposal.md)과 [검증](../test-plan/evidence/remaining-improvements/README.md)을 따른다.
+
+<a id="adr-0108"></a>
+
+## ADR-0108: Native 속도 감독의 원천별 유효기간과 보호 연결
+
+2026-11-06. 선택형 CARLA native speed 경로가 실제 receiver BMS limits와 wheel 취득으로 가용력을
+계산하고 Supervisor→governor→PI→기존 coordinator/allocator를 연결한다. 학습 모델이 없을 때는
+fresh classical fallback이다. 고정 road-load bounds를 실행 인자로 명시하고 온라인 추정으로 부르지 않는다.
+
+초기 연결 시험에서 BMS 물리 취득을 단일30ms snapshot으로 취급해 정상 기동을 차단했다.
+새 ReceiverPowerLimits profile은 기존 speed 현재30ms/derived60ms, BMS message50ms/physical70ms를
+구분한다. 계산 완료 시각으로 취득을 바꾸지 않고 optional PowerInputDependency로 원본을 보존한다.
+기존 speed gate와 request gate는 유지하며 최종 child oldest/expiry에 모든 dependency를 반영한다.
+현재 actuator/zone/permission은 배분기가 매 release 재검사한다. 구동 용량 계산은 배분기와 공유하고
+제동 예약은 optional regen을 제외한다.
+
+같은 release의 실패가 실제 보호를 선택하고 첫 검출 시각의 SD-1002/monitor4와 보호·Actual·영속 DTC를
+연결한다. 입력 복구로 재출발하지 않으며 새 monitor에 기존 Speed clear 증거를 재사용하지 않는다.
+[계약](../interfaces/supervised-speed-proposal.md)과 [실행 근거](../test-plan/evidence/runtime-speed-connection/README.md)를 따른다.

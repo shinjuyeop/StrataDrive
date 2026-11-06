@@ -1,6 +1,7 @@
 #pragma once
 #include "diagnostic_publisher.hpp"
 #include "speed_request.hpp"
+#include "speed_supervisor.hpp"
 #include "vehicle_coordinator.hpp"
 
 namespace stratadrive::diagnostics {
@@ -15,6 +16,7 @@ public:
     bool start_session(std::uint32_t epoch,std::uint64_t enable_ns,bool publish_context=true) noexcept;
     void observe(const central::VehicleCoordinator&,std::uint64_t observed_ns) noexcept;
     void observe(const central::SpeedRequest&,const central::VehicleCoordinator&,std::uint64_t observed_ns) noexcept;
+    void observe(const central::SupervisedSpeedRequest&,const central::VehicleCoordinator&,std::uint64_t observed_ns) noexcept;
     void observe(const central::SpeedRequest&,std::uint64_t observed_ns) noexcept;
     void observe(const central::NormalStop&,std::uint64_t observed_ns) noexcept;
     // Trusted original local-owner selection/ACK evidence, never a Central
@@ -54,7 +56,7 @@ private:
     void stop_recovery(const central::VehicleCoordinator&,std::uint64_t) noexcept;
     void actuals(const central::NormalStopObservation&,const Event&,EventId,std::uint64_t) noexcept;
     Session session_{}; std::uint64_t enable_{0};
-    bool speed_seen_{false},coordinator_seen_{false},response_seen_{false};
+    bool speed_seen_{false},supervised_seen_{false},coordinator_seen_{false},response_seen_{false};
     std::array<bool,2> stop_seen_{},protection_seen_{}; std::array<bool,4> phase_seen_{};
     Event root_{};
     // Keep the old occurrence through INIT until its qualified recovery; the

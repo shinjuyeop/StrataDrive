@@ -85,7 +85,7 @@ Event ControlDiagnostics::base(std::uint64_t now) const noexcept {
 }
 bool ControlDiagnostics::start_session(std::uint32_t epoch,std::uint64_t enable,bool publish_context) noexcept {
     if(!epoch || epoch<=session_.epoch || (session_.epoch && enable<enable_)) return false;
-    session_={capture_context().run,epoch}; enable_=enable; speed_seen_=coordinator_seen_=response_seen_=false;
+    session_={capture_context().run,epoch}; enable_=enable; speed_seen_=supervised_seen_=coordinator_seen_=response_seen_=false;
     stop_seen_={}; phase_seen_={}; protection_seen_={}; root_={};
     if(!publish_context) return healthy();
     auto e=base(enable); e.kind=Kind::Session; return publish(e).sequence!=0 && healthy();
@@ -366,6 +366,27 @@ std::optional<ServiceEvidence> ControlDiagnostics::stationary_evidence(const cen
     if(low<enable_ || high>now || now-low>30000000 || high-low>20000000) return std::nullopt;
     return ServiceEvidence{stamp(now),stamp(enable_),stamp(input->wheel_speed->source_time_ns),stamp(input->source_time_ns),
         stamp(in.front.brake_actual->source_time_ns),input->wheel_speed->value_rad_s,*input->torque_nm,*in.front.brake_actual->pressure_pa,true,true};
+}
+void ControlDiagnostics::observe(const central::SupervisedSpeedRequest& control,const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
+    const auto& fault=control.fault_observation();
+    if(!supervised_seen_ && fault && fault->epoch==session_.epoch && fault->enable_ns==enable_ &&
+       fault->clock_instance==capture_context().clock_instance) {
+        supervised_seen_=true;
+        auto e=base(now);e.kind=Kind::Fault;e.key=key(Code::CentralControl,Component::Speed,Monitor::SupervisedSpeed,Subject::Protection);
+        // Dictionary v1: high byte ProposalReason, low byte ReferenceFault.
+        e.native_reason=(static_cast<std::uint32_t>(fault->reason)<<8)|static_cast<std::uint32_t>(fault->reference_fault);
+        e.latch=Latch::Set;e.state_after=1;
+        e.times[static_cast<std::size_t>(Time::Detected)]=stamp(fault->detected_ns,
+            fault->detected_ns>=enable_ && fault->detected_ns<=now && fault->detected_ns!=std::numeric_limits<std::uint64_t>::max());
+        if(c.last_vehicle_request()) {
+            const auto& q=*c.last_vehicle_request();
+            e.command={true,value(Component::Speed),q.sequence,q.epoch,stamp(q.source_time_ns),stamp(q.expires_at_ns)};
+        }
+        e.id=publish(e);e.occurrence={session_.run,capture_context().producer,session_.epoch,e.key.monitor,e.id.sequence};
+        if(!has_root(root_))root_=e;
+    }
+    // The original PI/allocator monitors still report their own failures.
+    observe(control.controller(),c,now);
 }
 void ControlDiagnostics::observe(const central::SpeedRequest& speed_control,const central::VehicleCoordinator& c,std::uint64_t now) noexcept {
     if(!session_.epoch) return;

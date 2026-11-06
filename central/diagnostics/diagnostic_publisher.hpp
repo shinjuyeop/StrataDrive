@@ -6,7 +6,7 @@
 namespace stratadrive::diagnostics {
 // Shared numeric dictionary; these are neither CAN IDs nor producer identities.
 enum class Component : std::uint32_t { Speed=1, Stop=2, Coordinator=3, Drive=4, Brake=5, Power=6, Front=7, Rear=8, Steering=9, Bms=10, DriveWheel=11 };
-enum class Monitor : std::uint32_t { Speed=1, Stop=2, Coordinator=3 };
+enum class Monitor : std::uint32_t { Speed=1, Stop=2, Coordinator=3, SupervisedSpeed=4 };
 enum class Subject : std::uint32_t { Wheel=1, StopCycle=2, Handoff=3, Protection=4, Torque=5, Pressure=6, Power=7 };
 struct ControlContext {
     std::uint64_t run,producer;

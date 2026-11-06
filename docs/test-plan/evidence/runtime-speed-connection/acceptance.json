@@ -1,0 +1,70 @@
+{
+  "status": "PASS_BOUNDED_NATIVE_SPEED_CONNECTION",
+  "baseline": "c9933ebc59069399c6a5cf374349a735db002ba5",
+  "tests": {
+    "debug_inventory": 1515,
+    "initial_full_pass": 1514,
+    "initial_full_fail": 1,
+    "corrected_fixture": "SupervisedPowerProvenance.SpeedGateExpiryAndDuplicateIdentityRemainStrict",
+    "final_affected_pass": 113,
+    "final_supervision_unit_pass": 20,
+    "asan_ubsan_unique_pass": 89,
+    "final_native_admission_asan_pass": 1,
+    "python_pass": 280,
+    "cli_pass": 8,
+    "clang_tidy_units": 9
+  },
+  "carla": {
+    "nominal": {
+      "status": "PASS_NATIVE_SUPERVISED_SPEED",
+      "observations": 4001,
+      "control_steps": 1960,
+      "maximum_body_speed_mps": 2.798537292480469,
+      "final_body_speed_mps": 0,
+      "fault_ns": null,
+      "events": 2,
+      "fault_roots": 0,
+      "learned_model": false,
+      "exact_native_replay": {
+        "observations": 4001,
+        "sha256": "71a61268bf6b696cf434af1e0a8c2512a5ccaf77785b9f394a2c66466a380864",
+        "binary_sha256": "03fe492f2c8e7b9c1467c8f7dd76d18a25d3ee9bcc6d161cf6a1ce2874b17d20"
+      }
+    },
+    "input-loss": {
+      "status": "PASS_NATIVE_SUPERVISED_SPEED",
+      "observations": 4001,
+      "control_steps": 750,
+      "maximum_body_speed_mps": 2.798537292480469,
+      "final_body_speed_mps": 0,
+      "fault_ns": 16411718988,
+      "events": 20,
+      "fault_roots": 1,
+      "learned_model": false,
+      "mutations_rejected": 3,
+      "exact_native_replay": {
+        "observations": 4001,
+        "sha256": "e821b77f79753dbd83876160ae8c7acda9cccf4c1dc1dece7dd78bdfb95dd229",
+        "binary_sha256": "03fe492f2c8e7b9c1467c8f7dd76d18a25d3ee9bcc6d161cf6a1ce2874b17d20"
+      }
+    }
+  },
+  "artifacts": {
+    "source_files": 30,
+    "validation_files": 112,
+    "binary_sha256": "03fe492f2c8e7b9c1467c8f7dd76d18a25d3ee9bcc6d161cf6a1ce2874b17d20"
+  },
+  "unresolved": [
+    "new monitor qualified Passed/clear",
+    "online road-load estimation and learned model",
+    "EpochRecorder transport/ACK integration and disk retention",
+    "whole ODD/wall/Target",
+    "historical M3/M4 and renderer/loading root causes"
+  ],
+  "initial_carla_startup": {
+    "status": "FAIL_BEFORE_EGO",
+    "startup_seconds": 180,
+    "forced_sigkill": true,
+    "retained_in": "validation.tar.gz"
+  }
+}

@@ -3,6 +3,7 @@
 #include "speed_pi.hpp"
 
 namespace stratadrive::central {
+enum class ForceProfile { Snapshot30ms, ReceiverPowerLimits };
 // Trusted upstream estimate, not measured actuator output or permission.
 // Positive road load opposes forward travel; negative load includes downhill
 // gravity. Bounds must include grade, drag/rolling load and estimator error.
@@ -10,6 +11,7 @@ struct AvailableForce {
     std::uint32_t epoch{0};
     std::uint64_t sequence{0}, source_ns{0}, expires_ns{0};
     double propulsion_n{0}, braking_n{0}, road_load_min_n{0}, road_load_max_n{0};
+    ForceProfile profile{ForceProfile::Snapshot30ms};
 };
 struct ReferenceConfig {
     double mass_kg{1000}, capacity_fraction{0.9};

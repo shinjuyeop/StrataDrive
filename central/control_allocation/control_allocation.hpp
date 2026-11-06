@@ -30,6 +30,9 @@ struct AllocationInputs {
     std::optional<can::BmsCurrentSample> permission;
     std::optional<can::BmsParentContext> permission_parent; // separately trusted lifecycle root
 };
+// Shared conservative DC-load envelope. Call with a validated AllocationConfig,
+// nonnegative finite wheel speed and usable discharge power. No permission.
+double propulsion_capacity_nm(const AllocationConfig&,double omega,double discharge_power_w) noexcept;
 enum class AllocationReceiveDecision {
     Accepted, Unchanged, NotInitialized, Latched, Invalid, EpochMismatch,
     Expired, SequenceRejected, MutationRejected

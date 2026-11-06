@@ -49,6 +49,13 @@ bool fresh(std::uint64_t time, std::uint64_t start, std::uint64_t now, std::uint
     return time >= start && time <= now && now-time <= age;
 }
 }  // namespace
+double propulsion_capacity_nm(const AllocationConfig& c,double omega,double discharge) noexcept {
+    const double available=std::max(0.0,discharge-c.reserve_power_w);
+    const double b=omega/c.motoring_efficiency_lower_bound,a=c.copper_loss_w_per_nm2;
+    const double electrical=available==0?0:2*available/(b+std::sqrt(b*b+4*a*available));
+    const double mechanical=omega>0?c.propulsion_mechanical_power_w/omega:c.max_propulsion_nm;
+    return std::min({electrical,mechanical,c.max_propulsion_nm});
+}
 ControlAllocation::ControlAllocation(const AllocationConfig& config) : config_(config) {
     if (!valid_config(config_)) throw std::invalid_argument("invalid control-allocation configuration");
 }
@@ -109,15 +116,27 @@ AllocationReceiveDecision ControlAllocation::receive_request(const VehicleReques
         request.source_time_ns-input->source_time_ns>30000000ULL || input->expires_at_ns<=request.source_time_ns ||
         input->expires_at_ns-input->source_time_ns>60000001ULL || request.expires_at_ns>input->expires_at_ns))
         return AllocationReceiveDecision::Invalid;
+    if(input && input->power) {
+        const auto& power=*input->power;
+        if(power.source_time_ns<enable_ns_ || power.source_time_ns>request.source_time_ns ||
+           request.source_time_ns-power.source_time_ns>config_.readiness.bms_dependency_age_ns ||
+           power.expires_at_ns<=request.source_time_ns || power.expires_at_ns-power.source_time_ns>config_.readiness.bms_dependency_age_ns+1 ||
+           input->expires_at_ns>power.expires_at_ns)return AllocationReceiveDecision::Invalid;
+    }
+    if(request_input_ && request_input_->power && (!input || !input->power) && request_ && request.sequence!=request_->sequence)
+        return AllocationReceiveDecision::Invalid;
     if (request_ && request.sequence == request_->sequence) {
         const bool same_input=bool(input)==bool(request_input_) && (!input ||
-            (input->source_time_ns==request_input_->source_time_ns && input->expires_at_ns==request_input_->expires_at_ns));
+            (input->source_time_ns==request_input_->source_time_ns && input->expires_at_ns==request_input_->expires_at_ns &&
+             bool(input->power)==bool(request_input_->power) && (!input->power ||
+                (input->power->source_time_ns==request_input_->power->source_time_ns && input->power->expires_at_ns==request_input_->power->expires_at_ns))));
         return same_vehicle_request(request, *request_) && same_input ? AllocationReceiveDecision::Unchanged : AllocationReceiveDecision::MutationRejected;
     }
     const auto previous = request_ ? std::optional<std::uint32_t>{request_->sequence} : std::nullopt;
     if (!can::actuator_sequence_progresses(previous, request.sequence) ||
         (request_ && request.source_time_ns <= request_->source_time_ns) ||
-        (input && request_input_ && input->source_time_ns<=request_input_->source_time_ns)) return AllocationReceiveDecision::SequenceRejected;
+        (input && request_input_ && (input->source_time_ns<=request_input_->source_time_ns ||
+            (input->power && request_input_->power && input->power->source_time_ns<=request_input_->power->source_time_ns)))) return AllocationReceiveDecision::SequenceRejected;
     request_ = request; request_input_=input; return AllocationReceiveDecision::Accepted;
 }
 void ControlAllocation::mark_continuity_lost(std::uint64_t now) { if (advance(now)) fail(AllocationFault::ContinuityLost); }
@@ -181,6 +200,7 @@ std::optional<AllocatedCommands> ControlAllocation::tick(const AllocationInputs&
     if(request_input_) {
         oldest=std::min(oldest,request_input_->source_time_ns);
         expiry=std::min(expiry,request_input_->expires_at_ns);
+        if(request_input_->power)oldest=std::min(oldest,request_input_->power->source_time_ns);
     }
     const auto bound = [&](std::uint64_t source, std::uint64_t age) {
         expiry = std::min(expiry, add(source, age+1)); oldest = std::min(oldest, source);
@@ -262,11 +282,7 @@ std::optional<AllocatedCommands> ControlAllocation::tick(const AllocationInputs&
         episode_regen_nm_ = 0;
         decision_.propulsion_waiting_release = actual_friction > config_.release_friction_nm || *drive.torque_nm < -config_.release_motor_nm;
         const auto wanted = std::max(0.0, request_->acceleration_mps2)*mass_radius;
-        const auto available = std::max(0.0, *limits.discharge_power_w-config_.reserve_power_w);
-        const auto b = omega/config_.motoring_efficiency_lower_bound, a = config_.copper_loss_w_per_nm2;
-        const auto electrical = available == 0 ? 0 : 2*available/(b+std::sqrt(b*b+4*a*available));
-        const auto mechanical = omega > 0 ? config_.propulsion_mechanical_power_w/omega : config_.max_propulsion_nm;
-        if (!decision_.propulsion_waiting_release) motor_target = std::min({wanted, electrical, mechanical, config_.max_propulsion_nm});
+        if (!decision_.propulsion_waiting_release) motor_target = std::min(wanted,propulsion_capacity_nm(config_,omega,*limits.discharge_power_w));
         decision_.propulsion_deficit_nm = std::max(0.0, wanted-motor_target);
     }
     const bool monitor_braking = braking > 0 || actual_friction > config_.release_friction_nm || actual_regen > config_.release_motor_nm;

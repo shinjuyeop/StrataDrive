@@ -46,7 +46,15 @@ def main():
     p.add_argument("--speed-terminal",choices=("none","normal-stop","input-loss","stop-protection"),default="none")
     p.add_argument('--diagnostic-fault',choices=('none','input-loss','stop-ack-loss','front-command-loss','braking-timeout','front-link-failure'))
     p.add_argument('--sampled-actual',action='store_true')
+    p.add_argument('--supervised-speed',help='opt-in state supervisor/governor, fixed road load minimum:maximum in N')
     a = p.parse_args()
+    if a.supervised_speed:
+        try:
+            bounds=tuple(map(float,a.supervised_speed.split(':')))
+            if len(bounds)!=2 or not all(map(math.isfinite,bounds)) or bounds[0]>bounds[1]:raise ValueError()
+        except ValueError:p.error('supervised-speed requires finite ordered minimum:maximum newtons')
+        if not (a.speed_loop and a.simulation_continuous and a.solver_work and a.speed_terminal in ('none','input-loss')):
+            p.error('supervised-speed currently requires simulation speed loop, nominal or input-loss')
     require(not a.sampled_actual or (a.diagnostic_fault is not None and a.solver_work),'sampled Actual diagnostic work scope')
     require(not (a.record_video or a.live_view) or (a.cameras and a.fault=='none'), 'video requires nominal cameras')
     require(a.speed_terminal=="none" or (a.speed_loop and a.fault=="none"),"terminal speed scope")
@@ -79,6 +87,11 @@ def main():
     report = dict(status='FAIL', normal_driving_enabled=False, interval_work_valid=False,
                   mode='native eight-role functional Actual connection', fault=a.fault, cases=[])
     report['execution_profile']=(route['schema'] if stop30 or route['schema'].startswith('m8-reference-') else 'm8-route-v1') if route else ('m8-speed-v1' if a.speed_loop else 'm7-simulation-time-v1')
+    if a.supervised_speed:
+        report['base_execution_profile']=report['execution_profile']
+        report['execution_profile']='m10-native-supervised-speed-v1'
+        report['road_load_bounds_n']=bounds
+        report['learned_model']='NOT_RUN_CLASSICAL_FALLBACK'
     if route:
         report['route_profile']=dict(definition=route,sha256=hashlib.sha256(a.route_profile.read_bytes()).hexdigest())
         (a.output/'frozen-route.json').write_bytes(a.route_profile.read_bytes())
@@ -185,13 +198,14 @@ def main():
         case('initial_clock', snapshot.timestamp.elapsed_seconds == end and
              math.floor(end*1e9+.5) == int(binding['logical_begin_ns']))
         stderr = (a.output/'native.stderr').open('w')
-        if a.diagnostic_fault is not None:
+        if a.diagnostic_fault is not None or a.supervised_speed:
             collector_stderr=(a.output/'diagnostic-collector.stderr').open('w')
             collector=subprocess.Popen([str(a.native.resolve()),'--record-diagnostics',str(a.output/'diagnostic-store')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=collector_stderr,text=True)
         process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else [])+
                                    (['--sim-horizon-ms',str(route['ticks']*10 if route else 60000)] if a.simulation_continuous else [])+
                                    (['--speed-profile',{'none':'v1','normal-stop':'v1-stop','input-loss':'v1-input-loss','stop-protection':'v1-stop-protection'}[a.speed_terminal]] if a.speed_loop else [])+
                                    (['--route',str(native_route)] if route else [])+
+                                   (['--supervised-speed',a.supervised_speed] if a.supervised_speed else [])+
                                    (['--diagnostic-fault',a.diagnostic_fault] if a.diagnostic_fault is not None else [])+
                                    (['--admission-profile','sampled-actual-v1'] if a.sampled_actual else [])+
                                    (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else [])+
@@ -482,7 +496,7 @@ def main():
                 elif a.speed_terminal=='stop-protection':
                     case('stop_hold_protection',native['stop_handoff_ns']>terminal['trigger_ns']>0 and terminal['detection_ns']==native['stop_handoff_ns']+100000000 and native['admission']['protection'] and not terminal['power_off'])
                 else:
-                    case('speed_input_loss_protection',terminal['detection_ns']==terminal['trigger_ns']>0 and native['admission']['protection'] and terminal['speed_fault']==3)
+                    case('speed_input_loss_protection',terminal['detection_ns']==terminal['trigger_ns']>0 and native['admission']['protection'] and (native['supervised_speed']['reason']==8 if a.supervised_speed else terminal['speed_fault']==3))
                 report['terminal_response']=terminal
             report['status'] = 'PASS_FUNCTIONAL_NATIVE_SOLVER_WORK' if a.solver_work else 'PASS_FUNCTIONAL_NATIVE_ACTUAL'
         elif a.fault=='protection':

@@ -32,7 +32,7 @@ Compute 비교는 같은 scenario/seed·요구·sensor/model/precision·SW revis
 | TBD-08 | DTC code·debounce·persistence·clear / diagnostics | [계약](interfaces/diagnostics.md)과 실제 monitor·전달·유한 부하·simulation10ms 기능 [M9 기술 검증](test-plan/evidence/m9_followup/README.md) 완료; 학습자 최종 수용·wall/Target·무제한 보존 별도 |
 | TBD-09 | Jetson board/RAM·platform stack·모델/workload·측정 / compute·AI | M10 model fixture·M12 독립 보드 비교 전 |
 | TBD-10 | perception/planner shape·history·risk·fallback / AI·safety | [Host 상태 기반 속도 제안 계약](interfaces/supervised-speed-proposal.md)·Supervisor 구현. 이미지 인지/학습 모델 shape·보정·실제 통합은 후속 |
-| TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. S03 v1 구동 포화 FAIL 보존; v2 startup20s/감속6s 고정. 추진 포화 feedback·관성 필요조건 검증; [제동 피드백 v3의 component/입력 재생·새 S03](test-plan/evidence/milestone-followup/README.md) 검증; 가용력 governor Host component 구현; 실제 추정 adapter·전체 ODD OPEN; M10 모델 도입 전 갱신 |
+| TBD-11 | compiler/CI·도구·license, 제어 tuning·transition·반복 / toolchain·control | Host C++17/core·C++20/SOME-IP 사용. S03 v1 구동 포화 FAIL 보존; v2 startup20s/감속6s 고정. 추진 포화 feedback·관성 필요조건 검증; [제동 피드백 v3의 component/입력 재생·새 S03](test-plan/evidence/milestone-followup/README.md) 검증; BMS 가용력 adapter·native governor/보호 연결 및 실제 CARLA 속도 두 조건 검증; 온라인 저항 추정·전체 ODD OPEN; M10 모델 도입 전 갱신 |
 | TBD-12 | 전원 sequence·INIT/permission·shutdown/복구 / vehicle management | M6 startup/RunLease/stop/HV-off 검증. 실차 LV/충전/Target 반응은 후속 |
 | TBD-13 | battery/thermal·limits·efficiency·energy 오차 / 모델 | M6 계수·M7 단일 EV work 정산 사용. Chemistry/OEM 적합성은 미결정 |
 | TBD-14 | BMS/EV wire·원천/dependency·hop budget / interface·timing | Host P05·receiver·원천 전달 검증. 다른 kernel/Target clock은 후속 |
@@ -51,7 +51,7 @@ M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](proj
 기존 검출·보호·Actual·진단 계약은 다음 단계의 회귀 기준으로 유지한다.
 
 - 상태 기반 Host 속도 제안의 `[4,6]` 입력·`[16]` 출력·history/risk/fallback은 [첫 계약](interfaces/supervised-speed-proposal.md)으로 구현했다. 인지/학습 모델의 계약과 검증은 후속이다.
-- 선택형 Supervisor→가용력 governor→기존 PI/배분 연결을 구현했다. 실제 모델/가용력 adapter와 고장 시 coordinator 보호 연결을 통합 검증한다.
+- 선택형 Supervisor→BMS 가용력 governor→기존 PI/배분과 고장 시 coordinator 보호·DTC를 연결했다. 실제 CARLA nominal/input-loss와 독립 감사·원본 재생을 통과했다. 실제 모델·온라인 저항 추정과 새 monitor의 qualified 복구/clear는 후속이다.
 - 공통 scenario/seed·sensor/model/precision·SW revision과 실행 시간 측정 조건을 정한다.
 - 실제 ACK/통신 손실의 주입 위치·기대 물리 반응을 먼저 정하고, tick 차단과 차량 정지를 구분한다.
 - 다른 kernel/Target, 세션 내 무중단 기록 이관·통신 통합·디스크 보존 정책과 학습자 최종 수용은 별도 gate로 관리한다.

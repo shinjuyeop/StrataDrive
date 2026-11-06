@@ -10,7 +10,7 @@ namespace {
 bool same(const AvailableForce& a,const AvailableForce& b) noexcept {
     return a.epoch==b.epoch && a.sequence==b.sequence && a.source_ns==b.source_ns && a.expires_ns==b.expires_ns &&
         a.propulsion_n==b.propulsion_n && a.braking_n==b.braking_n &&
-        a.road_load_min_n==b.road_load_min_n && a.road_load_max_n==b.road_load_max_n;
+        a.road_load_min_n==b.road_load_min_n && a.road_load_max_n==b.road_load_max_n && a.profile==b.profile;
 }
 }
 AvailableForceReference::AvailableForceReference(ReferenceConfig c):config_(c) {
@@ -32,11 +32,13 @@ std::optional<FeasibleReference> AvailableForceReference::step(std::uint64_t now
     if(last_ns_ && (now<=*last_ns_ || now-*last_ns_!=SpeedPI::kPeriodNs)) return fail(ReferenceFault::Clock);
     for(double x:{desired,speed.speed_mps,force.propulsion_n,force.braking_n,force.road_load_min_n,force.road_load_max_n})
         if(!std::isfinite(x)) return fail(ReferenceFault::Input);
+    if(force.profile!=ForceProfile::Snapshot30ms && force.profile!=ForceProfile::ReceiverPowerLimits)return fail(ReferenceFault::Input);
+    const std::uint64_t force_age=force.profile==ForceProfile::ReceiverPowerLimits?70000000:30000000;
     if(desired<0 || desired>SpeedPI::kMaxTargetMps || speed.speed_mps<0 || speed.speed_mps>SpeedPI::kMaxTargetMps ||
        force.propulsion_n<0 || force.braking_n<0 || force.road_load_min_n>force.road_load_max_n ||
        speed.source_ns<enable_ns_ || speed.source_ns>now || now-speed.source_ns>30000000 ||
-       force.source_ns<enable_ns_ || force.source_ns>now || now-force.source_ns>30000000 || force.expires_ns<=now ||
-       force.expires_ns-force.source_ns>30000001 ||
+       force.source_ns<enable_ns_ || force.source_ns>now || now-force.source_ns>force_age || force.expires_ns<=now ||
+       force.expires_ns-force.source_ns>force_age+1 ||
        (speed_ && (speed.sequence<=speed_->sequence || speed.source_ns<=speed_->source_ns)) ||
        (force_ && (force.sequence<force_->sequence || force.source_ns<force_->source_ns ||
            (force.sequence==force_->sequence && !same(force,*force_)) ||
@@ -58,9 +60,12 @@ std::optional<FeasibleReference> AvailableForceReference::step(std::uint64_t now
     const double unbounded=previous+acceleration*dt;
     const double target=std::clamp(unbounded,reachable_low,reachable_high);
     if(target!=unbounded)acceleration=(target-previous)/dt;
-    if(speed.source_ns>std::numeric_limits<std::uint64_t>::max()-30000001) return fail(ReferenceFault::Input);
+    // Receiver profile uses the existing derived PI result's 60ms validity;
+    // current wheel admission above remains 30ms. Snapshot profile is unchanged.
+    const std::uint64_t speed_validity=force.profile==ForceProfile::ReceiverPowerLimits?60000001:30000001;
+    if(speed.source_ns>std::numeric_limits<std::uint64_t>::max()-speed_validity) return fail(ReferenceFault::Input);
     FeasibleReference result{target,acceleration,lower,upper,std::min(speed.source_ns,force.source_ns),
-        std::min(speed.source_ns+30000001,force.expires_ns),acceleration!=requested};
+        std::min(speed.source_ns+speed_validity,force.expires_ns),acceleration!=requested};
     last_ns_=now;target_=target;speed_=speed;force_=force;
     return result;
 }

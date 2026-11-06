@@ -114,6 +114,10 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     const central::NormalStopConfig stop_settings;
     central::VehicleCoordinator core;
     central::SpeedRequest speed_request;
+    std::unique_ptr<central::AvailableForceEstimator> force_estimator;
+    std::unique_ptr<central::SupervisedSpeedRequest> supervised_speed;
+    std::optional<central::AvailableForce> available_force;
+    bool omit_force=false;
     const bool antiwindup;
     bool saturation_used=false,braking_saturation_used=false;
     std::optional<central::PropulsionSelection> speed_selection;
@@ -172,9 +176,16 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     std::array<DeliveredCapture<transport::LeafReport>,5> result_capture;
     std::array<std::optional<session::Ack>,8> release_acks;
 
-    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0,Time horizon=10000,Time model_step=10000000,Time hv_dependency_ns=30000000,bool speed=false,const std::vector<central::RoutePoint>& route={},RouteProfile route_profile=RouteProfile::Curve30,bool external_aw=false):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),horizon_ms(horizon),start(initial),next_io(initial),next_physical(initial),stop_settings(stop_configuration(route_profile)),core(port,{true,central::CommandRenewal::Host10ms},allocation(speed),stop_settings),speed_request(.355,external_aw),antiwindup(external_aw),speed_enabled(speed),route_speed(route_profile),export_actual(exporting) {
+    Native(Scope s,Time initial,PlantMode mode,bool exporting,bool wall=false,Time model_initial=0,Time horizon=10000,Time model_step=10000000,Time hv_dependency_ns=30000000,bool speed=false,const std::vector<central::RoutePoint>& route={},RouteProfile route_profile=RouteProfile::Curve30,bool external_aw=false,std::optional<central::RoadLoadBounds> load=std::nullopt):scope(s),domain(wall?wall_domain:m7_functional::domain),wall_mode(wall),horizon_ms(horizon),start(initial),next_io(initial),next_physical(initial),stop_settings(stop_configuration(route_profile)),core(port,{true,central::CommandRenewal::Host10ms},allocation(speed),stop_settings),speed_request(.355,external_aw),antiwindup(external_aw || bool(load)),speed_enabled(speed),route_speed(route_profile),export_actual(exporting) {
         if(!route.empty())pursuit=std::make_unique<central::PurePursuit>(route,2.860470886230469);
         clock.logical=initial;
+        if(load) {
+            require(speed && !wall,"supervised speed requires simulation speed profile");
+            const auto config=allocation(true);
+            force_estimator=std::make_unique<central::AvailableForceEstimator>(config,*load);
+            central::ReferenceConfig reference;reference.mass_kg=config.mass_kg;
+            supervised_speed=std::make_unique<central::SupervisedSpeedRequest>(reference,config.wheel_radius_m);
+        }
         if(export_actual) {
             for(unsigned i=0;i<2;++i)zones[i].feedback.delivery(&feedback_capture[i]);
             for(unsigned i=0;i<5;++i) {leaves[i].work.delivery(&command_capture[i]);leaves[i].reports.delivery(&result_capture[i]);}
@@ -206,7 +217,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
     }
     Time now_ns() noexcept override {return clock.now_ns();}
     bool quiesce_central() noexcept override {gates[7].close();core.request_protection(now_ns());port.protect();return true;}
-    bool commit_central(central::CoordinatorSession s) noexcept override {return core.start_session(s) && (!speed_enabled || speed_request.start_session(s.epoch,s.enable_ns)) && (!pursuit || pursuit->start_session(s.epoch,s.enable_ns));}
+    bool commit_central(central::CoordinatorSession s) noexcept override {return core.start_session(s) && (!speed_enabled || (supervised_speed?supervised_speed->start_session(s.epoch,domain,s.enable_ns):speed_request.start_session(s.epoch,s.enable_ns))) && (!pursuit || pursuit->start_session(s.epoch,s.enable_ns));}
     void protect_central() noexcept override {gates[7].close();core.request_protection(now_ns());port.protect();}
     bool send(const session::Control& c) noexcept override {
         const auto i=static_cast<unsigned>(c.role);
@@ -253,7 +264,8 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         }
         for(unsigned i=0;i<3;++i)leaf_diagnostics[i]->leaf(leaf[i]->expiry_observation(),leaf[i]->command_success_observation(),
             !leaf[i]->faulted(),gates[i+2].allows(scope.application),leaf[i]->protection_selected_ns(),now);
-        control_diagnostics->observe(speed_request,core,now);
+        if(supervised_speed)control_diagnostics->observe(*supervised_speed,core,now);
+        else control_diagnostics->observe(speed_request,core,now);
         const auto feedback=port.feedback();control_diagnostics->observe_response(feedback,now);
         for(unsigned i=0;i<7;++i) {
             const auto selected=i<2?zone[i]->protection_ack_ns():leaf[i-2]->protection_selected_ns();
@@ -449,21 +461,31 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
                 saturation_used=antiwindup && (!speed_audit || (speed_selection && speed_selection->limited));
                 braking_saturation_used=antiwindup && (!speed_audit || (speed_selection && speed_selection->braking_limited));
                 const bool omit_speed=trigger_ns && (terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss);
-                auto derived=speed_request.step_derived(now,target,omit_speed?std::nullopt:feedback.rear.drive_actual,allowed,speed_selection);
+                std::optional<central::DerivedVehicleRequest> derived;
+                if(supervised_speed) {
+                    available_force=omit_force?std::nullopt:force_estimator->estimate(feedback,now);
+                    // The classical route computation is performed on this release.
+                    // Its live pose dependency is attached below without refreshing it.
+                    const central::ClassicalSpeedProposal fallback{scope.application,domain,now,now+30*ms+1,target,true};
+                    derived=supervised_speed->step(now,std::nullopt,fallback,
+                        omit_speed?std::nullopt:feedback.rear.drive_actual,available_force,allowed,speed_selection);
+                    if(!derived) {select_diagnostic_protection(now);return;}
+                } else derived=speed_request.step_derived(now,target,omit_speed?std::nullopt:feedback.rear.drive_actual,allowed,speed_selection);
                 if(!derived && (terminal_mode==SpeedTerminal::SpeedInputLoss || diagnostic_fault==DiagnosticFault::SpeedInputLoss) && trigger_ns) {
                     detection_ns=now;protection_since=now;protect_central();for(auto& p:participants)p->select_protection();return;
                 }
                 if(derived && pursuit) {
                     derived->request.curvature_inv_m=lateral_audit->curvature_inv_m;
                     derived->input.source_time_ns=std::min(derived->input.source_time_ns,pose->source_ns);
-                    derived->input.expires_at_ns=derived->input.source_time_ns+60*ms+1;
+                    derived->input.expires_at_ns=std::min(derived->input.expires_at_ns,pose->source_ns+60*ms+1);
                     derived->request.expires_at_ns=std::min(derived->request.expires_at_ns,derived->input.expires_at_ns);
                 }
                 const auto* request=derived?&derived->request:nullptr;
                 if(!request) {protect_central();throw std::runtime_error("speed request rejected");}
                 require(core.receive_vehicle(*request,now,derived->input)==central::CoordinatorReceive::Accepted,"speed request admission");
-                speed_audit=SpeedControlAudit{now,speed_origin,speed_request.state().sample->source_ns,request->expires_at_ns,derived->input.expires_at_ns,request->sequence,
-                    target,speed_request.state().sample->speed_mps,request->acceleration_mps2,speed_request.state().integral};
+                const auto& state=supervised_speed?supervised_speed->controller().state():speed_request.state();
+                speed_audit=SpeedControlAudit{now,speed_origin,state.sample->source_ns,request->expires_at_ns,derived->input.expires_at_ns,request->sequence,
+                    supervised_speed?supervised_speed->reference()->target_mps:target,state.sample->speed_mps,request->acceleration_mps2,state.integral};
 
         }
         const bool due=now>=next_management;
@@ -508,7 +530,9 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
             command_response.observe(port.feedback(),observed,[&](const auto& e){batch.push_back(e);});
             if(!batch.empty())r.diagnostic_events=std::make_shared<const std::vector<diagnostics::Event>>(std::move(batch));
         }
-        r.speed_fault=static_cast<int>(speed_request.fault());r.stop_state=core.decision().stop.state;r.stop_fault=static_cast<int>(core.decision().stop.fault);r.power_off=core.decision().management.power_off_confirmed;
+        if(supervised_speed)r.supervised_speed=SupervisedSpeedAudit{supervised_speed->decision(),available_force,
+            supervised_speed->reference(),supervised_speed->fault_observation()};
+        r.speed_fault=static_cast<int>(supervised_speed?supervised_speed->controller().fault():speed_request.fault());r.stop_state=core.decision().stop.state;r.stop_fault=static_cast<int>(core.decision().stop.fault);r.power_off=core.decision().management.power_off_confirmed;
         r.propulsion_antiwindup=antiwindup;r.saturation_used=saturation_used;r.braking_saturation_used=braking_saturation_used;r.speed_selection=speed_selection;
         r.allocation_selection=core.decision().allocation.propulsion_selection;
         r.speed_control=speed_audit;r.lateral_control=lateral_audit;r.now=observed;r.release_mask=release_mask;r.armed=core.decision().normal_armed;
@@ -655,10 +679,11 @@ Report FunctionalRig::observe_impl(const Observation& o,const std::optional<Whee
         }
         const bool initial=!native_;
         require(plant_mode_==PlantMode::ExternalSolverWork ? (initial?!work_:bool(work_)) : !work_,"missing/unexpected solver work");
-        if(!native_){native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_,false,0,horizon_ms_,10000000,30000000,speed_profile_,route_,route_profile_,antiwindup_);
-            if(diagnostic_fault_!=DiagnosticFault::Disabled)native_->enable_diagnostics(diagnostic_fault_);
+        if(!native_){native_=std::make_unique<Native>(scope_,now,plant_mode_,export_actual_,false,0,horizon_ms_,10000000,30000000,speed_profile_,route_,route_profile_,antiwindup_,road_load_);
+            if(diagnostic_fault_!=DiagnosticFault::Disabled || road_load_)
+                native_->enable_diagnostics(diagnostic_fault_==DiagnosticFault::Disabled?DiagnosticFault::None:diagnostic_fault_);
         }
-        native_->terminal_mode=terminal_mode_;
+        native_->terminal_mode=terminal_mode_;native_->omit_force=omit_force_;
         if(pose_) {
             require(native_->pending_poses.size()<2,"pose pending overflow");
             native_->pending_poses.push_back(*pose_);pose_.reset();
@@ -720,6 +745,14 @@ void FunctionalRig::speed_profile(SpeedTerminal terminal) {
     require(!native_ && profile_.empty() && !speed_profile_ && export_actual_ &&
         plant_mode_==PlantMode::ExternalSolverWork && horizon_ms_==60000,"speed profile requires solver simulation scope");
     speed_profile_=true;terminal_mode_=terminal;
+}
+void FunctionalRig::supervise_speed(central::RoadLoadBounds bounds) {
+    require(!native_ && !road_load_ && !watch_,"supervision must be selected once before INIT");
+    const central::AvailableForceEstimator checked(allocation(true),bounds);
+    road_load_=bounds;
+}
+void FunctionalRig::omit_force_input(bool value) {
+    require(bool(road_load_),"force omission requires supervised path");omit_force_=value;
 }
 void FunctionalRig::controller_phase(Time delay) {
     require(!native_ && delay<=20*ms && delay%200000==0,"controller phase must be set before INIT on existing ingress grid");

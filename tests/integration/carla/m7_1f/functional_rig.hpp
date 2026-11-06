@@ -6,6 +6,8 @@
 #include "route_speed_profile.hpp"
 #include "normal_stop.hpp"
 #include "diagnostics.hpp"
+#include "available_force_estimator.hpp"
+#include "speed_supervisor.hpp"
 #include <array>
 #include <memory>
 #include <optional>
@@ -33,6 +35,12 @@ struct RouteReferenceAudit {
     double requested_mps;
     std::optional<Time> slow_elapsed_ns,stop_elapsed_ns;
 };
+struct SupervisedSpeedAudit {
+    central::SupervisedSpeed decision;
+    std::optional<central::AvailableForce> force;
+    std::optional<central::FeasibleReference> reference;
+    std::optional<central::SupervisedSpeedFault> fault;
+};
 enum class SpeedTerminal { None, NormalStop, SpeedInputLoss, StopProtection, NormalStop30 };
 enum class DiagnosticFault { Disabled, None, SpeedInputLoss, StopAckLoss, FrontCommandLoss, BrakingTimeout, FrontLinkFailure };
 struct Report {
@@ -51,6 +59,7 @@ struct Report {
     bool saturation_used=false,braking_saturation_used=false;
     std::optional<central::PropulsionSelection> allocation_selection,speed_selection;
     std::optional<SpeedControlAudit> speed_control;
+    std::optional<SupervisedSpeedAudit> supervised_speed;
     std::optional<RouteReferenceAudit> route_reference;
     std::optional<central::PursuitOutput> lateral_control;
     Time now=0,next_frame=0,lease_source=0,lease_expiry=0;
@@ -91,6 +100,11 @@ public:
     // M8 fixed V1 0->10->0 km/h profile, simulation time only.
     void speed_profile(SpeedTerminal terminal=SpeedTerminal::None);
     void route_profile(std::vector<central::RoutePoint> points,RouteProfile profile=RouteProfile::Curve30,bool antiwindup=false);
+    // Opt-in runtime composition; fixed SIL road-load envelope must be supplied
+    // explicitly. Uses live receiver BMS limits and original wheel acquisition.
+    void supervise_speed(central::RoadLoadBounds);
+    // Explicit consumer-boundary injection. Restoration cannot clear the latch.
+    void omit_force_input(bool value);
     void pose(central::RoutePose sample,std::uint32_t actor);
     // M7-only scheduling phase study; periods/expiry rules remain unchanged.
     void controller_phase(Time delay_after_enable);
@@ -130,6 +144,8 @@ private:
     bool speed_profile_=false;
     std::vector<central::RoutePoint> route_;
     bool antiwindup_=false;
+    std::optional<central::RoadLoadBounds> road_load_;
+    bool omit_force_=false;
     RouteProfile route_profile_=RouteProfile::Curve30;
     std::optional<central::RoutePose> pose_;
     bool protect_=false;
