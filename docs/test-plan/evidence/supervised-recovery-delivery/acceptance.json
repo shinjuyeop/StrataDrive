@@ -1,0 +1,110 @@
+{
+  "passed": true,
+  "base_commit": "02638f035f2aa991832d10a6c0b8b1a833fea1d6",
+  "scope": "logical supervised recovery/clear and opt-in event-only epoch SOME/IP delivery",
+  "debug": {
+    "full_pre_allocation_qualification": 1524,
+    "final_recovery": 5,
+    "additional_cold_reader": 1,
+    "unique": 1525,
+    "excluded_label": "runtime.wall"
+  },
+  "sanitized": {
+    "unique": 162,
+    "asan": true,
+    "ubsan": true,
+    "tsan": false
+  },
+  "python_tests": 280,
+  "clang_tidy_units": 9,
+  "recovery": {
+    "pass_": true,
+    "events": 53,
+    "entries": 54,
+    "faults": 2,
+    "passes": 2,
+    "explicit_clears": 1,
+    "fault_epochs": [
+      1,
+      3
+    ],
+    "proof_epochs": [
+      2,
+      3
+    ],
+    "raw_events_equal_durable": true
+  },
+  "someip": {
+    "ok": true,
+    "source": {
+      "stream": 7001,
+      "segments": 2,
+      "entries": 32,
+      "active_entries": 17,
+      "limit": 32
+    },
+    "replica": {
+      "stream": 7001,
+      "segments": 2,
+      "entries": 32,
+      "active_entries": 17,
+      "limit": 32
+    },
+    "kill_ordinal": 16,
+    "faults": 2,
+    "passed": 1,
+    "physical_samples": 4000,
+    "mutations": [
+      {
+        "mutation": "pointer_crc",
+        "rejected": true,
+        "reason": "family metadata CRC"
+      },
+      {
+        "mutation": "missing_predecessor",
+        "rejected": true,
+        "reason": "[Errno 2] No such file or directory: '/tmp/stratadrive-epoch-audit-kqe6g1wn/cohort/source-store/00000001/manifest'"
+      },
+      {
+        "mutation": "valid_crc_payload_mutation",
+        "rejected": true,
+        "reason": "source/replica canonical mismatch"
+      },
+      {
+        "mutation": "missing_duplicate_ack",
+        "rejected": true,
+        "reason": "lost rollover ACK was not retried as duplicate"
+      },
+      {
+        "mutation": "physical_changed",
+        "rejected": true,
+        "reason": "diagnostics changed plant trace"
+      },
+      {
+        "mutation": "unexpected_exit",
+        "rejected": true,
+        "reason": "exact injected process exits"
+      }
+    ]
+  },
+  "binaries": [
+    {
+      "path": "build/m1-angle/control_recovery_sil_test",
+      "sha256": "1302a0d159fe735d3cbfbb04cd6618d99299bba4d1daa806315ed547a8b725c3"
+    },
+    {
+      "path": "build/m1-angle/diagnostics_delivery_test",
+      "sha256": "11bf90042b014f7b15a0dc66007eab75c28de97851be27a9fee23e66b8c549b4"
+    },
+    {
+      "path": "build/m5-someip-normal/project/tests/integration/someip/someip_diagnostics_live",
+      "sha256": "2e15132f9dfd29f0e86e2503f8a0cd105d35eac907a0de43c80da424050c3c75"
+    }
+  ],
+  "remaining": [
+    "multi-source ContextualOutbox/MergedCollector epoch ordering and migration",
+    "supervised recovery driving in CARLA",
+    "single-epoch rollover and disk lifecycle",
+    "whole ODD/wall/Target and trained model"
+  ]
+}

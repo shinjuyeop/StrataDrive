@@ -18,6 +18,7 @@ struct M4Config {
     central::CommandRenewal renewal{central::CommandRenewal::Legacy20ms};
     bool wall_time{false};
     bool speed_loop{false}; // M8 fixed 87s profile, logical time + Host10ms only
+    bool supervised_speed{false}; // opt-in classical/receiver-force path; same logical plant, fixed [0,200] N load envelope
     std::uint64_t duration_ns{1800000000},injection_ns{1200000000},rejoin_ns{2300000000};
     std::uint32_t first_epoch{1},rejoin_epoch{2}; // already issued trusted startup grants
     std::vector<M4Fault> faults;

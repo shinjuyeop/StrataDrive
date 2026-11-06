@@ -21,7 +21,7 @@ bool VehicleCoordinator::start_session(CoordinatorSession session) {
     if(!management_.start_session(session.epoch,session.enable_ns) || !allocation_.start_session(session.epoch,session.enable_ns) ||
         !stop_.start_session(session.epoch,session.enable_ns)) return false;
     epoch_=session.epoch; enable_ns_=session.enable_ns; observed_ns_=now;
-    tick_ns_.reset(); allocation_ns_.reset(); lifecycle_.reset(); vehicle_.reset(); last_power_.reset(); pending_handoff_.reset(); fault_=CoordinatorFault::None;
+    tick_ns_.reset(); allocation_ns_.reset(); lifecycle_.reset(); vehicle_.reset(); vehicle_input_.reset(); last_power_.reset(); pending_handoff_.reset(); fault_=CoordinatorFault::None;
     normal_armed_=stopping_=protection_selected_=protection_attempted_=in_cycle_=false;
     fault_observation_.reset(); protections_={}; return true;
 }
@@ -67,13 +67,13 @@ bool VehicleCoordinator::accept_lifecycle(const LifecycleRequest& root) {
     return checkpoint();
 }
 bool VehicleCoordinator::accept_vehicle(const VehicleRequest& root,std::optional<VehicleInputDependency> input) {
-    const auto accepted=allocation_.receive_request(root,observed_ns_,input);
+    const auto accepted=stopping_?allocation_.receive_stop_request(root,observed_ns_):allocation_.receive_request(root,observed_ns_,input);
     if(accepted!=AllocationReceiveDecision::Accepted && accepted!=AllocationReceiveDecision::Unchanged) {
         if(allocation_.decision().protection_required) fail(CoordinatorFault::Allocation);
         return false;
     }
     if(accepted==AllocationReceiveDecision::Accepted) {
-        vehicle_=root;
+        vehicle_=root;vehicle_input_=input;
         if(!port_.authorize_vehicle(root)) { fail(CoordinatorFault::RequestDelivery); return false; }
     }
     return checkpoint();

@@ -8,6 +8,7 @@
 #include "ev_power_model.hpp"
 #include "simple_vehicle.hpp"
 #include "speed_request.hpp"
+#include "available_force_estimator.hpp"
 #include "control_diagnostics.hpp"
 #include "owner_diagnostics.hpp"
 #include "native_diagnostics.hpp"
@@ -163,6 +164,8 @@ struct Network {
     M4Result result; std::vector<M4Trace> central_trace;
     std::uint64_t last_tick{0},last_root{0},last_vehicle{0},last_stop{0},next_management{0},vehicle_release{0},lifecycle_release{0}; std::uint32_t root_seq{0},vehicle_seq{0},stop_seq{0},active_epoch{0};
     central::SpeedRequest speed_control;
+    central::SupervisedSpeedRequest supervised_control;
+    central::AvailableForceEstimator force_estimator{{},{0,200}};
     std::unique_ptr<diagnostics::EventQueue> diagnostic_queue;
     std::unique_ptr<diagnostics::ControlDiagnostics> diagnostic_hook;
     std::unique_ptr<diagnostics::StartupDiagnostics> startup_diagnostic_hook;

@@ -111,6 +111,10 @@ traffic과 물리/EV는 계속한다. 이 case를 실제 CAN/전체 통신 단�
 
 ## SD-1001 복구·명시적 clear
 
+선택형 SupervisedSpeed monitor4의 복구는 [감독 제어 계약](supervised-speed-proposal.md#진단)을
+따른다. 최종 request/dependency의 수락과 실제 배분 성공을 확인하고, 안전 정차 후 별도 명시적
+clear를 요구한다. 아래 일반 Speed monitor의 내부 PI 성공 snapshot과 구분한다.
+
 `SpeedRequestSuccessObservation`은 실제 성공한 step의 epoch/enable/issued 시각·원본
 Drive input·최종 반환 request를 보존한다. Derived 경로도 반환된 두 clock의 root를 그대로
 기록하며 expiry 생성 실패는 성공 snapshot을 발급하지 않는다. INIT는 이 native slot을 비운다.

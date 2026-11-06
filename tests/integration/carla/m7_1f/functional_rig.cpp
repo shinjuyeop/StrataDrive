@@ -267,6 +267,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         if(supervised_speed)control_diagnostics->observe(*supervised_speed,core,now);
         else control_diagnostics->observe(speed_request,core,now);
         const auto feedback=port.feedback();control_diagnostics->observe_response(feedback,now);
+        if(supervised_speed)control_diagnostics->observe_speed_recovery(*supervised_speed,core,feedback,now);
         for(unsigned i=0;i<7;++i) {
             const auto selected=i<2?zone[i]->protection_ack_ns():leaf[i-2]->protection_selected_ns();
             if(selected && !diagnostic_selected[i]) {

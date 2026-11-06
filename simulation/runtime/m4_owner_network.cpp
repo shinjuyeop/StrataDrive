@@ -241,7 +241,11 @@ void Network::central_step() {
             if(active_epoch!=epoch) {
                 active_epoch=epoch; last_tick=last_root=last_vehicle=last_stop=vehicle_release=0; lifecycle_release=0;
                 root_seq=vehicle_seq=stop_seq=0;
-                if(config.speed_loop) { speed_control.start_session(epoch,startup.plan().enable_ns); next_speed_ns=0; result.speed_origin_ns=0; }
+                if(config.speed_loop) {
+                    if(config.supervised_speed)supervised_control.start_session(epoch,config.diagnostics_run,startup.plan().enable_ns);
+                    else speed_control.start_session(epoch,startup.plan().enable_ns);
+                    next_speed_ns=0;result.speed_origin_ns=0;
+                }
                 if(diagnostic_hook) diagnostic_hook->start_session(epoch,startup.plan().enable_ns);
                 next_management=startup.plan().enable_ns+14*kMs;
                 owner_events[7].push_back({now,"run-released",7,epoch,0,0,0,0});
@@ -280,10 +284,12 @@ void Network::central_step() {
             last_tick=now; core.tick(port.feedback(),now);
         }
         if(diagnostic_hook && config.diagnostics_run) {
-            diagnostic_hook->observe(speed_control,core,clock.now_ns());
+            if(config.supervised_speed)diagnostic_hook->observe(supervised_control,core,clock.now_ns());
+            else diagnostic_hook->observe(speed_control,core,clock.now_ns());
             const auto current=port.feedback();
             diagnostic_hook->observe_response(current,clock.now_ns());
-            diagnostic_hook->observe_speed_recovery(speed_control,core,current,clock.now_ns());
+            if(config.supervised_speed)diagnostic_hook->observe_speed_recovery(supervised_control,core,current,clock.now_ns());
+            else diagnostic_hook->observe_speed_recovery(speed_control,core,current,clock.now_ns());
             forward_diagnostic_protection();
         }
         const auto d=core.decision(); now=clock.now_ns();

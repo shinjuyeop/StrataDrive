@@ -1,8 +1,9 @@
 # 세션 경계 진단 기록 이관
 
 `EpochRecorder`는 Linux 로컬 단일 writer의 선택형 저장기다. 기존 `FileJournal`과
-SOME/IP Outbox/Inbox의 stream ID·ordinal·ACK 계약은 변경하지 않는다. 기본 통신 런타임은
-계속 기존 유한 저장기를 사용한다. 이 문서는 신규 저장기의 적용 가능한 범위를 정의한다.
+SOME/IP Outbox/Inbox의 stream ID·ordinal·ACK 계약은 유지한다. Outbox/Inbox가 family를
+선택할 수 있고 전용 SOME/IP `epoch-restart` 시험에 연결했다. 기본 다중 ECU 런타임의
+ContextualOutbox/MergedCollector는 기존 유한 저장기를 사용한다. 이 문서는 신규 저장기의 적용 가능한 범위를 정의한다.
 
 ## 이관 조건과 보존
 
@@ -56,12 +57,33 @@ build/m1-angle/diagnostic_epoch_store inspect /private/new-family
 출력 receipt의 durable/watermark와 프로세스 종료 코드를 함께 확인한다. Inspect도 독점 writer
 잠금으로 재개방하며, 발견된 pending은 incomplete로 보존할 수 있다.
 
+## 전송과 재전송
+
+Family의 root store ID는 stream ID로 고정하고 ordinal은 모든 segment의 committed entry 누적값이다.
+물리 segment의 store ID를 wire stream ID로 사용하지 않는다. Checkpoint는 전송 entry가 아니다.
+원본 Event와 ACK packet 형식은 그대로이며 registry4를 명시적으로 지원한다. Clear/ContinuityReview는
+여전히 원격 Event packet이 아니고, 과거 segment에 이 transaction이 있는 family도 전송기로 거절한다.
+
+`Outbox(EpochRecorder&)`와 `Inbox(EpochRecorder&)`는 공통 DeliveryStore를 통해 원본 event-only
+기록을 사용한다. Sender restart는 ordinal1부터 재전송한다. Inbox는 현재 cumulative watermark보다
+앞선 순번을 보류하고, 과거 순번은 보관 원문 전체가 같을 때만 Duplicate ACK를 준다. 같은 ID를 새
+순번으로 옮기거나 payload를 바꾸면 sticky incomplete다. Segment 회전 후에도 event 수를 무한 vector로
+평탄화하지 않는다. Segment별 끝 순번과 한 개의 cold reader만 보존한다. Cold replay와 live append가
+같은 독점 잠금 아래 reader를 공유한다.
+
+ACK는 successor와 family current의 fsync 완료 뒤에만 반환한다. 실패·미완료 의도·보관 한도 초과는
+ACK를 주지 않는다. Source/replica의 회전 threshold가 달라도 원본 순번과 DTC 집계는 같다.
+[검증](../test-plan/evidence/supervised-recovery-delivery/README.md)은 40세션의 독립 threshold와
+실제 SOME/IP에서 새 세션 영속화 직후의 SIGKILL·재시작·유실 ACK 재전송을 포함한다.
+
 ## 남는 경계
 
 회수하는 것은 **활성 메모리·event/service 창**이다. 원본 파일을 자동 삭제해 디스크를 비우지
 않는다. 기본 segment 상한1024, 설정 가능 최대10000에서 증거를 보존하며 Capacity로 실패한다.
 이력 조회/재시작 비용은 보관량에 비례하고 실시간 작업이 아니다. 기존 단일-store archive 도구는
 family/checkpoint 형식을 받지 않는다. Family 보관·외부 이관/삭제 정책, 단일 장시간 epoch 중
-무중단 회전, 통신 ordinal을 포함한 운영 통합과 실제 전원/매체 검증은 후속이다.
+무중단 회전과 실제 전원/매체 검증은 후속이다. 여러 독립 source가 새 세션과 이전 세션의 미전달
+이력을 섞어 보내는 MergedCollector에는 별도의 세션 순서 장벽이 필요하다. 그 장벽 없이 family를
+대입하면 늦은 과거 event가 checkpoint 경계를 넘을 수 있으므로 기본 다중 ECU 경로를 바꾸지 않았다.
 
 [구현·시험 근거](../test-plan/evidence/remaining-improvements/README.md)를 따른다.

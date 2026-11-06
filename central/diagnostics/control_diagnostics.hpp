@@ -28,9 +28,14 @@ public:
     // qualifies SD-1001/Speed monitor SD-1002. Input restoration or INIT alone cannot publish Passed.
     void observe_speed_recovery(const central::SpeedRequest&,const central::VehicleCoordinator&,
                                 const central::NormalDriveReadinessInputs&,std::uint64_t observed_ns) noexcept;
+    void observe_speed_recovery(const central::SupervisedSpeedRequest&,const central::VehicleCoordinator&,
+                                const central::NormalDriveReadinessInputs&,std::uint64_t observed_ns) noexcept;
     // Capture on the Central owner; pass this immutable evidence to the non-RT
     // writer together with an explicit clear intent/key/expected revision.
     std::optional<ServiceEvidence> speed_clear_evidence(const central::SpeedRequest&,
+        const central::VehicleCoordinator&,const central::NormalDriveReadinessInputs&,
+        const std::optional<can::DriveMessage>& current_speed_input,std::uint64_t now_ns) const noexcept;
+    std::optional<ServiceEvidence> speed_clear_evidence(const central::SupervisedSpeedRequest&,
         const central::VehicleCoordinator&,const central::NormalDriveReadinessInputs&,
         const std::optional<can::DriveMessage>& current_speed_input,std::uint64_t now_ns) const noexcept;
     std::optional<ServiceEvidence> stop_clear_evidence(const central::VehicleCoordinator&,
@@ -50,6 +55,7 @@ private:
     Event base(std::uint64_t observed_ns) const noexcept;
     EventId publish(const Event& e) noexcept { return publisher_.publish(e,session_); }
     void speed(const central::SpeedRequest&,const std::optional<central::VehicleRequest>&,std::uint64_t) noexcept;
+    bool speed_recovered(const Event&,const can::DriveMessage&,const central::VehicleRequest&,std::uint64_t) noexcept;
     void stop(const central::NormalStop&,std::uint64_t) noexcept;
     void coordinator(const central::VehicleCoordinator&,std::uint64_t) noexcept;
     void remember_stop_recovery(const Event&,const central::NormalStopConfig&) noexcept;
@@ -63,6 +69,11 @@ private:
     // source emitter itself is continuous. No process-restart adoption here.
     std::optional<Event> speed_recovery_target_;
     bool speed_recovered_{false};
+    struct SupervisedRecovery {
+        Event fault; central::ReferenceConfig config; double radius; bool passed{false};
+        std::uint32_t recovered_epoch{0};
+    };
+    std::optional<SupervisedRecovery> supervised_recovery_;
     struct StopRecovery { Event fault; central::NormalStopConfig config; bool passed{false}; };
     std::array<std::optional<StopRecovery>,8> stop_recovery_targets_{};
 };

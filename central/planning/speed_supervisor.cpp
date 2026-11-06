@@ -80,7 +80,7 @@ SupervisedSpeed SpeedSupervisor::select(std::uint64_t now,const std::optional<Pl
     return {ProposalSource::Protection,ProposalReason::NoFallback,std::nullopt,0,0};
 }
 SupervisedSpeedRequest::SupervisedSpeedRequest(ReferenceConfig c,double radius)
-    :radius_(radius),governor_(c),controller_(radius,true) {}
+    :config_(c),radius_(radius),governor_(c),controller_(radius,true) {}
 bool SupervisedSpeedRequest::start_session(std::uint32_t epoch,std::uint64_t clock,std::uint64_t enable) noexcept {
     // Validate on copies so a rejected INIT cannot partially reset ownership.
     auto s=supervisor_;auto g=governor_;auto c=controller_;
@@ -88,7 +88,7 @@ bool SupervisedSpeedRequest::start_session(std::uint32_t epoch,std::uint64_t clo
     // Supervisor has a const configuration; reconstructing is unnecessary.
     supervisor_.start_session(epoch,clock,enable);governor_.start_session(epoch,enable);controller_.start_session(epoch,enable);
     decision_={};reference_.reset();last_dependency_.reset();latched_=false;
-    epoch_=epoch;clock_=clock;enable_=enable;fault_.reset();return true;
+    epoch_=epoch;clock_=clock;enable_=enable;fault_.reset();success_.reset();return true;
 }
 std::optional<DerivedVehicleRequest> SupervisedSpeedRequest::step(std::uint64_t now,const std::optional<PlannerProposal>& p,
     const ClassicalSpeedProposal& fallback,const std::optional<can::DriveMessage>& current,const std::optional<AvailableForce>& force,
@@ -97,7 +97,7 @@ std::optional<DerivedVehicleRequest> SupervisedSpeedRequest::step(std::uint64_t 
     decision_=supervisor_.select(now,p,fallback,permission);reference_.reset();
     const auto fail=[&](ProposalReason reason)->std::optional<DerivedVehicleRequest>{
         decision_.source=ProposalSource::Protection;decision_.reason=reason;decision_.target_mps.reset();latched_=true;
-        fault_=SupervisedSpeedFault{epoch_,clock_,enable_,now,reason,governor_.fault()};return std::nullopt;
+        success_.reset();fault_=SupervisedSpeedFault{epoch_,clock_,enable_,now,reason,governor_.fault()};return std::nullopt;
     };
     if(!decision_.target_mps) return fail(decision_.reason);
     if(!force) return fail(ProposalReason::CapacityInput);
@@ -117,6 +117,7 @@ std::optional<DerivedVehicleRequest> SupervisedSpeedRequest::step(std::uint64_t 
     if(request->request.expires_at_ns<=now || (last_dependency_ && oldest<=*last_dependency_))
         return fail(ProposalReason::Reference);
     last_dependency_=oldest;
+    success_=SupervisedSpeedSuccess{epoch_,clock_,enable_,now,*current,*force,*request};
     return request;
 }
 } // namespace stratadrive::central

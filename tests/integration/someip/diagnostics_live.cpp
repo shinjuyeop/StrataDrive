@@ -27,18 +27,34 @@ void physical(const fs::path& p,const simulation::M4Result& r) {
     std::ofstream out(p);out<<"source_ns,epoch,model_epoch,model_sequence,speed_mps,distance_m,energy_j,balance_j,bus_v,contacts,torque_nm,pressure_pa,gate\n"<<std::setprecision(17);
     for(const auto& t:r.trace)out<<t.source_ns<<','<<t.epoch<<','<<t.model_epoch<<','<<t.model_sequence<<','<<t.speed_mps<<','<<t.distance_m<<','<<t.energy_j<<','<<t.vehicle_balance_j<<','<<t.bus_v<<','<<t.contacts<<','<<t.torque_nm<<','<<t.pressure_pa<<','<<t.run_gate<<'\n';
 }
+// Explicit opt-in store family; the transport still carries the same Event and
+// ACK datagrams. No storage or SDK call is made from a control owner.
+struct Store {
+    std::unique_ptr<diag::FileJournal> single;
+    std::unique_ptr<diag::EpochRecorder> family;
+    Store(const fs::path& path,bool epochs) {
+        if(epochs)family=std::make_unique<diag::EpochRecorder>(path.string());
+        else single=std::make_unique<diag::FileJournal>(path.string());
+    }
+    std::unique_ptr<diag::Outbox> outbox() {return family?std::make_unique<diag::Outbox>(*family):std::make_unique<diag::Outbox>(*single);}
+    std::unique_ptr<diag::Inbox> inbox() {return family?std::make_unique<diag::Inbox>(*family):std::make_unique<diag::Inbox>(*single);}
+    std::uint64_t size() const {return family?family->watermark():single->committed().size();}
+    diag::Event event(std::uint64_t ordinal) const {return std::get<diag::Event>(family?family->committed(ordinal):single->committed().at(ordinal-1));}
+};
 void publisher(const fs::path& folder,const std::string& scenario) {
-    sdk::Transport net(sdk::Role::Publisher,run,3,"diag-source");net.start();
+    const bool epochs=scenario=="epoch-restart";
+    sdk::Transport net(sdk::Role::Publisher,run,epochs?4:3,"diag-source");net.start();
     const auto ready_deadline=wall()+10*1000*ms;while(!net.available() && wall()<ready_deadline)std::this_thread::sleep_for(std::chrono::milliseconds(1));
     require(net.available(),"replica availability timeout");
     simulation::M4Config c;c.speed_loop=true;c.renewal=central::CommandRenewal::Host10ms;c.diagnostics_run=run;
     c.injection_ns=10000*ms;
     c.scenario=scenario=="normal"?simulation::M4Scenario::Normal:simulation::M4Scenario::SpeedInputLoss;c.duration_ns=scenario=="normal"?92000*ms:13000*ms;
+    if(epochs){c.duration_ns=40000*ms;c.speed_input_restore_ns=12000*ms;c.recovery_ns=20000*ms;c.speed_input_reinject_ns=36000*ms;}
     simulation::m4_detail::Network owner(c);std::atomic<bool> producing{true},cancel{false};std::exception_ptr failure;
     unsigned commits=0,overlap=0;std::uint64_t acked=0;bool fault_overlap=false;
     std::thread writer([&] {
         try {
-            diag::FileJournal journal((folder/"source-store").string());diag::Outbox out(journal);
+            Store journal(folder/"source-store",epochs);auto delivery=journal.outbox();auto& out=*delivery;
             std::ofstream log(folder/"publisher.csv");log<<"wall_ns,action,ordinal,event_sequence,kind,producer_running,result\n";
             const auto deadline=wall()+45*1000*ms;std::uint64_t last_send=0;
             while(!cancel && wall()<deadline) {
@@ -56,14 +72,14 @@ void publisher(const fs::path& folder,const std::string& scenario) {
                     require(result==diag::Result::Accepted || result==diag::Result::Duplicate,"invalid SDK ACK");
                     log<<wall()<<",ack,"<<a.sequence<<",0,0,"<<producing.load()<<','<<static_cast<unsigned>(result)<<'\n';if(result==diag::Result::Accepted)last_send=0;
                 }
-                if(finished && consumed<8 && out.acknowledged()==journal.committed().size() && commits)break;
+                if(finished && consumed<8 && out.acknowledged()==journal.size() && commits)break;
                 if(net.available() && (!last_send || wall()-last_send>=100*ms))if(auto bytes=out.next())if(net.send(*bytes)) {
                     const auto d=std::get<diag::wire::Data>(diag::wire::decode(*bytes));last_send=wall();
                     log<<last_send<<",send-return,"<<d.sequence<<','<<d.event.id.sequence<<','<<static_cast<unsigned>(d.event.kind)<<','<<producing.load()<<",0\n";
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
-            require(!cancel && out.healthy() && out.acknowledged()==journal.committed().size(),"diagnostic delivery incomplete");acked=out.acknowledged();records(folder/"source-records.csv",out.ledger());
+            require(!cancel && out.healthy() && out.acknowledged()==journal.size(),"diagnostic delivery incomplete");acked=out.acknowledged();records(folder/"source-records.csv",out.ledger());
         } catch(...) {failure=std::current_exception();cancel=true;}
     });
     try {
@@ -78,7 +94,7 @@ void publisher(const fs::path& folder,const std::string& scenario) {
     producing.store(false,std::memory_order_release);writer.join();if(failure)std::rethrow_exception(failure);
     auto result=owner.finish();require(result.passed && result.diagnostics_complete,"live logical owner verdict");
     {
-        diag::FileJournal journal((folder/"source-store").string());for(const auto& e:journal.committed())result.diagnostic_events.push_back(std::get<diag::Event>(e));
+        Store journal(folder/"source-store",epochs);for(std::uint64_t ordinal=1;ordinal<=journal.size();++ordinal)result.diagnostic_events.push_back(journal.event(ordinal));
     }
     require(result.diagnostic_events.size()==commits && overlap>0 && (scenario=="normal" || fault_overlap),"not a live owner source");
     auto baseline_config=c;baseline_config.diagnostics_run=0;const auto baseline=simulation::run_m4_async(baseline_config);require(baseline.passed,"baseline verdict");
@@ -95,14 +111,15 @@ void publisher(const fs::path& folder,const std::string& scenario) {
     mark(folder/"publisher-done",acked);
 }
 void replica(const fs::path& folder,const std::string& scenario,unsigned generation) {
-    sdk::Transport net(sdk::Role::Replica,run,3,"diag-replica");net.start();diag::FileJournal journal((folder/"replica-store").string());diag::Inbox in(journal);
+    const bool epochs=scenario=="epoch-restart";
+    sdk::Transport net(sdk::Role::Replica,run,epochs?4:3,"diag-replica");net.start();Store journal(folder/"replica-store",epochs);auto delivery=journal.inbox();auto& in=*delivery;
     std::ofstream log(folder/("replica-"+std::to_string(generation)+".csv"));log<<"wall_ns,ordinal,result,watermark,ack_sent,condition,count,generation,cleared\n";
     bool held=false,dropped=false;const auto deadline=wall()+50*1000*ms;
     while(wall()<deadline && !fs::exists(folder/"finish")) {
         while(auto bytes=net.pop()) {
             const auto d=std::get<diag::wire::Data>(diag::wire::decode(*bytes));const auto r=in.receive(*bytes);require(r.ack.has_value(),"replica rejected bound source");
             const bool fault=d.event.kind==diag::Kind::Fault;
-            if(generation==1 && fault && scenario=="restart")held=true;
+            if(generation==1 && ((fault && scenario=="restart") || (epochs && d.event.kind==diag::Kind::Session && d.event.session.epoch==2)))held=true;
             const bool omit=held || (scenario=="drop-ack" && fault && !dropped);if(omit)dropped=true;
             const bool sent=!omit && net.send(*r.ack);
             log<<wall()<<','<<d.sequence<<','<<static_cast<unsigned>(r.result)<<','<<r.watermark<<','<<sent<<',';
@@ -113,14 +130,20 @@ void replica(const fs::path& folder,const std::string& scenario,unsigned generat
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     require(fs::exists(folder/"finish") && in.healthy(),"replica did not finish");net.stop();records(folder/"replica-records.csv",in.ledger());stats(folder/("replica-"+std::to_string(generation)+"-sdk.json"),net.stats());
-    require(!net.stats().dropped,"replica ingress overflow");mark(folder/"replica-done",journal.committed().size());
+    require(!net.stats().dropped,"replica ingress overflow");mark(folder/"replica-done",journal.size());
 }
 }
 int main(int argc,char** argv) {
     try {
         require(argc==5,"role folder scenario generation");const fs::path folder=argv[2];const std::string scenario=argv[3];
-        require(scenario=="normal" || scenario=="loss" || scenario=="drop-ack" || scenario=="restart","diagnostic scenario");
-        if(std::string(argv[1])=="bootstrap") {diag::FileJournal::initialize((folder/"source-store").string(),run,{},3);diag::FileJournal::initialize((folder/"replica-store").string(),run,{},3);return 0;}
+        require(scenario=="normal" || scenario=="loss" || scenario=="drop-ack" || scenario=="restart" || scenario=="epoch-restart","diagnostic scenario");
+        if(std::string(argv[1])=="bootstrap") {
+            for(const auto* name:{"source-store","replica-store"}) {
+                if(scenario=="epoch-restart")diag::EpochRecorder::initialize((folder/name).string(),run,{{32,8,8,8},4,16});
+                else diag::FileJournal::initialize((folder/name).string(),run,{},3);
+            }
+            return 0;
+        }
         if(std::string(argv[1])=="publisher")publisher(folder,scenario);else {require(std::string(argv[1])=="replica","role");replica(folder,scenario,static_cast<unsigned>(std::stoul(argv[4])));}
         return 0;
     } catch(const std::exception& e) {std::cerr<<"diagnostic pilot: "<<e.what()<<'\n';return 1;}

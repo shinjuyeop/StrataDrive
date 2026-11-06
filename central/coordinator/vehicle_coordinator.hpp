@@ -101,6 +101,7 @@ public:
     CoordinatorDecision decision() const;
     const NormalStop& normal_stop() const noexcept { return stop_; }
     const std::optional<VehicleRequest>& last_vehicle_request() const noexcept { return vehicle_; }
+    const std::optional<VehicleInputDependency>& last_vehicle_input() const noexcept { return vehicle_input_; }
     const std::optional<CoordinatorFaultObservation>& fault_observation() const noexcept { return fault_observation_; }
     const std::array<std::optional<ProtectionObservation>,2>& protection_observations() const noexcept { return protections_; }
     std::uint64_t next_allocation_ns() const;
@@ -123,6 +124,7 @@ private:
     std::optional<std::uint64_t> tick_ns_, allocation_ns_;
     std::optional<LifecycleRequest> lifecycle_;
     std::optional<VehicleRequest> vehicle_;
+    std::optional<VehicleInputDependency> vehicle_input_;
     std::optional<VehicleManagementOutput> last_power_;
     std::optional<NormalStopPlan> pending_handoff_;
     CoordinatorFault fault_{CoordinatorFault::None};

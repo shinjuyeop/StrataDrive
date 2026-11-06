@@ -23,7 +23,7 @@ std::uint64_t get(const Bytes& b,std::size_t offset,unsigned width) {
     return value;
 }
 void context(std::uint64_t stream,std::uint64_t sequence,std::uint32_t registry) {
-    if(!stream || !sequence || registry<1 || registry>3) throw std::invalid_argument("diagnostic wire context");
+    if(!stream || !sequence || registry<1 || registry>4) throw std::invalid_argument("diagnostic wire context");
 }
 void dictionary(const Event& e,std::uint32_t registry) {
     const auto revision=code_registry_revision(e.key.code);

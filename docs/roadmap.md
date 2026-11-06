@@ -51,9 +51,9 @@ M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](proj
 기존 검출·보호·Actual·진단 계약은 다음 단계의 회귀 기준으로 유지한다.
 
 - 상태 기반 Host 속도 제안의 `[4,6]` 입력·`[16]` 출력·history/risk/fallback은 [첫 계약](interfaces/supervised-speed-proposal.md)으로 구현했다. 인지/학습 모델의 계약과 검증은 후속이다.
-- 선택형 Supervisor→BMS 가용력 governor→기존 PI/배분과 고장 시 coordinator 보호·DTC를 연결했다. 실제 CARLA nominal/input-loss와 독립 감사·원본 재생을 통과했다. 실제 모델·온라인 저항 추정과 새 monitor의 qualified 복구/clear는 후속이다.
+- 선택형 Supervisor→BMS 가용력 governor→기존 PI/배분과 고장 시 coordinator 보호·DTC를 연결했다. 실제 CARLA nominal/input-loss와 독립 감사·원본 재생을 통과했다. 새 monitor의 qualified 복구/clear와 정상 정지 전환은 논리 SIL에서 검증했다. 실제 모델·온라인 저항 추정과 CARLA 복구 주행은 후속이다.
 - 공통 scenario/seed·sensor/model/precision·SW revision과 실행 시간 측정 조건을 정한다.
 - 실제 ACK/통신 손실의 주입 위치·기대 물리 반응을 먼저 정하고, tick 차단과 차량 정지를 구분한다.
-- 다른 kernel/Target, 세션 내 무중단 기록 이관·통신 통합·디스크 보존 정책과 학습자 최종 수용은 별도 gate로 관리한다.
+- 다른 kernel/Target, 세션 내 무중단 기록 이관·다중 source 병합 순서 보장·디스크 보존 정책과 학습자 최종 수용은 별도 gate로 관리한다.
 
 M7–M9의 구현 경과·중간 실패·미채택 후보는 [보관 이력](archive/implementation-history.md)을 따른다.

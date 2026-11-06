@@ -16,7 +16,7 @@ void reseal(wire::Bytes& b) {
     c=~c; for(unsigned i=0;i<4;++i) b[b.size()-4+i]=static_cast<std::uint8_t>(c>>(i*8));
 }
 TEST(DiagnosticsWire, CanonicalEventAndAckRoundTripAcrossEverySupportedRegistry) {
-    for(std::uint32_t registry=1;registry<=3;++registry) {
+    for(std::uint32_t registry=1;registry<=4;++registry) {
         auto e=fault(); if(registry==2) e.key.code=Code::BmsLocal;
         if(registry==3) { e=session(); e.kind=Kind::Attempt; e.session_enable={}; e.source={true,20,1,1,stamp(),{}}; }
         const auto bytes=data(e,17,1234,registry); ASSERT_LE(bytes.size(),wire::kMaxPacket);
@@ -41,7 +41,7 @@ TEST(DiagnosticsWire, EveryByteCorruptionAndTruncationIsRejectedBeforeAdmission)
 TEST(DiagnosticsWire, UnsupportedIdentitySchemaAndDictionaryAreRejected) {
     EXPECT_THROW(data(session(),0),std::exception);
     EXPECT_THROW(data(session(),1,0),std::exception);
-    EXPECT_THROW(data(session(),1,1234,4),std::exception);
+    EXPECT_THROW(data(session(),1,1234,5),std::exception);
     auto e=fault(); e.key.code=Code::Startup; EXPECT_THROW(data(e,1,1234,2),std::exception);
     e.key.code=static_cast<Code>(0xffff); EXPECT_THROW(data(e,1),std::exception);
     e=session(); e.kind=Kind::Attempt; EXPECT_THROW(data(e,1,1234,2),std::exception);
@@ -234,5 +234,95 @@ TEST_F(DiagnosticsDelivery, PredecessorImportRejectsForeignRegistryAndConflictin
     EXPECT_THROW((MergedCollector{merged,{&replica},{&foreign}}),std::invalid_argument);EXPECT_TRUE(merged.committed().empty());
     {Recorder old(history);ASSERT_TRUE(old.record(session()).durable);} {Recorder now(merged);auto e=session();e.native_reason=42;ASSERT_TRUE(now.record(e).durable);}
     EXPECT_THROW((MergedCollector{merged,{&replica},{&history}}),std::runtime_error);EXPECT_EQ(encode(merged.committed()[0]),encode([]{auto e=session();e.native_reason=42;return e;}()));EXPECT_FALSE(merged.writable());
+}
+TEST_F(DiagnosticsDelivery, EpochFamiliesKeepGlobalOrdinalsAcrossDifferentRolloverPoliciesAndRestarts) {
+    EpochRecorder::initialize(source.string(),1234,{{16,4,8,8},4,128});
+    EpochRecorder::initialize(dest.string(),1234,{{16,4,8,8},8,128});
+    std::vector<Event> history;
+    for(std::uint32_t epoch=1;epoch<=40;++epoch) {
+        const auto sequence=history.size()+1;const auto f=fault(sequence+1,Code::SpeedInput,epoch);
+        const auto p=proof(f,sequence+2,Proof::Input,epoch);
+        for(const auto& e:{session(sequence,epoch),f,p,passed(p,sequence+3)})history.push_back(e);
+    }
+    for(unsigned round=0;round<2;++round) {
+        EpochRecorder s(source.string()),d(dest.string());Outbox out(s);Inbox in(d);
+        if(!round) {for(const auto& e:history) {ASSERT_TRUE(out.record(e).durable);}}
+        EXPECT_EQ(out.acknowledged(),0U);
+        while(const auto bytes=out.next()) {
+            const auto data=std::get<wire::Data>(wire::decode(*bytes));EXPECT_EQ(data.stream,1234U);EXPECT_EQ(data.registry,4U);
+            EXPECT_EQ(encode(data.event),encode(history.at(data.sequence-1)));
+            EXPECT_EQ(out.next(),bytes);
+            const auto received=in.receive(*bytes);ASSERT_TRUE(received.ack);
+            EXPECT_EQ(received.result,round?Result::Duplicate:Result::Accepted);
+            // Lose the first ACK, including at each rollover. Retry must retain
+            // the exact original ordinal and must not add another occurrence.
+            const auto retry=in.receive(*bytes);ASSERT_TRUE(retry.ack);EXPECT_EQ(retry.result,Result::Duplicate);
+            EXPECT_EQ(received.ack,retry.ack);ASSERT_EQ(out.acknowledge(*retry.ack),Result::Accepted);
+            EXPECT_LE(in.ledger().events().size(),16U);
+        }
+        EXPECT_EQ(out.acknowledged(),history.size());EXPECT_EQ(d.watermark(),history.size());
+        EXPECT_EQ(s.segment(),40U);EXPECT_EQ(d.segment(),20U);
+        EXPECT_EQ(in.ledger().find(fault().key)->count,40U);EXPECT_EQ(in.ledger().find(fault().key)->generation,1U);
+        EXPECT_EQ(in.ledger().find(fault().key)->condition,round?Condition::Unknown:Condition::Passed);
+        for(std::uint64_t i=1;i<=history.size();++i)EXPECT_EQ(encode(s.committed(i)),encode(d.committed(i)));
+        EXPECT_THROW(s.committed(0),std::out_of_range);
+    EXPECT_THROW(s.committed(history.size()+1),std::out_of_range);
+        EXPECT_TRUE(out.healthy());EXPECT_TRUE(in.healthy());
+    }
+}
+TEST_F(DiagnosticsDelivery, ArchivedIdentityCannotMoveToANewOrdinalOrChangeItsOriginalBytes) {
+    for(bool mutation:{false,true}) {
+        const auto path=root/(mutation?"changed":"moved");EpochRecorder::initialize(path.string(),1234,{{16,4,8,8},2,8});
+        {
+            EpochRecorder d(path.string());Inbox in(d);
+            ASSERT_TRUE(in.receive(data(session(),1,1234,4)).ack);ASSERT_TRUE(in.receive(data(fault(),2,1234,4)).ack);
+            ASSERT_TRUE(in.receive(data(session(3,2),3,1234,4)).ack);EXPECT_EQ(d.segment(),2U);
+            auto old=fault();if(mutation)++old.native_reason;
+            const auto received=in.receive(data(old,mutation?2:4,1234,4));EXPECT_FALSE(received.ack);EXPECT_EQ(received.result,Result::Conflict);
+            EXPECT_EQ(d.watermark(),3U);EXPECT_EQ(encode(d.committed(2)),encode(fault()));EXPECT_FALSE(in.healthy());
+        }
+        EpochRecorder d(path.string());Inbox in(d);EXPECT_FALSE(in.healthy());EXPECT_FALSE(in.receive(data(fault(),2,1234,4)).ack);
+    }
+}
+TEST_F(DiagnosticsDelivery, RolloverFailureCannotAckAndKeepsPredecessorAndPendingIntent) {
+    EpochRecorder::initialize(dest.string(),1234,{{16,4,8,8},2,8});
+    {
+        EpochRecorder d(dest.string());Inbox in(d);
+        ASSERT_TRUE(in.receive(data(session(),1,1234,4)).ack);ASSERT_TRUE(in.receive(data(fault(),2,1234,4)).ack);
+        std::filesystem::create_directory(dest/"pending");
+        const auto failed=in.receive(data(session(3,2),3,1234,4));EXPECT_EQ(failed.result,Result::StorageFailure);EXPECT_FALSE(failed.ack);
+        EXPECT_EQ(failed.watermark,2U);EXPECT_FALSE(in.healthy());EXPECT_EQ(encode(d.committed(2)),encode(fault()));
+    }
+    EpochRecorder d(dest.string());Inbox in(d);EXPECT_FALSE(in.healthy());EXPECT_FALSE(in.receive(data(session(3,2),3,1234,4)).ack);
+    EXPECT_TRUE(std::filesystem::is_directory(dest/"pending"));EXPECT_EQ(d.watermark(),2U);
+}
+TEST_F(DiagnosticsDelivery, FamilyQuotaAndUnseenOldEpochNeverGenerateAck) {
+    for(bool old_epoch:{false,true}) {
+        const auto path=root/(old_epoch?"old":"quota");EpochRecorder::initialize(path.string(),1234,{{8,4,8,8},2,2});
+        EpochRecorder d(path.string());Inbox in(d);
+        ASSERT_TRUE(in.receive(data(session(),1,1234,4)).ack);ASSERT_TRUE(in.receive(data(fault(),2,1234,4)).ack);
+        ASSERT_TRUE(in.receive(data(session(3,2),3,1234,4)).ack);ASSERT_TRUE(in.receive(data(fault(4,Code::SpeedInput,2),4,1234,4)).ack);
+        const auto event=old_epoch?fault(5):session(5,3);
+        const auto received=in.receive(data(event,5,1234,4));EXPECT_FALSE(received.ack);EXPECT_FALSE(in.healthy());EXPECT_EQ(d.watermark(),4U);
+    }
+}
+TEST_F(DiagnosticsDelivery, FamilyWithArchivedClearCannotBecomeAnEventOnlyTransport) {
+    EpochRecorder::initialize(source.string(),1234,{{16,4,8,8},4,8});EpochRecorder s(source.string());
+    const auto f=fault();for(const auto& e:{session(),f,proof(f),passed(proof(f))})ASSERT_TRUE(s.record(e).durable);
+    ASSERT_TRUE(s.clear(clear(*s.ledger().find(f.key))).durable);ASSERT_TRUE(s.record(session(5,2)).durable);
+    EXPECT_EQ(s.segment(),2U);
+    EXPECT_THROW(Outbox{s},std::invalid_argument);
+    EXPECT_THROW(Inbox{s},std::invalid_argument);
+    EXPECT_TRUE(s.ledger().complete());
+}
+TEST_F(DiagnosticsDelivery, ColdReplayAndLiveAppendShareTheRetainedSegmentReader) {
+    EpochRecorder::initialize(source.string(),1234,{{16,4,8,8},2,8});EpochRecorder s(source.string());Outbox out(s);
+    ASSERT_TRUE(out.record(session()).durable);ASSERT_TRUE(out.record(fault()).durable);
+    ASSERT_TRUE(out.record(session(3,2)).durable);EXPECT_EQ(s.segment(),2U);
+    const auto first=out.next();ASSERT_TRUE(first);EXPECT_EQ(std::get<wire::Data>(wire::decode(*first)).sequence,1U);
+    ASSERT_TRUE(out.record(fault(4,Code::SpeedInput,2)).durable);
+    ASSERT_TRUE(out.record(session(5,3)).durable);EXPECT_EQ(s.segment(),3U);
+    EXPECT_EQ(out.next(),first);EXPECT_EQ(out.acknowledge(ack(session(),1,1234,4)),Result::Accepted);
+    EXPECT_EQ(std::get<wire::Data>(wire::decode(*out.next())).sequence,2U);EXPECT_TRUE(out.healthy());
 }
 } // namespace

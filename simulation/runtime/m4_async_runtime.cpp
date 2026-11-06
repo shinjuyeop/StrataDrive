@@ -2,6 +2,9 @@
 
 namespace stratadrive::simulation {
 M4Result run_m4_async(const M4Config& config) {
+    if(config.supervised_speed && (!config.speed_loop || !config.diagnostics_run || config.wall_time ||
+       (config.scenario!=M4Scenario::Normal && config.scenario!=M4Scenario::SpeedInputLoss)))
+        throw std::invalid_argument("supervised logical speed configuration");
     if(config.duration_ns==0 || config.first_epoch==0 || (config.scenario==M4Scenario::Rejoin && config.rejoin_epoch<=config.first_epoch)) throw std::invalid_argument("M4 run configuration");
     for(const auto& f:config.faults) {
         validate_fault(f);

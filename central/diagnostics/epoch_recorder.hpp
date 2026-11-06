@@ -25,6 +25,11 @@ public:
     const Ledger& ledger() const noexcept;
     std::uint64_t segment() const noexcept;
     std::uint64_t watermark() const noexcept;
+    // Stable family identity and 1-based committed ordinals across rollover.
+    // Cold reads verify retained segments; no flattened/unbounded event vector.
+    std::uint64_t store_id() const noexcept;
+    static constexpr std::uint32_t registry_revision() noexcept { return 4; }
+    Entry committed(std::uint64_t ordinal) const;
 private:
     struct Impl;std::unique_ptr<Impl> impl_;
 };

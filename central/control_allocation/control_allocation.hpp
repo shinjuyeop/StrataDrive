@@ -66,6 +66,9 @@ public:
     bool start_session(std::uint32_t epoch, std::uint64_t enable_ns);
     AllocationReceiveDecision receive_request(const VehicleRequest& request, std::uint64_t now_ns,
         std::optional<VehicleInputDependency> input = std::nullopt);
+    // Trusted coordinator's NormalStop output only. Irreversible in this Epoch;
+    // transfers request provenance from the speed governor to the stop owner.
+    AllocationReceiveDecision receive_stop_request(const VehicleRequest&,std::uint64_t now_ns);
     void mark_continuity_lost(std::uint64_t now_ns);
     bool select_normal_stop(const ActuatorStopLease& lease, std::uint64_t now_ns);
     std::uint32_t application_epoch() const { return epoch_; }
@@ -80,6 +83,7 @@ private:
         bool observe(bool outside, std::uint64_t source_ns, std::uint64_t duration_ns);
     };
     void fail(AllocationFault fault);
+    AllocationReceiveDecision receive(const VehicleRequest&,std::uint64_t,std::optional<VehicleInputDependency>,bool stopping);
     bool advance(std::uint64_t now_ns);
     bool live_request(std::uint64_t now_ns) const;
     bool permission_valid(const AllocationInputs& inputs, std::uint64_t now_ns) const;
@@ -93,6 +97,7 @@ private:
     std::optional<VehicleInputDependency> request_input_;
     Dwell deficit_, excess_;
     bool armed_{false}, stopped_{false}, braking_{false}, low_speed_{false}, holding_{false};
+    bool stop_requests_{false};
     double episode_regen_nm_{0}; // nonincreasing until observed release of a braking interval
 };
 }  // namespace stratadrive::central

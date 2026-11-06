@@ -5,7 +5,7 @@
 namespace stratadrive::someip::diagnostic {
 Transport::Transport(Role r,std::uint64_t stream,std::uint32_t registry,const std::string& name)
     :role_(r),stream_(stream),registry_(registry),app_(vsomeip::runtime::get()->create_application(name)) {
-    if((r!=Role::Publisher && r!=Role::Replica) || !stream || registry<1 || registry>3 || name.empty() || !app_) throw std::invalid_argument("diagnostic SDK configuration");
+    if((r!=Role::Publisher && r!=Role::Replica) || !stream || registry<1 || registry>4 || name.empty() || !app_) throw std::invalid_argument("diagnostic SDK configuration");
 }
 Transport::~Transport() { stop(); }
 void Transport::start() {

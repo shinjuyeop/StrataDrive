@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "source": {
+    "stream": 7001,
+    "segments": 2,
+    "entries": 32,
+    "active_entries": 17,
+    "limit": 32
+  },
+  "replica": {
+    "stream": 7001,
+    "segments": 2,
+    "entries": 32,
+    "active_entries": 17,
+    "limit": 32
+  },
+  "kill_ordinal": 16,
+  "faults": 2,
+  "passed": 1,
+  "physical_samples": 4000,
+  "mutations": [
+    {
+      "mutation": "pointer_crc",
+      "rejected": true,
+      "reason": "family metadata CRC"
+    },
+    {
+      "mutation": "missing_predecessor",
+      "rejected": true,
+      "reason": "[Errno 2] No such file or directory: '/tmp/stratadrive-epoch-audit-kqe6g1wn/cohort/source-store/00000001/manifest'"
+    },
+    {
+      "mutation": "valid_crc_payload_mutation",
+      "rejected": true,
+      "reason": "source/replica canonical mismatch"
+    },
+    {
+      "mutation": "missing_duplicate_ack",
+      "rejected": true,
+      "reason": "lost rollover ACK was not retried as duplicate"
+    },
+    {
+      "mutation": "physical_changed",
+      "rejected": true,
+      "reason": "diagnostics changed plant trace"
+    },
+    {
+      "mutation": "unexpected_exit",
+      "rejected": true,
+      "reason": "exact injected process exits"
+    }
+  ]
+}

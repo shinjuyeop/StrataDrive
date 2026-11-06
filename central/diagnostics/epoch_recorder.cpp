@@ -90,6 +90,9 @@ struct EpochRecorder::Impl {
     std::uint64_t store_id{0},generation{1},base{0};
     std::unique_ptr<FileJournal> journal;
     std::unique_ptr<Recorder> writer;
+    std::vector<std::uint64_t> predecessor_ends;
+    std::unique_ptr<FileJournal> read_segment;
+    std::uint64_t read_generation{0};
     explicit Impl(const std::string& path):root(path),directory(open(path.c_str(),O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC)),
         lock(openat(directory.fd,"lock",O_RDWR|O_NOFOLLOW|O_CLOEXEC|O_NONBLOCK)) {
         private_file(directory.fd,true);private_file(lock.fd);
@@ -127,13 +130,33 @@ struct EpochRecorder::Impl {
             }
             if(i<generation) {
                 if(!journal->writable())throw std::runtime_error("epoch incomplete predecessor");
-                expected=writer->ledger().checkpoint();count+=journal->committed().size();
+                expected=writer->ledger().checkpoint();count+=journal->committed().size();predecessor_ends.push_back(count);
             }
         }
         if(count!=base)throw std::runtime_error("epoch watermark mismatch");
         if(exists(directory.fd,"pending") || exists(directory.fd,"incomplete"))writer->recording_gap();
     }
     std::uint64_t watermark() const noexcept{return base+journal->committed().size();}
+    const FileJournal& predecessor(std::size_t index) {
+        if(read_generation!=index+1) {
+            read_segment.reset();read_generation=0;
+            read_segment=std::make_unique<FileJournal>((std::filesystem::path(root)/name(index+1)).string());
+            read_generation=index+1;
+        }
+        const auto start=index?predecessor_ends[index-1]:0;
+        if(!read_segment->writable() || read_segment->store_id()!=store_id+index ||
+           read_segment->registry_revision()!=4 || !same_limits(read_segment->limits(),policy.limits) ||
+           read_segment->committed().size()!=predecessor_ends.at(index)-start)throw std::runtime_error("epoch retained stream changed");
+        return *read_segment;
+    }
+    Entry committed(std::uint64_t ordinal) {
+        if(!ordinal || ordinal>watermark())throw std::out_of_range("epoch committed ordinal");
+        if(ordinal>base)return journal->committed().at(static_cast<std::size_t>(ordinal-base-1));
+        const auto end=std::lower_bound(predecessor_ends.begin(),predecessor_ends.end(),ordinal);
+        const auto index=static_cast<std::size_t>(end-predecessor_ends.begin());
+        const auto start=index?predecessor_ends[index-1]:0;
+        return predecessor(index).committed().at(static_cast<std::size_t>(ordinal-start-1));
+    }
     void gap() noexcept {
         writer->recording_gap();
         try{if(!exists(directory.fd,"incomplete"))write_file(directory.fd,"incomplete",{});}catch(...){ }
@@ -142,10 +165,7 @@ struct EpochRecorder::Impl {
         // Keep receipt identity across reclaimed active windows. Cold lookup is
         // deliberately non-RT; retained disk bytes, not a guessed sequence floor.
         for(std::uint64_t i=1;i<=generation;++i) {
-            std::unique_ptr<FileJournal> old;
-            if(i!=generation)old=std::make_unique<FileJournal>((std::filesystem::path(root)/name(i)).string());
-            const auto& source=i==generation?*journal:*old;
-            if(i!=generation && !source.writable())throw std::runtime_error("epoch predecessor became incomplete");
+            const auto& source=i==generation?*journal:predecessor(static_cast<std::size_t>(i-1));
             for(const auto& prior:source.committed())if(id(prior)==id(entry)) {
                 if(encode(prior)==encode(entry))return Receipt{Result::Duplicate,true,watermark()};
                 gap();return Receipt{Result::Conflict,false,watermark()};
@@ -156,6 +176,7 @@ struct EpochRecorder::Impl {
     Receipt rotate(const Event& event,const EpochCheckpoint& checkpoint) {
         if(generation>=policy.maximum_segments){gap();return {Result::Capacity,false,watermark()};}
         const auto next=generation+1,total=watermark();
+        predecessor_ends.reserve(static_cast<std::size_t>(next-1));
         const auto folder=std::filesystem::path(root)/name(next);
         // Durable intent before successor creation; a partial transfer never
         // masquerades as the original complete family on restart.
@@ -171,6 +192,7 @@ struct EpochRecorder::Impl {
         // Once renamed, even an unacknowledged directory-sync failure refers to
         // the successor. Never mark its immutable predecessor incomplete.
         writer.reset();journal=std::move(successor);writer=std::move(recorder);generation=next;base=total;
+        predecessor_ends.push_back(total);
         sync(directory.fd);
         return {receipt.result,true,watermark()};
     }
@@ -224,6 +246,11 @@ void EpochRecorder::recording_gap() noexcept{impl_->gap();}
 const Ledger& EpochRecorder::ledger() const noexcept{return impl_->writer->ledger();}
 std::uint64_t EpochRecorder::segment() const noexcept{return impl_->generation;}
 std::uint64_t EpochRecorder::watermark() const noexcept{return impl_->watermark();}
+std::uint64_t EpochRecorder::store_id() const noexcept{return impl_->store_id;}
+Entry EpochRecorder::committed(std::uint64_t ordinal) const {
+    if(!ordinal || ordinal>watermark())throw std::out_of_range("epoch committed ordinal");
+    try{return impl_->committed(ordinal);}catch(...){impl_->gap();throw;}
+}
 std::size_t EpochRecorder::drain(EventQueue& queue,std::size_t budget) {
     const auto health=[&]{const auto h=queue.health();if(h.dropped || h.identity_error)recording_gap();};
     health();Event e;std::size_t n=0;while(n<budget && queue.pop(e)){record(e);++n;}health();return n;

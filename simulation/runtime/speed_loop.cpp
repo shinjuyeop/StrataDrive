@@ -29,14 +29,22 @@ void Network::speed_step(std::uint64_t now) {
         gate.allows(active_epoch) && core.decision().management.normal_allowed &&
         core.decision().fault==central::CoordinatorFault::None;
     const bool input_loss=speed_input_lost(now);
-    const auto request=speed_control.step(now,target(elapsed),input_loss?std::nullopt:in.rear.drive_actual,permitted);
+    std::optional<central::VehicleRequest> request;
+    std::optional<central::VehicleInputDependency> dependency;
+    if(config.supervised_speed) {
+        const central::ClassicalSpeedProposal fallback{active_epoch,config.diagnostics_run,now,now+30*kMs+1,target(elapsed),true};
+        const auto derived=supervised_control.step(now,std::nullopt,fallback,input_loss?std::nullopt:in.rear.drive_actual,
+            force_estimator.estimate(in,now),permitted,core.decision().allocation.propulsion_selection);
+        if(derived){request=derived->request;dependency=derived->input;}
+    } else request=speed_control.step(now,target(elapsed),input_loss?std::nullopt:in.rear.drive_actual,permitted);
+    const auto& controller=config.supervised_speed?supervised_control.controller():speed_control;
     next_speed_ns=now+central::SpeedPI::kPeriodNs;
-    result.speed_fault=static_cast<int>(speed_control.fault());
+    result.speed_fault=config.supervised_speed?static_cast<int>(supervised_control.decision().reason):static_cast<int>(speed_control.fault());
     if(!request) { core.request_protection(now); return; }
-    const auto received=core.receive_vehicle(*request,now);
+    const auto received=core.receive_vehicle(*request,now,dependency);
     if(received!=central::CoordinatorReceive::Accepted) { core.request_protection(now); return; }
     last_vehicle=now;
-    const auto& state=speed_control.state();
+    const auto& state=controller.state();
     result.speed_trace.push_back({now,elapsed,request->source_time_ns,request->expires_at_ns,
         request->epoch,request->sequence,target(elapsed),state.sample->speed_mps,
         request->acceleration_mps2,state.integral});

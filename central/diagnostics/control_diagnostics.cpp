@@ -75,6 +75,16 @@ bool same_request(const central::VehicleRequest& a,const central::VehicleRequest
     return a.epoch==b.epoch && a.sequence==b.sequence && a.source_time_ns==b.source_time_ns && a.expires_at_ns==b.expires_at_ns &&
         a.acceleration_mps2==b.acceleration_mps2 && a.curvature_inv_m==b.curvature_inv_m && a.braking_demand==b.braking_demand && a.standstill_hold==b.standstill_hold;
 }
+bool same_dependency(const central::VehicleInputDependency& a,const central::VehicleInputDependency& b) {
+    return a.source_time_ns==b.source_time_ns && a.expires_at_ns==b.expires_at_ns &&
+        a.power.has_value()==b.power.has_value() && (!a.power ||
+        (a.power->source_time_ns==b.power->source_time_ns && a.power->expires_at_ns==b.power->expires_at_ns));
+}
+bool same_config(const central::ReferenceConfig& a,const central::ReferenceConfig& b) {
+    return a.mass_kg==b.mass_kg && a.capacity_fraction==b.capacity_fraction &&
+        a.max_acceleration_mps2==b.max_acceleration_mps2 && a.max_deceleration_mps2==b.max_deceleration_mps2 &&
+        a.max_tracking_lead_mps==b.max_tracking_lead_mps;
+}
 } // namespace
 ControlDiagnostics::ControlDiagnostics(EventQueue& queue,ControlContext context,std::uint64_t first)
     :publisher_(queue,context,first,"control diagnostics context",1) {}
@@ -86,6 +96,7 @@ Event ControlDiagnostics::base(std::uint64_t now) const noexcept {
 bool ControlDiagnostics::start_session(std::uint32_t epoch,std::uint64_t enable,bool publish_context) noexcept {
     if(!epoch || epoch<=session_.epoch || (session_.epoch && enable<enable_)) return false;
     session_={capture_context().run,epoch}; enable_=enable; speed_seen_=supervised_seen_=coordinator_seen_=response_seen_=false;
+    if(supervised_recovery_) {supervised_recovery_->passed=false;supervised_recovery_->recovered_epoch=0;}
     stop_seen_={}; phase_seen_={}; protection_seen_={}; root_={};
     if(!publish_context) return healthy();
     auto e=base(enable); e.kind=Kind::Session; return publish(e).sequence!=0 && healthy();
@@ -323,14 +334,59 @@ void ControlDiagnostics::observe_speed_recovery(const central::SpeedRequest& spe
        !d.normal_armed || d.stopping || d.fault!=central::CoordinatorFault::None ||
        !d.management.normal_allowed || d.management.fault!=central::VehicleManagementFault::None ||
        d.management.permission_support.expiry_ns<=now) return;
-    auto e=base(now); e.kind=Kind::Actual; e.proof=speed_recovery_target_->key.code==Code::SpeedInput?Proof::Input:Proof::Control; e.key=speed_recovery_target_->key;
-    e.occurrence=speed_recovery_target_->occurrence; e.related=speed_recovery_target_->id; e.latch=Latch::Clear;
-    e.source={true,value(Component::DriveWheel),o.input.wheel_speed->source_time_ns,o.epoch,stamp(o.input.wheel_speed->source_time_ns),{}};
-    e.command={true,value(Component::Speed),o.request.sequence,o.request.epoch,stamp(o.request.source_time_ns),stamp(o.request.expires_at_ns)};
-    e.times[static_cast<std::size_t>(Time::Actual)]=stamp(o.input.wheel_speed->source_time_ns);
-    e.measured=o.input.wheel_speed->value_rad_s;
-    const auto evidence=publish(e); e.kind=Kind::Passed; e.proof_event=evidence; publish(e);
-    speed_recovered_=true;
+    speed_recovered_=speed_recovered(*speed_recovery_target_,o.input,o.request,now);
+}
+bool ControlDiagnostics::speed_recovered(const Event& fault,const can::DriveMessage& input,
+    const central::VehicleRequest& request,std::uint64_t now) noexcept {
+    auto e=base(now);e.kind=Kind::Actual;e.proof=fault.key.code==Code::SpeedInput?Proof::Input:Proof::Control;e.key=fault.key;
+    e.occurrence=fault.occurrence;e.related=fault.id;e.latch=Latch::Clear;
+    e.source={true,value(Component::DriveWheel),input.wheel_speed->source_time_ns,input.epoch,stamp(input.wheel_speed->source_time_ns),{}};
+    e.command={true,value(Component::Speed),request.sequence,request.epoch,stamp(request.source_time_ns),stamp(request.expires_at_ns)};
+    e.times[static_cast<std::size_t>(Time::Actual)]=stamp(input.wheel_speed->source_time_ns);e.measured=input.wheel_speed->value_rad_s;
+    const auto evidence=publish(e);if(!healthy())return false;
+    e.kind=Kind::Passed;e.proof_event=evidence;publish(e);return healthy();
+}
+void ControlDiagnostics::observe_speed_recovery(const central::SupervisedSpeedRequest& control,const central::VehicleCoordinator& c,
+    const central::NormalDriveReadinessInputs& in,std::uint64_t now) noexcept {
+    if(!healthy() || !supervised_recovery_ || supervised_recovery_->passed ||
+       session_.epoch<=supervised_recovery_->fault.session.epoch || supervised_recovery_->fault.profile!=capture_context().profile ||
+       !same_config(supervised_recovery_->config,control.configuration()) || supervised_recovery_->radius!=control.wheel_radius_m() ||
+       in.epoch!=session_.epoch || in.session_enable_ns!=enable_ || control.protection_required() ||
+       control.controller().fault()!=central::SpeedRequestFault::None || control.controller().state().fault ||
+       !control.success_observation() || !c.last_vehicle_request() || !c.last_vehicle_input() || !in.rear.drive_actual ||
+       now<enable_ || now==std::numeric_limits<std::uint64_t>::max())return;
+    const auto& o=*control.success_observation();const auto& q=o.output.request;const auto d=c.decision();
+    if(o.epoch!=session_.epoch || o.enable_ns!=enable_ || o.clock_instance!=capture_context().clock_instance ||
+       o.issued_ns>now || now-o.issued_ns>30000000 || !control.controller().state().last_ns ||
+       *control.controller().state().last_ns!=o.issued_ns || q.expires_at_ns<=now || o.force.expires_ns<=now ||
+       !same_request(q,*c.last_vehicle_request()) || !same_dependency(o.output.input,*c.last_vehicle_input()) ||
+       !same_input(o.input,*in.rear.drive_actual) || !central::evaluate_normal_drive_readiness(in,now).ready() ||
+       !d.normal_armed || d.stopping || d.fault!=central::CoordinatorFault::None ||
+       !d.allocation.propulsion_selection || d.allocation.propulsion_selection->epoch!=o.epoch ||
+       d.allocation.propulsion_selection->request_sequence!=q.sequence ||
+       d.allocation.propulsion_selection->requested_acceleration_mps2!=q.acceleration_mps2 ||
+       d.allocation.propulsion_selection->selection_ns<o.issued_ns || d.allocation.propulsion_selection->selection_ns>now ||
+       !d.management.normal_allowed || d.management.fault!=central::VehicleManagementFault::None ||
+       d.management.permission_support.expiry_ns<=now)return;
+    supervised_recovery_->passed=speed_recovered(supervised_recovery_->fault,o.input,q,now);
+    if(!supervised_recovery_->passed)return;
+    supervised_recovery_->recovered_epoch=session_.epoch;
+    // The inner PI may have failed too. Qualify it with the same final accepted
+    // request, never its pre-supervision expiry/dependency snapshot.
+    if(speed_recovery_target_ && !speed_recovered_ && session_.epoch>speed_recovery_target_->session.epoch &&
+       speed_recovery_target_->profile==capture_context().profile)
+        speed_recovered_=speed_recovered(*speed_recovery_target_,o.input,q,now);
+}
+std::optional<ServiceEvidence> ControlDiagnostics::speed_clear_evidence(const central::SupervisedSpeedRequest& control,
+    const central::VehicleCoordinator& c,const central::NormalDriveReadinessInputs& in,
+    const std::optional<can::DriveMessage>& input,std::uint64_t now) const noexcept {
+    if(!supervised_recovery_ || !supervised_recovery_->passed || supervised_recovery_->recovered_epoch!=session_.epoch ||
+       !same_config(supervised_recovery_->config,control.configuration()) || supervised_recovery_->radius!=control.wheel_radius_m() ||
+       control.protection_required() || !control.success_observation() ||
+       control.success_observation()->epoch!=session_.epoch || control.success_observation()->enable_ns!=enable_ ||
+       control.success_observation()->clock_instance!=capture_context().clock_instance ||
+       control.controller().fault()!=central::SpeedRequestFault::None)return std::nullopt;
+    return stationary_evidence(c,in,input,now);
 }
 std::optional<ServiceEvidence> ControlDiagnostics::speed_clear_evidence(const central::SpeedRequest& speed_control,
     const central::VehicleCoordinator& c,const central::NormalDriveReadinessInputs& in,
@@ -383,6 +439,7 @@ void ControlDiagnostics::observe(const central::SupervisedSpeedRequest& control,
             e.command={true,value(Component::Speed),q.sequence,q.epoch,stamp(q.source_time_ns),stamp(q.expires_at_ns)};
         }
         e.id=publish(e);e.occurrence={session_.run,capture_context().producer,session_.epoch,e.key.monitor,e.id.sequence};
+        supervised_recovery_=SupervisedRecovery{e,control.configuration(),control.wheel_radius_m(),false,0};
         if(!has_root(root_))root_=e;
     }
     // The original PI/allocator monitors still report their own failures.

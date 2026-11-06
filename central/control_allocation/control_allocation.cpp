@@ -64,7 +64,7 @@ bool ControlAllocation::start_session(std::uint32_t epoch, std::uint64_t enable)
     epoch_ = epoch; enable_ns_ = last_observed_ns_ = enable; sequence_ = 0;
     last_tick_ns_.reset(); critical_expiry_ns_.reset(); regen_expiry_ns_.reset(); request_.reset(); request_input_.reset(); deficit_ = {}; excess_ = {};
     stop_.reset(enable);
-    armed_ = stopped_ = braking_ = low_speed_ = holding_ = false; episode_regen_nm_ = 0;
+    armed_ = stopped_ = braking_ = low_speed_ = holding_ = stop_requests_ = false; episode_regen_nm_ = 0;
     decision_ = {}; decision_.state = AllocationState::Waiting;
     return true;
 }
@@ -101,9 +101,18 @@ bool ControlAllocation::advance(std::uint64_t now) {
 }
 AllocationReceiveDecision ControlAllocation::receive_request(const VehicleRequest& request, std::uint64_t now,
     std::optional<VehicleInputDependency> input) {
+    return receive(request,now,input,false);
+}
+AllocationReceiveDecision ControlAllocation::receive_stop_request(const VehicleRequest& request,std::uint64_t now) {
+    return receive(request,now,std::nullopt,true);
+}
+AllocationReceiveDecision ControlAllocation::receive(const VehicleRequest& request,std::uint64_t now,
+    std::optional<VehicleInputDependency> input,bool stopping) {
     if (epoch_ == 0) return AllocationReceiveDecision::NotInitialized;
     if (!advance(now) || decision_.state == AllocationState::FailSafe) return AllocationReceiveDecision::Latched;
     if (request.epoch != epoch_) return AllocationReceiveDecision::EpochMismatch;
+    if((stop_requests_ && !stopping) || (stopping && (request.acceleration_mps2>0 ||
+       (request.acceleration_mps2==0 && request.braking_demand==0 && !request.standstill_hold))))return AllocationReceiveDecision::Invalid;
     if (!std::isfinite(request.acceleration_mps2) || !std::isfinite(request.curvature_inv_m) ||
         !std::isfinite(request.braking_demand) || request.acceleration_mps2 < -config_.max_deceleration_mps2 ||
         request.acceleration_mps2 > config_.max_acceleration_mps2 || std::abs(request.curvature_inv_m) > config_.max_curvature_inv_m ||
@@ -123,21 +132,21 @@ AllocationReceiveDecision ControlAllocation::receive_request(const VehicleReques
            power.expires_at_ns<=request.source_time_ns || power.expires_at_ns-power.source_time_ns>config_.readiness.bms_dependency_age_ns+1 ||
            input->expires_at_ns>power.expires_at_ns)return AllocationReceiveDecision::Invalid;
     }
-    if(request_input_ && request_input_->power && (!input || !input->power) && request_ && request.sequence!=request_->sequence)
+    if(!stopping && request_input_ && request_input_->power && (!input || !input->power) && request_ && request.sequence!=request_->sequence)
         return AllocationReceiveDecision::Invalid;
     if (request_ && request.sequence == request_->sequence) {
         const bool same_input=bool(input)==bool(request_input_) && (!input ||
             (input->source_time_ns==request_input_->source_time_ns && input->expires_at_ns==request_input_->expires_at_ns &&
              bool(input->power)==bool(request_input_->power) && (!input->power ||
                 (input->power->source_time_ns==request_input_->power->source_time_ns && input->power->expires_at_ns==request_input_->power->expires_at_ns))));
-        return same_vehicle_request(request, *request_) && same_input ? AllocationReceiveDecision::Unchanged : AllocationReceiveDecision::MutationRejected;
+        return same_vehicle_request(request, *request_) && same_input && stopping==stop_requests_ ? AllocationReceiveDecision::Unchanged : AllocationReceiveDecision::MutationRejected;
     }
     const auto previous = request_ ? std::optional<std::uint32_t>{request_->sequence} : std::nullopt;
     if (!can::actuator_sequence_progresses(previous, request.sequence) ||
         (request_ && request.source_time_ns <= request_->source_time_ns) ||
         (input && request_input_ && (input->source_time_ns<=request_input_->source_time_ns ||
             (input->power && request_input_->power && input->power->source_time_ns<=request_input_->power->source_time_ns)))) return AllocationReceiveDecision::SequenceRejected;
-    request_ = request; request_input_=input; return AllocationReceiveDecision::Accepted;
+    request_ = request; request_input_=input;stop_requests_=stopping;return AllocationReceiveDecision::Accepted;
 }
 void ControlAllocation::mark_continuity_lost(std::uint64_t now) { if (advance(now)) fail(AllocationFault::ContinuityLost); }
 bool ControlAllocation::Dwell::observe(bool outside, std::uint64_t source, std::uint64_t duration) {

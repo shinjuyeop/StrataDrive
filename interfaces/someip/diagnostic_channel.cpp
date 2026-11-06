@@ -5,7 +5,7 @@
 namespace stratadrive::someip::diagnostic {
 Channel::Channel(Role r,std::uint64_t stream,std::uint32_t registry,Services services)
     :role_(r),stream_(stream),registry_(registry),services_(services) {
-    if((r!=Role::Publisher && r!=Role::Replica) || !stream || registry<1 || registry>3 || !valid(services))
+    if((r!=Role::Publisher && r!=Role::Replica) || !stream || registry<1 || registry>4 || !valid(services))
         throw std::invalid_argument("diagnostic channel configuration");
 }
 void Channel::configure(const std::shared_ptr<vsomeip::application>& app) {

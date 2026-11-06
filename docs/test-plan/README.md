@@ -8,6 +8,7 @@
 
 | 수용 범위 | 원본·재현·제한 |
 | --- | --- |
+| 감독 복구·Epoch 송수신 | [정상 정지·명시적 clear·SOME/IP rollover 재시작](evidence/supervised-recovery-delivery/README.md) |
 | Native 속도 감독 운영 연결 | [BMS 가용력·보호·DTC와 실제 CARLA 두 실행](evidence/runtime-speed-connection/README.md) |
 | 선택형 기록 이관·가용력 목표·M10 Host 착수 | [상태 보존·기존 제어 연결·제약](evidence/remaining-improvements/README.md) |
 | 이전 milestone 소프트웨어 후속 | [제동 피드백·저장 실패/중단 경계](evidence/milestone-followup/README.md) |

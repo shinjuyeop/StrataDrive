@@ -150,7 +150,7 @@ if(TARGET diagnostics_journal)
         SOURCES tests/unit/control_diagnostics_sil_test.cpp
         LIBRARIES diagnostics_journal m4_async_runtime)
     stratadrive_unit_test(control_recovery_sil_test
-        SOURCES tests/unit/control_recovery_sil_test.cpp
+        SOURCES tests/unit/control_recovery_sil_test.cpp tests/unit/supervised_recovery_sil_test.cpp
         LIBRARIES diagnostics_journal m4_async_runtime)
     stratadrive_unit_test(owner_diagnostics_test
         SOURCES tests/unit/owner_diagnostics_test.cpp

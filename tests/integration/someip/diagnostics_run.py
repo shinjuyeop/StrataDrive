@@ -17,7 +17,7 @@ import run as base
 
 ROOT = base.ROOT
 HERE = Path(__file__).resolve()
-CASES = ('normal', 'loss', 'drop-ack', 'restart')
+CASES = ('normal', 'loss', 'drop-ack', 'restart', 'epoch-restart')
 
 
 def config(role, generation):
@@ -100,7 +100,7 @@ def inside(folder, binary, case):
         base.wait_for(lambda: (folder/'capture.ready').exists())
         receiver = launch('replica'); publisher = launch('publisher')
         wait(lambda: (folder/'publisher.csv').exists()); snapshot('publisher', 1, publisher); snapshot('replica', 1, receiver)
-        if case == 'restart':
+        if case in ('restart', 'epoch-restart'):
             wait(lambda: (folder/'restart-needed').exists(), 30)
             result['injected_replica_kill'] = {'pid': receiver.pid, 'monotonic_ns': time.monotonic_ns()}
             receiver.kill(); receiver.wait(timeout=5)

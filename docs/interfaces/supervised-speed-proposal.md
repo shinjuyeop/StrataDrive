@@ -97,13 +97,31 @@ PI release의 방향별 anti-windup에 전달된다. 실패 시 새 정상 요�
 Accepted/Missing/Invalid/Stale/Identity/Hazard/NoFallback/Authority/Reference/Controller/CapacityInput이다.
 ReferenceFault0..5는 None/Session/Clock/Input/Capacity/Tracking이다. 첫 검출 시각은 latch 후에도
 고정하며 기존 보호 선택·ACK·원본 Actual 관측이 그 occurrence를 참조한다. 기존 PI/배분 진단도 유지한다.
-새 monitor는 아직 qualified Passed/서비스 clear adapter를 제공하지 않는다. 입력 복구·INIT·프로세스
-재시작으로 DTC가 지워졌다고 표시하지 않으며 일반 Speed monitor의 clear 근거를 재사용하지 않는다.
+새 monitor의 qualified 복구는 더 큰 실제 global INIT 뒤에만 가능하다. `SupervisedSpeedSuccess`가
+원본 wheel/force와 **감독기가 최종 제한한 DerivedVehicleRequest**를 보존한다. Observer는 같은
+clock instance·profile·governor 설정·wheel radius, 현재 receiver/readiness, 최종 request와 power
+의존성의 coordinator 수락, 그 request sequence/가속도의 실제 배분 성공을 함께 확인한다.
+내부 PI가 제한 전 기록한 request만으로 Passed를 발행하지 않는다. Proof::Control의 원본 Actual과
+Passed는 이전 fault occurrence를 참조한다. 입력 복원·INIT만으로 복구되지 않는다.
+
+서비스 evidence는 이 복구가 확인된 동일 세션에서 실제 정상 정지 Complete, normal dispatch 차단,
+HV off/접촉기 개방, fresh wheel≤0.01rad/s·|torque|≤0.1Nm·hold pressure를 확인해야 얻을 수 있다.
+Writer는 명시적 clear intent/key/expected revision을 별도로 검사한다. Clear는 운행 권한을 주지
+않고, 재기동은 condition을 Unknown으로 만든다. 다음 세션의 새 proof가 이미 해제된 이력을
+다시 지우거나 fault count를 증가시키지 않으며, 실제 재고장은 새 generation으로 기록된다.
+프로세스 재시작 후 observer의 이전 occurrence 자동 채택은 이 adapter 범위가 아니다.
+
+정상 정지로 넘어갈 때는 coordinator 내부 NormalStop가 `receive_stop_request`로 제동/hold 요청을
+전달한다. 이 명시적 전환에서만 기존 속도 governor의 power dependency를 내려놓는다. 배분기는
+현재 wheel/BMS/permission을 계속 검증한다. 같은 세션에서 일반 주행 요청으로 되돌아갈 수 없고,
+양의 가속이나 제동/hold 없는 0요청은 정지 전환으로 수용하지 않는다.
 
 ## 검증과 다음 단계
 
 [Native 연결 검증](../test-plan/evidence/runtime-speed-connection/README.md)과
 [초기 Host 검증](../test-plan/evidence/remaining-improvements/README.md)을 구분한다.
-전체 ODD·온라인 저항 추정·실제 학습 모델과 새 monitor의 qualified 복구/clear는 후속이다.
+[복구·명시적 해제와 통신 저장소 검증](../test-plan/evidence/supervised-recovery-delivery/README.md)은
+40초 논리 SIL의 새 INIT·정상 제어·안전 정차·해제·재기동·재발을 포함한다. CARLA 복구 주행 시험이나
+전체 ODD·온라인 저항 추정·실제 학습 모델 검증으로 확대하지 않는다.
 모델 도입 시 scenario/seed, route revision, feature adapter, sensor/calibration, model weights hash,
 precision, software revision, clock instance, 모든20ms 입력/출력·fallback 이유를 고정하고 보존한다.

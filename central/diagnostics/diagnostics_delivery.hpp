@@ -1,40 +1,62 @@
 #pragma once
 #include "diagnostic_wire.hpp"
 #include "diagnostics_journal.hpp"
+#include "epoch_recorder.hpp"
 #include <optional>
 #include <memory>
 
 namespace stratadrive::diagnostics {
+// Shared non-RT event-only view. Epoch families expose global committed
+// ordinals without flattening retained history into an unbounded vector.
+class DeliveryStore {
+public:
+    explicit DeliveryStore(FileJournal&);
+    explicit DeliveryStore(EpochRecorder&);
+    std::uint64_t store_id() const noexcept;
+    std::uint32_t registry_revision() const noexcept;
+    std::uint64_t size() const noexcept;
+    Event event(std::uint64_t ordinal) const;
+    Receipt record(const Event&);
+    std::size_t drain(EventQueue&,std::size_t);
+    bool healthy() const noexcept;
+    const Ledger& ledger() const noexcept;
+    void recording_gap() noexcept;
+private:
+    FileJournal* journal_{nullptr};EpochRecorder* epochs_{nullptr};
+    std::unique_ptr<Recorder> recorder_;
+};
 // One non-RT owner per object/store. Explicitly provision both journals with
 // the same unique stream ID/registry; use a trusted transport peer. Event only.
 // ACK never removes history. Sender restart replays from ordinal 1.
 class Outbox {
 public:
     explicit Outbox(FileJournal&);
-    Receipt record(const Event& e) { return recorder_.record(e); }
-    std::size_t drain(EventQueue& q,std::size_t budget=EventQueue::kCapacity) { return recorder_.drain(q,budget); }
+    explicit Outbox(EpochRecorder&);
+    Receipt record(const Event& e) { return store_.record(e); }
+    std::size_t drain(EventQueue& q,std::size_t budget=EventQueue::kCapacity) { return store_.drain(q,budget); }
     std::optional<wire::Bytes> next();
     Result acknowledge(const wire::Bytes&);
     // Explicit non-RT handover to a fresh replica. Same immutable history;
     // ACKs cannot skip the new in-flight ordinal. No authority or clear effect.
     void restart_delivery() noexcept { acknowledged_=0;in_flight_=0; }
     std::uint64_t acknowledged() const noexcept { return acknowledged_; }
-    bool healthy() const noexcept { return journal_.writable() && recorder_.ledger().complete(); }
-    const Ledger& ledger() const noexcept { return recorder_.ledger(); }
-    void recording_gap() noexcept { recorder_.recording_gap(); }
+    bool healthy() const noexcept { return store_.healthy(); }
+    const Ledger& ledger() const noexcept { return store_.ledger(); }
+    void recording_gap() noexcept { store_.recording_gap(); }
 private:
-    FileJournal& journal_; Recorder recorder_;
+    DeliveryStore store_;
     std::uint64_t acknowledged_{0},in_flight_{0};
 };
 struct DeliveryReceipt { Result result; std::optional<wire::Bytes> ack; std::uint64_t watermark; };
 class Inbox {
 public:
     explicit Inbox(FileJournal&);
+    explicit Inbox(EpochRecorder&);
     DeliveryReceipt receive(const wire::Bytes&);
-    bool healthy() const noexcept { return journal_.writable() && recorder_.ledger().complete(); }
-    const Ledger& ledger() const noexcept { return recorder_.ledger(); }
+    bool healthy() const noexcept { return store_.healthy(); }
+    const Ledger& ledger() const noexcept { return store_.ledger(); }
 private:
-    FileJournal& journal_; Recorder recorder_;
+    DeliveryStore store_;
 };
 // Historical committed prefix only, including a valid prefix of an unclean
 // source with an uncommitted tail. No append/repair/clear API. The caller must

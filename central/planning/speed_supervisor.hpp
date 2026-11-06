@@ -20,6 +20,13 @@ struct SupervisedSpeedFault {
     ProposalReason reason{ProposalReason::NoFallback};
     ReferenceFault reference_fault{ReferenceFault::None};
 };
+struct SupervisedSpeedSuccess {
+    std::uint32_t epoch;
+    std::uint64_t clock_instance,enable_ns,issued_ns;
+    can::DriveMessage input;
+    AvailableForce force;
+    DerivedVehicleRequest output;
+};
 // Single owner. Supervisor approval does not grant vehicle permission.
 class SpeedSupervisor {
 public:
@@ -48,7 +55,11 @@ public:
     bool protection_required() const noexcept { return latched_; }
     const SpeedRequest& controller() const noexcept { return controller_; }
     const std::optional<SupervisedSpeedFault>& fault_observation() const noexcept { return fault_; }
+    const std::optional<SupervisedSpeedSuccess>& success_observation() const noexcept { return success_; }
+    const ReferenceConfig& configuration() const noexcept { return config_; }
+    double wheel_radius_m() const noexcept { return radius_; }
 private:
+    ReferenceConfig config_;
     double radius_;
     SpeedSupervisor supervisor_;
     AvailableForceReference governor_;
@@ -60,5 +71,6 @@ private:
     std::uint32_t epoch_{0};
     std::uint64_t clock_{0},enable_{0};
     std::optional<SupervisedSpeedFault> fault_;
+    std::optional<SupervisedSpeedSuccess> success_;
 };
 } // namespace stratadrive::central

@@ -214,7 +214,8 @@ TEST(AvailableForceEstimator, MissingInvalidFutureAndForeignInputsHaveNoCapacity
         EXPECT_FALSE(estimator.estimate(in,start+20*ms))<<fault;
     }
     EXPECT_THROW((AvailableForceEstimator({}, {200,100})),std::invalid_argument);
-    AllocationConfig bad;bad.wheel_radius_m=0;EXPECT_THROW((AvailableForceEstimator(bad,{})),std::invalid_argument);
+    AllocationConfig bad;bad.wheel_radius_m=0;
+    EXPECT_THROW((AvailableForceEstimator(bad,{})),std::invalid_argument);
 }
 TEST(SupervisedSpeedRequest, MissingCapacityFreezesFirstObservationUntilNewInit) {
     SupervisedSpeedRequest c;ASSERT_TRUE(c.start_session(1,7,start));
@@ -276,5 +277,34 @@ TEST(SupervisedPowerProvenance, SpeedGateExpiryAndDuplicateIdentityRemainStrict)
     changed=original;changed.power.reset();EXPECT_EQ(c.receive_request(request,t,changed),AllocationReceiveDecision::MutationRejected);
     auto newer=request;++newer.sequence;++newer.source_time_ns;
     EXPECT_EQ(c.receive_request(newer,t+1,changed),AllocationReceiveDecision::Invalid);
+}
+TEST(SupervisedSpeedRequest, SuccessRecordsFinalCappedRequestAndDisappearsOnFailureOrInit) {
+    SupervisedSpeedRequest c;ASSERT_TRUE(c.start_session(1,7,start));
+    const auto request=c.step(now,std::nullopt,fallback(),actual(),force(now-4*ms),true);ASSERT_TRUE(request);
+    ASSERT_TRUE(c.success_observation());const auto& o=*c.success_observation();
+    EXPECT_EQ(o.output.request.expires_at_ns,request->request.expires_at_ns);
+    EXPECT_LT(o.output.request.expires_at_ns,c.controller().success_observation()->request.expires_at_ns);
+    EXPECT_EQ(o.output.input.source_time_ns,now-4*ms);EXPECT_EQ(o.clock_instance,7U);EXPECT_EQ(o.issued_ns,now);
+    EXPECT_FALSE(c.step(now+20*ms,std::nullopt,fallback(now+20*ms),actual(now+20*ms),std::nullopt,true));
+    EXPECT_FALSE(c.success_observation());ASSERT_TRUE(c.start_session(2,7,now+20*ms));EXPECT_FALSE(c.success_observation());
+}
+TEST(SupervisedPowerProvenance, OnlyExplicitNormalStopCanTransferProvenanceAndCannotResumePropulsion) {
+    ControlAllocation c;ASSERT_TRUE(c.start_session(3,start));
+    const auto t=start+20*ms;
+    VehicleRequest request{3,1,t,t+20*ms,0,0,0,false};
+    const VehicleInputDependency input{t,t+20*ms,PowerInputDependency{t,t+30*ms}};
+    ASSERT_EQ(c.receive_request(request,t,input),AllocationReceiveDecision::Accepted);ASSERT_TRUE(c.tick(allocation_fixture::inputs(20),t));
+    auto stop=request;++stop.sequence;stop.source_time_ns+=10*ms;stop.expires_at_ns+=10*ms;stop.acceleration_mps2=-1;
+    EXPECT_EQ(c.receive_request(stop,t+10*ms),AllocationReceiveDecision::Invalid);
+    auto invalid=stop;invalid.acceleration_mps2=1;EXPECT_EQ(c.receive_stop_request(invalid,t+10*ms),AllocationReceiveDecision::Invalid);
+    invalid.acceleration_mps2=0;EXPECT_EQ(c.receive_stop_request(invalid,t+10*ms),AllocationReceiveDecision::Invalid);
+    EXPECT_EQ(c.receive_stop_request(stop,t+10*ms),AllocationReceiveDecision::Accepted);
+    EXPECT_EQ(c.receive_stop_request(stop,t+10*ms),AllocationReceiveDecision::Unchanged);
+    EXPECT_EQ(c.receive_request(stop,t+10*ms),AllocationReceiveDecision::Invalid);
+    ++request.sequence;request.source_time_ns=t+11*ms;request.expires_at_ns=t+31*ms;request.acceleration_mps2=1;
+    EXPECT_EQ(c.receive_request(request,t+11*ms,input),AllocationReceiveDecision::Invalid);
+    EXPECT_EQ(c.receive_stop_request(request,t+11*ms),AllocationReceiveDecision::Invalid);
+    ASSERT_TRUE(c.start_session(4,t+12*ms));request.epoch=4;request.source_time_ns=t+12*ms;request.expires_at_ns=t+32*ms;
+    EXPECT_EQ(c.receive_request(request,t+12*ms),AllocationReceiveDecision::Accepted);
 }
 } // namespace

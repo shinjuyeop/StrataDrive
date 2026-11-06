@@ -7,7 +7,7 @@ using namespace stratadrive;
 using namespace someip::diagnostic;
 using namespace diagnostics_fixture;
 TEST(DiagnosticBinding, ExactDedicatedServiceAndDirectionAreRequiredForBothRoles) {
-    for(unsigned registry=1;registry<=3;++registry) {
+    for(unsigned registry=1;registry<=4;++registry) {
         const diagnostics::wire::Message d=diagnostics::wire::Data{7001,1,registry,session()};
         const diagnostics::wire::Message a=diagnostics::wire::Ack{7001,1,registry,1};
         EXPECT_TRUE(binding(Role::Replica,kReplica,1,kData,1,1,true,d,7001,registry));

@@ -1,4 +1,4 @@
-# 설계 결정 기록 · ADR-0001–0108
+# 설계 결정 기록 · ADR-0001–0109
 
 이 문서는 당시 결정과 검토를 보존한 기록이다. 현재 상태는 [프로젝트 상태](../project-status.md), 현재 계약은 [문서 안내](../README.md)를 따른다. 과거의 “다음 작업/미구현”은 현재 지시가 아니다.
 
@@ -110,6 +110,7 @@
 - [ADR-0106: 세션 경계의 진단 상태 이관과 활성 창 회수](#adr-0106)
 - [ADR-0107: 가용력 목표와 상태 기반 M10 Host 속도 제안](#adr-0107)
 - [ADR-0108: Native 속도 감독의 원천별 유효기간과 보호 연결](#adr-0108)
+- [ADR-0109: 감독 요청의 qualified 복구와 세션별 송수신 기록](#adr-0109)
 
 <a id="adr-0001"></a>
 
@@ -6055,3 +6056,19 @@ fresh classical fallback이다. 고정 road-load bounds를 실행 인자로 명�
 같은 release의 실패가 실제 보호를 선택하고 첫 검출 시각의 SD-1002/monitor4와 보호·Actual·영속 DTC를
 연결한다. 입력 복구로 재출발하지 않으며 새 monitor에 기존 Speed clear 증거를 재사용하지 않는다.
 [계약](../interfaces/supervised-speed-proposal.md)과 [실행 근거](../test-plan/evidence/runtime-speed-connection/README.md)를 따른다.
+
+<a id="adr-0109"></a>
+
+## ADR-0109: 감독 요청의 qualified 복구와 세션별 송수신 기록
+
+2026-11-06. 내부 PI의 성공 snapshot과 감독기가 source/expiry를 제한한 최종 요청을 구분한다.
+더 큰 실제 INIT·동일 clock/config·현재 receiver·동일 최종 request/dependency 수락과 그 요청의
+실제 배분 성공이 qualified 복구 근거다. 명시적 clear는 별도의 정차/전원 차단 evidence와 revision을
+요구한다. 정상 정지에서는 trusted NormalStop output만 받는 단방향 배분 경로로 전환한다.
+시험에서 드러난 speed power-dependency 제거 거절을 일반 주행 검사를 풀어서 우회하지 않는다.
+
+EpochRecorder의 stream ID는 root에 고정하고 ordinal은 전 segment 누적 entry다. Event-only
+Outbox/Inbox는 같은 wire format과 registry4로 ACK/retry를 유지한다. 물리 segment ID나 checkpoint를
+wire event로 보내지 않는다. Source/replica가 다른 threshold로 회전해도 exact bytes가 같아야 한다.
+기본 다중 source MergedCollector는 늦은 이전 epoch event에 대한 순서 장벽이 마련될 때 적용한다.
+[계약](../interfaces/epoch-retention.md)과 [실행 근거](../test-plan/evidence/supervised-recovery-delivery/README.md)를 따른다.
