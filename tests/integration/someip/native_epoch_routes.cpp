@@ -39,7 +39,7 @@ void NativeDiagnosticRoutes::work_epochs() {
         std::unique_ptr<d::EpochRecorder> merged,local,local_replica;
         std::unique_ptr<d::EpochLocalSpool> spool;std::unique_ptr<d::EpochMergedCollector> collector;
         const bool central=ecu_==Ecu::Central;
-        const auto target=std::getenv("STRATADRIVE_FAULT_REAR")?Ecu::Rear:Ecu::Front;
+        const auto target=central_restart_?Ecu::Central:std::getenv("STRATADRIVE_FAULT_REAR")?Ecu::Rear:Ecu::Front;
         const bool replacement=std::getenv("STRATADRIVE_DIAGNOSTIC_PROCESS_RESTART");
         std::vector<d::EpochRecorder*> members;
         for(unsigned i=0;i<9;++i)if(source_channels_[i]) {
@@ -49,7 +49,9 @@ void NativeDiagnosticRoutes::work_epochs() {
                 const auto logical=diagnostic_sources[i].producer;
                 std::vector<d::EpochProducer> lineage{{logical,1}};
                 if(replacement && diagnostic_sources[i].ecu==target)lineage.push_back({(1ULL<<32)|logical,2});
-                outboxes[i]=std::make_unique<d::ContextualOutbox>(*stores[i],manifest(sources_[i]->producer),std::vector<d::CentralIssuer>{{7,1}},std::move(lineage));
+                std::vector<d::CentralIssuer> issuers{{7,1}};
+                if(central_restart_)issuers.push_back({(1ULL<<32)|7,2});
+                outboxes[i]=std::make_unique<d::ContextualOutbox>(*stores[i],manifest(sources_[i]->producer),std::move(issuers),std::move(lineage));
                 require(outboxes[i]->healthy(),"epoch source incomplete; original family retained");
             }
         }
@@ -62,8 +64,18 @@ void NativeDiagnosticRoutes::work_epochs() {
             merged=std::make_unique<d::EpochRecorder>((folder_/"merged").string());
             local=std::make_unique<d::EpochRecorder>((folder_/"central-source").string());
             local_replica=std::make_unique<d::EpochRecorder>((folder_/"central-replica").string());
-            spool=std::make_unique<d::EpochLocalSpool>(*local,7,8);members.push_back(local_replica.get());
+            std::vector<d::EpochPublishers> lineage{{7,8,1}};
+            if(central_restart_)lineage.push_back({(1ULL<<32)|7,(1ULL<<32)|8,2});
+            spool=std::make_unique<d::EpochLocalSpool>(*local,lifecycle_?lifecycle_->producer(7):7,lifecycle_?lifecycle_->producer(8):8,std::move(lineage));
+            members.push_back(local_replica.get());
             collector=std::make_unique<d::EpochMergedCollector>(*merged,members);
+            if(central_restart_ && generation_>1) {
+                // Lifecycle plus all family lifetime locks have been acquired.
+                // The predecessor can no longer append; its volatile tail is
+                // still unknown and is reported by the continuity publisher.
+                require(lifecycle_->previous_unclean() && local->watermark(),"Central replacement needs retained original prefix");
+                retired_central_.store(local->ledger().session().epoch,std::memory_order_release);
+            }
         }
         startup_ready_.set_value();started=true;
         std::optional<d::Event> global;
@@ -77,7 +89,7 @@ void NativeDiagnosticRoutes::work_epochs() {
         const auto transmit=[&](auto& out,diagnostic::Channel& channel,Retry& state) {
             while(auto bytes=channel.pop()) {
                 const auto r=out.acknowledge(*bytes);
-                require(r==d::Result::Accepted || r==d::Result::Duplicate || (generation_>1 && r==d::Result::NotReady),"epoch ACK binding");
+                require(r==d::Result::Accepted || r==d::Result::Duplicate || ((generation_>1 || central_restart_) && r==d::Result::NotReady),"epoch ACK binding");
                 if(r==d::Result::Accepted){++acked;state={};}else if(r==d::Result::NotReady)++stale;
             }
             if((!state.last || wall()-state.last>=state.delay*ms) && channel.available())if(auto bytes=out.next())if(channel.send(*bytes)) {
@@ -114,7 +126,9 @@ void NativeDiagnosticRoutes::work_epochs() {
                     note(r.ack?(r.result==d::Result::Duplicate?"duplicate":"replica-commit"):"await-epoch",data);
                     if(!r.ack)continue;
                     ++events;if(r.result==d::Result::Duplicate)++duplicates;
-                    if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !omitted_ack && data.event.kind==d::Kind::Fault){omitted_ack=true;note("omit-ack",data);}
+                    const bool drop_candidate=central_restart_?
+                        generation_>1 && data.event.kind==d::Kind::Session && data.event.session.epoch==2:data.event.kind==d::Kind::Fault;
+                    if(std::getenv("STRATADRIVE_DIAGNOSTIC_DROP_ACK") && !omitted_ack && drop_candidate){omitted_ack=true;note("omit-ack",data);}
                     else if(!source_channels_[i]->send(*r.ack))note("ack-unavailable",data);
                 }
                 require(collector->healthy(),"epoch merged recording incomplete");

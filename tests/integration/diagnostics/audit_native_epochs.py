@@ -22,7 +22,7 @@ def wire(raw):
 
 def load(root):
     result = json.loads((root/'result.json').read_text()); home = root/'native-diagnostics'
-    target = result['fault_target']; replacement = result['case'] == 'restart-live'
+    target = result['fault_target']; replacement = result['case'] in ('restart-live', 'central-rejoin')
     clients = {r: (c, c+1) if replacement and r == target else (c,) for r, c in CLIENTS.items()}
     streams, bindings = {}, {}
     def add(stream, sender, receiver, source, replica, pub, rep, producer=7):
@@ -45,6 +45,9 @@ def load(root):
     merged, merged_info = family(home/'central/merged')
     local, _ = family(home/'central/central-source'); local_replica, _ = family(home/'central/central-replica')
     member_bytes = metadata(home/'central/merged/merge-sources')
+    central_tags = ['central-1'] + (['central-2'] if replacement and target == 'central' else [])
+    releases = [row for tag in central_tags for row in csv_rows(home/'central'/(tag+'.release.csv'))]
+    old_central = {p.name: family(p)[0] for p in (root/'central-before-restart').iterdir() if p.is_dir() and (p/'current').is_file()} if target == 'central' else {}
     return dict(result=result, plan=json.loads((root.parent/'plan.json').read_text()), streams=streams,
                 merged=merged, merged_info=merged_info, local=local, local_replica=local_replica,
                 membership=struct.unpack('<'+'Q'*(len(member_bytes)//8), member_bytes),
@@ -54,16 +57,18 @@ def load(root):
                 placement=[json.loads((home/role/(tag+'.writer.json')).read_text()) for role, tag in tags],
                 namespaces=[json.loads((root/(r+'.runtime.json')).read_text())['netns'] for r in ROLES],
                 producers={(r, tag): json.loads((home/r/(tag+'.producer.json')).read_text()) for r, tag in tags},
-                lifecycle={r: journal(home/r/'producer-lifecycle', bytes) for r in ('front', 'rear')} if replacement else {},
+                lifecycle={r: journal(home/r/'producer-lifecycle', bytes) for r in (ROLES if target == 'central' else ('front', 'rear'))} if replacement else {},
+                old_central=old_central, releases=releases,
                 before={8200+i: family(root/(target+'-before-restart')/f'source-{p}')[0]
                         for i, (p, r, _) in enumerate(SOURCES) if r == target} if replacement else {},
-                boot=[csv_rows(root/(p+'.events.csv')) for p in (('central-1', 'central-1-rejoined') if replacement else ('central-1',))],
-                cuts=csv_rows(home/'central/central-1.cuts.csv'), delivery=csv_rows(home/'central/central-1.delivery.csv'),
+                boot=[] if target == 'central' else [csv_rows(root/(p+'.events.csv')) for p in (('central-1', 'central-1-rejoined') if replacement else ('central-1',))],
+                cuts=[row for tag in central_tags for row in csv_rows(home/'central'/(tag+'.cuts.csv'))],
+                delivery=csv_rows(home/'central'/(central_tags[-1]+'.delivery.csv')),
                 injection=int((root/'inject').read_text()) if (root/'inject').exists() else 0)
 
 
 def judge(d):
-    result = d['result']; replacement = result['case'] == 'restart-live'; target = result['fault_target']; streams = d['streams']
+    result = d['result']; replacement = result['case'] in ('restart-live', 'central-rejoin'); target = result['fault_target']; streams = d['streams']
     require(result['pass'] and not result['forced_cleanup'] and not result['sanitizer_diagnostics'] and not result['sdk_errors'], 'native runtime verdict')
     require(d['plan']['diagnostic_epochs'] and all(v['epochs'] and v['pass'] for v in result['diagnostics'].values()), 'explicit family profile')
     require(len(set(d['namespaces'])) == 3, 'independent ECU namespaces')
@@ -77,14 +82,19 @@ def judge(d):
     require(epochs == sorted(epochs) and set(epochs) == expected_epochs and d['merged_info']['segments'] == len(expected_epochs), 'old tails precede new checkpoint')
     contexts = {e['epoch']: (raw, e) for raw, e in zip(d['merged'], merged) if e['kind'] == 6}
     require(set(contexts) == expected_epochs and sum(e['kind'] == 6 for e in merged) == len(contexts), 'genuine global Sessions only')
-    for epoch, rows in enumerate(d['boot'], 1):
-        raw, e = contexts[epoch]
-        require(e['_id'][:2] == (8001, 7) and e['received_roles'] == 255 and int.from_bytes(raw[-34:-30], 'little') == 255, 'full original Release masks')
-        acks = [r for r in rows if r['event'] == 'session-ack' and r['value'] == '20']
+    for epoch in expected_epochs:
+        raw, e = contexts[epoch]; issuer = ((1 << 32) | 7) if target == 'central' and epoch == 2 else 7
+        require(e['_id'][:2] == (8001, issuer) and e['source_producer'] == issuer and e['received_roles'] == 255 and int.from_bytes(raw[-34:-30], 'little') == 255, 'full original Release masks and issuer lineage')
+        acks = [r for r in d['releases'] if int(r['epoch']) == epoch]
         require(len(acks) == 8 and {int(r['role']) for r in acks} == set(range(8)), 'actual eight-role Release')
-        times = sorted(int(r['ns']) for r in acks)
-        require(times[-2] <= e['source_ns'] <= times[-1] <= e['observed_ns'], 'original Release completion observation')
-    require(d['local'] == d['local_replica'] and all(event(raw)['_id'][1] in (7, 8) for raw in d['local']), 'Central spool original replica')
+        require(e['_enable']['ns'] <= max(int(r['ns']) for r in acks) == e['source_ns'] <= e['observed_ns'], 'original Release completion observation')
+    require(d['local'] == d['local_replica'], 'Central spool original replica')
+    local_sequences = {}
+    for raw in d['local']:
+        e = event(raw); producers = (7, 8) if target != 'central' or e['epoch'] == 1 else ((1 << 32) | 7, (1 << 32) | 8)
+        require(e['_id'][1] in producers and (e['kind'] not in (6, 9) or e['_id'][1] == producers[0]), 'Central spool publisher lineage')
+        local_sequences.setdefault(e['_id'][1], []).append(e['event_sequence'])
+    require(all(seq == list(range(1, len(seq)+1)) for seq in local_sequences.values()), 'Central publisher sequence continuity')
     union = {event(raw)['_id']: raw for raw in d['local']}
     for stream, s in streams.items():
         rows = s['source']; decoded = [event(raw) for raw in rows]
@@ -109,7 +119,7 @@ def judge(d):
     for stream, r in receipts.items():
         count = len(d['local']) if stream == 8300 else len(streams[stream]['source'])
         require(int(r['entries']) == int(r['acknowledged']) == count and int(r['segments']) == len(expected_epochs), 'sender fully acknowledged')
-    data_seen, ack_seen, replayed, leases = set(), set(), set(), set()
+    data_seen, ack_seen, replayed, leases, fresh_acks = set(), set(), set(), set(), set()
     for m in d['messages']:
         if m['method'] == 0x50: leases.add(lease(m['payload']))
         if m['service'] < 0x5d00: continue
@@ -122,6 +132,7 @@ def judge(d):
         require(payload == raw if kind == 1 else int.from_bytes(payload, 'little') == zlib.crc32(raw), 'canonical original Data/ACK')
         (data_seen if kind == 1 else ack_seen).add((stream, ordinal))
         if replacement and kind == 1 and s['sender'] == target and ordinal == 1 and m['client'] == CLIENTS[target]+1: replayed.add(stream)
+        if target == 'central' and kind == 2 and stream >= 8200 and m['client'] == CLIENTS['central']+1: fresh_acks.add((stream, ordinal))
     expected = {(s, i+1) for s, value in streams.items() for i in range(len(value['source']))}
     require(data_seen == ack_seen == expected, 'all committed originals and ACKs on actual TCP')
     require(len(d['credits']) == 9*len(expected_epochs), 'each actual endpoint credit captured')
@@ -137,21 +148,33 @@ def judge(d):
         crash = result['injected_crash']; victims = [p for p in result['processes'] if p['role'] == target]
         require(crash['role'] == target and len(victims) == 2 and victims[0]['exit'] == -9 and victims[0]['expected_abrupt_stop'] and victims[1]['exit'] == 0, 'actual replacement SIGKILL')
         require(result['survivor_pids_before'] == result['survivor_pids_after'] and len(result['survivor_pids_after']) == 2 and crash['pid'] not in result['survivor_pids_after'].values(), 'surviving ECU identities unchanged')
-        require(replayed == set(d['before']) and replayed, 'new SDK client replays old stream ordinal1')
-        for stream, before in d['before'].items():
-            require(before and streams[stream]['source'][:len(before)] == before and all(event(raw)['epoch'] == 1 for raw in before), 'old process committed prefix preserved')
         require(len(d['cuts']) == 1 and d['cuts'][0]['retired_epoch'] == '1', 'one explicit owner retirement cut')
         cut = int(d['cuts'][0]['observed_ns'])
-        require(any(r['event'] == 'ingress-transition-begin' and int(r['ns']) <= cut for r in d['boot'][0]), 'cut after actual owner transition begins')
+        if target == 'central':
+            require(d['plan']['diagnostic_central_restart'] and result['central_rejoined'], 'declared new Central startup')
+            expected_families = {'merged': d['merged'], 'central-source': d['local'], 'central-replica': d['local_replica'],
+                                 **{f'context-{z}': streams[8101+z]['source'] for z in range(2)},
+                                 **{f'source-{base}': streams[8200+i]['replica'] for i, (base, _, _) in enumerate(SOURCES)}}
+            require(set(d['old_central']) == set(expected_families), 'all Central predecessor families retained')
+            for name, old in d['old_central'].items():
+                require(old and expected_families[name][:len(old)] == old and all(event(raw)['epoch'] == 1 for raw in old), 'Central exact predecessor prefix')
+            require(replayed == {8101, 8102} and fresh_acks == {p for p in expected if p[0] >= 8200}, 'new Central replays contexts and ACKs every surviving original')
+            require({int(r['stream']) for r in d['delivery'] if r['ordinal'] == '1' and r['action'] == 'duplicate'} == set(range(8200, 8209)), 'surviving sources restart at ordinal1 with durable duplicates')
+            require(cut >= int(crash['ns']), 'new writer acquires retired Central prefix after SIGKILL')
+        else:
+            require(replayed == set(d['before']) and replayed, 'new SDK client replays old stream ordinal1')
+            for stream, before in d['before'].items():
+                require(before and streams[stream]['source'][:len(before)] == before and all(event(raw)['epoch'] == 1 for raw in before), 'old process committed prefix preserved')
+            require(any(r['event'] == 'ingress-transition-begin' and int(r['ns']) <= cut for r in d['boot'][0]), 'cut after actual owner transition begins')
         require(all(int(r['wall_ns']) >= cut for r in d['delivery'] if r['action'] == 'local-spool' and r['epoch'] == '2'), 'Central new prefix after retirement cut')
-        for role in ('front', 'rear'):
-            lifecycle = [event(raw) for raw in d['lifecycle'][role]]
+        for role, raws in d['lifecycle'].items():
+            lifecycle = [event(raw) for raw in raws]
             require([e['kind'] for e in lifecycle] == ([9, 9, 0] if role == target else [9, 0]) and all(e['_id'][1] == 9100+ROLES.index(role) for e in lifecycle), 'original process lifecycle')
             require([e['epoch'] for e in lifecycle] == ([1, 2, 2] if role == target else [1, 1]) and
                     [e['event_sequence'] for e in lifecycle] == ([1, 3, 4] if role == target else [1, 2]), 'durable generation allocation never reused')
         metadata = d['producers'][(target, target+'-2')]
         require(metadata['generation'] == 2 and metadata['previous_unclean'], 'unclean successor identity')
-        expected_gaps = {((1 << 32) | base) for base, role, _ in SOURCES if role == target}
+        expected_gaps = {(1 << 32) | 8} if target == 'central' else {((1 << 32) | base) for base, role, _ in SOURCES if role == target}
         require({e['_id'][1] for e in gaps} == expected_gaps and len(gaps) == len(expected_gaps), 'one continuity incident per replaced source')
         for e in gaps:
             require(e['event_sequence'] == 1 and e['epoch'] == 2 and e['_before'] == 1 and e['_after'] == 2 and e['_unknown'] and e['_unmapped'] and e['_proof'] == 0 and e['measured'] == 0 and e['detected_ns'] == metadata['boot_ns'], 'unknown precommit loss remains explicit')
@@ -161,6 +184,10 @@ def judge(d):
         require(any(d['injection'] <= int(r['ns']) <= d['injection']+100_000_000 and abs(float(r['torque'])) <= 1 and float(r['pressure']) >= 100000 for r in d['physical']), 'original 100ms physical protection')
     if d['plan']['diagnostic_drop_ack']:
         require(result['diagnostics']['central']['ack_omitted'] and result['diagnostics']['central']['duplicates'] > 0, 'lost ACK retried without recount')
+        omitted = [r for r in d['delivery'] if r['action'] == 'omit-ack']
+        require(len(omitted) == 1 and omitted[0]['kind'] == ('6' if target == 'central' else '1'), 'exact declared ACK loss target')
+        lost = omitted[0]
+        require(any(r['action'] == 'duplicate' and r['stream'] == lost['stream'] and r['ordinal'] == lost['ordinal'] and int(r['wall_ns']) > int(lost['wall_ns']) for r in d['delivery']), 'lost original ACK receives a later exact duplicate retry')
     require(all(r['count'] == r['generation'] == '1' and r['cleared'] == '0' for r in d['records']), 'DTC history not recounted or cleared')
     for e in merged:
         require(e['_run'] == 8001 and e['_profile'] == 1 and e['epoch'] in expected_epochs, 'original run/profile')
@@ -172,7 +199,10 @@ def judge(d):
 
 def mutations(data):
     names = ['membership', 'merged-original', 'credit', 'wire-ack', 'receipt', 'queue-loss']
-    if data['result']['case'] == 'restart-live': names += ['prefix', 'retirement', 'producer-reuse', 'erase-gap', 'physical', 'lifecycle', 'no-old-replay']
+    if data['result']['case'] in ('restart-live', 'central-rejoin'): names += ['prefix', 'retirement', 'producer-reuse', 'erase-gap', 'physical', 'lifecycle', 'no-old-replay']
+    if data['result']['case'] == 'central-rejoin':
+        names.remove('producer-reuse'); names += ['issuer-order', 'fresh-ack', 'release', 'spool-lineage']
+    if data['plan']['diagnostic_drop_ack']: names += ['lost-ack-retry']
     for name in names:
         d = copy.deepcopy(data)
         if name == 'membership': d['membership'] = d['membership'][:-1]
@@ -181,9 +211,16 @@ def mutations(data):
         elif name == 'wire-ack': d['messages'] = [m for m in d['messages'] if m['method'] != 0x102]
         elif name == 'receipt': d['receipts'][0]['acknowledged'] = '0'
         elif name == 'queue-loss': d['channels'][0]['dropped'] = '1'
-        elif name == 'prefix': d['before'][next(iter(d['before']))] = []
+        elif name == 'prefix':
+            if d['old_central']: d['old_central']['merged'] = []
+            else: d['before'][next(iter(d['before']))] = []
         elif name == 'retirement': d['cuts'] = []
         elif name == 'producer-reuse': next(s for s in d['streams'].values() if s['sender'] == d['result']['fault_target'])['producer'] += 100
+        elif name == 'issuer-order': d['streams'][8101]['source'].reverse()
+        elif name == 'fresh-ack': d['messages'] = [m for m in d['messages'] if not(m['method'] == 0x102 and m['client'] == CLIENTS['central']+1)]
+        elif name == 'release': d['releases'].pop()
+        elif name == 'spool-lineage': d['local'] = [r for r in d['local'] if event(r)['_id'][1] != ((1 << 32) | 7)]
+        elif name == 'lost-ack-retry': d['delivery'] = [r for r in d['delivery'] if r['action'] != 'duplicate']
         elif name == 'erase-gap': d['merged'] = [r for r in d['merged'] if event(r)['code'] != 0x5001]
         elif name == 'physical':
             for row in d['physical']: row['pressure'] = '0'

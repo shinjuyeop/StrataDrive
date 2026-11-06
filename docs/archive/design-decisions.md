@@ -1,4 +1,4 @@
-# 설계 결정 기록 · ADR-0001–0111
+# 설계 결정 기록 · ADR-0001–0112
 
 이 문서는 당시 결정과 검토를 보존한 기록이다. 현재 상태는 [프로젝트 상태](../project-status.md), 현재 계약은 [문서 안내](../README.md)를 따른다. 과거의 “다음 작업/미구현”은 현재 지시가 아니다.
 
@@ -113,6 +113,7 @@
 - [ADR-0109: 감독 요청의 qualified 복구와 세션별 송수신 기록](#adr-0109)
 - [ADR-0110: 고정 송신원 집합의 원본 epoch 장벽](#adr-0110)
 - [ADR-0111: 고정 역할 stream의 live producer 교체와 owner 종료 경계](#adr-0111)
+- [ADR-0112: Central 발행자 승계와 기존 family 재개방](#adr-0112)
 
 <a id="adr-0001"></a>
 
@@ -6109,3 +6110,22 @@ acquire한 후 두 queue를 비우고 새 경계를 commit한다. 원격 endpoin
 자동 수리, 실제 역할 증감, Central 프로세스 교체/service 이관은 이번 profile 밖이다. 원래 finite
 경로는 유지하고 선택형 `--diagnostic-epochs`로 적용한다.
 [계약](../interfaces/epoch-retention.md)과 [검증](../test-plan/evidence/native-epoch-replacement/README.md)을 따른다.
+
+<a id="adr-0112"></a>
+
+## ADR-0112: Central 발행자 승계와 기존 family 재개방
+
+2026-11-06. Central 교체도 고정 역할 membership과 기존 family를 유지한다. 새 issuer/observer의
+producer pair는 신뢰된 epoch lineage로 지정한다. Lifecycle과 모든 family의 lifetime 독점 잠금·
+이력 검증이 이전 writer의 append 종료 경계이며, 새 실제 INIT/RunLease가 운행 context 수락 근거다.
+이 둘을 혼동하지 않는다. 과거 spool과 remote prefix는 원본 순번으로 재전송하고 양쪽 durable
+commit 뒤에 ACK를 준다. Incomplete family를 새 저장소로 대체하거나 자동 수리하지 않는다.
+
+실제 Central SIGKILL 동안 살아 있는 두 ECU의 producer/sequence/PID는 유지한다. 새 Central의
+continuity fault는 원문 prefix가 일치해도 남고 손실 개수를 추측하지 않는다. Terminal service와
+단일 epoch 무중단 회전은 후속이다.
+
+최초 ACK-loss 실행은 remote Fault가 없어 주입되지 않았다. 원본 runtime PASS와 별개로 독립 감사는
+거절했다. 이 경로의 주입을 epoch2 Session ACK로 명시하고 실제 생략·동일 ordinal Duplicate retry를
+요구한다. 주입 자체가 없으면 runner도 실패한다. SDK queue나 제어 기한을 완화하지 않는다.
+[계약](../interfaces/epoch-retention.md)과 [검증](../test-plan/evidence/central-epoch-replacement/README.md)을 따른다.

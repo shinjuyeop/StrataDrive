@@ -197,10 +197,11 @@ def inside(folder,binary,case):
                         normal_prerequisite(folder,central)
                         time.sleep(min(.002,(inject_at-time.monotonic_ns())/1e9))
                 normal_prerequisite(folder,central)
-                if case=='central-rejoin':
+                if case=='central-rejoin' and not os.environ.get('STRATADRIVE_DIAGNOSTIC_EPOCHS'):
                     pilot.wait_for(lambda:(diagnostic_store/'central/central-1.baseline-ready').exists(),3)
+                if case=='central-rejoin':
                     shutil.copyfile(folder/'central.runtime.json',folder/'central-1.runtime.json')
-                if case=='restart-live' and os.environ.get('STRATADRIVE_DIAGNOSTIC_EPOCHS'):
+                if case in ('restart-live','central-rejoin') and os.environ.get('STRATADRIVE_DIAGNOSTIC_EPOCHS'):
                     pilot.wait_for(lambda:all((diagnostic_store/r/(r+'-1.prefix-ready')).exists() for r in ('central','front','rear')),3)
                     normal_prerequisite(folder,central)
                 (folder/'inject').write_text(str(time.monotonic_ns()))
@@ -230,6 +231,8 @@ def inside(folder,binary,case):
                     result['injected_crash']={'role':'central','generation':1,'pid':central.pid,'ns':time.monotonic_ns()}
                     result['survivor_pids_before']={r:p.pid for r,p in peers.items()}
                     central.kill();central.wait(timeout=2)
+                    if os.environ.get('STRATADRIVE_DIAGNOSTIC_EPOCHS'):
+                        shutil.copytree(diagnostic_store/'central',folder/'central-before-restart')
                     for r,p in peers.items():
                         pilot.wait_for(lambda r=r:(folder/(r+'-protected')).exists(),3)
                         if p.poll() is not None:raise RuntimeError('surviving '+r+' failed')
@@ -399,6 +402,8 @@ def inside(folder,binary,case):
             try:
                 result['diagnostics']={r:json.loads((folder/'native-diagnostics'/r/(r+('-2.json' if case in ('restart-live','central-rejoin') and r==target else '-1.json'))).read_text()) for r in ('central','front','rear')}
                 result['pass']=result['pass'] and all(r['pass'] for r in result['diagnostics'].values())
+                if os.environ.get('STRATADRIVE_DIAGNOSTIC_EPOCHS') and os.environ.get('STRATADRIVE_DIAGNOSTIC_DROP_ACK'):
+                    result['pass']=result['pass'] and result['diagnostics']['central']['ack_omitted']
             except (OSError,ValueError,KeyError) as e:
                 result['pass']=False;result['diagnostic_error']=str(e)
         if case=='normal':
@@ -435,7 +440,7 @@ def main():
     p.add_argument('--profile',choices=['normal','asan','tsan'],default='normal');p.add_argument('--fixed-layout',action='store_true')
     p.add_argument('--service-hold-ms',type=int,default=500,help='terminal service observation per normal epoch, 500..60000ms; original control budgets stay fixed')
     p.add_argument('--diagnostic-service',action='store_true');p.add_argument('--diagnostics',action='store_true');p.add_argument('--diagnostic-drop-ack',action='store_true');p.add_argument('--diagnostic-context-delay-ms',type=int,default=0);p.add_argument('--diagnostic-restart',choices=['central','front','rear','all'])
-    p.add_argument('--diagnostic-epochs',action='store_true',help='fixed logical streams with epoch families; Front/Rear process replacement only')
+    p.add_argument('--diagnostic-epochs',action='store_true',help='fixed logical streams with epoch families and ECU process replacement')
     p.add_argument('--cases',nargs='+',choices=CASES,default=['normal']);p.add_argument('--normal-repeats',type=int,default=1);p.add_argument('output',nargs='?',type=Path);a=p.parse_args()
     if a.inside:return inside(Path(a.inside[0]),Path(a.inside[1]),a.inside[2])
     os.environ.pop('STRATADRIVE_SDK_FIFO',None)
@@ -484,8 +489,8 @@ def main():
         if not a.diagnostic_service or not 1<=a.signal_write_delay_ms<=1000:p.error('signal delay requires terminal service and 1..1000ms')
         os.environ['STRATADRIVE_SIGNAL_WRITE_DELAY_MS']=str(a.signal_write_delay_ms)
     if a.diagnostic_epochs:
-        if not a.diagnostics or a.diagnostic_service or a.diagnostic_restart or a.diagnostic_context_delay_ms or 'central-rejoin' in a.cases:
-            p.error('diagnostic-epochs requires diagnostics without Central/service/writer restart or context delay')
+        if not a.diagnostics or a.diagnostic_service or a.diagnostic_restart or a.diagnostic_context_delay_ms:
+            p.error('diagnostic-epochs requires diagnostics without service/writer restart or context delay')
         os.environ['STRATADRIVE_DIAGNOSTIC_EPOCHS']='1'
     if a.diagnostics:
         if not a.three or any(c not in ('normal','command-loss','restart-live','central-rejoin') for c in a.cases):p.error('native diagnostics requires three ECUs and normal/command-loss/restart-live')

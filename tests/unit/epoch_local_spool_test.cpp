@@ -74,4 +74,50 @@ TEST_F(LocalEpochSpool, QueueLossAndPublisherBindingAreNotRecoveredByRetirement)
     EXPECT_FALSE(control.publish(tail(1,257)));spool.drain(startup,control,1);
     EXPECT_FALSE(spool.healthy());EXPECT_EQ(store.watermark(),0U);
 }
+TEST_F(LocalEpochSpool, SuccessorRetainsOldPrefixButNeedsExplicitRetirementAndItsAssignedEpoch) {
+    const std::vector<EpochPublishers> lineage{{20,30,1},{40,50,2}};
+    const auto old=tail(1,1);
+    {
+        EpochRecorder store((root/"store").string());EpochLocalSpool spool(store,20,30,lineage);
+        ASSERT_TRUE(startup.publish(boundary(1)));ASSERT_TRUE(control.publish(old));spool.drain(startup,control,0);
+    }
+    EpochRecorder store((root/"store").string());EpochLocalSpool spool(store,40,50,lineage);
+    EventQueue fresh_startup{10,40},fresh_control{10,50};
+    auto next=boundary(2);next.id={10,40,1};ASSERT_TRUE(fresh_startup.publish(next));
+    EXPECT_EQ(spool.drain(fresh_startup,fresh_control,0),1U);EXPECT_EQ(store.watermark(),2U);EXPECT_EQ(spool.pending(),1U);
+    EXPECT_EQ(spool.drain(fresh_startup,fresh_control,1),0U);ASSERT_EQ(store.watermark(),3U);EXPECT_EQ(store.segment(),2U);
+    EXPECT_EQ(encode(store.committed(1)),encode(boundary(1)));EXPECT_EQ(encode(store.committed(2)),encode(old));
+    EXPECT_EQ(encode(store.committed(3)),encode(next));EXPECT_EQ(store.ledger().find(old.key)->count,1U);
+    EXPECT_EQ(store.ledger().find(old.key)->condition,Condition::Unknown);
+    auto& out=spool.delivery();EXPECT_EQ(out.acknowledged(),0U);
+    for(unsigned ordinal=1;ordinal<=3;++ordinal) {
+        ASSERT_TRUE(out.next());const auto data=std::get<wire::Data>(wire::decode(*out.next()));
+        EXPECT_EQ(data.sequence,ordinal);EXPECT_EQ(encode(data.event),encode(store.committed(ordinal)));
+        EXPECT_EQ(out.acknowledge(wire::encode(wire::Ack{8300,ordinal,4,wire::event_crc(data.event)})),Result::Accepted);
+    }
+    EXPECT_FALSE(out.next());EXPECT_TRUE(spool.healthy());
+}
+TEST_F(LocalEpochSpool, PublisherLineageCannotReuseIdsOrRewriteHistory) {
+    EpochRecorder store((root/"store").string());
+    for(const auto& entries:std::vector<std::vector<EpochPublishers>>{{},{{20,30,2}},{{20,30,1},{40,50,1}},{{20,30,1},{30,50,2}},{{20,30,1},{40,20,2}},{{20,30,1},{40,40,2}},{{20,30,1},{0,50,2}},{{40,50,1}}})
+        EXPECT_THROW((EpochLocalSpool{store,20,30,entries}),std::invalid_argument);
+    EXPECT_THROW((EpochLocalSpool{store,20,30,std::vector<EpochPublishers>(17,{20,30,1})}),std::invalid_argument);
+    ASSERT_TRUE(store.record(boundary(1)).durable);
+    EXPECT_THROW((EpochLocalSpool{store,40,50}),std::invalid_argument);
+    EpochRecorder::initialize((root/"foreign").string(),8400,{{64,8,16,8},1,8});EpochRecorder foreign((root/"foreign").string());
+    auto fake=boundary(1);fake.id={10,30,1};ASSERT_TRUE(foreign.record(fake).durable);
+    EXPECT_THROW((EpochLocalSpool{foreign,20,30}),std::invalid_argument);
+}
+TEST_F(LocalEpochSpool, SuccessorCannotAppendUnderTheOldEpochEvenAfterRetirement) {
+    EpochRecorder store((root/"store").string());ASSERT_TRUE(store.record(boundary(1)).durable);
+    EpochLocalSpool spool(store,40,50,{{20,30,1},{40,50,2}});EventQueue fresh_startup{10,40},fresh_control{10,50};
+    auto fake=boundary(1);fake.id={10,40,1};ASSERT_TRUE(fresh_startup.publish(fake));
+    spool.drain(fresh_startup,fresh_control,1);EXPECT_FALSE(spool.healthy());EXPECT_EQ(store.watermark(),1U);
+}
+TEST_F(LocalEpochSpool, RetiredPublisherCannotAppendTheSuccessorEpoch) {
+    EpochRecorder store((root/"store").string());EpochLocalSpool spool(store,20,30,{{20,30,1},{40,50,2}});
+    ASSERT_TRUE(startup.publish(boundary(1)));spool.drain(startup,control,0);
+    ASSERT_TRUE(startup.publish(boundary(2)));spool.drain(startup,control,1);
+    EXPECT_FALSE(spool.healthy());EXPECT_EQ(store.watermark(),1U);
+}
 } // namespace

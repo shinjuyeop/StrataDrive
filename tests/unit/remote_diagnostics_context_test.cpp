@@ -372,4 +372,31 @@ TEST_F(RemoteDiagnosticsContext, ReplacementDoesNotRepairAnIncompleteFamily) {
     EXPECT_FALSE(next.healthy());release(2);EXPECT_EQ(next.context(global,credit()),Result::NotReady);
     EXPECT_FALSE(next.next());EXPECT_EQ(store.watermark(),0U);
 }
+TEST_F(RemoteDiagnosticsContext, CentralSuccessorReplaysEpochFamilyWithoutRecountingOldFaults) {
+    const auto successor=(1ULL<<32)|central_id;
+    const auto source_path=root/"family",replica_path=root/"replica";
+    for(const auto& p:{source_path,replica_path})EpochRecorder::initialize(p.string(),101,{{32,8,8,8},1,8});
+    EpochRecorder source(source_path.string());ContextualOutbox out(source,manifest(),{{central_id,1},{successor,2}});
+    release();const auto first=global;const auto evidence=credit();const auto original=fault();
+    ASSERT_EQ(out.context(first,evidence),Result::Accepted);ASSERT_EQ(out.submit(original),Result::Accepted);
+    {
+        EpochRecorder store(replica_path.string());Inbox replica(store);
+        while(auto bytes=out.next()){const auto receipt=replica.receive(*bytes);ASSERT_TRUE(receipt.ack);ASSERT_EQ(out.acknowledge(*receipt.ack),Result::Accepted);}
+    }
+    EXPECT_EQ(out.acknowledged(),2U);
+    release(2);const auto fresh=credit();EventQueue q(run,successor);
+    StartupDiagnostics next(q,{run,successor,Domain::Monotonic,clock_id,1},Component::Coordinator,8,true);
+    next.attempt(coordinator.plan());next.observe(coordinator.fault_observation(),coordinator.success_observation(),true,true,central.now);
+    Event second,e;while(q.pop(e))if(e.kind==Kind::Session)second=e;
+    EXPECT_EQ(out.context(global,fresh),Result::Invalid);EXPECT_EQ(out.context(second,evidence),Result::NotReady);
+    ASSERT_EQ(out.context(second,fresh),Result::Accepted);EXPECT_EQ(out.acknowledged(),0U);
+    EpochRecorder store(replica_path.string());Inbox replica(store);
+    for(unsigned ordinal=1;ordinal<=3;++ordinal) {
+        ASSERT_TRUE(out.next());const auto receipt=replica.receive(*out.next());ASSERT_TRUE(receipt.ack);
+        EXPECT_EQ(receipt.result,ordinal<=2?Result::Duplicate:Result::Accepted);EXPECT_EQ(out.acknowledge(*receipt.ack),Result::Accepted);
+        EXPECT_EQ(encode(store.committed(ordinal)),encode(source.committed(ordinal)));
+    }
+    EXPECT_EQ(store.segment(),2U);EXPECT_EQ(store.watermark(),3U);
+    EXPECT_EQ(replica.ledger().find(original.key)->count,1U);EXPECT_EQ(replica.ledger().find(original.key)->condition,Condition::Unknown);
+}
 } // namespace

@@ -4,7 +4,7 @@
 SOME/IP Outbox/Inbox의 stream ID·ordinal·ACK 계약은 유지한다. Outbox/Inbox가 family를
 선택할 수 있고 전용 SOME/IP `epoch-restart` 시험에 연결했다. ContextualOutbox도 family를
 선택할 수 있다. 고정 송신원 집합의 `EpochMergedCollector`와 전용 `epoch-merge-restart` 시험을
-추가했다. 선택형 `--diagnostic-epochs`는 실제 3-ECU 런타임의 Front/Rear 교체까지 연결한다.
+추가했다. 선택형 `--diagnostic-epochs`는 실제 3-ECU 런타임의 Front/Rear/Central 교체까지 연결한다.
 기본 경로의 기존 MergedCollector는 유한 저장기를 사용한다.
 
 ## 이관 조건과 보존
@@ -149,11 +149,39 @@ python3 tests/integration/someip/front_run.py build/new-live-epochs --three --di
 python3 tests/integration/diagnostics/audit_native_epochs.py build/new-live-epochs/restart-live-1 --mutations
 ```
 
-이 profile은 normal/command-loss/Front 또는 Rear restart-live를 지원한다. Context 지연 주입,
-writer 단독 재시작, Central 프로세스 교체와 terminal service는 거절한다. 새 profile의 retry는
+이 profile은 normal/command-loss/Front 또는 Rear restart-live와 Central central-rejoin을 지원한다.
+Context 지연 주입, writer 단독 재시작과 terminal service는 거절한다. 새 profile의 retry는
 100→200→400→800→1000ms backoff이며 queue8·원래 제어/보호 기한을 유지한다.
 [실행·독립 감사](../test-plan/evidence/native-epoch-replacement/README.md)에 실제 source/replica/merged
 원문, 교체 전 copy, TCP Data/ACK, 두 INIT의 Release8개와 accepted RunLease를 보존한다.
+
+## Central 프로세스 교체
+
+`--cases central-rejoin`은 Central의 issuer/observer producer도 새 generation으로 바꾼다.
+`EpochLocalSpool`의 신뢰된 publisher pair/epoch lineage는 이전 원본을 검증하고 현재 pair가
+자기 epoch에 쓰는 것만 허용한다. 잘못된 과거 이력·중복 identity·교차 역할·범위 중복은 거절한다.
+
+새 Central은 lifecycle과 기존14개 family의 lifetime 독점 잠금을 모두 얻고 과거 prefix를 검증한
+뒤 이전 Central의 기록 경계를 닫는다. 새 디렉터리로 손상 이력을 우회하지 않는다. Context 두 개,
+remote replica9개, Central spool/replica, merged를 그대로 이어 사용한다. 원래 committed Session을
+재배포하고 surviving source가 새 실제 INIT/RunLease로 후속 issuer를 수락하면 ordinal1부터 재전송한다.
+이전 replica/merged의 같은 원문에는 Duplicate ACK를 주며 count·clear·현재 readiness를 바꾸지 않는다.
+
+수집기가 재기동 중인 동안 생긴 원격 old tail도 다음 Session 앞에 그대로 기록한다. 새 Central의
+Attempt는 모든 역할의 다음 실제 경계까지 merged ACK를 기다리지만 context 배포를 막지 않는다.
+Central의 volatile 유실 가능성은 새 observer의 continuity fault1개로 남는다. 재가입이나 prefix
+복원 성공은 이를 자동 Passed/clear로 바꾸지 않는다. Pending/incomplete family는 startup 실패다.
+
+```sh
+python3 tests/integration/someip/front_run.py build/new-central-epochs --three --diagnostics --diagnostic-epochs --isolated-ecus --cases central-rejoin --diagnostic-drop-ack
+python3 tests/integration/diagnostics/audit_native_epochs.py build/new-central-epochs/central-rejoin-1 --mutations
+```
+
+Central 교체의 ACK 유실은 새 원격 Session의 durable ACK1개를 생략한다. 원격 Fault를 기다리는
+조건은 이 경로에서 실행되지 않을 수 있으므로 쓰지 않는다. 실제 생략이 없으면 runner/auditor는
+실패하며, 생략한 동일 stream/ordinal의 뒤이은 Duplicate retry를 검사한다. Front/Rear 교체는
+기존 Fault ACK 주입을 유지한다. [실행 근거](../test-plan/evidence/central-epoch-replacement/README.md)에
+초기 미실행 주입과 수정 후 판정을 구분해 보존한다.
 
 ## 남는 경계
 
@@ -162,6 +190,6 @@ writer 단독 재시작, Central 프로세스 교체와 terminal service는 거�
 이력 조회/재시작 비용은 보관량에 비례하고 실시간 작업이 아니다. 기존 단일-store archive 도구는
 family/checkpoint 형식을 받지 않는다. Family 보관·외부 이관/삭제 정책, 단일 장시간 epoch 중
 무중단 회전과 실제 전원/매체 검증은 후속이다. 새 장벽은 고정 역할 membership 전용이다.
-실제 역할 추가/제거, Central 프로세스 교체와 service의 family 적용은 별도다. 응답하지 않는 역할을 timeout으로 제외하지 않는다.
+실제 역할 추가/제거와 terminal service의 family 적용은 별도다. 응답하지 않는 역할을 timeout으로 제외하지 않는다.
 
 [구현·시험 근거](../test-plan/evidence/remaining-improvements/README.md)를 따른다.
