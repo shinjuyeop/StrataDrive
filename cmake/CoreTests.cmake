@@ -14,6 +14,9 @@ endfunction()
 
 # 현재 Host에 설치된 버전 사용. 자동 다운로드/설치하지 않는다.
 find_package(GTest 1.11.0 EXACT CONFIG REQUIRED)
+stratadrive_unit_test(perception_receiver_test
+    SOURCES tests/unit/perception_receiver_test.cpp
+    LIBRARIES perception_receiver)
 stratadrive_unit_test(diagnostics_test
     SOURCES tests/unit/diagnostics_test.cpp
     LIBRARIES diagnostics Threads::Threads)

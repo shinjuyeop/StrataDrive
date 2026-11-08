@@ -1,0 +1,42 @@
+{
+  "schema": "m10-quality-selection-v2",
+  "created_utc": "2026-11-06T16:48:32.814442+00:00",
+  "freeze_sha256": "d5a7a1b64aa2792b33e5a199d33ed905d02d6c2c6287459eb5e09a5a7a0a3778",
+  "metadata_sha256": "d8def81d5dbd8e1c6ec14430e80fb067e8c46fde3c19638f995c8b94f856e103",
+  "selected": "center-refine-v2",
+  "development_relative": {
+    "center-refine-v2": {
+      "status": "FAIL",
+      "gates": {
+        "precision": false,
+        "recall": true,
+        "per_class": true,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": true
+      }
+    },
+    "vru-refine-v2": {
+      "status": "FAIL",
+      "gates": {
+        "precision": false,
+        "recall": true,
+        "per_class": true,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": true
+      }
+    }
+  },
+  "development_absolute": {
+    "baseline": "FAIL",
+    "center-refine-v2": "FAIL",
+    "vru-refine-v2": "FAIL"
+  },
+  "score_files": {
+    "build/m10-quality-v2b/development-baseline-score.json": "8b9a5154d955ce1f4370060bd5e5c6d05ecf36e775762620a6e9409d3128ed3b",
+    "build/m10-quality-v2b/development-center-refine-v2-score.json": "7f0900abcdbde0bc238aa7327bf35147ee46071fb8410dd85808bb3b1c35cbc0",
+    "build/m10-quality-v2b/development-vru-refine-v2-score.json": "6c93aa38dcf883d82c4f6fde4846cce1e4eda77bd628dcbbfceacffe39053303"
+  },
+  "runtime_promotion": false
+}

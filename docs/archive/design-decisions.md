@@ -1,4 +1,4 @@
-# 설계 결정 기록 · ADR-0001–0114
+# 설계 결정 기록 · ADR-0001–0116
 
 이 문서는 당시 결정과 검토를 보존한 기록이다. 현재 상태는 [프로젝트 상태](../project-status.md), 현재 계약은 [문서 안내](../README.md)를 따른다. 과거의 “다음 작업/미구현”은 현재 지시가 아니다.
 
@@ -116,6 +116,8 @@
 - [ADR-0112: Central 발행자 승계와 기존 family 재개방](#adr-0112)
 - [ADR-0113: Epoch family terminal service](#adr-0113)
 - [ADR-0114: 같은 CARLA 차량의 명시적 application 전환](#adr-0114)
+- [ADR-0115: M10 RGB 객체 인지와 원천을 보존하는 Host 경계](#adr-0115)
+- [ADR-0116: 명시적 인지 준비·live receipt 만료·실제 카메라 취득](#adr-0116)
 
 <a id="adr-0001"></a>
 
@@ -6159,3 +6161,130 @@ phase의 정의이며 기존 deadline·freshness를 연장하지 않는다. 처�
 Drive의 NonDriving INIT에서는 아직 새 명령 수신을 열지 않았으므로 이전 receiver의 accepted
 명령을 Actual 출처/causal sequence로 사용하지 않는다. Steering/Brake와 같은 경계를 적용한다.
 [계약](../interfaces/supervised-speed-proposal.md)과 [검증](../test-plan/evidence/service-carla-recovery/README.md)을 따른다.
+
+
+<a id="adr-0115"></a>
+
+## ADR-0115: M10 RGB 객체 인지와 원천을 보존하는 Host 경계
+
+2026-11-06. ADR-0004의 pretrained perception 단계에 고정 YOLOX-S/ONNX FP32 CPU 모델을
+도입한다. Model bytes/hash·RGB 전처리·2D box/class/score·관측 history를 고정하고 GT는
+별도 evaluator에서만 읽는다. 전체 Reference workload의 미결정을 이 Host fixture로 대체하지 않는다.
+[프로파일](../../profiles/perception-host-v1.json)과 [계약](../interfaces/perception.md)을 따른다.
+
+이미지 결과의 취득+100ms exclusive expiry와 submit→completion wall100ms는 서로 다른
+clock 검사다. 기존 wheel/command30ms와 차량 permission/INIT를 유지한다. Queue는 대기1개,
+실행 중 추론은 single owner다. Drop/late/error/obsolete 세션 완료를 원래 분모로 보존한다.
+C++ typed receiver는 원천 identity·box·count·expiry를 다시 검증하며 vehicle authority를 갖지 않는다.
+2D 관측을 거리/relative velocity/risk로 바꾸거나 기존 속도 제안 tensor에 GT/default로 넣지 않는다.
+
+첫 실제 모델 측정에서 작은/가려진 물체의 미검출·오검출과100ms miss/20Hz backlog를 확인했다.
+Threshold를 결과에 맞춰 완화하지 않는다. Flat/blackout/whiteout는 별도 입력 건전성 검사로
+거절하되 의미적 미검출을 검출했다고 주장하지 않는다. 현재 CARLA의 검은 하늘/warning overlay도
+원본에 남기며 capture 기능 PASS와 정상 ODD 영상 품질을 구분한다.
+[실행·실패·제한](../test-plan/evidence/m10_perception/README.md)을 따르고 정확도/coverage,
+metric fusion·M11 planner·주행 통합·M12 Target은 별도 gate로 남긴다.
+
+같은 모델·RGB·FP32를 선택형 Host CUDA로도 실행한다. TF32와 CPU node fallback을 끄고
+provider option을 readback하며 CPU 대비 raw/box tolerance를 사전 고정한다. 기본 CPU 경로는
+유지한다. 첫 cold 추론은 여전히100ms를 넘으므로 timing 분모에서 빼지 않는다. 초기 cuDNN
+library 준비 실패와 CPU-only 환경의 CUDA 거절도 보존한다. 처리 시간 개선은 정확도 개선이나
+Jetson/동시 CARLA GPU 부하 수용을 뜻하지 않는다.
+
+<a id="adr-0116"></a>
+
+## ADR-0116: 명시적 인지 준비·live receipt 만료·실제 카메라 취득
+
+2026-11-06. [Startup descriptor](../../profiles/perception-startup-host-v1.json)는 cold 추론을
+숨기는 warmup 제외 대신 별도 준비3회와 센서 분모를 기록한다. 동일 owner의3회 성공·전체10s와
+뒤2회 각각100ms exclusive를 만족한 READY에서만 INIT를 연다. 준비 결과는 센서 출력이 아니며,
+READY도 운행 허가가 아니다. Timeout/stop 뒤 늦은 완료는 gate를 다시 열지 못한다.
+Model 생성 시간은 별도 기록하고 native thread 중단 여부는 실제 join으로 확인한다.
+
+Live BGRA latest1 ingress와 추론 대기1개를 분리하고, 실제 world snapshot frame/source를 대조한다.
+Receipt→completion budget과 receipt+100ms snapshot 만료를 추가해 source pause에서도 예전
+영상을 fresh로 유지하지 않는다. 이전 source+100ms expiry·차량 authority는 그대로다.
+
+긴 CARLA 실행에서 기본 float sensor_tick의40/60ms 취득 간격을 발견했다. 원본 기록을 보존하고
+설치된 frame5 sensor patch의 두 command flag와role을 함께 활성화한다. Sensor acquisition 자체를
+원래 frame%5=0으로 고정하며 timestamp를 재작성하지 않는다. Native owner bind·제어 RPC는 없다.
+
+기존 RGB postprocess disabled는 CARLA에서 lighting 등의 show flag도 끈다. 후속 Low/Epic
+postprocess enabled 수집에서 하늘과 경고 overlay가 개선되었으나 표본 전체 ODD 품질 수용은 아니다.
+[명시적 Low RGB descriptor](../../profiles/perception-carla-rgb-host-v1.json)를 별도로 고정하고
+같은 모델/threshold의 결과를 모두 비교한다. TP/FP/FN·wall20Hz·renderer 종료 한계를 감추지 않는다.
+[실행·실패·원본](../test-plan/evidence/m10_live_perception/README.md)을 따른다.
+
+<a id="adr-0117"></a>
+
+## ADR-0117: 사전 고정 정확도 비교와 정답 revision의 분리
+
+2026-11-07. M10 정확도 비교는 반복 frame 대신6class·3기상·거리/가림·배경·중첩의
+개발/보류 각81배치를 사용한다. Plan과 잠정 절대/상대 gate는 수집 전에, 코드와 모델은
+추론 전에 hash로 고정한다. 개발셋의 후보2종 중 하나를 지명한 뒤에만 보류셋을 수집한다.
+실행·가시성 coverage·정확도·deadline·서버 정리를 별도 판정하고 runtime 자동 승격은 금지한다.
+[프로토콜](../test-plan/perception-quality-protocol.md)을 따른다.
+
+차량 class 중복 억제는 실제 truck/bus TP를 지웠고 중앙 확대는 미검출 감소와 FP 증가를
+동시에 보였다. Gate를 낮추거나 보류셋에서 다른 후보를 재탐색하지 않고 두 후보를 미채택한다.
+이 알고리즘들은 offline 실험 모듈에만 두고 live v1 계약/model hash/threshold를 바꾸지 않는다.
+
+원본 검토에서 CARLA Rider13의 정답 변환 누락을 확인했다. 별도 v2 생성기는 Pedestrians12와
+Rider13을 person으로 통합하고 동일 instance의 이륜차 box는 class별로 유지한다. V1을 덮어쓰지
+않으며 같은162배치의 재계산은 사후 진단으로만 보존한다. 수정된 정답의 정확도 수용은 검수한
+box/ignore 정책·새 partition·사전 freeze를 요구한다. 결과에 맞춘 정답 선택이나 이전 holdout의
+재사용으로 후보를 승격하지 않는다. [원본·회귀·제한](../test-plan/evidence/m10_quality/README.md)에 연결한다.
+
+<a id="adr-0118"></a>
+
+## ADR-0118: Rider v2의 실제 pose·조건별 가시성과 엄격한 보류 판정
+
+2026-11-07. V1의 사후 정답 재계산과 구분하여 새6class·3기상·개발/보류 각81배치를
+사전 고정한다. Pedestrians12/Rider13을 person으로 합치되 vehicle class는 별도로 유지한다.
+Strict visible IoU0.5와25pixel/side4를 바꾸지 않는다. 작은 객체에 맞는 검출을 무시하거나
+가려진 물체를 덮는 큰 box를 인정하는 값은 별도 진단일 뿐 TP/gate를 바꾸지 않는다.
+[V2 프로토콜](../test-plan/perception-quality-v2-protocol.md)을 따른다.
+
+기존 capture가 spawn 직후 읽은 SDK pose에는0좌표가 있었다. 원래 기록을 보존하고 v2는
+정지 fixture의 settling/capture 이후 실제 pose를 읽어 계획과2cm/0.1° 이내인지 대조한다.
+새 평가에서204개 pose를 확인했다. 초기 European HGV의 NW movement와 준비된 M7 NoDrive
+component 충돌·spawn SIGSEGV는 실패로 보존한다. 모델 추론 전에 같은 truck class의 호환
+asset으로 계획만 수정한 v2b를 새로 freeze하고 전체를 재수집했다. 엔진 호환성 해결로 주장하지 않는다.
+
+같은 class만 합치는 중앙 확대와 모든 base box를 보존하는 VRU 확대 두 후보를 비교했다.
+개발셋에서 하나를 고정한 뒤 새 보류셋을 취득한다. 확대는 재현율을 높였지만 보류셋의
+차량 종류 오분류와 coverage 실패를 해결하지 못했다. 기존 모델/threshold를 유지한다.
+
+보류 보행자의 far/occluded6개는 최소 visible 지원에 미달했다. Class 전체 합계만 보지 않고
+각 class×stratum≥2/3을 요구한 gate가 이를 FAIL로 잡는다. 결과를 본 뒤 해당 장면을 바꾸거나
+유효하지 않은 조건을 전체 PASS에 포함하지 않는다. 다음 새 plan의 asset 호환성/가시성은 별도
+준비셋에서 확인하며, 이미 본 보류셋으로 후보를 다시 고르지 않는다.
+[실행·실패·원본](../test-plan/evidence/m10_quality_v2/README.md)에 근거를 보존한다.
+
+<a id="adr-0119"></a>
+
+## ADR-0119: 별도 준비와 모델별 식별자·실제 모든 site의 배치 검수
+
+2026-11-07. [V3 기준](../test-plan/perception-quality-v3-protocol.md)은 기존 strict 정답·숫자 gate를
+유지하고 자산 생성·settled pose·visible support를 별도 준비셋에서 먼저 검사한다. 가림 없는
+동일 pose 참조로 실제 부분 가림을 확인하며 준비 FAIL은 평가 freeze 전에만 수정한다.
+소비한 이전 평가/준비 RGB648개를 제외한다. 첫 가림 보행자3개20pixel의 FAIL을 보존하고
+right0.85→1.2m 수정·참조36개 추가 후180장을 통과했다.
+
+S/M/M 확대를 비교하고 M은 실제 model SHA의 offline envelope에만 기록한다. 다른 모델을
+기존 S live/C++ 계약으로 발행하지 않는다. CPU/CUDA/OpenCV tensor/raw의 수치 동등성과
+모델 정확도를 구분한다. 고정54개 source·설정을 바꾸지 않고 개발의 선택 후 보류를 수집한다.
+M 확대의 개발 절대 기준 PASS도 빈 배경 FP 증가의 상대 FAIL과 보류의 정밀도·truck recall·
+coverage 실패를 덮지 않는다. Runtime 후보는 미채택이다.
+
+별도 준비 site의 PASS가 다른 최종 camera/site의 시야를 보장하지 않는다. 보류 far primary9개와
+rider6개의 지원 부족을 장면 교체·mask 확장 없이 보존한다. 사후 읽기 전용 지도 screen은 실제
+두 site204개 계획 actor를 조회해 보류 far18개의 XY가 가까운 차로/보도에서5.9–10.4m 벗어남을
+검출했다. 높이 차이는 검출하지 않았다. 다음 준비는 모든 실제 site에서 도로 projection과 새
+영상의 가시성을 함께 검사한다. Nearest-lane의15cm/2m screen은 충돌 mesh·시야의 정확한 증명이나
+v3 gate 변경이 아니다. 새 후보에는 새 보류 평가가 필요하다.
+
+개발 첫81pair는 client가 정상 종료했으나 서버30초 종료 budget을 넘어서 전체 FAIL이었다.
+Vulkan 미해제 resource 경고와 stack은 원인 규명과 구분한다. 같은 고정 코드·계획·budget으로
+재수집했으며 원래 FAIL과 초기 과도한 assertion 해석의 정정을 모두 보존한다. 종료 제한을
+늘리거나 engine을 바꿔 통과시킨 것이 아니다. [실행·원본·재현](../test-plan/evidence/m10_quality_v3/README.md)에 연결한다.

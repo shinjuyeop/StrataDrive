@@ -680,7 +680,9 @@ ev_power_bms:
     drive_auxiliary_dependency_policy: explicit_opt_in_70ms_input_default_30ms # source/torque remain 30 ms; no runtime loader
     cross_node_budget_and_clock: null # TBD-04/05/14/15; before M3/M5/M6 acceptance
   model_placement_clock_and_single_energy_owner: null # TBD-07/04 / M6/M7
-# Future AI comparison workload; classical M8 scenarios do not require an AI model.
+# Full Reference AI workload remains undecided. The implemented M10 Host fixture
+# is pinned separately in perception-host-v1.json / perception-cuda-host-v1.json.
+# Classical M8 scenarios do not require an AI model.
 workload:
   perception_model: null # TBD-09 / M10
   model_checksum: null # TBD-09 / M10

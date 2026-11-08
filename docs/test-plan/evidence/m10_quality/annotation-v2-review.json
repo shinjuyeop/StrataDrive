@@ -1,0 +1,294 @@
+{
+  "schema": "m10-rider-annotation-review-v2",
+  "status": "POST_HOC_DIAGNOSTIC_ONLY",
+  "runtime_promotion": false,
+  "new_holdout": false,
+  "scope": "All images and predictions were already inspected under v1. No revised quality PASS or candidate nomination; fresh prospectively frozen validation required.",
+  "implementation_sha256": "fdb11421f8ae2cadf1eee9810671def9ba8388569d42aec403e619dbc0fdf951",
+  "scores": {
+    "development": {
+      "baseline": {
+        "micro": {
+          "tp": 88,
+          "fp": 20,
+          "fn": 35,
+          "precision": 0.8148148148148148,
+          "recall": 0.7154471544715447,
+          "f1": 0.7619047619047619
+        },
+        "per_class": {
+          "0": {
+            "tp": 19,
+            "fp": 4,
+            "fn": 17,
+            "precision": 0.8260869565217391,
+            "recall": 0.5277777777777778
+          },
+          "1": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 9,
+            "precision": 1.0,
+            "recall": 0.4
+          },
+          "2": {
+            "tp": 33,
+            "fp": 6,
+            "fn": 0,
+            "precision": 0.8461538461538461,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 3,
+            "fp": 5,
+            "fn": 9,
+            "precision": 0.375,
+            "recall": 0.25
+          },
+          "5": {
+            "tp": 15,
+            "fp": 3,
+            "fn": 0,
+            "precision": 0.8333333333333334,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 12,
+            "fp": 2,
+            "fn": 0,
+            "precision": 0.8571428571428571,
+            "recall": 1.0
+          }
+        },
+        "run_sha256": "c99d8eb64e34fd3b2fcb677898b50ff71cbc5337ab168bcea814e216fbe82cfd",
+        "labels_sha256": "c87d73ee0ef400bf524aa707cc4498ab4c0936588c36a7242fbefa80f40c9d18"
+      },
+      "vehicle-nms-v1": {
+        "micro": {
+          "tp": 86,
+          "fp": 17,
+          "fn": 37,
+          "precision": 0.8349514563106796,
+          "recall": 0.6991869918699187,
+          "f1": 0.7610619469026548
+        },
+        "per_class": {
+          "0": {
+            "tp": 19,
+            "fp": 4,
+            "fn": 17,
+            "precision": 0.8260869565217391,
+            "recall": 0.5277777777777778
+          },
+          "1": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 9,
+            "precision": 1.0,
+            "recall": 0.4
+          },
+          "2": {
+            "tp": 33,
+            "fp": 6,
+            "fn": 0,
+            "precision": 0.8461538461538461,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 3,
+            "fp": 5,
+            "fn": 9,
+            "precision": 0.375,
+            "recall": 0.25
+          },
+          "5": {
+            "tp": 15,
+            "fp": 2,
+            "fn": 0,
+            "precision": 0.8823529411764706,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 10,
+            "fp": 0,
+            "fn": 2,
+            "precision": 1.0,
+            "recall": 0.8333333333333334
+          }
+        },
+        "run_sha256": "c2a524fa2b2b2627b11a098dd17e6fd0256f48bddb77ff793a2a1558117aa6a9",
+        "labels_sha256": "c87d73ee0ef400bf524aa707cc4498ab4c0936588c36a7242fbefa80f40c9d18"
+      },
+      "center-refine-v1": {
+        "micro": {
+          "tp": 105,
+          "fp": 29,
+          "fn": 18,
+          "precision": 0.7835820895522388,
+          "recall": 0.8536585365853658,
+          "f1": 0.8171206225680934
+        },
+        "per_class": {
+          "0": {
+            "tp": 30,
+            "fp": 6,
+            "fn": 6,
+            "precision": 0.8333333333333334,
+            "recall": 0.8333333333333334
+          },
+          "1": {
+            "tp": 9,
+            "fp": 2,
+            "fn": 6,
+            "precision": 0.8181818181818182,
+            "recall": 0.6
+          },
+          "2": {
+            "tp": 33,
+            "fp": 6,
+            "fn": 0,
+            "precision": 0.8461538461538461,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 7,
+            "fp": 10,
+            "fn": 5,
+            "precision": 0.4117647058823529,
+            "recall": 0.5833333333333334
+          },
+          "5": {
+            "tp": 15,
+            "fp": 1,
+            "fn": 0,
+            "precision": 0.9375,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 11,
+            "fp": 4,
+            "fn": 1,
+            "precision": 0.7333333333333333,
+            "recall": 0.9166666666666666
+          }
+        },
+        "run_sha256": "29bedb7f6d2fc8e11c7090a5482b0f5d002ab54878d9c1361fcccade91ef7615",
+        "labels_sha256": "c87d73ee0ef400bf524aa707cc4498ab4c0936588c36a7242fbefa80f40c9d18"
+      }
+    },
+    "holdout": {
+      "baseline": {
+        "micro": {
+          "tp": 78,
+          "fp": 18,
+          "fn": 42,
+          "precision": 0.8125,
+          "recall": 0.65,
+          "f1": 0.7222222222222222
+        },
+        "per_class": {
+          "0": {
+            "tp": 16,
+            "fp": 1,
+            "fn": 20,
+            "precision": 0.9411764705882353,
+            "recall": 0.4444444444444444
+          },
+          "1": {
+            "tp": 2,
+            "fp": 3,
+            "fn": 10,
+            "precision": 0.4,
+            "recall": 0.16666666666666666
+          },
+          "2": {
+            "tp": 33,
+            "fp": 7,
+            "fn": 0,
+            "precision": 0.825,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 5,
+            "fp": 0,
+            "fn": 7,
+            "precision": 1.0,
+            "recall": 0.4166666666666667
+          },
+          "5": {
+            "tp": 14,
+            "fp": 4,
+            "fn": 1,
+            "precision": 0.7777777777777778,
+            "recall": 0.9333333333333333
+          },
+          "7": {
+            "tp": 8,
+            "fp": 3,
+            "fn": 4,
+            "precision": 0.7272727272727273,
+            "recall": 0.6666666666666666
+          }
+        },
+        "run_sha256": "cbba15e8c4a0c5eb01468bb67f4a985f2940ba9fe486a25a27d66b27f7541081",
+        "labels_sha256": "2fb5e49d152580145fa20b972aa8c1201162562ce99d86b4d48622d15456b033"
+      },
+      "vehicle-nms-v1": {
+        "micro": {
+          "tp": 75,
+          "fp": 15,
+          "fn": 45,
+          "precision": 0.8333333333333334,
+          "recall": 0.625,
+          "f1": 0.7142857142857143
+        },
+        "per_class": {
+          "0": {
+            "tp": 16,
+            "fp": 1,
+            "fn": 20,
+            "precision": 0.9411764705882353,
+            "recall": 0.4444444444444444
+          },
+          "1": {
+            "tp": 2,
+            "fp": 3,
+            "fn": 10,
+            "precision": 0.4,
+            "recall": 0.16666666666666666
+          },
+          "2": {
+            "tp": 33,
+            "fp": 7,
+            "fn": 0,
+            "precision": 0.825,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 5,
+            "fp": 0,
+            "fn": 7,
+            "precision": 1.0,
+            "recall": 0.4166666666666667
+          },
+          "5": {
+            "tp": 11,
+            "fp": 1,
+            "fn": 4,
+            "precision": 0.9166666666666666,
+            "recall": 0.7333333333333333
+          },
+          "7": {
+            "tp": 8,
+            "fp": 3,
+            "fn": 4,
+            "precision": 0.7272727272727273,
+            "recall": 0.6666666666666666
+          }
+        },
+        "run_sha256": "7724819d19530c5de8b0bd915e144c0d4bd9ee9ec01eea339dfe779ec6e63ef4",
+        "labels_sha256": "2fb5e49d152580145fa20b972aa8c1201162562ce99d86b4d48622d15456b033"
+      }
+    }
+  }
+}

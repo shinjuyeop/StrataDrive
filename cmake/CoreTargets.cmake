@@ -1,4 +1,8 @@
 # Shared domain libraries and the consolidated demo. Included from the root.
+add_library(perception_receiver STATIC central/perception/perception_receiver.cpp)
+target_include_directories(perception_receiver PUBLIC central/perception interfaces/central)
+stratadrive_quality(perception_receiver)
+
 add_library(diagnostics STATIC central/diagnostics/diagnostics.cpp)
 target_include_directories(diagnostics PUBLIC central/diagnostics)
 stratadrive_quality(diagnostics)

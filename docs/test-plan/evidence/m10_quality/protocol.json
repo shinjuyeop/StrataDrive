@@ -1,0 +1,70 @@
+{
+  "schema": "m10-quality-protocol-v1",
+  "scope": "Provisional Host engineering comparison; not vehicle/ODD safety acceptance",
+  "selection": "development only; seal one nominee before holdout acquisition; no retuning on holdout",
+  "metric": "class-aware visible-instance boxes IoU>=0.5; not COCO mAP",
+  "minimum_visible_pixels": 25,
+  "minimum_box_side": 4,
+  "score_threshold": 0.35,
+  "candidate_ids": [
+    "vehicle-nms-v1",
+    "center-refine-v1"
+  ],
+  "vehicle_nms": {
+    "classes": [
+      2,
+      5,
+      7
+    ],
+    "iou_threshold": 0.75
+  },
+  "center_refine": {
+    "crop_xywh": [
+      160,
+      96,
+      320,
+      192
+    ],
+    "scale": 2,
+    "crop_edge_margin_pixels": 2,
+    "same_class_nms_iou": 0.5
+  },
+  "coverage": {
+    "cases_per_partition": 81,
+    "minimum_visible_target_cases_per_class": 9,
+    "negative_cases": 3,
+    "all_strata_required": [
+      "near",
+      "medium",
+      "far",
+      "occluded",
+      "negative",
+      "overlap_vehicles",
+      "overlap_vru"
+    ]
+  },
+  "absolute_quality": {
+    "micro_precision_min": 0.85,
+    "micro_recall_min": 0.8,
+    "per_class_recall_min": 0.7,
+    "near_person_recall_min": 0.9,
+    "negative_fp_per_frame_max": 0.3333333333333333
+  },
+  "relative_promotion": {
+    "precision_gain_min": 0.03,
+    "micro_recall_drop_max": 0.0,
+    "per_class_recall_drop_max": 0.0,
+    "far_and_occluded_recall_drop_max": 0.0,
+    "near_person_tp_drop_max": 0,
+    "negative_fp_increase_max": 0
+  },
+  "selection_order": [
+    "relative_gate_pass",
+    "micro_f1",
+    "micro_recall",
+    "micro_precision",
+    "candidate_id_ascending"
+  ],
+  "runtime_promotion": "No automatic replacement of v1. New runtime profile/interface review only after absolute and relative holdout gates pass.",
+  "latency": "All cold/startup and per-frame measurements retained; experimental accuracy replay is not20Hz qualification"
+}

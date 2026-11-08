@@ -1,0 +1,576 @@
+{
+  "schema": "m10-quality-experiment-audit-v2",
+  "audit": "PASS",
+  "selected": "center-refine-v2",
+  "freeze_sha256": "d5a7a1b64aa2792b33e5a199d33ed905d02d6c2c6287459eb5e09a5a7a0a3778",
+  "selection_sha256": "87b2655a994c4c4122ef1b07dc49863e7d4c379c0d7a1b1df391cc67c5a21ebb",
+  "raw_reconstruction": {
+    "development": {
+      "partition": "development",
+      "frames": 81,
+      "missing_primary": 0
+    },
+    "holdout": {
+      "partition": "holdout",
+      "frames": 81,
+      "missing_primary": 6
+    }
+  },
+  "cross_partition_rgb_overlap": 0,
+  "prior_v1_rgb_overlap": 0,
+  "holdout_relative": {
+    "status": "FAIL",
+    "gates": {
+      "precision": false,
+      "recall": true,
+      "per_class": true,
+      "far_occluded": true,
+      "near_person": true,
+      "negatives": true
+    }
+  },
+  "eligible_for_runtime_review": false,
+  "runtime_promotion": false,
+  "scope": "Prospective Rider-aware visible-mask comparison; no vehicle/ODD or live20Hz acceptance",
+  "scores": {
+    "development": {
+      "baseline": {
+        "micro": {
+          "tp": 80,
+          "fp": 13,
+          "fn": 49,
+          "precision": 0.8602150537634409,
+          "recall": 0.6201550387596899,
+          "f1": 0.7207207207207207
+        },
+        "per_class": {
+          "0": {
+            "tp": 21,
+            "fp": 2,
+            "fn": 21,
+            "precision": 0.9130434782608695,
+            "recall": 0.5
+          },
+          "1": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 9,
+            "precision": 1.0,
+            "recall": 0.4
+          },
+          "2": {
+            "tp": 27,
+            "fp": 0,
+            "fn": 6,
+            "precision": 1.0,
+            "recall": 0.8181818181818182
+          },
+          "3": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 9,
+            "precision": 1.0,
+            "recall": 0.25
+          },
+          "5": {
+            "tp": 12,
+            "fp": 0,
+            "fn": 3,
+            "precision": 1.0,
+            "recall": 0.8
+          },
+          "7": {
+            "tp": 11,
+            "fp": 11,
+            "fn": 1,
+            "precision": 0.5,
+            "recall": 0.9166666666666666
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 11,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        }
+      },
+      "center-refine-v2": {
+        "micro": {
+          "tp": 106,
+          "fp": 19,
+          "fn": 23,
+          "precision": 0.848,
+          "recall": 0.8217054263565892,
+          "f1": 0.8346456692913385
+        },
+        "per_class": {
+          "0": {
+            "tp": 31,
+            "fp": 2,
+            "fn": 11,
+            "precision": 0.9393939393939394,
+            "recall": 0.7380952380952381
+          },
+          "1": {
+            "tp": 8,
+            "fp": 1,
+            "fn": 7,
+            "precision": 0.8888888888888888,
+            "recall": 0.5333333333333333
+          },
+          "2": {
+            "tp": 32,
+            "fp": 0,
+            "fn": 1,
+            "precision": 1.0,
+            "recall": 0.9696969696969697
+          },
+          "3": {
+            "tp": 9,
+            "fp": 0,
+            "fn": 3,
+            "precision": 1.0,
+            "recall": 0.75
+          },
+          "5": {
+            "tp": 15,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 11,
+            "fp": 16,
+            "fn": 1,
+            "precision": 0.4074074074074074,
+            "recall": 0.9166666666666666
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "no_model_errors": true,
+          "precision": false,
+          "recall": true,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 17,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        }
+      },
+      "vru-refine-v2": {
+        "micro": {
+          "tp": 97,
+          "fp": 15,
+          "fn": 32,
+          "precision": 0.8660714285714286,
+          "recall": 0.751937984496124,
+          "f1": 0.8049792531120332
+        },
+        "per_class": {
+          "0": {
+            "tp": 30,
+            "fp": 3,
+            "fn": 12,
+            "precision": 0.9090909090909091,
+            "recall": 0.7142857142857143
+          },
+          "1": {
+            "tp": 8,
+            "fp": 1,
+            "fn": 7,
+            "precision": 0.8888888888888888,
+            "recall": 0.5333333333333333
+          },
+          "2": {
+            "tp": 27,
+            "fp": 0,
+            "fn": 6,
+            "precision": 1.0,
+            "recall": 0.8181818181818182
+          },
+          "3": {
+            "tp": 9,
+            "fp": 0,
+            "fn": 3,
+            "precision": 1.0,
+            "recall": 0.75
+          },
+          "5": {
+            "tp": 12,
+            "fp": 0,
+            "fn": 3,
+            "precision": 1.0,
+            "recall": 0.8
+          },
+          "7": {
+            "tp": 11,
+            "fp": 11,
+            "fn": 1,
+            "precision": 0.5,
+            "recall": 0.9166666666666666
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 16,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        }
+      }
+    },
+    "holdout": {
+      "baseline": {
+        "micro": {
+          "tp": 52,
+          "fp": 42,
+          "fn": 71,
+          "precision": 0.5531914893617021,
+          "recall": 0.42276422764227645,
+          "f1": 0.4792626728110599
+        },
+        "per_class": {
+          "0": {
+            "tp": 13,
+            "fp": 1,
+            "fn": 23,
+            "precision": 0.9285714285714286,
+            "recall": 0.3611111111111111
+          },
+          "1": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 12,
+            "precision": 1.0,
+            "recall": 0.2
+          },
+          "2": {
+            "tp": 18,
+            "fp": 4,
+            "fn": 15,
+            "precision": 0.8181818181818182,
+            "recall": 0.5454545454545454
+          },
+          "3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 12,
+            "precision": null,
+            "recall": 0.0
+          },
+          "5": {
+            "tp": 6,
+            "fp": 1,
+            "fn": 9,
+            "precision": 0.8571428571428571,
+            "recall": 0.4
+          },
+          "7": {
+            "tp": 12,
+            "fp": 36,
+            "fn": 0,
+            "precision": 0.25,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": false,
+          "no_model_errors": true,
+          "precision": false,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": false,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 10,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 0,
+            "occluded": 0
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        }
+      },
+      "center-refine-v2": {
+        "micro": {
+          "tp": 77,
+          "fp": 76,
+          "fn": 46,
+          "precision": 0.5032679738562091,
+          "recall": 0.6260162601626016,
+          "f1": 0.5579710144927537
+        },
+        "per_class": {
+          "0": {
+            "tp": 27,
+            "fp": 3,
+            "fn": 9,
+            "precision": 0.9,
+            "recall": 0.75
+          },
+          "1": {
+            "tp": 7,
+            "fp": 0,
+            "fn": 8,
+            "precision": 1.0,
+            "recall": 0.4666666666666667
+          },
+          "2": {
+            "tp": 24,
+            "fp": 4,
+            "fn": 9,
+            "precision": 0.8571428571428571,
+            "recall": 0.7272727272727273
+          },
+          "3": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 12,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          "5": {
+            "tp": 7,
+            "fp": 2,
+            "fn": 8,
+            "precision": 0.7777777777777778,
+            "recall": 0.4666666666666667
+          },
+          "7": {
+            "tp": 12,
+            "fp": 66,
+            "fn": 0,
+            "precision": 0.15384615384615385,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": false,
+          "no_model_errors": true,
+          "precision": false,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 21,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 0,
+            "occluded": 0
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        }
+      }
+    }
+  }
+}

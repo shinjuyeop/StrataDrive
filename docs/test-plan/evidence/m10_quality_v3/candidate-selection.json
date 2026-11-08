@@ -1,0 +1,42 @@
+{
+  "schema": "m10-quality-selection-v3",
+  "created_utc": "2026-11-06T17:37:16.420678+00:00",
+  "freeze_sha256": "31d36cb4dc88da8bd3f3a1b3f98d3f69d315f32bd8d58f404cc388ed03bc233b",
+  "metadata_sha256": "f5b86814f3817e163cbf8516d0750589f86c35b6f0a580dfda13fa99f768e634",
+  "selected": "medium-refine-v3",
+  "development_relative": {
+    "medium-v3": {
+      "status": "FAIL",
+      "gates": {
+        "precision": true,
+        "recall": true,
+        "per_class": false,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": false
+      }
+    },
+    "medium-refine-v3": {
+      "status": "FAIL",
+      "gates": {
+        "precision": true,
+        "recall": true,
+        "per_class": true,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": false
+      }
+    }
+  },
+  "development_absolute": {
+    "baseline": "FAIL",
+    "medium-v3": "FAIL",
+    "medium-refine-v3": "PASS"
+  },
+  "score_files": {
+    "build/m10-quality-v3c/development-baseline-score.json": "bdeeed8e88d2426e3228281b9d59824acefb2f1a83548519ae71faf0e08d18dd",
+    "build/m10-quality-v3c/development-medium-v3-score.json": "2f70b782a25bdac0fa917e003352d5b58c191b97a3c23c53255c207d6144fabf",
+    "build/m10-quality-v3c/development-medium-refine-v3-score.json": "616ccb8512a64c790b6a6af1b4559397dae5af4b8c14bff8e7efdb730e150e71"
+  },
+  "runtime_promotion": false
+}

@@ -1,0 +1,102 @@
+{
+  "schema": "m10-quality-label-review-v1",
+  "scope": "Post-score diagnostic only; no corrected labels or scores",
+  "missing_targets": [
+    {
+      "scene": "holdout-006",
+      "stratum": "far",
+      "actor": {
+        "actor_id": 95,
+        "blueprint": "vehicle.gazelle.omafiets",
+        "class_id": 1,
+        "role": "target",
+        "included": false,
+        "excluded_small": true
+      },
+      "excluded": [
+        {
+          "class_id": 1,
+          "instance_id": 95,
+          "visible_pixels": 22,
+          "box": [
+            310,
+            165,
+            322,
+            170
+          ],
+          "reason": "small_visible_support"
+        }
+      ]
+    },
+    {
+      "scene": "holdout-033",
+      "stratum": "far",
+      "actor": {
+        "actor_id": 129,
+        "blueprint": "vehicle.gazelle.omafiets",
+        "class_id": 1,
+        "role": "target",
+        "included": false,
+        "excluded_small": true
+      },
+      "excluded": [
+        {
+          "class_id": 1,
+          "instance_id": 129,
+          "visible_pixels": 22,
+          "box": [
+            310,
+            165,
+            322,
+            170
+          ],
+          "reason": "small_visible_support"
+        }
+      ]
+    },
+    {
+      "scene": "holdout-060",
+      "stratum": "far",
+      "actor": {
+        "actor_id": 163,
+        "blueprint": "vehicle.gazelle.omafiets",
+        "class_id": 1,
+        "role": "target",
+        "included": false,
+        "excluded_small": true
+      },
+      "excluded": [
+        {
+          "class_id": 1,
+          "instance_id": 163,
+          "visible_pixels": 22,
+          "box": [
+            310,
+            165,
+            322,
+            170
+          ],
+          "reason": "small_visible_support"
+        }
+      ]
+    }
+  ],
+  "person_fp_in_two_wheeler_scenes": {
+    "development": {
+      "all_person_fp": 11,
+      "in_two_wheeler_scenes": 11,
+      "interpretation": "Scene association only, not a per-box semantic adjudication"
+    },
+    "holdout": {
+      "all_person_fp": 8,
+      "in_two_wheeler_scenes": 8,
+      "interpretation": "Scene association only, not a per-box semantic adjudication"
+    }
+  },
+  "review_scene_ids": [
+    "development-004",
+    "development-012",
+    "holdout-004",
+    "holdout-012"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "m10-perception-host-v1",
+  "model": {
+    "name": "opencv-zoo-yolox-s-2022nov",
+    "revision": "a74cdfad334b102cbd8daed769fbe1d4cb1c327a",
+    "url": "https://media.githubusercontent.com/media/opencv/opencv_zoo/a74cdfad334b102cbd8daed769fbe1d4cb1c327a/models/object_detection_yolox/object_detection_yolox_2022nov.onnx",
+    "sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+    "bytes": 35858002,
+    "license": "Apache-2.0",
+    "input_name": "images",
+    "input_shape": [1, 3, 640, 640],
+    "output_name": "output",
+    "output_shape": [1, 8400, 85],
+    "precision": "float32",
+    "provider": "CPUExecutionProvider",
+    "intra_op_threads": 4,
+    "inter_op_threads": 1
+  },
+  "camera": {
+    "id": 1,
+    "calibration_revision": 1,
+    "width": 640,
+    "height": 384,
+    "fov_degrees": 90,
+    "period_ns": 50000000,
+    "format": "RGB8",
+    "projection": "pinhole",
+    "pose": "capture manifest; no implicit metric projection"
+  },
+  "preprocess": "RGB; top-left letterbox 114; bilinear; NCHW float32 0..255; no normalization",
+  "score_threshold": 0.35,
+  "nms_iou_threshold": 0.5,
+  "class_ids": [0, 1, 2, 3, 5, 7],
+  "max_detections": 100,
+  "max_candidates": 1000,
+  "image_health": {"minimum_luma_std": 2.0, "maximum_near_black_fraction": 0.98, "maximum_near_white_fraction": 0.98, "near_black_max": 5, "near_white_min": 250},
+  "source_lifetime_ns": 100000000,
+  "host_processing_budget_ns": 100000000,
+  "queue_capacity": 1,
+  "tracking": {"iou_threshold": 0.3, "history_frames": 10, "max_gap_ns": 100000000},
+  "evaluation": {"iou_threshold": 0.5, "minimum_visible_pixels": 25, "minimum_box_side": 4, "quality_gate": "NOT_SET; report TP/FP/FN and coverage, no ODD acceptance"}
+}

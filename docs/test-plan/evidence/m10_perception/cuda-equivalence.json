@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "raw_atol": 0.001,
+  "raw_rtol": 0.0001,
+  "box_atol_pixels": 0.01,
+  "score_atol": 0.0001,
+  "dataset_sha256": "b2ff6cb8a5e6a09869e9dcf531bf5e0dcb5a969c79535ff2fb6ca12cc586e27e",
+  "cuda_options": {
+    "CPUExecutionProvider": {},
+    "CUDAExecutionProvider": {
+      "sdpa_kernel": "0",
+      "use_tf32": "0",
+      "fuse_conv_bias": "0",
+      "prefer_nhwc": "0",
+      "tunable_op_max_tuning_duration_ms": "0",
+      "enable_skip_layer_norm_strict_mode": "0",
+      "tunable_op_tuning_enable": "0",
+      "tunable_op_enable": "0",
+      "use_ep_level_unified_stream": "0",
+      "device_id": "0",
+      "has_user_compute_stream": "0",
+      "gpu_external_empty_cache": "0",
+      "cudnn_conv_algo_search": "HEURISTIC",
+      "cudnn_conv1d_pad_to_nc1d": "0",
+      "gpu_mem_limit": "2147483648",
+      "gpu_external_alloc": "0",
+      "gpu_external_free": "0",
+      "arena_extend_strategy": "kNextPowerOfTwo",
+      "do_copy_in_default_stream": "1",
+      "enable_cuda_graph": "0",
+      "user_compute_stream": "0",
+      "cudnn_conv_use_max_workspace": "1"
+    }
+  },
+  "rows": [
+    {
+      "scene": "normal",
+      "frame": 125,
+      "raw_equal": true,
+      "detections_equal": true,
+      "count": 3,
+      "max_absolute_difference": 9.715557098388672e-05
+    },
+    {
+      "scene": "far",
+      "frame": 235,
+      "raw_equal": true,
+      "detections_equal": true,
+      "count": 0,
+      "max_absolute_difference": 5.683302879333496e-05
+    },
+    {
+      "scene": "occluded",
+      "frame": 345,
+      "raw_equal": true,
+      "detections_equal": true,
+      "count": 1,
+      "max_absolute_difference": 5.4717063903808594e-05
+    }
+  ]
+}

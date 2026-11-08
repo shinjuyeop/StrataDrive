@@ -1,0 +1,710 @@
+{
+  "schema": "m10-quality-evidence-v1",
+  "recorded_utc": "2026-11-06T16:11:41.424898+00:00",
+  "technical_status": "PASS: capture, frozen replay, cross-run/raw reconstruction audit, annotation-v2 regression",
+  "milestone_acceptance": "M10 OPEN",
+  "runtime_promotion": false,
+  "frozen_v1_quality": "FAIL for baseline and both candidates; Rider13 omission additionally limits semantic interpretation",
+  "annotation_v2": "IMPLEMENTED AND POST_HOC DIAGNOSED; fresh prospective quality acceptance NOT RUN",
+  "full_wall20hz": "NOT RUN in this increment; previous live19.34Hz limitation retained",
+  "vehicle_fusion_M11_M12": "NOT RUN",
+  "validation": {
+    "python_cases": {
+      "passed": 71,
+      "log": "python-final-v2.log"
+    },
+    "debug_core": {
+      "passed": 1459,
+      "excluded": "runtime.wall; M7 opt-in full suites not configured",
+      "log": "ctest-core.log"
+    },
+    "release_perception_ctest": {
+      "passed": 13,
+      "log": "ctest-release-complete.log"
+    },
+    "asan_ubsan_perception_ctest": {
+      "passed": 13,
+      "log": "ctest-asan-complete.log"
+    },
+    "ruff": "PASS",
+    "whitespace": "PASS",
+    "prior_m10_evidence_hashes": "PASS; previous-perception-integrity.log and previous-live-integrity.log"
+  },
+  "capture": {
+    "development": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 212.07556282402948,
+      "probe_sha256": "62e2f4bdeb1c8a0775e7c8d92bc56abb36e15cb6fb1586379b67eed7853d3874"
+    },
+    "holdout": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 251.68801772291772,
+      "probe_sha256": "62e2f4bdeb1c8a0775e7c8d92bc56abb36e15cb6fb1586379b67eed7853d3874"
+    }
+  },
+  "frozen_comparison": {
+    "schema": "m10-quality-experiment-audit-v1",
+    "audit": "PASS",
+    "freeze_sha256": "56870b2a92f14c646cc850a775b40de1dd8e091d5c87de7521e36c49d1203e1a",
+    "selection_sha256": "d8ef56f709408d0163bc85cd6077576a5cd856a635ff25b56cdafd3c1f3e70e4",
+    "auditor_sha256": "cf1f01fe93d8a3ca1ee15754810d5a1fc69fd01ce9dcbe9d9867d3f176b41408",
+    "raw_reconstruction": {
+      "development": {
+        "frames": 81,
+        "partition": "development",
+        "missing_visible_targets": 0
+      },
+      "holdout": {
+        "frames": 81,
+        "partition": "holdout",
+        "missing_visible_targets": 3
+      }
+    },
+    "cross_partition_rgb_overlap": 0,
+    "selected": "vehicle-nms-v1",
+    "holdout_relative": {
+      "status": "FAIL",
+      "gates": {
+        "precision": false,
+        "recall": false,
+        "per_class": false,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": true
+      }
+    },
+    "eligible_for_runtime_review": false,
+    "runtime_promotion": false,
+    "quality_scope": "Frozen visible-instance metric only; rider ontology and visible/amodal mismatch require separate annotation review before acceptance",
+    "scores": {
+      "development": {
+        "baseline": {
+          "micro": {
+            "tp": 81,
+            "fp": 27,
+            "fn": 21,
+            "precision": 0.75,
+            "recall": 0.7941176470588235,
+            "f1": 0.7714285714285715
+          },
+          "per_class": {
+            "0": {
+              "tp": 12,
+              "fp": 11,
+              "fn": 3,
+              "precision": 0.5217391304347826,
+              "recall": 0.8
+            },
+            "1": {
+              "tp": 6,
+              "fp": 0,
+              "fn": 9,
+              "precision": 1.0,
+              "recall": 0.4
+            },
+            "2": {
+              "tp": 33,
+              "fp": 6,
+              "fn": 0,
+              "precision": 0.8461538461538461,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 3,
+              "fp": 5,
+              "fn": 9,
+              "precision": 0.375,
+              "recall": 0.25
+            },
+            "5": {
+              "tp": 15,
+              "fp": 3,
+              "fn": 0,
+              "precision": 0.8333333333333334,
+              "recall": 1.0
+            },
+            "7": {
+              "tp": 12,
+              "fp": 2,
+              "fn": 0,
+              "precision": 0.8571428571428571,
+              "recall": 1.0
+            }
+          },
+          "absolute_quality": "FAIL",
+          "gates": {
+            "coverage": true,
+            "no_model_errors": true,
+            "precision": false,
+            "recall": false,
+            "per_class_recall": false,
+            "near_person": true,
+            "negative_fp": true
+          }
+        },
+        "vehicle-nms-v1": {
+          "micro": {
+            "tp": 79,
+            "fp": 24,
+            "fn": 23,
+            "precision": 0.7669902912621359,
+            "recall": 0.7745098039215687,
+            "f1": 0.7707317073170732
+          },
+          "per_class": {
+            "0": {
+              "tp": 12,
+              "fp": 11,
+              "fn": 3,
+              "precision": 0.5217391304347826,
+              "recall": 0.8
+            },
+            "1": {
+              "tp": 6,
+              "fp": 0,
+              "fn": 9,
+              "precision": 1.0,
+              "recall": 0.4
+            },
+            "2": {
+              "tp": 33,
+              "fp": 6,
+              "fn": 0,
+              "precision": 0.8461538461538461,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 3,
+              "fp": 5,
+              "fn": 9,
+              "precision": 0.375,
+              "recall": 0.25
+            },
+            "5": {
+              "tp": 15,
+              "fp": 2,
+              "fn": 0,
+              "precision": 0.8823529411764706,
+              "recall": 1.0
+            },
+            "7": {
+              "tp": 10,
+              "fp": 0,
+              "fn": 2,
+              "precision": 1.0,
+              "recall": 0.8333333333333334
+            }
+          },
+          "absolute_quality": "FAIL",
+          "gates": {
+            "coverage": true,
+            "no_model_errors": true,
+            "precision": false,
+            "recall": false,
+            "per_class_recall": false,
+            "near_person": true,
+            "negative_fp": true
+          }
+        },
+        "center-refine-v1": {
+          "micro": {
+            "tp": 89,
+            "fp": 45,
+            "fn": 13,
+            "precision": 0.664179104477612,
+            "recall": 0.8725490196078431,
+            "f1": 0.7542372881355932
+          },
+          "per_class": {
+            "0": {
+              "tp": 14,
+              "fp": 22,
+              "fn": 1,
+              "precision": 0.3888888888888889,
+              "recall": 0.9333333333333333
+            },
+            "1": {
+              "tp": 9,
+              "fp": 2,
+              "fn": 6,
+              "precision": 0.8181818181818182,
+              "recall": 0.6
+            },
+            "2": {
+              "tp": 33,
+              "fp": 6,
+              "fn": 0,
+              "precision": 0.8461538461538461,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 7,
+              "fp": 10,
+              "fn": 5,
+              "precision": 0.4117647058823529,
+              "recall": 0.5833333333333334
+            },
+            "5": {
+              "tp": 15,
+              "fp": 1,
+              "fn": 0,
+              "precision": 0.9375,
+              "recall": 1.0
+            },
+            "7": {
+              "tp": 11,
+              "fp": 4,
+              "fn": 1,
+              "precision": 0.7333333333333333,
+              "recall": 0.9166666666666666
+            }
+          },
+          "absolute_quality": "FAIL",
+          "gates": {
+            "coverage": true,
+            "no_model_errors": true,
+            "precision": false,
+            "recall": true,
+            "per_class_recall": false,
+            "near_person": true,
+            "negative_fp": true
+          }
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "micro": {
+            "tp": 71,
+            "fp": 25,
+            "fn": 28,
+            "precision": 0.7395833333333334,
+            "recall": 0.7171717171717171,
+            "f1": 0.7282051282051282
+          },
+          "per_class": {
+            "0": {
+              "tp": 9,
+              "fp": 8,
+              "fn": 6,
+              "precision": 0.5294117647058824,
+              "recall": 0.6
+            },
+            "1": {
+              "tp": 2,
+              "fp": 3,
+              "fn": 10,
+              "precision": 0.4,
+              "recall": 0.16666666666666666
+            },
+            "2": {
+              "tp": 33,
+              "fp": 7,
+              "fn": 0,
+              "precision": 0.825,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 5,
+              "fp": 0,
+              "fn": 7,
+              "precision": 1.0,
+              "recall": 0.4166666666666667
+            },
+            "5": {
+              "tp": 14,
+              "fp": 4,
+              "fn": 1,
+              "precision": 0.7777777777777778,
+              "recall": 0.9333333333333333
+            },
+            "7": {
+              "tp": 8,
+              "fp": 3,
+              "fn": 4,
+              "precision": 0.7272727272727273,
+              "recall": 0.6666666666666666
+            }
+          },
+          "absolute_quality": "FAIL",
+          "gates": {
+            "coverage": true,
+            "no_model_errors": true,
+            "precision": false,
+            "recall": false,
+            "per_class_recall": false,
+            "near_person": true,
+            "negative_fp": true
+          }
+        },
+        "vehicle-nms-v1": {
+          "micro": {
+            "tp": 68,
+            "fp": 22,
+            "fn": 31,
+            "precision": 0.7555555555555555,
+            "recall": 0.6868686868686869,
+            "f1": 0.7195767195767195
+          },
+          "per_class": {
+            "0": {
+              "tp": 9,
+              "fp": 8,
+              "fn": 6,
+              "precision": 0.5294117647058824,
+              "recall": 0.6
+            },
+            "1": {
+              "tp": 2,
+              "fp": 3,
+              "fn": 10,
+              "precision": 0.4,
+              "recall": 0.16666666666666666
+            },
+            "2": {
+              "tp": 33,
+              "fp": 7,
+              "fn": 0,
+              "precision": 0.825,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 5,
+              "fp": 0,
+              "fn": 7,
+              "precision": 1.0,
+              "recall": 0.4166666666666667
+            },
+            "5": {
+              "tp": 11,
+              "fp": 1,
+              "fn": 4,
+              "precision": 0.9166666666666666,
+              "recall": 0.7333333333333333
+            },
+            "7": {
+              "tp": 8,
+              "fp": 3,
+              "fn": 4,
+              "precision": 0.7272727272727273,
+              "recall": 0.6666666666666666
+            }
+          },
+          "absolute_quality": "FAIL",
+          "gates": {
+            "coverage": true,
+            "no_model_errors": true,
+            "precision": false,
+            "recall": false,
+            "per_class_recall": false,
+            "near_person": true,
+            "negative_fp": true
+          }
+        }
+      }
+    }
+  },
+  "annotation_v2_diagnostic": {
+    "schema": "m10-rider-annotation-review-v2",
+    "status": "POST_HOC_DIAGNOSTIC_ONLY",
+    "runtime_promotion": false,
+    "new_holdout": false,
+    "scope": "All images and predictions were already inspected under v1. No revised quality PASS or candidate nomination; fresh prospectively frozen validation required.",
+    "implementation_sha256": "fdb11421f8ae2cadf1eee9810671def9ba8388569d42aec403e619dbc0fdf951",
+    "scores": {
+      "development": {
+        "baseline": {
+          "micro": {
+            "tp": 88,
+            "fp": 20,
+            "fn": 35,
+            "precision": 0.8148148148148148,
+            "recall": 0.7154471544715447,
+            "f1": 0.7619047619047619
+          },
+          "per_class": {
+            "0": {
+              "tp": 19,
+              "fp": 4,
+              "fn": 17,
+              "precision": 0.8260869565217391,
+              "recall": 0.5277777777777778
+            },
+            "1": {
+              "tp": 6,
+              "fp": 0,
+              "fn": 9,
+              "precision": 1.0,
+              "recall": 0.4
+            },
+            "2": {
+              "tp": 33,
+              "fp": 6,
+              "fn": 0,
+              "precision": 0.8461538461538461,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 3,
+              "fp": 5,
+              "fn": 9,
+              "precision": 0.375,
+              "recall": 0.25
+            },
+            "5": {
+              "tp": 15,
+              "fp": 3,
+              "fn": 0,
+              "precision": 0.8333333333333334,
+              "recall": 1.0
+            },
+            "7": {
+              "tp": 12,
+              "fp": 2,
+              "fn": 0,
+              "precision": 0.8571428571428571,
+              "recall": 1.0
+            }
+          },
+          "run_sha256": "c99d8eb64e34fd3b2fcb677898b50ff71cbc5337ab168bcea814e216fbe82cfd",
+          "labels_sha256": "c87d73ee0ef400bf524aa707cc4498ab4c0936588c36a7242fbefa80f40c9d18"
+        },
+        "vehicle-nms-v1": {
+          "micro": {
+            "tp": 86,
+            "fp": 17,
+            "fn": 37,
+            "precision": 0.8349514563106796,
+            "recall": 0.6991869918699187,
+            "f1": 0.7610619469026548
+          },
+          "per_class": {
+            "0": {
+              "tp": 19,
+              "fp": 4,
+              "fn": 17,
+              "precision": 0.8260869565217391,
+              "recall": 0.5277777777777778
+            },
+            "1": {
+              "tp": 6,
+              "fp": 0,
+              "fn": 9,
+              "precision": 1.0,
+              "recall": 0.4
+            },
+            "2": {
+              "tp": 33,
+              "fp": 6,
+              "fn": 0,
+              "precision": 0.8461538461538461,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 3,
+              "fp": 5,
+              "fn": 9,
+              "precision": 0.375,
+              "recall": 0.25
+            },
+            "5": {
+              "tp": 15,
+              "fp": 2,
+              "fn": 0,
+              "precision": 0.8823529411764706,
+              "recall": 1.0
+            },
+            "7": {
+              "tp": 10,
+              "fp": 0,
+              "fn": 2,
+              "precision": 1.0,
+              "recall": 0.8333333333333334
+            }
+          },
+          "run_sha256": "c2a524fa2b2b2627b11a098dd17e6fd0256f48bddb77ff793a2a1558117aa6a9",
+          "labels_sha256": "c87d73ee0ef400bf524aa707cc4498ab4c0936588c36a7242fbefa80f40c9d18"
+        },
+        "center-refine-v1": {
+          "micro": {
+            "tp": 105,
+            "fp": 29,
+            "fn": 18,
+            "precision": 0.7835820895522388,
+            "recall": 0.8536585365853658,
+            "f1": 0.8171206225680934
+          },
+          "per_class": {
+            "0": {
+              "tp": 30,
+              "fp": 6,
+              "fn": 6,
+              "precision": 0.8333333333333334,
+              "recall": 0.8333333333333334
+            },
+            "1": {
+              "tp": 9,
+              "fp": 2,
+              "fn": 6,
+              "precision": 0.8181818181818182,
+              "recall": 0.6
+            },
+            "2": {
+              "tp": 33,
+              "fp": 6,
+              "fn": 0,
+              "precision": 0.8461538461538461,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 7,
+              "fp": 10,
+              "fn": 5,
+              "precision": 0.4117647058823529,
+              "recall": 0.5833333333333334
+            },
+            "5": {
+              "tp": 15,
+              "fp": 1,
+              "fn": 0,
+              "precision": 0.9375,
+              "recall": 1.0
+            },
+            "7": {
+              "tp": 11,
+              "fp": 4,
+              "fn": 1,
+              "precision": 0.7333333333333333,
+              "recall": 0.9166666666666666
+            }
+          },
+          "run_sha256": "29bedb7f6d2fc8e11c7090a5482b0f5d002ab54878d9c1361fcccade91ef7615",
+          "labels_sha256": "c87d73ee0ef400bf524aa707cc4498ab4c0936588c36a7242fbefa80f40c9d18"
+        }
+      },
+      "holdout": {
+        "baseline": {
+          "micro": {
+            "tp": 78,
+            "fp": 18,
+            "fn": 42,
+            "precision": 0.8125,
+            "recall": 0.65,
+            "f1": 0.7222222222222222
+          },
+          "per_class": {
+            "0": {
+              "tp": 16,
+              "fp": 1,
+              "fn": 20,
+              "precision": 0.9411764705882353,
+              "recall": 0.4444444444444444
+            },
+            "1": {
+              "tp": 2,
+              "fp": 3,
+              "fn": 10,
+              "precision": 0.4,
+              "recall": 0.16666666666666666
+            },
+            "2": {
+              "tp": 33,
+              "fp": 7,
+              "fn": 0,
+              "precision": 0.825,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 5,
+              "fp": 0,
+              "fn": 7,
+              "precision": 1.0,
+              "recall": 0.4166666666666667
+            },
+            "5": {
+              "tp": 14,
+              "fp": 4,
+              "fn": 1,
+              "precision": 0.7777777777777778,
+              "recall": 0.9333333333333333
+            },
+            "7": {
+              "tp": 8,
+              "fp": 3,
+              "fn": 4,
+              "precision": 0.7272727272727273,
+              "recall": 0.6666666666666666
+            }
+          },
+          "run_sha256": "cbba15e8c4a0c5eb01468bb67f4a985f2940ba9fe486a25a27d66b27f7541081",
+          "labels_sha256": "2fb5e49d152580145fa20b972aa8c1201162562ce99d86b4d48622d15456b033"
+        },
+        "vehicle-nms-v1": {
+          "micro": {
+            "tp": 75,
+            "fp": 15,
+            "fn": 45,
+            "precision": 0.8333333333333334,
+            "recall": 0.625,
+            "f1": 0.7142857142857143
+          },
+          "per_class": {
+            "0": {
+              "tp": 16,
+              "fp": 1,
+              "fn": 20,
+              "precision": 0.9411764705882353,
+              "recall": 0.4444444444444444
+            },
+            "1": {
+              "tp": 2,
+              "fp": 3,
+              "fn": 10,
+              "precision": 0.4,
+              "recall": 0.16666666666666666
+            },
+            "2": {
+              "tp": 33,
+              "fp": 7,
+              "fn": 0,
+              "precision": 0.825,
+              "recall": 1.0
+            },
+            "3": {
+              "tp": 5,
+              "fp": 0,
+              "fn": 7,
+              "precision": 1.0,
+              "recall": 0.4166666666666667
+            },
+            "5": {
+              "tp": 11,
+              "fp": 1,
+              "fn": 4,
+              "precision": 0.9166666666666666,
+              "recall": 0.7333333333333333
+            },
+            "7": {
+              "tp": 8,
+              "fp": 3,
+              "fn": 4,
+              "precision": 0.7272727272727273,
+              "recall": 0.6666666666666666
+            }
+          },
+          "run_sha256": "7724819d19530c5de8b0bd915e144c0d4bd9ee9ec01eea339dfe779ec6e63ef4",
+          "labels_sha256": "2fb5e49d152580145fa20b972aa8c1201162562ce99d86b4d48622d15456b033"
+        }
+      }
+    }
+  },
+  "open": [
+    "Prospective v2 annotation review and fresh holdout",
+    "Visible/amodal and small-object ignore policy",
+    "Small/occluded object and rider accuracy",
+    "Full live wall20Hz and renderer stability",
+    "Metric fusion/localization and M11 driving integration",
+    "M12 target measurements and learner acceptance"
+  ]
+}

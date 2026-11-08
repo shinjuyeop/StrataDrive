@@ -9,6 +9,7 @@
 | --- | --- |
 | [현재 상태](project-status.md) | 구현·검증 범위, 남은 문제, 단계별 종료 조건과 다음 작업 |
 | [CARLA 실행](carla-guide.md) | 설치 위치, 재실행 명령, 화면과 결과 확인 방법 |
+| [영상 인지 실행](perception-guide.md) | M10 모델·RGB 추론·C++ 수신·GT 평가·부하 재현 |
 | [아키텍처](architecture/README.md) | Central/Zone/Leaf/plant 책임, 실행·배포 경계 |
 | [로드맵](roadmap.md) | 후속 단계와 TBD 담당·결정 시점 |
 | [개발 정책](development-guide.md) | 변경·검증·학습·문서 작성 원칙 |
@@ -21,6 +22,7 @@
 | 요구사항 | [시스템](requirements/system-requirements.md) · [시간](requirements/timing-requirements.md) · [안전](requirements/safety-requirements.md) |
 | Interface | [계약 목록](interfaces/README.md) · [CARLA](interfaces/carla-plant-adapter.md) |
 | M9 진단 | [Fault event/DTC 계약](interfaces/diagnostics.md) · [검증 프로토콜](test-plan/diagnostics-protocol.md) · [완료 근거](test-plan/evidence/m9_followup/README.md) |
+| M10 영상 인지 | [입출력·고장 계약](interfaces/perception.md) · [검증 프로토콜](test-plan/perception-protocol.md) · [V3 준비·모델 기준](test-plan/perception-quality-v3-protocol.md) · [새 후보 평가 근거](test-plan/evidence/m10_quality_v3/README.md) |
 | 검증 | [검증 안내](test-plan/README.md) · [전략·TC](test-plan/verification-strategy.md) · [시나리오](test-plan/scenario-baseline.md) · [추적성](test-plan/requirements-traceability.md) |
 | 안전 분석 학습 | [Item Definition / HARA 초안](safety/concept-study.md) |
 

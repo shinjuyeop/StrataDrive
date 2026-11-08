@@ -1,0 +1,104 @@
+{
+  "status": "FAIL",
+  "quality_acceptance": "NOT_SET",
+  "wall_acceptance": "NOT_CLAIMED",
+  "mode": "offline source-clock replay; independent wall processing qualification",
+  "dataset_sha256": "b2ff6cb8a5e6a09869e9dcf531bf5e0dcb5a969c79535ff2fb6ca12cc586e27e",
+  "profile_sha256": "948a99ded6945c639756105969a1f5a21b9bb3aed870cadb6b0aa4829cc20839",
+  "model_sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+  "execution": "cuda",
+  "execution_profile_sha256": "501fda379b420bb6a5928641cde2c04a6e569e0dc50bd63ce6f82a95b2787d67",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "source_revision": "4eb743c641490417a72c93cd2d0e9d436d61a7ab",
+  "expected": 60,
+  "attempted": 0,
+  "model_valid": 0,
+  "admitted": 0,
+  "late": 0,
+  "errors": 0,
+  "runtime": {
+    "source_files_sha256": {
+      "physical_ai/perception/__init__.py": "6363557dc67b7276765773b7585ddaaff2d8eec8dce2c37ab8ac989c39cf4891",
+      "physical_ai/perception/artifact.py": "c7f0084e0fc6fc300bf86063c05642f5c44bf46f4c373b782fe7584c4385edb2",
+      "physical_ai/perception/contract.py": "aaec3fb3ec1c946067ff0edaad3fddf103ae47c8ba40d7c02c2914e1f235e1cc",
+      "physical_ai/perception/dataset.py": "710cece469a588c86f0d220d95a7df50a6423bb40e0daafb29fcaa7a7d68cbd3",
+      "physical_ai/perception/provenance.py": "3f3f620ca80857b16a0ddb8be7f07d0ff4fb3c2c6827dc2163e2caf3f3fbdc72",
+      "physical_ai/perception/replay.py": "ca85d3f81021ea952dd941bf19f7fb75a5dc51306fa2434b40b047c6719b57af",
+      "physical_ai/perception/run.py": "534b0244b00d08fef1842d9c6ce941cba4a4dfdbc3059b814c591111436fb65b",
+      "physical_ai/perception/tracking.py": "c39ead3168d805fa2dd2f0bf90a7e9b2898de035506aa240658c313b50ea4bb1",
+      "physical_ai/perception/worker.py": "02c406fb407b7c1d04016f88b766db607f057b40b17a930acdd4862fd355a9c6",
+      "physical_ai/perception/yolox.py": "ed87ae75a6acb2fa727984d94380eab6f73aadbb9a221ad963ee722647c8e79c",
+      "profiles/perception-host-v1.json": "948a99ded6945c639756105969a1f5a21b9bb3aed870cadb6b0aa4829cc20839",
+      "profiles/perception-cuda-host-v1.json": "501fda379b420bb6a5928641cde2c04a6e569e0dc50bd63ce6f82a95b2787d67"
+    },
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700 @ 2.50GHz",
+    "logical_cpus": 16,
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "scheduler_policy": 0,
+    "scheduler_priority": 0,
+    "placement": "inherited; no isolated CPU or realtime guarantee"
+  },
+  "versions": {
+    "numpy": "1.23.5",
+    "opencv": "4.11.0",
+    "onnxruntime": "1.23.2"
+  },
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/physical_ai/perception/run.py\", line 84, in run\n    model = YoloX(model_path, execution=execution)\n  File \"/d/shin/StrataDrive/physical_ai/perception/yolox.py\", line 156, in __init__\n    raise ValueError(\nValueError: pinned CUDA runtime unavailable; CPU fallback forbidden\n",
+  "elapsed_wall_ns": 76954826,
+  "process_usage": {
+    "peak_rss_kib": 109800,
+    "user_cpu_seconds": 0.078764,
+    "system_cpu_seconds": 0.1541619999999999
+  },
+  "latency": {
+    "preprocess_ns": {
+      "n": 0,
+      "mean_ms": null,
+      "p95_ms": null,
+      "p99_ms": null,
+      "max_ms": null
+    },
+    "inference_ns": {
+      "n": 0,
+      "mean_ms": null,
+      "p95_ms": null,
+      "p99_ms": null,
+      "max_ms": null
+    },
+    "postprocess_ns": {
+      "n": 0,
+      "mean_ms": null,
+      "p95_ms": null,
+      "p99_ms": null,
+      "max_ms": null
+    },
+    "elapsed_wall_ns": {
+      "n": 0,
+      "mean_ms": null,
+      "p95_ms": null,
+      "p99_ms": null,
+      "max_ms": null
+    }
+  },
+  "deadline_budget_ns": 100000000,
+  "model_outputs_per_wall_second": 0.0,
+  "admitted_outputs_per_wall_second": 0.0
+}

@@ -75,3 +75,29 @@ C-M8-BRAKING-01/C-M9-STORAGE-01은 [소프트웨어 후속](evidence/milestone-f
 연결한다. 독립 모델/원본 획득 입력 재생과 실제 CARLA·Target 물리 시험을 구별한다.
 새 CARLA 고정 S03 8000구간도 별도로 검증했으며 실제 전원 차단·무제한 보존·전체
 Reference의 TC 판정은 변경하지 않는다.
+
+
+## M10 Host 인지의 부분 추적성
+
+`SYS-AI-001`의 learned trajectory/target/risk·유효 classical fallback 전체 TC-AI-001은 M11
+NOT RUN을 유지한다. M10의 RGB 추론·2D history·원천 수신·고장·평가 경계는 선행 component
+TC-PER-001–007이며 [프로토콜](perception-protocol.md)·[근거](evidence/m10_perception/README.md)와
+component CSV의 C-M10-PER-01–04에 연결한다. Camera20Hz 수집과 실제 model20Hz 처리량은
+다르다. 현재 CPU 지연/overwrite를 SYS-PERF-002의 전체 수용으로 올리지 않는다. Stage wall
+측정은 SYS-PERF-001/003의 부분 근거이며 camera→validated trajectory나 Target 측정은 아니다.
+
+TC-PER-008–010과 C-M10-PER-05–07은 [준비·live 경계](evidence/m10_live_perception/README.md),
+TC-PER-011–013과 C-M10-PER-08–09는 [정확도 확장 프로토콜](perception-quality-protocol.md)과
+[개발/보류 평가](evidence/m10_quality/README.md)에 연결한다. 고정 gate·원본 재구성·후보 회귀
+검출의 기술 PASS와 실제 정확도 FAIL을 구분한다. 탑승자 annotation·visible/amodal box 차이는
+남은 정답 정의 문제이며 전체 SYS-AI-001 수용으로 올리지 않는다.
+
+TC-PER-014–015 및 C-M10-PER-10–11은 [V2 기준](perception-quality-v2-protocol.md)·
+[새 수집/평가](evidence/m10_quality_v2/README.md)에 연결한다. Pedestrians12/Rider13 매핑 중복/누락과
+실제 pose를 검사하고 strict IoU·최소 지원을 유지한다. Coverage 빈 조건·호환되지 않는
+차량 asset·잘못된 차량 class를 확인한 결과는 FAIL로 남기며 전체 requirement 수용과 구분한다.
+
+TC-PER-016–017 및 C-M10-PER-12–13은 [V3 기준](perception-quality-v3-protocol.md)·
+[준비와 모델 비교](evidence/m10_quality_v3/README.md)에 연결한다. 별도 준비셋의 가시성·실제 부분
+가림, 모델별 SHA·CPU/CUDA/OpenCV 수치 동등성과 새 평가 순서를 검사한다. 준비 통과와
+모델 정확도·live20Hz·M11 주행 수용을 구분한다.

@@ -1,0 +1,696 @@
+{
+  "technical_status": "PASS_DECLARED_STARTUP_LIVE_CAMERA_BOUNDARIES",
+  "milestone_acceptance": "M10_OPEN",
+  "core_regression": {
+    "passed": 1459,
+    "excluded": "runtime.wall; M7 opt-in suites not configured"
+  },
+  "component_ctest": {
+    "Release": 13,
+    "ASan_UBSan": 13,
+    "Python_cases": 55,
+    "live_audit_mutations": 21
+  },
+  "quality_acceptance": "NOT_SET",
+  "full_wall20hz_acceptance": "OPEN",
+  "native_vehicle_metric_fusion_M11_M12": "NOT_RUN",
+  "live": {
+    "rgb-blackout-120": {
+      "fault": "blackout",
+      "requested_camera_frames": 120,
+      "actual_camera_hz": 19.743352710495518,
+      "receipt_to_completion": {
+        "n": 120,
+        "mean_ms": 16.595510216666664,
+        "p95_ms": 23.5632633,
+        "p99_ms": 24.3990473,
+        "max_ms": 24.617663
+      },
+      "camera_callback_intervals": {
+        "n": 119,
+        "mean_ms": 50.64995873109244,
+        "p95_ms": 53.397936099999995,
+        "p99_ms": 54.43059414,
+        "max_ms": 86.830578
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 994990656012829,
+        "finished_wall_ns": 994991075575955,
+        "last_observed_wall_ns": 994991075575955,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "started_wall_ns": 994990693033270,
+            "preprocess_ns": 4173112,
+            "inference_ns": 284501670,
+            "postprocess_ns": 2619961,
+            "detection_count": 0,
+            "elapsed_wall_ns": 291357859
+          },
+          {
+            "number": 2,
+            "started_wall_ns": 994991020477600,
+            "preprocess_ns": 2648168,
+            "inference_ns": 5523450,
+            "postprocess_ns": 1759751,
+            "detection_count": 0,
+            "elapsed_wall_ns": 9987378
+          },
+          {
+            "number": 3,
+            "started_wall_ns": 994991066557866,
+            "preprocess_ns": 1716595,
+            "inference_ns": 5557001,
+            "postprocess_ns": 1691948,
+            "detection_count": 0,
+            "elapsed_wall_ns": 9018089
+          }
+        ]
+      },
+      "model_initialization_wall_ns": 375713435,
+      "unique_consumed": 60,
+      "boundary": {
+        "status": "PASS",
+        "mode": "post-run typed replay, not IPC/control",
+        "binary_sha256": "5d1b924ad74c46b9f571fbfb5a055bf1b8525df57687fafdaeb420e5b514544e",
+        "observations": 60
+      },
+      "counters": {
+        "submitted": 120,
+        "overwritten": 0,
+        "started": 120,
+        "completed": 120,
+        "published": 60,
+        "rejected": 0,
+        "errors": 60,
+        "late": 0,
+        "obsolete": 0,
+        "cancelled": 0,
+        "invalidated": 0
+      }
+    },
+    "rgb-exception-120": {
+      "fault": "exception",
+      "requested_camera_frames": 120,
+      "actual_camera_hz": 19.42205215120004,
+      "receipt_to_completion": {
+        "n": 120,
+        "mean_ms": 16.444750283333335,
+        "p95_ms": 23.66229135,
+        "p99_ms": 30.242812800000003,
+        "max_ms": 44.012656
+      },
+      "camera_callback_intervals": {
+        "n": 119,
+        "mean_ms": 51.4878650420168,
+        "p95_ms": 55.9277695,
+        "p99_ms": 82.7920501999999,
+        "max_ms": 94.744092
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 994956498541180,
+        "finished_wall_ns": 994956874848688,
+        "last_observed_wall_ns": 994956874848688,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "started_wall_ns": 994956533053113,
+            "preprocess_ns": 3906431,
+            "inference_ns": 247031856,
+            "postprocess_ns": 2558109,
+            "detection_count": 0,
+            "elapsed_wall_ns": 253553209
+          },
+          {
+            "number": 2,
+            "started_wall_ns": 994956821036890,
+            "preprocess_ns": 2563250,
+            "inference_ns": 5548453,
+            "postprocess_ns": 1850730,
+            "detection_count": 0,
+            "elapsed_wall_ns": 10035608
+          },
+          {
+            "number": 3,
+            "started_wall_ns": 994956865762807,
+            "preprocess_ns": 1790642,
+            "inference_ns": 5517530,
+            "postprocess_ns": 1711624,
+            "detection_count": 0,
+            "elapsed_wall_ns": 9085881
+          }
+        ]
+      },
+      "model_initialization_wall_ns": 294713055,
+      "unique_consumed": 60,
+      "boundary": {
+        "status": "PASS",
+        "mode": "post-run typed replay, not IPC/control",
+        "binary_sha256": "5d1b924ad74c46b9f571fbfb5a055bf1b8525df57687fafdaeb420e5b514544e",
+        "observations": 60
+      },
+      "counters": {
+        "submitted": 120,
+        "overwritten": 0,
+        "started": 120,
+        "completed": 120,
+        "published": 60,
+        "rejected": 0,
+        "errors": 60,
+        "late": 0,
+        "obsolete": 0,
+        "cancelled": 0,
+        "invalidated": 0
+      }
+    },
+    "rgb-none-600": {
+      "fault": "none",
+      "requested_camera_frames": 600,
+      "actual_camera_hz": 19.335533450409763,
+      "receipt_to_completion": {
+        "n": 600,
+        "mean_ms": 23.339730991666666,
+        "p95_ms": 24.889977049999995,
+        "p99_ms": 40.55002163999984,
+        "max_ms": 75.33174
+      },
+      "camera_callback_intervals": {
+        "n": 599,
+        "mean_ms": 51.718252437395655,
+        "p95_ms": 53.0713074,
+        "p99_ms": 87.35369471999888,
+        "max_ms": 159.447908
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 994859238940016,
+        "finished_wall_ns": 994859616876035,
+        "last_observed_wall_ns": 994859616876035,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "started_wall_ns": 994859273992097,
+            "preprocess_ns": 4174519,
+            "inference_ns": 248493242,
+            "postprocess_ns": 2612511,
+            "detection_count": 0,
+            "elapsed_wall_ns": 255341726
+          },
+          {
+            "number": 2,
+            "started_wall_ns": 994859563263238,
+            "preprocess_ns": 2639585,
+            "inference_ns": 5545488,
+            "postprocess_ns": 1755660,
+            "detection_count": 0,
+            "elapsed_wall_ns": 9999124
+          },
+          {
+            "number": 3,
+            "started_wall_ns": 994859607833326,
+            "preprocess_ns": 1745313,
+            "inference_ns": 5491422,
+            "postprocess_ns": 1750313,
+            "detection_count": 0,
+            "elapsed_wall_ns": 9042709
+          }
+        ]
+      },
+      "model_initialization_wall_ns": 321704556,
+      "unique_consumed": 600,
+      "boundary": {
+        "status": "PASS",
+        "mode": "post-run typed replay, not IPC/control",
+        "binary_sha256": "5d1b924ad74c46b9f571fbfb5a055bf1b8525df57687fafdaeb420e5b514544e",
+        "observations": 600
+      },
+      "counters": {
+        "submitted": 600,
+        "overwritten": 0,
+        "started": 600,
+        "completed": 600,
+        "published": 600,
+        "rejected": 0,
+        "errors": 0,
+        "late": 0,
+        "obsolete": 0,
+        "cancelled": 0,
+        "invalidated": 0
+      }
+    },
+    "rgb-silence-120": {
+      "fault": "silence",
+      "requested_camera_frames": 120,
+      "actual_camera_hz": 19.851280674369676,
+      "receipt_to_completion": {
+        "n": 60,
+        "mean_ms": 22.712203,
+        "p95_ms": 23.98229315,
+        "p99_ms": 26.00425877,
+        "max_ms": 26.214946
+      },
+      "camera_callback_intervals": {
+        "n": 119,
+        "mean_ms": 50.37458370588236,
+        "p95_ms": 52.612897,
+        "p99_ms": 53.20899434,
+        "max_ms": 53.246045
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 995025005692602,
+        "finished_wall_ns": 995025422928447,
+        "last_observed_wall_ns": 995025422928447,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "started_wall_ns": 995025041757855,
+            "preprocess_ns": 4017888,
+            "inference_ns": 281762717,
+            "postprocess_ns": 2605414,
+            "detection_count": 0,
+            "elapsed_wall_ns": 288447014
+          },
+          {
+            "number": 2,
+            "started_wall_ns": 995025366951250,
+            "preprocess_ns": 2658331,
+            "inference_ns": 5510175,
+            "postprocess_ns": 1754645,
+            "detection_count": 0,
+            "elapsed_wall_ns": 9976410
+          },
+          {
+            "number": 3,
+            "started_wall_ns": 995025413893877,
+            "preprocess_ns": 1733639,
+            "inference_ns": 5512494,
+            "postprocess_ns": 1731867,
+            "detection_count": 0,
+            "elapsed_wall_ns": 9034570
+          }
+        ]
+      },
+      "model_initialization_wall_ns": 319377703,
+      "unique_consumed": 60,
+      "boundary": {
+        "status": "PASS",
+        "mode": "post-run typed replay, not IPC/control",
+        "binary_sha256": "5d1b924ad74c46b9f571fbfb5a055bf1b8525df57687fafdaeb420e5b514544e",
+        "observations": 60
+      },
+      "counters": {
+        "submitted": 60,
+        "overwritten": 0,
+        "started": 60,
+        "completed": 60,
+        "published": 60,
+        "rejected": 0,
+        "errors": 0,
+        "late": 0,
+        "obsolete": 0,
+        "cancelled": 0,
+        "invalidated": 0
+      }
+    },
+    "rgb-slow-120": {
+      "fault": "slow",
+      "requested_camera_frames": 120,
+      "actual_camera_hz": 19.52590424531475,
+      "receipt_to_completion": {
+        "n": 39,
+        "mean_ms": 199.0724846666667,
+        "p95_ms": 224.313458,
+        "p99_ms": 253.67996139999988,
+        "max_ms": 268.853844
+      },
+      "camera_callback_intervals": {
+        "n": 119,
+        "mean_ms": 51.21401741176471,
+        "p95_ms": 54.5293687,
+        "p99_ms": 77.12388829999993,
+        "max_ms": 85.335896
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 994920682844595,
+        "finished_wall_ns": 994921094300938,
+        "last_observed_wall_ns": 994921094300938,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "started_wall_ns": 994920717767246,
+            "preprocess_ns": 3843871,
+            "inference_ns": 275592361,
+            "postprocess_ns": 2584632,
+            "detection_count": 0,
+            "elapsed_wall_ns": 282079363
+          },
+          {
+            "number": 2,
+            "started_wall_ns": 994921037941281,
+            "preprocess_ns": 2780551,
+            "inference_ns": 5500704,
+            "postprocess_ns": 1779509,
+            "detection_count": 0,
+            "elapsed_wall_ns": 10125193
+          },
+          {
+            "number": 3,
+            "started_wall_ns": 994921085192712,
+            "preprocess_ns": 1785190,
+            "inference_ns": 5498422,
+            "postprocess_ns": 1767704,
+            "detection_count": 0,
+            "elapsed_wall_ns": 9108226
+          }
+        ]
+      },
+      "model_initialization_wall_ns": 312266603,
+      "unique_consumed": 0,
+      "boundary": {
+        "status": "PASS",
+        "mode": "post-run typed replay, not IPC/control",
+        "binary_sha256": "5d1b924ad74c46b9f571fbfb5a055bf1b8525df57687fafdaeb420e5b514544e",
+        "observations": 0
+      },
+      "counters": {
+        "submitted": 120,
+        "overwritten": 81,
+        "started": 39,
+        "completed": 39,
+        "published": 0,
+        "rejected": 0,
+        "errors": 0,
+        "late": 39,
+        "obsolete": 0,
+        "cancelled": 0,
+        "invalidated": 0
+      }
+    }
+  },
+  "stream": {
+    "stream-cpu-prepared": {
+      "counters": {
+        "submitted": 60,
+        "overwritten": 27,
+        "started": 33,
+        "completed": 33,
+        "published": 13,
+        "rejected": 0,
+        "errors": 0,
+        "late": 20,
+        "obsolete": 0,
+        "cancelled": 0,
+        "invalidated": 0
+      },
+      "latency": {
+        "n": 33,
+        "mean_ms": 128.62972615151511,
+        "p95_ms": 298.1300251999999,
+        "p99_ms": 365.5700682,
+        "max_ms": 382.687249
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 995070155976173,
+        "finished_wall_ns": 995070486854087,
+        "last_observed_wall_ns": 995070486854087,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "started_wall_ns": 995070191848255,
+            "preprocess_ns": 4490716,
+            "inference_ns": 71110466,
+            "postprocess_ns": 2512589,
+            "detection_count": 0,
+            "elapsed_wall_ns": 78243801
+          },
+          {
+            "number": 2,
+            "started_wall_ns": 995070304473125,
+            "preprocess_ns": 2640748,
+            "inference_ns": 70671157,
+            "postprocess_ns": 1697181,
+            "detection_count": 0,
+            "elapsed_wall_ns": 75052778
+          },
+          {
+            "number": 3,
+            "started_wall_ns": 995070414724091,
+            "preprocess_ns": 1920213,
+            "inference_ns": 68439801,
+            "postprocess_ns": 1739595,
+            "detection_count": 0,
+            "elapsed_wall_ns": 72129996
+          }
+        ]
+      },
+      "model_initialization_wall_ns": 144466452
+    },
+    "stream-cuda-prepared": {
+      "counters": {
+        "submitted": 600,
+        "overwritten": 0,
+        "started": 600,
+        "completed": 600,
+        "published": 600,
+        "rejected": 0,
+        "errors": 0,
+        "late": 0,
+        "obsolete": 0,
+        "cancelled": 0,
+        "invalidated": 0
+      },
+      "latency": {
+        "n": 600,
+        "mean_ms": 19.208297835,
+        "p95_ms": 20.767740550000003,
+        "p99_ms": 23.020231449999994,
+        "max_ms": 26.029908
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 993850752785636,
+        "finished_wall_ns": 993851156950575,
+        "last_observed_wall_ns": 993851156950575,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "started_wall_ns": 993850789671197,
+            "preprocess_ns": 4365855,
+            "inference_ns": 274829155,
+            "postprocess_ns": 2567666,
+            "detection_count": 0,
+            "elapsed_wall_ns": 281900583
+          },
+          {
+            "number": 2,
+            "started_wall_ns": 993851104489986,
+            "preprocess_ns": 2283620,
+            "inference_ns": 5568172,
+            "postprocess_ns": 1802673,
+            "detection_count": 0,
+            "elapsed_wall_ns": 9682823
+          },
+          {
+            "number": 3,
+            "started_wall_ns": 993851148101118,
+            "preprocess_ns": 1670501,
+            "inference_ns": 5536599,
+            "postprocess_ns": 1615569,
+            "detection_count": 0,
+            "elapsed_wall_ns": 8849457
+          }
+        ]
+      },
+      "model_initialization_wall_ns": 387728166
+    }
+  },
+  "renderer": {
+    "low": {
+      "totals": {
+        "tp": 72,
+        "fp": 57,
+        "fn": 48,
+        "precision": 0.5581395348837209,
+        "recall": 0.6
+      },
+      "scenes": {
+        "normal": {
+          "frames": 20,
+          "gt": 40,
+          "tp": 40,
+          "fp": 1,
+          "fn": 0,
+          "excluded": 0,
+          "unavailable": 1
+        },
+        "far": {
+          "frames": 20,
+          "gt": 40,
+          "tp": 12,
+          "fp": 16,
+          "fn": 28,
+          "excluded": 0,
+          "unavailable": 0
+        },
+        "occluded": {
+          "frames": 20,
+          "gt": 40,
+          "tp": 20,
+          "fp": 40,
+          "fn": 20,
+          "excluded": 0,
+          "unavailable": 0
+        }
+      },
+      "model_valid": 60,
+      "admitted": 59,
+      "late": 1
+    },
+    "epic": {
+      "totals": {
+        "tp": 73,
+        "fp": 22,
+        "fn": 47,
+        "precision": 0.7684210526315789,
+        "recall": 0.6083333333333333
+      },
+      "scenes": {
+        "normal": {
+          "frames": 20,
+          "gt": 40,
+          "tp": 40,
+          "fp": 2,
+          "fn": 0,
+          "excluded": 0,
+          "unavailable": 1
+        },
+        "far": {
+          "frames": 20,
+          "gt": 40,
+          "tp": 13,
+          "fp": 0,
+          "fn": 27,
+          "excluded": 0,
+          "unavailable": 0
+        },
+        "occluded": {
+          "frames": 20,
+          "gt": 40,
+          "tp": 20,
+          "fp": 20,
+          "fn": 20,
+          "excluded": 0,
+          "unavailable": 0
+        }
+      },
+      "model_valid": 60,
+      "admitted": 59,
+      "late": 1
+    }
+  },
+  "all_server_attempts": {
+    "frame5-blackout-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 35.363015073002316
+    },
+    "frame5-exception-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 37.66980114602484
+    },
+    "frame5-none-600": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 63.97019995201845
+    },
+    "frame5-silence-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 37.67404304794036
+    },
+    "frame5-slow-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 35.91436709801201
+    },
+    "live-01": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 166.69474325503688
+    },
+    "live-blackout-120": {
+      "status": "FAIL",
+      "server_exit": -9,
+      "elapsed_wall_seconds": 63.912496131961234,
+      "forced_stop": true
+    },
+    "live-exception-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 37.01552527595777
+    },
+    "live-none-600": {
+      "status": "FAIL",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 65.07366436207667
+    },
+    "live-silence-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 35.515330702997744
+    },
+    "live-slow-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 36.01395832595881
+    },
+    "renderer-epic": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 32.96018605900463
+    },
+    "renderer-low": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 31.756872739992104
+    },
+    "rgb-blackout-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 34.51275937294122
+    },
+    "rgb-exception-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 34.91360278998036
+    },
+    "rgb-none-600": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 62.017516596009955
+    },
+    "rgb-silence-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 33.86014967598021
+    },
+    "rgb-slow-120": {
+      "status": "PASS",
+      "server_exit": 130,
+      "elapsed_wall_seconds": 35.013809059979394
+    }
+  }
+}

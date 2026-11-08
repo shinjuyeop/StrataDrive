@@ -13,7 +13,8 @@
 | Leaf ECU | 명령 수용·gate·제어 목표·로컬 보호 판단과 Actual 보고 | `vecu/steering/`, `brake/`, `drive/`, `bms/`, `power/` |
 | SIL plant | actuator delay/rate/saturation·센서, 차량 운동·전원 회로·Battery/EV | `simulation/` |
 | CARLA adapter | 검증된 Actual을 NoDrive effort로 적용하는 단일 writer, 관측 solver work 전달 | `tools/carla/m7_nodrive/`, `tests/integration/carla/` |
-| 상위 주행·AI · 후속 | state/perception/world model → planner → safety → classical controller | `central/vehicle_state/`, `perception/`, `world_model/`, `planner/`, `safety/`, `control/`, `physical_ai/` |
+| 영상 인지 · Host | RGB-only → YOLOX/관측 tracking → typed 수신, GT는 평가 전용 | `physical_ai/perception/`, `central/perception/` |
+| 상위 주행·AI · 후속 | metric world model → temporal planner → safety → classical controller | `central/vehicle_state/`, `world_model/`, `planner/`, `safety/`, `control/` |
 
 Front/Rear는 대등한 gateway다. 정상 경로에 Zone 간 relay를 추가하거나 차량 배분기를 복제하지 않는다.
 BMS limit은 BMS → Rear → Central 판단 → Rear → Drive로 전달한다.

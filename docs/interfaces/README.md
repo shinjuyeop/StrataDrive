@@ -14,6 +14,7 @@ Native Actual·solver/EV 기능 경로는 연결했고 정상 wall 수용은 OPE
 | Interface ID | 논리적 내용 | Source → Destination | Transport / schema |
 | --- | --- | --- | --- |
 | IF-HOST-SENSOR | Camera/IMU/GNSS + ego vehicle state | Host sensor bridge → Central vehicle_state/perception | Physical Ethernet; protocol TBD-05 |
+| IF-CENTRAL-PERCEPTION | RGB 원천 identity·2D 객체·observed image history | Host 인지 adapter → Central typed receiver; M11 consumer 후속 | [M10 Host 계약](perception.md); network serialization·metric fusion 후속 |
 | IF-CENTRAL-TRAJECTORY | candidate/validated trajectory, target speed, risk | Planner → Safety Supervisor → Classical Controller | in-process/IPC TBD-05; validation 경계 유지 |
 | IF-CENTRAL-VEHICLE-REQUEST | Vehicle-level Command | Central Classical Controller → Central allocation | Central 내부 의미 interface; transport TBD-05 |
 | IF-DDS-ZONE-STATUS | 각 Zone status의 공통 family | Front/Rear → Central state/VCU/bridge | 두 독립 status interface의 의미; Host SOME/IP ICD |

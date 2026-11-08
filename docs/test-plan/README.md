@@ -8,6 +8,11 @@
 
 | 수용 범위 | 원본·재현·제한 |
 | --- | --- |
+| M10 Host 영상 인지 | [실제 YOLOX·CARLA60pair·tracking·부하·고장·정확도 제한](evidence/m10_perception/README.md) |
+| M10 준비·live ingress | [공유 GPU·실제 카메라·고장4조건·RGB 설정](evidence/m10_live_perception/README.md) |
+| M10 정확도 확장·후보 비교 | [개발/보류 각81배치·고정 gate·후보 미채택·정답 한계](evidence/m10_quality/README.md) |
+| M10 Rider v2 사전 고정 평가 | [새162배치·실제 pose·조건별 coverage·확대 후보 비교](evidence/m10_quality_v2/README.md) |
+| M10 자산·가시성 준비와 모델 비교 | [V3 별도 준비셋·S/M·새 개발/보류 평가](evidence/m10_quality_v3/README.md) |
 | 감독 복구·Epoch 송수신 | [정상 정지·명시적 clear·SOME/IP rollover 재시작](evidence/supervised-recovery-delivery/README.md) |
 | 고정 송신원 Epoch 병합 | [이전 tail 지연·세션 장벽·SOME/IP 강제 종료 후 병합](evidence/epoch-merge/README.md) |
 | Native 속도 감독 운영 연결 | [BMS 가용력·보호·DTC와 실제 CARLA 두 실행](evidence/runtime-speed-connection/README.md) |

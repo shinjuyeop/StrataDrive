@@ -1,0 +1,144 @@
+{
+  "status": "PASS",
+  "quality_acceptance": "NOT_SET",
+  "wall_acceptance": "NOT_CLAIMED",
+  "mode": "offline source-clock replay; independent wall processing qualification",
+  "dataset_sha256": "7493ca6e0edcb00a7a1f9a1e647d3539720318742aaf9efa41280777036d1c97",
+  "profile_sha256": "948a99ded6945c639756105969a1f5a21b9bb3aed870cadb6b0aa4829cc20839",
+  "model_sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+  "execution": "cuda",
+  "execution_profile_sha256": "501fda379b420bb6a5928641cde2c04a6e569e0dc50bd63ce6f82a95b2787d67",
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.35",
+  "source_revision": "4eb743c641490417a72c93cd2d0e9d436d61a7ab",
+  "expected": 60,
+  "attempted": 60,
+  "model_valid": 60,
+  "admitted": 59,
+  "late": 1,
+  "errors": 0,
+  "runtime": {
+    "source_files_sha256": {
+      "physical_ai/perception/__init__.py": "6363557dc67b7276765773b7585ddaaff2d8eec8dce2c37ab8ac989c39cf4891",
+      "physical_ai/perception/artifact.py": "c7f0084e0fc6fc300bf86063c05642f5c44bf46f4c373b782fe7584c4385edb2",
+      "physical_ai/perception/camera.py": "89f0141e0b7affc3847ea8ed4721a05677df5e686370b6379110b25c6c031065",
+      "physical_ai/perception/contract.py": "ce1d4aa8f6c9d9762faf730b01d21c619ea1fca5a8d338e16f762e8c08313af0",
+      "physical_ai/perception/dataset.py": "710cece469a588c86f0d220d95a7df50a6423bb40e0daafb29fcaa7a7d68cbd3",
+      "physical_ai/perception/preparation.py": "070ec3112b883275b3d6c3efd6649c350ff69a5d2bb54a90ba808c6ed43c5fcd",
+      "physical_ai/perception/provenance.py": "b049fd45f8e753e018500505093a6e9b91e9cec1216b0aaa7c43c5dc9530646e",
+      "physical_ai/perception/replay.py": "ca85d3f81021ea952dd941bf19f7fb75a5dc51306fa2434b40b047c6719b57af",
+      "physical_ai/perception/run.py": "534b0244b00d08fef1842d9c6ce941cba4a4dfdbc3059b814c591111436fb65b",
+      "physical_ai/perception/tracking.py": "c39ead3168d805fa2dd2f0bf90a7e9b2898de035506aa240658c313b50ea4bb1",
+      "physical_ai/perception/worker.py": "d44caa453c4a7518cd66f222e2ce326c33fc7873d4facba62e2bfd7cd461271e",
+      "physical_ai/perception/yolox.py": "ed87ae75a6acb2fa727984d94380eab6f73aadbb9a221ad963ee722647c8e79c",
+      "profiles/perception-host-v1.json": "948a99ded6945c639756105969a1f5a21b9bb3aed870cadb6b0aa4829cc20839",
+      "profiles/perception-cuda-host-v1.json": "501fda379b420bb6a5928641cde2c04a6e569e0dc50bd63ce6f82a95b2787d67",
+      "profiles/perception-startup-host-v1.json": "52c857716135c9109f6184a67bf74d96cb65057e432a620f7583e9943874df57"
+    },
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700 @ 2.50GHz",
+    "logical_cpus": 16,
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "scheduler_policy": 0,
+    "scheduler_priority": 0,
+    "placement": "inherited; no isolated CPU or realtime guarantee"
+  },
+  "versions": {
+    "numpy": "1.23.5",
+    "opencv": "4.11.0",
+    "onnxruntime": "1.23.2"
+  },
+  "provider": [
+    "CUDAExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "provider_options": {
+    "CPUExecutionProvider": {},
+    "CUDAExecutionProvider": {
+      "sdpa_kernel": "0",
+      "use_tf32": "0",
+      "fuse_conv_bias": "0",
+      "prefer_nhwc": "0",
+      "tunable_op_max_tuning_duration_ms": "0",
+      "enable_skip_layer_norm_strict_mode": "0",
+      "tunable_op_tuning_enable": "0",
+      "tunable_op_enable": "0",
+      "use_ep_level_unified_stream": "0",
+      "device_id": "0",
+      "has_user_compute_stream": "0",
+      "gpu_external_empty_cache": "0",
+      "cudnn_conv_algo_search": "HEURISTIC",
+      "cudnn_conv1d_pad_to_nc1d": "0",
+      "gpu_mem_limit": "2147483648",
+      "gpu_external_alloc": "0",
+      "gpu_external_free": "0",
+      "arena_extend_strategy": "kNextPowerOfTwo",
+      "do_copy_in_default_stream": "1",
+      "enable_cuda_graph": "0",
+      "user_compute_stream": "0",
+      "cudnn_conv_use_max_workspace": "1"
+    }
+  },
+  "cpu_node_fallback_disabled": true,
+  "boundary": {
+    "status": "PASS",
+    "records": 60,
+    "binary_sha256": "5d1b924ad74c46b9f571fbfb5a055bf1b8525df57687fafdaeb420e5b514544e"
+  },
+  "elapsed_wall_ns": 1528618152,
+  "process_usage": {
+    "peak_rss_kib": 956896,
+    "user_cpu_seconds": 1.150793,
+    "system_cpu_seconds": 0.690577
+  },
+  "latency": {
+    "preprocess_ns": {
+      "n": 60,
+      "mean_ms": 2.80270905,
+      "p95_ms": 2.9811342,
+      "p99_ms": 3.18680081,
+      "max_ms": 3.223582
+    },
+    "inference_ns": {
+      "n": 60,
+      "mean_ms": 9.575231566666666,
+      "p95_ms": 5.61023145,
+      "p99_ms": 109.49480854999915,
+      "max_ms": 258.912813
+    },
+    "postprocess_ns": {
+      "n": 60,
+      "mean_ms": 1.970010716666667,
+      "p95_ms": 2.0820517,
+      "p99_ms": 2.329279239999998,
+      "max_ms": 2.673641
+    },
+    "elapsed_wall_ns": {
+      "n": 60,
+      "mean_ms": 14.513208666666669,
+      "p95_ms": 10.658136249999998,
+      "p99_ms": 114.90608200999912,
+      "max_ms": 264.325093
+    }
+  },
+  "deadline_budget_ns": 100000000,
+  "model_outputs_per_wall_second": 39.251136669741705,
+  "admitted_outputs_per_wall_second": 38.59695105857934,
+  "predictions_sha256": "d39284ce1c80696af50e6d1e8e34bd424d81dd73162fcdf782e15eaaa9d11399"
+}

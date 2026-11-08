@@ -1,0 +1,42 @@
+{
+  "schema": "m10-quality-selection-v1",
+  "created_utc": "2026-11-06T15:47:12.097246+00:00",
+  "freeze_sha256": "56870b2a92f14c646cc850a775b40de1dd8e091d5c87de7521e36c49d1203e1a",
+  "selected": "vehicle-nms-v1",
+  "development_relative": {
+    "vehicle-nms-v1": {
+      "status": "FAIL",
+      "gates": {
+        "precision": false,
+        "recall": false,
+        "per_class": false,
+        "far_occluded": false,
+        "near_person": true,
+        "negatives": true
+      }
+    },
+    "center-refine-v1": {
+      "status": "FAIL",
+      "gates": {
+        "precision": false,
+        "recall": true,
+        "per_class": false,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": true
+      }
+    }
+  },
+  "development_absolute": {
+    "baseline": "FAIL",
+    "vehicle-nms-v1": "FAIL",
+    "center-refine-v1": "FAIL"
+  },
+  "score_files": {
+    "build/m10-quality/development-baseline-score.json": "c755bed38b4d537eeebeeaf146ee6f9a44839ed8fc22b84c69f1f519272ee16b",
+    "build/m10-quality/development-vehicle-nms-v1-score.json": "ae2f6a5a7ffca2c4a57378c4745a6431fbb17afa949fc6438219d327699da3c4",
+    "build/m10-quality/development-center-refine-v1-score.json": "14dceb17f8e56bdfb7274ae6a0402e6140a0587232aca80c015345ec0447efe6"
+  },
+  "runtime_promotion": false,
+  "note": "One development-ranked nominee, including when gates fail. Holdout is diagnostic unless all gates pass; no retuning after selection."
+}

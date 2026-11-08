@@ -1,6 +1,6 @@
 # 프로젝트 상태
 
-정리 기준·최신 검증: **2026-11-06**.
+정리 기준·최신 검증: **2026-11-07**.
 이 문서가 현재 구현·수용 범위와 다음 작업의 기준이다. 실행 중인 미기록 변경은 완료로 세지 않는다.
 
 ## 단계별 현재 판정
@@ -16,7 +16,8 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10–M11 | 속도 제안·BMS 가용력·native 보호 연결; 인지/학습 모델·전체 통합 NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
+| M10 | **Host 인지·live shadow·별도 준비·S/M 새 평가 완료 / 정밀도·현장 coverage·전체wall20Hz·주행 통합 OPEN** | [영상 계약](interfaces/perception.md) · [live·준비](test-plan/evidence/m10_live_perception/README.md) · [V3 준비·새162배치·S/M·실패 근거](test-plan/evidence/m10_quality_v3/README.md) |
+| M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
@@ -76,6 +77,7 @@ Supervisor→governor→기존 PI/배분 연결을 추가했다. [검증과 제�
 | CARLA | 원본 CAN/P05 Actual의 NoDrive 적용, solver work의 단일 EV 정산, simulation-time 기능 | [Plant 계약](interfaces/carla-plant-adapter.md) · [실행 안내](carla-guide.md) |
 | 진단 | 원본 검출·인과 ID·보호·Actual·DTC, qualified 복구와 명시적 clear, 재기동/연속성 심사 | [진단 계약](interfaces/diagnostics.md) |
 | 기록 보존 | 유한 journal, 비활성 store의 독점 잠금 archive/restore, byte 동일한 이력 복원 | [보존 계약](test-plan/diagnostic-retention-protocol.md) |
+| 영상 인지 | 고정 YOLOX-S FP32 CPU·선택형 CUDA, RGB-only·2D 검출/tracking·queue/expiry·C++ 검증, GT 분리 평가 | [영상 계약](interfaces/perception.md) · [실행 근거](test-plan/evidence/m10_perception/README.md) |
 
 문서 이력과 공통 진단 발행기·감사 decoder를 정리한 뒤의 동등성·회귀 검증은
 [M9 이후 구조 정리 근거](test-plan/evidence/post-m9-refactor/README.md)를 따른다.
@@ -88,7 +90,7 @@ Supervisor→governor→기존 PI/배분 연결을 추가했다. [검증과 제�
   완료된 M9 네 서버의 정상 종료와 구분한다.
 - 전체 Reference ODD, Planner/localization과 온라인 경사/저항 추정은 후속이다.
   BMS limits/wheel 기반 가용력과 governor·Supervisor는 선택형 native speed 경로에 연결했다.
-  저항은 명시적 SIL 보정값이며 학습 모델은 없다. 새 SupervisedSpeed monitor의 qualified Passed와
+  저항은 명시적 SIL 보정값이며 속도 경로에 학습 planner는 없다. M10 사전학습 인지 모델은 별도 영상 경계다. 새 SupervisedSpeed monitor의 qualified Passed와
   안전 정차 후 명시적 clear를 논리 SIL에서 연결했다. 입력 복구·재기동으로 DTC를 지우지 않는다.
   제동 피드백 v3는 component/원본 입력 재생과 새 고정 S03 실행을 통과했다. 전체 ODD 수용은 별도다.
 - 기본512-event 경계, 비활성 archive/restore는 유한 운용이다. 새 EpochRecorder는 새 세션에서
@@ -106,6 +108,32 @@ Supervisor→governor→기존 PI/배분 연결을 추가했다. [검증과 제�
   최신 환경 probe에서도 FIFO는 가능하나 tracefs/perf 접근이 차단되고 비대화형 sudo 권한이 없다.
   따라서 과거 timer→wakeup→switch/IRQ 원인을 새로 규명한 것으로 올리지 않는다.
   기술 검사 통과로 학습자 설명·최종 수용을 대신하지 않는다.
+- M10 실제 검출에서 원거리/가림 미검출과 오검출을 관측했다. 현재 CPU 프로파일은20Hz 전체
+  처리량에 미달하고 일부 실행에서100ms miss도 발생했다. 선택형 RTX3090 CUDA의 동일 FP32
+  수치·box 동등성과 처리 시간 개선을 확인했다. Cold call의100ms miss를 원래 기록에 남기고,
+  별도 startup3회·준비 gate를 추가했다. 준비 후20Hz media600frame 처리와 실제 CARLA/CUDA
+  공유 GPU shadow·고장4조건을 검증했다. 실제 camera wall rate는20Hz에 미달한다.
+  Late/drop/exception은 가용성 상실로 기록한다. 초기 카메라 설정의 검은 하늘·경고 overlay는
+  RGB postprocess를 켠 후속 표본에서 해소했으나 정확도·ODD 품질·장기 renderer 안정성은 미수용이다.
+  2D track은 거리·상대 속도·risk가 아니며, 인지 수신 가용성 회복이 차량 permission을 열지 않는다.
+- M10 확장 정확도는6종 객체·3기상·개발/보류 각81배치로 비교하고 잠정 gate를 사전 고정했다.
+  차량 중복 억제·중앙 확대 후보 모두 미채택이다. V1 정답이 CARLA Rider13을 누락했음을
+  원본 mask에서 확인하여 별도 v2 생성기·검사를 추가했다. 기존 점수·실패는 보존하며,
+  이미 본 데이터의 v2 재계산은 사후 진단이다. 새로운 사전 고정 평가를 통과한 것으로 세지 않는다.
+- 이후 [Rider v2의 새162배치](test-plan/evidence/m10_quality_v2/README.md)를 별도 freeze로
+  수집·평가했다. 실제 settling 뒤204개 actor pose와 원본/정답 재구성을 확인했다. 확대 후보는
+  재현율을 높였지만 차량 종류 오분류가 늘어 미채택이다. 보류셋의 원거리/가림 보행자6개가
+  최소 지원에 미달하여 coverage도 FAIL이다. 호환되지 않는 다축 truck spawn의 서버 crash와
+  미완성20pair는 따로 보존했고, 추론 전 호환 asset으로 수정한 계획으로 전체 재수집했다.
+
+- 이후 [V3의 별도 준비·S/M 새 비교](test-plan/evidence/m10_quality_v3/README.md)를 완료했다.
+  첫 준비의 가림 보행자3개 지원 미달을 추론 전 수정해180장 준비를 통과했다. M 확대는 개발
+  P94.6%/R95.3%로 절대 기준을 통과했으나 빈 배경 FP 증가로 상대 기준은 실패했다. 보류는
+  P79.8→81.5%/R58.8→85.1%로 개선됐지만 정밀도·truck R·coverage가 실패해 미채택이다.
+  별도 준비 site와 다른 보류 위치의 far9개 가시성 부족을 유지했고, 사후 모든 site 지도 검사에서
+  보류 far18개의 계획 XY가 가까운 차로/보도에서5.9–10.4m 벗어났음을 확인했다. 다음 준비는
+  실제 모든 site의 geometry/가시성을 함께 검사한다. 서버 종료30초 초과의 전체 FAIL과 동일
+  설정 재수집도 보존했으며 renderer 원인을 해결하거나 live20Hz를 수용한 것으로 올리지 않는다.
 
 ## M7 종료 조건
 
@@ -129,6 +157,21 @@ M10의 상태 기반 Host 속도 제안 입출력·history·risk·fallback 경�
 검증했다. 이어서 [terminal service의 family 적용과 실제 CARLA 복구 주행](test-plan/evidence/service-carla-recovery/README.md)을
 연결했다. 같은 차량·물리/EV 상태를 유지한 실제 새 INIT, 관측·NoDrive 권한 전환과 qualified Passed를
 확인했다. 이 두 후속 항목까지 이번 마감 범위는 완료이며, 아래 확장 범위를 M9 종료 조건에 추가하지 않는다.
-인지/학습 모델과 온라인 저항 추정은 공통 scenario/seed에서 별도 검증한다.
+M10의 모델 고정·RGB 추론·2D 이력·session/clock/timeout·실제 CARLA 정답 분리 평가를
+[첫 Host 인지 묶음](test-plan/evidence/m10_perception/README.md)으로 추가했다.
+[후속 묶음](test-plan/evidence/m10_live_perception/README.md)은 startup 준비/가용성 gate, bounded
+실제 카메라 ingress, 공유 GPU shadow, source 정지 시 wall expiry, 원래 frame 기준 취득과
+RGB 렌더 설정을 보강했다. 이어서 [정확도 확장 묶음](test-plan/evidence/m10_quality/README.md)에서
+6class·3기상·162배치·잠정 gate·후보2종과 별도 보류 평가를 구현했다. 두 후보의 회귀와 Rider
+annotation 누락을 발견했고 기본 모델/threshold를 유지했다. 이어서
+[사전 고정한 v2 새 평가](test-plan/evidence/m10_quality_v2/README.md)에서 Rider 정답·strict
+visible box·조건별 coverage와 두 확대 후보를 검증했다. 이후 [V3 준비·S/M 비교](test-plan/evidence/m10_quality_v3/README.md)에서 별도 준비180장과 새 평가162개를 실행했다.
+M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 보류의 정밀도·truck recall·coverage가
+실패해 미채택이다. 다음은 **모든 실제 camera/site의 도로 projection·가시성 준비 → 빈 배경/차종 충돌
+개선 후보와 새 평가 → 전체wall20Hz·renderer 종료 안정성**이다.
+새 plan을 고정하기 전에 가시성을 확인하고, 이미 본 v1/v2 보류셋을 새로운 holdout으로 재사용하지 않는다.
+같은 Town의 정지 배치를 전체 ODD로 확대하지 않는다.
+그 뒤 M11에서 metric fusion/localization·temporal planner 입력·risk·valid classical fallback을
+정의하고 기존 감독/제어 경로에 연결한다. 온라인 저항 추정은 별도다.
 구체 산출물과 TBD 담당·결정 시점은 [로드맵](roadmap.md)에서 관리한다.
 진행한 시도별 상세 경과와 과거 실행 목록은 [구현·검증 이력](archive/implementation-history.md)에서 찾는다.

@@ -1,0 +1,12 @@
+{
+  "scope": "Post-hoc log review; no gate or retry configuration changed",
+  "failed_root": "build/m10-quality-v3b/development-01",
+  "status": "FAIL",
+  "capture_exit": 0,
+  "server_exit": -9,
+  "forced_stop_after_seconds": 30,
+  "observed": "Vulkan warnings: unfreed PooledBuffer resources and Suballocation(s) were not released; stack traces; RequestExit code130 logged but process did not complete before runner deadline",
+  "correction": "The earlier retry-note wording allocation assertion was too strong. A causal assertion/crash or OOM has not been established.",
+  "inference_on_failed_capture": false,
+  "retry": "Same frozen sources, plan, Epic quality and original startup/capture/shutdown budgets"
+}

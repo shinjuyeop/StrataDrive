@@ -1,0 +1,193 @@
+{
+  "technical_status": "PASS_DECLARED_HOST_BOUNDARY",
+  "milestone_acceptance": "M10_OPEN",
+  "capture_pairs": 60,
+  "capture_attempts": 3,
+  "capture_successes": 2,
+  "capture_preparation_failures": 1,
+  "core_regression": {
+    "passed": 1459,
+    "excluded": "runtime.wall; M7 opt-in suites not configured"
+  },
+  "component_ctest": {
+    "Debug": 13,
+    "Release": 13,
+    "ASan_UBSan": 13,
+    "python_cases_per_test": 30,
+    "cpp_cases": 11,
+    "boundary_mutations": 19
+  },
+  "quality_acceptance": "NOT_SET",
+  "full_20hz_acceptance": "OPEN; CPU throughput and CUDA cold miss/drop",
+  "metric_fusion_native_vehicle_m11_planner_jetson": "NOT_RUN",
+  "runs": {
+    "cpu": {
+      "status": "PASS",
+      "execution": "cpu",
+      "model_valid": 60,
+      "admitted": 53,
+      "late": 7,
+      "errors": 0,
+      "latency": {
+        "preprocess_ns": {
+          "n": 60,
+          "mean_ms": 2.5470688333333333,
+          "p95_ms": 7.186753749999999,
+          "p99_ms": 7.28674148,
+          "max_ms": 7.299207
+        },
+        "inference_ns": {
+          "n": 60,
+          "mean_ms": 93.16838279999999,
+          "p95_ms": 334.7374008,
+          "p99_ms": 336.68260018,
+          "max_ms": 337.058606
+        },
+        "postprocess_ns": {
+          "n": 60,
+          "mean_ms": 2.545055766666666,
+          "p95_ms": 8.198077199999998,
+          "p99_ms": 8.39435088,
+          "max_ms": 8.484307
+        },
+        "elapsed_wall_ns": {
+          "n": 60,
+          "mean_ms": 98.28933198333333,
+          "p95_ms": 350.32424149999997,
+          "p99_ms": 352.12850746,
+          "max_ms": 352.365573
+        }
+      },
+      "boundary": {
+        "status": "PASS",
+        "records": 60,
+        "binary_sha256": "5d1b924ad74c46b9f571fbfb5a055bf1b8525df57687fafdaeb420e5b514544e"
+      },
+      "process_usage": {
+        "peak_rss_kib": 286416,
+        "user_cpu_seconds": 24.205667000000002,
+        "system_cpu_seconds": 0.3451200000000001
+      }
+    },
+    "cuda": {
+      "status": "PASS",
+      "execution": "cuda",
+      "model_valid": 60,
+      "admitted": 59,
+      "late": 1,
+      "errors": 0,
+      "latency": {
+        "preprocess_ns": {
+          "n": 60,
+          "mean_ms": 2.6957408833333334,
+          "p95_ms": 2.7779601499999997,
+          "p99_ms": 3.4107183799999965,
+          "max_ms": 4.053416
+        },
+        "inference_ns": {
+          "n": 60,
+          "mean_ms": 9.432652350000003,
+          "p95_ms": 5.5346461499999995,
+          "p99_ms": 108.34298395999916,
+          "max_ms": 256.266696
+        },
+        "postprocess_ns": {
+          "n": 60,
+          "mean_ms": 1.8164708999999999,
+          "p95_ms": 1.9582929999999998,
+          "p99_ms": 2.421211799999998,
+          "max_ms": 2.766468
+        },
+        "elapsed_wall_ns": {
+          "n": 60,
+          "mean_ms": 14.11708973333333,
+          "p95_ms": 10.376533449999998,
+          "p99_ms": 114.20890264999913,
+          "max_ms": 263.210137
+        }
+      },
+      "boundary": {
+        "status": "PASS",
+        "records": 60,
+        "binary_sha256": "5d1b924ad74c46b9f571fbfb5a055bf1b8525df57687fafdaeb420e5b514544e"
+      },
+      "process_usage": {
+        "peak_rss_kib": 950476,
+        "user_cpu_seconds": 1.107621,
+        "system_cpu_seconds": 0.710575
+      }
+    },
+    "stream-cpu-exception": {
+      "submitted": 60,
+      "overwritten": 3,
+      "started": 57,
+      "completed": 57,
+      "published": 3,
+      "rejected": 0,
+      "errors": 51,
+      "late": 3,
+      "obsolete": 0,
+      "cancelled": 0
+    },
+    "stream-cpu-none": {
+      "submitted": 60,
+      "overwritten": 22,
+      "started": 38,
+      "completed": 38,
+      "published": 16,
+      "rejected": 0,
+      "errors": 0,
+      "late": 22,
+      "obsolete": 0,
+      "cancelled": 0
+    },
+    "stream-cpu-slow": {
+      "submitted": 60,
+      "overwritten": 46,
+      "started": 14,
+      "completed": 14,
+      "published": 0,
+      "rejected": 0,
+      "errors": 0,
+      "late": 14,
+      "obsolete": 0,
+      "cancelled": 0
+    },
+    "stream-cuda-exception": {
+      "submitted": 60,
+      "overwritten": 4,
+      "started": 56,
+      "completed": 56,
+      "published": 4,
+      "rejected": 0,
+      "errors": 51,
+      "late": 1,
+      "obsolete": 0,
+      "cancelled": 0
+    },
+    "stream-cuda-none": {
+      "submitted": 60,
+      "overwritten": 4,
+      "started": 56,
+      "completed": 56,
+      "published": 55,
+      "rejected": 0,
+      "errors": 0,
+      "late": 1,
+      "obsolete": 0,
+      "cancelled": 0
+    },
+    "stream-cuda-slow": {
+      "submitted": 60,
+      "overwritten": 43,
+      "started": 17,
+      "completed": 17,
+      "published": 0,
+      "rejected": 0,
+      "errors": 0,
+      "late": 17,
+      "obsolete": 0,
+      "cancelled": 0
+    }
+  }
+}
