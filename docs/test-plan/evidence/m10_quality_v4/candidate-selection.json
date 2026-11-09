@@ -1,0 +1,42 @@
+{
+  "schema": "m10-quality-selection-v4",
+  "created_utc": "2026-11-09T04:36:58.531462+00:00",
+  "freeze_sha256": "a16e1a32bb75c471b4cb612f7241e85d90d9b67887fdfd3642fea6b66854322f",
+  "metadata_sha256": "9ce188ce886fae670f7796d26e7ecfc49a0e5724b927b5cdff70cccb235d85a9",
+  "selected": "medium-v3",
+  "development_relative": {
+    "medium-v3": {
+      "status": "FAIL",
+      "gates": {
+        "precision": false,
+        "recall": true,
+        "per_class": true,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": true
+      }
+    },
+    "medium-refine-v3": {
+      "status": "FAIL",
+      "gates": {
+        "precision": false,
+        "recall": true,
+        "per_class": true,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": false
+      }
+    }
+  },
+  "development_absolute": {
+    "baseline": "FAIL",
+    "medium-v3": "FAIL",
+    "medium-refine-v3": "FAIL"
+  },
+  "score_files": {
+    "/d/shin/StrataDrive/build/m10-quality-v4g/development-baseline-score.json": "77913b47f75272434e2d016de13c068f0aa8d2a56d9f895da5f598310e85910d",
+    "/d/shin/StrataDrive/build/m10-quality-v4g/development-medium-v3-score.json": "1dddf3227eb5d2cd248188d574f42f896fa696e6b20294b8f184769d2e77dcf4",
+    "/d/shin/StrataDrive/build/m10-quality-v4g/development-medium-refine-v3-score.json": "7b1e626ac3f5cd8a487ae9c0eb6e19fa1353b091443dcfdf328504b16df80f1a"
+  },
+  "runtime_promotion": false
+}

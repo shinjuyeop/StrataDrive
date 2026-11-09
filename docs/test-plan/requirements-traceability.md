@@ -107,3 +107,11 @@ TC-PER-018–019 및 C-M10-PER-14–15는 [실제 site 도로 준비 기준](per
 실제 road/lane을 대조하고, 두 site의 계획 actor/rider·조건별 visible support를 검사한다.
 준비 PASS·미래 계획 봉인은 새 정확도/주행 성능의 수용이 아니다. 작은 held 보행자 far26m의
 제한과 이전 실패, 새로운 실제 평가가 필요함을 유지한다.
+
+TC-PER-020–021 및 C-M10-PER-16–17은 [V4 새 정확도 기준](perception-quality-v4-protocol.md)·
+[도로 맞춤 모델 비교](evidence/m10_quality_v4/README.md)에 연결한다. 불변 준비 봉인·원래1387개와 거절/진단324개를 합친1711개
+RGB 제외·모델/품질 기준 freeze·보류 수집 이전 지명 재계산과 실제 actor/rider 지원을 검사한다.
+SYS-AI-001/SYS-PERF-003의 부분 근거이며 감사 PASS가 모델 채택·실제wall20Hz·차량 수용은 아니다.
+
+V4의 최종162개 actor/rider·조건 coverage는 PASS이나 지명 M의 absolute/relative 품질은 FAIL로
+미채택이다. 원본 재감사·118개 Python/설정별13개 component 통과는 전체 정확도·wall 수용을 뜻하지 않는다.

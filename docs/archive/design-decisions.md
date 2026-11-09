@@ -6315,3 +6315,32 @@ heading 최소 변화와 안정적인 road identity로 고른다. Map265개 기�
 준비와 과거 전체 시도의 RGB1387개를 미래 평가에서 제외하고,162개 평가 계획과 보고서의 hash를
 봉인한다. 별도 quality freeze 전에는 새 정확도 평가가 아니다. 모델 추론·후보 승격·live20Hz·
 주행 수용은 이번 단계에 포함하지 않는다. [원본·실패·재현](../test-plan/evidence/m10_road_preparation_v4/README.md)을 따른다.
+
+<a id="adr-0121"></a>
+
+## ADR-0121 — 도로 준비와 새 정확도 평가의 별도 봉인
+
+- 날짜: 2026-11-09
+- 상태: Host 실험 경계 채택, 모델/runtime·전체 M10 수용은 별도
+
+V4 준비198장은 실제14/24번 site의 actor/rider 지원을 확인했지만 정확도 표본이 아니다.
+준비 완료 전후의 모델 점수·기준·계획을 섞지 않기 위해 미래162개 계획과1387개 RGB 제외를
+별도 quality freeze에 연결한다. Metadata 연결 오류로 중단한 실행까지 보존하고 거절/진단324개를
+추가한1711개 제외·raw→준비→점수 회귀 뒤 새 freeze/재수집을 사용한다. S/M/M 확대 구현과 기존 strict visible IoU·절대/상대 gate는
+유지하며 V4는 도로 배치와 새 평가 경로의 버전으로 사용한다.
+
+개발 세 후보의 원래 예측에서 점수·지명을 재구성한 뒤 보류 서버를 시작한다. 보류에는 baseline과
+지명 후보만 실행한다. 계획 actor/rider의 실제 포함과 도로/settled pose를 raw 재구성에서 다시
+검사한다. GT와 후보 실행의 입력은 분리한다. Cold call·시작/종료 실패·모든 판정은 보존하며
+서버의180s 시작/900s 수집/30s 종료 제한을 결과에 맞춰 늘리지 않는다.
+
+최초 CLI의 잘못된 schema 비교는 서버 시작 전 FAIL로 남기고 회귀 검사 후 다시 freeze했다.
+이후 시작 제한 초과와 강제 종료는 성공 실행과 별도로 남긴다. 같은 freeze/수치 검사/시험 로그를
+복사한 재실행은 독립 시험으로 세지 않는다. 원본·점수·순서 감사의 PASS와 모델 품질·시작 안정성·
+실제wall20Hz·차량 수용은 구분하며 자동 runtime 교체는 없다.
+
+근거는 [V4 사전 기준](../test-plan/perception-quality-v4-protocol.md)과
+[새 평가·실패·재감사](../test-plan/evidence/m10_quality_v4/README.md)를 따른다.
+
+V4 최종 새162개에서 actor/rider·조건 coverage는 PASS, 지명 M의 보류 absolute/relative는 FAIL로
+미채택이다. 미래 RGB 제외1873개와 당시 실패/진단을 함께 보존한다.

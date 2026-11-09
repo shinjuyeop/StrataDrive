@@ -20,9 +20,10 @@ YAML은 **설계/fixture 기록**이며 runtime loader·자동 inheritance는 �
 | `perception-quality-preparation-v3.json` | 별도 camera spawn4의 자산/가시성 준비180장. 가림 없는 참조36장과 비교하며 모델 점수 없이 모든 계획 객체의 최소 지원을 요구 |
 | `perception-quality-plan-v3.json`, `perception-quality-protocol-v3.json` | S/M/M 확대 후보와 새 개발/보류 각81개 계획. 준비·독립 수치 검사 PASS 뒤 freeze, 기존 정확도 gate 유지. [V3 기준](../docs/test-plan/perception-quality-v3-protocol.md) 참고 |
 | `perception-quality-exclusion-v3.json` | V1/V2·실패한 첫 준비·수정 준비에서 사용한 RGB648개 hash. 새 평가의 영상 재사용을 거절 |
-| `perception-road-evaluation-v4.json` | 다음 정확도 평가용14/24번 site의 도로 맞춤 pose162개. 아직 추론/정확도 평가를 실행하지 않은 계획이며 held walker far는26m로 한정 |
+| `perception-road-evaluation-v4.json` | V4 실제14/24번 site의 도로 맞춤 평가 pose162개. 새 실제 coverage PASS·모델 품질 FAIL을 보존하며 held walker far는26m로 한정 |
 | `perception-road-preparation-v4.json`, `perception-road-protocol-v4.json` | 실제 두 camera site의 준비198개와 엄격한 geometry/가시성 기준. 경로 전체 junction 제외·부분 가림 참조·모든 Rider13 지원을 요구. [기준](../docs/test-plan/perception-road-preparation-v4-protocol.md) 참고 |
-| `perception-road-exclusion-v4.json` | 준비 단계에서 검사한 이전 RGB891개 hash. 다음 실제 평가는 [준비 묶음](../docs/test-plan/evidence/m10_road_preparation_v4/README.md)의 `future-evaluation-exclusion.json`(1387개)을 별도 quality freeze에 포함해야 함 |
+| `perception-road-exclusion-v4.json` | 준비 단계에서 검사한 이전 RGB891개 hash. [준비 묶음](../docs/test-plan/evidence/m10_road_preparation_v4/README.md)의 미래 제외1387개와 이후 거절/진단324개를 새 평가 제외 목록1711개에 연결 |
+| `perception-quality-protocol-v4.json`, `perception-quality-exclusion-v4.json` | V4 도로 평가의 기존 S/M/M 확대·엄격한 품질/coverage gate와1711개 prior RGB 제외. Metadata v4b는 capture hash 연결 회귀 뒤 새 freeze·재수집. [결과](../docs/test-plan/evidence/m10_quality_v4/README.md)의 다음 제외 목록1873개는 별도 미래 입력 |
 
 실제 Host profile은 [SOME/IP Rear ICD](../docs/interfaces/someip-rear-adapter.md),
 M6 모델/energy/물리 응답은 [vehicle-energy ICD](../docs/interfaces/vehicle-energy.md),

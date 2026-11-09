@@ -279,3 +279,40 @@ Auditor는 map 선택/계획·실제 pose/차로·raw RGB/GT·가림 참조·모
 다음 정확도 평가는 `future-evaluation-exclusion.json`의1387개를 제외하고 별도 quality freeze를
 만든 뒤 새 RGB를 수집해야 한다. 작은 held walker의 far26m 한정을 유지하며 실제 평가의
 coverage도 다시 확인한다. 이번 준비에는 모델 추론/점수/후보 교체가 없다.
+
+<a id="quality-v4"></a>
+
+## 도로 맞춤 새 정확도 평가
+
+[V4 품질 기준](test-plan/perception-quality-v4-protocol.md)은 위 준비 봉인을 읽고 실제 평가의
+새81+81쌍과 별도 quality freeze를 사용한다. 후보 구현은 기존 S/M/M 확대 그대로이며
+V4는 도로 배치와 평가 경로의 버전이다. 원래1387개와 거절/진단/metadata 실패324개를 합친1711개 RGB를 고정한
+`profiles/perception-quality-exclusion-v4.json`으로 평가에서 제외한다.
+
+준비의 개발99장으로 `check_quality_models_v3.py`를 실행해 `model-check.json`을 새 평가
+디렉터리에 둔다. `quality_benchmark_v4.py freeze experiment-freeze.json`은 준비 PASS,
+봉인된 plan·모든 과거 RGB 제외·수치 비교·사전 기준을 대조한 뒤 소스 hash를 고정한다.
+`run_quality_evaluation_v4.py`는 기존 engine/source/SDK Python/output/plan/partition 인자에
+`--freeze`가 필요하다. 개발은 지명 없이 수집하고, 보류는 `--selection`을 서버 시작 전에 요구한다.
+보류 지명은 원래 개발 예측에서 점수·순위를 다시 계산해 검사한다.
+
+`prepare_quality_v4.py capture.json prepared-dir experiment-freeze.json`은 실제 도로/pose와
+raw RGB/GT를 재구성하고 모든 계획 actor/rider의 포함을 `visibility.json`에 기록한다.
+`review_quality_v4.py prepared-dir output-dir partition`은 정답 패널과 전체 RGB 건전성을 만든다.
+`run_quality_v4.py`의 인자는 v3와 같으며 RGB-only runner와 별도 scorer를 사용한다.
+개발 세 후보를 `quality_benchmark_v4.py score/select`로 지명한 뒤 보류에는 baseline과
+지명 후보만 실행한다. 실제 명령·실패는 [실행 묶음](test-plan/evidence/m10_quality_v4/README.md)에 있다.
+
+```sh
+tar -xzf docs/test-plan/evidence/m10_quality_v4/experiment.tar.gz
+python3 tests/integration/perception/audit_quality_v4.py \
+  build/m10-quality-v4g build/m10-quality-v4g/re-audit.json
+```
+
+동일 최종 소스와 baseline의 불변 준비 근거가 있는 깨끗한 작업 사본에서 LFS/SHA256SUMS를
+확인한 뒤 새 경로에 푼다. 재감사는 GPU 없이 raw→RGB/GT/road/coverage/seal·점수·지명·
+실행 순서·중복을 재구성한다. 감사 PASS와 모델 품질·live20Hz·차량 수용은 구분한다.
+
+V4 metadata 연결 누락은 원래 S 예측·실패를 보존하고 raw→준비→점수 회귀를 추가해 새 freeze로
+재수집했다. 최종162개는 가시성/coverage PASS·모델 품질 FAIL이다. 다음 평가에는 결과 묶음의
+`future-evaluation-exclusion.json`1873개를 사용하며 소비한 V4 보류로 새 후보를 재지명하지 않는다.

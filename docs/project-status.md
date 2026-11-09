@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **Host 인지·live shadow·S/M 평가·실제 site 도로 준비 완료 / 정밀도·실제 평가 coverage·전체wall20Hz·주행 통합 OPEN** | [영상 계약](interfaces/perception.md) · [live·준비](test-plan/evidence/m10_live_perception/README.md) · [V3 모델 비교](test-plan/evidence/m10_quality_v3/README.md) · [V4 도로 맞춤 준비](test-plan/evidence/m10_road_preparation_v4/README.md) |
+| M10 | **Host 인지·live shadow·도로 맞춤 새 평가162개·유한 coverage 검증 완료 / 클래스별 정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [영상 계약](interfaces/perception.md) · [live·준비](test-plan/evidence/m10_live_perception/README.md) · [V3 모델 비교](test-plan/evidence/m10_quality_v3/README.md) · [V4 도로 맞춤 준비](test-plan/evidence/m10_road_preparation_v4/README.md) · [V4 새 평가](test-plan/evidence/m10_quality_v4/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -140,7 +140,15 @@ Supervisor→governor→기존 PI/배분 연결을 추가했다. [검증과 제�
   최종 준비198장과 계획 actor/rider 가시성·부분 가림 참조를 통과했다. 초기 교차로 lane 거절과
   held walker31m24pixel의 실패를 보존했다. 해당 작은 보행자의 미래 far를26m로 한정하고
   준비27m에서30pixel을 확인했다. 미래 평가162개 계획·제외 목록을 봉인했으며 이번 단계의
-  모델 추론/정확도 평가는 NOT RUN이다. 준비와 실제 평가 coverage·전체 ODD 수용을 구분한다.
+  모델 추론/정확도 평가는 NOT RUN이었다. 이후 아래 새 평가에서 실제 coverage를 별도로 확인했다.
+
+- [V4 도로 맞춤 새 정확도 평가](test-plan/evidence/m10_quality_v4/README.md)는 이전1711개 RGB를
+  제외하고 새 개발/보류 각81개를 수집했다. 모든 계획 actor/rider와6class×4조건3/3 coverage를
+  통과했으나, 지명 M의 보류 P75.9%/R65.9%와 클래스 gate·상대 기준이 FAIL이라 미채택이다.
+  보류 M FP27개 중26개는 다른 클래스의 visible GT와 겹쳤다. 작은 VRU/rider·이륜차/차종 구분이
+  다음 개선 과제다. 시작 제한2건·종료 실패2건과 별도 진단·metadata 연결 오류를 보존하고,
+  raw→준비→점수 회귀를 추가한 새 freeze로 재수집했다. 최종 원본 재감사 PASS와118개 Python·
+  설정별13개 component 검사 PASS를 품질 수용과 구분한다. 미래 재사용 금지 목록은1873개다.
 
 ## M7 종료 조건
 
@@ -175,10 +183,11 @@ annotation 누락을 발견했고 기본 모델/threshold를 유지했다. 이�
 visible box·조건별 coverage와 두 확대 후보를 검증했다. 이후 [V3 준비·S/M 비교](test-plan/evidence/m10_quality_v3/README.md)에서 별도 준비180장과 새 평가162개를 실행했다.
 M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 보류의 정밀도·truck recall·coverage가
 실패해 미채택이다. [실제 두 site의 V4 도로 준비](test-plan/evidence/m10_road_preparation_v4/README.md)를
-마쳤다. 다음은 **봉인된 새 계획으로 정확도 평가 → 빈 배경/차종 충돌 개선 후보 비교 →
-전체wall20Hz·renderer 종료 안정성**이다. 준비 영상은 미래 정확도 표본으로 재사용하지 않으며,
+마친 뒤 [V4 새 평가](test-plan/evidence/m10_quality_v4/README.md)에서 실제 coverage와 품질을
+검사했다. 다음은 **작은 VRU/rider·이륜차/차종 구분 개선 → 별도 새 보류 평가 →
+전체wall20Hz·시작/종료 안정성**이다. 준비 영상은 미래 정확도 표본으로 재사용하지 않으며,
 작은 held 보행자의 far26m 범위와 별도 quality freeze·실제 평가 coverage 검사를 유지한다.
-새 plan을 고정하기 전에 가시성을 확인하고, 이미 본 v1/v2/v3 보류셋과 준비 영상을 새로운 holdout으로 재사용하지 않는다.
+새 plan을 고정하기 전에 가시성을 확인하고, 이미 본 v1/v2/v3/v4 보류셋과 준비/실패/진단 영상을 새로운 holdout으로 재사용하지 않는다.
 같은 Town의 정지 배치를 전체 ODD로 확대하지 않는다.
 그 뒤 M11에서 metric fusion/localization·temporal planner 입력·risk·valid classical fallback을
 정의하고 기존 감독/제어 경로에 연결한다. 온라인 저항 추정은 별도다.

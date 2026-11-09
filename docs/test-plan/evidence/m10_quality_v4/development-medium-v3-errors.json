@@ -1,0 +1,444 @@
+{
+  "schema": "m10-quality-error-diagnostic-v4",
+  "phase": "development",
+  "candidate": "medium-v3",
+  "run_sha256": "0d6b88d3656e17bb26821fe2668186d74cbd48953c862a8336a4ea4178c49ae8",
+  "counts": {
+    "tp": 112,
+    "visible_localization_miss": 2,
+    "fp": 14,
+    "class_confusion": 7,
+    "background_or_low_overlap": 5,
+    "fn": 17
+  },
+  "class_confusions": {
+    "3->2": 1,
+    "7->5": 2,
+    "1->3": 2,
+    "0->1": 1,
+    "7->2": 1
+  },
+  "records": [
+    {
+      "scene": "v4-development-007",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.6879707465766352,
+        "box": [
+          327.5087129003227,
+          158.9810074167664,
+          349.2378543489754,
+          191.8953935308044
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.4770967196436384,
+      "best_visible_gt": {
+        "class_id": 0,
+        "instance_id": 96,
+        "visible_pixels": 139,
+        "box": [
+          327,
+          160,
+          344,
+          181
+        ],
+        "semantic_tags": [
+          13
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-014",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.38714261235917036,
+        "box": [
+          312.81702907780624,
+          161.37236306636868,
+          334.2329086472609,
+          176.03232672244968
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8695485544335386,
+      "best_visible_gt": {
+        "class_id": 3,
+        "instance_id": 105,
+        "visible_pixels": 148,
+        "box": [
+          313,
+          162,
+          334,
+          175
+        ],
+        "semantic_tags": [
+          18
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-020",
+      "prediction": {
+        "class_id": 5,
+        "score": 0.38158437813587653,
+        "box": [
+          274.31743674553724,
+          133.44265966686342,
+          365.02467293463855,
+          209.458684632453
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.9231762659941564,
+      "best_visible_gt": {
+        "class_id": 7,
+        "instance_id": 113,
+        "visible_pixels": 6005,
+        "box": [
+          274,
+          133,
+          371,
+          210
+        ],
+        "semantic_tags": [
+          15
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-032",
+      "prediction": {
+        "class_id": 3,
+        "score": 0.4652477126573338,
+        "box": [
+          313.77584555851973,
+          169.75856231596163,
+          339.8798074413582,
+          188.75165439699003
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.7757285441660084,
+      "best_visible_gt": {
+        "class_id": 1,
+        "instance_id": 128,
+        "visible_pixels": 194,
+        "box": [
+          313,
+          169,
+          339,
+          186
+        ],
+        "semantic_tags": [
+          19
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-043",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.5024924247555873,
+        "box": [
+          246.26733074765338,
+          80.14357270777326,
+          275.63206948656904,
+          109.06615219533343
+        ]
+      },
+      "reason": "background_or_low_overlap",
+      "best_visible_iou": 0.025783363397320146,
+      "best_visible_gt": {
+        "class_id": 5,
+        "instance_id": 142,
+        "visible_pixels": 27910,
+        "box": [
+          208,
+          35,
+          388,
+          218
+        ],
+        "semantic_tags": [
+          16
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-054",
+      "prediction": {
+        "class_id": 1,
+        "score": 0.3939973673863051,
+        "box": [
+          323.537349501657,
+          171.80911123927774,
+          338.2945344056611,
+          211.9812959415084
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.7585068563600228,
+      "best_visible_gt": {
+        "class_id": 0,
+        "instance_id": 156,
+        "visible_pixels": 407,
+        "box": [
+          323,
+          167,
+          340,
+          211
+        ],
+        "semantic_tags": [
+          12
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-054",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.3870085072799512,
+        "box": [
+          423.9967274984441,
+          154.84644254385543,
+          435.88869902285717,
+          191.1124412185042
+        ]
+      },
+      "reason": "background_or_low_overlap",
+      "best_visible_iou": 0.0,
+      "best_visible_gt": {
+        "class_id": 0,
+        "instance_id": 156,
+        "visible_pixels": 407,
+        "box": [
+          323,
+          167,
+          340,
+          211
+        ],
+        "semantic_tags": [
+          12
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-059",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.3553234001752905,
+        "box": [
+          423.91766454930973,
+          154.7295746050449,
+          435.7901057982855,
+          191.07974059957547
+        ]
+      },
+      "reason": "background_or_low_overlap",
+      "best_visible_iou": 0.0,
+      "best_visible_gt": {
+        "class_id": 0,
+        "instance_id": 162,
+        "visible_pixels": 120,
+        "box": [
+          318,
+          159,
+          332,
+          186
+        ],
+        "semantic_tags": [
+          13
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-065",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.5956207853097055,
+        "box": [
+          339.3603478669292,
+          165.12584270037328,
+          361.80923354633984,
+          190.17978178464259
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.410019652709965,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 169,
+        "visible_pixels": 733,
+        "box": [
+          319,
+          165,
+          361,
+          196
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-070",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.46261273999876096,
+        "box": [
+          248.1140579074837,
+          80.81933912526725,
+          277.26469623146284,
+          109.30218616236093
+        ]
+      },
+      "reason": "background_or_low_overlap",
+      "best_visible_iou": 0.02520622867078138,
+      "best_visible_gt": {
+        "class_id": 5,
+        "instance_id": 176,
+        "visible_pixels": 27910,
+        "box": [
+          208,
+          35,
+          388,
+          218
+        ],
+        "semantic_tags": [
+          16
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-070",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.42796764562231715,
+        "box": [
+          307.9331635349776,
+          79.46684714248575,
+          332.41702376665813,
+          107.24931220123374
+        ]
+      },
+      "reason": "background_or_low_overlap",
+      "best_visible_iou": 0.020650333679111524,
+      "best_visible_gt": {
+        "class_id": 5,
+        "instance_id": 176,
+        "visible_pixels": 27910,
+        "box": [
+          208,
+          35,
+          388,
+          218
+        ],
+        "semantic_tags": [
+          16
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-076",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.43357182646145276,
+        "box": [
+          307.294497342132,
+          151.35782251880485,
+          336.14184298989926,
+          174.37773694469612
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8541105190367382,
+      "best_visible_gt": {
+        "class_id": 7,
+        "instance_id": 183,
+        "visible_pixels": 522,
+        "box": [
+          307,
+          152,
+          338,
+          173
+        ],
+        "semantic_tags": [
+          15
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-076",
+      "prediction": {
+        "class_id": 5,
+        "score": 0.35929915038332183,
+        "box": [
+          307.3252119273346,
+          151.3115101068322,
+          336.14566095169374,
+          174.34607217618782
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8528718710941013,
+      "best_visible_gt": {
+        "class_id": 7,
+        "instance_id": 183,
+        "visible_pixels": 522,
+        "box": [
+          307,
+          152,
+          338,
+          173
+        ],
+        "semantic_tags": [
+          15
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v4-development-080",
+      "prediction": {
+        "class_id": 3,
+        "score": 0.4592148155019835,
+        "box": [
+          309.32648491471554,
+          171.31979838497034,
+          348.09910846144413,
+          199.12182721012243
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8015157572296862,
+      "best_visible_gt": {
+        "class_id": 1,
+        "instance_id": 189,
+        "visible_pixels": 399,
+        "box": [
+          311,
+          173,
+          347,
+          197
+        ],
+        "semantic_tags": [
+          19
+        ]
+      },
+      "small_same_class_iou": 0
+    }
+  ],
+  "scope": "Post-hoc categories at unchanged strict matching; not extra TPs or candidate tuning; no gate/selection change"
+}
