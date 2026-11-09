@@ -1,0 +1,123 @@
+{
+  "schema": "m10-quality-protocol-v7",
+  "scope": "Provisional Host engineering comparison; not vehicle/ODD safety acceptance",
+  "selection": "development only; seal one nominee before holdout acquisition; no retuning on holdout",
+  "metric": "class-aware visible-instance boxes IoU>=0.5; not COCO mAP",
+  "minimum_visible_pixels": 25,
+  "minimum_box_side": 4,
+  "score_threshold": 0.35,
+  "candidate_ids": [
+    "trained-v1"
+  ],
+  "coverage": {
+    "cases_per_partition": 81,
+    "minimum_visible_target_cases_per_class": 9,
+    "negative_cases": 3,
+    "all_strata_required": [
+      "near",
+      "medium",
+      "far",
+      "occluded",
+      "negative",
+      "overlap_vehicles",
+      "overlap_vru"
+    ],
+    "minimum_visible_cases_per_class_stratum": 2,
+    "minimum_rider_instances": 12
+  },
+  "absolute_quality": {
+    "micro_precision_min": 0.85,
+    "micro_recall_min": 0.8,
+    "per_class_recall_min": 0.7,
+    "near_person_recall_min": 0.9,
+    "negative_fp_per_frame_max": 0.3333333333333333
+  },
+  "relative_promotion": {
+    "precision_gain_min": 0.03,
+    "micro_recall_drop_max": 0.0,
+    "per_class_recall_drop_max": 0.0,
+    "far_and_occluded_recall_drop_max": 0.0,
+    "near_person_tp_drop_max": 0,
+    "negative_fp_increase_max": 0
+  },
+  "selection_order": [
+    "relative_gate_pass",
+    "micro_f1",
+    "micro_recall",
+    "micro_precision",
+    "candidate_id_ascending"
+  ],
+  "runtime_promotion": "No automatic replacement of v1. New runtime profile/interface review only after absolute and relative holdout gates pass.",
+  "latency": "All cold/startup and per-frame measurements retained; experimental accuracy replay is not20Hz qualification",
+  "annotation": {
+    "schema": "m10-rider-visible-gt-v2",
+    "person_tags": [
+      12,
+      13
+    ],
+    "metric": "visible tight boxes IoU>=0.5; no amodal extrapolation",
+    "primary_ignore": false,
+    "small_ignore_diagnostic": "unmatched same-class IoU>=0.5; one prediction per excluded instance; never changes gates",
+    "covered_miss_diagnostic": "same-class prediction covers>=80% of visible target but fails IoU0.5; not a TP"
+  },
+  "legacy_data": "Exclude all V1-V6, domain/training development and every current preparation attempt",
+  "models": {
+    "baseline": {
+      "sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+      "bytes": 35858002
+    },
+    "trained-v1": {
+      "sha256": "d264c01b4c797108db754e6d2193ad0b42e9cb012e06c3ae1c0e99521f9fa98e",
+      "bytes": 216580439
+    }
+  },
+  "input_profile": "rgb-unscaled-letterbox640-v1",
+  "preparation": {
+    "required_status": "PASS",
+    "sites": [
+      215,
+      127
+    ],
+    "frames": 198,
+    "all_planned_actors_included": true,
+    "all_two_wheeler_riders_included": true,
+    "before_final_freeze": true,
+    "no_model_inference": true
+  },
+  "road_plan": "perception-road-evaluation-v7.json",
+  "held_person_far_m": 26,
+  "actual_site_visibility": {
+    "all_planned_actors_included": true,
+    "all_two_wheeler_riders_included": true
+  },
+  "candidate_version": "Pinned epoch17 L6 model; raw full view only; no retuning or new training",
+  "metadata_revision": "v7",
+  "prior_rgb_excluded": 4171,
+  "revision_reason": "First trained L6 candidate on fresh215/127 roads; no threshold/quality gate change",
+  "policy": {
+    "score_threshold": 0.35,
+    "same_class_nms_iou": 0.5,
+    "head_to_native": [
+      0,
+      1,
+      2,
+      3,
+      5,
+      7
+    ],
+    "output_channels": 11,
+    "crop": false
+  },
+  "design_data": "Previously fixed training813/validation267; epoch17 selected before this experiment. Neither new quality partition used for training or parameter selection.",
+  "staging": {
+    "height_m": 50,
+    "actor_step_m": 10,
+    "no_tick_before_final_placement": true
+  },
+  "training_provenance": {
+    "evidence": "docs/test-plan/evidence/m10_training_v1",
+    "selected_epoch": 17,
+    "model_manifest": "perception-trained-model-v1.json",
+    "model_sha256": "d264c01b4c797108db754e6d2193ad0b42e9cb012e06c3ae1c0e99521f9fa98e"
+  }
+}

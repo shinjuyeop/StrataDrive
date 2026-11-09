@@ -7,7 +7,7 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M10 | Host 인지·live shadow·V6 L 모델/새162개 평가 완료. 지명 L 개발 절대·상대 PASS, 보류 P81.6%/R62.0% FAIL·기존 S 유지. 전용 자료1080장·첫 L6 24epoch 학습/수치 검증 완료. 새 개발/보류·전체wall20Hz·장기 안정성·주행 통합 남음 |
+| M10 | Host 인지·live shadow·전용1080장/L6 24epoch·V7 새162개 평가 완료. L6 개발 bus 회귀 FAIL·보류 P91.2%/R80.6%·absolute FAIL/relative FAIL. 기존 S 유지. 회귀 개선·다시 새 보류·전체wall20Hz·시작 안정성·주행 통합 남음 |
 | M11 | Metric world model/localization·temporal learned planner, Safety Supervisor·유효 classical fallback, 인식/판단 한계 검토 |
 | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
 | M13 | 전체 SIL/V&V·회귀·추적성 검토와 검증된 범위·제약 공개 |
@@ -62,6 +62,7 @@ M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](proj
 - [V6 고정 L 모델·새 평가](test-plan/evidence/m10_quality_v6/README.md)는 L 원본/전체 class context와74/80번 준비198장·평가162개를 검증했다. Context는 개발 truck recall 무하락을 실패해 미지명했고 L 원본은 개발 P95.8%/R87.6% 절대·상대 PASS다. 지명 L의 보류 P81.6%/R62.0%·near person·far는 FAIL이며 S를 유지한다. 보류 truck→bus FP12개가 남았다. Python139개·설정별13개·수치/원본/압축 재감사 PASS이며 미래 제외는2717개다. 다음은 다양한 시야·조명·차종의 전용 개발/학습 자료와 독립된 새 보류 구성이다.
 - [전용 개발·학습 데이터](test-plan/evidence/m10_domain_data_v1/README.md)는 사전176장·Train813/validation267과 손실 없는 PNG/COCO·작은 양성·분리 reader를 구현했다. 원본/추가 가림의 모든 표본과 FAIL을 유지하고 사전 split coverage를 검사했다. Bus/truck 공유를 명시하고127번은 향후 quality holdout으로 남겼다. Python148개·설정별13개·공식 COCO/원본/압축 재감사 PASS다. 다음은 trainer/모델 출력 매핑·학습 후보·수치 검사와 새 quality 평가다.
 - [첫 L6 학습 후보](test-plan/evidence/m10_training_v1/README.md)는 고정813장·24epoch·4896step을 학습하고 개발267장 macro F1로 epoch17를 선택했다. 개발 P93.84%/R90.05%·macro F190.55%다. 새6-class ONNX·고정 native mapping과16probe 수치/267장 CPU·CUDA 재추론·원본/tensor/압축 재감사 PASS다. Python156개·설정별13개·이전10묶음 무결성 PASS와 별개로 새 quality holdout·runtime 승격은 미실행이며 S와 M10 OPEN을 유지한다.
+- [V7 고정 L6·새 도로 평가](test-plan/evidence/m10_quality_v7/README.md)는215/127번 준비198장·개발/보류162개와 원래 gate를 검증했다. 개발 P92.2%/R91.5%지만 bus recall100→60%·precision 회귀로 FAIL이다. 보류 P91.2%/R80.6%·absolute FAIL/relative FAIL을 남겼다. 시작0frame 실패2회·동일 조건 별도 복구 편차와 cold/late를 보존했고 기본 S를 유지한다. Python161개·설정별13개·수치/원본/압축 재감사와 이전11묶음 무결성 PASS이며 미래 제외는4333개다.
 - 선택형 Supervisor→BMS 가용력 governor→기존 PI/배분과 고장 시 coordinator 보호·DTC를 연결했다. 실제 CARLA nominal/input-loss와 독립 감사·원본 재생을 통과했다. 새 monitor의 qualified 복구/clear와 정상 정지 전환은 논리 SIL에서 검증했다. [실제 CARLA 복구 주행](test-plan/evidence/service-carla-recovery/README.md)도 같은 차량의 새 INIT로 검증했다. 실제 모델·온라인 저항 추정은 별도다.
 - Host 인지 fixture의 scenario·camera·model/hash/FP32·SW fingerprint·stage wall 측정은 고정했다. Board 비교와 전체 Reference의 동일 workload·실시간 수용 조건은 M12 전에 정한다.
 - 실제 ACK/통신 손실의 주입 위치·기대 물리 반응을 먼저 정하고, tick 차단과 차량 정지를 구분한다.

@@ -136,3 +136,8 @@ TC-PER-031–033/C-M10-PER-27–29은 [첫 L6 학습 후보](evidence/m10_traini
 초기 tensor 이식·실제 학습·모든 validation score/선택·새 ONNX 출력과 수치/원본 재현을 연결한다.
 개발 validation을 선택에 사용했으므로 독립 quality holdout·SYS-AI-001 전체 정확도·wall20Hz·
 차량 수용을 완료한 것은 아니다. 초기 epoch 하락과 모든 양성을 유지하고 기본 S를 교체하지 않는다.
+
+TC-PER-034–036/C-M10-PER-30–32은 [V7 새 L6 품질 평가](evidence/m10_quality_v7/README.md)의
+모델/native identity·실제 road/pose/Rider·엄격 score/지명/순서·실패/복구·원본 재현을 연결한다.
+감사 PASS와 model quality 판정·시작 안정성·wall20Hz·SYS-AI-001 전체/차량 수용을 구분한다.
+개발 bus/precision 회귀와 새 보류 결과를 유지하며 후보를 수정한 뒤 기존 보류를 재사용하지 않는다.

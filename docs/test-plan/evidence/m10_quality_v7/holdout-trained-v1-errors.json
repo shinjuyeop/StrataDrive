@@ -1,0 +1,324 @@
+{
+  "schema": "m10-quality-error-diagnostic-v7",
+  "phase": "holdout",
+  "candidate": "trained-v1",
+  "run_sha256": "d7efa27969cc5e7989227efe491ddced43a447d5cf32d23c97e1bf4a3699fd17",
+  "counts": {
+    "tp": 104,
+    "background_or_low_overlap": 1,
+    "fp": 10,
+    "visible_localization_miss": 2,
+    "class_confusion": 6,
+    "duplicate_same_class": 1,
+    "fn": 25
+  },
+  "class_confusions": {
+    "2->3": 1,
+    "5->7": 3,
+    "1->0": 1,
+    "3->0": 1
+  },
+  "records": [
+    {
+      "scene": "v7-holdout-006",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.6508588678118876,
+        "box": [
+          312.8822674781958,
+          162.28363453610734,
+          321.38256215742433,
+          176.53366292254134
+        ]
+      },
+      "reason": "background_or_low_overlap",
+      "best_visible_iou": 0.473329037158927,
+      "best_visible_gt": {
+        "class_id": 1,
+        "instance_id": 95,
+        "visible_pixels": 42,
+        "box": [
+          310,
+          164,
+          323,
+          173
+        ],
+        "semantic_tags": [
+          19
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v7-holdout-006",
+      "prediction": {
+        "class_id": 1,
+        "score": 0.622259727881584,
+        "box": [
+          313.0535510882447,
+          164.0844229903438,
+          320.5778566494872,
+          176.23943908546187
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.4745092761782268,
+      "best_visible_gt": {
+        "class_id": 1,
+        "instance_id": 95,
+        "visible_pixels": 42,
+        "box": [
+          310,
+          164,
+          323,
+          173
+        ],
+        "semantic_tags": [
+          19
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v7-holdout-010",
+      "prediction": {
+        "class_id": 3,
+        "score": 0.583243251956759,
+        "box": [
+          305.52919096602534,
+          156.75123210895606,
+          329.1188021217432,
+          176.2707157517617
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.6211220199257773,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 100,
+        "visible_pixels": 221,
+        "box": [
+          306,
+          160,
+          328,
+          173
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v7-holdout-013",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.5285371271574348,
+        "box": [
+          310.67723937304135,
+          159.88009787998246,
+          319.6971884223688,
+          180.30649040737106
+        ]
+      },
+      "reason": "duplicate_same_class",
+      "best_visible_iou": 0.6610455824901401,
+      "best_visible_gt": {
+        "class_id": 0,
+        "instance_id": 104,
+        "visible_pixels": 93,
+        "box": [
+          309,
+          160,
+          321,
+          183
+        ],
+        "semantic_tags": [
+          13
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v7-holdout-018",
+      "prediction": {
+        "class_id": 7,
+        "score": 0.7968085571684114,
+        "box": [
+          295.63124209351747,
+          137.13856455783792,
+          341.5917555718878,
+          175.5217910100942
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8752005625239452,
+      "best_visible_gt": {
+        "class_id": 5,
+        "instance_id": 110,
+        "visible_pixels": 1392,
+        "box": [
+          296,
+          136,
+          343,
+          173
+        ],
+        "semantic_tags": [
+          16
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v7-holdout-033",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.8189570818236902,
+        "box": [
+          312.6029743614262,
+          156.16076443521212,
+          321.98520522689165,
+          175.15941359670927
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.4712490067511289,
+      "best_visible_gt": {
+        "class_id": 0,
+        "instance_id": 129,
+        "visible_pixels": 33,
+        "box": [
+          315,
+          159,
+          321,
+          173
+        ],
+        "semantic_tags": [
+          13
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v7-holdout-045",
+      "prediction": {
+        "class_id": 7,
+        "score": 0.9082745039023408,
+        "box": [
+          296.0612275072971,
+          136.73533489639627,
+          341.1200950673184,
+          176.35256717269553
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8645451741907765,
+      "best_visible_gt": {
+        "class_id": 5,
+        "instance_id": 144,
+        "visible_pixels": 1392,
+        "box": [
+          296,
+          136,
+          343,
+          173
+        ],
+        "semantic_tags": [
+          16
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v7-holdout-060",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.578738347594907,
+        "box": [
+          311.7982271903001,
+          163.1119832390329,
+          321.8266335732497,
+          176.53762060465607
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.5592668767839772,
+      "best_visible_gt": {
+        "class_id": 1,
+        "instance_id": 163,
+        "visible_pixels": 42,
+        "box": [
+          310,
+          164,
+          323,
+          173
+        ],
+        "semantic_tags": [
+          19
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v7-holdout-068",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.7036200542518323,
+        "box": [
+          310.57335583058733,
+          161.09770193232,
+          322.92220767649275,
+          176.2546602235943
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.5520705051905773,
+      "best_visible_gt": {
+        "class_id": 3,
+        "instance_id": 173,
+        "visible_pixels": 73,
+        "box": [
+          308,
+          163,
+          324,
+          173
+        ],
+        "semantic_tags": [
+          18
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v7-holdout-072",
+      "prediction": {
+        "class_id": 7,
+        "score": 0.9470533176990159,
+        "box": [
+          297.8879414558596,
+          137.43536494018758,
+          341.0953539848142,
+          175.04922559020793
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.840832156481628,
+      "best_visible_gt": {
+        "class_id": 5,
+        "instance_id": 178,
+        "visible_pixels": 1392,
+        "box": [
+          296,
+          136,
+          343,
+          173
+        ],
+        "semantic_tags": [
+          16
+        ]
+      },
+      "small_same_class_iou": 0
+    }
+  ],
+  "scope": "Post-hoc categories at unchanged strict matching; not extra TPs or candidate tuning; no gate/selection change"
+}

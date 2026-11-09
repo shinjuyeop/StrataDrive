@@ -34,6 +34,9 @@ YAML은 **설계/fixture 기록**이며 runtime loader·자동 inheritance는 �
 | `perception-domain-extension-v1.json`, `perception-domain-exclusion-v1.json` | person 가림48장 추가와 과거2717+사전176개 제외2893개 RGB. 원래 FAIL/작은 양성을 유지하고 사전 split 단위 coverage로 검사 |
 | `perception-domain-support-v1.json` | 작은 walker/WetCloudyNoon의 가림차 위치6단계와 참조. Descriptor의4site 중 train31만12장 추가 수집; 모델/예측 없이 원래 split FAIL 보존 |
 | `perception-training-v1.json` | 고정813/267장의 첫 L6·24epoch FP32 학습과 모든 visible 양성·epoch0 포함 macro F1 선택·새11채널 출력. Validation은 개발 자료; 새 quality holdout/기본 S 승격과 별도 |
+| `perception-road-preparation-v7.json`, `perception-road-evaluation-v7.json` | 지도만으로 고정한215/127번·준비198장/평가162장. 기존 road/Rider/pose·held person26m·staging 유지 |
+| `perception-quality-exclusion-v7.json`, `perception-quality-evaluation-exclusion-v7.json` | 과거3973개와 모든 준비를 제외. 미래 소비 RGB는 V7 evidence에 별도 보존 |
+| `perception-quality-protocol-v7.json`, `perception-trained-model-v1.json` | 고정 epoch17 L6·새11채널/native mapping·S와 unchanged strict absolute/relative gate. 기존 runtime 자동 교체0 |
 
 실제 Host profile은 [SOME/IP Rear ICD](../docs/interfaces/someip-rear-adapter.md),
 M6 모델/energy/물리 응답은 [vehicle-energy ICD](../docs/interfaces/vehicle-energy.md),

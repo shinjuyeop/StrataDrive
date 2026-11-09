@@ -1,0 +1,109 @@
+{
+  "schema": "m10-quality-error-diagnostic-v7",
+  "phase": "development",
+  "candidate": "baseline",
+  "run_sha256": "12db59ad3e837c7557c078b2afb8d956f81d33a3c6e54029d49e4cc8d3d8f3b1",
+  "counts": {
+    "tp": 96,
+    "class_confusion": 3,
+    "fp": 3,
+    "fn": 33
+  },
+  "class_confusions": {
+    "3->2": 2,
+    "7->5": 1
+  },
+  "records": [
+    {
+      "scene": "v7-development-014",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.44563553902482056,
+        "box": [
+          313.567495921362,
+          159.56929826194835,
+          334.45017947841825,
+          173.9932513291161
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.7952141671752965,
+      "best_visible_gt": {
+        "class_id": 3,
+        "instance_id": 105,
+        "visible_pixels": 149,
+        "box": [
+          313,
+          162,
+          334,
+          174
+        ],
+        "semantic_tags": [
+          18
+        ]
+      },
+      "small_same_class_iou": 0.0
+    },
+    {
+      "scene": "v7-development-068",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.39321782853984644,
+        "box": [
+          313.0819326951616,
+          160.0755912700429,
+          334.3222683355696,
+          174.3839347919688
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8232833834893436,
+      "best_visible_gt": {
+        "class_id": 3,
+        "instance_id": 173,
+        "visible_pixels": 149,
+        "box": [
+          313,
+          162,
+          334,
+          174
+        ],
+        "semantic_tags": [
+          18
+        ]
+      },
+      "small_same_class_iou": 0.0
+    },
+    {
+      "scene": "v7-development-076",
+      "prediction": {
+        "class_id": 5,
+        "score": 0.41079719153849936,
+        "box": [
+          307.56166692862166,
+          150.0026427844531,
+          336.44657567849504,
+          172.97546848263676
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8930103359979227,
+      "best_visible_gt": {
+        "class_id": 7,
+        "instance_id": 183,
+        "visible_pixels": 524,
+        "box": [
+          307,
+          151,
+          338,
+          173
+        ],
+        "semantic_tags": [
+          15
+        ]
+      },
+      "small_same_class_iou": 0
+    }
+  ],
+  "scope": "Post-hoc categories at unchanged strict matching; not extra TPs or candidate tuning; no gate/selection change"
+}

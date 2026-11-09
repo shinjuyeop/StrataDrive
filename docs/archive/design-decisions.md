@@ -6428,3 +6428,20 @@ validation macro F1/이른 동점·epoch0 포함 선택을 실행 전에 source/
 독립 quality holdout으로 볼 수 없다. 새 개발/보류 수집·기존 품질 gate·wall20Hz·차량 통합은
 후속이며 기본 S/M10 OPEN을 유지한다. [학습 기준](../test-plan/perception-training-v1-protocol.md)과
 [실제 학습·검증](../test-plan/evidence/m10_training_v1/README.md)을 따른다.
+
+<a id="adr-0126"></a>
+
+## ADR-0126: 고정 L6의 새 road 품질과 시작 복구·원래 실패의 분리
+
+2026-11-09. Epoch17 L6/새11채널을 별도 offline envelope로 고정하고 미사용215/127번의
+개발/보류를 수집한다. 이전 학습 모델/native mapping·기존 S·원래 숫자/strict IoU gate를
+유지한다. 준비는 모델 없이 실제 모든 actor/Rider를 검사하고 모든 소비 RGB를 제외한다.
+단일 후보라도 개발 결과를 봉인한 다음에만 보류를 수집한다. 개발 실패를 전체 평균이나
+새 보류 결과로 지우지 않는다. 보류를 본 뒤의 개선은 다시 별도 새 보류가 필요하다.
+
+시작180s 실패2회/0frame·강제 종료와 원래 자동 retry 소진을 보존한다. 대용량 archive 읽기가
+끝난 뒤의 추가 복구는 사전에 별도 기록하고 같은 source/plan/model·180/900/30s를 쓴다.
+이를 원래 실패의 PASS나 시작 안정성 수용으로 바꾸지 않는다. 실제 pose/GT·score/selection·
+순서/압축 감사 PASS와 모델 정확도·전체wall20Hz·차량 수용은 구분한다. 기본 S를 자동 교체하지 않는다.
+[사전 기준](../test-plan/perception-quality-v7-protocol.md), [복구 편차](../test-plan/perception-quality-v7-recovery.md)와
+[새 평가 근거](../test-plan/evidence/m10_quality_v7/README.md)를 따른다.

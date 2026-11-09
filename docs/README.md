@@ -24,6 +24,7 @@
 | M9 진단 | [Fault event/DTC 계약](interfaces/diagnostics.md) · [검증 프로토콜](test-plan/diagnostics-protocol.md) · [완료 근거](test-plan/evidence/m9_followup/README.md) |
 | M10 영상 인지 | [입출력·고장 계약](interfaces/perception.md) · [검증 프로토콜](test-plan/perception-protocol.md) · [V3 준비·모델 기준](test-plan/perception-quality-v3-protocol.md) · [새 후보 평가 근거](test-plan/evidence/m10_quality_v3/README.md) |
 | M10 실제 평가 위치 준비 | [도로 맞춤 준비 기준](test-plan/perception-road-preparation-v4-protocol.md) · [198장 준비와 실패·봉인 근거](test-plan/evidence/m10_road_preparation_v4/README.md) |
+| M10 학습 L6·새 도로 평가 | [사전 기준](test-plan/perception-quality-v7-protocol.md) · [V7 새 개발·보류·실패/복구·원본 재현](test-plan/evidence/m10_quality_v7/README.md) |
 | M10 첫 L6 학습 후보 | [학습 기준](test-plan/perception-training-v1-protocol.md) · [24epoch·개발/수치·재현](test-plan/evidence/m10_training_v1/README.md) |
 | M10 개발·학습 데이터 | [수집 기준](test-plan/perception-domain-data-v1-protocol.md) · [새 자료·COCO·분리/원본 재현](test-plan/evidence/m10_domain_data_v1/README.md) |
 | M10 L 모델·시야별 차종 판단 | [V6 기준](test-plan/perception-quality-v6-protocol.md) · [새 도로 평가·원본 재감사](test-plan/evidence/m10_quality_v6/README.md) |

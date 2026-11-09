@@ -39,6 +39,11 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-031 | 초기 가중치/native 행 이식·고정813/267·실제24epoch와 모든 양성 | 원본 모든 tensor strict 대조·작은 양성과 빈 프레임·정확한 반전/좌표·마지막 batch·BN 통계 고정·finite loss/gradient·실제 가중치 변화 |
 | TC-PER-032 | 모든 epoch score·고정 validation macro F1/동점 선택·독립 재채점 | epoch0 포함·모든 prediction/원래 하락 보존·점수/선택 재현·새 quality holdout 미접근·기본 S 유지 |
 | TC-PER-033 | 새11채널 ONNX/manifest·CPU/CUDA/OpenCV 수치·retained tensor/압축 감사 | 기존85채널/변조 거절·16probe raw/detection·267장 CPU/CUDA count 동등성·체크포인트/source/data binding·역전파 재실행과 구분 |
+| TC-PER-034 | 고정 epoch17 L6/native11채널·별도 offline envelope·새 준비 numeric | 이전 model/manifest byte/hash·기존85채널 식별자 혼용 거절·CPU/CUDA/OpenCV raw와 완성 count/class/box/score 동등성 |
+| TC-PER-035 | 새215/127 map-only road·실제 준비/평가·모든 actor/Rider | 과거3973+모든 준비 제외·거리/episode/RGB 분리·실제 mask/pose/road 재구성·최소 지원·원래 실패와 준비 기준 보존 |
+| TC-PER-036 | 단일 후보·원래 absolute/relative·지명 후 보류·시작 실패/복구 | 전체/class/stratum 엄격 채점·개발 실패도 descriptive holdout 유지·소스/계획/모델·제한 무변경·cold/late/실패·순서/압축 재감사·자동 runtime 교체0 |
+
+TC-PER-034–036은 [V7 기준](perception-quality-v7-protocol.md)과 [새 개발/보류·복구 원본 근거](evidence/m10_quality_v7/README.md)를 따른다.
 
 TC-PER-031–033은 [학습 기준](perception-training-v1-protocol.md)과 [실제 학습·수치/원본 재현](evidence/m10_training_v1/README.md)을 따른다.
 

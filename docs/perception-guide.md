@@ -473,3 +473,31 @@ PYTHONNOUSERSITE=1 build/m10-training-v1/venv/bin/python \
 이는 모든 epoch prediction/score/선택과 best/last 실제 tensor·BN buffers를 재감사한다.
 새 경로에 source와 모델·data export를 풀며24epoch 역전파 자체를 재실행한 것은 아니다.
 개발 validation 수용과 새 quality holdout·전체wall20Hz·차량 수용을 구분한다.
+
+<a id="quality-v7"></a>
+
+## 고정 학습 L6의 새 도로 품질 평가
+
+[V7 사전 기준](test-plan/perception-quality-v7-protocol.md), [별도 시작 복구 편차](test-plan/perception-quality-v7-recovery.md)와
+[실제 새 개발/보류 결과](test-plan/evidence/m10_quality_v7/README.md)는 epoch17 모델을 그대로
+고정한다. `quality_candidates_v7.py`는 native6개의11채널을 기존85채널과 구분하고 raw full view를
+사용한다. 기존 score/NMS·strict IoU/모든 absolute/relative gate·기본 S를 유지한다.
+
+`quality_road_v7.py`는 원래 map-only query로 미사용215/127번을 재현한다. Versioned 서버와
+extractor는 준비99장/site·실제81장/site·동일 budget·모든 실제 actor/Rider mask와 pose를
+검사한다. 모든 준비/거절 RGB를 final exclusion에 넣고 source/model/numeric을 봉인한다.
+개발 score와 단일 후보 지명을 봉인한 다음에만 보류를 수집하며 실패를 판정에서 지우지 않는다.
+
+L6 ONNX bytes는 이전 `m10_training_v1/experiment.tar.gz`의 `build/m10-training-v1/export/`에 있다.
+새 artifact는 모델 가중치를 중복 저장하지 않고 이전 모델 manifest와 exact hash를 연결한다.
+최종 지명·strict score·raw/visibility·clock·source 순서와 새 경로 감사는 GPU/모델 없이 재현한다.
+같은 source checkout과 모든 기존 evidence의 LFS/SHA를 확인한 후 새 출력 파일을 지정한다.
+
+```sh
+python3 docs/test-plan/evidence/m10_quality_v7/check-archive.py \
+  docs/test-plan/evidence/m10_quality_v7 build/m10-v7-recheck-new.json
+```
+
+이 재감사는 모델 재추론이나 전체wall20Hz/시작 안정성·차량 수용을 재실행한 것이 아니다.
+서버 시작 실패2회와 동일 조건의 별도 복구 실행도 archive와 사전 복구 record에 남겼다.
+소비한 개발 자료로 회귀를 개선할 수 있으나 기존 보류를 다시 수용 표본으로 사용할 수 없다.

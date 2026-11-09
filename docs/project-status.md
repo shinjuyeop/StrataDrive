@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **Host 인지·live shadow·V6 L 모델/새162개 평가 완료 / 전용 자료 L6·24epoch 학습/수치 검증 완료·새 보류 전 / 지명 L 보류 FAIL·기존 S 유지 / 정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [영상 계약](interfaces/perception.md) · [live·준비](test-plan/evidence/m10_live_perception/README.md) · [V3 모델 비교](test-plan/evidence/m10_quality_v3/README.md) · [V4 도로 맞춤 준비](test-plan/evidence/m10_road_preparation_v4/README.md) · [V4 새 평가](test-plan/evidence/m10_quality_v4/README.md) · [V5 후보·새 평가](test-plan/evidence/m10_quality_v5/README.md) · [V6 L 모델·새 평가](test-plan/evidence/m10_quality_v6/README.md) · [전용 개발 데이터](test-plan/evidence/m10_domain_data_v1/README.md) · [첫 L6 학습 후보](test-plan/evidence/m10_training_v1/README.md) |
+| M10 | **Host 인지·live shadow·L6 학습/새162개 평가 완료 / L6 품질 FAIL·기존 S 유지 / 정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [영상 계약](interfaces/perception.md) · [고정 학습 후보](test-plan/evidence/m10_training_v1/README.md) · [V7 새 도로 평가](test-plan/evidence/m10_quality_v7/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -179,6 +179,14 @@ Supervisor→governor→기존 PI/배분 연결을 추가했다. [검증과 제�
   이전10묶음 무결성도 PASS다. 이 validation은 checkpoint 선택용 개발 자료이며 새 quality holdout은
   미수집·미평가다. 기존 S/정확도 FAIL·M10 OPEN과 향후 RGB3973개 제외를 유지한다.
 
+- [V7 고정 L6·새 도로 평가](test-plan/evidence/m10_quality_v7/README.md)는 준비198장·개발215/보류127번
+  각81장과 source200개를 봉인했다. 개발 P92.19%/R91.47%·
+  bus recall60%로 absolute/relative FAIL이다. 보류 P91.23%/R80.62%·
+  absolute FAIL/relative FAIL이다. 원래 기준과 실패를 유지하고
+  기본 S를 교체하지 않았다. 개발 시작2회는0frame·exit-9 FAIL이며 동일 source/plan/budget의
+  별도 복구 편차도 남겼다. Python161개·설정별13개·수치/원본/압축 재감사·이전11묶음 무결성
+  PASS와 model quality 판정을 구분한다. 미래 RGB 제외는4333개다.
+
 ## M7 종료 조건
 
 시뮬레이션 시간 기능 범위는 CLOSED다. 연속 주행·회생/제동·영상·보호와 고장7조건의
@@ -213,10 +221,10 @@ visible box·조건별 coverage와 두 확대 후보를 검증했다. 이후 [V3
 M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 보류의 정밀도·truck recall·coverage가
 실패해 미채택이다. [실제 두 site의 V4 도로 준비](test-plan/evidence/m10_road_preparation_v4/README.md)를
 마친 뒤 [V4 새 평가](test-plan/evidence/m10_quality_v4/README.md)에서 실제 coverage와 품질을
-검사했다. [V5 다중 시야 개선](test-plan/evidence/m10_quality_v5/README.md)은 새 개발 기준을 통과했으나 새 보류가 실패했다. [V6 L 모델·새 평가](test-plan/evidence/m10_quality_v6/README.md)도 개발 기준을 통과했지만 보류 기준은 실패했다. 다음은 **고정 L6 후보의 새 개발·quality holdout 평가 → 필요 시 개발 개선·새 보류 →
+검사했다. [V5 다중 시야 개선](test-plan/evidence/m10_quality_v5/README.md)은 새 개발 기준을 통과했으나 새 보류가 실패했다. [V6 L 모델·새 평가](test-plan/evidence/m10_quality_v6/README.md)도 개발 기준을 통과했지만 보류 기준은 실패했다. 다음은 **소비한 개발 자료의 bus/truck 구분·정밀도 회귀 개선 → 새 후보·다시 새 보류 →
 전체wall20Hz·시작/종료 안정성**이다. 준비 영상은 미래 정확도 표본으로 재사용하지 않으며,
 작은 held 보행자의 far26m 범위와 별도 quality freeze·실제 평가 coverage 검사를 유지한다.
-새 plan을 고정하기 전에 가시성을 확인하고, 이미 본 v1/v2/v3/v4/v5/v6 보류셋과 준비/실패/진단 영상을 새로운 holdout으로 재사용하지 않는다.
+새 plan을 고정하기 전에 가시성을 확인하고, 이미 본 v1/v2/v3/v4/v5/v6/v7 보류셋과 준비/실패/진단 영상을 새로운 holdout으로 재사용하지 않는다.
 같은 Town의 정지 배치를 전체 ODD로 확대하지 않는다.
 그 뒤 M11에서 metric fusion/localization·temporal planner 입력·risk·valid classical fallback을
 정의하고 기존 감독/제어 경로에 연결한다. 온라인 저항 추정은 별도다.
