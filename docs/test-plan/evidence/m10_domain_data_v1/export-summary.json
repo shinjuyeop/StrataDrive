@@ -1,0 +1,39 @@
+{
+  "schema": "m10-domain-dataset-v1",
+  "policy": {
+    "width": 640,
+    "height": 384,
+    "quality_min_visible_pixels": 25,
+    "quality_min_box_side": 4,
+    "training_labels": "all nonempty visible instances, including small fragments",
+    "iscrowd": 0,
+    "segmentation": "uncompressed COCO RLE, column-major",
+    "image_format": "lossless RGB PNG",
+    "category_to_native": {
+      "1": 0,
+      "2": 1,
+      "3": 2,
+      "4": 3,
+      "6": 5,
+      "8": 7
+    }
+  },
+  "collection_freeze_sha256": "04c3e608d1572b6a400b96d30a06d44fb982a872f46357326fbcf78842b9f17f",
+  "plan_sha256": "27415daa2f660863a005b794d27656a7832420a7a4ab83bb412600e33992518e",
+  "splits": {
+    "train": {
+      "annotation_path": "annotations/instances_train.json",
+      "annotation_sha256": "8132e8126995f8cb2da4d3b388bcb0a486612a127fa93c3815e0b5ba3674dede",
+      "images": 813,
+      "objects": 1134,
+      "small_fragments": 27
+    },
+    "validation": {
+      "annotation_path": "annotations/instances_validation.json",
+      "annotation_sha256": "ad4789d7ce6ae9ca5b0830ca3828a120b3fdb6874b22f6a53a74ce780ab482a6",
+      "images": 267,
+      "objects": 372,
+      "small_fragments": 6
+    }
+  }
+}

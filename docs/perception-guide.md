@@ -396,3 +396,42 @@ python3 docs/test-plan/evidence/m10_quality_v6/check-archive.py \
 
 다음 후보의 새 평가에서는 `future-evaluation-exclusion.json`2717개를 제외한다. 이미 본 보류를
 새 holdout으로 재사용하지 않고 같은 Town/자산의 정지 fixture·held walker far26m 범위를 유지한다.
+
+<a id="domain-data-v1"></a>
+
+## 전용 개발·학습 데이터
+
+[사전 수집 기준](test-plan/perception-domain-data-v1-protocol.md)과 [실행 근거](test-plan/evidence/m10_domain_data_v1/README.md)는
+RGB/instance640×384·모델 없는 자산/가시성 준비와 시야/기상/거리·train/validation 분리를 고정한다.
+`domain_plan_v1.py`·`domain_extension_v1.py`가 명시 pose를 만들고 `run_domain_server_v1.py`가
+같은180/900/30s budget으로 전용 서버를 실행한다. 원래 source와 실패도 snapshots에 보존한다.
+`prepare_domain_v1.py`·versioned extension extractor는 raw/pose/semantic/Rider를 재구성한다.
+
+`physical_ai.perception.domain_data_v1`은 작은 fragment도 양성으로 보존하고 기존 최소 품질
+지원 여부를 별도로 표시한다. PNG 원래 RGB와 mask area/box·COCO6category/native class를
+검사한다. 일반화한80-class trainer/head/ONNX 출력과 자동 연결하지 않는다. Archive의
+`export/images/`·`export/annotations/`·`export/dataset.json`이 학습 입력 자료다.
+
+LFS/SHA256SUMS를 확인한 동일 소스의 깨끗한 작업 사본에서 새 경로에 푼다.
+
+```sh
+tar -xzf docs/test-plan/evidence/m10_domain_data_v1/experiment.tar.gz
+python3 tests/integration/perception/audit_domain_v1.py \
+  build/m10-domain-data-v1 build/m10-domain-data-v1/re-audit.json
+```
+
+감사는 GPU/모델 없이 모든 raw·mask·pose·PNG/COCO·분리·지원 행렬과 원래 실패를 재구성한다.
+공식 COCO API의 pinned QA wheel과 배포 SHA·실행 script도 archive에 보존했다. 새 임시 경로
+재감사는 아래처럼 기존 보고서를 유지하며 새 출력 경로를 지정한다.
+
+```sh
+python3 docs/test-plan/evidence/m10_domain_data_v1/check-archive.py \
+  docs/test-plan/evidence/m10_domain_data_v1 build/m10-domain-recheck-new.json
+```
+
+`DomainDataset(Path('build/m10-domain-data-v1/export'), 'train')`과 `'validation'`이 annotation·
+PNG/RGB·split을 검증하며 `samples()`가 RGB/metadata/native labels를 반환한다. 모든 nonempty
+visible 양성을 유지하고 quality_eligible=false를 crowd/배경으로 바꾸지 않는다. 원래 실패·작은
+지원 부족과 bus/truck 자산 공유·정지 clearance fixture의 범위를 결과와 함께 읽는다.
+Train/validation은 미래 quality holdout이 아니며127번은 미수집이다. 새 모델에는 별도 학습·
+수치 동등성·새 개발/보류 평가가 필요하다. 모델·기본 S runtime의 자동 교체는 없다.

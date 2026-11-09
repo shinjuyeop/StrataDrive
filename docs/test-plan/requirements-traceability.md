@@ -126,3 +126,8 @@ TC-PER-025–027 및 C-M10-PER-21–23은 [V6 기준](perception-quality-v6-prot
 동등성·전체 class context 판단·새 도로/원본 재감사를 검증한다. 개발 지명의 상대 gate를
 F1보다 우선하며 보류에는 S와 지명만 실행한다. SYS-AI-001/SYS-PERF-003의 부분 근거이며
 전체 learned trajectory·실제wall20Hz·차량 수용을 완료하지 않는다.
+
+TC-PER-028–030/C-M10-PER-24–26은 [전용 개발 데이터](evidence/m10_domain_data_v1/README.md)의
+실제 raw/pose·작은 양성·COCO/PNG·train/validation 분리·원본 재현과 연결한다. 모델 없는
+자료 단계의 SYS-AI-001 부분 근거이며 trainer·새 model accuracy·quality holdout·wall20Hz·
+차량 수용은 완료하지 않는다. Bus/truck 자산 공유와 원래 coverage/시작 FAIL도 유지한다.

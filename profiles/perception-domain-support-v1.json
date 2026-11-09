@@ -1,0 +1,4766 @@
+{
+  "schema": "m10-domain-data-plan-v1",
+  "phase": "development-data",
+  "map": "Town03_Opt",
+  "server_quality": "Epic",
+  "rgb_postprocess": true,
+  "world_step_ns": 10000000,
+  "sensor_tick_seconds": 0,
+  "settle_ticks": 40,
+  "capture_ticks": 10,
+  "selected_capture_tick": 5,
+  "seed": 0,
+  "survey_sha256": "4455249939c1f8103d83600303a1c826b48d9aee813b08b1ea40946a42c2f059",
+  "xodr_sha256": "abf177bcd9b66cfefb7ac4919f6456815f1384f4229f1343c8a6a90bbb7713c9",
+  "previous_rgb_exclusion_sha256": "eabbaf7fd40369442fb02e48ef830c894f11cf695faa764b70ee0ff2db39bcb2",
+  "reserved_future_holdout_site": 127,
+  "quality_holdout_collected": false,
+  "assets": {
+    "train": {
+      "0": [
+        "walker.pedestrian.0004",
+        "walker.pedestrian.0010",
+        "walker.pedestrian.0015"
+      ],
+      "1": [
+        "vehicle.bh.crossbike",
+        "vehicle.diamondback.century"
+      ],
+      "2": [
+        "vehicle.dodge.charger_2020",
+        "vehicle.audi.tt",
+        "vehicle.ford.mustang",
+        "vehicle.audi.etron"
+      ],
+      "3": [
+        "vehicle.yamaha.yzf",
+        "vehicle.vespa.zx125"
+      ],
+      "5": [
+        "vehicle.mitsubishi.fusorosa"
+      ],
+      "7": [
+        "vehicle.carlamotors.carlacola",
+        "vehicle.carlamotors.firetruck"
+      ]
+    },
+    "validation": {
+      "0": [
+        "walker.pedestrian.0001",
+        "walker.pedestrian.0007",
+        "walker.pedestrian.0018"
+      ],
+      "1": [
+        "vehicle.gazelle.omafiets"
+      ],
+      "2": [
+        "vehicle.tesla.model3",
+        "vehicle.jeep.wrangler_rubicon"
+      ],
+      "3": [
+        "vehicle.kawasaki.ninja",
+        "vehicle.harley-davidson.low_rider"
+      ],
+      "5": [
+        "vehicle.mitsubishi.fusorosa"
+      ],
+      "7": [
+        "vehicle.carlamotors.carlacola",
+        "vehicle.carlamotors.firetruck"
+      ]
+    }
+  },
+  "asset_overlap_exceptions": {
+    "5": "Only one compatible bus blueprint available",
+    "7": "Two compatible truck blueprints shared to measure novel-view/road transfer; not independent asset generalization"
+  },
+  "partitions": {
+    "train-14": {
+      "spawn_point_index": 14,
+      "split": "train",
+      "road_id": 52,
+      "camera_pose": {
+        "location": {
+          "x": 107.89703369140625,
+          "y": 62.549434661865234,
+          "z": 1.9753047049045562
+        },
+        "rotation": {
+          "pitch": 354.0,
+          "yaw": -0.14739990234375,
+          "roll": 0.0
+        }
+      },
+      "cases": [
+        {
+          "id": "domain-support-v1-train-14-000",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": -0.14739990234375,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.037791619558295,
+                "u": 336.95988899877557,
+                "v": 182.44197805960175,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 3101926490896174250,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 18.467878885269176,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 117.89700317382812,
+                    "y": 62.52370834350586,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.6,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 117.89545960736295,
+                  "y": 61.92371032900701,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.070655670140681,
+                "u": 300.9347006229133,
+                "v": 196.70726443224933,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-14-001",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": -0.14739990234375,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.037791619558295,
+                "u": 336.95988899877557,
+                "v": 182.44197805960175,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-14-000"
+        },
+        {
+          "id": "domain-support-v1-train-14-002",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.0026000976562499944,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.03995018388203,
+                "u": 336.12187763718407,
+                "v": 182.4387381395868,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 3101926490896174250,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 18.467878885269176,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 117.89700317382812,
+                    "y": 62.52370834350586,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.65,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 117.8953309768242,
+                  "y": 61.873710494465435,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.068929215873624,
+                "u": 298.5104333511697,
+                "v": 196.71383845070685,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-14-003",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.0026000976562499944,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.03995018388203,
+                "u": 336.12187763718407,
+                "v": 182.4387381395868,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-14-002"
+        },
+        {
+          "id": "domain-support-v1-train-14-004",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.15260009765625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.041999671894853,
+                "u": 335.28408523429937,
+                "v": 182.43566274575022,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 3101926490896174250,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 18.467878885269176,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 117.89700317382812,
+                    "y": 62.52370834350586,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.7,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 117.89520234628543,
+                  "y": 61.82371065992386,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.066874245971094,
+                "u": 296.08472327862387,
+                "v": 196.72166633521678,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-14-005",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.15260009765625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.041999671894853,
+                "u": 335.28408523429937,
+                "v": 182.43566274575022,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-14-004"
+        },
+        {
+          "id": "domain-support-v1-train-14-006",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.30260009765624996,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.0439400695498,
+                "u": 334.4465003587415,
+                "v": 182.43275177338674,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 3101926490896174250,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 18.467878885269176,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 117.89700317382812,
+                    "y": 62.52370834350586,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.75,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 117.89507371574666,
+                  "y": 61.77371082538229,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.064490777194399,
+                "u": 293.65737042326333,
+                "v": 196.73074955646314,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-14-007",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.30260009765624996,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.0439400695498,
+                "u": 334.4465003587415,
+                "v": 182.43275177338674,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-14-006"
+        },
+        {
+          "id": "domain-support-v1-train-14-008",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.45260009765625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.045771363547598,
+                "u": 333.60911159043127,
+                "v": 182.43000512341848,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 3101926490896174250,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 18.467878885269176,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 117.89700317382812,
+                    "y": 62.52370834350586,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.8,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 117.89494508520791,
+                  "y": 61.72371099084072,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.061778830340833,
+                "u": 291.2281743308298,
+                "v": 196.74108981688516,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-14-009",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.45260009765625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.045771363547598,
+                "u": 333.60911159043127,
+                "v": 182.43000512341848,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-14-008"
+        },
+        {
+          "id": "domain-support-v1-train-14-010",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.60260009765625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.04749354133677,
+                "u": 332.7719075199646,
+                "v": 182.4274227023867,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 3101926490896174250,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 18.467878885269176,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 117.89700317382812,
+                    "y": 62.52370834350586,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 117.89481645466914,
+                  "y": 61.67371115629915,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.058738430243459,
+                "u": 288.7969340132891,
+                "v": 196.7526890514645,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-14-011",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 107.89703369140625,
+              "y": 62.549434661865234,
+              "z": 1.9753047049045562
+            },
+            "rotation": {
+              "pitch": 354.0,
+              "yaw": 0.60260009765625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-14-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 5194284086001110046,
+                "road_id": 52,
+                "section_id": 0,
+                "lane_id": 1,
+                "s": 12.46787888526919,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 123.89698791503906,
+                    "y": 62.508270263671875,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 360.0,
+                    "yaw": 359.85260009765625,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753047049045563,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 123.89917463419805,
+                  "y": 63.358267450878586,
+                  "z": 0.7753047049045563
+                },
+                "rotation": {
+                  "pitch": 360.0,
+                  "yaw": 14.85260009765625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.04749354133677,
+                "u": 332.7719075199646,
+                "v": 182.4274227023867,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-14-010"
+        }
+      ]
+    },
+    "train-31": {
+      "spawn_point_index": 31,
+      "split": "train",
+      "road_id": 28,
+      "camera_pose": {
+        "location": {
+          "x": 7.941555023193359,
+          "y": -57.5286750793457,
+          "z": 1.975307148694992
+        },
+        "rotation": {
+          "pitch": -6.0,
+          "yaw": -88.58645629882812,
+          "roll": 0.0
+        }
+      },
+      "cases": [
+        {
+          "id": "domain-support-v1-train-31-000",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -88.58645629882812,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.03778210596162,
+                "u": 336.9599223802174,
+                "v": 182.44199234106594,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 18100306892124283882,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 22.703228950500478,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.188239097595215,
+                    "y": -67.52562713623047,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.6,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 7.5884216856833255,
+                  "y": -67.5404282296807,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.070648309056287,
+                "u": 300.9346710031848,
+                "v": 196.70729245711215,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-31-001",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -88.58645629882812,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.03778210596162,
+                "u": 336.9599223802174,
+                "v": 182.44199234106594,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-31-000"
+        },
+        {
+          "id": "domain-support-v1-train-31-002",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -88.43645629882812,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.039940673361098,
+                "u": 336.12191101354847,
+                "v": 182.43875241259147,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 18100306892124283882,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 22.703228950500478,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.188239097595215,
+                    "y": -67.52562713623047,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.65,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 7.5384369013573345,
+                  "y": -67.54166165413488,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.068921853529309,
+                "u": 298.5104025672513,
+                "v": 196.71386648997932,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-31-003",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -88.43645629882812,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.039940673361098,
+                "u": 336.12191101354847,
+                "v": 182.43875241259147,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-31-002"
+        },
+        {
+          "id": "domain-support-v1-train-31-004",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -88.28645629882813,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.041990164514843,
+                "u": 335.2841186060404,
+                "v": 182.43567701039558,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 18100306892124283882,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 22.703228950500478,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.188239097595215,
+                    "y": -67.52562713623047,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.7,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 7.488452117031343,
+                  "y": -67.54289507858907,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.066866882417335,
+                "u": 296.08469132763474,
+                "v": 196.72169439054588,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-31-005",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -88.28645629882813,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.041990164514843,
+                "u": 335.2841186060404,
+                "v": 182.43567701039558,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-31-004"
+        },
+        {
+          "id": "domain-support-v1-train-31-006",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -88.13645629882812,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.043930565375874,
+                "u": 334.44653372631274,
+                "v": 182.43276602977275,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 18100306892124283882,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 22.703228950500478,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.188239097595215,
+                    "y": -67.52562713623047,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.75,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 7.438467332705352,
+                  "y": -67.54412850304325,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.064483412481666,
+                "u": 293.65733730209195,
+                "v": 196.73077762949973,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-31-007",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -88.13645629882812,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.043930565375874,
+                "u": 334.44653372631274,
+                "v": 182.43276602977275,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-31-006"
+        },
+        {
+          "id": "domain-support-v1-train-31-008",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -87.98645629882813,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.0457618626449,
+                "u": 333.60914495428636,
+                "v": 182.43001937164476,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 18100306892124283882,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 22.703228950500478,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.188239097595215,
+                    "y": -67.52562713623047,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.8,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 7.388482548379362,
+                  "y": -67.54536192749744,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.061771464519591,
+                "u": 291.2281400361328,
+                "v": 196.74111790928458,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-31-009",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -87.98645629882813,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.0457618626449,
+                "u": 333.60914495428636,
+                "v": 182.43001937164476,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-31-008"
+        },
+        {
+          "id": "domain-support-v1-train-31-010",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -87.83645629882812,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.04748404377041,
+                "u": 332.77194088055654,
+                "v": 182.42743694255265,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 18100306892124283882,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 22.703228950500478,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.188239097595215,
+                    "y": -67.52562713623047,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 7.338497764053371,
+                  "y": -67.54659535195162,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.058731063364199,
+                "u": 288.79689854149046,
+                "v": 196.75271716488675,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-31-011",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": 7.941555023193359,
+              "y": -57.5286750793457,
+              "z": 1.975307148694992
+            },
+            "rotation": {
+              "pitch": -6.0,
+              "yaw": -87.83645629882812,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-31-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 9677451398336498359,
+                "road_id": 28,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 28.703228950500456,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": 8.336249351501465,
+                    "y": -73.5238037109375,
+                    "z": 0.0
+                  },
+                  "rotation": {
+                    "pitch": 0.0,
+                    "yaw": -88.58645629882812,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.7753071486949921,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": 9.185990685043308,
+                  "y": -73.50283549521635,
+                  "z": 0.7753071486949921
+                },
+                "rotation": {
+                  "pitch": 0.0,
+                  "yaw": -73.58645629882812,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.04748404377041,
+                "u": 332.77194088055654,
+                "v": 182.42743694255265,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-31-010"
+        }
+      ]
+    },
+    "train-74": {
+      "spawn_point_index": 74,
+      "split": "train",
+      "road_id": 3,
+      "camera_pose": {
+        "location": {
+          "x": -88.69108581542969,
+          "y": -119.5652847290039,
+          "z": 1.9753071486949922
+        },
+        "rotation": {
+          "pitch": -6.790371775627136,
+          "yaw": 89.84373474121094,
+          "roll": 0.0
+        }
+      },
+      "cases": [
+        {
+          "id": "domain-support-v1-train-74-000",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 89.84373474121094,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.066509578449313,
+                "u": 336.92957227793346,
+                "v": 184.21936731915014,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 758212319970253770,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 15.343677520751955,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.66381072998047,
+                    "y": -109.56532287597656,
+                    "z": -0.30095914006233215
+                  },
+                  "rotation": {
+                    "pitch": -1.226711630821228,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.6,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -88.06381296149948,
+                  "y": -109.56695927991126,
+                  "z": 0.5992833971977234
+                },
+                "rotation": {
+                  "pitch": -1.226711630821228,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.092550032299258,
+                "u": 300.97601300870474,
+                "v": 197.83402370103596,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-74-001",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 89.84373474121094,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.066509578449313,
+                "u": 336.92957227793346,
+                "v": 184.21936731915014,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-74-000"
+        },
+        {
+          "id": "domain-support-v1-train-74-002",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 89.99373474121094,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.068664807642843,
+                "u": 336.0930664783044,
+                "v": 184.2153002743786,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 758212319970253770,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 15.343677520751955,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.66381072998047,
+                    "y": -109.56532287597656,
+                    "z": -0.30095914006233215
+                  },
+                  "rotation": {
+                    "pitch": -1.226711630821228,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.65,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -88.0138131474594,
+                  "y": -109.56709564690583,
+                  "z": 0.5992833971977234
+                },
+                "rotation": {
+                  "pitch": -1.226711630821228,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.09082624149937,
+                "u": 298.557018763149,
+                "v": 197.84152937972874,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-74-003",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 89.99373474121094,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.068664807642843,
+                "u": 336.0930664783044,
+                "v": 184.2153002743786,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-74-002"
+        },
+        {
+          "id": "domain-support-v1-train-74-004",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 90.14373474121093,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.070711129104033,
+                "u": 335.2567781491964,
+                "v": 184.21143975449385,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 758212319970253770,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 15.343677520751955,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.66381072998047,
+                    "y": -109.56532287597656,
+                    "z": -0.30095914006233215
+                  },
+                  "rotation": {
+                    "pitch": -1.226711630821228,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.7,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -87.96381333341932,
+                  "y": -109.56723201390038,
+                  "z": 0.5992833971977234
+                },
+                "rotation": {
+                  "pitch": -1.226711630821228,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.088774442634092,
+                "u": 296.1365908201657,
+                "v": 197.8504666047822,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-74-005",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 90.14373474121093,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.070711129104033,
+                "u": 335.2567781491964,
+                "v": 184.21143975449385,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-74-004"
+        },
+        {
+          "id": "domain-support-v1-train-74-006",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 90.29373474121094,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.072648528807612,
+                "u": 334.4206959372368,
+                "v": 184.2077856285871,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 758212319970253770,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 15.343677520751955,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.66381072998047,
+                    "y": -109.56532287597656,
+                    "z": -0.30095914006233215
+                  },
+                  "rotation": {
+                    "pitch": -1.226711630821228,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.75,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -87.91381351937923,
+                  "y": -109.56736838089495,
+                  "z": 0.5992833971977234
+                },
+                "rotation": {
+                  "pitch": -1.226711630821228,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.08639465243882,
+                "u": 293.71453052030324,
+                "v": 197.86083704878874,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-74-007",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 90.29373474121094,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.072648528807612,
+                "u": 334.4206959372368,
+                "v": 184.2077856285871,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-74-006"
+        },
+        {
+          "id": "domain-support-v1-train-74-008",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 90.44373474121093,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.07447699347487,
+                "u": 333.5848085002278,
+                "v": 184.20433777278495,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 758212319970253770,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 15.343677520751955,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.66381072998047,
+                    "y": -109.56532287597656,
+                    "z": -0.30095914006233215
+                  },
+                  "rotation": {
+                    "pitch": -1.226711630821228,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.8,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -87.86381370533915,
+                  "y": -109.5675047478895,
+                  "z": 0.5992833971977234
+                },
+                "rotation": {
+                  "pitch": -1.226711630821228,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.083686891678758,
+                "u": 291.2906387367542,
+                "v": 197.8726426478816,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-74-009",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 90.44373474121093,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.07447699347487,
+                "u": 333.5848085002278,
+                "v": 184.20433777278495,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-74-008"
+        },
+        {
+          "id": "domain-support-v1-train-74-010",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 90.59373474121094,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.076196510573713,
+                "u": 332.7491045065272,
+                "v": 184.20109607023926,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.audi.tt",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 758212319970253770,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 15.343677520751955,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.66381072998047,
+                    "y": -109.56532287597656,
+                    "z": -0.30095914006233215
+                  },
+                  "rotation": {
+                    "pitch": -1.226711630821228,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -87.81381389129908,
+                  "y": -109.56764111488405,
+                  "z": 0.5992833971977234
+                },
+                "rotation": {
+                  "pitch": -1.226711630821228,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.080651185148636,
+                "u": 288.86471581447756,
+                "v": 197.88588560262704,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-train-74-011",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -88.69108581542969,
+              "y": -119.5652847290039,
+              "z": 1.9753071486949922
+            },
+            "rotation": {
+              "pitch": -6.790371775627136,
+              "yaw": 90.59373474121094,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-train-74-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 12094480199173506976,
+                "road_id": 3,
+                "section_id": 0,
+                "lane_id": -2,
+                "s": 21.343677520751932,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -88.64744567871094,
+                    "y": -103.56534576416016,
+                    "z": -0.43668442964553833
+                  },
+                  "rotation": {
+                    "pitch": -1.3090193271636963,
+                    "yaw": 89.84373474121094,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.9002425372600555,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -89.49744251739233,
+                  "y": -103.56302752525266,
+                  "z": 0.4635581076145172
+                },
+                "rotation": {
+                  "pitch": -1.3090193271636963,
+                  "yaw": 104.84373474121094,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.076196510573713,
+                "u": 332.7491045065272,
+                "v": 184.20109607023926,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-train-74-010"
+        }
+      ]
+    },
+    "validation-104": {
+      "spawn_point_index": 104,
+      "split": "validation",
+      "road_id": 4,
+      "camera_pose": {
+        "location": {
+          "x": -77.56543731689453,
+          "y": 109.82649230957031,
+          "z": 2.228589189052582
+        },
+        "rotation": {
+          "pitch": 354.87091064453125,
+          "yaw": -90.15625,
+          "roll": 0.0
+        }
+      },
+      "cases": [
+        {
+          "id": "domain-support-v1-validation-104-000",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -90.15625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.018405736076808,
+                "u": 336.98032767826703,
+                "v": 181.77882658490574,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.jeep.wrangler_rubicon",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 17715706693921112196,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 71.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.59271240234375,
+                    "y": 99.82653045654297,
+                    "z": 0.3676452934741974
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.6,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -78.19271017126052,
+                  "y": 99.8281667006886,
+                  "z": 1.20011605322361
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.051902581243091,
+                "u": 300.8989998477303,
+                "v": 196.14982801878642,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-validation-104-001",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -90.15625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.018405736076808,
+                "u": 336.98032767826703,
+                "v": 181.77882658490574,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-validation-104-000"
+        },
+        {
+          "id": "domain-support-v1-validation-104-002",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -90.00625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.020567488152658,
+                "u": 336.14129636112216,
+                "v": 181.7763300206864,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.jeep.wrangler_rubicon",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 17715706693921112196,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 71.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.59271240234375,
+                    "y": 99.82653045654297,
+                    "z": 0.3676452934741974
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.65,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -78.24270998533692,
+                  "y": 99.82830305436741,
+                  "z": 1.20011605322361
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.050173557517208,
+                "u": 298.47019768056657,
+                "v": 196.1554834345943,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-validation-104-003",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -90.00625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.020567488152658,
+                "u": 336.14129636112216,
+                "v": 181.7763300206864,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-validation-104-002"
+        },
+        {
+          "id": "domain-support-v1-validation-104-004",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -89.85625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.022620002270784,
+                "u": 335.30248515641614,
+                "v": 181.77396023666287,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.jeep.wrangler_rubicon",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 17715706693921112196,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 71.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.59271240234375,
+                    "y": 99.82653045654297,
+                    "z": 0.3676452934741974
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.7,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -78.2927097994133,
+                  "y": 99.82843940804621,
+                  "z": 1.20011605322361
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.048115531310552,
+                "u": 296.0399445948632,
+                "v": 196.1622175125635,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-validation-104-005",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -89.85625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.022620002270784,
+                "u": 335.30248515641614,
+                "v": 181.77396023666287,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-validation-104-004"
+        },
+        {
+          "id": "domain-support-v1-validation-104-006",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -89.70625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.024563264363483,
+                "u": 334.46388257222355,
+                "v": 181.7717171518914,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.jeep.wrangler_rubicon",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 17715706693921112196,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 71.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.59271240234375,
+                    "y": 99.82653045654297,
+                    "z": 0.3676452934741974
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.75,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -78.3427096134897,
+                  "y": 99.828575761725,
+                  "z": 1.20011605322361
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.045728519409316,
+                "u": 293.60803942991424,
+                "v": 196.1700315223064,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-validation-104-007",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -89.70625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.024563264363483,
+                "u": 334.46388257222355,
+                "v": 181.7717171518914,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-validation-104-006"
+        },
+        {
+          "id": "domain-support-v1-validation-104-008",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -89.55625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.026397261111857,
+                "u": 333.6254771280199,
+                "v": 181.76960068977888,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.jeep.wrangler_rubicon",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 17715706693921112196,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 71.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.59271240234375,
+                    "y": 99.82653045654297,
+                    "z": 0.3676452934741974
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.8,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -78.3927094275661,
+                  "y": 99.82871211540382,
+                  "z": 1.20011605322361
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.043012542641662,
+                "u": 291.17428054836904,
+                "v": 196.17892693352502,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-validation-104-009",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -89.55625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.026397261111857,
+                "u": 333.6254771280199,
+                "v": 181.76960068977888,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-validation-104-008"
+        },
+        {
+          "id": "domain-support-v1-validation-104-010",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -89.40625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.028121979945894,
+                "u": 332.78725735404987,
+                "v": 181.76761077807615,
+                "in_frame": true
+              }
+            },
+            {
+              "class_id": 2,
+              "blueprint": "vehicle.jeep.wrangler_rubicon",
+              "role": "occluder",
+              "route_distance_m": 10,
+              "road_node": {
+                "id": 17715706693921112196,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 71.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.59271240234375,
+                    "y": 99.82653045654297,
+                    "z": 0.3676452934741974
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": -0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -78.4427092416425,
+                  "y": 99.82884846908262,
+                  "z": 1.20011605322361
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "70,70,70",
+              "camera_projection": {
+                "depth_m": 10.039967625877583,
+                "u": 288.7384657741117,
+                "v": 196.18890541669268,
+                "in_frame": true
+              }
+            }
+          ]
+        },
+        {
+          "id": "domain-support-v1-validation-104-011",
+          "weather": "WetCloudyNoon",
+          "stratum": "occluded_reference",
+          "target_class": 0,
+          "camera_pose": {
+            "location": {
+              "x": -77.56543731689453,
+              "y": 109.82649230957031,
+              "z": 2.228589189052582
+            },
+            "rotation": {
+              "pitch": 354.87091064453125,
+              "yaw": -89.40625,
+              "roll": 0.0
+            }
+          },
+          "orientation_degrees": 15,
+          "variant_group": "domain-support-v1-validation-104-WetCloudyNoon",
+          "actors": [
+            {
+              "class_id": 0,
+              "blueprint": "walker.pedestrian.0007",
+              "role": "target",
+              "route_distance_m": 16,
+              "road_node": {
+                "id": 10897846390553655980,
+                "road_id": 4,
+                "section_id": 0,
+                "lane_id": 2,
+                "s": 65.28495223999019,
+                "lane_width": 3.5,
+                "is_junction": false,
+                "pose": {
+                  "location": {
+                    "x": -77.60907745361328,
+                    "y": 93.82654571533203,
+                    "z": 0.4736711084842682
+                  },
+                  "rotation": {
+                    "pitch": 361.0124816894531,
+                    "yaw": 269.84375,
+                    "roll": 0.0
+                  }
+                }
+              },
+              "right_m": 0.85,
+              "clearance_m": 0.8324707597494125,
+              "yaw_offset_degrees": 15,
+              "pose": {
+                "location": {
+                  "x": -76.75908061431453,
+                  "y": 93.82422770279238,
+                  "z": 1.3061418682336807
+                },
+                "rotation": {
+                  "pitch": 361.0124816894531,
+                  "yaw": -75.15625,
+                  "roll": 0.0
+                }
+              },
+              "color": "190,190,190",
+              "camera_projection": {
+                "depth_m": 16.028121979945894,
+                "u": 332.78725735404987,
+                "v": 181.76761077807615,
+                "in_frame": true
+              }
+            }
+          ],
+          "reference_for": "domain-support-v1-validation-104-010"
+        }
+      ]
+    }
+  },
+  "collection_revision": "Append .6m/.85m person occlusion and exact unoccluded references; all original cases retained",
+  "extension": "person-occlusion-lateral-v1",
+  "support_revision": "Training31 WetCloudyNoon tiny-person occluder -.60..-.85; matched reference camera jitter to avoid duplicate frames; no other split collected"
+}

@@ -33,6 +33,11 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-025 | 고정 L model bytes/hash·별도 offline identity·독립 수치 비교 | S/M envelope로 L 발행 거절; 독립 RGB·CPU/CUDA/OpenCV raw 및 완성 후보 class/count/box/score 동등성 |
 | TC-PER-026 | 전체 class 확대·약한 지지·시야 간 body 불일치·작은 VRU | raw 자체 발행0·person 지지는 person만 허용·person/rider 중첩 보존·distinct body와 유한/용량 검사 |
 | TC-PER-027 | 새74/80번 준비·개발 지명·보류·원본/설계 재감사 | 기존2357개+모든 준비 제외·개발 relative 우선 지명·보류에는 S/지명만·strict gate/실패 보존·자동 runtime 교체0 |
+| TC-PER-028 | 개발 데이터의 deterministic 시야/기상/자산·actual raw/pose·source freeze |22자산8m4방향 최소 지원·Rider·실제 도로/pose·모든 원본/시작 실패와 가림 참조 보존; 모델 없는 데이터 준비 |
+| TC-PER-029 | 모든 visible 양성·작은 fragment·COCO RLE/category·PNG/RGB | 작은 객체를 배경 음성/crowd로 바꾸지 않음·기존 품질 기준 별도·독립 COCO API area/bbox·해시/마스크 변조 거절 |
+| TC-PER-030 | Train/validation road·RGB·family/episode·가능한 blueprint 분리·새 경로 재감사 | 무작위 frame 분할0·bus/truck 공유 명시·127번 holdout 미수집·원래 FAIL과 추가 자료 유지·사전 split gate·자동 모델 승격0 |
+
+TC-PER-028–030은 [개발 데이터 기준](perception-domain-data-v1-protocol.md)과 [원본·분리/COCO 근거](evidence/m10_domain_data_v1/README.md)를 따른다.
 
 TC-PER-025–027은 [V6 기준](perception-quality-v6-protocol.md)과 [새 평가 근거](evidence/m10_quality_v6/README.md)를 따른다.
 

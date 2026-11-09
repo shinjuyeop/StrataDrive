@@ -30,6 +30,9 @@ YAML은 **설계/fixture 기록**이며 runtime loader·자동 inheritance는 �
 | `perception-road-preparation-v6.json`, `perception-road-evaluation-v6.json` | 다음 미사용74/80번 도로의 준비198개·평가162개. 기존 road/pose/가시성 gate와 V5b staging 유지 |
 | `perception-quality-exclusion-v6.json`, `perception-quality-evaluation-exclusion-v6.json` | 준비용 과거2357개·평가용 과거+준비2555개 RGB 제외. 다음2717개 제외는 [결과 묶음](../docs/test-plan/evidence/m10_quality_v6/README.md)의 별도 artifact |
 | `perception-quality-protocol-v6.json` | 고정 L 원본/전체 클래스 중앙 확대·약한 raw 지지·확대 시야 body 판단. 기존 숫자 gate·개발 지명·새 보류 순서 유지; [V6 기준](../docs/test-plan/perception-quality-v6-protocol.md) 참고 |
+| `perception-domain-preflight-v1.json`, `perception-domain-collection-v1.json` | 모델 없는22자산/176장 검사와4도로의1020개 개발 수집. Train/validation의 road·가능한4class blueprint 분리;127번 보류 미수집 |
+| `perception-domain-extension-v1.json`, `perception-domain-exclusion-v1.json` | person 가림48장 추가와 과거2717+사전176개 제외2893개 RGB. 원래 FAIL/작은 양성을 유지하고 사전 split 단위 coverage로 검사 |
+| `perception-domain-support-v1.json` | 작은 walker/WetCloudyNoon의 가림차 위치6단계와 참조. Descriptor의4site 중 train31만12장 추가 수집; 모델/예측 없이 원래 split FAIL 보존 |
 
 실제 Host profile은 [SOME/IP Rear ICD](../docs/interfaces/someip-rear-adapter.md),
 M6 모델/energy/물리 응답은 [vehicle-energy ICD](../docs/interfaces/vehicle-energy.md),

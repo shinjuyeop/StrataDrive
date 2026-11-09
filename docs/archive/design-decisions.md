@@ -6392,3 +6392,22 @@ RGB 제외·수치 비교·152-source freeze 뒤 새 개발을 수집한다. Rel
 V6 지명 L은 개발 P95.8%/R87.6%의 절대·상대 기준을 통과했지만 새 보류 P81.6%/R62.0%와
 near person·far 회귀가 FAIL이라 미채택이다. Truck→bus FP12개와 rider13→17/27 개선을 함께
 보존한다. 다음 개선은 다양한 시야·조명·차종의 전용 개발/학습 자료와 새 보류 구성에서 검증한다.
+
+<a id="adr-0124"></a>
+
+## ADR-0124: 전용 개발 데이터의 split·작은 양성과 원래 실패의 보존
+
+2026-11-09. V6의 모델 확대만으로 작은 VRU/차종 보류 기준을 충족하지 못해, 별도의 모델 없는
+개발 데이터1080장(train813/validation267)을 만든다. 과거2717개·사전176개를 제외하고
+도로/RGB/family/episode와 가능한4class blueprint를 분리한다. Bus/truck 공유는 명시한다.
+Validation을 새 quality holdout으로 부르지 않으며127번은 이번에 수집하지 않는다.
+
+원래1020개 계획·시작 실패·가림 FAIL을 남기고 추가 자료를 append한다. 지원 조건은 사전
+split 단위로 검사하고 개별 site 부족을 숨기지 않는다. 모델/예측으로 표본·기준을 고르거나
+어려운 원본을 삭제하지 않는다. 모든 nonempty visible fragment를 양성 COCO/mask로 유지하고
+기존 최소 지원 여부를 별도로 표시한다. 작은 객체를 crowd/배경으로 바꾸지 않는다.
+
+손실 없는 RGB PNG·mask/area/box·분리·원본 재구성과 공식 COCO API의 구현 검증을 모델
+정확도·wall20Hz·차량 수용과 구분한다. Trainer/head/native class 매핑·학습/새 모델 봉인·새 보류
+평가는 후속이며 기본 S를 유지한다. [사전 기준](../test-plan/perception-domain-data-v1-protocol.md)과
+[원본·추가 수집·재현](../test-plan/evidence/m10_domain_data_v1/README.md)을 따른다.
