@@ -120,3 +120,9 @@ TC-PER-022–024 및 C-M10-PER-18–20은 [V5 기준](perception-quality-v5-prot
 [후보/새 평가 근거](evidence/m10_quality_v5/README.md)에 연결한다. 약한 시야 지지·body 충돌
 정책과 새31/35번 준비/평가를 검증했다. 개발 절대·상대 PASS와 보류 FAIL을 구분하며
 SYS-AI-001/SYS-PERF-003의 부분 근거다. Learned trajectory·전체wall20Hz·차량 수용을 완료하지 않는다.
+
+TC-PER-025–027 및 C-M10-PER-21–23은 [V6 기준](perception-quality-v6-protocol.md)·
+[L 모델/새 평가 근거](evidence/m10_quality_v6/README.md)에 연결한다. L 모델 identity·수치
+동등성·전체 class context 판단·새 도로/원본 재감사를 검증한다. 개발 지명의 상대 gate를
+F1보다 우선하며 보류에는 S와 지명만 실행한다. SYS-AI-001/SYS-PERF-003의 부분 근거이며
+전체 learned trajectory·실제wall20Hz·차량 수용을 완료하지 않는다.

@@ -1,0 +1,3505 @@
+{
+  "schema": "m10-quality-score-v6",
+  "audit": "PASS",
+  "partition": "holdout",
+  "candidate": "baseline",
+  "absolute_quality": "FAIL",
+  "gates": {
+    "coverage": true,
+    "all_planned_actors_visible": true,
+    "all_two_wheeler_riders_visible": true,
+    "no_model_errors": true,
+    "precision": false,
+    "recall": false,
+    "per_class_recall": false,
+    "near_person": false,
+    "negative_fp": true
+  },
+  "micro": {
+    "tp": 71,
+    "fp": 23,
+    "fn": 58,
+    "precision": 0.7553191489361702,
+    "recall": 0.5503875968992248,
+    "f1": 0.6367713004484304
+  },
+  "per_class": {
+    "0": {
+      "tp": 16,
+      "fp": 2,
+      "fn": 26,
+      "precision": 0.8888888888888888,
+      "recall": 0.38095238095238093
+    },
+    "1": {
+      "tp": 4,
+      "fp": 0,
+      "fn": 11,
+      "precision": 1.0,
+      "recall": 0.26666666666666666
+    },
+    "2": {
+      "tp": 33,
+      "fp": 3,
+      "fn": 0,
+      "precision": 0.9166666666666666,
+      "recall": 1.0
+    },
+    "3": {
+      "tp": 2,
+      "fp": 0,
+      "fn": 10,
+      "precision": 1.0,
+      "recall": 0.16666666666666666
+    },
+    "5": {
+      "tp": 15,
+      "fp": 12,
+      "fn": 0,
+      "precision": 0.5555555555555556,
+      "recall": 1.0
+    },
+    "7": {
+      "tp": 1,
+      "fp": 6,
+      "fn": 11,
+      "precision": 0.14285714285714285,
+      "recall": 0.08333333333333333
+    }
+  },
+  "admitted_micro": {
+    "tp": 70,
+    "fp": 23,
+    "fn": 59,
+    "precision": 0.7526881720430108,
+    "recall": 0.5426356589147286,
+    "f1": 0.6306306306306306
+  },
+  "small_ignore_diagnostic_micro": {
+    "tp": 71,
+    "fp": 23,
+    "fn": 58,
+    "precision": 0.7553191489361702,
+    "recall": 0.5503875968992248,
+    "f1": 0.6367713004484304
+  },
+  "small_predictions_ignored_diagnostic": 0,
+  "strata": {
+    "near": {
+      "frames": 18,
+      "tp": 19,
+      "fp": 5,
+      "fn": 5,
+      "target_visible": 18,
+      "target_detected": 13,
+      "target_recall": 0.7222222222222222
+    },
+    "medium": {
+      "frames": 18,
+      "tp": 10,
+      "fp": 5,
+      "fn": 14,
+      "target_visible": 18,
+      "target_detected": 6,
+      "target_recall": 0.3333333333333333
+    },
+    "far": {
+      "frames": 18,
+      "tp": 7,
+      "fp": 5,
+      "fn": 17,
+      "target_visible": 18,
+      "target_detected": 7,
+      "target_recall": 0.3888888888888889
+    },
+    "occluded": {
+      "frames": 18,
+      "tp": 24,
+      "fp": 7,
+      "fn": 18,
+      "target_visible": 18,
+      "target_detected": 6,
+      "target_recall": 0.3333333333333333
+    },
+    "negative": {
+      "frames": 3,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "target_visible": 0,
+      "target_detected": 0,
+      "target_recall": null
+    },
+    "overlap_vehicles": {
+      "frames": 3,
+      "tp": 6,
+      "fp": 0,
+      "fn": 0,
+      "target_visible": 0,
+      "target_detected": 0,
+      "target_recall": null
+    },
+    "overlap_vru": {
+      "frames": 3,
+      "tp": 5,
+      "fp": 1,
+      "fn": 4,
+      "target_visible": 0,
+      "target_detected": 0,
+      "target_recall": null
+    }
+  },
+  "weather": {
+    "ClearNoon": {
+      "frames": 27,
+      "tp": 22,
+      "fp": 7,
+      "fn": 21
+    },
+    "WetCloudyNoon": {
+      "frames": 27,
+      "tp": 24,
+      "fp": 7,
+      "fn": 19
+    },
+    "ClearSunset": {
+      "frames": 27,
+      "tp": 25,
+      "fp": 9,
+      "fn": 18
+    }
+  },
+  "primary_coverage": {
+    "0": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "1": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "2": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "3": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "5": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "7": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    }
+  },
+  "visibility": {
+    "status": "PASS",
+    "gates": {
+      "all_planned_actors_visible": true,
+      "all_two_wheeler_riders_visible": true
+    },
+    "missing_actors": [],
+    "missing_riders": []
+  },
+  "riders": {
+    "visible": 27,
+    "detected": 13,
+    "excluded": 0
+  },
+  "near_person": {
+    "tp": 2,
+    "fp": 0,
+    "fn": 1,
+    "recall": 0.6666666666666666
+  },
+  "records": [
+    {
+      "scene": "v6-holdout-000",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-001",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-002",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-003",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-004",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-005",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-006",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-007",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-008",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-009",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-010",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-011",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-012",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-013",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-014",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-015",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-016",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-017",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-018",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-019",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-020",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-021",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-022",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-023",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-024",
+      "stratum": "negative",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-025",
+      "stratum": "overlap_vehicles",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-026",
+      "stratum": "overlap_vru",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": [
+        {
+          "class_id": 0,
+          "instance_id": 120,
+          "visible_pixels": 45,
+          "box": [
+            313,
+            170,
+            319,
+            190
+          ],
+          "semantic_tags": [
+            12
+          ]
+        }
+      ]
+    },
+    {
+      "scene": "v6-holdout-027",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-028",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-029",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-030",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-031",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-032",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-033",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-034",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-035",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-036",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-037",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-038",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-039",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-040",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-041",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-042",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-043",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-044",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-045",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-046",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-047",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-048",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-049",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-050",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-051",
+      "stratum": "negative",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-052",
+      "stratum": "overlap_vehicles",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-053",
+      "stratum": "overlap_vru",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-054",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-055",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-056",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-057",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-058",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-059",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-060",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-061",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-062",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-063",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-064",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-065",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-066",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-067",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": [
+        {
+          "class_id": 0,
+          "instance_id": 172,
+          "visible_pixels": 92,
+          "box": [
+            309,
+            160,
+            320,
+            183
+          ],
+          "semantic_tags": [
+            13
+          ]
+        }
+      ]
+    },
+    {
+      "scene": "v6-holdout-068",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-069",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-070",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-071",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-072",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-073",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-074",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-075",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-076",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-077",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 1
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-078",
+      "stratum": "negative",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-079",
+      "stratum": "overlap_vehicles",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v6-holdout-080",
+      "stratum": "overlap_vru",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    }
+  ],
+  "run_sha256": "796e49444f1346576c7af42e76a83aa3235e3eda0cc6f25be79ebd343f1fcd7f",
+  "metadata_sha256": "3f0bbb3ad0fe558bf40211864d933dce89827346a9ac90d8b17bfc131ca5192c",
+  "freeze_sha256": "94d21341280dc12a84aeaba04aae23f23e4cf1044c65989c69a8055467dc43a8"
+}

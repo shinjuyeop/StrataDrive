@@ -27,6 +27,9 @@ YAML은 **설계/fixture 기록**이며 runtime loader·자동 inheritance는 �
 | `perception-road-preparation-v5.json`, `perception-road-evaluation-v5.json` | 다음 미사용31/35번 road의 모델 없는 준비198개·새 평가162개. 최종 도로 pose/거리와 actor/rider gate 유지; 임시 spawn staging-v5b만 수정 |
 | `perception-quality-exclusion-v5.json`, `perception-quality-evaluation-exclusion-v5.json` | 준비용 과거1873개와 평가용 과거+모든 준비2195개 RGB 제외. [결과](../docs/test-plan/evidence/m10_quality_v5/README.md)의 다음 평가용2357개는 별도 artifact |
 | `perception-quality-protocol-v5.json` | 고정 M 원본/중앙 VRU·양방향 약한 지지·body 충돌 억제 정책과 기존 절대/상대 gate. 개발 PASS·보류 FAIL로 미채택; [V5 기준](../docs/test-plan/perception-quality-v5-protocol.md) 참고 |
+| `perception-road-preparation-v6.json`, `perception-road-evaluation-v6.json` | 다음 미사용74/80번 도로의 준비198개·평가162개. 기존 road/pose/가시성 gate와 V5b staging 유지 |
+| `perception-quality-exclusion-v6.json`, `perception-quality-evaluation-exclusion-v6.json` | 준비용 과거2357개·평가용 과거+준비2555개 RGB 제외. 다음2717개 제외는 [결과 묶음](../docs/test-plan/evidence/m10_quality_v6/README.md)의 별도 artifact |
+| `perception-quality-protocol-v6.json` | 고정 L 원본/전체 클래스 중앙 확대·약한 raw 지지·확대 시야 body 판단. 기존 숫자 gate·개발 지명·새 보류 순서 유지; [V6 기준](../docs/test-plan/perception-quality-v6-protocol.md) 참고 |
 
 실제 Host profile은 [SOME/IP Rear ICD](../docs/interfaces/someip-rear-adapter.md),
 M6 모델/energy/물리 응답은 [vehicle-energy ICD](../docs/interfaces/vehicle-energy.md),

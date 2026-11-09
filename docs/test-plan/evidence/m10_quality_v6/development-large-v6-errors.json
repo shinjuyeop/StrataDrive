@@ -1,0 +1,170 @@
+{
+  "schema": "m10-quality-error-diagnostic-v6",
+  "phase": "development",
+  "candidate": "large-v6",
+  "run_sha256": "a78ab4c41f62836aade592bd3ef80d4439808551c05162257ce85135ac01fc82",
+  "counts": {
+    "tp": 113,
+    "background_or_low_overlap": 1,
+    "fp": 5,
+    "class_confusion": 3,
+    "visible_localization_miss": 1,
+    "fn": 16
+  },
+  "class_confusions": {
+    "7->5": 3
+  },
+  "records": [
+    {
+      "scene": "v6-development-011",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.47315264227700027,
+        "box": [
+          341.79080181354624,
+          164.7759759343783,
+          358.3099328971471,
+          194.40062929023108
+        ]
+      },
+      "reason": "background_or_low_overlap",
+      "best_visible_iou": 0.3461199872679358,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 101,
+        "visible_pixels": 717,
+        "box": [
+          320,
+          167,
+          361,
+          198
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v6-development-022",
+      "prediction": {
+        "class_id": 5,
+        "score": 0.42168765300942823,
+        "box": [
+          307.7174846392754,
+          152.49865350873634,
+          335.0855367916938,
+          175.09154596178368
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8274312681087167,
+      "best_visible_gt": {
+        "class_id": 7,
+        "instance_id": 115,
+        "visible_pixels": 522,
+        "box": [
+          307,
+          154,
+          338,
+          175
+        ],
+        "semantic_tags": [
+          15
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v6-development-063",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.5189092451311446,
+        "box": [
+          328.92867653113956,
+          166.49930214768557,
+          346.34822089928036,
+          187.23635506743284
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.3406483438668285,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 167,
+        "visible_pixels": 784,
+        "box": [
+          303,
+          166,
+          346,
+          190
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v6-development-074",
+      "prediction": {
+        "class_id": 5,
+        "score": 0.40598892060447156,
+        "box": [
+          275.178947570075,
+          134.6615469478371,
+          365.84798896099187,
+          210.7747857547996
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.9335923159882604,
+      "best_visible_gt": {
+        "class_id": 7,
+        "instance_id": 181,
+        "visible_pixels": 5947,
+        "box": [
+          275,
+          134,
+          371,
+          211
+        ],
+        "semantic_tags": [
+          15
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v6-development-077",
+      "prediction": {
+        "class_id": 5,
+        "score": 0.47046563434225774,
+        "box": [
+          300.11341206490613,
+          142.52793698041577,
+          363.3876999193468,
+          194.86366458208423
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8825975195467926,
+      "best_visible_gt": {
+        "class_id": 7,
+        "instance_id": 184,
+        "visible_pixels": 2356,
+        "box": [
+          300,
+          142,
+          367,
+          198
+        ],
+        "semantic_tags": [
+          15
+        ]
+      },
+      "small_same_class_iou": 0
+    }
+  ],
+  "scope": "Post-hoc categories at unchanged strict matching; not extra TPs or candidate tuning; no gate/selection change"
+}

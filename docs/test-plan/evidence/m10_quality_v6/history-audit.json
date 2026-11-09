@@ -1,0 +1,62 @@
+{
+  "audit": "PASS",
+  "design_samples_consumed": 162,
+  "design_partitions": [
+    "V4 development",
+    "V5 development"
+  ],
+  "held_images_read": 0,
+  "cache_modes": 6,
+  "context_variants": [
+    {
+      "version": "v4g",
+      "verify_base": false,
+      "micro": {
+        "tp": 119,
+        "fp": 15,
+        "fn": 10,
+        "precision": 0.8880597014925373,
+        "recall": 0.9224806201550387,
+        "f1": 0.9049429657794676
+      }
+    },
+    {
+      "version": "v4g",
+      "verify_base": true,
+      "micro": {
+        "tp": 119,
+        "fp": 8,
+        "fn": 10,
+        "precision": 0.937007874015748,
+        "recall": 0.9224806201550387,
+        "f1": 0.9296875
+      }
+    },
+    {
+      "version": "v5b",
+      "verify_base": false,
+      "micro": {
+        "tp": 120,
+        "fp": 9,
+        "fn": 9,
+        "precision": 0.9302325581395349,
+        "recall": 0.9302325581395349,
+        "f1": 0.9302325581395349
+      }
+    },
+    {
+      "version": "v5b",
+      "verify_base": true,
+      "micro": {
+        "tp": 119,
+        "fp": 9,
+        "fn": 10,
+        "precision": 0.9296875,
+        "recall": 0.9224806201550387,
+        "f1": 0.9260700389105059
+      }
+    }
+  ],
+  "policy_revision_source_sha256": "a0803d2c0ca4de0350844921c6eff5e9ae7afb496a4a320ded344b1c2abf24c9",
+  "scope": "Replayed consumed-development cached-view policies and strict scores; not fresh acceptance or neural inference"
+}

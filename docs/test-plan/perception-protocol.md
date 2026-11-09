@@ -30,6 +30,11 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-022 | 약한 raw 지지·양방향 시야 검증·body class 충돌·완성 후보 수치 비교 | raw 지지만으로 발행0·person 중첩 보존·유한/용량 검사·CPU/CUDA box .01pixel/score1e-4; 고정 M offline 전용 |
 | TC-PER-023 | 미사용 도로 선택·모델 없는 준비·임시 spawn staging·새 수집 | 기존 site/road/50m 제외·모든 actor/rider·가림 참조·tick 전 최종 pose·요청 staging lineage; 실패/원래 source 보존 |
 | TC-PER-024 | V5 prospective freeze·개발 지명·새 보류·원본/이력 재감사 | 준비322개 포함2195개 제외·개발만 지명·raw/strict 점수/순서 재구성·보류 FAIL 유지·자동 runtime 교체0 |
+| TC-PER-025 | 고정 L model bytes/hash·별도 offline identity·독립 수치 비교 | S/M envelope로 L 발행 거절; 독립 RGB·CPU/CUDA/OpenCV raw 및 완성 후보 class/count/box/score 동등성 |
+| TC-PER-026 | 전체 class 확대·약한 지지·시야 간 body 불일치·작은 VRU | raw 자체 발행0·person 지지는 person만 허용·person/rider 중첩 보존·distinct body와 유한/용량 검사 |
+| TC-PER-027 | 새74/80번 준비·개발 지명·보류·원본/설계 재감사 | 기존2357개+모든 준비 제외·개발 relative 우선 지명·보류에는 S/지명만·strict gate/실패 보존·자동 runtime 교체0 |
+
+TC-PER-025–027은 [V6 기준](perception-quality-v6-protocol.md)과 [새 평가 근거](evidence/m10_quality_v6/README.md)를 따른다.
 
 TC-PER-022–024는 [V5 기준](perception-quality-v5-protocol.md)과 [새 평가 근거](evidence/m10_quality_v5/README.md)를 따른다.
 

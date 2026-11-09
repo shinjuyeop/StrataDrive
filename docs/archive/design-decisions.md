@@ -6366,3 +6366,29 @@ source·99개/부분25개·실패를 보존하고 새13-source freeze로198개�
 
 [사전 기준](../test-plan/perception-quality-v5-protocol.md)과
 [구현·원본·실패·재현](../test-plan/evidence/m10_quality_v5/README.md)을 따른다.
+
+<a id="adr-0123"></a>
+
+## ADR-0123: 별도 L 모델 identity와 확대 시야 차종 판단·상대 기준 우선 지명
+
+2026-11-09. V5의 작은 VRU/차종 혼동 후속은 소비된 V4/V5 개발162장으로 설계하고 새 보류를
+별도로 수집한다. 공식 L ONNX의 bytes/SHA를 고정하고 S/M envelope에서 거절한다. 기존 RGB
+전처리·score·strict 정답·절대/상대 숫자 gate를 유지한다. 새 학습이나 자산/GT 입력은 없다.
+
+L 원본과 전체 class 중앙 확대를 비교한다. 약한 raw 지지는 검증 조건이며 자체 검출로 발행하지
+않는다. Person은 person의 원본 지지를 요구한다. 자격을 갖춘 확대 시야는 같은 body의 차종
+불일치를 판단하고 person/rider 중첩을 보존한다. 성능 개선은 새 개발/보류의 실제 점수로 검증한다.
+
+기존 road/site/50m를 제외한 첫 적격74/80번에서 모델 없는 준비198개를 먼저 통과하고 모든
+actor/rider·가림 참조를 확인한다. 기존 staging·거리·visibility gate는 유지한다. 과거/준비2555개
+RGB 제외·수치 비교·152-source freeze 뒤 새 개발을 수집한다. Relative PASS를 F1보다
+우선하므로 새 개발에서 truck recall이 S보다 낮은 context를 지명하지 않았다. L 원본 하나를
+보류 시작 전에 봉인하고 S와 해당 지명만 새 보류에 실행한다.
+
+감사/구현 동등성과 모델 수용·실제wall20Hz·차량 수용을 구분하고 자동 runtime 교체는 없다.
+[사전 기준](../test-plan/perception-quality-v6-protocol.md)과
+[새 평가·원본·재현](../test-plan/evidence/m10_quality_v6/README.md)을 따른다.
+
+V6 지명 L은 개발 P95.8%/R87.6%의 절대·상대 기준을 통과했지만 새 보류 P81.6%/R62.0%와
+near person·far 회귀가 FAIL이라 미채택이다. Truck→bus FP12개와 rider13→17/27 개선을 함께
+보존한다. 다음 개선은 다양한 시야·조명·차종의 전용 개발/학습 자료와 새 보류 구성에서 검증한다.

@@ -1,0 +1,201 @@
+{
+  "schema": "m10-quality-error-diagnostic-v6",
+  "phase": "development",
+  "candidate": "large-context-v6",
+  "run_sha256": "177ef43a2f42bdcb7e98b06ff037bddc1f10cc69e2be4fdd143d014babc5589b",
+  "counts": {
+    "tp": 118,
+    "class_confusion": 3,
+    "fp": 6,
+    "visible_localization_miss": 2,
+    "background_or_low_overlap": 1,
+    "fn": 11
+  },
+  "class_confusions": {
+    "7->5": 2,
+    "1->3": 1
+  },
+  "records": [
+    {
+      "scene": "v6-development-022",
+      "prediction": {
+        "class_id": 5,
+        "score": 0.6093109695100836,
+        "box": [
+          307.60307718330546,
+          152.7460005539089,
+          335.0998408693679,
+          174.74490043943825
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8321422275649973,
+      "best_visible_gt": {
+        "class_id": 7,
+        "instance_id": 115,
+        "visible_pixels": 522,
+        "box": [
+          307,
+          154,
+          338,
+          175
+        ],
+        "semantic_tags": [
+          15
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v6-development-060",
+      "prediction": {
+        "class_id": 3,
+        "score": 0.5565815482961511,
+        "box": [
+          315.73903195001236,
+          167.10572449276776,
+          330.75547464750656,
+          176.54539283206134
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.9019199444623708,
+      "best_visible_gt": {
+        "class_id": 1,
+        "instance_id": 163,
+        "visible_pixels": 66,
+        "box": [
+          316,
+          167,
+          331,
+          176
+        ],
+        "semantic_tags": [
+          19
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v6-development-063",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.5189092451311446,
+        "box": [
+          328.92867653113956,
+          166.49930214768557,
+          346.34822089928036,
+          187.23635506743284
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.3406483438668285,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 167,
+        "visible_pixels": 784,
+        "box": [
+          303,
+          166,
+          346,
+          190
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v6-development-064",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.6255318597618853,
+        "box": [
+          324.7973061085137,
+          163.44968284953416,
+          334.277107667884,
+          173.54643951069534
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.33327856708515446,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 168,
+        "visible_pixels": 209,
+        "box": [
+          311,
+          163,
+          334,
+          175
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v6-development-073",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.5492166597389492,
+        "box": [
+          269.20620007695925,
+          111.80042404381959,
+          288.0509117108368,
+          128.51507049353393
+        ]
+      },
+      "reason": "background_or_low_overlap",
+      "best_visible_iou": 0.02206070124716917,
+      "best_visible_gt": {
+        "class_id": 5,
+        "instance_id": 179,
+        "visible_pixels": 10257,
+        "box": [
+          261,
+          83,
+          382,
+          201
+        ],
+        "semantic_tags": [
+          16
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v6-development-076",
+      "prediction": {
+        "class_id": 5,
+        "score": 0.6116742905843751,
+        "box": [
+          307.5260647751122,
+          153.14539038055864,
+          335.7715950988502,
+          174.93172086364302
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8757124714631331,
+      "best_visible_gt": {
+        "class_id": 7,
+        "instance_id": 183,
+        "visible_pixels": 522,
+        "box": [
+          307,
+          154,
+          338,
+          175
+        ],
+        "semantic_tags": [
+          15
+        ]
+      },
+      "small_same_class_iou": 0
+    }
+  ],
+  "scope": "Post-hoc categories at unchanged strict matching; not extra TPs or candidate tuning; no gate/selection change"
+}

@@ -355,3 +355,44 @@ python3 tests/integration/perception/audit_quality_v5.py \
 새 개발 절대·상대 PASS와 새 보류 FAIL을 보존하며 S를 유지했다. 같은 Town/이미 본 자산의
 정지 fixture이고 작은 held walker far26m 범위다. 다음 평가는 `future-evaluation-exclusion.json`
 2357개를 제외하고 새 후보/새 보류를 봉인한다. 전체wall20Hz·시작/종료 안정성·차량 수용은 별도다.
+
+<a id="quality-v6"></a>
+
+## 고정 L 모델·확대 시야 차종 판단과 새 평가
+
+[V6 기준](test-plan/perception-quality-v6-protocol.md)은 공식 L 가중치를 별도 offline model SHA로
+고정한다. [모델 출처/라이선스](../third_party/megvii-yolox-large/README.md)의 ONNX를 내려받아
+216746733byte와 SHA256을 대조한다. 기존 RGB0–255/letterbox114·FP32·score.35를 유지한다.
+`large-v6`는 원본 L, `large-context-v6`는 전체 class 중앙 확대의 원본 약한 지지와 시야 간
+body 판단을 사용한다. 기본 S/C++ 계약에는 자동 적용하지 않는다.
+
+`quality_road_v6.py`의74/80번 site에서 `run_road_server_v6.py`·`prepare_road_v6.py`로
+99장씩 먼저 검사한다. 준비198장 PASS 뒤 `check_quality_models_v6.py`·
+`check_quality_v6_views.py`로 준비3장의 독립 raw와 두 완성 정책 수치를 대조한다.
+`quality_benchmark_v6.py freeze`는 준비 source·실제 원본·과거/준비2555개 RGB 제외와 모든
+기준을 대조해152개 source/config를 봉인한다. `run_quality_evaluation_v6.py`에는 `--freeze`,
+보류에는 서버 시작 전에 개발 점수로 재계산한 `--selection`이 필요하다.
+`prepare_quality_v6.py`·`review_quality_v6.py`로 실제 coverage와 RGB를 다시 검사하고
+RGB-only `run_quality_v6.py` 결과를 `quality_benchmark_v6.py score/select`로 평가한다.
+지명 순서는 relative PASS→F1→recall→precision→ID이며 보류에는 S와 지명 후보만 실행한다.
+
+[실행 묶음](test-plan/evidence/m10_quality_v6/README.md)의 LFS/SHA256SUMS를 확인한 깨끗한
+동일 소스 작업 사본에서 새 경로에 압축을 푼다. 이전 불변 evidence도 필요하다.
+
+```sh
+tar -xzf docs/test-plan/evidence/m10_quality_v6/experiment.tar.gz
+python3 tests/integration/perception/audit_quality_v6.py \
+  build/m10-quality-v6 build/m10-quality-v6/re-audit.json
+```
+
+감사는 GPU 없이 준비198개·평가162개의 raw→RGB/GT/road/coverage/seal·strict 점수·지명·
+순서·중복을 재구성한다. 묶음의 `check-archive.py`는 새 임시 경로 압축 해제와 소비된 개발162장의
+`design-history.py` 재생까지 검사해 새 `archive-recheck.json`을 기록한다. 기존 보고서를 유지하며 다음처럼 새 출력 경로를 지정한다. Model weights는 archive에 없으며 재감사에는 필요하지 않다.
+
+```sh
+python3 docs/test-plan/evidence/m10_quality_v6/check-archive.py \
+  docs/test-plan/evidence/m10_quality_v6 build/m10-v6-recheck-new.json
+```
+
+다음 후보의 새 평가에서는 `future-evaluation-exclusion.json`2717개를 제외한다. 이미 본 보류를
+새 holdout으로 재사용하지 않고 같은 Town/자산의 정지 fixture·held walker far26m 범위를 유지한다.
