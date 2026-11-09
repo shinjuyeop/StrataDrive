@@ -6411,3 +6411,20 @@ split 단위로 검사하고 개별 site 부족을 숨기지 않는다. 모델/�
 정확도·wall20Hz·차량 수용과 구분한다. Trainer/head/native class 매핑·학습/새 모델 봉인·새 보류
 평가는 후속이며 기본 S를 유지한다. [사전 기준](../test-plan/perception-domain-data-v1-protocol.md)과
 [원본·추가 수집·재현](../test-plan/evidence/m10_domain_data_v1/README.md)을 따른다.
+
+<a id="adr-0125"></a>
+
+## ADR-0125: 첫 전용 자료 학습의 명시 head 매핑과 개발 선택·모델 수용 분리
+
+2026-11-09. 고정813/267장의 자료로 공식 YOLOX L을24epoch FP32 fine-tune한다. Native
+[0,1,2,3,5,7] classifier 행만 연속6개 head로 이식하고 나머지는 strict load한다. 초기80-class,
+이식6-class, 실제 학습을 구분한다. 모든 작은 visible 양성과 빈 프레임을 유지한다. BN의
+통계는 고정하고 모든 parameter는 학습한다. Seed·optimizer·epoch·고정 threshold와 최고
+validation macro F1/이른 동점·epoch0 포함 선택을 실행 전에 source/config와 봉인한다.
+
+새11채널 ONNX와 native mapping·checkpoint/source/data hash를 별도 manifest로 연결한다.
+기존 runtime의85채널/S 모델 계약을 바꾸지 않는다. 독립 raw/detection 수치와 실제 tensor
+변화·모든 score/선택·압축 재감사는 구현 근거다. 개발 validation을 checkpoint 선택에 사용해
+독립 quality holdout으로 볼 수 없다. 새 개발/보류 수집·기존 품질 gate·wall20Hz·차량 통합은
+후속이며 기본 S/M10 OPEN을 유지한다. [학습 기준](../test-plan/perception-training-v1-protocol.md)과
+[실제 학습·검증](../test-plan/evidence/m10_training_v1/README.md)을 따른다.

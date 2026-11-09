@@ -36,6 +36,11 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-028 | 개발 데이터의 deterministic 시야/기상/자산·actual raw/pose·source freeze |22자산8m4방향 최소 지원·Rider·실제 도로/pose·모든 원본/시작 실패와 가림 참조 보존; 모델 없는 데이터 준비 |
 | TC-PER-029 | 모든 visible 양성·작은 fragment·COCO RLE/category·PNG/RGB | 작은 객체를 배경 음성/crowd로 바꾸지 않음·기존 품질 기준 별도·독립 COCO API area/bbox·해시/마스크 변조 거절 |
 | TC-PER-030 | Train/validation road·RGB·family/episode·가능한 blueprint 분리·새 경로 재감사 | 무작위 frame 분할0·bus/truck 공유 명시·127번 holdout 미수집·원래 FAIL과 추가 자료 유지·사전 split gate·자동 모델 승격0 |
+| TC-PER-031 | 초기 가중치/native 행 이식·고정813/267·실제24epoch와 모든 양성 | 원본 모든 tensor strict 대조·작은 양성과 빈 프레임·정확한 반전/좌표·마지막 batch·BN 통계 고정·finite loss/gradient·실제 가중치 변화 |
+| TC-PER-032 | 모든 epoch score·고정 validation macro F1/동점 선택·독립 재채점 | epoch0 포함·모든 prediction/원래 하락 보존·점수/선택 재현·새 quality holdout 미접근·기본 S 유지 |
+| TC-PER-033 | 새11채널 ONNX/manifest·CPU/CUDA/OpenCV 수치·retained tensor/압축 감사 | 기존85채널/변조 거절·16probe raw/detection·267장 CPU/CUDA count 동등성·체크포인트/source/data binding·역전파 재실행과 구분 |
+
+TC-PER-031–033은 [학습 기준](perception-training-v1-protocol.md)과 [실제 학습·수치/원본 재현](evidence/m10_training_v1/README.md)을 따른다.
 
 TC-PER-028–030은 [개발 데이터 기준](perception-domain-data-v1-protocol.md)과 [원본·분리/COCO 근거](evidence/m10_domain_data_v1/README.md)를 따른다.
 

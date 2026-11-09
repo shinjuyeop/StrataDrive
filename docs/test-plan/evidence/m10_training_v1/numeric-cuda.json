@@ -1,0 +1,218 @@
+{
+  "schema": "m10-trained-numeric-check-v1",
+  "status": "PASS",
+  "execution": "cuda",
+  "model_sha256": "d264c01b4c797108db754e6d2193ad0b42e9cb012e06c3ae1c0e99521f9fa98e",
+  "provider": [
+    "CUDAExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "probes": [
+    {
+      "name": "synthetic-zero",
+      "onnx": {
+        "max_raw_absolute_error": 3.5762786865234375e-06,
+        "detections": 0,
+        "max_box_error": 0.0,
+        "max_score_error": 0.0
+      }
+    },
+    {
+      "name": "synthetic-pad",
+      "onnx": {
+        "max_raw_absolute_error": 3.1888484954833984e-06,
+        "detections": 0,
+        "max_box_error": 0.0,
+        "max_score_error": 0.0
+      }
+    },
+    {
+      "name": "synthetic-gradient",
+      "onnx": {
+        "max_raw_absolute_error": 3.993511199951172e-06,
+        "detections": 0,
+        "max_box_error": 0.0,
+        "max_score_error": 0.0
+      }
+    },
+    {
+      "name": "synthetic-random",
+      "onnx": {
+        "max_raw_absolute_error": 6.139278411865234e-06,
+        "detections": 0,
+        "max_box_error": 0.0,
+        "max_score_error": 0.0
+      }
+    },
+    {
+      "name": "domain-v1-validation-104-0000",
+      "onnx": {
+        "max_raw_absolute_error": 6.67572021484375e-06,
+        "detections": 1,
+        "max_box_error": 8.569913035216814e-06,
+        "max_score_error": 2.3825916173336736e-07
+      }
+    },
+    {
+      "name": "domain-v1-validation-104-0038",
+      "onnx": {
+        "max_raw_absolute_error": 7.62939453125e-06,
+        "detections": 2,
+        "max_box_error": 4.2381534512969665e-06,
+        "max_score_error": 1.1747047778953856e-07
+      }
+    },
+    {
+      "name": "domain-v1-validation-104-0076",
+      "onnx": {
+        "max_raw_absolute_error": 7.063150405883789e-06,
+        "detections": 2,
+        "max_box_error": 2.0120341957863275e-05,
+        "max_score_error": 1.3519795381000677e-06
+      }
+    },
+    {
+      "name": "domain-v1-validation-104-0114",
+      "onnx": {
+        "max_raw_absolute_error": 5.424022674560547e-06,
+        "detections": 2,
+        "max_box_error": 3.337860107421875e-06,
+        "max_score_error": 1.7846046773684066e-07
+      }
+    },
+    {
+      "name": "domain-v1-validation-104-0152",
+      "onnx": {
+        "max_raw_absolute_error": 1.1861324310302734e-05,
+        "detections": 1,
+        "max_box_error": 8.652905009398637e-06,
+        "max_score_error": 1.1907058450333352e-07
+      }
+    },
+    {
+      "name": "domain-v1-validation-104-0190",
+      "onnx": {
+        "max_raw_absolute_error": 6.4373016357421875e-06,
+        "detections": 1,
+        "max_box_error": 8.850654580783157e-06,
+        "max_score_error": 0.0
+      }
+    },
+    {
+      "name": "domain-v1-validation-104-0228",
+      "onnx": {
+        "max_raw_absolute_error": 6.318092346191406e-06,
+        "detections": 2,
+        "max_box_error": 2.3511134656928334e-05,
+        "max_score_error": 1.1917686748574852e-07
+      }
+    },
+    {
+      "name": "domain-ext-v1-validation-104-011",
+      "onnx": {
+        "max_raw_absolute_error": 8.821487426757812e-06,
+        "detections": 1,
+        "max_box_error": 1.9073486328125e-06,
+        "max_score_error": 0.0
+      }
+    },
+    {
+      "name": "domain-v1-train-14-0000",
+      "onnx": {
+        "max_raw_absolute_error": 8.761882781982422e-06,
+        "detections": 1,
+        "max_box_error": 1.7961932087473542e-05,
+        "max_score_error": 0.0
+      }
+    },
+    {
+      "name": "domain-v1-train-31-0003",
+      "onnx": {
+        "max_raw_absolute_error": 5.0067901611328125e-06,
+        "detections": 1,
+        "max_box_error": 1.2386831684807476e-05,
+        "max_score_error": 0.0
+      }
+    },
+    {
+      "name": "domain-v1-train-74-0007",
+      "onnx": {
+        "max_raw_absolute_error": 7.271766662597656e-06,
+        "detections": 1,
+        "max_box_error": 1.0027485501495903e-05,
+        "max_score_error": 1.186886962045719e-07
+      }
+    },
+    {
+      "name": "domain-support-v1-train-31-011",
+      "onnx": {
+        "max_raw_absolute_error": 5.245208740234375e-06,
+        "detections": 1,
+        "max_box_error": 2.272446323559052e-06,
+        "max_score_error": 0.0
+      }
+    }
+  ],
+  "validation_score": {
+    "frames": 267,
+    "objects": 372,
+    "per_class": {
+      "0": {
+        "tp": 132,
+        "fp": 4,
+        "fn": 6,
+        "precision": 0.9705882352941176,
+        "recall": 0.9565217391304348,
+        "f1": 0.9635036496350365
+      },
+      "1": {
+        "tp": 30,
+        "fp": 7,
+        "fn": 12,
+        "precision": 0.8108108108108109,
+        "recall": 0.7142857142857143,
+        "f1": 0.759493670886076
+      },
+      "2": {
+        "tp": 48,
+        "fp": 0,
+        "fn": 18,
+        "precision": 1.0,
+        "recall": 0.7272727272727273,
+        "f1": 0.8421052631578947
+      },
+      "3": {
+        "tp": 41,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1.0,
+        "recall": 0.9761904761904762,
+        "f1": 0.9879518072289156
+      },
+      "5": {
+        "tp": 42,
+        "fp": 2,
+        "fn": 0,
+        "precision": 0.9545454545454546,
+        "recall": 1.0,
+        "f1": 0.9767441860465116
+      },
+      "7": {
+        "tp": 42,
+        "fp": 9,
+        "fn": 0,
+        "precision": 0.8235294117647058,
+        "recall": 1.0,
+        "f1": 0.9032258064516129
+      }
+    },
+    "tp": 335,
+    "fp": 22,
+    "fn": 37,
+    "precision": 0.938375350140056,
+    "recall": 0.9005376344086021,
+    "micro_f1": 0.9190672153635117,
+    "macro_f1": 0.9055040639010078
+  },
+  "scope": "FP32 serialization/numeric and development replay; no quality holdout or runtime promotion"
+}

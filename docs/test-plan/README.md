@@ -14,6 +14,7 @@
 | M10 Rider v2 사전 고정 평가 | [새162배치·실제 pose·조건별 coverage·확대 후보 비교](evidence/m10_quality_v2/README.md) |
 | M10 자산·가시성 준비와 모델 비교 | [V3 별도 준비셋·S/M·새 개발/보류 평가](evidence/m10_quality_v3/README.md) |
 | M10 실제 site 도로 맞춤 준비 | [V4 경로 전체 검사·198장 준비·미래 평가 계획 봉인](evidence/m10_road_preparation_v4/README.md) |
+| M10 첫 전용 자료 L6 학습 | [24epoch·개발 checkpoint 선택·ONNX/수치·원본 재감사](evidence/m10_training_v1/README.md) |
 | M10 전용 개발·학습 데이터 | [Train813/validation267·다양한 시야/기상·작은 양성·실패/재감사](evidence/m10_domain_data_v1/README.md) |
 | M10 고정 L 모델·확대 시야 판단 | [V6 준비198장·새162개·사전 지명·원본 재현](evidence/m10_quality_v6/README.md) |
 | M10 다중 시야 후보·새 평가 | [V5 준비198장·새162개·개발 PASS·보류 FAIL·재감사](evidence/m10_quality_v5/README.md) |

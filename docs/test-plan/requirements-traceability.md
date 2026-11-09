@@ -131,3 +131,8 @@ TC-PER-028–030/C-M10-PER-24–26은 [전용 개발 데이터](evidence/m10_dom
 실제 raw/pose·작은 양성·COCO/PNG·train/validation 분리·원본 재현과 연결한다. 모델 없는
 자료 단계의 SYS-AI-001 부분 근거이며 trainer·새 model accuracy·quality holdout·wall20Hz·
 차량 수용은 완료하지 않는다. Bus/truck 자산 공유와 원래 coverage/시작 FAIL도 유지한다.
+
+TC-PER-031–033/C-M10-PER-27–29은 [첫 L6 학습 후보](evidence/m10_training_v1/README.md)의
+초기 tensor 이식·실제 학습·모든 validation score/선택·새 ONNX 출력과 수치/원본 재현을 연결한다.
+개발 validation을 선택에 사용했으므로 독립 quality holdout·SYS-AI-001 전체 정확도·wall20Hz·
+차량 수용을 완료한 것은 아니다. 초기 epoch 하락과 모든 양성을 유지하고 기본 S를 교체하지 않는다.

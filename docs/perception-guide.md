@@ -435,3 +435,41 @@ visible 양성을 유지하고 quality_eligible=false를 crowd/배경으로 바�
 지원 부족과 bus/truck 자산 공유·정지 clearance fixture의 범위를 결과와 함께 읽는다.
 Train/validation은 미래 quality holdout이 아니며127번은 미수집이다. 새 모델에는 별도 학습·
 수치 동등성·새 개발/보류 평가가 필요하다. 모델·기본 S runtime의 자동 교체는 없다.
+
+<a id="training-v1"></a>
+
+## 고정 개발 자료의 첫 L6 학습 후보
+
+[학습 기준](test-plan/perception-training-v1-protocol.md)과 [실제 학습/내보내기 근거](test-plan/evidence/m10_training_v1/README.md)는
+train813/validation267과 공식 L checkpoint·native6개 행 이식·24epoch FP32 설정을 고정한다.
+새 head11채널/manifest는 기존80-class runtime과 별도다. 기본 S를 자동 교체하지 않는다.
+
+독립 Python3.10 venv에 공식cu124 index의 torch2.5.1/torchvision0.20.1과
+`physical_ai/requirements-training-v1.txt`의 나머지 package를 설치한다. 원래 RGB가 있는 data
+archive를 풀고 LICENSE·공식 초기 가중치434357141byte/SHA256을 확인한다. 전체 환경은
+evidence archive의 `environment.txt`를 따른다. 새 output directory에서 재실행한다.
+
+```sh
+PYTHONNOUSERSITE=1 build/m10-training-v1/venv/bin/python \
+  tests/integration/perception/train_domain_v1.py \
+  --data build/m10-domain-data-v1/export \
+  --pretrained build/m10-training-v1/upstream/yolox_l.pth \
+  --output build/m10-training-reproduction/run-01
+```
+
+`export_training_v1.py`는 completed run과 best checkpoint/freeze·data hash를 검사해 새 ONNX,
+manifest와16개 numeric probes를 만든다. `check_training_v1.py`는 CPU/CUDA 별도 실행과
+OpenCV CPU probe·267개 validation을 검사한다. CPU/CUDA에서 서로 다른 pinned venv를 써
+훈련 torch CUDA libs와 기존 ORT CUDA libs의 중복 로딩을 피했다. 수치 기준과 실패는 유지한다.
+
+같은 source checkout과 두 LFS evidence의 SHA를 확인한 뒤, 새 경로 추출 재감사는 다음과 같다.
+
+```sh
+PYTHONNOUSERSITE=1 build/m10-training-v1/venv/bin/python \
+  docs/test-plan/evidence/m10_training_v1/check-archive.py \
+  docs/test-plan/evidence/m10_training_v1 build/m10-training-recheck-new.json
+```
+
+이는 모든 epoch prediction/score/선택과 best/last 실제 tensor·BN buffers를 재감사한다.
+새 경로에 source와 모델·data export를 풀며24epoch 역전파 자체를 재실행한 것은 아니다.
+개발 validation 수용과 새 quality holdout·전체wall20Hz·차량 수용을 구분한다.
