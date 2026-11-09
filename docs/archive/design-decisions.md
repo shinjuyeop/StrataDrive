@@ -6288,3 +6288,30 @@ v3 gate 변경이 아니다. 새 후보에는 새 보류 평가가 필요하다.
 Vulkan 미해제 resource 경고와 stack은 원인 규명과 구분한다. 같은 고정 코드·계획·budget으로
 재수집했으며 원래 FAIL과 초기 과도한 assertion 해석의 정정을 모두 보존한다. 종료 제한을
 늘리거나 engine을 바꿔 통과시킨 것이 아니다. [실행·원본·재현](../test-plan/evidence/m10_quality_v3/README.md)에 연결한다.
+
+<a id="adr-0120"></a>
+
+## ADR-0120: 실제 두 site의 도로 경로와 모델 없는 준비·거리 범위
+
+2026-11-09. V3의 직선 camera-forward 배치가 도로를 벗어나는 문제에 대해, 실제 driving waypoint의
+위치·높이·pitch/roll/right vector와 base origin clearance로 명시 pose를 만든다. 갈림길은 직전
+heading 최소 변화와 안정적인 road identity로 고른다. Map265개 기록의 모델 없는 선택에서
+경로 전체42m의 junction·폭·heading·시야와 site 간50m 간격을 요구한다.
+
+초기14/18번 중18번은 시작점 이후 junction에 들어가 실제 lane 대조에서 거절됐다.99개 중1pair만
+남은 FAIL을 보존하고, 저장한 전체 route를 강화한 순수 규칙으로 재생해14/24번을 선택했다.
+기존 map query를 새 실행으로 세지 않는다. 다음 두 site의 전체 준비는 공통 plan hash와 source를
+다시 고정한다. Road/lane ID·projection2m·clearance15cm·pose2cm/0.1°를 완화하지 않는다.
+
+14/24 준비에서도 작은 held walker0010의31m 지원이24pixel이라 FAIL이었다. 모델 점수 없이
+미래 평가 far를30→26m, 준비 far를31→27m로 한정한 v4c를 전체 재수집했다.25pixel/side4와
+부분 가림 비율은 유지한다. 이 범위 축소를30m 이상 성능이나 전체 ODD 통과로 해석하지 않는다.
+모든 이륜차의 Rider13도 별도 person 정답으로 최소 지원을 만족해야 한다.
+
+최종 준비는 실제 두 camera site의99장씩198개이며 class×조건3/3·모든 actor/rider·가림 참조를
+통과했다. 준비 camera는 평가 계획보다5cm 높고 actor는 route1m 더 멀다. 같은 실제 site의
+근접 배치이며 지리적으로 독립된 학습/검증이 아니다. 다음 실제 평가의 가시성도 별도로 요구한다.
+
+준비와 과거 전체 시도의 RGB1387개를 미래 평가에서 제외하고,162개 평가 계획과 보고서의 hash를
+봉인한다. 별도 quality freeze 전에는 새 정확도 평가가 아니다. 모델 추론·후보 승격·live20Hz·
+주행 수용은 이번 단계에 포함하지 않는다. [원본·실패·재현](../test-plan/evidence/m10_road_preparation_v4/README.md)을 따른다.

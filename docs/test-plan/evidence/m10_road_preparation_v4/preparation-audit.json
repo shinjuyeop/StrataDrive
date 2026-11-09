@@ -1,0 +1,171 @@
+{
+  "schema": "m10-road-preparation-audit-v4",
+  "audit": "PASS",
+  "preparation_status": "PASS",
+  "future_plan_preparation_complete": true,
+  "evaluation_plan_sha256": "4f044ba513a9875bdad8202045fc692e088d574288f6b1ab2b24ff1c6ace59fc",
+  "preparation_plan_sha256": "5480c73f49201a7106ab166f986f10a9fe461a969da4a967282fa17d1012fc78",
+  "freeze_sha256": "9eae9d4bb31f625c67ff318ab72fb66c0d627f7c4e2e129b487baf2365dd0717",
+  "survey_sha256": "4455249939c1f8103d83600303a1c826b48d9aee813b08b1ea40946a42c2f059",
+  "prior_rgb_overlap": 0,
+  "cross_site_rgb_overlap": 0,
+  "prior_rgb_excluded": 891,
+  "new_preparation_rgb": 198,
+  "inference_performed": false,
+  "quality_evaluation": "NOT_RUN",
+  "runtime_promotion": false,
+  "sites": {
+    "development": {
+      "status": "PASS",
+      "site": 14,
+      "frames": 99,
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true,
+        "every_class_stratum": true,
+        "occlusion_references": true
+      },
+      "primary_coverage": {
+        "0": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "1": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "2": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "3": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "5": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "7": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        }
+      },
+      "objects": 153,
+      "excluded": 0,
+      "min_luma_std": 39.86794909154938,
+      "all_rgb_health": "PASS"
+    },
+    "holdout": {
+      "status": "PASS",
+      "site": 24,
+      "frames": 99,
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true,
+        "every_class_stratum": true,
+        "occlusion_references": true
+      },
+      "primary_coverage": {
+        "0": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "1": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "2": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "3": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "5": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "7": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        }
+      },
+      "objects": 153,
+      "excluded": 153,
+      "min_luma_std": 36.33284756437782,
+      "all_rgb_health": "PASS"
+    }
+  },
+  "scope": "Actual-site preparation only; a future quality freeze must also exclude these preparation images and recheck evaluation coverage",
+  "initial_trial": {
+    "audit": "PASS",
+    "development_pairs": 99,
+    "development_preparation": "PASS",
+    "holdout_pairs": 1,
+    "holdout_preparation": "FAIL",
+    "inference_performed": false,
+    "scope": "Initial18 site enters junction; actual-site lane check rejects before second pair; not pooled into final preparation"
+  },
+  "intermediate_trial": {
+    "audit": "PASS",
+    "preparation": {
+      "development": {
+        "status": "PASS",
+        "frames": 99,
+        "missing_actors": []
+      },
+      "holdout": {
+        "status": "FAIL",
+        "frames": 99,
+        "missing_actors": [
+          {
+            "scene": "v4-preparation-holdout-002",
+            "actor_index": 0,
+            "blueprint": "walker.pedestrian.0010",
+            "role": "target"
+          },
+          {
+            "scene": "v4-preparation-holdout-029",
+            "actor_index": 0,
+            "blueprint": "walker.pedestrian.0010",
+            "role": "target"
+          },
+          {
+            "scene": "v4-preparation-holdout-056",
+            "actor_index": 0,
+            "blueprint": "walker.pedestrian.0010",
+            "role": "target"
+          }
+        ]
+      }
+    },
+    "inference_performed": false,
+    "scope": "Intermediate complete preparation remains failed: held walker31m24px; no mask/gate relaxation"
+  }
+}

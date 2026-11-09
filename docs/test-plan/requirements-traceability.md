@@ -101,3 +101,9 @@ TC-PER-016–017 및 C-M10-PER-12–13은 [V3 기준](perception-quality-v3-prot
 [준비와 모델 비교](evidence/m10_quality_v3/README.md)에 연결한다. 별도 준비셋의 가시성·실제 부분
 가림, 모델별 SHA·CPU/CUDA/OpenCV 수치 동등성과 새 평가 순서를 검사한다. 준비 통과와
 모델 정확도·live20Hz·M11 주행 수용을 구분한다.
+
+TC-PER-018–019 및 C-M10-PER-14–15는 [실제 site 도로 준비 기준](perception-road-preparation-v4-protocol.md)·
+[V4 준비 근거](evidence/m10_road_preparation_v4/README.md)에 연결한다. 경로 전체의 junction과
+실제 road/lane을 대조하고, 두 site의 계획 actor/rider·조건별 visible support를 검사한다.
+준비 PASS·미래 계획 봉인은 새 정확도/주행 성능의 수용이 아니다. 작은 held 보행자 far26m의
+제한과 이전 실패, 새로운 실제 평가가 필요함을 유지한다.

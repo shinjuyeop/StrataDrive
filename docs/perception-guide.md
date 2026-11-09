@@ -248,3 +248,34 @@ python3 tests/integration/perception/audit_quality_v3.py \
 정확한 실제 명령은 archive의 `run-development.py`, 각 `server.json`과 실행 로그를 따른다.
 재감사는 raw→RGB/GT/seal·준비 실패/수정·분리·model SHA·점수/지명을 검증하며 GPU는 필요 없다.
 새 GPU 재생은 별도 가중치와 고정 CUDA 환경을 준비한다. 소비한 보류셋으로 새 후보를 고르지 않는다.
+
+<a id="road-preparation-v4"></a>
+
+## 실제 site의 도로 맞춤 준비
+
+[V4 기준](test-plan/perception-road-preparation-v4-protocol.md)은 모델 점수 없이 도로 경로·카메라
+시야·실제 차로와 actor/rider 가시성을 먼저 검사한다. `run_quality_server_v4.py --stage survey`는
+별도 서버에서 전체 map route를 조회한다. 저장된 survey의 엄격한 선택은 `select_road_sites_v4.py`,
+명시 pose 계획 생성은 `quality_plan_v4.py`다. 현재 계획은14/24번의 실제 두 site를 사용한다.
+
+`run_quality_server_v4.py --stage preparation --plan profiles/perception-road-preparation-v4.json`
+`--partition development` 또는 `holdout`으로 각99개를 수집한다. 기존 guide와 같은 engine/source/
+SDK Python·output·port 인자가 필요하다. 새 출력 경로를 사용하고 server exit130과 cleanup을 확인한다.
+`prepare_quality_road_v4.py capture.json copied-plan.json profiles/perception-road-exclusion-v4.json output-dir`
+은 raw에서 RGB·GT를 만들고 모델 없이 준비 기준을 판정한다. `review_quality_road_v4.py`는 고정24장
+패널과 전체 RGB 건전성 검사를 만든다. `development/holdout` 이름은 **미래 평가 위치의 준비**다.
+
+[실행 묶음](test-plan/evidence/m10_road_preparation_v4/README.md)에는 초기 실패부터 최종 v4c까지
+모두 있다. 동일 소스의 깨끗한 작업 사본에서 LFS/SHA256SUMS를 확인하고 새 경로에 푼다.
+
+```sh
+tar -xzf docs/test-plan/evidence/m10_road_preparation_v4/experiment.tar.gz
+python3 tests/integration/perception/audit_quality_road_v4.py \
+  build/m10-road-preparation-v4c build/m10-road-preparation-v4c/re-audit.json
+```
+
+Auditor는 map 선택/계획·실제 pose/차로·raw RGB/GT·가림 참조·모든 준비 실패를 재검사한다.
+`prepared-plan-seal.json`은 미래 계획·준비 보고서·제외 목록의 연결이며 모델 수용이나 권한이 아니다.
+다음 정확도 평가는 `future-evaluation-exclusion.json`의1387개를 제외하고 별도 quality freeze를
+만든 뒤 새 RGB를 수집해야 한다. 작은 held walker의 far26m 한정을 유지하며 실제 평가의
+coverage도 다시 확인한다. 이번 준비에는 모델 추론/점수/후보 교체가 없다.

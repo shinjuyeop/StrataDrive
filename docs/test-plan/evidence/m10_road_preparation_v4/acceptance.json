@@ -1,0 +1,260 @@
+{
+  "schema": "m10-road-preparation-v4-evidence",
+  "recorded_utc": "2026-11-09T03:38:33.705386+00:00",
+  "preparation_status": "PASS within declared two-site range",
+  "milestone_acceptance": "M10 OPEN",
+  "quality_evaluation": "NOT_RUN",
+  "inference_performed": false,
+  "runtime_promotion": false,
+  "final_preparation_pairs": 198,
+  "total_preparation_attempt_pairs": 496,
+  "sites": [
+    14,
+    24
+  ],
+  "held_person_far_m": 26,
+  "summary": {
+    "schema": "m10-road-preparation-audit-v4",
+    "audit": "PASS",
+    "preparation_status": "PASS",
+    "future_plan_preparation_complete": true,
+    "evaluation_plan_sha256": "4f044ba513a9875bdad8202045fc692e088d574288f6b1ab2b24ff1c6ace59fc",
+    "preparation_plan_sha256": "5480c73f49201a7106ab166f986f10a9fe461a969da4a967282fa17d1012fc78",
+    "freeze_sha256": "9eae9d4bb31f625c67ff318ab72fb66c0d627f7c4e2e129b487baf2365dd0717",
+    "survey_sha256": "4455249939c1f8103d83600303a1c826b48d9aee813b08b1ea40946a42c2f059",
+    "prior_rgb_overlap": 0,
+    "cross_site_rgb_overlap": 0,
+    "prior_rgb_excluded": 891,
+    "new_preparation_rgb": 198,
+    "inference_performed": false,
+    "quality_evaluation": "NOT_RUN",
+    "runtime_promotion": false,
+    "sites": {
+      "development": {
+        "status": "PASS",
+        "site": 14,
+        "frames": 99,
+        "gates": {
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "every_class_stratum": true,
+          "occlusion_references": true
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "objects": 153,
+        "excluded": 0,
+        "min_luma_std": 39.86794909154938,
+        "all_rgb_health": "PASS"
+      },
+      "holdout": {
+        "status": "PASS",
+        "site": 24,
+        "frames": 99,
+        "gates": {
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "every_class_stratum": true,
+          "occlusion_references": true
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "objects": 153,
+        "excluded": 153,
+        "min_luma_std": 36.33284756437782,
+        "all_rgb_health": "PASS"
+      }
+    },
+    "scope": "Actual-site preparation only; a future quality freeze must also exclude these preparation images and recheck evaluation coverage",
+    "initial_trial": {
+      "audit": "PASS",
+      "development_pairs": 99,
+      "development_preparation": "PASS",
+      "holdout_pairs": 1,
+      "holdout_preparation": "FAIL",
+      "inference_performed": false,
+      "scope": "Initial18 site enters junction; actual-site lane check rejects before second pair; not pooled into final preparation"
+    },
+    "intermediate_trial": {
+      "audit": "PASS",
+      "preparation": {
+        "development": {
+          "status": "PASS",
+          "frames": 99,
+          "missing_actors": []
+        },
+        "holdout": {
+          "status": "FAIL",
+          "frames": 99,
+          "missing_actors": [
+            {
+              "scene": "v4-preparation-holdout-002",
+              "actor_index": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target"
+            },
+            {
+              "scene": "v4-preparation-holdout-029",
+              "actor_index": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target"
+            },
+            {
+              "scene": "v4-preparation-holdout-056",
+              "actor_index": 0,
+              "blueprint": "walker.pedestrian.0010",
+              "role": "target"
+            }
+          ]
+        }
+      },
+      "inference_performed": false,
+      "scope": "Intermediate complete preparation remains failed: held walker31m24px; no mask/gate relaxation"
+    }
+  },
+  "geometry": {
+    "status": "PASS",
+    "total_actors": 240,
+    "sites": {
+      "development": {
+        "actors": 120,
+        "max_position_error_m": 8.236025625881492e-06,
+        "max_angle_error_degrees": 3.814697265625e-05,
+        "max_projection_m": 1.1999999803967911,
+        "max_clearance_error_m": 0.0,
+        "occlusion_ratio_range": [
+          0.5655430711610487,
+          0.8688973681635848
+        ],
+        "objects": 153,
+        "excluded": 0
+      },
+      "holdout": {
+        "actors": 120,
+        "max_position_error_m": 9.591389602127109e-06,
+        "max_angle_error_degrees": 2.288818359375e-05,
+        "max_projection_m": 1.2000000482992106,
+        "max_clearance_error_m": 0.0,
+        "occlusion_ratio_range": [
+          0.3905325443786982,
+          0.8892312001120292
+        ],
+        "objects": 153,
+        "excluded": 153
+      }
+    }
+  },
+  "future_plan": {
+    "schema": "m10-road-prepared-plan-v4",
+    "preparation_status": "PASS",
+    "evaluation_plan_sha256": "4f044ba513a9875bdad8202045fc692e088d574288f6b1ab2b24ff1c6ace59fc",
+    "preparation_freeze_sha256": "9eae9d4bb31f625c67ff318ab72fb66c0d627f7c4e2e129b487baf2365dd0717",
+    "survey_sha256": "4455249939c1f8103d83600303a1c826b48d9aee813b08b1ea40946a42c2f059",
+    "preparation_reports": {
+      "development": "783e73efab97f047667e49bb09d046b38306666b9279d16dfbdcf894d4687997",
+      "holdout": "4ac8e62da907e61ceff3d7f3884d1f69acb2df76c166c0ebce23456b647823c8"
+    },
+    "future_exclusion_sha256": "ed60021ef7c51a8e28e9ee49317d7a2894a8696af8353e4eebba2a2e15a4d831",
+    "future_quality_freeze_required": true,
+    "inference_performed": false,
+    "quality_evaluation": "NOT_RUN",
+    "runtime_promotion": false
+  },
+  "validation": {
+    "python_passed": 109,
+    "component_ctest": {
+      "debug": 13,
+      "release": 13,
+      "asan": 13
+    },
+    "final_python_ctest": {
+      "debug": 1,
+      "release": 1,
+      "asan": 1
+    },
+    "ruff": "PASS",
+    "whitespace": "PASS",
+    "links": "PASS",
+    "previous_m10_integrity": "PASS",
+    "full_core_rerun": false,
+    "scope": "C++ components use configuration sanitizers; Python is not sanitizer-instrumented; no accuracy/live20Hz/vehicle acceptance"
+  },
+  "open": [
+    "New quality freeze and fresh actual evaluation at approved sites; recheck evaluation coverage",
+    "Background/vehicle-class errors and selected-model quality gates",
+    "Actual wall20Hz and long renderer/shutdown stability",
+    "Metric fusion and M11 driving integration; Target and learner acceptance"
+  ]
+}

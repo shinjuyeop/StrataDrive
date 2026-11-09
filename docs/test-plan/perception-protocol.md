@@ -23,6 +23,8 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-015 | 안정화 뒤 실제 actor pose·새 v2 입력/후보/분리 평가 | 계획2cm/0.1° 대조·v1 영상 재사용0·동일 개발셋 비교·선택 후 보류 취득·전체 원본 재구성 |
 | TC-PER-016 | 별도 준비셋 자산/가시성·가림 참조·서버 전 NW 거절 | 모델 점수 없이 모든 actor 최소 지원; 참조 대비 visible ratio0초과/95%미만; FAIL 보존 뒤 평가 전 배치 수정 |
 | TC-PER-017 | 별도 M model hash·독립 tensor/raw·새 S/M 비교·보류 순서 | CPU/CUDA/OpenCV 수치 gate; S 계약으로 M 발행 거절; 고정 절대/상대 gate·원본 재구성 |
+| TC-PER-018 | 도로 waypoint·deterministic 분기·경로 전체 junction·camera frustum·명시 pose | 모든 실제 site의 road/lane 대조·projection≤2m·clearance오차≤15cm·pose2cm/0.1°; 중간 junction 회귀 검사 |
+| TC-PER-019 | 실제 두 site의 준비·이륜차 Rider·부분 가림·raw 재구성 | 각99개·class×조건3/3·모든 계획 actor/rider25pixel/side4·참조18개·실패 보존·미래 평가 RGB 재사용 거절 |
 
 TC-PER-011–013은 별도 [정확도 확장 프로토콜](perception-quality-protocol.md)을 따른다.
 아래 초기60pair/20Hz fixture와 분모·기상·수집 rate를 합치지 않는다.
