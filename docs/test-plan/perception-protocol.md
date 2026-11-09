@@ -27,6 +27,11 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-019 | 실제 두 site의 준비·이륜차 Rider·부분 가림·raw 재구성 | 각99개·class×조건3/3·모든 계획 actor/rider25pixel/side4·참조18개·실패 보존·미래 평가 RGB 재사용 거절 |
 | TC-PER-020 | 준비 봉인·1711개 제외·품질 freeze·보류 이전 지명 | 모델·gate·명시 pose 고정; 보류 서버 시작 전에 개발 점수에서 지명 재구성; 잘못된 schema와 미지명 보류는 RPC 이전 거절 |
 | TC-PER-021 | 새 도로 평가 RGB/GT·strict 점수·실제 actor/rider 지원 재감사 | 원본→RGB/GT/road pose/seal·score/selection·실행 순서와 중복 재구성; 품질 FAIL도 보존; 자동 runtime 교체 없음 |
+| TC-PER-022 | 약한 raw 지지·양방향 시야 검증·body class 충돌·완성 후보 수치 비교 | raw 지지만으로 발행0·person 중첩 보존·유한/용량 검사·CPU/CUDA box .01pixel/score1e-4; 고정 M offline 전용 |
+| TC-PER-023 | 미사용 도로 선택·모델 없는 준비·임시 spawn staging·새 수집 | 기존 site/road/50m 제외·모든 actor/rider·가림 참조·tick 전 최종 pose·요청 staging lineage; 실패/원래 source 보존 |
+| TC-PER-024 | V5 prospective freeze·개발 지명·새 보류·원본/이력 재감사 | 준비322개 포함2195개 제외·개발만 지명·raw/strict 점수/순서 재구성·보류 FAIL 유지·자동 runtime 교체0 |
+
+TC-PER-022–024는 [V5 기준](perception-quality-v5-protocol.md)과 [새 평가 근거](evidence/m10_quality_v5/README.md)를 따른다.
 
 TC-PER-011–013은 별도 [정확도 확장 프로토콜](perception-quality-protocol.md)을 따른다.
 아래 초기60pair/20Hz fixture와 분모·기상·수집 rate를 합치지 않는다.

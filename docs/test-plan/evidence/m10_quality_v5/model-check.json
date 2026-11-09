@@ -1,0 +1,103 @@
+{
+  "schema": "m10-model-check-v3",
+  "status": "PASS",
+  "model_sha256": "21ff6cfdeb53b013bac2249599e55f00bff3cfdfdab37ed7a4620818c1d15b3f",
+  "dataset_sha256": "8cc8482c8cbf24262cc6e74aa9e527aa2c347679ec1820597c4216bd688883c3",
+  "input_profile": "rgb-unscaled-letterbox640-v1",
+  "atol": 0.001,
+  "rtol": 0.0001,
+  "initialization_wall_ns": 2448343520,
+  "cuda_providers": [
+    "CUDAExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "cuda_options": {
+    "CPUExecutionProvider": {},
+    "CUDAExecutionProvider": {
+      "sdpa_kernel": "0",
+      "use_tf32": "0",
+      "fuse_conv_bias": "0",
+      "prefer_nhwc": "0",
+      "tunable_op_max_tuning_duration_ms": "0",
+      "enable_skip_layer_norm_strict_mode": "0",
+      "tunable_op_tuning_enable": "0",
+      "tunable_op_enable": "0",
+      "use_ep_level_unified_stream": "0",
+      "device_id": "0",
+      "has_user_compute_stream": "0",
+      "gpu_external_empty_cache": "0",
+      "cudnn_conv_algo_search": "HEURISTIC",
+      "cudnn_conv1d_pad_to_nc1d": "0",
+      "gpu_mem_limit": "2147483648",
+      "gpu_external_alloc": "0",
+      "gpu_external_free": "0",
+      "arena_extend_strategy": "kNextPowerOfTwo",
+      "do_copy_in_default_stream": "1",
+      "enable_cuda_graph": "0",
+      "user_compute_stream": "0",
+      "cudnn_conv_use_max_workspace": "1"
+    }
+  },
+  "cpu_node_fallback_disabled": true,
+  "cold_calls_excluded": 0,
+  "rows": [
+    {
+      "scene": "v5-preparation-development-000",
+      "rgb_sha256": "50ded1c0a9fc39e96c146b20776a0834e10868c80d27b5e074b938460ea63552",
+      "equal_tensor": true,
+      "comparisons": {
+        "cuda": {
+          "equal": true,
+          "maximum_absolute_error": 0.00011360645294189453,
+          "detections": 1
+        },
+        "opencv": {
+          "equal": true,
+          "maximum_absolute_error": 0.0001614987850189209,
+          "detections": 1
+        }
+      },
+      "cpu_detections": 1,
+      "total_wall_ns": 1312046805
+    },
+    {
+      "scene": "v5-preparation-development-024",
+      "rgb_sha256": "16e06015cd4d427bb4dcad6fc2e8c2f1e33fb76c72a9a8f3b0c458d23eac9d8f",
+      "equal_tensor": true,
+      "comparisons": {
+        "cuda": {
+          "equal": true,
+          "maximum_absolute_error": 0.00010210275650024414,
+          "detections": 0
+        },
+        "opencv": {
+          "equal": true,
+          "maximum_absolute_error": 0.00020867586135864258,
+          "detections": 0
+        }
+      },
+      "cpu_detections": 0,
+      "total_wall_ns": 472073226
+    },
+    {
+      "scene": "v5-preparation-development-048",
+      "rgb_sha256": "d4a2642156fd8205ffef015ebfd345b6110803925963a6f9ce987a053d080a17",
+      "equal_tensor": true,
+      "comparisons": {
+        "cuda": {
+          "equal": true,
+          "maximum_absolute_error": 0.00011926889419555664,
+          "detections": 1
+        },
+        "opencv": {
+          "equal": true,
+          "maximum_absolute_error": 0.00010398030281066895,
+          "detections": 1
+        }
+      },
+      "cpu_detections": 1,
+      "total_wall_ns": 468790272
+    }
+  ],
+  "scope": "Specified tensor/raw numerical agreement on three preparation images; not accuracy/live20Hz"
+}

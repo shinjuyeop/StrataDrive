@@ -6344,3 +6344,25 @@ V4 준비198장은 실제14/24번 site의 actor/rider 지원을 확인했지만 
 
 V4 최종 새162개에서 actor/rider·조건 coverage는 PASS, 지명 M의 보류 absolute/relative는 FAIL로
 미채택이다. 미래 RGB 제외1873개와 당시 실패/진단을 함께 보존한다.
+
+<a id="adr-0122"></a>
+
+## ADR-0122: 약한 다중 시야 지지와 새 보류 검증의 경계
+
+2026-11-09. 작은 VRU와 차종 오검출 개선은 소비된 V4 개발81장만 사용해 설계한다.
+고정 YOLOX-M 원본/중앙 확대의 약한 raw 클래스 지지는 검증 조건이며 그 자체를 검출로
+발행하지 않는다. 양방향 시야 지지와 거의 동일한 body box의 클래스 충돌 억제를 적용하되
+person/rider 중첩은 보존한다. 모델/hash·strict visible 정답·절대/상대 숫자 gate는 유지한다.
+
+과거 site와 같은 road/50m 안쪽을 제외한 첫 적격31/35번에서 모델 없는 준비를 먼저 한다.
+임시 spawn 구조물 충돌은 최종 pose/거리를 바꾸지 않고 tick 전 staging만 수정한다. 원래
+source·99개/부분25개·실패를 보존하고 새13-source freeze로198개를 전체 재수집했다.
+모든 준비를 포함한2195개 RGB 제외와127-source 품질 freeze 뒤 새 개발/보류를 수집한다.
+
+개발 consensus의 절대·상대 PASS만으로 live 모델을 바꾸지 않는다. 개발 지명을 보류 서버
+시작 전에 다시 계산하고 보류에는 S와 지명 후보만 실행한다. 보류 P84.5%/R67.4%·class/far
+회귀 FAIL이므로 S를 유지한다. 사후 지명 정책의 시야 관찰은 같은 출력을 확인하는 진단이며
+대체 정책 점수·ablation·재지명을 하지 않는다. 다음 후보는 새로운 보류 데이터가 필요하다.
+
+[사전 기준](../test-plan/perception-quality-v5-protocol.md)과
+[구현·원본·실패·재현](../test-plan/evidence/m10_quality_v5/README.md)을 따른다.

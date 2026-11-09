@@ -1,0 +1,60 @@
+{
+  "audit": "PASS",
+  "design_rounds": [
+    {
+      "directory": "m10-quality-v5-design",
+      "source_sha256": "beb30124b0a440f8f02f61684608453bd2570188a0dfae711bfdfdaa9bb83f4b",
+      "scores": {
+        "medium-vru-v5": {
+          "tp": 120,
+          "fp": 42,
+          "fn": 9,
+          "precision": 0.7407407407407407,
+          "recall": 0.9302325581395349,
+          "f1": 0.8247422680412371
+        },
+        "medium-consensus-v5": {
+          "tp": 120,
+          "fp": 18,
+          "fn": 9,
+          "precision": 0.8695652173913043,
+          "recall": 0.9302325581395349,
+          "f1": 0.898876404494382
+        }
+      },
+      "acceptance": false
+    },
+    {
+      "directory": "m10-quality-v5-design-02",
+      "source_sha256": "38eea32e11334057fa11a82c881439b1b9431ffbeb27088ebb942f01ff33b24d",
+      "scores": {
+        "medium-vru-v5": {
+          "tp": 120,
+          "fp": 42,
+          "fn": 9,
+          "precision": 0.7407407407407407,
+          "recall": 0.9302325581395349,
+          "f1": 0.8247422680412371
+        },
+        "medium-consensus-v5": {
+          "tp": 118,
+          "fp": 6,
+          "fn": 11,
+          "precision": 0.9516129032258065,
+          "recall": 0.9147286821705426,
+          "f1": 0.932806324110672
+        }
+      },
+      "acceptance": false
+    }
+  ],
+  "design_samples": 81,
+  "design_not_new_acceptance": true,
+  "original_preparation_source_files": 12,
+  "original_development_pairs": 99,
+  "partial_held_pairs": 25,
+  "original_startup_failure": "FAIL",
+  "original_staging_collision": "FAIL",
+  "prior_rgb_excluded": 2195,
+  "scope": "Design score replay and original model-free raw reconstruction only; no new inference or repaired failed quality evaluation"
+}

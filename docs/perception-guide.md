@@ -316,3 +316,42 @@ python3 tests/integration/perception/audit_quality_v4.py \
 V4 metadata 연결 누락은 원래 S 예측·실패를 보존하고 raw→준비→점수 회귀를 추가해 새 freeze로
 재수집했다. 최종162개는 가시성/coverage PASS·모델 품질 FAIL이다. 다음 평가에는 결과 묶음의
 `future-evaluation-exclusion.json`1873개를 사용하며 소비한 V4 보류로 새 후보를 재지명하지 않는다.
+
+<a id="quality-v5"></a>
+
+## VRU 다중 시야 후보와 새 도로 평가
+
+[V5 기준](test-plan/perception-quality-v5-protocol.md)은 기존 모델/숫자 gate를 유지하면서
+M 원본/중앙 VRU 확대와 양방향 약한 클래스 지지·body 충돌 억제 후보를 비교한다.
+`quality_road_v5.py`는 기존 전체 지도 query에서 과거 road/site/50m를 제외해31/35번을 선택한다.
+`run_road_server_v5.py`·`prepare_road_v5.py`로 두 실제 site의 별도99장씩을 먼저 검사한다.
+임시 spawn은 `quality_staging_v5.py`의 요청 pose를 기록하고 world tick 전에 최종 pose로 옮긴다.
+원래 staging 충돌과 startup 실패를 그대로 남긴다.
+
+최종 준비 뒤 `check_quality_models_v3.py`로 독립 tensor/raw를 대조하고
+`check_quality_v5_views.py`로 준비3장의 두 완성 정책 CPU/CUDA를 대조한다.
+`quality_benchmark_v5.py freeze`는 preparation source/원본 PASS·수치 검사·평가 제외2195개를
+대조하고127개 source/config를 고정한다. `run_quality_evaluation_v5.py`는 `--freeze`와
+개발/보류 partition을 요구하고, 보류에는 개발 점수에서 재계산한 `--selection`이 필요하다.
+`prepare_quality_v5.py`·`review_quality_v5.py`로 실제 pose/actor/rider/GT와 RGB를 검사하고,
+`run_quality_v5.py`의 RGB-only 결과를 `quality_benchmark_v5.py score/select`로 평가한다.
+개발 세 후보·보류 S/지명 후보만 실행하며 live/C++ 발행은 없다.
+
+[실행 묶음](test-plan/evidence/m10_quality_v5/README.md)의 LFS/SHA256SUMS를 확인한 깨끗한
+동일 소스 작업 사본에서 새 경로에 압축을 푼다. baseline의 이전 불변 evidence도 필요하다.
+
+```sh
+tar -xzf docs/test-plan/evidence/m10_quality_v5/experiment.tar.gz
+python3 tests/integration/perception/audit_quality_v5.py \
+  build/m10-quality-v5b build/m10-quality-v5b/re-audit.json
+```
+
+감사는 GPU 없이 최종 준비198장·평가162장의 raw→RGB/GT/road/coverage/seal·strict 점수·
+지명·실행 순서·중복을 재구성한다. `build/m10-quality-v5b/audit-history.py`는 원래 설계 점수와
+최초 준비/부분25장·실패·322개 준비 제외를 검증하는 보존 script다. 이미 결과 파일이 있으므로
+별도 출력 경로 또는 기록 함수 교체로 재검사한다. 압축 해제 재검사 절차는 묶음의
+`archive-recheck.json`과 `check-archive.py`에 기록한다.
+
+새 개발 절대·상대 PASS와 새 보류 FAIL을 보존하며 S를 유지했다. 같은 Town/이미 본 자산의
+정지 fixture이고 작은 held walker far26m 범위다. 다음 평가는 `future-evaluation-exclusion.json`
+2357개를 제외하고 새 후보/새 보류를 봉인한다. 전체wall20Hz·시작/종료 안정성·차량 수용은 별도다.

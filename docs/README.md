@@ -24,6 +24,7 @@
 | M9 진단 | [Fault event/DTC 계약](interfaces/diagnostics.md) · [검증 프로토콜](test-plan/diagnostics-protocol.md) · [완료 근거](test-plan/evidence/m9_followup/README.md) |
 | M10 영상 인지 | [입출력·고장 계약](interfaces/perception.md) · [검증 프로토콜](test-plan/perception-protocol.md) · [V3 준비·모델 기준](test-plan/perception-quality-v3-protocol.md) · [새 후보 평가 근거](test-plan/evidence/m10_quality_v3/README.md) |
 | M10 실제 평가 위치 준비 | [도로 맞춤 준비 기준](test-plan/perception-road-preparation-v4-protocol.md) · [198장 준비와 실패·봉인 근거](test-plan/evidence/m10_road_preparation_v4/README.md) |
+| M10 다중 시야 후보·새 평가 | [V5 기준](test-plan/perception-quality-v5-protocol.md) · [개발 PASS·보류 FAIL·원본 재현](test-plan/evidence/m10_quality_v5/README.md) |
 | M10 도로 맞춤 새 정확도 평가 | [V4 사전 기준](test-plan/perception-quality-v4-protocol.md) · [새 RGB·S/M 비교·실패와 재감사](test-plan/evidence/m10_quality_v4/README.md) |
 | 검증 | [검증 안내](test-plan/README.md) · [전략·TC](test-plan/verification-strategy.md) · [시나리오](test-plan/scenario-baseline.md) · [추적성](test-plan/requirements-traceability.md) |
 | 안전 분석 학습 | [Item Definition / HARA 초안](safety/concept-study.md) |

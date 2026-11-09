@@ -1,0 +1,42 @@
+{
+  "schema": "m10-quality-selection-v5",
+  "created_utc": "2026-11-09T06:20:45.204680+00:00",
+  "freeze_sha256": "4e1019cca27eeab9e86ce91ad406f14b5a5df37e2fdc8e7402ce7d7248465b49",
+  "metadata_sha256": "4b6522808140d2114454044f496d3fe648e6a93efb2b793a20f8777e008669db",
+  "selected": "medium-consensus-v5",
+  "development_relative": {
+    "medium-vru-v5": {
+      "status": "FAIL",
+      "gates": {
+        "precision": false,
+        "recall": true,
+        "per_class": true,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": true
+      }
+    },
+    "medium-consensus-v5": {
+      "status": "PASS",
+      "gates": {
+        "precision": true,
+        "recall": true,
+        "per_class": true,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": true
+      }
+    }
+  },
+  "development_absolute": {
+    "baseline": "FAIL",
+    "medium-vru-v5": "PASS",
+    "medium-consensus-v5": "PASS"
+  },
+  "score_files": {
+    "/d/shin/StrataDrive/build/m10-quality-v5b/development-baseline-score.json": "5734d910e6b504cfaeccf3215c28daa90afa7c0adbfbcaa57f74f664f3ad494a",
+    "/d/shin/StrataDrive/build/m10-quality-v5b/development-medium-vru-v5-score.json": "61eb81f77404a1d1815fc5755eed70a65299ca4d814a7cd23c62d9412006aff9",
+    "/d/shin/StrataDrive/build/m10-quality-v5b/development-medium-consensus-v5-score.json": "bb8fb94b2394c6e0ec780ded76fc8813a145bd807286523e19e9c4d7aaa8f695"
+  },
+  "runtime_promotion": false
+}

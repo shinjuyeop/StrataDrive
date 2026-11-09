@@ -115,3 +115,8 @@ SYS-AI-001/SYS-PERF-003의 부분 근거이며 감사 PASS가 모델 채택·실
 
 V4의 최종162개 actor/rider·조건 coverage는 PASS이나 지명 M의 absolute/relative 품질은 FAIL로
 미채택이다. 원본 재감사·118개 Python/설정별13개 component 통과는 전체 정확도·wall 수용을 뜻하지 않는다.
+
+TC-PER-022–024 및 C-M10-PER-18–20은 [V5 기준](perception-quality-v5-protocol.md)·
+[후보/새 평가 근거](evidence/m10_quality_v5/README.md)에 연결한다. 약한 시야 지지·body 충돌
+정책과 새31/35번 준비/평가를 검증했다. 개발 절대·상대 PASS와 보류 FAIL을 구분하며
+SYS-AI-001/SYS-PERF-003의 부분 근거다. Learned trajectory·전체wall20Hz·차량 수용을 완료하지 않는다.
