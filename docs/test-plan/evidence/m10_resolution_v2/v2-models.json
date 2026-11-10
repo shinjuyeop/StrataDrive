@@ -1,0 +1,224 @@
+{
+  "schema": "m10-resolution-models-v2",
+  "started_utc": "2026-11-10T09:30:00.687641+00:00",
+  "freeze_sha256": "50656189e2e27c24f965cf6913a4a988ff4853447258bb60e2901069a3cf01e1",
+  "checkpoint_sha256": "b44a7586bf490858c7b8bce9e44bd025cb88724df9a07a8deb3ae1c12e608195",
+  "strict_state_load": true,
+  "nongeometric_state_sha256": "ae19ed39fe0791ec11b301537c7d8ee26fa1143aa4a5b7b4dd3c82bedec42ea3",
+  "models": {
+    "640": {
+      "size": 640,
+      "path": "models/dfine-640.onnx",
+      "sha256": "40097ba600ba21b94c673a76ff602ece600392fc1d9641576ff66bfa0300e1c2",
+      "bytes": 77949424,
+      "geometry": {
+        "size": 640,
+        "reference_mode": "native checkpoint cache",
+        "nongeometric_state_sha256": "ae19ed39fe0791ec11b301537c7d8ee26fa1143aa4a5b7b4dd3c82bedec42ea3",
+        "cached_anchor_sha256": "1b84b0a4db036415e5c17590137ec667f26f5b9d2da4d863f51b74a2ba883ab5",
+        "cached_anchor_shape": [
+          1,
+          8400,
+          4
+        ]
+      },
+      "opset": 16,
+      "operators": [
+        "Abs",
+        "Add",
+        "Cast",
+        "Clip",
+        "Concat",
+        "Constant",
+        "ConstantOfShape",
+        "Conv",
+        "Div",
+        "Erf",
+        "Expand",
+        "Flatten",
+        "Gather",
+        "GatherElements",
+        "Gemm",
+        "GridSample",
+        "Identity",
+        "Log",
+        "MatMul",
+        "MaxPool",
+        "Mul",
+        "Pad",
+        "Pow",
+        "ReduceMax",
+        "ReduceMean",
+        "ReduceSum",
+        "Relu",
+        "Reshape",
+        "Resize",
+        "Shape",
+        "Sigmoid",
+        "Slice",
+        "Softmax",
+        "Split",
+        "Sqrt",
+        "Squeeze",
+        "Sub",
+        "Tile",
+        "TopK",
+        "Transpose",
+        "Unsqueeze"
+      ]
+    },
+    "960": {
+      "size": 960,
+      "path": "models/dfine-960.onnx",
+      "sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+      "bytes": 78671426,
+      "geometry": {
+        "size": 960,
+        "dynamic": false,
+        "nongeometric_state_sha256": "ae19ed39fe0791ec11b301537c7d8ee26fa1143aa4a5b7b4dd3c82bedec42ea3",
+        "state_sha256": "de8556c21180af8610d1fe6980f66857da5bc4918f2830f43cb3907da8893d10",
+        "anchor_shape": [
+          1,
+          18900,
+          4
+        ],
+        "eval_spatial_size": [
+          960,
+          960
+        ]
+      },
+      "opset": 16,
+      "operators": [
+        "Abs",
+        "Add",
+        "Cast",
+        "Clip",
+        "Concat",
+        "Constant",
+        "ConstantOfShape",
+        "Conv",
+        "Div",
+        "Erf",
+        "Expand",
+        "Flatten",
+        "Gather",
+        "GatherElements",
+        "Gemm",
+        "GridSample",
+        "Identity",
+        "Log",
+        "MatMul",
+        "MaxPool",
+        "Mul",
+        "Pad",
+        "Pow",
+        "ReduceMax",
+        "ReduceMean",
+        "ReduceSum",
+        "Relu",
+        "Reshape",
+        "Resize",
+        "Shape",
+        "Sigmoid",
+        "Slice",
+        "Softmax",
+        "Split",
+        "Sqrt",
+        "Squeeze",
+        "Sub",
+        "Tile",
+        "TopK",
+        "Transpose",
+        "Unsqueeze"
+      ]
+    }
+  },
+  "references": [
+    {
+      "size": 640,
+      "probe": 0,
+      "rgb_sha256": "60659eb0d553cc13d23c486ff3857d8a6d4d61468fb73c770be8e42677f0a912",
+      "tensor_sha256": "d875179e04cd9fbdcd7c109fc594fcf44b387d6ee2241a594ab90ba70f282c64",
+      "file": "reference/640-0.npz",
+      "sha256": "1d6e18d815aa4aae9ed782e4bd7bca56c121bde368c6a576d0849a7ff33e6fc6",
+      "cached640_old_v9_delta": {
+        "permuted_rows": 0,
+        "all300_matched": true,
+        "box_max_abs": 0.0,
+        "score_max_abs": 0.0
+      }
+    },
+    {
+      "size": 640,
+      "probe": 1,
+      "rgb_sha256": "053e15602071681736e2d82b22bed98efbb3a11f6301a1f1115308a4875e3fcd",
+      "tensor_sha256": "264dc607d4edffcf9d83ea03e4456e190e0eee40fa947bb8758efef1b1304b28",
+      "file": "reference/640-1.npz",
+      "sha256": "5d56a0703de5e146f0c9c43b6c48f61bdc0ff73d6a9487eb78aa8917651c266d",
+      "cached640_old_v9_delta": {
+        "permuted_rows": 0,
+        "all300_matched": true,
+        "box_max_abs": 0.0,
+        "score_max_abs": 0.0
+      }
+    },
+    {
+      "size": 640,
+      "probe": 2,
+      "rgb_sha256": "f75ecc74f5d9ca947c157c0f2d5af12d05009c9d5a336c886e02fe0e602be6f3",
+      "tensor_sha256": "5bb9ed56246ea2b96da95b4560144aa076165b083f67343a835a3832db015e6f",
+      "file": "reference/640-2.npz",
+      "sha256": "2d2ab9de7f6ca515772845a998ab799b71a3be483dae43a85f26cfc7b7be4f33",
+      "cached640_old_v9_delta": {
+        "permuted_rows": 0,
+        "all300_matched": true,
+        "box_max_abs": 0.0,
+        "score_max_abs": 0.0
+      }
+    },
+    {
+      "size": 960,
+      "probe": 0,
+      "rgb_sha256": "60659eb0d553cc13d23c486ff3857d8a6d4d61468fb73c770be8e42677f0a912",
+      "tensor_sha256": "417e015baaef949444a72b846ec169abd613b8ccfc0a00bcfb54d1f33a6cd814",
+      "file": "reference/960-0.npz",
+      "sha256": "b1e2c6192bb1d785ca07da9f01dc35c28dd41e6319e5db3257c1a12c6d574cbc",
+      "static_dynamic": {
+        "permuted_rows": 0,
+        "all300_matched": true,
+        "box_max_abs": 0.0,
+        "score_max_abs": 0.0
+      }
+    },
+    {
+      "size": 960,
+      "probe": 1,
+      "rgb_sha256": "053e15602071681736e2d82b22bed98efbb3a11f6301a1f1115308a4875e3fcd",
+      "tensor_sha256": "0bec7a0f462646f57a55af18c8e86ee0ce2e34f96be3eb53b3c4ea4bc11ec7b4",
+      "file": "reference/960-1.npz",
+      "sha256": "8bbd70b2c1d64b0feab500974ebf6ae6fc62ce653e73ff8015672f89e9e1639b",
+      "static_dynamic": {
+        "permuted_rows": 0,
+        "all300_matched": true,
+        "box_max_abs": 0.0,
+        "score_max_abs": 0.0
+      }
+    },
+    {
+      "size": 960,
+      "probe": 2,
+      "rgb_sha256": "f75ecc74f5d9ca947c157c0f2d5af12d05009c9d5a336c886e02fe0e602be6f3",
+      "tensor_sha256": "a8417ef7d730c68800507a119dffe7e82bc41444334596c37bf5a55003409b58",
+      "file": "reference/960-2.npz",
+      "sha256": "6ba38e9419aae37c1c7f2b464e104dcdeb88d95f6eb89cc9f982b790d7a9e709",
+      "static_dynamic": {
+        "permuted_rows": 0,
+        "all300_matched": true,
+        "box_max_abs": 0.0,
+        "score_max_abs": 0.0
+      }
+    }
+  ],
+  "finished_utc": "2026-11-10T09:30:00.737878+00:00",
+  "graph_optimization": "ORT_ENABLE_BASIC"
+}

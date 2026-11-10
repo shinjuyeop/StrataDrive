@@ -27,6 +27,13 @@ calibration·소비한 Town04 개발의 절대 기준은 PASS지만 상대 FAIL�
 원본459쌍·모든 raw 모델 출력·새 source 재감사와 미래 제외5449개를 보존한다.
 다음 후보는 개발 자료에서 검증하고 소비한 보류를 다시 설계/수용에 쓰지 않는다.
 
+
+[960 입력·car confidence 후속](test-plan/evidence/m10_resolution_v2/README.md)은 원래 수치
+실패/1280 탈락과 car 회귀 거절을 보존했다. 별도 고정한 후보는486개 개발/설계에서 P95.15%/
+R91.34%다. [파생 profile](../profiles/perception-resolution-candidates-v1.json)은 offline 전용이고,
+원본 RGB640×384를960으로 보간·BASIC FP32/vector를 고정한다. 기존 runtime 실행 명령은 S를
+유지한다. 다음 새 개발/보류 수용과 실제 deadline·각 Jetson 배포/측정은 후속이다.
+
 ## 환경과 모델
 
 저장소 루트에서 실행한다. 기본 C++ 빌드에는 Python/ONNX/CARLA가 필요 없다.

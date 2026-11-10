@@ -1,0 +1,16 @@
+[0;93m2026-11-10 18:24:42.482583372 [W:onnxruntime:, transformer_memcpy.cc:111 ApplyImpl] 6 Memcpy nodes are added to the graph main_graph for CUDAExecutionProvider. It might have negative impact on performance (including unable to run CUDA graph). Set session_options.log_severity_level=1 to see the detail logs before this message.[m
+[1;31m2026-11-10 18:24:42.488327690 [E:onnxruntime:, inference_session.cc:2431 Initialize] This session contains graph nodes that are assigned to the default CPU EP, but fallback to CPU EP has been explicitly disabled by the user.[m
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/investigate_resolution_numeric_v1.py", line 263, in <module>
+    else check(a.base)
+  File "/d/shin/StrataDrive/tests/integration/perception/investigate_resolution_numeric_v1.py", line 197, in check
+    cpu, cuda = [
+  File "/d/shin/StrataDrive/tests/integration/perception/investigate_resolution_numeric_v1.py", line 198, in <listcomp>
+    session(
+  File "/d/shin/StrataDrive/tests/integration/perception/investigate_resolution_numeric_v1.py", line 157, in session
+    result = ort.InferenceSession(str(path), sess_options=opts, providers=providers)
+  File "/d/shin/StrataDrive/build/m10-perception/cuda-venv/lib/python3.10/site-packages/onnxruntime/capi/onnxruntime_inference_collection.py", line 485, in __init__
+    self._create_inference_session(providers, provider_options, disabled_optimizers)
+  File "/d/shin/StrataDrive/build/m10-perception/cuda-venv/lib/python3.10/site-packages/onnxruntime/capi/onnxruntime_inference_collection.py", line 584, in _create_inference_session
+    sess.initialize_session(providers, provider_options, disabled_optimizers)
+onnxruntime.capi.onnxruntime_pybind11_state.Fail: [ONNXRuntimeError] : 1 : FAIL : This session contains graph nodes that are assigned to the default CPU EP, but fallback to CPU EP has been explicitly disabled by the user.

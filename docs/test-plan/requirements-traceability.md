@@ -146,3 +146,8 @@ TC-PER-047–049/C-M10-PER-43–45는 [V9 새 도로 평가](evidence/m10_qualit
 지도만 사용한 미사용 경로 선정·모델 없는 준비·고정 native 모델/클래스 vector·full raw 재해석·
 개발 지명 이후 보류 취득·실패/모든 시도 제외·압축 새 source 재현을 연결한다. SYS-AI-001/
 SYS-PERF-003의 부분 근거이며 최종 모델 채택·전체wall20Hz·차량·각 Jetson 수용은 별도다.
+
+TC-PER-050–053/C-M10-PER-46–49는 [해상도·car 후속 근거](evidence/m10_resolution_v2/README.md)에
+연결한다. 원래 수치/640 cache 실패·1280 제외·검증된960 비교와 car 회귀 거절·별도 개발 설계
+revision을 구분한다. 원본1458/파생486 raw·원래 gate·source/압축 재현의 부분 근거이며,
+새 개발/보류·전체wall20Hz·차량·Thor/Orin 각각의 전체 stack 수용은 후속이다.

@@ -1,0 +1,7849 @@
+{
+  "schema": "m10-resolution-score-v2",
+  "group": "regression",
+  "size": 640,
+  "freeze_sha256": "50656189e2e27c24f965cf6913a4a988ff4853447258bb60e2901069a3cf01e1",
+  "run_sha256": "9d2a28237cf935d30020036c83c1458598d233b7378dfb6605eed6deb395ef26",
+  "fresh_acceptance": false,
+  "runtime_promotion": false,
+  "partitions": {
+    "v9": {
+      "frames": 81,
+      "micro": {
+        "tp": 119,
+        "fp": 6,
+        "fn": 10,
+        "precision": 0.952,
+        "recall": 0.9224806201550387,
+        "f1": 0.937007874015748
+      },
+      "per_class": {
+        "0": {
+          "tp": 36,
+          "fp": 1,
+          "fn": 6,
+          "precision": 0.972972972972973,
+          "recall": 0.8571428571428571,
+          "f1": 0.9113924050632911
+        },
+        "1": {
+          "tp": 13,
+          "fp": 4,
+          "fn": 2,
+          "precision": 0.7647058823529411,
+          "recall": 0.8666666666666667,
+          "f1": 0.8125
+        },
+        "2": {
+          "tp": 32,
+          "fp": 0,
+          "fn": 1,
+          "precision": 1.0,
+          "recall": 0.9696969696969697,
+          "f1": 0.9846153846153847
+        },
+        "3": {
+          "tp": 11,
+          "fp": 1,
+          "fn": 1,
+          "precision": 0.9166666666666666,
+          "recall": 0.9166666666666666,
+          "f1": 0.9166666666666666
+        },
+        "5": {
+          "tp": 15,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "7": {
+          "tp": 12,
+          "fp": 0,
+          "fn": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        }
+      },
+      "macro_f1": 0.9375290760575571,
+      "minimum_class_recall": 0.8571428571428571,
+      "strata": {
+        "near": {
+          "frames": 18,
+          "tp": 24,
+          "fp": 0,
+          "fn": 0,
+          "target_visible": 18,
+          "target_detected": 18,
+          "target_recall": 1.0
+        },
+        "medium": {
+          "frames": 18,
+          "tp": 24,
+          "fp": 0,
+          "fn": 0,
+          "target_visible": 18,
+          "target_detected": 18,
+          "target_recall": 1.0
+        },
+        "far": {
+          "frames": 18,
+          "tp": 18,
+          "fp": 5,
+          "fn": 6,
+          "target_visible": 18,
+          "target_detected": 15,
+          "target_recall": 0.8333333333333334
+        },
+        "occluded": {
+          "frames": 18,
+          "tp": 39,
+          "fp": 1,
+          "fn": 3,
+          "target_visible": 18,
+          "target_detected": 18,
+          "target_recall": 1.0
+        },
+        "negative": {
+          "frames": 3,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "target_visible": 0,
+          "target_detected": 0,
+          "target_recall": null
+        },
+        "overlap_vehicles": {
+          "frames": 3,
+          "tp": 5,
+          "fp": 0,
+          "fn": 1,
+          "target_visible": 0,
+          "target_detected": 0,
+          "target_recall": null
+        },
+        "overlap_vru": {
+          "frames": 3,
+          "tp": 9,
+          "fp": 0,
+          "fn": 0,
+          "target_visible": 0,
+          "target_detected": 0,
+          "target_recall": null
+        }
+      },
+      "near_person": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "recall": 1.0
+      },
+      "riders": {
+        "visible": 27,
+        "detected": 21
+      },
+      "gates": {
+        "no_model_errors": true,
+        "all_planned_actors_visible": true,
+        "all_riders_visible": true,
+        "coverage": true,
+        "precision": true,
+        "recall": true,
+        "per_class_recall": true,
+        "near_person": true,
+        "negative_fp": true
+      },
+      "absolute_quality": "PASS",
+      "admitted_micro": {
+        "tp": 119,
+        "fp": 6,
+        "fn": 10,
+        "precision": 0.952,
+        "recall": 0.9224806201550387,
+        "f1": 0.937007874015748
+      },
+      "sizes": {
+        "lt32sq": {
+          "visible": 60,
+          "detected": 51,
+          "recall": 0.85
+        },
+        "other_person": {
+          "visible": 15,
+          "detected": 15,
+          "recall": 1.0
+        },
+        "32sq_to96sq": {
+          "visible": 57,
+          "detected": 56,
+          "recall": 0.9824561403508771
+        },
+        "not_person": {
+          "visible": 87,
+          "detected": 83,
+          "recall": 0.9540229885057471
+        },
+        "rider13": {
+          "visible": 27,
+          "detected": 21,
+          "recall": 0.7777777777777778
+        },
+        "ge96sq": {
+          "visible": 12,
+          "detected": 12,
+          "recall": 1.0
+        }
+      },
+      "fn_buckets": {
+        "below_selected_confidence": 10
+      },
+      "records": [
+        {
+          "scene": "v9-development-000",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-001",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-002",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-003",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 1,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-004",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-005",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-006",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 1,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 1
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": [
+            {
+              "object": {
+                "class_id": 1,
+                "instance_id": 133,
+                "visible_pixels": 76,
+                "box": [
+                  343,
+                  165,
+                  359,
+                  175
+                ],
+                "semantic_tags": [
+                  19
+                ]
+              },
+              "attributes": {
+                "box_width": 16,
+                "box_height": 10,
+                "box_area": 160,
+                "box_size": "lt32sq",
+                "person_kind": "not_person"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 1,
+                "instance_id": 133,
+                "visible_pixels": 76,
+                "box": [
+                  343,
+                  165,
+                  359,
+                  175
+                ],
+                "semantic_tags": [
+                  19
+                ]
+              },
+              "box_width": 16,
+              "box_height": 10,
+              "box_area": 160,
+              "box_size": "lt32sq",
+              "person_kind": "not_person",
+              "max_same_class_iou": 0.5557024858261604,
+              "max_same_class_support_score": 0.3080076575279236,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 3,
+                "class_id": 1,
+                "score": 0.3080076575279236,
+                "box": [
+                  345.9350891113281,
+                  166.61892700195312,
+                  357.166259765625,
+                  175.83587646484375
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 3,
+                "class_id": 1,
+                "score": 0.3080076575279236,
+                "box": [
+                  345.9350891113281,
+                  166.61892700195312,
+                  357.166259765625,
+                  175.83587646484375
+                ]
+              },
+              "max_other_class_iou": 0.5557024858261604,
+              "best_other_class": {
+                "native_index": 21,
+                "class_id": 3,
+                "score": 0.1888757348060608,
+                "box": [
+                  345.9350891113281,
+                  166.61892700195312,
+                  357.166259765625,
+                  175.83587646484375
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "scene": "v9-development-007",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-008",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-009",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-010",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-011",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-012",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-013",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-014",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 1
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 1
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": [
+            {
+              "object": {
+                "class_id": 0,
+                "instance_id": 143,
+                "visible_pixels": 41,
+                "box": [
+                  345,
+                  160,
+                  356,
+                  176
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "attributes": {
+                "box_width": 11,
+                "box_height": 16,
+                "box_area": 176,
+                "box_size": "lt32sq",
+                "person_kind": "rider13"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 0,
+                "instance_id": 143,
+                "visible_pixels": 41,
+                "box": [
+                  345,
+                  160,
+                  356,
+                  176
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "box_width": 11,
+              "box_height": 16,
+              "box_area": 176,
+              "box_size": "lt32sq",
+              "person_kind": "rider13",
+              "max_same_class_iou": 0.7022113158162666,
+              "max_same_class_support_score": 0.44924449920654297,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 32,
+                "class_id": 0,
+                "score": 0.17958050966262817,
+                "box": [
+                  345.229736328125,
+                  161.0023956298828,
+                  356.31292724609375,
+                  172.7164306640625
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 0,
+                "class_id": 0,
+                "score": 0.44924449920654297,
+                "box": [
+                  344.5220947265625,
+                  162.1534423828125,
+                  353.09967041015625,
+                  173.7058868408203
+                ]
+              },
+              "max_other_class_iou": 0.7022113158162666,
+              "best_other_class": {
+                "native_index": 61,
+                "class_id": 17,
+                "score": 0.14241153001785278,
+                "box": [
+                  345.229736328125,
+                  161.0023956298828,
+                  356.31292724609375,
+                  172.7164306640625
+                ]
+              }
+            },
+            {
+              "object": {
+                "class_id": 3,
+                "instance_id": 143,
+                "visible_pixels": 151,
+                "box": [
+                  340,
+                  163,
+                  362,
+                  175
+                ],
+                "semantic_tags": [
+                  18
+                ]
+              },
+              "attributes": {
+                "box_width": 22,
+                "box_height": 12,
+                "box_area": 264,
+                "box_size": "lt32sq",
+                "person_kind": "not_person"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 3,
+                "instance_id": 143,
+                "visible_pixels": 151,
+                "box": [
+                  340,
+                  163,
+                  362,
+                  175
+                ],
+                "semantic_tags": [
+                  18
+                ]
+              },
+              "box_width": 22,
+              "box_height": 12,
+              "box_area": 264,
+              "box_size": "lt32sq",
+              "person_kind": "not_person",
+              "max_same_class_iou": 0.8108437988068604,
+              "max_same_class_support_score": 0.37901538610458374,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 3,
+                "class_id": 3,
+                "score": 0.37901538610458374,
+                "box": [
+                  341.0868835449219,
+                  163.64947509765625,
+                  360.5418395996094,
+                  175.42860412597656
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 3,
+                "class_id": 3,
+                "score": 0.37901538610458374,
+                "box": [
+                  341.0868835449219,
+                  163.64947509765625,
+                  360.5418395996094,
+                  175.42860412597656
+                ]
+              },
+              "max_other_class_iou": 0.8588870230369493,
+              "best_other_class": {
+                "native_index": 220,
+                "class_id": 1,
+                "score": 0.05477702617645264,
+                "box": [
+                  340.0721435546875,
+                  163.68402099609375,
+                  360.50250244140625,
+                  175.2532196044922
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "scene": "v9-development-015",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 1
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": [
+            {
+              "object": {
+                "class_id": 0,
+                "instance_id": 144,
+                "visible_pixels": 143,
+                "box": [
+                  338,
+                  162,
+                  360,
+                  183
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "attributes": {
+                "box_width": 22,
+                "box_height": 21,
+                "box_area": 462,
+                "box_size": "lt32sq",
+                "person_kind": "rider13"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 0,
+                "instance_id": 144,
+                "visible_pixels": 143,
+                "box": [
+                  338,
+                  162,
+                  360,
+                  183
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "box_width": 22,
+              "box_height": 21,
+              "box_area": 462,
+              "box_size": "lt32sq",
+              "person_kind": "rider13",
+              "max_same_class_iou": 0.8355069848235647,
+              "max_same_class_support_score": 0.4351124167442322,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 2,
+                "class_id": 0,
+                "score": 0.4351124167442322,
+                "box": [
+                  338.68603515625,
+                  161.466064453125,
+                  357.7369384765625,
+                  183.3496856689453
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 2,
+                "class_id": 0,
+                "score": 0.4351124167442322,
+                "box": [
+                  338.68603515625,
+                  161.466064453125,
+                  357.7369384765625,
+                  183.3496856689453
+                ]
+              },
+              "max_other_class_iou": 0.8355069848235647,
+              "best_other_class": {
+                "native_index": 10,
+                "class_id": 3,
+                "score": 0.220910906791687,
+                "box": [
+                  338.68603515625,
+                  161.466064453125,
+                  357.7369384765625,
+                  183.3496856689453
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "scene": "v9-development-016",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-017",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-018",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-019",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-020",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-021",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-022",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-023",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-024",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-025",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 1
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": [
+            {
+              "object": {
+                "class_id": 2,
+                "instance_id": 156,
+                "visible_pixels": 2224,
+                "box": [
+                  271,
+                  166,
+                  347,
+                  207
+                ],
+                "semantic_tags": [
+                  14
+                ]
+              },
+              "attributes": {
+                "box_width": 76,
+                "box_height": 41,
+                "box_area": 3116,
+                "box_size": "32sq_to96sq",
+                "person_kind": "not_person"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 2,
+                "instance_id": 156,
+                "visible_pixels": 2224,
+                "box": [
+                  271,
+                  166,
+                  347,
+                  207
+                ],
+                "semantic_tags": [
+                  14
+                ]
+              },
+              "box_width": 76,
+              "box_height": 41,
+              "box_area": 3116,
+              "box_size": "32sq_to96sq",
+              "person_kind": "not_person",
+              "max_same_class_iou": 0.9350316672930228,
+              "max_same_class_support_score": 0.6768436431884766,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 1,
+                "class_id": 2,
+                "score": 0.6768436431884766,
+                "box": [
+                  271.4090270996094,
+                  167.19740295410156,
+                  345.42645263671875,
+                  207.46998596191406
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 1,
+                "class_id": 2,
+                "score": 0.6768436431884766,
+                "box": [
+                  271.4090270996094,
+                  167.19740295410156,
+                  345.42645263671875,
+                  207.46998596191406
+                ]
+              },
+              "max_other_class_iou": 0.9350316672930228,
+              "best_other_class": {
+                "native_index": 14,
+                "class_id": 3,
+                "score": 0.19421446323394775,
+                "box": [
+                  271.4090270996094,
+                  167.19740295410156,
+                  345.42645263671875,
+                  207.46998596191406
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "scene": "v9-development-026",
+          "counts": {
+            "0": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-027",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-028",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-029",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-030",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-031",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-032",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-033",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 2,
+              "fn": 1
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": [
+            {
+              "object": {
+                "class_id": 1,
+                "instance_id": 167,
+                "visible_pixels": 76,
+                "box": [
+                  343,
+                  165,
+                  359,
+                  175
+                ],
+                "semantic_tags": [
+                  19
+                ]
+              },
+              "attributes": {
+                "box_width": 16,
+                "box_height": 10,
+                "box_area": 160,
+                "box_size": "lt32sq",
+                "person_kind": "not_person"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 1,
+                "instance_id": 167,
+                "visible_pixels": 76,
+                "box": [
+                  343,
+                  165,
+                  359,
+                  175
+                ],
+                "semantic_tags": [
+                  19
+                ]
+              },
+              "box_width": 16,
+              "box_height": 10,
+              "box_area": 160,
+              "box_size": "lt32sq",
+              "person_kind": "not_person",
+              "max_same_class_iou": 0.8253532538534126,
+              "max_same_class_support_score": 0.2073494791984558,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 160,
+                "class_id": 1,
+                "score": 0.04772311449050903,
+                "box": [
+                  343.39166259765625,
+                  165.40060424804688,
+                  358.1143798828125,
+                  175.76309204101562
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 14,
+                "class_id": 1,
+                "score": 0.2073494791984558,
+                "box": [
+                  346.30078125,
+                  164.37803649902344,
+                  357.42724609375,
+                  174.92559814453125
+                ]
+              },
+              "max_other_class_iou": 0.8253532538534126,
+              "best_other_class": {
+                "native_index": 267,
+                "class_id": 13,
+                "score": 0.03494226932525635,
+                "box": [
+                  343.39166259765625,
+                  165.40060424804688,
+                  358.1143798828125,
+                  175.76309204101562
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "scene": "v9-development-034",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-035",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-036",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-037",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-038",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-039",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-040",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-041",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 1
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": [
+            {
+              "object": {
+                "class_id": 0,
+                "instance_id": 177,
+                "visible_pixels": 41,
+                "box": [
+                  345,
+                  160,
+                  356,
+                  176
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "attributes": {
+                "box_width": 11,
+                "box_height": 16,
+                "box_area": 176,
+                "box_size": "lt32sq",
+                "person_kind": "rider13"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 0,
+                "instance_id": 177,
+                "visible_pixels": 41,
+                "box": [
+                  345,
+                  160,
+                  356,
+                  176
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "box_width": 11,
+              "box_height": 16,
+              "box_area": 176,
+              "box_size": "lt32sq",
+              "person_kind": "rider13",
+              "max_same_class_iou": 0.6191806468190536,
+              "max_same_class_support_score": 0.4900856614112854,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 1,
+                "class_id": 0,
+                "score": 0.4900856614112854,
+                "box": [
+                  344.46466064453125,
+                  161.21710205078125,
+                  354.73663330078125,
+                  172.8039093017578
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 1,
+                "class_id": 0,
+                "score": 0.4900856614112854,
+                "box": [
+                  344.46466064453125,
+                  161.21710205078125,
+                  354.73663330078125,
+                  172.8039093017578
+                ]
+              },
+              "max_other_class_iou": 0.6191806468190536,
+              "best_other_class": {
+                "native_index": 34,
+                "class_id": 17,
+                "score": 0.12999427318572998,
+                "box": [
+                  344.46466064453125,
+                  161.21710205078125,
+                  354.73663330078125,
+                  172.8039093017578
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "scene": "v9-development-042",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 1
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": [
+            {
+              "object": {
+                "class_id": 0,
+                "instance_id": 178,
+                "visible_pixels": 143,
+                "box": [
+                  338,
+                  162,
+                  360,
+                  183
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "attributes": {
+                "box_width": 22,
+                "box_height": 21,
+                "box_area": 462,
+                "box_size": "lt32sq",
+                "person_kind": "rider13"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 0,
+                "instance_id": 178,
+                "visible_pixels": 143,
+                "box": [
+                  338,
+                  162,
+                  360,
+                  183
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "box_width": 22,
+              "box_height": 21,
+              "box_area": 462,
+              "box_size": "lt32sq",
+              "person_kind": "rider13",
+              "max_same_class_iou": 0.7377947243592694,
+              "max_same_class_support_score": 0.32089513540267944,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 2,
+                "class_id": 0,
+                "score": 0.32089513540267944,
+                "box": [
+                  339.18426513671875,
+                  161.35586547851562,
+                  358.8151550292969,
+                  187.28472900390625
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 2,
+                "class_id": 0,
+                "score": 0.32089513540267944,
+                "box": [
+                  339.18426513671875,
+                  161.35586547851562,
+                  358.8151550292969,
+                  187.28472900390625
+                ]
+              },
+              "max_other_class_iou": 0.7377947243592694,
+              "best_other_class": {
+                "native_index": 16,
+                "class_id": 3,
+                "score": 0.12069982290267944,
+                "box": [
+                  339.18426513671875,
+                  161.35586547851562,
+                  358.8151550292969,
+                  187.28472900390625
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "scene": "v9-development-043",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-044",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-045",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-046",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-047",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-048",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-049",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-050",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-051",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-052",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-053",
+          "counts": {
+            "0": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-054",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-055",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-056",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-057",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-058",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-059",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-060",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 1,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-061",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-062",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-063",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-064",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-065",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-066",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-067",
+          "counts": {
+            "0": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-068",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 1
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 1,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": [
+            {
+              "object": {
+                "class_id": 0,
+                "instance_id": 211,
+                "visible_pixels": 41,
+                "box": [
+                  345,
+                  160,
+                  356,
+                  176
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "attributes": {
+                "box_width": 11,
+                "box_height": 16,
+                "box_area": 176,
+                "box_size": "lt32sq",
+                "person_kind": "rider13"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 0,
+                "instance_id": 211,
+                "visible_pixels": 41,
+                "box": [
+                  345,
+                  160,
+                  356,
+                  176
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "box_width": 11,
+              "box_height": 16,
+              "box_area": 176,
+              "box_size": "lt32sq",
+              "person_kind": "rider13",
+              "max_same_class_iou": 0.5614834301911308,
+              "max_same_class_support_score": 0.5073058009147644,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 3,
+                "class_id": 0,
+                "score": 0.5073058009147644,
+                "box": [
+                  344.8194580078125,
+                  161.53749084472656,
+                  354.115478515625,
+                  172.50042724609375
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 3,
+                "class_id": 0,
+                "score": 0.5073058009147644,
+                "box": [
+                  344.8194580078125,
+                  161.53749084472656,
+                  354.115478515625,
+                  172.50042724609375
+                ]
+              },
+              "max_other_class_iou": 0.5614834301911308,
+              "best_other_class": {
+                "native_index": 45,
+                "class_id": 3,
+                "score": 0.10454434156417847,
+                "box": [
+                  344.8194580078125,
+                  161.53749084472656,
+                  354.115478515625,
+                  172.50042724609375
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "scene": "v9-development-069",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 1
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": [
+            {
+              "object": {
+                "class_id": 0,
+                "instance_id": 212,
+                "visible_pixels": 143,
+                "box": [
+                  338,
+                  162,
+                  360,
+                  183
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "attributes": {
+                "box_width": 22,
+                "box_height": 21,
+                "box_area": 462,
+                "box_size": "lt32sq",
+                "person_kind": "rider13"
+              },
+              "bucket": "below_selected_confidence",
+              "gt": {
+                "class_id": 0,
+                "instance_id": 212,
+                "visible_pixels": 143,
+                "box": [
+                  338,
+                  162,
+                  360,
+                  183
+                ],
+                "semantic_tags": [
+                  13
+                ]
+              },
+              "box_width": 22,
+              "box_height": 21,
+              "box_area": 462,
+              "box_size": "lt32sq",
+              "person_kind": "rider13",
+              "max_same_class_iou": 0.7529765454827715,
+              "max_same_class_support_score": 0.21912497282028198,
+              "same_class_support_below_0p1": false,
+              "best_same_class": {
+                "native_index": 2,
+                "class_id": 0,
+                "score": 0.21912497282028198,
+                "box": [
+                  337.0453186035156,
+                  161.0159912109375,
+                  358.91009521484375,
+                  186.64077758789062
+                ]
+              },
+              "highest_score_supported": {
+                "native_index": 2,
+                "class_id": 0,
+                "score": 0.21912497282028198,
+                "box": [
+                  337.0453186035156,
+                  161.0159912109375,
+                  358.91009521484375,
+                  186.64077758789062
+                ]
+              },
+              "max_other_class_iou": 0.7529765454827715,
+              "best_other_class": {
+                "native_index": 24,
+                "class_id": 3,
+                "score": 0.09379678964614868,
+                "box": [
+                  337.0453186035156,
+                  161.0159912109375,
+                  358.91009521484375,
+                  186.64077758789062
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "scene": "v9-development-070",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-071",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-072",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-073",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-074",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-075",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-076",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-077",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-078",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-079",
+          "counts": {
+            "0": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        },
+        {
+          "scene": "v9-development-080",
+          "counts": {
+            "0": {
+              "tp": 2,
+              "fp": 0,
+              "fn": 0
+            },
+            "1": {
+              "tp": 1,
+              "fp": 0,
+              "fn": 0
+            },
+            "2": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "3": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "5": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            },
+            "7": {
+              "tp": 0,
+              "fp": 0,
+              "fn": 0
+            }
+          },
+          "false_negatives": []
+        }
+      ]
+    }
+  },
+  "frames": 81,
+  "micro": {
+    "tp": 119,
+    "fp": 6,
+    "fn": 10,
+    "precision": 0.952,
+    "recall": 0.9224806201550387,
+    "f1": 0.937007874015748
+  },
+  "per_class": {
+    "0": {
+      "tp": 36,
+      "fp": 1,
+      "fn": 6,
+      "precision": 0.972972972972973,
+      "recall": 0.8571428571428571,
+      "f1": 0.9113924050632911
+    },
+    "1": {
+      "tp": 13,
+      "fp": 4,
+      "fn": 2,
+      "precision": 0.7647058823529411,
+      "recall": 0.8666666666666667,
+      "f1": 0.8125
+    },
+    "2": {
+      "tp": 32,
+      "fp": 0,
+      "fn": 1,
+      "precision": 1.0,
+      "recall": 0.9696969696969697,
+      "f1": 0.9846153846153847
+    },
+    "3": {
+      "tp": 11,
+      "fp": 1,
+      "fn": 1,
+      "precision": 0.9166666666666666,
+      "recall": 0.9166666666666666,
+      "f1": 0.9166666666666666
+    },
+    "5": {
+      "tp": 15,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "7": {
+      "tp": 12,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "macro_f1": 0.9375290760575571,
+  "minimum_class_recall": 0.8571428571428571,
+  "strata": {
+    "near": {
+      "frames": 18,
+      "tp": 24,
+      "fp": 0,
+      "fn": 0,
+      "target_visible": 18,
+      "target_detected": 18,
+      "target_recall": 1.0
+    },
+    "medium": {
+      "frames": 18,
+      "tp": 24,
+      "fp": 0,
+      "fn": 0,
+      "target_visible": 18,
+      "target_detected": 18,
+      "target_recall": 1.0
+    },
+    "far": {
+      "frames": 18,
+      "tp": 18,
+      "fp": 5,
+      "fn": 6,
+      "target_visible": 18,
+      "target_detected": 15,
+      "target_recall": 0.8333333333333334
+    },
+    "occluded": {
+      "frames": 18,
+      "tp": 39,
+      "fp": 1,
+      "fn": 3,
+      "target_visible": 18,
+      "target_detected": 18,
+      "target_recall": 1.0
+    },
+    "negative": {
+      "frames": 3,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "target_visible": 0,
+      "target_detected": 0,
+      "target_recall": null
+    },
+    "overlap_vehicles": {
+      "frames": 3,
+      "tp": 5,
+      "fp": 0,
+      "fn": 1,
+      "target_visible": 0,
+      "target_detected": 0,
+      "target_recall": null
+    },
+    "overlap_vru": {
+      "frames": 3,
+      "tp": 9,
+      "fp": 0,
+      "fn": 0,
+      "target_visible": 0,
+      "target_detected": 0,
+      "target_recall": null
+    }
+  },
+  "near_person": {
+    "tp": 3,
+    "fp": 0,
+    "fn": 0,
+    "recall": 1.0
+  },
+  "riders": {
+    "visible": 27,
+    "detected": 21
+  },
+  "gates": {
+    "no_model_errors": true,
+    "all_planned_actors_visible": true,
+    "all_riders_visible": true,
+    "coverage": true,
+    "precision": true,
+    "recall": true,
+    "per_class_recall": true,
+    "near_person": true,
+    "negative_fp": true
+  },
+  "absolute_quality": "PASS",
+  "admitted_micro": {
+    "tp": 119,
+    "fp": 6,
+    "fn": 10,
+    "precision": 0.952,
+    "recall": 0.9224806201550387,
+    "f1": 0.937007874015748
+  },
+  "sizes": {
+    "lt32sq": {
+      "visible": 60,
+      "detected": 51,
+      "recall": 0.85
+    },
+    "other_person": {
+      "visible": 15,
+      "detected": 15,
+      "recall": 1.0
+    },
+    "32sq_to96sq": {
+      "visible": 57,
+      "detected": 56,
+      "recall": 0.9824561403508771
+    },
+    "not_person": {
+      "visible": 87,
+      "detected": 83,
+      "recall": 0.9540229885057471
+    },
+    "rider13": {
+      "visible": 27,
+      "detected": 21,
+      "recall": 0.7777777777777778
+    },
+    "ge96sq": {
+      "visible": 12,
+      "detected": 12,
+      "recall": 1.0
+    }
+  },
+  "fn_buckets": {
+    "below_selected_confidence": 10
+  },
+  "records": [
+    {
+      "scene": "v9-development-000",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-001",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-002",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-003",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-004",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-005",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-006",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": [
+        {
+          "object": {
+            "class_id": 1,
+            "instance_id": 133,
+            "visible_pixels": 76,
+            "box": [
+              343,
+              165,
+              359,
+              175
+            ],
+            "semantic_tags": [
+              19
+            ]
+          },
+          "attributes": {
+            "box_width": 16,
+            "box_height": 10,
+            "box_area": 160,
+            "box_size": "lt32sq",
+            "person_kind": "not_person"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 1,
+            "instance_id": 133,
+            "visible_pixels": 76,
+            "box": [
+              343,
+              165,
+              359,
+              175
+            ],
+            "semantic_tags": [
+              19
+            ]
+          },
+          "box_width": 16,
+          "box_height": 10,
+          "box_area": 160,
+          "box_size": "lt32sq",
+          "person_kind": "not_person",
+          "max_same_class_iou": 0.5557024858261604,
+          "max_same_class_support_score": 0.3080076575279236,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 3,
+            "class_id": 1,
+            "score": 0.3080076575279236,
+            "box": [
+              345.9350891113281,
+              166.61892700195312,
+              357.166259765625,
+              175.83587646484375
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 3,
+            "class_id": 1,
+            "score": 0.3080076575279236,
+            "box": [
+              345.9350891113281,
+              166.61892700195312,
+              357.166259765625,
+              175.83587646484375
+            ]
+          },
+          "max_other_class_iou": 0.5557024858261604,
+          "best_other_class": {
+            "native_index": 21,
+            "class_id": 3,
+            "score": 0.1888757348060608,
+            "box": [
+              345.9350891113281,
+              166.61892700195312,
+              357.166259765625,
+              175.83587646484375
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-007",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-008",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-009",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-010",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-011",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-012",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-013",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-014",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": [
+        {
+          "object": {
+            "class_id": 0,
+            "instance_id": 143,
+            "visible_pixels": 41,
+            "box": [
+              345,
+              160,
+              356,
+              176
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "attributes": {
+            "box_width": 11,
+            "box_height": 16,
+            "box_area": 176,
+            "box_size": "lt32sq",
+            "person_kind": "rider13"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 0,
+            "instance_id": 143,
+            "visible_pixels": 41,
+            "box": [
+              345,
+              160,
+              356,
+              176
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "box_width": 11,
+          "box_height": 16,
+          "box_area": 176,
+          "box_size": "lt32sq",
+          "person_kind": "rider13",
+          "max_same_class_iou": 0.7022113158162666,
+          "max_same_class_support_score": 0.44924449920654297,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 32,
+            "class_id": 0,
+            "score": 0.17958050966262817,
+            "box": [
+              345.229736328125,
+              161.0023956298828,
+              356.31292724609375,
+              172.7164306640625
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 0,
+            "class_id": 0,
+            "score": 0.44924449920654297,
+            "box": [
+              344.5220947265625,
+              162.1534423828125,
+              353.09967041015625,
+              173.7058868408203
+            ]
+          },
+          "max_other_class_iou": 0.7022113158162666,
+          "best_other_class": {
+            "native_index": 61,
+            "class_id": 17,
+            "score": 0.14241153001785278,
+            "box": [
+              345.229736328125,
+              161.0023956298828,
+              356.31292724609375,
+              172.7164306640625
+            ]
+          }
+        },
+        {
+          "object": {
+            "class_id": 3,
+            "instance_id": 143,
+            "visible_pixels": 151,
+            "box": [
+              340,
+              163,
+              362,
+              175
+            ],
+            "semantic_tags": [
+              18
+            ]
+          },
+          "attributes": {
+            "box_width": 22,
+            "box_height": 12,
+            "box_area": 264,
+            "box_size": "lt32sq",
+            "person_kind": "not_person"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 3,
+            "instance_id": 143,
+            "visible_pixels": 151,
+            "box": [
+              340,
+              163,
+              362,
+              175
+            ],
+            "semantic_tags": [
+              18
+            ]
+          },
+          "box_width": 22,
+          "box_height": 12,
+          "box_area": 264,
+          "box_size": "lt32sq",
+          "person_kind": "not_person",
+          "max_same_class_iou": 0.8108437988068604,
+          "max_same_class_support_score": 0.37901538610458374,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 3,
+            "class_id": 3,
+            "score": 0.37901538610458374,
+            "box": [
+              341.0868835449219,
+              163.64947509765625,
+              360.5418395996094,
+              175.42860412597656
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 3,
+            "class_id": 3,
+            "score": 0.37901538610458374,
+            "box": [
+              341.0868835449219,
+              163.64947509765625,
+              360.5418395996094,
+              175.42860412597656
+            ]
+          },
+          "max_other_class_iou": 0.8588870230369493,
+          "best_other_class": {
+            "native_index": 220,
+            "class_id": 1,
+            "score": 0.05477702617645264,
+            "box": [
+              340.0721435546875,
+              163.68402099609375,
+              360.50250244140625,
+              175.2532196044922
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-015",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": [
+        {
+          "object": {
+            "class_id": 0,
+            "instance_id": 144,
+            "visible_pixels": 143,
+            "box": [
+              338,
+              162,
+              360,
+              183
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "attributes": {
+            "box_width": 22,
+            "box_height": 21,
+            "box_area": 462,
+            "box_size": "lt32sq",
+            "person_kind": "rider13"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 0,
+            "instance_id": 144,
+            "visible_pixels": 143,
+            "box": [
+              338,
+              162,
+              360,
+              183
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "box_width": 22,
+          "box_height": 21,
+          "box_area": 462,
+          "box_size": "lt32sq",
+          "person_kind": "rider13",
+          "max_same_class_iou": 0.8355069848235647,
+          "max_same_class_support_score": 0.4351124167442322,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 2,
+            "class_id": 0,
+            "score": 0.4351124167442322,
+            "box": [
+              338.68603515625,
+              161.466064453125,
+              357.7369384765625,
+              183.3496856689453
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 2,
+            "class_id": 0,
+            "score": 0.4351124167442322,
+            "box": [
+              338.68603515625,
+              161.466064453125,
+              357.7369384765625,
+              183.3496856689453
+            ]
+          },
+          "max_other_class_iou": 0.8355069848235647,
+          "best_other_class": {
+            "native_index": 10,
+            "class_id": 3,
+            "score": 0.220910906791687,
+            "box": [
+              338.68603515625,
+              161.466064453125,
+              357.7369384765625,
+              183.3496856689453
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-016",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-017",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-018",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-019",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-020",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-021",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-022",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-023",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-024",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-025",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": [
+        {
+          "object": {
+            "class_id": 2,
+            "instance_id": 156,
+            "visible_pixels": 2224,
+            "box": [
+              271,
+              166,
+              347,
+              207
+            ],
+            "semantic_tags": [
+              14
+            ]
+          },
+          "attributes": {
+            "box_width": 76,
+            "box_height": 41,
+            "box_area": 3116,
+            "box_size": "32sq_to96sq",
+            "person_kind": "not_person"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 2,
+            "instance_id": 156,
+            "visible_pixels": 2224,
+            "box": [
+              271,
+              166,
+              347,
+              207
+            ],
+            "semantic_tags": [
+              14
+            ]
+          },
+          "box_width": 76,
+          "box_height": 41,
+          "box_area": 3116,
+          "box_size": "32sq_to96sq",
+          "person_kind": "not_person",
+          "max_same_class_iou": 0.9350316672930228,
+          "max_same_class_support_score": 0.6768436431884766,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 1,
+            "class_id": 2,
+            "score": 0.6768436431884766,
+            "box": [
+              271.4090270996094,
+              167.19740295410156,
+              345.42645263671875,
+              207.46998596191406
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 1,
+            "class_id": 2,
+            "score": 0.6768436431884766,
+            "box": [
+              271.4090270996094,
+              167.19740295410156,
+              345.42645263671875,
+              207.46998596191406
+            ]
+          },
+          "max_other_class_iou": 0.9350316672930228,
+          "best_other_class": {
+            "native_index": 14,
+            "class_id": 3,
+            "score": 0.19421446323394775,
+            "box": [
+              271.4090270996094,
+              167.19740295410156,
+              345.42645263671875,
+              207.46998596191406
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-026",
+      "counts": {
+        "0": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-027",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-028",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-029",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-030",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-031",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-032",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-033",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 2,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": [
+        {
+          "object": {
+            "class_id": 1,
+            "instance_id": 167,
+            "visible_pixels": 76,
+            "box": [
+              343,
+              165,
+              359,
+              175
+            ],
+            "semantic_tags": [
+              19
+            ]
+          },
+          "attributes": {
+            "box_width": 16,
+            "box_height": 10,
+            "box_area": 160,
+            "box_size": "lt32sq",
+            "person_kind": "not_person"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 1,
+            "instance_id": 167,
+            "visible_pixels": 76,
+            "box": [
+              343,
+              165,
+              359,
+              175
+            ],
+            "semantic_tags": [
+              19
+            ]
+          },
+          "box_width": 16,
+          "box_height": 10,
+          "box_area": 160,
+          "box_size": "lt32sq",
+          "person_kind": "not_person",
+          "max_same_class_iou": 0.8253532538534126,
+          "max_same_class_support_score": 0.2073494791984558,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 160,
+            "class_id": 1,
+            "score": 0.04772311449050903,
+            "box": [
+              343.39166259765625,
+              165.40060424804688,
+              358.1143798828125,
+              175.76309204101562
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 14,
+            "class_id": 1,
+            "score": 0.2073494791984558,
+            "box": [
+              346.30078125,
+              164.37803649902344,
+              357.42724609375,
+              174.92559814453125
+            ]
+          },
+          "max_other_class_iou": 0.8253532538534126,
+          "best_other_class": {
+            "native_index": 267,
+            "class_id": 13,
+            "score": 0.03494226932525635,
+            "box": [
+              343.39166259765625,
+              165.40060424804688,
+              358.1143798828125,
+              175.76309204101562
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-034",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-035",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-036",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-037",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-038",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-039",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-040",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-041",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": [
+        {
+          "object": {
+            "class_id": 0,
+            "instance_id": 177,
+            "visible_pixels": 41,
+            "box": [
+              345,
+              160,
+              356,
+              176
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "attributes": {
+            "box_width": 11,
+            "box_height": 16,
+            "box_area": 176,
+            "box_size": "lt32sq",
+            "person_kind": "rider13"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 0,
+            "instance_id": 177,
+            "visible_pixels": 41,
+            "box": [
+              345,
+              160,
+              356,
+              176
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "box_width": 11,
+          "box_height": 16,
+          "box_area": 176,
+          "box_size": "lt32sq",
+          "person_kind": "rider13",
+          "max_same_class_iou": 0.6191806468190536,
+          "max_same_class_support_score": 0.4900856614112854,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 1,
+            "class_id": 0,
+            "score": 0.4900856614112854,
+            "box": [
+              344.46466064453125,
+              161.21710205078125,
+              354.73663330078125,
+              172.8039093017578
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 1,
+            "class_id": 0,
+            "score": 0.4900856614112854,
+            "box": [
+              344.46466064453125,
+              161.21710205078125,
+              354.73663330078125,
+              172.8039093017578
+            ]
+          },
+          "max_other_class_iou": 0.6191806468190536,
+          "best_other_class": {
+            "native_index": 34,
+            "class_id": 17,
+            "score": 0.12999427318572998,
+            "box": [
+              344.46466064453125,
+              161.21710205078125,
+              354.73663330078125,
+              172.8039093017578
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-042",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": [
+        {
+          "object": {
+            "class_id": 0,
+            "instance_id": 178,
+            "visible_pixels": 143,
+            "box": [
+              338,
+              162,
+              360,
+              183
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "attributes": {
+            "box_width": 22,
+            "box_height": 21,
+            "box_area": 462,
+            "box_size": "lt32sq",
+            "person_kind": "rider13"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 0,
+            "instance_id": 178,
+            "visible_pixels": 143,
+            "box": [
+              338,
+              162,
+              360,
+              183
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "box_width": 22,
+          "box_height": 21,
+          "box_area": 462,
+          "box_size": "lt32sq",
+          "person_kind": "rider13",
+          "max_same_class_iou": 0.7377947243592694,
+          "max_same_class_support_score": 0.32089513540267944,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 2,
+            "class_id": 0,
+            "score": 0.32089513540267944,
+            "box": [
+              339.18426513671875,
+              161.35586547851562,
+              358.8151550292969,
+              187.28472900390625
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 2,
+            "class_id": 0,
+            "score": 0.32089513540267944,
+            "box": [
+              339.18426513671875,
+              161.35586547851562,
+              358.8151550292969,
+              187.28472900390625
+            ]
+          },
+          "max_other_class_iou": 0.7377947243592694,
+          "best_other_class": {
+            "native_index": 16,
+            "class_id": 3,
+            "score": 0.12069982290267944,
+            "box": [
+              339.18426513671875,
+              161.35586547851562,
+              358.8151550292969,
+              187.28472900390625
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-043",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-044",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-045",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-046",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-047",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-048",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-049",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-050",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-051",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-052",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-053",
+      "counts": {
+        "0": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-054",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-055",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-056",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-057",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-058",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-059",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-060",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-061",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-062",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-063",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-064",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-065",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-066",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-067",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-068",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": [
+        {
+          "object": {
+            "class_id": 0,
+            "instance_id": 211,
+            "visible_pixels": 41,
+            "box": [
+              345,
+              160,
+              356,
+              176
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "attributes": {
+            "box_width": 11,
+            "box_height": 16,
+            "box_area": 176,
+            "box_size": "lt32sq",
+            "person_kind": "rider13"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 0,
+            "instance_id": 211,
+            "visible_pixels": 41,
+            "box": [
+              345,
+              160,
+              356,
+              176
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "box_width": 11,
+          "box_height": 16,
+          "box_area": 176,
+          "box_size": "lt32sq",
+          "person_kind": "rider13",
+          "max_same_class_iou": 0.5614834301911308,
+          "max_same_class_support_score": 0.5073058009147644,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 3,
+            "class_id": 0,
+            "score": 0.5073058009147644,
+            "box": [
+              344.8194580078125,
+              161.53749084472656,
+              354.115478515625,
+              172.50042724609375
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 3,
+            "class_id": 0,
+            "score": 0.5073058009147644,
+            "box": [
+              344.8194580078125,
+              161.53749084472656,
+              354.115478515625,
+              172.50042724609375
+            ]
+          },
+          "max_other_class_iou": 0.5614834301911308,
+          "best_other_class": {
+            "native_index": 45,
+            "class_id": 3,
+            "score": 0.10454434156417847,
+            "box": [
+              344.8194580078125,
+              161.53749084472656,
+              354.115478515625,
+              172.50042724609375
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-069",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": [
+        {
+          "object": {
+            "class_id": 0,
+            "instance_id": 212,
+            "visible_pixels": 143,
+            "box": [
+              338,
+              162,
+              360,
+              183
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "attributes": {
+            "box_width": 22,
+            "box_height": 21,
+            "box_area": 462,
+            "box_size": "lt32sq",
+            "person_kind": "rider13"
+          },
+          "bucket": "below_selected_confidence",
+          "gt": {
+            "class_id": 0,
+            "instance_id": 212,
+            "visible_pixels": 143,
+            "box": [
+              338,
+              162,
+              360,
+              183
+            ],
+            "semantic_tags": [
+              13
+            ]
+          },
+          "box_width": 22,
+          "box_height": 21,
+          "box_area": 462,
+          "box_size": "lt32sq",
+          "person_kind": "rider13",
+          "max_same_class_iou": 0.7529765454827715,
+          "max_same_class_support_score": 0.21912497282028198,
+          "same_class_support_below_0p1": false,
+          "best_same_class": {
+            "native_index": 2,
+            "class_id": 0,
+            "score": 0.21912497282028198,
+            "box": [
+              337.0453186035156,
+              161.0159912109375,
+              358.91009521484375,
+              186.64077758789062
+            ]
+          },
+          "highest_score_supported": {
+            "native_index": 2,
+            "class_id": 0,
+            "score": 0.21912497282028198,
+            "box": [
+              337.0453186035156,
+              161.0159912109375,
+              358.91009521484375,
+              186.64077758789062
+            ]
+          },
+          "max_other_class_iou": 0.7529765454827715,
+          "best_other_class": {
+            "native_index": 24,
+            "class_id": 3,
+            "score": 0.09379678964614868,
+            "box": [
+              337.0453186035156,
+              161.0159912109375,
+              358.91009521484375,
+              186.64077758789062
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-070",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-071",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-072",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-073",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-074",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-075",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-076",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-077",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-078",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-079",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    },
+    {
+      "scene": "v9-development-080",
+      "counts": {
+        "0": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "false_negatives": []
+    }
+  ]
+}

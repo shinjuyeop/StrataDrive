@@ -73,6 +73,12 @@ P86.09%/R76.74%·상대 PASS/절대 FAIL이다. 보류 person/motorcycle 각50%�
 다음은 개발 자료의 작은 VRU/Rider 누락과 입력 해상도/사전학습 후보 효과 검증·새 설정 고정·
 다시 새 보류 평가다. 최종 모델 채택·runtime 교체·Jetson 배포/최적화는 미실행이다.
 
+
+[입력 해상도 후속](test-plan/evidence/m10_resolution_v2/README.md)은 수치 미달1280을 제외하고
+640/960을 비교했다.960의 원래 car 회귀 거절 뒤 별도 confidence 후속을 고정했다.486개 개발
+설계에서 P95.15%/R91.34%·기존 gate PASS지만 독립 품질 수용은 아니다. 다음은 이 단일
+960 후보와 S의 모델 없는 준비·새 개발·봉인 뒤 새 보류 평가다. 기존 보류는 재사용하지 않는다.
+
 M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](project-status.md)와
 [마감 검증](test-plan/evidence/m9_followup/README.md)을 기준으로 종료했다.
 기존 검출·보호·Actual·진단 계약은 다음 단계의 회귀 기준으로 유지한다.

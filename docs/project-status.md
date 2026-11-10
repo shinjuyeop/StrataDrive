@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **D-FINE-M 새 도로 V9 개발 PASS·보류 recall/class FAIL·기존 S 유지 / 최종 모델·정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md) · [고정 후보 검증](test-plan/evidence/m10_class_calibration_v1/README.md) · [새 V9 평가](test-plan/evidence/m10_quality_v9/README.md) |
+| M10 | **960 입력·car confidence 개발 개선 후보 고정 / 새 품질 평가 대기·V9 보류 FAIL·기존 S 유지 / 최종 모델·정확도·전체wall20Hz·시작/종료·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md) · [고정 후보 검증](test-plan/evidence/m10_class_calibration_v1/README.md) · [새 V9 평가](test-plan/evidence/m10_quality_v9/README.md) · [960 후속 후보](test-plan/evidence/m10_resolution_v2/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -63,6 +63,15 @@ R92.25%로 절대·상대 PASS, 새 보류 P86.09%/R76.74%로 상대 PASS·절�
 다음은 개발 자료에서 작은 VRU/Rider 누락과 입력 해상도/사전학습 후보 효과를 검증하고
 새 설정을 고정한 뒤 새 보류를 취득하는 일이다. 이번 보류를 설계/재선정에 사용하지 않는다.
 신규 학습·보드 최적화는 실행하지 않았다.
+
+
+[입력 해상도 비교와 car 후속](test-plan/evidence/m10_resolution_v2/README.md)을 완료했다.
+원래3종 수치 FAIL·cache reference 오류/복구·1280 탈락을 보존했다. 검증된640/960만 비교한
+960 원래 vector는 V9 개발 car32/33→31/33 회귀로 거절했다. 별도 car confidence.70→.60
+후속은486개 개발/설계에서 P95.15%/R91.34%·기존 품질/무회귀 기준을 통과했다.
+V9 개발도 설계에 사용했으며 독립 보류가 아니다. 후보 `dfine-m-960-car-v1`을 고정했고 다음은
+새 준비·개발·보류 평가다. Native6+후속3probe·원본/파생 raw 재감사·Python216개를 연결한다.
+새 RGB·학습·보드 최적화·runtime 교체는 없으며 미래 제외5449개와 S/M10 OPEN을 유지한다.
 
 ## M9 기능 범위 마감
 

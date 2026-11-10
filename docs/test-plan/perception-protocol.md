@@ -55,6 +55,10 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-047 | Town04 전체 route 미사용 도로·고정 준비198장과 모든 실패 | 지도만으로 최초 적격38/85 선택·기존4990 RGB와 모든 준비 제외·계획 actor/Rider/가림 지원·동일 예산의 별도 종료 복구 보존 |
 | TC-PER-048 | 고정 S/D-FINE-M native 수치6건과 새 개발/보류 각81장 | full300·기존 S raw와 완성 검출 수치·class vector 고정·모든 raw 출력 재해석·기존 절대/상대 gate·개발 지명 뒤 보류 취득·자동 승격0 |
 | TC-PER-049 | 모든 V9 raw·GT/pose/visibility·점수·실패·압축 새 source 감사 | 실패한 준비99장은 diagnostic만 재생·채택 불가·전 시도 RGB 제외 합집합·원래 종료 실패와 모델 품질 판정 보존·Jetson 수용과 구분 |
+| TC-PER-050 | 불변 가중치·640/960/1280 native 위치 cache와 수치 실패 | cached640 원본과 regeneration 차이·원래 FAIL/2개 profile·CPU fallback 금지·수치 미달1280 제외·vendor와 원래 source byte 보존 |
+| TC-PER-051 | 검증된640/960·405 개발 지명 이후81 소비 개발 회귀 | full300 native6건·모든 raw/기존 gate·site 절대 기준·640 class 무회귀·car32/33→31/33 원래 거절 보존 |
+| TC-PER-052 | car confidence.70→.60 단일 별도 revision·설계486장 | 새 source freeze·native3건·원래 vector/JSON 일치 뒤 재해석·기준 무완화·486장 전부 설계 자료 명시·새 개발/보류 필요·자동 교체0 |
+| TC-PER-053 | 원본1458/파생486 raw·실패·새 source 압축 재현 | object SHA/경로 무결성·primary/지명/순서 재계산·cached640 오류/복구와1280 FAIL·개발 적격과 독립 수용/Jetson 구분 |
 
 TC-PER-037은 [사전학습 비교 기준](perception-model-screen-v1-protocol.md)과 [5종 개발 결과](evidence/m10_model_screen_v1/README.md)를 따른다.
 TC-PER-040–042는 [V2 사전 비교 기준](perception-model-screen-v2-protocol.md)과 [6종·calibration/개발 확인 근거](evidence/m10_model_screen_v2/README.md)를 따른다.
@@ -102,3 +106,5 @@ threshold를 유지하며 첫 cold call도 timing 분모에 포함한다. CUDA p
 실패를 CPU 성공으로 바꾸지 않는다. RTX3090 Host 결과는 Jetson/공유 CARLA GPU 부하 수용이 아니다.
 
 TC-PER-047–049는 [V9 사전 기준](perception-quality-v9-protocol.md)과 [새 D-FINE-M 평가 근거](evidence/m10_quality_v9/README.md)를 따른다. 지도/준비 복구는 각각 별도 사전 annex에 남기며 원래 실패와 고정 gate를 유지한다.
+
+TC-PER-050–053은 [해상도 V1 기준](perception-resolution-v1-protocol.md), [수치 조사 annex](perception-resolution-v1-numeric-annex.md), [검증된 V2 기준](perception-resolution-v2-protocol.md), [car 후속 기준](perception-resolution-car-v1-protocol.md), [전체 근거](evidence/m10_resolution_v2/README.md)에 연결한다.

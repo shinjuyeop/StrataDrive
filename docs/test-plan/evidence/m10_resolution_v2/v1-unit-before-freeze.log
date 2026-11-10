@@ -1,0 +1,37 @@
+EE..E
+======================================================================
+ERROR: test_full_primary_and_rider_coverage_is_not_ignored (test_resolution_v1.ResolutionV1Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/test_resolution_v1.py", line 108, in test_full_primary_and_rider_coverage_is_not_ignored
+    result = quality(rows)
+  File "/d/shin/StrataDrive/tests/integration/perception/run_resolution_v1.py", line 177, in quality
+    validate_truth(gt["objects"], gt["excluded"])
+TypeError: validate_truth() takes 1 positional argument but 2 were given
+
+======================================================================
+ERROR: test_gate_failure_cannot_win_with_better_f1_and_ties_use_smaller_input (test_resolution_v1.ResolutionV1Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/test_resolution_v1.py", line 118, in test_gate_failure_cannot_win_with_better_f1_and_ties_use_smaller_input
+    result = quality(
+  File "/d/shin/StrataDrive/tests/integration/perception/run_resolution_v1.py", line 177, in quality
+    validate_truth(gt["objects"], gt["excluded"])
+TypeError: validate_truth() takes 1 positional argument but 2 were given
+
+======================================================================
+ERROR: test_valid_looking_json_prediction_must_equal_native_raw (test_resolution_v1.ResolutionV1Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/test_resolution_v1.py", line 212, in test_valid_looking_json_prediction_must_equal_native_raw
+    score(root, 640, "selection")["absolute_quality"], "PASS"
+  File "/d/shin/StrataDrive/tests/integration/perception/run_resolution_v1.py", line 355, in score
+    partitions[key] = quality(subtotal)
+  File "/d/shin/StrataDrive/tests/integration/perception/run_resolution_v1.py", line 177, in quality
+    validate_truth(gt["objects"], gt["excluded"])
+TypeError: validate_truth() takes 1 positional argument but 2 were given
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.164s
+
+FAILED (errors=3)

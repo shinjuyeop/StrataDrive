@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/investigate_resolution_numeric_v1.py", line 258, in <module>
+    freeze(a.base)
+  File "/d/shin/StrataDrive/tests/integration/perception/investigate_resolution_numeric_v1.py", line 43, in freeze
+    inputs={str(p.relative_to(ROOT)): sha256_file(p) for p in paths},
+  File "/d/shin/StrataDrive/tests/integration/perception/investigate_resolution_numeric_v1.py", line 43, in <dictcomp>
+    inputs={str(p.relative_to(ROOT)): sha256_file(p) for p in paths},
+  File "/usr/lib/python3.10/pathlib.py", line 818, in relative_to
+    raise ValueError("{!r} is not in the subpath of {!r}"
+ValueError: 'build/m10-resolution-v1/freeze.json' is not in the subpath of '/d/shin/StrataDrive' OR one path is relative and the other is absolute.

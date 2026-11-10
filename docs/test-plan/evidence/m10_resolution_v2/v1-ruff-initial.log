@@ -1,0 +1,13 @@
+F841 Local variable `frozen` is assigned to but never used
+   --> tests/integration/perception/run_resolution_v1.py:277:5
+    |
+276 | def score(base, size, group):
+277 |     frozen = check_freeze(base / "freeze.json")
+    |     ^^^^^^
+278 |     baseline = size == "baseline"
+279 |     report = (
+    |
+help: Remove assignment to unused variable `frozen`
+
+Found 1 error.
+No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).
