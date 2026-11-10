@@ -59,6 +59,9 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-051 | 검증된640/960·405 개발 지명 이후81 소비 개발 회귀 | full300 native6건·모든 raw/기존 gate·site 절대 기준·640 class 무회귀·car32/33→31/33 원래 거절 보존 |
 | TC-PER-052 | car confidence.70→.60 단일 별도 revision·설계486장 | 새 source freeze·native3건·원래 vector/JSON 일치 뒤 재해석·기준 무완화·486장 전부 설계 자료 명시·새 개발/보류 필요·자동 교체0 |
 | TC-PER-053 | 원본1458/파생486 raw·실패·새 source 압축 재현 | object SHA/경로 무결성·primary/지명/순서 재계산·cached640 오류/복구와1280 FAIL·개발 적격과 독립 수용/Jetson 구분 |
+| TC-PER-054 | 실제 source640/1280/1920/2560/3840·native frame/GT | 원본 pixel 직접 취득·손실 없는 raw/stored hash·동일 FOV/aspect·native support와 canonical box·runtime640 불변 |
+| TC-PER-055 | 고정960 모델·실제 orig sizes·최대 source 사전 지명 | native3probe×5source·full300/완성 vector·14PASS1FAIL 보존·본 비교 전에4K 봉인·cold/late·실제 비용과20Hz 구분 |
+| TC-PER-056 | 전180쌍·native162 raw·정답·종료 실패/복구·압축 새 source | 원본mask 재구성·legacy640 정답81건 일치·전 시도 제외5629개·사전 bounded recovery·개발 품질과 독립 수용/Jetson 구분 |
 
 TC-PER-037은 [사전학습 비교 기준](perception-model-screen-v1-protocol.md)과 [5종 개발 결과](evidence/m10_model_screen_v1/README.md)를 따른다.
 TC-PER-040–042는 [V2 사전 비교 기준](perception-model-screen-v2-protocol.md)과 [6종·calibration/개발 확인 근거](evidence/m10_model_screen_v2/README.md)를 따른다.
@@ -108,3 +111,5 @@ threshold를 유지하며 첫 cold call도 timing 분모에 포함한다. CUDA p
 TC-PER-047–049는 [V9 사전 기준](perception-quality-v9-protocol.md)과 [새 D-FINE-M 평가 근거](evidence/m10_quality_v9/README.md)를 따른다. 지도/준비 복구는 각각 별도 사전 annex에 남기며 원래 실패와 고정 gate를 유지한다.
 
 TC-PER-050–053은 [해상도 V1 기준](perception-resolution-v1-protocol.md), [수치 조사 annex](perception-resolution-v1-numeric-annex.md), [검증된 V2 기준](perception-resolution-v2-protocol.md), [car 후속 기준](perception-resolution-car-v1-protocol.md), [전체 근거](evidence/m10_resolution_v2/README.md)에 연결한다.
+
+TC-PER-054–056은 [카메라 원본 기준](perception-camera-resolution-v1-protocol.md), [사전 복구 한도](perception-camera-resolution-v1-recovery.md), [4K 개발 비교 근거](evidence/m10_camera_resolution_v1/README.md)에 연결한다.

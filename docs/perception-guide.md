@@ -34,6 +34,16 @@ R91.34%다. [파생 profile](../profiles/perception-resolution-candidates-v1.jso
 원본 RGB640×384를960으로 보간·BASIC FP32/vector를 고정한다. 기존 runtime 실행 명령은 S를
 유지한다. 다음 새 개발/보류 수용과 실제 deadline·각 Jetson 배포/측정은 후속이다.
 
+
+[CARLA 원본 해상도 비교](test-plan/evidence/m10_camera_resolution_v1/README.md)는 모델960과
+confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했다.4K를 품질 평가 전에
+기술 기준으로 고정했고, 같은 개발 배치 각81장에서640은P98.37%/R93.80%,4K는129TP/0FP/0FN이다.
+수치15건 중14PASS/1FAIL과 종료 실패3쌍·사전 복구를 보존했다. 전체180쌍·미래 제외5629개다.
+[4K source profile](../profiles/perception-camera-source-candidates-v1.json)은 다음 새 평가용이며
+기존 S/runtime640은 유지한다.4K 순차 health/resize/추론 P95 약93.64ms로 live20Hz는 미수용이다.
+다음은4K 원본/고정960 모델의 새 준비·개발/보류와 native ingress/전처리·전체 wall 검증이다.
+새 학습·보드 최적화·실제 Jetson 배포는 수행하지 않았다.
+
 ## 환경과 모델
 
 저장소 루트에서 실행한다. 기본 C++ 빌드에는 Python/ONNX/CARLA가 필요 없다.

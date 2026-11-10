@@ -1,0 +1,49 @@
+F401 [*] `physical_ai.perception.camera_resolution_v1.SCALES` imported but unused
+  --> tests/integration/perception/audit_camera_resolution_v1.py:15:5
+   |
+13 | from physical_ai.perception.dataset import read_json, local_path
+14 | from physical_ai.perception.camera_resolution_v1 import (
+15 |     SCALES,
+   |     ^^^^^^
+16 |     unpack,
+17 |     canonical,
+   |
+help: Remove unused import: `physical_ai.perception.camera_resolution_v1.SCALES`
+
+F401 [*] `camera_resolution_v1_common.ROOT` imported but unused
+  --> tests/integration/perception/audit_camera_resolution_v1.py:21:5
+   |
+19 | )
+20 | from camera_resolution_v1_common import (
+21 |     ROOT,
+   |     ^^^^
+22 |     EXCLUSION,
+23 |     check_freeze,
+   |
+help: Remove unused import: `camera_resolution_v1_common.ROOT`
+
+F841 Local variable `frozen` is assigned to but never used
+  --> tests/integration/perception/audit_camera_resolution_v1.py:35:5
+   |
+34 | def audit(base):
+35 |     frozen = check_freeze(base / "freeze.json")
+   |     ^^^^^^
+36 |     selection = check_selection(base)
+37 |     futures = set(read_json(EXCLUSION)["rgb_sha256"])
+   |
+help: Remove assignment to unused variable `frozen`
+
+F401 [*] `run_resolution_v2.nonregression` imported but unused
+  --> tests/integration/perception/run_camera_resolution_v1.py:35:57
+   |
+33 | )
+34 | from check_model_screen_v1 import compare_top300, compare_detections
+35 | from run_resolution_v2 import quality, json_detections, nonregression
+   |                                                         ^^^^^^^^^^^^^
+36 |
+37 | MODELS = ROOT / "build/m10-resolution-v2/models.json"
+   |
+help: Remove unused import: `run_resolution_v2.nonregression`
+
+Found 4 errors.
+[*] 3 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).

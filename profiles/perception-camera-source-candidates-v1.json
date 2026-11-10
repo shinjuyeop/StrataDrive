@@ -1,0 +1,56 @@
+{
+  "schema": "m10-offline-camera-source-candidates-v1",
+  "candidate": "dfine-m-960-car-v1-camera4k-v1",
+  "parent_model_candidate": "dfine-m-960-car-v1",
+  "source": {
+    "width": 3840,
+    "height": 2304,
+    "horizontal_fov": 90,
+    "raw_rgb_bytes": 26542080,
+    "raw_bgra_bytes": 35389440,
+    "canonical_evaluation": [
+      640,
+      384
+    ]
+  },
+  "model": {
+    "onnx_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+    "onnx_bytes": 78671426,
+    "input_shape": [
+      1,
+      3,
+      960,
+      960
+    ],
+    "actual_orig_target_sizes": [
+      3840,
+      2304
+    ],
+    "confidence_vector": [
+      0.6,
+      0.4,
+      0.6,
+      0.5,
+      0.5,
+      0.6
+    ],
+    "precision": "float32",
+    "graph_optimization": "ORT_ENABLE_BASIC",
+    "cpu_node_fallback": false
+  },
+  "native_adapter_source_sha256": "19f57728500e887ed0d12ace148a7f1327295e13844f6aee8dfaf35dc8f2ebfa",
+  "source_freeze_sha256": "d6067fd4c342b9690e499a121ec8720959579e989852f31ea3647cb429ffd116",
+  "audit_sha256": "d08927b91252d56fa94b04ffad350169cd3560207a706d24cd458f49dbf0496c",
+  "recommended_for_next_fresh_quality_test": true,
+  "design_frames": 81,
+  "independent_acceptance": false,
+  "runtime_promotion": false,
+  "live20Hz_acceptance": false,
+  "measured_host_pipeline_p95_ms": 93.638905,
+  "future_rgb_exclusion": 5629,
+  "pending": [
+    "new independent development and holdout",
+    "native high-resolution ingress contract and live20Hz wall timing",
+    "each Thor and Orin complete-stack deployment"
+  ]
+}

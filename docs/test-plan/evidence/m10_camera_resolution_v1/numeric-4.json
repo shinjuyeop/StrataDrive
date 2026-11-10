@@ -1,0 +1,206 @@
+{
+  "schema": "m10-camera-numeric-v1",
+  "status": "PASS",
+  "started_utc": "2026-11-10T10:16:51.348212+00:00",
+  "scale": 4,
+  "rows": [
+    {
+      "probe": 0,
+      "rgb_sha256": "a7e30510aebe9f46b990d0ac123af2e8edb579dc3edc0d1fb10183cf2f24f66e",
+      "passed": true,
+      "raw_files": [
+        {
+          "file": "numeric-4-raw/0-reference.npz",
+          "sha256": "93c58d5cd3e17fe36693e1a97bba59520192d518c16a56770ec47081ec09a56c"
+        },
+        {
+          "file": "numeric-4-raw/0-cpu.npz",
+          "sha256": "12795536983cb33987714f97f58e51caa70d4a8c4879ce32248e4da083c8ed1b"
+        },
+        {
+          "file": "numeric-4-raw/0-cuda.npz",
+          "sha256": "ba94e1f16a63fdfe014ea6ae43d61b843b9b793aec60ebb27e360008693fdf7f"
+        }
+      ],
+      "deltas": [
+        {
+          "permuted_rows": 0,
+          "all300_matched": true,
+          "box_max_abs": 0.0009765625,
+          "score_max_abs": 1.1838972568511963e-05
+        },
+        {
+          "permuted_rows": 2,
+          "all300_matched": true,
+          "box_max_abs": 0.00091552734375,
+          "score_max_abs": 1.189112663269043e-05
+        }
+      ],
+      "providers": [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "provider_options": {
+        "CPUExecutionProvider": {},
+        "CUDAExecutionProvider": {
+          "sdpa_kernel": "0",
+          "use_tf32": "0",
+          "fuse_conv_bias": "0",
+          "prefer_nhwc": "0",
+          "tunable_op_max_tuning_duration_ms": "0",
+          "enable_skip_layer_norm_strict_mode": "0",
+          "tunable_op_tuning_enable": "0",
+          "tunable_op_enable": "0",
+          "use_ep_level_unified_stream": "0",
+          "device_id": "0",
+          "has_user_compute_stream": "0",
+          "gpu_external_empty_cache": "0",
+          "cudnn_conv_algo_search": "HEURISTIC",
+          "cudnn_conv1d_pad_to_nc1d": "0",
+          "gpu_mem_limit": "2147483648",
+          "gpu_external_alloc": "0",
+          "gpu_external_free": "0",
+          "arena_extend_strategy": "kNextPowerOfTwo",
+          "do_copy_in_default_stream": "1",
+          "enable_cuda_graph": "0",
+          "user_compute_stream": "0",
+          "cudnn_conv_use_max_workspace": "1"
+        }
+      }
+    },
+    {
+      "probe": 1,
+      "rgb_sha256": "55488002dd21fb6f04bcc942f0ead398120eaf1b9791c3cc020848e1e5f18ca9",
+      "passed": true,
+      "raw_files": [
+        {
+          "file": "numeric-4-raw/1-reference.npz",
+          "sha256": "47aeefc10ca8d82bdc676af2684519e69a4f41c424f4fe8a3a319032e0a0a15b"
+        },
+        {
+          "file": "numeric-4-raw/1-cpu.npz",
+          "sha256": "3a5cfc588457e7c3787616c1bb53768c60f997d5dd5c6280e0cd0280aea10114"
+        },
+        {
+          "file": "numeric-4-raw/1-cuda.npz",
+          "sha256": "48607b8b7466357266c4946347dc8ae129ef34c55d9a0238a209469f46e9eae6"
+        }
+      ],
+      "deltas": [
+        {
+          "permuted_rows": 0,
+          "all300_matched": true,
+          "box_max_abs": 0.0029296875,
+          "score_max_abs": 9.920448064804077e-06
+        },
+        {
+          "permuted_rows": 0,
+          "all300_matched": true,
+          "box_max_abs": 0.000946044921875,
+          "score_max_abs": 1.1652708053588867e-05
+        }
+      ],
+      "providers": [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "provider_options": {
+        "CPUExecutionProvider": {},
+        "CUDAExecutionProvider": {
+          "sdpa_kernel": "0",
+          "use_tf32": "0",
+          "fuse_conv_bias": "0",
+          "prefer_nhwc": "0",
+          "tunable_op_max_tuning_duration_ms": "0",
+          "enable_skip_layer_norm_strict_mode": "0",
+          "tunable_op_tuning_enable": "0",
+          "tunable_op_enable": "0",
+          "use_ep_level_unified_stream": "0",
+          "device_id": "0",
+          "has_user_compute_stream": "0",
+          "gpu_external_empty_cache": "0",
+          "cudnn_conv_algo_search": "HEURISTIC",
+          "cudnn_conv1d_pad_to_nc1d": "0",
+          "gpu_mem_limit": "2147483648",
+          "gpu_external_alloc": "0",
+          "gpu_external_free": "0",
+          "arena_extend_strategy": "kNextPowerOfTwo",
+          "do_copy_in_default_stream": "1",
+          "enable_cuda_graph": "0",
+          "user_compute_stream": "0",
+          "cudnn_conv_use_max_workspace": "1"
+        }
+      }
+    },
+    {
+      "probe": 2,
+      "rgb_sha256": "10250dce72977f03eca2a4516eec123d17f25b10feb9f444877327f14cbd7137",
+      "passed": true,
+      "raw_files": [
+        {
+          "file": "numeric-4-raw/2-reference.npz",
+          "sha256": "21e45725934d548e4da6e3b882753a7039b23ce150de51c3587745a01b887791"
+        },
+        {
+          "file": "numeric-4-raw/2-cpu.npz",
+          "sha256": "1c569a2c5efb68c8c23e2a66a0ba8afa47bd92fb19107d3760194b9bb7b6f5a5"
+        },
+        {
+          "file": "numeric-4-raw/2-cuda.npz",
+          "sha256": "83cab3e133c79ad637640daebd254b94dcf3c525fd6465816d8c701931496dcd"
+        }
+      ],
+      "deltas": [
+        {
+          "permuted_rows": 0,
+          "all300_matched": true,
+          "box_max_abs": 0.0006103515625,
+          "score_max_abs": 9.272247552871704e-06
+        },
+        {
+          "permuted_rows": 0,
+          "all300_matched": true,
+          "box_max_abs": 0.00030517578125,
+          "score_max_abs": 1.1563301086425781e-05
+        }
+      ],
+      "providers": [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "provider_options": {
+        "CPUExecutionProvider": {},
+        "CUDAExecutionProvider": {
+          "sdpa_kernel": "0",
+          "use_tf32": "0",
+          "fuse_conv_bias": "0",
+          "prefer_nhwc": "0",
+          "tunable_op_max_tuning_duration_ms": "0",
+          "enable_skip_layer_norm_strict_mode": "0",
+          "tunable_op_tuning_enable": "0",
+          "tunable_op_enable": "0",
+          "use_ep_level_unified_stream": "0",
+          "device_id": "0",
+          "has_user_compute_stream": "0",
+          "gpu_external_empty_cache": "0",
+          "cudnn_conv_algo_search": "HEURISTIC",
+          "cudnn_conv1d_pad_to_nc1d": "0",
+          "gpu_mem_limit": "2147483648",
+          "gpu_external_alloc": "0",
+          "gpu_external_free": "0",
+          "arena_extend_strategy": "kNextPowerOfTwo",
+          "do_copy_in_default_stream": "1",
+          "enable_cuda_graph": "0",
+          "user_compute_stream": "0",
+          "cudnn_conv_use_max_workspace": "1"
+        }
+      }
+    }
+  ],
+  "box_atol_canonical": 0.1,
+  "score_atol": 0.0001,
+  "cold_calls_excluded": 0,
+  "rgb_manifest_sha256": "7cde1d9dff4a905652f4d4119d44d562de16700930c200d4a506834d4fc3bc19",
+  "freeze_sha256": "d6067fd4c342b9690e499a121ec8720959579e989852f31ea3647cb429ffd116",
+  "completed_utc": "2026-11-10T10:16:54.404968+00:00"
+}

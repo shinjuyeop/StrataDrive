@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **960 입력·car confidence 개발 개선 후보 고정 / 새 품질 평가 대기·V9 보류 FAIL·기존 S 유지 / 최종 모델·정확도·전체wall20Hz·시작/종료·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md) · [고정 후보 검증](test-plan/evidence/m10_class_calibration_v1/README.md) · [새 V9 평가](test-plan/evidence/m10_quality_v9/README.md) · [960 후속 후보](test-plan/evidence/m10_resolution_v2/README.md) |
+| M10 | **4K 원본/960 모델 개발 비교 PASS·다음 source 고정 / 순차P95 약94ms·새 보류/20Hz 대기·기존 S 유지 / M10 OPEN** | [모델 선정 순서](perception-model-selection.md) · [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md) · [고정 후보 검증](test-plan/evidence/m10_class_calibration_v1/README.md) · [새 V9 평가](test-plan/evidence/m10_quality_v9/README.md) · [960 후속 후보](test-plan/evidence/m10_resolution_v2/README.md) · [4K 원본](test-plan/evidence/m10_camera_resolution_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -72,6 +72,16 @@ R92.25%로 절대·상대 PASS, 새 보류 P86.09%/R76.74%로 상대 PASS·절�
 V9 개발도 설계에 사용했으며 독립 보류가 아니다. 후보 `dfine-m-960-car-v1`을 고정했고 다음은
 새 준비·개발·보류 평가다. Native6+후속3probe·원본/파생 raw 재감사·Python216개를 연결한다.
 새 RGB·학습·보드 최적화·runtime 교체는 없으며 미래 제외5449개와 S/M10 OPEN을 유지한다.
+
+
+[CARLA 원본 해상도 비교](test-plan/evidence/m10_camera_resolution_v1/README.md)는 모델960과
+confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했다.4K를 품질 평가 전에
+기술 기준으로 고정했고, 같은 개발 배치 각81장에서640은P98.37%/R93.80%,4K는129TP/0FP/0FN이다.
+수치15건 중14PASS/1FAIL과 종료 실패3쌍·사전 복구를 보존했다. 전체180쌍·미래 제외5629개다.
+[4K source profile](../profiles/perception-camera-source-candidates-v1.json)은 다음 새 평가용이며
+기존 S/runtime640은 유지한다.4K 순차 health/resize/추론 P95 약93.64ms로 live20Hz는 미수용이다.
+다음은4K 원본/고정960 모델의 새 준비·개발/보류와 native ingress/전처리·전체 wall 검증이다.
+새 학습·보드 최적화·실제 Jetson 배포는 수행하지 않았다.
 
 ## M9 기능 범위 마감
 

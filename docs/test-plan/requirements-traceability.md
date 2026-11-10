@@ -151,3 +151,8 @@ TC-PER-050–053/C-M10-PER-46–49는 [해상도·car 후속 근거](evidence/m1
 연결한다. 원래 수치/640 cache 실패·1280 제외·검증된960 비교와 car 회귀 거절·별도 개발 설계
 revision을 구분한다. 원본1458/파생486 raw·원래 gate·source/압축 재현의 부분 근거이며,
 새 개발/보류·전체wall20Hz·차량·Thor/Orin 각각의 전체 stack 수용은 후속이다.
+
+TC-PER-054–056/C-M10-PER-50–52는 [4K 원본 비교](evidence/m10_camera_resolution_v1/README.md)의
+실제 native RGB/instance·독립 variable-size frame·동일 angular 지원·full300 수치/최대 source
+사전 지명·원본/실패/압축 새 source 재현에 연결한다. 같은 소비 개발 배치이며 새 보류·전체
+wall20Hz·기존 runtime 교체·Thor/Orin 전체 stack 수용을 완료하지 않는다.

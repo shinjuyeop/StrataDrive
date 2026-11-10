@@ -150,3 +150,13 @@ R90.70%로 개선됐지만, 소비한 V9 개발의 car recall32/33→31/33 때�
 아니다. [파생 후보 프로파일](../profiles/perception-resolution-candidates-v1.json)은 새960 ONNX/
 전처리/BASIC/vector/backend와 근거 SHA를 고정한다. 새 학습이나 보드 최적화는 하지 않았다.
 다음은 이 단일 후보의 모델 없는 준비·새 개발/보류 평가다. 최종 모델 채택·runtime 교체는 미완료다.
+
+
+[CARLA 원본 해상도 비교](test-plan/evidence/m10_camera_resolution_v1/README.md)는 모델960과
+confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했다.4K를 품질 평가 전에
+기술 기준으로 고정했고, 같은 개발 배치 각81장에서640은P98.37%/R93.80%,4K는129TP/0FP/0FN이다.
+수치15건 중14PASS/1FAIL과 종료 실패3쌍·사전 복구를 보존했다. 전체180쌍·미래 제외5629개다.
+[4K source profile](../profiles/perception-camera-source-candidates-v1.json)은 다음 새 평가용이며
+기존 S/runtime640은 유지한다.4K 순차 health/resize/추론 P95 약93.64ms로 live20Hz는 미수용이다.
+다음은4K 원본/고정960 모델의 새 준비·개발/보류와 native ingress/전처리·전체 wall 검증이다.
+새 학습·보드 최적화·실제 Jetson 배포는 수행하지 않았다.

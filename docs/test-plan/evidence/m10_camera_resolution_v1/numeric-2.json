@@ -1,0 +1,162 @@
+{
+  "schema": "m10-camera-numeric-v1",
+  "status": "FAIL",
+  "started_utc": "2026-11-10T10:14:35.690204+00:00",
+  "scale": 2,
+  "rows": [
+    {
+      "probe": 0,
+      "rgb_sha256": "b7f426add6920b232726b88cdcd18b9e68e065c7fcad388b568d232ae169fe97",
+      "passed": true,
+      "raw_files": [
+        {
+          "file": "numeric-2-raw/0-reference.npz",
+          "sha256": "2ae1065b3b72111456c067146089c246d34a79ea5f8a3a4a3152b74b3ecbf0ca"
+        },
+        {
+          "file": "numeric-2-raw/0-cpu.npz",
+          "sha256": "abe8b9d01dcd96aebf48e9cce1b77f47b261cc4c7351ad2f74f17c1a43a30ac2"
+        },
+        {
+          "file": "numeric-2-raw/0-cuda.npz",
+          "sha256": "11fa60c45a1adf25add10bc743ad44af528d217be62dea646286a59e058f546f"
+        }
+      ],
+      "deltas": [
+        {
+          "permuted_rows": 2,
+          "all300_matched": true,
+          "box_max_abs": 0.0345458984375,
+          "score_max_abs": 2.384185791015625e-06
+        },
+        {
+          "permuted_rows": 0,
+          "all300_matched": true,
+          "box_max_abs": 0.0408935546875,
+          "score_max_abs": 4.023313522338867e-06
+        }
+      ],
+      "providers": [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "provider_options": {
+        "CPUExecutionProvider": {},
+        "CUDAExecutionProvider": {
+          "sdpa_kernel": "0",
+          "use_tf32": "0",
+          "fuse_conv_bias": "0",
+          "prefer_nhwc": "0",
+          "tunable_op_max_tuning_duration_ms": "0",
+          "enable_skip_layer_norm_strict_mode": "0",
+          "tunable_op_tuning_enable": "0",
+          "tunable_op_enable": "0",
+          "use_ep_level_unified_stream": "0",
+          "device_id": "0",
+          "has_user_compute_stream": "0",
+          "gpu_external_empty_cache": "0",
+          "cudnn_conv_algo_search": "HEURISTIC",
+          "cudnn_conv1d_pad_to_nc1d": "0",
+          "gpu_mem_limit": "2147483648",
+          "gpu_external_alloc": "0",
+          "gpu_external_free": "0",
+          "arena_extend_strategy": "kNextPowerOfTwo",
+          "do_copy_in_default_stream": "1",
+          "enable_cuda_graph": "0",
+          "user_compute_stream": "0",
+          "cudnn_conv_use_max_workspace": "1"
+        }
+      }
+    },
+    {
+      "probe": 1,
+      "rgb_sha256": "af1e713b456aaf3a1706f9709a3146f29dc1f326a9ccbf88d841bb7b13b87165",
+      "passed": false,
+      "raw_files": [
+        {
+          "file": "numeric-2-raw/1-reference.npz",
+          "sha256": "0f1fa24f1e7acfe9f5306b855224587be1adb75d845525dd6627641ae98f31b7"
+        },
+        {
+          "file": "numeric-2-raw/1-cpu.npz",
+          "sha256": "78dc0abec55caac142a35c40ea5d886a7e773604660f0bca342cb29f708f0441"
+        },
+        {
+          "file": "numeric-2-raw/1-cuda.npz",
+          "sha256": "6454d3a0d51be695cd9163132b80fed6545cfbc5c86ed31b2ad783143a49505e"
+        }
+      ],
+      "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/perception/run_camera_resolution_v1.py\", line 170, in numeric\n    deltas.append(compare_top300(canonical(a, scale), canonical(b, scale)))\n  File \"/d/shin/StrataDrive/tests/integration/perception/check_model_screen_v1.py\", line 124, in compare_top300\n    raise ValueError(\"RT-DETR complete top300 set mismatch\")\nValueError: RT-DETR complete top300 set mismatch\n"
+    },
+    {
+      "probe": 2,
+      "rgb_sha256": "5c76931eff34ebd0a6101b7d2c5133ac11650d5d2dab465aff1d681b3f9e65a9",
+      "passed": true,
+      "raw_files": [
+        {
+          "file": "numeric-2-raw/2-reference.npz",
+          "sha256": "d4d5a8fa9c4ac773cdbc6750f42b643a04ac41b840c01a4edb80bd5c3be84553"
+        },
+        {
+          "file": "numeric-2-raw/2-cpu.npz",
+          "sha256": "2680efbca4c49214d48037b3b20970be4fe1a0b50509fa8513f3544af25019e5"
+        },
+        {
+          "file": "numeric-2-raw/2-cuda.npz",
+          "sha256": "8d646318574ddc4f106bd0dc063935097d75e871644f9575fe927dddcdb809a7"
+        }
+      ],
+      "deltas": [
+        {
+          "permuted_rows": 4,
+          "all300_matched": true,
+          "box_max_abs": 0.0589447021484375,
+          "score_max_abs": 1.1589378118515015e-05
+        },
+        {
+          "permuted_rows": 0,
+          "all300_matched": true,
+          "box_max_abs": 0.027069091796875,
+          "score_max_abs": 1.093745231628418e-05
+        }
+      ],
+      "providers": [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "provider_options": {
+        "CPUExecutionProvider": {},
+        "CUDAExecutionProvider": {
+          "sdpa_kernel": "0",
+          "use_tf32": "0",
+          "fuse_conv_bias": "0",
+          "prefer_nhwc": "0",
+          "tunable_op_max_tuning_duration_ms": "0",
+          "enable_skip_layer_norm_strict_mode": "0",
+          "tunable_op_tuning_enable": "0",
+          "tunable_op_enable": "0",
+          "use_ep_level_unified_stream": "0",
+          "device_id": "0",
+          "has_user_compute_stream": "0",
+          "gpu_external_empty_cache": "0",
+          "cudnn_conv_algo_search": "HEURISTIC",
+          "cudnn_conv1d_pad_to_nc1d": "0",
+          "gpu_mem_limit": "2147483648",
+          "gpu_external_alloc": "0",
+          "gpu_external_free": "0",
+          "arena_extend_strategy": "kNextPowerOfTwo",
+          "do_copy_in_default_stream": "1",
+          "enable_cuda_graph": "0",
+          "user_compute_stream": "0",
+          "cudnn_conv_use_max_workspace": "1"
+        }
+      }
+    }
+  ],
+  "box_atol_canonical": 0.1,
+  "score_atol": 0.0001,
+  "cold_calls_excluded": 0,
+  "rgb_manifest_sha256": "2e60a5ca63093b0cb379e7531cb7c43a1979dab65e6465703992501619d9b961",
+  "freeze_sha256": "d6067fd4c342b9690e499a121ec8720959579e989852f31ea3647cb429ffd116",
+  "completed_utc": "2026-11-10T10:14:38.373161+00:00"
+}
