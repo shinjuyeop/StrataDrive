@@ -1,0 +1,92 @@
+{
+  "candidate": "damo-s",
+  "checkpoint_sha256": "70ccc4b45efd4ebb5e180c77040ca26714aaa9559c2b609b69c1bb6199b4be63",
+  "strict_state_load": true,
+  "tensor_count": 640,
+  "native_configuration": {
+    "backbone": {
+      "out_indices": [
+        2,
+        4,
+        5
+      ],
+      "with_spp": true,
+      "use_focus": true,
+      "act": "relu",
+      "reparam": true
+    },
+    "neck": {
+      "depth": 1.0,
+      "hidden_ratio": 0.75,
+      "in_channels": [
+        128,
+        256,
+        512
+      ],
+      "out_channels": [
+        128,
+        256,
+        512
+      ],
+      "act": "relu",
+      "spp": false,
+      "block_name": "BasicBlock_3x3_Reverse"
+    },
+    "head": {
+      "num_classes": 80,
+      "in_channels": [
+        128,
+        256,
+        512
+      ],
+      "stacked_convs": 0,
+      "reg_max": 16,
+      "act": "silu",
+      "nms_conf_thre": 0.05,
+      "nms_iou_thre": 0.7,
+      "legacy": true,
+      "nms": false
+    },
+    "preprocessing": {
+      "color": "RGB",
+      "keep_ratio": false,
+      "image_mean": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "image_std": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "input_size": [
+        640,
+        640
+      ]
+    }
+  },
+  "training": false,
+  "onnx_sha256": "9e4b10313b7e84ae6eb66670133fee9756c9d33f0ce23d487fa7c27c01e7b704",
+  "onnx_bytes": 65242280,
+  "outputs": [
+    {
+      "shape": [
+        1,
+        8400,
+        80
+      ],
+      "dtype": "torch.float32"
+    },
+    {
+      "shape": [
+        1,
+        8400,
+        4
+      ],
+      "dtype": "torch.float32"
+    }
+  ],
+  "torch_version": "2.5.1+cu124",
+  "opset": 16
+}

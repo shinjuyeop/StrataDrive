@@ -1,0 +1,219 @@
+{
+  "status": "PASS",
+  "weights_only_load": true,
+  "strict_full_state_load": true,
+  "models": {
+    "dfine-m": {
+      "family": "rtdetr",
+      "source": "https://github.com/Peterande/D-FINE",
+      "revision": "956d1709314c2c6a4df6f34de232054578a7449f",
+      "license": "Apache-2.0",
+      "sha256": "40097ba600ba21b94c673a76ff602ece600392fc1d9641576ff66bfa0300e1c2",
+      "bytes": 77949424,
+      "checkpoint": "dfine-m.pth",
+      "checkpoint_sha256": "b44a7586bf490858c7b8bce9e44bd025cb88724df9a07a8deb3ae1c12e608195",
+      "inputs": [
+        {
+          "name": "images",
+          "shape": [
+            1,
+            3,
+            640,
+            640
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "orig_target_sizes",
+          "shape": [
+            1,
+            2
+          ],
+          "dtype": "tensor(int64)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "labels",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(int64)"
+        },
+        {
+          "name": "boxes",
+          "shape": [
+            1,
+            300,
+            4
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "scores",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "jetson_validation": "NOT RUN; independent complete-stack validation required on each board",
+      "board_optimization": "DEFERRED by user"
+    },
+    "rtv4-s": {
+      "family": "rtdetr",
+      "source": "https://github.com/AIMIA-PKU/RT-DETRv4",
+      "revision": "55fefaaed7efe2a5f72d0a18fd4e05965e35c292",
+      "license": "Apache-2.0",
+      "sha256": "bc24df4a66d10b379251f018f5dce8a3dd22e1a4adc75337c27e49ddde852065",
+      "bytes": 41831832,
+      "checkpoint": "rtv4-s.pth",
+      "checkpoint_sha256": "238a3f6537bf3b75b55e73f91f9d4cec8d21259b4908b3f21896f3e038b5a3ee",
+      "inputs": [
+        {
+          "name": "images",
+          "shape": [
+            1,
+            3,
+            640,
+            640
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "orig_target_sizes",
+          "shape": [
+            1,
+            2
+          ],
+          "dtype": "tensor(int64)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "labels",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(int64)"
+        },
+        {
+          "name": "boxes",
+          "shape": [
+            1,
+            300,
+            4
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "scores",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "jetson_validation": "NOT RUN; independent complete-stack validation required on each board",
+      "board_optimization": "DEFERRED by user"
+    },
+    "damo-s": {
+      "family": "damo",
+      "source": "https://modelscope.cn/models/damo/cv_tinynas_object-detection_damoyolo",
+      "revision": "319572eef367340267ab6ab8ae253527a71d7c3a",
+      "license": "Apache-2.0",
+      "sha256": "9e4b10313b7e84ae6eb66670133fee9756c9d33f0ce23d487fa7c27c01e7b704",
+      "bytes": 65242280,
+      "checkpoint": "damoyolo_tinynasL25_S.pt",
+      "checkpoint_sha256": "70ccc4b45efd4ebb5e180c77040ca26714aaa9559c2b609b69c1bb6199b4be63",
+      "inputs": [
+        {
+          "name": "images",
+          "shape": [
+            1,
+            3,
+            640,
+            640
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "scores",
+          "shape": [
+            1,
+            8400,
+            80
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "boxes",
+          "shape": [
+            1,
+            8400,
+            4
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "jetson_validation": "NOT RUN; independent complete-stack validation required on each board",
+      "board_optimization": "DEFERRED by user",
+      "variant": "official ModelScope TinyNAS-L25-S legacy81; NOT claimed identical to newer 47.7 release",
+      "legacy": true,
+      "preprocessing": "official GitHub still-image demo PIL RGB direct640 resize, no scaling, keep_ratio=False; compatibility-probed",
+      "native_nms_iou": 0.7,
+      "native_nms_limit": 500
+    }
+  },
+  "failures_and_corrections": [
+    {
+      "step": "DAMO official OSS ONNX acquisition",
+      "status": "FAIL",
+      "http": 404,
+      "url": "https://idstcv.oss-cn-zhangjiakou.aliyuncs.com/DAMO-YOLO/release_model/onnx/damoyolo_tinynasL25_S_477.onnx",
+      "resolution": "Use hash-verified official ModelScope legacy checkpoint; explicitly distinct identity."
+    },
+    {
+      "step": "RTv4 ZIP-only intake check",
+      "status": "FAIL",
+      "resolution": "Recognized documented PyTorch legacy pickle magic; weights_only=True load PASS, no unsafe pickle load."
+    },
+    {
+      "step": "DAMO latest legacy=False config load",
+      "status": "FAIL",
+      "log": "damo-export.log",
+      "resolution": "Official ModelScope damoyolo.py omits legacy, upstream backward-compatible default True; complete 81-channel state strict-load PASS, first80 COCO channels exported."
+    },
+    {
+      "step": "reference initial runtime-envelope reuse",
+      "status": "FAIL",
+      "log": "reference.log",
+      "resolution": "Separate offline ScreenDetection supports grid below frozen runtime0.35 floor; runtime unchanged."
+    },
+    {
+      "step": "native empty NMS array shape",
+      "status": "FAIL",
+      "log": "reference-v2.log",
+      "resolution": "Official empty output can be (0,5); take coordinate columns [:,:4], no score/box math change."
+    },
+    {
+      "step": "initial DAMO BGR still-image assumption",
+      "status": "INVALIDATED",
+      "numeric": "numeric.json",
+      "reference": "reference-v3",
+      "resolution": "Official tools/demo.py line319 PIL RGB path verified before quality inference. RGB source/protocol/registry corrected, asymmetric color regression added; only reference-rgb/numeric-rgb admitted."
+    }
+  ],
+  "scope": "No new RGB or quality inference before final freeze; all preparation failures retained.",
+  "not_admitted": [
+    "RTv4 guessed HF endpoint HTTP401",
+    "DEIMv2 (not selected for this bounded screen)",
+    "RF-DETR (not selected for this bounded screen)"
+  ]
+}

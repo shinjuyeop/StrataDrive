@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **사전학습5종 개발 비교·Town04 새162장 평가 완료 / L 개발 PASS·보류 FAIL·기존 S 유지 / 모델 선정·정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [5종 비교](test-plan/evidence/m10_model_screen_v1/README.md) · [V8 새 지도 평가](test-plan/evidence/m10_quality_v8/README.md) |
+| M10 | **사전학습6종·confidence 개발405장 비교 완료 / 모델별 미달·과거 보류 FAIL·기존 S 유지 / 모델 선정·정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [6종 비교 V2](test-plan/evidence/m10_model_screen_v2/README.md) · [V8 새 지도 평가](test-plan/evidence/m10_quality_v8/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -33,7 +33,16 @@
 P79.65%/R69.77%·near person2/3과 보행자/이륜차 조건이 FAIL이다. 최초 준비198장(보류 가림 FAIL),
 별도 종료 FAIL99장과 동일 조건 복구를 보존했다. 전체657개 raw pair·미래 제외4990개,
 source237개·원본/점수·새 경로 재감사를 남겼다. 추가 학습이나 보드 최적화로 전환하지 않았고,
-다음은 개발 자료에서 작은 보행자·이륜차·차종 혼동에 대한 사전학습 후보 비교를 확대하는 일이다.
+후속으로 개발 자료에서 사전학습 후보 비교를 확대했다.
+
+[비교 V2](test-plan/evidence/m10_model_screen_v2/README.md)는 S/L·RT-DETRv2-R18에
+D-FINE-M·RT-DETRv4-S·공식 DAMO legacy를 추가했다. 개발324장에서8점 confidence를
+비교하고 설정 봉인 뒤 Town04 개발81장을 확인했다. L만 앞선 도로와 Town04의 절대 기준을
+모두 통과했고 과거 보류 실패는 유지한다. D-FINE은 Town04 P88.15%/R92.25%이나 앞선
+도로 P78.28%가 FAIL이다. RT-DETRv4는 P94.10%/R83.53%이나 작은 person/bicycle
+기준이 남았다. 전체 raw2430개·threshold19440세트·48개 calibration/12개 check 점수를
+재생했다. 신규 RGB·새 보류·학습·보드 최적화 없이 미래 제외4990개와 기본 S를 유지한다.
+다음은 개발 영역의 오검출/작은 VRU 누락 분석과 후속 후보·입력 설정 고정이다.
 
 ## M9 기능 범위 마감
 

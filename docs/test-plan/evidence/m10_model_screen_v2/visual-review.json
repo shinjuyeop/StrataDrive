@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "reviewed": [
+    {
+      "file": "v4-scene-06.png",
+      "observation": "Small distant bicycle/Rider: several candidates show person boxes without bicycle; D-FINE also adds a right-side car box outside positive GT. This is a fixed-frame diagnostic, not semantic ground-truth adjudication."
+    },
+    {
+      "file": "v6-scene-14.png",
+      "observation": "Distant motorcycle/Rider produces different class/miss patterns across models; RTv4 detects motorcycle while other candidates miss it or emit a different class. Numeric full-denominator scores remain authoritative."
+    },
+    {
+      "file": "v8-scene-03.png",
+      "observation": "Occluded person and foreground car: the fixed selected thresholds yield differing person visibility; R18 misses the person in this displayed frame. No threshold changes follow this review."
+    }
+  ],
+  "all_panels_same_rgb_across_models": true,
+  "selection_modified": false,
+  "holdout_access": false
+}

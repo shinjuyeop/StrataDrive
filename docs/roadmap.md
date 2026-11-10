@@ -54,7 +54,14 @@ Jetson 각각의 배포 가능성을 고려하되 현 단계의 보드별 최적
 
 그 뒤 [V8 새 Town04 평가](test-plan/evidence/m10_quality_v8/README.md)를 완료했다. 공식 L은
 개발 절대/상대 PASS·보류 FAIL이며 작은 보행자·이륜차·차종 혼동이 남았다. 소비된 보류를
-재사용하지 않고 개발 자료에서 사전학습 후보 비교를 확대한다. 기본 S와 보드 최적화 후속 원칙은 유지한다.
+재사용하지 않고 개발 자료에서 사전학습 후보 비교를 확대했다. 기본 S와 보드 최적화 후속 원칙은 유지한다.
+
+[비교 V2](test-plan/evidence/m10_model_screen_v2/README.md)는 D-FINE-M·RT-DETRv4-S·
+DAMO legacy를 추가해6종의 개발324장 confidence calibration과 봉인 뒤 Town04 개발81장을
+확인했다. D-FINE은 Town04 절대 PASS지만 앞선 도로의 FP가 남고 RT-DETRv4는 작은
+person/bicycle recall이 부족하다. L의 과거 보류 FAIL도 유지한다. 최종 Reference는 미지명이며
+후속은 개발 영역에서 오검출/작은 VRU 누락을 분리해 후보·입력 설정을 고정하는 일이다.
+새 보류·학습·Jetson 최적화는 이번 비교에 포함하지 않았다.
 
 M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](project-status.md)와
 [마감 검증](test-plan/evidence/m9_followup/README.md)을 기준으로 종료했다.

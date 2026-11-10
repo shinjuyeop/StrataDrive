@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/check_model_screen_v2.py", line 117, in <module>
+    report = reference(args.output, models) if args.action == "reference" else numeric(args.output, args.reference, models)
+  File "/d/shin/StrataDrive/tests/integration/perception/check_model_screen_v2.py", line 61, in reference
+    native[str(threshold)] = [asdict(d) for d in select(c.numpy(), s.numpy(), b, threshold)]
+  File "/d/shin/StrataDrive/physical_ai/perception/model_screen_v2.py", line 31, in select
+    detection.validate()
+  File "/d/shin/StrataDrive/physical_ai/perception/contract.py", line 187, in validate
+    raise ValueError("invalid detection")
+ValueError: invalid detection

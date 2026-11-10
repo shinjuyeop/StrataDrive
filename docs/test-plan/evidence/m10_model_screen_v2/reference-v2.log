@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/check_model_screen_v2.py", line 117, in <module>
+    report = reference(args.output, models) if args.action == "reference" else numeric(args.output, args.reference, models)
+  File "/d/shin/StrataDrive/tests/integration/perception/check_model_screen_v2.py", line 59, in reference
+    b = b.numpy() * np.array([1, .6, 1, .6], np.float32)
+ValueError: operands could not be broadcast together with shapes (0,5) (4,) 

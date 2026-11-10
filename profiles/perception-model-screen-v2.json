@@ -1,0 +1,296 @@
+{
+  "schema": "m10-pretrained-screen-registry-v2",
+  "scope": "consumed development only; no runtime promotion or board optimization",
+  "models": {
+    "yolox-s": {
+      "family": "yolox",
+      "source": "https://github.com/opencv/opencv_zoo/tree/a74cdfad334b102cbd8daed769fbe1d4cb1c327a/models/object_detection_yolox",
+      "revision": "a74cdfad334b102cbd8daed769fbe1d4cb1c327a",
+      "license": "Apache-2.0",
+      "bytes": 35858002,
+      "sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+      "inputs": [
+        {
+          "name": "images",
+          "shape": [
+            1,
+            3,
+            640,
+            640
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "shape": [
+            1,
+            8400,
+            85
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "jetson_validation": "NOT RUN; later per-board stack/engine compatibility and accuracy/timing required",
+      "board_optimization": "DEFERRED by user"
+    },
+    "yolox-l": {
+      "family": "yolox",
+      "source": "https://github.com/Megvii-BaseDetection/YOLOX/releases/tag/0.1.1rc0",
+      "revision": "e1052df71842031413f6030723c3607b839c80ce",
+      "license": "Apache-2.0",
+      "bytes": 216746733,
+      "sha256": "7860ae79de6c89a3c1eb72ae9a2756c0ccfbe04b7791bb5880afabd97855a411",
+      "inputs": [
+        {
+          "name": "images",
+          "shape": [
+            1,
+            3,
+            640,
+            640
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "shape": [
+            1,
+            8400,
+            85
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "jetson_validation": "NOT RUN; later per-board stack/engine compatibility and accuracy/timing required",
+      "board_optimization": "DEFERRED by user"
+    },
+    "rtdetrv2-r18": {
+      "family": "rtdetr",
+      "source": "https://github.com/lyuwenyu/RT-DETR",
+      "revision": "df2a96c8c3a098567a1149bf0248da6efe6d495d",
+      "license": "Apache-2.0",
+      "bytes": 80455007,
+      "sha256": "bbec0e068fe672ce7cae3d15e2086f11e6bbfbf5ab50b63658cd80bc8c3c3957",
+      "inputs": [
+        {
+          "name": "images",
+          "shape": [
+            1,
+            3,
+            640,
+            640
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "orig_target_sizes",
+          "shape": [
+            1,
+            2
+          ],
+          "dtype": "tensor(int64)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "labels",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(int64)"
+        },
+        {
+          "name": "boxes",
+          "shape": [
+            1,
+            300,
+            4
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "scores",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "jetson_validation": "NOT RUN; later per-board stack/engine compatibility and accuracy/timing required",
+      "board_optimization": "DEFERRED by user"
+    },
+    "dfine-m": {
+      "family": "rtdetr",
+      "source": "https://github.com/Peterande/D-FINE",
+      "revision": "956d1709314c2c6a4df6f34de232054578a7449f",
+      "license": "Apache-2.0",
+      "sha256": "40097ba600ba21b94c673a76ff602ece600392fc1d9641576ff66bfa0300e1c2",
+      "bytes": 77949424,
+      "checkpoint": "dfine-m.pth",
+      "checkpoint_sha256": "b44a7586bf490858c7b8bce9e44bd025cb88724df9a07a8deb3ae1c12e608195",
+      "inputs": [
+        {
+          "name": "images",
+          "shape": [
+            1,
+            3,
+            640,
+            640
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "orig_target_sizes",
+          "shape": [
+            1,
+            2
+          ],
+          "dtype": "tensor(int64)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "labels",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(int64)"
+        },
+        {
+          "name": "boxes",
+          "shape": [
+            1,
+            300,
+            4
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "scores",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "jetson_validation": "NOT RUN; independent complete-stack validation required on each board",
+      "board_optimization": "DEFERRED by user"
+    },
+    "rtv4-s": {
+      "family": "rtdetr",
+      "source": "https://github.com/AIMIA-PKU/RT-DETRv4",
+      "revision": "55fefaaed7efe2a5f72d0a18fd4e05965e35c292",
+      "license": "Apache-2.0",
+      "sha256": "bc24df4a66d10b379251f018f5dce8a3dd22e1a4adc75337c27e49ddde852065",
+      "bytes": 41831832,
+      "checkpoint": "rtv4-s.pth",
+      "checkpoint_sha256": "238a3f6537bf3b75b55e73f91f9d4cec8d21259b4908b3f21896f3e038b5a3ee",
+      "inputs": [
+        {
+          "name": "images",
+          "shape": [
+            1,
+            3,
+            640,
+            640
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "orig_target_sizes",
+          "shape": [
+            1,
+            2
+          ],
+          "dtype": "tensor(int64)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "labels",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(int64)"
+        },
+        {
+          "name": "boxes",
+          "shape": [
+            1,
+            300,
+            4
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "scores",
+          "shape": [
+            1,
+            300
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "jetson_validation": "NOT RUN; independent complete-stack validation required on each board",
+      "board_optimization": "DEFERRED by user"
+    },
+    "damo-s": {
+      "family": "damo",
+      "source": "https://modelscope.cn/models/damo/cv_tinynas_object-detection_damoyolo",
+      "revision": "319572eef367340267ab6ab8ae253527a71d7c3a",
+      "license": "Apache-2.0",
+      "sha256": "9e4b10313b7e84ae6eb66670133fee9756c9d33f0ce23d487fa7c27c01e7b704",
+      "bytes": 65242280,
+      "checkpoint": "damoyolo_tinynasL25_S.pt",
+      "checkpoint_sha256": "70ccc4b45efd4ebb5e180c77040ca26714aaa9559c2b609b69c1bb6199b4be63",
+      "inputs": [
+        {
+          "name": "images",
+          "shape": [
+            1,
+            3,
+            640,
+            640
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "scores",
+          "shape": [
+            1,
+            8400,
+            80
+          ],
+          "dtype": "tensor(float)"
+        },
+        {
+          "name": "boxes",
+          "shape": [
+            1,
+            8400,
+            4
+          ],
+          "dtype": "tensor(float)"
+        }
+      ],
+      "jetson_validation": "NOT RUN; independent complete-stack validation required on each board",
+      "board_optimization": "DEFERRED by user",
+      "variant": "official ModelScope TinyNAS-L25-S legacy81; NOT claimed identical to newer 47.7 release",
+      "legacy": true,
+      "preprocessing": "official GitHub still-image demo PIL RGB direct640 resize, no scaling, keep_ratio=False; compatibility-probed",
+      "native_nms_iou": 0.7,
+      "native_nms_limit": 500
+    }
+  }
+}

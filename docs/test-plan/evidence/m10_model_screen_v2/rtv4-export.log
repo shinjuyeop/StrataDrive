@@ -1,0 +1,140 @@
+/d/shin/StrataDrive/third_party/pretrained-screen-v2/rtv4/engine/rtv4/dfine_decoder.py:648: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  if memory.shape[0] > 1:
+/d/shin/StrataDrive/third_party/pretrained-screen-v2/rtv4/engine/rtv4/dfine_decoder.py:129: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  if reference_points.shape[-1] == 2:
+/d/shin/StrataDrive/third_party/pretrained-screen-v2/rtv4/engine/rtv4/dfine_decoder.py:133: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
+  elif reference_points.shape[-1] == 4:
+/d/shin/StrataDrive/build/m10-training-v1/venv/lib/python3.10/site-packages/torch/onnx/_internal/jit_utils.py:308: UserWarning: Constant folding - Only steps=1 can be constant folded for opset >= 10 onnx::Slice op. Constant folding not applied. (Triggered internally at ../torch/csrc/jit/passes/onnx/constant_fold.cpp:178.)
+  _C._jit_pass_onnx_node_shape_type_inference(node, params_dict, opset_version)
+/d/shin/StrataDrive/build/m10-training-v1/venv/lib/python3.10/site-packages/torch/onnx/utils.py:663: UserWarning: Constant folding - Only steps=1 can be constant folded for opset >= 10 onnx::Slice op. Constant folding not applied. (Triggered internally at ../torch/csrc/jit/passes/onnx/constant_fold.cpp:178.)
+  _C._jit_pass_onnx_graph_shape_type_inference(
+/d/shin/StrataDrive/build/m10-training-v1/venv/lib/python3.10/site-packages/torch/onnx/utils.py:1186: UserWarning: Constant folding - Only steps=1 can be constant folded for opset >= 10 onnx::Slice op. Constant folding not applied. (Triggered internally at ../torch/csrc/jit/passes/onnx/constant_fold.cpp:178.)
+  _C._jit_pass_onnx_graph_shape_type_inference(
+{
+  "candidate": "rtv4-s",
+  "checkpoint_sha256": "238a3f6537bf3b75b55e73f91f9d4cec8d21259b4908b3f21896f3e038b5a3ee",
+  "strict_state_load": true,
+  "tensor_count": 796,
+  "native_configuration": {
+    "config": "configs/rtv4/rtv4_hgnetv2_s_coco.yml",
+    "overrides": {
+      "HGNetv2.pretrained": false
+    },
+    "constructors": {
+      "HGNetv2": {
+        "pretrained": false,
+        "local_model_dir": "./pretrain/hgnetv2/",
+        "name": "B0",
+        "return_idx": [
+          1,
+          2,
+          3
+        ],
+        "freeze_at": -1,
+        "freeze_norm": false,
+        "use_lab": true
+      },
+      "HybridEncoder": {
+        "in_channels": [
+          256,
+          512,
+          1024
+        ],
+        "feat_strides": [
+          8,
+          16,
+          32
+        ],
+        "hidden_dim": 256,
+        "use_encoder_idx": [
+          2
+        ],
+        "num_encoder_layers": 1,
+        "nhead": 8,
+        "dim_feedforward": 1024,
+        "dropout": 0.0,
+        "enc_act": "gelu",
+        "expansion": 0.5,
+        "depth_mult": 0.34,
+        "act": "silu",
+        "distill_teacher_dim": 768,
+        "eval_spatial_size": [
+          640,
+          640
+        ]
+      },
+      "DFINETransformer": {
+        "feat_channels": [
+          256,
+          256,
+          256
+        ],
+        "feat_strides": [
+          8,
+          16,
+          32
+        ],
+        "hidden_dim": 256,
+        "num_levels": 3,
+        "num_layers": 3,
+        "eval_idx": -1,
+        "num_queries": 300,
+        "num_denoising": 100,
+        "label_noise_ratio": 0.5,
+        "box_noise_scale": 1.0,
+        "reg_max": 32,
+        "reg_scale": 4,
+        "layer_scale": 1,
+        "num_points": [
+          3,
+          6,
+          3
+        ],
+        "cross_attn_method": "default",
+        "query_select_method": "default",
+        "activation": "silu",
+        "mlp_act": "silu",
+        "num_classes": 80,
+        "eval_spatial_size": [
+          640,
+          640
+        ]
+      },
+      "PostProcessor": {
+        "num_top_queries": 300,
+        "num_classes": 80,
+        "use_focal_loss": true,
+        "remap_mscoco_category": false
+      }
+    }
+  },
+  "training": false,
+  "onnx_sha256": "bc24df4a66d10b379251f018f5dce8a3dd22e1a4adc75337c27e49ddde852065",
+  "onnx_bytes": 41831832,
+  "outputs": [
+    {
+      "shape": [
+        1,
+        300
+      ],
+      "dtype": "torch.int64"
+    },
+    {
+      "shape": [
+        1,
+        300,
+        4
+      ],
+      "dtype": "torch.float32"
+    },
+    {
+      "shape": [
+        1,
+        300
+      ],
+      "dtype": "torch.float32"
+    }
+  ],
+  "torch_version": "2.5.1+cu124",
+  "opset": 16
+}

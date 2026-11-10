@@ -7,6 +7,7 @@ YAML은 **설계/fixture 기록**이며 runtime loader·자동 inheritance는 �
 | 파일/설정 | 역할과 실제 적용 경로 |
 | --- | --- |
 | `perception-model-screen-v1.json` | 공개 사전학습 S/M/L·RT-DETRv2-R18·NanoDet의 별도 offline identity/tensor·출처. 같은 개발324장 비교용이며 live/Target profile이나 자동 runtime 교체가 아님. 보드 최적화는 후속 |
+| `perception-model-screen-v2.json` | S/L·RT-DETRv2-R18에 D-FINE-M·RT-DETRv4-S·공식 ModelScope DAMO legacy를 추가한 offline identity. 개발324장 calibration·선택 봉인 뒤 Town04 개발81장 확인. 기본 runtime0.35·기존 보류·Jetson 미실행 경계 유지 |
 | `reference.yaml` | Reference ODD·논리 rate·과거 M1–M6 fixture 기록. C++/Python 코드와 runner 옵션이 실제 값을 정한다. YAML 자체가 프로세스를 설정하지 않음 |
 | `thor_premium.yaml`, `orin_mainstream.yaml` | 별도 보드별 후보 override. 자동 상속/배포/benchmark 결과가 아님; 같은 reference의 독립 측정 후 비교 |
 | `m6_sil_response_v1.json` | 예외적으로 **실제 읽는 M6 설정**. `front_run.py`/`physical_response.py`가 energy normal/command-loss의 완료 threshold·budget을 공유하고 compiled model readback을 대조. 모델 rate·명령 권한을 바꾸지 않음 |

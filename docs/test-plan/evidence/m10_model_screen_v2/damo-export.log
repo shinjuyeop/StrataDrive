@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/export_model_screen_v2.py", line 173, in <module>
+    model, report = model_from_checkpoint(args.candidate, args.checkpoint)
+  File "/d/shin/StrataDrive/tests/integration/perception/export_model_screen_v2.py", line 156, in model_from_checkpoint
+    model, config = damo(state) if candidate == "damo-s" else transformer(candidate, state)
+  File "/d/shin/StrataDrive/tests/integration/perception/export_model_screen_v2.py", line 140, in damo
+    model.load_state_dict(state, strict=True)
+  File "/d/shin/StrataDrive/build/m10-training-v1/venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 2584, in load_state_dict
+    raise RuntimeError(
+RuntimeError: Error(s) in loading state_dict for Export:
+	size mismatch for head.gfl_cls.0.weight: copying a param with shape torch.Size([81, 128, 3, 3]) from checkpoint, the shape in current model is torch.Size([80, 128, 3, 3]).
+	size mismatch for head.gfl_cls.0.bias: copying a param with shape torch.Size([81]) from checkpoint, the shape in current model is torch.Size([80]).
+	size mismatch for head.gfl_cls.1.weight: copying a param with shape torch.Size([81, 256, 3, 3]) from checkpoint, the shape in current model is torch.Size([80, 256, 3, 3]).
+	size mismatch for head.gfl_cls.1.bias: copying a param with shape torch.Size([81]) from checkpoint, the shape in current model is torch.Size([80]).
+	size mismatch for head.gfl_cls.2.weight: copying a param with shape torch.Size([81, 512, 3, 3]) from checkpoint, the shape in current model is torch.Size([80, 512, 3, 3]).
+	size mismatch for head.gfl_cls.2.bias: copying a param with shape torch.Size([81]) from checkpoint, the shape in current model is torch.Size([80]).

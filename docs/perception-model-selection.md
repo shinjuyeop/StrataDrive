@@ -39,8 +39,38 @@ near person2/3이 기준 미달이고 motorcycle recall은 S33.33%보다 낮았�
 이 실패를 상쇄하지 않는다. L이 최종 적합 모델이라는 결론을 내리지 않았다.
 
 새 Town04의 개발 자료는 후속 후보 설계에 사용할 수 있지만 소비한 보류는 설계/재선정이나
-새 수용 평가에 재사용하지 않는다. 다음은 작은 보행자·이륜차·차종 혼동에 대해 사전학습
-후보를 더 넓게 비교하는 일이다. 추가 학습과 보드 최적화를 필수 다음 작업으로 두지 않는다.
+새 수용 평가에 재사용하지 않는다. 추가 학습과 보드 최적화를 필수 다음 작업으로 두지 않는다.
+
+## 사전학습 후보 확대와 confidence 비교 V2
+
+[V2 개발 비교](test-plan/evidence/m10_model_screen_v2/README.md)는 S/L·RT-DETRv2-R18에
+공식 D-FINE-M, RT-DETRv4-S, ModelScope DAMO TinyNAS-L25-S legacy를 추가했다.
+각 모델의 가중치·FP32/native 전후처리를 고정했다. 기존 개발324장으로 사전8점 confidence
+grid를 비교하고 **모든 모델의 설정을 봉인한 뒤** Town04 개발81장을 확인했다.
+새 보류 수용이나 신규 RGB 수집이 아니다.
+
+| 모델 | 선택 confidence | 앞선4개 도로 P / R | Town04 개발 P / R | 절대 기준: 앞선 도로 / Town04 |
+| --- | ---: | ---: | ---: | --- |
+| YOLOX-S | 0.40 | 93.03 / 75.00% | 91.00 / 70.54% | FAIL / FAIL |
+| YOLOX-L | 0.35 | 94.23 / 88.57% | 93.55 / 89.92% | PASS / PASS |
+| RT-DETRv2-R18 | 0.50 | 84.06 / 85.85% | 88.10 / 86.05% | FAIL / FAIL |
+| D-FINE-M | 0.50 | 78.28 / 90.12% | 88.15 / 92.25% | FAIL / PASS |
+| RT-DETRv4-S | 0.50 | 94.10 / 83.53% | 92.62 / 87.60% | FAIL / FAIL |
+| DAMO legacy-S | 0.35 | 67.63 / 81.40% | 74.10 / 79.84% | FAIL / FAIL |
+
+D-FINE의 Town04 재현율과 RT-DETRv4의 precision/Host 지연은 후속 검토 가치가 있다.
+그러나 D-FINE은 앞선 도로에서 FP129개가 남고, RT-DETRv4는 앞선 도로의 person66.07%·
+bicycle61.67%, Town04 bicycle60%가 기준70%에 못 미친다. L의 과거 V6/V8 보류 FAIL은
+이 개발 결과와 별도로 유지한다. 아직 전체 조건을 충족한 최종 Reference를 지명하지 않았다.
+
+공통0.35 결과도 모두 보존했다. 예를 들어 RT-DETRv4의 앞선 도로 P72.98%/R91.09%는
+선택0.50에서 P94.10%/R83.53%가 된다. 모델 간 score 척도가 다르므로 공통 threshold
+한 점이나 한 도로 결과로 우열을 확정하지 않는다. 이 개발 비교에서 기준을 조정하지 않았다.
+0.35 미만 탐색값은 별도 offline 자료형이고 기본 runtime의0.35 계약은 유지한다.
+
+다음은 개발 영역에서 D-FINE의 오검출과 RT-DETRv4의 작은 보행자·자전거 누락을 분리해
+후속 사전학습 후보/입력 설정을 고정하는 일이다. 설정을 고정한 다음 새 protocol과 새 보류로
+평가한다. 소비한 Town04 개발 확인 결과를 보고 이번 V2 설정을 다시 조정하지 않는다.
 
 ## 지금 확인하는 배포 고려 사항
 
@@ -49,18 +79,23 @@ near person2/3이 기준 미달이고 motorcycle recall은 S33.33%보다 낮았�
 - 모델과 전후처리를 live 수신 계약에서 분리하여, 나중에 보드별 runtime을 연결할 수 있게 한다.
 - Thor/Orin NX에서 각각 빌드·배포·검증할 기록을 남긴다. 두 보드의 동일 binary/engine을 가정하지 않는다.
 
-이번5개 graph는 custom domain이 없고 ORT CPU/CUDA 검사를 통과했다. RT-DETR에는
+V1의5개 graph는 custom domain이 없고 ORT CPU/CUDA 검사를 통과했다. RT-DETR에는
 opset16 GridSample9개, NanoDet에는 graph input으로 노출된 initializer158개가 있다.
 이 정보는 후속 변환 때 확인할 항목이다. TensorRT import나 Jetson 지원을 확인한 결과는 아니다.
+
+V2의6개 graph도 custom domain/외부 initializer가 없고 ORT CPU/CUDA를 통과했다.
+D-FINE에는 GridSample12개, RT-DETRv4에는9개가 있다. 모델별 opset·operator·입출력
+목록은 [배포 고려 기록](test-plan/evidence/m10_model_screen_v2/deployment-review.json)에 둔다.
+각 보드의 TensorRT import·정확도·전체 stack 성능은 실제 배포 때 확인한다.
 
 ## 후속 순서
 
 1. 개발 비교 결과를 바탕으로 후속 후보·공통 Reference 조건을 고정한다. 더 넓은 모델 탐색이
    필요하면 개발 자료에서 수행하고 최종 평가와 구분한다. 추가 학습을 필수로 두지 않는다.
 2. 새 지도 조사·사전 조건으로 독립 평가 자료를 마련해 정확도와 live 경로를 검증한다.
-   이미 소비한 V1–V7 보류 영상/예측을 설계·재선정·새 수용 평가에 쓰지 않는다.
+   이미 소비한 V1–V8 보류 영상/예측을 설계·재선정·새 수용 평가에 쓰지 않는다.
 3. M12에서 동일 Reference를 Thor/Orin NX에 각각 배포하고 실제 전체 시스템 성능을 측정한다.
 4. 그 다음에 보드별 TensorRT engine·FP16/INT8·모델/입력/rate 변경을 검토하고 재검증한다.
 
 현재 보드별 engine 생성·양자화·전력/클록 조정·보드 최적화와 실제 배포는 미실행이다.
-새 학습·crop/ensemble·threshold 탐색도 이번 비교에 포함하지 않았다.
+V2에는 confidence calibration을 포함했다. 새 학습·crop/ensemble은 실행하지 않았다.
