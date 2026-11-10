@@ -8,6 +8,9 @@ M10 Host 프로파일의 입력은 RGB이고 출력은 원본 영상 pixel 좌�
 따른다. S는 초기 연동 기준이며, [사전학습5종 개발 비교](test-plan/evidence/m10_model_screen_v1/README.md)를
 모델 최종 선정이나 보드 성능 검증과 구분한다.
 
+공식 L의 [V8 새 지도 평가](test-plan/evidence/m10_quality_v8/README.md)는 개발 PASS·보류
+FAIL을 기록했다. 원본·실패한 준비와 동일 조건 복구·선정 순서는 근거 묶음에서 재감사한다.
+
 ## 환경과 모델
 
 저장소 루트에서 실행한다. 기본 C++ 빌드에는 Python/ONNX/CARLA가 필요 없다.

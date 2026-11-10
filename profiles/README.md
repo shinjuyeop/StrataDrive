@@ -38,6 +38,9 @@ YAML은 **설계/fixture 기록**이며 runtime loader·자동 inheritance는 �
 | `perception-road-preparation-v7.json`, `perception-road-evaluation-v7.json` | 지도만으로 고정한215/127번·준비198장/평가162장. 기존 road/Rider/pose·held person26m·staging 유지 |
 | `perception-quality-exclusion-v7.json`, `perception-quality-evaluation-exclusion-v7.json` | 과거3973개와 모든 준비를 제외. 미래 소비 RGB는 V7 evidence에 별도 보존 |
 | `perception-quality-protocol-v7.json`, `perception-trained-model-v1.json` | 고정 epoch17 L6·새11채널/native mapping·S와 unchanged strict absolute/relative gate. 기존 runtime 자동 교체0 |
+| `perception-quality-template-v8.json`, `perception-road-*-v8.json` | 새 Town04 map-only7/25의 원래 준비/평가 recipe. 최초 보류 person 가림 FAIL을 보존하며 평가에 사용하지 않은 초기 계획 |
+| `perception-quality-template-v8b.json`, `perception-road-*-v8b.json` | 모델 추론 전 holdout person occluder만20cm 이동한 별도 revision. actor 거리/기준/두 site 유지; 새 준비 뒤 최종162장 평가에 사용 |
+| `perception-quality-protocol-v8.json`, `perception-quality-exclusion-v8.json`, `perception-quality-evaluation-exclusion-v8.json` | 공식 pretrained L raw full view와 S·기존 quality gate. 과거4333+모든 준비495개를 제외하고 지명 후 보류 취득; 다음 제외4990개는 V8 evidence에 보존 |
 
 실제 Host profile은 [SOME/IP Rear ICD](../docs/interfaces/someip-rear-adapter.md),
 M6 모델/energy/물리 응답은 [vehicle-energy ICD](../docs/interfaces/vehicle-energy.md),

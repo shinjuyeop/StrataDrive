@@ -7,7 +7,7 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M10 | Host 인지·live shadow·L6/V7 완료·기존 FAIL 보존. 사전학습5종을 같은 개발324장에 비교. Jetson 배포 가능성을 고려한 모델 선정·새 독립 평가·전체wall20Hz·시작 안정성·주행 통합 남음. 현재 보드 최적화는 후속 |
+| M10 | 사전학습5종 비교·새 Town04 L 평가 완료. 개발 P93.55%/R89.92% PASS·보류 P79.65%/R69.77% FAIL. 기존 S와 실패 보존. 사전학습 후보 확대·새 독립 평가·전체wall20Hz·시작/종료 안정성·주행 통합 남음. 보드 최적화는 후속 |
 | M11 | Metric world model/localization·temporal learned planner, Safety Supervisor·유효 classical fallback, 인식/판단 한계 검토 |
 | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
 | M13 | 전체 SIL/V&V·회귀·추적성 검토와 검증된 범위·제약 공개 |
@@ -51,6 +51,10 @@ M6에서 결정된 수치·소유권과 후속 gate의 상세 구분은 [M6 검�
 Jetson 각각의 배포 가능성을 고려하되 현 단계의 보드별 최적화는 미뤘다. 사전학습5종의
 [개발324장 비교](test-plan/evidence/m10_model_screen_v1/README.md)를 완료했으며 추가 학습은
 필수가 아니다. Host 비교를 Jetson 성능/모델 최종 채택으로 올리지 않는다.
+
+그 뒤 [V8 새 Town04 평가](test-plan/evidence/m10_quality_v8/README.md)를 완료했다. 공식 L은
+개발 절대/상대 PASS·보류 FAIL이며 작은 보행자·이륜차·차종 혼동이 남았다. 소비된 보류를
+재사용하지 않고 개발 자료에서 사전학습 후보 비교를 확대한다. 기본 S와 보드 최적화 후속 원칙은 유지한다.
 
 M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](project-status.md)와
 [마감 검증](test-plan/evidence/m9_followup/README.md)을 기준으로 종료했다.

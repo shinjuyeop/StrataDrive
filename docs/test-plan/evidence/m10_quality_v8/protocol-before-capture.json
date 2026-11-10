@@ -1,0 +1,110 @@
+{
+  "schema": "m10-quality-protocol-v8",
+  "scope": "Provisional Host engineering comparison; not vehicle/ODD safety acceptance",
+  "selection": "development only; seal one nominee before holdout acquisition; no retuning on holdout",
+  "metric": "class-aware visible-instance boxes IoU>=0.5; not COCO mAP",
+  "minimum_visible_pixels": 25,
+  "minimum_box_side": 4,
+  "score_threshold": 0.35,
+  "candidate_ids": [
+    "large-v8"
+  ],
+  "coverage": {
+    "cases_per_partition": 81,
+    "minimum_visible_target_cases_per_class": 9,
+    "negative_cases": 3,
+    "all_strata_required": [
+      "near",
+      "medium",
+      "far",
+      "occluded",
+      "negative",
+      "overlap_vehicles",
+      "overlap_vru"
+    ],
+    "minimum_visible_cases_per_class_stratum": 2,
+    "minimum_rider_instances": 12
+  },
+  "absolute_quality": {
+    "micro_precision_min": 0.85,
+    "micro_recall_min": 0.8,
+    "per_class_recall_min": 0.7,
+    "near_person_recall_min": 0.9,
+    "negative_fp_per_frame_max": 0.3333333333333333
+  },
+  "relative_promotion": {
+    "precision_gain_min": 0.03,
+    "micro_recall_drop_max": 0.0,
+    "per_class_recall_drop_max": 0.0,
+    "far_and_occluded_recall_drop_max": 0.0,
+    "near_person_tp_drop_max": 0,
+    "negative_fp_increase_max": 0
+  },
+  "selection_order": [
+    "relative_gate_pass",
+    "micro_f1",
+    "micro_recall",
+    "micro_precision",
+    "candidate_id_ascending"
+  ],
+  "runtime_promotion": "No automatic replacement of v1. New runtime profile/interface review only after absolute and relative holdout gates pass.",
+  "latency": "All cold/startup and per-frame measurements retained; experimental accuracy replay is not20Hz qualification",
+  "annotation": {
+    "schema": "m10-rider-visible-gt-v2",
+    "person_tags": [
+      12,
+      13
+    ],
+    "metric": "visible tight boxes IoU>=0.5; no amodal extrapolation",
+    "primary_ignore": false,
+    "small_ignore_diagnostic": "unmatched same-class IoU>=0.5; one prediction per excluded instance; never changes gates",
+    "covered_miss_diagnostic": "same-class prediction covers>=80% of visible target but fails IoU0.5; not a TP"
+  },
+  "legacy_data": "Exclude every consumed V1-V7/domain/training image and all V8 preparation attempts",
+  "models": {
+    "baseline": {
+      "sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+      "bytes": 35858002
+    },
+    "large-v8": {
+      "sha256": "7860ae79de6c89a3c1eb72ae9a2756c0ccfbe04b7791bb5880afabd97855a411",
+      "bytes": 216746733
+    }
+  },
+  "input_profile": "rgb-unscaled-letterbox640-v1",
+  "preparation": {
+    "required_status": "PASS",
+    "sites": [
+      7,
+      25
+    ],
+    "frames": 198,
+    "all_planned_actors_included": true,
+    "all_two_wheeler_riders_included": true,
+    "before_final_freeze": true,
+    "no_model_inference": true
+  },
+  "road_plan": "perception-road-evaluation-v8b.json",
+  "held_person_far_m": 26,
+  "actual_site_visibility": {
+    "all_planned_actors_included": true,
+    "all_two_wheeler_riders_included": true
+  },
+  "candidate_version": "Official pretrained L full view; no new training or threshold/board optimization",
+  "metadata_revision": "v8",
+  "prior_rgb_excluded": 4828,
+  "revision_reason": "New Town04 map-only sites after 5-model development screen; prior L/L6 failures retained",
+  "policy": {
+    "score_threshold": 0.35,
+    "same_class_nms_iou": 0.5,
+    "output_channels": 85,
+    "crop": false
+  },
+  "design_data": "Only consumed V4-V7 development324 screen; no old holdout imagery or predictions replayed",
+  "staging": {
+    "height_m": 50,
+    "actor_step_m": 10,
+    "no_tick_before_final_placement": true
+  },
+  "preparation_revision": "v8b-person-occluder20cm; initial198 raw/FAIL retained before model inference"
+}

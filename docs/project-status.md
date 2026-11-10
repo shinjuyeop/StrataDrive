@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **Host 인지·live shadow·L6/V7 및 사전학습5종 개발324장 비교 완료 / 모델 최종 선정·정확도·전체wall20Hz·시작 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [5종 개발 비교](test-plan/evidence/m10_model_screen_v1/README.md) · [V7 실패 보존](test-plan/evidence/m10_quality_v7/README.md) |
+| M10 | **사전학습5종 개발 비교·Town04 새162장 평가 완료 / L 개발 PASS·보류 FAIL·기존 S 유지 / 모델 선정·정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [5종 비교](test-plan/evidence/m10_model_screen_v1/README.md) · [V8 새 지도 평가](test-plan/evidence/m10_quality_v8/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -27,6 +27,13 @@
 5종의 같은 개발324장 비교에서는 L이 P94.23%/R88.57%로 가장 높은 F1을 보였으나,
 개발 탐색·S 대비 P+2.85%p·기존 V6 보류 실패를 유지하므로 runtime을 교체하지 않는다.
 새 학습·보류 재사용·보드 engine/양자화는 하지 않았다. [현재 판단과 다음 순서](perception-model-selection.md)를 따른다.
+
+후속 [V8 Town04 평가](test-plan/evidence/m10_quality_v8/README.md)는 새 지도372곳의 첫 적격
+7/25번을 사용했다. 공식 L의 새 개발 P93.55%/R89.92%는 절대·상대 PASS지만 새 보류
+P79.65%/R69.77%·near person2/3과 보행자/이륜차 조건이 FAIL이다. 최초 준비198장(보류 가림 FAIL),
+별도 종료 FAIL99장과 동일 조건 복구를 보존했다. 전체657개 raw pair·미래 제외4990개,
+source237개·원본/점수·새 경로 재감사를 남겼다. 추가 학습이나 보드 최적화로 전환하지 않았고,
+다음은 개발 자료에서 작은 보행자·이륜차·차종 혼동에 대한 사전학습 후보 비교를 확대하는 일이다.
 
 ## M9 기능 범위 마감
 

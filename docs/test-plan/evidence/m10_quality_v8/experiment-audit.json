@@ -1,0 +1,654 @@
+{
+  "schema": "m10-quality-experiment-audit-v8",
+  "audit": "PASS",
+  "selected": "large-v8",
+  "freeze_sha256": "19ec7d92777b6e5a1680bbd64cd06207919dc7c8f11cf24862445792888c5455",
+  "selection_sha256": "23eba89231160615a80d5460dfdc9c735634613bc20cf05ce83c5da0b9ffbefa",
+  "raw_reconstruction": {
+    "development": {
+      "status": "PASS",
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true
+      },
+      "missing_actors": [],
+      "missing_riders": [],
+      "schema": "m10-quality-visibility-v8",
+      "partition": "development",
+      "frames": 81,
+      "site": 7
+    },
+    "holdout": {
+      "status": "PASS",
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true
+      },
+      "missing_actors": [],
+      "missing_riders": [],
+      "schema": "m10-quality-visibility-v8",
+      "partition": "holdout",
+      "frames": 81,
+      "site": 25
+    }
+  },
+  "cross_partition_rgb_overlap": 0,
+  "prior_rgb_overlap": 0,
+  "prior_rgb_excluded": 4828,
+  "holdout_relative": {
+    "status": "FAIL",
+    "gates": {
+      "precision": true,
+      "recall": true,
+      "per_class": false,
+      "far_occluded": true,
+      "near_person": true,
+      "negatives": true
+    }
+  },
+  "eligible_for_runtime_review": false,
+  "runtime_promotion": false,
+  "preparation_binding": {
+    "recovery-before-launch.json": "39d34e40975186f380675c76db8d29adefc863b818ccfbc567901e019adaea9b",
+    "preparation-holdout-02/server.json": "9cb4b69b76d309187f905e1dc30114b670885cd9236466e9c109a8d9d2f470c3",
+    "preparation-holdout-02/dataset/capture.json": "dd06f9276794906a9177334825db7550755ba9c3949c6374913df2fc72856722",
+    "initial-preparation-audit.json": "b3ed48722c9529d97d2e6b08f3ca9d49c52274e04593330cd92cd531ccc4215a",
+    "preparation-revision-before-recapture.json": "1a5eb43a0e82d4b562499e229af1db689b6e02949b4518bdc2c26080a0899bf5",
+    "survey-freeze.json": "deffb7e1335c68be2a225f8cbd83391eeb33baa8aa5dab824c9767cf86cedb5d",
+    "survey-01/server.json": "b9c1a69f0ef85f7ab3c7ebc21dd6adcd610e85be561b7de2029410050c03e1a8",
+    "survey-01/dataset/survey.json": "a138d56ed0a6f14366efd7e0e02f6e0e27f2cc17307e3b90aad4a4f141b924e8",
+    "preparation-freeze.json": "dfa4ace0e209b3cbc31faa7e2e1854c4e78ba73170973af3fdf45a80ad6ba5e9",
+    "preparation-runs.json": "396920162aa746e9fdd9aace956d790f350f8724e5d8dcbed4525e0280f7db66",
+    "preparation-development-data/acceptance.json": "36b1bcfacabc336cbcb3aa417f8ec6b678e7f366a75bf4306556faf750f26a6b",
+    "preparation-development-data/rgb.json": "b6a0b95f800f40451e5f352b5058e386861e98a0abf19d2626161c4c9e9071dd",
+    "preparation-development-data/evaluation-only-gt.json": "7a9879a27f7b9f7ecda3a76e470674e9ac2d706359a31710e0dc7abc9968b2b1",
+    "preparation-development-data/preparation-data.json": "a42540a67cc6d882a2957e3dee53e348933b2d61aaabeca63eb375128e5f1fcd",
+    "preparation-development-02/server.json": "8fe82c07149b453f26d9274d3e7dad69a2d308c49df2276e42fd506db855a3ec",
+    "preparation-development-02/dataset/capture.json": "ada5a1071268f68ba697c040a4e234372d623c49186a36c139dc8b168a5a31a7",
+    "preparation-holdout-data/acceptance.json": "7c7837a22bd30aa499c584c50cda1c8381fb61acb7b0b0db81a03a91fa7415b0",
+    "preparation-holdout-data/rgb.json": "f86de46f8c1e5ea0bfdbebdcc3d742cf490552bf684022f5c1b138799a5a56c9",
+    "preparation-holdout-data/evaluation-only-gt.json": "9a037c1c0ce2ea4d262a16587bfaa4ade6643447fee6ea61f9d0bde2a229f4cb",
+    "preparation-holdout-data/preparation-data.json": "7dfc770a30132d34048ac025cdc94a632a63a0ce0a79d71027e8803569a4237a",
+    "preparation-holdout-03/server.json": "c7b468b1f85208c3d5bd70f787517820457873691fb5732e6666ace2c95a9dce",
+    "preparation-holdout-03/dataset/capture.json": "7fff8d8fc3da1914b16f71189f15a64d6a2165f46277e475396c44104577c317"
+  },
+  "preparation_raw_reconstruction": {
+    "development": {
+      "status": "PASS",
+      "frames": 99,
+      "site": 7,
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true,
+        "every_class_stratum": true,
+        "occlusion_references": true
+      },
+      "primary_coverage": {
+        "0": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "1": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "2": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "3": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "5": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "7": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        }
+      }
+    },
+    "holdout": {
+      "status": "PASS",
+      "frames": 99,
+      "site": 25,
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true,
+        "every_class_stratum": true,
+        "occlusion_references": true
+      },
+      "primary_coverage": {
+        "0": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "1": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "2": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "3": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "5": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "7": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        }
+      }
+    }
+  },
+  "scope": "Prospective Rider-aware visible-mask comparison; no vehicle/ODD or live20Hz acceptance",
+  "scores": {
+    "development": {
+      "baseline": {
+        "micro": {
+          "tp": 93,
+          "fp": 14,
+          "fn": 36,
+          "precision": 0.8691588785046729,
+          "recall": 0.7209302325581395,
+          "f1": 0.788135593220339
+        },
+        "per_class": {
+          "0": {
+            "tp": 25,
+            "fp": 9,
+            "fn": 17,
+            "precision": 0.7352941176470589,
+            "recall": 0.5952380952380952
+          },
+          "1": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 9,
+            "precision": 1.0,
+            "recall": 0.4
+          },
+          "2": {
+            "tp": 30,
+            "fp": 0,
+            "fn": 3,
+            "precision": 1.0,
+            "recall": 0.9090909090909091
+          },
+          "3": {
+            "tp": 5,
+            "fp": 1,
+            "fn": 7,
+            "precision": 0.8333333333333334,
+            "recall": 0.4166666666666667
+          },
+          "5": {
+            "tp": 15,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 12,
+            "fp": 4,
+            "fn": 0,
+            "precision": 0.75,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 15,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "visibility": {
+          "status": "PASS",
+          "gates": {
+            "all_planned_actors_visible": true,
+            "all_two_wheeler_riders_visible": true
+          },
+          "missing_actors": [],
+          "missing_riders": []
+        }
+      },
+      "large-v8": {
+        "micro": {
+          "tp": 116,
+          "fp": 8,
+          "fn": 13,
+          "precision": 0.9354838709677419,
+          "recall": 0.8992248062015504,
+          "f1": 0.9169960474308301
+        },
+        "per_class": {
+          "0": {
+            "tp": 36,
+            "fp": 3,
+            "fn": 6,
+            "precision": 0.9230769230769231,
+            "recall": 0.8571428571428571
+          },
+          "1": {
+            "tp": 12,
+            "fp": 0,
+            "fn": 3,
+            "precision": 1.0,
+            "recall": 0.8
+          },
+          "2": {
+            "tp": 31,
+            "fp": 4,
+            "fn": 2,
+            "precision": 0.8857142857142857,
+            "recall": 0.9393939393939394
+          },
+          "3": {
+            "tp": 10,
+            "fp": 1,
+            "fn": 2,
+            "precision": 0.9090909090909091,
+            "recall": 0.8333333333333334
+          },
+          "5": {
+            "tp": 15,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 12,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": true,
+          "per_class_recall": true,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "PASS",
+        "riders": {
+          "visible": 27,
+          "detected": 21,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "visibility": {
+          "status": "PASS",
+          "gates": {
+            "all_planned_actors_visible": true,
+            "all_two_wheeler_riders_visible": true
+          },
+          "missing_actors": [],
+          "missing_riders": []
+        }
+      }
+    },
+    "holdout": {
+      "baseline": {
+        "micro": {
+          "tp": 69,
+          "fp": 43,
+          "fn": 60,
+          "precision": 0.6160714285714286,
+          "recall": 0.5348837209302325,
+          "f1": 0.5726141078838174
+        },
+        "per_class": {
+          "0": {
+            "tp": 10,
+            "fp": 1,
+            "fn": 32,
+            "precision": 0.9090909090909091,
+            "recall": 0.23809523809523808
+          },
+          "1": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 13,
+            "precision": 1.0,
+            "recall": 0.13333333333333333
+          },
+          "2": {
+            "tp": 33,
+            "fp": 4,
+            "fn": 0,
+            "precision": 0.8918918918918919,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 4,
+            "fp": 6,
+            "fn": 8,
+            "precision": 0.4,
+            "recall": 0.3333333333333333
+          },
+          "5": {
+            "tp": 11,
+            "fp": 10,
+            "fn": 4,
+            "precision": 0.5238095238095238,
+            "recall": 0.7333333333333333
+          },
+          "7": {
+            "tp": 9,
+            "fp": 22,
+            "fn": 3,
+            "precision": 0.2903225806451613,
+            "recall": 0.75
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": false,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": false,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 8,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "visibility": {
+          "status": "PASS",
+          "gates": {
+            "all_planned_actors_visible": true,
+            "all_two_wheeler_riders_visible": true
+          },
+          "missing_actors": [],
+          "missing_riders": []
+        }
+      },
+      "large-v8": {
+        "micro": {
+          "tp": 90,
+          "fp": 23,
+          "fn": 39,
+          "precision": 0.7964601769911505,
+          "recall": 0.6976744186046512,
+          "f1": 0.743801652892562
+        },
+        "per_class": {
+          "0": {
+            "tp": 23,
+            "fp": 5,
+            "fn": 19,
+            "precision": 0.8214285714285714,
+            "recall": 0.5476190476190477
+          },
+          "1": {
+            "tp": 7,
+            "fp": 0,
+            "fn": 8,
+            "precision": 1.0,
+            "recall": 0.4666666666666667
+          },
+          "2": {
+            "tp": 33,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 3,
+            "fp": 6,
+            "fn": 9,
+            "precision": 0.3333333333333333,
+            "recall": 0.25
+          },
+          "5": {
+            "tp": 15,
+            "fp": 7,
+            "fn": 0,
+            "precision": 0.6818181818181818,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 9,
+            "fp": 5,
+            "fn": 3,
+            "precision": 0.6428571428571429,
+            "recall": 0.75
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": false,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": false,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 21,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "visibility": {
+          "status": "PASS",
+          "gates": {
+            "all_planned_actors_visible": true,
+            "all_two_wheeler_riders_visible": true
+          },
+          "missing_actors": [],
+          "missing_riders": []
+        }
+      }
+    }
+  }
+}

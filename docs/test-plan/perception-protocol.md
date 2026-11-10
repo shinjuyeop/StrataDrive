@@ -42,6 +42,12 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-034 | 고정 epoch17 L6/native11채널·별도 offline envelope·새 준비 numeric | 이전 model/manifest byte/hash·기존85채널 식별자 혼용 거절·CPU/CUDA/OpenCV raw와 완성 count/class/box/score 동등성 |
 | TC-PER-035 | 새215/127 map-only road·실제 준비/평가·모든 actor/Rider | 과거3973+모든 준비 제외·거리/episode/RGB 분리·실제 mask/pose/road 재구성·최소 지원·원래 실패와 준비 기준 보존 |
 | TC-PER-036 | 단일 후보·원래 absolute/relative·지명 후 보류·시작 실패/복구 | 전체/class/stratum 엄격 채점·개발 실패도 descriptive holdout 유지·소스/계획/모델·제한 무변경·cold/late/실패·순서/압축 재감사·자동 runtime 교체0 |
+| TC-PER-037 | 사전학습5종·동일 개발324장·native 전후처리·배포 고려 | 공식 model/hash/license·CPU/CUDA/독립 참조·top300 set 대응·보류 거절·공통 confidence 초기 비교와 최종/Jetson 수용 분리 |
+| TC-PER-038 | 새 Town04 지도372곳·모델 없는 준비·실패/별도 복구 | first eligible7/25·다른 road/50m·초기 가림 FAIL198장과 종료 FAIL99장 보존·가림차20cm 외 변경0·동일 제한 복구·모든 원본 제외 |
+| TC-PER-039 | 고정 공식 L·새 개발/보류162장·원본/점수/순서 | source/model/plan 사전 고정·unchanged absolute/relative·개발 지명 후 보류 취득·raw/GT/pose/visibility/score와 압축 재감사·과거/현재 FAIL과 기본 S 유지 |
+
+TC-PER-037은 [사전학습 비교 기준](perception-model-screen-v1-protocol.md)과 [5종 개발 결과](evidence/m10_model_screen_v1/README.md)를 따른다.
+TC-PER-038–039는 [V8 기준](perception-quality-v8-protocol.md), [준비 revision](perception-quality-v8-preparation-revision.md), [종료 실패 복구](perception-quality-v8-recovery.md)와 [새 지도 평가 근거](evidence/m10_quality_v8/README.md)를 따른다.
 
 TC-PER-034–036은 [V7 기준](perception-quality-v7-protocol.md)과 [새 개발/보류·복구 원본 근거](evidence/m10_quality_v7/README.md)를 따른다.
 

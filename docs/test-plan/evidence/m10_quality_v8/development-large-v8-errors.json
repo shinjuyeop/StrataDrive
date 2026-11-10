@@ -1,0 +1,261 @@
+{
+  "schema": "m10-quality-error-diagnostic-v8",
+  "phase": "development",
+  "candidate": "large-v8",
+  "run_sha256": "7bd5eba0ffc1c9317eddf044e3c5f3b90c8551520dedab940525e5ae570305d7",
+  "counts": {
+    "tp": 116,
+    "class_confusion": 2,
+    "fp": 8,
+    "background_or_low_overlap": 1,
+    "visible_localization_miss": 5,
+    "fn": 13
+  },
+  "class_confusions": {
+    "3->0": 1,
+    "1->3": 1
+  },
+  "records": [
+    {
+      "scene": "v8-development-014",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.3843546429318323,
+        "box": [
+          315.27511120726984,
+          161.4638671985905,
+          334.45809554169256,
+          174.49284552418783
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.8094153527384664,
+      "best_visible_gt": {
+        "class_id": 3,
+        "instance_id": 143,
+        "visible_pixels": 148,
+        "box": [
+          313,
+          162,
+          334,
+          175
+        ],
+        "semantic_tags": [
+          18
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v8-development-015",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.5604634043945111,
+        "box": [
+          327.98972525275525,
+          156.36652666916888,
+          354.3199747594518,
+          186.4732045472618
+        ]
+      },
+      "reason": "background_or_low_overlap",
+      "best_visible_iou": 0.38551975300468777,
+      "best_visible_gt": {
+        "class_id": 3,
+        "instance_id": 144,
+        "visible_pixels": 426,
+        "box": [
+          316,
+          167,
+          358,
+          192
+        ],
+        "semantic_tags": [
+          18
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v8-development-036",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.4631314512222815,
+        "box": [
+          330.465176655359,
+          164.69845043523424,
+          346.2178510889342,
+          184.61168254511244
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.2985015578283848,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 171,
+        "visible_pixels": 794,
+        "box": [
+          303,
+          164,
+          346,
+          188
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v8-development-038",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.6217721779147318,
+        "box": [
+          349.7561298124689,
+          170.1545377826897,
+          361.0721434838873,
+          190.0522083186897
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.17164395685512468,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 173,
+        "visible_pixels": 733,
+        "box": [
+          319,
+          165,
+          361,
+          196
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v8-development-061",
+      "prediction": {
+        "class_id": 3,
+        "score": 0.38975209190691373,
+        "box": [
+          328.556979484467,
+          170.78976192092833,
+          353.29454296121173,
+          191.14112244033876
+        ]
+      },
+      "reason": "class_confusion",
+      "best_visible_iou": 0.7708137522897925,
+      "best_visible_gt": {
+        "class_id": 1,
+        "instance_id": 202,
+        "visible_pixels": 172,
+        "box": [
+          332,
+          172,
+          353,
+          192
+        ],
+        "semantic_tags": [
+          19
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v8-development-064",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.5145347841938985,
+        "box": [
+          311.49278519489474,
+          164.26526777320305,
+          327.6648743357449,
+          173.6382871431788
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.47351070812530827,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 206,
+        "visible_pixels": 214,
+        "box": [
+          311,
+          161,
+          335,
+          173
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v8-development-065",
+      "prediction": {
+        "class_id": 2,
+        "score": 0.45193147028463443,
+        "box": [
+          349.92672862949394,
+          170.20679930472267,
+          361.02577457485177,
+          190.28668137765038
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.17070785972057964,
+      "best_visible_gt": {
+        "class_id": 2,
+        "instance_id": 207,
+        "visible_pixels": 733,
+        "box": [
+          319,
+          165,
+          361,
+          196
+        ],
+        "semantic_tags": [
+          14
+        ]
+      },
+      "small_same_class_iou": 0
+    },
+    {
+      "scene": "v8-development-069",
+      "prediction": {
+        "class_id": 0,
+        "score": 0.3552257033801425,
+        "box": [
+          327.02480814481805,
+          160.21122444845602,
+          355.116959357013,
+          183.25934993051126
+        ]
+      },
+      "reason": "visible_localization_miss",
+      "best_visible_iou": 0.44656155382558327,
+      "best_visible_gt": {
+        "class_id": 0,
+        "instance_id": 212,
+        "visible_pixels": 122,
+        "box": [
+          325,
+          161,
+          346,
+          177
+        ],
+        "semantic_tags": [
+          13
+        ]
+      },
+      "small_same_class_iou": 0
+    }
+  ],
+  "scope": "Post-hoc categories at unchanged strict matching; not extra TPs or candidate tuning; no gate/selection change"
+}
