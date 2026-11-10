@@ -60,8 +60,14 @@ Jetson 각각의 배포 가능성을 고려하되 현 단계의 보드별 최적
 DAMO legacy를 추가해6종의 개발324장 confidence calibration과 봉인 뒤 Town04 개발81장을
 확인했다. D-FINE은 Town04 절대 PASS지만 앞선 도로의 FP가 남고 RT-DETRv4는 작은
 person/bicycle recall이 부족하다. L의 과거 보류 FAIL도 유지한다. 최종 Reference는 미지명이며
-후속은 개발 영역에서 오검출/작은 VRU 누락을 분리해 후보·입력 설정을 고정하는 일이다.
-새 보류·학습·Jetson 최적화는 이번 비교에 포함하지 않았다.
+오류 분리와 후보 설정 고정을 후속으로 수행했다. 새 보류·학습·Jetson 최적화는 이번 비교에 포함하지 않았다.
+
+[오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md) 뒤 별도
+[클래스별 confidence 실험](test-plan/evidence/m10_class_calibration_v1/README.md)을 수행했다.
+개발324장에서31,250개 조합을 비교하고 봉인한 D-FINE 설정은 calibration P92%/R89.15%,
+이미 소비한 Town04 regression P89.84%/R89.15%로 절대 PASS다. 상대 FAIL은 유지한다.
+새 평가 후보는 이 D-FINE 단일 설정이며, 다음은 새 protocol·모델 없는 준비와 새 개발/보류
+취득이다. 최종 모델 채택·runtime 교체·Jetson 배포/최적화는 미실행이다.
 
 M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](project-status.md)와
 [마감 검증](test-plan/evidence/m9_followup/README.md)을 기준으로 종료했다.

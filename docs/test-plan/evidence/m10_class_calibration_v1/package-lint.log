@@ -1,0 +1,318 @@
+E702 Multiple statements on one line (semicolon)
+ --> build/m10-class-calibration-v1/package-evidence.py:7:16
+  |
+5 | import tarfile
+6 | import shutil
+7 | ROOT=Path.cwd();BASE=ROOT/'build/m10-class-calibration-v1';DIAG=ROOT/'build/m10-model-diagnostics-v1';OUT=ROOT/'docs/test-plan/evidenc…
+  |                ^
+8 | def digest(p):
+9 |  h=hashlib.sha256()
+  |
+
+E702 Multiple statements on one line (semicolon)
+ --> build/m10-class-calibration-v1/package-evidence.py:7:59
+  |
+5 | import tarfile
+6 | import shutil
+7 | ROOT=Path.cwd();BASE=ROOT/'build/m10-class-calibration-v1';DIAG=ROOT/'build/m10-model-diagnostics-v1';OUT=ROOT/'docs/test-plan/evidenc…
+  |                                                           ^
+8 | def digest(p):
+9 |  h=hashlib.sha256()
+  |
+
+E702 Multiple statements on one line (semicolon)
+ --> build/m10-class-calibration-v1/package-evidence.py:7:102
+  |
+5 | import tarfile
+6 | import shutil
+7 | ROOT=Path.cwd();BASE=ROOT/'build/m10-class-calibration-v1';DIAG=ROOT/'build/m10-model-diagnostics-v1';OUT=ROOT/'docs/test-plan/evidenc…
+  |                                                                                                      ^
+8 | def digest(p):
+9 |  h=hashlib.sha256()
+  |
+
+E702 Multiple statements on one line (semicolon)
+ --> build/m10-class-calibration-v1/package-evidence.py:7:162
+  |
+5 | …
+6 | …
+7 | …cs-v1';OUT=ROOT/'docs/test-plan/evidence/m10_class_calibration_v1';DOUT=ROOT/'docs/test-plan/evidence/m10_model_diagnostics_v1'
+  |                                                                    ^
+8 | …
+9 | …
+  |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:11:46
+   |
+ 9 |  h=hashlib.sha256()
+10 |  with p.open('rb') as f:
+11 |   for b in iter(lambda:f.read(1024*1024),b''):h.update(b)
+   |                                              ^
+12 |  return h.hexdigest()
+13 | f=json.loads((BASE/'audit-annex-freeze.json').read_text());assert json.loads((BASE/'audit-annex.json').read_text())['status']=='PASS';…
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:13:59
+   |
+11 |   for b in iter(lambda:f.read(1024*1024),b''):h.update(b)
+12 |  return h.hexdigest()
+13 | f=json.loads((BASE/'audit-annex-freeze.json').read_text());assert json.loads((BASE/'audit-annex.json').read_text())['status']=='PASS';…
+   |                                                           ^
+14 | def add(p):
+15 |  if not p.is_file() or p.is_symlink():raise ValueError(p)
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:13:134
+   |
+11 | …
+12 | …
+13 | …son.loads((BASE/'audit-annex.json').read_text())['status']=='PASS';assert json.loads((DIAG/'audit.json').read_text())['status']=='PAS…
+   |                                                                    ^
+14 | …
+15 | …
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:13:203
+   |
+11 | …
+12 | …
+13 | …sert json.loads((DIAG/'audit.json').read_text())['status']=='PASS';entries={}
+   |                                                                    ^
+14 | …
+15 | …
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:15:38
+   |
+13 | f=json.loads((BASE/'audit-annex-freeze.json').read_text());assert json.loads((BASE/'audit-annex.json').read_text())['status']=='PASS';…
+14 | def add(p):
+15 |  if not p.is_file() or p.is_symlink():raise ValueError(p)
+   |                                      ^
+16 |  entries[str(p.relative_to(ROOT))]=p
+17 | for name,h in {**f['sources'],**f['inputs']}.items():
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:18:13
+   |
+16 |  entries[str(p.relative_to(ROOT))]=p
+17 | for name,h in {**f['sources'],**f['inputs']}.items():
+18 |  p=ROOT/name;assert digest(p)==h;add(p)
+   |             ^
+19 | for p in [BASE/'audit-annex-freeze.json',DIAG/'mask-annex/freeze.json',OUT/'check-archive.py',OUT/'README.md',DOUT/'README.md',ROOT/'p…
+20 | mask=json.loads((DIAG/'mask-annex/freeze.json').read_text())
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:18:33
+   |
+16 |  entries[str(p.relative_to(ROOT))]=p
+17 | for name,h in {**f['sources'],**f['inputs']}.items():
+18 |  p=ROOT/name;assert digest(p)==h;add(p)
+   |                                 ^
+19 | for p in [BASE/'audit-annex-freeze.json',DIAG/'mask-annex/freeze.json',OUT/'check-archive.py',OUT/'README.md',DOUT/'README.md',ROOT/'p…
+20 | mask=json.loads((DIAG/'mask-annex/freeze.json').read_text())
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:19:192
+   |
+17 | …
+18 | …
+19 | …',ROOT/'profiles/perception-class-calibration-candidates-v1.json']:add(p)
+   |                                                                    ^
+20 | …
+21 | …
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:22:13
+   |
+20 | mask=json.loads((DIAG/'mask-annex/freeze.json').read_text())
+21 | for name,h in mask['inputs'].items():
+22 |  p=ROOT/name;assert digest(p)==h;add(p)
+   |             ^
+23 | for spec in json.loads((ROOT/'build/m10-model-screen-v2/freeze.json').read_text())['datasets'].values():
+24 |  for data in spec.values():
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:22:33
+   |
+20 | mask=json.loads((DIAG/'mask-annex/freeze.json').read_text())
+21 | for name,h in mask['inputs'].items():
+22 |  p=ROOT/name;assert digest(p)==h;add(p)
+   |                                 ^
+23 | for spec in json.loads((ROOT/'build/m10-model-screen-v2/freeze.json').read_text())['datasets'].values():
+24 |  for data in spec.values():
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:26:18
+   |
+24 |  for data in spec.values():
+25 |   for p in (ROOT/data['path']).rglob('*'):
+26 |    if p.is_file():add(p)
+   |                  ^
+27 | # Include the whole small preparation RGB manifest to keep optional numeric replay usable.
+28 | probes=ROOT/'build/m10-quality-v7/preparation-development-data/rgb.json';add(probes)
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:28:73
+   |
+26 |    if p.is_file():add(p)
+27 | # Include the whole small preparation RGB manifest to keep optional numeric replay usable.
+28 | probes=ROOT/'build/m10-quality-v7/preparation-development-data/rgb.json';add(probes)
+   |                                                                         ^
+29 | for row in json.loads(probes.read_text())['frames']:add(probes.parent/row['rgb_path'])
+30 | models=json.loads((ROOT/'build/m10-model-screen-v2/models.json').read_text())
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:29:52
+   |
+27 | # Include the whole small preparation RGB manifest to keep optional numeric replay usable.
+28 | probes=ROOT/'build/m10-quality-v7/preparation-development-data/rgb.json';add(probes)
+29 | for row in json.loads(probes.read_text())['frames']:add(probes.parent/row['rgb_path'])
+   |                                                    ^
+30 | models=json.loads((ROOT/'build/m10-model-screen-v2/models.json').read_text())
+31 | for key in ['dfine-m','rtv4-s']:add(ROOT/models[key])
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:31:32
+   |
+29 | for row in json.loads(probes.read_text())['frames']:add(probes.parent/row['rgb_path'])
+30 | models=json.loads((ROOT/'build/m10-model-screen-v2/models.json').read_text())
+31 | for key in ['dfine-m','rtv4-s']:add(ROOT/models[key])
+   |                                ^
+32 | excluded={'archive-files.json','archive-recheck.json','archive-recheck.log','docs-check.json','package.log','staged-integrity.json','c…
+33 | for base in [BASE,DIAG]:
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:35:128
+   |
+33 | for base in [BASE,DIAG]:
+34 |  for p in base.rglob('*'):
+35 |   if p.is_file() and '__pycache__' not in p.parts and p.name not in excluded and p.suffix in ['.py','.json','.log','.png','.h']:add(p)
+   |                                                                                                                                ^
+36 | manifest={name:digest(p) for name,p in sorted(entries.items())};mp=BASE/'archive-files.json';mp.write_text(json.dumps(manifest,indent=…
+37 | with tarfile.open(archive,'w:gz',compresslevel=1) as tar:
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:36:64
+   |
+34 |  for p in base.rglob('*'):
+35 |   if p.is_file() and '__pycache__' not in p.parts and p.name not in excluded and p.suffix in ['.py','.json','.log','.png','.h']:add(p)
+36 | manifest={name:digest(p) for name,p in sorted(entries.items())};mp=BASE/'archive-files.json';mp.write_text(json.dumps(manifest,indent=…
+   |                                                                ^
+37 | with tarfile.open(archive,'w:gz',compresslevel=1) as tar:
+38 |  tar.add(mp,arcname='project/archive-files.json',recursive=False)
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:36:93
+   |
+34 |  for p in base.rglob('*'):
+35 |   if p.is_file() and '__pycache__' not in p.parts and p.name not in excluded and p.suffix in ['.py','.json','.log','.png','.h']:add(p)
+36 | manifest={name:digest(p) for name,p in sorted(entries.items())};mp=BASE/'archive-files.json';mp.write_text(json.dumps(manifest,indent=…
+   |                                                                                             ^
+37 | with tarfile.open(archive,'w:gz',compresslevel=1) as tar:
+38 |  tar.add(mp,arcname='project/archive-files.json',recursive=False)
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:36:143
+   |
+34 | …
+35 | … and p.suffix in ['.py','.json','.log','.png','.h']:add(p)
+36 | …hive-files.json';mp.write_text(json.dumps(manifest,indent=2)+'\n');archive=OUT/'experiment.tar.gz';assert not archive.exists()
+   |                                                                    ^
+37 | …
+38 | …
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:36:175
+   |
+34 | …
+35 | …'.log','.png','.h']:add(p)
+36 | …son.dumps(manifest,indent=2)+'\n');archive=OUT/'experiment.tar.gz';assert not archive.exists()
+   |                                                                    ^
+37 | …
+38 | …
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:39:39
+   |
+37 | with tarfile.open(archive,'w:gz',compresslevel=1) as tar:
+38 |  tar.add(mp,arcname='project/archive-files.json',recursive=False)
+39 |  for name,p in sorted(entries.items()):tar.add(p,arcname='project/'+name,recursive=False)
+   |                                       ^
+40 | with tarfile.open(OUT/'sources.tar.gz','w:gz') as tar:
+41 |  for name in sorted(f['sources']):tar.add(ROOT/name,arcname=name,recursive=False)
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:41:34
+   |
+39 |  for name,p in sorted(entries.items()):tar.add(p,arcname='project/'+name,recursive=False)
+40 | with tarfile.open(OUT/'sources.tar.gz','w:gz') as tar:
+41 |  for name in sorted(f['sources']):tar.add(ROOT/name,arcname=name,recursive=False)
+   |                                  ^
+42 | for p in BASE.iterdir():
+43 |  if p.is_file() and p.name not in excluded and p.suffix in ['.py','.json','.log']:shutil.copyfile(p,OUT/p.name)
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:43:82
+   |
+41 |  for name in sorted(f['sources']):tar.add(ROOT/name,arcname=name,recursive=False)
+42 | for p in BASE.iterdir():
+43 |  if p.is_file() and p.name not in excluded and p.suffix in ['.py','.json','.log']:shutil.copyfile(p,OUT/p.name)
+   |                                                                                  ^
+44 | for p in DIAG.iterdir():
+45 |  if p.is_file() and p.name not in excluded and p.suffix in ['.py','.json','.log','.png']:shutil.copyfile(p,DOUT/p.name)
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:45:89
+   |
+43 |  if p.is_file() and p.name not in excluded and p.suffix in ['.py','.json','.log']:shutil.copyfile(p,OUT/p.name)
+44 | for p in DIAG.iterdir():
+45 |  if p.is_file() and p.name not in excluded and p.suffix in ['.py','.json','.log','.png']:shutil.copyfile(p,DOUT/p.name)
+   |                                                                                         ^
+46 | for name,target in [('freeze.json','mask-freeze.json'),('review.json','mask-review.json'),('review.log','mask-review.log'),('check-mas…
+47 | summary=dict(status='PASS',archive_bytes=archive.stat().st_size,archive_sha256=digest(archive),members=len(entries),frozen_sources=len…
+   |
+
+E701 Multiple statements on one line (colon)
+  --> build/m10-class-calibration-v1/package-evidence.py:46:194
+   |
+44 | …
+45 | …
+46 | …eck-masks.py','check-masks.py'),('ObjectLabel.h','ObjectLabel.h')]:shutil.copyfile(DIAG/'mask-annex'/name,DOUT/target)
+   |                                                                    ^
+47 | …ces=len(f['sources']),diagnostic_raw=810,class_scorecards=31250,mask_cases=3,unique_quality_rgb=405,holdout_access=False,runtime_prom…
+48 | …
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> build/m10-class-calibration-v1/package-evidence.py:48:75
+   |
+46 | for name,target in [('freeze.json','mask-freeze.json'),('review.json','mask-review.json'),('review.log','mask-review.log'),('check-mas…
+47 | summary=dict(status='PASS',archive_bytes=archive.stat().st_size,archive_sha256=digest(archive),members=len(entries),frozen_sources=len…
+48 | (OUT/'package-summary.json').write_text(json.dumps(summary,indent=2)+'\n');print(json.dumps(summary,indent=2))
+   |                                                                           ^
+   |
+
+Found 32 errors (3 fixed, 29 remaining).

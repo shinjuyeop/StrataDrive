@@ -1,0 +1,84 @@
+{
+  "schema": "m10-offline-class-calibration-candidates-v1",
+  "scope": "Development-only candidate nomination for a future fresh quality protocol; not final Reference or runtime profile",
+  "class_order": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    7
+  ],
+  "minimum_allowed_confidence": 0.35,
+  "selection_sha256": "3486efe09d1f685f6471d25434c5a2bb7732aee4406402b646614e9d9d527980",
+  "freeze_sha256": "0d28c2bb0284a100c2c303d5a15ce5519d43f3667e2e3d68c7b0b73d6aa6e7ce",
+  "numeric_sha256": "8b79a4606d5dd64818e40621937812fb3fc04b38d07c15a26f6062badc43648e",
+  "regression_sha256": "92513eb4cc49018644cb02e1f52787eefb75779297ac6191c5153d9b70648e65",
+  "next_fresh_quality_candidate": "dfine-m-class-v1",
+  "relative_gate_failures_retained": true,
+  "models": {
+    "dfine-m-class-v1": {
+      "native_model_id": "dfine-m",
+      "onnx_sha256": "40097ba600ba21b94c673a76ff602ece600392fc1d9641576ff66bfa0300e1c2",
+      "onnx_bytes": 77949424,
+      "checkpoint_sha256": "b44a7586bf490858c7b8bce9e44bd025cb88724df9a07a8deb3ae1c12e608195",
+      "native_source_revision": "956d1709314c2c6a4df6f34de232054578a7449f",
+      "native_registry_sha256": "2c832c608148ccb4d40d951c6204fe52127b7441256fe8e1ebdafe1a8e5f8ed3",
+      "native_preprocess_source_sha256": "c16024be072d690d38310c6d3adfa4418f28a79c29a3d7c55be0c7b40a94ad9e",
+      "class_thresholds": {
+        "0": 0.6,
+        "1": 0.4,
+        "2": 0.7,
+        "3": 0.5,
+        "5": 0.5,
+        "7": 0.6
+      },
+      "native_postprocessing": "Full80-class native top300 without NMS; filter target classes and class confidence afterwards",
+      "precision": "FP32",
+      "batch": 1,
+      "input_size": [
+        640,
+        640
+      ],
+      "calibration_absolute": true,
+      "calibration_relative": false,
+      "consumed_town04_absolute": true,
+      "consumed_town04_relative": false,
+      "runtime_promotion": false
+    },
+    "rtv4-s-class-v1": {
+      "native_model_id": "rtv4-s",
+      "onnx_sha256": "bc24df4a66d10b379251f018f5dce8a3dd22e1a4adc75337c27e49ddde852065",
+      "onnx_bytes": 41831832,
+      "checkpoint_sha256": "238a3f6537bf3b75b55e73f91f9d4cec8d21259b4908b3f21896f3e038b5a3ee",
+      "native_source_revision": "55fefaaed7efe2a5f72d0a18fd4e05965e35c292",
+      "native_registry_sha256": "2c832c608148ccb4d40d951c6204fe52127b7441256fe8e1ebdafe1a8e5f8ed3",
+      "native_preprocess_source_sha256": "c16024be072d690d38310c6d3adfa4418f28a79c29a3d7c55be0c7b40a94ad9e",
+      "class_thresholds": {
+        "0": 0.4,
+        "1": 0.4,
+        "2": 0.6,
+        "3": 0.5,
+        "5": 0.6,
+        "7": 0.6
+      },
+      "native_postprocessing": "Full80-class native top300 without NMS; filter target classes and class confidence afterwards",
+      "precision": "FP32",
+      "batch": 1,
+      "input_size": [
+        640,
+        640
+      ],
+      "calibration_absolute": true,
+      "calibration_relative": false,
+      "consumed_town04_absolute": false,
+      "consumed_town04_relative": false,
+      "runtime_promotion": false
+    }
+  },
+  "runtime_promotion": false,
+  "fresh_acceptance": false,
+  "training": false,
+  "jetson_execution": false,
+  "class_adapter_source_sha256": "9bd4dfef8d8bd15f7d9599ea531f46fac8ea9a3e94b3594a1768a0cd9bf885fb"
+}

@@ -48,9 +48,15 @@ source100ms와 wall100ms·평가 IoU0.5를 고정한다. 기존 Reference 전체
 | TC-PER-040 | 공식 D-FINE-M·RT-DETRv4-S·DAMO legacy 가중치와 native FP32 추론 | 출처/SHA·weights-only strict load·byte 동일 재export·RGB 색상 회귀·PyTorch/ORT CPU/CUDA 전체 raw와8개 threshold 검출 동등성·초기 실패 보존 |
 | TC-PER-041 | 개발324장 confidence calibration과 봉인 후 Town04 개발81장 | 사전8점 grid/동점 규칙·모든 모델 선택 봉인 후 check 실행·별도 offline detection/기본0.35 계약 유지·보류 거절·GT/분모/기준 무변경 |
 | TC-PER-042 | 모델6종의 raw2430개와19440개 threshold set·원본 source 재실행 | 모든 cache hash·전체 threshold 재구성·선택/점수/실행 순서·압축/새 source 경로 감사·각 Jetson 전체 stack 배포 고려와 실제 보드 수용 분리 |
+| TC-PER-043 | D-FINE/RT-DETRv4의810개 native top300·FP/FN·Rider 겹침 | 기존 strict matching/count/GT 유지·낮은 score와 위치/다른 class 겹침 분리·일대일 maximum matching 상한·전체 오류와 크기/조건별 분모 보존 |
+| TC-PER-044 | V4 개발 FP 세 사례의 원본 RGB/instance·CityObjectLabel | 사전 case/source SHA·원본 RGB byte 일치·전체 frame GT 재구성·ROI tag histogram·Buildings/Static/Bus 확인으로 기존 GT/FP 변경0 |
+| TC-PER-045 | 클래스별5점×6class·모델당15625 조합·사전 gate/동점 규칙 | 기존 scalar/source/weights 유지·0.35 하한·class 독립 합성의 실제 raw/primary 대조·전체31250 scorecard와 봉인·소비한 Town04를 새 수용으로 승격0 |
+| TC-PER-046 | 고정 혼합 vector의6 numeric probe·파생 identity·새 source 감사 | CPU/CUDA/upstream full300·5개 scalar/선택vector exact class와box/score tolerance·810 raw replay·초기 JSON 비교 실패와 보완 annex 보존·최종/runtime 자동 교체0 |
 
 TC-PER-037은 [사전학습 비교 기준](perception-model-screen-v1-protocol.md)과 [5종 개발 결과](evidence/m10_model_screen_v1/README.md)를 따른다.
 TC-PER-040–042는 [V2 사전 비교 기준](perception-model-screen-v2-protocol.md)과 [6종·calibration/개발 확인 근거](evidence/m10_model_screen_v2/README.md)를 따른다.
+TC-PER-043–044는 [진단 기준](perception-model-diagnostics-v1-protocol.md), [mask annex](perception-model-diagnostics-v1-mask-annex.md), [원본 오류 분석](evidence/m10_model_diagnostics_v1/README.md)을 따른다.
+TC-PER-045–046은 [class calibration 기준](perception-class-calibration-v1-protocol.md), [감사 보완](perception-class-calibration-v1-audit-annex.md), [고정 후보 검증](evidence/m10_class_calibration_v1/README.md)을 따른다.
 TC-PER-038–039는 [V8 기준](perception-quality-v8-protocol.md), [준비 revision](perception-quality-v8-preparation-revision.md), [종료 실패 복구](perception-quality-v8-recovery.md)와 [새 지도 평가 근거](evidence/m10_quality_v8/README.md)를 따른다.
 
 TC-PER-034–036은 [V7 기준](perception-quality-v7-protocol.md)과 [새 개발/보류·복구 원본 근거](evidence/m10_quality_v7/README.md)를 따른다.

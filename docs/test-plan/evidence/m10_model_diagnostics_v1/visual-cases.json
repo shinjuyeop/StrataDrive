@@ -1,0 +1,374 @@
+{
+  "status": "PASS",
+  "analysis_sha256": "d12319683d87d808357d6f7f71d7655c2c2fbc2807debc5b180acd2bb4fddeac",
+  "cases": [
+    {
+      "file": "dfine-car-no-positive.png",
+      "sha256": "416f077754157b2f5fb1490cdc4b72fd6536d66023b8bf78cd784c1b7ab02244",
+      "case": "dfine-car-no-positive",
+      "model": "dfine-m",
+      "source": {
+        "dataset": "v4",
+        "scene": "v4-development-052",
+        "frame": 2686,
+        "source_ns": 27023498253,
+        "rgb_sha256": "019106522560864e65e3d9e71e8cc593de24de17dc4af80b018dec7aeaea4c2d",
+        "weather": "WetCloudyNoon",
+        "stratum": "overlap_vehicles",
+        "target_class": null,
+        "prediction_index": 2,
+        "class_id": 2,
+        "prediction_box_size": "lt32sq",
+        "bucket": "no_positive_iou_ge_0p1",
+        "prediction": {
+          "class_id": 2,
+          "score": 0.7003297209739685,
+          "box": [
+            593.6050415039062,
+            122.23912811279297,
+            640.0,
+            143.0841522216797
+          ]
+        },
+        "max_same_class_iou": 0.0,
+        "max_other_class_iou": 0.0,
+        "relationships": [],
+        "max_excluded_iou": 0.0,
+        "rider_overlap": false,
+        "same_actor_cross_class_gt_overlap": false
+      },
+      "crop": [
+        568,
+        84,
+        640,
+        180
+      ],
+      "display_only_zoom": true
+    },
+    {
+      "file": "dfine-person-no-positive.png",
+      "sha256": "d4f5d7742c525cc53a4f8abd49282c5c85cfd45c26d5c0c8dd48076c8ac3af81",
+      "case": "dfine-person-no-positive",
+      "model": "dfine-m",
+      "source": {
+        "dataset": "v4",
+        "scene": "v4-development-080",
+        "frame": 4086,
+        "source_ns": 41023497940,
+        "rgb_sha256": "44ef272a83af049e1abbfcfb4821f6bd913272e153e4992c55d2257ea32e1158",
+        "weather": "ClearSunset",
+        "stratum": "overlap_vru",
+        "target_class": null,
+        "prediction_index": 3,
+        "class_id": 0,
+        "prediction_box_size": "lt32sq",
+        "bucket": "no_positive_iou_ge_0p1",
+        "prediction": {
+          "class_id": 0,
+          "score": 0.6435206532478333,
+          "box": [
+            226.16168212890625,
+            161.82472229003906,
+            234.17559814453125,
+            176.72607421875
+          ]
+        },
+        "max_same_class_iou": 0.0,
+        "max_other_class_iou": 0.0,
+        "relationships": [],
+        "max_excluded_iou": 0.0,
+        "rider_overlap": false,
+        "same_actor_cross_class_gt_overlap": false
+      },
+      "crop": [
+        182,
+        121,
+        278,
+        217
+      ],
+      "display_only_zoom": true
+    },
+    {
+      "file": "rtv4-person-no-positive.png",
+      "sha256": "a9a6beb2fcced9e0bcd7e560c58b87ff263b00821f734ffbf8fc6ccd9224f88c",
+      "case": "rtv4-person-no-positive",
+      "model": "rtv4-s",
+      "source": {
+        "dataset": "v4",
+        "scene": "v4-development-070",
+        "frame": 3586,
+        "source_ns": 36023498052,
+        "rgb_sha256": "fdba9b92ba1fbd3a5bd2135b356ee99475b02047261bd7e757dfaec49b57a0da",
+        "weather": "ClearSunset",
+        "stratum": "near",
+        "target_class": 5,
+        "prediction_index": 1,
+        "class_id": 0,
+        "prediction_box_size": "lt32sq",
+        "bucket": "no_positive_iou_ge_0p1",
+        "prediction": {
+          "class_id": 0,
+          "score": 0.5370399951934814,
+          "box": [
+            222.76470947265625,
+            83.83220672607422,
+            247.0201873779297,
+            104.36445617675781
+          ]
+        },
+        "max_same_class_iou": 0.0,
+        "max_other_class_iou": 0.015118989766138997,
+        "relationships": [],
+        "max_excluded_iou": 0.0,
+        "rider_overlap": false,
+        "same_actor_cross_class_gt_overlap": false
+      },
+      "crop": [
+        186,
+        46,
+        282,
+        142
+      ],
+      "display_only_zoom": true
+    },
+    {
+      "file": "rtv4-bicycle-below-threshold.png",
+      "sha256": "99eec5cd684708067d1675ab2b4cd1310a73a1a076eae94aede28b1fa20458f5",
+      "case": "rtv4-bicycle-below-threshold",
+      "model": "rtv4-s",
+      "source": {
+        "dataset": "v7",
+        "scene": "v7-development-033",
+        "frame": 1803,
+        "source_ns": 18142060265,
+        "rgb_sha256": "6fb40bcfc691299a3459b32cc34fd6307f98ec0d7c001e664235efcf7e023133",
+        "weather": "WetCloudyNoon",
+        "stratum": "far",
+        "target_class": 1,
+        "gt_index": 1,
+        "class_id": 1,
+        "bucket": "below_selected_confidence",
+        "gt": {
+          "class_id": 1,
+          "instance_id": 129,
+          "visible_pixels": 70,
+          "box": [
+            316,
+            164,
+            331,
+            174
+          ],
+          "semantic_tags": [
+            19
+          ]
+        },
+        "box_width": 15,
+        "box_height": 10,
+        "box_area": 150,
+        "box_size": "lt32sq",
+        "person_kind": "not_person",
+        "max_same_class_iou": 0.7184946982430054,
+        "max_same_class_support_score": 0.4186365604400635,
+        "same_class_support_below_0p1": false,
+        "best_same_class": {
+          "native_index": 59,
+          "class_id": 1,
+          "score": 0.05797046422958374,
+          "box": [
+            317.67132568359375,
+            162.91932678222656,
+            331.9760437011719,
+            174.7192840576172
+          ]
+        },
+        "highest_score_supported": {
+          "native_index": 1,
+          "class_id": 1,
+          "score": 0.4186365604400635,
+          "box": [
+            317.9096984863281,
+            162.1273956298828,
+            329.1816711425781,
+            174.43666076660156
+          ]
+        },
+        "max_other_class_iou": 0.7184946982430054,
+        "best_other_class": {
+          "native_index": 130,
+          "class_id": 3,
+          "score": 0.0314791202545166,
+          "box": [
+            317.67132568359375,
+            162.91932678222656,
+            331.9760437011719,
+            174.7192840576172
+          ]
+        }
+      },
+      "crop": [
+        275,
+        121,
+        371,
+        217
+      ],
+      "display_only_zoom": true
+    },
+    {
+      "file": "rtv4-rider-below-threshold.png",
+      "sha256": "239a563ae6b0a836118e4ec750bb1a42f9663ca551ae4bbf1a9d12e2e5553ffe",
+      "case": "rtv4-rider-below-threshold",
+      "model": "rtv4-s",
+      "source": {
+        "dataset": "v7",
+        "scene": "v7-development-066",
+        "frame": 3453,
+        "source_ns": 34642059896,
+        "rgb_sha256": "a1ff730e6e59cbb435e5add5410bf6dd47cad2f7694b5d4e77228ff4e22f91a0",
+        "weather": "ClearSunset",
+        "stratum": "near",
+        "target_class": 3,
+        "gt_index": 0,
+        "class_id": 0,
+        "bucket": "below_selected_confidence",
+        "gt": {
+          "class_id": 0,
+          "instance_id": 171,
+          "visible_pixels": 302,
+          "box": [
+            315,
+            162,
+            343,
+            206
+          ],
+          "semantic_tags": [
+            13
+          ]
+        },
+        "box_width": 28,
+        "box_height": 44,
+        "box_area": 1232,
+        "box_size": "32sq_to96sq",
+        "person_kind": "rider13",
+        "max_same_class_iou": 0.6593298687132876,
+        "max_same_class_support_score": 0.49828749895095825,
+        "same_class_support_below_0p1": false,
+        "best_same_class": {
+          "native_index": 1,
+          "class_id": 0,
+          "score": 0.49828749895095825,
+          "box": [
+            317.96929931640625,
+            162.28797912597656,
+            345.4545593261719,
+            196.98312377929688
+          ]
+        },
+        "highest_score_supported": {
+          "native_index": 1,
+          "class_id": 0,
+          "score": 0.49828749895095825,
+          "box": [
+            317.96929931640625,
+            162.28797912597656,
+            345.4545593261719,
+            196.98312377929688
+          ]
+        },
+        "max_other_class_iou": 0.6593298687132876,
+        "best_other_class": {
+          "native_index": 165,
+          "class_id": 3,
+          "score": 0.026597917079925537,
+          "box": [
+            317.96929931640625,
+            162.28797912597656,
+            345.4545593261719,
+            196.98312377929688
+          ]
+        }
+      },
+      "crop": [
+        281,
+        136,
+        377,
+        232
+      ],
+      "display_only_zoom": true
+    },
+    {
+      "file": "dfine-rider-localization.png",
+      "sha256": "355e241cc39696148ce1ef4150d325cef4f7b3cf4223d667a22301c2aa7e7fc8",
+      "case": "dfine-rider-localization",
+      "model": "dfine-m",
+      "source": {
+        "dataset": "v4",
+        "scene": "v4-development-061",
+        "frame": 3136,
+        "source_ns": 31523498152,
+        "rgb_sha256": "196667f3bd119963fb8b62ffa1959bc2c288143b98a6810fa5b92a21e3ab6b18",
+        "weather": "ClearSunset",
+        "stratum": "occluded",
+        "target_class": 1,
+        "gt_index": 0,
+        "class_id": 0,
+        "bucket": "same_class_localization_overlap",
+        "gt": {
+          "class_id": 0,
+          "instance_id": 164,
+          "visible_pixels": 139,
+          "box": [
+            327,
+            160,
+            344,
+            181
+          ],
+          "semantic_tags": [
+            13
+          ]
+        },
+        "box_width": 17,
+        "box_height": 21,
+        "box_area": 357,
+        "box_size": "lt32sq",
+        "person_kind": "rider13",
+        "max_same_class_iou": 0.48508848574933233,
+        "max_same_class_support_score": null,
+        "same_class_support_below_0p1": false,
+        "best_same_class": {
+          "native_index": 1,
+          "class_id": 0,
+          "score": 0.7415915131568909,
+          "box": [
+            326.80963134765625,
+            158.4685821533203,
+            350.91009521484375,
+            189.00526428222656
+          ]
+        },
+        "highest_score_supported": null,
+        "max_other_class_iou": 0.48508848574933233,
+        "best_other_class": {
+          "native_index": 106,
+          "class_id": 3,
+          "score": 0.0788535475730896,
+          "box": [
+            326.80963134765625,
+            158.4685821533203,
+            350.91009521484375,
+            189.00526428222656
+          ]
+        }
+      },
+      "crop": [
+        287,
+        122,
+        383,
+        218
+      ],
+      "display_only_zoom": true
+    }
+  ],
+  "selection_modified": false,
+  "gt_modified": false,
+  "holdout_access": false
+}

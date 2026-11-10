@@ -68,9 +68,33 @@ bicycle61.67%, Town04 bicycle60%가 기준70%에 못 미친다. L의 과거 V6/V
 한 점이나 한 도로 결과로 우열을 확정하지 않는다. 이 개발 비교에서 기준을 조정하지 않았다.
 0.35 미만 탐색값은 별도 offline 자료형이고 기본 runtime의0.35 계약은 유지한다.
 
-다음은 개발 영역에서 D-FINE의 오검출과 RT-DETRv4의 작은 보행자·자전거 누락을 분리해
-후속 사전학습 후보/입력 설정을 고정하는 일이다. 설정을 고정한 다음 새 protocol과 새 보류로
-평가한다. 소비한 Town04 개발 확인 결과를 보고 이번 V2 설정을 다시 조정하지 않는다.
+후속 [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md)은 D-FINE calibration
+누락51건 중49건, RT-DETRv4 누락85건 중84건에서 맞는 클래스·IoU0.5 박스가 신뢰도0.50
+미만으로 제외됐음을 확인했다. D-FINE FP129건 중98건은 positive GT와 IoU0.1도 겹치지
+않았고95건은 V4의 반복 배경에 집중됐다. 선택한 세 사례는 원본 instance 영상과 GT를
+재구성해 Buildings/Walls·Static/Poles·Bus 영역임을 확인했다. 다른 클래스 겹침을 의미 원인으로
+단정하거나 GT/FP를 바꾸지 않았다.
+
+별도 [클래스별 confidence 실험](test-plan/evidence/m10_class_calibration_v1/README.md)은
+원래 가중치·입력·native top300을 유지한 채 모델당15,625개 조합을 개발324장에서 비교했다.
+class0/1/2/3/5/7 순서로 D-FINE은 `[.60,.40,.70,.50,.50,.60]`, RT-DETRv4는
+`[.40,.40,.60,.50,.60,.60]`을 고정했다.0.35 하한과 기존 절대/상대 기준을 유지했다.
+
+| 고정 클래스별 설정 | Calibration P / R | 이미 소비한 Town04 개발 P / R | 절대 기준 cal / Town04 | 상대 기준 cal / Town04 |
+| --- | ---: | ---: | --- | --- |
+| D-FINE-M | 92.00 / 89.15% | 89.84 / 89.15% | PASS / PASS | FAIL / FAIL |
+| RT-DETRv4-S | 85.74 / 88.57% | 86.36 / 88.37% | PASS / FAIL | FAIL / FAIL |
+
+D-FINE의 calibration FP는129→40으로 줄었다. 그래도 calibration에서 bus recall95%가
+S100%보다 낮고, Town04 precision 향상은2.93%p로3%p에 미달한다. RT-DETRv4의 Town04
+bicycle recall60%도 남았다. Town04는 이미 소비한 개발 regression이며 새 보류나 독립 수용이
+아니다. 이 결과를 보고 설정을 다시 조정하지 않았다.
+
+새 보류 평가에 넣을 **개발 후보는 D-FINE-M 클래스별 설정으로 고정**한다.
+[파생 후보 프로파일](../profiles/perception-class-calibration-candidates-v1.json)은 기존 model/
+전처리/source/selection SHA와 설정을 묶으며 runtime profile이 아니다. 다음은 새 quality
+protocol에서 S와 이 단일 후보·기존 gate를 고정하고 새 준비/개발/보류를 취득하는 일이다.
+최종 Reference 채택은 미완료이며 과거/현재 상대 기준 FAIL과 기본 S를 유지한다.
 
 ## 지금 확인하는 배포 고려 사항
 

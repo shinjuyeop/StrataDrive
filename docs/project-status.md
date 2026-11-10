@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **사전학습6종·confidence 개발405장 비교 완료 / 모델별 미달·과거 보류 FAIL·기존 S 유지 / 모델 선정·정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [6종 비교 V2](test-plan/evidence/m10_model_screen_v2/README.md) · [V8 새 지도 평가](test-plan/evidence/m10_quality_v8/README.md) |
+| M10 | **오류 원인 분리·클래스별 confidence 검증 완료 / 새 평가 후보 D-FINE-M 고정·상대 기준 FAIL·기존 S 유지 / 최종 모델·정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md) · [고정 후보 검증](test-plan/evidence/m10_class_calibration_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -42,7 +42,17 @@ D-FINE-M·RT-DETRv4-S·공식 DAMO legacy를 추가했다. 개발324장에서8�
 도로 P78.28%가 FAIL이다. RT-DETRv4는 P94.10%/R83.53%이나 작은 person/bicycle
 기준이 남았다. 전체 raw2430개·threshold19440세트·48개 calibration/12개 check 점수를
 재생했다. 신규 RGB·새 보류·학습·보드 최적화 없이 미래 제외4990개와 기본 S를 유지한다.
-다음은 개발 영역의 오검출/작은 VRU 누락 분석과 후속 후보·입력 설정 고정이다.
+후속 오류 분석과 후보 설정 고정을 완료했다.
+
+[오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md)은 신뢰도0.50 미만의
+맞는 박스가 대부분의 누락을 설명하며 D-FINE FP가 V4 반복 배경에 집중됨을 확인했다.
+가중치·640 입력·native top300을 유지한 [클래스별 설정](test-plan/evidence/m10_class_calibration_v1/README.md)은
+모델당15,625개 조합을 개발324장에서 비교하고 설정 봉인 뒤 이미 소비한 Town04 개발81장을
+regression했다. D-FINE은 FP129→40·calibration P92%/R89.15%, Town04 P89.84%/R89.15%로
+두 절대 기준 PASS다. 상대 기준은 bus recall 감소·precision 향상2.93%p<3%p로 FAIL을 유지한다.
+RT-DETRv4는 Town04 bicycle60%가 남아, 다음 새 품질 평가의 단일 개발 후보를 D-FINE의
+클래스별 설정으로 고정했다. 최종 Reference/runtime 교체가 아니다. 다음은 새 protocol과
+새 준비/개발/보류 취득이며 신규 학습·보드 최적화는 실행하지 않았다.
 
 ## M9 기능 범위 마감
 

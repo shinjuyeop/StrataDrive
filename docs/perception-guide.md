@@ -17,6 +17,12 @@ Town04 개발81장을 확인했다. 모델별 남은 FP/class recall과 과거 �
 최종 Reference를 확정하지 않았다.0.35 미만 탐색값은 별도 offline detection으로 처리하고
 기존 runtime profile은 유지한다. 전체 raw 재생 명령은 해당 근거의 `check-archive.py`를 따른다.
 
+후속 [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md)과
+[클래스별 confidence 검증](test-plan/evidence/m10_class_calibration_v1/README.md)은 개발 자료만
+사용했다. 새 품질 평가 후보는 D-FINE-M의 `[.60,.40,.70,.50,.50,.60]`(class0/1/2/3/5/7)이다.
+calibration·소비한 Town04 개발의 절대 기준은 PASS지만 상대 FAIL을 유지한다.
+파생 후보 프로파일은 offline 전용이며 다음 새 quality protocol에서 별도로 고정해야 한다.
+
 ## 환경과 모델
 
 저장소 루트에서 실행한다. 기본 C++ 빌드에는 Python/ONNX/CARLA가 필요 없다.
