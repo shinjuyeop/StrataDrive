@@ -1,0 +1,3343 @@
+{
+  "schema": "m10-quality-experiment-audit-v9",
+  "audit": "PASS",
+  "selected": "dfine-m-class-v1",
+  "freeze_sha256": "746b71e1e73c26262d72ab88a004985841eaf7e71a161a95e6f07687c4c7e958",
+  "selection_sha256": "8062f19b1ee997f5c39cc75b1779a910e49d19003a1b9b07aa73fab4cb48ca51",
+  "raw_reconstruction": {
+    "development": {
+      "status": "PASS",
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true
+      },
+      "missing_actors": [],
+      "missing_riders": [],
+      "schema": "m10-quality-visibility-v9",
+      "partition": "development",
+      "frames": 81,
+      "site": 38
+    },
+    "holdout": {
+      "status": "PASS",
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true
+      },
+      "missing_actors": [],
+      "missing_riders": [],
+      "schema": "m10-quality-visibility-v9",
+      "partition": "holdout",
+      "frames": 81,
+      "site": 85
+    }
+  },
+  "cross_partition_rgb_overlap": 0,
+  "prior_rgb_overlap": 0,
+  "prior_rgb_excluded": 5287,
+  "holdout_relative": {
+    "status": "PASS",
+    "gates": {
+      "precision": true,
+      "recall": true,
+      "per_class": true,
+      "far_occluded": true,
+      "near_person": true,
+      "negatives": true
+    }
+  },
+  "eligible_for_runtime_review": false,
+  "runtime_promotion": false,
+  "preparation_binding": {
+    "survey-freeze.json": "d56765d40489e484b84c3ef40d2613eb55c96c7e6dcc47390c8a77544201c1f9",
+    "survey-runs.json": "825d99ee655f5e4e70845a2d36c8010e8283f84bc08532fb7555a81b6fca561d",
+    "preparation-visual-review.json": "c85f2039f6b7415c4d0ae5edd5442626ced4965a7c17f1187950eddb50cfa7ba",
+    "preparation-reviewed.flag": "4a89aa6e706ff04b6f6f0d827cb919113d2be2f1e56a37da6147b0d417c43c42",
+    "survey-01/server.json": "7f4feba8ed1a54165763346ff1e75e3588e76f01fdafda2e1a39593df093d018",
+    "survey-01/dataset/survey.json": "917a0a78000dd0d1e9a4ec96a988c1699378f11ffd7e591f62836b1233736520",
+    "survey-02/server.json": "6342a9fbde9c30c3d82882809cea3d5a5d01f4b97ab948ef2cbc0718ee68be8d",
+    "survey-02/dataset/survey.json": "917a0a78000dd0d1e9a4ec96a988c1699378f11ffd7e591f62836b1233736520",
+    "survey-recovery-before-launch.json": "801e99d8cce80db025e6f7a8950a657ca4aa150b90ff4c0e03f96ab29993269d",
+    "preparation-development-01/server.json": "80ea64842a35b9ed00f53293f0d6bc1bfd6d78349c7c5992beb9dba1d1c3746b",
+    "preparation-development-01/dataset/capture.json": "ab98517c81040211d0ec478933d346411a87ffc190779512dee288ab68122c97",
+    "preparation-initial-development-data/acceptance.json": "a20ab9f4f06017efe66e972deed6f5da8642a8dee6535b5a468f7d8cec1af928",
+    "preparation-initial-development-data/rgb.json": "bc9fdc3c983d313ab5a101e2addde606ddf8c3e6126d6426a0ce7ea7c60db66a",
+    "preparation-initial-development-data/evaluation-only-gt.json": "05f1c4fc267b7bf8cfb4a603accddf24d994cc3aa3a7659b0b8e03b95a7142e3",
+    "preparation-initial-development-data/preparation-data.json": "b83cca8351f9bfa6758f98d06b6e2198c7eb7aa6e88f86873e10d5260dc7da5c",
+    "preparation-holdout-01/server.json": "8b552cb16d85ab777f057a6dad27d750ac1ba6f17bdd11fbcafb2db099af884a",
+    "preparation-holdout-01/dataset/capture.json": "4cfc712f67f82abb09f1126fc2229f0c2f687d0c3bd0454287286e038e928d8e",
+    "preparation-holdout-02/server.json": "f8fa82ae8c63cb53f5cb0d69543440d720730f4e42c3522d9de6c2b4a20dc5a8",
+    "preparation-holdout-02/dataset/capture.json": "e79528b7f0e051ff8d497e0d12851426040ff4d6b7288d1e218a3ebd3766e51b",
+    "preparation-recovered-holdout-data/acceptance.json": "1e3825571d6eb35c1d5dee7574c4305ced42204ba8349e03a359e611f25e8ef5",
+    "preparation-recovered-holdout-data/rgb.json": "a5e8221778687de2b475bd8ba2698769c3042bb73df5b7479cb31cc1e3274fd5",
+    "preparation-recovered-holdout-data/evaluation-only-gt.json": "d4fbc41ec5597677e657055b0208e4f67b5c7929354e0ff501907fa31514d159",
+    "preparation-recovered-holdout-data/preparation-data.json": "db8cc4b829b884268ea9eea9ff4eaeb4d1fcd5dcddd276b432f2595734fe85a8",
+    "preparation-recovery-before-launch.json": "99c14b74fcfdaec53a8317e09e4ff50e7abcdce4e57c926c804a0bb7a8178e61",
+    "preparation-development-data/acceptance.json": "a20ab9f4f06017efe66e972deed6f5da8642a8dee6535b5a468f7d8cec1af928",
+    "preparation-development-data/rgb.json": "bc9fdc3c983d313ab5a101e2addde606ddf8c3e6126d6426a0ce7ea7c60db66a",
+    "preparation-development-data/evaluation-only-gt.json": "05f1c4fc267b7bf8cfb4a603accddf24d994cc3aa3a7659b0b8e03b95a7142e3",
+    "preparation-development-data/preparation-data.json": "b83cca8351f9bfa6758f98d06b6e2198c7eb7aa6e88f86873e10d5260dc7da5c",
+    "preparation-holdout-data/acceptance.json": "1e3825571d6eb35c1d5dee7574c4305ced42204ba8349e03a359e611f25e8ef5",
+    "preparation-holdout-data/rgb.json": "a5e8221778687de2b475bd8ba2698769c3042bb73df5b7479cb31cc1e3274fd5",
+    "preparation-holdout-data/evaluation-only-gt.json": "d4fbc41ec5597677e657055b0208e4f67b5c7929354e0ff501907fa31514d159",
+    "preparation-holdout-data/preparation-data.json": "db8cc4b829b884268ea9eea9ff4eaeb4d1fcd5dcddd276b432f2595734fe85a8",
+    "preparation-freeze.json": "729e04754f09176650a8bd9480d899761757178a551a5459e7004314dd3b5185",
+    "preparation-attempts.json": "d43931cdd9afade2171ed0abc0f5bad9883a70d8f669d8d18990706a7b4fdb90",
+    "preparation-runs.json": "9b8a02602a6dfdfcc8d042ab72124fd3a26cd8270f54793ba32e3bc384d0e328",
+    "failed-preparation-raw-audit.json": "ed2d3a695347196dce06c21e9cdcd6f8d8a017b2756a8006d817b856b0106490"
+  },
+  "preparation_raw_reconstruction": {
+    "development": {
+      "status": "PASS",
+      "frames": 99,
+      "site": 38,
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true,
+        "every_class_stratum": true,
+        "occlusion_references": true
+      },
+      "primary_coverage": {
+        "0": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "1": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "2": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "3": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "5": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "7": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        }
+      }
+    },
+    "holdout": {
+      "status": "PASS",
+      "frames": 99,
+      "site": 85,
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true,
+        "every_class_stratum": true,
+        "occlusion_references": true
+      },
+      "primary_coverage": {
+        "0": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "1": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "2": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "3": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "5": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "7": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        }
+      }
+    }
+  },
+  "failed_preparation_raw_reconstruction": {
+    "schema": "m10-v9-failed-preparation-diagnostic-v1",
+    "status": "PASS",
+    "accepted": false,
+    "server_status": "FAIL",
+    "server_sha256": "8b552cb16d85ab777f057a6dad27d750ac1ba6f17bdd11fbcafb2db099af884a",
+    "capture_sha256": "4cfc712f67f82abb09f1126fc2229f0c2f687d0c3bd0454287286e038e928d8e",
+    "plan_sha256": "278a9f2afd1cc89578879a4b876a828e0c8b357c908c08092d8facc215e678de",
+    "helper_sha256": "6086a9335050f04ca94eb781f8029d349354b485c724b268a54029de70f2bc54",
+    "frames": 99,
+    "rgb_sha256": [
+      "f15c8fc10f8a264f74368a239e738e002c180b4c7412b41867694050f7b466d6",
+      "fd85f9cfa69933004a0830a837baf4fe6d246383d4bff259002b03bec381bc53",
+      "70efe521da8cb937373fca09f1e940d8e998442dbfd74d524e7c06e19fc0179e",
+      "a5cb815cad5cd917bbaecf358dc03fae8be9b12d3a88e5a15b959bd4e1a09785",
+      "2aa2ed4693cb8d6942e8b2a92ba4fc9bd98d04950ca7f0f427647a60f77e35c9",
+      "086de148c32493d274651500e4736cc8e597be16f7dce4061d1f2810a3b2ceb5",
+      "4216b0aa63d1d3178598cb485c5ecc43632bbd74411df54a41decf505aa37ce6",
+      "459e8ce13def353169a1ea1377c429d3a82c304dc1f207cf2b15210ca64798f7",
+      "748d9615a4fb4a7c18de0d65051ec0c460ed60adcee38c5fcef97dc2dcc4d6c5",
+      "3e7d8d6ea72cdf4e3866d726930dd251cf13ce655396585317ae16f3db25385a",
+      "0e14b8bbd2082bd385f01ed122c04831648364e38316cdefbdf803484b837024",
+      "8ace7c4b49530504478338e075013d4fae6d268032c7eb9eec8dfbd3eac7583b",
+      "73094a94707033bb15a43b43446a202ffd2c99eacc524a9a5b3511864a504043",
+      "5e63782d0e143fe8846d324f5fdbf1b06522cc6f4b80b9328b42859f82a4d75c",
+      "6ef67565a7f1c673a176ab14b2783c5b998923604e92e97987088313fe422ab2",
+      "b71b1e74a6a08fd207c143a27d19cfe1b9ee2c6a8979898bd4c30846e8f430f3",
+      "bde95ddc7d8d6e2c81bc28dea9c480a561c0dc3269116058379e1edc51eba66f",
+      "f7b0ea9b86fa41e91a0034c2f323a9168a2b95a4ddd846183c276b0cd90afb35",
+      "fe1238610ccc5be82620ab86a2e12aa9e15d7e84c3541fa6c1abaf55314e08cd",
+      "8b597d7034083f7403b3cb10f444650280ee56a3f1d01d313ae875c073027555",
+      "334eefb7f0e9caf415f50186e5e86daf8ecc818fae3e843920ef6e3e82e49809",
+      "cafe3c566d652763cae418705a6e2ad1e956e94c8624f9d78bc61a2b4f6b43e6",
+      "a98a75dbfe786969c74530c6331c6287bbf092dab927f14ce12ca655111d193f",
+      "2ac65e7ea0b9d8a5ac6de0ac89e5635966d775aa715dd656eab4ea3b3c743411",
+      "4002f6f5e6eaf6d84fdfbc59b4d4aaa0e6e805511a592a1ba908702dc7c990b1",
+      "d7a425614e93dc373fcc5ff87d618e7f9eb8b8da6caf38c689622a9411d6adc2",
+      "94e8fafb2ecca966a2ecd1c3a0b63c0fc6b7516c1717ecbf97b8663c0ac2c347",
+      "34202966b9202748516011c0845e718b7eae10bb39f58f4c9cb90d2f17710af1",
+      "76f8f5d80b237d59d8af9189bc5f8c66903de717f86763e4f5a19e71c4690537",
+      "b23b262e772ff1747d9307714d00c110a0739a8dbb2af876a7c30ec941d77819",
+      "c66fb3dda4a832439c872fe04be1801830db17996d5cdf90114dcc8c379fffa1",
+      "3e8c97475f3f3c672bd7044a0c47f1bb8dcb9bd5ede8762a048d14d05a6f3831",
+      "899ba4c5700352b8398aa8577a623db8f94ac25ef47cbbb24ecb0ad94f6e53d5",
+      "e430bb0047a38b511f6c5763968df00beb2ab53149fbb507624a502a651a343d",
+      "341aaa8229bc5fcc4431f9036e63a55164148979a4e9e115fe98a0f14715a730",
+      "5a09382e297b27358a82966c5d199a3e1b59829de556a4a567203d069cd83222",
+      "38b05dbdd5915078c4d23543a948fedb792e5c36fb0997fc4f5a0a05179464a3",
+      "312f53e5d427d2fa3552712dab7d16085e4d004eeef12ff669a81eeb1ef90b92",
+      "32b51c2faaf4ca173c7403d19fa88db90cd42777814d53a565d2ad53ee898590",
+      "a1e53e69569ecba74e16b9e9bf82f4c968919056d2bb8d4cbaa9645c3b198f0a",
+      "30ce6dd6662183566d5455adf6aca20438ca2b5211dd837b28fcc1da5010f532",
+      "5ccb043981353231757746b396b9371b4d796a8dbdfa5708f1a7fd46f59849cb",
+      "c69b63801e872c2aa5477ee0c71530cfc1b487a97b0f1cd614bf4fd01cd6b486",
+      "1240ed8b60c2c5a0ade46cac525aa8d8147b3d85fb4b90ae263b1128eb389d29",
+      "5a1c0de4d82293fd34ce5ecb7a7300aa5504c3a2e92be9d78c9d1f8b57db63ad",
+      "a2750d2aef69c2c0c62df5d2d0c83a4e8a60d9cfc1e3bb042ac9d32aff8cc8d5",
+      "857250013aa5f46ecd35e697fe074eeff10c4a8cd08a7e1502bbca912c838fca",
+      "7f38a33460e7e3d34fb900856a2e5da17971ee7cb2636a8cd4d78ce0fc741f12",
+      "a49b0f826057844f74988491ec33bf7f87cba2c1bef9c6fcff17d0149af33b2c",
+      "69595e423cf947dec4ca2ad90af353b75f1d97b54df329eacf3f88158208e3c3",
+      "fd8b4acc3222d40a466ae7a5151fd981039379b3eef9cd116a2a240e56ba3136",
+      "31388c0cfc95a4f77309e126499c66f9cfdec7f68fc51be6146c2c71d42c8769",
+      "ecfd4c099b276de1fbe2049d75e24bc67b817906b86d2c60edc55c121fd6b05d",
+      "7bab5320255d06b06e811fb2716db11971058cad39e960c2702b2a21bd256cd2",
+      "75c60272ef39b306b91ca116b1f09848314b123f8ded46a2e0a25f6371682940",
+      "8accb36722d44f0c02c99cef9c254a6691635848f74e281c87e03a8d606f55e7",
+      "54a815b22336fa458135eceec1677a94e4e55a3315a713c030decf3454b7d082",
+      "d2fbd06a487ec4554908b01f1f0a1bd892947b948c1e282290af5a4296e79fed",
+      "a8f03fc55ea0cf135ddad5e6c47d463349c3f64fc2e5eb129a68cabf96f841ef",
+      "01ee00d718e622eb4dc1ee45e5f6c5caa96ac990499959d1ea352c371395bad7",
+      "9528142f1aa5dc3f95b04c7f711b920ba8955230269440f13982d5ed96dcbbf0",
+      "7b4491cfc6613320d010d4cf62705c79cf9c84e744fd5d4b7a08a926b5c6a78b",
+      "820317aefdc2ecba9eefc99f390f469cbb3ca82854989eaef0471aeaccab91e4",
+      "673770639c0ec6448d383672a12062ad614a2fc5e868c11c088aa3e0b15693d6",
+      "b4c81172595905a3a774231a4efdff1ad1fbfe4db7e84d56b568b13a70a9b310",
+      "3d734e45879245641f70bf9cfc8946c727cc12f74171bea6414b18655c392338",
+      "1db56ef958759a330e38d13baf5295524579208d598100805663ae0bc5472a24",
+      "48eba2514ffd84b24a8b0297eb98a0147c40548e69a97c5bdabae82908be9474",
+      "cca77947b808895c004c7f32266d2198d47dd590278473c95ae718118aaebbda",
+      "c53f632e7fb6f06237c20e08ea9bfcfc4e913145ea4de073e426a31580ec4d71",
+      "8a859144c65db47fe4014c34a5c1e855c629e3a4b41daefb03989b0b0b30fd59",
+      "b1de66704c10da92c29dfe6b44abededccbec5fbc06d7d7fe7c572bdbfc21771",
+      "361a9636e1ddfb6e6056edccbd1cf0448bec256e1cd8fdebfa81944a70ea16b9",
+      "e97e3cbb70b259c4c9cb286cf9cb7a9740895874e559fa4752d8d565bfed6d92",
+      "b08d8ba652fc6ce28e22be6456c4386f0819666b5bfa6f7f6a0fb785db938c64",
+      "d488835c97faf1733b00506edb07bda9809fe4afaeed64c508da3820eacc5cdc",
+      "c7b3a346f7187481ad53b45348e86253c1478e85b617d4d1ecd604334784577c",
+      "da66a869e001646dcd34249242a8f7fdbffbe29ff031765477b6f554f8b77d92",
+      "9ea643d0a9595cc22c094b13451e864359c7b118e0084f246bd3fa0dffde8702",
+      "5bdebddfd3f5d583e14bc30437499b0922f4952ca2368ed992eafa91a4df0e10",
+      "3176478767876465c23c5477000b8dff25ab40c0b038ecdece788eaecd7f8f23",
+      "c6767140c90cdaae2831e99c27f0364552dca7103887a01dda85aab91e9cc973",
+      "abe85d4841a2c51ae6ce8a5070fbb0bedae5c881566c4e09661af36f0d5fcc3f",
+      "71ae63788890106fa725043bfc043618e2ad012ac971a0848bb1b194aede382d",
+      "d64fb0da61a610e3343e82b87b413a7d6fde46410fa398e7dd4805070ff1005f",
+      "18a73ca133415b2e8ad6f43536d22a9c9fed7f4474e050a6fb53ef2d8a11fd1f",
+      "0899c501d93a441c96e06aca1ef54ab9eb18ab4ee335923ee2b41de732b936c6",
+      "e70002fcfbac0858dcd62e363456cbe1f51d76fdbe104be75e095cfcfa0a6f83",
+      "e44bcaa336237dcf7bbbd5e8496a7a120011dcc0c75991551a6bd9405bdb0837",
+      "a292292f0418ca2746e84238b3b9a35aa70a5e6d163b64e6f0e03c42c45ee1be",
+      "58a06448e2f6042aea4735938ff2972d6292883dc5d24c842c5df184be8c6ad6",
+      "f54ee12fcf451866fbc44184862500754e33ed219edce01f0f6d416b43b685c5",
+      "c2119b0e11ce1499a833df5a94d6377394ea7d87e22620a571952c1505dfb93c",
+      "b6ffa380b9bf2eb27a50424a5b3e58a73702186421da6cb7ef8bd8455ecbd7ea",
+      "98ec30e2ba98190089405de1b2da71af48976457df9474ee5bb69cf41bd70d9a",
+      "a03b78b2feae867cbf6701558a6756ca305cd5142ccf8106b2f9ad1dacb131ba",
+      "40032f06b7a31d021cccc90f2059363c7d70ecfa7a349bc42df0dfa64ff285fb",
+      "71d7fca325520cfacc9bf0186b8dbb0ca77d19a121d065795bf5d22fe88660e5",
+      "a9cf5b6ec878efcc58f7a26c0dfb42a3a5701dd6978f1da3c3f153c860d51c34"
+    ],
+    "support": {
+      "status": "PASS",
+      "gates": {
+        "all_planned_actors_visible": true,
+        "all_two_wheeler_riders_visible": true,
+        "every_class_stratum": true,
+        "occlusion_references": true
+      },
+      "primary_coverage": {
+        "0": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "1": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "2": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "3": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "5": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        },
+        "7": {
+          "near": 3,
+          "medium": 3,
+          "far": 3,
+          "occluded": 3
+        }
+      },
+      "missing_actors": [],
+      "missing_riders": [],
+      "occlusion_checks": [
+        {
+          "scene": "v9-preparation-holdout-003",
+          "reference": "v9-preparation-holdout-081",
+          "visible_ratio": 0.37142857142857144,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-007",
+          "reference": "v9-preparation-holdout-082",
+          "visible_ratio": 0.3905325443786982,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-011",
+          "reference": "v9-preparation-holdout-083",
+          "visible_ratio": 0.599444958371878,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-015",
+          "reference": "v9-preparation-holdout-084",
+          "visible_ratio": 0.490272373540856,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-019",
+          "reference": "v9-preparation-holdout-085",
+          "visible_ratio": 0.8892312001120292,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-023",
+          "reference": "v9-preparation-holdout-086",
+          "visible_ratio": 0.8638791674341499,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-030",
+          "reference": "v9-preparation-holdout-087",
+          "visible_ratio": 0.37142857142857144,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-034",
+          "reference": "v9-preparation-holdout-088",
+          "visible_ratio": 0.3905325443786982,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-038",
+          "reference": "v9-preparation-holdout-089",
+          "visible_ratio": 0.599444958371878,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-042",
+          "reference": "v9-preparation-holdout-090",
+          "visible_ratio": 0.490272373540856,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-046",
+          "reference": "v9-preparation-holdout-091",
+          "visible_ratio": 0.8892312001120292,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-050",
+          "reference": "v9-preparation-holdout-092",
+          "visible_ratio": 0.8638791674341499,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-057",
+          "reference": "v9-preparation-holdout-093",
+          "visible_ratio": 0.37142857142857144,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-061",
+          "reference": "v9-preparation-holdout-094",
+          "visible_ratio": 0.3905325443786982,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-065",
+          "reference": "v9-preparation-holdout-095",
+          "visible_ratio": 0.599444958371878,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-069",
+          "reference": "v9-preparation-holdout-096",
+          "visible_ratio": 0.490272373540856,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-073",
+          "reference": "v9-preparation-holdout-097",
+          "visible_ratio": 0.8892312001120292,
+          "passed": true
+        },
+        {
+          "scene": "v9-preparation-holdout-077",
+          "reference": "v9-preparation-holdout-098",
+          "visible_ratio": 0.8638791674341499,
+          "passed": true
+        }
+      ],
+      "support_rows": [
+        {
+          "scene": "v9-preparation-holdout-000",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 126,
+            "visible_pixels": 103,
+            "box": [
+              308,
+              174,
+              315,
+              197
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-001",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 127,
+            "visible_pixels": 44,
+            "box": [
+              312,
+              169,
+              317,
+              184
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-002",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 128,
+            "visible_pixels": 30,
+            "box": [
+              313,
+              167,
+              317,
+              180
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-003",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 129,
+            "visible_pixels": 26,
+            "box": [
+              337,
+              171,
+              343,
+              180
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-003",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 130,
+            "visible_pixels": 2285,
+            "box": [
+              281,
+              163,
+              348,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-004",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 131,
+            "visible_pixels": 265,
+            "box": [
+              296,
+              173,
+              327,
+              196
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-005",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 132,
+            "visible_pixels": 112,
+            "box": [
+              304,
+              169,
+              325,
+              183
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-006",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 133,
+            "visible_pixels": 49,
+            "box": [
+              310,
+              164,
+              323,
+              174
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-007",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 134,
+            "visible_pixels": 66,
+            "box": [
+              329,
+              170,
+              347,
+              188
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-007",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 135,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-008",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 136,
+            "visible_pixels": 1673,
+            "box": [
+              286,
+              163,
+              344,
+              201
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-009",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 137,
+            "visible_pixels": 684,
+            "box": [
+              297,
+              161,
+              335,
+              185
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-010",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 138,
+            "visible_pixels": 210,
+            "box": [
+              307,
+              160,
+              328,
+              173
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-011",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 139,
+            "visible_pixels": 648,
+            "box": [
+              318,
+              162,
+              362,
+              190
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-011",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 140,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-012",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 141,
+            "visible_pixels": 408,
+            "box": [
+              292,
+              169,
+              330,
+              196
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-013",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 142,
+            "visible_pixels": 181,
+            "box": [
+              302,
+              165,
+              327,
+              183
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-014",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 143,
+            "visible_pixels": 65,
+            "box": [
+              309,
+              163,
+              324,
+              174
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-015",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 144,
+            "visible_pixels": 126,
+            "box": [
+              326,
+              167,
+              349,
+              188
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-015",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 145,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-016",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 146,
+            "visible_pixels": 11235,
+            "box": [
+              266,
+              92,
+              392,
+              206
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-017",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 147,
+            "visible_pixels": 4345,
+            "box": [
+              281,
+              119,
+              363,
+              187
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-018",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 148,
+            "visible_pixels": 1307,
+            "box": [
+              297,
+              137,
+              342,
+              173
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-019",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 149,
+            "visible_pixels": 6350,
+            "box": [
+              292,
+              109,
+              399,
+              192
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-019",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 150,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-020",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 151,
+            "visible_pixels": 8513,
+            "box": [
+              271,
+              107,
+              375,
+              203
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-021",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 152,
+            "visible_pixels": 3331,
+            "box": [
+              285,
+              126,
+              353,
+              186
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-022",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 153,
+            "visible_pixels": 1016,
+            "box": [
+              299,
+              141,
+              338,
+              173
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-023",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 154,
+            "visible_pixels": 4690,
+            "box": [
+              297,
+              119,
+              386,
+              191
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-023",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 155,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-025",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 156,
+            "visible_pixels": 1258,
+            "box": [
+              284,
+              162,
+              334,
+              195
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-025",
+          "actor_index": 1,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 157,
+            "visible_pixels": 4332,
+            "box": [
+              300,
+              119,
+              389,
+              186
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-026",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 158,
+            "visible_pixels": 36,
+            "box": [
+              314,
+              171,
+              319,
+              189
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-026",
+          "actor_index": 1,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 159,
+            "visible_pixels": 183,
+            "box": [
+              314,
+              170,
+              340,
+              190
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-027",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 160,
+            "visible_pixels": 103,
+            "box": [
+              308,
+              174,
+              315,
+              197
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-028",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 161,
+            "visible_pixels": 44,
+            "box": [
+              312,
+              169,
+              317,
+              184
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-029",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 162,
+            "visible_pixels": 30,
+            "box": [
+              313,
+              167,
+              317,
+              180
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-030",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 163,
+            "visible_pixels": 26,
+            "box": [
+              337,
+              171,
+              343,
+              180
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-030",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 164,
+            "visible_pixels": 2285,
+            "box": [
+              281,
+              163,
+              348,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-031",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 165,
+            "visible_pixels": 265,
+            "box": [
+              296,
+              173,
+              327,
+              196
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-032",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 166,
+            "visible_pixels": 112,
+            "box": [
+              304,
+              169,
+              325,
+              183
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-033",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 167,
+            "visible_pixels": 49,
+            "box": [
+              310,
+              164,
+              323,
+              174
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-034",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 168,
+            "visible_pixels": 66,
+            "box": [
+              329,
+              170,
+              347,
+              188
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-034",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 169,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-035",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 170,
+            "visible_pixels": 1673,
+            "box": [
+              286,
+              163,
+              344,
+              201
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-036",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 171,
+            "visible_pixels": 684,
+            "box": [
+              297,
+              161,
+              335,
+              185
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-037",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 172,
+            "visible_pixels": 210,
+            "box": [
+              307,
+              160,
+              328,
+              173
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-038",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 173,
+            "visible_pixels": 648,
+            "box": [
+              318,
+              162,
+              362,
+              190
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-038",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 174,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-039",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 175,
+            "visible_pixels": 408,
+            "box": [
+              292,
+              169,
+              330,
+              196
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-040",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 176,
+            "visible_pixels": 181,
+            "box": [
+              302,
+              165,
+              327,
+              183
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-041",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 177,
+            "visible_pixels": 65,
+            "box": [
+              309,
+              163,
+              324,
+              174
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-042",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 178,
+            "visible_pixels": 126,
+            "box": [
+              326,
+              167,
+              349,
+              188
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-042",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 179,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-043",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 180,
+            "visible_pixels": 11235,
+            "box": [
+              266,
+              92,
+              392,
+              206
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-044",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 181,
+            "visible_pixels": 4345,
+            "box": [
+              281,
+              119,
+              363,
+              187
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-045",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 182,
+            "visible_pixels": 1307,
+            "box": [
+              297,
+              137,
+              342,
+              173
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-046",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 183,
+            "visible_pixels": 6350,
+            "box": [
+              292,
+              109,
+              399,
+              192
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-046",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 184,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-047",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 185,
+            "visible_pixels": 8513,
+            "box": [
+              271,
+              107,
+              375,
+              203
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-048",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 186,
+            "visible_pixels": 3331,
+            "box": [
+              285,
+              126,
+              353,
+              186
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-049",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 187,
+            "visible_pixels": 1016,
+            "box": [
+              299,
+              141,
+              338,
+              173
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-050",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 188,
+            "visible_pixels": 4690,
+            "box": [
+              297,
+              119,
+              386,
+              191
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-050",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 189,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-052",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 190,
+            "visible_pixels": 1258,
+            "box": [
+              284,
+              162,
+              334,
+              195
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-052",
+          "actor_index": 1,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 191,
+            "visible_pixels": 4332,
+            "box": [
+              300,
+              119,
+              389,
+              186
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-053",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 192,
+            "visible_pixels": 36,
+            "box": [
+              314,
+              171,
+              319,
+              189
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-053",
+          "actor_index": 1,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 193,
+            "visible_pixels": 183,
+            "box": [
+              314,
+              170,
+              340,
+              190
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-054",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 194,
+            "visible_pixels": 103,
+            "box": [
+              308,
+              174,
+              315,
+              197
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-055",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 195,
+            "visible_pixels": 44,
+            "box": [
+              312,
+              169,
+              317,
+              184
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-056",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 196,
+            "visible_pixels": 30,
+            "box": [
+              313,
+              167,
+              317,
+              180
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-057",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 197,
+            "visible_pixels": 26,
+            "box": [
+              337,
+              171,
+              343,
+              180
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-057",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 198,
+            "visible_pixels": 2285,
+            "box": [
+              281,
+              163,
+              348,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-058",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 199,
+            "visible_pixels": 265,
+            "box": [
+              296,
+              173,
+              327,
+              196
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-059",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 200,
+            "visible_pixels": 112,
+            "box": [
+              304,
+              169,
+              325,
+              183
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-060",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 201,
+            "visible_pixels": 49,
+            "box": [
+              310,
+              164,
+              323,
+              174
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-061",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 202,
+            "visible_pixels": 66,
+            "box": [
+              329,
+              170,
+              347,
+              188
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-061",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 203,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-062",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 204,
+            "visible_pixels": 1673,
+            "box": [
+              286,
+              163,
+              344,
+              201
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-063",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 205,
+            "visible_pixels": 684,
+            "box": [
+              297,
+              161,
+              335,
+              185
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-064",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 206,
+            "visible_pixels": 210,
+            "box": [
+              307,
+              160,
+              328,
+              173
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-065",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 207,
+            "visible_pixels": 648,
+            "box": [
+              318,
+              162,
+              362,
+              190
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-065",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 208,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-066",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 209,
+            "visible_pixels": 408,
+            "box": [
+              292,
+              169,
+              330,
+              196
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-067",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 210,
+            "visible_pixels": 181,
+            "box": [
+              302,
+              165,
+              327,
+              183
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-068",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 211,
+            "visible_pixels": 65,
+            "box": [
+              309,
+              163,
+              324,
+              174
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-069",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 212,
+            "visible_pixels": 126,
+            "box": [
+              326,
+              167,
+              349,
+              188
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-069",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 213,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-070",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 214,
+            "visible_pixels": 11235,
+            "box": [
+              266,
+              92,
+              392,
+              206
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-071",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 215,
+            "visible_pixels": 4345,
+            "box": [
+              281,
+              119,
+              363,
+              187
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-072",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 216,
+            "visible_pixels": 1307,
+            "box": [
+              297,
+              137,
+              342,
+              173
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-073",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 217,
+            "visible_pixels": 6350,
+            "box": [
+              292,
+              109,
+              399,
+              192
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-073",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 218,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-074",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 219,
+            "visible_pixels": 8513,
+            "box": [
+              271,
+              107,
+              375,
+              203
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-075",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 220,
+            "visible_pixels": 3331,
+            "box": [
+              285,
+              126,
+              353,
+              186
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-076",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 221,
+            "visible_pixels": 1016,
+            "box": [
+              299,
+              141,
+              338,
+              173
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-077",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 222,
+            "visible_pixels": 4690,
+            "box": [
+              297,
+              119,
+              386,
+              191
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-077",
+          "actor_index": 1,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "occluder",
+          "support": {
+            "class_id": 2,
+            "instance_id": 223,
+            "visible_pixels": 2244,
+            "box": [
+              277,
+              164,
+              342,
+              208
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-079",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 224,
+            "visible_pixels": 1258,
+            "box": [
+              284,
+              162,
+              334,
+              195
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-079",
+          "actor_index": 1,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 225,
+            "visible_pixels": 4332,
+            "box": [
+              300,
+              119,
+              389,
+              186
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-080",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 226,
+            "visible_pixels": 36,
+            "box": [
+              314,
+              171,
+              319,
+              189
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-080",
+          "actor_index": 1,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 227,
+            "visible_pixels": 183,
+            "box": [
+              314,
+              170,
+              340,
+              190
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-081",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 228,
+            "visible_pixels": 70,
+            "box": [
+              337,
+              171,
+              343,
+              189
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-082",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 229,
+            "visible_pixels": 169,
+            "box": [
+              322,
+              170,
+              347,
+              188
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-083",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 230,
+            "visible_pixels": 1081,
+            "box": [
+              312,
+              162,
+              362,
+              191
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-084",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 231,
+            "visible_pixels": 257,
+            "box": [
+              319,
+              167,
+              349,
+              188
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-085",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 232,
+            "visible_pixels": 7141,
+            "box": [
+              292,
+              109,
+              399,
+              194
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-086",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 233,
+            "visible_pixels": 5429,
+            "box": [
+              297,
+              119,
+              386,
+              192
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-087",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 234,
+            "visible_pixels": 70,
+            "box": [
+              337,
+              171,
+              343,
+              189
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-088",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 235,
+            "visible_pixels": 169,
+            "box": [
+              322,
+              170,
+              347,
+              188
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-089",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 236,
+            "visible_pixels": 1081,
+            "box": [
+              312,
+              162,
+              362,
+              191
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-090",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 237,
+            "visible_pixels": 257,
+            "box": [
+              319,
+              167,
+              349,
+              188
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-091",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 238,
+            "visible_pixels": 7141,
+            "box": [
+              292,
+              109,
+              399,
+              194
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-092",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 239,
+            "visible_pixels": 5429,
+            "box": [
+              297,
+              119,
+              386,
+              192
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-093",
+          "actor_index": 0,
+          "blueprint": "walker.pedestrian.0010",
+          "role": "target",
+          "support": {
+            "class_id": 0,
+            "instance_id": 240,
+            "visible_pixels": 70,
+            "box": [
+              337,
+              171,
+              343,
+              189
+            ],
+            "semantic_tags": [
+              12
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-094",
+          "actor_index": 0,
+          "blueprint": "vehicle.bh.crossbike",
+          "role": "target",
+          "support": {
+            "class_id": 1,
+            "instance_id": 241,
+            "visible_pixels": 169,
+            "box": [
+              322,
+              170,
+              347,
+              188
+            ],
+            "semantic_tags": [
+              19
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-095",
+          "actor_index": 0,
+          "blueprint": "vehicle.dodge.charger_2020",
+          "role": "target",
+          "support": {
+            "class_id": 2,
+            "instance_id": 242,
+            "visible_pixels": 1081,
+            "box": [
+              312,
+              162,
+              362,
+              191
+            ],
+            "semantic_tags": [
+              14
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-096",
+          "actor_index": 0,
+          "blueprint": "vehicle.vespa.zx125",
+          "role": "target",
+          "support": {
+            "class_id": 3,
+            "instance_id": 243,
+            "visible_pixels": 257,
+            "box": [
+              319,
+              167,
+              349,
+              188
+            ],
+            "semantic_tags": [
+              18
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-097",
+          "actor_index": 0,
+          "blueprint": "vehicle.mitsubishi.fusorosa",
+          "role": "target",
+          "support": {
+            "class_id": 5,
+            "instance_id": 244,
+            "visible_pixels": 7141,
+            "box": [
+              292,
+              109,
+              399,
+              194
+            ],
+            "semantic_tags": [
+              16
+            ]
+          }
+        },
+        {
+          "scene": "v9-preparation-holdout-098",
+          "actor_index": 0,
+          "blueprint": "vehicle.carlamotors.firetruck",
+          "role": "target",
+          "support": {
+            "class_id": 7,
+            "instance_id": 245,
+            "visible_pixels": 5429,
+            "box": [
+              297,
+              119,
+              386,
+              192
+            ],
+            "semantic_tags": [
+              15
+            ]
+          }
+        }
+      ]
+    },
+    "inference_performed": false,
+    "scope": "Raw support diagnostic only; original failed shutdown is never accepted"
+  },
+  "scope": "Prospective Rider-aware visible-mask comparison; no vehicle/ODD or live20Hz acceptance",
+  "scores": {
+    "development": {
+      "baseline": {
+        "micro": {
+          "tp": 98,
+          "fp": 13,
+          "fn": 31,
+          "precision": 0.8828828828828829,
+          "recall": 0.7596899224806202,
+          "f1": 0.8166666666666667
+        },
+        "per_class": {
+          "0": {
+            "tp": 27,
+            "fp": 2,
+            "fn": 15,
+            "precision": 0.9310344827586207,
+            "recall": 0.6428571428571429
+          },
+          "1": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 9,
+            "precision": 1.0,
+            "recall": 0.4
+          },
+          "2": {
+            "tp": 31,
+            "fp": 2,
+            "fn": 2,
+            "precision": 0.9393939393939394,
+            "recall": 0.9393939393939394
+          },
+          "3": {
+            "tp": 7,
+            "fp": 2,
+            "fn": 5,
+            "precision": 0.7777777777777778,
+            "recall": 0.5833333333333334
+          },
+          "5": {
+            "tp": 15,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 12,
+            "fp": 7,
+            "fn": 0,
+            "precision": 0.631578947368421,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 13,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "visibility": {
+          "status": "PASS",
+          "gates": {
+            "all_planned_actors_visible": true,
+            "all_two_wheeler_riders_visible": true
+          },
+          "missing_actors": [],
+          "missing_riders": []
+        }
+      },
+      "dfine-m-class-v1": {
+        "micro": {
+          "tp": 119,
+          "fp": 6,
+          "fn": 10,
+          "precision": 0.952,
+          "recall": 0.9224806201550387,
+          "f1": 0.937007874015748
+        },
+        "per_class": {
+          "0": {
+            "tp": 36,
+            "fp": 1,
+            "fn": 6,
+            "precision": 0.972972972972973,
+            "recall": 0.8571428571428571
+          },
+          "1": {
+            "tp": 13,
+            "fp": 4,
+            "fn": 2,
+            "precision": 0.7647058823529411,
+            "recall": 0.8666666666666667
+          },
+          "2": {
+            "tp": 32,
+            "fp": 0,
+            "fn": 1,
+            "precision": 1.0,
+            "recall": 0.9696969696969697
+          },
+          "3": {
+            "tp": 11,
+            "fp": 1,
+            "fn": 1,
+            "precision": 0.9166666666666666,
+            "recall": 0.9166666666666666
+          },
+          "5": {
+            "tp": 15,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 12,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": true,
+          "per_class_recall": true,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "PASS",
+        "riders": {
+          "visible": 27,
+          "detected": 21,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "visibility": {
+          "status": "PASS",
+          "gates": {
+            "all_planned_actors_visible": true,
+            "all_two_wheeler_riders_visible": true
+          },
+          "missing_actors": [],
+          "missing_riders": []
+        }
+      }
+    },
+    "holdout": {
+      "baseline": {
+        "micro": {
+          "tp": 76,
+          "fp": 36,
+          "fn": 53,
+          "precision": 0.6785714285714286,
+          "recall": 0.5891472868217055,
+          "f1": 0.6307053941908713
+        },
+        "per_class": {
+          "0": {
+            "tp": 21,
+            "fp": 6,
+            "fn": 21,
+            "precision": 0.7777777777777778,
+            "recall": 0.5
+          },
+          "1": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 12,
+            "precision": 1.0,
+            "recall": 0.2
+          },
+          "2": {
+            "tp": 33,
+            "fp": 3,
+            "fn": 0,
+            "precision": 0.9166666666666666,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 12,
+            "precision": null,
+            "recall": 0.0
+          },
+          "5": {
+            "tp": 10,
+            "fp": 4,
+            "fn": 5,
+            "precision": 0.7142857142857143,
+            "recall": 0.6666666666666666
+          },
+          "7": {
+            "tp": 9,
+            "fp": 23,
+            "fn": 3,
+            "precision": 0.28125,
+            "recall": 0.75
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": false,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 16,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "visibility": {
+          "status": "PASS",
+          "gates": {
+            "all_planned_actors_visible": true,
+            "all_two_wheeler_riders_visible": true
+          },
+          "missing_actors": [],
+          "missing_riders": []
+        }
+      },
+      "dfine-m-class-v1": {
+        "micro": {
+          "tp": 99,
+          "fp": 16,
+          "fn": 30,
+          "precision": 0.8608695652173913,
+          "recall": 0.7674418604651163,
+          "f1": 0.8114754098360656
+        },
+        "per_class": {
+          "0": {
+            "tp": 21,
+            "fp": 5,
+            "fn": 21,
+            "precision": 0.8076923076923077,
+            "recall": 0.5
+          },
+          "1": {
+            "tp": 12,
+            "fp": 3,
+            "fn": 3,
+            "precision": 0.8,
+            "recall": 0.8
+          },
+          "2": {
+            "tp": 33,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 6,
+            "fp": 3,
+            "fn": 6,
+            "precision": 0.6666666666666666,
+            "recall": 0.5
+          },
+          "5": {
+            "tp": 15,
+            "fp": 3,
+            "fn": 0,
+            "precision": 0.8333333333333334,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 12,
+            "fp": 2,
+            "fn": 0,
+            "precision": 0.8571428571428571,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "riders": {
+          "visible": 27,
+          "detected": 17,
+          "excluded": 0
+        },
+        "primary_coverage": {
+          "0": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "1": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "2": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "3": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "5": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          },
+          "7": {
+            "near": 3,
+            "medium": 3,
+            "far": 3,
+            "occluded": 3
+          }
+        },
+        "visibility": {
+          "status": "PASS",
+          "gates": {
+            "all_planned_actors_visible": true,
+            "all_two_wheeler_riders_visible": true
+          },
+          "missing_actors": [],
+          "missing_riders": []
+        }
+      }
+    }
+  }
+}

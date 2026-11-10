@@ -1,0 +1,29 @@
+{
+  "schema": "m10-quality-selection-v9",
+  "created_utc": "2026-11-10T08:30:47.470226+00:00",
+  "freeze_sha256": "746b71e1e73c26262d72ab88a004985841eaf7e71a161a95e6f07687c4c7e958",
+  "metadata_sha256": "72f6fb54dae482c00fbe0122e76e92f42fd4dde21baa5b973679eb5943505345",
+  "selected": "dfine-m-class-v1",
+  "development_relative": {
+    "dfine-m-class-v1": {
+      "status": "PASS",
+      "gates": {
+        "precision": true,
+        "recall": true,
+        "per_class": true,
+        "far_occluded": true,
+        "near_person": true,
+        "negatives": true
+      }
+    }
+  },
+  "development_absolute": {
+    "baseline": "FAIL",
+    "dfine-m-class-v1": "PASS"
+  },
+  "score_files": {
+    "/d/shin/StrataDrive/build/m10-quality-v9/development-baseline-score.json": "388f6a4689898e86af1fa1bce76640bdf3c64f751d801667ebaaa2079ab7e898",
+    "/d/shin/StrataDrive/build/m10-quality-v9/development-dfine-m-class-v1-score.json": "6141ae593017bd108928bc66b92b9400b8976959b31ef279237960102cbc77e5"
+  },
+  "runtime_promotion": false
+}

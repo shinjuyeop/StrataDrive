@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **오류 원인 분리·클래스별 confidence 검증 완료 / 새 평가 후보 D-FINE-M 고정·상대 기준 FAIL·기존 S 유지 / 최종 모델·정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md) · [고정 후보 검증](test-plan/evidence/m10_class_calibration_v1/README.md) |
+| M10 | **D-FINE-M 새 도로 V9 개발 PASS·보류 recall/class FAIL·기존 S 유지 / 최종 모델·정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md) · [고정 후보 검증](test-plan/evidence/m10_class_calibration_v1/README.md) · [새 V9 평가](test-plan/evidence/m10_quality_v9/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -51,8 +51,18 @@ D-FINE-M·RT-DETRv4-S·공식 DAMO legacy를 추가했다. 개발324장에서8�
 regression했다. D-FINE은 FP129→40·calibration P92%/R89.15%, Town04 P89.84%/R89.15%로
 두 절대 기준 PASS다. 상대 기준은 bus recall 감소·precision 향상2.93%p<3%p로 FAIL을 유지한다.
 RT-DETRv4는 Town04 bicycle60%가 남아, 다음 새 품질 평가의 단일 개발 후보를 D-FINE의
-클래스별 설정으로 고정했다. 최종 Reference/runtime 교체가 아니다. 다음은 새 protocol과
-새 준비/개발/보류 취득이며 신규 학습·보드 최적화는 실행하지 않았다.
+클래스별 설정으로 고정했다. 최종 Reference/runtime 교체가 아니다. 이어서 새 protocol·준비와 V9 개발/보류 평가를 완료했다.
+
+
+[V9 새 도로 평가](test-plan/evidence/m10_quality_v9/README.md)는 지도만으로 미사용38/85번을
+선정하고 기존 recipe·confidence와 모든 gate를 유지했다. D-FINE-M은 새 개발 P95.20%/
+R92.25%로 절대·상대 PASS, 새 보류 P86.09%/R76.74%로 상대 PASS·절대 FAIL이다.
+보류 person/motorcycle 각50%도 기준 미달이다. 최종 모델은 채택하지 않았고 S/M10 OPEN을
+유지한다. 준비198장·평가162장과 종료 실패99장을 포함해459개 raw를 보존했고, 미래 RGB
+제외는5449개다. 독립 수치6건·full model raw324개·원본/압축 새 source 감사를 연결했다.
+다음은 개발 자료에서 작은 VRU/Rider 누락과 입력 해상도/사전학습 후보 효과를 검증하고
+새 설정을 고정한 뒤 새 보류를 취득하는 일이다. 이번 보류를 설계/재선정에 사용하지 않는다.
+신규 학습·보드 최적화는 실행하지 않았다.
 
 ## M9 기능 범위 마감
 
@@ -256,7 +266,7 @@ M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 �
 검사했다. [V5 다중 시야 개선](test-plan/evidence/m10_quality_v5/README.md)은 새 개발 기준을 통과했으나 새 보류가 실패했다. [V6 L 모델·새 평가](test-plan/evidence/m10_quality_v6/README.md)도 개발 기준을 통과했지만 보류 기준은 실패했다. 다음은 **소비한 개발 자료의 bus/truck 구분·정밀도 회귀 개선 → 새 후보·다시 새 보류 →
 전체wall20Hz·시작/종료 안정성**이다. 준비 영상은 미래 정확도 표본으로 재사용하지 않으며,
 작은 held 보행자의 far26m 범위와 별도 quality freeze·실제 평가 coverage 검사를 유지한다.
-새 plan을 고정하기 전에 가시성을 확인하고, 이미 본 v1/v2/v3/v4/v5/v6/v7 보류셋과 준비/실패/진단 영상을 새로운 holdout으로 재사용하지 않는다.
+새 plan을 고정하기 전에 가시성을 확인하고, 이미 본 v1/v2/v3/v4/v5/v6/v7/v8/v9 보류셋과 준비/실패/진단 영상을 새로운 holdout으로 재사용하지 않는다.
 같은 Town의 정지 배치를 전체 ODD로 확대하지 않는다.
 그 뒤 M11에서 metric fusion/localization·temporal planner 입력·risk·valid classical fallback을
 정의하고 기존 감독/제어 경로에 연결한다. 온라인 저항 추정은 별도다.

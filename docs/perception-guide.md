@@ -21,7 +21,11 @@ Town04 개발81장을 확인했다. 모델별 남은 FP/class recall과 과거 �
 [클래스별 confidence 검증](test-plan/evidence/m10_class_calibration_v1/README.md)은 개발 자료만
 사용했다. 새 품질 평가 후보는 D-FINE-M의 `[.60,.40,.70,.50,.50,.60]`(class0/1/2/3/5/7)이다.
 calibration·소비한 Town04 개발의 절대 기준은 PASS지만 상대 FAIL을 유지한다.
-파생 후보 프로파일은 offline 전용이며 다음 새 quality protocol에서 별도로 고정해야 한다.
+파생 후보 프로파일은 offline 전용이다. [V9 새 도로 평가](test-plan/evidence/m10_quality_v9/README.md)에서
+이를 그대로 고정해 개발 P95.20%/R92.25%·절대/상대 PASS, 새 보류 P86.09%/R76.74%·
+상대 PASS/절대 FAIL을 확인했다. 보행자/오토바이 recall50%가 남아 기본 S를 유지한다.
+원본459쌍·모든 raw 모델 출력·새 source 재감사와 미래 제외5449개를 보존한다.
+다음 후보는 개발 자료에서 검증하고 소비한 보류를 다시 설계/수용에 쓰지 않는다.
 
 ## 환경과 모델
 

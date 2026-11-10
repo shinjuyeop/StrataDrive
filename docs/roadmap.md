@@ -66,8 +66,12 @@ person/bicycle recall이 부족하다. L의 과거 보류 FAIL도 유지한다. 
 [클래스별 confidence 실험](test-plan/evidence/m10_class_calibration_v1/README.md)을 수행했다.
 개발324장에서31,250개 조합을 비교하고 봉인한 D-FINE 설정은 calibration P92%/R89.15%,
 이미 소비한 Town04 regression P89.84%/R89.15%로 절대 PASS다. 상대 FAIL은 유지한다.
-새 평가 후보는 이 D-FINE 단일 설정이며, 다음은 새 protocol·모델 없는 준비와 새 개발/보류
-취득이다. 최종 모델 채택·runtime 교체·Jetson 배포/최적화는 미실행이다.
+이 D-FINE 설정을 고정한 [V9 새 도로 평가](test-plan/evidence/m10_quality_v9/README.md)를 완료했다.
+모델 없는 준비198장 뒤 새 개발81장은 P95.20%/R92.25%·절대/상대 PASS, 봉인 뒤 새 보류81장은
+P86.09%/R76.74%·상대 PASS/절대 FAIL이다. 보류 person/motorcycle 각50%가 남는다.
+전459 raw pair와 실패/복구·미래 RGB5449개 제외·full model raw 재감사를 보존한다.
+다음은 개발 자료의 작은 VRU/Rider 누락과 입력 해상도/사전학습 후보 효과 검증·새 설정 고정·
+다시 새 보류 평가다. 최종 모델 채택·runtime 교체·Jetson 배포/최적화는 미실행이다.
 
 M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](project-status.md)와
 [마감 검증](test-plan/evidence/m9_followup/README.md)을 기준으로 종료했다.

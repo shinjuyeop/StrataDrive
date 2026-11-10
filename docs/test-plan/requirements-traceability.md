@@ -141,3 +141,8 @@ TC-PER-034–036/C-M10-PER-30–32은 [V7 새 L6 품질 평가](evidence/m10_qua
 모델/native identity·실제 road/pose/Rider·엄격 score/지명/순서·실패/복구·원본 재현을 연결한다.
 감사 PASS와 model quality 판정·시작 안정성·wall20Hz·SYS-AI-001 전체/차량 수용을 구분한다.
 개발 bus/precision 회귀와 새 보류 결과를 유지하며 후보를 수정한 뒤 기존 보류를 재사용하지 않는다.
+
+TC-PER-047–049/C-M10-PER-43–45는 [V9 새 도로 평가](evidence/m10_quality_v9/README.md)의
+지도만 사용한 미사용 경로 선정·모델 없는 준비·고정 native 모델/클래스 vector·full raw 재해석·
+개발 지명 이후 보류 취득·실패/모든 시도 제외·압축 새 source 재현을 연결한다. SYS-AI-001/
+SYS-PERF-003의 부분 근거이며 최종 모델 채택·전체wall20Hz·차량·각 Jetson 수용은 별도다.

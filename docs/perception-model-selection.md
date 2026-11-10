@@ -92,9 +92,9 @@ bicycle recall60%도 남았다. Town04는 이미 소비한 개발 regression이�
 
 새 보류 평가에 넣을 **개발 후보는 D-FINE-M 클래스별 설정으로 고정**한다.
 [파생 후보 프로파일](../profiles/perception-class-calibration-candidates-v1.json)은 기존 model/
-전처리/source/selection SHA와 설정을 묶으며 runtime profile이 아니다. 다음은 새 quality
-protocol에서 S와 이 단일 후보·기존 gate를 고정하고 새 준비/개발/보류를 취득하는 일이다.
-최종 Reference 채택은 미완료이며 과거/현재 상대 기준 FAIL과 기본 S를 유지한다.
+전처리/source/selection SHA와 설정을 묶으며 runtime profile이 아니다. 이어서 새 quality
+protocol에서 S와 이 단일 후보·기존 gate를 고정해 새 준비/개발/보류를 취득했고, 아래 V9 결과를 따른다.
+최종 Reference 채택은 미완료이며 과거 calibration 상대 기준 FAIL과 기본 S를 유지한다.
 
 ## 지금 확인하는 배포 고려 사항
 
@@ -123,3 +123,16 @@ D-FINE에는 GridSample12개, RT-DETRv4에는9개가 있다. 모델별 opset·op
 
 현재 보드별 engine 생성·양자화·전력/클록 조정·보드 최적화와 실제 배포는 미실행이다.
 V2에는 confidence calibration을 포함했다. 새 학습·crop/ensemble은 실행하지 않았다.
+
+## 고정 후보의 새 도로 평가 V9
+
+[V9 새 평가](test-plan/evidence/m10_quality_v9/README.md)는 전체 미사용 경로38/85를 지도만으로
+선정하고 모델 없는 준비198장·새 개발/보류 각81장을 평가했다. 고정 D-FINE-M은 개발
+P95.20%/R92.25%로 절대·상대 PASS다. 봉인 이후 취득한 보류는 P86.09%/R76.74%로,
+상대 PASS지만 전체 recall과 person/motorcycle 각50%가 절대 기준에 미달한다.
+따라서 최종 Reference 미채택·기본 S·M10 OPEN을 유지한다. 설정을 보류에서 다시 고르지 않았다.
+
+모든459개 raw pair·실패/별도 복구·full model raw324개·새 source 재감사를 보존한다.
+미래 RGB 제외는5449개다. 다음은 개발 자료의 작은 VRU/Rider 누락과 입력 해상도/사전학습
+후보 효과를 검증해 새 설정을 고정하는 일이다. 보류는 독립된 새 도로/새 RGB로 다시 취득한다.
+Thor/Orin 각각의 전체 stack 배포를 고려하되 보드별 최적화는 배포·측정 이후에 수행한다.

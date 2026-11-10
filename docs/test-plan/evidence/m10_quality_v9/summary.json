@@ -1,0 +1,390 @@
+{
+  "schema": "m10-quality-v9-summary",
+  "prior_rgb": 4990,
+  "future_rgb": 5449,
+  "raw_pairs": 459,
+  "attempts": 7,
+  "preparation_excluded": 5287,
+  "accepted_preparation_frames": 198,
+  "evaluation_frames": 162,
+  "selected": "dfine-m-class-v1",
+  "eligible_for_runtime_review": false,
+  "runtime_promotion": false,
+  "holdout_relative": {
+    "status": "PASS",
+    "gates": {
+      "precision": true,
+      "recall": true,
+      "per_class": true,
+      "far_occluded": true,
+      "near_person": true,
+      "negatives": true
+    }
+  },
+  "scores": {
+    "development": {
+      "baseline": {
+        "micro": {
+          "tp": 98,
+          "fp": 13,
+          "fn": 31,
+          "precision": 0.8828828828828829,
+          "recall": 0.7596899224806202,
+          "f1": 0.8166666666666667
+        },
+        "per_class": {
+          "0": {
+            "tp": 27,
+            "fp": 2,
+            "fn": 15,
+            "precision": 0.9310344827586207,
+            "recall": 0.6428571428571429
+          },
+          "1": {
+            "tp": 6,
+            "fp": 0,
+            "fn": 9,
+            "precision": 1.0,
+            "recall": 0.4
+          },
+          "2": {
+            "tp": 31,
+            "fp": 2,
+            "fn": 2,
+            "precision": 0.9393939393939394,
+            "recall": 0.9393939393939394
+          },
+          "3": {
+            "tp": 7,
+            "fp": 2,
+            "fn": 5,
+            "precision": 0.7777777777777778,
+            "recall": 0.5833333333333334
+          },
+          "5": {
+            "tp": 15,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 12,
+            "fp": 7,
+            "fn": 0,
+            "precision": 0.631578947368421,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "near_person": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "recall": 1.0
+        },
+        "riders": {
+          "visible": 27,
+          "detected": 13,
+          "excluded": 0
+        },
+        "run": {
+          "model_valid": 81,
+          "admitted": 80,
+          "errors": 0,
+          "latency": {
+            "n": 81,
+            "mean_ms": 12.357412913580244,
+            "p95_ms": 9.391676,
+            "p99_ms": 60.88403220000072,
+            "max_ms": 263.541169
+          },
+          "model_initialization_wall_ns": 409045766
+        }
+      },
+      "dfine-m-class-v1": {
+        "micro": {
+          "tp": 119,
+          "fp": 6,
+          "fn": 10,
+          "precision": 0.952,
+          "recall": 0.9224806201550387,
+          "f1": 0.937007874015748
+        },
+        "per_class": {
+          "0": {
+            "tp": 36,
+            "fp": 1,
+            "fn": 6,
+            "precision": 0.972972972972973,
+            "recall": 0.8571428571428571
+          },
+          "1": {
+            "tp": 13,
+            "fp": 4,
+            "fn": 2,
+            "precision": 0.7647058823529411,
+            "recall": 0.8666666666666667
+          },
+          "2": {
+            "tp": 32,
+            "fp": 0,
+            "fn": 1,
+            "precision": 1.0,
+            "recall": 0.9696969696969697
+          },
+          "3": {
+            "tp": 11,
+            "fp": 1,
+            "fn": 1,
+            "precision": 0.9166666666666666,
+            "recall": 0.9166666666666666
+          },
+          "5": {
+            "tp": 15,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 12,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": true,
+          "per_class_recall": true,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "PASS",
+        "near_person": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "recall": 1.0
+        },
+        "riders": {
+          "visible": 27,
+          "detected": 21,
+          "excluded": 0
+        },
+        "run": {
+          "model_valid": 81,
+          "admitted": 80,
+          "errors": 0,
+          "latency": {
+            "n": 81,
+            "mean_ms": 16.1299154691358,
+            "p95_ms": 15.556447,
+            "p99_ms": 37.879631200000304,
+            "max_ms": 123.147104
+          },
+          "model_initialization_wall_ns": 280683291
+        }
+      }
+    },
+    "holdout": {
+      "baseline": {
+        "micro": {
+          "tp": 76,
+          "fp": 36,
+          "fn": 53,
+          "precision": 0.6785714285714286,
+          "recall": 0.5891472868217055,
+          "f1": 0.6307053941908713
+        },
+        "per_class": {
+          "0": {
+            "tp": 21,
+            "fp": 6,
+            "fn": 21,
+            "precision": 0.7777777777777778,
+            "recall": 0.5
+          },
+          "1": {
+            "tp": 3,
+            "fp": 0,
+            "fn": 12,
+            "precision": 1.0,
+            "recall": 0.2
+          },
+          "2": {
+            "tp": 33,
+            "fp": 3,
+            "fn": 0,
+            "precision": 0.9166666666666666,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 12,
+            "precision": null,
+            "recall": 0.0
+          },
+          "5": {
+            "tp": 10,
+            "fp": 4,
+            "fn": 5,
+            "precision": 0.7142857142857143,
+            "recall": 0.6666666666666666
+          },
+          "7": {
+            "tp": 9,
+            "fp": 23,
+            "fn": 3,
+            "precision": 0.28125,
+            "recall": 0.75
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": false,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "near_person": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "recall": 1.0
+        },
+        "riders": {
+          "visible": 27,
+          "detected": 16,
+          "excluded": 0
+        },
+        "run": {
+          "model_valid": 81,
+          "admitted": 80,
+          "errors": 0,
+          "latency": {
+            "n": 81,
+            "mean_ms": 12.279300246913579,
+            "p95_ms": 9.623041,
+            "p99_ms": 60.081483000000716,
+            "max_ms": 260.963251
+          },
+          "model_initialization_wall_ns": 421854817
+        }
+      },
+      "dfine-m-class-v1": {
+        "micro": {
+          "tp": 99,
+          "fp": 16,
+          "fn": 30,
+          "precision": 0.8608695652173913,
+          "recall": 0.7674418604651163,
+          "f1": 0.8114754098360656
+        },
+        "per_class": {
+          "0": {
+            "tp": 21,
+            "fp": 5,
+            "fn": 21,
+            "precision": 0.8076923076923077,
+            "recall": 0.5
+          },
+          "1": {
+            "tp": 12,
+            "fp": 3,
+            "fn": 3,
+            "precision": 0.8,
+            "recall": 0.8
+          },
+          "2": {
+            "tp": 33,
+            "fp": 0,
+            "fn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "3": {
+            "tp": 6,
+            "fp": 3,
+            "fn": 6,
+            "precision": 0.6666666666666666,
+            "recall": 0.5
+          },
+          "5": {
+            "tp": 15,
+            "fp": 3,
+            "fn": 0,
+            "precision": 0.8333333333333334,
+            "recall": 1.0
+          },
+          "7": {
+            "tp": 12,
+            "fp": 2,
+            "fn": 0,
+            "precision": 0.8571428571428571,
+            "recall": 1.0
+          }
+        },
+        "gates": {
+          "coverage": true,
+          "all_planned_actors_visible": true,
+          "all_two_wheeler_riders_visible": true,
+          "no_model_errors": true,
+          "precision": true,
+          "recall": false,
+          "per_class_recall": false,
+          "near_person": true,
+          "negative_fp": true
+        },
+        "absolute_quality": "FAIL",
+        "near_person": {
+          "tp": 3,
+          "fp": 0,
+          "fn": 0,
+          "recall": 1.0
+        },
+        "riders": {
+          "visible": 27,
+          "detected": 17,
+          "excluded": 0
+        },
+        "run": {
+          "model_valid": 81,
+          "admitted": 80,
+          "errors": 0,
+          "latency": {
+            "n": 81,
+            "mean_ms": 16.033087493827164,
+            "p95_ms": 15.427615,
+            "p99_ms": 38.65805380000032,
+            "max_ms": 127.322593
+          },
+          "model_initialization_wall_ns": 293506948
+        }
+      }
+    }
+  }
+}

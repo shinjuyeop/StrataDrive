@@ -1,0 +1,3490 @@
+{
+  "schema": "m10-quality-score-v9",
+  "audit": "PASS",
+  "partition": "development",
+  "candidate": "baseline",
+  "absolute_quality": "FAIL",
+  "gates": {
+    "coverage": true,
+    "all_planned_actors_visible": true,
+    "all_two_wheeler_riders_visible": true,
+    "no_model_errors": true,
+    "precision": true,
+    "recall": false,
+    "per_class_recall": false,
+    "near_person": true,
+    "negative_fp": true
+  },
+  "micro": {
+    "tp": 98,
+    "fp": 13,
+    "fn": 31,
+    "precision": 0.8828828828828829,
+    "recall": 0.7596899224806202,
+    "f1": 0.8166666666666667
+  },
+  "per_class": {
+    "0": {
+      "tp": 27,
+      "fp": 2,
+      "fn": 15,
+      "precision": 0.9310344827586207,
+      "recall": 0.6428571428571429
+    },
+    "1": {
+      "tp": 6,
+      "fp": 0,
+      "fn": 9,
+      "precision": 1.0,
+      "recall": 0.4
+    },
+    "2": {
+      "tp": 31,
+      "fp": 2,
+      "fn": 2,
+      "precision": 0.9393939393939394,
+      "recall": 0.9393939393939394
+    },
+    "3": {
+      "tp": 7,
+      "fp": 2,
+      "fn": 5,
+      "precision": 0.7777777777777778,
+      "recall": 0.5833333333333334
+    },
+    "5": {
+      "tp": 15,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "7": {
+      "tp": 12,
+      "fp": 7,
+      "fn": 0,
+      "precision": 0.631578947368421,
+      "recall": 1.0
+    }
+  },
+  "admitted_micro": {
+    "tp": 97,
+    "fp": 13,
+    "fn": 32,
+    "precision": 0.8818181818181818,
+    "recall": 0.751937984496124,
+    "f1": 0.8117154811715481
+  },
+  "small_ignore_diagnostic_micro": {
+    "tp": 98,
+    "fp": 13,
+    "fn": 31,
+    "precision": 0.8828828828828829,
+    "recall": 0.7596899224806202,
+    "f1": 0.8166666666666667
+  },
+  "small_predictions_ignored_diagnostic": 0,
+  "strata": {
+    "near": {
+      "frames": 18,
+      "tp": 23,
+      "fp": 1,
+      "fn": 1,
+      "target_visible": 18,
+      "target_detected": 18,
+      "target_recall": 1.0
+    },
+    "medium": {
+      "frames": 18,
+      "tp": 16,
+      "fp": 3,
+      "fn": 8,
+      "target_visible": 18,
+      "target_detected": 13,
+      "target_recall": 0.7222222222222222
+    },
+    "far": {
+      "frames": 18,
+      "tp": 12,
+      "fp": 3,
+      "fn": 12,
+      "target_visible": 18,
+      "target_detected": 11,
+      "target_recall": 0.6111111111111112
+    },
+    "occluded": {
+      "frames": 18,
+      "tp": 34,
+      "fp": 4,
+      "fn": 8,
+      "target_visible": 18,
+      "target_detected": 15,
+      "target_recall": 0.8333333333333334
+    },
+    "negative": {
+      "frames": 3,
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "target_visible": 0,
+      "target_detected": 0,
+      "target_recall": null
+    },
+    "overlap_vehicles": {
+      "frames": 3,
+      "tp": 4,
+      "fp": 2,
+      "fn": 2,
+      "target_visible": 0,
+      "target_detected": 0,
+      "target_recall": null
+    },
+    "overlap_vru": {
+      "frames": 3,
+      "tp": 9,
+      "fp": 0,
+      "fn": 0,
+      "target_visible": 0,
+      "target_detected": 0,
+      "target_recall": null
+    }
+  },
+  "weather": {
+    "ClearNoon": {
+      "frames": 27,
+      "tp": 33,
+      "fp": 6,
+      "fn": 10
+    },
+    "WetCloudyNoon": {
+      "frames": 27,
+      "tp": 35,
+      "fp": 3,
+      "fn": 8
+    },
+    "ClearSunset": {
+      "frames": 27,
+      "tp": 30,
+      "fp": 4,
+      "fn": 13
+    }
+  },
+  "primary_coverage": {
+    "0": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "1": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "2": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "3": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "5": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    },
+    "7": {
+      "near": 3,
+      "medium": 3,
+      "far": 3,
+      "occluded": 3
+    }
+  },
+  "visibility": {
+    "status": "PASS",
+    "gates": {
+      "all_planned_actors_visible": true,
+      "all_two_wheeler_riders_visible": true
+    },
+    "missing_actors": [],
+    "missing_riders": []
+  },
+  "riders": {
+    "visible": 27,
+    "detected": 13,
+    "excluded": 0
+  },
+  "near_person": {
+    "tp": 3,
+    "fp": 0,
+    "fn": 0,
+    "recall": 1.0
+  },
+  "records": [
+    {
+      "scene": "v9-development-000",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-001",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-002",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-003",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-004",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-005",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-006",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-007",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-008",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-009",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-010",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-011",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 2,
+          "fp": 1,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-012",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-013",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": [
+        {
+          "class_id": 0,
+          "instance_id": 142,
+          "visible_pixels": 114,
+          "box": [
+            333,
+            161,
+            350,
+            187
+          ],
+          "semantic_tags": [
+            13
+          ]
+        }
+      ]
+    },
+    {
+      "scene": "v9-development-014",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-015",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-016",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-017",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-018",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-019",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-020",
+      "stratum": "near",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-021",
+      "stratum": "medium",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-022",
+      "stratum": "far",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-023",
+      "stratum": "occluded",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-024",
+      "stratum": "negative",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-025",
+      "stratum": "overlap_vehicles",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-026",
+      "stratum": "overlap_vru",
+      "weather": "ClearNoon",
+      "counts": {
+        "0": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-027",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-028",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-029",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-030",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-031",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-032",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-033",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-034",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-035",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-036",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-037",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-038",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-039",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-040",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-041",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-042",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-043",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-044",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-045",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-046",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-047",
+      "stratum": "near",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-048",
+      "stratum": "medium",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-049",
+      "stratum": "far",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-050",
+      "stratum": "occluded",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-051",
+      "stratum": "negative",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-052",
+      "stratum": "overlap_vehicles",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-053",
+      "stratum": "overlap_vru",
+      "weather": "WetCloudyNoon",
+      "counts": {
+        "0": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-054",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-055",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-056",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-057",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-058",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-059",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-060",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-061",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-062",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-063",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 1,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-064",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-065",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-066",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-067",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-068",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-069",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-070",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-071",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-072",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-073",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-074",
+      "stratum": "near",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-075",
+      "stratum": "medium",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-076",
+      "stratum": "far",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-077",
+      "stratum": "occluded",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-078",
+      "stratum": "negative",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-079",
+      "stratum": "overlap_vehicles",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 1
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 1,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    },
+    {
+      "scene": "v9-development-080",
+      "stratum": "overlap_vru",
+      "weather": "ClearSunset",
+      "counts": {
+        "0": {
+          "tp": 2,
+          "fp": 0,
+          "fn": 0
+        },
+        "1": {
+          "tp": 1,
+          "fp": 0,
+          "fn": 0
+        },
+        "2": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "3": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "5": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        },
+        "7": {
+          "tp": 0,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "excluded": 0,
+      "small_predictions_ignored_diagnostic": 0,
+      "covered_but_iou_missed": []
+    }
+  ],
+  "run_sha256": "e288afc81775f1763b49c45aaa80691c196dbc64cfa15497405f6384176329d2",
+  "metadata_sha256": "72f6fb54dae482c00fbe0122e76e92f42fd4dde21baa5b973679eb5943505345",
+  "freeze_sha256": "746b71e1e73c26262d72ab88a004985841eaf7e71a161a95e6f07687c4c7e958"
+}

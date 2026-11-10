@@ -1,0 +1,137 @@
+{
+  "schema": "m10-quality-protocol-v9",
+  "scope": "Provisional Host engineering comparison; not vehicle/ODD safety acceptance",
+  "selection": "development only; seal one nominee before holdout acquisition; no retuning on holdout",
+  "metric": "class-aware visible-instance boxes IoU>=0.5; not COCO mAP",
+  "minimum_visible_pixels": 25,
+  "minimum_box_side": 4,
+  "score_threshold": 0.35,
+  "candidate_ids": [
+    "dfine-m-class-v1"
+  ],
+  "coverage": {
+    "cases_per_partition": 81,
+    "minimum_visible_target_cases_per_class": 9,
+    "negative_cases": 3,
+    "all_strata_required": [
+      "near",
+      "medium",
+      "far",
+      "occluded",
+      "negative",
+      "overlap_vehicles",
+      "overlap_vru"
+    ],
+    "minimum_visible_cases_per_class_stratum": 2,
+    "minimum_rider_instances": 12
+  },
+  "absolute_quality": {
+    "micro_precision_min": 0.85,
+    "micro_recall_min": 0.8,
+    "per_class_recall_min": 0.7,
+    "near_person_recall_min": 0.9,
+    "negative_fp_per_frame_max": 0.3333333333333333
+  },
+  "relative_promotion": {
+    "precision_gain_min": 0.03,
+    "micro_recall_drop_max": 0.0,
+    "per_class_recall_drop_max": 0.0,
+    "far_and_occluded_recall_drop_max": 0.0,
+    "near_person_tp_drop_max": 0,
+    "negative_fp_increase_max": 0
+  },
+  "selection_order": [
+    "relative_gate_pass",
+    "micro_f1",
+    "micro_recall",
+    "micro_precision",
+    "candidate_id_ascending"
+  ],
+  "runtime_promotion": "No automatic replacement of v1. New runtime profile/interface review only after absolute and relative holdout gates pass.",
+  "latency": "All cold/startup and per-frame measurements retained; experimental accuracy replay is not20Hz qualification",
+  "annotation": {
+    "schema": "m10-rider-visible-gt-v2",
+    "person_tags": [
+      12,
+      13
+    ],
+    "metric": "visible tight boxes IoU>=0.5; no amodal extrapolation",
+    "primary_ignore": false,
+    "small_ignore_diagnostic": "unmatched same-class IoU>=0.5; one prediction per excluded instance; never changes gates",
+    "covered_miss_diagnostic": "same-class prediction covers>=80% of visible target but fails IoU0.5; not a TP"
+  },
+  "legacy_data": "Prior4990 plus every V9 preparation attempt",
+  "models": {
+    "baseline": {
+      "sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+      "bytes": 35858002
+    },
+    "dfine-m-class-v1": {
+      "sha256": "40097ba600ba21b94c673a76ff602ece600392fc1d9641576ff66bfa0300e1c2",
+      "bytes": 77949424
+    }
+  },
+  "input_profile": "m10-native-per-model-rgb-v9",
+  "preparation": {
+    "required_status": "PASS",
+    "sites": [
+      38,
+      85
+    ],
+    "frames": 198,
+    "all_planned_actors_included": true,
+    "all_two_wheeler_riders_included": true,
+    "before_final_freeze": true,
+    "no_model_inference": true
+  },
+  "road_plan": "perception-road-evaluation-v9.json",
+  "held_person_far_m": 26,
+  "actual_site_visibility": {
+    "all_planned_actors_included": true,
+    "all_two_wheeler_riders_included": true
+  },
+  "candidate_version": "Fixed pretrained D-FINE-M class-v1; no training/export/input/threshold retuning",
+  "metadata_revision": "v9",
+  "prior_rgb_excluded": 5287,
+  "revision_reason": "Fresh unused Town04 route sets after sealed class calibration",
+  "policy": {
+    "baseline": {
+      "score_threshold": 0.35,
+      "same_class_nms_iou": 0.5,
+      "output_channels": 85,
+      "input": "RGB0-255 top-left letterbox640 fill114"
+    },
+    "dfine": {
+      "class_order": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7
+      ],
+      "confidence_vector": [
+        0.6,
+        0.4,
+        0.7,
+        0.5,
+        0.5,
+        0.6
+      ],
+      "native_classes": 80,
+      "top_queries": 300,
+      "nms": false,
+      "input": "PIL RGB bilinear direct640 /255; original[width,height]"
+    },
+    "crop": false,
+    "training": false,
+    "runtime_promotion": false
+  },
+  "design_data": "Prior development only; no old holdout imagery/predictions",
+  "staging": {
+    "height_m": 50,
+    "actor_step_m": 10,
+    "no_tick_before_final_placement": true
+  },
+  "preparation_revision": "Unchanged V8b recipe on V9 sites; failed shutdown attempts and identical-source recovery retained"
+}

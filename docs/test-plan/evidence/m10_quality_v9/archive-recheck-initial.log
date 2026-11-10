@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/docs/test-plan/evidence/m10_quality_v9/check-archive.py", line 167, in <module>
+    main(args.evidence, args.output)
+  File "/d/shin/StrataDrive/docs/test-plan/evidence/m10_quality_v9/check-archive.py", line 81, in main
+    run(
+  File "/d/shin/StrataDrive/docs/test-plan/evidence/m10_quality_v9/check-archive.py", line 78, in run
+    raise RuntimeError(result.stdout + result.stderr)
+RuntimeError: Traceback (most recent call last):
+  File "/tmp/m10-v9-recheck-htk4_63a/project/tests/integration/perception/audit_quality_v9.py", line 258, in <module>
+    r = audit(a.experiment)
+  File "/tmp/m10-v9-recheck-htk4_63a/project/tests/integration/perception/audit_quality_v9.py", line 76, in audit
+    frozen = check_freeze(frozen_path)
+  File "/tmp/m10-v9-recheck-htk4_63a/project/tests/integration/perception/quality_v9_common.py", line 414, in check_freeze
+    validate_descriptors()
+  File "/tmp/m10-v9-recheck-htk4_63a/project/tests/integration/perception/quality_v9_common.py", line 62, in validate_descriptors
+    used, survey_data = read_json(USED), read_json(old_survey)
+  File "/tmp/m10-v9-recheck-htk4_63a/project/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/m10-v9-recheck-htk4_63a/project/docs/test-plan/evidence/m10_quality_v8/survey-selected.json'
+

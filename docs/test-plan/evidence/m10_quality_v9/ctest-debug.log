@@ -1,0 +1,30 @@
+Test project /d/shin/StrataDrive/build/m10-perception/debug
+    Start 1467: perception_python
+1/2 Test #1467: perception_python ................***Failed   37.65 sec
+.................................................................................................................................................................F..............................................
+======================================================================
+FAIL: test_sealed_development_plan_passes_cli_schema_validation (test_quality_v4.QualityV4Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/test_quality_v4.py", line 253, in test_sealed_development_plan_passes_cli_schema_validation
+    self.assertIn("PRELAUNCH_REACHED_SOURCE_IDENTITY", result.stderr)
+AssertionError: 'PRELAUNCH_REACHED_SOURCE_IDENTITY' not found in 'Traceback (most recent call last):\n  File "<string>", line 9, in <module>\n  File "/d/shin/StrataDrive/tests/integration/perception/run_quality_evaluation_v4.py", line 66, in main\n    s.bind(("127.0.0.1", port))\nOSError: [Errno 98] Address already in use\n'
+
+----------------------------------------------------------------------
+Ran 208 tests in 37.349s
+
+FAILED (failures=1)
+
+    Start 1468: perception_boundary_replay
+2/2 Test #1468: perception_boundary_replay .......   Passed    0.10 sec
+
+50% tests passed, 1 tests failed out of 2
+
+Label Time Summary:
+integration.logical    =  37.75 sec*proc (2 tests)
+
+Total Test time (real) =  38.28 sec
+
+The following tests FAILED:
+	1467 - perception_python (Failed)                        integration.logical
+Errors while running CTest

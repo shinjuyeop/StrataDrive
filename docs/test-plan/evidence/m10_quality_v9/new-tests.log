@@ -1,0 +1,33 @@
+E..E
+======================================================================
+ERROR: test_duplicate_probe_wrong_rgb_and_cold_exclusion_cannot_pass (test_quality_v9.QualityV9Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/test_quality_v9.py", line 40, in test_duplicate_probe_wrong_rgb_and_cold_exclusion_cannot_pass
+    write_new(dataset, dict(frames=[dict(rgb_sha256=str(n)) for n in range(3)]))
+  File "/d/shin/StrataDrive/tests/integration/perception/quality_benchmark.py", line 23, in write_new
+    with Path(path).open("x") as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpbl19ex37/preparation-development-data/rgb.json'
+
+======================================================================
+ERROR: test_raw_capture_identity_survives_preparation_and_scoring (test_quality_v9_raw.QualityV9RawTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/test_quality_v9_raw.py", line 35, in test_raw_capture_identity_survives_preparation_and_scoring
+    freeze(frozen)
+  File "/d/shin/StrataDrive/tests/integration/perception/quality_v9_common.py", line 382, in freeze
+    for name in read_json(path.parent / "preparation-freeze.json")["sources"]
+  File "/d/shin/StrataDrive/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpy7z8f5_k/preparation-freeze.json'
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.386s
+
+FAILED (errors=2)
