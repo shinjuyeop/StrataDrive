@@ -1,0 +1,180 @@
+{
+  "scope": "graph/source/deployment route review only; not TensorRT or Jetson qualification",
+  "boards": [
+    "AGX Thor",
+    "Orin NX"
+  ],
+  "same_reference_before_board_optimization": true,
+  "models": [
+    {
+      "candidate": "yolox-s",
+      "model_sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+      "onnx_checker": "PASS",
+      "opset": [
+        {
+          "domain": "ai.onnx",
+          "version": 11
+        }
+      ],
+      "operators": {
+        "ai.onnx:Add": 7,
+        "ai.onnx:Concat": 18,
+        "ai.onnx:Conv": 83,
+        "ai.onnx:MaxPool": 3,
+        "ai.onnx:Mul": 74,
+        "ai.onnx:Reshape": 3,
+        "ai.onnx:Resize": 2,
+        "ai.onnx:Sigmoid": 80,
+        "ai.onnx:Slice": 8,
+        "ai.onnx:Transpose": 1
+      },
+      "custom_domains": [],
+      "overridable_initializer_count": 0,
+      "external_weights": false,
+      "board_runtime": "NOT RUN",
+      "board_optimization": "DEFERRED by user"
+    },
+    {
+      "candidate": "yolox-m",
+      "model_sha256": "21ff6cfdeb53b013bac2249599e55f00bff3cfdfdab37ed7a4620818c1d15b3f",
+      "onnx_checker": "PASS",
+      "opset": [
+        {
+          "domain": "ai.onnx",
+          "version": 11
+        }
+      ],
+      "operators": {
+        "ai.onnx:Add": 14,
+        "ai.onnx:Concat": 18,
+        "ai.onnx:Conv": 107,
+        "ai.onnx:MaxPool": 3,
+        "ai.onnx:Mul": 98,
+        "ai.onnx:Reshape": 3,
+        "ai.onnx:Resize": 2,
+        "ai.onnx:Sigmoid": 104,
+        "ai.onnx:Slice": 8,
+        "ai.onnx:Transpose": 1
+      },
+      "custom_domains": [],
+      "overridable_initializer_count": 0,
+      "external_weights": false,
+      "board_runtime": "NOT RUN",
+      "board_optimization": "DEFERRED by user"
+    },
+    {
+      "candidate": "yolox-l",
+      "model_sha256": "7860ae79de6c89a3c1eb72ae9a2756c0ccfbe04b7791bb5880afabd97855a411",
+      "onnx_checker": "PASS",
+      "opset": [
+        {
+          "domain": "ai.onnx",
+          "version": 11
+        }
+      ],
+      "operators": {
+        "ai.onnx:Add": 21,
+        "ai.onnx:Concat": 18,
+        "ai.onnx:Conv": 131,
+        "ai.onnx:MaxPool": 3,
+        "ai.onnx:Mul": 122,
+        "ai.onnx:Reshape": 3,
+        "ai.onnx:Resize": 2,
+        "ai.onnx:Sigmoid": 128,
+        "ai.onnx:Slice": 8,
+        "ai.onnx:Transpose": 1
+      },
+      "custom_domains": [],
+      "overridable_initializer_count": 0,
+      "external_weights": false,
+      "board_runtime": "NOT RUN",
+      "board_optimization": "DEFERRED by user"
+    },
+    {
+      "candidate": "rtdetrv2-r18",
+      "model_sha256": "bbec0e068fe672ce7cae3d15e2086f11e6bbfbf5ab50b63658cd80bc8c3c3957",
+      "onnx_checker": "PASS",
+      "opset": [
+        {
+          "domain": "ai.onnx",
+          "version": 16
+        }
+      ],
+      "operators": {
+        "ai.onnx:Add": 117,
+        "ai.onnx:AveragePool": 3,
+        "ai.onnx:Cast": 11,
+        "ai.onnx:Clip": 9,
+        "ai.onnx:Concat": 21,
+        "ai.onnx:Constant": 260,
+        "ai.onnx:ConstantOfShape": 4,
+        "ai.onnx:Conv": 57,
+        "ai.onnx:Div": 21,
+        "ai.onnx:Erf": 1,
+        "ai.onnx:Expand": 4,
+        "ai.onnx:Flatten": 1,
+        "ai.onnx:Gather": 2,
+        "ai.onnx:GatherElements": 3,
+        "ai.onnx:Gemm": 4,
+        "ai.onnx:GridSample": 9,
+        "ai.onnx:Identity": 6,
+        "ai.onnx:Log": 3,
+        "ai.onnx:MatMul": 61,
+        "ai.onnx:MaxPool": 1,
+        "ai.onnx:Mul": 70,
+        "ai.onnx:Pow": 12,
+        "ai.onnx:ReduceMax": 1,
+        "ai.onnx:ReduceMean": 24,
+        "ai.onnx:ReduceSum": 3,
+        "ai.onnx:Relu": 33,
+        "ai.onnx:Reshape": 70,
+        "ai.onnx:Resize": 2,
+        "ai.onnx:Shape": 14,
+        "ai.onnx:Sigmoid": 33,
+        "ai.onnx:Slice": 35,
+        "ai.onnx:Softmax": 7,
+        "ai.onnx:Split": 4,
+        "ai.onnx:Sqrt": 24,
+        "ai.onnx:Squeeze": 4,
+        "ai.onnx:Sub": 21,
+        "ai.onnx:Tile": 4,
+        "ai.onnx:TopK": 2,
+        "ai.onnx:Transpose": 49,
+        "ai.onnx:Unsqueeze": 15
+      },
+      "custom_domains": [],
+      "overridable_initializer_count": 0,
+      "external_weights": false,
+      "board_runtime": "NOT RUN",
+      "board_optimization": "DEFERRED by user"
+    },
+    {
+      "candidate": "nanodet-plus416",
+      "model_sha256": "4b82da9944b88577175ee23a459dce2e26e6e4be573def65b1055dc2d9720186",
+      "onnx_checker": "PASS",
+      "opset": [
+        {
+          "domain": "ai.onnx",
+          "version": 11
+        }
+      ],
+      "operators": {
+        "ai.onnx:Add": 4,
+        "ai.onnx:Concat": 16,
+        "ai.onnx:Conv": 73,
+        "ai.onnx:LeakyRelu": 48,
+        "ai.onnx:MaxPool": 1,
+        "ai.onnx:Reshape": 38,
+        "ai.onnx:Resize": 4,
+        "ai.onnx:Sigmoid": 3,
+        "ai.onnx:Split": 16,
+        "ai.onnx:Transpose": 22
+      },
+      "custom_domains": [],
+      "overridable_initializer_count": 158,
+      "external_weights": false,
+      "board_runtime": "NOT RUN",
+      "board_optimization": "DEFERRED by user"
+    }
+  ]
+}

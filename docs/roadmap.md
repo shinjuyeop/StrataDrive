@@ -7,7 +7,7 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M10 | Host 인지·live shadow·전용1080장/L6 24epoch·V7 새162개 평가 완료. L6 개발 bus 회귀 FAIL·보류 P91.2%/R80.6%·absolute FAIL/relative FAIL. 기존 S 유지. 회귀 개선·다시 새 보류·전체wall20Hz·시작 안정성·주행 통합 남음 |
+| M10 | Host 인지·live shadow·L6/V7 완료·기존 FAIL 보존. 사전학습5종을 같은 개발324장에 비교. Jetson 배포 가능성을 고려한 모델 선정·새 독립 평가·전체wall20Hz·시작 안정성·주행 통합 남음. 현재 보드 최적화는 후속 |
 | M11 | Metric world model/localization·temporal learned planner, Safety Supervisor·유효 classical fallback, 인식/판단 한계 검토 |
 | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
 | M13 | 전체 SIL/V&V·회귀·추적성 검토와 검증된 범위·제약 공개 |
@@ -46,6 +46,11 @@ M6에서 결정된 수치·소유권과 후속 gate의 상세 구분은 [M6 검�
 
 
 ## M10 진행과 후속 gate
+
+현재 작업 순서는 [모델 선정 안내](perception-model-selection.md)를 따른다.2026-11-10 사용자는
+Jetson 각각의 배포 가능성을 고려하되 현 단계의 보드별 최적화는 미뤘다. 사전학습5종의
+[개발324장 비교](test-plan/evidence/m10_model_screen_v1/README.md)를 완료했으며 추가 학습은
+필수가 아니다. Host 비교를 Jetson 성능/모델 최종 채택으로 올리지 않는다.
 
 M9의 선언한 Host·simulation10ms 기능 범위는 [프로젝트 상태](project-status.md)와
 [마감 검증](test-plan/evidence/m9_followup/README.md)을 기준으로 종료했다.

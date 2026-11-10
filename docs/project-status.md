@@ -1,6 +1,6 @@
 # 프로젝트 상태
 
-정리 기준·최신 검증: **2026-11-09**.
+정리 기준·최신 검증: **2026-11-10**.
 이 문서가 현재 구현·수용 범위와 다음 작업의 기준이다. 실행 중인 미기록 변경은 완료로 세지 않는다.
 
 ## 단계별 현재 판정
@@ -16,11 +16,17 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **Host 인지·live shadow·L6 학습/새162개 평가 완료 / L6 품질 FAIL·기존 S 유지 / 정확도·전체wall20Hz·시작/종료 안정성·주행 통합 OPEN** | [영상 계약](interfaces/perception.md) · [고정 학습 후보](test-plan/evidence/m10_training_v1/README.md) · [V7 새 도로 평가](test-plan/evidence/m10_quality_v7/README.md) |
+| M10 | **Host 인지·live shadow·L6/V7 및 사전학습5종 개발324장 비교 완료 / 모델 최종 선정·정확도·전체wall20Hz·시작 안정성·주행 통합 OPEN** | [모델 선정 순서](perception-model-selection.md) · [5종 개발 비교](test-plan/evidence/m10_model_screen_v1/README.md) · [V7 실패 보존](test-plan/evidence/m10_quality_v7/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
+
+2026-11-10 사용자 지시에 따라 **현재는 Jetson 배포 가능성을 고려한 사전학습 모델 비교를
+우선하고 보드별 최적화는 후속**으로 둔다. S는 초기 연동 기준이며 최적 모델로 확정하지 않았다.
+5종의 같은 개발324장 비교에서는 L이 P94.23%/R88.57%로 가장 높은 F1을 보였으나,
+개발 탐색·S 대비 P+2.85%p·기존 V6 보류 실패를 유지하므로 runtime을 교체하지 않는다.
+새 학습·보류 재사용·보드 engine/양자화는 하지 않았다. [현재 판단과 다음 순서](perception-model-selection.md)를 따른다.
 
 ## M9 기능 범위 마감
 
