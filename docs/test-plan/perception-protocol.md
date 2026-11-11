@@ -136,3 +136,10 @@ TC-PER-073–075/C-M10-PER-69–71은 [GPU readback 사전 기준](perception-re
 성공4회/실패2회·원본600장·future exclusion7613·source565→574→580을 보존한다.
 모든 wall 통계/실패 판정/원본 BGRA·RGB/정확한 입력을 재감사하고 변조96건을 거절한다.
 카메라15.63Hz 조건도 유효 조회16.10%이므로 기본값·wall20Hz·전체 인식 경로 수용으로 올리지 않는다.
+
+
+TC-PER-076–078/C-M10-PER-72–74는 [복사 사전 기준](perception-frame-copy-v1-protocol.md),
+[뷰포트 후속 기준](perception-viewport-v1-protocol.md), [전체 실측](evidence/m10_viewport_v1/README.md)에 연결한다.
+SDK owner lifetime·일회용 immutable copy·선행 할당·단계 identity/clock과 원래 기한을 검사한다.
+4K/Epic 유지5회/500장·source580→595→601·미래 제외8113·Python354·변조110건을 보존한다.
+복사는 약2.8ms이나 전체 약127–129ms/camera 약13Hz이므로 기본값·wall20Hz·실제시간1× 수용은 OPEN이다.

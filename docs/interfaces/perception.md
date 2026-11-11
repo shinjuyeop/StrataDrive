@@ -182,3 +182,14 @@ frame/source가 관측된 snapshot과 맞아야 추론할 수 있다. 중복·�
 반복 재할당 제거 조건은 camera15.63Hz지만 유효 조회16.10%, 결합 비동기는 유효0%/FAIL이다.
 이 opt-in 실험을 기본값이나 주행 허가로 승격하지 않는다. Source574/580·실제600장과 실패를
 보존했고 원래 CARLA module로 복원했다. 전체 capture-to-result 지연 단축이 다음 성능 작업이다.
+
+
+2026-11-11 [4K snapshot 복사](../test-plan/evidence/m10_frame_copy_v1/README.md)와
+[main viewport 후속](../test-plan/evidence/m10_viewport_v1/README.md)은 새 opt-in 진단 경로다.
+복사 평균14.15→약2.8ms 개선에도 전체 capture→backend 평균 약127–129ms와 camera 약13Hz가 남았다.
+GIL을 놓는 복사 동안 실제 SDK Image owner를 pin하고 독립 bytes를 한 번만 공개한다.
+120개/4.25GB 사전 할당은 유한 Host 수집 한도이며 배포 queue가 아니다. Stage clock을 분리하되
+기존 모델/산술·active1/pending1/current1·원래 source 및 receipt100ms를 유지한다.
+Source100ms와 capture-to-result100ms wall은 다르며 이번 실측은 후자를 별도 기록했다.
+4K 출력과 Epic은 유지했지만 viewport 변경의 품질 동등성은 미평가다. 기본값은 승격하지 않고
+외부 모듈/화면 설정을 복원했다. M10 실시간·새 독립 품질·주행·Jetson 배포는 OPEN이다.

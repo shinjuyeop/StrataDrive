@@ -686,3 +686,14 @@ python3 tools/carla/m10_readback_v1/build.py \
 
 기존 frozen 조건의 재시도를 새 성공 근거로 추가하지 않는다. 추가 성능 시험에는 별도
 사전 조건/출력 경로를 정하고 실패와 원본을 모두 남긴다.
+
+
+2026-11-11 [4K snapshot 복사](test-plan/evidence/m10_frame_copy_v1/README.md)와
+[main viewport 후속](test-plan/evidence/m10_viewport_v1/README.md)은 새 opt-in 진단 경로다.
+복사 평균14.15→약2.8ms 개선에도 전체 capture→backend 평균 약127–129ms와 camera 약13Hz가 남았다.
+GIL을 놓는 복사 동안 실제 SDK Image owner를 pin하고 독립 bytes를 한 번만 공개한다.
+120개/4.25GB 사전 할당은 유한 Host 수집 한도이며 배포 queue가 아니다. Stage clock을 분리하되
+기존 모델/산술·active1/pending1/current1·원래 source 및 receipt100ms를 유지한다.
+Source100ms와 capture-to-result100ms wall은 다르며 이번 실측은 후자를 별도 기록했다.
+4K 출력과 Epic은 유지했지만 viewport 변경의 품질 동등성은 미평가다. 기본값은 승격하지 않고
+외부 모듈/화면 설정을 복원했다. M10 실시간·새 독립 품질·주행·Jetson 배포는 OPEN이다.

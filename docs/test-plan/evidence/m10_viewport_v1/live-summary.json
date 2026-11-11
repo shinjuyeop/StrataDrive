@@ -1,0 +1,854 @@
+{
+  "viewport-small-01": {
+    "status": "PASS",
+    "metrics": {
+      "state": {
+        "jobs": 550,
+        "observed_hz": 69.84152723901082,
+        "job_wall": {
+          "n": 550,
+          "mean_ms": 0.09204653636363637,
+          "p95_ms": 0.1843677999999999,
+          "p99_ms": 0.24760745,
+          "max_ms": 0.27736
+        },
+        "interval_wall": {
+          "n": 549,
+          "mean_ms": 14.318129049180328,
+          "p95_ms": 43.3021722,
+          "p99_ms": 82.92169035999993,
+          "max_ms": 91.671202
+        }
+      },
+      "camera": {
+        "jobs": 100,
+        "observed_hz": 13.248714456091912,
+        "job_wall": {
+          "n": 100,
+          "mean_ms": 2.8667549400000003,
+          "p95_ms": 7.08880365,
+          "p99_ms": 7.46111931,
+          "max_ms": 7.495899
+        },
+        "interval_wall": {
+          "n": 99,
+          "mean_ms": 75.47902125252524,
+          "p95_ms": 166.935844,
+          "p99_ms": 174.61803702,
+          "max_ms": 175.18193
+        }
+      },
+      "consumer": {
+        "jobs": 394,
+        "observed_hz": 49.99950212327828,
+        "job_wall": {
+          "n": 394,
+          "mean_ms": 0.06035026649746193,
+          "p95_ms": 0.12533985,
+          "p99_ms": 0.18247304999999966,
+          "max_ms": 0.449099
+        },
+        "interval_wall": {
+          "n": 393,
+          "mean_ms": 20.000199152671755,
+          "p95_ms": 20.0348918,
+          "p99_ms": 20.205389839999995,
+          "max_ms": 22.935812
+        }
+      },
+      "receipt_to_backend_return": {
+        "n": 100,
+        "mean_ms": 60.155472929999995,
+        "p95_ms": 112.93441204999999,
+        "p99_ms": 114.99374941,
+        "max_ms": 116.466613
+      },
+      "simulation_realtime_factor": 0.660185873963694,
+      "observed_world_hz": 66.01858887814934,
+      "primary_camera_hz": 13.248714456091912
+    },
+    "availability": {
+      "active_ticks": {
+        "samples": 379,
+        "available_samples": 129,
+        "sampled_available_fraction": 0.3403693931398417,
+        "unique_frames": 92,
+        "unavailable_runs": 92,
+        "longest_unavailable_sample_run": 62,
+        "longest_unavailable_first_to_last_ns": 1219973331,
+        "source_age": {
+          "n": 129,
+          "mean_ms": 82.55813766666665,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 129,
+          "mean_ms": 68.94045502325581,
+          "p95_ms": 82.1920488,
+          "p99_ms": 94.46936055999998,
+          "max_ms": 98.979597
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      },
+      "including_delivery_tail": {
+        "samples": 379,
+        "available_samples": 129,
+        "sampled_available_fraction": 0.3403693931398417,
+        "unique_frames": 92,
+        "unavailable_runs": 92,
+        "longest_unavailable_sample_run": 62,
+        "longest_unavailable_first_to_last_ns": 1219973331,
+        "source_age": {
+          "n": 129,
+          "mean_ms": 82.55813766666665,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 129,
+          "mean_ms": 68.94045502325581,
+          "p95_ms": 82.1920488,
+          "p99_ms": 94.46936055999998,
+          "max_ms": 98.979597
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      }
+    },
+    "worker": {
+      "counters": {
+        "offered": 100,
+        "accepted": 100,
+        "rejected": 0,
+        "overwritten": 0,
+        "cancelled": 0,
+        "expired_pending": 0,
+        "started": 100,
+        "completed": 100,
+        "published": 93,
+        "late": 7,
+        "errors": 0,
+        "obsolete": 0,
+        "invalidated": 1
+      },
+      "busy": false,
+      "pending": false,
+      "stop_requested": false,
+      "stopped": false,
+      "clock_fault": false,
+      "last_error": null,
+      "preparation_state": "READY",
+      "preparation_busy": false
+    },
+    "audit": {
+      "status": "PASS",
+      "observed_snapshots": 550,
+      "images": 100,
+      "calls": 100,
+      "consumed": 93,
+      "consumed_per100source_frames": [
+        20,
+        16,
+        17,
+        20,
+        20
+      ],
+      "missing_scheduled_camera_frames": [],
+      "extra_boundary_camera_frames": [],
+      "state_counters": {
+        "accepted": 550,
+        "missing": 0,
+        "duplicate": 0,
+        "reordered": 0
+      },
+      "tick_requests": 0,
+      "overlap": {
+        "state": 305,
+        "consumer": 291
+      },
+      "decisions": {
+        "outcomes": {
+          "published": 93,
+          "late": 7
+        },
+        "late_causes": {
+          "receipt_only": 7
+        }
+      },
+      "preparation": {
+        "status": "PASS",
+        "startup_calls": 3,
+        "sensor_calls": 100,
+        "total_backend_calls": 103,
+        "same_owner": true,
+        "startup_elapsed_ns": 447856708
+      },
+      "availability": {
+        "active_ticks": {
+          "samples": 379,
+          "available_samples": 129,
+          "sampled_available_fraction": 0.3403693931398417,
+          "unique_frames": 92,
+          "unavailable_runs": 92,
+          "longest_unavailable_sample_run": 62,
+          "longest_unavailable_first_to_last_ns": 1219973331,
+          "source_age": {
+            "n": 129,
+            "mean_ms": 82.55813766666665,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 129,
+            "mean_ms": 68.94045502325581,
+            "p95_ms": 82.1920488,
+            "p99_ms": 94.46936055999998,
+            "max_ms": 98.979597
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        },
+        "including_delivery_tail": {
+          "samples": 379,
+          "available_samples": 129,
+          "sampled_available_fraction": 0.3403693931398417,
+          "unique_frames": 92,
+          "unavailable_runs": 92,
+          "longest_unavailable_sample_run": 62,
+          "longest_unavailable_first_to_last_ns": 1219973331,
+          "source_age": {
+            "n": 129,
+            "mean_ms": 82.55813766666665,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 129,
+            "mean_ms": 68.94045502325581,
+            "p95_ms": 82.1920488,
+            "p99_ms": 94.46936055999998,
+            "max_ms": 98.979597
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        }
+      },
+      "silence_reads": 10,
+      "acceptance": "finite_observational_integration_not_realtime_or_driving_qualification",
+      "copy": {
+        "sensor_stages": 100,
+        "preparation_stages": 3,
+        "stages": {
+          "gray": {
+            "n": 100,
+            "mean_ms": 1.9647229899999998,
+            "p95_ms": 3.7398436,
+            "p99_ms": 4.108178550000003,
+            "max_ms": 4.759059
+          },
+          "health": {
+            "n": 100,
+            "mean_ms": 3.14998401,
+            "p95_ms": 11.6016342,
+            "p99_ms": 12.540698350000001,
+            "max_ms": 13.085926
+          },
+          "resize": {
+            "n": 100,
+            "mean_ms": 14.077206570000001,
+            "p95_ms": 49.83793635,
+            "p99_ms": 53.68695884,
+            "max_ms": 54.394892
+          },
+          "tensor": {
+            "n": 100,
+            "mean_ms": 5.061009319999999,
+            "p95_ms": 10.50318405,
+            "p99_ms": 11.294450060000003,
+            "max_ms": 11.526314
+          },
+          "inference": {
+            "n": 100,
+            "mean_ms": 35.011003769999995,
+            "p95_ms": 36.7316268,
+            "p99_ms": 37.4502771,
+            "max_ms": 37.905588
+          },
+          "decode": {
+            "n": 100,
+            "mean_ms": 0.6099017800000001,
+            "p95_ms": 1.6975516499999999,
+            "p99_ms": 2.65601598,
+            "max_ms": 2.683239
+          },
+          "end": {
+            "n": 100,
+            "mean_ms": 0.03204551,
+            "p95_ms": 0.07989964999999999,
+            "p99_ms": 0.11129243000000005,
+            "max_ms": 0.120839
+          }
+        },
+        "callback": {
+          "view_ready_wall_ns": {
+            "n": 100,
+            "mean_ms": 0.020900500000000006,
+            "p95_ms": 0.04124299999999999,
+            "p99_ms": 0.058499150000000014,
+            "max_ms": 0.060989
+          },
+          "copy_end_wall_ns": {
+            "n": 100,
+            "mean_ms": 2.7476485299999998,
+            "p95_ms": 6.7780473,
+            "p99_ms": 7.20717113,
+            "max_ms": 7.238072
+          },
+          "offer_entry_wall_ns": {
+            "n": 100,
+            "mean_ms": 0.00197544,
+            "p95_ms": 0.00412185,
+            "p99_ms": 0.004785660000000003,
+            "max_ms": 0.005346
+          },
+          "offer_end_wall_ns": {
+            "n": 100,
+            "mean_ms": 0.08637959,
+            "p95_ms": 0.19307979999999988,
+            "p99_ms": 0.2692376500000001,
+            "max_ms": 0.2893
+          },
+          "end_wall_ns": {
+            "n": 100,
+            "mean_ms": 0.00985088,
+            "p95_ms": 0.0236553,
+            "p99_ms": 0.03365783000000001,
+            "max_ms": 0.035126
+          }
+        },
+        "copy_preparation": {
+          "mode": "prefault",
+          "begin_wall_ns": 1408224027622740,
+          "end_wall_ns": 1408225062723383,
+          "pool": {
+            "capacity": 120,
+            "reserved": 0,
+            "completed": 0,
+            "allocated_bytes": 4246732800,
+            "allocation_ns": 1034879465
+          }
+        }
+      }
+    },
+    "readback": {
+      "trace_rows": 101,
+      "received": 100,
+      "captured_without_callback": [
+        695
+      ],
+      "inflight_peak": 1,
+      "metrics": {
+        "capture_to_render": {
+          "n": 101,
+          "mean_ms": 15.80439730693069,
+          "p95_ms": 45.075417,
+          "p99_ms": 49.628383,
+          "max_ms": 50.389307
+        },
+        "copy_enqueue": {
+          "n": 101,
+          "mean_ms": 6.840787722772276,
+          "p95_ms": 27.367429,
+          "p99_ms": 28.249476,
+          "max_ms": 33.748311
+        },
+        "rhi_flush_or_submit": {
+          "n": 101,
+          "mean_ms": 0.41142556435643557,
+          "p95_ms": 1.158661,
+          "p99_ms": 1.699385,
+          "max_ms": 1.721618
+        },
+        "blocking_query": {
+          "n": 101,
+          "mean_ms": 22.70433685148515,
+          "p95_ms": 26.973439,
+          "p99_ms": 28.010043,
+          "max_ms": 28.695127
+        },
+        "task_dispatch": {
+          "n": 101,
+          "mean_ms": 0.0330720495049505,
+          "p95_ms": 0.064668,
+          "p99_ms": 0.101238,
+          "max_ms": 0.112563
+        },
+        "fence_wait": {
+          "n": 101,
+          "mean_ms": 0.0004023267326732674,
+          "p95_ms": 0.0012,
+          "p99_ms": 0.001296,
+          "max_ms": 0.001314
+        },
+        "map": {
+          "n": 101,
+          "mean_ms": 0.0022362871287128715,
+          "p95_ms": 0.005402,
+          "p99_ms": 0.009319,
+          "max_ms": 0.011314
+        },
+        "buffer_copy_and_send": {
+          "n": 101,
+          "mean_ms": 2.9518237722772285,
+          "p95_ms": 7.139596,
+          "p99_ms": 7.963971,
+          "max_ms": 12.773221
+        },
+        "capture_to_send": {
+          "n": 101,
+          "mean_ms": 48.74848188118813,
+          "p95_ms": 94.710062,
+          "p99_ms": 100.435406,
+          "max_ms": 100.776854
+        },
+        "capture_to_callback": {
+          "n": 100,
+          "mean_ms": 63.986227119999995,
+          "p95_ms": 143.91713375,
+          "p99_ms": 148.80542897000004,
+          "max_ms": 150.825224
+        }
+      }
+    },
+    "reallocation_log_lines_between_first_last_completions": 0,
+    "preparation_ns": 447856708
+  },
+  "viewport-small-02": {
+    "status": "PASS",
+    "metrics": {
+      "state": {
+        "jobs": 549,
+        "observed_hz": 68.85791979178623,
+        "job_wall": {
+          "n": 549,
+          "mean_ms": 0.0926137723132969,
+          "p95_ms": 0.17338380000000003,
+          "p99_ms": 0.2402540399999999,
+          "max_ms": 0.315681
+        },
+        "interval_wall": {
+          "n": 548,
+          "mean_ms": 14.52265771350365,
+          "p95_ms": 43.95105205,
+          "p99_ms": 69.5560463699999,
+          "max_ms": 96.499592
+        }
+      },
+      "camera": {
+        "jobs": 100,
+        "observed_hz": 13.07135103633329,
+        "job_wall": {
+          "n": 100,
+          "mean_ms": 2.9484456800000003,
+          "p95_ms": 7.07305405,
+          "p99_ms": 7.886322670000001,
+          "max_ms": 8.081023
+        },
+        "interval_wall": {
+          "n": 99,
+          "mean_ms": 76.50318603030304,
+          "p95_ms": 160.61306109999998,
+          "p99_ms": 180.39535207999998,
+          "max_ms": 186.54417
+        }
+      },
+      "consumer": {
+        "jobs": 399,
+        "observed_hz": 49.99948498017933,
+        "job_wall": {
+          "n": 399,
+          "mean_ms": 0.062464107769423564,
+          "p95_ms": 0.13168129999999997,
+          "p99_ms": 0.1964907799999991,
+          "max_ms": 0.578764
+        },
+        "interval_wall": {
+          "n": 398,
+          "mean_ms": 20.00020601005025,
+          "p95_ms": 20.0358339,
+          "p99_ms": 20.23094184,
+          "max_ms": 21.180775
+        }
+      },
+      "receipt_to_backend_return": {
+        "n": 100,
+        "mean_ms": 60.66974646,
+        "p95_ms": 110.2132931,
+        "p99_ms": 117.61777807000003,
+        "max_ms": 122.671438
+      },
+      "simulation_realtime_factor": 0.6514799866368527,
+      "observed_world_hz": 65.14800011286924,
+      "primary_camera_hz": 13.07135103633329
+    },
+    "availability": {
+      "active_ticks": {
+        "samples": 384,
+        "available_samples": 134,
+        "sampled_available_fraction": 0.3489583333333333,
+        "unique_frames": 91,
+        "unavailable_runs": 91,
+        "longest_unavailable_sample_run": 66,
+        "longest_unavailable_first_to_last_ns": 1299952544,
+        "source_age": {
+          "n": 134,
+          "mean_ms": 82.38805783582089,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 134,
+          "mean_ms": 70.0829654477612,
+          "p95_ms": 83.78010835,
+          "p99_ms": 90.95832423999998,
+          "max_ms": 93.895095
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      },
+      "including_delivery_tail": {
+        "samples": 384,
+        "available_samples": 134,
+        "sampled_available_fraction": 0.3489583333333333,
+        "unique_frames": 91,
+        "unavailable_runs": 91,
+        "longest_unavailable_sample_run": 66,
+        "longest_unavailable_first_to_last_ns": 1299952544,
+        "source_age": {
+          "n": 134,
+          "mean_ms": 82.38805783582089,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 134,
+          "mean_ms": 70.0829654477612,
+          "p95_ms": 83.78010835,
+          "p99_ms": 90.95832423999998,
+          "max_ms": 93.895095
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      }
+    },
+    "worker": {
+      "counters": {
+        "offered": 100,
+        "accepted": 100,
+        "rejected": 0,
+        "overwritten": 0,
+        "cancelled": 0,
+        "expired_pending": 0,
+        "started": 100,
+        "completed": 100,
+        "published": 93,
+        "late": 7,
+        "errors": 0,
+        "obsolete": 0,
+        "invalidated": 1
+      },
+      "busy": false,
+      "pending": false,
+      "stop_requested": false,
+      "stopped": false,
+      "clock_fault": false,
+      "last_error": null,
+      "preparation_state": "READY",
+      "preparation_busy": false
+    },
+    "audit": {
+      "status": "PASS",
+      "observed_snapshots": 549,
+      "images": 100,
+      "calls": 100,
+      "consumed": 92,
+      "consumed_per100source_frames": [
+        20,
+        20,
+        20,
+        12,
+        20
+      ],
+      "missing_scheduled_camera_frames": [],
+      "extra_boundary_camera_frames": [],
+      "state_counters": {
+        "accepted": 549,
+        "missing": 0,
+        "duplicate": 0,
+        "reordered": 0
+      },
+      "tick_requests": 0,
+      "overlap": {
+        "state": 303,
+        "consumer": 300
+      },
+      "decisions": {
+        "outcomes": {
+          "published": 93,
+          "late": 7
+        },
+        "late_causes": {
+          "receipt_only": 7
+        }
+      },
+      "preparation": {
+        "status": "PASS",
+        "startup_calls": 3,
+        "sensor_calls": 100,
+        "total_backend_calls": 103,
+        "same_owner": true,
+        "startup_elapsed_ns": 447327554
+      },
+      "availability": {
+        "active_ticks": {
+          "samples": 384,
+          "available_samples": 134,
+          "sampled_available_fraction": 0.3489583333333333,
+          "unique_frames": 91,
+          "unavailable_runs": 91,
+          "longest_unavailable_sample_run": 66,
+          "longest_unavailable_first_to_last_ns": 1299952544,
+          "source_age": {
+            "n": 134,
+            "mean_ms": 82.38805783582089,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 134,
+            "mean_ms": 70.0829654477612,
+            "p95_ms": 83.78010835,
+            "p99_ms": 90.95832423999998,
+            "max_ms": 93.895095
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        },
+        "including_delivery_tail": {
+          "samples": 384,
+          "available_samples": 134,
+          "sampled_available_fraction": 0.3489583333333333,
+          "unique_frames": 91,
+          "unavailable_runs": 91,
+          "longest_unavailable_sample_run": 66,
+          "longest_unavailable_first_to_last_ns": 1299952544,
+          "source_age": {
+            "n": 134,
+            "mean_ms": 82.38805783582089,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 134,
+            "mean_ms": 70.0829654477612,
+            "p95_ms": 83.78010835,
+            "p99_ms": 90.95832423999998,
+            "max_ms": 93.895095
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        }
+      },
+      "silence_reads": 10,
+      "acceptance": "finite_observational_integration_not_realtime_or_driving_qualification",
+      "copy": {
+        "sensor_stages": 100,
+        "preparation_stages": 3,
+        "stages": {
+          "gray": {
+            "n": 100,
+            "mean_ms": 1.98024692,
+            "p95_ms": 3.6206670499999998,
+            "p99_ms": 4.633882170000007,
+            "max_ms": 5.916147
+          },
+          "health": {
+            "n": 100,
+            "mean_ms": 3.14894256,
+            "p95_ms": 12.557243699999999,
+            "p99_ms": 12.932191790000001,
+            "max_ms": 13.171355
+          },
+          "resize": {
+            "n": 100,
+            "mean_ms": 14.454368259999997,
+            "p95_ms": 51.814933599999996,
+            "p99_ms": 55.48321522000002,
+            "max_ms": 59.368591
+          },
+          "tensor": {
+            "n": 100,
+            "mean_ms": 5.14879788,
+            "p95_ms": 10.8131209,
+            "p99_ms": 11.120526420000001,
+            "max_ms": 11.507262
+          },
+          "inference": {
+            "n": 100,
+            "mean_ms": 35.0501766,
+            "p95_ms": 36.94449505,
+            "p99_ms": 37.54697067,
+            "max_ms": 38.455758
+          },
+          "decode": {
+            "n": 100,
+            "mean_ms": 0.6069861400000002,
+            "p95_ms": 1.53010065,
+            "p99_ms": 1.9422277300000008,
+            "max_ms": 2.069713
+          },
+          "end": {
+            "n": 100,
+            "mean_ms": 0.033535010000000004,
+            "p95_ms": 0.0777416,
+            "p99_ms": 0.09485252,
+            "max_ms": 0.095795
+          }
+        },
+        "callback": {
+          "view_ready_wall_ns": {
+            "n": 100,
+            "mean_ms": 0.020580470000000003,
+            "p95_ms": 0.0439936,
+            "p99_ms": 0.05125283000000004,
+            "max_ms": 0.059255
+          },
+          "copy_end_wall_ns": {
+            "n": 100,
+            "mean_ms": 2.82800677,
+            "p95_ms": 6.8185351999999995,
+            "p99_ms": 7.588032560000001,
+            "max_ms": 7.740845
+          },
+          "offer_entry_wall_ns": {
+            "n": 100,
+            "mean_ms": 0.00230763,
+            "p95_ms": 0.00457,
+            "p99_ms": 0.0057728100000000344,
+            "max_ms": 0.012486
+          },
+          "offer_end_wall_ns": {
+            "n": 100,
+            "mean_ms": 0.08819534,
+            "p95_ms": 0.19432069999999999,
+            "p99_ms": 0.25616433000000005,
+            "max_ms": 0.268671
+          },
+          "end_wall_ns": {
+            "n": 100,
+            "mean_ms": 0.00935547,
+            "p95_ms": 0.0224158,
+            "p99_ms": 0.02605410000000003,
+            "max_ms": 0.032103
+          }
+        },
+        "copy_preparation": {
+          "mode": "prefault",
+          "begin_wall_ns": 1408442433232705,
+          "end_wall_ns": 1408443466947656,
+          "pool": {
+            "capacity": 120,
+            "reserved": 0,
+            "completed": 0,
+            "allocated_bytes": 4246732800,
+            "allocation_ns": 1033505784
+          }
+        }
+      }
+    },
+    "readback": {
+      "trace_rows": 101,
+      "received": 100,
+      "captured_without_callback": [
+        690
+      ],
+      "inflight_peak": 1,
+      "metrics": {
+        "capture_to_render": {
+          "n": 101,
+          "mean_ms": 16.352056603960396,
+          "p95_ms": 42.632633,
+          "p99_ms": 55.729309,
+          "max_ms": 56.040794
+        },
+        "copy_enqueue": {
+          "n": 101,
+          "mean_ms": 6.4376013564356445,
+          "p95_ms": 16.804021,
+          "p99_ms": 29.551426,
+          "max_ms": 30.411021
+        },
+        "rhi_flush_or_submit": {
+          "n": 101,
+          "mean_ms": 0.41807596039603956,
+          "p95_ms": 1.118596,
+          "p99_ms": 1.260941,
+          "max_ms": 2.464542
+        },
+        "blocking_query": {
+          "n": 101,
+          "mean_ms": 22.85834499009901,
+          "p95_ms": 27.420185,
+          "p99_ms": 27.842692,
+          "max_ms": 29.044993
+        },
+        "task_dispatch": {
+          "n": 101,
+          "mean_ms": 0.036530792079207924,
+          "p95_ms": 0.076631,
+          "p99_ms": 0.103473,
+          "max_ms": 0.118365
+        },
+        "fence_wait": {
+          "n": 101,
+          "mean_ms": 0.0004216237623762376,
+          "p95_ms": 0.001159,
+          "p99_ms": 0.001476,
+          "max_ms": 0.001844
+        },
+        "map": {
+          "n": 101,
+          "mean_ms": 0.0022672376237623765,
+          "p95_ms": 0.005237,
+          "p99_ms": 0.006983,
+          "max_ms": 0.007428
+        },
+        "buffer_copy_and_send": {
+          "n": 101,
+          "mean_ms": 3.0401453069306923,
+          "p95_ms": 7.238553,
+          "p99_ms": 8.074011,
+          "max_ms": 12.78263
+        },
+        "capture_to_send": {
+          "n": 101,
+          "mean_ms": 49.145443871287135,
+          "p95_ms": 85.237952,
+          "p99_ms": 102.853845,
+          "max_ms": 105.778839
+        },
+        "capture_to_callback": {
+          "n": 100,
+          "mean_ms": 64.39063156,
+          "p95_ms": 131.82257454999998,
+          "p99_ms": 151.19584526000003,
+          "max_ms": 155.967572
+        }
+      }
+    },
+    "reallocation_log_lines_between_first_last_completions": 0,
+    "preparation_ns": 447327554
+  }
+}

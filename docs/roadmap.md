@@ -138,12 +138,14 @@ world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음�
 
 ## 최신 M10 후속 범위
 
-[GPU readback/렌더링 버퍼 실측](test-plan/evidence/m10_readback_pool_v1/README.md)에서4K/Epic를
-유지한 재할당 제거 조건은 camera15.63Hz·RTF0.776을 보였다. 원래11.25–11.38Hz보다 빠르지만
-유효 조회16.10%이며, 결합 비동기 조건은 유효0%/FAIL이다. 기본값 승격 없이 원래 모듈을 복원했다.
-6회/600장/원래565→574→580 source·미래 제외7613·Python345·변조96건을 보존한다.
-다음은 GPU→SDK/복사/전처리/추론 대기열을 포함한 전체 capture-to-result 지연 단축이다.
-카메라 FPS만으로100ms 유효 출력·실제시간1×·wall20Hz를 충족했다고 판단하지 않는다.
+최신 [4K 복사·단계 계측](test-plan/evidence/m10_frame_copy_v1/README.md)은 복사 평균을
+14.15→2.77–2.80ms로 줄였지만 카메라는15.56→12.74–12.96Hz, 전체 capture→backend는
+125.45→127.98–129.33ms로 개선되지 않았다. [작은 main viewport](test-plan/evidence/m10_viewport_v1/README.md)
+후속도13.25/13.07Hz에 머물렀다. 유효조회 증가는 느려진 source clock 영향도 있어 성능 수용이 아니다.
+4K/Epic·기존 모델·원래 source/receipt100ms를 유지했고, 기본값 승격 없이 원래 모듈/화면 설정을 복원했다.
+실제5회·원본500장·source580→595→601·미래 제외8113개, Python354개·C++12개씩·
+복사 C API ASan+UBSan4개·변조110건을 검증했다. 다음은 남은 resize/tensor·렌더링/전달·추론의
+전체 지연 단축과 unavailable 보호 연결이다. 느린 시뮬레이션을 목표로 합의한 것은 아니다.
 
 
 앞선 [실제 비동기 월드 비교](test-plan/evidence/m10_world_async_v1/README.md)는4K 인식용

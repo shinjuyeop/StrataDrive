@@ -1,0 +1,152 @@
+{
+  "schema": "m10-carla-viewport-server-v1",
+  "condition": "viewport-small-01",
+  "status": "PASS",
+  "started_utc": "2026-11-11T09:35:19.764103+00:00",
+  "startup_budget_seconds": 180,
+  "capture_budget_seconds": 900,
+  "shutdown_budget_seconds": 30,
+  "source_head": "294096eb1c38eabf246e4f3a9cdab704e33a7f4c",
+  "probe_sha256": "8a46337cadd7f5b50a0b488ab428c199b8976b7a136799c961f44a290b4dedd6",
+  "freeze_sha256": "cb16ccdf3a87ebd7ab5ce6352ae77780d4eab4fd7026581208a8ab538b5b2208",
+  "plan_sha256": "ac82d2947842e6ee7533d87a29b350fa00015aec8a568113c4a87fae052cb303",
+  "profile_sha256": "53800890fcc84abb4ac07327817579f983aa30e950160b12c4c73caed1b9fc97",
+  "external_files": {
+    "Unreal/CarlaUE4/Plugins/Carla/Source/Carla/Sensor/Sensor.cpp": "7341f151298941907c92e1cf68049b5da8e2dd50fed914883b7a70152cb97a10",
+    "Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so": "7e444c0c745577b957aec93d3feba6b35d031119a9410c26f6fb4ad02a23c751",
+    "Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-M7Native.so": "700d4ad024291d79e62c33de79b4cdc2f238c2a98dd18c644a12c9fb1959ba65"
+  },
+  "argv": [
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town04_Opt",
+    "-game",
+    "-FixedSeed",
+    "-RenderOffScreen",
+    "-ResX=128",
+    "-ResY=128",
+    "-ForceRes",
+    "-windowed",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-carla-rpc-port=2300",
+    "-quality-level=Epic",
+    "-StrataM7SensorFrame5",
+    "-StrataM7NativeProbe",
+    "-StrataM10ReadbackProfile",
+    "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1",
+    "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+    "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput"
+  ],
+  "client_argv": [
+    "/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python",
+    "/d/shin/StrataDrive/tests/integration/perception/carla_viewport_v1.py",
+    "--condition",
+    "viewport-small-01",
+    "--library",
+    "build/m10-native-kernel-v1/libstrata_resize_v1.so",
+    "--copy-library",
+    "build/m10-frame-copy-v1/_frame_copy_v1.cpython-310-x86_64-linux-gnu.so",
+    "--output",
+    "/tmp/stratadrive-m10-viewport-v1-20261111/viewport-small-01/capture",
+    "--port",
+    "2300",
+    "--plan",
+    "profiles/perception-camera-resolution-plan-v1.json",
+    "--model",
+    "build/m10-resolution-v2/models/dfine-960.onnx",
+    "--models",
+    "build/m10-resolution-v2/models.json",
+    "--freeze",
+    "docs/test-plan/evidence/m10_viewport_v1/freeze.json"
+  ],
+  "pid": 2835353,
+  "capture_exit": 0,
+  "server_exit": 130,
+  "readback_audit": {
+    "trace_rows": 101,
+    "received": 100,
+    "captured_without_callback": [
+      695
+    ],
+    "inflight_peak": 1,
+    "metrics": {
+      "capture_to_render": {
+        "n": 101,
+        "mean_ms": 15.80439730693069,
+        "p95_ms": 45.075417,
+        "p99_ms": 49.628383,
+        "max_ms": 50.389307
+      },
+      "copy_enqueue": {
+        "n": 101,
+        "mean_ms": 6.840787722772276,
+        "p95_ms": 27.367429,
+        "p99_ms": 28.249476,
+        "max_ms": 33.748311
+      },
+      "rhi_flush_or_submit": {
+        "n": 101,
+        "mean_ms": 0.41142556435643557,
+        "p95_ms": 1.158661,
+        "p99_ms": 1.699385,
+        "max_ms": 1.721618
+      },
+      "blocking_query": {
+        "n": 101,
+        "mean_ms": 22.70433685148515,
+        "p95_ms": 26.973439,
+        "p99_ms": 28.010043,
+        "max_ms": 28.695127
+      },
+      "task_dispatch": {
+        "n": 101,
+        "mean_ms": 0.0330720495049505,
+        "p95_ms": 0.064668,
+        "p99_ms": 0.101238,
+        "max_ms": 0.112563
+      },
+      "fence_wait": {
+        "n": 101,
+        "mean_ms": 0.0004023267326732674,
+        "p95_ms": 0.0012,
+        "p99_ms": 0.001296,
+        "max_ms": 0.001314
+      },
+      "map": {
+        "n": 101,
+        "mean_ms": 0.0022362871287128715,
+        "p95_ms": 0.005402,
+        "p99_ms": 0.009319,
+        "max_ms": 0.011314
+      },
+      "buffer_copy_and_send": {
+        "n": 101,
+        "mean_ms": 2.9518237722772285,
+        "p95_ms": 7.139596,
+        "p99_ms": 7.963971,
+        "max_ms": 12.773221
+      },
+      "capture_to_send": {
+        "n": 101,
+        "mean_ms": 48.74848188118813,
+        "p95_ms": 94.710062,
+        "p99_ms": 100.435406,
+        "max_ms": 100.776854
+      },
+      "capture_to_callback": {
+        "n": 100,
+        "mean_ms": 63.986227119999995,
+        "p95_ms": 143.91713375,
+        "p99_ms": 148.80542897000004,
+        "max_ms": 150.825224
+      }
+    }
+  },
+  "elapsed_wall_seconds": 89.47941923700273
+}

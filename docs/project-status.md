@@ -16,17 +16,18 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **4K 재할당 제거 camera15.63Hz / 인식 유효조회16.10%·결합 비동기 FAIL / wall20Hz·품질·주행 OPEN** | [모델 선정](perception-model-selection.md) · [readback·재할당 실측](test-plan/evidence/m10_readback_pool_v1/README.md) |
+| M10 | **4K 복사14.15→약2.8ms / 전체 지연 약127–129ms·camera 약13Hz / 실시간·품질·주행 OPEN** | [모델 선정](perception-model-selection.md) · [복사 실측](test-plan/evidence/m10_frame_copy_v1/README.md) · [뷰포트 후속](test-plan/evidence/m10_viewport_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
-최신 [GPU readback 비교](test-plan/evidence/m10_readback_v1/README.md)와
-[버퍼 재할당 후속](test-plan/evidence/m10_readback_pool_v1/README.md)은4K/Epic·원래100ms를 유지했다.
-기준11.25–11.38Hz에서 재할당 제거 조건15.63Hz로 영상은 빨라졌지만 유효 조회는16.10%였다.
-비동기 readback 단독 반복1건과 결합 조건은 fresh 소비 FAIL이며 기본 설정으로 승격하지 않는다.
-실제6회·원본600장·source565→574→580·미래 제외7613개, Python345개·C++12개씩·변조96건을
-검증했다. 원래 CARLA 모듈을 복원했다. 다음은 GPU→SDK 전달/복사/전처리/추론의 전체
-capture-to-result 지연 단축과 unavailable 보호 연결이다. 느린 시뮬레이션을 목표로 합의한 것은 아니다.
+최신 [4K 복사·단계 계측](test-plan/evidence/m10_frame_copy_v1/README.md)은 복사 평균을
+14.15→2.77–2.80ms로 줄였지만 카메라는15.56→12.74–12.96Hz, 전체 capture→backend는
+125.45→127.98–129.33ms로 개선되지 않았다. [작은 main viewport](test-plan/evidence/m10_viewport_v1/README.md)
+후속도13.25/13.07Hz에 머물렀다. 유효조회 증가는 느려진 source clock 영향도 있어 성능 수용이 아니다.
+4K/Epic·기존 모델·원래 source/receipt100ms를 유지했고, 기본값 승격 없이 원래 모듈/화면 설정을 복원했다.
+실제5회·원본500장·source580→595→601·미래 제외8113개, Python354개·C++12개씩·
+복사 C API ASan+UBSan4개·변조110건을 검증했다. 다음은 남은 resize/tensor·렌더링/전달·추론의
+전체 지연 단축과 unavailable 보호 연결이다. 느린 시뮬레이션을 목표로 합의한 것은 아니다.
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 
