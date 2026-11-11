@@ -660,3 +660,29 @@ build/m10-perception/cuda-venv/bin/python \
   docs/test-plan/evidence/m10_world_async_v1/check-evidence.py \
   docs/test-plan/evidence/m10_world_async_v1 /tmp/world-async-recheck-new.json
 ```
+
+
+## GPU readback와 렌더링 버퍼 비교
+
+[실측 근거](test-plan/evidence/m10_readback_pool_v1/README.md)는4K/Epic와 원래100ms 기한을 유지한다.
+게임 스레드에서 원래 frame/time/pose를 고정하고 completion task가 Sensor 객체에 접근하지 않도록
+분리했다. GPU readback 최대3개·trace4096개이며 overflow는 실패다. 원래 flag 없는 경로는 그대로다.
+반복 재할당 제거 조건은 camera15.63Hz지만 유효 조회16.10%, 결합 비동기는 유효0%/FAIL이다.
+이 opt-in 실험을 기본값이나 주행 허가로 승격하지 않는다. Source574/580·실제600장과 실패를
+보존했고 원래 CARLA module로 복원했다. 전체 capture-to-result 지연 단축이 다음 성능 작업이다.
+
+현재 검증한 바이너리와 복원본은 로컬 `build/m10-readback-v1`에 보관했다. 실험용 모듈의
+설치/복원 도구는 UE가 실행 중이면 거절하며 알려진 SHA의 모듈만 원자적으로 교체한다.
+새 환경에서 빌드할 때는 같은 도구의 `--install` 없는 빌드 모드를 사용하고, 생성된 module
+hash가 실험 profile과 일치하는지 확인해야 한다. 현재 환경의 선택형 설치/복원 예:
+
+```sh
+python3 tools/carla/m10_readback_v1/build.py \
+  --engine /d/shin/stratadrive-tools/UnrealEngine_4.26 \
+  --source /d/shin/stratadrive-tools/m7-source/carla-0.9.16 \
+  --output build/m10-readback-v1 --install
+# 실험 종료 후 같은 인자에서 --install을 --restore로 바꿔 원본 복원
+```
+
+기존 frozen 조건의 재시도를 새 성공 근거로 추가하지 않는다. 추가 성능 시험에는 별도
+사전 조건/출력 경로를 정하고 실패와 원본을 모두 남긴다.

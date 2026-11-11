@@ -172,3 +172,13 @@ frame/source가 관측된 snapshot과 맞아야 추론할 수 있다. 중복·�
 실패·복귀도 제한된 trace에 남긴다. 차량 제어 연결과 기존 M9 tick/barrier 변경은 별도다.
 [사전 기준](../test-plan/perception-world-async-v1-protocol.md)과
 [동기/비동기 비교 근거](../test-plan/evidence/m10_world_async_v1/README.md)를 따른다.
+
+
+## GPU readback와 렌더링 버퍼 비교
+
+[실측 근거](../test-plan/evidence/m10_readback_pool_v1/README.md)는4K/Epic와 원래100ms 기한을 유지한다.
+게임 스레드에서 원래 frame/time/pose를 고정하고 completion task가 Sensor 객체에 접근하지 않도록
+분리했다. GPU readback 최대3개·trace4096개이며 overflow는 실패다. 원래 flag 없는 경로는 그대로다.
+반복 재할당 제거 조건은 camera15.63Hz지만 유효 조회16.10%, 결합 비동기는 유효0%/FAIL이다.
+이 opt-in 실험을 기본값이나 주행 허가로 승격하지 않는다. Source574/580·실제600장과 실패를
+보존했고 원래 CARLA module로 복원했다. 전체 capture-to-result 지연 단축이 다음 성능 작업이다.

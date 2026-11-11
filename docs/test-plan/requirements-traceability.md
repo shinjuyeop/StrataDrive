@@ -191,3 +191,11 @@ TC-PER-070–072/C-M10-PER-66–68은 [비동기 월드 관측 기준](perceptio
 100ms 상태 침묵·복귀에서 과거 결과의 부활을 차단한다. 동기1회/비동기2회의 전체 관측 가용성·
 원래 source/receipt 기한·클라이언트 tick0회·사후 raw payload 및 exact 입력 재생을 검사한다.
 SYS-PERF-002 Reference20Hz는 그대로이며 실측 wall 수용이나 actuator 연결을 대신하지 않는다.
+
+
+TC-PER-073–075/C-M10-PER-69–71은 [GPU readback 사전 기준](perception-readback-v1-protocol.md),
+[재할당 후속 기준](perception-readback-pool-v1-protocol.md), [전체 실행 근거](evidence/m10_readback_pool_v1/README.md)에 연결한다.
+원래 acquisition/receipt100ms·4K/Epic를 유지하며 CPU stage clock과 SDK frame/time을 대조한다.
+성공4회/실패2회·원본600장·future exclusion7613·source565→574→580을 보존한다.
+모든 wall 통계/실패 판정/원본 BGRA·RGB/정확한 입력을 재감사하고 변조96건을 거절한다.
+카메라15.63Hz 조건도 유효 조회16.10%이므로 기본값·wall20Hz·전체 인식 경로 수용으로 올리지 않는다.

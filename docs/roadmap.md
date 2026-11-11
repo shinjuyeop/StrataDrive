@@ -138,7 +138,15 @@ world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음�
 
 ## 최신 M10 후속 범위
 
-최신 [실제 비동기 월드 비교](test-plan/evidence/m10_world_async_v1/README.md)는4K 인식용
+[GPU readback/렌더링 버퍼 실측](test-plan/evidence/m10_readback_pool_v1/README.md)에서4K/Epic를
+유지한 재할당 제거 조건은 camera15.63Hz·RTF0.776을 보였다. 원래11.25–11.38Hz보다 빠르지만
+유효 조회16.10%이며, 결합 비동기 조건은 유효0%/FAIL이다. 기본값 승격 없이 원래 모듈을 복원했다.
+6회/600장/원래565→574→580 source·미래 제외7613·Python345·변조96건을 보존한다.
+다음은 GPU→SDK/복사/전처리/추론 대기열을 포함한 전체 capture-to-result 지연 단축이다.
+카메라 FPS만으로100ms 유효 출력·실제시간1×·wall20Hz를 충족했다고 판단하지 않는다.
+
+
+앞선 [실제 비동기 월드 비교](test-plan/evidence/m10_world_async_v1/README.md)는4K 인식용
 서버 비동기·물리10ms 경로를 추가했다. 상태는 실제 `on_tick` snapshot으로만 갱신하고,
 누락을 보간하지 않으며 상태100ms 침묵 시 오래된 결과를 무효화한다. 새 상태로 복귀해도
 원래 acquisition/receipt100ms와 active1/pending1/current1을 유지한다.
