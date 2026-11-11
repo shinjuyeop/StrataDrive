@@ -152,3 +152,23 @@ Reference20Hz는 SYS-PERF-002에 유지한다.10Hz는 검토 가능한 별도 �
 지연L, 유효기간D라면 valid 비율은 `min(P,max(0,D-L))/P`다. P=100ms/L=60ms/D=100ms는
 40%다. 실제 CARLA에서는 simulation age와 monotonic receipt age를 각각 검사하며 이 공식을
 서로 다른 clock 사이에 그대로 대입하지 않는다. [사전 프로토콜](../test-plan/perception-native-startup-v1-protocol.md)을 따른다.
+
+
+## 실제 비동기 월드 관측
+
+[World async V1](../../physical_ai/perception/world_async_v1.py)은4K 인식용 선택형 실행 경로다.
+서버 `synchronous_mode=False`와 물리 `fixed_delta_seconds=0.01`을 함께 사용한다.
+카메라·추론·50Hz 관측은 별도 owner이고, 상태는 실제 `world.on_tick` snapshot으로만 갱신한다.
+가짜 tick이나 수신 시각으로 다시 찍은 acquisition timestamp를 만들지 않는다.
+
+월드 frame이 건너뛰면 누락을 세고 실제 받은128개 snapshot만 보관한다. 이미지 자체의
+frame/source가 관측된 snapshot과 맞아야 추론할 수 있다. 중복·역순 snapshot은 시계를
+되돌리거나 수신 기한을 연장하지 못한다. Episode/시간/물리 간격 충돌은 fault로 고정된다.
+상태와 결과·관측 시각은 같은 짧은 lock 안에서 읽어 서로 다른 순간의 값을 섞지 않는다.
+
+기존 source+100ms AND offer receipt+100ms에 더해, 마지막 실제 상태의 수신 후100ms가
+지나면 결과를 unavailable로 만들고 pending/active generation을 무효화한다. 새 상태가 오면
+새 입력을 처리할 수 있지만 과거 결과나 driving permission을 되살리지 않는다. 상태 기한
+실패·복귀도 제한된 trace에 남긴다. 차량 제어 연결과 기존 M9 tick/barrier 변경은 별도다.
+[사전 기준](../test-plan/perception-world-async-v1-protocol.md)과
+[동기/비동기 비교 근거](../test-plan/evidence/m10_world_async_v1/README.md)를 따른다.

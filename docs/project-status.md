@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **4K 명시적 준비·10/13/20Hz 가용성·유한 실제 반복 검증 / 공급 공백·새 품질·주행 연결·wall20Hz OPEN / 기존 S 유지** | [모델 선정](perception-model-selection.md) · [준비·가용성·원본 근거](test-plan/evidence/m10_native_startup_v1/README.md) |
+| M10 | **4K 서버 비동기·고정10ms 관측 검증 / 속도 개선 미확인·새 품질·주행 연결·wall20Hz OPEN / 기존 S 유지** | [모델 선정](perception-model-selection.md) · [동기/비동기 비교 근거](test-plan/evidence/m10_world_async_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -85,7 +85,24 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 
 ## M10 비동기 실행 후속
 
-최신은 [명시적 준비·주파수별 가용성·실제 반복 검증](test-plan/evidence/m10_native_startup_v1/README.md)이다.
+최신 [실제 비동기 월드 비교](test-plan/evidence/m10_world_async_v1/README.md)는4K 인식용
+서버 비동기·물리10ms 경로를 추가했다. 상태는 실제 `on_tick` snapshot으로만 갱신하고,
+누락을 보간하지 않으며 상태100ms 침묵 시 오래된 결과를 무효화한다. 새 상태로 복귀해도
+원래 acquisition/receipt100ms와 active1/pending1/current1을 유지한다.
+
+동기1회/비동기2회는 각100장·다섯 구간 fresh 소비·정상 종료를 통과했다. 실제 카메라는
+**12.35 / 11.30 / 12.13Hz**, primary 유효 조회는 **44.72 / 38.39 / 45.89%**다.
+비동기 두 실행의 명시적 client tick은0회이며 실제 상태/관측은 추론과 독립 진행했다.
+비동기가 빨라지거나 더 매끄러워졌다는 근거는 없다. 첫 비동기에는100ms 상태 침묵1회와
+receipt late5회를 보존했고 결과를 연장하지 않았다. 물리10ms는 wall100Hz 보장이 아니다.
+
+Python335개·C++/boundary12개씩 Debug/Release/ASan·report 변조36건 거절을 확인했다.
+고정 source565개·실제 raw300장·exact native/Pillow 입력을 재감사하고 미래 제외는7013개다.
+후속 작업은 async 상태/보호 경로의 unavailable 연결과 renderer/SDK 지연 분리 계측이다.
+새 독립 품질·전체 wall20Hz·장기 운용·각 Jetson 전체 stack 배포는 남아 있으며, 보드 최적화는
+후속으로 둔다. 기본 S/runtime640과 M10 OPEN을 유지한다.
+
+앞선 [명시적 준비·주파수별 가용성·실제 반복 검증](test-plan/evidence/m10_native_startup_v1/README.md)의 기준을 유지한다.
 Native4K 추론 owner에 독립 합성3회 준비를 추가하고 같은 스레드로 센서 처리를 이어간다.
 준비의 cold 비용/전체10s·2/3회100ms gate와 모든 결과를 별도 보존하며 synthetic 결과는 발행하지
 않는다. READY는 초기화 완료이고 실제 perception availability/주행 permission이 아니다.

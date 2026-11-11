@@ -121,3 +121,10 @@ sensor cold 분모·10/13/20Hz 진단·240장씩의 유한 실제 반복을 구�
 TC-PER-069는 [원래 저장 overflow 이후의 유한 Host 메모리 기록 기준](perception-native-memory-v1-protocol.md)을 따른다.
 원래232장 실패와 누락된 per-decision trace를 성공으로 재해석하지 않으며 새 revision은 실패 시에도
 최종 worker/decision trace를 보존한다. 이 recorder는 생산 인지 큐와 별도인 유한 진단 도구다.
+
+
+TC-PER-070–072는 [실제 비동기 월드 사전 기준](perception-world-async-v1-protocol.md)과
+[동기/비동기 실행 근거](evidence/m10_world_async_v1/README.md)를 따른다. 실제 snapshot의
+누락/역순·상태100ms 침묵·원래 두 기한·원자적 관측을 검증하고, 같은4K 조건에서 sync1회와
+async2회를 비교한다. 클라이언트 tick0회·실제 상태 진행과 전체 raw/LFS payload 감사를
+구분하며 wall20Hz·품질·주행·보드 수용으로 확대하지 않는다.

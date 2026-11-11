@@ -577,7 +577,7 @@ world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음�
 
 ## 10Hz와 현재 가용성 기준
 
-최신은 [명시적 준비·주파수별 가용성·실제 반복 검증](test-plan/evidence/m10_native_startup_v1/README.md)이다.
+앞선 [명시적 준비·주파수별 가용성·실제 반복 검증](test-plan/evidence/m10_native_startup_v1/README.md)의 기준을 유지한다.
 Native4K 추론 owner에 독립 합성3회 준비를 추가하고 같은 스레드로 센서 처리를 이어간다.
 준비의 cold 비용/전체10s·2/3회100ms gate와 모든 결과를 별도 보존하며 synthetic 결과는 발행하지
 않는다. READY는 초기화 완료이고 실제 perception availability/주행 permission이 아니다.
@@ -604,3 +604,59 @@ Python318개·기존 C++/boundary12개씩 Debug/Release/ASan·source533→547→
 
 
 CARLA synchronous world는 client tick으로 진행되고 GPU camera 전달은 world snapshot과 시점이 다를 수 있다. 원래 source age와 monotonic receipt age를 함께 기록한다. [CARLA0.9.16 synchrony 문서](https://carla.readthedocs.io/en/0.9.16/adv_synchrony_timestep/)를 참고한다.
+
+
+## 서버 비동기 월드 실행
+
+최신 [실제 비동기 월드 비교](test-plan/evidence/m10_world_async_v1/README.md)는4K 인식용
+서버 비동기·물리10ms 경로를 추가했다. 상태는 실제 `on_tick` snapshot으로만 갱신하고,
+누락을 보간하지 않으며 상태100ms 침묵 시 오래된 결과를 무효화한다. 새 상태로 복귀해도
+원래 acquisition/receipt100ms와 active1/pending1/current1을 유지한다.
+
+동기1회/비동기2회는 각100장·다섯 구간 fresh 소비·정상 종료를 통과했다. 실제 카메라는
+**12.35 / 11.30 / 12.13Hz**, primary 유효 조회는 **44.72 / 38.39 / 45.89%**다.
+비동기 두 실행의 명시적 client tick은0회이며 실제 상태/관측은 추론과 독립 진행했다.
+비동기가 빨라지거나 더 매끄러워졌다는 근거는 없다. 첫 비동기에는100ms 상태 침묵1회와
+receipt late5회를 보존했고 결과를 연장하지 않았다. 물리10ms는 wall100Hz 보장이 아니다.
+
+Python335개·C++/boundary12개씩 Debug/Release/ASan·report 변조36건 거절을 확인했다.
+고정 source565개·실제 raw300장·exact native/Pillow 입력을 재감사하고 미래 제외는7013개다.
+후속 작업은 async 상태/보호 경로의 unavailable 연결과 renderer/SDK 지연 분리 계측이다.
+새 독립 품질·전체 wall20Hz·장기 운용·각 Jetson 전체 stack 배포는 남아 있으며, 보드 최적화는
+후속으로 둔다. 기본 S/runtime640과 M10 OPEN을 유지한다.
+
+선택형4K 실행은 [world async V1](test-plan/perception-world-async-v1-protocol.md)을 사용한다.
+설치된 CARLA/UE·고정 모델·native resize library를 그대로 사용하며, `async-01`과 `async-02`는
+서버가 자체 진행하고 `sync-01`은 같은 상태 callback을 쓰는 동기 비교 조건이다. 각 실행은
+별도 서버를 시작하고 종료하는 유한 관측 시험이다. 실제 차량 명령이나 ROS2 노드를 연결하지 않는다.
+
+```sh
+OMP_WAIT_POLICY=PASSIVE PYTHONPATH=.:tests/integration/perception \
+  build/m10-perception/cuda-venv/bin/python \
+  tests/integration/perception/run_carla_world_async_v1.py \
+  --engine /d/shin/stratadrive-tools/UnrealEngine_4.26 \
+  --source /d/shin/stratadrive-tools/m7-source/carla-0.9.16 \
+  --python "$PWD/build/m10-perception/cuda-venv/bin/python" \
+  --condition async-01 --port 2300 --output /tmp/stratadrive-world-async-new \
+  --plan "$PWD/profiles/perception-camera-resolution-plan-v1.json" \
+  --model "$PWD/build/m10-resolution-v2/models/dfine-960.onnx" \
+  --models "$PWD/build/m10-resolution-v2/models.json" \
+  --library "$PWD/build/m10-native-kernel-v1/libstrata_resize_v1.so" \
+  --freeze "$PWD/docs/test-plan/evidence/m10_world_async_v1/freeze.json"
+```
+
+물리 간격10ms와 비동기 여부는 독립 설정이다. 카메라의5프레임 간격은 simulation20Hz이며,
+실제 wall Hz는 renderer/SDK/추론의 공유 자원과 수신 지연에 따라 달라진다. 실측 결과는
+[동기/비동기 비교](test-plan/evidence/m10_world_async_v1/README.md)에 있다. 외부 Sensor.cpp/
+library와 모델 hash가 다르면 실행을 거절한다. 원본 보존에는 별도의 충분한 디스크와 진단
+RAM이 필요하며,240장 recorder 상한은 Jetson 배포 버퍼 크기가 아니다.
+
+전체 원본을 다시 검증할 때는 새 출력 경로를 사용한다. Worktree에 LFS pointer만 있다면
+현재 `git lfs env`의 LocalMediaDir에서 실제 payload를 찾아 size/SHA를 검사한다. 다른 cache를
+쓸 때는 마지막 인자로 해당 `objects` 경로를 넘긴다. 누락된 object는 LFS에서 먼저 받아야 한다.
+
+```sh
+build/m10-perception/cuda-venv/bin/python \
+  docs/test-plan/evidence/m10_world_async_v1/check-evidence.py \
+  docs/test-plan/evidence/m10_world_async_v1 /tmp/world-async-recheck-new.json
+```

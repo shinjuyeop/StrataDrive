@@ -138,7 +138,24 @@ world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음�
 
 ## 최신 M10 후속 범위
 
-최신은 [명시적 준비·주파수별 가용성·실제 반복 검증](test-plan/evidence/m10_native_startup_v1/README.md)이다.
+최신 [실제 비동기 월드 비교](test-plan/evidence/m10_world_async_v1/README.md)는4K 인식용
+서버 비동기·물리10ms 경로를 추가했다. 상태는 실제 `on_tick` snapshot으로만 갱신하고,
+누락을 보간하지 않으며 상태100ms 침묵 시 오래된 결과를 무효화한다. 새 상태로 복귀해도
+원래 acquisition/receipt100ms와 active1/pending1/current1을 유지한다.
+
+동기1회/비동기2회는 각100장·다섯 구간 fresh 소비·정상 종료를 통과했다. 실제 카메라는
+**12.35 / 11.30 / 12.13Hz**, primary 유효 조회는 **44.72 / 38.39 / 45.89%**다.
+비동기 두 실행의 명시적 client tick은0회이며 실제 상태/관측은 추론과 독립 진행했다.
+비동기가 빨라지거나 더 매끄러워졌다는 근거는 없다. 첫 비동기에는100ms 상태 침묵1회와
+receipt late5회를 보존했고 결과를 연장하지 않았다. 물리10ms는 wall100Hz 보장이 아니다.
+
+Python335개·C++/boundary12개씩 Debug/Release/ASan·report 변조36건 거절을 확인했다.
+고정 source565개·실제 raw300장·exact native/Pillow 입력을 재감사하고 미래 제외는7013개다.
+후속 작업은 async 상태/보호 경로의 unavailable 연결과 renderer/SDK 지연 분리 계측이다.
+새 독립 품질·전체 wall20Hz·장기 운용·각 Jetson 전체 stack 배포는 남아 있으며, 보드 최적화는
+후속으로 둔다. 기본 S/runtime640과 M10 OPEN을 유지한다.
+
+앞선 [명시적 준비·주파수별 가용성·실제 반복 검증](test-plan/evidence/m10_native_startup_v1/README.md)의 기준을 유지한다.
 Native4K 추론 owner에 독립 합성3회 준비를 추가하고 같은 스레드로 센서 처리를 이어간다.
 준비의 cold 비용/전체10s·2/3회100ms gate와 모든 결과를 별도 보존하며 synthetic 결과는 발행하지
 않는다. READY는 초기화 완료이고 실제 perception availability/주행 permission이 아니다.

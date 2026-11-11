@@ -184,3 +184,10 @@ TC-PER-069/C-M10-PER-65는 같은 근거의 [유한 메모리 기록 기준](per
 240장의 immutable reference를 보관해 측정 중 정상 disk write를 없애며 종료 후 해제/압축한다.
 최대8.49GB는 유한 원본 수집기의 상한이고 production inference의 latest1 계약이나 Jetson
 메모리 요구로 옮기지 않는다.554개 source에 원래547개를 그대로 포함한다.
+
+
+TC-PER-070–072/C-M10-PER-66–68은 [비동기 월드 관측 기준](perception-world-async-v1-protocol.md)과
+[유한 실측·전체 원본](evidence/m10_world_async_v1/README.md)에 연결한다. 실제 clock/gap/duplicate와
+100ms 상태 침묵·복귀에서 과거 결과의 부활을 차단한다. 동기1회/비동기2회의 전체 관측 가용성·
+원래 source/receipt 기한·클라이언트 tick0회·사후 raw payload 및 exact 입력 재생을 검사한다.
+SYS-PERF-002 Reference20Hz는 그대로이며 실측 wall 수용이나 actuator 연결을 대신하지 않는다.

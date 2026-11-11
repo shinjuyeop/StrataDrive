@@ -1,0 +1,744 @@
+{
+  "sync-01": {
+    "metrics": {
+      "state": {
+        "jobs": 532,
+        "observed_hz": 63.04220097931745,
+        "job_wall": {
+          "n": 532,
+          "mean_ms": 0.07462441353383457,
+          "p95_ms": 0.11375029999999998,
+          "p99_ms": 0.16168294999999966,
+          "max_ms": 0.265097
+        },
+        "interval_wall": {
+          "n": 531,
+          "mean_ms": 15.862390342749531,
+          "p95_ms": 48.8132045,
+          "p99_ms": 50.6595467,
+          "max_ms": 52.560984
+        }
+      },
+      "camera": {
+        "jobs": 100,
+        "observed_hz": 12.349793501828543,
+        "job_wall": {
+          "n": 100,
+          "mean_ms": 12.620575529999998,
+          "p95_ms": 14.0846281,
+          "p99_ms": 14.328508670000003,
+          "max_ms": 15.121961
+        },
+        "interval_wall": {
+          "n": 99,
+          "mean_ms": 80.97301382828283,
+          "p95_ms": 84.04996969999999,
+          "p99_ms": 84.57945799999999,
+          "max_ms": 85.605028
+        }
+      },
+      "consumer": {
+        "jobs": 423,
+        "observed_hz": 49.9987639464341,
+        "job_wall": {
+          "n": 423,
+          "mean_ms": 0.058974732860520095,
+          "p95_ms": 0.12416479999999999,
+          "p99_ms": 0.17657859999999959,
+          "max_ms": 0.405384
+        },
+        "interval_wall": {
+          "n": 422,
+          "mean_ms": 20.00049443364929,
+          "p95_ms": 27.907747699999998,
+          "p99_ms": 31.59341556,
+          "max_ms": 33.019116
+        }
+      },
+      "receipt_to_backend_return": {
+        "n": 100,
+        "mean_ms": 57.11218282000001,
+        "p95_ms": 59.62729885,
+        "p99_ms": 60.75610123000006,
+        "max_ms": 72.310315
+      },
+      "simulation_realtime_factor": 0.6166806966831119,
+      "observed_world_hz": 61.668071056457016,
+      "primary_camera_hz": 12.349793501828543
+    },
+    "availability": {
+      "active_ticks": {
+        "samples": 407,
+        "available_samples": 182,
+        "sampled_available_fraction": 0.44717444717444715,
+        "unique_frames": 98,
+        "unavailable_runs": 98,
+        "longest_unavailable_sample_run": 12,
+        "longest_unavailable_first_to_last_ns": 220112005,
+        "source_age": {
+          "n": 182,
+          "mean_ms": 81.92307510439561,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 182,
+          "mean_ms": 77.46116192857143,
+          "p95_ms": 92.18706925,
+          "p99_ms": 95.68186453,
+          "max_ms": 98.006064
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      },
+      "including_delivery_tail": {
+        "samples": 408,
+        "available_samples": 183,
+        "sampled_available_fraction": 0.4485294117647059,
+        "unique_frames": 98,
+        "unavailable_runs": 98,
+        "longest_unavailable_sample_run": 12,
+        "longest_unavailable_first_to_last_ns": 220112005,
+        "source_age": {
+          "n": 183,
+          "mean_ms": 81.96721129508198,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 183,
+          "mean_ms": 77.50060018032787,
+          "p95_ms": 92.1796585,
+          "p99_ms": 95.67644666,
+          "max_ms": 98.006064
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      }
+    },
+    "worker": {
+      "counters": {
+        "offered": 100,
+        "accepted": 100,
+        "rejected": 0,
+        "overwritten": 0,
+        "cancelled": 0,
+        "expired_pending": 0,
+        "started": 100,
+        "completed": 100,
+        "published": 99,
+        "late": 1,
+        "errors": 0,
+        "obsolete": 0,
+        "invalidated": 1
+      },
+      "busy": false,
+      "pending": false,
+      "stop_requested": false,
+      "stopped": false,
+      "clock_fault": false,
+      "last_error": null,
+      "preparation_state": "READY",
+      "preparation_busy": false
+    },
+    "audit": {
+      "status": "PASS",
+      "observed_snapshots": 532,
+      "images": 100,
+      "calls": 100,
+      "consumed": 99,
+      "consumed_per100source_frames": [
+        19,
+        20,
+        20,
+        20,
+        20
+      ],
+      "missing_scheduled_camera_frames": [],
+      "extra_boundary_camera_frames": [],
+      "state_counters": {
+        "accepted": 532,
+        "missing": 0,
+        "duplicate": 0,
+        "reordered": 0
+      },
+      "tick_requests": 532,
+      "overlap": {
+        "state": 253,
+        "consumer": 287
+      },
+      "decisions": {
+        "outcomes": {
+          "late": 1,
+          "published": 99
+        },
+        "late_causes": {
+          "source_only": 1
+        }
+      },
+      "preparation": {
+        "status": "PASS",
+        "startup_calls": 3,
+        "sensor_calls": 100,
+        "total_backend_calls": 103,
+        "same_owner": true,
+        "startup_elapsed_ns": 520237623
+      },
+      "availability": {
+        "active_ticks": {
+          "samples": 407,
+          "available_samples": 182,
+          "sampled_available_fraction": 0.44717444717444715,
+          "unique_frames": 98,
+          "unavailable_runs": 98,
+          "longest_unavailable_sample_run": 12,
+          "longest_unavailable_first_to_last_ns": 220112005,
+          "source_age": {
+            "n": 182,
+            "mean_ms": 81.92307510439561,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 182,
+            "mean_ms": 77.46116192857143,
+            "p95_ms": 92.18706925,
+            "p99_ms": 95.68186453,
+            "max_ms": 98.006064
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        },
+        "including_delivery_tail": {
+          "samples": 408,
+          "available_samples": 183,
+          "sampled_available_fraction": 0.4485294117647059,
+          "unique_frames": 98,
+          "unavailable_runs": 98,
+          "longest_unavailable_sample_run": 12,
+          "longest_unavailable_first_to_last_ns": 220112005,
+          "source_age": {
+            "n": 183,
+            "mean_ms": 81.96721129508198,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 183,
+            "mean_ms": 77.50060018032787,
+            "p95_ms": 92.1796585,
+            "p99_ms": 95.67644666,
+            "max_ms": 98.006064
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        }
+      },
+      "silence_reads": 10,
+      "acceptance": "finite_observational_integration_not_realtime_or_driving_qualification"
+    },
+    "preparation_ns": 520237623,
+    "liveness_events": [],
+    "source_frames": 503
+  },
+  "async-01": {
+    "metrics": {
+      "state": {
+        "jobs": 546,
+        "observed_hz": 59.31372838903585,
+        "job_wall": {
+          "n": 546,
+          "mean_ms": 0.07907439377289378,
+          "p95_ms": 0.136996,
+          "p99_ms": 0.21673314999999982,
+          "max_ms": 0.301896
+        },
+        "interval_wall": {
+          "n": 545,
+          "mean_ms": 16.859503308256883,
+          "p95_ms": 49.432759399999995,
+          "p99_ms": 68.9947446399999,
+          "max_ms": 107.838332
+        }
+      },
+      "camera": {
+        "jobs": 100,
+        "observed_hz": 11.29594101957529,
+        "job_wall": {
+          "n": 100,
+          "mean_ms": 15.013721420000001,
+          "p95_ms": 33.81385619999999,
+          "p99_ms": 57.987594910000006,
+          "max_ms": 59.055499
+        },
+        "interval_wall": {
+          "n": 99,
+          "mean_ms": 88.52737441414142,
+          "p95_ms": 140.50794539999958,
+          "p99_ms": 222.05399857999998,
+          "max_ms": 229.201265
+        }
+      },
+      "consumer": {
+        "jobs": 450,
+        "observed_hz": 48.910248460860686,
+        "job_wall": {
+          "n": 450,
+          "mean_ms": 0.05639474666666667,
+          "p95_ms": 0.11767784999999999,
+          "p99_ms": 0.15723174999999992,
+          "max_ms": 0.209598
+        },
+        "interval_wall": {
+          "n": 449,
+          "mean_ms": 20.445612759465483,
+          "p95_ms": 29.103765199999994,
+          "p99_ms": 53.65039955999992,
+          "max_ms": 74.560394
+        }
+      },
+      "receipt_to_backend_return": {
+        "n": 100,
+        "mean_ms": 59.447220990000005,
+        "p95_ms": 74.96799449999992,
+        "p99_ms": 109.43483058000002,
+        "max_ms": 114.301431
+      },
+      "simulation_realtime_factor": 0.5638626228408332,
+      "observed_world_hz": 56.386263544614565,
+      "primary_camera_hz": 11.29594101957529
+    },
+    "availability": {
+      "active_ticks": {
+        "samples": 435,
+        "available_samples": 167,
+        "sampled_available_fraction": 0.3839080459770115,
+        "unique_frames": 92,
+        "unavailable_runs": 92,
+        "longest_unavailable_sample_run": 53,
+        "longest_unavailable_first_to_last_ns": 1239984327,
+        "source_age": {
+          "n": 167,
+          "mean_ms": 79.94011795808383,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 167,
+          "mean_ms": 76.72155024550898,
+          "p95_ms": 91.5473727,
+          "p99_ms": 95.07078920000001,
+          "max_ms": 96.064182
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      },
+      "including_delivery_tail": {
+        "samples": 435,
+        "available_samples": 167,
+        "sampled_available_fraction": 0.3839080459770115,
+        "unique_frames": 92,
+        "unavailable_runs": 92,
+        "longest_unavailable_sample_run": 53,
+        "longest_unavailable_first_to_last_ns": 1239984327,
+        "source_age": {
+          "n": 167,
+          "mean_ms": 79.94011795808383,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 167,
+          "mean_ms": 76.72155024550898,
+          "p95_ms": 91.5473727,
+          "p99_ms": 95.07078920000001,
+          "max_ms": 96.064182
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      }
+    },
+    "worker": {
+      "counters": {
+        "offered": 100,
+        "accepted": 100,
+        "rejected": 0,
+        "overwritten": 0,
+        "cancelled": 0,
+        "expired_pending": 0,
+        "started": 100,
+        "completed": 100,
+        "published": 95,
+        "late": 5,
+        "errors": 0,
+        "obsolete": 0,
+        "invalidated": 2
+      },
+      "busy": false,
+      "pending": false,
+      "stop_requested": false,
+      "stopped": false,
+      "clock_fault": false,
+      "last_error": null,
+      "preparation_state": "READY",
+      "preparation_busy": false
+    },
+    "audit": {
+      "status": "PASS",
+      "observed_snapshots": 546,
+      "images": 100,
+      "calls": 100,
+      "consumed": 93,
+      "consumed_per100source_frames": [
+        19,
+        20,
+        14,
+        20,
+        20
+      ],
+      "missing_scheduled_camera_frames": [],
+      "extra_boundary_camera_frames": [],
+      "state_counters": {
+        "accepted": 546,
+        "missing": 0,
+        "duplicate": 0,
+        "reordered": 0
+      },
+      "tick_requests": 0,
+      "overlap": {
+        "state": 231,
+        "consumer": 289
+      },
+      "decisions": {
+        "outcomes": {
+          "published": 95,
+          "late": 5
+        },
+        "late_causes": {
+          "receipt_only": 5
+        }
+      },
+      "preparation": {
+        "status": "PASS",
+        "startup_calls": 3,
+        "sensor_calls": 100,
+        "total_backend_calls": 103,
+        "same_owner": true,
+        "startup_elapsed_ns": 446573136
+      },
+      "availability": {
+        "active_ticks": {
+          "samples": 435,
+          "available_samples": 167,
+          "sampled_available_fraction": 0.3839080459770115,
+          "unique_frames": 92,
+          "unavailable_runs": 92,
+          "longest_unavailable_sample_run": 53,
+          "longest_unavailable_first_to_last_ns": 1239984327,
+          "source_age": {
+            "n": 167,
+            "mean_ms": 79.94011795808383,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 167,
+            "mean_ms": 76.72155024550898,
+            "p95_ms": 91.5473727,
+            "p99_ms": 95.07078920000001,
+            "max_ms": 96.064182
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        },
+        "including_delivery_tail": {
+          "samples": 435,
+          "available_samples": 167,
+          "sampled_available_fraction": 0.3839080459770115,
+          "unique_frames": 92,
+          "unavailable_runs": 92,
+          "longest_unavailable_sample_run": 53,
+          "longest_unavailable_first_to_last_ns": 1239984327,
+          "source_age": {
+            "n": 167,
+            "mean_ms": 79.94011795808383,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 167,
+            "mean_ms": 76.72155024550898,
+            "p95_ms": 91.5473727,
+            "p99_ms": 95.07078920000001,
+            "max_ms": 96.064182
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        }
+      },
+      "silence_reads": 10,
+      "acceptance": "finite_observational_integration_not_realtime_or_driving_qualification"
+    },
+    "preparation_ns": 446573136,
+    "liveness_events": [
+      {
+        "kind": "stale_read",
+        "source_ns": 3956881302,
+        "wall_ns": 1399949441660170,
+        "state_frame": 446,
+        "received_wall_ns": 1399949341385505,
+        "started": 50,
+        "completed": 50
+      },
+      {
+        "kind": "fresh_observation",
+        "source_ns": 3966881302,
+        "wall_ns": 1399949449361746,
+        "state_frame": 447,
+        "received_wall_ns": 1399949449223837,
+        "started": 50,
+        "completed": 50
+      }
+    ],
+    "source_frames": 502
+  },
+  "async-02": {
+    "metrics": {
+      "state": {
+        "jobs": 543,
+        "observed_hz": 63.20045704966039,
+        "job_wall": {
+          "n": 543,
+          "mean_ms": 0.07534032780847144,
+          "p95_ms": 0.1180809,
+          "p99_ms": 0.13701988000000004,
+          "max_ms": 0.197965
+        },
+        "interval_wall": {
+          "n": 542,
+          "mean_ms": 15.822670383763837,
+          "p95_ms": 49.5986281,
+          "p99_ms": 51.58373358000001,
+          "max_ms": 59.758338
+        }
+      },
+      "camera": {
+        "jobs": 100,
+        "observed_hz": 12.126954928877607,
+        "job_wall": {
+          "n": 100,
+          "mean_ms": 12.7593374,
+          "p95_ms": 14.729588349999998,
+          "p99_ms": 17.47526178000003,
+          "max_ms": 23.104083
+        },
+        "interval_wall": {
+          "n": 99,
+          "mean_ms": 82.46093152525253,
+          "p95_ms": 89.2865508,
+          "p99_ms": 104.37271995999998,
+          "max_ms": 107.298606
+        }
+      },
+      "consumer": {
+        "jobs": 430,
+        "observed_hz": 49.99952233556564,
+        "job_wall": {
+          "n": 430,
+          "mean_ms": 0.06228066046511628,
+          "p95_ms": 0.12414299999999993,
+          "p99_ms": 0.15316075999999992,
+          "max_ms": 0.412539
+        },
+        "interval_wall": {
+          "n": 429,
+          "mean_ms": 20.00019106759907,
+          "p95_ms": 26.92054539999999,
+          "p99_ms": 31.387563559999975,
+          "max_ms": 34.146634
+        }
+      },
+      "receipt_to_backend_return": {
+        "n": 100,
+        "mean_ms": 57.75954873,
+        "p95_ms": 61.6419966,
+        "p99_ms": 65.25050004,
+        "max_ms": 67.399992
+      },
+      "simulation_realtime_factor": 0.6043307080409077,
+      "observed_world_hz": 60.43307214570497,
+      "primary_camera_hz": 12.126954928877607
+    },
+    "availability": {
+      "active_ticks": {
+        "samples": 414,
+        "available_samples": 190,
+        "sampled_available_fraction": 0.45893719806763283,
+        "unique_frames": 99,
+        "unavailable_runs": 99,
+        "longest_unavailable_sample_run": 8,
+        "longest_unavailable_first_to_last_ns": 140093869,
+        "source_age": {
+          "n": 190,
+          "mean_ms": 81.99999813157895,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 190,
+          "mean_ms": 77.69155106842105,
+          "p95_ms": 93.4758909,
+          "p99_ms": 97.71401906000001,
+          "max_ms": 99.643883
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      },
+      "including_delivery_tail": {
+        "samples": 414,
+        "available_samples": 190,
+        "sampled_available_fraction": 0.45893719806763283,
+        "unique_frames": 99,
+        "unavailable_runs": 99,
+        "longest_unavailable_sample_run": 8,
+        "longest_unavailable_first_to_last_ns": 140093869,
+        "source_age": {
+          "n": 190,
+          "mean_ms": 81.99999813157895,
+          "p95_ms": 99.999998,
+          "p99_ms": 99.999998,
+          "max_ms": 99.999998
+        },
+        "receipt_age": {
+          "n": 190,
+          "mean_ms": 77.69155106842105,
+          "p95_ms": 93.4758909,
+          "p99_ms": 97.71401906000001,
+          "max_ms": 99.643883
+        },
+        "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+      }
+    },
+    "worker": {
+      "counters": {
+        "offered": 100,
+        "accepted": 100,
+        "rejected": 0,
+        "overwritten": 0,
+        "cancelled": 0,
+        "expired_pending": 0,
+        "started": 100,
+        "completed": 100,
+        "published": 100,
+        "late": 0,
+        "errors": 0,
+        "obsolete": 0,
+        "invalidated": 1
+      },
+      "busy": false,
+      "pending": false,
+      "stop_requested": false,
+      "stopped": false,
+      "clock_fault": false,
+      "last_error": null,
+      "preparation_state": "READY",
+      "preparation_busy": false
+    },
+    "audit": {
+      "status": "PASS",
+      "observed_snapshots": 543,
+      "images": 100,
+      "calls": 100,
+      "consumed": 100,
+      "consumed_per100source_frames": [
+        20,
+        20,
+        20,
+        20,
+        20
+      ],
+      "missing_scheduled_camera_frames": [],
+      "extra_boundary_camera_frames": [],
+      "state_counters": {
+        "accepted": 543,
+        "missing": 0,
+        "duplicate": 0,
+        "reordered": 0
+      },
+      "tick_requests": 0,
+      "overlap": {
+        "state": 230,
+        "consumer": 297
+      },
+      "decisions": {
+        "outcomes": {
+          "published": 100
+        },
+        "late_causes": {}
+      },
+      "preparation": {
+        "status": "PASS",
+        "startup_calls": 3,
+        "sensor_calls": 100,
+        "total_backend_calls": 103,
+        "same_owner": true,
+        "startup_elapsed_ns": 451247022
+      },
+      "availability": {
+        "active_ticks": {
+          "samples": 414,
+          "available_samples": 190,
+          "sampled_available_fraction": 0.45893719806763283,
+          "unique_frames": 99,
+          "unavailable_runs": 99,
+          "longest_unavailable_sample_run": 8,
+          "longest_unavailable_first_to_last_ns": 140093869,
+          "source_age": {
+            "n": 190,
+            "mean_ms": 81.99999813157895,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 190,
+            "mean_ms": 77.69155106842105,
+            "p95_ms": 93.4758909,
+            "p99_ms": 97.71401906000001,
+            "max_ms": 99.643883
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        },
+        "including_delivery_tail": {
+          "samples": 414,
+          "available_samples": 190,
+          "sampled_available_fraction": 0.45893719806763283,
+          "unique_frames": 99,
+          "unavailable_runs": 99,
+          "longest_unavailable_sample_run": 8,
+          "longest_unavailable_first_to_last_ns": 140093869,
+          "source_age": {
+            "n": 190,
+            "mean_ms": 81.99999813157895,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 190,
+            "mean_ms": 77.69155106842105,
+            "p95_ms": 93.4758909,
+            "p99_ms": 97.71401906000001,
+            "max_ms": 99.643883
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        }
+      },
+      "silence_reads": 11,
+      "acceptance": "finite_observational_integration_not_realtime_or_driving_qualification"
+    },
+    "preparation_ns": 451247022,
+    "liveness_events": [],
+    "source_frames": 501
+  }
+}
