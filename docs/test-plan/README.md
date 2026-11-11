@@ -67,3 +67,5 @@ M7-1a–1s 등 고정 식별자는 당시 개별 시험에 유지한다. 현존 
 [개발 정책](../development-guide.md)을 따른다.
 
 [4K 전처리 동등성·live 비동기 후속](evidence/m10_native_preprocess_v1/README.md): 개발84장 입력 동등성, 재생4조건, 실제4K 카메라60개와 모든37개 late 실패, 원본·source 재감사 및5689개 미래 제외.
+
+[Native CPU4K·실제 fresh-output](evidence/m10_native_kernel_v1/README.md): 개발84장/실제72장 exact 입력,4개 replay/2개 실제 조건,27개 fresh·초기4개 late·clock별 원인,source533개와5761개 제외 union.

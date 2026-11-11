@@ -50,3 +50,12 @@ camera offer20Hz와 CUDA owner를 독립 thread로 실행했다. 이 consumer는
 인지 공급 확보와 기존 제어 경로의 수신/적용 시각·원천 age·보호 검증이 남아 있다.
 CARLA의 고정 step/단일 tick owner와 노드의 비동기 실행은 함께 사용할 수 있다.
 Thor/Orin 각각의 전체 stack 배포·보드 최적화는 이후 단계다.
+
+
+[Native CPU 후속](../test-plan/evidence/m10_native_kernel_v1/README.md)은 원래 입력 tensor를
+유지하며4K BGRA에서 직접 RGB960을 계산한다. `TracedNativePerception`은 V1 admission을
+유지하면서 실제 완료 판정의 두 clock과 source-only/receipt-only/both 원인을 bounded 기록한다.
+Trace 조회/복사는 진단·lifecycle에만 사용하고 callback/consumer에서는 호출하지 않는다.
+실제 카메라36장 중27개 fresh 소비를 확인했지만 초기4회 late와 약13Hz camera 한계는 남아 있다.
+Native kernel instance의 scratch/output은 하나의 인지 owner가 소유하며 동시 호출하지 않는다.
+보드별 새 빌드·입력 동등성, startup 준비/반복 live·기존 보호/Actual 경로는 추가 검증한다.

@@ -565,3 +565,12 @@ python3 docs/test-plan/evidence/m10_quality_v7/check-archive.py \
 world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음은 실제 부하에서100ms 내
 공급을 확보한 뒤 실제 상태/보호·제어 연결과 새 독립 품질 평가를 진행하는 것이다.
 기존 모델/기한/runtime·M10 OPEN·Jetson 최적화 후속 원칙을 유지한다.
+
+
+2026-11-11 후속 [native CPU resize·실제 fresh-output](test-plan/evidence/m10_native_kernel_v1/README.md)은
+4K 중간 RGB 복사를 없애고 Pillow와 같은 축소 계산을 병렬화했다. 개발84장과 실제72장
+입력이 exact이며, 개발 쌍별 전처리 P95는38.97→16.89ms다. 실제 공유 GPU에서36장/31회
+완료 중27회 발행·27개 frame 소비를 확인했다. 초기4회 late는 보존하고 원래100ms 기한을
+유지했다. Camera12.93Hz·cold 포함 admission P95115.76ms이므로 전체20Hz 수용은 아니다.
+미래 제외5761개·원래 FAIL·기본 S/runtime·M10 OPEN을 유지한다. Startup 준비와 반복/장시간
+부하·SDK source age·기존 상태/보호 연결, 새 독립 품질과 각 Jetson 배포가 다음 단계다.

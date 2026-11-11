@@ -167,3 +167,8 @@ TC-PER-060–062/C-M10-PER-56–58은 [전처리 동등성·실제4K 비동기](
 84장 입력 동등성·재생4조건의 실제111개 검출·실제 camera60개와 world/consumer 독립 진행을 검사한다.
 실제37개 모두 late/fresh-output FAIL을 보존하며 source/raw 재감사 PASS로 뒤집지 않는다.
 5689개 미래 제외·기본 S/runtime·100ms·M10 OPEN을 유지한다.
+
+TC-PER-063–065/C-M10-PER-59–61은 [native CPU4K·완료 clock 검증](evidence/m10_native_kernel_v1/README.md)에 연결한다.
+원래 Pillow 입력과 동등한 병렬 축소·bounded trace·실제27개 fresh 관측·초기4개 late를 구분한다.
+533개 source와72개 raw를 재감사하고5761개 미래 제외를 유지한다. 기존 FAIL/100ms/S/runtime은
+유지하며 전체20Hz·새 독립 품질·실제 controller·각 Jetson 수용을 대체하지 않는다.

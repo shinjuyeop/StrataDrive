@@ -139,3 +139,5 @@ vCAN은 application frame 계약용이다. 물리 CAN FD의 전기·arbitration�
 | ARCH-DIAG | Target Central Vehicle Compute: Diagnostics Manager + Zone Controller/vECU local monitors | fault event 집계, DTC, state transition; local 반응은 Central Vehicle Compute 통신에 의존하지 않음 |
 
 [4K 전처리와 live 관측](../test-plan/evidence/m10_native_preprocess_v1/README.md)은 비동기 재생을 개선했지만 공유 GPU의 실제 fresh-output gate는 FAIL이다. 실제 제어 연결과 Jetson 배포 수용은 별도다.
+
+[Native CPU4K 후속](../test-plan/evidence/m10_native_kernel_v1/README.md)은 실제 공유 GPU에서27개 fresh 관측을 확인했다. 초기 지연과 약13Hz camera·실제 제어 연결·각 보드 수용은 남아 있다.

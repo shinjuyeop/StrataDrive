@@ -127,3 +127,5 @@ CARLA RGB/instance pair와 독립 evaluator를 구분한다. TP/FP/FN@IoU0.5는 
 [CARLA instance sensor](https://carla.readthedocs.io/en/latest/tuto_G_instance_segmentation_sensor/).
 
 [Native4K 전처리·live 관측 후속](../test-plan/evidence/m10_native_preprocess_v1/README.md)은 동일 입력과 원래100ms 기한을 유지한다. 실제 공유 GPU의 유효 출력 실패를 보존하며 기본 S/C++640 계약을 교체하지 않는다.
+
+[Native CPU resize·완료 clock 진단](../test-plan/evidence/m10_native_kernel_v1/README.md)은 원래 tensor/100ms/native typed result를 유지한다. 실제27개 fresh 관측은 기존 S/C++640 계약 교체나 주행 허가가 아니다.

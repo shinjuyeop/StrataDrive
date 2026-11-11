@@ -7,7 +7,7 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M10 | 4K 전처리84장 동등성·비동기 재생 개선. 실제4K ingress 연결했으나 공유 GPU에서37개 전부 late로 fresh-output FAIL. 기존 S 유지. 실제 부하100ms 공급·제어 연결·새 독립 품질·wall20Hz·각 보드 배포 남음 |
+| M10 | 4K native CPU resize·입력84장 동등성 및 실제 공유 GPU27개 fresh 관측. 초기 지연4건 유지. Startup/장시간 live·제어 연결·새 독립 품질·wall20Hz·각 보드 배포 남음. 기존 S 유지 |
 | M11 | Metric world model/localization·temporal learned planner, Safety Supervisor·유효 classical fallback, 인식/판단 한계 검토 |
 | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
 | M13 | 전체 SIL/V&V·회귀·추적성 검토와 검증된 범위·제약 공개 |
@@ -126,3 +126,12 @@ PC 색상 변환·전처리 비용 개선과 실제 ingress/기존 제어 연결
 world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음은 실제 부하에서100ms 내
 공급을 확보한 뒤 실제 상태/보호·제어 연결과 새 독립 품질 평가를 진행하는 것이다.
 기존 모델/기한/runtime·M10 OPEN·Jetson 최적화 후속 원칙을 유지한다.
+
+
+2026-11-11 후속 [native CPU resize·실제 fresh-output](test-plan/evidence/m10_native_kernel_v1/README.md)은
+4K 중간 RGB 복사를 없애고 Pillow와 같은 축소 계산을 병렬화했다. 개발84장과 실제72장
+입력이 exact이며, 개발 쌍별 전처리 P95는38.97→16.89ms다. 실제 공유 GPU에서36장/31회
+완료 중27회 발행·27개 frame 소비를 확인했다. 초기4회 late는 보존하고 원래100ms 기한을
+유지했다. Camera12.93Hz·cold 포함 admission P95115.76ms이므로 전체20Hz 수용은 아니다.
+미래 제외5761개·원래 FAIL·기본 S/runtime·M10 OPEN을 유지한다. Startup 준비와 반복/장시간
+부하·SDK source age·기존 상태/보호 연결, 새 독립 품질과 각 Jetson 배포가 다음 단계다.

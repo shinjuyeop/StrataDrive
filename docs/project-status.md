@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **4K 전처리 동등성·비동기 재생 개선 / 실제 공유 GPU fresh-output FAIL·새 보류·live20Hz·주행 연결 대기 / 기존 S 유지·M10 OPEN** | [모델 선정 순서](perception-model-selection.md) · [새 V9 평가](test-plan/evidence/m10_quality_v9/README.md) · [960 후속 후보](test-plan/evidence/m10_resolution_v2/README.md) · [4K 원본](test-plan/evidence/m10_camera_resolution_v1/README.md) · [비동기 분리](test-plan/evidence/m10_async_native_v1/README.md) · [전처리·live 결과](test-plan/evidence/m10_native_preprocess_v1/README.md) |
+| M10 | **4K native 입력 동등성·실제 관측27개 fresh 검증 / 초기 지연4건·새 보류·live20Hz·주행 연결 대기 / 기존 S 유지·M10 OPEN** | [모델 선정 순서](perception-model-selection.md) · [새 V9 평가](test-plan/evidence/m10_quality_v9/README.md) · [960 후속 후보](test-plan/evidence/m10_resolution_v2/README.md) · [4K 원본](test-plan/evidence/m10_camera_resolution_v1/README.md) · [비동기 분리](test-plan/evidence/m10_async_native_v1/README.md) · [native CPU·live 결과](test-plan/evidence/m10_native_kernel_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -85,23 +85,24 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 
 ## M10 비동기 실행 후속
 
-최신 실행은 [4K 전처리 개선·실제 카메라](test-plan/evidence/m10_native_preprocess_v1/README.md)다.
-기존 개발84장의 RGB·모델 입력을 바이트 단위로 유지하면서 변환/전처리 P95를103.36→42.02ms로
-줄였다. 고정 모델·100ms 기한·원래 source/receipt·latest1 owner는 유지했다.6초 재생 정상은
-85회 완료/46회 발행/21개 frame 소비이며, callback receipt→return P95는116.56ms다.
-정상·지연·멈춤·예외4조건과 state100Hz·관측 consumer50Hz 분리,111개 검출 동등성도 검증했다.
+최신 실행은 [native CPU resize·실제 fresh-output 검증](test-plan/evidence/m10_native_kernel_v1/README.md)이다.
+BGRA를 직접 RGB960으로 축소하며 원래 Pillow 계수/반올림·모델 입력을 유지했다. 개발84장
+exact를 확인하고 쌍별 전처리 P95를38.97→16.89ms로 줄였다. 원래 source/receipt100ms·latest1·
+모델/confidence는 유지한다.6초 비동기 재생은115회 완료/114회 발행/112개 frame 소비이며,
+receipt→return P95는40.64ms다. 초기 cold late1건과 fault3조건도 모두 보존했다.
 
-실제 Town04/Epic·4K 카메라와 같은 RTX3090 추론을 연결한 실행은 **fresh-output FAIL**이다.
-실제 world304개 평균67.72Hz, camera60개13.60Hz, 관측 consumer249개50Hz가 독립 진행했지만
-37개 완료가 원래 source·receipt100ms 유효성 검사에서 모두 late여서 발행/소비0이었다.
-Receipt→return P95는221.50ms다.
-서버는 정상 종료130이며 취득 누락 없이 원본60개를 보존했다. 새 미래 제외 union은5689개다.
-이 결과는 실제 차량 controller·Zone/Leaf·주행 통합이나20Hz 수용이 아니다.
+실제 Town04/Epic·4K·공유 RTX3090의 새 비교에서 기존 방식은36장/23회 완료/발행0이었다.
+개선 방식은36장/31회 완료 중 **27회 발행·27개 frame 소비**를 통과했다. 초기4개 완료는
+둘 다 만료3건·source만 만료1건이며, 이후27개는 연속 fresh였다. 실제 camera12.93Hz,
+world63.87Hz·관측 consumer50Hz이고 cold 포함 admission P95는115.76ms다. 따라서 항상
+유효한 인지·전체wall20Hz·실제 차량 controller 통합을 수용한 결과는 아니다.
+이전37개 전부 late의 FAIL은 그대로 보존하며 새 baseline PASS는 진단 범위에만 해당한다.
 
-Python250개·설정별 C++/boundary12개·원본/독립 감사와 실행 전 source514개 고정을 연결했다.
-다음은 공유 렌더링 부하에서 전처리/추론·queue 대기를 줄이거나 실행 자원을 분리해100ms 내
-fresh 공급을 확보하는 것이다. 이후 원천 age·수신/적용 기한·보호를 유지하며 실제 제어 경로를
-연결하고 새 독립 품질을 평가한다. 기존 실패·S/runtime640·M10 OPEN·보드 최적화 후속 원칙은 유지한다.
+Python278개·설정별 기존 C++/boundary12개·새 native ASan/UBSan·source533개 및 원본72개
+재감사를 연결했다. 모든72개 실제 tensor도 원래 Pillow와 exact이며 미래 제외 union은5761개다.
+다음은 startup 준비/가용성·반복 및 장시간 live 부하·renderer/SDK source age를 검증하고,
+원천 age·수신/적용 기한·보호를 유지하며 기존 상태/제어 경로에 연결하는 것이다.
+새 독립 품질·각 Jetson 배포·기본 S/runtime640·M10 OPEN·보드 최적화 후속 원칙은 유지한다.
 
 ## M9 기능 범위 마감
 

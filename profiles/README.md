@@ -57,3 +57,5 @@ M1–M4 fixture의 설명·개발 당시 적용 범위는 [학습 인덱스](../
 Target 보드/AI workload·engine/checksum·power/thermal·clock은 별도 TBD-09/07 범위다.
 
 [전처리 V1](perception-native-preprocess-v1.json)과 [실제4K 관측 V1](perception-carla-native-async-v1.json)은 opt-in 실험이다. [근거](../docs/test-plan/evidence/m10_native_preprocess_v1/README.md)의 재생 PASS와 live fresh-output FAIL을 구분하며 기본 runtime을 승격하지 않는다.
+
+[Native kernel V1](perception-native-kernel-v1.json)은 정확히 고정한 CPU library와 입력 동등성·clock별 admission trace를 사용하는 opt-in profile이다. [실제 관측 결과](../docs/test-plan/evidence/m10_native_kernel_v1/README.md)의27개 fresh와 초기4개 late를 함께 유지한다.

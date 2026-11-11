@@ -1,0 +1,5765 @@
+{
+  "schema": "m10-carla-native-kernel-v1",
+  "condition": "baseline",
+  "status": "PASS",
+  "live_camera": true,
+  "actual_vehicle_control": false,
+  "runtime_promotion": false,
+  "quality_acceptance": false,
+  "live20Hz_acceptance": false,
+  "cold_calls_excluded": 0,
+  "runtime": {
+    "source_files_sha256": {
+      "physical_ai/perception/__init__.py": "6363557dc67b7276765773b7585ddaaff2d8eec8dce2c37ab8ac989c39cf4891",
+      "physical_ai/perception/artifact.py": "c7f0084e0fc6fc300bf86063c05642f5c44bf46f4c373b782fe7584c4385edb2",
+      "physical_ai/perception/async_native_trace_v1.py": "0e0f0cb54d86ff20ae3d3d5f6618ecb8f852af4f294f754c8c626e9143a6625a",
+      "physical_ai/perception/async_native_v1.py": "dc877a87484ed4cfecbd91704834513273126e7747e102668426b02712b30978",
+      "physical_ai/perception/camera.py": "89f0141e0b7affc3847ea8ed4721a05677df5e686370b6379110b25c6c031065",
+      "physical_ai/perception/camera_resolution_v1.py": "19f57728500e887ed0d12ace148a7f1327295e13844f6aee8dfaf35dc8f2ebfa",
+      "physical_ai/perception/class_calibration_v1.py": "9bd4dfef8d8bd15f7d9599ea531f46fac8ea9a3e94b3594a1768a0cd9bf885fb",
+      "physical_ai/perception/contract.py": "ac28edc82ba415d58cad84ee9e54e5aa383e38f7bd99c6131913169857d0a713",
+      "physical_ai/perception/dataset.py": "710cece469a588c86f0d220d95a7df50a6423bb40e0daafb29fcaa7a7d68cbd3",
+      "physical_ai/perception/domain_data_v1.py": "e388222b4959ee593c13776f03d95e54a38e0d639ef4346220930877678df79d",
+      "physical_ai/perception/large_model_v6.py": "10fe78c794177aae289c17d4d2aa386da6b849c09f0b7d526d849fca94f9eb51",
+      "physical_ai/perception/model_diagnostics_v1.py": "af74983dbe854e091c79834eb9104d01f2b95043c67c541e59b0b25aa7e9602b",
+      "physical_ai/perception/model_screen_v1.py": "b16573e429f8afb2a78cfdfe819d7db848cbb459786ad5886b56d6e395f73035",
+      "physical_ai/perception/model_screen_v2.py": "c16024be072d690d38310c6d3adfa4418f28a79c29a3d7c55be0c7b40a94ad9e",
+      "physical_ai/perception/native_kernel_v1.py": "5ffc93ac045519b53bc68f53965fa8f316dc06c5fe7051e372835992c8709b7d",
+      "physical_ai/perception/native_preprocess_v1.py": "c4aea8af42e0c2eb86deaa4c64d9ffb9d6d3b17c7c2b21b8a62525781ec37c8e",
+      "physical_ai/perception/preparation.py": "070ec3112b883275b3d6c3efd6649c350ff69a5d2bb54a90ba808c6ed43c5fcd",
+      "physical_ai/perception/provenance.py": "71a2a52e6026cbeb2f96f5902fe57f7722334c90080ddb8c86003997857bc88b",
+      "physical_ai/perception/quality_candidates.py": "ae088a1eb8c74fe244c78f0d7323e26e2764ad24e5505cf9f916835ff63897dd",
+      "physical_ai/perception/quality_candidates_v2.py": "922ee457ffcf2b939f5861faca156b1d958694c426451a34ee66a540037a00e1",
+      "physical_ai/perception/quality_candidates_v3.py": "e65cbb97bc9d640529af9096eb3fd9c43974373a18b0891066f510d50dc7c446",
+      "physical_ai/perception/quality_candidates_v5.py": "21cf3d1f3a90e001b1e663fe3abde5359579d5e3457af6dc2be9695df510279b",
+      "physical_ai/perception/quality_candidates_v6.py": "cfa6bd6298e3429114dcf95a9ef1cfb819c792ce643d0ad7fae90225467c54ed",
+      "physical_ai/perception/quality_candidates_v7.py": "5e90281caf879629ac11b9e2845a05eb9c2c3f109023ac671356b11e51d9976b",
+      "physical_ai/perception/quality_candidates_v8.py": "3a9d9a24763678308d8ddcb06ac501d9a2807586a17033811ad7f91e876f0642",
+      "physical_ai/perception/quality_candidates_v9.py": "eb3942a802375e2bee9fa632aa79b62479ea6d736fd03131b6088e26f257ca8a",
+      "physical_ai/perception/replay.py": "ca85d3f81021ea952dd941bf19f7fb75a5dc51306fa2434b40b047c6719b57af",
+      "physical_ai/perception/resolution_car_v1.py": "8e09ba3d59f9d2d911209c784fae865cefeeb9a6a30e32a5fe4f1abd719927dd",
+      "physical_ai/perception/resolution_v1.py": "a7fe7f9de44a0c8f57dacfaff32f014a6b109e19501ea07ff050c901209da3e0",
+      "physical_ai/perception/resolution_v2.py": "336d85c6fe8c07e45c7cabff7fe522f86a21cf3a048fe17a109f74ca7c9b9b74",
+      "physical_ai/perception/run.py": "534b0244b00d08fef1842d9c6ce941cba4a4dfdbc3059b814c591111436fb65b",
+      "physical_ai/perception/tracking.py": "c39ead3168d805fa2dd2f0bf90a7e9b2898de035506aa240658c313b50ea4bb1",
+      "physical_ai/perception/trained_model_v1.py": "5af874e3860140b41886d80a47a31ac478756713485c4527c437c31701ea639f",
+      "physical_ai/perception/training_v1.py": "fb98f8df22259cac430ca4cad4a5fc4324339904a46a3621b757d647baabdae4",
+      "physical_ai/perception/worker.py": "d44caa453c4a7518cd66f222e2ce326c33fc7873d4facba62e2bfd7cd461271e",
+      "physical_ai/perception/yolox.py": "ed87ae75a6acb2fa727984d94380eab6f73aadbb9a221ad963ee722647c8e79c",
+      "profiles/perception-host-v1.json": "948a99ded6945c639756105969a1f5a21b9bb3aed870cadb6b0aa4829cc20839",
+      "profiles/perception-cuda-host-v1.json": "501fda379b420bb6a5928641cde2c04a6e569e0dc50bd63ce6f82a95b2787d67",
+      "profiles/perception-startup-host-v1.json": "52c857716135c9109f6184a67bf74d96cb65057e432a620f7583e9943874df57",
+      "profiles/perception-carla-rgb-host-v1.json": "18c3d5641199be72a0abfda2a0fecea0c8c22d8cba79e3edb3c05fea30e75cbc"
+    },
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11700 @ 2.50GHz",
+    "logical_cpus": 16,
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "scheduler_policy": 0,
+    "scheduler_priority": 0,
+    "placement": "inherited; no isolated CPU or realtime guarantee"
+  },
+  "traces": {
+    "state": [
+      {
+        "frame": 167,
+        "source_ns": 1278034657,
+        "begin_wall_ns": 1390981033377721,
+        "end_wall_ns": 1390981034121472
+      },
+      {
+        "frame": 168,
+        "source_ns": 1288034657,
+        "begin_wall_ns": 1390981034122447,
+        "end_wall_ns": 1390981035386100
+      },
+      {
+        "frame": 169,
+        "source_ns": 1298034657,
+        "begin_wall_ns": 1390981035386744,
+        "end_wall_ns": 1390981069773183
+      },
+      {
+        "frame": 170,
+        "source_ns": 1308034657,
+        "begin_wall_ns": 1390981069775347,
+        "end_wall_ns": 1390981080579247
+      },
+      {
+        "frame": 171,
+        "source_ns": 1318034656,
+        "begin_wall_ns": 1390981080581680,
+        "end_wall_ns": 1390981085346197
+      },
+      {
+        "frame": 172,
+        "source_ns": 1328034656,
+        "begin_wall_ns": 1390981085348774,
+        "end_wall_ns": 1390981116031102
+      },
+      {
+        "frame": 173,
+        "source_ns": 1338034656,
+        "begin_wall_ns": 1390981116038538,
+        "end_wall_ns": 1390981122736762
+      },
+      {
+        "frame": 174,
+        "source_ns": 1348034656,
+        "begin_wall_ns": 1390981122741500,
+        "end_wall_ns": 1390981130881795
+      },
+      {
+        "frame": 175,
+        "source_ns": 1358034655,
+        "begin_wall_ns": 1390981130884327,
+        "end_wall_ns": 1390981138765551
+      },
+      {
+        "frame": 176,
+        "source_ns": 1368034655,
+        "begin_wall_ns": 1390981138769237,
+        "end_wall_ns": 1390981156653980
+      },
+      {
+        "frame": 177,
+        "source_ns": 1378034655,
+        "begin_wall_ns": 1390981156655130,
+        "end_wall_ns": 1390981181135960
+      },
+      {
+        "frame": 178,
+        "source_ns": 1388034655,
+        "begin_wall_ns": 1390981181140404,
+        "end_wall_ns": 1390981189273245
+      },
+      {
+        "frame": 179,
+        "source_ns": 1398034655,
+        "begin_wall_ns": 1390981189276908,
+        "end_wall_ns": 1390981200968694
+      },
+      {
+        "frame": 180,
+        "source_ns": 1408034654,
+        "begin_wall_ns": 1390981200970733,
+        "end_wall_ns": 1390981203973924
+      },
+      {
+        "frame": 181,
+        "source_ns": 1418034654,
+        "begin_wall_ns": 1390981203979570,
+        "end_wall_ns": 1390981211410027
+      },
+      {
+        "frame": 182,
+        "source_ns": 1428034654,
+        "begin_wall_ns": 1390981211411961,
+        "end_wall_ns": 1390981247959867
+      },
+      {
+        "frame": 183,
+        "source_ns": 1438034654,
+        "begin_wall_ns": 1390981247964565,
+        "end_wall_ns": 1390981267280565
+      },
+      {
+        "frame": 184,
+        "source_ns": 1448034653,
+        "begin_wall_ns": 1390981267283205,
+        "end_wall_ns": 1390981268123451
+      },
+      {
+        "frame": 185,
+        "source_ns": 1458034653,
+        "begin_wall_ns": 1390981268124658,
+        "end_wall_ns": 1390981274181451
+      },
+      {
+        "frame": 186,
+        "source_ns": 1468034653,
+        "begin_wall_ns": 1390981274184862,
+        "end_wall_ns": 1390981281677807
+      },
+      {
+        "frame": 187,
+        "source_ns": 1478034653,
+        "begin_wall_ns": 1390981281680174,
+        "end_wall_ns": 1390981316668525
+      },
+      {
+        "frame": 188,
+        "source_ns": 1488034653,
+        "begin_wall_ns": 1390981316670810,
+        "end_wall_ns": 1390981338786851
+      },
+      {
+        "frame": 189,
+        "source_ns": 1498034652,
+        "begin_wall_ns": 1390981338789635,
+        "end_wall_ns": 1390981339637943
+      },
+      {
+        "frame": 190,
+        "source_ns": 1508034652,
+        "begin_wall_ns": 1390981339639183,
+        "end_wall_ns": 1390981341564536
+      },
+      {
+        "frame": 191,
+        "source_ns": 1518034652,
+        "begin_wall_ns": 1390981341568101,
+        "end_wall_ns": 1390981350473190
+      },
+      {
+        "frame": 192,
+        "source_ns": 1528034652,
+        "begin_wall_ns": 1390981350476683,
+        "end_wall_ns": 1390981385328170
+      },
+      {
+        "frame": 193,
+        "source_ns": 1538034651,
+        "begin_wall_ns": 1390981385332177,
+        "end_wall_ns": 1390981402546144
+      },
+      {
+        "frame": 194,
+        "source_ns": 1548034651,
+        "begin_wall_ns": 1390981402549755,
+        "end_wall_ns": 1390981403453183
+      },
+      {
+        "frame": 195,
+        "source_ns": 1558034651,
+        "begin_wall_ns": 1390981403454568,
+        "end_wall_ns": 1390981408606883
+      },
+      {
+        "frame": 196,
+        "source_ns": 1568034651,
+        "begin_wall_ns": 1390981408612540,
+        "end_wall_ns": 1390981416731783
+      },
+      {
+        "frame": 197,
+        "source_ns": 1578034651,
+        "begin_wall_ns": 1390981416733890,
+        "end_wall_ns": 1390981452861133
+      },
+      {
+        "frame": 198,
+        "source_ns": 1588034650,
+        "begin_wall_ns": 1390981452865558,
+        "end_wall_ns": 1390981460289975
+      },
+      {
+        "frame": 199,
+        "source_ns": 1598034650,
+        "begin_wall_ns": 1390981460292892,
+        "end_wall_ns": 1390981473535339
+      },
+      {
+        "frame": 200,
+        "source_ns": 1608034650,
+        "begin_wall_ns": 1390981473537698,
+        "end_wall_ns": 1390981477186122
+      },
+      {
+        "frame": 201,
+        "source_ns": 1618034650,
+        "begin_wall_ns": 1390981477188312,
+        "end_wall_ns": 1390981485627900
+      },
+      {
+        "frame": 202,
+        "source_ns": 1628034649,
+        "begin_wall_ns": 1390981485629942,
+        "end_wall_ns": 1390981521286012
+      },
+      {
+        "frame": 203,
+        "source_ns": 1638034649,
+        "begin_wall_ns": 1390981521289996,
+        "end_wall_ns": 1390981529262928
+      },
+      {
+        "frame": 204,
+        "source_ns": 1648034649,
+        "begin_wall_ns": 1390981529268044,
+        "end_wall_ns": 1390981543975609
+      },
+      {
+        "frame": 205,
+        "source_ns": 1658034649,
+        "begin_wall_ns": 1390981543978504,
+        "end_wall_ns": 1390981545103935
+      },
+      {
+        "frame": 206,
+        "source_ns": 1668034649,
+        "begin_wall_ns": 1390981545106711,
+        "end_wall_ns": 1390981553971630
+      },
+      {
+        "frame": 207,
+        "source_ns": 1678034648,
+        "begin_wall_ns": 1390981553973933,
+        "end_wall_ns": 1390981590925526
+      },
+      {
+        "frame": 208,
+        "source_ns": 1688034648,
+        "begin_wall_ns": 1390981590928810,
+        "end_wall_ns": 1390981598638041
+      },
+      {
+        "frame": 209,
+        "source_ns": 1698034648,
+        "begin_wall_ns": 1390981598643365,
+        "end_wall_ns": 1390981612426602
+      },
+      {
+        "frame": 210,
+        "source_ns": 1708034648,
+        "begin_wall_ns": 1390981612429207,
+        "end_wall_ns": 1390981615038364
+      },
+      {
+        "frame": 211,
+        "source_ns": 1718034647,
+        "begin_wall_ns": 1390981615042075,
+        "end_wall_ns": 1390981624376042
+      },
+      {
+        "frame": 212,
+        "source_ns": 1728034647,
+        "begin_wall_ns": 1390981624379666,
+        "end_wall_ns": 1390981661610089
+      },
+      {
+        "frame": 213,
+        "source_ns": 1738034647,
+        "begin_wall_ns": 1390981661614230,
+        "end_wall_ns": 1390981682543019
+      },
+      {
+        "frame": 214,
+        "source_ns": 1748034647,
+        "begin_wall_ns": 1390981682544446,
+        "end_wall_ns": 1390981683483525
+      },
+      {
+        "frame": 215,
+        "source_ns": 1758034647,
+        "begin_wall_ns": 1390981683485613,
+        "end_wall_ns": 1390981685246448
+      },
+      {
+        "frame": 216,
+        "source_ns": 1768034646,
+        "begin_wall_ns": 1390981685249561,
+        "end_wall_ns": 1390981692787729
+      },
+      {
+        "frame": 217,
+        "source_ns": 1778034646,
+        "begin_wall_ns": 1390981692789924,
+        "end_wall_ns": 1390981733830863
+      },
+      {
+        "frame": 218,
+        "source_ns": 1788034646,
+        "begin_wall_ns": 1390981733850186,
+        "end_wall_ns": 1390981753952785
+      },
+      {
+        "frame": 219,
+        "source_ns": 1798034646,
+        "begin_wall_ns": 1390981753954710,
+        "end_wall_ns": 1390981755579042
+      },
+      {
+        "frame": 220,
+        "source_ns": 1808034645,
+        "begin_wall_ns": 1390981755580778,
+        "end_wall_ns": 1390981757464249
+      },
+      {
+        "frame": 221,
+        "source_ns": 1818034645,
+        "begin_wall_ns": 1390981757466127,
+        "end_wall_ns": 1390981767034891
+      },
+      {
+        "frame": 222,
+        "source_ns": 1828034645,
+        "begin_wall_ns": 1390981767036886,
+        "end_wall_ns": 1390981801778322
+      },
+      {
+        "frame": 223,
+        "source_ns": 1838034645,
+        "begin_wall_ns": 1390981801786150,
+        "end_wall_ns": 1390981822706570
+      },
+      {
+        "frame": 224,
+        "source_ns": 1848034644,
+        "begin_wall_ns": 1390981822708245,
+        "end_wall_ns": 1390981823579161
+      },
+      {
+        "frame": 225,
+        "source_ns": 1858034644,
+        "begin_wall_ns": 1390981823579957,
+        "end_wall_ns": 1390981827260424
+      },
+      {
+        "frame": 226,
+        "source_ns": 1868034644,
+        "begin_wall_ns": 1390981827262085,
+        "end_wall_ns": 1390981835351790
+      },
+      {
+        "frame": 227,
+        "source_ns": 1878034644,
+        "begin_wall_ns": 1390981835353869,
+        "end_wall_ns": 1390981877629257
+      },
+      {
+        "frame": 228,
+        "source_ns": 1888034644,
+        "begin_wall_ns": 1390981877638412,
+        "end_wall_ns": 1390981884486172
+      },
+      {
+        "frame": 229,
+        "source_ns": 1898034643,
+        "begin_wall_ns": 1390981884489151,
+        "end_wall_ns": 1390981897542055
+      },
+      {
+        "frame": 230,
+        "source_ns": 1908034643,
+        "begin_wall_ns": 1390981897543355,
+        "end_wall_ns": 1390981902676678
+      },
+      {
+        "frame": 231,
+        "source_ns": 1918034643,
+        "begin_wall_ns": 1390981902678897,
+        "end_wall_ns": 1390981910681421
+      },
+      {
+        "frame": 232,
+        "source_ns": 1928034643,
+        "begin_wall_ns": 1390981910684333,
+        "end_wall_ns": 1390981961658667
+      },
+      {
+        "frame": 233,
+        "source_ns": 1938034642,
+        "begin_wall_ns": 1390981961663477,
+        "end_wall_ns": 1390981971424787
+      },
+      {
+        "frame": 234,
+        "source_ns": 1948034642,
+        "begin_wall_ns": 1390981971427635,
+        "end_wall_ns": 1390981984548672
+      },
+      {
+        "frame": 235,
+        "source_ns": 1958034642,
+        "begin_wall_ns": 1390981984550859,
+        "end_wall_ns": 1390981987689242
+      },
+      {
+        "frame": 236,
+        "source_ns": 1968034642,
+        "begin_wall_ns": 1390981987692125,
+        "end_wall_ns": 1390981995590476
+      },
+      {
+        "frame": 237,
+        "source_ns": 1978034642,
+        "begin_wall_ns": 1390981995592689,
+        "end_wall_ns": 1390982037380292
+      },
+      {
+        "frame": 238,
+        "source_ns": 1988034641,
+        "begin_wall_ns": 1390982037383702,
+        "end_wall_ns": 1390982045523340
+      },
+      {
+        "frame": 239,
+        "source_ns": 1998034641,
+        "begin_wall_ns": 1390982045528134,
+        "end_wall_ns": 1390982060514058
+      },
+      {
+        "frame": 240,
+        "source_ns": 2008034641,
+        "begin_wall_ns": 1390982060527057,
+        "end_wall_ns": 1390982064334040
+      },
+      {
+        "frame": 241,
+        "source_ns": 2018034641,
+        "begin_wall_ns": 1390982064338451,
+        "end_wall_ns": 1390982076154488
+      },
+      {
+        "frame": 242,
+        "source_ns": 2028034640,
+        "begin_wall_ns": 1390982076156711,
+        "end_wall_ns": 1390982106083719
+      },
+      {
+        "frame": 243,
+        "source_ns": 2038034640,
+        "begin_wall_ns": 1390982106086788,
+        "end_wall_ns": 1390982126960147
+      },
+      {
+        "frame": 244,
+        "source_ns": 2048034640,
+        "begin_wall_ns": 1390982126963544,
+        "end_wall_ns": 1390982128158539
+      },
+      {
+        "frame": 245,
+        "source_ns": 2058034640,
+        "begin_wall_ns": 1390982128160181,
+        "end_wall_ns": 1390982131860449
+      },
+      {
+        "frame": 246,
+        "source_ns": 2068034640,
+        "begin_wall_ns": 1390982131863477,
+        "end_wall_ns": 1390982142912005
+      },
+      {
+        "frame": 247,
+        "source_ns": 2078034639,
+        "begin_wall_ns": 1390982142914169,
+        "end_wall_ns": 1390982182821666
+      },
+      {
+        "frame": 248,
+        "source_ns": 2088034639,
+        "begin_wall_ns": 1390982182824806,
+        "end_wall_ns": 1390982190659959
+      },
+      {
+        "frame": 249,
+        "source_ns": 2098034639,
+        "begin_wall_ns": 1390982190671401,
+        "end_wall_ns": 1390982204921530
+      },
+      {
+        "frame": 250,
+        "source_ns": 2108034639,
+        "begin_wall_ns": 1390982204923582,
+        "end_wall_ns": 1390982205894189
+      },
+      {
+        "frame": 251,
+        "source_ns": 2118034638,
+        "begin_wall_ns": 1390982205895596,
+        "end_wall_ns": 1390982213244731
+      },
+      {
+        "frame": 252,
+        "source_ns": 2128034638,
+        "begin_wall_ns": 1390982213246740,
+        "end_wall_ns": 1390982243899882
+      },
+      {
+        "frame": 253,
+        "source_ns": 2138034638,
+        "begin_wall_ns": 1390982243903568,
+        "end_wall_ns": 1390982265882951
+      },
+      {
+        "frame": 254,
+        "source_ns": 2148034638,
+        "begin_wall_ns": 1390982265884987,
+        "end_wall_ns": 1390982266788362
+      },
+      {
+        "frame": 255,
+        "source_ns": 2158034638,
+        "begin_wall_ns": 1390982266789080,
+        "end_wall_ns": 1390982271780195
+      },
+      {
+        "frame": 256,
+        "source_ns": 2168034637,
+        "begin_wall_ns": 1390982271782574,
+        "end_wall_ns": 1390982279477512
+      },
+      {
+        "frame": 257,
+        "source_ns": 2178034637,
+        "begin_wall_ns": 1390982279479553,
+        "end_wall_ns": 1390982317468494
+      },
+      {
+        "frame": 258,
+        "source_ns": 2188034637,
+        "begin_wall_ns": 1390982317471694,
+        "end_wall_ns": 1390982326051718
+      },
+      {
+        "frame": 259,
+        "source_ns": 2198034637,
+        "begin_wall_ns": 1390982326055407,
+        "end_wall_ns": 1390982339399430
+      },
+      {
+        "frame": 260,
+        "source_ns": 2208034636,
+        "begin_wall_ns": 1390982339402023,
+        "end_wall_ns": 1390982343863170
+      },
+      {
+        "frame": 261,
+        "source_ns": 2218034636,
+        "begin_wall_ns": 1390982343866142,
+        "end_wall_ns": 1390982352220582
+      },
+      {
+        "frame": 262,
+        "source_ns": 2228034636,
+        "begin_wall_ns": 1390982352253415,
+        "end_wall_ns": 1390982400831334
+      },
+      {
+        "frame": 263,
+        "source_ns": 2238034636,
+        "begin_wall_ns": 1390982400838159,
+        "end_wall_ns": 1390982421663950
+      },
+      {
+        "frame": 264,
+        "source_ns": 2248034636,
+        "begin_wall_ns": 1390982421665354,
+        "end_wall_ns": 1390982422560662
+      },
+      {
+        "frame": 265,
+        "source_ns": 2258034635,
+        "begin_wall_ns": 1390982422562416,
+        "end_wall_ns": 1390982424395090
+      },
+      {
+        "frame": 266,
+        "source_ns": 2268034635,
+        "begin_wall_ns": 1390982424399828,
+        "end_wall_ns": 1390982432609274
+      },
+      {
+        "frame": 267,
+        "source_ns": 2278034635,
+        "begin_wall_ns": 1390982432611225,
+        "end_wall_ns": 1390982487292708
+      },
+      {
+        "frame": 268,
+        "source_ns": 2288034635,
+        "begin_wall_ns": 1390982487298252,
+        "end_wall_ns": 1390982509723870
+      },
+      {
+        "frame": 269,
+        "source_ns": 2298034634,
+        "begin_wall_ns": 1390982509726399,
+        "end_wall_ns": 1390982510827627
+      },
+      {
+        "frame": 270,
+        "source_ns": 2308034634,
+        "begin_wall_ns": 1390982510829739,
+        "end_wall_ns": 1390982512115465
+      },
+      {
+        "frame": 271,
+        "source_ns": 2318034634,
+        "begin_wall_ns": 1390982512128557,
+        "end_wall_ns": 1390982520568346
+      },
+      {
+        "frame": 272,
+        "source_ns": 2328034634,
+        "begin_wall_ns": 1390982520570370,
+        "end_wall_ns": 1390982559576060
+      },
+      {
+        "frame": 273,
+        "source_ns": 2338034634,
+        "begin_wall_ns": 1390982559579960,
+        "end_wall_ns": 1390982583468472
+      },
+      {
+        "frame": 274,
+        "source_ns": 2348034633,
+        "begin_wall_ns": 1390982583471236,
+        "end_wall_ns": 1390982584737008
+      },
+      {
+        "frame": 275,
+        "source_ns": 2358034633,
+        "begin_wall_ns": 1390982584738248,
+        "end_wall_ns": 1390982587464062
+      },
+      {
+        "frame": 276,
+        "source_ns": 2368034633,
+        "begin_wall_ns": 1390982587468239,
+        "end_wall_ns": 1390982596945281
+      },
+      {
+        "frame": 277,
+        "source_ns": 2378034633,
+        "begin_wall_ns": 1390982596947504,
+        "end_wall_ns": 1390982636662470
+      },
+      {
+        "frame": 278,
+        "source_ns": 2388034632,
+        "begin_wall_ns": 1390982636666108,
+        "end_wall_ns": 1390982654989190
+      },
+      {
+        "frame": 279,
+        "source_ns": 2398034632,
+        "begin_wall_ns": 1390982654991659,
+        "end_wall_ns": 1390982656210906
+      },
+      {
+        "frame": 280,
+        "source_ns": 2408034632,
+        "begin_wall_ns": 1390982656212358,
+        "end_wall_ns": 1390982663610815
+      },
+      {
+        "frame": 281,
+        "source_ns": 2418034632,
+        "begin_wall_ns": 1390982663612918,
+        "end_wall_ns": 1390982671028075
+      },
+      {
+        "frame": 282,
+        "source_ns": 2428034632,
+        "begin_wall_ns": 1390982671030336,
+        "end_wall_ns": 1390982715585891
+      },
+      {
+        "frame": 283,
+        "source_ns": 2438034631,
+        "begin_wall_ns": 1390982715589503,
+        "end_wall_ns": 1390982736533579
+      },
+      {
+        "frame": 284,
+        "source_ns": 2448034631,
+        "begin_wall_ns": 1390982736534962,
+        "end_wall_ns": 1390982737320663
+      },
+      {
+        "frame": 285,
+        "source_ns": 2458034631,
+        "begin_wall_ns": 1390982737322147,
+        "end_wall_ns": 1390982740023072
+      },
+      {
+        "frame": 286,
+        "source_ns": 2468034631,
+        "begin_wall_ns": 1390982740026943,
+        "end_wall_ns": 1390982749478736
+      },
+      {
+        "frame": 287,
+        "source_ns": 2478034630,
+        "begin_wall_ns": 1390982749481553,
+        "end_wall_ns": 1390982798945504
+      },
+      {
+        "frame": 288,
+        "source_ns": 2488034630,
+        "begin_wall_ns": 1390982798952911,
+        "end_wall_ns": 1390982809469887
+      },
+      {
+        "frame": 289,
+        "source_ns": 2498034630,
+        "begin_wall_ns": 1390982809472997,
+        "end_wall_ns": 1390982821617729
+      },
+      {
+        "frame": 290,
+        "source_ns": 2508034630,
+        "begin_wall_ns": 1390982821619755,
+        "end_wall_ns": 1390982824509434
+      },
+      {
+        "frame": 291,
+        "source_ns": 2518034630,
+        "begin_wall_ns": 1390982824518150,
+        "end_wall_ns": 1390982832132814
+      },
+      {
+        "frame": 292,
+        "source_ns": 2528034629,
+        "begin_wall_ns": 1390982832135591,
+        "end_wall_ns": 1390982871505651
+      },
+      {
+        "frame": 293,
+        "source_ns": 2538034629,
+        "begin_wall_ns": 1390982871511136,
+        "end_wall_ns": 1390982889635395
+      },
+      {
+        "frame": 294,
+        "source_ns": 2548034629,
+        "begin_wall_ns": 1390982889638601,
+        "end_wall_ns": 1390982890564653
+      },
+      {
+        "frame": 295,
+        "source_ns": 2558034629,
+        "begin_wall_ns": 1390982890566426,
+        "end_wall_ns": 1390982896526823
+      },
+      {
+        "frame": 296,
+        "source_ns": 2568034628,
+        "begin_wall_ns": 1390982896530218,
+        "end_wall_ns": 1390982907493344
+      },
+      {
+        "frame": 297,
+        "source_ns": 2578034628,
+        "begin_wall_ns": 1390982907497106,
+        "end_wall_ns": 1390982940534699
+      },
+      {
+        "frame": 298,
+        "source_ns": 2588034628,
+        "begin_wall_ns": 1390982940538207,
+        "end_wall_ns": 1390982962214072
+      },
+      {
+        "frame": 299,
+        "source_ns": 2598034628,
+        "begin_wall_ns": 1390982962215491,
+        "end_wall_ns": 1390982963100613
+      },
+      {
+        "frame": 300,
+        "source_ns": 2608034628,
+        "begin_wall_ns": 1390982963101472,
+        "end_wall_ns": 1390982965873116
+      },
+      {
+        "frame": 301,
+        "source_ns": 2618034627,
+        "begin_wall_ns": 1390982965875268,
+        "end_wall_ns": 1390982975092290
+      },
+      {
+        "frame": 302,
+        "source_ns": 2628034627,
+        "begin_wall_ns": 1390982975094067,
+        "end_wall_ns": 1390983017771813
+      },
+      {
+        "frame": 303,
+        "source_ns": 2638034627,
+        "begin_wall_ns": 1390983017775896,
+        "end_wall_ns": 1390983037866045
+      },
+      {
+        "frame": 304,
+        "source_ns": 2648034627,
+        "begin_wall_ns": 1390983037867893,
+        "end_wall_ns": 1390983038785280
+      },
+      {
+        "frame": 305,
+        "source_ns": 2658034626,
+        "begin_wall_ns": 1390983038786385,
+        "end_wall_ns": 1390983043777452
+      },
+      {
+        "frame": 306,
+        "source_ns": 2668034626,
+        "begin_wall_ns": 1390983043779764,
+        "end_wall_ns": 1390983051496005
+      },
+      {
+        "frame": 307,
+        "source_ns": 2678034626,
+        "begin_wall_ns": 1390983051499376,
+        "end_wall_ns": 1390983101754742
+      },
+      {
+        "frame": 308,
+        "source_ns": 2688034626,
+        "begin_wall_ns": 1390983101758755,
+        "end_wall_ns": 1390983111258090
+      },
+      {
+        "frame": 309,
+        "source_ns": 2698034626,
+        "begin_wall_ns": 1390983111262339,
+        "end_wall_ns": 1390983127024199
+      },
+      {
+        "frame": 310,
+        "source_ns": 2708034625,
+        "begin_wall_ns": 1390983127025767,
+        "end_wall_ns": 1390983128134487
+      },
+      {
+        "frame": 311,
+        "source_ns": 2718034625,
+        "begin_wall_ns": 1390983128135577,
+        "end_wall_ns": 1390983137566658
+      },
+      {
+        "frame": 312,
+        "source_ns": 2728034625,
+        "begin_wall_ns": 1390983137568931,
+        "end_wall_ns": 1390983175103512
+      },
+      {
+        "frame": 313,
+        "source_ns": 2738034625,
+        "begin_wall_ns": 1390983175107920,
+        "end_wall_ns": 1390983195676822
+      },
+      {
+        "frame": 314,
+        "source_ns": 2748034624,
+        "begin_wall_ns": 1390983195680395,
+        "end_wall_ns": 1390983197386780
+      },
+      {
+        "frame": 315,
+        "source_ns": 2758034624,
+        "begin_wall_ns": 1390983197388886,
+        "end_wall_ns": 1390983201715951
+      },
+      {
+        "frame": 316,
+        "source_ns": 2768034624,
+        "begin_wall_ns": 1390983201724822,
+        "end_wall_ns": 1390983210509175
+      },
+      {
+        "frame": 317,
+        "source_ns": 2778034624,
+        "begin_wall_ns": 1390983210511319,
+        "end_wall_ns": 1390983248467171
+      },
+      {
+        "frame": 318,
+        "source_ns": 2788034623,
+        "begin_wall_ns": 1390983248472196,
+        "end_wall_ns": 1390983268993425
+      },
+      {
+        "frame": 319,
+        "source_ns": 2798034623,
+        "begin_wall_ns": 1390983268996410,
+        "end_wall_ns": 1390983269905831
+      },
+      {
+        "frame": 320,
+        "source_ns": 2808034623,
+        "begin_wall_ns": 1390983269908167,
+        "end_wall_ns": 1390983273296882
+      },
+      {
+        "frame": 321,
+        "source_ns": 2818034623,
+        "begin_wall_ns": 1390983273300000,
+        "end_wall_ns": 1390983283560295
+      },
+      {
+        "frame": 322,
+        "source_ns": 2828034623,
+        "begin_wall_ns": 1390983283563663,
+        "end_wall_ns": 1390983319250327
+      },
+      {
+        "frame": 323,
+        "source_ns": 2838034622,
+        "begin_wall_ns": 1390983319253908,
+        "end_wall_ns": 1390983338539418
+      },
+      {
+        "frame": 324,
+        "source_ns": 2848034622,
+        "begin_wall_ns": 1390983338541994,
+        "end_wall_ns": 1390983339538537
+      },
+      {
+        "frame": 325,
+        "source_ns": 2858034622,
+        "begin_wall_ns": 1390983339539658,
+        "end_wall_ns": 1390983345797569
+      },
+      {
+        "frame": 326,
+        "source_ns": 2868034622,
+        "begin_wall_ns": 1390983345802306,
+        "end_wall_ns": 1390983354306202
+      },
+      {
+        "frame": 327,
+        "source_ns": 2878034621,
+        "begin_wall_ns": 1390983354309062,
+        "end_wall_ns": 1390983398544400
+      },
+      {
+        "frame": 328,
+        "source_ns": 2888034621,
+        "begin_wall_ns": 1390983398550815,
+        "end_wall_ns": 1390983418979744
+      },
+      {
+        "frame": 329,
+        "source_ns": 2898034621,
+        "begin_wall_ns": 1390983418981417,
+        "end_wall_ns": 1390983419702743
+      },
+      {
+        "frame": 330,
+        "source_ns": 2908034621,
+        "begin_wall_ns": 1390983419703954,
+        "end_wall_ns": 1390983423606550
+      },
+      {
+        "frame": 331,
+        "source_ns": 2918034621,
+        "begin_wall_ns": 1390983423610580,
+        "end_wall_ns": 1390983431602164
+      },
+      {
+        "frame": 332,
+        "source_ns": 2928034620,
+        "begin_wall_ns": 1390983431605688,
+        "end_wall_ns": 1390983484435745
+      },
+      {
+        "frame": 333,
+        "source_ns": 2938034620,
+        "begin_wall_ns": 1390983484440533,
+        "end_wall_ns": 1390983504763920
+      },
+      {
+        "frame": 334,
+        "source_ns": 2948034620,
+        "begin_wall_ns": 1390983504766063,
+        "end_wall_ns": 1390983505806859
+      },
+      {
+        "frame": 335,
+        "source_ns": 2958034620,
+        "begin_wall_ns": 1390983505807815,
+        "end_wall_ns": 1390983509615362
+      },
+      {
+        "frame": 336,
+        "source_ns": 2968034619,
+        "begin_wall_ns": 1390983509617654,
+        "end_wall_ns": 1390983518045098
+      },
+      {
+        "frame": 337,
+        "source_ns": 2978034619,
+        "begin_wall_ns": 1390983518048151,
+        "end_wall_ns": 1390983556789054
+      },
+      {
+        "frame": 338,
+        "source_ns": 2988034619,
+        "begin_wall_ns": 1390983556793798,
+        "end_wall_ns": 1390983564178569
+      },
+      {
+        "frame": 339,
+        "source_ns": 2998034619,
+        "begin_wall_ns": 1390983564183235,
+        "end_wall_ns": 1390983577317010
+      },
+      {
+        "frame": 340,
+        "source_ns": 3008034619,
+        "begin_wall_ns": 1390983577319779,
+        "end_wall_ns": 1390983580204311
+      },
+      {
+        "frame": 341,
+        "source_ns": 3018034618,
+        "begin_wall_ns": 1390983580207870,
+        "end_wall_ns": 1390983590260263
+      },
+      {
+        "frame": 342,
+        "source_ns": 3028034618,
+        "begin_wall_ns": 1390983590262587,
+        "end_wall_ns": 1390983633459376
+      },
+      {
+        "frame": 343,
+        "source_ns": 3038034618,
+        "begin_wall_ns": 1390983633462069,
+        "end_wall_ns": 1390983642186515
+      },
+      {
+        "frame": 344,
+        "source_ns": 3048034618,
+        "begin_wall_ns": 1390983642190904,
+        "end_wall_ns": 1390983655231545
+      },
+      {
+        "frame": 345,
+        "source_ns": 3058034617,
+        "begin_wall_ns": 1390983655232915,
+        "end_wall_ns": 1390983656762448
+      },
+      {
+        "frame": 346,
+        "source_ns": 3068034617,
+        "begin_wall_ns": 1390983656765221,
+        "end_wall_ns": 1390983664576353
+      },
+      {
+        "frame": 347,
+        "source_ns": 3078034617,
+        "begin_wall_ns": 1390983664578541,
+        "end_wall_ns": 1390983715439357
+      },
+      {
+        "frame": 348,
+        "source_ns": 3088034617,
+        "begin_wall_ns": 1390983715443070,
+        "end_wall_ns": 1390983725097738
+      },
+      {
+        "frame": 349,
+        "source_ns": 3098034617,
+        "begin_wall_ns": 1390983725104481,
+        "end_wall_ns": 1390983737835041
+      }
+    ],
+    "camera": [
+      {
+        "begin_wall_ns": 1390981145448513,
+        "frame": 170,
+        "source_ns": 1308034657,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981156660354,
+        "accepted": true,
+        "end_wall_ns": 1390981156706025
+      },
+      {
+        "begin_wall_ns": 1390981189357265,
+        "frame": 175,
+        "source_ns": 1358034655,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981201041021,
+        "accepted": true,
+        "end_wall_ns": 1390981201082208
+      },
+      {
+        "begin_wall_ns": 1390981255569182,
+        "frame": 180,
+        "source_ns": 1408034654,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981267289344,
+        "accepted": true,
+        "end_wall_ns": 1390981267332761
+      },
+      {
+        "begin_wall_ns": 1390981326259520,
+        "frame": 185,
+        "source_ns": 1458034653,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981338853967,
+        "accepted": true,
+        "end_wall_ns": 1390981338904846
+      },
+      {
+        "begin_wall_ns": 1390981391100763,
+        "frame": 190,
+        "source_ns": 1508034652,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981402595947,
+        "accepted": true,
+        "end_wall_ns": 1390981402655391
+      },
+      {
+        "begin_wall_ns": 1390981460513828,
+        "frame": 195,
+        "source_ns": 1558034651,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981473422233,
+        "accepted": true,
+        "end_wall_ns": 1390981473491478
+      },
+      {
+        "begin_wall_ns": 1390981529512358,
+        "frame": 200,
+        "source_ns": 1608034650,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981544028715,
+        "accepted": true,
+        "end_wall_ns": 1390981544089910
+      },
+      {
+        "begin_wall_ns": 1390981599267397,
+        "frame": 205,
+        "source_ns": 1658034649,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981612259817,
+        "accepted": true,
+        "end_wall_ns": 1390981612353191
+      },
+      {
+        "begin_wall_ns": 1390981670700399,
+        "frame": 210,
+        "source_ns": 1708034648,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981682549854,
+        "accepted": true,
+        "end_wall_ns": 1390981682604405
+      },
+      {
+        "begin_wall_ns": 1390981741666750,
+        "frame": 215,
+        "source_ns": 1758034647,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981753850168,
+        "accepted": true,
+        "end_wall_ns": 1390981753914736
+      },
+      {
+        "begin_wall_ns": 1390981810141561,
+        "frame": 220,
+        "source_ns": 1808034645,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981822715857,
+        "accepted": true,
+        "end_wall_ns": 1390981822762583
+      },
+      {
+        "begin_wall_ns": 1390981885632701,
+        "frame": 225,
+        "source_ns": 1858034644,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981897403831,
+        "accepted": true,
+        "end_wall_ns": 1390981897467482
+      },
+      {
+        "begin_wall_ns": 1390981971992912,
+        "frame": 230,
+        "source_ns": 1908034643,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390981984595631,
+        "accepted": true,
+        "end_wall_ns": 1390981984640249
+      },
+      {
+        "begin_wall_ns": 1390982046891380,
+        "frame": 235,
+        "source_ns": 1958034642,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982060632368,
+        "accepted": true,
+        "end_wall_ns": 1390982060674151
+      },
+      {
+        "begin_wall_ns": 1390982114249571,
+        "frame": 240,
+        "source_ns": 2008034641,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982126970456,
+        "accepted": true,
+        "end_wall_ns": 1390982127093814
+      },
+      {
+        "begin_wall_ns": 1390982191804662,
+        "frame": 245,
+        "source_ns": 2058034640,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982204931385,
+        "accepted": true,
+        "end_wall_ns": 1390982204987241
+      },
+      {
+        "begin_wall_ns": 1390982252462689,
+        "frame": 250,
+        "source_ns": 2108034639,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982265944957,
+        "accepted": true,
+        "end_wall_ns": 1390982265987957
+      },
+      {
+        "begin_wall_ns": 1390982326268698,
+        "frame": 255,
+        "source_ns": 2158034638,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982339555972,
+        "accepted": true,
+        "end_wall_ns": 1390982339600491
+      },
+      {
+        "begin_wall_ns": 1390982408932578,
+        "frame": 260,
+        "source_ns": 2208034636,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982421676503,
+        "accepted": true,
+        "end_wall_ns": 1390982421724953
+      },
+      {
+        "begin_wall_ns": 1390982496733845,
+        "frame": 265,
+        "source_ns": 2258034635,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982510170806,
+        "accepted": true,
+        "end_wall_ns": 1390982510219279
+      },
+      {
+        "begin_wall_ns": 1390982569076017,
+        "frame": 270,
+        "source_ns": 2308034634,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982583544974,
+        "accepted": true,
+        "end_wall_ns": 1390982583597022
+      },
+      {
+        "begin_wall_ns": 1390982641966573,
+        "frame": 275,
+        "source_ns": 2358034633,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982655655655,
+        "accepted": true,
+        "end_wall_ns": 1390982655707084
+      },
+      {
+        "begin_wall_ns": 1390982724468762,
+        "frame": 280,
+        "source_ns": 2408034632,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982736540533,
+        "accepted": true,
+        "end_wall_ns": 1390982736579672
+      },
+      {
+        "begin_wall_ns": 1390982809487540,
+        "frame": 285,
+        "source_ns": 2458034631,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982821953621,
+        "accepted": true,
+        "end_wall_ns": 1390982821992326
+      },
+      {
+        "begin_wall_ns": 1390982878120849,
+        "frame": 290,
+        "source_ns": 2508034630,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982889644030,
+        "accepted": true,
+        "end_wall_ns": 1390982889690035
+      },
+      {
+        "begin_wall_ns": 1390982949943161,
+        "frame": 295,
+        "source_ns": 2558034629,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390982962313216,
+        "accepted": true,
+        "end_wall_ns": 1390982962378066
+      },
+      {
+        "begin_wall_ns": 1390983024683182,
+        "frame": 300,
+        "source_ns": 2608034628,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983037873810,
+        "accepted": true,
+        "end_wall_ns": 1390983037914317
+      },
+      {
+        "begin_wall_ns": 1390983111289703,
+        "frame": 305,
+        "source_ns": 2658034626,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983127033097,
+        "accepted": true,
+        "end_wall_ns": 1390983127084468
+      },
+      {
+        "begin_wall_ns": 1390983182616041,
+        "frame": 310,
+        "source_ns": 2708034625,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983197279073,
+        "accepted": true,
+        "end_wall_ns": 1390983197317304
+      },
+      {
+        "begin_wall_ns": 1390983256599350,
+        "frame": 315,
+        "source_ns": 2758034624,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983269008399,
+        "accepted": true,
+        "end_wall_ns": 1390983269068915
+      },
+      {
+        "begin_wall_ns": 1390983326214631,
+        "frame": 320,
+        "source_ns": 2808034623,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983339396353,
+        "accepted": true,
+        "end_wall_ns": 1390983339477498
+      },
+      {
+        "begin_wall_ns": 1390983407211952,
+        "frame": 325,
+        "source_ns": 2858034622,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983418987837,
+        "accepted": true,
+        "end_wall_ns": 1390983419031217
+      },
+      {
+        "begin_wall_ns": 1390983491812982,
+        "frame": 330,
+        "source_ns": 2908034621,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983504781941,
+        "accepted": true,
+        "end_wall_ns": 1390983504835336
+      },
+      {
+        "begin_wall_ns": 1390983565083083,
+        "frame": 335,
+        "source_ns": 2958034620,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983577447759,
+        "accepted": true,
+        "end_wall_ns": 1390983577507542
+      },
+      {
+        "begin_wall_ns": 1390983643097513,
+        "frame": 340,
+        "source_ns": 3008034619,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983655238261,
+        "accepted": true,
+        "end_wall_ns": 1390983655285046
+      },
+      {
+        "begin_wall_ns": 1390983725711819,
+        "frame": 345,
+        "source_ns": 3058034617,
+        "width": 3840,
+        "height": 2304,
+        "offer_entry_wall_ns": 1390983738104442,
+        "accepted": true,
+        "end_wall_ns": 1390983738140613
+      }
+    ],
+    "consumer": [
+      {
+        "begin_wall_ns": 1390981033140048,
+        "scheduled_wall_ns": 1390981033138735,
+        "state": {
+          "frame": 166,
+          "source_ns": 1268034657
+        },
+        "snapshot_read_source_ns": 1268034657,
+        "snapshot_read_wall_ns": 1390981033142077,
+        "perception": null,
+        "end_wall_ns": 1390981033147461,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981053221066,
+        "scheduled_wall_ns": 1390981053138735,
+        "state": {
+          "frame": 168,
+          "source_ns": 1288034657
+        },
+        "snapshot_read_source_ns": 1288034657,
+        "snapshot_read_wall_ns": 1390981053228432,
+        "perception": null,
+        "end_wall_ns": 1390981053238031,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981073218142,
+        "scheduled_wall_ns": 1390981073138735,
+        "state": {
+          "frame": 169,
+          "source_ns": 1298034657
+        },
+        "snapshot_read_source_ns": 1298034657,
+        "snapshot_read_wall_ns": 1390981073225268,
+        "perception": null,
+        "end_wall_ns": 1390981073235167,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981093224420,
+        "scheduled_wall_ns": 1390981093138735,
+        "state": {
+          "frame": 171,
+          "source_ns": 1318034656
+        },
+        "snapshot_read_source_ns": 1318034656,
+        "snapshot_read_wall_ns": 1390981093232136,
+        "perception": null,
+        "end_wall_ns": 1390981093243281,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981113229723,
+        "scheduled_wall_ns": 1390981113138735,
+        "state": {
+          "frame": 171,
+          "source_ns": 1318034656
+        },
+        "snapshot_read_source_ns": 1318034656,
+        "snapshot_read_wall_ns": 1390981113239144,
+        "perception": null,
+        "end_wall_ns": 1390981113263075,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981133212331,
+        "scheduled_wall_ns": 1390981133138735,
+        "state": {
+          "frame": 174,
+          "source_ns": 1348034656
+        },
+        "snapshot_read_source_ns": 1348034656,
+        "snapshot_read_wall_ns": 1390981133216751,
+        "perception": null,
+        "end_wall_ns": 1390981133223864,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981156560503,
+        "scheduled_wall_ns": 1390981153138735,
+        "state": {
+          "frame": 175,
+          "source_ns": 1358034655
+        },
+        "snapshot_read_source_ns": 1358034655,
+        "snapshot_read_wall_ns": 1390981156566435,
+        "perception": null,
+        "end_wall_ns": 1390981156575958,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981173231157,
+        "scheduled_wall_ns": 1390981173138735,
+        "state": {
+          "frame": 176,
+          "source_ns": 1368034655
+        },
+        "snapshot_read_source_ns": 1368034655,
+        "snapshot_read_wall_ns": 1390981173252546,
+        "perception": null,
+        "end_wall_ns": 1390981173264487,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981201012251,
+        "scheduled_wall_ns": 1390981193138735,
+        "state": {
+          "frame": 179,
+          "source_ns": 1398034655
+        },
+        "snapshot_read_source_ns": 1398034655,
+        "snapshot_read_wall_ns": 1390981201016062,
+        "perception": null,
+        "end_wall_ns": 1390981201022558,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981213220558,
+        "scheduled_wall_ns": 1390981213138735,
+        "state": {
+          "frame": 181,
+          "source_ns": 1418034654
+        },
+        "snapshot_read_source_ns": 1418034654,
+        "snapshot_read_wall_ns": 1390981213225170,
+        "perception": null,
+        "end_wall_ns": 1390981213233146,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981233214508,
+        "scheduled_wall_ns": 1390981233138735,
+        "state": {
+          "frame": 181,
+          "source_ns": 1418034654
+        },
+        "snapshot_read_source_ns": 1418034654,
+        "snapshot_read_wall_ns": 1390981233220760,
+        "perception": null,
+        "end_wall_ns": 1390981233230384,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981253231395,
+        "scheduled_wall_ns": 1390981253138735,
+        "state": {
+          "frame": 182,
+          "source_ns": 1428034654
+        },
+        "snapshot_read_source_ns": 1428034654,
+        "snapshot_read_wall_ns": 1390981253241174,
+        "perception": null,
+        "end_wall_ns": 1390981253255214,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981273230950,
+        "scheduled_wall_ns": 1390981273138735,
+        "state": {
+          "frame": 184,
+          "source_ns": 1448034653
+        },
+        "snapshot_read_source_ns": 1448034653,
+        "snapshot_read_wall_ns": 1390981273241722,
+        "perception": null,
+        "end_wall_ns": 1390981273256767,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981293228896,
+        "scheduled_wall_ns": 1390981293138735,
+        "state": {
+          "frame": 186,
+          "source_ns": 1468034653
+        },
+        "snapshot_read_source_ns": 1468034653,
+        "snapshot_read_wall_ns": 1390981293237520,
+        "perception": null,
+        "end_wall_ns": 1390981293249749,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981313223100,
+        "scheduled_wall_ns": 1390981313138735,
+        "state": {
+          "frame": 186,
+          "source_ns": 1468034653
+        },
+        "snapshot_read_source_ns": 1468034653,
+        "snapshot_read_wall_ns": 1390981313230009,
+        "perception": null,
+        "end_wall_ns": 1390981313241373,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981338829091,
+        "scheduled_wall_ns": 1390981333138735,
+        "state": {
+          "frame": 188,
+          "source_ns": 1488034653
+        },
+        "snapshot_read_source_ns": 1488034653,
+        "snapshot_read_wall_ns": 1390981338831958,
+        "perception": null,
+        "end_wall_ns": 1390981338837162,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981353215299,
+        "scheduled_wall_ns": 1390981353138735,
+        "state": {
+          "frame": 191,
+          "source_ns": 1518034652
+        },
+        "snapshot_read_source_ns": 1518034652,
+        "snapshot_read_wall_ns": 1390981353220558,
+        "perception": null,
+        "end_wall_ns": 1390981353234907,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981373221742,
+        "scheduled_wall_ns": 1390981373138735,
+        "state": {
+          "frame": 191,
+          "source_ns": 1518034652
+        },
+        "snapshot_read_source_ns": 1518034652,
+        "snapshot_read_wall_ns": 1390981373228641,
+        "perception": null,
+        "end_wall_ns": 1390981373236528,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981402566199,
+        "scheduled_wall_ns": 1390981393138735,
+        "state": {
+          "frame": 193,
+          "source_ns": 1538034651
+        },
+        "snapshot_read_source_ns": 1538034651,
+        "snapshot_read_wall_ns": 1390981402571701,
+        "perception": null,
+        "end_wall_ns": 1390981402577135,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981413245664,
+        "scheduled_wall_ns": 1390981413138735,
+        "state": {
+          "frame": 195,
+          "source_ns": 1558034651
+        },
+        "snapshot_read_source_ns": 1558034651,
+        "snapshot_read_wall_ns": 1390981413254244,
+        "perception": null,
+        "end_wall_ns": 1390981413264517,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981433227115,
+        "scheduled_wall_ns": 1390981433138735,
+        "state": {
+          "frame": 196,
+          "source_ns": 1568034651
+        },
+        "snapshot_read_source_ns": 1568034651,
+        "snapshot_read_wall_ns": 1390981433233984,
+        "perception": null,
+        "end_wall_ns": 1390981433243139,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981453212793,
+        "scheduled_wall_ns": 1390981453138735,
+        "state": {
+          "frame": 197,
+          "source_ns": 1578034651
+        },
+        "snapshot_read_source_ns": 1578034651,
+        "snapshot_read_wall_ns": 1390981453217095,
+        "perception": null,
+        "end_wall_ns": 1390981453224569,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981473552975,
+        "scheduled_wall_ns": 1390981473138735,
+        "state": {
+          "frame": 199,
+          "source_ns": 1598034650
+        },
+        "snapshot_read_source_ns": 1598034650,
+        "snapshot_read_wall_ns": 1390981473556051,
+        "perception": null,
+        "end_wall_ns": 1390981473562153,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981493231107,
+        "scheduled_wall_ns": 1390981493138735,
+        "state": {
+          "frame": 201,
+          "source_ns": 1618034650
+        },
+        "snapshot_read_source_ns": 1618034650,
+        "snapshot_read_wall_ns": 1390981493240489,
+        "perception": null,
+        "end_wall_ns": 1390981493258387,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981513230204,
+        "scheduled_wall_ns": 1390981513138735,
+        "state": {
+          "frame": 201,
+          "source_ns": 1618034650
+        },
+        "snapshot_read_source_ns": 1618034650,
+        "snapshot_read_wall_ns": 1390981513238838,
+        "perception": null,
+        "end_wall_ns": 1390981513250449,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981543994434,
+        "scheduled_wall_ns": 1390981533138735,
+        "state": {
+          "frame": 204,
+          "source_ns": 1648034649
+        },
+        "snapshot_read_source_ns": 1648034649,
+        "snapshot_read_wall_ns": 1390981543997307,
+        "perception": null,
+        "end_wall_ns": 1390981544010384,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981553225291,
+        "scheduled_wall_ns": 1390981553138735,
+        "state": {
+          "frame": 205,
+          "source_ns": 1658034649
+        },
+        "snapshot_read_source_ns": 1658034649,
+        "snapshot_read_wall_ns": 1390981553232700,
+        "perception": null,
+        "end_wall_ns": 1390981553244882,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981573215454,
+        "scheduled_wall_ns": 1390981573138735,
+        "state": {
+          "frame": 206,
+          "source_ns": 1668034649
+        },
+        "snapshot_read_source_ns": 1668034649,
+        "snapshot_read_wall_ns": 1390981573228207,
+        "perception": null,
+        "end_wall_ns": 1390981573237654,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981593231616,
+        "scheduled_wall_ns": 1390981593138735,
+        "state": {
+          "frame": 207,
+          "source_ns": 1678034648
+        },
+        "snapshot_read_source_ns": 1678034648,
+        "snapshot_read_wall_ns": 1390981593241515,
+        "perception": null,
+        "end_wall_ns": 1390981593253937,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981613209732,
+        "scheduled_wall_ns": 1390981613138735,
+        "state": {
+          "frame": 209,
+          "source_ns": 1698034648
+        },
+        "snapshot_read_source_ns": 1698034648,
+        "snapshot_read_wall_ns": 1390981613212918,
+        "perception": null,
+        "end_wall_ns": 1390981613217333,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981633231218,
+        "scheduled_wall_ns": 1390981633138735,
+        "state": {
+          "frame": 211,
+          "source_ns": 1718034647
+        },
+        "snapshot_read_source_ns": 1718034647,
+        "snapshot_read_wall_ns": 1390981633238549,
+        "perception": null,
+        "end_wall_ns": 1390981633250012,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981653210285,
+        "scheduled_wall_ns": 1390981653138735,
+        "state": {
+          "frame": 211,
+          "source_ns": 1718034647
+        },
+        "snapshot_read_source_ns": 1718034647,
+        "snapshot_read_wall_ns": 1390981653214006,
+        "perception": null,
+        "end_wall_ns": 1390981653230859,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981682392510,
+        "scheduled_wall_ns": 1390981673138735,
+        "state": {
+          "frame": 212,
+          "source_ns": 1728034647
+        },
+        "snapshot_read_source_ns": 1728034647,
+        "snapshot_read_wall_ns": 1390981682400778,
+        "perception": null,
+        "end_wall_ns": 1390981682430091,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981693223626,
+        "scheduled_wall_ns": 1390981693138735,
+        "state": {
+          "frame": 216,
+          "source_ns": 1768034646
+        },
+        "snapshot_read_source_ns": 1768034646,
+        "snapshot_read_wall_ns": 1390981693233010,
+        "perception": null,
+        "end_wall_ns": 1390981693241567,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981713229595,
+        "scheduled_wall_ns": 1390981713138735,
+        "state": {
+          "frame": 216,
+          "source_ns": 1768034646
+        },
+        "snapshot_read_source_ns": 1768034646,
+        "snapshot_read_wall_ns": 1390981713236018,
+        "perception": null,
+        "end_wall_ns": 1390981713245676,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981733224191,
+        "scheduled_wall_ns": 1390981733138735,
+        "state": {
+          "frame": 216,
+          "source_ns": 1768034646
+        },
+        "snapshot_read_source_ns": 1768034646,
+        "snapshot_read_wall_ns": 1390981733233951,
+        "perception": null,
+        "end_wall_ns": 1390981733249260,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981755513268,
+        "scheduled_wall_ns": 1390981753138735,
+        "state": {
+          "frame": 218,
+          "source_ns": 1788034646
+        },
+        "snapshot_read_source_ns": 1788034646,
+        "snapshot_read_wall_ns": 1390981755516038,
+        "perception": null,
+        "end_wall_ns": 1390981755521115,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981773226976,
+        "scheduled_wall_ns": 1390981773138735,
+        "state": {
+          "frame": 221,
+          "source_ns": 1818034645
+        },
+        "snapshot_read_source_ns": 1818034645,
+        "snapshot_read_wall_ns": 1390981773235286,
+        "perception": null,
+        "end_wall_ns": 1390981773248495,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981793220934,
+        "scheduled_wall_ns": 1390981793138735,
+        "state": {
+          "frame": 221,
+          "source_ns": 1818034645
+        },
+        "snapshot_read_source_ns": 1818034645,
+        "snapshot_read_wall_ns": 1390981793229331,
+        "perception": null,
+        "end_wall_ns": 1390981793240048,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981822627346,
+        "scheduled_wall_ns": 1390981813138735,
+        "state": {
+          "frame": 222,
+          "source_ns": 1828034645
+        },
+        "snapshot_read_source_ns": 1828034645,
+        "snapshot_read_wall_ns": 1390981822632006,
+        "perception": null,
+        "end_wall_ns": 1390981822640165,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981833224825,
+        "scheduled_wall_ns": 1390981833138735,
+        "state": {
+          "frame": 225,
+          "source_ns": 1858034644
+        },
+        "snapshot_read_source_ns": 1858034644,
+        "snapshot_read_wall_ns": 1390981833232940,
+        "perception": null,
+        "end_wall_ns": 1390981833246876,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981853228214,
+        "scheduled_wall_ns": 1390981853138735,
+        "state": {
+          "frame": 226,
+          "source_ns": 1868034644
+        },
+        "snapshot_read_source_ns": 1868034644,
+        "snapshot_read_wall_ns": 1390981853235423,
+        "perception": null,
+        "end_wall_ns": 1390981853245501,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981873234747,
+        "scheduled_wall_ns": 1390981873138735,
+        "state": {
+          "frame": 226,
+          "source_ns": 1868034644
+        },
+        "snapshot_read_source_ns": 1868034644,
+        "snapshot_read_wall_ns": 1390981873240532,
+        "perception": null,
+        "end_wall_ns": 1390981873256353,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981897487136,
+        "scheduled_wall_ns": 1390981893138735,
+        "state": {
+          "frame": 228,
+          "source_ns": 1888034644
+        },
+        "snapshot_read_source_ns": 1888034644,
+        "snapshot_read_wall_ns": 1390981897490258,
+        "perception": null,
+        "end_wall_ns": 1390981897495954,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981913217289,
+        "scheduled_wall_ns": 1390981913138735,
+        "state": {
+          "frame": 231,
+          "source_ns": 1918034643
+        },
+        "snapshot_read_source_ns": 1918034643,
+        "snapshot_read_wall_ns": 1390981913223618,
+        "perception": null,
+        "end_wall_ns": 1390981913238620,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981933226007,
+        "scheduled_wall_ns": 1390981933138735,
+        "state": {
+          "frame": 231,
+          "source_ns": 1918034643
+        },
+        "snapshot_read_source_ns": 1918034643,
+        "snapshot_read_wall_ns": 1390981933250735,
+        "perception": null,
+        "end_wall_ns": 1390981933263737,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981953217286,
+        "scheduled_wall_ns": 1390981953138735,
+        "state": {
+          "frame": 231,
+          "source_ns": 1918034643
+        },
+        "snapshot_read_source_ns": 1918034643,
+        "snapshot_read_wall_ns": 1390981953223619,
+        "perception": null,
+        "end_wall_ns": 1390981953234304,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981984564136,
+        "scheduled_wall_ns": 1390981973138735,
+        "state": {
+          "frame": 234,
+          "source_ns": 1948034642
+        },
+        "snapshot_read_source_ns": 1948034642,
+        "snapshot_read_wall_ns": 1390981984566366,
+        "perception": null,
+        "end_wall_ns": 1390981984579673,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390981993218137,
+        "scheduled_wall_ns": 1390981993138735,
+        "state": {
+          "frame": 235,
+          "source_ns": 1958034642
+        },
+        "snapshot_read_source_ns": 1958034642,
+        "snapshot_read_wall_ns": 1390981993224493,
+        "perception": null,
+        "end_wall_ns": 1390981993234052,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982013222192,
+        "scheduled_wall_ns": 1390982013138735,
+        "state": {
+          "frame": 236,
+          "source_ns": 1968034642
+        },
+        "snapshot_read_source_ns": 1968034642,
+        "snapshot_read_wall_ns": 1390982013230186,
+        "perception": null,
+        "end_wall_ns": 1390982013240664,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982033226262,
+        "scheduled_wall_ns": 1390982033138735,
+        "state": {
+          "frame": 236,
+          "source_ns": 1968034642
+        },
+        "snapshot_read_source_ns": 1968034642,
+        "snapshot_read_wall_ns": 1390982033235353,
+        "perception": null,
+        "end_wall_ns": 1390982033247130,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982060548527,
+        "scheduled_wall_ns": 1390982053138735,
+        "state": {
+          "frame": 239,
+          "source_ns": 1998034641
+        },
+        "snapshot_read_source_ns": 1998034641,
+        "snapshot_read_wall_ns": 1390982060552757,
+        "perception": null,
+        "end_wall_ns": 1390982060559928,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982073241879,
+        "scheduled_wall_ns": 1390982073138735,
+        "state": {
+          "frame": 240,
+          "source_ns": 2008034641
+        },
+        "snapshot_read_source_ns": 2008034641,
+        "snapshot_read_wall_ns": 1390982073249337,
+        "perception": null,
+        "end_wall_ns": 1390982073260598,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982093221715,
+        "scheduled_wall_ns": 1390982093138735,
+        "state": {
+          "frame": 241,
+          "source_ns": 2018034641
+        },
+        "snapshot_read_source_ns": 2018034641,
+        "snapshot_read_wall_ns": 1390982093228082,
+        "perception": null,
+        "end_wall_ns": 1390982093237834,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982113234091,
+        "scheduled_wall_ns": 1390982113138735,
+        "state": {
+          "frame": 242,
+          "source_ns": 2028034640
+        },
+        "snapshot_read_source_ns": 2028034640,
+        "snapshot_read_wall_ns": 1390982113245924,
+        "perception": null,
+        "end_wall_ns": 1390982113261380,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982133219058,
+        "scheduled_wall_ns": 1390982133138735,
+        "state": {
+          "frame": 245,
+          "source_ns": 2058034640
+        },
+        "snapshot_read_source_ns": 2058034640,
+        "snapshot_read_wall_ns": 1390982133224358,
+        "perception": null,
+        "end_wall_ns": 1390982133232774,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982153221441,
+        "scheduled_wall_ns": 1390982153138735,
+        "state": {
+          "frame": 246,
+          "source_ns": 2068034640
+        },
+        "snapshot_read_source_ns": 2068034640,
+        "snapshot_read_wall_ns": 1390982153229487,
+        "perception": null,
+        "end_wall_ns": 1390982153240126,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982173217556,
+        "scheduled_wall_ns": 1390982173138735,
+        "state": {
+          "frame": 246,
+          "source_ns": 2068034640
+        },
+        "snapshot_read_source_ns": 2068034640,
+        "snapshot_read_wall_ns": 1390982173224687,
+        "perception": null,
+        "end_wall_ns": 1390982173234111,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982204835737,
+        "scheduled_wall_ns": 1390982193138735,
+        "state": {
+          "frame": 248,
+          "source_ns": 2088034639
+        },
+        "snapshot_read_source_ns": 2088034639,
+        "snapshot_read_wall_ns": 1390982204842489,
+        "perception": null,
+        "end_wall_ns": 1390982204852847,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982213263178,
+        "scheduled_wall_ns": 1390982213138735,
+        "state": {
+          "frame": 251,
+          "source_ns": 2118034638
+        },
+        "snapshot_read_source_ns": 2118034638,
+        "snapshot_read_wall_ns": 1390982213266756,
+        "perception": null,
+        "end_wall_ns": 1390982213273645,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982233238321,
+        "scheduled_wall_ns": 1390982233138735,
+        "state": {
+          "frame": 251,
+          "source_ns": 2118034638
+        },
+        "snapshot_read_source_ns": 2118034638,
+        "snapshot_read_wall_ns": 1390982233245012,
+        "perception": null,
+        "end_wall_ns": 1390982233254058,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982265921510,
+        "scheduled_wall_ns": 1390982253138735,
+        "state": {
+          "frame": 253,
+          "source_ns": 2138034638
+        },
+        "snapshot_read_source_ns": 2138034638,
+        "snapshot_read_wall_ns": 1390982265924570,
+        "perception": null,
+        "end_wall_ns": 1390982265930029,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982273212295,
+        "scheduled_wall_ns": 1390982273138735,
+        "state": {
+          "frame": 255,
+          "source_ns": 2158034638
+        },
+        "snapshot_read_source_ns": 2158034638,
+        "snapshot_read_wall_ns": 1390982273216208,
+        "perception": null,
+        "end_wall_ns": 1390982273224404,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982293259140,
+        "scheduled_wall_ns": 1390982293138735,
+        "state": {
+          "frame": 256,
+          "source_ns": 2168034637
+        },
+        "snapshot_read_source_ns": 2168034637,
+        "snapshot_read_wall_ns": 1390982293265838,
+        "perception": null,
+        "end_wall_ns": 1390982293275356,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982313221037,
+        "scheduled_wall_ns": 1390982313138735,
+        "state": {
+          "frame": 256,
+          "source_ns": 2168034637
+        },
+        "snapshot_read_source_ns": 2168034637,
+        "snapshot_read_wall_ns": 1390982313228213,
+        "perception": null,
+        "end_wall_ns": 1390982313239094,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982339529702,
+        "scheduled_wall_ns": 1390982333138735,
+        "state": {
+          "frame": 259,
+          "source_ns": 2198034637
+        },
+        "snapshot_read_source_ns": 2198034637,
+        "snapshot_read_wall_ns": 1390982339533327,
+        "perception": null,
+        "end_wall_ns": 1390982339539775,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982353225011,
+        "scheduled_wall_ns": 1390982353138735,
+        "state": {
+          "frame": 261,
+          "source_ns": 2218034636
+        },
+        "snapshot_read_source_ns": 2218034636,
+        "snapshot_read_wall_ns": 1390982353230511,
+        "perception": null,
+        "end_wall_ns": 1390982353240182,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982373217673,
+        "scheduled_wall_ns": 1390982373138735,
+        "state": {
+          "frame": 261,
+          "source_ns": 2218034636
+        },
+        "snapshot_read_source_ns": 2218034636,
+        "snapshot_read_wall_ns": 1390982373223159,
+        "perception": null,
+        "end_wall_ns": 1390982373231662,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982393236681,
+        "scheduled_wall_ns": 1390982393138735,
+        "state": {
+          "frame": 261,
+          "source_ns": 2218034636
+        },
+        "snapshot_read_source_ns": 2218034636,
+        "snapshot_read_wall_ns": 1390982393246860,
+        "perception": null,
+        "end_wall_ns": 1390982393260436,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982421566683,
+        "scheduled_wall_ns": 1390982413138735,
+        "state": {
+          "frame": 262,
+          "source_ns": 2228034636
+        },
+        "snapshot_read_source_ns": 2228034636,
+        "snapshot_read_wall_ns": 1390982421575065,
+        "perception": null,
+        "end_wall_ns": 1390982421592287,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982433233712,
+        "scheduled_wall_ns": 1390982433138735,
+        "state": {
+          "frame": 266,
+          "source_ns": 2268034635
+        },
+        "snapshot_read_source_ns": 2268034635,
+        "snapshot_read_wall_ns": 1390982433245955,
+        "perception": null,
+        "end_wall_ns": 1390982433252143,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982453212716,
+        "scheduled_wall_ns": 1390982453138735,
+        "state": {
+          "frame": 266,
+          "source_ns": 2268034635
+        },
+        "snapshot_read_source_ns": 2268034635,
+        "snapshot_read_wall_ns": 1390982453218172,
+        "perception": null,
+        "end_wall_ns": 1390982453225294,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982473227608,
+        "scheduled_wall_ns": 1390982473138735,
+        "state": {
+          "frame": 266,
+          "source_ns": 2268034635
+        },
+        "snapshot_read_source_ns": 2268034635,
+        "snapshot_read_wall_ns": 1390982473230642,
+        "perception": null,
+        "end_wall_ns": 1390982473234997,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982493234577,
+        "scheduled_wall_ns": 1390982493138735,
+        "state": {
+          "frame": 267,
+          "source_ns": 2278034635
+        },
+        "snapshot_read_source_ns": 2278034635,
+        "snapshot_read_wall_ns": 1390982493245997,
+        "perception": null,
+        "end_wall_ns": 1390982493261713,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982513214512,
+        "scheduled_wall_ns": 1390982513138735,
+        "state": {
+          "frame": 270,
+          "source_ns": 2308034634
+        },
+        "snapshot_read_source_ns": 2308034634,
+        "snapshot_read_wall_ns": 1390982513217461,
+        "perception": null,
+        "end_wall_ns": 1390982513222917,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982533222228,
+        "scheduled_wall_ns": 1390982533138735,
+        "state": {
+          "frame": 271,
+          "source_ns": 2318034634
+        },
+        "snapshot_read_source_ns": 2318034634,
+        "snapshot_read_wall_ns": 1390982533228921,
+        "perception": null,
+        "end_wall_ns": 1390982533238080,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982553237310,
+        "scheduled_wall_ns": 1390982553138735,
+        "state": {
+          "frame": 271,
+          "source_ns": 2318034634
+        },
+        "snapshot_read_source_ns": 2318034634,
+        "snapshot_read_wall_ns": 1390982553251223,
+        "perception": null,
+        "end_wall_ns": 1390982553269253,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982583497844,
+        "scheduled_wall_ns": 1390982573138735,
+        "state": {
+          "frame": 273,
+          "source_ns": 2338034634
+        },
+        "snapshot_read_source_ns": 2338034634,
+        "snapshot_read_wall_ns": 1390982583501927,
+        "perception": null,
+        "end_wall_ns": 1390982583509832,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982593241047,
+        "scheduled_wall_ns": 1390982593138735,
+        "state": {
+          "frame": 275,
+          "source_ns": 2358034633
+        },
+        "snapshot_read_source_ns": 2358034633,
+        "snapshot_read_wall_ns": 1390982593249786,
+        "perception": null,
+        "end_wall_ns": 1390982593260466,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982613217469,
+        "scheduled_wall_ns": 1390982613138735,
+        "state": {
+          "frame": 276,
+          "source_ns": 2368034633
+        },
+        "snapshot_read_source_ns": 2368034633,
+        "snapshot_read_wall_ns": 1390982613223602,
+        "perception": null,
+        "end_wall_ns": 1390982613238424,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982633223820,
+        "scheduled_wall_ns": 1390982633138735,
+        "state": {
+          "frame": 276,
+          "source_ns": 2368034633
+        },
+        "snapshot_read_source_ns": 2368034633,
+        "snapshot_read_wall_ns": 1390982633231474,
+        "perception": null,
+        "end_wall_ns": 1390982633243467,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982655012510,
+        "scheduled_wall_ns": 1390982653138735,
+        "state": {
+          "frame": 278,
+          "source_ns": 2388034632
+        },
+        "snapshot_read_source_ns": 2388034632,
+        "snapshot_read_wall_ns": 1390982655015693,
+        "perception": null,
+        "end_wall_ns": 1390982655021439,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982673215743,
+        "scheduled_wall_ns": 1390982673138735,
+        "state": {
+          "frame": 281,
+          "source_ns": 2418034632
+        },
+        "snapshot_read_source_ns": 2418034632,
+        "snapshot_read_wall_ns": 1390982673239060,
+        "perception": null,
+        "end_wall_ns": 1390982673247401,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982693207185,
+        "scheduled_wall_ns": 1390982693138735,
+        "state": {
+          "frame": 281,
+          "source_ns": 2418034632
+        },
+        "snapshot_read_source_ns": 2418034632,
+        "snapshot_read_wall_ns": 1390982693211169,
+        "perception": null,
+        "end_wall_ns": 1390982693218094,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982713235356,
+        "scheduled_wall_ns": 1390982713138735,
+        "state": {
+          "frame": 281,
+          "source_ns": 2418034632
+        },
+        "snapshot_read_source_ns": 2418034632,
+        "snapshot_read_wall_ns": 1390982713248730,
+        "perception": null,
+        "end_wall_ns": 1390982713265422,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982736434952,
+        "scheduled_wall_ns": 1390982733138735,
+        "state": {
+          "frame": 282,
+          "source_ns": 2428034632
+        },
+        "snapshot_read_source_ns": 2428034632,
+        "snapshot_read_wall_ns": 1390982736441324,
+        "perception": null,
+        "end_wall_ns": 1390982736451607,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982753219117,
+        "scheduled_wall_ns": 1390982753138735,
+        "state": {
+          "frame": 286,
+          "source_ns": 2468034631
+        },
+        "snapshot_read_source_ns": 2468034631,
+        "snapshot_read_wall_ns": 1390982753225148,
+        "perception": null,
+        "end_wall_ns": 1390982753234180,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982773211691,
+        "scheduled_wall_ns": 1390982773138735,
+        "state": {
+          "frame": 286,
+          "source_ns": 2468034631
+        },
+        "snapshot_read_source_ns": 2468034631,
+        "snapshot_read_wall_ns": 1390982773216389,
+        "perception": null,
+        "end_wall_ns": 1390982773223520,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982793232190,
+        "scheduled_wall_ns": 1390982793138735,
+        "state": {
+          "frame": 286,
+          "source_ns": 2468034631
+        },
+        "snapshot_read_source_ns": 2468034631,
+        "snapshot_read_wall_ns": 1390982793243464,
+        "perception": null,
+        "end_wall_ns": 1390982793259605,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982821636515,
+        "scheduled_wall_ns": 1390982813138735,
+        "state": {
+          "frame": 289,
+          "source_ns": 2498034630
+        },
+        "snapshot_read_source_ns": 2498034630,
+        "snapshot_read_wall_ns": 1390982821640699,
+        "perception": null,
+        "end_wall_ns": 1390982821647884,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982833216584,
+        "scheduled_wall_ns": 1390982833138735,
+        "state": {
+          "frame": 291,
+          "source_ns": 2518034630
+        },
+        "snapshot_read_source_ns": 2518034630,
+        "snapshot_read_wall_ns": 1390982833221646,
+        "perception": null,
+        "end_wall_ns": 1390982833228240,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982853225954,
+        "scheduled_wall_ns": 1390982853138735,
+        "state": {
+          "frame": 291,
+          "source_ns": 2518034630
+        },
+        "snapshot_read_source_ns": 2518034630,
+        "snapshot_read_wall_ns": 1390982853241748,
+        "perception": null,
+        "end_wall_ns": 1390982853253090,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982873224599,
+        "scheduled_wall_ns": 1390982873138735,
+        "state": {
+          "frame": 292,
+          "source_ns": 2528034629
+        },
+        "snapshot_read_source_ns": 2528034629,
+        "snapshot_read_wall_ns": 1390982873231834,
+        "perception": null,
+        "end_wall_ns": 1390982873243140,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982893216679,
+        "scheduled_wall_ns": 1390982893138735,
+        "state": {
+          "frame": 294,
+          "source_ns": 2548034629
+        },
+        "snapshot_read_source_ns": 2548034629,
+        "snapshot_read_wall_ns": 1390982893222639,
+        "perception": null,
+        "end_wall_ns": 1390982893230101,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982913218592,
+        "scheduled_wall_ns": 1390982913138735,
+        "state": {
+          "frame": 296,
+          "source_ns": 2568034628
+        },
+        "snapshot_read_source_ns": 2568034628,
+        "snapshot_read_wall_ns": 1390982913224640,
+        "perception": null,
+        "end_wall_ns": 1390982913233074,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982933258401,
+        "scheduled_wall_ns": 1390982933138735,
+        "state": {
+          "frame": 296,
+          "source_ns": 2568034628
+        },
+        "snapshot_read_source_ns": 2568034628,
+        "snapshot_read_wall_ns": 1390982933266338,
+        "perception": null,
+        "end_wall_ns": 1390982933277220,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982962137008,
+        "scheduled_wall_ns": 1390982953138735,
+        "state": {
+          "frame": 297,
+          "source_ns": 2578034628
+        },
+        "snapshot_read_source_ns": 2578034628,
+        "snapshot_read_wall_ns": 1390982962143253,
+        "perception": null,
+        "end_wall_ns": 1390982962153069,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982973219027,
+        "scheduled_wall_ns": 1390982973138735,
+        "state": {
+          "frame": 300,
+          "source_ns": 2608034628
+        },
+        "snapshot_read_source_ns": 2608034628,
+        "snapshot_read_wall_ns": 1390982973226673,
+        "perception": null,
+        "end_wall_ns": 1390982973239478,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390982993222197,
+        "scheduled_wall_ns": 1390982993138735,
+        "state": {
+          "frame": 301,
+          "source_ns": 2618034627
+        },
+        "snapshot_read_source_ns": 2618034627,
+        "snapshot_read_wall_ns": 1390982993229129,
+        "perception": null,
+        "end_wall_ns": 1390982993238002,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983013215836,
+        "scheduled_wall_ns": 1390983013138735,
+        "state": {
+          "frame": 301,
+          "source_ns": 2618034627
+        },
+        "snapshot_read_source_ns": 2618034627,
+        "snapshot_read_wall_ns": 1390983013222150,
+        "perception": null,
+        "end_wall_ns": 1390983013232606,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983037785362,
+        "scheduled_wall_ns": 1390983033138735,
+        "state": {
+          "frame": 302,
+          "source_ns": 2628034627
+        },
+        "snapshot_read_source_ns": 2628034627,
+        "snapshot_read_wall_ns": 1390983037792544,
+        "perception": null,
+        "end_wall_ns": 1390983037802176,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983053217275,
+        "scheduled_wall_ns": 1390983053138735,
+        "state": {
+          "frame": 306,
+          "source_ns": 2668034626
+        },
+        "snapshot_read_source_ns": 2668034626,
+        "snapshot_read_wall_ns": 1390983053222835,
+        "perception": null,
+        "end_wall_ns": 1390983053231682,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983073219969,
+        "scheduled_wall_ns": 1390983073138735,
+        "state": {
+          "frame": 306,
+          "source_ns": 2668034626
+        },
+        "snapshot_read_source_ns": 2668034626,
+        "snapshot_read_wall_ns": 1390983073226806,
+        "perception": null,
+        "end_wall_ns": 1390983073236747,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983093246840,
+        "scheduled_wall_ns": 1390983093138735,
+        "state": {
+          "frame": 306,
+          "source_ns": 2668034626
+        },
+        "snapshot_read_source_ns": 2668034626,
+        "snapshot_read_wall_ns": 1390983093249364,
+        "perception": null,
+        "end_wall_ns": 1390983093253920,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983126928810,
+        "scheduled_wall_ns": 1390983113138735,
+        "state": {
+          "frame": 308,
+          "source_ns": 2688034626
+        },
+        "snapshot_read_source_ns": 2688034626,
+        "snapshot_read_wall_ns": 1390983126937452,
+        "perception": null,
+        "end_wall_ns": 1390983126948488,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983133224425,
+        "scheduled_wall_ns": 1390983133138735,
+        "state": {
+          "frame": 310,
+          "source_ns": 2708034625
+        },
+        "snapshot_read_source_ns": 2708034625,
+        "snapshot_read_wall_ns": 1390983133231004,
+        "perception": null,
+        "end_wall_ns": 1390983133239507,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983153224178,
+        "scheduled_wall_ns": 1390983153138735,
+        "state": {
+          "frame": 311,
+          "source_ns": 2718034625
+        },
+        "snapshot_read_source_ns": 2718034625,
+        "snapshot_read_wall_ns": 1390983153238290,
+        "perception": null,
+        "end_wall_ns": 1390983153247026,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983173222089,
+        "scheduled_wall_ns": 1390983173138735,
+        "state": {
+          "frame": 311,
+          "source_ns": 2718034625
+        },
+        "snapshot_read_source_ns": 2718034625,
+        "snapshot_read_wall_ns": 1390983173230359,
+        "perception": null,
+        "end_wall_ns": 1390983173241132,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983195722097,
+        "scheduled_wall_ns": 1390983193138735,
+        "state": {
+          "frame": 313,
+          "source_ns": 2738034625
+        },
+        "snapshot_read_source_ns": 2738034625,
+        "snapshot_read_wall_ns": 1390983195725749,
+        "perception": null,
+        "end_wall_ns": 1390983195733896,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983213215905,
+        "scheduled_wall_ns": 1390983213138735,
+        "state": {
+          "frame": 316,
+          "source_ns": 2768034624
+        },
+        "snapshot_read_source_ns": 2768034624,
+        "snapshot_read_wall_ns": 1390983213221206,
+        "perception": null,
+        "end_wall_ns": 1390983213229222,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983233258987,
+        "scheduled_wall_ns": 1390983233138735,
+        "state": {
+          "frame": 316,
+          "source_ns": 2768034624
+        },
+        "snapshot_read_source_ns": 2768034624,
+        "snapshot_read_wall_ns": 1390983233266554,
+        "perception": null,
+        "end_wall_ns": 1390983233275697,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983253244315,
+        "scheduled_wall_ns": 1390983253138735,
+        "state": {
+          "frame": 317,
+          "source_ns": 2778034624
+        },
+        "snapshot_read_source_ns": 2778034624,
+        "snapshot_read_wall_ns": 1390983253257776,
+        "perception": null,
+        "end_wall_ns": 1390983253274322,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983273317681,
+        "scheduled_wall_ns": 1390983273138735,
+        "state": {
+          "frame": 320,
+          "source_ns": 2808034623
+        },
+        "snapshot_read_source_ns": 2808034623,
+        "snapshot_read_wall_ns": 1390983273339317,
+        "perception": null,
+        "end_wall_ns": 1390983273346882,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983293232981,
+        "scheduled_wall_ns": 1390983293138735,
+        "state": {
+          "frame": 321,
+          "source_ns": 2818034623
+        },
+        "snapshot_read_source_ns": 2818034623,
+        "snapshot_read_wall_ns": 1390983293243134,
+        "perception": null,
+        "end_wall_ns": 1390983293257919,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983313242089,
+        "scheduled_wall_ns": 1390983313138735,
+        "state": {
+          "frame": 321,
+          "source_ns": 2818034623
+        },
+        "snapshot_read_source_ns": 2818034623,
+        "snapshot_read_wall_ns": 1390983313250694,
+        "perception": null,
+        "end_wall_ns": 1390983313265090,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983339339044,
+        "scheduled_wall_ns": 1390983333138735,
+        "state": {
+          "frame": 323,
+          "source_ns": 2838034622
+        },
+        "snapshot_read_source_ns": 2838034622,
+        "snapshot_read_wall_ns": 1390983339343891,
+        "perception": null,
+        "end_wall_ns": 1390983339351958,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983353225466,
+        "scheduled_wall_ns": 1390983353138735,
+        "state": {
+          "frame": 325,
+          "source_ns": 2858034622
+        },
+        "snapshot_read_source_ns": 2858034622,
+        "snapshot_read_wall_ns": 1390983353233506,
+        "perception": null,
+        "end_wall_ns": 1390983353245008,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983373219770,
+        "scheduled_wall_ns": 1390983373138735,
+        "state": {
+          "frame": 326,
+          "source_ns": 2868034622
+        },
+        "snapshot_read_source_ns": 2868034622,
+        "snapshot_read_wall_ns": 1390983373226369,
+        "perception": null,
+        "end_wall_ns": 1390983373235467,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983393223760,
+        "scheduled_wall_ns": 1390983393138735,
+        "state": {
+          "frame": 326,
+          "source_ns": 2868034622
+        },
+        "snapshot_read_source_ns": 2868034622,
+        "snapshot_read_wall_ns": 1390983393231849,
+        "perception": null,
+        "end_wall_ns": 1390983393244013,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983418885058,
+        "scheduled_wall_ns": 1390983413138735,
+        "state": {
+          "frame": 327,
+          "source_ns": 2878034621
+        },
+        "snapshot_read_source_ns": 2878034621,
+        "snapshot_read_wall_ns": 1390983418891426,
+        "perception": null,
+        "end_wall_ns": 1390983418901612,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983433216280,
+        "scheduled_wall_ns": 1390983433138735,
+        "state": {
+          "frame": 331,
+          "source_ns": 2918034621
+        },
+        "snapshot_read_source_ns": 2918034621,
+        "snapshot_read_wall_ns": 1390983433221942,
+        "perception": null,
+        "end_wall_ns": 1390983433230788,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983453212986,
+        "scheduled_wall_ns": 1390983453138735,
+        "state": {
+          "frame": 331,
+          "source_ns": 2918034621
+        },
+        "snapshot_read_source_ns": 2918034621,
+        "snapshot_read_wall_ns": 1390983453218244,
+        "perception": null,
+        "end_wall_ns": 1390983453225827,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983473253695,
+        "scheduled_wall_ns": 1390983473138735,
+        "state": {
+          "frame": 331,
+          "source_ns": 2918034621
+        },
+        "snapshot_read_source_ns": 2918034621,
+        "snapshot_read_wall_ns": 1390983473263330,
+        "perception": null,
+        "end_wall_ns": 1390983473269583,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983504855912,
+        "scheduled_wall_ns": 1390983493138735,
+        "state": {
+          "frame": 333,
+          "source_ns": 2938034620
+        },
+        "snapshot_read_source_ns": 2938034620,
+        "snapshot_read_wall_ns": 1390983504859779,
+        "perception": null,
+        "end_wall_ns": 1390983504867614,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983513219662,
+        "scheduled_wall_ns": 1390983513138735,
+        "state": {
+          "frame": 335,
+          "source_ns": 2958034620
+        },
+        "snapshot_read_source_ns": 2958034620,
+        "snapshot_read_wall_ns": 1390983513225716,
+        "perception": null,
+        "end_wall_ns": 1390983513234580,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983533229418,
+        "scheduled_wall_ns": 1390983533138735,
+        "state": {
+          "frame": 336,
+          "source_ns": 2968034619
+        },
+        "snapshot_read_source_ns": 2968034619,
+        "snapshot_read_wall_ns": 1390983533238406,
+        "perception": null,
+        "end_wall_ns": 1390983533248971,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983553222741,
+        "scheduled_wall_ns": 1390983553138735,
+        "state": {
+          "frame": 336,
+          "source_ns": 2968034619
+        },
+        "snapshot_read_source_ns": 2968034619,
+        "snapshot_read_wall_ns": 1390983553234124,
+        "perception": null,
+        "end_wall_ns": 1390983553247133,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983577337389,
+        "scheduled_wall_ns": 1390983573138735,
+        "state": {
+          "frame": 339,
+          "source_ns": 2998034619
+        },
+        "snapshot_read_source_ns": 2998034619,
+        "snapshot_read_wall_ns": 1390983577340396,
+        "perception": null,
+        "end_wall_ns": 1390983577345741,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983593217444,
+        "scheduled_wall_ns": 1390983593138735,
+        "state": {
+          "frame": 341,
+          "source_ns": 3018034618
+        },
+        "snapshot_read_source_ns": 3018034618,
+        "snapshot_read_wall_ns": 1390983593223026,
+        "perception": null,
+        "end_wall_ns": 1390983593232030,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983613257462,
+        "scheduled_wall_ns": 1390983613138735,
+        "state": {
+          "frame": 341,
+          "source_ns": 3018034618
+        },
+        "snapshot_read_source_ns": 3018034618,
+        "snapshot_read_wall_ns": 1390983613264565,
+        "perception": null,
+        "end_wall_ns": 1390983613273620,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983633232423,
+        "scheduled_wall_ns": 1390983633138735,
+        "state": {
+          "frame": 341,
+          "source_ns": 3018034618
+        },
+        "snapshot_read_source_ns": 3018034618,
+        "snapshot_read_wall_ns": 1390983633244045,
+        "perception": null,
+        "end_wall_ns": 1390983633260780,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983655138856,
+        "scheduled_wall_ns": 1390983653138735,
+        "state": {
+          "frame": 343,
+          "source_ns": 3038034618
+        },
+        "snapshot_read_source_ns": 3038034618,
+        "snapshot_read_wall_ns": 1390983655147499,
+        "perception": null,
+        "end_wall_ns": 1390983655161909,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983673255625,
+        "scheduled_wall_ns": 1390983673138735,
+        "state": {
+          "frame": 346,
+          "source_ns": 3068034617
+        },
+        "snapshot_read_source_ns": 3068034617,
+        "snapshot_read_wall_ns": 1390983673262972,
+        "perception": null,
+        "end_wall_ns": 1390983673273266,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983693222913,
+        "scheduled_wall_ns": 1390983693138735,
+        "state": {
+          "frame": 346,
+          "source_ns": 3068034617
+        },
+        "snapshot_read_source_ns": 3068034617,
+        "snapshot_read_wall_ns": 1390983693229910,
+        "perception": null,
+        "end_wall_ns": 1390983693239986,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983713215883,
+        "scheduled_wall_ns": 1390983713138735,
+        "state": {
+          "frame": 346,
+          "source_ns": 3068034617
+        },
+        "snapshot_read_source_ns": 3068034617,
+        "snapshot_read_wall_ns": 1390983713223023,
+        "perception": null,
+        "end_wall_ns": 1390983713232596,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983737741597,
+        "scheduled_wall_ns": 1390983733138735,
+        "state": {
+          "frame": 348,
+          "source_ns": 3088034617
+        },
+        "snapshot_read_source_ns": 3088034617,
+        "snapshot_read_wall_ns": 1390983737750584,
+        "perception": null,
+        "end_wall_ns": 1390983737762073,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983753260098,
+        "scheduled_wall_ns": 1390983753138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983753267503,
+        "perception": null,
+        "end_wall_ns": 1390983753277456,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983773258435,
+        "scheduled_wall_ns": 1390983773138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983773265223,
+        "perception": null,
+        "end_wall_ns": 1390983773275490,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983793254679,
+        "scheduled_wall_ns": 1390983793138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983793261245,
+        "perception": null,
+        "end_wall_ns": 1390983793270840,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983813261390,
+        "scheduled_wall_ns": 1390983813138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983813264368,
+        "perception": null,
+        "end_wall_ns": 1390983813268862,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983833203915,
+        "scheduled_wall_ns": 1390983833138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983833206692,
+        "perception": null,
+        "end_wall_ns": 1390983833210820,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983853252151,
+        "scheduled_wall_ns": 1390983853138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983853258598,
+        "perception": null,
+        "end_wall_ns": 1390983853267906,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983873239557,
+        "scheduled_wall_ns": 1390983873138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983873241837,
+        "perception": null,
+        "end_wall_ns": 1390983873246028,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983893236794,
+        "scheduled_wall_ns": 1390983893138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983893238830,
+        "perception": null,
+        "end_wall_ns": 1390983893242392,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983913237813,
+        "scheduled_wall_ns": 1390983913138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983913239890,
+        "perception": null,
+        "end_wall_ns": 1390983913243475,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983933237383,
+        "scheduled_wall_ns": 1390983933138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983933239456,
+        "perception": null,
+        "end_wall_ns": 1390983933243142,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983953201495,
+        "scheduled_wall_ns": 1390983953138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983953203540,
+        "perception": null,
+        "end_wall_ns": 1390983953207198,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983973236026,
+        "scheduled_wall_ns": 1390983973138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983973238061,
+        "perception": null,
+        "end_wall_ns": 1390983973241695,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390983993238079,
+        "scheduled_wall_ns": 1390983993138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390983993240366,
+        "perception": null,
+        "end_wall_ns": 1390983993244453,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984013236727,
+        "scheduled_wall_ns": 1390984013138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984013238779,
+        "perception": null,
+        "end_wall_ns": 1390984013242383,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984033236987,
+        "scheduled_wall_ns": 1390984033138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984033241657,
+        "perception": null,
+        "end_wall_ns": 1390984033248801,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984053221062,
+        "scheduled_wall_ns": 1390984053138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984053230264,
+        "perception": null,
+        "end_wall_ns": 1390984053241730,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984073243874,
+        "scheduled_wall_ns": 1390984073138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984073246194,
+        "perception": null,
+        "end_wall_ns": 1390984073250577,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984093232283,
+        "scheduled_wall_ns": 1390984093138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984093234432,
+        "perception": null,
+        "end_wall_ns": 1390984093238027,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984113200817,
+        "scheduled_wall_ns": 1390984113138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984113202914,
+        "perception": null,
+        "end_wall_ns": 1390984113206550,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984133201304,
+        "scheduled_wall_ns": 1390984133138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984133203360,
+        "perception": null,
+        "end_wall_ns": 1390984133206950,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984153202760,
+        "scheduled_wall_ns": 1390984153138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984153204928,
+        "perception": null,
+        "end_wall_ns": 1390984153209015,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984173233915,
+        "scheduled_wall_ns": 1390984173138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984173236026,
+        "perception": null,
+        "end_wall_ns": 1390984173239757,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984193246213,
+        "scheduled_wall_ns": 1390984193138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984193248321,
+        "perception": null,
+        "end_wall_ns": 1390984193255305,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984213235449,
+        "scheduled_wall_ns": 1390984213138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984213237567,
+        "perception": null,
+        "end_wall_ns": 1390984213241243,
+        "skipped_slots": 0
+      },
+      {
+        "begin_wall_ns": 1390984233201365,
+        "scheduled_wall_ns": 1390984233138735,
+        "state": {
+          "frame": 349,
+          "source_ns": 3098034617
+        },
+        "snapshot_read_source_ns": 3098034617,
+        "snapshot_read_wall_ns": 1390984233203437,
+        "perception": null,
+        "end_wall_ns": 1390984233207132,
+        "skipped_slots": 0
+      }
+    ]
+  },
+  "model_calls": [
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 170,
+        "source_ns": 1308034657,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390981156668501,
+      "begin_wall_ns": 1390981156759969,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 170,
+          "source_ns": 1308034657,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9183695912361145,
+            "box": [
+              1989.2742919921875,
+              971.3766174316406,
+              2097.5839233398438,
+              1276.5304870605469
+            ]
+          }
+        ],
+        "convert_ns": 13373321,
+        "preprocess_ns": 50454074,
+        "inference_ns": 423603614,
+        "postprocess_ns": 362396,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390981645503840
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 205,
+        "source_ns": 1658034649,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390981612273698,
+      "begin_wall_ns": 1390981645551976,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 205,
+          "source_ns": 1658034649,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9206150770187378,
+            "box": [
+              1990.9434814453125,
+              972.1793518066406,
+              2098.3430786132812,
+              1276.6293640136719
+            ]
+          }
+        ],
+        "convert_ns": 16518962,
+        "preprocess_ns": 47076464,
+        "inference_ns": 44323445,
+        "postprocess_ns": 746512,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390981755366090
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 215,
+        "source_ns": 1758034647,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390981753862307,
+      "begin_wall_ns": 1390981755462665,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 215,
+          "source_ns": 1758034647,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9201175570487976,
+            "box": [
+              1990.938720703125,
+              972.6713562011719,
+              2099.176025390625,
+              1276.669189453125
+            ]
+          }
+        ],
+        "convert_ns": 6742185,
+        "preprocess_ns": 60316439,
+        "inference_ns": 39351880,
+        "postprocess_ns": 335471,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390981863105947
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 220,
+        "source_ns": 1808034645,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390981822726956,
+      "begin_wall_ns": 1390981863161298,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 220,
+          "source_ns": 1808034645,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9201732873916626,
+            "box": [
+              1990.8116455078125,
+              972.525146484375,
+              2099.9364624023438,
+              1276.6688232421875
+            ]
+          }
+        ],
+        "convert_ns": 5812819,
+        "preprocess_ns": 49169328,
+        "inference_ns": 35610435,
+        "postprocess_ns": 563022,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390981956752771
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 225,
+        "source_ns": 1858034644,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390981897417507,
+      "begin_wall_ns": 1390981956871198,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 225,
+          "source_ns": 1858034644,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9205303192138672,
+            "box": [
+              1990.7766723632812,
+              972.7231750488281,
+              2100.0752563476562,
+              1276.647216796875
+            ]
+          }
+        ],
+        "convert_ns": 9941928,
+        "preprocess_ns": 51329811,
+        "inference_ns": 42452901,
+        "postprocess_ns": 612924,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390982062120641
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 235,
+        "source_ns": 1958034642,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982060640639,
+      "begin_wall_ns": 1390982062173582,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 235,
+          "source_ns": 1958034642,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.919567346572876,
+            "box": [
+              1990.8045043945312,
+              972.3721618652344,
+              2100.229248046875,
+              1276.7137756347656
+            ]
+          }
+        ],
+        "convert_ns": 6722830,
+        "preprocess_ns": 60795198,
+        "inference_ns": 37777788,
+        "postprocess_ns": 324819,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390982168551398
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 240,
+        "source_ns": 2008034641,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982126980503,
+      "begin_wall_ns": 1390982168604372,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 240,
+          "source_ns": 2008034641,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9194359183311462,
+            "box": [
+              1990.887451171875,
+              972.4519958496094,
+              2100.1078491210938,
+              1276.7112121582031
+            ]
+          }
+        ],
+        "convert_ns": 5975142,
+        "preprocess_ns": 70286161,
+        "inference_ns": 36580602,
+        "postprocess_ns": 327653,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390982282469746
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 250,
+        "source_ns": 2108034639,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982265953684,
+      "begin_wall_ns": 1390982282523714,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 250,
+          "source_ns": 2108034639,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9194364547729492,
+            "box": [
+              1990.6777954101562,
+              972.3846130371094,
+              2100.2667846679688,
+              1276.6363220214844
+            ]
+          }
+        ],
+        "convert_ns": 5804370,
+        "preprocess_ns": 60696708,
+        "inference_ns": 40939739,
+        "postprocess_ns": 369300,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390982391222773
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 255,
+        "source_ns": 2158034638,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982339564821,
+      "begin_wall_ns": 1390982391269303,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 255,
+          "source_ns": 2158034638,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9193194508552551,
+            "box": [
+              1990.5353393554688,
+              972.3477172851562,
+              2100.16259765625,
+              1276.5693054199219
+            ]
+          }
+        ],
+        "convert_ns": 9237343,
+        "preprocess_ns": 48116032,
+        "inference_ns": 35433679,
+        "postprocess_ns": 410041,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390982485657859
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 260,
+        "source_ns": 2208034636,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982421684700,
+      "begin_wall_ns": 1390982485729614,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 260,
+          "source_ns": 2208034636,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.919364869594574,
+            "box": [
+              1990.5311279296875,
+              972.3056945800781,
+              2100.2979125976562,
+              1276.5465087890625
+            ]
+          }
+        ],
+        "convert_ns": 8093373,
+        "preprocess_ns": 70317967,
+        "inference_ns": 34218475,
+        "postprocess_ns": 354622,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390982599691106
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 270,
+        "source_ns": 2308034634,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982583553375,
+      "begin_wall_ns": 1390982599755687,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 270,
+          "source_ns": 2308034634,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9193451404571533,
+            "box": [
+              1990.3339233398438,
+              972.2709045410156,
+              2100.478271484375,
+              1276.6710205078125
+            ]
+          }
+        ],
+        "convert_ns": 7081490,
+        "preprocess_ns": 57259498,
+        "inference_ns": 40439598,
+        "postprocess_ns": 352724,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390982705601662
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 275,
+        "source_ns": 2358034633,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982655666595,
+      "begin_wall_ns": 1390982705674635,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 275,
+          "source_ns": 2358034633,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9194647669792175,
+            "box": [
+              1990.4124755859375,
+              972.0726013183594,
+              2100.3440551757812,
+              1276.5876159667969
+            ]
+          }
+        ],
+        "convert_ns": 9128789,
+        "preprocess_ns": 46449862,
+        "inference_ns": 35239968,
+        "postprocess_ns": 385758,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390982797791407
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 280,
+        "source_ns": 2408034632,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982736547188,
+      "begin_wall_ns": 1390982797893527,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 280,
+          "source_ns": 2408034632,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9195648431777954,
+            "box": [
+              1990.4639282226562,
+              972.0374450683594,
+              2100.45263671875,
+              1276.5870666503906
+            ]
+          }
+        ],
+        "convert_ns": 8309305,
+        "preprocess_ns": 58685092,
+        "inference_ns": 33615460,
+        "postprocess_ns": 475222,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390982899676422
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 290,
+        "source_ns": 2508034630,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982889651411,
+      "begin_wall_ns": 1390982899729711,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 290,
+          "source_ns": 2508034630,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9195244312286377,
+            "box": [
+              1990.4315185546875,
+              972.0473327636719,
+              2100.4751586914062,
+              1276.5107116699219
+            ]
+          }
+        ],
+        "convert_ns": 6065625,
+        "preprocess_ns": 56439833,
+        "inference_ns": 40128227,
+        "postprocess_ns": 322364,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983003267768
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 295,
+        "source_ns": 2558034629,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390982962339253,
+      "begin_wall_ns": 1390983003319910,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 295,
+          "source_ns": 2558034629,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.919530987739563,
+            "box": [
+              1990.4364624023438,
+              971.8316345214844,
+              2100.3521118164062,
+              1276.6191101074219
+            ]
+          }
+        ],
+        "convert_ns": 6619424,
+        "preprocess_ns": 47659605,
+        "inference_ns": 37908653,
+        "postprocess_ns": 562745,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983096891100
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 300,
+        "source_ns": 2608034628,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390983037881626,
+      "begin_wall_ns": 1390983096985709,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 300,
+          "source_ns": 2608034628,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9194403886795044,
+            "box": [
+              1990.4100952148438,
+              971.8857421875,
+              2100.4059448242188,
+              1276.6478576660156
+            ]
+          }
+        ],
+        "convert_ns": 8518451,
+        "preprocess_ns": 51217804,
+        "inference_ns": 39084788,
+        "postprocess_ns": 424315,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983197194867
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 305,
+        "source_ns": 2658034626,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390983127041433,
+      "begin_wall_ns": 1390983197250349,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 305,
+          "source_ns": 2658034626,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9195201992988586,
+            "box": [
+              1990.353515625,
+              971.8043518066406,
+              2100.476806640625,
+              1276.564453125
+            ]
+          }
+        ],
+        "convert_ns": 6892284,
+        "preprocess_ns": 45234432,
+        "inference_ns": 37716072,
+        "postprocess_ns": 356351,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983288381979
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 315,
+        "source_ns": 2758034624,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390983269018696,
+      "begin_wall_ns": 1390983288442211,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 315,
+          "source_ns": 2758034624,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9195709824562073,
+            "box": [
+              1990.3939819335938,
+              971.3782653808594,
+              2100.2719116210938,
+              1276.5464172363281
+            ]
+          }
+        ],
+        "convert_ns": 6552351,
+        "preprocess_ns": 53171265,
+        "inference_ns": 39508565,
+        "postprocess_ns": 368964,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983388973624
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 320,
+        "source_ns": 2808034623,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390983339435970,
+      "begin_wall_ns": 1390983389029863,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 320,
+          "source_ns": 2808034623,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9194097518920898,
+            "box": [
+              1990.675048828125,
+              971.4819946289062,
+              2100.0247192382812,
+              1276.6132507324219
+            ]
+          }
+        ],
+        "convert_ns": 8669152,
+        "preprocess_ns": 44624247,
+        "inference_ns": 34875079,
+        "postprocess_ns": 606564,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983479291036
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 325,
+        "source_ns": 2858034622,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390983418994352,
+      "begin_wall_ns": 1390983479416114,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 325,
+          "source_ns": 2858034622,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9196234941482544,
+            "box": [
+              1990.78125,
+              971.2898254394531,
+              2099.6903686523438,
+              1276.5037536621094
+            ]
+          }
+        ],
+        "convert_ns": 8990894,
+        "preprocess_ns": 94225431,
+        "inference_ns": 39672880,
+        "postprocess_ns": 330801,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983623370549
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 335,
+        "source_ns": 2958034620,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390983577458473,
+      "begin_wall_ns": 1390983623416582,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 335,
+          "source_ns": 2958034620,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9197655916213989,
+            "box": [
+              1992.0001831054688,
+              971.2246398925781,
+              2098.9044799804688,
+              1276.5270080566406
+            ]
+          }
+        ],
+        "convert_ns": 8842273,
+        "preprocess_ns": 44865467,
+        "inference_ns": 34809912,
+        "postprocess_ns": 450321,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983713074064
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 340,
+        "source_ns": 3008034619,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390983655250649,
+      "begin_wall_ns": 1390983713136390,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 340,
+          "source_ns": 3008034619,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9195277690887451,
+            "box": [
+              1992.7386474609375,
+              971.1455383300781,
+              2098.90869140625,
+              1276.51318359375
+            ]
+          }
+        ],
+        "convert_ns": 9283373,
+        "preprocess_ns": 52125338,
+        "inference_ns": 20961406,
+        "postprocess_ns": 302647,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983796382745
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 584691710719886071,
+        "frame": 345,
+        "source_ns": 3058034617,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "received_wall_ns": 1390983738114180,
+      "begin_wall_ns": 1390983796428978,
+      "result": {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 345,
+          "source_ns": 3058034617,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "detections": [
+          {
+            "class_id": 0,
+            "score": 0.9190801382064819,
+            "box": [
+              1993.1998901367188,
+              971.215576171875,
+              2098.3738403320312,
+              1276.540283203125
+            ]
+          }
+        ],
+        "convert_ns": 5270943,
+        "preprocess_ns": 38410015,
+        "inference_ns": 18851507,
+        "postprocess_ns": 315479,
+        "width": 3840,
+        "height": 2304,
+        "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+        "candidate": "dfine-m-960-car-v1-camera4k-v1",
+        "schema": "m10-async-native-perception-v1"
+      },
+      "end_wall_ns": 1390983859882342
+    }
+  ],
+  "errors": [],
+  "cleanup_errors": [],
+  "raw": [
+    {
+      "frame": 170,
+      "source_ns": 1308034657,
+      "rgb_sha256": "66e9d929080e2fae7db53517a93b7760621c9c2d1154e2005eb530f3e454d27a",
+      "bgra_sha256": "f77f7a201fb75cfbe2568b9d1195b2f4a6e006ce5744b915a3daedd4b6e5b711",
+      "path": "170.bgra.z",
+      "stored_sha256": "7f0316f74d60c0691771394ecadc161e696aad6e1b52990a39942317506d4f54",
+      "stored_bytes": 16790137,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 175,
+      "source_ns": 1358034655,
+      "rgb_sha256": "cff836f8ea1340269ea4c25238d15cb32d7926aa350a1c80aa74895a5fde0911",
+      "bgra_sha256": "6f43f162619d93dca2e0c120b93b35ff710b42c80f69d929d73ff915a11e215b",
+      "path": "175.bgra.z",
+      "stored_sha256": "d2c68494be6720f5431e08dab6230720d2c4c80b8afd912644ce35f4117ef94a",
+      "stored_bytes": 16781958,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 180,
+      "source_ns": 1408034654,
+      "rgb_sha256": "a4b0300e4abcb6e0f9146990b769bb2e15f25088d6d351aa76797bc1f23e8b00",
+      "bgra_sha256": "6c683c588264afa116cef81f91ebc31a18966865df25c80db26b65253b172239",
+      "path": "180.bgra.z",
+      "stored_sha256": "12fca986443d2897b9cd0860fd767e78109bd9b888db1433bdae67ae2c55f3ee",
+      "stored_bytes": 16786559,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 185,
+      "source_ns": 1458034653,
+      "rgb_sha256": "c4249609ed096ffa85b3f8f5817069c6ec31f38541a7de3ade095c66a4916bb0",
+      "bgra_sha256": "c285761ae9914e036039578f98427a3252deb78278361a0a91a3c386de56f644",
+      "path": "185.bgra.z",
+      "stored_sha256": "619d7b5d4c68d6864d736a6f4add35584e51cc8c2dd6a4881f1d1692760f6530",
+      "stored_bytes": 16918561,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 190,
+      "source_ns": 1508034652,
+      "rgb_sha256": "111b0d5e58f594bdb341712501e9fe8e383476d7e2736e7c21b57b373ff7c3c5",
+      "bgra_sha256": "ff2057f500c1cf743624c059ec4a69c65d6efe2b86225700bc96a27a2a40d4d2",
+      "path": "190.bgra.z",
+      "stored_sha256": "8e591796851f5d7ca624270e67dc459286657f0438bbaedacf75f7d4b7eea54c",
+      "stored_bytes": 17058209,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 195,
+      "source_ns": 1558034651,
+      "rgb_sha256": "c234c597323e6cab526bc8cdea1b4da505c203e2a0e270ae24c98ecac040c25e",
+      "bgra_sha256": "414cb05109792d2fad6967ce62c48c2f692f09856f2145c4db9708a09fa5651d",
+      "path": "195.bgra.z",
+      "stored_sha256": "5fefeb12a9bb7162af99ed9c6f7de719e04de837d51a9c60c9f8ca7b99adc3f9",
+      "stored_bytes": 17053791,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 200,
+      "source_ns": 1608034650,
+      "rgb_sha256": "dc15f137a18837a5b61f09530c515c6f92437765f9881d16882b61f4250a345b",
+      "bgra_sha256": "3daa4436188e9995357d153c96e3367c83a0fe4bcfb81c83c7fedcf9e035c447",
+      "path": "200.bgra.z",
+      "stored_sha256": "47d9afad45b91352b189734e4ad6763a686de3b40822fa39602df30db4763c48",
+      "stored_bytes": 17070280,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 205,
+      "source_ns": 1658034649,
+      "rgb_sha256": "81c99fb55ac6355fb04318f54aa31051f9c6e570d2aa64df672143240df60301",
+      "bgra_sha256": "7273490d36e8d75f79982fbec6983fd79eddfa011b7f0b1e8d0a712eaf252e0b",
+      "path": "205.bgra.z",
+      "stored_sha256": "6c70b752c66a93ed77c15878078723694e37b4b7d0893f6fec35e0d1c52e40f5",
+      "stored_bytes": 17078267,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 210,
+      "source_ns": 1708034648,
+      "rgb_sha256": "03e7564a1a890a7c41213674e3ae4fc8c4a736ed3b7a8833d1376acfe565419d",
+      "bgra_sha256": "5075511af45300e72af4aa809dce45963b3af41fbbc51dcc7a1eca3926c014e8",
+      "path": "210.bgra.z",
+      "stored_sha256": "7d2724da1063d70275bc822ec444f15bb26a49ee6686d15ec1df6329215d404c",
+      "stored_bytes": 17129904,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 215,
+      "source_ns": 1758034647,
+      "rgb_sha256": "ad65231098c693faa9ba89df1065e7e08254c668171ddec3f251d58586fa82ea",
+      "bgra_sha256": "1b12f4c46eab14ed6cb64f1dc4369998703bc461574976a10734c3c3270274e1",
+      "path": "215.bgra.z",
+      "stored_sha256": "43beca876ab5fe44b0131c852c9c9800a3cd89f0007f6b278fac21895240d559",
+      "stored_bytes": 17174725,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 220,
+      "source_ns": 1808034645,
+      "rgb_sha256": "da830f07bf43d5d7d7b6a1e5cd13bc63fccb2c89bdca924a65c53a28796d964d",
+      "bgra_sha256": "2ca60ada8929f48eb03272150e59cb1535daf6137dc1f49bed20a59a6dc182bd",
+      "path": "220.bgra.z",
+      "stored_sha256": "3d365a220f1a45d7de1365fd7c8f16e6df5ff326213af0f094504b1b540fb981",
+      "stored_bytes": 17154480,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 225,
+      "source_ns": 1858034644,
+      "rgb_sha256": "ff8ba3f3a985a2303d964d9af44735f48db10367b09c7510411e1601db950b35",
+      "bgra_sha256": "10849f1e1343ec5b21ebbc12264c16e5dfcda2548164c14d8b6b75a90a586a48",
+      "path": "225.bgra.z",
+      "stored_sha256": "00e8839fa639cea26453fff72863d6744ebf7c323de914d1597fbda875252fbc",
+      "stored_bytes": 17123398,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 230,
+      "source_ns": 1908034643,
+      "rgb_sha256": "2cc5fe2001544c3136277bfb11f03ff469d6166f3e60cef4514b5df6a458caaf",
+      "bgra_sha256": "15fd918f45b197664f27b45c62da4fb63e42b23c9b5d51f03bb3126c1c9553e9",
+      "path": "230.bgra.z",
+      "stored_sha256": "65302e3b1ae4050536c686bb20776754ff723f345d16b564741af6fc56b9b01a",
+      "stored_bytes": 17210227,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 235,
+      "source_ns": 1958034642,
+      "rgb_sha256": "fab52127003d56e614cccd2d9869ee82c76549d78d4da85ea7676bbe81c491e1",
+      "bgra_sha256": "45437e7e3baaa20139ee8d91fd616394ba0ff727878e6bb3ecccba9aac81df97",
+      "path": "235.bgra.z",
+      "stored_sha256": "29f074af399fc9f7fc6b139e956344b9955f317c563f7375eb613d9b8c04eead",
+      "stored_bytes": 17155023,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 240,
+      "source_ns": 2008034641,
+      "rgb_sha256": "9b33f0cf11ee1973ec8c5c02300fdc1ba53e0027c7758ab88a24955151acab62",
+      "bgra_sha256": "968fa9d1dfad6fcef0120dc0cd0eab24fdcd0eae83dbce7de3a3a0b7d270d2fb",
+      "path": "240.bgra.z",
+      "stored_sha256": "ab8e665702f5e8dd8c576c55369338b793b59088e8448f649ddd8921fbbe0a4e",
+      "stored_bytes": 17159047,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 245,
+      "source_ns": 2058034640,
+      "rgb_sha256": "848bddd6ef946b57474b3eadb965497238331ff2f0048dd48760ffa5b05a5118",
+      "bgra_sha256": "1de509395be77601d04494972e8ebf2b751657a63bd0f23c0b929061b9c52f55",
+      "path": "245.bgra.z",
+      "stored_sha256": "91d83ff67dc315f1b23d2b157077de205ca905c052281c0c2dae50daa8deb3ad",
+      "stored_bytes": 17129308,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 250,
+      "source_ns": 2108034639,
+      "rgb_sha256": "32ba9793dbd0749f331747029c3005c2fa238b873d7eda95d1875da33012013f",
+      "bgra_sha256": "074d5966808f2f95358ff1faa53214278e25fed7da19bf3e0223838981194f96",
+      "path": "250.bgra.z",
+      "stored_sha256": "875fd71b8f918941ad86bf699accf32131ec99321c47881811498f3bd0ac215c",
+      "stored_bytes": 17194819,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 255,
+      "source_ns": 2158034638,
+      "rgb_sha256": "b7872fc69a5c9cdac0d240eed0224549f1993983c8a280f1aa8d5bea5c5901ad",
+      "bgra_sha256": "1a23efc76899a85d091fdd6ec79bd5a1737dfd73646cac2a583031fde21c26cd",
+      "path": "255.bgra.z",
+      "stored_sha256": "f1cd73327c027f6dc8700df27f68d413e32dcfe8b77b132af88153399035fc6a",
+      "stored_bytes": 17211829,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 260,
+      "source_ns": 2208034636,
+      "rgb_sha256": "8aa8d5d9d8d2e34a56404d359d093a5d1b4cbe6474811f12391f72b1a6a655f6",
+      "bgra_sha256": "61f0537d43db9353f48bbe731b255916d0c2784f12b30414900f04cc227c81b4",
+      "path": "260.bgra.z",
+      "stored_sha256": "d8657e60509e725e5050b09a6b3a0c03efcac58a49270ecf21c741f96d5a02df",
+      "stored_bytes": 17179406,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 265,
+      "source_ns": 2258034635,
+      "rgb_sha256": "156e98c70201fb1a18ad9e78135222f1e22fdf3585abeefb7b6fd7df1693836f",
+      "bgra_sha256": "2f80a7442b02ee1aabc4381d6905a7e0909299d6cf61c0d0130d83a2b08b138a",
+      "path": "265.bgra.z",
+      "stored_sha256": "eaca7d142a7e5577222726a753d8120ffa99500e3072aa8b184d8c968b9b74a5",
+      "stored_bytes": 17149080,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 270,
+      "source_ns": 2308034634,
+      "rgb_sha256": "ad3089f93511d4f0bb080555e838ebd4fe2a1036c72efdf347600c9819f71534",
+      "bgra_sha256": "423cde430d174c2ccaf3376c1bbdd392245c9b207fea98702ef77e3d1b67d3b6",
+      "path": "270.bgra.z",
+      "stored_sha256": "1af9dccbe3ba738701a2bc7a550d0e82459e82b61688ed17e0202cd93466c81c",
+      "stored_bytes": 17226728,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 275,
+      "source_ns": 2358034633,
+      "rgb_sha256": "fa6e2210ca42870d8d525844ad6487d3fc2f77d327415a41481d1d7a6280c78f",
+      "bgra_sha256": "c542da35dec3f57ea78f4a4a7ec8813ef2c2518e9a318e0ceb97ebbc98e932fb",
+      "path": "275.bgra.z",
+      "stored_sha256": "254a5c9ac7483b47abb0b12d123524fa3d529e9c8f524a77a4e5e9569986f80d",
+      "stored_bytes": 17173646,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 280,
+      "source_ns": 2408034632,
+      "rgb_sha256": "efc60668ea016bc930099885595b4c1efa0a237d72a3045f397646d07d7a50ef",
+      "bgra_sha256": "e6a46279921238c3933297bceb98be445100c651a563a4f86f50adc1ae8f58f2",
+      "path": "280.bgra.z",
+      "stored_sha256": "bac322461dd4536df4b7021bcda3e7e2477a867d22c24b5132384e76a6486a0b",
+      "stored_bytes": 17158869,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 285,
+      "source_ns": 2458034631,
+      "rgb_sha256": "cfea7e51b6ac06533bd35b1d57bcb3cf105dc2f213d4239fc15eef566a274446",
+      "bgra_sha256": "e51d64d4ae273668da692426e26a74989b217e980a2957ed48ba257fdd2c0c6f",
+      "path": "285.bgra.z",
+      "stored_sha256": "3133ae62faf17ecccd919b0353cc3fdb6f67f30001a223dca84f3237f95f40fb",
+      "stored_bytes": 17147691,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 290,
+      "source_ns": 2508034630,
+      "rgb_sha256": "b9ef15a454a3c31aa514a27cbafe3b79efadf20758cfee24b4baebe5f4c4c0a9",
+      "bgra_sha256": "8eac55da031a28f4d76d2831b9befc322c99ec5f33614b835d853d3b81994504",
+      "path": "290.bgra.z",
+      "stored_sha256": "8f974069cc6e2cfaecdd96ca743aad4ca1e94ecb84eba3bca8c5059bb64f79ed",
+      "stored_bytes": 17192655,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 295,
+      "source_ns": 2558034629,
+      "rgb_sha256": "aab5f7f3abfac7fa3ce589b18e5badb33ae8217be12feae513fa6762e36c64c9",
+      "bgra_sha256": "5d540efa8559829f7996b1550220369e9445302a1ce75710fead91555181d267",
+      "path": "295.bgra.z",
+      "stored_sha256": "37a13fff952b90ae0f9226ae36b5acfd1cd13c49bd1c79c0de81c7f870f9fb08",
+      "stored_bytes": 17211958,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 300,
+      "source_ns": 2608034628,
+      "rgb_sha256": "d49b2f8663cd6efc7cc8c06f3a3be9cf21d18f6e08ea7dbc39daf707721577b7",
+      "bgra_sha256": "28f1d9459c6b4033d7d3c36b91337d46b5fc4494772b7ad61b2bba259bbf0117",
+      "path": "300.bgra.z",
+      "stored_sha256": "d69b8b9a4837e034b1b3fe5281bab4a17edc1d3cc56769b202cf68b0ab3ef731",
+      "stored_bytes": 17185510,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 305,
+      "source_ns": 2658034626,
+      "rgb_sha256": "49ce943831e8b6330a71dbafce6849a092323cd5570fe779afccf69f8ea695ca",
+      "bgra_sha256": "e12d1a72ad54ba4a93bf553a2380961e7873295fb729310ea94bfdeafff4cf61",
+      "path": "305.bgra.z",
+      "stored_sha256": "51779f97d29578f117c1fb26f7dc107a6cb106a09c4f11b8158833d2085f7a74",
+      "stored_bytes": 17156204,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 310,
+      "source_ns": 2708034625,
+      "rgb_sha256": "79f0b02f7e17d57147c29656ee7fee98abf6e1aa0b3232ea0e802de3a6e12a53",
+      "bgra_sha256": "350f0116f0ad65e822480896df8f70de2860246277bbdadda6eb87b215dd8b63",
+      "path": "310.bgra.z",
+      "stored_sha256": "72f78e7bc5b67034f9d8acecad258b0f476345e31d0fb6da7515db49a920a551",
+      "stored_bytes": 17240080,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 315,
+      "source_ns": 2758034624,
+      "rgb_sha256": "d1a057e35d498c4ea5a933d4ace5e0ed22af43e0f9c211daf209fe0c23d8ac4e",
+      "bgra_sha256": "b8ddd56eb58082e928d52ee389b3a04a344c0bddca58849ee36583fdfa2ee832",
+      "path": "315.bgra.z",
+      "stored_sha256": "793cbbde8928ce57c1a54e9e170e89ae04f484ab6ffd1ba6a127505a5dff5c0f",
+      "stored_bytes": 17176110,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 320,
+      "source_ns": 2808034623,
+      "rgb_sha256": "b4f1fe8ef2eb5d6fede1354885322bc62d40700ad44085bb436270adbca66bc1",
+      "bgra_sha256": "eaac4ac27efe1f4ffd493c9e0dbcaa7b50c509cb37a54c68b2f1f3cb605bdb43",
+      "path": "320.bgra.z",
+      "stored_sha256": "76d72afe79d0c4fe2cd944a47f7dbdb3ab3503cf14514723e997f3b62990266a",
+      "stored_bytes": 17181512,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 325,
+      "source_ns": 2858034622,
+      "rgb_sha256": "d871874492ef8db3383809b44c3b71ce627c68e5310e6342347ce93ec3e49ca1",
+      "bgra_sha256": "4487783f0cf01f79ecdc29dbba7e652a9184ed72d6347d59d79d1221cc314eb1",
+      "path": "325.bgra.z",
+      "stored_sha256": "9eeddabb68bd14a9e0d777225e251ee6ff15a65c8a8c65ca6b6a6642acbc0dbc",
+      "stored_bytes": 17158270,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 330,
+      "source_ns": 2908034621,
+      "rgb_sha256": "37be84749db89f0956ceba61721c7ef1bf576c8f95a4441e3d3e4993521c4b28",
+      "bgra_sha256": "b9d7d1a2376706f42119f0babc0f0b393979256b801521087f4d42b027d40085",
+      "path": "330.bgra.z",
+      "stored_sha256": "a6a3d8e47dac92f97c422d204a644bfcbda399c9dfe77e96b6a9f081cdb2fa46",
+      "stored_bytes": 17204085,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 335,
+      "source_ns": 2958034620,
+      "rgb_sha256": "10a6dc5e3761b01ba0c055796b0a41225e4dd839b5dd1cedd393be7bb263c15d",
+      "bgra_sha256": "7e0980d8773373f2d7ee8a0133e03dc7760aba335398da38bf3c6415fe224c92",
+      "path": "335.bgra.z",
+      "stored_sha256": "c8590d8a1ca70c368e73a6fe8e604d0c44b89b062ce751d79cc9c43b04cad9a0",
+      "stored_bytes": 17227413,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 340,
+      "source_ns": 3008034619,
+      "rgb_sha256": "7c35a343c19e3817e1d257f75d63a93b6562bdc770f270643a12ed9546244bba",
+      "bgra_sha256": "5d20bd019a89d8a6f23abd9d37fedcf6b3b4c945695384a8a219b2b566cbdf91",
+      "path": "340.bgra.z",
+      "stored_sha256": "1b322bc51357bb44c9436ab54aa3841b93d6998172c1c64e459c5537b2031fc4",
+      "stored_bytes": 17196443,
+      "raw_bytes": 35389440
+    },
+    {
+      "frame": 345,
+      "source_ns": 3058034617,
+      "rgb_sha256": "64295eb4911ab6b41283fc79f2745b13bd46a9cad1da5c5aa3c634cd670941e6",
+      "bgra_sha256": "1342920334798fcdd7197163e03eeb230b87263357f4db26eb3f6f42f171b565",
+      "path": "345.bgra.z",
+      "stored_sha256": "80da1e2c1cb2455fbe1b7cd908f26b9364afacb4f88acd44572c803df30817fd",
+      "stored_bytes": 17171228,
+      "raw_bytes": 35389440
+    }
+  ],
+  "recorder_capacity": 40,
+  "recorder_overflow": [],
+  "clock": "actual observed CARLA snapshots; no extrapolation",
+  "receipt_scope": "worker.offer entry; SDK raw_data materialization before entry measured separately",
+  "freeze_sha256": "18262bce67c941c9f09e3795979d5675629ba31049d254d5f904764cb27235a0",
+  "plan_sha256": "ac82d2947842e6ee7533d87a29b350fa00015aec8a568113c4a87fae052cb303",
+  "kernel_profile_sha256": "0948a076dffa519474de90d63f54b89da1a6c591c44a3a9ec957a14e5f58a585",
+  "model_initialization_wall_ns": 642519560,
+  "providers": [
+    "CUDAExecutionProvider",
+    "CPUExecutionProvider"
+  ],
+  "provider_options": {
+    "CPUExecutionProvider": {},
+    "CUDAExecutionProvider": {
+      "sdpa_kernel": "0",
+      "use_tf32": "0",
+      "fuse_conv_bias": "0",
+      "prefer_nhwc": "0",
+      "tunable_op_max_tuning_duration_ms": "0",
+      "enable_skip_layer_norm_strict_mode": "0",
+      "tunable_op_tuning_enable": "0",
+      "tunable_op_enable": "0",
+      "use_ep_level_unified_stream": "0",
+      "device_id": "0",
+      "has_user_compute_stream": "0",
+      "gpu_external_empty_cache": "0",
+      "cudnn_conv_algo_search": "HEURISTIC",
+      "cudnn_conv1d_pad_to_nc1d": "0",
+      "gpu_mem_limit": "2147483648",
+      "gpu_external_alloc": "0",
+      "gpu_external_free": "0",
+      "arena_extend_strategy": "kNextPowerOfTwo",
+      "do_copy_in_default_stream": "1",
+      "enable_cuda_graph": "0",
+      "user_compute_stream": "0",
+      "cudnn_conv_use_max_workspace": "1"
+    }
+  },
+  "client_version": "294096e-dirty",
+  "server_version": "294096e-dirty",
+  "xodr_sha256": "4dddd1560ab7812b0e89cd4a523d8b6f2b93947eafb496d9eeb83cc772116c85",
+  "world_settings": {
+    "synchronous_mode": true,
+    "fixed_delta_seconds": 0.01,
+    "no_rendering_mode": false,
+    "substepping": true,
+    "max_substep_delta_time": 0.01,
+    "max_substeps": 10
+  },
+  "fixture": {
+    "case": "v9-development-000",
+    "site": 38,
+    "camera_pose": {
+      "location": {
+        "x": -45.608036041259766,
+        "y": 340.2605285644531,
+        "z": 1.9819424271583557
+      },
+      "rotation": {
+        "pitch": 354.0,
+        "yaw": 128.04269409179688,
+        "roll": 0.0
+      }
+    },
+    "actors": [
+      {
+        "class_id": 0,
+        "blueprint": "walker.pedestrian.0004",
+        "role": "target",
+        "right_m": 0.4,
+        "z_offset_m": 0.5,
+        "yaw_offset_degrees": 15,
+        "route_distance_m": 12,
+        "road_node": {
+          "id": 16648846105683699544,
+          "road_id": 45,
+          "section_id": 0,
+          "lane_id": 3,
+          "s": 571.9337104797363,
+          "lane_width": 3.5,
+          "is_junction": false,
+          "pose": {
+            "location": {
+              "x": -53.08094024658203,
+              "y": 349.23895263671875,
+              "z": 0.0
+            },
+            "rotation": {
+              "pitch": 360.0,
+              "yaw": 131.49984741210938,
+              "roll": 0.0
+            }
+          }
+        },
+        "clearance_m": 0.7819424271583557,
+        "pose": {
+          "location": {
+            "x": -53.380523240762145,
+            "y": 348.9739054152693,
+            "z": 0.7819424271583557
+          },
+          "rotation": {
+            "pitch": 360.0,
+            "yaw": 146.49984741210938,
+            "roll": 0.0
+          }
+        },
+        "camera_projection": {
+          "depth_m": 11.713622086379907,
+          "u": 340.5335148199628,
+          "v": 191.3295639986224,
+          "in_frame": true
+        }
+      }
+    ]
+  },
+  "clock_instance": 584691710719886071,
+  "initial_frame": 166,
+  "initial_source_ns": 1268034657,
+  "sensor_attributes": {
+    "tint": "0.0",
+    "blur_amount": "1.0",
+    "min_fstop": "1.2",
+    "chromatic_aberration_offset": "0.0",
+    "slope": "0.88",
+    "focal_distance": "1000.0",
+    "exposure_speed_down": "1.0",
+    "exposure_speed_up": "3.0",
+    "motion_blur_min_object_screen_size": "0.1",
+    "lens_flare_intensity": "0.1",
+    "motion_blur_intensity": "0.45",
+    "exposure_min_bright": "10.0",
+    "gamma": "2.2",
+    "blade_count": "5",
+    "enable_postprocess_effects": "true",
+    "calibration_constant": "16.0",
+    "exposure_compensation": "0.0",
+    "exposure_mode": "histogram",
+    "exposure_max_bright": "12.0",
+    "lens_x_size": "0.08",
+    "chromatic_aberration_intensity": "0.0",
+    "lens_kcube": "0.0",
+    "fstop": "1.4",
+    "lens_k": "-1.0",
+    "toe": "0.55",
+    "motion_blur_max_distortion": "0.35",
+    "lens_circle_multiplier": "0.0",
+    "bloom_intensity": "0.675",
+    "shutter_speed": "200.0",
+    "lens_circle_falloff": "5.0",
+    "temp": "6500.0",
+    "fov": "90",
+    "image_size_y": "2304",
+    "white_clip": "0.04",
+    "shoulder": "0.26",
+    "image_size_x": "3840",
+    "lens_y_size": "0.08",
+    "sensor_tick": "0.05",
+    "ros_publish_tf": "true",
+    "blur_radius": "0.0",
+    "ros_frame_id": "",
+    "iso": "100.0",
+    "ros_name": "",
+    "black_clip": "0.0",
+    "role_name": "m7_frame5"
+  },
+  "enabled_wall_ns": 1390981033372664,
+  "last_planned_frame": 349,
+  "sensor_stopped_wall_ns": 1390983938105743,
+  "silence_end_wall_ns": 1390984238416743,
+  "worker": {
+    "counters": {
+      "offered": 36,
+      "accepted": 36,
+      "rejected": 0,
+      "overwritten": 13,
+      "cancelled": 0,
+      "expired_pending": 0,
+      "started": 23,
+      "completed": 23,
+      "published": 0,
+      "late": 23,
+      "errors": 0,
+      "obsolete": 0,
+      "invalidated": 1
+    },
+    "busy": false,
+    "pending": false,
+    "stop_requested": false,
+    "stopped": false,
+    "clock_fault": false,
+    "last_error": "completion deadline"
+  },
+  "decisions": {
+    "rows": [
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 170,
+          "source_ns": 1308034657,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390981156668501,
+        "started_source_ns": 1368034655,
+        "started_wall_ns": 1390981156720970,
+        "backend_return_monotonic_ns": 1390981645514686,
+        "decision_source_ns": 1718034647,
+        "decision_wall_ns": 1390981645529332,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 205,
+          "source_ns": 1658034649,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390981612273698,
+        "started_source_ns": 1718034647,
+        "started_wall_ns": 1390981645538467,
+        "backend_return_monotonic_ns": 1390981755394598,
+        "decision_source_ns": 1788034646,
+        "decision_wall_ns": 1390981755424095,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 215,
+          "source_ns": 1758034647,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390981753862307,
+        "started_source_ns": 1788034646,
+        "started_wall_ns": 1390981755439777,
+        "backend_return_monotonic_ns": 1390981863119176,
+        "decision_source_ns": 1868034644,
+        "decision_wall_ns": 1390981863138022,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 220,
+          "source_ns": 1808034645,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390981822726956,
+        "started_source_ns": 1868034644,
+        "started_wall_ns": 1390981863147664,
+        "backend_return_monotonic_ns": 1390981956792404,
+        "decision_source_ns": 1918034643,
+        "decision_wall_ns": 1390981956824659,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 225,
+          "source_ns": 1858034644,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390981897417507,
+        "started_source_ns": 1918034643,
+        "started_wall_ns": 1390981956845265,
+        "backend_return_monotonic_ns": 1390982062135471,
+        "decision_source_ns": 1998034641,
+        "decision_wall_ns": 1390982062150885,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 235,
+          "source_ns": 1958034642,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982060640639,
+        "started_source_ns": 1998034641,
+        "started_wall_ns": 1390982062160150,
+        "backend_return_monotonic_ns": 1390982168565222,
+        "decision_source_ns": 2068034640,
+        "decision_wall_ns": 1390982168581316,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 240,
+          "source_ns": 2008034641,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982126980503,
+        "started_source_ns": 2068034640,
+        "started_wall_ns": 1390982168591346,
+        "backend_return_monotonic_ns": 1390982282484211,
+        "decision_source_ns": 2168034637,
+        "decision_wall_ns": 1390982282500647,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 250,
+          "source_ns": 2108034639,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982265953684,
+        "started_source_ns": 2168034637,
+        "started_wall_ns": 1390982282510877,
+        "backend_return_monotonic_ns": 1390982391234651,
+        "decision_source_ns": 2218034636,
+        "decision_wall_ns": 1390982391247808,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 255,
+          "source_ns": 2158034638,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982339564821,
+        "started_source_ns": 2218034636,
+        "started_wall_ns": 1390982391256637,
+        "backend_return_monotonic_ns": 1390982485680463,
+        "decision_source_ns": 2268034635,
+        "decision_wall_ns": 1390982485700664,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 260,
+          "source_ns": 2208034636,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982421684700,
+        "started_source_ns": 2268034635,
+        "started_wall_ns": 1390982485713512,
+        "backend_return_monotonic_ns": 1390982599708323,
+        "decision_source_ns": 2368034633,
+        "decision_wall_ns": 1390982599728498,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 270,
+          "source_ns": 2308034634,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982583553375,
+        "started_source_ns": 2368034633,
+        "started_wall_ns": 1390982599739381,
+        "backend_return_monotonic_ns": 1390982705623190,
+        "decision_source_ns": 2418034632,
+        "decision_wall_ns": 1390982705638152,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 275,
+          "source_ns": 2358034633,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982655666595,
+        "started_source_ns": 2418034632,
+        "started_wall_ns": 1390982705654798,
+        "backend_return_monotonic_ns": 1390982797820402,
+        "decision_source_ns": 2468034631,
+        "decision_wall_ns": 1390982797850521,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 280,
+          "source_ns": 2408034632,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982736547188,
+        "started_source_ns": 2468034631,
+        "started_wall_ns": 1390982797869597,
+        "backend_return_monotonic_ns": 1390982899690268,
+        "decision_source_ns": 2558034629,
+        "decision_wall_ns": 1390982899706279,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 290,
+          "source_ns": 2508034630,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982889651411,
+        "started_source_ns": 2558034629,
+        "started_wall_ns": 1390982899715940,
+        "backend_return_monotonic_ns": 1390983003280181,
+        "decision_source_ns": 2618034627,
+        "decision_wall_ns": 1390983003297234,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 295,
+          "source_ns": 2558034629,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390982962339253,
+        "started_source_ns": 2618034627,
+        "started_wall_ns": 1390983003306458,
+        "backend_return_monotonic_ns": 1390983096916626,
+        "decision_source_ns": 2668034626,
+        "decision_wall_ns": 1390983096945100,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 300,
+          "source_ns": 2608034628,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390983037881626,
+        "started_source_ns": 2668034626,
+        "started_wall_ns": 1390983096961587,
+        "backend_return_monotonic_ns": 1390983197209826,
+        "decision_source_ns": 2738034625,
+        "decision_wall_ns": 1390983197226301,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 305,
+          "source_ns": 2658034626,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390983127041433,
+        "started_source_ns": 2738034625,
+        "started_wall_ns": 1390983197236066,
+        "backend_return_monotonic_ns": 1390983288398373,
+        "decision_source_ns": 2818034623,
+        "decision_wall_ns": 1390983288416427,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 315,
+          "source_ns": 2758034624,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390983269018696,
+        "started_source_ns": 2818034623,
+        "started_wall_ns": 1390983288427552,
+        "backend_return_monotonic_ns": 1390983388987339,
+        "decision_source_ns": 2868034622,
+        "decision_wall_ns": 1390983389004622,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 320,
+          "source_ns": 2808034623,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390983339435970,
+        "started_source_ns": 2868034622,
+        "started_wall_ns": 1390983389014983,
+        "backend_return_monotonic_ns": 1390983479327241,
+        "decision_source_ns": 2918034621,
+        "decision_wall_ns": 1390983479365409,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 325,
+          "source_ns": 2858034622,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390983418994352,
+        "started_source_ns": 2918034621,
+        "started_wall_ns": 1390983479388628,
+        "backend_return_monotonic_ns": 1390983623382362,
+        "decision_source_ns": 3018034618,
+        "decision_wall_ns": 1390983623395128,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 335,
+          "source_ns": 2958034620,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390983577458473,
+        "started_source_ns": 3018034618,
+        "started_wall_ns": 1390983623403824,
+        "backend_return_monotonic_ns": 1390983713092142,
+        "decision_source_ns": 3068034617,
+        "decision_wall_ns": 1390983713110204,
+        "source_expired": true,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 340,
+          "source_ns": 3008034619,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390983655250649,
+        "started_source_ns": 3068034617,
+        "started_wall_ns": 1390983713122833,
+        "backend_return_monotonic_ns": 1390983796394153,
+        "decision_source_ns": 3098034617,
+        "decision_wall_ns": 1390983796406498,
+        "source_expired": false,
+        "receipt_expired": true,
+        "outcome": "late"
+      },
+      {
+        "identity": {
+          "epoch": 1,
+          "clock_instance": 584691710719886071,
+          "frame": 345,
+          "source_ns": 3058034617,
+          "camera_id": 1,
+          "calibration_revision": 1
+        },
+        "received_wall_ns": 1390983738114180,
+        "started_source_ns": 3098034617,
+        "started_wall_ns": 1390983796415642,
+        "backend_return_monotonic_ns": 1390983859894881,
+        "decision_source_ns": 3098034617,
+        "decision_wall_ns": 1390983859913348,
+        "source_expired": false,
+        "receipt_expired": true,
+        "outcome": "late"
+      }
+    ],
+    "overflow": 0,
+    "capacity": 512
+  },
+  "metrics": {
+    "state": {
+      "jobs": 183,
+      "observed_hz": 67.61458952839627,
+      "job_wall": {
+        "n": 183,
+        "mean_ms": 14.77502224590164,
+        "p95_ms": 43.144884700000006,
+        "p99_ms": 51.30836414000001,
+        "max_ms": 54.681483
+      },
+      "interval_wall": {
+        "n": 182,
+        "mean_ms": 14.789707472527473,
+        "p95_ms": 43.173599349999996,
+        "p99_ms": 51.331727189999995,
+        "max_ms": 54.687027
+      }
+    },
+    "camera": {
+      "jobs": 36,
+      "observed_hz": 13.56450712553752,
+      "job_wall": {
+        "n": 36,
+        "mean_ms": 12.833607833333334,
+        "p95_ms": 14.60847975,
+        "p99_ms": 15.412039299999998,
+        "max_ms": 15.794765
+      },
+      "interval_wall": {
+        "n": 35,
+        "mean_ms": 73.72180874285715,
+        "p95_ms": 86.434104,
+        "p99_ms": 87.39505335999999,
+        "max_ms": 87.801267
+      }
+    },
+    "consumer": {
+      "jobs": 161,
+      "observed_hz": 49.99904194023292,
+      "job_wall": {
+        "n": 161,
+        "mean_ms": 0.01638794409937888,
+        "p95_ms": 0.029201,
+        "p99_ms": 0.03504360000000002,
+        "max_ms": 0.03773
+      },
+      "interval_wall": {
+        "n": 160,
+        "mean_ms": 20.000383231249998,
+        "p95_ms": 29.347554749999997,
+        "p99_ms": 32.054834279999994,
+        "max_ms": 33.68197
+      }
+    },
+    "receipt_to_backend_return": {
+      "n": 23,
+      "mean_ms": 157.02153126086955,
+      "p95_ms": 201.73921789999994,
+      "p99_ms": 426.2543277600003,
+      "max_ms": 488.835339
+    }
+  },
+  "fresh_output_observed": false,
+  "unique_consumed_frames": 0,
+  "closed": true,
+  "final_worker": {
+    "counters": {
+      "offered": 36,
+      "accepted": 36,
+      "rejected": 0,
+      "overwritten": 13,
+      "cancelled": 0,
+      "expired_pending": 0,
+      "started": 23,
+      "completed": 23,
+      "published": 0,
+      "late": 23,
+      "errors": 0,
+      "obsolete": 0,
+      "invalidated": 2
+    },
+    "busy": false,
+    "pending": false,
+    "stop_requested": true,
+    "stopped": true,
+    "clock_fault": false,
+    "last_error": "native perception closed"
+  },
+  "audit": {
+    "status": "PASS",
+    "actual_ticks": 183,
+    "images": 36,
+    "calls": 23,
+    "consumed": 0,
+    "overlap": {
+      "state": 172,
+      "consumer": 135
+    },
+    "silence_reads": 10,
+    "decisions": {
+      "status": "PASS",
+      "decisions": 23,
+      "outcomes": {
+        "late": 23
+      },
+      "late_causes": {
+        "both": 21,
+        "receipt_only": 2
+      }
+    },
+    "acceptance": "diagnostic_only"
+  }
+}
