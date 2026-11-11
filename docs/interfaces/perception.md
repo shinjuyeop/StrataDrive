@@ -129,3 +129,26 @@ CARLA RGB/instance pair와 독립 evaluator를 구분한다. TP/FP/FN@IoU0.5는 
 [Native4K 전처리·live 관측 후속](../test-plan/evidence/m10_native_preprocess_v1/README.md)은 동일 입력과 원래100ms 기한을 유지한다. 실제 공유 GPU의 유효 출력 실패를 보존하며 기본 S/C++640 계약을 교체하지 않는다.
 
 [Native CPU resize·완료 clock 진단](../test-plan/evidence/m10_native_kernel_v1/README.md)은 원래 tensor/100ms/native typed result를 유지한다. 실제27개 fresh 관측은 기존 S/C++640 계약 교체나 주행 허가가 아니다.
+
+## Native4K 명시적 준비와 가용성
+
+[Native startup V1](../../physical_ai/perception/native_startup_v1.py)은 선택형4K owner에
+NOT_REQUESTED→PREPARING→READY 단계를 추가한다. 독립 합성 gradient3회를 **센서 처리와
+동일한 추론 스레드**에서 수행하며 전체10s 미만·2/3회 각각100ms 미만을 요구한다.
+첫 cold call·gradient 생성·실패도 모두 준비 기록에 남기고 센서 분모와 별도로 공개한다.
+READY 전에 session/offer를 허용하지 않고 합성 결과는 snapshot에 넣지 않는다.
+준비 실패·clock 역행·취소·기한 뒤 완료로 READY를 되살릴 수 없다. READY는 초기화 완료이며
+인지 가용성·차량 permission을 뜻하지 않는다. 기존 S/C++640 runtime은 그대로다.
+
+센서100ms 기한은 준비 후에도 원래 source와 offer receipt 양쪽에 배타적으로 적용한다.
+완료/발행 수와 consumer의 **유효 조회 수/전체 조회 수**는 다르다. 동일 결과를 유효기간 안에서
+여러 번 읽을 수 있고, 모든 추론이 통과해도 다음 결과까지 빈 구간이 생길 수 있다.
+[가용성 진단](../../physical_ai/perception/availability_v1.py)은 실제 관측 sample과 원래 age를
+세며 보간·기한 연장·가상 fresh frame을 만들지 않는다. 연속 invalid sample의 첫/마지막 시각
+차이는 관측 span이고 정확한 연속 outage 시간은 아니다.
+
+Reference20Hz는 SYS-PERF-002에 유지한다.10Hz는 검토 가능한 별도 운영 조건이며 그 자체로
+충분/불충분을 결정하지 않는다. 같은 clock·일정 지연·무손실이라는 이상 조건에서 주기P,
+지연L, 유효기간D라면 valid 비율은 `min(P,max(0,D-L))/P`다. P=100ms/L=60ms/D=100ms는
+40%다. 실제 CARLA에서는 simulation age와 monotonic receipt age를 각각 검사하며 이 공식을
+서로 다른 clock 사이에 그대로 대입하지 않는다. [사전 프로토콜](../test-plan/perception-native-startup-v1-protocol.md)을 따른다.

@@ -1,0 +1,53 @@
+test_cancel_before_request_stops_without_backend_calls (test_native_startup_v1.NativeStartupTests) ... ok
+test_cold_cost_is_recorded_but_settled_calls_must_be_below100ms (test_native_startup_v1.NativeStartupTests) ... ok
+test_exact_settled_deadline_fails_without_retry (test_native_startup_v1.NativeStartupTests) ... ok
+test_exception_identity_and_clock_regression_fail_closed (test_native_startup_v1.NativeStartupTests) ... ok
+test_native_gradient_matches_rgb_xy_definition (test_native_startup_v1.NativeStartupTests) ... ok
+test_preparation_is_not_sensor_publication_and_owner_is_reused (test_native_startup_v1.NativeStartupTests) ... ok
+test_timeout_late_completion_cannot_restore_ready (test_native_startup_v1.NativeStartupTests) ... ok
+test_backend_exception_is_unavailable_then_can_recover (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_bad_world_tick_latches_without_waiting_for_backend (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_callback_owns_mutable_sdk_storage_and_original_receipt (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_callback_replay_layout_boolean_and_nonfinite_timestamp_rejected (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_clock_regression_latches_and_cannot_be_cleared_by_new_epoch (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_close_reports_unstopped_backend_and_discards_its_later_completion (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_expired_pending_packet_never_invokes_the_model (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_forged_future_timestamp_is_rejected_after_tick_without_rewriting_it (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_future_callback_expires_by_receipt_when_world_does_not_progress (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_future_callback_waits_for_actual_matching_world_snapshot (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_late_completion_does_not_get_a_new_acquisition_or_lifetime (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_latest_pending_replaces_older_frame_without_cancelling_active_call (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_malformed_callback_invalidates_inflight_and_new_valid_frame_recovers (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_native_backend_preserves_bgra_channels_dimensions_and_native_coordinates (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_native_boxes_are_typed_and_never_masquerade_as_legacy640_result (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_new_session_discards_old_completion_but_accepts_new_result (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_receipt_expiry_is_exclusive_even_when_simulation_is_paused (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_result_schema_model_and_original_identity_cannot_be_forged (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_session_enable_cannot_be_backdated (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_simulation_age_expires_even_if_wall_clock_does_not_advance (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_state_and_control_progress_while_backend_is_blocked (test_native_startup_v1.PreparedAdmissionTests) ... ok
+test_complete_separate_denominators (test_native_startup_audit_v1.NativeStartupAuditTests) ... ERROR
+test_missing_cold_call_owner_switch_and_synthetic_publication_rejected (test_native_startup_audit_v1.NativeStartupAuditTests) ... ok
+test_10hz_with60ms_delay_has60ms_gap_at100ms_lifetime (test_availability_v1.AvailabilityTests) ... ok
+test_expired_or_out_of_order_samples_are_not_counted (test_availability_v1.AvailabilityTests) ... ok
+test_sampled_gaps_age_and_same_frame_reuse (test_availability_v1.AvailabilityTests) ... ok
+test_duplicate_frame_never_overwrites_original (test_native_raw_recorder_v1.NativeRecorderTests) ... ok
+test_exact_bytes_and_bounded_lifecycle (test_native_raw_recorder_v1.NativeRecorderTests) ... ok
+test_full_queue_close_timeout_can_be_retried (test_native_raw_recorder_v1.NativeRecorderTests) ... ok
+
+======================================================================
+ERROR: test_complete_separate_denominators (test_native_startup_audit_v1.NativeStartupAuditTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/test_native_startup_audit_v1.py", line 55, in test_complete_separate_denominators
+    result = audit_preparation(fixture())
+  File "/d/shin/StrataDrive/tests/integration/perception/audit_native_startup_v1.py", line 43, in audit_preparation
+    require(
+  File "/d/shin/StrataDrive/tests/integration/perception/audit_async_native_v1.py", line 17, in require
+    raise ValueError(reason)
+ValueError: synthetic native identity/result
+
+----------------------------------------------------------------------
+Ran 36 tests in 0.209s
+
+FAILED (errors=1)

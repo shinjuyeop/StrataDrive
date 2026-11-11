@@ -1,0 +1,1184 @@
+{
+  "status": "PASS_WITH_ORIGINAL_FAILURES_PRESERVED",
+  "original_startup_failures": 1,
+  "streaming_recorder_failures": 1,
+  "complete_live_runs": 3,
+  "rows": [
+    {
+      "name": "prepared-02",
+      "status": "PASS",
+      "images": 240,
+      "calls": 240,
+      "availability": {
+        "active_ticks": {
+          "samples": 1027,
+          "available_samples": 450,
+          "sampled_available_fraction": 0.43816942551119764,
+          "unique_frames": 236,
+          "unavailable_runs": 236,
+          "longest_unavailable_sample_run": 26,
+          "longest_unavailable_first_to_last_ns": 599982807,
+          "source_age": {
+            "n": 450,
+            "mean_ms": 82.51110928444444,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 450,
+            "mean_ms": 80.50495143111111,
+            "p95_ms": 95.67218325,
+            "p99_ms": 98.02945765,
+            "max_ms": 99.965535
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        },
+        "including_delivery_tail": {
+          "samples": 1037,
+          "available_samples": 453,
+          "sampled_available_fraction": 0.43683702989392476,
+          "unique_frames": 237,
+          "unavailable_runs": 238,
+          "longest_unavailable_sample_run": 26,
+          "longest_unavailable_first_to_last_ns": 599982807,
+          "source_age": {
+            "n": 453,
+            "mean_ms": 82.33995402649006,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 453,
+            "mean_ms": 80.49231837748344,
+            "p95_ms": 95.666577,
+            "p99_ms": 98.0290522,
+            "max_ms": 99.965535
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        }
+      },
+      "metrics": {
+        "state": {
+          "jobs": 1202,
+          "observed_hz": 58.14016822461393,
+          "job_wall": {
+            "n": 1202,
+            "mean_ms": 17.183231770382694,
+            "p95_ms": 50.5933451,
+            "p99_ms": 53.23614769,
+            "max_ms": 108.354398
+          },
+          "interval_wall": {
+            "n": 1201,
+            "mean_ms": 17.199812634471275,
+            "p95_ms": 50.598394,
+            "p99_ms": 53.239943,
+            "max_ms": 108.361167
+          }
+        },
+        "camera": {
+          "jobs": 240,
+          "observed_hz": 11.63739265263717,
+          "job_wall": {
+            "n": 240,
+            "mean_ms": 13.453768816666667,
+            "p95_ms": 14.30684935,
+            "p99_ms": 41.30763484999957,
+            "max_ms": 56.368958
+          },
+          "interval_wall": {
+            "n": 239,
+            "mean_ms": 85.92990112552302,
+            "p95_ms": 89.3643776,
+            "p99_ms": 154.2658557200002,
+            "max_ms": 229.208924
+          }
+        },
+        "consumer": {
+          "jobs": 1053,
+          "observed_hz": 49.76314724160794,
+          "job_wall": {
+            "n": 1053,
+            "mean_ms": 0.05627222507122508,
+            "p95_ms": 0.1299598,
+            "p99_ms": 0.1770188,
+            "max_ms": 1.128474
+          },
+          "interval_wall": {
+            "n": 1052,
+            "mean_ms": 20.09519203326996,
+            "p95_ms": 28.92924465,
+            "p99_ms": 32.33234507,
+            "max_ms": 70.502966
+          }
+        },
+        "receipt_to_backend_return": {
+          "n": 240,
+          "mean_ms": 59.94757804583334,
+          "p95_ms": 62.928879949999995,
+          "p99_ms": 82.7671012399997,
+          "max_ms": 118.143865
+        }
+      },
+      "counters": {
+        "offered": 240,
+        "accepted": 240,
+        "rejected": 0,
+        "overwritten": 0,
+        "cancelled": 0,
+        "expired_pending": 0,
+        "started": 240,
+        "completed": 240,
+        "published": 238,
+        "late": 2,
+        "errors": 0,
+        "obsolete": 0,
+        "invalidated": 2
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 1393417876858624,
+        "finished_wall_ns": 1393418332064776,
+        "last_observed_wall_ns": 1393418332064776,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "owner_thread_id": 137378538706496,
+            "begin_wall_ns": 1393417876964096,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 1,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 17692237,
+              "inference_ns": 316039043,
+              "postprocess_ns": 214718,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1393418261583610,
+            "elapsed_wall_ns": 384619514
+          },
+          {
+            "number": 2,
+            "owner_thread_id": 137378538706496,
+            "begin_wall_ns": 1393418261603174,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 2,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 15156228,
+              "inference_ns": 20145934,
+              "postprocess_ns": 204359,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1393418297212542,
+            "elapsed_wall_ns": 35609368
+          },
+          {
+            "number": 3,
+            "owner_thread_id": 137378538706496,
+            "begin_wall_ns": 1393418297233441,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 3,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 14347437,
+              "inference_ns": 20151743,
+              "postprocess_ns": 215986,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1393418332064776,
+            "elapsed_wall_ns": 34831335
+          }
+        ]
+      },
+      "audit": {
+        "status": "PASS",
+        "actual_ticks": 1202,
+        "images": 240,
+        "calls": 240,
+        "consumed": 237,
+        "overlap": {
+          "state": 584,
+          "consumer": 725
+        },
+        "silence_reads": 10,
+        "decisions": {
+          "status": "PASS",
+          "decisions": 240,
+          "outcomes": {
+            "published": 238,
+            "late": 2
+          },
+          "late_causes": {
+            "receipt_only": 2
+          }
+        },
+        "acceptance": "fresh_output_in_six_finite_segments_not_long_term_qualification",
+        "preparation": {
+          "status": "PASS",
+          "startup_calls": 3,
+          "sensor_calls": 240,
+          "total_backend_calls": 243,
+          "same_owner": true,
+          "startup_elapsed_ns": 455206152
+        },
+        "availability": {
+          "active_ticks": {
+            "samples": 1027,
+            "available_samples": 450,
+            "sampled_available_fraction": 0.43816942551119764,
+            "unique_frames": 236,
+            "unavailable_runs": 236,
+            "longest_unavailable_sample_run": 26,
+            "longest_unavailable_first_to_last_ns": 599982807,
+            "source_age": {
+              "n": 450,
+              "mean_ms": 82.51110928444444,
+              "p95_ms": 99.999998,
+              "p99_ms": 99.999998,
+              "max_ms": 99.999998
+            },
+            "receipt_age": {
+              "n": 450,
+              "mean_ms": 80.50495143111111,
+              "p95_ms": 95.67218325,
+              "p99_ms": 98.02945765,
+              "max_ms": 99.965535
+            },
+            "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+          },
+          "including_delivery_tail": {
+            "samples": 1037,
+            "available_samples": 453,
+            "sampled_available_fraction": 0.43683702989392476,
+            "unique_frames": 237,
+            "unavailable_runs": 238,
+            "longest_unavailable_sample_run": 26,
+            "longest_unavailable_first_to_last_ns": 599982807,
+            "source_age": {
+              "n": 453,
+              "mean_ms": 82.33995402649006,
+              "p95_ms": 99.999998,
+              "p99_ms": 99.999998,
+              "max_ms": 99.999998
+            },
+            "receipt_age": {
+              "n": 453,
+              "mean_ms": 80.49231837748344,
+              "p95_ms": 95.666577,
+              "p99_ms": 98.0290522,
+              "max_ms": 99.965535
+            },
+            "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+          }
+        },
+        "consumed_per200ticks": [
+          39,
+          40,
+          38,
+          40,
+          40,
+          40
+        ]
+      }
+    },
+    {
+      "name": "prepared-01-recovery",
+      "status": "FAIL",
+      "images": 232,
+      "calls": 231,
+      "availability": null,
+      "metrics": null,
+      "counters": {
+        "offered": 232,
+        "accepted": 232,
+        "rejected": 0,
+        "overwritten": 0,
+        "cancelled": 1,
+        "expired_pending": 0,
+        "started": 231,
+        "completed": 231,
+        "published": 226,
+        "late": 4,
+        "errors": 0,
+        "obsolete": 1,
+        "invalidated": 3
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 1393813799063886,
+        "finished_wall_ns": 1393814254264725,
+        "last_observed_wall_ns": 1393814254264725,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "owner_thread_id": 138445317994048,
+            "begin_wall_ns": 1393813799095631,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 1,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 17565508,
+              "inference_ns": 322588398,
+              "postprocess_ns": 204744,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1393814183726882,
+            "elapsed_wall_ns": 384631251
+          },
+          {
+            "number": 2,
+            "owner_thread_id": 138445317994048,
+            "begin_wall_ns": 1393814183745817,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 2,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 16927369,
+              "inference_ns": 19026479,
+              "postprocess_ns": 221785,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1393814220034699,
+            "elapsed_wall_ns": 36288882
+          },
+          {
+            "number": 3,
+            "owner_thread_id": 138445317994048,
+            "begin_wall_ns": 1393814220053914,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 3,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 14893617,
+              "inference_ns": 19005114,
+              "postprocess_ns": 213172,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1393814254264725,
+            "elapsed_wall_ns": 34210811
+          }
+        ]
+      },
+      "audit": null
+    },
+    {
+      "name": "memory-01",
+      "status": "PASS",
+      "images": 240,
+      "calls": 240,
+      "availability": {
+        "active_ticks": {
+          "samples": 1013,
+          "available_samples": 450,
+          "sampled_available_fraction": 0.4442250740375123,
+          "unique_frames": 232,
+          "unavailable_runs": 233,
+          "longest_unavailable_sample_run": 61,
+          "longest_unavailable_first_to_last_ns": 1419981361,
+          "source_age": {
+            "n": 450,
+            "mean_ms": 81.86666485555556,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 450,
+            "mean_ms": 77.55006186888889,
+            "p95_ms": 92.74903009999998,
+            "p99_ms": 95.56220576,
+            "max_ms": 98.132242
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        },
+        "including_delivery_tail": {
+          "samples": 1024,
+          "available_samples": 455,
+          "sampled_available_fraction": 0.4443359375,
+          "unique_frames": 234,
+          "unavailable_runs": 235,
+          "longest_unavailable_sample_run": 61,
+          "longest_unavailable_first_to_last_ns": 1419981361,
+          "source_age": {
+            "n": 455,
+            "mean_ms": 81.62637181978022,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 455,
+            "mean_ms": 77.56889631428572,
+            "p95_ms": 92.99294039999998,
+            "p99_ms": 95.54392195999999,
+            "max_ms": 98.132242
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        }
+      },
+      "metrics": {
+        "state": {
+          "jobs": 1200,
+          "observed_hz": 58.50639499395312,
+          "job_wall": {
+            "n": 1200,
+            "mean_ms": 17.08528992,
+            "p95_ms": 49.5481453,
+            "p99_ms": 62.181549659999995,
+            "max_ms": 111.019869
+          },
+          "interval_wall": {
+            "n": 1199,
+            "mean_ms": 17.092148646371978,
+            "p95_ms": 49.5511646,
+            "p99_ms": 62.19456791999999,
+            "max_ms": 111.026146
+          }
+        },
+        "camera": {
+          "jobs": 240,
+          "observed_hz": 11.70882331818854,
+          "job_wall": {
+            "n": 240,
+            "mean_ms": 13.678620045833334,
+            "p95_ms": 14.414566549999998,
+            "p99_ms": 55.343655739999996,
+            "max_ms": 57.411647
+          },
+          "interval_wall": {
+            "n": 239,
+            "mean_ms": 85.40567850627615,
+            "p95_ms": 86.41837579999999,
+            "p99_ms": 222.44985210000002,
+            "max_ms": 226.678576
+          }
+        },
+        "consumer": {
+          "jobs": 1040,
+          "observed_hz": 49.47595474682608,
+          "job_wall": {
+            "n": 1040,
+            "mean_ms": 0.05355753173076923,
+            "p95_ms": 0.11834624999999999,
+            "p99_ms": 0.14788874999999985,
+            "max_ms": 0.542592
+          },
+          "interval_wall": {
+            "n": 1039,
+            "mean_ms": 20.21183835899904,
+            "p95_ms": 28.973482199999996,
+            "p99_ms": 32.43269507999995,
+            "max_ms": 68.646506
+          }
+        },
+        "receipt_to_backend_return": {
+          "n": 240,
+          "mean_ms": 58.228937054166664,
+          "p95_ms": 60.6000535,
+          "p99_ms": 108.73056479999997,
+          "max_ms": 116.50403
+        }
+      },
+      "counters": {
+        "offered": 240,
+        "accepted": 240,
+        "rejected": 0,
+        "overwritten": 0,
+        "cancelled": 0,
+        "expired_pending": 0,
+        "started": 240,
+        "completed": 240,
+        "published": 234,
+        "late": 6,
+        "errors": 0,
+        "obsolete": 0,
+        "invalidated": 2
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 1394477488736426,
+        "finished_wall_ns": 1394477939150526,
+        "last_observed_wall_ns": 1394477939150526,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "owner_thread_id": 124559789372992,
+            "begin_wall_ns": 1394477488766158,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 1,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 17732205,
+              "inference_ns": 319738218,
+              "postprocess_ns": 198425,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1394477870578424,
+            "elapsed_wall_ns": 381812266
+          },
+          {
+            "number": 2,
+            "owner_thread_id": 124559789372992,
+            "begin_wall_ns": 1394477870596518,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 2,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 14980416,
+              "inference_ns": 18932612,
+              "postprocess_ns": 216548,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1394477904830012,
+            "elapsed_wall_ns": 34233494
+          },
+          {
+            "number": 3,
+            "owner_thread_id": 124559789372992,
+            "begin_wall_ns": 1394477904849178,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 3,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 15029138,
+              "inference_ns": 18937787,
+              "postprocess_ns": 218656,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1394477939150526,
+            "elapsed_wall_ns": 34301348
+          }
+        ]
+      },
+      "audit": {
+        "status": "PASS",
+        "actual_ticks": 1200,
+        "images": 240,
+        "calls": 240,
+        "consumed": 234,
+        "overlap": {
+          "state": 601,
+          "consumer": 698
+        },
+        "silence_reads": 10,
+        "decisions": {
+          "status": "PASS",
+          "decisions": 240,
+          "outcomes": {
+            "published": 234,
+            "late": 6
+          },
+          "late_causes": {
+            "receipt_only": 6
+          }
+        },
+        "acceptance": "fresh_output_in_six_finite_segments_not_long_term_qualification",
+        "preparation": {
+          "status": "PASS",
+          "startup_calls": 3,
+          "sensor_calls": 240,
+          "total_backend_calls": 243,
+          "same_owner": true,
+          "startup_elapsed_ns": 450414100
+        },
+        "availability": {
+          "active_ticks": {
+            "samples": 1013,
+            "available_samples": 450,
+            "sampled_available_fraction": 0.4442250740375123,
+            "unique_frames": 232,
+            "unavailable_runs": 233,
+            "longest_unavailable_sample_run": 61,
+            "longest_unavailable_first_to_last_ns": 1419981361,
+            "source_age": {
+              "n": 450,
+              "mean_ms": 81.86666485555556,
+              "p95_ms": 99.999998,
+              "p99_ms": 99.999998,
+              "max_ms": 99.999998
+            },
+            "receipt_age": {
+              "n": 450,
+              "mean_ms": 77.55006186888889,
+              "p95_ms": 92.74903009999998,
+              "p99_ms": 95.56220576,
+              "max_ms": 98.132242
+            },
+            "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+          },
+          "including_delivery_tail": {
+            "samples": 1024,
+            "available_samples": 455,
+            "sampled_available_fraction": 0.4443359375,
+            "unique_frames": 234,
+            "unavailable_runs": 235,
+            "longest_unavailable_sample_run": 61,
+            "longest_unavailable_first_to_last_ns": 1419981361,
+            "source_age": {
+              "n": 455,
+              "mean_ms": 81.62637181978022,
+              "p95_ms": 99.999998,
+              "p99_ms": 99.999998,
+              "max_ms": 99.999998
+            },
+            "receipt_age": {
+              "n": 455,
+              "mean_ms": 77.56889631428572,
+              "p95_ms": 92.99294039999998,
+              "p99_ms": 95.54392195999999,
+              "max_ms": 98.132242
+            },
+            "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+          }
+        },
+        "consumed_per200ticks": [
+          40,
+          40,
+          37,
+          37,
+          40,
+          40
+        ]
+      }
+    },
+    {
+      "name": "memory-02",
+      "status": "PASS",
+      "images": 240,
+      "calls": 240,
+      "availability": {
+        "active_ticks": {
+          "samples": 1062,
+          "available_samples": 461,
+          "sampled_available_fraction": 0.4340866290018832,
+          "unique_frames": 238,
+          "unavailable_runs": 238,
+          "longest_unavailable_sample_run": 13,
+          "longest_unavailable_first_to_last_ns": 239986767,
+          "source_age": {
+            "n": 461,
+            "mean_ms": 80.60737346420825,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 461,
+            "mean_ms": 82.32540075054229,
+            "p95_ms": 96.934436,
+            "p99_ms": 99.55255980000001,
+            "max_ms": 99.808621
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        },
+        "including_delivery_tail": {
+          "samples": 1072,
+          "available_samples": 465,
+          "sampled_available_fraction": 0.4337686567164179,
+          "unique_frames": 239,
+          "unavailable_runs": 240,
+          "longest_unavailable_sample_run": 13,
+          "longest_unavailable_first_to_last_ns": 239986767,
+          "source_age": {
+            "n": 465,
+            "mean_ms": 80.3655895956989,
+            "p95_ms": 99.999998,
+            "p99_ms": 99.999998,
+            "max_ms": 99.999998
+          },
+          "receipt_age": {
+            "n": 465,
+            "mean_ms": 82.2843602516129,
+            "p95_ms": 96.9567952,
+            "p99_ms": 99.55102072000001,
+            "max_ms": 99.808621
+          },
+          "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+        }
+      },
+      "metrics": {
+        "state": {
+          "jobs": 1202,
+          "observed_hz": 56.56149405070824,
+          "job_wall": {
+            "n": 1202,
+            "mean_ms": 17.674578318635604,
+            "p95_ms": 52.16497175000001,
+            "p99_ms": 54.0434867,
+            "max_ms": 59.349144
+          },
+          "interval_wall": {
+            "n": 1201,
+            "mean_ms": 17.679872442964196,
+            "p95_ms": 52.169687,
+            "p99_ms": 54.046122,
+            "max_ms": 59.353286
+          }
+        },
+        "camera": {
+          "jobs": 240,
+          "observed_hz": 11.324282924408163,
+          "job_wall": {
+            "n": 240,
+            "mean_ms": 14.873203845833332,
+            "p95_ms": 16.857656849999998,
+            "p99_ms": 17.535333339999998,
+            "max_ms": 17.797441
+          },
+          "interval_wall": {
+            "n": 239,
+            "mean_ms": 88.30581209205022,
+            "p95_ms": 94.772605,
+            "p99_ms": 97.00981368000001,
+            "max_ms": 97.847786
+          }
+        },
+        "consumer": {
+          "jobs": 1088,
+          "observed_hz": 49.99984533396509,
+          "job_wall": {
+            "n": 1088,
+            "mean_ms": 0.0539929044117647,
+            "p95_ms": 0.13319369999999997,
+            "p99_ms": 0.15775508999999968,
+            "max_ms": 0.297174
+          },
+          "interval_wall": {
+            "n": 1087,
+            "mean_ms": 20.000061866605336,
+            "p95_ms": 29.486623599999998,
+            "p99_ms": 33.94060154000001,
+            "max_ms": 35.994177
+          }
+        },
+        "receipt_to_backend_return": {
+          "n": 240,
+          "mean_ms": 60.32540261249999,
+          "p95_ms": 64.73938580000001,
+          "p99_ms": 66.39839475,
+          "max_ms": 66.998278
+        }
+      },
+      "counters": {
+        "offered": 240,
+        "accepted": 240,
+        "rejected": 0,
+        "overwritten": 0,
+        "cancelled": 0,
+        "expired_pending": 0,
+        "started": 240,
+        "completed": 240,
+        "published": 240,
+        "late": 0,
+        "errors": 0,
+        "obsolete": 0,
+        "invalidated": 2
+      },
+      "preparation": {
+        "state": "READY",
+        "started_wall_ns": 1394687255396660,
+        "finished_wall_ns": 1394687760672099,
+        "last_observed_wall_ns": 1394687760672099,
+        "error": null,
+        "calls": [
+          {
+            "number": 1,
+            "owner_thread_id": 125560575469120,
+            "begin_wall_ns": 1394687255431947,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 1,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 21109024,
+              "inference_ns": 358412502,
+              "postprocess_ns": 222318,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1394687685498921,
+            "elapsed_wall_ns": 430066974
+          },
+          {
+            "number": 2,
+            "owner_thread_id": 125560575469120,
+            "begin_wall_ns": 1394687685519019,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 2,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 18699296,
+              "inference_ns": 18914034,
+              "postprocess_ns": 279960,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1394687723525459,
+            "elapsed_wall_ns": 38006440
+          },
+          {
+            "number": 3,
+            "owner_thread_id": 125560575469120,
+            "begin_wall_ns": 1394687723546669,
+            "synthetic": true,
+            "published": false,
+            "result": {
+              "identity": {
+                "epoch": 1,
+                "clock_instance": 1,
+                "frame": 3,
+                "source_ns": 0,
+                "camera_id": 1,
+                "calibration_revision": 1
+              },
+              "detections": [],
+              "convert_ns": 0,
+              "preprocess_ns": 17833050,
+              "inference_ns": 18937294,
+              "postprocess_ns": 218976,
+              "width": 3840,
+              "height": 2304,
+              "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+              "candidate": "dfine-m-960-car-v1-camera4k-v1",
+              "schema": "m10-async-native-perception-v1"
+            },
+            "end_wall_ns": 1394687760672099,
+            "elapsed_wall_ns": 37125430
+          }
+        ]
+      },
+      "audit": {
+        "status": "PASS",
+        "actual_ticks": 1202,
+        "images": 240,
+        "calls": 240,
+        "consumed": 239,
+        "overlap": {
+          "state": 579,
+          "consumer": 729
+        },
+        "silence_reads": 10,
+        "decisions": {
+          "status": "PASS",
+          "decisions": 240,
+          "outcomes": {
+            "published": 240
+          },
+          "late_causes": {}
+        },
+        "acceptance": "fresh_output_in_six_finite_segments_not_long_term_qualification",
+        "preparation": {
+          "status": "PASS",
+          "startup_calls": 3,
+          "sensor_calls": 240,
+          "total_backend_calls": 243,
+          "same_owner": true,
+          "startup_elapsed_ns": 505275439
+        },
+        "availability": {
+          "active_ticks": {
+            "samples": 1062,
+            "available_samples": 461,
+            "sampled_available_fraction": 0.4340866290018832,
+            "unique_frames": 238,
+            "unavailable_runs": 238,
+            "longest_unavailable_sample_run": 13,
+            "longest_unavailable_first_to_last_ns": 239986767,
+            "source_age": {
+              "n": 461,
+              "mean_ms": 80.60737346420825,
+              "p95_ms": 99.999998,
+              "p99_ms": 99.999998,
+              "max_ms": 99.999998
+            },
+            "receipt_age": {
+              "n": 461,
+              "mean_ms": 82.32540075054229,
+              "p95_ms": 96.934436,
+              "p99_ms": 99.55255980000001,
+              "max_ms": 99.808621
+            },
+            "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+          },
+          "including_delivery_tail": {
+            "samples": 1072,
+            "available_samples": 465,
+            "sampled_available_fraction": 0.4337686567164179,
+            "unique_frames": 239,
+            "unavailable_runs": 240,
+            "longest_unavailable_sample_run": 13,
+            "longest_unavailable_first_to_last_ns": 239986767,
+            "source_age": {
+              "n": 465,
+              "mean_ms": 80.3655895956989,
+              "p95_ms": 99.999998,
+              "p99_ms": 99.999998,
+              "max_ms": 99.999998
+            },
+            "receipt_age": {
+              "n": 465,
+              "mean_ms": 82.2843602516129,
+              "p95_ms": 96.9567952,
+              "p99_ms": 99.55102072000001,
+              "max_ms": 99.808621
+            },
+            "interpretation": "sampled reads and first-to-last sample spans; not exact continuous-time availability"
+          }
+        },
+        "consumed_per200ticks": [
+          39,
+          40,
+          40,
+          40,
+          40,
+          40
+        ]
+      }
+    }
+  ],
+  "archives": [
+    {
+      "path": "raw-camera-01.tar",
+      "bytes": 1029263360,
+      "sha256": "4c2426b50e448139e9c35bf5bae2f3086470bdcbe214373081e3b5c61dd5406e",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-02.tar",
+      "bytes": 1033881600,
+      "sha256": "35b1b27507d7841708897056e4bf6ec11fa9b1d946efde4db2ec44395cbfb221",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-03.tar",
+      "bytes": 1034352640,
+      "sha256": "e8aa114a0157f482fcbbd7a8eef52f49eb6ac9151b8cd71e6a7cd49e17812f80",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-04.tar",
+      "bytes": 1033779200,
+      "sha256": "527e1474751add3332a3795682b565a3b5cccf4ca7a57170c2f8ee1fac33c73c",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-05.tar",
+      "bytes": 1025679360,
+      "sha256": "1f6bbc3e4d79c7042544e1f9198326d4fbffe66f519e0ce0095f7b3b43c66edb",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-06.tar",
+      "bytes": 1033748480,
+      "sha256": "2f083794eefd666694bb675e0b3bef580a55f5938daf71290a3ca125e7a2d8ff",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-07.tar",
+      "bytes": 1034260480,
+      "sha256": "58ef32e547874a3c77cf2048993fa07628d510182716c26e43015e8bc180f3f2",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-08.tar",
+      "bytes": 1028782080,
+      "sha256": "542537eb153fa332a4471447d9a886efbd093c9bd0d9d68cc48173340bd99aa5",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-09.tar",
+      "bytes": 1027256320,
+      "sha256": "e6dce9cdbdbfb391909b1375bcf9a6e641430c767ae5f6ab88358efd4b0662b5",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-10.tar",
+      "bytes": 1034024960,
+      "sha256": "8b877bb95e82f830fb34692d59b561fcb29e7d8358f606b42cb341b0b012fe2c",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-11.tar",
+      "bytes": 1034321920,
+      "sha256": "200e6de15575f0eb6ccdb370e624b28efd911c98e83559e97e772fa5d43fd7d5",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-12.tar",
+      "bytes": 1030553600,
+      "sha256": "c916f893dfb065e6173134e8614a57d1a5b16df61fbe0cf912baef6dd4755cb7",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-13.tar",
+      "bytes": 1031546880,
+      "sha256": "e6fffc8fd02800546ce9d42d215030c6d2d70341ead1dad941afb4b66af5c461",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-14.tar",
+      "bytes": 1033912320,
+      "sha256": "c9a339d752126862ad5e0ca6b25dbb2358a455415e55532c838109737f2199b2",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-15.tar",
+      "bytes": 1034188800,
+      "sha256": "81e8d44ccbb2aa6b224f3472645b30b547960d87f00f6a4f6a27e628f034b392",
+      "frames": 60
+    },
+    {
+      "path": "raw-camera-16.tar",
+      "bytes": 895774720,
+      "sha256": "fe9009b3ef0e83733f268a4e31c675ad055ed2ad4c5fb2499a51985255524e98",
+      "frames": 52
+    }
+  ],
+  "future_exclusion": 6713
+}

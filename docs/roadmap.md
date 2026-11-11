@@ -7,7 +7,7 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M10 | 4K native CPU resize·입력84장 동등성 및 실제 공유 GPU27개 fresh 관측. 초기 지연4건 유지. Startup/장시간 live·제어 연결·새 독립 품질·wall20Hz·각 보드 배포 남음. 기존 S 유지 |
+| M10 | Native4K 준비·10/13/20Hz 공급 공백과240장2회 반복 관측. Renderer/SDK age·callback·상태/보호 연결, 새 독립 품질·wall20Hz·장기 부하·각 보드 배포 남음. 기존 S 유지 |
 | M11 | Metric world model/localization·temporal learned planner, Safety Supervisor·유효 classical fallback, 인식/판단 한계 검토 |
 | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
 | M13 | 전체 SIL/V&V·회귀·추적성 검토와 검증된 범위·제약 공개 |
@@ -135,3 +135,30 @@ world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음�
 유지했다. Camera12.93Hz·cold 포함 admission P95115.76ms이므로 전체20Hz 수용은 아니다.
 미래 제외5761개·원래 FAIL·기본 S/runtime·M10 OPEN을 유지한다. Startup 준비와 반복/장시간
 부하·SDK source age·기존 상태/보호 연결, 새 독립 품질과 각 Jetson 배포가 다음 단계다.
+
+## 최신 M10 후속 범위
+
+최신은 [명시적 준비·주파수별 가용성·실제 반복 검증](test-plan/evidence/m10_native_startup_v1/README.md)이다.
+Native4K 추론 owner에 독립 합성3회 준비를 추가하고 같은 스레드로 센서 처리를 이어간다.
+준비의 cold 비용/전체10s·2/3회100ms gate와 모든 결과를 별도 보존하며 synthetic 결과는 발행하지
+않는다. READY는 초기화 완료이고 실제 perception availability/주행 permission이 아니다.
+
+녹화 개발3장/6초에서10/13/20Hz 입력의50Hz 유효 조회 비율은 **42.33%/61.67%/99.00%**다.
+258개 추론이 모두 기한 내 발행돼도 입력 간격 때문에 빈 구간이 남는다. 각1회·렌더링 제외이며
+실측 지연도 다르므로 보편적10Hz 안전 판정으로 확대하지 않는다. SYS-PERF-002 Reference20Hz와
+원래 source+100ms AND receipt+100ms를 유지한다. 실제 CARLA의 source/wall clock은 별개다.
+
+실제 NVMe 기록 조건은240장/238발행/237소비, 유효 조회43.82%다. 원래 서버 시작180s 실패와
+별도 복구 중8-slot 저장 overflow232장 FAIL은 그대로 보존한다. 후속 유한 Host 메모리 기록은
+240장/최대8.49GB reference를 보관하고 측정 종료 후 압축한다. 이 진단 버퍼를 Jetson production
+요구로 옮기지 않으며 inference latest1은 그대로다. 같은 조건의 두240장 실행은 저장 손실0으로
+완료됐고 카메라 wall **11.71/11.32Hz**, primary 유효 조회 **44.42/43.41%**다.
+각6개200-tick 구간의 fresh 소비와 source 정지 후 wall 만료를 확인했지만 공급 공백은 남았다.
+
+Python318개·기존 C++/boundary12개씩 Debug/Release/ASan·source533→547→554와952개 전체
+원본을 재감사했다. 모든 실제 입력 tensor/health는 기존 Pillow와 exact이며 미래 제외는6713개다.
+실패한 V1에는 per-decision trace가 없어 해당 원인 재생을 주장하지 않고 원본/최종 counter를 보존한다.
+후속 client는 실패 시에도 최종 decision trace를 저장한다. 이전 [CPU kernel·27개 fresh 근거](test-plan/evidence/m10_native_kernel_v1/README.md)와
+기존 live FAIL/품질 FAIL은 유지한다. 다음은 renderer/SDK source age·callback·관측 scheduling
+분리 계측과 기존 상태/보호 경로의 unavailable 연결이다. 새 독립 품질·전체wall20Hz·장기 운용·
+각 Jetson 전체 stack 배포가 남으며 기본 S/runtime640·M10 OPEN·보드 최적화 후속 원칙을 유지한다.

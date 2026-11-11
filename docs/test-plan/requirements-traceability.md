@@ -172,3 +172,15 @@ TC-PER-063–065/C-M10-PER-59–61은 [native CPU4K·완료 clock 검증](eviden
 원래 Pillow 입력과 동등한 병렬 축소·bounded trace·실제27개 fresh 관측·초기4개 late를 구분한다.
 533개 source와72개 raw를 재감사하고5761개 미래 제외를 유지한다. 기존 FAIL/100ms/S/runtime은
 유지하며 전체20Hz·새 독립 품질·실제 controller·각 Jetson 수용을 대체하지 않는다.
+
+TC-PER-066–068/C-M10-PER-62–64는 [native4K 준비·가용성 비교](evidence/m10_native_startup_v1/README.md)에
+연결한다. 같은 추론 owner의 명시적 합성3회와 센서 분모를 모두 보존하고,10/13/20Hz에서
+50Hz 관측의 유효 비율과 실제 CARLA 두 유한 반복의 원래 source/receipt age를 재생한다.
+SYS-PERF-002의 Reference20Hz를 낮추거나 유효기간100ms를 늘리지 않는다. 준비 READY·일부
+fresh 관측·원본 보존을 전체wall20Hz·장기 운용·실제 controller·각 Jetson 수용으로 올리지 않는다.
+
+TC-PER-069/C-M10-PER-65는 같은 근거의 [유한 메모리 기록 기준](perception-native-memory-v1-protocol.md)에
+연결한다. 원래180s 시작 실패와8-slot 저장 overflow232장 FAIL을 보존한다. 새 Host 진단 조건은
+240장의 immutable reference를 보관해 측정 중 정상 disk write를 없애며 종료 후 해제/압축한다.
+최대8.49GB는 유한 원본 수집기의 상한이고 production inference의 latest1 계약이나 Jetson
+메모리 요구로 옮기지 않는다.554개 source에 원래547개를 그대로 포함한다.

@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **4K native 입력 동등성·실제 관측27개 fresh 검증 / 초기 지연4건·새 보류·live20Hz·주행 연결 대기 / 기존 S 유지·M10 OPEN** | [모델 선정 순서](perception-model-selection.md) · [새 V9 평가](test-plan/evidence/m10_quality_v9/README.md) · [960 후속 후보](test-plan/evidence/m10_resolution_v2/README.md) · [4K 원본](test-plan/evidence/m10_camera_resolution_v1/README.md) · [비동기 분리](test-plan/evidence/m10_async_native_v1/README.md) · [native CPU·live 결과](test-plan/evidence/m10_native_kernel_v1/README.md) |
+| M10 | **4K 명시적 준비·10/13/20Hz 가용성·유한 실제 반복 검증 / 공급 공백·새 품질·주행 연결·wall20Hz OPEN / 기존 S 유지** | [모델 선정](perception-model-selection.md) · [준비·가용성·원본 근거](test-plan/evidence/m10_native_startup_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -85,24 +85,30 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 
 ## M10 비동기 실행 후속
 
-최신 실행은 [native CPU resize·실제 fresh-output 검증](test-plan/evidence/m10_native_kernel_v1/README.md)이다.
-BGRA를 직접 RGB960으로 축소하며 원래 Pillow 계수/반올림·모델 입력을 유지했다. 개발84장
-exact를 확인하고 쌍별 전처리 P95를38.97→16.89ms로 줄였다. 원래 source/receipt100ms·latest1·
-모델/confidence는 유지한다.6초 비동기 재생은115회 완료/114회 발행/112개 frame 소비이며,
-receipt→return P95는40.64ms다. 초기 cold late1건과 fault3조건도 모두 보존했다.
+최신은 [명시적 준비·주파수별 가용성·실제 반복 검증](test-plan/evidence/m10_native_startup_v1/README.md)이다.
+Native4K 추론 owner에 독립 합성3회 준비를 추가하고 같은 스레드로 센서 처리를 이어간다.
+준비의 cold 비용/전체10s·2/3회100ms gate와 모든 결과를 별도 보존하며 synthetic 결과는 발행하지
+않는다. READY는 초기화 완료이고 실제 perception availability/주행 permission이 아니다.
 
-실제 Town04/Epic·4K·공유 RTX3090의 새 비교에서 기존 방식은36장/23회 완료/발행0이었다.
-개선 방식은36장/31회 완료 중 **27회 발행·27개 frame 소비**를 통과했다. 초기4개 완료는
-둘 다 만료3건·source만 만료1건이며, 이후27개는 연속 fresh였다. 실제 camera12.93Hz,
-world63.87Hz·관측 consumer50Hz이고 cold 포함 admission P95는115.76ms다. 따라서 항상
-유효한 인지·전체wall20Hz·실제 차량 controller 통합을 수용한 결과는 아니다.
-이전37개 전부 late의 FAIL은 그대로 보존하며 새 baseline PASS는 진단 범위에만 해당한다.
+녹화 개발3장/6초에서10/13/20Hz 입력의50Hz 유효 조회 비율은 **42.33%/61.67%/99.00%**다.
+258개 추론이 모두 기한 내 발행돼도 입력 간격 때문에 빈 구간이 남는다. 각1회·렌더링 제외이며
+실측 지연도 다르므로 보편적10Hz 안전 판정으로 확대하지 않는다. SYS-PERF-002 Reference20Hz와
+원래 source+100ms AND receipt+100ms를 유지한다. 실제 CARLA의 source/wall clock은 별개다.
 
-Python278개·설정별 기존 C++/boundary12개·새 native ASan/UBSan·source533개 및 원본72개
-재감사를 연결했다. 모든72개 실제 tensor도 원래 Pillow와 exact이며 미래 제외 union은5761개다.
-다음은 startup 준비/가용성·반복 및 장시간 live 부하·renderer/SDK source age를 검증하고,
-원천 age·수신/적용 기한·보호를 유지하며 기존 상태/제어 경로에 연결하는 것이다.
-새 독립 품질·각 Jetson 배포·기본 S/runtime640·M10 OPEN·보드 최적화 후속 원칙은 유지한다.
+실제 NVMe 기록 조건은240장/238발행/237소비, 유효 조회43.82%다. 원래 서버 시작180s 실패와
+별도 복구 중8-slot 저장 overflow232장 FAIL은 그대로 보존한다. 후속 유한 Host 메모리 기록은
+240장/최대8.49GB reference를 보관하고 측정 종료 후 압축한다. 이 진단 버퍼를 Jetson production
+요구로 옮기지 않으며 inference latest1은 그대로다. 같은 조건의 두240장 실행은 저장 손실0으로
+완료됐고 카메라 wall **11.71/11.32Hz**, primary 유효 조회 **44.42/43.41%**다.
+각6개200-tick 구간의 fresh 소비와 source 정지 후 wall 만료를 확인했지만 공급 공백은 남았다.
+
+Python318개·기존 C++/boundary12개씩 Debug/Release/ASan·source533→547→554와952개 전체
+원본을 재감사했다. 모든 실제 입력 tensor/health는 기존 Pillow와 exact이며 미래 제외는6713개다.
+실패한 V1에는 per-decision trace가 없어 해당 원인 재생을 주장하지 않고 원본/최종 counter를 보존한다.
+후속 client는 실패 시에도 최종 decision trace를 저장한다. 이전 [CPU kernel·27개 fresh 근거](test-plan/evidence/m10_native_kernel_v1/README.md)와
+기존 live FAIL/품질 FAIL은 유지한다. 다음은 renderer/SDK source age·callback·관측 scheduling
+분리 계측과 기존 상태/보호 경로의 unavailable 연결이다. 새 독립 품질·전체wall20Hz·장기 운용·
+각 Jetson 전체 stack 배포가 남으며 기본 S/runtime640·M10 OPEN·보드 최적화 후속 원칙을 유지한다.
 
 ## M9 기능 범위 마감
 

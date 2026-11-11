@@ -1,0 +1,96 @@
+{
+  "schema": "m10-native-startup-profile-v1",
+  "candidate": "dfine-m-960-car-v1-camera4k-v1",
+  "source_bgra": [
+    3840,
+    2304,
+    4
+  ],
+  "model_input": [
+    1,
+    3,
+    960,
+    960
+  ],
+  "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+  "confidence_vector": [
+    0.6,
+    0.4,
+    0.6,
+    0.5,
+    0.5,
+    0.6
+  ],
+  "pending_capacity": 1,
+  "active_inference_capacity": 1,
+  "snapshot_capacity": 1,
+  "pending_overflow": "replace_oldest_pending_and_count",
+  "source_lifetime_ns": 100000000,
+  "receipt_to_completion_budget_ns": 100000000,
+  "expiry": "exclusive_source_AND_monotonic_wall",
+  "clock": "observed_simulation_steps_never_advanced_by_perception",
+  "sdk_callback": "validate_and_copy_only_outside_mailbox_lock",
+  "inference_owner": "BGRA_to_RGB_health_resize_tensor_CUDA_decode",
+  "consumer": "immutable_snapshot_without_backend_wait",
+  "cold_calls_excluded": 0,
+  "periods_ns": {
+    "state": 10000000,
+    "camera": 50000000,
+    "control": 20000000
+  },
+  "probe_media": "three_already_consumed_development_pilot_frames_preloaded",
+  "faults": [
+    "none"
+  ],
+  "vehicle_control_integration": false,
+  "ros2_integration": false,
+  "live_camera_integration": false,
+  "runtime_promotion": false,
+  "live20Hz_acceptance": false,
+  "preprocessing_revision": "m10-native-kernel-v1",
+  "cv_threads": 4,
+  "exception_delay_ns": 25000000,
+  "normal_requires_fresh_consumption": true,
+  "native_library_sha256": "67aaa48a250ee47b67f89683b07f0bc23731ca2ee6c8f85e92a27bcf9e12c80f",
+  "native_source_sha256": "637cba3483208e5247fef617da41ebd4d534bb67c2bef373ef7fdc640a42d671",
+  "native_resize_threads": 4,
+  "openmp_wait_policy": "PASSIVE",
+  "live_ticks_min": 1200,
+  "live_ticks_max": 1204,
+  "live_recorder_capacity": 8,
+  "live_conditions": [
+    "prepared-01",
+    "prepared-02"
+  ],
+  "live_raw_storage": "bounded8_queue_to_local_NVMe_uncompressed_then_postmeasurement_compression",
+  "probe_rates_hz": [
+    10,
+    13,
+    20
+  ],
+  "probe_seconds_per_rate": 6,
+  "preparation": {
+    "calls": 3,
+    "budget_ns": 10000000000,
+    "settled_calls": [
+      2,
+      3
+    ],
+    "settled_exclusive_budget_ns": 100000000,
+    "source": "independent_synthetic_native_BGRA_XY_gradient",
+    "same_inference_owner": true,
+    "publication": false
+  },
+  "availability": {
+    "consumer_period_ns": 20000000,
+    "live_primary_window": "enabled_to_last_actual_tick_completion",
+    "live_secondary_window": "enabled_to_sensor_stop_including200ms_delivery_tail",
+    "replay_window": "all6seconds_after_explicit_preparation",
+    "acceptance_threshold": null
+  },
+  "lifecycle_seconds": {
+    "startup": 180,
+    "client": 900,
+    "shutdown": 30
+  }
+}

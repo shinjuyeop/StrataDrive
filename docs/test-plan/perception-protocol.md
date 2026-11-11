@@ -113,3 +113,11 @@ TC-PER-047–049는 [V9 사전 기준](perception-quality-v9-protocol.md)과 [�
 TC-PER-050–053은 [해상도 V1 기준](perception-resolution-v1-protocol.md), [수치 조사 annex](perception-resolution-v1-numeric-annex.md), [검증된 V2 기준](perception-resolution-v2-protocol.md), [car 후속 기준](perception-resolution-car-v1-protocol.md), [전체 근거](evidence/m10_resolution_v2/README.md)에 연결한다.
 
 TC-PER-054–056은 [카메라 원본 기준](perception-camera-resolution-v1-protocol.md), [사전 복구 한도](perception-camera-resolution-v1-recovery.md), [4K 개발 비교 근거](evidence/m10_camera_resolution_v1/README.md)에 연결한다.
+
+TC-PER-066–068은 [native4K 준비·가용성 사전 기준](perception-native-startup-v1-protocol.md)과
+[실행/전체 원본 근거](evidence/m10_native_startup_v1/README.md)에 연결한다. 명시적 합성 준비와
+sensor cold 분모·10/13/20Hz 진단·240장씩의 유한 실제 반복을 구분하며 기존100ms/Reference20Hz를 유지한다.
+
+TC-PER-069는 [원래 저장 overflow 이후의 유한 Host 메모리 기록 기준](perception-native-memory-v1-protocol.md)을 따른다.
+원래232장 실패와 누락된 per-decision trace를 성공으로 재해석하지 않으며 새 revision은 실패 시에도
+최종 worker/decision trace를 보존한다. 이 recorder는 생산 인지 큐와 별도인 유한 진단 도구다.
