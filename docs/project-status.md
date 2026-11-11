@@ -16,18 +16,23 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **4K 복사14.15→약2.8ms / 전체 지연 약127–129ms·camera 약13Hz / 실시간·품질·주행 OPEN** | [모델 선정](perception-model-selection.md) · [복사 실측](test-plan/evidence/m10_frame_copy_v1/README.md) · [뷰포트 후속](test-plan/evidence/m10_viewport_v1/README.md) |
+| M10 | **2K16.88–17.62Hz / 촬영→추론 평균93.56–97.38ms / 20Hz·독립 품질·주행 OPEN** | [모델 선정](perception-model-selection.md) · [해상도 비교](test-plan/evidence/m10_source_compare_v2/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
-최신 [4K 복사·단계 계측](test-plan/evidence/m10_frame_copy_v1/README.md)은 복사 평균을
-14.15→2.77–2.80ms로 줄였지만 카메라는15.56→12.74–12.96Hz, 전체 capture→backend는
-125.45→127.98–129.33ms로 개선되지 않았다. [작은 main viewport](test-plan/evidence/m10_viewport_v1/README.md)
-후속도13.25/13.07Hz에 머물렀다. 유효조회 증가는 느려진 source clock 영향도 있어 성능 수용이 아니다.
-4K/Epic·기존 모델·원래 source/receipt100ms를 유지했고, 기본값 승격 없이 원래 모듈/화면 설정을 복원했다.
-실제5회·원본500장·source580→595→601·미래 제외8113개, Python354개·C++12개씩·
-복사 C API ASan+UBSan4개·변조110건을 검증했다. 다음은 남은 resize/tensor·렌더링/전달·추론의
-전체 지연 단축과 unavailable 보호 연결이다. 느린 시뮬레이션을 목표로 합의한 것은 아니다.
+최신 [2K/4K 동일 조건 비교](test-plan/evidence/m10_source_compare_v2/README.md)는
+4K3840×2304의14.56Hz 대비2K2560×1536에서16.88/17.62Hz를 측정했다.
+촬영→추론 완료 평균은135.49→97.38/93.56ms, P95는293.19→104.92/96.62ms다.
+2K의 실제시간 비율은0.843/0.879배로 실제20Hz와 실제시간1×는 아직 달성하지 못했다.
+개발81장씩의 정밀도/재현율은4K 100.00%/99.22%, 2K 100.00%/100.00%다.
+이는 이미 사용한 개발 장면의 비교이며 새 독립 품질 수용이 아니다. 세부 원거리·작은 객체·
+보행자/이륜차 차이와 모든 원본은 근거에 남겼다. 모델960/FP32·Epic/FOV90·원래 source/receipt100ms를
+유지했고 기본값 승격 없이 모듈/화면 설정을 복원했다. 첫2K 시도의 해상도 거절 FAIL을 보존한 뒤
+새 모듈과 새4K 기준으로 비교했다. Python370·native ASan+UBSan3·변조112건과 전체724개 raw를
+검증했고 미래 제외는8675개다. 사전 봉인621→626개에 공통 검사 도우미1개 누락이 있어
+별도 보충 원본을 보존했다. 재현 검증 PASS와 사전 소스 봉인 완결성은 구분하며 후자는 미충족이다.
+다음은 전체 지연·실제20Hz 개선과 unavailable 보호 연결, 새 독립 품질 및 각 Jetson 배포 검증이다.
+보드별 최적화는 후속이고 느린 시뮬레이션을 목표로 합의한 것은 아니다.
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 

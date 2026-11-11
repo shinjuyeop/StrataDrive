@@ -1,0 +1,10 @@
+{
+  "schema": "m10-supplemental-source-v1",
+  "observed_utc": "2026-11-11T10:48:35.476967+00:00",
+  "files": {
+    "tests/integration/perception/source_compare_v1_common.py": "2a251bf564cf7169a32e6bb278980c858c0a0e1cd23a0081dac4ef8ace788426"
+  },
+  "prospectively_frozen": false,
+  "reason": "Freeze file glob omitted the common preflight and offline derivation helper. Original621/626-file manifests are preserved; this supplementary snapshot was sealed after all live runs and the4K quality capture, before2K quality capture. It enables replay but does not repair prospective provenance.",
+  "runtime_scope": "Live uses verify_sources only; quality runner uses check_freeze only. Cases, capture, sensor schedule, algorithms and model are in the original freeze. Offline derivation uses this helper."
+}

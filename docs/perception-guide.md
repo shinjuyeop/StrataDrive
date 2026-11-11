@@ -697,3 +697,15 @@ GIL을 놓는 복사 동안 실제 SDK Image owner를 pin하고 독립 bytes를 
 Source100ms와 capture-to-result100ms wall은 다르며 이번 실측은 후자를 별도 기록했다.
 4K 출력과 Epic은 유지했지만 viewport 변경의 품질 동등성은 미평가다. 기본값은 승격하지 않고
 외부 모듈/화면 설정을 복원했다. M10 실시간·새 독립 품질·주행·Jetson 배포는 OPEN이다.
+
+
+2026-11-11 [2K/4K 소스 비교](test-plan/evidence/m10_source_compare_v2/README.md)는 opt-in2K typed 경로를 추가했다.
+센서는2560×1536 또는3840×2304, 비율5:3/FOV90이고 모델 입력은 같은960×960이다.
+2K 전용 타입/후보/schema/box 범위를 검사하며 native resize는 Pillow 입력과 bit-exact다.
+서버 비동기10ms·frame%5·실제 on_tick·active1/pending1/current1과 원래100ms 두 기한을 유지한다.
+같은 새 readback 모듈에서4K14.56Hz,2K16.88/17.62Hz 및 전체 평균135.49→97.38/93.56ms를 관측했다.
+실제20Hz·실제시간1× 수용은 OPEN이다. 개발81장씩의 정밀도/재현율은4K 100.00%/99.22%, 2K 100.00%/100.00%다.
+개발 비교는 기존81장 재사용이며 독립 품질·배포 수용이 아니다. Offline 채점시간은 검증/압축 해제를
+포함하므로 live latency로 사용하지 않는다. 첫 해상도 거절 FAIL과 공통 도우미 사전 봉인 누락을
+명시하고 보충 원본까지 재감사했다. 기본값/차량/ROS를 바꾸지 않았으며 각 Jetson 배포와 보드별
+최적화는 후속이다. 원래 모듈과 화면 설정을 복원했다.

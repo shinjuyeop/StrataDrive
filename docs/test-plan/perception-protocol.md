@@ -143,3 +143,12 @@ TC-PER-076–078/C-M10-PER-72–74는 [복사 사전 기준](perception-frame-co
 SDK owner lifetime·일회용 immutable copy·선행 할당·단계 identity/clock과 원래 기한을 검사한다.
 4K/Epic 유지5회/500장·source580→595→601·미래 제외8113·Python354·변조110건을 보존한다.
 복사는 약2.8ms이나 전체 약127–129ms/camera 약13Hz이므로 기본값·wall20Hz·실제시간1× 수용은 OPEN이다.
+
+
+TC-PER-079–081/C-M10-PER-75–77은 [2K/4K 비교 기준](perception-source-compare-v1-protocol.md),
+[해상도 guard 수정 기준](perception-source-compare-v2-protocol.md), [원본·비교·한계](evidence/m10_source_compare_v2/README.md)에 연결한다.
+2K typed owner/전처리 exact/ASan+UBSan, 같은 새 모듈의4K1회·2K2회 전체 지연과 원래 기한을 검사한다.
+개발81쌍씩의 GT/전체 예측·미세조건 차이를 재생하고 모든724개 raw와 최초 zero-camera FAIL을 보존한다.
+Python370·native sanitizer3·변조112건 PASS다. 원래621/626개 봉인에서 공통 도우미1개 누락을
+보충 보관하지만 사전 봉인 완료로 소급 인정하지 않는다. 재현 PASS는20Hz·새 독립 품질·차량·Jetson
+수용을 대신하지 않는다. 기본값과100ms 기한을 유지하고 실제시간1×는 목표로 남긴다.
