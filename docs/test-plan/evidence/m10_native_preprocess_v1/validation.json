@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "checked_files": 39,
+  "source_files": 514,
+  "original_raw_frames": 60,
+  "future_exclusion": 5689,
+  "replay": {
+    "status": "PASS",
+    "replay": [
+      {
+        "status": "PASS",
+        "fault": "none",
+        "calls": 85,
+        "consumed": 21,
+        "overlap": {
+          "state": 599,
+          "control": 299
+        }
+      },
+      {
+        "status": "PASS",
+        "fault": "slow",
+        "calls": 25,
+        "consumed": 0,
+        "overlap": {
+          "state": 600,
+          "control": 300
+        }
+      },
+      {
+        "status": "PASS",
+        "fault": "blocked",
+        "calls": 1,
+        "consumed": 0,
+        "overlap": {
+          "state": 599,
+          "control": 300
+        }
+      },
+      {
+        "status": "PASS",
+        "fault": "exception",
+        "calls": 120,
+        "consumed": 0,
+        "overlap": {
+          "state": 281,
+          "control": 135
+        }
+      }
+    ],
+    "numeric_calls": 111,
+    "live_acceptance": "FAIL",
+    "live_expected_rejection": "live fresh output consumption",
+    "silence_reads": 10
+  },
+  "post_execution_tests": {
+    "tests/integration/perception/test_carla_native_async_audit_v1.py": "8cfa0ec377bddedc41c752b1650f642a0d37712caa5b1a2a460a53709e86c82f"
+  },
+  "python_tests": 250,
+  "cpp_boundary_tests_per_configuration": 12,
+  "configurations": [
+    "debug",
+    "release",
+    "asan"
+  ],
+  "frozen_source_files": 514,
+  "local_markdown_links": 339,
+  "csv_rows": 338,
+  "scope": "verification passed; original live acceptance remains FAIL; runtime promotion false",
+  "runtime_promotion": false
+}

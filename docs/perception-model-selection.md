@@ -158,7 +158,7 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 수치15건 중14PASS/1FAIL과 종료 실패3쌍·사전 복구를 보존했다. 전체180쌍·미래 제외5629개다.
 [4K source profile](../profiles/perception-camera-source-candidates-v1.json)은 다음 새 평가용이며
 기존 S/runtime640은 유지한다.4K 순차 health/resize/추론 P95 약93.64ms로 live20Hz는 미수용이다.
-다음은4K 원본/고정960 모델의 새 준비·개발/보류와 native ingress/전처리·전체 wall 검증이다.
+이후 native ingress/전처리 검증은 아래 후속 기록으로 이어진다. 새 준비·개발/보류와 전체 wall 수용은 남아 있다.
 새 학습·보드 최적화·실제 Jetson 배포는 수행하지 않았다.
 
 후속 [비동기 component](test-plan/evidence/m10_async_native_v1/README.md)는 이 고정 모델과
@@ -166,3 +166,11 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 완료가 모두100ms를 초과했다. 따라서 비동기 구조의 동작과 유효한 인지 공급을 따로 판정한다.
 현재는 PC 변환·전처리 병목과 실제 ingress/기존 제어 연결을 먼저 해결해야 하며, 품질 후보를
 과거 보류에서 다시 선택하거나 기한을 늘리지 않는다. 새 독립 품질·각 Jetson 배포는 여전히 후속이다.
+
+2026-11-11 후속 [전처리 개선·실제4K ingress](test-plan/evidence/m10_native_preprocess_v1/README.md)는
+개발84장의 RGB/tensor를 그대로 유지하며 전처리 P95를103.36→42.02ms로 줄였다.
+비동기 재생은46회 발행/21개 frame 소비로 개선됐지만, 실제 CARLA/Epic과 GPU를 공유하면
+37개 완료가 모두 late여서 fresh-output gate FAIL이다. 실제 camera13.60Hz·관측 consumer50Hz,
+world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음은 실제 부하에서100ms 내
+공급을 확보한 뒤 실제 상태/보호·제어 연결과 새 독립 품질 평가를 진행하는 것이다.
+기존 모델/기한/runtime·M10 OPEN·Jetson 최적화 후속 원칙을 유지한다.

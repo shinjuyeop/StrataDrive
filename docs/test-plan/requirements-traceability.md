@@ -162,3 +162,8 @@ TC-PER-057–059/C-M10-PER-53–55는 [4K 비동기 component](evidence/m10_asyn
 state/관측 consumer 진행·session/clock/expiry 경계·trace 재생의 부분 근거다. 즉시 예외 fixture의
 overlap FAIL과 별도25ms 보완을 유지하며 실제 차량 제어/live camera·ROS/Target 연결·인지20Hz와
 유효 출력 공급을 수용하지 않는다. 정상43개 call도100ms 초과·publication0임을 공개한다.
+
+TC-PER-060–062/C-M10-PER-56–58은 [전처리 동등성·실제4K 비동기](evidence/m10_native_preprocess_v1/README.md)에 연결한다.
+84장 입력 동등성·재생4조건의 실제111개 검출·실제 camera60개와 world/consumer 독립 진행을 검사한다.
+실제37개 모두 late/fresh-output FAIL을 보존하며 source/raw 재감사 PASS로 뒤집지 않는다.
+5689개 미래 제외·기본 S/runtime·100ms·M10 OPEN을 유지한다.

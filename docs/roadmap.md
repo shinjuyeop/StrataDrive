@@ -7,7 +7,7 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M10 | 사전학습 비교·4K 원본/960 후보·비동기 owner component 검증. 기존 보류 FAIL과 S 유지.4K 변환/전처리·실제 ingress/제어 연결·새 독립 품질·전체wall20Hz 남음. 보드 최적화는 후속 |
+| M10 | 4K 전처리84장 동등성·비동기 재생 개선. 실제4K ingress 연결했으나 공유 GPU에서37개 전부 late로 fresh-output FAIL. 기존 S 유지. 실제 부하100ms 공급·제어 연결·새 독립 품질·wall20Hz·각 보드 배포 남음 |
 | M11 | Metric world model/localization·temporal learned planner, Safety Supervisor·유효 classical fallback, 인식/판단 한계 검토 |
 | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
 | M13 | 전체 SIL/V&V·회귀·추적성 검토와 검증된 범위·제약 공개 |
@@ -109,7 +109,7 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 수치15건 중14PASS/1FAIL과 종료 실패3쌍·사전 복구를 보존했다. 전체180쌍·미래 제외5629개다.
 [4K source profile](../profiles/perception-camera-source-candidates-v1.json)은 다음 새 평가용이며
 기존 S/runtime640은 유지한다.4K 순차 health/resize/추론 P95 약93.64ms로 live20Hz는 미수용이다.
-다음은4K 원본/고정960 모델의 새 준비·개발/보류와 native ingress/전처리·전체 wall 검증이다.
+이후 native ingress/전처리 검증은 아래 후속 기록으로 이어진다. 새 준비·개발/보류와 전체 wall 수용은 남아 있다.
 새 학습·보드 최적화·실제 Jetson 배포는 수행하지 않았다.
 
 2026-11-11에는 [native4K 비동기 owner](interfaces/perception-async-native-v1.md)를 추가했다.
@@ -118,3 +118,11 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 보완 조건을 [근거](test-plan/evidence/m10_async_native_v1/README.md)에 유지한다. 다음 실행 작업은
 PC 색상 변환·전처리 비용 개선과 실제 ingress/기존 제어 연결의 source age·수신/적용 기한 검증이다.
 실제 차량 제어 또는 live20Hz·ROS/Jetson 연결을 완료한 것으로 올리지 않는다.
+
+2026-11-11 후속 [전처리 개선·실제4K ingress](test-plan/evidence/m10_native_preprocess_v1/README.md)는
+개발84장의 RGB/tensor를 그대로 유지하며 전처리 P95를103.36→42.02ms로 줄였다.
+비동기 재생은46회 발행/21개 frame 소비로 개선됐지만, 실제 CARLA/Epic과 GPU를 공유하면
+37개 완료가 모두 late여서 fresh-output gate FAIL이다. 실제 camera13.60Hz·관측 consumer50Hz,
+world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음은 실제 부하에서100ms 내
+공급을 확보한 뒤 실제 상태/보호·제어 연결과 새 독립 품질 평가를 진행하는 것이다.
+기존 모델/기한/runtime·M10 OPEN·Jetson 최적화 후속 원칙을 유지한다.

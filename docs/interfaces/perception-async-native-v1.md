@@ -44,7 +44,9 @@ camera offer20Hz와 CUDA owner를 독립 thread로 실행했다. 이 consumer는
 모델 추론 자체 P95는20.23ms다. 비동기 분리는 동작하지만 현재4K CPU 변환·전처리 비용으로
 유효한 인지를 공급하지 못했다. 이 결과를50/100Hz 실제 제어 또는 live 인지20Hz 수용으로 올리지 않는다.
 
-다음은 PC의 native 변환·전처리 비용 개선을 별도 version으로 검증하고, 실제 카메라·기존 제어
-경로 연결에서 수신/적용 시각·원천 age·누락·보호 동작을 각각 측정하는 것이다.
+후속 [전처리·live 기록](../test-plan/evidence/m10_native_preprocess_v1/README.md)은 같은 입력84장
+동등성과 재생46회 발행/21개 frame 소비를 확인했다. 실제 CARLA SDK·센서 설정을 연결했으나
+공유 GPU에서는37개 모두 late로 fresh-output gate가 실패했다. 따라서 실제 부하에서100ms 내
+인지 공급 확보와 기존 제어 경로의 수신/적용 시각·원천 age·보호 검증이 남아 있다.
 CARLA의 고정 step/단일 tick owner와 노드의 비동기 실행은 함께 사용할 수 있다.
 Thor/Orin 각각의 전체 stack 배포·보드 최적화는 이후 단계다.

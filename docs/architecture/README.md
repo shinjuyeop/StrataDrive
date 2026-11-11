@@ -137,3 +137,5 @@ vCAN은 application frame 계약용이다. 물리 CAN FD의 전기·arbitration�
 | ARCH-EV-PLANT | SIL battery / power plant | 실제 model power → energy/SOC/voltage/current/temperature, power 응답; BMS controller와 분리; M6 Host는 persistent physical owner; M7 CARLA/Target 배치 TBD-07 |
 | ARCH-ADAPTER | Host: CARLA Plant Adapter; Target feedback bridge와 연결 | vECU actual feedback만 ego actuation 입력으로 변환; CARLA actuation의 단일 writer |
 | ARCH-DIAG | Target Central Vehicle Compute: Diagnostics Manager + Zone Controller/vECU local monitors | fault event 집계, DTC, state transition; local 반응은 Central Vehicle Compute 통신에 의존하지 않음 |
+
+[4K 전처리와 live 관측](../test-plan/evidence/m10_native_preprocess_v1/README.md)은 비동기 재생을 개선했지만 공유 GPU의 실제 fresh-output gate는 FAIL이다. 실제 제어 연결과 Jetson 배포 수용은 별도다.

@@ -65,3 +65,5 @@ JSON·journal은 실행 증거다. Git LFS 파일을 받은 뒤 각 `SHA256SUMS`
 M7-1a–1s 등 고정 식별자는 당시 개별 시험에 유지한다. 현존 runner가 읽는 protocol 경로도
 그대로 둔다. 현재 CARLA 재실행은 [실행 안내](../carla-guide.md), 문서·코드 변경 원칙은
 [개발 정책](../development-guide.md)을 따른다.
+
+[4K 전처리 동등성·live 비동기 후속](evidence/m10_native_preprocess_v1/README.md): 개발84장 입력 동등성, 재생4조건, 실제4K 카메라60개와 모든37개 late 실패, 원본·source 재감사 및5689개 미래 제외.

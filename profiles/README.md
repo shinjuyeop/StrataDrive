@@ -55,3 +55,5 @@ M1–M4 fixture의 설명·개발 당시 적용 범위는 [학습 인덱스](../
 각 ICD/ADR에 있다. YAML에 남은 과거 fixed speed·ideal-HV·standalone model 설정을
 현재3-vECU vehicle/EV 통합의 실제 설정으로 해석하지 않는다.
 Target 보드/AI workload·engine/checksum·power/thermal·clock은 별도 TBD-09/07 범위다.
+
+[전처리 V1](perception-native-preprocess-v1.json)과 [실제4K 관측 V1](perception-carla-native-async-v1.json)은 opt-in 실험이다. [근거](../docs/test-plan/evidence/m10_native_preprocess_v1/README.md)의 재생 PASS와 live fresh-output FAIL을 구분하며 기본 runtime을 승격하지 않는다.
