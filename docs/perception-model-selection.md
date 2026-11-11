@@ -160,3 +160,9 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 기존 S/runtime640은 유지한다.4K 순차 health/resize/추론 P95 약93.64ms로 live20Hz는 미수용이다.
 다음은4K 원본/고정960 모델의 새 준비·개발/보류와 native ingress/전처리·전체 wall 검증이다.
 새 학습·보드 최적화·실제 Jetson 배포는 수행하지 않았다.
+
+후속 [비동기 component](test-plan/evidence/m10_async_native_v1/README.md)는 이 고정 모델과
+4K media를 유지해 상태 수신/조회와 인지를 분리했다. 정상 BGRA→RGB/전처리/추론에서는43개
+완료가 모두100ms를 초과했다. 따라서 비동기 구조의 동작과 유효한 인지 공급을 따로 판정한다.
+현재는 PC 변환·전처리 병목과 실제 ingress/기존 제어 연결을 먼저 해결해야 하며, 품질 후보를
+과거 보류에서 다시 선택하거나 기한을 늘리지 않는다. 새 독립 품질·각 Jetson 배포는 여전히 후속이다.

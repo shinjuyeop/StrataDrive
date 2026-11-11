@@ -10,6 +10,7 @@
 | --- | --- |
 | M10 Host 영상 인지 | [실제 YOLOX·CARLA60pair·tracking·부하·고장·정확도 제한](evidence/m10_perception/README.md) |
 | M10 준비·live ingress | [공유 GPU·실제 카메라·고장4조건·RGB 설정](evidence/m10_live_perception/README.md) |
+| M10 native4K 비동기 component | [독립 state/관측 consumer·CUDA 재생·고장·100ms 초과·원래 fixture 실패](evidence/m10_async_native_v1/README.md) |
 | M10 정확도 확장·후보 비교 | [개발/보류 각81배치·고정 gate·후보 미채택·정답 한계](evidence/m10_quality/README.md) |
 | M10 Rider v2 사전 고정 평가 | [새162배치·실제 pose·조건별 coverage·확대 후보 비교](evidence/m10_quality_v2/README.md) |
 | M10 자산·가시성 준비와 모델 비교 | [V3 별도 준비셋·S/M·새 개발/보류 평가](evidence/m10_quality_v3/README.md) |

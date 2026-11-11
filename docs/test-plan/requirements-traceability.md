@@ -156,3 +156,9 @@ TC-PER-054–056/C-M10-PER-50–52는 [4K 원본 비교](evidence/m10_camera_res
 실제 native RGB/instance·독립 variable-size frame·동일 angular 지원·full300 수치/최대 source
 사전 지명·원본/실패/압축 새 source 재현에 연결한다. 같은 소비 개발 배치이며 새 보류·전체
 wall20Hz·기존 runtime 교체·Thor/Orin 전체 stack 수용을 완료하지 않는다.
+
+TC-PER-057–059/C-M10-PER-53–55는 [4K 비동기 component](evidence/m10_async_native_v1/README.md)에
+연결한다. Native BGRA→RGB/고정960 모델·native typed box·bounded latest1 owner와 독립
+state/관측 consumer 진행·session/clock/expiry 경계·trace 재생의 부분 근거다. 즉시 예외 fixture의
+overlap FAIL과 별도25ms 보완을 유지하며 실제 차량 제어/live camera·ROS/Target 연결·인지20Hz와
+유효 출력 공급을 수용하지 않는다. 정상43개 call도100ms 초과·publication0임을 공개한다.

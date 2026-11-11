@@ -48,6 +48,12 @@ CARLA 실험의 functional/wall clock과 단일 tick 규칙은 [CARLA ICD](../in
 
 ## 데이터 경로의 불변 조건
 
+영상 인지와 상태 수신·제어는 각자의 owner와 주기로 실행한다. World의 고정 simulation step은
+모든 노드가 매번 인지 완료를 기다린다는 뜻이 아니다. Consumer는 원래 취득 시각·유효기간을
+유지한 최신 유효 결과를 사용하고, 필요한 fusion 시각은 별도로 맞춘다.4K의 opt-in owner와
+현재 component 한계는 [비동기 인지 경계](../interfaces/perception-async-native-v1.md)에 있다.
+실제 Actual proof·단일 tick/actuation writer·local protection 경계는 유지한다.
+
 1. VehicleRequest → Central allocation → 담당 Zone → Leaf → Actual CAN/P05 → Zone →
    Central feedback bridge → plant의 반환 경로를 지킨다. Command를 Actual로 바꾸지 않는다.
 2. 값·단위와 함께 run/epoch·sequence·clock·acquisition·oldest dependency·validity·expiry를 전달한다.

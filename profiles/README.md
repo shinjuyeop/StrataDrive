@@ -14,6 +14,7 @@ YAML은 **설계/fixture 기록**이며 runtime loader·자동 inheritance는 �
 | `thor_premium.yaml`, `orin_mainstream.yaml` | 별도 보드별 후보 override. 자동 상속/배포/benchmark 결과가 아님; 같은 reference의 독립 측정 후 비교 |
 | `m6_sil_response_v1.json` | 예외적으로 **실제 읽는 M6 설정**. `front_run.py`/`physical_response.py`가 energy normal/command-loss의 완료 threshold·budget을 공유하고 compiled model readback을 대조. 모델 rate·명령 권한을 바꾸지 않음 |
 | `perception-host-v1.json` | **M10 실행 계약과 모델 provenance**. Python adapter가 모델/hash·shape·camera·threshold·budget과 코드의 일치를 검사한다. 고정 CPU fixture이며 Reference 전체 workload·Target 수용을 대신하지 않음 |
+| `perception-async-native-v1.json`, `perception-async-native-fault-v2.json` | opt-in native4K/960 비동기 owner와 독립 state/camera/관측 consumer 재생 조건. 원래 즉시 예외 overlap FAIL·별도25ms 오류 응답 fixture를 보존. 실제 차량 제어/live camera/ROS/Target 연결·20Hz 수용 아님 |
 | `perception-cuda-host-v1.json` | 같은 M10 semantic/model에 대한 **명시적 CUDA 실행 descriptor**. `--execution cuda`에서만 검증·사용하며 자동 상속/자동 provider 선택은 없음. TF32와 CPU node fallback 금지 |
 | `perception-startup-host-v1.json` | 선택형 준비3회·전체10s/뒤2회100ms exclusive·실패 latch. Startup 비용과 sensor 분모를 모두 보존; driving readiness 아님 |
 | `perception-carla-rgb-host-v1.json` | Low/ClearNoon·RGB postprocess enabled·원본 frame5 취득의 명시적 live fixture. 모델/threshold/geometry 동일; 전체 renderer/ODD 수용 아님 |

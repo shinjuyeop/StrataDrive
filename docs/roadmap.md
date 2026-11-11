@@ -7,7 +7,7 @@
 
 | 단계 | 산출물 |
 | --- | --- |
-| M10 | 사전학습5종 비교·새 Town04 L 평가 완료. 개발 P93.55%/R89.92% PASS·보류 P79.65%/R69.77% FAIL. 기존 S와 실패 보존. 사전학습 후보 확대·새 독립 평가·전체wall20Hz·시작/종료 안정성·주행 통합 남음. 보드 최적화는 후속 |
+| M10 | 사전학습 비교·4K 원본/960 후보·비동기 owner component 검증. 기존 보류 FAIL과 S 유지.4K 변환/전처리·실제 ingress/제어 연결·새 독립 품질·전체wall20Hz 남음. 보드 최적화는 후속 |
 | M11 | Metric world model/localization·temporal learned planner, Safety Supervisor·유효 classical fallback, 인식/판단 한계 검토 |
 | M12 | Thor 또는 Orin NX에 각각 독립 배포·동일 Reference 비교 후 profile별 최적화·재검증 |
 | M13 | 전체 SIL/V&V·회귀·추적성 검토와 검증된 범위·제약 공개 |
@@ -111,3 +111,10 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 기존 S/runtime640은 유지한다.4K 순차 health/resize/추론 P95 약93.64ms로 live20Hz는 미수용이다.
 다음은4K 원본/고정960 모델의 새 준비·개발/보류와 native ingress/전처리·전체 wall 검증이다.
 새 학습·보드 최적화·실제 Jetson 배포는 수행하지 않았다.
+
+2026-11-11에는 [native4K 비동기 owner](interfaces/perception-async-native-v1.md)를 추가했다.
+기존 개발 media에서 상태 producer100Hz·관측 consumer50Hz가 인지 지연/정지/예외와 독립
+진행했지만 정상 인지43건도100ms 내 publication0이다. 원래 오류 fixture FAIL·별도25ms
+보완 조건을 [근거](test-plan/evidence/m10_async_native_v1/README.md)에 유지한다. 다음 실행 작업은
+PC 색상 변환·전처리 비용 개선과 실제 ingress/기존 제어 연결의 source age·수신/적용 기한 검증이다.
+실제 차량 제어 또는 live20Hz·ROS/Jetson 연결을 완료한 것으로 올리지 않는다.

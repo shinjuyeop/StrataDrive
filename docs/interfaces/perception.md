@@ -39,6 +39,9 @@ Score 내림차순·동점 anchor 순서이며 NMS 전1000개, 후100개 초과�
 
 ## 출력·신선도·세션
 
+고정 native4K/모델960 후보에는 [별도 비동기 경계](perception-async-native-v1.md)를 추가했다.
+해당 결과는 아래의 기존 S/640 schema와 구분하며 runtime을 자동 교체하지 않는다.
+
 출력은 half-open `[x1,y1,x2,y2)` **원본 image pixel** box·class·confidence다.
 정상 결과의 빈 목록은 `valid=true`다. 검출 실패/timeout과 구분하며 빈 목록도 도로가 안전하다는
 증거가 아니다. Model hash·profile revision·calibration·camera·epoch·clock·frame·취득 ns를 보존한다.

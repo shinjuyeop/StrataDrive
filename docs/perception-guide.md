@@ -46,6 +46,22 @@ confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했
 
 ## 환경과 모델
 
+4K 후보의 비동기 실행은 [별도 계약](interfaces/perception-async-native-v1.md)과
+[재생 근거](test-plan/evidence/m10_async_native_v1/README.md)를 따른다. 상태/조회 owner와
+변환·추론을 분리했고 정상/지연/오류/정지를 검사했다. 정상 재생에서 실제 차량 제어가 아닌
+상태 producer100Hz·조회 consumer50Hz를 관측했다.4K BGRA 변환/queue까지 포함하면43건 모두
+100ms 기한을 초과했으며 인지20Hz·유효 출력 공급은 미완료다. 이전 RGB-only 약94ms와
+측정 범위를 구분한다. 먼저 PC 변환·전처리 비용과 실제 ingress/제어 연결을 후속 검증한다.
+
+GPU 없이 저장된 trace·동결 source를 재감사하는 명령은 아래와 같다. 모델 추론·live camera를
+재실행하지 않으며, 이미 사용한 개발 media와 미래 제외5629개를 유지한다.
+
+```sh
+build/m10-perception/cuda-venv/bin/python \
+  docs/test-plan/evidence/m10_async_native_v1/check-evidence.py \
+  docs/test-plan/evidence/m10_async_native_v1 build/m10-async-recheck.json
+```
+
 저장소 루트에서 실행한다. 기본 C++ 빌드에는 Python/ONNX/CARLA가 필요 없다.
 영상 경로의 재현 환경은 `physical_ai/requirements-host.txt`다. 독립 가상환경을 권장한다.
 
