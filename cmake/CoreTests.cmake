@@ -17,6 +17,12 @@ find_package(GTest 1.11.0 EXACT CONFIG REQUIRED)
 stratadrive_unit_test(perception_receiver_test
     SOURCES tests/unit/perception_receiver_test.cpp
     LIBRARIES perception_receiver)
+stratadrive_unit_test(perception_2k_receiver_test
+    SOURCES tests/unit/perception_2k_receiver_test.cpp
+    LIBRARIES perception_2k_receiver)
+stratadrive_unit_test(perception_2k_control_sil_test
+    SOURCES tests/unit/perception_2k_control_sil_test.cpp
+    LIBRARIES perception_2k_receiver m4_async_runtime)
 stratadrive_unit_test(diagnostics_test
     SOURCES tests/unit/diagnostics_test.cpp
     LIBRARIES diagnostics Threads::Threads)

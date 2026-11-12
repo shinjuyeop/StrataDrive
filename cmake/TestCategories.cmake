@@ -1,5 +1,9 @@
 # Disjoint execution categories; keep exact GTest/CTest names and every assertion.
 function(stratadrive_discover_tests target)
+    if(target STREQUAL "perception_2k_control_sil_test")
+        gtest_discover_tests(${target} DISCOVERY_MODE PRE_TEST PROPERTIES LABELS "integration.logical" TIMEOUT 60)
+        return()
+    endif()
     if(target STREQUAL "diagnostics_delivery_process_test")
         gtest_discover_tests(${target} DISCOVERY_MODE PRE_TEST PROPERTIES LABELS "integration.transport" TIMEOUT 30)
         return()

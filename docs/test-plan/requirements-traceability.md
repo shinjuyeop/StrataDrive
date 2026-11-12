@@ -225,3 +225,10 @@ TC-PER-082–084/C-M10-PER-78–80은 [제한된2K 지연 기준](perception-lat
 636개 source에는 이전 누락 도우미를 이번부터 사전 포함한다. 별도 경로19개 선행 테스트,
 전체 Python378·변조88건·미래 제외8975와 외부 설정 복원을 확인했다. 기본 개발 경로 유지,
 M10·독립 품질·장기 운용·각 Jetson 배포는 별도로 남긴다.
+
+TC-PER-085–087/C-M10-PER-81–83은 [2K 수신·보호 계약](../interfaces/perception-native-2k-control-v1.md),
+[기능 기준](perception-native-2k-control-v1-protocol.md), [Host 실행 근거](evidence/m10_native_2k_control_v1/README.md)에 연결한다.
+원래 두100ms 기한·state liveness·identity·bounded image tracking,902개 보존 consumer 조회
+(899개 C++ 재생+3개 state 초기화 전 unavailable),25개 semantic/5개 parser 변조를 확인한다.
+9개 논리 SIL 조건은 관측 전용 실행 동등성·보호·원본 Actual·복원만으로 재허가하지 않음·새 INIT 복구를 포함한다.
+이는 새 live CARLA 제어·품질·wall 성능·Jetson 수용이 아니며 M10은 계속 OPEN이다.

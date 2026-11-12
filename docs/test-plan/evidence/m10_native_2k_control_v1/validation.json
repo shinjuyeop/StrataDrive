@@ -1,0 +1,84 @@
+{
+  "status": "PASS",
+  "scope": "archived Host functional reproduction; no new live camera/model",
+  "source_files": 1222,
+  "source_archive_sha256": "87ced87b49c2d17a094c52728bf4161fb020b985d36c90fa72893e90a15aa11a",
+  "cpp_tests": {
+    "perception_2k_receiver_test": 15,
+    "perception_2k_control_sil_test": 9,
+    "perception_receiver_test": 11,
+    "speed_supervisor_test": 22,
+    "vehicle_coordinator_test": 31
+  },
+  "new_python_tests": 7,
+  "sil_and_replay_artifacts_exact": true,
+  "commands": [
+    [
+      "cmake",
+      "-S",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/source",
+      "-B",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/build",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DSTRATADRIVE_PERCEPTION_TESTS=ON",
+      "-DPython3_EXECUTABLE=/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python"
+    ],
+    [
+      "cmake",
+      "--build",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/build",
+      "--target",
+      "perception_2k_receiver_test",
+      "perception_2k_control_sil_test",
+      "perception_receiver_test",
+      "speed_supervisor_test",
+      "vehicle_coordinator_test",
+      "perception_2k_replay",
+      "perception_replay",
+      "-j4"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/build/perception_2k_receiver_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/perception_2k_receiver_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/build/perception_2k_control_sil_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/perception_2k_control_sil_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/build/perception_receiver_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/perception_receiver_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/build/speed_supervisor_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/speed_supervisor_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/build/vehicle_coordinator_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/vehicle_coordinator_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python",
+      "-m",
+      "unittest",
+      "test_boundary_2k_v1",
+      "-v"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/source/tests/integration/perception/check_boundary.py",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/build/tests/integration/perception/perception_replay"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/source/tests/integration/perception/check_boundary_2k_v1.py",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/build/tests/integration/perception/perception_2k_replay",
+      "--reports",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/source/docs/test-plan/evidence/m10_latency_2k_v1/baseline-01/capture/result.json",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/source/docs/test-plan/evidence/m10_latency_2k_v1/tensor-01/capture/result.json",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/source/docs/test-plan/evidence/m10_latency_2k_v1/balanced-01/capture/result.json",
+      "--output",
+      "/d/shin/StrataDrive/build/m10-integration-2k-v1/archive-check-01/replay"
+    ]
+  ]
+}

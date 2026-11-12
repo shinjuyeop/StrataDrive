@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **2K 기존17.55Hz/94.20ms 유지 권고 / 작은 버퍼 개선 opt-in / 전달 변경 FAIL 보존 / 기능·독립 품질 OPEN** | [모델 선정](perception-model-selection.md) · [제한된 지연 개선](test-plan/evidence/m10_latency_2k_v1/README.md) |
+| M10 | **2K 수신·추적·보호 Host 기능 PASS / live 차량 연결·독립 품질 OPEN** | [2K 기능 연결](test-plan/evidence/m10_native_2k_control_v1/README.md) · [제한된 지연 개선](test-plan/evidence/m10_latency_2k_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -32,8 +32,17 @@
 목표이며 느린 시뮬레이션을 목표로 삼은 것이 아니다.636개 소스는 기존 누락 도우미를 이번부터
 사전 포함했고, 첫 실측 전 별도 경로 import/19개 테스트로 확인했다. Python378·변조88건,
 개발81장 및 신규300장 입력 exact·실패 원본까지 검증했고 미래 제외는8975개다.
-기존 모듈/화면 설정을 복원했다. 다음은 과도한 속도 튜닝보다 unavailable 보호·기능 연결이며,
+기존 모듈/화면 설정을 복원했다. 속도 튜닝을 마치고 아래 unavailable 보호·Host 기능 연결을 수행했으며,
 새 독립 품질·장기 수용·각 Jetson 배포와 보드별 최적화는 별도다.
+
+[2K 기능 연결](test-plan/evidence/m10_native_2k_control_v1/README.md)은 Python의 원래 callback
+receipt를 보존하는 export, 별도 C++ 수신부, 실제10개 관측의 영상 추적, 선택형 availability 보호를
+추가했다. 보존된902개 조회 중 state 초기화 전3개는 unavailable로 유지하고899개를 C++에서
+재생해 원본 가용성과 일치했다.9개 논리 SIL에서는 Shadow가 기존 명령/물리 결과를 바꾸지 않고,
+Required는 공백·오류에 기존 보호를 적용하며, 영상 복원만으로 재허가하지 않고 새 global INIT 뒤에
+정상 제어로 복구했다. 새 C++24개·기존 회귀64개, ASan/UBSan24개, Python385개와 별도 source archive
+빌드·재생을 확인했다. 이는 실제 카메라에서 CARLA 차량까지의 live 연결이나 production IPC가 아니다.
+다음은 해당 경계를 유한 mailbox/IPC에 연결한 CARLA shadow 실행과 원본 Actual 측정이다.
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 
@@ -46,7 +55,7 @@
 | CARLA | 원본 CAN/P05 Actual의 NoDrive 적용, solver work의 단일 EV 정산, simulation-time 기능 | [Plant 계약](interfaces/carla-plant-adapter.md) · [실행 안내](carla-guide.md) |
 | 진단 | 원본 검출·인과 ID·보호·Actual·DTC, qualified 복구와 명시적 clear, 재기동/연속성 심사 | [진단 계약](interfaces/diagnostics.md) |
 | 기록 보존 | 유한 journal, 비활성 store의 독점 잠금 archive/restore, byte 동일한 이력 복원 | [보존 계약](test-plan/diagnostic-retention-protocol.md) |
-| 영상 인지 | 고정 YOLOX-S FP32 CPU·선택형 CUDA, RGB-only·2D 검출/tracking·queue/expiry·C++ 검증, GT 분리 평가 | [영상 계약](interfaces/perception.md) · [실행 근거](test-plan/evidence/m10_perception/README.md) |
+| 영상 인지 | 기존 S/640 baseline과 선택형 D-FINE-M960/2K 경계; RGB-only·영상 추적·원래 두 기한·Host 보호 검증 | [영상 계약](interfaces/perception.md) · [2K 수신·보호](interfaces/perception-native-2k-control-v1.md) |
 
 문서 이력과 공통 진단 발행기·감사 decoder를 정리한 뒤의 동등성·회귀 검증은
 [M9 이후 구조 정리 근거](test-plan/evidence/post-m9-refactor/README.md)를 따른다.
@@ -77,7 +86,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 기존 2K 개발 구성을 기준으로 인지 unavailable을 상태·보호 경로에 연결하고, 원래 source/receipt 기한과 실제 Actual 반응을 검증한다. 이번 제한된 지연 비교를 20Hz까지 추가 튜닝하는 작업으로 확대하지 않는다.
+1. 검증한 2K Host 수신·보호 경계를 실제 control owner의 유한 mailbox/IPC에 연결해 CARLA shadow부터 실행한다. 원래 source/receipt 기한과 live Actual 반응을 검증하고, 기존 가용성 공백을 유지한 채 Required를 기본값으로 올리지 않는다.20Hz까지 추가 튜닝하지 않는다.
 2. 후보와 센서·모델 설정을 먼저 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상을 새로운 holdout으로 재사용하지 않는다.
 3. 시작/종료·장기 부하·전체 지연과 실시간 동작을 별도로 검증한다. 정지 장면이나 짧은 관측을 전체 ODD 수용으로 확대하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

@@ -7,6 +7,13 @@ endif()
 add_executable(perception_replay perception_replay.cpp)
 target_link_libraries(perception_replay PRIVATE perception_receiver)
 stratadrive_quality(perception_replay)
+add_executable(perception_2k_replay perception_2k_replay.cpp)
+target_link_libraries(perception_2k_replay PRIVATE perception_2k_receiver)
+stratadrive_quality(perception_2k_replay)
+add_test(NAME perception_2k_boundary_replay
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_boundary_2k_v1.py $<TARGET_FILE:perception_2k_replay>)
+set_tests_properties(perception_2k_boundary_replay PROPERTIES WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    LABELS "integration.logical" TIMEOUT 30)
 add_test(NAME perception_python
     COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/integration/perception -p test_*.py)
 set_tests_properties(perception_python PROPERTIES WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
