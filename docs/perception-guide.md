@@ -1,57 +1,27 @@
 # 영상 인지 실행과 평가
 
-M10 Host 프로파일의 입력은 RGB이고 출력은 원본 영상 pixel 좌표의 객체·관측 이력이다.
-거리/trajectory/차량 command는 만들지 않는다. [계약](interfaces/perception.md)과
-[실행 근거](test-plan/evidence/m10_perception/README.md)의 정확도·timing 한계를 먼저 확인한다.
+M10 Host 입력은 RGB이고 출력은 원본 영상 pixel 좌표의 객체·관측 이력이다.
+기본 S/640 경계와 opt-in D-FINE/960·2K/4K 실험을 구분한다.
+최신 판정·작업 순서는 [프로젝트 상태](project-status.md), 후보 선정은
+[모델 선정 안내](perception-model-selection.md), 입출력·실패 동작은 [계약](interfaces/perception.md)을 따른다.
 
-현재 모델 비교와 Jetson 배포/최적화의 순서는 [모델 선정 안내](perception-model-selection.md)를
-따른다. S는 초기 연동 기준이며, [사전학습5종 개발 비교](test-plan/evidence/m10_model_screen_v1/README.md)를
-모델 최종 선정이나 보드 성능 검증과 구분한다.
+## 실행 경로 선택
 
-공식 L의 [V8 새 지도 평가](test-plan/evidence/m10_quality_v8/README.md)는 개발 PASS·보류
-FAIL을 기록했다. 원본·실패한 준비와 동일 조건 복구·선정 순서는 근거 묶음에서 재감사한다.
+| 목적 | 안내 |
+| --- | --- |
+| 기본 모델·C++ 수신·평가 | [환경과 모델](#환경과-모델) · [Component](#component와-수신-경계) · [추론·정답 평가](#실제-추론정답-평가부하) |
+| CUDA와 실제 카메라 shadow | [CUDA](#선택형-host-cuda) · [준비·live 수신](#명시적-준비와-live-카메라-shadow) |
+| 상태·인지·조회 비동기 실행 | [가용성 기준](#10hz와-현재-가용성-기준) · [비동기 월드](#서버-비동기-월드-실행) |
+| 최근 2K 지연 실험 재현 | [최근 2K 실험](#최근-2k-실험) |
+| 이전 품질·학습 실험 재현 | 아래 V1–V7 절의 고정 명령과 [통합 이력](archive/implementation-history.md#m10-정리-전-상세-기록) |
 
-[사전학습 비교 V2](test-plan/evidence/m10_model_screen_v2/README.md)는 공식 D-FINE-M·
-RT-DETRv4-S·DAMO legacy를 추가한6종 비교다. 개발324장으로 confidence를 고정한 뒤
-Town04 개발81장을 확인했다. 모델별 남은 FP/class recall과 과거 보류 실패를 보존하며
-최종 Reference를 확정하지 않았다.0.35 미만 탐색값은 별도 offline detection으로 처리하고
-기존 runtime profile은 유지한다. 전체 raw 재생 명령은 해당 근거의 `check-archive.py`를 따른다.
-
-후속 [오류 분석](test-plan/evidence/m10_model_diagnostics_v1/README.md)과
-[클래스별 confidence 검증](test-plan/evidence/m10_class_calibration_v1/README.md)은 개발 자료만
-사용했다. 새 품질 평가 후보는 D-FINE-M의 `[.60,.40,.70,.50,.50,.60]`(class0/1/2/3/5/7)이다.
-calibration·소비한 Town04 개발의 절대 기준은 PASS지만 상대 FAIL을 유지한다.
-파생 후보 프로파일은 offline 전용이다. [V9 새 도로 평가](test-plan/evidence/m10_quality_v9/README.md)에서
-이를 그대로 고정해 개발 P95.20%/R92.25%·절대/상대 PASS, 새 보류 P86.09%/R76.74%·
-상대 PASS/절대 FAIL을 확인했다. 보행자/오토바이 recall50%가 남아 기본 S를 유지한다.
-원본459쌍·모든 raw 모델 출력·새 source 재감사와 미래 제외5449개를 보존한다.
-다음 후보는 개발 자료에서 검증하고 소비한 보류를 다시 설계/수용에 쓰지 않는다.
-
-
-[960 입력·car confidence 후속](test-plan/evidence/m10_resolution_v2/README.md)은 원래 수치
-실패/1280 탈락과 car 회귀 거절을 보존했다. 별도 고정한 후보는486개 개발/설계에서 P95.15%/
-R91.34%다. [파생 profile](../profiles/perception-resolution-candidates-v1.json)은 offline 전용이고,
-원본 RGB640×384를960으로 보간·BASIC FP32/vector를 고정한다. 기존 runtime 실행 명령은 S를
-유지한다. 다음 새 개발/보류 수용과 실제 deadline·각 Jetson 배포/측정은 후속이다.
-
-
-[CARLA 원본 해상도 비교](test-plan/evidence/m10_camera_resolution_v1/README.md)는 모델960과
-confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했다.4K를 품질 평가 전에
-기술 기준으로 고정했고, 같은 개발 배치 각81장에서640은P98.37%/R93.80%,4K는129TP/0FP/0FN이다.
-수치15건 중14PASS/1FAIL과 종료 실패3쌍·사전 복구를 보존했다. 전체180쌍·미래 제외5629개다.
-[4K source profile](../profiles/perception-camera-source-candidates-v1.json)은 다음 새 평가용이며
-기존 S/runtime640은 유지한다.4K 순차 health/resize/추론 P95 약93.64ms로 live20Hz는 미수용이다.
-이후 native ingress/전처리 검증은 아래 후속 기록으로 이어진다. 새 준비·개발/보류와 전체 wall 수용은 남아 있다.
-새 학습·보드 최적화·실제 Jetson 배포는 수행하지 않았다.
+아래 버전별 명령은 해당 실험의 재현 예다. 당시 “다음/현재” 설명은 최신 작업 순서로 사용하지 않는다.
+실험용 모듈 설치·복원 및 출력 경로는 각 프로토콜을 따르고 실행 실패도 보존한다.
 
 ## 환경과 모델
 
-4K 후보의 비동기 실행은 [별도 계약](interfaces/perception-async-native-v1.md)과
-[재생 근거](test-plan/evidence/m10_async_native_v1/README.md)를 따른다. 상태/조회 owner와
-변환·추론을 분리했고 정상/지연/오류/정지를 검사했다. 정상 재생에서 실제 차량 제어가 아닌
-상태 producer100Hz·조회 consumer50Hz를 관측했다.4K BGRA 변환/queue까지 포함하면43건 모두
-100ms 기한을 초과했으며 인지20Hz·유효 출력 공급은 미완료다. 이전 RGB-only 약94ms와
-측정 범위를 구분한다. 먼저 PC 변환·전처리 비용과 실제 ingress/제어 연결을 후속 검증한다.
+4K 비동기 실행의 owner·clock·만료 경계는 [별도 계약](interfaces/perception-async-native-v1.md)을 따른다.
+아래 재감사 예는 최초 component 실행 기록이다. 최신 live/2K 판정은 프로젝트 상태에서 확인한다.
 
 GPU 없이 저장된 trace·동결 source를 재감사하는 명령은 아래와 같다. 모델 추론·live camera를
 재실행하지 않으며, 이미 사용한 개발 media와 미래 제외5629개를 유지한다.
@@ -688,35 +658,17 @@ python3 tools/carla/m10_readback_v1/build.py \
 사전 조건/출력 경로를 정하고 실패와 원본을 모두 남긴다.
 
 
-2026-11-11 [4K snapshot 복사](test-plan/evidence/m10_frame_copy_v1/README.md)와
-[main viewport 후속](test-plan/evidence/m10_viewport_v1/README.md)은 새 opt-in 진단 경로다.
-복사 평균14.15→약2.8ms 개선에도 전체 capture→backend 평균 약127–129ms와 camera 약13Hz가 남았다.
-GIL을 놓는 복사 동안 실제 SDK Image owner를 pin하고 독립 bytes를 한 번만 공개한다.
-120개/4.25GB 사전 할당은 유한 Host 수집 한도이며 배포 queue가 아니다. Stage clock을 분리하되
-기존 모델/산술·active1/pending1/current1·원래 source 및 receipt100ms를 유지한다.
-Source100ms와 capture-to-result100ms wall은 다르며 이번 실측은 후자를 별도 기록했다.
-4K 출력과 Epic은 유지했지만 viewport 변경의 품질 동등성은 미평가다. 기본값은 승격하지 않고
-외부 모듈/화면 설정을 복원했다. M10 실시간·새 독립 품질·주행·Jetson 배포는 OPEN이다.
+## 최근 2K 실험
 
+[2K/4K 비교](test-plan/evidence/m10_source_compare_v2/README.md)와
+[제한된 지연 개선](test-plan/evidence/m10_latency_2k_v1/README.md)은 별도 opt-in 경로다.
+모델 입력은960×960이고 센서 원본2K는2560×1536이다. 기본 S/runtime640을 자동 교체하지 않는다.
+재사용 입력 버퍼의 소유권과 두100ms 기한은 [인지 계약](interfaces/perception.md)을 따른다.
+현재 권고·채택/미채택 판정과 측정 수치는 프로젝트 상태에서 한 번만 관리한다.
 
-2026-11-11 [2K/4K 소스 비교](test-plan/evidence/m10_source_compare_v2/README.md)는 opt-in2K typed 경로를 추가했다.
-센서는2560×1536 또는3840×2304, 비율5:3/FOV90이고 모델 입력은 같은960×960이다.
-2K 전용 타입/후보/schema/box 범위를 검사하며 native resize는 Pillow 입력과 bit-exact다.
-서버 비동기10ms·frame%5·실제 on_tick·active1/pending1/current1과 원래100ms 두 기한을 유지한다.
-같은 새 readback 모듈에서4K14.56Hz,2K16.88/17.62Hz 및 전체 평균135.49→97.38/93.56ms를 관측했다.
-실제20Hz·실제시간1× 수용은 OPEN이다. 개발81장씩의 정밀도/재현율은4K 100.00%/99.22%, 2K 100.00%/100.00%다.
-개발 비교는 기존81장 재사용이며 독립 품질·배포 수용이 아니다. Offline 채점시간은 검증/압축 해제를
-포함하므로 live latency로 사용하지 않는다. 첫 해상도 거절 FAIL과 공통 도우미 사전 봉인 누락을
-명시하고 보충 원본까지 재감사했다. 기본값/차량/ROS를 바꾸지 않았으며 각 Jetson 배포와 보드별
-최적화는 후속이다. 원래 모듈과 화면 설정을 복원했다.
+실행 옵션은 아래 runner의 도움말, 환경·고정 조건·원본 재감사는 각 evidence와
+[실험 프로토콜](test-plan/perception-latency-2k-v1-protocol.md)을 따른다.
 
-
-2026-11-12 [제한된2K 지연 비교](test-plan/evidence/m10_latency_2k_v1/README.md)에서 단일 추론 owner가 사용하는 재사용 float32 입력
-버퍼를 추가했다. 기존과 입력값이 exact이며 개발81장과 실제300장에서 확인했다. 버퍼는 동기
-추론 호출 동안 유효하고 다음 호출에서 덮어쓰므로 owner 밖으로 보관하거나 비동기 backend에
-그대로 넘기지 않는다. 실제 평균94.20→91.73ms의 소폭 개선은 실험의3ms 채택 폭에 미달해
-opt-in으로 남긴다. 이 수치는 물리적 최소 조건이 아니다. GPU deferred+engine cap100은
-127.74ms/유효조회10.53%/fresh 구간 FAIL이므로 기존 읽기 경로를 권고한다. 월드 자체는
-계속 비동기다.20Hz를 이번 개선의 필수 조건으로 삼지 않았고 추가 반복 없이 종료했다.
-기존 source/receipt100ms·actual snapshot·latest1·모델/해상도를 유지하며 제어/ROS/Jetson
-승격은 없다. 원본/실패와636개 사전 소스를 보존하고 외부 모듈/설정을 복원했다.
+```sh
+python3 tests/integration/perception/run_carla_latency_2k_v1.py --help
+```

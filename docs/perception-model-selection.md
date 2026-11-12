@@ -6,6 +6,13 @@
 
 ## 현재 판단
 
+기본 실행 모델은 YOLOX-S/640이며 최종 Reference 모델은 미채택이다.
+D-FINE-M/960의 opt-in2K 개발 구성은 기본 S 경계와 구분한다. 최근 제한된 지연 비교 이후의
+우선순위는 unavailable 보호·기능 연결이고, 새 독립 품질과 각 Jetson 배포/최적화는 남아 있다.
+실측과 다음 작업은 [프로젝트 상태](project-status.md#최신-m10-판단)를 따른다.
+
+## 기준 모델과 개발 비교 V1
+
 YOLOX-S는 초기 RGB→추론→C++ 경계 검증을 위한 기준 모델이다. 여러 계열을 비교하여 최적으로
 확정한 모델이 아니다. 추가 학습 L6도 최종 품질 기준을 통과하지 못했다. 이제 추가 학습보다
 공개 사전학습 모델의 비교를 먼저 진행한다.
@@ -152,34 +159,6 @@ R90.70%로 개선됐지만, 소비한 V9 개발의 car recall32/33→31/33 때�
 다음은 이 단일 후보의 모델 없는 준비·새 개발/보류 평가다. 최종 모델 채택·runtime 교체는 미완료다.
 
 
-[CARLA 원본 해상도 비교](test-plan/evidence/m10_camera_resolution_v1/README.md)는 모델960과
-confidence를 유지하고 source640×384부터3840×2304까지 실제 촬영했다.4K를 품질 평가 전에
-기술 기준으로 고정했고, 같은 개발 배치 각81장에서640은P98.37%/R93.80%,4K는129TP/0FP/0FN이다.
-수치15건 중14PASS/1FAIL과 종료 실패3쌍·사전 복구를 보존했다. 전체180쌍·미래 제외5629개다.
-[4K source profile](../profiles/perception-camera-source-candidates-v1.json)은 다음 새 평가용이며
-기존 S/runtime640은 유지한다.4K 순차 health/resize/추론 P95 약93.64ms로 live20Hz는 미수용이다.
-이후 native ingress/전처리 검증은 아래 후속 기록으로 이어진다. 새 준비·개발/보류와 전체 wall 수용은 남아 있다.
-새 학습·보드 최적화·실제 Jetson 배포는 수행하지 않았다.
-
-후속 [비동기 component](test-plan/evidence/m10_async_native_v1/README.md)는 이 고정 모델과
-4K media를 유지해 상태 수신/조회와 인지를 분리했다. 정상 BGRA→RGB/전처리/추론에서는43개
-완료가 모두100ms를 초과했다. 따라서 비동기 구조의 동작과 유효한 인지 공급을 따로 판정한다.
-현재는 PC 변환·전처리 병목과 실제 ingress/기존 제어 연결을 먼저 해결해야 하며, 품질 후보를
-과거 보류에서 다시 선택하거나 기한을 늘리지 않는다. 새 독립 품질·각 Jetson 배포는 여전히 후속이다.
-
-2026-11-11 후속 [전처리 개선·실제4K ingress](test-plan/evidence/m10_native_preprocess_v1/README.md)는
-개발84장의 RGB/tensor를 그대로 유지하며 전처리 P95를103.36→42.02ms로 줄였다.
-비동기 재생은46회 발행/21개 frame 소비로 개선됐지만, 실제 CARLA/Epic과 GPU를 공유하면
-37개 완료가 모두 late여서 fresh-output gate FAIL이다. 실제 camera13.60Hz·관측 consumer50Hz,
-world67.72Hz이며 원본60개를 포함한 미래 제외는5689개다. 다음은 실제 부하에서100ms 내
-공급을 확보한 뒤 실제 상태/보호·제어 연결과 새 독립 품질 평가를 진행하는 것이다.
-기존 모델/기한/runtime·M10 OPEN·Jetson 최적화 후속 원칙을 유지한다.
-
-
-2026-11-11 후속 [native CPU resize·실제 fresh-output](test-plan/evidence/m10_native_kernel_v1/README.md)은
-4K 중간 RGB 복사를 없애고 Pillow와 같은 축소 계산을 병렬화했다. 개발84장과 실제72장
-입력이 exact이며, 개발 쌍별 전처리 P95는38.97→16.89ms다. 실제 공유 GPU에서36장/31회
-완료 중27회 발행·27개 frame 소비를 확인했다. 초기4회 late는 보존하고 원래100ms 기한을
-유지했다. Camera12.93Hz·cold 포함 admission P95115.76ms이므로 전체20Hz 수용은 아니다.
-미래 제외5761개·원래 FAIL·기본 S/runtime·M10 OPEN을 유지한다. Startup 준비와 반복/장시간
-부하·SDK source age·기존 상태/보호 연결, 새 독립 품질과 각 Jetson 배포가 다음 단계다.
+후속 원본 해상도·비동기 처리·2K 지연 비교는 [프로젝트 상태](project-status.md#최신-m10-판단)와
+[실행 안내](perception-guide.md#최근-2k-실험)에서 연결한다. 모델 선정용 개발 결과와
+live 처리 성능·독립 품질 수용은 각각 판정한다. 상세 경과는 [통합 이력](archive/implementation-history.md#m10-정리-전-상세-기록)에 보존한다.

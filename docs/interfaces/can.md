@@ -1,5 +1,10 @@
 # CAN / CAN FD application ICD baseline
 
+현재 Host에서는 아래 CAN/P05 codec·receiver 계약을 SOME/IP SIL과 CARLA native 시험에
+사용한다. SocketCAN/vCAN wire 시험, 로컬 owner 전달, 물리 CAN 검증을 구분한다.
+최신 구현·수용은 [프로젝트 상태](../project-status.md), 전체 TC 판정은
+[요구사항 추적성](../test-plan/requirements-traceability.md)을 따른다.
+
 M4 [Zone gateway](../learning/vehicle-lifecycle-guide.md)는 기존 command wire를 유지하면서 원래
 Epoch/Sequence/Source/CausalSequence를 전달하고 각 nonblocking write 전후 expiry를 검사한다.
 Scoped parent/expiry는 userspace sideband다. 기존 32-byte CAN에는 없으므로 kernel TX queue나
@@ -22,14 +27,14 @@ Wire decode는 stateless이며 P05 Counter는 별도 state로 검사한다.
 [Steering 수신부의 수용/trace Sequence/freshness/timeout](../learning/communication-guide.md)은
 제어 가능한 시계로 Host에서 시험했다. 이어서 [SocketCAN/vCAN 연결](../learning/communication-guide.md)의
 독립 TX/RX, bounded dispatch, fault/timeout을 실행했다. 후속 [session/queue](../learning/communication-guide.md)에서
-영속 local Epoch 발급과 application/kernel overflow를 검사했다. Actual Central coordinator/Zone DDS와 차량 통합은 남아 있다.
+영속 local Epoch 발급과 application/kernel overflow를 검사했다. 후속 Host coordinator/Zone·차량 연결은 SOME/IP와 native SIL 시험으로 진행했다. DDS 제어 연결은 미채택이다.
 [Steering angle field 초안](steering-angle-encoding.md)의 C++ codec과 Host 단위 시험을 추가했다.
 Host vCAN에서 Steering application Command/Actual fixture를 송수신했다. Actual dynamics와
 [Brake Command/Actual 초안](brake-frame.md)의 압력 codec·DBC·P05와 vCAN wire 송수신도
 [시험했다](../learning/communication-guide.md). 이어서 [Brake application receiver](../archive/design-decisions.md#adr-0012)의
 수용/timeout을 normal/sanitizer unit·vCAN에서 실행했다.
 [Drive signed torque/회생 피드백 wire](drive-frame.md)와 [application receiver/vCAN](../learning/communication-guide.md)도
-실행했다. Actual dynamics, Zone blending 및 전체 차량 TC는 NOT RUN이다.
+실행했다. 이후 Actual dynamics·Central 회생/마찰 배분·지정 차량 fixture를 연결했으며, 전체 차량 TC 수용과는 구분한다.
 Zone–vECU는 SocketCAN/vCAN을 사용하고 CAN FD application contract를 학습한다.
 vCAN은 전기적 동작, bit timing, 실제 arbitration/bus load 검증이 아니다.
 
@@ -54,7 +59,7 @@ vCAN은 전기적 동작, bit timing, 실제 arbitration/bus load 검증이 아�
 Drive는 [RG-01](regenerative-braking.md)을 반영해 Command 32 / Actual 64 bytes로
 정의했다. Signed torque와 capability의 scaling/invalid code/원천 freshness/배치는
 [Drive wire 초안](drive-frame.md)을 따른다. Critical actual validity와 capability validity를
-분리하고 Steering/Brake wire는 유지했다. 회생 물리/에너지와 Central 배분은 component로 구현했으며 차량 runtime은 후속이다.
+분리하고 Steering/Brake wire는 유지했다. 회생 물리/에너지와 Central 배분은 Host SIL·CARLA의 지정 fixture에 연결했다. 전체 ODD·Target 수용은 후속이다.
 
 ## EV-01 추가 wire 초안
 
@@ -63,14 +68,13 @@ Drive는 [RG-01](regenerative-braking.md)을 반영해 Command 32 / Actual 64 by
 [EV C++ codec/항목별 receiver와 native SocketCAN 변환](../learning/communication-guide.md)은 Host에서 시험했다.
 EV vCAN TX/RX/relay도 기존 fixture에서 36개 case로 시험했다.
 Drive의 필수 EV gate와 Rear 전원/허가/limits·초기 구동 연결은 Host component로 구현했다.
-전체 coordinator/Zone runtime·통합 workload timing은 PLANNED / NOT RUN이다.
+Host coordinator/Zone runtime과 지정 부하 시험은 후속 구현됐다. 전체 workload 실시간·Target 검증은 후속이다.
 [EV 설계](ev-power-bms.md)의 IF-CAN-BMS(power 요청 / battery·limit·power status),
 IF-CAN-DRIVE-CONSTRAINT(원천 limit / drive permission)의 wire/library를 추가했다.
 Frame 수/ID/DLC/schema/P05/Data ID, critical 목록과 local rate/age는 ADR-0016 초안에 있다.
-Receiver의 trusted INIT·typed parent/expiry 검사는 구현했다. 실제 context 전달 coordinator와
-wire 최종 수용은 **TBD-14 / 후속**이다. Local transport는 독립 trusted stdin fixture로 검사했다.
+Receiver의 trusted INIT·typed parent/expiry 검사는 구현했다. Host coordinator의 context 전달은 후속 구현됐으며, remote Leaf wire 최종 수용은 **TBD-14 / 후속**이다. Local transport는 독립 trusted stdin fixture로 검사했다.
 기존 six-frame C++/vCAN PASS와 구분한다.
-관련 요구는 SYS-EV-001–005, SYS-COM-003/004 v0.3이며 TC-EV-001–005는 NOT RUN이다.
+관련 요구는 SYS-EV-001–005, SYS-COM-003/004 v0.3이다. 현재 TC별 범위는 요구사항 추적성을 따른다.
 
 기존 M1 Drive의 보조 feedback source-age <=30 ms를 BMS에 자동 복제하지 않는다.
 BMS 센서/limit 생성·발행 주기를 정한 뒤 cached input의 age와 monitor margin을 포함해

@@ -1,7 +1,8 @@
 # Timing requirements and measurement contract
 
-Status: **DEFINED / Reference Baseline v0.1 + M3 Host 다중 주기·CAN 상실·CPU 부하/배치 부분 측정**.
-차량 전체 E2E/Target latency·차량 전체 multirate 실측은 **NOT RUN**이다.
+Status: **DEFINED / Reference Baseline와 후속 Host·CARLA 시간 계약**.
+Host 주기·통신·실행 감시와 CARLA simulation/wall, 인지 stage 지연은 조건별로 부분 측정됐다.
+전체 E2E 실시간·Target latency 수용은 미완료다. 최신 범위는 [프로젝트 상태](../project-status.md)를 따른다.
 M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. Rate와 100 ms 검출
 상한은 engineering starting point이며 production timing 보장이 아니다.
 
@@ -9,12 +10,12 @@ M1의 local CAN timeout/expiry fixture 부분 측정은 별도로 기록한다. 
 
 | 단계 | Rate | Period | 적용 의미 |
 | --- | --- | --- | --- |
-| CARLA world / Vehicle State (M7-1d 개정) | 100 Hz | 10 ms | 단일 Host tick owner; 매 frame 새 snapshot, 실제 wheel feedback 적합성은 미확정 |
+| CARLA world / Vehicle State (M7-1d 개정) | 100 Hz | 10 ms | 단일 Host tick owner; 매 frame 새 snapshot, 지정 simulation-time fixture의 wheel feedback 검증; 전체 wall/Target 별도 |
 | CARLA 비영상 wall5ms (별도 opt-in) | 200 Hz | 5 ms | wall-native 전용 plant/work 간격; 기본 기능 profile·ECU 주기는 유지 |
 | CARLA RGB / Semantic GT | 20 Hz | 50 ms | world5frame마다 capture; GT는 학습/평가 전용 |
 | Planner | 20 Hz | 50 ms | 최신 유효 state snapshot 사용 |
 | Vehicle Controller (Classical Controller) | 50 Hz | 20 ms | 센서 frame 재사용 가능; 원천 age 보존 |
-| Central VCU/session/bridge | TBD-04/05/14 | M4/M5 task 검증 전 결정 | 별도 vehicle management/allocation·trusted INIT·원천 feedback 집계; 기존 Controller/Zone rate를 자동 복제하지 않음 |
+| Central VCU/session/bridge | 실행 profile별 | Host10-v1 management/allocation 10ms; Target TBD-04/05/14 | 실제 Host 배치는 SOME/IP ICD를 따름. Controller/Zone rate를 자동 복제하지 않음 |
 | Zone Controller | 100 Hz | 10 ms | scoped validation/local monitor 및 actuator command dispatch |
 | Steering vECU | 100 Hz | 10 ms | control/dynamics task 및 actual feedback publication |
 | Brake vECU | 100 Hz | 10 ms | 위와 동일 |

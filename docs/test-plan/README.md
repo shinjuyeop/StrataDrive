@@ -4,7 +4,18 @@
 시험 방법은 [검증 전략](verification-strategy.md), 고정 입력은 [시나리오](scenario-baseline.md),
 요구와 구체 test/evidence 연결은 [추적성](requirements-traceability.md)·[component 추적표](component-traceability.csv)를 따른다.
 
+## 현재 작업의 검증 근거
+
+| 분야 | 최신 연결 |
+| --- | --- |
+| 작업 순서·수용 판정 | [프로젝트 상태](../project-status.md#다음-작업) |
+| 인지 후보·독립 품질 | [모델 선정](../perception-model-selection.md) · [V9 평가](evidence/m10_quality_v9/README.md) · [해상도 후보](evidence/m10_resolution_v2/README.md) |
+| 2K/4K 실제 수신·지연 | [동일 조건 비교](evidence/m10_source_compare_v2/README.md) · [제한된2K 지연 개선·미채택 조건](evidence/m10_latency_2k_v1/README.md) |
+| 비동기 상태·인지·조회 | [실제 월드](evidence/m10_world_async_v1/README.md) · [준비·반복 관측](evidence/m10_native_startup_v1/README.md) |
+
 ## 대표 실행 결과
+
+아래는 버전별 실행을 찾는 목록이다. 당시의 PASS/FAIL을 유지하며 최신 수용 판정은 상태 문서를 따른다.
 
 | 수용 범위 | 원본·재현·제한 |
 | --- | --- |

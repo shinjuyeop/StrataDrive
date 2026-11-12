@@ -23,6 +23,10 @@ Front의 Brake는 전륜 전용이 아닌 차량 전체 aggregate 마찰제동�
 
 ## 현재 Host 실행
 
+아래는 SOME/IP Host SIL의 프로세스 배치다. CARLA 기능 시험은 별도 native 실행기 안의
+ECU owner·로컬 전달 경로를 사용한다. SOME/IP 3-process 시험과 CARLA 기능 시험의 결과는
+각각의 실행 구성에 한정하며 하나의 통합 실행 결과로 합산하지 않는다.
+
 ```mermaid
 flowchart TB
   C[Central process: coordinator·session·allocation]
@@ -96,7 +100,7 @@ Host thread·Trampoline POSIX 파일럿은 MCU/RTOS·전체 AUTOSAR stack의 동
 [시간 요구](../requirements/timing-requirements.md)에서 관리한다.
 
 Fault event는 source·severity·영향 requirement/interface·run/epoch·clock·last-valid RX·
-injection/detection/action/actual response 시각을 구분한다. M9에서 DTC lifecycle을 연결한다.
+injection/detection/action/actual response 시각을 구분한다. M9에서 DTC lifecycle을 연결했다. 현재 수용 범위는 프로젝트 상태를 따른다.
 
 ## Target과 compute 비교 계획
 
@@ -138,6 +142,6 @@ vCAN은 application frame 계약용이다. 물리 CAN FD의 전기·arbitration�
 | ARCH-ADAPTER | Host: CARLA Plant Adapter; Target feedback bridge와 연결 | vECU actual feedback만 ego actuation 입력으로 변환; CARLA actuation의 단일 writer |
 | ARCH-DIAG | Target Central Vehicle Compute: Diagnostics Manager + Zone Controller/vECU local monitors | fault event 집계, DTC, state transition; local 반응은 Central Vehicle Compute 통신에 의존하지 않음 |
 
-[4K 전처리와 live 관측](../test-plan/evidence/m10_native_preprocess_v1/README.md)은 비동기 재생을 개선했지만 공유 GPU의 실제 fresh-output gate는 FAIL이다. 실제 제어 연결과 Jetson 배포 수용은 별도다.
-
-[Native CPU4K 후속](../test-plan/evidence/m10_native_kernel_v1/README.md)은 실제 공유 GPU에서27개 fresh 관측을 확인했다. 초기 지연과 약13Hz camera·실제 제어 연결·각 보드 수용은 남아 있다.
+영상 인지의 비동기 소유권·clock·만료 계약은 [비동기 인지 경계](../interfaces/perception-async-native-v1.md),
+현재 처리량·가용성 및 다음 작업은 [프로젝트 상태](../project-status.md)를 따른다.
+개별 실행 수치는 이 설계 문서에 누적하지 않는다.

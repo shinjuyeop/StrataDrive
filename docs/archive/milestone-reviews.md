@@ -979,4 +979,4 @@ SimpleVehicle 주행 중 손실·CARLA 저속 보호 근거를 인정하고, 추
 M8 범위의 마감 조건에 새 속도/경로/고장 조합을 계속 추가하지 않는다. 현 범위의 버그가
 발견되면 영향 조건을 재개하고 새 원본 증거를 추가한다.
 
-판정은 [ADR-0076](design-decisions.md#adr-0076), 다음 작업은 [로드맵](../roadmap.md#m9-시작-범위)을 따른다.
+판정은 [ADR-0076](design-decisions.md#adr-0076), 당시 착수 경과는 [M9 구현 이력](implementation-history.md#m9-진단-집계저장과-central-검출-경로-연결), 현재 다음 작업은 [프로젝트 상태](../project-status.md#다음-작업)를 따른다.

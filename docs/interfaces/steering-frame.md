@@ -8,8 +8,8 @@ Status: **2026-10-12 설계 제안 / 학습자 review PENDING**.
 구현·실행했고 [P05 Protect/Check](../learning/communication-guide.md)도 Host에서 시험했다.
 [로컬 Application Receiver](../learning/communication-guide.md)는 제어 가능한 시계로 Host에서 시험했다.
 [SocketCAN/vCAN application 연결](../learning/communication-guide.md)은 독립 TX/RX process로
-실행했으며 local observed timeout도 기록했다. 영속 coordinator, application queue/overflow 주입,
-차량 timing 통합은 **PLANNED / NOT RUN**이다.
+실행했으며 local observed timeout도 기록했다. 영속 coordinator·application queue와 지정 Host timing은
+후속 구현·검증됐다. 이 초안의 당시 wire 시험과 현재 수용 범위는 [프로젝트 상태](../project-status.md)를 통해 구분한다.
 Six-frame baseline 채택이나 M1 acceptance 완료로 처리하지 않는다.
 
 ## 1. 먼저 값의 의미와 생성 책임을 정한다
@@ -253,7 +253,7 @@ SourceTimeNs는 raw uint64로 다루고 float64 변환으로 ns 정밀도를 잃
 2026-10-12 초안 작성 시 문서/DBC의 byte·bit 배치와 위 vector를 산술 검사했다.
 이어서 cantools parser와 C++ wire codec을 구현·검증했고 P05/schema 2로 개정해 다시 시험했다. 자세한 범위는 [실행 기록](../learning/communication-guide.md)에 있다.
 로컬 Receiver는 제어 가능한 시계로 Host에서 시험했다. 이어서 SocketCAN/vCAN의 독립 process
-송수신과 local wall-time 검출 지연을 시험했다. 영속 coordinator, application queue,
-kernel overflow 주입과 차량 timing은 **NOT RUN**이다.
+송수신과 local wall-time 검출 지연을 시험했다. 영속 coordinator·application queue·차량 timing의
+후속 검증은 프로젝트 상태를 따른다. 이 초기 wire 시험 자체에 kernel overflow·전체 차량 timing 수용을 포함하지 않는다.
 기존 field codec의 검증 결과와 별개의 범위이며 학습자의 이해 확인도 **PENDING**이다.
 이 제안은 Requirement의 shall이나 Reference v0.1을 변경하지 않고 TBD를 CLOSED로 처리하지 않는다.

@@ -1,6 +1,7 @@
 # Profile과 실제 실행 설정
 
 YAML은 **설계/fixture 기록**이며 runtime loader·자동 inheritance는 없다.
+버전별 JSON은 해당 실험의 고정 입력이며 최신 권고를 뜻하지 않는다. 현재 실행 선택은 상태 문서를 따른다.
 `null`은 미결정이며 무제한/비활성화/default가 아니다. 현재 상태는
 [현재 상태](../docs/project-status.md), milestone/TBD는 [roadmap](../docs/roadmap.md)을 따른다.
 
@@ -10,6 +11,10 @@ YAML은 **설계/fixture 기록**이며 runtime loader·자동 inheritance는 �
 | `perception-model-screen-v2.json` | S/L·RT-DETRv2-R18에 D-FINE-M·RT-DETRv4-S·공식 ModelScope DAMO legacy를 추가한 offline identity. 개발324장 calibration·선택 봉인 뒤 Town04 개발81장 확인. 기본 runtime0.35·기존 보류·Jetson 미실행 경계 유지 |
 | `perception-class-calibration-grid-v1.json` | D-FINE/RT-DETRv4의 클래스별5점×6class 사전 검색 규칙과 기존 절대/상대 gate 우선순위.0.35 하한 유지·Town04는 이미 소비한 개발 regression |
 | `perception-class-calibration-candidates-v1.json` | 고정 가중치/전처리/selection SHA와 파생 confidence vector. 다음 새 품질 평가 후보는 D-FINE-M이며 최종 Reference/runtime profile이 아님. 과거/현재 FAIL과 기본 S 유지 |
+| `perception-native-startup-v1.json`, `perception-world-async-v1.json` | native owner 준비·주파수별 가용성과 실제 비동기 월드의 고정 실험 조건. 상태 snapshot·source/receipt 두 기한을 유지하며 주행 permission과 구분 |
+| `perception-readback-v1.json`, `perception-readback-pool-v1.json`, `perception-frame-copy-v1.json`, `perception-viewport-v1.json` | GPU 읽기·할당·복사·viewport 비용을 분리한 opt-in 실험. 기본 설치값이나 품질 수용으로 승격하지 않으며 각 evidence의 실패·모듈 복원 조건을 따름 |
+| `perception-source-compare-v1.json`, `perception-source-compare-server-v2.json` | 같은 모델960에서 센서2K/4K를 비교하는 typed 경로와 외부 모듈 identity. 원래 해상도 거절·소스 봉인 누락을 포함한 결과는 [비교 근거](../docs/test-plan/evidence/m10_source_compare_v2/README.md)를 따름 |
+| `perception-latency-2k-v1.json` | 기존2K·입력 버퍼 재사용·GPU deferred/월드 상한 조건의 제한된 지연 비교. 신규 기본값 채택 없이 종료한 [실측·판정](../docs/test-plan/evidence/m10_latency_2k_v1/README.md)을 유지 |
 | `reference.yaml` | Reference ODD·논리 rate·과거 M1–M6 fixture 기록. C++/Python 코드와 runner 옵션이 실제 값을 정한다. YAML 자체가 프로세스를 설정하지 않음 |
 | `thor_premium.yaml`, `orin_mainstream.yaml` | 별도 보드별 후보 override. 자동 상속/배포/benchmark 결과가 아님; 같은 reference의 독립 측정 후 비교 |
 | `m6_sil_response_v1.json` | 예외적으로 **실제 읽는 M6 설정**. `front_run.py`/`physical_response.py`가 energy normal/command-loss의 완료 threshold·budget을 공유하고 compiled model readback을 대조. 모델 rate·명령 권한을 바꾸지 않음 |

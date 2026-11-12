@@ -34,7 +34,7 @@ Native Actual·solver/EV 기능 경로는 연결했고 정상 wall 수용은 OPE
 | IF-HOST-EV-STATUS | 관측용 BMS/power/energy 정보; wheel actuation 아님 | BMS → CAN → Rear → Central bridge → Host | Physical Ethernet; schema TBD-14/05 |
 | IF-MODEL-BMS | modeled pack 센서, 셀 전압·온도 극값과 실제 전원 상태 | battery/power plant → BMS | SIL 로컬 sensor 경계; validity/time/batch 보존, 모델 TBD-13/07 |
 | IF-MODEL-DRIVE-POWER | modeled Drive local HV bus 실제 센서, source time/validity/identity | power plant → Drive local sensor validation | SIL 로컬 물리 경계; Central permission과 별도, schema/threshold TBD-12/13/14 |
-| IF-FAULT-EVENT | fault occurrence, evidence, local action/state | local monitors → Diagnostics Manager / Host logging | [event/DTC v0.1](diagnostics.md)의 집계/store·부분 source/복구·유한 spool·SOME/IP 새 logical source 부분 검증; native 3-ECU merge·정규 DDS/Target TBD-05/08 |
+| IF-FAULT-EVENT | fault occurrence, evidence, local action/state | local monitors → Diagnostics Manager / Host logging | [event/DTC 계약](diagnostics.md), Host source 전달·3-ECU 세션 이관/병합·유한 서비스·simulation10ms 고장 체인 검증; 전체 wall/장기 보존·Target 별도 |
 
 CAN family ID는 양방향 그룹이며 command와 actual feedback은 별도의 frame/message다.
 각 CAN wire ID는 기존 frame/DBC 계약에 정의돼 있다. Host transport와 Central–Zone DDS가 같다고 가정하지 않는다.
@@ -92,7 +92,7 @@ Peer envelope와 원천/의존 sample의 validity/age를 별도로 검사한다.
 angle hold, FAIL_SAFE + LocalProtection이다. 기존 wire/meaning은 유지하며 차량 보호 calibration은 후속이다.
 [Brake 첫 모델](../learning/vehicle-models-guide.md)도 독립 pressure Actual을 생성하고 가압/감압 rate를
 분리한다. Local fault에서는 max(actual, fixture floor) ramp를 사용한다. Pressure→wheel torque 변환과
-첫 Central 회생 배분은 component로 구현했으며 차량 통합은 후속이다. 유효 0/release와 unavailable의 기존 의미는 유지한다.
+첫 Central 회생 배분은 Host SIL과 지정 CARLA fixture에 연결했으며 전체 Reference·Target 수용은 후속이다. 유효 0/release와 unavailable의 기존 의미는 유지한다.
 
 각 stream은 논리적으로 schema version, run/epoch, producer, source acquisition/generation
 시각 + clock domain, source sequence, validity, causal input identity를 갖는다.

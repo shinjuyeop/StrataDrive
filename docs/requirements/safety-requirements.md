@@ -1,6 +1,7 @@
 # Safety requirements and behavior contract
 
-Status: **DEFINED / Reference Baseline v0.1**; runtime **PLANNED / NOT RUN**.
+Status: **DEFINED / Reference Baseline v0.1**. Host SIL·CARLA의 지정 고장/보호 시험은 부분 검증됐다.
+현재 수용 범위는 [프로젝트 상태](../project-status.md), TC별 판정은 [추적성](../test-plan/requirements-traceability.md)을 따른다.
 RG-01 후속 설계를 반영한다. SYS-SAFE-004는 v0.2, SYS-SAFE-005는 Central allocation owner를 반영한 v0.5이며 나머지 기존 요구는 v0.1이다.
 SYS-SAFE-001/002/003/004/005와 SYS-CTRL-002를 구체화한다. 학습용 SIL 보호 계약이며
 ISO 26262 준수, ASIL 할당, 인증, 실차 안전성이나 QNX/AUTOSAR 사용을 주장하지 않는다.
@@ -10,10 +11,10 @@ ISO 26262 준수, ASIL 할당, 인증, 실차 안전성이나 QNX/AUTOSAR 사용
 
 [EV-01](../interfaces/ev-power-bms.md)의 SYS-EV-001/004와 SYS-COM-003/004 v0.3을 추가로
 적용한다. BMS/power/permission의 critical 목록·freshness·고장별 physical reaction은
-TBD-12/14이며 runtime/TC-EV는 NOT RUN이다. 기존 M0 severity/recovery/Host gate를 유지한다.
+TBD-12/14의 Target·미결정 범위와 Host 구현을 구분하며 runtime/TC-EV 판정은 추적성을 따른다. 기존 M0 severity/recovery/Host gate를 유지한다.
 [ZON-01](../architecture/README.md)에서 Central–Front/Rear 독립 link loss는 독립 monitor/local protection을
 적용한다. Central 단일 coordinator 정지를 Zone heartbeat로 정상화하지 않으며 failover는 범위 밖이다.
-상위 acknowledgement 없이 Leaf도 보호한다. TC-ZON-002/003은 NOT RUN이다.
+상위 acknowledgement 없이 Leaf도 보호한다. TC-ZON-002/003의 전체 요구 충족 여부와 Host의 지정 link-loss 시험 범위는 추적성을 따른다.
 
 ## Responsibility and startup
 

@@ -64,8 +64,8 @@ cached BMS/actual을 fresh한 값으로 만드는 것을 금지한다. Drive/BMS
 Central 왕복 경로나 승인을 기다리지 않는다.
 
 단일 Zone에서 component/통신을 확인한 뒤 M4/M5에 Front/Rear를 분리한다.
-Central–Zone schema/QoS/queue/clock/skew/monitor margin/rejoin은 TBD-15이며 runtime은 PLANNED다.
-TC-ZON-001–003은 NOT RUN이다. 기존 M0/M1 또는 TC-EV 부분 증거로 대체하지 않는다.
+Host Central–Zone schema·queue·clock·rejoin은 SOME/IP 계약과 지정 SIL 시험으로 구현했다.
+Target의 QoS/clock·전체 TC-ZON-001–003 수용은 TBD-15와 추적성을 따른다. 기존 M0/M1 또는 TC-EV 부분 증거로 대체하지 않는다.
 별도 하드웨어를 요구하지 않으며 같은 Target의 물리 고장 독립성을 주장하지 않는다.
 
 ## 전원 lifecycle과 driving gate
@@ -197,13 +197,14 @@ thermal response 시험은 thermal model을 정의·실행한 이후에만 PASS�
 SYS-EV-001–005 및 SYS-COM-003/004, SYS-PERF-002 v0.3을 적용한다.
 EV-S01/02, EV-F01/02와 TC-EV-001–005는 [scenario](../test-plan/scenario-baseline.md),
 [verification](../test-plan/verification-strategy.md), [traceability](../test-plan/requirements-traceability.md)에
-연결하며 Result는 모두 NOT RUN이다.
+연결한다. Host 부분 구현·시험과 전체 TC 수용을 구분하며 최신 Result는 추적성을 따른다.
+아래 목록은 초기 개발 순서이며 완료 여부는 프로젝트 상태에서 확인한다.
 
 1. M1: 의미/critical stream 목록, BMS/power/constraint wire, source-age/rate/INIT handshake를 결정한다.
    기존 six-frame 수용 항목과 EV 추가 vector/receiver/vCAN case를 구분한다.
 2. M2: actuator 실제 응답과 Battery/BMS/power model, local limit/protection을 component별 구현한다.
 3. M3: 새 task/stream의 clock/rate/timeout/jitter 측정; M4: Central 단일 coordinator와 각 Front/Rear gateway 연결.
-4. M5: 각 Central–Zone DDS command/status/session와 Host bridge; M6: Simple Plant lifecycle/energy/response 검증.
+4. M5: 각 Central–Zone command/status/session(Host SOME/IP, DDS 후보 보류)와 Host bridge; M6: Simple Plant lifecycle/energy/response 검증.
 5. M7: CARLA mapping; M9: fault→DTC integration; M12/M13: 동일 EV feature/config와 최종 regression.
 
 TBD-12(power sequence/고장 반응), TBD-13(battery/limit/energy 모델), TBD-14(새 interface와

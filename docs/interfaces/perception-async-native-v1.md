@@ -34,6 +34,10 @@ metric world model과 fusion이 필요하며,2D box를 직접 차량 command로 
 
 ## 현재 검증 범위
 
+아래 수치는 V1 및 초기4K 후속의 당시 실행 결과다. 최신2K/4K·준비·실제 비동기 월드 비교는
+[현재 상태](../project-status.md#최신-m10-판단)를 따른다. opt-in2K 타입과 입력 버퍼 계약은
+[인지 공통 계약](perception.md)에 정의한다. 원래4K V1의 schema/box 범위를2K로 해석하지 않는다.
+
 [실행 기록](../test-plan/evidence/m10_async_native_v1/README.md)은 이미 소비한 개발3장 BGRA를
 재생한 component 시험이다. State producer100Hz·observational control consumer50Hz·
 camera offer20Hz와 CUDA owner를 독립 thread로 실행했다. 이 consumer는 실제 차량 제어기가 아니다.

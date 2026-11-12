@@ -1,26 +1,19 @@
 # Ethernet / DDS ICD baseline
 
-2026-10-21 alternative: [SOME/IP Host Central↔Front owner adapter](someip-front-adapter.md)
-is conditionally adopted for its functional SIL profile. It is a separate protocol
-binding; this DDS contract, CLOSED control gate and historical FAIL/OPEN remain unchanged.
+이 문서는 DDS 후보의 의미·QoS 검토 계약이다. 현재 Host Central–Front/Rear 제어 통신은
+[채택된 SOME/IP 경로](someip-rear-adapter.md)를 사용한다. `IF-DDS-*`는 보존한 semantic ID다.
+Target 통신 방식은 TBD-05/15이며 DDS로 확정하지 않았다.
 
-2026-10-21 별도 [SOME/IP 파일럿 binding](someip-pilot.md)을 추가했다. 이는 COVESA vSomeIP
-구현으로 실행한 Host 두 노드 component 후보이며, 이 DDS 계획/이름/gate를 교체한 채택 결정은 아니다.
+DDS 정규 제어 adapter는 미채택이고 control gate는 CLOSED다. 선택형 Host 진단에는
+Cyclone DDS 11.0.1 direct C API·고정512byte Packet IDL·owner-wire codec/netns echo가 있다.
+[종료·TSan 미해결 기록](../test-plan/evidence/m5_dds_shutdown_followup/README.md)과
+[환경·QoS 검토](../test-plan/evidence/m5_dds_operating_profile/README.md)를 보존한다.
+SOME/IP 채택은 이 과거 실패의 해결 판정이 아니다.
+현재 구현·수용 범위는 [프로젝트 상태](../project-status.md)를 따른다.
 
-2026-10-21 구현 보충: 아래 PLANNED는 정규 제어/Target 배포 상태다. 선택형 Host 진단에는
-CycloneDDS11.0.1 direct C API·고정512byte Packet IDL·owner-wire codec/netns echo가 있다.
-실제 Central↔Front 제어 adapter는 없으며 [control gate](../project-status.md)는 CLOSED다.
-[환경·QoS 적용값과 메시지별 보관/유실/재시도 요구 대조](../test-plan/evidence/m5_dds_operating_profile/README.md)는
-운용 후보 검토이며 이 ICD의 모든 메시지에 동일 QoS를 채택한 결정이 아니다.
-
-Status: semantic contract **DEFINED**. Vendor, ROS 2 vs direct DDS, IDL/topic/binary schema와
-runtime은 **TBD-05 / PLANNED**. Target 내부 Central–Zone은 logical Ethernet + DDS 계열,
-Host–Target은 Physical Ethernet이다. Host bridge transport에 DDS를 강제하지 않는다.
-DDS는 현재 기본 계획이며 Zenoh는 비교 후보다. 아직 transport를 변경하지 않았고
-IF-DDS 이름은 유지한다. 채택 변경 시 schema/ICD/배포/시험 영향을 별도 ADR로 기록한다.
 [ZON-01 v0.5 / ADR-0021](../archive/design-decisions.md#adr-0021)에서 Central은
 별도 vehicle management/allocation/session/feedback bridge를 소유하고 각 Zone과 독립 통신한다.
-Front↔Rear application relay는 정상 경로에 필요하지 않다. IDL/runtime은 미구현이다.
+Front↔Rear application relay는 정상 경로에 필요하지 않다. 전체 DDS 제어용 IDL/runtime은 미구현이다.
 
 M4 [scoped command 수용 component](../learning/vehicle-lifecycle-guide.md)는
 `interfaces/central/allocated_commands.hpp`의 in-process 계약을 사용한다.
@@ -33,7 +26,7 @@ same-host Leaf의 Hold/Protect/Zero 선택을 연결했다. 두 독립 vCAN inte
 공통 `power_commands.hpp`의 lifecycle root는 독립 trusted 입력이며 CAN에서 추론하지 않는다.
 [Front startup](../learning/vehicle-lifecycle-guide.md)의 pair arm/실제 Leaf 수용도 same-host/vCAN에서 시험했다.
 [정상 종료](../learning/vehicle-lifecycle-guide.md)는 별도 trusted stop intent·issuer seed·terminal lease/ACK의 in-process 계약을 사용한다.
-원래 source/expiry를 보존하며 remote DDS/stop 신호는 구현하지 않았다. Trusted transport/INIT-rejoin·원격 Leaf lease/보호 경로와 전체 runtime은 후속이다.
+원래 source/expiry를 보존한다. DDS의 remote 제어/stop 경로는 미구현이며, Host SOME/IP의 INIT/rejoin·lease·보호 구현과 구분한다.
 
 ## Central 내부 의미 계약
 
@@ -72,7 +65,7 @@ Central requester/VCU 정지, 각 Zone 정지, 한쪽 link partition을 별도 �
 heartbeat로 정상화하지 않는다. Leaf 자체 timeout과 Host per-source actual gate를 유지한다.
 Recovery는 trusted 새 Epoch/명시적 INIT와 required power/health 재검증을 요구한다.
 Schema/IDL/topic, rate/source-age/monitor budget, clock/skew, QoS/queue/overflow, trusted handshake는
-TBD-15/05/14다. ID/배치는 의미 계약이며 두 Zone runtime/TC-ZON-001–003은 NOT RUN이다.
+TBD-15/05/14다. 이 표는 DDS 의미 계약이다. Host SOME/IP의 두 Zone runtime·지정 기능 시험은 연결됐으며, 전체 TC 판정은 요구사항 추적성을 따른다.
 
 ## Host bridge contracts
 

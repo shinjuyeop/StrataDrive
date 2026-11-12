@@ -1,8 +1,8 @@
 # System requirements — Reference Baseline v0.1 + RG-01 + EV-01 + ZON-01
 
 Status: **DEFINED**, 문서 baseline은 [M0 종료 검토](../archive/milestone-reviews.md#m0)에 따른다.
-아래 요구사항의 전체 시스템 통합은 **PLANNED**, 전체 verification result는 **NOT RUN**이다.
-M1의 Host codec/receiver/SocketCAN 부분 구현·시험과 구분한다.
+Host 통신·SIL/MIL·CARLA·제어·진단은 지정 조건에서 부분 검증됐다. 전체 시스템·Reference ODD·Target 수용은 미완료다.
+요구사항별 최신 연결은 [추적성](../test-plan/requirements-traceability.md), 단계별 수용은 [프로젝트 상태](../project-status.md)를 따른다.
 **StrataDrive Reference Baseline v0.1**은 학부 프로젝트의 engineering starting point다.
 수치 acceptance는 양산차 요구사항, 안전 인증 기준 또는 실측 결과가 아니다.
 Owner는 학습자(project owner)이며 구현 담당 역할은 traceability/component로 구분한다.
@@ -30,7 +30,7 @@ M0의 23개 요구사항은 v0.1이다. 2026-10-13 [RG-01](../archive/design-dec
 2026-10-14 [ADR-0021](../archive/design-decisions.md#adr-0021)로
 SYS-ARCH-003·SYS-CTRL-008·SYS-SAFE-005·SYS-EV-003을 **v0.5로 개정**한다.
 차량 전체 owner를 Front에서 Central의 별도 VCU component로 옮기고 각 Zone과 독립 통신한다.
-RG-01/EV-01/ZON-01 runtime verification은 NOT RUN이며 상세 parameter는 TBD다.
+RG-01/EV-01/ZON-01의 초기 revision 기록과 현재 실행 판정을 구분한다. Host 구현·시험은 후속으로 진행됐고 전체 수용·미결정 parameter는 추적성과 TBD 목록을 따른다.
 DEFINED는 계약 정의, PLANNED는 향후 작업, TBD는 미결정 parameter,
 NOT RUN은 미실행, IMPLEMENTED는 존재하는 실행 구현, MEASURED는 관측 결과 보유,
 VERIFIED는 해당 revision의 전체 acceptance 검증 완료를 뜻한다.

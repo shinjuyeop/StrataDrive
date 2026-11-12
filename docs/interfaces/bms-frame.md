@@ -5,7 +5,8 @@ Date: 2026-10-14. Status: **wire·timing 초안 / Host codec·receiver·DBC/loca
 [ZON-01](../architecture/README.md)을 따른다. [ADR-0017](../archive/design-decisions.md#adr-0017)의
 C++ codec/항목별 receiver와 SocketCAN 변환을 Host에서 구현·단위 시험했다.
 EV 독립 TX/RX와 source-preserving relay도 local vCAN에서 시험했다.
-BMS/power model, vehicle management와 두 Zone runtime은 **PLANNED / NOT RUN**이다.
+BMS/power model·vehicle management·두 Zone runtime은 후속 Host SIL에 연결했다.
+이 문서는 초기 wire/codec 검증 범위이며 현재 수용 판정은 [프로젝트 상태](../project-status.md)를 따른다.
 이 파일의 수치와 상태 이름은 프로젝트 선택이며 OEM/자동차 공통 규격이 아니다.
 
 ## 메시지를 나누는 이유
