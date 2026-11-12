@@ -1,0 +1,131 @@
+{
+  "journal_integrity": "PASS",
+  "scope": "one instrumented trial; no continuous driving or GPU internal causal claim",
+  "driving_acceptance": false,
+  "run_status": "FAIL",
+  "physical_intervals": 2,
+  "journal_rows": 5555,
+  "active_pump_gaps": 4,
+  "largest_gap": {
+    "component": "carla",
+    "stage": "pump_gap",
+    "frame": 202,
+    "begin": 1482152211567698,
+    "end": 1482152276728298,
+    "cpu_begin": 0,
+    "cpu_end": 0
+  },
+  "largest_gap_ns": 65160600,
+  "stage_overlaps": [
+    {
+      "component": "launch",
+      "stage": "frame_sync",
+      "frame": 199,
+      "begin": 1482152214640239,
+      "end": 1482152276353956,
+      "duration_ns": 61713717,
+      "cpu_ns": 733139,
+      "overlap_ns": 61713717
+    },
+    {
+      "component": "carla",
+      "stage": "post_tick",
+      "frame": 201,
+      "begin": 1482152213397561,
+      "end": 1482152213965443,
+      "duration_ns": 567882,
+      "cpu_ns": 564017,
+      "overlap_ns": 567882
+    },
+    {
+      "component": "carla",
+      "stage": "after_physics",
+      "frame": 201,
+      "begin": 1482152213401544,
+      "end": 1482152213865238,
+      "duration_ns": 463694,
+      "cpu_ns": 460704,
+      "overlap_ns": 463694
+    },
+    {
+      "component": "carla",
+      "stage": "world_snapshot",
+      "frame": 201,
+      "begin": 1482152213865357,
+      "end": 1482152213964274,
+      "duration_ns": 98917,
+      "cpu_ns": 98619,
+      "overlap_ns": 98917
+    },
+    {
+      "component": "launch",
+      "stage": "core_ticker",
+      "frame": 199,
+      "begin": 1482152276360468,
+      "end": 1482152276391060,
+      "duration_ns": 30592,
+      "cpu_ns": 30321,
+      "overlap_ns": 30592
+    },
+    {
+      "component": "launch",
+      "stage": "tick_rate",
+      "frame": 200,
+      "begin": 1482152276523541,
+      "end": 1482152276531799,
+      "duration_ns": 8258,
+      "cpu_ns": 7977,
+      "overlap_ns": 8258
+    },
+    {
+      "component": "launch",
+      "stage": "deferred_commands",
+      "frame": 199,
+      "begin": 1482152276391651,
+      "end": 1482152276393901,
+      "duration_ns": 2250,
+      "cpu_ns": 2015,
+      "overlap_ns": 2250
+    },
+    {
+      "component": "launch",
+      "stage": "rhi_tick",
+      "frame": 199,
+      "begin": 1482152214638032,
+      "end": 1482152214639829,
+      "duration_ns": 1797,
+      "cpu_ns": 1193,
+      "overlap_ns": 1797
+    },
+    {
+      "component": "carla",
+      "stage": "sensor_dispatch",
+      "frame": 201,
+      "begin": 1482152213964311,
+      "end": 1482152213965211,
+      "duration_ns": 900,
+      "cpu_ns": 658,
+      "overlap_ns": 900
+    }
+  ],
+  "readback": [
+    {
+      "frame": 200,
+      "timestamp": 2.203739837,
+      "deferred": false,
+      "serial": 1,
+      "inflight": 1,
+      "capture": 1482152203378162,
+      "render": 1482152245186752,
+      "copy": 1482152246422078,
+      "flush": 1482152248045166,
+      "query": 1482152254915431,
+      "worker": 1482152254968061,
+      "ready": 1482152254968319,
+      "lock": 1482152254974037,
+      "send": 1482152260661402,
+      "end": 1482152260676282,
+      "error": ""
+    }
+  ]
+}

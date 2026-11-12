@@ -54,3 +54,9 @@ were both received before native enable, so neither could bind the receiver;
 0 fresh results were consumed. A late camera callback cannot create the missing
 post-INIT world observation. Continuous delivery remains OPEN. The corrected
 ownership-release-before-camera-destruction sequence completed in that live trial.
+
+[Server timing](../test-plan/evidence/m10_server_timing_v1/README.md) subsequently
+bracketed61.71ms of a65.16ms PumpWall gap inside UE frame synchronization. Independent
+inference/IPC threads do not by themselves decouple CARLA's physical tick delivery
+from its game/render synchronization. This measurement grants no new clock, input
+freshness or actuation authority; the original input protection remained effective.

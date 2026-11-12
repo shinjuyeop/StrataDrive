@@ -35,10 +35,32 @@ def verify(freeze):
     return sha(freeze)
 
 
+def timing_runtime(manifest_path, freeze, source, engine, profile):
+    """Opt-in instrumentation must be part of the prospective runtime freeze."""
+    path = manifest_path.resolve()
+    frozen = json.loads(freeze.read_text())
+    if frozen['external'].get(str(path)) != sha(path):
+        raise ValueError('timing build manifest absent from freeze')
+    manifest = json.loads(path.read_text())
+    if manifest['schema'] != 'm10-server-timing-build-v1':
+        raise ValueError('timing manifest schema')
+    expected = dict(profile['external_files'])
+    module = 'Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so'
+    for name, target in (('module', source / module), ('executable', engine / 'Engine/Binaries/Linux/UE4Editor')):
+        item = manifest['installed'][name]
+        if item['path'] != str(target.resolve()) or sha(target) != item['instrumented_sha256']:
+            raise ValueError('timing runtime identity')
+    if manifest['installed']['module']['original_sha256'] != profile['baseline_module_sha256']:
+        raise ValueError('timing original module identity')
+    expected[module] = manifest['installed']['module']['instrumented_sha256']
+    return expected
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     for name in ("engine", "source", "python", "native", "detector", "models", "library", "freeze", "output"):
         p.add_argument("--" + name, type=Path, required=True)
+    p.add_argument('--server-timing-build', type=Path)
     a = p.parse_args()
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(schema="m10-control-shadow-server-v1", status="FAIL", started_utc=datetime.now(timezone.utc).isoformat(),
@@ -53,10 +75,12 @@ def main():
         report["freeze_sha256"] = verify(a.freeze)
         root = Path(__file__).resolve().parents[3]
         profile = json.loads((root / "profiles/perception-source-compare-server-v2.json").read_text())
-        for name, digest in profile["external_files"].items():
+        external = timing_runtime(a.server_timing_build, a.freeze, a.source, a.engine, profile) if a.server_timing_build else profile['external_files']
+        for name, digest in external.items():
             if sha(a.source / name) != digest:
                 raise ValueError("existing pinned server module/source: " + name)
-        report["external_files"] = profile["external_files"]
+        report["external_files"] = external
+        if a.server_timing_build:report['server_timing_build_sha256'] = sha(a.server_timing_build)
         guards = []
         try:
             for port in (2200, 2201, 2202):
@@ -77,6 +101,7 @@ def main():
                    "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
                    "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
                    "-log", "-stdout", "-FullStdOutLogOutput"]
+        if a.server_timing_build:command.append('-StrataM10ServerTiming')
         client = [str(a.python), str(Path(__file__).with_name("carla_control_shadow_v1.py")),
                   "--output", str(a.output / "capture"), "--native", str(a.native),
                   "--model", str(root / "tools/carla/m7_nodrive/virtual_ev_v1.json"),

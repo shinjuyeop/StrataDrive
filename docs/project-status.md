@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **2K 전달·ECU 시작 오류 수정 PASS / 연속 wall 주행·독립 품질 OPEN** | [시작 오류 수정](test-plan/evidence/m10_startup_v1/README.md) · [실제 shadow 연결](test-plan/evidence/m10_live_shadow_v1/README.md) · [2K 기능 연결](test-plan/evidence/m10_native_2k_control_v1/README.md) |
+| M10 | **ECU 시작 오류 수정·렌더 동기화 대기 확인 / 연속 wall 주행·독립 품질 OPEN** | [서버 실행 계측](test-plan/evidence/m10_server_timing_v1/README.md) · [시작 오류 수정](test-plan/evidence/m10_startup_v1/README.md) · [실제 shadow 연결](test-plan/evidence/m10_live_shadow_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -63,6 +63,15 @@ scheduling 중 공백 원인은 아직 특정하지 않았다. 추론은 보호2
 789개 서비스/2개 물리 응답과 startup 관측을 exact 재생했고, 카메라 정리 수정은 이번 live에서 통과했다.
 모듈/화면 설정을 복원했고 미래 품질 제외는8977개다.
 
+이후 [서버 실행 계측](test-plan/evidence/m10_server_timing_v1/README.md)에서는 UE와 CARLA의
+유한 계측을 추가한 한 번의 시험으로 공백 위치를 확인했다. PumpWall 사이65.16ms 중61.71ms
+(94.71%)가 UE의 `FFrameEndSync::Sync` 안에 있었고, 그 구간의 game-thread CPU 사용은0.73ms였다.
+첫 추론은 보호18.82ms 뒤에 시작됐다. 따라서 인지 worker 비동기화와 별개로 엔진의 게임·렌더
+동기화가 다음 물리 tick을 미루는 지점임을 확인했다. 내부 GPU/driver 원인과 해소 방법은 아직 OPEN이다.
+1303개 소스를 사전 고정하고17개 검사를 별도 경로에서 재현했으며, 원본5555개 계측에 overflow가 없었다.
+788개 서비스/2개 물리 응답 exact 재생·11개 변조 검출이 통과했다. 주행은 기존 입력 보호로 FAIL,
+fresh 수신0개이며 원본 영상1개를 포함해 미래 품질 제외는8978개다. UE 실행 파일·CARLA 모듈·설정을 복원했다.
+
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 
 ## 현재 구현과 수용 경계
@@ -105,7 +114,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 새 live에서 관측한64.77ms 서버 PumpWall 공백을 game/render 대기·sensor 전달 구간의 유한 계측으로 구분한다. 원인을 확인한 뒤 실행 구조 수정과 별도 bounded live를 진행한다. ECU 시작 오류 수정은 완료됐지만 연속 물리·인지 전달은 OPEN이다. 원래 입력 기한과 보호를 유지하고 Required는 opt-in SIL로 남기며20Hz까지 추가 튜닝하지 않는다.
+1. 지배적인 대기 위치로 확인한 UE frame synchronization의 fence/RHI 대기를 구분하고, 카메라 없는 대조 조건과 동일2K 캡처를 사전 선언해 비교한다. 이를 근거로 카메라 렌더링이 물리 tick 공급을 막지 않도록 분리할 위치를 정한다. 원래 입력 시각·기한·보호와 유한 큐를 유지하며 동기화를 임의로 제거하지 않는다. 연속 물리·인지 전달은 OPEN이고 Required는 opt-in SIL로 유지한다.
 2. 후보와 센서·모델 설정을 먼저 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상을 새로운 holdout으로 재사용하지 않는다.
 3. 시작/종료·장기 부하·전체 지연과 실시간 동작을 별도로 검증한다. 정지 장면이나 짧은 관측을 전체 ODD 수용으로 확대하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
