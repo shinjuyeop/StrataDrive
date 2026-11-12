@@ -69,6 +69,46 @@ TEST(M7CarlaClock, NativeUsesOriginalAcquisitionInsteadOfModelTimestamp) {
     EXPECT_EQ(r.native.release_mask,255U);
     EXPECT_LT(r.native.electrical->end,wall);EXPECT_GE(r.native.electrical_acquired,wall);
 }
+TEST(M7CarlaClock, StartupDependencyWaitDoesNotSuppressOriginalEcuReleases) {
+    WallRig rig({1,42,7},99,wall,model);WallReport r;
+    for(unsigned i=1;i<=84;++i) {
+        std::optional<WallReceipt> receipt;
+        if(i==13 || i==23 || i==64) {
+            const unsigned index=i==13?1:i==23?2:3;
+            auto c=frame(index,wall+(i-1)*ms);
+            c.applied=c.oldest=c.acquired_begin-ms;
+            receipt=WallReceipt{{99,c.work.frame,c.acquired_begin,{0,0,0,0}},c.work,wall_domain,c};
+        }
+        r=rig.service(wall+i*ms+(i<50?60000:90000),receipt);
+        ASSERT_FALSE(r.failed)<<i<<' '<<r.reason;
+    }
+    const auto startup=rig.startup_observations();
+    for(unsigned i=0;i<5;++i) {
+        EXPECT_EQ(startup[i].first_body_ns,startup[i].first_due_ns)<<i;
+        EXPECT_EQ(startup[i].first_body_fault,0)<<i;
+        EXPECT_EQ(startup[i].first_wait_mask,6U)<<i;
+        EXPECT_LT(startup[i].first_due_power_dependency_ns,startup[i].enable_ns);
+    }
+    for(const auto& actual:r.native.native_export->actual)EXPECT_TRUE(actual);
+    EXPECT_FALSE(r.native.armed); // no fabricated ready input or permission
+}
+TEST(M7CarlaClock, StartupMissingEnergyRetainsOriginalThirtyMsProtection) {
+    WallRig rig({1,42,7},99,wall,model);WallReport r;Time first=0;
+    for(unsigned i=1;i<=66;++i) {
+        std::optional<WallReceipt> receipt;
+        if(i==13 || i==23) {
+            auto c=frame(i==13?1:2,wall+(i-1)*ms);
+            c.applied=c.oldest=c.acquired_begin-ms;
+            receipt=WallReceipt{{99,c.work.frame,c.acquired_begin,{0,0,0,0}},c.work,wall_domain,c};
+        }
+        r=rig.service(wall+i*ms+60000,receipt);
+        if(r.failed && !first)first=r.protected_at;
+    }
+    const auto enable=rig.startup_observations()[0].enable_ns;
+    EXPECT_GT(first,enable+30*ms);EXPECT_LE(first,enable+31*ms);
+    EXPECT_FALSE(r.native.armed);EXPECT_EQ(r.native.credit_mask,0U);
+    for(const auto& row:rig.startup_observations())EXPECT_EQ(row.first_body_ns,row.first_due_ns);
+}
 TEST(M7CarlaClock, SensorIngressHandlesDriftingPhysicsPhaseWithoutExtraControlJobs) {
     WallRig rig({1,42,7},99,wall,model);
     std::array<Report,3> history{};WallReport r;unsigned frames=0;

@@ -45,6 +45,7 @@ bool AsyncLeafOwner::initialize(const session::Plan& plan) noexcept {
     case transport::Leaf::Count: break;
     }
     if(ok) {
+        startup_={};startup_.epoch=plan.epoch;startup_.enable_ns=plan.enable_ns;startup_.initialized_ns=now_ns();startup_dependencies_ready_=false;
         epoch_=plan.epoch; enable_=last_body_=plan.enable_ns; started_=false;
         command_expiry_ns_=command_source_ns_=0; expiry_reported_=false; prepared_epoch_=0; traced_command_.reset();
         accepted_command_.reset(); expiry_observation_.reset(); command_success_.reset();
@@ -196,6 +197,13 @@ void AsyncLeafOwner::runnable(const OwnerSensors& s,std::uint64_t now) {
     } else if(leaf_==transport::Leaf::Bms) {
         auto& actor=std::get<vecu::BmsController>(actor_);
         auto input=s.battery;
+        // A held pre-INIT cohort is not input for the new epoch. Keep all its
+        // original identities/times in the observation; present it as unavailable
+        // during InitialChecks instead of withholding the BMS runnable. Once
+        // the startup dependency barrier is satisfied, ordinary validation owns
+        // every stale/regressed/invalid input; this is not a recovery mechanism.
+        if(!startup_dependencies_ready_ && input.batch.epoch==7 &&
+           (input.batch.source_time_ns<enable_ || (input.electrical && input.electrical->input_time_ns<enable_)))input.available=false;
         record_native_input_loss(now,input.electrical?input.electrical->identity.source_time_ns:0,input.electrical?input.electrical->input_time_ns:0);
         if(omit_native_input) input.electrical.reset();
         if(native_bms_trip_mask && input.electrical && input.cell_voltage && input.cell_temperature)
@@ -242,20 +250,43 @@ void AsyncLeafOwner::service_impl() {
     if(!early) s=sensors_.read();
     const auto now=now_ns(); const auto period=leaf_==transport::Leaf::Bms?20000000ULL:10000000ULL;
     if(now<last_body_) { protect(); return; }
-    if(now<next_body_) return;
-    // During fresh INIT, wait for acquisitions/dependencies after enable. Once
-    // running, missing/stale sensors reach the actual controller's own monitor.
-    if(!started_ && (!s || s->source_ns<enable_ || !s->power || s->power->input_time_ns<enable_ ||
-        !s->battery.electrical || s->battery.electrical->input_time_ns<enable_)) {
-        if(now-enable_>30000000) protect();
-        return;
+    if(now<enable_+period)return;
+    if(!startup_.first_due_ns) {
+        startup_.first_due_ns=now;startup_.first_due_source_ns=s?s->source_ns:0;
+        startup_.first_due_power_dependency_ns=s && s->power?s->power->input_time_ns:0;
+        startup_.first_due_battery_dependency_ns=s && s->battery.electrical?s->battery.electrical->input_time_ns:0;
     }
+    // Observe the original startup dependency barrier at every service call.
+    // Its >30ms protection threshold stays unchanged, but waiting for data must
+    // not suppress ECU execution/feedback and manufacture a control tick gap.
+    if(!startup_dependencies_ready_) {
+        const bool pending=!s || s->source_ns<enable_ || !s->power || s->power->input_time_ns<enable_ ||
+            !s->battery.electrical || s->battery.electrical->input_time_ns<enable_;
+        if(pending) {
+            if(!startup_.first_wait_ns) {
+                startup_.first_wait_ns=now;
+                startup_.first_wait_mask=(!s || s->source_ns<enable_?1U:0U)|
+                    (!s || !s->power || s->power->input_time_ns<enable_?2U:0U)|
+                    (!s || !s->battery.electrical || s->battery.electrical->input_time_ns<enable_?4U:0U);
+            }
+            startup_.last_wait_ns=now;++startup_.wait_calls;
+            if(now-enable_>30000000)protect();
+        } else startup_dependencies_ready_=true;
+    }
+    if(now<next_body_)return;
     started_=true; last_body_=now; next_body_=enable_+((now-enable_)/period+1)*period;
     body_release_=next_body_-period; body_deadline_=body_release_+(leaf_==transport::Leaf::Bms?8000000ULL:5000000ULL);
     if(execution_deadline_ && now>=body_deadline_) {
         if(input_events_.size()<input_events_.capacity()) input_events_.push_back({now,"control-late-start",static_cast<std::size_t>(leaf_)+2,epoch_,body_release_,body_deadline_,now,1});
         protect(); return;
     }
+    const bool first=!startup_.first_body_ns;
+    if(first) {
+        startup_.first_body_ns=now;startup_.first_body_source_ns=s?s->source_ns:0;
+        startup_.first_body_power_dependency_ns=s && s->power?s->power->input_time_ns:0;
+        startup_.first_body_battery_dependency_ns=s && s->battery.electrical?s->battery.electrical->input_time_ns:0;
+    }
     runnable(s.value_or(OwnerSensors{}),now);
+    if(first)startup_.first_body_fault=fault_code();
 }
 }  // namespace stratadrive::simulation

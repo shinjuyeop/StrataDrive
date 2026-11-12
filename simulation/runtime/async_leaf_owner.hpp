@@ -39,6 +39,14 @@ struct LeafOwnerConfig {
     std::optional<std::uint64_t> hv_dependency_age_ns;
     std::size_t input_event_capacity{12000}; // finite harness budget, allocated before launch
 };
+// Fixed owner-local startup observations; original times, no clock/authority changes.
+struct LeafStartupObservation {
+    std::uint32_t epoch{0};
+    std::uint64_t enable_ns{0},initialized_ns{0},first_due_ns{0},first_wait_ns{0},last_wait_ns{0},wait_calls{0};
+    std::uint64_t first_body_ns{0},first_due_source_ns{0},first_due_power_dependency_ns{0},first_due_battery_dependency_ns{0};
+    std::uint64_t first_body_source_ns{0},first_body_power_dependency_ns{0},first_body_battery_dependency_ns{0};
+    unsigned first_wait_mask{0};int first_body_fault{0};
+};
 class AsyncLeafOwner final : public session::ParticipantPort {
 public:
     void transport_trace(transport::TransportTrace* sink) { trace_=sink; } // before launch only
@@ -64,6 +72,7 @@ public:
     const std::optional<transport::LeafAuthorityObservation>& expiry_observation() const { return expiry_observation_; }
     const std::optional<transport::LeafAuthorityObservation>& command_success_observation() const { return command_success_; }
     std::uint64_t enable_ns() const { return enable_; }
+    const LeafStartupObservation& startup_observation() const { return startup_; }
     const std::optional<std::uint64_t>& protection_selected_ns() const { return protection_selected_; }
     const vecu::BmsController* bms_controller() const { return std::get_if<vecu::BmsController>(&actor_); }
     const vecu::PowerController* power_controller() const { return std::get_if<vecu::PowerController>(&actor_); }
@@ -95,5 +104,7 @@ private:
     std::uint32_t prepared_epoch_{0};
     bool native_input_omitted_{false};
     bool execution_deadline_{false}; std::uint64_t body_release_{0},body_deadline_{0},receive_begin_{0};
+    LeafStartupObservation startup_{};
+    bool startup_dependencies_ready_{false};
 };
 }  // namespace stratadrive::simulation

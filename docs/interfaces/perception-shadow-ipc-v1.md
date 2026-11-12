@@ -47,3 +47,10 @@ empty-detection2K result accepted in the actual process. The vehicle entered exi
 protection before that inference and never armed; continuous driving remains OPEN.
 The server still owns physical ticks through its existing authority/settlement
 path. This trial is not the earlier free-running world latency benchmark.
+
+The [startup follow-up](../test-plan/evidence/m10_startup_v1/README.md) corrected
+the ECU release delay while retaining input protection. Its two world snapshots
+were both received before native enable, so neither could bind the receiver;
+0 fresh results were consumed. A late camera callback cannot create the missing
+post-INIT world observation. Continuous delivery remains OPEN. The corrected
+ownership-release-before-camera-destruction sequence completed in that live trial.

@@ -874,6 +874,12 @@ WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial
     native_->wheel_mode=true;
 }
 WallRig::~WallRig()=default;
+std::array<simulation::LeafStartupObservation,5> WallRig::startup_observations() const {
+    require(owner_==std::this_thread::get_id(),"wall startup observation owner");
+    std::array<simulation::LeafStartupObservation,5> result{};
+    for(unsigned i=0;i<5;++i)result[i]=native_->leaf[i]->startup_observation();
+    return result;
+}
 void WallRig::request_profile(std::vector<RequestPhase> profile) {
     require(owner_==std::this_thread::get_id() && !last_,"wall profile before service");
     FunctionalRig validator(scope_,actor_,PlantMode::ExternalSolverWork,true);

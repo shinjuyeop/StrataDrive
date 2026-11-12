@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="45" failures="0" disabled="0" errors="0" time="12.087" timestamp="2026-11-12T14:33:58.357" name="AllTests">
+  <testsuite name="M4FaultContract" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-11-12T14:33:58.357">
+    <testcase name="DelayedOldAckCannotContaminateNewerSessionEvenWhileItsSourceIsFresh" status="run" result="completed" time="0" timestamp="2026-11-12T14:33:58.357" classname="M4FaultContract" />
+    <testcase name="RealOverflowDoesNotRecoverWhenReceiveBlockingEnds" status="run" result="completed" time="0" timestamp="2026-11-12T14:33:58.357" classname="M4FaultContract" />
+    <testcase name="StrictRecipeRejectsUnknownEndpointsAndAmbiguousTimes" status="run" result="completed" time="0" timestamp="2026-11-12T14:33:58.357" classname="M4FaultContract" />
+  </testsuite>
+  <testsuite name="M4FaultRuntime" tests="7" failures="0" disabled="0" skipped="0" errors="0" time="0.211" timestamp="2026-11-12T14:33:58.357">
+    <testcase name="CentralStopExpiresAuthorityWithoutCentralProtectionAck" status="run" result="completed" time="0.022" timestamp="2026-11-12T14:33:58.357" classname="M4FaultRuntime" />
+    <testcase name="DelayedPacketsKeepOriginalExclusiveDeadline" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:33:58.379" classname="M4FaultRuntime" />
+    <testcase name="AcceptedCommandExpiresAtItsOriginalContextDeadline" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:33:58.400" classname="M4FaultRuntime" />
+    <testcase name="OverflowCannotHealUntilAllOwnersJoinAndLinksAreReplaced" status="run" result="completed" time="0.049" timestamp="2026-11-12T14:33:58.420" classname="M4FaultRuntime" />
+    <testcase name="ResumedOwnerStillNeedsNewDurableGrantAndFullSession" status="run" result="completed" time="0.049" timestamp="2026-11-12T14:33:58.470" classname="M4FaultRuntime" />
+    <testcase name="LostArmResultCannotCreatePartialNormalOperation" status="run" result="completed" time="0.017" timestamp="2026-11-12T14:33:58.519" classname="M4FaultRuntime" />
+    <testcase name="MissingTerminalAckProtectsInsteadOfReportingCleanStop" status="run" result="completed" time="0.031" timestamp="2026-11-12T14:33:58.537" classname="M4FaultRuntime" />
+  </testsuite>
+  <testsuite name="M4FaultWall" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="6.011" timestamp="2026-11-12T14:33:58.569">
+    <testcase name="JoinedOverflowRecoveryPreservesPhysicalHistory" status="run" result="completed" time="4.208" timestamp="2026-11-12T14:33:58.569" classname="M4FaultWall" />
+    <testcase name="PausedLeafCannotAcknowledgePhysicalWatchdogAction" status="run" result="completed" time="1.803" timestamp="2026-11-12T14:34:02.777" classname="M4FaultWall" />
+  </testsuite>
+  <testsuite name="M4ExecutionWatch" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-11-12T14:34:04.581">
+    <testcase name="LaterCompletionCannotFillAnEarlierMissedOpportunity" status="run" result="completed" time="0" timestamp="2026-11-12T14:34:04.581" classname="M4ExecutionWatch" />
+    <testcase name="DelayedWakeCompletesOriginalRequestedSlotOnly" status="run" result="completed" time="0" timestamp="2026-11-12T14:34:04.581" classname="M4ExecutionWatch" />
+    <testcase name="RequestedTargetRejectsFutureAndZero" status="run" result="completed" time="0" timestamp="2026-11-12T14:34:04.581" classname="M4ExecutionWatch" />
+    <testcase name="RequestedAfterFiniteWindowDoesNotCompleteLastSlot" status="run" result="completed" time="0" timestamp="2026-11-12T14:34:04.581" classname="M4ExecutionWatch" />
+  </testsuite>
+  <testsuite name="M4ReleaseGrid" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-11-12T14:34:04.581">
+    <testcase name="SharedOriginAlignsEveryOwnerPeriodAndSkipsCatchup" status="run" result="completed" time="0" timestamp="2026-11-12T14:34:04.581" classname="M4ReleaseGrid" />
+    <testcase name="InvalidClockOrOverflowIsRejected" status="run" result="completed" time="0" timestamp="2026-11-12T14:34:04.581" classname="M4ReleaseGrid" />
+    <testcase name="ReplaysOriginalMonitorPhaseCrossingWithoutChangingMissPolicy" status="run" result="completed" time="0" timestamp="2026-11-12T14:34:04.581" classname="M4ReleaseGrid" />
+  </testsuite>
+  <testsuite name="M4GuardRuntime" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.111" timestamp="2026-11-12T14:34:04.581">
+    <testcase name="OneSkippedSlotIsDetectedAfterOwnerResumes" status="run" result="completed" time="0.025" timestamp="2026-11-12T14:34:04.581" classname="M4GuardRuntime" />
+    <testcase name="PhysicalPeerProtectsWhileMonitorIsStopped" status="run" result="completed" time="0.024" timestamp="2026-11-12T14:34:04.606" classname="M4GuardRuntime" />
+    <testcase name="JoinedRecoveryKeepsCommonReleasePhaseAndPhysicalIdentity" status="run" result="completed" time="0.06" timestamp="2026-11-12T14:34:04.631" classname="M4GuardRuntime" />
+  </testsuite>
+  <testsuite name="M4PhysicalObservation" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0" timestamp="2026-11-12T14:34:04.692">
+    <testcase name="LongOriginalStepRetainsFirstFailureContext" status="run" result="completed" time="0" timestamp="2026-11-12T14:34:04.692" classname="M4PhysicalObservation" />
+    <testcase name="IndependentOverrideRejectsFreshNominalOutputInSameEpoch" status="run" result="completed" time="0" timestamp="2026-11-12T14:34:04.692" classname="M4PhysicalObservation" />
+  </testsuite>
+  <testsuite name="AllDomains/M4OwnerStop" tests="7" failures="0" disabled="0" skipped="0" errors="0" time="0.139" timestamp="2026-11-12T14:34:04.692">
+    <testcase name="SessionControlAndSelfMonitoringStopTogether/0" value_param="&quot;front&quot;" status="run" result="completed" time="0.019" timestamp="2026-11-12T14:34:04.692" classname="AllDomains/M4OwnerStop" />
+    <testcase name="SessionControlAndSelfMonitoringStopTogether/1" value_param="&quot;rear&quot;" status="run" result="completed" time="0.019" timestamp="2026-11-12T14:34:04.712" classname="AllDomains/M4OwnerStop" />
+    <testcase name="SessionControlAndSelfMonitoringStopTogether/2" value_param="&quot;steering&quot;" status="run" result="completed" time="0.019" timestamp="2026-11-12T14:34:04.732" classname="AllDomains/M4OwnerStop" />
+    <testcase name="SessionControlAndSelfMonitoringStopTogether/3" value_param="&quot;brake&quot;" status="run" result="completed" time="0.019" timestamp="2026-11-12T14:34:04.752" classname="AllDomains/M4OwnerStop" />
+    <testcase name="SessionControlAndSelfMonitoringStopTogether/4" value_param="&quot;drive&quot;" status="run" result="completed" time="0.019" timestamp="2026-11-12T14:34:04.772" classname="AllDomains/M4OwnerStop" />
+    <testcase name="SessionControlAndSelfMonitoringStopTogether/5" value_param="&quot;bms&quot;" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:34:04.791" classname="AllDomains/M4OwnerStop" />
+    <testcase name="SessionControlAndSelfMonitoringStopTogether/6" value_param="&quot;power&quot;" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:34:04.812" classname="AllDomains/M4OwnerStop" />
+  </testsuite>
+  <testsuite name="Directed/M4Direction" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="0.16" timestamp="2026-11-12T14:34:04.832">
+    <testcase name="LostTransportDoesNotStopOwnerOrRefreshAuthority/0" value_param="&quot;central-zone:drop:front:1200:200:0&quot;" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:34:04.832" classname="Directed/M4Direction" />
+    <testcase name="LostTransportDoesNotStopOwnerOrRefreshAuthority/1" value_param="&quot;central-zone:drop:rear:1200:200:0&quot;" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:34:04.852" classname="Directed/M4Direction" />
+    <testcase name="LostTransportDoesNotStopOwnerOrRefreshAuthority/2" value_param="&quot;zone-central:drop:front:1200:200:0&quot;" status="run" result="completed" time="0.019" timestamp="2026-11-12T14:34:04.872" classname="Directed/M4Direction" />
+    <testcase name="LostTransportDoesNotStopOwnerOrRefreshAuthority/3" value_param="&quot;zone-central:drop:rear:1200:200:0&quot;" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:34:04.892" classname="Directed/M4Direction" />
+    <testcase name="LostTransportDoesNotStopOwnerOrRefreshAuthority/4" value_param="&quot;zone-leaf:drop:steering:1200:200:0&quot;" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:34:04.912" classname="Directed/M4Direction" />
+    <testcase name="LostTransportDoesNotStopOwnerOrRefreshAuthority/5" value_param="&quot;zone-leaf:drop:drive:1200:200:0&quot;" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:34:04.932" classname="Directed/M4Direction" />
+    <testcase name="LostTransportDoesNotStopOwnerOrRefreshAuthority/6" value_param="&quot;leaf-zone:drop:steering:1200:200:0&quot;" status="run" result="completed" time="0.02" timestamp="2026-11-12T14:34:04.952" classname="Directed/M4Direction" />
+    <testcase name="LostTransportDoesNotStopOwnerOrRefreshAuthority/7" value_param="&quot;leaf-zone:drop:drive:1200:200:0&quot;" status="run" result="completed" time="0.019" timestamp="2026-11-12T14:34:04.972" classname="Directed/M4Direction" />
+  </testsuite>
+  <testsuite name="Handshake/M4SessionBoundary" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.039" timestamp="2026-11-12T14:34:04.992">
+    <testcase name="MissingPhaseAckNeverReleasesNormalGate/0" value_param="&quot;prepare&quot;" status="run" result="completed" time="0.008" timestamp="2026-11-12T14:34:04.992" classname="Handshake/M4SessionBoundary" />
+    <testcase name="MissingPhaseAckNeverReleasesNormalGate/1" value_param="&quot;init&quot;" status="run" result="completed" time="0.015" timestamp="2026-11-12T14:34:05.001" classname="Handshake/M4SessionBoundary" />
+    <testcase name="MissingPhaseAckNeverReleasesNormalGate/2" value_param="&quot;release&quot;" status="run" result="completed" time="0.015" timestamp="2026-11-12T14:34:05.017" classname="Handshake/M4SessionBoundary" />
+  </testsuite>
+  <testsuite name="Independent/M4GuardWall" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="5.412" timestamp="2026-11-12T14:34:05.032">
+    <testcase name="DeadlineIsDetectedBeforeBlockedOwnerReturns/0" value_param="&quot;drive&quot;" status="run" result="completed" time="1.804" timestamp="2026-11-12T14:34:05.032" classname="Independent/M4GuardWall" />
+    <testcase name="DeadlineIsDetectedBeforeBlockedOwnerReturns/1" value_param="&quot;monitor&quot;" status="run" result="completed" time="1.804" timestamp="2026-11-12T14:34:06.837" classname="Independent/M4GuardWall" />
+    <testcase name="DeadlineIsDetectedBeforeBlockedOwnerReturns/2" value_param="&quot;physical&quot;" status="run" result="completed" time="1.804" timestamp="2026-11-12T14:34:08.641" classname="Independent/M4GuardWall" />
+  </testsuite>
+</testsuites>

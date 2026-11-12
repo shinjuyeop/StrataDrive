@@ -1,0 +1,69 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 24 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 12 tests from RemoteLeafTest
+[ RUN      ] RemoteLeafTest.LocalReleaseAndUnarmedCreditCannotApplyACommand
+[       OK ] RemoteLeafTest.LocalReleaseAndUnarmedCreditCannotApplyACommand (0 ms)
+[ RUN      ] RemoteLeafTest.ArmedOriginalFrameProducesOriginalActualAndCompositeExpiryProtects
+[       OK ] RemoteLeafTest.ArmedOriginalFrameProducesOriginalActualAndCompositeExpiryProtects (0 ms)
+[ RUN      ] RemoteLeafTest.CreditSourceAgeAloneProtectsAnUnarmedLiveActor
+[       OK ] RemoteLeafTest.CreditSourceAgeAloneProtectsAnUnarmedLiveActor (0 ms)
+[ RUN      ] RemoteLeafTest.ExplicitProtectionAckIsLeafSelectionAndPreviousEpochCannotProtectNewSession
+[       OK ] RemoteLeafTest.ExplicitProtectionAckIsLeafSelectionAndPreviousEpochCannotProtectNewSession (0 ms)
+[ RUN      ] RemoteLeafTest.ExpiredStopLeaseCannotBeRestampedByTransport
+[       OK ] RemoteLeafTest.ExpiredStopLeaseCannotBeRestampedByTransport (0 ms)
+[ RUN      ] RemoteLeafTest.NormalFifoOverflowLatchesSessionAndNewEpochCannotRepairFailedLink
+[       OK ] RemoteLeafTest.NormalFifoOverflowLatchesSessionAndNewEpochCannotRepairFailedLink (0 ms)
+[ RUN      ] RemoteLeafTest.PreparedRejoinCannotReapplyOldCreditProtectionAcrossEnable
+[       OK ] RemoteLeafTest.PreparedRejoinCannotReapplyOldCreditProtectionAcrossEnable (0 ms)
+[ RUN      ] RemoteLeafTest.ProtectionInterleavedNonMonotonicTokensKeepFirstSelection
+[       OK ] RemoteLeafTest.ProtectionInterleavedNonMonotonicTokensKeepFirstSelection (0 ms)
+[ RUN      ] RemoteLeafTest.ProtectionTokenMutationIsRejectedEvenAfterAnotherRequest
+[       OK ] RemoteLeafTest.ProtectionTokenMutationIsRejectedEvenAfterAnotherRequest (0 ms)
+[ RUN      ] RemoteLeafTest.ProtectionIssuerIdentityHasSeparateImmutableRecords
+[       OK ] RemoteLeafTest.ProtectionIssuerIdentityHasSeparateImmutableRecords (0 ms)
+[ RUN      ] RemoteLeafTest.ExpiredProtectionCannotRenewAndNewEpochClearsIdentityRecords
+[       OK ] RemoteLeafTest.ExpiredProtectionCannotRenewAndNewEpochClearsIdentityRecords (0 ms)
+[ RUN      ] RemoteLeafTest.FullProtectionCacheNeverEvictsLiveOrExpiredTokenIdentity
+[       OK ] RemoteLeafTest.FullProtectionCacheNeverEvictsLiveOrExpiredTokenIdentity (0 ms)
+[----------] 12 tests from RemoteLeafTest (3 ms total)
+
+[----------] 6 tests from RemoteZoneIntegration
+[ RUN      ] RemoteZoneIntegration.RealZoneFramesArmApplyActualAndPowerAuthoritySurviveWire
+[       OK ] RemoteZoneIntegration.RealZoneFramesArmApplyActualAndPowerAuthoritySurviveWire (24 ms)
+[ RUN      ] RemoteZoneIntegration.RealZoneNormalStopPreservesTerminalLeaseAndCompletesHvOff
+[       OK ] RemoteZoneIntegration.RealZoneNormalStopPreservesTerminalLeaseAndCompletesHvOff (37 ms)
+[ RUN      ] RemoteZoneIntegration.ActualProducedEnvelopeExpiresExclusivelyWithoutRestamping
+[       OK ] RemoteZoneIntegration.ActualProducedEnvelopeExpiresExclusivelyWithoutRestamping (12 ms)
+[ RUN      ] RemoteZoneIntegration.OldFrameArmStopRepliesCannotConsumeCurrentPendingStop
+[       OK ] RemoteZoneIntegration.OldFrameArmStopRepliesCannotConsumeCurrentPendingStop (39 ms)
+[ RUN      ] RemoteZoneIntegration.DelayedPowerAndPermissionKeepOriginalExpiryAndCannotReachActor
+[       OK ] RemoteZoneIntegration.DelayedPowerAndPermissionKeepOriginalExpiryAndCannotReachActor (13 ms)
+[ RUN      ] RemoteZoneIntegration.ExpiredArmAndStopResponsesRemainBoundToTheOriginalOperation
+[       OK ] RemoteZoneIntegration.ExpiredArmAndStopResponsesRemainBoundToTheOriginalOperation (37 ms)
+[----------] 6 tests from RemoteZoneIntegration (165 ms total)
+
+[----------] 1 test from RemoteDeliveryDeadline
+[ RUN      ] RemoteDeliveryDeadline.OverflowAndOriginalExclusiveBoundary
+[       OK ] RemoteDeliveryDeadline.OverflowAndOriginalExclusiveBoundary (0 ms)
+[----------] 1 test from RemoteDeliveryDeadline (0 ms total)
+
+[----------] 2 tests from SomeipRearBinding
+[ RUN      ] SomeipRearBinding.ServicesRolesAndPayloadAreBoundToOneEcu
+[       OK ] SomeipRearBinding.ServicesRolesAndPayloadAreBoundToOneEcu (0 ms)
+[ RUN      ] SomeipRearBinding.ZoneEndpointCannotAcquirePeerOwnershipOrAuthorityFromWrongRoute
+[       OK ] SomeipRearBinding.ZoneEndpointCannotAcquirePeerOwnershipOrAuthorityFromWrongRoute (0 ms)
+[----------] 2 tests from SomeipRearBinding (0 ms total)
+
+[----------] 3 tests from FrameArmStop/RemoteOldRequestTest
+[ RUN      ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/0
+[       OK ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/0 (0 ms)
+[ RUN      ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/1
+[       OK ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/1 (0 ms)
+[ RUN      ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/2
+[       OK ] FrameArmStop/RemoteOldRequestTest.RejoinedLeafReplyCannotPoisonCurrentZonePendingArm/2 (0 ms)
+[----------] 3 tests from FrameArmStop/RemoteOldRequestTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 24 tests from 5 test suites ran. (169 ms total)
+[  PASSED  ] 24 tests.

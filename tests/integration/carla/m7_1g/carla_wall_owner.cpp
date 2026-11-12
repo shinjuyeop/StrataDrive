@@ -6,6 +6,7 @@
 #include "wall_bridge.hpp"
 #include "latest_snapshot.hpp"
 #include "perception_2k_ipc.hpp"
+#include "wall_startup_trace.hpp"
 #include <atomic>
 #include <fcntl.h>
 #include <poll.h>
@@ -195,6 +196,8 @@ int main(int argc,char** argv) {
         std::ofstream meta(std::string(argv[2])+".json");meta<<"{\"first_fault\":\""<<failure<<"\",\"initial\":"<<initial<<",\"hv_dependency_ns\":"<<hv_dependency<<",\"owner\":";
         owner_info.write_json(meta);meta<<",\"io\":";io_info.write_json(meta);meta<<"}\n";
         if(perception) {
+            std::ofstream startup(std::string(argv[2])+"-startup.json");write_startup_observations(startup,rig.startup_observations());
+            if(!startup)throw std::runtime_error("startup trace write");
             std::ofstream trace(std::string(argv[2])+"-perception.jsonl");trace<<std::setprecision(17);
             for(const auto& row:perception_rows) {
                 trace<<"{\"native_observed_ns\":"<<row.native_observed<<",\"native_enable_ns\":"<<row.enable

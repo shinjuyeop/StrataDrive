@@ -194,6 +194,14 @@ Host 응답 정지는 기존10s native/receipt 한도와 supervisor로 검출한
 
 Native horizon19s·원래 schedule10000 slot 이내이며 model/receipt/journal 한도는 그대로다.
 
+M10 [startup 수정](../test-plan/evidence/m10_startup_v1/README.md)에서 `AsyncLeafOwner`는
+새 INIT의 전력 의존 입력을 기다리면서도 원래10ms/20ms ECU runnable을 실행한다. BMS의
+pre-INIT cohort는 InitialChecks에 unavailable로 전달하며 원래 source/identity를 유지한다.
+공통 startup 의존 입력이 enable 뒤30ms를 넘겨도 없으면 기존 보호를 매 service에서 검사한다.
+입력 준비 이후에는 기존 controller의 유효성·만료·latch가 적용된다. ECU 실행 주기를 지킨다는
+것은 물리 입력을 새로 얻었다는 뜻이 아니다. 소유자 내부 고정 계측은 원래 INIT/first-due/
+first-body와 의존 시각을 복사하고, 파일 출력은 종료 후 수행한다.
+
 ### 비영상 wall5ms profile
 
 기본 world10ms와 기능 profile은 유지한다. `--wall-step-ms 5`/`-StrataM7Wall5ms`는

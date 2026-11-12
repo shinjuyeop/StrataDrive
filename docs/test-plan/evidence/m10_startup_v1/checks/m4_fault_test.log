@@ -1,0 +1,129 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 45 tests from 11 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from M4FaultContract
+[ RUN      ] M4FaultContract.DelayedOldAckCannotContaminateNewerSessionEvenWhileItsSourceIsFresh
+[       OK ] M4FaultContract.DelayedOldAckCannotContaminateNewerSessionEvenWhileItsSourceIsFresh (0 ms)
+[ RUN      ] M4FaultContract.RealOverflowDoesNotRecoverWhenReceiveBlockingEnds
+[       OK ] M4FaultContract.RealOverflowDoesNotRecoverWhenReceiveBlockingEnds (0 ms)
+[ RUN      ] M4FaultContract.StrictRecipeRejectsUnknownEndpointsAndAmbiguousTimes
+[       OK ] M4FaultContract.StrictRecipeRejectsUnknownEndpointsAndAmbiguousTimes (0 ms)
+[----------] 3 tests from M4FaultContract (0 ms total)
+
+[----------] 7 tests from M4FaultRuntime
+[ RUN      ] M4FaultRuntime.CentralStopExpiresAuthorityWithoutCentralProtectionAck
+[       OK ] M4FaultRuntime.CentralStopExpiresAuthorityWithoutCentralProtectionAck (22 ms)
+[ RUN      ] M4FaultRuntime.DelayedPacketsKeepOriginalExclusiveDeadline
+[       OK ] M4FaultRuntime.DelayedPacketsKeepOriginalExclusiveDeadline (20 ms)
+[ RUN      ] M4FaultRuntime.AcceptedCommandExpiresAtItsOriginalContextDeadline
+[       OK ] M4FaultRuntime.AcceptedCommandExpiresAtItsOriginalContextDeadline (20 ms)
+[ RUN      ] M4FaultRuntime.OverflowCannotHealUntilAllOwnersJoinAndLinksAreReplaced
+[       OK ] M4FaultRuntime.OverflowCannotHealUntilAllOwnersJoinAndLinksAreReplaced (49 ms)
+[ RUN      ] M4FaultRuntime.ResumedOwnerStillNeedsNewDurableGrantAndFullSession
+[       OK ] M4FaultRuntime.ResumedOwnerStillNeedsNewDurableGrantAndFullSession (49 ms)
+[ RUN      ] M4FaultRuntime.LostArmResultCannotCreatePartialNormalOperation
+[       OK ] M4FaultRuntime.LostArmResultCannotCreatePartialNormalOperation (17 ms)
+[ RUN      ] M4FaultRuntime.MissingTerminalAckProtectsInsteadOfReportingCleanStop
+[       OK ] M4FaultRuntime.MissingTerminalAckProtectsInsteadOfReportingCleanStop (31 ms)
+[----------] 7 tests from M4FaultRuntime (211 ms total)
+
+[----------] 2 tests from M4FaultWall
+[ RUN      ] M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory
+[       OK ] M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory (4208 ms)
+[ RUN      ] M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction
+[       OK ] M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction (1803 ms)
+[----------] 2 tests from M4FaultWall (6011 ms total)
+
+[----------] 4 tests from M4ExecutionWatch
+[ RUN      ] M4ExecutionWatch.LaterCompletionCannotFillAnEarlierMissedOpportunity
+[       OK ] M4ExecutionWatch.LaterCompletionCannotFillAnEarlierMissedOpportunity (0 ms)
+[ RUN      ] M4ExecutionWatch.DelayedWakeCompletesOriginalRequestedSlotOnly
+[       OK ] M4ExecutionWatch.DelayedWakeCompletesOriginalRequestedSlotOnly (0 ms)
+[ RUN      ] M4ExecutionWatch.RequestedTargetRejectsFutureAndZero
+[       OK ] M4ExecutionWatch.RequestedTargetRejectsFutureAndZero (0 ms)
+[ RUN      ] M4ExecutionWatch.RequestedAfterFiniteWindowDoesNotCompleteLastSlot
+[       OK ] M4ExecutionWatch.RequestedAfterFiniteWindowDoesNotCompleteLastSlot (0 ms)
+[----------] 4 tests from M4ExecutionWatch (0 ms total)
+
+[----------] 3 tests from M4ReleaseGrid
+[ RUN      ] M4ReleaseGrid.SharedOriginAlignsEveryOwnerPeriodAndSkipsCatchup
+[       OK ] M4ReleaseGrid.SharedOriginAlignsEveryOwnerPeriodAndSkipsCatchup (0 ms)
+[ RUN      ] M4ReleaseGrid.InvalidClockOrOverflowIsRejected
+[       OK ] M4ReleaseGrid.InvalidClockOrOverflowIsRejected (0 ms)
+[ RUN      ] M4ReleaseGrid.ReplaysOriginalMonitorPhaseCrossingWithoutChangingMissPolicy
+[       OK ] M4ReleaseGrid.ReplaysOriginalMonitorPhaseCrossingWithoutChangingMissPolicy (0 ms)
+[----------] 3 tests from M4ReleaseGrid (0 ms total)
+
+[----------] 3 tests from M4GuardRuntime
+[ RUN      ] M4GuardRuntime.OneSkippedSlotIsDetectedAfterOwnerResumes
+[       OK ] M4GuardRuntime.OneSkippedSlotIsDetectedAfterOwnerResumes (25 ms)
+[ RUN      ] M4GuardRuntime.PhysicalPeerProtectsWhileMonitorIsStopped
+[       OK ] M4GuardRuntime.PhysicalPeerProtectsWhileMonitorIsStopped (24 ms)
+[ RUN      ] M4GuardRuntime.JoinedRecoveryKeepsCommonReleasePhaseAndPhysicalIdentity
+[       OK ] M4GuardRuntime.JoinedRecoveryKeepsCommonReleasePhaseAndPhysicalIdentity (60 ms)
+[----------] 3 tests from M4GuardRuntime (111 ms total)
+
+[----------] 2 tests from M4PhysicalObservation
+[ RUN      ] M4PhysicalObservation.LongOriginalStepRetainsFirstFailureContext
+[       OK ] M4PhysicalObservation.LongOriginalStepRetainsFirstFailureContext (0 ms)
+[ RUN      ] M4PhysicalObservation.IndependentOverrideRejectsFreshNominalOutputInSameEpoch
+[       OK ] M4PhysicalObservation.IndependentOverrideRejectsFreshNominalOutputInSameEpoch (0 ms)
+[----------] 2 tests from M4PhysicalObservation (0 ms total)
+
+[----------] 7 tests from AllDomains/M4OwnerStop
+[ RUN      ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/0
+[       OK ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/0 (19 ms)
+[ RUN      ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/1
+[       OK ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/1 (19 ms)
+[ RUN      ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/2
+[       OK ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/2 (19 ms)
+[ RUN      ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/3
+[       OK ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/3 (19 ms)
+[ RUN      ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/4
+[       OK ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/4 (19 ms)
+[ RUN      ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/5
+[       OK ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/5 (20 ms)
+[ RUN      ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/6
+[       OK ] AllDomains/M4OwnerStop.SessionControlAndSelfMonitoringStopTogether/6 (20 ms)
+[----------] 7 tests from AllDomains/M4OwnerStop (139 ms total)
+
+[----------] 8 tests from Directed/M4Direction
+[ RUN      ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/0
+[       OK ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/0 (20 ms)
+[ RUN      ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/1
+[       OK ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/1 (20 ms)
+[ RUN      ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/2
+[       OK ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/2 (19 ms)
+[ RUN      ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/3
+[       OK ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/3 (20 ms)
+[ RUN      ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/4
+[       OK ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/4 (20 ms)
+[ RUN      ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/5
+[       OK ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/5 (20 ms)
+[ RUN      ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/6
+[       OK ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/6 (20 ms)
+[ RUN      ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/7
+[       OK ] Directed/M4Direction.LostTransportDoesNotStopOwnerOrRefreshAuthority/7 (19 ms)
+[----------] 8 tests from Directed/M4Direction (160 ms total)
+
+[----------] 3 tests from Handshake/M4SessionBoundary
+[ RUN      ] Handshake/M4SessionBoundary.MissingPhaseAckNeverReleasesNormalGate/0
+[       OK ] Handshake/M4SessionBoundary.MissingPhaseAckNeverReleasesNormalGate/0 (8 ms)
+[ RUN      ] Handshake/M4SessionBoundary.MissingPhaseAckNeverReleasesNormalGate/1
+[       OK ] Handshake/M4SessionBoundary.MissingPhaseAckNeverReleasesNormalGate/1 (15 ms)
+[ RUN      ] Handshake/M4SessionBoundary.MissingPhaseAckNeverReleasesNormalGate/2
+[       OK ] Handshake/M4SessionBoundary.MissingPhaseAckNeverReleasesNormalGate/2 (15 ms)
+[----------] 3 tests from Handshake/M4SessionBoundary (39 ms total)
+
+[----------] 3 tests from Independent/M4GuardWall
+[ RUN      ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/0
+[       OK ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/0 (1804 ms)
+[ RUN      ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/1
+[       OK ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/1 (1804 ms)
+[ RUN      ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/2
+[       OK ] Independent/M4GuardWall.DeadlineIsDetectedBeforeBlockedOwnerReturns/2 (1804 ms)
+[----------] 3 tests from Independent/M4GuardWall (5412 ms total)
+
+[----------] Global test environment tear-down
+[==========] 45 tests from 11 test suites ran. (12087 ms total)
+[  PASSED  ] 45 tests.
