@@ -15,14 +15,16 @@ def sha(path):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--build',type=Path,required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--build',type=Path,required=True)
+    p.add_argument('--protocol',default='docs/test-plan/perception-server-timing-v1-protocol.md')
+    p.add_argument('--prior',default='docs/test-plan/evidence/m10_startup_v1/sources.json');a=p.parse_args()
     root=Path(__file__).resolve().parents[3];bundle=a.output.resolve();bundle.mkdir(parents=True,exist_ok=True)
     assert not (bundle/'sources.json').exists() and not (bundle/'sources.tar.gz').exists(),'immutable freeze'
-    prior=json.loads((root/'docs/test-plan/evidence/m10_startup_v1/sources.json').read_text())
+    prior=json.loads((root/a.prior).read_text())
     names=set(prior['files']);prefixes=('central/','cmake/','interfaces/','physical_ai/','profiles/','simulation/','tests/','tools/','vecu/','zone/')
     tracked=subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard','-z'],cwd=root).decode().split('\0')
     names.update(n for n in tracked if n.startswith(prefixes) and (root/n).is_file())
-    names.update(('docs/test-plan/perception-server-timing-v1-protocol.md',str((bundle/'check-evidence.py').relative_to(root))))
+    names.update((a.protocol,str((bundle/'check-evidence.py').relative_to(root))))
     files={n:dict(bytes=(root/n).stat().st_size,sha256=sha(root/n)) for n in sorted(names)}
     with tarfile.open(bundle/'sources.tar.gz','w:gz') as tar:
         for name in sorted(names):tar.add(root/name,arcname=name,recursive=False)

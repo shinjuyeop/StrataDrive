@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **ECU 시작 오류 수정·렌더 동기화 대기 확인 / 연속 wall 주행·독립 품질 OPEN** | [서버 실행 계측](test-plan/evidence/m10_server_timing_v1/README.md) · [시작 오류 수정](test-plan/evidence/m10_startup_v1/README.md) · [실제 shadow 연결](test-plan/evidence/m10_live_shadow_v1/README.md) |
+| M10 | **렌더 스레드 대기 확인·물리/영상 분리 방향 정의 / 연속 wall 주행·독립 품질 OPEN** | [카메라·fence 비교](test-plan/evidence/m10_fence_compare_v1/README.md) · [시작 오류 수정](test-plan/evidence/m10_startup_v1/README.md) · [실제 shadow 연결](test-plan/evidence/m10_live_shadow_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -72,6 +72,18 @@ scheduling 중 공백 원인은 아직 특정하지 않았다. 추론은 보호2
 788개 서비스/2개 물리 응답 exact 재생·11개 변조 검출이 통과했다. 주행은 기존 입력 보호로 FAIL,
 fresh 수신0개이며 원본 영상1개를 포함해 미래 품질 제외는8978개다. UE 실행 파일·CARLA 모듈·설정을 복원했다.
 
+후속 [카메라·fence 비교](test-plan/evidence/m10_fence_compare_v1/README.md)는 renderer와 모델 준비를
+동일하게 유지한 카메라 없음/2K 각1회를 사전 선언했다. 2K의45.95ms PumpWall 공백 중42.21ms는
+렌더 스레드 완료 이벤트 대기였고 직접 RHI/GPU fence 분기는 선택되지 않았다. 렌더 스레드 뒤의
+GPU·driver·초기화 원인까지 특정한 것은 아니다. 카메라 없음은80개 물리 구간/arm 관측 뒤 입력 보호,
+2K는2개 구간/no arm으로 종료됐으며 **둘 다 정상 물리 구간0개·FAIL**이다. 이번2K는 첫 영상
+수신 전 종료돼 정상 촬영 성능으로 해석할 수 없다. 카메라 없음의 native 서비스 중 최대 기록 공백은
+3.01ms지만 별도의 입력·실행 허용 조건 실패가 남아 있다. 1308-file 사전 고정·별도23개 검사,
+두 trial의1537/768개 서비스와80/2개 원본 응답 exact 재생·21개 변조 검출을 확인했다.
+원본 영상은0개여서 미래 제외8978개를 유지하며 서버 파일4개와 설정을 복원했다.
+[다음 분리 경계](interfaces/perception-render-isolation-v1.md)는 단일 물리 owner와 별도 렌더링 프로세스,
+유한 snapshot 전달과 원래 장면 취득 시각 보존으로 정했다. 아직 구현·수용된 구조는 아니다.
+
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 
 ## 현재 구현과 수용 경계
@@ -114,7 +126,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 지배적인 대기 위치로 확인한 UE frame synchronization의 fence/RHI 대기를 구분하고, 카메라 없는 대조 조건과 동일2K 캡처를 사전 선언해 비교한다. 이를 근거로 카메라 렌더링이 물리 tick 공급을 막지 않도록 분리할 위치를 정한다. 원래 입력 시각·기한·보호와 유한 큐를 유지하며 동기화를 임의로 제거하지 않는다. 연속 물리·인지 전달은 OPEN이고 Required는 opt-in SIL로 유지한다.
+1. 카메라 없는 조건의80개 원본 물리 응답과1537개 서비스 재생을 바탕으로 입력·실행 허용 조건의 중단 원인을 해결한다. 이어서 단일 물리 owner를 검증하고, [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)에 따라 별도 렌더링 프로세스·유한 snapshot 전달을 구현한다. 렌더 중단에도 실제 물리 응답이 이어지고 영상은 원래 장면 시각을 유지하는지 검증한 뒤 새2K 시험을 선언한다. 원래 기한·보호를 유지하며 Required는 opt-in SIL로 둔다.
 2. 후보와 센서·모델 설정을 먼저 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상을 새로운 holdout으로 재사용하지 않는다.
 3. 시작/종료·장기 부하·전체 지연과 실시간 동작을 별도로 검증한다. 정지 장면이나 짧은 관측을 전체 ODD 수용으로 확대하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

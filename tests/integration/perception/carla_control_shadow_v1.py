@@ -26,6 +26,7 @@ def main():
     p.add_argument('--ticks',type=int,default=400)
     p.add_argument('--fault',choices=('none','wall-gap','protection'),default='none')
     p.add_argument('--cameras',action='store_true')
+    p.add_argument('--camera-absent-control',action='store_true')
     p.add_argument('--warmup-ticks',type=int,choices=(0,150),default=0)
     p.add_argument('--step-ms',type=int,choices=(5,10),default=10)
     p.add_argument('--hv-dependency-ms',type=int,choices=(30,50),default=30)
@@ -40,6 +41,7 @@ def main():
     report['perception_authority']='shadow only; no torque/planner/protection writes'
     report['world_tick_owner']='existing native server wall owner; no client ticks after bind'
     report['hv_dependency_ns']=a.hv_dependency_ms*1000000
+    report['camera_condition']='absent' if a.camera_absent_control else '2k'
     rows=[];events=[];waits=[];process=actor=world=original=None;bound=False;session=run=None
     capture=Capture(a)
     c=carla.Client('127.0.0.1',2200);c.set_timeout(10)
@@ -63,6 +65,7 @@ def main():
         original=world.get_settings();settings=world.get_settings()
         settings.synchronous_mode=True;settings.fixed_delta_seconds=a.step_ms/1000;settings.no_rendering_mode=not a.cameras
         settings.substepping=True;settings.max_substep_delta_time=.01;settings.max_substeps=10
+        report['rendering_enabled']=not settings.no_rendering_mode
         world.apply_settings(settings);world.tick()
         bp=world.get_blueprint_library().find('vehicle.lincoln.mkz_2020');bp.set_attribute('role_name','m7_wall_actual')
         actor=world.spawn_actor(bp,world.get_map().get_spawn_points()[0]);world.set_weather(carla.WeatherParameters.ClearNoon)

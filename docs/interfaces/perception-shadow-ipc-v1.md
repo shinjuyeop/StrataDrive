@@ -60,3 +60,11 @@ bracketed61.71ms of a65.16ms PumpWall gap inside UE frame synchronization. Indep
 inference/IPC threads do not by themselves decouple CARLA's physical tick delivery
 from its game/render synchronization. This measurement grants no new clock, input
 freshness or actuation authority; the original input protection remained effective.
+
+The [camera/fence comparison](../test-plan/evidence/m10_fence_compare_v1/README.md)
+then measured42.21ms of render-thread event waits inside a45.95ms gap, with the
+direct RHI/GPU route unselected. Both camera-absent and2K runs failed; neither had a
+normal physical interval or live camera result. The separate-render-process
+[prototype boundary](perception-render-isolation-v1.md) is a follow-up design,
+not an implemented change to this same-world shadow contract. A second world must
+not silently replace the current authoritative frame/clock identity.

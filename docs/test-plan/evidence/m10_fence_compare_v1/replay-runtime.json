@@ -1,0 +1,33 @@
+{
+  "scope": "post-run replay provenance; previously built startup archive binary, not a new prospective binary freeze",
+  "binary": "/tmp/stratadrive-startup-archive-01/build/tests/integration/carla/m7_1g/m7_wall_startup_replay",
+  "binary_sha256": "c1312cf520329b8c5186a2c6977d43a3b156ffef46ff0fb56f3eecd9452c3536",
+  "commands": [
+    [
+      "build/m10-perception/cuda-venv/bin/python",
+      "tests/integration/perception/replay_wall_startup_v1.py",
+      "--capture",
+      "build/m10-fence-compare-v1/camera-absent-01/capture",
+      "--binary",
+      "/tmp/stratadrive-startup-archive-01/build/tests/integration/carla/m7_1g/m7_wall_startup_replay",
+      "--scenario",
+      "tests/integration/carla/scenarios/m7_integrated_v1.txt",
+      "--output",
+      "build/m10-fence-compare-v1/replay-camera-absent-01",
+      "--require-exact"
+    ],
+    [
+      "build/m10-perception/cuda-venv/bin/python",
+      "tests/integration/perception/replay_wall_startup_v1.py",
+      "--capture",
+      "build/m10-fence-compare-v1/camera-2k-01/capture",
+      "--binary",
+      "/tmp/stratadrive-startup-archive-01/build/tests/integration/carla/m7_1g/m7_wall_startup_replay",
+      "--scenario",
+      "tests/integration/carla/scenarios/m7_integrated_v1.txt",
+      "--output",
+      "build/m10-fence-compare-v1/replay-camera-2k-01",
+      "--require-exact"
+    ]
+  ]
+}

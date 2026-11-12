@@ -60,6 +60,12 @@ class Capture:
         preparing = False
         self.recorder = MemoryRecorder(self.args.output / "raw", 96)
         self.publisher = Publisher(self.tx, 42, world.id, self.args.wall_clock)
+        self.report['camera_condition'] = 'absent' if getattr(self.args, 'camera_absent_control', False) else '2k'
+        if self.report['camera_condition'] == 'absent':
+            # Retain identical model preparation, world observer and IPC. Only
+            # the sensor actor is omitted; the caller keeps rendering enabled.
+            self.tick_id = world.on_tick(self.observed)
+            return
         bp = world.get_blueprint_library().find("sensor.camera.rgb")
         expected = dict(image_size_x="2560", image_size_y="1536", fov="90", sensor_tick="0.05",
                         role_name="m7_frame5", enable_postprocess_effects="True")

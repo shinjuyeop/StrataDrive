@@ -66,7 +66,7 @@ int main() {
             for p in paths.values():p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b'known')
             data=dict(schema='m10-server-timing-build-v1',installed={k:dict(path=str(p),instrumented_sha256=sha(p),original_sha256='original') for k,p in paths.items()})
             manifest=base/'manifest.json';manifest.write_text(json.dumps(data));freeze=base/'freeze.json'
-            freeze.write_text(json.dumps(dict(external={str(manifest):sha(manifest)})))
+            freeze.write_text(json.dumps(dict(external={str(manifest):sha(manifest),**{str(p):sha(p) for p in paths.values()}})))
             profile=dict(baseline_module_sha256='original',external_files={module:'previous','other':'unchanged'})
             result=timing_runtime(manifest,freeze,base,base,profile)
             self.assertEqual(result['other'],'unchanged');self.assertEqual(profile['external_files'][module],'previous')

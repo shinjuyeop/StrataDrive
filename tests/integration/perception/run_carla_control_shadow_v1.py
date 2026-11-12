@@ -42,14 +42,19 @@ def timing_runtime(manifest_path, freeze, source, engine, profile):
     if frozen['external'].get(str(path)) != sha(path):
         raise ValueError('timing build manifest absent from freeze')
     manifest = json.loads(path.read_text())
-    if manifest['schema'] != 'm10-server-timing-build-v1':
+    if manifest['schema'] not in ('m10-server-timing-build-v1','m10-fence-compare-build-v1'):
         raise ValueError('timing manifest schema')
     expected = dict(profile['external_files'])
     module = 'Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so'
-    for name, target in (('module', source / module), ('executable', engine / 'Engine/Binaries/Linux/UE4Editor')):
+    targets=[('module', source / module), ('executable', engine / 'Engine/Binaries/Linux/UE4Editor')]
+    if manifest['schema']=='m10-fence-compare-build-v1':
+        targets += [('engine',engine/'Engine/Binaries/Linux/libUE4Editor-Engine.so'),('rendercore',engine/'Engine/Binaries/Linux/libUE4Editor-RenderCore.so')]
+    for name, target in targets:
         item = manifest['installed'][name]
         if item['path'] != str(target.resolve()) or sha(target) != item['instrumented_sha256']:
             raise ValueError('timing runtime identity')
+        if frozen['external'].get(str(target.resolve())) != item['instrumented_sha256']:
+            raise ValueError('timing binary absent from freeze')
     if manifest['installed']['module']['original_sha256'] != profile['baseline_module_sha256']:
         raise ValueError('timing original module identity')
     expected[module] = manifest['installed']['module']['instrumented_sha256']
@@ -61,11 +66,15 @@ def main():
     for name in ("engine", "source", "python", "native", "detector", "models", "library", "freeze", "output"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument('--server-timing-build', type=Path)
+    p.add_argument('--camera-condition', choices=('2k','absent'), default='2k')
     a = p.parse_args()
+    if a.camera_condition=='absent' and (not a.server_timing_build or json.loads(a.server_timing_build.read_text())['schema']!='m10-fence-compare-build-v1'):
+        p.error('camera-absent comparison requires the declared fence build')
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(schema="m10-control-shadow-server-v1", status="FAIL", started_utc=datetime.now(timezone.utc).isoformat(),
                   startup_seconds=180, client_seconds=900, shutdown_seconds=30, live_driving_acceptance=False,
                   owner_credential="ephemeral child environment; never recorded", attempts=1)
+    report['camera_condition']=a.camera_condition
     proc = None
     ini = a.source / "Unreal/CarlaUE4/Saved/Config/Linux/GameUserSettings.ini"
     original_ini = ini.read_bytes()
@@ -108,6 +117,7 @@ def main():
                   "--scenario", str(root / "tests/integration/carla/scenarios/m7_integrated_v1.txt"),
                   "--ticks", "200", "--warmup-ticks", "150", "--cameras", "--wall-clock", str(secrets.randbits(63) or 1),
                   "--detector", str(a.detector), "--models", str(a.models), "--library", str(a.library)]
+        if a.camera_condition=='absent':client.append('--camera-absent-control')
         report.update(argv=command, client_argv=client)
         def no_core():
             resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
