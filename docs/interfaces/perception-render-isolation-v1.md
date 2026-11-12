@@ -1,6 +1,7 @@
 # Physics and camera rendering separation: next prototype boundary
 
-Status: **selected prototype direction, not implemented or accepted**. The
+Status: **finite owner-only case verified; snapshot IPC component implemented;
+live rendering separation not yet implemented or accepted**. The
 [fence comparison](../test-plan/evidence/m10_fence_compare_v1/README.md) locates
 42.21ms of one45.95ms physical-service gap inside a render-thread completion event.
 The camera-free run also failed later, with0 normal physical intervals. Separating
@@ -15,6 +16,12 @@ consumes immutable completed physical snapshots. A render stall must not require
 the authoritative owner to wait for rendering, camera readback, inference or IPC.
 The first owner-only experiment must explicitly declare its rendering mode; the
 camera-absent comparison used renderer ON and does not validate a no-render owner.
+
+The subsequent [owner5ms V2 case](../test-plan/evidence/m10_owner_split_v2/README.md)
+used no-render/NullRHI/inline rendering and completed400 intervals with234 normal,
+zero protective intervals in2.002217 wall seconds. HV30 and original ECU rates and
+deadlines remain. V1's first5ms snapshot was rejected by the old10ms-only observer;
+the explicit-period correction and failed original trial are retained separately.
 
 ```mermaid
 flowchart LR
@@ -57,17 +64,21 @@ or moving only Python inference does not establish this boundary.
 
 ## Ordered implementation checks
 
-1. Resolve the camera-free failure using the retained80 receipts/1537 service times:
-   first Drive LocalInputsUnavailable, BMS protection and Power continuity loss.
-   Reproduce the exact original result before any fix; keep all input deadlines.
-   The current replay already reproduces every original CSV/startup observation.
-2. Declare an owner-only physical trial and verify continuous eligible physical
-   delivery with the original10ms model/320 substeps/HV30ms. Merely seeing ECU arm
-   is insufficient: this pair had0 normal physical intervals in both conditions.
-3. Implement the bounded snapshot/provenance contract, then a render consumer.
-   Inject a render stall/exit and show that physical receipts continue on their
-   original timestamps while shadow data becomes unavailable. Validate restart
-   identity, scene consistency and original-byte preservation before new live use.
+1. Completed diagnosis: original10ms command coverage was shorter than the physical
+   interval plus4ms preview; the preserved1537-row/80-receipt replay is exact. The
+   already-supported explicit5ms owner profile avoids changing those deadlines.
+2. Finite owner verification completed:400 receipts,234 normal intervals, no
+   protection or owner deadline miss, with the corrected explicit5ms state observer.
+   The original10ms camera baseline is retained; this short case is not long-term
+   physical or rendering acceptance.
+3. Snapshot transport is implemented in `physical_ai/perception/scene_mailbox_v1.py`:
+   one in-flight plus one pending latest; fixed trusted inventory/configuration,
+   original acquisition age, disconnect/expiry rejection and private acknowledgements
+   with no control credit. Tests include a stalled consumer process and exact400
+   original-receipt kinematic replay. Full dynamic-scene acquisition/application,
+   actual renderer integration and rendered-image provenance remain to implement.
+   Then inject a live render stall/exit and show continued original physical receipts
+   while shadow data becomes unavailable. A stalled IPC fixture is not that live test.
 4. Freeze a fresh bounded2K paired experiment with full raw retention. Measure
    physical service, scene-to-callback and inference separately. Require no20Hz
    target; evaluate1× wall behavior without silently slowing simulation. Host

@@ -223,14 +223,26 @@ def audit(directory):
         'reset invalidates old physics; never evidence of protective stopping')
     sensors=None
     if (directory/'sensors.json').exists() or (directory/'sensors.json.gz').exists():
-        s=read_json(directory/'sensors.json');check(not s['gt_control_use'] and not s['errors'] and not s['dropped'],'GT isolation/camera integrity')
-        expected=list(range((int(b['frame'])//5+1)*5,last_frame+1,5));times={int(x['receipt']['frame']):x['receipt']['simulation_end_seconds'] for x in rows}
-        for name,stream in s['streams'].items():
-            check([x['frame'] for x in stream]==expected,'50ms camera completeness')
-            for x in stream:
-                check(x['timestamp']==times[x['frame']] and x['ego_id']==int(b['actor']) and x['validity']=='VALID','original camera time/identity')
-                if name=='gt':check(x['use']=='TRAIN_EVAL_ONLY','GT never control')
-        sensors={k:len(v) for k,v in s['streams'].items()}
+        s=read_json(directory/'sensors.json')
+        if s.get('schema')=='m10-control-shadow-capture-v1':
+            check(result.get('execution_profile')=='owner5ms' and step==5000000 and
+                  result['camera_condition']==s['camera_condition']=='absent' and result['rendering_enabled'] is False,'declared camera-free owner')
+            check(not s['camera'] and not s['raw'] and not s['model_calls'] and not s['errors'] and
+                  not s['cleanup_errors'] and 'sensor_attributes' not in s,'no camera or hidden live inference')
+            check(len(s['preparation_calls'])==3 and s['preparation']['state']=='READY','same synthetic model preparation')
+            states={int(x['receipt']['frame']):round(x['receipt']['simulation_end_seconds']*1e9) for x in rows}
+            check(all(x['frame'] in states and x['source_ns']==states[x['frame']] and x['delta_ns']==step
+                      and x['begin_wall_ns']<=x['end_wall_ns'] for x in s['state']),'actual owner state provenance')
+            sensors=dict(camera=0,state_observations=len(s['state']),shadow_ipc_requires_separate_audit=True)
+        else:
+            check(not s['gt_control_use'] and not s['errors'] and not s['dropped'],'GT isolation/camera integrity')
+            expected=list(range((int(b['frame'])//5+1)*5,last_frame+1,5));times={int(x['receipt']['frame']):x['receipt']['simulation_end_seconds'] for x in rows}
+            for name,stream in s['streams'].items():
+                check([x['frame'] for x in stream]==expected,'50ms camera completeness')
+                for x in stream:
+                    check(x['timestamp']==times[x['frame']] and x['ego_id']==int(b['actor']) and x['validity']=='VALID','original camera time/identity')
+                    if name=='gt':check(x['use']=='TRAIN_EVAL_ONLY','GT never control')
+            sensors={k:len(v) for k,v in s['streams'].items()}
     requested=result['status']=='EXECUTED_REQUIRES_AUDIT'
     check(result.get('native_exit')==0 and not result.get('native_forced_stop') and not result.get('cleanup_error'),'native clean lifecycle')
     writer_checks=result.get('writer_checks')

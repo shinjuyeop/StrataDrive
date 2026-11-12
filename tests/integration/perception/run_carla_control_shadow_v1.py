@@ -13,6 +13,7 @@ import socket
 import subprocess
 import time
 import traceback
+from owner_split_profile_v1 import PROFILES, configure_owner
 
 
 def sha(path):
@@ -61,20 +62,40 @@ def timing_runtime(manifest_path, freeze, source, engine, profile):
     return expected
 
 
+def original_owner_runtime(freeze, source, engine, profile):
+    root=Path(__file__).resolve().parents[3]
+    prior=json.loads((root/'docs/test-plan/evidence/m10_fence_compare_v1/build-02/manifest.json').read_text())
+    frozen=json.loads(freeze.read_text())
+    expected=dict(profile['external_files'])
+    for name,item in prior['installed'].items():
+        path=Path(item['path'])
+        if sha(path)!=item['original_sha256'] or frozen['external'].get(str(path))!=item['original_sha256']:
+            raise ValueError('owner-only requires exact restored baseline: '+name)
+    module='Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so'
+    if prior['installed']['module']['path']!=str((source/module).resolve()) or prior['installed']['executable']['path']!=str((engine/'Engine/Binaries/Linux/UE4Editor').resolve()):
+        raise ValueError('owner baseline runtime paths')
+    expected[module]=profile['baseline_module_sha256']
+    return expected
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     for name in ("engine", "source", "python", "native", "detector", "models", "library", "freeze", "output"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument('--server-timing-build', type=Path)
     p.add_argument('--camera-condition', choices=('2k','absent'), default='2k')
+    p.add_argument('--execution-profile', choices=PROFILES, default='shadow10ms')
     a = p.parse_args()
-    if a.camera_condition=='absent' and (not a.server_timing_build or json.loads(a.server_timing_build.read_text())['schema']!='m10-fence-compare-build-v1'):
+    if a.execution_profile=='owner5ms' and (a.camera_condition!='absent' or a.server_timing_build):
+        p.error('owner5ms requires camera absent and the original uninstrumented server')
+    if a.execution_profile=='shadow10ms' and a.camera_condition=='absent' and (not a.server_timing_build or json.loads(a.server_timing_build.read_text())['schema']!='m10-fence-compare-build-v1'):
         p.error('camera-absent comparison requires the declared fence build')
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(schema="m10-control-shadow-server-v1", status="FAIL", started_utc=datetime.now(timezone.utc).isoformat(),
                   startup_seconds=180, client_seconds=900, shutdown_seconds=30, live_driving_acceptance=False,
                   owner_credential="ephemeral child environment; never recorded", attempts=1)
     report['camera_condition']=a.camera_condition
+    report['execution_profile']=a.execution_profile
     proc = None
     ini = a.source / "Unreal/CarlaUE4/Saved/Config/Linux/GameUserSettings.ini"
     original_ini = ini.read_bytes()
@@ -85,6 +106,7 @@ def main():
         root = Path(__file__).resolve().parents[3]
         profile = json.loads((root / "profiles/perception-source-compare-server-v2.json").read_text())
         external = timing_runtime(a.server_timing_build, a.freeze, a.source, a.engine, profile) if a.server_timing_build else profile['external_files']
+        if a.execution_profile=='owner5ms':external=original_owner_runtime(a.freeze,a.source,a.engine,profile)
         for name, digest in external.items():
             if sha(a.source / name) != digest:
                 raise ValueError("existing pinned server module/source: " + name)
@@ -118,6 +140,7 @@ def main():
                   "--ticks", "200", "--warmup-ticks", "150", "--cameras", "--wall-clock", str(secrets.randbits(63) or 1),
                   "--detector", str(a.detector), "--models", str(a.models), "--library", str(a.library)]
         if a.camera_condition=='absent':client.append('--camera-absent-control')
+        command,client=configure_owner(command,client,a.execution_profile,a.camera_condition)
         report.update(argv=command, client_argv=client)
         def no_core():
             resource.setrlimit(resource.RLIMIT_CORE, (0, 0))

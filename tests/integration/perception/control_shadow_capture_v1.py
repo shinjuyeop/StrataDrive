@@ -53,7 +53,9 @@ class Capture:
                     row["end_wall_ns"] = time.monotonic_ns()
                     owner.report["preparation_calls" if preparing else "model_calls"].append(row)
 
-        self.worker = IpcWorldPerception(Backend(), ObservedWorldClock(world.id), self.args.wall_clock)
+        step_ns=getattr(self.args,'step_ms',10)*1_000_000
+        self.report['world_step_ns']=step_ns
+        self.worker = IpcWorldPerception(Backend(), ObservedWorldClock(world.id,step_ns=step_ns), self.args.wall_clock)
         if not self.worker.prepare() or not self.worker.wait_prepared(10):
             raise RuntimeError("bounded native2K preparation")
         self.report["preparation"] = self.worker.preparation_status()
@@ -63,7 +65,8 @@ class Capture:
         self.report['camera_condition'] = 'absent' if getattr(self.args, 'camera_absent_control', False) else '2k'
         if self.report['camera_condition'] == 'absent':
             # Retain identical model preparation, world observer and IPC. Only
-            # the sensor actor is omitted; the caller keeps rendering enabled.
+            # the sensor actor is omitted; rendering follows the caller's
+            # explicitly selected comparison or owner-only profile.
             self.tick_id = world.on_tick(self.observed)
             return
         bp = world.get_blueprint_library().find("sensor.camera.rgb")

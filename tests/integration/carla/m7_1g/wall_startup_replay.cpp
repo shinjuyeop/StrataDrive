@@ -8,10 +8,12 @@ using namespace stratadrive;
 using namespace m7_functional;
 int main(int argc,char** argv) {
     try {
-        if(argc!=4)throw std::runtime_error("input scenario output-prefix");
+        if(argc!=4 && argc!=5)throw std::runtime_error("input scenario output-prefix [5|10 model step ms]");
+        const Time step=argc==5?std::stoull(argv[4])*ms:10*ms;
+        if(step!=5*ms && step!=10*ms)throw std::runtime_error("model step");
         std::ifstream input(argv[1]),scenario(argv[2]);Time initial,model;std::uint32_t actor;
         if(!(input>>initial>>model>>actor))throw std::runtime_error("replay identity");
-        WallRig rig({1,42,7},actor,initial,model);
+        WallRig rig({1,42,7},actor,initial,model,step);
         std::vector<RequestPhase> phases;std::string line;
         while(std::getline(scenario,line)) {
             if(line.empty() || line[0]=='#')continue;

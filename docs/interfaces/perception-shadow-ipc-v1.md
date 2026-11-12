@@ -64,7 +64,14 @@ freshness or actuation authority; the original input protection remained effecti
 The [camera/fence comparison](../test-plan/evidence/m10_fence_compare_v1/README.md)
 then measured42.21ms of render-thread event waits inside a45.95ms gap, with the
 direct RHI/GPU route unselected. Both camera-absent and2K runs failed; neither had a
-normal physical interval or live camera result. The separate-render-process
-[prototype boundary](perception-render-isolation-v1.md) is a follow-up design,
-not an implemented change to this same-world shadow contract. A second world must
-not silently replace the current authoritative frame/clock identity.
+normal physical interval or live camera result. The subsequent
+[owner-only5ms case](../test-plan/evidence/m10_owner_split_v2/README.md) completed400
+physical intervals with234 normal and0 protective intervals. Its observer explicitly
+binds to5ms; the default10ms remains. The shadow receiver initialized from actual
+post-enable state but accepted no perception results, as this case had no camera.
+
+The separate-render-process [prototype boundary](perception-render-isolation-v1.md)
+now has a bounded scene IPC component. Complete dynamic-scene export/application,
+live renderer integration and image provenance remain unimplemented. This component
+does not change the same-world shadow contract. A second world's image must not
+silently replace the current authoritative frame/clock identity.

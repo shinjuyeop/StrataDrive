@@ -16,7 +16,9 @@ def main():
     receipts=[json.loads(line) for line in (a.capture/'trace.jsonl').read_text().splitlines()]
     jobs=list(csv.DictReader((a.capture/'native.csv').open()))
     f32=lambda v:struct.unpack('<f',struct.pack('<f',v))[0]
-    dt=f32(f32(.01)*f32(1/320))
+    step=run.get('model_step_ns',10_000_000)
+    assert step in (5_000_000,10_000_000),'original supported model step'
+    dt=f32(f32(step/1e9)*f32(1/320))
     by_end={int(row['receipt']['work_end_ns']):row for row in receipts};used=set()
     lines=[f"{meta['initial']} {run['binding']['logical_begin_ns']} {run['binding']['actor']}"]
     for job in jobs:
@@ -35,7 +37,9 @@ def main():
         lines.append(' '.join(tokens))
     assert used==set(by_end)
     source=a.output/'input.txt';source.write_text('\n'.join(lines)+'\n')
-    subprocess.run([str(a.binary.resolve()),str(source.resolve()),str(a.scenario.resolve()),str((a.output/'replay').resolve())],check=True)
+    command=[str(a.binary.resolve()),str(source.resolve()),str(a.scenario.resolve()),str((a.output/'replay').resolve())]
+    if step!=10_000_000:command.append(str(step//1_000_000))
+    subprocess.run(command,check=True)
     output=list(csv.DictReader((a.output/'replay.csv').open()));assert len(output)==len(jobs)
     differences=[dict(index=i,original=x,replay=y) for i,(x,y) in enumerate(zip(jobs,output)) if x!=y]
     source_fields=('now','energy_end','wheel_source','hv_source','hv_dependency')

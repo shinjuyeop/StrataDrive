@@ -17,10 +17,13 @@ TRACE_CAPACITY = 4096
 
 
 class ObservedWorldClock:
-    def __init__(self, clock_instance):
+    def __init__(self, clock_instance, *, step_ns=STEP_NS):
         if not uint(clock_instance, positive=True):
             raise ValueError("world instance")
+        if type(step_ns) is not int or step_ns not in (5_000_000, STEP_NS):
+            raise ValueError("declared world step must be5ms or10ms")
         self.instance = clock_instance
+        self._step_ns = step_ns
         self._lock = threading.RLock()
         self._frames = OrderedDict()
         self._frame = self._source = self._receipt = 0
@@ -38,14 +41,14 @@ class ObservedWorldClock:
                     or not all(
                         uint(v) for v in (source_ns, delta_ns, received_wall_ns, wall)
                     )
-                    or abs(delta_ns - STEP_NS) > 1000
+                    or abs(delta_ns - self._step_ns) > 1000
                     or received_wall_ns > wall
                 ):
                     raise ValueError("world snapshot identity/period/receipt")
                 if self._frames:
                     gap = frame - self._frame
                     if (
-                        abs(source_ns - self._source - gap * STEP_NS)
+                        abs(source_ns - self._source - gap * self._step_ns)
                         > max(1, abs(gap)) * 1000
                     ):
                         raise ValueError("world frame/time mismatch")

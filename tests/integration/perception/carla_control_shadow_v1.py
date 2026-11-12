@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "carla"))
 from m7_1p_bridge import require
 from control_shadow_capture_v1 import Capture
+from owner_split_profile_v1 import PROFILES, validate_client
 
 
 def main():
@@ -27,21 +28,23 @@ def main():
     p.add_argument('--fault',choices=('none','wall-gap','protection'),default='none')
     p.add_argument('--cameras',action='store_true')
     p.add_argument('--camera-absent-control',action='store_true')
+    p.add_argument('--execution-profile',choices=PROFILES,default='shadow10ms')
     p.add_argument('--warmup-ticks',type=int,choices=(0,150),default=0)
     p.add_argument('--step-ms',type=int,choices=(5,10),default=10)
     p.add_argument('--hv-dependency-ms',type=int,choices=(30,50),default=30)
     for name in ("detector", "models", "library"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--wall-clock", type=int, required=True)
-    a=p.parse_args();a.output.mkdir(parents=True,exist_ok=False)
-    if not (a.cameras and a.ticks==200 and a.warmup_ticks==150 and a.step_ms==10 and a.hv_dependency_ms==30 and a.fault=="none"):
-        p.error("frozen shadow200 profile only")
-    if a.hv_dependency_ms==50 and (a.step_ms!=5 or a.cameras):p.error('HV50 requires noncamera wall5 profile')
+    a=p.parse_args()
+    try:validate_client(a)
+    except ValueError as error:p.error(str(error))
+    a.output.mkdir(parents=True,exist_ok=False)
     report={'status':'FAIL','scope':'dual-clock experiment; acceptance requires separate audit','fault':a.fault,'model_step_ns':a.step_ms*1000000}
     report['perception_authority']='shadow only; no torque/planner/protection writes'
     report['world_tick_owner']='existing native server wall owner; no client ticks after bind'
     report['hv_dependency_ns']=a.hv_dependency_ms*1000000
     report['camera_condition']='absent' if a.camera_absent_control else '2k'
+    report['execution_profile']=a.execution_profile
     rows=[];events=[];waits=[];process=actor=world=original=None;bound=False;session=run=None
     capture=Capture(a)
     c=carla.Client('127.0.0.1',2200);c.set_timeout(10)
@@ -96,6 +99,17 @@ def main():
             status=rpc('wall_status');count=int(status['wall_frames'])
             r=native('GET');report['last_native']=r
             events.append({'op':'native_get','wall_ns':time.monotonic_ns(),'response':r})
+            if a.execution_profile=='owner5ms' and int(status.get('wall_normal_intervals','0'))>=10 and not writers_checked:
+                checks={'begin_ns':time.monotonic_ns(),'normal_before':int(status['wall_normal_intervals'])}
+                blocked=c.apply_batch_sync([carla.command.ApplyVehicleControl(actor.id,carla.VehicleControl(throttle=1))],False)
+                checks['batch_denied']=len(blocked)==1 and blocked[0].has_error() and 'M7 exclusive zero-probe owner' in blocked[0].error
+                try:world.tick(.05);checks['tick_denied']=False
+                except RuntimeError as error:checks['tick_denied']='M7 exclusive zero-probe owner' in str(error)
+                denied=rpc('stage_native',frame=str(int(status['frame'])+1),native={})
+                checks['external_stage_denied']=not denied['ok'] and denied['reason']=='wall_single_tick_owner'
+                checks['end_ns']=time.monotonic_ns();report['writer_checks']=checks
+                require(all(checks[k] for k in ('batch_denied','tick_denied','external_stage_denied')),'active wall single writer')
+                writers_checked=True
             if count!=last_count:last_progress=time.monotonic();last_count=count
             if count>=a.ticks and not status['awaiting_ev_settlement']:break
             if capture.snapshot()['errors']:
