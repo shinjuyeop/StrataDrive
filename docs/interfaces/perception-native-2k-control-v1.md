@@ -80,3 +80,6 @@ synthetic2K typed 입력을 사용하는 기존8-role 논리 SIL을 구분한다
 먼저 수신 비용·drop·source/receipt/state age와 보호 요청/Actual을 같은 실행에서 기록한다.
 실측 가용성 공백이 있으므로 Required를 기본 주행 모드로 승격하지 않는다. 독립 품질,
 장시간 wall 실시간성, metric fusion/planner, Thor/Orin NX 각각의 배포는 계속 OPEN이다.
+
+후속 실제 owner 연결은 [same-host shadow IPC](perception-shadow-ipc-v1.md)를 따른다.
+원래 Host Required 검증을 실제 wall 제어 수용으로 확대하지 않는다.

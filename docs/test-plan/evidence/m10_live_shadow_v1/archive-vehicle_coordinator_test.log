@@ -1,0 +1,77 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 31 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from Coordinator
+[ RUN      ] Coordinator.BeforeTrustedInitNoPortsOrOutputsAreUsed
+[       OK ] Coordinator.BeforeTrustedInitNoPortsOrOutputsAreUsed (0 ms)
+[ RUN      ] Coordinator.DeferredExternalAllocationCannotAdmitAStaleReleaseAndThenSkipTheCurrentSlot
+[       OK ] Coordinator.DeferredExternalAllocationCannotAdmitAStaleReleaseAndThenSkipTheCurrentSlot (0 ms)
+[ RUN      ] Coordinator.DeferredAllocationPassesOriginalDueAndCurrentReleaseWithoutReusingACompletedJob
+[       OK ] Coordinator.DeferredAllocationPassesOriginalDueAndCurrentReleaseWithoutReusingACompletedJob (0 ms)
+[ RUN      ] Coordinator.PermissionCallbackCrossingAReleaseCannotMoveAnAlreadyCheckedJobToThatSlot
+[       OK ] Coordinator.PermissionCallbackCrossingAReleaseCannotMoveAnAlreadyCheckedJobToThatSlot (0 ms)
+[ RUN      ] Coordinator.ExplicitMassRadiusAndDerivedProvenanceReachAllocation
+[       OK ] Coordinator.ExplicitMassRadiusAndDerivedProvenanceReachAllocation (0 ms)
+[----------] 5 tests from Coordinator (0 ms total)
+
+[----------] 25 tests from CoordinatorTest
+[ RUN      ] CoordinatorTest.StopAgeBetweenManagementReleasesKeepsOriginalRootAndImmediateDiagnosticCause
+[       OK ] CoordinatorTest.StopAgeBetweenManagementReleasesKeepsOriginalRootAndImmediateDiagnosticCause (0 ms)
+[ RUN      ] CoordinatorTest.StartupPermissionArmAndTwentyMillisecondAllocationFollowOneOwnerOrder
+[       OK ] CoordinatorTest.StartupPermissionArmAndTwentyMillisecondAllocationFollowOneOwnerOrder (0 ms)
+[ RUN      ] CoordinatorTest.VehicleCannotArmBeforeReadinessAndActiveShutdownRequiresControlledStop
+[       OK ] CoordinatorTest.VehicleCannotArmBeforeReadinessAndActiveShutdownRequiresControlledStop (0 ms)
+[ RUN      ] CoordinatorTest.DuplicatesAndRejectedMutationDoNotReauthorizeOrRenewRoots
+[       OK ] CoordinatorTest.DuplicatesAndRejectedMutationDoNotReauthorizeOrRenewRoots (0 ms)
+[ RUN      ] CoordinatorTest.MissingStartupFeedbackUsesBoundedWaitAndCannotBeHealedByFreshInputs
+[       OK ] CoordinatorTest.MissingStartupFeedbackUsesBoundedWaitAndCannotBeHealedByFreshInputs (0 ms)
+[ RUN      ] CoordinatorTest.SourceLossAndWrongSessionCloseTheNormalPathBeforeAnyNewDelivery
+[       OK ] CoordinatorTest.SourceLossAndWrongSessionCloseTheNormalPathBeforeAnyNewDelivery (0 ms)
+[ RUN      ] CoordinatorTest.WrongFeedbackEpochProtectsBeforePowerOutput
+[       OK ] CoordinatorTest.WrongFeedbackEpochProtectsBeforePowerOutput (0 ms)
+[ RUN      ] CoordinatorTest.RootDeliveryFailureLatchesAndCannotBeRetriedByPacketFlood
+[       OK ] CoordinatorTest.RootDeliveryFailureLatchesAndCannotBeRetriedByPacketFlood (0 ms)
+[ RUN      ] CoordinatorTest.PartialArmFailureSelectsProtectionAndSendsNoAllowNormal
+[       OK ] CoordinatorTest.PartialArmFailureSelectsProtectionAndSendsNoAllowNormal (0 ms)
+[ RUN      ] CoordinatorTest.PowerAndCommandFailuresDoNotRetryNormalOutput
+[       OK ] CoordinatorTest.PowerAndCommandFailuresDoNotRetryNormalOutput (0 ms)
+[ RUN      ] CoordinatorTest.PowerDeliveryFailureSkipsAllocationAndSelectsProtection
+[       OK ] CoordinatorTest.PowerDeliveryFailureSkipsAllocationAndSelectsProtection (0 ms)
+[ RUN      ] CoordinatorTest.CallbackOverrunAndClockRollbackNeverDispatchLaterNormalCommands
+[       OK ] CoordinatorTest.CallbackOverrunAndClockRollbackNeverDispatchLaterNormalCommands (0 ms)
+[ RUN      ] CoordinatorTest.QuietRequestRenewalCannotReplaceAnOverdueRunnable
+[       OK ] CoordinatorTest.QuietRequestRenewalCannotReplaceAnOverdueRunnable (0 ms)
+[ RUN      ] CoordinatorTest.RestartRequiresNewerEpochAndParticipantPreflightWithoutClearingFaultOnFailure
+[       OK ] CoordinatorTest.RestartRequiresNewerEpochAndParticipantPreflightWithoutClearingFaultOnFailure (0 ms)
+[ RUN      ] CoordinatorTest.StopOwnsIssuerContinuationAndBlocksNormalIngressBeforeHandoff
+[       OK ] CoordinatorTest.StopOwnsIssuerContinuationAndBlocksNormalIngressBeforeHandoff (0 ms)
+[ RUN      ] CoordinatorTest.StopBesideNewNormalRootsWaitsForStrictlyNewSourceAndSuppressesPropulsion
+[       OK ] CoordinatorTest.StopBesideNewNormalRootsWaitsForStrictlyNewSourceAndSuppressesPropulsion (0 ms)
+[ RUN      ] CoordinatorTest.HandoffFailureNeverAcknowledgesShutdownAndProtectsAllParticipants
+[       OK ] CoordinatorTest.HandoffFailureNeverAcknowledgesShutdownAndProtectsAllParticipants (0 ms)
+[ RUN      ] CoordinatorTest.DiagnosticsLinksActualHandoffRejectionAfterProtectionWithoutDuplicatingDtc
+[       OK ] CoordinatorTest.DiagnosticsLinksActualHandoffRejectionAfterProtectionWithoutDuplicatingDtc (0 ms)
+[ RUN      ] CoordinatorTest.DiagnosticsQueueOverflowCannotDelayExistingProtectionSelection
+[       OK ] CoordinatorTest.DiagnosticsQueueOverflowCannotDelayExistingProtectionSelection (0 ms)
+[ RUN      ] CoordinatorTest.DiagnosticsNeverClaimsSelectionWhenProtectionPortRejects
+[       OK ] CoordinatorTest.DiagnosticsNeverClaimsSelectionWhenProtectionPortRejects (0 ms)
+[ RUN      ] CoordinatorTest.LostStopIntentCannotBeRenewedAfterItsPreviousAuthorityExpired
+[       OK ] CoordinatorTest.LostStopIntentCannotBeRenewedAfterItsPreviousAuthorityExpired (0 ms)
+[ RUN      ] CoordinatorTest.CallbackJitterCanSkipAnEarlyManagementTickWithoutRestampingOrStarvingAllocation
+[       OK ] CoordinatorTest.CallbackJitterCanSkipAnEarlyManagementTickWithoutRestampingOrStarvingAllocation (0 ms)
+[ RUN      ] CoordinatorTest.ExpiredAllocationSupportIsPropagatedImmediatelyWhenANewRootArrives
+[       OK ] CoordinatorTest.ExpiredAllocationSupportIsPropagatedImmediatelyWhenANewRootArrives (0 ms)
+[ RUN      ] CoordinatorTest.TransportFirstStopAckTimeoutKeepsOriginalCauseAndTimestamp
+[       OK ] CoordinatorTest.TransportFirstStopAckTimeoutKeepsOriginalCauseAndTimestamp (0 ms)
+[ RUN      ] CoordinatorTest.SpeedControlRecoveryRequiresAcceptedNativeRequestAfterNewSession
+[       OK ] CoordinatorTest.SpeedControlRecoveryRequiresAcceptedNativeRequestAfterNewSession (0 ms)
+[----------] 25 tests from CoordinatorTest (0 ms total)
+
+[----------] 1 test from CoordinatorDiagnosticsRecovery
+[ RUN      ] CoordinatorDiagnosticsRecovery.NativeStopFailuresRequireNewEpochCompleteAndIdenticalConfiguration
+[       OK ] CoordinatorDiagnosticsRecovery.NativeStopFailuresRequireNewEpochCompleteAndIdenticalConfiguration (2 ms)
+[----------] 1 test from CoordinatorDiagnosticsRecovery (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 31 tests from 3 test suites ran. (3 ms total)
+[  PASSED  ] 31 tests.

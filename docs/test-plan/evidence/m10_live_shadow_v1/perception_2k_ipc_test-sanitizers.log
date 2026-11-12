@@ -1,0 +1,41 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 13 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from Ipc2kCodec
+[ RUN      ] Ipc2kCodec.CanonicalLayoutRoundtripAndBounds
+[       OK ] Ipc2kCodec.CanonicalLayoutRoundtripAndBounds (3 ms)
+[----------] 1 test from Ipc2kCodec (3 ms total)
+
+[----------] 11 tests from Ipc2k
+[ RUN      ] Ipc2k.OriginalAcquisitionAndWallReceiptReachNativeUnchanged
+[       OK ] Ipc2k.OriginalAcquisitionAndWallReceiptReachNativeUnchanged (0 ms)
+[ RUN      ] Ipc2k.PollDoesNotRepublishOrExtendReceipt
+[       OK ] Ipc2k.PollDoesNotRepublishOrExtendReceipt (0 ms)
+[ RUN      ] Ipc2k.RepeatingStateMustNotRenewOriginalStateReceipt
+[       OK ] Ipc2k.RepeatingStateMustNotRenewOriginalStateReceipt (0 ms)
+[ RUN      ] Ipc2k.NoStateAndUnavailableClearOutputWithoutSyntheticTimestamp
+[       OK ] Ipc2k.NoStateAndUnavailableClearOutputWithoutSyntheticTimestamp (0 ms)
+[ RUN      ] Ipc2k.SourceAndReceiptAreNotReplacedWithSendTime
+[       OK ] Ipc2k.SourceAndReceiptAreNotReplacedWithSendTime (0 ms)
+[ RUN      ] Ipc2k.IdentityAndSequenceRejectionCannotResurrectOutput
+[       OK ] Ipc2k.IdentityAndSequenceRejectionCannotResurrectOutput (0 ms)
+[ RUN      ] Ipc2k.OldTransportAndFutureSenderAreRejected
+[       OK ] Ipc2k.OldTransportAndFutureSenderAreRejected (0 ms)
+[ RUN      ] Ipc2k.OversizeAndMalformedPacketsFailClosed
+[       OK ] Ipc2k.OversizeAndMalformedPacketsFailClosed (0 ms)
+[ RUN      ] Ipc2k.PeerDisconnectClearsSnapshotAndRemainsClosed
+[       OK ] Ipc2k.PeerDisconnectClearsSnapshotAndRemainsClosed (0 ms)
+[ RUN      ] Ipc2k.DrainIsBoundedAndQuietPollNeverBlocks
+[       OK ] Ipc2k.DrainIsBoundedAndQuietPollNeverBlocks (0 ms)
+[ RUN      ] Ipc2k.UnexpectedTrustedRootEpochLatchesClosed
+[       OK ] Ipc2k.UnexpectedTrustedRootEpochLatchesClosed (0 ms)
+[----------] 11 tests from Ipc2k (1 ms total)
+
+[----------] 1 test from Ipc2kInit
+[ RUN      ] Ipc2kInit.ImageCannotStartSessionAndOldPublicationCannotCrossAcceptedInit
+[       OK ] Ipc2kInit.ImageCannotStartSessionAndOldPublicationCannotCrossAcceptedInit (0 ms)
+[----------] 1 test from Ipc2kInit (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 3 test suites ran. (4 ms total)
+[  PASSED  ] 13 tests.

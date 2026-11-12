@@ -1,0 +1,82 @@
+{
+  "status": "PASS",
+  "scope": "archived Host IPC/native owner functional reproduction; no live/model acceptance",
+  "source_files": 1235,
+  "source_archive_sha256": "b9015f76ea8a7a1d6793dcfea6d652ad54a1a73b1ac7aa67ce2e4784a3da1431",
+  "cpp_tests": {
+    "perception_2k_ipc_test": 13,
+    "perception_2k_receiver_test": 15,
+    "perception_2k_control_sil_test": 9,
+    "perception_receiver_test": 11,
+    "speed_supervisor_test": 22,
+    "vehicle_coordinator_test": 31
+  },
+  "python_tests": 13,
+  "python_log": "python.log",
+  "cross_process": "cross-process.log",
+  "commands": [
+    [
+      "cmake",
+      "-S",
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/source",
+      "-B",
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/build",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DSTRATADRIVE_PERCEPTION_TESTS=ON",
+      "-DSTRATADRIVE_M7_FUNCTIONAL_TESTS=ON",
+      "-DPython3_EXECUTABLE=/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python"
+    ],
+    [
+      "cmake",
+      "--build",
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/build",
+      "--target",
+      "perception_2k_ipc_test",
+      "perception_2k_receiver_test",
+      "perception_2k_control_sil_test",
+      "perception_receiver_test",
+      "speed_supervisor_test",
+      "vehicle_coordinator_test",
+      "perception_2k_ipc_probe",
+      "m7_carla_wall_owner",
+      "-j4"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/build/perception_2k_ipc_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/perception_2k_ipc_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/build/perception_2k_receiver_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/perception_2k_receiver_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/build/perception_2k_control_sil_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/perception_2k_control_sil_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/build/perception_receiver_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/perception_receiver_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/build/speed_supervisor_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/speed_supervisor_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/build/vehicle_coordinator_test",
+      "--gtest_output=xml:/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/vehicle_coordinator_test.xml"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python",
+      "-m",
+      "unittest",
+      "test_boundary_2k_v1",
+      "test_ipc_2k_v1",
+      "-v"
+    ],
+    [
+      "/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python",
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/source/tests/integration/perception/check_ipc_2k_v1.py",
+      "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-03/build/perception_2k_ipc_probe"
+    ]
+  ]
+}

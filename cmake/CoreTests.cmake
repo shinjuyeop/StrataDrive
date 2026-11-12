@@ -23,6 +23,14 @@ stratadrive_unit_test(perception_2k_receiver_test
 stratadrive_unit_test(perception_2k_control_sil_test
     SOURCES tests/unit/perception_2k_control_sil_test.cpp
     LIBRARIES perception_2k_receiver m4_async_runtime)
+if(TARGET perception_2k_ipc)
+    add_executable(perception_2k_ipc_probe tests/integration/perception/perception_2k_ipc_probe.cpp)
+    target_link_libraries(perception_2k_ipc_probe PRIVATE perception_2k_ipc)
+    stratadrive_quality(perception_2k_ipc_probe)
+    stratadrive_unit_test(perception_2k_ipc_test
+        SOURCES tests/unit/perception_2k_ipc_test.cpp
+        LIBRARIES perception_2k_ipc)
+endif()
 stratadrive_unit_test(diagnostics_test
     SOURCES tests/unit/diagnostics_test.cpp
     LIBRARIES diagnostics Threads::Threads)

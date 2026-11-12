@@ -10,6 +10,12 @@ stratadrive_quality(perception_replay)
 add_executable(perception_2k_replay perception_2k_replay.cpp)
 target_link_libraries(perception_2k_replay PRIVATE perception_2k_receiver)
 stratadrive_quality(perception_2k_replay)
+if(TARGET perception_2k_ipc_probe)
+    add_test(NAME perception_2k_ipc_process
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_ipc_2k_v1.py $<TARGET_FILE:perception_2k_ipc_probe>)
+    set_tests_properties(perception_2k_ipc_process PROPERTIES WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        ENVIRONMENT "PYTHONPATH=${PROJECT_SOURCE_DIR}" LABELS "integration.logical" TIMEOUT 10)
+endif()
 add_test(NAME perception_2k_boundary_replay
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_boundary_2k_v1.py $<TARGET_FILE:perception_2k_replay>)
 set_tests_properties(perception_2k_boundary_replay PROPERTIES WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}

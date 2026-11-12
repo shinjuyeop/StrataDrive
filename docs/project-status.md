@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **2K 수신·추적·보호 Host 기능 PASS / live 차량 연결·독립 품질 OPEN** | [2K 기능 연결](test-plan/evidence/m10_native_2k_control_v1/README.md) · [제한된 지연 개선](test-plan/evidence/m10_latency_2k_v1/README.md) |
+| M10 | **2K Host·실제 프로세스 전달 PASS / 연속 wall 주행·독립 품질 OPEN** | [실제 shadow 연결](test-plan/evidence/m10_live_shadow_v1/README.md) · [2K 기능 연결](test-plan/evidence/m10_native_2k_control_v1/README.md) · [제한된 지연 개선](test-plan/evidence/m10_latency_2k_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -42,7 +42,14 @@ receipt를 보존하는 export, 별도 C++ 수신부, 실제10개 관측의 영�
 Required는 공백·오류에 기존 보호를 적용하며, 영상 복원만으로 재허가하지 않고 새 global INIT 뒤에
 정상 제어로 복구했다. 새 C++24개·기존 회귀64개, ASan/UBSan24개, Python385개와 별도 source archive
 빌드·재생을 확인했다. 이는 실제 카메라에서 CARLA 차량까지의 live 연결이나 production IPC가 아니다.
-다음은 해당 경계를 유한 mailbox/IPC에 연결한 CARLA shadow 실행과 원본 Actual 측정이다.
+이후 [실제 owner shadow 연결](test-plan/evidence/m10_live_shadow_v1/README.md)에서는 비차단
+private IPC와 native INIT 경계를 추가했고, 실제2K 결과1개(검출0개)가 원래 기한 안에 C++에
+전달됐다. 다만 차량은3개 물리 구간 뒤 기존 Steering/Brake/Drive/Power `ControlDeadline`으로
+보호됐으며 정상 주행은 시작되지 않았다. 보호는 첫 live 추론보다50.33ms 먼저 발생했고 별도 wall
+watch3880건에는 overrun이 없었다. INIT 전달·첫 ECU 실행 간격을 다음에 조사해야 한다.
+카메라 정리 순서 오류까지 원본 FAIL로 남기고 소유권 해제 뒤 정리하도록 수정했다(후속 live 미검증).
+C++101·Python395·ASan/UBSan37개와 사전1235-file archive 재빌드/실제 프로세스 통신을 검증했다.
+신규 원본1장을 포함해 미래 품질 제외는8976개다. 이는 제한된 전달 확인이며 연속 주행 수용이 아니다.
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 
@@ -86,7 +93,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 검증한 2K Host 수신·보호 경계를 실제 control owner의 유한 mailbox/IPC에 연결해 CARLA shadow부터 실행한다. 원래 source/receipt 기한과 live Actual 반응을 검증하고, 기존 가용성 공백을 유지한 채 Required를 기본값으로 올리지 않는다.20Hz까지 추가 튜닝하지 않는다.
+1. 실제 shadow 시도에서 발생한 native INIT 전달·첫 ECU 실행과 `ControlDeadline`의 관계를 계측한다. 기존 wall watchdog과 leaf 논리 기한의 차이를 확인한 뒤 별도 bounded live를 선언해 연속 전달·정리 수정을 검증한다. 원래 기한과 보호를 완화하지 않고 Required를 기본값으로 올리지 않으며20Hz까지 추가 튜닝하지 않는다.
 2. 후보와 센서·모델 설정을 먼저 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상을 새로운 holdout으로 재사용하지 않는다.
 3. 시작/종료·장기 부하·전체 지연과 실시간 동작을 별도로 검증한다. 정지 장면이나 짧은 관측을 전체 ODD 수용으로 확대하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

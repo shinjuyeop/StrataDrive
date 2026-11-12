@@ -1,4 +1,7 @@
 # Linux runtime/adapters; called only on Linux.
+add_library(perception_2k_ipc STATIC central/perception/perception_2k_ipc.cpp)
+target_link_libraries(perception_2k_ipc PUBLIC perception_2k_receiver)
+stratadrive_quality(perception_2k_ipc)
 add_library(bootstrap_journal STATIC central/diagnostics/bootstrap_journal.cpp)
 target_include_directories(bootstrap_journal PUBLIC central/diagnostics)
 stratadrive_quality(bootstrap_journal)

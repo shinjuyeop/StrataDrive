@@ -1,0 +1,20 @@
+{
+  "initial_wall_ns": 1476501995366007,
+  "enable_after_initial_ns": 34005293,
+  "first_protection_after_initial_ns": 64014273,
+  "first_model_call_after_initial_ns": 114339922,
+  "native_fresh_read_after_initial_ns": 160017119,
+  "worker_receipt_to_backend_return_ns": 30828262,
+  "worker_receipt_to_native_read_ns": 45787417,
+  "state_age_at_native_read_ns": 96340881,
+  "native_watch_records": 3880,
+  "native_watch_detected": 0,
+  "original_fault": "native credit/gate closed leaf=0 code=4 leaf=1 code=4 leaf=2 code=11 leaf=4 code=12",
+  "decoded_faults": {
+    "Steering": "ControlDeadline",
+    "Brake": "ControlDeadline",
+    "Drive": "ControlDeadline",
+    "Power": "ControlDeadline"
+  },
+  "conclusion": "Protection predates first live inference; native logical tick-gap versus delayed INIT needs further instrumentation. No root-cause repair or driving acceptance claimed."
+}

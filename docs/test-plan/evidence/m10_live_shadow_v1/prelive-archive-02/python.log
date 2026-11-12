@@ -1,0 +1,395 @@
+...................................................................................E...EEE...........................................................................................................................................................................EEE.................E....E.EE...E......E...E...E.....E.E..E.E.E.E.E.E....................E........................................
+======================================================================
+ERROR: test_plan_split_views_and_reserved_holdout (test_domain_data_v1.DomainDataTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_domain_data_v1.py", line 21, in test_plan_split_views_and_reserved_holdout
+    p = build()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/domain_plan_v1.py", line 73, in build
+    survey = read_json(SURVEY)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/survey-selected.json'
+
+======================================================================
+ERROR: test_append_only_plan_keeps_original_and_disjoint_case_ids (test_domain_extension_v1.DomainExtensionTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_domain_extension_v1.py", line 8, in test_append_only_plan_keeps_original_and_disjoint_case_ids
+    base = build()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/domain_plan_v1.py", line 73, in build
+    survey = read_json(SURVEY)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/survey-selected.json'
+
+======================================================================
+ERROR: test_extension_rejects_changed_reference_and_road_pose (test_domain_extension_v1.DomainExtensionTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_domain_extension_v1.py", line 20, in test_extension_rejects_changed_reference_and_road_pose
+    p = build_extension()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/domain_extension_v1.py", line 10, in build_extension
+    base = build()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/domain_plan_v1.py", line 73, in build
+    survey = read_json(SURVEY)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/survey-selected.json'
+
+======================================================================
+ERROR: test_actual_raw_lineage_rgb_and_pose_rejection (test_domain_raw_v1.DomainRawTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_domain_raw_v1.py", line 22, in test_actual_raw_lineage_rgb_and_pose_rejection
+    plan = build(True)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/domain_plan_v1.py", line 73, in build
+    survey = read_json(SURVEY)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/survey-selected.json'
+
+======================================================================
+ERROR: test_first_complete_unused_routes_are_selected (test_quality_sites_v9.FreshRoadV9Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_sites_v9.py", line 26, in test_first_complete_unused_routes_are_selected
+    sites, used = self.fixture()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_sites_v9.py", line 18, in fixture
+    ).read_text()
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_quality_v8/survey-selected.json'
+
+======================================================================
+ERROR: test_previous_origin_and_map_namespace_are_enforced (test_quality_sites_v9.FreshRoadV9Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_sites_v9.py", line 44, in test_previous_origin_and_map_namespace_are_enforced
+    sites, used = self.fixture()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_sites_v9.py", line 18, in fixture
+    ).read_text()
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_quality_v8/survey-selected.json'
+
+======================================================================
+ERROR: test_used_road_at_route_tail_cannot_hide_behind_fresh_origin (test_quality_sites_v9.FreshRoadV9Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_sites_v9.py", line 35, in test_used_road_at_route_tail_cannot_hide_behind_fresh_origin
+    sites, used = self.fixture()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_sites_v9.py", line 18, in fixture
+    ).read_text()
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_quality_v8/survey-selected.json'
+
+======================================================================
+ERROR: test_independent_81_case_fixture_and_wrong_model_identity (test_quality_v3.QualityV3Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v3.py", line 203, in test_independent_81_case_fixture_and_wrong_model_identity
+    freeze(frozen)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v3_common.py", line 192, in freeze
+    sources={str(p.relative_to(ROOT)): sha256_file(p) for p in sorted(files)},
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v3_common.py", line 192, in <dictcomp>
+    sources={str(p.relative_to(ROOT)): sha256_file(p) for p in sorted(files)},
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/contract.py", line 228, in sha256_file
+    with Path(path).open("rb") as stream:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/perception-quality-v3-protocol.md'
+
+======================================================================
+ERROR: test_freeze_detects_source_and_nomination_identity_tamper (test_quality_v4.QualityV4Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v4.py", line 152, in test_freeze_detects_source_and_nomination_identity_tamper
+    value = freeze(path)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v4_common.py", line 135, in freeze
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v4_common.py", line 58, in validate_descriptors
+    seal = read_json(PREPARATION / "prepared-plan-seal.json")
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/prepared-plan-seal.json'
+
+======================================================================
+ERROR: test_independent_81_scene_score_and_rgb_identity_tamper (test_quality_v4.QualityV4Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v4.py", line 45, in test_independent_81_scene_score_and_rgb_identity_tamper
+    freeze(frozen)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v4_common.py", line 135, in freeze
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v4_common.py", line 58, in validate_descriptors
+    seal = read_json(PREPARATION / "prepared-plan-seal.json")
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/prepared-plan-seal.json'
+
+======================================================================
+ERROR: test_preparation_seal_and_unchanged_numeric_gates (test_quality_v4.QualityV4Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v4.py", line 108, in test_preparation_seal_and_unchanged_numeric_gates
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v4_common.py", line 58, in validate_descriptors
+    seal = read_json(PREPARATION / "prepared-plan-seal.json")
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/prepared-plan-seal.json'
+
+======================================================================
+ERROR: test_raw_capture_identity_survives_preparation_and_scoring (test_quality_v4_raw.QualityV4RawTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v4_raw.py", line 29, in test_raw_capture_identity_survives_preparation_and_scoring
+    freeze(frozen)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v4_common.py", line 135, in freeze
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v4_common.py", line 58, in validate_descriptors
+    seal = read_json(PREPARATION / "prepared-plan-seal.json")
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/prepared-plan-seal.json'
+
+======================================================================
+ERROR: test_new_sites_exclude_all_old_roads_and_ignore_query_order (test_quality_v5.QualityV5PolicyTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v5.py", line 163, in test_new_sites_exclude_all_old_roads_and_ignore_query_order
+    survey = read_json(SURVEY)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/survey-selected.json'
+
+======================================================================
+ERROR: test_raw_capture_identity_survives_preparation_and_scoring (test_quality_v5_raw.QualityV5RawTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v5_raw.py", line 32, in test_raw_capture_identity_survives_preparation_and_scoring
+    freeze(frozen)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v5_common.py", line 194, in freeze
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v5_common.py", line 70, in validate_descriptors
+    expected = build()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_road_v5.py", line 45, in build
+    survey = read_json(SURVEY)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/survey-selected.json'
+
+======================================================================
+ERROR: test_new_plan_excludes_every_consumed_site_and_replays_map_order (test_quality_v6.QualityV6PolicyTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v6.py", line 108, in test_new_plan_excludes_every_consumed_site_and_replays_map_order
+    plans = build()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_road_v6.py", line 45, in build
+    survey = read_json(SURVEY)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/survey-selected.json'
+
+======================================================================
+ERROR: test_raw_capture_identity_survives_preparation_and_scoring (test_quality_v6_raw.QualityV6RawTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v6_raw.py", line 32, in test_raw_capture_identity_survives_preparation_and_scoring
+    freeze(frozen)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v6_common.py", line 195, in freeze
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v6_common.py", line 71, in validate_descriptors
+    expected = build()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_road_v6.py", line 45, in build
+    survey = read_json(SURVEY)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_road_preparation_v4/survey-selected.json'
+
+======================================================================
+ERROR: test_fresh_roads_reserved_holdout_and_unchanged_descriptors (test_quality_v7.QualityV7Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v7.py", line 56, in test_fresh_roads_reserved_holdout_and_unchanged_descriptors
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v7_common.py", line 76, in validate_descriptors
+    sha256_file(manifest) == sha256_file(previous_model)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/contract.py", line 228, in sha256_file
+    with Path(path).open("rb") as stream:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_training_v1/model-manifest.json'
+
+======================================================================
+ERROR: test_raw_capture_identity_survives_preparation_and_scoring (test_quality_v7_raw.QualityV7RawTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v7_raw.py", line 32, in test_raw_capture_identity_survives_preparation_and_scoring
+    freeze(frozen)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v7_common.py", line 206, in freeze
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v7_common.py", line 76, in validate_descriptors
+    sha256_file(manifest) == sha256_file(previous_model)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/contract.py", line 228, in sha256_file
+    with Path(path).open("rb") as stream:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_training_v1/model-manifest.json'
+
+======================================================================
+ERROR: test_new_map_selection_is_order_independent_and_unchanged_gates (test_quality_v8.QualityV8Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v8.py", line 52, in test_new_map_selection_is_order_independent_and_unchanged_gates
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v8_common.py", line 48, in validate_descriptors
+    sites=select_fresh(read_json(SURVEY)),
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_quality_v8/survey-selected.json'
+
+======================================================================
+ERROR: test_preparation_revision_changes_only_held_person_occluder_lateral (test_quality_v8.QualityV8Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v8.py", line 25, in test_preparation_revision_changes_only_held_person_occluder_lateral
+    original, revised = build()[0], build_revised()[0]
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_road_v8.py", line 28, in build
+    survey = read_json(SURVEY)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_quality_v8/survey-selected.json'
+
+======================================================================
+ERROR: test_raw_capture_identity_survives_preparation_and_scoring (test_quality_v8_raw.QualityV8RawTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v8_raw.py", line 32, in test_raw_capture_identity_survives_preparation_and_scoring
+    freeze(frozen)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v8_common.py", line 305, in freeze
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v8_common.py", line 48, in validate_descriptors
+    sites=select_fresh(read_json(SURVEY)),
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_quality_v8/survey-selected.json'
+
+======================================================================
+ERROR: test_fixed_policy_and_fresh_map_descriptors (test_quality_v9.QualityV9Tests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v9.py", line 22, in test_fixed_policy_and_fresh_map_descriptors
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v9_common.py", line 46, in validate_descriptors
+    and p["preparation"]["sites"] == select_fresh(read_json(SURVEY)),
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_quality_v9/survey-selected.json'
+
+======================================================================
+ERROR: test_raw_capture_identity_survives_preparation_and_scoring (test_quality_v9_raw.QualityV9RawTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_quality_v9_raw.py", line 36, in test_raw_capture_identity_survives_preparation_and_scoring
+    freeze(frozen)
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v9_common.py", line 372, in freeze
+    validate_descriptors()
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/quality_v9_common.py", line 46, in validate_descriptors
+    and p["preparation"]["sites"] == select_fresh(read_json(SURVEY)),
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/physical_ai/perception/dataset.py", line 22, in read_json
+    Path(path).read_text(), object_pairs_hook=unique, parse_constant=invalid
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/docs/test-plan/evidence/m10_quality_v9/survey-selected.json'
+
+======================================================================
+ERROR: test_exact_feed_and_health_and_separate_stage_clocks (test_staged_kernel_v1.StagedKernelTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/build/m10-live-shadow-v1/archive-check-02/source/tests/integration/perception/test_staged_kernel_v1.py", line 17, in test_exact_feed_and_health_and_separate_stage_clocks
+    resize = NativeResize(path, hashlib.sha256(path.read_bytes()).hexdigest())
+  File "/usr/lib/python3.10/pathlib.py", line 1126, in read_bytes
+    with self.open(mode='rb') as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: 'build/m10-native-kernel-v1/libstrata_resize_v1.so'
+
+----------------------------------------------------------------------
+Ran 391 tests in 10.608s
+
+FAILED (errors=24)
