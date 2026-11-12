@@ -81,3 +81,6 @@ received19 actual2K images and verified12 frame associations, but its overall tr
 failed server shutdown. The [new provenance type](perception-render-provenance-v1.md)
 keeps all incomplete/old scenes unavailable and has no conversion to this IPC.
 It provides no new live perception result or concurrent-physics acceptance.
+Later [quiescent renderer cleanup](../test-plan/evidence/m10_render_shutdown_v2/README.md)
+holds the final frame during storage and exits cleanly in one bounded case. It
+still publishes no perception result and does not explain the earlier shutdown hang.

@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from physical_ai.perception.scene_mailbox_v1 import ActorPose, SceneBinding, SceneSnapshot, encode
 from physical_ai.perception.carla_render_adapter_v1 import KinematicRenderer, spawn_clone
 from physical_ai.perception.render_provenance_v1 import RenderSession, RenderAssociation, RenderAssociations
+from renderer_lifecycle_v1 import hold, verify_hold
 
 
 def sha(data):
@@ -71,7 +72,7 @@ def run(args):
     report = dict(schema='m10-render-replay-v1', status='FAIL', scope='renderer-only retained kinematic replay',
                   live_physical_owner=False, complete_scene=False, native_publications=0, inference_calls=0,
                   raw=[], ticks=[], mapped=[], cleanup_errors=[], errors=[])
-    world = original = actor = sensor = history = None
+    world = original = actor = sensor = history = held = None
     records = []; lock = threading.Lock(); accepting = True; consumed = 0
     try:
         context, binding, scenes = original_scenes(args.original)
@@ -122,6 +123,8 @@ def run(args):
         session = RenderSession(binding, uuid.uuid4().bytes, world.id, sensor.id,
                                 bytes.fromhex(sha(json.dumps(calibration, sort_keys=True).encode())))
         report['renderer_instance'] = session.renderer_instance.hex()
+        report['renderer_session'] = dict(instance=session.renderer_instance.hex(), world=world.id,
+                                          camera_id=sensor.id, calibration_sha256=session.calibration_sha256.hex())
         history = RenderAssociations(session)
 
         def received(image):
@@ -190,13 +193,20 @@ def run(args):
                     if not item.destroy(): raise ValueError('actor destroy rejected')
                 except Exception: report['cleanup_errors'].append(traceback.format_exc())
         if world and original:
-            try: world.apply_settings(original)
+            try:
+                if args.quiescent_shutdown:
+                    held = hold(world)
+                else:
+                    world.apply_settings(original)
             except Exception: report['cleanup_errors'].append(traceback.format_exc())
         for index, (row, raw) in enumerate(records):
             data = zlib.compress(raw, 1); path = f'{index:03d}-{row["frame"]}.bgra.z'
             (args.output/path).write_bytes(data)
             report['raw'].append(dict(**row, path=path, bgra_sha256=sha(raw), stored_sha256=sha(data),
                                       raw_bytes=len(raw), stored_bytes=len(data)))
+        if held:
+            try: report['quiescent_cleanup'] = verify_hold(world, held)
+            except Exception: report['cleanup_errors'].append(traceback.format_exc())
         if report['cleanup_errors']: report['status'] = 'FAIL'
         (args.output/'result.json').write_text(json.dumps(report, indent=2)+'\n')
     print(json.dumps({k:report[k] for k in ('status','error') if k in report}))
@@ -208,4 +218,5 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, default=2300)
     parser.add_argument('--original', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--quiescent-shutdown', action='store_true')
     raise SystemExit(run(parser.parse_args()))

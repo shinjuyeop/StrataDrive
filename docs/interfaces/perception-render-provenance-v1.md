@@ -4,7 +4,10 @@ Status: typed association and renderer-only diagnostic implemented; **complete
 scene export and concurrent physical/rendering operation remain OPEN**. The
 [corrected renderer trial](../test-plan/evidence/m10_render_replay_v2/README.md)
 produced19 actual2K images,12 mapped images and a server shutdown failure. It is not
-a successful whole-system run. No new result reaches the ECU perception receiver.
+a successful whole-system run. The subsequent
+[quiescent lifecycle trial](../test-plan/evidence/m10_render_shutdown_v2/README.md)
+holds its final frame during storage and exits cleanly; the earlier intermittent
+hang remains unexplained. No new result reaches the ECU perception receiver.
 
 `render_provenance_v1.py` retains two independent identities: the authoritative
 `SceneBinding`/frame/source and the renderer instance UUID/world/camera/frame/source.
@@ -37,12 +40,21 @@ These poses describe the original body origin, not a demonstrated equivalence of
 the original vehicle mesh/root/camera calibration. Kinematics alone omit wheel
 animation and other scene state. The actual diagnostic uses explicit ClearNoon and
 frozen-red traffic lights, not a reconstruction of their original states. The
-frozen callback binds one camera; its numeric ID was not persisted in the trial
+frozen callback binds one camera; its numeric ID was not persisted in that trial
 report, so independent evidence checks cannot recover that ID from raw pixels.
+The new quiescent trial explicitly records renderer instance/world/camera and
+calibration hash. This does not establish complete original scene fidelity.
+
+The opt-in dedicated-renderer cleanup keeps the existing synchronous50ms settings
+and verifies actual frame/source before and after packet storage. It does not
+restore asynchronous WorldSettings or call ApplySettings to pause; that SDK API can
+itself tick. Persistent INI restoration remains with the parent. Conditional thread
+diagnosis begins only after10s of unsuccessful SIGINT shutdown, lasts at most8s,
+and counts inside the original30s limit. No debugger runs during normal capture.
 
 Before acceptance: capture complete authoritative same-frame scene/configuration
 and visual state, verify body-to-actor/camera transforms and clone asset identity,
-persist full renderer/camera session identity, then define the typed result
-boundary. Resolve renderer shutdown and run a newly declared simultaneous
+then define the typed result boundary. Preserve the earlier shutdown failure and
+carry bounded diagnosis forward into a newly declared simultaneous
 owner/render stall/exit case with all raw data. Existing native authority, HV30,
 source/receipt deadlines and Jetson deployment scope remain unchanged.

@@ -14,12 +14,15 @@ import time
 import traceback
 
 from run_carla_control_shadow_v1 import sha, verify
+from renderer_shutdown_v1 import allow_shutdown_tracer, shutdown
 
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     for name in ('engine','source','python','freeze','output','original'):
         p.add_argument('--'+name, type=Path, required=True)
+    p.add_argument('--shutdown-diagnostics', action='store_true')
+    p.add_argument('--quiescent-shutdown', action='store_true')
     a = p.parse_args()
     a.output.mkdir(parents=True, exist_ok=False)
     report = dict(schema='m10-render-replay-server-v1', status='FAIL', attempts=1,
@@ -61,11 +64,18 @@ def main():
             '-log', '-stdout', '-FullStdOutLogOutput']
         client = [str(a.python), str(Path(__file__).with_name('carla_render_replay_v1.py')), '--port','2300',
                   '--original',str(a.original),'--output',str(a.output/'capture')]
+        if a.quiescent_shutdown: client.append('--quiescent-shutdown')
+        report['quiescent_shutdown'] = a.quiescent_shutdown
         report.update(argv=command, client_argv=client)
         env = dict(os.environ, OMP_WAIT_POLICY='PASSIVE')
         env.pop('STRATADRIVE_M7_OWNER_KEY', None)
         if env.get('LD_PRELOAD'): raise ValueError('unexpected preload')
-        def no_core(): resource.setrlimit(resource.RLIMIT_CORE, (0,0))
+        if a.shutdown_diagnostics and manifest['external'].get('/usr/bin/gdb') != sha('/usr/bin/gdb'):
+            raise ValueError('debugger must be pinned before diagnostic launch')
+        report['shutdown_diagnostics_enabled'] = a.shutdown_diagnostics
+        def no_core():
+            resource.setrlimit(resource.RLIMIT_CORE, (0,0))
+            if a.shutdown_diagnostics: allow_shutdown_tracer()
         with (a.output/'server.log').open('w') as log:
             proc = subprocess.Popen(command, env=env, stdout=log, stderr=subprocess.STDOUT,
                                     start_new_session=True, preexec_fn=no_core)
@@ -100,12 +110,9 @@ sys.exit(1)
         report['error'] = traceback.format_exc()
     finally:
         if proc:
-            if proc.poll() is None:
-                os.killpg(proc.pid, signal.SIGINT)
-                try: proc.wait(timeout=30)
-                except subprocess.TimeoutExpired:
-                    report['forced_stop'] = True; os.killpg(proc.pid,signal.SIGKILL); proc.wait(timeout=10)
-            report['server_exit'] = proc.returncode
+            report['shutdown'] = shutdown(proc, a.output, diagnostics=a.shutdown_diagnostics)
+            if report['shutdown'].get('forced_stop'): report['forced_stop'] = True
+            report['server_exit'] = report['shutdown']['server_exit']
             if proc.returncode != 130 or report.get('forced_stop'): report['status'] = 'FAIL'
         ini.write_bytes(original); report['restored_ini_sha256'] = sha(ini)
         (a.output/'server.json').write_text(json.dumps(report, indent=2)+'\n')

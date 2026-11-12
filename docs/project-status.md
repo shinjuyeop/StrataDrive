@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **비영상 물리 실행·별도2K 렌더 재생 확인 / 렌더 종료 실패·전체 장면·동시 실행 OPEN** | [렌더 재생·종료 실패](test-plan/evidence/m10_render_replay_v2/README.md) · [물리 실행·IPC](test-plan/evidence/m10_owner_split_v2/README.md) · [프레임 연결 계약](interfaces/perception-render-provenance-v1.md) |
+| M10 | **비영상 물리·별도2K 렌더의 유한 종료 검증 / 전체 장면·동시 실행 OPEN** | [렌더 정지·종료](test-plan/evidence/m10_render_shutdown_v2/README.md) · [이전 종료 실패](test-plan/evidence/m10_render_replay_v2/README.md) · [물리 실행·IPC](test-plan/evidence/m10_owner_split_v2/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -116,6 +116,21 @@ Vulkan 정리·SDL 종료 로그만으로 멈춘 thread/driver 원인을 특정�
 검증한 것은 아니다. [새 영상 provenance 경계](interfaces/perception-render-provenance-v1.md)는
 전체 장면 export가 없으면 항상 거절하며 기존 ECU IPC로 변환하지 않는다. 새 추론·제어 입력은0개다.
 
+[종료 진단 후속](test-plan/evidence/m10_render_shutdown_v1/README.md)은 SIGINT 후10초에도 살아 있는
+전용 자식에만8초/8MiB 한도로 thread 상태·스택을 수집하도록 했다. 디버거 시간도 기존30초 종료
+한도 안에 포함하며 host ptrace 정책을 바꾸지 않는다. 새 시험은1.467초에 정상 종료돼 이전 멈춤을
+재현하지 못했고 실제 서버에 디버거가 붙지는 않았다. 따라서 이전 실패 원인은 여전히 미확정이다.
+
+이어 [전용 렌더러 정지 유지](test-plan/evidence/m10_render_shutdown_v2/README.md)는 촬영 후 원래
+비동기 설정으로 복귀하던 경로를 opt-in으로 제거했다. 이미 동기식인 월드를 그대로 두어,
+원본 영상 저장3.587초 동안 frame163/source2423182888ns가 변하지 않았고1.617초에 정상 종료됐다.
+ApplySettings 자체가 tick을 만들 수 있어 정지 목적으로 호출하지 않는다. renderer/world/camera/
+calibration 식별자도 명시적으로 보존했다. 이는 불필요한 렌더 진행을 막은 유한 lifecycle PASS이며,
+앞선 미변경 조건도 정상 종료됐으므로 간헐적 멈춤을 고쳤다는 근거는 아니다.
+각19장·12개 프레임 대응을 보존했고1333/1337-file 사전 고정·별도29/32개 검사, 최종 Python445개와
+변조12/15건을 통과했다. 신규38장을 포함해 미래 품질 제외는9035개이며, 원래 서버 파일·설정을
+복원했다. 전체 장면 취득·동시 물리 실행·인지 수용은 여전히 미완료다.
+
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 
 ## 현재 구현과 수용 경계
@@ -158,7 +173,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 별도 렌더러의 종료 실패를 유한 thread 진단으로 규명한다. 검증한 비영상5ms owner·장면 IPC·렌더 프레임 연결을 바탕으로 [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 전체 장면 취득·적용, 차체/mesh/카메라 변환과 자산 식별을 구현한다. renderer/camera session 전체를 기록하고 새 동시2K 시험을 사전 선언해 렌더 정지·종료에도 물리가 계속 진행되는지 검증한다. 원래 기한·보호를 유지하며 Required는 opt-in SIL로 둔다.
+1. 검증한 비영상5ms owner·장면 IPC·렌더 프레임 연결·정지 유지 종료를 바탕으로 [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 전체 장면 취득·적용, 차체/mesh/카메라 변환과 자산 식별을 구현한다. 새 동시2K 시험을 사전 선언해 렌더 정지·종료에도 물리가 계속 진행되는지 검증한다. 이전 종료 멈춤은 미확정으로 보존하고 재발 시 유한 thread 진단을 수집한다. 원래 기한·보호를 유지하며 Required는 opt-in SIL로 둔다.
 2. 후보와 센서·모델 설정을 먼저 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상을 새로운 holdout으로 재사용하지 않는다.
 3. 시작/종료·장기 부하·전체 지연과 실시간 동작을 별도로 검증한다. 정지 장면이나 짧은 관측을 전체 ODD 수용으로 확대하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

@@ -1,7 +1,7 @@
 # Physics and camera rendering separation: next prototype boundary
 
-Status: **finite owner-only case and standalone renderer associations verified;
-renderer shutdown failed; complete-scene concurrent separation not yet accepted**. The
+Status: **finite owner-only and standalone renderer lifecycle cases verified;
+earlier intermittent hang unexplained; complete-scene concurrent separation OPEN**. The
 [fence comparison](../test-plan/evidence/m10_fence_compare_v1/README.md) locates
 42.21ms of one45.95ms physical-service gap inside a render-thread completion event.
 The camera-free run also failed later, with0 normal physical intervals. Separating
@@ -82,7 +82,11 @@ or moving only Python inference does not establish this boundary.
    preserve12 original-to-renderer frame associations across3 retained poses.
    All19 actual images are retained; the whole trial failed server shutdown.
    Kinematic images remain unavailable because complete scene export is missing.
-   Resolve shutdown and capture complete scene state/asset/camera transforms first.
+   The [subsequent quiescent renderer](../test-plan/evidence/m10_render_shutdown_v2/README.md)
+   holds its actual final frame during3.587s of storage and exits in1.617s. A prior
+   unchanged-cleanup diagnostic also exited cleanly; the earlier hang is not fixed
+   by evidence. Conditional bounded post-SIGINT thread diagnosis remains available.
+   Capture complete scene state/asset/camera transforms next.
    Then inject a live render stall/exit and show continued original physical receipts
    while shadow data becomes unavailable. A stalled IPC fixture is not that live test.
 4. Freeze a fresh bounded2K paired experiment with full raw retention. Measure
