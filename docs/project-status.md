@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **비영상5ms 유한 물리 실행·장면 IPC 원형 검증 / 실제 렌더 분리·연속 wall 주행·독립 품질 OPEN** | [물리 실행·IPC](test-plan/evidence/m10_owner_split_v2/README.md) · [첫 관측 실패](test-plan/evidence/m10_owner_split_v1/README.md) · [카메라·fence 비교](test-plan/evidence/m10_fence_compare_v1/README.md) |
+| M10 | **비영상 물리 실행·별도2K 렌더 재생 확인 / 렌더 종료 실패·전체 장면·동시 실행 OPEN** | [렌더 재생·종료 실패](test-plan/evidence/m10_render_replay_v2/README.md) · [물리 실행·IPC](test-plan/evidence/m10_owner_split_v2/README.md) · [프레임 연결 계약](interfaces/perception-render-provenance-v1.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -103,6 +103,19 @@ GPU·driver·초기화 원인까지 특정한 것은 아니다. 카메라 없음
 통과했다. 아직 실제 CARLA 렌더러와 연결하지 않았으며 전체 동적 장면·영상 provenance 매핑도 남아 있다.
 새 원본 영상·holdout은 없고 미래 제외8978개를 유지한다.
 
+후속 [별도 렌더러 재생](test-plan/evidence/m10_render_replay_v2/README.md)은 원본 물리 위치3개를
+별도 CARLA에 적용해2K 영상19장을 받았고, 그중12장의 실제 렌더 프레임과 원본 물리 프레임을
+연결했다. 실제 clone 변환 행렬과 요청 행렬의 최대 원소 오차는9.96e-7이었다. 과거 장면의 원래
+취득 시각은 보존돼 새 callback으로도12개 모두 unavailable이었다. 첫 시도는 안착한 위치에서의
+차량 생성 충돌로 카메라 생성 전 FAIL이며, 별도 선언한 수정 시도는 촬영 진단 후 서버가30초 안에
+종료되지 않아 강제 종료됐다. 따라서 **전체 trial은 FAIL_SERVER_SHUTDOWN**이다.
+Vulkan 정리·SDL 종료 로그만으로 멈춘 thread/driver 원인을 특정하지 않는다.
+1327/1329-file 사전 고정과 별도23/25개 검사, 최종 Python438개·변조10건을 통과했고,
+원본 영상19장까지 보존해 미래 품질 제외는8997개다. 서버 파일4개와 설정은 원상태다.
+이는 과거 ego body pose를 그린 진단이며, 원래 전체 동적 장면·차체와 카메라의 변환·동시 물리 실행을
+검증한 것은 아니다. [새 영상 provenance 경계](interfaces/perception-render-provenance-v1.md)는
+전체 장면 export가 없으면 항상 거절하며 기존 ECU IPC로 변환하지 않는다. 새 추론·제어 입력은0개다.
+
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 
 ## 현재 구현과 수용 경계
@@ -145,7 +158,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 검증한 비영상5ms owner와 장면 IPC 원형을 바탕으로 [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 전체 장면 취득·적용, 별도 CARLA 렌더러, 영상과 원래 물리 snapshot의 provenance 매핑을 구현한다. 새2K 시험을 사전 선언해 렌더 정지·종료에도 실제 물리 응답이 이어지고 늦은 영상은 unavailable인지 검증한다. 원래 기한·보호를 유지하며 Required는 opt-in SIL로 둔다.
+1. 별도 렌더러의 종료 실패를 유한 thread 진단으로 규명한다. 검증한 비영상5ms owner·장면 IPC·렌더 프레임 연결을 바탕으로 [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 전체 장면 취득·적용, 차체/mesh/카메라 변환과 자산 식별을 구현한다. renderer/camera session 전체를 기록하고 새 동시2K 시험을 사전 선언해 렌더 정지·종료에도 물리가 계속 진행되는지 검증한다. 원래 기한·보호를 유지하며 Required는 opt-in SIL로 둔다.
 2. 후보와 센서·모델 설정을 먼저 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상을 새로운 holdout으로 재사용하지 않는다.
 3. 시작/종료·장기 부하·전체 지연과 실시간 동작을 별도로 검증한다. 정지 장면이나 짧은 관측을 전체 ODD 수용으로 확대하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

@@ -75,3 +75,9 @@ now has a bounded scene IPC component. Complete dynamic-scene export/application
 live renderer integration and image provenance remain unimplemented. This component
 does not change the same-world shadow contract. A second world's image must not
 silently replace the current authoritative frame/clock identity.
+
+The subsequent [renderer-only replay](../test-plan/evidence/m10_render_replay_v2/README.md)
+received19 actual2K images and verified12 frame associations, but its overall trial
+failed server shutdown. The [new provenance type](perception-render-provenance-v1.md)
+keeps all incomplete/old scenes unavailable and has no conversion to this IPC.
+It provides no new live perception result or concurrent-physics acceptance.
