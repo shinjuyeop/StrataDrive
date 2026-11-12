@@ -1,0 +1,149 @@
+{
+  "schema": "m10-latency-2k-profile-v1",
+  "model_input": [
+    1,
+    3,
+    960,
+    960
+  ],
+  "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+  "confidence_vector": [
+    0.6,
+    0.4,
+    0.6,
+    0.5,
+    0.5,
+    0.6
+  ],
+  "pending_capacity": 1,
+  "active_inference_capacity": 1,
+  "snapshot_capacity": 1,
+  "pending_overflow": "replace_oldest_pending_and_count",
+  "source_lifetime_ns": 100000000,
+  "receipt_to_completion_budget_ns": 100000000,
+  "expiry": "exclusive_source_AND_monotonic_wall",
+  "clock": "actual_on_tick_snapshots_only_gaps_counted_no_extrapolation",
+  "sdk_callback": "validate_and_copy_only_outside_mailbox_lock",
+  "inference_owner": "BGRA_to_RGB_health_resize_tensor_CUDA_decode",
+  "consumer": "immutable_snapshot_without_backend_wait",
+  "cold_calls_excluded": 0,
+  "periods_ns": {
+    "state": 10000000,
+    "camera": 50000000,
+    "control": 20000000
+  },
+  "probe_media": "live_already_consumed_development_site38_first_person_fixture",
+  "faults": [
+    "none"
+  ],
+  "vehicle_control_integration": false,
+  "ros2_integration": false,
+  "live_camera_integration": true,
+  "runtime_promotion": false,
+  "live20Hz_acceptance": false,
+  "preprocessing_revision": "fixed_source_native_Pillow_exact",
+  "cv_threads": 4,
+  "exception_delay_ns": 25000000,
+  "normal_requires_fresh_consumption": true,
+  "native_resize_threads": 4,
+  "openmp_wait_policy": "PASSIVE",
+  "live_ticks_min": 500,
+  "live_ticks_max": 504,
+  "live_recorder_capacity": 240,
+  "live_conditions": [
+    "baseline-01",
+    "tensor-01",
+    "balanced-01",
+    "confirm-01"
+  ],
+  "live_raw_storage": "finite240_with_tail_headroom",
+  "preparation": {
+    "calls": 3,
+    "budget_ns": 10000000000,
+    "settled_calls": [
+      2,
+      3
+    ],
+    "settled_exclusive_budget_ns": 100000000,
+    "source": "independent_synthetic_native_BGRA_XY_gradient",
+    "same_inference_owner": true,
+    "publication": false
+  },
+  "availability": {
+    "consumer_period_ns": 20000000,
+    "live_primary_window": "enabled_to_first_observed_frame_at_or_after_planned500..504frame_boundary",
+    "live_secondary_window": "enabled_to_sensor_stop; state_continues_during300ms_camera_silence",
+    "replay_window": "all6seconds_after_explicit_preparation",
+    "acceptance_threshold": null
+  },
+  "lifecycle_seconds": {
+    "startup": 180,
+    "client": 900,
+    "shutdown": 30
+  },
+  "recorder_scope": "Host_diagnostic_only_not_Jetson_or_production_runtime",
+  "world_mode": "server_asynchronous_fixed10ms",
+  "world_state_lifetime_ns": 100000000,
+  "live_primary_wall_budget_seconds": 30,
+  "snapshot_cache": 128,
+  "trace_capacity": 4096,
+  "startup_only_recovery": "one_per_condition_if_no_client_was_started; original_failure_retained",
+  "readback_capacity": 3,
+  "readback_poll_us": 100,
+  "comparison": "bounded_latency_improvement_not_mandatory20Hz",
+  "realtime_target": 1.0,
+  "render_target_resize_method": 2,
+  "render_target_resize_force_override": 1,
+  "backend": "baseline_or_exact_reusable_tensor",
+  "readback_mode": "baseline_query_or_deferred_with_engine_cap100",
+  "sdk_library_sha256": "5c169519f2cdc3ee72aedb9589ea980751cd6f597b1f4464b37b5ae0f5eacf17",
+  "sdk_getter_source_sha256": "bf4825e73ebe8310950da785fbe565d88215f3c6c6a9dd9fd1c404508c21566e",
+  "source_dimensions": {
+    "6": [
+      3840,
+      2304
+    ],
+    "4": [
+      2560,
+      1536
+    ]
+  },
+  "source_candidates": {
+    "6": "dfine-m-960-car-v1-camera4k-v1",
+    "4": "dfine-m-960-car-v1-camera2k-v1"
+  },
+  "quality_scales": [
+    6,
+    4
+  ],
+  "quality_frames_per_scale": 81,
+  "materialization": "normal_independently_owned_bytes_in_both_arms",
+  "native_libraries": {
+    "6": {
+      "path": "build/m10-native-kernel-v1/libstrata_resize_v1.so",
+      "sha256": "67aaa48a250ee47b67f89683b07f0bc23731ca2ee6c8f85e92a27bcf9e12c80f"
+    },
+    "4": {
+      "path": "build/m10-source-compare-v1/native/libstrata_resize_2k_v1.so",
+      "sha256": "f851fa22a24576d4e76fa2fa8749f3f4517d5ee625b64de390a360fd32fb0721"
+    }
+  },
+  "variants": {
+    "baseline": {
+      "tensor": "original",
+      "deferred": false,
+      "max_fps": null
+    },
+    "tensor": {
+      "tensor": "reused_exact_float32",
+      "deferred": false,
+      "max_fps": null
+    },
+    "balanced": {
+      "tensor": "reused_exact_float32",
+      "deferred": true,
+      "max_fps": 100
+    }
+  },
+  "quality_equivalence": "same model and exact tensors on prior development81 plus all live raw; no new quality qualification"
+}
