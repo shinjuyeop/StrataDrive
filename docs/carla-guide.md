@@ -155,6 +155,12 @@ Trace는 실행에 따라 원본 JSONL 또는 무손실 gzip이다. 정상·기�
 
 ## 저장된 검증 결과 찾기
 
+현재 사용하는 Unreal의 `Engine/DerivedDataCache`와 CARLA 프로젝트의 `DerivedDataCache`는
+오래된 시험 빌드와 구분해 보존한다. 삭제 후 첫 실행에는 mesh·거리장·셰이더 재생성이 필요하며,
+[M10 동시 실행 준비](test-plan/evidence/m10_paired_v2/README.md)에서는 시작 지연과 첫 렌더
+프레임 충돌이 발생했다. 캐시 재생성은 별도 준비로 기록하고, 원래 실행 설정으로 다시 확인한
+뒤 주행·영상 성능을 측정한다. 캐시 준비 시간은 실제 물리 주행 지연 수치에 합치지 않는다.
+
 [검증 안내](test-plan/README.md)에 M6·M7 대표 실행을 모았다.
 CARLA 최초 package·source build·geometry·V1·solver 조사 등 단계별 원본은
 `test-plan/evidence/m7_carla_1*/`에 남아 있다. 과거 계획을 현재 실행 순서로 따라가지 않는다.

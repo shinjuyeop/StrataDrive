@@ -11,6 +11,19 @@ SYS-DIAG-001의 검출·보호·Actual·DTC와 복구·clear는 C-M9-*의 구체
 [프로젝트 상태](../project-status.md)를 따른다. 이전 component 실행 당시의 미구현 경계는
 각 evidence에 보존하며 최신 통합 상태와 구분한다.
 
+TC-PER-111–112/C-M10-PER-106–107은 [동시 실행 기준](perception-paired-v1-protocol.md)과
+[장면 취득·실제 동시 실행](evidence/m10_paired_v3/README.md)에 연결한다. 원본 물리 receipt와
+같은 프레임의 SDK 관측, 원래 취득 시각, 유한 저장, 차체→actor 변환과 identity 거절은 기능
+검사를 통과했다. 물리400구간·별도2K 렌더·진단 추론의 유한 동시 실행은 한 번 통과했지만,
+[보행자 배치를 고친 후속 실행](evidence/m10_paired_v4/README.md)은 HV30ms 초과로 실패했다.
+첫 성공으로 후속 실패를 덮지 않으며, 전체 장면·반복 안정성·native 인지 수용은 OPEN이다.
+
+TC-PER-113–115는 bounded fresh SDK 기동,20Hz 조회 및 실제 렌더 정지·종료 경계에 연결한다.
+[정상 실행](evidence/m10_paired_v5/README.md)은400구간·정상234·보호0,
+[장애 실행](evidence/m10_paired_v7/README.md)은 실제 정지 중51구간·실제 종료 확인 뒤49구간의
+물리 진행을 검증했다. 첫 장애 시험의 관측 창 부족과 정리 실패도 별도 원본으로 유지한다.
+458개 회귀·45개 고정 소스 검사와 원본 exact 재생을 확인했고, 제어 인지 수용은0개다.
+
 [M8 종료 검토](../archive/milestone-reviews.md#m8)는 C-M8 component/고정 fixture의 기술 판정이다.
 아래32개 요구와29개 system TC의 **전체 system/Target runtime Result는 NOT RUN**이다.
 부분 Host/vCAN·모델·sanitizer 통과를 전체 결과로 올리지 않는다. 실제 실행 후에만

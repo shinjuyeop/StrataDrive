@@ -1,12 +1,33 @@
 # Physics and camera rendering separation: next prototype boundary
 
-Status: **finite owner-only and standalone renderer lifecycle cases verified;
-earlier intermittent hang unexplained; complete-scene concurrent separation OPEN**. The
+Status: **finite20Hz normal concurrency and physical progress through actual
+renderer stop/death verified; complete-scene and long-run acceptance OPEN**. The
 [fence comparison](../test-plan/evidence/m10_fence_compare_v1/README.md) locates
 42.21ms of one45.95ms physical-service gap inside a render-thread completion event.
 The camera-free run also failed later, with0 normal physical intervals. Separating
 rendering is therefore a candidate for one dependency, not a demonstrated cure for
 all vehicle availability failures.
+
+The [paired implementation](../test-plan/evidence/m10_paired_v3/README.md) now
+captures three same-frame SDK actor roots and joins them to the original native
+receipt, checks the body-to-actor transform, and applies an explicit camera
+calibration on the separate renderer. Its D-FINE output remains diagnostic only,
+with no publication to the native receiver. V3 completed400 physical intervals
+with238 normal and0 protected while rendering65 images and performing32 inferences.
+Its misplaced walker was corrected in [V4](../test-plan/evidence/m10_paired_v4/README.md),
+but that run failed the unchanged30ms HV dependency bound at30.334ms. A finite pass
+does not establish repeated-run stability. Earlier cold-cache preparation failures
+are retained. [V5](../test-plan/evidence/m10_paired_v5/README.md) then capped receipt
+queries at20Hz with all physical/native/freshness guards unchanged:400 intervals,
+234 normal,0 protected,37 overlapping inferences and scene→result maximum92.517ms.
+This workload comparison does not establish the cause of V4 or a latency guarantee.
+Full visual-scene admission remains unavailable.
+
+[V7](../test-plan/evidence/m10_paired_v7/README.md) also verifies51 physical starts
+while the renderer is actually stopped and49 after its actual death is observed.
+All400 intervals settle without protection. Its earlier injection and pidfd-based
+dead-server cleanup follow retained V6 failure; all100ms/HV30 guards remain.
+Repeated-run stability and V4's root cause remain open.
 
 ## Chosen ownership boundary
 
@@ -29,7 +50,7 @@ flowchart LR
     P -->|Completed solver receipts| ECU
     P -->|Bounded immutable scene snapshots| R[Separate camera rendering process]
     R -->|Original image and scene provenance| I[Prepared inference worker]
-    I -->|Bounded shadow result| S[Existing shadow receiver]
+    I -.->|Typed control mapping pending| S[Existing shadow receiver]
 ```
 
 The physical owner remains the only source of solver work, sensor feedback and
@@ -75,8 +96,9 @@ or moving only Python inference does not establish this boundary.
    one in-flight plus one pending latest; fixed trusted inventory/configuration,
    original acquisition age, disconnect/expiry rejection and private acknowledgements
    with no control credit. Tests include a stalled consumer process and exact400
-   original-receipt kinematic replay. Full dynamic-scene acquisition/application,
-   actual concurrent renderer integration remain to implement. The
+   original-receipt kinematic replay. Three actor-root acquisition/application and
+   actual diagnostic concurrency are implemented; full dynamic-scene state remains
+   incomplete. The
    [typed renderer provenance boundary](perception-render-provenance-v1.md) and
    [standalone2K replay](../test-plan/evidence/m10_render_replay_v2/README.md) now
    preserve12 original-to-renderer frame associations across3 retained poses.
@@ -86,13 +108,19 @@ or moving only Python inference does not establish this boundary.
    holds its actual final frame during3.587s of storage and exits in1.617s. A prior
    unchanged-cleanup diagnostic also exited cleanly; the earlier hang is not fixed
    by evidence. Conditional bounded post-SIGINT thread diagnosis remains available.
-   Capture complete scene state/asset/camera transforms next.
-   Then inject a live render stall/exit and show continued original physical receipts
-   while shadow data becomes unavailable. A stalled IPC fixture is not that live test.
-4. Freeze a fresh bounded2K paired experiment with full raw retention. Measure
+   Actual actor/camera transforms now rejoin in the paired run; full visual assets
+   and bone/wheel animation remain unavailable. V5 normal and V7 actual live
+   stall/crash cases now pass their finite diagnostic audits with native perception
+   acceptance0. V4/V6 failures remain; a stalled IPC fixture is not that live test.
+4. Freeze each fresh bounded2K paired experiment with full raw retention. Measure
    physical service, scene-to-callback and inference separately. Require no20Hz
    target; evaluate1× wall behavior without silently slowing simulation. Host
    resource contention between processes remains a measurement question.
+5. Next verify repeated/longer physical stability under the declared20Hz workload;
+   V4's failed original HV audit prevents a general stability claim. Then complete
+   same-frame visual state and the typed native mapping before allowing any image
+   into control. Revalidate Required-mode unavailable/recovery and original100ms
+   checks with that complete contract; no diagnostic pass opens admission.
 
 This is Host SIL work. Required live perception authority, independent model
 quality, metric world modeling and Jetson Thor/Orin NX deployment remain separate.

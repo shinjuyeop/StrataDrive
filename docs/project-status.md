@@ -1,6 +1,6 @@
 # 프로젝트 상태
 
-정리 기준·최신 검증: **2026-11-12**.
+정리 기준·최신 검증: **2026-11-13**.
 이 문서가 현재 구현·수용 범위와 다음 작업의 기준이다. 실행 중인 미기록 변경은 완료로 세지 않는다.
 
 ## 단계별 현재 판정
@@ -16,11 +16,46 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **비영상 물리·별도2K 렌더의 유한 종료 검증 / 전체 장면·동시 실행 OPEN** | [렌더 정지·종료](test-plan/evidence/m10_render_shutdown_v2/README.md) · [이전 종료 실패](test-plan/evidence/m10_render_replay_v2/README.md) · [물리 실행·IPC](test-plan/evidence/m10_owner_split_v2/README.md) |
+| M10 | **물리·2K·추론 동시 실행 및 렌더 정지·종료 중 물리 진행 검증 / 전체 수용 OPEN** | [정상 동시 실행](test-plan/evidence/m10_paired_v5/README.md) · [실제 렌더 종료](test-plan/evidence/m10_paired_v7/README.md) · [앞선 HV 실패](test-plan/evidence/m10_paired_v4/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 ## 최신 M10 판단
+
+최신 [실제 렌더 정지·종료](test-plan/evidence/m10_paired_v7/README.md)는 같은20Hz 조회 조건에서
+렌더러의 실제 정지 상태 중51개, 실제 프로세스 종료 확인 뒤49개 물리 구간이 진행된 것을 검증했다.
+400구간·정상238·보호0, 모델2초/실제2.0013초로 통과했다. 원본2005개 서비스·400개 응답 재생은
+exact이며, 영상26장·추론19회를 보존해 미래 품질 제외는9271개다. 정지 영향으로 장면→결과가
+최대328.233ms까지 늘었지만 시각을 갱신하지 않고 모든 결과를 제어 미가용으로 유지했다.
+[첫 장애 시험](test-plan/evidence/m10_paired_v6/README.md)은 실제 종료 확인이 측정 뒤라 실패했다.
+사전 선언한 후속 시험에서 장애 주입을 앞당기고, 실제 종료가 확인된 서버의 RPC 정리만 생략했다.
+이전 정상 실행의 HV 실패도 남아 있어 반복·장시간 안정성은 별도 검증이 필요하다.
+
+최신 [20Hz 장면 조회 비교](test-plan/evidence/m10_paired_v5/README.md)는 조회만50Hz에서20Hz로
+줄인 사전 선언1회이며, 원래 물리5ms·HV30·100ms와2K·모델을 유지했다. 물리400구간,
+정상234·보호0으로 통과했고 모델2초/실제2.0156초였다.44장 중37장이 장면에 연결되고
+37회 추론이 모두 물리 실행과 겹쳤으며 모두 사람을 검출했다. 장면 취득→결과는 중앙값82.329ms,
+최대92.517ms였다. 이전 실패 원인이 조회 빈도라고 확정하거나 장기100ms 보장을 뜻하지 않는다.
+원본2024개 서비스·400개 응답 재생은 exact이고, 미래 품질 제외는9213개다.
+
+현재 [첫 동시 실행](test-plan/evidence/m10_paired_v3/README.md)은 원본5ms 물리400구간,
+별도2560×1536 렌더링과 D-FINE-M960 추론을 함께 실행해 유한 진단 판정을 통과했다.
+정상238구간·보호0개, 모델2초/실제2.0057초, 실제 영상65장·추론32회다.
+원본 receipt와 같은 프레임의 SDK actor snapshot을 결합하고 차량2대·보행자1명·카메라
+변환을 검증했다. 다만 보행자가 의도한 전방에 배치되지 않았고 검출은0개였다.
+장면 취득→결과 나이 중앙값184ms로, 기존100ms 기한 내 제어 수용을 뜻하지 않는다.
+
+[보행자 배치 수정 후 실행](test-plan/evidence/m10_paired_v4/README.md)은36회 모두 사람을
+검출했지만 HV 의존 데이터 나이30.334ms가 기존30ms 제한을 넘어 **FAIL**이다.
+400개 원본 물리 응답·2162개 native 서비스 재생은 exact이며, 정상231구간·보호3구간이었다.
+이 실패를 앞선 성공으로 덮지 않고 조건부 정지·종료 시험도 실행하지 않았다.
+장면 조회 부하와 명령 유효시간 대기의 관계는 아직 원인으로 확정하지 않았다.
+
+Python458개·별도 source archive45개 검사를 통과했다. 모든 추론은 진단 전용이며 native
+제어 발행은0개다. 같은 프레임의 bone/wheel/material 상태가 없어 전체 영상 수용은 닫혀 있다.
+[초기 준비 실패](test-plan/evidence/m10_paired_v2/README.md)의 거리장 충돌·DDC 메모리 부족과
+readiness 오류도 보존했다. 준비된 캐시와 bounded fresh SDK probe로 실제 실행을 진행했으며,
+엔진 충돌 수정이나 장기 안정성을 주장하지 않는다. 원래5ms·HV30·100ms 기한을 유지한다.
 
 최신 [2K 지연 개선 비교](test-plan/evidence/m10_latency_2k_v1/README.md)는20Hz를 필수 조건으로
 삼지 않고 세 조건만 비교했다. 기존2K는17.55Hz/촬영→추론 평균94.20ms, 입력 버퍼 재사용은
@@ -129,7 +164,8 @@ calibration 식별자도 명시적으로 보존했다. 이는 불필요한 렌�
 앞선 미변경 조건도 정상 종료됐으므로 간헐적 멈춤을 고쳤다는 근거는 아니다.
 각19장·12개 프레임 대응을 보존했고1333/1337-file 사전 고정·별도29/32개 검사, 최종 Python445개와
 변조12/15건을 통과했다. 신규38장을 포함해 미래 품질 제외는9035개이며, 원래 서버 파일·설정을
-복원했다. 전체 장면 취득·동시 물리 실행·인지 수용은 여전히 미완료다.
+복원했다. 당시 전체 장면 취득·동시 물리 실행·인지 수용은 미완료였으며, 후속 동시 실행 판정은
+이 문서 상단의 V5/V7 기록을 따른다.
 
 기술 검사와 학습자 설명·수용은 별도다. Component PASS를 전체 system/Target PASS로 올리지 않는다.
 
@@ -173,7 +209,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 검증한 비영상5ms owner·장면 IPC·렌더 프레임 연결·정지 유지 종료를 바탕으로 [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 전체 장면 취득·적용, 차체/mesh/카메라 변환과 자산 식별을 구현한다. 새 동시2K 시험을 사전 선언해 렌더 정지·종료에도 물리가 계속 진행되는지 검증한다. 이전 종료 멈춤은 미확정으로 보존하고 재발 시 유한 thread 진단을 수집한다. 원래 기한·보호를 유지하며 Required는 opt-in SIL로 둔다.
+1. 정상·장애 동시 실행을 통과한20Hz 조회 설정을 기준으로 반복·장시간 물리 안정성을 사전 선언해 확인한다. V4 HV 실패의 원인이 해결됐다고 보지 않는다. 이어 [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태와 자산 식별을 완성하고, 기존100ms·typed provenance를 보존하는 native 연결을 검증한다. 전체 장면이 없으면 인지 제어 수용은 계속 닫으며 Required는 opt-in SIL로 둔다.
 2. 후보와 센서·모델 설정을 먼저 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상을 새로운 holdout으로 재사용하지 않는다.
 3. 시작/종료·장기 부하·전체 지연과 실시간 동작을 별도로 검증한다. 정지 장면이나 짧은 관측을 전체 ODD 수용으로 확대하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

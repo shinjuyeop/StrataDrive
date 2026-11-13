@@ -35,9 +35,16 @@ def main():
     for name in ("detector", "models", "library"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--wall-clock", type=int, required=True)
+    p.add_argument('--paired-renderer-port',type=int)
+    p.add_argument('--paired-renderer-pid',type=int)
+    p.add_argument('--paired-condition',choices=('normal','stall-exit','stall-crash'),default='normal')
+    p.add_argument('--paired-export-hz',type=int,choices=(20,50),default=20)
     a=p.parse_args()
     try:validate_client(a)
     except ValueError as error:p.error(str(error))
+    if a.paired_renderer_port is not None and (a.execution_profile!='owner5ms' or
+            a.paired_renderer_port!=2300 or not a.paired_renderer_pid or a.paired_renderer_pid<=0):
+        p.error('paired renderer requires the declared owner5ms and owned renderer port/PID')
     a.output.mkdir(parents=True,exist_ok=False)
     report={'status':'FAIL','scope':'dual-clock experiment; acceptance requires separate audit','fault':a.fault,'model_step_ns':a.step_ms*1000000}
     report['perception_authority']='shadow only; no torque/planner/protection writes'
@@ -46,6 +53,7 @@ def main():
     report['camera_condition']='absent' if a.camera_absent_control else '2k'
     report['execution_profile']=a.execution_profile
     rows=[];events=[];waits=[];process=actor=world=original=None;bound=False;session=run=None
+    paired=None;extras=[]
     capture=Capture(a)
     c=carla.Client('127.0.0.1',2200);c.set_timeout(10)
     def rpc(op,**kw):
@@ -72,6 +80,10 @@ def main():
         world.apply_settings(settings);world.tick()
         bp=world.get_blueprint_library().find('vehicle.lincoln.mkz_2020');bp.set_attribute('role_name','m7_wall_actual')
         actor=world.spawn_actor(bp,world.get_map().get_spawn_points()[0]);world.set_weather(carla.WeatherParameters.ClearNoon)
+        if a.paired_renderer_port is not None:
+            from paired_scene_capture_v1 import prepare_actors
+            extras,a.paired_actor_preparation=prepare_actors(world,actor,carla)
+            report['paired_actor_preparation']=a.paired_actor_preparation
         if a.warmup_ticks:
             # Passive pre-bind settling is a diagnostic, never native driving.
             # The NoDrive component does not supply stock VehicleControl state.
@@ -83,6 +95,12 @@ def main():
         if capture:capture.attach(world,actor,carla)
         binding=rpc('bind',actor=str(actor.id),application='42',model_sha256=hashlib.sha256(a.model.read_bytes()).hexdigest())
         require(binding['ok'],'bind');bound=True;session=binding['session'];run=binding['run'];report['binding']=binding
+        if a.paired_renderer_port is not None:
+            from paired_scene_capture_v1 import PairedCapture
+            geometry=rpc('geometry');require(geometry['ok'],'body/actor rest geometry')
+            paired=PairedCapture(a,world,actor,binding,geometry['geometry']);paired.start()
+            report['paired_condition']=a.paired_condition
+            report['paired_export_hz']=a.paired_export_hz
         model=int(binding['logical_begin_ns'])
         signal=(a.output/'wall-signal').resolve()
         stderr=(a.output/'native.stderr').open('w')
@@ -99,6 +117,7 @@ def main():
             status=rpc('wall_status');count=int(status['wall_frames'])
             r=native('GET');report['last_native']=r
             events.append({'op':'native_get','wall_ns':time.monotonic_ns(),'response':r})
+            if paired:paired.pump(status,rpc)
             if a.execution_profile=='owner5ms' and int(status.get('wall_normal_intervals','0'))>=10 and not writers_checked:
                 checks={'begin_ns':time.monotonic_ns(),'normal_before':int(status['wall_normal_intervals'])}
                 blocked=c.apply_batch_sync([carla.command.ApplyVehicleControl(actor.id,carla.VehicleControl(throttle=1))],False)
@@ -134,6 +153,9 @@ def main():
         if capture:
             try:capture.stop()
             except Exception:report['camera_cleanup_error']=traceback.format_exc()
+        if paired:
+            try:paired.stop()
+            except Exception:report['paired_cleanup_error']=traceback.format_exc()
         if bound:
             try:
                 final=rpc('describe');count=int(final['wall_frames']);report['completed_physics']=count
@@ -158,10 +180,12 @@ def main():
             try:capture.destroy(ownership_released=not bound)
             except Exception:report['camera_cleanup_error']=traceback.format_exc()
             (a.output/'sensors.json').write_text(json.dumps(capture.snapshot(),indent=2)+'\n')
-        if any(report.get(k) for k in ('cleanup_error','camera_cleanup_error','native_forced_stop')) or capture.snapshot()['cleanup_errors']:
+        if any(report.get(k) for k in ('cleanup_error','camera_cleanup_error','paired_cleanup_error','native_forced_stop')) or capture.snapshot()['cleanup_errors']:
             report['status']='FAIL'
         if world and original and not bound:
             if actor:actor.destroy()
+            for extra in reversed(extras):
+                if not extra.destroy():report['status']='FAIL';report['extra_actor_cleanup_error']=extra.id
             world.apply_settings(original)
         report['receipts']=sum('receipt' in r for r in rows)
         (a.output/'native-waits.json').write_text(json.dumps(waits,indent=2)+'\n')
