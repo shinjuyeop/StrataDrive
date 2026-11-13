@@ -21,7 +21,7 @@ struct M4ExecutionFault { std::size_t target; runtime::DeadlineFault timing; };
 // Monitor(9) observes 0..8; Physical(8) observes Monitor(9).
 class M4ExecutionWatch {
 public:
-    M4ExecutionWatch(std::uint64_t enable_ns,std::uint64_t stop_ns,std::uint16_t active_mask=0x3ff);
+    M4ExecutionWatch(std::uint64_t enable_ns,std::uint64_t stop_ns,std::uint16_t active_mask=0x3ff,bool diagnostic_endurance=false);
     std::optional<std::size_t> begin(std::size_t owner,std::uint64_t now,bool executing,std::uint64_t requested_wake=0);
     std::optional<std::size_t> begin_requested(std::size_t owner,std::uint64_t now,bool executing,std::uint64_t requested_wake);
     void finish(std::size_t owner,std::optional<std::size_t> job,std::uint64_t end,std::uint64_t cpu);

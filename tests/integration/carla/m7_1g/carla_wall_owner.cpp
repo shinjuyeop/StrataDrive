@@ -75,13 +75,23 @@ void emit(const Report& r,bool ready,const m7_native::Output& out,const std::str
 }
 int main(int argc,char** argv) {
     try {
-        if(argc<4 || (argc>6 && argc!=8))throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario [5|10] [30|50 HV dependency ms] [--perception-shadow fd:source-clock:wall-clock]");
+        if(argc<4 || (argc>6 && argc!=8 && argc!=10))throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario [5|10] [30|50 HV dependency ms] [--perception-shadow fd:source-clock:wall-clock]");
         const Time model_step=argc>=5?std::stoull(argv[4])*ms:10*ms;
         const Time hv_dependency=argc>=6?std::stoull(argv[5])*ms:30*ms;
         if(model_step!=5*ms && model_step!=10*ms)throw std::runtime_error("wall model step");
         if(hv_dependency!=30*ms && !(model_step==5*ms && hv_dependency==50*ms))throw std::runtime_error("wall HV policy");
         std::unique_ptr<central::PerceptionIpcShadow> perception;
-        if(argc==8) {
+        unsigned endurance=0;
+        if(argc==10) {
+            if(std::string(argv[8])!="--endurance-seconds")throw std::runtime_error("explicit endurance option");
+            const std::string duration(argv[9]);
+            if(duration!="30" && duration!="300")throw std::runtime_error("declared endurance duration");
+            endurance=duration=="30"?30:300;
+            if((endurance!=30 && endurance!=300) || model_step!=5*ms || hv_dependency!=30*ms)throw std::runtime_error("endurance profile");
+        }
+        const Time diagnostic_horizon=(endurance?endurance+5:19)*1000*ms;
+        const auto perception_capacity=static_cast<std::size_t>(endurance?(endurance+5)*50+1:1000);
+        if(argc>=8) {
             if(std::string(argv[6])!="--perception-shadow")throw std::runtime_error("shadow-only perception option");
             std::string value=argv[7];std::array<std::uint64_t,3> parts{};std::size_t begin=0;
             for(unsigned i=0;i<3;++i) {
@@ -110,20 +120,20 @@ int main(int argc,char** argv) {
         void* memory=mmap(nullptr,sizeof(m7_native::WallBridge),PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);close(fd);
         if(memory==MAP_FAILED)throw std::runtime_error("bridge map");
         auto* bridge=new(memory) m7_native::WallBridge;
-        const auto initial=WallExecutionWatch::now()+50*ms;
+        const auto initial=WallExecutionWatch::now()+(endurance?1000:50)*ms;
         bridge->signal={m7_native::wall_signal_magic,initial,42,0};bridge->actor=actor;bridge->model_initial=model;
         bridge->model_step=model_step;
         bridge->session=session;bridge->generation=generation;std::memcpy(bridge->run,run.c_str(),37);
-        WallRig rig({1,42,7},actor,initial,model,model_step,hv_dependency);rig.request_profile(std::move(phases));
+        WallRig rig({1,42,7},actor,initial,model,model_step,hv_dependency,endurance);rig.request_profile(std::move(phases));
         runtime::LatestSnapshot<Telemetry> latest;
         std::atomic<bool> done{false},trip{false};
-        WallExecutionWatch watch(initial+ms,19000*ms);rig.execution_watch(&watch);
+        WallExecutionWatch watch(initial+ms,diagnostic_horizon);rig.execution_watch(&watch);
         m7_native::SharedReader<m7_native::SharedReceipt> reader;
         m7_native::SharedWriter<m7_native::SharedProof> writer;
         struct Row {Time now,energy,source,protect;bool armed;Time hv_source,hv_dependency;};
-        std::vector<Row> rows;rows.reserve(20000);std::string failure;
+        std::vector<Row> rows;rows.reserve(static_cast<std::size_t>(diagnostic_horizon/ms)+1);std::string failure;
         struct PerceptionRow {central::PerceptionIpcView view;Time native_observed,enable,ipc_service_ns;bool armed,failed;std::array<m7_native::Packet,3> actual;};
-        std::vector<PerceptionRow> perception_rows;if(perception)perception_rows.reserve(1000);
+        std::vector<PerceptionRow> perception_rows;if(perception)perception_rows.reserve(perception_capacity);
         std::optional<central::PerceptionIpcView> perception_latest;
         Time next_perception=0;bool perception_root_error=false;
         simulation::runtime_support::ThreadInfo owner_info,io_info;owner_info.capture();
@@ -145,7 +155,7 @@ int main(int argc,char** argv) {
         });
         Time consumed=0;auto wake=initial+ms;
         try {
-            while(!done.load() && wake<initial+19000*ms) {
+            while(!done.load() && wake<initial+diagnostic_horizon) {
                 simulation::runtime_support::sleep_until(wake);auto now=WallExecutionWatch::now();
                 if(__atomic_load_n(&bridge->server_trip,__ATOMIC_ACQUIRE))rig.protect("physics completed after authority expiry");
                 if(trip.load())rig.protect("trusted adapter safety request");
@@ -170,7 +180,8 @@ int main(int argc,char** argv) {
                     const auto poll_begin=WallExecutionWatch::now();
                     perception_latest=perception->poll(poll_begin);
                     const auto poll_elapsed=WallExecutionWatch::now()-poll_begin;
-                    if(perception_rows.size()<1000)perception_rows.push_back({*perception_latest,in.observed,in.enable,poll_elapsed,n.armed,r.failed,in.actual});
+                    if(perception_rows.size()<perception_capacity)perception_rows.push_back({*perception_latest,in.observed,in.enable,poll_elapsed,n.armed,r.failed,in.actual});
+                    else throw std::runtime_error("bounded native perception trace");
                     next_perception=initial+((WallExecutionWatch::now()-initial)/(20*ms)+1)*(20*ms);
                 }
                 m7_native::SharedProof shared;
@@ -193,7 +204,7 @@ int main(int argc,char** argv) {
         watch.write(std::string(argv[2])+"-wall.csv");
         std::ofstream trace(std::string(argv[2])+".csv");trace<<"now,energy_end,wheel_source,protection,armed,hv_source,hv_dependency\n";
         for(const auto& r:rows)trace<<r.now<<','<<r.energy<<','<<r.source<<','<<r.protect<<','<<r.armed<<','<<r.hv_source<<','<<r.hv_dependency<<'\n';
-        std::ofstream meta(std::string(argv[2])+".json");meta<<"{\"first_fault\":\""<<failure<<"\",\"initial\":"<<initial<<",\"hv_dependency_ns\":"<<hv_dependency<<",\"owner\":";
+        std::ofstream meta(std::string(argv[2])+".json");meta<<"{\"first_fault\":\""<<failure<<"\",\"initial\":"<<initial<<",\"diagnostic_horizon_ns\":"<<diagnostic_horizon<<",\"hv_dependency_ns\":"<<hv_dependency<<",\"owner\":";
         owner_info.write_json(meta);meta<<",\"io\":";io_info.write_json(meta);meta<<"}\n";
         if(perception) {
             std::ofstream startup(std::string(argv[2])+"-startup.json");write_startup_observations(startup,rig.startup_observations());

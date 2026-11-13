@@ -7,11 +7,11 @@
 namespace stratadrive::runtime {
 TaskSchedule::TaskSchedule(TaskScheduleConfig config) : config_(config) {
     constexpr auto maximum = std::numeric_limits<std::uint64_t>::max();
-    if (config.jobs == 0 || config.jobs > 10000 || config.first_release_ns == 0 ||
+    if (config.jobs == 0 || config.jobs > (config.diagnostic_endurance?160000U:10000U) || config.first_release_ns == 0 ||
         config.period_ns == 0 || config.relative_deadline_ns == 0 ||
         config.first_release_ns > maximum-config.relative_deadline_ns ||
         config.jobs-1 > (maximum-config.first_release_ns-config.relative_deadline_ns)/config.period_ns) {
-        throw std::invalid_argument("TaskSchedule: nonzero, finite schedule required (max 10000 jobs)");
+        throw std::invalid_argument("TaskSchedule: nonzero, finite schedule within explicit storage budget required");
     }
 }
 std::uint64_t TaskSchedule::release(std::size_t job) const {

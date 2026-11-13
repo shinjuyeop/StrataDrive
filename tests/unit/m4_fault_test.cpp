@@ -131,6 +131,23 @@ TEST(M4FaultWall, PausedLeafCannotAcknowledgePhysicalWatchdogAction) {
     const auto r=run("owner:pause:drive:1200:200:0","wall-drive-stop",false,true);
     EXPECT_TRUE(std::any_of(r.events.begin(),r.events.end(),[](const auto& e){return kind(e,"output-watchdog") && e.owner==8 && e.code==4;}));
 }
+TEST(M4ExecutionWatch, ExtendedStorageKeepsOriginalTwoMsFourMsSchedule) {
+    constexpr std::uint64_t enable=1000000000;
+    EXPECT_THROW((M4ExecutionWatch{enable,enable+35020000000ULL}),std::invalid_argument);
+    EXPECT_THROW((M4ExecutionWatch{enable,enable+36020000000ULL,1,true}),std::invalid_argument);
+    M4ExecutionWatch watch{enable,enable+305020000000ULL,1,true};
+    for(std::size_t slot=0;slot<10000;++slot) {
+        const auto release=enable+slot*2000000;
+        const auto job=watch.begin_requested(0,release,true,release);
+        ASSERT_TRUE(job);ASSERT_EQ(*job,slot);watch.finish(0,job,release+4000000,0);
+    }
+    const auto deadline=enable+10000ULL*2000000+4000000;
+    const auto fault=watch.poll(9,deadline)[0];
+    ASSERT_TRUE(fault);EXPECT_EQ(fault->timing.job,10000U);EXPECT_EQ(fault->timing.deadline_ns,deadline);
+    const auto rows=watch.rows();ASSERT_EQ(rows.size(),152501U);
+    EXPECT_EQ(rows.back().release_ns,enable+305000000000ULL);
+    EXPECT_EQ(rows.back().deadline_ns-rows.back().release_ns,4000000U);
+}
 TEST(M4ExecutionWatch, LaterCompletionCannotFillAnEarlierMissedOpportunity) {
     M4ExecutionWatch watch{1000000000,1100000000};
     const auto first=watch.begin(4,1000000000,true); ASSERT_TRUE(first);

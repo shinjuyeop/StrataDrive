@@ -1,0 +1,241 @@
+{
+  "schema": "m10-endurance-observations-v1",
+  "acceptance": "FAIL",
+  "cases": [
+    {
+      "case": "normal-30s-01",
+      "requested_seconds": 30,
+      "verdict": "FAIL",
+      "completed_intervals": 6000,
+      "model_seconds": 30.0,
+      "physical_wall_span_seconds": 29.994317666,
+      "normal_intervals": 20,
+      "protected_intervals": 5818,
+      "init_intervals": 162,
+      "first_fault": "native credit/gate closed leaf=2 code=5 leaf=3 code=2 leaf=4 code=14",
+      "first_fault_after_initial_ms": 935.016234,
+      "first_normal_hv_budget_violation": {
+        "now_ns": 1572063504708551,
+        "source_age_ms": 10.865951,
+        "dependency_age_ms": 30.096845,
+        "preceding_sample": false
+      },
+      "max_normal_hv_dependency_age_ms": 31.097248,
+      "failed_ingress": [],
+      "raw_frames": 35,
+      "inference_calls": 24,
+      "overlapping_calls": 24,
+      "raw_callbacks_during_physics": 28,
+      "scene_to_result_ms": {
+        "min": 77.721823,
+        "median": 108.8289705,
+        "p95": 526.99417385,
+        "max": 543.47309
+      },
+      "recorder": {
+        "stored_bytes": 269731077,
+        "peak_queue_frames": 8,
+        "overflow_frames": [
+          334
+        ],
+        "write_ms": {
+          "min": 73.549536,
+          "median": 102.576137,
+          "p95": 529.3971594999999,
+          "max": 728.139726
+        },
+        "overflow_after_first_fault_ms": [
+          1081.97998
+        ]
+      },
+      "min_available_ram_gib": 12.069271087646484,
+      "min_free_disk_gib": 74.08708953857422,
+      "measurement_resource_samples": 30,
+      "peak_owned_process_rss_gib": 10.806446075439453,
+      "renderer_shutdown_exit": 130,
+      "renderer_shutdown_forced": false,
+      "original_ini_restored": true,
+      "replay": {
+        "scope": "original wall timestamp/solver replay; not new live execution",
+        "calls": 30002,
+        "receipts": 6000,
+        "exact": true,
+        "original_source_fields_equal": true,
+        "input_sha256": "81a1f9b9335466f51d4e93408bfe1ee54c198bfa24716315cf4f14fb2e66dcae",
+        "first_difference": [],
+        "different_rows": 0
+      },
+      "frozen_audit": {
+        "status": "FAIL",
+        "error": "normal HV source/dependency budget including preceding sample"
+      }
+    },
+    {
+      "case": "normal-30s-02",
+      "requested_seconds": 30,
+      "verdict": "FAIL",
+      "completed_intervals": 106,
+      "model_seconds": 0.53,
+      "physical_wall_span_seconds": 0.539110006,
+      "normal_intervals": 0,
+      "protected_intervals": 0,
+      "init_intervals": 106,
+      "first_fault": "native credit/gate closed leaf=2 code=5",
+      "first_fault_after_initial_ms": 549.016297,
+      "first_normal_hv_budget_violation": null,
+      "max_normal_hv_dependency_age_ms": null,
+      "failed_ingress": [
+        {
+          "at_ns": 1572213695251383,
+          "observed_age_ms": 0.171661,
+          "packets": [
+            {
+              "role": 0,
+              "bytes": null,
+              "verdict": "missing original owner packet"
+            },
+            {
+              "role": 1,
+              "bytes": null,
+              "verdict": "missing original owner packet"
+            },
+            {
+              "role": 2,
+              "bytes": 101,
+              "verdict": "CRC/domain/route pass"
+            }
+          ]
+        }
+      ],
+      "raw_frames": 17,
+      "inference_calls": 10,
+      "overlapping_calls": 8,
+      "raw_callbacks_during_physics": 8,
+      "scene_to_result_ms": {
+        "min": 68.336234,
+        "median": 109.410012,
+        "p95": 216.0950474,
+        "max": 222.793733
+      },
+      "recorder": {
+        "stored_bytes": 130352014,
+        "peak_queue_frames": 3,
+        "overflow_frames": [],
+        "write_ms": {
+          "min": 73.496369,
+          "median": 101.889902,
+          "p95": 378.05888539999995,
+          "max": 407.294923
+        },
+        "overflow_after_first_fault_ms": []
+      },
+      "min_available_ram_gib": 12.100387573242188,
+      "min_free_disk_gib": 73.89873123168945,
+      "measurement_resource_samples": 1,
+      "peak_owned_process_rss_gib": 10.645252227783203,
+      "renderer_shutdown_exit": -9,
+      "renderer_shutdown_forced": true,
+      "original_ini_restored": true,
+      "replay": {
+        "scope": "original wall timestamp/solver replay; not new live execution",
+        "calls": 584,
+        "receipts": 106,
+        "exact": true,
+        "original_source_fields_equal": true,
+        "input_sha256": "d231d990a88a21dcd5a02d9a6704eead2cd4edb90bb582c9466e58087e4029dd",
+        "first_difference": [],
+        "different_rows": 0
+      },
+      "frozen_audit": {
+        "status": "FAIL",
+        "error": "original ingress clock"
+      }
+    },
+    {
+      "case": "normal-30s-03",
+      "requested_seconds": 30,
+      "verdict": "FAIL",
+      "completed_intervals": 87,
+      "model_seconds": 0.435,
+      "physical_wall_span_seconds": 0.447694406,
+      "normal_intervals": 0,
+      "protected_intervals": 0,
+      "init_intervals": 87,
+      "first_fault": "credit rejected leaf=2 code=5 leaf=3 code=2 leaf=4 code=14",
+      "first_fault_after_initial_ms": 456.015291,
+      "first_normal_hv_budget_violation": null,
+      "max_normal_hv_dependency_age_ms": null,
+      "failed_ingress": [
+        {
+          "at_ns": 1572324802491073,
+          "observed_age_ms": 0.178913,
+          "packets": [
+            {
+              "role": 0,
+              "bytes": null,
+              "verdict": "missing original owner packet"
+            },
+            {
+              "role": 1,
+              "bytes": null,
+              "verdict": "missing original owner packet"
+            },
+            {
+              "role": 2,
+              "bytes": 101,
+              "verdict": "CRC/domain/route pass"
+            }
+          ]
+        }
+      ],
+      "raw_frames": 16,
+      "inference_calls": 9,
+      "overlapping_calls": 7,
+      "raw_callbacks_during_physics": 7,
+      "scene_to_result_ms": {
+        "min": 68.081882,
+        "median": 97.118026,
+        "p95": 257.9622766,
+        "max": 277.853673
+      },
+      "recorder": {
+        "stored_bytes": 122166963,
+        "peak_queue_frames": 3,
+        "overflow_frames": [],
+        "write_ms": {
+          "min": 74.92246,
+          "median": 95.723904,
+          "p95": 389.08676,
+          "max": 402.93356
+        },
+        "overflow_after_first_fault_ms": []
+      },
+      "min_available_ram_gib": 11.996574401855469,
+      "min_free_disk_gib": 73.77955627441406,
+      "measurement_resource_samples": 1,
+      "peak_owned_process_rss_gib": 10.63748550415039,
+      "renderer_shutdown_exit": 130,
+      "renderer_shutdown_forced": false,
+      "original_ini_restored": true,
+      "replay": {
+        "scope": "original wall timestamp/solver replay; not new live execution",
+        "calls": 486,
+        "receipts": 87,
+        "exact": true,
+        "original_source_fields_equal": true,
+        "input_sha256": "5b468754bf26b2a26ebe2ce8157c1b257fcc4d5d68882ea0117f2ba17a847f03",
+        "first_difference": [],
+        "different_rows": 0
+      },
+      "frozen_audit": {
+        "status": "FAIL",
+        "error": "original ingress clock"
+      }
+    }
+  ],
+  "conditional_300s": "NOT_RUN: all three original 30s cases must pass",
+  "observations_only": true,
+  "accepted_perception_results": 0,
+  "holdout_access": false,
+  "limitation": "Physical span includes protection; shortened inference and one-second RSS do not prove endurance or absence of memory leaks"
+}

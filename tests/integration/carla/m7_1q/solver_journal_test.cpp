@@ -15,6 +15,17 @@ TEST(M7SolverJournal, CopiesRawEvidenceBeforeObserverReuseAndNeverConsumesReads)
     EXPECT_EQ(journal.find(7),journal.find(7));EXPECT_EQ(journal.find(8),nullptr);
     EXPECT_EQ(journal.size(),1U);
 }
+TEST(M7SolverJournal, ExplicitCapacityIsBoundedAndLookupKeepsSparseTicketIdentity) {
+    stratadrive::m7_native::SolverJournal<8> journal(3);
+    for(unsigned i=0;i<3;++i)ASSERT_TRUE(journal.append(50+i,7+i*3,trace()));
+    EXPECT_TRUE(journal.full());EXPECT_EQ(journal.find(7)->frame,50U);
+    EXPECT_EQ(journal.find(13)->frame,52U);EXPECT_EQ(journal.find(8),nullptr);
+    EXPECT_FALSE(journal.append(53,16,trace()));EXPECT_EQ(journal.find(10)->frame,51U);
+    for(const auto capacity:{0U,9U}) {
+        stratadrive::m7_native::SolverJournal<8> invalid(capacity);
+        EXPECT_TRUE(invalid.failed());EXPECT_FALSE(invalid.append(1,1,trace()));
+    }
+}
 TEST(M7SolverJournal, CapacityFailureRetainsAllPriorEvidenceAndLatches) {
     Journal journal;auto value=trace();ASSERT_TRUE(journal.append(10,4,value));
     ASSERT_TRUE(journal.append(11,6,value));EXPECT_TRUE(journal.full());

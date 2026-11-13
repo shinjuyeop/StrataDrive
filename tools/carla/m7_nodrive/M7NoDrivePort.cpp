@@ -37,6 +37,10 @@ namespace {
 using namespace stratadrive::can;
 using Json = TSharedPtr<FJsonObject>;
 uint64 StepNs() {return FParse::Param(FCommandLine::Get(), TEXT("StrataM7Wall5ms")) ? 5000000 : 10000000;}
+uint32 EnduranceFrames() {
+  uint32 Value=0;FParse::Value(FCommandLine::Get(),TEXT("StrataM10EnduranceFrames="),Value);
+  return Value;
+}
 constexpr uint64 Age = 30000000;
 constexpr uint64 Skew = 10000000;
 constexpr uint64 LogicalOrigin = 1000000000;
@@ -56,7 +60,7 @@ struct State {
   bool V1 = false, Native = false, Work = false, SampledActual = false;
   bool DiagnosticLoad = false;
   FVector DiagnosticForce = FVector::ZeroVector;
-  std::unique_ptr<stratadrive::m7_native::SolverJournal<1024>> Journal;
+  std::unique_ptr<stratadrive::m7_native::SolverJournal<65536>> Journal;
   bool AwaitSettlement = false;
   double TotalMotorWork = 0;
   std::unique_ptr<stratadrive::m7_native::Admission> NativeGate;
@@ -75,7 +79,7 @@ struct State {
   FString WallWait;
   TArray<Json> WallReceipts, WallSettlements;
   std::unique_ptr<WallIngressEntry[]> WallIngress;
-  uint64 IngressCount=0;
+  uint64 IngressCount=0,IngressCapacity=4096;
   stratadrive::m7_native::Input IngressProof;
   void CloseSignal() {if(Signal){munmap(const_cast<stratadrive::m7_native::WallSignal*>(Signal),Bridge?sizeof(*Bridge):sizeof(*Signal));Signal=nullptr;Bridge=nullptr;}}
   ~State() {CloseSignal();}
@@ -337,12 +341,17 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     S.Wall = NativeFlag && FParse::Param(FCommandLine::Get(),TEXT("StrataM7WallNative"));
     S.CloseSignal();S.WallProof=S.WallExpiry=S.AppliedWall=0;S.WallProtection=false;
     S.WallFrames=S.WallLimit=S.GapUntil=S.NextDue=S.WallNormal=S.WallProtected=0;S.WallReceipts.Empty(950);S.WallSettlements.Empty(950);
-    S.ProofReader={};S.ReceiptWriter={};S.WallWait.Empty();S.WallIngress.reset(S.Wall?new WallIngressEntry[4096]{}:nullptr);S.IngressCount=0;S.IngressProof={};
+    const auto Endurance=EnduranceFrames();
+    if(Endurance && ((Endurance!=6000 && Endurance!=60000) || !S.Wall || StepNs()!=5000000))
+      return Encode(Response(false,TEXT("explicit_endurance_profile_required")));
+    S.IngressCapacity=Endurance?uint64(Endurance)*5+4096:4096;
+    S.ProofReader={};S.ReceiptWriter={};S.WallWait.Empty();S.WallIngress.reset(S.Wall?new WallIngressEntry[S.IngressCapacity]{}:nullptr);S.IngressCount=0;S.IngressProof={};
     S.Work = NativeFlag && FParse::Param(FCommandLine::Get(), TEXT("StrataM7SolverWork"));
     const bool Compact = FParse::Param(FCommandLine::Get(), TEXT("StrataM7CompactWork"));
     if(S.Wall && (!S.Work || !Compact))return Encode(Response(false,TEXT("wall_requires_compact_solver_work")));
     if (Compact && !S.Work) return Encode(Response(false, TEXT("compact_requires_native_work")));
-    S.Journal.reset(Compact ? new stratadrive::m7_native::SolverJournal<1024> : nullptr);
+    S.Journal.reset(Compact ? new stratadrive::m7_native::SolverJournal<65536>(Endurance?Endurance:1024) : nullptr);
+    if(Endurance) {S.WallReceipts.Reserve(Endurance);S.WallSettlements.Reserve(Endurance);}
     S.AwaitSettlement = false; S.TotalMotorWork = 0;
     S.Application = static_cast<uint32>(Application);
     S.NativeGate.reset(NativeFlag ? new stratadrive::m7_native::Admission(S.Application, Now(Episode),
@@ -372,6 +381,8 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     R->SetObjectField(TEXT("physics"), Physics());
     R->SetBoolField(TEXT("protected_hold_history_valid"), S.LastProtection);
     R->SetBoolField(TEXT("compact_solver_work"), bool(S.Journal));
+    R->SetNumberField(TEXT("endurance_frames"),Endurance);
+    R->SetNumberField(TEXT("ingress_capacity"),S.IngressCapacity);
     R->SetStringField(TEXT("logical_begin_ns"), Dec(Now(Episode)));
     R->SetNumberField(TEXT("simulation_seconds"), Episode.GetElapsedGameTime());
     R->SetStringField(TEXT("application"), Dec(S.Application));
@@ -384,7 +395,8 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     return Encode(Response(false, TEXT("session")));
   if (Op == TEXT("wall_start")) {
     uint64 Initial,Limit;FString Path;
-    if(!S.Wall || S.Signal || S.Receipt.IsValid() || !Number(J,TEXT("limit"),Limit) || Limit<1 || Limit>950 || !Number(J,TEXT("initial"),Initial) ||
+    if(!S.Wall || S.Signal || S.Receipt.IsValid() || !Number(J,TEXT("limit"),Limit) || Limit<1 ||
+       (EnduranceFrames()?Limit!=EnduranceFrames():Limit>950) || !Number(J,TEXT("initial"),Initial) ||
        !Text(J,TEXT("signal_path"),Path) || Initial>WallNow() || WallNow()-Initial>40000000)
       return Encode(Response(false,TEXT("wall_start_context")));
     const int Fd=open(TCHAR_TO_UTF8(*Path),O_RDWR|O_NOFOLLOW);
@@ -697,7 +709,7 @@ bool PumpWall(UCarlaEpisode& Episode) {
     Changed=Changed || bool(Native.permission)!=bool(S.IngressProof.permission) ||
       (Native.permission && !same(Native.permission,S.IngressProof.permission));
     if(Changed) {
-      if(S.IngressCount>=4096){Latch(TEXT("wall_ingress_full"));return false;}
+      if(S.IngressCount>=S.IngressCapacity){Latch(TEXT("wall_ingress_full"));return false;}
       const uint64 Received=WallNow();
       const bool Accepted=S.NativeGate->ingest(Native,Received);
       // Preallocated POD journal: no JSON/hex work on the receive deadline.

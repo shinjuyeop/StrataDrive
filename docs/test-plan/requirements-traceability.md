@@ -24,6 +24,11 @@ TC-PER-113–115는 bounded fresh SDK 기동,20Hz 조회 및 실제 렌더 정�
 물리 진행을 검증했다. 첫 장애 시험의 관측 창 부족과 정리 실패도 별도 원본으로 유지한다.
 458개 회귀·45개 고정 소스 검사와 원본 exact 재생을 확인했고, 제어 인지 수용은0개다.
 
+같은 경계의 [장시간 반복 후속](evidence/m10_endurance_v3/README.md)은3회 모두 FAIL이며
+조건부300초는 NOT RUN이다.6000구간 중 정상20·보호5818의 HV30ms 초과 및 저장 큐 초과,
+106/87구간의 startup Actual 누락,1회 렌더 종료 초과를 원본에 보존했다.
+C++91·Python464·고정 소스51개 검사와 exact 원본 재생은 장시간 수용으로 승격하지 않는다.
+
 [M8 종료 검토](../archive/milestone-reviews.md#m8)는 C-M8 component/고정 fixture의 기술 판정이다.
 아래32개 요구와29개 system TC의 **전체 system/Target runtime Result는 NOT RUN**이다.
 부분 Host/vCAN·모델·sanitizer 통과를 전체 결과로 올리지 않는다. 실제 실행 후에만

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Finite concurrent actor-root rendering and diagnostic inference; no ECU output."""
 from dataclasses import asdict
+from collections import deque
 import argparse
 import hashlib
 import json
@@ -30,6 +31,8 @@ from paired_scene_capture_v1 import environment
 from renderer_lifecycle_v1 import hold,verify_hold
 from native_memory_recorder_v1 import MemoryRecorder
 from paired_fault_v1 import observed_process_exit
+from endurance_profile_v1 import limits
+from endurance_recording_v1 import ShardRecorder
 
 
 def sha(data):return hashlib.sha256(data).hexdigest()
@@ -39,6 +42,7 @@ class DiagnosticInference:
     """One numerical owner, one pending latest image; result remains unavailable."""
     def __init__(self,args,world_id,report):
         self.args,self.world_id,self.report=args,world_id,report
+        self.max_calls=limits(args.endurance_seconds)['camera_frames']
         self.condition=threading.Condition();self.pending=None;self.closed=False
         self.ready=threading.Event();self.replaced=0;self.raw=[]
         self.thread=threading.Thread(target=self.run,name='paired-diagnostic-inference',daemon=True);self.thread.start()
@@ -46,7 +50,7 @@ class DiagnosticInference:
     def run(self):
         try:
             backend=StagedKernelBackend(self.args.detector,self.args.models,self.args.library,
-                'f851fa22a24576d4e76fa2fa8749f3f4517d5ee625b64de390a360fd32fb0721')
+                'f851fa22a24576d4e76fa2fa8749f3f4517d5ee625b64de390a360fd32fb0721',trace_capacity=max(4096,self.max_calls+3))
             self.report['providers']=backend.detector.session.get_providers()
             # These private numeric identities never enter a publisher. Actual
             # camera/session provenance stays on RenderedImage and each report.
@@ -78,7 +82,7 @@ class DiagnosticInference:
                         postprocess_ns=result.postprocess_ns)
                 except Exception:row['error']=traceback.format_exc()
                 row['end_ns']=time.monotonic_ns();self.report['inference'].append(row)
-                if len(self.report['inference'])>=96:raise ValueError('bounded diagnostic inference trace')
+                if len(self.report['inference'])>=self.max_calls:raise ValueError('bounded diagnostic inference trace')
             self.report['backend_stages']=backend.stages
         except Exception:self.report['errors'].append(traceback.format_exc());self.ready.set()
 
@@ -96,6 +100,7 @@ class DiagnosticInference:
 
 
 def main(a):
+    bounds=limits(a.endurance_seconds)
     a.output.mkdir(parents=True,exist_ok=False)
     data=json.loads(a.catalog.read_text());catalog=data['catalog'];b=data['binding']
     for key in ('run','scene_sha256','model_sha256'):b[key]=bytes.fromhex(b[key])
@@ -104,10 +109,10 @@ def main(a):
     sock=socket.socket(fileno=a.socket_fd);sock.setblocking(False);consumer=SceneConsumer(sock,binding)
     report=dict(schema='m10-paired-renderer-v1',status='FAIL',condition=a.condition,
         mapped=[],ticks=[],raw=[],preparation=[],inference=[],errors=[],cleanup_errors=[],
-        complete_visual_scene=False,perception_publications=0)
+        complete_visual_scene=False,perception_publications=0,endurance_seconds=a.endurance_seconds)
     client=carla.Client('127.0.0.1',a.port);client.set_timeout(2)
-    world=sensor=history=inference=None;clones={};records=[];consumed=0
-    recorder=MemoryRecorder(a.output/'spill',96)
+    world=sensor=history=inference=None;clones={};records=deque();consumed=0
+    recorder=ShardRecorder(a.output,bounds['camera_frames'],bounds['stored_bytes']) if a.endurance_seconds else MemoryRecorder(a.output/'spill',96)
     lock=threading.Lock();accepting=True;held=None
     try:
         world=client.get_world();road=world.get_map()
@@ -161,12 +166,15 @@ def main(a):
                 row=dict(frame=image.frame,source_ns=round(image.timestamp*1e9),
                     received_wall_ns=begin,width=image.width,height=image.height)
                 raw=bytes(image.raw_data)
-                if recorder.offer(row,raw):records.append((row,raw))
+                saved=recorder.offer(row,raw)
+                if len(records)>=8:
+                    report['errors'].append('bounded callback association queue full; raw retained')
+                elif saved:records.append((row,raw))
                 else:report['errors'].append('camera capacity exceeded; overflow retained')
         sensor.listen(callback)
         def drain():
             nonlocal consumed
-            with lock:pending=records[consumed:];consumed=len(records)
+            with lock:pending=list(records);records.clear();consumed+=len(pending)
             for row,raw in pending:
                 image=history.consume(renderer_instance=session.renderer_instance,renderer_world=world.id,
                     camera_id=sensor.id,bgra=raw,**row)
@@ -180,9 +188,9 @@ def main(a):
                     inference.offer(image)
         for _ in range(8):world.tick();drain()
         (a.output/'ready.json').write_text(json.dumps(dict(ready=True,world=world.id,camera=sensor.id))+'\n')
-        deadline=time.monotonic()+15
+        deadline=time.monotonic()+bounds['renderer_seconds']
         while time.monotonic()<deadline:
-            if report['errors']:raise RuntimeError('camera/inference diagnostic error')
+            if report['errors'] or (a.endurance_seconds and recorder.failed()):raise RuntimeError('camera/inference diagnostic error')
             scene=consumer.take(time.monotonic_ns())
             if consumer.closed:break
             if scene is None:time.sleep(.001);drain();continue
@@ -236,7 +244,8 @@ def main(a):
         if not recorder.close():report['cleanup_errors'].append('raw recorder stop')
         report['recorder']=recorder.report()
         records.clear()
-        for index,(row,raw) in enumerate(recorder.iter_raw()):
+        if a.endurance_seconds:report['raw']=report['recorder']['records']
+        for index,(row,raw) in enumerate([] if a.endurance_seconds else recorder.iter_raw()):
             path=f'{index:03d}-{row["frame"]}.bgra.z';stored=zlib.compress(raw,1);(a.output/path).write_bytes(stored)
             rgb=Image.frombytes('RGB',(2560,1536),raw,'raw','BGRX').tobytes()
             report['raw'].append(dict(**row,path=path,stored_sha256=sha(stored),bgra_sha256=sha(raw),rgb_sha256=sha(rgb)))
@@ -260,6 +269,7 @@ if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--catalog',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--socket-fd',type=int,required=True);p.add_argument('--port',type=int,choices=(2300,),required=True)
     p.add_argument('--server-pidfd',type=int,required=True)
+    p.add_argument('--endurance-seconds',type=int,choices=(0,30,300),default=0)
     p.add_argument('--condition',choices=('normal','stall-exit','stall-crash'),required=True)
     for name in ('detector','models','library'):p.add_argument('--'+name,type=Path,required=True)
     raise SystemExit(main(p.parse_args()))

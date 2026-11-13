@@ -29,6 +29,15 @@ All400 intervals settle without protection. Its earlier injection and pidfd-base
 dead-server cleanup follow retained V6 failure; all100ms/HV30 guards remain.
 Repeated-run stability and V4's root cause remain open.
 
+[Endurance V3](../test-plan/evidence/m10_endurance_v3/README.md) then failed all
+three declared30s normal cases. Case01 completed6000 intervals with20 normal and
+5818 protected; HV30ms expired and the lossless recording queue later overflowed.
+Cases02/03 ended at106/87 intervals before normal arming, with missing front
+Actual packets. Case02 also required forced renderer shutdown after30s. The
+conditional300s run was not started. Diagnostic horizon/storage extensions keep
+all original deadlines and default capacities; the original module is restored.
+No long-run concurrency, leak, full-scene or perception-control acceptance follows.
+
 ## Chosen ownership boundary
 
 Keep one authoritative physical world and the existing native ECU/Actual/solver

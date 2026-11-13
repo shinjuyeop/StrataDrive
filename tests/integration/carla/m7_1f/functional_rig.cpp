@@ -202,7 +202,7 @@ struct FunctionalRig::Native final:session::CoordinatorPort {
         }
         for(unsigned i=0;i<5;++i) {
             simulation::LeafOwnerConfig config;
-            if(speed_enabled) config.input_event_capacity=static_cast<std::size_t>(horizon_ms)+12000;
+            if(speed_enabled || (wall && horizon_ms>30000)) config.input_event_capacity=static_cast<std::size_t>(horizon_ms)+12000;
             if(i==2 && model_initial) {
                 config.drive_sensor_ingress=simulation::DriveSensorIngress::BeforeIo;
                 config.hv_dependency_age_ns=hv_dependency_ns;
@@ -865,12 +865,16 @@ BarrierStop FunctionalRig::stop_at_barrier() {
     return result;
 }
 
-WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial,Time model_step,Time hv_dependency_ns)
-    :scope_(scope),actor_(actor),model_initial_(model_initial),model_step_(model_step),initial_(initial) {
+WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial,Time model_step,Time hv_dependency_ns,unsigned endurance_seconds)
+    :scope_(scope),actor_(actor),model_initial_(model_initial),model_step_(model_step),
+     horizon_ms_(endurance_seconds?(Time(endurance_seconds)+5)*1000:(model_initial?30000:10000)),initial_(initial) {
     require(scope.run && scope.application && scope.plant==7 && actor && initial,"wall INIT scope");
     require(model_step==10000000 || (model_initial && model_step==5000000),"wall model step profile");
     require(hv_dependency_ns==30000000 || (model_initial && model_step==5000000 && hv_dependency_ns==50000000),"wall HV dependency profile");
-    native_=std::make_unique<FunctionalRig::Native>(scope,initial,PlantMode::ExternalSolverWork,true,true,model_initial,10000,model_step,hv_dependency_ns);
+    require(!endurance_seconds || ((endurance_seconds==30 || endurance_seconds==300) && model_initial &&
+        model_step==5000000 && hv_dependency_ns==30000000),"bounded endurance wall profile");
+    native_=std::make_unique<FunctionalRig::Native>(scope,initial,PlantMode::ExternalSolverWork,true,true,model_initial,
+        endurance_seconds?horizon_ms_:10000,model_step,hv_dependency_ns);
     native_->wheel_mode=true;
 }
 WallRig::~WallRig()=default;
@@ -884,7 +888,7 @@ void WallRig::request_profile(std::vector<RequestPhase> profile) {
     require(owner_==std::this_thread::get_id() && !last_,"wall profile before service");
     FunctionalRig validator(scope_,actor_,PlantMode::ExternalSolverWork,true);
     validator.request_profile(profile);
-    if(model_initial_)profile.back().end_ms=30000;
+    if(model_initial_)profile.back().end_ms=horizon_ms_;
     native_->profile=std::move(profile);
 }
 void WallRig::execution_watch(WallExecutionWatch* watch) {
@@ -898,7 +902,7 @@ void WallRig::protect(const char* reason) {
 }
 WallReport WallRig::service(Time now,const std::optional<WallReceipt>& receipt) {
     require(owner_==std::this_thread::get_id(),"wall mutation owner");
-    require(now>=initial_ && (!last_ || now>last_) && now-initial_<=(model_initial_?30000:10000)*ms,"wall monotonic horizon");
+    require(now>=initial_ && (!last_ || now>last_) && now-initial_<=horizon_ms_*ms,"wall monotonic horizon");
     auto& n=*native_;
     bool valid_receipt=false;
     if(receipt) {
@@ -932,6 +936,8 @@ WallReport WallRig::service(Time now,const std::optional<WallReceipt>& receipt) 
         }
     });
     if(!n.external->electrical_ok())protect(n.external->error().c_str());
+    if(horizon_ms_>30000)for(const auto& leaf:n.leaf)
+        if(leaf->input_event_capacity_exhausted())protect("bounded endurance leaf diagnostic capacity");
     if(!failure_.empty())n.select_wall_protection(now,failure_.c_str());
     if(failure_.empty() && !n.wall_failure.empty())failure_=n.wall_failure;
     last_=now;

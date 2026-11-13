@@ -14,6 +14,7 @@ import uuid
 from physical_ai.perception.scene_capture_v1 import ReceiptSceneJoiner, observe, catalog_digest
 from physical_ai.perception.scene_mailbox_v1 import SceneBinding, ScenePublisher, encode, socket_pair
 from paired_fault_v1 import STOP_INTERVAL,CRASH_INTERVAL,STALL_NS
+from endurance_profile_v1 import limits
 
 WEATHER_FIELDS=('cloudiness','precipitation','precipitation_deposits','wind_intensity',
     'sun_azimuth_angle','sun_altitude_angle','fog_density','fog_distance','fog_falloff',
@@ -59,12 +60,14 @@ def prepare_actors(world,ego,carla):
 class PairedCapture:
     def __init__(self,args,world,ego,binding,geometry):
         self.args,self.world=args,world
+        self.bounds=limits(getattr(args,'endurance_seconds',0))
         self.root=args.output/'paired';self.root.mkdir()
         self.lock=threading.Lock();self.stopping=False;self.process=None;self.publisher=None;self.tick_id=None
         self.report=dict(schema='m10-paired-scene-source-v1',observations=[],exports=[],queries=[],events=[],errors=[],
                          query_timings=[],cleanup_errors=[],complete_visual_scene=False,perception_publications=0)
         self.poll_period_ns=1_000_000_000//args.paired_export_hz
         self.report['export_period_ns']=self.poll_period_ns
+        self.report['endurance_seconds']=self.bounds['seconds']
         self.last_poll=0;self.stopped_at=None;self.resumed=False;self.exited=False
         # Keep a pidfd for the runner-owned renderer; PID reuse cannot retarget a fault.
         cmdline=Path(f'/proc/{args.paired_renderer_pid}/cmdline').read_bytes().split(b'\0')
@@ -102,6 +105,7 @@ class PairedCapture:
                 '--server-pidfd',str(self.renderer_fd),
                 '--port',str(self.args.paired_renderer_port),'--output',str(self.root/'renderer'),
                 '--condition',self.args.paired_condition,'--detector',str(self.args.detector),
+                '--endurance-seconds',str(self.bounds['seconds']),
                 '--models',str(self.args.models),'--library',str(self.args.library)]
             self.log=(self.root/'renderer-client.log').open('w')
             env=dict(os.environ);env.pop('STRATADRIVE_M7_OWNER_KEY',None)
@@ -122,7 +126,7 @@ class PairedCapture:
             try:
                 o=observe(snapshot,self.binding.actor_ids,begin,time.monotonic_ns)
                 self.joiner.add(o)
-                if len(self.report['observations'])>=4096:raise ValueError('bounded paired observer')
+                if len(self.report['observations'])>=self.bounds['observations']:raise ValueError('bounded paired observer')
                 self.report['observations'].append(asdict(o))
             except Exception:self.report['errors'].append(traceback.format_exc());self.stopping=True
 

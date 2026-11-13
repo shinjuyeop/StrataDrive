@@ -9,6 +9,18 @@
 
 namespace {
 using stratadrive::runtime::TaskSchedule;
+TEST(TaskScheduleEndurance, ExplicitCapacityKeepsOriginalDeadlineAndMissedJobRules) {
+    EXPECT_THROW(TaskSchedule({1,2000000,4000000,10001}),std::invalid_argument);
+    EXPECT_THROW(TaskSchedule({1,2000000,4000000,160001,true}),std::invalid_argument);
+    const TaskSchedule schedule({1,2000000,4000000,152501,true});
+    stratadrive::runtime::DeadlineMonitor monitor(schedule);
+    for(std::size_t i=0;i<10000;++i)ASSERT_TRUE(monitor.finish(i,schedule.deadline(i)));
+    ASSERT_TRUE(monitor.finish(10000,schedule.deadline(10000)+1));
+    monitor.poll(schedule.deadline(10000));
+    ASSERT_TRUE(monitor.first_fault());EXPECT_EQ(monitor.first_fault()->job,10000U);
+    EXPECT_EQ(monitor.first_fault()->deadline_ns,20004000001ULL);
+    EXPECT_EQ(schedule.release(152500),305000000001ULL);
+}
 using stratadrive::runtime::DeadlineMonitor;
 using stratadrive::runtime::ReceiveWatch;
 using stratadrive::runtime::ReceiveHealth;

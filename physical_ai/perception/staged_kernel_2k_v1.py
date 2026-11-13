@@ -35,12 +35,15 @@ def prepare_staged(resize, packet, row):
 
 
 class StagedKernelBackend(KernelNativeBackend):
-    def __init__(self, *args):
+    def __init__(self, *args, trace_capacity=4096):
+        if type(trace_capacity) is not int or not 1<=trace_capacity<=6400:
+            raise ValueError('finite backend stage capacity')
+        self.trace_capacity=trace_capacity
         self.stages = []
         super().__init__(*args)
 
     def infer(self, packet):
-        if len(self.stages) >= 4096:
+        if len(self.stages) >= self.trace_capacity:
             raise ValueError("bounded backend stage trace")
         row = dict(
             identity=asdict(packet.identity), owner_thread_id=threading.get_ident()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Finite actual-native CARLA shadow IPC attempt; no perception authority."""
 import argparse
+import gzip
 import hashlib
 import json
 import os
@@ -16,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "carla"))
 from m7_1p_bridge import require
 from control_shadow_capture_v1 import Capture
 from owner_split_profile_v1 import PROFILES, validate_client
+from endurance_profile_v1 import limits
 
 
 def main():
@@ -39,7 +41,9 @@ def main():
     p.add_argument('--paired-renderer-pid',type=int)
     p.add_argument('--paired-condition',choices=('normal','stall-exit','stall-crash'),default='normal')
     p.add_argument('--paired-export-hz',type=int,choices=(20,50),default=20)
+    p.add_argument('--endurance-seconds',type=int,choices=(0,30,300),default=0)
     a=p.parse_args()
+    bounds=limits(a.endurance_seconds)
     try:validate_client(a)
     except ValueError as error:p.error(str(error))
     if a.paired_renderer_port is not None and (a.execution_profile!='owner5ms' or
@@ -52,15 +56,21 @@ def main():
     report['hv_dependency_ns']=a.hv_dependency_ms*1000000
     report['camera_condition']='absent' if a.camera_absent_control else '2k'
     report['execution_profile']=a.execution_profile
+    report['endurance_seconds']=a.endurance_seconds
+    report['requested_intervals']=a.ticks
     rows=[];events=[];waits=[];process=actor=world=original=None;bound=False;session=run=None
     paired=None;extras=[]
+    streamed_rows=0
+    trace_stream=gzip.open(a.output/'trace.jsonl.gz','wt',compresslevel=1) if a.endurance_seconds else None
     capture=Capture(a)
     c=carla.Client('127.0.0.1',2200);c.set_timeout(10)
     def rpc(op,**kw):
         request=dict(op=op,**kw,owner_key=os.environ['STRATADRIVE_M7_OWNER_KEY'])
         if op not in ('bind','describe'):request.update(session=session,run=run)
         value=json.loads(c.m7_nodrive(json.dumps(request)))
-        events.append({'op':op,'wall_ns':time.monotonic_ns(),'response':value})
+        if a.endurance_seconds and op in ('wall_trace','solver_trace','wall_ingress'):
+            events.append(dict(op=op,wall_ns=time.monotonic_ns(),arguments=kw,ok=value.get('ok'),retained_in='trace.jsonl.gz/ingress.json'))
+        else:events.append({'op':op,'wall_ns':time.monotonic_ns(),'response':value})
         return value
     def native(line):
         require(process.poll() is None,'native exited')
@@ -104,14 +114,16 @@ def main():
         model=int(binding['logical_begin_ns'])
         signal=(a.output/'wall-signal').resolve()
         stderr=(a.output/'native.stderr').open('w')
-        process=subprocess.Popen(['chrt','-f','18',str(a.native.resolve()),str(signal),str((a.output/'native').resolve()),str(a.scenario.resolve()),str(a.step_ms),str(a.hv_dependency_ms), '--perception-shadow', f'{capture.rx.fileno()}:{world.id}:{a.wall_clock}'],
+        command=['chrt','-f','18',str(a.native.resolve()),str(signal),str((a.output/'native').resolve()),str(a.scenario.resolve()),str(a.step_ms),str(a.hv_dependency_ms), '--perception-shadow', f'{capture.rx.fileno()}:{world.id}:{a.wall_clock}']
+        if a.endurance_seconds:command+=['--endurance-seconds',str(a.endurance_seconds)]
+        process=subprocess.Popen(command,
             pass_fds=(capture.rx.fileno(),), stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=stderr,text=True)
         capture.rx.close()
         capture.start_publisher()
         started=native(f'START {actor.id} {model} {session} {binding["physics"]["generation"]} {run}');report['native_initial']=started
         require(rpc('wall_start',initial=str(started['initial']),signal_path=str(signal),limit=str(a.ticks))['ok'],'same host wall start')
         report['wall_clock_contract']='host CLOCK_MONOTONIC acquisition; separate original CARLA model dt; no offset conversion'
-        fault_sent=False;writers_checked=False;deadline=time.monotonic()+18
+        fault_sent=False;writers_checked=False;deadline=time.monotonic()+bounds['execution_seconds']
         last_progress=time.monotonic();last_count=0
         while time.monotonic()<deadline:
             status=rpc('wall_status');count=int(status['wall_frames'])
@@ -146,7 +158,7 @@ def main():
             try:
                 if process.poll() is None:
                     process.stdin.write('STOP\n');process.stdin.flush()
-                process.stdin.close();report['native_exit']=process.wait(timeout=5)
+                process.stdin.close();report['native_exit']=process.wait(timeout=30 if a.endurance_seconds else 5)
             except Exception:
                 process.kill();process.wait();report['native_forced_stop']=True
             stderr.close()
@@ -169,8 +181,11 @@ def main():
                     reply=rpc('wall_trace',index=str(index));require(reply['ok'],'complete receipt history')
                     receipt=reply['receipt'];raw=rpc('solver_trace',ticket=receipt['ticket'])
                     require(raw['ok'],'complete solver history')
-                    rows.append({'index':index,'frame':int(receipt['frame'])-1,'physics':previous,
-                        'receipt':receipt,'raw_solver':raw,'settlement':reply.get('settlement')})
+                    row={'index':index,'frame':int(receipt['frame'])-1,'physics':previous,
+                        'receipt':receipt,'raw_solver':raw,'settlement':reply.get('settlement')}
+                    if trace_stream:
+                        trace_stream.write(json.dumps(row,separators=(',',':'))+'\n');streamed_rows+=1
+                    else:rows.append(row)
                     previous=receipt['physics']
                 before=rpc('describe')['frame'];paused=rpc('pause');time.sleep(.05);after=rpc('describe')
                 report['pause']={'stable':before==after['frame'],'clear':after['physics']['inputs_zero'],'latched':paused['latched']}
@@ -187,9 +202,10 @@ def main():
             for extra in reversed(extras):
                 if not extra.destroy():report['status']='FAIL';report['extra_actor_cleanup_error']=extra.id
             world.apply_settings(original)
-        report['receipts']=sum('receipt' in r for r in rows)
+        report['receipts']=streamed_rows if trace_stream else sum('receipt' in r for r in rows)
         (a.output/'native-waits.json').write_text(json.dumps(waits,indent=2)+'\n')
-        (a.output/'trace.jsonl').write_text(''.join(json.dumps(r,separators=(',',':'))+'\n' for r in rows))
+        if trace_stream:trace_stream.close()
+        else:(a.output/'trace.jsonl').write_text(''.join(json.dumps(r,separators=(',',':'))+'\n' for r in rows))
         (a.output/'events.json').write_text(json.dumps(events,indent=2)+'\n')
         (a.output/'result.json').write_text(json.dumps(report,indent=2)+'\n')
     return 0 if report['status']=='EXECUTED_REQUIRES_AUDIT' else 1

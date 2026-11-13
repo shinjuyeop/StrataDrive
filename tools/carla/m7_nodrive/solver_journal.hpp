@@ -9,8 +9,10 @@ namespace stratadrive { namespace m7_native {
 template<std::size_t Capacity> class SolverJournal {
 public:
     struct Entry {std::uint64_t frame=0,ticket=0;M7SolverTrace trace{};};
-    SolverJournal():entries_(new Entry[Capacity]{}) {}
-    bool full() const {return size_==Capacity;}
+    explicit SolverJournal(std::size_t capacity=Capacity)
+        :capacity_(capacity && capacity<=Capacity?capacity:0),
+         entries_(capacity_?new Entry[capacity_]{}:nullptr),failed_(!capacity_) {}
+    bool full() const {return size_==capacity_;}
     bool failed() const {return failed_;}
     std::size_t size() const {return size_;}
     bool append(std::uint64_t frame,std::uint64_t ticket,const M7SolverTrace& trace) {
@@ -21,10 +23,14 @@ public:
         entries_[size_++]={frame,ticket,trace};return true;
     }
     const Entry* find(std::uint64_t ticket) const {
-        for(std::size_t i=0;i<size_;++i)if(entries_[i].ticket==ticket)return &entries_[i];
+        std::size_t first=0,last=size_;
+        while(first<last) {const auto mid=first+(last-first)/2;
+            if(entries_[mid].ticket<ticket)first=mid+1;else last=mid;}
+        if(first<size_ && entries_[first].ticket==ticket)return &entries_[first];
         return nullptr;
     }
 private:
+    const std::size_t capacity_;
     std::unique_ptr<Entry[]> entries_;
     std::size_t size_=0;bool failed_=false;
 };

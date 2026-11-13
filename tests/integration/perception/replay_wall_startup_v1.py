@@ -6,6 +6,9 @@ import json
 from pathlib import Path
 import struct
 import subprocess
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"carla"))
+from evidence_io import json_rows
 
 
 def main():
@@ -13,7 +16,10 @@ def main():
     p.add_argument('--scenario',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--require-exact',action='store_true');a=p.parse_args()
     a.output.mkdir(parents=True,exist_ok=False)
     run=json.loads((a.capture/'result.json').read_text());meta=json.loads((a.capture/'native.json').read_text())
-    receipts=[json.loads(line) for line in (a.capture/'trace.jsonl').read_text().splitlines()]
+    receipts=[]
+    for row in json_rows(a.capture/'trace.jsonl'):
+        # Replay needs the exact receipt and previous physics, not duplicated raw substeps.
+        receipts.append(dict(receipt=row['receipt'],physics=row['physics']))
     jobs=list(csv.DictReader((a.capture/'native.csv').open()))
     f32=lambda v:struct.unpack('<f',struct.pack('<f',v))[0]
     step=run.get('model_step_ns',10_000_000)
@@ -39,6 +45,11 @@ def main():
     source=a.output/'input.txt';source.write_text('\n'.join(lines)+'\n')
     command=[str(a.binary.resolve()),str(source.resolve()),str(a.scenario.resolve()),str((a.output/'replay').resolve())]
     if step!=10_000_000:command.append(str(step//1_000_000))
+    if run.get('endurance_seconds'):
+        from endurance_profile_v1 import limits
+        bounds=limits(run['endurance_seconds'])
+        assert step==5_000_000 and meta['diagnostic_horizon_ns']==(bounds['seconds']+5)*1_000_000_000
+        command.append(str(bounds['seconds']))
     subprocess.run(command,check=True)
     output=list(csv.DictReader((a.output/'replay.csv').open()));assert len(output)==len(jobs)
     differences=[dict(index=i,original=x,replay=y) for i,(x,y) in enumerate(zip(jobs,output)) if x!=y]

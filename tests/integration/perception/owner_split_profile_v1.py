@@ -7,7 +7,11 @@ def validate_client(args):
     if args.execution_profile == 'shadow10ms':
         valid = args.cameras and args.ticks == 200 and args.step_ms == 10
     elif args.execution_profile == 'owner5ms':
-        valid = not args.cameras and args.camera_absent_control and args.ticks == 400 and args.step_ms == 5
+        duration=getattr(args,'endurance_seconds',0)
+        from endurance_profile_v1 import limits
+        bound=limits(duration)
+        valid = not args.cameras and args.camera_absent_control and args.ticks == bound['frames'] and args.step_ms == 5
+        if duration:valid=valid and getattr(args,'paired_renderer_port',None)==2300 and args.paired_condition=='normal' and args.paired_export_hz==20
     else:
         valid = False
     if not common or not valid:

@@ -17,12 +17,18 @@ import traceback
 from run_carla_control_shadow_v1 import verify,sha,original_owner_runtime
 from renderer_shutdown_v1 import allow_shutdown_tracer,shutdown,capture
 from carla_readiness_v1 import wait_ready
+from endurance_profile_v1 import limits
+from endurance_resources_v1 import resources,endurance_runtime
 
 
 def main(a):
+    bounds=limits(a.endurance_seconds)
+    if a.endurance_seconds and (a.condition!='normal' or a.export_hz!=20 or a.endurance_build is None):
+        raise ValueError('declared normal20Hz endurance build required')
     root=Path(__file__).resolve().parents[3];a.output.mkdir(parents=True,exist_ok=False)
     report=dict(schema='m10-paired-server-v1',status='FAIL',condition=a.condition,attempts=1,
-                started_utc=datetime.now(timezone.utc).isoformat(),export_hz=a.export_hz,
+                started_utc=datetime.now(timezone.utc).isoformat(),export_hz=a.export_hz,endurance_seconds=a.endurance_seconds,
+                requested_intervals=bounds['frames'],resources=[],
                 control_authority='unchanged native owner; perception diagnostic only')
     processes={};logs=[];client=None;first_interrupt=first_crash=None;ini=a.source/'Unreal/CarlaUE4/Saved/Config/Linux/GameUserSettings.ini'
     original=ini.read_bytes();report['original_ini_sha256']=hashlib.sha256(original).hexdigest()
@@ -30,12 +36,13 @@ def main(a):
     try:
         report['freeze_sha256']=verify(a.freeze)
         profile=json.loads((root/'profiles/perception-source-compare-server-v2.json').read_text())
-        expected=original_owner_runtime(a.freeze,a.source,a.engine,profile)
+        expected=endurance_runtime(a.freeze,a.endurance_build,a.source,a.engine,profile) if a.endurance_seconds else original_owner_runtime(a.freeze,a.source,a.engine,profile)
         for path,digest in expected.items():
             if sha(a.source/path)!=digest:raise ValueError('original runtime identity '+path)
         for path in ('/d','/tmp'):
             v=os.statvfs(path);free=v.f_bavail*v.f_frsize;report.setdefault('free_bytes',{})[path]=free
-            if free<4*1024**3:raise ValueError('insufficient paired evidence space: '+path)
+            budget=(bounds['stored_bytes']+4*1024**3) if a.endurance_seconds and path=='/d' else 4*1024**3
+            if free<budget:raise ValueError('insufficient paired evidence space: '+path)
         guards=[]
         try:
             for port in (2200,2201,2202,2300,2301,2302):
@@ -55,6 +62,7 @@ def main(a):
         commands=dict(renderer=base+['-carla-rpc-port=2300'],owner=base+['-carla-rpc-port=2200',
             '-StrataM7NativeProbe','-StrataM7V1Substeps320','-StrataM7SolverWork','-StrataM7CompactWork',
             '-StrataM7WallNative','-StrataM7HeldSteerSleep','-StrataM7Wall5ms','-nullrhi','-norenderthread'])
+        if a.endurance_seconds:commands['owner'].append('-StrataM10EnduranceFrames='+str(bounds['frames']))
         report['argv']=commands
         for role in ('renderer','owner'):
             log=(a.output/f'{role}.log').open('w');logs.append(log)
@@ -66,17 +74,21 @@ def main(a):
                 a.python,port,a.output/f'readiness-{port}.log',common)
         command=[str(a.python),str(Path(__file__).with_name('carla_control_shadow_v1.py')),
             '--output',str(a.output/'capture'),'--native',str(a.native),'--model',str(root/'tools/carla/m7_nodrive/virtual_ev_v1.json'),
-            '--scenario',str(root/'tests/integration/carla/scenarios/m7_integrated_v1.txt'),
-            '--ticks','400','--warmup-ticks','150','--step-ms','5','--execution-profile','owner5ms','--camera-absent-control',
+            '--scenario',str(root/('tests/integration/carla/scenarios/m10_endurance_hold_v1.txt' if a.endurance_seconds else 'tests/integration/carla/scenarios/m7_integrated_v1.txt')),
+            '--ticks',str(bounds['frames']),'--warmup-ticks','150','--step-ms','5','--execution-profile','owner5ms','--camera-absent-control',
             '--wall-clock',str(secrets.randbits(63) or 1),'--detector',str(a.detector),'--models',str(a.models),
             '--library',str(a.library),'--paired-renderer-port','2300','--paired-renderer-pid',str(processes['renderer'].pid),
-            '--paired-condition',a.condition,'--paired-export-hz',str(a.export_hz)]
+            '--paired-condition',a.condition,'--paired-export-hz',str(a.export_hz),'--endurance-seconds',str(a.endurance_seconds)]
         report['client_argv']=command
         log=(a.output/'client.log').open('w');logs.append(log)
         client=subprocess.Popen(command,env=owner_env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
-        deadline=time.monotonic()+900;diagnosed=False;first_interrupt=None
+        deadline=time.monotonic()+900+a.endurance_seconds*3;diagnosed=False;first_interrupt=None;last_resource=0
         while client.poll() is None or (first_interrupt and processes['renderer'].poll() is None):
             now=time.monotonic_ns();renderer=processes['renderer']
+            if a.endurance_seconds and now-last_resource>=1_000_000_000:
+                sample=resources({**report['pids'],'client':client.pid});report['resources'].append(sample);last_resource=now
+                if sample['available_ram_bytes']<2*1024**3 or sample['free_bytes']['/d']<2*1024**3:
+                    raise RuntimeError('declared resource reserve reached')
             if renderer.poll() is not None and 'renderer_exit_observed_ns' not in report:
                 report['renderer_exit_observed_ns']=now;report['renderer_injected_exit_code']=renderer.returncode
             control=a.output/'capture/paired/control.json'
@@ -145,4 +157,6 @@ if __name__=='__main__':
         p.add_argument('--'+name,type=Path,required=True)
     p.add_argument('--condition',choices=('normal','stall-exit','stall-crash'),required=True)
     p.add_argument('--export-hz',type=int,choices=(20,50),default=20)
+    p.add_argument('--endurance-seconds',type=int,choices=(0,30,300),default=0)
+    p.add_argument('--endurance-build',type=Path)
     raise SystemExit(main(p.parse_args()))

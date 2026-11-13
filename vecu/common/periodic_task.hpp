@@ -12,6 +12,7 @@ struct TaskScheduleConfig {
     std::uint64_t period_ns;
     std::uint64_t relative_deadline_ns;
     std::size_t jobs;
+    bool diagnostic_endurance{false}; // explicit preallocated 160000-job storage; timing unchanged
 };
 
 // A finite absolute schedule. A late caller selects the newest released job;

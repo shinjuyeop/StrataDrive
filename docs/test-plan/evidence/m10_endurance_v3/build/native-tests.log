@@ -1,0 +1,192 @@
+Test project /d/shin/StrataDrive/build/m10-endurance-v3/native
+      Start  50: M4FaultContract.DelayedOldAckCannotContaminateNewerSessionEvenWhileItsSourceIsFresh
+ 1/91 Test  #50: M4FaultContract.DelayedOldAckCannotContaminateNewerSessionEvenWhileItsSourceIsFresh ...   Passed    0.00 sec
+      Start  51: M4FaultContract.RealOverflowDoesNotRecoverWhenReceiveBlockingEnds
+ 2/91 Test  #51: M4FaultContract.RealOverflowDoesNotRecoverWhenReceiveBlockingEnds .....................   Passed    0.00 sec
+      Start  52: M4FaultContract.StrictRecipeRejectsUnknownEndpointsAndAmbiguousTimes
+ 3/91 Test  #52: M4FaultContract.StrictRecipeRejectsUnknownEndpointsAndAmbiguousTimes ..................   Passed    0.00 sec
+      Start  53: M4ExecutionWatch.ExtendedStorageKeepsOriginalTwoMsFourMsSchedule
+ 4/91 Test  #53: M4ExecutionWatch.ExtendedStorageKeepsOriginalTwoMsFourMsSchedule ......................   Passed    0.06 sec
+      Start  54: M4ExecutionWatch.LaterCompletionCannotFillAnEarlierMissedOpportunity
+ 5/91 Test  #54: M4ExecutionWatch.LaterCompletionCannotFillAnEarlierMissedOpportunity ..................   Passed    0.00 sec
+      Start  55: M4ExecutionWatch.DelayedWakeCompletesOriginalRequestedSlotOnly
+ 6/91 Test  #55: M4ExecutionWatch.DelayedWakeCompletesOriginalRequestedSlotOnly ........................   Passed    0.00 sec
+      Start  56: M4ExecutionWatch.RequestedTargetRejectsFutureAndZero
+ 7/91 Test  #56: M4ExecutionWatch.RequestedTargetRejectsFutureAndZero ..................................   Passed    0.00 sec
+      Start  57: M4ExecutionWatch.RequestedAfterFiniteWindowDoesNotCompleteLastSlot
+ 8/91 Test  #57: M4ExecutionWatch.RequestedAfterFiniteWindowDoesNotCompleteLastSlot ....................   Passed    0.00 sec
+      Start  58: M4ReleaseGrid.SharedOriginAlignsEveryOwnerPeriodAndSkipsCatchup
+ 9/91 Test  #58: M4ReleaseGrid.SharedOriginAlignsEveryOwnerPeriodAndSkipsCatchup .......................   Passed    0.00 sec
+      Start  59: M4ReleaseGrid.InvalidClockOrOverflowIsRejected
+10/91 Test  #59: M4ReleaseGrid.InvalidClockOrOverflowIsRejected ........................................   Passed    0.00 sec
+      Start  60: M4ReleaseGrid.ReplaysOriginalMonitorPhaseCrossingWithoutChangingMissPolicy
+11/91 Test  #60: M4ReleaseGrid.ReplaysOriginalMonitorPhaseCrossingWithoutChangingMissPolicy ............   Passed    0.00 sec
+      Start  61: M4FaultRuntime.CentralStopExpiresAuthorityWithoutCentralProtectionAck
+12/91 Test  #61: M4FaultRuntime.CentralStopExpiresAuthorityWithoutCentralProtectionAck .................   Passed    0.02 sec
+      Start  62: M4FaultRuntime.DelayedPacketsKeepOriginalExclusiveDeadline
+13/91 Test  #62: M4FaultRuntime.DelayedPacketsKeepOriginalExclusiveDeadline ............................   Passed    0.02 sec
+      Start  63: M4FaultRuntime.AcceptedCommandExpiresAtItsOriginalContextDeadline
+14/91 Test  #63: M4FaultRuntime.AcceptedCommandExpiresAtItsOriginalContextDeadline .....................   Passed    0.02 sec
+      Start  64: M4FaultRuntime.OverflowCannotHealUntilAllOwnersJoinAndLinksAreReplaced
+15/91 Test  #64: M4FaultRuntime.OverflowCannotHealUntilAllOwnersJoinAndLinksAreReplaced ................   Passed    0.05 sec
+      Start  65: M4FaultRuntime.ResumedOwnerStillNeedsNewDurableGrantAndFullSession
+16/91 Test  #65: M4FaultRuntime.ResumedOwnerStillNeedsNewDurableGrantAndFullSession ....................   Passed    0.05 sec
+      Start  66: M4FaultRuntime.LostArmResultCannotCreatePartialNormalOperation
+17/91 Test  #66: M4FaultRuntime.LostArmResultCannotCreatePartialNormalOperation ........................   Passed    0.02 sec
+      Start  67: M4FaultRuntime.MissingTerminalAckProtectsInsteadOfReportingCleanStop
+18/91 Test  #67: M4FaultRuntime.MissingTerminalAckProtectsInsteadOfReportingCleanStop ..................   Passed    0.04 sec
+      Start  91: M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory
+19/91 Test  #91: M4FaultWall.JoinedOverflowRecoveryPreservesPhysicalHistory ............................   Passed    4.21 sec
+      Start  92: M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction
+20/91 Test  #92: M4FaultWall.PausedLeafCannotAcknowledgePhysicalWatchdogAction .........................   Passed    1.81 sec
+      Start 100: TaskScheduleEndurance.ExplicitCapacityKeepsOriginalDeadlineAndMissedJobRules
+21/91 Test #100: TaskScheduleEndurance.ExplicitCapacityKeepsOriginalDeadlineAndMissedJobRules ..........   Passed    0.00 sec
+      Start 110: PeriodicTask.AbsoluteReleasesDoNotDriftAndDeadlineIsIndependent
+22/91 Test #110: PeriodicTask.AbsoluteReleasesDoNotDriftAndDeadlineIsIndependent .......................   Passed    0.00 sec
+      Start 111: PeriodicTask.LateWakeSelectsNewestJobWithoutCatchUp
+23/91 Test #111: PeriodicTask.LateWakeSelectsNewestJobWithoutCatchUp ...................................   Passed    0.00 sec
+      Start 112: PeriodicTask.InvalidAndOverflowingSchedulesAreRejectedBeforeExecution
+24/91 Test #112: PeriodicTask.InvalidAndOverflowingSchedulesAreRejectedBeforeExecution .................   Passed    0.00 sec
+      Start 113: PeriodicTask.OverlappingJobDeadlinesAreExplicitlySupported
+25/91 Test #113: PeriodicTask.OverlappingJobDeadlinesAreExplicitlySupported ............................   Passed    0.00 sec
+      Start 114: PeriodicTask.FinishingExactlyAtDeadlineIsOnTime
+26/91 Test #114: PeriodicTask.FinishingExactlyAtDeadlineIsOnTime .......................................   Passed    0.00 sec
+      Start 115: PeriodicTask.UnstartedJobIsMissedWithoutAnyExecutorCallback
+27/91 Test #115: PeriodicTask.UnstartedJobIsMissedWithoutAnyExecutorCallback ...........................   Passed    0.00 sec
+      Start 116: PeriodicTask.LateCompletionDoesNotEraseARecordedMiss
+28/91 Test #116: PeriodicTask.LateCompletionDoesNotEraseARecordedMiss ..................................   Passed    0.00 sec
+      Start 117: PeriodicTask.LateCompletionIsFoundEvenWhenMonitorWakesAfterIt
+29/91 Test #117: PeriodicTask.LateCompletionIsFoundEvenWhenMonitorWakesAfterIt .........................   Passed    0.00 sec
+      Start 118: PeriodicTask.SkippedAndNeverStartedJobsRemainInTheDenominator
+30/91 Test #118: PeriodicTask.SkippedAndNeverStartedJobsRemainInTheDenominator .........................   Passed    0.00 sec
+      Start 119: PeriodicTask.InvalidAndDuplicateCompletionCannotRefreshProgress
+31/91 Test #119: PeriodicTask.InvalidAndDuplicateCompletionCannotRefreshProgress .......................   Passed    0.00 sec
+      Start 120: PeriodicTask.ClockRollbackIsLatchedSeparatelyFromJobFailure
+32/91 Test #120: PeriodicTask.ClockRollbackIsLatchedSeparatelyFromJobFailure ...........................   Passed    0.00 sec
+      Start 149: M7Wheel.RealNativePathPreservesAcquisitionDespiteFasterFixturePublication
+33/91 Test #149: M7Wheel.RealNativePathPreservesAcquisitionDespiteFasterFixturePublication .............   Passed    0.02 sec
+      Start 150: M7Wheel.NoFutureObservationUsedByEarlierNativeJobs
+34/91 Test #150: M7Wheel.NoFutureObservationUsedByEarlierNativeJobs ....................................   Passed    0.02 sec
+      Start 151: M7Wheel.FractionalCarlaClockCannotOverwriteAnUnconsumedSample
+35/91 Test #151: M7Wheel.FractionalCarlaClockCannotOverwriteAnUnconsumedSample .........................   Passed    0.03 sec
+      Start 152: M7Wheel.MissingWheelCannotFallBackToStationaryFixtureOrHeal
+36/91 Test #152: M7Wheel.MissingWheelCannotFallBackToStationaryFixtureOrHeal ...........................   Passed    0.00 sec
+      Start 153: M7Wheel.WrongActorFrameOldSourceAndFutureSourceRejected
+37/91 Test #153: M7Wheel.WrongActorFrameOldSourceAndFutureSourceRejected ...............................   Passed    0.00 sec
+      Start 154: M7Wheel.NonfiniteRangeAndReverseNotClampedOrMadePositive
+38/91 Test #154: M7Wheel.NonfiniteRangeAndReverseNotClampedOrMadePositive ..............................   Passed    0.00 sec
+      Start 155: M7Wheel.OriginalNonDrivingResetDoesNotInitializeFromMovingWheel
+39/91 Test #155: M7Wheel.OriginalNonDrivingResetDoesNotInitializeFromMovingWheel .......................   Passed    0.01 sec
+      Start 156: M7Wheel.OldScopeDuplicateAndSkippedFrameStillFailClosed
+40/91 Test #156: M7Wheel.OldScopeDuplicateAndSkippedFrameStillFailClosed ...............................   Passed    0.00 sec
+      Start 157: M7WallWatch.TerminalSelectionAtCompletedBarrierDoesNotReplayOrRearm
+41/91 Test #157: M7WallWatch.TerminalSelectionAtCompletedBarrierDoesNotReplayOrRearm ...................   Passed    0.03 sec
+      Start 158: M7WallWatch.RealOwnerCallsCompleteSlotsButIdlePollingCannot
+42/91 Test #158: M7WallWatch.RealOwnerCallsCompleteSlotsButIdlePollingCannot ...........................   Passed    0.08 sec
+      Start 159: M7WallWatch.LateCompletionCannotHealIndependentDeadlineFault
+43/91 Test #159: M7WallWatch.LateCompletionCannotHealIndependentDeadlineFault ..........................   Passed    0.05 sec
+      Start 160: M7TerminalResponse.SameEightOwnersKeepActualFeedbackWithoutWheelOrWork
+44/91 Test #160: M7TerminalResponse.SameEightOwnersKeepActualFeedbackWithoutWheelOrWork ................   Passed    0.08 sec
+      Start 161: M7TerminalResponse.NoReplayPollsAfterLateServiceAndNoBackwardClock
+45/91 Test #161: M7TerminalResponse.NoReplayPollsAfterLateServiceAndNoBackwardClock ....................   Passed    0.04 sec
+      Start 162: M7TerminalResponse.HandoffRequiresSettledNormalObservedWork
+46/91 Test #162: M7TerminalResponse.HandoffRequiresSettledNormalObservedWork ...........................   Passed    0.03 sec
+      Start 163: M7WallOwner.NewInitRunsAtOriginalRatesWithoutLogicalReplay
+47/91 Test #163: M7WallOwner.NewInitRunsAtOriginalRatesWithoutLogicalReplay ............................   Passed    0.04 sec
+      Start 164: M7WallOwner.MissingReceiptKeepsServiceAndProtectiveResponseRunning
+48/91 Test #164: M7WallOwner.MissingReceiptKeepsServiceAndProtectiveResponseRunning ....................   Passed    0.04 sec
+      Start 165: M7WallOwner.SimulationTimestampAndDuplicateReceiptCannotBecomeWallSensors
+49/91 Test #165: M7WallOwner.SimulationTimestampAndDuplicateReceiptCannotBecomeWallSensors .............   Passed    0.00 sec
+      Start 166: M7WallOwner.NoCatchupControllerReleasesAndSingleMutationOwner
+50/91 Test #166: M7WallOwner.NoCatchupControllerReleasesAndSingleMutationOwner .........................   Passed    0.03 sec
+      Start 167: M7WallOwner.FaultDoesNotDiscardCompletedWorkOrReopenNormalAuthority
+51/91 Test #167: M7WallOwner.FaultDoesNotDiscardCompletedWorkOrReopenNormalAuthority ...................   Passed    0.03 sec
+      Start 168: M7WallOwner.CompletedWorkIsVisibleBeforeOwnerServiceWithTimerJitter
+52/91 Test #168: M7WallOwner.CompletedWorkIsVisibleBeforeOwnerServiceWithTimerJitter ...................   Passed    0.31 sec
+      Start 169: M7WallOwner.InitPhaseStartsAfterSettledWorkWithoutChangingReceiptTimes
+53/91 Test #169: M7WallOwner.InitPhaseStartsAfterSettledWorkWithoutChangingReceiptTimes ................   Passed    0.04 sec
+      Start 170: M7WallOwner.MissingSafeInitEvidenceNeverExtendsDeadlineOrCreatesAck
+54/91 Test #170: M7WallOwner.MissingSafeInitEvidenceNeverExtendsDeadlineOrCreatesAck ...................   Passed    0.00 sec
+      Start 171: M7WallMailbox.OverflowLatchesWithoutOverwritingUnsettledReceipts
+55/91 Test #171: M7WallMailbox.OverflowLatchesWithoutOverwritingUnsettledReceipts ......................   Passed    0.00 sec
+      Start 172: M7WallMailbox.ConcurrentDeliveryPreservesReceiptContentsAndOrder
+56/91 Test #172: M7WallMailbox.ConcurrentDeliveryPreservesReceiptContentsAndOrder ......................   Passed    0.00 sec
+      Start 173: M7CarlaClock.EnduranceRequiresOriginalFiveMsThirtyMsScope
+57/91 Test #173: M7CarlaClock.EnduranceRequiresOriginalFiveMsThirtyMsScope .............................   Passed    0.00 sec
+      Start 174: M7CarlaClock.EnduranceHorizonRetainsMissingInputProtection
+58/91 Test #174: M7CarlaClock.EnduranceHorizonRetainsMissingInputProtection ............................   Passed    0.10 sec
+      Start 175: M7CarlaClock.ModelDtAndWallAcquisitionRemainDistinctAndCached
+59/91 Test #175: M7CarlaClock.ModelDtAndWallAcquisitionRemainDistinctAndCached .........................   Passed    0.00 sec
+      Start 176: M7CarlaClock.RejectsFutureReplayedAndMixedClockReceipts
+60/91 Test #176: M7CarlaClock.RejectsFutureReplayedAndMixedClockReceipts ...............................   Passed    0.00 sec
+      Start 177: M7CarlaClock.NoElectricalAcquisitionWithoutCompletedPhysics
+61/91 Test #177: M7CarlaClock.NoElectricalAcquisitionWithoutCompletedPhysics ...........................   Passed    0.00 sec
+      Start 178: M7CarlaClock.NativeUsesOriginalAcquisitionInsteadOfModelTimestamp
+62/91 Test #178: M7CarlaClock.NativeUsesOriginalAcquisitionInsteadOfModelTimestamp .....................   Passed    0.00 sec
+      Start 179: M7CarlaClock.StartupDependencyWaitDoesNotSuppressOriginalEcuReleases
+63/91 Test #179: M7CarlaClock.StartupDependencyWaitDoesNotSuppressOriginalEcuReleases ..................   Passed    0.00 sec
+      Start 180: M7CarlaClock.StartupMissingEnergyRetainsOriginalThirtyMsProtection
+64/91 Test #180: M7CarlaClock.StartupMissingEnergyRetainsOriginalThirtyMsProtection ....................   Passed    0.00 sec
+      Start 181: M7CarlaClock.SensorIngressHandlesDriftingPhysicsPhaseWithoutExtraControlJobs
+65/91 Test #181: M7CarlaClock.SensorIngressHandlesDriftingPhysicsPhaseWithoutExtraControlJobs ..........   Passed    0.04 sec
+      Start 182: M7CarlaClock.FiveMsWorkRequiresMatchingExplicitCarlaProfile
+66/91 Test #182: M7CarlaClock.FiveMsWorkRequiresMatchingExplicitCarlaProfile ...........................   Passed    0.00 sec
+      Start 183: M7WallHv.DependencyBudgetIsExplicitAndBoundaryInclusive
+67/91 Test #183: M7WallHv.DependencyBudgetIsExplicitAndBoundaryInclusive ...............................   Passed    0.00 sec
+      Start 184: M7WallHv.SourceAndWheelStayAtThirtyMs
+68/91 Test #184: M7WallHv.SourceAndWheelStayAtThirtyMs .................................................   Passed    0.00 sec
+      Start 185: M7WallHv.CachedIdentityCannotAcquireNewTimes
+69/91 Test #185: M7WallHv.CachedIdentityCannotAcquireNewTimes ..........................................   Passed    0.00 sec
+      Start 186: M7WallHv.FreshReplacementCannotHidePreviousExpiry
+70/91 Test #186: M7WallHv.FreshReplacementCannotHidePreviousExpiry .....................................   Passed    0.00 sec
+      Start 187: M7WallHv.InvalidOrUnscopedBudgetIsRejected
+71/91 Test #187: M7WallHv.InvalidOrUnscopedBudgetIsRejected ............................................   Passed    0.00 sec
+      Start 188: M7WallHv.OwnerOptionsCannotChangeAnotherLeafOrUseUnknownIngress
+72/91 Test #188: M7WallHv.OwnerOptionsCannotChangeAnotherLeafOrUseUnknownIngress .......................   Passed    0.00 sec
+      Start 190: M7NativeAdmission.RealEightOwnersWholeIntervalsAndFractionalOriginalClock
+73/91 Test #190: M7NativeAdmission.RealEightOwnersWholeIntervalsAndFractionalOriginalClock .............   Passed    0.13 sec
+      Start 191: M7NativeAdmission.OriginalAuthorityAndCausalityCorruptionsLatch
+74/91 Test #191: M7NativeAdmission.OriginalAuthorityAndCausalityCorruptionsLatch .......................   Passed    0.09 sec
+      Start 192: M7NativeAdmission.SampledActualKeepsCurrentExpiryAndWholePhysicalSourceCoverage
+75/91 Test #192: M7NativeAdmission.SampledActualKeepsCurrentExpiryAndWholePhysicalSourceCoverage .......   Passed    0.08 sec
+      Start 193: M7NativeAdmission.BootstrapCannotHideNormalActualOrSkipObservation
+76/91 Test #193: M7NativeAdmission.BootstrapCannotHideNormalActualOrSkipObservation ....................   Passed    0.07 sec
+      Start 194: M7NativeAdmission.ReleaseAckAtExclusiveCommitDeadlineIsRejected
+77/91 Test #194: M7NativeAdmission.ReleaseAckAtExclusiveCommitDeadlineIsRejected .......................   Passed    0.06 sec
+      Start 195: M7NativeAdmission.TerminalProtectionUsesOriginalActualAfterNormalCreditsClose
+78/91 Test #195: M7NativeAdmission.TerminalProtectionUsesOriginalActualAfterNormalCreditsClose .........   Passed    0.06 sec
+      Start 196: M7NativeAdmission.ProtectionCannotHideMissingOriginSessionOrReopenNormal
+79/91 Test #196: M7NativeAdmission.ProtectionCannotHideMissingOriginSessionOrReopenNormal ..............   Passed    0.15 sec
+      Start 197: M7NativeAdmission.ProtectionKeepsOriginalReceiversAndFrozenSelectionTime
+80/91 Test #197: M7NativeAdmission.ProtectionKeepsOriginalReceiversAndFrozenSelectionTime ..............   Passed    0.07 sec
+      Start 198: M7NativePhase.RejectsChangesAfterInitAndUnsupportedGridWithoutChangingPeriods
+81/91 Test #198: M7NativePhase.RejectsChangesAfterInitAndUnsupportedGridWithoutChangingPeriods .........   Passed    0.00 sec
+      Start 202: M7SolverJournal.CopiesRawEvidenceBeforeObserverReuseAndNeverConsumesReads
+82/91 Test #202: M7SolverJournal.CopiesRawEvidenceBeforeObserverReuseAndNeverConsumesReads .............   Passed    0.00 sec
+      Start 203: M7SolverJournal.ExplicitCapacityIsBoundedAndLookupKeepsSparseTicketIdentity
+83/91 Test #203: M7SolverJournal.ExplicitCapacityIsBoundedAndLookupKeepsSparseTicketIdentity ...........   Passed    0.00 sec
+      Start 204: M7SolverJournal.CapacityFailureRetainsAllPriorEvidenceAndLatches
+84/91 Test #204: M7SolverJournal.CapacityFailureRetainsAllPriorEvidenceAndLatches ......................   Passed    0.00 sec
+      Start 205: M7SolverJournal.RejectsDuplicateTicketSkippedFrameAndWrongAbiWithoutHealing
+85/91 Test #205: M7SolverJournal.RejectsDuplicateTicketSkippedFrameAndWrongAbiWithoutHealing ...........   Passed    0.00 sec
+      Start 206: M7WallAdmission.NormalThenZeroTorqueProtectionWithoutInventingFreshWheel
+86/91 Test #206: M7WallAdmission.NormalThenZeroTorqueProtectionWithoutInventingFreshWheel ..............   Passed    0.08 sec
+      Start 207: M7WallAdmission.FunctionalGateCannotAcceptMonotonicInit
+87/91 Test #207: M7WallAdmission.FunctionalGateCannotAcceptMonotonicInit ...............................   Passed    0.00 sec
+      Start 208: M7WallAdmission.InitFaultCannotInventMissingProtectiveActual
+88/91 Test #208: M7WallAdmission.InitFaultCannotInventMissingProtectiveActual ..........................   Passed    0.01 sec
+      Start 209: M7WallAdmission.CoupledFiveMsPlantProgressWithoutRelaxingNativeBudgets
+89/91 Test #209: M7WallAdmission.CoupledFiveMsPlantProgressWithoutRelaxingNativeBudgets ................   Passed    0.16 sec
+      Start 210: M7WallAdmission.FiveMsIsNotAnImplicitFunctionalClockChange
+90/91 Test #210: M7WallAdmission.FiveMsIsNotAnImplicitFunctionalClockChange ............................   Passed    0.00 sec
+      Start 211: M7WallAdmission.ReceptionContinuesAcrossPlantGapWithoutGrantingTicks
+91/91 Test #211: M7WallAdmission.ReceptionContinuesAcrossPlantGapWithoutGrantingTicks ..................   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 91
+
+Label Time Summary:
+integration.logical    =   2.33 sec*proc (66 tests)
+runtime.wall           =   6.02 sec*proc (2 tests)
+unit                   =   0.09 sec*proc (23 tests)
+
+Total Test time (real) =   8.54 sec

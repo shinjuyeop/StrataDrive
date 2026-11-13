@@ -1,0 +1,1 @@
+Preparation-only source snapshot; no live execution used this freeze. The new missing-input test initially supplied no energy at all and remained in startup wait. The corrected test supplies two original energy samples before withholding further input. Production behavior was not changed to make that assertion pass. Final59 tests pass.

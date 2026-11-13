@@ -4,6 +4,40 @@ using namespace stratadrive;
 using namespace m7_functional;
 namespace {
 constexpr Time wall=1000000000000ULL,model=1000000000ULL;
+m7_external::CarlaWork frame(unsigned i,Time source);
+TEST(M7CarlaClock, EnduranceRequiresOriginalFiveMsThirtyMsScope) {
+    for(const unsigned seconds:{1U,29U,31U,301U})
+        EXPECT_THROW((WallRig{{1,42,7},99,wall,model,5*ms,30*ms,seconds}),std::runtime_error);
+    EXPECT_THROW((WallRig{{1,42,7},99,wall,0,5*ms,30*ms,30}),std::runtime_error);
+    EXPECT_THROW((WallRig{{1,42,7},99,wall,model,10*ms,30*ms,30}),std::runtime_error);
+    EXPECT_THROW((WallRig{{1,42,7},99,wall,model,5*ms,50*ms,30}),std::runtime_error);
+    WallRig original({1,42,7},99,wall,model,5*ms);
+    EXPECT_THROW(original.service(wall+30001*ms),std::runtime_error);
+}
+TEST(M7CarlaClock, EnduranceHorizonRetainsMissingInputProtection) {
+    for(const unsigned seconds:{30U,300U}) {
+        WallRig rig({1,42,7},99,wall,model,5*ms,30*ms,seconds);
+        ASSERT_NO_THROW(rig.request_profile({{3500,1,.02,0,false},{4500,-.3,0,0,false},{6500,0,0,.5,true}}));
+        WallReport r;
+        for(unsigned i=1;i<=1000;++i) {
+            std::optional<WallReceipt> receipt;
+            if(i==13 || i==23) {
+                const unsigned index=i==13?1:2;
+                auto c=frame(index,wall+(i-1)*ms);auto& w=c.work;
+                w.begin=model+(index-1)*5*ms;w.end=w.begin+5*ms;w.oldest=w.begin;
+                w.dt=double(.005f*(1.f/320.f));w.wheel={0,{7,99+index,w.begin},w.begin};
+                c.applied=c.oldest=c.acquired_begin-ms;
+                receipt=WallReceipt{{99,w.frame,c.acquired_begin,{0,0,0,0}},w,wall_domain,c};
+            }
+            r=rig.service(wall+i*ms+60000,receipt);
+        }
+        ASSERT_TRUE(r.failed);EXPECT_FALSE(r.native.armed);EXPECT_EQ(r.native.credit_mask,0U);
+        const auto selected=r.protected_at;
+        ASSERT_NO_THROW(r=rig.service(wall+((seconds+5)*1000-1)*ms));
+        EXPECT_TRUE(r.failed);EXPECT_EQ(r.protected_at,selected);EXPECT_FALSE(r.native.armed);
+        EXPECT_THROW(rig.service(wall+((seconds+5)*1000+1)*ms),std::runtime_error);
+    }
+}
 m7_external::CarlaWork frame(unsigned i,Time source) {
     m7_external::CarlaWork c;
     auto& w=c.work;w.frame=100+i;w.begin=model+(i-1)*10*ms;w.end=model+i*10*ms;w.oldest=w.begin;

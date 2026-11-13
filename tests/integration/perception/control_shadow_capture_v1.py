@@ -10,6 +10,7 @@ import zlib
 
 from PIL import Image
 from native_memory_recorder_v1 import MemoryRecorder
+from endurance_profile_v1 import limits
 from physical_ai.perception.ipc_2k_v1 import IpcWorldPerception, Publisher, socket_pair
 from physical_ai.perception.staged_kernel_2k_v1 import StagedKernelBackend
 from physical_ai.perception.world_async_2k_v1 import ObservedWorldClock
@@ -18,6 +19,7 @@ from physical_ai.perception.world_async_2k_v1 import ObservedWorldClock
 class Capture:
     def __init__(self, args):
         self.args = args
+        self.bounds=limits(getattr(args,'endurance_seconds',0))
         self.world = self.sensor = self.worker = self.thread = self.recorder = None
         self.tick_id = None
         self.tx, self.rx = socket_pair()
@@ -104,7 +106,7 @@ class Capture:
                     if not self.worker.start_observed_session(42):
                         raise RuntimeError("observed session initialization")
                     self.started = True
-                if len(self.report["state"]) >= 4096:
+                if len(self.report["state"]) >= self.bounds['observations']:
                     raise RuntimeError("bounded state recorder")
                 row["end_wall_ns"] = time.monotonic_ns()
                 self.report["state"].append(row)
@@ -145,7 +147,7 @@ class Capture:
                     sent_at = time.monotonic_ns()
                     data, disposition = self.publisher.send(sample, frame, sent_at)
                     ended = time.monotonic_ns()
-                    if len(self.report["ipc"]) >= 1000:
+                    if len(self.report["ipc"]) >= self.bounds['ipc_rows']:
                         raise RuntimeError("bounded publisher recorder")
                     self.report["ipc"].append(dict(scheduled_wall_ns=scheduled, sender_wall_ns=sent_at,
                         observation_wall_ns=sample.wall_ns, end_wall_ns=ended, disposition=disposition, packet_hex=data.hex()))

@@ -13,7 +13,7 @@ public:
     static std::uint64_t now() {return simulation::runtime_support::now_ns();}
     explicit WallExecutionWatch(std::uint64_t first_release,std::uint64_t horizon=2000000000ULL)
         :first_(first_release),last_(first_release+horizon),
-         watch_(first_release,last_+20000000ULL) {
+         watch_(first_release,last_+20000000ULL,0x3ff,horizon==35000000000ULL || horizon==305000000000ULL) {
         monitor_=std::thread([this] {
             auto release=first_;
             while(!done_.load(std::memory_order_acquire)) {

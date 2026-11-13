@@ -10,10 +10,13 @@ std::uint64_t M4ReleaseGrid::after(std::uint64_t now) const {
     return now+remaining;
 }
 M4ExecutionWatch::Guard::Guard(runtime::TaskScheduleConfig config):schedule(config),monitor(schedule),rows(config.jobs) {}
-M4ExecutionWatch::M4ExecutionWatch(std::uint64_t enable,std::uint64_t stop,std::uint16_t mask):active_mask_(mask) {
+M4ExecutionWatch::M4ExecutionWatch(std::uint64_t enable,std::uint64_t stop,std::uint16_t mask,bool endurance):active_mask_(mask) {
     if(!mask || (mask & ~0x3ffU))throw std::invalid_argument("invalid active owner mask");
     if(stop<enable || stop-enable<20000000) throw std::invalid_argument("M4 guard window requires 20ms tail");
-    const runtime::TaskScheduleConfig config{enable,2000000,4000000,static_cast<std::size_t>((stop-enable-20000000)/2000000+1)};
+    const auto horizon=stop-enable-20000000;
+    if(endurance && horizon!=35000000000ULL && horizon!=305000000000ULL)
+        throw std::invalid_argument("explicit 30s/300s diagnostic recording horizon required");
+    const runtime::TaskScheduleConfig config{enable,2000000,4000000,static_cast<std::size_t>(horizon/2000000+1),endurance};
     for(std::size_t i=0;i<guards_.size();++i) {
         guards_[i]=std::make_unique<Guard>(config);
         for(std::size_t j=0;j<config.jobs;++j) guards_[i]->rows[j]={i,j,guards_[i]->schedule.release(j),guards_[i]->schedule.deadline(j),0,0,0,0};

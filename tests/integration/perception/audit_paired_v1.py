@@ -20,6 +20,9 @@ from physical_ai.perception.scene_mailbox_v1 import SceneBinding,ActorPose,decod
 from physical_ai.perception.camera_resolution_v1 import decode as decode_detection
 from physical_ai.perception.async_native_2k_v1 import MODEL_SHA256
 from paired_fault_v1 import audit_crash_progress,audit_crash_cleanup
+from endurance_profile_v1 import limits
+from endurance_recording_v1 import RawReader
+from evidence_io import json_rows
 
 
 def require(value,why):
@@ -32,8 +35,14 @@ def sha(data):return hashlib.sha256(data).hexdigest()
 def audit(root):
     read=lambda p:json.loads((root/p).read_text())
     server=read('server.json');source=read('capture/paired/source.json')
+    bounds=limits(server.get('endurance_seconds',0))
     renderer=read('capture/paired/renderer/result.json');data=read('capture/paired/catalog.json')
     catalog=data['catalog'];b=data['binding']
+    if bounds['seconds']:
+        require(server['condition']=='normal' and server['export_hz']==20 and
+            source['endurance_seconds']==renderer['endurance_seconds']==read('capture/result.json')['endurance_seconds']==bounds['seconds'],
+            'declared endurance duration and workload')
+        require(read('capture/result.json')['binding']['endurance_frames']==bounds['frames'],'extended journal binding')
     for k in ('run','scene_sha256','model_sha256'):b[k]=bytes.fromhex(b[k])
     b['actor_ids']=tuple(b['actor_ids']);binding=SceneBinding(**b)
     require(catalog_digest(catalog)==binding.scene_sha256,'catalog binding')
@@ -56,7 +65,7 @@ def audit(root):
     require(walker['blueprint'].startswith('walker.') and max(abs(walker['initial_pose']['position_m'][i]-expected[i][3]) for i in (0,1))<=1e-3,
         'actual walker horizontal position matches declared placement')
     physical=physical_audit(root/'capture');shadow=shadow_audit(root)
-    require(physical['status']=='PASS_CASE_ONLY' and physical['receipts']==400,'original native physical acceptance')
+    require(physical['status']=='PASS_CASE_ONLY' and physical['receipts']==bounds['frames'],'original native physical acceptance')
     require(shadow['integrity']=='PASS' and shadow['accepted_results']==0 and shadow['model_calls']==0,'no diagnostic native publications')
     require(server['status']=='EXECUTED_REQUIRES_AUDIT' and server['attempts']==1,'finite original run')
     require(server['original_ini_sha256']==server['restored_ini_sha256'],'settings restoration')
@@ -70,8 +79,7 @@ def audit(root):
     require(not renderer['errors'] and len(renderer['preparation'])==3,'diagnostic model preparation/errors')
     for report in (source,renderer):
         require(report['complete_visual_scene'] is False and report['perception_publications']==0,'visual scene remains unavailable')
-    receipts={int(x['receipt']['frame']):x['receipt'] for x in
-              map(json.loads,(root/'capture/trace.jsonl').read_text().splitlines())}
+    receipts={int(x['receipt']['frame']):x['receipt'] for x in json_rows(root/'capture/trace.jsonl')}
     observations={o['frame']:o for o in source['observations']}
     for receipt in source['queries']:require(receipts[int(receipt['frame'])]==receipt,'cached original receipt unchanged')
     scenes={}
@@ -100,12 +108,16 @@ def audit(root):
         require(max(abs(expected[i][k]-t['camera_world_matrix'][i][k]) for i in range(4) for k in range(4))<=1e-4,'actual camera calibration')
         ticks[t['renderer_frame']]=t
     images={};rgb_hashes=[];folder=root/'capture/paired/renderer'
+    reader=RawReader(folder) if bounds['seconds'] else None
     for r in renderer['raw']:
-        stored=(folder/r['path']).read_bytes();require(sha(stored)==r['stored_sha256'],'stored raw')
-        raw=zlib.decompress(stored);require(len(raw)==2560*1536*4 and sha(raw)==r['bgra_sha256'],'raw BGRA')
+        if reader:raw=reader.read(r)
+        else:
+            stored=(folder/r['path']).read_bytes();require(sha(stored)==r['stored_sha256'],'stored raw');raw=zlib.decompress(stored)
+        require(len(raw)==2560*1536*4 and sha(raw)==r['bgra_sha256'],'raw BGRA')
         require(sha(Image.frombytes('RGB',(2560,1536),raw,'raw','BGRX').tobytes())==r['rgb_sha256'],'RGB exclusion')
         require(r['frame'] not in images,'unique actual camera callback')
         images[r['frame']]=r;rgb_hashes.append(r['rgb_sha256'])
+    if reader:reader.close()
     require(len(images)==renderer['recorder']['offered'] and not renderer['recorder']['overflow'] and not renderer['recorder']['errors'],'all raw packets retained')
     mapped={}
     for m in renderer['mapped']:
@@ -132,6 +144,16 @@ def audit(root):
         overlapping+=min(starts)<=call['begin_ns']<max(ends)
         ages.append((call['end_ns']-call['original_acquisition_ns'])/1e6)
     require(len(ticks)>=5 and len(mapped)>=3 and overlapping>=2,'actual simultaneous physics/rendering/inference')
+    windows=[]
+    if bounds['seconds']:
+        require(renderer['recorder']['mode']=='bounded-zstd-shards' and renderer['recorder']['stopped']
+            and renderer['recorder']['stored_bytes']<=bounds['stored_bytes'],'bounded lossless endurance recording')
+        initial=min(starts)
+        for second in range(0,bounds['seconds'],5):
+            lower=initial+second*1_000_000_000;upper=lower+5_000_000_000
+            count=sum(lower<=c['begin_ns']<upper for c in renderer['inference'])
+            require(count>0,'inference continued in every five-second window')
+            windows.append(dict(begin_seconds=second,inference_calls=count))
     fault_progress=None
     if server['condition']=='normal':
         require(renderer['status']=='EXECUTED_REQUIRES_AUDIT' and not renderer['cleanup_errors'] and source['renderer_client_exit']==0,'normal renderer lifecycle')
@@ -157,7 +179,8 @@ def audit(root):
         exported_scenes=len(scenes),renderer_ticks=len(ticks),raw_images=len(images),mapped_images=len(mapped),
         inference_calls=len(renderer['inference']),overlapping_calls=overlapping,
         acquisition_to_result_ms=dict(min=min(ages),median=float(np.median(ages)),p95=float(np.percentile(ages,95)),max=max(ages)),
-        accepted_perception_results=0,complete_visual_scene=False,fault_progress=fault_progress,rgb_sha256=sorted(set(rgb_hashes)))
+        accepted_perception_results=0,complete_visual_scene=False,fault_progress=fault_progress,
+        endurance_seconds=bounds['seconds'],five_second_windows=windows,rgb_sha256=sorted(set(rgb_hashes)))
 
 
 if __name__=='__main__':
