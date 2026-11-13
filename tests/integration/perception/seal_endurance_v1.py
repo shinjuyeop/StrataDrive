@@ -2,6 +2,8 @@
 import argparse
 import json
 import os
+import errno
+import shutil
 from pathlib import Path
 import tarfile
 from seal_paired_v1 import archive,sha
@@ -17,7 +19,15 @@ def seal(run,bundle,prior):
     manifests=[]
     for path in shards:
         target=bundle/path.name
-        os.link(path,target) # Both immutable locations share storage, never copied.
+        try:os.link(path,target)
+        except OSError as error:
+            if error.errno!=errno.EXDEV:raise
+            # Move only after every byte has a durable archive/checksum below.
+            # The caller retains its NVMe source until full sealing succeeds.
+            with path.open('rb') as source,target.open('xb') as destination:
+                shutil.copyfileobj(source,destination,1024*1024)
+                destination.flush();os.fsync(destination.fileno())
+            if sha(path)!=sha(target):raise ValueError('cross-device shard copy changed')
         members={}
         with tarfile.open(target) as tar:
             for item in tar:

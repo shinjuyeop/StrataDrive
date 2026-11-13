@@ -1,0 +1,15 @@
+--- a/External/DirectXShaderCompiler/lib/Support/ManagedStatic.cpp
++++ b/External/DirectXShaderCompiler/lib/Support/ManagedStatic.cpp
+@@ -25,8 +25,10 @@
+   // We need to use a function local static here, since this can get called
+   // during a static constructor and we need to guarantee that it's initialized
+   // correctly.
+-  static sys::Mutex ManagedStaticMutex;
+-  return ManagedStaticMutex;
++  // DllShutdown runs after function-static destructors. Keep this tiny
++  // lock alive until process teardown, including the final llvm_shutdown.
++  static sys::Mutex *const ManagedStaticMutex = new sys::Mutex();
++  return *ManagedStaticMutex;
+ }
+ 
+ void ManagedStaticBase::RegisterManagedStatic(void *(*Creator)(),

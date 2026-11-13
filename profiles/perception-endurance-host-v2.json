@@ -1,0 +1,11 @@
+{
+  "schema": "m10-endurance-host-v1",
+  "scope": "Current eight-core development host only; owned processes, no exclusive reservation or Jetson claim",
+  "cpus": {
+    "owner": [2, 3, 10, 11],
+    "native": [1, 9],
+    "renderer": [4, 5, 6, 7, 12, 13, 14, 15],
+    "observer": [0, 8]
+  },
+  "owner_scheduler": {"policy": "SCHED_RR", "priority": 8}
+}

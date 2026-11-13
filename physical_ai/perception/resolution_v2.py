@@ -1,6 +1,7 @@
 """Validated640/960 BASIC backend; offline only, never publication."""
 
 from pathlib import Path
+import os
 import numpy as np
 from PIL import Image
 from .class_calibration_v1 import decode as decode_vector
@@ -52,6 +53,13 @@ class ResolutionDetector:
             raise ValueError("pinned ORT")
         options = ort.SessionOptions()
         options.intra_op_num_threads, options.inter_op_num_threads = 4, 1
+        passive=os.environ.get('STRATADRIVE_ORT_PASSIVE_THREADS')
+        if passive is not None:
+            if passive!='1':raise ValueError('explicit passive ORT thread policy')
+            # Opt-in host concurrency policy. Same operators, thread counts,
+            # precision and graph; idle workers sleep instead of burning CPU.
+            for kind in ('intra','inter'):
+                options.add_session_config_entry(f'session.{kind}_op.allow_spinning','0')
         options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
         options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
         providers = ["CPUExecutionProvider"]
@@ -76,6 +84,10 @@ class ResolutionDetector:
             str(model), sess_options=options, providers=providers
         )
         self.session.disable_fallback()
+        if passive:
+            for kind in ('intra','inter'):
+                if self.session.get_session_options().get_session_config_entry(f'session.{kind}_op.allow_spinning')!='0':
+                    raise ValueError('passive ORT policy not applied')
         actual = self.session.get_provider_options().get("CUDAExecutionProvider", {})
         if settings is not None:
             if self.session.get_providers()[0] != "CUDAExecutionProvider" or any(

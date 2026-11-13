@@ -41,7 +41,10 @@ def main(a):
     for name in ('M7NoDrivePort.h','M7NoDriveMovement.h','M7NoDriveModelConstants.h'):
         port=port.replace('"'+name+'"','"'+str(external/name)+'"')
     (out/'M7NoDrivePort.cpp').write_text(port)
-    (out/'solver_journal.hpp').write_text((own/'solver_journal.hpp').read_text())
+    staged_headers=('solver_journal.hpp','native_admission.hpp','wall_bridge.hpp')
+    # Stage the paired admission/bridge headers together so pragma-once binds
+    # one identity; never accidentally link the installed older diagnostic.
+    for name in staged_headers:(out/name).write_text((own/name).read_text())
     intermediate=plugin/'Intermediate/Build/Linux/B4D820EA/UE4Editor/Development/Carla'
     unity=intermediate/'Module.Carla.2_of_4.cpp';original=external/'M7NoDrivePort.cpp'
     membership=own/'endurance_unity_v1.json'
@@ -79,6 +82,7 @@ def main(a):
         with (out/f'build-{i}.log').open('w') as log:
             subprocess.run(command,cwd=engine/'Source',stdout=log,stderr=subprocess.STDOUT,check=True,timeout=300)
     inputs={own/'build_endurance.py',own/'M7NoDrivePort.cpp',own/'solver_journal.hpp',membership,rsp,recipe_path,response,compiler,baseline_camera,shared_header,intermediate/'Definitions.Carla.h'}
+    inputs.update(own/name for name in staged_headers)
     inputs.update(plugin/'Source'/name for name in json.loads(membership.read_text())['sources'])
     inputs.update(p for p in external.iterdir() if p.is_file())
     inputs.update(Path(x) for x in shlex.split(response.read_text()) if Path(x).is_file())

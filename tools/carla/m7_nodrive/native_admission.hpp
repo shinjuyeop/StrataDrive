@@ -222,10 +222,12 @@ private:
         return m.origin==can::ActuatorOrigin::LocalProtection && m.local_state==can::ActuatorLocalState::FailSafe;
     }
     template<class T> std::optional<T> decode(const Packet& p,session::Role from,session::Role to) {
-        const auto m=p?remote::decode_owner_message(p->bytes.data(),p->size):std::nullopt;
-        if(!m || m->clock_domain!=(wall()?0x4d374d4f4e4f3031ULL:domain) || m->from!=from || m->to!=to || !std::holds_alternative<T>(m->payload)) {
-            fail("native_owner_wire_route_crc");return {};
-        }
+        if(!p){fail("native_owner_packet_missing");return {};}
+        const auto m=remote::decode_owner_message(p->bytes.data(),p->size);
+        if(!m){fail("native_owner_wire_decode_crc");return {};}
+        if(m->clock_domain!=(wall()?0x4d374d4f4e4f3031ULL:domain)) {fail("native_owner_clock_domain");return {};}
+        if(m->from!=from || m->to!=to){fail("native_owner_route");return {};}
+        if(!std::holds_alternative<T>(m->payload)){fail("native_owner_payload_type");return {};}
         return std::get<T>(m->payload);
     }
     bool authority(const Input& in,Time now,Time end) {

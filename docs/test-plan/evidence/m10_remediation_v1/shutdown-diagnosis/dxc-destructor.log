@@ -1,0 +1,19 @@
+Function "llvm::sys::MutexImpl::~MutexImpl()" not defined.
+Breakpoint 1 (llvm::sys::MutexImpl::~MutexImpl()) pending.
+Function "llvm::llvm_shutdown()" not defined.
+Breakpoint 2 (llvm::llvm_shutdown()) pending.
+Catchpoint 3 (load)
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+compiled 0
+status 0
+released
+MUTEX_DESTRUCTOR
+#0  llvm::sys::MutexImpl::~MutexImpl (this=0x7ffff708c258 <getManagedStaticMutex()::ManagedStaticMutex>) at /epic/p4/UE4/Release-4.26/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/lib/Support/Mutex.cpp:77
+#1  0x00007ffff7c45495 in __run_exit_handlers (status=0, listp=0x7ffff7e1a838 <__exit_funcs>, run_list_atexit=run_list_atexit@entry=true, run_dtors=run_dtors@entry=true) at ./stdlib/exit.c:113
+#2  0x00007ffff7c45610 in __GI_exit (status=<optimized out>) at ./stdlib/exit.c:143
+LLVM_SHUTDOWN
+#0  getManagedStaticMutex () at /epic/p4/UE4/Release-4.26/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/lib/Support/ManagedStatic.cpp:28
+#1  llvm::llvm_shutdown () at /epic/p4/UE4/Release-4.26/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/lib/Support/ManagedStatic.cpp:86
+#2  0x00007ffff5bcfa35 in DllShutdown () at /epic/p4/UE4/Release-4.26/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/tools/clang/tools/dxcompiler/DXCompiler.cpp:92
+[Inferior 1 (process 4045223) exited normally]

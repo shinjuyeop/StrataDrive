@@ -30,16 +30,16 @@ class EnduranceTests(unittest.TestCase):
     def test_lossless_shards_keep_all_frames_and_exact_rgb_bytes(self):
         with tempfile.TemporaryDirectory() as d:
             recorder=ShardRecorder(d,12,1_000_000,capacity=8,shard_bytes=200)
-            raw=bytes(range(256))*16
+            raw={frame:bytes([frame])+(bytes(range(256))*16)[1:] for frame in range(1,7)}
             try:
                 for frame in range(1,7):
-                    self.assertTrue(recorder.offer(dict(frame=frame,width=32,height=32),raw))
+                    self.assertTrue(recorder.offer(dict(frame=frame,width=32,height=32),raw[frame]))
             finally:self.assertTrue(recorder.close())
             report=recorder.report();self.assertEqual(report['errors'],[]);self.assertEqual(report['overflow'],[])
             self.assertEqual(report['offered'],6);self.assertGreater(len(report['archives']),1)
             reader=RawReader(d)
             try:
-                for row in report['records']:self.assertEqual(reader.read(row),raw)
+                for row in report['records']:self.assertEqual(reader.read(row),raw[row['frame']])
                 bad=copy.deepcopy(report['records'][0]);bad['stored_sha256']='f'*64
                 with self.assertRaises(ValueError):reader.read(bad)
             finally:reader.close()

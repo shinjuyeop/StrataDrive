@@ -18,6 +18,7 @@ from m7_1p_bridge import require
 from control_shadow_capture_v1 import Capture
 from owner_split_profile_v1 import PROFILES, validate_client
 from endurance_profile_v1 import limits
+from endurance_host_v1 import command as placed_command
 
 
 def main():
@@ -116,7 +117,7 @@ def main():
         stderr=(a.output/'native.stderr').open('w')
         command=['chrt','-f','18',str(a.native.resolve()),str(signal),str((a.output/'native').resolve()),str(a.scenario.resolve()),str(a.step_ms),str(a.hv_dependency_ms), '--perception-shadow', f'{capture.rx.fileno()}:{world.id}:{a.wall_clock}']
         if a.endurance_seconds:command+=['--endurance-seconds',str(a.endurance_seconds)]
-        process=subprocess.Popen(command,
+        process=subprocess.Popen(placed_command('native',command),
             pass_fds=(capture.rx.fileno(),), stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=stderr,text=True)
         capture.rx.close()
         capture.start_publisher()

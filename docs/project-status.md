@@ -16,13 +16,31 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **유한 동시 실행·렌더 장애 격리 검증 / 반복·장시간 정상 운용 FAIL, 전체 OPEN** | [반복 검증 실패](test-plan/evidence/m10_endurance_v3/README.md) · [정상 동시 실행](test-plan/evidence/m10_paired_v5/README.md) · [실제 렌더 종료](test-plan/evidence/m10_paired_v7/README.md) |
+| M10 | **유한 동시 실행·렌더 장애 격리 검증 / 반복·장시간 정상 운용 FAIL, 전체 OPEN** | [발열·저장 후속 검증](test-plan/evidence/m10_remediation_v1/README.md) · [정상 동시 실행](test-plan/evidence/m10_paired_v5/README.md) · [실제 렌더 종료](test-plan/evidence/m10_paired_v7/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 ## 최신 M10 판단
 
-최신 [30초 반복 검증](test-plan/evidence/m10_endurance_v3/README.md)은 사전 선언한3회 모두 **FAIL**이다.
+후속 [원인 분리·수정 검증](test-plan/evidence/m10_remediation_v1/README.md)에서도
+기존 안전 기준의 정상 연속 운용은 **FAIL/OPEN**이다. 다섯 가지 설정을 각각 사전 동결해
+시험했고, 마지막2K·영상10Hz에서는30초 동안 원본300장·추론293회를 누락 없이 보존했다.
+다만6000구간 중 정상667·보호5163·INIT170이며4.212초에 기존 보호가 발생했다.
+장면→결과 중앙값141.725ms로100ms 인지 수용도 충족하지 않는다.
+CPU100°C, 이후 전체 코어 약0.8GHz와 열 제한 카운터 증가를 실측했다. 저장 경로·CPU 배치·
+빈 대기 루프·추론 대기·압축 버퍼를 개선했지만 호스트 열 제한까지 해결됐다고 보지 않는다.
+새 원본423장을 모두 보존했고 미래 품질 제외는9774개다. Python469·C++24 검사와 원본 재생은
+통과했으나 실패 판정은 유지한다. 입력 누락/CRC 진단을 분리했고 관련 CARLA 모듈도 빌드했다.
+인지 수용0, 5분 검증 NOT RUN, 전체 장면·독립 품질·Jetson 배포는 계속 별도다.
+
+[DXC 종료 수명 오류](test-plan/evidence/m10_dxc_lifetime_v1/README.md)는 실제 원인을
+재현해 수정했다. 원본 라이브러리는 종료 시 잠금 객체가 먼저 파괴되어 두 재현 시험에서
+멈췄고, 수정본은 독립 프로세스 6회와 빈 CARLA 서버 2회의 종료를 통과했다.
+실제 서버 종료 시간은 2.569초·2.219초다. 단일 검증 셰이더의 SPIR-V 바이트가 같고,
+같은 결과를 별도 재현 스크립트로 다시 확인했다. 이는 빈 서버 종료 검증이며 영상·제어
+장시간 검증의 대체가 아니다. 수정 빌드와 근거를 보존하고 공유 실행 환경은 원본으로 복원했다.
+
+이전 [30초 반복 검증](test-plan/evidence/m10_endurance_v3/README.md)은 사전 선언한3회 모두 **FAIL**이다.
 1회차는 모델30초·실제29.9943초의6000구간을 완료했지만 정상20·보호5818·INIT162였고,
 HV 의존 나이가 기존30ms를 초과했다. 영상 저장 큐도 이후 가득 차35장·24회 추론으로 중단됐다.
 2/3회차는 정상 진입 없이106/87구간에서 입력 거절로 중단됐다. 누락된 steering/brake Actual이
@@ -220,7 +238,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [반복 실패](test-plan/evidence/m10_endurance_v3/README.md)의 HV 원천·의존 시각과 startup Actual 누락을 우선 추적한다. 저장 worker의 CPU/I/O 경합과 렌더 종료 대기도 분리해 수정하고, 기존 HV30ms·4ms·100ms를 유지한 새 반복 검증을 선언한다. 이후 [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태와 자산 식별을 완성하고 native 연결을 검증한다. 전체 장면이 없으면 인지 제어 수용은 계속 닫으며 Required는 opt-in SIL로 둔다.
+1. [발열 후속 결과](test-plan/evidence/m10_remediation_v1/README.md)에 따라 호스트가 부하 중 열 제한으로0.8GHz에 내려가지 않도록 냉각·전력 상태를 점검한 뒤, 기존 HV30ms·4ms·100ms의 새30초 반복/조건부5분 검증을 진행한다. 누락된 Actual을 새 시각으로 꾸며 복구하거나 안전 기준을 늘리지 않는다. 이후 [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태와 자산 식별을 완성하고 native 연결을 검증한다. 전체 장면이 없으면 인지 제어 수용은 계속 닫으며 Required는 opt-in SIL로 둔다.
 2. 후보와 센서·모델 설정을 먼저 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상을 새로운 holdout으로 재사용하지 않는다.
 3. 시작/종료·장기 부하·전체 지연과 실시간 동작을 별도로 검증한다. 정지 장면이나 짧은 관측을 전체 ODD 수용으로 확대하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

@@ -135,3 +135,15 @@ This is Host SIL work. Required live perception authority, independent model
 quality, metric world modeling and Jetson Thor/Orin NX deployment remain separate.
 The transport boundary should permit later board-specific adapters, but no remote
 clock synchronization or board optimization is claimed here.
+
+[Remediation V4–V8](../test-plan/evidence/m10_remediation_v1/README.md) preserves
+all control/freshness guards. A10Hz wall-paced2K renderer retained300 raw frames
+and293 calls without loss over the30s trial, but only667 physical intervals were
+normal. Thermal100C/0.8GHz observations and original protection keep normal
+endurance OPEN. Source receipt export remains capped20Hz. A renderer cap is not
+a physical-world tick change, source-time rewrite or accepted perception output.
+
+The [DXC lifetime fix](../test-plan/evidence/m10_dxc_lifetime_v1/README.md) keeps
+the shutdown mutex alive through the final llvm_shutdown. Standalone negative
+controls and two empty CARLA lifecycle checks verify the narrow fix. These checks
+create no sensor or native session and do not establish normal control endurance.

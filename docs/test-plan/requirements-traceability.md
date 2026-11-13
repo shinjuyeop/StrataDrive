@@ -250,3 +250,17 @@ TC-PER-085–087/C-M10-PER-81–83은 [2K 수신·보호 계약](../interfaces/p
 (899개 C++ 재생+3개 state 초기화 전 unavailable),25개 semantic/5개 parser 변조를 확인한다.
 9개 논리 SIL 조건은 관측 전용 실행 동등성·보호·원본 Actual·복원만으로 재허가하지 않음·새 INIT 복구를 포함한다.
 이는 새 live CARLA 제어·품질·wall 성능·Jetson 수용이 아니며 M10은 계속 OPEN이다.
+
+M10 follow-up: [remediation V4–V8](evidence/m10_remediation_v1/README.md) retains
+five failed prospective experiments and423 new raw images (exclusions9774).
+Lossless10Hz recording is demonstrated in V8; repeated normal control and300s
+remain FAIL/NOT_RUN. Host thermal throttling is observed. Packet-diagnostic
+separation passes24 native tests and compiles into an isolated CARLA module;
+it does not manufacture missing Actual or change authority/expiry decisions.
+
+The [DXC lifecycle protocol](perception-dxc-lifetime-v1-protocol.md) and
+[sealed results](evidence/m10_dxc_lifetime_v1/README.md) link the renderer exit
+defect to a premature mutex destructor. Two original negative controls time out;
+six candidate standalone exits and two empty CARLA exits pass. The original
+30s shutdown bound remains. This adds no camera frames or perception acceptance
+and does not close the failed normal-endurance requirement.

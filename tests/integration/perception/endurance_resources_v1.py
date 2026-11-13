@@ -13,7 +13,9 @@ def resources(roots):
         try:
             proc=Path(f'/proc/{pid}');stat=(proc/'stat').read_text();fields=stat[stat.rfind(')')+2:].split()
             records.append(dict(role=role,pid=pid,start_ticks=int(fields[19]),
-                user_ticks=int(fields[11]),system_ticks=int(fields[12]),rss_bytes=int(fields[21])*os.sysconf('SC_PAGE_SIZE')))
+                user_ticks=int(fields[11]),system_ticks=int(fields[12]),rss_bytes=int(fields[21])*os.sysconf('SC_PAGE_SIZE'),
+                affinity=sorted(os.sched_getaffinity(pid)),scheduler=os.sched_getscheduler(pid),
+                priority=os.sched_getparam(pid).sched_priority))
             children=(proc/f'task/{pid}/children').read_text().split()
             pending.extend((role+'/child',int(child)) for child in children)
         except (FileNotFoundError,ProcessLookupError):pass
@@ -21,7 +23,16 @@ def resources(roots):
     free={}
     for path in ('/d','/tmp'):
         v=os.statvfs(path);free[path]=v.f_bavail*v.f_frsize
-    return dict(wall_ns=time.monotonic_ns(),processes=records,free_bytes=free,
+    host={}
+    for path in list(Path('/sys/devices/system/cpu').glob('cpu[0-9]*/cpufreq/scaling_cur_freq'))+list(Path('/sys/devices/system/cpu/cpu0/thermal_throttle').glob('*count')):
+        try:host[str(path)]=int(path.read_text())
+        except OSError:pass
+    for folder in Path('/sys/class/hwmon').glob('hwmon*'):
+        try:
+            if (folder/'name').read_text().strip()=='coretemp':
+                for path in folder.glob('temp*_input'):host[str(path)]=int(path.read_text())
+        except OSError:pass
+    return dict(wall_ns=time.monotonic_ns(),processes=records,free_bytes=free,host_telemetry=host,
         available_ram_bytes=int(mem['MemAvailable'].split()[0])*1024)
 
 

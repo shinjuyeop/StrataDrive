@@ -672,7 +672,7 @@ void RpcWindow(bool Begin) {
   if(Begin)S.RpcBegin=Now;
   else if(S.RpcBegin && Now>=S.RpcBegin)S.MaxRpc=FMath::Max(S.MaxRpc,Now-S.RpcBegin);
 }
-bool PumpWall(UCarlaEpisode& Episode) {
+static bool PumpWallReady(UCarlaEpisode& Episode) {
   using namespace stratadrive::m7_native;
   if(S.Bridge){const uint64 Now=WallNow();if(S.LastPump)S.MaxPumpGap=FMath::Max(S.MaxPumpGap,Now-S.LastPump);S.LastPump=Now;}
   if(!S.Bridge || S.Latched || !S.Locked || S.InFlight || S.Staged || S.Queued)return false;
@@ -740,6 +740,22 @@ bool PumpWall(UCarlaEpisode& Episode) {
   bool Tick=false;S.Pumping=true;Request(Episode,Encode(RequestJson),Tick);S.Pumping=false;
   if(!S.Staged)return false;
   S.AppliedProof=Shared;S.Queued=true;S.WallWait.Empty();return true;
+}
+
+bool PumpWall(UCarlaEpisode& Episode) {
+  const bool Ready=PumpWallReady(Episode);
+  // io_context.run_for returns immediately when its queue is empty. Without
+  // an explicit idle wait the synchronous outer loop spins an entire CPU.
+  // Opt-in host diagnostic only; never sleep after admitting a physical tick.
+  static const bool Idle=FParse::Param(FCommandLine::Get(),TEXT("StrataM10IdleWait"));
+  if(!Ready && Idle) {
+    uint64 Delay=S.Bridge?50000:500000;
+    const uint64 Now=WallNow();
+    if(S.Bridge && S.NextDue>Now)Delay=FMath::Min(Delay,S.NextDue-Now);
+    const timespec Request{0,static_cast<long>(Delay)};
+    nanosleep(&Request,nullptr);
+  }
+  return Ready;
 }
 
 bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)

@@ -14,6 +14,7 @@ from PIL import Image
 
 class Zstd:
     def __init__(self):
+        self.buffers=threading.local()
         self.lib=ctypes.CDLL(ctypes.util.find_library('zstd'))
         self.lib.ZSTD_compressBound.argtypes=[ctypes.c_size_t];self.lib.ZSTD_compressBound.restype=ctypes.c_size_t
         self.lib.ZSTD_compress.argtypes=[ctypes.c_void_p,ctypes.c_size_t,ctypes.c_void_p,ctypes.c_size_t,ctypes.c_int]
@@ -23,10 +24,13 @@ class Zstd:
         self.lib.ZSTD_isError.argtypes=[ctypes.c_size_t];self.lib.ZSTD_isError.restype=ctypes.c_uint
 
     def compress(self,raw):
-        buffer=ctypes.create_string_buffer(self.lib.ZSTD_compressBound(len(raw)))
+        required=self.lib.ZSTD_compressBound(len(raw))
+        buffer=getattr(self.buffers,'compress',None)
+        if buffer is None or len(buffer)<required:
+            buffer=ctypes.create_string_buffer(required);self.buffers.compress=buffer
         size=self.lib.ZSTD_compress(buffer,len(buffer),raw,len(raw),1)
         if self.lib.ZSTD_isError(size):raise ValueError('zstd compression')
-        return buffer.raw[:size]
+        return ctypes.string_at(buffer,size)
 
     def decompress(self,raw,size):
         buffer=ctypes.create_string_buffer(size)

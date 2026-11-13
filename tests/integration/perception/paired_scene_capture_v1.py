@@ -15,6 +15,7 @@ from physical_ai.perception.scene_capture_v1 import ReceiptSceneJoiner, observe,
 from physical_ai.perception.scene_mailbox_v1 import SceneBinding, ScenePublisher, encode, socket_pair
 from paired_fault_v1 import STOP_INTERVAL,CRASH_INTERVAL,STALL_NS
 from endurance_profile_v1 import limits
+from endurance_host_v1 import command as placed_command
 
 WEATHER_FIELDS=('cloudiness','precipitation','precipitation_deposits','wind_intensity',
     'sun_azimuth_angle','sun_altitude_angle','fog_density','fog_distance','fog_falloff',
@@ -109,7 +110,7 @@ class PairedCapture:
                 '--models',str(self.args.models),'--library',str(self.args.library)]
             self.log=(self.root/'renderer-client.log').open('w')
             env=dict(os.environ);env.pop('STRATADRIVE_M7_OWNER_KEY',None)
-            self.process=subprocess.Popen(command,pass_fds=(rx.fileno(),self.renderer_fd),stdout=self.log,stderr=subprocess.STDOUT,env=env)
+            self.process=subprocess.Popen(placed_command('renderer',command),pass_fds=(rx.fileno(),self.renderer_fd),stdout=self.log,stderr=subprocess.STDOUT,env=env)
         finally:rx.close()
         deadline=time.monotonic()+90
         while time.monotonic()<deadline:

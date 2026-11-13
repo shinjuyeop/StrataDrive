@@ -52,6 +52,9 @@ class DiagnosticInference:
             backend=StagedKernelBackend(self.args.detector,self.args.models,self.args.library,
                 'f851fa22a24576d4e76fa2fa8749f3f4517d5ee625b64de390a360fd32fb0721',trace_capacity=max(4096,self.max_calls+3))
             self.report['providers']=backend.detector.session.get_providers()
+            if os.environ.get('STRATADRIVE_ORT_PASSIVE_THREADS'):
+                options=backend.detector.session.get_session_options()
+                self.report['ort_thread_policy']={kind:options.get_session_config_entry(f'session.{kind}_op.allow_spinning') for kind in ('intra','inter')}
             # These private numeric identities never enter a publisher. Actual
             # camera/session provenance stays on RenderedImage and each report.
             gradient=np.empty((1536,2560,4),np.uint8)
@@ -101,6 +104,9 @@ class DiagnosticInference:
 
 def main(a):
     bounds=limits(a.endurance_seconds)
+    wall_hz=int(os.environ.get('STRATADRIVE_RENDERER_WALL_HZ','0'))
+    if wall_hz not in (0,10) or (wall_hz and not a.endurance_seconds):raise ValueError('declared renderer wall pacing')
+    period=1_000_000_000//wall_hz if wall_hz else 0;next_tick=0
     a.output.mkdir(parents=True,exist_ok=False)
     data=json.loads(a.catalog.read_text());catalog=data['catalog'];b=data['binding']
     for key in ('run','scene_sha256','model_sha256'):b[key]=bytes.fromhex(b[key])
@@ -186,16 +192,22 @@ def main(a):
                         original_acquisition_end_ns=x.scene.acquired_end_ns,scene_sha256=x.scene_sha256,
                         callback_received_ns=image.received_wall_ns,accepted_for_control=False))
                     inference.offer(image)
-        for _ in range(8):world.tick();drain()
+        report['renderer_wall_hz']=wall_hz
+        for _ in range(8):
+            if period:time.sleep(max(0,(next_tick-time.monotonic_ns())/1e9))
+            next_tick=time.monotonic_ns()+period;world.tick();drain()
         (a.output/'ready.json').write_text(json.dumps(dict(ready=True,world=world.id,camera=sensor.id))+'\n')
         deadline=time.monotonic()+bounds['renderer_seconds']
         while time.monotonic()<deadline:
             if report['errors'] or (a.endurance_seconds and recorder.failed()):raise RuntimeError('camera/inference diagnostic error')
+            if period and time.monotonic_ns()<next_tick:
+                time.sleep(.001);drain();continue
             scene=consumer.take(time.monotonic_ns())
             if consumer.closed:break
             if scene is None:time.sleep(.001);drain();continue
             begin=time.monotonic_ns();adapter.apply(scene);end=time.monotonic_ns()
-            start=time.monotonic_ns();frame=world.tick();snapshot=world.get_snapshot();finish=time.monotonic_ns()
+            start=time.monotonic_ns();next_tick=start+period
+            frame=world.tick();snapshot=world.get_snapshot();finish=time.monotonic_ns()
             if snapshot.frame!=frame:raise ValueError('actual renderer tick identity')
             readback=adapter.verify(scene,snapshot)
             ego=next(p for p in scene.actors if p.actor_id==catalog['ego_id'])

@@ -84,6 +84,18 @@ TEST(M7NativeAdmission, OriginalAuthorityAndCausalityCorruptionsLatch) {
         EXPECT_FALSE(gate.accept(trace.inputs[100],trace.inputs[100].observed,out))<<"healed "<<f;
     }
 }
+TEST(M7NativeAdmission, MissingPacketIsDistinctFromCorruptBytesAndCannotHeal) {
+    Trace trace;
+    for(bool missing:{false,true}) {
+        native::Admission gate(42,trace.inputs.front().observed);native::Output out;
+        for(unsigned i=0;i<100;++i)ASSERT_TRUE(gate.accept(trace.inputs[i],trace.inputs[i].observed,out));
+        auto bad=trace.inputs[100];
+        if(missing)bad.actual[0].reset();else bad.actual[0]->bytes[40]^=1;
+        ASSERT_FALSE(gate.accept(bad,bad.observed,out));
+        EXPECT_EQ(gate.error(),missing?"native_owner_packet_missing":"native_owner_wire_decode_crc");
+        EXPECT_FALSE(gate.accept(trace.inputs[100],trace.inputs[100].observed,out));
+    }
+}
 TEST(M7NativeAdmission, SampledActualKeepsCurrentExpiryAndWholePhysicalSourceCoverage) {
     Trace trace;
     for(unsigned fault=0;fault<8;++fault) {

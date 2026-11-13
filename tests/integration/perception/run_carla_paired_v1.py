@@ -19,6 +19,7 @@ from renderer_shutdown_v1 import allow_shutdown_tracer,shutdown,capture
 from carla_readiness_v1 import wait_ready
 from endurance_profile_v1 import limits
 from endurance_resources_v1 import resources,endurance_runtime
+from endurance_host_v1 import load_profile,command as placed_command,owner_command,check_owner,ENV
 
 
 def main(a):
@@ -35,13 +36,22 @@ def main(a):
     def hook():resource.setrlimit(resource.RLIMIT_CORE,(0,0));allow_shutdown_tracer()
     try:
         report['freeze_sha256']=verify(a.freeze)
+        if getattr(a,'resource_profile',None):
+            if not a.endurance_seconds:raise ValueError('explicit endurance host scope')
+            frozen=json.loads(a.freeze.read_text())
+            relative=str(a.resource_profile.resolve().relative_to(root))
+            if frozen['files'].get(relative,{}).get('sha256')!=sha(a.resource_profile):raise ValueError('unfrozen resource profile')
+            report['host_resources']=load_profile(a.resource_profile,a.output)
+            report['resource_profile_sha256']=sha(a.resource_profile)
+            os.environ[ENV]=json.dumps(report['host_resources']['cpus'])
+        elif os.environ.get(ENV):raise ValueError('undeclared host CPU plan')
         profile=json.loads((root/'profiles/perception-source-compare-server-v2.json').read_text())
         expected=endurance_runtime(a.freeze,a.endurance_build,a.source,a.engine,profile) if a.endurance_seconds else original_owner_runtime(a.freeze,a.source,a.engine,profile)
         for path,digest in expected.items():
             if sha(a.source/path)!=digest:raise ValueError('original runtime identity '+path)
-        for path in ('/d','/tmp'):
+        for path in ('/d','/tmp',str(a.output.resolve())):
             v=os.statvfs(path);free=v.f_bavail*v.f_frsize;report.setdefault('free_bytes',{})[path]=free
-            budget=(bounds['stored_bytes']+4*1024**3) if a.endurance_seconds and path=='/d' else 4*1024**3
+            budget=(bounds['stored_bytes']+4*1024**3) if a.endurance_seconds and path!='/tmp' else 4*1024**3
             if free<budget:raise ValueError('insufficient paired evidence space: '+path)
         guards=[]
         try:
@@ -57,16 +67,29 @@ def main(a):
             '-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False',
             '-log','-stdout','-FullStdOutLogOutput']
         common=dict(os.environ,OMP_WAIT_POLICY='PASSIVE');common.pop('STRATADRIVE_M7_OWNER_KEY',None)
+        if getattr(a,'passive_ort',False):
+            if not a.endurance_seconds:raise ValueError('explicit endurance passive ORT')
+            common['STRATADRIVE_ORT_PASSIVE_THREADS']='1';report['ort_passive_threads']=True
+        elif common.get('STRATADRIVE_ORT_PASSIVE_THREADS'):raise ValueError('undeclared ORT thread policy')
+        if getattr(a,'renderer_wall_hz',0):
+            if not a.endurance_seconds:raise ValueError('explicit endurance renderer pacing')
+            common['STRATADRIVE_RENDERER_WALL_HZ']=str(a.renderer_wall_hz)
+            report['renderer_wall_hz']=a.renderer_wall_hz
+        elif common.get('STRATADRIVE_RENDERER_WALL_HZ'):raise ValueError('undeclared renderer pacing')
         if common.get('LD_PRELOAD'):raise ValueError('unexpected preload')
         owner_env=dict(common,STRATADRIVE_M7_OWNER_KEY=secrets.token_hex(32))
         commands=dict(renderer=base+['-carla-rpc-port=2300'],owner=base+['-carla-rpc-port=2200',
             '-StrataM7NativeProbe','-StrataM7V1Substeps320','-StrataM7SolverWork','-StrataM7CompactWork',
             '-StrataM7WallNative','-StrataM7HeldSteerSleep','-StrataM7Wall5ms','-nullrhi','-norenderthread'])
         if a.endurance_seconds:commands['owner'].append('-StrataM10EnduranceFrames='+str(bounds['frames']))
+        if getattr(a,'idle_wait',False):
+            if not a.endurance_seconds:raise ValueError('explicit endurance idle wait')
+            for argv in commands.values():argv.append('-StrataM10IdleWait')
         report['argv']=commands
         for role in ('renderer','owner'):
             log=(a.output/f'{role}.log').open('w');logs.append(log)
-            processes[role]=subprocess.Popen(commands[role],env=owner_env if role=='owner' else common,
+            launched=owner_command(report.get('host_resources',{}),commands[role]) if role=='owner' else commands[role]
+            processes[role]=subprocess.Popen(placed_command(role,launched),env=owner_env if role=='owner' else common,
                 stdout=log,stderr=subprocess.STDOUT,start_new_session=True,preexec_fn=hook)
         report['pids']={k:p.pid for k,p in processes.items()}
         for port in (2200,2300):
@@ -79,15 +102,17 @@ def main(a):
             '--wall-clock',str(secrets.randbits(63) or 1),'--detector',str(a.detector),'--models',str(a.models),
             '--library',str(a.library),'--paired-renderer-port','2300','--paired-renderer-pid',str(processes['renderer'].pid),
             '--paired-condition',a.condition,'--paired-export-hz',str(a.export_hz),'--endurance-seconds',str(a.endurance_seconds)]
+        check_owner(report.get('host_resources',{}),processes['owner'].pid)
         report['client_argv']=command
         log=(a.output/'client.log').open('w');logs.append(log)
-        client=subprocess.Popen(command,env=owner_env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+        client=subprocess.Popen(placed_command('observer',command),env=owner_env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
         deadline=time.monotonic()+900+a.endurance_seconds*3;diagnosed=False;first_interrupt=None;last_resource=0
         while client.poll() is None or (first_interrupt and processes['renderer'].poll() is None):
             now=time.monotonic_ns();renderer=processes['renderer']
             if a.endurance_seconds and now-last_resource>=1_000_000_000:
                 sample=resources({**report['pids'],'client':client.pid});report['resources'].append(sample);last_resource=now
-                if sample['available_ram_bytes']<2*1024**3 or sample['free_bytes']['/d']<2*1024**3:
+                disk=os.statvfs(a.output);sample['spool_free_bytes']=disk.f_bavail*disk.f_frsize
+                if sample['available_ram_bytes']<2*1024**3 or min(sample['free_bytes']['/d'],sample['spool_free_bytes'])<2*1024**3:
                     raise RuntimeError('declared resource reserve reached')
             if renderer.poll() is not None and 'renderer_exit_observed_ns' not in report:
                 report['renderer_exit_observed_ns']=now;report['renderer_injected_exit_code']=renderer.returncode
@@ -159,4 +184,8 @@ if __name__=='__main__':
     p.add_argument('--export-hz',type=int,choices=(20,50),default=20)
     p.add_argument('--endurance-seconds',type=int,choices=(0,30,300),default=0)
     p.add_argument('--endurance-build',type=Path)
+    p.add_argument('--resource-profile',type=Path)
+    p.add_argument('--idle-wait',action='store_true')
+    p.add_argument('--passive-ort',action='store_true')
+    p.add_argument('--renderer-wall-hz',type=int,choices=(0,10),default=0)
     raise SystemExit(main(p.parse_args()))

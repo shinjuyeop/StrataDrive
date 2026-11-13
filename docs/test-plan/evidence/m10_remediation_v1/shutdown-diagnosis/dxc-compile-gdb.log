@@ -1,0 +1,17 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff5c92b5d in ?? () from /d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/ThirdParty/ShaderConductor/Linux/x86_64-unknown-linux-gnu/libdxcompiler.so
+#0  0x00007ffff5c92b5d in hlsl::DxcCreateBlobEncodingFromBlob (pFromBlob=0x7ffff72cfad0, offset=53, length=65001, encodingKnown=false, codePage=<optimized out>, pMalloc=0x555555bff760, ppBlobEncoding=0x7fffffffd058) at /epic/p4/UE4/Release-4.26/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/lib/DxcSupport/FileIOHelper.cpp:631
+#1  0x00007ffff5c932da in hlsl::DxcCreateBlobFromBlob (pBlob=0x7ffff72cfad0, offset=53, length=65001, ppResult=0x7ffff7179610) at /epic/p4/UE4/Release-4.26/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/lib/DxcSupport/FileIOHelper.cpp:701
+#2  0x00007ffff5bc2176 in DxcUtils::CreateBlobFromBlob (this=<optimized out>, pBlob=0x7ffff72cfad0, offset=65054, length=4294955008, ppResult=0x0) at /epic/p4/UE4/Release-4.26/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/tools/clang/tools/dxcompiler/dxclibrary.cpp:243
+#3  0x00007ffff7b6ee2e in ?? () from /lib/x86_64-linux-gnu/libffi.so.8
+#4  0x0000000000000006 in ?? ()
+#5  0x00007fffffffd220 in ?? ()
+#6  0x00007fffffffd1b0 in ?? ()
+#7  0x00007ffff7b6b493 in ?? () from /lib/x86_64-linux-gnu/libffi.so.8
+#8  0x0000555555b63a40 in ?? ()
+#9  0x6dc985643de20c00 in ?? ()
+#10 0x00007ffff71dd260 in ?? ()
+#11 0x0000000000000001 in ?? ()
