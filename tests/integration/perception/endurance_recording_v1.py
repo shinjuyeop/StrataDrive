@@ -3,6 +3,7 @@ import ctypes
 import ctypes.util
 import hashlib
 import io
+import os
 from pathlib import Path
 import queue
 import tarfile
@@ -44,10 +45,12 @@ def digest(raw):return hashlib.sha256(raw).hexdigest()
 
 class ShardRecorder:
     """Two workers, queue8, no discarded real frames, finite bytes/frame budget."""
-    def __init__(self,root,max_frames,max_bytes,*,capacity=8,shard_bytes=256*1024**2,codec=None):
+    def __init__(self,root,max_frames,max_bytes,*,capacity=8,shard_bytes=256*1024**2,codec=None,encoding='zstd1'):
         if not 1<=capacity<=16 or not 1<=max_frames<=6400 or max_bytes<=0 or shard_bytes<=0:
             raise ValueError('finite recorder budget')
         self.root=Path(root);self.root.mkdir(parents=True,exist_ok=True)
+        if encoding not in ('zstd1','bgra'):raise ValueError('declared lossless encoding')
+        self.encoding=encoding
         self.max_frames,self.max_bytes=max_frames,max_bytes
         self.shard_bytes=shard_bytes;self.codec=codec or Zstd();self.queue=queue.Queue(capacity)
         self.lock=threading.Lock();self.records=[];self.errors=[];self.overflow=[];self.archives=[]
@@ -70,11 +73,17 @@ class ShardRecorder:
 
     def write(self,row,raw):
         try:
-            begin=time.monotonic_ns();stored=self.codec.compress(raw)
+            begin=time.monotonic_ns();cpu_begin=time.thread_time_ns();stored=self.codec.compress(raw) if self.encoding=='zstd1' else raw
+            compressed=time.monotonic_ns();cpu_compressed=time.thread_time_ns()
             rgb=Image.frombytes('RGB',(row['width'],row['height']),raw,'raw','BGRX').tobytes()
-            item=dict(row,path=f"{row['frame']}.bgra.zst",codec='zstd1',raw_bytes=len(raw),
-                stored_bytes=len(stored),stored_sha256=digest(stored),bgra_sha256=digest(raw),rgb_sha256=digest(rgb),
+            raw_digest=digest(raw)
+            item=dict(row,path=f"{row['frame']}.bgra"+('.zst' if self.encoding=='zstd1' else ''),codec=self.encoding,raw_bytes=len(raw),
+                stored_bytes=len(stored),stored_sha256=raw_digest if stored is raw else digest(stored),bgra_sha256=raw_digest,rgb_sha256=digest(rgb),
                 write_begin_ns=begin)
+            if os.environ.get('STRATADRIVE_M10_PROFILE')=='1':
+                item['profile']=dict(thread_id=threading.get_native_id(),compression_ns=compressed-begin,
+                    compression_cpu_ns=cpu_compressed-cpu_begin,hash_conversion_ns=time.monotonic_ns()-compressed,
+                    hash_conversion_cpu_ns=time.thread_time_ns()-cpu_compressed)
             with self.lock:
                 if self.current is None or self.archive_bytes+len(stored)>self.shard_bytes:
                     if self.current:self.current.close()
@@ -88,6 +97,8 @@ class ShardRecorder:
             with self.lock:self.errors.append(f'{type(error).__name__}: {error}')
 
     def run(self):
+        from endurance_host_v1 import mark_thread
+        mark_thread('m10-recorder')
         while True:
             value=self.queue.get()
             try:
@@ -107,7 +118,7 @@ class ShardRecorder:
 
     def report(self):
         with self.lock:
-            return dict(mode='bounded-zstd-shards',offered=self.offered,records=sorted(self.records,key=lambda x:x['frame']),
+            return dict(mode='bounded-zstd-shards' if self.encoding=='zstd1' else 'bounded-bgra-shards',offered=self.offered,records=sorted(self.records,key=lambda x:x['frame']),
                 capacity=self.queue.maxsize,workers=2,peak_queue_frames=self.peak,stored_bytes=self.total,
                 max_frames=self.max_frames,max_stored_bytes=self.max_bytes,archives=list(self.archives),
                 errors=list(self.errors),overflow=list(self.overflow),stopped=not any(t.is_alive() for t in self.threads))
@@ -123,6 +134,8 @@ class RawReader:
             self.close();self.name=row['archive'];self.archive=tarfile.open(self.root/self.name)
         stored=self.archive.extractfile(row['path']).read()
         if len(stored)!=row['stored_bytes'] or digest(stored)!=row['stored_sha256']:raise ValueError('stored raw identity')
-        return self.codec.decompress(stored,row['raw_bytes'])
+        if row['codec']=='zstd1':return self.codec.decompress(stored,row['raw_bytes'])
+        if row['codec']=='bgra' and len(stored)==row['raw_bytes']:return stored
+        raise ValueError('declared raw encoding/size')
     def close(self):
         if self.archive:self.archive.close();self.archive=None

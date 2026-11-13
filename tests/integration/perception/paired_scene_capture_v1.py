@@ -110,7 +110,7 @@ class PairedCapture:
                 '--models',str(self.args.models),'--library',str(self.args.library)]
             self.log=(self.root/'renderer-client.log').open('w')
             env=dict(os.environ);env.pop('STRATADRIVE_M7_OWNER_KEY',None)
-            self.process=subprocess.Popen(placed_command('renderer',command),pass_fds=(rx.fileno(),self.renderer_fd),stdout=self.log,stderr=subprocess.STDOUT,env=env)
+            self.process=subprocess.Popen(placed_command('pipeline',command),pass_fds=(rx.fileno(),self.renderer_fd),stdout=self.log,stderr=subprocess.STDOUT,env=env)
         finally:rx.close()
         deadline=time.monotonic()+90
         while time.monotonic()<deadline:

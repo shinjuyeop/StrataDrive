@@ -14,6 +14,30 @@ from endurance_host_v1 import ENV,command,validate,owner_command,check_owner
 
 
 class HostTests(unittest.TestCase):
+    def test_explicit_thread_policy_overrides_completed_backend_initialization(self):
+        import cv2
+        from types import SimpleNamespace
+        from endurance_host_v1 import configure_pipeline_threads
+        before=cv2.getNumThreads()
+        try:
+            cv2.setNumThreads(4)
+            backend=SimpleNamespace(resize=SimpleNamespace(threads=4))
+            configure_pipeline_threads(backend,2,1)
+            self.assertEqual(cv2.getNumThreads(),2);self.assertEqual(backend.resize.threads,1)
+            with self.assertRaises(ValueError):configure_pipeline_threads(backend,16,1)
+        finally:cv2.setNumThreads(before)
+
+    def test_pipeline_can_be_separate_but_cannot_share_an_smt_core(self):
+        topology={c:(0,c%8) for c in range(16)}
+        plan=dict(owner=[2,3,10,11],native=[1,9],renderer=[4,5,12,13],observer=[0,8],pipeline=[6,7,14,15])
+        self.assertEqual(validate(plan,set(range(16)),topology),plan)
+        with self.assertRaises(ValueError):validate(dict(plan,pipeline=[4,14]),set(range(16)),topology)
+        with patch.dict(os.environ,{ENV:json.dumps(plan)}):
+            self.assertEqual(command('pipeline',['worker'])[2],'6,7,14,15')
+        del plan['pipeline']
+        with patch.dict(os.environ,{ENV:json.dumps(plan)}):
+            self.assertEqual(command('pipeline',['worker'])[2],'4,5,12,13')
+
     def test_owner_scheduler_is_explicit_and_verified(self):
         resources=dict(owner_scheduler=dict(policy='SCHED_RR',priority=8))
         self.assertEqual(owner_command({},['server']),['server'])

@@ -17,7 +17,7 @@ import traceback
 from run_carla_control_shadow_v1 import verify,sha,original_owner_runtime
 from renderer_shutdown_v1 import allow_shutdown_tracer,shutdown,capture
 from carla_readiness_v1 import wait_ready
-from endurance_profile_v1 import limits
+from endurance_profile_v1 import limits,camera_pacing
 from endurance_resources_v1 import resources,endurance_runtime
 from endurance_host_v1 import load_profile,command as placed_command,owner_command,check_owner,ENV
 
@@ -67,6 +67,21 @@ def main(a):
             '-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False',
             '-log','-stdout','-FullStdOutLogOutput']
         common=dict(os.environ,OMP_WAIT_POLICY='PASSIVE');common.pop('STRATADRIVE_M7_OWNER_KEY',None)
+        camera_period=getattr(a,'camera_period_ms',50)
+        camera_pacing(a.renderer_wall_hz,camera_period,getattr(a,'raw_recording',False))
+        if (getattr(a,'raw_recording',False) or camera_period!=50) and not a.endurance_seconds:
+            raise ValueError('explicit endurance recording/pacing')
+        if camera_period!=50:
+            common['STRATADRIVE_M10_CAMERA_PERIOD_MS']=str(camera_period)
+        elif common.get('STRATADRIVE_M10_CAMERA_PERIOD_MS'):raise ValueError('undeclared camera cadence')
+        report['camera_period_ms']=camera_period
+        for option,key in [('profile_host','STRATADRIVE_M10_PROFILE'),('cuda_blocking','STRATADRIVE_CUDA_BLOCKING_SYNC'),('raw_recording','STRATADRIVE_M10_RAW_RECORDING'),
+                           ('preprocess_cv_threads','STRATADRIVE_M10_CV_THREADS'),('resize_threads','STRATADRIVE_M10_RESIZE_THREADS')]:
+            value=getattr(a,option,0)
+            if value:
+                if not a.endurance_seconds:raise ValueError('explicit endurance host profiling option')
+                common[key]=str(int(value));report[option]=value
+            elif common.get(key):raise ValueError('undeclared profiling option '+key)
         if getattr(a,'passive_ort',False):
             if not a.endurance_seconds:raise ValueError('explicit endurance passive ORT')
             common['STRATADRIVE_ORT_PASSIVE_THREADS']='1';report['ort_passive_threads']=True
@@ -82,19 +97,33 @@ def main(a):
             '-StrataM7NativeProbe','-StrataM7V1Substeps320','-StrataM7SolverWork','-StrataM7CompactWork',
             '-StrataM7WallNative','-StrataM7HeldSteerSleep','-StrataM7Wall5ms','-nullrhi','-norenderthread'])
         if a.endurance_seconds:commands['owner'].append('-StrataM10EnduranceFrames='+str(bounds['frames']))
+        if getattr(a,'renderer_max_fps',0):
+            if not a.endurance_seconds:raise ValueError('explicit renderer preparation cap')
+            commands['renderer']=[x+f',t.MaxFPS {a.renderer_max_fps}' if x.startswith('-ExecCmds=') else x for x in commands['renderer']]
         if getattr(a,'idle_wait',False):
             if not a.endurance_seconds:raise ValueError('explicit endurance idle wait')
             for argv in commands.values():argv.append('-StrataM10IdleWait')
         report['argv']=commands
+        if getattr(a,'park_preparation',False) and not a.endurance_seconds:raise ValueError('explicit preparation parking')
+        def ready_and_park(role,port):
+            report.setdefault('readiness',{})[str(port)]=wait_ready(a.python,port,a.output/f'readiness-{port}.log',common)
+            if getattr(a,'park_preparation',False):
+                # No native bind/session or camera exists. Park the empty world
+                # before launching the next server; clients later configure and
+                # explicitly tick their own worlds using unchanged model steps.
+                script=("import carla,json;c=carla.Client('127.0.0.1',"+str(port)+");c.set_timeout(10);w=c.get_world();s=w.get_settings();s.synchronous_mode=True;w.apply_settings(s);print(json.dumps(dict(world=w.id,synchronous=w.get_settings().synchronous_mode)))")
+                state=json.loads(subprocess.check_output([str(a.python),'-c',script],env=common,text=True,timeout=15))
+                if not state['synchronous']:raise ValueError('preparation world not parked')
+                report.setdefault('parked',{})[role]=dict(state,wall_ns=time.monotonic_ns())
         for role in ('renderer','owner'):
             log=(a.output/f'{role}.log').open('w');logs.append(log)
             launched=owner_command(report.get('host_resources',{}),commands[role]) if role=='owner' else commands[role]
             processes[role]=subprocess.Popen(placed_command(role,launched),env=owner_env if role=='owner' else common,
                 stdout=log,stderr=subprocess.STDOUT,start_new_session=True,preexec_fn=hook)
+            if getattr(a,'park_preparation',False):ready_and_park(role,2300 if role=='renderer' else 2200)
         report['pids']={k:p.pid for k,p in processes.items()}
-        for port in (2200,2300):
-            report.setdefault('readiness',{})[str(port)]=wait_ready(
-                a.python,port,a.output/f'readiness-{port}.log',common)
+        if not getattr(a,'park_preparation',False):
+            for port in (2200,2300):ready_and_park('owner' if port==2200 else 'renderer',port)
         command=[str(a.python),str(Path(__file__).with_name('carla_control_shadow_v1.py')),
             '--output',str(a.output/'capture'),'--native',str(a.native),'--model',str(root/'tools/carla/m7_nodrive/virtual_ev_v1.json'),
             '--scenario',str(root/('tests/integration/carla/scenarios/m10_endurance_hold_v1.txt' if a.endurance_seconds else 'tests/integration/carla/scenarios/m7_integrated_v1.txt')),
@@ -187,5 +216,13 @@ if __name__=='__main__':
     p.add_argument('--resource-profile',type=Path)
     p.add_argument('--idle-wait',action='store_true')
     p.add_argument('--passive-ort',action='store_true')
-    p.add_argument('--renderer-wall-hz',type=int,choices=(0,10),default=0)
+    p.add_argument('--renderer-wall-hz',type=int,choices=(0,10,20),default=0)
+    p.add_argument('--camera-period-ms',type=int,choices=(50,100),default=50)
+    p.add_argument('--profile-host',action='store_true')
+    p.add_argument('--park-preparation',action='store_true')
+    p.add_argument('--cuda-blocking',action='store_true')
+    p.add_argument('--raw-recording',action='store_true')
+    p.add_argument('--renderer-max-fps',type=int,choices=(0,20,60),default=0)
+    p.add_argument('--preprocess-cv-threads',type=int,choices=(0,1,2,4),default=0)
+    p.add_argument('--resize-threads',type=int,choices=(0,1,2,4),default=0)
     raise SystemExit(main(p.parse_args()))

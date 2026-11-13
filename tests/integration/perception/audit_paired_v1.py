@@ -146,7 +146,10 @@ def audit(root):
     require(len(ticks)>=5 and len(mapped)>=3 and overlapping>=2,'actual simultaneous physics/rendering/inference')
     windows=[]
     if bounds['seconds']:
-        require(renderer['recorder']['mode']=='bounded-zstd-shards' and renderer['recorder']['stopped']
+        encoding='bgra' if server.get('raw_recording') else 'zstd1'
+        mode='bounded-bgra-shards' if encoding=='bgra' else 'bounded-zstd-shards'
+        require(all(row['codec']==encoding for row in images.values()),'declared lossless storage encoding')
+        require(renderer['recorder']['mode']==mode and renderer['recorder']['stopped']
             and renderer['recorder']['stored_bytes']<=bounds['stored_bytes'],'bounded lossless endurance recording')
         initial=min(starts)
         for second in range(0,bounds['seconds'],5):

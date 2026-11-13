@@ -264,3 +264,17 @@ defect to a premature mutex destructor. Two original negative controls time out;
 six candidate standalone exits and two empty CARLA exits pass. The original
 30s shutdown bound remains. This adds no camera frames or perception acceptance
 and does not close the failed normal-endurance requirement.
+
+The subsequent [Host profiling V1–V5](evidence/m10_host_profile_v5/README.md)
+retains A–E failures and verifies three finite30s cases F/G/H under unchanged
+5ms physics, native2/4ms, HV30ms and perception100ms bounds. Each has6000 physical
+intervals, zero protection and zero late/missing execution slots. Camera target
+10Hz is separated from renderer20Hz progress. Source→result p95 is85.93–93.32ms,
+but20/840 results exceed100ms; complete-scene admission and native perception
+acceptance remain unavailable. These are diagnostic concurrency passes, not
+whole-system real-time or300s acceptance. Python477 and all eight frozen archive
+audits pass; seven native replays are exact and C's31 watchdog-related differences
+remain explicit. All2070 new images are retained/excluded, cumulative11844.
+Live raw NVMe recording and post-run lossless archive compression have separate
+capacity/identity proofs. Shared runtime identities are restored. Jetson remains
+deployment-aware planning only, with no board optimization or Target claim.

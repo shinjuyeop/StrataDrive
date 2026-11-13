@@ -31,8 +31,9 @@ from paired_scene_capture_v1 import environment
 from renderer_lifecycle_v1 import hold,verify_hold
 from native_memory_recorder_v1 import MemoryRecorder
 from paired_fault_v1 import observed_process_exit
-from endurance_profile_v1 import limits
+from endurance_profile_v1 import limits,camera_pacing
 from endurance_recording_v1 import ShardRecorder
+from endurance_host_v1 import mark_thread,configure_pipeline_threads
 
 
 def sha(data):return hashlib.sha256(data).hexdigest()
@@ -49,8 +50,15 @@ class DiagnosticInference:
 
     def run(self):
         try:
+            mark_thread('m10-inference')
+            import cv2
+            cv_threads=int(os.environ.get('STRATADRIVE_M10_CV_THREADS','0'))
+            resize_threads=int(os.environ.get('STRATADRIVE_M10_RESIZE_THREADS','0'))
             backend=StagedKernelBackend(self.args.detector,self.args.models,self.args.library,
                 'f851fa22a24576d4e76fa2fa8749f3f4517d5ee625b64de390a360fd32fb0721',trace_capacity=max(4096,self.max_calls+3))
+            configure_pipeline_threads(backend,cv_threads,resize_threads)
+            self.report['host_pipeline']=dict(thread_id=threading.get_native_id(),cv_threads=cv2.getNumThreads(),
+                resize_threads=backend.resize.threads,cuda_wait=getattr(backend.detector,'cuda_wait_policy',None))
             self.report['providers']=backend.detector.session.get_providers()
             if os.environ.get('STRATADRIVE_ORT_PASSIVE_THREADS'):
                 options=backend.detector.session.get_session_options()
@@ -72,7 +80,7 @@ class DiagnosticInference:
                     self.condition.wait_for(lambda:self.closed or self.pending is not None)
                     if self.closed:break
                     image=self.pending;self.pending=None
-                a=image.association;begin=time.monotonic_ns()
+                a=image.association;begin=time.monotonic_ns();cpu_begin=time.thread_time_ns()
                 row=dict(renderer_frame=a.renderer_frame,physical_frame=a.scene.frame,
                     original_acquisition_ns=a.scene.acquired_begin_ns,callback_ns=image.received_wall_ns,
                     begin_ns=begin,scene_sha256=a.scene_sha256,accepted_for_control=False,
@@ -84,7 +92,7 @@ class DiagnosticInference:
                         raw_index=len(self.raw)-1,preprocess_ns=result.preprocess_ns,inference_ns=result.inference_ns,
                         postprocess_ns=result.postprocess_ns)
                 except Exception:row['error']=traceback.format_exc()
-                row['end_ns']=time.monotonic_ns();self.report['inference'].append(row)
+                row['end_ns']=time.monotonic_ns();row['thread_cpu_ns']=time.thread_time_ns()-cpu_begin;self.report['inference'].append(row)
                 if len(self.report['inference'])>=self.max_calls:raise ValueError('bounded diagnostic inference trace')
             self.report['backend_stages']=backend.stages
         except Exception:self.report['errors'].append(traceback.format_exc());self.ready.set()
@@ -105,7 +113,10 @@ class DiagnosticInference:
 def main(a):
     bounds=limits(a.endurance_seconds)
     wall_hz=int(os.environ.get('STRATADRIVE_RENDERER_WALL_HZ','0'))
-    if wall_hz not in (0,10) or (wall_hz and not a.endurance_seconds):raise ValueError('declared renderer wall pacing')
+    camera_period=int(os.environ.get('STRATADRIVE_M10_CAMERA_PERIOD_MS','50'))
+    raw_recording=os.environ.get('STRATADRIVE_M10_RAW_RECORDING')=='1'
+    target_camera_hz=camera_pacing(wall_hz,camera_period,raw_recording)
+    if (wall_hz or camera_period!=50 or raw_recording) and not a.endurance_seconds:raise ValueError('declared renderer wall pacing')
     period=1_000_000_000//wall_hz if wall_hz else 0;next_tick=0
     a.output.mkdir(parents=True,exist_ok=False)
     data=json.loads(a.catalog.read_text());catalog=data['catalog'];b=data['binding']
@@ -118,7 +129,7 @@ def main(a):
         complete_visual_scene=False,perception_publications=0,endurance_seconds=a.endurance_seconds)
     client=carla.Client('127.0.0.1',a.port);client.set_timeout(2)
     world=sensor=history=inference=None;clones={};records=deque();consumed=0
-    recorder=ShardRecorder(a.output,bounds['camera_frames'],bounds['stored_bytes']) if a.endurance_seconds else MemoryRecorder(a.output/'spill',96)
+    recorder=ShardRecorder(a.output,bounds['camera_frames'],bounds['stored_bytes'],encoding='bgra' if raw_recording else 'zstd1') if a.endurance_seconds else MemoryRecorder(a.output/'spill',96)
     lock=threading.Lock();accepting=True;held=None
     try:
         world=client.get_world();road=world.get_map()
@@ -146,7 +157,7 @@ def main(a):
                 raise ValueError('clone blueprint/attributes differ from source')
         adapter=KinematicRenderer(client,world,carla,binding,clones)
         bp=world.get_blueprint_library().find('sensor.camera.rgb')
-        attrs=dict(image_size_x='2560',image_size_y='1536',fov='90',sensor_tick='0.05',
+        attrs=dict(image_size_x='2560',image_size_y='1536',fov='90',sensor_tick=str(camera_period/1000),
                    role_name='m10_paired_diagnostic',enable_postprocess_effects='True')
         for name,value in attrs.items():bp.set_attribute(name,value)
         pose=catalog['camera_relative']
@@ -193,6 +204,7 @@ def main(a):
                         callback_received_ns=image.received_wall_ns,accepted_for_control=False))
                     inference.offer(image)
         report['renderer_wall_hz']=wall_hz
+        report['target_camera_wall_hz']=target_camera_hz;report['camera_period_ms']=camera_period
         for _ in range(8):
             if period:time.sleep(max(0,(next_tick-time.monotonic_ns())/1e9))
             next_tick=time.monotonic_ns()+period;world.tick();drain()

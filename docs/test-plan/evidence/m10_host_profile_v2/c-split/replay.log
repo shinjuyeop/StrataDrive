@@ -1,0 +1,38 @@
+{
+  "scope": "original wall timestamp/solver replay; not new live execution",
+  "calls": 804,
+  "receipts": 154,
+  "exact": false,
+  "original_source_fields_equal": true,
+  "input_sha256": "49523a981ed8c17fda42342ae56a282feed911b5a1d084a590f31903a7e4a7d0",
+  "first_difference": [
+    {
+      "index": 773,
+      "original": {
+        "now": "1579779551811739",
+        "energy_end": "2098248235",
+        "wheel_source": "1579779549153696",
+        "protection": "1579779551811739",
+        "armed": "0",
+        "hv_source": "1579779549153696",
+        "hv_dependency": "1579779533923243"
+      },
+      "replay": {
+        "now": "1579779551811739",
+        "energy_end": "2098248235",
+        "wheel_source": "1579779549153696",
+        "protection": "0",
+        "armed": "0",
+        "hv_source": "1579779549153696",
+        "hv_dependency": "1579779533923243"
+      }
+    }
+  ],
+  "different_rows": 31
+}
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/replay_wall_startup_v1.py", line 66, in <module>
+    if __name__=='__main__':main()
+  File "/d/shin/StrataDrive/tests/integration/perception/replay_wall_startup_v1.py", line 63, in main
+    if a.require_exact:assert not differences
+AssertionError

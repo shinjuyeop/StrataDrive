@@ -7,12 +7,32 @@ import time
 import unittest
 
 from endurance_recording_v1 import ShardRecorder,RawReader,Zstd
-from endurance_profile_v1 import limits
+from endurance_profile_v1 import limits,camera_pacing
 from owner_split_profile_v1 import validate_client
 import test_owner_split_profile_v1 as owner_tests
 
 
 class EnduranceTests(unittest.TestCase):
+    def test_readback_pump_can_be_faster_than_camera_without_unbounding_raw_rate(self):
+        self.assertEqual(camera_pacing(10,50,True),10)
+        self.assertEqual(camera_pacing(20,100,True),10)
+        self.assertEqual(camera_pacing(20,50),20)
+        for args in ((20,50,True),(0,50,True),(10,100,False),(20,25,False),(30,100,False)):
+            with self.assertRaises(ValueError):camera_pacing(*args)
+
+    def test_uncompressed_spool_preserves_alpha_and_rejects_changed_size_or_codec(self):
+        with tempfile.TemporaryDirectory() as d:
+            raw=bytes(range(64));recorder=ShardRecorder(d,2,1_000_000,encoding='bgra')
+            recorder.offer(dict(frame=1,width=4,height=4),raw);self.assertTrue(recorder.close())
+            report=recorder.report();self.assertEqual(report['mode'],'bounded-bgra-shards')
+            row=report['records'][0];self.assertEqual(row['stored_sha256'],row['bgra_sha256'])
+            reader=RawReader(d)
+            try:
+                self.assertEqual(reader.read(row),raw)
+                for fields in ({'codec':'jpeg'},{'raw_bytes':63},{'stored_sha256':'0'*64}):
+                    with self.assertRaises(ValueError):reader.read(dict(row,**fields))
+            finally:reader.close()
+
     def test_only_declared_long_normal_profile_keeps_original_guards(self):
         factory=owner_tests.OwnerSplitProfileTests().owner
         for duration in (30,300):

@@ -1,0 +1,266 @@
+{
+  "scope": "finite diagnostic host experiments only; no full milestone or target acceptance",
+  "cases": [
+    {
+      "case": "a-shared",
+      "series": 1,
+      "audit": "FAIL",
+      "error": "normal HV source/dependency budget including preceding sample",
+      "normal": 140,
+      "protection": 5698,
+      "init": 162,
+      "raw": 299,
+      "inferences": 291,
+      "scene_result_ms": {
+        "median": 136.276777,
+        "p95": 177.3283085,
+        "max": 545.384606
+      },
+      "over_100ms": 266,
+      "camera_hz": 9.699628241701738,
+      "image_cpu_cores": 1.5799394455555409,
+      "total_owned_cpu_cores": 2.957219991765561,
+      "peak_cpu_c": 100.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 206
+      },
+      "gpu_percent": {
+        "median": 30.0,
+        "p95": 32.0,
+        "max": 32
+      },
+      "exact_native_replay": true,
+      "archive_check": "PASS"
+    },
+    {
+      "case": "b-parked-shared",
+      "series": 1,
+      "audit": "FAIL",
+      "error": "original native physical acceptance",
+      "normal": 492,
+      "protection": 5342,
+      "init": 166,
+      "raw": 299,
+      "inferences": 290,
+      "scene_result_ms": {
+        "median": 140.6046385,
+        "p95": 203.1560466,
+        "max": 561.607552
+      },
+      "over_100ms": 274,
+      "camera_hz": 9.666318575123933,
+      "image_cpu_cores": 1.5019459137761535,
+      "total_owned_cpu_cores": 2.869896652821278,
+      "peak_cpu_c": 98.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 49
+      },
+      "gpu_percent": {
+        "median": 30,
+        "p95": 33.0,
+        "max": 37
+      },
+      "exact_native_replay": true,
+      "archive_check": "PASS"
+    },
+    {
+      "case": "c-split",
+      "series": 2,
+      "audit": "FAIL",
+      "error": "received original Actual age",
+      "normal": 0,
+      "protection": 0,
+      "init": 154,
+      "raw": 16,
+      "inferences": 9,
+      "scene_result_ms": {
+        "median": 165.127831,
+        "p95": 172.8501818,
+        "max": 174.922667
+      },
+      "over_100ms": 9,
+      "camera_hz": 9.073141287941219,
+      "image_cpu_cores": 0.9461990200281557,
+      "total_owned_cpu_cores": 1.8923980400563116,
+      "peak_cpu_c": 72.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "gpu_percent": {
+        "median": 0.0,
+        "p95": 0.0,
+        "max": 0
+      },
+      "exact_native_replay": false,
+      "archive_check": "PASS"
+    },
+    {
+      "case": "d-raw-shared",
+      "series": 2,
+      "audit": "FAIL",
+      "error": "normal HV source/dependency budget including preceding sample",
+      "normal": 3393,
+      "protection": 2437,
+      "init": 170,
+      "raw": 303,
+      "inferences": 296,
+      "scene_result_ms": {
+        "median": 138.52495,
+        "p95": 164.80445975000004,
+        "max": 170.956774
+      },
+      "over_100ms": 283,
+      "camera_hz": 9.832966809823262,
+      "image_cpu_cores": 0.8969665656011665,
+      "total_owned_cpu_cores": 2.1422534809062412,
+      "peak_cpu_c": 96.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 3
+      },
+      "gpu_percent": {
+        "median": 30.0,
+        "p95": 31.0,
+        "max": 33
+      },
+      "exact_native_replay": true,
+      "archive_check": "PASS"
+    },
+    {
+      "case": "e-raw-rr",
+      "series": 3,
+      "audit": "FAIL",
+      "error": "normal HV source/dependency budget including preceding sample",
+      "normal": 65,
+      "protection": 5769,
+      "init": 166,
+      "raw": 301,
+      "inferences": 294,
+      "scene_result_ms": {
+        "median": 137.6693065,
+        "p95": 165.96235215000002,
+        "max": 362.598841
+      },
+      "over_100ms": 278,
+      "camera_hz": 9.766369417121542,
+      "image_cpu_cores": 0.924305201149421,
+      "total_owned_cpu_cores": 2.174267157265659,
+      "peak_cpu_c": 93.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "gpu_percent": {
+        "median": 30.0,
+        "p95": 34.0,
+        "max": 38
+      },
+      "exact_native_replay": true,
+      "archive_check": "PASS"
+    },
+    {
+      "case": "f-readback20",
+      "series": 4,
+      "audit": "PASS_DIAGNOSTIC_CASE_ONLY",
+      "error": null,
+      "normal": 5838,
+      "protection": 0,
+      "init": 162,
+      "raw": 285,
+      "inferences": 281,
+      "scene_result_ms": {
+        "median": 76.891057,
+        "p95": 85.934164,
+        "max": 120.017341
+      },
+      "over_100ms": 3,
+      "camera_hz": 9.366022657075561,
+      "image_cpu_cores": 0.8899388076295994,
+      "total_owned_cpu_cores": 2.3445054580024736,
+      "peak_cpu_c": 96.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "gpu_percent": {
+        "median": 34.0,
+        "p95": 36.0,
+        "max": 39
+      },
+      "exact_native_replay": true,
+      "archive_check": "PASS"
+    },
+    {
+      "case": "g-repeat1",
+      "series": 5,
+      "audit": "PASS_DIAGNOSTIC_CASE_ONLY",
+      "error": null,
+      "normal": 5838,
+      "protection": 0,
+      "init": 162,
+      "raw": 284,
+      "inferences": 280,
+      "scene_result_ms": {
+        "median": 77.0792915,
+        "p95": 87.47442659999999,
+        "max": 158.834176
+      },
+      "over_100ms": 6,
+      "camera_hz": 9.332966081429127,
+      "image_cpu_cores": 0.8946314629484209,
+      "total_owned_cpu_cores": 2.3662402218594787,
+      "peak_cpu_c": 97.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 15
+      },
+      "gpu_percent": {
+        "median": 34.0,
+        "p95": 35.0,
+        "max": 36
+      },
+      "exact_native_replay": true,
+      "archive_check": "PASS"
+    },
+    {
+      "case": "h-repeat2",
+      "series": 5,
+      "audit": "PASS_DIAGNOSTIC_CASE_ONLY",
+      "error": null,
+      "normal": 5830,
+      "protection": 0,
+      "init": 170,
+      "raw": 283,
+      "inferences": 279,
+      "scene_result_ms": {
+        "median": 77.479945,
+        "p95": 93.3162957,
+        "max": 328.893471
+      },
+      "over_100ms": 11,
+      "camera_hz": 9.299516604927199,
+      "image_cpu_cores": 0.93261818855148,
+      "total_owned_cpu_cores": 2.4388732257438104,
+      "peak_cpu_c": 95.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "gpu_percent": {
+        "median": 33.5,
+        "p95": 37.0,
+        "max": 44
+      },
+      "exact_native_replay": true,
+      "archive_check": "PASS"
+    }
+  ],
+  "new_raw_images": 2070,
+  "future_exclusion_count": 11844,
+  "holdout_access": false,
+  "python_tests": 477,
+  "long_run_300s": "NOT_RUN"
+}

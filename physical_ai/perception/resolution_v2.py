@@ -65,6 +65,11 @@ class ResolutionDetector:
         providers = ["CPUExecutionProvider"]
         if settings is not None:
             ort.preload_dlls(directory="")
+            wait=os.environ.get('STRATADRIVE_CUDA_BLOCKING_SYNC')
+            if wait is not None:
+                if wait!='1':raise ValueError('explicit CUDA blocking host wait')
+                from .cuda_host_wait_v1 import blocking_sync
+                self.cuda_wait_policy=blocking_sync()
             options.add_session_config_entry("session.disable_cpu_ep_fallback", "1")
             providers = [
                 (

@@ -1,12 +1,24 @@
 # Physics and camera rendering separation: next prototype boundary
 
-Status: **finite20Hz normal concurrency and physical progress through actual
-renderer stop/death verified; complete-scene and long-run acceptance OPEN**. The
+Status: **selected Host configuration passes three finite30s concurrent trials;
+physical progress through actual renderer stop/death verified; complete-scene,
+300s and perception-control acceptance OPEN**. The
 [fence comparison](../test-plan/evidence/m10_fence_compare_v1/README.md) locates
 42.21ms of one45.95ms physical-service gap inside a render-thread completion event.
 The camera-free run also failed later, with0 normal physical intervals. Separating
 rendering is therefore a candidate for one dependency, not a demonstrated cure for
 all vehicle availability failures.
+
+The latest [Host profiling comparison](../test-plan/evidence/m10_host_profile_v5/README.md)
+retains five failed experiments and selects shared four-core rendering/inference,
+CFS owner scheduling, blocking CUDA host wait and raw NVMe recording. Renderer
+wall cap20Hz with camera100ms model cadence keeps the camera target10Hz and
+reduces delivery delay. F/G/H each complete6000 original5ms intervals with no
+protection or missed execution slots. Median scene→result is76.89–77.48ms, but
+20/840 outputs exceed100ms and the maximum is328.89ms. No timestamp or acceptance
+bound changes; incomplete visual state still keeps all results unavailable.
+Peak CPU95–97°C and one run's thermal counter increase remain, as does the
+unperformed300s trial. Raw archives are compressed only after live work ends.
 
 The [paired implementation](../test-plan/evidence/m10_paired_v3/README.md) now
 captures three same-frame SDK actor roots and joins them to the original native
