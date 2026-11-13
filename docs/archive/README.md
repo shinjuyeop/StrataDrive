@@ -7,7 +7,7 @@
 | --- | --- |
 | [설계 결정](design-decisions.md) | ADR별 결정·이유·제약. ID별 목차 제공 |
 | [단계별 검토](milestone-reviews.md) | Baseline, M2/M3 수용, M4 Host/종료, M6/M8 종료 검토 |
-| [구현·검증 이력](implementation-history.md) | M7–M10 상세 경과·중간 실패·미채택 후보와 과거 실행 목록 |
+| [구현·검증 이력](implementation-history.md) | M7–M10 상세 경과·중간 실패·미채택 후보와 [M10 Host 실행 목록](implementation-history.md#m10-host-실행-이력) |
 | [CARLA 이력](carla-history.md) | 과거 환경 조사·계약 v25까지의 경위·M7 검토 |
 | [M4 프로토콜](m4-test-protocols.md) | 완료된 계약 검토·kernel 관측·middleware v1·settlement 계획 |
 | `protocols/` | 현존 runner가 직접 읽는 고정 M4 fault/follow-up/middleware v2 프로토콜 |

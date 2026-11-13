@@ -95,6 +95,18 @@ RTE와 BSW, AUTOSAR 생성과 제어 알고리즘 생성을 같은 것으로 취
 이동·통합 시 상대 링크·앵커·runner가 읽는 protocol 경로를 함께 점검한다.
 새 안내를 쓰기 위해 기존 raw evidence·source snapshot·기록된 timestamp/hash를 고쳐 쓰지 않는다.
 
+## 로컬 산출물 정리
+
+`build/` 아래라도 현재 실행에 필요한 파일은 보존한다. 현재 M10은 CUDA 가상환경,
+고정 ONNX/모델 manifest, native resize·owner·replay 바이너리, CARLA·DXC 후보와 복원본을 사용한다.
+CARLA/UE 자산·DDC·빌드용 헤더 캐시는 [실행 안내](carla-guide.md#저장된-검증-결과-찾기)를 따른다.
+
+삭제 대상은 검증 완료된 archive의 임시 `source`/`run` 추출본, 재생성 가능한 CMake 오브젝트,
+중복 프로파일 로그 등으로 좁힌다.
+보존본의 크기·SHA와 PASS 검증 기록을 먼저 확인하고 실행 중인 프로세스의 경로는 제외한다.
+Raw/실패 원본·protocol·source snapshot·모델·LFS 보관본은 임시 추출물과 구분한다.
+새 재감사는 보존 archive에서 새 작업 경로로 추출한다. 정리할 때는 대상·복원 근거·전후 용량을 기록한다.
+
 ## 문서 이름 규칙
 
 - 폴더 안내는 `README.md`, 그 외 문서·학습 HTML·추적성 CSV는 소문자 영어 `kebab-case`로 쓴다.

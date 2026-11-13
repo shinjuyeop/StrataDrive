@@ -3,6 +3,10 @@
 현재 구현·검증·OPEN은 [프로젝트 상태](project-status.md)에서 관리한다.
 이 문서는 남은 단계의 산출물과 결정할 항목만 다룬다.
 
+<a id="m9-시작-범위"></a>
+과거 M9 착수 범위는 [구현 이력](archive/implementation-history.md#m9-이번-후속-구현)에 보존하며,
+현재 종료 범위는 [프로젝트 상태](project-status.md#m9-기능-범위-마감)를 따른다.
+
 ## 후속 단계
 
 | 단계 | 산출물 |
@@ -59,5 +63,5 @@ M6에서 결정된 수치·소유권과 후속 gate의 상세 구분은 [M6 검�
 ## 최신 M10 후속 범위
 
 최신 판단은 [프로젝트 상태](project-status.md#최신-m10-판단), 완료된 시도와 실패는
-[구현·검증 이력](archive/implementation-history.md#m10-정리-전-상세-기록)과 각 evidence에서 확인한다.
+[Host 실행 목록](archive/implementation-history.md#m10-host-실행-이력)과 각 evidence에서 확인한다.
 이 문서에는 개별 실행 수치와 날짜별 경과를 누적하지 않는다.

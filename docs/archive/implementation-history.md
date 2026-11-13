@@ -881,3 +881,30 @@ M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 �
 정의하고 기존 감독/제어 경로에 연결한다. 온라인 저항 추정은 별도다.
 구체 산출물과 TBD 담당·결정 시점은 [로드맵](../roadmap.md)에서 관리한다.
 진행한 시도별 상세 경과와 과거 실행 목록은 [구현·검증 이력](implementation-history.md)에서 찾는다.
+
+
+## M10 Host 실행 이력
+
+2026-11-13 현재 문서에서 반복되던 시험 설명을 근거 목록으로 통합했다. 아래는 각 실행 당시의
+판정이며, 현재 채택 설정과 다음 작업은 [프로젝트 상태](../project-status.md#최신-m10-판단)를 따른다.
+원본·실패·해시·사전 선언 프로토콜은 링크된 evidence의 기존 경로에 보존한다.
+
+| 단계 | 당시 결과와 제한 | 근거 |
+| --- | --- | --- |
+| 2K 지연 비교 | 입력 버퍼 재사용의2.48ms 개선은 사전3ms 채택 폭 미달. GPU 비동기 결합은 미채택 | [지연 비교](../test-plan/evidence/m10_latency_2k_v1/README.md) |
+| 수신·보호 기능 | 보존 관측과9개 논리 SIL 검증; live 연속 주행 수용과 구분 | [2K 제어 경계](../test-plan/evidence/m10_native_2k_control_v1/README.md) |
+| 최초 live shadow | 실제 결과1개 전달, 정상 주행 전 입력 보호. 첫 추론보다 보호가 먼저 발생 | [원본 실패](../test-plan/evidence/m10_live_shadow_v1/README.md) |
+| 시작·대기 원인 | ECU 시작 대기 수정 후에도 서버 공백. 렌더 완료 대기 위치를 계측했지만 모든 실패 원인은 미확정 | [시작 수정](../test-plan/evidence/m10_startup_v1/README.md) · [서버 계측](../test-plan/evidence/m10_server_timing_v1/README.md) · [카메라/fence 비교](../test-plan/evidence/m10_fence_compare_v1/README.md) |
+| 물리 owner 분리 | 첫5ms 관측 거절 보존. 명시적 주기 수정 후 비영상400구간·정상234·보호0 | [첫 실패](../test-plan/evidence/m10_owner_split_v1/README.md) · [수정 시험](../test-plan/evidence/m10_owner_split_v2/README.md) |
+| 별도 렌더러 재생 |3개 보존 위치와12개 영상 대응; 전체 장면 미완성·첫 종료 실패 | [재생](../test-plan/evidence/m10_render_replay_v2/README.md) · [provenance 계약](../interfaces/perception-render-provenance-v1.md) |
+| 정지·종료 진단 | 후속 정상 종료와 저장 중 월드 정지 확인. 앞선 간헐적 멈춤의 해결로 확대하지 않음 | [종료 진단](../test-plan/evidence/m10_render_shutdown_v1/README.md) · [정지 유지](../test-plan/evidence/m10_render_shutdown_v2/README.md) |
+| 동시 실행 준비·첫 실행 | 준비 실패 보존. 첫 유한 동시 실행은 통과했으나 보행자 배치 오류·인지 수용0 | [준비](../test-plan/evidence/m10_paired_v2/README.md) · [첫 동시 실행](../test-plan/evidence/m10_paired_v3/README.md) |
+| 보행자·조회 부하 | 배치 수정 후 HV30ms 초과 FAIL. 별도20Hz 조회 시험은400구간·정상234·보호0 | [실패](../test-plan/evidence/m10_paired_v4/README.md) · [조회 비교](../test-plan/evidence/m10_paired_v5/README.md) |
+| 실제 렌더 정지·종료 | 첫 주입 시점 실패 보존. 후속은 실제 정지 중51·종료 뒤49구간 물리 진행 확인 | [첫 실패](../test-plan/evidence/m10_paired_v6/README.md) · [후속 통과](../test-plan/evidence/m10_paired_v7/README.md) |
+| 초기30초 반복 | 선언3회 모두 FAIL. 입력 누락·HV 나이·저장 큐·종료 실패 보존; 조건부5분 NOT RUN | [장시간 V3](../test-plan/evidence/m10_endurance_v3/README.md) |
+| 발열·저장 개선 | V4–V8 모두 FAIL. 마지막 조건은 원본300장 보존, CPU100°C/약0.8GHz 열 제한 관측 | [후속 검증](../test-plan/evidence/m10_remediation_v1/README.md) |
+| DXC 종료 수명 | 잠금 객체 조기 파괴 재현·수정. 단독6회와 빈 서버2회 종료 통과; 영상 장기 시험과 구분 | [수명 수정](../test-plan/evidence/m10_dxc_lifetime_v1/README.md) |
+| Host 프로파일링 | A–E 실패 보존, F/G/H30초씩 통과.840회 중20회100ms 초과·열 제한 잔존·인지 수용0 | [배치·반복 검증](../test-plan/evidence/m10_host_profile_v5/README.md) |
+
+전체 설계 경계는 [물리/렌더링 분리 계약](../interfaces/perception-render-isolation-v1.md)을 따른다.
+유한 통과로 과거 실패를 지우거나 장기 운용·전체 장면·독립 품질·Jetson 배포를 수용하지 않는다.
