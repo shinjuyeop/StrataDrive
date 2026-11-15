@@ -113,8 +113,10 @@ ctest --test-dir build/m1-angle --output-on-failure
 - CARLA 환경과 제어 시험 실행: [CARLA 실행 안내](docs/carla-guide.md)
 - 모델 추론·객체 평가·부하 시험: [영상 인지 안내](docs/perception-guide.md)
 
-원본 실행 증거를 재현할 때는 Git LFS를 설치한 뒤 `git lfs pull`로 로그를 받고,
-해당 evidence 디렉터리에서 `sha256sum -c SHA256SUMS`로 원본 해시를 확인한다.
+실험 설정·결과 요약·핵심 로그·대표 이미지는 저장소에 유지한다. 대형 원본 카메라·실험·반복 실행
+묶음은 로컬/외부 보관 대상으로 분리했으며, 전체 재감사에는 해당 원본이 별도로 필요하다.
+[산출물 보관·복원 안내](docs/test-plan/artifact-storage.md)에서 제외 목록과 검증 방법을 확인한다.
+저장소에 유지한 LFS 로그는 `git lfs pull`로 받는다.
 
 ## 문서 안내
 

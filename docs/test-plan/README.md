@@ -72,7 +72,11 @@ M9는 [Fault event/DTC 계약](../interfaces/diagnostics.md)과
 
 `evidence/`는 실행별 원본이다. 디렉터리 이름·timestamp·source snapshot·hash를 바꾸거나
 실패를 최신 통과로 덮어쓰지 않는다. README는 당시 판정과 재현 방법이며, raw CSV/log·센서·
-JSON·journal은 실행 증거다. Git LFS 파일을 받은 뒤 각 `SHA256SUMS`로 무결성을 확인한다.
+JSON·journal은 실행 증거다. 대형 카메라·실험·반복 실행 묶음은 Git 추적을 해제하고 로컬 원본을
+보존한다. [산출물 보관·복원 안내](artifact-storage.md)와 [제외 목록](artifact-inventory.csv)을 따른다.
+과거 README의 LFS 다운로드 안내와 원본 검증 명령은 해당 원본을 별도로 확보한 뒤 적용한다.
+`SHA256SUMS`와 기존 manifest/hash는 당시 원본의 식별자로 유지하며, 전체 원본을 복원한 경우에만
+전체 무결성·raw replay를 검사한다. Git에 남은 요약·로그만으로 전체 재현 통과를 주장하지 않는다.
 
 M7-1a–1s 등 고정 식별자는 당시 개별 시험에 유지한다. 현존 runner가 읽는 protocol 경로도
 그대로 둔다. 현재 CARLA 재실행은 [실행 안내](../carla-guide.md), 문서·코드 변경 원칙은

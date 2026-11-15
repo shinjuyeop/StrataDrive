@@ -105,6 +105,7 @@ CARLA/UE 자산·DDC·빌드용 헤더 캐시는 [실행 안내](carla-guide.md#
 중복 프로파일 로그 등으로 좁힌다.
 보존본의 크기·SHA와 PASS 검증 기록을 먼저 확인하고 실행 중인 프로세스의 경로는 제외한다.
 Raw/실패 원본·protocol·source snapshot·모델·LFS 보관본은 임시 추출물과 구분한다.
+대형 생성물의 Git 추적·로컬 보관·원본 복원 경계는 [산출물 보관 정책](test-plan/artifact-storage.md)을 따른다.
 새 재감사는 보존 archive에서 새 작업 경로로 추출한다. 정리할 때는 대상·복원 근거·전후 용량을 기록한다.
 
 ## 문서 이름 규칙

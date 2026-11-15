@@ -39,6 +39,38 @@ models/*
 *.plan
 benchmark/results/raw/
 
+# Raw camera payloads and generated experiment bundles stay in local/external storage.
+# Keep source snapshots, configs, summaries, core traces and PNG/JPEG review panels.
+# See docs/test-plan/artifact-storage.md for retention and full replay requirements.
+*.bgra
+*.rgb
+*.bgra.gz
+*.rgb.gz
+/docs/test-plan/evidence/**/raw-camera*/
+/docs/test-plan/evidence/**/raw/
+/docs/test-plan/evidence/**/dataset/rgb/
+/docs/test-plan/evidence/**/dataset/instance/
+/docs/test-plan/evidence/**/dataset/semantic/
+/docs/test-plan/evidence/**/raw-*.tar
+/docs/test-plan/evidence/**/raw-*.tar.gz
+/docs/test-plan/evidence/**/raw-*.tgz
+/docs/test-plan/evidence/**/raw-*.zip
+/docs/test-plan/evidence/**/raw-*.7z
+/docs/test-plan/evidence/**/experiment*.tar
+/docs/test-plan/evidence/**/experiment*.tar.gz
+/docs/test-plan/evidence/**/experiment*.tgz
+/docs/test-plan/evidence/**/experiment*.zip
+/docs/test-plan/evidence/**/experiment*.7z
+/docs/test-plan/evidence/**/run*.tar
+/docs/test-plan/evidence/**/run*.tar.gz
+/docs/test-plan/evidence/**/run*.tgz
+/docs/test-plan/evidence/**/run*.zip
+/docs/test-plan/evidence/**/run*.7z
+/docs/test-plan/evidence/m10_perception/capture.tar.gz
+/docs/test-plan/evidence/m10_perception/exploratory.tar.gz
+/docs/test-plan/evidence/m10_live_perception/live-runs.tar.gz
+/docs/test-plan/evidence/m10_live_perception/renderer-inputs.tar.gz
+
 # CARLA installations, assets, recordings and package archives
 simulation/carla/assets/
 simulation/carla/recordings/
