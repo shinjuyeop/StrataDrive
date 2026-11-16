@@ -14,6 +14,27 @@ from endurance_host_v1 import ENV,command,validate,owner_command,check_owner
 
 
 class HostTests(unittest.TestCase):
+    def test_model_setup_restores_observer_and_workers_inherit_pipeline(self):
+        import threading
+        from endurance_host_v1 import pipeline_setup
+        allowed = os.sched_getaffinity(0)
+        cpu = max(allowed)
+        plan = dict(renderer=[cpu])
+        try:
+            with patch.dict(os.environ, {ENV: json.dumps(plan)}):
+                with self.assertRaisesRegex(RuntimeError, 'fixture'):
+                    with pipeline_setup() as selected:
+                        self.assertEqual(selected, [cpu])
+                        observed = []
+                        thread = threading.Thread(target=lambda: observed.append(os.sched_getaffinity(0)))
+                        thread.start(); thread.join(2)
+                        self.assertFalse(thread.is_alive())
+                        self.assertEqual(observed, [{cpu}])
+                        raise RuntimeError('fixture')
+                self.assertEqual(os.sched_getaffinity(0), allowed)
+        finally:
+            os.sched_setaffinity(0, allowed)
+
     def test_explicit_thread_policy_overrides_completed_backend_initialization(self):
         import cv2
         from types import SimpleNamespace

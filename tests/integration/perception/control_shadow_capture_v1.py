@@ -2,6 +2,7 @@
 from dataclasses import asdict
 import hashlib
 import json
+import os
 from pathlib import Path
 import threading
 import time
@@ -11,6 +12,7 @@ import zlib
 from PIL import Image
 from native_memory_recorder_v1 import MemoryRecorder
 from endurance_profile_v1 import limits
+from endurance_host_v1 import pipeline_setup, configure_pipeline_threads
 from physical_ai.perception.ipc_2k_v1 import IpcWorldPerception, Publisher, socket_pair
 from physical_ai.perception.staged_kernel_2k_v1 import StagedKernelBackend
 from physical_ai.perception.world_async_2k_v1 import ObservedWorldClock
@@ -34,8 +36,19 @@ class Capture:
     def attach(self, world, actor, carla):
         self.world = world
         self.report.update(source_clock=world.id, wall_clock=self.args.wall_clock)
+        with pipeline_setup() as cpus:
+            self.report['model_setup_cpus'] = cpus
+            self.prepare_model(world)
+        self.report['observer_cpus_after_setup'] = sorted(os.sched_getaffinity(0))
+        self.attach_sensor(world, actor, carla)
+
+    def prepare_model(self, world):
         self.detector = StagedKernelBackend(self.args.detector, self.args.models, self.args.library,
             "f851fa22a24576d4e76fa2fa8749f3f4517d5ee625b64de390a360fd32fb0721")
+        cv_threads = int(os.environ.get('STRATADRIVE_M10_CV_THREADS', '0'))
+        resize_threads = int(os.environ.get('STRATADRIVE_M10_RESIZE_THREADS', '0'))
+        configure_pipeline_threads(self.detector, cv_threads, resize_threads)
+        self.report['preparation_thread_overrides'] = dict(cv=cv_threads, resize=resize_threads)
         self.report["providers"] = self.detector.detector.session.get_providers()
         owner = self
         preparing = True
@@ -44,6 +57,8 @@ class Capture:
             def infer(self, packet):
                 row = dict(identity=asdict(packet.identity), received_wall_ns=packet.received_wall_ns,
                            owner_thread_id=threading.get_ident(), begin_wall_ns=time.monotonic_ns())
+                if preparing:
+                    row['cpus'] = sorted(os.sched_getaffinity(0))
                 try:
                     result = owner.detector.infer(packet)
                     row["result"] = asdict(result)
@@ -58,10 +73,13 @@ class Capture:
         step_ns=getattr(self.args,'step_ms',10)*1_000_000
         self.report['world_step_ns']=step_ns
         self.worker = IpcWorldPerception(Backend(), ObservedWorldClock(world.id,step_ns=step_ns), self.args.wall_clock)
-        if not self.worker.prepare() or not self.worker.wait_prepared(10):
-            raise RuntimeError("bounded native2K preparation")
+        ready = self.worker.prepare() and self.worker.wait_prepared(10)
         self.report["preparation"] = self.worker.preparation_status()
+        if not ready:
+            raise RuntimeError("bounded native2K preparation: " + str(self.report['preparation']['error'] or 'not ready'))
         preparing = False
+
+    def attach_sensor(self, world, actor, carla):
         self.recorder = MemoryRecorder(self.args.output / "raw", 96)
         self.publisher = Publisher(self.tx, 42, world.id, self.args.wall_clock)
         self.report['camera_condition'] = 'absent' if getattr(self.args, 'camera_absent_control', False) else '2k'

@@ -1,0 +1,94 @@
+{
+  "status": "ORIGINAL_FAIL_PRESERVED",
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/perception/carla_control_shadow_v1.py\", line 112, in main\n    if capture:capture.attach(world,actor,carla)\n  File \"/d/shin/StrataDrive/tests/integration/perception/control_shadow_capture_v1.py\", line 62, in attach\n    raise RuntimeError(\"bounded native2K preparation\")\nRuntimeError: bounded native2K preparation\n",
+  "physical_receipts": 0,
+  "native_started": false,
+  "raw_images": 0,
+  "preparation": {
+    "state": "FAILED",
+    "started_wall_ns": 1831743387010040,
+    "finished_wall_ns": 1831744038228981,
+    "last_observed_wall_ns": 1831744038228981,
+    "error": "settled probe deadline",
+    "calls": [
+      {
+        "number": 1,
+        "owner_thread_id": 140154008237632,
+        "begin_wall_ns": 1831743387043423,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 1,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 42886985,
+          "inference_ns": 442694180,
+          "postprocess_ns": 247270,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 1831743906226851,
+        "elapsed_wall_ns": 519183428
+      },
+      {
+        "number": 2,
+        "owner_thread_id": 140154008237632,
+        "begin_wall_ns": 1831743906248822,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 2,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 110766417,
+          "inference_ns": 20824539,
+          "postprocess_ns": 259263,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 1831744038228981,
+        "elapsed_wall_ns": 131980159
+      }
+    ]
+  },
+  "stage_durations_ms": [
+    {
+      "gray": 2.176689,
+      "health": 2.126046,
+      "resize": 25.072351,
+      "tensor": 13.511899,
+      "inference": 442.69418,
+      "decode": 0.24727
+    },
+    {
+      "gray": 1.349262,
+      "health": 1.93782,
+      "resize": 23.875514,
+      "tensor": 83.603821,
+      "inference": 20.824539,
+      "decode": 0.259263
+    }
+  ],
+  "interpretation": "Second synthetic call 131.98ms exceeded unchanged 100ms settled-probe gate. Model setup inherited observer CPUs 0,8; declared CV override was not applied to this owner. Stage wall times do not distinguish computation from descheduling.",
+  "next_candidate": "Place model construction and inference worker on declared pipeline CPUs; apply existing CV/resize settings; keep 10s/3-call/last-two<100ms gate. No retry of this original case."
+}

@@ -1,0 +1,65 @@
+{
+  "status": "RECORDED_UNLOADED_DIAGNOSTIC_ONLY",
+  "scope": "three single Dell fan queries and a coretemp reference; cannot attribute earlier loaded failures or rule out loaded firmware stalls",
+  "monitor_slots": {
+    "eligible": 2505,
+    "missing": 0,
+    "late": 0,
+    "violations": [],
+    "max_wake_delay_ns": 304975,
+    "median_wake_delay_ns": 40405
+  },
+  "monitor_profile": "PASS_MONITOR_DIAGNOSTIC_INTEGRITY",
+  "queries": [
+    {
+      "offset_seconds": 1,
+      "path": "/sys/class/hwmon/hwmon4/temp1_input",
+      "value": "53000",
+      "begin_ns": 1830359080636343,
+      "end_ns": 1830359080933330,
+      "thread_cpu_ns": 256251,
+      "query_wall_ns": 296987,
+      "near_monitor_completions": 10,
+      "maximum_near_wake_delay_ns": 113163
+    },
+    {
+      "offset_seconds": 2,
+      "path": "/sys/class/hwmon/hwmon3/fan1_input",
+      "value": "588",
+      "begin_ns": 1830360083213176,
+      "end_ns": 1830360089808707,
+      "thread_cpu_ns": 6587838,
+      "query_wall_ns": 6595531,
+      "near_monitor_completions": 13,
+      "maximum_near_wake_delay_ns": 74715
+    },
+    {
+      "offset_seconds": 3,
+      "path": "/sys/class/hwmon/hwmon3/fan2_input",
+      "value": "1167",
+      "begin_ns": 1830361085998230,
+      "end_ns": 1830361092914771,
+      "thread_cpu_ns": 6893994,
+      "query_wall_ns": 6916541,
+      "near_monitor_completions": 13,
+      "maximum_near_wake_delay_ns": 304975
+    },
+    {
+      "offset_seconds": 4,
+      "path": "/sys/class/hwmon/hwmon3/fan3_input",
+      "value": "1137",
+      "begin_ns": 1830362088844145,
+      "end_ns": 1830362095621641,
+      "thread_cpu_ns": 6769856,
+      "query_wall_ns": 6777496,
+      "near_monitor_completions": 13,
+      "maximum_near_wake_delay_ns": 86304
+    }
+  ],
+  "maximum_cpu_temperature_millicelsius": 65000,
+  "counter_error_samples": 0,
+  "original_full_irq_rows": 52,
+  "root_power_settings_modified": false,
+  "physical_receipts": 0,
+  "new_images": 0
+}

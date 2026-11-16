@@ -891,6 +891,7 @@ M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 �
 
 | 단계 | 당시 결과와 제한 | 근거 |
 | --- | --- | --- |
+| Host clock V1/V2 |70% 최대 요청에서 첫30초 PASS·최고76°C·후속 준비132ms FAIL. 원래 실패 유지, 준비 CPU/CV 배치와 사후 비교·복원 수정. Python501·동결85, V2 live 대기 | [V1 결과](../test-plan/evidence/m10_host_clock_v1/README.md) · [V2 후보](../test-plan/evidence/m10_host_clock_v2/README.md) |
 | 2K 지연 비교 | 입력 버퍼 재사용의2.48ms 개선은 사전3ms 채택 폭 미달. GPU 비동기 결합은 미채택 | [지연 비교](../test-plan/evidence/m10_latency_2k_v1/README.md) |
 | 수신·보호 기능 | 보존 관측과9개 논리 SIL 검증; live 연속 주행 수용과 구분 | [2K 제어 경계](../test-plan/evidence/m10_native_2k_control_v1/README.md) |
 | 최초 live shadow | 실제 결과1개 전달, 정상 주행 전 입력 보호. 첫 추론보다 보호가 먼저 발생 | [원본 실패](../test-plan/evidence/m10_live_shadow_v1/README.md) |

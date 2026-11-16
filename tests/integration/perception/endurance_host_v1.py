@@ -1,6 +1,7 @@
 """Explicit owned-process CPU placement and nonrotating evidence spool checks."""
 import json
 import os
+from contextlib import contextmanager
 from pathlib import Path
 
 ENV='STRATADRIVE_M10_CPU_PLAN'
@@ -82,3 +83,29 @@ def configure_pipeline_threads(backend,cv_threads,resize_threads):
         cv2.setNumThreads(cv_threads)
         if cv2.getNumThreads()!=cv_threads:raise ValueError('preprocessing thread override not applied')
     if resize_threads:backend.resize.threads=resize_threads
+
+
+@contextmanager
+def pipeline_setup():
+    """Place model construction and newly created workers on the image CPUs.
+
+    Linux affinity is per thread. Restore the calling observer thread on every
+    exit; ORT and inference workers created inside inherit the declared image
+    placement. No scheduling policy or other process is changed.
+    """
+    value = os.environ.get(ENV)
+    if value is None:
+        yield None
+        return
+    plan = json.loads(value)
+    cpus = set(plan.get('pipeline', plan['renderer']))
+    previous = os.sched_getaffinity(0)
+    try:
+        os.sched_setaffinity(0, cpus)
+        if os.sched_getaffinity(0) != cpus:
+            raise RuntimeError('model setup CPU placement failed')
+        yield sorted(cpus)
+    finally:
+        os.sched_setaffinity(0, previous)
+        if os.sched_getaffinity(0) != previous:
+            raise RuntimeError('observer CPU placement restoration failed')

@@ -45,6 +45,7 @@ class FenceCompareTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             capture=Capture(SimpleNamespace(detector=Path('model'),models=Path('models'),library=Path('kernel'),wall_clock=9,output=Path(temp),camera_absent_control=True))
             world=Mock(id=7);worker=Mock();worker.prepare.return_value=False
+            worker.preparation_status.return_value={'state':'FAILED','error':'fixture preparation rejected'}
             try:
                 with patch('control_shadow_capture_v1.StagedKernelBackend'),patch('control_shadow_capture_v1.IpcWorldPerception',return_value=worker),self.assertRaises(RuntimeError):
                     capture.attach(world,Mock(),Mock())

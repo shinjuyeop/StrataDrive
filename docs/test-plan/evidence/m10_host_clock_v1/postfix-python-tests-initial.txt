@@ -1,0 +1,17 @@
+....................................................................................................................................E................................................................................................................................................................................................................................................................................................................................................................................
+======================================================================
+ERROR: test_preparation_failure_never_spawns_sensor_or_observer (test_fence_compare_v1.FenceCompareTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/tests/integration/perception/test_fence_compare_v1.py", line 50, in test_preparation_failure_never_spawns_sensor_or_observer
+    capture.attach(world,Mock(),Mock())
+  File "/d/shin/StrataDrive/tests/integration/perception/control_shadow_capture_v1.py", line 41, in attach
+    self.prepare_model(world)
+  File "/d/shin/StrataDrive/tests/integration/perception/control_shadow_capture_v1.py", line 79, in prepare_model
+    raise RuntimeError("bounded native2K preparation: " + self.report['preparation']['error'])
+TypeError: 'Mock' object is not subscriptable
+
+----------------------------------------------------------------------
+Ran 501 tests in 33.112s
+
+FAILED (errors=1)
