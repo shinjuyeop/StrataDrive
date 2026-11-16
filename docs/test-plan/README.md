@@ -9,7 +9,7 @@
 | 분야 | 최신 연결 |
 | --- | --- |
 | 작업 순서·수용 판정 | [프로젝트 상태](../project-status.md#다음-작업) |
-| 물리·영상 동시 실행과 Host 부하 | [70% 제한30초 통과·준비 실패 수정](evidence/m10_host_clock_v1/README.md) · [V2 준비](evidence/m10_host_clock_v2/README.md) · [JSON 최적화 후보](evidence/m10_structured_state_v1/README.md) · [5분 실패](evidence/m10_host_endurance_v1/README.md) · [이전 시험 목록](../archive/implementation-history.md#m10-host-실행-이력) |
+| 물리·영상 동시 실행과 Host 부하 | [준비 수정·후속 HV 대기 분석](evidence/m10_host_clock_v2/README.md) · [V1 부스트 시험](evidence/m10_host_clock_v1/README.md) · [JSON 최적화 후보](evidence/m10_structured_state_v1/README.md) · [5분 실패](evidence/m10_host_endurance_v1/README.md) · [이전 시험 목록](../archive/implementation-history.md#m10-host-실행-이력) |
 | 인지 후보·독립 품질 | [모델 선정](../perception-model-selection.md) · [V9 평가](evidence/m10_quality_v9/README.md) · [해상도 후보](evidence/m10_resolution_v2/README.md) |
 | 2K/4K 실제 수신·지연 | [동일 조건 비교](evidence/m10_source_compare_v2/README.md) · [제한된2K 지연 개선·미채택 조건](evidence/m10_latency_2k_v1/README.md) |
 | 비동기 상태·인지·조회 | [실제 월드](evidence/m10_world_async_v1/README.md) · [준비·반복 관측](evidence/m10_native_startup_v1/README.md) |
