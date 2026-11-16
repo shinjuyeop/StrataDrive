@@ -1,0 +1,514 @@
+{
+  "status": "PASS_MATCHED_PREFIX",
+  "scope": "descriptive between-run comparison of701 normal moving tickets200..900; host clocks and thermal history are not controlled; no physical acceptance",
+  "baseline_run_sha256": "92b8eec0b0a473bb813e9c375f96afb9e97f64dc2aab9f16e823f10af2cb9975",
+  "baseline": {
+    "acquisition_to_publication_ns": {
+      "count": 701,
+      "median_ns": 347022,
+      "p95_ns": 389550.0,
+      "max_ns": 623972
+    },
+    "publication_to_native_upper_ns": {
+      "count": 701,
+      "median_ns": 427549,
+      "p95_ns": 942374.0,
+      "max_ns": 1003386
+    },
+    "acquisition_to_native_ns": {
+      "count": 701,
+      "median_ns": 924742,
+      "p95_ns": 1461666.0,
+      "max_ns": 1542687
+    },
+    "native_service_ns": {
+      "count": 701,
+      "median_ns": 68592,
+      "p95_ns": 95724.0,
+      "max_ns": 132272
+    },
+    "max_pump_gap_ns": {
+      "count": 701,
+      "median_ns": 2198994,
+      "p95_ns": 2900380.0,
+      "max_ns": 4121156
+    },
+    "max_rpc_ns": {
+      "count": 701,
+      "median_ns": 61747,
+      "p95_ns": 438151.0,
+      "max_ns": 522093
+    },
+    "stages": {
+      "admitted_to_staged": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 254714,
+          "p95_ns": 311196.0,
+          "max_ns": 405791
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 254707,
+          "p95_ns": 312567.0,
+          "max_ns": 405564
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 13,
+          "p95_ns": 273.0,
+          "max_ns": 5566
+        }
+      },
+      "staged_to_before_tick": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 2850,
+          "p95_ns": 4551.0,
+          "max_ns": 16955
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 2634,
+          "p95_ns": 4284.0,
+          "max_ns": 16824
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 207,
+          "p95_ns": 310.0,
+          "max_ns": 13651
+        }
+      },
+      "before_tick_to_after_tick": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 962380,
+          "p95_ns": 1343017.0,
+          "max_ns": 1702969
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 944506,
+          "p95_ns": 1325143.0,
+          "max_ns": 1687234
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 14058,
+          "p95_ns": 34656.0,
+          "max_ns": 112350
+        }
+      },
+      "after_tick_to_acquired_begin": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 15096,
+          "p95_ns": 23208.0,
+          "max_ns": 44048
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 14798,
+          "p95_ns": 22710.0,
+          "max_ns": 43787
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 302,
+          "p95_ns": 601.0,
+          "max_ns": 3243
+        }
+      },
+      "acquired_begin_to_acquired_end": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 162900,
+          "p95_ns": 193766.0,
+          "max_ns": 261106
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 162968,
+          "p95_ns": 193802.0,
+          "max_ns": 261252
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 0,
+          "p95_ns": 0.0,
+          "max_ns": 3948
+        }
+      },
+      "acquired_end_to_work_begin": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 3350,
+          "p95_ns": 4430.0,
+          "max_ns": 31443
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 3239,
+          "p95_ns": 4242.0,
+          "max_ns": 31428
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 89,
+          "p95_ns": 203.0,
+          "max_ns": 13163
+        }
+      },
+      "work_begin_to_work_end": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 334023,
+          "p95_ns": 375194.0,
+          "max_ns": 599253
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 334236,
+          "p95_ns": 375449.0,
+          "max_ns": 600241
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 0,
+          "p95_ns": 0.0,
+          "max_ns": 13068
+        }
+      },
+      "work_end_to_publish_begin": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 9211,
+          "p95_ns": 12998.0,
+          "max_ns": 25041
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 9040,
+          "p95_ns": 12533.0,
+          "max_ns": 24921
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 157,
+          "p95_ns": 250.0,
+          "max_ns": 14453
+        }
+      },
+      "publish_begin_to_publish_end": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 465,
+          "p95_ns": 688.0,
+          "max_ns": 19965
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 432,
+          "p95_ns": 645.0,
+          "max_ns": 19962
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 27,
+          "p95_ns": 55.0,
+          "max_ns": 188
+        }
+      },
+      "publish_end_to_complete": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 236,
+          "p95_ns": 258.0,
+          "max_ns": 501
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 229,
+          "p95_ns": 254.0,
+          "max_ns": 503
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 7,
+          "p95_ns": 19.0,
+          "max_ns": 115
+        }
+      }
+    },
+    "owner_cpu_sum_ns": {
+      "count": 701,
+      "median_ns": 1745419,
+      "p95_ns": 2215193.0,
+      "max_ns": 2603946
+    }
+  },
+  "candidate": {
+    "acquisition_to_publication_ns": {
+      "count": 701,
+      "median_ns": 45449,
+      "p95_ns": 63447.0,
+      "max_ns": 87362
+    },
+    "publication_to_native_upper_ns": {
+      "count": 701,
+      "median_ns": 632597,
+      "p95_ns": 975733.0,
+      "max_ns": 1005959
+    },
+    "acquisition_to_native_ns": {
+      "count": 701,
+      "median_ns": 702483,
+      "p95_ns": 1038021.0,
+      "max_ns": 1077597
+    },
+    "native_service_ns": {
+      "count": 701,
+      "median_ns": 57885,
+      "p95_ns": 84936.0,
+      "max_ns": 115145
+    },
+    "max_pump_gap_ns": {
+      "count": 701,
+      "median_ns": 1472790,
+      "p95_ns": 2215024.0,
+      "max_ns": 3652587
+    },
+    "max_rpc_ns": {
+      "count": 701,
+      "median_ns": 72708,
+      "p95_ns": 439792.0,
+      "max_ns": 893747
+    },
+    "stages": {
+      "admitted_to_staged": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 133059,
+          "p95_ns": 180703.0,
+          "max_ns": 300630
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 133025,
+          "p95_ns": 180465.0,
+          "max_ns": 300553
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 58,
+          "p95_ns": 266.0,
+          "max_ns": 3556
+        }
+      },
+      "staged_to_before_tick": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 1387,
+          "p95_ns": 2147.0,
+          "max_ns": 9161
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 1211,
+          "p95_ns": 1918.0,
+          "max_ns": 8975
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 171,
+          "p95_ns": 275.0,
+          "max_ns": 605
+        }
+      },
+      "before_tick_to_after_tick": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 833046,
+          "p95_ns": 1206761.0,
+          "max_ns": 1670543
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 814171,
+          "p95_ns": 1192020.0,
+          "max_ns": 1658191
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 14037,
+          "p95_ns": 36411.0,
+          "max_ns": 137361
+        }
+      },
+      "after_tick_to_acquired_begin": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 15661,
+          "p95_ns": 23257.0,
+          "max_ns": 86478
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 15371,
+          "p95_ns": 23031.0,
+          "max_ns": 86249
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 262,
+          "p95_ns": 471.0,
+          "max_ns": 6012
+        }
+      },
+      "acquired_begin_to_acquired_end": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 20688,
+          "p95_ns": 30397.0,
+          "max_ns": 65744
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 20676,
+          "p95_ns": 30364.0,
+          "max_ns": 65969
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 18,
+          "p95_ns": 54.0,
+          "max_ns": 244
+        }
+      },
+      "acquired_end_to_work_begin": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 3705,
+          "p95_ns": 6937.0,
+          "max_ns": 17486
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 3701,
+          "p95_ns": 6931.0,
+          "max_ns": 17481
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 4,
+          "p95_ns": 41.0,
+          "max_ns": 1101
+        }
+      },
+      "work_begin_to_work_end": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 32258,
+          "p95_ns": 45788.0,
+          "max_ns": 74634
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 32293,
+          "p95_ns": 45779.0,
+          "max_ns": 74748
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 0,
+          "p95_ns": 0.0,
+          "max_ns": 1739
+        }
+      },
+      "work_end_to_publish_begin": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 8822,
+          "p95_ns": 12562.0,
+          "max_ns": 23870
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 8797,
+          "p95_ns": 12514.0,
+          "max_ns": 23838
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 30,
+          "p95_ns": 66.0,
+          "max_ns": 176
+        }
+      },
+      "publish_begin_to_publish_end": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 431,
+          "p95_ns": 647.0,
+          "max_ns": 3772
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 409,
+          "p95_ns": 622.0,
+          "max_ns": 61109
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 18,
+          "p95_ns": 40.0,
+          "max_ns": 2633
+        }
+      },
+      "publish_end_to_complete": {
+        "wall_ns": {
+          "count": 701,
+          "median_ns": 244,
+          "p95_ns": 276.0,
+          "max_ns": 61188
+        },
+        "cpu_ns": {
+          "count": 701,
+          "median_ns": 241,
+          "p95_ns": 270.0,
+          "max_ns": 6369
+        },
+        "wall_minus_cpu_ns": {
+          "count": 701,
+          "median_ns": 3,
+          "p95_ns": 14.0,
+          "max_ns": 60688
+        }
+      }
+    },
+    "owner_cpu_sum_ns": {
+      "count": 701,
+      "median_ns": 1032565,
+      "p95_ns": 1472433.0,
+      "max_ns": 2105685
+    }
+  },
+  "metrics": {
+    "acquisition_to_publication_ns": {
+      "baseline_median_ns": 347022,
+      "candidate_median_ns": 45449,
+      "median_change_percent": -86.9031358242417
+    },
+    "acquisition_to_native_ns": {
+      "baseline_median_ns": 924742,
+      "candidate_median_ns": 702483,
+      "median_change_percent": -24.034703733581907
+    },
+    "owner_cpu_sum_ns": {
+      "baseline_median_ns": 1745419,
+      "candidate_median_ns": 1032565,
+      "median_change_percent": -40.8414254686124
+    }
+  }
+}

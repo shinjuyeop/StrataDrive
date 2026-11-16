@@ -1,0 +1,74 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 28 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from DriveEnergyConfiguration
+[ RUN      ] DriveEnergyConfiguration.RejectsInvalidEfficienciesLossesBoundsAndIncompatibleTiming
+[       OK ] DriveEnergyConfiguration.RejectsInvalidEfficienciesLossesBoundsAndIncompatibleTiming (0 ms)
+[ RUN      ] DriveEnergyConfiguration.RequiresExplicitPhysicalInitializationAndNeverUsesAnApplicationEpochToReset
+[       OK ] DriveEnergyConfiguration.RequiresExplicitPhysicalInitializationAndNeverUsesAnApplicationEpochToReset (0 ms)
+[----------] 2 tests from DriveEnergyConfiguration (0 ms total)
+
+[----------] 14 tests from DriveEnergyTest
+[ RUN      ] DriveEnergyTest.MotoringDrawIncludesConversionCopperIdleAndSeparateAuxiliaryExactlyOnce
+[       OK ] DriveEnergyTest.MotoringDrawIncludesConversionCopperIdleAndSeparateAuxiliaryExactlyOnce (0 ms)
+[ RUN      ] DriveEnergyTest.RegenerationStoresLessEnergyThanMechanicalBrakingBecauseOfAllLosses
+[       OK ] DriveEnergyTest.RegenerationStoresLessEnergyThanMechanicalBrakingBecauseOfAllLosses (0 ms)
+[ RUN      ] DriveEnergyTest.NegativeTorqueCanStillConsumeDcWhenMechanicalInputCannotCoverMotorLosses
+[       OK ] DriveEnergyTest.NegativeTorqueCanStillConsumeDcWhenMechanicalInputCannotCoverMotorLosses (0 ms)
+[ RUN      ] DriveEnergyTest.StandstillTorqueHasCopperAndIdleDrawWithoutDividingBySpeed
+[       OK ] DriveEnergyTest.StandstillTorqueHasCopperAndIdleDrawWithoutDividingBySpeed (0 ms)
+[ RUN      ] DriveEnergyTest.PreservesOldestDependencyInsteadOfRefreshingCachedInputs
+[       OK ] DriveEnergyTest.PreservesOldestDependencyInsteadOfRefreshingCachedInputs (0 ms)
+[ RUN      ] DriveEnergyTest.EndOfIntervalAcquisitionCannotBeAppliedRetroactively
+[       OK ] DriveEnergyTest.EndOfIntervalAcquisitionCannotBeAppliedRetroactively (0 ms)
+[ RUN      ] DriveEnergyTest.MissingActualTorqueSpeedOrAuxiliaryLatchesUnknownRatherThanBecomingZero
+[       OK ] DriveEnergyTest.MissingActualTorqueSpeedOrAuxiliaryLatchesUnknownRatherThanBecomingZero (0 ms)
+[ RUN      ] DriveEnergyTest.NonfiniteOutOfRangeReverseSpeedAndNegativeAuxiliaryAreRejected
+[       OK ] DriveEnergyTest.NonfiniteOutOfRangeReverseSpeedAndNegativeAuxiliaryAreRejected (0 ms)
+[ RUN      ] DriveEnergyTest.HeldAcquisitionsExpireAtIntervalEndEvenWhenCalculationTimeAdvances
+[       OK ] DriveEnergyTest.HeldAcquisitionsExpireAtIntervalEndEvenWhenCalculationTimeAdvances (0 ms)
+[ RUN      ] DriveEnergyTest.ReusingIdentityWithChangedActualValueIsNotANewAcquisition
+[       OK ] DriveEnergyTest.ReusingIdentityWithChangedActualValueIsNotANewAcquisition (0 ms)
+[ RUN      ] DriveEnergyTest.WrongPhysicalEpochAndSequenceWithoutSourceProgressAreRejected
+[       OK ] DriveEnergyTest.WrongPhysicalEpochAndSequenceWithoutSourceProgressAreRejected (0 ms)
+[ RUN      ] DriveEnergyTest.IndependentAcquisitionsMustStayWithinSkewBudget
+[       OK ] DriveEnergyTest.IndependentAcquisitionsMustStayWithinSkewBudget (0 ms)
+[ RUN      ] DriveEnergyTest.InvalidDependencyCannotComeFromBeforeScenarioOrAfterAcquisition
+[       OK ] DriveEnergyTest.InvalidDependencyCannotComeFromBeforeScenarioOrAfterAcquisition (0 ms)
+[ RUN      ] DriveEnergyTest.GapsAreNotBackfilledAndClockRollbackDoesNotRewindEnergy
+[       OK ] DriveEnergyTest.GapsAreNotBackfilledAndClockRollbackDoesNotRewindEnergy (0 ms)
+[----------] 14 tests from DriveEnergyTest (0 ms total)
+
+[----------] 9 tests from DriveEnergyPhysics
+[ RUN      ] DriveEnergyPhysics.AuxiliaryCanConsumeAllElectricalReturnWithoutBatteryCharging
+[       OK ] DriveEnergyPhysics.AuxiliaryCanConsumeAllElectricalReturnWithoutBatteryCharging (0 ms)
+[ RUN      ] DriveEnergyPhysics.ExplicitIdealZeroPreservesEnergyAndHasUsableZeroElectricalFeedback
+[       OK ] DriveEnergyPhysics.ExplicitIdealZeroPreservesEnergyAndHasUsableZeroElectricalFeedback (0 ms)
+[ RUN      ] DriveEnergyPhysics.BatteryResistanceHeatIsAddedOnceAndMotorHeatDoesNotBecomeBatteryHeat
+[       OK ] DriveEnergyPhysics.BatteryResistanceHeatIsAddedOnceAndMotorHeatDoesNotBecomeBatteryHeat (0 ms)
+[ RUN      ] DriveEnergyPhysics.FullBatteryRejectsResidualChargingWithoutClippingOrCommittingMotorLedger
+[       OK ] DriveEnergyPhysics.FullBatteryRejectsResidualChargingWithoutClippingOrCommittingMotorLedger (0 ms)
+[ RUN      ] DriveEnergyPhysics.EmptyBatteryRejectsActualDischargeAndPropagatesBatteryFault
+[       OK ] DriveEnergyPhysics.EmptyBatteryRejectsActualDischargeAndPropagatesBatteryFault (0 ms)
+[ RUN      ] DriveEnergyPhysics.BatteryPowerBoundsRemainEffectiveAfterMechanicalConversion
+[       OK ] DriveEnergyPhysics.BatteryPowerBoundsRemainEffectiveAfterMechanicalConversion (0 ms)
+[ RUN      ] DriveEnergyPhysics.LongAlternatingOperationBalancesMechanicalMotorAuxiliaryAndBatteryLosses
+[       OK ] DriveEnergyPhysics.LongAlternatingOperationBalancesMechanicalMotorAuxiliaryAndBatteryLosses (2 ms)
+[ RUN      ] DriveEnergyPhysics.SmallerZeroOrderHoldStepConvergesTowardKnownMechanicalWork
+[       OK ] DriveEnergyPhysics.SmallerZeroOrderHoldStepConvergesTowardKnownMechanicalWork (0 ms)
+[ RUN      ] DriveEnergyPhysics.FixtureSocGuardBandsExceedConservativeFiniteReactionEnergyBudget
+[       OK ] DriveEnergyPhysics.FixtureSocGuardBandsExceedConservativeFiniteReactionEnergyBudget (0 ms)
+[----------] 9 tests from DriveEnergyPhysics (2 ms total)
+
+[----------] 3 tests from DriveEnergyLoop
+[ RUN      ] DriveEnergyLoop.ActualTorqueDelayConsumesIdleOnlyBeforeResponseAndThenDischargesBattery
+[       OK ] DriveEnergyLoop.ActualTorqueDelayConsumesIdleOnlyBeforeResponseAndThenDischargesBattery (0 ms)
+[ RUN      ] DriveEnergyLoop.RealBatteryObservationsFeedBmsAndRegenerationActuallyIncreasesSoc
+[       OK ] DriveEnergyLoop.RealBatteryObservationsFeedBmsAndRegenerationActuallyIncreasesSoc (1 ms)
+[ RUN      ] DriveEnergyLoop.ChargeZeroKeepsCountingResidualActualReturnUntilTorqueHasRampedDown
+[       OK ] DriveEnergyLoop.ChargeZeroKeepsCountingResidualActualReturnUntilTorqueHasRampedDown (0 ms)
+[----------] 3 tests from DriveEnergyLoop (3 ms total)
+
+[----------] Global test environment tear-down
+[==========] 28 tests from 4 test suites ran. (5 ms total)
+[  PASSED  ] 28 tests.

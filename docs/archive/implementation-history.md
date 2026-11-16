@@ -910,6 +910,7 @@ M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 �
 | 상태 경로 V2 | 빈 렌더러 준비97초 후 warm-cache30초 실행. 보호0이나 원본 receipt 변형/HV join 계측 결함으로 FAIL, 반복 중단 | [원본·저클럭 관측](../test-plan/evidence/m10_state_path_v2/README.md) |
 | 상태 경로 V3 | 계측 결함 수정·원본 동일성/6000 HV 출처/재생 검증.5.474초에30.629ms HV 의존 입력 만료, native 슬롯 지연0. 저클럭 구간의 owner CPU 비용 증가 확인 | [최신 계측·실패 분석](../test-plan/evidence/m10_state_path_v3/README.md) |
 | Structured state V1 | 내부 JSON 왕복 제거 후보·4096 숫자/9 요청 검사 통과.42 INIT 구간 뒤214ms에 감시 슬롯 누락으로 FAIL, 반복/5분 중단. 별도 native1초500슬롯 누락0, FIFO18/CPU1,9 확인. 성능 개선·동시 실행 안정성 미수용 | [최적화 후보·실패 원본·분리 진단](../test-plan/evidence/m10_structured_state_v1/README.md) |
+| Monitor timing V1 | guarded JSON 후보의 첫30초 PASS, 두 번째는5.097초 보호 전환. 교체 직전 HV 의존 입력30.350ms 만료를 정확 재생으로 확인. 이후 감시 슬롯6개 누락·800MHz 구간 관측. 최초 Drive 오류 입력 보존과 IRQ 전체 읽기 수정;5분 NOT RUN | [원본 실행·진단 수정·재생](../test-plan/evidence/m10_watch_timing_v1/README.md) |
 
 전체 설계 경계는 [물리/렌더링 분리 계약](../interfaces/perception-render-isolation-v1.md)을 따른다.
 유한 통과로 과거 실패를 지우거나 장기 운용·전체 장면·독립 품질·Jetson 배포를 수용하지 않는다.

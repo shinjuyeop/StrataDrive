@@ -43,6 +43,15 @@ struct DriveControlDecision {
     bool actual_outside_envelope{false}; // finite response residual, not silently clipped actual
 };
 
+// Owner-local first-fault evidence. A later fresh acquisition must not replace
+// the held input whose expiry caused protection. No allocation or clock reads.
+struct DriveFaultObservation {
+    DriveGateFault fault{DriveGateFault::None};
+    std::uint32_t epoch{0}, model_epoch{0};
+    std::uint64_t observed_ns{0}, local_age_ns{0}, hv_dependency_age_ns{0}, local_skew_ns{0};
+    drive::LocalSensors held;
+};
+
 // Mandatory EV gate with explicit actuation/sensor ports; no owned plant.
 // The legacy DriveActuator remains an
 // isolated response fixture. No permissive mode bypass exists in this class.
@@ -67,6 +76,7 @@ public:
     const drive::Actuation& output() const { return output_; }
     bool execution_gap() const { return execution_gap_; }
     const DriveControlDecision& decision() const { return decision_; }
+    const std::optional<DriveFaultObservation>& first_fault_observation() const { return first_fault_; }
     std::uint32_t application_epoch() const { return epoch_; }
 private:
     struct Inputs {
@@ -97,6 +107,7 @@ private:
     std::optional<can::BmsParentContext> permission_parent_;
     std::optional<std::uint64_t> last_capability_input_ns_;
     DriveControlDecision decision_{};
+    std::optional<DriveFaultObservation> first_fault_;
     std::uint32_t epoch_{0}, model_epoch_{0}, sequence_{0};
     std::uint64_t enable_ns_{0}, last_observed_ns_{0}, last_tick_ns_{0};
     bool armed_{false}, stopped_{false};

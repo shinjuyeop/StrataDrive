@@ -75,6 +75,7 @@ public:
     const LeafStartupObservation& startup_observation() const { return startup_; }
     const std::optional<std::uint64_t>& protection_selected_ns() const { return protection_selected_; }
     const vecu::BmsController* bms_controller() const { return std::get_if<vecu::BmsController>(&actor_); }
+    const vecu::DriveController* drive_controller() const { return std::get_if<vecu::DriveController>(&actor_); }
     const vecu::PowerController* power_controller() const { return std::get_if<vecu::PowerController>(&actor_); }
     const std::vector<M4Event>& input_events() const { return input_events_; } // joined only
     bool input_event_capacity_exhausted() const { return input_events_.size()>=input_events_.capacity(); }

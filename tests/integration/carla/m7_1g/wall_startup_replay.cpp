@@ -1,6 +1,7 @@
 // Retained original wall service timestamps and solver receipts, no live claim.
 #include "wall_rig.hpp"
 #include "wall_startup_trace.hpp"
+#include "wall_drive_fault_trace.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -53,6 +54,9 @@ int main(int argc,char** argv) {
         std::ofstream out(std::string(argv[3])+".json");
         out<<"{\"calls\":"<<calls<<",\"first_fault\":\""<<r.reason<<"\",\"protected_at\":"<<r.protected_at<<",\"startup\":";
         write_startup_observations(out,rig.startup_observations());out<<"}\n";
+        std::ofstream drive_fault(std::string(argv[3])+"-drive-fault.json");
+        write_drive_fault(drive_fault,rig.drive_fault_observation());
+        if(!drive_fault)throw std::runtime_error("drive fault trace write");
         if(!out || !csv)throw std::runtime_error("replay output");
     }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}
 }

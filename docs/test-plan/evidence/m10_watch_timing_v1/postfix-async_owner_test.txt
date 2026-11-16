@@ -1,0 +1,60 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 24 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 22 tests from AsyncOwnerTest
+[ RUN      ] AsyncOwnerTest.EvCapabilityDependencyKeepsItsOriginalSeventyMillisecondBudget
+[       OK ] AsyncOwnerTest.EvCapabilityDependencyKeepsItsOriginalSeventyMillisecondBudget (0 ms)
+[ RUN      ] AsyncOwnerTest.SessionAndGlobalGatePrecedeAllNormalIngress
+[       OK ] AsyncOwnerTest.SessionAndGlobalGatePrecedeAllNormalIngress (0 ms)
+[ RUN      ] AsyncOwnerTest.FeedbackServicesThisIterationBeforeTakingTheManagementSnapshot
+[       OK ] AsyncOwnerTest.FeedbackServicesThisIterationBeforeTakingTheManagementSnapshot (0 ms)
+[ RUN      ] AsyncOwnerTest.FeedbackServiceStillRejectsAResultAtItsOriginalDeadline
+[       OK ] AsyncOwnerTest.FeedbackServiceStillRejectsAResultAtItsOriginalDeadline (0 ms)
+[ RUN      ] AsyncOwnerTest.ArmNeedsTwoCorrelatedAcksAndDoesNotResendWhilePending
+[       OK ] AsyncOwnerTest.ArmNeedsTwoCorrelatedAcksAndDoesNotResendWhilePending (0 ms)
+[ RUN      ] AsyncOwnerTest.NegativePartialArmClosesGateAndSignalsBothZones
+[       OK ] AsyncOwnerTest.NegativePartialArmClosesGateAndSignalsBothZones (0 ms)
+[ RUN      ] AsyncOwnerTest.MissingOrLateTxResultCannotRenewTheOriginalDeadline
+[       OK ] AsyncOwnerTest.MissingOrLateTxResultCannotRenewTheOriginalDeadline (0 ms)
+[ RUN      ] AsyncOwnerTest.StopAckTimeoutPreservesOriginalTransportDetectorAcrossLateAckAndClockFailure
+[       OK ] AsyncOwnerTest.StopAckTimeoutPreservesOriginalTransportDetectorAcrossLateAckAndClockFailure (0 ms)
+[ RUN      ] AsyncOwnerTest.WrongZoneOrOperationResultLatchesProtection
+[       OK ] AsyncOwnerTest.WrongZoneOrOperationResultLatchesProtection (0 ms)
+[ RUN      ] AsyncOwnerTest.FrontTxMustSucceedBeforeRearCommandIsEvenQueued
+[       OK ] AsyncOwnerTest.FrontTxMustSucceedBeforeRearCommandIsEvenQueued (0 ms)
+[ RUN      ] AsyncOwnerTest.CommandResultsHaveExactFrameCountsAndRearFollowsFront
+[       OK ] AsyncOwnerTest.CommandResultsHaveExactFrameCountsAndRearFollowsFront (0 ms)
+[ RUN      ] AsyncOwnerTest.PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch
+[       OK ] AsyncOwnerTest.PendingAllocationDoesNotRenewResultOrConsumeAnotherBatch (0 ms)
+[ RUN      ] AsyncOwnerTest.NewVehicleAuthorityCannotOvertakeRearOfAnInFlightBatch
+[       OK ] AsyncOwnerTest.NewVehicleAuthorityCannotOvertakeRearOfAnInFlightBatch (0 ms)
+[ RUN      ] AsyncOwnerTest.DeferredAuthorityExpiresWithoutRenewalOrLateResurrection
+[       OK ] AsyncOwnerTest.DeferredAuthorityExpiresWithoutRenewalOrLateResurrection (0 ms)
+[ RUN      ] AsyncOwnerTest.DeferredAuthorityQueueIsBoundedAndNeverOverwritesAnEarlierRoot
+[       OK ] AsyncOwnerTest.DeferredAuthorityQueueIsBoundedAndNeverOverwritesAnEarlierRoot (0 ms)
+[ RUN      ] AsyncOwnerTest.NewEpochDiscardsOldResultWithoutReopeningGate
+[       OK ] AsyncOwnerTest.NewEpochDiscardsOldResultWithoutReopeningGate (0 ms)
+[ RUN      ] AsyncOwnerTest.AllocationWaitsForReceivedGrantAndUsesItsOriginalIssuedParent
+[       OK ] AsyncOwnerTest.AllocationWaitsForReceivedGrantAndUsesItsOriginalIssuedParent (0 ms)
+[ RUN      ] AsyncOwnerTest.ReadinessRequiresCurrentUsableGrantWithoutRestamping
+[       OK ] AsyncOwnerTest.ReadinessRequiresCurrentUsableGrantWithoutRestamping (0 ms)
+[ RUN      ] AsyncOwnerTest.LateUnusedGrantKeepsDueFreshnessAndCurrentSlotSupportSeparate
+[       OK ] AsyncOwnerTest.LateUnusedGrantKeepsDueFreshnessAndCurrentSlotSupportSeparate (0 ms)
+[ RUN      ] AsyncOwnerTest.RecordedInsufficientGrantCannotCoverNextTwentyMillisecondRelease
+[       OK ] AsyncOwnerTest.RecordedInsufficientGrantCannotCoverNextTwentyMillisecondRelease (0 ms)
+[ RUN      ] AsyncOwnerTest.BrokenMailboxCannotBeRepairedByEpochAndProtectionBypassesIt
+[       OK ] AsyncOwnerTest.BrokenMailboxCannotBeRepairedByEpochAndProtectionBypassesIt (0 ms)
+[ RUN      ] AsyncOwnerTest.ClockRollbackClosesBothZonesWithoutNormalRetry
+[       OK ] AsyncOwnerTest.ClockRollbackClosesBothZonesWithoutNormalRetry (0 ms)
+[----------] 22 tests from AsyncOwnerTest (0 ms total)
+
+[----------] 2 tests from AsyncZoneOwner
+[ RUN      ] AsyncZoneOwner.PartialLeafArmMustProtectBothLeavesThroughIndependentSignals
+[       OK ] AsyncZoneOwner.PartialLeafArmMustProtectBothLeavesThroughIndependentSignals (0 ms)
+[ RUN      ] AsyncZoneOwner.ExpiredQueueEntryIsRejectedWithoutRestampingOrLeafDispatch
+[       OK ] AsyncZoneOwner.ExpiredQueueEntryIsRejectedWithoutRestampingOrLeafDispatch (0 ms)
+[----------] 2 tests from AsyncZoneOwner (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 24 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 24 tests.

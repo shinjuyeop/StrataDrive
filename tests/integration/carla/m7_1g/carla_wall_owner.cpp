@@ -8,6 +8,7 @@
 #include "latest_snapshot.hpp"
 #include "perception_2k_ipc.hpp"
 #include "wall_startup_trace.hpp"
+#include "wall_drive_fault_trace.hpp"
 #include <atomic>
 #include <fcntl.h>
 #include <poll.h>
@@ -130,7 +131,7 @@ int main(int argc,char** argv) {
         WallRig rig({1,42,7},actor,initial,model,model_step,hv_dependency,endurance);rig.request_profile(std::move(phases));
         runtime::LatestSnapshot<Telemetry> latest;
         std::atomic<bool> done{false},trip{false};
-        WallExecutionWatch watch(initial+ms,diagnostic_horizon);rig.execution_watch(&watch);
+        WallExecutionWatch watch(initial+ms,diagnostic_horizon,profile_path);rig.execution_watch(&watch);
         m7_native::SharedReader<m7_native::SharedReceipt> reader;
         m7_native::SharedWriter<m7_native::SharedProof> writer;
         struct Row {Time now,energy,source,protect;bool armed;Time hv_source,hv_dependency;};
@@ -217,6 +218,7 @@ int main(int argc,char** argv) {
         }catch(const std::exception& e){failure=std::string("owner exception: ")+e.what();}
         __atomic_store_n(&bridge->stop,1ULL,__ATOMIC_RELEASE);m7_native::wall_trip(&bridge->signal);done.store(true);io.join();
         watch.write(std::string(argv[2])+"-wall.csv");
+        watch.write_profile(std::string(argv[2])+"-monitor");
         std::ofstream trace(std::string(argv[2])+".csv");trace<<"now,energy_end,wheel_source,protection,armed,hv_source,hv_dependency\n";
         for(const auto& r:rows)trace<<r.now<<','<<r.energy<<','<<r.source<<','<<r.protect<<','<<r.armed<<','<<r.hv_source<<','<<r.hv_dependency<<'\n';
         if(profile_path) {
@@ -227,6 +229,9 @@ int main(int argc,char** argv) {
         }
         std::ofstream meta(std::string(argv[2])+".json");meta<<"{\"first_fault\":\""<<failure<<"\",\"initial\":"<<initial<<",\"diagnostic_horizon_ns\":"<<diagnostic_horizon<<",\"hv_dependency_ns\":"<<hv_dependency<<",\"owner\":";
         owner_info.write_json(meta);meta<<",\"io\":";io_info.write_json(meta);meta<<"}\n";
+        std::ofstream drive_fault(std::string(argv[2])+"-drive-fault.json");
+        write_drive_fault(drive_fault,rig.drive_fault_observation());
+        if(!drive_fault)throw std::runtime_error("drive fault trace write");
         if(perception) {
             std::ofstream startup(std::string(argv[2])+"-startup.json");write_startup_observations(startup,rig.startup_observations());
             if(!startup)throw std::runtime_error("startup trace write");

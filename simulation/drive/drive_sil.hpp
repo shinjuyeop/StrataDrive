@@ -16,6 +16,7 @@ public:
     can::BmsReceiveResult receive_permission(const can::BmsFrame& frame, std::uint64_t now_ns, const can::BmsParentContext* parent);
     drive::SensorResult observe_local(const drive::LocalSensors& sensors, std::uint64_t now_ns);
     const vecu::DriveControlDecision& decision() const { return ecu_.decision(); }
+    const std::optional<vecu::DriveFaultObservation>& first_fault_observation() const { return ecu_.first_fault_observation(); }
     void mark_continuity_lost(std::uint64_t now_ns);
     std::optional<can::DriveFrame> tick(std::uint64_t now_ns);
     double actual_torque_nm() const { return plant_.actual_nm(); } // diagnostics only

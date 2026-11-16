@@ -227,6 +227,35 @@ TEST_F(DriveControllerTest, HeldPhysicalAcquisitionExpiresDespiteFreshCommandAnd
     step(140); EXPECT_EQ(controller.decision().fault, vecu::DriveGateFault::LocalInputsUnavailable);
     EXPECT_FALSE(actual.regen_capability);
 }
+TEST_F(DriveControllerTest, FirstFaultRetainsExpiredDependencyBeforeFreshReplacement) {
+    run({10,100});
+    auto held=local(110);held.hv->input_time_ns=time_ns(100);
+    ASSERT_EQ(controller.observe_local(held,time_ns(110)).hv,drive::SensorDecision::Accepted);
+    ASSERT_EQ(controller.receive_command(command(120),time_ns(120)).decision,can::ActuatorReceiveDecision::Accepted);
+    // Keep a fresh source with an older dependency; exact 30ms is still valid.
+    held=local(130);held.hv->input_time_ns=time_ns(100);
+    ASSERT_EQ(controller.observe_local(held,time_ns(130)).hv,drive::SensorDecision::Accepted);
+    EXPECT_FALSE(controller.first_fault_observation());
+    auto fresh=local(140);fresh.hv->input_time_ns=time_ns(130);
+    const auto now=time_ns(130)+1;
+    fresh.wheel_speed->identity.source_time_ns=now;fresh.wheel_speed->input_time_ns=now;
+    fresh.hv->identity.source_time_ns=now;
+    ASSERT_EQ(controller.observe_local(fresh,now).hv,drive::SensorDecision::Accepted);
+    ASSERT_TRUE(controller.first_fault_observation());
+    const auto original=*controller.first_fault_observation();
+    EXPECT_EQ(original.fault,vecu::DriveGateFault::LocalInputsUnavailable);
+    EXPECT_EQ(original.observed_ns,now);ASSERT_TRUE(original.held.hv);
+    EXPECT_EQ(original.held.hv->identity.source_time_ns,time_ns(130));
+    EXPECT_EQ(original.held.hv->input_time_ns,time_ns(100));
+    EXPECT_EQ(original.hv_dependency_age_ns,30*kMs);
+    controller.mark_continuity_lost(now+1);
+    EXPECT_EQ(controller.first_fault_observation()->observed_ns,now);
+    EXPECT_EQ(controller.first_fault_observation()->held.hv->input_time_ns,time_ns(100));
+    EXPECT_FALSE(controller.start_session(1,7,time_ns(140)));
+    EXPECT_TRUE(controller.first_fault_observation());
+    ASSERT_TRUE(controller.start_session(2,7,time_ns(140)));
+    EXPECT_FALSE(controller.first_fault_observation());
+}
 TEST_F(DriveControllerTest, CachedPhysicalValuesCannotBeChangedOrReidentified) {
     step(10); auto s = local(10); s.wheel_speed->value = 21;
     const auto result = controller.observe_local(s, time_ns(20)); EXPECT_EQ(result.wheel_speed, drive::SensorDecision::Identity);

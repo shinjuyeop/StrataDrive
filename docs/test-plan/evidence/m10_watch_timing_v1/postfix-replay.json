@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "scope": "post-live diagnostic fix replay only; control outputs and timestamps byte-identical; no new live acceptance",
+  "binary_sha256": "4bfbb687260693f44d2f86a8dcff9b2593d94d3647e6abe9ed24c6ad49683fdf",
+  "cases": [
+    {
+      "case": "normal-30s-01",
+      "byte_exact_original_outputs": {
+        ".csv": true,
+        ".json": true
+      },
+      "first_drive_fault": null,
+      "input_sha256": "8be2fe4d99c9a6c73690826702180e97810ca8e7ebe3843fd28cebbd923edde8"
+    },
+    {
+      "case": "normal-30s-02",
+      "byte_exact_original_outputs": {
+        ".csv": true,
+        ".json": true
+      },
+      "first_drive_fault": {
+        "fault": 5,
+        "epoch": 42,
+        "model_epoch": 7,
+        "observed_ns": 1827690321189709,
+        "local_age_ns": 30000000,
+        "hv_dependency_age_ns": 30000000,
+        "local_skew_ns": 20000000,
+        "held_speed": {
+          "epoch": 7,
+          "sequence": 1313,
+          "source_ns": 1827690306764608,
+          "dependency_ns": 1827690306764608,
+          "rad_s": 1.8340942859649658
+        },
+        "held_hv": {
+          "epoch": 7,
+          "sequence": 1313,
+          "source_ns": 1827690306764608,
+          "dependency_ns": 1827690290839769,
+          "voltage_v": 399.97874953512166,
+          "inverter_ready": true,
+          "local_fault": false
+        }
+      },
+      "input_sha256": "282e797284942d17ca0b0789e726cba5ba1a7af4d337397c55d76b0ca93e11d1"
+    }
+  ]
+}

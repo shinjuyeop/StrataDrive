@@ -1,0 +1,38 @@
+{
+  "scope": "checked extraction duplicates only; retained source/run/raw/review archives and active builds stay local",
+  "removed": [
+    {
+      "path": "build/m10-watch-timing-v1/normal-30s-01/archive-check/run",
+      "bytes": 158326437,
+      "basis": "all run-manifest member hashes; raw links point to independently checked compacted archives"
+    },
+    {
+      "path": "build/m10-watch-timing-v1/frozen-tests/source",
+      "bytes": 26344811,
+      "basis": "all frozen source hashes; optional generated Python bytecode"
+    },
+    {
+      "path": "build/m10-watch-timing-v1/normal-30s-02/archive-check/run",
+      "bytes": 148243266,
+      "basis": "all run-manifest member hashes; raw links point to independently checked compacted archives"
+    },
+    {
+      "path": "build/m10-watch-timing-v1/normal-30s-01/archive-check/source",
+      "bytes": 26594167,
+      "basis": "all frozen source hashes; optional generated Python bytecode"
+    },
+    {
+      "path": "build/m10-watch-timing-v1/normal-30s-02/archive-check/source",
+      "bytes": 26594167,
+      "basis": "all frozen source hashes; optional generated Python bytecode"
+    }
+  ],
+  "removed_bytes": 386102848,
+  "raw_compaction_saved_bytes": 4798307276,
+  "native_record_compaction_saved_bytes": 714371,
+  "final_free_bytes": {
+    "/tmp": 70214479872,
+    "/d": 434981351424
+  },
+  "cleanup_note": "Initial closeout loop reused a variable and skipped two source duplicates. Corrected loop and independently hash-verified those remaining directories before removal; original cleanup report retained."
+}

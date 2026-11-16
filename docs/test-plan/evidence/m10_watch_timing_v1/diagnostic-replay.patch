@@ -1,0 +1,24 @@
+--- a/vecu/drive/drive_controller.cpp
++++ b/vecu/drive/drive_controller.cpp
+@@ -1,4 +1,5 @@
+ #include "drive_controller.hpp"
++#include <cstdio>
+ 
+ #include "drive_value_codec.hpp"
+ 
+@@ -190,7 +191,15 @@
+     if (!clock(now_ns)) {
+         const auto reason = epoch_ == 0 ? SensorDecision::NotInitialized : SensorDecision::ClockError; return {reason, reason};
+     }
++    const bool diagnostic = now_ns >= 1827690320192517ULL && now_ns <= 1827690323192517ULL;
++    if(diagnostic) std::fprintf(stderr,"{\"at_ns\":%llu,\"phase\":\"before_observe\",\"fault\":%u,\"held_speed_source\":%llu,\"held_hv_source\":%llu,\"held_hv_dependency\":%llu,\"incoming_hv_dependency\":%llu}\n",
++        (unsigned long long)now_ns,(unsigned)decision_.fault,
++        (unsigned long long)(speed_?speed_->identity.source_time_ns:0),
++        (unsigned long long)(hv_?hv_->identity.source_time_ns:0),
++        (unsigned long long)(hv_?hv_->input_time_ns:0),
++        (unsigned long long)(sensors.hv?sensors.hv->input_time_ns:0));
+     monitor(now_ns);
++    if(diagnostic) std::fprintf(stderr,"{\"at_ns\":%llu,\"phase\":\"after_held_input_check\",\"fault\":%u}\n",(unsigned long long)now_ns,(unsigned)decision_.fault);
+     const SensorContext context{model_epoch_, enable_ns_, now_ns, config_.local_age_ns, config_.local_age_ns};
+     drive::SensorResult result{SensorDecision::Unavailable, SensorDecision::Unavailable};
+     speed_.reset(); hv_.reset();

@@ -878,6 +878,10 @@ WallRig::WallRig(Scope scope,std::uint32_t actor,Time initial,Time model_initial
     native_->wheel_mode=true;
 }
 WallRig::~WallRig()=default;
+std::optional<vecu::DriveFaultObservation> WallRig::drive_fault_observation() const {
+    require(owner_==std::this_thread::get_id(),"wall drive fault observation owner");
+    return native_->leaf[2]->drive_controller()->first_fault_observation();
+}
 std::array<simulation::LeafStartupObservation,5> WallRig::startup_observations() const {
     require(owner_==std::this_thread::get_id(),"wall startup observation owner");
     std::array<simulation::LeafStartupObservation,5> result{};

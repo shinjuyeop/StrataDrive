@@ -71,7 +71,7 @@ bool DriveController::start_session(ActuatorSession session, DriveCommandStartup
     if ((startup == DriveCommandStartup::Immediate && !command_.start_session(application_epoch, enable_ns)) || !limits_.start_session(application_epoch, enable_ns) ||
         !permission_.start_session(application_epoch, enable_ns)) return false;
     epoch_ = application_epoch; model_epoch_ = model_epoch; enable_ns_ = last_observed_ns_ = last_tick_ns_ = enable_ns;
-    sequence_ = 0; armed_ = stopped_ = false; decision_ = {};
+    sequence_ = 0; armed_ = stopped_ = false; decision_ = {}; first_fault_.reset();
     stop_.reset(enable_ns); last_torque_.reset();
     command_monitoring_ = startup == DriveCommandStartup::Immediate; startup_inputs_seen_ = false;
     speed_.reset(); speed_cursor_.reset(); hv_.reset(); hv_cursor_.reset(); permission_parent_.reset(); last_capability_input_ns_.reset();
@@ -111,6 +111,8 @@ bool DriveController::clock(std::uint64_t now_ns) {
     return true;
 }
 void DriveController::fail(DriveGateFault fault, std::uint64_t now_ns) {
+    if(!first_fault_) first_fault_=DriveFaultObservation{fault,epoch_,model_epoch_,now_ns,
+        config_.local_age_ns,hv_dependency_age_ns_,config_.local_skew_ns,{speed_,hv_}};
     if (decision_.fault == DriveGateFault::None || fault == DriveGateFault::ClockError || fault == DriveGateFault::ControlDeadline) {
         decision_.fault = fault;
     }

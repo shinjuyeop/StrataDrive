@@ -1,0 +1,2720 @@
+{
+  "scope": "post-run sequential50ms correlation; cannot establish exact preemption/timer/firmware cause",
+  "interrupt_limit": "V1 single pread retained only the first17 IRQ rows; NVIDIA/local-timer and later rows are absent. Zero recorded deltas cannot rule out IRQ activity. See interrupt-read-correction.json.",
+  "initial_ns": 1827274740945263,
+  "first_fault": "",
+  "first_protection_ns": null,
+  "monitor_thread": {
+    "policy": 1,
+    "priority": 18,
+    "tid": 2196148,
+    "observed_cpu": 1,
+    "allowed_cpus": [
+      1,
+      9
+    ]
+  },
+  "native_thread": {
+    "policy": 1,
+    "priority": 18,
+    "tid": 2196146,
+    "observed_cpu": 9,
+    "allowed_cpus": [
+      1,
+      9
+    ]
+  },
+  "eligible_slots": 150010,
+  "missing": [],
+  "late": [],
+  "by_wake_cpu": {
+    "1": {
+      "count": 7640,
+      "median_ns": 17397.0,
+      "p95_ns": 43096.2,
+      "max_ns": 544103
+    },
+    "9": {
+      "count": 7363,
+      "median_ns": 16958,
+      "p95_ns": 43041.2,
+      "max_ns": 472216
+    }
+  },
+  "host_observer": {
+    "scope": "50ms sequential counters on CPUs1,9; no causal kernel scheduling trace",
+    "cpus": [
+      1,
+      9
+    ],
+    "root_pid": 2194512,
+    "root_start_ticks": 182721316,
+    "period_seconds": 0.05,
+    "samples": 2574,
+    "wall_seconds": 129.01982802012935,
+    "monitor_cpu_seconds": 1.405950514,
+    "max_sample_ns": 2361728,
+    "kernel_thread_identities": {
+      "22": {
+        "comm": "idle_inject/1",
+        "start_ticks": 10
+      },
+      "70": {
+        "comm": "idle_inject/9",
+        "start_ticks": 11
+      },
+      "126": {
+        "comm": "irq/9-acpi",
+        "start_ticks": 17
+      }
+    },
+    "errors": {},
+    "schedstat_wait_enabled": false
+  },
+  "windows": [
+    {
+      "monitor": {
+        "release_ns": 1827279949945263,
+        "sleep_begin_ns": 1827279948138174,
+        "wake_ns": 1827279950321069,
+        "job_end_ns": 1827279950322207,
+        "poll_end_ns": 1827279950322432,
+        "grid_now_ns": 1827279950322874,
+        "next_release_ns": 1827279951945263,
+        "sleep_cpu": 9,
+        "wake_cpu": 9,
+        "end_cpu": 9,
+        "begin_cpu_ns": 60359804,
+        "end_cpu_ns": 60361001,
+        "begin_voluntary": 2605,
+        "end_voluntary": 2605,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 5209.0,
+      "wake_delay_ns": 375806,
+      "native_calls": [
+        {
+          "wake_ns": 1827279945945263,
+          "read_begin_ns": 1827279945977486,
+          "read_end_ns": 1827279945978612,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827279945978640,
+          "service_end_ns": 1827279946022574,
+          "proof_publish_ns": 1827279946025972,
+          "cpu_begin_ns": 378997044,
+          "cpu_end_ns": 379045417
+        },
+        {
+          "wake_ns": 1827279946945263,
+          "read_begin_ns": 1827279946957028,
+          "read_end_ns": 1827279946959194,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827279946959308,
+          "service_end_ns": 1827279947008642,
+          "proof_publish_ns": 1827279947011970,
+          "cpu_begin_ns": 379055250,
+          "cpu_end_ns": 379109562
+        },
+        {
+          "wake_ns": 1827279947945263,
+          "read_begin_ns": 1827279947952848,
+          "read_end_ns": 1827279947954685,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827279947954707,
+          "service_end_ns": 1827279948005879,
+          "proof_publish_ns": 1827279948013837,
+          "cpu_begin_ns": 379117557,
+          "cpu_end_ns": 379178321
+        },
+        {
+          "wake_ns": 1827279948945263,
+          "read_begin_ns": 1827279948952374,
+          "read_end_ns": 1827279948953557,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827279948953580,
+          "service_end_ns": 1827279948995877,
+          "proof_publish_ns": 1827279949008112,
+          "cpu_begin_ns": 379188407,
+          "cpu_end_ns": 379244140
+        },
+        {
+          "wake_ns": 1827279949945263,
+          "read_begin_ns": 1827279949949306,
+          "read_end_ns": 1827279949949941,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827279949949958,
+          "service_end_ns": 1827279949995242,
+          "proof_publish_ns": 1827279949998952,
+          "cpu_begin_ns": 379248905,
+          "cpu_end_ns": 379298606
+        },
+        {
+          "wake_ns": 1827279950945263,
+          "read_begin_ns": 1827279950948825,
+          "read_end_ns": 1827279950949355,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827279950949369,
+          "service_end_ns": 1827279950989651,
+          "proof_publish_ns": 1827279950992936,
+          "cpu_begin_ns": 379302632,
+          "cpu_end_ns": 379346714
+        },
+        {
+          "wake_ns": 1827279951945263,
+          "read_begin_ns": 1827279951956733,
+          "read_end_ns": 1827279951957383,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827279951957426,
+          "service_end_ns": 1827279952016821,
+          "proof_publish_ns": 1827279952020813,
+          "cpu_begin_ns": 379350106,
+          "cpu_end_ns": 379414178
+        },
+        {
+          "wake_ns": 1827279952945263,
+          "read_begin_ns": 1827279952957152,
+          "read_end_ns": 1827279952959080,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827279952959177,
+          "service_end_ns": 1827279953013717,
+          "proof_publish_ns": 1827279953016774,
+          "cpu_begin_ns": 379424591,
+          "cpu_end_ns": 379483705
+        },
+        {
+          "wake_ns": 1827279953945263,
+          "read_begin_ns": 1827279953985682,
+          "read_end_ns": 1827279953986812,
+          "frame": 1347,
+          "acquired_begin_ns": 1827279953308773,
+          "service_begin_ns": 1827279953986830,
+          "service_end_ns": 1827279954041164,
+          "proof_publish_ns": 1827279954043987,
+          "cpu_begin_ns": 379492274,
+          "cpu_end_ns": 379550592
+        },
+        {
+          "wake_ns": 1827279954945263,
+          "read_begin_ns": 1827279954956583,
+          "read_end_ns": 1827279954958533,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827279954958607,
+          "service_end_ns": 1827279955024056,
+          "proof_publish_ns": 1827279955026677,
+          "cpu_begin_ns": 379559992,
+          "cpu_end_ns": 379629655
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827279940794729,
+        "before_end_ns": 1827279941199494,
+        "after_wall_ns": 1827279990885615,
+        "after_end_ns": 1827279991411665,
+        "interrupt_deltas": {},
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827279945107882,
+          "end_ns": 1827279945357116,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 84000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 84000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 75000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 80000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 997514,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3427373,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800615,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4596633,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 3447168,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 799245,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 800000,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 2210478,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4542718,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4434836,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 960071,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800000,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 1624660,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 1010548,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4531034
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827283795945263,
+        "sleep_begin_ns": 1827283793980458,
+        "wake_ns": 1827283796283831,
+        "job_end_ns": 1827283796285664,
+        "poll_end_ns": 1827283796285904,
+        "grid_now_ns": 1827283796286373,
+        "next_release_ns": 1827283797945263,
+        "sleep_cpu": 9,
+        "wake_cpu": 9,
+        "end_cpu": 9,
+        "begin_cpu_ns": 106673325,
+        "end_cpu_ns": 106675007,
+        "begin_voluntary": 4528,
+        "end_voluntary": 4528,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 9055.0,
+      "wake_delay_ns": 338568,
+      "native_calls": [
+        {
+          "wake_ns": 1827283791945263,
+          "read_begin_ns": 1827283791961065,
+          "read_end_ns": 1827283791963423,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283791963512,
+          "service_end_ns": 1827283792007363,
+          "proof_publish_ns": 1827283792010330,
+          "cpu_begin_ns": 660446758,
+          "cpu_end_ns": 660495392
+        },
+        {
+          "wake_ns": 1827283792945263,
+          "read_begin_ns": 1827283792978605,
+          "read_end_ns": 1827283792980448,
+          "frame": 2115,
+          "acquired_begin_ns": 1827283791962153,
+          "service_begin_ns": 1827283792980468,
+          "service_end_ns": 1827283793042178,
+          "proof_publish_ns": 1827283793045887,
+          "cpu_begin_ns": 660521003,
+          "cpu_end_ns": 660587898
+        },
+        {
+          "wake_ns": 1827283793945263,
+          "read_begin_ns": 1827283793960990,
+          "read_end_ns": 1827283793965003,
+          "frame": 2116,
+          "acquired_begin_ns": 1827283793637229,
+          "service_begin_ns": 1827283793965131,
+          "service_end_ns": 1827283794030288,
+          "proof_publish_ns": 1827283794033243,
+          "cpu_begin_ns": 660600859,
+          "cpu_end_ns": 660672521
+        },
+        {
+          "wake_ns": 1827283794945263,
+          "read_begin_ns": 1827283794979100,
+          "read_end_ns": 1827283794980314,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283794980340,
+          "service_end_ns": 1827283795038995,
+          "proof_publish_ns": 1827283795042458,
+          "cpu_begin_ns": 660678263,
+          "cpu_end_ns": 660741415
+        },
+        {
+          "wake_ns": 1827283795945263,
+          "read_begin_ns": 1827283795949136,
+          "read_end_ns": 1827283795949912,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283795949934,
+          "service_end_ns": 1827283795990228,
+          "proof_publish_ns": 1827283795993732,
+          "cpu_begin_ns": 660745732,
+          "cpu_end_ns": 660790245
+        },
+        {
+          "wake_ns": 1827283796945263,
+          "read_begin_ns": 1827283796957784,
+          "read_end_ns": 1827283796961326,
+          "frame": 2117,
+          "acquired_begin_ns": 1827283796519044,
+          "service_begin_ns": 1827283796961427,
+          "service_end_ns": 1827283797047798,
+          "proof_publish_ns": 1827283797051017,
+          "cpu_begin_ns": 660801667,
+          "cpu_end_ns": 660894480
+        },
+        {
+          "wake_ns": 1827283797945263,
+          "read_begin_ns": 1827283797959926,
+          "read_end_ns": 1827283797962405,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283797962489,
+          "service_end_ns": 1827283798015874,
+          "proof_publish_ns": 1827283798018592,
+          "cpu_begin_ns": 660906600,
+          "cpu_end_ns": 660964662
+        },
+        {
+          "wake_ns": 1827283798945263,
+          "read_begin_ns": 1827283798956855,
+          "read_end_ns": 1827283798958805,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283798958889,
+          "service_end_ns": 1827283799007574,
+          "proof_publish_ns": 1827283799010723,
+          "cpu_begin_ns": 660973942,
+          "cpu_end_ns": 661027367
+        },
+        {
+          "wake_ns": 1827283799945263,
+          "read_begin_ns": 1827283799950838,
+          "read_end_ns": 1827283799952172,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283799952189,
+          "service_end_ns": 1827283799991667,
+          "proof_publish_ns": 1827283799995793,
+          "cpu_begin_ns": 661032082,
+          "cpu_end_ns": 661076841
+        },
+        {
+          "wake_ns": 1827283800945263,
+          "read_begin_ns": 1827283800949175,
+          "read_end_ns": 1827283800949959,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283800949975,
+          "service_end_ns": 1827283801021824,
+          "proof_publish_ns": 1827283801036438,
+          "cpu_begin_ns": 661080671,
+          "cpu_end_ns": 661167891
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827283747041964,
+        "before_end_ns": 1827283747530852,
+        "after_wall_ns": 1827283797109679,
+        "after_end_ns": 1827283797474554,
+        "interrupt_deltas": {},
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827283750902553,
+          "end_ns": 1827283751077902,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 78000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4404526,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3302409,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 801538,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4400366,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 801167,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4300000,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4114080,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 1105380,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 799512,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4241350,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 802466,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 799786,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4273317,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800687,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3798875,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4400000
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827283825945263,
+        "sleep_begin_ns": 1827283823957199,
+        "wake_ns": 1827283826417479,
+        "job_end_ns": 1827283826419278,
+        "poll_end_ns": 1827283826419563,
+        "grid_now_ns": 1827283826420242,
+        "next_release_ns": 1827283827945263,
+        "sleep_cpu": 9,
+        "wake_cpu": 9,
+        "end_cpu": 9,
+        "begin_cpu_ns": 107509125,
+        "end_cpu_ns": 107511085,
+        "begin_voluntary": 4543,
+        "end_voluntary": 4543,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 9085.0,
+      "wake_delay_ns": 472216,
+      "native_calls": [
+        {
+          "wake_ns": 1827283821945263,
+          "read_begin_ns": 1827283821961164,
+          "read_end_ns": 1827283821963313,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283821963395,
+          "service_end_ns": 1827283822031716,
+          "proof_publish_ns": 1827283822034262,
+          "cpu_begin_ns": 662552380,
+          "cpu_end_ns": 662625025
+        },
+        {
+          "wake_ns": 1827283822945263,
+          "read_begin_ns": 1827283822949038,
+          "read_end_ns": 1827283822950043,
+          "frame": 2122,
+          "acquired_begin_ns": 1827283822698265,
+          "service_begin_ns": 1827283822950056,
+          "service_end_ns": 1827283822993962,
+          "proof_publish_ns": 1827283822997171,
+          "cpu_begin_ns": 662628086,
+          "cpu_end_ns": 662676153
+        },
+        {
+          "wake_ns": 1827283823945263,
+          "read_begin_ns": 1827283823959271,
+          "read_end_ns": 1827283823959892,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283823959920,
+          "service_end_ns": 1827283823993054,
+          "proof_publish_ns": 1827283823996663,
+          "cpu_begin_ns": 662678618,
+          "cpu_end_ns": 662716005
+        },
+        {
+          "wake_ns": 1827283824945263,
+          "read_begin_ns": 1827283824988228,
+          "read_end_ns": 1827283824989321,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283824989341,
+          "service_end_ns": 1827283825024863,
+          "proof_publish_ns": 1827283825028233,
+          "cpu_begin_ns": 662721732,
+          "cpu_end_ns": 662761452
+        },
+        {
+          "wake_ns": 1827283825945263,
+          "read_begin_ns": 1827283826421157,
+          "read_end_ns": 1827283826422077,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283826422112,
+          "service_end_ns": 1827283826472354,
+          "proof_publish_ns": 1827283826475628,
+          "cpu_begin_ns": 662778731,
+          "cpu_end_ns": 662833101
+        },
+        {
+          "wake_ns": 1827283826945263,
+          "read_begin_ns": 1827283826960019,
+          "read_end_ns": 1827283826961761,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283826961845,
+          "service_end_ns": 1827283827008677,
+          "proof_publish_ns": 1827283827011453,
+          "cpu_begin_ns": 662844837,
+          "cpu_end_ns": 662895906
+        },
+        {
+          "wake_ns": 1827283827945263,
+          "read_begin_ns": 1827283827960730,
+          "read_end_ns": 1827283827962703,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283827962780,
+          "service_end_ns": 1827283828011108,
+          "proof_publish_ns": 1827283828013619,
+          "cpu_begin_ns": 662906807,
+          "cpu_end_ns": 662959212
+        },
+        {
+          "wake_ns": 1827283828945263,
+          "read_begin_ns": 1827283828955117,
+          "read_end_ns": 1827283828956923,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283828956999,
+          "service_end_ns": 1827283829005122,
+          "proof_publish_ns": 1827283829007452,
+          "cpu_begin_ns": 662966837,
+          "cpu_end_ns": 663018799
+        },
+        {
+          "wake_ns": 1827283829945263,
+          "read_begin_ns": 1827283829961673,
+          "read_end_ns": 1827283829965008,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283829965128,
+          "service_end_ns": 1827283830018131,
+          "proof_publish_ns": 1827283830021087,
+          "cpu_begin_ns": 663032444,
+          "cpu_end_ns": 663090648
+        },
+        {
+          "wake_ns": 1827283830945263,
+          "read_begin_ns": 1827283830955496,
+          "read_end_ns": 1827283830957220,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283830957292,
+          "service_end_ns": 1827283831017846,
+          "proof_publish_ns": 1827283831020508,
+          "cpu_begin_ns": 663098809,
+          "cpu_end_ns": 663163454
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827283797109679,
+        "before_end_ns": 1827283797474554,
+        "after_wall_ns": 1827283847173782,
+        "after_end_ns": 1827283847561408,
+        "interrupt_deltas": {},
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827283800968062,
+          "end_ns": 1827283801204010,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 78000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3288601,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3724666,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 898306,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4000000,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4100000,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 3993761,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 3667862,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 1916814,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4403315,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4000000,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4100043,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3872946,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3900000,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3530565,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4300000
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827283835945263,
+        "sleep_begin_ns": 1827283833977183,
+        "wake_ns": 1827283836327206,
+        "job_end_ns": 1827283836328542,
+        "poll_end_ns": 1827283836328737,
+        "grid_now_ns": 1827283836329124,
+        "next_release_ns": 1827283837945263,
+        "sleep_cpu": 9,
+        "wake_cpu": 9,
+        "end_cpu": 9,
+        "begin_cpu_ns": 107946717,
+        "end_cpu_ns": 107948134,
+        "begin_voluntary": 4548,
+        "end_voluntary": 4548,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 9095.0,
+      "wake_delay_ns": 381943,
+      "native_calls": [
+        {
+          "wake_ns": 1827283831945263,
+          "read_begin_ns": 1827283831961870,
+          "read_end_ns": 1827283831965785,
+          "frame": 2123,
+          "acquired_begin_ns": 1827283831679035,
+          "service_begin_ns": 1827283831965881,
+          "service_end_ns": 1827283832059220,
+          "proof_publish_ns": 1827283832061867,
+          "cpu_begin_ns": 663175386,
+          "cpu_end_ns": 663274782
+        },
+        {
+          "wake_ns": 1827283832945263,
+          "read_begin_ns": 1827283832949477,
+          "read_end_ns": 1827283832950456,
+          "frame": 2124,
+          "acquired_begin_ns": 1827283832600005,
+          "service_begin_ns": 1827283832950470,
+          "service_end_ns": 1827283833019500,
+          "proof_publish_ns": 1827283833023032,
+          "cpu_begin_ns": 663278526,
+          "cpu_end_ns": 663352086
+        },
+        {
+          "wake_ns": 1827283833945263,
+          "read_begin_ns": 1827283833961814,
+          "read_end_ns": 1827283833964716,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283833964836,
+          "service_end_ns": 1827283834009777,
+          "proof_publish_ns": 1827283834013054,
+          "cpu_begin_ns": 663365421,
+          "cpu_end_ns": 663416005
+        },
+        {
+          "wake_ns": 1827283834945263,
+          "read_begin_ns": 1827283834955217,
+          "read_end_ns": 1827283834957014,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283834957089,
+          "service_end_ns": 1827283835030775,
+          "proof_publish_ns": 1827283835033400,
+          "cpu_begin_ns": 663423985,
+          "cpu_end_ns": 663501808
+        },
+        {
+          "wake_ns": 1827283835945263,
+          "read_begin_ns": 1827283835949219,
+          "read_end_ns": 1827283835949793,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283835949808,
+          "service_end_ns": 1827283835985938,
+          "proof_publish_ns": 1827283835989313,
+          "cpu_begin_ns": 663504807,
+          "cpu_end_ns": 663544878
+        },
+        {
+          "wake_ns": 1827283836945263,
+          "read_begin_ns": 1827283836957406,
+          "read_end_ns": 1827283836960850,
+          "frame": 2125,
+          "acquired_begin_ns": 1827283836505343,
+          "service_begin_ns": 1827283836960964,
+          "service_end_ns": 1827283837026783,
+          "proof_publish_ns": 1827283837030036,
+          "cpu_begin_ns": 663555283,
+          "cpu_end_ns": 663627496
+        },
+        {
+          "wake_ns": 1827283837945263,
+          "read_begin_ns": 1827283837948127,
+          "read_end_ns": 1827283837948668,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283837948684,
+          "service_end_ns": 1827283837977732,
+          "proof_publish_ns": 1827283837982045,
+          "cpu_begin_ns": 663630237,
+          "cpu_end_ns": 663664174
+        },
+        {
+          "wake_ns": 1827283838945263,
+          "read_begin_ns": 1827283838955557,
+          "read_end_ns": 1827283838957427,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283838957504,
+          "service_end_ns": 1827283839003030,
+          "proof_publish_ns": 1827283839005993,
+          "cpu_begin_ns": 663673057,
+          "cpu_end_ns": 663723084
+        },
+        {
+          "wake_ns": 1827283839945263,
+          "read_begin_ns": 1827283839959705,
+          "read_end_ns": 1827283839961808,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283839961888,
+          "service_end_ns": 1827283840003166,
+          "proof_publish_ns": 1827283840005956,
+          "cpu_begin_ns": 663733713,
+          "cpu_end_ns": 663779484
+        },
+        {
+          "wake_ns": 1827283840945263,
+          "read_begin_ns": 1827283840947691,
+          "read_end_ns": 1827283840948141,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283840948155,
+          "service_end_ns": 1827283840981544,
+          "proof_publish_ns": 1827283840991497,
+          "cpu_begin_ns": 663781737,
+          "cpu_end_ns": 663825565
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827283797109679,
+        "before_end_ns": 1827283797474554,
+        "after_wall_ns": 1827283847173782,
+        "after_end_ns": 1827283847561408,
+        "interrupt_deltas": {},
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827283800968062,
+          "end_ns": 1827283801204010,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 78000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 3288601,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3724666,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 898306,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4000000,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4100000,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 3993761,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 3667862,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 1916814,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4403315,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4000000,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4100043,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3872946,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 3900000,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3530565,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4300000
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827283901945263,
+        "sleep_begin_ns": 1827283900005332,
+        "wake_ns": 1827283902356341,
+        "job_end_ns": 1827283902358874,
+        "poll_end_ns": 1827283902359177,
+        "grid_now_ns": 1827283902359713,
+        "next_release_ns": 1827283903945263,
+        "sleep_cpu": 1,
+        "wake_cpu": 1,
+        "end_cpu": 1,
+        "begin_cpu_ns": 109127727,
+        "end_cpu_ns": 109130016,
+        "begin_voluntary": 4581,
+        "end_voluntary": 4581,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 9161.0,
+      "wake_delay_ns": 411078,
+      "native_calls": [
+        {
+          "wake_ns": 1827283897945263,
+          "read_begin_ns": 1827283897964536,
+          "read_end_ns": 1827283897967188,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283897967273,
+          "service_end_ns": 1827283898018207,
+          "proof_publish_ns": 1827283898021705,
+          "cpu_begin_ns": 668174036,
+          "cpu_end_ns": 668230431
+        },
+        {
+          "wake_ns": 1827283898945263,
+          "read_begin_ns": 1827283898990196,
+          "read_end_ns": 1827283898991515,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283898991533,
+          "service_end_ns": 1827283899032825,
+          "proof_publish_ns": 1827283899036504,
+          "cpu_begin_ns": 668238922,
+          "cpu_end_ns": 668284949
+        },
+        {
+          "wake_ns": 1827283899945263,
+          "read_begin_ns": 1827283899957111,
+          "read_end_ns": 1827283899957613,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283899957641,
+          "service_end_ns": 1827283899992754,
+          "proof_publish_ns": 1827283899996278,
+          "cpu_begin_ns": 668288420,
+          "cpu_end_ns": 668327631
+        },
+        {
+          "wake_ns": 1827283900945263,
+          "read_begin_ns": 1827283901049459,
+          "read_end_ns": 1827283901050400,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283901050413,
+          "service_end_ns": 1827283901091334,
+          "proof_publish_ns": 1827283901118682,
+          "cpu_begin_ns": 668375859,
+          "cpu_end_ns": 668444963
+        },
+        {
+          "wake_ns": 1827283901945263,
+          "read_begin_ns": 1827283902361611,
+          "read_end_ns": 1827283902362971,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283902363002,
+          "service_end_ns": 1827283902437566,
+          "proof_publish_ns": 1827283902444230,
+          "cpu_begin_ns": 668451198,
+          "cpu_end_ns": 668533762
+        },
+        {
+          "wake_ns": 1827283902945263,
+          "read_begin_ns": 1827283902951813,
+          "read_end_ns": 1827283902952783,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283902952802,
+          "service_end_ns": 1827283902988710,
+          "proof_publish_ns": 1827283902993088,
+          "cpu_begin_ns": 668540476,
+          "cpu_end_ns": 668581720
+        },
+        {
+          "wake_ns": 1827283903945263,
+          "read_begin_ns": 1827283903953070,
+          "read_end_ns": 1827283903954806,
+          "frame": 2138,
+          "acquired_begin_ns": 1827283903457259,
+          "service_begin_ns": 1827283903954823,
+          "service_end_ns": 1827283904035809,
+          "proof_publish_ns": 1827283904041278,
+          "cpu_begin_ns": 668587611,
+          "cpu_end_ns": 668675780
+        },
+        {
+          "wake_ns": 1827283904945263,
+          "read_begin_ns": 1827283904952448,
+          "read_end_ns": 1827283904953465,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283904953484,
+          "service_end_ns": 1827283905020741,
+          "proof_publish_ns": 1827283905025402,
+          "cpu_begin_ns": 668684480,
+          "cpu_end_ns": 668757403
+        },
+        {
+          "wake_ns": 1827283905945263,
+          "read_begin_ns": 1827283905950363,
+          "read_end_ns": 1827283905951503,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283905951521,
+          "service_end_ns": 1827283906023634,
+          "proof_publish_ns": 1827283906029063,
+          "cpu_begin_ns": 668762476,
+          "cpu_end_ns": 668841035
+        },
+        {
+          "wake_ns": 1827283906945263,
+          "read_begin_ns": 1827283906950476,
+          "read_end_ns": 1827283906951523,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283906951542,
+          "service_end_ns": 1827283906999742,
+          "proof_publish_ns": 1827283907007399,
+          "cpu_begin_ns": 668857041,
+          "cpu_end_ns": 668913918
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827283897244466,
+        "before_end_ns": 1827283897646458,
+        "after_wall_ns": 1827283947317888,
+        "after_end_ns": 1827283947679724,
+        "interrupt_deltas": {
+          "136": {
+            "label": "IR-PCI-MSIX-0000:02:00.0 2-edge nvme0q2",
+            "counts_cpu1_cpu9": [
+              582,
+              0
+            ]
+          }
+        },
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827283901123616,
+          "end_ns": 1827283901348360,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 78000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4006884,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4348767,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3412249,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4360896,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4321659,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4360918,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4360790,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 1913941,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4439538,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4398828,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4364809,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4409520,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4000000,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4433851
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827283903945263,
+        "sleep_begin_ns": 1827283902359925,
+        "wake_ns": 1827283904314199,
+        "job_end_ns": 1827283904317296,
+        "poll_end_ns": 1827283904317544,
+        "grid_now_ns": 1827283904317980,
+        "next_release_ns": 1827283905945263,
+        "sleep_cpu": 1,
+        "wake_cpu": 1,
+        "end_cpu": 1,
+        "begin_cpu_ns": 109444557,
+        "end_cpu_ns": 109447499,
+        "begin_voluntary": 4582,
+        "end_voluntary": 4582,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 9163.0,
+      "wake_delay_ns": 368936,
+      "native_calls": [
+        {
+          "wake_ns": 1827283899945263,
+          "read_begin_ns": 1827283899957111,
+          "read_end_ns": 1827283899957613,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283899957641,
+          "service_end_ns": 1827283899992754,
+          "proof_publish_ns": 1827283899996278,
+          "cpu_begin_ns": 668288420,
+          "cpu_end_ns": 668327631
+        },
+        {
+          "wake_ns": 1827283900945263,
+          "read_begin_ns": 1827283901049459,
+          "read_end_ns": 1827283901050400,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283901050413,
+          "service_end_ns": 1827283901091334,
+          "proof_publish_ns": 1827283901118682,
+          "cpu_begin_ns": 668375859,
+          "cpu_end_ns": 668444963
+        },
+        {
+          "wake_ns": 1827283901945263,
+          "read_begin_ns": 1827283902361611,
+          "read_end_ns": 1827283902362971,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283902363002,
+          "service_end_ns": 1827283902437566,
+          "proof_publish_ns": 1827283902444230,
+          "cpu_begin_ns": 668451198,
+          "cpu_end_ns": 668533762
+        },
+        {
+          "wake_ns": 1827283902945263,
+          "read_begin_ns": 1827283902951813,
+          "read_end_ns": 1827283902952783,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283902952802,
+          "service_end_ns": 1827283902988710,
+          "proof_publish_ns": 1827283902993088,
+          "cpu_begin_ns": 668540476,
+          "cpu_end_ns": 668581720
+        },
+        {
+          "wake_ns": 1827283903945263,
+          "read_begin_ns": 1827283903953070,
+          "read_end_ns": 1827283903954806,
+          "frame": 2138,
+          "acquired_begin_ns": 1827283903457259,
+          "service_begin_ns": 1827283903954823,
+          "service_end_ns": 1827283904035809,
+          "proof_publish_ns": 1827283904041278,
+          "cpu_begin_ns": 668587611,
+          "cpu_end_ns": 668675780
+        },
+        {
+          "wake_ns": 1827283904945263,
+          "read_begin_ns": 1827283904952448,
+          "read_end_ns": 1827283904953465,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283904953484,
+          "service_end_ns": 1827283905020741,
+          "proof_publish_ns": 1827283905025402,
+          "cpu_begin_ns": 668684480,
+          "cpu_end_ns": 668757403
+        },
+        {
+          "wake_ns": 1827283905945263,
+          "read_begin_ns": 1827283905950363,
+          "read_end_ns": 1827283905951503,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283905951521,
+          "service_end_ns": 1827283906023634,
+          "proof_publish_ns": 1827283906029063,
+          "cpu_begin_ns": 668762476,
+          "cpu_end_ns": 668841035
+        },
+        {
+          "wake_ns": 1827283906945263,
+          "read_begin_ns": 1827283906950476,
+          "read_end_ns": 1827283906951523,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283906951542,
+          "service_end_ns": 1827283906999742,
+          "proof_publish_ns": 1827283907007399,
+          "cpu_begin_ns": 668857041,
+          "cpu_end_ns": 668913918
+        },
+        {
+          "wake_ns": 1827283907945263,
+          "read_begin_ns": 1827283907950695,
+          "read_end_ns": 1827283907951693,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283907951714,
+          "service_end_ns": 1827283907994531,
+          "proof_publish_ns": 1827283907999216,
+          "cpu_begin_ns": 668919655,
+          "cpu_end_ns": 668968074
+        },
+        {
+          "wake_ns": 1827283908945263,
+          "read_begin_ns": 1827283908951087,
+          "read_end_ns": 1827283908952266,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283908952279,
+          "service_end_ns": 1827283908986163,
+          "proof_publish_ns": 1827283908990023,
+          "cpu_begin_ns": 668977463,
+          "cpu_end_ns": 669015982
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827283897244466,
+        "before_end_ns": 1827283897646458,
+        "after_wall_ns": 1827283947317888,
+        "after_end_ns": 1827283947679724,
+        "interrupt_deltas": {
+          "136": {
+            "label": "IR-PCI-MSIX-0000:02:00.0 2-edge nvme0q2",
+            "counts_cpu1_cpu9": [
+              582,
+              0
+            ]
+          }
+        },
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827283901123616,
+          "end_ns": 1827283901348360,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 78000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4006884,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4348767,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3412249,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4360896,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4321659,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4360918,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4360790,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 1913941,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4439538,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4398828,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4364809,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4409520,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4000000,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4433851
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827283931945263,
+        "sleep_begin_ns": 1827283929998555,
+        "wake_ns": 1827283932272835,
+        "job_end_ns": 1827283932274019,
+        "poll_end_ns": 1827283932274215,
+        "grid_now_ns": 1827283932274599,
+        "next_release_ns": 1827283933945263,
+        "sleep_cpu": 1,
+        "wake_cpu": 1,
+        "end_cpu": 1,
+        "begin_cpu_ns": 109868396,
+        "end_cpu_ns": 109869590,
+        "begin_voluntary": 4596,
+        "end_voluntary": 4596,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 9191.0,
+      "wake_delay_ns": 327572,
+      "native_calls": [
+        {
+          "wake_ns": 1827283927945263,
+          "read_begin_ns": 1827283927948133,
+          "read_end_ns": 1827283927948579,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283927948597,
+          "service_end_ns": 1827283927979025,
+          "proof_publish_ns": 1827283927981878,
+          "cpu_begin_ns": 669878791,
+          "cpu_end_ns": 669912618
+        },
+        {
+          "wake_ns": 1827283928945263,
+          "read_begin_ns": 1827283928953600,
+          "read_end_ns": 1827283928954541,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283928954572,
+          "service_end_ns": 1827283928994913,
+          "proof_publish_ns": 1827283928998947,
+          "cpu_begin_ns": 669920426,
+          "cpu_end_ns": 669965525
+        },
+        {
+          "wake_ns": 1827283929945263,
+          "read_begin_ns": 1827283929998439,
+          "read_end_ns": 1827283929998986,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283929999003,
+          "service_end_ns": 1827283930044399,
+          "proof_publish_ns": 1827283930048865,
+          "cpu_begin_ns": 669971328,
+          "cpu_end_ns": 670021858
+        },
+        {
+          "wake_ns": 1827283930945263,
+          "read_begin_ns": 1827283930950174,
+          "read_end_ns": 1827283930950858,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283930950872,
+          "service_end_ns": 1827283930995410,
+          "proof_publish_ns": 1827283930998604,
+          "cpu_begin_ns": 670026776,
+          "cpu_end_ns": 670075197
+        },
+        {
+          "wake_ns": 1827283931945263,
+          "read_begin_ns": 1827283931949896,
+          "read_end_ns": 1827283931951379,
+          "frame": 2143,
+          "acquired_begin_ns": 1827283931734180,
+          "service_begin_ns": 1827283931951401,
+          "service_end_ns": 1827283932011357,
+          "proof_publish_ns": 1827283932015207,
+          "cpu_begin_ns": 670079454,
+          "cpu_end_ns": 670144668
+        },
+        {
+          "wake_ns": 1827283932945263,
+          "read_begin_ns": 1827283932949952,
+          "read_end_ns": 1827283932951172,
+          "frame": 2144,
+          "acquired_begin_ns": 1827283932557527,
+          "service_begin_ns": 1827283932951193,
+          "service_end_ns": 1827283933005752,
+          "proof_publish_ns": 1827283933009190,
+          "cpu_begin_ns": 670150087,
+          "cpu_end_ns": 670209327
+        },
+        {
+          "wake_ns": 1827283933945263,
+          "read_begin_ns": 1827283933949483,
+          "read_end_ns": 1827283933950076,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283933950091,
+          "service_end_ns": 1827283933981811,
+          "proof_publish_ns": 1827283933985339,
+          "cpu_begin_ns": 670213142,
+          "cpu_end_ns": 670249097
+        },
+        {
+          "wake_ns": 1827283934945263,
+          "read_begin_ns": 1827283934956033,
+          "read_end_ns": 1827283934958141,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283934958210,
+          "service_end_ns": 1827283935021194,
+          "proof_publish_ns": 1827283935024409,
+          "cpu_begin_ns": 670258113,
+          "cpu_end_ns": 670326001
+        },
+        {
+          "wake_ns": 1827283935945263,
+          "read_begin_ns": 1827283935959048,
+          "read_end_ns": 1827283935961276,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827283935961361,
+          "service_end_ns": 1827283936021811,
+          "proof_publish_ns": 1827283936024955,
+          "cpu_begin_ns": 670337070,
+          "cpu_end_ns": 670402525
+        },
+        {
+          "wake_ns": 1827283936945263,
+          "read_begin_ns": 1827283936955190,
+          "read_end_ns": 1827283936958198,
+          "frame": 2145,
+          "acquired_begin_ns": 1827283936434470,
+          "service_begin_ns": 1827283936958287,
+          "service_end_ns": 1827283937040759,
+          "proof_publish_ns": 1827283937043215,
+          "cpu_begin_ns": 670410247,
+          "cpu_end_ns": 670497913
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827283897244466,
+        "before_end_ns": 1827283897646458,
+        "after_wall_ns": 1827283947317888,
+        "after_end_ns": 1827283947679724,
+        "interrupt_deltas": {
+          "136": {
+            "label": "IR-PCI-MSIX-0000:02:00.0 2-edge nvme0q2",
+            "counts_cpu1_cpu9": [
+              582,
+              0
+            ]
+          }
+        },
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827283901123616,
+          "end_ns": 1827283901348360,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 78000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4006884,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 4348767,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3412249,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4360896,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4321659,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4360918,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4360790,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 1913941,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4439538,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4398828,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4364809,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4409520,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4000000,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4433851
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827284015945263,
+        "sleep_begin_ns": 1827284013971802,
+        "wake_ns": 1827284016301246,
+        "job_end_ns": 1827284016302493,
+        "poll_end_ns": 1827284016302600,
+        "grid_now_ns": 1827284016302993,
+        "next_release_ns": 1827284017945263,
+        "sleep_cpu": 9,
+        "wake_cpu": 9,
+        "end_cpu": 9,
+        "begin_cpu_ns": 110639997,
+        "end_cpu_ns": 110641136,
+        "begin_voluntary": 4638,
+        "end_voluntary": 4638,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 9275.0,
+      "wake_delay_ns": 355983,
+      "native_calls": [
+        {
+          "wake_ns": 1827284011945263,
+          "read_begin_ns": 1827284011960372,
+          "read_end_ns": 1827284011963013,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284011963122,
+          "service_end_ns": 1827284012026921,
+          "proof_publish_ns": 1827284012030054,
+          "cpu_begin_ns": 676074118,
+          "cpu_end_ns": 676143051
+        },
+        {
+          "wake_ns": 1827284012945263,
+          "read_begin_ns": 1827284012948392,
+          "read_end_ns": 1827284012949353,
+          "frame": 2159,
+          "acquired_begin_ns": 1827284011995968,
+          "service_begin_ns": 1827284012949427,
+          "service_end_ns": 1827284012999220,
+          "proof_publish_ns": 1827284013007244,
+          "cpu_begin_ns": 676145980,
+          "cpu_end_ns": 676204883
+        },
+        {
+          "wake_ns": 1827284013945263,
+          "read_begin_ns": 1827284013967209,
+          "read_end_ns": 1827284013971199,
+          "frame": 2160,
+          "acquired_begin_ns": 1827284013639150,
+          "service_begin_ns": 1827284013971284,
+          "service_end_ns": 1827284014027878,
+          "proof_publish_ns": 1827284014031074,
+          "cpu_begin_ns": 676224060,
+          "cpu_end_ns": 676287327
+        },
+        {
+          "wake_ns": 1827284014945263,
+          "read_begin_ns": 1827284014956083,
+          "read_end_ns": 1827284014957942,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284014958019,
+          "service_end_ns": 1827284015052480,
+          "proof_publish_ns": 1827284015055029,
+          "cpu_begin_ns": 676299309,
+          "cpu_end_ns": 676397805
+        },
+        {
+          "wake_ns": 1827284015945263,
+          "read_begin_ns": 1827284015948292,
+          "read_end_ns": 1827284015948866,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284015948885,
+          "service_end_ns": 1827284015988838,
+          "proof_publish_ns": 1827284015992564,
+          "cpu_begin_ns": 676400597,
+          "cpu_end_ns": 676444880
+        },
+        {
+          "wake_ns": 1827284016945263,
+          "read_begin_ns": 1827284016956813,
+          "read_end_ns": 1827284016960414,
+          "frame": 2161,
+          "acquired_begin_ns": 1827284016553404,
+          "service_begin_ns": 1827284016960489,
+          "service_end_ns": 1827284017029047,
+          "proof_publish_ns": 1827284017032108,
+          "cpu_begin_ns": 676455285,
+          "cpu_end_ns": 676530155
+        },
+        {
+          "wake_ns": 1827284017945263,
+          "read_begin_ns": 1827284017959448,
+          "read_end_ns": 1827284017961786,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284017961876,
+          "service_end_ns": 1827284018008698,
+          "proof_publish_ns": 1827284018011602,
+          "cpu_begin_ns": 676541393,
+          "cpu_end_ns": 676592914
+        },
+        {
+          "wake_ns": 1827284018945263,
+          "read_begin_ns": 1827284018947612,
+          "read_end_ns": 1827284018948021,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284018948035,
+          "service_end_ns": 1827284018973351,
+          "proof_publish_ns": 1827284018976738,
+          "cpu_begin_ns": 676595005,
+          "cpu_end_ns": 676624155
+        },
+        {
+          "wake_ns": 1827284019945263,
+          "read_begin_ns": 1827284019959155,
+          "read_end_ns": 1827284019961616,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284019961697,
+          "service_end_ns": 1827284020016221,
+          "proof_publish_ns": 1827284020018783,
+          "cpu_begin_ns": 676634984,
+          "cpu_end_ns": 676693908
+        },
+        {
+          "wake_ns": 1827284020945263,
+          "read_begin_ns": 1827284020956255,
+          "read_end_ns": 1827284020956572,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284020956585,
+          "service_end_ns": 1827284020988659,
+          "proof_publish_ns": 1827284020997784,
+          "cpu_begin_ns": 676695847,
+          "cpu_end_ns": 676737394
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827283997384565,
+        "before_end_ns": 1827283997799810,
+        "after_wall_ns": 1827284047472161,
+        "after_end_ns": 1827284047824094,
+        "interrupt_deltas": {
+          "136": {
+            "label": "IR-PCI-MSIX-0000:02:00.0 2-edge nvme0q2",
+            "counts_cpu1_cpu9": [
+              180,
+              0
+            ]
+          }
+        },
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827284001262639,
+          "end_ns": 1827284001420400,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 78000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4279570,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 3235226,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 1788138,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 3862713,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 2330645,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4400044,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4375251,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 2028564,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 3029767,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4346493,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 1024780,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4201425,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4434072,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 3942510,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 4386544
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827284531945263,
+        "sleep_begin_ns": 1827284529978221,
+        "wake_ns": 1827284532489366,
+        "job_end_ns": 1827284532490944,
+        "poll_end_ns": 1827284532491232,
+        "grid_now_ns": 1827284532491709,
+        "next_release_ns": 1827284533945263,
+        "sleep_cpu": 1,
+        "wake_cpu": 1,
+        "end_cpu": 1,
+        "begin_cpu_ns": 116558802,
+        "end_cpu_ns": 116560375,
+        "begin_voluntary": 4896,
+        "end_voluntary": 4896,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 9791.0,
+      "wake_delay_ns": 544103,
+      "native_calls": [
+        {
+          "wake_ns": 1827284527945263,
+          "read_begin_ns": 1827284527959302,
+          "read_end_ns": 1827284527961687,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284527961767,
+          "service_end_ns": 1827284528007887,
+          "proof_publish_ns": 1827284528010490,
+          "cpu_begin_ns": 714103066,
+          "cpu_end_ns": 714153656
+        },
+        {
+          "wake_ns": 1827284528945263,
+          "read_begin_ns": 1827284528989741,
+          "read_end_ns": 1827284528990893,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284528990920,
+          "service_end_ns": 1827284529028779,
+          "proof_publish_ns": 1827284529032293,
+          "cpu_begin_ns": 714158899,
+          "cpu_end_ns": 714201252
+        },
+        {
+          "wake_ns": 1827284529945263,
+          "read_begin_ns": 1827284529959845,
+          "read_end_ns": 1827284529962568,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284529962675,
+          "service_end_ns": 1827284530004580,
+          "proof_publish_ns": 1827284530007923,
+          "cpu_begin_ns": 714214022,
+          "cpu_end_ns": 714261371
+        },
+        {
+          "wake_ns": 1827284530945263,
+          "read_begin_ns": 1827284530994211,
+          "read_end_ns": 1827284530995372,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284530995391,
+          "service_end_ns": 1827284531058449,
+          "proof_publish_ns": 1827284531062158,
+          "cpu_begin_ns": 714266468,
+          "cpu_end_ns": 714334220
+        },
+        {
+          "wake_ns": 1827284531945263,
+          "read_begin_ns": 1827284531949285,
+          "read_end_ns": 1827284531949917,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284531949938,
+          "service_end_ns": 1827284531999298,
+          "proof_publish_ns": 1827284532006927,
+          "cpu_begin_ns": 714338149,
+          "cpu_end_ns": 714395756
+        },
+        {
+          "wake_ns": 1827284532945263,
+          "read_begin_ns": 1827284532957343,
+          "read_end_ns": 1827284532959438,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284532959537,
+          "service_end_ns": 1827284533008445,
+          "proof_publish_ns": 1827284533011738,
+          "cpu_begin_ns": 714406385,
+          "cpu_end_ns": 714460340
+        },
+        {
+          "wake_ns": 1827284533945263,
+          "read_begin_ns": 1827284533988011,
+          "read_end_ns": 1827284533989617,
+          "frame": 2263,
+          "acquired_begin_ns": 1827284532937560,
+          "service_begin_ns": 1827284533989643,
+          "service_end_ns": 1827284534053035,
+          "proof_publish_ns": 1827284534056734,
+          "cpu_begin_ns": 714467275,
+          "cpu_end_ns": 714535902
+        },
+        {
+          "wake_ns": 1827284534945263,
+          "read_begin_ns": 1827284534958398,
+          "read_end_ns": 1827284534962085,
+          "frame": 2264,
+          "acquired_begin_ns": 1827284534684626,
+          "service_begin_ns": 1827284534962164,
+          "service_end_ns": 1827284535058592,
+          "proof_publish_ns": 1827284535062135,
+          "cpu_begin_ns": 714546822,
+          "cpu_end_ns": 714650075
+        },
+        {
+          "wake_ns": 1827284535945263,
+          "read_begin_ns": 1827284535966823,
+          "read_end_ns": 1827284535970482,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827284535970594,
+          "service_end_ns": 1827284536043247,
+          "proof_publish_ns": 1827284536047278,
+          "cpu_begin_ns": 714668668,
+          "cpu_end_ns": 714748433
+        },
+        {
+          "wake_ns": 1827284536945263,
+          "read_begin_ns": 1827284536958622,
+          "read_end_ns": 1827284536962038,
+          "frame": 2265,
+          "acquired_begin_ns": 1827284536758888,
+          "service_begin_ns": 1827284536962145,
+          "service_end_ns": 1827284537043800,
+          "proof_publish_ns": 1827284537047708,
+          "cpu_begin_ns": 714758600,
+          "cpu_end_ns": 714847263
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827284498202025,
+        "before_end_ns": 1827284498604253,
+        "after_wall_ns": 1827284548269235,
+        "after_end_ns": 1827284548623550,
+        "interrupt_deltas": {},
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827284502055072,
+          "end_ns": 1827284502279487,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 89000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 78000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 84000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 85000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 89000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 83000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 88000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 4080979,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 1813340,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 4300000,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 2546391,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 4153052,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4400000,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 4190040,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 802490,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 4300000,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 3285990,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 4010243,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4392763,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 4063026,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 928266,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 4017768,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 3890568
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827288949945263,
+        "sleep_begin_ns": 1827288947982401,
+        "wake_ns": 1827288950235680,
+        "job_end_ns": 1827288950242698,
+        "poll_end_ns": 1827288950243694,
+        "grid_now_ns": 1827288950247752,
+        "next_release_ns": 1827288951945263,
+        "sleep_cpu": 9,
+        "wake_cpu": 1,
+        "end_cpu": 1,
+        "begin_cpu_ns": 169297485,
+        "end_cpu_ns": 169305455,
+        "begin_voluntary": 7105,
+        "end_voluntary": 7105,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 14209.0,
+      "wake_delay_ns": 290417,
+      "native_calls": [
+        {
+          "wake_ns": 1827288945945263,
+          "read_begin_ns": 1827288945962090,
+          "read_end_ns": 1827288945966584,
+          "frame": 3133,
+          "acquired_begin_ns": 1827288945159162,
+          "service_begin_ns": 1827288945966694,
+          "service_end_ns": 1827288946276638,
+          "proof_publish_ns": 1827288946291409,
+          "cpu_begin_ns": 1064150922,
+          "cpu_end_ns": 1064480638
+        },
+        {
+          "wake_ns": 1827288946945263,
+          "read_begin_ns": 1827288946957226,
+          "read_end_ns": 1827288946959469,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288946959553,
+          "service_end_ns": 1827288947136377,
+          "proof_publish_ns": 1827288947149271,
+          "cpu_begin_ns": 1064493230,
+          "cpu_end_ns": 1064685887
+        },
+        {
+          "wake_ns": 1827288947945263,
+          "read_begin_ns": 1827288947968518,
+          "read_end_ns": 1827288947972621,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288947972714,
+          "service_end_ns": 1827288948171641,
+          "proof_publish_ns": 1827288948188766,
+          "cpu_begin_ns": 1064707946,
+          "cpu_end_ns": 1064928538
+        },
+        {
+          "wake_ns": 1827288948945263,
+          "read_begin_ns": 1827288948965538,
+          "read_end_ns": 1827288948968811,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288948968880,
+          "service_end_ns": 1827288949142124,
+          "proof_publish_ns": 1827288949158041,
+          "cpu_begin_ns": 1064953269,
+          "cpu_end_ns": 1065145706
+        },
+        {
+          "wake_ns": 1827288949945263,
+          "read_begin_ns": 1827288949970018,
+          "read_end_ns": 1827288949973097,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288949973193,
+          "service_end_ns": 1827288950201802,
+          "proof_publish_ns": 1827288950220254,
+          "cpu_begin_ns": 1065163477,
+          "cpu_end_ns": 1065413862
+        },
+        {
+          "wake_ns": 1827288950945263,
+          "read_begin_ns": 1827288950958217,
+          "read_end_ns": 1827288950960128,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288950960202,
+          "service_end_ns": 1827288951194051,
+          "proof_publish_ns": 1827288951209355,
+          "cpu_begin_ns": 1065428004,
+          "cpu_end_ns": 1065679599
+        },
+        {
+          "wake_ns": 1827288951945263,
+          "read_begin_ns": 1827288951977395,
+          "read_end_ns": 1827288951980809,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288951980972,
+          "service_end_ns": 1827288952159297,
+          "proof_publish_ns": 1827288952174694,
+          "cpu_begin_ns": 1065694960,
+          "cpu_end_ns": 1065892452
+        },
+        {
+          "wake_ns": 1827288952945263,
+          "read_begin_ns": 1827288952957955,
+          "read_end_ns": 1827288952960399,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288952960614,
+          "service_end_ns": 1827288953108807,
+          "proof_publish_ns": 1827288953122749,
+          "cpu_begin_ns": 1065907311,
+          "cpu_end_ns": 1066072627
+        },
+        {
+          "wake_ns": 1827288953945263,
+          "read_begin_ns": 1827288953960629,
+          "read_end_ns": 1827288953963067,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288953963192,
+          "service_end_ns": 1827288954121761,
+          "proof_publish_ns": 1827288954134249,
+          "cpu_begin_ns": 1066086865,
+          "cpu_end_ns": 1066260732
+        },
+        {
+          "wake_ns": 1827288954945263,
+          "read_begin_ns": 1827288954957303,
+          "read_end_ns": 1827288954959550,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288954959627,
+          "service_end_ns": 1827288955125517,
+          "proof_publish_ns": 1827288955139044,
+          "cpu_begin_ns": 1066271756,
+          "cpu_end_ns": 1066454049
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827288908162870,
+        "before_end_ns": 1827288909673604,
+        "after_wall_ns": 1827288958260238,
+        "after_end_ns": 1827288959774493,
+        "interrupt_deltas": {},
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827288911172017,
+          "end_ns": 1827288911763567,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 95000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 84000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 95000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 88000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 800047,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 800037,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 800000,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 799603,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 800000,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 799983,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 799991,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 800000,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 800034,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 800024,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 800024,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 799983,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 800008,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 800008,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 799966,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 800000
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827288989945263,
+        "sleep_begin_ns": 1827288987980794,
+        "wake_ns": 1827288990185652,
+        "job_end_ns": 1827288990192164,
+        "poll_end_ns": 1827288990192860,
+        "grid_now_ns": 1827288990195668,
+        "next_release_ns": 1827288991945263,
+        "sleep_cpu": 9,
+        "wake_cpu": 1,
+        "end_cpu": 1,
+        "begin_cpu_ns": 169862064,
+        "end_cpu_ns": 169868663,
+        "begin_voluntary": 7125,
+        "end_voluntary": 7125,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 14249.0,
+      "wake_delay_ns": 240389,
+      "native_calls": [
+        {
+          "wake_ns": 1827288985945263,
+          "read_begin_ns": 1827288985969004,
+          "read_end_ns": 1827288985980025,
+          "frame": 3137,
+          "acquired_begin_ns": 1827288985043292,
+          "service_begin_ns": 1827288985980130,
+          "service_end_ns": 1827288986320130,
+          "proof_publish_ns": 1827288986333510,
+          "cpu_begin_ns": 1072889159,
+          "cpu_end_ns": 1073253687
+        },
+        {
+          "wake_ns": 1827288986945263,
+          "read_begin_ns": 1827288986958856,
+          "read_end_ns": 1827288986961034,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288986961107,
+          "service_end_ns": 1827288987115614,
+          "proof_publish_ns": 1827288987126467,
+          "cpu_begin_ns": 1073266980,
+          "cpu_end_ns": 1073434885
+        },
+        {
+          "wake_ns": 1827288987945263,
+          "read_begin_ns": 1827288987970867,
+          "read_end_ns": 1827288987972745,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288987972804,
+          "service_end_ns": 1827288988116285,
+          "proof_publish_ns": 1827288988127723,
+          "cpu_begin_ns": 1073455553,
+          "cpu_end_ns": 1073612427
+        },
+        {
+          "wake_ns": 1827288988945263,
+          "read_begin_ns": 1827288988956446,
+          "read_end_ns": 1827288988958747,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288988958822,
+          "service_end_ns": 1827288989086227,
+          "proof_publish_ns": 1827288989097725,
+          "cpu_begin_ns": 1073623076,
+          "cpu_end_ns": 1073764462
+        },
+        {
+          "wake_ns": 1827288989945263,
+          "read_begin_ns": 1827288989970599,
+          "read_end_ns": 1827288989973288,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288989973366,
+          "service_end_ns": 1827288990158908,
+          "proof_publish_ns": 1827288990173825,
+          "cpu_begin_ns": 1073781808,
+          "cpu_end_ns": 1073984929
+        },
+        {
+          "wake_ns": 1827288990945263,
+          "read_begin_ns": 1827288990959149,
+          "read_end_ns": 1827288990961348,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288990961441,
+          "service_end_ns": 1827288991155577,
+          "proof_publish_ns": 1827288991168107,
+          "cpu_begin_ns": 1073998279,
+          "cpu_end_ns": 1074207299
+        },
+        {
+          "wake_ns": 1827288991945263,
+          "read_begin_ns": 1827288991978522,
+          "read_end_ns": 1827288991980774,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288991980887,
+          "service_end_ns": 1827288992105226,
+          "proof_publish_ns": 1827288992116861,
+          "cpu_begin_ns": 1074217345,
+          "cpu_end_ns": 1074355897
+        },
+        {
+          "wake_ns": 1827288992945263,
+          "read_begin_ns": 1827288992954729,
+          "read_end_ns": 1827288992956242,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288992956298,
+          "service_end_ns": 1827288993064866,
+          "proof_publish_ns": 1827288993076248,
+          "cpu_begin_ns": 1074365769,
+          "cpu_end_ns": 1074487546
+        },
+        {
+          "wake_ns": 1827288993945263,
+          "read_begin_ns": 1827288993957538,
+          "read_end_ns": 1827288993959318,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827288993959380,
+          "service_end_ns": 1827288994076705,
+          "proof_publish_ns": 1827288994086394,
+          "cpu_begin_ns": 1074498411,
+          "cpu_end_ns": 1074627432
+        },
+        {
+          "wake_ns": 1827288994945263,
+          "read_begin_ns": 1827288994953789,
+          "read_end_ns": 1827288994956879,
+          "frame": 3138,
+          "acquired_begin_ns": 1827288994107336,
+          "service_begin_ns": 1827288994956948,
+          "service_end_ns": 1827288995147225,
+          "proof_publish_ns": 1827288995158718,
+          "cpu_begin_ns": 1074635924,
+          "cpu_end_ns": 1074841389
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827288958260238,
+        "before_end_ns": 1827288959774493,
+        "after_wall_ns": 1827289008362276,
+        "after_end_ns": 1827289009455018,
+        "interrupt_deltas": {},
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827288961269921,
+          "end_ns": 1827288961837455,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 95000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 84000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 95000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 77000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 88000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 897742,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 900504,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 900000,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 889743,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 899990,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 806469,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 900027,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 900000,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 900681,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 799828,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 899851,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 800008,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 900000,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 899756,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 890828,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 892054
+          },
+          "errors": {}
+        }
+      ]
+    },
+    {
+      "monitor": {
+        "release_ns": 1827295275945263,
+        "sleep_begin_ns": 1827295273957014,
+        "wake_ns": 1827295276408473,
+        "job_end_ns": 1827295276412112,
+        "poll_end_ns": 1827295276412441,
+        "grid_now_ns": 1827295276412891,
+        "next_release_ns": 1827295277945263,
+        "sleep_cpu": 1,
+        "wake_cpu": 1,
+        "end_cpu": 1,
+        "begin_cpu_ns": 243366775,
+        "end_cpu_ns": 243370293,
+        "begin_voluntary": 10268,
+        "end_voluntary": 10268,
+        "begin_involuntary": 0,
+        "end_involuntary": 0,
+        "begin_minor_faults": 2,
+        "end_minor_faults": 2,
+        "begin_error": 0,
+        "end_error": 0
+      },
+      "release_after_initial_ms": 20535.0,
+      "wake_delay_ns": 463210,
+      "native_calls": [
+        {
+          "wake_ns": 1827295271945263,
+          "read_begin_ns": 1827295271960684,
+          "read_end_ns": 1827295271963329,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827295271963420,
+          "service_end_ns": 1827295272026799,
+          "proof_publish_ns": 1827295272030332,
+          "cpu_begin_ns": 1543366864,
+          "cpu_end_ns": 1543435909
+        },
+        {
+          "wake_ns": 1827295272945263,
+          "read_begin_ns": 1827295272967190,
+          "read_end_ns": 1827295272969169,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827295272969243,
+          "service_end_ns": 1827295273020350,
+          "proof_publish_ns": 1827295273024935,
+          "cpu_begin_ns": 1543445480,
+          "cpu_end_ns": 1543502799
+        },
+        {
+          "wake_ns": 1827295273945263,
+          "read_begin_ns": 1827295273950945,
+          "read_end_ns": 1827295273952258,
+          "frame": 4411,
+          "acquired_begin_ns": 1827295273161245,
+          "service_begin_ns": 1827295273952279,
+          "service_end_ns": 1827295274024087,
+          "proof_publish_ns": 1827295274029243,
+          "cpu_begin_ns": 1543511882,
+          "cpu_end_ns": 1543590173
+        },
+        {
+          "wake_ns": 1827295274945263,
+          "read_begin_ns": 1827295274965219,
+          "read_end_ns": 1827295274968319,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827295274968394,
+          "service_end_ns": 1827295275048393,
+          "proof_publish_ns": 1827295275054977,
+          "cpu_begin_ns": 1543607000,
+          "cpu_end_ns": 1543696161
+        },
+        {
+          "wake_ns": 1827295275945263,
+          "read_begin_ns": 1827295275952933,
+          "read_end_ns": 1827295275954710,
+          "frame": 4412,
+          "acquired_begin_ns": 1827295275068055,
+          "service_begin_ns": 1827295275954730,
+          "service_end_ns": 1827295276066450,
+          "proof_publish_ns": 1827295276071141,
+          "cpu_begin_ns": 1543704873,
+          "cpu_end_ns": 1543822969
+        },
+        {
+          "wake_ns": 1827295276945263,
+          "read_begin_ns": 1827295276948926,
+          "read_end_ns": 1827295276949912,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827295276949925,
+          "service_end_ns": 1827295276999345,
+          "proof_publish_ns": 1827295277007735,
+          "cpu_begin_ns": 1543828241,
+          "cpu_end_ns": 1543887395
+        },
+        {
+          "wake_ns": 1827295277945263,
+          "read_begin_ns": 1827295277950702,
+          "read_end_ns": 1827295277952408,
+          "frame": 4413,
+          "acquired_begin_ns": 1827295277216264,
+          "service_begin_ns": 1827295277952421,
+          "service_end_ns": 1827295278030010,
+          "proof_publish_ns": 1827295278034620,
+          "cpu_begin_ns": 1543892227,
+          "cpu_end_ns": 1543976300
+        },
+        {
+          "wake_ns": 1827295278945263,
+          "read_begin_ns": 1827295278960760,
+          "read_end_ns": 1827295278963562,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827295278963641,
+          "service_end_ns": 1827295279018621,
+          "proof_publish_ns": 1827295279022858,
+          "cpu_begin_ns": 1543985790,
+          "cpu_end_ns": 1544047223
+        },
+        {
+          "wake_ns": 1827295279945263,
+          "read_begin_ns": 1827295279963482,
+          "read_end_ns": 1827295279966422,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827295279966506,
+          "service_end_ns": 1827295280070476,
+          "proof_publish_ns": 1827295280076902,
+          "cpu_begin_ns": 1544061474,
+          "cpu_end_ns": 1544174142
+        },
+        {
+          "wake_ns": 1827295280945263,
+          "read_begin_ns": 1827295280958463,
+          "read_end_ns": 1827295280960867,
+          "frame": 0,
+          "acquired_begin_ns": 0,
+          "service_begin_ns": 1827295280960936,
+          "service_end_ns": 1827295281036074,
+          "proof_publish_ns": 1827295281055582,
+          "cpu_begin_ns": 1544184936,
+          "cpu_end_ns": 1544281462
+        }
+      ],
+      "bracket": {
+        "before_wall_ns": 1827295272180396,
+        "before_end_ns": 1827295272573967,
+        "after_wall_ns": 1827295322250190,
+        "after_end_ns": 1827295322752276,
+        "interrupt_deltas": {
+          "136": {
+            "label": "IR-PCI-MSIX-0000:02:00.0 2-edge nvme0q2",
+            "counts_cpu1_cpu9": [
+              103,
+              0
+            ]
+          }
+        },
+        "kernel_thread_deltas": [
+          {
+            "pid": 22,
+            "comm": "idle_inject/1",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 70,
+            "comm": "idle_inject/9",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          },
+          {
+            "pid": 126,
+            "comm": "irq/9-acpi",
+            "runtime_delta_ns": 0,
+            "dispatch_delta": 0,
+            "policy": 1,
+            "rt_priority": 50
+          }
+        ]
+      },
+      "clocks": [
+        {
+          "wall_ns": 1827295275300172,
+          "end_ns": 1827295275602973,
+          "values": {
+            "/sys/class/hwmon/hwmon4/temp1_input": 85000,
+            "/sys/class/hwmon/hwmon4/temp2_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp3_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp4_input": 80000,
+            "/sys/class/hwmon/hwmon4/temp5_input": 85000,
+            "/sys/class/hwmon/hwmon4/temp6_input": 81000,
+            "/sys/class/hwmon/hwmon4/temp7_input": 79000,
+            "/sys/class/hwmon/hwmon4/temp8_input": 84000,
+            "/sys/class/hwmon/hwmon4/temp9_input": 82000,
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq": 2364583,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/core_throttle_count": 4317,
+            "/sys/devices/system/cpu/cpu0/thermal_throttle/package_throttle_count": 1203833,
+            "/sys/devices/system/cpu/cpu1/cpufreq/scaling_cur_freq": 2587061,
+            "/sys/devices/system/cpu/cpu10/cpufreq/scaling_cur_freq": 3176083,
+            "/sys/devices/system/cpu/cpu11/cpufreq/scaling_cur_freq": 4155802,
+            "/sys/devices/system/cpu/cpu12/cpufreq/scaling_cur_freq": 3939943,
+            "/sys/devices/system/cpu/cpu13/cpufreq/scaling_cur_freq": 4028749,
+            "/sys/devices/system/cpu/cpu14/cpufreq/scaling_cur_freq": 3919773,
+            "/sys/devices/system/cpu/cpu15/cpufreq/scaling_cur_freq": 4260054,
+            "/sys/devices/system/cpu/cpu2/cpufreq/scaling_cur_freq": 3516638,
+            "/sys/devices/system/cpu/cpu3/cpufreq/scaling_cur_freq": 4207267,
+            "/sys/devices/system/cpu/cpu4/cpufreq/scaling_cur_freq": 3929020,
+            "/sys/devices/system/cpu/cpu5/cpufreq/scaling_cur_freq": 4022514,
+            "/sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq": 3942223,
+            "/sys/devices/system/cpu/cpu7/cpufreq/scaling_cur_freq": 4259462,
+            "/sys/devices/system/cpu/cpu8/cpufreq/scaling_cur_freq": 1917307,
+            "/sys/devices/system/cpu/cpu9/cpufreq/scaling_cur_freq": 3056844
+          },
+          "errors": {}
+        }
+      ]
+    }
+  ]
+}

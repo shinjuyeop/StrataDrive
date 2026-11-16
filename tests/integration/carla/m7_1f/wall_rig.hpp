@@ -31,6 +31,7 @@ public:
     void execution_watch(WallExecutionWatch* watch);
     WallReport service(Time now,const std::optional<WallReceipt>& receipt={});
     std::array<simulation::LeafStartupObservation,5> startup_observations() const;
+    std::optional<vecu::DriveFaultObservation> drive_fault_observation() const;
     void protect(const char* reason);
 private:
     std::unique_ptr<FunctionalRig::Native> native_;

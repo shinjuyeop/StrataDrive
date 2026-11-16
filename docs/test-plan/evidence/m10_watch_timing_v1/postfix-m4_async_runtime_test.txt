@@ -1,0 +1,59 @@
+Running main() from ./googletest/src/gtest_main.cc
+[==========] Running 22 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 16 tests from M4AsyncRuntime
+[ RUN      ] M4AsyncRuntime.NormalUsesRealBmsAndFeedbackBeforeActuation
+[       OK ] M4AsyncRuntime.NormalUsesRealBmsAndFeedbackBeforeActuation (21 ms)
+[ RUN      ] M4AsyncRuntime.NormalStopWaitsForLeafHandoffThenActualHvOff
+[       OK ] M4AsyncRuntime.NormalStopWaitsForLeafHandoffThenActualHvOff (33 ms)
+[ RUN      ] M4AsyncRuntime.PartialFrontWritePreventsRearBatchAndProtectsAllDomains
+[       OK ] M4AsyncRuntime.PartialFrontWritePreventsRearBatchAndProtectsAllDomains (18 ms)
+[ RUN      ] M4AsyncRuntime.FeedbackLossCannotBeHiddenByLiveZoneHeartbeat
+[       OK ] M4AsyncRuntime.FeedbackLossCannotBeHiddenByLiveZoneHeartbeat (18 ms)
+[ RUN      ] M4AsyncRuntime.LostVehicleRootDoesNotGetRenewedByPowerTraffic
+[       OK ] M4AsyncRuntime.LostVehicleRootDoesNotGetRenewedByPowerTraffic (18 ms)
+[ RUN      ] M4AsyncRuntime.PartialArmNeverEmitsNormalActuatorFrames
+[       OK ] M4AsyncRuntime.PartialArmNeverEmitsNormalActuatorFrames (16 ms)
+[ RUN      ] M4AsyncRuntime.ExplicitNewEpochRejoinKeepsPhysicalStateAndRestoresReadiness
+[       OK ] M4AsyncRuntime.ExplicitNewEpochRejoinKeepsPhysicalStateAndRestoresReadiness (44 ms)
+[ RUN      ] M4AsyncRuntime.PreviousEpochWorkCannotDisturbCurrentNormalSession
+[       OK ] M4AsyncRuntime.PreviousEpochWorkCannotDisturbCurrentNormalSession (20 ms)
+[ RUN      ] M4AsyncRuntime.PersistedGrantValueDoesNotChangePartialWriteProtection
+[       OK ] M4AsyncRuntime.PersistedGrantValueDoesNotChangePartialWriteProtection (18 ms)
+[ RUN      ] M4AsyncRuntime.TransportTraceCorrelatesOriginalAuthorityWithoutChangingPhysicalResponse
+[       OK ] M4AsyncRuntime.TransportTraceCorrelatesOriginalAuthorityWithoutChangingPhysicalResponse (49 ms)
+[ RUN      ] M4AsyncRuntime.DelayedFrontResultCannotOutlivePreviousRearCommandAuthority
+[       OK ] M4AsyncRuntime.DelayedFrontResultCannotOutlivePreviousRearCommandAuthority (52 ms)
+[ RUN      ] M4AsyncRuntime.LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority
+[       OK ] M4AsyncRuntime.LivePendingBatchDefersAllocationUntilResultWithoutRenewingAuthority (24 ms)
+[ RUN      ] M4AsyncRuntime.SustainedPendingCannotHideEventualAuthorityExpiry
+[       OK ] M4AsyncRuntime.SustainedPendingCannotHideEventualAuthorityExpiry (25 ms)
+[ RUN      ] M4AsyncRuntime.MissingPendingResultStillTimesOutAtOriginalEnvelope
+[       OK ] M4AsyncRuntime.MissingPendingResultStillTimesOutAtOriginalEnvelope (26 ms)
+[ RUN      ] M4AsyncRuntime.DeferredBatchCompletesBeforeNormalStopHandoff
+[       OK ] M4AsyncRuntime.DeferredBatchCompletesBeforeNormalStopHandoff (41 ms)
+[ RUN      ] M4AsyncRuntime.PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry
+[       OK ] M4AsyncRuntime.PendingRearResultSelectsCommandDeliveryBeforeIndividualExpiry (26 ms)
+[----------] 16 tests from M4AsyncRuntime (455 ms total)
+
+[----------] 2 tests from M4AsyncWall
+[ RUN      ] M4AsyncWall.IndependentOwnersRunActualNormalPath
+[       OK ] M4AsyncWall.IndependentOwnersRunActualNormalPath (1803 ms)
+[ RUN      ] M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse
+[       OK ] M4AsyncWall.IndependentFeedbackLossHasMeasuredProtectionResponse (1802 ms)
+[----------] 2 tests from M4AsyncWall (3605 ms total)
+
+[----------] 4 tests from M4RefreshDelivery
+[ RUN      ] M4RefreshDelivery.ObservedPhaseMustRenewActualLeavesBeforeOriginalExpiry
+[       OK ] M4RefreshDelivery.ObservedPhaseMustRenewActualLeavesBeforeOriginalExpiry (26 ms)
+[ RUN      ] M4RefreshDelivery.LegacyPhaseReproducesShortSupportThenActualExpiry
+[       OK ] M4RefreshDelivery.LegacyPhaseReproducesShortSupportThenActualExpiry (26 ms)
+[ RUN      ] M4RefreshDelivery.InterruptedHostRenewalStillExpiresOriginalAuthority
+[       OK ] M4RefreshDelivery.InterruptedHostRenewalStillExpiresOriginalAuthority (25 ms)
+[ RUN      ] M4RefreshDelivery.Host10NormalStopUsesRealHandoffAndHvOff
+[       OK ] M4RefreshDelivery.Host10NormalStopUsesRealHandoffAndHvOff (35 ms)
+[----------] 4 tests from M4RefreshDelivery (113 ms total)
+
+[----------] Global test environment tear-down
+[==========] 22 tests from 3 test suites ran. (4175 ms total)
+[  PASSED  ] 22 tests.
