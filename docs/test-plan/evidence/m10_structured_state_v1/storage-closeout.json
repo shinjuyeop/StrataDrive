@@ -1,0 +1,27 @@
+{
+  "scope": "checked extraction duplicates only; retained source/run/raw/review archives and active builds stay local",
+  "removed": [
+    {
+      "path": "build/m10-structured-state-v1/normal-30s-01/archive-check/run",
+      "bytes": 2327275,
+      "basis": "all run-manifest member hashes; raw links point to independently checked compacted archives"
+    },
+    {
+      "path": "build/m10-structured-state-v1/normal-30s-01/archive-check/source",
+      "bytes": 26536133,
+      "basis": "all frozen source hashes; optional generated Python bytecode"
+    },
+    {
+      "path": "build/m10-structured-state-v1/frozen-tests/source",
+      "bytes": 26295897,
+      "basis": "all frozen source hashes; optional generated Python bytecode"
+    }
+  ],
+  "removed_bytes": 55159305,
+  "raw_compaction_saved_bytes": 51752714,
+  "native_record_compaction_saved_bytes": 640044,
+  "final_free_bytes": {
+    "/tmp": 70233477120,
+    "/d": 439590793216
+  }
+}

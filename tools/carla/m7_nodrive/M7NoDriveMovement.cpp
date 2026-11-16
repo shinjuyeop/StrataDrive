@@ -110,6 +110,13 @@ void UM7NoDriveMovement::ClearInputs()
 
 FString UM7NoDriveMovement::DescribePhysics() const
 {
+  FString Result;
+  FJsonSerializer::Serialize(DescribePhysicsObject().ToSharedRef(), TJsonWriterFactory<>::Create(&Result));
+  return Result;
+}
+
+TSharedPtr<FJsonObject> UM7NoDriveMovement::DescribePhysicsObject() const
+{
   auto Object = MakeShared<FJsonObject>();
   Object->SetBoolField(TEXT("nodrive"), HasNoDrive());
   Object->SetBoolField(TEXT("inputs_zero"), InputsAreZero());
@@ -188,7 +195,5 @@ FString UM7NoDriveMovement::DescribePhysics() const
     }
   }
   Object->SetArrayField(TEXT("wheels"), Wheels);
-  FString Result;
-  FJsonSerializer::Serialize(Object, TJsonWriterFactory<>::Create(&Result));
-  return Result;
+  return Object;
 }

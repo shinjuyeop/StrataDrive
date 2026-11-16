@@ -44,9 +44,11 @@ def main():
     p.add_argument('--paired-export-hz',type=int,choices=(20,50),default=20)
     p.add_argument('--endurance-seconds',type=int,choices=(0,30,300),default=0)
     p.add_argument('--profile-state-path',action='store_true')
+    p.add_argument('--structured-state',action='store_true')
     a=p.parse_args()
     bounds=limits(a.endurance_seconds)
     if a.profile_state_path and not a.endurance_seconds:p.error('state path profiling requires endurance')
+    if a.structured_state and not a.endurance_seconds:p.error('structured state requires endurance')
     try:validate_client(a)
     except ValueError as error:p.error(str(error))
     if a.paired_renderer_port is not None and (a.execution_profile!='owner5ms' or
@@ -61,6 +63,7 @@ def main():
     report['execution_profile']=a.execution_profile
     report['endurance_seconds']=a.endurance_seconds
     report['profile_state_path']=a.profile_state_path
+    report['structured_state']=a.structured_state
     report['requested_intervals']=a.ticks
     rows=[];events=[];waits=[];process=actor=world=original=None;bound=False;session=run=None
     paired=None;extras=[]
@@ -109,6 +112,10 @@ def main():
         if capture:capture.attach(world,actor,carla)
         binding=rpc('bind',actor=str(actor.id),application='42',model_sha256=hashlib.sha256(a.model.read_bytes()).hexdigest())
         require(binding['ok'],'bind');bound=True;session=binding['session'];run=binding['run'];report['binding']=binding
+        if a.structured_state:
+            check=rpc('structured_json_check');report['structured_json_check']=check
+            from audit_structured_state_v1 import validate_self_check
+            validate_self_check(check)
         if a.paired_renderer_port is not None:
             from paired_scene_capture_v1 import PairedCapture
             geometry=rpc('geometry');require(geometry['ok'],'body/actor rest geometry')

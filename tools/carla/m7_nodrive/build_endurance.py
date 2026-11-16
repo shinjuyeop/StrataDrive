@@ -36,12 +36,18 @@ def main(a):
     assert sha(installed)==baseline
     out.mkdir(parents=True,exist_ok=False);shutil.copy2(installed,out/'original.so')
     external=plugin/'Source/Carla/M7NoDrive'
-    # Original other headers retain their canonical paths, avoiding duplicate UE types.
-    port=(own/'M7NoDrivePort.cpp').read_text()
-    for name in ('M7NoDrivePort.h','M7NoDriveMovement.h','M7NoDriveModelConstants.h'):
-        port=port.replace('"'+name+'"','"'+str(external/name)+'"')
-    (out/'M7NoDrivePort.cpp').write_text(port)
-    staged_headers=('solver_journal.hpp','native_admission.hpp','wall_bridge.hpp','state_path_profile.hpp')
+    # Stage every member of the movement's unity with one canonical class header.
+    # The new methods are nonvirtual, with no layout/reflection/property change;
+    # existing exported FString entry points remain available to other objects.
+    staged_sources=('M7NoDriveEffort.cpp','M7NoDriveGeometry.cpp','M7NoDriveMovement.cpp',
+                    'M7NoDrivePort.cpp','M7NoDriveWork.cpp')
+    for source in staged_sources:
+        text=(own/source).read_text()
+        for name in ('M7NoDrivePort.h','M7NoDriveModelConstants.h'):
+            text=text.replace('"'+name+'"','"'+str(external/name)+'"')
+        (out/source).write_text(text)
+    staged_headers=('M7NoDriveMovement.h','solver_journal.hpp','native_admission.hpp',
+                    'wall_bridge.hpp','state_path_profile.hpp','structured_json.hpp')
     # Stage the paired admission/bridge headers together so pragma-once binds
     # one identity; never accidentally link the installed older diagnostic.
     for name in staged_headers:(out/name).write_text((own/name).read_text())
@@ -50,7 +56,10 @@ def main(a):
     membership=own/'endurance_unity_v1.json'
     text=''.join('#include "'+str(plugin/'Source'/name)+'"\n' for name in json.loads(membership.read_text())['sources'])
     assert text.count(str(original))==1
-    local=out/unity.name;local.write_text(text.replace(str(original),str(out/'M7NoDrivePort.cpp')))
+    for source in staged_sources:
+        assert text.count(str(external/source))==1
+        text=text.replace(str(external/source),str(out/source))
+    local=out/unity.name;local.write_text(text)
     rsp=Path(str(unity)+'.o.rsp');args=shlex.split(rsp.read_text());obj=out/(unity.name+'.o')
     args[args.index('-o')+1]=str(obj);args[args.index(str(unity))]=str(local)
     args=[('-MF'+str(out/'module.d')) if x.startswith('-MF') else x for x in args]
@@ -83,6 +92,8 @@ def main(a):
             subprocess.run(command,cwd=engine/'Source',stdout=log,stderr=subprocess.STDOUT,check=True,timeout=300)
     inputs={own/'build_endurance.py',own/'M7NoDrivePort.cpp',own/'solver_journal.hpp',membership,rsp,recipe_path,response,compiler,baseline_camera,shared_header,intermediate/'Definitions.Carla.h'}
     inputs.update(own/name for name in staged_headers)
+    inputs.update(own/name for name in staged_sources)
+    inputs.update(engine/'Source/Runtime/Json/Public/Serialization'/name for name in ('JsonWriter.h','JsonReader.h'))
     inputs.update(plugin/'Source'/name for name in json.loads(membership.read_text())['sources'])
     inputs.update(p for p in external.iterdir() if p.is_file())
     inputs.update(Path(x) for x in shlex.split(response.read_text()) if Path(x).is_file())

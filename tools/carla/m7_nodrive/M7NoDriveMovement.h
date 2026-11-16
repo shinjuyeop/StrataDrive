@@ -4,7 +4,7 @@
 #include "WheeledVehicleMovementComponent4W.h"
 #include "M7NoDriveMovement.generated.h"
 
-struct M7SolverTrace;
+struct M7SolverTrace; class FJsonObject;
 
 struct FM7WheelEffort {
   double Drive[4] = {}, Brake[4] = {}, Steer[4] = {};
@@ -23,6 +23,7 @@ public:
   void ClearInputs();
   void ResetZeroProbe();
   FString DescribePhysics() const;
+  TSharedPtr<FJsonObject> DescribePhysicsObject() const;
   FString DescribeGeometry();
   bool ValidateV1() const;
   bool PrepareV1(double Angle, double Torque, double Pressure, FM7WheelEffort& Out) const;
@@ -31,6 +32,7 @@ public:
   bool NumericalProfileMatches() const;
   bool BeginSolverWork(bool KeepProtectedSteerSleep = false);
   FString FinishSolverWork(bool& Valid, M7SolverTrace* Saved = nullptr);
+  TSharedPtr<FJsonObject> FinishSolverWorkObject(bool& Valid, M7SolverTrace* Saved = nullptr);
   static FString SolverTraceSteps(const M7SolverTrace& Trace);
   virtual void GenerateTireForces(UVehicleWheel* Wheel, const FTireShaderInput& Input, FTireShaderOutput& Output) override;
 protected:

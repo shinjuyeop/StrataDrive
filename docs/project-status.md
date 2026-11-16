@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **상태 경로 계측 완료 / 저클럭·HV 보호 재현 / 안정성·인지 수용·전체 OPEN** | [최신 계측·실패 분석](test-plan/evidence/m10_state_path_v3/README.md) · [5분 실패](test-plan/evidence/m10_host_endurance_v1/README.md) · [앞선30초 통과](test-plan/evidence/m10_host_profile_v5/README.md) |
+| M10 | **내부 JSON 변환 최적화 후보 구현 / 감시 슬롯 실패 조사 / 안정성·인지 수용·전체 OPEN** | [최신 후보·실패·분리 진단](test-plan/evidence/m10_structured_state_v1/README.md) · [HV 실패 분석](test-plan/evidence/m10_state_path_v3/README.md) · [5분 실패](test-plan/evidence/m10_host_endurance_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -29,25 +29,32 @@ HV30ms·인지100ms와 원래 수치 적분 조건은 변경하지 않았다.
 
 앞선 [F/G/H30초3회](test-plan/evidence/m10_host_profile_v5/README.md)는 통과했지만,
 [후속5분](test-plan/evidence/m10_host_endurance_v1/README.md)은4.599초에 HV 의존 나이32.720ms로
-실패했다. 이번 [상태 경로 계측 V3](test-plan/evidence/m10_state_path_v3/README.md)는 원본 상태를
-바꾸지 않고 단계별 경과/CPU 시간·native 수신·HV 입력 출처와50ms CPU 클록을 연결했다.
+실패했다. [상태 경로 계측 V3](test-plan/evidence/m10_state_path_v3/README.md)도5.474초에
+HV 의존 입력30.629ms로 실패했다. 당시 native 슬롯 누락·지연은0이었고, 저클럭 관측과 함께
+owner CPU 처리 시간이 늘어 내부 JSON 왕복 변환을 다음 최적화 대상으로 잡았다.
 
-**최신30초 실행도 FAIL**이다.6000구간 중 정상928(4.64초)·INIT162·보호4910이며,
-시작5.474초에 HV 의존 입력 나이30.629ms가30ms를 넘었다. Native150000슬롯의 누락·지연은0,
-29997호출·6000receipt 재생은 exact다.566개 캐시 조회의 원본 동일성과6000개 HV 유도 출처,
-전체 계측 기록의 독립 재현도 통과했다. 계측 무결성 PASS는 물리 수용 PASS가 아니다.
+이번 [Structured state V1](test-plan/evidence/m10_structured_state_v1/README.md)은 physics·
+solver-work·내부 admission의 직렬화→재파싱을 선택 옵션으로 제거했다. 원래 계산 본문과
+클래스 구조를 유지했고 실제 UE에서 숫자4096개·요청 형식9조건·상태 동일성 검사를 통과했다.
+외부 RPC 검사·원래 timestamp·보호 기한은 유지한다. 아직 기본 설정으로 채택하지 않았다.
+후속 검토에서 비정상 숫자 우회를 막도록 NaN·무한대는 기존 파서로 돌리는 보완을 추가했다.
+새 빌드의 실제 UE 사전 검사에서 비정상3조건·정상 직접 전달을 확인했으며 native 시작은 하지 않았다.
 
-오류 전후50ms 표본2개에서16개 논리 CPU 모두 약800MHz였다. 물리 처리 경과/CPU 시간이
-평소 중앙값0.957/0.940ms에서 오류 직전4.525/4.466ms로 함께 늘었고, solver-work 정리에는
-최대2.038ms가 걸렸다. 실제 공유 메모리 게시 자체는 약0.002ms다. 단순 native 실행 슬롯 지연보다
-owner CPU 처리 비용과 오래된 actuator 의존 입력이 문제 경로로 좁혀졌다. 해당151ms 관측 구간의
-package/core0 열 제한 카운터 증가는0이지만, 전체 최고95°C·package+10은 남았다. 전력 계수는
-권한상 읽지 못했으므로 클록 저하의 전력·냉각 원인을 확정하지 않는다.
+**최신 실제 실행은 INIT42구간 뒤214ms에 FAIL**이다. 감시 스레드의2개 실행 슬롯이 누락됐고
+제어 본체의 같은 구간 최대 기상 지연은8.697µs였다. 오류 당시 HV 의존 나이는12.540ms로,
+이전 HV 만료와 다른 실패 경로다. 정상 구간이 없어 미리 정한701구간 성능 비교는 불가능하다.
+상태 경로 감사는 통과했지만 전체 변환 감사는 최종 기록 부재로 실패했고, 재생은 감시 스레드의
+외부 실행 실패를 재현하지 못해33행이 다르다. 원본 FAIL을 유지하며 반복30초·5분은 실행하지 않았다.
 
-영상287장·추론283회, 실제9.400Hz, 지연 중앙값76.813/p95 84.369/최장154.619ms·100ms 초과4회다.
-대부분 보호 상태의 값이므로30초 정상 운행 성능으로 해석하지 않는다. 이번 두 실제 영상 시험의
-원본572장을 모두 검증·보존했고 미래 품질 제외는15205개다. Python482·native40·고정 소스66검사가
-통과했다. 서버는 제한 안에 종료했고 공유 CARLA·DXC·INI는 원본으로 복원했다.
+별도 선언한 native 단독1초 진단에서는 감시 스레드도 FIFO18·CPU1,9로 확인됐고500슬롯
+누락·마감 초과는0이었다. 동시 부하 때의 지연 원인은 아직 확정하지 못했다. 이후 관측에는
+실제 스레드 정책·우선순위를 추가했다. 전원·냉각·클록 설정을 바꾸지 않았으며, 이번 단독 진단은
+동시 실행 안정성 근거로 쓰지 않는다. 전체 cooling-device50ms 관측은 비용이 커 그대로 적용하지 않는다.
+
+새 영상6장의 원본·해시와 고정 소스의 원래 실패 재현을 검증했고 미래 품질 제외는15211개다.
+사전 Python483·native40·고정 소스67검사, 관측 보완 후 Python484검사가 통과했다.
+서버는 제한 안에 종료했고 공유 CARLA·DXC·INI는 원본으로 복원했다. 검증한 압축·중복 삭제로
+약107.6MB를 회수했으며 원본 영상은 모두 보존했다.
 
 선행 [V1 기동 실패](test-plan/evidence/m10_state_path_v1/README.md)와
 [V2 계측 결함](test-plan/evidence/m10_state_path_v2/README.md)은 당시 FAIL로 남긴다.
@@ -98,7 +105,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [상태 경로 계측](test-plan/evidence/m10_state_path_v3/README.md)을 기준으로 owner 내부의 physics/solver-work·admission JSON 직렬화→재파싱을 줄인다. 원래 숫자·상태·source/expiry·보호 판정의 동등성을 먼저 검증한 뒤 새 유한 시험으로 CPU 시간과 HV 여유를 비교한다. 저클럭 원인과5분 안정성은 별도로 확인하며 원래 기한·실패 기록을 유지한다.
+1. [최적화 후보의 감시 슬롯 실패](test-plan/evidence/m10_structured_state_v1/README.md)를 기준으로 동시 부하에서 감시 스레드 기상 지연·실제 정책/CPU·호스트 상태를 낮은 관측 비용으로 연결한다. 원인 확인 뒤 새 유한 정상 구간으로 JSON 변환 최적화의 CPU 비용·HV 여유를 비교하고 반복/5분으로 확장한다. 기존 실패를 재시도 통과로 덮거나 원래 기한을 늘리지 않는다.
 2. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태·자산 식별과 native 연결을 완성한다. 전체 장면이 없으면 인지 제어 수용은 닫고 Required는 opt-in SIL로 둔다.
 3. 후보·센서·모델 설정을 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상은 새 holdout으로 재사용하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

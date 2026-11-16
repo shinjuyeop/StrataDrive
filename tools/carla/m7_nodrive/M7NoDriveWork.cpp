@@ -53,6 +53,13 @@ FString UM7NoDriveMovement::SolverTraceSteps(const M7SolverTrace& Trace) {
 
 FString UM7NoDriveMovement::FinishSolverWork(bool& Valid, M7SolverTrace* Saved)
 {
+  FString Out;
+  FJsonSerializer::Serialize(FinishSolverWorkObject(Valid, Saved).ToSharedRef(), TJsonWriterFactory<>::Create(&Out));
+  return Out;
+}
+
+TSharedPtr<FJsonObject> UM7NoDriveMovement::FinishSolverWorkObject(bool& Valid, M7SolverTrace* Saved)
+{
   Valid = false;
   auto R = MakeShared<FJsonObject>();
   R->SetStringField(TEXT("source"), TEXT("PhysX3.4.NoDrive.integrator.postOmega.v1"));
@@ -115,7 +122,5 @@ FString UM7NoDriveMovement::FinishSolverWork(bool& Valid, M7SolverTrace* Saved)
     R->SetBoolField(TEXT("forward_energy_eligible"), Valid && Forward);
   }
   R->SetBoolField(TEXT("valid"), Valid);
-  FString Out;
-  FJsonSerializer::Serialize(R, TJsonWriterFactory<>::Create(&Out));
-  return Out;
+  return R;
 }

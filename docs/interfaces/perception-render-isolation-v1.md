@@ -8,7 +8,7 @@ operation and native perception-control acceptance remain OPEN.
 
 Current settings, timing/thermal limits and test counts are maintained in
 [project status](../project-status.md#최신-m10-판단) and the
-[state-path failure analysis](../test-plan/evidence/m10_state_path_v3/README.md).
+[structured-state candidate and watchdog failure](../test-plan/evidence/m10_structured_state_v1/README.md).
 Earlier normal/failed experiments and the DXC lifecycle fix are indexed in
 [Host execution history](../archive/implementation-history.md#m10-host-실행-이력).
 The contractual ownership and timestamp rules below apply to every configuration.
@@ -30,6 +30,19 @@ The read-only50ms host sampler reports sequential frequency/thermal brackets,
 unavailable counters and its own CPU cost. Wall minus thread CPU includes
 waiting, preemption, parallel physics work and measurement skew; it is not a
 kernel scheduling trace. Diagnostic integrity alone does not establish stability.
+
+`--structured-state` is a separate opt-in bounded-endurance candidate. Physics
+and solver-work objects bypass internal serialization/parsing; canonical bounded
+internal admission requests enter the same authentication/admission logic.
+External RPC parser/size checks remain unchanged, and oversized or noncanonical
+internal envelopes use the original text path. Before native START, the client
+requires actual UE bit-exact number/state and envelope checks. Original numeric
+computation, source fields, cached receipts and protection remain unchanged.
+Finite object values use the direct path; NaN/Infinity use the original writer/
+parser so the optimization does not bypass its rejection. Nested nonfinite
+fixtures and finite pointer identity are checked before START as well.
+The first live attempt stopped during INIT with a native monitor scheduling
+fault; its moving comparison is unavailable and the candidate is not promoted.
 
 ## Chosen ownership boundary
 
@@ -98,8 +111,12 @@ or moving only Python inference does not establish this boundary.
    4.599s: HV dependency age32.720ms exceeded30ms; native slots had no late/missing
    completion. Optional state-path instrumentation now reproduces a30s failure:
    HV dependency30.629ms at5.474s, with contemporaneous low CPU clocks and longer
-   owner CPU execution, while native slots remain on time. Next reduce internal
-   serialization/parsing after proving original numeric/state equivalence.
+   owner CPU execution, while native slots remain on time. The opt-in conversion
+   candidate passes its before-START equivalence checks but a new attempt fails
+   at214ms with two missing monitor9 slots. An unloaded1s native-only check
+   confirms FIFO18/CPU1,9 in that observation and has no missing slots. Diagnose
+   loaded monitor scheduling before a newly declared moving comparison; the
+   unloaded check cannot substitute for the failed concurrent case.
    Preserve every actual frame and failed verdict.20Hz camera throughput is not
    a gate; the target remains1× wall behavior without silently slowing simulation.
 5. Complete visual state and the typed native mapping before enabling perception

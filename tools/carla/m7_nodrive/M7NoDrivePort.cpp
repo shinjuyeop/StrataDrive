@@ -8,6 +8,7 @@
 #include "Carla/Vehicle/CarlaWheeledVehicle.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
+#include "structured_json.hpp"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "Components/PrimitiveComponent.h"
@@ -83,6 +84,8 @@ struct State {
   uint64 IngressCount=0,IngressCapacity=4096;
   stratadrive::m7_native::Input IngressProof;
   bool ProfilePath=false;
+  bool StructuredState=false;
+  uint64 DirectRequests=0,TextFallbackRequests=0;
   uint64 PathCount=0,PathCapacity=0;
   stratadrive::m7_native::OwnerPath ActivePath;
   std::unique_ptr<stratadrive::m7_native::OwnerPath[]> Paths;
@@ -154,6 +157,9 @@ Json Response(bool Ok, const FString& Reason)
   R->SetBoolField(TEXT("in_flight"), S.InFlight || S.Queued);
   R->SetBoolField(TEXT("awaiting_ev_settlement"), S.AwaitSettlement);
   if(S.Wall){R->SetStringField(TEXT("wall_frames"),Dec(S.WallFrames));R->SetStringField(TEXT("wall_wait"),S.WallWait);
+    R->SetBoolField(TEXT("structured_state"),S.StructuredState);
+    R->SetStringField(TEXT("structured_direct_requests"),Dec(S.DirectRequests));
+    R->SetStringField(TEXT("structured_text_fallback_requests"),Dec(S.TextFallbackRequests));
     R->SetStringField(TEXT("native_clock_domain"),TEXT("host_CLOCK_MONOTONIC; separate_CARLA_model_time"));
     R->SetStringField(TEXT("max_rpc_window_ns"),Dec(S.MaxRpc));R->SetStringField(TEXT("max_pump_gap_ns"),Dec(S.MaxPumpGap));
     R->SetStringField(TEXT("wall_ingress_count"),Dec(S.IngressCount));
@@ -183,8 +189,10 @@ uint64 Now(const UCarlaEpisode& Episode) {
 Json Physics()
 {
   Json P;
-  if (S.Movement.IsValid())
-    FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S.Movement->DescribePhysics()), P);
+  if (S.Movement.IsValid()) {
+    if(S.StructuredState)P=M10StructuredJson::Compatible(S.Movement->DescribePhysicsObject());
+    else FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S.Movement->DescribePhysics()), P);
+  }
   return P.IsValid() ? P : Object();
 }
 bool ReadPacket(const TSharedPtr<FJsonValue>& Value, stratadrive::m7_native::Packet& Out)
@@ -267,6 +275,71 @@ bool ReadFrame(const Json& Request, const TCHAR* Role, Frame& Out, uint64 NowNs,
 }
 }
 
+Json NativeRequest(const stratadrive::m7_native::Input& Native,uint64 Frame,uint64 Session,const FString& Run,const FString& OwnerKey) {
+  using namespace stratadrive::m7_native;
+  const auto PacketJson=[](const Packet& P)->TSharedPtr<FJsonValue> {
+    if(!P)return MakeShared<FJsonValueNull>();
+    FString Hex;Hex.Reserve(int(P->size)*2);
+    const TCHAR* Digits=TEXT("0123456789abcdef");
+    for(std::size_t I=0;I<P->size;++I){Hex.AppendChar(Digits[P->bytes[I]>>4]);Hex.AppendChar(Digits[P->bytes[I]&15]);}
+    return MakeShared<FJsonValueString>(Hex);
+  };
+  const auto Packets=[&](const auto& Values){TArray<TSharedPtr<FJsonValue>> Out;for(const auto& P:Values)Out.Add(PacketJson(P));return Out;};
+  auto Proof=Object();Proof->SetStringField(TEXT("observed_ns"),Dec(Native.observed));Proof->SetStringField(TEXT("enable_ns"),Dec(Native.enable));
+  Proof->SetBoolField(TEXT("normal"),Native.normal);Proof->SetStringField(TEXT("protection_since_ns"),Dec(Native.protection_since));
+  Proof->SetStringField(TEXT("protection_selected_mask"),Dec(Native.protection_selected_mask));
+  Proof->SetStringField(TEXT("service_mask"),Dec(Native.service_mask));Proof->SetStringField(TEXT("credit_mask"),Dec(Native.credit_mask));
+  Proof->SetStringField(TEXT("release_mask"),Dec(Native.release_mask));
+  Proof->SetArrayField(TEXT("actual"),Packets(Native.actual));Proof->SetArrayField(TEXT("commands"),Packets(Native.commands));
+  Proof->SetArrayField(TEXT("release"),Packets(Native.release));Proof->SetArrayField(TEXT("credit"),Packets(Native.credit));
+  Proof->SetField(TEXT("permission"),PacketJson(Native.permission));
+  auto RequestJson=Object();RequestJson->SetStringField(TEXT("op"),TEXT("stage_native"));RequestJson->SetStringField(TEXT("frame"),Dec(Frame));
+  RequestJson->SetStringField(TEXT("session"),Dec(Session));RequestJson->SetStringField(TEXT("run"),Run);
+  RequestJson->SetStringField(TEXT("owner_key"),OwnerKey);
+  RequestJson->SetObjectField(TEXT("native"),Proof);
+  return RequestJson;
+}
+uint64 InternalRequestBound(const stratadrive::m7_native::Input& Native,const FString& OwnerKey,const FString& Run) {
+  using namespace stratadrive::m7_native;
+  bool Canonical=OwnerKey.Len()==64 && Run.Len()==36;
+  for(TCHAR C:OwnerKey)Canonical=Canonical && ((C>='0' && C<='9') || (C>='a' && C<='f'));
+  for(TCHAR C:Run)Canonical=Canonical && ((C>='0' && C<='9') || (C>='a' && C<='f') || (C>='A' && C<='F') || C=='-');
+  if(!Canonical)return MAX_uint64;
+  // Fixed ASCII schema: 4096 conservatively covers keys, pretty whitespace,
+  // <=20-digit sources/scope, booleans and owner key; packet text is counted.
+  uint64 Bound=4096;
+  auto Add=[&](const Packet& P){Bound+=P?2*P->size:4;};
+  for(const auto& P:Native.actual)Add(P);
+  for(const auto& P:Native.commands)Add(P);
+  for(const auto& P:Native.release)Add(P);
+  for(const auto& P:Native.credit)Add(P);
+  Add(Native.permission);
+  return Bound;
+}
+Json StructuredSelfCheck() {
+  using namespace stratadrive::m7_native;
+  auto R=M10StructuredJson::SelfCheck(S.Movement->DescribePhysicsObject());
+  const FString Key=FString::ChrN(64,'a'),Run=TEXT("01234567-89ab-cdef-0123-456789abcdef");
+  Input N;N.observed=N.enable=N.protection_since=MAX_uint64;N.normal=true;
+  N.protection_selected_mask=N.service_mask=N.credit_mask=N.release_mask=255;
+  bool Budget=true,Roundtrip=true;unsigned Cases=0;
+  for(unsigned Length:{0u,1u,64u,127u,128u,255u,256u,511u,512u}) {
+    Packet P;if(Length){stratadrive::remote::OwnerPacket Value{};Value.size=Length;P=Value;}
+    N.actual.fill(P);N.commands.fill(P);N.release.fill(P);N.credit.fill(P);N.permission=P;
+    auto J=NativeRequest(N,MAX_uint64,MAX_uint64,Run,Key);
+    const uint64 Bound=InternalRequestBound(N,Key,Run);
+    Budget=Budget && Encode(J).size()<=Bound;
+    Roundtrip=Roundtrip && M10StructuredJson::RoundTrip(J);++Cases;
+  }
+  const bool Fallback=InternalRequestBound(N,Key,Run)>16384 && InternalRequestBound(N,Key+TEXT("x"),Run)==MAX_uint64;
+  R->SetNumberField(TEXT("internal_envelope_cases"),Cases);
+  R->SetBoolField(TEXT("internal_envelope_bound"),Budget);
+  R->SetBoolField(TEXT("internal_envelope_equal"),Roundtrip);
+  R->SetBoolField(TEXT("oversize_noncanonical_fallback"),Fallback);
+  R->SetBoolField(TEXT("ok"),R->GetBoolField(TEXT("ok")) && Budget && Roundtrip && Fallback);
+  return R;
+}
+
 bool IsLocked() { return S.Locked; }
 bool RejectLegacyRpc(const char* Name)
 {
@@ -276,7 +349,7 @@ bool RejectLegacyRpc(const char* Name)
   return true;
 }
 
-std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick)
+static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input, const Json& Direct, bool& Tick)
 {
   check(IsInGameThread());
   Tick = false;
@@ -303,9 +376,15 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   if (StepNs()==5000000 && (!NativeFlag || !FParse::Param(FCommandLine::Get(), TEXT("StrataM7WallNative")) || FParse::Param(FCommandLine::Get(), TEXT("StrataM7SensorFrame5"))))
     return Encode(Response(false,TEXT("wall5_requires_nonvideo_wall_native")));
   Json J;
-  if (Input.size() > 16384 || Input.find('\0') != std::string::npos || !FJsonSerializer::Deserialize(
-        TJsonReaderFactory<>::Create(UTF8_TO_TCHAR(Input.c_str())), J) || !J.IsValid())
-    return Encode(Response(false, TEXT("malformed")));
+  if(Input) {
+    if (Input->size() > 16384 || Input->find('\0') != std::string::npos || !FJsonSerializer::Deserialize(
+          TJsonReaderFactory<>::Create(UTF8_TO_TCHAR(Input->c_str())), J) || !J.IsValid())
+      return Encode(Response(false, TEXT("malformed")));
+  } else {
+    if(!S.StructuredState || !S.Pumping || !S.Bridge || !Direct.IsValid())
+      return Encode(Response(false,TEXT("internal_request_profile")));
+    J=Direct;
+  }
   FString Op;
   if (!Text(J, TEXT("op"), Op)) return Encode(Response(false, TEXT("operation")));
   if (Op == TEXT("wall_status")) return Encode(Response(true,TEXT("status_only")));
@@ -350,6 +429,9 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     const auto Endurance=EnduranceFrames();
     if(Endurance && ((Endurance!=6000 && Endurance!=60000) || !S.Wall || StepNs()!=5000000))
       return Encode(Response(false,TEXT("explicit_endurance_profile_required")));
+    S.StructuredState=FParse::Param(FCommandLine::Get(),TEXT("StrataM10StructuredState"));
+    if(S.StructuredState && !Endurance)return Encode(Response(false,TEXT("structured_state_requires_endurance")));
+    S.DirectRequests=S.TextFallbackRequests=0;
     S.ProfilePath=FParse::Param(FCommandLine::Get(),TEXT("StrataM10StatePathProfile"));
     if(S.ProfilePath && !Endurance)return Encode(Response(false,TEXT("state_path_requires_endurance")));
     S.PathCount=0;S.PathCapacity=S.ProfilePath?Endurance:0;S.ActivePath={};
@@ -529,6 +611,11 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     R->SetBoolField(TEXT("registry_actor_present"), Episode.FindCarlaActor(S.ActorId) != nullptr);
     return Encode(R);
   }
+  if(Op==TEXT("structured_json_check")) {
+    if(!S.StructuredState || !S.Locked || S.Bridge || S.InFlight || S.Staged || S.WallFrames || !S.Movement.IsValid())
+      return Encode(Response(false,TEXT("structured_check_before_native_start_only")));
+    return Encode(StructuredSelfCheck());
+  }
   if (S.Latched) return Encode(Response(false, S.Reason));
   if (!Settings(Episode) || !S.Actor.IsValid() || !S.Movement.IsValid() ||
       !S.Movement->InputsAreZero() || S.Movement->PhysicsGeneration() != S.PhysicsGeneration) {
@@ -696,6 +783,10 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
   return Encode(Response(false, TEXT("operation")));
 }
 
+std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick) {
+  return RequestImpl(Episode,&Input,Json(),Tick);
+}
+
 void RpcWindow(bool Begin) {
   if(!S.Bridge)return;
   const uint64 Now=WallNow();
@@ -729,14 +820,6 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
   if(__atomic_load_n(&S.Bridge->stop,__ATOMIC_ACQUIRE) || S.WallFrames>=S.WallLimit)return false;
   Input Native;Output Actual;std::string Why;
   if(!restore(Shared,Native)){Latch(TEXT("shared_proof_format"));return false;}
-  const auto PacketJson=[](const Packet& P)->TSharedPtr<FJsonValue> {
-    if(!P)return MakeShared<FJsonValueNull>();
-    FString Hex;Hex.Reserve(int(P->size)*2);
-    const TCHAR* Digits=TEXT("0123456789abcdef");
-    for(std::size_t I=0;I<P->size;++I){Hex.AppendChar(Digits[P->bytes[I]>>4]);Hex.AppendChar(Digits[P->bytes[I]&15]);}
-    return MakeShared<FJsonValueString>(Hex);
-  };
-  const auto Packets=[&](const auto& Values){TArray<TSharedPtr<FJsonValue>> Out;for(const auto& P:Values)Out.Add(PacketJson(P));return Out;};
   if(S.NativeGate->started()) {
     // Ingress is not conditional on a physics release, authority preview or
     // GapUntil. Counter/timeout validation must observe real delivered traffic.
@@ -762,19 +845,14 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
   // a permission. The selected proof is checked again by the original gate.
   if(!S.NativeGate->eligible(Native,Now,Actual,&Why,4000000)){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return false;}
   if(S.ProfilePath){S.ActivePath.mark(PathPhase::Admitted);S.ActivePath.proof_observed=Native.observed;++S.ActivePath.admission_attempts;}
-  auto Proof=Object();Proof->SetStringField(TEXT("observed_ns"),Dec(Native.observed));Proof->SetStringField(TEXT("enable_ns"),Dec(Native.enable));
-  Proof->SetBoolField(TEXT("normal"),Native.normal);Proof->SetStringField(TEXT("protection_since_ns"),Dec(Native.protection_since));
-  Proof->SetStringField(TEXT("protection_selected_mask"),Dec(Native.protection_selected_mask));
-  Proof->SetStringField(TEXT("service_mask"),Dec(Native.service_mask));Proof->SetStringField(TEXT("credit_mask"),Dec(Native.credit_mask));
-  Proof->SetStringField(TEXT("release_mask"),Dec(Native.release_mask));
-  Proof->SetArrayField(TEXT("actual"),Packets(Native.actual));Proof->SetArrayField(TEXT("commands"),Packets(Native.commands));
-  Proof->SetArrayField(TEXT("release"),Packets(Native.release));Proof->SetArrayField(TEXT("credit"),Packets(Native.credit));
-  Proof->SetField(TEXT("permission"),PacketJson(Native.permission));
-  auto RequestJson=Object();RequestJson->SetStringField(TEXT("op"),TEXT("stage_native"));RequestJson->SetStringField(TEXT("frame"),Dec(FCarlaEngine::GetFrameCounter()+1));
-  RequestJson->SetStringField(TEXT("session"),Dec(S.Session));RequestJson->SetStringField(TEXT("run"),S.Run);
-  RequestJson->SetStringField(TEXT("owner_key"),FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M7_OWNER_KEY")));
-  RequestJson->SetObjectField(TEXT("native"),Proof);
-  bool Tick=false;S.Pumping=true;Request(Episode,Encode(RequestJson),Tick);S.Pumping=false;
+  const FString OwnerKey=FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M7_OWNER_KEY"));
+  const auto RequestJson=NativeRequest(Native,FCarlaEngine::GetFrameCounter()+1,S.Session,S.Run,OwnerKey);
+  // Larger/noncanonical envelopes retain the original16384-byte parser gate.
+  const bool DirectAllowed=S.StructuredState && InternalRequestBound(Native,OwnerKey,S.Run)<=16384;
+  bool Tick=false;S.Pumping=true;
+  if(DirectAllowed){++S.DirectRequests;RequestImpl(Episode,nullptr,RequestJson,Tick);}
+  else {if(S.StructuredState)++S.TextFallbackRequests;Request(Episode,Encode(RequestJson),Tick);}
+  S.Pumping=false;
   if(S.ProfilePath)S.ActivePath.mark(PathPhase::Staged);
   if(!S.Staged)return false;
   S.AppliedProof=Shared;S.Queued=true;S.WallWait.Empty();return true;
@@ -911,7 +989,8 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
     if(S.ProfilePath)S.ActivePath.mark(PathPhase::WorkBegin);
     Json Work;
     M7SolverTrace Saved{};
-    FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S.Movement->FinishSolverWork(WorkValid, S.Journal ? &Saved : nullptr)), Work);
+    if(S.StructuredState)Work=M10StructuredJson::Compatible(S.Movement->FinishSolverWorkObject(WorkValid,S.Journal ? &Saved : nullptr));
+    else FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S.Movement->FinishSolverWork(WorkValid, S.Journal ? &Saved : nullptr)), Work);
     if (WorkValid && S.Journal && !S.Journal->append(Frame, S.Ticket, Saved)) { Latch(TEXT("solver_journal_rejected")); return; }
     R->SetObjectField(TEXT("solver_work"), Work);
     if (WorkValid) {

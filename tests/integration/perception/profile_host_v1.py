@@ -12,7 +12,8 @@ def stat(path):
     return dict(comm=text[text.find('(') + 1:end], state=fields[0],
                 minor_faults=int(fields[7]),major_faults=int(fields[9]),
                 user_ticks=int(fields[11]), system_ticks=int(fields[12]),
-                start_ticks=int(fields[19]), last_cpu=int(fields[36]))
+                start_ticks=int(fields[19]), last_cpu=int(fields[36]),
+                rt_priority=int(fields[37]), scheduling_policy=int(fields[38]))
 
 
 class GPU:

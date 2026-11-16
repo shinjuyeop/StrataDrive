@@ -108,6 +108,10 @@ def main(a):
             if not a.endurance_seconds:raise ValueError('explicit endurance state path profiling')
             commands['owner'].append('-StrataM10StatePathProfile')
             report['profile_state_path']=True
+        if getattr(a,'structured_state',False):
+            if not a.endurance_seconds:raise ValueError('explicit endurance structured state')
+            commands['owner'].append('-StrataM10StructuredState')
+            report['structured_state']=True
         if getattr(a,'park_preparation',False) and not a.endurance_seconds:raise ValueError('explicit preparation parking')
         def ready_and_park(role,port):
             report.setdefault('readiness',{})[str(port)]=wait_ready(a.python,port,a.output/f'readiness-{port}.log',common)
@@ -137,6 +141,7 @@ def main(a):
             '--paired-condition',a.condition,'--paired-export-hz',str(a.export_hz),'--endurance-seconds',str(a.endurance_seconds)]
         check_owner(report.get('host_resources',{}),processes['owner'].pid)
         if getattr(a,'profile_state_path',False):command.append('--profile-state-path')
+        if getattr(a,'structured_state',False):command.append('--structured-state')
         report['client_argv']=command
         log=(a.output/'client.log').open('w');logs.append(log)
         client=subprocess.Popen(placed_command('observer',command),env=owner_env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
@@ -225,6 +230,7 @@ if __name__=='__main__':
     p.add_argument('--camera-period-ms',type=int,choices=(50,100),default=50)
     p.add_argument('--profile-host',action='store_true')
     p.add_argument('--profile-state-path',action='store_true')
+    p.add_argument('--structured-state',action='store_true')
     p.add_argument('--park-preparation',action='store_true')
     p.add_argument('--cuda-blocking',action='store_true')
     p.add_argument('--raw-recording',action='store_true')
