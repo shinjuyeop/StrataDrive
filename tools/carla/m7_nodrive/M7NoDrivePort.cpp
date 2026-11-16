@@ -88,6 +88,7 @@ struct State {
   uint64 DirectRequests=0,TextFallbackRequests=0;
   uint64 PathCount=0,PathCapacity=0;
   stratadrive::m7_native::OwnerPath ActivePath;
+  stratadrive::m7_native::OwnerStamp PumpExit;
   std::unique_ptr<stratadrive::m7_native::OwnerPath[]> Paths;
   void CloseSignal() {if(Signal){munmap(const_cast<stratadrive::m7_native::WallSignal*>(Signal),Bridge?sizeof(*Bridge):sizeof(*Signal));Signal=nullptr;Bridge=nullptr;}}
   ~State() {CloseSignal();}
@@ -434,7 +435,7 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
     S.DirectRequests=S.TextFallbackRequests=0;
     S.ProfilePath=FParse::Param(FCommandLine::Get(),TEXT("StrataM10StatePathProfile"));
     if(S.ProfilePath && !Endurance)return Encode(Response(false,TEXT("state_path_requires_endurance")));
-    S.PathCount=0;S.PathCapacity=S.ProfilePath?Endurance:0;S.ActivePath={};
+    S.PathCount=0;S.PathCapacity=S.ProfilePath?Endurance:0;S.ActivePath={};S.PumpExit={};
     S.Paths.reset(S.ProfilePath?new stratadrive::m7_native::OwnerPath[S.PathCapacity]{}:nullptr);
     S.IngressCapacity=Endurance?uint64(Endurance)*5+4096:4096;
     S.ProofReader={};S.ReceiptWriter={};S.WallWait.Empty();S.WallIngress.reset(S.Wall?new WallIngressEntry[S.IngressCapacity]{}:nullptr);S.IngressCount=0;S.IngressProof={};
@@ -549,6 +550,33 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
       Path->SetStringField(TEXT("max_rpc_ns"),Dec(Saved.max_rpc));
       Path->SetStringField(TEXT("proof_observed_ns"),Dec(Saved.proof_observed));
       Path->SetStringField(TEXT("admission_attempts"),Dec(Saved.admission_attempts));
+      const auto Stamp=[](const stratadrive::m7_native::OwnerStamp& V)->Json {
+        auto J=Object();
+        J->SetStringField(TEXT("wall_ns"),Dec(V.wall));J->SetStringField(TEXT("cpu_ns"),Dec(V.cpu));
+        J->SetStringField(TEXT("voluntary"),Dec(V.voluntary));J->SetStringField(TEXT("involuntary"),Dec(V.involuntary));
+        J->SetStringField(TEXT("minor_faults"),Dec(V.minor_faults));J->SetStringField(TEXT("major_faults"),Dec(V.major_faults));
+        J->SetStringField(TEXT("processor"),Dec(V.processor));J->SetStringField(TEXT("valid"),Dec(V.valid));return J;
+      };
+      auto Scheduling=Object();for(unsigned I=0;I<Saved.scheduling.size();++I)
+        Scheduling->SetObjectField(Names[I],Stamp(Saved.scheduling[I]));
+      Path->SetObjectField(TEXT("scheduling"),Scheduling);
+      const auto Aggregate=[&](const stratadrive::m7_native::WaitAggregate& V)->Json {
+        auto J=Object();J->SetStringField(TEXT("count"),Dec(V.count));J->SetStringField(TEXT("wall_ns"),Dec(V.wall));
+        J->SetStringField(TEXT("cpu_ns"),Dec(V.cpu));J->SetStringField(TEXT("voluntary"),Dec(V.voluntary));
+        J->SetStringField(TEXT("involuntary"),Dec(V.involuntary));J->SetStringField(TEXT("minor_faults"),Dec(V.minor_faults));
+        J->SetStringField(TEXT("major_faults"),Dec(V.major_faults));J->SetStringField(TEXT("errors"),Dec(V.errors));
+        J->SetObjectField(TEXT("longest_begin"),Stamp(V.longest_begin));J->SetObjectField(TEXT("longest_end"),Stamp(V.longest_end));return J;
+      };
+      auto Wait=Object();auto Reasons=Object();
+      const TCHAR* ReasonNames[]={TEXT("unavailable"),TEXT("proof_unreadable"),TEXT("settlement"),TEXT("stopped"),
+        TEXT("invalid"),TEXT("not_due"),TEXT("gap"),TEXT("protection"),TEXT("ineligible"),TEXT("staging"),TEXT("ready")};
+      for(unsigned I=0;I<Saved.wait.reasons.size();++I)Reasons->SetStringField(ReasonNames[I],Dec(Saved.wait.reasons[I]));
+      Wait->SetObjectField(TEXT("reasons"),Reasons);Wait->SetObjectField(TEXT("active"),Aggregate(Saved.wait.active));
+      Wait->SetObjectField(TEXT("idle"),Aggregate(Saved.wait.idle));Wait->SetObjectField(TEXT("outside"),Aggregate(Saved.wait.outside));
+      Wait->SetStringField(TEXT("requested_sleep_ns"),Dec(Saved.wait.requested_sleep_ns));
+      Wait->SetStringField(TEXT("reason_truncated"),Dec(Saved.wait.reason_truncated));
+      Wait->SetStringField(TEXT("last_ineligible"),UTF8_TO_TCHAR(Saved.wait.last_ineligible.data()));
+      Path->SetObjectField(TEXT("owner_wait"),Wait);
       // Diagnostic data is a sibling of the immutable original receipt. Never
       // mutate the cached object already exported to the scene consumer.
       R->SetObjectField(TEXT("state_path"),Path);
@@ -796,20 +824,24 @@ void RpcWindow(bool Begin) {
     if(S.ProfilePath)S.ActivePath.max_rpc=FMath::Max<uint64>(S.ActivePath.max_rpc,Now-S.RpcBegin);
   }
 }
+static bool PumpWaiting(stratadrive::m7_native::PumpReason Why,const char* Detail=nullptr) {
+  if(S.ProfilePath && S.Bridge)S.ActivePath.wait.reason(Why,Detail);
+  return false;
+}
 static bool PumpWallReady(UCarlaEpisode& Episode) {
   using namespace stratadrive::m7_native;
   if(S.Bridge){const uint64 Now=WallNow();if(S.LastPump) {
     S.MaxPumpGap=FMath::Max(S.MaxPumpGap,Now-S.LastPump);
     if(S.ProfilePath)S.ActivePath.max_pump_gap=FMath::Max<uint64>(S.ActivePath.max_pump_gap,Now-S.LastPump);
   }S.LastPump=Now;}
-  if(!S.Bridge || S.Latched || !S.Locked || S.InFlight || S.Staged || S.Queued)return false;
-  SharedProof Shared;if(!S.ProofReader.read(S.Bridge->proof,Shared))return false;
+  if(!S.Bridge || S.Latched || !S.Locked || S.InFlight || S.Staged || S.Queued)return PumpWaiting(PumpReason::Unavailable);
+  SharedProof Shared;if(!S.ProofReader.read(S.Bridge->proof,Shared))return PumpWaiting(PumpReason::ProofUnreadable);
   const uint64 Now=WallNow();
   if(S.AwaitSettlement) {
-    if(Shared.energy_end!=static_cast<uint64>(std::llround(Episode.GetElapsedGameTime()*1e9)))return false;
+    if(Shared.energy_end!=static_cast<uint64>(std::llround(Episode.GetElapsedGameTime()*1e9)))return PumpWaiting(PumpReason::Settlement);
     if(!FMath::IsFinite(Shared.total_mechanical) || !FMath::IsFinite(Shared.balance) ||
        FMath::Abs(Shared.total_mechanical-S.TotalMotorWork)>256*2.220446049250313e-16*(1+FMath::Abs(Shared.total_mechanical)+double(S.Ticket)) ||
-       FMath::Abs(Shared.balance)>.00072) {Latch(TEXT("shared_ev_settlement_rejected"));return false;}
+       FMath::Abs(Shared.balance)>.00072) {Latch(TEXT("shared_ev_settlement_rejected"));return PumpWaiting(PumpReason::Invalid);}
     auto Ack=Object();Ack->SetStringField(TEXT("end_ns"),Dec(Shared.energy_end));Ack->SetStringField(TEXT("observed_ns"),Dec(Shared.observed));
     Ack->SetNumberField(TEXT("total_mechanical_j"),Shared.total_mechanical);Ack->SetNumberField(TEXT("balance_j"),Shared.balance);
     Ack->SetNumberField(TEXT("soc"),Shared.soc);Ack->SetNumberField(TEXT("chemical_j"),Shared.chemical);Ack->SetNumberField(TEXT("motor_loss_j"),Shared.motor_loss);
@@ -817,9 +849,9 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
     Ack->SetNumberField(TEXT("capacitor_delta_j"),Shared.capacitor);Ack->SetNumberField(TEXT("circuit_loss_j"),Shared.circuit);
     S.WallSettlements.Add(Ack);S.AwaitSettlement=false;
   }
-  if(__atomic_load_n(&S.Bridge->stop,__ATOMIC_ACQUIRE) || S.WallFrames>=S.WallLimit)return false;
+  if(__atomic_load_n(&S.Bridge->stop,__ATOMIC_ACQUIRE) || S.WallFrames>=S.WallLimit)return PumpWaiting(PumpReason::Stopped);
   Input Native;Output Actual;std::string Why;
-  if(!restore(Shared,Native)){Latch(TEXT("shared_proof_format"));return false;}
+  if(!restore(Shared,Native)){Latch(TEXT("shared_proof_format"));return PumpWaiting(PumpReason::Invalid);}
   if(S.NativeGate->started()) {
     // Ingress is not conditional on a physics release, authority preview or
     // GapUntil. Counter/timeout validation must observe real delivered traffic.
@@ -828,7 +860,7 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
     Changed=Changed || bool(Native.permission)!=bool(S.IngressProof.permission) ||
       (Native.permission && !same(Native.permission,S.IngressProof.permission));
     if(Changed) {
-      if(S.IngressCount>=S.IngressCapacity){Latch(TEXT("wall_ingress_full"));return false;}
+      if(S.IngressCount>=S.IngressCapacity){Latch(TEXT("wall_ingress_full"));return PumpWaiting(PumpReason::Invalid);}
       const uint64 Received=WallNow();
       const bool Accepted=S.NativeGate->ingest(Native,Received);
       // Preallocated POD journal: no JSON/hex work on the receive deadline.
@@ -836,14 +868,15 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
       Entry.Enable=Native.enable;Entry.Accepted=Accepted;
       for(unsigned I=0;I<3;++I)Entry.Actual[I]=Shared.actual[I];
       Entry.Permission=Shared.permission;S.IngressProof=Native;
-      if(!Accepted){Latch(UTF8_TO_TCHAR(S.NativeGate->error().c_str()));return false;}
+      if(!Accepted){Latch(UTF8_TO_TCHAR(S.NativeGate->error().c_str()));return PumpWaiting(PumpReason::Invalid);}
     }
   }
-  if(Now<S.NextDue || Now<S.GapUntil)return false;
-  if((wall_fault(S.Signal) || __atomic_load_n(&S.Bridge->server_trip,__ATOMIC_ACQUIRE)) && !Native.protection_since){S.WallWait=TEXT("wall_normal_closed");return false;}
+  if(Now<S.NextDue)return PumpWaiting(PumpReason::NotDue);
+  if(Now<S.GapUntil)return PumpWaiting(PumpReason::Gap);
+  if((wall_fault(S.Signal) || __atomic_load_n(&S.Bridge->server_trip,__ATOMIC_ACQUIRE)) && !Native.protection_since){S.WallWait=TEXT("wall_normal_closed");return PumpWaiting(PumpReason::Protection);}
   // Eligibility does not consume a receiver or turn a rejected candidate into
   // a permission. The selected proof is checked again by the original gate.
-  if(!S.NativeGate->eligible(Native,Now,Actual,&Why,4000000)){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return false;}
+  if(!S.NativeGate->eligible(Native,Now,Actual,&Why,4000000)){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return PumpWaiting(PumpReason::Ineligible,Why.c_str());}
   if(S.ProfilePath){S.ActivePath.mark(PathPhase::Admitted);S.ActivePath.proof_observed=Native.observed;++S.ActivePath.admission_attempts;}
   const FString OwnerKey=FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M7_OWNER_KEY"));
   const auto RequestJson=NativeRequest(Native,FCarlaEngine::GetFrameCounter()+1,S.Session,S.Run,OwnerKey);
@@ -854,12 +887,22 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
   else {if(S.StructuredState)++S.TextFallbackRequests;Request(Episode,Encode(RequestJson),Tick);}
   S.Pumping=false;
   if(S.ProfilePath)S.ActivePath.mark(PathPhase::Staged);
-  if(!S.Staged)return false;
-  S.AppliedProof=Shared;S.Queued=true;S.WallWait.Empty();return true;
+  if(!S.Staged)return PumpWaiting(PumpReason::Staging);
+  S.AppliedProof=Shared;S.Queued=true;S.WallWait.Empty();
+  if(S.ProfilePath)S.ActivePath.wait.reason(PumpReason::Ready);
+  return true;
 }
 
 bool PumpWall(UCarlaEpisode& Episode) {
+  using namespace stratadrive::m7_native;
+  const bool Profile=S.ProfilePath && S.Bridge;
+  OwnerStamp Begin{},End{};
+  if(Profile) {
+    Begin=owner_stamp();
+    if(S.PumpExit.valid)S.ActivePath.wait.outside.add(S.PumpExit,Begin);
+  }
   const bool Ready=PumpWallReady(Episode);
+  if(Profile){End=owner_stamp();S.ActivePath.wait.active.add(Begin,End);}
   // io_context.run_for returns immediately when its queue is empty. Without
   // an explicit idle wait the synchronous outer loop spins an entire CPU.
   // Opt-in host diagnostic only; never sleep after admitting a physical tick.
@@ -869,8 +912,12 @@ bool PumpWall(UCarlaEpisode& Episode) {
     const uint64 Now=WallNow();
     if(S.Bridge && S.NextDue>Now)Delay=FMath::Min(Delay,S.NextDue-Now);
     const timespec Request{0,static_cast<long>(Delay)};
+    OwnerStamp SleepBegin{};
+    if(Profile){SleepBegin=owner_stamp();S.ActivePath.wait.requested_sleep_ns+=Delay;}
     nanosleep(&Request,nullptr);
+    if(Profile){End=owner_stamp();S.ActivePath.wait.idle.add(SleepBegin,End);}
   }
+  if(Profile)S.PumpExit=End;
   return Ready;
 }
 
@@ -1037,6 +1084,9 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   S.InFlight = false;
   if(S.ProfilePath && S.Bridge && WorkValid) {
     S.ActivePath.mark(PathPhase::Complete);
+    // Start the next outside-pump interval at this completed receipt; the
+    // physical tick already has its own per-phase scheduling observations.
+    S.PumpExit=S.ActivePath.scheduling[static_cast<unsigned>(PathPhase::Complete)];
     if(S.PathCount<S.PathCapacity)S.Paths[S.PathCount++]=S.ActivePath;
     S.ActivePath={};
   }

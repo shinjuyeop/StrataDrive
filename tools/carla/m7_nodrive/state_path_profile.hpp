@@ -2,6 +2,7 @@
 #include <array>
 #include <cstdint>
 #include <time.h>
+#include "owner_wait_profile.hpp"
 
 namespace stratadrive::m7_native {
 // Diagnostic clocks only. Never substitute these for source/expiry timestamps.
@@ -20,10 +21,16 @@ enum class OwnerPhase : unsigned {
 };
 struct OwnerPath {
     std::array<PathStamp,static_cast<unsigned>(OwnerPhase::Count)> phases{};
+    std::array<OwnerStamp,static_cast<unsigned>(OwnerPhase::Count)> scheduling{};
+    OwnerWait wait{};
     std::uint64_t max_pump_gap=0,max_rpc=0,proof_observed=0,admission_attempts=0;
-    void mark(OwnerPhase phase) noexcept { phases[static_cast<unsigned>(phase)]=path_stamp(); }
+    void mark(OwnerPhase phase) noexcept {
+        const auto stamp=owner_stamp();const auto index=static_cast<unsigned>(phase);
+        phases[index]={stamp.wall,stamp.cpu};scheduling[index]=stamp;
+    }
     void acquisition(OwnerPhase phase,std::uint64_t original_wall) noexcept {
-        phases[static_cast<unsigned>(phase)]={original_wall,path_clock(CLOCK_THREAD_CPUTIME_ID)};
+        const auto stamp=owner_stamp();const auto index=static_cast<unsigned>(phase);
+        phases[index]={original_wall,stamp.cpu};scheduling[index]=stamp;
     }
 };
 struct NativePath {
