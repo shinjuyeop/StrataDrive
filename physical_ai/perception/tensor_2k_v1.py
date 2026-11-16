@@ -57,12 +57,12 @@ class TensorWorkspace:
 
 
 class TensorKernelBackend(StagedKernelBackend):
-    def __init__(self, *args):
+    def __init__(self, *args, trace_capacity=4096):
         self.workspace = TensorWorkspace()
-        super().__init__(*args)
+        super().__init__(*args, trace_capacity=trace_capacity)
 
     def infer(self, packet):
-        if len(self.stages) >= 4096:
+        if len(self.stages) >= self.trace_capacity:
             raise ValueError("bounded backend stage trace")
         row = dict(
             identity=asdict(packet.identity), owner_thread_id=threading.get_ident()

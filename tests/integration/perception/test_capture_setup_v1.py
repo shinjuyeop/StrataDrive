@@ -25,6 +25,7 @@ class CaptureSetupTests(unittest.TestCase):
                         capture.attach(SimpleNamespace(id=1), None, None)
                     configure.assert_called_once()
                     self.assertEqual(capture.report['preparation']['state'], 'FAILED')
+                    self.assertEqual(capture.report['observer_cpus_after_setup'], sorted(before))
                     self.assertEqual(os.sched_getaffinity(0), before)
                     self.assertIsNone(capture.recorder)
             finally:

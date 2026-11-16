@@ -12,7 +12,7 @@ import zlib
 from PIL import Image
 from native_memory_recorder_v1 import MemoryRecorder
 from endurance_profile_v1 import limits
-from endurance_host_v1 import pipeline_setup, configure_pipeline_threads
+from endurance_host_v1 import pipeline_setup, configure_pipeline_threads, pipeline_backend
 from physical_ai.perception.ipc_2k_v1 import IpcWorldPerception, Publisher, socket_pair
 from physical_ai.perception.staged_kernel_2k_v1 import StagedKernelBackend
 from physical_ai.perception.world_async_2k_v1 import ObservedWorldClock
@@ -36,14 +36,18 @@ class Capture:
     def attach(self, world, actor, carla):
         self.world = world
         self.report.update(source_clock=world.id, wall_clock=self.args.wall_clock)
-        with pipeline_setup() as cpus:
-            self.report['model_setup_cpus'] = cpus
-            self.prepare_model(world)
-        self.report['observer_cpus_after_setup'] = sorted(os.sched_getaffinity(0))
+        try:
+            with pipeline_setup() as cpus:
+                self.report['model_setup_cpus'] = cpus
+                self.prepare_model(world)
+        finally:
+            self.report['observer_cpus_after_setup'] = sorted(os.sched_getaffinity(0))
         self.attach_sensor(world, actor, carla)
 
     def prepare_model(self, world):
-        self.detector = StagedKernelBackend(self.args.detector, self.args.models, self.args.library,
+        backend = pipeline_backend(StagedKernelBackend)
+        self.report['tensor_workspace'] = os.environ.get('STRATADRIVE_M10_TENSOR_WORKSPACE') == '1'
+        self.detector = backend(self.args.detector, self.args.models, self.args.library,
             "f851fa22a24576d4e76fa2fa8749f3f4517d5ee625b64de390a360fd32fb0721")
         cv_threads = int(os.environ.get('STRATADRIVE_M10_CV_THREADS', '0'))
         resize_threads = int(os.environ.get('STRATADRIVE_M10_RESIZE_THREADS', '0'))

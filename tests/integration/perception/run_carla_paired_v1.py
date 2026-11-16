@@ -76,7 +76,8 @@ def main(a):
         elif common.get('STRATADRIVE_M10_CAMERA_PERIOD_MS'):raise ValueError('undeclared camera cadence')
         report['camera_period_ms']=camera_period
         for option,key in [('profile_host','STRATADRIVE_M10_PROFILE'),('cuda_blocking','STRATADRIVE_CUDA_BLOCKING_SYNC'),('raw_recording','STRATADRIVE_M10_RAW_RECORDING'),
-                           ('preprocess_cv_threads','STRATADRIVE_M10_CV_THREADS'),('resize_threads','STRATADRIVE_M10_RESIZE_THREADS')]:
+                           ('preprocess_cv_threads','STRATADRIVE_M10_CV_THREADS'),('resize_threads','STRATADRIVE_M10_RESIZE_THREADS'),
+                           ('tensor_workspace','STRATADRIVE_M10_TENSOR_WORKSPACE')]:
             value=getattr(a,option,0)
             if value:
                 if not a.endurance_seconds:raise ValueError('explicit endurance host profiling option')
@@ -234,6 +235,7 @@ if __name__=='__main__':
     p.add_argument('--park-preparation',action='store_true')
     p.add_argument('--cuda-blocking',action='store_true')
     p.add_argument('--raw-recording',action='store_true')
+    p.add_argument('--tensor-workspace',action='store_true')
     p.add_argument('--renderer-max-fps',type=int,choices=(0,20,60),default=0)
     p.add_argument('--preprocess-cv-threads',type=int,choices=(0,1,2,4),default=0)
     p.add_argument('--resize-threads',type=int,choices=(0,1,2,4),default=0)

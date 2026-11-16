@@ -1,0 +1,108 @@
+{
+  "status": "ORIGINAL_FAIL_PRESERVED",
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/perception/carla_control_shadow_v1.py\", line 112, in main\n    if capture:capture.attach(world,actor,carla)\n  File \"/d/shin/StrataDrive/tests/integration/perception/control_shadow_capture_v1.py\", line 41, in attach\n    self.prepare_model(world)\n  File \"/d/shin/StrataDrive/tests/integration/perception/control_shadow_capture_v1.py\", line 79, in prepare_model\n    raise RuntimeError(\"bounded native2K preparation: \" + str(self.report['preparation']['error'] or 'not ready'))\nRuntimeError: bounded native2K preparation: settled probe deadline\n",
+  "physical_receipts": 0,
+  "native_started": false,
+  "raw_images": 0,
+  "preparation": {
+    "state": "FAILED",
+    "started_wall_ns": 1837012179093159,
+    "finished_wall_ns": 1837012906686314,
+    "last_observed_wall_ns": 1837012906686314,
+    "error": "settled probe deadline",
+    "calls": [
+      {
+        "number": 1,
+        "owner_thread_id": 134932429010496,
+        "begin_wall_ns": 1837012179125293,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 1,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 21242987,
+          "inference_ns": 447853490,
+          "postprocess_ns": 249980,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 1837012755103288,
+        "elapsed_wall_ns": 575977995
+      },
+      {
+        "number": 2,
+        "owner_thread_id": 134932429010496,
+        "begin_wall_ns": 1837012755125498,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 2,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 130024702,
+          "inference_ns": 21155604,
+          "postprocess_ns": 248282,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 1837012906686314,
+        "elapsed_wall_ns": 151560816
+      }
+    ]
+  },
+  "stage_durations_ms": [
+    {
+      "gray": 0.992827,
+      "health": 0.805894,
+      "resize": 6.370184,
+      "tensor": 13.074082,
+      "inference": 447.85349,
+      "decode": 0.24998
+    },
+    {
+      "gray": 0.712394,
+      "health": 0.686005,
+      "resize": 9.61603,
+      "tensor": 119.010273,
+      "inference": 21.155604,
+      "decode": 0.248282
+    }
+  ],
+  "model_setup_cpus": [
+    4,
+    5,
+    6,
+    7,
+    12,
+    13,
+    14,
+    15
+  ],
+  "thread_overrides": {
+    "cv": 4,
+    "resize": 4
+  },
+  "interpretation": "Preparation tail recurred despite corrected pipeline CPU placement and CV4/resize4. Second call151.561ms includes119.010ms tensor stage and21.156ms inference. Original wall stamps alone cannot distinguish allocation, scheduling or kernel delay. No new physical/HV observations.",
+  "next_candidate": "Explicit existing byte-exact reusable NCHW workspace; unchanged three-call/last-two<100ms gate; separate source freeze and first-failure stop."
+}

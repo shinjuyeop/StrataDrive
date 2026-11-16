@@ -85,6 +85,17 @@ def configure_pipeline_threads(backend,cv_threads,resize_threads):
     if resize_threads:backend.resize.threads=resize_threads
 
 
+def pipeline_backend(default):
+    """Explicit input-equivalent tensor workspace candidate; default unchanged."""
+    value = os.environ.get('STRATADRIVE_M10_TENSOR_WORKSPACE')
+    if value is None:
+        return default
+    if value != '1':
+        raise ValueError('explicit tensor workspace option')
+    from physical_ai.perception.tensor_2k_v1 import TensorKernelBackend
+    return TensorKernelBackend
+
+
 @contextmanager
 def pipeline_setup():
     """Place model construction and newly created workers on the image CPUs.

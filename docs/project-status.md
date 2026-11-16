@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **준비 수정·첫30초 통과 / 후속 HV 만료·owner 대기 분석 / 장기 안정성·전체 OPEN** | [최신 실행·입력 나이 분석](test-plan/evidence/m10_host_clock_v2/README.md) · [HV 실패 분석](test-plan/evidence/m10_state_path_v3/README.md) · [5분 실패](test-plan/evidence/m10_host_endurance_v1/README.md) |
+| M10 | **준비 지연 재발 / 텐서 재사용·HV 대기 계측 후보 / 장기 안정성·전체 OPEN** | [최신 준비 실패](test-plan/evidence/m10_owner_wait_v1/README.md) · [후속 후보](test-plan/evidence/m10_owner_wait_v2/README.md) · [HV 실패 분석](test-plan/evidence/m10_state_path_v3/README.md) · [5분 실패](test-plan/evidence/m10_host_endurance_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -43,7 +43,7 @@ HV30ms·인지100ms와 원래 수치 적분 조건은 변경하지 않았다.
 OpenCV 선언값을 적용받지 못하는 문제를 수정했다. 준비·worker 생성에 영상 CPU와
 기존 CV4/resize4를 적용하고 관측 호출 스레드는 원래 배치로 복원한다.
 
-최신 [Host clock V2](test-plan/evidence/m10_host_clock_v2/README.md)는 수정한 준비 단계가
+이전 [Host clock V2](test-plan/evidence/m10_host_clock_v2/README.md)는 수정한 준비 단계가
 실제70% 동시 실행 두 번에서33.3–44.7ms로 통과했다. **첫30초는 정상5830/INIT170/보호0으로
 PASS**다. **두 번째는1.794초에 HV 의존 입력30.490ms로 만료**, 정상195/INIT162/보호5643으로
 FAIL이다. 두 실행 모두 native 누락·기한 초과0이며, 두 번째 전체150010슬롯을 확인했다.
@@ -68,6 +68,14 @@ Python501·동결85검사, 두 실행의 원래 제어 출력·최초 오류 정
 BGRA/RGB 검증을 완료했다. 미래 품질 제외는16633개다. 보관 위치 오류 비교와 중복 복원
 수정도 확인했다. 사용자 helper는 owner 종료 뒤 호스트 상한100%를 자동 복원했고 공유
 파일6개의 원래 SHA도 일치한다. 검증된 압축·중복 삭제만 수행하고 모든 원본을 보존한다.
+
+최신 [owner wait V1](test-plan/evidence/m10_owner_wait_v1/README.md)은 모델 준비에서 다시 실패했다.
+정상 배치·CV4/resize4 상태에서도 두 번째 호출151.561ms, 텐서 변환119.010ms였다.
+물리 구간·영상0개로 HV 계측 결과는 아직 없다. 원래 실패 재현·공유 파일과 부스트100%
+복원을 확인했다. CARLA 없는40회 교대 비교에서는 기존/재사용 버퍼 모두20/20 통과했으나
+실제 긴 지연은 재현하지 못했다. [V2](test-plan/evidence/m10_owner_wait_v2/README.md)는
+값 일치 검증된 텐서 재사용 버퍼를 명시적으로 적용하는 별도 후보다. 준비100ms·HV30ms를
+유지하며 실제 검증 전에는 해결 또는 수용으로 보지 않는다. 미래 제외16633개는 유지한다.
 
 **5분 안정성·냉각 여유, native 인지 수용0, 전체 장면·독립 품질·각 Jetson 배포·M10 종료는
 OPEN**이다. 이전 실패와 미채택 설정은 [Host 실행 이력](archive/implementation-history.md#m10-host-실행-이력)을 따른다.
@@ -114,7 +122,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [V2 최초 HV 만료](test-plan/evidence/m10_host_clock_v2/normal-30s-02/first-fault-analysis.json)의 frame657/658을 기준으로 owner pump 대기 사유·thread 스케줄·physics worker 대기를 구별한다. 원래 HV30ms·source 시각을 유지하고, 원인이 확인된 뒤 별도 후보의 유한 반복→5분 순으로 검증한다.70% 제한만으로 해결됐다고 보지 않는다.
+1. [owner wait V2](test-plan/evidence/m10_owner_wait_v2/README.md)의 텐서 재사용 후보를 같은70% 조건에서30초→30초→5분 검증한다. 첫 실패에 중단한다. 준비를 통과하면 [이전 V2 최초 HV 만료](test-plan/evidence/m10_host_clock_v2/normal-30s-02/first-fault-analysis.json)의 frame657/658을 기준으로 owner pump 대기 사유·thread 스케줄·physics worker 대기를 구별한다. 원래 HV30ms·source 시각을 유지하고, 원인이 확인된 뒤 별도 후보의 유한 반복→5분 순으로 검증한다.70% 제한만으로 해결됐다고 보지 않는다.
 2. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태·자산 식별과 native 연결을 완성한다. 전체 장면이 없으면 인지 제어 수용은 닫고 Required는 opt-in SIL로 둔다.
 3. 후보·센서·모델 설정을 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상은 새 holdout으로 재사용하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

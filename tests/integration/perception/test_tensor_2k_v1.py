@@ -1,10 +1,26 @@
 import threading
 import unittest
+import os
+from unittest.mock import patch
 import numpy as np
 from physical_ai.perception.tensor_2k_v1 import TensorWorkspace
 
 
 class TensorWorkspaceTests(unittest.TestCase):
+    def test_explicit_workspace_and_endurance_trace_capacity(self):
+        from endurance_host_v1 import pipeline_backend
+        from physical_ai.perception.tensor_2k_v1 import TensorKernelBackend
+        default=object()
+        with patch.dict(os.environ,{},clear=True):self.assertIs(pipeline_backend(default),default)
+        with patch.dict(os.environ,{'STRATADRIVE_M10_TENSOR_WORKSPACE':'1'}):
+            self.assertIs(pipeline_backend(default),TensorKernelBackend)
+        with patch.dict(os.environ,{'STRATADRIVE_M10_TENSOR_WORKSPACE':'invalid'}):
+            with self.assertRaises(ValueError):pipeline_backend(default)
+        with patch('physical_ai.perception.staged_kernel_2k_v1.KernelNativeBackend.__init__',return_value=None):
+            backend=TensorKernelBackend(trace_capacity=6400)
+            backend.stages=[None]*6400
+            with self.assertRaisesRegex(ValueError,'bounded backend'):backend.infer(None)
+            with self.assertRaises(ValueError):TensorKernelBackend(trace_capacity=6401)
     def test_all_byte_values_equal_original_float32_division(self):
         image = np.resize(np.arange(256, dtype=np.uint8), (960, 960, 3))
         got = TensorWorkspace().convert(image)
