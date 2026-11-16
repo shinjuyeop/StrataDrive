@@ -109,6 +109,15 @@ def main(a):
             if not a.endurance_seconds:raise ValueError('explicit endurance state path profiling')
             commands['owner'].append('-StrataM10StatePathProfile')
             report['profile_state_path']=True
+        if getattr(a,'profile_owner_gc',False):
+            if not a.endurance_seconds or not a.profile_state_path:
+                raise ValueError('owner GC profiling requires endurance state path')
+            commands['owner'].append('-StrataM10GcProfile')
+            report['profile_owner_gc']=True
+        if getattr(a,'owner_serial_gc',False):
+            if not a.profile_owner_gc:raise ValueError('serial GC requires explicit GC profiling')
+            commands['owner']=[x+',gc.AllowParallelGC 0' if x.startswith('-ExecCmds=') else x for x in commands['owner']]
+            report['owner_serial_gc']=True
         if getattr(a,'structured_state',False):
             if not a.endurance_seconds:raise ValueError('explicit endurance structured state')
             commands['owner'].append('-StrataM10StructuredState')
@@ -142,6 +151,7 @@ def main(a):
             '--paired-condition',a.condition,'--paired-export-hz',str(a.export_hz),'--endurance-seconds',str(a.endurance_seconds)]
         check_owner(report.get('host_resources',{}),processes['owner'].pid)
         if getattr(a,'profile_state_path',False):command.append('--profile-state-path')
+        if getattr(a,'profile_owner_gc',False):command.append('--profile-owner-gc')
         if getattr(a,'structured_state',False):command.append('--structured-state')
         report['client_argv']=command
         log=(a.output/'client.log').open('w');logs.append(log)
@@ -236,6 +246,8 @@ if __name__=='__main__':
     p.add_argument('--cuda-blocking',action='store_true')
     p.add_argument('--raw-recording',action='store_true')
     p.add_argument('--tensor-workspace',action='store_true')
+    p.add_argument('--profile-owner-gc',action='store_true')
+    p.add_argument('--owner-serial-gc',action='store_true')
     p.add_argument('--renderer-max-fps',type=int,choices=(0,20,60),default=0)
     p.add_argument('--preprocess-cv-threads',type=int,choices=(0,1,2,4),default=0)
     p.add_argument('--resize-threads',type=int,choices=(0,1,2,4),default=0)

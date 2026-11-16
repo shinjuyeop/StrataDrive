@@ -1,0 +1,178 @@
+{
+  "status": "PASS",
+  "scope": "Original live preparation, before shutdown cancellation",
+  "preparation": {
+    "state": "READY",
+    "started_wall_ns": 1838750992334757,
+    "finished_wall_ns": 1838751629169396,
+    "last_observed_wall_ns": 1838751629169396,
+    "error": null,
+    "calls": [
+      {
+        "number": 1,
+        "owner_thread_id": 130171591980608,
+        "begin_wall_ns": 1838750992367100,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 1,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 10478369,
+          "inference_ns": 530027295,
+          "postprocess_ns": 249691,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 1838751555407776,
+        "elapsed_wall_ns": 563040676
+      },
+      {
+        "number": 2,
+        "owner_thread_id": 130171591980608,
+        "begin_wall_ns": 1838751555427933,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 2,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 15547131,
+          "inference_ns": 20922885,
+          "postprocess_ns": 241260,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 1838751592279361,
+        "elapsed_wall_ns": 36851428
+      },
+      {
+        "number": 3,
+        "owner_thread_id": 130171591980608,
+        "begin_wall_ns": 1838751592299237,
+        "synthetic": true,
+        "published": false,
+        "result": {
+          "identity": {
+            "epoch": 1,
+            "clock_instance": 1,
+            "frame": 3,
+            "source_ns": 0,
+            "camera_id": 1,
+            "calibration_revision": 1
+          },
+          "detections": [],
+          "convert_ns": 0,
+          "preprocess_ns": 15393772,
+          "inference_ns": 21105928,
+          "postprocess_ns": 235765,
+          "width": 2560,
+          "height": 1536,
+          "model_sha256": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+          "candidate": "dfine-m-960-car-v1-camera2k-v1",
+          "schema": "m10-async-native-2k-perception-v1"
+        },
+        "end_wall_ns": 1838751629169396,
+        "elapsed_wall_ns": 36870159
+      }
+    ]
+  },
+  "tensor_workspace": true,
+  "model_cpus": [
+    4,
+    5,
+    6,
+    7,
+    12,
+    13,
+    14,
+    15
+  ],
+  "observer_cpus": [
+    0,
+    8
+  ],
+  "thread_overrides": {
+    "cv": 4,
+    "resize": 4
+  },
+  "original_stages": [
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 1,
+        "frame": 1,
+        "source_ns": 0,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "owner_thread_id": 130171591980608,
+      "begin": 1838751014550004,
+      "gray": 1838751015581714,
+      "health": 1838751016387375,
+      "resize": 1838751022687366,
+      "tensor": 1838751025028373,
+      "inference": 1838751555055668,
+      "decode": 1838751555305359,
+      "end": 1838751555326282
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 1,
+        "frame": 2,
+        "source_ns": 0,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "owner_thread_id": 130171591980608,
+      "begin": 1838751555470454,
+      "gray": 1838751556404241,
+      "health": 1838751557084006,
+      "resize": 1838751568732592,
+      "tensor": 1838751571017585,
+      "inference": 1838751591940470,
+      "decode": 1838751592181730,
+      "end": 1838751592200481
+    },
+    {
+      "identity": {
+        "epoch": 1,
+        "clock_instance": 1,
+        "frame": 3,
+        "source_ns": 0,
+        "camera_id": 1,
+        "calibration_revision": 1
+      },
+      "owner_thread_id": 130171591980608,
+      "begin": 1838751592337005,
+      "gray": 1838751593105930,
+      "health": 1838751593779607,
+      "resize": 1838751605418152,
+      "tensor": 1838751607730777,
+      "inference": 1838751628836705,
+      "decode": 1838751629072470,
+      "end": 1838751629090494
+    }
+  ]
+}

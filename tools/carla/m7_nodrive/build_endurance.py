@@ -47,7 +47,7 @@ def main(a):
             text=text.replace('"'+name+'"','"'+str(external/name)+'"')
         (out/source).write_text(text)
     staged_headers=('M7NoDriveMovement.h','solver_journal.hpp','native_admission.hpp',
-                    'wall_bridge.hpp','state_path_profile.hpp','owner_wait_profile.hpp','structured_json.hpp')
+                    'wall_bridge.hpp','state_path_profile.hpp','owner_wait_profile.hpp','gc_profile.hpp','structured_json.hpp')
     # Stage the paired admission/bridge headers together so pragma-once binds
     # one identity; never accidentally link the installed older diagnostic.
     for name in staged_headers:(out/name).write_text((own/name).read_text())

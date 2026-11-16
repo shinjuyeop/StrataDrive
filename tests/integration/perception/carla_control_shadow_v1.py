@@ -44,10 +44,12 @@ def main():
     p.add_argument('--paired-export-hz',type=int,choices=(20,50),default=20)
     p.add_argument('--endurance-seconds',type=int,choices=(0,30,300),default=0)
     p.add_argument('--profile-state-path',action='store_true')
+    p.add_argument('--profile-owner-gc',action='store_true')
     p.add_argument('--structured-state',action='store_true')
     a=p.parse_args()
     bounds=limits(a.endurance_seconds)
     if a.profile_state_path and not a.endurance_seconds:p.error('state path profiling requires endurance')
+    if a.profile_owner_gc and not a.profile_state_path:p.error('GC profiling requires state path')
     if a.structured_state and not a.endurance_seconds:p.error('structured state requires endurance')
     try:validate_client(a)
     except ValueError as error:p.error(str(error))
@@ -183,6 +185,9 @@ def main():
         if bound:
             try:
                 final=rpc('describe');count=int(final['wall_frames']);report['completed_physics']=count
+                if a.profile_owner_gc:
+                    gc=rpc('wall_gc_trace');require(gc['ok'],'complete bounded GC history')
+                    (a.output/'owner-gc.json').write_text(json.dumps(gc['gc_profile'],indent=2)+'\n')
                 ingress=[]
                 for index in range(int(final.get('wall_ingress_count','0'))):
                     reply=rpc('wall_ingress',index=str(index));require(reply['ok'],'complete CAN ingress history')

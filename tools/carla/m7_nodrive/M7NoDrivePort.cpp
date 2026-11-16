@@ -11,8 +11,11 @@
 #include "structured_json.hpp"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
+#include "Misc/CoreDelegates.h"
 #include "Components/PrimitiveComponent.h"
 #include "HAL/PlatformMisc.h"
+#include "HAL/IConsoleManager.h"
+#include "UObject/UObjectGlobals.h"
 #include <time.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -31,6 +34,7 @@
 #include "held_steer_sleep.hpp"
 #include "solver_journal.hpp"
 #include "state_path_profile.hpp"
+#include "gc_profile.hpp"
 #pragma GCC visibility pop
 #include <compiler/enable-ue4-macros.h>
 
@@ -84,6 +88,10 @@ struct State {
   uint64 IngressCount=0,IngressCapacity=4096;
   stratadrive::m7_native::Input IngressProof;
   bool ProfilePath=false;
+  bool ProfileGc=false;
+  stratadrive::m7_native::GcProfile Gc;
+  int32 GcParallel=-1;
+  double GcPeriod=0;
   bool StructuredState=false;
   uint64 DirectRequests=0,TextFallbackRequests=0;
   uint64 PathCount=0,PathCapacity=0;
@@ -105,6 +113,32 @@ struct State {
   std::unique_ptr<DriveReceiver> Drive;
 };
 State S;
+FDelegateHandle GcBeginHandle,GcTrimHandle,GcEndHandle;
+void StopGcProfile() {
+  if(GcBeginHandle.IsValid())FCoreUObjectDelegates::GetPreGarbageCollectDelegate().Remove(GcBeginHandle);
+  if(GcEndHandle.IsValid())FCoreUObjectDelegates::GetPostGarbageCollect().Remove(GcEndHandle);
+  if(GcTrimHandle.IsValid())FCoreDelegates::GetMemoryTrimDelegate().Remove(GcTrimHandle);
+  GcBeginHandle.Reset();GcTrimHandle.Reset();GcEndHandle.Reset();
+}
+void StartGcProfile() {
+  StopGcProfile();S.Gc={};
+  if(!S.ProfileGc)return;
+  GcBeginHandle=FCoreUObjectDelegates::GetPreGarbageCollectDelegate().AddLambda([] {
+    if(!S.Bridge || S.WallFrames>=S.WallLimit)return;
+    if(!IsInGameThread()){++S.Gc.errors;return;}
+    S.Gc.begin(stratadrive::m7_native::owner_stamp(),S.Frame);
+  });
+  GcEndHandle=FCoreUObjectDelegates::GetPostGarbageCollect().AddLambda([] {
+    if(!S.Gc.active)return;
+    if(!IsInGameThread()){++S.Gc.errors;return;}
+    S.Gc.end(stratadrive::m7_native::owner_stamp());
+  });
+  GcTrimHandle=FCoreDelegates::GetMemoryTrimDelegate().AddLambda([] {
+    if(!S.Gc.active)return;
+    if(!IsInGameThread()){++S.Gc.errors;return;}
+    S.Gc.trim(stratadrive::m7_native::owner_stamp());
+  });
+}
 using PathPhase = stratadrive::m7_native::OwnerPhase;
 
 uint64 WallNow() {timespec T{};return clock_gettime(CLOCK_MONOTONIC,&T)==0?uint64(T.tv_sec)*1000000000+uint64(T.tv_nsec):0;}
@@ -435,6 +469,15 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
     S.DirectRequests=S.TextFallbackRequests=0;
     S.ProfilePath=FParse::Param(FCommandLine::Get(),TEXT("StrataM10StatePathProfile"));
     if(S.ProfilePath && !Endurance)return Encode(Response(false,TEXT("state_path_requires_endurance")));
+    S.ProfileGc=FParse::Param(FCommandLine::Get(),TEXT("StrataM10GcProfile"));
+    if(S.ProfileGc && !S.ProfilePath)return Encode(Response(false,TEXT("gc_profile_requires_state_path")));
+    if(S.ProfileGc) {
+      auto* Parallel=IConsoleManager::Get().FindConsoleVariable(TEXT("gc.AllowParallelGC"));
+      auto* Period=IConsoleManager::Get().FindConsoleVariable(TEXT("gc.TimeBetweenPurgingPendingKillObjects"));
+      if(!Parallel || !Period)return Encode(Response(false,TEXT("gc_settings_unavailable")));
+      S.GcParallel=Parallel->GetInt();S.GcPeriod=Period->GetFloat();
+    }
+    StartGcProfile();
     S.PathCount=0;S.PathCapacity=S.ProfilePath?Endurance:0;S.ActivePath={};S.PumpExit={};
     S.Paths.reset(S.ProfilePath?new stratadrive::m7_native::OwnerPath[S.PathCapacity]{}:nullptr);
     S.IngressCapacity=Endurance?uint64(Endurance)*5+4096:4096;
@@ -529,6 +572,29 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
     TArray<TSharedPtr<FJsonValue>> Actual;for(const auto& P:Saved.Actual)Actual.Add(Hex(P));
     Entry->SetArrayField(TEXT("actual"),Actual);Entry->SetField(TEXT("permission"),Hex(Saved.Permission));
     auto R=Response(true,TEXT("original_CAN_ingress"));R->SetObjectField(TEXT("ingress"),Entry);return Encode(R);
+  }
+  if(Op==TEXT("wall_gc_trace")) {
+    if(!S.ProfileGc || !S.Bridge)return Encode(Response(false,TEXT("gc_profile_unavailable")));
+    auto R=Response(true,TEXT("bounded_gc_profile"));auto Profile=Object();
+    Profile->SetStringField(TEXT("errors"),Dec(S.Gc.errors));
+    Profile->SetBoolField(TEXT("active"),S.Gc.active);
+    Profile->SetNumberField(TEXT("parallel"),S.GcParallel);
+    Profile->SetNumberField(TEXT("period_seconds"),S.GcPeriod);
+    const auto Stamp=[](const stratadrive::m7_native::OwnerStamp& V)->Json {
+      auto J=Object();J->SetStringField(TEXT("wall_ns"),Dec(V.wall));J->SetStringField(TEXT("cpu_ns"),Dec(V.cpu));
+      J->SetStringField(TEXT("voluntary"),Dec(V.voluntary));J->SetStringField(TEXT("involuntary"),Dec(V.involuntary));
+      J->SetStringField(TEXT("minor_faults"),Dec(V.minor_faults));J->SetStringField(TEXT("major_faults"),Dec(V.major_faults));
+      J->SetStringField(TEXT("processor"),Dec(V.processor));J->SetStringField(TEXT("valid"),Dec(V.valid));return J;
+    };
+    TArray<TSharedPtr<FJsonValue>> Cycles;
+    for(uint64 I=0;I<S.Gc.count;++I) {
+      const auto& Value=S.Gc.cycles[I];auto Cycle=Object();
+      Cycle->SetStringField(TEXT("completed_frame"),Dec(Value.completed_frame));
+      Cycle->SetObjectField(TEXT("begin"),Stamp(Value.begin));Cycle->SetObjectField(TEXT("memory_trim"),Stamp(Value.memory_trim));
+      Cycle->SetObjectField(TEXT("end"),Stamp(Value.end));
+      Cycles.Add(MakeShared<FJsonValueObject>(Cycle));
+    }
+    Profile->SetArrayField(TEXT("cycles"),Cycles);R->SetObjectField(TEXT("gc_profile"),Profile);return Encode(R);
   }
   if(Op==TEXT("wall_trace")) {
     uint64 Index;
@@ -1095,11 +1161,13 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
 void Shutdown()
 {
   check(IsInGameThread());
+  StopGcProfile();
   if (S.Locked) Latch(TEXT("engine_exit"));
 }
 
 void EndEpisode()
 {
+  StopGcProfile();
   if (S.Locked) Latch(TEXT("episode_ended"));
   S.Actor.Reset(); S.Movement.Reset();
   // Keep the gate closed across unexpected episode changes; no automatic INIT.
