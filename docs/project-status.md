@@ -1,6 +1,6 @@
 # 프로젝트 상태
 
-정리 기준·최신 검증: **2026-11-13**.
+정리 기준·최신 검증: **2026-11-16**.
 이 문서가 현재 구현·수용 범위와 다음 작업의 기준이다. 실행 중인 미기록 변경은 완료로 세지 않는다.
 
 ## 단계별 현재 판정
@@ -16,13 +16,13 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **선택한 Host 설정의 30초 동시 실행 3회 통과 / 5분·인지 수용·전체 OPEN** | [프로파일링·반복 검증](test-plan/evidence/m10_host_profile_v5/README.md) · [이전 실패](test-plan/evidence/m10_remediation_v1/README.md) · [실제 렌더 종료](test-plan/evidence/m10_paired_v7/README.md) |
+| M10 | **30초 동시 실행 3회 통과 / 후속 5분 FAIL / 인지 수용·전체 OPEN** | [5분 원본·분석](test-plan/evidence/m10_host_endurance_v1/README.md) · [30초 반복](test-plan/evidence/m10_host_profile_v5/README.md) · [실제 렌더 종료](test-plan/evidence/m10_paired_v7/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 ## 최신 M10 판단
 
-최신 [CPU/GPU 프로파일링](test-plan/evidence/m10_host_profile_v5/README.md)은8개 사전 선언
+앞선 [CPU/GPU 프로파일링](test-plan/evidence/m10_host_profile_v5/README.md)은8개 사전 선언
 시험을 비교했다. 앞선 A–E 실패를 보존한 채, 선택한 F와 후속 G/H의 **30초 동시 실행3회가
 원래 기준으로 통과**했다. 각각6000구간·보호0·실행 마감시간 누락0이며 정상5838/5838/5830,
 INIT162/162/170이다. 물리5ms·native2/4ms·HV30ms·인지100ms 기준은 유지했다.
@@ -37,8 +37,19 @@ INIT162/162/170이다. 물리5ms·native2/4ms·HV30ms·인지100ms 기준은 유
 카운터15 증가도 남았다. 따라서 장기 지연·냉각 여유가 해결된 것은 아니다. 새 원본2070장을
 모두 보존했고 미래 품질 제외는11844개다. Python477·고정 소스 검사·8개 원본 archive 검증을
 통과했다. native 재생은7개 exact이며, C는 외부 wall watchdog 실행 누락을 재현하지 못한
-31개 차이를 그대로 남겼다. 원래 모듈·DXC·INI는 복원했다. **5분 NOT RUN, native 인지 수용0,
-전체 장면·독립 품질·각 Jetson 배포·M10 종료는 계속 별도**다.
+31개 차이를 그대로 남겼다.
+
+후속 [5분 단일 시험](test-plan/evidence/m10_host_endurance_v1/README.md)은 **FAIL**이다.
+60000구간을 수집했지만 정상748(3.74초)·INIT166·보호59086이며, 시작4.599초 뒤 HV 의존 상태
+나이32.720ms가 원래30ms를 넘었다. 직전 물리 상태 생성 간격20.293ms를 확인했다. Native
+1500020실행 슬롯의 누락·지연은0이고 원본 재생은 exact다. 첫 오류 주변 열 제한 증가는 없었지만
+전체 물리 구간 최고98°C·package 카운터+60, 준비 최고100°C가 남았다. 오류 직후 두 표본에서는
+16개 논리 CPU 모두 약800MHz였다.500ms 표본만으로 클록 저하의 원인·정확한 선후는 확정할 수 없다.
+
+영상2789장·추론2785회, 실제9.283Hz, 지연 중앙값78.210/p95 83.938/최장347.206ms이며24회가
+100ms를 넘었다. 대부분 보호 상태에서 얻은 값이므로5분 정상 운행 성능으로 해석하지 않는다.
+원래 모듈·DXC·INI는 복원했다. **5분 안정성 미수용, native 인지 수용0, 전체 장면·독립 품질·
+각 Jetson 배포·M10 종료는 계속 별도**다.
 
 과거 실패·미채택 설정과 종료 수정은 [M10 Host 실행 이력](archive/implementation-history.md#m10-host-실행-이력)에서 찾는다.
 [DXC 종료 수명 수정](test-plan/evidence/m10_dxc_lifetime_v1/README.md)은 별도 재현 검증을 통과했으며,
@@ -86,7 +97,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [선택한 Host 설정](test-plan/evidence/m10_host_profile_v5/README.md)의5분 검증을 새로 선언한다. 냉각 상태와 영상 약47GB에 trace·준비·여유를 더한 NVMe 공간을 확인하고, 기존 안전 기준에서 시작/종료·꼬리지연·열 제한을 평가한다.
+1. [5분 실패](test-plan/evidence/m10_host_endurance_v1/README.md)의 물리 owner 적용·상태 생성/게시→native 수신→HV 의존 상태 생성 경로를 세분해 계측하고 Host 클록·전력·열 관측과 대조한다. Native 슬롯 지연과 구분해30ms 예산을 소모하는 구간을 확인하고 수정한 뒤, 새로 선언한 유한 시험으로 재검증한다. 원래 기한과 실패 기록을 유지한다.
 2. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태·자산 식별과 native 연결을 완성한다. 전체 장면이 없으면 인지 제어 수용은 닫고 Required는 opt-in SIL로 둔다.
 3. 후보·센서·모델 설정을 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상은 새 holdout으로 재사용하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

@@ -905,6 +905,7 @@ M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 �
 | 발열·저장 개선 | V4–V8 모두 FAIL. 마지막 조건은 원본300장 보존, CPU100°C/약0.8GHz 열 제한 관측 | [후속 검증](../test-plan/evidence/m10_remediation_v1/README.md) |
 | DXC 종료 수명 | 잠금 객체 조기 파괴 재현·수정. 단독6회와 빈 서버2회 종료 통과; 영상 장기 시험과 구분 | [수명 수정](../test-plan/evidence/m10_dxc_lifetime_v1/README.md) |
 | Host 프로파일링 | A–E 실패 보존, F/G/H30초씩 통과.840회 중20회100ms 초과·열 제한 잔존·인지 수용0 | [배치·반복 검증](../test-plan/evidence/m10_host_profile_v5/README.md) |
+| Host5분 | 60000구간 수집, 정상748·보호59086·INIT166.4.599초에 HV 의존 나이32.720ms로 FAIL; native 슬롯 지연0·exact 재생 | [단일 원본·분석](../test-plan/evidence/m10_host_endurance_v1/README.md) |
 
 전체 설계 경계는 [물리/렌더링 분리 계약](../interfaces/perception-render-isolation-v1.md)을 따른다.
 유한 통과로 과거 실패를 지우거나 장기 운용·전체 장면·독립 품질·Jetson 배포를 수용하지 않는다.

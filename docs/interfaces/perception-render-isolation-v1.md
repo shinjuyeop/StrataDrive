@@ -2,12 +2,13 @@
 
 One physical owner supplies authoritative state; a separate world renders camera
 images from bounded completed snapshots. The selected Host configuration passes
-three finite30s diagnostic cases. Complete visual-scene admission,300s operation
-and native perception-control acceptance remain OPEN.
+three finite30s diagnostic cases, but its subsequent300s case failed the original
+HV dependency freshness bound. Complete visual-scene admission, stable300s
+operation and native perception-control acceptance remain OPEN.
 
 Current settings, timing/thermal limits and test counts are maintained in
 [project status](../project-status.md#최신-m10-판단) and the
-[Host profiling report](../test-plan/evidence/m10_host_profile_v5/README.md).
+[300s failure report](../test-plan/evidence/m10_host_endurance_v1/README.md).
 Earlier normal/failed experiments and the DXC lifecycle fix are indexed in
 [Host execution history](../archive/implementation-history.md#m10-host-실행-이력).
 The contractual ownership and timestamp rules below apply to every configuration.
@@ -75,10 +76,12 @@ or moving only Python inference does not establish this boundary.
    progression cap and a100ms model camera period (target10Hz). These are distinct
    rates and do not change physical5ms or relabel source timestamps. Live raw BGRA
    is written to NVMe; lossless archive compression runs after control finishes.
-4. Next declare a300s trial with temperature and storage preflight. Preserve every
-   actual frame and failed verdict. Measure physical service, scene→callback,
-   inference and thermal behavior separately;20Hz camera throughput is not a gate.
-   The target is1× wall behavior without silently slowing simulation.
+4. The prospectively declared300s case retained60000 intervals but failed after
+   4.599s: HV dependency age32.720ms exceeded30ms; native slots had no late/missing
+   completion. Next separate physical admission/acquisition/publication and
+   native receipt/HV derivation timing before changing the implementation.
+   Preserve every actual frame and failed verdict.20Hz camera throughput is not
+   a gate; the target remains1× wall behavior without silently slowing simulation.
 5. Complete visual state and the typed native mapping before enabling perception
    control. Revalidate Required-mode unavailable/recovery and original100ms
    checks. A diagnostic concurrency pass does not open admission.
