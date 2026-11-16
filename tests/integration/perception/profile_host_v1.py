@@ -10,6 +10,7 @@ import time
 def stat(path):
     text = path.read_text(); end = text.rfind(')'); fields = text[end + 2:].split()
     return dict(comm=text[text.find('(') + 1:end], state=fields[0],
+                minor_faults=int(fields[7]),major_faults=int(fields[9]),
                 user_ticks=int(fields[11]), system_ticks=int(fields[12]),
                 start_ticks=int(fields[19]), last_cpu=int(fields[36]))
 

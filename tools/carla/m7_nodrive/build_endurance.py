@@ -41,7 +41,7 @@ def main(a):
     for name in ('M7NoDrivePort.h','M7NoDriveMovement.h','M7NoDriveModelConstants.h'):
         port=port.replace('"'+name+'"','"'+str(external/name)+'"')
     (out/'M7NoDrivePort.cpp').write_text(port)
-    staged_headers=('solver_journal.hpp','native_admission.hpp','wall_bridge.hpp')
+    staged_headers=('solver_journal.hpp','native_admission.hpp','wall_bridge.hpp','state_path_profile.hpp')
     # Stage the paired admission/bridge headers together so pragma-once binds
     # one identity; never accidentally link the installed older diagnostic.
     for name in staged_headers:(out/name).write_text((own/name).read_text())

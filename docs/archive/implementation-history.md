@@ -906,6 +906,9 @@ M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 �
 | DXC 종료 수명 | 잠금 객체 조기 파괴 재현·수정. 단독6회와 빈 서버2회 종료 통과; 영상 장기 시험과 구분 | [수명 수정](../test-plan/evidence/m10_dxc_lifetime_v1/README.md) |
 | Host 프로파일링 | A–E 실패 보존, F/G/H30초씩 통과.840회 중20회100ms 초과·열 제한 잔존·인지 수용0 | [배치·반복 검증](../test-plan/evidence/m10_host_profile_v5/README.md) |
 | Host5분 | 60000구간 수집, 정상748·보호59086·INIT166.4.599초에 HV 의존 나이32.720ms로 FAIL; native 슬롯 지연0·exact 재생 | [단일 원본·분석](../test-plan/evidence/m10_host_endurance_v1/README.md) |
+| 상태 경로 V1 | 계측 후보의 cold renderer 준비180초 실패·30초 종료 강제 중단. 물리/영상0, 반복 중단 | [원본 기동 실패](../test-plan/evidence/m10_state_path_v1/README.md) |
+| 상태 경로 V2 | 빈 렌더러 준비97초 후 warm-cache30초 실행. 보호0이나 원본 receipt 변형/HV join 계측 결함으로 FAIL, 반복 중단 | [원본·저클럭 관측](../test-plan/evidence/m10_state_path_v2/README.md) |
+| 상태 경로 V3 | 계측 결함 수정·원본 동일성/6000 HV 출처/재생 검증.5.474초에30.629ms HV 의존 입력 만료, native 슬롯 지연0. 저클럭 구간의 owner CPU 비용 증가 확인 | [최신 계측·실패 분석](../test-plan/evidence/m10_state_path_v3/README.md) |
 
 전체 설계 경계는 [물리/렌더링 분리 계약](../interfaces/perception-render-isolation-v1.md)을 따른다.
 유한 통과로 과거 실패를 지우거나 장기 운용·전체 장면·독립 품질·Jetson 배포를 수용하지 않는다.

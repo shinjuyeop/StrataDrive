@@ -1,0 +1,57 @@
+{
+  "status": "PREPARED_NOT_PHYSICAL_ACCEPTANCE",
+  "scope": "empty-renderer asset preparation only; no native, inference or camera",
+  "declared_utc": "2026-11-16T04:13:03.828063+00:00",
+  "readiness_limit_seconds": 600,
+  "argv": [
+    "taskset",
+    "-c",
+    "4-7,12-15",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town03_Opt",
+    "-game",
+    "-FixedSeed",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-quality-level=Epic",
+    "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1,t.MaxFPS 60",
+    "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+    "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-carla-rpc-port=2300",
+    "-StrataM10IdleWait"
+  ],
+  "script_sha256": "092412525ce6915421cb75e3c7fcaba46be8e40c4842521178340d48c6e70927",
+  "protocol_sha256": "f9c427d6f2c8e01a82300b62def3ab6f8b4e582a669b7243c2685839ce224237",
+  "candidate_sha256": "56d065a8d4b8c77005a4057ba832de75da3dd9bc19cf45dca82e6b0763e81790",
+  "dxc_sha256": "3f3bf1e87a48577daa4dda8a9a1d0695ab1a784d8faed010312a932dc52fd83e",
+  "ready_after_seconds": 97.0237416389864,
+  "empty_world": {
+    "counts": {
+      "vehicle.*": 0,
+      "sensor.*": 0,
+      "walker.*": 0
+    },
+    "parked": true
+  },
+  "shutdown": {
+    "begin_wall_ns": 1820959943708364,
+    "limit_seconds": 30,
+    "diagnostic_after_seconds": 10,
+    "diagnostics_enabled": true,
+    "end_wall_ns": 1820963216654975,
+    "server_exit": 130
+  },
+  "ini_sha256": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448",
+  "restore_exits": [
+    0,
+    0
+  ],
+  "original_hashes_restored": true
+}

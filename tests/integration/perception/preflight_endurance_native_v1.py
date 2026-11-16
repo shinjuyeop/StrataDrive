@@ -15,6 +15,7 @@ def main(a):
         tx.setblocking(False);rx.setblocking(False)
         command=[str(a.binary.resolve()),str((root/'bridge').resolve()),str((root/'native').resolve()),
             str(a.scenario.resolve()),'5','30','--perception-shadow',f'{rx.fileno()}:1:2','--endurance-seconds',str(seconds)]
+        if a.profile_state_path:command.append('--profile-state-path')
         with (root/'stderr.log').open('w') as log:
             process=subprocess.Popen(command,pass_fds=(rx.fileno(),),stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=log,text=True)
             rx.close()
@@ -28,6 +29,7 @@ def main(a):
                 assert process.wait(timeout=10)==0
                 meta=json.loads((root/'native.json').read_text())
                 assert meta['diagnostic_horizon_ns']==(seconds+5)*1_000_000_000
+                if a.profile_state_path:assert (root/'native-state-path.csv').read_text().startswith('wake_ns,read_begin_ns,')
                 results.append(dict(seconds=seconds,initialized=True,scope='allocation/start/stop only; zero CARLA observations'))
             finally:
                 if process.poll() is None:process.kill();process.wait()
@@ -39,4 +41,5 @@ def main(a):
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for name in ('binary','scenario','output'):p.add_argument('--'+name,type=Path,required=True)
+    p.add_argument('--profile-state-path',action='store_true')
     main(p.parse_args())

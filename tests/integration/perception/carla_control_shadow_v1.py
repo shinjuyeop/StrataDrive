@@ -43,8 +43,10 @@ def main():
     p.add_argument('--paired-condition',choices=('normal','stall-exit','stall-crash'),default='normal')
     p.add_argument('--paired-export-hz',type=int,choices=(20,50),default=20)
     p.add_argument('--endurance-seconds',type=int,choices=(0,30,300),default=0)
+    p.add_argument('--profile-state-path',action='store_true')
     a=p.parse_args()
     bounds=limits(a.endurance_seconds)
+    if a.profile_state_path and not a.endurance_seconds:p.error('state path profiling requires endurance')
     try:validate_client(a)
     except ValueError as error:p.error(str(error))
     if a.paired_renderer_port is not None and (a.execution_profile!='owner5ms' or
@@ -58,6 +60,7 @@ def main():
     report['camera_condition']='absent' if a.camera_absent_control else '2k'
     report['execution_profile']=a.execution_profile
     report['endurance_seconds']=a.endurance_seconds
+    report['profile_state_path']=a.profile_state_path
     report['requested_intervals']=a.ticks
     rows=[];events=[];waits=[];process=actor=world=original=None;bound=False;session=run=None
     paired=None;extras=[]
@@ -117,6 +120,7 @@ def main():
         stderr=(a.output/'native.stderr').open('w')
         command=['chrt','-f','18',str(a.native.resolve()),str(signal),str((a.output/'native').resolve()),str(a.scenario.resolve()),str(a.step_ms),str(a.hv_dependency_ms), '--perception-shadow', f'{capture.rx.fileno()}:{world.id}:{a.wall_clock}']
         if a.endurance_seconds:command+=['--endurance-seconds',str(a.endurance_seconds)]
+        if a.profile_state_path:command.append('--profile-state-path')
         process=subprocess.Popen(placed_command('native',command),
             pass_fds=(capture.rx.fileno(),), stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=stderr,text=True)
         capture.rx.close()
@@ -184,6 +188,9 @@ def main():
                     require(raw['ok'],'complete solver history')
                     row={'index':index,'frame':int(receipt['frame'])-1,'physics':previous,
                         'receipt':receipt,'raw_solver':raw,'settlement':reply.get('settlement')}
+                    if a.profile_state_path:
+                        require('state_path' in reply,'complete diagnostic path history')
+                        row['state_path']=reply['state_path']
                     if trace_stream:
                         trace_stream.write(json.dumps(row,separators=(',',':'))+'\n');streamed_rows+=1
                     else:rows.append(row)

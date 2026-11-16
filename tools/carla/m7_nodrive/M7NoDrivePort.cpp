@@ -29,6 +29,7 @@
 #include "wall_bridge.hpp"
 #include "held_steer_sleep.hpp"
 #include "solver_journal.hpp"
+#include "state_path_profile.hpp"
 #pragma GCC visibility pop
 #include <compiler/enable-ue4-macros.h>
 
@@ -81,6 +82,10 @@ struct State {
   std::unique_ptr<WallIngressEntry[]> WallIngress;
   uint64 IngressCount=0,IngressCapacity=4096;
   stratadrive::m7_native::Input IngressProof;
+  bool ProfilePath=false;
+  uint64 PathCount=0,PathCapacity=0;
+  stratadrive::m7_native::OwnerPath ActivePath;
+  std::unique_ptr<stratadrive::m7_native::OwnerPath[]> Paths;
   void CloseSignal() {if(Signal){munmap(const_cast<stratadrive::m7_native::WallSignal*>(Signal),Bridge?sizeof(*Bridge):sizeof(*Signal));Signal=nullptr;Bridge=nullptr;}}
   ~State() {CloseSignal();}
   FM7WheelEffort Effort, LastEffort;
@@ -96,6 +101,7 @@ struct State {
   std::unique_ptr<DriveReceiver> Drive;
 };
 State S;
+using PathPhase = stratadrive::m7_native::OwnerPhase;
 
 uint64 WallNow() {timespec T{};return clock_gettime(CLOCK_MONOTONIC,&T)==0?uint64(T.tv_sec)*1000000000+uint64(T.tv_nsec):0;}
 FString Dec(uint64 V) { return FString::Printf(TEXT("%llu"), static_cast<unsigned long long>(V)); }
@@ -344,6 +350,10 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     const auto Endurance=EnduranceFrames();
     if(Endurance && ((Endurance!=6000 && Endurance!=60000) || !S.Wall || StepNs()!=5000000))
       return Encode(Response(false,TEXT("explicit_endurance_profile_required")));
+    S.ProfilePath=FParse::Param(FCommandLine::Get(),TEXT("StrataM10StatePathProfile"));
+    if(S.ProfilePath && !Endurance)return Encode(Response(false,TEXT("state_path_requires_endurance")));
+    S.PathCount=0;S.PathCapacity=S.ProfilePath?Endurance:0;S.ActivePath={};
+    S.Paths.reset(S.ProfilePath?new stratadrive::m7_native::OwnerPath[S.PathCapacity]{}:nullptr);
     S.IngressCapacity=Endurance?uint64(Endurance)*5+4096:4096;
     S.ProofReader={};S.ReceiptWriter={};S.WallWait.Empty();S.WallIngress.reset(S.Wall?new WallIngressEntry[S.IngressCapacity]{}:nullptr);S.IngressCount=0;S.IngressProof={};
     S.Work = NativeFlag && FParse::Param(FCommandLine::Get(), TEXT("StrataM7SolverWork"));
@@ -441,6 +451,26 @@ std::string Request(UCarlaEpisode& Episode, const std::string& Input, bool& Tick
     uint64 Index;
     if(!S.Bridge || !Number(J,TEXT("index"),Index) || Index>=uint64(S.WallReceipts.Num()))return Encode(Response(false,TEXT("wall_trace_index")));
     auto R=Response(true,TEXT("immutable_wall_receipt"));R->SetObjectField(TEXT("receipt"),S.WallReceipts[Index]);
+    if(S.ProfilePath) {
+      if(Index>=S.PathCount)return Encode(Response(false,TEXT("state_path_missing")));
+      // Formatting occurs only when retained receipts are queried, after the
+      // measured control interval. The live journal contains fixed-size POD.
+      const auto& Saved=S.Paths[Index];auto Path=Object();
+      const TCHAR* Names[]={TEXT("admitted"),TEXT("staged"),TEXT("before_tick"),TEXT("after_tick"),
+        TEXT("acquired_begin"),TEXT("acquired_end"),TEXT("work_begin"),TEXT("work_end"),
+        TEXT("publish_begin"),TEXT("publish_end"),TEXT("complete")};
+      for(unsigned I=0;I<Saved.phases.size();++I) {
+        auto Point=Object();Point->SetStringField(TEXT("wall_ns"),Dec(Saved.phases[I].wall));
+        Point->SetStringField(TEXT("cpu_ns"),Dec(Saved.phases[I].cpu));Path->SetObjectField(Names[I],Point);
+      }
+      Path->SetStringField(TEXT("max_pump_gap_ns"),Dec(Saved.max_pump_gap));
+      Path->SetStringField(TEXT("max_rpc_ns"),Dec(Saved.max_rpc));
+      Path->SetStringField(TEXT("proof_observed_ns"),Dec(Saved.proof_observed));
+      Path->SetStringField(TEXT("admission_attempts"),Dec(Saved.admission_attempts));
+      // Diagnostic data is a sibling of the immutable original receipt. Never
+      // mutate the cached object already exported to the scene consumer.
+      R->SetObjectField(TEXT("state_path"),Path);
+    }
     if(Index<uint64(S.WallSettlements.Num()))R->SetObjectField(TEXT("settlement"),S.WallSettlements[Index]);return Encode(R);
   }
   if (Op == TEXT("receipt")) {
@@ -670,11 +700,17 @@ void RpcWindow(bool Begin) {
   if(!S.Bridge)return;
   const uint64 Now=WallNow();
   if(Begin)S.RpcBegin=Now;
-  else if(S.RpcBegin && Now>=S.RpcBegin)S.MaxRpc=FMath::Max(S.MaxRpc,Now-S.RpcBegin);
+  else if(S.RpcBegin && Now>=S.RpcBegin) {
+    S.MaxRpc=FMath::Max(S.MaxRpc,Now-S.RpcBegin);
+    if(S.ProfilePath)S.ActivePath.max_rpc=FMath::Max<uint64>(S.ActivePath.max_rpc,Now-S.RpcBegin);
+  }
 }
 static bool PumpWallReady(UCarlaEpisode& Episode) {
   using namespace stratadrive::m7_native;
-  if(S.Bridge){const uint64 Now=WallNow();if(S.LastPump)S.MaxPumpGap=FMath::Max(S.MaxPumpGap,Now-S.LastPump);S.LastPump=Now;}
+  if(S.Bridge){const uint64 Now=WallNow();if(S.LastPump) {
+    S.MaxPumpGap=FMath::Max(S.MaxPumpGap,Now-S.LastPump);
+    if(S.ProfilePath)S.ActivePath.max_pump_gap=FMath::Max<uint64>(S.ActivePath.max_pump_gap,Now-S.LastPump);
+  }S.LastPump=Now;}
   if(!S.Bridge || S.Latched || !S.Locked || S.InFlight || S.Staged || S.Queued)return false;
   SharedProof Shared;if(!S.ProofReader.read(S.Bridge->proof,Shared))return false;
   const uint64 Now=WallNow();
@@ -725,6 +761,7 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
   // Eligibility does not consume a receiver or turn a rejected candidate into
   // a permission. The selected proof is checked again by the original gate.
   if(!S.NativeGate->eligible(Native,Now,Actual,&Why,4000000)){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return false;}
+  if(S.ProfilePath){S.ActivePath.mark(PathPhase::Admitted);S.ActivePath.proof_observed=Native.observed;++S.ActivePath.admission_attempts;}
   auto Proof=Object();Proof->SetStringField(TEXT("observed_ns"),Dec(Native.observed));Proof->SetStringField(TEXT("enable_ns"),Dec(Native.enable));
   Proof->SetBoolField(TEXT("normal"),Native.normal);Proof->SetStringField(TEXT("protection_since_ns"),Dec(Native.protection_since));
   Proof->SetStringField(TEXT("protection_selected_mask"),Dec(Native.protection_selected_mask));
@@ -738,6 +775,7 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
   RequestJson->SetStringField(TEXT("owner_key"),FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M7_OWNER_KEY")));
   RequestJson->SetObjectField(TEXT("native"),Proof);
   bool Tick=false;S.Pumping=true;Request(Episode,Encode(RequestJson),Tick);S.Pumping=false;
+  if(S.ProfilePath)S.ActivePath.mark(PathPhase::Staged);
   if(!S.Staged)return false;
   S.AppliedProof=Shared;S.Queued=true;S.WallWait.Empty();return true;
 }
@@ -760,6 +798,7 @@ bool PumpWall(UCarlaEpisode& Episode) {
 
 bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
 {
+  if(S.ProfilePath)S.ActivePath.mark(PathPhase::BeforeTick);
   if (!S.Locked) return true;
   if (S.Latched || !S.Staged || !S.Queued || S.InFlight || S.Frame != Frame ||
       !Settings(Episode) || FMath::Abs(DeltaSeconds - float(double(StepNs())/1e9)) > 1e-8f ||
@@ -804,6 +843,7 @@ bool BeforeTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
 
 void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
 {
+  if(S.ProfilePath)S.ActivePath.mark(PathPhase::AfterTick);
   if (!S.Locked) return;
   if (!S.InFlight || Frame != S.Frame || !S.Movement.IsValid() ||
       !S.Movement->EffortMatches(S.Effort) || !S.Movement->NumericalProfileMatches() ||
@@ -841,8 +881,10 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   // remains separate; querying a cached receipt never changes either clock.
   timespec SampleBegin{}, SampleEnd{};
   const bool BeginOk = clock_gettime(CLOCK_MONOTONIC, &SampleBegin) == 0;
+  if(S.ProfilePath)S.ActivePath.acquisition(PathPhase::AcquiredBegin,uint64(SampleBegin.tv_sec)*1000000000+uint64(SampleBegin.tv_nsec));
   R->SetObjectField(TEXT("physics"), Physics());
   const bool EndOk = clock_gettime(CLOCK_MONOTONIC, &SampleEnd) == 0;
+  if(S.ProfilePath)S.ActivePath.acquisition(PathPhase::AcquiredEnd,uint64(SampleEnd.tv_sec)*1000000000+uint64(SampleEnd.tv_nsec));
   if (!BeginOk || !EndOk) { Latch(TEXT("acquisition_clock")); return; }
   R->SetStringField(TEXT("physics_acquisition_clock"), TEXT("host_CLOCK_MONOTONIC; diagnostic_not_CAN_mapping"));
   R->SetStringField(TEXT("physics_acquisition_begin_ns"), Dec(uint64(SampleBegin.tv_sec)*1000000000+uint64(SampleBegin.tv_nsec)));
@@ -866,6 +908,7 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
   }
   bool WorkValid = false;
   if (S.Work) {
+    if(S.ProfilePath)S.ActivePath.mark(PathPhase::WorkBegin);
     Json Work;
     M7SolverTrace Saved{};
     FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(S.Movement->FinishSolverWork(WorkValid, S.Journal ? &Saved : nullptr)), Work);
@@ -876,6 +919,7 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
       S.AwaitSettlement = true;
       R->SetStringField(TEXT("work_end_ns"),Dec(Now(Episode)));
     }
+    if(S.ProfilePath)S.ActivePath.mark(PathPhase::WorkEnd);
   }
   R->SetBoolField(TEXT("interval_work_valid"), WorkValid);
   R->SetBoolField(TEXT("solver_substep_work_observed"), WorkValid);
@@ -904,12 +948,19 @@ void AfterTick(UCarlaEpisode& Episode, uint64 Frame, float DeltaSeconds)
     if(Expired)__atomic_store_n(&S.Bridge->server_trip,1ULL,__ATOMIC_RELEASE);
     S.WallReceipts.Add(R);++S.WallFrames;
     S.WallNormal+=Admitted->GetBoolField(TEXT("normal"))?1:0;S.WallProtected+=Admitted->GetBoolField(TEXT("protection"))?1:0;S.NextDue=StepNs()==5000000?S.Signal->initial+(S.WallFrames+1)*StepNs():S.AppliedWall+StepNs();
+    if(S.ProfilePath)S.ActivePath.mark(PathPhase::PublishBegin);
     S.ReceiptWriter.publish(S.Bridge->receipt,Completed);
+    if(S.ProfilePath)S.ActivePath.mark(PathPhase::PublishEnd);
   }
   if (S.Work && !WorkValid) { Latch(TEXT("solver_work_incomplete")); return; }
   S.LastProtection = S.ProtectionEffort; S.LastEffort = S.Effort;
   S.Pending.Reset();
   S.InFlight = false;
+  if(S.ProfilePath && S.Bridge && WorkValid) {
+    S.ActivePath.mark(PathPhase::Complete);
+    if(S.PathCount<S.PathCapacity)S.Paths[S.PathCount++]=S.ActivePath;
+    S.ActivePath={};
+  }
 }
 
 void Shutdown()

@@ -8,10 +8,28 @@ operation and native perception-control acceptance remain OPEN.
 
 Current settings, timing/thermal limits and test counts are maintained in
 [project status](../project-status.md#최신-m10-판단) and the
-[300s failure report](../test-plan/evidence/m10_host_endurance_v1/README.md).
+[state-path failure analysis](../test-plan/evidence/m10_state_path_v3/README.md).
 Earlier normal/failed experiments and the DXC lifecycle fix are indexed in
 [Host execution history](../archive/implementation-history.md#m10-host-실행-이력).
 The contractual ownership and timestamp rules below apply to every configuration.
+
+## Optional state-path diagnostics
+
+`--profile-state-path` requires the existing bounded30/300s endurance mode.
+The owner preallocates fixed-size monotonic/thread-CPU records for admission,
+staging, pre/post physics, original acquisition, solver-work formatting and
+publication. Native records each existing service call and the exact consumed
+frame/acquisition source. No shared-memory ABI, control deadline or source clock
+changes. Records are serialized after physical execution; `state_path` is a
+sibling of the immutable original receipt, so cached scene queries remain equal.
+
+The diagnostic join checks HV against the original work end, acquisition,
+oldest actuator and coil source. HV input time is not necessarily a physical
+acquisition timestamp. The unchanged physical/joint audits remain authoritative.
+The read-only50ms host sampler reports sequential frequency/thermal brackets,
+unavailable counters and its own CPU cost. Wall minus thread CPU includes
+waiting, preemption, parallel physics work and measurement skew; it is not a
+kernel scheduling trace. Diagnostic integrity alone does not establish stability.
 
 ## Chosen ownership boundary
 
@@ -78,8 +96,10 @@ or moving only Python inference does not establish this boundary.
    is written to NVMe; lossless archive compression runs after control finishes.
 4. The prospectively declared300s case retained60000 intervals but failed after
    4.599s: HV dependency age32.720ms exceeded30ms; native slots had no late/missing
-   completion. Next separate physical admission/acquisition/publication and
-   native receipt/HV derivation timing before changing the implementation.
+   completion. Optional state-path instrumentation now reproduces a30s failure:
+   HV dependency30.629ms at5.474s, with contemporaneous low CPU clocks and longer
+   owner CPU execution, while native slots remain on time. Next reduce internal
+   serialization/parsing after proving original numeric/state equivalence.
    Preserve every actual frame and failed verdict.20Hz camera throughput is not
    a gate; the target remains1× wall behavior without silently slowing simulation.
 5. Complete visual state and the typed native mapping before enabling perception

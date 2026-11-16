@@ -4,6 +4,7 @@
 #include "wall_execution_watch.hpp"
 #include "native_admission.hpp"
 #include "wall_bridge.hpp"
+#include "state_path_profile.hpp"
 #include "latest_snapshot.hpp"
 #include "perception_2k_ipc.hpp"
 #include "wall_startup_trace.hpp"
@@ -75,14 +76,16 @@ void emit(const Report& r,bool ready,const m7_native::Output& out,const std::str
 }
 int main(int argc,char** argv) {
     try {
-        if(argc<4 || (argc>6 && argc!=8 && argc!=10))throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario [5|10] [30|50 HV dependency ms] [--perception-shadow fd:source-clock:wall-clock]");
+        if(argc<4 || (argc>6 && argc!=8 && argc!=10 && argc!=11))throw std::runtime_error("carla_wall_owner signal-file trace-prefix scenario [5|10] [30|50 HV dependency ms] [--perception-shadow fd:source-clock:wall-clock]");
+        const bool profile_path=argc==11;
+        if(profile_path && std::string(argv[10])!="--profile-state-path")throw std::runtime_error("explicit state path option");
         const Time model_step=argc>=5?std::stoull(argv[4])*ms:10*ms;
         const Time hv_dependency=argc>=6?std::stoull(argv[5])*ms:30*ms;
         if(model_step!=5*ms && model_step!=10*ms)throw std::runtime_error("wall model step");
         if(hv_dependency!=30*ms && !(model_step==5*ms && hv_dependency==50*ms))throw std::runtime_error("wall HV policy");
         std::unique_ptr<central::PerceptionIpcShadow> perception;
         unsigned endurance=0;
-        if(argc==10) {
+        if(argc>=10) {
             if(std::string(argv[8])!="--endurance-seconds")throw std::runtime_error("explicit endurance option");
             const std::string duration(argv[9]);
             if(duration!="30" && duration!="300")throw std::runtime_error("declared endurance duration");
@@ -132,6 +135,8 @@ int main(int argc,char** argv) {
         m7_native::SharedWriter<m7_native::SharedProof> writer;
         struct Row {Time now,energy,source,protect;bool armed;Time hv_source,hv_dependency;};
         std::vector<Row> rows;rows.reserve(static_cast<std::size_t>(diagnostic_horizon/ms)+1);std::string failure;
+        std::vector<m7_native::NativePath> path_rows;
+        if(profile_path)path_rows.reserve(static_cast<std::size_t>(diagnostic_horizon/ms)+1);
         struct PerceptionRow {central::PerceptionIpcView view;Time native_observed,enable,ipc_service_ns;bool armed,failed;std::array<m7_native::Packet,3> actual;};
         std::vector<PerceptionRow> perception_rows;if(perception)perception_rows.reserve(perception_capacity);
         std::optional<central::PerceptionIpcView> perception_latest;
@@ -160,7 +165,10 @@ int main(int argc,char** argv) {
                 if(__atomic_load_n(&bridge->server_trip,__ATOMIC_ACQUIRE))rig.protect("physics completed after authority expiry");
                 if(trip.load())rig.protect("trusted adapter safety request");
                 std::optional<WallReceipt> receipt;m7_native::SharedReceipt value;
+                m7_native::NativePath path;
+                if(profile_path){const auto t=m7_native::path_stamp();path.wake=wake;path.read_begin=t.wall;path.cpu_begin=t.cpu;}
                 if(reader.read(bridge->receipt,value) && value.frame!=consumed) {
+                    if(profile_path){path.frame=value.frame;path.acquired_begin=value.acquired_begin;}
                     m7_external::CarlaWork c;auto& w=c.work;
                     w.frame=value.frame;w.begin=value.begin;w.end=value.end;w.oldest=w.begin;w.torque=value.torque;w.dt=value.dt;w.sleeping=value.sleeping;
                     w.wheel={value.wheel_begin,{7,static_cast<std::uint32_t>(w.frame-1),w.begin},w.begin};
@@ -171,8 +179,10 @@ int main(int argc,char** argv) {
                     receipt=WallReceipt{{actor,w.frame,c.acquired_begin,{value.omega[0],value.omega[1],value.omega[2],value.omega[3]}},w,wall_domain,c};
                     consumed=w.frame;
                 }
+                if(profile_path)path.read_end=WallExecutionWatch::now();
                 now=WallExecutionWatch::now();
                 auto r=rig.service(now,receipt);
+                if(profile_path){path.service_begin=now;path.service_end=WallExecutionWatch::now();}
                 if(r.failed){m7_native::wall_trip(&bridge->signal);if(failure.empty())failure=r.reason;}
                 const auto& n=r.native;const auto in=proof(n);
                 if(perception && now>=next_perception) {
@@ -196,6 +206,11 @@ int main(int argc,char** argv) {
                     const auto& e=*n.electrical;shared.soc=e.soc;shared.chemical=e.chemical_j;shared.motor_loss=e.motor_loss_j;
                     shared.auxiliary=e.auxiliary_j;shared.ohmic=e.ohmic_j;shared.capacitor=e.capacitor_delta_j;shared.circuit=e.circuit_loss_j;}
                 writer.publish(bridge->proof,shared);latest.publish({n,perception_latest});
+                if(profile_path) {
+                    const auto t=m7_native::path_stamp();path.published=t.wall;path.cpu_end=t.cpu;
+                    if(path_rows.size()==path_rows.capacity())throw std::runtime_error("bounded state path trace");
+                    path_rows.push_back(path);
+                }
                 rows.push_back({now,shared.energy_end,n.sensor_wheel?n.sensor_wheel->source:0,r.protected_at,n.armed,n.hv_source,n.hv_dependency});
                 wake=initial+((WallExecutionWatch::now()-initial)/ms+1)*ms;
             }
@@ -204,6 +219,12 @@ int main(int argc,char** argv) {
         watch.write(std::string(argv[2])+"-wall.csv");
         std::ofstream trace(std::string(argv[2])+".csv");trace<<"now,energy_end,wheel_source,protection,armed,hv_source,hv_dependency\n";
         for(const auto& r:rows)trace<<r.now<<','<<r.energy<<','<<r.source<<','<<r.protect<<','<<r.armed<<','<<r.hv_source<<','<<r.hv_dependency<<'\n';
+        if(profile_path) {
+            std::ofstream path(std::string(argv[2])+"-state-path.csv");
+            path<<"wake_ns,read_begin_ns,read_end_ns,frame,acquired_begin_ns,service_begin_ns,service_end_ns,proof_publish_ns,cpu_begin_ns,cpu_end_ns\n";
+            for(const auto& r:path_rows)path<<r.wake<<','<<r.read_begin<<','<<r.read_end<<','<<r.frame<<','<<r.acquired_begin<<','<<r.service_begin<<','<<r.service_end<<','<<r.published<<','<<r.cpu_begin<<','<<r.cpu_end<<'\n';
+            if(!path)throw std::runtime_error("state path trace write");
+        }
         std::ofstream meta(std::string(argv[2])+".json");meta<<"{\"first_fault\":\""<<failure<<"\",\"initial\":"<<initial<<",\"diagnostic_horizon_ns\":"<<diagnostic_horizon<<",\"hv_dependency_ns\":"<<hv_dependency<<",\"owner\":";
         owner_info.write_json(meta);meta<<",\"io\":";io_info.write_json(meta);meta<<"}\n";
         if(perception) {
