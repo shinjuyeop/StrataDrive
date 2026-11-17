@@ -26,6 +26,9 @@ class OwnerGcTests(unittest.TestCase):
         trim=dict(begin,wall_ns=150,cpu_ns=25)
         good=dict(errors=0,active=False,parallel=0,period_seconds=61.099998474,cycles=[dict(completed_frame=12,begin=begin,memory_trim=trim,end=end)])
         self.assertEqual(validate(good,True)[0]['delta']['wall_ns'],100)
+        parallel=copy.deepcopy(good);parallel['parallel']=1
+        self.assertEqual(validate(parallel,False)[0]['delta']['wall_ns'],100)
+        with self.assertRaises(ValueError):validate(good,False)
         for mutate in [lambda x:x.update(errors=1),lambda x:x.update(active=True),lambda x:x.update(parallel=1),
                 lambda x:x.update(period_seconds=600),lambda x:x['cycles'].append(x['cycles'][0]),
                 lambda x:x['cycles'][0]['end'].update(wall_ns=99),

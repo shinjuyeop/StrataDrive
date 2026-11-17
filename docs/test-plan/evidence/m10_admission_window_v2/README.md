@@ -1,31 +1,51 @@
-# M10 admission window V2 — 실제 기록 구조에 맞춘 검사기
+# M10 admission window V2 — 직렬 GC의 HV 만료 확인
 
-[V1](../m10_admission_window_v1/README.md)의 원래30초 물리 시험은 오류·보호 전환 없이
-통과했지만, 추가 검사기가 receipt에 없는 서버 설정 필드를 요구해 후속 시험이 중단됐다.
-원래 FAIL과 NOT RUN은 보존하고 수정 검사 결과는 별도로 기록한다.
+수신 후 시각·structured 추가 여유 2ms와 실제 receipt 구조 검사기를 적용한
+30초 시험 두 번은 모두 PASS다. 이어진 5분 시험은 **60.236004058초에 HV 의존 입력
+30.077297ms 만료로 FAIL**했다. 원래 판정과 정확 native/최초 오류 재생을 보존한다.
+[최종 검증](final-validation.json), [사전 프로토콜](../../perception-admission-window-v2-protocol.md).
 
-수정본은 binding/final_server에서 설정을 확인하고, 원래 receipt에서는5ms 구간과
-추가2ms 준비 여유를 원래 expiry/30ms 입력 나이로 검사한다. 실제 분리 구조와 누락·변경·
-짧은 유효기간·수집 누락 회귀4개, 원본6000개에 대한 수정 검사와 동결본 재검증을 통과했다.
-[동결본의 기존 기록 검사](prior-capture-frozen-audit.json),
-[사전 프로토콜](../../perception-admission-window-v2-protocol.md).
+| 실행 | 전체 / 정상 / INIT / 보호 구간 | native 누락 / 지연 | CPU 최고 | 카메라 |
+| --- | --- | --- | --- | --- |
+| 첫 30초 | 6000 / 5838 / 162 / 0 | 0 / 0 | 75°C | 9.30Hz |
+| 둘째 30초 | 6000 / 5838 / 162 / 0 | 0 / 0 | 77°C | 9.27Hz |
+| 5분 | 60000 / 11876 / 166 / 47958 | 0 / 0 | 89°C | 9.28Hz |
 
-실행 C++·제어·물리·모델은 바뀌지 않는다. 모듈
-`29df236c28bdc92c29784f0ab7e087f3f18c8bf0187c84aa24a957b6d7e45e98`와 기존27개 C++
-admission 검사, 빈 서버 및 실제30초 기동·종료 검증을 재사용한다. Python518개,
-동결106개·소스1535개를 확인했다. [준비 결과](prepared.json),
-[파일 검증](readiness-validation.json). 새로운 본시험은 **NOT STARTED**다.
+5분의 원래 native deadline 150만 슬롯은 최초 오류 전 301160개·이후 1198840개 모두
+누락·지연 0이다. 관측된 thermal throttle 증가와 모든 CPU가 850MHz 이하인 구간도 0이다.
+89°C 최고 온도와 유한 관측이므로 냉각·장시간 안정성을 수용하지 않는다.
+[슬롯 분석](normal-300s-01/native-gap-analysis.json), [상태·클럭 분석](normal-300s-01/path-analysis.json).
 
-```bash
-python3 /d/shin/StrataDrive/tools/m10_start_owner_gc.py
-```
+직접 GC delegate 계측의 네 번 정지는 **38.242956 / 38.620542 / 32.994507 / 32.549041ms**다.
+각각 thread CPU가 wall의 99.988% 이상이며 모두 원래 HV30ms보다 길다. 최초 오류는
+첫 GC 안에서 발생했다. held HV sequence 12345의 선행 의존 나이 5.202451ms와
+보유 시간 24.874846ms가 합쳐져 30.077297ms가 됐다. 최초 오류의 원본 입력과
+GC 완료 frame 12345가 일치하며 exact replay도 같다. 따라서 직렬 GC 후보는 미채택이다.
+[직접 원인 결합](normal-300s-01/first-fault-analysis.json), [GC 원본 검사](normal-300s-01/owner-gc.json).
 
-현재 시작 도구는 V2를 선택한다. 자산 준비 후 sudo 비밀번호까지 입력하면 새 PID로
-70% 임시 상한을 연결하고30초→30초→5분을 검사한다. 첫 실패에 중단하고 종료 또는
-최대30분 뒤100%로 복원한다. 준비 후5분 초과·이전 시도 존재·동결 변경은 거절한다.
-매 실행의 자산 준비는 유지하며, 새로운 별도 사전 빈 서버 검증을 수행했다고 주장하지 않는다.
+짧은 시험의 영상 획득→결과 중앙값은 78.20 / 78.25ms, p95는 86.60 / 85.59ms,
+100ms 초과는 5 / 2회다. 5분 전체 추론 2786개의 중앙값 78.04ms·p95 81.64ms·초과 6회는
+보호 유지 구간을 포함한다. 최초 오류 전 물리 구간 내 결과 558개는 중앙값 78.06ms,
+p95 83.61ms·초과 2회다. 보호 유지 이후의 수치를 정상 주행 성능으로 올리지 않는다.
+[구간별 영상 지연](normal-300s-01/latency-phases.json).
 
-HV30ms·물리5ms·native2/4ms,2K/D-FINE-M960·카메라10Hz·렌더러20Hz,
-owner serial GC/61.1초와 기존 배치·종료·원본 보존 조건은 같다. 미래 품질 제외는20840개에서
-이어간다.5분 안정성·GC·후반 native 누락·열 여유·인지 수용·전체 장면·독립 품질·각 Jetson
-배포와 M10 종료는 OPEN이다.
+준비는 두 번 보존했다. 첫 자산 준비 144.53초 이후에는 owner/lease/본시험이 없었고,
+다시 실행한 준비 26.34초 후 새 owner PID 3006022로 70% 제한이 적용됐다.
+세 실행의 측정·서버 종료가 모두 끝난 뒤 lease 1800초 제한으로 100%에 복원됐다.
+그 후 보존 검사가 계속됐으며 공유 파일 6개와 원래 전원 설정도 확인했다.
+[복원 확인](restoration-confirmation.json), [lease 원본](power-lease.jsonl).
+
+모든 실행의 archive·동결 검사·정확 재생과 원본 판정 재현을 확인했다. 영상 원본
+283 + 282 + 2790 = 3355장을 미래 독립 품질 평가에서 제외해 누계는 24195개다.
+원래 BGRA·tar 바이트는 해시를 재확인한 무손실 압축으로 보존하고 검증된 추출 중복만
+정리한다. 전체 source/run/raw와 큰 metadata 묶음은 로컬에 남고 Git의 bounded review는
+부분 검토 자료다. 외부 전체 백업을 확보했다고 주장하지 않는다. [저장 정리](storage-closeout.json).
+
+동일 모듈의 시각 수정·2ms 여유는 유지하고, 다음 [병렬 GC 비교](../m10_parallel_gc_v1/README.md)에서는
+owner 직렬 GC 옵션 하나만 제거한다. 이전 기본 병렬 조건의 17–22ms 정지는 GC와의
+상관관계였으므로 새 직접 계측이 필요하다. 원래 물리 5ms·HV30ms·native2/4ms,
+GC61.1초·2K/D-FINE-M960·카메라10Hz·렌더러20Hz·배치·bounded boost 조건은 같다.
+현재 시작 도구는 후속 후보를 선택하며 V2 실패를 덮어쓰지 않는다.
+
+초반 가감속 후 정지 유지하는 유한 시나리오다. **5분 안정성·냉각 여유·native 인지 수용0·
+전체 장면·독립 품질·각 Jetson 배포·M10 종료는 OPEN**이다.

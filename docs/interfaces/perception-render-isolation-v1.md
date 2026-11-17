@@ -107,18 +107,16 @@ or moving only Python inference does not establish this boundary.
    progression cap and a100ms model camera period (target10Hz). These are distinct
    rates and do not change physical5ms or relabel source timestamps. Live raw BGRA
    is written to NVMe; lossless archive compression runs after control finishes.
-4. The prospectively declared300s case retained60000 intervals but failed after
-   4.599s: HV dependency age32.720ms exceeded30ms; native slots had no late/missing
-   completion. Optional state-path instrumentation now reproduces a30s failure:
-   HV dependency30.629ms at5.474s, with contemporaneous low CPU clocks and longer
-   owner CPU execution, while native slots remain on time. The opt-in conversion
-   candidate passes its before-START equivalence checks but a new attempt fails
-   at214ms with two missing monitor9 slots. An unloaded1s native-only check
-   confirms FIFO18/CPU1,9 in that observation and has no missing slots. Diagnose
-   loaded monitor scheduling before a newly declared moving comparison; the
-   unloaded check cannot substitute for the failed concurrent case.
-   Preserve every actual frame and failed verdict.20Hz camera throughput is not
-   a gate; the target remains1× wall behavior without silently slowing simulation.
+4. Preserve every actual frame and failed verdict. The latest paired comparison
+   passed two30s cases but failed the300s case at60.236s: direct serial-GC pauses
+   of32.55–38.62ms exceeded the unchanged HV30ms budget, and the first HV fault
+   occurred inside the first collection. Native deadline slots had no missing or
+   late completion in that observation. The next declared comparison retains the
+   post-ingress clock and2ms structured preview reserve while restoring default
+   parallel GC. It has not yet run. See the [current decision and evidence](../project-status.md#최신-m10-판단)
+   for measured scope; historical failures remain in the [execution history](../archive/implementation-history.md#m10-host-실행-이력).
+   20Hz camera throughput is not a gate; the target remains1× wall behavior
+   without silently slowing simulation.
 5. Complete visual state and the typed native mapping before enabling perception
    control. Revalidate Required-mode unavailable/recovery and original100ms
    checks. A diagnostic concurrency pass does not open admission.

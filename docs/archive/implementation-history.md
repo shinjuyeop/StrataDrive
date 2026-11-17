@@ -942,6 +942,7 @@ GC0회·영상565장·미래 제외20556개를 기록했고, 원래 gate 재생�
 | Owner GC V1 | 영상 서버180초 준비 초과로 제어 전에 실패. 직접 read/page-cache 대기 관측, 영상0·GC 효과 미측정. 공유 파일6개·부스트100% 복원 | [기동 실패](../test-plan/evidence/m10_owner_gc_v1/README.md) |
 | Owner GC V2 | 별도 준비 후 첫30초 PASS, 두 번째28.053초 HV30.452587ms 만료. 두 실행 GC0회. 원래 gate6000/ingress5797과 proof byte 재생; preview 여유·시각 순서 분석. 영상565장·제외20556·최고78/79°C,5분 NOT RUN | [원본·분석·복원](../test-plan/evidence/m10_owner_gc_v2/README.md) |
 | Admission window V1 | 수신 후 시각·추가 여유2ms 적용.30초 물리 PASS,6000구간·정상5830·보호0·최고75°C. 추가 검사기의 존재하지 않는 receipt 필드 요구로 composite FAIL, 후속 NOT RUN. 원래 판정 보존·사후 수정6000개 통과, 원본284장·미래 제외20840개 | [실행·검사기 오류·수정 검증](../test-plan/evidence/m10_admission_window_v1/README.md) |
+| Admission window V2 | 30초2회 PASS,5분60.236초 HV30.077297ms 만료. 직접 serial GC4회32.55–38.62ms·최초 오류가 첫 GC 안. native150만슬롯 누락/지연0, 최고89°C·열 제한 증가0. 영상3355장·미래 제외24195, 기본 병렬 GC 재비교 준비 | [실행·GC 직접 원인·복원](../test-plan/evidence/m10_admission_window_v2/README.md) |
 
 전체 설계 경계는 [물리/렌더링 분리 계약](../interfaces/perception-render-isolation-v1.md)을 따른다.
 유한 통과로 과거 실패를 지우거나 장기 운용·전체 장면·독립 품질·Jetson 배포를 수용하지 않는다.
