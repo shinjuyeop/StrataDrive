@@ -1,0 +1,319 @@
+{
+  "status": "EXACT_ORIGINAL_REPLAY_AND_OBSERVED_RECOVERY",
+  "gc": {
+    "completed_frame": "12338",
+    "begin": {
+      "wall_ns": "1947916520921475",
+      "cpu_ns": "47878449384",
+      "voluntary": "484508",
+      "involuntary": "377",
+      "minor_faults": "2451529",
+      "major_faults": "0",
+      "processor": "10",
+      "valid": "1"
+    },
+    "memory_trim": {
+      "wall_ns": "1947916535956306",
+      "cpu_ns": "47879352909",
+      "voluntary": "484511",
+      "involuntary": "377",
+      "minor_faults": "2451588",
+      "major_faults": "0",
+      "processor": "10",
+      "valid": "1"
+    },
+    "end": {
+      "wall_ns": "1947916538847413",
+      "cpu_ns": "47882243657",
+      "voluntary": "484511",
+      "involuntary": "377",
+      "minor_faults": "2451588",
+      "major_faults": "0",
+      "processor": "10",
+      "valid": "1"
+    }
+  },
+  "first_fault": {
+    "fault": 5,
+    "epoch": 42,
+    "model_epoch": 7,
+    "observed_ns": 1947916551624931,
+    "local_age_ns": 30000000,
+    "hv_dependency_age_ns": 30000000,
+    "local_skew_ns": 20000000,
+    "held_speed": {
+      "epoch": 7,
+      "sequence": 12342,
+      "source_ns": 1947916545403381,
+      "dependency_ns": 1947916545403381,
+      "rad_s": 0
+    },
+    "held_hv": {
+      "epoch": 7,
+      "sequence": 12342,
+      "source_ns": 1947916545403381,
+      "dependency_ns": 1947916520741446,
+      "voltage_v": 399.97874953512166,
+      "inverter_ready": true,
+      "local_fault": false
+    }
+  },
+  "gc_wall_ns": 17925938,
+  "normal_frames_after_gc": [
+    12339,
+    12340,
+    12341,
+    12342
+  ],
+  "inherited_dependency_age_ns": 24661935,
+  "fault_dependency_age_ns": 30883485,
+  "fault_after_gc_ns": 12777518,
+  "next_pump_after_gc_ns": 6955483,
+  "original_next_frame_reasons": {
+    "unavailable": "0",
+    "proof_unreadable": "0",
+    "settlement": "0",
+    "stopped": "0",
+    "invalid": "0",
+    "not_due": "0",
+    "gap": "0",
+    "protection": "0",
+    "ineligible": "122",
+    "staging": "0",
+    "ready": "1"
+  },
+  "original_admissions": 60000,
+  "original_ingress": 36009,
+  "preview_query_kinds": {
+    "Q": "counterfactual 2ms extra reserve",
+    "R": "counterfactual 1ms extra reserve",
+    "H": "counterfactual 0.5ms extra reserve",
+    "T": "counterfactual 0.25ms extra reserve",
+    "C": "original 0.3ms extra reserve",
+    "Z": "counterfactual 0ms extra reserve"
+  },
+  "counterfactual_windows": {
+    "Q": [
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 18554,
+        "last_after_gc_ns": 868554,
+        "queries": 18
+      },
+      {
+        "accepted": true,
+        "reason": "",
+        "first_after_gc_ns": 918554,
+        "last_after_gc_ns": 4868554,
+        "queries": 80
+      },
+      {
+        "accepted": false,
+        "reason": "native_wheel_interval",
+        "first_after_gc_ns": 4918554,
+        "last_after_gc_ns": 10868554,
+        "queries": 120
+      },
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 10918554,
+        "last_after_gc_ns": 12768554,
+        "queries": 38
+      }
+    ],
+    "R": [
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 18554,
+        "last_after_gc_ns": 868554,
+        "queries": 18
+      },
+      {
+        "accepted": true,
+        "reason": "",
+        "first_after_gc_ns": 918554,
+        "last_after_gc_ns": 5868554,
+        "queries": 100
+      },
+      {
+        "accepted": false,
+        "reason": "native_wheel_interval",
+        "first_after_gc_ns": 5918554,
+        "last_after_gc_ns": 10868554,
+        "queries": 100
+      },
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 10918554,
+        "last_after_gc_ns": 12768554,
+        "queries": 38
+      }
+    ],
+    "H": [
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 18554,
+        "last_after_gc_ns": 868554,
+        "queries": 18
+      },
+      {
+        "accepted": true,
+        "reason": "",
+        "first_after_gc_ns": 918554,
+        "last_after_gc_ns": 6368554,
+        "queries": 110
+      },
+      {
+        "accepted": false,
+        "reason": "native_wheel_interval",
+        "first_after_gc_ns": 6418554,
+        "last_after_gc_ns": 10868554,
+        "queries": 90
+      },
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 10918554,
+        "last_after_gc_ns": 12768554,
+        "queries": 38
+      }
+    ],
+    "T": [
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 18554,
+        "last_after_gc_ns": 868554,
+        "queries": 18
+      },
+      {
+        "accepted": true,
+        "reason": "",
+        "first_after_gc_ns": 918554,
+        "last_after_gc_ns": 6618554,
+        "queries": 115
+      },
+      {
+        "accepted": false,
+        "reason": "native_wheel_interval",
+        "first_after_gc_ns": 6668554,
+        "last_after_gc_ns": 10868554,
+        "queries": 85
+      },
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 10918554,
+        "last_after_gc_ns": 12768554,
+        "queries": 38
+      }
+    ],
+    "C": [
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 18554,
+        "last_after_gc_ns": 868554,
+        "queries": 18
+      },
+      {
+        "accepted": true,
+        "reason": "",
+        "first_after_gc_ns": 918554,
+        "last_after_gc_ns": 6568554,
+        "queries": 114
+      },
+      {
+        "accepted": false,
+        "reason": "native_wheel_interval",
+        "first_after_gc_ns": 6618554,
+        "last_after_gc_ns": 10868554,
+        "queries": 86
+      },
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 10918554,
+        "last_after_gc_ns": 12768554,
+        "queries": 38
+      }
+    ],
+    "Z": [
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 18554,
+        "last_after_gc_ns": 868554,
+        "queries": 18
+      },
+      {
+        "accepted": true,
+        "reason": "",
+        "first_after_gc_ns": 918554,
+        "last_after_gc_ns": 6868554,
+        "queries": 120
+      },
+      {
+        "accepted": false,
+        "reason": "native_wheel_interval",
+        "first_after_gc_ns": 6918554,
+        "last_after_gc_ns": 10868554,
+        "queries": 80
+      },
+      {
+        "accepted": false,
+        "reason": "native_command_interval_or_causal",
+        "first_after_gc_ns": 10918554,
+        "last_after_gc_ns": 12768554,
+        "queries": 38
+      }
+    ]
+  },
+  "original_staging_costs": {
+    "admitted_to_check_ns": {
+      "count": 11884,
+      "median_ns": 73029.5,
+      "p95_ns": 100827.8,
+      "p99_ns": 126579.43,
+      "max_ns": 181559,
+      "above_250us": 0,
+      "above_500us": 0,
+      "above_1ms": 0
+    },
+    "check_to_applied_ns": {
+      "count": 11884,
+      "median_ns": 103100.5,
+      "p95_ns": 131048.5,
+      "p99_ns": 172015.97,
+      "max_ns": 419093,
+      "above_250us": 1,
+      "above_500us": 0,
+      "above_1ms": 0
+    },
+    "admitted_to_applied_ns": {
+      "count": 11884,
+      "median_ns": 176369.5,
+      "p95_ns": 227450.6,
+      "p99_ns": 294919.07,
+      "max_ns": 525311,
+      "above_250us": 371,
+      "above_500us": 1,
+      "above_1ms": 0
+    }
+  },
+  "next_candidate": {
+    "owner_physical_cores": 4,
+    "image_physical_cores": 2,
+    "extra_preview_ns": 300000,
+    "original_final_gate_unchanged": true,
+    "physical_interval_ns": 5000000,
+    "hv_age_ns": 30000000,
+    "scope": "prospective CPU redistribution comparison; no claimed recovery or guaranteed video latency"
+  },
+  "interpretation": "Four normal post-GC frames still inherited the pre-GC wheel/actuator source time. The next frame waited under the original300us preview and held HV expired. Counterfactual queries do not advance physics or prove another trajectory recovers. Preserve the original FAIL; compare GC duration and image latency with an additional owner core while retaining the same final gate."
+}

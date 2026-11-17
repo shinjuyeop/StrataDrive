@@ -16,8 +16,8 @@ module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
 
 class OwnerGcLauncherTests(unittest.TestCase):
     def fixture(self, root, wrong_pid=False):
-        series = root/'docs/test-plan/evidence/m10_gc_recovery_v3'; series.mkdir(parents=True)
-        work = root/'build/m10-gc-recovery-v3'; work.mkdir(parents=True)
+        series = root/'docs/test-plan/evidence/m10_gc_owner4_v1'; series.mkdir(parents=True)
+        work = root/'build/m10-gc-owner4-v1'; work.mkdir(parents=True)
         python = root/'build/m10-perception/cuda-venv/bin/python'
         python.parent.mkdir(parents=True); python.symlink_to(sys.executable)
         helper = root/'tools/m10_boost_lease.py'; helper.parent.mkdir(); helper.write_text('# unchanged narrow helper\n')

@@ -5,14 +5,15 @@ from pathlib import Path
 from audit_owner_wait_v1 import stamp,delta
 
 def declared_owner_cpus(server):
-    # Only the two explicit, disjoint Host layouts are supported. In particular,
+    # Only the explicit, disjoint Host layouts are supported. In particular,
     # accepting a new owner core must not silently allow overlap with native,
     # observer or renderer threads.
     plan=server['host_resources']['cpus']
     common=dict(native=[1,9],observer=[0,8])
     baseline=dict(common,owner=[2,3,10,11],renderer=[4,5,6,7,12,13,14,15])
     three=dict(common,owner=[2,3,4,10,11,12],renderer=[5,6,7,13,14,15])
-    if plan not in (baseline,three):raise ValueError('declared disjoint two/three-core owner layout')
+    four=dict(common,owner=[2,3,4,5,10,11,12,13],renderer=[6,7,14,15])
+    if plan not in (baseline,three,four):raise ValueError('declared disjoint two/three/four-core owner layout')
     return tuple(plan['owner'])
 
 def declared_policy(server):
@@ -32,7 +33,7 @@ def declared_policy(server):
     return serial
 
 def validate(profile,serial,owner_cpus=(2,3,10,11)):
-    if tuple(owner_cpus) not in ((2,3,10,11),(2,3,4,10,11,12)):
+    if tuple(owner_cpus) not in ((2,3,10,11),(2,3,4,10,11,12),(2,3,4,5,10,11,12,13)):
         raise ValueError('declared owner CPU set')
     if int(profile['errors']) or profile['active'] is not False:
         raise ValueError('incomplete or invalid GC journal')

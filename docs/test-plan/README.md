@@ -9,7 +9,7 @@
 | 분야 | 최신 연결 |
 | --- | --- |
 | 작업 순서·수용 판정 | [프로젝트 상태](../project-status.md#다음-작업) |
-| 물리·영상 동시 실행과 Host 부하 | [GC 후 갱신 대기·만료](evidence/m10_gc_owner3_v1/README.md) · [재시험 준비 실패](evidence/m10_gc_recovery_v1/README.md) · [첫30초 물리 통과·감사 오류](evidence/m10_gc_recovery_v2/README.md) · [감사 수정 후보](evidence/m10_gc_recovery_v3/README.md) · [사전 프로토콜](perception-gc-recovery-v3-protocol.md) · [이전 시험 목록](../archive/implementation-history.md#m10-host-실행-이력) |
+| 물리·영상 동시 실행과 Host 부하 | [30초2회 통과·5분 GC 뒤 만료](evidence/m10_gc_recovery_v3/README.md) · [owner4/image2 비교 후보](evidence/m10_gc_owner4_v1/README.md) · [사전 프로토콜](perception-gc-owner4-v1-protocol.md) · [이전 시험 목록](../archive/implementation-history.md#m10-host-실행-이력) |
 | 인지 후보·독립 품질 | [모델 선정](../perception-model-selection.md) · [V9 평가](evidence/m10_quality_v9/README.md) · [해상도 후보](evidence/m10_resolution_v2/README.md) |
 | 2K/4K 실제 수신·지연 | [동일 조건 비교](evidence/m10_source_compare_v2/README.md) · [제한된2K 지연 개선·미채택 조건](evidence/m10_latency_2k_v1/README.md) |
 | 비동기 상태·인지·조회 | [실제 월드](evidence/m10_world_async_v1/README.md) · [준비·반복 관측](evidence/m10_native_startup_v1/README.md) |

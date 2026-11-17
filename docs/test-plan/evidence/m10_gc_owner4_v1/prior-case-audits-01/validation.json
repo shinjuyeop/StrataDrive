@@ -1,0 +1,26 @@
+{
+  "status": "PASS_PRIOR_THREE_CORE_GATES_AND_FOUR_CORE_REJECTION",
+  "results": {
+    "audit_library_prefetch_v1.py": {
+      "status": "PASS_GC_RECOVERY_PREFETCH_INTEGRITY",
+      "reference": "admission-window.json",
+      "exact_normalized_result": true
+    },
+    "audit_owner_gc_v1.py": {
+      "status": "PASS_GC_OBSERVATION_ONLY",
+      "reference": "owner-gc.json",
+      "exact_normalized_result": true
+    },
+    "audit_owner_four_v1.py": {
+      "status": "EXPECTED_REJECTION_OF_THREE_CORE_CASE",
+      "error": "explicit owner/image physical-core plan"
+    }
+  },
+  "source_archive_sha256": "a99706c90429502914648f98fd16c5616b4b09a522c6db91aeb4561d1d6c6ffc",
+  "prior_run_archive_sha256": "9b581b6e4b2bf2aaaa015140b6a58872fd83b86d262e0ba7f05c1fe800a4497b",
+  "checked_metadata_members": 313,
+  "physical_receipts": 6000,
+  "scope": "retained V3 metadata; no new live run or four-core acceptance",
+  "pythonpath_removed": true,
+  "cwd": "/tmp"
+}

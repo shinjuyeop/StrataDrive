@@ -38,7 +38,7 @@ def validate(report, profile_bytes, before_ns):
     return dict(files=len(report['files']),bytes=report['declared_bytes'],elapsed_ns=end-begin)
 
 
-def audit(run):
+def audit(run,recovery_check=recovery_audit):
     read=lambda name:json.loads((run/name).read_text())
     if read('server.json').get('prefetch_inference_libraries') is not True:
         raise ValueError('explicit inference library prefetch selection')
@@ -46,7 +46,7 @@ def audit(run):
     renderer=read('capture/paired/renderer/result.json')
     checks=dict(owner=validate(owner['library_prefetch'],profile,owner['preparation']['started_wall_ns']),
                 renderer=validate(renderer['library_prefetch'],profile,renderer['preparation'][0]['begin_ns']))
-    result=recovery_audit(run)
+    result=recovery_check(run)
     result.update(status='PASS_GC_RECOVERY_PREFETCH_INTEGRITY',library_prefetch=checks,
         scope='same recovery/physics gates; recorded pinned library reads before unchanged model probes; not physical acceptance')
     return result

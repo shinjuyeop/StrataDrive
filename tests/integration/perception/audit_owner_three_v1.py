@@ -7,9 +7,9 @@ from audit_purge_slice_v1 import audit as purge_audit
 
 PLAN=dict(owner=[2,3,4,10,11,12],native=[1,9],renderer=[5,6,7,13,14,15],observer=[0,8])
 
-def validate_placement(server,initial):
-    if server['host_resources']['cpus']!=PLAN or declared_owner_cpus(server)!=tuple(PLAN['owner']):
-        raise ValueError('explicit three-owner/three-image physical-core plan')
+def validate_placement(server,initial,plan=PLAN):
+    if server['host_resources']['cpus']!=plan or declared_owner_cpus(server)!=tuple(plan['owner']):
+        raise ValueError('explicit owner/image physical-core plan')
     if server['host_resources'].get('owner_scheduler'):
         raise ValueError('unchanged owner SCHED_OTHER policy')
     end=initial+server['endurance_seconds']*1_000_000_000
@@ -21,7 +21,7 @@ def validate_placement(server,initial):
             if role=='client/child':
                 role='native' if proc['scheduler']==1 and proc['priority']==18 else 'pipeline'
             if role not in counts:continue
-            expected=PLAN['observer' if role=='client' else 'renderer' if role=='pipeline' else role]
+            expected=plan['observer' if role=='client' else 'renderer' if role=='pipeline' else role]
             policy,priority=(1,18) if role=='native' else (0,0)
             if proc['affinity']!=expected or proc['scheduler']!=policy or proc['priority']!=priority:
                 raise ValueError('actual measured process placement/policy: '+role)

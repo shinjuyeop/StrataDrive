@@ -1,0 +1,57 @@
+{
+  "scope": "original delegates and incremental purge journal",
+  "cycles": [],
+  "incremental_purge": {
+    "enabled": true,
+    "budget_ns": "100000",
+    "errors": "0",
+    "cycles": []
+  },
+  "integrity": {
+    "status": "PASS_GC_RECOVERY_PREFETCH_INTEGRITY",
+    "receipts": 6000,
+    "normal": 5838,
+    "preview_reserve_ns": 300000,
+    "physics_interval_ns": 5000000,
+    "original_age_ns": 30000000,
+    "scope": "same recovery/physics gates; recorded pinned library reads before unchanged model probes; not physical acceptance",
+    "purges": [],
+    "requested_slice_ns": 100000,
+    "owner_cpus": [
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "renderer_cpus": [
+      5,
+      6,
+      7,
+      13,
+      14,
+      15
+    ],
+    "measured_placement_samples": {
+      "owner": 30,
+      "renderer": 30,
+      "client": 30,
+      "native": 30,
+      "pipeline": 30
+    },
+    "library_prefetch": {
+      "owner": {
+        "files": 12,
+        "bytes": 1909074752,
+        "elapsed_ns": 1581417994
+      },
+      "renderer": {
+        "files": 12,
+        "bytes": 1909074752,
+        "elapsed_ns": 1588277808
+      }
+    }
+  },
+  "first_fault_ns": null
+}

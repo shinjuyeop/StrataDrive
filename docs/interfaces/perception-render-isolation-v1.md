@@ -107,29 +107,26 @@ or moving only Python inference does not establish this boundary.
    progression cap and a100ms model camera period (target10Hz). These are distinct
    rates and do not change physical5ms or relabel source timestamps. Live raw BGRA
    is written to NVMe; lossless archive compression runs after control finishes.
-4. Preserve every actual frame and failed verdict. The owner3/image3-core
-   comparison passed two30s cases but failed the300s case at60.196s. Its first
-   main GC shortened to16.653ms, and incremental purge completed in419 calls
-   with a164.231us maximum slice. Three normal post-GC frames still inherited
-   the pre-GC wheel/actuator source. The next update waited under the1ms extra
-   preview, and held HV expired at30.383242ms. All1,500,010 eligible native
-   slots had no missing/late completion in this run; intermittent gaps and
-   cooling margin remain open. Original proof replay supports comparing an
-   explicit300us extra preview with the same CPU plan. The final Admission
-   class, pre-physics guard,5ms interval, HV30ms and held-expiry ordering stay
-   unchanged. Observed staging cost is not a future bound. Recovery V1 failed
-   before native start at the original10s model preparation deadline. Its busy
-   worker cleanup/SIGSEGV remains preserved without a proven stack-level cause.
-   V2 adds recorded, hash-pinned library reads with no extra inference or relaxed
-   deadlines. Its first70%30s physical case passed:6000 receipts, no protection,
-   no missing/late native slots,9.233Hz camera and76°C observed maximum. The
-   supplemental auditor failed to import its repository module as a standalone
-   process, stopping the sequence before its second30s and300s cases. Posthoc
-   original-with-root and corrected standalone audits match on the same records;
-   the original sequence remains FAIL. No GC occurred, so recovery is unmeasured.
-   V3 fixes only auditor bootstrap, adds standalone subprocess checks and retains
-   identical runtime/acceptance. Python539/frozen127 and eight auditor entrypoints
-   pass; the new70% sequence is NOT STARTED.
+4. Preserve every actual frame and failed verdict. Recovery V3 fixes the earlier
+   standalone auditor import failure without changing runtime or deadlines. Both
+   30s cases and all eight frozen supplemental audits pass. The300s case fails
+   at60.242013606s with held HV dependency age30.883485ms. Its first main GC takes
+   17.925938ms; four normal post-GC frames still inherit the pre-GC dependency.
+   First incremental purge finishes in408 calls over2.017s, maximum156.412us.
+   Original60000 admissions,36009 ingress records and first-fault replay match.
+   At the exact next pump6.955483ms after GC, both the original300us and a
+   counterfactual0 extra preview reject the published proof for wheel freshness.
+   These read-only queries do not establish a different physical trajectory.
+   All1,500,000 eligible native slots complete without missing/late entries in
+   this case; intermittent gaps and cooling margin remain open. Maximum observed
+   CPU temperature is89°C with no observed throttle-counter increase. Camera
+   rate is9.233Hz; pre-fault results have80.227ms median and85.999ms p95, with
+   one100ms exceedance. Protected-hold video is not normal-driving acceptance.
+   The prospective owner4/image2 comparison transfers one whole physical core
+   with its SMT sibling. The unchanged module, model,300us preview, final
+   Admission class, pre-physics guard,5ms interval, HV30ms and held-expiry order
+   remain fixed. Measure both GC recovery and possible image-side contention;
+   preparation success does not establish70% physical acceptance.
    See the [current decision and evidence](../project-status.md#최신-m10-판단)
    and [execution history](../archive/implementation-history.md#m10-host-실행-이력).
    20Hz camera throughput is not a gate; the target remains1× wall behavior
