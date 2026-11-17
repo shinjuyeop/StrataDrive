@@ -4,6 +4,8 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import subprocess
+import sys
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -14,6 +16,27 @@ from control_shadow_capture_v1 import Capture
 
 
 class LibraryPrefetchTests(unittest.TestCase):
+    def test_standalone_auditor_help_without_repository_environment(self):
+        script=Path(__file__).with_name('audit_library_prefetch_v1.py').resolve()
+        with tempfile.TemporaryDirectory() as folder:
+            env={k:v for k,v in os.environ.items() if k!='PYTHONPATH'}
+            result=subprocess.run([sys.executable,str(script),'--help'],cwd=folder,
+                                  env=env,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertIn('--run',result.stdout)
+
+    def test_standalone_auditor_records_missing_run_failure(self):
+        script=Path(__file__).with_name('audit_library_prefetch_v1.py').resolve()
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);output=root/'audit.json'
+            env={k:v for k,v in os.environ.items() if k!='PYTHONPATH'}
+            result=subprocess.run([sys.executable,str(script),'--run',str(root),
+                                   '--output',str(output)],cwd=root,env=env,
+                                  capture_output=True,text=True)
+            self.assertEqual(result.returncode,1,result.stderr)
+            self.assertEqual(json.loads(output.read_text())['status'],'FAIL')
+            self.assertNotIn('ModuleNotFoundError',result.stderr)
+
     def fixture(self,root):
         path=root/'lib.so.1';path.write_bytes(b'unchanged library fixture')
         item=dict(path=path.name,bytes=path.stat().st_size,sha256=hashlib.sha256(path.read_bytes()).hexdigest())

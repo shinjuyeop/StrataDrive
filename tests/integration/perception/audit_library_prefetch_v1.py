@@ -3,6 +3,10 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import sys
+
+# Standalone execution and frozen archive replay must resolve their own tree.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from audit_gc_recovery_v1 import audit as recovery_audit
 from physical_ai.perception.library_prefetch_v1 import READ_BUDGET_NS
 

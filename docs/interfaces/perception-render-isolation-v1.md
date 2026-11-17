@@ -117,15 +117,19 @@ or moving only Python inference does not establish this boundary.
    cooling margin remain open. Original proof replay supports comparing an
    explicit300us extra preview with the same CPU plan. The final Admission
    class, pre-physics guard,5ms interval, HV30ms and held-expiry ordering stay
-   unchanged. Observed staging cost is not a future bound. Python529/frozen117/
-   C++29 and empty-renderer preparation passed; the new physical trial has not
-   reached native start: its first attempt failed the original10s model preparation
-   deadline, with0 physical receipts and camera frames. D-state/major-fault samples
-   support startup page I/O as a contributor; the client SIGSEGV after a busy-worker
-   cleanup timeout remains unproven at stack level. Recovery V2 reuses the module
-   and adds explicitly recorded, hash-pinned library reads before model construction,
-   without extra inference or relaxed preparation deadlines. Its actual two setup
-   paths and Python537/frozen125 tests pass;70% physical work is not started.
+   unchanged. Observed staging cost is not a future bound. Recovery V1 failed
+   before native start at the original10s model preparation deadline. Its busy
+   worker cleanup/SIGSEGV remains preserved without a proven stack-level cause.
+   V2 adds recorded, hash-pinned library reads with no extra inference or relaxed
+   deadlines. Its first70%30s physical case passed:6000 receipts, no protection,
+   no missing/late native slots,9.233Hz camera and76°C observed maximum. The
+   supplemental auditor failed to import its repository module as a standalone
+   process, stopping the sequence before its second30s and300s cases. Posthoc
+   original-with-root and corrected standalone audits match on the same records;
+   the original sequence remains FAIL. No GC occurred, so recovery is unmeasured.
+   V3 fixes only auditor bootstrap, adds standalone subprocess checks and retains
+   identical runtime/acceptance. Python539/frozen127 and eight auditor entrypoints
+   pass; the new70% sequence is NOT STARTED.
    See the [current decision and evidence](../project-status.md#최신-m10-판단)
    and [execution history](../archive/implementation-history.md#m10-host-실행-이력).
    20Hz camera throughput is not a gate; the target remains1× wall behavior

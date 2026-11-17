@@ -1,0 +1,111 @@
+{
+  "status": "PASS_EVIDENCE_AND_RESTORATION_ONLY",
+  "original_sequence": {
+    "normal-30s-01": {
+      "runner_exit": 1,
+      "finite_diagnostic_pass": false
+    },
+    "normal-30s-02": "NOT_RUN_STOP_ON_FIRST_FAILURE_OR_LEASE_END",
+    "normal-300s-01": "NOT_RUN_STOP_ON_FIRST_FAILURE_OR_LEASE_END"
+  },
+  "original_verdicts_preserved": true,
+  "original_physical_audit": "PASS_DIAGNOSTIC_CASE_ONLY",
+  "original_supplemental_auditor": "FAILED_BEFORE_OUTPUT_IMPORT_ERROR",
+  "original_supplemental_reproductions": 7,
+  "posthoc_eighth_auditor": {
+    "status": "PASS_POSTHOC_AUDITOR_REPAIR_ONLY",
+    "original_sequence_pass": false,
+    "original_auditor_output_missing": true,
+    "original_source_sha256": "070a22e104b1ed2e6e2b718589af43efe091ca74cf7108e1f0a84ecb682e4832",
+    "corrected_source_sha256": "3958c7adedc526e848b1b89218d70213852800b34baeddc6935aea5a5ae04c54",
+    "same_audit_result": true,
+    "result": {
+      "status": "PASS_GC_RECOVERY_PREFETCH_INTEGRITY",
+      "receipts": 6000,
+      "normal": 5838,
+      "preview_reserve_ns": 300000,
+      "physics_interval_ns": 5000000,
+      "original_age_ns": 30000000,
+      "scope": "same recovery/physics gates; recorded pinned library reads before unchanged model probes; not physical acceptance",
+      "purges": [],
+      "requested_slice_ns": 100000,
+      "owner_cpus": [
+        2,
+        3,
+        4,
+        10,
+        11,
+        12
+      ],
+      "renderer_cpus": [
+        5,
+        6,
+        7,
+        13,
+        14,
+        15
+      ],
+      "measured_placement_samples": {
+        "owner": 30,
+        "renderer": 30,
+        "client": 30,
+        "native": 30,
+        "pipeline": 30
+      },
+      "library_prefetch": {
+        "owner": {
+          "files": 12,
+          "bytes": 1909074752,
+          "elapsed_ns": 1551493875
+        },
+        "renderer": {
+          "files": 12,
+          "bytes": 1909074752,
+          "elapsed_ns": 1551926190
+        }
+      }
+    },
+    "original_frozen_source_unchanged": true,
+    "scope": "No live rerun. Original runner exit 1 and missing original auditor result preserved; corrected import only, no acceptance changes."
+  },
+  "all_declared_finite_cases_pass": false,
+  "receipts": 6000,
+  "normal": 5838,
+  "init": 162,
+  "protected": 0,
+  "raw": 281,
+  "inferences": 277,
+  "camera_hz": 9.233110530989732,
+  "scene_result_ms": {
+    "median": 80.387085,
+    "p95": 87.1494544,
+    "max": 131.024888
+  },
+  "over_100ms": 1,
+  "hottest_c": 76.0,
+  "thermal_delta": {
+    "core_throttle_count": 0,
+    "package_throttle_count": 0
+  },
+  "native_deadlines": {
+    "all": {
+      "eligible": 150010,
+      "missing": 0,
+      "late": 0
+    },
+    "before_first_fault": {
+      "eligible": 150010,
+      "missing": 0,
+      "late": 0
+    },
+    "at_or_after_first_fault": {
+      "eligible": 0,
+      "missing": 0,
+      "late": 0
+    }
+  },
+  "gc_recovery_measured": false,
+  "continuous_driving_accepted": false,
+  "native_perception_accepted": false,
+  "milestone_closed": false
+}

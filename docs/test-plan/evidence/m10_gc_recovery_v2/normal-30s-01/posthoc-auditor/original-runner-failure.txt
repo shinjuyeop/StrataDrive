@@ -1,0 +1,14 @@
+START normal-30s-01
+SERVER EXIT 0 MONITOR 0
+AUDITS 0 0 0 STATE 0 STRUCTURED 0 WATCH 0
+SEALED; starting independent archive audit
+Traceback (most recent call last):
+  File "/d/shin/StrataDrive/docs/test-plan/evidence/m10_gc_recovery_v2/prospective-runner.py", line 213, in <module>
+    audit_and_seal(exit_code)
+  File "/d/shin/StrataDrive/docs/test-plan/evidence/m10_gc_recovery_v2/prospective-runner.py", line 198, in audit_and_seal
+    require_reproduction(json.loads((BUNDLE/'admission-window.json').read_text()),json.loads(reproduced_admission.read_text()),RUN,WORK/'archive-check/run')
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/d/shin/StrataDrive/docs/test-plan/evidence/m10_gc_recovery_v2/normal-30s-01/admission-window.json'

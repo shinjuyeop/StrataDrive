@@ -1,41 +1,48 @@
-# M10 GC recovery V2 — 라이브러리 시작 읽기 후보
+# M10 GC recovery V2 — 첫30초 물리 통과·감사 실행 오류
 
-[V1](../m10_gc_recovery_v1/README.md)은 첫 모델 준비10초 제한을 초과해 제어 시작 전에
-실패했다. 이 후보는 **같은300us 모듈**을 유지하며 명시적 opt-in으로 CUDA/cuBLAS/cuDNN
-12파일·1,909,074,752byte를 모델 생성 전에 순차 읽고 해시 확인한다.
-[사전 프로토콜](../../perception-gc-recovery-v2-protocol.md).
+**첫30초 물리 검사는 PASS, 원래 전체 sequence는 FAIL이다.** 추가 라이브러리 감사기가
+별도 Python 프로세스에서 `physical_ai`를 찾지 못해 결과 파일을 만들지 못했다.
+동결본 재현에서도 같은 import 오류가 발생했고 실행기가 종료됐다. 두 번째30초와5분은
+NOT RUN이다. 원래 실패와 누락된 감사 결과를 성공으로 덮어쓰지 않는다.
+[원래 sequence](sequence-disposition.json), [오류와 사후 검증](normal-30s-01/posthoc-auditor/validation.json).
 
-추론·카메라·제어 호출은 추가하지 않는다. 라이브러리 파일·버전·loader와 모델 계산은 같다.
-별도 읽기30초 제한이나 해시 검증에 실패하면 모델을 시작하지 않는다. 읽기 시간은 모두
-기록하고 원래3회 준비·총10초·후속 호출100ms·renderer30초 기준은 유지한다.
-읽기는 페이지를 고정하지 않으므로 이후 메모리 압박에서도 항상 빠르다고 보장하지 않는다.
+| 실제70% 첫30초 | 결과 |
+| --- | --- |
+| 물리 | 6000구간: 정상5838·INIT162·보호0 |
+| Native | 최초 오류 없음; eligible150010·누락0·지연0 |
+| 영상 | 원본281장·추론277회·약9.233Hz |
+| 원본 획득→결과 | 중앙80.387ms·p95 87.149ms·최대131.025ms·100ms 초과1회 |
+| CPU | 관측 최고76°C·열 제한 증가0 |
+| GC | 본 GC0회;300us 회복 효과 미측정 |
 
-[실제 두 준비 경로](model-paths-01/validation.json)는100%·CARLA 없는 조건에서 통과했다.
-owner 읽기1.179초 뒤357.670 /33.515 /33.725ms, renderer 읽기1.162초 뒤
-115.714 /34.277 /35.109ms였다. 이 실행은 캐시가 준비된 상태의 코드 연결 검증이다.
-별도 차가운 복사본의11.921초 읽기 비교는 V1 진단에 보존하며 실제70% 시험을 대신하지 않는다.
+[물리 감사](normal-30s-01/audit.json), [부하 분석](normal-30s-01/analysis.json),
+[기한 원본 집계](normal-30s-01/native-gap-analysis.json).
+유한 시나리오는 초반 가감속 뒤 정지 유지한다. 연속 주행이나 native 인지 수용은 아니다.
 
-Python537개·동결본125개를 통과했다. 내용 변경·경로 이탈·시간 초과·잘못된 flag·
-누락된 양쪽 읽기 기록을 거절하는 검사를 포함한다. 원래 C++29개와 빈 renderer 기동·종료
-검증은 동일한 테스트 코드·모듈·argv의 근거를 재사용했고 새 native 모듈은 빌드하지 않았다.
-[동등성](code-equivalence.json), [준비](prepared.json), [최종 검사](readiness-validation.json).
-1611파일의 동결본 SHA256은 `388000a8b327746e3edca541df3c561a2c737fcd5f452580ea2428b54b1b9174`이다.
-동일 모듈 SHA256은 `1feab7bc7a1c6788ec50fa507226ac01c99393d7b420912bba2e3cc1411a8eff`다.
-**본시험은 NOT STARTED**다.
+V1에서 막힌 모델 준비는 이번 실제 시험에서 통과했다. Owner 라이브러리 읽기1.551초,
+모델 호출495.830 /39.293 /35.841ms였고 worker는 정상 종료했다. Renderer 읽기도1.552초다.
+[두 경로 원본 준비 기록](normal-30s-01/startup-summary.json). 이 한 번의 통과가 차가운 캐시나
+메모리 압박에서 영구 해결을 보장하지 않는다.12파일·1,909,074,752byte 읽기30초와
+원래 모델 준비10초·후속100ms·물리5ms·HV30ms 제한은 그대로다.
 
-물리5ms·HV30ms·native2/4ms·원래 source 시각·held 만료 우선 순서와 최종 물리 검사는 같다.
-owner3/image3/native1/관측1코어·SMT 분리, 병렬 GC61.1초·12220프레임·증분 정리100us,
-2560×1536·D-FINE-M960 CUDA·목표 카메라10Hz·renderer20Hz/MaxFPS60·CV/resize4를 유지한다.
+원본 동결 감사기에 그 동결본의 root 경로만 제공한 결과와, bootstrap을 수정한 현재
+감사기의 독립 실행 결과가 완전히 같다. 모두 같은6000개 기록에서
+`PASS_GC_RECOVERY_PREFETCH_INTEGRITY`다. 이는 **사후 검사기 수리 검증**이며,
+기존 sequence FAIL이나 미실행된 후속 시험을 PASS로 바꾸지 않는다.
+원래7개 추가 감사 재현·물리 exact replay·최초 오류 재생·전체 archive 검사는 통과했다.
 
-```bash
-python3 /d/shin/StrataDrive/tools/m10_start_owner_gc.py
-```
+원래537개 Python·125개 동결 검사와 재사용 C++29, 실제 모델 준비 경로 검증은
+[준비 기록](prepared.json)에 남긴다. 원본1611파일 동결 SHA256은
+`388000a8b327746e3edca541df3c561a2c737fcd5f452580ea2428b54b1b9174`다.
+[사전 프로토콜](../../perception-gc-recovery-v2-protocol.md)의 조건과 판정은 변경하지 않는다.
 
-자산 준비 후 sudo 인증하고 APPLIED를 확인한다.70% 조건에서30초→30초→5분을 검사하며
-첫 실패에 후속 실행을 중단한다. 실행기 종료·Ctrl+C·최대30분 뒤100%로 복원한다.
-미래 품질 제외34241개와 모든 실패 원본을 보존한다.5분 안정성·전체 장면·native 인지 수용·
-독립 품질·각 Jetson 배포·M10 종료는 OPEN이다. 긴 backend 정지 시 worker 종료가 실패한
-V1 현상도 해결된 것으로 세지 않는다.
+실행기 종료로70→100%가 복원됐고 공유6파일도 원래 해시와 일치한다.
+[복원](restoration-confirmation.json), [최종 근거 검사](final-validation.json).
+원본 영상281장은 모두 보존하며 미래 품질 제외는34522개다. 전체 run/source/raw archive는
+로컬에 유지하고 [제한된 검토 묶음](normal-30s-01/bounded-review.json)을 별도 제공한다.
+무손실 raw 압축으로2.365GB, 해시 대조한 중복 추출본·spool 삭제로4.774GB를 회수했다.
+[정리 근거](storage-closeout.json), [체크섬](SHA256SUMS).
 
-동결본 검증 후 동일한 추출본만 삭제했다. 원본 소스 archive와 재사용 모듈은 보존한다.
-[추출본 정리](preparation-storage.json), [최종 체크섬](SHA256SUMS).
+다음 [Recovery V3](../m10_gc_recovery_v3/README.md)는 감사기 import 경로만 수정하고,
+저장소 밖·PYTHONPATH 없는 subprocess 검사와 동결본 검사를 추가한다.
+5분 안정성·전체 장면·native 인지·독립 품질·각 Jetson 배포·M10 종료는 OPEN이다.
