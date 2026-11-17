@@ -1,0 +1,169 @@
+{
+  "status": "RECORDED_ORIGINAL_EXPIRY_WINDOW",
+  "original_first_fault": {
+    "fault": 5,
+    "epoch": 42,
+    "model_epoch": 7,
+    "observed_ns": 1921356139814560,
+    "local_age_ns": 30000000,
+    "hv_dependency_age_ns": 30000000,
+    "local_skew_ns": 20000000,
+    "held_speed": {
+      "epoch": 7,
+      "sequence": 12344,
+      "source_ns": 1921356119664926,
+      "dependency_ns": 1921356119664926,
+      "rad_s": 0
+    },
+    "held_hv": {
+      "epoch": 7,
+      "sequence": 12344,
+      "source_ns": 1921356119664926,
+      "dependency_ns": 1921356109812082,
+      "voltage_v": 399.97874953512166,
+      "inverter_ready": true,
+      "local_fault": false
+    }
+  },
+  "collection": {
+    "completed_frame": 12344,
+    "begin": {
+      "wall_ns": 1921356119831201,
+      "cpu_ns": 48295481422,
+      "voluntary": 436884,
+      "involuntary": 402,
+      "minor_faults": 2461649,
+      "major_faults": 0,
+      "processor": 11,
+      "valid": 1
+    },
+    "memory_trim": {
+      "wall_ns": 1921356136767016,
+      "cpu_ns": 48296740987,
+      "voluntary": 436887,
+      "involuntary": 402,
+      "minor_faults": 2461696,
+      "major_faults": 0,
+      "processor": 11,
+      "valid": 1
+    },
+    "end": {
+      "wall_ns": 1921356138938748,
+      "cpu_ns": 48298912328,
+      "voluntary": 436887,
+      "involuntary": 402,
+      "minor_faults": 2461696,
+      "major_faults": 0,
+      "processor": 11,
+      "valid": 1
+    },
+    "delta": {
+      "wall_ns": 19107547,
+      "cpu_ns": 3430906,
+      "voluntary": 3,
+      "involuntary": 0,
+      "minor_faults": 47,
+      "major_faults": 0
+    },
+    "before_memory_trim": {
+      "wall_ns": 16935815,
+      "cpu_ns": 1259565,
+      "voluntary": 3,
+      "involuntary": 0,
+      "minor_faults": 47,
+      "major_faults": 0
+    },
+    "allocator_trim_to_gc_end": {
+      "wall_ns": 2171732,
+      "cpu_ns": 2171341,
+      "voluntary": 0,
+      "involuntary": 0,
+      "minor_faults": 0,
+      "major_faults": 0
+    }
+  },
+  "purge": {
+    "pending_at_collection_end": true,
+    "complete": true,
+    "first_frame": "12343",
+    "last_frame": "12749",
+    "first": {
+      "wall_ns": "1921356139575681",
+      "cpu_ns": "48299549035",
+      "voluntary": "436887",
+      "involuntary": "402",
+      "minor_faults": "2461698",
+      "major_faults": "0",
+      "processor": "11",
+      "valid": "1"
+    },
+    "last": {
+      "wall_ns": "1921358150441328",
+      "cpu_ns": "48957555886",
+      "voluntary": "451256",
+      "involuntary": "406",
+      "minor_faults": "2465066",
+      "major_faults": "0",
+      "processor": "3",
+      "valid": "1"
+    },
+    "work": {
+      "count": "407",
+      "wall_ns": "44905041",
+      "cpu_ns": "44951181",
+      "errors": "0",
+      "longest_begin": {
+        "wall_ns": "1921358104698951",
+        "cpu_ns": "48941921215",
+        "voluntary": "450936",
+        "involuntary": "406",
+        "minor_faults": "2465047",
+        "major_faults": "0",
+        "processor": "3",
+        "valid": "1"
+      },
+      "longest_end": {
+        "wall_ns": "1921358104852239",
+        "cpu_ns": "48942074817",
+        "voluntary": "450936",
+        "involuntary": "406",
+        "minor_faults": "2465047",
+        "major_faults": "0",
+        "processor": "3",
+        "valid": "1"
+      }
+    }
+  },
+  "inherited_dependency_age_ns": 9852844,
+  "dependency_age_at_collection_start_ns": 10019119,
+  "remaining_age_after_collection_ns": 873334,
+  "purge_start_after_collection_ns": 636933,
+  "remaining_age_at_purge_start_ns": 236401,
+  "fault_after_collection_ns": 875812,
+  "original_admissions": 60000,
+  "original_ingress": 36007,
+  "counterfactual_post_gc_queries": {
+    "Q": {
+      "queries": 18,
+      "accepted": 18,
+      "first_accepted_ns": 1921356138941340,
+      "last_accepted_ns": 1921356139791340,
+      "rejection_reasons": []
+    },
+    "R": {
+      "queries": 18,
+      "accepted": 18,
+      "first_accepted_ns": 1921356138941340,
+      "last_accepted_ns": 1921356139791340,
+      "rejection_reasons": []
+    },
+    "Z": {
+      "queries": 18,
+      "accepted": 18,
+      "first_accepted_ns": 1921356138941340,
+      "last_accepted_ns": 1921356139791340,
+      "rejection_reasons": []
+    }
+  },
+  "interpretation": "Incremental work drained with bounded observed calls, but original held HV expiry remained after the main collection. Query probes are read-only counterfactuals on original inputs, not observed polls or proof of recovery under another CPU layout. The original FAIL is preserved."
+}

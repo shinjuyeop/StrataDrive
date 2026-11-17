@@ -1,39 +1,53 @@
-# M10 Purge slice V1 — 실제 시험 전 후보
+# M10 Purge slice V1 — 분할 정리 작동, 본 GC 뒤 만료는 남음
 
-[병렬 GC V1](../m10_parallel_gc_v1/README.md)의 5분 실패를 보존한 후속 후보다.
-병렬 GC는21.21ms로 짧아졌지만 다음 갱신 전2.565ms CPU 작업 때문에 HV30ms를
-넘었다. 원래 입력으로 정확히 재생했으며 추가 여유를0으로만 줄여도 해당 pump는 늦다.
-엔진 기본 증분 정리2ms와의 관계를 새 직접 계측으로 확인한다.
-[사전 프로토콜](../../perception-purge-slice-v1-protocol.md).
+**30초 두 번은 PASS, 5분은60.226014049초 HV 만료로 FAIL**이다.
+원래 물리5ms·HV30ms·native2/4ms와 판정을 유지했다.
+[사전 프로토콜](../../perception-purge-slice-v1-protocol.md), [종합 결과](final-validation.json).
 
-시험 옵션 `--owner-purge-slice`에서만 GC 뒤 남은 정리를 엔진 프레임당0.1ms씩
-요청한다. 실제 wall/thread CPU·최장 구간·호출 횟수·완료를22,048바이트 POD에
-기록한다. 같은 프레임에 기본2ms 작업을 중복하지 않으며, pending 작업이 없으면
-스케줄을 건드리지 않는다. 전체/강제 GC 분기와61.1초 주기는 그대로다. 0.1ms는
-요청 예산이며 실제 상한을 보장하지 않는다. 5분에서4회 정리가 모두 끝나고 원래
-12220프레임 GC 간격을 유지해야 무결성 검사가 통과한다.
+| 항목 | 30초1회 | 30초2회 | 5분 |
+|---|---:|---:|---:|
+| 정상 / INIT / 보호 구간 | 5834 /166 /0 | 5838 /162 /0 | 11881 /162 /47957 |
+| native 누락 / 지연 | 0 /0 | 0 /0 | 0 /0 |
+| CPU 최고 | 78°C | 77°C | 91°C |
+| 원본 영상 | 283 | 282 | 2788 |
 
-이 옵션에서만 structured preview 추가 여유를2→1ms로 바꾼다. 기존 structured2ms·
-text4ms 기본값, 원래 최종 admission·전체5ms 물리·HV30ms·native2/4ms·센서 시각·
-이전 held 만료 우선 검사는 유지한다. native/plant287개 파일과 최종 허용·물리 코드를
-대조했다. [동등성 검사](code-equivalence.json).
+병렬 GC4회는19.108 /18.365 /18.363 /17.656ms였다. 첫 GC 뒤 증분 정리는407회에
+나눠2.011초 동안 완료됐고 실제 작업 합계44.905ms·최장 호출153.288us였다.
+나머지3회도 모두 완료됐으며, 원래12220프레임 간격과61.1초 주기를 유지했다.
+[직접 GC·정리 기록](normal-300s-01/gc-analysis.json),
+[원래6만 기록과 정리 무결성](normal-300s-01/admission-window.json).
 
-새 모듈 SHA256은 `0520f2a91d3e918510e6f4631d869205bff524f1724adf8d395f8e1647a0066f`다.
-Python522개·native admission28개 검사 통과. 새 모듈의 빈 서버 검증과 동결본110개
-검사·runtime 복원은 [준비 결과](prepared.json), [최종 준비 검증](readiness-validation.json)에
-기록했다. 새 빈 서버 준비는473.68초에 완료됐고 정상 종료·공유6파일·100% 복원을 확인했다.
-소스1560개를 동결했고 검증한 추출 중복만 제거했으며 원본 archive는 보존했다. **실제70% 조건의30초→30초→5분은 NOT STARTED**이며 해결·수용을 뜻하지 않는다.
+첫 GC가 시작할 때 held HV의 의존 나이는 이미10.019119ms였다.19.107547ms GC가
+끝나고 남은 만료 여유는0.873334ms였으며, 첫 분할 정리는 그 끝에서0.636933ms 뒤
+시작했다. native가 원래 held 입력을 검사할 때 나이가30.002478ms여서 보호로 전환했다.
+분할 정리만 줄여서는 본 GC와 기존 입력 나이가 합쳐지는 문제를 해결하지 못했다.
+[최초 오류](normal-300s-01/first-fault-analysis.json),
+[원래 입력 재생·남은 여유](normal-300s-01/expiry-window-analysis.json).
 
-```bash
-python3 /d/shin/StrataDrive/tools/m10_start_owner_gc.py
-```
+GC 종료를 기준으로 다음 프레임의 실제 admission은 +0.793ms에 통과했지만,
+입력 준비 완료는 +0.957ms, 새 물리 관측 시작은 +1.625ms였다. 기존 held 입력은
++0.876ms에 만료됐다. 따라서 허용 검사 거절이 아니라, 허용 후 교체 입력을 만들기
+전에 만료된 사례다. [원본 프레임 발췌](normal-300s-01/post-gc-frames.json)는
+[추출 도구](extract-post-gc-frames.py)로 동일하게 재현한다.
 
-시작 도구는 이 후보를 선택한다. 실행마다 자산을 준비하고 sudo 인증 후 새 PID로
-70% 임시 상한을 적용한다. `APPLIED`가 실제 적용 표시다. 첫 실패 후 후속 실행을
-중단하며, owner 종료·Ctrl+C·최대30분 뒤100%로 복원한다. 비밀번호는 sudo가 직접
-받으며 저장하지 않는다. 기존70% 조건·CPU/FIFO 배치·2K2560×1536·D-FINE-M960 CUDA·
-카메라10Hz·renderer20Hz/MaxFPS60·준비600초·기동180초·종료30초는 유지한다.
+native150만 eligible 슬롯의 누락·지연은 모두0이고 최초 오류와 전체 native 기록이
+정확히 재생됐다. 이전 조건의18슬롯 누락이 이번에는 재발하지 않았다는 범위다.
+CPU 최고91°C·관측 열 제한 카운터 증가0이며 장기 냉각 여유를 확정하지 않는다.
+5분 카메라 약9.28Hz, 최초 오류 전 결과558개는 중앙78.37ms·p95 85.37ms·100ms
+초과2회다. 전체의 초과3회와 보호 유지 영상을 정상 주행 수용으로 승격하지 않는다.
+[전후 지연](normal-300s-01/latency-phases.json), [native 기한](normal-300s-01/native-gap-analysis.json).
 
-이전 시험 후반 native18슬롯 누락은 별도 미해결이다. 새 후보도 native 누락0과
-원래 물리 기준을 만족해야 한다. 품질 제외27550개에서 이어가고 모든 원본·실패를
-보존한다. 연속 주행·전체 장면·독립 품질·native 인지 수용·각 Jetson 배포·M10은 OPEN이다.
+원본3353장을 보존하고 미래 품질 제외는30903개로 이어간다. 전체 run/raw는 로컬,
+source 동결본과 bounded-review는 Git에 포함한다. bounded-review는 부분 검토용이며
+전체 백업이 아니다. 원본 archive·동결 검사 재현과 공유6파일·부스트100% 복원은
+[종합 검증](final-validation.json), [복원 확인](restoration-confirmation.json)에 기록한다.
+
+원본198개 묶음의 무손실 압축으로27.79GB, 해시 대조를 끝낸
+추출 중복본 정리로1.68GB를 줄였다(합계29.47GB). 전체 원본·
+동결본·검토 묶음·현재 빌드는 보존한다. [정리 근거](storage-closeout.json),
+[최종 체크섬](SHA256SUMS), [대형 archive 해시 재사용 범위](checksum-basis.json).
+
+후속 [GC owner3코어 V1](../m10_gc_owner3_v1/README.md)은 같은 모듈에서 물리 owner를
+2→3코어, 렌더러·영상 공유를4→3코어로 비교하는 후보이며 아직 실행 전이다.
+현재 시작 도구는 후속 후보를 선택한다. 연속 주행·5분 안정성·native 인지 수용·전체
+장면·독립 품질·각 Jetson 배포·M10은 OPEN이다.

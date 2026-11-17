@@ -11,6 +11,7 @@ class PurgeSliceTests(unittest.TestCase):
     def test_short_run_record_shape_and_actual_configuration(self):
         server=dict(profile_owner_gc=True,profile_state_path=True,owner_purge_slice=True,
                     endurance_seconds=30,argv=dict(owner=['-StrataM10GcProfile','-StrataM10PurgeSlice'],renderer=[]))
+        server['host_resources']=dict(cpus=dict(owner=[2,3,10,11],native=[1,9],renderer=[4,5,6,7,12,13,14,15],observer=[0,8]))
         binding=dict(structured_state=True,incremental_purge_slice=True,wall_preview_reserve_ns='1000000',
                      model_step_ns='5000000',admission_profile='whole-interval-v1')
         receipt=dict(model_step_ns='5000000',admission_profile='whole-interval-v1',

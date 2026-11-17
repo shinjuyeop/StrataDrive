@@ -1,0 +1,3297 @@
+{
+  "status": "PASS_OWNER_WAIT_INTEGRITY_ONLY",
+  "scope": "thread counters cannot distinguish blocking from a particular kernel cause; original audits still required",
+  "receipts": 6000,
+  "reasons": {
+    "unavailable": 0,
+    "proof_unreadable": 3,
+    "settlement": 11214,
+    "stopped": 0,
+    "invalid": 0,
+    "not_due": 176819,
+    "gap": 0,
+    "protection": 0,
+    "ineligible": 8164,
+    "staging": 119,
+    "ready": 6000
+  },
+  "last_ineligible_frames": {
+    "native_command_interval_or_causal": 2514
+  },
+  "per_receipt_wait": {
+    "active": {
+      "wall_ns": {
+        "count": 6000,
+        "median_ns": 269781.5,
+        "p95_ns": 410761.5,
+        "max_ns": 692891
+      },
+      "cpu_ns": {
+        "count": 6000,
+        "median_ns": 269390.0,
+        "p95_ns": 410380.1,
+        "max_ns": 692250
+      },
+      "voluntary": {
+        "count": 6000,
+        "median_ns": 0.0,
+        "p95_ns": 0.0,
+        "max_ns": 1
+      },
+      "involuntary": {
+        "count": 6000,
+        "median_ns": 0.0,
+        "p95_ns": 0.0,
+        "max_ns": 0
+      }
+    },
+    "idle": {
+      "wall_ns": {
+        "count": 6000,
+        "median_ns": 3369629.0,
+        "p95_ns": 4434311.05,
+        "max_ns": 5404755
+      },
+      "cpu_ns": {
+        "count": 6000,
+        "median_ns": 84823.5,
+        "p95_ns": 113686.5,
+        "max_ns": 238391
+      },
+      "voluntary": {
+        "count": 6000,
+        "median_ns": 33.0,
+        "p95_ns": 43.0,
+        "max_ns": 49
+      },
+      "involuntary": {
+        "count": 6000,
+        "median_ns": 0.0,
+        "p95_ns": 0.0,
+        "max_ns": 1
+      }
+    },
+    "outside": {
+      "wall_ns": {
+        "count": 6000,
+        "median_ns": 590852.5,
+        "p95_ns": 932649.0,
+        "max_ns": 1729566
+      },
+      "cpu_ns": {
+        "count": 6000,
+        "median_ns": 590425.5,
+        "p95_ns": 932811.6,
+        "max_ns": 1729649
+      },
+      "voluntary": {
+        "count": 6000,
+        "median_ns": 0.0,
+        "p95_ns": 0.0,
+        "max_ns": 1
+      },
+      "involuntary": {
+        "count": 6000,
+        "median_ns": 0.0,
+        "p95_ns": 0.0,
+        "max_ns": 1
+      }
+    }
+  },
+  "worst_outside": [
+    {
+      "frame": 3978,
+      "ticket": 3670,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 190513,
+          "cpu_ns": 190757,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3160,
+          "cpu_ns": 2899,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 734978,
+          "cpu_ns": 718237,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 21269,
+          "cpu_ns": 20767,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 25842,
+          "cpu_ns": 25846,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4799,
+          "cpu_ns": 4782,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 19447,
+          "cpu_ns": 19460,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9414,
+          "cpu_ns": 9393,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 769,
+          "cpu_ns": 748,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 521,
+          "cpu_ns": 512,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 29,
+          "errors": 0,
+          "wall_ns": 422934,
+          "cpu_ns": 423011,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 28,
+          "errors": 0,
+          "wall_ns": 2897669,
+          "cpu_ns": 76342,
+          "voluntary": 28,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 29,
+          "errors": 0,
+          "wall_ns": 1729566,
+          "cpu_ns": 1729649,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 19,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 9,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    },
+    {
+      "frame": 2837,
+      "ticket": 2529,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 277639,
+          "cpu_ns": 277868,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4378,
+          "cpu_ns": 4052,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 997130,
+          "cpu_ns": 975349,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 30180,
+          "cpu_ns": 29685,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 35375,
+          "cpu_ns": 35270,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 7864,
+          "cpu_ns": 7841,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 19985,
+          "cpu_ns": 20009,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 15705,
+          "cpu_ns": 15738,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1366,
+          "cpu_ns": 1229,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 720,
+          "cpu_ns": 745,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 17,
+          "errors": 0,
+          "wall_ns": 394124,
+          "cpu_ns": 393976,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 16,
+          "errors": 0,
+          "wall_ns": 1707981,
+          "cpu_ns": 87303,
+          "voluntary": 16,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 17,
+          "errors": 0,
+          "wall_ns": 1565574,
+          "cpu_ns": 1563159,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 16,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 6014,
+      "ticket": 5706,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 306460,
+          "cpu_ns": 306562,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 9,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4030,
+          "cpu_ns": 3855,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 981414,
+          "cpu_ns": 958026,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 12,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 36165,
+          "cpu_ns": 35388,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 63192,
+          "cpu_ns": 63179,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 9218,
+          "cpu_ns": 9217,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 34211,
+          "cpu_ns": 34228,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 20374,
+          "cpu_ns": 20429,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1478,
+          "cpu_ns": 1384,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 920,
+          "cpu_ns": 900,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 13,
+          "errors": 0,
+          "wall_ns": 425191,
+          "cpu_ns": 424970,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 9,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 12,
+          "errors": 0,
+          "wall_ns": 1219557,
+          "cpu_ns": 49171,
+          "voluntary": 12,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 13,
+          "errors": 0,
+          "wall_ns": 1527214,
+          "cpu_ns": 1527491,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 11,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 1,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    },
+    {
+      "frame": 864,
+      "ticket": 556,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 254697,
+          "cpu_ns": 254852,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3405,
+          "cpu_ns": 3251,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1386084,
+          "cpu_ns": 1372265,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 28645,
+          "cpu_ns": 28343,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 35999,
+          "cpu_ns": 36004,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 6644,
+          "cpu_ns": 6622,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 62502,
+          "cpu_ns": 62533,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 17468,
+          "cpu_ns": 17429,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1065,
+          "cpu_ns": 1045,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 877,
+          "cpu_ns": 871,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 17,
+          "errors": 0,
+          "wall_ns": 327799,
+          "cpu_ns": 327312,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 16,
+          "errors": 0,
+          "wall_ns": 1677598,
+          "cpu_ns": 62858,
+          "voluntary": 16,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 17,
+          "errors": 0,
+          "wall_ns": 1505077,
+          "cpu_ns": 1505217,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 47,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 16,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 2923,
+      "ticket": 2615,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 173143,
+          "cpu_ns": 173300,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2540,
+          "cpu_ns": 2344,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 643885,
+          "cpu_ns": 626630,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 17796,
+          "cpu_ns": 17392,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 23130,
+          "cpu_ns": 23134,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4054,
+          "cpu_ns": 4026,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 17465,
+          "cpu_ns": 17474,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9452,
+          "cpu_ns": 9454,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 938,
+          "cpu_ns": 909,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 556,
+          "cpu_ns": 557,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 21,
+          "errors": 0,
+          "wall_ns": 259679,
+          "cpu_ns": 259190,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 20,
+          "errors": 0,
+          "wall_ns": 2025653,
+          "cpu_ns": 78085,
+          "voluntary": 20,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 21,
+          "errors": 0,
+          "wall_ns": 1487842,
+          "cpu_ns": 1487826,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 11,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 20,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 6015,
+      "ticket": 5707,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 185037,
+          "cpu_ns": 185165,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 5,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2825,
+          "cpu_ns": 2645,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 712712,
+          "cpu_ns": 695793,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 19828,
+          "cpu_ns": 19384,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 24409,
+          "cpu_ns": 24409,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4481,
+          "cpu_ns": 4445,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 20531,
+          "cpu_ns": 20537,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9532,
+          "cpu_ns": 9550,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 709,
+          "cpu_ns": 675,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 538,
+          "cpu_ns": 539,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 19,
+          "errors": 0,
+          "wall_ns": 290530,
+          "cpu_ns": 290011,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 5,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 18,
+          "errors": 0,
+          "wall_ns": 1850979,
+          "cpu_ns": 70481,
+          "voluntary": 18,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 19,
+          "errors": 0,
+          "wall_ns": 1427178,
+          "cpu_ns": 1427121,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 18,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 4260,
+      "ticket": 3952,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 154360,
+          "cpu_ns": 154596,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2566,
+          "cpu_ns": 2293,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 589947,
+          "cpu_ns": 574454,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 17303,
+          "cpu_ns": 16903,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 22706,
+          "cpu_ns": 22678,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 3907,
+          "cpu_ns": 3886,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 16888,
+          "cpu_ns": 16912,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9092,
+          "cpu_ns": 9071,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 685,
+          "cpu_ns": 659,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 509,
+          "cpu_ns": 506,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 28,
+          "errors": 0,
+          "wall_ns": 259329,
+          "cpu_ns": 258754,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 27,
+          "errors": 0,
+          "wall_ns": 2756871,
+          "cpu_ns": 71126,
+          "voluntary": 27,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 28,
+          "errors": 0,
+          "wall_ns": 1412579,
+          "cpu_ns": 1412813,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 26,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 1,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    },
+    {
+      "frame": 466,
+      "ticket": 158,
+      "normal": false,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 150667,
+          "cpu_ns": 150804,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2701,
+          "cpu_ns": 2550,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1140212,
+          "cpu_ns": 1104623,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23951,
+          "cpu_ns": 23474,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 30437,
+          "cpu_ns": 30393,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4519,
+          "cpu_ns": 4494,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 40852,
+          "cpu_ns": 40873,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11750,
+          "cpu_ns": 11748,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 977,
+          "cpu_ns": 943,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 522,
+          "cpu_ns": 516,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 20,
+          "errors": 0,
+          "wall_ns": 223616,
+          "cpu_ns": 223249,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 19,
+          "errors": 0,
+          "wall_ns": 1936576,
+          "cpu_ns": 48755,
+          "voluntary": 19,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 20,
+          "errors": 0,
+          "wall_ns": 1346510,
+          "cpu_ns": 1346843,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 19,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 1070,
+      "ticket": 762,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 151681,
+          "cpu_ns": 151805,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2483,
+          "cpu_ns": 2325,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1017304,
+          "cpu_ns": 999509,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 18738,
+          "cpu_ns": 18362,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 22607,
+          "cpu_ns": 22593,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 3932,
+          "cpu_ns": 3898,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 36773,
+          "cpu_ns": 36814,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10534,
+          "cpu_ns": 10516,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 832,
+          "cpu_ns": 791,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 528,
+          "cpu_ns": 514,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 17,
+          "errors": 0,
+          "wall_ns": 237796,
+          "cpu_ns": 237355,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 16,
+          "errors": 0,
+          "wall_ns": 1667421,
+          "cpu_ns": 52642,
+          "voluntary": 16,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 17,
+          "errors": 0,
+          "wall_ns": 1323693,
+          "cpu_ns": 1323566,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 33,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 3,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 12,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 1,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    },
+    {
+      "frame": 2292,
+      "ticket": 1984,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 196494,
+          "cpu_ns": 196786,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3484,
+          "cpu_ns": 3165,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 972172,
+          "cpu_ns": 952123,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 20859,
+          "cpu_ns": 20329,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 31294,
+          "cpu_ns": 31302,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4959,
+          "cpu_ns": 4917,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 14242,
+          "cpu_ns": 14246,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 9859,
+          "cpu_ns": 9856,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 705,
+          "cpu_ns": 695,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 537,
+          "cpu_ns": 518,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 25,
+          "errors": 0,
+          "wall_ns": 310069,
+          "cpu_ns": 309704,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 24,
+          "errors": 0,
+          "wall_ns": 2345091,
+          "cpu_ns": 87805,
+          "voluntary": 24,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 25,
+          "errors": 0,
+          "wall_ns": 1312076,
+          "cpu_ns": 1310941,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 24,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 512,
+      "ticket": 204,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 160676,
+          "cpu_ns": 160876,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2528,
+          "cpu_ns": 2294,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1108189,
+          "cpu_ns": 1092227,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 18554,
+          "cpu_ns": 18015,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 22782,
+          "cpu_ns": 22762,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4641,
+          "cpu_ns": 4607,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 33121,
+          "cpu_ns": 33171,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 10747,
+          "cpu_ns": 10742,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1044,
+          "cpu_ns": 992,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 541,
+          "cpu_ns": 530,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 34,
+          "errors": 0,
+          "wall_ns": 353171,
+          "cpu_ns": 352727,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 33,
+          "errors": 0,
+          "wall_ns": 3403066,
+          "cpu_ns": 92516,
+          "voluntary": 33,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 34,
+          "errors": 0,
+          "wall_ns": 1309930,
+          "cpu_ns": 1308702,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 33,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 3,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 22,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 8,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    },
+    {
+      "frame": 852,
+      "ticket": 544,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 149458,
+          "cpu_ns": 149614,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3253,
+          "cpu_ns": 3110,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1272614,
+          "cpu_ns": 1235785,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 22946,
+          "cpu_ns": 22600,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 24667,
+          "cpu_ns": 24596,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4937,
+          "cpu_ns": 4890,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 51231,
+          "cpu_ns": 51278,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11387,
+          "cpu_ns": 11354,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 737,
+          "cpu_ns": 711,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 551,
+          "cpu_ns": 536,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 31,
+          "errors": 0,
+          "wall_ns": 453047,
+          "cpu_ns": 452290,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 5,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 30,
+          "errors": 0,
+          "wall_ns": 3053913,
+          "cpu_ns": 83581,
+          "voluntary": 30,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 31,
+          "errors": 0,
+          "wall_ns": 1309560,
+          "cpu_ns": 1308727,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 46,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 1,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 25,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 3,
+        "staging": 1,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    }
+  ],
+  "worst_physics": [
+    {
+      "frame": 1066,
+      "ticket": 758,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 283906,
+          "cpu_ns": 284149,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 7872,
+          "cpu_ns": 7479,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 2008540,
+          "cpu_ns": 1973532,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 30488,
+          "cpu_ns": 30131,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 37491,
+          "cpu_ns": 37563,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 7261,
+          "cpu_ns": 7155,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 53877,
+          "cpu_ns": 53917,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 17352,
+          "cpu_ns": 17326,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1089,
+          "cpu_ns": 1062,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 910,
+          "cpu_ns": 906,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 31,
+          "errors": 0,
+          "wall_ns": 600036,
+          "cpu_ns": 600020,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 30,
+          "errors": 0,
+          "wall_ns": 3076013,
+          "cpu_ns": 132346,
+          "voluntary": 30,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 31,
+          "errors": 0,
+          "wall_ns": 1031208,
+          "cpu_ns": 1029980,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 22,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 8,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    },
+    {
+      "frame": 865,
+      "ticket": 557,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 280243,
+          "cpu_ns": 280404,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3481,
+          "cpu_ns": 3324,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1828283,
+          "cpu_ns": 1789920,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 37733,
+          "cpu_ns": 37209,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 40678,
+          "cpu_ns": 40678,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 8521,
+          "cpu_ns": 8479,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 55585,
+          "cpu_ns": 55733,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 18518,
+          "cpu_ns": 18391,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1249,
+          "cpu_ns": 1225,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 898,
+          "cpu_ns": 886,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 24,
+          "errors": 0,
+          "wall_ns": 400909,
+          "cpu_ns": 400231,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 23,
+          "errors": 0,
+          "wall_ns": 2380681,
+          "cpu_ns": 92201,
+          "voluntary": 23,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 24,
+          "errors": 0,
+          "wall_ns": 683896,
+          "cpu_ns": 684022,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 23,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 833,
+      "ticket": 525,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 167257,
+          "cpu_ns": 167499,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2851,
+          "cpu_ns": 2568,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1794308,
+          "cpu_ns": 1776988,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 26755,
+          "cpu_ns": 26161,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 25450,
+          "cpu_ns": 25441,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5435,
+          "cpu_ns": 5412,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 40097,
+          "cpu_ns": 40169,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 12937,
+          "cpu_ns": 12890,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 735,
+          "cpu_ns": 711,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 533,
+          "cpu_ns": 586,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 28,
+          "errors": 0,
+          "wall_ns": 267830,
+          "cpu_ns": 267619,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 27,
+          "errors": 0,
+          "wall_ns": 2727948,
+          "cpu_ns": 76604,
+          "voluntary": 27,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 28,
+          "errors": 0,
+          "wall_ns": 693428,
+          "cpu_ns": 693036,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 27,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 6013,
+      "ticket": 5705,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 304430,
+          "cpu_ns": 304750,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 6,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4679,
+          "cpu_ns": 4306,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1784869,
+          "cpu_ns": 1754820,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 41651,
+          "cpu_ns": 41452,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 53842,
+          "cpu_ns": 54368,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 12788,
+          "cpu_ns": 12272,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 51299,
+          "cpu_ns": 51596,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 22661,
+          "cpu_ns": 22157,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1538,
+          "cpu_ns": 1427,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 724,
+          "cpu_ns": 715,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 19,
+          "errors": 0,
+          "wall_ns": 404058,
+          "cpu_ns": 403960,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 6,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 18,
+          "errors": 0,
+          "wall_ns": 1898777,
+          "cpu_ns": 78550,
+          "voluntary": 18,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 19,
+          "errors": 0,
+          "wall_ns": 863192,
+          "cpu_ns": 861258,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 1,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 17,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 331,
+      "ticket": 23,
+      "normal": false,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 266215,
+          "cpu_ns": 266596,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 4450,
+          "cpu_ns": 3948,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1713548,
+          "cpu_ns": 1700928,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 39509,
+          "cpu_ns": 39003,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 43358,
+          "cpu_ns": 43364,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 8371,
+          "cpu_ns": 8243,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 69146,
+          "cpu_ns": 69356,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 19643,
+          "cpu_ns": 19537,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1272,
+          "cpu_ns": 1132,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 803,
+          "cpu_ns": 804,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 31,
+          "errors": 0,
+          "wall_ns": 383890,
+          "cpu_ns": 383338,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 30,
+          "errors": 0,
+          "wall_ns": 3062499,
+          "cpu_ns": 105181,
+          "voluntary": 30,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 31,
+          "errors": 0,
+          "wall_ns": 790649,
+          "cpu_ns": 788925,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 10,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 4,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 26,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 1094,
+      "ticket": 786,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 215033,
+          "cpu_ns": 215614,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 5636,
+          "cpu_ns": 5046,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1693703,
+          "cpu_ns": 1653053,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 24770,
+          "cpu_ns": 24241,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 30218,
+          "cpu_ns": 30212,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5340,
+          "cpu_ns": 5297,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 41155,
+          "cpu_ns": 41202,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 12135,
+          "cpu_ns": 12149,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 878,
+          "cpu_ns": 814,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 547,
+          "cpu_ns": 536,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 27,
+          "errors": 0,
+          "wall_ns": 339365,
+          "cpu_ns": 339105,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 26,
+          "errors": 0,
+          "wall_ns": 2825035,
+          "cpu_ns": 84531,
+          "voluntary": 26,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 27,
+          "errors": 0,
+          "wall_ns": 748643,
+          "cpu_ns": 748171,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 9,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 25,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 1,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    },
+    {
+      "frame": 913,
+      "ticket": 605,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 192949,
+          "cpu_ns": 193245,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 5,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3050,
+          "cpu_ns": 2654,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1689671,
+          "cpu_ns": 1667809,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 5,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 35686,
+          "cpu_ns": 35002,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 33104,
+          "cpu_ns": 33130,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 6601,
+          "cpu_ns": 6548,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 46367,
+          "cpu_ns": 46385,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11715,
+          "cpu_ns": 11737,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 916,
+          "cpu_ns": 866,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 515,
+          "cpu_ns": 514,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 24,
+          "errors": 0,
+          "wall_ns": 284330,
+          "cpu_ns": 283889,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 5,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 23,
+          "errors": 0,
+          "wall_ns": 2347979,
+          "cpu_ns": 57950,
+          "voluntary": 23,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 24,
+          "errors": 0,
+          "wall_ns": 701362,
+          "cpu_ns": 701189,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 23,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 617,
+      "ticket": 309,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 296287,
+          "cpu_ns": 297063,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 9,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 6053,
+          "cpu_ns": 5232,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1661148,
+          "cpu_ns": 1649260,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 19548,
+          "cpu_ns": 19224,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 24152,
+          "cpu_ns": 24134,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 8800,
+          "cpu_ns": 8778,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 39049,
+          "cpu_ns": 39094,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 11541,
+          "cpu_ns": 11535,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 938,
+          "cpu_ns": 886,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 526,
+          "cpu_ns": 511,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 31,
+          "errors": 0,
+          "wall_ns": 402076,
+          "cpu_ns": 401792,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 9,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 30,
+          "errors": 0,
+          "wall_ns": 3023603,
+          "cpu_ns": 69795,
+          "voluntary": 30,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 31,
+          "errors": 0,
+          "wall_ns": 509328,
+          "cpu_ns": 509131,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 2,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 28,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 614,
+      "ticket": 306,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 257286,
+          "cpu_ns": 257315,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3665,
+          "cpu_ns": 3405,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1656153,
+          "cpu_ns": 1641746,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 12,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 27041,
+          "cpu_ns": 26478,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 33042,
+          "cpu_ns": 33093,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5806,
+          "cpu_ns": 5758,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 42253,
+          "cpu_ns": 42279,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 12316,
+          "cpu_ns": 12309,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1436,
+          "cpu_ns": 1409,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 526,
+          "cpu_ns": 512,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 43,
+          "errors": 0,
+          "wall_ns": 494726,
+          "cpu_ns": 494990,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 42,
+          "errors": 0,
+          "wall_ns": 4243082,
+          "cpu_ns": 110244,
+          "voluntary": 42,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 43,
+          "errors": 0,
+          "wall_ns": 463432,
+          "cpu_ns": 462805,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 6,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 27,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 9,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    },
+    {
+      "frame": 1277,
+      "ticket": 969,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 298227,
+          "cpu_ns": 298412,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3568,
+          "cpu_ns": 3370,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1637340,
+          "cpu_ns": 1623609,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 29961,
+          "cpu_ns": 29563,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 38806,
+          "cpu_ns": 38820,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 13638,
+          "cpu_ns": 13600,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 57065,
+          "cpu_ns": 57091,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 17493,
+          "cpu_ns": 17486,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 1089,
+          "cpu_ns": 1059,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 855,
+          "cpu_ns": 858,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 26,
+          "errors": 0,
+          "wall_ns": 408434,
+          "cpu_ns": 407899,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 1,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 25,
+          "errors": 0,
+          "wall_ns": 2611920,
+          "cpu_ns": 86957,
+          "voluntary": 25,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 26,
+          "errors": 0,
+          "wall_ns": 683811,
+          "cpu_ns": 683571,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 25,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 957,
+      "ticket": 649,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 152568,
+          "cpu_ns": 152636,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 2524,
+          "cpu_ns": 2323,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1588063,
+          "cpu_ns": 1571619,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 23195,
+          "cpu_ns": 22726,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 26875,
+          "cpu_ns": 26869,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 4465,
+          "cpu_ns": 4410,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 45319,
+          "cpu_ns": 45384,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 3,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 12301,
+          "cpu_ns": 12282,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 819,
+          "cpu_ns": 788,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 516,
+          "cpu_ns": 502,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 27,
+          "errors": 0,
+          "wall_ns": 258535,
+          "cpu_ns": 257930,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 26,
+          "errors": 0,
+          "wall_ns": 2681985,
+          "cpu_ns": 63886,
+          "voluntary": 26,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 27,
+          "errors": 0,
+          "wall_ns": 699749,
+          "cpu_ns": 699411,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 0,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 26,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 0,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": ""
+    },
+    {
+      "frame": 974,
+      "ticket": 666,
+      "normal": true,
+      "spans": {
+        "admitted_to_staged": {
+          "wall_ns": 247960,
+          "cpu_ns": 205433,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "staged_to_before_tick": {
+          "wall_ns": 3129,
+          "cpu_ns": 2928,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "before_tick_to_after_tick": {
+          "wall_ns": 1582237,
+          "cpu_ns": 1563560,
+          "voluntary": 2,
+          "involuntary": 0,
+          "minor_faults": 12,
+          "major_faults": 0
+        },
+        "after_tick_to_acquired_begin": {
+          "wall_ns": 27259,
+          "cpu_ns": 26617,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_begin_to_acquired_end": {
+          "wall_ns": 30699,
+          "cpu_ns": 30696,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "acquired_end_to_work_begin": {
+          "wall_ns": 5834,
+          "cpu_ns": 5828,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "work_begin_to_work_end": {
+          "wall_ns": 46478,
+          "cpu_ns": 46501,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "work_end_to_publish_begin": {
+          "wall_ns": 13073,
+          "cpu_ns": 13034,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_begin_to_publish_end": {
+          "wall_ns": 979,
+          "cpu_ns": 956,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "publish_end_to_complete": {
+          "wall_ns": 563,
+          "cpu_ns": 554,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        }
+      },
+      "groups": {
+        "active": {
+          "count": 30,
+          "errors": 0,
+          "wall_ns": 380137,
+          "cpu_ns": 379915,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 4,
+          "major_faults": 0
+        },
+        "idle": {
+          "count": 29,
+          "errors": 0,
+          "wall_ns": 3052512,
+          "cpu_ns": 91786,
+          "voluntary": 29,
+          "involuntary": 0,
+          "minor_faults": 0,
+          "major_faults": 0
+        },
+        "outside": {
+          "count": 30,
+          "errors": 0,
+          "wall_ns": 693958,
+          "cpu_ns": 692248,
+          "voluntary": 0,
+          "involuntary": 0,
+          "minor_faults": 2,
+          "major_faults": 0
+        }
+      },
+      "reasons": {
+        "unavailable": 0,
+        "proof_unreadable": 0,
+        "settlement": 1,
+        "stopped": 0,
+        "invalid": 0,
+        "not_due": 27,
+        "gap": 0,
+        "protection": 0,
+        "ineligible": 1,
+        "staging": 0,
+        "ready": 1
+      },
+      "last_ineligible": "native_command_interval_or_causal"
+    }
+  ]
+}

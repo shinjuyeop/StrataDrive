@@ -1,0 +1,347 @@
+{
+  "scope": "direct original GC delegates and byte-equal first-fault replay; observed Drive fault; dependency ages are diagnostic unless fault code is HV expiry",
+  "original_first_fault": {
+    "fault": 5,
+    "epoch": 42,
+    "model_epoch": 7,
+    "observed_ns": 1921356139814560,
+    "local_age_ns": 30000000,
+    "hv_dependency_age_ns": 30000000,
+    "local_skew_ns": 20000000,
+    "held_speed": {
+      "epoch": 7,
+      "sequence": 12344,
+      "source_ns": 1921356119664926,
+      "dependency_ns": 1921356119664926,
+      "rad_s": 0
+    },
+    "held_hv": {
+      "epoch": 7,
+      "sequence": 12344,
+      "source_ns": 1921356119664926,
+      "dependency_ns": 1921356109812082,
+      "voltage_v": 399.97874953512166,
+      "inverter_ready": true,
+      "local_fault": false
+    }
+  },
+  "first_fault_after_initial_s": 60.226014049,
+  "inherited_dependency_age_ns": 9852844,
+  "held_duration_ns": 20149634,
+  "dependency_age_at_fault_ns": 30002478,
+  "containing_gc": [],
+  "preceding_gc": {
+    "completed_frame": 12344,
+    "begin": {
+      "wall_ns": 1921356119831201,
+      "cpu_ns": 48295481422,
+      "voluntary": 436884,
+      "involuntary": 402,
+      "minor_faults": 2461649,
+      "major_faults": 0,
+      "processor": 11,
+      "valid": 1
+    },
+    "memory_trim": {
+      "wall_ns": 1921356136767016,
+      "cpu_ns": 48296740987,
+      "voluntary": 436887,
+      "involuntary": 402,
+      "minor_faults": 2461696,
+      "major_faults": 0,
+      "processor": 11,
+      "valid": 1
+    },
+    "end": {
+      "wall_ns": 1921356138938748,
+      "cpu_ns": 48298912328,
+      "voluntary": 436887,
+      "involuntary": 402,
+      "minor_faults": 2461696,
+      "major_faults": 0,
+      "processor": 11,
+      "valid": 1
+    },
+    "delta": {
+      "wall_ns": 19107547,
+      "cpu_ns": 3430906,
+      "voluntary": 3,
+      "involuntary": 0,
+      "minor_faults": 47,
+      "major_faults": 0
+    },
+    "before_memory_trim": {
+      "wall_ns": 16935815,
+      "cpu_ns": 1259565,
+      "voluntary": 3,
+      "involuntary": 0,
+      "minor_faults": 47,
+      "major_faults": 0
+    },
+    "allocator_trim_to_gc_end": {
+      "wall_ns": 2171732,
+      "cpu_ns": 2171341,
+      "voluntary": 0,
+      "involuntary": 0,
+      "minor_faults": 0,
+      "major_faults": 0
+    }
+  },
+  "periodic_pauses": [
+    {
+      "completed_frame": 12344,
+      "begin": {
+        "wall_ns": 1921356119831201,
+        "cpu_ns": 48295481422,
+        "voluntary": 436884,
+        "involuntary": 402,
+        "minor_faults": 2461649,
+        "major_faults": 0,
+        "processor": 11,
+        "valid": 1
+      },
+      "memory_trim": {
+        "wall_ns": 1921356136767016,
+        "cpu_ns": 48296740987,
+        "voluntary": 436887,
+        "involuntary": 402,
+        "minor_faults": 2461696,
+        "major_faults": 0,
+        "processor": 11,
+        "valid": 1
+      },
+      "end": {
+        "wall_ns": 1921356138938748,
+        "cpu_ns": 48298912328,
+        "voluntary": 436887,
+        "involuntary": 402,
+        "minor_faults": 2461696,
+        "major_faults": 0,
+        "processor": 11,
+        "valid": 1
+      },
+      "delta": {
+        "wall_ns": 19107547,
+        "cpu_ns": 3430906,
+        "voluntary": 3,
+        "involuntary": 0,
+        "minor_faults": 47,
+        "major_faults": 0
+      },
+      "before_memory_trim": {
+        "wall_ns": 16935815,
+        "cpu_ns": 1259565,
+        "voluntary": 3,
+        "involuntary": 0,
+        "minor_faults": 47,
+        "major_faults": 0
+      },
+      "allocator_trim_to_gc_end": {
+        "wall_ns": 2171732,
+        "cpu_ns": 2171341,
+        "voluntary": 0,
+        "involuntary": 0,
+        "minor_faults": 0,
+        "major_faults": 0
+      }
+    },
+    {
+      "completed_frame": 24564,
+      "begin": {
+        "wall_ns": 1921417219774615,
+        "cpu_ns": 67152434511,
+        "voluntary": 884479,
+        "involuntary": 456,
+        "minor_faults": 2577879,
+        "major_faults": 0,
+        "processor": 2,
+        "valid": 1
+      },
+      "memory_trim": {
+        "wall_ns": 1921417237980859,
+        "cpu_ns": 67153486657,
+        "voluntary": 884481,
+        "involuntary": 456,
+        "minor_faults": 2577998,
+        "major_faults": 0,
+        "processor": 11,
+        "valid": 1
+      },
+      "end": {
+        "wall_ns": 1921417238140067,
+        "cpu_ns": 67153645453,
+        "voluntary": 884481,
+        "involuntary": 456,
+        "minor_faults": 2577998,
+        "major_faults": 0,
+        "processor": 11,
+        "valid": 1
+      },
+      "delta": {
+        "wall_ns": 18365452,
+        "cpu_ns": 1210942,
+        "voluntary": 2,
+        "involuntary": 0,
+        "minor_faults": 119,
+        "major_faults": 0
+      },
+      "before_memory_trim": {
+        "wall_ns": 18206244,
+        "cpu_ns": 1052146,
+        "voluntary": 2,
+        "involuntary": 0,
+        "minor_faults": 119,
+        "major_faults": 0
+      },
+      "allocator_trim_to_gc_end": {
+        "wall_ns": 159208,
+        "cpu_ns": 158796,
+        "voluntary": 0,
+        "involuntary": 0,
+        "minor_faults": 0,
+        "major_faults": 0
+      }
+    },
+    {
+      "completed_frame": 36784,
+      "begin": {
+        "wall_ns": 1921478319953685,
+        "cpu_ns": 86462331655,
+        "voluntary": 1327115,
+        "involuntary": 550,
+        "minor_faults": 2697405,
+        "major_faults": 0,
+        "processor": 11,
+        "valid": 1
+      },
+      "memory_trim": {
+        "wall_ns": 1921478338177320,
+        "cpu_ns": 86463474117,
+        "voluntary": 1327118,
+        "involuntary": 550,
+        "minor_faults": 2697441,
+        "major_faults": 0,
+        "processor": 10,
+        "valid": 1
+      },
+      "end": {
+        "wall_ns": 1921478338316987,
+        "cpu_ns": 86463613226,
+        "voluntary": 1327118,
+        "involuntary": 550,
+        "minor_faults": 2697441,
+        "major_faults": 0,
+        "processor": 10,
+        "valid": 1
+      },
+      "delta": {
+        "wall_ns": 18363302,
+        "cpu_ns": 1281571,
+        "voluntary": 3,
+        "involuntary": 0,
+        "minor_faults": 36,
+        "major_faults": 0
+      },
+      "before_memory_trim": {
+        "wall_ns": 18223635,
+        "cpu_ns": 1142462,
+        "voluntary": 3,
+        "involuntary": 0,
+        "minor_faults": 36,
+        "major_faults": 0
+      },
+      "allocator_trim_to_gc_end": {
+        "wall_ns": 139667,
+        "cpu_ns": 139109,
+        "voluntary": 0,
+        "involuntary": 0,
+        "minor_faults": 0,
+        "major_faults": 0
+      }
+    },
+    {
+      "completed_frame": 49004,
+      "begin": {
+        "wall_ns": 1921539420383421,
+        "cpu_ns": 105368973334,
+        "voluntary": 1774079,
+        "involuntary": 609,
+        "minor_faults": 2816997,
+        "major_faults": 0,
+        "processor": 11,
+        "valid": 1
+      },
+      "memory_trim": {
+        "wall_ns": 1921539437929465,
+        "cpu_ns": 105370254232,
+        "voluntary": 1774081,
+        "involuntary": 609,
+        "minor_faults": 2817143,
+        "major_faults": 0,
+        "processor": 11,
+        "valid": 1
+      },
+      "end": {
+        "wall_ns": 1921539438039642,
+        "cpu_ns": 105370363998,
+        "voluntary": 1774081,
+        "involuntary": 609,
+        "minor_faults": 2817143,
+        "major_faults": 0,
+        "processor": 11,
+        "valid": 1
+      },
+      "delta": {
+        "wall_ns": 17656221,
+        "cpu_ns": 1390664,
+        "voluntary": 2,
+        "involuntary": 0,
+        "minor_faults": 146,
+        "major_faults": 0
+      },
+      "before_memory_trim": {
+        "wall_ns": 17546044,
+        "cpu_ns": 1280898,
+        "voluntary": 2,
+        "involuntary": 0,
+        "minor_faults": 146,
+        "major_faults": 0
+      },
+      "allocator_trim_to_gc_end": {
+        "wall_ns": 110177,
+        "cpu_ns": 109766,
+        "voluntary": 0,
+        "involuntary": 0,
+        "minor_faults": 0,
+        "major_faults": 0
+      }
+    }
+  ],
+  "fault_after_gc_end_ns": 875812,
+  "held_source_after_gc_end_ns": -19273822,
+  "all_parallel_collections_below_hv_age": true,
+  "gc_cpu_fraction": [
+    0.17955763761826676,
+    0.06593586697457814,
+    0.06978979052895824,
+    0.07876340016360239
+  ],
+  "native_deadline_counts": {
+    "all": {
+      "eligible": 1500000,
+      "missing": 0,
+      "late": 0
+    },
+    "before_first_fault": {
+      "eligible": 301110,
+      "missing": 0,
+      "late": 0
+    },
+    "at_or_after_first_fault": {
+      "eligible": 1198890,
+      "missing": 0,
+      "late": 0
+    }
+  },
+  "physical_accepted": false
+}

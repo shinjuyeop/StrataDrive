@@ -108,14 +108,16 @@ or moving only Python inference does not establish this boundary.
    rates and do not change physical5ms or relabel source timestamps. Live raw BGRA
    is written to NVMe; lossless archive compression runs after control finishes.
 4. Preserve every actual frame and failed verdict. The latest paired comparison
-   passed two30s cases but failed the300s case at60.241s after the first parallel
-   GC. The collection took21.21ms, but inherited HV age plus the next renewal
-   delay exceeded the unchanged30ms limit. Exact native/admission replay preserves
-   that failure. Eighteen native slots were missed later, a separate unresolved
-   observation. The next opt-in candidate directly measures incremental purge,
-   requests100us slices once per engine frame and uses1ms additional structured
-   preview slack. Original final admission and GC cadence stay required; the new
-   physical trial has not run. See the [current decision and evidence](../project-status.md#최신-m10-판단)
+   passed two30s cases but failed the300s case at60.226s. Incremental purge was
+   directly observed and completed with a153us maximum first-cycle slice, while
+   the main collection still took19.11ms with10.02ms inherited HV age at entry.
+   All1,500,000 native eligible slots had no missing/late completion in that run;
+   this does not establish a permanent fix for earlier intermittent gaps. The
+   next comparison reuses the same module and transfers one physical core from
+   renderer/image processing to the owner (three cores each), retaining separate
+   native and observer cores. Original timing and sensor criteria stay unchanged;
+   camera latency and throughput must be measured again. It has not run. See the
+   [current decision and evidence](../project-status.md#최신-m10-판단)
    for measured scope; historical failures remain in the [execution history](../archive/implementation-history.md#m10-host-실행-이력).
    20Hz camera throughput is not a gate; the target remains1× wall behavior
    without silently slowing simulation.

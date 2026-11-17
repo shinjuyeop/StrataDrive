@@ -3,12 +3,12 @@ import argparse
 import json
 from pathlib import Path
 from audit_admission_window_v1 import audit as admission_audit
-from audit_owner_gc_v1 import declared_policy, validate
+from audit_owner_gc_v1 import declared_policy, declared_owner_cpus, validate
 from audit_owner_wait_v1 import stamp, delta
 
 
-def validate_purge(profile):
-    collections=validate(profile,False)
+def validate_purge(profile,owner_cpus=(2,3,10,11)):
+    collections=validate(profile,False,owner_cpus)
     purge=profile['incremental_purge']
     if purge['enabled'] is not True or int(purge['budget_ns'])!=100_000 or int(purge['errors']):
         raise ValueError('declared bounded incremental work')
@@ -27,6 +27,8 @@ def validate_purge(profile):
         first,last=stamp(row['first']),stamp(row['last'])
         span=delta(first,last)
         longest=delta(stamp(work['longest_begin']),stamp(work['longest_end']))
+        if any(int(point['processor']) not in owner_cpus for point in (row['first'],row['last'],work['longest_begin'],work['longest_end'])):
+            raise ValueError('purge owner CPU placement')
         if first['wall_ns']<gc['end']['wall_ns'] or int(work['wall_ns'])>span['wall_ns']:
             raise ValueError('purge work must follow its collection')
         if int(work['wall_ns'])<longest['wall_ns'] or int(work['cpu_ns'])<longest['cpu_ns']:
@@ -51,7 +53,7 @@ def audit(run):
     for point in ('binding','final_server'):
         if read('capture/result.json')[point].get('incremental_purge_slice') is not True:
             raise ValueError('actual server incremental scheduling readback')
-    profile=read('capture/owner-gc.json');rows=validate_purge(profile)
+    profile=read('capture/owner-gc.json');rows=validate_purge(profile,declared_owner_cpus(server))
     if server['endurance_seconds']==300 and len(rows)!=4:raise ValueError('four completed periodic purges')
     result=admission_audit(run,1_000_000)
     result.update(status='PASS_PURGE_SLICE_INTEGRITY',purges=rows,requested_slice_ns=100_000,
