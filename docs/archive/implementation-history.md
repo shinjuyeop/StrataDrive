@@ -945,6 +945,7 @@ GC0회·영상565장·미래 제외20556개를 기록했고, 원래 gate 재생�
 | Admission window V2 | 30초2회 PASS,5분60.236초 HV30.077297ms 만료. 직접 serial GC4회32.55–38.62ms·최초 오류가 첫 GC 안. native150만슬롯 누락/지연0, 최고89°C·열 제한 증가0. 영상3355장·미래 제외24195, 기본 병렬 GC 재비교 준비 | [실행·GC 직접 원인·복원](../test-plan/evidence/m10_admission_window_v2/README.md) |
 | Parallel GC V1 | 30초2회 PASS,5분60.241초 HV30.095850ms 만료. 직접 병렬 GC4회16.19–21.21ms·첫 GC 종료8.736ms 후 오류. native/admission/ingress exact replay, 다음 pump 전2.565ms CPU 작업 확인. 후반 native18슬롯 누락·최고90°C·열 제한 증가0. 영상3355장·미래 제외27550, 증분 정리 후보 준비 | [실행·원인 구간·복원](../test-plan/evidence/m10_parallel_gc_v1/README.md) |
 | Purge slice V1 | 30초2회 PASS,5분60.226초 HV30.002478ms 만료. GC4회17.66–19.11ms, 첫 증분 정리407회·최장153us·2.011초 완료. 본 GC 진입시 기존 입력 나이10.019ms·GC 후 여유0.873ms. native150만슬롯 누락/지연0·최고91°C·열 제한 증가0. 영상3353장·미래 제외30903. 같은 모듈 owner3/영상3코어 비교 준비 | [실행·직접 정리 계측·복원](../test-plan/evidence/m10_purge_slice_v1/README.md) |
+| GC owner3 V1 | 30초2회 PASS,5분60.196초 HV30.383242ms 만료. 첫 GC16.653ms·정리419회 최장164us. GC 뒤 정상3프레임도 이전 입력 시각 상속; 원래 gate60000/ingress36006 exact replay. native1500010슬롯 누락/지연0·최고88°C·영상3338장·미래 제외34241. 같은 CPU 배치의300us 추가 preview 후보 준비 | [실행·회복 구간·복원](../test-plan/evidence/m10_gc_owner3_v1/README.md) |
 
 전체 설계 경계는 [물리/렌더링 분리 계약](../interfaces/perception-render-isolation-v1.md)을 따른다.
 유한 통과로 과거 실패를 지우거나 장기 운용·전체 장면·독립 품질·Jetson 배포를 수용하지 않는다.

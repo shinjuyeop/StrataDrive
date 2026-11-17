@@ -17,8 +17,8 @@ constexpr Time init_offset=8000000; // explicit M7-only INIT phase, all native p
 // Extra staging slack for the read-only host preview. The final gate still
 // checks the full original physics interval, timestamps and 30ms age limits.
 // The opt-in structured path removes the JSON round trip; retain 2ms slack.
-constexpr Time wall_preview_reserve(bool structured,bool purge_slice=false) {
-  return structured?(purge_slice?1000000:2000000):4000000;
+constexpr Time wall_preview_reserve(bool structured,bool purge_slice=false,bool recovery_preview=false) {
+  return structured?(purge_slice?(recovery_preview?300000:1000000):2000000):4000000;
 }
 using Packet=std::optional<remote::OwnerPacket>;
 struct Input {

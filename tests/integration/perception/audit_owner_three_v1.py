@@ -29,10 +29,10 @@ def validate_placement(server,initial):
     if not all(counts.values()):raise ValueError('measured process placement evidence required')
     return counts
 
-def audit(run):
+def audit(run,preview_reserve_ns=1_000_000):
     read=lambda name:json.loads((run/name).read_text())
     counts=validate_placement(read('server.json'),read('capture/native.json')['initial'])
-    result=purge_audit(run)
+    result=purge_audit(run,preview_reserve_ns)
     result.update(status='PASS_OWNER_THREE_INTEGRITY',owner_cpus=PLAN['owner'],renderer_cpus=PLAN['renderer'],
                   measured_placement_samples=counts,scope='explicit CPU placement and original purge/preview integrity; not physical acceptance')
     return result

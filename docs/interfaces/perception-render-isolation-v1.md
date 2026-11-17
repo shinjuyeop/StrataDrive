@@ -107,18 +107,20 @@ or moving only Python inference does not establish this boundary.
    progression cap and a100ms model camera period (target10Hz). These are distinct
    rates and do not change physical5ms or relabel source timestamps. Live raw BGRA
    is written to NVMe; lossless archive compression runs after control finishes.
-4. Preserve every actual frame and failed verdict. The latest paired comparison
-   passed two30s cases but failed the300s case at60.226s. Incremental purge was
-   directly observed and completed with a153us maximum first-cycle slice, while
-   the main collection still took19.11ms with10.02ms inherited HV age at entry.
-   All1,500,000 native eligible slots had no missing/late completion in that run;
-   this does not establish a permanent fix for earlier intermittent gaps. The
-   next comparison reuses the same module and transfers one physical core from
-   renderer/image processing to the owner (three cores each), retaining separate
-   native and observer cores. Original timing and sensor criteria stay unchanged;
-   camera latency and throughput must be measured again. It has not run. See the
-   [current decision and evidence](../project-status.md#최신-m10-판단)
-   for measured scope; historical failures remain in the [execution history](../archive/implementation-history.md#m10-host-실행-이력).
+4. Preserve every actual frame and failed verdict. The owner3/image3-core
+   comparison passed two30s cases but failed the300s case at60.196s. Its first
+   main GC shortened to16.653ms, and incremental purge completed in419 calls
+   with a164.231us maximum slice. Three normal post-GC frames still inherited
+   the pre-GC wheel/actuator source. The next update waited under the1ms extra
+   preview, and held HV expired at30.383242ms. All1,500,010 eligible native
+   slots had no missing/late completion in this run; intermittent gaps and
+   cooling margin remain open. Original proof replay supports comparing an
+   explicit300us extra preview with the same CPU plan. The final Admission
+   class, pre-physics guard,5ms interval, HV30ms and held-expiry ordering stay
+   unchanged. Observed staging cost is not a future bound. Python529/frozen117/
+   C++29 and empty-renderer preparation passed; the new physical trial has not
+   run. See the [current decision and evidence](../project-status.md#최신-m10-판단)
+   and [execution history](../archive/implementation-history.md#m10-host-실행-이력).
    20Hz camera throughput is not a gate; the target remains1× wall behavior
    without silently slowing simulation.
 5. Complete visual state and the typed native mapping before enabling perception

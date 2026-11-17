@@ -1,0 +1,63 @@
+{
+  "status": "PASS_UNCHANGED_FINAL_GATE_AND_EXPLICIT_PREVIEW",
+  "baseline_archive_sha256": "d18e60eeedf97c4da2aae471ecfd48ede027d4a889e77673d315621213965cc4",
+  "unchanged_computation_source_files": 320,
+  "changed_source_files": {
+    "tools/carla/m7_nodrive/M7NoDrivePort.cpp": {
+      "before": "868a54e6800d3848e033d4fa8adbf6a56ef403a8703a8fd0e69ba345f7c0720d",
+      "after": "33f62d35a991df6cda4ed3b27212f03d2ede870589f0beed3f08a45cffb5d23d"
+    },
+    "tools/carla/m7_nodrive/native_admission.hpp": {
+      "before": "9519928f94a22b3721ce68638db56ed32976d580022ae2f7f60b516486217a92",
+      "after": "d024b65ac5f7cd83ac0ed7a9b37f33545ba703fb8d625dc811f53fbd67e9fe8b"
+    }
+  },
+  "final_admission_class_sha256": "1dba8fa37115d80247bcd736c6eb733b4a1c3408d0037a3e0494b6e43c2d74de",
+  "prephysics_guard_sha256": "3b1c0f2c583a939873e2a2e9d43f9781216fc4308541db88c254b6e60aa51f68",
+  "final_admission_body_unchanged": true,
+  "original_physics_and_sensor_clock_unchanged": true,
+  "physical_age_ns": 30000000,
+  "preview_reserve_before_ns": 1000000,
+  "preview_reserve_ns": 300000,
+  "requested_purge_slice_ns": 100000,
+  "native_binary_sha256": "361cbe43882b5233adc7670203fec58ef3def332213a13f9fca556f7b692391c",
+  "engine_source_and_binary_hashes": {
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Engine/Private/UnrealEngine.cpp": "dc6b205842925c78c3465fdef62624bdb415dc7bf39059d1daaafe46a26dec72",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Engine/Private/LevelTick.cpp": "1bfb6d201a957e1d6fe3103c242e94ba4ff019f73d66024bb9b9e7a512f9482b",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/Engine/Classes/Engine/Engine.h": "55da68c8211745d9e5068d4ec292bfc0476288183a230cbfc5b245ef5cc9f056",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectGlobals.h": "cf16ce420f1d6ed0d5806b6429d36c5a176fdc57ddba8149a12a364a821af8d3",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Source/Runtime/CoreUObject/Private/UObject/GarbageCollection.cpp": "138762cf9ddb35b874ced7e394d7d618f2838f5cb6eace87532253e313b3ef12",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/libUE4Editor-Engine.so": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/libUE4Editor-CoreUObject.so": "ad6d8ad13d7beed10cca771146b3b9bec4b1b1b19e7113750fdbff0d3109fb4a"
+  },
+  "cpu_plan": {
+    "owner": [
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "native": [
+      1,
+      9
+    ],
+    "renderer": [
+      5,
+      6,
+      7,
+      13,
+      14,
+      15
+    ],
+    "observer": [
+      0,
+      8
+    ]
+  },
+  "changes": [
+    "explicit owner-only 300us extra preview option; default 1ms purge preview preserved",
+    "matching strict declaration/readback audits and staging regression"
+  ]
+}

@@ -16,39 +16,38 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **분할 정리 작동 / 5분 본 GC 뒤 HV 만료 / owner3코어 비교 준비 / 전체 OPEN** | [최신 실패·계측](test-plan/evidence/m10_purge_slice_v1/README.md) · [후속 후보](test-plan/evidence/m10_gc_owner3_v1/README.md) |
+| M10 | **owner3코어에서도 5분 HV 만료 / 회복 preview 비교 준비 / 전체 OPEN** | [최신 실패·계측](test-plan/evidence/m10_gc_owner3_v1/README.md) · [후속 후보](test-plan/evidence/m10_gc_recovery_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
 ## 최신 M10 판단
 
-선택한 Host 배치는 물리 owner2코어, native1코어, 렌더러·영상 공유4코어, 관측1코어다.
-카메라2560×1536·D-FINE-M960 CUDA·목표10Hz, 렌더러 조회20Hz·MaxFPS60을 유지한다. 빈 월드 대기,
-passive ORT, CUDA blocking, NVMe 원본 BGRA 저장을 적용했다. 물리5ms·native2/4ms·
-HV30ms·인지100ms와 원래 수치 적분 조건은 변경하지 않았다.
+최신 비교의 Host 배치는 물리 owner3코어, native1코어, 렌더러·영상 공유3코어, 관측1코어다.
+카메라2560×1536·D-FINE-M960 CUDA·목표10Hz, 렌더러 조회20Hz·MaxFPS60을 유지한다.
+물리5ms·native2/4ms·HV30ms·인지100ms와 원래 수치 적분 조건은 변경하지 않았다.
 
-최신 [Purge slice V1](test-plan/evidence/m10_purge_slice_v1/README.md)의
-**30초 두 번은 PASS, 5분은60.226초 HV 만료로 FAIL**이다. 짧은 시험은 정상5834/5838·
-보호0이다. 5분은60000구간·정상11881·INIT162·보호47957이다. 병렬 GC4회는
-19.11 /18.37 /18.36 /17.66ms였고, 첫 증분 정리는407회·최장0.153ms로 나눠2.011초에
-완료됐다. 나머지3회도 모두 완료됐고 원래61.1초·12220프레임 주기를 유지했다.
+최신 [GC owner3 V1](test-plan/evidence/m10_gc_owner3_v1/README.md)은
+**30초 두 번 PASS, 5분60.196초 HV 만료로 FAIL**이다. 짧은 시험은 각각 정상5838·
+INIT162·보호0이다. 5분은60000구간·정상11874·INIT162·보호47964이다.
+첫 본 GC는 이전19.108→16.653ms로 줄었고, 첫 증분 정리는419회·최장164.231us로
+나뉘어2.073초에 끝났다. GC4회와61.1초·12220프레임 주기는 그대로다.
 
-첫 본 GC가 시작할 때 held HV 의존 나이는 이미10.019ms였다. GC 뒤 남은 만료 여유는
-0.873ms였고, 최종 나이30.002478ms에서 원래 보호로 전환했다. 분할 정리 개선은 실제로
-작동했지만 본 GC 정지와 기존 입력 나이가 합쳐지는 문제는 남았다.
-[직접 계측](test-plan/evidence/m10_purge_slice_v1/normal-300s-01/gc-analysis.json),
-[최초 오류](test-plan/evidence/m10_purge_slice_v1/normal-300s-01/first-fault-analysis.json).
+GC 뒤 정상 프레임 세 개가 진행됐지만 기존 wheel/actuator 시각을 계속 상속했다.
+다음 갱신은 추가 preview1ms에서 대기했고, GC 종료13.607ms 뒤 HV 나이30.383242ms로
+원래 보호가 걸렸다. 원래 admission60000개·ingress36006개 재생과 최초 오류가 일치했다.
+[원본 계측·회복 구간 분석](test-plan/evidence/m10_gc_owner3_v1/normal-300s-01/recovery-window-analysis.json).
 
-이번 native150만 슬롯의 누락·지연은0이며 exact replay와 최초 오류가 일치했다.
-이전18슬롯 누락의 지속적 해결을 확정하지 않는다. CPU 최고91°C·관측 열 제한 증가0,
-카메라 약9.28Hz다. 최초 오류 전 결과558개는 중앙78.37ms·p95 85.37ms·100ms 초과2회다.
-보호 유지 영상은 정상 주행 수용과 구분한다. 원본3353장 보존으로 미래 품질 제외는30903개다.
+이번 native1,500,010개 eligible 슬롯의 누락·지연은0이다. 이전 간헐적 누락의 지속적
+해결을 확정하지 않는다. CPU 최고88°C·관측 열 제한 증가0, 카메라 약9.24Hz다.
+오류 전 영상556개는 중앙80.60ms·p95 86.62ms·100ms 초과1회로, 이전2코어의
+78.37 /85.37ms보다 소폭 늘었다. 보호 유지 영상은 정상 주행 수용과 구분한다.
+원본3338장을 보존했고 미래 품질 제외는34241개다. 공유6파일·부스트100%를 복원했다.
 
-후속 [GC owner3코어 V1](test-plan/evidence/m10_gc_owner3_v1/README.md)은 모듈·계산을 그대로
-재사용하고 owner2→3코어, 렌더러·영상4→3코어를 비교한다. native1코어·관측1코어와
-SMT 분리는 유지한다. 정상 영상·렌더러 평균은 약1.90코어지만 순간 지연 여유는 실제로
-검증해야 한다. 분할 정리100us 요청·structured 추가 여유1ms·최종5ms 물리·HV30ms·
-native2/4ms·센서 시각·held 만료 우선 순서는 그대로다. 새 본시험은 **NOT STARTED**다.
+후속 [GC recovery preview V1](test-plan/evidence/m10_gc_recovery_v1/README.md)은 같은
+CPU 배치에서 추가 preview 여유만1ms→300us로 비교한다. 원래 최종 Admission·물리 직전
+검사와5ms/HV30ms·시각·held 만료 우선 순서는 유지한다. 관측된 최종 preview 검사→적용
+최대251.494us를 고려했지만 미래 지연 상한은 아니다. Python529·동결본117·C++29개,
+새 모듈 기동·종료·복원을 통과했다. 본시험은 **NOT STARTED**다.
 70%는 유한 시험의 임시 조건이며 영구 기본 설정이 아니다.
 
 초반 가감속 뒤 정지 유지하는 유한 시나리오이며 연속 경로 주행 시험이 아니다.
@@ -98,7 +97,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [GC owner3코어 V1](test-plan/evidence/m10_gc_owner3_v1/README.md)을 같은70%에서30초→30초→5분 검증한다. 첫 실패에 후속 실행을 중단한다. 본 GC 단축·원래 HV30ms·native 누락0을 확인하고 영상 지연·카메라 Hz·열 여유의 손해도 함께 비교한다. 다음 분석 추천은 GPT-6 Astra / xhigh다.
+1. [GC recovery preview V1](test-plan/evidence/m10_gc_recovery_v1/README.md)을 같은70%에서30초→30초→5분 검증한다. 첫 실패에 후속 실행을 중단한다. 원래 최종5ms·HV30ms를 유지하면서 GC 뒤 갱신이 회복되는지, native 누락·영상 지연·열 여유를 확인한다. 다음 분석 추천은 GPT-6 Astra / xhigh다.
 2. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태·자산 식별과 native 연결을 완성한다. 전체 장면이 없으면 인지 제어 수용은 닫고 Required는 opt-in SIL로 둔다.
 3. 후보·센서·모델 설정을 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상은 새 holdout으로 재사용하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

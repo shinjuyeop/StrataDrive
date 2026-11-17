@@ -229,4 +229,33 @@ TEST(M7WallAdmission, PurgeSlicePreviewKeepsOriginalFinalGate) {
     }
     EXPECT_GT(normal,100U);
 }
+TEST(M7WallAdmission, RecoveryPreviewKeepsOriginalGateAfterStaging) {
+    EXPECT_EQ(m7_native::wall_preview_reserve(false,true,true),4*ms);
+    EXPECT_EQ(m7_native::wall_preview_reserve(true,false,true),2*ms);
+    EXPECT_EQ(m7_native::wall_preview_reserve(true,true,true),300000U);
+    WallRig rig({1,42,7},99,start);
+    m7_native::Admission gate(42,start,m7_native::ClockPolicy::HostMonotonic,5*ms);
+    unsigned normal=0,saved_waits=0;
+    for(unsigned i=1;i<=7500;++i) {
+        const Time now=start+i*200000;
+        const auto r=rig.service(now,i%50==0?std::optional<WallReceipt>(sample(i/50)):std::nullopt);
+        ASSERT_FALSE(r.failed)<<r.reason;
+        const auto in=input(r.native);m7_native::Output out,old,final;
+        if(gate.started()){ASSERT_TRUE(gate.ingest(in,now))<<gate.error();}
+        if(!gate.eligible(in,now,out,nullptr,m7_native::wall_preview_reserve(true,true,true)))continue;
+        if(out.normal) {
+            ++normal;
+            if(!gate.eligible(in,now,old,nullptr,ms))++saved_waits;
+            EXPECT_GT(out.exclusive_expiry,now+5*ms+300000);
+            EXPECT_LE(now+5*ms+300000-out.oldest_actuator,30*ms);
+            EXPECT_FALSE(gate.eligible(in,out.exclusive_expiry-5*ms,old,nullptr,0));
+        }
+        // Real staging consumes time; acceptance still needs the original
+        // entire 5ms interval at this later clock, with unmodified expiry.
+        ASSERT_TRUE(gate.accept(in,now+150000,final))<<gate.error();
+        EXPECT_EQ(final.exclusive_expiry,out.exclusive_expiry);
+        EXPECT_EQ(final.oldest_actuator,out.oldest_actuator);
+    }
+    EXPECT_GT(normal,100U);EXPECT_GT(saved_waits,0U);
+}
 }

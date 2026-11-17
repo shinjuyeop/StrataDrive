@@ -92,6 +92,7 @@ struct State {
   bool ProfileGc=false;
   stratadrive::m7_native::GcProfile Gc;
   bool PurgeSlice=false;
+  bool RecoveryPreview=false;
   stratadrive::m7_native::PurgeProfile Purge;
   int32 GcParallel=-1;
   double GcPeriod=0;
@@ -197,8 +198,9 @@ Json Response(bool Ok, const FString& Reason)
   R->SetBoolField(TEXT("awaiting_ev_settlement"), S.AwaitSettlement);
   if(S.Wall){R->SetStringField(TEXT("wall_frames"),Dec(S.WallFrames));R->SetStringField(TEXT("wall_wait"),S.WallWait);
     R->SetBoolField(TEXT("structured_state"),S.StructuredState);
-    R->SetStringField(TEXT("wall_preview_reserve_ns"),Dec(stratadrive::m7_native::wall_preview_reserve(S.StructuredState,S.PurgeSlice)));
+    R->SetStringField(TEXT("wall_preview_reserve_ns"),Dec(stratadrive::m7_native::wall_preview_reserve(S.StructuredState,S.PurgeSlice,S.RecoveryPreview)));
     R->SetBoolField(TEXT("incremental_purge_slice"),S.PurgeSlice);
+    R->SetBoolField(TEXT("recovery_preview"),S.RecoveryPreview);
     R->SetStringField(TEXT("structured_direct_requests"),Dec(S.DirectRequests));
     R->SetStringField(TEXT("structured_text_fallback_requests"),Dec(S.TextFallbackRequests));
     R->SetStringField(TEXT("native_clock_domain"),TEXT("host_CLOCK_MONOTONIC; separate_CARLA_model_time"));
@@ -480,6 +482,9 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
     S.PurgeSlice=FParse::Param(FCommandLine::Get(),TEXT("StrataM10PurgeSlice"));
     if(S.PurgeSlice && (!S.ProfileGc || !S.StructuredState || !GEngine))
       return Encode(Response(false,TEXT("purge_slice_requires_gc_profile_and_structured_state")));
+    S.RecoveryPreview=FParse::Param(FCommandLine::Get(),TEXT("StrataM10RecoveryPreview"));
+    if(S.RecoveryPreview && !S.PurgeSlice)
+      return Encode(Response(false,TEXT("recovery_preview_requires_purge_slice")));
     if(S.ProfileGc) {
       auto* Parallel=IConsoleManager::Get().FindConsoleVariable(TEXT("gc.AllowParallelGC"));
       auto* Period=IConsoleManager::Get().FindConsoleVariable(TEXT("gc.TimeBetweenPurgingPendingKillObjects"));
@@ -809,7 +814,7 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
       return Encode(Response(false,TEXT("wall_normal_closed")));
     if(S.Pumping) {
       std::string Why;
-      if(!S.NativeGate->eligible(Native,AdmissionNow,Actual,&Why,stratadrive::m7_native::wall_preview_reserve(S.StructuredState,S.PurgeSlice))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return Encode(Response(false,S.WallWait));}
+      if(!S.NativeGate->eligible(Native,AdmissionNow,Actual,&Why,stratadrive::m7_native::wall_preview_reserve(S.StructuredState,S.PurgeSlice,S.RecoveryPreview))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return Encode(Response(false,S.WallWait));}
     }
     if (!S.NativeGate->accept(Native, AdmissionNow, Actual)) {
       Latch(UTF8_TO_TCHAR(S.NativeGate->error().c_str())); return Encode(Response(false, S.Reason));
@@ -972,7 +977,7 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
   if((wall_fault(S.Signal) || __atomic_load_n(&S.Bridge->server_trip,__ATOMIC_ACQUIRE)) && !Native.protection_since){S.WallWait=TEXT("wall_normal_closed");return PumpWaiting(PumpReason::Protection);}
   // Eligibility does not consume a receiver or turn a rejected candidate into
   // a permission. The selected proof is checked again by the original gate.
-  if(!S.NativeGate->eligible(Native,Now,Actual,&Why,wall_preview_reserve(S.StructuredState,S.PurgeSlice))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return PumpWaiting(PumpReason::Ineligible,Why.c_str());}
+  if(!S.NativeGate->eligible(Native,Now,Actual,&Why,wall_preview_reserve(S.StructuredState,S.PurgeSlice,S.RecoveryPreview))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return PumpWaiting(PumpReason::Ineligible,Why.c_str());}
   if(S.ProfilePath){S.ActivePath.mark(PathPhase::Admitted);S.ActivePath.proof_observed=Native.observed;++S.ActivePath.admission_attempts;}
   const FString OwnerKey=FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M7_OWNER_KEY"));
   const auto RequestJson=NativeRequest(Native,FCarlaEngine::GetFrameCounter()+1,S.Session,S.Run,OwnerKey);

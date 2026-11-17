@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def validate_profile(server, reserve=2_000_000):
-    if (reserve not in (1_000_000,2_000_000) or server.get('structured_state') is not True or server.get('wall_preview_reserve_ns') != str(reserve)
+    if (reserve not in (300_000,1_000_000,2_000_000) or server.get('structured_state') is not True or server.get('wall_preview_reserve_ns') != str(reserve)
             or server.get('model_step_ns') != '5000000' or server.get('admission_profile') != 'whole-interval-v1'):
         raise ValueError('declared structured preview and original 5ms interval')
 
@@ -19,7 +19,7 @@ def validate_receipt(r, reserve=2_000_000):
     out = r['original_actual']['admitted_actual']
     if out['empty_init']:
         return
-    if reserve not in (1_000_000,2_000_000):raise ValueError('undeclared preview reserve')
+    if reserve not in (300_000,1_000_000,2_000_000):raise ValueError('undeclared preview reserve')
     through = int(out['command_checked_through_ns'])+reserve
     if (through >= int(out['exclusive_expiry_ns'])
             or through-int(out['oldest_actuator_ns']) > 30_000_000):

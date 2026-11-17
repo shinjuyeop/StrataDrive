@@ -123,6 +123,11 @@ def main(a):
                 raise ValueError('purge slice requires profiled parallel GC and structured state')
             commands['owner'].append('-StrataM10PurgeSlice')
             report['owner_purge_slice']=True
+        if getattr(a,'owner_recovery_preview',False):
+            if not a.owner_purge_slice:
+                raise ValueError('recovery preview requires explicit incremental purge candidate')
+            commands['owner'].append('-StrataM10RecoveryPreview')
+            report['owner_recovery_preview']=True
         if getattr(a,'structured_state',False):
             if not a.endurance_seconds:raise ValueError('explicit endurance structured state')
             commands['owner'].append('-StrataM10StructuredState')
@@ -254,6 +259,7 @@ if __name__=='__main__':
     p.add_argument('--profile-owner-gc',action='store_true')
     p.add_argument('--owner-serial-gc',action='store_true')
     p.add_argument('--owner-purge-slice',action='store_true')
+    p.add_argument('--owner-recovery-preview',action='store_true')
     p.add_argument('--renderer-max-fps',type=int,choices=(0,20,60),default=0)
     p.add_argument('--preprocess-cv-threads',type=int,choices=(0,1,2,4),default=0)
     p.add_argument('--resize-threads',type=int,choices=(0,1,2,4),default=0)

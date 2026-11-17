@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "scope": "actual orchestration checker accepts current runner and rejects both previously found stale references; no control process started",
+  "cases": [
+    {
+      "case": "current",
+      "expected_accepted": true,
+      "exit": 0,
+      "runner_sha256": "4ac8bcd01dacc9b7fe3337091239542103ba8657955b67fd75b355aab20732fb"
+    },
+    {
+      "case": "stale_equivalence_status",
+      "expected_accepted": false,
+      "exit": 1,
+      "runner_sha256": "6d06e82e373878fa0179fb55e85a6dc42fa92428f37f4f8173d4cbb2e647be7f"
+    },
+    {
+      "case": "stale_frozen_auditor",
+      "expected_accepted": false,
+      "exit": 1,
+      "runner_sha256": "144b3dea132d6a580a7eb742ee836b164a60a36a5bb4c39c02dafc3ee8eee9ab"
+    }
+  ]
+}

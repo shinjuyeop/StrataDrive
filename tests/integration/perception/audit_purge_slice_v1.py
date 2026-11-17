@@ -43,9 +43,15 @@ def validate_purge(profile,owner_cpus=(2,3,10,11)):
     return summaries
 
 
-def audit(run):
+def audit(run,preview_reserve_ns=1_000_000):
     read=lambda p:json.loads((run/p).read_text())
     server=read('server.json')
+    if preview_reserve_ns not in (300_000,1_000_000):raise ValueError('explicit purge preview reserve')
+    recovery=preview_reserve_ns==300_000
+    if server.get('owner_recovery_preview',False) is not recovery:
+        raise ValueError('declared recovery preview selection')
+    if server['argv']['owner'].count('-StrataM10RecoveryPreview')!=int(recovery) or '-StrataM10RecoveryPreview' in server['argv']['renderer']:
+        raise ValueError('owner only recovery preview')
     if declared_policy(server) or server.get('owner_purge_slice') is not True:
         raise ValueError('explicit parallel purge slice candidate')
     if server['argv']['owner'].count('-StrataM10PurgeSlice')!=1 or '-StrataM10PurgeSlice' in server['argv']['renderer']:
@@ -53,9 +59,11 @@ def audit(run):
     for point in ('binding','final_server'):
         if read('capture/result.json')[point].get('incremental_purge_slice') is not True:
             raise ValueError('actual server incremental scheduling readback')
+        if read('capture/result.json')[point].get('recovery_preview',False) is not recovery:
+            raise ValueError('actual recovery preview readback')
     profile=read('capture/owner-gc.json');rows=validate_purge(profile,declared_owner_cpus(server))
     if server['endurance_seconds']==300 and len(rows)!=4:raise ValueError('four completed periodic purges')
-    result=admission_audit(run,1_000_000)
+    result=admission_audit(run,preview_reserve_ns)
     result.update(status='PASS_PURGE_SLICE_INTEGRITY',purges=rows,requested_slice_ns=100_000,
                   scope='scheduling integrity only; requested slice is not a hard execution bound or physical acceptance')
     return result
