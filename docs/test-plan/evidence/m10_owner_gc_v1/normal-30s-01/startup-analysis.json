@@ -1,0 +1,86 @@
+{
+  "status": "RECORDED_PRE_CONTROL_FAILURE",
+  "cause_boundary": "renderer readiness before owner launch or any capture",
+  "original_error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tests/integration/perception/run_carla_paired_v1.py\", line 141, in main\n    if getattr(a,'park_preparation',False):ready_and_park(role,2300 if role=='renderer' else 2200)\n  File \"/d/shin/StrataDrive/tests/integration/perception/run_carla_paired_v1.py\", line 127, in ready_and_park\n    report.setdefault('readiness',{})[str(port)]=wait_ready(a.python,port,a.output/f'readiness-{port}.log',common)\n  File \"/d/shin/StrataDrive/tests/integration/perception/carla_readiness_v1.py\", line 48, in wait_ready\n    return wait_probe([str(python), '-c', PROBE, str(port)], output, env=env)\n  File \"/d/shin/StrataDrive/tests/integration/perception/carla_readiness_v1.py\", line 44, in wait_probe\n    raise TimeoutError('original180s readiness horizon exhausted')\nTimeoutError: original180s readiness horizon exhausted\n",
+  "owner_started": false,
+  "control_receipts": 0,
+  "raw_images": 0,
+  "inferences": 0,
+  "gc_cycles_measured": 0,
+  "renderer_shutdown": {
+    "begin_wall_ns": 1901356944695492,
+    "limit_seconds": 30,
+    "diagnostic_after_seconds": 10,
+    "diagnostics_enabled": true,
+    "diagnostic": {
+      "status": "CAPTURED",
+      "begin_wall_ns": 1901366945392613,
+      "pid": 2902685,
+      "timeout_seconds": 8,
+      "intrusive_after_exit_request": true,
+      "argv": [
+        "/usr/bin/gdb",
+        "-nx",
+        "-nh",
+        "-batch",
+        "-iex",
+        "set auto-solib-add off",
+        "-iex",
+        "set debuginfod enabled off",
+        "-iex",
+        "set index-cache enabled off",
+        "-iex",
+        "set pagination off",
+        "-iex",
+        "set print thread-events off",
+        "-iex",
+        "set print frame-arguments none",
+        "-p",
+        "2902685",
+        "-ex",
+        "sharedlibrary libpthread|libc\\.so|libstdc\\+\\+|libUE4Editor-Core\\.so|libUE4Editor-Carla\\.so|libUE4Editor-VulkanRHI\\.so",
+        "-ex",
+        "info threads",
+        "-ex",
+        "thread apply all bt 16",
+        "-ex",
+        "detach"
+      ],
+      "gdb_exit": 0,
+      "log_bytes": 53762,
+      "end_wall_ns": 1901367888982422
+    },
+    "forced_stop": true,
+    "end_wall_ns": 1901387610136690,
+    "server_exit": -9
+  },
+  "main_thread_at_shutdown_diagnostic": {
+    "tid": 2902685,
+    "comm": {
+      "text": "UE4Editor\n"
+    },
+    "stat": {
+      "text": "2902685 (UE4Editor) D 2902678 2902685 2902685 0 -1 4194304 1246887 32004 2514 141 2460 752 33 10 20 0 45 0 190117694 8777142272 1069217 18446744073709551615 2306592 2599168 140725030111312 0 0 0 0 1073396224 1073825023 1 0 0 17 4 0 0 0 0 0 2608896 2613152 380952576 140725030115764 140725030116424 140725030116424 140725030121388 0\n"
+    },
+    "wchan": {
+      "text": "folio_wait_bit_common"
+    },
+    "syscall": {
+      "text": "0 0x190 0x7c372dac0000 0xadd60d 0x22 0x0 0x0 0x7ffd196df940 0x7c391ff1496c\n"
+    }
+  },
+  "sampled_main_states": {
+    "D": 323,
+    "R": 87,
+    "S": 7,
+    "Z": 2,
+    "t": 2
+  },
+  "max_cpu_c": 66.0,
+  "renderer_major_faults_max": 2531,
+  "cache_read_megabytes_per_second": {
+    "current": 5.99,
+    "prior_owner_wait_v2_normal30_01": 2993.01
+  },
+  "interpretation": "Direct read/page-cache disk wait observation; cold asset I/O is leading startup explanation, not a controlled storage benchmark or GC result"
+}

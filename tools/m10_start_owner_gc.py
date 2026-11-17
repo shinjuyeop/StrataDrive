@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Start the prepared GC trial with a fresh PID, after interactive sudo authentication."""
+"""Prepare renderer assets, authenticate, then start the GC trial with a fresh PID."""
 import argparse
 import fcntl
 import hashlib
@@ -13,8 +13,8 @@ import time
 
 
 def check(root):
-    series = root/'docs/test-plan/evidence/m10_owner_gc_v1'
-    work = root/'build/m10-owner-gc-v1'
+    series = root/'docs/test-plan/evidence/m10_owner_gc_v2'
+    work = root/'build/m10-owner-gc-v2'
     if os.geteuid() == 0:
         raise RuntimeError('Run this launcher as your normal user, without sudo.')
     prepared = json.loads((series/'prepared.json').read_text())
@@ -25,7 +25,7 @@ def check(root):
     python = root/'build/m10-perception/cuda-venv/bin/python'
     if not python.is_file() or not os.access(python, os.X_OK):
         raise RuntimeError('Prepared Python environment is missing.')
-    for path in (runner, helper):
+    for path in (runner, helper, series/'prepare-assets.py'):
         expected = frozen['files'][str(path.relative_to(root))]['sha256']
         if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
             raise RuntimeError('Frozen source changed: '+str(path))
@@ -37,15 +37,29 @@ def check(root):
     return series, work, runner, helper, python
 
 
+def require_prepared(series):
+    preparation = json.loads((series/'asset-preparation.json').read_text())
+    age = time.monotonic_ns()-preparation['completed_wall_ns']
+    if (preparation['status'] != 'PREPARED_NOT_PHYSICAL_ACCEPTANCE'
+            or preparation['validation_only'] is not False
+            or preparation['restoration']['status'] != 'PASS'
+            or not 0 <= age <= 300_000_000_000):
+        raise RuntimeError('Fresh asset preparation is missing or over 5 minutes old; run the launcher again.')
+
+
 def run(root):
     series, work, runner, helper, python = check(root)
     # Lock is unprivileged and held across authentication and the entire sequence.
     with (work/'launcher.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        print('먼저 빈 영상 서버의 자산을 준비합니다. 이 단계는 제어 시험에 포함하지 않습니다.', flush=True)
+        subprocess.run([str(python), str(series/'prepare-assets.py')], cwd=root, check=True)
+        require_prepared(series)
         print('sudo 인증 후 새 실행기를 시작합니다. 비밀번호는 sudo가 직접 받습니다.', flush=True)
         # Waiting at the password prompt must not consume the owner's 30min wait.
         subprocess.run(['/usr/bin/sudo', '-v'], check=True)
         check(root)
+        require_prepared(series)  # do not reuse cold assets after a delayed password prompt
         with (work/'sequence.log').open('x') as output, (work/'power-lease.jsonl').open('x') as lease_log:
             owner = subprocess.Popen([str(python), str(runner)], cwd=root,
                 env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'), stdin=subprocess.DEVNULL,

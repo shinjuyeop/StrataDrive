@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **30초 반복 PASS / 5분 HV 만료·주기적 GC 대기 후보 / 전체 OPEN** | [최신 실행·원인 분석](test-plan/evidence/m10_owner_wait_v2/README.md) · [GC 개선 후보](test-plan/evidence/m10_owner_gc_v1/README.md) |
+| M10 | **30초 반복 PASS / 5분 HV 만료·GC 후속 기동 실패 / 전체 OPEN** | [물리 실행·원인 분석](test-plan/evidence/m10_owner_wait_v2/README.md) · [GC 기동 실패](test-plan/evidence/m10_owner_gc_v1/README.md) · [자산 준비 후속](test-plan/evidence/m10_owner_gc_v2/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -48,13 +48,17 @@ HV30ms·인지100ms와 원래 수치 적분 조건은 변경하지 않았다.
 100ms 초과는1/2회다.5분의 대부분은 보호 상태여서 전체 영상 지연을 정상 주행 성능으로
 보지 않는다. 초반 가감속 뒤 정지 유지하는 시나리오로 연속 경로 주행 시험도 아니다.
 
-다음 [Owner GC V1](test-plan/evidence/m10_owner_gc_v1/README.md)은 GC 시작·메모리 캐시 회수 직전·종료를
-고정12.8KB에 기록하고 물리 서버의 GC만 한 스레드에서 처리하는 별도 후보다.
-GC61.1초·HV30ms·원래 source 시각·검사 순서는 유지하며5분 동안 자연스러운 GC가
-최소4번 관측돼야 한다. 모듈 빌드와 Python508개·동결96개 검사를 통과하고 소스1501개를
-고정했다. 실제 실행은 아직 전이다.
-11월17일에 기존 실행기의 대기 만료를 확인했고, 실제 시험·부스트 적용은 없었다.
-sudo 인증 후 새 PID로 시작하는 도구를 추가해 오래된 PID를 수동 입력하지 않도록 했다.
+[Owner GC V1](test-plan/evidence/m10_owner_gc_v1/README.md)의 실제 실행은 영상 서버가
+180초 준비 제한을 넘겨 제어 전에 실패했다. 제어·영상·GC 측정은 0이며 후속 두 시험은
+NOT RUN이다. 메인 스레드의 read/page-cache 디스크 대기를 관측했고, CPU 최고는 66°C였다.
+30초 종료 제한 뒤 renderer 강제 종료와 실패를 보존했다. 공유 파일 6개와 부스트 100%는 복원됐다.
+
+다음 [Owner GC V2](test-plan/evidence/m10_owner_gc_v2/README.md)는 매번 빈 영상 서버에서
+자산을 준비한 뒤 같은 GC 후보를 시험한다. 별도 준비 검증은 104.676초에 완료됐고 정상
+종료·원본 복원을 통과했다. 본시험 기동 제한 180초·GC61.1초·HV30ms·원래 시각과
+검사 순서는 유지한다. Python514개·동결102개 검사와 소스1513개 동결을 완료했다.
+시작 도구가 준비·sudo 인증·새 PID 연결을 수행하며, 준비 후 5분이 지나면 시험을 시작하지 않는다.
+GC 효과·5분 안정성은 아직 미검증이다. 이전 대기 PID 만료 기록과 실제 기동 실패는 구분한다.
 
 부스트 상한은30분 제한으로100%에 복원됐다. 세 실제 실행과 서버 종료는 복원 전에
 완료됐다. 원본 영상·실패를 보존하면서 무손실 압축과 검증된 중복 정리로 약29.5GB를 확보했다.
@@ -105,7 +109,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [Owner GC V1](test-plan/evidence/m10_owner_gc_v1/README.md)을 같은70% 조건에서30초→30초→5분 검증한다. 첫 실패에 중단한다. 직접 GC 시간과 owner 대기 겹침을 확인하고, 후반 native18슬롯 누락과90°C도 별도로 재검증한다. 다음 분석 추천은 GPT-6 Astra / xhigh다.
+1. [Owner GC V2](test-plan/evidence/m10_owner_gc_v2/README.md)의 시작 도구로 자산을 준비하고 같은70% 조건에서30초→30초→5분 검증한다. 첫 실패에 중단한다. 직접 GC 시간과 owner 대기 겹침을 확인하고, 후반 native18슬롯 누락과90°C도 별도로 재검증한다. 다음 분석 추천은 GPT-6 Astra / xhigh다.
 2. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태·자산 식별과 native 연결을 완성한다. 전체 장면이 없으면 인지 제어 수용은 닫고 Required는 opt-in SIL로 둔다.
 3. 후보·센서·모델 설정을 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상은 새 holdout으로 재사용하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

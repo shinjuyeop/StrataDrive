@@ -885,6 +885,13 @@ M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 �
 
 ## M10 Host 실행 이력
 
+[Owner GC V1](../test-plan/evidence/m10_owner_gc_v1/README.md)은 2026-11-17 영상 서버의
+180초 기동 초과로 제어 전에 실패했다. read/page-cache 디스크 대기와 30초 종료 후
+강제 종료를 보존했다. 영상·제어·GC 측정 0, 후속 두 시험 NOT RUN, 미래 제외19991개다.
+공유 파일6개·부스트100%를 복원했다. [GC V2](../test-plan/evidence/m10_owner_gc_v2/README.md)는
+실행 직전 별도 자산 준비를 추가하며, 빈 renderer 검증104.676초·정상 종료·원본 복원과
+Python514개·동결102개 검사를 통과했다. GC 효과와5분 안정성은 아직 미검증이다.
+
 [Owner wait V2](../test-plan/evidence/m10_owner_wait_v2/README.md)는 텐서 재사용으로 세 모델
 준비를 통과했고 두30초 PASS,5분은60.232초 HV 만료로 FAIL이다. 최초 오류는 물리 완료
 뒤22.427ms 대기 안에서 발생했으며, 큰 대기4회가 GC 설정과 같은61.1초 모델 시간
