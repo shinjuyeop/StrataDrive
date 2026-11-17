@@ -1,0 +1,55 @@
+{
+  "status": "PASS_EVIDENCE_AND_RESTORATION_ONLY",
+  "cases": {
+    "normal-30s-01": {
+      "archive": {
+        "status": "PASS",
+        "case_verdict": "PASS_DIAGNOSTIC_CASE_ONLY",
+        "source_files": 1513,
+        "raw_packets": 282,
+        "future_exclusion": 20273
+      },
+      "physical_pass": true,
+      "owner_gc_cycles": 0,
+      "normal_admitted_to_applied": {
+        "count": 5838,
+        "p99_ns": 264772.56,
+        "maximum_ns": 425678
+      },
+      "normal_admitted_to_acquisition": {
+        "count": 5838,
+        "p99_ns": 1512391.8,
+        "maximum_ns": 2467779
+      }
+    },
+    "normal-30s-02": {
+      "archive": {
+        "status": "PASS",
+        "case_verdict": "FAIL",
+        "source_files": 1513,
+        "raw_packets": 283,
+        "future_exclusion": 20556
+      },
+      "physical_pass": false,
+      "owner_gc_cycles": 0,
+      "normal_admitted_to_applied": {
+        "count": 5445,
+        "p99_ns": 270415.52,
+        "maximum_ns": 400424
+      },
+      "normal_admitted_to_acquisition": {
+        "count": 5445,
+        "p99_ns": 1538684.56,
+        "maximum_ns": 3748481
+      }
+    }
+  },
+  "physical_verdict": "PASS_30S_THEN_FAIL_30S_HV_EXPIRY",
+  "following_300s": "NOT_RUN",
+  "future_exclusion": 20556,
+  "source_files": 1513,
+  "gc_effect_measured": false,
+  "physical_stability_accepted": false,
+  "native_perception_accepted": false,
+  "milestone_closed": false
+}

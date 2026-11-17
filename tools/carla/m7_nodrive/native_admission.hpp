@@ -14,6 +14,10 @@ namespace stratadrive::m7_native {
 using Time=std::uint64_t;
 constexpr Time domain=0x4d3746554e435449ULL,step=10000000,age=30000000;
 constexpr Time init_offset=8000000; // explicit M7-only INIT phase, all native periods unchanged
+// Extra staging slack for the read-only host preview. The final gate still
+// checks the full original physics interval, timestamps and 30ms age limits.
+// The opt-in structured path removes the JSON round trip; retain 2ms slack.
+constexpr Time wall_preview_reserve(bool structured) {return structured?2000000:4000000;}
 using Packet=std::optional<remote::OwnerPacket>;
 struct Input {
     Time observed=0,enable=0;

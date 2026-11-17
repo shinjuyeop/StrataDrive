@@ -148,4 +148,61 @@ TEST(M7WallAdmission, ReceptionContinuesAcrossPlantGapWithoutGrantingTicks) {
     }
     EXPECT_GT(normal,100U);EXPECT_GT(protected_frames,100U);EXPECT_GT(ingress,1500U);
 }
+TEST(M7WallAdmission, PreviewUsesClockAfterIngressWithoutChangingSourceTime) {
+    WallRig rig({1,42,7},99,start);
+    m7_native::Admission gate(42,start,m7_native::ClockPolicy::HostMonotonic,5*ms);
+    unsigned backwards_rejected=0,normal=0;
+    for(unsigned i=1;i<=1500;++i) {
+        const Time before=start+i*ms,received=before+1000,after=received+1000;
+        const auto r=rig.service(before,i%10==0?std::optional<WallReceipt>(sample(i/10)):std::nullopt);
+        ASSERT_FALSE(r.failed)<<r.reason;
+        const auto in=input(r.native);m7_native::Output out;
+        const bool started=gate.started();
+        if(started){ASSERT_TRUE(gate.ingest(in,received))<<gate.error();}
+        if(!gate.eligible(in,after,out,nullptr,4*ms))continue;
+        if(started && out.normal) {
+            m7_native::Output stale;std::string why;
+            EXPECT_FALSE(gate.eligible(in,before,stale,&why,4*ms));
+            EXPECT_TRUE(why=="native_current_actual_missing" || why=="native_permission_unavailable")<<why;
+            ++backwards_rejected;
+            // The rejected preview must not poison the canonical receiver.
+            EXPECT_TRUE(gate.error().empty());
+        }
+        ASSERT_TRUE(gate.accept(in,after,out))<<gate.error();
+        if(out.normal) {
+            ++normal;
+            for(const auto source:out.sources)EXPECT_LE(source,before);
+            EXPECT_LE(after+5*ms-out.oldest_actuator,30*ms);
+        }
+    }
+    EXPECT_GT(backwards_rejected,100U);EXPECT_GT(normal,100U);
+}
+TEST(M7WallAdmission, StructuredPreviewKeepsOriginalIntervalAndExpiry) {
+    EXPECT_EQ(m7_native::wall_preview_reserve(false),4*ms);
+    EXPECT_EQ(m7_native::wall_preview_reserve(true),2*ms);
+    WallRig rig({1,42,7},99,start);
+    m7_native::Admission gate(42,start,m7_native::ClockPolicy::HostMonotonic,5*ms);
+    unsigned saved_waits=0;
+    for(unsigned i=1;i<=1500;++i) {
+        const Time now=start+i*ms;
+        const auto r=rig.service(now,i%10==0?std::optional<WallReceipt>(sample(i/10)):std::nullopt);
+        ASSERT_FALSE(r.failed)<<r.reason;
+        const auto in=input(r.native);m7_native::Output out,old;
+        if(gate.started()){ASSERT_TRUE(gate.ingest(in,now))<<gate.error();}
+        if(!gate.eligible(in,now,out,nullptr,m7_native::wall_preview_reserve(true)))continue;
+        if(out.normal) {
+            if(!gate.eligible(in,now,old,nullptr,m7_native::wall_preview_reserve(false)))++saved_waits;
+            EXPECT_GT(out.exclusive_expiry,now+7*ms);
+            EXPECT_LE(now+7*ms-out.oldest_actuator,30*ms);
+            const auto expiry=out.exclusive_expiry;
+            // The same proof cannot be extended through its original expiry.
+            EXPECT_FALSE(gate.eligible(in,expiry-5*ms,old,nullptr,0));
+            m7_native::Output final;
+            ASSERT_TRUE(gate.accept(in,now,final))<<gate.error();
+            EXPECT_EQ(final.exclusive_expiry,expiry);
+            EXPECT_EQ(final.oldest_actuator,out.oldest_actuator);
+        } else {ASSERT_TRUE(gate.accept(in,now,out))<<gate.error();}
+    }
+    EXPECT_GT(saved_waits,50U);
+}
 }

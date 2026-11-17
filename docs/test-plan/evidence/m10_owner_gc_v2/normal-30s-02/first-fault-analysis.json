@@ -1,0 +1,164 @@
+{
+  "scope": "post-run diagnosis; counterfactual probes are not recorded live polls or a successful rerun",
+  "original_first_fault": {
+    "fault": 5,
+    "epoch": 42,
+    "model_epoch": 7,
+    "observed_ns": 1903272807964259,
+    "local_age_ns": 30000000,
+    "hv_dependency_age_ns": 30000000,
+    "local_skew_ns": 20000000,
+    "held_speed": {
+      "epoch": 7,
+      "sequence": 5915,
+      "source_ns": 1903272795980883,
+      "dependency_ns": 1903272795980883,
+      "rad_s": 0
+    },
+    "held_hv": {
+      "epoch": 7,
+      "sequence": 5915,
+      "source_ns": 1903272795980883,
+      "dependency_ns": 1903272777511672,
+      "voltage_v": 399.97874953512166,
+      "inverter_ready": true,
+      "local_fault": false
+    }
+  },
+  "fault_after_initial_ns": 28053010185,
+  "held_hv_dependency_age_ns": 30452587,
+  "inherited_dependency_age_ns": 18469211,
+  "held_duration_ns": 11983376,
+  "waiting_frame": 5916,
+  "owner_wait": {
+    "reasons": {
+      "unavailable": "0",
+      "proof_unreadable": "0",
+      "settlement": "4",
+      "stopped": "0",
+      "invalid": "0",
+      "not_due": "25",
+      "gap": "0",
+      "protection": "0",
+      "ineligible": "52",
+      "staging": "0",
+      "ready": "1"
+    },
+    "active": {
+      "count": "82",
+      "wall_ns": "1060580",
+      "cpu_ns": "1060371",
+      "voluntary": "0",
+      "involuntary": "0",
+      "minor_faults": "0",
+      "major_faults": "0",
+      "errors": "0",
+      "longest_begin": {
+        "wall_ns": "1903272806251663",
+        "cpu_ns": "37718987752",
+        "voluntary": "205135",
+        "involuntary": "391",
+        "minor_faults": "1763365",
+        "major_faults": "1",
+        "processor": "3",
+        "valid": "1"
+      },
+      "longest_end": {
+        "wall_ns": "1903272806456283",
+        "cpu_ns": "37719192399",
+        "voluntary": "205135",
+        "involuntary": "391",
+        "minor_faults": "1763365",
+        "major_faults": "1",
+        "processor": "3",
+        "valid": "1"
+      }
+    },
+    "idle": {
+      "count": "81",
+      "wall_ns": "8360423",
+      "cpu_ns": "281414",
+      "voluntary": "81",
+      "involuntary": "0",
+      "minor_faults": "0",
+      "major_faults": "0",
+      "errors": "0",
+      "longest_begin": {
+        "wall_ns": "1903272797744833",
+        "cpu_ns": "37717554886",
+        "voluntary": "205064",
+        "involuntary": "391",
+        "minor_faults": "1763362",
+        "major_faults": "1",
+        "processor": "3",
+        "valid": "1"
+      },
+      "longest_end": {
+        "wall_ns": "1903272797894069",
+        "cpu_ns": "37717603738",
+        "voluntary": "205065",
+        "involuntary": "391",
+        "minor_faults": "1763362",
+        "major_faults": "1",
+        "processor": "3",
+        "valid": "1"
+      }
+    },
+    "outside": {
+      "count": "82",
+      "wall_ns": "897444",
+      "cpu_ns": "896620",
+      "voluntary": "0",
+      "involuntary": "0",
+      "minor_faults": "3",
+      "major_faults": "0",
+      "errors": "0",
+      "longest_begin": {
+        "wall_ns": "1903272796093877",
+        "cpu_ns": "37716911621",
+        "voluntary": "205054",
+        "involuntary": "391",
+        "minor_faults": "1763362",
+        "major_faults": "1",
+        "processor": "3",
+        "valid": "1"
+      },
+      "longest_end": {
+        "wall_ns": "1903272796659560",
+        "cpu_ns": "37717478074",
+        "voluntary": "205054",
+        "involuntary": "391",
+        "minor_faults": "1763362",
+        "major_faults": "1",
+        "processor": "3",
+        "valid": "1"
+      }
+    },
+    "requested_sleep_ns": "4050000",
+    "reason_truncated": "0",
+    "last_ineligible": "native_current_actual_missing"
+  },
+  "next_acquired_before_fault_ns": 671982,
+  "original_gate_replay": {
+    "admissions": 6000,
+    "ingress": 5797,
+    "proof_bytes_equal": true
+  },
+  "scheduled_next_due_ns": 1903272799954074,
+  "candidate_first_eligible_probe_ns": 1903272799993157,
+  "candidate_last_eligible_probe_ns": 1903272800493157,
+  "candidate_probe_count": 11,
+  "original_extra_reserve_ns": 4000000,
+  "candidate_extra_reserve_ns": 2000000,
+  "relevant_command_original_expiry_ns": 1903272807511673,
+  "original_latest_preview_ns": 1903272798511672,
+  "candidate_latest_preview_ns": 1903272800511672,
+  "conclusions": [
+    "No owner GC occurred in either 30s run; this fault does not measure serial GC effectiveness.",
+    "The retained last ineligible reason is not a count or history of all 52 rejected previews.",
+    "Exact native and gate replay identifies original command coverage as the main preview wait.",
+    "Post-ingress preview with a pre-ingress timestamp independently reproduces backwards-clock rejection.",
+    "The 2ms extra staging margin allows an earlier eligible window on retained input; live behavior is untested.",
+    "The native old-held expiry check precedes new sample acceptance and remains unchanged."
+  ]
+}

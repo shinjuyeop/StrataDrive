@@ -193,6 +193,7 @@ Json Response(bool Ok, const FString& Reason)
   R->SetBoolField(TEXT("awaiting_ev_settlement"), S.AwaitSettlement);
   if(S.Wall){R->SetStringField(TEXT("wall_frames"),Dec(S.WallFrames));R->SetStringField(TEXT("wall_wait"),S.WallWait);
     R->SetBoolField(TEXT("structured_state"),S.StructuredState);
+    R->SetStringField(TEXT("wall_preview_reserve_ns"),Dec(stratadrive::m7_native::wall_preview_reserve(S.StructuredState)));
     R->SetStringField(TEXT("structured_direct_requests"),Dec(S.DirectRequests));
     R->SetStringField(TEXT("structured_text_fallback_requests"),Dec(S.TextFallbackRequests));
     R->SetStringField(TEXT("native_clock_domain"),TEXT("host_CLOCK_MONOTONIC; separate_CARLA_model_time"));
@@ -781,7 +782,7 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
       return Encode(Response(false,TEXT("wall_normal_closed")));
     if(S.Pumping) {
       std::string Why;
-      if(!S.NativeGate->eligible(Native,AdmissionNow,Actual,&Why,4000000)){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return Encode(Response(false,S.WallWait));}
+      if(!S.NativeGate->eligible(Native,AdmissionNow,Actual,&Why,stratadrive::m7_native::wall_preview_reserve(S.StructuredState))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return Encode(Response(false,S.WallWait));}
     }
     if (!S.NativeGate->accept(Native, AdmissionNow, Actual)) {
       Latch(UTF8_TO_TCHAR(S.NativeGate->error().c_str())); return Encode(Response(false, S.Reason));
@@ -902,7 +903,6 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
   }S.LastPump=Now;}
   if(!S.Bridge || S.Latched || !S.Locked || S.InFlight || S.Staged || S.Queued)return PumpWaiting(PumpReason::Unavailable);
   SharedProof Shared;if(!S.ProofReader.read(S.Bridge->proof,Shared))return PumpWaiting(PumpReason::ProofUnreadable);
-  const uint64 Now=WallNow();
   if(S.AwaitSettlement) {
     if(Shared.energy_end!=static_cast<uint64>(std::llround(Episode.GetElapsedGameTime()*1e9)))return PumpWaiting(PumpReason::Settlement);
     if(!FMath::IsFinite(Shared.total_mechanical) || !FMath::IsFinite(Shared.balance) ||
@@ -937,12 +937,15 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
       if(!Accepted){Latch(UTF8_TO_TCHAR(S.NativeGate->error().c_str()));return PumpWaiting(PumpReason::Invalid);}
     }
   }
+  // Ingress advances the canonical receiver clock to Received. A timestamp
+  // sampled before ingest would make the preview poll backwards in time.
+  const uint64 Now=WallNow();
   if(Now<S.NextDue)return PumpWaiting(PumpReason::NotDue);
   if(Now<S.GapUntil)return PumpWaiting(PumpReason::Gap);
   if((wall_fault(S.Signal) || __atomic_load_n(&S.Bridge->server_trip,__ATOMIC_ACQUIRE)) && !Native.protection_since){S.WallWait=TEXT("wall_normal_closed");return PumpWaiting(PumpReason::Protection);}
   // Eligibility does not consume a receiver or turn a rejected candidate into
   // a permission. The selected proof is checked again by the original gate.
-  if(!S.NativeGate->eligible(Native,Now,Actual,&Why,4000000)){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return PumpWaiting(PumpReason::Ineligible,Why.c_str());}
+  if(!S.NativeGate->eligible(Native,Now,Actual,&Why,wall_preview_reserve(S.StructuredState))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return PumpWaiting(PumpReason::Ineligible,Why.c_str());}
   if(S.ProfilePath){S.ActivePath.mark(PathPhase::Admitted);S.ActivePath.proof_observed=Native.observed;++S.ActivePath.admission_attempts;}
   const FString OwnerKey=FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M7_OWNER_KEY"));
   const auto RequestJson=NativeRequest(Native,FCarlaEngine::GetFrameCounter()+1,S.Session,S.Run,OwnerKey);

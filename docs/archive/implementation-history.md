@@ -889,8 +889,9 @@ M 확대는 개발의 절대 기준을 통과했지만 빈 배경 FP 증가와 �
 180초 기동 초과로 제어 전에 실패했다. read/page-cache 디스크 대기와 30초 종료 후
 강제 종료를 보존했다. 영상·제어·GC 측정 0, 후속 두 시험 NOT RUN, 미래 제외19991개다.
 공유 파일6개·부스트100%를 복원했다. [GC V2](../test-plan/evidence/m10_owner_gc_v2/README.md)는
-실행 직전 별도 자산 준비를 추가하며, 빈 renderer 검증104.676초·정상 종료·원본 복원과
-Python514개·동결102개 검사를 통과했다. GC 효과와5분 안정성은 아직 미검증이다.
+실행 직전 별도 자산 준비 후 첫30초 PASS, 두 번째28.053초 HV 만료로 실패했다.
+GC0회·영상565장·미래 제외20556개를 기록했고, 원래 gate 재생으로 추가 준비 여유와
+역행 시각 문제를 분리했다. 후속은 [admission window 후보](../test-plan/evidence/m10_admission_window_v1/README.md)다.
 
 [Owner wait V2](../test-plan/evidence/m10_owner_wait_v2/README.md)는 텐서 재사용으로 세 모델
 준비를 통과했고 두30초 PASS,5분은60.232초 HV 만료로 FAIL이다. 최초 오류는 물리 완료
@@ -937,6 +938,9 @@ Python514개·동결102개 검사를 통과했다. GC 효과와5분 안정성은
 | 상태 경로 V3 | 계측 결함 수정·원본 동일성/6000 HV 출처/재생 검증.5.474초에30.629ms HV 의존 입력 만료, native 슬롯 지연0. 저클럭 구간의 owner CPU 비용 증가 확인 | [최신 계측·실패 분석](../test-plan/evidence/m10_state_path_v3/README.md) |
 | Structured state V1 | 내부 JSON 왕복 제거 후보·4096 숫자/9 요청 검사 통과.42 INIT 구간 뒤214ms에 감시 슬롯 누락으로 FAIL, 반복/5분 중단. 별도 native1초500슬롯 누락0, FIFO18/CPU1,9 확인. 성능 개선·동시 실행 안정성 미수용 | [최적화 후보·실패 원본·분리 진단](../test-plan/evidence/m10_structured_state_v1/README.md) |
 | Monitor timing V1 | guarded JSON 후보의 첫30초 PASS, 두 번째는5.097초 보호 전환. 교체 직전 HV 의존 입력30.350ms 만료를 정확 재생으로 확인. 이후 감시 슬롯6개 누락·800MHz 구간 관측. 최초 Drive 오류 입력 보존과 IRQ 전체 읽기 수정;5분 NOT RUN | [원본 실행·진단 수정·재생](../test-plan/evidence/m10_watch_timing_v1/README.md) |
+| Owner wait V2 | 텐서 재사용 후30초2회 PASS,5분60.232초 HV 만료.61.1초 주기 정지와 GC 상관관계만 확인. 후반 native18슬롯 누락·최고90°C·영상3358장 보존 | [실행·최초 오류·저장 정리](../test-plan/evidence/m10_owner_wait_v2/README.md) |
+| Owner GC V1 | 영상 서버180초 준비 초과로 제어 전에 실패. 직접 read/page-cache 대기 관측, 영상0·GC 효과 미측정. 공유 파일6개·부스트100% 복원 | [기동 실패](../test-plan/evidence/m10_owner_gc_v1/README.md) |
+| Owner GC V2 | 별도 준비 후 첫30초 PASS, 두 번째28.053초 HV30.452587ms 만료. 두 실행 GC0회. 원래 gate6000/ingress5797과 proof byte 재생; preview 여유·시각 순서 분석. 영상565장·제외20556·최고78/79°C,5분 NOT RUN | [원본·분석·복원](../test-plan/evidence/m10_owner_gc_v2/README.md) |
 
 전체 설계 경계는 [물리/렌더링 분리 계약](../interfaces/perception-render-isolation-v1.md)을 따른다.
 유한 통과로 과거 실패를 지우거나 장기 운용·전체 장면·독립 품질·Jetson 배포를 수용하지 않는다.
