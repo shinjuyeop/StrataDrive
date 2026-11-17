@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **최신30초 PASS→30초 HV 만료 / 추가 대기 수정 후보 준비 / 전체 OPEN** | [실제 실행·원인](test-plan/evidence/m10_owner_gc_v2/README.md) · [후속 후보](test-plan/evidence/m10_admission_window_v1/README.md) |
+| M10 | **최신30초 물리 PASS / 추가 검사기 수정 후 반복·5분 대기 / 전체 OPEN** | [실제30초·검사기 수정](test-plan/evidence/m10_admission_window_v1/README.md) · [후속 준비](test-plan/evidence/m10_admission_window_v2/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -27,24 +27,25 @@
 passive ORT, CUDA blocking, NVMe 원본 BGRA 저장을 적용했다. 물리5ms·native2/4ms·
 HV30ms·인지100ms와 원래 수치 적분 조건은 변경하지 않았다.
 
-최신 [Owner GC V2](test-plan/evidence/m10_owner_gc_v2/README.md)는 **첫30초 PASS,
-두 번째30초는28.053초 HV 만료 FAIL,5분 NOT RUN**이다. 정상 구간은5838/5445개,
-CPU 최고78/79°C, 실제 카메라9.27/9.30Hz, 영상 획득→결과 중앙값78.98/79.45ms,
-p95 86.18/86.35ms다.100ms 초과는1/2회이며 원본565장과 원래 제어 출력·최초 오류를
-검증했다. 미래 품질 제외는20556개다. 두 실행 모두 owner GC가0회여서 GC 효과는 미측정이다.
+최신 [Admission window V1](test-plan/evidence/m10_admission_window_v1/README.md)의
+**30초 물리 시험은 PASS**다.6000구간·정상5830·보호0, native 최초 오류 없음·정확 재생,
+CPU 최고75°C, 카메라9.33Hz, 영상 획득→결과 중앙값78.15ms·p95 85.71ms,
+100ms 초과2회다. 원본284장 검증 후 미래 품질 제외는20840개다. owner GC는0회였다.
 
-최초 오류의 보유 HV 의존 입력은30.452587ms였다. 큰 GC 정지 없이 다음 명령의
-유효성을 기다렸다.6000회 원래 admission과5797회 ingress를 재생해 전체 proof byte의
-일치를 확인했다. 물리5ms에 추가4ms 준비 여유를 요구하면서 예정 시각에 유효한 명령을
-보류한 대기와, 수신 전 시각으로 수신 후 검사하는 역행 시각 거절을 분리했다.
-[원래 오류·대기 분석](test-plan/evidence/m10_owner_gc_v2/normal-30s-02/first-fault-analysis.json).
+추가 검사기가 receipt에 없는 서버 설정 필드를 요구하는 구현 오류로 FAIL을 냈고,
+사전 규칙대로 후속30초·5분은 중단했다. 설정은 시작·종료 서버 응답에서, 유효기간은
+각 원래 receipt에서 확인하도록 수정했다. 실제 구조 회귀4개와 원본6000개 사후 검사를
+통과했으며 원래 FAIL 기록은 바꾸지 않았다. [검사기 오류·별도 수정 검증](test-plan/evidence/m10_admission_window_v1/auditor-correction/validation.json).
 
-후속 [Admission window V1](test-plan/evidence/m10_admission_window_v1/README.md)은
-수신 후 시각을 읽고, 구조화 경로의 추가 준비 여유를2ms로 줄인다. 원래 최종 검사 본문과
-물리/HV 제한은 그대로다. 기존 admission→적용 최대0.426ms를 근거로 선택했고,
-전체 획득 시간의2ms 보장을 주장하지 않는다. 모듈 빌드·C++ admission27개·Python516개를
-통과했다. 소스1525개·동결104개 검사와 별도205.128초 자산 준비·정상 종료·복원을 확인했다.
-같은30초→30초→5분 절차로 시험할 준비가 됐으며 **아직 live 통과가 아니다**.
+후속 [V2](test-plan/evidence/m10_admission_window_v2/README.md)는 동일 실행 모듈로
+검사기만 수정했다. Python518개·동결106개·소스1535개 및 원본6000개 동결본 검사를
+통과했다.30초→30초→5분 재검증 준비가 됐으며 새 본시험은 NOT STARTED다.
+공유 파일6개와 부스트100% 복원을 확인했고70%를 기본 설정으로 채택하지 않는다.
+
+이 후보의 실행 변경은 수신 후 시각을 읽고 structured 경로의 추가 준비 여유를4→2ms로
+줄인 것이다. 원래 최종 검사·5ms 물리·HV30ms는 유지했다. 앞선 [GC V2](test-plan/evidence/m10_owner_gc_v2/README.md)의
+두 번째30초 HV30.452587ms 만료 기록을 재생해 추가 여유 대기와 역행 시각 문제를 분리했다.
+현재30초 관측만으로 장기 해결이나 GC 효과를 확정하지 않는다.
 
 이전 [Owner wait V2](test-plan/evidence/m10_owner_wait_v2/README.md)의5분 실행은
 60.232초 HV 만료였고,22.427ms 정지와61.1초 GC 주기의 상관관계는 여전히 미확정이다.
@@ -99,7 +100,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [Admission window V1](test-plan/evidence/m10_admission_window_v1/README.md)의 시작 도구로 자산을 준비하고 같은70% 조건에서30초→30초→5분 검증한다. 첫 실패에 중단한다. 추가 준비 대기와 역행 시각 거절의 개선을 확인하고, GC·후반 native18슬롯 누락·90°C도 별도로 재검증한다. 다음 분석 추천은 GPT-6 Astra / xhigh다.
+1. [Admission window V2](test-plan/evidence/m10_admission_window_v2/README.md)의 시작 도구로 자산을 준비하고 같은70% 조건에서30초→30초→5분 검증한다. 첫 실패에 중단한다. 추가 준비 대기와 역행 시각 거절의 개선을 확인하고, GC·후반 native18슬롯 누락·90°C도 별도로 재검증한다. 다음 분석 추천은 GPT-6 Astra / xhigh다.
 2. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태·자산 식별과 native 연결을 완성한다. 전체 장면이 없으면 인지 제어 수용은 닫고 Required는 opt-in SIL로 둔다.
 3. 후보·센서·모델 설정을 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상은 새 holdout으로 재사용하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.

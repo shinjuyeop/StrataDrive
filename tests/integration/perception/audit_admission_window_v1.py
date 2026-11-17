@@ -5,10 +5,17 @@ import json
 from pathlib import Path
 
 
-def validate_receipt(r):
-    if (r.get('structured_state') is not True or r.get('wall_preview_reserve_ns') != '2000000'
-            or r.get('model_step_ns') != '5000000' or r.get('admission_profile') != 'whole-interval-v1'):
+def validate_profile(server):
+    if (server.get('structured_state') is not True or server.get('wall_preview_reserve_ns') != '2000000'
+            or server.get('model_step_ns') != '5000000' or server.get('admission_profile') != 'whole-interval-v1'):
         raise ValueError('declared structured 2ms preview and original 5ms interval')
+
+
+def validate_receipt(r):
+    # Receipts retain original physical evidence, not Response() server fields.
+    # Configuration is checked on both binding and final_server separately.
+    if r.get('model_step_ns') != '5000000' or r.get('admission_profile') != 'whole-interval-v1':
+        raise ValueError('original receipt interval/profile')
     out = r['original_actual']['admitted_actual']
     if out['empty_init']:
         return
@@ -21,8 +28,7 @@ def validate_receipt(r):
 def audit(run):
     result = json.loads((run/'capture/result.json').read_text())
     for value in (result['binding'], result['final_server']):
-        if value.get('wall_preview_reserve_ns') != '2000000' or not value.get('structured_state'):
-            raise ValueError('actual candidate binding/readback')
+        validate_profile(value)
     count = normal = 0
     with gzip.open(run/'capture/trace.jsonl.gz', 'rt') as stream:
         for line in stream:

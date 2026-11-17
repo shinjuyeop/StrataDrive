@@ -1,37 +1,38 @@
-# M10 admission window V1 — 수신 후 시각과 추가 준비 여유
+# M10 admission window V1 — 물리30초 PASS, 추가 검사기 오류로 중단
 
-[GC V2](../m10_owner_gc_v2/README.md)는 첫30초 PASS, 두 번째30초는28.053초 HV 만료로
-실패했다. 두 실행에 GC가 없어 이번 실패는 GC 정지로 설명되지 않는다. 원래 native와
-gate를 재생해 명령의 전체 구간 유효성 대기와 수신 전/후 시각 순서 문제를 분리했다.
+실제30초는 **6000구간·정상5830·INIT170·보호0**으로 원래 물리·영상 검사와 native
+정확 재생을 통과했다. 최초 native 오류는 없고 CPU 최고75°C, 카메라9.33Hz,
+영상 획득→결과 중앙값78.15ms·p95 85.71ms·100ms 초과2회다. 원본284장 검증과
+미래 품질 제외20840개를 보존했다. owner GC는0회여서 GC 효과는 측정되지 않았다.
 
-후보는 수신 후 현재 시각을 읽고, 기존 opt-in structured 경로의 추가 준비 여유만
-4→2ms로 줄인다. 최종 admission 본문, 명령 expiry, 원래 source, HV30ms,
-물리5ms/320steps, native2/4ms, 오래된 HV를 먼저 검사하는 순서는 유지한다.
-기존 text 경로의 여유는4ms다. 모든 receipt에서 실제2ms 설정과 원래 전체 구간
-유효성을 추가 감사한다. [사전 프로토콜](../../perception-admission-window-v1-protocol.md).
+추가 admission 검사기가 서버 응답의`structured_state`와`wall_preview_reserve_ns`를
+개별 receipt에도 요구하는 구현 오류로 FAIL을 냈다. 실제 설정은 binding/final_server에
+2ms로 기록됐으며 receipt에는 원래 물리 필드만 있다. 사전 규칙대로 후속30초와5분은
+NOT RUN이다. [원래 판정](normal-30s-01/disposition.json)과 동결본의 같은 FAIL 재현을 유지한다.
 
-기존 두30초의 admission→적용 최대는0.426/0.400ms였다. 적용 이후 물리까지 포함한
-획득 최대는2.468/3.748ms로, **2ms는 추가 준비 여유**이며 전체 처리 시간의 상한이 아니다.
-기존 입력에 대한50us 간격 재생에서 다음 예정 시각 뒤0.5ms 폭의 더 이른 허용 구간을
-확인했다. 새 동작의 장기 성공 여부는 실제 실행으로만 판정한다.
+검사기를 실제 구조에 맞춰 수정했다. 시작·종료 서버 응답에서 설정을 모두 확인하고,
+각 원래 receipt에서5ms 구간과 추가2ms까지 원래 expiry/30ms 입력 나이를 검사한다.
+필드 누락·잘못된 설정·짧은 유효기간·불완전 수집은 계속 거절한다. 회귀4개와 원본6000개
+수정 검사를 통과했다. [수정 코드·검증](auditor-correction/validation.json),
+[별도 사후 결과](normal-30s-01/admission-window-corrected.json).
+이는 원래 전체 sequence의 FAIL 판정을 바꾼 것이 아니다.
 
+실행 후보는 수신 후 시각을 읽고 structured 경로의 추가 준비 여유를4→2ms로 줄였다.
+최종 admission, 원래 expiry/source, HV30ms, 물리5ms/320steps, native2/4ms,
+오래된 HV를 먼저 검사하는 순서는 유지한다. 기존 text 경로는4ms다.
 모듈 SHA `29df236c28bdc92c29784f0ab7e087f3f18c8bf0187c84aa24a957b6d7e45e98`.
-[원래 계산·배치 동일성](code-equivalence.json), C++ admission27개와 Python516개 통과.
-소스1525개·동결104개 검사를 통과했고 빈 서버 자산 준비205.128초·정상 종료·원본 파일6개
-복원을 확인했다. [prepared.json](prepared.json),
-[readiness-validation.json](readiness-validation.json). 본시험은 **NOT STARTED**다.
+[사전 프로토콜](../../perception-admission-window-v1-protocol.md),
+[계산·배치 동일성](code-equivalence.json). 준비 당시 소스1525개·Python516개·동결104개·
+C++ admission27개와 빈 서버205.128초 검증을 통과했다. prepared/readiness의 NOT STARTED는
+실행 전 기록이며 실제 결과는 [마감 검증](final-validation.json)을 따른다.
 
-준비 완료 후 실행 명령:
+첫 실제 준비102.336초 후 인증 대기 기록과, 다시 준비29.768초 후 즉시 인증해 실행한
+기록을 각각 보존했다. 공유 파일6개와 부스트100%는 OWNER_EXIT로 복원됐다.
+[복원 확인](restoration-confirmation.json), [lease](power-lease.jsonl).
+전체 run/raw는 로컬 보존하며 Git에는 bounded review를 남긴다. 외부 전체 백업은 아니다.
+무손실 tar 압축과 해시 검증된 추출 중복 정리로 약2.68GB를 확보했다.
+[저장 정리](storage-closeout.json).
 
-```bash
-python3 /d/shin/StrataDrive/tools/m10_start_owner_gc.py
-```
-
-도구 이름은 유지하되 현재 선언된 이 후보를 선택한다. 매 실행마다 빈 영상 서버를
-준비하고 sudo 인증 후 새 PID로70% 임시 상한을 연결한다. 준비 후5분 초과·이전 실행
-존재·동결 파일 변경은 거절한다.30초→30초→5분, 첫 실패 중단, 종료/최대30분 후100%
-복원과 공유 파일6개 복원이 적용된다. 기존 시험에 덮어쓰거나 자동 재시도하지 않는다.
-
-2K/D-FINE-M960·카메라10Hz·렌더러20Hz·GC직렬/61.1초는 유지하고 미래 품질 제외는
-20556개에서 이어간다. GC 효과·5분 안정성·후반 native 누락·열 여유·인지 수용·전체 장면·
-독립 품질·각 Jetson 배포와 M10 종료는 OPEN이다.
+후속 [V2](../m10_admission_window_v2/README.md)는 같은 실행 모듈로 검사기만 수정해
+30초→30초→5분을 다시 검증한다.5분·GC·열 여유·native 인지·전체 장면·독립 품질·
+각 Jetson 배포와 M10 종료는 OPEN이다.

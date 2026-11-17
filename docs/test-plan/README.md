@@ -9,7 +9,7 @@
 | 분야 | 최신 연결 |
 | --- | --- |
 | 작업 순서·수용 판정 | [프로젝트 상태](../project-status.md#다음-작업) |
-| 물리·영상 동시 실행과 Host 부하 | [최신30초 PASS→HV 만료](evidence/m10_owner_gc_v2/README.md) · [수신 후 시각·추가 여유 후보](evidence/m10_admission_window_v1/README.md) · [사전 프로토콜](perception-admission-window-v1-protocol.md) · [이전 시험 목록](../archive/implementation-history.md#m10-host-실행-이력) |
+| 물리·영상 동시 실행과 Host 부하 | [최신30초 물리 PASS·검사기 오류](evidence/m10_admission_window_v1/README.md) · [검사기 수정 후속](evidence/m10_admission_window_v2/README.md) · [사전 프로토콜](perception-admission-window-v2-protocol.md) · [이전 시험 목록](../archive/implementation-history.md#m10-host-실행-이력) |
 | 인지 후보·독립 품질 | [모델 선정](../perception-model-selection.md) · [V9 평가](evidence/m10_quality_v9/README.md) · [해상도 후보](evidence/m10_resolution_v2/README.md) |
 | 2K/4K 실제 수신·지연 | [동일 조건 비교](evidence/m10_source_compare_v2/README.md) · [제한된2K 지연 개선·미채택 조건](evidence/m10_latency_2k_v1/README.md) |
 | 비동기 상태·인지·조회 | [실제 월드](evidence/m10_world_async_v1/README.md) · [준비·반복 관측](evidence/m10_native_startup_v1/README.md) |

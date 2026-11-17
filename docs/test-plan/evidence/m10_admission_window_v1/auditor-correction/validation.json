@@ -1,0 +1,16 @@
+{
+  "status": "PASS_POST_RUN_AUDITOR_CORRECTION_ONLY",
+  "original_failure_preserved": {
+    "status": "FAIL",
+    "error": "declared structured 2ms preview and original 5ms interval"
+  },
+  "original_frozen_auditor_sha256": "6633a480e5f76f35c361a9a12badf1ae0ffd41dab98465e70435e5081ca2a81f",
+  "corrected_auditor_sha256": "84e2788f398f9ddcaa754a378370c73bc3c1d5a1080487c87619a9cbf42004f3",
+  "corrected_regression_sha256": "293eb34bc6696e034c0aace67997b10f370052507271554ff13c8fd3bcadd2e3",
+  "original_capture_unchanged": true,
+  "regression_tests": 4,
+  "corrected_receipts": 6000,
+  "explanation": "Server binding/final responses contain structured_state and wall_preview_reserve_ns; original receipts intentionally do not. Check both server responses and unchanged whole-interval receipt coverage separately.",
+  "changes_to_physics_or_authority": false,
+  "original_sequence_verdict_changed": false
+}
