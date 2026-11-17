@@ -1,0 +1,14 @@
+{
+  "user": "alswoghd",
+  "uid": 1000,
+  "helper": "/usr/local/sbin/stratadrive-m10-boost-lease",
+  "helper_sha256": "92238599f138698e9346e6638ccac8b495da9fd50074c3bbbb8c52fd633947ae",
+  "source_sha256": "1904908d8c8a29aa2379fb75f0a10a0903776007ea7a429ab27ad7a74f8c4f15",
+  "policy": "/etc/sudoers.d/stratadrive-m10-boost",
+  "rule": "# Managed by StrataDrive m10_install_host_lease.py; one fixed command.\nalswoghd ALL=(root) NOPASSWD: NOSETENV: /usr/local/sbin/stratadrive-m10-boost-lease\n",
+  "helper_mode": "root:root 0755",
+  "policy_mode": "root:root 0440",
+  "max_seconds": 1800,
+  "cpu_action": "max_perf_pct 100 -> 70 -> original100 only",
+  "installation_changes_cpu_settings": false
+}

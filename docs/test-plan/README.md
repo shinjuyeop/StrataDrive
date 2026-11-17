@@ -9,6 +9,7 @@
 | 분야 | 최신 연결 |
 | --- | --- |
 | 작업 순서·수용 판정 | [프로젝트 상태](../project-status.md#다음-작업) |
+| 반복 Host 시험의 sudo 인증 | [최초 한 번 설치·전용 명령·제거](m10-host-lease-automation.md) |
 | 물리·영상 동시 실행과 Host 부하 | [30초2회 통과·5분 GC 뒤 만료](evidence/m10_gc_recovery_v3/README.md) · [owner4/image2 비교 후보](evidence/m10_gc_owner4_v1/README.md) · [사전 프로토콜](perception-gc-owner4-v1-protocol.md) · [이전 시험 목록](../archive/implementation-history.md#m10-host-실행-이력) |
 | 인지 후보·독립 품질 | [모델 선정](../perception-model-selection.md) · [V9 평가](evidence/m10_quality_v9/README.md) · [해상도 후보](evidence/m10_resolution_v2/README.md) |
 | 2K/4K 실제 수신·지연 | [동일 조건 비교](evidence/m10_source_compare_v2/README.md) · [제한된2K 지연 개선·미채택 조건](evidence/m10_latency_2k_v1/README.md) |

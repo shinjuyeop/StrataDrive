@@ -98,7 +98,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [GC owner4 V1](test-plan/evidence/m10_gc_owner4_v1/README.md)을 같은70%에서30초→30초→5분 검증한다. 첫 실패에 후속 실행을 중단한다. 물리5ms·HV30ms와300us 추가 preview를 유지하면서 GC 뒤 갱신 회복, native 누락, 영상 지연과 열 여유를 함께 확인한다. 다음 분석 추천은 GPT-6 Astra / xhigh다.
+1. 기존 실패 기록으로 GC 내부 대기와 `물리 입력 생성 → ECU 반영 → 다음 물리 허용`의 회복 시간을 먼저 구분한다. [GC owner4 V1](test-plan/evidence/m10_gc_owner4_v1/README.md)은 준비된 가설이며 해결책으로 확정하지 않는다. 추가 시험은 구분할 원인과 관측값을 정한 뒤 진행하고 물리5ms·HV30ms를 유지한다. 반복 인증은 [전용 Host lease 설치](test-plan/m10-host-lease-automation.md)로 줄인다. 다음 분석 추천은 GPT-6 Astra / xhigh다.
 2. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태·자산 식별과 native 연결을 완성한다. 전체 장면이 없으면 인지 제어 수용은 닫고 Required는 opt-in SIL로 둔다.
 3. 후보·센서·모델 설정을 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상은 새 holdout으로 재사용하지 않는다.
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
