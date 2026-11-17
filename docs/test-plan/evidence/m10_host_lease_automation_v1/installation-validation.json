@@ -1,0 +1,42 @@
+{
+  "status": "PASS_INSTALLED_PASSWORDLESS_HELPER_CHECK_ONLY",
+  "checked_utc": "2026-11-17T16:46:00.216021+00:00",
+  "command": [
+    "python3",
+    "/d/shin/StrataDrive/tools/m10_start_owner_gc_unattended.py",
+    "--check"
+  ],
+  "exit_code": 0,
+  "files": {
+    "helper": {
+      "path": "/usr/local/sbin/stratadrive-m10-boost-lease",
+      "uid": 0,
+      "gid": 0,
+      "mode": "0o755",
+      "links": 1,
+      "sha256": "92238599f138698e9346e6638ccac8b495da9fd50074c3bbbb8c52fd633947ae"
+    },
+    "policy": {
+      "path": "/etc/sudoers.d/stratadrive-m10-boost",
+      "uid": 0,
+      "gid": 0,
+      "mode": "0o440",
+      "links": 1,
+      "contents": "not read by unprivileged verifier; installed rule exercised with cached credentials ignored"
+    }
+  },
+  "authentication_probe": [
+    "/usr/bin/sudo",
+    "-n",
+    "-k",
+    "/usr/local/sbin/stratadrive-m10-boost-lease",
+    "--help"
+  ],
+  "cached_credentials_ignored": true,
+  "password_prompt_required": false,
+  "host_max_perf_pct_before": 100,
+  "host_max_perf_pct_after": 100,
+  "physical_trial_started": false,
+  "actual_power_transition_tested": false,
+  "scope": "installed helper identity, ownership, permissions and noninteractive sudo help; no new physical acceptance or GC recovery claim"
+}
