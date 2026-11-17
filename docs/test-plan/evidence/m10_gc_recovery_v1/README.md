@@ -1,47 +1,37 @@
-# M10 GC recovery preview V1 — 실제 비교 전 후보
+# M10 GC recovery V1 — 모델 준비 실패, 제어 미시작
 
-[Owner3 V1](../m10_gc_owner3_v1/README.md)의5분 실패에서 GC 뒤 세 정상 프레임이
-기존 wheel/actuator 시각을 상속했고 다음 갱신을 기다리다 HV30ms가 만료됐다.
-이 후보는 **명시적 opt-in에서 추가 preview 여유만1ms→300us**로 바꾼다.
-[사전 프로토콜](../../perception-gc-recovery-v1-protocol.md).
+첫30초 시도는 **인지 모델 준비10초 제한 초과로 FAIL**이다. 물리 구간·native 시작·카메라
+원본은 모두0이며, 후속30초와5분은 NOT RUN이다.300us preview의 GC 회복 효과는 측정하지
+못했다. [원래 판정](sequence-disposition.json), [원본 분석](normal-30s-01/startup-analysis.json).
 
-원래 최종 Admission class와 물리 직전 BeforeTick 검사, 물리5ms·HV30ms·native2/4ms·
-센서 시각·기존 held 만료 우선 순서는 같다. 기본 경로의 여유도 그대로다.
-[코드 동등성](code-equivalence.json)은 이 경계와 기존 native·엔진·모델의 동일성을 확인한다.
-오류 전 정상11874구간의 최종 preview 검사→적용 최대251.494us를 고려해300us를
-선택했지만, 미래 지연 상한이나 실제 회복 성공을 뜻하지 않는다.
+준비10.000121초 동안 첫 호출이 완료되지 않았다. 관측된 고장 페이지 수 증가가 가장 큰
+스레드는20개 샘플 모두 D 상태였고, major fault370개 증가·CPU227.756ms·scheduler 대기
+증가0을 기록했다. 같은 샘플의 GPU 사용률은0%였다. 디스크 페이지 읽기가 준비 지연에
+기여한 근거지만 원본에는 함수 stack·파일 mapping이 없어 정확한 라이브러리는 식별하지 못했다.
 
-Python529개·C++29개·동결본117개 검사를 통과했다. 원래 gate를 유지하는 실제 staging
-회귀와 잘못된 flag/readback·CPU 중첩·짧은 물리 구간의 거절을 포함한다.
-모듈은 `1feab7bc7a1c6788ec50fa507226ac01c99393d7b420912bba2e3cc1411a8eff`이며,
-1592파일 동결본은 `b0056abdf8978ef0e127d8b7c8dc612a47129e4724d965e8d70e6eddc00982f6`다.
-빈 renderer는304.618초에 준비됐고 정상 종료·공유6파일·부스트100% 복원을 확인했다.
-[준비 결과](prepared.json), [최종 준비 검사](readiness-validation.json).
-**본시험은 NOT STARTED**다.
+worker 종료5초 제한 후에도 준비 작업이 busy였고 클라이언트는SIGSEGV(-11)로 종료됐다.
+crash stack이 없어 직접 원인을 확정하지 않는다. 두 CARLA 서버는 모두 요청 종료130으로
+끝났고 강제 종료는 없었다.8개 감사 결과의 원래 FAIL을 동결본에서 동일하게 재현했다.
+제어 기록이 없어 native replay 성공을 주장하지 않는다.
+[원본 보존·복원 검증](final-validation.json), [전체 시작 기록 묶음](normal-30s-01/bounded-review.json).
 
-예비250us 후보의 첫 빌드는300초 초과로 실패했으며 설치하지 않았다. 원본과 로그를
-보존했다. 최종300us 모듈은 제어·서버 종료 후 소유한 offline archive reader만
-약81초 멈춘 상태에서 별도 빌드했고 reader를 복구했다.
-[빌드 시도](build-attempts.json). 실패한 빌드를 성공 근거로 재사용하지 않는다.
+100%로 복원한 뒤의 [별도 I/O 진단](startup-io-diagnostics/README.md)은 원본 라이브러리의
+첫 호출470.632ms·major fault17, 동일한 차가운 복사본의2925.138ms·1045를 기록했다.
+복사본을 순차 읽고 해시 확인하는 데11.921초가 들었고, 이후 첫 호출352.733ms·major fault0을
+기록했다. 총 시작 시간을 줄였다는 뜻이나70%·CARLA 동시 조건의 완전 재현은 아니다.
 
-물리 owner3코어 / 렌더러·영상3코어 / native1 / 관측1의 SMT 분리 배치와
-GC61.1초·12220프레임·증분 정리100us 요청을 유지한다. 카메라2560×1536·
-D-FINE-M960 CUDA·목표10Hz·renderer20Hz/MaxFPS60·CV/resize4도 같다.
+원본0장으로 미래 품질 제외는34241개다. 실행기 종료에 따라 부스트100%와 공유6파일을
+[복원](restoration-confirmation.json)했다. 소스1592개 동결본
+`b0056abdf8978ef0e127d8b7c8dc612a47129e4724d965e8d70e6eddc00982f6`와 실행 전
+**Python529·동결117·C++29** 준비 근거를 그대로 보존한다. 원래 모듈은
+`1feab7bc7a1c6788ec50fa507226ac01c99393d7b420912bba2e3cc1411a8eff`다.
+예비250us 빌드 초과와 교체한 최초 동결본도 기존 [빌드 이력](build-attempts.json)·
+[교체 이력](preparations/freeze-01-superseded/superseded.json)에 남아 있다.
 
-```bash
-python3 /d/shin/StrataDrive/tools/m10_start_owner_gc.py
-```
+후속 [Recovery V2](../m10_gc_recovery_v2/README.md)는 같은 모듈과300us preview를 유지하고
+모델 시작 전에 고정 라이브러리 바이트만 읽는 준비를 추가한다. 추론·control warmup을 추가하지
+않으며 원래 준비10초·후속100ms·물리5ms·HV30ms·시각·만료 우선 순서를 유지한다.
+5분 HV 만료·worker 정리 실패 가능성·native 인지 수용·독립 품질·각 Jetson 배포·M10은 OPEN이다.
 
-자산 준비 뒤 sudo 인증하고 APPLIED를 확인한다.70% 조건에서30초→30초→5분을
-검사하며 첫 실패에 후속 실행을 중단한다. owner 종료·Ctrl+C·최대30분 뒤 원래100%로
-복원한다.70%는 임시 시험 조건이다. 원본 보존·미래 품질 제외34241개를 유지한다.
-5분 안정성·native 인지 수용·전체 장면·독립 품질·각 Jetson 배포·M10 종료는 OPEN이다.
-
-최종 실행 경로 검토에서 이전 판정 이름·동결본 감사 도구 참조를 수정했다. 첫 준비 동결본은
-[교체 이력](preparations/freeze-01-superseded/superseded.json)에 보존했고, 실제 실행 전제와
-8개 재감사 경로의 일치를 [확인](runner-wiring.json)한 뒤 다시 동결·117개 검사를 통과했다.
-모듈·529개 회귀·29개 C++ 검사와 빈 renderer 검증은 동일한 코드의 근거를 재사용한다.
-
-검사 후 두 동결본의 중복 추출과 실패 빌드의 동일한 원본 모듈 복사본만 해시 확인 후
-삭제했다. [최종 추출 정리](preparation-storage.json), [실패 빌드 정리](failed-build-storage.json).
-소스 archive·실패 당시 코드·원본 모듈의 보존 위치는 각 기록에 남겼다.
+원본 archive를 보존하고 byte 검증한 추출본·진단용 라이브러리 복사본만 삭제해
+1.938GB를 회수했다. [저장 정리](storage-closeout.json), [최종 체크섬](SHA256SUMS).

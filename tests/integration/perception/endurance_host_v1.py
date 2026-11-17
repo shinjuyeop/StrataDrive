@@ -96,6 +96,15 @@ def pipeline_backend(default):
     return TensorKernelBackend
 
 
+def prefetch_pipeline_libraries(report):
+    value=os.environ.get('STRATADRIVE_M10_PREFETCH_LIBRARIES')
+    if value is None:return
+    if value!='1':raise ValueError('explicit library prefetch option')
+    from physical_ai.perception.library_prefetch_v1 import prefetch
+    root=Path(__file__).resolve().parents[3]
+    prefetch(root/'profiles/perception-inference-libraries-host-v1.json',root,report)
+
+
 @contextmanager
 def pipeline_setup():
     """Place model construction and newly created workers on the image CPUs.

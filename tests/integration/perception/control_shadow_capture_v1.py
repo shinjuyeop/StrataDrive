@@ -12,7 +12,7 @@ import zlib
 from PIL import Image
 from native_memory_recorder_v1 import MemoryRecorder
 from endurance_profile_v1 import limits
-from endurance_host_v1 import pipeline_setup, configure_pipeline_threads, pipeline_backend
+from endurance_host_v1 import pipeline_setup, configure_pipeline_threads, pipeline_backend, prefetch_pipeline_libraries
 from physical_ai.perception.ipc_2k_v1 import IpcWorldPerception, Publisher, socket_pair
 from physical_ai.perception.staged_kernel_2k_v1 import StagedKernelBackend
 from physical_ai.perception.world_async_2k_v1 import ObservedWorldClock
@@ -45,6 +45,8 @@ class Capture:
         self.attach_sensor(world, actor, carla)
 
     def prepare_model(self, world):
+        self.report['library_prefetch']={}
+        prefetch_pipeline_libraries(self.report['library_prefetch'])
         backend = pipeline_backend(StagedKernelBackend)
         self.report['tensor_workspace'] = os.environ.get('STRATADRIVE_M10_TENSOR_WORKSPACE') == '1'
         self.detector = backend(self.args.detector, self.args.models, self.args.library,

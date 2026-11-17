@@ -119,7 +119,14 @@ or moving only Python inference does not establish this boundary.
    class, pre-physics guard,5ms interval, HV30ms and held-expiry ordering stay
    unchanged. Observed staging cost is not a future bound. Python529/frozen117/
    C++29 and empty-renderer preparation passed; the new physical trial has not
-   run. See the [current decision and evidence](../project-status.md#최신-m10-판단)
+   reached native start: its first attempt failed the original10s model preparation
+   deadline, with0 physical receipts and camera frames. D-state/major-fault samples
+   support startup page I/O as a contributor; the client SIGSEGV after a busy-worker
+   cleanup timeout remains unproven at stack level. Recovery V2 reuses the module
+   and adds explicitly recorded, hash-pinned library reads before model construction,
+   without extra inference or relaxed preparation deadlines. Its actual two setup
+   paths and Python537/frozen125 tests pass;70% physical work is not started.
+   See the [current decision and evidence](../project-status.md#최신-m10-판단)
    and [execution history](../archive/implementation-history.md#m10-host-실행-이력).
    20Hz camera throughput is not a gate; the target remains1× wall behavior
    without silently slowing simulation.

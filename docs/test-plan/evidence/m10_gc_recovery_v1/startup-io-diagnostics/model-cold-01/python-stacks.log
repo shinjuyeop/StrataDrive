@@ -1,0 +1,16 @@
+Timeout (0:00:05)!
+Thread 0x00007b1db5fff640 (most recent call first):
+  File "/d/shin/StrataDrive/build/m10-perception/cuda-venv/lib/python3.10/site-packages/onnxruntime/capi/onnxruntime_inference_collection.py", line 287 in run
+  File "/d/shin/StrataDrive/physical_ai/perception/resolution_v2.py", line 137 in raw
+  File "/d/shin/StrataDrive/physical_ai/perception/tensor_2k_v1.py", line 72 in infer
+  File "/d/shin/StrataDrive/tests/integration/perception/control_shadow_capture_v1.py", line 67 in infer
+  File "/d/shin/StrataDrive/physical_ai/perception/native_startup_2k_v1.py", line 123 in _run
+  File "/usr/lib/python3.10/threading.py", line 953 in run
+  File "/usr/lib/python3.10/threading.py", line 1016 in _bootstrap_inner
+  File "/usr/lib/python3.10/threading.py", line 973 in _bootstrap
+
+Thread 0x00007b1e8547b480 (most recent call first):
+  File "/usr/lib/python3.10/threading.py", line 324 in wait
+  File "/d/shin/StrataDrive/physical_ai/perception/native_startup_2k_v1.py", line 72 in wait_prepared
+  File "/d/shin/StrataDrive/tests/integration/perception/control_shadow_capture_v1.py", line 80 in prepare_model
+  File "/d/shin/StrataDrive/build/m10-gc-recovery-v1/diagnostics/model-probe.py", line 19 in <module>

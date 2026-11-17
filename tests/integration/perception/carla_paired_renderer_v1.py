@@ -33,7 +33,7 @@ from native_memory_recorder_v1 import MemoryRecorder
 from paired_fault_v1 import observed_process_exit
 from endurance_profile_v1 import limits,camera_pacing
 from endurance_recording_v1 import ShardRecorder
-from endurance_host_v1 import mark_thread,configure_pipeline_threads,pipeline_backend
+from endurance_host_v1 import mark_thread,configure_pipeline_threads,pipeline_backend,prefetch_pipeline_libraries
 
 
 def sha(data):return hashlib.sha256(data).hexdigest()
@@ -54,6 +54,8 @@ class DiagnosticInference:
             import cv2
             cv_threads=int(os.environ.get('STRATADRIVE_M10_CV_THREADS','0'))
             resize_threads=int(os.environ.get('STRATADRIVE_M10_RESIZE_THREADS','0'))
+            self.report['library_prefetch']={}
+            prefetch_pipeline_libraries(self.report['library_prefetch'])
             backend=pipeline_backend(StagedKernelBackend)(self.args.detector,self.args.models,self.args.library,
                 'f851fa22a24576d4e76fa2fa8749f3f4517d5ee625b64de390a360fd32fb0721',trace_capacity=max(4096,self.max_calls+3))
             configure_pipeline_threads(backend,cv_threads,resize_threads)

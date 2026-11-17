@@ -77,7 +77,8 @@ def main(a):
         report['camera_period_ms']=camera_period
         for option,key in [('profile_host','STRATADRIVE_M10_PROFILE'),('cuda_blocking','STRATADRIVE_CUDA_BLOCKING_SYNC'),('raw_recording','STRATADRIVE_M10_RAW_RECORDING'),
                            ('preprocess_cv_threads','STRATADRIVE_M10_CV_THREADS'),('resize_threads','STRATADRIVE_M10_RESIZE_THREADS'),
-                           ('tensor_workspace','STRATADRIVE_M10_TENSOR_WORKSPACE')]:
+                           ('tensor_workspace','STRATADRIVE_M10_TENSOR_WORKSPACE'),
+                           ('prefetch_inference_libraries','STRATADRIVE_M10_PREFETCH_LIBRARIES')]:
             value=getattr(a,option,0)
             if value:
                 if not a.endurance_seconds:raise ValueError('explicit endurance host profiling option')
@@ -260,6 +261,7 @@ if __name__=='__main__':
     p.add_argument('--owner-serial-gc',action='store_true')
     p.add_argument('--owner-purge-slice',action='store_true')
     p.add_argument('--owner-recovery-preview',action='store_true')
+    p.add_argument('--prefetch-inference-libraries',action='store_true')
     p.add_argument('--renderer-max-fps',type=int,choices=(0,20,60),default=0)
     p.add_argument('--preprocess-cv-threads',type=int,choices=(0,1,2,4),default=0)
     p.add_argument('--resize-threads',type=int,choices=(0,1,2,4),default=0)
