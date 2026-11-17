@@ -1,0 +1,29 @@
+{
+  "status": "PASS_LAUNCHER_ONLY_NOT_LIVE",
+  "source_archive": {
+    "path": "launcher-sources.tar.gz",
+    "bytes": 3813,
+    "sha256": "97aebdce78eacaf019b8cf9a18be6f73eaff26b99e9efa71b2526451135971ca"
+  },
+  "files": {
+    "tools/m10_start_owner_gc.py": {
+      "bytes": 5262,
+      "sha256": "8a581696a3941d79ee50b47f7c9dd291ac64525b4336b046e4db090a4b9074b8"
+    },
+    "tests/integration/perception/test_owner_gc_launcher.py": {
+      "bytes": 5965,
+      "sha256": "7370d8b90660192c32d0b3ac796eb5a87479ecf48865d287ec9bef654610786d"
+    }
+  },
+  "tests": 5,
+  "test_log": "launcher-tests.txt",
+  "test_scope": "No sudo or host writes in tests; actual isolated child PID and cleanup, auth failure, changed source, root and prior-attempt rejection",
+  "original_source_files_unchanged": 1501,
+  "original_source_archive_sha256": "5aca9e0c5ba8031647561fa7af02c7868734ae68a0cb47a915a6de88635037d2",
+  "previous_startup": "startup-timeout-01/recovery.json",
+  "original_helper_and_runner_unchanged": true,
+  "authentication": "sudo -v before creating owner; sudo -n invokes only the existing 1800s helper after fresh PID readiness",
+  "host_max_perf_pct": 100,
+  "live_status": "NOT_STARTED",
+  "owner_python": "build/m10-perception/cuda-venv/bin/python"
+}
