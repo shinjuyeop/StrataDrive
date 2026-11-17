@@ -1,0 +1,167 @@
+{
+  "status": "READY_FOR_EXPLICIT_HOST_LEASE",
+  "source_files": 1560,
+  "source_archive_sha256": "960c484471ca6dbbc8a6753b3b730654be18096f68c06c63bc9215aaeaeff4eb",
+  "helper_sha256": "1904908d8c8a29aa2379fb75f0a10a0903776007ea7a429ab27ad7a74f8c4f15",
+  "python_tests": 522,
+  "frozen_tests": 110,
+  "native_admission_cpp_tests": 28,
+  "admission_preview_reserve_ns": 1000000,
+  "original_physics_interval_ns": 5000000,
+  "original_hv_age_ns": 30000000,
+  "gc_policy": {
+    "owner_parallel": true,
+    "period_seconds": 61.1,
+    "requested_purge_slice_ns": 100000,
+    "renderer_unchanged": true
+  },
+  "gc_layout": {
+    "gc_profile_bytes": 12824,
+    "purge_profile_bytes": 22048,
+    "owner_path_bytes": 1688,
+    "capacity": 64
+  },
+  "candidate_module_sha256": "0520f2a91d3e918510e6f4631d869205bff524f1724adf8d395f8e1647a0066f",
+  "preparation_validation": {
+    "status": "PREPARED_NOT_PHYSICAL_ACCEPTANCE",
+    "scope": "empty renderer cache preparation only; no native, camera, inference or GC intervention",
+    "validation_only": true,
+    "declared_utc": "2026-11-17T07:01:49.109612+00:00",
+    "readiness_limit_seconds": 600,
+    "argv": [
+      "taskset",
+      "-c",
+      "4-7,12-15",
+      "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+      "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+      "/Game/Carla/Maps/Town03_Opt",
+      "-game",
+      "-FixedSeed",
+      "-RenderOffScreen",
+      "-nosound",
+      "-unattended",
+      "-nosplash",
+      "-carla-server",
+      "-quality-level=Epic",
+      "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1,t.MaxFPS 60",
+      "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+      "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+      "-log",
+      "-stdout",
+      "-FullStdOutLogOutput",
+      "-carla-rpc-port=2300",
+      "-StrataM10IdleWait"
+    ],
+    "script_sha256": "2e99e7778bdfb2ee104ec9f3bacb93ce101f2a944c6ad1ffb4a7418e7bc6a58c",
+    "module_sha256": "0520f2a91d3e918510e6f4631d869205bff524f1724adf8d395f8e1647a0066f",
+    "physical_trial_startup_limit_unchanged_seconds": 180,
+    "work": "build/m10-purge-slice-v1/preparations/validation-1917387998939413",
+    "host_policy": {
+      "min_perf_pct": "16",
+      "max_perf_pct": "100",
+      "no_turbo": "0"
+    },
+    "ready_after_seconds": 473.682174627902,
+    "empty_world": {
+      "counts": {
+        "vehicle.*": 0,
+        "sensor.*": 0,
+        "walker.*": 0
+      },
+      "parked": true
+    },
+    "shutdown": {
+      "begin_wall_ns": 1917865802406732,
+      "limit_seconds": 30,
+      "diagnostic_after_seconds": 10,
+      "diagnostics_enabled": true,
+      "end_wall_ns": 1917869374305714,
+      "server_exit": 130
+    },
+    "restoration": {
+      "status": "PASS",
+      "components": {
+        "dxcompiler": {
+          "status": "RESTORED",
+          "command_exit": 0,
+          "sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46"
+        },
+        "module": {
+          "status": "RESTORED",
+          "command_exit": 0,
+          "sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134"
+        }
+      },
+      "files": {
+        "executable": {
+          "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+          "sha256": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+          "original_sha256": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+          "checked_sha256": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8"
+        },
+        "module": {
+          "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Plugins/Carla/Binaries/Linux/libUE4Editor-Carla.so",
+          "sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134",
+          "original_sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134",
+          "checked_sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134"
+        },
+        "engine": {
+          "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/libUE4Editor-Engine.so",
+          "sha256": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+          "original_sha256": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+          "checked_sha256": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48"
+        },
+        "rendercore": {
+          "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/libUE4Editor-RenderCore.so",
+          "sha256": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b",
+          "original_sha256": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b",
+          "checked_sha256": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b"
+        },
+        "dxcompiler": {
+          "path": "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/ThirdParty/ShaderConductor/Linux/x86_64-unknown-linux-gnu/libdxcompiler.so",
+          "sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46",
+          "original_sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46",
+          "checked_sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46"
+        },
+        "ini": {
+          "path": "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/Saved/Config/Linux/GameUserSettings.ini",
+          "sha256": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448",
+          "checked_sha256": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448"
+        }
+      },
+      "errors": [],
+      "checked_utc": "2026-11-17T07:10:02.216320+00:00"
+    },
+    "completed_wall_ns": 1917881106280814,
+    "files": {
+      "guarded-restore-module.log": {
+        "bytes": 117,
+        "sha256": "d80288cb9be1c1b2ebd2a9a16b2850a1a945143da0d0f7a8afa94f8fed6f79ef"
+      },
+      "install-module.log": {
+        "bytes": 117,
+        "sha256": "e0197450923891edf955ba83902409e7fc12b9e9957c1a1777fbf46d7ad39a54"
+      },
+      "readiness.jsonl": {
+        "bytes": 66476,
+        "sha256": "d5b2bbb3a598fbc8de709367acffe46c765dae5fcc209372ccf92dd20861dcb7"
+      },
+      "renderer.log": {
+        "bytes": 481249,
+        "sha256": "35e6a16287028a09ea7a6240942bcfbcb17926143069612643d76ae7fc061249"
+      },
+      "install-dxc.log": {
+        "bytes": 98,
+        "sha256": "feb9b72f024bc242e6b8100031160ab895aab39b37bc96e40d47f6b8125b2fd1"
+      },
+      "guarded-restore-dxcompiler.log": {
+        "bytes": 97,
+        "sha256": "6028bbf1743ba62353b13ce95163f1d9d8ce2bb57c3bbae3442720eaf9769425"
+      }
+    }
+  },
+  "runtime_restored": true,
+  "host_max_perf_pct": 100,
+  "live_status": "NOT_STARTED",
+  "privileged_step": "operator authentication; unchanged bounded helper and fresh PID"
+}

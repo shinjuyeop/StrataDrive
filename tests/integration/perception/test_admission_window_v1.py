@@ -17,6 +17,17 @@ class AdmissionWindowTests(unittest.TestCase):
     def test_original_limits_and_exclusive_boundary(self):
         validate_receipt(self.fixture())
 
+    def test_explicit_one_ms_reserve_keeps_same_age_and_exclusive_expiry(self):
+        profile=self.profile();profile['wall_preview_reserve_ns']='1000000'
+        validate_profile(profile,1_000_000)
+        with self.assertRaises(ValueError):validate_profile(profile)
+        receipt=self.fixture();out=receipt['original_actual']['admitted_actual']
+        out.update(exclusive_expiry_ns='101000001',oldest_actuator_ns='71000000')
+        validate_receipt(receipt,1_000_000)
+        for key,value in [('exclusive_expiry_ns','101000000'),('oldest_actuator_ns','70999999')]:
+            bad=copy.deepcopy(receipt);bad['original_actual']['admitted_actual'][key]=value
+            with self.assertRaises(ValueError):validate_receipt(bad,1_000_000)
+
     def test_changed_profile_or_short_authority_is_rejected(self):
         for key, value in (('model_step_ns', '10000000'), ('admission_profile', 'sampled-actual-v1'),
                            ('exclusive_expiry_ns', '102000000'), ('oldest_actuator_ns', '71999999')):

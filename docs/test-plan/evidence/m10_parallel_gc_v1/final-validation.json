@@ -1,0 +1,205 @@
+{
+  "status": "PASS_EVIDENCE_AND_RESTORATION_ONLY",
+  "cases": {
+    "normal-30s-01": {
+      "physical_audit": "PASS_DIAGNOSTIC_CASE_ONLY",
+      "disposition": {
+        "runner": 0,
+        "physical_audit": 0,
+        "shadow_audit": 0,
+        "admission_window": 0,
+        "owner_gc": 0,
+        "workspace": 0,
+        "replay": 0,
+        "state_path": 0,
+        "structured_state": 0,
+        "monitor_timing": 0,
+        "host_clock": 0,
+        "owner_wait": 0,
+        "drive_fault_replay": true,
+        "archive": "PASS",
+        "finite_diagnostic_pass": true,
+        "native_perception_accepted": false,
+        "milestone_closed": false
+      },
+      "receipts": 6000,
+      "normal": 5838,
+      "init": 162,
+      "protected": 0,
+      "raw": 283,
+      "inferences": 279,
+      "camera_hz": 9.299711831379433,
+      "scene_result_ms": {
+        "median": 78.050774,
+        "p95": 85.0694341,
+        "max": 167.508371
+      },
+      "over_100ms": 2,
+      "hottest_c": 78.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "native_deadlines": {
+        "all": {
+          "eligible": 150010,
+          "missing": 0,
+          "late": 0
+        },
+        "before_first_fault": {
+          "eligible": 150010,
+          "missing": 0,
+          "late": 0
+        },
+        "at_or_after_first_fault": {
+          "eligible": 0,
+          "missing": 0,
+          "late": 0
+        }
+      },
+      "gc_live_cycles": 0,
+      "archive": {
+        "status": "PASS",
+        "case_verdict": "PASS_DIAGNOSTIC_CASE_ONLY",
+        "source_files": 1546,
+        "raw_packets": 283,
+        "future_exclusion": 24478
+      }
+    },
+    "normal-30s-02": {
+      "physical_audit": "PASS_DIAGNOSTIC_CASE_ONLY",
+      "disposition": {
+        "runner": 0,
+        "physical_audit": 0,
+        "shadow_audit": 0,
+        "admission_window": 0,
+        "owner_gc": 0,
+        "workspace": 0,
+        "replay": 0,
+        "state_path": 0,
+        "structured_state": 0,
+        "monitor_timing": 0,
+        "host_clock": 0,
+        "owner_wait": 0,
+        "drive_fault_replay": true,
+        "archive": "PASS",
+        "finite_diagnostic_pass": true,
+        "native_perception_accepted": false,
+        "milestone_closed": false
+      },
+      "receipts": 6000,
+      "normal": 5838,
+      "init": 162,
+      "protected": 0,
+      "raw": 283,
+      "inferences": 279,
+      "camera_hz": 9.266399056150725,
+      "scene_result_ms": {
+        "median": 78.446244,
+        "p95": 85.43114380000002,
+        "max": 155.914581
+      },
+      "over_100ms": 2,
+      "hottest_c": 77.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "native_deadlines": {
+        "all": {
+          "eligible": 150020,
+          "missing": 0,
+          "late": 0
+        },
+        "before_first_fault": {
+          "eligible": 150020,
+          "missing": 0,
+          "late": 0
+        },
+        "at_or_after_first_fault": {
+          "eligible": 0,
+          "missing": 0,
+          "late": 0
+        }
+      },
+      "gc_live_cycles": 0,
+      "archive": {
+        "status": "PASS",
+        "case_verdict": "PASS_DIAGNOSTIC_CASE_ONLY",
+        "source_files": 1546,
+        "raw_packets": 283,
+        "future_exclusion": 24761
+      }
+    },
+    "normal-300s-01": {
+      "physical_audit": "FAIL",
+      "disposition": {
+        "runner": 0,
+        "physical_audit": 1,
+        "shadow_audit": 0,
+        "admission_window": 0,
+        "owner_gc": 0,
+        "workspace": 0,
+        "replay": 0,
+        "state_path": 0,
+        "structured_state": 0,
+        "monitor_timing": 0,
+        "host_clock": 0,
+        "owner_wait": 0,
+        "drive_fault_replay": true,
+        "archive": "PASS",
+        "finite_diagnostic_pass": false,
+        "native_perception_accepted": false,
+        "milestone_closed": false
+      },
+      "receipts": 60000,
+      "normal": 11881,
+      "init": 162,
+      "protected": 47957,
+      "raw": 2789,
+      "inferences": 2785,
+      "camera_hz": 9.283309883816344,
+      "scene_result_ms": {
+        "median": 78.270506,
+        "p95": 82.03583619999999,
+        "max": 135.993559
+      },
+      "over_100ms": 2,
+      "hottest_c": 90.0,
+      "thermal_delta": {
+        "core_throttle_count": 0,
+        "package_throttle_count": 0
+      },
+      "native_deadlines": {
+        "all": {
+          "eligible": 1500010,
+          "missing": 18,
+          "late": 0
+        },
+        "before_first_fault": {
+          "eligible": 301190,
+          "missing": 0,
+          "late": 0
+        },
+        "at_or_after_first_fault": {
+          "eligible": 1198820,
+          "missing": 18,
+          "late": 0
+        }
+      },
+      "gc_live_cycles": 4,
+      "archive": {
+        "status": "PASS",
+        "case_verdict": "FAIL",
+        "source_files": 1546,
+        "raw_packets": 2789,
+        "future_exclusion": 27550
+      }
+    }
+  },
+  "diagnosis": "Parallel collection below HV30ms, but following old-held input expires; exact native/admission replay; later 18 native missed slots unresolved",
+  "original_verdicts_preserved": true,
+  "physical_stability_accepted": false,
+  "native_perception_accepted": false,
+  "milestone_closed": false
+}

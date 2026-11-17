@@ -16,6 +16,7 @@
 #include "HAL/PlatformMisc.h"
 #include "HAL/IConsoleManager.h"
 #include "UObject/UObjectGlobals.h"
+#include "Engine/Engine.h"
 #include <time.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -90,6 +91,8 @@ struct State {
   bool ProfilePath=false;
   bool ProfileGc=false;
   stratadrive::m7_native::GcProfile Gc;
+  bool PurgeSlice=false;
+  stratadrive::m7_native::PurgeProfile Purge;
   int32 GcParallel=-1;
   double GcPeriod=0;
   bool StructuredState=false;
@@ -121,7 +124,7 @@ void StopGcProfile() {
   GcBeginHandle.Reset();GcTrimHandle.Reset();GcEndHandle.Reset();
 }
 void StartGcProfile() {
-  StopGcProfile();S.Gc={};
+  StopGcProfile();S.Gc={};S.Purge={};
   if(!S.ProfileGc)return;
   GcBeginHandle=FCoreUObjectDelegates::GetPreGarbageCollectDelegate().AddLambda([] {
     if(!S.Bridge || S.WallFrames>=S.WallLimit)return;
@@ -132,6 +135,7 @@ void StartGcProfile() {
     if(!S.Gc.active)return;
     if(!IsInGameThread()){++S.Gc.errors;return;}
     S.Gc.end(stratadrive::m7_native::owner_stamp());
+    if(S.PurgeSlice)S.Purge.collection_end(IsIncrementalPurgePending());
   });
   GcTrimHandle=FCoreDelegates::GetMemoryTrimDelegate().AddLambda([] {
     if(!S.Gc.active)return;
@@ -193,7 +197,8 @@ Json Response(bool Ok, const FString& Reason)
   R->SetBoolField(TEXT("awaiting_ev_settlement"), S.AwaitSettlement);
   if(S.Wall){R->SetStringField(TEXT("wall_frames"),Dec(S.WallFrames));R->SetStringField(TEXT("wall_wait"),S.WallWait);
     R->SetBoolField(TEXT("structured_state"),S.StructuredState);
-    R->SetStringField(TEXT("wall_preview_reserve_ns"),Dec(stratadrive::m7_native::wall_preview_reserve(S.StructuredState)));
+    R->SetStringField(TEXT("wall_preview_reserve_ns"),Dec(stratadrive::m7_native::wall_preview_reserve(S.StructuredState,S.PurgeSlice)));
+    R->SetBoolField(TEXT("incremental_purge_slice"),S.PurgeSlice);
     R->SetStringField(TEXT("structured_direct_requests"),Dec(S.DirectRequests));
     R->SetStringField(TEXT("structured_text_fallback_requests"),Dec(S.TextFallbackRequests));
     R->SetStringField(TEXT("native_clock_domain"),TEXT("host_CLOCK_MONOTONIC; separate_CARLA_model_time"));
@@ -472,6 +477,9 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
     if(S.ProfilePath && !Endurance)return Encode(Response(false,TEXT("state_path_requires_endurance")));
     S.ProfileGc=FParse::Param(FCommandLine::Get(),TEXT("StrataM10GcProfile"));
     if(S.ProfileGc && !S.ProfilePath)return Encode(Response(false,TEXT("gc_profile_requires_state_path")));
+    S.PurgeSlice=FParse::Param(FCommandLine::Get(),TEXT("StrataM10PurgeSlice"));
+    if(S.PurgeSlice && (!S.ProfileGc || !S.StructuredState || !GEngine))
+      return Encode(Response(false,TEXT("purge_slice_requires_gc_profile_and_structured_state")));
     if(S.ProfileGc) {
       auto* Parallel=IConsoleManager::Get().FindConsoleVariable(TEXT("gc.AllowParallelGC"));
       auto* Period=IConsoleManager::Get().FindConsoleVariable(TEXT("gc.TimeBetweenPurgingPendingKillObjects"));
@@ -595,7 +603,26 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
       Cycle->SetObjectField(TEXT("end"),Stamp(Value.end));
       Cycles.Add(MakeShared<FJsonValueObject>(Cycle));
     }
-    Profile->SetArrayField(TEXT("cycles"),Cycles);R->SetObjectField(TEXT("gc_profile"),Profile);return Encode(R);
+    Profile->SetArrayField(TEXT("cycles"),Cycles);
+    auto Purge=Object();Purge->SetBoolField(TEXT("enabled"),S.PurgeSlice);
+    Purge->SetStringField(TEXT("budget_ns"),Dec(stratadrive::m7_native::PurgeProfile::BudgetNs));
+    Purge->SetStringField(TEXT("errors"),Dec(S.Purge.errors));
+    TArray<TSharedPtr<FJsonValue>> Purges;
+    for(uint64 I=0;I<S.Purge.count;++I) {
+      const auto& V=S.Purge.cycles[I];auto Row=Object();
+      Row->SetBoolField(TEXT("pending_at_collection_end"),V.pending_at_collection_end);
+      Row->SetBoolField(TEXT("complete"),V.complete);
+      Row->SetStringField(TEXT("first_frame"),Dec(V.first_frame));Row->SetStringField(TEXT("last_frame"),Dec(V.last_frame));
+      Row->SetObjectField(TEXT("first"),Stamp(V.first));Row->SetObjectField(TEXT("last"),Stamp(V.last));
+      auto Work=Object();Work->SetStringField(TEXT("count"),Dec(V.work.count));
+      Work->SetStringField(TEXT("wall_ns"),Dec(V.work.wall));Work->SetStringField(TEXT("cpu_ns"),Dec(V.work.cpu));
+      Work->SetStringField(TEXT("errors"),Dec(V.work.errors));
+      Work->SetObjectField(TEXT("longest_begin"),Stamp(V.work.longest_begin));
+      Work->SetObjectField(TEXT("longest_end"),Stamp(V.work.longest_end));
+      Row->SetObjectField(TEXT("work"),Work);Purges.Add(MakeShared<FJsonValueObject>(Row));
+    }
+    Purge->SetArrayField(TEXT("cycles"),Purges);Profile->SetObjectField(TEXT("incremental_purge"),Purge);
+    R->SetObjectField(TEXT("gc_profile"),Profile);return Encode(R);
   }
   if(Op==TEXT("wall_trace")) {
     uint64 Index;
@@ -782,7 +809,7 @@ static std::string RequestImpl(UCarlaEpisode& Episode, const std::string* Input,
       return Encode(Response(false,TEXT("wall_normal_closed")));
     if(S.Pumping) {
       std::string Why;
-      if(!S.NativeGate->eligible(Native,AdmissionNow,Actual,&Why,stratadrive::m7_native::wall_preview_reserve(S.StructuredState))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return Encode(Response(false,S.WallWait));}
+      if(!S.NativeGate->eligible(Native,AdmissionNow,Actual,&Why,stratadrive::m7_native::wall_preview_reserve(S.StructuredState,S.PurgeSlice))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return Encode(Response(false,S.WallWait));}
     }
     if (!S.NativeGate->accept(Native, AdmissionNow, Actual)) {
       Latch(UTF8_TO_TCHAR(S.NativeGate->error().c_str())); return Encode(Response(false, S.Reason));
@@ -945,7 +972,7 @@ static bool PumpWallReady(UCarlaEpisode& Episode) {
   if((wall_fault(S.Signal) || __atomic_load_n(&S.Bridge->server_trip,__ATOMIC_ACQUIRE)) && !Native.protection_since){S.WallWait=TEXT("wall_normal_closed");return PumpWaiting(PumpReason::Protection);}
   // Eligibility does not consume a receiver or turn a rejected candidate into
   // a permission. The selected proof is checked again by the original gate.
-  if(!S.NativeGate->eligible(Native,Now,Actual,&Why,wall_preview_reserve(S.StructuredState))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return PumpWaiting(PumpReason::Ineligible,Why.c_str());}
+  if(!S.NativeGate->eligible(Native,Now,Actual,&Why,wall_preview_reserve(S.StructuredState,S.PurgeSlice))){S.WallWait=UTF8_TO_TCHAR(Why.c_str());return PumpWaiting(PumpReason::Ineligible,Why.c_str());}
   if(S.ProfilePath){S.ActivePath.mark(PathPhase::Admitted);S.ActivePath.proof_observed=Native.observed;++S.ActivePath.admission_attempts;}
   const FString OwnerKey=FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M7_OWNER_KEY"));
   const auto RequestJson=NativeRequest(Native,FCarlaEngine::GetFrameCounter()+1,S.Session,S.Run,OwnerKey);
@@ -969,6 +996,12 @@ bool PumpWall(UCarlaEpisode& Episode) {
   if(Profile) {
     Begin=owner_stamp();
     if(S.PumpExit.valid)S.ActivePath.wait.outside.add(S.PumpExit,Begin);
+  }
+  if(S.PurgeSlice && S.Bridge && S.WallFrames<S.WallLimit) {
+    if(!IsInGameThread() || !GEngine){++S.Purge.errors;return false;}
+    S.Purge.step(GFrameCounter,[]{return IsIncrementalPurgePending();},
+      []{IncrementalPurgeGarbage(true,float(PurgeProfile::BudgetNs)/1e9f);},
+      []{GEngine->DelayGarbageCollection();},[]{return owner_stamp();});
   }
   const bool Ready=PumpWallReady(Episode);
   if(Profile){End=owner_stamp();S.ActivePath.wait.active.add(Begin,End);}

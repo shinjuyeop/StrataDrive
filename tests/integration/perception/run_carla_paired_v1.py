@@ -118,6 +118,11 @@ def main(a):
             if not a.profile_owner_gc:raise ValueError('serial GC requires explicit GC profiling')
             commands['owner']=[x+',gc.AllowParallelGC 0' if x.startswith('-ExecCmds=') else x for x in commands['owner']]
             report['owner_serial_gc']=True
+        if getattr(a,'owner_purge_slice',False):
+            if not a.profile_owner_gc or not a.structured_state or a.owner_serial_gc:
+                raise ValueError('purge slice requires profiled parallel GC and structured state')
+            commands['owner'].append('-StrataM10PurgeSlice')
+            report['owner_purge_slice']=True
         if getattr(a,'structured_state',False):
             if not a.endurance_seconds:raise ValueError('explicit endurance structured state')
             commands['owner'].append('-StrataM10StructuredState')
@@ -248,6 +253,7 @@ if __name__=='__main__':
     p.add_argument('--tensor-workspace',action='store_true')
     p.add_argument('--profile-owner-gc',action='store_true')
     p.add_argument('--owner-serial-gc',action='store_true')
+    p.add_argument('--owner-purge-slice',action='store_true')
     p.add_argument('--renderer-max-fps',type=int,choices=(0,20,60),default=0)
     p.add_argument('--preprocess-cv-threads',type=int,choices=(0,1,2,4),default=0)
     p.add_argument('--resize-threads',type=int,choices=(0,1,2,4),default=0)
