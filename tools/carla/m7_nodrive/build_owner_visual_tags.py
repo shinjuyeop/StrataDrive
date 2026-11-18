@@ -29,13 +29,17 @@ def patch(source, header):
 
 
 def main(a):
-    stopped()
+    if not a.offline_quality:
+        stopped()
     root = Path(__file__).resolve().parents[3]
     own = Path(__file__).resolve().parent
     out = a.output.resolve(); parent_path = a.parent.resolve()
     parent = json.loads(parent_path.read_text())
     installed = Path(parent['module_path'])
-    assert sha(installed) == parent['original_sha256'], 'baseline must be restored'
+    original = parent_path.parent/'original.so' if a.offline_quality else installed
+    assert sha(original) == parent['original_sha256'], 'verified original module required'
+    if a.offline_quality and 'quality_asset_barrier.hpp' not in parent['generated']:
+        raise ValueError('offline warmup must expose the game resource barrier')
     for name in ('module.response', 'libUE4Editor-Carla.so', 'Module.Carla.2_of_4.cpp.o'):
         assert sha(parent_path.parent/name) == parent['generated'][name], name
     plugin = a.source.resolve()/'Unreal/CarlaUE4/Plugins/Carla'
@@ -44,8 +48,17 @@ def main(a):
     unity = intermediate/'Module.Carla.1_of_4.cpp'
     tagger = plugin/'Source/Carla/Game/Tagger.cpp'
     out.mkdir(parents=True, exist_ok=False)
-    shutil.copy2(installed, out/'original.so')
+    shutil.copy2(original, out/'original.so')
     shutil.copy2(own/'owner_visual_tags.hpp', out/'owner_visual_tags.hpp')
+    if a.offline_quality:
+        local_header = out/'owner_visual_tags.hpp'
+        source_header = local_header.read_text()
+        anchor = '    const bool Requested ='
+        assert source_header.count(anchor) == 1
+        local_header.write_text(source_header.replace(anchor, '''    // This private process only primes assets. Its game-mode warmup has no sensors or model.
+    if (FParse::Param(FCommandLine::Get(), TEXT("StrataM10QualityAssetBarrier")) &&
+        FParse::Param(FCommandLine::Get(), TEXT("StrataM10AssetWarmNoTags"))) return true;
+''' + anchor))
     before = tagger.read_text(); after = patch(before, out/'owner_visual_tags.hpp')
     (out/'Tagger.cpp').write_text(after)
     (out/'Tagger.patch').write_text(''.join(difflib.unified_diff(before.splitlines(True), after.splitlines(True),
@@ -71,8 +84,8 @@ def main(a):
         if name.endswith('.o'):
             expected = parent['inputs'].get(name) or parent['generated'].get(Path(name).name)
             assert expected and sha(name) == expected, 'unchanged link object '+name
-    assert response.count(str(unity)+'.o') == 1
-    (out/'module.response').write_text(response.replace(str(unity)+'.o', str(obj)))
+    (old_obj,) = [Path(token) for token in shlex.split(response) if token.endswith('/'+obj.name)]
+    (out/'module.response').write_text(response.replace(str(old_obj), str(obj)))
     link = list(parent['commands'][1])
     ref = next(i for i,x in enumerate(link) if x.startswith('-Wl,@'))
     link[ref] = '-Wl,@'+str(out/'module.response')
@@ -81,7 +94,7 @@ def main(a):
     for i, command in enumerate(commands):
         with (out/f'build-{i}.log').open('w') as log:
             subprocess.run(command, cwd=engine/'Source', stdout=log, stderr=subprocess.STDOUT,
-                check=True, timeout=300)
+                check=True, timeout=900)
     inputs = {own/'build_owner_visual_tags.py', own/'owner_visual_tags.hpp', parent_path,
         parent_path.parent/'module.response', tagger, unity, rsp, header, Path(compiler)}
     inputs.update(Path(line.split('"')[1]) for line in membership.splitlines() if line.startswith('#include "'))
@@ -92,6 +105,10 @@ def main(a):
         inputs={str(p):sha(p) for p in sorted(inputs)},
         generated={p.name:sha(p) for p in sorted(out.iterdir()) if p.is_file() and p.suffix not in ('.log','.d')})
     (out/'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')
+    if a.offline_quality:
+        manifest['offline_game_asset_warmup'] = True
+        manifest['barrier_sha256'] = parent['generated']['quality_asset_barrier.hpp']
+        (out/'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')
     print(json.dumps(dict(module_sha256=manifest['module_sha256'], installed=False)), flush=True)
 
 
@@ -99,4 +116,5 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     for name in ('engine', 'source', 'parent', 'output'):
         p.add_argument('--'+name, type=Path, required=True)
+    p.add_argument("--offline-quality", action="store_true")
     main(p.parse_args())

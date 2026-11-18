@@ -1,0 +1,75 @@
+{
+  "status": "PASS_RENDERER_SOURCE_REPLAY",
+  "stages": {
+    "renderer": {
+      "argv": [
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+        "/Game/Carla/Maps/Town03_Opt",
+        "-game",
+        "-FixedSeed",
+        "-RenderOffScreen",
+        "-nosound",
+        "-unattended",
+        "-nosplash",
+        "-carla-server",
+        "-quality-level=Epic",
+        "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1,t.MaxFPS 60",
+        "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+        "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+        "-log",
+        "-stdout",
+        "-FullStdOutLogOutput",
+        "-carla-rpc-port=2300",
+        "-StrataM10IdleWait",
+        "-StrataM10VisualInspect",
+        "-StrataM10ReplayWheels"
+      ],
+      "readiness": {
+        "world": 12006869165025252775,
+        "frame": 7,
+        "version": "294096e-dirty",
+        "map": "/Game/Carla/Maps/Town03_Opt",
+        "load_seconds": 22.231224874965847,
+        "sdk_seconds": 1.0661876809317619
+      },
+      "client_exit": 0,
+      "shutdown": {
+        "begin_wall_ns": 2013873305254101,
+        "limit_seconds": 30,
+        "diagnostic_after_seconds": 10,
+        "diagnostics_enabled": false,
+        "end_wall_ns": 2013875673831729,
+        "server_exit": 130
+      },
+      "frames": 32,
+      "images": 16
+    }
+  },
+  "restoration": {
+    "dxcompiler": {
+      "status": "RESTORED",
+      "command_exit": 0,
+      "sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46"
+    },
+    "module": {
+      "status": "RESTORED",
+      "command_exit": 0,
+      "sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134"
+    }
+  },
+  "complete_scene_proof": false,
+  "native_started": false,
+  "module_sha256": "6f0bea5b2a38432b6965c4ccaf4e5507644e4a646af79a261a23c342c73266ec",
+  "probe_sha256": "be4a4fa525f949a891787cb5880aae25950486dd4739cca324c774254ccf996c",
+  "scope": "Separate renderer replay of retained physical frames",
+  "source_index_sha256": "5d6869fce6b2242766dcf4dab2dc0ef6c4e11d6d90150ed1a5d2280aa3d686a7",
+  "restored_hashes": {
+    "executable": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+    "module": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134",
+    "engine": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+    "rendercore": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b",
+    "dxcompiler": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46",
+    "ini": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448"
+  }
+}

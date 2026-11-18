@@ -6,6 +6,7 @@ acceptance. The distinct server probe key is inherited, never written to evidenc
 
 import argparse
 import hashlib
+import math
 import json
 import os
 import queue
@@ -59,7 +60,18 @@ def inspect(args):
             light.freeze(True)
         road = world.get_map()
         points = road.get_spawn_points()
-        if args.catalog:
+        source = None
+        if args.source_samples:
+            if args.role != "renderer":
+                raise ValueError("completed scenes require a dedicated renderer")
+            source = json.loads((args.source_samples / "index.json").read_text())
+            if len(source["frames"]) != 16:
+                raise ValueError("complete native sample set required")
+            declared = [
+                dict(**item, spawn_index=i + 3)
+                for i, item in enumerate(source["actors"])
+            ]
+        elif args.catalog:
             declared = json.loads(args.catalog.read_text())["actors"]
         else:
             declared = [
@@ -83,7 +95,7 @@ def inspect(args):
                     and blueprint.get_attribute(name).is_modifiable
                 ):
                     blueprint.set_attribute(name, value)
-            if blueprint.has_attribute("role_name"):
+            if not source and blueprint.has_attribute("role_name"):
                 blueprint.set_attribute("role_name", "m10_visual_inspection")
             actor = world.spawn_actor(blueprint, points[item["spawn_index"]])
             actors.append(actor)
@@ -103,6 +115,33 @@ def inspect(args):
             xodr_sha256=hashlib.sha256(road.to_opendrive().encode()).hexdigest(),
             world=world.id,
         )
+        if source:
+            from paired_scene_capture_v1 import environment
+            from physical_ai.perception.contract import sha256_file
+
+            world.tick()
+            native = json.loads(
+                (args.source_samples.parent / "result.json").read_text()
+            )
+            fixture = native["route_fixture"]
+            if (
+                not native["status"].startswith("PASS")
+                or world.get_map().name != fixture["map"]
+                or report["xodr_sha256"] != fixture["opendrive_sha256"]
+            ):
+                raise ValueError("native source or OpenDRIVE identity")
+            if environment(world) != source["environment"]:
+                raise ValueError(
+                    "frozen traffic lights or weather differs from physical source"
+                )
+            if [dict(a.attributes) for a in actors] != [
+                a["attributes"] for a in declared
+            ]:
+                raise ValueError("clone actor attributes")
+            report.update(
+                source_index_sha256=sha256_file(args.source_samples / "index.json"),
+                physical_world=source["world"],
+            )
         key = os.environ["STRATADRIVE_M10_VISUAL_INSPECT_KEY"]
 
         def request(actor_ids, secret=key):
@@ -139,7 +178,55 @@ def inspect(args):
 
             camera.listen(received)
             report["camera"] = dict(id=camera.id, attributes=dict(camera.attributes))
-        for i in range(16):
+        for i in range(32 if source else 16):
+            if source and i % 2 == 0:
+                sample = source["frames"][i // 2]
+                path = args.source_samples / sample["path"]
+                if sha256_file(path) != sample["sha256"]:
+                    raise ValueError("completed source payload changed")
+                original_scene = json.loads(path.read_text())
+                if (
+                    original_scene["world"] != source["world"]
+                    or int(original_scene["original_receipt"]["frame"])
+                    != sample["frame"]
+                ):
+                    raise ValueError("source world or frame")
+                poses = original_scene["poses"]
+                if [pose["id"] for pose in poses] != [item["id"] for item in declared]:
+                    raise ValueError("source actor order")
+                transforms = [
+                    carla.Transform(
+                        carla.Location(*pose["xyz"]),
+                        carla.Rotation(
+                            pitch=pose["pyr"][0],
+                            yaw=pose["pyr"][1],
+                            roll=pose["pyr"][2],
+                        ),
+                    )
+                    for pose in poses
+                ]
+                wheels = original_scene["visual"].get("wheel_animation")
+                if wheels is not None:
+                    request_wheels = dict(
+                        op="apply_measured_wheels",
+                        key=key,
+                        actor=actors[0].id,
+                        wheels=wheels,
+                    )
+                    reply = json.loads(client.m7_nodrive(json.dumps(request_wheels)))
+                    if not reply.get("ok"):
+                        raise ValueError(
+                            "dedicated renderer rejected original wheel animation"
+                        )
+                replies = client.apply_batch_sync(
+                    [
+                        carla.command.ApplyTransform(a.id, t)
+                        for a, t in zip(actors, transforms)
+                    ],
+                    False,
+                )
+                if len(replies) != len(actors) or any(r.has_error() for r in replies):
+                    raise ValueError("renderer clone transform application")
             frame = world.tick()
             before = world.get_snapshot()
             value = request(ids)
@@ -164,6 +251,31 @@ def inspect(args):
                     - int(value["acquired_begin_ns"]),
                 )
             )
+            if source:
+                errors = []
+                for actor, pose in zip(actors, poses):
+                    matrix = before.find(actor.id).get_transform().get_matrix()
+                    if not all(math.isfinite(v) for row in matrix for v in row):
+                        raise ValueError("nonfinite post-tick transform")
+                    errors.append(
+                        max(
+                            abs(a - b)
+                            for ar, br in zip(matrix, pose["matrix"])
+                            for a, b in zip(ar, br)
+                        )
+                    )
+                if not all(e <= 1e-4 for e in errors):
+                    raise ValueError(f"clone post-tick transform mismatch {errors}")
+                report["inspected"][-1].update(
+                    physical_frame=sample["frame"],
+                    physical_world=source["world"],
+                    physical_receipt_ticket=original_scene["original_receipt"][
+                        "ticket"
+                    ],
+                    physical_source_seconds=original_scene["source_seconds"],
+                    physical_payload_sha256=sample["sha256"],
+                    max_matrix_errors=errors,
+                )
             if camera:
                 time.sleep(0.06)
         if camera:
@@ -217,7 +329,23 @@ def inspect(args):
                 raise ValueError(
                     "camera exposures must match distinct observed engine frames and timestamps"
                 )
-        report["status"] = "PASS_READ_ONLY_PREPARATION_INSPECTION"
+        if source:
+            linked = {r["frame"]: r for r in report["inspected"]}
+            for img in images:
+                association = linked[img["frame"]]
+                img["physical_frame"] = association["physical_frame"]
+                img["physical_payload_sha256"] = association["physical_payload_sha256"]
+            if {i["physical_frame"] for i in images} != {
+                s["frame"] for s in source["frames"]
+            }:
+                raise ValueError(
+                    "not every completed native pose obtained an original camera exposure"
+                )
+        report["status"] = (
+            "PASS_RENDERER_SOURCE_REPLAY"
+            if source
+            else "PASS_READ_ONLY_PREPARATION_INSPECTION"
+        )
     except Exception:
         report["errors"].append(traceback.format_exc())
     finally:
@@ -248,4 +376,5 @@ if __name__ == "__main__":
     p.add_argument("--port", type=int, required=True)
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--catalog", type=Path)
+    p.add_argument("--source-samples", type=Path)
     raise SystemExit(inspect(p.parse_args()))

@@ -27,10 +27,6 @@ One lossless camera packet was retained. The original renderer verdict is FAIL.
 Both servers exited normally in the second attempt. The six shared runtime files
 matched their original hashes. [Original second attempt](pair-02/result.json)
 
-A moving physical scene still needs an authoritative completed-frame association,
-render application/readback and native receiver verification. Stationary ordinal
-samples alone cannot establish that association.
-
 The third attempt passed both server sessions and verified restoration. All
 16 paired actor samples again had zero differences across the recorded fields.
 Eight original 2560×1536 camera exposures matched their local renderer frames
@@ -38,3 +34,22 @@ and source times. The seven frame increments were 3, 2, 2, 2, 2, 2 and 2.
 Archive replay independently recovered all eight compressed BGRA payloads and
 matched the stored-data, original BGRA and RGB hashes.
 [Field comparison](parked-comparison-03.json) · [Archive manifest](pair-03/manifest.json)
+
+## Moving physical source and separate camera
+
+The wheel-enabled native fixture completed 400 physical intervals and 400
+energy settlements. Sixteen selected frames held the original authenticated
+physics receipt and the observed scene. Ego travelled 1.8495 m and its four
+wheel bones had 16 distinct measured transforms each. The first run used an
+executable without wheel support and ended before the first physical interval.
+An early replay used the traffic-light cache from preparation and stopped before
+camera creation. Later runs observed the frozen red lights at each completed
+physical sample. [Source](completed-source-03/result.json) · [Initial replay](completed-replay-01/result.json)
+
+A separate renderer replayed those 16 samples with original actor attributes,
+poses and measured PhysX wheel inputs. The 16 actual 2560×1536 exposures each
+joined to one physical receipt. Offline decoding recovered every BGRA and RGB
+hash. Categorical component differences were zero. The largest ego wheel
+difference was 0.1732 cm and 2.0387° when applying the current solver readings.
+This simulation-time replay produced zero live native perception admissions.
+[Comparison](moving-comparison-02.json) · [Renderer manifest](completed-replay-02/manifest.json)

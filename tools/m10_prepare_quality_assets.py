@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import resource
 import socket
+import secrets
 import subprocess
 
 from m10_inspect_visual_pair import (
@@ -19,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SERIES = ROOT / "docs/test-plan/evidence/m10_cuda_resize_v1"
 
 
-def prepare(output):
+def prepare(output, module=None):
     config = json.loads((SERIES / "preparation-argv.json").read_text())["renderer"]
     files = json.loads((SERIES / "pre-install.json").read_text())["files"]
     if any(sha(v["path"]) != v["sha256"] for v in files.values()):
@@ -57,6 +58,42 @@ def prepare(output):
         argv=args,
     )
 
+    env = dict(os.environ)
+    module_manifest = None
+    if module:
+        module_manifest = json.loads((module / "manifest.json").read_text())
+        if (
+            not (
+                "quality_asset_barrier.hpp" in module_manifest["generated"]
+                or module_manifest.get("barrier_sha256")
+            )
+            or module_manifest["original_sha256"] != files["module"]["sha256"]
+            or sha(module / "libUE4Editor-Carla.so") != module_manifest["module_sha256"]
+        ):
+            raise ValueError("unverified quality preparation module")
+        args.append("-StrataM10QualityAssetBarrier")
+        if module_manifest.get("offline_game_asset_warmup"):
+            args.append("-StrataM10AssetWarmNoTags")
+        env["STRATADRIVE_M10_QUALITY_KEY"] = secrets.token_hex(32)
+        record["module_sha256"] = module_manifest["module_sha256"]
+
+    def handle_module(action):
+        with (output / ("module-" + action + ".log")).open("x") as log:
+            cmd = [
+                "python3",
+                ROOT / "tools/carla/m7_nodrive/build_endurance.py",
+                "--engine",
+                Path(args[0]).parents[3],
+                "--source",
+                Path(args[1]).parents[2],
+                "--output",
+                module,
+                "--" + action,
+            ]
+            return subprocess.run(
+                list(map(str, cmd)), stdout=log, stderr=subprocess.STDOUT
+            ).returncode
+
     def component(action):
         with (output / (action + ".log")).open("x") as log:
             return subprocess.run(
@@ -79,11 +116,14 @@ def prepare(output):
             ).returncode
 
     try:
+        if module and handle_module("install"):
+            raise RuntimeError("quality preparation module installation failed")
         if component("install"):
             raise RuntimeError("DXC installation failed")
         with (output / "server.log").open("x") as log:
             process = subprocess.Popen(
                 args,
+                env=env,
                 stdout=log,
                 stderr=subprocess.STDOUT,
                 start_new_session=True,
@@ -91,8 +131,30 @@ def prepare(output):
             )
             try:
                 record["readiness"] = prepare_empty_world(
-                    python, port, output, os.environ, process, args[2]
+                    python, port, output, env, process, args[2]
                 )
+                if module:
+                    with (output / "client.log").open("x") as client_log:
+                        cmd = [
+                            python,
+                            ROOT
+                            / "tests/integration/perception/prepare_quality_game_assets.py",
+                            "--port",
+                            str(port),
+                            "--plan",
+                            ROOT
+                            / "docs/test-plan/evidence/m10_fresh_quality_2k_v1/plan/preparation.json",
+                            "--output",
+                            output / "game-resources.json",
+                        ]
+                        subprocess.run(
+                            list(map(str, cmd)),
+                            env=env,
+                            stdout=client_log,
+                            stderr=subprocess.STDOUT,
+                            timeout=660,
+                            check=True,
+                        )
             finally:
                 record["shutdown"] = shutdown(process, output / "shutdown")
         if record["shutdown"]["server_exit"] != 130 or record["shutdown"].get(
@@ -103,13 +165,21 @@ def prepare(output):
     except Exception as error:
         record["error"] = repr(error)
     finally:
-        try:
-            record["dxc"] = restore_component(
-                files["dxcompiler"]["path"],
-                files["dxcompiler"]["sha256"],
-                manifest["candidate_sha256"],
-                lambda: component("restore"),
+        restorations = [("dxcompiler", manifest["candidate_sha256"], component)]
+        if module:
+            restorations.append(
+                ("module", module_manifest["module_sha256"], handle_module)
             )
+        for name, candidate, manage in restorations:
+            try:
+                item = files[name]
+                record[name] = restore_component(
+                    item["path"], item["sha256"], candidate, lambda: manage("restore")
+                )
+            except Exception as error:
+                record.setdefault("restoration_errors", []).append(f"{name}: {error!r}")
+                record["status"] = "FAIL"
+        try:
             if ini.read_bytes() != ini_backup:
                 ini.write_bytes(ini_backup)
             record["restored"] = {k: sha(v["path"]) for k, v in files.items()}
@@ -125,4 +195,6 @@ def prepare(output):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("output", type=Path)
-    raise SystemExit(0 if prepare(p.parse_args().output) else 1)
+    p.add_argument("--module", type=Path)
+    args = p.parse_args()
+    raise SystemExit(0 if prepare(args.output, args.module) else 1)

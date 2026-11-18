@@ -33,6 +33,7 @@ def main():
     p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap','client-loss','native-stall','pose-stale'), default='none')
     p.add_argument('--ticks', type=int, default=400)
     p.add_argument('--solver-work', action='store_true')
+    p.add_argument('--completed-visual', action='store_true')
     p.add_argument('--compact-work', action='store_true')
     p.add_argument('--scenario', type=Path)
     p.add_argument('--cameras', action='store_true')
@@ -115,6 +116,7 @@ def main():
     world = original = actor = process = stderr = collector = collector_stderr = None
     diagnostic_count=0
     capture = Capture(a.output,a.fault=='rgb-drop',1201 if a.simulation_continuous else 256,a.record_video,a.live_view) if a.cameras else None
+    visual = None
     bound = False
     session, run = '0', ''
     key = os.environ['STRATADRIVE_M7_OWNER_KEY']
@@ -172,6 +174,11 @@ def main():
             opendrive_sha256=hashlib.sha256(world.get_map().to_opendrive().encode()).hexdigest())
         world.set_weather(carla.WeatherParameters.ClearNoon)
         actor = world.spawn_actor(blueprint, spawn)
+        if a.completed_visual:
+            require(a.solver_work and a.fault=='none' and a.ticks==400 and not a.cameras and not route,
+                    'completed visual sampling requires the 400-step nominal physical fixture')
+            from completed_scene_sample import CompletedSceneSample
+            visual=CompletedSceneSample(world,actor,carla,a.output)
         if route:world.tick()  # unbound initialization: obtain original actor snapshot before bind
         if capture: capture.attach(world,actor,carla)
         model_hash = hashlib.sha256(a.model.read_bytes()).hexdigest()
@@ -449,6 +456,7 @@ def main():
                 require(receipt is not None, 'ambiguous advance; no retry')
                 record['receipt'] = receipt
                 record['wall_receipt_ns']=time.monotonic_ns()
+                if visual: visual.inspect(i,rpc,receipt)
                 require(all(receipt[k] == binding[k] for k in ('run','session','actor','application','model_id','model_sha256','effort_profile')), 'receipt scope')
                 require(receipt['clock_domain'] == 'm7-native-simulation-elapsed' and
                         receipt['source_identity'] == 'native-eight-role-CAN-P05-Actual; authenticated-local-owner', 'source identity')
@@ -618,6 +626,7 @@ def main():
                 report['diagnostic_events_committed']=diagnostic_count
                 case('diagnostic_durable_recording',report['diagnostic_collector_exit']==0)
             if world and original and not bound:
+                if visual: visual.close()
                 if actor: actor.destroy()
                 world.apply_settings(original)
                 report['restored_settings'] = {k:getattr(world.get_settings(),k) for k in FIELDS}

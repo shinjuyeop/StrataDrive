@@ -232,6 +232,11 @@ def capture(args):
             destroy_actors()
             weather = getattr(carla.WeatherParameters, case["weather"])
             world.set_weather(weather)
+            entries = place(world, road, case, actors)
+            for _ in range(plan["settle_ticks"]):
+                tick()
+                for _kind, _image in drain():
+                    pass
             actual_weather = world.get_weather()
             weather_values = {
                 k: getattr(actual_weather, k)
@@ -247,12 +252,8 @@ def capture(args):
             if any(
                 abs(v - getattr(weather, k)) > 0.001 for k, v in weather_values.items()
             ):
-                raise ValueError("weather readback")
-            entries = place(world, road, case, actors)
-            for _ in range(plan["settle_ticks"]):
-                tick()
-                for _kind, _image in drain():
-                    pass
+                expected = {k: getattr(weather, k) for k in weather_values}
+                raise ValueError(f"{case['id']} settled weather {weather_values}, requested {expected}")
             # This exact frame is fixed before reading either stream.
             chosen = last_frame + 1 + (phase - last_frame - 1) % 10
             found = {}

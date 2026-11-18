@@ -10,7 +10,7 @@ import shlex
 import shutil
 import subprocess
 
-from build_endurance import sha, stopped
+from build_endurance import sha
 
 
 def patched_port(source, header, parent_folder, generated):
@@ -36,15 +36,41 @@ def patched_port(source, header, parent_folder, generated):
     return source.replace(before, after)
 
 
+def completed_frame_reader(source, header):
+    marker = '  if (Op == TEXT("wall_start")) {'
+    if source.count(marker) != 1:
+        raise ValueError('expected authenticated session dispatch')
+    dispatch = """  if (Op == TEXT("visual_completed")) {
+    uint64 Frame=0, Ticket=0;
+    if (!FParse::Param(FCommandLine::Get(),TEXT("StrataM10CompletedVisual")) ||
+        !S.Native || S.Wall || !S.Work || S.Latched || S.InFlight || S.Staged || S.Queued ||
+        !S.Receipt.IsValid() || !S.Receipt->GetBoolField(TEXT("interval_work_valid")) ||
+        !Number(J,TEXT("frame"),Frame) || !Number(J,TEXT("ticket"),Ticket) ||
+        FCarlaEngine::GetFrameCounter()!=Frame || S.Receipt->GetStringField(TEXT("frame"))!=Dec(Frame) ||
+        S.Receipt->GetStringField(TEXT("ticket"))!=Dec(Ticket) ||
+        S.Receipt->GetNumberField(TEXT("simulation_end_seconds"))!=Episode.GetElapsedGameTime())
+      return Encode(Response(false,TEXT("completed_visual_context")));
+    const auto Reading=StrataM10VisualInspect::CompletedActors(Episode,J,S.ActorId);
+    if (!Reading.IsValid()) return Encode(Response(false,TEXT("completed_visual_inventory")));
+    auto Reply=Response(true,TEXT("completed_visual_read"));
+    Reply->SetObjectField(TEXT("visual"),Reading);
+    Reply->SetObjectField(TEXT("original_receipt"),S.Receipt);
+    Reply->SetBoolField(TEXT("complete_scene_proof"),false);
+    return Encode(Reply);
+  }
+"""
+    return source.replace(marker, dispatch + marker).replace(
+        '#include "' + str(header.with_name('visual_inspect.hpp')) + '"',
+        '#include "' + str(header.with_name('visual_inspect.hpp')) + '"\n#include "' + str(header) + '"')
+
+
 def main(args):
-    stopped()
     own = Path(__file__).resolve().parent
     parent_path = args.parent.resolve()
     parent = json.loads(parent_path.read_text())
     installed = Path(parent['module_path'])
-    # Compilation never changes the installed module. A completed parent's
-    # postprocessing may still own its candidate before guarded restoration.
-    assert sha(installed) in (parent['original_sha256'], parent['module_sha256']), 'declared runtime only'
+    # This isolated compile reads the verified original backup. Installation
+    # and restoration still require exclusive ownership of the shared runtime.
     original = parent_path.parent/'original.so'
     assert sha(original) == parent['original_sha256'], 'verified original module'
     response_path = parent_path.parent / 'module.response'
@@ -67,6 +93,34 @@ def main(args):
     port = out/'M7NoDrivePort.cpp'
     port.write_text(patched_port((old_folder/port.name).read_text(), out/'visual_inspect.hpp',
                                  old_folder, prior['generated']))
+    if args.completed_frames:
+        completed = out/'visual_completed.hpp'
+        shutil.copy2(own/completed.name, completed)
+        port.write_text(completed_frame_reader(port.read_text(), completed))
+    if args.wheel_replay:
+        if not args.completed_frames:
+            raise ValueError('wheel replay requires authenticated completed frames')
+        helper = out/'visual_wheels.hpp'
+        shutil.copy2(own/helper.name, helper)
+        anchor = '#include "' + str(out/'visual_inspect.hpp') + '"'
+        dispatch = '  if(StrataM10VisualInspect::Request(Episode,Input,S.Locked,Inspected))'
+        export = '    Reply->SetObjectField(TEXT("visual"),Reading);'
+        body = port.read_text()
+        if any(body.count(v)!=1 for v in (anchor,dispatch,export)):
+            raise ValueError('expected completed source and renderer dispatch')
+        port.write_text(body.replace(anchor, anchor + '\n#include "' + str(helper) + '"').replace(
+            export, '    Reading->SetArrayField(TEXT("wheel_animation"),StrataM10VisualInspect::OriginalWheels(Episode,S.ActorId));\n' + export).replace(
+            dispatch, '  if(StrataM10VisualInspect::ApplyWheels(Episode,Input,S.Locked,Inspected)) {Tick=false;return Inspected;}\n'+dispatch))
+    if args.quality_barrier:
+        helper = out/'quality_asset_barrier.hpp'
+        shutil.copy2(own/helper.name, helper)
+        anchor = '#include "' + str(out/'visual_inspect.hpp') + '"'
+        dispatch = '  if(StrataM10VisualInspect::Request(Episode,Input,S.Locked,Inspected))'
+        body = port.read_text()
+        if body.count(anchor) != 1 or body.count(dispatch) != 1:
+            raise ValueError('expected private inspection dispatcher')
+        port.write_text(body.replace(anchor, anchor + '\n#include "' + str(helper) + '"').replace(
+            dispatch, '  if(StrataM10VisualInspect::QualityBarrier(Episode,Input,S.Locked,Inspected)) {Tick=false;return Inspected;}\n' + dispatch))
     unity = out/'Module.Carla.2_of_4.cpp'
     original_unity = (old_folder/unity.name).read_text()
     assert original_unity.count(str(old_folder/port.name)) == 1
@@ -88,10 +142,16 @@ def main(args):
     for i, cmd in enumerate(commands):
         with (out/f'build-{i}.log').open('w') as log:
             subprocess.run(cmd, cwd=engine/'Source', stdout=log, stderr=subprocess.STDOUT,
-                           check=True, timeout=300)
+                           check=True, timeout=900)
     inputs = {own/'build_visual_inspect.py', own/'visual_inspect.hpp', parent_path,
               response_path, prior_path, original, old_folder/port.name, old_folder/unity.name,
               Path(command[0]), *objects}
+    if args.completed_frames:
+        inputs.add(own/'visual_completed.hpp')
+    if args.wheel_replay:
+        inputs.add(own/'visual_wheels.hpp')
+    if args.quality_barrier:
+        inputs.add(own/'quality_asset_barrier.hpp')
     inputs.update(Path(line.split('"')[1]) for line in original_unity.splitlines()
                   if line.startswith('#include "'))
     inputs.update(Path(p) for p in prior['inputs'] if Path(p).is_file())
@@ -109,4 +169,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     for name in ('engine', 'parent', 'output'):
         p.add_argument('--'+name, type=Path, required=True)
+    p.add_argument('--completed-frames', action='store_true')
+    p.add_argument('--quality-barrier', action='store_true')
+    p.add_argument('--wheel-replay', action='store_true')
     main(p.parse_args())

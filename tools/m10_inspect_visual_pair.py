@@ -19,7 +19,9 @@ from renderer_shutdown_v1 import shutdown
 from runtime_restoration_v1 import sha, restore_component
 
 
-def inspect_pair(module_dir, output, series):
+def inspect_pair(
+    module_dir, output, series, completed_source_native=None, renderer_source=None
+):
     config = json.loads((series / "preparation-argv.json").read_text())
     original = json.loads((series / "pre-install.json").read_text())["files"]
     module = json.loads((module_dir / "manifest.json").read_text())
@@ -41,7 +43,17 @@ def inspect_pair(module_dir, output, series):
     ini = Path(original["ini"]["path"])
     ini_backup = output / "original-GameUserSettings.ini"
     ini_backup.write_bytes(ini.read_bytes())
-    probe = TESTS / "inspect_visual_scene_v1.py"
+    probe = (
+        ROOT / "tests/integration/carla/m7_1q_probe.py"
+        if completed_source_native
+        else TESTS / "inspect_visual_scene_v1.py"
+    )
+    if completed_source_native and completed_source_native.name != "m7_wheel_shadow":
+        raise ValueError(
+            "simulation-time wheel and settlement fixture m7_wheel_shadow required"
+        )
+    if completed_source_native and "visual_completed.hpp" not in module["generated"]:
+        raise ValueError("completed scene reader missing from module")
     record = dict(
         status="FAIL",
         stages={},
@@ -51,6 +63,26 @@ def inspect_pair(module_dir, output, series):
         module_sha256=module["module_sha256"],
         probe_sha256=sha(probe),
     )
+
+    if completed_source_native:
+        record.update(
+            scope="Native simulation-time completed scene acquisition",
+            native_binary_sha256=sha(completed_source_native),
+            scene_sampler_sha256=sha(TESTS / "completed_scene_sample.py"),
+        )
+
+    if renderer_source:
+        source_result = json.loads(
+            (renderer_source.parents[2] / "result.json").read_text()
+        )
+        if source_result["status"] != "PASS_COMPLETED_NATIVE_SOURCE":
+            raise ValueError(
+                "expected independently completed native simulation source"
+            )
+        record.update(
+            scope="Separate renderer replay of retained physical frames",
+            source_index_sha256=sha(renderer_source / "index.json"),
+        )
 
     def save():
         (output / "result.json").write_text(json.dumps(record, indent=2) + "\n")
@@ -98,6 +130,21 @@ def inspect_pair(module_dir, output, series):
         )
         env.pop("STRATADRIVE_M7_OWNER_KEY", None)
         args = [*config[role], "-StrataM10VisualInspect"]
+        if completed_source_native:
+            env["STRATADRIVE_M7_OWNER_KEY"] = secrets.token_hex(32)
+            env["PYTHONPATH"] = os.pathsep.join(
+                [str(TESTS), str(ROOT), env.get("PYTHONPATH", "")]
+            )
+            args = [
+                value
+                for value in args
+                if not value.startswith(
+                    ("-StrataM10", "-StrataM7Wall", "-StrataM7CompactWork")
+                )
+            ]
+            args.extend(["-StrataM10CompletedVisual", "-StrataM10NoVisualTags"])
+        if renderer_source and "visual_wheels.hpp" in module["generated"]:
+            args.append("-StrataM10ReplayWheels")
         stage["argv"] = args
         with (directory / "server.log").open("x") as log:
             process = subprocess.Popen(
@@ -122,15 +169,34 @@ def inspect_pair(module_dir, output, series):
                     "--output",
                     directory / "inspect",
                 ]
-                if role == "renderer":
+                if renderer_source:
+                    invocation += ["--source-samples", renderer_source]
+                elif role == "renderer":
                     invocation += ["--catalog", output / "owner/inspect/result.json"]
+                if completed_source_native:
+                    invocation = [
+                        python,
+                        probe,
+                        "--native",
+                        completed_source_native,
+                        "--model",
+                        ROOT / "tools/carla/m7_nodrive/virtual_ev_v1.json",
+                        "--output",
+                        directory / "inspect",
+                        "--ticks",
+                        "400",
+                        "--scenario",
+                        ROOT / "tests/integration/carla/scenarios/m7_integrated_v1.txt",
+                        "--solver-work",
+                        "--completed-visual",
+                    ]
                 with (directory / "client.log").open("x") as client_log:
                     stage["client_exit"] = subprocess.run(
                         list(map(str, invocation)),
                         env=env,
                         stdout=client_log,
                         stderr=subprocess.STDOUT,
-                        timeout=120,
+                        timeout=240 if completed_source_native else 120,
                     ).returncode
             finally:
                 stage["shutdown"] = shutdown(
@@ -138,6 +204,22 @@ def inspect_pair(module_dir, output, series):
                 )
                 save()
         result = json.loads((directory / "inspect/result.json").read_text())
+        if completed_source_native:
+            index = json.loads(
+                (directory / "inspect/completed-visual/index.json").read_text()
+            )
+            stage.update(frames=len(index["frames"]), settlements=result["settlements"])
+            if (
+                stage["client_exit"]
+                or stage["shutdown"]["server_exit"] != 130
+                or stage["shutdown"].get("forced_stop")
+                or not result["status"].startswith("PASS")
+                or stage["frames"] != 16
+                or stage["settlements"] != 400
+            ):
+                raise RuntimeError("moving native source or shutdown failed")
+            record["native_started"] = True
+            return
         if (
             stage["client_exit"]
             or stage["shutdown"]["server_exit"] != 130
@@ -152,9 +234,17 @@ def inspect_pair(module_dir, output, series):
         for name in ("module", "dxcompiler"):
             if command(name, "install"):
                 raise RuntimeError(f"{name} installation failed")
-        run_role("owner", 2200)
-        run_role("renderer", 2300)
-        record["status"] = "PASS_READ_ONLY_PAIR_INSPECTION"
+        if not renderer_source:
+            run_role("owner", 2200)
+        if completed_source_native:
+            record["status"] = "PASS_COMPLETED_NATIVE_SOURCE"
+        else:
+            run_role("renderer", 2300)
+            record["status"] = (
+                "PASS_RENDERER_SOURCE_REPLAY"
+                if renderer_source
+                else "PASS_READ_ONLY_PAIR_INSPECTION"
+            )
     except Exception:
         record["error"] = traceback.format_exc()
     finally:
@@ -185,12 +275,24 @@ def inspect_pair(module_dir, output, series):
         ),
         flush=True,
     )
-    return 0 if record["status"] == "PASS_READ_ONLY_PAIR_INSPECTION" else 1
+    return (
+        0
+        if record["status"]
+        in (
+            "PASS_READ_ONLY_PAIR_INSPECTION",
+            "PASS_COMPLETED_NATIVE_SOURCE",
+            "PASS_RENDERER_SOURCE_REPLAY",
+        )
+        else 1
+    )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--module-dir", type=Path, required=True)
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--completed-source-native", type=Path)
+    modes.add_argument("--renderer-source", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
         "--series",
@@ -200,6 +302,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
     raise SystemExit(
         inspect_pair(
-            args.module_dir.resolve(), args.output.resolve(), args.series.resolve()
+            args.module_dir.resolve(),
+            args.output.resolve(),
+            args.series.resolve(),
+            args.completed_source_native.resolve()
+            if args.completed_source_native
+            else None,
+            args.renderer_source.resolve() if args.renderer_source else None,
         )
     )

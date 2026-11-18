@@ -1,0 +1,73 @@
+{
+  "status": "FAIL",
+  "stages": {
+    "renderer": {
+      "argv": [
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+        "/Game/Carla/Maps/Town03_Opt",
+        "-game",
+        "-FixedSeed",
+        "-RenderOffScreen",
+        "-nosound",
+        "-unattended",
+        "-nosplash",
+        "-carla-server",
+        "-quality-level=Epic",
+        "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1,t.MaxFPS 60",
+        "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+        "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+        "-log",
+        "-stdout",
+        "-FullStdOutLogOutput",
+        "-carla-rpc-port=2300",
+        "-StrataM10IdleWait",
+        "-StrataM10VisualInspect"
+      ],
+      "readiness": {
+        "world": 15975046005678831040,
+        "frame": 7,
+        "version": "294096e-dirty",
+        "map": "/Game/Carla/Maps/Town03_Opt",
+        "load_seconds": 27.18758957996033,
+        "sdk_seconds": 1.4707324509508908
+      },
+      "client_exit": 1,
+      "shutdown": {
+        "begin_wall_ns": 2013442715594135,
+        "limit_seconds": 30,
+        "diagnostic_after_seconds": 10,
+        "diagnostics_enabled": false,
+        "end_wall_ns": 2013444888182493,
+        "server_exit": 130
+      }
+    }
+  },
+  "restoration": {
+    "dxcompiler": {
+      "status": "RESTORED",
+      "command_exit": 0,
+      "sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46"
+    },
+    "module": {
+      "status": "RESTORED",
+      "command_exit": 0,
+      "sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134"
+    }
+  },
+  "complete_scene_proof": false,
+  "native_started": false,
+  "module_sha256": "25b85a95237b9c77e8559d2f9f3b7edd4d22d1f2aefbd7ebbbce39d9724f9f02",
+  "probe_sha256": "c5b3f2d1535dac3a2f1acebb57d43fd8d78793eb0855745dcba88fbe21141c86",
+  "scope": "Separate renderer replay of retained physical frames",
+  "source_index_sha256": "e132e54cfa54942e4b2d181d97d11b28d2961f0a32253f0dce6bbe73d0678e92",
+  "error": "Traceback (most recent call last):\n  File \"/d/shin/StrataDrive/tools/m10_inspect_visual_pair.py\", line 199, in inspect_pair\n    run_role(\"renderer\", 2300)\n  File \"/d/shin/StrataDrive/tools/m10_inspect_visual_pair.py\", line 186, in run_role\n    raise RuntimeError(f\"Inspect {role} result at {directory}\")\nRuntimeError: Inspect renderer result at /d/shin/StrataDrive/build/m10-visual-inspect-v1/completed-replay-01/renderer\n",
+  "restored_hashes": {
+    "executable": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+    "module": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134",
+    "engine": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+    "rendercore": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b",
+    "dxcompiler": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46",
+    "ini": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448"
+  }
+}

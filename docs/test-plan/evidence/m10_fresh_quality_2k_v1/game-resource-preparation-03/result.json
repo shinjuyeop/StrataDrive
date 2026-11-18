@@ -1,0 +1,64 @@
+{
+  "status": "PASS_EMPTY_PREPARATION",
+  "scope": "Empty renderer asset preparation only",
+  "images": 0,
+  "model_calls": 0,
+  "argv": [
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town04_Opt",
+    "-game",
+    "-FixedSeed",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-quality-level=Epic",
+    "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1,t.MaxFPS 60",
+    "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+    "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-carla-rpc-port=2400",
+    "-StrataM10IdleWait",
+    "-StrataM10QualityAssetBarrier",
+    "-StrataM10AssetWarmNoTags"
+  ],
+  "module_sha256": "60f18a8ed74db1b2109e08c0155b362663ce8d910e0803990c86e5dc7e821222",
+  "readiness": {
+    "world": 603599795438619923,
+    "frame": 6,
+    "version": "294096e-dirty",
+    "map": "/Game/Carla/Maps/Town04_Opt",
+    "load_seconds": 21.526170570170507,
+    "sdk_seconds": 0.5424558348022401
+  },
+  "shutdown": {
+    "begin_wall_ns": 2015047497786550,
+    "limit_seconds": 30,
+    "diagnostic_after_seconds": 10,
+    "diagnostics_enabled": false,
+    "end_wall_ns": 2015048863844604,
+    "server_exit": 130
+  },
+  "dxcompiler": {
+    "status": "RESTORED",
+    "command_exit": 0,
+    "sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46"
+  },
+  "module": {
+    "status": "RESTORED",
+    "command_exit": 0,
+    "sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134"
+  },
+  "restored": {
+    "executable": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+    "module": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134",
+    "engine": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+    "rendercore": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b",
+    "dxcompiler": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46",
+    "ini": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448"
+  }
+}
