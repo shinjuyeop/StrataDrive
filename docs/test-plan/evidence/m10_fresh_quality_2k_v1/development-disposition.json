@@ -1,0 +1,87 @@
+{
+  "schema": "m10-fresh-2k-development-disposition-v1",
+  "scope": "Consumed development images only; no holdout evaluation acquisition",
+  "original_comparison_sha256": "bca1627ff7c2410b49b72c976628c0ee6eefd0cddc4d1e49c6b64a1956439495",
+  "verified_raw_sets": {
+    "runs/evaluation-development-01/candidate": {
+      "original_outputs": 81,
+      "predictions_sha256": "30978d2d81132edb9ef80916687918aeb7fe36a0701b1b4bec0d95a80cccf1fb"
+    },
+    "runs/evaluation-development-01/baseline": {
+      "original_outputs": 81,
+      "predictions_sha256": "2d8a35afb3decb0d2ef641d8aaa0747336eef879ef6a11930efb89261e8d6437"
+    },
+    "development-diagnosis-01": {
+      "original_outputs": 81,
+      "predictions_sha256": "a9cdacb4bd31dda41cf901c80a01e2bcda0764ed8f62bfc1384de821ff61f5c0"
+    },
+    "development-model-screen-01/rtdetrv2-r18": {
+      "original_outputs": 81,
+      "predictions_sha256": "506157d67bc6b7f35ccad59a2034a1085713bdde659ca0303983bc4affd04e57"
+    },
+    "development-model-screen-01/damo-s": {
+      "original_outputs": 81,
+      "predictions_sha256": "7f89f9909f62594facd2cd3fa59baa9b1108a5cfac4c40e197cfe64c8dfec6c8"
+    },
+    "development-model-screen-01/rtv4-s": {
+      "original_outputs": 81,
+      "predictions_sha256": "32355cfac01ebdd62cc53f9186b22a9a3c3c6781feadbd1afb9f61c1efec01ff"
+    },
+    "development-model-screen-01/yolox-l": {
+      "original_outputs": 81,
+      "predictions_sha256": "01f186385947318e38825f26cd0c9ce153aec78d312ef165cb6ab580e579a635"
+    }
+  },
+  "original_inputs": 81,
+  "ground_truth": 534,
+  "missed_car_instances": {
+    "35396": 43,
+    "35406": 81,
+    "35418": 81
+  },
+  "floor_recall": 0.7340823970037453,
+  "maximum_tp_on_published_confidence_grid": 392,
+  "floor_reason": "All six classes use 0.35. Higher class thresholds remove a suffix from descending confidence matches independently within each class.",
+  "comparison": {
+    "full_frame_at_floor": {
+      "precision": 0.7153284671532847,
+      "recall": 0.7340823970037453,
+      "absolute_quality": "FAIL"
+    },
+    "full_plus_tiles": {
+      "precision": 0.7489795918367347,
+      "recall": 0.6872659176029963,
+      "absolute_quality": "FAIL"
+    },
+    "yolox-l": {
+      "precision": 0.719626168224299,
+      "recall": 0.5767790262172284,
+      "absolute_quality": "FAIL"
+    },
+    "rtdetrv2-r18": {
+      "precision": 0.5725075528700906,
+      "recall": 0.7097378277153558,
+      "absolute_quality": "FAIL"
+    },
+    "rtv4-s": {
+      "precision": 0.7346938775510204,
+      "recall": 0.6067415730337079,
+      "absolute_quality": "FAIL"
+    },
+    "damo-s": {
+      "precision": 0.5968379446640316,
+      "recall": 0.5655430711610487,
+      "absolute_quality": "FAIL"
+    },
+    "maskrcnn_visible_masks": {
+      "precision": 0.6416184971098265,
+      "recall": 0.6235955056179775,
+      "absolute_quality": "FAIL"
+    },
+    "maskrcnn_detector_boxes": {
+      "precision": 0.6473988439306358,
+      "recall": 0.6292134831460674,
+      "absolute_quality": "FAIL"
+    }
+  }
+}

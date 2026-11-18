@@ -62,11 +62,17 @@ D-FINE-M960 CUDA, 카메라 목표 10Hz·렌더러 조회 20Hz·MaxFPS60이다.
 프레임·시각·픽셀 해시를 확인했다. [정지 장면 비교](test-plan/evidence/m10_visual_inspect_v1/README.md)
 
 움직이는 차량의 물리 처리·정산 400회를 확인했다. 16개 원본 물리 프레임에서 차량은
-1.85m 이동했고, 별도 렌더러가 만든 2K 영상 16장을 원본과 연결했다. 현재 물리 바퀴 입력으로
-재현한 장면에서 바퀴 각도 차이는 최대 2.04°다. [움직이는 장면 비교](test-plan/evidence/m10_visual_inspect_v1/moving-comparison-02.json)
+1.85m 이동했고, 별도 렌더러가 만든 2K 영상 16장을 원본과 연결했다. 완료된 애니메이션 값을
+재현했을 때 바퀴 각도 차이는 최대 0.000033°였다. [움직이는 장면 비교](test-plan/evidence/m10_visual_inspect_v1/moving-comparison-03.json)
 
-실시간 장면 수용과 typed native 인지 연결,
-고정 후보의 새 독립 품질 평가와 안정성 검증이 남았다. Jetson별 배포는 M12에서
+물리 시뮬레이션에서 주행 중 실제 인지 IPC 연결을 끊으면 네이티브 수신기가 단절을 감지하고
+다음 물리 프레임에서 보호 제동을 적용했다. 차량과 네 바퀴는 정지했고 400회 정산이 완료됐다.
+[단절 시험](test-plan/evidence/m10_visual_inspect_v1/transport-loss-01/result.json)
+
+개발·보류 준비는 각 99장 통과했다. 개발 평가 81장에서 D-FINE-M960은 정밀도 82.69%,
+재현율 59.93%로 절대 기준 85%·80%에 미달했다. 배경 차량 세 대가 차량 누락 205건을 차지한다.
+보류 평가는 열지 않았다. 정상 인지의 실시간 수용·만료·재가입 및 최종 안정성 검증이 남았다.
+[개발 점수와 비교 실험](test-plan/evidence/m10_fresh_quality_2k_v1/results.md) Jetson별 배포는 M12에서
 수행하며 현재 보드 최적화를 앞당기지 않는다. M10 종료로 표시하지 않는다.
 이전 실패와 원본은 각 evidence와 [Host 실행 이력](archive/implementation-history.md#m10-host-실행-이력)에 보존한다.
 
@@ -111,7 +117,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 ## 다음 작업
 
 1. 물리 서버와 영상 서버에서 동일 프레임의 차량 바퀴·보행자 뼈대·재질·자산을 확인하고, 검증된 영상 결과를 native 인지 수신기에 연결한다. 이후 실제 수신·만료·중단·재가입을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
-2. 지도만으로 선정한 새 개발 장소(90)와 독립 보류 장소(101)에서 품질을 평가한다. 고정 후보와 개발 결과를 기록한 뒤 보류 평가를 연다. [장소 선정 근거](test-plan/evidence/m10_fresh_quality_2k_v1/plan/sites.json)
+2. 개발 장소(90)에서 확인한 가려진 배경 차량 문제를 해결하고 품질 기준을 충족한 후보를 고정한 뒤 보류 장소(101)를 평가한다. [장소 선정 근거](test-plan/evidence/m10_fresh_quality_2k_v1/plan/sites.json)
 3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 
 구체 산출물과 미결정 항목은 [로드맵](roadmap.md)을 따른다.

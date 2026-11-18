@@ -50,7 +50,16 @@ def plans():
         method='First two complete eligible routes sorted by spawn index, disjoint road IDs, at least 50 m between camera origins and from previous sites',
         rgb_captured=False, model_evaluated=False)
     site_survey=dict(survey,selected_sites=chosen)
-    evaluation,preparation=build_poses(site_survey,digest(SURVEY),read(TEMPLATE),digest(TEMPLATE))
+    template = read(TEMPLATE)
+    # At spawn 101 the original blocker covered the walker below the fixed
+    # inclusion limit. The model-free preparation mask supports a 20 cm shift.
+    for case in template['partitions']['holdout']['cases']:
+        if case['stratum'] == 'occluded' and case['target_class'] == 0:
+            blocker, = [a for a in case['actors'] if a['role'] == 'occluder']
+            if blocker['right_m'] != -0.4:
+                raise ValueError('unexpected original holdout blocker')
+            blocker['right_m'] = -0.6
+    evaluation,preparation=build_poses(site_survey,digest(SURVEY),template,digest(TEMPLATE))
     for plan in (evaluation,preparation):
         for part in plan['partitions'].values():
             for case in part['cases']:

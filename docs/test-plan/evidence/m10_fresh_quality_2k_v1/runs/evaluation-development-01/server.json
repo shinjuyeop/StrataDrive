@@ -1,0 +1,74 @@
+{
+  "status": "PASS_CAPTURE",
+  "case": "evaluation-development-01",
+  "phase": "evaluation",
+  "partition": "development",
+  "plan_sha256": "ee443128b6339c93157e0c3275ea584f85de0223f66cf01bd1a9a493287da19b",
+  "freeze_sha256": "41115b1774c03e261e6bfddd6d8d6006a22f33b8728508c625a914099d6f82dc",
+  "command": [
+    "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+    "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+    "/Game/Carla/Maps/Town04_Opt",
+    "-game",
+    "-FixedSeed",
+    "-RenderOffScreen",
+    "-nosound",
+    "-unattended",
+    "-nosplash",
+    "-carla-server",
+    "-quality-level=Epic",
+    "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1,t.MaxFPS 60",
+    "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+    "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+    "-log",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-carla-rpc-port=2400",
+    "-StrataM10IdleWait"
+  ],
+  "client": [
+    "/d/shin/StrataDrive/build/m10-perception/cuda-venv/bin/python",
+    "/d/shin/StrataDrive/tests/integration/perception/fresh_quality_2k_capture.py",
+    "--port",
+    "2400",
+    "--plan",
+    "/d/shin/StrataDrive/docs/test-plan/evidence/m10_fresh_quality_2k_v1/plan/evaluation.json",
+    "--output",
+    "/d/shin/StrataDrive/docs/test-plan/evidence/m10_fresh_quality_2k_v1/runs/evaluation-development-01/dataset",
+    "--partition",
+    "development"
+  ],
+  "selection_sha256": null,
+  "errors": [],
+  "started_utc": "2026-11-18T10:24:10.029928+00:00",
+  "readiness": {
+    "world": 8619452101128300224,
+    "frame": 6,
+    "version": "294096e-dirty",
+    "map": "/Game/Carla/Maps/Town04_Opt",
+    "load_seconds": 23.831814672099426,
+    "sdk_seconds": 1.8637852328829467
+  },
+  "client_exit": 0,
+  "shutdown": {
+    "begin_wall_ns": 2016011712817571,
+    "limit_seconds": 30,
+    "diagnostic_after_seconds": 10,
+    "diagnostics_enabled": false,
+    "end_wall_ns": 2016013280498868,
+    "server_exit": 130
+  },
+  "restoration": {
+    "status": "RESTORED",
+    "command_exit": 0,
+    "sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46"
+  },
+  "restored": {
+    "executable": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+    "module": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134",
+    "engine": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+    "rendercore": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b",
+    "dxcompiler": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46",
+    "ini": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448"
+  }
+}

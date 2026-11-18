@@ -109,7 +109,8 @@ def main(args):
         if any(body.count(v)!=1 for v in (anchor,dispatch,export)):
             raise ValueError('expected completed source and renderer dispatch')
         port.write_text(body.replace(anchor, anchor + '\n#include "' + str(helper) + '"').replace(
-            export, '    Reading->SetArrayField(TEXT("wheel_animation"),StrataM10VisualInspect::OriginalWheels(Episode,S.ActorId));\n' + export).replace(
+            export, '    Reading->SetArrayField(TEXT("wheel_animation"),StrataM10VisualInspect::OriginalWheels(Episode,S.ActorId));\n'
+            '    Reading->SetStringField(TEXT("end_ns"),StrataM10VisualInspect::Decimal(StrataM10VisualInspect::Clock()));\n' + export).replace(
             dispatch, '  if(StrataM10VisualInspect::ApplyWheels(Episode,Input,S.Locked,Inspected)) {Tick=false;return Inspected;}\n'+dispatch))
     if args.quality_barrier:
         helper = out/'quality_asset_barrier.hpp'

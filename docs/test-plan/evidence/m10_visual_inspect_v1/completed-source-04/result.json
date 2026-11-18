@@ -1,0 +1,81 @@
+{
+  "status": "PASS_COMPLETED_NATIVE_SOURCE",
+  "stages": {
+    "owner": {
+      "argv": [
+        "/d/shin/stratadrive-tools/UnrealEngine_4.26/Engine/Binaries/Linux/UE4Editor",
+        "/d/shin/stratadrive-tools/m7-source/carla-0.9.16/Unreal/CarlaUE4/CarlaUE4.uproject",
+        "/Game/Carla/Maps/Town03_Opt",
+        "-game",
+        "-FixedSeed",
+        "-RenderOffScreen",
+        "-nosound",
+        "-unattended",
+        "-nosplash",
+        "-carla-server",
+        "-quality-level=Epic",
+        "-ExecCmds=r.SceneRenderTargetResizeMethod 2,r.SceneRenderTargetResizeMethodForceOverride 1",
+        "-ini:EditorSettings:[/Script/UnrealEd.CrashReportsPrivacySettings]:bSendUnattendedBugReports=False",
+        "-ini:Engine:[CrashReportClient]:bAgreeToCrashUpload=False,[CrashReportClient]:bImplicitSend=False",
+        "-log",
+        "-stdout",
+        "-FullStdOutLogOutput",
+        "-carla-rpc-port=2200",
+        "-StrataM7NativeProbe",
+        "-StrataM7V1Substeps320",
+        "-StrataM7SolverWork",
+        "-StrataM7HeldSteerSleep",
+        "-nullrhi",
+        "-norenderthread",
+        "-StrataM10CompletedVisual",
+        "-StrataM10NoVisualTags"
+      ],
+      "readiness": {
+        "world": 17170587810256244110,
+        "frame": 43,
+        "version": "294096e-dirty",
+        "map": "/Game/Carla/Maps/Town03_Opt",
+        "load_seconds": 21.85420911386609,
+        "sdk_seconds": 0.04777854308485985
+      },
+      "client_exit": 0,
+      "shutdown": {
+        "begin_wall_ns": 2015502940473700,
+        "limit_seconds": 30,
+        "diagnostic_after_seconds": 10,
+        "diagnostics_enabled": false,
+        "end_wall_ns": 2015504156524425,
+        "server_exit": 130
+      },
+      "frames": 16,
+      "settlements": 400
+    }
+  },
+  "restoration": {
+    "dxcompiler": {
+      "status": "RESTORED",
+      "command_exit": 0,
+      "sha256": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46"
+    },
+    "module": {
+      "status": "RESTORED",
+      "command_exit": 0,
+      "sha256": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134"
+    }
+  },
+  "complete_scene_proof": false,
+  "native_started": true,
+  "module_sha256": "6763d0af5173725241b6398052d98685f6558cc8895f38cc83c45e65caa37b16",
+  "probe_sha256": "605d7d1f997baf899e96dc7cbf2131b0dd4818b5f629461af7228e2610cf9117",
+  "scope": "Native simulation-time completed scene acquisition",
+  "native_binary_sha256": "c9a7e54989fc853214bf9ea598f5ae0f781f734837c86c00ec2d0d2e0d6c3f79",
+  "scene_sampler_sha256": "b1a9c0bc5b62392de46e1d2d081bebbb4cf4454986da269ee46cde65d66aac0b",
+  "restored_hashes": {
+    "executable": "dacb6a821b92768a4ce38e3f2188e11b16e2e6f41d39ab7988f0c2ea831054f8",
+    "module": "099f15274e768049c774166b17eb55838e672f9098f7d9e9f89aeddab6f81134",
+    "engine": "9362962edd68c32cc2981858e4dd0b1d5fc5a81e9c5b2b4d5b6cbc19fa22ff48",
+    "rendercore": "26f7ed9863dcc9e08a8a556a656533c955a701dc688fcca136c6b1af581f915b",
+    "dxcompiler": "c10161c15629433d872ff70bb715a63ebb6046199a2b8405eb6186e7f07b2f46",
+    "ini": "0e23feac25b539a9875eff20d6f681893a3fff02df7a1faa652c5fe266304448"
+  }
+}

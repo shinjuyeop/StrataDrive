@@ -53,3 +53,19 @@ hash. Categorical component differences were zero. The largest ego wheel
 difference was 0.1732 cm and 2.0387° when applying the current solver readings.
 This simulation-time replay produced zero live native perception admissions.
 [Comparison](moving-comparison-02.json) · [Renderer manifest](completed-replay-02/manifest.json)
+
+The next source read the four wheel offsets used by the completed animation
+graph. On the independent camera exposures the maximum ego wheel errors fell
+to 0.00010 cm and 0.000033°. All 16 images, original receipts, ticket IDs and
+RGB hashes were verified. The original actor acquisition bracket in this run
+ends just before the wheel accessor, while the same simulation frame remained
+held for the whole request. [Moving replay](moving-comparison-03.json)
+
+A separate simulation-time fault test closed the actual perception IPC peer
+as the vehicle accelerated. The native receiver observed the disconnect,
+requested the existing protective response, and the following frame admitted
+braking. The vehicle body and all four wheels reached zero speed. The source
+completed 400 physical intervals and 400 energy settlements. The peer had
+supplied no detection. This covers transport loss during motion. Normal visual
+input and its expiry still require a live, qualified result.
+[Transport-loss evidence](transport-loss-01/result.json)

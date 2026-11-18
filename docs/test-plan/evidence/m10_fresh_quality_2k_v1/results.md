@@ -36,3 +36,44 @@ exposure rule, weights and score thresholds were retained. Development
 preparation 04 passed all 99 scenes, including all 18 occlusion pairs and the
 rider checks. No RGB image matched the 46,698 prior hashes.
 [Previous freeze](freeze-before-settled-weather.json) · [Development preparation](runs/preparation-development-04/visibility.json)
+
+## Development verdict
+
+The development candidate failed absolute quality on all 81 selected original
+exposures. The paired comparison with YOLOX-S passed every relative gate.
+The candidate detected all 18 near, all 18 medium and all 18 far primary targets,
+and 15 of 18 occluded primary targets. All included visible objects, including
+parked background vehicles, enter the score. No holdout evaluation was acquired.
+[Development comparison](runs/evaluation-development-01/comparison.json)
+
+| Pipeline | True positives | False positives | Misses | Precision | Recall |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| D-FINE-M960 native 2K | 320 | 67 | 214 | 82.69% | 59.93% |
+| YOLOX-S640 paired | 268 | 178 | 266 | 60.09% | 50.19% |
+
+Three parked car instance IDs accounted for all 205 car misses. Two were missed
+81 times each and the third 43 times. There were 63 truck false positives.
+The map registry independently projects a Jeep Wrangler and a Nissan Patrol
+into the overlapping group. Their registry class is Car. The registry and mask
+IDs use different namespaces. [Static object geometry](development-static-registry-01/static-objects.json) · [Counts and original hashes](development-disposition.json)
+
+The first holdout preparation acquired all 99 images. The walker fell below the
+inclusion limit in all three occluded-person scenes. A 20 cm lateral adjustment
+to their blocking vehicle was fixed from the preparation masks before detector
+evaluation. The same change applies to the holdout evaluation plan. The
+development partition is identical. Holdout preparation 02 then passed all 99
+scenes and 18 occlusion pairs. The three walker/reference ratios were 72.58%.
+[Original geometry](before-holdout-occluder/preparation.json) · [Corrected preparation](runs/preparation-holdout-02/visibility.json)
+
+Replaying D-FINE's original numerical outputs at the existing confidence floor
+of 0.35 yielded 392/534 true positives (73.41%). Raising any class threshold
+discards lower-ranking detections and cannot reach the 80% recall gate.
+Combining full-frame inference with four overlapping crops gave 74.90%
+precision and 68.73% recall. The separately registered YOLOX-L, RT-DETRv2-R18,
+RT-DETRv4-S and DAMO-S pipelines also failed absolute quality at the declared
+screen configuration. [Development comparisons](development-disposition.json)
+
+A fifth off-the-shelf alternative used instance masks to form visible boxes.
+TorchVision Mask R-CNN ResNet50 FPN V2 produced 64.16% precision and 62.36%
+recall. Its original object boxes produced 64.74% and 62.92%. These development
+screens did not produce a replacement Reference. [Weights and inputs](development-mask-01/declaration.json) · [Mask and box scores](development-mask-01/scores.json)

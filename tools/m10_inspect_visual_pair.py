@@ -20,7 +20,12 @@ from runtime_restoration_v1 import sha, restore_component
 
 
 def inspect_pair(
-    module_dir, output, series, completed_source_native=None, renderer_source=None
+    module_dir,
+    output,
+    series,
+    completed_source_native=None,
+    renderer_source=None,
+    perception_disconnect=False,
 ):
     config = json.loads((series / "preparation-argv.json").read_text())
     original = json.loads((series / "pre-install.json").read_text())["files"]
@@ -48,6 +53,8 @@ def inspect_pair(
         if completed_source_native
         else TESTS / "inspect_visual_scene_v1.py"
     )
+    if perception_disconnect and not completed_source_native:
+        raise ValueError("IPC disconnection requires the native physical fixture")
     if completed_source_native and completed_source_native.name != "m7_wheel_shadow":
         raise ValueError(
             "simulation-time wheel and settlement fixture m7_wheel_shadow required"
@@ -69,13 +76,18 @@ def inspect_pair(
             scope="Native simulation-time completed scene acquisition",
             native_binary_sha256=sha(completed_source_native),
             scene_sampler_sha256=sha(TESTS / "completed_scene_sample.py"),
+            perception_disconnect=perception_disconnect,
         )
 
     if renderer_source:
         source_result = json.loads(
             (renderer_source.parents[2] / "result.json").read_text()
         )
-        if source_result["status"] != "PASS_COMPLETED_NATIVE_SOURCE":
+        if (
+            source_result["status"]
+            not in ("PASS_COMPLETED_NATIVE_SOURCE", "PASS_NATIVE_PERCEPTION_LINK_LOSS")
+            or not source_result["native_started"]
+        ):
             raise ValueError(
                 "expected independently completed native simulation source"
             )
@@ -190,6 +202,8 @@ def inspect_pair(
                         "--solver-work",
                         "--completed-visual",
                     ]
+                    if perception_disconnect:
+                        invocation.extend(["--fault", "perception-disconnect"])
                 with (directory / "client.log").open("x") as client_log:
                     stage["client_exit"] = subprocess.run(
                         list(map(str, invocation)),
@@ -237,7 +251,11 @@ def inspect_pair(
         if not renderer_source:
             run_role("owner", 2200)
         if completed_source_native:
-            record["status"] = "PASS_COMPLETED_NATIVE_SOURCE"
+            record["status"] = (
+                "PASS_NATIVE_PERCEPTION_LINK_LOSS"
+                if perception_disconnect
+                else "PASS_COMPLETED_NATIVE_SOURCE"
+            )
         else:
             run_role("renderer", 2300)
             record["status"] = (
@@ -281,6 +299,7 @@ def inspect_pair(
         in (
             "PASS_READ_ONLY_PAIR_INSPECTION",
             "PASS_COMPLETED_NATIVE_SOURCE",
+            "PASS_NATIVE_PERCEPTION_LINK_LOSS",
             "PASS_RENDERER_SOURCE_REPLAY",
         )
         else 1
@@ -290,6 +309,7 @@ def inspect_pair(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--module-dir", type=Path, required=True)
+    parser.add_argument("--perception-disconnect", action="store_true")
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument("--completed-source-native", type=Path)
     modes.add_argument("--renderer-source", type=Path)
@@ -309,5 +329,6 @@ if __name__ == "__main__":
             if args.completed_source_native
             else None,
             args.renderer_source.resolve() if args.renderer_source else None,
+            args.perception_disconnect,
         )
     )

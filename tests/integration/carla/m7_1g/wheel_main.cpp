@@ -1,5 +1,6 @@
 #include "functional_rig.hpp"
 #include "native_admission.hpp"
+#include "perception_2k_ipc.hpp"
 #include "wall_execution_watch.hpp"
 #include "diagnostics_journal.hpp"
 #include <algorithm>
@@ -101,11 +102,21 @@ int main(int argc,char** argv) {
         if(horizon_set && argc>16)throw std::runtime_error("simulation horizon option bound");
         FunctionalRig rig({run,static_cast<std::uint32_t>(app),static_cast<std::uint32_t>(plant)},static_cast<std::uint32_t>(actor),
             solver_work?PlantMode::ExternalSolverWork:(external?PlantMode::ExternalWheelZoh:PlantMode::StationaryFixture),exporting,horizon);
+        std::unique_ptr<stratadrive::central::PerceptionIpcShadow> perception_link;
         bool scenario_loaded=false,sampled_actual=false,diagnostic_selected=false;
         for(int arg=6;arg<argc;arg+=2) {
             if(std::string(argv[arg])=="--sim-horizon-ms")continue;
             if(horizon_set && std::string(argv[arg])!="--scenario" && std::string(argv[arg])!="--speed-profile" && std::string(argv[arg])!="--route" && std::string(argv[arg])!="--diagnostic-fault" && std::string(argv[arg])!="--admission-profile" && std::string(argv[arg])!="--supervised-speed")throw std::runtime_error("simulation horizon excludes wall policy");
             if(!solver_work)throw std::runtime_error("options require solver-work mode");
+            if(std::string(argv[arg])=="--perception-link-probe") {
+                int fd=-1;char colon=0;std::uint64_t world=0; std::string extra;
+                std::istringstream identity(argv[arg+1]);
+                if(perception_link || !(identity>>fd>>colon>>world) || colon!=':' || !world || identity>>extra)
+                    throw std::runtime_error("perception fault probe descriptor and world");
+                perception_link=std::make_unique<stratadrive::central::PerceptionIpcShadow>(
+                    fd,static_cast<std::uint32_t>(app),world,0x4d374d4f4e4f3031ULL);
+                continue;
+            }
             if(std::string(argv[arg])=="--admission-profile") {
                 if(sampled_actual || !horizon_set || std::string(argv[arg+1])!="sampled-actual-v1")throw std::runtime_error("sampled Actual profile");
                 sampled_actual=true;continue;
@@ -178,6 +189,8 @@ int main(int argc,char** argv) {
         std::optional<WheelSample> previous_wheel;
         stratadrive::m7_native::Output previous_admission;
         Input lines;
+        bool perception_loss=false;
+        Time loss_wall=0;
         const auto stop_if_fault=[&] {
             if(wall_watch && wall_watch->faulted()) {
                 BarrierStop selected{};
@@ -236,8 +249,21 @@ int main(int argc,char** argv) {
             if(stop_if_fault())return 2;
             const auto read=lines.read(line);
             if(stop_if_fault())return 2;
+            if(perception_link && previous_admission.normal && !perception_loss) {
+                const auto wall=WallExecutionWatch::now();
+                if(perception_link->poll(wall).disconnected) {
+                    perception_loss=true;loss_wall=wall;
+                    rig.request_protection();
+                }
+            }
             if(read==Input::Result::End)break;
             if(read==Input::Result::Wait)continue;
+            if(line=="PERCEPTION_LINK_STATUS") {
+                if(!perception_link || !previous_admission.normal) throw std::runtime_error("perception link probe context");
+                std::cout<<"{\"disconnected\":"<<(perception_loss?"true":"false")
+                         <<",\"detected_wall_ns\":"<<loss_wall<<"}"<<std::endl;
+                continue;
+            }
             if(line=="WALL_ARM") {
                 if(wall_path.empty() || wall_watch || work || !previous_admission.normal)
                     throw std::runtime_error("wall arm requires settled normal barrier and opt-in output");

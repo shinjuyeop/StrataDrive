@@ -31,6 +31,7 @@ BASELINE = ROOT / "build/m10-perception/yolox.onnx"
 def sources():
     paths = [
         BASE / "README.md",
+        BASE / "before-holdout-occluder/preparation.json",
         *(BASE / "plan").glob("*.json"),
         *EXCLUSIONS,
         ROOT / "profiles/perception-quality-protocol-v9.json",
@@ -86,6 +87,23 @@ def freeze():
     write(BASE / "freeze.json", result)
 
 
+def prepared_for_current_plan(path, part):
+    verdict = read(path)
+    if verdict["status"] != "PASS":
+        return False
+    active = BASE / "plan/preparation.json"
+    if verdict["plan_sha256"] == digest(active):
+        return True
+    original = BASE / "before-holdout-occluder/preparation.json"
+    if verdict["plan_sha256"] != digest(original):
+        return False
+    def partition_plan(plan):
+        material = read(plan)
+        material["partitions"] = {part: material["partitions"][part]}
+        return material
+    return partition_plan(original) == partition_plan(active)
+
+
 def allow(phase, partition):
     if read(BASE / "freeze.json")["files"] != sources():
         raise ValueError("fixed capture, scoring and model identities changed")
@@ -93,7 +111,7 @@ def allow(phase, partition):
         # A clean model-free preparation for both partitions precedes evaluation.
         for part in ("development", "holdout"):
             if not any(
-                read(p)["status"] == "PASS"
+                prepared_for_current_plan(p, part)
                 for p in (BASE / "runs").glob(
                     "preparation-" + part + "-*/visibility.json"
                 )

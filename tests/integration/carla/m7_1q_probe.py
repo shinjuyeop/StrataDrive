@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import select
 import signal
+import socket
 import subprocess
 import time
 import traceback
@@ -30,7 +31,7 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--native', type=Path, required=True)
     p.add_argument('--model', type=Path, required=True)
-    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','wall-gap','client-loss','native-stall','pose-stale'), default='none')
+    p.add_argument('--fault', choices=('none', 'credit', 'command', 'snapshot','work-missing','work-duplicate','ev-ack-missing','ev-ack-duplicate','ev-ack-energy','rgb-drop','protection','perception-disconnect','wall-gap','client-loss','native-stall','pose-stale'), default='none')
     p.add_argument('--ticks', type=int, default=400)
     p.add_argument('--solver-work', action='store_true')
     p.add_argument('--completed-visual', action='store_true')
@@ -83,7 +84,7 @@ def main():
     require(not a.compact_work or (a.solver_work and a.fault!='client-loss'), 'compact journal requires surviving owner and work')
     require(a.fault!='rgb-drop' or a.cameras, 'RGB fault requires cameras')
     require(not a.scenario or a.solver_work, 'scenario requires settled work')
-    require(a.fault!='protection' or (a.solver_work and a.ticks==400), 'protection case requires 400 settled intervals')
+    require(a.fault not in ('protection','perception-disconnect') or (a.solver_work and a.ticks==400), 'protection case requires 400 settled intervals')
     require(a.fault!='wall-gap' or a.solver_work, 'wall gap requires observed work')
     require(not a.terminal_response or a.fault=='wall-gap', 'terminal response requires wall gap')
     a.output.mkdir(parents=True, exist_ok=False)
@@ -113,6 +114,7 @@ def main():
     events = []
     client = carla.Client('127.0.0.1', 2200)
     client.set_timeout(10)
+    link_sender = link_receiver = None
     world = original = actor = process = stderr = collector = collector_stderr = None
     diagnostic_count=0
     capture = Capture(a.output,a.fault=='rgb-drop',1201 if a.simulation_continuous else 256,a.record_video,a.live_view) if a.cameras else None
@@ -175,7 +177,7 @@ def main():
         world.set_weather(carla.WeatherParameters.ClearNoon)
         actor = world.spawn_actor(blueprint, spawn)
         if a.completed_visual:
-            require(a.solver_work and a.fault=='none' and a.ticks==400 and not a.cameras and not route,
+            require(a.solver_work and a.fault in ('none','perception-disconnect') and a.ticks==400 and not a.cameras and not route,
                     'completed visual sampling requires the 400-step nominal physical fixture')
             from completed_scene_sample import CompletedSceneSample
             visual=CompletedSceneSample(world,actor,carla,a.output)
@@ -210,6 +212,11 @@ def main():
         if a.diagnostic_fault is not None or a.supervised_speed:
             collector_stderr=(a.output/'diagnostic-collector.stderr').open('w')
             collector=subprocess.Popen([str(a.native.resolve()),'--record-diagnostics',str(a.output/'diagnostic-store')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=collector_stderr,text=True)
+        link_args = []
+        if a.fault == 'perception-disconnect':
+            link_sender, link_receiver = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+            link_receiver.setblocking(False)
+            link_args = ['--perception-link-probe', f'{link_receiver.fileno()}:{world.id}']
         process = subprocess.Popen([str(a.native.resolve()), '--native-solver-work' if a.solver_work else '--native-actual-export','1','42','7',str(actor.id)]+(['--scenario',str(a.scenario)] if a.scenario else [])+
                                    (['--sim-horizon-ms',str(route['ticks']*10 if route else 60000)] if a.simulation_continuous else [])+
                                    (['--speed-profile',{'none':'v1','normal-stop':'v1-stop','input-loss':'v1-input-loss','stop-protection':'v1-stop-protection'}[a.speed_terminal]] if a.speed_loop else [])+
@@ -218,8 +225,8 @@ def main():
                                    (['--diagnostic-fault',a.diagnostic_fault] if a.diagnostic_fault is not None else [])+
                                    (['--admission-profile','sampled-actual-v1'] if a.sampled_actual else [])+
                                    (['--wall-watch',str(a.output/'native-wall.csv')] if a.fault=='wall-gap' else [])+
-                                   (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else []),
-                                   stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
+                                   (['--wall-response',str(a.output/'terminal.jsonl')] if a.terminal_response else [])+link_args,
+                                   pass_fds=(link_receiver.fileno(),) if link_receiver else (), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr, text=True)
         receipt = None
         previous_work_record = None
         application=42
@@ -434,6 +441,18 @@ def main():
                         caught = str(exc)
                     case('foreign_tick_denied', caught is not None and 'M7 exclusive zero-probe owner' in caught and
                          rpc('describe')['frame']==str(frame), error=caught)
+                if i in (198,199) and a.fault=='perception-disconnect':
+                    if i==199:
+                        closed=time.monotonic_ns()
+                        link_sender.close()
+                    process.stdin.write('PERCEPTION_LINK_STATUS\n');process.stdin.flush()
+                    require(select.select([process.stdout],[],[],2)[0], 'native transport observation timeout')
+                    observed=json.loads(process.stdout.readline())
+                    require(observed['disconnected']==(i==199), 'native IPC loss readback')
+                    record['perception_link']=observed
+                    if i==199:
+                        require(closed<=observed['detected_wall_ns']<=time.monotonic_ns(), 'original disconnect ordering')
+                        report['perception_link_loss']=dict(frame=frame,source_ns=ns,closed_wall_ns=closed,**observed)
                 if i==199 and a.fault=='protection':
                     # Submit while native and CARLA still share this frame,
                     # BEFORE physics advances. The next native subjob can then
@@ -524,7 +543,7 @@ def main():
                     case('speed_input_loss_protection',terminal['detection_ns']==terminal['trigger_ns']>0 and native['admission']['protection'] and (native['supervised_speed']['reason']==8 if a.supervised_speed else terminal['speed_fault']==3))
                 report['terminal_response']=terminal
             report['status'] = 'PASS_FUNCTIONAL_NATIVE_SOLVER_WORK' if a.solver_work else 'PASS_FUNCTIONAL_NATIVE_ACTUAL'
-        elif a.fault=='protection':
+        elif a.fault in ('protection','perception-disconnect'):
             case('protection_continues_physics',count==a.ticks and normal>100 and normal<200 and empty==4)
             case('protection_actual_at_end',native['admission']['protection'] and not native['admission']['normal'] and
                  native['admission']['torque_nm']==0 and native['admission']['pressure_pa']>=1000000)
@@ -552,6 +571,8 @@ def main():
         if a.fault == 'snapshot' and count==200 and 'snapshot missing/skipped' in report['error']:
             report['status'] = 'PASS_EXPECTED_SNAPSHOT_STOP'
     finally:
+        for ep in (link_sender,link_receiver):
+            if ep is not None: ep.close()
         if a.compact_work:
             try:
                 previous=None;drained=0
@@ -601,7 +622,7 @@ def main():
                 closed = rpc('close')
                 case('ego_destroyed', closed['ok'] and not closed['locked'] and not closed['registry_actor_present'])
                 bound, actor = False, None
-                if a.fault=='protection' and report['status'].startswith('PASS'):
+                if a.fault in ('protection','perception-disconnect') and report['status'].startswith('PASS'):
                     actor=world.spawn_actor(blueprint,spawn)
                     rebound=rpc('bind',actor=str(actor.id),application='42',model_sha256=model_hash)
                     old_session=session

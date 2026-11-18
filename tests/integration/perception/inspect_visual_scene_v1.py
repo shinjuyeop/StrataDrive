@@ -213,6 +213,18 @@ def inspect(args):
                         actor=actors[0].id,
                         wheels=wheels,
                     )
+                    if i == 0:
+                        for label, invalid in (
+                            ("wrong_wheel_key", dict(request_wheels, key="invalid")),
+                            (
+                                "duplicate_wheel",
+                                dict(request_wheels, wheels=[wheels[0]] * 4),
+                            ),
+                        ):
+                            denied = json.loads(client.m7_nodrive(json.dumps(invalid)))
+                            if denied.get("ok") is not False:
+                                raise ValueError(f"renderer accepted {label}")
+                            report["rejections"][label] = denied
                     reply = json.loads(client.m7_nodrive(json.dumps(request_wheels)))
                     if not reply.get("ok"):
                         raise ValueError(
