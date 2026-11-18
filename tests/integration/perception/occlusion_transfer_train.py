@@ -56,12 +56,16 @@ def network():
     return model.eval().cuda()
 
 
-def inputs(dataset, seen, parked=False):
+def inputs(dataset, seen, parked=False, parking_map=None):
     rows = read(dataset / "labels.json")
     plan = read(dataset / "plan.json")
     if (
         read(dataset.parent / "server.json")["status"] != "PASS"
-        or (len(rows) not in (60, 120, 180, 240) if parked else len(rows) != 192)
+        or not rows
+        or (
+            not parking_map
+            and (len(rows) not in (60, 120, 180, 240) if parked else len(rows) != 192)
+        )
         or len(plan["scenes"]) != len(rows)
     ):
         raise ValueError("incomplete training acquisition")
@@ -90,11 +94,23 @@ def inputs(dataset, seen, parked=False):
             raise ValueError("training mask or annotations changed")
         samples[row["split"]].append((tensor(rgb), row))
         roads[row["split"]].update(scene["roads"])
-    expected_map = "Town05_Opt" if parked else "Town04_Opt"
+    expected_map = parking_map or ("Town05_Opt" if parked else "Town04_Opt")
+    if parking_map:
+        expected_geometry = {
+            "Town10HD_Opt": "5d883b799f634030af92be1e9d79d107845540ba04338e8c60e095be1aef7be7",
+            "Town02_Opt": "953c05f17def231239ffcadba3307628a82d0d335b67b4e29c3098f7aed1dd7d",
+            "Town06_Opt": "a90b613175fa837fdc128ddfaf5ddad25797b128fdbd8cd945974bc21a60496e",
+        }
+        if expected_geometry.get(parking_map) != plan["xodr_sha256"]:
+            raise ValueError("independent parking map geometry")
+        other_split = "train" if parking_map == "Town02_Opt" else "validation"
+        if samples[other_split]:
+            raise ValueError("new parking map must belong wholly to its declared split")
     if plan["map"].split("/")[-1] != expected_map:
         raise ValueError("split map mismatch")
     if roads["train"] & roads["validation"] or (
         not parked
+        and not parking_map
         and (roads["train"] | roads["validation"]) & {6, 35, 41, 43, 45, 47, 29, 36}
     ):
         raise ValueError("split road overlap")

@@ -9,7 +9,7 @@ import time
 import carla
 
 
-def prepare(port, plan, output):
+def prepare(port, plan, output, timeout=300):
     selected = json.loads(plan.read_text())
     blueprints = sorted(
         {
@@ -20,7 +20,7 @@ def prepare(port, plan, output):
         }
     )
     client = carla.Client("127.0.0.1", port)
-    client.set_timeout(300)
+    client.set_timeout(timeout)
     world = client.get_world()
     road = world.get_map()
     if road.name.split("/")[-1] != selected["map"]:
@@ -88,5 +88,6 @@ if __name__ == "__main__":
     p.add_argument("--port", type=int, required=True)
     p.add_argument("--plan", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--timeout", type=int, default=300)
     args = p.parse_args()
-    prepare(args.port, args.plan, args.output)
+    prepare(args.port, args.plan, args.output, args.timeout)

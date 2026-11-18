@@ -97,11 +97,93 @@ def plan():
     return dict(map=survey["map"], xodr_sha256=survey["xodr_sha256"], scenes=rows)
 
 
-def parked_plan(world, out):
+def paired_rows(road, parking_map):
+    """Capture each vehicle alone and both together at the very same camera pose."""
+    split = "validation" if parking_map == "Town02_Opt" else "train"
+    chosen = []
+    for idx, spawn in enumerate(road.get_spawn_points()):
+        start = road.get_waypoint(spawn.location)
+        if start.is_junction or any(
+            start.road_id == other.road_id
+            or spawn.location.distance(other.transform.location) < 65
+            for _, other in chosen
+        ):
+            continue
+        ahead = start.next(42.0)
+        if (
+            len(ahead) != 1
+            or ahead[0].road_id != start.road_id
+            or abs(
+                (ahead[0].transform.rotation.yaw - start.transform.rotation.yaw + 180)
+                % 360
+                - 180
+            )
+            > 7
+        ):
+            continue
+        chosen.append((idx, start))
+        if len(chosen) == 4:
+            break
+    if len(chosen) < 2:
+        raise ValueError("insufficient straight approaches")
+    scenes = []
+    for idx, start in chosen:
+        rng = random.Random(63072 + idx)
+        for j in range(12):
+            dist = rng.uniform(16, 32)
+            yaw = rng.uniform(50, 125)
+            camera = start.transform
+            camera.location.z += 1.9
+            camera.rotation.pitch -= rng.uniform(2, 6)
+            camera.rotation.yaw += rng.uniform(-22, 22)
+
+            def pose(tr):
+                return dict(
+                    location=dict(x=tr.location.x, y=tr.location.y, z=tr.location.z),
+                    rotation=dict(
+                        yaw=tr.rotation.yaw,
+                        pitch=tr.rotation.pitch,
+                        roll=tr.rotation.roll,
+                    ),
+                )
+
+            pair = []
+            for k, bp in enumerate(
+                rng.sample(CARS[:4] if split == "train" else CARS[4:], 2)
+            ):
+                wp = start.next(dist + k * rng.uniform(4, 8))[0]
+                tr = wp.transform
+                offset = rng.uniform(-2.2, 2.2)
+                tr.location = tr.location + tr.get_right_vector() * offset
+                tr.location.z += 0.10
+                tr.rotation.yaw += yaw + rng.uniform(-14, 14)
+                pair.append(dict(blueprint=bp, pose=pose(tr)))
+            group = f"pair-{idx}-{j:02}"
+            for role, actors in (
+                ("front", pair[:1]),
+                ("rear", pair[1:]),
+                ("both", pair),
+            ):
+                scenes.append(
+                    dict(
+                        id=group + "-" + role,
+                        group=group,
+                        role=role,
+                        split=split,
+                        roads=[start.road_id],
+                        camera=pose(camera),
+                        weather=WEATHER[j % 4],
+                        actors=actors,
+                    )
+                )
+    return scenes
+
+
+def parked_plan(world, out, parking_map=None):
     """Choose independent banks of registered parked vehicles using geometry alone."""
     road = world.get_map()
-    if road.name.split("/")[-1] != "Town05_Opt":
-        raise ValueError("parked transfer requires the independent Town05 map")
+    if road.name.split("/")[-1] != (parking_map or "Town05_Opt"):
+        raise ValueError("parked transfer map mismatch")
     cars = [
         (
             obj.id,
@@ -161,7 +243,7 @@ def parked_plan(world, out):
         selected.append((site, xy, near))
         if len(selected) == 4:
             break
-    if not selected:
+    if not selected and not parking_map:
         raise ValueError("no independently mapped parked vehicles")
     single_cluster = len(selected) == 1
     if single_cluster:
@@ -185,6 +267,9 @@ def parked_plan(world, out):
             pos["rotation"].update(
                 yaw=yaw + rand.uniform(-24, 24), pitch=rand.uniform(-9, -2)
             )
+            # Include adjacent streets and empty backgrounds for hard-negative mining.
+            if parking_map and j % 4 == 0:
+                pos["rotation"]["yaw"] += rand.choice((-95, 95, 180))
             actors = []
             if j % 3:
                 target = OTHERS[j % len(OTHERS)]
@@ -233,6 +318,11 @@ def parked_plan(world, out):
                     actors=actors,
                 )
             )
+    if parking_map:
+        split = "validation" if parking_map == "Town02_Opt" else "train"
+        for scene in scenes:
+            scene["split"] = split
+        scenes.extend(paired_rows(road, parking_map))
     return dict(
         map=road.name,
         xodr_sha256=hashlib.sha256(road.to_opendrive().encode()).hexdigest(),
@@ -240,12 +330,12 @@ def parked_plan(world, out):
     )
 
 
-def capture(out, port, parked=False):
+def capture(out, port, parked=False, parking_map=None):
     out.mkdir(parents=True, exist_ok=False)
     client = carla.Client("localhost", port)
     client.set_timeout(30)
     world = client.get_world()
-    spec = parked_plan(world, out) if parked else plan()
+    spec = parked_plan(world, out, parking_map) if parked or parking_map else plan()
     (out / "plan.json").write_text(json.dumps(spec, indent=2))
     road = world.get_map()
     if hashlib.sha256(road.to_opendrive().encode()).hexdigest() != spec["xodr_sha256"]:
@@ -334,5 +424,8 @@ if __name__ == "__main__":
     p.add_argument("out", type=Path)
     p.add_argument("--port", type=int, default=2400)
     p.add_argument("--parked", action="store_true")
+    p.add_argument(
+        "--parking-map", choices=("Town10HD_Opt", "Town02_Opt", "Town06_Opt")
+    )
     a = p.parse_args()
-    capture(a.out, a.port, a.parked)
+    capture(a.out, a.port, a.parked, a.parking_map)

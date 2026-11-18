@@ -20,7 +20,15 @@ ROOT = Path(__file__).resolve().parents[1]
 SERIES = ROOT / "docs/test-plan/evidence/m10_cuda_resize_v1"
 
 
-def prepare(output, module=None):
+def prepare(output, module=None, plan=None):
+    plan = (
+        plan
+        or ROOT
+        / "docs/test-plan/evidence/m10_fresh_quality_2k_v1/plan/preparation.json"
+    )
+    map_name = json.loads(plan.read_text())["map"]
+    if map_name not in ("Town04_Opt", "Town10HD_Opt", "Town02_Opt", "Town06_Opt"):
+        raise ValueError("unsupported preparation map")
     config = json.loads((SERIES / "preparation-argv.json").read_text())["renderer"]
     files = json.loads((SERIES / "pre-install.json").read_text())["files"]
     if any(sha(v["path"]) != v["sha256"] for v in files.values()):
@@ -35,9 +43,10 @@ def prepare(output, module=None):
     port = 2400
     for n in range(port, port + 3):
         with socket.socket() as check:
+            check.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             check.bind(("127.0.0.1", n))
     args = [
-        s.replace("/Town03_Opt", "/Town04_Opt")
+        s.replace("/Town03_Opt", "/" + map_name)
         if "/Maps/" in s
         else f"-carla-rpc-port={port}"
         if s.startswith("-carla-rpc-port=")
@@ -72,6 +81,8 @@ def prepare(output, module=None):
         ):
             raise ValueError("unverified quality preparation module")
         args.append("-StrataM10QualityAssetBarrier")
+        if map_name != "Town04_Opt":
+            args.append("-StrataM10QualityMap=" + map_name)
         if module_manifest.get("offline_game_asset_warmup"):
             args.append("-StrataM10AssetWarmNoTags")
         env["STRATADRIVE_M10_QUALITY_KEY"] = secrets.token_hex(32)
@@ -142,17 +153,18 @@ def prepare(output, module=None):
                             "--port",
                             str(port),
                             "--plan",
-                            ROOT
-                            / "docs/test-plan/evidence/m10_fresh_quality_2k_v1/plan/preparation.json",
+                            plan,
                             "--output",
                             output / "game-resources.json",
                         ]
+                        rpc_timeout = 300 if map_name == "Town04_Opt" else 1500
+                        cmd.extend(["--timeout", str(rpc_timeout)])
                         subprocess.run(
                             list(map(str, cmd)),
                             env=env,
                             stdout=client_log,
                             stderr=subprocess.STDOUT,
-                            timeout=660,
+                            timeout=2 * rpc_timeout + 60,
                             check=True,
                         )
             finally:
@@ -196,5 +208,6 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("output", type=Path)
     p.add_argument("--module", type=Path)
+    p.add_argument("--plan", type=Path)
     args = p.parse_args()
-    raise SystemExit(0 if prepare(args.output, args.module) else 1)
+    raise SystemExit(0 if prepare(args.output, args.module, args.plan) else 1)

@@ -46,7 +46,7 @@ def wait_for_client(client, server, timeout=1800):
                 client.wait()
 
 
-def collect(output, parked=False):
+def collect(output, parked=False, parking_map=None):
     files = read(SERIES / "pre-install.json")["files"]
     if any(sha(item["path"]) != item["sha256"] for item in files.values()):
         raise RuntimeError("shared renderer baseline mismatch")
@@ -59,12 +59,13 @@ def collect(output, parked=False):
         raise RuntimeError("renderer already active")
     for port in range(2400, 2403):
         with socket.socket() as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind(("localhost", port))
     output.mkdir(parents=True, exist_ok=False)
     argv = [
-        a.replace("Town03_Opt", "Town05_Opt" if parked else "Town04_Opt").replace(
-            "rpc-port=2300", "rpc-port=2400"
-        )
+        a.replace(
+            "Town03_Opt", parking_map or ("Town05_Opt" if parked else "Town04_Opt")
+        ).replace("rpc-port=2300", "rpc-port=2400")
         for a in read(SERIES / "preparation-argv.json")["renderer"]
     ]
     env = dict(os.environ, PYTHONPATH=str(ROOT), PYTHONDONTWRITEBYTECODE="1")
@@ -110,6 +111,7 @@ def collect(output, parked=False):
                             TESTS / "occlusion_transfer_capture.py",
                             output / "dataset",
                             *(["--parked"] if parked else []),
+                            *(["--parking-map", parking_map] if parking_map else []),
                         ],
                         env=env,
                         stdout=client_log,
@@ -142,5 +144,8 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("output", type=Path)
     p.add_argument("--parked", action="store_true")
+    p.add_argument(
+        "--parking-map", choices=("Town10HD_Opt", "Town02_Opt", "Town06_Opt")
+    )
     args = p.parse_args()
-    collect(args.output, args.parked)
+    collect(args.output, args.parked, args.parking_map)

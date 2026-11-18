@@ -22,8 +22,12 @@ inline bool QualityBarrier(UCarlaEpisode& Episode,const std::string& Input,bool 
   Result->SetBoolField(TEXT("ok"),false);
   const auto Key=FPlatformMisc::GetEnvironmentVariable(TEXT("STRATADRIVE_M10_QUALITY_KEY"));
   auto* World=Episode.GetWorld();
+  FString ExpectedMap=TEXT("Town04_Opt");
+  FParse::Value(FCommandLine::Get(),TEXT("StrataM10QualityMap="),ExpectedMap);
+  const bool SupportedMap=ExpectedMap==TEXT("Town04_Opt") || ExpectedMap==TEXT("Town10HD_Opt") ||
+      ExpectedMap==TEXT("Town02_Opt") || ExpectedMap==TEXT("Town06_Opt");
   if (!IsInGameThread() || Locked || Key.Len()!=64 || !J->TryGetStringField(TEXT("key"),Presented) ||
-      Key!=Presented || !World || !World->GetMapName().EndsWith(TEXT("Town04_Opt")) ||
+      Key!=Presented || !World || !SupportedMap || !World->GetMapName().EndsWith(ExpectedMap) ||
       !Episode.GetSettings().bSynchronousMode || !GDistanceFieldAsyncQueue || !GShaderCompilingManager) {
     Result->SetStringField(TEXT("reason"),TEXT("dedicated_quality_context"));
   } else if (TActorIterator<ASensor>(World) || TActorIterator<ACarlaWheeledVehicle>(World) ||
