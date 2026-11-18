@@ -1,0 +1,350 @@
+{
+  "frame_records_sha256": "3e6f995508019f93b7eb97b973eba5733fac9eb1f7323f167164a7742fd70175",
+  "manifest_sha256": "bc3230e34eea05697413f0658331be4e50b1cfdc2daadd0770e48dcc70aafca5",
+  "model_sha256": "cebce257cc2cd456a229467f47d19101ee0cad336833e6627d29ecf640c52683",
+  "splits": {
+    "train": {
+      "by_group": {
+        "Town10HD_Opt": {
+          "fn": 3,
+          "fp": 0,
+          "tp": 13
+        },
+        "previous": {
+          "fn": 39,
+          "fp": 1,
+          "tp": 406
+        }
+      },
+      "by_subtype": {
+        "pedestrian": {
+          "15to30m": {
+            "below_score": 13,
+            "detected": 112,
+            "no_box_iou50": 3
+          },
+          "all": {
+            "below_score": 15,
+            "detected": 151,
+            "no_box_iou50": 3
+          },
+          "overlap25pct_plus": {
+            "below_score": 5,
+            "detected": 7,
+            "no_box_iou50": 3
+          },
+          "overlap_under25pct": {
+            "below_score": 10,
+            "detected": 144
+          },
+          "scene_far": {
+            "below_score": 6,
+            "detected": 25
+          },
+          "scene_medium": {
+            "detected": 36
+          },
+          "scene_near": {
+            "detected": 36
+          },
+          "scene_occluded": {
+            "below_score": 6,
+            "detected": 15,
+            "no_box_iou50": 3
+          },
+          "scene_occluded_reference": {
+            "detected": 33
+          },
+          "scene_unlabelled": {
+            "below_score": 3,
+            "detected": 6
+          },
+          "under15m": {
+            "below_score": 2,
+            "detected": 39
+          }
+        },
+        "rider": {
+          "15to30m": {
+            "below_score": 16,
+            "detected": 178
+          },
+          "30m_plus": {
+            "below_score": 8,
+            "detected": 9
+          },
+          "all": {
+            "below_score": 24,
+            "detected": 268
+          },
+          "overlap25pct_plus": {
+            "below_score": 22,
+            "detected": 249
+          },
+          "overlap_under25pct": {
+            "below_score": 2,
+            "detected": 19
+          },
+          "scene_far": {
+            "detected": 72
+          },
+          "scene_medium": {
+            "detected": 72
+          },
+          "scene_near": {
+            "detected": 72
+          },
+          "scene_occluded": {
+            "below_score": 11,
+            "detected": 7
+          },
+          "scene_occluded_reference": {
+            "below_score": 5,
+            "detected": 13
+          },
+          "scene_unlabelled": {
+            "below_score": 8,
+            "detected": 32
+          },
+          "under15m": {
+            "detected": 81
+          }
+        }
+      },
+      "frames": 1461,
+      "original_at_06": {
+        "fn": 63,
+        "fp": 19,
+        "tp": 398
+      },
+      "original_vs_adapted_at_06": {
+        "pedestrian": {
+          "adapted_only": 20,
+          "both": 131,
+          "neither": 18
+        },
+        "rider": {
+          "adapted_only": 9,
+          "both": 259,
+          "neither": 16,
+          "original_only": 8
+        }
+      },
+      "score_misses": {
+        "pedestrian": {
+          "between_floor_and_threshold": 8,
+          "under_decode_floor": 7
+        },
+        "rider": {
+          "between_floor_and_threshold": 14,
+          "under_decode_floor": 10
+        }
+      },
+      "subtype_threshold_tp": {
+        "pedestrian": {
+          "0.35": 159,
+          "0.4": 157,
+          "0.5": 155,
+          "0.6": 151
+        },
+        "rider": {
+          "0.35": 282,
+          "0.4": 281,
+          "0.5": 277,
+          "0.6": 268
+        }
+      },
+      "thresholds": {
+        "0.35": {
+          "fn": 20,
+          "fp": 31,
+          "tp": 441
+        },
+        "0.4": {
+          "fn": 23,
+          "fp": 18,
+          "tp": 438
+        },
+        "0.5": {
+          "fn": 29,
+          "fp": 5,
+          "tp": 432
+        },
+        "0.6": {
+          "fn": 42,
+          "fp": 1,
+          "tp": 419
+        }
+      }
+    },
+    "validation": {
+      "by_group": {
+        "Town02_Opt": {
+          "fn": 0,
+          "fp": 0,
+          "tp": 18
+        },
+        "previous": {
+          "fn": 21,
+          "fp": 3,
+          "tp": 122
+        }
+      },
+      "by_subtype": {
+        "pedestrian": {
+          "15to30m": {
+            "below_score": 4,
+            "detected": 39,
+            "no_box_iou50": 1
+          },
+          "all": {
+            "below_score": 4,
+            "detected": 55,
+            "no_box_iou50": 1
+          },
+          "overlap25pct_plus": {
+            "below_score": 4,
+            "detected": 2,
+            "no_box_iou50": 1
+          },
+          "overlap_under25pct": {
+            "detected": 53
+          },
+          "scene_far": {
+            "detected": 12
+          },
+          "scene_medium": {
+            "detected": 12
+          },
+          "scene_near": {
+            "detected": 12
+          },
+          "scene_occluded": {
+            "below_score": 4,
+            "detected": 4,
+            "no_box_iou50": 1
+          },
+          "scene_occluded_reference": {
+            "detected": 9
+          },
+          "scene_unlabelled": {
+            "detected": 6
+          },
+          "under15m": {
+            "detected": 16
+          }
+        },
+        "rider": {
+          "15to30m": {
+            "below_score": 13,
+            "detected": 53
+          },
+          "30m_plus": {
+            "below_score": 3,
+            "detected": 2
+          },
+          "all": {
+            "below_score": 16,
+            "detected": 85
+          },
+          "overlap25pct_plus": {
+            "below_score": 14,
+            "detected": 70
+          },
+          "overlap_under25pct": {
+            "below_score": 2,
+            "detected": 15
+          },
+          "scene_far": {
+            "below_score": 9,
+            "detected": 15
+          },
+          "scene_medium": {
+            "detected": 24
+          },
+          "scene_near": {
+            "detected": 24
+          },
+          "scene_occluded": {
+            "below_score": 4,
+            "detected": 2
+          },
+          "scene_occluded_reference": {
+            "detected": 6
+          },
+          "scene_unlabelled": {
+            "below_score": 3,
+            "detected": 14
+          },
+          "under15m": {
+            "detected": 30
+          }
+        }
+      },
+      "frames": 699,
+      "original_at_06": {
+        "fn": 18,
+        "fp": 6,
+        "tp": 143
+      },
+      "original_vs_adapted_at_06": {
+        "pedestrian": {
+          "adapted_only": 4,
+          "both": 51,
+          "neither": 5
+        },
+        "rider": {
+          "both": 85,
+          "neither": 9,
+          "original_only": 7
+        }
+      },
+      "score_misses": {
+        "pedestrian": {
+          "between_floor_and_threshold": 1,
+          "under_decode_floor": 3
+        },
+        "rider": {
+          "between_floor_and_threshold": 9,
+          "under_decode_floor": 7
+        }
+      },
+      "subtype_threshold_tp": {
+        "pedestrian": {
+          "0.35": 56,
+          "0.4": 56,
+          "0.5": 55,
+          "0.6": 55
+        },
+        "rider": {
+          "0.35": 94,
+          "0.4": 93,
+          "0.5": 90,
+          "0.6": 85
+        }
+      },
+      "thresholds": {
+        "0.35": {
+          "fn": 11,
+          "fp": 10,
+          "tp": 150
+        },
+        "0.4": {
+          "fn": 12,
+          "fp": 7,
+          "tp": 149
+        },
+        "0.5": {
+          "fn": 16,
+          "fp": 6,
+          "tp": 145
+        },
+        "0.6": {
+          "fn": 21,
+          "fp": 3,
+          "tp": 140
+        }
+      }
+    }
+  }
+}

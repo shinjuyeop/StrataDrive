@@ -87,6 +87,8 @@ CUDA ONNX와 PyTorch의 81장 판정이 일치했고, 개발 절대 기준과 YO
 
 고정 후보를 보류 장소 101의 81장에서 한 번 평가했다. 정답 129개 중 106개를 맞히고 오검출 2건으로 정밀도 98.15%·재현율 82.17%를 기록했다. YOLOX-S 대비 상대 기준 여섯 항목은 통과했지만 사람 재현율 26/42(61.90%)가 클래스별 최소 70%에 미달해 전체 판정은 FAIL이다. 승용차는 33/33, 근거리 보행자는 3/3이었다. 실시간 제어 수용과 Jetson 성능은 미검증이다. [보류 점수·마스크 재검산](test-plan/evidence/m10_parking_holdout_v1/README.md)
 
+별도 검증 699장에서 놓친 보행자 5건은 모두 가림 장면이었다. 4건은 위치가 맞는 박스의 사람 점수가 낮았고 1건은 박스 위치가 빗나갔다. 점수 기준을 0.60에서 0.35로 낮추면 보행자 1건을 회복하고 사람 오검출이 7건 늘었다. 검증 자료의 30m 이상 보행자는 0건이다. [학습·검증 진단](test-plan/evidence/m10_person_diagnosis_v1/README.md)
+
 이전 실패와 원본은 각 evidence와 [Host 실행 이력](archive/implementation-history.md#m10-host-실행-이력)에 보존한다.
 
 ## 현재 구현과 수용 경계
@@ -129,7 +131,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 장소 101을 제외한 학습·검증 영상에서 보행자와 탑승자를 나눠 원거리·가림·중첩 조건의 누락을 진단한다. 개선 후보를 개발 자료에서 고정하고 새 독립 장소로 검증한다. [보류 실패 내역](test-plan/evidence/m10_parking_holdout_v1/README.md)
+1. 30m 이상·부분 가림·이륜차 중첩 보행자를 독립 개발 장소에서 보강하고 현재 0.60 기준과 개선 후보의 보행자·탑승자 검출 및 오검출을 비교한다. 후보를 고정한 뒤 새 독립 장소로 검증한다. [보행자 누락 진단](test-plan/evidence/m10_person_diagnosis_v1/README.md)
 2. 보류 기준을 통과하면 물리 서버와 영상 서버의 동일 프레임을 대조하고, 실제 영상 결과의 native 수신·만료·중단·재가입과 제어 지연을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
 3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 
