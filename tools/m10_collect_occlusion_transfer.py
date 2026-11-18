@@ -47,6 +47,18 @@ def wait_for_client(client, server, timeout=1800):
 
 
 def collect(output, parked=False, parking_map=None):
+    town = parking_map or ("Town05_Opt" if parked else "Town04_Opt")
+    client = [
+        PYTHON,
+        TESTS / "occlusion_transfer_capture.py",
+        output / "dataset",
+        *(["--parked"] if parked else []),
+        *(["--parking-map", parking_map] if parking_map else []),
+    ]
+    capture_scenes(output, town, client)
+
+
+def capture_scenes(output, town, client_argv, *, acquisition=None, timeout=1800):
     files = read(SERIES / "pre-install.json")["files"]
     if any(sha(item["path"]) != item["sha256"] for item in files.values()):
         raise RuntimeError("shared renderer baseline mismatch")
@@ -63,9 +75,7 @@ def collect(output, parked=False, parking_map=None):
             sock.bind(("localhost", port))
     output.mkdir(parents=True, exist_ok=False)
     argv = [
-        a.replace(
-            "Town03_Opt", parking_map or ("Town05_Opt" if parked else "Town04_Opt")
-        ).replace("rpc-port=2300", "rpc-port=2400")
+        a.replace("Town03_Opt", town).replace("rpc-port=2300", "rpc-port=2400")
         for a in read(SERIES / "preparation-argv.json")["renderer"]
     ]
     env = dict(os.environ, PYTHONPATH=str(ROOT), PYTHONDONTWRITEBYTECODE="1")
@@ -86,7 +96,12 @@ def collect(output, parked=False, parking_map=None):
 
     ini = Path(files["ini"]["path"])
     original = ini.read_bytes()
-    outcome = {"status": "FAIL"}
+    outcome = dict(
+        acquisition or {},
+        status="FAIL",
+        command=argv,
+        client=list(map(str, client_argv)),
+    )
     try:
         if (
             install("install")
@@ -103,28 +118,27 @@ def collect(output, parked=False, parking_map=None):
                 preexec_fn=lambda: resource.setrlimit(resource.RLIMIT_CORE, (0, 0)),
             )
             try:
-                prepare_empty_world(PYTHON, 2400, output, env, proc, argv[2])
+                outcome["readiness"] = prepare_empty_world(
+                    PYTHON, 2400, output, env, proc, argv[2]
+                )
                 with (output / "client.log").open("x") as client_log:
                     client = subprocess.Popen(
-                        [
-                            PYTHON,
-                            TESTS / "occlusion_transfer_capture.py",
-                            output / "dataset",
-                            *(["--parked"] if parked else []),
-                            *(["--parking-map", parking_map] if parking_map else []),
-                        ],
+                        client_argv,
                         env=env,
                         stdout=client_log,
                         stderr=subprocess.STDOUT,
                     )
-                    wait_for_client(client, proc)
+                    try:
+                        wait_for_client(client, proc, timeout)
+                    finally:
+                        outcome["client_exit"] = client.returncode
             finally:
                 outcome["shutdown"] = shutdown(proc, output / "shutdown")
         if outcome["shutdown"]["server_exit"] != 130 or outcome["shutdown"].get(
             "forced_stop"
         ):
             raise RuntimeError("renderer shutdown")
-        outcome["status"] = "PASS"
+        outcome["status"] = "PASS_CAPTURE" if acquisition is not None else "PASS"
     finally:
         restore_component(
             files["dxcompiler"]["path"],
