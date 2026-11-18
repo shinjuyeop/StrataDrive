@@ -1,0 +1,40 @@
+{
+  "model_sha256": "cebce257cc2cd456a229467f47d19101ee0cad336833e6627d29ecf640c52683",
+  "preserve_noncar": false,
+  "original_bus": true,
+  "upstream_sha256": "b44a7586bf490858c7b8bce9e44bd025cb88724df9a07a8deb3ae1c12e608195",
+  "input": "images",
+  "shape": [
+    1,
+    3,
+    960,
+    960
+  ],
+  "outputs": [
+    "labels",
+    "boxes",
+    "scores",
+    "car_boxes",
+    "car_logits",
+    "adjacent_delta",
+    "original_labels",
+    "original_boxes",
+    "original_scores"
+  ],
+  "near": 0.65,
+  "ordinary": 0.75,
+  "anchor": 0.7,
+  "overlap": 0.1,
+  "car_nms": 0.55,
+  "verifier": "37d511635fd3800aa6c8048de5afd53ee5de4d1d60c65735e43efc981d37964e",
+  "regressor": "e5fd95baca22710b5c07e5609207d820788b46903630674490a236f5bc5db58e",
+  "correction": "d9c08a04b3f2216755eac13714b92beef272631b9e7d650d00d93ab16a31aa03",
+  "pixel_input": "Original RGB, Pillow bilinear to 960x960, float32 / 255.",
+  "bus_policy": {
+    "source": "original",
+    "confidence": 0.5,
+    "support": 0.0,
+    "truck_veto": 0.2
+  },
+  "selection_sha256": "ee44a06bf68635d9cebbdb1e541f1a7dc341987981558a36852030ba81e5382a"
+}

@@ -1,0 +1,33 @@
+{
+  "positive_partial_weight": 8,
+  "epochs": 5,
+  "learning_rate": 6e-05,
+  "cutoffs": {
+    "near": 0.65,
+    "ordinary": 0.75,
+    "groups": {
+      "previous": {
+        "tp": 383,
+        "fp": 29,
+        "fn": 80,
+        "p": 0.9296116504854369,
+        "r": 0.8272138228941684
+      },
+      "Town02_Opt": {
+        "tp": 753,
+        "fp": 123,
+        "fn": 159,
+        "p": 0.8595890410958904,
+        "r": 0.8256578947368421
+      }
+    },
+    "min_p": 0.8595890410958904,
+    "min_r": 0.8256578947368421
+  },
+  "score_clip": 1.5,
+  "training_labels": "2c27df77e0f802abf998dab0a8c68519826fe66d5ff10f75e80cc8b5c4dbd0ad",
+  "validation_labels": "a98b963e9bbc11e1cfe7639455fda0d5bab3b2f7b6564061b8fdb4573b98e01a",
+  "parent_verifier": "37d511635fd3800aa6c8048de5afd53ee5de4d1d60c65735e43efc981d37964e",
+  "parent_regressor": "e5fd95baca22710b5c07e5609207d820788b46903630674490a236f5bc5db58e",
+  "selection": "Meet P >= .85 and R >= .80 in each validation group. Maximize matched partial-car detections, then worst-group recall, then precision. Include unchanged baseline."
+}

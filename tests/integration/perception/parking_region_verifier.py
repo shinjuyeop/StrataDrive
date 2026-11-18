@@ -74,21 +74,7 @@ def jitter(truth, generator):
     )
 
 
-@torch.inference_mode()
-def extract(model, image, row, generator=None):
-    image = image[None].cuda().float() / 255
-    feats = model.detector.encoder(model.detector.backbone(image))
-    queries = model.detector.decoder(feats)
-    scale = image.new_tensor([WIDTH, HEIGHT, WIDTH, HEIGHT])
-    coords = box_convert(queries["pred_boxes"][0], "cxcywh", "xyxy").clamp(0, 1) * scale
-    logits = queries["pred_logits"][0, :, 2].cpu()
-    gt = truth_boxes(row)
-    all_boxes = (
-        torch.cat((coords, jitter(gt, generator).cuda()))
-        if generator is not None
-        else coords
-    )
-    norm = all_boxes / scale
+def region_features(feats, norm):
     center = (norm[:, 2:] + norm[:, :2]) / 2
     radius = (norm[:, 2:] - norm[:, :2]) * 0.85
     context = torch.cat((center - radius, center + radius), 1).clamp(0, 1)
@@ -104,7 +90,24 @@ def extract(model, image, row, generator=None):
         chunks.append(
             torch.nn.functional.layer_norm(values.flatten(1), (values[0].numel(),))
         )
-    descriptor = torch.cat(chunks, 1).cpu().half()
+    return torch.cat(chunks, 1)
+
+
+@torch.inference_mode()
+def extract(model, image, row, generator=None):
+    image = image[None].cuda().float() / 255
+    feats = model.detector.encoder(model.detector.backbone(image))
+    queries = model.detector.decoder(feats)
+    scale = image.new_tensor([WIDTH, HEIGHT, WIDTH, HEIGHT])
+    coords = box_convert(queries["pred_boxes"][0], "cxcywh", "xyxy").clamp(0, 1) * scale
+    logits = queries["pred_logits"][0, :, 2].cpu()
+    gt = truth_boxes(row)
+    all_boxes = (
+        torch.cat((coords, jitter(gt, generator).cuda()))
+        if generator is not None
+        else coords
+    )
+    descriptor = region_features(feats, all_boxes / scale).cpu().half()
     boxes = all_boxes.cpu()
     match = box_iou(boxes, gt).amax(1) if len(gt) else torch.zeros(len(boxes))
     numeric = model.post(queries, torch.tensor([[WIDTH, HEIGHT]], device="cuda"))
@@ -352,7 +355,9 @@ def fit(root, previous_only=False):
     )
 
 
-def development(root, previous_only=False, *, adjust=None, output=None):
+def development(
+    root, previous_only=False, *, adjust=None, output=None, predict_car=car_predictions
+):
     if not (root / "fit/selection.json").exists():
         raise ValueError("select the full candidate before any development comparison")
     out = root / ("previous-fit" if previous_only else "fit")
@@ -389,9 +394,7 @@ def development(root, previous_only=False, *, adjust=None, output=None):
         scores = scores_for(net, row)
         if adjust is not None:
             row = adjust(row)
-        pred = (
-            car_predictions(row, scores, frozen["selected"]["threshold"]) + row["other"]
-        )
+        pred = predict_car(row, scores, frozen["selected"]["threshold"]) + row["other"]
         predictions.append(
             dict(scene=f["scene"], rgb_sha256=f["rgb_sha256"], detections=pred)
         )
