@@ -1,0 +1,87 @@
+{
+  "schema": "m10-diagnostic-latency-summary-v1",
+  "raw": 2776,
+  "inferences": 2772,
+  "successful_inferences": 2772,
+  "statistics": {
+    "scene_to_result": {
+      "count": 2772,
+      "median_ms": 93.9659225,
+      "p95_ms": 104.116053,
+      "max_ms": 212.060268
+    },
+    "scene_to_callback": {
+      "count": 2772,
+      "median_ms": 39.18639,
+      "p95_ms": 46.983211,
+      "max_ms": 136.223836
+    },
+    "callback_to_result": {
+      "count": 2772,
+      "median_ms": 54.464077,
+      "p95_ms": 59.848365,
+      "max_ms": 97.484405
+    },
+    "worker_queue": {
+      "count": 2772,
+      "median_ms": 1.4821745,
+      "p95_ms": 2.729248,
+      "max_ms": 12.113881
+    },
+    "preprocess": {
+      "count": 2772,
+      "median_ms": 25.902886,
+      "p95_ms": 30.703115,
+      "max_ms": 59.91359
+    },
+    "inference": {
+      "count": 2772,
+      "median_ms": 26.021903,
+      "p95_ms": 28.543174,
+      "max_ms": 48.350438
+    },
+    "worker_cpu": {
+      "count": 2772,
+      "median_ms": 29.7663,
+      "p95_ms": 31.740141,
+      "max_ms": 37.246306
+    },
+    "completion_spacing": {
+      "count": 2771,
+      "median_ms": 107.55807,
+      "p95_ms": 114.876727,
+      "max_ms": 469.899446
+    }
+  },
+  "results_scene_age_ge_100ms": 321,
+  "errors": [],
+  "native_first_fault": "",
+  "optimistic_wall_coverage": {
+    "scope": "upper bound ignoring original source/state/fidelity gates",
+    "start_ns": 2001458778570040,
+    "stop_ns": 2001758778570040,
+    "available_ns": 15914059215,
+    "duration_ns": 300000000000,
+    "fraction": 0.05304686405,
+    "valid_intervals": 2450,
+    "merged_intervals": 2450,
+    "maximum_unavailable_gap_ms": 2037.377395,
+    "control_acceptance_proven": false
+  },
+  "actual_control_admissions": 0,
+  "raw_rate_per_second": 9.253333333333334,
+  "percentile_method": "nearest rank; ceil(.95*n)-1 in sorted samples",
+  "inputs": {
+    "renderer": {
+      "path": "/d/shin/StrataDrive/build/m10-service-half-v1/normal-300s-01/archive-check/run/capture/paired/renderer/result.json",
+      "bytes": 27879155,
+      "sha256": "5bd3ce7fb90ac6ee792bb42fe9dd9a90ed7b482b6bf9be70c76ff3b788e906e7"
+    },
+    "native": {
+      "path": "/d/shin/StrataDrive/build/m10-service-half-v1/normal-300s-01/archive-check/run/capture/native.json",
+      "bytes": 309,
+      "sha256": "97317432bb23a73966fb727b88f7910fae656c64af95ba7eb29adccf0a3ce011"
+    }
+  },
+  "summarizer_sha256": "02bd3c1b23fa3b32d6ecdaea8383b41f133d890e190fb9cade121de96a6692a3"
+}

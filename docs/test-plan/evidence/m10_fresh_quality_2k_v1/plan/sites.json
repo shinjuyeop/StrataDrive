@@ -1,0 +1,43 @@
+{
+  "schema": "m10-fresh-2k-route-selection-v1",
+  "map": "Carla/Maps/Town04_Opt",
+  "xodr_sha256": "4dddd1560ab7812b0e89cd4a523d8b6f2b93947eafb496d9eeb83cc772116c85",
+  "survey_sha256": "917a0a78000dd0d1e9a4ec96a988c1699378f11ffd7e591f62836b1233736520",
+  "template_sha256": "ccb7a1692ad988ac37e2bccad562587b4488102076a8853edce1185015b51d97",
+  "used_plans": {
+    "profiles/perception-road-evaluation-v8.json": "0efbdd9602ce6aefbc3a0d5acb11cd3e2f4e603906bc51051b5c9af0ba2258f5",
+    "profiles/perception-road-evaluation-v8b.json": "01c8acde056d8d66a6754c22e20192314ff8e24641c5dcc1bec11b3a6e47a373",
+    "profiles/perception-road-evaluation-v9.json": "0155c984ece4afb76f33d84d8d8c69b8c326305464e5b86b0de51083d462c4b4"
+  },
+  "used_sites": [
+    7,
+    25,
+    38,
+    85
+  ],
+  "used_road_ids": [
+    6,
+    35,
+    41,
+    43,
+    45,
+    47
+  ],
+  "selected": {
+    "development": {
+      "spawn_index": 90,
+      "road_ids": [
+        29
+      ]
+    },
+    "holdout": {
+      "spawn_index": 101,
+      "road_ids": [
+        36
+      ]
+    }
+  },
+  "method": "First two complete eligible routes sorted by spawn index, disjoint road IDs, at least 50 m between camera origins and from previous sites",
+  "rgb_captured": false,
+  "model_evaluated": false
+}

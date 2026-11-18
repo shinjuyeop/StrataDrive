@@ -16,7 +16,7 @@
 | M7 | **시뮬레이션 시간 기능 통합 CLOSED / 실제 wall 실시간 수용 별도 OPEN** | [7개 실제 실행·독립 감사](test-plan/evidence/m7_carla_integrated/simulation-time/README.md) · [ADR-0065](archive/design-decisions.md#adr-0065) |
 | M8 | **제어기·고정 fixture 기능 SIL 범위 CLOSED / 전체 Reference·wall·Target 별도 OPEN** | [종료 검토](archive/milestone-reviews.md#m8) · [마감 무결성](test-plan/evidence/m8_closeout/README.md) |
 | M9 | **선언한 유한 Host·simulation10ms 기능 범위 CLOSED / wall·Target·장기 운용 별도** | [진단 계약](interfaces/diagnostics.md) · [마감 검증·원본·제한](test-plan/evidence/m9_followup/README.md) |
-| M10 | **30초·5분 동시 실행 PASS / 인지 수용·전체 OPEN** | [최신 실행](test-plan/evidence/m10_service_half_v1/README.md) · [영상 처리 후보](test-plan/evidence/m10_cuda_resize_v1/README.md) |
+| M10 | **30초·5분 동시 실행 PASS / 인지 수용·전체 OPEN** | [GPU 전처리 실행](test-plan/evidence/m10_cuda_resize_v1/README.md) · [CPU 전처리 비교 기준](test-plan/evidence/m10_service_half_v1/README.md) |
 | M11 | 상태 속도 제안·BMS 가용력·native 보호 연결; temporal learned planner·metric world model NOT RUN | [제안 계약](interfaces/supervised-speed-proposal.md) · [로드맵](roadmap.md) |
 | M12–M13 | PLANNED / NOT RUN | [로드맵](roadmap.md) |
 
@@ -38,9 +38,11 @@
 | 새 후륜 명령 전달 지연 | 원래 1ms polling의 145770ns 지각을 확인. 0.5ms 후보의 실제 30초·5분은 기존 만료·순차 ACK를 유지한 채 PASS |
 | 배포용 영상 서버 비교 | 중앙 장면 지연 약 496ms로 부적합. 기존 source editor 영상 서버로 복귀 |
 
-[GPU 전처리 후보](test-plan/evidence/m10_cuda_resize_v1/README.md)는 픽셀·모델 입력을
-그대로 유지하며 기존 CPU 크기 변환을 GPU로 옮긴다. 격리 비교에서 전처리 중앙값은
-17.63→8.28ms, 해당 스레드 CPU 시간은 15.18→5.59ms였다. 실제 동시 실행 효과는 아직 미확정이다.
+같은 모델과 원본 픽셀을 유지한 GPU 전처리로 30초·5분 동시 실행을 마쳤다. 5분 동안
+물리 기록 60,000개와 native 호출 599,962개가 원본과 일치했다. 관측 슬롯의 누락·지연은
+0건이었다. 30초 기록의 보관 검증을 마쳤고 5분 기록의 보관 검증은 진행 중이다.
+[GPU 실행 및 판정](test-plan/evidence/m10_cuda_resize_v1/README.md)
+
 원본 보관·검증의 중복 읽기를 줄인 [검증기](test-plan/evidence/m10_archive_stream_v1/README.md)도
 전체 파일·영상 해시와 원래 판정을 유지하면서 검증했다.
 
@@ -49,10 +51,11 @@ D-FINE-M960 CUDA, 카메라 목표 10Hz·렌더러 조회 20Hz·MaxFPS60이다.
 20Hz 카메라 달성 자체는 종료 기준이 아니다. 원래 100ms 기한과 실제 wall 시간에서의
 가용성을 측정한다. 유한 가감속 뒤 정지 유지 시나리오이며 연속 경로 주행 수용이 아니다.
 
-5분 영상 결과의 장면 기준 지연은 중앙값 93.97ms/p95 104.12ms였고, 2772개 중 321개가
-100ms 기한을 넘었다. 10Hz와 처리 지연을 함께 고려하면, 추가 수용 조건을 무시해도 원래
-기한 안에 결과가 존재하는 시간은 최대 5.30%였다. 기한 내 결과 비율과 연속 가용성은 다르다.
-이 수치를 정상 인지 제어 수용으로 세지 않는다.
+5분 영상 결과의 장면 기준 지연 중앙값은 CPU 전처리 93.97ms에서 GPU 전처리
+76.42ms로, p95는 104.12ms에서 84.15ms로 줄었다. 100ms 이상 걸린 결과는
+321/2,772개에서 9/2,769개로 줄었다. 다만 새 결과가 그 기한 안에 존재한 시간은
+5분의 최대 21.09%였고 최대 공백은 633ms였다. 실제 인지 제어 입력 수용은 0건이다.
+[기존 5분 원본 집계](test-plan/evidence/m10_service_half_v1/latency-300s-audited.json) · [GPU 5분 원본 집계](test-plan/evidence/m10_cuda_resize_v1/latency-300s.json)
 
 전체 장면의 같은 프레임 wheel/bone/material·자산 식별, typed native 인지 연결,
 고정 후보의 새 독립 품질 평가와 안정성 검증이 남았다. Jetson별 배포는 M12에서
@@ -99,9 +102,9 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. [GPU 전처리 후보](test-plan/evidence/m10_cuda_resize_v1/README.md)의 실제 두 준비 경로와 30초→5분 동시 실행을 검증한다. 영상 지연과 공급 공백을 함께 측정하고 원래 기한을 유지한다. 반복 인증은 [전용 Host lease](test-plan/m10-host-lease-automation.md)가 처리한다. 구조 분석 추천은 GPT-6.2 Astra / xhigh다.
-2. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)의 같은 프레임 wheel/bone/material 상태·자산 식별과 native 연결을 완성한다. 전체 장면이 없으면 인지 제어 수용은 닫고 Required는 opt-in SIL로 둔다.
-3. 후보·센서·모델 설정을 고정한 뒤 새 준비·개발·독립 보류 평가를 수행한다. 이미 본 V1–V9 보류·준비·실패·진단 영상은 새 holdout으로 재사용하지 않는다.
+1. 5분 원본의 보관 검증을 끝낸다. 물리·영상 동시 실행을 반복하는 대신 아래 두 종료 항목을 진행한다.
+2. 물리 서버와 영상 서버에서 동일 프레임의 차량 바퀴·보행자 뼈대·재질·자산을 확인하고, 검증된 영상 결과를 native 인지 수신기에 연결한다. 이후 실제 수신·만료·중단·재가입을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
+3. 지도만으로 선정한 새 개발 장소(90)와 독립 보류 장소(101)에서 품질을 평가한다. 고정 후보와 개발 결과를 기록한 뒤 보류 평가를 연다. [장소 선정 근거](test-plan/evidence/m10_fresh_quality_2k_v1/plan/sites.json)
 4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 
 구체 산출물과 미결정 항목은 [로드맵](roadmap.md)을 따른다.

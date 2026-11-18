@@ -1,6 +1,29 @@
 # Exact CUDA resize comparison
 
-Status: **component and both actual model preparation paths PASS; live comparison NOT RUN**.
+**The 30 s live diagnostic passed end to end. The 300 s run passed its live audits and exact replay. Its archive validation is in progress.**
+
+| 300 s with 2K camera | CPU resize | CUDA resize |
+| --- | ---: | ---: |
+| Scene to result, median | 93.97 ms | 76.42 ms |
+| Scene to result, p95 | 104.12 ms | 84.15 ms |
+| Results at or beyond 100 ms | 321 / 2,772 | 9 / 2,769 |
+| Fraction of wall time with a potentially fresh result | 5.30% | 21.09% |
+| Longest gap without a potentially fresh result | 2,037 ms | 633 ms |
+
+Both runs used the same 100 ms exclusive deadline. GPU resize yielded 2,773 camera
+packets and 2,769 completed results. In the GPU run, raw camera delivery averaged
+9.24 Hz and preprocessing took 12.07 ms median. The 21.09% is an upper bound
+before physical source time, actual state age and visual fidelity checks. Actual ECU
+perception admissions were zero. The finite physical fixture spent most of its time
+holding at rest. [GPU original timing](latency-300s.json) · [CPU original timing](../m10_service_half_v1/latency-300s-audited.json)
+
+All 60,000 physical receipts and 599,962 native service calls matched the original
+replay. Peak CPU temperature was 87 °C with no observed hardware throttle counter
+increment. The original Intel P-state values were read back independently after the
+lease log relay exited. Its final event was APPLIED, so the exact restoration instant is
+unknown. All 13,947 original asset files were restored. [Replay](normal-300s-01/replay.json) · [CPU readback](host-restoration-readback.json) · [Asset restoration](cache-execution.json)
+
+## Component evidence
 
 The GPU executes the same two integer resize passes as the original CPU path.
 Model weights, RGB bytes, tensor conversion and all deadlines remain unchanged.
@@ -20,5 +43,4 @@ Settled owner calls were29.67/32.09ms and renderer calls30.66/33.36ms at100%. Re
 performance condition.
 
 Follow the [prospective protocol](../../perception-cuda-resize-v1-protocol.md).
-The source freeze and actual evidence will be recorded before and after execution.
 No complete-scene or native perception acceptance is claimed here.

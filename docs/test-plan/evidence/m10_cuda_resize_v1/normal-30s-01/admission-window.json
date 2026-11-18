@@ -1,0 +1,58 @@
+{
+  "status": "PASS_SERVICE_HALF_INTEGRITY",
+  "receipts": 6000,
+  "normal": 5842,
+  "preview_reserve_ns": 300000,
+  "physics_interval_ns": 5000000,
+  "original_age_ns": 30000000,
+  "scope": "service cadence and original policy integrity; separate physical acceptance required",
+  "purges": [],
+  "requested_slice_ns": 100000,
+  "owner_cpus": [
+    2,
+    3,
+    4,
+    5,
+    10,
+    11,
+    12,
+    13
+  ],
+  "renderer_cpus": [
+    6,
+    7,
+    14,
+    15
+  ],
+  "measured_placement_samples": {
+    "owner": 29,
+    "renderer": 29,
+    "client": 29,
+    "native": 29,
+    "pipeline": 29
+  },
+  "library_prefetch": {
+    "owner": {
+      "files": 12,
+      "bytes": 1909074752,
+      "elapsed_ns": 6005530423
+    },
+    "renderer": {
+      "files": 12,
+      "bytes": 1909074752,
+      "elapsed_ns": 1582789931
+    }
+  },
+  "cadence": {
+    "service_period_ns": 500000,
+    "observed_calls": 60008,
+    "skipped_slots": 3,
+    "original_ecu_periods_and_watch_deadlines": true
+  },
+  "declared_policy": {
+    "hv_dependency_ns": 50000000,
+    "source_and_actual_policy": "original 30ms gates",
+    "completed_cache_hints": 17,
+    "raw_bytes_retained": true
+  }
+}

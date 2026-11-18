@@ -1,0 +1,59 @@
+{
+  "status": "PASS_EXPLICIT_WORKSPACE_ONLY",
+  "cuda_resize": {
+    "status": "PASS_EXPLICIT_CUDA_RESIZE_ONLY",
+    "owner": {
+      "kind": "cuda-two-pass-exact-v1",
+      "library": "/d/shin/StrataDrive/build/m10-cuda-resize-v1/release/libresize-cuda.so",
+      "sha256": "0be28cf15bc07f76710e4b88ea3b57d516ff5aec12b12efa5dfe72ef07be7312",
+      "cpu_resize_threads": 0,
+      "host_wait": "cudaEventBlockingSync",
+      "calls": 3,
+      "failures": 0,
+      "closed": true,
+      "owner_thread_id": 140195886265920,
+      "owner_native_tid": 4099933
+    },
+    "renderer": {
+      "kind": "cuda-two-pass-exact-v1",
+      "library": "/d/shin/StrataDrive/build/m10-cuda-resize-v1/release/libresize-cuda.so",
+      "sha256": "0be28cf15bc07f76710e4b88ea3b57d516ff5aec12b12efa5dfe72ef07be7312",
+      "cpu_resize_threads": 0,
+      "host_wait": "cudaEventBlockingSync",
+      "calls": 282,
+      "failures": 0,
+      "closed": true,
+      "owner_thread_id": 128541232449088,
+      "owner_native_tid": 4100004
+    },
+    "native_perception_accepted": false
+  },
+  "preparation_ms": [
+    511.094997,
+    30.038589,
+    29.635078
+  ],
+  "model_cpus": [
+    6,
+    7,
+    14,
+    15
+  ],
+  "observer_cpus": [
+    0,
+    8
+  ],
+  "renderer_pipeline": {
+    "thread_id": 4100004,
+    "cv_threads": 4,
+    "tensor_workspace": true,
+    "resize_threads": 0,
+    "cuda_wait": {
+      "runtime": "/d/shin/StrataDrive/build/m10-perception/cuda-venv/lib/python3.10/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+      "before": 8,
+      "after": 12,
+      "scope": "current process CUDA device"
+    }
+  },
+  "native_perception_accepted": false
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "m10-diagnostic-latency-summary-v1",
+  "raw": 2773,
+  "inferences": 2769,
+  "successful_inferences": 2769,
+  "statistics": {
+    "scene_to_result": {
+      "count": 2769,
+      "median_ms": 76.418029,
+      "p95_ms": 84.145806,
+      "max_ms": 194.267677
+    },
+    "scene_to_callback": {
+      "count": 2769,
+      "median_ms": 38.165176,
+      "p95_ms": 41.951165,
+      "max_ms": 140.830944
+    },
+    "callback_to_result": {
+      "count": 2769,
+      "median_ms": 37.935525,
+      "p95_ms": 43.848627,
+      "max_ms": 63.082652
+    },
+    "worker_queue": {
+      "count": 2769,
+      "median_ms": 1.507662,
+      "p95_ms": 2.847927,
+      "max_ms": 11.217823
+    },
+    "preprocess": {
+      "count": 2769,
+      "median_ms": 12.065786,
+      "p95_ms": 15.030614,
+      "max_ms": 24.641112
+    },
+    "inference": {
+      "count": 2769,
+      "median_ms": 23.461065,
+      "p95_ms": 26.368271,
+      "max_ms": 33.912508
+    },
+    "worker_cpu": {
+      "count": 2769,
+      "median_ms": 18.77887,
+      "p95_ms": 21.235494,
+      "max_ms": 40.690507
+    },
+    "completion_spacing": {
+      "count": 2768,
+      "median_ms": 107.434954,
+      "p95_ms": 115.515859,
+      "max_ms": 487.129047
+    }
+  },
+  "results_scene_age_ge_100ms": 9,
+  "errors": [],
+  "native_first_fault": "",
+  "optimistic_wall_coverage": {
+    "scope": "upper bound ignoring original source/state/fidelity gates",
+    "start_ns": 2006421724295873,
+    "stop_ns": 2006721724295873,
+    "available_ns": 63266682619,
+    "duration_ns": 300000000000,
+    "fraction": 0.21088894206333333,
+    "valid_intervals": 2759,
+    "merged_intervals": 2759,
+    "maximum_unavailable_gap_ms": 632.512376,
+    "control_acceptance_proven": false
+  },
+  "actual_control_admissions": 0,
+  "raw_rate_per_second": 9.243333333333334,
+  "percentile_method": "nearest rank; ceil(.95*n)-1 in sorted samples",
+  "inputs": {
+    "renderer": {
+      "path": "/tmp/stratadrive-m10-cuda-resize-v1/normal-300s-01/capture/paired/renderer/result.json",
+      "bytes": 27637657,
+      "sha256": "b078408c2c26b3721bbf5f1d14c53e224a49fcfb590a30bb0712cad8f4e0222e"
+    },
+    "native": {
+      "path": "/tmp/stratadrive-m10-cuda-resize-v1/normal-300s-01/capture/native.json",
+      "bytes": 309,
+      "sha256": "e40bf7b992fc46e34764adda01b6defb3ba93ff54718cd70637d87af896798fe"
+    }
+  },
+  "summarizer_sha256": "02bd3c1b23fa3b32d6ecdaea8383b41f133d890e190fb9cade121de96a6692a3"
+}
