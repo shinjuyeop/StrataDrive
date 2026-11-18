@@ -1,0 +1,58 @@
+{
+  "status": "PASS",
+  "scope": "Previously consumed pilot images only",
+  "frames": [
+    {
+      "frame": 77,
+      "objects": 1,
+      "excluded": 0,
+      "rgb_sha256": "a7e30510aebe9f46b990d0ac123af2e8edb579dc3edc0d1fb10183cf2f24f66e"
+    },
+    {
+      "frame": 127,
+      "objects": 2,
+      "excluded": 0,
+      "rgb_sha256": "55488002dd21fb6f04bcc942f0ead398120eaf1b9791c3cc020848e1e5f18ca9"
+    },
+    {
+      "frame": 177,
+      "objects": 1,
+      "excluded": 0,
+      "rgb_sha256": "10250dce72977f03eca2a4516eec123d17f25b10feb9f444877327f14cbd7137"
+    }
+  ],
+  "model_wiring": {
+    "scope": "Already consumed three development pilot frames; tests GPU model and decoder wiring only",
+    "frames": [
+      {
+        "rgb_sha256": "a7e30510aebe9f46b990d0ac123af2e8edb579dc3edc0d1fb10183cf2f24f66e",
+        "candidate": 1,
+        "baseline": 1
+      },
+      {
+        "rgb_sha256": "55488002dd21fb6f04bcc942f0ead398120eaf1b9791c3cc020848e1e5f18ca9",
+        "candidate": 2,
+        "baseline": 1
+      },
+      {
+        "rgb_sha256": "10250dce72977f03eca2a4516eec123d17f25b10feb9f444877327f14cbd7137",
+        "candidate": 1,
+        "baseline": 1
+      }
+    ],
+    "candidate": "b865ac0f2597afd6fcb9e887ed7738e98e7690ecb4d5cebf42724a3e6b384884",
+    "baseline": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+    "providers": [
+      [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ]
+    ],
+    "status": "PASS",
+    "closed": true
+  }
+}

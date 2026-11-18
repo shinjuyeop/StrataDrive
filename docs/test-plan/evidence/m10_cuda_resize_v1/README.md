@@ -1,6 +1,9 @@
 # Exact CUDA resize comparison
 
-**The 30 s live diagnostic passed end to end. The 300 s run passed its live audits and exact replay. Its archive validation is in progress.**
+**Both the 30 s and the 300 s concurrent Host diagnostics passed.** The archive
+checker reproduced the physical verdict and original hashes for 283 and 2,773 camera
+packets respectively. Eight supplemental audits reproduced in each case and the
+six shared runtime files matched their original hashes. [Sequence disposition](sequence-disposition.json) · [5 min archive validation](normal-300s-01/archive-validation.json)
 
 | 300 s with 2K camera | CPU resize | CUDA resize |
 | --- | ---: | ---: |
@@ -22,6 +25,11 @@ replay. Peak CPU temperature was 87 °C with no observed hardware throttle count
 increment. The original Intel P-state values were read back independently after the
 lease log relay exited. Its final event was APPLIED, so the exact restoration instant is
 unknown. All 13,947 original asset files were restored. [Replay](normal-300s-01/replay.json) · [CPU readback](host-restoration-readback.json) · [Asset restoration](cache-execution.json)
+
+At the native observation points, 3,449 of 15,000 reads (22.99%) could have used a
+completed result under the original time checks if transport were instantaneous.
+Timing at these discrete reads and coverage over continuous wall time have different
+denominators. The recorded native receiver accepted zero results. [Native observation replay](native-read-freshness-300s.json)
 
 ## Component evidence
 

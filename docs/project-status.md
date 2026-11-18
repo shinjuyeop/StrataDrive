@@ -40,7 +40,7 @@
 
 같은 모델과 원본 픽셀을 유지한 GPU 전처리로 30초·5분 동시 실행을 마쳤다. 5분 동안
 물리 기록 60,000개와 native 호출 599,962개가 원본과 일치했다. 관측 슬롯의 누락·지연은
-0건이었다. 30초 기록의 보관 검증을 마쳤고 5분 기록의 보관 검증은 진행 중이다.
+0건이었다. 30초·5분 모두 원본 영상과 추가 검사 8개를 보관본에서 재검증했다.
 [GPU 실행 및 판정](test-plan/evidence/m10_cuda_resize_v1/README.md)
 
 원본 보관·검증의 중복 읽기를 줄인 [검증기](test-plan/evidence/m10_archive_stream_v1/README.md)도
@@ -102,10 +102,9 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 
 ## 다음 작업
 
-1. 5분 원본의 보관 검증을 끝낸다. 물리·영상 동시 실행을 반복하는 대신 아래 두 종료 항목을 진행한다.
-2. 물리 서버와 영상 서버에서 동일 프레임의 차량 바퀴·보행자 뼈대·재질·자산을 확인하고, 검증된 영상 결과를 native 인지 수신기에 연결한다. 이후 실제 수신·만료·중단·재가입을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
-3. 지도만으로 선정한 새 개발 장소(90)와 독립 보류 장소(101)에서 품질을 평가한다. 고정 후보와 개발 결과를 기록한 뒤 보류 평가를 연다. [장소 선정 근거](test-plan/evidence/m10_fresh_quality_2k_v1/plan/sites.json)
-4. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
+1. 물리 서버와 영상 서버에서 동일 프레임의 차량 바퀴·보행자 뼈대·재질·자산을 확인하고, 검증된 영상 결과를 native 인지 수신기에 연결한다. 이후 실제 수신·만료·중단·재가입을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
+2. 지도만으로 선정한 새 개발 장소(90)와 독립 보류 장소(101)에서 품질을 평가한다. 고정 후보와 개발 결과를 기록한 뒤 보류 평가를 연다. [장소 선정 근거](test-plan/evidence/m10_fresh_quality_2k_v1/plan/sites.json)
+3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 
 구체 산출물과 미결정 항목은 [로드맵](roadmap.md)을 따른다.
 
