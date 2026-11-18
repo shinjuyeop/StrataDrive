@@ -330,12 +330,18 @@ def parked_plan(world, out, parking_map=None):
     )
 
 
-def capture(out, port, parked=False, parking_map=None):
+def capture(
+    out, port, parked=False, parking_map=None, *, plan_factory=None, size=(1280, 768)
+):
+    width, height = size
     out.mkdir(parents=True, exist_ok=False)
     client = carla.Client("localhost", port)
     client.set_timeout(30)
     world = client.get_world()
-    spec = parked_plan(world, out, parking_map) if parked or parking_map else plan()
+    if plan_factory:
+        spec = plan_factory(world, parking_map)
+    else:
+        spec = parked_plan(world, out, parking_map) if parked or parking_map else plan()
     (out / "plan.json").write_text(json.dumps(spec, indent=2))
     road = world.get_map()
     if hashlib.sha256(road.to_opendrive().encode()).hexdigest() != spec["xodr_sha256"]:
@@ -353,8 +359,8 @@ def capture(out, port, parked=False, parking_map=None):
         for kind, name in (("rgb", "rgb"), ("mask", "instance_segmentation")):
             bp = library.find("sensor.camera." + name)
             for k, v in {
-                "image_size_x": "1280",
-                "image_size_y": "768",
+                "image_size_x": str(width),
+                "image_size_y": str(height),
                 "fov": "90",
                 "sensor_tick": "0.05",
             }.items():
@@ -389,13 +395,13 @@ def capture(out, port, parked=False, parking_map=None):
                     pair[kind] = bytes(image.raw_data)
             rgb = (
                 np.frombuffer(pair["rgb"], np.uint8)
-                .reshape(768, 1280, 4)[:, :, 2::-1]
+                .reshape(height, width, 4)[:, :, 2::-1]
                 .copy()
             )
             basename = scene["id"]
             Image.fromarray(rgb).save(out / (basename + ".png"), compress_level=1)
             (out / (basename + ".mask.z")).write_bytes(zlib.compress(pair["mask"], 1))
-            objects, excluded = annotate(pair["mask"], 1280, 768)
+            objects, excluded = annotate(pair["mask"], width, height)
             results.append(
                 dict(
                     id=basename,

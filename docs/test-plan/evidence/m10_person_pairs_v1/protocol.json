@@ -1,0 +1,20 @@
+{
+  "parent_onnx_sha256": "cebce257cc2cd456a229467f47d19101ee0cad336833e6627d29ecf640c52683",
+  "train": {"new_town": "Town01_Opt", "archive_frames": 1461},
+  "validation": {"new_town": "Town07_Opt", "archive_frames": 699},
+  "camera": {"width": 2560, "height": 1536, "horizontal_fov": 90, "detector_input": [960, 960]},
+  "pair_design": {"roads_per_town": 2, "along_road_metres": [20, 31, 34, 38], "views_per_distance": 3, "roles": ["clear", "car", "car_only", "cycle", "cycle_only"]},
+  "candidate": {
+    "architecture": "Frozen final 256-dimensional query embedding, one linear correction to the frozen person logit",
+    "training": "Existing train images and new Town01 pairs only. Fixed L2 penalty 0.015, paired-image weight 4, at most 16 hardest negatives per image.",
+    "eligibility": "Frozen person probability at least 0.01, positive box area, person confidence 0.60 after correction. Preserve existing person outputs and suppress additions at IoU >=0.45 to any kept person box.",
+    "primary_metric": "Strict one-to-one person IoU >=0.50 using the frozen visible-support eligibility rules"
+  },
+  "screen": {
+    "new_validation": "At least one more pedestrian TP with no rider TP loss",
+    "archive_validation": "No pedestrian or rider TP loss",
+    "both_validation_sets": "Per set, person FP increase <= floor(frames * 0.01) and person precision >=0.85",
+    "if_pass": "Check full six-class protocol on existing development site and independently validate a frozen export before opening a fresh holdout.",
+    "if_fail": "Reject this candidate and retain the parent and unopened fresh holdout."
+  }
+}

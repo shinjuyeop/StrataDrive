@@ -21,7 +21,7 @@ from m10_collect_occlusion_transfer import (
 from carla_readiness_v1 import wait_ready
 
 
-def collect(output, town, port):
+def collect(output, town, port, *, client_script=None):
     import carla
 
     output = output.resolve()
@@ -90,7 +90,7 @@ def collect(output, town, port):
                     client = subprocess.Popen(
                         [
                             PYTHON,
-                            TESTS / "occlusion_transfer_capture.py",
+                            client_script or TESTS / "occlusion_transfer_capture.py",
                             output / "dataset",
                             "--port",
                             str(port),
