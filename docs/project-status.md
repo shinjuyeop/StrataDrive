@@ -75,6 +75,11 @@ D-FINE-M960 CUDA, 카메라 목표 10Hz·렌더러 조회 20Hz·MaxFPS60이다.
 보류 평가는 열지 않았다. 정상 인지의 실시간 수용·만료·재가입 및 최종 안정성 검증이 남았다.
 [개발 점수와 비교 실험](test-plan/evidence/m10_fresh_quality_2k_v1/results.md) Jetson별 배포는 M12에서
 수행하며 현재 보드 최적화를 앞당기지 않는다. M10 종료로 표시하지 않는다.
+다른 도로에서 RGB·마스크 432쌍을 새로 수집했다. 기존 학습 전용 자료를 합쳐 D-FINE을 학습하고
+독립 검증 자료 315장으로 후보를 선택했다. 개발 영상에서 디코더 학습은 정밀도 98.83%·재현율 63.11%,
+승용차 분류층 추가 학습은 83.26%·72.66%였다. 검증 자료로 신뢰도·중복 억제를 선택한 후보는
+64.48%·80.90%였다. 절대 기준을 동시에 충족한 후보가 없다. [학습·오검출 판정](test-plan/evidence/m10_occlusion_transfer_v1/README.md)
+
 이전 실패와 원본은 각 evidence와 [Host 실행 이력](archive/implementation-history.md#m10-host-실행-이력)에 보존한다.
 
 ## 현재 구현과 수용 경계
@@ -118,7 +123,7 @@ Wall/Target과 전체 renderer 안정성은 별도이며 [당시 종료 검토](
 ## 다음 작업
 
 1. 물리 서버와 영상 서버에서 동일 프레임의 차량 바퀴·보행자 뼈대·재질·자산을 확인하고, 검증된 영상 결과를 native 인지 수신기에 연결한다. 이후 실제 수신·만료·중단·재가입을 검증한다. [물리/렌더링 분리 계약](interfaces/perception-render-isolation-v1.md)
-2. 개발 장소(90)에서 확인한 가려진 배경 차량 문제를 해결하고 품질 기준을 충족한 후보를 고정한 뒤 보류 장소(101)를 평가한다. [장소 선정 근거](test-plan/evidence/m10_fresh_quality_2k_v1/plan/sites.json)
+2. 독립된 주차장 자료에서 가려진 차량의 누락과 배경을 차량으로 잘못 잡은 사례를 함께 검증한다. 개발 장소(90)의 정밀도·재현율 기준을 함께 충족한 후보를 고정한 뒤 보류 장소(101)를 평가한다. [장소 선정 근거](test-plan/evidence/m10_fresh_quality_2k_v1/plan/sites.json)
 3. M11의 metric fusion/localization·temporal planner·risk·classical fallback을 정의하고, M12에서 각 Jetson의 동일 Reference 배포·측정 뒤 보드별 최적화를 검토한다.
 
 구체 산출물과 미결정 항목은 [로드맵](roadmap.md)을 따른다.
